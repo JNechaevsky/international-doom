@@ -1,0 +1,106 @@
+//
+// Copyright(C) 1993-1996 Id Software, Inc.
+// Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2016-2023 Julia Nechaevskaya
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// DESCRIPTION:
+//	Main program, simply calls D_DoomMain high level loop.
+//
+
+#include <assert.h>
+#include <stdio.h>
+#include <time.h>   // [JN] srand(time(0))
+#include <SDL.h>
+
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+
+#include "config.h"
+#include "doomtype.h"
+#include "i_system.h"
+#include "m_argv.h"
+#include "m_misc.h"
+
+
+#ifdef _WIN32
+// -----------------------------------------------------------------------------
+// CRL_CreateWindowsConsole
+// [JN] Creates console output Window. For Windows OS only.
+// -----------------------------------------------------------------------------
+
+static void CRL_CreateWindowsConsole (void)
+{
+    // Allocate console.
+    AllocConsole();
+    SetConsoleTitle("Console");
+
+    // Head text outputs.
+    freopen("CONIN$", "r",stdin); 
+    freopen("CONOUT$","w",stdout); 
+    freopen("CONOUT$","w",stderr); 
+
+    // Set a proper codepage.
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+}
+#endif
+
+
+//
+// D_DoomMain()
+// Not a globally visible function, just included for source reference,
+// calls all startup code, parses command line options.
+//
+
+void D_DoomMain (void);
+
+int main(int argc, char **argv)
+{
+    // save arguments
+
+    myargc = argc;
+    myargv = malloc(argc * sizeof(char *));
+    assert(myargv != NULL);
+
+    for (int i = 0; i < argc; i++)
+    {
+        myargv[i] = M_StringDuplicate(argv[i]);
+    }
+
+#if defined(_WIN32)
+    // [JN] Activate console if "-console" is present.
+    if (M_CheckParm ("-console"))
+    {
+        CRL_CreateWindowsConsole();
+    }
+
+    // compose a proper command line from loose file paths passed as arguments
+    // to allow for loading WADs and DEHACKED patches by drag-and-drop
+    M_AddLooseFiles();
+#endif
+
+    M_FindResponseFile();
+
+    // [JN] Use current time as seed for random generator.
+    srand(time(0));
+
+    // start doom
+    D_DoomMain ();
+
+    return 0;
+}
+
