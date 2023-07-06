@@ -350,10 +350,10 @@ void AM_Init (void)
         doom_99  = V_GetPaletteIndex(playpal, 111, 111, 111);
         doom_104 = V_GetPaletteIndex(playpal,  79,  79,  79);
         doom_112 = V_GetPaletteIndex(playpal, 119, 255, 111);
-        doom_176 = V_GetPaletteIndex(playpal, 255,   0,   0);
-        doom_184 = V_GetPaletteIndex(playpal, 155,   0,   0);
+        doom_176 = V_GetPaletteIndex(playpal, 255,   1,   1);
+        doom_184 = V_GetPaletteIndex(playpal, 155,   1,   1);
         doom_209 = V_GetPaletteIndex(playpal, 255, 235, 219);
-        doom_231 = V_GetPaletteIndex(playpal, 255, 255,   0);
+        doom_231 = V_GetPaletteIndex(playpal, 255, 255,   1);
 
         // BOOM color scheme
         boom_23  = V_GetPaletteIndex(playpal, 211, 115, 115);
@@ -362,7 +362,7 @@ void AM_Init (void)
         
         boom_119 = V_GetPaletteIndex(playpal,  67, 147,  55);
         boom_175 = V_GetPaletteIndex(playpal, 255,  31,  31);
-        boom_204 = V_GetPaletteIndex(playpal,   0,   0, 155);
+        boom_204 = V_GetPaletteIndex(playpal,   1,   1, 155);
         boom_208 = V_GetPaletteIndex(playpal, 255, 255, 255);
         boom_215 = V_GetPaletteIndex(playpal, 255, 127,  27);
 
@@ -371,15 +371,15 @@ void AM_Init (void)
         unity_81  = V_GetPaletteIndex(playpal, 231, 231, 231);
         unity_120 = V_GetPaletteIndex(playpal,  63, 131,  47);
         unity_160 = V_GetPaletteIndex(playpal, 255, 255, 115);
-        unity_200 = V_GetPaletteIndex(playpal,   0,   0, 255);
+        unity_200 = V_GetPaletteIndex(playpal,   1,   1, 255);
 
         // Jaguar color scheme
         jaguar_32  = V_GetPaletteIndex(playpal, 155,  51,  51);
         jaguar_120 = V_GetPaletteIndex(playpal,  63, 131,  47);
         jaguar_163 = V_GetPaletteIndex(playpal, 195, 155,  47);
-        jaguar_254 = V_GetPaletteIndex(playpal, 111,   0, 107);
+        jaguar_254 = V_GetPaletteIndex(playpal, 111,   1, 107);
 
-        secretwallcolors = V_GetPaletteIndex(playpal, 255, 0, 255);
+        secretwallcolors = V_GetPaletteIndex(playpal, 255, 1, 255);
     }
 
     W_ReleaseLumpName("PLAYPAL");
