@@ -23,7 +23,7 @@ International Doom, version 7.0 (released: July 7, 2023):
 * Compatibility with vanilla-engine demos.
 * Removed limitations of vanilla engine.
 * Support for nodes in extended format (ZDBSP and DeePBSP).
-* Support for BEX DeHackEd extensions.
+* Support for BEX/DEHEXTRA DeHackEd extensions.
 
 Note: no BOOM/MBF compatibility is provided﻿.
 
