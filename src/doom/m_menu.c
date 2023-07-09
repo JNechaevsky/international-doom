@@ -1328,7 +1328,7 @@ static void M_ID_ShowENDOOM (int choice)
 static menuitem_t ID_Menu_Display[]=
 {
     { 2, "MENU BACKGROUND SHADING",  M_ID_MenuShading,        'm'},
-    { 2, "EXTRA LEVEL BRIGHTNESS",   M_ID_LevelBrightness,    'l'},
+    { 2, "EXTRA LEVEL BRIGHTNESS",   M_ID_LevelBrightness,    'e'},
     {-1, "", 0, '\0'}, // COLOR SETTINGS
     { 2, "SATURATION",               M_ID_Saturation,         's'},
     { 2, "RED INTENSITY",            M_ID_R_Intensity,        'r'},
@@ -1425,7 +1425,6 @@ static void M_Draw_ID_Display (void)
                  msg_local_time == 2 ? "24-HOUR FORMAT" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str, 
                  M_Item_Glow(11, msg_local_time ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
-
 }
 
 static void M_ID_MenuShading (int choice)
