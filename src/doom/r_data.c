@@ -1120,13 +1120,13 @@ void R_InitColormaps (void)
 	int c, i, j = 0;
 	byte r, g, b;
 
-    // [JN] Handle RGB channels separatelly
-    // to support variable saturation and color intensity.
-    byte r_channel, g_channel, b_channel;
-    // [JN] Saturation floats, high and low.
-    // Sum must be 1.0 to get proper color.
-    const float a_hi = I_SaturationPercent[vid_saturation];
-    const float a_lo = a_hi / 2;
+	// [JN] Handle RGB channels separatelly
+	// to support variable saturation and color intensity.
+	byte r_channel, g_channel, b_channel;
+	// [JN] Saturation floats, high and low.
+	// Sum must be 1.0 to get proper color.
+	const float a_hi = I_SaturationPercent[vid_saturation];
+	const float a_lo = a_hi / 2;
 
 	playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
@@ -1143,29 +1143,29 @@ void R_InitColormaps (void)
 
 			for (i = 0; i < 256; i++)
 			{
-                if (vid_saturation < 100)
-                {
-			        r_channel = 
-			            (byte) ((1 - a_hi) * playpal[3 * i + 0]  +
-			                    (0 + a_lo) * playpal[3 * i + 1]  +
-			                    (0 + a_lo) * playpal[3 * i + 2]) * vid_r_intensity;
-                    
-			        g_channel = 
-			            (byte) ((0 + a_lo) * playpal[3 * i + 0]  +
-			                    (1 - a_hi) * playpal[3 * i + 1]  +
-			                    (0 + a_lo) * playpal[3 * i + 2]) * vid_g_intensity;
-                    
-			        b_channel = 
-			            (byte) ((0 + a_lo) * playpal[3 * i + 0] +
-			                    (0 + a_lo) * playpal[3 * i + 1] +
-			                    (1 - a_hi) * playpal[3 * i + 2] * vid_b_intensity);
-                }
-                else
-                {
-                    r_channel = (byte) (playpal[3 * i + 0] * vid_r_intensity);
-                    g_channel = (byte) (playpal[3 * i + 1] * vid_g_intensity);
-                    b_channel = (byte) (playpal[3 * i + 2] * vid_b_intensity);
-                }
+				if (vid_saturation < 100)
+				{
+					r_channel = 
+						(byte) ((1 - a_hi) * playpal[3 * i + 0]  +
+								(0 + a_lo) * playpal[3 * i + 1]  +
+								(0 + a_lo) * playpal[3 * i + 2]) * vid_r_intensity;
+
+					g_channel = 
+						(byte) ((0 + a_lo) * playpal[3 * i + 0]  +
+								(1 - a_hi) * playpal[3 * i + 1]  +
+								(0 + a_lo) * playpal[3 * i + 2]) * vid_g_intensity;
+
+					b_channel = 
+						(byte) ((0 + a_lo) * playpal[3 * i + 0] +
+								(0 + a_lo) * playpal[3 * i + 1] +
+								(1 - a_hi) * playpal[3 * i + 2] * vid_b_intensity);
+				}
+				else
+				{
+					r_channel = (byte) (playpal[3 * i + 0] * vid_r_intensity);
+					g_channel = (byte) (playpal[3 * i + 1] * vid_g_intensity);
+					b_channel = (byte) (playpal[3 * i + 2] * vid_b_intensity);
+				}
 
 				r = gammatable[vid_gamma][r_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
 				g = gammatable[vid_gamma][g_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
@@ -1195,29 +1195,29 @@ void R_InitColormaps (void)
 		{
 			for (i = 0; i < 256; i++)
 			{
-                if (vid_saturation < 100)
-                {
-			        r_channel = g_channel =  b_channel = 
-			            (byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
-			                    (0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
-			                    (0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+				if (vid_saturation < 100)
+				{
+					r_channel = g_channel =  b_channel = 
+						(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+								(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+								(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
 
-                    g_channel =
-			            (byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
-			                    (1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 1])  +
-			                    (0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+					g_channel =
+						(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+								(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+								(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
 
-                    b_channel =
-			            (byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
-			                    (0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
-			                    (1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
-                }
-                else
-                {
-                    r_channel = (byte) ((playpal[3 * colormap[c * 256 + i] + 0]) * vid_r_intensity);
-                    g_channel = (byte) ((playpal[3 * colormap[c * 256 + i] + 1]) * vid_g_intensity);
-                    b_channel = (byte) ((playpal[3 * colormap[c * 256 + i] + 2]) * vid_b_intensity);
-                }
+					b_channel =
+						(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+								(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+								(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+				}
+				else
+				{
+					r_channel = (byte) ((playpal[3 * colormap[c * 256 + i] + 0]) * vid_r_intensity);
+					g_channel = (byte) ((playpal[3 * colormap[c * 256 + i] + 1]) * vid_g_intensity);
+					b_channel = (byte) ((playpal[3 * colormap[c * 256 + i] + 2]) * vid_b_intensity);
+				}
 
 				r = gammatable[vid_gamma][r_channel] & ~3;
 				g = gammatable[vid_gamma][g_channel] & ~3;
