@@ -2010,14 +2010,6 @@ const pixel_t I_MapRGB (uint8_t r, uint8_t g, uint8_t b)
 	        (((g * gmask) >> 8) & gmask) |
 	        (((b * bmask) >> 8) & bmask);
 */
-    // [JN] If saturation has been modified,
-    // modify channel mapping values as well.
-    if (vid_saturation < 100)
-    {
-        r *= I_SaturationPercent[vid_saturation];
-        g *= I_SaturationPercent[vid_saturation];
-        b *= I_SaturationPercent[vid_saturation];
-    }
 
 	return SDL_MapRGB(argbbuffer->format, r, g, b);
 }
