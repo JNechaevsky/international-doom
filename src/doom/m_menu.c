@@ -1490,7 +1490,6 @@ static void M_ID_Saturation (int choice)
     }
 
 #ifdef CRISPY_TRUECOLOR
-    I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
     AM_Init();
@@ -1521,7 +1520,6 @@ static void M_ID_R_Intensity (int choice)
     vid_r_intensity = (float) atof(buf);
 
 #ifdef CRISPY_TRUECOLOR
-    I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
     AM_Init();
@@ -1552,7 +1550,6 @@ static void M_ID_G_Intensity (int choice)
     vid_g_intensity = (float) atof(buf);
 
 #ifdef CRISPY_TRUECOLOR
-    I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
     AM_Init();
@@ -1583,7 +1580,6 @@ static void M_ID_B_Intensity (int choice)
     vid_b_intensity = (float) atof(buf);
 
 #ifdef CRISPY_TRUECOLOR
-    I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
     AM_Init();
