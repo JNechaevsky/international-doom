@@ -1139,7 +1139,7 @@ static void M_Draw_ID_Video (void)
     // Pixel scaling
     sprintf(str, vid_smooth_scaling ? "SMOOTH" : "SHARP");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 90, str, 
-                 M_Item_Glow(7, vid_showfps ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
+                 M_Item_Glow(7, vid_smooth_scaling ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
     // Gamma-correction slider and num
     M_DrawThermo(46, 108, 15, vid_gamma);
