@@ -1490,9 +1490,7 @@ static void M_ID_Saturation (int choice)
             break;
     }
 
-#ifndef CRISPY_TRUECOLOR
-    return;
-#else
+#ifdef CRISPY_TRUECOLOR
     I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
@@ -1507,14 +1505,14 @@ static void M_ID_R_Intensity (int choice)
     switch (choice)
     {
         case 0:
-            vid_r_intensity -= 0.025;
+            vid_r_intensity -= 0.025000f;
             if (vid_r_intensity < 0)
                 vid_r_intensity = 0;
             break;
         case 1:
-            vid_r_intensity += 0.025;
-            if (vid_r_intensity > 1.000000)
-                vid_r_intensity = 1.000000;
+            vid_r_intensity += 0.025000f;
+            if (vid_r_intensity > 1.000000f)
+                vid_r_intensity = 1.000000f;
         default:
             break;
     }
@@ -1523,10 +1521,7 @@ static void M_ID_R_Intensity (int choice)
     sprintf (buf, "%f", vid_r_intensity);
     vid_r_intensity = (float) atof(buf);
 
-#ifndef CRISPY_TRUECOLOR
-    return;
-#else
-
+#ifdef CRISPY_TRUECOLOR
     I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
@@ -1541,14 +1536,14 @@ static void M_ID_G_Intensity (int choice)
     switch (choice)
     {
         case 0:
-            vid_g_intensity -= 0.025;
+            vid_g_intensity -= 0.025000f;
             if (vid_g_intensity < 0)
                 vid_g_intensity = 0;
             break;
         case 1:
-            vid_g_intensity += 0.025;
-            if (vid_g_intensity > 1.000000)
-                vid_g_intensity = 1.000000;
+            vid_g_intensity += 0.025000f;
+            if (vid_g_intensity > 1.000000f)
+                vid_g_intensity = 1.000000f;
         default:
             break;
     }
@@ -1557,10 +1552,7 @@ static void M_ID_G_Intensity (int choice)
     sprintf (buf, "%f", vid_g_intensity);
     vid_g_intensity = (float) atof(buf);
 
-#ifndef CRISPY_TRUECOLOR
-    return;
-#else
-
+#ifdef CRISPY_TRUECOLOR
     I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
@@ -1575,14 +1567,14 @@ static void M_ID_B_Intensity (int choice)
     switch (choice)
     {
         case 0:
-            vid_b_intensity -= 0.025;
+            vid_b_intensity -= 0.025000f;
             if (vid_b_intensity < 0)
                 vid_b_intensity = 0;
             break;
         case 1:
-            vid_b_intensity += 0.025;
-            if (vid_b_intensity > 1.000000)
-                vid_b_intensity = 1.000000;
+            vid_b_intensity += 0.025000f;
+            if (vid_b_intensity > 1.000000f)
+                vid_b_intensity = 1.000000f;
         default:
             break;
     }
@@ -1591,9 +1583,7 @@ static void M_ID_B_Intensity (int choice)
     sprintf (buf, "%f", vid_b_intensity);
     vid_b_intensity = (float) atof(buf);
 
-#ifndef CRISPY_TRUECOLOR
-    return;
-#else
+#ifdef CRISPY_TRUECOLOR
     I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
