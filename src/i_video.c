@@ -2002,7 +2002,7 @@ const pixel_t I_BlendOver (const pixel_t bg, const pixel_t fg)
 
 const pixel_t (*blendfunc) (const pixel_t fg, const pixel_t bg) = I_BlendOver;
 
-const pixel_t I_MapRGB (uint8_t r, uint8_t g, uint8_t b)
+const pixel_t I_MapRGB (const uint8_t r, const uint8_t g, const uint8_t b)
 {
 /*
 	return amask |
@@ -2010,7 +2010,6 @@ const pixel_t I_MapRGB (uint8_t r, uint8_t g, uint8_t b)
 	        (((g * gmask) >> 8) & gmask) |
 	        (((b * bmask) >> 8) & bmask);
 */
-
 	return SDL_MapRGB(argbbuffer->format, r, g, b);
 }
 
