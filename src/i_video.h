@@ -91,6 +91,7 @@ int I_GetPaletteIndex(int r, int g, int b);
 void I_SetPalette (int palette);
 extern const pixel_t I_MapRGB (const uint8_t r, const uint8_t g, const uint8_t b);
 extern const int I_ShadeFactor[];
+extern const float I_SaturationPercent[];
 #endif
 void I_FinishUpdate (void);
 void I_FinishDemoWarpUpdate (void);
