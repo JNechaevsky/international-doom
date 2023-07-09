@@ -497,6 +497,7 @@ static void M_ID_UncappedFPS (int choice);
 static void M_ID_LimitFPS (int choice);
 static void M_ID_VSync (int choice);
 static void M_ID_ShowFPS (int choice);
+static void M_ID_PixelScaling (int choice);
 static void M_ID_Gamma (int choice);
 static void M_ID_ScreenWipe (int choice);
 static void M_ID_DiskIcon (int choice);
@@ -1053,6 +1054,7 @@ static menuitem_t ID_Menu_Video[]=
     { 2, "FRAMERATE LIMIT",       M_ID_LimitFPS,       'f'},
     { 2, "ENABLE VSYNC",          M_ID_VSync,          'e'},
     { 2, "SHOW FPS COUNTER",      M_ID_ShowFPS,        's'},
+    { 2, "PIXEL SCALING",         M_ID_PixelScaling,   'p'},
     { 2, "GAMMA-CORRECTION",      M_ID_Gamma,          'g'},
     {-1, "", 0, '\0'},
     {-1, "", 0, '\0'},
@@ -1060,7 +1062,6 @@ static menuitem_t ID_Menu_Video[]=
     { 2, "SCREEN WIPE EFFECT",    M_ID_ScreenWipe,     's'},
     { 2, "SHOW DISK ICON",        M_ID_DiskIcon,       's'},
     { 2, "SHOW ENDOOM SCREEN",    M_ID_ShowENDOOM,     's'},
-    {-1, "", 0, '\0'},
     {-1, "", 0, '\0'}
 };
 
@@ -1135,29 +1136,34 @@ static void M_Draw_ID_Video (void)
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 81, str, 
                  M_Item_Glow(6, vid_showfps ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
-    // Gamma-correction slider and num
-    M_DrawThermo(46, 99, 15, vid_gamma);
-    M_WriteText (184, 102, gammalvls[vid_gamma][1],
-                           M_Item_Glow(7, GLOW_UNCOLORED, ITEMONTICS));
+    // Pixel scaling
+    sprintf(str, vid_smooth_scaling ? "SMOOTH" : "SHARP");
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 90, str, 
+                 M_Item_Glow(7, vid_showfps ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
-    M_WriteTextCentered(117, "MISCELLANEOUS", cr[CR_YELLOW]);
+    // Gamma-correction slider and num
+    M_DrawThermo(46, 108, 15, vid_gamma);
+    M_WriteText (184, 110, gammalvls[vid_gamma][1],
+                           M_Item_Glow(8, GLOW_UNCOLORED, ITEMONTICS));
+
+    M_WriteTextCentered(126, "MISCELLANEOUS", cr[CR_YELLOW]);
 
     // Screen wipe effect
     sprintf(str, vid_screenwipe == 1 ? "ORIGINAL" :
                  vid_screenwipe == 2 ? "FAST" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str,
-                 M_Item_Glow(11, vid_screenwipe ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str,
+                 M_Item_Glow(12, vid_screenwipe ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
     // Show disk icon
     sprintf(str, vid_diskicon == 1 ? "BOTTOM" :
                  vid_diskicon == 2 ? "TOP" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str, 
-                 M_Item_Glow(12, vid_diskicon ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 144, str, 
+                 M_Item_Glow(13, vid_diskicon ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
     // Show ENDOOM screen
     sprintf(str, vid_endoom ? "ON" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 144, str, 
-                 M_Item_Glow(13, vid_endoom ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 153, str, 
+                 M_Item_Glow(14, vid_endoom ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 }
 
 
@@ -1275,6 +1281,16 @@ static void M_ID_VSync (int choice)
 static void M_ID_ShowFPS (int choice)
 {
     vid_showfps ^= 1;
+}
+
+static void M_ID_PixelScaling (int choice)
+{
+    vid_smooth_scaling ^= 1;
+
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
 }
 
 static void M_ID_Gamma (int choice)
