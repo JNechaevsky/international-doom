@@ -509,6 +509,10 @@ static void M_ID_LevelBrightness (int choice);
 static void M_ID_MessagesAlignment (int choice);
 static void M_ID_TextShadows (int choice);
 static void M_ID_LocalTime (int choice);
+static void M_ID_Saturation (int choice);
+static void M_ID_R_Intensity (int choice);
+static void M_ID_G_Intensity (int choice);
+static void M_ID_B_Intensity (int choice);
 
 static void M_Choose_ID_Sound (int choice);
 static void M_Draw_ID_Sound (void);
@@ -1323,19 +1327,18 @@ static void M_ID_ShowENDOOM (int choice)
 
 static menuitem_t ID_Menu_Display[]=
 {
-    { 2, "BACKGROUND SHADING",  M_ID_MenuShading,        'm'},
-    {-1, "", 0, '\0'},
-    {-1, "", 0, '\0'},
-    { 2, "LEVEL BRIGHTNESS",    M_ID_LevelBrightness,    'l'},
-    {-1, "", 0, '\0'},
-    {-1, "", 0, '\0'},
+    { 2, "MENU BACKGROUND SHADING",  M_ID_MenuShading,        'm'},
+    { 2, "EXTRA LEVEL BRIGHTNESS",   M_ID_LevelBrightness,    'l'},
+    {-1, "", 0, '\0'}, // COLOR SETTINGS
+    { 2, "SATURATION",               M_ID_Saturation,         's'},
+    { 2, "RED INTENSITY",            M_ID_R_Intensity,        'r'},
+    { 2, "GREEN INTENSITY",          M_ID_G_Intensity,        'g'},
+    { 2, "BLUE INTENSITY",           M_ID_B_Intensity,        'b'},
     {-1, "", 0, '\0'}, // MESSAGES
-    { 2, "MESSAGES ENABLED",    M_ChangeMessages,         'm'},
-    { 2, "MESSAGES ALIGNMENT",  M_ID_MessagesAlignment,  'm'},
-    { 2, "TEXT CASTS SHADOWS",  M_ID_TextShadows,        't'},
-    { 2, "LOCAL TIME",          M_ID_LocalTime,          'l'},
-    {-1, "", 0, '\0'},
-    {-1, "", 0, '\0'},
+    { 2, "MESSAGES ENABLED",         M_ChangeMessages,        'm'},
+    { 2, "MESSAGES ALIGNMENT",       M_ID_MessagesAlignment,  'm'},
+    { 2, "TEXT CASTS SHADOWS",       M_ID_TextShadows,        't'},
+    { 2, "LOCAL TIME",               M_ID_LocalTime,          'l'},
     {-1, "", 0, '\0'},
     {-1, "", 0, '\0'},
     {-1, "", 0, '\0'}
@@ -1366,38 +1369,63 @@ static void M_Draw_ID_Display (void)
     M_WriteTextCentered(18, "DISPLAY OPTIONS", cr[CR_YELLOW]);
 
     // Background shading
-    M_DrawThermo(46, 36, 9, dp_menu_shading);
     sprintf(str,"%d", dp_menu_shading);
-    M_WriteText (136, 39, str, M_Item_Glow(0, GLOW_UNCOLORED, ITEMONTICS));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 27, str,
+                 M_Item_Glow(0, dp_menu_shading == 8 ? GLOW_YELLOW :
+                                dp_menu_shading >  0 ? GLOW_GREEN  : GLOW_RED, ITEMONTICS));
 
-    // Level brightness
-    M_DrawThermo(46, 63, 9, dp_level_brightness);
+    // Extra level brightness
     sprintf(str,"%d", dp_level_brightness);
-    M_WriteText (136, 66, str, M_Item_Glow(3, GLOW_UNCOLORED, ITEMONTICS));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 36, str,
+                 M_Item_Glow(1, dp_level_brightness == 8 ? GLOW_YELLOW :
+                                dp_level_brightness >  0 ? GLOW_GREEN  : GLOW_RED, ITEMONTICS));
 
-    M_WriteTextCentered(81, "MESSAGES SETTINGS", cr[CR_YELLOW]);
+    M_WriteTextCentered(45, "COLOR SETTINGS", cr[CR_YELLOW]);
+
+    // Saturation
+    M_snprintf(str, 6, "%d%%", vid_saturation);
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 54, str,
+                 M_Item_Glow(3, GLOW_LIGHTGRAY, ITEMONTICS));
+
+    // RED intensity
+    M_snprintf(str, 6, "%3f", vid_r_intensity);
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 63, str,
+                 M_Item_Glow(4, GLOW_RED, ITEMONTICS));
+
+    // GREEN intensity
+    M_snprintf(str, 6, "%3f", vid_g_intensity);
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 72, str,
+                 M_Item_Glow(5, GLOW_GREEN, ITEMONTICS));
+
+    // BLUE intensity
+    M_snprintf(str, 6, "%3f", vid_b_intensity);
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 81, str,
+                 M_Item_Glow(6, GLOW_BLUE, ITEMONTICS));
+
+    M_WriteTextCentered(90, "MESSAGES SETTINGS", cr[CR_YELLOW]);
 
     // Messages enabled
     sprintf(str, showMessages ? "ON" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 90, str,
-                 M_Item_Glow(7, showMessages ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 99, str,
+                 M_Item_Glow(8, showMessages ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
     // Messages alignment
     sprintf(str, msg_alignment == 1 ? "STATUS BAR" :
                  msg_alignment == 2 ? "CENTERED" : "LEFT");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 99, str,
-                 M_Item_Glow(8, GLOW_GREEN, ITEMONTICS));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 108, str,
+                 M_Item_Glow(9, GLOW_GREEN, ITEMONTICS));
 
     // Text casts shadows
     sprintf(str, msg_text_shadows ? "ON" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 108, str, 
-                 M_Item_Glow(9, msg_text_shadows ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 117, str, 
+                 M_Item_Glow(10, msg_text_shadows ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
     // Local time
     sprintf(str, msg_local_time == 1 ? "12-HOUR FORMAT" :
                  msg_local_time == 2 ? "24-HOUR FORMAT" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 117, str, 
-                 M_Item_Glow(10, msg_local_time ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str, 
+                 M_Item_Glow(11, msg_local_time ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
+
 }
 
 static void M_ID_MenuShading (int choice)
@@ -1445,6 +1473,132 @@ static void M_ID_TextShadows (int choice)
 static void M_ID_LocalTime (int choice)
 {
     msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice);
+}
+
+static void M_ID_Saturation (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (vid_saturation)
+                vid_saturation--;
+            break;
+        case 1:
+            if (vid_saturation < 100)
+                vid_saturation++;
+        default:
+            break;
+    }
+
+#ifndef CRISPY_TRUECOLOR
+    return;
+#else
+    I_SetPalette (st_palette);
+    R_InitColormaps();
+    R_FillBackScreen();
+    AM_Init();
+#endif
+}
+
+static void M_ID_R_Intensity (int choice)
+{
+    char buf[9];
+
+    switch (choice)
+    {
+        case 0:
+            vid_r_intensity -= 0.025;
+            if (vid_r_intensity < 0)
+                vid_r_intensity = 0;
+            break;
+        case 1:
+            vid_r_intensity += 0.025;
+            if (vid_r_intensity > 1.000000)
+                vid_r_intensity = 1.000000;
+        default:
+            break;
+    }
+
+    // [JN] Do a float correction to always get x.x00000 values:
+    sprintf (buf, "%f", vid_r_intensity);
+    vid_r_intensity = (float) atof(buf);
+
+#ifndef CRISPY_TRUECOLOR
+    return;
+#else
+
+    I_SetPalette (st_palette);
+    R_InitColormaps();
+    R_FillBackScreen();
+    AM_Init();
+#endif
+}
+
+static void M_ID_G_Intensity (int choice)
+{
+    char buf[9];
+
+    switch (choice)
+    {
+        case 0:
+            vid_g_intensity -= 0.025;
+            if (vid_g_intensity < 0)
+                vid_g_intensity = 0;
+            break;
+        case 1:
+            vid_g_intensity += 0.025;
+            if (vid_g_intensity > 1.000000)
+                vid_g_intensity = 1.000000;
+        default:
+            break;
+    }
+
+    // [JN] Do a float correction to always get x.x00000 values:
+    sprintf (buf, "%f", vid_g_intensity);
+    vid_g_intensity = (float) atof(buf);
+
+#ifndef CRISPY_TRUECOLOR
+    return;
+#else
+
+    I_SetPalette (st_palette);
+    R_InitColormaps();
+    R_FillBackScreen();
+    AM_Init();
+#endif
+}
+
+static void M_ID_B_Intensity (int choice)
+{
+    char buf[9];
+
+    switch (choice)
+    {
+        case 0:
+            vid_b_intensity -= 0.025;
+            if (vid_b_intensity < 0)
+                vid_b_intensity = 0;
+            break;
+        case 1:
+            vid_b_intensity += 0.025;
+            if (vid_b_intensity > 1.000000)
+                vid_b_intensity = 1.000000;
+        default:
+            break;
+    }
+
+    // [JN] Do a float correction to always get x.x00000 values:
+    sprintf (buf, "%f", vid_b_intensity);
+    vid_b_intensity = (float) atof(buf);
+
+#ifndef CRISPY_TRUECOLOR
+    return;
+#else
+    I_SetPalette (st_palette);
+    R_InitColormaps();
+    R_FillBackScreen();
+    AM_Init();
+#endif
 }
 
 // -----------------------------------------------------------------------------
