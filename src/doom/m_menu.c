@@ -643,6 +643,7 @@ static void M_Bind_M_StrafeLeft (int choice);
 static void M_Bind_M_StrafeRight (int choice);
 static void M_Bind_M_PrevWeapon (int choice);
 static void M_Bind_M_NextWeapon (int choice);
+static void M_Bind_M_Reset (int choice);
 
 static void M_Choose_ID_Widgets (int choice);
 static void M_Draw_ID_Widgets (void);
@@ -776,6 +777,7 @@ static void    M_DoMouseBind (int btnnum, int btn);
 static void    M_ClearMouseBind (int itemOn);
 static byte   *M_ColorizeMouseBind (int itemSetOn, int btn);
 static void    M_DrawBindButton (int itemNum, int yPos, int btn);
+static void    M_ResetMouseBinds (void);
 
 // -----------------------------------------------------------------------------
 
@@ -2728,7 +2730,7 @@ static menuitem_t ID_Menu_MouseBinds[]=
     { 1, "PREV WEAPON",    M_Bind_M_PrevWeapon,    'p' },
     { 1, "NEXT WEAPON",    M_Bind_M_NextWeapon,    'n' },
     {-1, "",               0,                      '\0'},
-    {-1, "",               0,                      '\0'},
+    { 1, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset, 'r' },
     {-1, "",               0,                      '\0'},
     {-1, "",               0,                      '\0'},
     {-1, "",               0,                      '\0'},
@@ -2797,6 +2799,25 @@ static void M_Bind_M_NextWeapon (int choice)
     M_StartMouseBind(1008);  // mousebnextweapon
 }
 
+static void M_Bind_M_ResetResponse (int key)
+{
+    if (key != key_menu_confirm)
+    {
+        return;
+    }
+
+    M_ResetMouseBinds();
+}
+
+static void M_Bind_M_Reset (int choice)
+{
+    const char *resetwarning =
+	    M_StringJoin("RESET MOUSE BINDINGS TO DEFAULT VALUES?",
+                     "\n\n", PRESSYN, NULL);
+
+    M_StartMessage(resetwarning, M_Bind_M_ResetResponse, true);
+}
+
 static void M_Draw_ID_MouseBinds (void)
 {
     M_ShadeBackground();
@@ -2812,6 +2833,8 @@ static void M_Draw_ID_MouseBinds (void)
     M_DrawBindButton(6, 81, mousebstraferight);
     M_DrawBindButton(7, 90, mousebprevweapon);
     M_DrawBindButton(8, 99, mousebnextweapon);
+
+    M_WriteTextCentered(108, "RESET", cr[CR_YELLOW]);
 
     M_DrawBindFooter(NULL, false);
 }
@@ -5323,8 +5346,8 @@ boolean M_Responder (event_t* ev)
 	if (currentMenu != &SaveDef && currentMenu != &LoadDef
 	// [JN] Do not close Options menu after pressing "N" in End Game.
 	&&  currentMenu != &ID_Def_Main
-    // [JN] Do not close last keybindings menu after keybindings reset.
-    &&  currentMenu != &ID_Def_Keybinds_6)
+    // [JN] Do not close bindings menu after keyboard/mouse binds reset.
+    &&  currentMenu != &ID_Def_Keybinds_6 && currentMenu != &ID_Def_MouseBinds)
 	menuactive = false;
 	S_StartSound(NULL,sfx_swtchx);
 	return true;
@@ -6728,4 +6751,22 @@ static void M_DrawBindButton (int itemNum, int yPos, int btn)
                 yPos,
                 M_NameMouseBind(itemNum, btn),
                 M_ColorizeMouseBind(itemNum, btn));
+}
+
+// -----------------------------------------------------------------------------
+// M_ResetBinds
+//  [JN] Reset all mouse binding to it's defaults.
+// -----------------------------------------------------------------------------
+
+static void M_ResetMouseBinds (void)
+{
+    mousebfire = 0;
+    mousebforward = 2;
+    mousebstrafe = 1;
+    mousebbackward = -1;
+    mousebuse = -1;
+    mousebstrafeleft = -1;
+    mousebstraferight = -1;
+    mousebprevweapon = 4;
+    mousebnextweapon = 3;
 }
