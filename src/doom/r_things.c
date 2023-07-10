@@ -769,8 +769,7 @@ void R_ProjectSprite (mobj_t* thing, int lightnum)
         {
             const int semi_bright = MAX(index, MINBRIGHT);
 
-            vis->colormap[1] = lightnum < 11 ? &colormaps[24*256] :
-                                               spritelights[semi_bright];
+            vis->colormap[1] = spritelights[semi_bright];
         }
         // Demi-brigths:
         else
