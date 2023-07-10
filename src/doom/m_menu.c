@@ -2606,7 +2606,7 @@ static menuitem_t ID_Menu_Keybinds_6[]=
     { 1, "- TO PLAYER 3",          M_Bind_ToPlayer3,       '3'  },
     { 1, "- TO PLAYER 4",          M_Bind_ToPlayer4,       '4'  },
     {-1, "",                       0,                      '\0' },  // RESET 
-    { 1, "RESET BINDINGS TO DEFAULTS", M_Bind_Reset,       'r'  },
+    { 1, "RESET BINDINGS TO DEFAULT", M_Bind_Reset,        'r'  },
     {-1, "",                       0,                      '\0' },
     {-1, "",                       0,                      '\0' },
     {-1, "",                       0,                      '\0' },
