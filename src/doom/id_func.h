@@ -62,6 +62,7 @@ typedef struct ID_Widget_s
 } ID_Widget_t;
 
 extern ID_Widget_t IDWidget;
+extern char ID_Local_Time[64];
 
 //
 // Render Counters and Widgets

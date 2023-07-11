@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>   // [JN] Local time.
 
 #include "doomdef.h" 
 #include "doomkeys.h"
@@ -1334,6 +1335,17 @@ void G_Ticker (void)
 	D_PageTicker (); 
 	break;
     }        
+
+    // [JN] Query local time.
+    if (msg_local_time)
+    {
+        time_t t = time(NULL);
+        struct tm *tm = localtime(&t);
+
+        strftime(ID_Local_Time, sizeof(ID_Local_Time),
+                 msg_local_time == 1 ? "%I:%M %p" :   // 12-hour (HH:MM designation)
+                                       "%H:%M", tm);  // 24-hour (HH:MM)
+    }
 } 
  
  

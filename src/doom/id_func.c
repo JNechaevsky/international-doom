@@ -18,7 +18,6 @@
 
 
 #include <stdio.h>
-#include <time.h>   // [JN] srand(time(0))
 
 #include "v_trans.h"
 #include "v_video.h"
@@ -39,6 +38,7 @@
 
 ID_Render_t IDRender;
 ID_Widget_t IDWidget;
+char ID_Local_Time[64];
 
 enum
 {
@@ -498,19 +498,11 @@ void ID_RightWidgets (void)
         yy += 9;
     }
 
-    // [JN] Local time
+    // [JN] Local time. Time gathered in G_Ticker.
     if (msg_local_time)
     {
-        char   s[64];
-        time_t t = time(NULL);
-        struct tm *tm = localtime(&t);
-
-        strftime(s, sizeof(s),
-                 msg_local_time == 1 ? "%I:%M %p" :   // 12-hour (HH:MM designation)
-                                       "%H:%M", tm);  // 24-hour (HH:MM)
-
         M_WriteText(ORIGWIDTH + WIDESCREENDELTA - 7
-                              - M_StringWidth(s), 9 + yy, s, cr[CR_GRAY]);
+                              - M_StringWidth(ID_Local_Time), 9 + yy, ID_Local_Time, cr[CR_GRAY]);
     }
 }
 
