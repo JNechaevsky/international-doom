@@ -340,6 +340,12 @@ static void D_Display (void)
             ID_DrawTargetsHealth();
         }
 
+        // [JN] Draw crosshair.
+        if (xhair_draw && !automapactive)
+        {
+            ID_DrawCrosshair();
+        }
+
         // [JN] Main status bar drawing function.
         if (dp_screen_size <= 12 || (automapactive && !automap_overlay))
         {

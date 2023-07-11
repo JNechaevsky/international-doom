@@ -91,6 +91,9 @@ int vis_invul_sky = 0;
 int vis_linear_sky = 0;
 int vis_flip_corpses = 0;
 
+int xhair_draw = 0;
+int xhair_color = 0;
+
 int st_colored_stbar = 0;
 int st_negative_health = 0;
 
@@ -192,6 +195,9 @@ void ID_BindVariables (void)
     M_BindIntVariable("vis_invul_sky",                  &vis_invul_sky);
     M_BindIntVariable("vis_linear_sky",                 &vis_linear_sky);
     M_BindIntVariable("vis_flip_corpses",               &vis_flip_corpses);
+
+    M_BindIntVariable("xhair_draw",                     &xhair_draw);
+    M_BindIntVariable("xhair_color",                    &xhair_color);
 
     M_BindIntVariable("st_colored_stbar",               &st_colored_stbar);
     M_BindIntVariable("st_negative_health",             &st_negative_health);

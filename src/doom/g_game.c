@@ -1311,8 +1311,8 @@ void G_Ticker (void)
 	{
 		CT_Ticker ();
 	}
-	// [JN] Target's health widget.
-	if (widget_health)
+	// [JN] Gather target's health for widget and/or crosshair.
+	if (widget_health || (xhair_draw && xhair_color > 1))
 	{
 		player_t *player = &players[displayplayer];
 
