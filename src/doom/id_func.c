@@ -574,6 +574,10 @@ void ID_DrawTargetsHealth (void)
 //
 // =============================================================================
 
+// -----------------------------------------------------------------------------
+// [JN] Crosshair graphical patches in Doom GFX format.
+// -----------------------------------------------------------------------------
+
 static const byte xhair_cross1[] =
 {
     0x07, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 
@@ -645,6 +649,11 @@ static const byte xhair_dot[] =
     0xFF, 0xFF, 0xFF, 0xFF, 0x04, 0x01, 0x53, 0x53, 0x53, 0xFF, 0xFF, 0xFF
 };
 
+// -----------------------------------------------------------------------------
+// ID_CrosshairShape
+//  [JN] Decides which patch should be drawn, depending on "xhair_draw" variable.
+// -----------------------------------------------------------------------------
+
 static patch_t *ID_CrosshairShape (int type)
 {
     return
@@ -657,12 +666,73 @@ static patch_t *ID_CrosshairShape (int type)
                           (patch_t*) &xhair_dot;
 }
 
+// -----------------------------------------------------------------------------
+// ID_CrosshairColor
+//  [JN] Coloring routine, depending on "xhair_color" variable.
+// -----------------------------------------------------------------------------
+
+static byte *ID_CrosshairColor (int type)
+{
+    const player_t *player = &players[displayplayer];
+
+    switch (type)
+    {
+        case 0:
+        {
+            // Static/uncolored.
+            return
+                cr[CR_RED];
+            break;
+        }
+        case 1:
+        {
+            // Health.
+            const int health = player->health;
+
+            // Values are same to status bar coloring (ST_WidgetColor).
+            return
+                health >= 67 ? cr[CR_GREEN]  :
+                health >= 34 ? cr[CR_YELLOW] :
+                               cr[CR_RED]    ;
+            break;
+        }
+        case 2:
+        {
+            // Target highlighting.
+            // "linetarget" is gathered via intercept-safe call 
+            // of P_AimLineAttack in G_Ticker.
+            return
+                linetarget ? cr[CR_BLUE2] : cr[CR_RED];
+            break;
+        }
+        case 3:
+        {
+            // TGT highlighting+health.
+            const int health = player->health;
+
+            return
+                linetarget   ? cr[CR_BLUE2]  :
+                health >= 67 ? cr[CR_GREEN]  :
+                health >= 34 ? cr[CR_YELLOW] :
+                               cr[CR_RED]    ;
+            break;
+        }
+    }
+
+    return NULL;
+}
+
+// -----------------------------------------------------------------------------
+// ID_DrawCrosshair
+//  [JN] Drawing routine, called via D_Display.
+// -----------------------------------------------------------------------------
+
 void ID_DrawCrosshair (void)
 {
     const int xx = (ORIGWIDTH  / 2) - 3;
     const int yy = (ORIGHEIGHT / 2) - 3 - (dp_screen_size <= 10 ? 16 : 0);
 
-    dp_translation = cr[CR_GREEN];
+    dp_translation = ID_CrosshairColor(xhair_color);
     V_DrawPatch(xx, yy, ID_CrosshairShape(xhair_draw));
     dp_translation = NULL;
 }
