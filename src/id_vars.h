@@ -91,6 +91,9 @@ extern int vis_invul_sky;
 extern int vis_linear_sky;
 extern int vis_flip_corpses;
 
+extern int xhair_draw;
+extern int xhair_color;
+
 extern int st_colored_stbar;
 extern int st_negative_health;
 

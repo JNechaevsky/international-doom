@@ -437,6 +437,10 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vis_linear_sky),
     CONFIG_VARIABLE_INT(vis_flip_corpses),
 
+    // Crosshair
+    CONFIG_VARIABLE_INT(xhair_draw),
+    CONFIG_VARIABLE_INT(xhair_color),
+
     // Status Bar
     CONFIG_VARIABLE_INT(st_colored_stbar),
     CONFIG_VARIABLE_INT(st_negative_health),

@@ -673,6 +673,8 @@ static void M_ID_SwirlingLiquids (int choice);
 static void M_ID_InvulSky (int choice);
 static void M_ID_LinearSky (int choice);
 static void M_ID_FlipCorpses (int choice);
+static void M_ID_Crosshair (int choice);
+static void M_ID_CrosshairColor (int choice);
 
 static void M_Choose_ID_Gameplay_2 (int choice);
 static void M_Draw_ID_Gameplay_2 (void);
@@ -3059,8 +3061,8 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { 2, "SKY DRAWING MODE",             M_ID_LinearSky,         's'  },
     { 2, "RANDOMLY MIRRORED CORPSES",    M_ID_FlipCorpses,       'r'  },
     {-1, "", 0, '\0'},
-    {-1, "", 0, '\0'},
-    {-1, "", 0, '\0'},
+    { 2, "CROSSHAIR SHAPE",              M_ID_Crosshair,         'c'  },
+    { 2, "CROSSHAIR COLORING",           M_ID_CrosshairColor,    'c'  },
     { 1, "", /*NEXT PAGE >*/             M_Choose_ID_Gameplay_2,  'n'  },
     { 1, "", /*< LAST PAGE*/             M_Choose_ID_Gameplay_3,  'p'  }
 };
@@ -3140,6 +3142,18 @@ static void M_Draw_ID_Gameplay_1 (void)
     M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 108, str,
                  M_Item_Glow(9, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
+    M_WriteTextCentered(117, "CROSSHAIR", cr[CR_YELLOW]);
+
+    // Crosshair shape
+    sprintf(str, xhair_draw == 1 ? "CROSS 1" :
+                 xhair_draw == 2 ? "CROSS 2" :
+                 xhair_draw == 3 ? "X" :
+                 xhair_draw == 4 ? "CIRCLE" :
+                 xhair_draw == 5 ? "ANGLE" :
+                 xhair_draw == 6 ? "TRIANGLE" :
+                 xhair_draw == 7 ? "DOT" : "OFF");
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 126, str,
+                 M_Item_Glow(11, xhair_draw ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
     M_WriteText (ID_MENU_LEFTOFFSET_BIG, 144, "NEXT PAGE >",
                  M_Item_Glow(13, GLOW_LIGHTGRAY, ITEMONTICS));
@@ -3208,6 +3222,16 @@ static void M_ID_LinearSky (int choice)
 static void M_ID_FlipCorpses (int choice)
 {
     vis_flip_corpses ^= 1;
+}
+
+static void M_ID_Crosshair (int choice)
+{
+    xhair_draw = M_INT_Slider(xhair_draw, 0, 7, choice);
+}
+
+static void M_ID_CrosshairColor (int choice)
+{
+
 }
 
 // -----------------------------------------------------------------------------

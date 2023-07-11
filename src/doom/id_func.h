@@ -72,6 +72,12 @@ extern void ID_RightWidgets (void);
 extern void ID_DrawTargetsHealth (void);
 
 //
+// Crosshair
+//
+
+extern void ID_DrawCrosshair (void);
+
+//
 // [crispy] demo progress bar and timer widget
 //
 
