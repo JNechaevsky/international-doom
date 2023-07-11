@@ -687,13 +687,11 @@ static byte *ID_CrosshairColor (int type)
         case 1:
         {
             // Health.
-            const int health = player->health;
-
             // Values are same to status bar coloring (ST_WidgetColor).
             return
-                health >= 67 ? cr[CR_GREEN]  :
-                health >= 34 ? cr[CR_YELLOW] :
-                               cr[CR_RED]    ;
+                player->health >= 67 ? cr[CR_GREEN]  :
+                player->health >= 34 ? cr[CR_YELLOW] :
+                                       cr[CR_RED]    ;
             break;
         }
         case 2:
@@ -708,13 +706,11 @@ static byte *ID_CrosshairColor (int type)
         case 3:
         {
             // TGT highlighting+health.
-            const int health = player->health;
-
             return
-                linetarget   ? cr[CR_BLUE2]  :
-                health >= 67 ? cr[CR_GREEN]  :
-                health >= 34 ? cr[CR_YELLOW] :
-                               cr[CR_RED]    ;
+                linetarget           ? cr[CR_BLUE2]  :
+                player->health >= 67 ? cr[CR_GREEN]  :
+                player->health >= 34 ? cr[CR_YELLOW] :
+                                       cr[CR_RED]    ;
             break;
         }
     }
