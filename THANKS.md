@@ -18,7 +18,7 @@ Project's author would like to thank everyone for code, technical, informative, 
 * Michael Day
 * ceski
 
-**International Doom**
+**[Russian Doom](https://github.com/Russian-Doom/russian-doom)**
 * Leonid Murin (Dasperal)
 
 **[DOOM Retro](http://doomretro.com/)**
