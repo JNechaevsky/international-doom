@@ -3157,8 +3157,8 @@ static void M_Draw_ID_Gameplay_1 (void)
 
     // Crosshair indication
     sprintf(str, xhair_color == 1 ? "HEALTH" :
-                 xhair_color == 2 ? "TARGET HIGHLIGHTING" :
-                 xhair_color == 3 ? "TGT HIGHLIGHTING+HEALTH" : "STATIC");
+                 xhair_color == 2 ? "TARGET HIGHLIGHT" :
+                 xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
     M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 135, str,
                  M_Item_Glow(12, xhair_color ? GLOW_GREEN : GLOW_DARKRED, ITEMONTICS));
 
