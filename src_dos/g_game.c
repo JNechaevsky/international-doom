@@ -172,6 +172,7 @@ fixed_t		angleturn[3] = {640, 1280, 320};	// + slow turn
 #define SLOWTURNTICS	6 
  
 #define NUMKEYS		256 
+#define MAX_JOY_BUTTONS 20
 
 boolean         gamekeydown[NUMKEYS]; 
 int             turnheld;				// for accelerative turning 
@@ -221,6 +222,13 @@ int G_CmdChecksum (ticcmd_t* cmd)
     return sum; 
 } 
  
+// [crispy] holding down the "Run" key may trigger special behavior,
+// e.g. quick exit, clean screenshots, resurrection from savegames
+boolean speedkeydown (void)
+{
+    return (key_speed < NUMKEYS && gamekeydown[key_speed]) ||
+           (joybspeed < MAX_JOY_BUTTONS && joybuttons[joybspeed]);
+}
 
 //
 // G_BuildTiccmd
@@ -253,7 +261,12 @@ void G_BuildTiccmd (ticcmd_t* cmd)
  
     strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe] 
 	|| joybuttons[joybstrafe]; 
-    speed = gamekeydown[key_speed] || joybuttons[joybspeed];
+
+    // fraggle: support the old "joyb_speed = 31" hack which
+    // allowed an autorun effect
+
+    speed = gamekeydown[key_speed] || joybspeed >= MAX_JOY_BUTTONS;
+    speed ^= speedkeydown();
  
     forward = side = 0;
     
