@@ -1117,6 +1117,7 @@ void R_InitColormaps (void)
     colormaps = W_CacheLumpNum(lump, PU_STATIC);
 #else
 	byte *playpal;
+	byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
 	int c, i, j = 0;
 	byte r, g, b;
 
@@ -1172,19 +1173,48 @@ void R_InitColormaps (void)
 		// [crispy] Invulnerability (c == COLORMAPS)
 		for (i = 0; i < 256; i++)
 		{
-			const byte gray = 0xff -
-			     (byte) (0.299 * playpal[3 * i + 0] +
-			             0.587 * playpal[3 * i + 1] +
-			             0.114 * playpal[3 * i + 2]);
-			r = g = b = gammatable[vid_gamma][gray];
+			// [JN] Check if we have a modified COLORMAP lump to decide
+			// how invulnerability effect will be drawn.
+
+			if (original_colormap)
+			{
+				// [JN] We don't. Generate it for better colors in TrueColor mode.
+				const byte gray = 0xff -
+					(byte) (0.299 * playpal[3 * i + 0] +
+							0.587 * playpal[3 * i + 1] +
+							0.114 * playpal[3 * i + 2]);
+				r = g = b = gammatable[vid_gamma][gray];
+			}
+			else
+			{
+				// [JN] We do. Fallback to 256 tablified colors from modified lump
+				// to provide better compatibility with mods. This is less nicer,
+				// but barely will be notable, since no light levels are used.
+				r_channel = g_channel =  b_channel = 
+					(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+
+				g_channel =
+					(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+							(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+
+				b_channel =
+					(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+							(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+
+				r = gammatable[vid_gamma][r_channel] & ~3;
+				g = gammatable[vid_gamma][g_channel] & ~3;
+				b = gammatable[vid_gamma][b_channel] & ~3;
+			}
 
 			colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 		}
 	}
 	else
 	{
-		byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
-
 		for (c = 0; c <= NUMCOLORMAPS; c++)
 		{
 			for (i = 0; i < 256; i++)
@@ -1211,9 +1241,9 @@ void R_InitColormaps (void)
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 			}
 		}
-
-		W_ReleaseLumpName("COLORMAP");
 	}
+
+	W_ReleaseLumpName("COLORMAP");
 #endif
 
     // [crispy] initialize color translation and color strings tables
