@@ -682,6 +682,7 @@ extern int    *flipviewwidth;
 
 extern boolean setsizeneeded;
 extern boolean original_playpal;
+extern boolean original_colormap;
 
 // Lighting LUT.
 // Used for z-depth cuing per column/row,

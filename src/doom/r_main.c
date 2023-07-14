@@ -40,6 +40,8 @@
 
 // [JN] Will be false if modified PLAYPAL lump is loaded.
 boolean original_playpal = true;
+// [JN] Will be false if modified COLORMAP lump is loaded.
+boolean original_colormap = true;
 
 int			viewangleoffset;
 
@@ -877,6 +879,12 @@ void R_Init (void)
     if (W_CheckMultipleLumps("PLAYPAL") > 1)
     {
         original_playpal = false;
+    }
+
+    // [JN] Check for modified COLORMAP lump.
+    if (W_CheckMultipleLumps("COLORMAP") > 1)
+    {
+        original_colormap = false;
     }
 
     R_InitData ();
