@@ -103,6 +103,7 @@ boolean		autostart;
 FILE*		debugfile;
 
 boolean		advancedemo;
+static boolean storedemo;  // Store demo, do not accept any inputs
 
 boolean	        modifiedgame;
 
@@ -157,8 +158,7 @@ void D_ProcessEvents (void)
     event_t*	ev;
 	
     // IF STORE DEMO, DO NOT ACCEPT INPUT
-    if ( ( commercial )
-	 && (W_CheckNumForName("map01")<0) )
+    if (storedemo)
       return;
 	
     for ( ; eventtail != eventhead ; eventtail = (++eventtail)&(MAXEVENTS-1) )
@@ -1257,6 +1257,14 @@ void D_DoomMain (void)
     printf ("ST_Init: Init status bar.\n");
     D_RedrawTitle();
     ST_Init ();
+
+    // [Chocolate Doom] If Doom II without a MAP01 lump, this is a store demo.
+    // Moved here so that MAP01 isn't constantly looked up in the main loop.
+
+    if (commercial && W_CheckNumForName("map01") < 0)
+    {
+	storedemo = true;
+    }
 
     // check for a driver that wants intermission stats
     p = M_CheckParm ("-statcopy");
