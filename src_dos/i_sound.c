@@ -124,6 +124,7 @@ void I_UnRegisterSong(int handle)
 #ifdef SNDDEBUG
     if (rc < 0) printf("MUS_Unreg() returned %d\n", rc);
 #endif
+    rc = false;
 }
 
 int I_QrySongPlaying(int handle)
@@ -333,6 +334,8 @@ void I_sndArbitrateCards(void)
         {
             printf("SB isn't responding at p=0x%x, i=%d, d=%d\n",
                    snd_SBport, snd_SBirq, snd_SBdma);
+            // [JN] Try to set again
+            SB_SetCard(snd_SBport, snd_SBirq, snd_SBdma);
         }
         else
         {
@@ -354,6 +357,8 @@ void I_sndArbitrateCards(void)
         if (AL_Detect(&wait, 0))
         {
             printf("Dude.  The Adlib isn't responding.\n");
+            // [JN] Try to set again
+            AL_SetCard(wait, W_CacheLumpName("genmidi", PU_STATIC));
         }
         else
         {

@@ -19,11 +19,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "doomdef.h"
+#include "doomstat.h"
 #include "fx_man.h"
 #include "music.h"
 #include "task_man.h"
 #include "mus2mid.h"
 #include "pcfx.h"
+#include "i_system.h"   // [JN] I_WaitVBL
 
 unsigned short divisors[] = {
     0,
@@ -221,6 +223,7 @@ int SFX_PlayPatch(void *vdata, int pitch, int sep, int vol, int unk1, int unk2) 
         len -= 32;
         return FX_PlayRaw(data + 24, len, rate, ((pitch - 128) * 2400) / 128, vol * 2, ((254 - sep) * vol) / 63, ((sep)* vol) / 63, 100, 0);
     }
+    return 0;
 }
 void SFX_StopPatch(int handle) {
     if (handle & 0x8000)
@@ -278,6 +281,7 @@ void AL_SetCard(int port, void *data) {
     cdata = (unsigned char *)data;
     tmb = malloc(13 * 256);
     memset(tmb, 0, 13 * 256);
+
     if (!tmb)
     {
         return;
@@ -319,7 +323,14 @@ void AL_SetCard(int port, void *data) {
                                 + cdata[8 + i * 36 + 4 + 14] + 12;
         tmb[(i + 35) * 13 + 12] = 0;
     }
-    AL_RegisterTimbreBank(tmb);
+
+    // [JN] Call if music set to Sound Blaster.
+    // Otherwise, use Adlib synth.
+    if (snd_DesiredMusicDevice == 3)
+    {
+        AL_RegisterTimbreBank(tmb);
+    }
+
     free(tmb);
 }
 int MPU_Detect(int *port, int *unk) {
@@ -333,6 +344,7 @@ void MPU_SetCard(int port) {
 }
 int DMX_Init(int rate, int maxsng, int mdev, int sdev) {
     long status, device;
+    int count = 0;
     dmx_sdev = sdev;
     status = 0;
 
@@ -356,7 +368,28 @@ int DMX_Init(int rate, int maxsng, int mdev, int sdev) {
         return -1;
         break;
     }
-    status = MUSIC_Init(device, dmx_mus_port);
+
+    // [JN] Query music module until it gives 
+    // OK responce, but don't loop forever.
+    //
+    // Fixes several cases:
+    // 1) Music may start with incorrect synth.
+    // 2) Music may not start at all.
+    // 3) Music may not start on fast DOSBox emulation (machine=vgaonly).
+    do
+    {
+        // Query music module
+        status = MUSIC_Init(device, dmx_mus_port);
+
+        // Count amount of queries
+        count++;
+
+        // Done 512 queries and still no responce? Let's end it up. :-(
+        if (count >= 512)
+        break;
+
+    } while (status != MUSIC_Ok);
+
     if (status == MUSIC_Ok) {
         MUSIC_SetVolume(0);
     }
@@ -382,7 +415,6 @@ void DMX_DeInit(void) {
 
 void WAV_PlayMode(int channels, int samplerate) {
     long device, status;
-    char tmp[300];
     switch (dmx_sdev) {
     case 0:
         device = NumSoundCards;
