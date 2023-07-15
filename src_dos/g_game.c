@@ -1635,14 +1635,20 @@ void G_TimeDemo (char* name)
  
 boolean G_CheckDemoStatus (void) 
 { 
-    int             endtime; 
-	 
-    if (timingdemo) 
-    { 
-	endtime = I_GetTime (); 
-	I_Error ("timed %i gametics in %i realtics",gametic 
-		 , endtime-starttime); 
-    } 
+    if (timingdemo)
+    {
+        // [JN] Show average fps for "-timedemo" runs.
+        const int endtime = I_GetTime();
+        const int realtics = endtime - starttime;
+        const float fps = ((float) gametic * TICRATE) / realtics;
+
+        // [Chocolate Doom] Prevent recursive calls.
+        timingdemo = false;
+        demoplayback = false;
+
+        I_Error ("Timed %i gametics in %i realtics.\n"
+                 "Average fps: %f", gametic, realtics, fps);
+    }
 	 
     if (demoplayback) 
     { 
