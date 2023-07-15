@@ -1174,9 +1174,11 @@ void D_DoomMain (void)
     }
     
     // If additonal PWAD files are used, print modified banner
+	// [JN] Do not request pressing Enter key, proceed normally.
+	/*
     if (modifiedgame)
     {
-	/*m*/printf (
+	printf (
 	    "===========================================================================\n"
 	    "ATTENTION:  This version of DOOM has been modified.  If you would like to\n"
 	    "get a copy of the original game, call 1-800-IDGAMES or see the readme file.\n"
@@ -1186,6 +1188,7 @@ void D_DoomMain (void)
 	    );
 	getchar ();
     }
+	*/
 	
 
     // Check and print which version is executed.
