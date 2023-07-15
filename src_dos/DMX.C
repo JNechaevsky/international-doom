@@ -221,7 +221,7 @@ int SFX_PlayPatch(void *vdata, int pitch, int sep, int vol, int unk1, int unk2) 
             return -1;
         }
         len -= 32;
-        return FX_PlayRaw(data + 24, len, rate, ((pitch - 128) * 2400) / 128, vol * 2, ((254 - sep) * vol) / 63, ((sep)* vol) / 63, 100, 0);
+        return FX_PlayRaw((char*) data + 24, len, rate, ((pitch - 128) * 2400) / 128, vol * 2, ((254 - sep) * vol) / 63, ((sep)* vol) / 63, 100, 0);
     }
     return 0;
 }
@@ -328,6 +328,8 @@ void AL_SetCard(int port, void *data) {
     // Otherwise, use Adlib synth.
     if (snd_DesiredMusicDevice == 3)
     {
+        extern void AL_RegisterTimbreBank (unsigned char *timbres);
+
         AL_RegisterTimbreBank(tmb);
     }
 

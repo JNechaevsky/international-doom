@@ -113,7 +113,6 @@ extern int mousepresent;
 void I_StartupCyberMan(void)
 {
     StaticDeviceData *pbuf;
-    int success = 0;
 
     isCyberPresent = 0;
 

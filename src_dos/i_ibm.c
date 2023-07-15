@@ -868,8 +868,6 @@ int basejoyx, basejoyy;
 
 void I_StartupJoystick(void)
 {
-    int buttons;
-    int count;
     int centerx, centery;
 
     joystickpresent = 0;
