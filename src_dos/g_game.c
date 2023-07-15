@@ -459,14 +459,15 @@ void G_DoLoadLevel (void)
 
     // DOOM determines the sky texture to be used
     // depending on the current episode, and the game version.
-    if ( commercial && altfinal )
+
+    // [Chocolate Doom] The "Sky never changes in Doom II" bug was
+    // fixed in the id Anthology version of doom2.exe for Final Doom.
+    // [JN] Let's just fix it for common Doom II.
+    if ( commercial /*&& altfinal*/ )
     {
-	skytexture = R_TextureNumForName ("SKY3");
-	if (gamemap < 12)
-	    skytexture = R_TextureNumForName ("SKY1");
-	else
-	    if (gamemap < 21)
-		skytexture = R_TextureNumForName ("SKY2");
+        skytexture = R_TextureNumForName (gamemap < 12 ? "SKY1" : 
+                                          gamemap < 21 ? "SKY2" :
+                                                         "SKY3");
     }
 
     levelstarttic = gametic;        // for time calculation
