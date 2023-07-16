@@ -373,7 +373,7 @@ static void D_Display (void)
         }
 
         // [JN] Main status bar drawing function.
-        if (dp_screen_size <= 12 || (automapactive && !automap_overlay))
+        if (dp_screen_size < 15 || (automapactive && !automap_overlay))
         {
             ST_Drawer();
         }

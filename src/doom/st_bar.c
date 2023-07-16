@@ -1206,6 +1206,10 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 
 void ST_Drawer (void)
 {
+    // [JN] Wide status bar.
+    const int wide_x = dp_screen_size > 12 && (!automapactive || automap_overlay) ?
+                       WIDESCREENDELTA : 0;
+
     plyr = &players[displayplayer];
 
     // Status bar background.
@@ -1299,7 +1303,7 @@ void ST_Drawer (void)
             patch = W_CacheLumpNum(lump, PU_CACHE);
 
             // [crispy] (23,179) is the center of the Ammo widget
-            V_DrawPatch(44 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset),
+            V_DrawPatch(44 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) - wide_x,
                         179 - SHORT(patch->height)/2 + SHORT(patch->topoffset),
                         patch);
         }
@@ -1309,7 +1313,7 @@ void ST_Drawer (void)
     if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
     {
         ST_DrawBigNumber(plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
-                         6, 171, ST_WidgetColor(hudcolor_ammo));
+                         6 - wide_x, 171, ST_WidgetColor(hudcolor_ammo));
     }
 
     // Health, negative health
@@ -1317,39 +1321,39 @@ void ST_Drawer (void)
         const boolean neghealth = st_negative_health && plyr->health <= 0 && !no_sttminus;
 
         ST_DrawBigNumber(neghealth ? plyr->health_negative : plyr->health,
-                         52, 171, ST_WidgetColor(hudcolor_health));
-        ST_DrawPercent(90, 171, ST_WidgetColor(hudcolor_health));
+                         52 - wide_x, 171, ST_WidgetColor(hudcolor_health));
+        ST_DrawPercent(90 - wide_x, 171, ST_WidgetColor(hudcolor_health));
     }
 
     // Frags of Arms
     if (deathmatch)
     {
         st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
-        ST_DrawBigNumber(st_fragscount, 100, 171, ST_WidgetColor(hudcolor_frags));
+        ST_DrawBigNumber(st_fragscount, 100 - wide_x, 171, ST_WidgetColor(hudcolor_frags));
     }
     else
     {
         // Pistol
-        ST_DrawWeaponNumberFunc(2, 107, 172, plyr->weaponowned[1]);
+        ST_DrawWeaponNumberFunc(2, 107 - wide_x, 172, plyr->weaponowned[1]);
         // Shotgun or Super Shotgun
-        ST_DrawWeaponNumberFunc(3, 119, 172, plyr->weaponowned[2] || plyr->weaponowned[8]);
+        ST_DrawWeaponNumberFunc(3, 119 - wide_x, 172, plyr->weaponowned[2] || plyr->weaponowned[8]);
         // Chaingun
-        ST_DrawWeaponNumberFunc(4, 131, 172, plyr->weaponowned[3]);
+        ST_DrawWeaponNumberFunc(4, 131 - wide_x, 172, plyr->weaponowned[3]);
         // Rocket Launcher
-        ST_DrawWeaponNumberFunc(5, 107, 182, plyr->weaponowned[4]);
+        ST_DrawWeaponNumberFunc(5, 107 - wide_x, 182, plyr->weaponowned[4]);
         // Plasma Gun
-        ST_DrawWeaponNumberFunc(6, 119, 182, plyr->weaponowned[5]);
+        ST_DrawWeaponNumberFunc(6, 119 - wide_x, 182, plyr->weaponowned[5]);
         // BFG9000
-        ST_DrawWeaponNumberFunc(7, 131, 182, plyr->weaponowned[6]);
+        ST_DrawWeaponNumberFunc(7, 131 - wide_x, 182, plyr->weaponowned[6]);
     }
 
     // Player face background
-    if (dp_screen_size == 11)
+    if (dp_screen_size == 11 || dp_screen_size == 13)
     {
         V_DrawPatch(143, 169, netgame ? faceback[displayplayer] : faceback[1]);
     }
     // Player face
-    if (dp_screen_size <= 11 || (automapactive && !automap_overlay))
+    if (dp_screen_size <= 11 || dp_screen_size == 13 || (automapactive && !automap_overlay))
     {
         V_DrawPatch(143, 168, faces[st_faceindex]);
     }
@@ -1365,42 +1369,42 @@ void ST_Drawer (void)
             }
             if (plyr->tryopen[i] & KEYBLINKMASK)
             {
-                V_DrawPatch(239, 171 + y, keys[i + st_keyorskull[i]]);
+                V_DrawPatch(239 + wide_x, 171 + y, keys[i + st_keyorskull[i]]);
             }
         }
     }
 
     // Armor
-    ST_DrawBigNumber(plyr->armorpoints, 183, 171, ST_WidgetColor(hudcolor_armor));
-    ST_DrawPercent(221, 171, ST_WidgetColor(hudcolor_armor));
+    ST_DrawBigNumber(plyr->armorpoints, 183 + wide_x, 171, ST_WidgetColor(hudcolor_armor));
+    ST_DrawPercent(221 + wide_x, 171, ST_WidgetColor(hudcolor_armor));
 
     // Keys
     if (plyr->cards[it_blueskull])
-    V_DrawPatch(239, 171, keys[3]);
+    V_DrawPatch(239 + wide_x, 171, keys[3]);
     else if (plyr->cards[it_bluecard])
-    V_DrawPatch(239, 171, keys[0]);
+    V_DrawPatch(239 + wide_x, 171, keys[0]);
 
     if (plyr->cards[it_yellowskull])
-    V_DrawPatch(239, 181, keys[4]);
+    V_DrawPatch(239 + wide_x, 181, keys[4]);
     else if (plyr->cards[it_yellowcard])
-    V_DrawPatch(239, 181, keys[1]);
+    V_DrawPatch(239 + wide_x, 181, keys[1]);
 
     if (plyr->cards[it_redskull])
-    V_DrawPatch(239, 191, keys[5]);
+    V_DrawPatch(239 + wide_x, 191, keys[5]);
     else if (plyr->cards[it_redcard])
-    V_DrawPatch(239, 191, keys[2]);
+    V_DrawPatch(239 + wide_x, 191, keys[2]);
 
     // Ammo (current)
-    ST_DrawSmallNumberY(plyr->ammo[0], 280, 173);
-    ST_DrawSmallNumberY(plyr->ammo[1], 280, 179);
-    ST_DrawSmallNumberY(plyr->ammo[3], 280, 185);
-    ST_DrawSmallNumberY(plyr->ammo[2], 280, 191);
+    ST_DrawSmallNumberY(plyr->ammo[0], 280 + wide_x, 173);
+    ST_DrawSmallNumberY(plyr->ammo[1], 280 + wide_x, 179);
+    ST_DrawSmallNumberY(plyr->ammo[3], 280 + wide_x, 185);
+    ST_DrawSmallNumberY(plyr->ammo[2], 280 + wide_x, 191);
 
     // Ammo (max)
-    ST_DrawSmallNumberY(plyr->maxammo[0], 306, 173);
-    ST_DrawSmallNumberY(plyr->maxammo[1], 306, 179);
-    ST_DrawSmallNumberY(plyr->maxammo[3], 306, 185);
-    ST_DrawSmallNumberY(plyr->maxammo[2], 306, 191);
+    ST_DrawSmallNumberY(plyr->maxammo[0], 306 + wide_x, 173);
+    ST_DrawSmallNumberY(plyr->maxammo[1], 306 + wide_x, 179);
+    ST_DrawSmallNumberY(plyr->maxammo[3], 306 + wide_x, 185);
+    ST_DrawSmallNumberY(plyr->maxammo[2], 306 + wide_x, 191);
 }
 
 typedef void (*load_callback_t)(const char *lumpname, patch_t **variable); 

@@ -4717,12 +4717,25 @@ static void M_SizeDisplay(int choice)
 	if (dp_screen_size > 3)
 	{
 	    dp_screen_size--;
+	    // [JN] Skip wide status bar in non-wide screen mode.
+	    if (!vid_widescreen)
+	    {
+	        if (dp_screen_size == 15)
+	            dp_screen_size -= 3;
+	        if (dp_screen_size == 13 || dp_screen_size == 12)
+	            dp_screen_size -= 2;
+	    }
 	}
 	break;
       case 1:
-	if (dp_screen_size < 13)
+	if (dp_screen_size < 15)
 	{
 	    dp_screen_size++;
+	    // [JN] Skip wide status bar in non-wide screen mode.
+	    if (!vid_widescreen)
+	    {
+	        if (dp_screen_size == 13) dp_screen_size += 2;
+	    }
 	}
 	break;
     }
