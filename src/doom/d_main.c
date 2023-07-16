@@ -190,6 +190,32 @@ static void ID_DrawMessage (void)
 }
 
 // -----------------------------------------------------------------------------
+// ID_DrawMessage
+// [JN] Draws message on the screen.
+// -----------------------------------------------------------------------------
+
+static void ID_DrawMessageCentered (void)
+{
+    player_t *player = &players[displayplayer];
+
+    // [JN] Activate message counter in non-level or paused states.
+    // Make messages go away in menu, finale and help screens.
+    // Tics can't go negative.
+    if ((gamestate != GS_LEVEL || paused || menuactive) && player->messageCenteredTics > 0)
+    {
+        player->messageCenteredTics--;
+    }
+
+    if (player->messageCenteredTics <= 0 || !player->messageCentered)
+    {
+        return;  // No message
+    }
+
+    // Always centered
+    M_WriteTextCentered(63, player->messageCentered, player->messageCenteredColor);
+}
+
+// -----------------------------------------------------------------------------
 // D_Display
 //  draw current display, possibly wiping it from the previous
 // -----------------------------------------------------------------------------
@@ -373,6 +399,9 @@ static void D_Display (void)
 
     // Handle player messages
     ID_DrawMessage();
+
+    // [JN] Handle centered player messages.
+    ID_DrawMessageCentered();
 
     // menus go directly to the screen
     M_Drawer ();   // menu is drawn even on top of everything

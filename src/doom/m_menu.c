@@ -3470,7 +3470,8 @@ static void M_Draw_ID_Gameplay_3 (void)
                  DefSkillColor(gp_default_skill));
 
     // Report revealed secrets
-    sprintf(str, gp_revealed_secrets ? "ON" : "OFF");
+    sprintf(str, gp_revealed_secrets == 1 ? "TOP" :
+                 gp_revealed_secrets == 2 ? "CENTERED" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 36, str,
                  M_Item_Glow(1, gp_revealed_secrets ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3544,7 +3545,7 @@ static void M_ID_PistolStart (int choice)
 
 static void M_ID_RevealedSecrets (int choice)
 {
-    gp_revealed_secrets ^= 1;
+    gp_revealed_secrets = M_INT_Slider(gp_revealed_secrets, 0, 2, choice);
 }
 
 static void M_ID_FlipLevels (int choice)
@@ -4566,6 +4567,8 @@ static void M_EndGameResponse(int key)
     M_ClearMenus ();
     players[consoleplayer].messageTics = 1;
     players[consoleplayer].message = NULL;
+    players[consoleplayer].messageCenteredTics = 1;
+    players[consoleplayer].messageCentered = NULL;
     st_palette = 0;
     D_StartTitle ();
 }

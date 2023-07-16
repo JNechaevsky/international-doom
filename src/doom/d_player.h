@@ -140,6 +140,11 @@ typedef struct player_s
     int			messageTics;
     byte*		messageColor;
 
+    // [JN] Hint centered messages.
+    const char *messageCentered;	
+    int			messageCenteredTics;
+    byte*		messageCenteredColor;
+
     // [JN] CRL - prevent other than typing actions in G_Responder
     // while cheat tics are ticking.
     int			cheatTics;

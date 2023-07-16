@@ -127,6 +127,8 @@ void F_StartFinale (void)
     players[consoleplayer].cheatTics = 1;
     players[consoleplayer].messageTics = 1;
     players[consoleplayer].message = NULL;
+    players[consoleplayer].messageCenteredTics = 1;
+    players[consoleplayer].messageCentered = NULL;
 
     if (logical_gamemission == doom)
     {

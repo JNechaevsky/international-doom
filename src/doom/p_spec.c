@@ -1183,7 +1183,16 @@ void P_PlayerInSpecialSector (player_t* player)
 	    sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret :
 	             I_GetSfxLumpNum(&S_sfx[sfx_getpow]) != -1 ? sfx_getpow : -1;
 
-	    CT_SetMessage(&players[displayplayer], DEH_String(ID_SECRET_FOUND), true, cr[CR_YELLOW]);
+        if (gp_revealed_secrets == 1)  // [JN] Top
+        {
+            CT_SetMessage(&players[displayplayer], DEH_String(ID_SECRET_FOUND),true, cr[CR_YELLOW]);
+        }
+        else
+        if (gp_revealed_secrets == 2)  // [JN] Centered
+        {
+            CT_SetMessageCentered(&players[displayplayer], DEH_String(ID_SECRET_FOUND), cr[CR_YELLOW]);
+        }
+
 	    if (sfx_id != -1)
         {
 	        S_StartSound(NULL, sfx_id);

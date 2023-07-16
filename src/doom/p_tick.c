@@ -203,6 +203,10 @@ void P_Ticker (void)
     {                           // Refresh the screen when a message goes away
         ultimatemsg = false;    // clear out any chat messages.
     }
+    if (player->messageCenteredTics > 0)
+    {
+        player->messageCenteredTics--;
+    }
     if (players[displayplayer].targetsheathTics > 0)
     {
         players[displayplayer].targetsheathTics--;

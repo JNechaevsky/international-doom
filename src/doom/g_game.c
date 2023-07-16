@@ -1382,6 +1382,7 @@ void G_PlayerFinishLevel (int player)
     memset (p->tryopen, 0, sizeof (p->tryopen)); // [crispy] blinking key or skull in the status bar
     p->cheatTics = 0;
     p->messageTics = 0;
+    p->messageCenteredTics = 0;
     p->targetsheathTics = 0;
     p->mo->flags &= ~MF_SHADOW;		// cancel invisibility 
     p->extralight = 0;			// cancel gun flashes 
@@ -1434,6 +1435,7 @@ void G_PlayerReborn (int player)
     p->weaponowned[wp_pistol] = true; 
     p->ammo[am_clip] = deh_initial_bullets; 
     p->messageTics = 0;
+    p->messageCenteredTics = 0;
     p->targetsheathTics = 0;
 	 
     for (i=0 ; i<NUMAMMO ; i++) 

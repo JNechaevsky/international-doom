@@ -486,3 +486,19 @@ void CT_SetMessage (player_t *player, const char *message, boolean ultmsg, byte 
         ultimatemsg = true;
     }
 }
+
+// -----------------------------------------------------------------------------
+// CT_SetMessageCentered
+// [JN] Sets centered message parameters.
+// -----------------------------------------------------------------------------
+
+void CT_SetMessageCentered (player_t *player, const char *message, byte *table)
+{
+    if (!showMessages)
+    {
+        return;
+    }
+    player->messageCentered = message;
+    player->messageCenteredTics = 5*TICRATE/2; // [crispy] 2.5 seconds
+    player->messageCenteredColor = table;
+}
