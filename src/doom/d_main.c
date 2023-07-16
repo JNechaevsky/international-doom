@@ -1601,8 +1601,14 @@ void D_DoomMain (void)
 
     if (iwadfile == NULL)
     {
-        I_Error("Game mode indeterminate.  No IWAD file was found.  Try\n"
-                "specifying one with the '-iwad' command line parameter.\n");
+        I_Error("Game mode indeterminate, no IWAD file was found.\n"
+                "Try to do following:\n"
+                "- Copy IWAD file into the folder with executable file.\n"
+                "- Drag and drop IWAD file onto executable file.\n"
+                "- Specifying one with the '-iwad' command line parameter.\n\n"
+                "Valid IWAD files are:\n"
+                "doom1.wad, doom.wad, doom2.wad, plutonia.wad, tnt.wad,\n"
+                "freedoom1.wad or freedoom2.wad");
     }
 
     modifiedgame = false;
