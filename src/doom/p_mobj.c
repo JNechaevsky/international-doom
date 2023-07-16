@@ -767,7 +767,7 @@ P_SpawnMobjSafe
     ||  mobj->type == MT_INV     // Invulnerability
     ||  mobj->type == MT_INS)    // Partial invisibility
     {
-        mobj->health = info->spawnhealth + ID_Random() % 255;
+        mobj->health = info->spawnhealth + ID_RealRandom() % 255;
     }
     else
     {
