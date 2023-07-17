@@ -1065,7 +1065,7 @@ void M_SetMusicPackDir(void)
 
 #ifdef _WIN32
     // [JN] On Windows, create "music-packs" directory in program folder.
-    prefdir = SDL_GetBasePath();
+    prefdir = M_StringDuplicate(exedir);
 #else
     // [JN] On other OSes use system home folder.    
     prefdir = SDL_GetPrefPath("", PACKAGE_TARNAME);
@@ -1179,7 +1179,7 @@ char *M_GetAutoloadDir(const char *iwadname)
 
 #ifdef _WIN32
         // [JN] On Windows, create "autoload" directory in program folder.
-        prefdir = SDL_GetBasePath();
+        prefdir = M_StringDuplicate(exedir);
 #else
         // [JN] On other OSes use system home folder.
         prefdir = SDL_GetPrefPath("", PACKAGE_TARNAME);
@@ -1208,7 +1208,7 @@ void M_SetScreenshotDir (void)
 {
 #ifdef _WIN32
  	// [JN] Always use "savegames" folder in program folder.
- 	screenshotdir = M_StringJoin(SDL_GetBasePath(), "screenshots", DIR_SEPARATOR_S, NULL);
+ 	screenshotdir = M_StringJoin(exedir, "screenshots", DIR_SEPARATOR_S, NULL);
 #else
     // ~/.local/share/inter-doom/screenshots
     screenshotdir = M_StringJoin(configdir, "screenshots", DIR_SEPARATOR_S, NULL);
