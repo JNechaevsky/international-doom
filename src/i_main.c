@@ -94,6 +94,7 @@ int main(int argc, char **argv)
 #endif
 
     M_FindResponseFile();
+    M_SetExeDir();
 
     // [JN] Use current time as seed for random generator.
     srand(time(0));
