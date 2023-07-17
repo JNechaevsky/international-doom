@@ -1009,7 +1009,7 @@ static char *GetDefaultConfigDir(void)
         return copy;
     }
 #endif /* #ifndef _WIN32 */
-    return M_StringDuplicate("");
+    return M_StringDuplicate(exedir);
 }
 
 // 
@@ -1032,7 +1032,7 @@ void M_SetConfigDir(const char *dir)
         configdir = GetDefaultConfigDir();
     }
 
-    if (strcmp(configdir, "") != 0)
+    if (strcmp(configdir, exedir) != 0)
     {
         printf("Using %s for configuration and saves\n", configdir);
     }
@@ -1135,7 +1135,7 @@ char *M_GetSaveGameDir(const char *iwadname)
 #endif
     // If not "doing" a configuration directory (Windows), don't "do"
     // a savegame directory, either.
-    else if (!strcmp(configdir, ""))
+    else if (!strcmp(configdir, exedir))
     {
 #ifdef _WIN32
  	// [JN] Always use "savegames" folder in program folder.
