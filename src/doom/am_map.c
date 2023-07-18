@@ -2397,7 +2397,14 @@ static void AM_drawMarks (void)
                 AM_rotatePoint(&pt);
             }
 
-            fx = (flipscreenwidth[CXMTOF(pt.x)] >> vid_hires) - 1 - WIDESCREENDELTA;
+            if (gp_flip_levels)
+            {
+                fx = (flipscreenwidth[CXMTOF(pt.x)] >> vid_hires) - 1;
+            }
+            else
+            {
+                fx = (CXMTOF(pt.x) >> vid_hires) - 1;
+            }
             fy = (CYMTOF(pt.y) >> vid_hires) - 2;
 
             do
@@ -2413,7 +2420,7 @@ static void AM_drawMarks (void)
                 if (fx >= f_x && fx <= (f_w >> vid_hires) - 5
                 &&  fy >= f_y && fy <= (f_h >> vid_hires) - 6)
                 {
-                    V_DrawPatch(fx, fy, marknums[d]);
+                    V_DrawPatch(fx - WIDESCREENDELTA, fy, marknums[d]);
                 }
 
                 // killough 2/22/98: 1 space backwards
