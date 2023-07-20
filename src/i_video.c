@@ -107,7 +107,7 @@ static SDL_Texture *yelpane = NULL;
 static SDL_Texture *grnpane = NULL;
 static int pane_alpha;
 static unsigned int rmask, gmask, bmask, amask; // [crispy] moved up here
-static const uint8_t blend_alpha = 0x98;// [JN] 152, slightly brighten than 0xa8 (168);
+static const uint8_t blend_alpha = 0xa8;
 extern pixel_t* colormaps; // [crispy] evil hack to get FPS dots working as in Vanilla
 #else
 static SDL_Color palette[256];

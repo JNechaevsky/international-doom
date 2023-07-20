@@ -155,9 +155,18 @@ static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t sou
 #else
 {return I_BlendOver(dest, colormaps[dp_translation[source]]);}
 #endif
+// [JN] The shadow of the patch.
+static const inline pixel_t drawshadow (const pixel_t dest, const pixel_t source)
+#ifndef CRISPY_TRUECOLOR
+{return tintmap[(dest<<8)+dp_translation[source]];}
+#else
+{return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
+#endif
+
 // [crispy] array of function pointers holding the different rendering functions
 typedef const pixel_t drawpatchpx_t (const pixel_t dest, const pixel_t source);
 static drawpatchpx_t *const drawpatchpx_a[2][2] = {{drawpatchpx11, drawpatchpx10}, {drawpatchpx01, drawpatchpx00}};
+static drawpatchpx_t *const drawshadow_a = drawshadow;
 static fixed_t dx, dxi, dy, dyi;
 
 void V_DrawPatch(int x, int y, patch_t *patch)
@@ -253,7 +262,8 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 // -----------------------------------------------------------------------------
 // V_DrawShadowedPatch
 // [JN] Masks a column based masked pic to the screen.
-// Used by Doom with tintmap map.
+//  dest  - main patch, drawed second on top of shadow.
+//  dest2 - shadow, drawed first below main patch.
 // -----------------------------------------------------------------------------
 
 void V_DrawShadowedPatch(int x, int y, patch_t *patch)
@@ -264,12 +274,14 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     pixel_t *desttop, *desttop2;
     pixel_t *dest, *dest2;
     byte *source;
-    byte *dp_translation_old = dp_translation;
     int w;
 
-    // [crispy] four different rendering functions
-    drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!/*dp_translucent*/0][!dp_translation];
-    drawpatchpx_t *const drawpatchpx2 = drawpatchpx_a[dp_translucent][/*!dp_translation*/0];
+    // [JN] Simplify math for shadow placement.
+    const int shadow_shift = (SCREENWIDTH + 1) << vid_hires;
+    // [JN] Patch itself: opaque, can be colored.
+    drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
+    // [JN] Shadow: 50% translucent, no coloring used at all.
+    drawpatchpx_t *const drawpatchpx2 = drawshadow_a;
 
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
@@ -285,7 +297,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     }
 
     desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
-    desttop2 = dest_screen + (((y + 1) * dy) >> FRACBITS) * SCREENWIDTH + (((x + 1) * dx) >> FRACBITS);
+    desttop2 = desttop + shadow_shift;
 
     w = SHORT(patch->width);
 
@@ -320,7 +332,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
             top = ((y + topdelta) * dy) >> FRACBITS;
             source = (byte *)column + 3;
             dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
-            dest2 = desttop2 + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
+            dest2 = dest + shadow_shift;
             count = (column->length * dy) >> FRACBITS;
 
             // [crispy] too low / height
@@ -339,12 +351,8 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
             {
                 if (msg_text_shadows)
                 {
-                    // *dest2 = tintmap[((*dest2) << 8)];
-                    // dest2 += SCREENWIDTH;
-                    dp_translation = cr[CR_MONOCHROME];
                     *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
                     dest2 += SCREENWIDTH;
-                    dp_translation = dp_translation_old;
                 }
 
                 // [crispy] too high
