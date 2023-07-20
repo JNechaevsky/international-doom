@@ -1,9 +1,9 @@
 ![](https://jnechaevsky.github.io/inter-doom/files/id-logo-git.png)
 ### About
 Small, functional and simple source port, created with help, efforts and bits of code from people around the world.<br/>
-Based on [Chocolate Doom](https://github.com/chocolate-doom/chocolate-doom) and [Crispy Doom](http://github.com/fabiangreffrath/crispy-doom), with significant additions from [DOOM Retro](https://github.com/bradharding/doomretro).
+The project is based on [Chocolate Doom](https://github.com/chocolate-doom/chocolate-doom) and [Crispy Doom](http://github.com/fabiangreffrath/crispy-doom), with significant additions from [DOOM Retro](https://github.com/bradharding/doomretro).
 
-International Doom is maintained by [Julia Nechaevskaya](mailto:julia.nechaevskaya@live.com).
+International Doom is created by [Julia Nechaevskaya](mailto:julia.nechaevskaya@live.com).
 
 ### Download
 

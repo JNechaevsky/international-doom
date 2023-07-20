@@ -18,11 +18,11 @@ Project's author would like to thank everyone for code, technical, informative, 
 * Michael Day
 * ceski
 
-**[Russian Doom](https://github.com/Russian-Doom/russian-doom)**
-* Leonid Murin (Dasperal)
-
 **[DOOM Retro](http://doomretro.com/)**
 * Brad Harding
+
+**[Russian Doom](https://github.com/Russian-Doom/)**
+* Leonid Murin (Dasperal)
 
 **[BOOM](https://doomwiki.org/wiki/Boom), [MBF](https://doomwiki.org/wiki/MBF) and [PrBoom+](http://prboom-plus.sourceforge.net/) source port families**
 * Lee Killough
@@ -58,4 +58,4 @@ Project's author would like to thank everyone for code, technical, informative, 
 
 **And also:**
 
-[LeD] Jake Crusher, Alex, Artyom "Allard" Andreyev, autreart, CthulhuInACan, cubebert, Danfun64, Daniil Petrov, David Carlier, Dmitry D. Chernov aka Black Doomer, Dwars, Gibbon, hfc2x, Invisible Warrior, Kenon, MAJOR93MOREAU, Manuel Alfayate Corchete, Manul12, Maxim "MaxLeon" Pyanov, Michael Day, Michael Francis, mtvile666, mykola-ambar, Nemrtvi, NightFright, NormanSeven, Oleg “Kai” Sudarikov, Oleg Zik, Orfeus94, Paul Haeberli, Pavel "Corak" Zegelman, Peter Porai-Koshits, PVS, RICALHO MILOS, Roman Fomin, Sabhotep, Sergey "Districh" Ivanov, Shadowman, Tamás "BlooD2oo1" Mélykuti, Terry Hearst, theleo_ua, VlaDMiR, Wells Lu, Y-Dr. Now, Zodomaniac
+[LeD] Jake Crusher, Alex, Artyom "Allard" Andreyev, autreart, CthulhuInACan, cubebert, Danfun64, Daniil Petrov, David Carlier, Dmitry D. Chernov aka Black Doomer, Dwars, esselfortium, Gibbon, hfc2x, Invisible Warrior, Kenon, MAJOR93MOREAU, Manuel Alfayate Corchete, Manul12, Maxim "MaxLeon" Pyanov, Michael Day, Michael Francis, mtvile666, mykola-ambar, Nemrtvi, NightFright, NormanSeven, Oleg “Kai” Sudarikov, Oleg Zik, Orfeus94, Paul Haeberli, Pavel "Corak" Zegelman, Peter Porai-Koshits, PVS, RICALHO MILOS, Roman Fomin, Sabhotep, Sergey "Districh" Ivanov, Shadowman, Scypek2, Tamás "BlooD2oo1" Mélykuti, Terry Hearst, theleo_ua, VlaDMiR, Wells Lu, Y-Dr. Now, Zodomaniac
