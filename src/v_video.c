@@ -277,7 +277,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     int w;
 
     // [JN] Simplify math for shadow placement.
-    const int shadow_shift = (SCREENWIDTH << vid_hires) + (1 << vid_hires);
+    const int shadow_shift = (SCREENWIDTH + 1) << vid_hires;
     // [JN] Patch itself: opaque, can be colored.
     drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
     // [JN] Shadow: 50% translucent, no coloring used at all.
