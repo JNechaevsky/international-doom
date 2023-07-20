@@ -39,7 +39,6 @@
 enum
 {
     CR_DARK,
-    CR_MONOCHROME,
 
     CR_MENU_BRIGHT5,
     CR_MENU_BRIGHT4,
