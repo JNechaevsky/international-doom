@@ -271,7 +271,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     int count;
     int col;
     column_t *column;
-    pixel_t *desttop, *desttop2;
+    pixel_t *desttop;
     pixel_t *dest, *dest2;
     byte *source;
     int w;
@@ -297,14 +297,13 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     }
 
     desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
-    desttop2 = desttop + shadow_shift;
 
     w = SHORT(patch->width);
 
     // convert x to screen position
     x = (x * dx) >> FRACBITS;
 
-    for ( ; col<w << FRACBITS ; x++, col+=dxi, desttop++, desttop2++)
+    for ( ; col<w << FRACBITS ; x++, col+=dxi, desttop++)
     {
         int topdelta = -1;
 
