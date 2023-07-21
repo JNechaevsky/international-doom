@@ -1139,7 +1139,7 @@ char *M_GetSaveGameDir(const char *iwadname)
     {
 #ifdef _WIN32
  	// [JN] Always use "savegames" folder in program folder.
- 	savegamedir = M_StringJoin("savegames", DIR_SEPARATOR_S, NULL);
+ 	savegamedir = M_StringJoin(M_StringDuplicate(exedir), "savegames", DIR_SEPARATOR_S, NULL);
  	M_MakeDirectory(savegamedir);
 #else
 	savegamedir = M_StringDuplicate("");
