@@ -3098,7 +3098,8 @@ static void M_Draw_ID_Gameplay_1 (void)
                  M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
 
     // Translucency
-    sprintf(str, vis_translucency ? "ON" : "OFF");
+    sprintf(str, vis_translucency == 1 ? "ADDITIVE" :
+                 vis_translucency == 2 ? "BLENDING" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 36, str,
                  M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3179,7 +3180,10 @@ static void M_ID_Brightmaps (int choice)
 
 static void M_ID_Translucency (int choice)
 {
-    vis_translucency ^= 1;
+    vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice);
+
+    // [JN] Re-initialize translucency blending function.
+    I_SetBlendAddFunc();
 }
 
 static void M_ID_FakeContrast (int choice)

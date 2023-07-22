@@ -107,7 +107,7 @@ static SDL_Texture *yelpane = NULL;
 static SDL_Texture *grnpane = NULL;
 static int pane_alpha;
 static unsigned int rmask, gmask, bmask, amask; // [crispy] moved up here
-static const uint8_t blend_alpha = 0xa8;
+static const uint8_t blend_alpha = 184; // [JN] Increased opacity from 0xa8 (168).
 extern pixel_t* colormaps; // [crispy] evil hack to get FPS dots working as in Vanilla
 #else
 static SDL_Color palette[256];
@@ -2011,6 +2011,14 @@ const pixel_t I_MapRGB (const uint8_t r, const uint8_t g, const uint8_t b)
 	        (((b * bmask) >> 8) & bmask);
 */
 	return SDL_MapRGB(argbbuffer->format, r, g, b);
+}
+
+// [JN] Pointer to a function for using additive (1) or blending (2)
+// translucency for full bright sprites.
+const pixel_t (*I_BlendAddFunc) (const pixel_t fg, const pixel_t bg);
+void I_SetBlendAddFunc (void)
+{
+    I_BlendAddFunc = vis_translucency == 1 ? I_BlendAdd : I_BlendOver;
 }
 
 // [JN] Shade factor used for menu and automap background shading.
