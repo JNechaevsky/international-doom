@@ -872,9 +872,10 @@ void R_ProjectSprite (mobj_t* thing, int lightnum)
 
 #ifdef CRISPY_TRUECOLOR
     // [crispy] translucent sprites
+    // [JN] Draw full bright sprites with different functions, depending on user's choice.
     if (thing->flags & MF_TRANSLUCENT)
     {
-	vis->blendfunc = (thing->frame & FF_FULLBRIGHT) ? I_BlendAdd : I_BlendOver;
+	vis->blendfunc = (thing->frame & FF_FULLBRIGHT) ? I_BlendAddFunc : I_BlendOver;
     }
 #endif
 }

@@ -1318,6 +1318,9 @@ void R_InitData (void)
 #ifndef CRISPY_TRUECOLOR
     R_InitTintMap ();
     printf (".");
+#else
+    // [JN] Initialize translucency blending function.
+    I_SetBlendAddFunc ();
 #endif
 }
 

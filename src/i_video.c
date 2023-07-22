@@ -2013,6 +2013,14 @@ const pixel_t I_MapRGB (const uint8_t r, const uint8_t g, const uint8_t b)
 	return SDL_MapRGB(argbbuffer->format, r, g, b);
 }
 
+// [JN] Pointer to a function for using additive (1) or blending (2)
+// translucency for full bright sprites.
+const pixel_t (*I_BlendAddFunc) (const pixel_t fg, const pixel_t bg);
+void I_SetBlendAddFunc (void)
+{
+    I_BlendAddFunc = vis_translucency == 1 ? I_BlendAdd : I_BlendOver;
+}
+
 // [JN] Shade factor used for menu and automap background shading.
 const int I_ShadeFactor[] =
 {
