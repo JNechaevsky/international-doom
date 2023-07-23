@@ -667,6 +667,132 @@ void R_DrawTLColumnLow (void)
     } while (count--);
 }
 
+// -----------------------------------------------------------------------------
+// R_DrawTLFuzzColumn
+// [JN] Translucent fuzz column.
+// -----------------------------------------------------------------------------
+
+void R_DrawTLFuzzColumn (void)
+{
+    int       count = dc_yh - dc_yl;
+    pixel_t  *dest;
+    fixed_t   frac;
+    fixed_t   fracstep;
+
+    if (count < 0)
+    return;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl-centery)*fracstep;
+
+    do
+    {
+        const pixel_t destrgb = dc_colormap[0][dc_source[frac>>FRACBITS]];
+
+       *dest = I_BlendFuzz(*dest, destrgb);
+        dest += SCREENWIDTH;
+        frac += fracstep;
+    } while (count--);
+}
+
+// -----------------------------------------------------------------------------
+// R_DrawTLFuzzColumnLow
+// [JN] Translucent fuzz column, low-resolution version.
+// -----------------------------------------------------------------------------
+
+void R_DrawTLFuzzColumnLow (void)
+{
+    int       count = dc_yh - dc_yl;
+    int       x;
+    pixel_t  *dest, *dest2;
+    fixed_t   frac, fracstep;
+
+    if (count < 0)
+    return;
+
+    x = dc_x << 1;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl-centery)*fracstep;
+
+    do
+    {
+        const pixel_t destrgb = dc_colormap[0][dc_source[frac>>FRACBITS]];
+
+       *dest = I_BlendFuzz(*dest, destrgb);
+       *dest2 = I_BlendFuzz(*dest2, destrgb);
+        dest += SCREENWIDTH;
+        dest2 += SCREENWIDTH;
+        frac += fracstep;
+    } while (count--);
+}
+
+// -----------------------------------------------------------------------------
+// R_DrawTransTLFuzzColumn
+// [JN] Translucent, translated fuzz column.
+// -----------------------------------------------------------------------------
+
+void R_DrawTransTLFuzzColumn (void)
+{
+    int       count = dc_yh - dc_yl;
+    pixel_t  *dest;
+    fixed_t   frac;
+    fixed_t   fracstep;
+
+    if (count < 0)
+    return;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl-centery)*fracstep;
+
+    do
+    {
+        const pixel_t destrgb = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
+
+       *dest = I_BlendFuzz(*dest, destrgb);
+        dest += SCREENWIDTH;
+        frac += fracstep;
+    } while (count--);
+}
+
+// -----------------------------------------------------------------------------
+// R_DrawTransTLFuzzColumnLow
+// [JN] Translucent, translated fuzz column, low-resolution version.
+// -----------------------------------------------------------------------------
+
+void R_DrawTransTLFuzzColumnLow (void)
+{
+    int       count = dc_yh - dc_yl;
+    int       x;
+    pixel_t  *dest, *dest2;
+    fixed_t   frac, fracstep;
+
+    if (count < 0)
+    return;
+
+    x = dc_x << 1;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl-centery)*fracstep;
+
+    do
+    {
+        const pixel_t destrgb = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
+
+       *dest = I_BlendFuzz(*dest, destrgb);
+       *dest2 = I_BlendFuzz(*dest2, destrgb);
+        dest += SCREENWIDTH;
+        dest2 += SCREENWIDTH;
+        frac += fracstep;
+    } while (count--);
+}
+
 //
 // R_InitTranslationTables
 // Creates the translation tables to map

@@ -596,6 +596,12 @@ extern void R_DrawTLColumn (void);
 extern void R_DrawTLColumnLow (void);
 extern void R_DrawTranslatedColumn (void);
 extern void R_DrawTranslatedColumnLow (void);
+
+extern void R_DrawTLFuzzColumn (void);
+extern void R_DrawTLFuzzColumnLow (void);
+extern void R_DrawTransTLFuzzColumn (void);
+extern void R_DrawTransTLFuzzColumnLow (void);
+
 extern void R_DrawViewBorder (void);
 extern void R_FillBackScreen (void);
 extern void R_InitBuffer (int width, int height);
@@ -662,6 +668,10 @@ extern void (*transcolfunc) (void);
 extern void (*basecolfunc) (void);
 extern void (*fuzzcolfunc) (void);
 extern void (*tlcolfunc) (void);
+
+extern void (*tlfuzzcolfunc) (void);
+extern void (*transtlfuzzcolfunc) (void);
+
 extern void (*spanfunc) (void);
 
 // POV related.
