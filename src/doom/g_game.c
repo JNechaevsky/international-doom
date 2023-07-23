@@ -734,9 +734,24 @@ void G_DoLoadLevel (void)
     } 
 		 
     // [JN] Pistol start game mode.
-    if (singleplayer && compat_pistol_start)
+    if (compat_pistol_start)
     {
-        G_PlayerReborn(0);
+        if (singleplayer)
+        {
+            G_PlayerReborn(0);
+        }
+        else if ((demoplayback || netdemo) && !singledemo)
+        {
+            // no-op - silently ignore pistolstart when playing demo from the
+            // demo reel
+        }
+        else
+        {
+            const char message[] = "Pistol start game mode is not supported"
+                                   " for demos and network play.";
+            if (!demo_p) demorecording = false;
+            I_Error(message);
+        }
     }
 
     P_SetupLevel (gameepisode, gamemap, 0, gameskill);    
