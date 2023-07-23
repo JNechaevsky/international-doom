@@ -3054,7 +3054,7 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { 2, "TRANSLUCENCY",                 M_ID_Translucency,      't'  },
     { 2, "FAKE CONTRAST",                M_ID_FakeContrast,      'f'  },
     { 2, "DIMINISHED LIGHTING",          M_ID_SmoothLighting,    'd'  },
-    { 2, "FUZZ EFFECT ANIMATION",        M_ID_ImprovedFuzz,      'f'  },
+    { 2, "FUZZ EFFECT",                  M_ID_ImprovedFuzz,      'f'  },
     { 2, "COLORED BLOOD AND CORPSES",    M_ID_ColoredBlood,      'c'  },
     { 2, "LIQUIDS ANIMATION",            M_ID_SwirlingLiquids,   'l'  },
     { 2, "INVULNERABILITY AFFECTS SKY",  M_ID_InvulSky,          'i'  },
@@ -3114,7 +3114,8 @@ static void M_Draw_ID_Gameplay_1 (void)
                  M_Item_Glow(3, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
 
     // Fuzz effect
-    sprintf(str, vis_improved_fuzz ? "IMPROVED" : "ORIGINAL");
+    sprintf(str, vis_improved_fuzz == 1 ? "IMPROVED" :
+                 vis_improved_fuzz == 2 ? "TRANSLUCENT" : "ORIGINAL");
     M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 63, str,
                  M_Item_Glow(4, vis_improved_fuzz ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3205,7 +3206,7 @@ static void M_ID_SmoothLighting (int choice)
 
 static void M_ID_ImprovedFuzz (int choice)
 {
-    vis_improved_fuzz ^= 1;
+    vis_improved_fuzz = M_INT_Slider(vis_improved_fuzz, 0, 2, choice);
 }
 
 static void M_ID_ColoredBlood (int choice)

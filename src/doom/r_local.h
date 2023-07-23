@@ -594,8 +594,13 @@ extern void R_DrawSpan (void);
 extern void R_DrawSpanLow (void);
 extern void R_DrawTLColumn (void);
 extern void R_DrawTLColumnLow (void);
+extern void R_DrawTLFuzzColumn (void);
+extern void R_DrawTLFuzzColumnLow (void);
 extern void R_DrawTranslatedColumn (void);
 extern void R_DrawTranslatedColumnLow (void);
+extern void R_DrawTransTLFuzzColumn (void);
+extern void R_DrawTransTLFuzzColumnLow (void);
+
 extern void R_DrawViewBorder (void);
 extern void R_FillBackScreen (void);
 extern void R_InitBuffer (int width, int height);
@@ -658,10 +663,12 @@ angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale);
 // Function pointers to switch refresh/drawing functions.
 // Used to select shadow mode etc.
 extern void (*colfunc) (void);
-extern void (*transcolfunc) (void);
 extern void (*basecolfunc) (void);
 extern void (*fuzzcolfunc) (void);
+extern void (*transcolfunc) (void);
 extern void (*tlcolfunc) (void);
+extern void (*tlfuzzcolfunc) (void);
+extern void (*transtlfuzzcolfunc) (void);
 extern void (*spanfunc) (void);
 
 // POV related.

@@ -438,6 +438,20 @@ void R_DrawVisSprite (vissprite_t *vis, int x1, int x2)
 	// NULL colormap = shadow draw
 	colfunc = fuzzcolfunc;
     }
+    // [JN] Translucent fuzz.
+    else if (vis->mobjflags & MF_SHADOW && vis_improved_fuzz == 2)
+    {
+	    if (vis->mobjflags & MF_TRANSLATION)
+	    {
+	        colfunc = transtlfuzzcolfunc;
+	        dc_translation = translationtables - 256 +
+	                         ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8));
+	    }
+	    else
+	    {
+	        colfunc = tlfuzzcolfunc;
+	    }
+    }
     else if (vis->mobjflags & MF_TRANSLATION)
     {
 	colfunc = transcolfunc;
@@ -726,7 +740,8 @@ void R_ProjectSprite (mobj_t* thing, int lightnum)
     vis->patch = lump;
     
     // get light level
-    if (thing->flags & MF_SHADOW)
+    // [JN] Do not zero-out colormap for translucent fuzz.
+    if (thing->flags & MF_SHADOW && vis_improved_fuzz < 2)
     {
 	// shadow draw
 	vis->colormap[0] = vis->colormap[1] = NULL;
@@ -1050,7 +1065,17 @@ void R_DrawPSprite (pspdef_t* psp)
 	|| viewplayer->powers[pw_invisibility] & 8)
     {
 	// shadow draw
-	vis->colormap[0] = vis->colormap[1] = NULL;
+	if (vis_improved_fuzz < 2)
+	{
+	    vis->colormap[0] = vis->colormap[1] = NULL;
+	}
+	else
+	{
+	    // [JN] Account invulnerability effect for translucent fuzz.
+	    vis->colormap[0] = vis->colormap[1] = fixedcolormap ? 
+                                              fixedcolormap : spritelights[MAXLIGHTSCALE-1];
+	    vis->mobjflags |= MF_SHADOW;
+	}
     }
     else if (fixedcolormap)
     {

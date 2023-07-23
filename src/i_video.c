@@ -2021,6 +2021,15 @@ void I_SetBlendAddFunc (void)
     I_BlendAddFunc = vis_translucency == 1 ? I_BlendAdd : I_BlendOver;
 }
 
+const pixel_t I_BlendFuzz (const pixel_t bg, const pixel_t fg)
+{
+	const uint32_t r = ((96 * (fg & rmask) + (0xff - 96) * (bg & rmask)) >> 8) & rmask;
+	const uint32_t g = ((96 * (fg & gmask) + (0xff - 96) * (bg & gmask)) >> 8) & gmask;
+	const uint32_t b = ((96 * (fg & bmask) + (0xff - 96) * (bg & bmask)) >> 8) & bmask;
+
+	return amask | r | g | b;
+}
+
 // [JN] Shade factor used for menu and automap background shading.
 const int I_ShadeFactor[] =
 {
