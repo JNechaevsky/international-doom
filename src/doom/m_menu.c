@@ -753,6 +753,8 @@ static void M_ID_LevelRedSkull (int choice);
 static void M_ID_LevelFastMonsters (int choice);
 static void M_ID_LevelRespMonsters (int choice);
 
+static void M_Choose_ID_Reset (int choice);
+
 // Keyboard binding prototypes
 static boolean KbdIsBinding;
 static int     keyToBind;
@@ -1013,7 +1015,7 @@ static menuitem_t ID_Menu_Main[]=
     { 1, "GAMEPLAY FEATURES",    M_Choose_ID_Gameplay,    'g'},
     { 1, "LEVEL SELECT",         M_Choose_ID_Level_1,     'l'},
     { 1, "END GAME",             M_EndGame,               'e'},
-    {-1, "", 0, '\0'},
+    { 1, "RESET SETTINGS",       M_Choose_ID_Reset,       'r'},
     {-1, "", 0, '\0'},
     {-1, "", 0, '\0'},
     {-1, "", 0, '\0'},
@@ -4066,6 +4068,157 @@ static void M_ScrollLevelPages (void)
     {
         currentMenu = &ID_Def_Level_1;
     }
+}
+
+// -----------------------------------------------------------------------------
+// Reset settings
+// -----------------------------------------------------------------------------
+
+static void M_ID_ApplyReset (int key)
+{
+    if (key != key_menu_confirm)
+    {
+        return;
+    }
+
+    // Video
+#ifdef CRISPY_TRUECOLOR
+    vid_truecolor = 0;
+#endif
+    vid_hires = 1;
+    vid_widescreen = 0;
+    vid_uncapped_fps = 0;
+    vid_fpslimit = 60;
+    vid_vsync = 1;
+    vid_showfps = 0;
+    vid_smooth_scaling = 0;
+    vid_gamma = 10;
+
+    // Miscellaneous
+    vid_screenwipe = 1;
+    vid_diskicon = 1;
+    vid_endoom = 0;
+
+    // Display
+    dp_screen_size = 10;
+    dp_detail_level = 0;
+    dp_menu_shading = 0;
+    dp_level_brightness = 0;
+
+    // Color settings
+    vid_saturation = 100;
+    vid_r_intensity = 1.000000;
+    vid_g_intensity = 1.000000;
+    vid_b_intensity = 1.000000;
+
+    // Messages settings
+    showMessages = 1;
+    msg_alignment = 0;
+    msg_text_shadows = 0;
+    msg_local_time = 0;
+
+    // Sound
+    sfxVolume = 8;
+    musicVolume = 8;
+    snd_sfxdevice = 3;
+    snd_musicdevice = 3;
+    snd_dmxoption = "-opl3";
+    snd_monosfx = 0;
+    snd_pitchshift = 0;
+    snd_channels = 8;
+    snd_mute_inactive = 0;
+
+    // Widgets
+    widget_location = 0;
+    widget_kis = 0;
+    widget_time = 0;
+    widget_totaltime = 0;
+    widget_coords = 0;
+    widget_render = 0;
+    widget_health = 0;
+
+    // Automap
+    automap_scheme = 0;
+    automap_smooth = 0;
+    automap_secrets = 0;
+    automap_rotate = 0;
+    automap_overlay = 0;
+    automap_shading = 0;
+
+    // Gameplay features
+    vis_brightmaps = 0;
+    vis_translucency = 0;
+    vis_fake_contrast = 1;
+    vis_smooth_light = 0;
+    vis_improved_fuzz = 0;
+    vis_colored_blood = 0;
+    vis_swirling_liquids = 0;
+    vis_invul_sky = 0;
+    vis_linear_sky = 0;
+    vis_flip_corpses = 0;
+    xhair_draw = 0;
+    xhair_color = 0;
+    st_colored_stbar = 0;
+    st_negative_health = 0;
+    aud_z_axis_sfx = 0;
+    aud_full_sounds = 0;
+    aud_exit_sounds = 0;
+    phys_torque = 0;
+    phys_ssg_tear_monsters = 0;
+    phys_toss_drop = 0;
+    phys_floating_powerups = 0;
+    phys_weapon_alignment = 0;
+    gp_default_skill = 2;
+    gp_revealed_secrets = 0;
+    phys_breathing = 0;
+    gp_flip_levels = 0;
+    demo_timer = 0;
+    demo_timerdir = 0;
+    demo_bar = 0;
+    demo_internal = 1;
+    compat_pistol_start = 0;
+    compat_blockmap_fix = 0;
+    compat_vertical_aiming = 0;
+
+    // Restart graphical systems
+    I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    R_SetViewSize(dp_screen_size, dp_detail_level);
+    R_ExecuteSetViewSize();
+    I_ToggleVsync();
+    I_SetPalette(st_palette);
+    R_InitColormaps();
+    R_FillBackScreen();
+    V_EnableLoadingDisk();
+    AM_LevelInit(true);
+    if (automapactive)
+    {
+        AM_Start();
+    }
+
+    // Restart audio systems
+    S_StopMusic();
+    S_ChangeSFXSystem();
+    I_ShutdownSound();
+    I_InitSound(true);
+    I_PrecacheSounds(S_sfx, NUMSFX);
+    S_SetSfxVolume(sfxVolume * 8);
+    S_SetMusicVolume(musicVolume * 8);
+    S_ChangeMusic(current_mus_num, true);
+    S_UpdateStereoSeparation();
+
+    // [crispy] weapon sound sources
+    for (int i = 0 ; i < MAXPLAYERS ; i++)
+    {
+        if (playeringame[i])
+        {
+            players[i].so = Crispy_PlayerSO(i);
+        }
+    }
+}
+
+static void M_Choose_ID_Reset (int choice)
+{
+	M_StartMessage(DEH_String(ID_RESET), M_ID_ApplyReset, true);
 }
 
 
