@@ -1,7 +1,7 @@
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 cmake_minimum_required(VERSION 3.9)
-project("Inter" VERSION 7.0.0 LANGUAGES C)
+project("Inter" VERSION 7.1.0 LANGUAGES C)
 
 # Autotools variables
 set(top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
@@ -21,7 +21,7 @@ include(CMakeDependentOption) # Note: replace first ON to OFF to disable.
 cmake_dependent_option(ENABLE_LTO "Use link-time optimization" ON "HAVE_LTO" OFF)
 
 # AC_INIT variables
-set(PACKAGE_VERSION "7.0")
+set(PACKAGE_VERSION "7.1")
 set(PACKAGE_NAME "${PROJECT_NAME}")
 set(PACKAGE_FULLNAME "International Doom ${PACKAGE_VERSION}")
 set(PACKAGE_TARNAME "inter-doom")
