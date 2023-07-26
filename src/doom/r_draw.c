@@ -726,8 +726,10 @@ void R_DrawTLFuzzColumnLow (void)
     do
     {
 #ifndef CRISPY_TRUECOLOR
-        *dest = fuzzmap[(*dest<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
-        *dest2 = fuzzmap[(*dest2<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
+        const pixel_t source = dc_colormap[0][dc_source[frac>>FRACBITS]];
+
+        *dest = fuzzmap[(*dest<<8)+source];
+        *dest2 = fuzzmap[(*dest2<<8)+source];
 #else
         const pixel_t destrgb = dc_colormap[0][dc_source[frac>>FRACBITS]];
 
@@ -799,8 +801,10 @@ void R_DrawTransTLFuzzColumnLow (void)
     do
     {
 #ifndef CRISPY_TRUECOLOR
-        *dest = fuzzmap[(*dest<<8)+dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]]];
-        *dest2 = fuzzmap[(*dest2<<8)+dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]]];
+        const pixel_t source = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
+
+        *dest = fuzzmap[(*dest<<8)+source];
+        *dest2 = fuzzmap[(*dest2<<8)+source];
 #else
         const pixel_t destrgb = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
 
