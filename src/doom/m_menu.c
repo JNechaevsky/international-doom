@@ -3102,8 +3102,12 @@ static void M_Draw_ID_Gameplay_1 (void)
                  M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
 
     // Translucency
+#ifndef CRISPY_TRUECOLOR
+    sprintf(str, vis_translucency ? "ON" : "OFF");
+#else
     sprintf(str, vis_translucency == 1 ? "ADDITIVE" :
                  vis_translucency == 2 ? "BLENDING" : "OFF");
+#endif
     M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 36, str,
                  M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3185,10 +3189,18 @@ static void M_ID_Brightmaps (int choice)
 
 static void M_ID_Translucency (int choice)
 {
+#ifndef CRISPY_TRUECOLOR
+    vis_translucency++;
+
+    // [JN] Just in case user have "Blending" mode (2).
+    if (vis_translucency > 1)
+        vis_translucency = 0;
+#else
     vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice);
 
     // [JN] Re-initialize translucency blending function.
     I_SetBlendAddFunc();
+#endif
 }
 
 static void M_ID_FakeContrast (int choice)
@@ -4187,7 +4199,11 @@ static void M_ID_ApplyReset (int key)
     R_SetViewSize(dp_screen_size, dp_detail_level);
     R_ExecuteSetViewSize();
     I_ToggleVsync();
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette(W_CacheLumpName (DEH_String("PLAYPAL"), PU_CACHE));
+#else
     I_SetPalette(st_palette);
+#endif
     R_InitColormaps();
     R_FillBackScreen();
     V_EnableLoadingDisk();
