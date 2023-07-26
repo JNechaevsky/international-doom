@@ -1317,13 +1317,11 @@ static void M_ID_Gamma (int choice)
     }
 
 #ifndef CRISPY_TRUECOLOR
-        I_SetPalette (W_CacheLumpName (DEH_String("PLAYPAL"), PU_CACHE));
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
 #else
-    {
-        I_SetPalette (st_palette);
-        R_InitColormaps();
-        R_FillBackScreen();
-    }
+    I_SetPalette (st_palette);
+    R_InitColormaps();
+    R_FillBackScreen();
 #endif
 }
 
@@ -1511,7 +1509,9 @@ static void M_ID_Saturation (int choice)
             break;
     }
 
-#ifdef CRISPY_TRUECOLOR
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
     R_InitColormaps();
     R_FillBackScreen();
     AM_Init();
@@ -1541,7 +1541,9 @@ static void M_ID_R_Intensity (int choice)
     sprintf (buf, "%f", vid_r_intensity);
     vid_r_intensity = (float) atof(buf);
 
-#ifdef CRISPY_TRUECOLOR
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
     R_InitColormaps();
     R_FillBackScreen();
     AM_Init();
@@ -1571,7 +1573,9 @@ static void M_ID_G_Intensity (int choice)
     sprintf (buf, "%f", vid_g_intensity);
     vid_g_intensity = (float) atof(buf);
 
-#ifdef CRISPY_TRUECOLOR
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
     R_InitColormaps();
     R_FillBackScreen();
     AM_Init();
@@ -1601,7 +1605,9 @@ static void M_ID_B_Intensity (int choice)
     sprintf (buf, "%f", vid_b_intensity);
     vid_b_intensity = (float) atof(buf);
 
-#ifdef CRISPY_TRUECOLOR
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
     R_InitColormaps();
     R_FillBackScreen();
     AM_Init();
@@ -4200,7 +4206,7 @@ static void M_ID_ApplyReset (int key)
     R_ExecuteSetViewSize();
     I_ToggleVsync();
 #ifndef CRISPY_TRUECOLOR
-    I_SetPalette(W_CacheLumpName (DEH_String("PLAYPAL"), PU_CACHE));
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
 #else
     I_SetPalette(st_palette);
 #endif
@@ -5735,7 +5741,7 @@ boolean M_Responder (event_t* ev)
         }
         CT_SetMessage(&players[consoleplayer], DEH_String(gammalvls[vid_gamma][0]), false, NULL);
 #ifndef CRISPY_TRUECOLOR
-        I_SetPalette (W_CacheLumpName (DEH_String("PLAYPAL"), PU_CACHE));
+        I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
 #else
         {
             I_SetPalette (st_palette);
