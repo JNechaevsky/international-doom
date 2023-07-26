@@ -49,8 +49,10 @@
 // is common code. Fix this.
 #define RANGECHECK
 
-// [JN] Blending table used for text shadows.
-byte *tintmap = NULL;
+// [JN] Blending tables for different translucency effects:
+byte *tintmap = NULL;    // Used for sprites (80%)
+byte *shadowmap = NULL;  // Used for shadowed texts (50%)
+byte *fuzzmap = NULL;    // Used for translucent fuzz (30%)
 
 // [JN] Color translation.
 byte *dp_translation = NULL;
@@ -158,7 +160,7 @@ static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t sou
 // [JN] The shadow of the patch.
 static const inline pixel_t drawshadow (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
-{return tintmap[(dest<<8)];}
+{return shadowmap[(dest<<8)];}
 #else
 {return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
 #endif

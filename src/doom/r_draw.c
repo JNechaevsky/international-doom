@@ -690,7 +690,7 @@ void R_DrawTLFuzzColumn (void)
     {
 #ifndef CRISPY_TRUECOLOR
         // actual translucency map lookup taken from boom202s/R_DRAW.C:255
-        *dest = tintmap[(*dest<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
+        *dest = fuzzmap[(*dest<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
 #else
         const pixel_t destrgb = dc_colormap[0][dc_source[frac>>FRACBITS]];
 
@@ -726,8 +726,8 @@ void R_DrawTLFuzzColumnLow (void)
     do
     {
 #ifndef CRISPY_TRUECOLOR
-        *dest = tintmap[(*dest<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
-        *dest2 = tintmap[(*dest2<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
+        *dest = fuzzmap[(*dest<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
+        *dest2 = fuzzmap[(*dest2<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
 #else
         const pixel_t destrgb = dc_colormap[0][dc_source[frac>>FRACBITS]];
 
@@ -763,7 +763,7 @@ void R_DrawTransTLFuzzColumn (void)
     {
 #ifndef CRISPY_TRUECOLOR
         // actual translucency map lookup taken from boom202s/R_DRAW.C:255
-        *dest = tintmap[(*dest<<8)+dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]]];
+        *dest = fuzzmap[(*dest<<8)+dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]]];
 #else
         const pixel_t destrgb = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
 
@@ -799,8 +799,8 @@ void R_DrawTransTLFuzzColumnLow (void)
     do
     {
 #ifndef CRISPY_TRUECOLOR
-        *dest = tintmap[(*dest<<8)+dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]]];
-        *dest2 = tintmap[(*dest2<<8)+dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]]];
+        *dest = fuzzmap[(*dest<<8)+dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]]];
+        *dest2 = fuzzmap[(*dest2<<8)+dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]]];
 #else
         const pixel_t destrgb = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
 
