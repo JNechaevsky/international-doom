@@ -96,6 +96,8 @@ int SlopeDivCrispy(unsigned int num, unsigned int den);
 #ifndef CRISPY_TRUECOLOR
 // [JN] Pregenerated TINTMAP transluceny table.
 extern byte tintmap_original[];
+extern byte shadowmap_original[];
+extern byte fuzzmap_original[];
 #endif
 
 #endif

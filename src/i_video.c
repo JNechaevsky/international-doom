@@ -1069,15 +1069,25 @@ void I_ReadScreen (pixel_t* scr)
 void I_SetPalette (byte *doompalette)
 {
     int i;
+    const float s = vid_saturation * 0.01;
     
     for (i = 0 ; i < 256 ; ++i)
     {
+        // [JN] Extended palette values generation routine.
+        // Based on implementation from DOOM Retro.
+        const byte *gamma = gammatable[vid_gamma];
+
+        const byte r = gamma[*doompalette++];
+        const byte g = gamma[*doompalette++];
+        const byte b = gamma[*doompalette++];
+        const int  p = sqrt(r * r * 0.299 + g * g * 0.587 + b * b * 0.114);
+
         // Zero out the bottom two bits of each channel - the PC VGA
         // controller only supports 6 bits of accuracy.
 
-        palette[i].r = gammatable[vid_gamma][*doompalette++] & ~3;
-        palette[i].g = gammatable[vid_gamma][*doompalette++] & ~3;
-        palette[i].b = gammatable[vid_gamma][*doompalette++] & ~3;
+        palette[i].r = (byte)((p + (r - p) * s) * vid_r_intensity) & ~3;
+        palette[i].g = (byte)((p + (g - p) * s) * vid_g_intensity) & ~3;
+        palette[i].b = (byte)((p + (b - p) * s) * vid_b_intensity) & ~3;
     }
 
     palette_to_set = true;

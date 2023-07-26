@@ -38,6 +38,8 @@
 extern int dirtybox[4];
 
 extern byte *tintmap;
+extern byte *shadowmap;
+extern byte *fuzzmap;
 extern byte *dp_translation;
 extern boolean dp_translucent;
 

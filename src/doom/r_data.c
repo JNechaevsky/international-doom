@@ -1059,6 +1059,8 @@ static void R_InitTintMap (void)
     {
         // [JN] We don't. Load pregenerated table for faster startup.
         tintmap = tintmap_original;
+        shadowmap = shadowmap_original;
+        fuzzmap = fuzzmap_original;
     }
     else
     {
@@ -1068,10 +1070,14 @@ static void R_InitTintMap (void)
         unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
         tintmap = Z_Malloc(256*256, PU_STATIC, 0);
+        shadowmap = Z_Malloc(256*256, PU_STATIC, 0);
+        fuzzmap = Z_Malloc(256*256, PU_STATIC, 0);
 
         {
             byte *fg, *bg, blend[3];
             byte *tm = tintmap;
+            byte *sm = shadowmap;
+            byte *fm = fuzzmap;
             int i, j;
 
             // [crispy] background color
@@ -1084,16 +1090,28 @@ static void R_InitTintMap (void)
                     if (i == j)
                     {
                         *tm++ = i;
+                        *sm++ = i;
+                        *fm++ = i;
                         continue;
                     }
 
                     bg = playpal + 3*i;
                     fg = playpal + 3*j;
 
+                    blend[r] = (80 * fg[r] + (100 - 80) * bg[r]) / 100;
+                    blend[g] = (80 * fg[g] + (100 - 80) * bg[g]) / 100;
+                    blend[b] = (80 * fg[b] + (100 - 80) * bg[b]) / 100;
+                    *tm++ = V_GetPaletteIndex(playpal, blend[r], blend[g], blend[b]);
+
                     blend[r] = (50 * fg[r] + (100 - 50) * bg[r]) / 100;
                     blend[g] = (50 * fg[g] + (100 - 50) * bg[g]) / 100;
                     blend[b] = (50 * fg[b] + (100 - 50) * bg[b]) / 100;
-                    *tm++ = V_GetPaletteIndex(playpal, blend[r], blend[g], blend[b]);
+                    *sm++ = V_GetPaletteIndex(playpal, blend[r], blend[g], blend[b]);
+
+                    blend[r] = (30 * fg[r] + (100 - 30) * bg[r]) / 100;
+                    blend[g] = (30 * fg[g] + (100 - 30) * bg[g]) / 100;
+                    blend[b] = (30 * fg[b] + (100 - 30) * bg[b]) / 100;
+                    *fm++ = V_GetPaletteIndex(playpal, blend[r], blend[g], blend[b]);
                 }
             }
         }
