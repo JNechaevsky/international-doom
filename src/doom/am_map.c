@@ -1149,7 +1149,7 @@ static void AM_shadeBackground (void)
         for (int y = 0; y < SCREENWIDTH * SCREENHEIGHT - ST_HEIGHT ; y++)
         {
 #ifndef CRISPY_TRUECOLOR
-            I_VideoBuffer[y] = colormaps[(automap_shading * 2) * 256 + I_VideoBuffer[y]];
+            I_VideoBuffer[y] = colormaps[((automap_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
 #else
             I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], I_ShadeFactor[automap_shading]);
 #endif

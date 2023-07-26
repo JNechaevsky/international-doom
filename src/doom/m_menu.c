@@ -796,7 +796,7 @@ static void M_ShadeBackground (void)
         for (int y = 0; y < SCREENWIDTH * SCREENHEIGHT; y++)
         {
 #ifndef CRISPY_TRUECOLOR
-            I_VideoBuffer[y] = colormaps[(dp_menu_shading * 2) * 256 + I_VideoBuffer[y]];
+            I_VideoBuffer[y] = colormaps[((dp_menu_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
 #else
             I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], I_ShadeFactor[dp_menu_shading]);
 #endif
