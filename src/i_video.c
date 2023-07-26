@@ -1069,6 +1069,7 @@ void I_ReadScreen (pixel_t* scr)
 void I_SetPalette (byte *doompalette)
 {
     int i;
+    const float s = vid_saturation * 0.01;
     
     for (i = 0 ; i < 256 ; ++i)
     {
@@ -1084,9 +1085,9 @@ void I_SetPalette (byte *doompalette)
         // Zero out the bottom two bits of each channel - the PC VGA
         // controller only supports 6 bits of accuracy.
 
-        palette[i].r = (byte)((p + (r - p) * vid_saturation) * vid_r_intensity) & ~3;
-        palette[i].g = (byte)((p + (g - p) * vid_saturation) * vid_g_intensity) & ~3;
-        palette[i].b = (byte)((p + (b - p) * vid_saturation) * vid_b_intensity) & ~3;
+        palette[i].r = (byte)((p + (r - p) * s) * vid_r_intensity) & ~3;
+        palette[i].g = (byte)((p + (g - p) * s) * vid_g_intensity) & ~3;
+        palette[i].b = (byte)((p + (b - p) * s) * vid_b_intensity) & ~3;
     }
 
     palette_to_set = true;
