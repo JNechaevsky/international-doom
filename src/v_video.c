@@ -158,7 +158,7 @@ static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t sou
 // [JN] The shadow of the patch.
 static const inline pixel_t drawshadow (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
-{return tintmap[(dest<<8)+source];}
+{return tintmap[(dest<<8)];}
 #else
 {return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
 #endif
