@@ -4247,6 +4247,7 @@ static void M_ID_ApplyReset (int key)
 
 static void M_Choose_ID_Reset (int choice)
 {
+	force_capped_fps = true;
 	M_StartMessage(DEH_String(ID_RESET), M_ID_ApplyReset, true);
 }
 
