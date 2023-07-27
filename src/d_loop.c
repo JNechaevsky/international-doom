@@ -124,6 +124,12 @@ static boolean local_playeringame[NET_MAXPLAYERS];
 
 static int player_class;
 
+// [JN] Forcefully supress interpolation in video options menu.
+// Needed for render will be able to do a proper update on
+// toggling resolution/widescreen modes.
+
+boolean force_capped_fps;
+
 
 // 35 fps clock adjusted by offsetms milliseconds
 
@@ -697,7 +703,7 @@ void TryRunTics (void)
     //      to run, return early instead of waiting around.
     // [JN] CRL - Keep uncapped framerate while paused and Spectator mode.
     extern boolean paused;
-    #define return_early (vid_uncapped_fps && counts == 0 && \
+    #define return_early (vid_uncapped_fps &&!force_capped_fps && counts == 0 && \
                          ((paused && crl_spectating) || realleveltime > oldleveltime) && \
                          screenvisible)
 
