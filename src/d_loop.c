@@ -82,6 +82,12 @@ int oldleveltime; // [crispy] check if leveltime keeps tickin'
 // [JN] used by player, render and interpolation. Always ticking.
 int realleveltime;
 
+// [JN] Forcefully supress interpolation in video options menu.
+// Needed for render will be able to do a proper update on
+// toggling resolution/widescreen modes.
+
+boolean force_capped_fps;
+
 // When set to true, a single tic is run each time TryRunTics() is called.
 // This is used for -timedemo mode.
 
@@ -123,12 +129,6 @@ static boolean local_playeringame[NET_MAXPLAYERS];
 // and saved in the game settings.
 
 static int player_class;
-
-// [JN] Forcefully supress interpolation in video options menu.
-// Needed for render will be able to do a proper update on
-// toggling resolution/widescreen modes.
-
-boolean force_capped_fps;
 
 
 // 35 fps clock adjusted by offsetms milliseconds

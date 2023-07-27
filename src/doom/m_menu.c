@@ -1091,6 +1091,11 @@ static void M_Draw_ID_Video (void)
 {
     static char str[32];
 
+    // [JN] Forcefully supress interpolation in video options menu.
+    // Needed for render will be able to do a proper update on
+    // toggling resolution/widescreen modes.
+    force_capped_fps = true;
+
     M_ShadeBackground();
 
     M_WriteTextCentered(18, "VIDEO OPTIONS", cr[CR_YELLOW]);
@@ -6172,14 +6177,8 @@ void M_Ticker (void)
 	skullAnimCounter = 8;
     }
 
-    // [JN] Forcefully supress interpolation in video options menu.
-    // Needed for render will be able to do a proper update on
-    // toggling resolution/widescreen modes.
-    if (vid_uncapped_fps)
-    {
-        extern boolean force_capped_fps;
-        force_capped_fps = currentMenu == &ID_Def_Video ? true : false;
-    }
+    // [JN] Disable interpolation supressing, made in M_Draw_ID_Video.
+    force_capped_fps = false;
 
     // [JN] Menu glowing animation:
     

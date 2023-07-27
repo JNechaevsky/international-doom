@@ -80,6 +80,8 @@ extern boolean singletics;
 extern int gametic, ticdup;
 extern int oldleveltime; // [crispy] check if leveltime keeps tickin'
 
+extern boolean force_capped_fps;
+
 // Check if it is permitted to record a demo with a non-vanilla feature.
 boolean D_NonVanillaRecord(boolean conditional, char *feature);
 
