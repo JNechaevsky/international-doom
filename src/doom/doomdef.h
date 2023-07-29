@@ -516,7 +516,7 @@ typedef enum
     MF_FLIPPABLE        = 0x40000000,
 
     // [crispy] translucent sprite
-    MF_TRANSLUCENT      = 0x80000000
+    MF_TRANSLUCENT      = (int)0x80000000
 
 } mobjflag_t;
 
