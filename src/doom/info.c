@@ -65,12 +65,12 @@ const char *sprnames[] = {
 };
 
 // [crispy] additional BOOM and MBF states, sprites and code pointers
-void A_Stop();
-void A_Die();
-void A_FireOldBFG();
-void A_Detonate();
-void A_Mushroom();
-void A_BetaSkullAttack();
+extern void A_Stop(mobj_t *actor);
+extern void A_Die(mobj_t *actor);
+extern void A_FireOldBFG(player_t *player, pspdef_t *psp);
+extern void A_Detonate(mobj_t* mo);
+extern void A_Mushroom(mobj_t *actor);
+extern void A_BetaSkullAttack(mobj_t *actor);
 
 
 state_t	states[NUMSTATES] = {

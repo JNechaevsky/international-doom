@@ -101,12 +101,12 @@ static const char * const nouns[] = {
  * their setup routine. But, the two callers only invoke getRandomPetName
  * once, so the initialization might as well occur then.
  */
-static void InitPetName()
+static void InitPetName(void)
 {
     srand((unsigned int)time(NULL));
 }
 
-char *NET_GetRandomPetName()
+char *NET_GetRandomPetName(void)
 {
     const char *a, *n;
 

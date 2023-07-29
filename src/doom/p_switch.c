@@ -240,7 +240,7 @@ P_StartButton
 	maxbuttons = 2 * maxbuttons;
 	buttonlist = I_Realloc(buttonlist, sizeof(*buttonlist) * maxbuttons);
 	memset(buttonlist + maxbuttons/2, 0, sizeof(*buttonlist) * maxbuttons/2);
-	return P_StartButton(line, w, texture, time);
+	P_StartButton(line, w, texture, time);
     }
 
     I_Error("P_StartButton: no button slots left!");

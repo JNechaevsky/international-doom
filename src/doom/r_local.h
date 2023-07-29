@@ -519,7 +519,7 @@ extern visplane_t *ceilingplane;
 #define MINBRIGHT   24  // [JN] Minimal COLORMAP level for half-brights.
 #define MAXDIMINDEX 47
 
-extern void R_InitBrightmaps ();
+extern void R_InitBrightmaps (void);
 
 extern const byte  *R_BrightmapForTexName (const char *texname);
 extern const byte  *R_BrightmapForSprite (const int type);
@@ -777,7 +777,7 @@ extern int skytexturemid;
 // R_SWIRL
 // -----------------------------------------------------------------------------
 
-extern void  R_InitDistortedFlats ();
+extern void  R_InitDistortedFlats (void);
 extern char *R_DistortedFlat (int flatnum);
 
 // -----------------------------------------------------------------------------

@@ -596,7 +596,7 @@ P_CrossSpecialLine
   int		side,
   mobj_t*	thing )
 {
-    return P_CrossSpecialLinePtr(&lines[linenum], side, thing);
+    P_CrossSpecialLinePtr(&lines[linenum], side, thing);
 }
 
 // [crispy] more MBF code pointers
@@ -1560,7 +1560,7 @@ int EV_DoDonut(line_t*	line)
 //  that spawn thinkers
 //
 
-static unsigned int NumScrollers()
+static unsigned int NumScrollers(void)
 {
     unsigned int i, scrollers = 0;
 

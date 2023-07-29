@@ -17,6 +17,8 @@
 
 #include "config.h"
 
+typedef int no_pedantic_warnings;
+
 #ifdef HAVE_LINUX_KD_H
 
 #include <stdio.h>

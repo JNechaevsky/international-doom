@@ -206,7 +206,7 @@ static void P_ExplodeMissileSafe (mobj_t* mo, boolean safe)
 
 void P_ExplodeMissile (mobj_t* mo)
 {
-    return P_ExplodeMissileSafe(mo, false);
+    P_ExplodeMissileSafe(mo, false);
 }
 
 //
@@ -1189,7 +1189,7 @@ P_SpawnPuff
   fixed_t	y,
   fixed_t	z )
 {
-    return P_SpawnPuffSafe(x, y, z, false);
+    P_SpawnPuffSafe(x, y, z, false);
 }
 
 void

@@ -250,7 +250,7 @@ void *I_GetSDLRenderer(void)
     return renderer;
 }
 
-static boolean MouseShouldBeGrabbed()
+static boolean MouseShouldBeGrabbed(void)
 {
     // never grab the mouse when in screensaver mode
    

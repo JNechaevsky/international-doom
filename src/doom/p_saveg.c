@@ -274,31 +274,6 @@ static void saveg_write_mapthing_t(mapthing_t *str)
 }
 
 //
-// actionf_t
-// 
-
-static void saveg_read_actionf_t(actionf_t *str)
-{
-    // actionf_p1 acp1;
-    str->acp1 = saveg_readp();
-}
-
-static void saveg_write_actionf_t(actionf_t *str)
-{
-    // actionf_p1 acp1;
-    saveg_writep(str->acp1);
-}
-
-//
-// think_t
-//
-// This is just an actionf_t.
-//
-
-#define saveg_read_think_t saveg_read_actionf_t
-#define saveg_write_think_t saveg_write_actionf_t
-
-//
 // thinker_t
 //
 
@@ -311,7 +286,7 @@ static void saveg_read_thinker_t(thinker_t *str)
     str->next = saveg_readp();
 
     // think_t function;
-    saveg_read_think_t(&str->function);
+    str->function.acv = (actionf_v)(intptr_t)saveg_readp();
 }
 
 static void saveg_write_thinker_t(thinker_t *str)
@@ -323,7 +298,7 @@ static void saveg_write_thinker_t(thinker_t *str)
     saveg_writep(str->next);
 
     // think_t function;
-    saveg_write_think_t(&str->function);
+    saveg_writep(&str->function);
 }
 
 //
