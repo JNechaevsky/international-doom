@@ -165,7 +165,7 @@ static void ScanForBlock(void *start, void *end)
                     fprintf(stderr,
                             "%p has dangling pointer into freed block "
                             "%p (%p -> %p)\n",
-                            (void *)mem, start, (void *)&mem[i], mem[i]);
+                            (void*)mem, start, (void*)&mem[i], mem[i]);
                 }
             }
         }
