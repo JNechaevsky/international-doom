@@ -34,7 +34,7 @@ typedef struct
 {
     // Read events from the event queue, and process them.
 
-    void (*ProcessEvents)();
+    void (*ProcessEvents)(void);
 
     // Given the current input state, fill in the fields of the specified
     // ticcmd_t structure with data for a new tic.
@@ -47,7 +47,7 @@ typedef struct
 
     // Run the menu (runs independently of the game).
 
-    void (*RunMenu)();
+    void (*RunMenu)(void);
 } loop_interface_t;
 
 // Register callback functions for the main loop code to use.

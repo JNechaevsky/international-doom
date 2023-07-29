@@ -149,7 +149,7 @@ typedef struct menu_s
     short		numitems;	// # of menu items
     struct menu_s*	prevMenu;	// previous menu
     menuitem_t*		menuitems;	// menu items
-    void		(*routine)();	// draw routine
+    void		(*routine)(void);	// draw routine
     short		x;
     short		y;		// x,y of menu
     short		lastOn;		// last item user was on in menu
@@ -6313,7 +6313,7 @@ static void M_ConfirmDeleteGameResponse (int key)
 	}
 }
 
-void M_ConfirmDeleteGame ()
+void M_ConfirmDeleteGame (void)
 {
 	savegwarning =
 	M_StringJoin("delete savegame\n\n", "\"", savegamestrings[itemOn], "\"", " ?\n\n",

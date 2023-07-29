@@ -157,7 +157,7 @@ byte *I_ZoneBase (int *size)
     i *= 2;
 
     printf("  zone memory: %p, %x MiB allocated for zone.\n", 
-           zonemem, *size >> 20); // [crispy] human-understandable zone heap size
+           (void*)zonemem, *size >> 20); // [crispy] human-understandable zone heap size
 
     return zonemem;
 }

@@ -15,4 +15,4 @@
 //     Generate a randomized, private, memorable name for a Player
 //
 
-char *NET_GetRandomPetName();
+char *NET_GetRandomPetName(void);
