@@ -80,7 +80,7 @@ endif()
 # Check for FluidSynth.
 find_package(FluidSynth 2.2.0)
 if(FluidSynth_FOUND)
-    set(HAVE_FLUIDSYNTH TRUE)
+    option(HAVE_FLUIDSYNTH "FluidSynth support" ON)
 endif()
 
 find_package(m)
