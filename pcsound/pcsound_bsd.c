@@ -18,8 +18,6 @@
 
 #include "config.h"
 
-typedef int no_pedantic_warnings;
-
 // OpenBSD/NetBSD:
 
 #ifdef HAVE_DEV_ISA_SPKRIO_H

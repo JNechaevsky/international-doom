@@ -17,8 +17,6 @@
 
 #include "config.h"
 
-typedef int no_pedantic_warnings;
-
 #if (defined(__i386__) || defined(__x86_64__)) && defined(HAVE_IOPERM)
 
 #include <stdio.h>
