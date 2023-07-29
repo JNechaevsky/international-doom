@@ -42,8 +42,9 @@ else()
     add_compile_options("-Wall"
                         "-Wdeclaration-after-statement"
                         "-Wredundant-decls"
-                        # "-Wpedantic"
+                        "-Wpedantic"
                         # "-Wextra"
+                        # "-Wno-ignored-qualifiers"
                         )
 endif()
 

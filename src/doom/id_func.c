@@ -646,7 +646,7 @@ static const byte xhair_dot[] =
 //  [JN] Decides which patch should be drawn, depending on "xhair_draw" variable.
 // -----------------------------------------------------------------------------
 
-static patch_t *ID_CrosshairShape (int type)
+static patch_t *ID_CrosshairShape (void)
 {
     return
         xhair_draw == 1 ? (patch_t*) &xhair_cross1   :
@@ -721,7 +721,7 @@ void ID_DrawCrosshair (void)
     const int yy = (ORIGHEIGHT / 2) - 3 - (dp_screen_size <= 10 ? 16 : 0);
 
     dp_translation = ID_CrosshairColor(xhair_color);
-    V_DrawPatch(xx, yy, ID_CrosshairShape(xhair_draw));
+    V_DrawPatch(xx, yy, ID_CrosshairShape());
     dp_translation = NULL;
 }
 
