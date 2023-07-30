@@ -1351,7 +1351,27 @@ void G_Ticker (void)
 	break;
     }        
 
-    // [JN] Query local time.
+    //
+    // [JN] Query time for time-related widgets:
+    //
+    
+    // Level / DeathMatch timer
+    if (widget_time)
+    {
+        const int time = (deathmatch && levelTimer ? levelTimeCount : leveltime) / TICRATE;
+    
+        M_snprintf(ID_Level_Time, sizeof(ID_Level_Time),
+                   "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
+    }
+    // Total time
+    if (widget_totaltime)
+    {
+        const int totaltime = (totalleveltimes / TICRATE) + (leveltime / TICRATE);
+
+        M_snprintf(ID_Total_Time, sizeof(ID_Total_Time),
+                   "%02d:%02d:%02d", totaltime/3600, (totaltime%3600)/60, totaltime%60);
+    }
+    // Local time
     if (msg_local_time)
     {
         time_t t = time(NULL);

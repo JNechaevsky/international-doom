@@ -38,6 +38,9 @@
 
 ID_Render_t IDRender;
 ID_Widget_t IDWidget;
+
+char ID_Level_Time[64];
+char ID_Total_Time[64];
 char ID_Local_Time[64];
 
 enum
@@ -161,29 +164,20 @@ void ID_LeftWidgets (void)
             }
         }
 
-        // Level / DeathMatch timer
+        // Level / DeathMatch timer. Time gathered in G_Ticker.
         if (widget_time == 1
         || (widget_time == 2 && automapactive))
         {
-            const int time = (deathmatch && levelTimer ? levelTimeCount : leveltime) / TICRATE;
-            char stra[16];
-
             M_WriteText(0 - WIDESCREENDELTA, 45, "TIME", cr[CR_GRAY]);
-
-            sprintf(stra, "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
-            M_WriteText(0 - WIDESCREENDELTA, 54, stra, cr[CR_LIGHTGRAY]);
+            M_WriteText(0 - WIDESCREENDELTA, 54, ID_Level_Time, cr[CR_LIGHTGRAY]);
         }
 
-        // Total time
+        // Total time. Time gathered in G_Ticker.
         if (widget_totaltime == 1
         || (widget_totaltime == 2 && automapactive))
         {
-            const int totaltime = (totalleveltimes / TICRATE) + (leveltime / TICRATE);
-            char stra[16];
-
             M_WriteText(0 - WIDESCREENDELTA, 63, "TOTAL", cr[CR_GRAY]);
-            sprintf(stra, "%02d:%02d:%02d", totaltime/3600, (totaltime%3600)/60, totaltime%60);
-            M_WriteText(0 - WIDESCREENDELTA, 72, stra, cr[CR_LIGHTGRAY]);
+            M_WriteText(0 - WIDESCREENDELTA, 72, ID_Total_Time, cr[CR_LIGHTGRAY]);
         }
 
         // Player coords
@@ -234,7 +228,7 @@ void ID_LeftWidgets (void)
         }
     }
     //
-    // Located on the top
+    // Located at the bottom
     //
     else
     {
@@ -425,19 +419,15 @@ void ID_LeftWidgets (void)
             yy -= 9;
         }
 
-        // Total time
+        // Total time. Time gathered in G_Ticker.
         if (widget_totaltime == 1
         || (widget_totaltime == 2 && automapactive))
         {
-            const int totaltime = (totalleveltimes / TICRATE) + (leveltime / TICRATE);
             char stra[8];
-            char strb[16];
 
             sprintf(stra, "TOTAL ");
             M_WriteText(0 - WIDESCREENDELTA, 160 + yy, stra, cr[CR_GRAY]);
-
-            sprintf(strb, "%02d:%02d:%02d", totaltime/3600, (totaltime%3600)/60, totaltime%60);
-            M_WriteText(0 - WIDESCREENDELTA + M_StringWidth(stra), 160 + yy, strb, cr[CR_LIGHTGRAY]);
+            M_WriteText(0 - WIDESCREENDELTA + M_StringWidth(stra), 160 + yy, ID_Total_Time, cr[CR_LIGHTGRAY]);
         }
 
         if (widget_totaltime)
@@ -445,19 +435,15 @@ void ID_LeftWidgets (void)
             yy -= 9;
         }
 
-        // Level / DeathMatch timer
+        // Level / DeathMatch timer. Time gathered in G_Ticker.
         if (widget_time == 1
         || (widget_time == 2 && automapactive))
         {
-            const int time = (deathmatch && levelTimer ? levelTimeCount : leveltime) / TICRATE;
             char stra[8];
-            char strb[16];
 
             sprintf(stra, "TIME ");
             M_WriteText(0 - WIDESCREENDELTA, 160 + yy, stra, cr[CR_GRAY]);
-
-            sprintf(strb, "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
-            M_WriteText(0 - WIDESCREENDELTA + M_StringWidth(stra), 160 + yy, strb, cr[CR_LIGHTGRAY]);
+            M_WriteText(0 - WIDESCREENDELTA + M_StringWidth(stra), 160 + yy, ID_Level_Time, cr[CR_LIGHTGRAY]);
         }
     }
 }
