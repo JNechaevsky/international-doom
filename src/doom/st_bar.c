@@ -637,11 +637,12 @@ static void ST_updateFaceWidget (void)
     if (priority < 10)
     {
         // dead
-        if (!plyr->health)
+        // [JN] ...or invulnerability.
+        if (!plyr->health || invul)
         {
             priority = 9;
             painoffset = 0;
-            faceindex = ST_DEADFACE;
+            faceindex = !plyr->health ? ST_DEADFACE : ST_GODFACE;
             st_facecount = 1;
         }
     }
@@ -770,19 +771,6 @@ static void ST_updateFaceWidget (void)
         else
         {
             lastattackdown = -1;
-        }
-    }
-
-    if (priority < 5)
-    {
-        // invulnerability
-        if (invul)
-        {
-            priority = 4;
-
-            painoffset = 0;
-            faceindex = ST_GODFACE;
-            st_facecount = 1;
         }
     }
 
