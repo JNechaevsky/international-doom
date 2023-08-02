@@ -634,15 +634,26 @@ static void ST_updateFaceWidget (void)
     // [crispy] no evil grin or rampage face in god mode
     const boolean invul = (plyr->cheats & CF_GODMODE) || plyr->powers[pw_invulnerability];
 
-    if (priority < 10)
+    if (priority < 11)
     {
         // dead
-        // [JN] ...or invulnerability.
-        if (!plyr->health || invul)
+        if (!plyr->health)
+        {
+            priority = 10;
+            painoffset = 0;
+            faceindex = ST_DEADFACE;
+            st_facecount = 1;
+        }
+    }
+
+    if (priority < 10)
+    {
+        // [JN] invulnerability (moved up here)
+        if (invul)
         {
             priority = 9;
             painoffset = 0;
-            faceindex = !plyr->health ? ST_DEADFACE : ST_GODFACE;
+            faceindex = ST_GODFACE;
             st_facecount = 1;
         }
     }
@@ -773,6 +784,23 @@ static void ST_updateFaceWidget (void)
             lastattackdown = -1;
         }
     }
+
+    // [JN] Processed above to fix status bar face hysteresis
+    // while getting hurt/ouch face and going into invulnerability state.
+    /*
+    if (priority < 5)
+    {
+        // invulnerability
+        if (invul)
+        {
+            priority = 4;
+
+            painoffset = 0;
+            faceindex = ST_GODFACE;
+            st_facecount = 1;
+        }
+    }
+    */
 
     // look left or look right if the facecount has timed out
     if (!st_facecount)
