@@ -22,40 +22,13 @@
 #include "config.h"
 #include "pcsound.h"
 #include "pcsound_internal.h"
+#include "m_misc.h"
 
-
-#ifdef HAVE_DEV_ISA_SPKRIO_H
-#define HAVE_BSD_SPEAKER
-#endif
-#ifdef HAVE_DEV_SPEAKER_SPEAKER_H
-#define HAVE_BSD_SPEAKER
-#endif
-
-#ifdef _WIN32
-extern pcsound_driver_t pcsound_win32_driver;
-#endif
-
-#ifdef HAVE_BSD_SPEAKER
-extern pcsound_driver_t pcsound_bsd_driver;
-#endif
-
-#ifdef HAVE_LINUX_KD_H
-extern pcsound_driver_t pcsound_linux_driver;
-#endif
 
 extern pcsound_driver_t pcsound_sdl_driver;
 
 static pcsound_driver_t *drivers[] = 
 {
-#ifdef HAVE_LINUX_KD_H
-    &pcsound_linux_driver,
-#endif
-#ifdef HAVE_BSD_SPEAKER
-    &pcsound_bsd_driver,
-#endif
-#ifdef _WIN32
-    &pcsound_win32_driver,
-#endif
     &pcsound_sdl_driver,
     NULL,
 };
@@ -81,7 +54,7 @@ int PCSound_Init(pcsound_callback_func callback_func)
 
     // Check if the environment variable is set
 
-    driver_name = getenv("PCSOUND_DRIVER");
+    driver_name = M_getenv("PCSOUND_DRIVER");
 
     if (driver_name != NULL)
     {
@@ -120,7 +93,7 @@ int PCSound_Init(pcsound_callback_func callback_func)
     
     if (pcsound_driver != NULL)
     {
-        printf("Using PC sound driver: %s\n", pcsound_driver->name);
+        printf("Using PC sound driver: '%s'.\n", pcsound_driver->name);
         return 1;
     }
     else
