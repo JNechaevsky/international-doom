@@ -1383,7 +1383,7 @@ void D_DoomMain (void)
 #else
     // print banner
 
-    I_PrintBanner(PACKAGE_STRING);
+    I_PrintBanner(PACKAGE_FULLNAME);
 #endif
 
     DEH_printf("Z_Init: Init zone memory allocation daemon. \n");
