@@ -25,21 +25,13 @@
 
 #include "opl.h"
 #include "opl_internal.h"
+#include "m_misc.h"
 
 //#define OPL_DEBUG_TRACE
 
 
 static opl_driver_t *drivers[] =
 {
-#if (defined(__i386__) || defined(__x86_64__)) && defined(HAVE_IOPERM)
-    &opl_linux_driver,
-#endif
-#if defined(HAVE_LIBI386) || defined(HAVE_LIBAMD64)
-    &opl_openbsd_driver,
-#endif
-#ifdef _WIN32
-    &opl_win32_driver,
-#endif
 #ifndef DISABLE_SDL2MIXER
     &opl_sdl_driver,
 #endif // DISABLE_SDL2MIXER
@@ -125,7 +117,7 @@ opl_init_result_t OPL_Init(unsigned int port_base)
     int i;
     int result;
 
-    driver_name = getenv("OPL_DRIVER");
+    driver_name = M_getenv("OPL_DRIVER");
 
     if (driver_name != NULL)
     {
