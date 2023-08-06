@@ -842,7 +842,7 @@ static void SetMissionForPackName(char *pack_name)
         { "plutonia", pack_plut },
     };
 
-    for (i = 0; i < arrlen(packs); ++i)
+    for (i = 0; (size_t)i < arrlen(packs); ++i)
     {
         if (!strcasecmp(pack_name, packs[i].name))
         {
@@ -853,7 +853,7 @@ static void SetMissionForPackName(char *pack_name)
 
     printf("Valid mission packs are:\n");
 
-    for (i = 0; i < arrlen(packs); ++i)
+    for (i = 0; (size_t)i < arrlen(packs); ++i)
     {
         printf("\t%s\n", packs[i].name);
     }
@@ -1846,7 +1846,8 @@ void D_DoomMain (void)
     //
     if (!M_ParmExists("-nodehlump") && !M_ParmExists("-nodeh"))
     {
-        int i, loaded = 0;
+        unsigned int i;
+        int loaded = 0;
 
         for (i = numiwadlumps; i < numlumps; ++i)
         {
