@@ -520,7 +520,7 @@ static const fullbright_t fullbright_walls[] = {
 
 const byte *R_BrightmapForTexName (const char *texname)
 {
-    for (uint64_t i = 0; i < arrlen(fullbright_walls); i++)
+    for (int i = 0; (size_t)i < arrlen(fullbright_walls); i++)
     {
         const fullbright_t *fullbright = &fullbright_walls[i];
 
