@@ -189,7 +189,7 @@ static void P_ExplodeMissileSafe (mobj_t* mo, boolean safe)
 {
     mo->momx = mo->momy = mo->momz = 0;
 
-    P_SetMobjState (mo, safe ? P_LatestSafeState(mobjinfo[mo->type].deathstate) : mobjinfo[mo->type].deathstate);
+    P_SetMobjState (mo, safe ? P_LatestSafeState(mobjinfo[mo->type].deathstate) : (statenum_t)mobjinfo[mo->type].deathstate);
 
     mo->tics -= safe ? ID_Random()&3 : P_Random()&3;
 
@@ -584,9 +584,10 @@ P_NightmareRespawn (mobj_t* mobj)
 void P_MobjThinker (mobj_t* mobj)
 {
     // [crispy] suppress interpolation of player missiles for the first tic
-    if (mobj->interp == -1)
+    if (mobj->interp == false)
     {
-        mobj->interp = false;
+        // [JN] Simply no-op to skip condition below.
+        // mobj->interp = false;
     }
     else
     // [AM] Handle interpolation unless we're an active player.
@@ -723,7 +724,7 @@ static const int P_FindDoomedNum (unsigned type)
     }
 
     i = hash[type % NUMMOBJTYPES].first;
-    while (i < NUMMOBJTYPES && mobjinfo[i].doomednum != type)
+    while (i < NUMMOBJTYPES && (unsigned) mobjinfo[i].doomednum != type)
     i = hash[i].next;
 
     return i;
@@ -780,7 +781,7 @@ P_SpawnMobjSafe
     mobj->lastlook = safe ? ID_Random () % MAXPLAYERS : P_Random () % MAXPLAYERS;
     // do not set the state with P_SetMobjState,
     // because action routines can not be called yet
-    st = &states[safe ? P_LatestSafeState(info->spawnstate) : info->spawnstate];
+    st = &states[safe ? P_LatestSafeState(info->spawnstate) : (statenum_t)info->spawnstate];
 
     mobj->state = st;
     mobj->tics = st->tics;
@@ -1231,7 +1232,7 @@ P_SpawnPuffSafe
 	P_SetMobjState (th, safe ? P_LatestSafeState(S_PUFF3) : S_PUFF3);
 
     // [crispy] suppress interpolation for the first tic
-    th->interp = -1;
+    th->interp = false;
 }
 
 
@@ -1419,7 +1420,7 @@ P_SpawnPlayerMissile
 			 finesine[an>>ANGLETOFINESHIFT]);
     th->momz = FixedMul( th->info->speed, slope);
     // [crispy] suppress interpolation of player missiles for the first tic
-    th->interp = -1;
+    th->interp = false;
 
     P_CheckMissileSpawn (th);
 }
