@@ -584,10 +584,9 @@ P_NightmareRespawn (mobj_t* mobj)
 void P_MobjThinker (mobj_t* mobj)
 {
     // [crispy] suppress interpolation of player missiles for the first tic
-    if (mobj->interp == false)
+    if (mobj->interp == -1)
     {
-        // [JN] Simply no-op to skip condition below.
-        // mobj->interp = false;
+        mobj->interp = false;
     }
     else
     // [AM] Handle interpolation unless we're an active player.
@@ -1232,7 +1231,7 @@ P_SpawnPuffSafe
 	P_SetMobjState (th, safe ? P_LatestSafeState(S_PUFF3) : S_PUFF3);
 
     // [crispy] suppress interpolation for the first tic
-    th->interp = false;
+    th->interp = -1;
 }
 
 
@@ -1420,7 +1419,7 @@ P_SpawnPlayerMissile
 			 finesine[an>>ANGLETOFINESHIFT]);
     th->momz = FixedMul( th->info->speed, slope);
     // [crispy] suppress interpolation of player missiles for the first tic
-    th->interp = false;
+    th->interp = -1;
 
     P_CheckMissileSpawn (th);
 }
