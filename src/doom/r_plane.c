@@ -126,7 +126,7 @@ R_MapPlane
 //  angle_t	angle;
     fixed_t	distance;
 //  fixed_t	length;
-    unsigned	index;
+//  unsigned	index;
     int dx, dy;
 	
 #ifdef RANGECHECK
@@ -177,12 +177,7 @@ R_MapPlane
 	ds_colormap[0] = ds_colormap[1] = fixedcolormap;
     else
     {
-	index = distance >> LIGHTZSHIFT;
-	
-	if (index >= MAXLIGHTZ )
-	    index = MAXLIGHTZ-1;
-
-        ds_colormap[0] = planezlight[index];
+        ds_colormap[0] = planezlight[BETWEEN(0, distance >> LIGHTZSHIFT, MAXLIGHTZ - 1)];
         ds_colormap[1] = colormaps;
     }
 	
