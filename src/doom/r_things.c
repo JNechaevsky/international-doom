@@ -419,7 +419,7 @@ void R_DrawMaskedColumn (column_t *column)
 //  mfloorclip and mceilingclip should also be set.
 // -----------------------------------------------------------------------------
 
-void R_DrawVisSprite (vissprite_t *vis, int x1, int x2)
+void R_DrawVisSprite (vissprite_t *vis)
 {
     int       texturecolumn;
     fixed_t   frac;
@@ -501,7 +501,7 @@ void R_DrawVisSprite (vissprite_t *vis, int x1, int x2)
 // Generates a vissprite for a thing
 //  if it might be visible.
 //
-void R_ProjectSprite (mobj_t* thing, int lightnum)
+void R_ProjectSprite (mobj_t* thing)
 {
     fixed_t		tr_x;
     fixed_t		tr_y;
@@ -900,7 +900,7 @@ void R_AddSprites (sector_t* sec)
 
     // Handle all things in sector.
     for (thing = sec->thinglist ; thing ; thing = thing->snext)
-	R_ProjectSprite (thing, lightnum);
+	R_ProjectSprite (thing);
 }
 
 // -----------------------------------------------------------------------------
@@ -1118,7 +1118,7 @@ void R_DrawPSprite (pspdef_t* psp)
     // [crispy] free look
     vis->texturemid += FixedMul(((centery - viewheight / 2) << FRACBITS), pspriteiscale) >> detailshift;
 
-    R_DrawVisSprite (vis, vis->x1, vis->x2);
+    R_DrawVisSprite (vis);
 }
 
 
@@ -1357,7 +1357,7 @@ void R_DrawSprite (vissprite_t* spr)
 		
     mfloorclip = clipbot;
     mceilingclip = cliptop;
-    R_DrawVisSprite (spr, spr->x1, spr->x2);
+    R_DrawVisSprite (spr);
 }
 
 // -------------------------------------------------------------------------

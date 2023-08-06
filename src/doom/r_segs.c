@@ -187,7 +187,6 @@ R_RenderMaskedSegRange
   int		x1,
   int		x2 )
 {
-    unsigned	index;
     column_t*	col;
     int		lightnum;
     int		texnum;
@@ -256,12 +255,7 @@ R_RenderMaskedSegRange
 	{
 	    if (!fixedcolormap)
 	    {
-		index = spryscale>>(LIGHTSCALESHIFT + vid_hires);
-
-		if (index >=  MAXLIGHTSCALE)
-        {
-		    index = MAXLIGHTSCALE-1;
-        }
+		const int index = MIN(spryscale >> (LIGHTSCALESHIFT + vid_hires), MAXLIGHTSCALE - 1);
 
 		// [crispy] brightmaps for mid-textures
 		dc_brightmap = texturebrightmap[texnum];

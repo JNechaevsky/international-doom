@@ -1370,8 +1370,8 @@ void R_InterpolateTextureOffsets (void)
 #define DONUT_FLOORHEIGHT_DEFAULT 0x00000000
 #define DONUT_FLOORPIC_DEFAULT 0x16
 
-static void DonutOverrun(fixed_t *s3_floorheight, short *s3_floorpic,
-                         line_t *line, sector_t *pillar_sector)
+static void DonutOverrun(fixed_t *s3_floorheight, short *s3_floorpic
+                         /*,line_t *line, sector_t *pillar_sector*/)
 {
     static int first = 1;
     static int tmp_s3_floorheight;
@@ -1509,7 +1509,7 @@ int EV_DoDonut(line_t*	line)
                         "NULL back sector. "
                         "Unexpected behavior may occur in Vanilla Doom.\n");
 
-                DonutOverrun(&s3_floorheight, &s3_floorpic, line, s1);
+                DonutOverrun(&s3_floorheight, &s3_floorpic/*, line, s1*/);
             }
             else
             {
@@ -1562,7 +1562,7 @@ int EV_DoDonut(line_t*	line)
 
 static unsigned int NumScrollers(void)
 {
-    unsigned int i, scrollers = 0;
+    int i, scrollers = 0;
 
     for (i = 0; i < numlines; i++)
     {
@@ -1648,7 +1648,7 @@ void P_SpawnSpecials (void)
 
 	  case 14:
 	    // DOOR RAISE IN 5 MINUTES
-	    P_SpawnDoorRaiseIn5Mins (sector, i);
+	    P_SpawnDoorRaiseIn5Mins (sector);
 	    break;
 	    
 	  case 17:

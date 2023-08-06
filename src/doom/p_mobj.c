@@ -189,7 +189,7 @@ static void P_ExplodeMissileSafe (mobj_t* mo, boolean safe)
 {
     mo->momx = mo->momy = mo->momz = 0;
 
-    P_SetMobjState (mo, safe ? P_LatestSafeState(mobjinfo[mo->type].deathstate) : mobjinfo[mo->type].deathstate);
+    P_SetMobjState (mo, safe ? P_LatestSafeState(mobjinfo[mo->type].deathstate) : (statenum_t)mobjinfo[mo->type].deathstate);
 
     mo->tics -= safe ? ID_Random()&3 : P_Random()&3;
 
@@ -723,7 +723,7 @@ static const int P_FindDoomedNum (unsigned type)
     }
 
     i = hash[type % NUMMOBJTYPES].first;
-    while (i < NUMMOBJTYPES && mobjinfo[i].doomednum != type)
+    while (i < NUMMOBJTYPES && (unsigned) mobjinfo[i].doomednum != type)
     i = hash[i].next;
 
     return i;
@@ -780,7 +780,7 @@ P_SpawnMobjSafe
     mobj->lastlook = safe ? ID_Random () % MAXPLAYERS : P_Random () % MAXPLAYERS;
     // do not set the state with P_SetMobjState,
     // because action routines can not be called yet
-    st = &states[safe ? P_LatestSafeState(info->spawnstate) : info->spawnstate];
+    st = &states[safe ? P_LatestSafeState(info->spawnstate) : (statenum_t)info->spawnstate];
 
     mobj->state = st;
     mobj->tics = st->tics;

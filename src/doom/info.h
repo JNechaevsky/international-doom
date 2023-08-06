@@ -1449,7 +1449,8 @@ typedef struct
     int	flags;
     int	raisestate;
     // [crispy] height of the spawnstate's first sprite in pixels
-    int	actualheight;
+    // [JN] Not used.
+    // int	actualheight;
     // [crispy] mobj to drop after death
     mobjtype_t droppeditem;
     // [crispy] distance to switch from missile to melee attack (generaliz. for Revenant)
