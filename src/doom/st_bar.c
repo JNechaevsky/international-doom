@@ -95,7 +95,7 @@ static int lu_palette;
 int st_palette = 0;
 
 // used for evil grin
-static boolean	oldweaponsowned[NUMWEAPONS]; 
+static int oldweaponsowned[NUMWEAPONS]; 
 
 static patch_t *sbar;                // main bar background
 static patch_t *sbarr;               // main bar right, for doom 1.0
