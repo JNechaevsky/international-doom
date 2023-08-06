@@ -1648,7 +1648,7 @@ void P_SpawnSpecials (void)
 
 	  case 14:
 	    // DOOR RAISE IN 5 MINUTES
-	    P_SpawnDoorRaiseIn5Mins (sector, i);
+	    P_SpawnDoorRaiseIn5Mins (sector);
 	    break;
 	    
 	  case 17:
