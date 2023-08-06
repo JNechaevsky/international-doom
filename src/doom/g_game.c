@@ -754,7 +754,7 @@ void G_DoLoadLevel (void)
         }
     }
 
-    P_SetupLevel (gameepisode, gamemap, 0, gameskill);    
+    P_SetupLevel (gameepisode, gamemap);    
     displayplayer = consoleplayer;		// view the guy you are playing    
     gameaction = ga_nothing; 
     Z_CheckHeap ();

@@ -516,7 +516,7 @@ void P_LoadSubsectors (int lump)
 //
 // P_LoadSectors
 //
-void P_LoadSectors (int lump)
+void P_LoadSectors (unsigned int lump)
 {
     byte*		data;
     int			i;
@@ -882,7 +882,7 @@ void P_LoadSideDefs (int lump)
 //
 // P_LoadBlockMap
 //
-boolean P_LoadBlockMap (int lump)
+boolean P_LoadBlockMap (unsigned int lump)
 {
     int i;
     int count;
@@ -1071,9 +1071,9 @@ static void P_CreateBlockMap (void)
         {
             int count = tot+6;  // we need at least 1 word per block, plus reserved's
         
-            for (i = 0; i < tot; i++)
-                if (bmap[i].n)
-                    count += bmap[i].n + 2; // 1 header word + 1 trailer word + blocklist
+            for (unsigned int t = 0; t < tot; t++)
+                if (bmap[t].n)
+                    count += bmap[t].n + 2; // 1 header word + 1 trailer word + blocklist
         
             // Allocate blockmap lump with computed count
             blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
@@ -1087,10 +1087,10 @@ static void P_CreateBlockMap (void)
             blockmaplump[ndx++] = 0;    // Store an empty blockmap list at start
             blockmaplump[ndx++] = -1;   // (Used for compression)
 
-            for (i = 4; i < tot; i++, bp++)
+            for (unsigned int t = 4; t < tot; t++, bp++)
                 if (bp->n)                                      // Non-empty blocklist
                 {
-                    blockmaplump[blockmaplump[i] = ndx++] = 0;  // Store index & header
+                    blockmaplump[blockmaplump[t] = ndx++] = 0;  // Store index & header
                     do
                     blockmaplump[ndx++] = bp->list[--bp->n];    // Copy linedef list
                     while (bp->n);
@@ -1098,7 +1098,7 @@ static void P_CreateBlockMap (void)
                     free(bp->list);                             // Free linedef list
                 }
                 else            // Empty blocklist: point to reserved empty blocklist
-                blockmaplump[i] = tot;
+                blockmaplump[t] = tot;
         
             free(bmap);    // Free uncompressed blockmap
         }
@@ -1388,9 +1388,7 @@ static void P_LoadReject(int lumpnum)
 void
 P_SetupLevel
 ( int		episode,
-  int		map,
-  int		playermask,
-  skill_t	skill)
+  int		map)
 {
     int		i;
     char	lumpname[9];

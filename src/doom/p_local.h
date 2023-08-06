@@ -604,7 +604,7 @@ extern const uint32_t P_ThinkerToIndex (const thinker_t *thinker);
 extern int st_keyorskull[3];
 
 extern void P_SegLengths (boolean contrast_only);
-extern void P_SetupLevel (int episode, int map, int playermask, skill_t skill);
+extern void P_SetupLevel (int episode, int map);
 extern void P_Init (void);
 
 extern byte     *rejectmatrix;  // for fast sight rejection
