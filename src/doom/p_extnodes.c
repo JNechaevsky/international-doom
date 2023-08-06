@@ -41,7 +41,7 @@ mapformat_t P_CheckMapFormat (int lumpnum)
 {
     mapformat_t format = 0;
     byte *nodes = NULL;
-    int b;
+    unsigned int b;
 
     if ((b = lumpnum+ML_BLOCKMAP+1) < numlumps &&
         !strncasecmp(lumpinfo[b]->name, "BEHAVIOR", 8))
@@ -366,7 +366,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
     numsubsectors = numSubs;
     subsectors = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
 
-    for (i = currSeg = 0; i < numsubsectors; i++)
+    for (i = currSeg = 0; i < (unsigned int)numsubsectors; i++)
     {
 	mapsubsector_zdbsp_t *mseg = (mapsubsector_zdbsp_t*) data + i;
 
@@ -391,7 +391,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
     numsegs = numSegs;
     segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
 
-    for (i = 0; i < numsegs; i++)
+    for (i = 0; i < (unsigned int)numsegs; i++)
     {
 	line_t *ldef;
 	unsigned int linedef;
@@ -460,7 +460,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
     numnodes = numNodes;
     nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
 
-    for (i = 0; i < numnodes; i++)
+    for (i = 0; i < (unsigned int)numnodes; i++)
     {
 	int j, k;
 	node_t *no = nodes + i;
