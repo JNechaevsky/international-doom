@@ -3472,7 +3472,7 @@ static menuitem_t ID_Menu_Gameplay_3[]=
     { M_SKIP, "", 0, '\0'},
     { M_LFRT, "PISTOL START GAME MODE",      M_ID_PistolStart,     'p'  },
     { M_LFRT, "IMPROVED HIT DETECTION",      M_ID_BlockmapFix,     'i'  },
-    { M_LFRT, "DIRECT VERTICAL AIMING",      M_ID_DirectAiming,    'd'  },
+    { M_LFRT, "DIRECT MOUSE LOOK AIMING",    M_ID_DirectAiming,    'd'  },
     { M_SKIP, "", 0, '\0'},
     { M_SWTC, "", /*FIRST PAGE >*/           M_Choose_ID_Gameplay_1, 'n' },
     { M_SWTC, "", /*< PREV PAGE*/            M_Choose_ID_Gameplay_2, 'p' }
