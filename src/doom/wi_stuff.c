@@ -409,13 +409,6 @@ void WI_slamBackground(void)
     V_DrawPatchFullScreen(background, false);
 }
 
-// The ticker is used to detect keys
-//  because of timing issues in netgames.
-boolean WI_Responder(event_t* ev)
-{
-    return false;
-}
-
 
 // Draws "<Levelname> Finished!"
 void WI_drawLF(void)
