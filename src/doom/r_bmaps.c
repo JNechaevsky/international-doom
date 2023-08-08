@@ -551,6 +551,10 @@ const byte *R_BrightmapForSprite (const int type)
         {
             // Armor Bonus
             case SPR_BON2:
+            {
+                return greenonly1;
+                break;
+            }
             // Cell Charge
             case SPR_CELL:
             {
