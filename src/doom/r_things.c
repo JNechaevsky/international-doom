@@ -1183,7 +1183,7 @@ static void msort(vissprite_t **s, vissprite_t **t, const int n)
         msort(s1, t, n1);
         msort(s2, t, n2);
 
-        while ((*s1)->scale > (*s2)->scale ?
+        while ((*s1)->scale >= (*s2)->scale ?
               (*d++ = *s1++, --n1) : (*d++ = *s2++, --n2));
 
         if (n2)
@@ -1201,13 +1201,11 @@ static void msort(vissprite_t **s, vissprite_t **t, const int n)
         {
             vissprite_t *temp = s[i];
 
-            // [FG] change '<' to '<=' here and below, so that vissprites with the same scale
-            // are reordered, so that the object with the higher map index appears in front
-            if (s[i-1]->scale <= temp->scale)
+            if (s[i-1]->scale < temp->scale)
             {
                 int j = i;
 
-                while ((s[j] = s[j-1])->scale <= temp->scale && --j);
+                while ((s[j] = s[j-1])->scale < temp->scale && --j);
                 s[j] = temp;
             }
         }
@@ -1235,9 +1233,13 @@ static void R_SortVisSprites (void)
                                     * sizeof *vissprite_ptrs);
         }
 
+        // Sprites of equal distance need to be sorted in inverse order.
+        // This is most easily achieved by filling the sort array
+        // backwards before the sort.
+
         while (--i >= 0)
         {
-            vissprite_ptrs[i] = vissprites+i;
+            vissprite_ptrs[num_vissprite-i-1] = vissprites+i;
         }
 
         // killough 9/22/98: replace qsort with merge sort, since the keys
