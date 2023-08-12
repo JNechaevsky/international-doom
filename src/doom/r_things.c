@@ -753,8 +753,7 @@ void R_ProjectSprite (mobj_t* thing)
     // [JN] Apply different types half-brights for certain objects.
     //  Not to be confused:
     //   * Semi-bright. Lits up brightmapped pixels with non-full power.
-    //     If sector brightness < 96, apply semi-bright. Otherwise, 
-    //     use standard diminished lighting.
+    //     If sector brightness is below ~48, no brighting will be applied.
     //   * Demi-bright. Lits up brightmapped pixels with full power,
     //     and non-brightmapped pixels with distance index miltipled by 2.
     //   * Hemi-bright. Lits up brightmapped pixels with full power,
@@ -764,9 +763,7 @@ void R_ProjectSprite (mobj_t* thing)
         if (thing->sprite == SPR_BON2   // Armor Bonus
         ||  thing->sprite == SPR_BAR1)  // Explosive Barrel
         {
-            const int semi_bright = MAX(index, MINBRIGHT);
-
-            vis->colormap[1] = spritelights[semi_bright];
+            vis->colormap[1] = spritelights[MAXDIMINDEX];
         }
         // Demi-brigths:
         else

@@ -516,7 +516,6 @@ extern visplane_t *ceilingplane;
 // R_BMAPS
 // -----------------------------------------------------------------------------
 
-#define MINBRIGHT   24  // [JN] Minimal COLORMAP level for half-brights.
 #define MAXDIMINDEX 47
 
 extern void R_InitBrightmaps (void);
