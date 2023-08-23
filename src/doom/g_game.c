@@ -2944,23 +2944,18 @@ void G_TimeDemo (char* name)
  
 boolean G_CheckDemoStatus (void) 
 { 
-    int             endtime; 
-	 
-    if (timingdemo) 
-    { 
-        float fps;
-        int realtics;
-
-	endtime = I_GetTime (); 
-        realtics = endtime - starttime;
-        fps = ((float) gametic * TICRATE) / realtics;
+    if (timingdemo)
+    {
+        const int endtime = I_GetTime();
+        const int realtics = endtime - starttime;
+        const float fps = ((float)gametic * TICRATE) / realtics;
 
         // Prevent recursive calls
         timingdemo = false;
         demoplayback = false;
 
-	I_Error ("Timed %i gametics in %i realtics.\n"
-             "Average fps: %f", gametic, realtics, fps);
+        I_Error ("Timed %i gametics in %i realtics.\n"
+                 "Average fps: %f", gametic, realtics, fps);
     } 
 	 
     if (demoplayback) 
