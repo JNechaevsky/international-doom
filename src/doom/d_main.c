@@ -514,6 +514,8 @@ boolean D_GrabMouseCallback(void)
 //
 void D_DoomLoop (void)
 {
+    static int oldgametic;
+
     if (gamevariant == bfgedition &&
         (demorecording || (gameaction == ga_playdemo) || netgame))
     {
@@ -575,7 +577,11 @@ void D_DoomLoop (void)
         }
 
         // move positional sounds
-        S_UpdateSounds(players[displayplayer].mo);
+        if (oldgametic < gametic)
+        {
+            S_UpdateSounds (players[displayplayer].mo);
+            oldgametic = gametic;
+        }
     }
 }
 
