@@ -3130,9 +3130,9 @@ static void M_Draw_ID_Gameplay_1 (void)
                  M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
 
     // Fake contrast
-    sprintf(str, vis_fake_contrast ? "ON" : "OFF");
+    sprintf(str, vis_fake_contrast ? "ORIGINAL" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 45, str,
-                 M_Item_Glow(2, vis_fake_contrast ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(2, vis_fake_contrast ? GLOW_DARKRED : GLOW_GREEN));
 
     // Diminished lighting
     sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
