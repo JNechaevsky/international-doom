@@ -740,15 +740,19 @@ void G_DoLoadLevel (void)
         {
             G_PlayerReborn(0);
         }
-        else if ((demoplayback || netdemo) && !singledemo)
+        else if ((demoplayback || netdemo) /*&& !singledemo*/)
         {
             // no-op - silently ignore pistolstart when playing demo from the
             // demo reel
+            // [JN] Do not rely on "singledemo" here to allow to play multiple
+            // levels demo with Pistol start mode enabled.
         }
         else
         {
             const char message[] = "Pistol start game mode is not supported"
-                                   " for demos and network play.";
+                                   " for demos and network play. Please disable"
+                                   " Pistol start mode in Gameplay Features"
+                                   " menu.";
             if (!demo_p) demorecording = false;
             I_Error(message);
         }
