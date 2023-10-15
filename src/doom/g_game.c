@@ -335,6 +335,11 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 	// needed for net games
     cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS]; 
  	
+	// [JN] Deny all player control events while active menu 
+	// in multiplayer to eliminate movement and camera rotation.
+ 	if (netgame && menuactive)
+ 	return;
+
  	// RestlessRodent -- If spectating then the player loses all input
  	memmove(&spect, cmd, sizeof(spect));
  	// [JN] Allow saving and pausing while spectating.
