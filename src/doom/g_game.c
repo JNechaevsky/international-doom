@@ -356,7 +356,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     forward = side = 0;
     
     // [JN] Deny all player control events while active menu 
-    // in multuplayer to eliminate movement and camera rotation.
+    // in multiplayer to eliminate movement and camera rotation.
     if (netgame && menuactive)
 	return;
 
