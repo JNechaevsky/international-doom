@@ -503,6 +503,12 @@ void CT_SetMessageCentered (player_t *player, const char *message, byte *table)
     player->messageCenteredColor = table;
 }
 
+// -----------------------------------------------------------------------------
+// MSG_Ticker
+// [JN] Reduces message tics independently from framerate and game states.
+// Not to be confused with CT_Ticker.
+// -----------------------------------------------------------------------------
+
 void MSG_Ticker (void)
 {
     player_t *player = &players[displayplayer];
