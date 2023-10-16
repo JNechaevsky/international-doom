@@ -234,6 +234,12 @@ void ID_LeftWidgets (void)
     {
         int yy = 0;
 
+        // Shift widgets one line up if Level Name widget is set to "always".
+        if (widget_levelname && !automapactive)
+        {
+            yy -= 9;
+        }
+
         // Render counters
         if (widget_render)
         {

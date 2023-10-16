@@ -325,6 +325,12 @@ static void D_Display (void)
         AM_Drawer();
     }
 
+    // [JN] Allow to draw level name separately from automap.
+    if (gamestate == GS_LEVEL && widget_levelname)
+    {
+        AM_LevelNameDrawer();
+    }
+
     if (testcontrols)
     {
         // Box showing current mouse speed

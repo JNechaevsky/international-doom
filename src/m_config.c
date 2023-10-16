@@ -409,6 +409,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(widget_kis),
     CONFIG_VARIABLE_INT(widget_time),
     CONFIG_VARIABLE_INT(widget_totaltime),
+    CONFIG_VARIABLE_INT(widget_levelname),
     CONFIG_VARIABLE_INT(widget_coords),
     CONFIG_VARIABLE_INT(widget_render),
     CONFIG_VARIABLE_INT(widget_health),
