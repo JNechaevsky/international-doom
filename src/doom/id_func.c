@@ -234,6 +234,11 @@ void ID_LeftWidgets (void)
     {
         int yy = 0;
 
+        if (widget_levelname && !automapactive)
+        {
+            yy -= 9;
+        }
+
         // Render counters
         if (widget_render)
         {

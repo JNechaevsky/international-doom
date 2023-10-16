@@ -2456,10 +2456,10 @@ static void AM_drawCrosshair (boolean force)
 }
 
 // -----------------------------------------------------------------------------
-// AM_MapNameDrawer
+// AM_LevelNameDrawer
 // -----------------------------------------------------------------------------
 
-static void AM_MapNameDrawer (void)
+void AM_LevelNameDrawer (void)
 {
     static char str[128];
     extern const char *level_name;
@@ -2469,7 +2469,7 @@ static void AM_MapNameDrawer (void)
 }
 
 // -----------------------------------------------------------------------------
-// AM_MapNameDrawer
+// AM_Drawer
 // -----------------------------------------------------------------------------
 
 void AM_Drawer (void)
@@ -2551,7 +2551,10 @@ void AM_Drawer (void)
 
     AM_drawMarks();
 	
-    AM_MapNameDrawer();
+    if (!widget_levelname)
+    {
+        AM_LevelNameDrawer();
+    }
 
     V_MarkRect(f_x, f_y, f_w, f_h);
 }
