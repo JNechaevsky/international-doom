@@ -152,6 +152,25 @@ cheatseq_t cheat_powerup[7] =
     CHEAT("idbehold", 0),
 };
 
+// -----------------------------------------------------------------------------
+// cht_CheckCheatSP
+// [crispy] restrict cheat usage
+// -----------------------------------------------------------------------------
+static const inline int cht_CheckCheatSP (cheatseq_t *cht, char key)
+{
+    if (!cht_CheckCheat(cht, key))
+    {
+        return false;
+    }
+    else
+    if (!singleplayer)
+    {
+        // plyr->message = "Cheater!";
+        return false;
+    }
+    return true;
+}
+
 // [JN] Versions prior 1.4 does not have STTMINUS patch.
 // If case of using such versions, drawing negative health is not possible.
 static boolean no_sttminus = false;
@@ -246,7 +265,7 @@ boolean ST_Responder (event_t *ev)
             }
 
             // 'dqd' cheat for toggleable god mode
-            if (cht_CheckCheat(&cheat_god, ev->data2))
+            if (cht_CheckCheatSP(&cheat_god, ev->data2))
             {
                 // [crispy] dead players are first respawned at the current position
                 mapthing_t mt = {0};
@@ -285,7 +304,7 @@ boolean ST_Responder (event_t *ev)
                 plyr->cheatTics = 1;
             }
             // 'fa' cheat for killer fucking arsenal
-            else if (cht_CheckCheat(&cheat_ammonokey, ev->data2))
+            else if (cht_CheckCheatSP(&cheat_ammonokey, ev->data2))
             {
                 plyr->armorpoints = deh_idfa_armor;
                 plyr->armortype = deh_idfa_armor_class;
@@ -306,7 +325,7 @@ boolean ST_Responder (event_t *ev)
                 CT_SetMessage(plyr, DEH_String(STSTR_FAADDED), false, NULL);
             }
             // 'kfa' cheat for key full ammo
-            else if (cht_CheckCheat(&cheat_ammo, ev->data2))
+            else if (cht_CheckCheatSP(&cheat_ammo, ev->data2))
             {
                 plyr->armorpoints = deh_idkfa_armor;
                 plyr->armortype = deh_idkfa_armor_class;
@@ -331,7 +350,7 @@ boolean ST_Responder (event_t *ev)
                 CT_SetMessage(plyr, DEH_String(STSTR_KFAADDED), false, NULL);
             }
             // [JN] 'ka' for keys only
-            else if (cht_CheckCheat(&cheat_keys, ev->data2))
+            else if (cht_CheckCheatSP(&cheat_keys, ev->data2))
             {
                 for (i = 0; i < NUMCARDS ; i++)
                 {
@@ -392,8 +411,8 @@ boolean ST_Responder (event_t *ev)
             // For Doom 1, use the idspipsopd cheat; for all others, use idclip            
             // [crispy] allow both idspispopd and idclip cheats in all gamemissions
             else 
-            if (cht_CheckCheat(&cheat_noclip, ev->data2)
-            || (cht_CheckCheat(&cheat_commercial_noclip, ev->data2)))
+            if (cht_CheckCheatSP(&cheat_noclip, ev->data2)
+            || (cht_CheckCheatSP(&cheat_commercial_noclip, ev->data2)))
             {	
                 plyr->cheats ^= CF_NOCLIP;
 
@@ -414,7 +433,7 @@ boolean ST_Responder (event_t *ev)
             // 'behold?' power-up cheats
             for (i = 0 ; i < 6 ; i++)
             {
-                if (cht_CheckCheat(&cheat_powerup[i], ev->data2))
+                if (cht_CheckCheatSP(&cheat_powerup[i], ev->data2))
                 {
                     if (!plyr->powers[i])
                     {
@@ -434,12 +453,12 @@ boolean ST_Responder (event_t *ev)
                 }
             }
             // 'behold' power-up menu
-            if (cht_CheckCheat(&cheat_powerup[6], ev->data2))
+            if (cht_CheckCheatSP(&cheat_powerup[6], ev->data2))
             {
                 CT_SetMessage(plyr, DEH_String(STSTR_BEHOLD), false, NULL);
             }
             // 'choppers' invulnerability & chainsaw
-            else if (cht_CheckCheat(&cheat_choppers, ev->data2))
+            else if (cht_CheckCheatSP(&cheat_choppers, ev->data2))
             {
                 plyr->weaponowned[wp_chainsaw] = true;
                 plyr->powers[pw_invulnerability] = true;
@@ -466,7 +485,7 @@ boolean ST_Responder (event_t *ev)
                 plyr->cheatTics = 1;
             }
             // [crispy] implement Boom's "tntem" cheat
-            else if (cht_CheckCheat(&cheat_massacre1, ev->data2))
+            else if (cht_CheckCheatSP(&cheat_massacre1, ev->data2))
             {
                 static char buf[52];
                 const int killcount = ST_cheat_massacre(true);
@@ -477,7 +496,7 @@ boolean ST_Responder (event_t *ev)
                 CT_SetMessage(plyr, buf, false, NULL);
             }
             // [JN] implement MBF's "killem" cheat, which kills, not explodes enemies.
-            else if (cht_CheckCheat(&cheat_massacre2, ev->data2))
+            else if (cht_CheckCheatSP(&cheat_massacre2, ev->data2))
             {
                 static char buf[52];
                 const int killcount = ST_cheat_massacre(false);
@@ -488,21 +507,21 @@ boolean ST_Responder (event_t *ev)
                 CT_SetMessage(plyr, buf, false, NULL);
             }
             // [JN] CRL - Freeze mode.
-            else if (cht_CheckCheat(&cheat_freeze, ev->data2))
+            else if (cht_CheckCheatSP(&cheat_freeze, ev->data2))
             {
                 crl_freeze ^= 1;
                 CT_SetMessage(plyr, crl_freeze ?
                               ID_FREEZE_ON : ID_FREEZE_OFF, false, NULL);
             }
             // [JN] Implement Woof's "notarget" cheat.
-            else if (cht_CheckCheat(&cheat_notarget, ev->data2))
+            else if (cht_CheckCheatSP(&cheat_notarget, ev->data2))
             {
                 plyr->cheats ^= CF_NOTARGET;
                 CT_SetMessage(plyr, plyr->cheats & CF_NOTARGET ?
                                ID_NOTARGET_ON : ID_NOTARGET_OFF, false, NULL);
             }
             // [JN] Implement Woof's "buddha" cheat.
-            else if (cht_CheckCheat(&cheat_buddha, ev->data2))
+            else if (cht_CheckCheatSP(&cheat_buddha, ev->data2))
             {
                 plyr->cheats ^= CF_BUDDHA;
                 CT_SetMessage(plyr, plyr->cheats & CF_BUDDHA ?
