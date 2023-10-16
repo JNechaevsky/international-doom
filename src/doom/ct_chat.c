@@ -502,3 +502,27 @@ void CT_SetMessageCentered (player_t *player, const char *message, byte *table)
     player->messageCenteredTics = 5*TICRATE/2; // [crispy] 2.5 seconds
     player->messageCenteredColor = table;
 }
+
+// -----------------------------------------------------------------------------
+// MSG_Ticker
+// [JN] Reduces message tics independently from framerate and game states.
+// Not to be confused with CT_Ticker.
+// -----------------------------------------------------------------------------
+
+void MSG_Ticker (void)
+{
+    player_t *player = &players[displayplayer];
+
+    if (player->messageTics > 0)
+    {
+        player->messageTics--;
+    }
+    if (!player->messageTics)
+    {                           // Refresh the screen when a message goes away
+        ultimatemsg = false;    // clear out any chat messages.
+    }
+    if (player->messageCenteredTics > 0)
+    {
+        player->messageCenteredTics--;
+    }
+}
