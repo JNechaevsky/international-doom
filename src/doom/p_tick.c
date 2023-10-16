@@ -183,7 +183,6 @@ void P_RunThinkers (void)
 void P_Ticker (void)
 {
     int		i;
-    player_t *player = &players[displayplayer];
     
     if (players[displayplayer].targetsheathTics > 0)
     {
