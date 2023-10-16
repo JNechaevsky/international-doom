@@ -2551,7 +2551,7 @@ void AM_Drawer (void)
 
     AM_drawMarks();
 	
-    // [JN] Allow to draw level name separately from automap.
+    // [JN] Draw level name only if Level Name widget is set to "automap".
     if (!widget_levelname)
     {
         AM_LevelNameDrawer();
