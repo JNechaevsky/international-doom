@@ -158,14 +158,6 @@ static void ID_DrawMessage (void)
 {
     player_t *player = &players[displayplayer];
 
-    // [JN] Activate message counter in non-level or paused states.
-    // Make messages go away in menu, finale and help screens.
-    // Tics can't go negative.
-    if ((gamestate != GS_LEVEL || paused || menuactive) && player->messageTics > 0)
-    {
-        player->messageTics--;
-    }
-
     if (player->messageTics <= 0 || !player->message)
     {
         return;  // No message

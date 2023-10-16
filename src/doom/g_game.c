@@ -1360,6 +1360,8 @@ void G_Ticker (void)
 	break;
     }        
 
+    MSG_Ticker();
+
     //
     // [JN] Query time for time-related widgets:
     //
