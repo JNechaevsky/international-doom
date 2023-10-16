@@ -1360,6 +1360,8 @@ void G_Ticker (void)
 	break;
     }        
 
+    // [JN] Reduce message tics independently from framerate and game states.
+    // Tics can't go negative.
     MSG_Ticker();
 
     //
