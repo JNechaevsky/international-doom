@@ -28,6 +28,8 @@
 extern boolean G_CheckDemoStatus (void);
 extern boolean G_Responder (event_t *ev);
 
+extern char *demoname;
+
 extern int G_VanillaVersionCode(void);
 
 extern void G_BeginRecording (void);
