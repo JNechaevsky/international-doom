@@ -253,6 +253,7 @@ enum
     FILETYPE_PWAD =    0x4,
     FILETYPE_DEH =     0x8,
     FILETYPE_DEMO =    0x10,
+    FILETYPE_CONFIG =  0x20,
 };
 
 static boolean FileIsDemoLump(const char *filename)
@@ -359,6 +360,10 @@ static int GuessFileType(const char *name)
             ret = FILETYPE_PWAD;
         }
     }
+    else if (M_StringEndsWith(lower, ".ini"))
+    {
+        ret = FILETYPE_CONFIG;
+    }
 
     free(lower);
 
@@ -392,11 +397,11 @@ void M_AddLooseFiles(void)
         return;
     }
 
-    // allocate space for up to four additional regular parameters
-    // (-iwad, -merge, -deh, -playdemo)
+    // allocate space for up to five additional regular parameters
+    // (-iwad, -merge, -deh, -playdemo, -config)
 
-    arguments = malloc((myargc + 4) * sizeof(*arguments));
-    memset(arguments, 0, (myargc + 4) * sizeof(*arguments));
+    arguments = malloc((myargc + 5) * sizeof(*arguments));
+    memset(arguments, 0, (myargc + 5) * sizeof(*arguments));
 
     // check the command line and make sure it does not already
     // contain any regular parameters or response files
@@ -450,6 +455,12 @@ void M_AddLooseFiles(void)
     {
         arguments[myargc].str = M_StringDuplicate("-playdemo");
         arguments[myargc].type = FILETYPE_DEMO - 1;
+        myargc++;
+    }
+    if (types & FILETYPE_CONFIG)
+    {
+        arguments[myargc].str = M_StringDuplicate("-config");
+        arguments[myargc].type = FILETYPE_CONFIG - 1;
         myargc++;
     }
 
