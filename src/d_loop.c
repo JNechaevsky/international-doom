@@ -82,12 +82,6 @@ int oldleveltime; // [crispy] check if leveltime keeps tickin'
 // [JN] used by player, render and interpolation. Always ticking.
 int realleveltime;
 
-// [JN] Forcefully supress interpolation in video options menu.
-// Needed for render will be able to do a proper update on
-// toggling resolution/widescreen modes.
-
-boolean force_capped_fps;
-
 // When set to true, a single tic is run each time TryRunTics() is called.
 // This is used for -timedemo mode.
 
@@ -703,7 +697,7 @@ void TryRunTics (void)
     //      to run, return early instead of waiting around.
     // [JN] CRL - Keep uncapped framerate while paused and Spectator mode.
     extern boolean paused;
-    #define return_early (vid_uncapped_fps &&!force_capped_fps && counts == 0 && \
+    #define return_early (vid_uncapped_fps && counts == 0 && \
                          ((paused && crl_spectating) || realleveltime > oldleveltime) && \
                          screenvisible)
 
