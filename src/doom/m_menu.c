@@ -4176,6 +4176,7 @@ static void M_ID_ApplyReset (int key)
     xhair_color = 0;
     st_colored_stbar = 0;
     st_negative_health = 0;
+    st_blinking_keys = 0;
     aud_z_axis_sfx = 0;
     aud_full_sounds = 0;
     aud_exit_sounds = 0;
