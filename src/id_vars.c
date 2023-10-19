@@ -97,6 +97,7 @@ int xhair_color = 0;
 
 int st_colored_stbar = 0;
 int st_negative_health = 0;
+int st_blinking_keys = 0;
 
 int aud_z_axis_sfx = 0;
 int aud_full_sounds = 0;
@@ -203,6 +204,7 @@ void ID_BindVariables (void)
 
     M_BindIntVariable("st_colored_stbar",               &st_colored_stbar);
     M_BindIntVariable("st_negative_health",             &st_negative_health);
+    M_BindIntVariable("st_blinking_keys",               &st_blinking_keys);
 
     M_BindIntVariable("aud_z_axis_sfx",                 &aud_z_axis_sfx);
     M_BindIntVariable("aud_full_sounds",                &aud_full_sounds);

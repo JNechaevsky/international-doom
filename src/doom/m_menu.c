@@ -652,6 +652,7 @@ static void M_Choose_ID_Gameplay_2 (int choice);
 static void M_Draw_ID_Gameplay_2 (void);
 static void M_ID_ColoredSTBar (int choice);
 static void M_ID_NegativeHealth (int choice);
+static void M_ID_BlinkingKeys (int choice);
 static void M_ID_ZAxisSfx (int choice);
 static void M_ID_FullSounds (int choice);
 static void M_ID_Torque (int choice);
@@ -3260,6 +3261,7 @@ static menuitem_t ID_Menu_Gameplay_2[]=
 {
     { M_LFRT, "COLORED ELEMENTS",               M_ID_ColoredSTBar,     'c'  },
     { M_LFRT, "SHOW NEGATIVE HEALTH",           M_ID_NegativeHealth,   's'  },
+    { M_LFRT, "BLINK MISSING KEYS",             M_ID_BlinkingKeys,     'b'  },
     { M_SKIP, "", 0, '\0'},  // AUDIBLE
     { M_LFRT, "SFX ATTENUATION AXISES",         M_ID_ZAxisSfx,         's'  },
     { M_LFRT, "PLAY SOUNDS IN FULL LENGTH",     M_ID_FullSounds,       'p'  },
@@ -3270,7 +3272,6 @@ static menuitem_t ID_Menu_Gameplay_2[]=
     { M_LFRT, "FLOATING POWERUPS AMPLITUDE",    M_ID_FloatingPowerups, 'f'  },
     { M_LFRT, "WEAPON ATTACK ALIGNMENT",        M_ID_WeaponAlignment,  'w'  },
     { M_LFRT, "IMITATE PLAYER'S BREATHING",     M_ID_Breathing,        'i'  },
-    { M_SKIP, "", 0, '\0'},
     { M_SWTC, "", /*NEXT PAGE >*/               M_Choose_ID_Gameplay_3, '\0' },
     { M_SWTC, "", /*< PREV PAGE*/               M_Choose_ID_Gameplay_1, 'p'  }
 };
@@ -3310,52 +3311,57 @@ static void M_Draw_ID_Gameplay_2 (void)
     M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 36, str,
                  M_Item_Glow(1, st_negative_health ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(45, "AUDIBLE", cr[CR_YELLOW]);
+    // Blink missing keys
+    sprintf(str, st_blinking_keys ? "ON" : "OFF");
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 45, str,
+                 M_Item_Glow(2, st_blinking_keys ? GLOW_GREEN : GLOW_DARKRED));
+
+    M_WriteTextCentered(54, "AUDIBLE", cr[CR_YELLOW]);
 
     // Sfx attenuation axises
     sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
-    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 54, str,
-                 M_Item_Glow(3, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 63, str,
+                 M_Item_Glow(4, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
 
     // Play sounds in full length
     sprintf(str, aud_full_sounds ? "ON" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 63, str,
-                 M_Item_Glow(4, aud_full_sounds ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 72, str,
+                 M_Item_Glow(5, aud_full_sounds ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(72, "PHYSICAL", cr[CR_YELLOW]);
+    M_WriteTextCentered(81, "PHYSICAL", cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 81, str,
-                 M_Item_Glow(6, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 90, str,
+                 M_Item_Glow(7, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
 
     // Point-blank SSG tear monsters
     sprintf(str, phys_ssg_tear_monsters ? "ON" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 90, str,
-                 M_Item_Glow(7, phys_ssg_tear_monsters ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 99, str,
+                 M_Item_Glow(8, phys_ssg_tear_monsters ? GLOW_GREEN : GLOW_DARKRED));
 
     // Items are tossed when dropped
     sprintf(str, phys_toss_drop ? "ON" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 99, str,
-                 M_Item_Glow(8, phys_toss_drop ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 108, str,
+                 M_Item_Glow(9, phys_toss_drop ? GLOW_GREEN : GLOW_DARKRED));
 
     // Floating powerups amplitude
     sprintf(str, phys_floating_powerups == 1 ? "LOW" :
                  phys_floating_powerups == 2 ? "MIDDLE" :
                  phys_floating_powerups == 3 ? "HIGH" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 108, str,
-                 M_Item_Glow(9, phys_floating_powerups ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 117, str,
+                 M_Item_Glow(10, phys_floating_powerups ? GLOW_GREEN : GLOW_DARKRED));
 
     // Weapon attack alignment
     sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
                  phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
-    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 117, str,
-                 M_Item_Glow(10, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 126, str,
+                 M_Item_Glow(11, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 126, str,
-                 M_Item_Glow(11, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 135, str,
+                 M_Item_Glow(12, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
 
     M_WriteText (ID_MENU_LEFTOFFSET_BIG, 144, "NEXT PAGE >",
@@ -3376,6 +3382,11 @@ static void M_ID_ColoredSTBar (int choice)
 static void M_ID_NegativeHealth (int choice)
 {
     st_negative_health ^= 1;
+}
+
+static void M_ID_BlinkingKeys (int choice)
+{
+    st_blinking_keys ^= 1;
 }
 
 static void M_ID_ZAxisSfx (int choice)
