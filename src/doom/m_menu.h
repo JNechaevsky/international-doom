@@ -62,8 +62,9 @@ typedef struct menu_s
 } menu_t;
 
 // [JN] Externalized for R_RenderPlayerView.
+extern int     messageToPrint;
 extern menu_t *currentMenu;
-extern menu_t ID_Def_Video;
+extern menu_t  ID_Def_Video;
 
 //
 // MENUS

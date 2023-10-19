@@ -68,7 +68,7 @@ boolean menuactive;
 static int quickSaveSlot;
 
  // 1 = message to be printed
-static int messageToPrint;
+int messageToPrint;
 // ...and here is the message string!
 static const char *messageString;
 

@@ -1054,7 +1054,7 @@ void R_RenderPlayerView (player_t *player)
 {
     // [JN] Disable rendering while in Video Options menu
     // to prevent possible crashes on rendering resolution toggling.
-    if (menuactive && currentMenu == &ID_Def_Video)
+    if (menuactive && currentMenu == &ID_Def_Video && !messageToPrint)
     {
         return;
     }
