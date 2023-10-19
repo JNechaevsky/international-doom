@@ -117,51 +117,15 @@ static char savegamestrings[10][SAVESTRINGSIZE];
 static char endstring[160];
 
 
-//
-// MENU TYPEDEFS
-//
-
 // [JN] Macro definitions for first two items of menuitem_t.
 // Trailing zero initializes "tics" field.
 #define M_SKIP -1,0  // Skippable, cursor can't get here.
 #define M_SWTC  1,0  // On/off type or entering function.
 #define M_LFRT  2,0  // Multichoice function.
 
-typedef struct
-{
-    // 0 = no cursor here, 1 = ok, 2 = arrows ok
-    short	status;
-
-    // [JN] Menu item timer for glowing effect.
-    short   tics;
-    
-    char	name[32];
-    
-    // choice = menu item #.
-    // if status = 2,
-    //   choice=0:leftarrow,1:rightarrow
-    void	(*routine)(int choice);
-    
-    // hotkey in menu
-    char	alphaKey;			
-} menuitem_t;
-
-
 // [JN] Small cursor timer for glowing effect.
 static short   cursor_tics = 0;
 static boolean cursor_direction = false;
-
-typedef struct menu_s
-{
-    short		numitems;	// # of menu items
-    struct menu_s*	prevMenu;	// previous menu
-    menuitem_t*		menuitems;	// menu items
-    void		(*routine)(void);	// draw routine
-    short		x;
-    short		y;		// x,y of menu
-    short		lastOn;		// last item user was on in menu
-    boolean		smallFont;  // [JN] If true, use small font
-} menu_t;
 
 static short itemOn;            // menu item skull is on
 static short skullAnimCounter;  // skull animation counter
@@ -172,7 +136,7 @@ static short whichSkull;        // which skull to draw
 static char *skullName[2] = {"M_SKULL1","M_SKULL2"};
 
 // current menudef
-static menu_t *currentMenu;
+menu_t *currentMenu;
 
 // =============================================================================
 // PROTOTYPES
@@ -1079,7 +1043,7 @@ static menuitem_t ID_Menu_Video[]=
     { M_SKIP, "", 0, '\0'}
 };
 
-static menu_t ID_Def_Video =
+menu_t ID_Def_Video =
 {
     m_id_end,
     &ID_Def_Main,
@@ -1099,12 +1063,9 @@ static void M_Draw_ID_Video (void)
 {
     static char str[32];
 
-    // [JN] Forcefully supress interpolation in video options menu.
-    // Needed for render will be able to do a proper update on
-    // toggling resolution/widescreen modes.
-    force_capped_fps = true;
-
-    M_ShadeBackground();
+    // [JN] Note: along with background filling, 
+    // game render is disabled in R_RenderPlayerView.
+    M_FillBackground();
 
     M_WriteTextCentered(18, "VIDEO OPTIONS", cr[CR_YELLOW]);
 
@@ -4267,7 +4228,6 @@ static void M_ID_ApplyReset (int key)
 
 static void M_Choose_ID_Reset (int choice)
 {
-	force_capped_fps = true;
 	M_StartMessage(DEH_String(ID_RESET), M_ID_ApplyReset, true);
 }
 
@@ -6197,9 +6157,6 @@ void M_Ticker (void)
 	whichSkull ^= 1;
 	skullAnimCounter = 8;
     }
-
-    // [JN] Disable interpolation supressing, made in M_Draw_ID_Video.
-    force_capped_fps = false;
 
     // [JN] Menu glowing animation:
     
