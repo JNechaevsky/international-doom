@@ -465,21 +465,12 @@ void ID_RightWidgets (void)
 {
     int yy = 0;
 
-    if (gamestate == GS_LEVEL)
+    // [JN] If demo timer is active and running,
+    // shift FPS and time widgets one line down.
+    if ((demoplayback && (demo_timer == 1 || demo_timer == 3))
+    ||  (demorecording && (demo_timer == 2 || demo_timer == 3)))
     {
-        // [crispy] demo timer widget
-        // [JN] If demo timer is active and running,
-        // shift FPS and time widgets one line down.
-        if (demoplayback && (demo_timer == 1 || demo_timer == 3))
-        {
-            ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
-            yy += 9;
-        }
-        else if (demorecording && (demo_timer == 2 || demo_timer == 3))
-        {
-            ID_DemoTimer(leveltime);
-            yy += 9;
-        }
+        yy += 9;
     }
 
     // [JN] FPS counter
