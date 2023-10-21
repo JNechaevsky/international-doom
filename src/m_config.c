@@ -213,6 +213,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_FLOAT(fsynth_reverb_level),
     CONFIG_VARIABLE_FLOAT(fsynth_reverb_roomsize),
     CONFIG_VARIABLE_FLOAT(fsynth_reverb_width),
+    CONFIG_VARIABLE_FLOAT(fsynth_gain),
     CONFIG_VARIABLE_STRING(fsynth_sf_path),
 #endif // HAVE_FLUIDSYNTH
     CONFIG_VARIABLE_STRING(timidity_cfg_path),
