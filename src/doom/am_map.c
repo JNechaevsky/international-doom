@@ -2450,8 +2450,12 @@ static void AM_drawCrosshair (boolean force)
             v.a.y -= 2; v.b.y += 2;
         }
 
-        AM_drawFline(&h, doom_96);
-        AM_drawFline(&v, doom_96);
+        // [JN] Do not draw crosshair while video re-init functions.
+        if (!force)
+        {
+            AM_drawFline(&h, doom_96);
+            AM_drawFline(&v, doom_96);
+        }
     }
 }
 
