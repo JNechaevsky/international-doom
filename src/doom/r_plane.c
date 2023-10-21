@@ -415,11 +415,6 @@ void R_DrawPlanes (void)
                 const side_t *s = *l->sidenum + sides;
                 texture = texturetranslation[s->toptexture];
                 dc_texturemid = s->rowoffset - 28*FRACUNIT;
-                // [crispy] stretch sky
-                if (mouse_look)
-                {
-                    dc_texturemid = dc_texturemid * (textureheight[texture]>>FRACBITS) / SKYSTRETCH_HEIGHT;
-                }
                 flip = (l->special == 272) ? 0u : ~0u;
                 an += s->textureoffset;
             }
@@ -437,12 +432,14 @@ void R_DrawPlanes (void)
             // [crispy] no brightmaps for sky
             dc_colormap[0] = dc_colormap[1] = vis_invul_sky && fixedcolormap ? 
                                               fixedcolormap : colormaps;
-
-            //dc_texturemid = skytexturemid;
             dc_texheight = textureheight[texture]>>FRACBITS;
-            // [crispy] stretch sky
-            if (mouse_look)
-	        dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
+
+            // [crispy] stretch short skies
+            if (mouse_look && dc_texheight < 200)
+            {
+                dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
+                dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+            }
             for (int x = pl->minx ; x <= pl->maxx ; x++)
             {
                 if ((dc_yl = pl->top[x]) != USHRT_MAX && dc_yl <= (dc_yh = pl->bottom[x]))

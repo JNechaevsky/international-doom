@@ -564,8 +564,9 @@ extern lighttable_t **dscalelight;
 // R_DATA
 // -----------------------------------------------------------------------------
 
-#define LOOKDIRMAX  100
-#define LOOKDIRS    (2*LOOKDIRMAX+1) // [crispy] lookdir range: -100..100
+#define LOOKDIRMIN	110 // [crispy] -110, actually
+#define LOOKDIRMAX	90
+#define LOOKDIRS	(LOOKDIRMIN+1+LOOKDIRMAX) // [crispy] lookdir range: -110..0..90
 
 extern byte *R_GetColumn (int tex, int col);
 extern byte *R_GetColumnMod (int tex, int col);

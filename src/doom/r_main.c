@@ -683,15 +683,28 @@ void R_InitLightTables (void)
 // Called whenever the view size changes.
 //
 int			skyflatnum;
-int			skytexture;
+int			skytexture = -1; // [crispy] initialize
 int			skytexturemid;
 
 void R_InitSkyMap (void)
 {
-    // skytexturemid = ORIGHEIGHT/2*FRACUNIT;
-    if (mouse_look)
+    int skyheight;
+
+    // [crispy] stretch short skies
+    if (skytexture == -1)
     {
-        skytexturemid = -28*FRACUNIT * (textureheight[skytexture] >> FRACBITS) / SKYSTRETCH_HEIGHT;
+        return;
+    }
+
+    skyheight = textureheight[skytexture] >> FRACBITS;
+
+    if (mouse_look && skyheight < 200)
+    {
+        skytexturemid = -28*FRACUNIT;
+    }
+    else if (skyheight >= 200)
+    {
+        skytexturemid = 200*FRACUNIT;
     }
     else
     {
@@ -826,12 +839,12 @@ void R_ExecuteSetViewSize (void)
 	const fixed_t num = (viewwidth_nonwide<<detailshift)/2*FRACUNIT;
 	for (j = 0; j < LOOKDIRS; j++)
 	{
-	dy = ((i-(viewheight/2 + ((j-LOOKDIRMAX) * (1 << vid_hires)) * (dp_screen_size < 11 ? dp_screen_size : 11) / 10))<<FRACBITS)+FRACUNIT/2;
+	dy = ((i-(viewheight/2 + ((j-LOOKDIRMIN) * (1 << vid_hires)) * (dp_screen_size < 11 ? dp_screen_size : 11) / 10))<<FRACBITS)+FRACUNIT/2;
 	dy = abs(dy);
 	yslopes[j][i] = FixedDiv (num, dy);
 	}
     }
-    yslope = yslopes[LOOKDIRMAX];
+    yslope = yslopes[LOOKDIRMIN];
 	
     for (i=0 ; i<viewwidth ; i++)
     {
@@ -1015,8 +1028,8 @@ void R_SetupFrame (player_t* player)
     if (pitch > LOOKDIRMAX)
 	pitch = LOOKDIRMAX;
     else
-    if (pitch < -LOOKDIRMAX)
-	pitch = -LOOKDIRMAX;
+    if (pitch < -LOOKDIRMIN)
+	pitch = -LOOKDIRMIN;
 
     // apply new yslope[] whenever "lookdir", "detailshift" or "screenblocks" change
     tempCentery = viewheight/2 + (pitch * (1 << vid_hires)) * (dp_screen_size < 11 ? dp_screen_size : 11) / 10;
@@ -1024,7 +1037,7 @@ void R_SetupFrame (player_t* player)
     {
         centery = tempCentery;
         centeryfrac = centery << FRACBITS;
-        yslope = yslopes[LOOKDIRMAX + pitch];
+        yslope = yslopes[LOOKDIRMIN + pitch];
     }
 
     viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
