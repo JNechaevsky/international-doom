@@ -1299,6 +1299,12 @@ void ST_Drawer (void)
             V_DrawPatch(104 /*- ST_WIDESCREENDELTA*/, 0, sbarr);
         }
 
+        // ARMS background
+        if (!deathmatch)
+        {
+            V_DrawPatch(104, 0, armsbg);
+        }
+
         if (netgame)
         {
             // Player face background
@@ -1309,12 +1315,6 @@ void ST_Drawer (void)
         V_RestoreBuffer();
 
         V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, ST_HEIGHT << vid_hires, 0, ST_Y << vid_hires);
-
-        // ARMS background
-        if (!deathmatch)
-        {
-            V_DrawPatch(104, 168, armsbg);
-        }
     }
 
     // [crispy] draw berserk pack instead of no ammo if appropriate
