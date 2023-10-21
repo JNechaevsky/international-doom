@@ -3575,7 +3575,7 @@ static void M_Draw_ID_Gameplay_3 (void)
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET_BIG - M_StringWidth(str), 90, str,
-                 M_Item_Glow(7, demo_internal ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(7, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
 
     M_WriteTextCentered(99, "COMPATIBILITY-BREAKING", cr[CR_YELLOW]);
 
