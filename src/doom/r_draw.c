@@ -1162,8 +1162,9 @@ R_VideoErase
   //  is not optiomal, e.g. byte by byte on
   //  a 32bit CPU, as GNU GCC/Linux libc did
   //  at one point.
+  // [JN] No-op until post_rendering_hook is finished.
 
-    if (background_buffer != NULL)
+    if (background_buffer != NULL && !post_rendering_hook)
     {
         memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count * sizeof(*I_VideoBuffer));
     }

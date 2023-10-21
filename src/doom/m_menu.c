@@ -68,7 +68,7 @@ boolean menuactive;
 static int quickSaveSlot;
 
  // 1 = message to be printed
-int messageToPrint;
+static int messageToPrint;
 // ...and here is the message string!
 static const char *messageString;
 
@@ -117,6 +117,41 @@ static char savegamestrings[10][SAVESTRINGSIZE];
 static char endstring[160];
 
 
+//
+// MENU TYPEDEFS
+//
+
+typedef struct
+{
+    // 0 = no cursor here, 1 = ok, 2 = arrows ok
+    short	status;
+
+    // [JN] Menu item timer for glowing effect.
+    short   tics;
+    
+    char	name[32];
+    
+    // choice = menu item #.
+    // if status = 2,
+    //   choice=0:leftarrow,1:rightarrow
+    void	(*routine)(int choice);
+    
+    // hotkey in menu
+    char	alphaKey;			
+} menuitem_t;
+
+typedef struct menu_s
+{
+    short		numitems;	// # of menu items
+    struct menu_s*	prevMenu;	// previous menu
+    menuitem_t*		menuitems;	// menu items
+    void		(*routine)(void);	// draw routine
+    short		x;
+    short		y;		// x,y of menu
+    short		lastOn;		// last item user was on in menu
+    boolean		smallFont;  // [JN] If true, use small font
+} menu_t;
+
 // [JN] Macro definitions for first two items of menuitem_t.
 // Trailing zero initializes "tics" field.
 #define M_SKIP -1,0  // Skippable, cursor can't get here.
@@ -136,7 +171,7 @@ static short whichSkull;        // which skull to draw
 static char *skullName[2] = {"M_SKULL1","M_SKULL2"};
 
 // current menudef
-menu_t *currentMenu;
+static menu_t *currentMenu;
 
 // =============================================================================
 // PROTOTYPES
@@ -1043,7 +1078,7 @@ static menuitem_t ID_Menu_Video[]=
     { M_SKIP, "", 0, '\0'}
 };
 
-menu_t ID_Def_Video =
+static menu_t ID_Def_Video =
 {
     m_id_end,
     &ID_Def_Main,
@@ -1063,9 +1098,7 @@ static void M_Draw_ID_Video (void)
 {
     static char str[32];
 
-    // [JN] Note: along with background filling, 
-    // game render is disabled in R_RenderPlayerView.
-    M_FillBackground();
+    M_ShadeBackground();
 
     M_WriteTextCentered(18, "VIDEO OPTIONS", cr[CR_YELLOW]);
 
@@ -1141,6 +1174,12 @@ static void M_Draw_ID_Video (void)
                  M_Item_Glow(11, vid_endoom ? GLOW_GREEN : GLOW_DARKRED));
 }
 
+static void M_ID_TrueColorHook (void)
+{
+    I_SetPalette (st_palette);
+    R_InitColormaps();
+    R_FillBackScreen();
+}
 
 static void M_ID_TrueColor (int choice)
 {
@@ -1148,18 +1187,36 @@ static void M_ID_TrueColor (int choice)
     return;
 #else
     vid_truecolor ^= 1;
-
-    I_SetPalette (st_palette);
-    R_InitColormaps();
-    R_FillBackScreen();
+    post_rendering_hook = M_ID_TrueColorHook;
 #endif
 }
 
+static void M_ID_RenderingResHook (void)
+{
+    // [crispy] re-initialize framebuffers, textures and renderer
+    I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    // [crispy] re-calculate framebuffer coordinates
+    R_ExecuteSetViewSize();
+    // [crispy] re-draw bezel
+    R_FillBackScreen();
+    // [crispy] re-calculate disk icon coordinates
+    V_EnableLoadingDisk();
+    // [crispy] re-calculate automap coordinates
+    AM_LevelInit(true);
+    if (automapactive)
+    {
+        AM_Start();
+    }
+}
 
 static void M_ID_RenderingRes (int choice)
 {
     vid_hires = M_INT_Slider(vid_hires, 0, 2, choice);
+    post_rendering_hook = M_ID_RenderingResHook;
+}
 
+static void M_ID_WidescreenHook (void)
+{
     // [crispy] re-initialize framebuffers, textures and renderer
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
     // [crispy] re-calculate framebuffer coordinates
@@ -1179,21 +1236,7 @@ static void M_ID_RenderingRes (int choice)
 static void M_ID_Widescreen (int choice)
 {
     vid_widescreen = M_INT_Slider(vid_widescreen, 0, 4, choice);
-
-    // [crispy] re-initialize framebuffers, textures and renderer
-    I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
-    // [crispy] re-calculate framebuffer coordinates
-    R_ExecuteSetViewSize();
-    // [crispy] re-draw bezel
-    R_FillBackScreen();
-    // [crispy] re-calculate disk icon coordinates
-    V_EnableLoadingDisk();
-    // [crispy] re-calculate automap coordinates
-    AM_LevelInit(true);
-    if (automapactive)
-    {
-        AM_Start();
-    }
+    post_rendering_hook = M_ID_WidescreenHook;
 }
 
 static void M_ID_UncappedFPS (int choice)
@@ -1246,11 +1289,15 @@ static void M_ID_LimitFPS (int choice)
     }
 }
 
+static void M_ID_VSyncHook (void)
+{
+    I_ToggleVsync();
+}
+
 static void M_ID_VSync (int choice)
 {
     vid_vsync ^= 1;
-
-    I_ToggleVsync();
+    post_rendering_hook = M_ID_VSyncHook;    
 }
 
 static void M_ID_ShowFPS (int choice)
@@ -3199,16 +3246,20 @@ static void M_ID_FakeContrast (int choice)
     vis_fake_contrast ^= 1;
 }
 
-static void M_ID_SmoothLighting (int choice)
+static void M_ID_SmoothLightingHook (void)
 {
-    vis_smooth_light ^= 1;
-
     // [crispy] re-calculate the zlight[][] array
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
     R_ExecuteSetViewSize();
     // [crispy] re-calculate fake contrast
     P_SegLengths(true);
+}
+
+static void M_ID_SmoothLighting (int choice)
+{
+    vis_smooth_light ^= 1;
+    post_rendering_hook = M_ID_SmoothLightingHook;
 }
 
 static void M_ID_ImprovedFuzz (int choice)
@@ -4089,12 +4140,8 @@ static void M_ScrollLevelPages (void)
 // Reset settings
 // -----------------------------------------------------------------------------
 
-static void M_ID_ApplyReset (int key)
+static void M_ID_ApplyResetHook (void)
 {
-    if (key != key_menu_confirm)
-    {
-        return;
-    }
 
     // Video
 #ifdef CRISPY_TRUECOLOR
@@ -4234,7 +4281,17 @@ static void M_ID_ApplyReset (int key)
         {
             players[i].so = Crispy_PlayerSO(i);
         }
+    }    
+}
+
+static void M_ID_ApplyReset (int key)
+{
+    if (key != key_menu_confirm)
+    {
+        return;
     }
+
+    post_rendering_hook = M_ID_ApplyResetHook;
 }
 
 static void M_Choose_ID_Reset (int choice)

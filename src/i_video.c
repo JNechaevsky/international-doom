@@ -57,6 +57,8 @@ int SCREENWIDTH, SCREENHEIGHT, SCREENHEIGHT_4_3;
 int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
+void (*post_rendering_hook) (void); // [crispy]
+
 // These are (1) the window (or the full screen) that our game is rendered to
 // and (2) the renderer that scales the texture (see below) into this window.
 
@@ -362,6 +364,20 @@ void I_RenderReadPixels (byte **data, int *w, int *h)
 #endif
     format = SDL_AllocFormat(png_format);
     temp = rect.w * format->BytesPerPixel; // [crispy] pitch
+
+    // [crispy] As far as I understand the issue, SDL_RenderPresent()
+    // may return early, i.e. before it has actually finished rendering the
+    // current texture to screen -- from where we want to capture it.
+    // However, it does never return before it has finished rendering the
+    // *previous* texture.
+    // Thus, we add a second call to SDL_RenderPresent() here to make sure
+    // that it has at least finished rendering the previous texture, which
+    // already contains the scene that we actually want to capture.
+    if (post_rendering_hook)
+    {
+        SDL_RenderCopy(renderer, vid_smooth_scaling ? texture_upscaled : texture, NULL, NULL);
+        SDL_RenderPresent(renderer);
+    }
 
     // [crispy] allocate memory for screenshot image
     pixels = malloc(rect.h * temp);
