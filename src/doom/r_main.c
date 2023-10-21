@@ -1065,13 +1065,6 @@ void R_SetupFrame (player_t* player)
 //
 void R_RenderPlayerView (player_t *player)
 {
-    // [JN] Disable rendering while in Video Options menu
-    // to prevent possible crashes on rendering resolution toggling.
-    if (menuactive && currentMenu == &ID_Def_Video && !messageToPrint)
-    {
-        return;
-    }
-
     // [JN] Reset render counters.
     memset(&IDRender, 0, sizeof(IDRender));
 

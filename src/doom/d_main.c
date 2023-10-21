@@ -398,6 +398,15 @@ static void D_Display (void)
     M_Drawer ();   // menu is drawn even on top of everything
     NetUpdate ();  // send out any new accumulation
 
+	// [crispy] post-rendering function pointer to apply config changes
+	// that affect rendering and that are better applied after the current
+	// frame has finished rendering
+	if (post_rendering_hook && !wipe)
+	{
+		post_rendering_hook();
+		post_rendering_hook = NULL;
+	}
+
     // normal update
     if (!wipe)
     {
