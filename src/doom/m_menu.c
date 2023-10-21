@@ -68,7 +68,7 @@ boolean menuactive;
 static int quickSaveSlot;
 
  // 1 = message to be printed
-int messageToPrint;
+static int messageToPrint;
 // ...and here is the message string!
 static const char *messageString;
 
@@ -117,6 +117,41 @@ static char savegamestrings[10][SAVESTRINGSIZE];
 static char endstring[160];
 
 
+//
+// MENU TYPEDEFS
+//
+
+typedef struct
+{
+    // 0 = no cursor here, 1 = ok, 2 = arrows ok
+    short	status;
+
+    // [JN] Menu item timer for glowing effect.
+    short   tics;
+    
+    char	name[32];
+    
+    // choice = menu item #.
+    // if status = 2,
+    //   choice=0:leftarrow,1:rightarrow
+    void	(*routine)(int choice);
+    
+    // hotkey in menu
+    char	alphaKey;			
+} menuitem_t;
+
+typedef struct menu_s
+{
+    short		numitems;	// # of menu items
+    struct menu_s*	prevMenu;	// previous menu
+    menuitem_t*		menuitems;	// menu items
+    void		(*routine)(void);	// draw routine
+    short		x;
+    short		y;		// x,y of menu
+    short		lastOn;		// last item user was on in menu
+    boolean		smallFont;  // [JN] If true, use small font
+} menu_t;
+
 // [JN] Macro definitions for first two items of menuitem_t.
 // Trailing zero initializes "tics" field.
 #define M_SKIP -1,0  // Skippable, cursor can't get here.
@@ -136,7 +171,7 @@ static short whichSkull;        // which skull to draw
 static char *skullName[2] = {"M_SKULL1","M_SKULL2"};
 
 // current menudef
-menu_t *currentMenu;
+static menu_t *currentMenu;
 
 // =============================================================================
 // PROTOTYPES
@@ -1043,7 +1078,7 @@ static menuitem_t ID_Menu_Video[]=
     { M_SKIP, "", 0, '\0'}
 };
 
-menu_t ID_Def_Video =
+static menu_t ID_Def_Video =
 {
     m_id_end,
     &ID_Def_Main,
