@@ -93,10 +93,16 @@ set(GAME_SOURCE_FILES
     w_wad.c             w_wad.h
     w_file.c            w_file.h
     w_file_stdc.c
-    w_file_posix.c
-    w_file_win32.c
     w_merge.c           w_merge.h
     z_zone.c            z_zone.h)
+
+# Platform-dependent source files:
+
+if(WIN32)
+  list(APPEND GAME_SOURCE_FILES w_file_win32.c)
+else()
+  list(APPEND GAME_SOURCE_FILES w_file_posix.c)
+endif()
 
 set(GAME_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/../")
 
