@@ -58,9 +58,7 @@ set(GAME_SOURCE_FILES
     i_sound.c           i_sound.h
     i_timer.c           i_timer.h
     i_video.c           i_video.h
-    i_winmusic.c
     id_vars.c           id_vars.h
-    midifallback.c      midifallback.h
     midifile.c          midifile.h
     mus2mid.c           mus2mid.h
     m_bbox.c            m_bbox.h
@@ -93,10 +91,18 @@ set(GAME_SOURCE_FILES
     w_wad.c             w_wad.h
     w_file.c            w_file.h
     w_file_stdc.c
-    w_file_posix.c
-    w_file_win32.c
     w_merge.c           w_merge.h
     z_zone.c            z_zone.h)
+
+# Platform-dependent source files:
+
+if(WIN32)
+    list(APPEND GAME_SOURCE_FILES i_winmusic.c)
+    list(APPEND GAME_SOURCE_FILES midifallback.c    midifallback.h)
+    list(APPEND GAME_SOURCE_FILES w_file_win32.c)
+elseif(POSIX)
+    list(APPEND GAME_SOURCE_FILES w_file_posix.c)
+endif()
 
 set(GAME_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/../")
 
