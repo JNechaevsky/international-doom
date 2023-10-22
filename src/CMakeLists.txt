@@ -100,7 +100,7 @@ if(WIN32)
     list(APPEND GAME_SOURCE_FILES i_winmusic.c)
     list(APPEND GAME_SOURCE_FILES midifallback.c    midifallback.h)
     list(APPEND GAME_SOURCE_FILES w_file_win32.c)
-else()
+elseif(POSIX)
     list(APPEND GAME_SOURCE_FILES w_file_posix.c)
 endif()
 
