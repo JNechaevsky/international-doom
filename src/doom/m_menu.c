@@ -959,14 +959,14 @@ static byte *M_Item_Glow (const int itemSetOn, const int color)
 static byte *M_Cursor_Glow (const int tics)
 {
     return
-        tics >  6 ? cr[CR_MENU_BRIGHT3] :
-        tics >  4 ? cr[CR_MENU_BRIGHT2] :
-        tics >  2 ? cr[CR_MENU_BRIGHT1] :
-        tics > -1 ? NULL                :
-        tics > -3 ? cr[CR_MENU_DARK1]   :
-        tics > -5 ? cr[CR_MENU_DARK2]   :
-        tics > -7 ? cr[CR_MENU_DARK3]   :
-        tics > -9 ? cr[CR_MENU_DARK4]   : NULL;
+        tics ==  8 || tics ==  7 ? cr[CR_MENU_BRIGHT4] :
+        tics ==  6 || tics ==  5 ? cr[CR_MENU_BRIGHT3] :
+        tics ==  4 || tics ==  3 ? cr[CR_MENU_BRIGHT2] :
+        tics ==  2 || tics ==  1 ? cr[CR_MENU_BRIGHT1] :
+        tics == -1 || tics == -2 ? cr[CR_MENU_DARK1]   :
+        tics == -3 || tics == -4 ? cr[CR_MENU_DARK2]   :
+        tics == -5 || tics == -6 ? cr[CR_MENU_DARK3]   :
+        tics == -7 || tics == -8 ? cr[CR_MENU_DARK4]   : NULL;
 }
 
 static const int M_INT_Slider (int val, int min, int max, int direction)
