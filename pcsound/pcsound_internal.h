@@ -28,12 +28,14 @@ typedef void (*pcsound_shutdown_func)(void);
 
 struct pcsound_driver_s
 {
-    char *name;
+    const char *name;
     pcsound_init_func init_func;
     pcsound_shutdown_func shutdown_func;
 };
 
 extern int pcsound_sample_rate;
+
+extern pcsound_driver_t pcsound_sdl_driver;
 
 #endif /* #ifndef PCSOUND_INTERNAL_H */
 

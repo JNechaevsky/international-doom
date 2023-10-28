@@ -25,8 +25,6 @@
 #include "m_misc.h"
 
 
-extern pcsound_driver_t pcsound_sdl_driver;
-
 static pcsound_driver_t *drivers[] = 
 {
     &pcsound_sdl_driver,
