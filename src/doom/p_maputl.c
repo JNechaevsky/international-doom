@@ -23,6 +23,7 @@
 
 
 #include <stdlib.h>
+#include "i_system.h" // [crispy] I_Realloc()
 #include "m_bbox.h"
 #include "m_misc.h"
 #include "doomstat.h"
@@ -295,7 +296,7 @@ void P_LineOpening (line_t* linedef)
     sector_t*	front;
     sector_t*	back;
 	
-    if (linedef->sidenum[1] == NO_INDEX)
+    if (linedef->sidenum[1] == NO_INDEX) // [crispy] extended nodes
     {
 	// single sided line
 	openrange = 0;
@@ -509,7 +510,7 @@ P_BlockThingsIterator
   boolean(*func)(mobj_t*) )
 {
     mobj_t*             mobj;
-	
+
     if ( x<0
          || y<0
          || x>=bmapwidth
@@ -517,7 +518,7 @@ P_BlockThingsIterator
     {
         return true;
     }
-    
+
     LINKED_LIST_CHECK_NO_CYCLE(mobj_t, blocklinks[y*bmapwidth+x], bnext);
 
     for (mobj = blocklinks[y*bmapwidth+x] ;
@@ -640,25 +641,17 @@ P_BlockThingsIterator
     return true;
 }
 
-// =============================================================================
+
+
 //
 // INTERCEPT ROUTINES
 //
-// =============================================================================
+static intercept_t*	intercepts; // [crispy] remove INTERCEPTS limit
+intercept_t*	intercept_p;
 
-static intercept_t *intercepts; // [crispy] remove INTERCEPTS limit
-intercept_t        *intercept_p;
-divline_t           trace;
-static boolean      earlyout;
-
-static void InterceptsOverrun (int num_intercepts, intercept_t *intercept);
-
-// -----------------------------------------------------------------------------
 // [crispy] remove INTERCEPTS limit
 // taken from PrBoom+/src/p_maputl.c:422-433
-// -----------------------------------------------------------------------------
-
-static void check_intercept (void)
+static void check_intercept(void)
 {
 	static size_t num_intercepts;
 	const size_t offset = intercept_p - intercepts;
@@ -666,66 +659,76 @@ static void check_intercept (void)
 	if (offset >= num_intercepts)
 	{
 		num_intercepts = num_intercepts ? num_intercepts * 2 : MAXINTERCEPTS_ORIGINAL;
-		intercepts = realloc(intercepts, sizeof(*intercepts) * num_intercepts);
+		intercepts = I_Realloc(intercepts, sizeof(*intercepts) * num_intercepts);
 		intercept_p = intercepts + offset;
 	}
 }
 
-// -----------------------------------------------------------------------------
-// PIT_AddLineIntercepts.
-// Looks for lines in the given block that intercept the given trace to
-// add to the intercepts list.
+divline_t 	trace;
+boolean 	earlyout;
+//int		ptflags;
+
+static void InterceptsOverrun(int num_intercepts, intercept_t *intercept);
+
+
 //
-// A line is crossed if its endpoints are on opposite sides of the trace.
+// PIT_AddLineIntercepts.
+// Looks for lines in the given block
+// that intercept the given trace
+// to add to the intercepts list.
+//
+// A line is crossed if its endpoints
+// are on opposite sides of the trace.
 // Returns true if earlyout and a solid line hit.
-// -----------------------------------------------------------------------------
-
-static boolean PIT_AddLineIntercepts (line_t *ld)
+//
+static boolean
+PIT_AddLineIntercepts (line_t* ld)
 {
-    int        s1;
-    int        s2;
-    fixed_t    frac;
-    divline_t  dl;
-
+    int			s1;
+    int			s2;
+    fixed_t		frac;
+    divline_t		dl;
+	
     // avoid precision problems with two routines
-    if (trace.dx >  FRACUNIT*16 || trace.dy >  FRACUNIT*16
-    ||  trace.dx < -FRACUNIT*16 || trace.dy < -FRACUNIT*16)
+    if ( trace.dx > FRACUNIT*16
+	 || trace.dy > FRACUNIT*16
+	 || trace.dx < -FRACUNIT*16
+	 || trace.dy < -FRACUNIT*16)
     {
-        s1 = P_PointOnDivlineSide (ld->v1->x, ld->v1->y, &trace);
-        s2 = P_PointOnDivlineSide (ld->v2->x, ld->v2->y, &trace);
+	s1 = P_PointOnDivlineSide (ld->v1->x, ld->v1->y, &trace);
+	s2 = P_PointOnDivlineSide (ld->v2->x, ld->v2->y, &trace);
     }
     else
     {
-        s1 = P_PointOnLineSide (trace.x, trace.y, ld);
-        s2 = P_PointOnLineSide (trace.x+trace.dx, trace.y+trace.dy, ld);
+	s1 = P_PointOnLineSide (trace.x, trace.y, ld);
+	s2 = P_PointOnLineSide (trace.x+trace.dx, trace.y+trace.dy, ld);
     }
-
+    
     if (s1 == s2)
-    {
-        return true;  // line isn't crossed
-    }
-
+	return true;	// line isn't crossed
+    
     // hit the line
     P_MakeDivline (ld, &dl);
     frac = P_InterceptVector (&trace, &dl);
 
     if (frac < 0)
-    {
-        return true;  // behind source
-    }
-
+	return true;	// behind source
+	
     // try to early out the check
-    if (earlyout && frac < FRACUNIT && !ld->backsector)
+    if (earlyout
+	&& frac < FRACUNIT
+	&& !ld->backsector)
     {
-        return false;  // stop checking
+	return false;	// stop checking
     }
-
+    
+	
     check_intercept(); // [crispy] remove INTERCEPTS limit
     intercept_p->frac = frac;
     intercept_p->isaline = true;
     intercept_p->d.line = ld;
     InterceptsOverrun(intercept_p - intercepts, intercept_p);
-    // [crispy] Intercepts overflow guard.
+    // [crispy] intercepts overflow guard
     if (intercept_p - intercepts == MAXINTERCEPTS_ORIGINAL + 1)
     {
         if (safe_intercept)
@@ -745,66 +748,74 @@ static boolean PIT_AddLineIntercepts (line_t *ld)
     {
         printf("PIT_AddLineIntercepts: INTERCEPTS overflow, all-ghosts effect!\n");
     }
-
     intercept_p++;
 
-    return true;  // continue
+    return true;	// continue
 }
 
-// -----------------------------------------------------------------------------
+
+
+//
 // PIT_AddThingIntercepts
-// -----------------------------------------------------------------------------
-
-static boolean PIT_AddThingIntercepts (mobj_t *thing)
+//
+static boolean PIT_AddThingIntercepts (mobj_t* thing)
 {
-    fixed_t    x1, y1;
-    fixed_t    x2, y2;
-    int        s1, s2;
-    divline_t  dl;
-    fixed_t    frac;
+    fixed_t		x1;
+    fixed_t		y1;
+    fixed_t		x2;
+    fixed_t		y2;
+    
+    int			s1;
+    int			s2;
+    
+    boolean		tracepositive;
 
+    divline_t		dl;
+    
+    fixed_t		frac;
+	
+    tracepositive = (trace.dx ^ trace.dy)>0;
+		
     // check a corner to corner crossection for hit
-    if ((trace.dx ^ trace.dy) > 0)
+    if (tracepositive)
     {
-        x1 = thing->x - thing->radius;
-        y1 = thing->y + thing->radius;
-        x2 = thing->x + thing->radius;
-        y2 = thing->y - thing->radius;
+	x1 = thing->x - thing->radius;
+	y1 = thing->y + thing->radius;
+		
+	x2 = thing->x + thing->radius;
+	y2 = thing->y - thing->radius;			
     }
     else
     {
-        x1 = thing->x - thing->radius;
-        y1 = thing->y - thing->radius;
-        x2 = thing->x + thing->radius;
-        y2 = thing->y + thing->radius;
+	x1 = thing->x - thing->radius;
+	y1 = thing->y - thing->radius;
+		
+	x2 = thing->x + thing->radius;
+	y2 = thing->y + thing->radius;			
     }
-
+    
     s1 = P_PointOnDivlineSide (x1, y1, &trace);
     s2 = P_PointOnDivlineSide (x2, y2, &trace);
 
     if (s1 == s2)
-    {
-        return true;  // line isn't crossed
-    }
-
+	return true;		// line isn't crossed
+	
     dl.x = x1;
     dl.y = y1;
     dl.dx = x2-x1;
     dl.dy = y2-y1;
-
+    
     frac = P_InterceptVector (&trace, &dl);
 
     if (frac < 0)
-    {
-        return true;  // behind source
-    }
+	return true;		// behind source
 
     check_intercept(); // [crispy] remove INTERCEPTS limit
     intercept_p->frac = frac;
     intercept_p->isaline = false;
     intercept_p->d.thing = thing;
     InterceptsOverrun(intercept_p - intercepts, intercept_p);
-    // [crispy] Intercepts overflow guard.
+    // [crispy] intercepts overflow guard
     if (intercept_p - intercepts == MAXINTERCEPTS_ORIGINAL + 1)
     {
         if (safe_intercept)
@@ -824,10 +835,9 @@ static boolean PIT_AddThingIntercepts (mobj_t *thing)
     {
         printf("PIT_AddThingIntercepts: INTERCEPTS overflow, all-ghosts effect!\n");
     }
-
     intercept_p++;
 
-    return true;  // keep going
+    return true;		// keep going
 }
 
 
@@ -886,7 +896,6 @@ P_TraverseIntercepts
     return true;		// everything was traversed
 }
 
-extern fixed_t bulletslope;
 
 // Intercepts Overrun emulation, from PrBoom-plus.
 // Thanks to Andrey Budko (entryway) for researching this and his 

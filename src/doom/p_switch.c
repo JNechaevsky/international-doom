@@ -96,7 +96,7 @@ switchlist_t alphSwitchList_vanilla[] =
 // [crispy] remove MAXSWITCHES limit
 int		*switchlist;
 int		numswitches;
-static int		maxswitches;
+static size_t	maxswitches;
 button_t        *buttonlist; // [crispy] remove MAXBUTTONS limit
 int		maxbuttons; // [crispy] remove MAXBUTTONS limit
 

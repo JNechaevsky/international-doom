@@ -49,6 +49,7 @@ extern void D_StartTitle (void);
 
 extern  int vid_endoom;
 extern  gameaction_t    gameaction;
+extern boolean advancedemo;
 
 extern boolean sigil_compat;
 extern boolean sigil;

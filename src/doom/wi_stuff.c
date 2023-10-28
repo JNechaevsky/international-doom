@@ -1045,7 +1045,8 @@ void WI_drawDeathmatchStats(void)
 
     // draw stat titles (top line)
     V_DrawShadowedPatch(DM_TOTALSX-SHORT(total->width)/2,
-		DM_MATRIXY-WI_SPACINGY+10, total);
+		DM_MATRIXY-WI_SPACINGY+10,
+		total);
     
     V_DrawShadowedPatch(DM_KILLERSX, DM_KILLERSY, killers);
     V_DrawShadowedPatch(DM_VICTIMSX, DM_VICTIMSY, victims);
@@ -1508,12 +1509,12 @@ void WI_drawStats(void)
     // [crispy] draw total time after level time and par time
     if (sp_state > 8)
     {
-        const int ttime = wbs->totaltimes / TICRATE;
-        const boolean wide = (ttime > 61*59) || (SP_TIMEX + SHORT(total->width) >= ORIGWIDTH/4);
+	const int ttime = wbs->totaltimes / TICRATE;
+	const boolean wide = (ttime > 61*59) || (SP_TIMEX + SHORT(total->width) >= ORIGWIDTH/4);
 
-        V_DrawShadowedPatch((SP_TIMEX), SP_TIMEY + 16, total);
-        // [crispy] choose x-position depending on width of time string
-        WI_drawTime((wide ? ORIGWIDTH : ORIGWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, ttime, false);
+	V_DrawShadowedPatch((SP_TIMEX), SP_TIMEY + 16, total);
+	// [crispy] choose x-position depending on width of time string
+	WI_drawTime((wide ? ORIGWIDTH : ORIGWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, ttime, false);
     }
 
     // [crispy] exit early from the tally screen after ExM8
@@ -1760,6 +1761,12 @@ static void WI_loadUnloadData(load_callback_t callback)
 	DEH_snprintf(name, sizeof(name), "WIMAP%d", wbs->epsd);
     }
 
+    // [crispy] if still in doubt, use INTERPIC
+    if (W_CheckNumForName(name) == -1)
+    {
+        M_StringCopy(name, DEH_String("INTERPIC"), sizeof(name));
+    }
+
     // Draw backdrop and save to a temporary buffer
 
     callback(name, &background);
@@ -1787,7 +1794,7 @@ void WI_loadData(void)
 	lnames = (patch_t **) Z_Malloc(sizeof(patch_t*) * NUMMAPS,
 				       PU_STATIC, NULL);
     }
-    
+
     WI_loadUnloadData(WI_loadCallback);
 
     // These two graphics are special cased because we're sharing

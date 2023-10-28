@@ -1216,7 +1216,7 @@ boolean PTR_ShootTraverse (intercept_t* in)
 		return false;		
 	      else
 		safe = true;
-	    }	
+	    }
 	}
 
 	// [crispy] check if the pullet puff's z-coordinate is below of above

@@ -215,7 +215,6 @@ void A_FireOldBFG(mobj_t *mobj, player_t *player, pspdef_t *psp)
 
 //    if (autoaim || !beta_emulation)
 	{
-        // [JN] TODO - aim direction?
 	  // killough 8/2/98: make autoaiming prefer enemies
 	  int mask = 0;//MF_FRIEND;
 	  fixed_t slope;

@@ -516,7 +516,7 @@ void P_LoadSubsectors (int lump)
 //
 // P_LoadSectors
 //
-void P_LoadSectors (unsigned int lump)
+void P_LoadSectors (int lump)
 {
     byte*		data;
     int			i;
@@ -882,7 +882,7 @@ void P_LoadSideDefs (int lump)
 //
 // P_LoadBlockMap
 //
-boolean P_LoadBlockMap (unsigned int lump)
+boolean P_LoadBlockMap (int lump)
 {
     int i;
     int count;
@@ -1413,9 +1413,9 @@ P_SetupLevel
     // [crispy] stop demo warp mode now
     if (demowarp == map)
     {
-        demowarp = 0;
-        nodrawers = false;
-        singletics = false;
+	demowarp = 0;
+	nodrawers = false;
+	singletics = false;
     }
 
     // Make sure all sounds are stopped before Z_FreeTags.
