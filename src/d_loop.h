@@ -23,6 +23,7 @@
 #include "net_defs.h"
 #include "m_fixed.h"
 
+
 // Callback function invoked while waiting for the netgame to start.
 // The callback is invoked when new players are ready. The callback
 // should return true, or return false to abort startup.
@@ -80,18 +81,18 @@ extern boolean singletics;
 extern int gametic, ticdup;
 extern int oldleveltime; // [crispy] check if leveltime keeps tickin'
 
-extern boolean force_capped_fps;
-
 // Check if it is permitted to record a demo with a non-vanilla feature.
-boolean D_NonVanillaRecord(boolean conditional, char *feature);
+boolean D_NonVanillaRecord(boolean conditional, const char *feature);
 
 // Check if it is permitted to play back a demo with a non-vanilla feature.
 boolean D_NonVanillaPlayback(boolean conditional, int lumpnum,
-                             char *feature);
+                             const char *feature);
 
 void D_ReceiveTic(ticcmd_t *ticcmds, boolean *playeringame);
 
+
 extern fixed_t offsetms;
+
 
 #endif
 

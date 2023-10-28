@@ -25,14 +25,14 @@
 
 #include "SDL.h"
 
-#define MAX_MOUSE_BUTTONS 8
 
-extern int SDL_mouseButton;
+#define MAX_MOUSE_BUTTONS 8
 
 extern float mouse_acceleration;
 extern int mouse_threshold;
 extern int mouse_y_invert; // [crispy]
 extern int mouse_novert; // [crispy]
+extern int SDL_mouseButton; // [JN] Catch mouse button number to provide into mouse binding menu.
 
 void I_BindInputVariables(void);
 void I_ReadMouse(void);

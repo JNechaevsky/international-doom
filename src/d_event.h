@@ -60,6 +60,7 @@ typedef enum
     //    data2: X axis mouse movement (turn).
     //    data3: Y axis mouse movement (forward/backward).
     //    data4: Third axis mouse movement (strafe).
+    //    data5: Fourth axis mouse movement (look)
     ev_joystick,
 
     // Quit event. Triggered when the user clicks the "close" button
@@ -73,7 +74,7 @@ typedef struct
     evtype_t type;
 
     // Event-specific data; see the descriptions given above.
-    int data1, data2, data3, data4;
+    int data1, data2, data3, data4, data5;
 } event_t;
 
  
@@ -108,6 +109,8 @@ typedef enum
     BTS_SAVEMASK	= (4+8+16),
     BTS_SAVESHIFT 	= 2,
   
+    // [crispy] demo joined.
+    BT_JOIN = 64
 } buttoncode_t;
 
 // villsa [STRIFE] Strife specific buttons

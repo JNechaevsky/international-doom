@@ -31,6 +31,22 @@
 // TYPES
 //
 
+typedef PACKED_STRUCT (
+{
+    // Should be "IWAD" or "PWAD".
+    char        identification[4];
+    int         numlumps;
+    int         infotableofs;
+}) wadinfo_t;
+
+
+typedef PACKED_STRUCT (
+{
+    int         filepos;
+    int         size;
+    char        name[8];
+}) filelump_t;
+
 //
 // WADFILE I/O related stuff.
 //
@@ -77,5 +93,7 @@ void W_ReleaseLumpName(const char *name);
 
 const char *W_WadNameForLump(const lumpinfo_t *lump);
 boolean W_IsIWADLump(const lumpinfo_t *lump);
+
+char **W_GetWADFileNames(void);
 
 #endif

@@ -374,7 +374,9 @@ static default_t	doom_defaults_list[] =
     // Joystick controls
     //
 
-    CONFIG_VARIABLE_INT(joystick_enable),
+    CONFIG_VARIABLE_INT(use_joystick),
+    CONFIG_VARIABLE_INT(use_gamepad),
+    CONFIG_VARIABLE_INT(gamepad_type),
     CONFIG_VARIABLE_STRING(joystick_guid),
     CONFIG_VARIABLE_INT(joystick_index),
     CONFIG_VARIABLE_INT(joystick_x_axis),
@@ -383,6 +385,12 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(joystick_y_invert),
     CONFIG_VARIABLE_INT(joystick_strafe_axis),
     CONFIG_VARIABLE_INT(joystick_strafe_invert),
+    CONFIG_VARIABLE_INT(joystick_look_axis),
+    CONFIG_VARIABLE_INT(joystick_look_invert),
+    CONFIG_VARIABLE_INT(joystick_x_dead_zone),
+    CONFIG_VARIABLE_INT(joystick_y_dead_zone),
+    CONFIG_VARIABLE_INT(joystick_strafe_dead_zone),
+    CONFIG_VARIABLE_INT(joystick_look_dead_zone),    
     CONFIG_VARIABLE_INT(joystick_physical_button0),
     CONFIG_VARIABLE_INT(joystick_physical_button1),
     CONFIG_VARIABLE_INT(joystick_physical_button2),

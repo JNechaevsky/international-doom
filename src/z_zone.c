@@ -284,6 +284,9 @@ Z_Malloc
     {
         if (rover == start)
         {
+            // scanned all the way around the list
+//          I_Error ("Z_Malloc: failed on allocation of %i bytes", size);
+
             // [crispy] allocate another zone twice as big
             Z_Init();
 
@@ -496,7 +499,7 @@ void Z_CheckHeap (void)
 //
 // Z_ChangeTag
 //
-void Z_ChangeTag2(void *ptr, int tag, char *file, int line)
+void Z_ChangeTag2(void *ptr, int tag, const char *file, int line)
 {
     memblock_t*	block;
 	

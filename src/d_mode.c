@@ -121,6 +121,7 @@ static struct {
     GameMission_t mission;
     GameVersion_t version;
 } valid_versions[] = {
+    { doom,     exe_doom_1_2 },
     { doom,     exe_doom_1_666 },
     { doom,     exe_doom_1_7 },
     { doom,     exe_doom_1_8 },
@@ -183,7 +184,7 @@ boolean D_IsEpisodeMap(GameMission_t mission)
     }
 }
 
-char *D_GameMissionString(GameMission_t mission)
+const char *D_GameMissionString(GameMission_t mission)
 {
     switch (mission)
     {

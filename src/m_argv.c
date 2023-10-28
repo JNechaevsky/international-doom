@@ -44,7 +44,7 @@ char**		myargv;
 // or 0 if not present
 //
 
-int M_CheckParmWithArgs(char *check, int num_args)
+int M_CheckParmWithArgs(const char *check, int num_args)
 {
     int i;
 
@@ -64,33 +64,30 @@ int M_CheckParmWithArgs(char *check, int num_args)
 // line arguments, false if not.
 //
 
-boolean M_ParmExists(char *check)
+boolean M_ParmExists(const char *check)
 {
     return M_CheckParm(check) != 0;
 }
 
-int M_CheckParm(char *check)
+int M_CheckParm(const char *check)
 {
     return M_CheckParmWithArgs(check, 0);
 }
 
 #define MAXARGVS        100
 
-static void LoadResponseFile(int argv_index)
+static void LoadResponseFile(int argv_index, const char *filename)
 {
     FILE *handle;
     int size;
     char *infile;
     char *file;
-    char *response_filename;
     char **newargv;
     int newargc;
     int i, k;
 
-    response_filename = myargv[argv_index] + 1;
-
     // Read the response file into memory
-    handle = M_fopen(response_filename, "rb");
+    handle = M_fopen(filename, "rb");
 
     if (handle == NULL)
     {
@@ -98,7 +95,7 @@ static void LoadResponseFile(int argv_index)
         exit(1);
     }
 
-    printf("Found response file %s!\n", response_filename);
+    printf("Found response file %s!\n", filename);
 
     size = M_FileLength(handle);
 
@@ -117,7 +114,7 @@ static void LoadResponseFile(int argv_index)
 
         if (k < 0)
         {
-            I_Error("Failed to read full contents of '%s'", response_filename);
+            I_Error("Failed to read full contents of '%s'", filename);
         }
 
         i += k;
@@ -136,6 +133,7 @@ static void LoadResponseFile(int argv_index)
     for (i=0; i<argv_index; ++i)
     {
         newargv[i] = myargv[i];
+        myargv[i] = NULL;
         ++newargc;
     }
 
@@ -162,10 +160,11 @@ static void LoadResponseFile(int argv_index)
 
         if (infile[k] == '\"')
         {
+            char *argstart;
             // Skip the first character(")
             ++k;
 
-            newargv[newargc++] = &infile[k];
+            argstart = &infile[k];
 
             // Read all characters between quotes
 
@@ -177,19 +176,21 @@ static void LoadResponseFile(int argv_index)
             if (k >= size || infile[k] == '\n')
             {
                 I_Error("Quotes unclosed in response file '%s'",
-                        response_filename);
+                        filename);
             }
 
             // Cut off the string at the closing quote
 
             infile[k] = '\0';
             ++k;
+            newargv[newargc++] = M_StringDuplicate(argstart);
         }
         else
         {
+            char *argstart;
             // Read in the next argument until a space is reached
 
-            newargv[newargc++] = &infile[k];
+            argstart = &infile[k];
 
             while(k < size && !isspace(infile[k]))
             {
@@ -201,6 +202,7 @@ static void LoadResponseFile(int argv_index)
             infile[k] = '\0';
 
             ++k;
+            newargv[newargc++] = M_StringDuplicate(argstart);
         }
     }
 
@@ -209,11 +211,25 @@ static void LoadResponseFile(int argv_index)
     for (i=argv_index + 1; i<myargc; ++i)
     {
         newargv[newargc] = myargv[i];
+        myargv[i] = NULL;
         ++newargc;
     }
 
+    // Free any old strings in myargv which were not moved to newargv
+    for (i = 0; i < myargc; ++i)
+    {
+        if (myargv[i] != NULL)
+        {
+            free(myargv[i]);
+            myargv[i] = NULL;
+        }
+    }
+
+    free(myargv);
     myargv = newargv;
     myargc = newargc;
+
+    free(file);
 
 #if 0
     // Disabled - Vanilla Doom does not do this.
@@ -234,14 +250,38 @@ static void LoadResponseFile(int argv_index)
 
 void M_FindResponseFile(void)
 {
-    int             i;
+    int i;
 
     for (i = 1; i < myargc; i++)
     {
         if (myargv[i][0] == '@')
         {
-            LoadResponseFile(i);
+            LoadResponseFile(i, myargv[i] + 1);
         }
+    }
+
+    for (;;)
+    {
+        //!
+        // @arg <filename>
+        //
+        // Load extra command line arguments from the given response file.
+        // Arguments read from the file will be inserted into the command
+        // line replacing this argument. A response file can also be loaded
+        // using the abbreviated syntax '@filename.rsp'.
+        //
+        i = M_CheckParmWithArgs("-response", 1);
+        if (i <= 0)
+        {
+            break;
+        }
+        // Replace the -response argument so that the next time through
+        // the loop we'll ignore it. Since some parameters stop reading when
+        // an argument beginning with a '-' is encountered, we keep something
+        // that starts with a '-'.
+        free(myargv[i]);
+        myargv[i] = M_StringDuplicate("-_");
+        LoadResponseFile(i + 1, myargv[i + 1]);
     }
 }
 
@@ -339,13 +379,6 @@ static int GuessFileType(const char *name)
     {
         ret = FILETYPE_PWAD;
     }
-    else if (M_StringEndsWith(lower, ".deh") ||
-             M_StringEndsWith(lower, ".bex") ||
-             M_StringEndsWith(lower, ".hhe") ||
-             M_StringEndsWith(lower, ".seh"))
-    {
-        ret = FILETYPE_DEH;
-    }
     else if (M_StringEndsWith(lower, ".lmp"))
     {
         // only ever add one argument to the -playdemo parameter
@@ -360,7 +393,14 @@ static int GuessFileType(const char *name)
             ret = FILETYPE_PWAD;
         }
     }
-    else if (M_StringEndsWith(lower, ".ini"))
+    else if (M_StringEndsWith(lower, ".deh") ||
+             M_StringEndsWith(lower, ".bex") || // [crispy] *.bex
+             M_StringEndsWith(lower, ".hhe") ||
+             M_StringEndsWith(lower, ".seh"))
+    {
+        ret = FILETYPE_DEH;
+    }
+    else if (M_StringEndsWith(lower, ".ini")) // [JN] *.ini config files
     {
         ret = FILETYPE_CONFIG;
     }
@@ -479,28 +519,17 @@ void M_AddLooseFiles(void)
     }
 
     free(arguments);
-    free(myargv);
 
+    free(myargv);
     myargv = newargv;
 }
 #endif
 
 // Return the name of the executable used to start the program:
 
-char *M_GetExecutableName(void)
+const char *M_GetExecutableName(void)
 {
-    char *sep;
-
-    sep = strrchr(myargv[0], DIR_SEPARATOR);
-
-    if (sep == NULL)
-    {
-        return myargv[0];
-    }
-    else
-    {
-        return sep + 1;
-    }
+    return M_BaseName(myargv[0]);
 }
 
 char *exedir = NULL;
@@ -513,4 +542,3 @@ void M_SetExeDir(void)
     exedir = M_StringJoin(dirname, DIR_SEPARATOR_S, NULL);
     free(dirname);
 }
-

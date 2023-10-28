@@ -127,6 +127,7 @@ byte *I_ZoneBase (int *size)
     static int i = 1;
 
     //!
+    // @category obscure
     // @arg <mb>
     //
     // Specify the heap size, in MiB (default 16).
@@ -294,6 +295,12 @@ void I_Error (const char *error, ...)
         entry = entry->next;
     }
 
+    //!
+    // @category obscure
+    //
+    // If specified, don't show a GUI window for error messages when the
+    // game exits with an error.
+    //
     exit_gui_popup = !M_ParmExists("-nogui");
 
     // Pop up a GUI dialog box to show the error message, if the

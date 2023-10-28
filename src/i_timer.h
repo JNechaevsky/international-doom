@@ -21,9 +21,7 @@
 #ifndef __I_TIMER__
 #define __I_TIMER__
 
-#include <stdint.h>
 #include "m_fixed.h" // [crispy]
-
 
 #define TICRATE 35
 
