@@ -26,8 +26,8 @@
 #include "txt_utf8.h"
 #include "txt_window.h"
 
-extern txt_widget_class_t txt_inputbox_class;
-extern txt_widget_class_t txt_int_inputbox_class;
+txt_widget_class_t txt_inputbox_class;
+txt_widget_class_t txt_int_inputbox_class;
 
 static void SetBufferFromValue(txt_inputbox_t *inputbox)
 {
@@ -37,7 +37,7 @@ static void SetBufferFromValue(txt_inputbox_t *inputbox)
 
         if (*value != NULL)
         {
-            TXT_StringCopy(inputbox->buffer, *value, inputbox->size);
+            TXT_StringCopy(inputbox->buffer, *value, strnlen(*value, inputbox->buffer_len) + 1);
         }
         else
         {

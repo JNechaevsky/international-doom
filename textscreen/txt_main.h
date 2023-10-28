@@ -43,6 +43,8 @@
 #define TXT_MOUSE_MIDDLE       (TXT_MOUSE_BASE + 2)
 #define TXT_MOUSE_SCROLLUP     (TXT_MOUSE_BASE + 3)
 #define TXT_MOUSE_SCROLLDOWN   (TXT_MOUSE_BASE + 4)
+#define TXT_MOUSE_X1           (TXT_MOUSE_BASE + 5)
+#define TXT_MOUSE_X2           (TXT_MOUSE_BASE + 6)
 #define TXT_MAX_MOUSE_BUTTONS  16
 
 #define TXT_KEY_TO_MOUSE_BUTTON(x)                                        \
@@ -122,6 +124,17 @@ typedef enum
     TXT_INPUT_TEXT,
 } txt_input_mode_t;
 
+
+#ifdef __GNUC__
+
+#define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
+
+#else  // __GNUC__
+
+#define PRINTF_ATTR(fmt, first)
+
+#endif  // __GNUC__
+
 // Initialize the screen
 // Returns 1 if successful, 0 if failed.
 int TXT_Init(void);
@@ -135,11 +148,11 @@ unsigned char *TXT_GetScreenData(void);
 // Update an area of the screen
 void TXT_UpdateScreenArea(int x, int y, int w, int h);
 
-// Set the RGB value for a particular entry in the color palette:
-void TXT_SetColor(txt_color_t color, int r, int g, int b);
-
 // Update the whole screen
 void TXT_UpdateScreen(void);
+
+// Set the RGB value for a particular entry in the color palette:
+void TXT_SetColor(txt_color_t color, int r, int g, int b);
 
 // Read a character from the keyboard
 int TXT_GetChar(void);
@@ -172,7 +185,7 @@ void TXT_Sleep(int timeout);
 void TXT_SetInputMode(txt_input_mode_t mode);
 
 // Set the window title of the window containing the text mode screen
-void TXT_SetWindowTitle(char *title);
+void TXT_SetWindowTitle(const char *title);
 
 // Safe string copy.
 void TXT_StringCopy(char *dest, const char *src, size_t dest_len);
@@ -184,7 +197,7 @@ void TXT_StringConcat(char *dest, const char *src, size_t dest_len);
 int TXT_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args);
 
 // Safe version of snprintf().
-int TXT_snprintf(char *buf, size_t buf_len, const char *s, ...);
+int TXT_snprintf(char *buf, size_t buf_len, const char *s, ...) PRINTF_ATTR(3, 4);
 
 #endif /* #ifndef TXT_MAIN_H */
 

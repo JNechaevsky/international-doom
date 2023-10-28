@@ -72,7 +72,7 @@ struct txt_window_s
 
     // Actions that appear in the box at the bottom of the window
 
-    txt_window_action_t *actions[3];
+    txt_widget_t *actions[3];
 
     // Callback functions to invoke when keys/mouse buttons are pressed
 
@@ -88,7 +88,7 @@ struct txt_window_s
 
     // URL of a webpage with help about this window. If set, a help key
     // indicator is shown while this window is active.
-    char *help_url;
+    const char *help_url;
 };
 
 /**
@@ -159,7 +159,7 @@ void TXT_SetWindowPosition(txt_window_t *window,
  */
 
 void TXT_SetWindowAction(txt_window_t *window, txt_horiz_align_t position,
-                         txt_window_action_t *action);
+                         TXT_UNCAST_ARG(action));
 
 /**
  * Set a callback function to be invoked whenever a key is pressed within
@@ -197,7 +197,7 @@ void TXT_SetMouseListener(txt_window_t *window,
  * @return                The new window.
  */
 
-txt_window_t *TXT_MessageBox(char *title, char *message, ...);
+txt_window_t *TXT_MessageBox(const char *title, const char *message, ...);
 
 /**
  * Set the help URL for the given window.
@@ -207,7 +207,7 @@ txt_window_t *TXT_MessageBox(char *title, char *message, ...);
  *                        window, or NULL to set no help for this window.
  */
 
-void TXT_SetWindowHelpURL(txt_window_t *window, char *help_url);
+void TXT_SetWindowHelpURL(txt_window_t *window, const char *help_url);
 
 /**
  * Open the help URL for the given window, if one is set.
