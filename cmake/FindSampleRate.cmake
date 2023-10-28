@@ -1,4 +1,4 @@
-# FindSampleRate.cmake
+# Findsamplerate.cmake
 #
 # Copyright (c) 2018, Alex Mayfield <alexmax2742@gmail.com>
 # All rights reserved.
@@ -30,10 +30,6 @@
 # - Ninja (Linux, MSYS2)
 # - Visual Studio
 
-# Cache variable that allows you to point CMake at a directory containing
-# an extracted development library.
-set(SAMPLERATE_DIR "${SAMPLERATE_DIR}" CACHE PATH "Location of Samplerate library directory")
-
 # Use pkg-config to find library locations in *NIX environments.
 find_package(PkgConfig QUIET)
 if(PKG_CONFIG_FOUND)
@@ -42,7 +38,7 @@ endif()
 
 # Find the include directory.
 find_path(SAMPLERATE_INCLUDE_DIR "samplerate.h"
-    HINTS "${SAMPLERATE_DIR}/include" ${PC_SAMPLERATE_INCLUDE_DIRS})
+    HINTS ${PC_SAMPLERATE_INCLUDE_DIRS})
 
 # Find the version.  I don't know if there is a correct way to find this on
 # Windows - the config.h in the tarball is wrong for 0.1.19.
@@ -52,16 +48,16 @@ endif()
 
 # Find the library.
 find_library(SAMPLERATE_LIBRARY "samplerate"
-    HINTS "${SAMPLERATE_DIR}/lib" ${PC_SAMPLERATE_LIBRARY_DIRS})
+    HINTS ${PC_SAMPLERATE_LIBRARY_DIRS})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SampleRate
-    FOUND_VAR SAMPLERATE_FOUND
+    FOUND_VAR SampleRate_FOUND
     REQUIRED_VARS SAMPLERATE_INCLUDE_DIR SAMPLERATE_LIBRARY
     VERSION_VAR SAMPLERATE_VERSION
 )
 
-if(SAMPLERATE_FOUND)
+if(SampleRate_FOUND)
     # Imported target.
     add_library(SampleRate::samplerate UNKNOWN IMPORTED)
     set_target_properties(SampleRate::samplerate PROPERTIES
