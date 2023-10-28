@@ -387,6 +387,8 @@ extern int      numspechit;
 extern mobj_t  *linetarget;  // who got hit (or NULL)
 extern boolean  safe_intercept;
 
+extern fixed_t attackrange;
+
 // -----------------------------------------------------------------------------
 // P_MAPUTL
 // -----------------------------------------------------------------------------
@@ -558,6 +560,8 @@ extern void A_FireBFG (mobj_t *mobj, player_t *player, pspdef_t *psp);
 extern void A_BFGSpray (mobj_t *mo);
 extern void A_Explode (mobj_t *thingy);
 extern void A_PlayerScream (mobj_t* mo);
+
+extern fixed_t bulletslope;
 
 // -----------------------------------------------------------------------------
 // P_SAVEG

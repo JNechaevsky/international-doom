@@ -348,7 +348,8 @@ void P_PlayerThink (player_t* player)
 	cmd->sidemove = 0;
 	player->mo->flags &= ~MF_JUSTATTACKED;
     }
-
+			
+	
     // [crispy] center view
     // e.g. after teleporting, dying, jumping and on demand
     if (player->centering)
@@ -453,25 +454,17 @@ void P_PlayerThink (player_t* player)
 	player->powers[pw_strength]++;	
 		
     if (player->powers[pw_invulnerability])
-	{
 	player->powers[pw_invulnerability]--;
-	}
 
     if (player->powers[pw_invisibility])
-	{
 	if (! --player->powers[pw_invisibility] )
 	    player->mo->flags &= ~MF_SHADOW;
-	}
 			
     if (player->powers[pw_infrared])
-	{
 	player->powers[pw_infrared]--;
-	}
 		
     if (player->powers[pw_ironfeet])
-	{
 	player->powers[pw_ironfeet]--;
-	}
 		
     if (player->damagecount)
 	player->damagecount--;
@@ -504,3 +497,5 @@ void P_PlayerThink (player_t* player)
     else
 	player->fixedcolormap = 0;
 }
+
+

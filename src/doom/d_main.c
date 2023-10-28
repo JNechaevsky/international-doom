@@ -76,6 +76,9 @@
 #include "id_func.h"
 
 
+
+static char *gamedescription;
+
 // Location where savegames are stored
 char *savegamedir;
 

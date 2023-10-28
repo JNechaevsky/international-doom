@@ -139,11 +139,9 @@ P_NoiseAlert
 ( mobj_t*	target,
   mobj_t*	emmiter )
 {
-    // [crispy] [JN] monsters are deaf with NOTARGET mode
+    // [crispy] monsters are deaf with NOTARGET cheat
     if (target && target->player && (target->player->cheats & CF_NOTARGET))
-    {
         return;
-    }
 
     soundtarget = target;
     validcount++;
@@ -506,11 +504,9 @@ P_LookForPlayers
 	
 	player = &players[actor->lastlook];
 
-    // [crispy] [JN] monsters don't look for players with NOTARGET mode
-    if (player->cheats & CF_NOTARGET)
-    {
-        continue;
-    }
+	// [crispy] monsters don't look for players with NOTARGET cheat
+	if (player->cheats & CF_NOTARGET)
+	    continue;
 
 	if (player->health <= 0)
 	    continue;		// dead
@@ -594,11 +590,9 @@ void A_Look (mobj_t* actor)
     actor->threshold = 0;	// any shot will wake up
     targ = actor->subsector->sector->soundtarget;
 
-    // [crispy] [JN] monsters don't look for players with NOTARGET mode
+    // [crispy] monsters don't look for players with NOTARGET cheat
     if (targ && targ->player && (targ->player->cheats & CF_NOTARGET))
-    {
         return;
-    }
 
     if (targ
 	&& (targ->flags & MF_SHOOTABLE) )
@@ -983,6 +977,8 @@ void A_BruisAttack (mobj_t* actor)
     if (!actor->target)
 	return;
 		
+    // [crispy] face the enemy
+//  A_FaceTarget (actor);
     if (P_CheckMeleeRange (actor))
     {
 	S_StartSound (actor, sfx_claw);
@@ -1226,6 +1222,7 @@ void A_VileChase (mobj_t* actor)
 		        fprintf(stderr, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!\n",
 		                corpsehit->type, corpsehit->x>>FRACBITS, corpsehit->y>>FRACBITS);
 		    }
+
 		    return;
 		}
 	    }

@@ -38,6 +38,7 @@
 #include "sounds.h"
 #include "doomstat.h"
 #include "r_local.h"
+#include "m_misc.h" // [crispy] M_StringDuplicate()
 
 #include "id_func.h"
 
@@ -70,8 +71,8 @@ typedef struct
 {
     GameMission_t mission;
     int episode, level;
-    char *background;
-    char *text;
+    const char *background;
+    const char *text;
 } textscreen_t;
 
 static textscreen_t textscreens[] =
@@ -107,6 +108,7 @@ static textscreen_t textscreens[] =
 
 const char *finaletext;
 const char *finaleflat;
+static char *finaletext_rw;
 
 void	F_StartCast (void);
 void	F_CastTicker (void);
@@ -168,6 +170,13 @@ void F_StartFinale (void)
     // [JN] Count intermission/finale text lenght. Once it's fully printed, 
     // no extra "attack/use" button pressing is needed for skipping.
     finaleendcount = strlen(finaletext) * TEXTSPEED + TEXTEND;
+    // [crispy] do the "char* vs. const char*" dance
+    if (finaletext_rw)
+    {
+	free(finaletext_rw);
+	finaletext_rw = NULL;
+    }
+    finaletext_rw = M_StringDuplicate(finaletext);
     
     finalestage = F_STAGE_TEXT;
     finalecount = 0;
@@ -350,11 +359,30 @@ void F_Ticker (void)
 // F_TextWrite
 //
 
+// [crispy] add line breaks for lines exceeding screenwidth
+static inline boolean F_AddLineBreak (char *c)
+{
+    while (c-- > finaletext_rw)
+    {
+	if (*c == '\n')
+	{
+	    return false;
+	}
+	else
+	if (*c == ' ')
+	{
+	    *c = '\n';
+	    return true;
+	}
+    }
+
+    return false;
+}
 void F_TextWrite (void)
 {
     int		w;
     signed int	count;
-    const char *ch;
+    char *ch; // [crispy] un-const
     int		c;
     int		cx;
     int		cy;
@@ -368,7 +396,7 @@ void F_TextWrite (void)
     // draw some of the text onto the screen
     cx = 10;
     cy = 10;
-    ch = finaletext;
+    ch = finaletext_rw;
 	
     count = ((signed int) finalecount - 10) / TEXTSPEED;
     if (count < 0)
@@ -393,9 +421,21 @@ void F_TextWrite (void)
 	}
 		
 	w = SHORT (hu_font[c]->width);
-	if (cx+w > SCREENWIDTH)
+	if (cx+w > ORIGWIDTH)
+	{
+	    // [crispy] add line breaks for lines exceeding screenwidth
+	    if (F_AddLineBreak(ch))
+	    {
+		continue;
+	    }
+	    else
 	    break;
-
+	}
+	// [cispy] prevent text from being drawn off-screen vertically
+	if (cy + SHORT(hu_font[c]->height) > ORIGHEIGHT)
+	{
+	    break;
+	}
 	V_DrawShadowedPatch(cx, cy, hu_font[c]);
 	cx+=w;
     }
@@ -409,7 +449,7 @@ void F_TextWrite (void)
 //
 typedef struct
 {
-    char		*name;
+    const char	*name;
     mobjtype_t	type;
 } castinfo_t;
 
@@ -804,7 +844,7 @@ static void F_ArtScreenDrawer(void)
 
         lumpname = DEH_String(lumpname);
 
-        V_DrawPatchFullScreen(W_CacheLumpName(lumpname, PU_CACHE), false);
+        V_DrawPatchFullScreen (W_CacheLumpName(lumpname, PU_CACHE), false);
     }
 }
 

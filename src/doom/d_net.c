@@ -75,7 +75,6 @@ static void PlayerQuitGame(player_t *player)
 
 static void RunTic(ticcmd_t *cmds, boolean *ingame)
 {
-    extern boolean advancedemo;
     unsigned int i;
 
     // Check for player quits.
@@ -112,7 +111,7 @@ static loop_interface_t doom_loop_interface = {
 
 static void LoadGameSettings(net_gamesettings_t *settings)
 {
-    int i;
+    unsigned int i;
 
     deathmatch = settings->deathmatch;
     startepisode = settings->episode;
