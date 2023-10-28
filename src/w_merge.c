@@ -25,6 +25,7 @@
 #include <ctype.h>
 
 #include "doomtype.h"
+#include "i_swap.h" // [crispy] LONG()
 #include "i_system.h"
 #include "m_misc.h"
 #include "w_merge.h"
@@ -69,7 +70,7 @@ static int sprite_frames_alloced;
 //
 // Returns -1 if not found
 
-static int FindInList(searchlist_t *list, char *name)
+static int FindInList(searchlist_t *list, const char *name)
 {
     int i;
 
@@ -83,8 +84,8 @@ static int FindInList(searchlist_t *list, char *name)
 }
 
 static boolean SetupList(searchlist_t *list, searchlist_t *src_list,
-                         char *startname, char *endname,
-                         char *startname2, char *endname2)
+                         const char *startname, const char *endname,
+                         const char *startname2, const char *endname2)
 {
     int startlump, endlump;
 
@@ -625,7 +626,7 @@ static void W_NWTAddLumps(searchlist_t *list)
 // Merge sprites and flats in the way NWT does with its -af and -as
 // command-line options.
 
-void W_NWTMergeFile(char *filename, int flags)
+void W_NWTMergeFile(const char *filename, int flags)
 {
     int old_numlumps;
 
@@ -671,7 +672,7 @@ void W_NWTMergeFile(char *filename, int flags)
 // a PWAD, then search the IWAD sprites, removing any sprite lumps that also
 // exist in the PWAD.
 
-void W_NWTDashMerge(char *filename)
+void W_NWTDashMerge(const char *filename)
 {
     wad_file_t *wad_file;
     int old_numlumps;
@@ -721,3 +722,65 @@ void W_NWTDashMerge(char *filename)
     W_CloseFile(wad_file);
 }
 
+// [crispy] dump merged WAD data into a new IWAD file
+int W_MergeDump (const char *file)
+{
+    FILE *fp = NULL;
+    char *lump_p = NULL;
+    uint32_t i, dir_p;
+
+    // [crispy] WAD directory structure
+    typedef struct {
+	uint32_t pos;
+	uint32_t size;
+	char name[8];
+    } directory_t;
+    directory_t *dir = NULL;
+
+    // [crispy] open file for writing
+    fp = fopen(file, "wb");
+    if (!fp)
+    {
+	I_Error("W_MergeDump: Failed writing to file '%s'!", file);
+    }
+
+    // [crispy] prepare directory
+    dir = calloc(numlumps, sizeof(*dir));
+    if (!dir)
+    {
+	I_Error("W_MergeDump: Error allocating memory!");
+    }
+
+    // [crispy] write lumps to file, starting at offset 12
+    fseek(fp, 12, SEEK_SET);
+    for (i = 0; i < numlumps; i++)
+    {
+	dir[i].pos = LONG(ftell(fp));
+	dir[i].size = LONG(lumpinfo[i]->size);
+	// [crispy] lump names are zero-byte padded
+	memset(dir[i].name, 0, 8);
+	strncpy(dir[i].name, lumpinfo[i]->name, 8);
+
+	// [crispy] avoid flooding Doom's Zone Memory
+	lump_p = I_Realloc(lump_p, lumpinfo[i]->size);
+	W_ReadLump(i, lump_p);
+	fwrite(lump_p, 1, lumpinfo[i]->size, fp);
+    }
+    free(lump_p);
+
+    // [crispy] write directory
+    dir_p = LONG(ftell(fp));
+    fwrite(dir, sizeof(*dir), i, fp);
+    free(dir);
+
+    // [crispy] write WAD header
+    fseek(fp, 0, SEEK_SET);
+    fwrite("IWAD", 1, 4, fp);
+    i = LONG(i);
+    fwrite(&i, 4, 1, fp);
+    fwrite(&dir_p, 4, 1, fp);
+
+    fclose(fp);
+
+    return (i);
+}

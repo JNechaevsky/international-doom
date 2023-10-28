@@ -26,15 +26,6 @@
 
 #include "w_file.h"
 
-extern wad_file_class_t stdc_wad_file;
-
-#ifdef _WIN32
-extern wad_file_class_t win32_wad_file;
-#endif
-
-#ifdef HAVE_MMAP
-extern wad_file_class_t posix_wad_file;
-#endif 
 
 static wad_file_class_t *wad_file_classes[] = 
 {
@@ -53,6 +44,8 @@ wad_file_t *W_OpenFile(const char *path)
     int i;
 
     //!
+    // @category obscure
+    //
     // Use the OS's virtual memory subsystem to map WAD files
     // directly into memory.
     //

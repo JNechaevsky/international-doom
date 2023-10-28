@@ -108,7 +108,6 @@ int vanilla_keyboard_mapping = true;
 // by mouse_acceleration to increase the speed.
 float mouse_acceleration = 2.0;
 int mouse_threshold = 10;
-
 // [crispy]
 int mouse_y_invert = 0;
 
@@ -329,6 +328,8 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
     // Note: button "0" is left, button "1" is right,
     // button "2" is middle for Doom.  This is different
     // to how SDL sees things.
+    // In the end: Left=0, Right=1, Middle=2,
+    // WheelUp=3 WheelDown=4, XButton1=5, XButton2=6
 
     switch (button)
     {
@@ -346,7 +347,9 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
 
         default:
             // SDL buttons are indexed from 1.
-            --button;
+            // And the wheel is mapped to button 3/4
+            // So we have to increment 2 and decrement 1 => inc 1.
+            button++;
             break;
     }
 

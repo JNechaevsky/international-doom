@@ -36,22 +36,6 @@
 
 #include "w_wad.h"
 
-typedef PACKED_STRUCT (
-{
-    // Should be "IWAD" or "PWAD".
-    char		identification[4];
-    int			numlumps;
-    int			infotableofs;
-}) wadinfo_t;
-
-
-typedef PACKED_STRUCT (
-{
-    int			filepos;
-    int			size;
-    char		name[8];
-}) filelump_t;
-
 //
 // GLOBALS
 //
@@ -70,6 +54,22 @@ static wad_file_t *reloadhandle = NULL;
 static lumpinfo_t *reloadlumps = NULL;
 static char *reloadname = NULL;
 static int reloadlump = -1;
+
+static char **wad_filenames;
+
+static void AddWADFileName(const char *filename)
+{
+    static int i;
+
+    wad_filenames = I_Realloc(wad_filenames, (i + 2) * sizeof(*wad_filenames));
+    wad_filenames[i++] = M_StringDuplicate(filename);
+    wad_filenames[i] = NULL;
+}
+
+char **W_GetWADFileNames(void)
+{
+    return wad_filenames;
+}
 
 // Hash function used for lump names.
 unsigned int W_LumpNameHash(const char *s)
@@ -182,11 +182,12 @@ wad_file_t *W_AddFile (const char *filename)
 
          // Vanilla Doom doesn't like WADs with more than 4046 lumps
          // https://www.doomworld.com/vb/post/1010985
-         // RestlessRodent -- Just warn
-         if (!strncmp(header.identification,"PWAD",4) && header.numlumps > 4046)
+         // [crispy] disable PWAD lump number limit
+         if (!strncmp(header.identification,"PWAD",4) && header.numlumps > 4046 && false)
          {
-                 printf("Warning: Vanilla limit for lumps in a WAD is 4046, "
-                          "PWAD %s has %d\n", filename, header.numlumps);
+                 W_CloseFile(wad_file);
+                 I_Error ("Error: Vanilla limit for lumps in a WAD is 4046, "
+                          "PWAD %s has %d", filename, header.numlumps);
          }
 
 	header.infotableofs = LONG(header.infotableofs);
@@ -238,6 +239,8 @@ wad_file_t *W_AddFile (const char *filename)
         reloadhandle = wad_file;
         reloadlumps = filelumps;
     }
+
+    AddWADFileName(filename);
 
     return wad_file;
 }
@@ -659,4 +662,38 @@ const char *W_WadNameForLump(const lumpinfo_t *lump)
 boolean W_IsIWADLump(const lumpinfo_t *lump)
 {
 	return lump->wad_file == lumpinfo[0]->wad_file;
+}
+
+// [crispy] dump lump data into a new LMP file
+int W_LumpDump (const char *lumpname)
+{
+    FILE *fp;
+    char *filename, *lump_p;
+    int i;
+
+    i = W_CheckNumForName(lumpname);
+
+    if (i < 0 || !lumpinfo[i]->size)
+    {
+	return -1;
+    }
+
+    // [crispy] open file for writing
+    filename = M_StringJoin(lumpname, ".lmp", NULL);
+    M_ForceLowercase(filename);
+    fp = fopen(filename, "wb");
+    if (!fp)
+    {
+	I_Error("W_LumpDump: Failed writing to file '%s'!", filename);
+    }
+    free(filename);
+
+    lump_p = malloc(lumpinfo[i]->size);
+    W_ReadLump(i, lump_p);
+    fwrite(lump_p, 1, lumpinfo[i]->size, fp);
+    free(lump_p);
+
+    fclose(fp);
+
+    return i;
 }

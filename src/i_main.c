@@ -100,6 +100,7 @@ int main(int argc, char **argv)
     srand(time(0));
 
     // start doom
+
     D_DoomMain ();
 
     return 0;

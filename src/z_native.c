@@ -113,11 +113,19 @@ static void Z_RemoveBlock(memblock_t *block)
     }
     else
     {
+        if (block->prev->next != block)
+        {
+            I_Error("Z_RemoveBlock: Doubly-linked list corrupted!");
+        }
         block->prev->next = block->next;
     }
 
     if (block->next != NULL)
     {
+        if (block->next->prev != block)
+        {
+            I_Error("Z_RemoveBlock: Doubly-linked list corrupted!");
+        }
         block->next->prev = block->prev;
     }
 }
@@ -443,7 +451,7 @@ void Z_CheckHeap (void)
 // Z_ChangeTag
 //
 
-void Z_ChangeTag2(void *ptr, int tag, char *file, int line)
+void Z_ChangeTag2(void *ptr, int tag, const char *file, int line)
 {
     memblock_t*	block;
 	
