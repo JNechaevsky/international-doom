@@ -12,7 +12,6 @@
 // GNU General Public License for more details.
 //
 
-
 #include <stdlib.h>
 #include <string.h>
 #include "textscreen.h"
@@ -30,12 +29,12 @@ static const iwad_t **iwads;
 
 typedef struct
 {
-    char *label;
+    const char *label;
     GameMission_t mission;
     int mask;
-    char *name;
-    char *config_file;
-    char *executable;
+    const char *name;
+    const char *config_file;
+    const char *executable;
 } mission_config_t;
 
 // Default mission to fall back on, if no IWADs are found at all:
@@ -59,7 +58,7 @@ static GameSelectCallback game_selected_callback;
 // Miscellaneous variables that aren't used in setup.
 
 static char *executable = NULL;
-static char *game_title = "Doom";
+static const char *game_title = "Doom";
 
 // Set the name of the executable program to run the game:
 
@@ -87,7 +86,7 @@ static void SetMission(mission_config_t *config)
     M_SetConfigFilenames(config->config_file);
 }
 
-static mission_config_t *GetMissionForName(char *name)
+static mission_config_t *GetMissionForName(const char *name)
 {
     int i;
 
@@ -198,7 +197,7 @@ static void OpenGameSelectDialog(GameSelectCallback callback)
 void SetupMission(GameSelectCallback callback)
 {
     mission_config_t *config;
-    char *mission_name;
+    const char *mission_name;
     int p;
 
     //!
@@ -230,12 +229,12 @@ void SetupMission(GameSelectCallback callback)
     }
 }
 
-char *GetExecutableName(void)
+const char *GetExecutableName(void)
 {
     return executable;
 }
 
-char *GetGameTitle(void)
+const char *GetGameTitle(void)
 {
     return game_title;
 }
@@ -244,3 +243,4 @@ const iwad_t **GetIwads(void)
 {
     return iwads;
 }
+

@@ -48,8 +48,8 @@ static void SetIcon(void)
 
     surface = SDL_CreateRGBSurfaceFrom((void *) setup_icon_data, setup_icon_w,
                                        setup_icon_h, 32, setup_icon_w * 4,
-                                       0xff << 24, 0xff << 16,
-                                       0xff << 8, 0xff << 0);
+                                       0xffu << 24, 0xffu << 16,
+                                       0xffu << 8, 0xffu << 0);
 
     SDL_SetWindowIcon(TXT_SDLWindow, surface);
     SDL_FreeSurface(surface);
@@ -81,14 +81,6 @@ static void InitTextscreen(void)
     SetWindowTitle();
 }
 
-// Restart the textscreen library.  Used when the vid_video_driver variable
-// is changed.
-
-void RestartTextscreen(void)
-{
-    TXT_Shutdown();
-    InitTextscreen();
-}
 
 // 
 // Initialize and run the textscreen GUI.
@@ -97,6 +89,7 @@ void RestartTextscreen(void)
 static void RunGUI(void)
 {
     InitTextscreen();
+
     TXT_GUIMainLoop();
 }
 
@@ -109,5 +102,6 @@ static void MissionSet(void)
 void D_DoomMain(void)
 {
     SetupMission(MissionSet);
+
     RunGUI();
 }

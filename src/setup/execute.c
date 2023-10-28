@@ -27,6 +27,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <process.h>
+#include <shellapi.h>
 
 #else
 
@@ -53,14 +54,14 @@ struct execute_context_s
 // Returns the path to a temporary file of the given name, stored
 // inside the system temporary directory.
 
-static char *TempFile(char *s)
+static char *TempFile(const char *s)
 {
-    char *tempdir;
+    const char *tempdir;
 
 #ifdef _WIN32
     // Check the TEMP environment variable to find the location.
 
-    tempdir = getenv("TEMP");
+    tempdir = M_getenv("TEMP");
 
     if (tempdir == NULL)
     {
@@ -75,9 +76,9 @@ static char *TempFile(char *s)
     return M_StringJoin(tempdir, DIR_SEPARATOR_S, s, NULL);
 }
 
-static int ArgumentNeedsEscape(char *arg)
+static int ArgumentNeedsEscape(const char *arg)
 {
-    char *p;
+    const char *p;
 
     for (p = arg; *p != '\0'; ++p)
     {
@@ -118,7 +119,7 @@ execute_context_t *NewExecuteContext(void)
     result = malloc(sizeof(execute_context_t));
     
     result->response_file = TempFile("chocolat.rsp");
-    result->stream = fopen(result->response_file, "w");
+    result->stream = M_fopen(result->response_file, "w");
 
     if (result->stream == NULL)
     {
@@ -129,7 +130,7 @@ execute_context_t *NewExecuteContext(void)
     return result;
 }
 
-void AddCmdLineParameter(execute_context_t *context, char *s, ...)
+void AddCmdLineParameter(execute_context_t *context, const char *s, ...)
 {
     va_list args;
 
@@ -143,8 +144,13 @@ void AddCmdLineParameter(execute_context_t *context, char *s, ...)
 
 #if defined(_WIN32)
 
-// Wait for the specified process to exit.  Returns the exit code.
+boolean OpenFolder(const char *path)
+{
+    // "If the function succeeds, it returns a value greater than 32."
+    return (intptr_t)ShellExecute(NULL, "open", path, NULL, NULL, SW_SHOWDEFAULT) > 32;
+}
 
+// Wait for the specified process to exit.  Returns the exit code.
 static unsigned int WaitForProcessExit(HANDLE subprocess)
 {
     DWORD exit_code;
@@ -257,6 +263,22 @@ static int ExecuteCommand(const char *program, const char *arg)
 
 #else
 
+boolean OpenFolder(const char *path)
+{
+    char *cmd;
+    int result;
+
+#if defined(__MACOSX__)
+    cmd = M_StringJoin("open \"", path, "\"", NULL);
+#else
+    cmd = M_StringJoin("xdg-open \"", path, "\"", NULL);
+#endif
+    result = system(cmd);
+    free(cmd);
+
+    return result == 0;
+}
+
 // Given the specified program name, get the full path to the program,
 // assuming that it is in the same directory as this program is.
 
@@ -346,7 +368,7 @@ int ExecuteDoom(execute_context_t *context)
     free(response_file_arg);
 
     // Destroy context
-    remove(context->response_file);
+    M_remove(context->response_file);
     free(context->response_file);
     free(context);
 
@@ -381,7 +403,7 @@ static void TestCallback(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(data))
 
     // Delete the temporary config files
 
-    remove(main_cfg);
+    M_remove(main_cfg);
     free(main_cfg);
 }
 
