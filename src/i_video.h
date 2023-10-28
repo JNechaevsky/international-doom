@@ -30,7 +30,7 @@
 #define ORIGWIDTH  320 // [crispy]
 #define ORIGHEIGHT 200 // [crispy]
 
-// [JN] Increase more to support quad rendering resolution.
+// [JN] Increase more (+2) to support quad rendering resolution.
 #define MAXWIDTH  (ORIGWIDTH << 5)  // [crispy] 
 #define MAXHEIGHT (ORIGHEIGHT << 4) // [crispy] 
 
@@ -63,6 +63,7 @@ enum
 // Screen height used when vid_aspect_ratio_correct=true.
 
 #define ORIGHEIGHT_4_3 240 // [crispy]
+// [JN] Increase more (+2) to support quad rendering resolution.
 #define MAXHEIGHT_4_3 (ORIGHEIGHT_4_3 << 4) // [crispy]
 
 extern int SCREENHEIGHT_4_3;
