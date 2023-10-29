@@ -66,7 +66,7 @@ static void OpenWaitDialog(void)
 {
     txt_window_action_t *cancel;
 
-    TXT_SetDesktopTitle(PACKAGE_STRING);
+    TXT_SetDesktopTitle(PACKAGE_FULLNAME);  // [JN] Use full port name.
 
     window = TXT_NewWindow("Waiting for game start...");
 

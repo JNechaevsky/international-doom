@@ -1380,7 +1380,7 @@ void NET_SV_SendQueryResponse(net_addr_t *addr)
 
     // Version
 
-    querydata.version = PACKAGE_STRING;
+    querydata.version = PACKAGE_FULLNAME;  // [JN] Use full port name.
 
     // Server state
 
