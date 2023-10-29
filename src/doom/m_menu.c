@@ -5781,6 +5781,14 @@ boolean M_Responder (event_t* ev)
         }
         else if (!netgame && key != 0 && key == key_nextlevel)
         {
+            if (demoplayback)
+            {
+                // [JN] Go to next level while playing demo.
+                demo_nextlevel = true;
+                G_FastDemoWarpStart();
+                return true;
+            }
+            else
             if (G_GotoNextLevel())
             return true;
         }

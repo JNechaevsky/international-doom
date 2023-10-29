@@ -3007,4 +3007,29 @@ boolean G_CheckDemoStatus (void)
 } 
  
  
+// -----------------------------------------------------------------------------
+// [JN] Fast forward to next level while playing demo.
+// -----------------------------------------------------------------------------
+
+boolean demo_nextlevel;
+
+void G_FastDemoWarpStart (void)
+{
+    nodrawers = true;
+    
+    if (!timingdemo)
+    {
+        singletics = true;
+    }
+}
+
+void G_FastDemoWarpStop (void)
+{
+    nodrawers = false;
+    
+    if (!timingdemo)
+    {
+        singletics = false;
+    }
+}
  
