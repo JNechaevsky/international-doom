@@ -64,6 +64,7 @@ extern void G_WorldDone (void);
 extern void G_WriteDemoTiccmd (ticcmd_t *cmd); 
 
 // [JN] Fast forward to next level while playing demo.
+extern boolean netdemo; 
 extern boolean demo_nextlevel;
 extern void G_FastDemoWarpStart (void);
 extern void G_FastDemoWarpStop (void);

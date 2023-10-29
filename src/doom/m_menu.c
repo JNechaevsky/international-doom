@@ -5779,7 +5779,7 @@ boolean M_Responder (event_t* ev)
             if (G_ReloadLevel())
             return true;
         }
-        else if (!netgame && key != 0 && key == key_nextlevel)
+        else if ((!netgame || netdemo) && key != 0 && key == key_nextlevel)
         {
             if (demoplayback)
             {
