@@ -217,24 +217,6 @@ static void D_Display (void)
     boolean  wipe;
     static   gamestate_t oldgamestate = -1;
 
-    // [JN] Draw progress bar while demo warp.
-    // To make it visible, a simplified version of I_FinishUpdate is used.
-    // Also, calling it every frame tic is expensive and causes performace
-    // penalties, so call it only every 500th frame tic.
-    if (demoplayback && demowarp)
-    {
-        static int demowarp_count = 0;
-        
-        demowarp_count++;
-        
-        if (demowarp_count == 500)
-        {
-            ID_DemoBar();
-            I_FinishDemoWarpUpdate();
-            demowarp_count = 0;
-        }
-    }
-
     if (nodrawers)
     {
         return;  // for comparative timing / profiling

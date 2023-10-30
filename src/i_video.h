@@ -96,7 +96,6 @@ extern const int I_ShadeFactor[];
 extern const float I_SaturationPercent[];
 #endif
 void I_FinishUpdate (void);
-void I_FinishDemoWarpUpdate (void);
 
 void I_ReadScreen (pixel_t* scr);
 
