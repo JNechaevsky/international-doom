@@ -58,6 +58,12 @@ void V_BeginRead (const size_t nbytes)
 
 void V_DrawDiskIcon (void)
 {
+    // [JN] Don't draw disk icon while demo warp.
+    if (demowarp)
+    {
+        return;
+    }
+
     if (recent_bytes_read > diskicon_threshold)
     {
         V_DrawPatch(loading_disk_xoffs, loading_disk_yoffs, 

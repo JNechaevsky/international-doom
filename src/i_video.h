@@ -154,6 +154,11 @@ extern unsigned int joywait;
 
 extern int usemouse;
 
+// [JN] Moved to upper level to prevent following while demo warp:
+// - disk icon drawing
+// - palette changing
+extern int demowarp;
+
 extern boolean endoom_screen_active;
 extern boolean volume_needs_update;
 extern boolean window_focused;

@@ -88,7 +88,6 @@ extern void ID_DrawCrosshair (void);
 extern void ID_DemoTimer (const int time);
 extern void ID_DemoBar (void);
 extern int  defdemotics, deftotaldemotics;
-extern int  demowarp;
 
 //
 // Level Select one variable

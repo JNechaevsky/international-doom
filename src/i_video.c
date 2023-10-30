@@ -1155,6 +1155,12 @@ int I_GetPaletteIndex(int r, int g, int b)
 #else
 void I_SetPalette (int palette)
 {
+    // [JN] Don't change palette while demo warp.
+    if (demowarp)
+    {
+        return;
+    }
+    
     switch (palette)
     {
 	case 0:
