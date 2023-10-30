@@ -97,7 +97,6 @@ skill_t startskill;
 boolean autostart;
 
 boolean advancedemo;
-static int     demowarp_count;
 static boolean storedemo;  // Store demo, do not accept any inputs
 
 static int   demosequence;
@@ -221,12 +220,14 @@ static void D_Display (void)
     // [JN] Draw progress bar while demo warp.
     // To make it visible, a simplified version of I_FinishUpdate is used.
     // Also, calling it every frame tic is expensive and causes performace
-    // penalties, so call it only every 350th frame tic (basically, TICRATE*10).  
+    // penalties, so call it only every 500th frame tic.
     if (demoplayback && demowarp)
     {
+        static int demowarp_count = 0;
+        
         demowarp_count++;
         
-        if (demowarp_count == 350)
+        if (demowarp_count == 500)
         {
             ID_DemoBar();
             I_FinishDemoWarpUpdate();
