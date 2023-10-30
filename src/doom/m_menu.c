@@ -5779,7 +5779,7 @@ boolean M_Responder (event_t* ev)
         {
             if (demoplayback)
             {
-                // [JN] Reload demo lump / file.
+                // [JN] Replay demo lump or file.
                 G_DoPlayDemo();
                 return true;
             }
@@ -5791,7 +5791,7 @@ boolean M_Responder (event_t* ev)
         {
             if (demoplayback)
             {
-                // [JN] Go to next level while playing demo.
+                // [JN] Go to next level.
                 demo_gotonextlvl = true;
                 G_DemoGoToNextLevel(true);
                 return true;
