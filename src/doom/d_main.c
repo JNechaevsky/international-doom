@@ -233,8 +233,6 @@ static void D_Display (void)
             I_FinishDemoWarpUpdate();
             demowarp_count = 0;
         }
-
-        return;
     }
 
     if (nodrawers)
