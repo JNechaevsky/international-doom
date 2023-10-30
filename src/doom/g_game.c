@@ -3009,28 +3009,20 @@ boolean G_CheckDemoStatus (void)
  
 //
 // G_DemoGoToNextLevel
-// [JN] Fast forward to next level while playing demo.
+// [JN] Fast forward to next level while demo playback.
 //
 
 boolean demo_gotonextlvl;
 
 void G_DemoGoToNextLevel (boolean start)
 {
-    if (start)
+    // Disable screen rendering while fast forwarding.
+    nodrawers = start;
+
+    // Switch to fast tics running mode if not in -timedemo.
+    if (!timingdemo)
     {
-        nodrawers = true;
-        if (!timingdemo)
-        {
-            singletics = true;
-        }
-    }
-    else
-    {
-        nodrawers = false;
-        if (!timingdemo)
-        {
-            singletics = false;
-        }
+        singletics = start;
     }
 }
  

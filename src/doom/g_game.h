@@ -63,7 +63,7 @@ extern void G_TimeDemo (char *name);
 extern void G_WorldDone (void);
 extern void G_WriteDemoTiccmd (ticcmd_t *cmd); 
 
-// [JN] Fast forward to next level while playing demo.
+// [JN] Fast forward to next level while demo playback.
 extern boolean netdemo; 
 extern boolean demo_gotonextlvl;
 extern void G_DemoGoToNextLevel (boolean start);
