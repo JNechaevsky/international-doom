@@ -38,7 +38,7 @@
 #include "p_local.h"
 #include "w_wad.h"
 #include "z_zone.h"
-#include "g_game.h"  // [JN] demo_nextlevel
+#include "g_game.h"  // [JN] demo_gotonextlvl
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -816,8 +816,9 @@ void S_ChangeMusic(int musicnum, int looping)
     char namebuf[9];
     void *handle;
 
-    // [JN] Do not play music while demo-warp.
-    if ((nodrawers || demowarp) && !demo_nextlevel)
+    // [JN] Do not play music while demo-warp,
+    // but still change while warping to next level.
+    if ((nodrawers || demowarp) && !demo_gotonextlvl)
     {
         return;
     }

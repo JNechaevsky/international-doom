@@ -222,7 +222,7 @@ static void D_Display (void)
     // To make it visible, a simplified version of I_FinishUpdate is used.
     // Also, calling it every frame tic is expensive and causes performace
     // penalties, so call it only every 350th frame tic (basically, TICRATE*10).  
-    if (demoplayback && (demowarp || demo_nextlevel))
+    if (demoplayback && demowarp)
     {
         demowarp_count++;
         

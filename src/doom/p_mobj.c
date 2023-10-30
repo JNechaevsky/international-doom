@@ -966,10 +966,10 @@ void P_SpawnPlayer (mapthing_t* mthing)
 	return;					
 		
     // [JN] Stop fast forward after entering new level while demo playing.
-    if (demo_nextlevel)
+    if (demo_gotonextlvl)
     {
-        demo_nextlevel = false;
-        G_FastDemoWarpStop();
+        demo_gotonextlvl = false;
+        G_DemoGoToNextLevel(false);
     }
 
     p = &players[mthing->type-1];
