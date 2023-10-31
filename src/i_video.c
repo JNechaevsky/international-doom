@@ -207,6 +207,12 @@ static boolean display_fps_dots;
 
 int id_fps_value;
 
+// [JN] Moved to upper level to prevent following while demo warp:
+// - prevent force frame rate uncapping after demo warp
+// - disk icon drawing
+// - palette changing
+int demowarp;
+
 // If this is true, the screen is rendered but not blitted to the
 // video buffer.
 
@@ -1499,7 +1505,7 @@ static void SetVideoMode(void)
     }
 
     // Turn on vsync if we aren't in a -timedemo
-    if (!singletics && mode.refresh_rate > 0)
+    if ((!singletics && mode.refresh_rate > 0) || demowarp)
     {
         if (vid_vsync) // [crispy] uncapped vsync
         {

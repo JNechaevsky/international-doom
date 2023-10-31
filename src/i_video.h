@@ -140,6 +140,7 @@ extern int vid_integer_scaling;
 extern int vid_vga_porch_flash;
 extern int vid_force_software_renderer;
 extern int id_fps_value;
+extern int demowarp;
 
 // [AM] Fractional part of the current tic, in the half-open
 //      range of [0.0, 1.0).  Used for interpolation.
@@ -152,11 +153,6 @@ void I_GetWindowPosition(int *x, int *y, int w, int h);
 extern unsigned int joywait;
 
 extern int usemouse;
-
-// [JN] Moved to upper level to prevent following while demo warp:
-// - disk icon drawing
-// - palette changing
-extern int demowarp;
 
 extern boolean endoom_screen_active;
 extern boolean volume_needs_update;
