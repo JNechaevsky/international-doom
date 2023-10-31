@@ -1416,6 +1416,7 @@ P_SetupLevel
 	demowarp = 0;
 	nodrawers = false;
 	singletics = false;
+	demo_gotoidclev = false;
     }
 
     // Make sure all sounds are stopped before Z_FreeTags.

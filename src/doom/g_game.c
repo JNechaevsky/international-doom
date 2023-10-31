@@ -128,6 +128,8 @@ byte*		demobuffer;
 byte*		demo_p;
 byte*		demoend; 
 boolean         singledemo;            	// quit after playing a demo from cmdline 
+boolean         demo_gotoidclev;        // [JN] Fast forward to IDCLEVed map while demo playback.
+boolean         demo_gotonextlvl;       // [JN] Fast forward to next level while demo playback.
  
 boolean         precache = true;        // if true, load all graphics at start 
 
@@ -2860,6 +2862,13 @@ void G_DoPlayDemo (void)
         }
     }
 
+    // [JN] Fast forward to IDCLEVed map.
+    if (demo_gotoidclev)
+    {
+        nodrawers = true;
+        singletics = true;
+    }
+
     skill = *demo_p++; 
     episode = *demo_p++; 
     map = *demo_p++; 
@@ -3011,8 +3020,6 @@ boolean G_CheckDemoStatus (void)
 // G_DemoGoToNextLevel
 // [JN] Fast forward to next level while demo playback.
 //
-
-boolean demo_gotonextlvl;
 
 void G_DemoGoToNextLevel (boolean start)
 {
