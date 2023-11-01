@@ -1096,7 +1096,7 @@ static void M_Choose_ID_Video (int choice)
 
 static void M_Draw_ID_Video (void)
 {
-    static char str[32];
+    char str[32];
 
     M_ShadeBackground();
 
@@ -1372,7 +1372,7 @@ static void M_Choose_ID_Display (int choice)
 
 static void M_Draw_ID_Display (void)
 {
-    static char str[32];
+    char str[32];
 
     M_ShadeBackground();
 
@@ -1677,7 +1677,7 @@ static void M_Choose_ID_Sound (int choice)
 
 static void M_Draw_ID_Sound (void)
 {
-    static char str[16];
+    char str[16];
 
     M_ShadeBackground();
 
@@ -1963,7 +1963,7 @@ static void M_Choose_ID_Controls (int choice)
 
 static void M_Draw_ID_Controls (void)
 {
-    static char str[32];
+    char str[32];
 
     M_ShadeBackground();
     
@@ -2914,7 +2914,7 @@ static void M_Choose_ID_Widgets (int choice)
 
 static void M_Draw_ID_Widgets (void)
 {
-    static char str[32];
+    char str[32];
 
     M_ShadeBackground();
 
@@ -3127,7 +3127,7 @@ static void M_Choose_ID_Gameplay_1 (int choice)
 
 static void M_Draw_ID_Gameplay_1 (void)
 {
-    static char str[32];
+    char str[32];
     Gameplay_Cur = 0;
 
     M_ShadeBackground();
@@ -3345,7 +3345,7 @@ static void M_Choose_ID_Gameplay_2 (int choice)
 
 static void M_Draw_ID_Gameplay_2 (void)
 {
-    static char str[32];
+    char str[32];
     Gameplay_Cur = 1;
 
     M_ShadeBackground();
@@ -3530,7 +3530,7 @@ static void M_Choose_ID_Gameplay_3 (int choice)
 
 static void M_Draw_ID_Gameplay_3 (void)
 {
-    static char str[32];
+    char str[32];
     Gameplay_Cur = 2;
 
     M_ShadeBackground();
@@ -3735,7 +3735,7 @@ static void M_Choose_ID_Level_1 (int choice)
 
 static void M_Draw_ID_Level_1 (void)
 {
-    static char str[32];
+    char str[32];
     M_FillBackground();
     
     M_WriteTextCentered(16, "LEVEL SELECT", cr[CR_YELLOW]);
@@ -3950,7 +3950,7 @@ static void M_Choose_ID_Level_2 (int choice)
 
 static void M_Draw_ID_Level_2 (void)
 {
-    static char str[32];
+    char str[32];
 
     M_FillBackground();
     
@@ -4638,7 +4638,7 @@ static void M_DrawReadThisCommercial(void)
 //
 static void M_DrawSound(void)
 {
-    static char str[8];
+    char str[8];
 
     M_ShadeBackground();
 
