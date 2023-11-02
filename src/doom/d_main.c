@@ -1601,6 +1601,7 @@ void D_DoomMain (void)
 
     if (iwadfile == NULL)
     {
+        i_error_safe = true;
         I_Error("Game mode indeterminate, no IWAD file was found.\n"
                 "Try to do following:\n"
                 "- Copy IWAD file into the folder with executable file.\n"
@@ -1885,8 +1886,11 @@ void D_DoomMain (void)
 	int i;
 	
 	if ( gamemode == shareware)
+	{
+	    i_error_safe = true;
 	    I_Error(DEH_String("\nYou cannot -file with the shareware "
 			       "version. Register!"));
+	}
 
 	// Check for fake IWAD with right name,
 	// but w/o all the lumps of the registered version. 

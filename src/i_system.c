@@ -250,6 +250,12 @@ void I_Quit (void)
 
 static boolean already_quitting = false;
 
+// [JN] Indicates if I_Error is not an error, but infomative message instead.
+// If false, a stop-sign icon appears.
+// If true, an icon consisting of a lowercase letter i in a circle appears.
+
+boolean i_error_safe = false;
+
 void I_Error (const char *error, ...)
 {
     char msgbuf[512];
@@ -316,9 +322,9 @@ void I_Error (const char *error, ...)
         // [JN] On Windows OS use system, nicer dialog box.
         MultiByteToWideChar(CP_UTF8, 0, msgbuf, -1, win_error_message, 1024);
         MultiByteToWideChar(CP_UTF8, 0, PACKAGE_FULLNAME, -1, win_error_title, 128);
-        MessageBoxW(NULL, win_error_message, win_error_title, MB_ICONSTOP);
+        MessageBoxW(NULL, win_error_message, win_error_title, i_error_safe ? MB_ICONASTERISK : MB_ICONSTOP);
 #else
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+        SDL_ShowSimpleMessageBox(i_error_safe ? SDL_MESSAGEBOX_INFORMATION : SDL_MESSAGEBOX_ERROR,
                                  PACKAGE_FULLNAME, msgbuf, NULL);
 #endif
     }
