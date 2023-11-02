@@ -64,14 +64,6 @@ const char *sprnames[] = {
     NULL
 };
 
-// [crispy] additional BOOM and MBF states, sprites and code pointers
-extern void A_Stop(mobj_t *actor);
-extern void A_Die(mobj_t *actor);
-extern void A_FireOldBFG(player_t *player, pspdef_t *psp);
-extern void A_Detonate(mobj_t* mo);
-extern void A_Mushroom(mobj_t *actor);
-extern void A_BetaSkullAttack(mobj_t *actor);
-
 
 state_t	states[NUMSTATES] = {
     {SPR_TROO,0,-1,{NULL},S_NULL,0,0},	// S_NULL

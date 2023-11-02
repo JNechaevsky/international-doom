@@ -58,6 +58,28 @@
 #define WEAPONTOP       (32*FRACUNIT)
 #define WEAPONBOTTOM    (128*FRACUNIT)
 
+
+// -----------------------------------------------------------------------------
+// P_BEXPTR
+// -----------------------------------------------------------------------------
+
+// [crispy] additional BOOM and MBF states, sprites and code pointers
+extern void A_BetaSkullAttack (mobj_t *actor);
+extern void A_Detonate (mobj_t *mo);
+extern void A_Die (mobj_t *actor);
+extern void A_FireOldBFG (mobj_t *mobj, player_t *player, pspdef_t *psp);
+extern void A_Mushroom (mobj_t *actor);
+extern void A_Stop (mobj_t *actor);
+
+// [crispy] more MBF code pointers
+extern void A_Spawn (mobj_t *mo);
+extern void A_Turn (mobj_t *mo);
+extern void A_Face (mobj_t *mo);
+extern void A_Scratch (mobj_t *mo);
+extern void A_PlaySound (mobj_t *mo);
+extern void A_RandomJump (mobj_t *mo, player_t *player, pspdef_t *psp);
+extern void A_LineEffect (mobj_t *mo);
+
 // -----------------------------------------------------------------------------
 // P_CEILNG
 // -----------------------------------------------------------------------------
