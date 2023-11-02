@@ -482,6 +482,7 @@ extern mobj_t *Crispy_PlayerSO (int p); // [crispy] weapon sound sources
 extern mobj_t *P_SpawnMissile (mobj_t *source, mobj_t *dest, mobjtype_t type);
 extern mobj_t *P_SpawnMobj (fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
 extern mobj_t *P_SubstNullMobj (mobj_t *th);
+extern void    P_CheckMissileSpawn (mobj_t *th);
 extern void    P_MobjThinker (mobj_t *mobj);
 extern void    P_RemoveMobj (mobj_t *th);
 extern void    P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, int damage, mobj_t *target);
@@ -554,6 +555,7 @@ extern plat_t *activeplats[MAXPLATS];
 // P_PSPR
 // -----------------------------------------------------------------------------
 
+extern void P_SetPsprite (player_t *player, int position, statenum_t stnum);
 extern void P_SetupPsprites (player_t *curplayer);
 extern void P_MovePsprites (player_t *curplayer);
 extern void P_DropWeapon (player_t *player);
@@ -757,3 +759,4 @@ extern thinker_t thinkercap;
 #define PLAYER_SLOPE(a)	((((a)->lookdir / MLOOKUNIT) << FRACBITS) / 160)
 
 extern void P_PlayerThink (player_t *player);
+extern void P_Thrust (player_t *player, angle_t angle, fixed_t move);

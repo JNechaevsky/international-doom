@@ -25,7 +25,6 @@
 #include "id_vars.h"
 
 
-extern void P_Thrust (player_t* player, angle_t angle, fixed_t move);
 
 // killough 11/98: kill an object
 void A_Die(mobj_t *actor)
@@ -144,8 +143,6 @@ void A_RandomJump(mobj_t *mo, player_t *player, pspdef_t *psp)
 	{
 		if (ID_Random() < psp->state->misc2)
 		{
-			extern void P_SetPsprite (player_t *player, int position, statenum_t stnum);
-
 			P_SetPsprite(player, psp - &player->psprites[0], psp->state->misc1);
 		}
 	}
@@ -197,7 +194,6 @@ void A_LineEffect(mobj_t *mo)
 void A_FireOldBFG(mobj_t *mobj, player_t *player, pspdef_t *psp)
 {
   int type = MT_PLASMA1;
-  extern void P_CheckMissileSpawn (mobj_t* th);
 
   if (!player) return; // [crispy] let pspr action pointers get called from mobj states
 
@@ -211,7 +207,6 @@ void A_FireOldBFG(mobj_t *mobj, player_t *player, pspdef_t *psp)
       angle_t an = mo->angle;
       angle_t an1 = ((P_Random(/* pr_bfg */)&127) - 64) * (ANG90/768) + an;
       angle_t an2 = ((P_Random(/* pr_bfg */)&127) - 64) * (ANG90/640) + ANG90;
-//    extern int autoaim;
 
 //    if (autoaim || !beta_emulation)
 	{
