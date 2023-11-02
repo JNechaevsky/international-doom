@@ -51,8 +51,8 @@ ticcmd_t* I_BaseTiccmd (void);
 // Clean exit, displays sell blurb.
 void I_Quit (void) NORETURN;
 
-void I_Error (const char *error, ...) NORETURN PRINTF_ATTR(1, 2);
 extern boolean i_error_safe;
+void I_Error (const char *error, ...) NORETURN PRINTF_ATTR(1, 2);
 
 void *I_Realloc(void *ptr, size_t size);
 
