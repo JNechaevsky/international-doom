@@ -259,6 +259,7 @@ static void D_Disconnected(void)
 
     if (drone)
     {
+        i_error_safe = true;
         I_Error("Disconnected from server in drone mode.");
     }
 
@@ -331,6 +332,7 @@ static void BlockUntilStart(net_gamesettings_t *settings,
         if (callback != NULL && !callback(net_client_wait_data.ready_players,
                                           net_client_wait_data.num_players))
         {
+            i_error_safe = true;
             I_Error("Netgame startup aborted.");
         }
 
@@ -479,6 +481,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 
             if (addr == NULL)
             {
+                i_error_safe = true;
                 I_Error("No server found on local LAN");
             }
         }

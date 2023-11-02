@@ -763,6 +763,7 @@ void G_DoLoadLevel (void)
                                    " Pistol start mode in Gameplay Features"
                                    " menu.";
             if (!demo_p) demorecording = false;
+            i_error_safe = true;
             I_Error(message);
         }
     }
@@ -2978,6 +2979,7 @@ boolean G_CheckDemoStatus (void)
         timingdemo = false;
         demoplayback = false;
 
+        i_error_safe = true;
         I_Error ("Timed %i gametics in %i realtics.\n"
                  "Average fps: %f", gametic, realtics, fps);
     } 
@@ -3009,6 +3011,7 @@ boolean G_CheckDemoStatus (void)
 	M_WriteFile (demoname, demobuffer, demo_p - demobuffer); 
 	Z_Free (demobuffer); 
 	demorecording = false; 
+	i_error_safe = true;
 	I_Error ("Demo %s recorded",demoname); 
     } 
 	 
