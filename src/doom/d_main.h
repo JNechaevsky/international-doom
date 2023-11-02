@@ -47,13 +47,15 @@ extern void D_StartTitle (void);
 // GLOBAL VARIABLES
 //
 
-extern  int vid_endoom;
-extern  gameaction_t    gameaction;
-extern boolean advancedemo;
+extern int vid_endoom;
+extern int dp_detail_level;
 
+extern boolean advancedemo;
 extern boolean sigil_compat;
 extern boolean sigil;
 extern boolean nerve;
+
+extern gameaction_t gameaction;
 
 #endif
 

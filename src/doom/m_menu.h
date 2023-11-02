@@ -55,8 +55,6 @@ void M_StartControlPanel (void);
 
 extern void M_ConfirmDeleteGame (void);
 
-extern int dp_detail_level;
-
 extern void M_WriteText (int x, int y, const char *string, byte *table);
 extern void M_WriteTextCentered (const int y, const char *string, byte *table);
 extern void M_WriteTextCritical (const int y, const char *string1, const char *string2, byte *table);

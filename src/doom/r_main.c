@@ -24,6 +24,7 @@
 #include <math.h>
 #include "doomstat.h" // [AM] leveltime, paused, menuactive
 #include "m_bbox.h"
+#include "d_main.h"
 #include "m_menu.h"
 #include "p_local.h"
 #include "v_video.h"
