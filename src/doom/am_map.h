@@ -32,6 +32,8 @@ typedef struct
 extern mpoint_t *markpoints;
 extern int markpointnum, markpointnum_max;
 
+extern int iddt_cheating;
+
 // Used by ST StatusBar stuff.
 #define AM_MSGHEADER (('a'<<24)+('m'<<16))
 #define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))

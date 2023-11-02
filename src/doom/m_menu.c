@@ -1248,8 +1248,6 @@ static void M_ID_UncappedFPS (int choice)
 
 static void M_ID_LimitFPS (int choice)
 {
-    extern boolean speedkeydown (void);
-
     if (!vid_uncapped_fps)
     {
         return;  // Do not allow change value in capped framerate.

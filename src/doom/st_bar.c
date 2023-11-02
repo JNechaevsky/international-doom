@@ -44,6 +44,7 @@
 #include "v_trans.h"
 #include "ct_chat.h"
 #include "st_bar.h"
+#include "am_map.h"
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -132,7 +133,6 @@ cheatseq_t cheat_clev = CHEAT("idclev", 2);
 cheatseq_t cheat_mypos = CHEAT("idmypos", 0);
 // [JN] IDDT cheat, moved from am_map.c
 cheatseq_t cheat_amap = CHEAT("iddt", 0);
-extern int iddt_cheating;
 
 // [crispy] new cheats
 static cheatseq_t cheat_massacre1 = CHEAT("tntem", 0);
@@ -273,7 +273,6 @@ boolean ST_Responder (event_t *ev)
                 if (plyr->playerstate == PST_DEAD)
                 {
                     angle_t an;
-                    extern void P_SpawnPlayer (mapthing_t *mthing);
 
                     mt.x = plyr->mo->x >> FRACBITS;
                     mt.y = plyr->mo->y >> FRACBITS;

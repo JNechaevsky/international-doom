@@ -464,6 +464,7 @@ extern void    P_MobjThinker (mobj_t *mobj);
 extern void    P_RemoveMobj (mobj_t *th);
 extern void    P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, int damage, mobj_t *target);
 extern void    P_SpawnMapThing (mapthing_t *mthing);
+extern void    P_SpawnPlayer (mapthing_t *mthing);
 extern void    P_SpawnPlayerMissile (mobj_t *source, mobjtype_t type);
 extern void    P_SpawnPuff (fixed_t x, fixed_t y, fixed_t z);
 extern void    P_SpawnPuffSafe (fixed_t x, fixed_t y, fixed_t z, boolean safe);
@@ -619,6 +620,8 @@ extern int       bmapheight;    // in mapblocks
 extern fixed_t   bmaporgx;
 extern fixed_t   bmaporgy;      // origin of block map
 extern mobj_t  **blocklinks;    // for thing chains
+
+extern const char *level_name;
 
 // -----------------------------------------------------------------------------
 // P_SPEC

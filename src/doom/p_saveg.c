@@ -30,6 +30,7 @@
 #include "m_misc.h"
 #include "am_map.h"
 #include "s_sound.h"
+#include "m_menu.h"
 
 #include "id_vars.h"
 
@@ -55,9 +56,7 @@ char *P_TempSaveGameFile(void)
 }
 
 // Get the filename of the save game file to use for the specified slot.
-
 // [FG] support up to 8 pages of savegames
-extern int savepage;
 
 char *P_SaveGameFile(int slot)
 {
