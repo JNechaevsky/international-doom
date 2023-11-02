@@ -37,6 +37,7 @@ int key_strafeleft  = 'a';
 int key_straferight = 'd';
 int key_speed       = KEY_RSHIFT; 
 int key_strafe      = KEY_RALT;
+int key_180turn     = 0; // [crispy]
 
 // Action
 
@@ -189,6 +190,7 @@ void M_BindControls (void)
     M_BindIntVariable("key_straferight",        &key_straferight);
     M_BindIntVariable("key_speed",              &key_speed);
     M_BindIntVariable("key_strafe",             &key_strafe);
+    M_BindIntVariable("key_180turn",            &key_180turn);
 
     // Action
 

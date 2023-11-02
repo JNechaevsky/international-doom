@@ -245,6 +245,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_straferight),
     CONFIG_VARIABLE_KEY(key_speed),
     CONFIG_VARIABLE_KEY(key_strafe),
+    CONFIG_VARIABLE_KEY(key_180turn),
 
     // Action
     CONFIG_VARIABLE_KEY(key_fire),

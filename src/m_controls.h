@@ -33,6 +33,7 @@ extern int key_strafeleft;
 extern int key_straferight;
 extern int key_speed;
 extern int key_strafe;
+extern int key_180turn;
 
 // Action
 

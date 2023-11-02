@@ -548,6 +548,7 @@ static void M_Bind_StrafeLeft (int choice);
 static void M_Bind_StrafeRight (int choice);
 static void M_Bind_SpeedOn (int choice);
 static void M_Bind_StrafeOn (int choice);
+static void M_Bind_180Turn (int choice);
 static void M_Bind_FireAttack (int choice);
 static void M_Bind_Use (int choice);
 
@@ -2079,10 +2080,10 @@ static menuitem_t ID_Menu_Keybinds_1[]=
     { M_SWTC, "STRAFE RIGHT",   M_Bind_StrafeRight,   's' },
     { M_SWTC, "SPEED ON",       M_Bind_SpeedOn,       's' },
     { M_SWTC, "STRAFE ON",      M_Bind_StrafeOn,      's' },
+    { M_SWTC, "180 DEGREE TURN",M_Bind_180Turn,       '1' },
     { M_SKIP, "",               0,                    '\0'},  // ACTION
     { M_SWTC, "FIRE/ATTACK",    M_Bind_FireAttack,    'f' },
     { M_SWTC, "USE",            M_Bind_Use,           'u' },
-    { M_SKIP, "",               0,                    '\0'},
     { M_SKIP, "",               0,                    '\0'},
     { M_SKIP, "",               0,                    '\0'},
     { M_SKIP, "",               0,                    '\0'},
@@ -2140,14 +2141,19 @@ static void M_Bind_StrafeOn (int choice)
     M_StartBind(107);  // key_strafe
 }
 
+static void M_Bind_180Turn (int choice)
+{
+    M_StartBind(108);  // key_180turn
+}
+
 static void M_Bind_FireAttack (int choice)
 {
-    M_StartBind(108);  // key_fire
+    M_StartBind(109);  // key_fire
 }
 
 static void M_Bind_Use (int choice)
 {
-    M_StartBind(109);  // key_use
+    M_StartBind(110);  // key_use
 }
 
 static void M_Draw_ID_Keybinds_1 (void)
@@ -2166,11 +2172,12 @@ static void M_Draw_ID_Keybinds_1 (void)
     M_DrawBindKey(5, 72, key_straferight);
     M_DrawBindKey(6, 81, key_speed);
     M_DrawBindKey(7, 90, key_strafe);
+    M_DrawBindKey(8, 99, key_180turn);
 
-    M_WriteTextCentered(99, "ACTION", cr[CR_YELLOW]);
+    M_WriteTextCentered(108, "ACTION", cr[CR_YELLOW]);
 
-    M_DrawBindKey(9, 108, key_fire);
-    M_DrawBindKey(10, 117, key_use);
+    M_DrawBindKey(10, 117, key_fire);
+    M_DrawBindKey(11, 126, key_use);
 
     M_DrawBindFooter("1", true);
 }
@@ -6449,6 +6456,7 @@ static void M_CheckBind (int key)
     if (key_straferight == key)      key_straferight      = 0;
     if (key_speed == key)            key_speed            = 0;
     if (key_strafe == key)           key_strafe           = 0;
+    if (key_180turn == key)          key_180turn          = 0;
     if (key_fire == key)             key_fire             = 0;
     if (key_use == key)              key_use              = 0;
     // Page 2
@@ -6534,8 +6542,9 @@ static void M_DoBind (int keynum, int key)
         case 105:  key_straferight = key;       break;
         case 106:  key_speed = key;             break;
         case 107:  key_strafe = key;            break;
-        case 108:  key_fire = key;              break;
-        case 109:  key_use = key;               break;
+        case 108:  key_180turn = key;           break;
+        case 109:  key_fire = key;              break;
+        case 110:  key_use = key;               break;
         // Page 2  
         case 200:  key_autorun = key;           break;
         case 201:  key_mouse_look = key;        break;
@@ -6614,9 +6623,10 @@ static void M_ClearBind (int itemOn)
             case 5:   key_straferight = 0;      break;
             case 6:   key_speed = 0;            break;
             case 7:   key_strafe = 0;           break;
+            case 8:   key_180turn = 0;          break;
             // Action title
-            case 9:   key_fire = 0;             break;
-            case 10:  key_use = 0;              break;
+            case 10:  key_fire = 0;             break;
+            case 11:  key_use = 0;              break;
         }
     }
     if (currentMenu == &ID_Def_Keybinds_2)
@@ -6721,6 +6731,7 @@ static void M_ResetBinds (void)
     key_straferight = 'd';
     key_speed = KEY_RSHIFT;
     key_strafe = KEY_RALT;
+    key_180turn = 0;
     key_fire = KEY_RCTRL;
     key_use = ' ';
     // Page 2
