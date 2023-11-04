@@ -1069,11 +1069,11 @@ void WI_drawDeathmatchStats(void)
 
 	    if (i == me)
 	    {
-		V_DrawShadowedPatch(x-SHORT(p[i]->width)/2,
+		V_DrawPatch(x-SHORT(p[i]->width)/2,
 			    DM_MATRIXY - WI_SPACINGY,
 			    bstar);
 
-		V_DrawShadowedPatch(DM_MATRIXX-SHORT(p[i]->width)/2,
+		V_DrawPatch(DM_MATRIXX-SHORT(p[i]->width)/2,
 			    y,
 			    star);
 	    }
@@ -1339,7 +1339,7 @@ void WI_drawNetgameStats(void)
 	V_DrawShadowedPatch(x-SHORT(p[i]->width), y, p[i]);
 
 	if (i == me)
-	    V_DrawShadowedPatch(x-SHORT(p[i]->width), y, star);
+	    V_DrawPatch(x-SHORT(p[i]->width), y, star);
 
 	x += NG_SPACINGX;
 	WI_drawPercent(x-pwidth, y+10, cnt_kills[i]);	x += NG_SPACINGX;
