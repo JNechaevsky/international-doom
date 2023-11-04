@@ -5784,6 +5784,12 @@ boolean M_Responder (event_t* ev)
         {
             if (demoplayback)
             {
+                if (demowarp)
+                {
+                    // [JN] Enable screen render back before replaying.
+                    nodrawers = false;
+                    singletics = false;
+                }
                 // [JN] Replay demo lump or file.
                 G_DoPlayDemo();
                 return true;
