@@ -852,6 +852,7 @@ enum
     m_id_13,    // 126
     m_id_14,    // 135
     m_id_15,    // 144
+    m_id_16,    // 153
     m_id_end
 } id1_e;
 
@@ -1017,21 +1018,22 @@ static char *const DefSkillName[5] =
 
 static menuitem_t ID_Menu_Main[]=
 {
-    { M_SWTC, "VIDEO OPTIONS",        M_Choose_ID_Video,       'v'},
-    { M_SWTC, "DISPLAY OPTIONS",      M_Choose_ID_Display,     'd'},
-    { M_SWTC, "SOUND OPTIONS",        M_Choose_ID_Sound,       's'},
-    { M_SWTC, "CONTROL SETTINGS",     M_Choose_ID_Controls,    'c'},
-    { M_SWTC, "WIDGETS AND AUTOMAP",  M_Choose_ID_Widgets,     'w'},
-    { M_SWTC, "GAMEPLAY FEATURES",    M_Choose_ID_Gameplay,    'g'},
-    { M_SWTC, "LEVEL SELECT",         M_Choose_ID_Level_1,     'l'},
-    { M_SWTC, "END GAME",             M_EndGame,               'e'},
-    { M_SWTC, "RESET SETTINGS",       M_Choose_ID_Reset,       'r'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'}
+    { M_SWTC, "VIDEO OPTIONS",       M_Choose_ID_Video,    'v' },
+    { M_SWTC, "DISPLAY OPTIONS",     M_Choose_ID_Display,  'd' },
+    { M_SWTC, "SOUND OPTIONS",       M_Choose_ID_Sound,    's' },
+    { M_SWTC, "CONTROL SETTINGS",    M_Choose_ID_Controls, 'c' },
+    { M_SWTC, "WIDGETS AND AUTOMAP", M_Choose_ID_Widgets,  'w' },
+    { M_SWTC, "GAMEPLAY FEATURES",   M_Choose_ID_Gameplay, 'g' },
+    { M_SWTC, "LEVEL SELECT",        M_Choose_ID_Level_1,  'l' },
+    { M_SWTC, "END GAME",            M_EndGame,            'e' },
+    { M_SWTC, "RESET SETTINGS",      M_Choose_ID_Reset,    'r' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Main =
@@ -1063,21 +1065,22 @@ static void M_Draw_ID_Main (void)
 
 static menuitem_t ID_Menu_Video[]=
 {
-    { M_LFRT, "TRUECOLOR RENDERING",   M_ID_TrueColor,      't'},
-    { M_LFRT, "RENDERING RESOLUTION",  M_ID_RenderingRes,   'r'},
-    { M_LFRT, "WIDESCREEN MODE",       M_ID_Widescreen,     'w'},
-    { M_LFRT, "UNCAPPED FRAMERATE",    M_ID_UncappedFPS,    'u'},
-    { M_LFRT, "FRAMERATE LIMIT",       M_ID_LimitFPS,       'f'},
-    { M_LFRT, "ENABLE VSYNC",          M_ID_VSync,          'e'},
-    { M_LFRT, "SHOW FPS COUNTER",      M_ID_ShowFPS,        's'},
-    { M_LFRT, "PIXEL SCALING",         M_ID_PixelScaling,   'p'},
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "SCREEN WIPE EFFECT",    M_ID_ScreenWipe,     's'},
-    { M_LFRT, "SHOW DISK ICON",        M_ID_DiskIcon,       's'},
-    { M_LFRT, "SHOW ENDOOM SCREEN",    M_ID_ShowENDOOM,     's'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'}
+    { M_LFRT, "TRUECOLOR RENDERING",  M_ID_TrueColor,    't' },
+    { M_LFRT, "RENDERING RESOLUTION", M_ID_RenderingRes, 'r' },
+    { M_LFRT, "WIDESCREEN MODE",      M_ID_Widescreen,   'w' },
+    { M_LFRT, "UNCAPPED FRAMERATE",   M_ID_UncappedFPS,  'u' },
+    { M_LFRT, "FRAMERATE LIMIT",      M_ID_LimitFPS,     'f' },
+    { M_LFRT, "ENABLE VSYNC",         M_ID_VSync,        'e' },
+    { M_LFRT, "SHOW FPS COUNTER",     M_ID_ShowFPS,      's' },
+    { M_LFRT, "PIXEL SCALING",        M_ID_PixelScaling, 'p' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   's' },
+    { M_LFRT, "SHOW DISK ICON",       M_ID_DiskIcon,     's' },
+    { M_LFRT, "SHOW ENDOOM SCREEN",   M_ID_ShowENDOOM,   's' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Video =
@@ -1337,31 +1340,31 @@ static void M_ID_ShowENDOOM (int choice)
 
 static menuitem_t ID_Menu_Display[]=
 {
-    { M_LFRT, "GAMMA-CORRECTION",         M_ID_Gamma,              'g'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "FIELD OF VIEW",            M_ID_FOV,                'f'},
-    { M_LFRT, "MENU BACKGROUND SHADING",  M_ID_MenuShading,        'm'},
-    { M_LFRT, "EXTRA LEVEL BRIGHTNESS",   M_ID_LevelBrightness,    'e'},
-    { M_SKIP, "", 0, '\0'}, // COLOR SETTINGS
-    { M_LFRT, "SATURATION",               M_ID_Saturation,         's'},
-    { M_LFRT, "RED INTENSITY",            M_ID_R_Intensity,        'r'},
-    { M_LFRT, "GREEN INTENSITY",          M_ID_G_Intensity,        'g'},
-    { M_LFRT, "BLUE INTENSITY",           M_ID_B_Intensity,        'b'},
-    { M_SKIP, "", 0, '\0'}, // MESSAGES
-    { M_LFRT, "MESSAGES ENABLED",         M_ChangeMessages,        'm'},
-    { M_LFRT, "MESSAGES ALIGNMENT",       M_ID_MessagesAlignment,  'm'},
-    { M_LFRT, "TEXT CASTS SHADOWS",       M_ID_TextShadows,        't'},
-    { M_LFRT, "LOCAL TIME",               M_ID_LocalTime,          'l'}
+    { M_LFRT, "GAMMA-CORRECTION",        M_ID_Gamma,             'g' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "FIELD OF VIEW",           M_ID_FOV,               'f' },
+    { M_LFRT, "MENU BACKGROUND SHADING", M_ID_MenuShading,       'm' },
+    { M_LFRT, "EXTRA LEVEL BRIGHTNESS",  M_ID_LevelBrightness,   'e' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "SATURATION",              M_ID_Saturation,        's' },
+    { M_LFRT, "RED INTENSITY",           M_ID_R_Intensity,       'r' },
+    { M_LFRT, "GREEN INTENSITY",         M_ID_G_Intensity,       'g' },
+    { M_LFRT, "BLUE INTENSITY",          M_ID_B_Intensity,       'b' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "MESSAGES ENABLED",        M_ChangeMessages,       'm' },
+    { M_LFRT, "MESSAGES ALIGNMENT",      M_ID_MessagesAlignment, 'm' },
+    { M_LFRT, "TEXT CASTS SHADOWS",      M_ID_TextShadows,       't' },
+    { M_LFRT, "LOCAL TIME",              M_ID_LocalTime,         'l' },
 };
 
 static menu_t ID_Def_Display =
 {
-    m_id_end + 1,
+    m_id_end,
     &ID_Def_Main,
     ID_Menu_Display,
     M_Draw_ID_Display,
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET - 9,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET - 9, // [JN] This menu is one line higher.
     0,
     true
 };
@@ -1387,19 +1390,20 @@ static void M_Draw_ID_Display (void)
     // Field of View
     sprintf(str, "%d", vid_fov);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 45, str,
-                 M_Item_Glow(3, vid_fov == 90 ? GLOW_RED : GLOW_GREEN));
+                 M_Item_Glow(3, vid_fov == 135 || vid_fov == 45 ? GLOW_YELLOW :
+                                vid_fov == 90 ? GLOW_RED : GLOW_GREEN));
 
     // Background shading
-    sprintf(str,"%d", dp_menu_shading);
+    sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 54, str,
                  M_Item_Glow(4, dp_menu_shading == 8 ? GLOW_YELLOW :
-                                dp_menu_shading >  0 ? GLOW_GREEN  : GLOW_RED));
+                                dp_menu_shading >  0 ? GLOW_GREEN  : GLOW_DARKRED));
 
     // Extra level brightness
-    sprintf(str,"%d", dp_level_brightness);
+    sprintf(str, dp_level_brightness ? "%d" : "OFF", dp_level_brightness);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 63, str,
                  M_Item_Glow(5, dp_level_brightness == 8 ? GLOW_YELLOW :
-                                dp_level_brightness >  0 ? GLOW_GREEN  : GLOW_RED));
+                                dp_level_brightness >  0 ? GLOW_GREEN  : GLOW_DARKRED));
 
     M_WriteTextCentered(72, "COLOR SETTINGS", cr[CR_YELLOW]);
 
@@ -1671,22 +1675,22 @@ static void M_ID_B_Intensity (int choice)
 
 static menuitem_t ID_Menu_Sound[]=
 {
-    { M_LFRT, "SFX VOLUME",            M_SfxVol,           's'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "MUSIC VOLUME",          M_MusicVol,         'm'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "SFX PLAYBACK",          M_ID_SFXSystem,    's'},
-    { M_LFRT, "MUSIC PLAYBACK",        M_ID_MusicSystem,  'm'},
-    { M_LFRT, "SOUNDS EFFECTS MODE",   M_ID_SFXMode,      's'},
-    { M_LFRT, "PITCH-SHIFTED SOUNDS",  M_ID_PitchShift,   'p'},
-    { M_LFRT, "NUMBER OF SFX TO MIX",  M_ID_SFXChannels,  'n'},
-    { M_LFRT, "MUTE INACTIVE WINDOW",  M_ID_MuteInactive, 'm'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'}
+    { M_LFRT, "SFX VOLUME",           M_SfxVol,          's' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "MUSIC VOLUME",         M_MusicVol,        'm' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "SFX PLAYBACK",         M_ID_SFXSystem,    's' },
+    { M_LFRT, "MUSIC PLAYBACK",       M_ID_MusicSystem,  'm' },
+    { M_LFRT, "SOUNDS EFFECTS MODE",  M_ID_SFXMode,      's' },
+    { M_LFRT, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,   'p' },
+    { M_LFRT, "NUMBER OF SFX TO MIX", M_ID_SFXChannels,  'n' },
+    { M_LFRT, "MUTE INACTIVE WINDOW", M_ID_MuteInactive, 'm' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Sound =
@@ -1957,22 +1961,22 @@ static void M_ID_MuteInactive (int choice)
 
 static menuitem_t ID_Menu_Controls[]=
 {
-    { M_SWTC, "KEYBOARD BINDINGS",            M_Choose_ID_Keybinds,        'k'},
-    { M_SWTC, "MOUSE BINDINGS",               M_Choose_ID_MouseBinds,      'm'},
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "SENSIVITY",                    M_ID_Controls_Sensivity,    's'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "ACCELERATION",                 M_ID_Controls_Acceleration, 'a'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "ACCELERATION THRESHOLD",       M_ID_Controls_Threshold,    'a'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "VERTICAL MOUSE MOVEMENT",      M_ID_Controls_NoVert,       'v'},
-    { M_LFRT, "INVERT VERTICAL AXIS",         M_ID_Controls_InvertY,      'v'},
-    { M_LFRT, "DOUBLE CLICK ACTS AS \"USE\"", M_ID_Controls_DblClck,      'd'},
-    { M_SKIP, "", 0, '\0'}
+    { M_SWTC, "KEYBOARD BINDINGS",            M_Choose_ID_Keybinds,       'k' },
+    { M_SWTC, "MOUSE BINDINGS",               M_Choose_ID_MouseBinds,     'm' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "SENSIVITY",                    M_ID_Controls_Sensivity,    's' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "ACCELERATION",                 M_ID_Controls_Acceleration, 'a' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "ACCELERATION THRESHOLD",       M_ID_Controls_Threshold,    'a' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "VERTICAL MOUSE MOVEMENT",      M_ID_Controls_NoVert,       'v' },
+    { M_LFRT, "INVERT VERTICAL AXIS",         M_ID_Controls_InvertY,      'v' },
+    { M_LFRT, "DOUBLE CLICK ACTS AS \"USE\"", M_ID_Controls_DblClck,      'd' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Controls =
@@ -2103,22 +2107,22 @@ static void M_ID_Controls_InvertY (int choice)
 
 static menuitem_t ID_Menu_Keybinds_1[]=
 {
-    { M_SWTC, "MOVE FORWARD",   M_Bind_MoveForward,   'm' },
-    { M_SWTC, "MOVE BACKWARD",  M_Bind_MoveBackward,  'm' },
-    { M_SWTC, "TURN LEFT",      M_Bind_TurnLeft,      't' },
-    { M_SWTC, "TURN RIGHT",     M_Bind_TurnRight,     't' },
-    { M_SWTC, "STRAFE LEFT",    M_Bind_StrafeLeft,    's' },
-    { M_SWTC, "STRAFE RIGHT",   M_Bind_StrafeRight,   's' },
-    { M_SWTC, "SPEED ON",       M_Bind_SpeedOn,       's' },
-    { M_SWTC, "STRAFE ON",      M_Bind_StrafeOn,      's' },
-    { M_SWTC, "180 DEGREE TURN",M_Bind_180Turn,       '1' },
-    { M_SKIP, "",               0,                    '\0'},  // ACTION
-    { M_SWTC, "FIRE/ATTACK",    M_Bind_FireAttack,    'f' },
-    { M_SWTC, "USE",            M_Bind_Use,           'u' },
-    { M_SKIP, "",               0,                    '\0'},
-    { M_SKIP, "",               0,                    '\0'},
-    { M_SKIP, "",               0,                    '\0'},
-    { M_SKIP, "",               0,                    '\0'}
+    { M_SWTC, "MOVE FORWARD",    M_Bind_MoveForward,  'm' },
+    { M_SWTC, "MOVE BACKWARD",   M_Bind_MoveBackward, 'm' },
+    { M_SWTC, "TURN LEFT",       M_Bind_TurnLeft,     't' },
+    { M_SWTC, "TURN RIGHT",      M_Bind_TurnRight,    't' },
+    { M_SWTC, "STRAFE LEFT",     M_Bind_StrafeLeft,   's' },
+    { M_SWTC, "STRAFE RIGHT",    M_Bind_StrafeRight,  's' },
+    { M_SWTC, "SPEED ON",        M_Bind_SpeedOn,      's' },
+    { M_SWTC, "STRAFE ON",       M_Bind_StrafeOn,     's' },
+    { M_SWTC, "180 DEGREE TURN", M_Bind_180Turn,      '1' },
+    { M_SKIP, "", 0, '\0'},
+    { M_SWTC, "FIRE/ATTACK",     M_Bind_FireAttack,   'f' },
+    { M_SWTC, "USE",             M_Bind_Use,          'u' },
+    { M_SKIP, "", 0, '\0'},
+    { M_SKIP, "", 0, '\0'},
+    { M_SKIP, "", 0, '\0'},
+    { M_SKIP, "", 0, '\0'},
 };
 
 static menu_t ID_Def_Keybinds_1 =
@@ -2219,22 +2223,22 @@ static void M_Draw_ID_Keybinds_1 (void)
 
 static menuitem_t ID_Menu_Keybinds_2[]=
 {
-    { M_SWTC, "ALWAYS RUN",               M_Bind_AlwaysRun,      'a'  },
-    { M_SWTC, "MOUSE LOOK",               M_Bind_MouseLook,      'm'  },
-    { M_SKIP, "",                         0,                     '\0' },  // SPECIAL KEYS
-    { M_SWTC, "RESTART LEVEL/DEMO",       M_Bind_RestartLevel,   'g'  },
-    { M_SWTC, "GO TO NEXT LEVEL",         M_Bind_NextLevel,      'd'  },
-    { M_SWTC, "DEMO FAST-FORWARD",        M_Bind_FastForward,    'd'  },
-    { M_SWTC, "FLIP LEVEL HORIZONTALLY",  M_Bind_FlipLevels,     'f'  },
-    { M_SKIP, "",                         0,                     '\0' },
-    { M_SWTC, "SPECTATOR MODE",           M_Bind_SpectatorMode,  's'  },
-    { M_SWTC, "FREEZE MODE",              M_Bind_FreezeMode,     'f'  },
-    { M_SWTC, "NOTARGET MODE",            M_Bind_NotargetMode,   'n'  },
-    { M_SWTC, "BUDDHA MODE",              M_Bind_BuddhaMode,     'b'  },
-    { M_SKIP, "",                         0,                     '\0' },
-    { M_SKIP, "",                         0,                     '\0' },
-    { M_SKIP, "",                         0,                     '\0' },
-    { M_SKIP, "",                         0,                     '\0' }
+    { M_SWTC, "ALWAYS RUN",              M_Bind_AlwaysRun,      'a' },
+    { M_SWTC, "MOUSE LOOK",              M_Bind_MouseLook,      'm' },
+    { M_SKIP, "", 0, '\0'},
+    { M_SWTC, "RESTART LEVEL/DEMO",      M_Bind_RestartLevel,   'g' },
+    { M_SWTC, "GO TO NEXT LEVEL",        M_Bind_NextLevel,      'd' },
+    { M_SWTC, "DEMO FAST-FORWARD",       M_Bind_FastForward,    'd' },
+    { M_SWTC, "FLIP LEVEL HORIZONTALLY", M_Bind_FlipLevels,     'f' },
+    { M_SKIP, "", 0, '\0'},
+    { M_SWTC, "SPECTATOR MODE",           M_Bind_SpectatorMode, 's' },
+    { M_SWTC, "FREEZE MODE",              M_Bind_FreezeMode,    'f' },
+    { M_SWTC, "NOTARGET MODE",            M_Bind_NotargetMode,  'n' },
+    { M_SWTC, "BUDDHA MODE",              M_Bind_BuddhaMode,    'b' },
+    { M_SKIP, "", 0, '\0'},
+    { M_SKIP, "", 0, '\0'},
+    { M_SKIP, "", 0, '\0'},
+    { M_SKIP, "", 0, '\0'},
 };
 
 static menu_t ID_Def_Keybinds_2 =
@@ -2332,22 +2336,22 @@ static void M_Draw_ID_Keybinds_2 (void)
 
 static menuitem_t ID_Menu_Keybinds_3[]=
 {
-    { M_SWTC, "WEAPON 1",        M_Bind_Weapon1,    'w'  },
-    { M_SWTC, "WEAPON 2",        M_Bind_Weapon2,    'w'  },
-    { M_SWTC, "WEAPON 3",        M_Bind_Weapon3,    'w'  },
-    { M_SWTC, "WEAPON 4",        M_Bind_Weapon4,    'w'  },
-    { M_SWTC, "WEAPON 5",        M_Bind_Weapon5,    'w'  },
-    { M_SWTC, "WEAPON 6",        M_Bind_Weapon6,    'w'  },
-    { M_SWTC, "WEAPON 7",        M_Bind_Weapon7,    'w'  },
-    { M_SWTC, "WEAPON 8",        M_Bind_Weapon8,    'w'  },
-    { M_SWTC, "PREVIOUS WEAPON", M_Bind_PrevWeapon, 'p'  },
-    { M_SWTC, "NEXT WEAPON",     M_Bind_NextWeapon, 'n'  },
-    { M_SKIP, "",                0,                 '\0' },
-    { M_SKIP, "",                0,                 '\0' },
-    { M_SKIP, "",                0,                 '\0' },
-    { M_SKIP, "",                0,                 '\0' },
-    { M_SKIP, "",                0,                 '\0' },
-    { M_SKIP, "",                0,                 '\0' }
+    { M_SWTC, "WEAPON 1",        M_Bind_Weapon1,    'w' },
+    { M_SWTC, "WEAPON 2",        M_Bind_Weapon2,    'w' },
+    { M_SWTC, "WEAPON 3",        M_Bind_Weapon3,    'w' },
+    { M_SWTC, "WEAPON 4",        M_Bind_Weapon4,    'w' },
+    { M_SWTC, "WEAPON 5",        M_Bind_Weapon5,    'w' },
+    { M_SWTC, "WEAPON 6",        M_Bind_Weapon6,    'w' },
+    { M_SWTC, "WEAPON 7",        M_Bind_Weapon7,    'w' },
+    { M_SWTC, "WEAPON 8",        M_Bind_Weapon8,    'w' },
+    { M_SWTC, "PREVIOUS WEAPON", M_Bind_PrevWeapon, 'p' },
+    { M_SWTC, "NEXT WEAPON",     M_Bind_NextWeapon, 'n' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Keybinds_3 =
@@ -2439,22 +2443,22 @@ static void M_Draw_ID_Keybinds_3 (void)
 
 static menuitem_t ID_Menu_Keybinds_4[]=
 {
-    { M_SWTC, "TOGGLE MAP",        M_Bind_ToggleMap,    't'  },
-    { M_SWTC, "ZOOM IN",           M_Bind_ZoomIn,       'z'  },
-    { M_SWTC, "ZOOM OUT",          M_Bind_ZoomOut,      'z'  },
-    { M_SWTC, "MAXIMUM ZOOM OUT",  M_Bind_MaxZoom,      'm'  },
-    { M_SWTC, "FOLLOW MODE",       M_Bind_FollowMode,   'f'  },
-    { M_SWTC, "ROTATE MODE",       M_Bind_RotateMode,   'r'  },
-    { M_SWTC, "OVERLAY MODE",      M_Bind_OverlayMode,  'o'  },
-    { M_SWTC, "TOGGLE GRID",       M_Bind_ToggleGrid,   't'  },
-    { M_SWTC, "MARK LOCATION",     M_Bind_AddMark,      'm'  },
-    { M_SWTC, "CLEAR ALL MARKS",   M_Bind_ClearMarks,   'c'  },
-    { M_SKIP, "",                  0,                   '\0' },
-    { M_SKIP, "",                  0,                   '\0' },
-    { M_SKIP, "",                  0,                   '\0' },
-    { M_SKIP, "",                  0,                   '\0' },
-    { M_SKIP, "",                  0,                   '\0' },
-    { M_SKIP, "",                  0,                   '\0' }
+    { M_SWTC, "TOGGLE MAP",       M_Bind_ToggleMap,   't' },
+    { M_SWTC, "ZOOM IN",          M_Bind_ZoomIn,      'z' },
+    { M_SWTC, "ZOOM OUT",         M_Bind_ZoomOut,     'z' },
+    { M_SWTC, "MAXIMUM ZOOM OUT", M_Bind_MaxZoom,     'm' },
+    { M_SWTC, "FOLLOW MODE",      M_Bind_FollowMode,  'f' },
+    { M_SWTC, "ROTATE MODE",      M_Bind_RotateMode,  'r' },
+    { M_SWTC, "OVERLAY MODE",     M_Bind_OverlayMode, 'o' },
+    { M_SWTC, "TOGGLE GRID",      M_Bind_ToggleGrid,  't' },
+    { M_SWTC, "MARK LOCATION",    M_Bind_AddMark,     'm' },
+    { M_SWTC, "CLEAR ALL MARKS",  M_Bind_ClearMarks,  'c' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Keybinds_4 =
@@ -2546,22 +2550,22 @@ static void M_Draw_ID_Keybinds_4 (void)
 
 static menuitem_t ID_Menu_Keybinds_5[]=
 {
-    { M_SWTC, "HELP SCREEN",      M_Bind_HelpScreen,      'h'  },
-    { M_SWTC, "SAVE GAME",        M_Bind_SaveGame,        's'  },
-    { M_SWTC, "LOAD GAME",        M_Bind_LoadGame,        'l'  },
-    { M_SWTC, "SOUND VOLUME",     M_Bind_SoundVolume,     's'  },
-    { M_SWTC, "TOGGLE DETAIL",    M_Bind_ToggleDetail,    't'  },
-    { M_SWTC, "QUICK SAVE",       M_Bind_QuickSave,       'q'  },
-    { M_SWTC, "END GAME",         M_Bind_EndGame,         'e'  },
-    { M_SWTC, "TOGGLE MESSAGES",  M_Bind_ToggleMessages,  't'  },
-    { M_SWTC, "QUICK LOAD",       M_Bind_QuickLoad,       'q'  },
-    { M_SWTC, "QUIT GAME",        M_Bind_QuitGame,        'q'  },
-    { M_SWTC, "TOGGLE GAMMA",     M_Bind_ToggleGamma,     't'  },
-    { M_SWTC, "MULTIPLAYER SPY",  M_Bind_MultiplayerSpy,  'm'  },
-    { M_SKIP, "",                 0,                      '\0' },
-    { M_SKIP, "",                 0,                      '\0' },
-    { M_SKIP, "",                 0,                      '\0' },
-    { M_SKIP, "",                 0,                      '\0' }
+    { M_SWTC, "HELP SCREEN",     M_Bind_HelpScreen,     'h' },
+    { M_SWTC, "SAVE GAME",       M_Bind_SaveGame,       's' },
+    { M_SWTC, "LOAD GAME",       M_Bind_LoadGame,       'l' },
+    { M_SWTC, "SOUND VOLUME",    M_Bind_SoundVolume,    's' },
+    { M_SWTC, "TOGGLE DETAIL",   M_Bind_ToggleDetail,   't' },
+    { M_SWTC, "QUICK SAVE",      M_Bind_QuickSave,      'q' },
+    { M_SWTC, "END GAME",        M_Bind_EndGame,        'e' },
+    { M_SWTC, "TOGGLE MESSAGES", M_Bind_ToggleMessages, 't' },
+    { M_SWTC, "QUICK LOAD",      M_Bind_QuickLoad,      'q' },
+    { M_SWTC, "QUIT GAME",       M_Bind_QuitGame,       'q' },
+    { M_SWTC, "TOGGLE GAMMA",    M_Bind_ToggleGamma,    't' },
+    { M_SWTC, "MULTIPLAYER SPY", M_Bind_MultiplayerSpy, 'm' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Keybinds_5 =
@@ -2664,22 +2668,22 @@ static void M_Draw_ID_Keybinds_5 (void)
 
 static menuitem_t ID_Menu_Keybinds_6[]=
 {
-    { M_SWTC, "PAUSE GAME",             M_Bind_Pause,           'p'  },
-    { M_SWTC, "SAVE A SCREENSHOT",      M_Bind_SaveScreenshot,  's'  },
-    { M_SWTC, "DISPLAY LAST MESSAGE",   M_Bind_LastMessage,     'd'  },
-    { M_SWTC, "FINISH DEMO RECORDING",  M_Bind_FinishDemo,      'f'  },
-    { M_SKIP, "",                       0,                      '\0' },  // MULTIPLAYER
-    { M_SWTC, "SEND MESSAGE",           M_Bind_SendMessage,     's'  },
-    { M_SWTC, "- TO PLAYER 1",          M_Bind_ToPlayer1,       '1'  },
-    { M_SWTC, "- TO PLAYER 2",          M_Bind_ToPlayer2,       '2'  },
-    { M_SWTC, "- TO PLAYER 3",          M_Bind_ToPlayer3,       '3'  },
-    { M_SWTC, "- TO PLAYER 4",          M_Bind_ToPlayer4,       '4'  },
-    { M_SKIP, "",                       0,                      '\0' },  // RESET 
-    { M_SWTC, "RESET BINDINGS TO DEFAULT", M_Bind_Reset,        'r'  },
-    { M_SKIP, "",                       0,                      '\0' },
-    { M_SKIP, "",                       0,                      '\0' },
-    { M_SKIP, "",                       0,                      '\0' },
-    { M_SKIP, "",                       0,                      '\0' }
+    { M_SWTC, "PAUSE GAME",                M_Bind_Pause,          'p' },
+    { M_SWTC, "SAVE A SCREENSHOT",         M_Bind_SaveScreenshot, 's' },
+    { M_SWTC, "DISPLAY LAST MESSAGE",      M_Bind_LastMessage,    'd' },
+    { M_SWTC, "FINISH DEMO RECORDING",     M_Bind_FinishDemo,     'f' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SWTC, "SEND MESSAGE",              M_Bind_SendMessage,    's' },
+    { M_SWTC, "- TO PLAYER 1",             M_Bind_ToPlayer1,      '1' },
+    { M_SWTC, "- TO PLAYER 2",             M_Bind_ToPlayer2,      '2' },
+    { M_SWTC, "- TO PLAYER 3",             M_Bind_ToPlayer3,      '3' },
+    { M_SWTC, "- TO PLAYER 4",             M_Bind_ToPlayer4,      '4' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SWTC, "RESET BINDINGS TO DEFAULT", M_Bind_Reset,          'r' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Keybinds_6 =
@@ -2789,22 +2793,22 @@ static void M_Draw_ID_Keybinds_6 (void)
 
 static menuitem_t ID_Menu_MouseBinds[]=
 {
-    { M_SWTC, "FIRE/ATTACK",    M_Bind_M_FireAttack,    'f' },
-    { M_SWTC, "MOVE FORWARD",   M_Bind_M_MoveForward,   'm' },
-    { M_SWTC, "STRAFE ON",      M_Bind_M_StrafeOn,      's' },
-    { M_SWTC, "MOVE BACKWARD",  M_Bind_M_MoveBackward,  'm' },
-    { M_SWTC, "USE",            M_Bind_M_Use,           'u' },
-    { M_SWTC, "STRAFE LEFT",    M_Bind_M_StrafeLeft,    's' },
-    { M_SWTC, "STRAFE RIGHT",   M_Bind_M_StrafeRight,   's' },
-    { M_SWTC, "PREV WEAPON",    M_Bind_M_PrevWeapon,    'p' },
-    { M_SWTC, "NEXT WEAPON",    M_Bind_M_NextWeapon,    'n' },
-    { M_SKIP, "",               0,                      '\0'},
-    { M_SWTC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset, 'r' },
-    { M_SKIP, "",               0,                      '\0'},
-    { M_SKIP, "",               0,                      '\0'},
-    { M_SKIP, "",               0,                      '\0'},
-    { M_SKIP, "",               0,                      '\0'},
-    { M_SKIP, "",               0,                      '\0'}
+    { M_SWTC, "FIRE/ATTACK",               M_Bind_M_FireAttack,   'f' },
+    { M_SWTC, "MOVE FORWARD",              M_Bind_M_MoveForward,  'm' },
+    { M_SWTC, "STRAFE ON",                 M_Bind_M_StrafeOn,     's' },
+    { M_SWTC, "MOVE BACKWARD",             M_Bind_M_MoveBackward, 'm' },
+    { M_SWTC, "USE",                       M_Bind_M_Use,          'u' },
+    { M_SWTC, "STRAFE LEFT",               M_Bind_M_StrafeLeft,   's' },
+    { M_SWTC, "STRAFE RIGHT",              M_Bind_M_StrafeRight,  's' },
+    { M_SWTC, "PREV WEAPON",               M_Bind_M_PrevWeapon,   'p' },
+    { M_SWTC, "NEXT WEAPON",               M_Bind_M_NextWeapon,   'n' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SWTC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset,        'r' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_MouseBinds =
@@ -2914,22 +2918,22 @@ static void M_Draw_ID_MouseBinds (void)
 
 static menuitem_t ID_Menu_Widgets[]=
 {
-    { M_LFRT, "WIDGETS LOCATION",    M_ID_Widget_Location,   'w'},
-    { M_LFRT, "KIS STATS/FRAGS",     M_ID_Widget_KIS,        'k'},
-    { M_LFRT, "LEVEL/DM TIMER",      M_ID_Widget_Time,       'l'},
-    { M_LFRT, "TOTAL TIME",          M_ID_Widget_TotalTime,  't'},
-    { M_LFRT, "LEVEL NAME",          M_ID_Widget_LevelName,  'l'},
-    { M_LFRT, "PLAYER COORDS",       M_ID_Widget_Coords,     'p'},
-    { M_LFRT, "RENDER COUNTERS",     M_ID_Widget_Render,     'r'},
-    { M_LFRT, "TARGET'S HEALTH",     M_ID_Widget_Health,     't'},
-    { M_SKIP, "", 0, '\0'},          // AUTOMAP
-    { M_LFRT, "COLOR SCHEME",        M_ID_Automap_Colors,    'c'},
-    { M_LFRT, "SMOOTH LINES",        M_ID_Automap_Smooth,    's'},
-    { M_LFRT, "MARK SECRET SECTORS", M_ID_Automap_Secrets,   'm'},
-    { M_LFRT, "ROTATE MODE",         M_ID_Automap_Rotate,    'r'},
-    { M_LFRT, "OVERLAY MODE",        M_ID_Automap_Overlay,   'o'},
-    { M_LFRT, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading, 'o'},
-    { M_SKIP, "", 0, '\0'}
+    { M_LFRT, "WIDGETS LOCATION",      M_ID_Widget_Location,  'w' },
+    { M_LFRT, "KIS STATS/FRAGS",       M_ID_Widget_KIS,       'k' },
+    { M_LFRT, "LEVEL/DM TIMER",        M_ID_Widget_Time,      'l' },
+    { M_LFRT, "TOTAL TIME",            M_ID_Widget_TotalTime, 't' },
+    { M_LFRT, "LEVEL NAME",            M_ID_Widget_LevelName, 'l' },
+    { M_LFRT, "PLAYER COORDS",         M_ID_Widget_Coords,    'p' },
+    { M_LFRT, "RENDER COUNTERS",       M_ID_Widget_Render,    'r' },
+    { M_LFRT, "TARGET'S HEALTH",       M_ID_Widget_Health,    't' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "COLOR SCHEME",          M_ID_Automap_Colors,   'c' },
+    { M_LFRT, "SMOOTH LINES",          M_ID_Automap_Smooth,   's' },
+    { M_LFRT, "MARK SECRET SECTORS",   M_ID_Automap_Secrets,  'm' },
+    { M_LFRT, "ROTATE MODE",           M_ID_Automap_Rotate,   'r' },
+    { M_LFRT, "OVERLAY MODE",          M_ID_Automap_Overlay,  'o' },
+    { M_LFRT, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  'o' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Widgets =
@@ -3128,21 +3132,22 @@ static void M_ID_Automap_Secrets (int choice)
 
 static menuitem_t ID_Menu_Gameplay_1[]=
 {
-    { M_LFRT, "BRIGHTMAPS",                   M_ID_Brightmaps,        'b'  },
-    { M_LFRT, "TRANSLUCENCY",                 M_ID_Translucency,      't'  },
-    { M_LFRT, "FAKE CONTRAST",                M_ID_FakeContrast,      'f'  },
-    { M_LFRT, "DIMINISHED LIGHTING",          M_ID_SmoothLighting,    'd'  },
-    { M_LFRT, "FUZZ EFFECT",                  M_ID_ImprovedFuzz,      'f'  },
-    { M_LFRT, "COLORED BLOOD AND CORPSES",    M_ID_ColoredBlood,      'c'  },
-    { M_LFRT, "LIQUIDS ANIMATION",            M_ID_SwirlingLiquids,   'l'  },
-    { M_LFRT, "INVULNERABILITY AFFECTS SKY",  M_ID_InvulSky,          'i'  },
-    { M_LFRT, "SKY DRAWING MODE",             M_ID_LinearSky,         's'  },
-    { M_LFRT, "RANDOMLY MIRRORED CORPSES",    M_ID_FlipCorpses,       'r'  },
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "SHAPE",                        M_ID_Crosshair,         's'  },
-    { M_LFRT, "INDICATION",                   M_ID_CrosshairColor,    'i'  },
-    { M_SWTC, "", /*NEXT PAGE >*/             M_Choose_ID_Gameplay_2, 'n'  },
-    { M_SWTC, "", /*< LAST PAGE*/             M_Choose_ID_Gameplay_3, 'p'  }
+    { M_LFRT, "BRIGHTMAPS",                  M_ID_Brightmaps,        'b' },
+    { M_LFRT, "TRANSLUCENCY",                M_ID_Translucency,      't' },
+    { M_LFRT, "FAKE CONTRAST",               M_ID_FakeContrast,      'f' },
+    { M_LFRT, "DIMINISHED LIGHTING",         M_ID_SmoothLighting,    'd' },
+    { M_LFRT, "FUZZ EFFECT",                 M_ID_ImprovedFuzz,      'f' },
+    { M_LFRT, "COLORED BLOOD AND CORPSES",   M_ID_ColoredBlood,      'c' },
+    { M_LFRT, "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids,   'l' },
+    { M_LFRT, "INVULNERABILITY AFFECTS SKY", M_ID_InvulSky,          'i' },
+    { M_LFRT, "SKY DRAWING MODE",            M_ID_LinearSky,         's' },
+    { M_LFRT, "RANDOMLY MIRRORED CORPSES",   M_ID_FlipCorpses,       'r' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "SHAPE",                       M_ID_Crosshair,         's' },
+    { M_LFRT, "INDICATION",                  M_ID_CrosshairColor,    'i' },
+    { M_SWTC, "", /*NEXT PAGE >*/            M_Choose_ID_Gameplay_2, 'n' },
+    { M_SWTC, "", /*< LAST PAGE*/            M_Choose_ID_Gameplay_3, 'p' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Gameplay_1 =
@@ -3346,21 +3351,22 @@ static void M_ID_CrosshairColor (int choice)
 
 static menuitem_t ID_Menu_Gameplay_2[]=
 {
-    { M_LFRT, "COLORED ELEMENTS",               M_ID_ColoredSTBar,     'c'  },
-    { M_LFRT, "SHOW NEGATIVE HEALTH",           M_ID_NegativeHealth,   's'  },
-    { M_LFRT, "BLINK MISSING KEYS",             M_ID_BlinkingKeys,     'b'  },
-    { M_SKIP, "", 0, '\0'},  // AUDIBLE
-    { M_LFRT, "SFX ATTENUATION AXISES",         M_ID_ZAxisSfx,         's'  },
-    { M_LFRT, "PLAY SOUNDS IN FULL LENGTH",     M_ID_FullSounds,       'p'  },
-    { M_SKIP, "", 0, '\0'},  // PHYSICAL
-    { M_LFRT, "CORPSES SLIDING FROM LEDGES",    M_ID_Torque,           'c'  },
-    { M_LFRT, "POINT-BLANK SSG TEAR MONSTERS",  M_ID_SSGTearMonsters,  'p'  },
-    { M_LFRT, "ITEMS ARE TOSSED WHEN DROPPED",  M_ID_TossDrop,         'i'  },
-    { M_LFRT, "FLOATING POWERUPS AMPLITUDE",    M_ID_FloatingPowerups, 'f'  },
-    { M_LFRT, "WEAPON ATTACK ALIGNMENT",        M_ID_WeaponAlignment,  'w'  },
-    { M_LFRT, "IMITATE PLAYER'S BREATHING",     M_ID_Breathing,        'i'  },
-    { M_SWTC, "", /*NEXT PAGE >*/               M_Choose_ID_Gameplay_3, '\0' },
-    { M_SWTC, "", /*< PREV PAGE*/               M_Choose_ID_Gameplay_1, 'p'  }
+    { M_LFRT, "COLORED ELEMENTS",              M_ID_ColoredSTBar,      'c' },
+    { M_LFRT, "SHOW NEGATIVE HEALTH",          M_ID_NegativeHealth,    's' },
+    { M_LFRT, "BLINK MISSING KEYS",            M_ID_BlinkingKeys,      'b' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "SFX ATTENUATION AXISES",        M_ID_ZAxisSfx,          's' },
+    { M_LFRT, "PLAY SOUNDS IN FULL LENGTH",    M_ID_FullSounds,        'p' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "CORPSES SLIDING FROM LEDGES",   M_ID_Torque,            'c' },
+    { M_LFRT, "POINT-BLANK SSG TEAR MONSTERS", M_ID_SSGTearMonsters,   'p' },
+    { M_LFRT, "ITEMS ARE TOSSED WHEN DROPPED", M_ID_TossDrop,          'i' },
+    { M_LFRT, "FLOATING POWERUPS AMPLITUDE",   M_ID_FloatingPowerups,  'f' },
+    { M_LFRT, "WEAPON ATTACK ALIGNMENT",       M_ID_WeaponAlignment,   'w' },
+    { M_LFRT, "IMITATE PLAYER'S BREATHING",    M_ID_Breathing,         'i' },
+    { M_SWTC, "", /*NEXT PAGE >*/              M_Choose_ID_Gameplay_3, 'n' },
+    { M_SWTC, "", /*< PREV PAGE*/              M_Choose_ID_Gameplay_1, 'p' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Gameplay_2 =
@@ -3531,21 +3537,22 @@ static void M_ID_Breathing (int choice)
 
 static menuitem_t ID_Menu_Gameplay_3[]=
 {
-    { M_LFRT, "DEFAULT SKILL LEVEL",         M_ID_DefaulSkill,     'd'  },
-    { M_LFRT, "REPORT REVEALED SECRETS",     M_ID_RevealedSecrets, 'r'  },
-    { M_LFRT, "FLIP LEVELS HORIZONTALLY",    M_ID_FlipLevels,      'f'  },
-    { M_SKIP, "", 0, '\0'},  // DEMOS
-    { M_LFRT, "SHOW DEMO TIMER",             M_ID_DemoTimer,       's'  },
-    { M_LFRT, "TIMER DIRECTION",             M_ID_TimerDirection,  't'  },
-    { M_LFRT, "SHOW PROGRESS BAR",           M_ID_ProgressBar,     's'  },
-    { M_LFRT, "PLAY INTERNAL DEMOS",         M_ID_InternalDemos,   'p'  },
-    { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "PISTOL START GAME MODE",      M_ID_PistolStart,     'p'  },
-    { M_LFRT, "IMPROVED HIT DETECTION",      M_ID_BlockmapFix,     'i'  },
-    { M_LFRT, "DIRECT MOUSE LOOK AIMING",    M_ID_DirectAiming,    'd'  },
-    { M_SKIP, "", 0, '\0'},
-    { M_SWTC, "", /*FIRST PAGE >*/           M_Choose_ID_Gameplay_1, 'n' },
-    { M_SWTC, "", /*< PREV PAGE*/            M_Choose_ID_Gameplay_2, 'p' }
+    { M_LFRT, "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,       'd' },
+    { M_LFRT, "REPORT REVEALED SECRETS",  M_ID_RevealedSecrets,   'r' },
+    { M_LFRT, "FLIP LEVELS HORIZONTALLY", M_ID_FlipLevels,        'f' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "SHOW DEMO TIMER",          M_ID_DemoTimer,         's' },
+    { M_LFRT, "TIMER DIRECTION",          M_ID_TimerDirection,    't' },
+    { M_LFRT, "SHOW PROGRESS BAR",        M_ID_ProgressBar,       's' },
+    { M_LFRT, "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,     'p' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "PISTOL START GAME MODE",   M_ID_PistolStart,       'p' },
+    { M_LFRT, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,       'i' },
+    { M_LFRT, "DIRECT MOUSE LOOK AIMING", M_ID_DirectAiming,      'd' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SWTC, "", /*FIRST PAGE >*/        M_Choose_ID_Gameplay_1, 'n' },
+    { M_SWTC, "", /*< PREV PAGE*/         M_Choose_ID_Gameplay_2, 'p' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Gameplay_3 =
@@ -3732,30 +3739,30 @@ static void M_ScrollGameplayPages (boolean direction)
 
 static menuitem_t ID_Menu_Level_1[]=
 {
-    { M_LFRT, "SKILL LEVEL",         M_ID_LevelSkill,      's'  },
-    { M_LFRT, "EPISODE",             M_ID_LevelEpisode,    'e'  },
-    { M_LFRT, "MAP",                 M_ID_LevelMap,        'm'  },
-    { M_SKIP, "", 0, '\0'},  // PLAYER
-    { M_LFRT, "HEALTH",              M_ID_LevelHealth,     'h'  },
-    { M_LFRT, "ARMOR",               M_ID_LevelArmor,      'a'  },
-    { M_LFRT, "ARMOR TYPE",          M_ID_LevelArmorType,  'a'  },
-    { M_SKIP, "", 0, '\0'},  // WEAPONS
-    { M_LFRT, "CHAINSAW",            M_ID_LevelChainsaw,   'c'  },
-    { M_LFRT, "SHOTGUN",             M_ID_LevelShotgun,    's'  },
-    { M_LFRT, "SUPER SHOTGUN",       M_ID_LevelSSG,        's'  },
-    { M_LFRT, "CHAINGUN",            M_ID_LevelChaingun,   'c'  },
-    { M_LFRT, "ROCKET LAUNCHER",     M_ID_LevelRLauncher,  'r'  },
-    { M_LFRT, "PLASMA RIFLE",        M_ID_LevelPlasmagun,  'p'  },
-    { M_LFRT, "BFG 9000",            M_ID_LevelBFG9000,    'b'  },
-    { M_SKIP, "", 0, '\0'},  // WEAPONS
-    { M_SWTC, "", /* NEXT PAGE > */  M_Choose_ID_Level_2,   'n'  },
-    { M_SWTC, "", /* START GAME  */  G_DoSelectiveGame,     's'  }
+    { M_LFRT, "SKILL LEVEL",        M_ID_LevelSkill,     's' },
+    { M_LFRT, "EPISODE",            M_ID_LevelEpisode,   'e' },
+    { M_LFRT, "MAP",                M_ID_LevelMap,       'm' },
+    { M_SKIP, "", 0, '\0' },  // PLAYER
+    { M_LFRT, "HEALTH",             M_ID_LevelHealth,    'h' },
+    { M_LFRT, "ARMOR",              M_ID_LevelArmor,     'a' },
+    { M_LFRT, "ARMOR TYPE",         M_ID_LevelArmorType, 'a' },
+    { M_SKIP, "", 0, '\0' },  // WEAPONS
+    { M_LFRT, "CHAINSAW",           M_ID_LevelChainsaw,  'c' },
+    { M_LFRT, "SHOTGUN",            M_ID_LevelShotgun,   's' },
+    { M_LFRT, "SUPER SHOTGUN",      M_ID_LevelSSG,       's' },
+    { M_LFRT, "CHAINGUN",           M_ID_LevelChaingun,  'c' },
+    { M_LFRT, "ROCKET LAUNCHER",    M_ID_LevelRLauncher, 'r' },
+    { M_LFRT, "PLASMA RIFLE",       M_ID_LevelPlasmagun, 'p' },
+    { M_LFRT, "BFG 9000",           M_ID_LevelBFG9000,   'b' },
+    { M_SKIP, "", 0, '\0' },  // WEAPONS
+    { M_SWTC, "", /* NEXT PAGE > */ M_Choose_ID_Level_2, 'n' },
+    { M_SWTC, "", /* START GAME  */ G_DoSelectiveGame,   's' }
 };
 
 
 static menu_t ID_Def_Level_1 =
 {
-    m_id_end + 3,
+    m_id_end + 2,
     &ID_Def_Main,
     ID_Menu_Level_1,
     M_Draw_ID_Level_1,
@@ -3947,30 +3954,30 @@ static void M_ID_LevelBFG9000 (int choice)
 
 static menuitem_t ID_Menu_Level_2[]=
 {
-    { M_LFRT, "BACKPACK",             M_ID_LevelBackpack,       'b'  },
-    { M_LFRT, "BULLETS",              M_ID_LevelBullets,        'b'  },
-    { M_LFRT, "SHELLS",               M_ID_LevelShells,         's'  },
-    { M_LFRT, "ROCKETS",              M_ID_LevelRockets,        'r'  },
-    { M_LFRT, "CELLS",                M_ID_LevelCells,          'c'  },
-    { M_SKIP, "", 0, '\0'},  // KEYS
-    { M_LFRT, "BLUE KEYCARD",         M_ID_LevelBlueKeycard,    'b'  },
-    { M_LFRT, "YELLOW KEYCARD",       M_ID_LevelYellowKeycard,  'y'  },
-    { M_LFRT, "RED KEYCARD",          M_ID_LevelRedKeycard,     'r'  },
-    { M_LFRT, "BLUE SKULL KEY",       M_ID_LevelBlueSkull,      'b'  },
-    { M_LFRT, "YELLOW SKULL KEY",     M_ID_LevelYellowSkull,    'y'  },
-    { M_LFRT, "RED SKULL KEY",        M_ID_LevelRedSkull,       'r'  },
-    { M_SKIP, "", 0, '\0'},  // EXTRA
-    { M_LFRT, "FAST MONSTERS",        M_ID_LevelFastMonsters,   'f'  },
-    { M_LFRT, "RESPAWNING MONSTERS",  M_ID_LevelRespMonsters,   'r'  },
-    { M_SKIP, "", 0, '\0'},  // WEAPONS
-    { M_SWTC, "", /* < PREV PAGE */   M_Choose_ID_Level_1,       'p'  },
-    { M_SWTC, "", /* START GAME  */   G_DoSelectiveGame,         's'  }
+    { M_LFRT, "BACKPACK",            M_ID_LevelBackpack,      'b' },
+    { M_LFRT, "BULLETS",             M_ID_LevelBullets,       'b' },
+    { M_LFRT, "SHELLS",              M_ID_LevelShells,        's' },
+    { M_LFRT, "ROCKETS",             M_ID_LevelRockets,       'r' },
+    { M_LFRT, "CELLS",               M_ID_LevelCells,         'c' },
+    { M_SKIP, "", 0, '\0' },  // KEYS
+    { M_LFRT, "BLUE KEYCARD",        M_ID_LevelBlueKeycard,   'b' },
+    { M_LFRT, "YELLOW KEYCARD",      M_ID_LevelYellowKeycard, 'y' },
+    { M_LFRT, "RED KEYCARD",         M_ID_LevelRedKeycard,    'r' },
+    { M_LFRT, "BLUE SKULL KEY",      M_ID_LevelBlueSkull,     'b' },
+    { M_LFRT, "YELLOW SKULL KEY",    M_ID_LevelYellowSkull,   'y' },
+    { M_LFRT, "RED SKULL KEY",       M_ID_LevelRedSkull,      'r' },
+    { M_SKIP, "", 0, '\0' },  // EXTRA
+    { M_LFRT, "FAST MONSTERS",       M_ID_LevelFastMonsters,  'f' },
+    { M_LFRT, "RESPAWNING MONSTERS", M_ID_LevelRespMonsters,  'r' },
+    { M_SKIP, "", 0, '\0' },  // WEAPONS
+    { M_SWTC, "", /* < PREV PAGE */  M_Choose_ID_Level_1,     'p' },
+    { M_SWTC, "", /* START GAME  */  G_DoSelectiveGame,       's' }
 };
 
 
 static menu_t ID_Def_Level_2 =
 {
-    m_id_end + 3,
+    m_id_end + 2,
     &ID_Def_Main,
     ID_Menu_Level_2,
     M_Draw_ID_Level_2,
