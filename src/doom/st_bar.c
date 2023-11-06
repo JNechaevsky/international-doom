@@ -176,6 +176,30 @@ static const inline int cht_CheckCheatSP (cheatseq_t *cht, char key)
 static boolean no_sttminus = false;
 
 // -----------------------------------------------------------------------------
+// WeaponAvailable
+// [crispy] only give available weapons
+// -----------------------------------------------------------------------------
+static boolean WeaponAvailable (int w)
+{
+    if (w < 0 || w >= NUMWEAPONS)
+    {
+        return false;
+    }
+
+    if (w == wp_supershotgun && !havessg)
+    {
+        return false;
+    }
+
+    if ((w == wp_bfg || w == wp_plasma) && gamemode == shareware)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
 // GiveBackpack
 // [crispy] give or take backpack
 // -----------------------------------------------------------------------------
@@ -320,7 +344,10 @@ boolean ST_Responder (event_t *ev)
 
                 for (i=0;i<NUMWEAPONS;i++)
                 {
-                    plyr->weaponowned[i] = true;
+                    if (WeaponAvailable(i)) // [crispy] only give available weapons
+                    {
+                        plyr->weaponowned[i] = true;
+                    }
                 }
                 for (i=0;i<NUMAMMO;i++)
                 {
@@ -341,7 +368,10 @@ boolean ST_Responder (event_t *ev)
 
                 for (i = 0 ; i < NUMWEAPONS ; i++)
                 {
-                    plyr->weaponowned[i] = true;
+                    if (WeaponAvailable(i)) // [crispy] only give available weapons
+                    {
+                        plyr->weaponowned[i] = true;
+                    }
                 }
                 for (i = 0 ; i < NUMAMMO ; i++)
                 {

@@ -24,6 +24,7 @@
 #include "d_event.h"
 #include "p_local.h"
 #include "doomstat.h"
+#include "d_main.h"
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -409,7 +410,7 @@ void P_PlayerThink (player_t* player)
 	    newweapon = wp_chainsaw;
 	}
 	
-	if ( (gamemode == commercial)
+	if ( (havessg)
 	    && newweapon == wp_shotgun 
 	    && player->weaponowned[wp_supershotgun]
 	    && player->readyweapon != wp_supershotgun)

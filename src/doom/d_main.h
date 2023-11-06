@@ -55,6 +55,8 @@ extern boolean sigil_compat;
 extern boolean sigil;
 extern boolean nerve;
 
+extern boolean havessg;
+
 extern gameaction_t gameaction;
 
 #endif

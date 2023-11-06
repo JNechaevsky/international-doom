@@ -25,6 +25,7 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "doomstat.h"
+#include "d_main.h"
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -172,7 +173,7 @@ boolean P_CheckAmmo (player_t* player)
 	}
 	else if (player->weaponowned[wp_supershotgun] 
 		 && player->ammo[am_shell]>2
-		 && (gamemode == commercial) )
+		 && (havessg) )
 	{
 	    player->pendingweapon = wp_supershotgun;
 	}
