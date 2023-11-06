@@ -586,6 +586,7 @@ extern void A_BFGSpray (mobj_t *mo);
 extern void A_Explode (mobj_t *thingy);
 extern void A_PlayerScream (mobj_t* mo);
 
+extern double  P_SlopeFOVCorrecton (void);
 extern fixed_t bulletslope;
 
 // -----------------------------------------------------------------------------

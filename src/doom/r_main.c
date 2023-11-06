@@ -103,7 +103,7 @@ int			extralight;
 
 // [JN] FOV from DOOM Retro and Nugget Doom
 static fixed_t fovscale;	
-static float   fovdiff;   // [Nugget] Used for some corrections
+float  fovdiff;   // [Nugget] Used for some corrections
 
 // [crispy] parameterized for smooth diminishing lighting
 int LIGHTLEVELS;

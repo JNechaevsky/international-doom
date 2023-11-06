@@ -1401,6 +1401,7 @@ P_SpawnPlayerMissile
 	if (singleplayer && !linetarget && mouse_look && compat_vertical_aiming)
 	{
 	    slope = (source->player->lookdir / MLOOKUNIT << FRACBITS) / 173;
+	    slope /= P_SlopeFOVCorrecton();
 	}
     }
 		
