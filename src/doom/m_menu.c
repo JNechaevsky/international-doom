@@ -511,6 +511,7 @@ static void M_ID_ShowENDOOM (int choice);
 static void M_Choose_ID_Display (int choice);
 static void M_Draw_ID_Display (void);
 static void M_ID_Gamma (int choice);
+static void M_ID_FOV (int choice);
 static void M_ID_MenuShading (int choice);
 static void M_ID_LevelBrightness (int choice);
 static void M_ID_MessagesAlignment (int choice);
@@ -1339,6 +1340,7 @@ static menuitem_t ID_Menu_Display[]=
     { M_LFRT, "GAMMA-CORRECTION",         M_ID_Gamma,              'g'},
     { M_SKIP, "", 0, '\0'},
     { M_SKIP, "", 0, '\0'},
+    { M_LFRT, "FIELD OF VIEW",            M_ID_FOV,                'f'},
     { M_LFRT, "MENU BACKGROUND SHADING",  M_ID_MenuShading,        'm'},
     { M_LFRT, "EXTRA LEVEL BRIGHTNESS",   M_ID_LevelBrightness,    'e'},
     { M_SKIP, "", 0, '\0'}, // COLOR SETTINGS
@@ -1355,11 +1357,11 @@ static menuitem_t ID_Menu_Display[]=
 
 static menu_t ID_Def_Display =
 {
-    m_id_end,
+    m_id_end + 1,
     &ID_Def_Main,
     ID_Menu_Display,
     M_Draw_ID_Display,
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET - 9,
     0,
     true
 };
@@ -1375,23 +1377,28 @@ static void M_Draw_ID_Display (void)
 
     M_ShadeBackground();
 
-    M_WriteTextCentered(18, "DISPLAY OPTIONS", cr[CR_YELLOW]);
+    M_WriteTextCentered(9, "DISPLAY OPTIONS", cr[CR_YELLOW]);
 
     // Gamma-correction slider and num
-    M_DrawThermo(46, 36, 15, vid_gamma);
-    M_WriteText (184, 39, gammalvls[vid_gamma][1],
+    M_DrawThermo(46, 27, 15, vid_gamma);
+    M_WriteText (184, 30, gammalvls[vid_gamma][1],
                           M_Item_Glow(0, GLOW_UNCOLORED));
+
+    // Field of View
+    sprintf(str, "%d", vid_fov);
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 45, str,
+                 M_Item_Glow(3, vid_fov == 90 ? GLOW_RED : GLOW_GREEN));
 
     // Background shading
     sprintf(str,"%d", dp_menu_shading);
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 52, str,
-                 M_Item_Glow(3, dp_menu_shading == 8 ? GLOW_YELLOW :
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 54, str,
+                 M_Item_Glow(4, dp_menu_shading == 8 ? GLOW_YELLOW :
                                 dp_menu_shading >  0 ? GLOW_GREEN  : GLOW_RED));
 
     // Extra level brightness
     sprintf(str,"%d", dp_level_brightness);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 63, str,
-                 M_Item_Glow(4, dp_level_brightness == 8 ? GLOW_YELLOW :
+                 M_Item_Glow(5, dp_level_brightness == 8 ? GLOW_YELLOW :
                                 dp_level_brightness >  0 ? GLOW_GREEN  : GLOW_RED));
 
     M_WriteTextCentered(72, "COLOR SETTINGS", cr[CR_YELLOW]);
@@ -1399,46 +1406,46 @@ static void M_Draw_ID_Display (void)
     // Saturation
     M_snprintf(str, 6, "%d%%", vid_saturation);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 81, str,
-                 M_Item_Glow(6, GLOW_LIGHTGRAY));
+                 M_Item_Glow(7, GLOW_LIGHTGRAY));
 
     // RED intensity
     M_snprintf(str, 6, "%3f", vid_r_intensity);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 90, str,
-                 M_Item_Glow(7, GLOW_RED));
+                 M_Item_Glow(8, GLOW_RED));
 
     // GREEN intensity
     M_snprintf(str, 6, "%3f", vid_g_intensity);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 99, str,
-                 M_Item_Glow(8, GLOW_GREEN));
+                 M_Item_Glow(9, GLOW_GREEN));
 
     // BLUE intensity
     M_snprintf(str, 6, "%3f", vid_b_intensity);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 108, str,
-                 M_Item_Glow(9, GLOW_BLUE));
+                 M_Item_Glow(10, GLOW_BLUE));
 
     M_WriteTextCentered(117, "MESSAGES SETTINGS", cr[CR_YELLOW]);
 
     // Messages enabled
     sprintf(str, showMessages ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str,
-                 M_Item_Glow(11, showMessages ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(12, showMessages ? GLOW_GREEN : GLOW_DARKRED));
 
     // Messages alignment
     sprintf(str, msg_alignment == 1 ? "STATUS BAR" :
                  msg_alignment == 2 ? "CENTERED" : "LEFT");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str,
-                 M_Item_Glow(12, GLOW_GREEN));
+                 M_Item_Glow(13, GLOW_GREEN));
 
     // Text casts shadows
     sprintf(str, msg_text_shadows ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 144, str, 
-                 M_Item_Glow(13, msg_text_shadows ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(14, msg_text_shadows ? GLOW_GREEN : GLOW_DARKRED));
 
     // Local time
     sprintf(str, msg_local_time == 1 ? "12-HOUR FORMAT" :
                  msg_local_time == 2 ? "24-HOUR FORMAT" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 153, str, 
-                 M_Item_Glow(14, msg_local_time ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(15, msg_local_time ? GLOW_GREEN : GLOW_DARKRED));
 }
 
 static void M_ID_MenuShading (int choice)
@@ -1497,6 +1504,30 @@ static void M_ID_Gamma (int choice)
     R_InitColormaps();
     R_FillBackScreen();
 #endif
+}
+
+static void M_ID_FOV (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (vid_fov > 45)
+            {
+                    vid_fov -= 1;
+            }
+            break;
+        case 1:
+            if (vid_fov < 135)
+            {
+                    vid_fov += 1;
+            }
+        default:
+            break;
+    }
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
 }
 
 static void M_ID_MessagesAlignment (int choice)
@@ -4160,6 +4191,7 @@ static void M_ID_ApplyResetHook (void)
     vid_showfps = 0;
     vid_smooth_scaling = 0;
     vid_gamma = 10;
+    vid_fov = 90;
 
     // Miscellaneous
     vid_screenwipe = 1;
@@ -4251,6 +4283,7 @@ static void M_ID_ApplyResetHook (void)
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    R_InitLightTables();
     R_SetViewSize(dp_screen_size, dp_detail_level);
     R_ExecuteSetViewSize();
     I_ToggleVsync();

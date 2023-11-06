@@ -38,6 +38,7 @@ int vid_fpslimit = 60;
 int vid_vsync = 1;
 int vid_showfps = 0;
 int vid_gamma = 10;
+int vid_fov = 90;
 int vid_saturation = 100;
 float vid_r_intensity = 1.000000;
 float vid_g_intensity = 1.000000;
@@ -149,6 +150,7 @@ void ID_BindVariables (void)
     M_BindIntVariable("vid_vsync",                      &vid_vsync);
     M_BindIntVariable("vid_showfps",                    &vid_showfps);
     M_BindIntVariable("vid_gamma",                      &vid_gamma);
+    M_BindIntVariable("vid_fov",                        &vid_fov);
     M_BindIntVariable("vid_saturation",                 &vid_saturation);
     M_BindFloatVariable("vid_r_intensity",              &vid_r_intensity);
     M_BindFloatVariable("vid_g_intensity",              &vid_g_intensity);
