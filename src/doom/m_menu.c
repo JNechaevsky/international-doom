@@ -504,6 +504,7 @@ static void M_ID_LimitFPS (int choice);
 static void M_ID_VSync (int choice);
 static void M_ID_ShowFPS (int choice);
 static void M_ID_PixelScaling (int choice);
+static void M_ID_FOV (int choice);
 static void M_ID_ScreenWipe (int choice);
 static void M_ID_DiskIcon (int choice);
 static void M_ID_ShowENDOOM (int choice);
@@ -1070,11 +1071,11 @@ static menuitem_t ID_Menu_Video[]=
     { M_LFRT, "ENABLE VSYNC",          M_ID_VSync,          'e'},
     { M_LFRT, "SHOW FPS COUNTER",      M_ID_ShowFPS,        's'},
     { M_LFRT, "PIXEL SCALING",         M_ID_PixelScaling,   'p'},
+    { M_LFRT, "FIELD OF VIEW",         M_ID_FOV,            'f'},
     { M_SKIP, "", 0, '\0'},
     { M_LFRT, "SCREEN WIPE EFFECT",    M_ID_ScreenWipe,     's'},
     { M_LFRT, "SHOW DISK ICON",        M_ID_DiskIcon,       's'},
     { M_LFRT, "SHOW ENDOOM SCREEN",    M_ID_ShowENDOOM,     's'},
-    { M_SKIP, "", 0, '\0'},
     { M_SKIP, "", 0, '\0'},
     { M_SKIP, "", 0, '\0'}
 };
@@ -1155,24 +1156,29 @@ static void M_Draw_ID_Video (void)
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 90, str, 
                  M_Item_Glow(7, vid_smooth_scaling ? GLOW_GREEN : GLOW_RED));
 
-    M_WriteTextCentered(99, "MISCELLANEOUS", cr[CR_YELLOW]);
+    // Field of View
+    sprintf(str, "%d", vid_fov);
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 99, str,
+                 M_Item_Glow(8, vid_fov == 90 ? GLOW_RED : GLOW_GREEN));
+
+    M_WriteTextCentered(108, "MISCELLANEOUS", cr[CR_YELLOW]);
 
     // Screen wipe effect
     sprintf(str, vid_screenwipe == 1 ? "ORIGINAL" :
                  vid_screenwipe == 2 ? "FAST" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 108, str,
-                 M_Item_Glow(9, vid_screenwipe ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 117, str,
+                 M_Item_Glow(10, vid_screenwipe ? GLOW_GREEN : GLOW_DARKRED));
 
     // Show disk icon
     sprintf(str, vid_diskicon == 1 ? "BOTTOM" :
                  vid_diskicon == 2 ? "TOP" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 117, str, 
-                 M_Item_Glow(10, vid_diskicon ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str, 
+                 M_Item_Glow(11, vid_diskicon ? GLOW_GREEN : GLOW_DARKRED));
 
     // Show ENDOOM screen
     sprintf(str, vid_endoom ? "ON" : "OFF");
-    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str, 
-                 M_Item_Glow(11, vid_endoom ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str, 
+                 M_Item_Glow(12, vid_endoom ? GLOW_GREEN : GLOW_DARKRED));
 }
 
 static void M_ID_TrueColorHook (void)
@@ -1308,6 +1314,30 @@ static void M_ID_PixelScaling (int choice)
 {
     vid_smooth_scaling ^= 1;
 
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
+}
+
+static void M_ID_FOV (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (vid_fov > 45)
+            {
+                    vid_fov -= 1;
+            }
+            break;
+        case 1:
+            if (vid_fov < 135)
+            {
+                    vid_fov += 1;
+            }
+        default:
+            break;
+    }
     // [crispy] re-calculate the zlight[][] array
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
@@ -4158,6 +4188,7 @@ static void M_ID_ApplyResetHook (void)
     vid_fpslimit = 60;
     vid_vsync = 1;
     vid_showfps = 0;
+    vid_fov = 90;
     vid_smooth_scaling = 0;
     vid_gamma = 10;
 
@@ -4251,6 +4282,7 @@ static void M_ID_ApplyResetHook (void)
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    R_InitLightTables();
     R_SetViewSize(dp_screen_size, dp_detail_level);
     R_ExecuteSetViewSize();
     I_ToggleVsync();

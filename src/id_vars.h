@@ -37,6 +37,7 @@ extern int vid_uncapped_fps;
 extern int vid_fpslimit;
 extern int vid_vsync;
 extern int vid_showfps;
+extern int vid_fov;
 extern int vid_gamma;
 extern int vid_saturation;
 extern float vid_r_intensity;
