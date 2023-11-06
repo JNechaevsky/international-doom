@@ -1072,10 +1072,10 @@ static menuitem_t ID_Menu_Video[]=
     { M_LFRT, "SHOW FPS COUNTER",      M_ID_ShowFPS,        's'},
     { M_LFRT, "PIXEL SCALING",         M_ID_PixelScaling,   'p'},
     { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
     { M_LFRT, "SCREEN WIPE EFFECT",    M_ID_ScreenWipe,     's'},
     { M_LFRT, "SHOW DISK ICON",        M_ID_DiskIcon,       's'},
     { M_LFRT, "SHOW ENDOOM SCREEN",    M_ID_ShowENDOOM,     's'},
+    { M_SKIP, "", 0, '\0'},
     { M_SKIP, "", 0, '\0'},
     { M_SKIP, "", 0, '\0'}
 };
@@ -1340,7 +1340,7 @@ static menuitem_t ID_Menu_Display[]=
     { M_LFRT, "GAMMA-CORRECTION",         M_ID_Gamma,              'g'},
     { M_SKIP, "", 0, '\0'},
     { M_SKIP, "", 0, '\0'},
-    { M_LFRT, "FIELD OF VIEW",            M_ID_FOV,            'f'},
+    { M_LFRT, "FIELD OF VIEW",            M_ID_FOV,                'f'},
     { M_LFRT, "MENU BACKGROUND SHADING",  M_ID_MenuShading,        'm'},
     { M_LFRT, "EXTRA LEVEL BRIGHTNESS",   M_ID_LevelBrightness,    'e'},
     { M_SKIP, "", 0, '\0'}, // COLOR SETTINGS
