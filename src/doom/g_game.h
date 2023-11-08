@@ -70,9 +70,6 @@ extern void G_WriteDemoTiccmd (ticcmd_t *cmd);
 // [crispy] holding down the "Run" key may trigger special behavior
 extern boolean speedkeydown (void);
 
-// [JN] Fast forward to IDCLEVed map while demo playback.
-extern boolean demo_gotoidclev;
-
 // [JN] Fast forward to next level while demo playback.
 extern boolean netdemo; 
 extern boolean demo_gotonextlvl;

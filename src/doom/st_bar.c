@@ -645,15 +645,11 @@ boolean ST_Responder (event_t *ev)
             if (demoplayback)
             {
                 demowarp = map;
+                nodrawers = true;
+                singletics = true;
 
-                if (map > gamemap)
+                if (map <= gamemap)
                 {
-                    nodrawers = true;
-                    singletics = true;
-                }
-                else
-                {
-                    demo_gotoidclev = true;
                     G_DoPlayDemo();
                 }
 
