@@ -1788,24 +1788,16 @@ static void M_ID_SFXSystem (int choice)
     switch (choice)
     {
         case 0:
-            if (snd_sfxdevice == 0)
-                snd_sfxdevice = 3;
-            else
-            if (snd_sfxdevice == 3)
-                snd_sfxdevice = 1;
-            else
-            if (snd_sfxdevice == 1)
-                snd_sfxdevice = 0;
+            snd_sfxdevice =
+                snd_sfxdevice == 0 ? 1 :
+                snd_sfxdevice == 1 ? 3 :
+                                     0 ;
             break;
         case 1:
-            if (snd_sfxdevice == 0)
-                snd_sfxdevice = 1;
-            else
-            if (snd_sfxdevice == 1)
-                snd_sfxdevice = 3;
-            else
-            if (snd_sfxdevice == 3)
-                snd_sfxdevice = 0;
+            snd_sfxdevice =
+                snd_sfxdevice == 0 ? 3 :
+                snd_sfxdevice == 3 ? 1 :
+                                     0 ;
         default:
             break;
     }
