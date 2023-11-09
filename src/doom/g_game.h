@@ -58,7 +58,7 @@ extern void G_LoadGame (char *name);
 extern void G_PlayDemo (char *name);
 extern void G_PlayerReborn (int player);
 extern void G_ReadDemoTiccmd (ticcmd_t *cmd); 
-extern void G_RecordDemo (char *name);
+extern void G_RecordDemo (const char *name);
 extern void G_SaveGame (int slot, char *description);
 extern void G_ScreenShot (void);
 extern void G_SecretExitLevel (void);

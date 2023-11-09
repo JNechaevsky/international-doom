@@ -2167,14 +2167,5 @@ void D_DoomMain (void)
 		}
     }
 
-    // [JN] Print ingame message with recording demo name right after start.
-    if (autostart && demorecording)
-    {
-        char str[64];
-
-        sprintf(str, "DEMO RECORDING: %s", demoname);
-        CT_SetMessage(&players[consoleplayer], str, false, NULL);
-    }
-
     D_DoomLoop ();  // never returns
 }
