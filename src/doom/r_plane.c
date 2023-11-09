@@ -455,7 +455,7 @@ void R_DrawPlanes (void)
         }
         else  // regular flat
         {
-            int light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
+            int light = (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);
             const boolean swirling = (flattranslation[pl->picnum] == -1);
             const int stop = pl->maxx + 1;
             const int lumpnum = firstflat + (swirling ? pl->picnum : flattranslation[pl->picnum]);
