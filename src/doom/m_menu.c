@@ -1179,12 +1179,14 @@ static void M_Draw_ID_Video (void)
                  M_Item_Glow(11, vid_endoom ? GLOW_GREEN : GLOW_DARKRED));
 }
 
+#ifdef CRISPY_TRUECOLOR
 static void M_ID_TrueColorHook (void)
 {
     I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
 }
+#endif
 
 static void M_ID_TrueColor (int choice)
 {
