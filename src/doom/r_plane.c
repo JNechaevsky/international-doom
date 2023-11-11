@@ -480,8 +480,11 @@ void R_DrawPlanes (void)
             {
                 R_MakeSpans(x,pl->top[x-1], pl->bottom[x-1], pl->top[x], pl->bottom[x]);
             }
-            
-            W_ReleaseLumpNum(lumpnum);
+
+            if (!swirling)
+            {
+                W_ReleaseLumpNum(lumpnum);
+            }
         }
     }
 }
