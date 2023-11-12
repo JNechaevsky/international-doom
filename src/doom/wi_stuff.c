@@ -1500,10 +1500,13 @@ void WI_drawStats(void)
     V_DrawShadowedPatch(SP_TIMEX, SP_TIMEY, timepatch);
     WI_drawTime(ORIGWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
 
-    if (wbs->epsd < 5)
+	// [JN] Extra conditions for PAR time drawing:
+    if (wbs->epsd  < 3                   // Episodes 1, 2, 3, also Doom 2.
+    || (wbs->epsd == 3 && singleplayer)  // Episode 4
+    ||  wbs->epsd == 4)                  // Sigil
     {
-	V_DrawShadowedPatch(ORIGWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
-	WI_drawTime(ORIGWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
+        V_DrawShadowedPatch(ORIGWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
+        WI_drawTime(ORIGWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
     }
 
     // [crispy] draw total time after level time and par time
