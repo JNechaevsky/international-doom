@@ -1814,7 +1814,7 @@ static void M_ID_SFXSystem (int choice)
     I_ShutdownSound();
 
     // Start sound/music system
-    I_InitSound(true);
+    I_InitSound(doom);
 
     // Re-generate SFX cache
     I_PrecacheSounds(S_sfx, NUMSFX);
@@ -1906,7 +1906,7 @@ static void M_ID_MusicSystem (int choice)
     S_Shutdown();
     
     // Start music system
-    I_InitSound(true);
+    I_InitSound(doom);
 
     // Reinitialize music volume
     S_SetMusicVolume(musicVolume * 8);
@@ -4306,7 +4306,7 @@ static void M_ID_ApplyResetHook (void)
     S_StopMusic();
     S_ChangeSFXSystem();
     I_ShutdownSound();
-    I_InitSound(true);
+    I_InitSound(doom);
     I_PrecacheSounds(S_sfx, NUMSFX);
     S_SetSfxVolume(sfxVolume * 8);
     S_SetMusicVolume(musicVolume * 8);
