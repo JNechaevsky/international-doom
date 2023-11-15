@@ -2154,6 +2154,13 @@ static void AM_drawPlayers (void)
         pt.x = viewx >> FRACTOMAPBITS;
         pt.y = viewy >> FRACTOMAPBITS;
 
+        // [JN] Prevent arrow jitter in non-hires mode.
+        if (!vid_hires)
+        {
+            pt.x = FTOM(MTOF(pt.x));
+            pt.y = FTOM(MTOF(pt.y));
+        }
+
         if (automap_rotate)
         {
             AM_rotatePoint(&pt);
@@ -2203,6 +2210,14 @@ static void AM_drawPlayers (void)
             pt.x = p->mo->x >> FRACTOMAPBITS;
             pt.y = p->mo->y >> FRACTOMAPBITS;
         }
+
+        // [JN] Prevent arrow jitter in non-hires mode.
+        if (!vid_hires)
+        {
+            pt.x = FTOM(MTOF(pt.x));
+            pt.y = FTOM(MTOF(pt.y));
+        }
+
 
         if (automap_rotate)
         {
