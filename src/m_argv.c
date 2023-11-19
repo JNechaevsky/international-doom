@@ -48,7 +48,10 @@ int M_CheckParmWithArgs(const char *check, int num_args)
 {
     int i;
 
-    for (i = 1; i < myargc - num_args; i++)
+    // Check if myargv[i] has been set to NULL in LoadResponseFile(),
+    // which may call I_Error(), which in turn calls M_ParmExists("-nogui").
+
+    for (i = 1; i < myargc - num_args && myargv[i]; i++)
     {
 	if (!strcasecmp(check, myargv[i]))
 	    return i;
@@ -130,6 +133,11 @@ static void LoadResponseFile(int argv_index, const char *filename)
 
     // Copy all the arguments in the list up to the response file
 
+    if (argv_index >= MAXARGVS)
+    {
+        I_Error("Too many arguments up to the response file!");
+    }
+
     for (i=0; i<argv_index; ++i)
     {
         newargv[i] = myargv[i];
@@ -183,6 +191,12 @@ static void LoadResponseFile(int argv_index, const char *filename)
 
             infile[k] = '\0';
             ++k;
+
+            if (newargc >= MAXARGVS)
+            {
+                I_Error("Too many arguments in the response file!");
+            }
+
             newargv[newargc++] = M_StringDuplicate(argstart);
         }
         else
@@ -200,13 +214,23 @@ static void LoadResponseFile(int argv_index, const char *filename)
             // Cut off the end of the argument at the first space
 
             infile[k] = '\0';
-
             ++k;
+
+            if (newargc >= MAXARGVS)
+            {
+                I_Error("Too many arguments in the response file!");
+            }
+
             newargv[newargc++] = M_StringDuplicate(argstart);
         }
     }
 
     // Add arguments following the response file argument
+
+    if (newargc + myargc - (argv_index + 1) >= MAXARGVS)
+    {
+        I_Error("Too many arguments following the response file!");
+    }
 
     for (i=argv_index + 1; i<myargc; ++i)
     {
