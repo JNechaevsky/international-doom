@@ -2002,8 +2002,8 @@ static void M_Draw_ID_Controls (void)
 
     M_DrawThermo(46, 63, 10, mouseSensitivity);
     sprintf(str,"%d", mouseSensitivity);
-    M_WriteText (144, 66, str, M_Item_Glow(3, mouseSensitivity > 9 ? GLOW_GREEN :
-                                              mouseSensitivity < 1 ? GLOW_DARKRED : GLOW_UNCOLORED));
+    M_WriteText (144, 66, str, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
+                                              mouseSensitivity > 9 ? GLOW_GREEN : GLOW_UNCOLORED));
 
     M_DrawThermo(46, 90, 12, (mouse_acceleration * 3) - 3);
     sprintf(str,"%.1f", mouse_acceleration);
@@ -2011,22 +2011,22 @@ static void M_Draw_ID_Controls (void)
 
     M_DrawThermo(46, 117, 15, mouse_threshold / 2);
     sprintf(str,"%d", mouse_threshold);
-    M_WriteText (184, 120, str, M_Item_Glow(9, mouse_threshold == 0 ? GLOW_DARKRED : GLOW_UNCOLORED));
+    M_WriteText (184, 120, str, M_Item_Glow(9, GLOW_UNCOLORED));
 
     // Vertical mouse movement
     sprintf(str, mouse_novert ? "OFF" : "ON");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str,
-                 M_Item_Glow(12, mouse_novert ? GLOW_DARKRED : GLOW_GREEN));
+                 M_Item_Glow(12, mouse_novert ? GLOW_RED : GLOW_GREEN));
 
     // Invert vertical axis
     sprintf(str, mouse_y_invert ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 144, str,
-                 M_Item_Glow(13, mouse_y_invert ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(13, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
 
     // Double click acts as "use"
     sprintf(str, mouse_dclick_use ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 153, str,
-                 M_Item_Glow(14, mouse_dclick_use ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(14, mouse_dclick_use ? GLOW_GREEN : GLOW_RED));
 }
 
 static void M_ID_Controls_Sensivity (int choice)
