@@ -3036,7 +3036,8 @@ static void M_Draw_ID_Widgets (void)
     sprintf(str,"%d", automap_shading);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 153, str,
                  M_Item_Glow(14, !automap_overlay ? GLOW_DARKRED :
-                                  automap_shading ? GLOW_GREEN : GLOW_RED));
+                                  automap_shading ==  0 ? GLOW_RED :
+                                  automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
 }
 
 static void M_ID_Widget_Location (int choice)
