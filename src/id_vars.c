@@ -29,7 +29,6 @@ int vid_truecolor = 0;
 #endif
 int vid_hires = 1;
 int vid_widescreen = 0;
-int vid_diskicon = 1;
 
 int vid_startup_delay = 35;
 int vid_resize_delay = 35;
@@ -141,7 +140,6 @@ void ID_BindVariables (void)
 #endif
     M_BindIntVariable("vid_hires",                      &vid_hires);
     M_BindIntVariable("vid_widescreen",                 &vid_widescreen);
-    M_BindIntVariable("vid_diskicon",                   &vid_diskicon);
     
     M_BindIntVariable("vid_startup_delay",              &vid_startup_delay);
     M_BindIntVariable("vid_resize_delay",               &vid_resize_delay);

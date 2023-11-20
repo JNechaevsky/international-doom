@@ -56,6 +56,31 @@ int key_nextlevel   = 0; // [crispy]
 int key_demospeed   = 0; // [crispy]
 int key_flip_levels = 0; // [crispy]
 
+// Heretic keyboard controls
+ 
+int key_flyup = KEY_PGUP;
+int key_flydown = KEY_INS;
+int key_flycenter = KEY_HOME;
+
+int key_lookup = KEY_PGDN;
+int key_lookdown = KEY_DEL;
+int key_lookcenter = KEY_END;
+
+int key_invleft = '[';
+int key_invright = ']';
+int key_useartifact = KEY_ENTER;
+
+int key_arti_quartz = 0;
+int key_arti_urn = 0;
+int key_arti_bomb = 0;
+int key_arti_tome = 127;
+int key_arti_ring = 0;
+int key_arti_chaosdevice = 0;
+int key_arti_shadowsphere = 0;
+int key_arti_wings = 0;
+int key_arti_torch = 0;
+int key_arti_morph = 0;
+
 // Special modes
 
 int key_spectator = 0;

@@ -52,6 +52,18 @@ extern int key_reloadlevel; // [crispy]
 extern int key_demospeed;   // [crispy]
 extern int key_flip_levels; // [crispy]
 
+// Heretic
+
+extern int key_flyup;
+extern int key_flydown;
+extern int key_flycenter;
+extern int key_lookup;
+extern int key_lookdown;
+extern int key_lookcenter;
+extern int key_invleft;
+extern int key_invright;
+extern int key_useartifact;
+
 // RestlessRodent -- CRL (Special modes)
 
 extern int key_spectator;
@@ -71,6 +83,28 @@ extern int key_weapon7;
 extern int key_weapon8;
 extern int key_prevweapon;
 extern int key_nextweapon;
+
+// Inventory
+
+extern int key_arti_quartz;
+extern int key_arti_urn;
+extern int key_arti_bomb;
+extern int key_arti_tome;
+extern int key_arti_ring;
+extern int key_arti_chaosdevice;
+extern int key_arti_shadowsphere;
+extern int key_arti_wings;
+extern int key_arti_torch;
+extern int key_arti_morph;
+
+extern int key_arti_all;
+extern int key_arti_health;
+extern int key_arti_poisonbag;
+extern int key_arti_blastradius;
+extern int key_arti_teleport;
+extern int key_arti_teleportother;
+extern int key_arti_egg;
+extern int key_arti_invulnerability;
 
 // Automap
 

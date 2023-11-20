@@ -14,6 +14,11 @@ set(PACKAGE_FULLNAME "International Doom ${PACKAGE_VERSION}")
 set(PACKAGE_TARNAME "inter-doom")
 set(PACKAGE_STRING "${PROJECT_NAME} ${PACKAGE_VERSION}")
 
+set(PACKAGE_VERSION_HERETIC "7.0")
+set(PACKAGE_FULLNAME_HERETIC "International Heretic ${PACKAGE_VERSION_HERETIC}")
+set(PACKAGE_TARNAME_HERETIC "inter-heretic")
+set(PACKAGE_STRING_HERETIC "${PROJECT_NAME} ${PACKAGE_VERSION_HERETIC}")
+
 set(PACKAGE_BUGREPORT "julia.nechaevskaya@live.com")
 
 string(REGEX REPLACE " Doom$" "" PACKAGE_SHORTNAME "${PACKAGE_NAME}")
@@ -116,6 +121,7 @@ set(PROGRAM_PREFIX "${PROGRAM_SPREFIX}-")
 configure_file(cmake/config.h.cin config.h)
 
 configure_file(src/doom-res.rc.in src/doom-res.rc)
+configure_file(src/heretic-res.rc.in src/heretic-res.rc)
 configure_file(src/setup-res.rc.in src/setup-res.rc)
 configure_file(src/setup/setup-manifest.xml.in src/setup/setup-manifest.xml)
 

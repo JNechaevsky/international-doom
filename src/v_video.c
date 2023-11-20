@@ -49,6 +49,10 @@
 // is common code. Fix this.
 #define RANGECHECK
 
+// Blending table used for fuzzpatch, etc.
+// Only used in Heretic/Hexen
+byte *tinttable = NULL;
+
 // [JN] Blending tables for different translucency effects:
 byte *tintmap = NULL;    // Used for sprites (80%)
 byte *shadowmap = NULL;  // Used for shadowed texts (50%)
@@ -174,10 +178,29 @@ static const inline pixel_t drawshadow (const pixel_t dest, const pixel_t source
 {return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
 #endif
 
+// [crispy] TINTTAB rendering functions:
+// (1) normal, translucent patch
+static const inline pixel_t drawtinttab0 (const pixel_t dest, const pixel_t source)
+#ifndef CRISPY_TRUECOLOR
+{return tinttable[(dest<<8)+source];}
+#else
+{return I_BlendOverTinttab(dest, colormaps[source]);}
+#endif
+// (2) translucent shadow only
+static const inline pixel_t drawtinttab1 (const pixel_t dest, const pixel_t source)
+#ifndef CRISPY_TRUECOLOR
+{return tinttable[(dest<<8)];}
+#else
+{return I_BlendDark(dest, 0xB4);}
+#endif
+
+
 // [crispy] array of function pointers holding the different rendering functions
 typedef const pixel_t drawpatchpx_t (const pixel_t dest, const pixel_t source);
 static drawpatchpx_t *const drawpatchpx_a[2][2] = {{drawpatchpx11, drawpatchpx10}, {drawpatchpx01, drawpatchpx00}};
 static drawpatchpx_t *const drawshadow_a = drawshadow;
+// [crispy] array of function pointers holding the different TINTTAB rendering functions
+static drawpatchpx_t *const drawtinttab_a[2] = {drawtinttab0, drawtinttab1};
 static fixed_t dx, dxi, dy, dyi;
 
 void V_DrawPatch(int x, int y, patch_t *patch)
@@ -378,6 +401,107 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     }
 }
 
+void V_DrawShadowedPatchRaven(int x, int y, patch_t *patch)
+{
+    int count, col;
+    column_t *column;
+    pixel_t *desttop, *dest;
+    byte *source;
+    pixel_t *desttop2, *dest2;
+    int w;
+
+    // [crispy] four different rendering functions
+    drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
+    // [crispy] shadow, no coloring or color-translation are used
+    drawpatchpx_t *const drawpatchpx2 = drawtinttab_a[!dp_translation];
+
+    y -= SHORT(patch->topoffset);
+    x -= SHORT(patch->leftoffset);
+    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+
+    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+
+    col = 0;
+    if (x < 0)
+    {
+	col += dxi * ((-x * dx) >> FRACBITS);
+	x = 0;
+    }
+
+    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+    desttop2 = dest_screen + (((y + 2) * dy) >> FRACBITS) * SCREENWIDTH + (((x + 2) * dx) >> FRACBITS);
+
+    w = SHORT(patch->width);
+
+    // convert x to screen position
+    x = (x * dx) >> FRACBITS;
+
+    for ( ; col<w << FRACBITS ; x++, col+=dxi, desttop++, desttop2++)
+    {
+        int topdelta = -1;
+
+        // [crispy] too far right / width
+        if (x >= SCREENWIDTH)
+        {
+            break;
+        }
+
+        column = (column_t *)((byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
+
+        // step through the posts in a column
+        while (column->topdelta != 0xff)
+        {
+            int top, srccol = 0;
+            // [crispy] support for DeePsea tall patches
+            if (column->topdelta <= topdelta)
+            {
+                topdelta += column->topdelta;
+            }
+            else
+            {
+                topdelta = column->topdelta;
+            }
+            top = ((y + topdelta) * dy) >> FRACBITS;
+            source = (byte *)column + 3;
+            dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
+            dest2 = desttop2 + ((column->topdelta * dy) >> FRACBITS) * SCREENWIDTH;
+            count = (column->length * dy) >> FRACBITS;
+
+            // [crispy] too low / height
+            if (top + count > (SCREENHEIGHT-2))
+            {
+                count = (SCREENHEIGHT-2) - top;
+            }
+
+            // [crispy] nothing left to draw?
+            if (count < 1)
+            {
+                break;
+            }
+
+            while (count--)
+            {
+                // [JN] TODO 
+                //if (msg_text_shadows)
+                {
+                    *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
+                    dest2 += SCREENWIDTH;
+                }
+
+                // [crispy] too high
+                if (top++ >= 0)
+                {
+                    *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
+                }
+                srccol += dyi;
+                dest += SCREENWIDTH;
+            }
+            column = (column_t *)((byte *)column + column->length + 4);
+        }
+    }
+}
+
+
 void V_DrawPatchFullScreen(patch_t *patch, boolean flipped)
 {
     int x = ((SCREENWIDTH >> vid_hires) - SHORT(patch->width)) / 2 - WIDESCREENDELTA;
@@ -504,6 +628,60 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     }
 }
 
+//
+// V_DrawTLPatch
+//
+// Masks a column based translucent masked pic to the screen.
+//
+
+void V_DrawTLPatch(int x, int y, patch_t * patch)
+{
+    int count, col;
+    column_t *column;
+    pixel_t *desttop, *dest;
+    byte *source;
+    int w;
+
+    y -= SHORT(patch->topoffset);
+    x -= SHORT(patch->leftoffset);
+    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+
+    if (x < 0
+     || x + SHORT(patch->width) > (SCREENWIDTH >> vid_hires)
+     || y < 0
+     || y + SHORT(patch->height) > (SCREENHEIGHT >> vid_hires))
+    {
+        I_Error("Bad V_DrawTLPatch");
+    }
+
+    col = 0;
+    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+
+    w = SHORT(patch->width);
+    for (; col < w << FRACBITS; x++, col+=dxi, desttop++)
+    {
+        column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
+
+        // step through the posts in a column
+
+        while (column->topdelta != 0xff)
+        {
+            int srccol = 0;
+            source = (byte *) column + 3;
+            dest = desttop + ((column->topdelta * dy) >> FRACBITS) * SCREENWIDTH;
+            count = (column->length * dy) >> FRACBITS;
+
+            while (count--)
+            {
+                *dest = tinttable[*dest + ((source[srccol >> FRACBITS]) << 8)];
+                srccol += dyi;
+                dest += SCREENWIDTH;
+            }
+            column = (column_t *) ((byte *) column + column->length + 4);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // [JN] V_FillFlat
 // Fill background with given flat, independent from rendering resolution.
@@ -619,6 +797,102 @@ void V_DrawBox(int x, int y, int w, int h, int c)
     V_DrawHorizLine(x, y+h-1, w, c);
     V_DrawVertLine(x, y, h, c);
     V_DrawVertLine(x+w-1, y, h, c);
+}
+
+//
+// Draw a "raw" screen (lump containing raw data to blit directly
+// to the screen)
+//
+
+void V_CopyScaledBuffer(pixel_t *dest, byte *src, size_t size)
+{
+    int i, j, index;
+
+#ifdef RANGECHECK
+    if (size > ORIGWIDTH * ORIGHEIGHT)
+    {
+        I_Error("Bad V_CopyScaledBuffer");
+    }
+#endif
+
+    // [crispy] Fill pillarboxes in widescreen mode. Needs to be two separate
+    // pillars to allow for Heretic finale vertical scrolling.
+    if (SCREENWIDTH != NONWIDEWIDTH)
+    {
+        V_DrawFilledBox(0, 0, WIDESCREENDELTA << vid_hires, SCREENHEIGHT, 0);
+        V_DrawFilledBox(SCREENWIDTH - (WIDESCREENDELTA << vid_hires), 0,
+                        WIDESCREENDELTA << vid_hires, SCREENHEIGHT, 0);
+    }
+
+    index = ((size / ORIGWIDTH) << vid_hires) * SCREENWIDTH - 1;
+
+    if (size % ORIGWIDTH)
+    {
+        // [crispy] Handles starting in the middle of a row.
+        index += ((size % ORIGWIDTH) + WIDESCREENDELTA) << vid_hires;
+    }
+    else
+    {
+        index -= WIDESCREENDELTA << vid_hires;
+    }
+
+    while (size--)
+    {
+        for (i = 0; i <= vid_hires; i++)
+        {
+            for (j = 0; j <= vid_hires; j++)
+            {
+#ifndef CRISPY_TRUECOLOR
+                *(dest + index - (j * SCREENWIDTH) - i) = *(src + size);
+#else
+                *(dest + index - (j * SCREENWIDTH) - i) = colormaps[src[size]];
+#endif
+            }
+        }
+        if (size % ORIGWIDTH == 0)
+        {
+            index -= 2 * (WIDESCREENDELTA << vid_hires)
+                     + vid_hires * SCREENWIDTH;
+        }
+        index -= 1 + vid_hires;
+    }
+}
+ 
+void V_DrawRawScreen(byte *raw)
+{
+    V_CopyScaledBuffer(dest_screen, raw, ORIGWIDTH * ORIGHEIGHT);
+}
+
+//
+// Load tint table from TINTTAB lump.
+//
+
+void V_LoadTintTable(void)
+{
+    tinttable = W_CacheLumpName("TINTTAB", PU_STATIC);
+}
+
+// [crispy] For Heretic and Hexen widescreen support of replacement TITLE,
+// HELP1, etc. These lumps are normally 320 x 200 raw graphics. If the lump
+// size is larger than expected, proceed as if it were a patch.
+void V_DrawFullscreenRawOrPatch(lumpindex_t index)
+{
+    patch_t *patch;
+
+    patch = W_CacheLumpNum(index, PU_CACHE);
+
+    if (W_LumpLength(index) == ORIGWIDTH * ORIGHEIGHT)
+    {
+        V_DrawRawScreen((byte*)patch);
+    }
+    else if ((SHORT(patch->height) == 200) && (SHORT(patch->width) >= 320))
+    {
+        V_DrawPatchFullScreen(patch, false);
+    }
+    else
+    {
+        I_Error("Invalid fullscreen graphic.");
+    }
 }
 
 //

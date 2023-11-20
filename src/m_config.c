@@ -262,6 +262,24 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_demospeed),
     CONFIG_VARIABLE_KEY(key_flip_levels),
 
+    // Heretic keys
+    CONFIG_VARIABLE_KEY(key_useHealth),
+    CONFIG_VARIABLE_KEY(key_flyup),
+    CONFIG_VARIABLE_KEY(key_flydown),
+    CONFIG_VARIABLE_KEY(key_flycenter),
+    CONFIG_VARIABLE_KEY(key_lookup),
+    CONFIG_VARIABLE_KEY(key_lookdown),
+    CONFIG_VARIABLE_KEY(key_lookcenter),
+    CONFIG_VARIABLE_KEY(key_invquery),
+    CONFIG_VARIABLE_KEY(key_mission),
+    CONFIG_VARIABLE_KEY(key_invPop),
+    CONFIG_VARIABLE_KEY(key_invKey),
+    CONFIG_VARIABLE_KEY(key_invHome),
+    CONFIG_VARIABLE_KEY(key_invEnd),
+    CONFIG_VARIABLE_KEY(key_invleft),
+    CONFIG_VARIABLE_KEY(key_invright),
+    CONFIG_VARIABLE_KEY(key_useartifact),
+
     // RestlessRodent -- CRL (Special modes)
     CONFIG_VARIABLE_KEY(key_spectator),
     CONFIG_VARIABLE_KEY(key_freeze),
