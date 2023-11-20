@@ -123,6 +123,7 @@ boolean havessg = false;
 // [JN] Defaulted values
 // -----------------------------------------------------------------------------
 
+int vid_diskicon = 1;
 int vid_endoom = 0;       // [JN] Disabled by default
 int dp_detail_level = 0;  // Blocky mode, has default, 0 = high, 1 = normal
 int showMessages = 1;     // Show messages has default, 0 = off, 1 = on
