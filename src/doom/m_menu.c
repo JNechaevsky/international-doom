@@ -1114,7 +1114,7 @@ static void M_Draw_ID_Video (void)
 #else
     sprintf(str, vid_truecolor ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 27, str, 
-                 M_Item_Glow(0, vid_truecolor ? GLOW_GREEN : GLOW_RED));
+                 M_Item_Glow(0, vid_truecolor ? GLOW_GREEN : GLOW_DARKRED));
 #endif
 
     // Rendering resolution
@@ -1122,7 +1122,7 @@ static void M_Draw_ID_Video (void)
                  vid_hires == 2 ? "QUAD" : "ORIGINAL");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 36, str, 
                  M_Item_Glow(1, vid_hires == 1 ? GLOW_GREEN :
-                                vid_hires == 2 ? GLOW_YELLOW : GLOW_RED));
+                                vid_hires == 2 ? GLOW_YELLOW : GLOW_DARKRED));
 
     // Widescreen rendering
     sprintf(str, vid_widescreen == 1 ? "MATCH SCREEN" :
@@ -1142,7 +1142,8 @@ static void M_Draw_ID_Video (void)
                  vid_fpslimit ? "%d" : "NONE", vid_fpslimit);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 63, str, 
                  !vid_uncapped_fps ? cr[CR_DARKRED] :
-                 M_Item_Glow(4, vid_fpslimit ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(4, vid_fpslimit == 0 ? GLOW_RED :
+                                vid_fpslimit >= 500 ? GLOW_YELLOW : GLOW_GREEN));
 
     // Enable vsync
     sprintf(str, vid_vsync ? "ON" : "OFF");
@@ -1157,7 +1158,7 @@ static void M_Draw_ID_Video (void)
     // Pixel scaling
     sprintf(str, vid_smooth_scaling ? "SMOOTH" : "SHARP");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 90, str, 
-                 M_Item_Glow(7, vid_smooth_scaling ? GLOW_GREEN : GLOW_RED));
+                 M_Item_Glow(7, vid_smooth_scaling ? GLOW_GREEN : GLOW_DARKRED));
 
     M_WriteTextCentered(99, "MISCELLANEOUS", cr[CR_YELLOW]);
 
@@ -1165,18 +1166,18 @@ static void M_Draw_ID_Video (void)
     sprintf(str, vid_screenwipe == 1 ? "ORIGINAL" :
                  vid_screenwipe == 2 ? "FAST" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 108, str,
-                 M_Item_Glow(9, vid_screenwipe ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(9, vid_screenwipe == 1 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Show disk icon
     sprintf(str, vid_diskicon == 1 ? "BOTTOM" :
                  vid_diskicon == 2 ? "TOP" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 117, str, 
-                 M_Item_Glow(10, vid_diskicon ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(10, vid_diskicon == 1 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Show ENDOOM screen
     sprintf(str, vid_endoom ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str, 
-                 M_Item_Glow(11, vid_endoom ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(11, vid_endoom ? GLOW_DARKRED : GLOW_GREEN));
 }
 
 #ifdef CRISPY_TRUECOLOR
@@ -1393,7 +1394,7 @@ static void M_Draw_ID_Display (void)
     sprintf(str, "%d", vid_fov);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 45, str,
                  M_Item_Glow(3, vid_fov == 135 || vid_fov == 45 ? GLOW_YELLOW :
-                                vid_fov == 90 ? GLOW_RED : GLOW_GREEN));
+                                vid_fov == 90 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Background shading
     sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
@@ -1434,13 +1435,13 @@ static void M_Draw_ID_Display (void)
     // Messages enabled
     sprintf(str, showMessages ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str,
-                 M_Item_Glow(12, showMessages ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(12, showMessages ? GLOW_DARKRED : GLOW_GREEN));
 
     // Messages alignment
     sprintf(str, msg_alignment == 1 ? "STATUS BAR" :
                  msg_alignment == 2 ? "CENTERED" : "LEFT");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str,
-                 M_Item_Glow(13, GLOW_GREEN));
+                 M_Item_Glow(13, msg_alignment ? GLOW_GREEN : GLOW_DARKRED));
 
     // Text casts shadows
     sprintf(str, msg_text_shadows ? "ON" : "OFF");
@@ -1735,7 +1736,7 @@ static void M_Draw_ID_Sound (void)
                  snd_sfxdevice == 3 ? "DIGITAL SFX" :
                                       "UNKNOWN");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 90, str,
-                 M_Item_Glow(7, snd_sfxdevice ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(7, snd_sfxdevice ? GLOW_GREEN : GLOW_RED));
 
     // Music playback
     sprintf(str, snd_musicdevice == 0 ? "DISABLED" :
@@ -1746,28 +1747,28 @@ static void M_Draw_ID_Sound (void)
                  snd_musicdevice == 11 ? "FLUIDSYNTH" :
                                         "UNKNOWN");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 99, str,
-                 M_Item_Glow(8, snd_musicdevice ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(8, snd_musicdevice ? GLOW_GREEN : GLOW_RED));
 
     // Sound effects mode
     sprintf(str, snd_monosfx ? "MONO" : "STEREO");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 108, str,
-                 M_Item_Glow(9, snd_monosfx ? GLOW_DARKRED : GLOW_GREEN));
+                 M_Item_Glow(9, snd_monosfx ? GLOW_RED : GLOW_GREEN));
 
     // Pitch-shifted sounds
     sprintf(str, snd_pitchshift ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 117, str,
-                 M_Item_Glow(10, snd_pitchshift ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(10, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
 
     // Number of SFX to mix
     sprintf(str, "%i", snd_channels);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str,
-                 M_Item_Glow(11, snd_channels == 8 ? GLOW_GREEN :
-                                 snd_channels == 1 ? GLOW_DARKRED : GLOW_YELLOW));
+                 M_Item_Glow(11, snd_channels == 8 ? GLOW_DARKRED :
+                                 snd_channels == 1 || snd_channels == 16 ? GLOW_YELLOW : GLOW_GREEN));
 
     // Pitch-shifted sounds
     sprintf(str, snd_mute_inactive ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str,
-                 M_Item_Glow(12, snd_mute_inactive ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(12, snd_mute_inactive ? GLOW_GREEN : GLOW_RED));
 
     // Inform if FSYNTH/GUS paths anen't set.
     if (itemOn == 8)
@@ -2001,8 +2002,8 @@ static void M_Draw_ID_Controls (void)
 
     M_DrawThermo(46, 63, 10, mouseSensitivity);
     sprintf(str,"%d", mouseSensitivity);
-    M_WriteText (144, 66, str, M_Item_Glow(3, mouseSensitivity > 9 ? GLOW_GREEN :
-                                              mouseSensitivity < 1 ? GLOW_DARKRED : GLOW_UNCOLORED));
+    M_WriteText (144, 66, str, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
+                                              mouseSensitivity > 9 ? GLOW_GREEN : GLOW_UNCOLORED));
 
     M_DrawThermo(46, 90, 12, (mouse_acceleration * 3) - 3);
     sprintf(str,"%.1f", mouse_acceleration);
@@ -2010,22 +2011,22 @@ static void M_Draw_ID_Controls (void)
 
     M_DrawThermo(46, 117, 15, mouse_threshold / 2);
     sprintf(str,"%d", mouse_threshold);
-    M_WriteText (184, 120, str, M_Item_Glow(9, mouse_threshold == 0 ? GLOW_DARKRED : GLOW_UNCOLORED));
+    M_WriteText (184, 120, str, M_Item_Glow(9, GLOW_UNCOLORED));
 
     // Vertical mouse movement
     sprintf(str, mouse_novert ? "OFF" : "ON");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str,
-                 M_Item_Glow(12, mouse_novert ? GLOW_DARKRED : GLOW_GREEN));
+                 M_Item_Glow(12, mouse_novert ? GLOW_RED : GLOW_GREEN));
 
     // Invert vertical axis
     sprintf(str, mouse_y_invert ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 144, str,
-                 M_Item_Glow(13, mouse_y_invert ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(13, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
 
     // Double click acts as "use"
     sprintf(str, mouse_dclick_use ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 153, str,
-                 M_Item_Glow(14, mouse_dclick_use ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(14, mouse_dclick_use ? GLOW_GREEN : GLOW_RED));
 }
 
 static void M_ID_Controls_Sensivity (int choice)
@@ -3035,7 +3036,8 @@ static void M_Draw_ID_Widgets (void)
     sprintf(str,"%d", automap_shading);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 153, str,
                  M_Item_Glow(14, !automap_overlay ? GLOW_DARKRED :
-                                  automap_shading ? GLOW_GREEN : GLOW_RED));
+                                  automap_shading ==  0 ? GLOW_RED :
+                                  automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
 }
 
 static void M_ID_Widget_Location (int choice)
@@ -4685,11 +4687,11 @@ static void M_DrawSound(void)
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (sfx_vol + 1), 16, sfxVolume);
     sprintf(str,"%d", sfxVolume);
-    M_WriteText (226, 83, str, sfxVolume ? NULL : cr[CR_DARKRED]);
+    M_WriteText (226, 83, str, sfxVolume ? NULL : cr[CR_DARK]);
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (music_vol + 1), 16, musicVolume);
     sprintf(str,"%d", musicVolume);
-    M_WriteText (226, 115, str, musicVolume ? NULL : cr[CR_DARKRED]);
+    M_WriteText (226, 115, str, musicVolume ? NULL : cr[CR_DARK]);
 }
 
 static void M_SfxVol(int choice)
