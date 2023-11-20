@@ -1114,7 +1114,7 @@ static void M_Draw_ID_Video (void)
 #else
     sprintf(str, vid_truecolor ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 27, str, 
-                 M_Item_Glow(0, vid_truecolor ? GLOW_GREEN : GLOW_RED));
+                 M_Item_Glow(0, vid_truecolor ? GLOW_GREEN : GLOW_DARKRED));
 #endif
 
     // Rendering resolution
@@ -1122,7 +1122,7 @@ static void M_Draw_ID_Video (void)
                  vid_hires == 2 ? "QUAD" : "ORIGINAL");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 36, str, 
                  M_Item_Glow(1, vid_hires == 1 ? GLOW_GREEN :
-                                vid_hires == 2 ? GLOW_YELLOW : GLOW_RED));
+                                vid_hires == 2 ? GLOW_YELLOW : GLOW_DARKRED));
 
     // Widescreen rendering
     sprintf(str, vid_widescreen == 1 ? "MATCH SCREEN" :
@@ -1142,7 +1142,8 @@ static void M_Draw_ID_Video (void)
                  vid_fpslimit ? "%d" : "NONE", vid_fpslimit);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 63, str, 
                  !vid_uncapped_fps ? cr[CR_DARKRED] :
-                 M_Item_Glow(4, vid_fpslimit ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(4, vid_fpslimit == 0 ? GLOW_RED :
+                                vid_fpslimit >= 500 ? GLOW_YELLOW : GLOW_GREEN));
 
     // Enable vsync
     sprintf(str, vid_vsync ? "ON" : "OFF");
@@ -1157,7 +1158,7 @@ static void M_Draw_ID_Video (void)
     // Pixel scaling
     sprintf(str, vid_smooth_scaling ? "SMOOTH" : "SHARP");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 90, str, 
-                 M_Item_Glow(7, vid_smooth_scaling ? GLOW_GREEN : GLOW_RED));
+                 M_Item_Glow(7, vid_smooth_scaling ? GLOW_GREEN : GLOW_DARKRED));
 
     M_WriteTextCentered(99, "MISCELLANEOUS", cr[CR_YELLOW]);
 
@@ -1165,18 +1166,18 @@ static void M_Draw_ID_Video (void)
     sprintf(str, vid_screenwipe == 1 ? "ORIGINAL" :
                  vid_screenwipe == 2 ? "FAST" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 108, str,
-                 M_Item_Glow(9, vid_screenwipe ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(9, vid_screenwipe == 1 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Show disk icon
     sprintf(str, vid_diskicon == 1 ? "BOTTOM" :
                  vid_diskicon == 2 ? "TOP" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 117, str, 
-                 M_Item_Glow(10, vid_diskicon ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(10, vid_diskicon == 1 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Show ENDOOM screen
     sprintf(str, vid_endoom ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str, 
-                 M_Item_Glow(11, vid_endoom ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(11, vid_endoom ? GLOW_DARKRED : GLOW_GREEN));
 }
 
 #ifdef CRISPY_TRUECOLOR
