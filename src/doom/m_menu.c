@@ -4685,11 +4685,11 @@ static void M_DrawSound(void)
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (sfx_vol + 1), 16, sfxVolume);
     sprintf(str,"%d", sfxVolume);
-    M_WriteText (226, 83, str, sfxVolume ? NULL : cr[CR_DARKRED]);
+    M_WriteText (226, 83, str, sfxVolume ? NULL : cr[CR_DARK]);
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (music_vol + 1), 16, musicVolume);
     sprintf(str,"%d", musicVolume);
-    M_WriteText (226, 115, str, musicVolume ? NULL : cr[CR_DARKRED]);
+    M_WriteText (226, 115, str, musicVolume ? NULL : cr[CR_DARK]);
 }
 
 static void M_SfxVol(int choice)
