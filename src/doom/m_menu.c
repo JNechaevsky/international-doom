@@ -1736,7 +1736,7 @@ static void M_Draw_ID_Sound (void)
                  snd_sfxdevice == 3 ? "DIGITAL SFX" :
                                       "UNKNOWN");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 90, str,
-                 M_Item_Glow(7, snd_sfxdevice ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(7, snd_sfxdevice ? GLOW_GREEN : GLOW_RED));
 
     // Music playback
     sprintf(str, snd_musicdevice == 0 ? "DISABLED" :
@@ -1747,28 +1747,28 @@ static void M_Draw_ID_Sound (void)
                  snd_musicdevice == 11 ? "FLUIDSYNTH" :
                                         "UNKNOWN");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 99, str,
-                 M_Item_Glow(8, snd_musicdevice ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(8, snd_musicdevice ? GLOW_GREEN : GLOW_RED));
 
     // Sound effects mode
     sprintf(str, snd_monosfx ? "MONO" : "STEREO");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 108, str,
-                 M_Item_Glow(9, snd_monosfx ? GLOW_DARKRED : GLOW_GREEN));
+                 M_Item_Glow(9, snd_monosfx ? GLOW_RED : GLOW_GREEN));
 
     // Pitch-shifted sounds
     sprintf(str, snd_pitchshift ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 117, str,
-                 M_Item_Glow(10, snd_pitchshift ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(10, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
 
     // Number of SFX to mix
     sprintf(str, "%i", snd_channels);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str,
-                 M_Item_Glow(11, snd_channels == 8 ? GLOW_GREEN :
-                                 snd_channels == 1 ? GLOW_DARKRED : GLOW_YELLOW));
+                 M_Item_Glow(11, snd_channels == 8 ? GLOW_DARKRED :
+                                 snd_channels == 1 || snd_channels == 16 ? GLOW_YELLOW : GLOW_GREEN));
 
     // Pitch-shifted sounds
     sprintf(str, snd_mute_inactive ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str,
-                 M_Item_Glow(12, snd_mute_inactive ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(12, snd_mute_inactive ? GLOW_GREEN : GLOW_RED));
 
     // Inform if FSYNTH/GUS paths anen't set.
     if (itemOn == 8)
