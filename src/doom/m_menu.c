@@ -1394,7 +1394,7 @@ static void M_Draw_ID_Display (void)
     sprintf(str, "%d", vid_fov);
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 45, str,
                  M_Item_Glow(3, vid_fov == 135 || vid_fov == 45 ? GLOW_YELLOW :
-                                vid_fov == 90 ? GLOW_RED : GLOW_GREEN));
+                                vid_fov == 90 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Background shading
     sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
@@ -1435,13 +1435,13 @@ static void M_Draw_ID_Display (void)
     // Messages enabled
     sprintf(str, showMessages ? "ON" : "OFF");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 126, str,
-                 M_Item_Glow(12, showMessages ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(12, showMessages ? GLOW_DARKRED : GLOW_GREEN));
 
     // Messages alignment
     sprintf(str, msg_alignment == 1 ? "STATUS BAR" :
                  msg_alignment == 2 ? "CENTERED" : "LEFT");
     M_WriteText (ID_MENU_RIGHTOFFSET - M_StringWidth(str), 135, str,
-                 M_Item_Glow(13, GLOW_GREEN));
+                 M_Item_Glow(13, msg_alignment ? GLOW_GREEN : GLOW_DARKRED));
 
     // Text casts shadows
     sprintf(str, msg_text_shadows ? "ON" : "OFF");
