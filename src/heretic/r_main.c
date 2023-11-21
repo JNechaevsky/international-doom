@@ -23,11 +23,8 @@
 #include "m_bbox.h"
 #include "r_local.h"
 #include "tables.h"
-#include "v_video.h"
 
-//#include "crlcore.h"
 #include "id_vars.h"
-
 
 int viewangleoffset;
 
@@ -36,7 +33,6 @@ int viewangleoffset;
 int validcount = 1;             // increment every time a check is made
 
 lighttable_t *fixedcolormap;
-extern lighttable_t **walllights;
 
 int centerx, centery;
 fixed_t centerxfrac, centeryfrac;
@@ -885,58 +881,27 @@ void R_SetupFrame(player_t * player)
 
 void R_RenderPlayerView(player_t * player)
 {
-    //int js;
+    extern boolean automapactive;
 
-    extern void R_InterpolateTextureOffsets (void);
+    R_SetupFrame(player);
+    R_ClearClipSegs();
+    R_ClearDrawSegs();
+    R_ClearPlanes();
+    R_ClearSprites();
 
-	// [JN] RestlessRodent -- Start of frame
-	// CRL_ChangeFrame(0);
-
-	// [JN] RestlessRodent -- Store current position and go back to it in case the
-	// renderer does something fancy
-	// js = setjmp(CRLJustIncaseBuf);
-
-	// [JN] RestlessRodent -- Do not spawn it just in case.
-	// if (js == 0)
-	{
-        R_SetupFrame(player);
-
-/*
-		// Clear the view buffer
-        // [JN] CRL - allow to choose HOM effect.
-        if (crl_hom_effect == 1)  // Multicolor
-        {
-            V_DrawFilledBox(viewwindowx, viewwindowy,
-                            scaledviewwidth, viewheight, CRL_homcolor);
-        }
-        else
-        if (crl_hom_effect == 2)  // Black
-        {
-            V_DrawFilledBox(viewwindowx, viewwindowy,
-                            scaledviewwidth, viewheight, 0);
-        }
-*/
-
-        R_ClearClipSegs();
-        R_ClearDrawSegs();
-        R_ClearPlanes();
-        R_ClearSprites();
-        NetUpdate();                // check for new console commands
-        if (!crl_freeze)
-        {
-            R_InterpolateTextureOffsets(); // [crispy] smooth texture scrolling
-        }
-        R_RenderBSPNode(numnodes - 1);      // the head node is the last node output
-        NetUpdate();                // check for new console commands
-        R_DrawPlanes();
-//        CRL_DrawVisPlanes(0);
-        NetUpdate();                // check for new console commands
-        R_DrawMasked();
-        NetUpdate();                // check for new console commands
-
-  //      js = -1;                    // No errors, set jump to negative for OK
+    if (automapactive && !automap_overlay)
+    {
+        R_RenderBSPNode (numnodes-1);
+        return;
     }
-    
-    // [JN] RestlessRodent -- End of frame
-  //  CRL_ChangeFrame(js);
+
+    NetUpdate();                // check for new console commands
+    if (!crl_freeze)
+    R_InterpolateTextureOffsets(); // [crispy] smooth texture scrolling
+    R_RenderBSPNode(numnodes - 1);      // the head node is the last node output
+    NetUpdate();                // check for new console commands
+    R_DrawPlanes();
+    NetUpdate();                // check for new console commands
+    R_DrawMasked();
+    NetUpdate();                // check for new console commands
 }
