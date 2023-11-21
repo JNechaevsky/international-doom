@@ -47,6 +47,9 @@
 #define	NUMCOLORMAPS		32      // number of diminishing
 #define	INVERSECOLORMAP		32
 
+#define LOOKDIRMIN 110 // [crispy] -110, actually
+#define LOOKDIRMAX 90
+#define LOOKDIRS (LOOKDIRMIN + 1 + LOOKDIRMAX) // [crispy] lookdir range: -110..0..90
 /*
 ==============================================================================
 
@@ -396,17 +399,18 @@ extern int ceilingclip[MAXWIDTH];
 extern visplane_t  visplanes[MAXVISPLANES];
 extern visplane_t *lastvisplane;
 
-extern fixed_t yslope[MAXHEIGHT];
+extern fixed_t *yslope;
+extern fixed_t yslopes[LOOKDIRS][MAXHEIGHT]; // [crispy]
 extern fixed_t distscale[MAXWIDTH];
 
 void R_ClearPlanes(void);
-void R_MakeSpans(unsigned int x, unsigned int t1, unsigned int b1,
-                 unsigned int t2, unsigned int b2, visplane_t* __plane);
+void R_MapPlane(int y, int x1, int x2);
+void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2, unsigned int b2); // [crispy] 32-bit integer math
 void R_DrawPlanes(void);
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
-                        int special, seg_t* __line, subsector_t* __sub);
-visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop, seg_t* __line, subsector_t* __sub);
+                        int special);
+visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop);
 
 
 //

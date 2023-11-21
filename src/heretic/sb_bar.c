@@ -566,6 +566,11 @@ static int oldkeys = -1;
 int playerkeys = 0;
 
 
+// [crispy] Needed to support widescreen status bar.
+void SB_ForceRedraw(void)
+{
+    SB_state = -1;
+}
 void SB_Drawer(void)
 {
     int frame;

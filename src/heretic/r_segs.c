@@ -191,7 +191,7 @@ void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2)
         {
             if (!fixedcolormap)
             {
-                index = spryscale >> LIGHTSCALESHIFT;
+                index = spryscale >> (LIGHTSCALESHIFT + vid_hires);
                 if (index >= MAXLIGHTSCALE)
                     index = MAXLIGHTSCALE - 1;
                 dc_colormap = walllights[index];
@@ -292,7 +292,7 @@ void R_RenderSegLoop(void)
                 rw_offset - FixedMul(finetangent[angle], rw_distance);
             texturecolumn >>= FRACBITS;
             // calculate lighting
-            index = rw_scale >> LIGHTSCALESHIFT;
+            index = rw_scale >> (LIGHTSCALESHIFT + vid_hires);
             if (index >= MAXLIGHTSCALE)
                 index = MAXLIGHTSCALE - 1;
             dc_colormap = walllights[index];
@@ -388,7 +388,7 @@ void R_RenderSegLoop(void)
 ======================
 */
 
-void R_StoreWallRange(int start, int stop, seg_t* __line, subsector_t* __sub)
+void R_StoreWallRange(int start, int stop)
 {
     fixed_t hyp;
     fixed_t sineval;
@@ -721,9 +721,9 @@ void R_StoreWallRange(int start, int stop, seg_t* __line, subsector_t* __sub)
 // render it
 //
     if (markceiling)
-        ceilingplane = R_CheckPlane(ceilingplane, rw_x, rw_stopx - 1, __line, __sub);
+        ceilingplane = R_CheckPlane(ceilingplane, rw_x, rw_stopx - 1);
     if (markfloor)
-        floorplane = R_CheckPlane(floorplane, rw_x, rw_stopx - 1, __line, __sub);
+        floorplane = R_CheckPlane(floorplane, rw_x, rw_stopx - 1);
 
     R_RenderSegLoop();
 

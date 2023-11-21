@@ -26,16 +26,18 @@
 #include "s_sound.h"
 #include "v_video.h"
 
-int finalestage;                // 0 = text, 1 = art screen
-int finalecount;
+#include "id_vars.h"
+
+static int finalestage;                // 0 = text, 1 = art screen
+static int finalecount;
 
 #define TEXTSPEED       3
 #define TEXTWAIT        250
 
-const char *finaletext;
-const char *finaleflat;
+static const char *finaletext;
+static const char *finaleflat;
 
-int FontABaseLump;
+static int FontABaseLump;
 
 extern boolean automapactive;
 extern boolean viewactive;
@@ -263,30 +265,62 @@ void F_DemonScroll(void)
 {
     byte *p1, *p2;
     static int yval = 0;
+    static int yval_dest = 0; // [crispy]
     static int nextscroll = 0;
+    lumpindex_t i1, i2; // [crispy]
+    int x; // [crispy]
+    patch_t *patch1, *patch2; // [crispy]
+    static int y = 0; // [crispy]
 
     if (finalecount < nextscroll)
     {
         return;
     }
-    p1 = W_CacheLumpName(DEH_String("FINAL1"), PU_LEVEL);
-    p2 = W_CacheLumpName(DEH_String("FINAL2"), PU_LEVEL);
+    i1 = W_GetNumForName(DEH_String("FINAL1"));
+    i2 = W_GetNumForName(DEH_String("FINAL2"));
+    p1 = W_CacheLumpNum(i1, PU_LEVEL);
+    p2 = W_CacheLumpNum(i2, PU_LEVEL);
     if (finalecount < 70)
     {
-        memcpy(I_VideoBuffer, p1, SCREENHEIGHT * SCREENWIDTH);
+        V_DrawFullscreenRawOrPatch(i1);
         nextscroll = finalecount;
         return;
     }
     if (yval < 64000)
     {
-        memcpy(I_VideoBuffer, p2 + SCREENHEIGHT * SCREENWIDTH - yval, yval);
-        memcpy(I_VideoBuffer + yval, p1, SCREENHEIGHT * SCREENWIDTH - yval);
-        yval += SCREENWIDTH;
+        if ((W_LumpLength(i1) == 64000) && (W_LumpLength(i2) == 64000))
+        {
+            V_CopyScaledBuffer(I_VideoBuffer, p2 + ORIGHEIGHT * ORIGWIDTH - yval, yval);
+            V_CopyScaledBuffer(I_VideoBuffer + yval_dest, p1, ORIGHEIGHT * ORIGWIDTH - yval);
+
+            yval_dest += SCREENWIDTH << vid_hires;
+        }
+        else // [crispy] assume that FINAL1 and FINAL2 are in patch format
+        {
+            patch1 = (patch_t *)p1;
+            patch2 = (patch_t *)p2;
+
+            x = ((SCREENWIDTH >> vid_hires) - SHORT(patch1->width)) / 2
+                - WIDESCREENDELTA;
+
+            // [crispy] pillar boxing
+            if (x > -WIDESCREENDELTA)
+            {
+                V_DrawFilledBox(0, 0, WIDESCREENDELTA + x, SCREENHEIGHT, 0);
+                V_DrawFilledBox(SCREENWIDTH - WIDESCREENDELTA - x, 0,
+                                WIDESCREENDELTA + x, SCREENHEIGHT, 0);
+            }
+
+            V_DrawPatch(x, y - 200, patch2);
+            V_DrawPatch(x, 0 + y, patch1);
+            y++;
+        }
+        yval += ORIGWIDTH;
         nextscroll = finalecount + 3;
     }
     else
     {                           //else, we'll just sit here and wait, for now
-        memcpy(I_VideoBuffer, p2, SCREENWIDTH * SCREENHEIGHT);
+        V_DrawFullscreenRawOrPatch(i2);
     }
 }
 

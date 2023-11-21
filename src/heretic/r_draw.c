@@ -24,6 +24,8 @@
 #include "i_video.h"
 #include "v_video.h"
 
+#include "id_vars.h"
+
 
 /*
 
@@ -373,7 +375,8 @@ boolean BorderNeedRefresh;
 
 void R_DrawViewBorder(void)
 {
-    byte *src, *dest;
+    byte *src;
+    pixel_t *dest;
     int x, y;
 
     if (scaledviewwidth == SCREENWIDTH)
@@ -402,27 +405,31 @@ void R_DrawViewBorder(void)
             dest += (SCREENWIDTH & 63);
         }
     }
-    for (x = viewwindowx; x < viewwindowx + viewwidth; x += 16)
+    for (x = (viewwindowx >> vid_hires); x < (viewwindowx + viewwidth) >> vid_hires; x += 16)
     {
-        V_DrawPatch(x, viewwindowy - 4,
+        V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy >> vid_hires) - 4,
                     W_CacheLumpName(DEH_String("bordt"), PU_CACHE));
-        V_DrawPatch(x, viewwindowy + viewheight,
+        V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy + viewheight) >> vid_hires,
                     W_CacheLumpName(DEH_String("bordb"), PU_CACHE));
     }
-    for (y = viewwindowy; y < viewwindowy + viewheight; y += 16)
+    for (y = (viewwindowy >> vid_hires); y < (viewwindowy + viewheight) >> vid_hires; y += 16)
     {
-        V_DrawPatch(viewwindowx - 4, y,
+        V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA, y,
                     W_CacheLumpName(DEH_String("bordl"), PU_CACHE));
-        V_DrawPatch(viewwindowx + viewwidth, y,
+        V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA, y,
                     W_CacheLumpName(DEH_String("bordr"), PU_CACHE));
     }
-    V_DrawPatch(viewwindowx - 4, viewwindowy - 4,
+    V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
+                (viewwindowy >> vid_hires) - 4,
                 W_CacheLumpName(DEH_String("bordtl"), PU_CACHE));
-    V_DrawPatch(viewwindowx + viewwidth, viewwindowy - 4,
+    V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
+                (viewwindowy >> vid_hires) - 4,
                 W_CacheLumpName(DEH_String("bordtr"), PU_CACHE));
-    V_DrawPatch(viewwindowx + viewwidth, viewwindowy + viewheight,
+    V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
+                (viewwindowy + viewheight) >> vid_hires,
                 W_CacheLumpName(DEH_String("bordbr"), PU_CACHE));
-    V_DrawPatch(viewwindowx - 4, viewwindowy + viewheight,
+    V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
+                (viewwindowy + viewheight) >> vid_hires,
                 W_CacheLumpName(DEH_String("bordbl"), PU_CACHE));
 }
 
@@ -439,7 +446,8 @@ boolean BorderTopRefresh;
 
 void R_DrawTopBorder(void)
 {
-    byte *src, *dest;
+    byte *src;
+    pixel_t *dest;
     int x, y;
 
     if (scaledviewwidth == SCREENWIDTH)
@@ -455,7 +463,7 @@ void R_DrawTopBorder(void)
     }
     dest = I_VideoBuffer;
 
-    for (y = 0; y < 30; y++)
+    for (y = 0; y < (30 << vid_hires); y++)
     {
         for (x = 0; x < SCREENWIDTH / 64; x++)
         {
@@ -468,25 +476,31 @@ void R_DrawTopBorder(void)
             dest += (SCREENWIDTH & 63);
         }
     }
-    if (viewwindowy < 25)
+    if ((viewwindowy >> vid_hires) < 25)
     {
-        for (x = viewwindowx; x < viewwindowx + viewwidth; x += 16)
+        for (x = (viewwindowx >> vid_hires); x < (viewwindowx + viewwidth) >> vid_hires; x += 16)
         {
-            V_DrawPatch(x, viewwindowy - 4,
+            V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy >> vid_hires) - 4,
                         W_CacheLumpName(DEH_String("bordt"), PU_CACHE));
         }
-        V_DrawPatch(viewwindowx - 4, viewwindowy,
+        V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
+                    viewwindowy >> vid_hires,
                     W_CacheLumpName(DEH_String("bordl"), PU_CACHE));
-        V_DrawPatch(viewwindowx + viewwidth, viewwindowy,
+        V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
+                    viewwindowy >> vid_hires,
                     W_CacheLumpName(DEH_String("bordr"), PU_CACHE));
-        V_DrawPatch(viewwindowx - 4, viewwindowy + 16,
+        V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
+                    (viewwindowy >> vid_hires) + 16,
                     W_CacheLumpName(DEH_String("bordl"), PU_CACHE));
-        V_DrawPatch(viewwindowx + viewwidth, viewwindowy + 16,
+        V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
+                    (viewwindowy >> vid_hires) + 16,
                     W_CacheLumpName(DEH_String("bordr"), PU_CACHE));
 
-        V_DrawPatch(viewwindowx - 4, viewwindowy - 4,
+        V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
+                    (viewwindowy >> vid_hires) - 4,
                     W_CacheLumpName(DEH_String("bordtl"), PU_CACHE));
-        V_DrawPatch(viewwindowx + viewwidth, viewwindowy - 4,
+        V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
+                    (viewwindowy >> vid_hires) - 4,
                     W_CacheLumpName(DEH_String("bordtr"), PU_CACHE));
     }
 }

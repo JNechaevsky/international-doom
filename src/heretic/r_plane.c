@@ -24,7 +24,7 @@
 #include "m_misc.h"
 #include "r_local.h"
 
-//#include "crlcore.h"
+#include "id_vars.h"
 
 
 //
@@ -70,7 +70,8 @@ int spanstop[MAXHEIGHT];
 lighttable_t **planezlight;
 fixed_t planeheight;
 
-fixed_t yslope[MAXHEIGHT];
+fixed_t *yslope;
+fixed_t yslopes[LOOKDIRS][MAXHEIGHT]; // [crispy]
 fixed_t distscale[MAXWIDTH];
 fixed_t basexscale, baseyscale;
 
@@ -94,7 +95,7 @@ void R_InitSkyMap(void)
 {
     skyflatnum = R_FlatNumForName(DEH_String("F_SKY1"));
     skytexturemid = 200 * FRACUNIT;
-    skyiscale = FRACUNIT;
+    skyiscale = FRACUNIT >> vid_hires;
 }
 
 
@@ -116,24 +117,38 @@ BASIC PRIMITIVE
 ================
 */
 
-static void R_MapPlane (int y, int x1, int x2, visplane_t* __plane)
+void R_MapPlane(int y, int x1, int x2)
 {
-    angle_t angle;
-    fixed_t distance, length;
+    fixed_t distance;
     unsigned index;
+    int dx, dy;
 
 #ifdef RANGECHECK
     if (x2 < x1 || x1 < 0 || x2 >= viewwidth || (unsigned) y > viewheight)
         I_Error("R_MapPlane: %i, %i at %i", x1, x2, y);
 #endif
 
+// [crispy] visplanes with the same flats now match up far better than before
+// adapted from prboom-plus/src/r_plane.c:191-239, translated to fixed-point math
+//
+// SoM: because centery is an actual row of pixels (and it isn't really the
+// center row because there are an even number of rows) some corrections need
+// to be made depending on where the row lies relative to the centery row.
+
+    if (centery == y)
+    {
+	return;
+    }
+
+    dy = (abs(centery - y) << FRACBITS) + (y < centery ? -FRACUNIT : FRACUNIT) / 2;
+
     if (planeheight != cachedheight[y])
     {
         cachedheight[y] = planeheight;
         distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
 
-        ds_xstep = cachedxstep[y] = FixedMul(distance, basexscale);
-        ds_ystep = cachedystep[y] = FixedMul(distance, baseyscale);
+        ds_xstep = cachedxstep[y] = FixedDiv(FixedMul(viewsin, planeheight), dy) << detailshift;
+        ds_ystep = cachedystep[y] = FixedDiv(FixedMul(viewcos, planeheight), dy) << detailshift;
     }
     else
     {
@@ -142,10 +157,9 @@ static void R_MapPlane (int y, int x1, int x2, visplane_t* __plane)
         ds_ystep = cachedystep[y];
     }
 
-    length = FixedMul(distance, distscale[x1]);
-    angle = (viewangle + xtoviewangle[x1]) >> ANGLETOFINESHIFT;
-    ds_xfrac = viewx + FixedMul(finecosine[angle], length);
-    ds_yfrac = -viewy - FixedMul(finesine[angle], length);
+    dx = x1 - centerx;
+    ds_xfrac = viewx + FixedMul(viewcos, distance) + dx * ds_xstep;
+    ds_yfrac = -viewy - FixedMul(viewsin, distance) + dx * ds_ystep;
 
     if (fixedcolormap)
         ds_colormap = fixedcolormap;
@@ -161,9 +175,7 @@ static void R_MapPlane (int y, int x1, int x2, visplane_t* __plane)
     ds_x1 = x1;
     ds_x2 = x2;
 
-    dc_visplaneused = __plane;
     spanfunc();                 // high or low detail
-    dc_visplaneused = NULL;
 }
 
 //=============================================================================
@@ -216,8 +228,7 @@ void R_ClearPlanes(void)
 */
 
 visplane_t *R_FindPlane(fixed_t height, int picnum,
-                        int lightlevel, int special,
-                        seg_t* __line, subsector_t* __sub)
+                        int lightlevel, int special)
 {
     visplane_t *check;
 
@@ -261,12 +272,6 @@ visplane_t *R_FindPlane(fixed_t height, int picnum,
     check->special = special;
     check->minx = SCREENWIDTH;
     check->maxx = -1;
-
-    // [JN] RestlessRodent -- Store emitting seg
-    check->isfindplane = 1;
-    check->emitline = __line;
-    check->emitsub = __sub;
-
     memset(check->top, 0xff, sizeof(check->top));
     return (check);
 }
@@ -279,8 +284,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum,
 ===============
 */
 
-visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop,
-                         seg_t* __line, subsector_t* __sub)
+visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop)
 {
     int intrl, intrh;
     int unionl, unionh;
@@ -340,12 +344,6 @@ visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop,
 
     pl->minx = start;
     pl->maxx = stop;
-
-    // [JN] RestlessRodent -- Store emitting seg
-    pl->isfindplane = 0;
-    pl->emitline = __line;
-    pl->emitsub = __sub;
-
     memset(pl->top, 0xff, sizeof(pl->top));
 
     return pl;
@@ -363,21 +361,16 @@ visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop,
 ================
 */
 
-void R_MakeSpans(unsigned int x,  // [JN] 32-bit integer math
-                 unsigned int t1, // [JN] 32-bit integer math 
-                 unsigned int b1, // [JN] 32-bit integer math
-                 unsigned int t2, // [JN] 32-bit integer math 
-                 unsigned int b2, // [JN] 32-bit integer math
-                 visplane_t* __plane)
+void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2, unsigned int b2) // [crispy] 32-bit integer math
 {
     while (t1 < t2 && t1 <= b1)
     {
-        R_MapPlane(t1, spanstart[t1], x - 1, __plane);
+        R_MapPlane(t1, spanstart[t1], x - 1);
         t1++;
     }
     while (b1 > b2 && b1 >= t1)
     {
-        R_MapPlane(b1, spanstart[b1], x - 1, __plane);
+        R_MapPlane(b1, spanstart[b1], x - 1);
         b1--;
     }
 
@@ -544,7 +537,7 @@ void R_DrawPlanes(void)
         stop = pl->maxx + 1;
         for (x = pl->minx; x <= stop; x++)
             R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
-                        pl->bottom[x], pl);
+                        pl->bottom[x]);
 
         W_ReleaseLumpNum(lumpnum);
     }

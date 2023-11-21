@@ -77,6 +77,7 @@ void (*tlcolfunc) (void);
 void (*transcolfunc) (void);
 void (*spanfunc) (void);
 
+void SB_ForceRedraw(void); // [crispy] sb_bar.c
 /*
 ===================
 =
@@ -425,6 +426,10 @@ void R_InitTables(void)
 
 }
 
+// [crispy] in widescreen mode, make sure the same number of horizontal
+// pixels shows the same part of the game scene as in regular rendering mode
+static int scaledviewwidth_nonwide, viewwidth_nonwide;
+static fixed_t centerxfrac_nonwide;
 
 /*
 =================
@@ -447,8 +452,8 @@ void R_InitTextureMapping(void)
 // viewangletox will give the next greatest x after the view angle
 //
     // calc focallength so FIELDOFVIEW angles covers SCREENWIDTH
-    focallength =
-        FixedDiv(centerxfrac, finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2]);
+    focallength = FixedDiv(centerxfrac_nonwide,
+                           finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2]);
 
     for (i = 0; i < FINEANGLES / 2; i++)
     {
@@ -525,7 +530,7 @@ void R_InitLightTables(void)
         for (j = 0; j < MAXLIGHTZ; j++)
         {
             scale =
-                FixedDiv((SCREENWIDTH / 2 * FRACUNIT),
+                FixedDiv((ORIGWIDTH / 2 * FRACUNIT),
                          (j + 1) << LIGHTZSHIFT);
             scale >>= LIGHTSCALESHIFT;
             level = startmap - scale / DISTMAP;
@@ -577,23 +582,41 @@ void R_ExecuteSetViewSize(void)
 
     if (setblocks == 11)
     {
+        scaledviewwidth_nonwide = NONWIDEWIDTH;
         scaledviewwidth = SCREENWIDTH;
         viewheight = SCREENHEIGHT;
     }
     else
     {
-        scaledviewwidth = setblocks * 32;
-        viewheight = (setblocks * 158 / 10);
+        scaledviewwidth_nonwide = (setblocks * 32) << vid_hires;
+        viewheight = ((setblocks * 158 / 10)) << vid_hires;
+
+	// [crispy] regular viewwidth in non-widescreen mode
+	if (vid_widescreen)
+	{
+		const int widescreen_edge_aligner = (16 << vid_hires) - 1;
+
+		scaledviewwidth = viewheight*SCREENWIDTH/(SCREENHEIGHT-(42<<vid_hires));
+		// [crispy] make sure scaledviewwidth is an integer multiple of the bezel patch width
+		scaledviewwidth = (scaledviewwidth + widescreen_edge_aligner) & (int)~widescreen_edge_aligner;
+		scaledviewwidth = MIN(scaledviewwidth, SCREENWIDTH);
+	}
+	else
+	{
+		scaledviewwidth = scaledviewwidth_nonwide;
+	}
     }
 
     detailshift = setdetail;
     viewwidth = scaledviewwidth >> detailshift;
+    viewwidth_nonwide = scaledviewwidth_nonwide >> detailshift;
 
     centery = viewheight / 2;
     centerx = viewwidth / 2;
     centerxfrac = centerx << FRACBITS;
     centeryfrac = centery << FRACBITS;
-    projection = centerxfrac;
+    centerxfrac_nonwide = (viewwidth_nonwide / 2) << FRACBITS;
+    projection = centerxfrac_nonwide;
 
     if (!detailshift)
     {
@@ -617,8 +640,8 @@ void R_ExecuteSetViewSize(void)
 //
 // psprite scales
 //
-    pspritescale = FRACUNIT * viewwidth / SCREENWIDTH;
-    pspriteiscale = FRACUNIT * SCREENWIDTH / viewwidth;
+    pspritescale = FRACUNIT * viewwidth_nonwide / ORIGWIDTH;
+    pspriteiscale = FRACUNIT * ORIGWIDTH / viewwidth_nonwide;
 
 //
 // thing clipping
@@ -631,10 +654,19 @@ void R_ExecuteSetViewSize(void)
 //
     for (i = 0; i < viewheight; i++)
     {
-        dy = ((i - viewheight / 2) << FRACBITS) + FRACUNIT / 2;
+        // [crispy] re-generate lookup-table for yslope[] (free look)
+        // whenever "detailshift" or "dp_screen_size" change
+        const fixed_t num = (viewwidth_nonwide<<detailshift)/2*FRACUNIT;
+        for (j = 0; j < LOOKDIRS; j++)
+        {
+        dy = ((i - (viewheight / 2 + ((j - LOOKDIRMIN) * (1 << vid_hires)) *
+                (dp_screen_size < 11 ? dp_screen_size : 11) / 10)) << FRACBITS) +
+                FRACUNIT / 2;
         dy = abs(dy);
-        yslope[i] = FixedDiv((viewwidth << detailshift) / 2 * FRACUNIT, dy);
+        yslopes[j][i] = FixedDiv(num, dy);
+        }
     }
+    yslope = yslopes[LOOKDIRMIN];
 
     for (i = 0; i < viewwidth; i++)
     {
@@ -652,7 +684,7 @@ void R_ExecuteSetViewSize(void)
         {
             level =
                 startmap -
-                j * SCREENWIDTH / (viewwidth << detailshift) / DISTMAP;
+                j * NONWIDEWIDTH / (viewwidth_nonwide << detailshift) / DISTMAP;
             if (level < 0)
                 level = 0;
             if (level >= NUMCOLORMAPS)
@@ -661,12 +693,15 @@ void R_ExecuteSetViewSize(void)
         }
     }
 
-    pspr_interp = false; // [crispy] interpolate weapon bobbing
-
 //
 // draw the border
 //
     R_DrawViewBorder();         // erase old menu stuff
+
+    // [crispy] Redraw status bar, needed for widescreen HUD
+    SB_ForceRedraw();
+
+    pspr_interp = false; // [crispy]
 }
 
 
@@ -751,96 +786,62 @@ void R_SetupFrame(player_t * player)
     // haleyjd: removed WATCOMC
     // haleyjd FIXME: viewangleoffset handling?
 
-    // TODO
-    /*
-    if (crl_spectating)
+    // [AM] Interpolate the player camera if the feature is enabled.
+    if (vid_uncapped_fps &&
+        // Don't interpolate on the first tic of a level,
+        // otherwise oldviewz might be garbage.
+        leveltime > 1 &&
+        // Don't interpolate if the player did something
+        // that would necessitate turning it off for a tic.
+        player->mo->interp == true &&
+        // Don't interpolate during a paused state
+        leveltime > oldleveltime)
     {
-        fixed_t bx, by, bz;
-        angle_t ba;
-
-    	// RestlessRodent -- Get camera position
-    	CRL_GetCameraPos(&bx, &by, &bz, &ba);
-        
-        if (crl_uncapped_fps)
-        {
-            viewx = CRL_camera_oldx + FixedMul(bx - CRL_camera_oldx, fractionaltic);
-            viewy = CRL_camera_oldy + FixedMul(by - CRL_camera_oldy, fractionaltic);
-            viewz = CRL_camera_oldz + FixedMul(bz - CRL_camera_oldz, fractionaltic);
-            viewangle = R_InterpolateAngle(CRL_camera_oldang, ba, fractionaltic);
-            pitch = 0; // [JN] TODO - look up/down for Spectator mode?
-        }
-        else
-        {
-            viewx = bx;
-            viewy = by;
-            viewz = bz;
-            viewangle = ba;
-            pitch = 0;
-        }
+        viewx = player->mo->oldx + FixedMul(player->mo->x - player->mo->oldx, fractionaltic);
+        viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
+        viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
+        viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
+        pitch = player->oldlookdir + (player->lookdir - player->oldlookdir) *
+                FIXED2DOUBLE(fractionaltic);
     }
     else
-    */
     {
-        // [AM] Interpolate the player camera if the feature is enabled.
-        if (vid_uncapped_fps &&
-            // Don't interpolate on the first tic of a level,
-            // otherwise oldviewz might be garbage.
-            realleveltime > 1 &&
-            // Don't interpolate if the player did something
-            // that would necessitate turning it off for a tic.
-            player->mo->interp == true &&
-            // Don't interpolate during a paused state
-            realleveltime > oldleveltime)
-        {
-            viewx = player->mo->oldx + FixedMul(player->mo->x - player->mo->oldx, fractionaltic);
-            viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
-            viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
-            viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
-            pitch = player->oldlookdir + (player->lookdir - player->oldlookdir) *
-                    FIXED2DOUBLE(fractionaltic);
-        }
-        else
-        {
-            viewx = player->mo->x;
-            viewy = player->mo->y;
-            viewz = player->viewz;
-            viewangle = player->mo->angle + viewangleoffset;
-            pitch = player->lookdir; // [crispy]
-        }
+        viewx = player->mo->x;
+        viewy = player->mo->y;
+        viewz = player->viewz;
+        viewangle = player->mo->angle + viewangleoffset;
+        pitch = player->lookdir; // [crispy]
     }
-    
+
     tableAngle = viewangle >> ANGLETOFINESHIFT;
 
     // [crispy] Set chicken attack view position
     if (player->chickenTics && player->chickenPeck)
     {
-        viewx = player->mo->x + player->chickenPeck * finecosine[tableAngle];
-        viewy = player->mo->y + player->chickenPeck * finesine[tableAngle];
+        viewx += player->chickenPeck * finecosine[tableAngle];
+        viewy += player->chickenPeck * finesine[tableAngle];
     }
 
     extralight = player->extralight;
-
-    // [JN] RestlessRodent -- Just report it
-    // CRL_ReportPosition(viewx, viewy, viewz, viewangle);
-
-    tempCentery = viewheight / 2 + pitch * dp_screen_size / 10;
+    // [crispy] apply new yslope[] whenever "lookdir", "detailshift" or
+    // "dp_screen_size" change
+    tempCentery = viewheight / 2 + (pitch * (1 << vid_hires)) *
+                    (dp_screen_size < 11 ? dp_screen_size : 11) / 10;
     if (centery != tempCentery)
     {
         centery = tempCentery;
         centeryfrac = centery << FRACBITS;
-        for (i = 0; i < viewheight; i++)
-        {
-            yslope[i] = FixedDiv((viewwidth << detailshift) / 2 * FRACUNIT,
-                                 abs(((i - centery) << FRACBITS) +
-                                     FRACUNIT / 2));
-        }
+        yslope = yslopes[LOOKDIRMIN + pitch];
     }
     viewsin = finesine[tableAngle];
     viewcos = finecosine[tableAngle];
+
     if (player->fixedcolormap)
     {
         fixedcolormap = colormaps + player->fixedcolormap
-            * 256 * sizeof(lighttable_t);
+            // [crispy] sizeof(lighttable_t) not needed in paletted render
+            // and breaks invulnerability colormap index in true color render
+            * 256 /* * sizeof(lighttable_t)*/;
         walllights = scalelightfixed;
         for (i = 0; i < MAXLIGHTSCALE; i++)
         {
