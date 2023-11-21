@@ -28,6 +28,8 @@
 #include "p_local.h"
 #include "v_trans.h"
 
+#include "id_vars.h"
+
 //extern void CheckAbortStartup(void);
 
 typedef struct
@@ -579,6 +581,7 @@ void R_InitSpriteLumps(void)
 
 void R_InitColormaps(void)
 {
+#ifndef CRISPY_TRUECOLOR
     int lump, length;
 //
 // load in the light tables
@@ -588,7 +591,119 @@ void R_InitColormaps(void)
     length = W_LumpLength(lump);
     colormaps = Z_Malloc(length, PU_STATIC, 0);
     W_ReadLump(lump, colormaps);
+#else
+	byte *playpal;
+	byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
+	int c, i, j = 0;
+	byte r, g, b;
 
+	// [JN] Handle RGB channels separatelly
+	// to support variable saturation and color intensity.
+	byte r_channel, g_channel, b_channel;
+
+	// [JN] Saturation floats, high and low.
+	// If saturation has been modified (< 100), set high and low
+	// values according to saturation level. Sum of r,g,b channels
+	// and floats must be 1.0 to get proper colors.
+	const float a_hi = vid_saturation < 100 ? I_SaturationPercent[vid_saturation] : 0;
+	const float a_lo = vid_saturation < 100 ? (a_hi / 2) : 0;
+
+	playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+
+	if (!colormaps)
+	{
+		colormaps = (lighttable_t*) Z_Malloc((NUMCOLORMAPS + 1) * 256 * sizeof(lighttable_t), PU_STATIC, 0);
+	}
+
+	if (vid_truecolor)
+	{
+		for (c = 0; c < NUMCOLORMAPS; c++)
+		{
+			const float scale = 1. * c / NUMCOLORMAPS;
+
+			for (i = 0; i < 256; i++)
+			{
+				r_channel = 
+					(byte) ((1 - a_hi) * playpal[3 * i + 0]  +
+							(0 + a_lo) * playpal[3 * i + 1]  +
+							(0 + a_lo) * playpal[3 * i + 2]) * vid_r_intensity;
+
+				g_channel = 
+					(byte) ((0 + a_lo) * playpal[3 * i + 0]  +
+							(1 - a_hi) * playpal[3 * i + 1]  +
+							(0 + a_lo) * playpal[3 * i + 2]) * vid_g_intensity;
+
+				b_channel = 
+					(byte) ((0 + a_lo) * playpal[3 * i + 0] +
+							(0 + a_lo) * playpal[3 * i + 1] +
+							(1 - a_hi) * playpal[3 * i + 2] * vid_b_intensity);
+
+				r = gammatable[vid_gamma][r_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+				g = gammatable[vid_gamma][g_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+				b = gammatable[vid_gamma][b_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+
+				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+			}
+		}
+
+		// [crispy] Invulnerability (c == COLORMAPS)
+		for (i = 0; i < 256; i++)
+		{
+
+			r_channel = g_channel =  b_channel = 
+				(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+						(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+						(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+
+			g_channel =
+				(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+						(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+						(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_g_intensity;
+
+			b_channel =
+				(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+						(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+						(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_b_intensity;
+
+			r = gammatable[vid_gamma][r_channel] & ~3;
+			g = gammatable[vid_gamma][g_channel] & ~3;
+			b = gammatable[vid_gamma][b_channel] & ~3;
+
+			colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+		}
+	}
+	else
+	{
+		for (c = 0; c <= NUMCOLORMAPS; c++)
+		{
+			for (i = 0; i < 256; i++)
+			{
+				r_channel = g_channel =  b_channel = 
+					(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+
+				g_channel =
+					(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+							(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_g_intensity;
+
+				b_channel =
+					(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+							(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_b_intensity;
+
+				r = gammatable[vid_gamma][r_channel] & ~3;
+				g = gammatable[vid_gamma][g_channel] & ~3;
+				b = gammatable[vid_gamma][b_channel] & ~3;
+
+				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+			}
+		}
+	}
+
+	W_ReleaseLumpName("COLORMAP");
+#endif
     // [crispy] initialize color translation and color strings tables
     {
         byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
@@ -615,6 +730,31 @@ void R_InitColormaps(void)
         W_ReleaseLumpName("PLAYPAL");
     }
 }
+
+#ifdef CRISPY_TRUECOLOR
+// [crispy] Changes palette to E2PAL. Used exclusively in true color rendering
+// for proper drawing of E2END pic in F_DrawUnderwater. Changing palette back to
+// original PLAYPAL for restoring proper colors will be done in R_InitColormaps.
+void R_SetUnderwaterPalette(void)
+{
+    int i, j = 0;
+    byte r, g, b;
+    byte *playpal;
+
+    playpal = W_CacheLumpName("E2PAL", PU_STATIC);
+
+    for (i = 0; i < 256; i++)
+    {
+        r = gammatable[vid_gamma][playpal[3 * i + 0]] + gammatable[vid_gamma][0];
+        g = gammatable[vid_gamma][playpal[3 * i + 1]] + gammatable[vid_gamma][0];
+        b = gammatable[vid_gamma][playpal[3 * i + 2]] + gammatable[vid_gamma][0];
+
+        colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+    }
+
+    W_ReleaseLumpName("E2PAL");
+}
+#endif
 
 
 /*

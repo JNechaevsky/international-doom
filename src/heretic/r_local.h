@@ -168,7 +168,7 @@ typedef struct
 ==============================================================================
 */
 
-typedef byte lighttable_t;      // this could be wider for >8 bit display
+typedef pixel_t lighttable_t;      // this could be wider for >8 bit display
 
 #define	MAXVISPLANES	128
 #define	MAXOPENINGS		SCREENWIDTH*64
@@ -234,6 +234,9 @@ typedef struct vissprite_s
     int mobjflags;              // for color translation and shadow draw
     boolean psprite;            // true if psprite
     fixed_t footclip;           // foot clipping
+#ifdef CRISPY_TRUECOLOR
+    const pixel_t (*blendfunc)(const pixel_t fg, const pixel_t bg);
+#endif
 } vissprite_t;
 
 
@@ -494,6 +497,7 @@ extern int dc_yh;
 extern fixed_t dc_iscale;
 extern fixed_t dc_texturemid;
 extern byte *dc_source;         // first pixel in a column
+extern pixel_t *ylookup[MAXHEIGHT];
 
 void R_DrawColumn(void);
 void R_DrawColumnLow(void);

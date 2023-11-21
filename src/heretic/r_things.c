@@ -23,6 +23,7 @@
 #include "i_swap.h"
 #include "i_system.h"
 #include "r_local.h"
+#include "v_trans.h" // [crispy] blending functions
 
 #include "id_vars.h"
 
@@ -397,6 +398,9 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
         {                       // Draw using shadow column function
             colfunc = tlcolfunc;
         }
+#ifdef CRISPY_TRUECOLOR
+        blendfunc = vis->blendfunc;
+#endif
     }
     else if (vis->mobjflags & MF_TRANSLATION)
     {
@@ -446,6 +450,9 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
     }
 
     colfunc = basecolfunc;
+#ifdef CRISPY_TRUECOLOR
+    blendfunc = I_BlendOverTinttab;
+#endif
 }
 
 
@@ -654,6 +661,15 @@ void R_ProjectSprite(mobj_t * thing)
             index = MAXLIGHTSCALE - 1;
         vis->colormap = spritelights[index];
     }
+
+#ifdef CRISPY_TRUECOLOR
+    if (thing->flags & MF_SHADOW)
+    {
+        // [crispy] not using additive blending (I_BlendAdd) here 
+        // to preserve look & feel of original Heretic's translucency
+        vis->blendfunc = I_BlendOverTinttab;
+    }
+#endif
 }
 
 
@@ -804,6 +820,9 @@ void R_DrawPSprite(pspdef_t * psp)
         // Invisibility
         vis->colormap = spritelights[MAXLIGHTSCALE - 1];
         vis->mobjflags |= MF_SHADOW;
+#ifdef CRISPY_TRUECOLOR
+        vis->blendfunc = I_BlendOverTinttab;
+#endif
     }
     else if (fixedcolormap)
     {

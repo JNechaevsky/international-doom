@@ -434,6 +434,7 @@ static void DrSmallNumber(int val, int x, int y)
 
 static void ShadeLine(int x, int y, int height, int shade)
 {
+#ifndef CRISPY_TRUECOLOR
     byte *dest;
     byte *shades;
 
@@ -450,6 +451,9 @@ static void ShadeLine(int x, int y, int height, int shade)
         *(dest) = *(shades + *dest);
         dest += SCREENWIDTH;
     }
+#else
+    // [JN] TODO - chain shading
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -899,7 +903,9 @@ void SB_PaletteFlash(void)
 {
     static int sb_palette = 0;
     int palette;
+#ifndef CRISPY_TRUECOLOR
     byte *pal;
+#endif
 
     CPlayer = &players[consoleplayer];
 
@@ -928,8 +934,12 @@ void SB_PaletteFlash(void)
     if (palette != sb_palette)
     {
         sb_palette = palette;
+#ifndef CRISPY_TRUECOLOR
         pal = (byte *) W_CacheLumpNum(playpalette, PU_CACHE) + palette * 768;
         I_SetPalette(pal);
+#else
+        I_SetPalette(palette);
+#endif
     }
 }
 

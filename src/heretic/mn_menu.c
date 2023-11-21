@@ -1009,7 +1009,11 @@ static boolean CRL_Gamma (int option)
         default:
             break;
     }
+#ifndef CRISPY_TRUECOLOR
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+#else
+    I_SetPalette(0);
+#endif
     return true;
 }
 
@@ -4010,8 +4014,12 @@ boolean MN_Responder(event_t * event)
                     //set the msg to be cleared
                     players[consoleplayer].message = NULL;
                     paused = false;
+#ifndef CRISPY_TRUECOLOR
                     I_SetPalette(W_CacheLumpName
                                  ("PLAYPAL", PU_CACHE));
+#else
+                    I_SetPalette(0);
+#endif
                     D_StartTitle();     // go to intro/demo mode.
                     break;
 
@@ -4260,7 +4268,17 @@ boolean MN_Responder(event_t * event)
                 vid_gamma = 0;
             }
             P_SetMessage(&players[consoleplayer], gammamsg[vid_gamma], false);
+#ifndef CRISPY_TRUECOLOR
             I_SetPalette((byte *) W_CacheLumpName("PLAYPAL", PU_CACHE));
+#else
+            {
+            extern void R_InitColormaps (void);
+            I_SetPalette(0);
+            R_InitColormaps();
+            BorderNeedRefresh = true;
+            SB_state = -1;
+            }
+#endif
             return true;
         }
         // [crispy] those two can be considered as shortcuts for the IDCLEV cheat

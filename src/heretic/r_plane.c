@@ -406,11 +406,10 @@ void R_DrawPlanes(void)
     int angle;
     byte *tempSource;
 
-    byte *dest;
+    pixel_t *dest;
     int count;
     fixed_t frac, fracstep;
 
-    extern byte *ylookup[MAXHEIGHT];
     extern int columnofs[MAXWIDTH];
 
     // [JN] CRL - openings counter.
@@ -465,7 +464,11 @@ void R_DrawPlanes(void)
                     frac = (dc_texturemid >> FRACBITS) + (dc_yl - centery);
                     do
                     {
+#ifndef CRISPY_TRUECOLOR
                         *dest = dc_source[frac];
+#else
+                        *dest = colormaps[dc_source[frac]];
+#endif
                         dest += SCREENWIDTH;
                         frac += fracstep;
                     }
