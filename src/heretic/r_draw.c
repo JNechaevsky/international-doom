@@ -394,15 +394,15 @@ void R_DrawViewBorder(void)
 
     for (y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++)
     {
-        for (x = 0; x < SCREENWIDTH / 64; x++)
+        for (x = 0; x < SCREENWIDTH; x++)
         {
-            memcpy(dest, src + ((y & 63) << 6), 64);
-            dest += 64;
-        }
-        if (SCREENWIDTH & 63)
-        {
-            memcpy(dest, src + ((y & 63) << 6), SCREENWIDTH & 63);
-            dest += (SCREENWIDTH & 63);
+#ifndef CRISPY_TRUECOLOR
+            *dest++ = src[(((y >> vid_hires) & 63) << 6) 
+                         + ((x >> vid_hires) & 63)];
+#else
+            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
+                                   + ((x >> vid_hires) & 63)]];
+#endif
         }
     }
     for (x = (viewwindowx >> vid_hires); x < (viewwindowx + viewwidth) >> vid_hires; x += 16)
@@ -465,15 +465,15 @@ void R_DrawTopBorder(void)
 
     for (y = 0; y < (30 << vid_hires); y++)
     {
-        for (x = 0; x < SCREENWIDTH / 64; x++)
+        for (x = 0; x < SCREENWIDTH; x++)
         {
-            memcpy(dest, src + ((y & 63) << 6), 64);
-            dest += 64;
-        }
-        if (SCREENWIDTH & 63)
-        {
-            memcpy(dest, src + ((y & 63) << 6), SCREENWIDTH & 63);
-            dest += (SCREENWIDTH & 63);
+#ifndef CRISPY_TRUECOLOR
+            *dest++ = src[(((y >> vid_hires) & 63) << 6) 
+                         + ((x >> vid_hires) & 63)];
+#else
+            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
+                                   + ((x >> vid_hires) & 63)]];
+#endif
         }
     }
     if ((viewwindowy >> vid_hires) < 25)

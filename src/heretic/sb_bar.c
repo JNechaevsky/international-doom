@@ -84,6 +84,9 @@ int ArtifactFlash;
 
 static int DisplayTicker = 0;
 
+// [crispy] for widescreen status bar background
+pixel_t *st_backing_screen;
+
 // Private Data
 
 static int HealthMarker;
@@ -246,6 +249,8 @@ void SB_Init(void)
     playpalette = W_GetNumForName(DEH_String("PLAYPAL"));
     spinbooklump = W_GetNumForName(DEH_String("SPINBK0"));
     spinflylump = W_GetNumForName(DEH_String("SPFLY0"));
+
+    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (42 << 2) * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 
 //---------------------------------------------------------------------------
@@ -432,10 +437,16 @@ static void ShadeLine(int x, int y, int height, int shade)
     byte *dest;
     byte *shades;
 
+    x <<= vid_hires;
+    y <<= vid_hires;
+    height <<= vid_hires;
+
     shades = colormaps + 9 * 256 + shade * 2 * 256;
-    dest = I_VideoBuffer + y * SCREENWIDTH + x;
+    dest = I_VideoBuffer + y * SCREENWIDTH + x + (WIDESCREENDELTA << vid_hires);
     while (height--)
     {
+        if (vid_hires)
+            *(dest + 1) = *(shades + *dest);
         *(dest) = *(shades + *dest);
         dest += SCREENWIDTH;
     }
@@ -571,10 +582,63 @@ void SB_ForceRedraw(void)
 {
     SB_state = -1;
 }
+
+// [crispy] Create background texture which appears at each side of the status
+// bar in widescreen rendering modes. The chosen textures match those which
+// surround the non-fullscreen game window.
+static void RefreshBackground()
+{
+    V_UseBuffer(st_backing_screen);
+
+    if ((SCREENWIDTH >> vid_hires) != ORIGWIDTH)
+    {
+        int x, y;
+        byte *src;
+        pixel_t *dest;
+        const char *name = (gamemode == shareware) ?
+                           DEH_String("FLOOR04") :
+                           DEH_String("FLAT513");
+
+        src = W_CacheLumpName(name, PU_CACHE);
+        dest = st_backing_screen;
+
+        for (y = SCREENHEIGHT - (42 << vid_hires); y < SCREENHEIGHT; y++)
+        {
+            for (x = 0; x < SCREENWIDTH; x++)
+            {
+#ifndef CRISPY_TRUECOLOR
+                //*dest++ = src[((y & 63) << 6) + (x & 63)];
+                *dest++ = src[(((y >> vid_hires) & 63) << 6) 
+                             + ((x >> vid_hires) & 63)];
+#else
+                *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
+                                       + ((x >> vid_hires) & 63)]];
+#endif
+            }
+        }
+
+        // [crispy] preserve bezel bottom edge
+        if (scaledviewwidth == SCREENWIDTH)
+        {
+            patch_t *const patch = W_CacheLumpName("bordb", PU_CACHE);
+
+            for (x = 0; x < WIDESCREENDELTA; x += 16)
+            {
+                V_DrawPatch(x - WIDESCREENDELTA, 0, patch);
+                V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 16, 0, patch);
+            }
+        }
+    }
+
+    V_RestoreBuffer();
+    V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, 42 << vid_hires, 0, 158 << vid_hires);
+}
+
 void SB_Drawer(void)
 {
     int frame;
     static boolean hitCenterFrame;
+    int spinfly_x, spinbook_x; // [crispy]
 
     // Sound info debug stuff
     if (DebugSound == true)
@@ -582,20 +646,29 @@ void SB_Drawer(void)
         DrawSoundInfo();
     }
     CPlayer = &players[consoleplayer];
-    if (viewheight == SCREENHEIGHT && !automapactive)
+    if (viewheight == SCREENHEIGHT && (!automapactive || automap_overlay))
     {
         DrawFullScreenStuff();
         SB_state = -1;
     }
     else
     {
-        // [JN] CRL - always do full status bar update, as we drawing
-        // everything below automap for proper render counter values.
-        SB_state = -1;
-
         if (SB_state == -1)
         {
-            V_DrawPatch(0, 158, PatchBARBACK);
+            RefreshBackground(); // [crispy] for widescreen
+
+            // [crispy] support wide status bars with 0 offset
+            if (SHORT(PatchBARBACK->width) > ORIGWIDTH &&
+                    SHORT(PatchBARBACK->leftoffset) == 0)
+            {
+                V_DrawPatch((ORIGWIDTH - SHORT(PatchBARBACK->width)) / 2, 158,
+                        PatchBARBACK);
+            }
+            else
+            {
+                V_DrawPatch(0, 158, PatchBARBACK);
+            }
+
             if (players[consoleplayer].cheats & CF_GODMODE)
             {
                 V_DrawPatch(16, 167,
@@ -638,6 +711,12 @@ void SB_Drawer(void)
     // Flight icons
     if (CPlayer->powers[pw_flight])
     {
+        spinfly_x = 20 - WIDESCREENDELTA; // [crispy]
+
+        // [crispy] Move flight icon out of the way of stats widget.
+        // left_widget_w is 0 if stats widget is off.
+        spinfly_x += 0;// left_widget_w;
+
         if (CPlayer->powers[pw_flight] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_flight] & 16))
         {
@@ -646,13 +725,15 @@ void SB_Drawer(void)
             {
                 if (hitCenterFrame && (frame != 15 && frame != 0))
                 {
-                    V_DrawPatch(20, 17, W_CacheLumpNum(spinflylump + 15,
-                                                       PU_CACHE));
+                    V_DrawPatch(spinfly_x, 17,
+                                W_CacheLumpNum(spinflylump + 15,
+                                                PU_CACHE));
                 }
                 else
                 {
-                    V_DrawPatch(20, 17, W_CacheLumpNum(spinflylump + frame,
-                                                       PU_CACHE));
+                    V_DrawPatch(spinfly_x, 17,
+                                W_CacheLumpNum(spinflylump + frame,
+                                                PU_CACHE));
                     hitCenterFrame = false;
                 }
             }
@@ -660,14 +741,16 @@ void SB_Drawer(void)
             {
                 if (!hitCenterFrame && (frame != 15 && frame != 0))
                 {
-                    V_DrawPatch(20, 17, W_CacheLumpNum(spinflylump + frame,
-                                                       PU_CACHE));
+                    V_DrawPatch(spinfly_x, 17,
+                                W_CacheLumpNum(spinflylump + frame,
+                                                PU_CACHE));
                     hitCenterFrame = false;
                 }
                 else
                 {
-                    V_DrawPatch(20, 17, W_CacheLumpNum(spinflylump + 15,
-                                                       PU_CACHE));
+                    V_DrawPatch(spinfly_x, 17,
+                                W_CacheLumpNum(spinflylump + 15,
+                                                PU_CACHE));
                     hitCenterFrame = true;
                 }
             }
@@ -683,11 +766,17 @@ void SB_Drawer(void)
 
     if (CPlayer->powers[pw_weaponlevel2] && !CPlayer->chickenTics)
     {
+        spinbook_x = 300 + WIDESCREENDELTA; // [crispy]
+
+        // [crispy] Move tome icon out of the way of coordinates widget and fps
+        // counter. right_widget_w is 0 if those are off.
+        spinbook_x -= 0; //right_widget_w;
+
         if (CPlayer->powers[pw_weaponlevel2] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_weaponlevel2] & 16))
         {
             frame = (leveltime / 3) & 15;
-            V_DrawPatch(300, 17,
+            V_DrawPatch(spinbook_x, 17,
                         W_CacheLumpNum(spinbooklump + frame, PU_CACHE));
             BorderTopRefresh = true;
             UpdateState |= I_MESSAGES;
@@ -853,7 +942,6 @@ void SB_PaletteFlash(void)
 void DrawCommonBar(void)
 {
     int chainY;
-    int chainYY;
     int healthPos;
 
     V_DrawPatch(0, 148, PatchLTFCTOP);
@@ -874,12 +962,9 @@ void DrawCommonBar(void)
         healthPos = (healthPos * 256) / 100;
         chainY =
             (HealthMarker == CPlayer->mo->health) ? 191 : 191 + ChainWiggle;
-        // [JN] TODO - something wrong with chain wiggling.
-        chainYY = 
-            (HealthMarker == CPlayer->mo->health) ? chainY : 191;
         V_DrawPatch(0, 190, PatchCHAINBACK);
-        V_DrawPatch(2 + (healthPos % 17), chainYY, PatchCHAIN);
-        V_DrawPatch(17 + healthPos, chainYY, PatchLIFEGEM);
+        V_DrawPatch(2 + (healthPos % 17), chainY, PatchCHAIN);
+        V_DrawPatch(17 + healthPos, chainY, PatchLIFEGEM);
         V_DrawPatch(0, 190, PatchLTFACE);
         V_DrawPatch(276, 190, PatchRTFACE);
         ShadeChain();
@@ -1045,11 +1130,13 @@ void DrawInventoryBar(void)
     V_DrawPatch(50 + curpos * 31, 189, PatchSELECTBOX);
     if (x != 0)
     {
-        V_DrawPatch(38, 159, !(leveltime & 4) ? PatchINVLFGEM1 : PatchINVLFGEM2);
+        V_DrawPatch(38, 159, !(leveltime & 4) ? PatchINVLFGEM1 :
+                    PatchINVLFGEM2);
     }
     if (CPlayer->inventorySlotNum - x > 7)
     {
-        V_DrawPatch(269, 159, !(leveltime & 4) ? PatchINVRTGEM1 : PatchINVRTGEM2);
+        V_DrawPatch(269, 159, !(leveltime & 4) ?
+                    PatchINVRTGEM1 : PatchINVRTGEM2);
     }
 }
 
