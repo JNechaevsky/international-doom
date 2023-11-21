@@ -212,7 +212,7 @@ void R_DrawTranslatedColumn(void)
 void R_DrawTranslatedTLColumn(void)
 {
     int count;
-    byte *dest;
+    pixel_t *dest;
     fixed_t frac, fracstep;
 
     count = dc_yh - dc_yl;
@@ -375,6 +375,8 @@ void R_InitBuffer(int width, int height)
         viewwindowy = 0;
     else
         viewwindowy = (SCREENHEIGHT - SBARHEIGHT - height) >> 1;
+    // [crispy] make sure viewwindowy is always an even number
+    viewwindowy &= ~1;
     for (i = 0; i < height; i++)
         ylookup[i] = I_VideoBuffer + (i + viewwindowy) * SCREENWIDTH;
 }
@@ -412,16 +414,24 @@ void R_DrawViewBorder(void)
 
     for (y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++)
     {
+#ifndef CRISPY_TRUECOLOR
+        for (x = 0; x < SCREENWIDTH / 64; x++)
+        {
+            memcpy(dest, src + ((y & 63) << 6), 64);
+            dest += 64;
+        }
+        if (SCREENWIDTH & 63)
+        {
+            memcpy(dest, src + ((y & 63) << 6), SCREENWIDTH & 63);
+            dest += (SCREENWIDTH & 63);
+        }
+#else
         for (x = 0; x < SCREENWIDTH; x++)
         {
-#ifndef CRISPY_TRUECOLOR
-            *dest++ = src[(((y >> vid_hires) & 63) << 6) 
-                         + ((x >> vid_hires) & 63)];
-#else
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
+            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6)
                                    + ((x >> vid_hires) & 63)]];
-#endif
         }
+#endif
     }
     for (x = (viewwindowx >> vid_hires); x < (viewwindowx + viewwidth) >> vid_hires; x += 16)
     {
@@ -483,16 +493,24 @@ void R_DrawTopBorder(void)
 
     for (y = 0; y < (30 << vid_hires); y++)
     {
+#ifndef CRISPY_TRUECOLOR
+        for (x = 0; x < SCREENWIDTH / 64; x++)
+        {
+            memcpy(dest, src + ((y & 63) << 6), 64);
+            dest += 64;
+        }
+        if (SCREENWIDTH & 63)
+        {
+            memcpy(dest, src + ((y & 63) << 6), SCREENWIDTH & 63);
+            dest += (SCREENWIDTH & 63);
+        }
+#else
         for (x = 0; x < SCREENWIDTH; x++)
         {
-#ifndef CRISPY_TRUECOLOR
-            *dest++ = src[(((y >> vid_hires) & 63) << 6) 
-                         + ((x >> vid_hires) & 63)];
-#else
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
+            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6)
                                    + ((x >> vid_hires) & 63)]];
-#endif
         }
+#endif
     }
     if ((viewwindowy >> vid_hires) < 25)
     {
