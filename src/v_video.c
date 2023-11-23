@@ -172,19 +172,27 @@ static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t sou
 #endif
 
 // [JN] The shadow of the patch rendering functions:
-// (0) Doom
+// Doom
 static const inline pixel_t drawshadow (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return shadowmap[(dest<<8)];}
 #else
 {return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
 #endif
-// (1) Heretic (TINTTAB)
-static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t source)
+// Heretic
+// (1) normal, translucent patch
+static const inline pixel_t drawtinttab0 (const pixel_t dest, const pixel_t source)
+#ifndef CRISPY_TRUECOLOR
+{return tinttable[(dest<<8)+source];}
+#else
+{return I_BlendOverTinttab(dest, colormaps[source]);}
+#endif
+// (2) translucent shadow only
+static const inline pixel_t drawtinttab1 (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[(dest<<8)];}
 #else
-{return I_BlendDark(dest, 0xB4);} // [JN] 180 (30%) of 256 full translucency.
+{return I_BlendDark(dest, 0xB4);}
 #endif
 
 // [crispy] array of function pointers holding the different rendering functions
@@ -192,7 +200,7 @@ typedef const pixel_t drawpatchpx_t (const pixel_t dest, const pixel_t source);
 static drawpatchpx_t *const drawpatchpx_a[2][2] = {{drawpatchpx11, drawpatchpx10}, {drawpatchpx01, drawpatchpx00}};
 // [JN] Pointers of handling patch shadows:
 static drawpatchpx_t *const drawshadow_a = drawshadow;
-static drawpatchpx_t *const drawtinttab_a = drawtinttab;
+static drawpatchpx_t *const drawtinttab_a[2] = {drawtinttab0, drawtinttab1};
 
 static fixed_t dx, dxi, dy, dyi;
 
@@ -305,7 +313,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     // [JN] Patch itself: opaque, can be colored.
     drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
     // [crispy] shadow, no coloring or color-translation are used
-    drawpatchpx_t *const drawpatchpx2 = drawtinttab_a;
+    drawpatchpx_t *const drawpatchpx2 = drawtinttab_a[1];
 
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
@@ -419,7 +427,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
             drawpatchpx2 = drawshadow_a;
         break;
         case 1: // Heretic
-            drawpatchpx2 = drawtinttab_a;
+            drawpatchpx2 = drawtinttab_a[1];
         break;
     }
 
@@ -647,6 +655,9 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
     byte *source;
     int w;
 
+    // [crispy] translucent patch, no coloring or color-translation are used
+    drawpatchpx_t *const drawpatchpx = drawtinttab_a[dp_translucent];
+
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
     x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
@@ -678,7 +689,7 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
 
             while (count--)
             {
-                *dest = tinttable[*dest + ((source[srccol >> FRACBITS]) << 8)];
+                *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
                 srccol += dyi;
                 dest += SCREENWIDTH;
             }
