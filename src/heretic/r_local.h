@@ -501,6 +501,7 @@ extern int dc_yl;
 extern int dc_yh;
 extern fixed_t dc_iscale;
 extern fixed_t dc_texturemid;
+extern int dc_texheight;
 extern byte *dc_source;         // first pixel in a column
 extern pixel_t *ylookup[MAXHEIGHT];
 
