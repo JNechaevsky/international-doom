@@ -51,8 +51,8 @@ fixed_t pspritescale, pspriteiscale;
 lighttable_t **spritelights;
 
 // constant arrays used for psprite clipping and initializing clipping
-int negonearray[MAXWIDTH];        // [JN] 32-bit integer math
-int screenheightarray[MAXWIDTH];  // [JN] 32-bit integer math
+int negonearray[MAXWIDTH];       // [crispy] 32-bit integer math
+int screenheightarray[MAXWIDTH]; // [crispy] 32-bit integer math
 
 /*
 ===============================================================================
@@ -147,9 +147,9 @@ void R_InstallSpriteLump(int lump, unsigned frame, unsigned rotation,
 =================
 */
 
-void R_InitSpriteDefs(char **namelist)
+void R_InitSpriteDefs(const char **namelist)
 {
-    char **check;
+    const char **check;
     int i, l, frame, rotation;
     int start, end;
 
@@ -248,8 +248,9 @@ void R_InitSpriteDefs(char **namelist)
 ===============================================================================
 */
 
-vissprite_t vissprites[REALMAXVISSPRITES], *vissprite_p;
+vissprite_t *vissprites = NULL, *vissprite_p;
 int newvissprite;
+static int numvissprites;
 
 
 /*
@@ -261,7 +262,7 @@ int newvissprite;
 ===================
 */
 
-void R_InitSprites(char **namelist)
+void R_InitSprites(const char **namelist)
 {
     int i;
 
@@ -301,9 +302,31 @@ vissprite_t overflowsprite;
 
 vissprite_t *R_NewVisSprite(void)
 {
-    // TODO
-    if (vissprite_p == &vissprites[MAXVISSPRITES])
+    // [crispy] remove MAXVISSPRITE limit
+    if (vissprite_p == &vissprites[numvissprites])
+    {
+	static int cap;
+	int numvissprites_old = numvissprites;
+
+	// [crispy] cap MAXVISSPRITES limit at 4096
+	if (!cap && numvissprites == 32 * MAXVISSPRITES)
+	{
+	    fprintf(stderr, "R_NewVisSprite: MAXVISSPRITES limit capped at %d.\n", numvissprites);
+	    cap++;
+	}
+
+	if (cap)
         return &overflowsprite;
+
+	numvissprites = numvissprites ? 2 * numvissprites : MAXVISSPRITES;
+	vissprites = I_Realloc(vissprites, numvissprites * sizeof(*vissprites));
+	memset(vissprites + numvissprites_old, 0, (numvissprites - numvissprites_old) * sizeof(*vissprites));
+
+	vissprite_p = vissprites + numvissprites_old;
+
+	if (numvissprites_old)
+	    fprintf(stderr, "R_NewVisSprite: Hit MAXVISSPRITES limit at %d, raised to %d.\n", numvissprites_old, numvissprites);
+    }
     vissprite_p++;
     return vissprite_p - 1;
 }
@@ -318,15 +341,15 @@ vissprite_t *R_NewVisSprite(void)
 ================
 */
 
-int *mfloorclip;    // [JN] 32-bit integer math
-int *mceilingclip;  // [JN] 32-bit integer math
+int *mfloorclip;   // [crispy] 32-bit integer math
+int *mceilingclip; // [crispy] 32-bit integer math
 fixed_t spryscale;
-fixed_t sprtopscreen;
+int64_t sprtopscreen; // [crispy] WiggleFix
 fixed_t sprbotscreen;
 
 void R_DrawMaskedColumn(column_t * column, signed int baseclip)
 {
-    int topscreen, bottomscreen;
+    int64_t topscreen, bottomscreen; // [crispy] WiggleFix
     fixed_t basetexturemid;
 
     basetexturemid = dc_texturemid;
@@ -337,8 +360,8 @@ void R_DrawMaskedColumn(column_t * column, signed int baseclip)
 // calculate unclipped screen coordinates for post
         topscreen = sprtopscreen + spryscale * column->topdelta;
         bottomscreen = topscreen + spryscale * column->length;
-        dc_yl = (topscreen + FRACUNIT - 1) >> FRACBITS;
-        dc_yh = (bottomscreen - 1) >> FRACBITS;
+        dc_yl = (int)((topscreen + FRACUNIT - 1) >> FRACBITS); // [crispy] WiggleFix
+        dc_yh = (int)((bottomscreen - 1) >> FRACBITS); // [crispy] WiggleFix
 
         if (dc_yh >= mfloorclip[dc_x])
             dc_yh = mfloorclip[dc_x] - 1;
@@ -511,6 +534,7 @@ void R_ProjectSprite(mobj_t * thing)
         interpz = thing->oldz + FixedMul(thing->z - thing->oldz, fractionaltic);
         interpangle = R_InterpolateAngle(thing->oldangle, thing->angle, fractionaltic);
     }
+
     else
     {
         interpx = thing->x;
@@ -518,30 +542,6 @@ void R_ProjectSprite(mobj_t * thing)
         interpz = thing->z;
         interpangle = thing->angle;
     }
-
-    // [JN] ... Hovewer, interpolate player while freeze mode,
-    // so it's sprite won't get desynced with moving camera.
-    // TODO - make it smarter and move to condition above?
-    // TODO
-    /*
-    if (crl_freeze && thing->type == MT_PLAYER)
-    {
-        if (crl_uncapped_fps && realleveltime > oldleveltime)
-        {
-            interpx = thing->oldx + FixedMul(thing->x - thing->oldx, fractionaltic);
-            interpy = thing->oldy + FixedMul(thing->y - thing->oldy, fractionaltic);
-            interpz = thing->oldz + FixedMul(thing->z - thing->oldz, fractionaltic);
-            interpangle = R_InterpolateAngle(thing->oldangle, thing->angle, fractionaltic);
-        }
-        else
-        {
-            interpx = thing->x;
-            interpy = thing->y;
-            interpz = thing->z;
-            interpangle = thing->angle;
-        }
-    }
-    */
 
 //
 // transform the origin point
@@ -716,8 +716,6 @@ void R_AddSprites(sector_t * sec)
 ========================
 */
 
-boolean pspr_interp = true; // interpolate weapon bobbing
-
 int PSpriteSY[NUMWEAPONS] = {
     0,                          // staff
     5 * FRACUNIT,               // goldwand
@@ -729,6 +727,8 @@ int PSpriteSY[NUMWEAPONS] = {
     15 * FRACUNIT,              // gauntlets
     15 * FRACUNIT               // beak
 };
+
+boolean pspr_interp = true; // interpolate weapon bobbing
 
 void R_DrawPSprite(pspdef_t * psp)
 {
@@ -791,8 +791,9 @@ void R_DrawPSprite(pspdef_t * psp)
     vis = &avis;
     vis->mobjflags = 0;
     vis->psprite = true;
+    vis->footclip = 0;
     vis->texturemid =
-        (BASEYCENTER << FRACBITS) + FRACUNIT / 2 - (psp->sy -
+        (BASEYCENTER << FRACBITS) /* + FRACUNIT / 2 */ - (psp->sy -
                                                     spritetopoffset[lump]);
     if (viewheight == SCREENHEIGHT)
     {
@@ -995,8 +996,7 @@ void R_SortVisSprites(void)
 void R_DrawSprite(vissprite_t * spr)
 {
     drawseg_t *ds;
-    int clipbot[SCREENWIDTH];  // [JN] 32-bit integer math
-    int cliptop[SCREENWIDTH];  // [JN] 32-bit integer math
+    int clipbot[MAXWIDTH], cliptop[MAXWIDTH]; // [crispy] 32-bit integer math
     int x, r1, r2;
     fixed_t scale, lowscale;
     int silhouette;

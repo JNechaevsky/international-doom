@@ -1365,9 +1365,11 @@ typedef enum
     NUMSTATES
 } statenum_t;
 
+
 struct mobj_s;
 struct player_s;
 struct pspdef_s;
+
 
 typedef struct
 {
@@ -1380,7 +1382,7 @@ typedef struct
 } state_t;
 
 extern state_t states[NUMSTATES];
-extern char *sprnames[];
+extern const char *sprnames[];
 
 
 

@@ -63,6 +63,14 @@
 typedef struct
 {
     fixed_t x, y;
+
+// [crispy] remove slime trails
+// vertex coordinates *only* used in rendering that have been
+// moved towards the linedef associated with their seg by projecting them
+// using the law of cosines in p_setup.c:P_RemoveSlimeTrails();
+    fixed_t	r_x;
+    fixed_t	r_y;
+    boolean	moved;
 } vertex_t;
 
 struct line_s;
@@ -85,6 +93,10 @@ typedef struct
     void *specialdata;          // thinker_t for reversable actions
     int linecount;
     struct line_s **lines;      // [linecount] size
+
+    // [crispy] WiggleFix: [kb] for R_FixWiggle()
+    int cachedheight;
+    int scaleindex;
 
     // [AM] Previous position of floor and ceiling before
     //      think.  Used to interpolate between positions.
@@ -150,6 +162,9 @@ typedef struct
     line_t *linedef;
     sector_t *frontsector;
     sector_t *backsector;       // NULL for one sided lines
+
+    uint32_t length; // [crispy] fix long wall wobble
+    angle_t r_angle; // [crispy] recalculated angle used for rendering
 } seg_t;
 
 typedef struct
@@ -171,7 +186,7 @@ typedef struct
 typedef pixel_t lighttable_t;      // this could be wider for >8 bit display
 
 #define	MAXVISPLANES	128
-#define	MAXOPENINGS		SCREENWIDTH*64
+#define	MAXOPENINGS		MAXWIDTH*64*4
 
 typedef struct
 {
@@ -180,19 +195,12 @@ typedef struct
     int lightlevel;
     int special;
     int minx, maxx;
-
-    // [JN] CRL visplane data:
-    int         isfindplane;    // Is a find plane.
-    seg_t       *emitline;      // The seg that emitted this.
-    subsector_t *emitsub;       // The subsector this visplane is in.
-
-    // leave pads for [minx-1]/[maxx+1]
-    unsigned short pad1; 
-    unsigned short top[MAXWIDTH];
-    unsigned short pad2;
-    unsigned short pad3;
-    unsigned short bottom[MAXWIDTH];
-    unsigned short pad4;
+    unsigned int pad1;                    // [crispy] hires / 32-bit integer math
+    unsigned int top[MAXWIDTH];        // [crispy] hires / 32-bit integer math
+    unsigned int pad2;                    // [crispy] hires / 32-bit integer math
+    unsigned int pad3;                    // [crispy] hires / 32-bit integer math
+    unsigned int bottom[MAXWIDTH];     // [crispy] hires / 32-bit integer math
+    unsigned int pad4;                    // [crispy] hires / 32-bit integer math
 } visplane_t;
 
 typedef struct drawseg_s
@@ -204,10 +212,9 @@ typedef struct drawseg_s
     fixed_t bsilheight;         // don't clip sprites above this
     fixed_t tsilheight;         // don't clip sprites below this
 // pointers to lists for sprite clipping
-// adjusted so [x1] is first value
-    int *sprtopclip;            // [JN] 32-bit integer math
-    int *sprbottomclip;         // [JN] 32-bit integer math
-    int *maskedtexturecol;      // [JN] 32-bit integer math
+    int *sprtopclip;            // [crispy] 32-bit integer math
+    int *sprbottomclip;         // [crispy] 32-bit integer math
+    int *maskedtexturecol;      // [crispy] 32-bit integer math
 } drawseg_t;
 
 #define	SIL_NONE	0
@@ -216,7 +223,6 @@ typedef struct drawseg_s
 #define	SIL_BOTH	3
 
 #define	MAXDRAWSEGS		256
-#define REALMAXDRAWSEGS	2048
 
 // A vissprite_t is a thing that will be drawn during a refresh
 typedef struct vissprite_s
@@ -339,14 +345,14 @@ extern void R_InterpolateTextureOffsets (void);
 int R_PointOnSide(fixed_t x, fixed_t y, node_t * node);
 int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t * line);
 angle_t R_PointToAngle(fixed_t x, fixed_t y);
+angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y);
 angle_t R_PointToAngle2(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 fixed_t R_PointToDist(fixed_t x, fixed_t y);
 fixed_t R_ScaleFromGlobalAngle(angle_t visangle);
+angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale);
 subsector_t *R_PointInSubsector(fixed_t x, fixed_t y);
 void R_AddPointToBox(int x, int y, fixed_t * box);
 
-// [AM] Interpolate between two angles.
-angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale);
 
 //
 // R_bsp.c
@@ -364,8 +370,8 @@ extern boolean markfloor;       // false if the back side is the same plane
 extern boolean markceiling;
 extern boolean skymap;
 
-extern drawseg_t  drawsegs[REALMAXDRAWSEGS];
-extern drawseg_t *ds_p;
+extern drawseg_t *drawsegs, *ds_p;
+extern int numdrawsegs;
 
 extern lighttable_t **hscalelight, **vscalelight, **dscalelight;
 
@@ -394,18 +400,10 @@ extern planefunction_t floorfunc, ceilingfunc;
 
 extern int skyflatnum;
 
-// [JN] 32-bit integer maths
-extern size_t  maxopenings;            
-extern int    *lastopening;
-extern int    *openings;
+extern int *lastopening;    // [crispy] 32-bit integer math
 
-extern int floorclip[MAXWIDTH];
-extern int ceilingclip[MAXWIDTH];
-
-#define MAXVISPLANES        128
-#define REALMAXVISPLANES    SHRT_MAX
-extern visplane_t  visplanes[MAXVISPLANES];
-extern visplane_t *lastvisplane;
+extern int floorclip[MAXWIDTH];   // [crispy] 32-bit integer math
+extern int ceilingclip[MAXWIDTH]; // [crispy] 32-bit integer math
 
 extern fixed_t *yslope;
 extern fixed_t yslopes[LOOKDIRS][MAXHEIGHT]; // [crispy]
@@ -453,28 +451,25 @@ void R_PrecacheLevel(void);
 //
 // R_things.c
 //
-#define MAXVISSPRITES     128
-#define REALMAXVISSPRITES 1024
+#define	MAXVISSPRITES	128
 
-extern vissprite_t vissprites[REALMAXVISSPRITES], *vissprite_p;
+extern vissprite_t *vissprites, *vissprite_p;
 extern vissprite_t vsprsortedhead;
 
 // constant arrays used for psprite clipping and initializing clipping
-extern int negonearray[MAXWIDTH];
-extern int screenheightarray[MAXWIDTH];
+extern int negonearray[MAXWIDTH];       // [crispy] 32-bit integer math
+extern int screenheightarray[MAXWIDTH]; // [crispy] 32-bit integer math
 
 // vars for R_DrawMaskedColumn
-extern int *mfloorclip;    // [JN] 32-bit integer math
-extern int *mceilingclip;  // [JN] 32-bit integer math
+extern int *mfloorclip;   // [crispy] 32-bit integer math
+extern int *mceilingclip; // [crispy] 32-bit integer math
 extern fixed_t spryscale;
-extern fixed_t sprtopscreen;
+extern int64_t sprtopscreen; // [crispy] WiggleFix
 extern fixed_t sprbotscreen;
 
 extern fixed_t pspritescale, pspriteiscale;
 
-// [crispy] interpolate weapon bobbing
-extern boolean pspr_interp;
-
+extern boolean pspr_interp; // [crispy] interpolate weapon bobbing
 
 void R_DrawMaskedColumn(column_t * column, signed int baseclip);
 
@@ -484,7 +479,7 @@ void R_SortVisSprites(void);
 void R_AddSprites(sector_t * sec);
 void R_AddPSprites(void);
 void R_DrawSprites(void);
-void R_InitSprites(char **namelist);
+void R_InitSprites(const char **namelist);
 void R_ClearSprites(void);
 void R_DrawMasked(void);
 void R_ClipVisSprite(vissprite_t * vis, int xl, int xh);
@@ -525,9 +520,6 @@ extern byte *ds_source;         // start of a 64*64 tile image
 
 extern byte *translationtables;
 extern byte *dc_translation;
-
-// [JN] RestlessRodent -- CRL
-extern visplane_t *dc_visplaneused;
 
 void R_DrawSpan(void);
 void R_DrawSpanLow(void);

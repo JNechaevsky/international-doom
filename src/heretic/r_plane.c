@@ -39,23 +39,19 @@ fixed_t skyiscale;
 // opening
 //
 
-// Here comes the obnoxious "visplane".
-visplane_t visplanes[MAXVISPLANES], *lastvisplane;
+visplane_t *visplanes = NULL, *lastvisplane;
 visplane_t *floorplane, *ceilingplane;
+static int numvisplanes;
 
-// [JN] CRL - remove MAXOPENINGS limit enterily. 
-// Render limits level will still do actual drawing limit.
-size_t  maxopenings;
-int    *openings;     // [JN] 32-bit integer math
-int    *lastopening;  // [JN] 32-bit integer math
+int openings[MAXOPENINGS], *lastopening; // [crispy] 32-bit integer math
 
 //
 // clip values are the solid pixel bounding the range
 // floorclip starts out SCREENHEIGHT
 // ceilingclip starts out -1
 //
-int floorclip[MAXWIDTH];
-int ceilingclip[MAXWIDTH];
+int floorclip[MAXWIDTH];   // [crispy] 32-bit integer math
+int ceilingclip[MAXWIDTH]; // [crispy] 32-bit integer math
 
 //
 // spanstart holds the start of a plane span
@@ -218,6 +214,30 @@ void R_ClearPlanes(void)
 }
 
 
+// [crispy] remove MAXVISPLANES limit
+static void R_RaiseVisplanes (visplane_t** vp)
+{
+    if (lastvisplane - visplanes == numvisplanes)
+    {
+	int numvisplanes_old = numvisplanes;
+	visplane_t* visplanes_old = visplanes;
+
+	numvisplanes = numvisplanes ? 2 * numvisplanes : MAXVISPLANES;
+	visplanes = I_Realloc(visplanes, numvisplanes * sizeof(*visplanes));
+	memset(visplanes + numvisplanes_old, 0, (numvisplanes - numvisplanes_old) * sizeof(*visplanes));
+
+	lastvisplane = visplanes + numvisplanes_old;
+	floorplane = visplanes + (floorplane - visplanes_old);
+	ceilingplane = visplanes + (ceilingplane - visplanes_old);
+
+	if (numvisplanes_old)
+	    fprintf(stderr, "R_FindPlane: Hit MAXVISPLANES limit at %d, raised to %d.\n", numvisplanes_old, numvisplanes);
+
+	// keep the pointer passed as argument in relation to the visplanes pointer
+	if (vp)
+	    *vp = visplanes + (*vp - visplanes_old);
+    }
+}
 
 /*
 ===============
@@ -252,18 +272,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum,
         return (check);
     }
 
-// TODO
-/*
-    if (lastvisplane - visplanes == REALMAXVISPLANES)
-    {
-        // [JN] Print in-game warning.
-        CRL_SetCriticalMessage("R[FINDPLANE:", "CRITICAL VISPLANE OVERFLOW!", 2);
-        longjmp(CRLJustIncaseBuf, CRL_JUMP_VPO);
-    }
-*/
-
-    // [JN] RestlessRodent -- Count plane before write
-    // CRL_CountPlane(check, 1, (intptr_t)(lastvisplane - visplanes));
+    R_RaiseVisplanes(&check);
 
     lastvisplane++;
     check->height = height;
@@ -313,7 +322,7 @@ visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop)
     }
 
     for (x = intrl; x <= intrh; x++)
-        if (pl->top[x] != 0xffffu)
+        if (pl->top[x] != 0xffffffffu) // [crispy] hires / 32-bit integer math
             break;
 
     if (x > intrh)
@@ -325,23 +334,12 @@ visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop)
 
 // make a new visplane
 
+    R_RaiseVisplanes(&pl);
     lastvisplane->height = pl->height;
     lastvisplane->picnum = pl->picnum;
     lastvisplane->lightlevel = pl->lightlevel;
     lastvisplane->special = pl->special;
-
-    if (lastvisplane - visplanes == MAXVISPLANES)
-    {
-        // [JN] Print in-game warning.
-        // CRL_SetCriticalMessage("R[CHECKPLANE:", "CRITICAL VISPLANE OVERFLOW!", 2);
-    }
-
     pl = lastvisplane++;
-
-    // [JN] RestlessRodent -- Count plane before write
-    // TODO
-    // CRL_CountPlane(pl, 0, (intptr_t)((lastvisplane - 1) - visplanes));
-
     pl->minx = start;
     pl->maxx = stop;
     memset(pl->top, 0xff, sizeof(pl->top));
@@ -535,8 +533,8 @@ void R_DrawPlanes(void)
             light = 0;
         planezlight = zlight[light];
 
-        pl->top[pl->maxx + 1] = 0xffffu;
-        pl->top[pl->minx - 1] = 0xffffu;
+        pl->top[pl->maxx + 1] = 0xffffffffu; // [crispy] hires / 32-bit integer math
+        pl->top[pl->minx - 1] = 0xffffffffu; // [crispy] hires / 32-bit integer math
 
         stop = pl->maxx + 1;
         for (x = pl->minx; x <= stop; x++)

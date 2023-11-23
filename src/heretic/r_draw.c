@@ -60,9 +60,6 @@ fixed_t dc_texturemid;
 int dc_texheight;
 byte *dc_source;                // first pixel in a column (possibly virtual)
 
-// [JN] RestlessRodent -- CRL
-visplane_t* dc_visplaneused = NULL;
-
 void R_DrawColumn(void)
 {
     int count;

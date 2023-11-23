@@ -68,6 +68,21 @@ byte *rejectmatrix;             // for fast sight rejection
 
 mapthing_t deathmatchstarts[10], *deathmatch_p;
 mapthing_t playerstarts[MAXPLAYERS];
+boolean playerstartsingame[MAXPLAYERS];
+
+// [crispy] recalculate seg offsets
+// adapted from prboom-plus/src/p_setup.c:474-482
+fixed_t GetOffset(vertex_t *v1, vertex_t *v2)
+{
+    fixed_t dx, dy;
+    fixed_t r;
+
+    dx = (v1->x - v2->x)>>FRACBITS;
+    dy = (v1->y - v2->y)>>FRACBITS;
+    r = (fixed_t)(sqrt(dx*dx + dy*dy))<<FRACBITS;
+
+    return r;
+}
 
 /*
 =================
@@ -94,6 +109,11 @@ void P_LoadVertexes(int lump)
     {
         li->x = SHORT(ml->x) << FRACBITS;
         li->y = SHORT(ml->y) << FRACBITS;
+
+        // [crispy] initialize pseudovertexes with actual vertex coordinates
+        li->r_x = li->x;
+        li->r_y = li->y;
+        li->moved = false;
     }
 
     W_ReleaseLumpNum(lump);
@@ -137,6 +157,8 @@ void P_LoadSegs(int lump)
         side = SHORT(ml->side);
         li->sidedef = &sides[ldef->sidenum[side]];
         li->frontsector = sides[ldef->sidenum[side]].sector;
+        // [crispy] recalculate
+        li->offset = GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
         if (ldef->flags & ML_TWOSIDED)
             li->backsector = sides[ldef->sidenum[side ^ 1]].sector;
         else
@@ -146,6 +168,45 @@ void P_LoadSegs(int lump)
     W_ReleaseLumpNum(lump);
 }
 
+// [crispy] fix long wall wobble
+
+static angle_t anglediff(angle_t a, angle_t b)
+{
+    if (b > a)
+        return anglediff(b, a);
+
+    if (a - b < ANG180)
+        return a - b;
+    else // [crispy] wrap around
+        return b - a;
+}
+
+static void P_SegLengths(void)
+{
+    int i;
+
+    for (i = 0; i < numsegs; i++)
+    {
+        seg_t *const li = &segs[i];
+        int64_t dx, dy;
+
+        dx = li->v2->r_x - li->v1->r_x;
+        dy = li->v2->r_y - li->v1->r_y;
+
+        li->length = (uint32_t)(sqrt((double)dx * dx + (double)dy * dy) / 2);
+
+        // [crispy] re-calculate angle used for rendering
+        viewx = li->v1->r_x;
+        viewy = li->v1->r_y;
+        li->r_angle = R_PointToAngleCrispy(li->v2->r_x, li->v2->r_y);
+        // [crispy] more than just a little adjustment?
+        // back to the original angle then
+        if (anglediff(li->r_angle, li->angle) > ANG60/2)
+        {
+            li->r_angle = li->angle;
+        }
+    }
+}
 
 /*
 =================
@@ -211,6 +272,10 @@ void P_LoadSectors(int lump)
         ss->special = SHORT(ms->special);
         ss->tag = SHORT(ms->tag);
         ss->thinglist = NULL;
+
+        // [crispy] WiggleFix: [kb] for R_FixWiggle()
+        ss->cachedheight = 0;
+
         // [AM] Sector interpolation.  Even if we're
         //      not running uncapped, the renderer still
         //      uses this data.
@@ -294,6 +359,18 @@ void P_LoadThings(int lump)
         spawnthing.type = SHORT(mt->type);
         spawnthing.options = SHORT(mt->options);
         P_SpawnMapThing(&spawnthing);
+    }
+
+    if (!deathmatch)
+    {
+        for (i = 0; i < MAXPLAYERS; i++)
+        {
+            if (playeringame[i] && !playerstartsingame[i])
+            {
+                I_Error("P_LoadThings: Player %d start missing (vanilla crashes here)", i + 1);
+            }
+            playerstartsingame[i] = false;
+        }
     }
 
     W_ReleaseLumpNum(lump);
@@ -549,6 +626,58 @@ void P_GroupLines(void)
 
 //=============================================================================
 
+// [crispy] remove slime trails
+// mostly taken from Lee Killough's implementation in mbfsrc/P_SETUP.C:849-924,
+// with the exception that not the actual vertex coordinates are modified,
+// but separate coordinates that are *only* used in rendering,
+// i.e. r_bsp.c:R_AddLine()
+
+static void P_RemoveSlimeTrails(void)
+{
+    int i;
+
+    for (i = 0; i < numsegs; i++)
+    {
+	const line_t *l = segs[i].linedef;
+	vertex_t *v = segs[i].v1;
+
+	// [crispy] ignore exactly vertical or horizontal linedefs
+	if (l->dx && l->dy)
+	{
+	    do
+	    {
+		// [crispy] vertex wasn't already moved
+		if (!v->moved)
+		{
+		    v->moved = true;
+		    // [crispy] ignore endpoints of linedefs
+		    if (v != l->v1 && v != l->v2)
+		    {
+			// [crispy] move the vertex towards the linedef
+			// by projecting it using the law of cosines
+			int64_t dx2 = (l->dx >> FRACBITS) * (l->dx >> FRACBITS);
+			int64_t dy2 = (l->dy >> FRACBITS) * (l->dy >> FRACBITS);
+			int64_t dxy = (l->dx >> FRACBITS) * (l->dy >> FRACBITS);
+			int64_t s = dx2 + dy2;
+
+			// [crispy] MBF actually overrides v->x and v->y here
+			v->r_x = (fixed_t)((dx2 * v->x + dy2 * l->v1->x + dxy * (v->y - l->v1->y)) / s);
+			v->r_y = (fixed_t)((dy2 * v->y + dx2 * l->v1->y + dxy * (v->x - l->v1->x)) / s);
+
+			// [crispy] wait a minute... moved more than 8 map units?
+			// maybe that's a linguortal then, back to the original coordinates
+			if (abs(v->r_x - v->x) > 8*FRACUNIT || abs(v->r_y - v->y) > 8*FRACUNIT)
+			{
+			    v->r_x = v->x;
+			    v->r_y = v->y;
+			}
+		    }
+		}
+	    // [crispy] if v doesn't point to the second vertex of the seg already, point it there
+	    } while ((v != segs[i].v2) && (v = segs[i].v2));
+	}
+    }
+}
 
 /*
 =================
@@ -611,6 +740,12 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     rejectmatrix = W_CacheLumpNum(lumpnum + ML_REJECT, PU_LEVEL);
     P_GroupLines();
 
+    // [crispy] remove slime trails
+    P_RemoveSlimeTrails();
+
+    // [crispy] fix long wall wobble
+    P_SegLengths();
+
     bodyqueslot = 0;
     deathmatch_p = deathmatchstarts;
     P_InitAmbientSound();
@@ -661,19 +796,6 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 // preload graphics
     if (precache)
         R_PrecacheLevel();
-
-    // [JN] Check if MAX visplanes should be cleared.
-    // If level is same, keep MAX value. Otherwise, reset it.
-    // TODO
-    {
-        static int lastlevel = -1, lastepisode = -1;
-
-        if (lastlevel != gamemap || lastepisode != gameepisode)
-        {
-            lastlevel = gamemap;
-            lastepisode = gameepisode;
-        }
-    }
 
     // [JN] Force to disable spectator mode.
     crl_spectating = 0;
