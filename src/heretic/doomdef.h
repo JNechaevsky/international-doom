@@ -522,6 +522,8 @@ typedef struct player_s
 
 extern gameaction_t gameaction;
 
+extern boolean automapactive;   // In AutoMap mode?
+
 extern boolean paused;
 
 extern GameMode_t gamemode;

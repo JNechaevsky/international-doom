@@ -40,7 +40,6 @@ static const char *finaleflat;
 
 static int FontABaseLump;
 
-extern boolean automapactive;
 extern boolean viewactive;
 
 extern void D_StartTitle(void);

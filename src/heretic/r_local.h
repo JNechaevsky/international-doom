@@ -33,8 +33,6 @@
 
 #define	MINZ			(FRACUNIT*4)
 
-#define	FIELDOFVIEW		2048    // fineangles in the SCREENWIDTH wide window
-
 //
 // lighting constants
 //
@@ -78,6 +76,12 @@ struct line_s;
 typedef struct
 {
     fixed_t floorheight, ceilingheight;
+
+    // [JN] Improved column clipping.
+    fixed_t floor_xoffs,   floor_yoffs;
+    fixed_t ceiling_xoffs, ceiling_yoffs;
+    int     floorlightsec, ceilinglightsec;
+
     short floorpic, ceilingpic;
     short lightlevel;
     short special, tag;
@@ -143,6 +147,17 @@ typedef struct line_s
     sector_t *frontsector, *backsector;
     int validcount;             // if == validcount, already checked
     void *specialdata;          // thinker_t for reversable actions
+
+    // [JN] Improved column clipping.
+    int r_validcount;   // cph: if == gametic, r_flags already done
+    enum {              // cph:
+    RF_TOP_TILE  = 1,   // Upper texture needs tiling
+    RF_MID_TILE  = 2,   // Mid texture needs tiling
+    RF_BOT_TILE  = 4,   // Lower texture needs tiling
+    RF_IGNORE    = 8,   // Renderer can skip this line
+    RF_CLOSED    = 16,  // Line blocks view
+    } r_flags;
+
 } line_t;
 
 
@@ -185,22 +200,25 @@ typedef struct
 
 typedef pixel_t lighttable_t;      // this could be wider for >8 bit display
 
-#define	MAXVISPLANES	128
-#define	MAXOPENINGS		MAXWIDTH*64*4
+extern size_t  maxopenings;         // [JN] 32-bit integer maths
+extern int    *lastopening;
+extern int    *openings;
 
-typedef struct
+typedef struct visplane_s
 {
+    struct visplane_s *next; // [JN] Next visplane in hash chain -- killough
+
     fixed_t height;
     int picnum;
     int lightlevel;
     int special;
     int minx, maxx;
-    unsigned int pad1;                    // [crispy] hires / 32-bit integer math
-    unsigned int top[MAXWIDTH];        // [crispy] hires / 32-bit integer math
-    unsigned int pad2;                    // [crispy] hires / 32-bit integer math
-    unsigned int pad3;                    // [crispy] hires / 32-bit integer math
-    unsigned int bottom[MAXWIDTH];     // [crispy] hires / 32-bit integer math
-    unsigned int pad4;                    // [crispy] hires / 32-bit integer math
+    unsigned short pad1;
+    unsigned short top[MAXWIDTH];
+    unsigned short pad2;
+    unsigned short pad3;
+    unsigned short bottom[MAXWIDTH];
+    unsigned short pad4;
 } visplane_t;
 
 typedef struct drawseg_s
@@ -342,7 +360,7 @@ extern void (*spanfunc) (void);
 // [crispy] smooth texture scrolling
 extern void R_InterpolateTextureOffsets (void);
 
-int R_PointOnSide(fixed_t x, fixed_t y, node_t * node);
+int R_PointOnSide(fixed_t x, fixed_t y, const node_t *node);
 int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t * line);
 angle_t R_PointToAngle(fixed_t x, fixed_t y);
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y);
@@ -370,6 +388,8 @@ extern boolean markfloor;       // false if the back side is the same plane
 extern boolean markceiling;
 extern boolean skymap;
 
+extern byte solidcol[MAXWIDTH];
+
 extern drawseg_t *drawsegs;
 extern drawseg_t *ds_p;
 extern unsigned   maxdrawsegs;
@@ -386,11 +406,12 @@ void R_RenderBSPNode(int bspnum);
 //
 // R_segs.c
 //
-extern int rw_angle1;           // angle to line origin
+extern angle_t rw_angle1;           // angle to line origin
 extern lighttable_t **walllights;
 
 
 void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2);
+extern void R_StoreWallRange (int start, int stop);
 
 
 //
@@ -401,8 +422,6 @@ extern planefunction_t floorfunc, ceilingfunc;
 
 extern int skyflatnum;
 
-extern int *lastopening;    // [crispy] 32-bit integer math
-
 extern int floorclip[MAXWIDTH];   // [crispy] 32-bit integer math
 extern int ceilingclip[MAXWIDTH]; // [crispy] 32-bit integer math
 
@@ -412,12 +431,14 @@ extern fixed_t distscale[MAXWIDTH];
 
 void R_ClearPlanes(void);
 void R_MapPlane(int y, int x1, int x2);
-void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2, unsigned int b2); // [crispy] 32-bit integer math
+extern void R_MakeSpans (unsigned int x, unsigned int t1, unsigned int b1, 
+                         unsigned int t2, unsigned int b2);
 void R_DrawPlanes(void);
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
                         int special);
 visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop);
+extern visplane_t *R_DupPlane (const visplane_t *pl, int start, int stop);
 
 
 //
@@ -470,8 +491,6 @@ extern boolean pspr_interp; // [crispy] interpolate weapon bobbing
 
 void R_DrawMaskedColumn(column_t * column, signed int baseclip);
 
-
-void R_SortVisSprites(void);
 
 void R_AddSprites(sector_t * sec);
 void R_AddPSprites(void);

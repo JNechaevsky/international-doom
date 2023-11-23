@@ -26,40 +26,57 @@
 
 #include "id_vars.h"
 
-int viewangleoffset;
 
-// haleyjd: removed WATCOMC
+// Fineangles in the SCREENWIDTH wide window.
+#define FIELDOFVIEW		2048	
 
-int validcount = 1;             // increment every time a check is made
 
-lighttable_t *fixedcolormap;
 
-int centerx, centery;
-fixed_t centerxfrac, centeryfrac;
-fixed_t projection;
+int			viewangleoffset;
 
-int framecount;                 // just for profiling purposes
+// increment every time a check is made
+int			validcount = 1;		
 
-fixed_t viewx, viewy, viewz;
-angle_t viewangle;
-fixed_t viewcos, viewsin;
-player_t *viewplayer;
 
-int detailshift;                // 0 = high, 1 = low
+lighttable_t*		fixedcolormap;
+
+
+int			centerx;
+int			centery;
+
+fixed_t			centerxfrac;
+fixed_t			centeryfrac;
+fixed_t			projection;
+
+fixed_t			viewx;
+fixed_t			viewy;
+fixed_t			viewz;
+
+angle_t			viewangle;
+
+fixed_t			viewcos;
+fixed_t			viewsin;
+
+player_t*		viewplayer;
+
+// 0 = high, 1 = low
+int			detailshift;	
 
 //
 // precalculated math tables
 //
-angle_t clipangle;
+angle_t			clipangle;
 
-// The viewangletox[viewangle + FINEANGLES/4] lookup maps the visible view
-// angles  to screen X coordinates, flattening the arc to a flat projection
-// plane.  There will be many angles mapped to the same X.
-int viewangletox[FINEANGLES / 2];
+// The viewangletox[viewangle + FINEANGLES/4] lookup
+// maps the visible view angles to screen X coordinates,
+// flattening the arc to a flat projection plane.
+// There will be many angles mapped to the same X. 
+int			viewangletox[FINEANGLES/2];
 
-// The xtoviewangleangle[] table maps a screen pixel to the lowest viewangle
-// that maps back to x ranges from clipangle to -clipangle
-angle_t xtoviewangle[MAXWIDTH + 1];
+// The xtoviewangleangle[] table maps a screen pixel
+// to the lowest viewangle that maps back to x ranges
+// from clipangle to -clipangle.
+angle_t			xtoviewangle[MAXWIDTH+1];
 
 lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
 lighttable_t *scalelightfixed[MAXLIGHTSCALE];
@@ -74,189 +91,241 @@ void (*transcolfunc) (void);
 void (*spanfunc) (void);
 
 void SB_ForceRedraw(void); // [crispy] sb_bar.c
-/*
-===================
-=
-= R_AddPointToBox
-=
-===================
-*/
-
-void R_AddPointToBox(int x, int y, fixed_t * box)
+//
+// R_AddPointToBox
+// Expand a given bbox
+// so that it encloses a given point.
+//
+void
+R_AddPointToBox
+( int		x,
+  int		y,
+  fixed_t*	box )
 {
-    if (x < box[BOXLEFT])
-        box[BOXLEFT] = x;
-    if (x > box[BOXRIGHT])
-        box[BOXRIGHT] = x;
-    if (y < box[BOXBOTTOM])
-        box[BOXBOTTOM] = y;
-    if (y > box[BOXTOP])
-        box[BOXTOP] = y;
+    if (x< box[BOXLEFT])
+	box[BOXLEFT] = x;
+    if (x> box[BOXRIGHT])
+	box[BOXRIGHT] = x;
+    if (y< box[BOXBOTTOM])
+	box[BOXBOTTOM] = y;
+    if (y> box[BOXTOP])
+	box[BOXTOP] = y;
 }
 
 
+// -----------------------------------------------------------------------------
+// R_PointOnSide
+// Traverse BSP (sub) tree, check point against partition plane.
+// Returns side 0 (front) or 1 (back).
+//
+// [JN] killough 5/2/98: reformatted
+// -----------------------------------------------------------------------------
 
-/*
-===============================================================================
-=
-= R_PointOnSide
-=
-= Returns side 0 (front) or 1 (back)
-===============================================================================
-*/
-
-int R_PointOnSide(fixed_t x, fixed_t y, node_t * node)
+int R_PointOnSide (fixed_t x, fixed_t y, const node_t *node)
 {
-    fixed_t dx, dy;
-    fixed_t left, right;
-
     if (!node->dx)
     {
-        if (x <= node->x)
-            return node->dy > 0;
-        return node->dy < 0;
+        return x <= node->x ? node->dy > 0 : node->dy < 0;
     }
+
     if (!node->dy)
     {
-        if (y <= node->y)
-            return node->dx < 0;
-        return node->dx > 0;
+        return y <= node->y ? node->dx < 0 : node->dx > 0;
     }
 
-    dx = (x - node->x);
-    dy = (y - node->y);
+    x -= node->x;
+    y -= node->y;
 
-// try to quickly decide by looking at sign bits
-    if ((node->dy ^ node->dx ^ dx ^ dy) & 0x80000000)
+    // Try to quickly decide by looking at sign bits.
+    if ((node->dy ^ node->dx ^ x ^ y) < 0)
     {
-        if ((node->dy ^ dx) & 0x80000000)
-            return 1;           // (left is negative)
-        return 0;
+        return (node->dy ^ x) < 0;  // (left is negative)
     }
 
-    left = FixedMul(node->dy >> FRACBITS, dx);
-    right = FixedMul(dy, node->dx >> FRACBITS);
-
-    if (right < left)
-        return 0;               // front side
-    return 1;                   // back side
+    return FixedMul(y, node->dx>>FRACBITS) >= FixedMul(node->dy>>FRACBITS, x);		
 }
 
 
-int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t * line)
+int
+R_PointOnSegSide
+( fixed_t	x,
+  fixed_t	y,
+  seg_t*	line )
 {
-    fixed_t lx, ly;
-    fixed_t ldx, ldy;
-    fixed_t dx, dy;
-    fixed_t left, right;
-
+    fixed_t	lx;
+    fixed_t	ly;
+    fixed_t	ldx;
+    fixed_t	ldy;
+    fixed_t	dx;
+    fixed_t	dy;
+    fixed_t	left;
+    fixed_t	right;
+	
     lx = line->v1->x;
     ly = line->v1->y;
-
+	
     ldx = line->v2->x - lx;
     ldy = line->v2->y - ly;
-
+	
     if (!ldx)
     {
-        if (x <= lx)
-            return ldy > 0;
-        return ldy < 0;
+	if (x <= lx)
+	    return ldy > 0;
+	
+	return ldy < 0;
     }
     if (!ldy)
     {
-        if (y <= ly)
-            return ldx < 0;
-        return ldx > 0;
+	if (y <= ly)
+	    return ldx < 0;
+	
+	return ldx > 0;
     }
-
+	
     dx = (x - lx);
     dy = (y - ly);
-
-// try to quickly decide by looking at sign bits
-    if ((ldy ^ ldx ^ dx ^ dy) & 0x80000000)
+	
+    // Try to quickly decide by looking at sign bits.
+    if ( (ldy ^ ldx ^ dx ^ dy)&0x80000000 )
     {
-        if ((ldy ^ dx) & 0x80000000)
-            return 1;           // (left is negative)
-        return 0;
+	if  ( (ldy ^ dx) & 0x80000000 )
+	{
+	    // (left is negative)
+	    return 1;
+	}
+	return 0;
     }
 
-    left = FixedMul(ldy >> FRACBITS, dx);
-    right = FixedMul(dy, ldx >> FRACBITS);
-
+    left = FixedMul ( ldy>>FRACBITS , dx );
+    right = FixedMul ( dy , ldx>>FRACBITS );
+	
     if (right < left)
-        return 0;               // front side
-    return 1;                   // back side
+    {
+	// front side
+	return 0;
+    }
+    // back side
+    return 1;			
 }
+
+
+//
+// R_PointToAngle
+// To get a global angle from cartesian coordinates,
+//  the coordinates are flipped until they are in
+//  the first octant of the coordinate system, then
+//  the y (<=x) is scaled and divided by x to get a
+//  tangent (slope) value which is looked up in the
+//  tantoangle[] table.
+
+//
+
+
 
 
 // [crispy] turned into a general R_PointToAngle() flavor
 // called with either slope_div = SlopeDivCrispy() from R_PointToAngleCrispy()
 // or slope_div = SlopeDiv() else
-/*
-===============================================================================
-=
-= R_PointToAngleSlope
-=
-===============================================================================
-*/
-
-angle_t R_PointToAngleSlope(fixed_t x, fixed_t y,
-            int (*slope_div) (unsigned int num, unsigned int den))
-{
+angle_t
+R_PointToAngleSlope
+( fixed_t	x,
+  fixed_t	y,
+  int (*slope_div) (unsigned int num, unsigned int den))
+{	
     x -= viewx;
     y -= viewy;
-    if ((!x) && (!y))
-        return 0;
-    if (x >= 0)
-    {                           // x >=0
-        if (y >= 0)
-        {                       // y>= 0
-            if (x > y)
-                return tantoangle[slope_div(y, x)];      // octant 0
-            else
-                return ANG90 - 1 - tantoangle[slope_div(x, y)];  // octant 1
-        }
-        else
-        {                       // y<0
-            y = -y;
-            if (x > y)
-                return -tantoangle[slope_div(y, x)];     // octant 8
-            else
-                return ANG270 + tantoangle[slope_div(x, y)];     // octant 7
-        }
+    
+    if ( (!x) && (!y) )
+	return 0;
+
+    if (x>= 0)
+    {
+	// x >=0
+	if (y>= 0)
+	{
+	    // y>= 0
+
+	    if (x>y)
+	    {
+		// octant 0
+		return tantoangle[slope_div(y,x)];
+	    }
+	    else
+	    {
+		// octant 1
+		return ANG90-1-tantoangle[slope_div(x,y)];
+	    }
+	}
+	else
+	{
+	    // y<0
+	    y = -y;
+
+	    if (x>y)
+	    {
+		// octant 8
+		return -tantoangle[slope_div(y,x)];
+	    }
+	    else
+	    {
+		// octant 7
+		return ANG270+tantoangle[slope_div(x,y)];
+	    }
+	}
     }
     else
-    {                           // x<0
-        x = -x;
-        if (y >= 0)
-        {                       // y>= 0
-            if (x > y)
-                return ANG180 - 1 - tantoangle[slope_div(y, x)]; // octant 3
-            else
-                return ANG90 + tantoangle[slope_div(x, y)];      // octant 2
-        }
-        else
-        {                       // y<0
-            y = -y;
-            if (x > y)
-                return ANG180 + tantoangle[slope_div(y, x)];     // octant 4
-            else
-                return ANG270 - 1 - tantoangle[slope_div(x, y)]; // octant 5
-        }
-    }
+    {
+	// x<0
+	x = -x;
 
+	if (y>= 0)
+	{
+	    // y>= 0
+	    if (x>y)
+	    {
+		// octant 3
+		return ANG180-1-tantoangle[slope_div(y,x)];
+	    }
+	    else
+	    {
+		// octant 2
+		return ANG90+ tantoangle[slope_div(x,y)];
+	    }
+	}
+	else
+	{
+	    // y<0
+	    y = -y;
+
+	    if (x>y)
+	    {
+		// octant 4
+		return ANG180+tantoangle[slope_div(y,x)];
+	    }
+	    else
+	    {
+		 // octant 5
+		return ANG270-1-tantoangle[slope_div(x,y)];
+	    }
+	}
+    }
     return 0;
 }
 
-
-angle_t R_PointToAngle(fixed_t x, fixed_t y)
+angle_t
+R_PointToAngle
+( fixed_t	x,
+  fixed_t	y )
 {
-    return R_PointToAngleSlope(x, y, SlopeDiv);
+    return R_PointToAngleSlope (x, y, SlopeDiv);
 }
 
 // [crispy] overflow-safe R_PointToAngle() flavor
 // called only from R_CheckBBox(), R_AddLine() and P_SegLengths()
-angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
+angle_t
+R_PointToAngleCrispy
+( fixed_t	x,
+  fixed_t	y )
 {
     // [crispy] fix overflows for very long distances
     int64_t y_viewy = (int64_t)y - viewy;
@@ -266,44 +335,68 @@ angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
     if (x_viewx < INT_MIN || x_viewx > INT_MAX ||
         y_viewy < INT_MIN || y_viewy > INT_MAX)
     {
-        // [crispy] preserving the angle by halfing the distance in both directions
-        x = x_viewx / 2 + viewx;
-        y = y_viewy / 2 + viewy;
+	// [crispy] preserving the angle by halfing the distance in both directions
+	x = x_viewx / 2 + viewx;
+	y = y_viewy / 2 + viewy;
     }
 
-    return R_PointToAngleSlope(x, y, SlopeDivCrispy);
+    return R_PointToAngleSlope (x, y, SlopeDivCrispy);
 }
 
-angle_t R_PointToAngle2(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
-{
+
+angle_t
+R_PointToAngle2
+( fixed_t	x1,
+  fixed_t	y1,
+  fixed_t	x2,
+  fixed_t	y2 )
+{	
     viewx = x1;
     viewy = y1;
+    
     // [crispy] R_PointToAngle2() is never called during rendering
-    return R_PointToAngleSlope(x2, y2, SlopeDiv);
+    return R_PointToAngleSlope (x2, y2, SlopeDiv);
 }
 
 
-fixed_t R_PointToDist(fixed_t x, fixed_t y)
+fixed_t
+R_PointToDist
+( fixed_t	x,
+  fixed_t	y )
 {
-    int angle;
-    fixed_t dx, dy, temp;
-    fixed_t dist;
-
+    int		angle;
+    fixed_t	dx;
+    fixed_t	dy;
+    fixed_t	temp;
+    fixed_t	dist;
+    fixed_t     frac;
+	
     dx = abs(x - viewx);
     dy = abs(y - viewy);
-
-    if (dy > dx)
+	
+    if (dy>dx)
     {
-        temp = dx;
-        dx = dy;
-        dy = temp;
+	temp = dx;
+	dx = dy;
+	dy = temp;
     }
 
-    angle =
-        (tantoangle[FixedDiv(dy, dx) >> DBITS] + ANG90) >> ANGLETOFINESHIFT;
+    // Fix crashes in udm1.wad
 
-    dist = FixedDiv(dx, finesine[angle]);       // use as cosine
+    if (dx != 0)
+    {
+        frac = FixedDiv(dy, dx);
+    }
+    else
+    {
+	frac = 0;
+    }
+	
+    angle = (tantoangle[frac>>DBITS]+ANG90) >> ANGLETOFINESHIFT;
 
+    // use as cosine
+    dist = FixedDiv (dx, finesine[angle] );	
+	
     return dist;
 }
 
@@ -393,7 +486,6 @@ fixed_t R_ScaleFromGlobalAngle(angle_t visangle)
     return scale;
 }
 #endif
-
 
 // [AM] Interpolate between two angles.
 angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
@@ -766,56 +858,51 @@ void R_Init(void)
     R_InitSkyMap();
     printf (".");
     R_InitTranslationTables();
-    framecount = 0;
 }
 
 
-/*
-==============
-=
-= R_PointInSubsector
-=
-==============
-*/
-
-subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
+//
+// R_PointInSubsector
+//
+subsector_t*
+R_PointInSubsector
+( fixed_t	x,
+  fixed_t	y )
 {
-    node_t *node;
-    int side, nodenum;
+    node_t*	node;
+    int		side;
+    int		nodenum;
 
-    if (!numnodes)              // single subsector is a special case
-        return subsectors;
+    // single subsector is a special case
+    if (!numnodes)				
+	return subsectors;
+		
+    nodenum = numnodes-1;
 
-    nodenum = numnodes - 1;
-
-    while (!(nodenum & NF_SUBSECTOR))
+    while (! (nodenum & NF_SUBSECTOR) )
     {
-        node = &nodes[nodenum];
-        side = R_PointOnSide(x, y, node);
-        nodenum = node->children[side];
+	node = &nodes[nodenum];
+	side = R_PointOnSide (x, y, node);
+	nodenum = node->children[side];
     }
-
+	
     return &subsectors[nodenum & ~NF_SUBSECTOR];
-
 }
 
-//----------------------------------------------------------------------------
-//
-// PROC R_SetupFrame
-//
-//----------------------------------------------------------------------------
 
-void R_SetupFrame(player_t * player)
-{
-    int i;
-    int tableAngle;
-    int tempCentery;
-    int pitch; // [crispy]
 
-    //drawbsp = 1;
+//
+// R_SetupFrame
+//
+void R_SetupFrame (player_t* player)
+{		
+    int		i;
+    int		tableAngle;
+    int		tempCentery;
+    int		pitch;
+
     viewplayer = player;
-    // haleyjd: removed WATCOMC
-    // haleyjd FIXME: viewangleoffset handling?
+    
 
     // [AM] Interpolate the player camera if the feature is enabled.
     if (vid_uncapped_fps &&
@@ -883,7 +970,6 @@ void R_SetupFrame(player_t * player)
     {
         fixedcolormap = 0;
     }
-    framecount++;
     validcount++;
     if (BorderNeedRefresh)
     {
@@ -906,37 +992,48 @@ void R_SetupFrame(player_t * player)
     }
 }
 
-/*
-==============
-=
-= R_RenderView
-=
-==============
-*/
-
-void R_RenderPlayerView(player_t * player)
+//
+// R_RenderView
+//
+void R_RenderPlayerView (player_t *player)
 {
-    extern boolean automapactive;
 
-    R_SetupFrame(player);
-    R_ClearClipSegs();
-    R_ClearDrawSegs();
-    R_ClearPlanes();
-    R_ClearSprites();
+    // Start frame
+    R_SetupFrame (player);
 
+    // Clear buffers.
+    R_ClearClipSegs ();
+    R_ClearDrawSegs ();
+    R_ClearPlanes ();
+    R_ClearSprites ();
     if (automapactive && !automap_overlay)
     {
         R_RenderBSPNode (numnodes-1);
         return;
     }
 
-    NetUpdate();                // check for new console commands
+    // check for new console commands.
+    NetUpdate ();
+
+    // [crispy] smooth texture scrolling
     if (!crl_freeze)
-    R_InterpolateTextureOffsets(); // [crispy] smooth texture scrolling
-    R_RenderBSPNode(numnodes - 1);      // the head node is the last node output
-    NetUpdate();                // check for new console commands
-    R_DrawPlanes();
-    NetUpdate();                // check for new console commands
-    R_DrawMasked();
-    NetUpdate();                // check for new console commands
+    {
+        R_InterpolateTextureOffsets();
+    }
+
+    // The head node is the last node output.
+    R_RenderBSPNode (numnodes-1);
+
+    // Check for new console commands.
+    NetUpdate ();
+
+    R_DrawPlanes ();
+
+    // Check for new console commands.
+    NetUpdate ();
+
+    R_DrawMasked ();
+
+    // Check for new console commands.
+    NetUpdate ();
 }

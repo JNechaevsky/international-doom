@@ -111,6 +111,4 @@ typedef struct
 // extern int f_x, f_y, f_w, f_h;
 extern int ravmap_cheating;
 
-extern boolean automapactive;
-
 #endif
