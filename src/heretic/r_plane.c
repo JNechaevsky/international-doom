@@ -460,14 +460,14 @@ void R_DrawPlanes(void)
 
                     dest = ylookup[dc_yl] + columnofs[dc_x];
 
-                    fracstep = 1;
-                    frac = (dc_texturemid >> FRACBITS) + (dc_yl - centery);
+                    fracstep = dc_iscale;
+                    frac = dc_texturemid + (dc_yl - centery) * fracstep;
                     do
                     {
 #ifndef CRISPY_TRUECOLOR
-                        *dest = dc_source[frac];
+                        *dest = dc_source[frac >> FRACBITS];
 #else
-                        *dest = colormaps[dc_source[frac]];
+                        *dest = colormaps[dc_source[frac >> FRACBITS]];
 #endif
                         dest += SCREENWIDTH;
                         frac += fracstep;
