@@ -161,8 +161,6 @@ void R_GenerateComposite(int texnum)
 //
 // composite the columns together
 //
-    patch = texture->patches;
-
     for (i = 0, patch = texture->patches; i < texture->patchcount;
          i++, patch++)
     {
@@ -227,7 +225,6 @@ void R_GenerateLookup(int texnum)
 //
     patchcount = (byte *) Z_Malloc(texture->width, PU_STATIC, &patchcount);
     memset(patchcount, 0, texture->width);
-    patch = texture->patches;
 
     for (i = 0, patch = texture->patches; i < texture->patchcount;
          i++, patch++)
@@ -769,11 +766,17 @@ void R_SetUnderwaterPalette(void)
 
 void R_InitData(void)
 {
+    // [crispy] Moved R_InitFlats() to the top, because it sets firstflat/lastflat
+    // which are required by R_InitTextures() to prevent flat lumps from being
+    // mistaken as patches and by R_InitBrightmaps() to set brightmaps for flats.
+    // R_InitBrightmaps() comes next, because it sets R_BrightmapForTexName()
+    // to initialize brightmaps depending on gameversion in R_InitTextures().
     //tprintf("\nR_InitTextures ", 0);
+    R_InitFlats();
     R_InitTextures();
     printf (".");
     //tprintf("R_InitFlats\n", 0);
-    R_InitFlats();
+//  R_InitFlats (); [crispy] moved ...
     //IncThermo();
     printf (".");
     //tprintf("R_InitSpriteLumps ", 0);
@@ -799,12 +802,15 @@ int R_FlatNumForName(const char *name)
     int i;
     char namet[9];
 
-    i = W_CheckNumForName(name);
+    i = W_CheckNumForNameFromTo(name, lastflat, firstflat);
     if (i == -1)
     {
         namet[8] = 0;
         memcpy(namet, name, 8);
-        I_Error("R_FlatNumForName: %s not found", namet);
+        fprintf(stderr, "R_FlatNumForName: %s not found\n", namet);
+        // [crispy] since there is no "No Flat" marker,
+        // render missing flats as SKY
+        return skyflatnum;
     }
     return i - firstflat;
 }
@@ -858,7 +864,15 @@ int R_TextureNumForName(const char *name)
 
     i = R_CheckTextureNumForName(name);
     if (i == -1)
-        I_Error("R_TextureNumForName: %s not found", name);
+    {
+        // [crispy] fix absurd texture name in error message
+        char	namet[9];
+        namet[8] = '\0';
+        memcpy (namet, name, 8);
+        // [crispy] make non-fatal
+        fprintf (stderr, "R_TextureNumForName: %s not found\n", namet);
+        return 0;
+    }
 
     return i;
 }

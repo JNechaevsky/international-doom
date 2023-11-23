@@ -415,9 +415,9 @@ void R_DrawPlanes(void)
     // CRLData.numopenings = lastopening - openings;
 
 #ifdef RANGECHECK
-    if (ds_p - drawsegs > MAXDRAWSEGS)
+    if (ds_p - drawsegs > numdrawsegs)
         I_Error("R_DrawPlanes: drawsegs overflow");
-    if (lastvisplane - visplanes > MAXVISPLANES)
+    if (lastvisplane - visplanes > numvisplanes)
         I_Error("R_DrawPlanes: visplane overflow");
     if (lastopening - openings > MAXOPENINGS)
         I_Error("R_DrawPlanes: opening overflow");
