@@ -370,8 +370,9 @@ extern boolean markfloor;       // false if the back side is the same plane
 extern boolean markceiling;
 extern boolean skymap;
 
-extern drawseg_t *drawsegs, *ds_p;
-extern int numdrawsegs;
+extern drawseg_t *drawsegs;
+extern drawseg_t *ds_p;
+extern unsigned   maxdrawsegs;
 
 extern lighttable_t **hscalelight, **vscalelight, **dscalelight;
 
@@ -451,10 +452,6 @@ void R_PrecacheLevel(void);
 //
 // R_things.c
 //
-#define	MAXVISSPRITES	128
-
-extern vissprite_t *vissprites, *vissprite_p;
-extern vissprite_t vsprsortedhead;
 
 // constant arrays used for psprite clipping and initializing clipping
 extern int negonearray[MAXWIDTH];       // [crispy] 32-bit integer math

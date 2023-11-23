@@ -1171,8 +1171,12 @@ void P_SpawnMapThing(mapthing_t * mthing)
     i = P_FindDoomedNum(mthing->type);
 
     if (i == NUMMOBJTYPES)
-        I_Error("P_SpawnMapThing: Unknown type %i at (%i, %i)", mthing->type,
-                mthing->x, mthing->y);
+    {
+        // [crispy] ignore unknown map things
+        printf ("P_SpawnMapThing: Unknown type %i at (%i, %i)\n",
+                mthing->type, mthing->x, mthing->y);
+        return;
+    }
 
 // don't spawn keys and players in deathmatch
     if (deathmatch && mobjinfo[i].flags & MF_NOTDMATCH)
