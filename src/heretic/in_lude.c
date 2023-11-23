@@ -615,7 +615,8 @@ void IN_DrawStatBack(void)
 #else
         for (x = 0; x < SCREENWIDTH; x++)
         {
-            *dest++ = colormaps[src[((y & 63) << 6) + (x & 63)]];
+            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6)
+                                   + ((x >> vid_hires) & 63)]];
         }
 #endif
     }
@@ -830,7 +831,7 @@ void IN_DrawCoopStats(void)
     {
         if (playeringame[i])
         {
-            V_DrawShadowedPatchRaven(25, ypos,
+            V_DrawShadowedPatch(25, ypos,
                                 W_CacheLumpNum(patchFaceOkayBase + i,
                                                PU_CACHE));
             if (intertime < 40)
@@ -845,11 +846,11 @@ void IN_DrawCoopStats(void)
                 sounds++;
             }
             IN_DrawNumber(killPercent[i], 85, ypos + 10, 3);
-            V_DrawShadowedPatchRaven(121, ypos + 10, FontBPercent);
+            V_DrawShadowedPatch(121, ypos + 10, FontBPercent);
             IN_DrawNumber(bonusPercent[i], 160, ypos + 10, 3);
-            V_DrawShadowedPatchRaven(196, ypos + 10, FontBPercent);
+            V_DrawShadowedPatch(196, ypos + 10, FontBPercent);
             IN_DrawNumber(secretPercent[i], 237, ypos + 10, 3);
-            V_DrawShadowedPatchRaven(273, ypos + 10, FontBPercent);
+            V_DrawShadowedPatch(273, ypos + 10, FontBPercent);
             ypos += 37;
         }
     }
@@ -886,12 +887,12 @@ void IN_DrawDMStats(void)
         {
             if (playeringame[i])
             {
-                V_DrawShadowedPatchRaven(40,
+                V_DrawShadowedPatch(40,
                                     ((ypos << FRACBITS) +
                                      dSlideY[i] * intertime) >> FRACBITS,
                                     W_CacheLumpNum(patchFaceOkayBase + i,
                                                    PU_CACHE));
-                V_DrawShadowedPatchRaven(((xpos << FRACBITS) +
+                V_DrawShadowedPatch(((xpos << FRACBITS) +
                                      dSlideX[i] * intertime) >> FRACBITS, 18,
                                     W_CacheLumpNum(patchFaceDeadBase + i,
                                                    PU_CACHE));
@@ -916,10 +917,10 @@ void IN_DrawDMStats(void)
         {
             if (intertime < 100 || i == consoleplayer)
             {
-                V_DrawShadowedPatchRaven(40, ypos,
+                V_DrawShadowedPatch(40, ypos,
                                     W_CacheLumpNum(patchFaceOkayBase + i,
                                                    PU_CACHE));
-                V_DrawShadowedPatchRaven(xpos, 18,
+                V_DrawShadowedPatch(xpos, 18,
                                     W_CacheLumpNum(patchFaceDeadBase + i,
                                                    PU_CACHE));
             }
@@ -1042,14 +1043,14 @@ void IN_DrawNumber(int val, int x, int y, int digits)
     if (digits == 4)
     {
         patch = FontBNumbers[val / 1000];
-        V_DrawShadowedPatchRaven(xpos + 6 - SHORT(patch->width) / 2 - 12, y, patch);
+        V_DrawShadowedPatch(xpos + 6 - SHORT(patch->width) / 2 - 12, y, patch);
     }
     if (digits > 2)
     {
         if (realdigits > 2)
         {
             patch = FontBNumbers[val / 100];
-            V_DrawShadowedPatchRaven(xpos + 6 - SHORT(patch->width) / 2, y, patch);
+            V_DrawShadowedPatch(xpos + 6 - SHORT(patch->width) / 2, y, patch);
         }
         xpos += 12;
     }
@@ -1059,21 +1060,21 @@ void IN_DrawNumber(int val, int x, int y, int digits)
         if (val > 9)
         {
             patch = FontBNumbers[val / 10];
-            V_DrawShadowedPatchRaven(xpos + 6 - SHORT(patch->width) / 2, y, patch);
+            V_DrawShadowedPatch(xpos + 6 - SHORT(patch->width) / 2, y, patch);
         }
         else if (digits == 2 || oldval > 99)
         {
-            V_DrawShadowedPatchRaven(xpos, y, FontBNumbers[0]);
+            V_DrawShadowedPatch(xpos, y, FontBNumbers[0]);
         }
         xpos += 12;
     }
     val = val % 10;
     patch = FontBNumbers[val];
-    V_DrawShadowedPatchRaven(xpos + 6 - SHORT(patch->width) / 2, y, patch);
+    V_DrawShadowedPatch(xpos + 6 - SHORT(patch->width) / 2, y, patch);
     if (neg)
     {
         patch = FontBNegative;
-        V_DrawShadowedPatchRaven(xpos + 6 - SHORT(patch->width) / 2 - 12 * (realdigits),
+        V_DrawShadowedPatch(xpos + 6 - SHORT(patch->width) / 2 - 12 * (realdigits),
                             y, patch);
     }
 }
@@ -1098,7 +1099,7 @@ void IN_DrTextB(const char *text, int x, int y)
         else
         {
             p = W_CacheLumpNum(FontBLump + c - 33, PU_CACHE);
-            V_DrawShadowedPatchRaven(x, y, p);
+            V_DrawShadowedPatch(x, y, p);
             x += SHORT(p->width) - 1;
         }
     }

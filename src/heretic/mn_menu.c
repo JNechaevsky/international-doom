@@ -1023,7 +1023,7 @@ static boolean CRL_Gamma (int option)
 
 static boolean CRL_TextShadows (int option)
 {
-    //crl_text_shadows ^= 1;
+    msg_text_shadows ^= 1;
     return true;
 }
 
@@ -2882,9 +2882,7 @@ void MN_DrTextA (const char *text, int x, int y, byte *table)
         else
         {
             p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
-            //V_DrawShadowedPatchRavenOptional(x, y, p, "NULL"); // [JN] TODO - patch name
-            // TODO
-            V_DrawPatch(x, y, p);
+            V_DrawShadowedPatchOptional(x, y, 1, p);
             x += SHORT(p->width) - 1;
         }
     }
@@ -2941,9 +2939,7 @@ void MN_DrTextACentered (const char *text, int y, byte *table)
         else
         {
             p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
-            // V_DrawShadowedPatchRavenOptional(cx, y, p, "NULL"); // [JN] TODO - patch name
-            // TODO
-            V_DrawPatch(cx, y, p);
+            V_DrawShadowedPatchOptional(cx, y, 1, p);
             cx += SHORT(p->width) - 1;
         }
     }
@@ -2976,9 +2972,7 @@ void MN_DrTextACritical (const char *text1, const char *text2, int y, byte *tabl
         else
         {
             p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
-            //V_DrawShadowedPatchRavenOptional(cx1, y, p, "NULL"); // [JN] TODO - patch name
-            // TODO
-            V_DrawPatch(cx1, y, p);
+            V_DrawShadowedPatchOptional(cx1, y, 1, p);
             cx1 += SHORT(p->width) - 1;
         }
     }
@@ -2992,9 +2986,7 @@ void MN_DrTextACritical (const char *text1, const char *text2, int y, byte *tabl
         else
         {
             p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
-            //V_DrawShadowedPatchRavenOptional(cx2, y+10, p, "NULL"); // [JN] TODO - patch name
-            // TODO
-            V_DrawPatch(cx2, y+10, p);
+            V_DrawShadowedPatchOptional(cx2, y+10, 1, p);
             cx2 += SHORT(p->width) - 1;
         }
     }
@@ -3024,9 +3016,7 @@ void MN_DrTextB(const char *text, int x, int y)
         else
         {
             p = W_CacheLumpNum(FontBBaseLump + c - 33, PU_CACHE);
-            //V_DrawShadowedPatchRavenOptional(x, y, p, "NULL"); // [JN] TODO - patch name
-            // TODO
-            V_DrawPatch(x, y, p);
+            V_DrawShadowedPatchOptional(x, y, 1, p);
             x += SHORT(p->width) - 1;
         }
     }
@@ -3224,10 +3214,7 @@ void MN_Drawer(void)
         {
             y = CurrentMenu->y + (CurrentItPos * ITEM_HEIGHT) + SELECTOR_YOFFSET;
             selName = DEH_String(MenuTime & 16 ? "M_SLCTR1" : "M_SLCTR2");
-            // V_DrawShadowedPatchRavenOptional(x + SELECTOR_XOFFSET, y,
-            //             W_CacheLumpName(selName, PU_CACHE), selName);
-            // TODO
-            V_DrawPatch(x + SELECTOR_XOFFSET, y, W_CacheLumpName(selName, PU_CACHE));
+            V_DrawShadowedPatchOptional(x + SELECTOR_XOFFSET, y, 1, W_CacheLumpName(selName, PU_CACHE));
         }
     }
 }
@@ -3373,8 +3360,7 @@ static void DrawFileSlots(Menu_t * menu)
     y = menu->y;
     for (i = 0; i < 6; i++)
     {
-        // V_DrawShadowedPatchRavenOptional(x, y, W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE), "M_FSLOT");
-        V_DrawPatch(x, y, W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE));
+        V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE));
         if (SlotStatus[i])
         {
             MN_DrTextA(SlotText[i], x + 5, y + 5, NULL);
@@ -4676,16 +4662,12 @@ static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean big
 
     x = menu->x + 24;
     y = menu->y + 2 + (item * (bigspacing ? ITEM_HEIGHT : ITEM_HEIGHT_SMALL));
-    //V_DrawShadowedPatchRavenOptional(x - 32, y, W_CacheLumpName(DEH_String("M_SLDLT"), PU_CACHE), "M_SLDLT");
-    V_DrawPatch(x - 32, y, W_CacheLumpName(DEH_String("M_SLDLT"), PU_CACHE));
+    V_DrawShadowedPatchOptional(x - 32, y, 1, W_CacheLumpName(DEH_String("M_SLDLT"), PU_CACHE));
     for (x2 = x, count = width; count--; x2 += 8)
     {
-        // V_DrawShadowedPatchRavenOptional(x2, y, W_CacheLumpName(DEH_String(count & 1 ? "M_SLDMD1" : "M_SLDMD2"), PU_CACHE),
-        //                                               count & 1 ? "M_SLDMD1" : "M_SLDMD2");
-        V_DrawPatch(x2, y, W_CacheLumpName(DEH_String(count & 1 ? "M_SLDMD1" : "M_SLDMD2"), PU_CACHE));
+        V_DrawShadowedPatchOptional(x2, y, 1, W_CacheLumpName(DEH_String(count & 1 ? "M_SLDMD1" : "M_SLDMD2"), PU_CACHE));
     }
-    //V_DrawShadowedPatchRavenOptional(x2, y, W_CacheLumpName(DEH_String("M_SLDRT"), PU_CACHE), "M_SLDRT");
-    V_DrawPatch(x2, y, W_CacheLumpName(DEH_String("M_SLDRT"), PU_CACHE));
+    V_DrawShadowedPatchOptional(x2, y, 1, W_CacheLumpName(DEH_String("M_SLDRT"), PU_CACHE));
 
     // [JN] Prevent gem go out of slider bounds.
     if (slot > width - 1)

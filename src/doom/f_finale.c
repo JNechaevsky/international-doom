@@ -436,7 +436,7 @@ void F_TextWrite (void)
 	{
 	    break;
 	}
-	V_DrawShadowedPatch(cx, cy, hu_font[c]);
+	V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
 	cx+=w;
     }
 	

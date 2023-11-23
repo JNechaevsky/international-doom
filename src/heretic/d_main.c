@@ -278,14 +278,12 @@ void D_Display(void)
     {
         if (!netgame)
         {
-            // TODO
-            // V_DrawShadowedPatchRavenOptional(160, viewwindowy + 5, W_CacheLumpName(DEH_String("PAUSED"),
-            //                                                   PU_CACHE), "PAUSED");
+            V_DrawShadowedPatchOptional(160, (viewwindowy >> vid_hires) + 5, 1, W_CacheLumpName(DEH_String("PAUSED"),
+                                                              PU_CACHE));
         }
         else
         {
-            // TODO
-            // V_DrawShadowedPatchRavenOptional(160, 70, W_CacheLumpName(DEH_String("PAUSED"), PU_CACHE), "PAUSED");
+            V_DrawShadowedPatchOptional(160, 70, 1, W_CacheLumpName(DEH_String("PAUSED"), PU_CACHE));
         }
     }
     // Handle player messages

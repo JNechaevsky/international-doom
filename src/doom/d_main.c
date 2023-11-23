@@ -318,7 +318,7 @@ static void D_Display (void)
 	    y = 4;
 	else
 	    y = (viewwindowy >> vid_hires)+4;
-	V_DrawShadowedPatch((viewwindowx >> vid_hires) + ((scaledviewwidth >> vid_hires) - 68) / 2 - WIDESCREENDELTA, y,
+	V_DrawShadowedPatchOptional((viewwindowx >> vid_hires) + ((scaledviewwidth >> vid_hires) - 68) / 2 - WIDESCREENDELTA, y, 0,
                           W_CacheLumpName (DEH_String("M_PAUSE"), PU_CACHE));
     }
 

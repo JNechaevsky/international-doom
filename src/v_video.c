@@ -170,37 +170,30 @@ static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t sou
 #else
 {return I_BlendOver(dest, colormaps[dp_translation[source]]);}
 #endif
-// [JN] The shadow of the patch.
+
+// [JN] The shadow of the patch rendering functions:
+// (0) Doom
 static const inline pixel_t drawshadow (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return shadowmap[(dest<<8)];}
 #else
 {return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
 #endif
-
-// [crispy] TINTTAB rendering functions:
-// (1) normal, translucent patch
-static const inline pixel_t drawtinttab0 (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return tinttable[(dest<<8)+source];}
-#else
-{return I_BlendOverTinttab(dest, colormaps[source]);}
-#endif
-// (2) translucent shadow only
-static const inline pixel_t drawtinttab1 (const pixel_t dest, const pixel_t source)
+// (1) Heretic (TINTTAB)
+static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[(dest<<8)];}
 #else
-{return I_BlendDark(dest, 0xB4);}
+{return I_BlendDark(dest, 0xB4);} // [JN] 180 (30%) of 256 full translucency.
 #endif
-
 
 // [crispy] array of function pointers holding the different rendering functions
 typedef const pixel_t drawpatchpx_t (const pixel_t dest, const pixel_t source);
 static drawpatchpx_t *const drawpatchpx_a[2][2] = {{drawpatchpx11, drawpatchpx10}, {drawpatchpx01, drawpatchpx00}};
+// [JN] Pointers of handling patch shadows:
 static drawpatchpx_t *const drawshadow_a = drawshadow;
-// [crispy] array of function pointers holding the different TINTTAB rendering functions
-static drawpatchpx_t *const drawtinttab_a[2] = {drawtinttab0, drawtinttab1};
+static drawpatchpx_t *const drawtinttab_a = drawtinttab;
+
 static fixed_t dx, dxi, dy, dyi;
 
 void V_DrawPatch(int x, int y, patch_t *patch)
@@ -293,29 +286,142 @@ void V_DrawPatch(int x, int y, patch_t *patch)
     }
 }
 
-// -----------------------------------------------------------------------------
+//
 // V_DrawShadowedPatch
-// [JN] Masks a column based masked pic to the screen.
-//  dest  - main patch, drawed second on top of shadow.
-//  dest2 - shadow, drawed first below main patch.
-// -----------------------------------------------------------------------------
+//
+// Masks a column based masked pic to the screen.
+//
 
 void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 {
     int count;
     int col;
     column_t *column;
-    pixel_t *desttop;
+    pixel_t *desttop, *desttop2;
     pixel_t *dest, *dest2;
     byte *source;
     int w;
 
-    // [JN] Simplify math for shadow placement.
-    const int shadow_shift = (SCREENWIDTH + 1) << vid_hires;
     // [JN] Patch itself: opaque, can be colored.
     drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
-    // [JN] Shadow: 50% translucent, no coloring used at all.
-    drawpatchpx_t *const drawpatchpx2 = drawshadow_a;
+    // [crispy] shadow, no coloring or color-translation are used
+    drawpatchpx_t *const drawpatchpx2 = drawtinttab_a;
+
+    y -= SHORT(patch->topoffset);
+    x -= SHORT(patch->leftoffset);
+    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+
+    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+
+    col = 0;
+    if (x < 0)
+    {
+	col += dxi * ((-x * dx) >> FRACBITS);
+	x = 0;
+    }
+
+    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+    desttop2 = dest_screen + (((y + 2) * dy) >> FRACBITS) * SCREENWIDTH + (((x + 2) * dx) >> FRACBITS);
+
+    w = SHORT(patch->width);
+
+    // convert x to screen position
+    x = (x * dx) >> FRACBITS;
+
+    for ( ; col<w << FRACBITS ; x++, col+=dxi, desttop++, desttop2++)
+    {
+        int topdelta = -1;
+
+        // [crispy] too far right / width
+        if (x >= SCREENWIDTH)
+        {
+            break;
+        }
+
+        column = (column_t *)((byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
+
+        // step through the posts in a column
+        while (column->topdelta != 0xff)
+        {
+            int top, srccol = 0;
+            // [crispy] support for DeePsea tall patches
+            if (column->topdelta <= topdelta)
+            {
+                topdelta += column->topdelta;
+            }
+            else
+            {
+                topdelta = column->topdelta;
+            }
+            top = ((y + topdelta) * dy) >> FRACBITS;
+            source = (byte *)column + 3;
+            dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
+            dest2 = desttop2 + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
+            count = (column->length * dy) >> FRACBITS;
+
+            // [crispy] too low / height
+            if (top + count > (SCREENHEIGHT-2))
+            {
+                count = (SCREENHEIGHT-2) - top;
+            }
+
+            // [crispy] nothing left to draw?
+            if (count < 1)
+            {
+                break;
+            }
+
+            while (count--)
+            {
+                *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
+                dest2 += SCREENWIDTH;
+
+                // [crispy] too high
+                if (top++ >= 0)
+                {
+                    *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
+                }
+                srccol += dyi;
+                dest += SCREENWIDTH;
+            }
+            column = (column_t *)((byte *)column + column->length + 4);
+        }
+    }
+}
+
+//
+// V_DrawShadowedOptional
+// [JN] Draws patch with shadow if "Text casts shadows" feature is enabled.
+//  dest  - main patch, drawed second on top of shadow.
+//  dest2 - shadow, drawed first below main patch.
+//
+
+void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
+{
+    int count, col;
+    column_t *column;
+    pixel_t *desttop, *dest;
+    byte *source;
+    pixel_t *dest2;
+    int w;
+
+    // [JN] Simplify math for shadow placement.
+    const int shadow_shift = (SCREENWIDTH + 1) << vid_hires;
+    // [crispy] four different rendering functions
+    drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
+
+    // [JN] Shadow, blending depending on game type:
+    drawpatchpx_t *drawpatchpx2;
+    switch (shadow_type)
+    {
+        default:
+        case 0: // Doom
+            drawpatchpx2 = drawshadow_a;
+        break;
+        case 1: // Heretic
+            drawpatchpx2 = drawtinttab_a;
+        break;
+    }
 
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
@@ -400,107 +506,6 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
         }
     }
 }
-
-void V_DrawShadowedPatchRaven(int x, int y, patch_t *patch)
-{
-    int count, col;
-    column_t *column;
-    pixel_t *desttop, *dest;
-    byte *source;
-    pixel_t *desttop2, *dest2;
-    int w;
-
-    // [crispy] four different rendering functions
-    drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
-    // [crispy] shadow, no coloring or color-translation are used
-    drawpatchpx_t *const drawpatchpx2 = drawtinttab_a[!dp_translation];
-
-    y -= SHORT(patch->topoffset);
-    x -= SHORT(patch->leftoffset);
-    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
-
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
-
-    col = 0;
-    if (x < 0)
-    {
-	col += dxi * ((-x * dx) >> FRACBITS);
-	x = 0;
-    }
-
-    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
-    desttop2 = dest_screen + (((y + 2) * dy) >> FRACBITS) * SCREENWIDTH + (((x + 2) * dx) >> FRACBITS);
-
-    w = SHORT(patch->width);
-
-    // convert x to screen position
-    x = (x * dx) >> FRACBITS;
-
-    for ( ; col<w << FRACBITS ; x++, col+=dxi, desttop++, desttop2++)
-    {
-        int topdelta = -1;
-
-        // [crispy] too far right / width
-        if (x >= SCREENWIDTH)
-        {
-            break;
-        }
-
-        column = (column_t *)((byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
-
-        // step through the posts in a column
-        while (column->topdelta != 0xff)
-        {
-            int top, srccol = 0;
-            // [crispy] support for DeePsea tall patches
-            if (column->topdelta <= topdelta)
-            {
-                topdelta += column->topdelta;
-            }
-            else
-            {
-                topdelta = column->topdelta;
-            }
-            top = ((y + topdelta) * dy) >> FRACBITS;
-            source = (byte *)column + 3;
-            dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
-            dest2 = desttop2 + ((column->topdelta * dy) >> FRACBITS) * SCREENWIDTH;
-            count = (column->length * dy) >> FRACBITS;
-
-            // [crispy] too low / height
-            if (top + count > (SCREENHEIGHT-2))
-            {
-                count = (SCREENHEIGHT-2) - top;
-            }
-
-            // [crispy] nothing left to draw?
-            if (count < 1)
-            {
-                break;
-            }
-
-            while (count--)
-            {
-                // [JN] TODO 
-                //if (msg_text_shadows)
-                {
-                    *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
-                    dest2 += SCREENWIDTH;
-                }
-
-                // [crispy] too high
-                if (top++ >= 0)
-                {
-                    *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
-                }
-                srccol += dyi;
-                dest += SCREENWIDTH;
-            }
-            column = (column_t *)((byte *)column + column->length + 4);
-        }
-    }
-}
-
 
 void V_DrawPatchFullScreen(patch_t *patch, boolean flipped)
 {

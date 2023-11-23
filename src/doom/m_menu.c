@@ -4430,7 +4430,7 @@ static void M_DrawLoad(void)
     int             i;
 	
     M_ShadeBackground();
-    V_DrawShadowedPatch(72, 7, W_CacheLumpName(DEH_String("M_LOADG"), PU_CACHE));
+    V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_LOADG"), PU_CACHE));
 
     for (i = 0;i < load_end; i++)
     {
@@ -4450,15 +4450,15 @@ static void M_DrawSaveLoadBorder(int x,int y)
 {
     int             i;
 	
-    V_DrawShadowedPatch(x - 8, y, W_CacheLumpName(DEH_String("M_LSLEFT"), PU_CACHE));
+    V_DrawShadowedPatchOptional(x - 8, y, 0, W_CacheLumpName(DEH_String("M_LSLEFT"), PU_CACHE));
 	
     for (i = 0;i < 24;i++)
     {
-	V_DrawShadowedPatch(x, y, W_CacheLumpName(DEH_String("M_LSCNTR"), PU_CACHE));
+	V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(DEH_String("M_LSCNTR"), PU_CACHE));
 	x += 8;
     }
 
-    V_DrawShadowedPatch(x, y, W_CacheLumpName(DEH_String("M_LSRGHT"), PU_CACHE));
+    V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(DEH_String("M_LSRGHT"), PU_CACHE));
 }
 
 
@@ -4501,7 +4501,7 @@ static void M_DrawSave(void)
     int             i;
 	
     M_ShadeBackground();
-    V_DrawShadowedPatch(72, 7, W_CacheLumpName(DEH_String("M_SAVEG"), PU_CACHE));
+    V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_SAVEG"), PU_CACHE));
     for (i = 0;i < load_end; i++)
     {
 	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
@@ -4683,7 +4683,7 @@ static void M_DrawSound(void)
 
     M_ShadeBackground();
 
-    V_DrawShadowedPatch(60, 38, W_CacheLumpName(DEH_String("M_SVOL"), PU_CACHE));
+    V_DrawShadowedPatchOptional(60, 38, 0, W_CacheLumpName(DEH_String("M_SVOL"), PU_CACHE));
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (sfx_vol + 1), 16, sfxVolume);
     sprintf(str,"%d", sfxVolume);
@@ -4751,8 +4751,8 @@ static void M_DrawNewGame(void)
 {
     M_ShadeBackground();
 
-    V_DrawShadowedPatch(96, 14, W_CacheLumpName(DEH_String("M_NEWG"), PU_CACHE));
-    V_DrawShadowedPatch(54, 38, W_CacheLumpName(DEH_String("M_SKILL"), PU_CACHE));
+    V_DrawShadowedPatchOptional(96, 14, 0, W_CacheLumpName(DEH_String("M_NEWG"), PU_CACHE));
+    V_DrawShadowedPatchOptional(54, 38, 0, W_CacheLumpName(DEH_String("M_SKILL"), PU_CACHE));
 }
 
 static void M_NewGame(int choice)
@@ -4781,7 +4781,7 @@ static void M_DrawEpisode(void)
 {
     M_ShadeBackground();
 
-    V_DrawShadowedPatch(54, 38, W_CacheLumpName(DEH_String("M_EPISOD"), PU_CACHE));
+    V_DrawShadowedPatchOptional(54, 38, 0, W_CacheLumpName(DEH_String("M_EPISOD"), PU_CACHE));
 }
 
 static void M_VerifyNightmare(int key)
@@ -5038,14 +5038,14 @@ M_DrawThermo
     int		i;
 
     xx = x;
-    V_DrawShadowedPatch(xx, y, W_CacheLumpName(DEH_String("M_THERML"), PU_CACHE));
+    V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERML"), PU_CACHE));
     xx += 8;
     for (i=0;i<thermWidth;i++)
     {
-	V_DrawShadowedPatch(xx, y, W_CacheLumpName(DEH_String("M_THERMM"), PU_CACHE));
+	V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERMM"), PU_CACHE));
 	xx += 8;
     }
-    V_DrawShadowedPatch(xx, y, W_CacheLumpName(DEH_String("M_THERMR"), PU_CACHE));
+    V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERMR"), PU_CACHE));
 
     // [crispy] do not crash anymore if value exceeds thermometer range
     if (thermDot >= thermWidth)
@@ -5159,7 +5159,7 @@ void M_WriteText (int x, int y, const char *string, byte *table)
             break;
         }
 
-        V_DrawShadowedPatch(cx, cy, hu_font[c]);
+        V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
         cx+=w;
     }
 
@@ -5231,7 +5231,7 @@ void M_WriteTextCentered (const int y, const char *string, byte *table)
             break;
         }
         
-        V_DrawShadowedPatch(cx, cy, hu_font[c]);
+        V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
         cx += w;
     }
     
@@ -6237,7 +6237,7 @@ void M_Drawer (void)
         {
             if (name[0])
             {
-                V_DrawShadowedPatch(x, y, W_CacheLumpName(name, PU_CACHE));
+                V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(name, PU_CACHE));
             }
             y += LINEHEIGHT;
         }
@@ -6251,7 +6251,7 @@ void M_Drawer (void)
     else
     {
         // DRAW SKULL
-        V_DrawShadowedPatch(x + SKULLXOFF, currentMenu->y - 5 + itemOn*LINEHEIGHT,
+        V_DrawShadowedPatchOptional(x + SKULLXOFF, currentMenu->y - 5 + itemOn*LINEHEIGHT, 0,
                             W_CacheLumpName(DEH_String(skullName[whichSkull]), PU_CACHE));
     }
 }
