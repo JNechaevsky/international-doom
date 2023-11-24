@@ -1058,7 +1058,7 @@ void P_UpdateSpecials(void)
 // [crispy] smooth texture scrolling
 void R_InterpolateTextureOffsets (void)
 {
-	if (vid_uncapped_fps && leveltime > oldleveltime)
+	if (vid_uncapped_fps && realleveltime > oldleveltime)
 	{
 		int i;
 
