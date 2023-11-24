@@ -1007,6 +1007,9 @@ void D_DoomMain(void)
         M_SetConfigDir(NULL);
     }
 
+    // [JN] Set screeenshot files dir.
+    M_SetScreenshotDir();
+
     DEH_printf("Z_Init: Init zone memory allocation daemon.\n");
     Z_Init();
 
