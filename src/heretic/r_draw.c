@@ -225,7 +225,7 @@ void R_DrawTLColumn(void)
 #ifndef CRISPY_TRUECOLOR
             *dest =
                 tinttable[((*dest) << 8) +
-                          dc_colormap[dc_source[(frac >> FRACBITS) & heightmask]];
+                          dc_colormap[dc_source[(frac >> FRACBITS) & heightmask]]];
 #else
             const pixel_t destrgb = dc_colormap[dc_source[(frac >> FRACBITS) & heightmask]];
             *dest = blendfunc(*dest, destrgb);

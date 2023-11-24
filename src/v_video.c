@@ -840,6 +840,33 @@ void V_CopyScaledBuffer(pixel_t *dest, byte *src, size_t size)
                         WIDESCREENDELTA << vid_hires, SCREENHEIGHT, 0);
     }
 
+    // [JN] Old code for quad res drawing:
+    if (vid_hires == 2)
+    {
+        for (int k = 0; k < size; k++)
+        {
+            const int l = k / ORIGWIDTH; // current line in the source screen
+            const int p = k - l * ORIGWIDTH; // current pixel in this line
+
+            for (i = 0; i <= (vid_hires + 1); i++)
+            {
+                for (j = 0; j <= (vid_hires + 1); j++)
+                {
+
+#ifndef CRISPY_TRUECOLOR
+                    *(dest + (p << vid_hires) + ((l << vid_hires) + i) * SCREENWIDTH + j
+                           + (WIDESCREENDELTA << vid_hires)) = *(src + k);
+#else
+                    *(dest + (p << vid_hires) + ((l << vid_hires) + i) * SCREENWIDTH + j
+                           + (WIDESCREENDELTA << vid_hires)) = colormaps[src[k]];
+#endif
+                }
+            }
+        }
+    }
+    // [JN] New code:
+    else
+    {
     index = ((size / ORIGWIDTH) << vid_hires) * SCREENWIDTH - 1;
 
     if (size % ORIGWIDTH)
@@ -871,6 +898,7 @@ void V_CopyScaledBuffer(pixel_t *dest, byte *src, size_t size)
                      + vid_hires * SCREENWIDTH;
         }
         index -= 1 + vid_hires;
+    }
     }
 }
  
