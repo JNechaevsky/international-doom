@@ -667,7 +667,11 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
      || y < 0
      || y + SHORT(patch->height) > (SCREENHEIGHT >> vid_hires))
     {
-        I_Error("Bad V_DrawTLPatch");
+        // [JN] Note: should be I_Error, but use return instead.
+        // Render may still try to draw patch before undating 
+        // SCREENWIDTH/HEIGHT values upon resolution toggling.
+        // I_Error("Bad V_DrawTLPatch");
+        return;
     }
 
     col = 0;
