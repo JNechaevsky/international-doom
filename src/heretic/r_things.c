@@ -389,7 +389,10 @@ void R_DrawVisSprite (vissprite_t *vis)
 
     patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
 
-    dc_colormap = vis->colormap;
+    // [crispy] brightmaps for select sprites
+    dc_colormap[0] = vis->colormap[0];
+    dc_colormap[1] = vis->colormap[1];
+    dc_brightmap = vis->brightmap;
 
     if (vis->mobjflags & MF_SHADOW)
     {
@@ -647,11 +650,11 @@ void R_ProjectSprite (mobj_t* thing)
     
     // get light level
     if (fixedcolormap)
-        vis->colormap = fixedcolormap;  // fixed map
+        vis->colormap[0] = vis->colormap[1] = fixedcolormap;  // fixed map
     else if (thing->frame & FF_FULLBRIGHT)
     {
 	// full bright
-	vis->colormap = colormaps;
+	vis->colormap[0] = vis->colormap[1] = colormaps;
     }
     
     else
@@ -662,8 +665,12 @@ void R_ProjectSprite (mobj_t* thing)
 	if (index >= MAXLIGHTSCALE) 
 	    index = MAXLIGHTSCALE-1;
 
-        vis->colormap = spritelights[index];
+	// [crispy] brightmaps for select sprites
+	vis->colormap[0] = spritelights[index];
+    vis->colormap[1] = colormaps;
     }
+
+    vis->brightmap = R_BrightmapForSprite(thing->state - states);
 
 #ifdef CRISPY_TRUECOLOR
     if (thing->flags & MF_SHADOW)
@@ -839,7 +846,7 @@ void R_DrawPSprite (pspdef_t* psp)
         viewplayer->powers[pw_invisibility] & 8)
     {
         // Invisibility
-        vis->colormap = spritelights[MAXLIGHTSCALE - 1];
+        vis->colormap[0] = vis->colormap[1] = spritelights[MAXLIGHTSCALE - 1];
         vis->mobjflags |= MF_SHADOW;
 #ifdef CRISPY_TRUECOLOR
         vis->blendfunc = I_BlendOverTinttab;
@@ -848,18 +855,20 @@ void R_DrawPSprite (pspdef_t* psp)
     else if (fixedcolormap)
     {
         // Fixed color
-        vis->colormap = fixedcolormap;
+	    vis->colormap[0] = vis->colormap[1] = fixedcolormap;
     }
     else if (psp->state->frame & FF_FULLBRIGHT)
     {
         // Full bright
-        vis->colormap = colormaps;
+        vis->colormap[0] = vis->colormap[1] = colormaps;
     }
     else
     {
         // local light
-        vis->colormap = spritelights[MAXLIGHTSCALE - 1];
+        vis->colormap[0] = spritelights[MAXLIGHTSCALE-1];
+        vis->colormap[1] = colormaps;
     }
+    vis->brightmap = R_BrightmapForState(psp->state - states);
 
     // [crispy] interpolate weapon bobbing
     if (vid_uncapped_fps)

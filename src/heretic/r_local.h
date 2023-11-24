@@ -254,7 +254,10 @@ typedef struct vissprite_s
     fixed_t xiscale;            // negative if flipped
     fixed_t texturemid;
     int patch;
-    lighttable_t *colormap;
+    // for color translation and shadow draw, maxbright frames as well
+    // [crispy] brightmaps for select sprites
+    lighttable_t *colormap[2];
+    const byte   *brightmap;
     int mobjflags;              // for color translation and shadow draw
     boolean psprite;            // true if psprite
     fixed_t footclip;           // foot clipping
@@ -373,6 +376,19 @@ void R_AddPointToBox(int x, int y, fixed_t * box);
 void R_ExecuteSetViewSize(void);
 void R_InitLightTables(void);
 
+// -----------------------------------------------------------------------------
+// R_BMAPS
+// -----------------------------------------------------------------------------
+
+#define MAXDIMINDEX 47
+
+extern void R_InitBrightmaps (void);
+
+extern const byte  *R_BrightmapForTexName (const char *texname);
+extern const byte  *R_BrightmapForSprite (const int type);
+extern const byte  *R_BrightmapForFlatNum (const int num);
+extern const byte  *R_BrightmapForState (const int state);
+extern const byte **texturebrightmap;
 
 //
 // R_bsp.c
@@ -509,7 +525,7 @@ void R_ClipVisSprite(vissprite_t * vis, int xl, int xh);
 //
 //=============================================================================
 
-extern lighttable_t *dc_colormap;
+extern lighttable_t *dc_colormap[2];
 extern int dc_x;
 extern int dc_yl;
 extern int dc_yh;
@@ -530,7 +546,7 @@ void R_DrawTranslatedColumnLow(void);
 extern int ds_y;
 extern int ds_x1;
 extern int ds_x2;
-extern lighttable_t *ds_colormap;
+extern lighttable_t *ds_colormap[2];
 extern fixed_t ds_xfrac;
 extern fixed_t ds_yfrac;
 extern fixed_t ds_xstep;
@@ -539,6 +555,9 @@ extern byte *ds_source;         // start of a 64*64 tile image
 
 extern byte *translationtables;
 extern byte *dc_translation;
+
+extern const byte *dc_brightmap;
+extern const byte *ds_brightmap;
 
 void R_DrawSpan(void);
 void R_DrawSpanLow(void);

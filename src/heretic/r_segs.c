@@ -242,7 +242,7 @@ R_RenderMaskedSegRange
     dc_texturemid += curline->sidedef->rowoffset;
 			
     if (fixedcolormap)
-	dc_colormap = fixedcolormap;
+	dc_colormap[0] = dc_colormap[1] = fixedcolormap;
     
     // draw the columns
     for (dc_x = x1 ; dc_x <= x2 ; dc_x++)
@@ -257,7 +257,10 @@ R_RenderMaskedSegRange
 		if (index >=  MAXLIGHTSCALE )
 		    index = MAXLIGHTSCALE-1;
 
-		dc_colormap = walllights[index];
+		// [crispy] brightmaps for mid-textures
+		dc_brightmap = texturebrightmap[texnum];
+		dc_colormap[0] = walllights[index];
+		dc_colormap[1] = vis_brightmaps ? colormaps : dc_colormap[0];
 	    }
 			
 	    // [crispy] apply Killough's int64 sprtopscreen overflow fix
@@ -381,7 +384,9 @@ void R_RenderSegLoop (void)
                     index = MAXLIGHTSCALE-1;
                 }
 
-                dc_colormap = walllights[index];
+                // [crispy] optional brightmaps
+                dc_colormap[0] = walllights[index];
+                dc_colormap[1] = vis_brightmaps ? colormaps : dc_colormap[0];
             }
 
             dc_x = rw_x;
@@ -397,6 +402,7 @@ void R_RenderSegLoop (void)
             dc_texturemid = rw_midtexturemid;
             dc_source = R_GetColumn(midtexture, texturecolumn);
             dc_texheight = textureheight[midtexture] >> FRACBITS;
+            dc_brightmap = texturebrightmap[midtexture];
             colfunc ();
             ceilingclip[rw_x] = viewheight;
             floorclip[rw_x] = -1;
@@ -417,6 +423,7 @@ void R_RenderSegLoop (void)
                     dc_texturemid = rw_toptexturemid;
                     dc_source = R_GetColumn(toptexture,texturecolumn);
                     dc_texheight = textureheight[toptexture]>>FRACBITS;
+                    dc_brightmap = texturebrightmap[toptexture];
                     colfunc ();
                     ceilingclip[rw_x] = mid;
                 }
@@ -447,6 +454,7 @@ void R_RenderSegLoop (void)
                     dc_texturemid = rw_bottomtexturemid;
                     dc_source = R_GetColumn(bottomtexture,texturecolumn);
                     dc_texheight = textureheight[bottomtexture]>>FRACBITS;
+                    dc_brightmap = texturebrightmap[bottomtexture];
                     colfunc ();
                     floorclip[rw_x] = mid;
                 }

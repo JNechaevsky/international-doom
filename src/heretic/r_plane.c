@@ -184,7 +184,7 @@ R_MapPlane
     ds_yfrac = -viewy - FixedMul(viewsin, distance) + dx * ds_ystep;
 
     if (fixedcolormap)
-	ds_colormap = fixedcolormap;
+	ds_colormap[0] = ds_colormap[1] = fixedcolormap;
     else
     {
 	index = distance >> LIGHTZSHIFT;
@@ -192,7 +192,8 @@ R_MapPlane
 	if (index >= MAXLIGHTZ )
 	    index = MAXLIGHTZ-1;
 
-	ds_colormap = planezlight[index];
+	ds_colormap[0] = planezlight[index];
+	ds_colormap[1] = colormaps;
     }
 	
     ds_y = y;
@@ -430,7 +431,8 @@ void R_DrawPlanes (void)
         if (pl->picnum == skyflatnum)
         {
             dc_iscale = skyiscale;
-            dc_colormap = colormaps;    // sky is allways drawn full bright
+            // [crispy] no brightmaps for sky
+            dc_colormap[0] = dc_colormap[1] = colormaps;    // sky is allways drawn full bright
             dc_texturemid = skytexturemid;
             dc_texheight = textureheight[skytexture]>>FRACBITS;
             for (x = pl->minx; x <= pl->maxx; x++)
@@ -484,6 +486,7 @@ void R_DrawPlanes (void)
         lumpnum = firstflat + flattranslation[pl->picnum];
 
         tempSource = W_CacheLumpNum(lumpnum, PU_STATIC);
+        ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
 
         switch (pl->special)
         {
