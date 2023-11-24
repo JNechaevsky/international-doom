@@ -187,7 +187,8 @@ void F_TextWrite(void)
 #else
         for (x = 0; x < SCREENWIDTH; x++)
         {
-            *dest++ = colormaps[src[((y & 63) << 6) + (x & 63)]];
+            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
+                                   + ((x >> vid_hires) & 63)]];
         }
 #endif
     }
@@ -228,7 +229,7 @@ void F_TextWrite(void)
             break;
         //V_DrawShadowedPatchRavenOptional(cx, cy, w, "NULL"); // [JN] TODO - proper name
         // TODO
-        V_DrawPatch(cx, cy, w);
+        V_DrawShadowedPatchOptional(cx, cy, 1, w);
         cx += SHORT(w->width);
     }
 
@@ -373,7 +374,7 @@ void F_DrawUnderwater(void)
                 R_SetUnderwaterPalette();
                 }
 #endif
-                V_DrawRawScreen(W_CacheLumpName(DEH_String("E2END"), PU_CACHE));
+                V_DrawFullscreenRawOrPatch(W_GetNumForName(DEH_String("E2END")));
             }
             paused = false;
             MenuActive = false;
@@ -395,7 +396,7 @@ void F_DrawUnderwater(void)
 #endif
                 underwawa = false;
             }
-            V_DrawRawScreen(W_CacheLumpName(DEH_String("TITLE"), PU_CACHE));
+            V_DrawFullscreenRawOrPatch(W_GetNumForName(DEH_String("TITLE")));
             //D_StartTitle(); // go to intro/demo mode.
     }
 }
@@ -482,11 +483,11 @@ void F_Drawer(void)
             case 1:
                 if (gamemode == shareware)
                 {
-                    V_DrawRawScreen(W_CacheLumpName("ORDER", PU_CACHE));
+                    V_DrawFullscreenRawOrPatch(W_GetNumForName("ORDER"));
                 }
                 else
                 {
-                    V_DrawRawScreen(W_CacheLumpName("CREDIT", PU_CACHE));
+                    V_DrawFullscreenRawOrPatch(W_GetNumForName("CREDIT"));
                 }
                 break;
             case 2:
@@ -497,7 +498,7 @@ void F_Drawer(void)
                 break;
             case 4:            // Just show credits screen for extended episodes
             case 5:
-                V_DrawRawScreen(W_CacheLumpName("CREDIT", PU_CACHE));
+                V_DrawFullscreenRawOrPatch(W_GetNumForName("CREDIT"));
                 break;
         }
     }
