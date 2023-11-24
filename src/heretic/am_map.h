@@ -111,4 +111,7 @@ typedef struct
 // extern int f_x, f_y, f_w, f_h;
 extern int ravmap_cheating;
 
+extern void AM_Start (void);
+extern void AM_LevelInit (boolean reinit);
+
 #endif

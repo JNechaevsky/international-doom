@@ -900,11 +900,11 @@ static void M_ID_RenderingResHook (void)
     BorderNeedRefresh = true;
     // [crispy] re-calculate automap coordinates
     // TODO
-//    AM_LevelInit(true);
-//    if (automapactive)
-//    {
-//        AM_Start();
-//    }
+    AM_LevelInit(true);
+    if (automapactive)
+    {
+        AM_Start();
+    }
 }
 
 static boolean M_ID_RenderingRes (int choice)
@@ -925,12 +925,11 @@ static void M_ID_WidescreenHook (void)
     // [crispy] re-draw bezel
     BorderNeedRefresh = true;
     // [crispy] re-calculate automap coordinates
-    // TODO
-//    AM_LevelInit(true);
-//    if (automapactive)
-//    {
-//        AM_Start();
-//    }
+    AM_LevelInit(true);
+    if (automapactive)
+    {
+        AM_Start();
+    }
 }
 
 static boolean M_ID_Widescreen (int choice)

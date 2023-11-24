@@ -38,6 +38,9 @@
 vertex_t KeyPoints[NUMKEYS];
 
 #define NUMALIAS 3              // Number of antialiased lines.
+// [crispy] precalculated color LUT for antialiased line drawing using COLORMAP
+#define NUMSHADES 8
+static pixel_t color_shades[NUMSHADES * 256];
 
 char *LevelNames[] = {
     // EPISODE 1 - THE CITY OF THE DAMNED
@@ -99,15 +102,13 @@ char *LevelNames[] = {
 int ravmap_cheating = 0;
 static int grid = 0;
 
-static int leveljuststarted = 1;        // kluge until AM_LevelInit() is called
-
 boolean automapactive = false;
 static int finit_width;// = SCREENWIDTH;
 static int finit_height;// = SCREENHEIGHT - 42;
 static int f_x, f_y;            // location of window on screen
 static int f_w, f_h;            // size of window on screen
 static int lightlev;            // used for funky strobing effect
-static byte *fb;                // pseudo-frame buffer
+static pixel_t *fb;            // pseudo-frame buffer
 static int amclock;
 
 static mpoint_t m_paninc;       // how far the window pans each tic (map coords)
@@ -153,11 +154,21 @@ static byte cheatcount = 0;
 
 extern boolean viewactive;
 
-static byte antialias[NUMALIAS][8] = {
+// [crispy] gradient table for map normal mode
+static pixel_t antialias_normal[NUMALIAS][8] = {
     {96, 97, 98, 99, 100, 101, 102, 103},
     {110, 109, 108, 107, 106, 105, 104, 103},
     {75, 76, 77, 78, 79, 80, 81, 103}
 };
+
+// [crispy] gradient table for map overlay mode
+static pixel_t antialias_overlay[NUMALIAS][8] = {
+    {100, 99, 98, 97, 96, 95, 95, 95},
+    {110, 109, 108, 105, 102, 99, 97, 95},
+    {75, 74, 73, 72, 71, 70, 69, 95}
+};
+
+static pixel_t (*antialias)[NUMALIAS][8]; // [crispy]
 
 // [JN] Make wall colors of secret sectors palette-independent.
 static int secretwallcolors;
@@ -176,7 +187,7 @@ static short mapxstart = 0;     //x-value for the bitmap.
 
 // Functions
 
-void DrawWuLine(int X0, int Y0, int X1, int Y1, byte * BaseColor,
+void DrawWuLine(int X0, int Y0, int X1, int Y1, int Color,
                 int NumLevels, unsigned short IntensityBits);
 
 // Calculates the slope and slope according to the x-axis of a line
@@ -415,6 +426,9 @@ void AM_initVariables(void)
         colors_set = true;
     }
 
+    // [crispy]
+    antialias = automap_overlay ? &antialias_overlay : &antialias_normal;
+
     // inform the status bar of the change
 //c  ST_Responder(&st_notify);
 }
@@ -450,9 +464,12 @@ void AM_clearMarks(void)
 // should be called at the start of every level
 // right now, i figure it out myself
 
-void AM_LevelInit(void)
+void AM_LevelInit(boolean reinit)
 {
-    leveljuststarted = 0;
+    // [crispy] Used for reinit
+    static int f_h_old;
+    // [crispy] Only need to precalculate color lookup tables once
+    static boolean precalc_once;
 
     finit_width = SCREENWIDTH;
     finit_height = SCREENHEIGHT - (42 << vid_hires);
@@ -465,10 +482,53 @@ void AM_LevelInit(void)
 //  AM_clearMarks();
 
     AM_findMinMaxBoundaries();
-    scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7 * FRACUNIT));
+
+    // [crispy] preserve map scale when re-initializing
+    if (reinit && f_h_old)
+    {
+        scale_mtof = scale_mtof * f_h / f_h_old;
+        // AM_drawCrosshair(true);
+    }
+    else
+    {
+        scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
+    }
+
     if (scale_mtof > max_scale_mtof)
         scale_mtof = min_scale_mtof;
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+
+    f_h_old = f_h;
+
+    // [crispy] Precalculate color lookup tables for antialiased line drawing using COLORMAP
+    if (!precalc_once)
+    {
+        precalc_once = true;
+        for (int color = 0; color < 256; ++color)
+        {
+#define REINDEX(I) (color + I * 256)
+            // Pick a range of shades for a steep gradient to keep lines thin
+            int shade_index[NUMSHADES] =
+            {
+                REINDEX(0), REINDEX(1), REINDEX(2), REINDEX(3), REINDEX(4), REINDEX(5), REINDEX(6), REINDEX(7),
+            };
+#undef REINDEX
+            for (int shade = 0; shade < NUMSHADES; ++shade)
+            {
+                color_shades[color * NUMSHADES + shade] = colormaps[shade_index[shade]];
+            }
+        }
+    }
+
+    // [JN] If running Deathmatch mode, mark all automap lines as mapped
+    // so they will appear initially. DM mode is not about map reveal.
+    if (deathmatch)
+    {
+        for (int i = 0 ; i < numlines ; i++)
+        {
+            lines[i].flags |= ML_MAPPED;
+        }
+    }
 }
 
 static boolean stopped = true;
@@ -497,7 +557,7 @@ void AM_Start(void)
     }
     if (lastlevel != gamemap || lastepisode != gameepisode)
     {
-        AM_LevelInit();
+        AM_LevelInit(false);
         lastlevel = gamemap;
         lastepisode = gameepisode;
     }
@@ -799,66 +859,31 @@ void AM_Ticker(void)
 
 void AM_clearFB(int color)
 {
-    int i, j;
-    int dmapx;
-    int dmapy;
+    byte *src = W_CacheLumpName("AUTOPAGE", PU_CACHE);
+    pixel_t *dest = I_VideoBuffer;
 
-    if (followplayer)
+    // [JN] Use static placement only because of parallax problem.
+    for (int y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++)
     {
-        dmapx = (MTOF(plr->mo->x) - MTOF(oldplr.x));    //fixed point
-        dmapy = (MTOF(oldplr.y) - MTOF(plr->mo->y));
-
-        oldplr.x = plr->mo->x;
-        oldplr.y = plr->mo->y;
-//              if(f_oldloc.x == INT_MAX) //to eliminate an error when the user first
-//                      dmapx=0;  //goes into the automap.
-        mapxstart += dmapx >> 1;
-        mapystart += dmapy >> 1;
-
-        while (mapxstart >= finit_width)
-            mapxstart -= finit_width;
-        while (mapxstart < 0)
-            mapxstart += finit_width;
-        while (mapystart >= finit_height)
-            mapystart -= finit_height;
-        while (mapystart < 0)
-            mapystart += finit_height;
+#ifndef CRISPY_TRUECOLOR
+        for (int x = 0; x < SCREENWIDTH / 64; x++)
+        {
+            memcpy(dest, src + ((y & 63) << 6), 64);
+            dest += 64;
+        }
+        if (SCREENWIDTH & 63)
+        {
+            memcpy(dest, src + ((y & 63) << 6), SCREENWIDTH & 63);
+            dest += (SCREENWIDTH & 63);
+        }
+#else
+        for (int x = 0; x < SCREENWIDTH; x++)
+        {
+            *dest++ = colormaps[src[((y & 127) << 6) 
+                                   + (x & 127)]];
+        }
+#endif
     }
-    else
-    {
-        // The released Heretic source does this here, but this causes a bug
-        // where the map background keeps moving when we reach the map
-        // boundaries. This is instead done in AM_changeWindowLoc.
-        /*
-        mapxstart += (MTOF(m_paninc.x) >> 1);
-        mapystart -= (MTOF(m_paninc.y) >> 1);
-
-        if (mapxstart >= finit_width)
-            mapxstart -= finit_width;
-        if (mapxstart < 0)
-            mapxstart += finit_width;
-        if (mapystart >= finit_height)
-            mapystart -= finit_height;
-        if (mapystart < 0)
-            mapystart += finit_height;
-        */
-    }
-
-    //blit the automap background to the screen.
-    j = mapystart * finit_width;
-    for (i = 0; i < finit_height; i++)
-    {
-        memcpy(I_VideoBuffer + i * finit_width, maplump + j + mapxstart,
-               finit_width - mapxstart);
-        memcpy(I_VideoBuffer + i * finit_width + finit_width - mapxstart,
-               maplump + j, mapxstart);
-        j += finit_width;
-        if (j >= finit_height * finit_width)
-            j = 0;
-    }
-
-//       memcpy(I_VideoBuffer, maplump, finit_width*finit_height);
-//  memset(fb, color, f_w*f_h);
 }
 
 // Based on Cohen-Sutherland clipping algorithm but with a slightly
@@ -980,15 +1005,15 @@ void AM_drawFline(fline_t * fl, int color)
     switch (color)
     {
         case WALLCOLORS:
-            DrawWuLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, &antialias[0][0],
+            DrawWuLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, (*antialias)[0][0],
                        8, 3);
             break;
         case FDWALLCOLORS:
-            DrawWuLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, &antialias[1][0],
+            DrawWuLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, (*antialias)[1][0],
                        8, 3);
             break;
         case CDWALLCOLORS:
-            DrawWuLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, &antialias[2][0],
+            DrawWuLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, (*antialias)[2][0],
                        8, 3);
             break;
         default:
@@ -1003,7 +1028,11 @@ void AM_drawFline(fline_t * fl, int color)
                     return;
                 }
 
+#ifndef CRISPY_TRUECOLOR
 #define DOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(cc)    //the MACRO!
+#else
+#define DOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(colormaps[cc])
+#endif
 
                 dx = fl->b.x - fl->a.x;
                 ax = 2 * (dx < 0 ? -dx : dx);
@@ -1063,11 +1092,11 @@ void AM_drawFline(fline_t * fl, int color)
  * IntensityBits = log base 2 of NumLevels; the # of bits used to describe
  *          the intensity of the drawing color. 2**IntensityBits==NumLevels
  */
-void PUTDOT(short xx, short yy, byte * cc, byte * cm)
+void PUTDOT(short xx, short yy, pixel_t * cc, pixel_t * cm)
 {
     static int oldyy;
     static int oldyyshifted;
-    byte *oldcc = cc;
+    pixel_t *oldcc = cc;
 
     if (xx < 32)
         cc += 7 - (xx >> 2);
@@ -1091,28 +1120,29 @@ void PUTDOT(short xx, short yy, byte * cc, byte * cm)
     if (yy == oldyy + 1)
     {
         oldyy++;
-        oldyyshifted += 320;
+        oldyyshifted += f_w;
     }
     else if (yy == oldyy - 1)
     {
         oldyy--;
-        oldyyshifted -= 320;
+        oldyyshifted -= f_w;
     }
     else if (yy != oldyy)
     {
         oldyy = yy;
-        oldyyshifted = yy * 320;
+        oldyyshifted = yy * f_w;
     }
     fb[oldyyshifted + xx] = *(cc);
 //      fb[(yy)*f_w+(xx)]=*(cc);
 }
 
-void DrawWuLine(int X0, int Y0, int X1, int Y1, byte * BaseColor,
+void DrawWuLine(int X0, int Y0, int X1, int Y1, int Color,
                 int NumLevels, unsigned short IntensityBits)
 {
     unsigned short IntensityShift, ErrorAdj, ErrorAcc;
     unsigned short ErrorAccTemp, Weighting, WeightingComplementMask;
     short DeltaX, DeltaY, Temp, XDir;
+    pixel_t *BaseColor = &color_shades[Color * NUMSHADES];
 
     /* Make sure the line runs top to bottom */
     if (Y0 > Y1)
