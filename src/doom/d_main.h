@@ -47,7 +47,6 @@ extern void D_StartTitle (void);
 // GLOBAL VARIABLES
 //
 
-extern int vid_endoom;
 extern int dp_detail_level;
 
 extern boolean advancedemo;

@@ -390,7 +390,6 @@ void F_DrawUnderwater(void)
                 W_ReleaseLumpName(lumpname);
 #else
                 {
-                extern void R_InitColormaps(void);
                 R_InitColormaps();
                 }
 #endif

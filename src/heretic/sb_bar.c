@@ -93,6 +93,7 @@ static int HealthMarker;
 static int ChainWiggle;
 static player_t *CPlayer;
 int playpalette;
+int sb_palette = 0;  // [JN] Externalazied variable of current palette index.
 
 patch_t *PatchLTFACE;
 patch_t *PatchRTFACE;
@@ -901,7 +902,6 @@ static byte *SB_MainBarColor (const int i)
 // and player->bonuscount
 void SB_PaletteFlash(void)
 {
-    static int sb_palette = 0;
     int palette;
 #ifndef CRISPY_TRUECOLOR
     byte *pal;
