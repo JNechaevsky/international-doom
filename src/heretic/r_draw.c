@@ -279,12 +279,7 @@ void R_DrawTranslatedColumn(void)
 
     do
     {
-#ifndef CRISPY_TRUECOLOR
         *dest = dc_colormap[0][dc_translation[dc_source[frac >> FRACBITS]]];
-#else
-        const pixel_t destrgb = dc_colormap[dc_translation[dc_source[frac >> FRACBITS]]];
-        *dest = blendfunc(*dest, destrgb);
-#endif
         dest += SCREENWIDTH;
         frac += fracstep;
     }
