@@ -36,5 +36,7 @@
 
 extern char *chat_macros[10];
 
+extern int   showMessages;
+
 #endif /* #ifndef HERETIC_CT_CHAT_H */
 

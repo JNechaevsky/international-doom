@@ -941,6 +941,7 @@ void R_SetupFrame (player_t* player)
     }
 
     extralight = player->extralight;
+    extralight += dp_level_brightness;  // [JN] Level Brightness feature.
     // [crispy] apply new yslope[] whenever "lookdir", "detailshift" or
     // "dp_screen_size" change
     tempCentery = viewheight / 2 + (pitch * (1 << vid_hires)) *

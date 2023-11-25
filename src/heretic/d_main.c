@@ -97,6 +97,7 @@ FILE *debugfile;
 
 int vid_diskicon = 0;
 int vid_endoom = 0;
+int showMessages = 1;     // Show messages has default, 0 = off, 1 = on
 
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
@@ -797,7 +798,7 @@ void D_BindVariables(void)
     M_BindIntVariable("mouse_sensitivity",      &mouseSensitivity);
     M_BindIntVariable("sfx_volume",             &snd_MaxVolume);
     M_BindIntVariable("music_volume",           &snd_MusicVolume);
-    //M_BindIntVariable("dp_screen_size",           &dp_screen_size);
+    M_BindIntVariable("msg_show",               &showMessages);
     M_BindIntVariable("snd_channels",           &snd_Channels);
     //M_BindIntVariable("graphical_startup",      &graphical_startup);
     M_BindIntVariable("vid_diskicon",           &vid_diskicon);

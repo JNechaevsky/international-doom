@@ -25,6 +25,7 @@
 #include "m_random.h"
 #include "p_local.h"
 #include "s_sound.h"
+#include "ct_chat.h"
 
 
 #define BONUSADD 6
@@ -126,9 +127,7 @@ boolean ultimatemsg;
 
 void P_SetMessage(player_t * player, const char *message, boolean ultmsg)
 {
-    extern boolean messageson;
-
-    if ((ultimatemsg || !messageson) && !ultmsg)
+    if ((ultimatemsg || !showMessages) && !ultmsg)
     {
         return;
     }

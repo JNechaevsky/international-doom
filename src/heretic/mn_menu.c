@@ -36,6 +36,7 @@
 #include "v_trans.h"
 #include "v_video.h"
 #include "am_map.h"
+#include "ct_chat.h"
 
 #include "crlfunc.h"
 #include "id_vars.h"
@@ -71,10 +72,11 @@ typedef enum
     MENU_FILES,
     MENU_LOAD,
     MENU_SAVE,
-    MENU_CRLMAIN,
-    MENU_CRLVIDEO,
-    MENU_CRLSOUND,
-    MENU_CRLCONTROLS,
+    MENU_ID_MAIN,
+    MENU_ID_VIDEO,
+    MENU_ID_DISPLAY,
+    MENU_ID_SOUND,
+    MENU_ID_CONTROLS,
     MENU_CRLKBDBINDS1,
     MENU_CRLKBDBINDS2,
     MENU_CRLKBDBINDS3,
@@ -131,7 +133,6 @@ static boolean SCMusicVolume(int option);
 static boolean SCScreenSize(int option);
 static boolean SCLoadGame(int option);
 static boolean SCSaveGame(int option);
-static boolean SCMessages(int option);
 static boolean SCEndGame(int option);
 static boolean SCInfo(int option);
 static void DrawMainMenu(void);
@@ -156,7 +157,6 @@ extern int detailLevel;
 
 boolean MenuActive;
 int InfoType;
-boolean messageson;
 
 // Private Data
 
@@ -200,7 +200,6 @@ static const char gammamsg[15][32] =
     GAMMALVL4
 };
 
-/*
 static const char *gammalvl[15] =
 {
     "0.50",
@@ -219,11 +218,10 @@ static const char *gammalvl[15] =
     "3",
     "4"
 };
-*/
 
 static MenuItem_t MainItems[] = {
     {ITT_EFUNC, "NEW GAME", SCNetCheck, 1, MENU_EPISODE},
-    {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_CRLMAIN},
+    {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_ID_MAIN},
     {ITT_SETMENU, "GAME FILES", NULL, 0, MENU_FILES},
     {ITT_EFUNC, "INFO", SCInfo, 0, MENU_NONE},
     {ITT_EFUNC, "QUIT GAME", SCQuitGame, 0, MENU_NONE}
@@ -325,7 +323,6 @@ static Menu_t SkillMenu = {
 
 static MenuItem_t OptionsItems[] = {
     {ITT_EFUNC, "END GAME", SCEndGame, 0, MENU_NONE},
-    {ITT_EFUNC, "MESSAGES : ", SCMessages, 0, MENU_NONE},
     {ITT_LRFUNC, "MOUSE SENSITIVITY", SCMouseSensi, 0, MENU_NONE},
     {ITT_EMPTY, NULL, NULL, 0, MENU_NONE},
     {ITT_SETMENU, "MORE...", NULL, 0, MENU_OPTIONS2}
@@ -334,10 +331,10 @@ static MenuItem_t OptionsItems[] = {
 static Menu_t OptionsMenu = {
     88, 30,
     DrawOptionsMenu,
-    5, OptionsItems,
+    4, OptionsItems,
     0,
     false,
-    MENU_CRLMAIN
+    MENU_ID_MAIN
 };
 
 static MenuItem_t Options2Items[] = {
@@ -393,6 +390,8 @@ static byte *M_Line_Glow (const int tics)
 #define GLOW_DARKRED    2
 #define GLOW_GREEN      3
 #define GLOW_YELLOW     4
+#define GLOW_LIGHTGRAY  5
+#define GLOW_BLUE       6
 
 #define ITEMONTICS      CurrentMenu->items[CurrentItPos].tics
 #define ITEMSETONTICS   CurrentMenu->items[CurrentItPosOn].tics
@@ -402,11 +401,13 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
     if (CurrentItPos == CurrentItPosOn)
     {
         return
-            color == GLOW_RED || 
-            color == GLOW_DARKRED ? cr[CR_RED_BRIGHT5]    :
-            color == GLOW_GREEN   ? cr[CR_GREEN_BRIGHT5]  :
-            color == GLOW_YELLOW  ? cr[CR_YELLOW_BRIGHT5] :
-                                    cr[CR_MENU_BRIGHT5]   ; // GLOW_UNCOLORED
+            color == GLOW_RED ||
+            color == GLOW_DARKRED   ? cr[CR_RED_BRIGHT5]       :
+            color == GLOW_GREEN     ? cr[CR_GREEN_BRIGHT5]     :
+            color == GLOW_YELLOW    ? cr[CR_YELLOW_BRIGHT5]    :
+            color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY_BRIGHT5] :
+            color == GLOW_BLUE      ? cr[CR_BLUE2_BRIGHT5]     :
+                                      cr[CR_MENU_BRIGHT5]      ; // GLOW_UNCOLORED
     }
     else
     {
@@ -454,6 +455,24 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
                 ITEMSETONTICS == 3 ? cr[CR_YELLOW_BRIGHT3] :
                 ITEMSETONTICS == 2 ? cr[CR_YELLOW_BRIGHT2] :
                 ITEMSETONTICS == 1 ? cr[CR_YELLOW_BRIGHT1] : cr[CR_YELLOW];
+        }
+        if (color == GLOW_LIGHTGRAY)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_LIGHTGRAY_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_LIGHTGRAY_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_LIGHTGRAY_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_LIGHTGRAY_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_LIGHTGRAY_BRIGHT1] : cr[CR_LIGHTGRAY];
+        }
+        if (color == GLOW_BLUE)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_BLUE2_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_BLUE2_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_BLUE2_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_BLUE2_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_BLUE2_BRIGHT1] : cr[CR_BLUE2];
         }
     }
     return NULL;
@@ -526,10 +545,16 @@ static boolean M_ID_ShowFPS (int choice);
 static boolean M_ID_PixelScaling (int choice);
 static boolean M_ID_EndText (int choice);
 
-
-// static boolean CRL_Gamma (int option);
-// static boolean CRL_TextShadows (int option);
-// static boolean CRL_GfxStartup (int option);
+static void DrawCRLDisplay (void);
+static boolean M_ID_Gamma (int choice);
+static boolean M_ID_MenuShading (int choice);
+static boolean M_ID_LevelBrightness (int choice);
+static boolean M_ID_Saturation (int choice);
+static boolean M_ID_R_Intensity (int choice);
+static boolean M_ID_G_Intensity (int choice);
+static boolean M_ID_B_Intensity (int choice);
+static boolean M_ID_Messages (int choice);
+static boolean M_ID_TextShadows (int choice);
 
 
 static void DrawCRLSound (void);
@@ -720,7 +745,7 @@ static void    M_DrawBindButton (int itemNum, int yPos, int btnBind);
 // -----------------------------------------------------------------------------
 
 // [JN] Delay before shading.
-// static int shade_wait;
+static int shade_wait;
 
 // [JN] Shade background while in CRL menu.
 static void M_ShadeBackground (void)
@@ -740,25 +765,25 @@ static void M_ShadeBackground (void)
 }
 
 // -----------------------------------------------------------------------------
-// Main CRL Menu
+// Main ID Menu
 // -----------------------------------------------------------------------------
 
-static MenuItem_t CRLMainItems[] = {
-    {ITT_SETMENU, "VIDEO OPTIONS",        NULL,           0, MENU_CRLVIDEO},
-    {ITT_SETMENU, "DISPLAY OPTIONS",      NULL,           0, MENU_CRLVIDEO},
-    {ITT_SETMENU, "SOUND OPTIONS",        NULL,           0, MENU_CRLSOUND},
-    {ITT_SETMENU, "CONTROL SETTINGS",     NULL,           0, MENU_CRLCONTROLS},
-    {ITT_SETMENU, "WIDGETS AND AUTOMAP",  NULL,           0, MENU_CRLWIDGETS},
-    {ITT_SETMENU, "GAMEPLAY FEATURES",    NULL,           0, MENU_CRLGAMEPLAY},
-    {ITT_SETMENU, "LEVEL SELECT",         NULL,           0, MENU_CRLGAMEPLAY},
-    {ITT_SETMENU, "END GAME",             NULL,           0, MENU_CRLGAMEPLAY},
-    {ITT_SETMENU, "RESET SETTINGS",       NULL,           0, MENU_CRLGAMEPLAY},
+static MenuItem_t ID_Main_Items[] = {
+    {ITT_SETMENU, "VIDEO OPTIONS",        NULL, 0, MENU_ID_VIDEO},
+    {ITT_SETMENU, "DISPLAY OPTIONS",      NULL, 0, MENU_ID_DISPLAY},
+    {ITT_SETMENU, "SOUND OPTIONS",        NULL, 0, MENU_ID_SOUND},
+    {ITT_SETMENU, "CONTROL SETTINGS",     NULL, 0, MENU_ID_CONTROLS},
+    {ITT_SETMENU, "WIDGETS AND AUTOMAP",  NULL, 0, MENU_CRLWIDGETS},
+    {ITT_SETMENU, "GAMEPLAY FEATURES",    NULL, 0, MENU_CRLGAMEPLAY},
+    {ITT_SETMENU, "LEVEL SELECT",         NULL, 0, MENU_CRLGAMEPLAY},
+    {ITT_SETMENU, "END GAME",             NULL, 0, MENU_CRLGAMEPLAY},
+    {ITT_SETMENU, "RESET SETTINGS",       NULL, 0, MENU_CRLGAMEPLAY},
 };
 
 static Menu_t CRLMain = {
     CRL_MENU_LEFTOFFSET_SML, CRL_MENU_TOPOFFSET,
     DrawCRLMain,
-    9, CRLMainItems,
+    9, ID_Main_Items,
     0,
     true,
     MENU_MAIN
@@ -794,7 +819,7 @@ static Menu_t CRLVideo = {
     10, CRLVideoItems,
     0,
     true,
-    MENU_CRLMAIN
+    MENU_ID_MAIN
 };
 
 static void DrawCRLVideo (void)
@@ -1014,11 +1039,123 @@ static boolean M_ID_EndText (int option)
 
 /*
 
-static boolean CRL_Gamma (int option)
+static boolean CRL_TextShadows (int option)
+{
+    msg_text_shadows ^= 1;
+    return true;
+}
+
+static boolean CRL_GfxStartup (int option)
+{
+    //graphical_startup ^= 1;
+    return true;
+}
+*/
+
+// -----------------------------------------------------------------------------
+// Display options
+// -----------------------------------------------------------------------------
+
+static MenuItem_t CRLDisplayItems[] = {
+    {ITT_LRFUNC, "GAMMA-CORRECTION",        M_ID_Gamma,           0, MENU_NONE},
+    {ITT_LRFUNC, "FIELD OF VIEW",           NULL,                 0, MENU_NONE},
+    {ITT_LRFUNC, "MENU BACKGROUND SHADING", M_ID_MenuShading,     0, MENU_NONE},
+    {ITT_LRFUNC, "EXTRA LEVEL BRIGHTNESS",  M_ID_LevelBrightness, 0, MENU_NONE},
+    {ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE},
+    {ITT_LRFUNC, "SATURATION",              M_ID_Saturation,      0, MENU_NONE},
+    {ITT_LRFUNC, "RED INTENSITY",           M_ID_R_Intensity,     0, MENU_NONE},
+    {ITT_LRFUNC, "GREEN INTENSITY",         M_ID_G_Intensity,     0, MENU_NONE},
+    {ITT_LRFUNC, "BLUE INTENSITY",          M_ID_B_Intensity,     0, MENU_NONE},
+    {ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE},
+    {ITT_LRFUNC, "MESSAGES ENABLED",        M_ID_Messages,        0, MENU_NONE},
+    {ITT_LRFUNC, "TEXT CASTS SHADOWS",      M_ID_TextShadows,     0, MENU_NONE},
+    {ITT_LRFUNC, "LOCAL TIME",              NULL,                 0, MENU_NONE},
+};
+
+static Menu_t CRLDisplay = {
+    CRL_MENU_LEFTOFFSET, CRL_MENU_TOPOFFSET,
+    DrawCRLDisplay,
+    13, CRLDisplayItems,
+    0,
+    true,
+    MENU_ID_MAIN
+};
+
+static void DrawCRLDisplay (void)
+{
+    char str[32];
+
+    M_ShadeBackground();
+
+    MN_DrTextACentered("DISPLAY OPTIONS", 10, cr[CR_YELLOW]);
+
+    // Gamma-correction num
+    sprintf(str, gammalvl[vid_gamma]);
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 20,
+               M_Item_Glow(0, GLOW_LIGHTGRAY));
+
+    // Field of View
+    sprintf(str, "*TODO*");
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
+               M_Item_Glow(1, GLOW_RED));
+
+    // Background shading
+    sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 40,
+               M_Item_Glow(2, dp_menu_shading == 8 ? GLOW_YELLOW :
+                              dp_menu_shading >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+
+    // Extra level brightness
+    sprintf(str, dp_level_brightness ? "%d" : "OFF", dp_level_brightness);
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 50,
+               M_Item_Glow(3, dp_level_brightness == 8 ? GLOW_YELLOW :
+                              dp_level_brightness >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+
+    MN_DrTextACentered("COLOR SETTINGS", 60, cr[CR_YELLOW]);
+
+    // Saturation
+    M_snprintf(str, 6, "%d%%", vid_saturation);
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
+               M_Item_Glow(5, GLOW_LIGHTGRAY));
+
+    // RED intensity
+    M_snprintf(str, 6, "%3f", vid_r_intensity);
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
+               M_Item_Glow(6, GLOW_RED));
+
+    // GREEN intensity
+    M_snprintf(str, 6, "%3f", vid_g_intensity);
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
+               M_Item_Glow(7, GLOW_GREEN));
+
+    // BLUE intensity
+    M_snprintf(str, 6, "%3f", vid_b_intensity);
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 100,
+               M_Item_Glow(8, GLOW_BLUE));
+
+    MN_DrTextACentered("MESSAGES SETTINGS", 110, cr[CR_YELLOW]);
+
+    // Messages enabled
+    sprintf(str, showMessages ? "ON" : "OFF");
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 120,
+               M_Item_Glow(10, showMessages ? GLOW_DARKRED : GLOW_GREEN));
+
+    // Text casts shadows
+    sprintf(str, msg_text_shadows ? "ON" : "OFF");
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 130,
+               M_Item_Glow(11, msg_text_shadows ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Local time
+    sprintf(str, "*TODO*");
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 140,
+               M_Item_Glow(12, GLOW_RED));
+}
+
+static boolean M_ID_Gamma (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
 
-    switch (option)
+    switch (choice)
     {
         case 0:
             if (vid_gamma)
@@ -1033,23 +1170,192 @@ static boolean CRL_Gamma (int option)
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 #else
-    I_SetPalette(0);
+    {
+        extern int sb_palette;
+        I_SetPalette(sb_palette);
+        R_InitColormaps();
+        SB_ForceRedraw();
+    }
 #endif
     return true;
 }
 
-static boolean CRL_TextShadows (int option)
+static boolean M_ID_MenuShading (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (dp_menu_shading)
+                dp_menu_shading--;
+            break;
+        case 1:
+            if (dp_menu_shading < 8)
+                dp_menu_shading++;
+        default:
+            break;
+    }
+    return true;
+}
+
+static boolean M_ID_LevelBrightness (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (dp_level_brightness)
+                dp_level_brightness--;
+            break;
+        case 1:
+            if (dp_level_brightness < 8)
+                dp_level_brightness++;
+        default:
+            break;
+    }
+    return true;
+}
+
+static boolean M_ID_Saturation (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (vid_saturation)
+                vid_saturation--;
+            break;
+        case 1:
+            if (vid_saturation < 100)
+                vid_saturation++;
+        default:
+            break;
+    }
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
+#else
+        R_InitColormaps();
+        SB_ForceRedraw();
+        // TODO
+        //AM_Init();
+#endif
+    return true;
+}
+
+static boolean M_ID_R_Intensity (int choice)
+{
+    char buf[9];
+
+    switch (choice)
+    {
+        case 0:
+            vid_r_intensity -= 0.025000f;
+            if (vid_r_intensity < 0)
+                vid_r_intensity = 0;
+            break;
+        case 1:
+            vid_r_intensity += 0.025000f;
+            if (vid_r_intensity > 1.000000f)
+                vid_r_intensity = 1.000000f;
+        default:
+            break;
+    }
+
+    // [JN] Do a float correction to always get x.x00000 values:
+    sprintf (buf, "%f", vid_r_intensity);
+    vid_r_intensity = (float) atof(buf);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
+    R_InitColormaps();
+    SB_ForceRedraw();
+    // TODO
+    //AM_Init();
+#endif
+    return true;
+}
+
+static boolean M_ID_G_Intensity (int choice)
+{
+    char buf[9];
+
+    switch (choice)
+    {
+        case 0:
+            vid_g_intensity -= 0.025000f;
+            if (vid_g_intensity < 0)
+                vid_g_intensity = 0;
+            break;
+        case 1:
+            vid_g_intensity += 0.025000f;
+            if (vid_g_intensity > 1.000000f)
+                vid_g_intensity = 1.000000f;
+        default:
+            break;
+    }
+
+    // [JN] Do a float correction to always get x.x00000 values:
+    sprintf (buf, "%f", vid_g_intensity);
+    vid_g_intensity = (float) atof(buf);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
+    R_InitColormaps();
+    SB_ForceRedraw();
+    // TODO
+    //AM_Init();
+#endif
+    return true;
+}
+
+static boolean M_ID_B_Intensity (int choice)
+{
+    char buf[9];
+
+    switch (choice)
+    {
+        case 0:
+            vid_b_intensity -= 0.025000f;
+            if (vid_b_intensity < 0)
+                vid_b_intensity = 0;
+            break;
+        case 1:
+            vid_b_intensity += 0.025000f;
+            if (vid_b_intensity > 1.000000f)
+                vid_b_intensity = 1.000000f;
+        default:
+            break;
+    }
+
+    // [JN] Do a float correction to always get x.x00000 values:
+    sprintf (buf, "%f", vid_b_intensity);
+    vid_b_intensity = (float) atof(buf);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
+    R_InitColormaps();
+    SB_ForceRedraw();
+    // TODO
+    //AM_Init();
+#endif
+    return true;
+}
+
+static boolean M_ID_Messages (int choice)
+{
+    showMessages ^= 1;
+    P_SetMessage(&players[consoleplayer],
+                 DEH_String(showMessages ? "MESSAGES ON" : "MESSAGES OFF"), true);
+    S_StartSound(NULL, sfx_chat);
+    return true;
+}
+
+static boolean M_ID_TextShadows (int choice)
 {
     msg_text_shadows ^= 1;
     return true;
 }
-
-static boolean CRL_GfxStartup (int option)
-{
-    //graphical_startup ^= 1;
-    return true;
-}
-*/
 
 // -----------------------------------------------------------------------------
 // Sound options
@@ -1075,7 +1381,7 @@ static Menu_t CRLSound = {
     11, CRLSoundItems,
     0,
     true,
-    MENU_CRLMAIN
+    MENU_ID_MAIN
 };
 
 static void DrawCRLSound (void)
@@ -1264,7 +1570,7 @@ static Menu_t CRLControls = {
     14, CRLControlsItems,
     0,
     true,
-    MENU_CRLMAIN
+    MENU_ID_MAIN
 };
 
 static void DrawCRLControls (void)
@@ -1388,7 +1694,7 @@ static Menu_t CRLKbdBinds1 = {
     11, CRLKbsBinds1Items,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLKbd1 (void)
@@ -1498,7 +1804,7 @@ static Menu_t CRLKbdBinds2 = {
     11, CRLKbsBinds2Items,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLKbd2 (void)
@@ -1603,7 +1909,7 @@ static Menu_t CRLKbdBinds3 = {
     10, CRLKbsBinds3Items,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLKbd3 (void)
@@ -1710,7 +2016,7 @@ static Menu_t CRLKbdBinds4 = {
     11, CRLKbsBinds4Items,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLKbd4 (void)
@@ -1817,7 +2123,7 @@ static Menu_t CRLKbdBinds5 = {
     10, CRLKbsBinds5Items,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLKbd5 (void)
@@ -1923,7 +2229,7 @@ static Menu_t CRLKbdBinds6 = {
     10, CRLKbsBinds6Items,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLKbd6 (void)
@@ -2027,7 +2333,7 @@ static Menu_t CRLKbdBinds7 = {
     6, CRLKbsBinds7Items,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLKbd7 (void)
@@ -2122,7 +2428,7 @@ static Menu_t CRLKbdBinds8 = {
     11, CRLKbsBinds8Items,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLKbd8 (void)
@@ -2236,7 +2542,7 @@ static Menu_t CRLKbdBinds9 = {
     11, CRLKbsBinds9Items,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLKbd9 (void)
@@ -2340,7 +2646,7 @@ static Menu_t CRLMouseBinds = {
     9, CRLMouseItems,
     0,
     true,
-    MENU_CRLCONTROLS
+    MENU_ID_CONTROLS
 };
 
 static void DrawCRLMouse (void)
@@ -2441,7 +2747,7 @@ static Menu_t CRLWidgetsMap = {
     11, CRLWidgetsItems,
     0,
     true,
-    MENU_CRLMAIN
+    MENU_ID_MAIN
 };
 
 static void DrawCRLWidgets (void)
@@ -2574,7 +2880,7 @@ static Menu_t CRLGameplay = {
     9, CRLGameplayItems,
     0,
     true,
-    MENU_CRLMAIN
+    MENU_ID_MAIN
 };
 
 static void DrawCRLGameplay (void)
@@ -2700,7 +3006,7 @@ static Menu_t CRLLimits = {
     4, CRLLimitsItems,
     0,
     true,
-    MENU_CRLMAIN
+    MENU_ID_MAIN
 };
 
 static void DrawCRLLimits (void)
@@ -2811,6 +3117,7 @@ static Menu_t *Menus[] = {
     // [JN] CRL menu
     &CRLMain,
     &CRLVideo,
+    &CRLDisplay,
     &CRLSound,
     &CRLControls,
     &CRLKbdBinds1,
@@ -2840,7 +3147,6 @@ void MN_Init(void)
 {
     InitFonts();
     MenuActive = false;
-    messageson = true;
     SkullBaseLump = W_GetNumForName(DEH_String("M_SKL00"));
 
     // [JN] CRL - player is always local, "console" player.
@@ -3387,7 +3693,7 @@ static void DrawFileSlots(Menu_t * menu)
 
 static void DrawOptionsMenu(void)
 {
-    if (messageson)
+    if (showMessages)
     {
         MN_DrTextB(DEH_String("ON"), 196, 50);
     }
@@ -3477,27 +3783,6 @@ static boolean SCEndGame(int option)
     {
         paused = true;
     }
-    return true;
-}
-
-//---------------------------------------------------------------------------
-//
-// PROC SCMessages
-//
-//---------------------------------------------------------------------------
-
-static boolean SCMessages(int option)
-{
-    messageson ^= 1;
-    if (messageson)
-    {
-        P_SetMessage(&players[consoleplayer], DEH_String("MESSAGES ON"), true);
-    }
-    else
-    {
-        P_SetMessage(&players[consoleplayer], DEH_String("MESSAGES OFF"), true);
-    }
-    S_StartSound(NULL, sfx_chat);
     return true;
 }
 
@@ -4217,7 +4502,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_messages)        // F8 (toggle messages)
         {
-            SCMessages(0);
+            M_ID_Messages(0);
             return true;
         }
         else if (key == key_menu_qload)           // F9 (quickload)
