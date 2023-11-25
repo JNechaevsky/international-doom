@@ -782,7 +782,7 @@ static MenuItem_t CRLVideoItems[] = {
     {ITT_LRFUNC, "UNCAPPED FRAMERATE",   M_ID_UncappedFPS,  0, MENU_NONE},
     {ITT_LRFUNC, "FRAMERATE LIMIT",      M_ID_LimitFPS,     0, MENU_NONE},
     {ITT_LRFUNC, "ENABLE VSYNC",         M_ID_VSync,        0, MENU_NONE},
-    {ITT_LRFUNC, "SHOW FPS COUNTER",     M_ID_ShowFPS,       0, MENU_NONE},
+    {ITT_LRFUNC, "SHOW FPS COUNTER",     M_ID_ShowFPS,      0, MENU_NONE},
     {ITT_LRFUNC, "PIXEL SCALING",        M_ID_PixelScaling, 0, MENU_NONE},
     {ITT_EMPTY,  NULL,                   NULL,              0, MENU_NONE},
     {ITT_LRFUNC, "SHOW ENDTEXT SCREEN",  M_ID_EndText,      0, MENU_NONE},

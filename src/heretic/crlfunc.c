@@ -402,18 +402,16 @@ void CRL_StatDrawer (void)
 
 void CRL_DrawFPS (void)
 {
-    /*
     char fps[8];
     char fps_str[4];
 
-    sprintf(fps, "%d", CRL_fps);
+    sprintf(fps, "%d", id_fps_value);
     sprintf(fps_str, "FPS");
 
-    MN_DrTextA(fps, SCREENWIDTH - 11 - MN_TextAWidth(fps) 
+    MN_DrTextA(fps, ORIGWIDTH + WIDESCREENDELTA - 11 - MN_TextAWidth(fps) 
                                      - MN_TextAWidth(fps_str), 30, cr[CR_GRAY]);
 
-    MN_DrTextA(fps_str, SCREENWIDTH - 7 - MN_TextAWidth(fps_str), 30, cr[CR_GRAY]);
-    */
+    MN_DrTextA(fps_str, ORIGWIDTH + WIDESCREENDELTA - 7 - MN_TextAWidth(fps_str), 30, cr[CR_GRAY]);
 }
 
 

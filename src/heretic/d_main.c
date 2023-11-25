@@ -249,8 +249,7 @@ void D_Display(void)
             // [JN] Draw FPS counter.
             if (vid_showfps)
             {
-                // TODO
-                //CRL_DrawFPS();
+                CRL_DrawFPS();
             }
 
             break;

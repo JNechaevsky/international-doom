@@ -35,9 +35,8 @@ extern int CRL_counter_shadow;
 extern int CRL_counter_wings;
 extern int CRL_counter_torch;
 
-extern void CRL_Clear_MAX (void);
-extern void CRL_Get_MAX (void);
-extern void CRL_MoveTo_MAX (void);
+extern void CRL_DrawFPS (void);
+
 extern void CRL_DrawTargetsHealth (void);
 
 // [crispy] demo progress bar and timer widget
