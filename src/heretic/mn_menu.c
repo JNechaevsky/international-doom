@@ -1386,22 +1386,21 @@ static Menu_t CRLSound = {
 
 static void DrawCRLSound (void)
 {
-    /*
     static char str[32];
 
     M_ShadeBackground();
 
-    MN_DrTextACentered("SOUND OPTIONS", 20, cr[CR_YELLOW]);
+    MN_DrTextACentered("SOUND OPTIONS", 10, cr[CR_YELLOW]);
 
     DrawSlider(&CRLSound, 1, 16, snd_MaxVolume, false);
     sprintf(str,"%d", snd_MaxVolume);
-    MN_DrTextA(str, 228, 45, M_Item_Glow(0, GLOW_UNCOLORED));
+    MN_DrTextA(str, 228, 35, M_Item_Glow(0, GLOW_UNCOLORED));
 
     DrawSlider(&CRLSound, 4, 16, snd_MusicVolume, false);
     sprintf(str,"%d", snd_MusicVolume);
-    MN_DrTextA(str, 228, 75, M_Item_Glow(3, GLOW_UNCOLORED));
+    MN_DrTextA(str, 228, 65, M_Item_Glow(3, GLOW_UNCOLORED));
 
-    MN_DrTextACentered("SOUND SYSTEM", 90, cr[CR_YELLOW]);
+    MN_DrTextACentered("SOUND SYSTEM", 80, cr[CR_YELLOW]);
 
     // Music playback
     sprintf(str, snd_musicdevice == 0 ? "DISABLED" :
@@ -1411,36 +1410,34 @@ static void DrawCRLSound (void)
                  snd_musicdevice == 8 ?  "NATIVE MIDI" :
                  snd_musicdevice == 11 ? "FLUIDSYNTH" :
                                          "UNKNOWN");
-    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 100,
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
                M_Item_Glow(7, snd_musicdevice ? GLOW_GREEN : GLOW_RED));
 
     // Sound effects mode
-    sprintf(str, crl_monosfx ? "MONO" : "STEREO");
-    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 110,
-               M_Item_Glow(8, crl_monosfx ? GLOW_RED : GLOW_GREEN));
+    sprintf(str, snd_monosfx ? "MONO" : "STEREO");
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 100,
+               M_Item_Glow(8, snd_monosfx ? GLOW_RED : GLOW_GREEN));
 
     // Pitch-shifted sounds
     sprintf(str, snd_pitchshift ? "ON" : "OFF");
-    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 120,
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 110,
                M_Item_Glow(9, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
 
     // Number of SFX to mix
     sprintf(str, "%i", snd_Channels);
-    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 130,
-               M_Item_Glow(10, snd_Channels == 8 ? GLOW_GREEN :
-                               snd_Channels == 1 ? GLOW_RED : GLOW_DARKGREEN));
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 120,
+               M_Item_Glow(10, snd_Channels == 8 ? GLOW_DARKRED :
+                               snd_Channels == 1 ? GLOW_RED : GLOW_YELLOW));
 
     // Inform that music system is not hot-swappable. :(
     if (CurrentItPos == 7)
     {
         MN_DrTextACentered("CHANGE WILL REQUIRE RESTART OF THE PROGRAM", 142, cr[CR_GRAY]);
     }
-    */
 }
 
 static boolean CRL_MusicSystem (int option)
 {
-    /*
     switch (option)
     {
         case 0:
@@ -1508,25 +1505,23 @@ static boolean CRL_MusicSystem (int option)
                 break;
             }
     }
-*/
     return true;
 }
 
 static boolean CRL_SFXMode (int option)
 {
-    //crl_monosfx ^= 1;
+    snd_monosfx ^= 1;
     return true;
 }
 
 static boolean CRL_PitchShift (int option)
 {
-    //snd_pitchshift ^= 1;
+    snd_pitchshift ^= 1;
     return true;
 }
 
 static boolean CRL_SFXChannels (int option)
 {
-    /*
     switch (option)
     {
         case 0:
@@ -1539,7 +1534,6 @@ static boolean CRL_SFXChannels (int option)
         default:
             break;
     }
-    */
     return true;
 }
 
