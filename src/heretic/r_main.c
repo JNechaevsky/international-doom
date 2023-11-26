@@ -23,6 +23,7 @@
 #include "m_bbox.h"
 #include "r_local.h"
 #include "tables.h"
+#include "sb_bar.h"
 
 #include "id_vars.h"
 
@@ -90,7 +91,6 @@ void (*tlcolfunc) (void);
 void (*transcolfunc) (void);
 void (*spanfunc) (void);
 
-void SB_ForceRedraw(void); // [crispy] sb_bar.c
 //
 // R_AddPointToBox
 // Expand a given bbox

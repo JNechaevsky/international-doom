@@ -37,6 +37,7 @@
 #include "v_video.h"
 #include "am_map.h"
 #include "ct_chat.h"
+#include "sb_bar.h"
 
 #include "crlfunc.h"
 #include "id_vars.h"
@@ -895,8 +896,6 @@ static void DrawCRLVideo (void)
 #ifdef CRISPY_TRUECOLOR
 static void M_ID_TrueColorHook (void)
 {
-    extern int sb_palette;
-
     I_SetPalette (sb_palette);
     R_InitColormaps();
 }
@@ -1171,7 +1170,6 @@ static boolean M_ID_Gamma (int choice)
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 #else
     {
-        extern int sb_palette;
         I_SetPalette(sb_palette);
         R_InitColormaps();
         SB_ForceRedraw();
