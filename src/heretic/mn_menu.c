@@ -683,6 +683,7 @@ static boolean M_Bind_M_StrafeLeft (int option);
 static boolean M_Bind_M_StrafeRight (int option);
 static boolean M_Bind_M_PrevWeapon (int option);
 static boolean M_Bind_M_NextWeapon (int option);
+static boolean M_Bind_M_Reset (int option);
 
 static void DrawCRLWidgets (void);
 static boolean CRL_Widget_Coords (int option);
@@ -742,6 +743,7 @@ static void    M_DoMouseBind (int btnnum, int btn);
 static void    M_ClearMouseBind (int itemOn);
 static byte   *M_ColorizeMouseBind (int CurrentItPosOn, int btn);
 static void    M_DrawBindButton (int itemNum, int yPos, int btnBind);
+static void    M_ResetMouseBinds (void);
 
 // -----------------------------------------------------------------------------
 
@@ -2613,21 +2615,23 @@ static boolean M_Bind_Reset (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t CRLMouseItems[] = {
-    {ITT_EFUNC, "FIRE/ATTACK",   M_Bind_M_FireAttack,   0, MENU_NONE},
-    {ITT_EFUNC, "MOVE FORWARD",  M_Bind_M_MoveForward,  0, MENU_NONE},
-    {ITT_EFUNC, "STRAFE ON",     M_Bind_M_StrafeOn,     0, MENU_NONE},
-    {ITT_EFUNC, "MOVE BACKWARD", M_Bind_M_MoveBackward, 0, MENU_NONE},
-    {ITT_EFUNC, "USE",           M_Bind_M_Use,          0, MENU_NONE},
-    {ITT_EFUNC, "STRAFE LEFT",   M_Bind_M_StrafeLeft,   0, MENU_NONE},
-    {ITT_EFUNC, "STRAFE RIGHT",  M_Bind_M_StrafeRight,  0, MENU_NONE},
-    {ITT_EFUNC, "PREV WEAPON",   M_Bind_M_PrevWeapon,   0, MENU_NONE},
-    {ITT_EFUNC, "NEXT WEAPON",   M_Bind_M_NextWeapon,   0, MENU_NONE}
+    {ITT_EFUNC, "FIRE/ATTACK",               M_Bind_M_FireAttack,   0, MENU_NONE},
+    {ITT_EFUNC, "MOVE FORWARD",              M_Bind_M_MoveForward,  0, MENU_NONE},
+    {ITT_EFUNC, "STRAFE ON",                 M_Bind_M_StrafeOn,     0, MENU_NONE},
+    {ITT_EFUNC, "MOVE BACKWARD",             M_Bind_M_MoveBackward, 0, MENU_NONE},
+    {ITT_EFUNC, "USE",                       M_Bind_M_Use,          0, MENU_NONE},
+    {ITT_EFUNC, "STRAFE LEFT",               M_Bind_M_StrafeLeft,   0, MENU_NONE},
+    {ITT_EFUNC, "STRAFE RIGHT",              M_Bind_M_StrafeRight,  0, MENU_NONE},
+    {ITT_EFUNC, "PREV WEAPON",               M_Bind_M_PrevWeapon,   0, MENU_NONE},
+    {ITT_EFUNC, "NEXT WEAPON",               M_Bind_M_NextWeapon,   0, MENU_NONE},
+    {ITT_EMPTY, NULL,                        NULL,                  0, MENU_NONE},
+    {ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset,        0, MENU_NONE},
 };
 
 static Menu_t CRLMouseBinds = {
     CRL_MENU_LEFTOFFSET, CRL_MENU_TOPOFFSET,
     DrawCRLMouse,
-    9, CRLMouseItems,
+    11, CRLMouseItems,
     0,
     true,
     MENU_ID_CONTROLS
@@ -2637,17 +2641,19 @@ static void DrawCRLMouse (void)
 {
     M_ShadeBackground();
 
-    MN_DrTextACentered("MOUSE BINDINGS", 20, cr[CR_YELLOW]);
+    MN_DrTextACentered("MOUSE BINDINGS", 10, cr[CR_YELLOW]);
 
-    M_DrawBindButton(0, 30, mousebfire);
-    M_DrawBindButton(1, 40, mousebforward);
-    M_DrawBindButton(2, 50, mousebstrafe);
-    M_DrawBindButton(3, 60, mousebbackward);
-    M_DrawBindButton(4, 70, mousebuse);
-    M_DrawBindButton(5, 80, mousebstrafeleft);
-    M_DrawBindButton(6, 90, mousebstraferight);
-    M_DrawBindButton(7, 100, mousebprevweapon);
-    M_DrawBindButton(8, 110, mousebnextweapon);
+    M_DrawBindButton(0, 20, mousebfire);
+    M_DrawBindButton(1, 30, mousebforward);
+    M_DrawBindButton(2, 40, mousebstrafe);
+    M_DrawBindButton(3, 50, mousebbackward);
+    M_DrawBindButton(4, 60, mousebuse);
+    M_DrawBindButton(5, 70, mousebstrafeleft);
+    M_DrawBindButton(6, 80, mousebstraferight);
+    M_DrawBindButton(7, 90, mousebprevweapon);
+    M_DrawBindButton(8, 100, mousebnextweapon);
+
+    MN_DrTextACentered("RESET", 110, cr[CR_YELLOW]);
 
     M_DrawBindFooter(NULL, false);
 }
@@ -2703,6 +2709,14 @@ static boolean M_Bind_M_PrevWeapon (int option)
 static boolean M_Bind_M_NextWeapon (int option)
 {
     M_StartMouseBind(1008);  // mousebnextweapon
+    return true;
+}
+
+static boolean M_Bind_M_Reset (int option)
+{
+    MenuActive = false;
+    askforquit = true;
+    typeofask = 6;      // [JN] mouse binds reset
     return true;
 }
 
@@ -3420,6 +3434,7 @@ char *QuitEndMsg[] = {
     "DO YOU WANT TO QUICKSAVE THE GAME NAMED",
     "DO YOU WANT TO QUICKLOAD THE GAME NAMED",
     "RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",  // [JN] typeofask 5 (reset keybinds)
+    "RESET MOUSE BINDINGS TO DEFAULT VALUES?",     // [JN] typeofask 6 (reset keybinds)
 };
 
 void MN_Drawer(void)
@@ -4316,6 +4331,15 @@ boolean MN_Responder(event_t * event)
                     MenuActive = true;
                     break;
 
+                case 6: // [JN] Reset mouse binds.
+                    M_ResetMouseBinds();
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    MenuActive = true;
+                    break;
+
                 default:
                     break;
             }
@@ -4328,7 +4352,7 @@ boolean MN_Responder(event_t * event)
         else if (key == key_menu_abort || key == KEY_ESCAPE)
         {
             // [JN] Do not close keybindings menu after reset canceling.
-            if (typeofask == 5)
+            if (typeofask == 5 || typeofask == 6)
             {
                 if (!netgame && !demoplayback)
                 {
@@ -5798,4 +5822,22 @@ static void M_DrawBindButton (int itemNum, int yPos, int btnBind)
                CRL_MENU_RIGHTOFFSET - MN_TextAWidth(M_NameMouseBind(itemNum, btnBind)),
                yPos,
                M_ColorizeMouseBind(itemNum, btnBind));
+}
+
+// -----------------------------------------------------------------------------
+// M_ResetBinds
+//  [JN] Reset all mouse binding to it's defaults.
+// -----------------------------------------------------------------------------
+
+static void M_ResetMouseBinds (void)
+{
+    mousebfire = 0;
+    mousebforward = 2;
+    mousebstrafe = 1;
+    mousebbackward = -1;
+    mousebuse = -1;
+    mousebstrafeleft = -1;
+    mousebstraferight = -1;
+    mousebprevweapon = 4;
+    mousebnextweapon = 3;
 }
