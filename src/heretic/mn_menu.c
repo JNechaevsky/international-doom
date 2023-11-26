@@ -1394,11 +1394,11 @@ static void DrawCRLSound (void)
 
     DrawSlider(&CRLSound, 1, 16, snd_MaxVolume, false);
     sprintf(str,"%d", snd_MaxVolume);
-    MN_DrTextA(str, 228, 35, M_Item_Glow(0, GLOW_UNCOLORED));
+    MN_DrTextA(str, 228, 35, M_Item_Glow(0, GLOW_LIGHTGRAY));
 
     DrawSlider(&CRLSound, 4, 16, snd_MusicVolume, false);
     sprintf(str,"%d", snd_MusicVolume);
-    MN_DrTextA(str, 228, 65, M_Item_Glow(3, GLOW_UNCOLORED));
+    MN_DrTextA(str, 228, 65, M_Item_Glow(3, GLOW_LIGHTGRAY));
 
     MN_DrTextACentered("SOUND SYSTEM", 80, cr[CR_YELLOW]);
 
@@ -1569,43 +1569,40 @@ static Menu_t CRLControls = {
 
 static void DrawCRLControls (void)
 {
-    /*
     static char str[32];
 
     M_ShadeBackground();
 
-    MN_DrTextACentered("BINDINGS", 20, cr[CR_YELLOW]);
+    MN_DrTextACentered("BINDINGS", 10, cr[CR_YELLOW]);
 
-    MN_DrTextACentered("MOUSE CONFIGURATION", 50, cr[CR_YELLOW]);
+    MN_DrTextACentered("MOUSE CONFIGURATION", 40, cr[CR_YELLOW]);
 
     DrawSlider(&CRLControls, 4, 10, mouseSensitivity, false);
     sprintf(str,"%d", mouseSensitivity);
-    MN_DrTextA(str, 180, 75, M_Item_Glow(3, mouseSensitivity > 9 ?
+    MN_DrTextA(str, 180, 65, M_Item_Glow(3, mouseSensitivity > 9 ?
                                          GLOW_GREEN : GLOW_UNCOLORED));
 
     DrawSlider(&CRLControls, 7, 12, mouse_acceleration * 2, false);
     sprintf(str,"%.1f", mouse_acceleration);
-    MN_DrTextA(str, 196, 105, M_Item_Glow(6, GLOW_UNCOLORED));
+    MN_DrTextA(str, 196, 95, M_Item_Glow(6, GLOW_UNCOLORED));
 
     DrawSlider(&CRLControls, 10, 14, mouse_threshold / 2, false);
     sprintf(str,"%d", mouse_threshold);
-    MN_DrTextA(str, 212, 135, M_Item_Glow(9, GLOW_UNCOLORED));
+    MN_DrTextA(str, 212, 125, M_Item_Glow(9, GLOW_UNCOLORED));
 
     // Mouse look
-    sprintf(str, crl_mouselook ? "ON" : "OFF");
-    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 150,
-               M_Item_Glow(12, crl_mouselook ? GLOW_GREEN : GLOW_RED));
+    sprintf(str, mouse_look ? "ON" : "OFF");
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 140,
+               M_Item_Glow(12, mouse_look ? GLOW_GREEN : GLOW_RED));
 
     // Vertical mouse movement
-    sprintf(str, novert ? "OFF" : "ON");
-    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 160,
-               M_Item_Glow(13, novert ? GLOW_RED : GLOW_GREEN));
-*/
+    sprintf(str, mouse_novert ? "OFF" : "ON");
+    MN_DrTextA(str, CRL_MENU_RIGHTOFFSET - MN_TextAWidth(str), 150,
+               M_Item_Glow(13, mouse_novert ? GLOW_RED : GLOW_GREEN));
 }
 
 static boolean CRL_Controls_Acceleration (int option)
 {
-    /*
     char buf[9];
 
     switch (option)
@@ -1624,13 +1621,11 @@ static boolean CRL_Controls_Acceleration (int option)
     // [JN] Do a float correction to always get x.x00000 values:
     sprintf (buf, "%f", mouse_acceleration);
     mouse_acceleration = (float) atof(buf);
-*/
     return true;
 }
 
 static boolean CRL_Controls_Threshold (int option)
 {
-    /*
     switch (option)
     {   // 0 ... 32
         case 0:
@@ -1642,25 +1637,22 @@ static boolean CRL_Controls_Threshold (int option)
             mouse_threshold++;
         break;
     }
-    */
     return true;
 }
 
 static boolean CRL_Controls_MLook (int option)
 {
-    /*
-    crl_mouselook ^= 1;
-    if (!crl_mouselook)
+    mouse_look ^= 1;
+    if (!mouse_look)
     {
         players[consoleplayer].centering = true;
     }
-    */
     return true;
 }
 
 static boolean CRL_Controls_NoVert (int option)
 {
-    //novert ^= 1;
+    mouse_novert ^= 1;
     return true;
 }
 
