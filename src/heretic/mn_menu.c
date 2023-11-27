@@ -577,9 +577,9 @@ static boolean M_Bind_TurnLeft (int option);
 static boolean M_Bind_TurnRight (int option);
 static boolean M_Bind_StrafeLeft (int option);
 static boolean M_Bind_StrafeRight (int option);
-static boolean M_Bind_SpeedOn (int option);
 static boolean M_Bind_StrafeOn (int option);
-static boolean M_Bind_AlwaysRun (int option);
+static boolean M_Bind_SpeedOn (int option);
+static boolean M_Bind_180Turn (int option);
 static boolean M_Bind_FireAttack (int option);
 static boolean M_Bind_Use (int option);
 
@@ -587,7 +587,6 @@ static void DrawCRLKbd2 (void);
 static boolean M_Bind_LookUp (int option);
 static boolean M_Bind_LookDown (int option);
 static boolean M_Bind_LookCenter (int option);
-static boolean M_Bind_MouseLook (int option);
 static boolean M_Bind_FlyUp (int option);
 static boolean M_Bind_FlyDown (int option);
 static boolean M_Bind_FlyCenter (int option);
@@ -596,15 +595,16 @@ static boolean M_Bind_InvRight (int option);
 static boolean M_Bind_UseArti (int option);
 
 static void DrawCRLKbd3 (void);
-static boolean M_Bind_CRLmenu (int option);
+static boolean M_Bind_AlwaysRun (int option);
+static boolean M_Bind_MouseLook (int option);
 static boolean M_Bind_RestartLevel (int option);
 static boolean M_Bind_NextLevel (int option);
 static boolean M_Bind_FastForward (int option);
+static boolean M_Bind_FlipLevels (int option);
 static boolean M_Bind_SpectatorMode (int option);
-static boolean M_Bind_CameraUp (int option);
-static boolean M_Bind_CameraDown (int option);
 static boolean M_Bind_FreezeMode (int option);
 static boolean M_Bind_NotargetMode (int option);
+static boolean M_Bind_BuddhaMode (int option);
 
 static void DrawCRLKbd4 (void);
 static boolean M_Bind_VileBomb (int option);
@@ -1661,18 +1661,18 @@ static boolean CRL_Controls_NoVert (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t CRLKbsBinds1Items[] = {
-    {ITT_EFUNC, "MOVE FORWARD",  M_Bind_MoveForward,  0, MENU_NONE},
-    {ITT_EFUNC, "MOVE BACKWARD", M_Bind_MoveBackward, 0, MENU_NONE},
-    {ITT_EFUNC, "TURN LEFT",     M_Bind_TurnLeft,     0, MENU_NONE},
-    {ITT_EFUNC, "TURN RIGHT",    M_Bind_TurnRight,    0, MENU_NONE},
-    {ITT_EFUNC, "STRAFE LEFT",   M_Bind_StrafeLeft,   0, MENU_NONE},
-    {ITT_EFUNC, "STRAFE RIGHT",  M_Bind_StrafeRight,  0, MENU_NONE},
-    {ITT_EFUNC, "STRAFE ON",     M_Bind_StrafeOn,     0, MENU_NONE},
-    {ITT_EFUNC, "SPEED ON",      M_Bind_SpeedOn,      0, MENU_NONE},
-    {ITT_EFUNC, "ALWAYS RUN",    M_Bind_AlwaysRun,    0, MENU_NONE},
-    {ITT_EMPTY, NULL,            NULL,                0, MENU_NONE},
-    {ITT_EFUNC, "FIRE/ATTACK",   M_Bind_FireAttack,   0, MENU_NONE},
-    {ITT_EFUNC, "USE",           M_Bind_Use,          0, MENU_NONE}
+    {ITT_EFUNC, "MOVE FORWARD",    M_Bind_MoveForward,  0, MENU_NONE},
+    {ITT_EFUNC, "MOVE BACKWARD",   M_Bind_MoveBackward, 0, MENU_NONE},
+    {ITT_EFUNC, "TURN LEFT",       M_Bind_TurnLeft,     0, MENU_NONE},
+    {ITT_EFUNC, "TURN RIGHT",      M_Bind_TurnRight,    0, MENU_NONE},
+    {ITT_EFUNC, "STRAFE LEFT",     M_Bind_StrafeLeft,   0, MENU_NONE},
+    {ITT_EFUNC, "STRAFE RIGHT",    M_Bind_StrafeRight,  0, MENU_NONE},
+    {ITT_EFUNC, "STRAFE ON",       M_Bind_StrafeOn,     0, MENU_NONE},
+    {ITT_EFUNC, "SPEED ON",        M_Bind_SpeedOn,      0, MENU_NONE},
+    {ITT_EFUNC, "180 DEGREE TURN", M_Bind_180Turn,      0, MENU_NONE},
+    {ITT_EMPTY, NULL,              NULL,                0, MENU_NONE},
+    {ITT_EFUNC, "FIRE/ATTACK",     M_Bind_FireAttack,   0, MENU_NONE},
+    {ITT_EFUNC, "USE",             M_Bind_Use,          0, MENU_NONE},
 };
 
 static Menu_t CRLKbdBinds1 = {
@@ -1698,7 +1698,7 @@ static void DrawCRLKbd1 (void)
     M_DrawBindKey(5, 70, key_straferight);
     M_DrawBindKey(6, 80, key_strafe);
     M_DrawBindKey(7, 90, key_speed);
-    M_DrawBindKey(8, 100, key_autorun);
+    M_DrawBindKey(8, 100, key_180turn);
 
     MN_DrTextACentered("ACTION", 110, cr[CR_YELLOW]);
 
@@ -1756,9 +1756,9 @@ static boolean M_Bind_SpeedOn (int option)
     return true;
 }
 
-static boolean M_Bind_AlwaysRun (int option)
+static boolean M_Bind_180Turn (int choice)
 {
-    M_StartBind(108);  // key_autorun
+    M_StartBind(108);  // key_180turn
     return true;
 }
 
@@ -1782,7 +1782,6 @@ static MenuItem_t CRLKbsBinds2Items[] = {
     {ITT_EFUNC, "LOOK UP",         M_Bind_LookUp,     0, MENU_NONE},
     {ITT_EFUNC, "LOOK DOWN",       M_Bind_LookDown,   0, MENU_NONE},
     {ITT_EFUNC, "CENTER VIEW",     M_Bind_LookCenter, 0, MENU_NONE},
-    {ITT_EFUNC, "MOUSE LOOK",      M_Bind_MouseLook,  0, MENU_NONE},
     {ITT_EMPTY, NULL,              NULL,              0, MENU_NONE},
     {ITT_EFUNC, "FLY UP",          M_Bind_FlyUp,      0, MENU_NONE},
     {ITT_EFUNC, "FLY DOWN",        M_Bind_FlyDown,    0, MENU_NONE},
@@ -1790,13 +1789,13 @@ static MenuItem_t CRLKbsBinds2Items[] = {
     {ITT_EMPTY, NULL,              NULL,              0, MENU_NONE},
     {ITT_EFUNC, "INVENTORY LEFT",  M_Bind_InvLeft,    0, MENU_NONE},
     {ITT_EFUNC, "INVENTORY RIGHT", M_Bind_InvRight,   0, MENU_NONE},
-    {ITT_EFUNC, "USE ARTIFACT",    M_Bind_UseArti,    0, MENU_NONE}
+    {ITT_EFUNC, "USE ARTIFACT",    M_Bind_UseArti,    0, MENU_NONE},
 };
 
 static Menu_t CRLKbdBinds2 = {
     CRL_MENU_LEFTOFFSET, CRL_MENU_TOPOFFSET,
     DrawCRLKbd2,
-    12, CRLKbsBinds2Items,
+    11, CRLKbsBinds2Items,
     0,
     true,
     MENU_ID_CONTROLS
@@ -1811,19 +1810,18 @@ static void DrawCRLKbd2 (void)
     M_DrawBindKey(0, 20, key_lookup);
     M_DrawBindKey(1, 30, key_lookdown);
     M_DrawBindKey(2, 40, key_lookcenter);
-    M_DrawBindKey(3, 50, key_mouse_look);
 
-    MN_DrTextACentered("FLYING", 60, cr[CR_YELLOW]);
+    MN_DrTextACentered("FLYING", 50, cr[CR_YELLOW]);
 
-    M_DrawBindKey(5, 70, key_flyup);
-    M_DrawBindKey(6, 80, key_flydown);
-    M_DrawBindKey(7, 90, key_flycenter);
+    M_DrawBindKey(4, 60, key_flyup);
+    M_DrawBindKey(5, 70, key_flydown);
+    M_DrawBindKey(6, 80, key_flycenter);
 
-    MN_DrTextACentered("INVENTORY", 100, cr[CR_YELLOW]);
+    MN_DrTextACentered("INVENTORY", 90, cr[CR_YELLOW]);
 
-    M_DrawBindKey(9, 110, key_invleft);
-    M_DrawBindKey(10, 120, key_invright);
-    M_DrawBindKey(11, 130, key_useartifact);
+    M_DrawBindKey(8, 100, key_invleft);
+    M_DrawBindKey(9, 110, key_invright);
+    M_DrawBindKey(10, 120, key_useartifact);
 
     M_DrawBindFooter("2", true);
 }
@@ -1846,45 +1844,39 @@ static boolean M_Bind_LookCenter (int option)
     return true;
 }
 
-static boolean M_Bind_MouseLook (int option)
-{
-    M_StartBind(203);  // key_mouse_look
-    return true;
-}
-
 static boolean M_Bind_FlyUp (int option)
 {
-    M_StartBind(204);  // key_flyup
+    M_StartBind(203);  // key_flyup
     return true;
 }
 
 static boolean M_Bind_FlyDown (int option)
 {
-    M_StartBind(205);  // key_flydown
+    M_StartBind(204);  // key_flydown
     return true;
 }
 
 static boolean M_Bind_FlyCenter (int option)
 {
-    M_StartBind(206);  // key_flycenter
+    M_StartBind(205);  // key_flycenter
     return true;
 }
 
 static boolean M_Bind_InvLeft (int option)
 {
-    M_StartBind(207);  // key_invleft
+    M_StartBind(206);  // key_invleft
     return true;
 }
 
 static boolean M_Bind_InvRight (int option)
 {
-    M_StartBind(208);  // key_invright
+    M_StartBind(207);  // key_invright
     return true;
 }
 
 static boolean M_Bind_UseArti (int option)
 {
-    M_StartBind(209);  // key_useartifact
+    M_StartBind(208);  // key_useartifact
     return true;
 }
 
@@ -1893,22 +1885,24 @@ static boolean M_Bind_UseArti (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t CRLKbsBinds3Items[] = {
-    {ITT_EFUNC, "MAIN CRL MENU",      M_Bind_CRLmenu,       0, MENU_NONE},
-    {ITT_EFUNC, "RESTART LEVEL/DEMO", M_Bind_RestartLevel,  0, MENU_NONE},
-    {ITT_EFUNC, "GO TO NEXT LEVEL",   M_Bind_NextLevel,     0, MENU_NONE},
-    {ITT_EFUNC, "DEMO FAST-FORWARD",  M_Bind_FastForward,   0, MENU_NONE},
-    {ITT_EMPTY, NULL,                 NULL,                 0, MENU_NONE},
-    {ITT_EFUNC, "SPECTATOR MODE",     M_Bind_SpectatorMode, 0, MENU_NONE},
-    {ITT_EFUNC, "MOVE CAMERA UP",     M_Bind_CameraUp,      0, MENU_NONE},
-    {ITT_EFUNC, "MOVE CAMERA DOWN",   M_Bind_CameraDown,    0, MENU_NONE},
-    {ITT_EFUNC, "FREEZE MODE",        M_Bind_FreezeMode,    0, MENU_NONE},
-    {ITT_EFUNC, "NOTARGET MODE",      M_Bind_NotargetMode,  0, MENU_NONE}
+    {ITT_EFUNC, "ALWAYS RUN",              M_Bind_AlwaysRun,     0, MENU_NONE},
+    {ITT_EFUNC, "MOUSE LOOK",              M_Bind_MouseLook,     0, MENU_NONE},
+    {ITT_EMPTY, NULL,                      NULL,                 0, MENU_NONE},
+    {ITT_EFUNC, "RESTART LEVEL/DEMO",      M_Bind_RestartLevel,  0, MENU_NONE},
+    {ITT_EFUNC, "GO TO NEXT LEVEL",        M_Bind_NextLevel,     0, MENU_NONE},
+    {ITT_EFUNC, "DEMO FAST-FORWARD",       M_Bind_FastForward,   0, MENU_NONE},
+    {ITT_EFUNC, "FLIP LEVEL HORIZONTALLY", M_Bind_FlipLevels,    0, MENU_NONE},
+    {ITT_EMPTY, NULL,                      NULL,                 0, MENU_NONE},
+    {ITT_EFUNC, "SPECTATOR MODE",          M_Bind_SpectatorMode, 0, MENU_NONE},
+    {ITT_EFUNC, "FREEZE MODE",             M_Bind_FreezeMode,    0, MENU_NONE},
+    {ITT_EFUNC, "NOTARGET MODE",           M_Bind_NotargetMode,  0, MENU_NONE},
+    {ITT_EFUNC, "BUDDHA MODE",             M_Bind_BuddhaMode,    0, MENU_NONE},
 };
 
 static Menu_t CRLKbdBinds3 = {
     CRL_MENU_LEFTOFFSET, CRL_MENU_TOPOFFSET,
     DrawCRLKbd3,
-    10, CRLKbsBinds3Items,
+    12, CRLKbsBinds3Items,
     0,
     true,
     MENU_ID_CONTROLS
@@ -1918,67 +1912,67 @@ static void DrawCRLKbd3 (void)
 {
     M_ShadeBackground();
 
-    MN_DrTextACentered("CRL CONTROLS", 20, cr[CR_YELLOW]);
+    MN_DrTextACentered("ADVANCED MOVEMENT", 10, cr[CR_YELLOW]);
 
-/*
-    M_DrawBindKey(0, 30, key_crl_menu);
-    M_DrawBindKey(1, 40, key_crl_reloadlevel);
-    M_DrawBindKey(2, 50, key_crl_nextlevel);
-    M_DrawBindKey(3, 60, key_crl_demospeed);
-*/
+    M_DrawBindKey(0, 20, key_autorun);
+    M_DrawBindKey(1, 30, key_mouse_look);
 
-    MN_DrTextACentered("GAME MODES", 70, cr[CR_YELLOW]);
+    MN_DrTextACentered("SPECIAL KEYS", 40, cr[CR_YELLOW]);
 
-/*
-    M_DrawBindKey(5, 80, key_crl_spectator);
-    M_DrawBindKey(6, 90, key_crl_cameraup);
-    M_DrawBindKey(7, 100, key_crl_cameradown);
-    M_DrawBindKey(8, 110, key_crl_freeze);
-    M_DrawBindKey(9, 120, key_crl_notarget);
-*/
+    M_DrawBindKey(3, 50, key_reloadlevel);
+    M_DrawBindKey(4, 60, key_nextlevel);
+    M_DrawBindKey(5, 70, key_demospeed);
+    M_DrawBindKey(6, 80, key_flip_levels);
+
+    MN_DrTextACentered("SPECIAL MODES", 90, cr[CR_YELLOW]);
+
+    M_DrawBindKey(8, 100, key_spectator);
+    M_DrawBindKey(9, 110, key_freeze);
+    M_DrawBindKey(10, 120, key_notarget);
+    M_DrawBindKey(11, 130, key_buddha);
 
     M_DrawBindFooter("3", true);
 }
 
-static boolean M_Bind_CRLmenu (int option)
+static boolean M_Bind_AlwaysRun (int option)
 {
-    M_StartBind(300);  // key_crl_menu
+    M_StartBind(300);  // key_autorun
+    return true;
+}
+
+static boolean M_Bind_MouseLook (int option)
+{
+    M_StartBind(301);  // key_mouse_look
     return true;
 }
 
 static boolean M_Bind_RestartLevel (int option)
 {
-    M_StartBind(301);  // key_crl_reloadlevel
+    M_StartBind(302);  // key_reloadlevel
     return true;
 }
 
 static boolean M_Bind_NextLevel (int option)
 {
-    M_StartBind(302);  // key_crl_nextlevel
+    M_StartBind(303);  // key_nextlevel
     return true;
 }
 
 static boolean M_Bind_FastForward (int option)
 {
-    M_StartBind(303);  // key_crl_demospeed
+    M_StartBind(304);  // key_demospeed
+    return true;
+}
+
+static boolean M_Bind_FlipLevels (int choice)
+{
+    M_StartBind(305);  // key_flip_levels
     return true;
 }
 
 static boolean M_Bind_SpectatorMode (int option)
 {
-    M_StartBind(304);  // key_crl_spectator
-    return true;
-}
-
-static boolean M_Bind_CameraUp (int option)
-{
-    M_StartBind(305);  // key_crl_cameraup
-    return true;
-}
-
-static boolean M_Bind_CameraDown (int option)
-{
-    M_StartBind(306);  // key_crl_cameradown
+    M_StartBind(306);  // key_spectator
     return true;
 }
 
@@ -1991,6 +1985,12 @@ static boolean M_Bind_FreezeMode (int option)
 static boolean M_Bind_NotargetMode (int option)
 {
     M_StartBind(308);  // key_crl_notarget
+    return true;
+}
+
+static boolean M_Bind_BuddhaMode (int choice)
+{
+    M_StartBind(309);  // key_buddha
     return true;
 }
 
@@ -5051,9 +5051,9 @@ static void M_CheckBind (int key)
     if (key_right == key)            key_right            = 0;
     if (key_strafeleft == key)       key_strafeleft       = 0;
     if (key_straferight == key)      key_straferight      = 0;
-    if (key_speed == key)            key_speed            = 0;
     if (key_strafe == key)           key_strafe           = 0;
-    if (key_autorun == key)          key_autorun          = 0;
+    if (key_speed == key)            key_speed            = 0;
+    if (key_180turn == key)          key_180turn          = 0;
     if (key_fire == key)             key_fire             = 0;
     if (key_use == key)              key_use              = 0;
 
@@ -5070,17 +5070,16 @@ static void M_CheckBind (int key)
     if (key_useartifact == key)      key_useartifact      = 0;
 
     // Page 3
-/*
-    if (key_crl_menu == key)         key_crl_menu         = 0;
-    if (key_crl_reloadlevel == key)  key_crl_reloadlevel  = 0;
-    if (key_crl_nextlevel == key)    key_crl_nextlevel    = 0;
-    if (key_crl_demospeed == key)    key_crl_demospeed    = 0;
-    if (key_crl_spectator == key)    key_crl_spectator    = 0;
-    if (key_crl_cameraup == key)     key_crl_cameraup     = 0;
-    if (key_crl_cameradown == key)   key_crl_cameradown   = 0;
-    if (key_crl_freeze == key)       key_crl_freeze       = 0;
-    if (key_crl_notarget == key)     key_crl_notarget     = 0;
-*/
+    if (key_autorun == key)          key_autorun          = 0;
+    if (key_mouse_look == key)       key_mouse_look       = 0;
+    if (key_reloadlevel == key)      key_reloadlevel      = 0;
+    if (key_nextlevel == key)        key_nextlevel        = 0;
+    if (key_demospeed == key)        key_demospeed        = 0;
+    if (key_flip_levels == key)      key_flip_levels      = 0;
+    if (key_spectator == key)        key_spectator        = 0;
+    if (key_freeze == key)           key_freeze           = 0;
+    if (key_notarget == key)         key_notarget         = 0;
+    if (key_buddha == key)           key_buddha           = 0;
 
     // Page 4
 /*
@@ -5172,7 +5171,7 @@ static void M_DoBind (int keynum, int key)
         case 105:  key_straferight = key;       break;
         case 106:  key_strafe = key;            break;
         case 107:  key_speed = key;             break;
-        case 108:  key_autorun = key;           break;
+        case 108:  key_180turn = key;           break;
         case 109:  key_fire = key;              break;
         case 110:  key_use = key;               break;
 
@@ -5180,26 +5179,24 @@ static void M_DoBind (int keynum, int key)
         case 200:  key_lookup = key;            break;
         case 201:  key_lookdown = key;          break;
         case 202:  key_lookcenter = key;        break;
-        case 203:  key_mouse_look = key;        break;
-        case 204:  key_flyup = key;             break;
-        case 205:  key_flydown = key;           break;
-        case 206:  key_flycenter = key;         break;
-        case 207:  key_invleft = key;           break;
-        case 208:  key_invright = key;          break;
-        case 209:  key_useartifact = key;       break;
+        case 203:  key_flyup = key;             break;
+        case 204:  key_flydown = key;           break;
+        case 205:  key_flycenter = key;         break;
+        case 206:  key_invleft = key;           break;
+        case 207:  key_invright = key;          break;
+        case 208:  key_useartifact = key;       break;
 
         // Page 3  
-/*
-        case 300:  key_crl_menu = key;          break;
-        case 301:  key_crl_reloadlevel = key;   break;
-        case 302:  key_crl_nextlevel = key;     break;
-        case 303:  key_crl_demospeed = key;     break;
-        case 304:  key_crl_spectator = key;     break;
-        case 305:  key_crl_cameraup = key;      break;
-        case 306:  key_crl_cameradown = key;    break;
-        case 307:  key_crl_freeze = key;        break;
-        case 308:  key_crl_notarget = key;      break;
-*/
+        case 300:  key_autorun = key;           break;
+        case 301:  key_mouse_look = key;        break;
+        case 302:  key_reloadlevel = key;       break;
+        case 303:  key_nextlevel = key;         break;
+        case 304:  key_demospeed = key;         break;
+        case 305:  key_flip_levels = key;       break;
+        case 306:  key_spectator = key;         break;
+        case 307:  key_freeze = key;            break;
+        case 308:  key_notarget = key;          break;
+        case 309:  key_buddha = key;            break;
 
         // Page 4  
 /*
@@ -5298,7 +5295,7 @@ static void M_ClearBind (int CurrentItPos)
             case 5:   key_straferight = 0;      break;
             case 6:   key_strafe = 0;           break;
             case 7:   key_speed = 0;            break;
-            case 8:   key_autorun = 0;          break;
+            case 8:   key_180turn = 0;          break;
             // Action title
             case 10:  key_fire = 0;             break;
             case 11:  key_use = 0;              break;
@@ -5311,33 +5308,32 @@ static void M_ClearBind (int CurrentItPos)
             case 0:   key_lookup = 0;           break;
             case 1:   key_lookdown = 0;         break;
             case 2:   key_lookcenter = 0;       break;
-            case 3:   key_mouse_look = 0;       break;
             // Flying title
-            case 5:   key_flyup = 0;            break;
-            case 6:   key_flydown = 0;          break;
-            case 7:   key_flycenter = 0;        break;
+            case 4:   key_flyup = 0;            break;
+            case 5:   key_flydown = 0;          break;
+            case 6:   key_flycenter = 0;        break;
             // Inventory title
-            case 9:   key_invleft = 0;          break;
-            case 10:  key_invright = 0;         break;
-            case 11:  key_useartifact = 0;      break;
+            case 8:   key_invleft = 0;          break;
+            case 9:   key_invright = 0;         break;
+            case 10:  key_useartifact = 0;      break;
         }
     }
     if (CurrentMenu == &CRLKbdBinds3)
     {
         switch (CurrentItPos)
         {
-/*
-            case 0:   key_crl_menu = 0;         break;
-            case 1:   key_crl_reloadlevel = 0;  break;
-            case 2:   key_crl_nextlevel = 0;    break;
-            case 3:   key_crl_demospeed = 0;    break;
-            // Game modes title
-            case 5:   key_crl_spectator = 0;    break;
-            case 6:   key_crl_cameraup = 0;     break;
-            case 7:   key_crl_cameradown = 0;   break;
-            case 8:   key_crl_freeze = 0;       break;
-            case 9:   key_crl_notarget = 0;     break;
-*/
+            case 0:   key_autorun = 0;          break;
+            case 1:   key_mouse_look = 0;       break;
+            // Special keys title
+            case 3:   key_reloadlevel = 0;      break;
+            case 4:   key_nextlevel = 0;        break;
+            case 5:   key_demospeed = 0;        break;
+            case 6:   key_flip_levels = 0;      break;
+            // Special modes title
+            case 8:   key_spectator = 0;        break;
+            case 9:   key_freeze = 0;           break;
+            case 10:  key_notarget = 0;         break;
+            case 11:  key_notarget = 0;         break;
         }
     }
     if (CurrentMenu == &CRLKbdBinds4)
@@ -5456,7 +5452,6 @@ static void M_ResetBinds (void)
     key_straferight = 'd';
     key_strafe = KEY_RALT;
     key_speed = KEY_RSHIFT;
-    key_autorun = KEY_CAPSLOCK;
     
     key_fire = KEY_RCTRL;
     key_use = ' ';
@@ -5465,7 +5460,6 @@ static void M_ResetBinds (void)
     key_lookup = KEY_PGDN;
     key_lookdown = KEY_DEL;
     key_lookcenter = KEY_END;
-    key_mouse_look = 0;
     key_flyup = KEY_PGUP;
     key_flydown = KEY_INS;
     key_flycenter = KEY_HOME;
@@ -5475,6 +5469,9 @@ static void M_ResetBinds (void)
 
     // Page 3
 /*
+    key_autorun = KEY_CAPSLOCK;
+    key_mouse_look = 0;
+
     key_crl_menu = '`';
     key_crl_reloadlevel = 0;
     key_crl_nextlevel = 0;
