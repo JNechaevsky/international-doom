@@ -593,7 +593,6 @@ static void M_ShadeBackground (void)
             I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], I_ShadeFactor[dp_menu_shading]);
 #endif
         }
-        SB_state = -1;  // Refresh the statbar.
     }
 }
 
@@ -3427,6 +3426,9 @@ void MN_Drawer(void)
             V_DrawShadowedPatchOptional(x + SELECTOR_XOFFSET, y, 1, W_CacheLumpName(selName, PU_CACHE));
         }
     }
+
+    // [JN] Always refresh statbar while menu is active.
+    SB_ForceRedraw();
 }
 
 //---------------------------------------------------------------------------
