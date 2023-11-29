@@ -456,9 +456,6 @@ static boolean M_Bind_PrevWeapon (int option);
 static boolean M_Bind_NextWeapon (int option);
 
 static void M_Draw_ID_Keybinds_5 (void);
-
-
-static void M_Draw_ID_Keybinds_6 (void);
 static boolean M_Bind_Quartz (int option);
 static boolean M_Bind_Urn (int option);
 static boolean M_Bind_Bomb (int option);
@@ -470,7 +467,7 @@ static boolean M_Bind_Wings (int option);
 static boolean M_Bind_Torch (int option);
 static boolean M_Bind_Morph (int option);
 
-static void M_Draw_ID_Keybinds_7 (void);
+static void M_Draw_ID_Keybinds_6 (void);
 static boolean M_Bind_ToggleMap (int option);
 static boolean M_Bind_ZoomIn (int option);
 static boolean M_Bind_ZoomOut (int option);
@@ -479,8 +476,10 @@ static boolean M_Bind_FollowMode (int option);
 static boolean M_Bind_RotateMode (int option);
 static boolean M_Bind_OverlayMode (int option);
 static boolean M_Bind_ToggleGrid (int option);
+static boolean M_Bind_AddMark (int option);
+static boolean M_Bind_ClearMarks (int option);
 
-static void M_Draw_ID_Keybinds_8 (void);
+static void M_Draw_ID_Keybinds_7 (void);
 static boolean M_Bind_HelpScreen (int option);
 static boolean M_Bind_SaveGame (int option);
 static boolean M_Bind_LoadGame (int option);
@@ -493,8 +492,10 @@ static boolean M_Bind_QuitGame (int option);
 static boolean M_Bind_ToggleGamma (int option);
 static boolean M_Bind_MultiplayerSpy (int option);
 
+static void M_Draw_ID_Keybinds_8 (void);
 static boolean M_Bind_Pause (int option);
 static boolean M_Bind_SaveScreenshot (int option);
+static boolean M_Bind_LastMessage (int option);
 static boolean M_Bind_FinishDemo (int option);
 static boolean M_Bind_SendMessage (int option);
 static boolean M_Bind_ToPlayer1 (int option);
@@ -1943,13 +1944,13 @@ static boolean M_Bind_SpectatorMode (int option)
 
 static boolean M_Bind_FreezeMode (int option)
 {
-    M_StartBind(307);  // key_crl_freeze
+    M_StartBind(307);  // key_freeze
     return true;
 }
 
 static boolean M_Bind_NotargetMode (int option)
 {
-    M_StartBind(308);  // key_crl_notarget
+    M_StartBind(308);  // key_notarget
     return true;
 }
 
@@ -2184,8 +2185,8 @@ static MenuItem_t ID_Menu_Keybinds_6[] = {
     { ITT_EFUNC, "ROTATE MODE",      M_Bind_RotateMode,  0, MENU_NONE },
     { ITT_EFUNC, "OVERLAY MODE",     M_Bind_OverlayMode, 0, MENU_NONE },
     { ITT_EFUNC, "TOGGLE GRID",      M_Bind_ToggleGrid,  0, MENU_NONE },
-    { ITT_EFUNC, "MARK LOCATION",    NULL,               0, MENU_NONE },
-    { ITT_EFUNC, "CLEAR ALL MARKS",  NULL,               0, MENU_NONE },
+    { ITT_EFUNC, "MARK LOCATION",    M_Bind_AddMark,     0, MENU_NONE },
+    { ITT_EFUNC, "CLEAR ALL MARKS",  M_Bind_ClearMarks,  0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Keybinds_6 = {
@@ -2208,60 +2209,72 @@ static void M_Draw_ID_Keybinds_6 (void)
     M_DrawBindKey(2, 40, key_map_zoomout);
     M_DrawBindKey(3, 50, key_map_maxzoom);
     M_DrawBindKey(4, 60, key_map_follow);
-//  M_DrawBindKey(5, 70, key_crl_map_rotate);
-//  M_DrawBindKey(6, 80, key_crl_map_overlay);
+    M_DrawBindKey(5, 70, key_map_rotate);
+    M_DrawBindKey(6, 80, key_map_overlay);
     M_DrawBindKey(7, 90, key_map_grid);
-//  M_DrawBindKey(8, 100, key_map_mark);
-//  M_DrawBindKey(9, 110, key_map_clearmark);
+    M_DrawBindKey(8, 100, key_map_mark);
+    M_DrawBindKey(9, 110, key_map_clearmark);
 
     M_DrawBindFooter("6", true);
 }
 
 static boolean M_Bind_ToggleMap (int option)
 {
-    M_StartBind(700);  // key_map_toggle
+    M_StartBind(600);  // key_map_toggle
     return true;
 }
 
 static boolean M_Bind_ZoomIn (int option)
 {
-    M_StartBind(701);  // key_map_zoomin
+    M_StartBind(601);  // key_map_zoomin
     return true;
 }
 
 static boolean M_Bind_ZoomOut (int option)
 {
-    M_StartBind(702);  // key_map_zoomout
+    M_StartBind(602);  // key_map_zoomout
     return true;
 }
 
 static boolean M_Bind_MaxZoom (int option)
 {
-    M_StartBind(703);  // key_map_maxzoom
+    M_StartBind(603);  // key_map_maxzoom
     return true;
 }
 
 static boolean M_Bind_FollowMode (int option)
 {
-    M_StartBind(704);  // key_map_follow
+    M_StartBind(604);  // key_map_follow
     return true;
 }
 
 static boolean M_Bind_RotateMode (int option)
 {
-    M_StartBind(705);  // key_crl_map_rotate
+    M_StartBind(605);  // key_map_rotate
     return true;
 }
 
 static boolean M_Bind_OverlayMode (int option)
 {
-    M_StartBind(706);  // key_crl_map_overlay
+    M_StartBind(606);  // key_map_overlay
     return true;
 }
 
 static boolean M_Bind_ToggleGrid (int option)
 {
-    M_StartBind(705);  // key_map_grid
+    M_StartBind(607);  // key_map_grid
+    return true;
+}
+
+static boolean M_Bind_AddMark (int option)
+{
+    M_StartBind(608);  // key_map_mark
+    return true;
+}
+
+static boolean M_Bind_ClearMarks (int option)
+{
+    M_StartBind(609);  // key_map_clearmark
     return true;
 }
 
@@ -2315,67 +2328,67 @@ static void M_Draw_ID_Keybinds_7 (void)
 
 static boolean M_Bind_HelpScreen (int option)
 {
-    M_StartBind(800);  // key_menu_help
+    M_StartBind(700);  // key_menu_help
     return true;
 }
 
 static boolean M_Bind_SaveGame (int option)
 {
-    M_StartBind(801);  // key_menu_save
+    M_StartBind(701);  // key_menu_save
     return true;
 }
 
 static boolean M_Bind_LoadGame (int option)
 {
-    M_StartBind(802);  // key_menu_load
+    M_StartBind(702);  // key_menu_load
     return true;
 }
 
 static boolean M_Bind_SoundVolume (int option)
 {
-    M_StartBind(803);  // key_menu_volume
+    M_StartBind(703);  // key_menu_volume
     return true;
 }
 
 static boolean M_Bind_QuickSave (int option)
 {
-    M_StartBind(804);  // key_menu_qsave
+    M_StartBind(704);  // key_menu_qsave
     return true;
 }
 
 static boolean M_Bind_EndGame (int option)
 {
-    M_StartBind(805);  // key_menu_endgame
+    M_StartBind(705);  // key_menu_endgame
     return true;
 }
 
 static boolean M_Bind_ToggleMessages (int option)
 {
-    M_StartBind(806);  // key_menu_messages
+    M_StartBind(706);  // key_menu_messages
     return true;
 }
 
 static boolean M_Bind_QuickLoad (int option)
 {
-    M_StartBind(807);  // key_menu_qload
+    M_StartBind(707);  // key_menu_qload
     return true;
 }
 
 static boolean M_Bind_QuitGame (int option)
 {
-    M_StartBind(808);  // key_menu_quit
+    M_StartBind(708);  // key_menu_quit
     return true;
 }
 
 static boolean M_Bind_ToggleGamma (int option)
 {
-    M_StartBind(809);  // key_menu_gamma
+    M_StartBind(709);  // key_menu_gamma
     return true;
 }
 
 static boolean M_Bind_MultiplayerSpy (int option)
 {
-    M_StartBind(810);  // key_spy
+    M_StartBind(710);  // key_spy
     return true;
 }
 
@@ -2386,7 +2399,7 @@ static boolean M_Bind_MultiplayerSpy (int option)
 static MenuItem_t ID_Menu_Keybinds_8[] = {
     {ITT_EFUNC, "PAUSE GAME",            M_Bind_Pause,          0, MENU_NONE},
     {ITT_EFUNC, "SAVE A SCREENSHOT",     M_Bind_SaveScreenshot, 0, MENU_NONE},
-    {ITT_EFUNC, "DISPLAY LAST MESSAGE",  NULL,                  0, MENU_NONE},
+    {ITT_EFUNC, "DISPLAY LAST MESSAGE",  M_Bind_LastMessage,    0, MENU_NONE},
     {ITT_EFUNC, "FINISH DEMO RECORDING", M_Bind_FinishDemo,     0, MENU_NONE},
     {ITT_EMPTY, NULL,                    NULL,                  0, MENU_NONE},
     {ITT_EFUNC, "SEND MESSAGE",          M_Bind_SendMessage,    0, MENU_NONE},
@@ -2415,66 +2428,73 @@ static void M_Draw_ID_Keybinds_8 (void)
 
     M_DrawBindKey(0, 20, key_pause);
     M_DrawBindKey(1, 30, key_menu_screenshot);
-    M_DrawBindKey(2, 40, key_demo_quit);
+    M_DrawBindKey(2, 40, key_message_refresh);
+    M_DrawBindKey(3, 50, key_demo_quit);
 
-    MN_DrTextACentered("MULTIPLAYER", 50, cr[CR_YELLOW]);
+    MN_DrTextACentered("MULTIPLAYER", 60, cr[CR_YELLOW]);
 
-    M_DrawBindKey(4, 60, key_multi_msg);
-    M_DrawBindKey(5, 70, key_multi_msgplayer[0]);
-    M_DrawBindKey(6, 80, key_multi_msgplayer[1]);
-    M_DrawBindKey(7, 90, key_multi_msgplayer[2]);
-    M_DrawBindKey(8, 100, key_multi_msgplayer[3]);
+    M_DrawBindKey(5, 70, key_multi_msg);
+    M_DrawBindKey(6, 80, key_multi_msgplayer[0]);
+    M_DrawBindKey(7, 90, key_multi_msgplayer[1]);
+    M_DrawBindKey(8, 100, key_multi_msgplayer[2]);
+    M_DrawBindKey(9, 110, key_multi_msgplayer[3]);
 
-    MN_DrTextACentered("RESET", 110, cr[CR_YELLOW]);
+    MN_DrTextACentered("RESET", 120, cr[CR_YELLOW]);
 
     M_DrawBindFooter("8", true);
 }
 
 static boolean M_Bind_Pause (int option)
 {
-    M_StartBind(900);  // key_pause
+    M_StartBind(800);  // key_pause
     return true;
 }
 
 static boolean M_Bind_SaveScreenshot (int option)
 {
-    M_StartBind(901);  // key_menu_screenshot
+    M_StartBind(801);  // key_menu_screenshot
+    return true;
+}
+
+static boolean M_Bind_LastMessage (int choice)
+{
+    M_StartBind(802);  // key_message_refresh
     return true;
 }
 
 static boolean M_Bind_FinishDemo (int option)
 {
-    M_StartBind(902);  // key_demo_quit
+    M_StartBind(803);  // key_demo_quit
     return true;
 }
 
 static boolean M_Bind_SendMessage (int option)
 {
-    M_StartBind(903);  // key_multi_msg
+    M_StartBind(804);  // key_multi_msg
     return true;
 }
 
 static boolean M_Bind_ToPlayer1 (int option)
 {
-    M_StartBind(904);  // key_multi_msgplayer[0]
+    M_StartBind(805);  // key_multi_msgplayer[0]
     return true;
 }
 
 static boolean M_Bind_ToPlayer2 (int option)
 {
-    M_StartBind(905);  // key_multi_msgplayer[1]
+    M_StartBind(806);  // key_multi_msgplayer[1]
     return true;
 }
 
 static boolean M_Bind_ToPlayer3 (int option)
 {
-    M_StartBind(906);  // key_multi_msgplayer[2]
+    M_StartBind(807);  // key_multi_msgplayer[2]
     return true;
 }
 
 static boolean M_Bind_ToPlayer4 (int option)
 {
-    M_StartBind(907);  // key_multi_msgplayer[3]
+    M_StartBind(808);  // key_multi_msgplayer[3]
     return true;
 }
 
@@ -4930,7 +4950,6 @@ static void M_CheckBind (int key)
     if (key_lookup == key)           key_lookup           = 0;
     if (key_lookdown == key)         key_lookdown         = 0;
     if (key_lookcenter == key)       key_lookcenter       = 0;
-    if (key_mouse_look == key)       key_mouse_look       = 0;
     if (key_flyup == key)            key_flyup            = 0;
     if (key_flydown == key)          key_flydown          = 0;
     if (key_flycenter == key)        key_flycenter        = 0;
@@ -4963,9 +4982,6 @@ static void M_CheckBind (int key)
     if (key_nextweapon == key)       key_nextweapon       = 0;
 
     // Page 5
-
-
-    // Page 6
     if (key_arti_quartz == key)      key_arti_quartz      = 0;
     if (key_arti_urn == key)         key_arti_urn         = 0;
     if (key_arti_bomb == key)        key_arti_bomb        = 0;
@@ -4977,17 +4993,19 @@ static void M_CheckBind (int key)
     if (key_arti_torch == key)       key_arti_torch       = 0;
     if (key_arti_morph == key)       key_arti_morph       = 0;
 
-    // Page 7
+    // Page 6
     if (key_map_toggle == key)       key_map_toggle       = 0;
     if (key_map_zoomin == key)       key_map_zoomin       = 0;
     if (key_map_zoomout == key)      key_map_zoomout      = 0;
     if (key_map_maxzoom == key)      key_map_maxzoom      = 0;
     if (key_map_follow == key)       key_map_follow       = 0;
-//  if (key_crl_map_rotate == key)   key_crl_map_rotate   = 0;
-//  if (key_crl_map_overlay == key)  key_crl_map_overlay  = 0;
+    if (key_map_rotate == key)       key_map_rotate       = 0;
+    if (key_map_overlay == key)      key_map_overlay      = 0;
     if (key_map_grid == key)         key_map_grid         = 0;
+    if (key_map_mark == key)         key_map_mark         = 0;
+    if (key_map_clearmark == key)    key_map_clearmark    = 0;
 
-    // Page 8
+    // Page 7
     if (key_menu_help == key)        key_menu_help        = 0;
     if (key_menu_save == key)        key_menu_save        = 0;
     if (key_menu_load == key)        key_menu_load        = 0;
@@ -5000,9 +5018,10 @@ static void M_CheckBind (int key)
     if (key_menu_gamma == key)       key_menu_gamma       = 0;
     if (key_spy == key)              key_spy              = 0;
 
-    // Page 9
+    // Page 8
     if (key_pause == key)              key_pause           = 0;
     if (key_menu_screenshot == key)    key_menu_screenshot = 0;
+    if (key_message_refresh == key)    key_message_refresh = 0;
     if (key_demo_quit == key)          key_demo_quit       = 0;
     if (key_multi_msg == key)          key_multi_msg       = 0;
     if (key_multi_msgplayer[0] == key) key_multi_msgplayer[0] = 0;
@@ -5034,7 +5053,7 @@ static void M_DoBind (int keynum, int key)
         case 109:  key_fire = key;              break;
         case 110:  key_use = key;               break;
 
-        // Page 2  
+        // Page 2
         case 200:  key_lookup = key;            break;
         case 201:  key_lookdown = key;          break;
         case 202:  key_lookcenter = key;        break;
@@ -5045,7 +5064,7 @@ static void M_DoBind (int keynum, int key)
         case 207:  key_invright = key;          break;
         case 208:  key_useartifact = key;       break;
 
-        // Page 3  
+        // Page 3
         case 300:  key_autorun = key;           break;
         case 301:  key_mouse_look = key;        break;
         case 302:  key_reloadlevel = key;       break;
@@ -5057,7 +5076,7 @@ static void M_DoBind (int keynum, int key)
         case 308:  key_notarget = key;          break;
         case 309:  key_buddha = key;            break;
 
-        // Page 4  
+        // Page 4
         case 400:  key_weapon1 = key;           break;
         case 401:  key_weapon2 = key;           break;
         case 402:  key_weapon3 = key;           break;
@@ -5069,61 +5088,59 @@ static void M_DoBind (int keynum, int key)
         case 408:  key_prevweapon = key;        break;
         case 409:  key_nextweapon = key;        break;
 
-        // Page 5  
+        // Page 5
+        case 500:  key_arti_quartz = key;       break;
+        case 501:  key_arti_urn = key;          break;
+        case 502:  key_arti_bomb = key;         break;
+        case 503:  key_arti_tome = key;         break;
+        case 504:  key_arti_ring = key;         break;
+        case 505:  key_arti_chaosdevice = key;  break;
+        case 506:  key_arti_shadowsphere = key; break;
+        case 507:  key_arti_wings = key;        break;
+        case 508:  key_arti_torch = key;        break;
+        case 509:  key_arti_morph = key;        break;
 
-
-        // Page 6  
-        case 600:  key_arti_quartz = key;       break;
-        case 601:  key_arti_urn = key;          break;
-        case 602:  key_arti_bomb = key;         break;
-        case 603:  key_arti_tome = key;         break;
-        case 604:  key_arti_ring = key;         break;
-        case 605:  key_arti_chaosdevice = key;  break;
-        case 606:  key_arti_shadowsphere = key; break;
-        case 607:  key_arti_wings = key;        break;
-        case 608:  key_arti_torch = key;        break;
-        case 609:  key_arti_morph = key;        break;
+        // Page 6
+        if (CurrentMenu == &ID_Def_Keybinds_6)
+        {
+        case 600:  key_map_toggle = key;        break;
+        case 601:  key_map_zoomin = key;        break;
+        case 602:  key_map_zoomout = key;       break;
+        case 603:  key_map_maxzoom = key;       break;
+        case 604:  key_map_follow = key;        break;
+        case 605:  key_map_rotate = key;        break;
+        case 606:  key_map_overlay = key;       break;
+        case 607:  key_map_grid = key;          break;
+        case 608:  key_map_mark = key;          break;
+        case 609:  key_map_clearmark = key;     break;
+        }
 
         // Page 7
-        if (CurrentMenu == &ID_Def_Keybinds_7)
-        {
-        case 700:  key_map_toggle = key;        break;
-        case 701:  key_map_zoomin = key;        break;
-        case 702:  key_map_zoomout = key;       break;
-        case 703:  key_map_maxzoom = key;       break;
-        case 704:  key_map_follow = key;        break;
-//      case 705:  key_crl_map_rotate = key;    break;
-//      case 706:  key_crl_map_overlay = key;   break;
-        case 705:  key_map_grid = key;          break;
-        }
+        case 700:  key_menu_help = key;         break;
+        case 701:  key_menu_save = key;         break;
+        case 702:  key_menu_load = key;         break;
+        case 703:  key_menu_volume = key;       break;
+        case 704:  key_menu_qsave = key;        break;
+        case 705:  key_menu_endgame = key;      break;
+        case 706:  key_menu_messages = key;     break;
+        case 707:  key_menu_qload = key;        break;
+        case 708:  key_menu_quit = key;         break;
+        case 709:  key_menu_gamma = key;        break;
+        case 710:  key_spy = key;               break;
 
         // Page 8
-        case 800:  key_menu_help = key;         break;
-        case 801:  key_menu_save = key;         break;
-        case 802:  key_menu_load = key;         break;
-        case 803:  key_menu_volume = key;       break;
-        case 804:  key_menu_qsave = key;        break;
-        case 805:  key_menu_endgame = key;      break;
-        case 806:  key_menu_messages = key;     break;
-        case 807:  key_menu_qload = key;        break;
-        case 808:  key_menu_quit = key;         break;
-        case 809:  key_menu_gamma = key;        break;
-        case 810:  key_spy = key;               break;
-
-/*
-        // Page 9
-        case 900:  key_pause = key;              break;
-        case 901:  key_menu_screenshot = key;    break;
-        case 902:  key_demo_quit = key;          break;
-        case 903:  key_multi_msg = key;          break;
-        if (CurrentMenu == &CRLKbdBinds9)
+        case 800:  key_pause = key;              break;
+        case 801:  key_menu_screenshot = key;    break;
+        case 802:  key_message_refresh = key;    break;
+        case 803:  key_demo_quit = key;          break;
+        case 804:  key_multi_msg = key;          break;
+        if (CurrentMenu == &ID_Def_Keybinds_8)
         {
-        case 904:  key_multi_msgplayer[0] = key; break;
-        case 905:  key_multi_msgplayer[1] = key; break;
-        case 906:  key_multi_msgplayer[2] = key; break;
-        case 907:  key_multi_msgplayer[3] = key; break;
+        case 805:  key_multi_msgplayer[0] = key; break;
+        case 806:  key_multi_msgplayer[1] = key; break;
+        case 807:  key_multi_msgplayer[2] = key; break;
+        case 808:  key_multi_msgplayer[3] = key; break;
         }
-*/
     }
 }
 
@@ -5203,16 +5220,7 @@ static void M_ClearBind (int CurrentItPos)
             case 9:   key_nextweapon = 0;       break;
         }
     }
-    /*
     if (CurrentMenu == &ID_Def_Keybinds_5)
-    {
-        switch (CurrentItPos)
-        {
-
-        }
-    }
-    */
-    if (CurrentMenu == &ID_Def_Keybinds_6)
     {
         switch (CurrentItPos)
         {
@@ -5228,7 +5236,7 @@ static void M_ClearBind (int CurrentItPos)
             case 9:   key_arti_morph = 0;       break;
         }
     }
-    if (CurrentMenu == &ID_Def_Keybinds_7)
+    if (CurrentMenu == &ID_Def_Keybinds_6)
     {
         switch (CurrentItPos)
         {
@@ -5237,12 +5245,14 @@ static void M_ClearBind (int CurrentItPos)
             case 2:   key_map_zoomout = 0;      break;
             case 3:   key_map_maxzoom = 0;      break;
             case 4:   key_map_follow = 0;       break;
-//          case 5:   key_crl_map_rotate = 0;   break;
-//          case 6:   key_crl_map_overlay = 0;  break;
-            case 5:   key_map_grid = 0;         break;
+            case 5:   key_map_rotate = 0;       break;
+            case 6:   key_map_overlay = 0;      break;
+            case 7:   key_map_grid = 0;         break;
+            case 8:   key_map_mark = 0;         break;
+            case 9:   key_map_clearmark = 0;    break;
         }
     }
-    if (CurrentMenu == &ID_Def_Keybinds_8)
+    if (CurrentMenu == &ID_Def_Keybinds_7)
     {
         switch (CurrentItPos)
         {
@@ -5259,29 +5269,27 @@ static void M_ClearBind (int CurrentItPos)
             case 10:  key_spy = 0;              break;
         }
     }
-/*
-    if (CurrentMenu == &CRLKbdBinds9)
+    if (CurrentMenu == &ID_Def_Keybinds_8)
     {
         switch (CurrentItPos)
         {
             case 0:   key_pause = 0;              break;
             case 1:   key_menu_screenshot = 0;    break;
-            case 2:   key_demo_quit = 0;          break;
+            case 2:   key_message_refresh = 0;    break;
+            case 3:   key_demo_quit = 0;          break;
             // Multiplayer title
-            case 4:   key_multi_msg = 0;          break;
-            case 5:   key_multi_msgplayer[0] = 0; break;
-            case 6:   key_multi_msgplayer[1] = 0; break;
-            case 7:   key_multi_msgplayer[2] = 0; break;
-            case 8:   key_multi_msgplayer[3] = 0; break;
-
+            case 5:   key_multi_msg = 0;          break;
+            case 6:   key_multi_msgplayer[0] = 0; break;
+            case 7:   key_multi_msgplayer[1] = 0; break;
+            case 8:   key_multi_msgplayer[2] = 0; break;
+            case 9:   key_multi_msgplayer[3] = 0; break;
         }
     }
-*/
 }
 
 // -----------------------------------------------------------------------------
 // M_ResetBinds
-//  [JN] Reset all keyboard binding to it's defaults.
+//  [JN] Reset all keyboard bindings to default.
 // -----------------------------------------------------------------------------
 
 static void M_ResetBinds (void)
@@ -5334,13 +5342,10 @@ static void M_ResetBinds (void)
     key_nextweapon = 0;
 
     // Page 5
-
-
-    // Page 6
     key_arti_quartz = 0;
     key_arti_urn = 0;
     key_arti_bomb = 0;
-    key_arti_tome = 127;
+    key_arti_tome = 127; // backspace
     key_arti_ring = 0;
     key_arti_chaosdevice = 0;
     key_arti_shadowsphere = 0;
@@ -5354,10 +5359,11 @@ static void M_ResetBinds (void)
     key_map_zoomout = '-';
     key_map_maxzoom = '0';
     key_map_follow = 'f';
-// TODO
-//    key_crl_map_rotate = 'r';
-//    key_crl_map_overlay = 'o';
+    key_map_rotate = 'r';
+    key_map_overlay = 'o';
     key_map_grid = 'g';
+    key_map_mark = 'm';
+    key_map_clearmark = 'c';
 
     // Page 8
     key_menu_help = KEY_F1;
@@ -5375,6 +5381,7 @@ static void M_ResetBinds (void)
     // Page 9
     key_pause = KEY_PAUSE;
     key_menu_screenshot = KEY_PRTSCR;
+    key_message_refresh = KEY_ENTER;
     key_demo_quit = 'q';
     key_multi_msg = 't';
     key_multi_msgplayer[0] = 'g';
