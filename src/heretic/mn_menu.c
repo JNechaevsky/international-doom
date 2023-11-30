@@ -352,7 +352,7 @@ static Menu_t Options2Menu = {
     6, Options2Items,
     0,
     false,
-    MENU_OPTIONS
+    MENU_ID_MAIN
 };
 
 // =============================================================================
@@ -762,15 +762,15 @@ static char *const DefSkillName[5] =
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Main[] = {
-    { ITT_SETMENU, "VIDEO OPTIONS",       NULL, 0, MENU_ID_VIDEO    },
-    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL, 0, MENU_ID_DISPLAY  },
-    { ITT_SETMENU, "SOUND OPTIONS",       NULL, 0, MENU_ID_SOUND    },
-    { ITT_SETMENU, "CONTROL SETTINGS",    NULL, 0, MENU_ID_CONTROLS },
-    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL, 0, MENU_ID_WIDGETS  },
-    { ITT_SETMENU, "GAMEPLAY FEATURES",   NULL, 0, MENU_ID_GAMEPLAY },
-    { ITT_SETMENU, "LEVEL SELECT",        NULL, 0, MENU_ID_GAMEPLAY },
-    { ITT_SETMENU, "END GAME",            NULL, 0, MENU_ID_GAMEPLAY },
-    { ITT_SETMENU, "RESET SETTINGS",      NULL, 0, MENU_ID_GAMEPLAY },
+    { ITT_SETMENU, "VIDEO OPTIONS",       NULL,      0, MENU_ID_VIDEO    },
+    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,      0, MENU_ID_DISPLAY  },
+    { ITT_SETMENU, "SOUND OPTIONS",       NULL,      0, MENU_ID_SOUND    },
+    { ITT_SETMENU, "CONTROL SETTINGS",    NULL,      0, MENU_ID_CONTROLS },
+    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,      0, MENU_ID_WIDGETS  },
+    { ITT_SETMENU, "GAMEPLAY FEATURES",   NULL,      0, MENU_ID_GAMEPLAY },
+    { ITT_SETMENU, "LEVEL SELECT",        NULL,      0, MENU_ID_GAMEPLAY },
+    { ITT_EFUNC,   "END GAME",            SCEndGame, 0, MENU_ID_GAMEPLAY },
+    { ITT_SETMENU, "RESET SETTINGS",      NULL,      0, MENU_ID_GAMEPLAY },
 };
 
 static Menu_t ID_Def_Main = {
