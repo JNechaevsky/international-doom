@@ -432,7 +432,18 @@ void R_DrawPlanes (void)
         {
             dc_iscale = skyiscale;
             // [crispy] no brightmaps for sky
-            dc_colormap[0] = dc_colormap[1] = colormaps;    // sky is allways drawn full bright
+            // [JN] Invulnerability affects sky feature.
+            if (vis_invul_sky
+            && (players[displayplayer].powers[pw_invulnerability] > BLINKTHRESHOLD
+            || (players[displayplayer].powers[pw_invulnerability] & 8)))
+            {
+                dc_colormap[0] = dc_colormap[1] = fixedcolormap;
+            }
+            else
+            {
+                // sky is allways drawn full bright
+                dc_colormap[0] = dc_colormap[1] = colormaps;
+            }
             dc_texturemid = skytexturemid;
             dc_texheight = textureheight[skytexture]>>FRACBITS;
             for (x = pl->minx; x <= pl->maxx; x++)
@@ -462,11 +473,9 @@ void R_DrawPlanes (void)
                     frac = dc_texturemid + (dc_yl - centery) * fracstep;
                     do
                     {
-#ifndef CRISPY_TRUECOLOR
-                        *dest = dc_source[frac >> FRACBITS];
-#else
-                        *dest = colormaps[dc_source[frac >> FRACBITS]];
-#endif
+                        const byte source = dc_source[frac >> FRACBITS];
+                        *dest = dc_colormap[dc_brightmap[source]][source];
+
                         dest += SCREENWIDTH;
                         frac += fracstep;
                     }
