@@ -1000,8 +1000,10 @@ void DrawCommonBar(void)
             healthPos = 100;
         }
         healthPos = (healthPos * 256) / 100;
+        // [JN] Do not refer to CPlayer as map object (mo->) here,
+        // otherwise chain will keep wiggling while SB_state = -1.
         chainY =
-            (HealthMarker == CPlayer->mo->health) ? 191 : 191 + ChainWiggle;
+            (HealthMarker == CPlayer->/*mo->*/health) ? 191 : 191 + ChainWiggle;
         V_DrawPatch(0, 190, PatchCHAINBACK);
         V_DrawPatch(2 + (healthPos % 17), chainY, PatchCHAIN);
         V_DrawPatch(17 + healthPos, chainY, PatchLIFEGEM);
