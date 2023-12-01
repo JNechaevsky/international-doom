@@ -818,8 +818,9 @@ void R_DrawPSprite (pspdef_t* psp)
     vis->mobjflags = 0;
     vis->psprite = true;
     vis->footclip = 0;
+    // [crispy] weapons drawn 1 pixel too high when player is idle
     vis->texturemid =
-        (BASEYCENTER << FRACBITS) /* + FRACUNIT / 2 */ - (psp->sy -
+        (BASEYCENTER << FRACBITS) + FRACUNIT / 4 - (psp->sy -
                                                     spritetopoffset[lump]);
     if (viewheight == SCREENHEIGHT)
     {
@@ -846,7 +847,9 @@ void R_DrawPSprite (pspdef_t* psp)
         viewplayer->powers[pw_invisibility] & 8)
     {
         // Invisibility
-        vis->colormap[0] = vis->colormap[1] = spritelights[MAXLIGHTSCALE - 1];
+        // [crispy] allow translucent weapons to be affected by invulnerability colormap
+        vis->colormap[0] = vis->colormap[1] = fixedcolormap ? fixedcolormap :
+                                              spritelights[MAXLIGHTSCALE - 1];
         vis->mobjflags |= MF_SHADOW;
 #ifdef CRISPY_TRUECOLOR
         vis->blendfunc = I_BlendOverTinttab;
