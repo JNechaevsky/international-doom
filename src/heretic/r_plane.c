@@ -87,6 +87,8 @@ fixed_t			cacheddistance[MAXHEIGHT];
 fixed_t			cachedxstep[MAXHEIGHT];
 fixed_t			cachedystep[MAXHEIGHT];
 
+static fixed_t xsmoothscrolloffset; // [crispy]
+static fixed_t ysmoothscrolloffset; // [crispy]
 
 //
 // sky mapping
@@ -182,6 +184,10 @@ R_MapPlane
 
     ds_xfrac = viewx + FixedMul(viewcos, distance) + dx * ds_xstep;
     ds_yfrac = -viewy - FixedMul(viewsin, distance) + dx * ds_ystep;
+
+     // [crispy] add smooth scroll offsets
+    ds_xfrac += xsmoothscrolloffset;
+    ds_yfrac += ysmoothscrolloffset;
 
     if (fixedcolormap)
 	ds_colormap[0] = ds_colormap[1] = fixedcolormap;
@@ -418,6 +424,7 @@ void R_DrawPlanes (void)
     pixel_t *dest;
     int count;
     fixed_t frac, fracstep;
+    static int interpfactor; // [crispy]
 
     extern int columnofs[MAXWIDTH];
 
@@ -497,6 +504,26 @@ void R_DrawPlanes (void)
         tempSource = W_CacheLumpNum(lumpnum, PU_STATIC);
         ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
 
+        // [crispy] Use old value of interpfactor if uncapped and paused. This
+        // ensures that scrolling stops smoothly when pausing.
+        if (vid_uncapped_fps && realleveltime > oldleveltime)
+        {
+            // [crispy] Scrolling normally advances every *other* gametic, so
+            // interpolation needs to span two tics
+            if (leveltime & 1)
+            {
+                interpfactor = (FRACUNIT + fractionaltic) >> 1;
+            }
+            else
+            {
+                interpfactor = fractionaltic >> 1;
+            }
+        }
+        else if (!vid_uncapped_fps)
+        {
+            interpfactor = 0;
+        }
+
         switch (pl->special)
         {
             case 25:
@@ -504,6 +531,8 @@ void R_DrawPlanes (void)
             case 27:
             case 28:
             case 29:           // Scroll_North
+                xsmoothscrolloffset = 0;
+                ysmoothscrolloffset = 0;
                 ds_source = tempSource;
                 break;
             case 20:
@@ -511,6 +540,8 @@ void R_DrawPlanes (void)
             case 22:
             case 23:
             case 24:           // Scroll_East
+                xsmoothscrolloffset = -(interpfactor << (pl->special - 20));
+                ysmoothscrolloffset = 0;
                 ds_source = tempSource + ((63 - ((leveltime >> 1) & 63)) <<
                                           (pl->special - 20) & 63);
                 //ds_source = tempSource+((leveltime>>1)&63);
@@ -520,6 +551,8 @@ void R_DrawPlanes (void)
             case 32:
             case 33:
             case 34:           // Scroll_South
+                xsmoothscrolloffset = 0;
+                ysmoothscrolloffset = 0;
                 ds_source = tempSource;
                 break;
             case 35:
@@ -527,13 +560,19 @@ void R_DrawPlanes (void)
             case 37:
             case 38:
             case 39:           // Scroll_West
+                xsmoothscrolloffset = 0;
+                ysmoothscrolloffset = 0;
                 ds_source = tempSource;
                 break;
             case 4:            // Scroll_EastLavaDamage
+                xsmoothscrolloffset = -(interpfactor << 3);
+                ysmoothscrolloffset = 0;
                 ds_source =
                     tempSource + (((63 - ((leveltime >> 1) & 63)) << 3) & 63);
                 break;
             default:
+                xsmoothscrolloffset = 0;
+                ysmoothscrolloffset = 0;
                 ds_source = tempSource;
         }
         planeheight = abs(pl->height - viewz);
