@@ -849,16 +849,13 @@ enum
     hudcolor_armor
 } hudcolor_t;
 
-static byte *SB_MainBarColor (const int i)
+static byte *SB_MainBarColor (int i)
 {
-    // TODO
-    // if (!crl_colored_stbar)
+    if (!st_colored_stbar)
     {
         return NULL;
     }
 
-// TODO
-/*
     switch (i)
     {
         case hudcolor_ammo:
@@ -925,7 +922,6 @@ static byte *SB_MainBarColor (const int i)
     }
 
     return NULL;
-*/
 }
 
 // sets the new palette based upon current values of player->damagecount
@@ -1267,35 +1263,6 @@ boolean SB_Responder(event_t * event)
         {                       // Need to eat the key
             return (true);
         }
-
-        // TODO
-        // [JN] CRL - handle cheat keybind shortcuts:
-        /*
-        if (event->data1 == key_crl_iddqd)
-        {
-            CheatGodFunc(&players[consoleplayer], &Cheats[0]);
-            return (true);
-        }
-        if (event->data1 == key_crl_idfa)
-        {
-            CheatWeaponsFunc(&players[consoleplayer], &Cheats[2]);
-            return (true);
-        }
-        if (event->data1 == key_crl_idclip)
-        {
-            CheatNoClipFunc(&players[consoleplayer], &Cheats[1]);
-            return (true);
-        }
-        if (event->data1 == key_crl_iddt)
-        {
-            ravmap_cheating++;
-            if (ravmap_cheating > 2)
-            {
-                ravmap_cheating = 0;
-            }
-            return (true);
-        }
-        */
     }
     return (false);
 }
