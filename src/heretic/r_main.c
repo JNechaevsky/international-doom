@@ -908,12 +908,12 @@ void R_SetupFrame (player_t* player)
     if (vid_uncapped_fps &&
         // Don't interpolate on the first tic of a level,
         // otherwise oldviewz might be garbage.
-        leveltime > 1 &&
+        realleveltime > 1 &&
         // Don't interpolate if the player did something
         // that would necessitate turning it off for a tic.
         player->mo->interp == true &&
         // Don't interpolate during a paused state
-        leveltime > oldleveltime)
+        realleveltime > oldleveltime)
     {
         viewx = player->mo->oldx + FixedMul(player->mo->x - player->mo->oldx, fractionaltic);
         viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
