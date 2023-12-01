@@ -435,26 +435,50 @@ static void DrSmallNumber(int val, int x, int y)
 
 static void ShadeLine(int x, int y, int height, int shade)
 {
+    pixel_t *dest;
 #ifndef CRISPY_TRUECOLOR
-    byte *dest;
     byte *shades;
+#endif
 
     x <<= vid_hires;
     y <<= vid_hires;
     height <<= vid_hires;
 
+#ifndef CRISPY_TRUECOLOR
     shades = colormaps + 9 * 256 + shade * 2 * 256;
+#else
+    shade = 0xFF - (((9 + shade * 2) << 8) / NUMCOLORMAPS);
+#endif
     dest = I_VideoBuffer + y * SCREENWIDTH + x + (WIDESCREENDELTA << vid_hires);
     while (height--)
     {
         if (vid_hires)
+        {
+#ifndef CRISPY_TRUECOLOR
             *(dest + 1) = *(shades + *dest);
+#else
+            *(dest + 1) = I_BlendDark(*dest, shade);
+#endif
+        }
+        if (vid_hires == 2)
+        {
+#ifndef CRISPY_TRUECOLOR
+            *(dest + 2) = *(shades + *dest);
+            *(dest + 3) = *(shades + *dest);
+#else
+            *(dest + 2) = I_BlendDark(*dest, shade);
+            *(dest + 3) = I_BlendDark(*dest, shade);
+#endif
+        }
+
+#ifndef CRISPY_TRUECOLOR
         *(dest) = *(shades + *dest);
+#else
+        *(dest) = I_BlendDark(*dest, shade);
+#endif
+
         dest += SCREENWIDTH;
     }
-#else
-    // [JN] TODO - chain shading
-#endif
 }
 
 //---------------------------------------------------------------------------
@@ -644,6 +668,12 @@ void SB_Drawer(void)
     int frame;
     static boolean hitCenterFrame;
     int spinfly_x, spinbook_x; // [crispy]
+
+    // [JN] Return early while active hook.
+    if (post_rendering_hook)
+    {
+        return;
+    }
 
     // Sound info debug stuff
     if (DebugSound == true)
