@@ -83,6 +83,7 @@ void V_DrawRawScreen(byte *raw);
 // Temporarily switch to using a different buffer to draw graphics, etc.
 
 void V_DrawFullscreenRawOrPatch(lumpindex_t index); // [crispy]
+void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest);
 void V_UseBuffer(pixel_t *buffer);
 
 // Return to using the normal screen buffer to draw graphics.

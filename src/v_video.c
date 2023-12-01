@@ -943,6 +943,27 @@ void V_DrawFullscreenRawOrPatch(lumpindex_t index)
     }
 }
 
+// [JN] Draws tiled raw screen of any given size, with support for any rendering.
+// Used for automap background drawing in Heretic/Hexen games.
+void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest)
+{
+    int x, y;
+
+    for (int i = 0; i < v_max; i++)
+    {
+        for (int j = 0; j < SCREENWIDTH ; j++)
+        {
+            x = j % width;
+            y = i % height;
+#ifndef CRISPY_TRUECOLOR
+            *dest++ = src[width * y + x];
+#else
+            *dest++ = colormaps[src[width * y + x]];
+#endif
+        }
+    }
+}
+
 //
 // V_Init
 // 

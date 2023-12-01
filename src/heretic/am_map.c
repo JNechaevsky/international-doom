@@ -182,6 +182,10 @@ static byte *maplump;           // pointer to the raw data for the automap backg
 static short mapystart = 0;     // y-value for the start of the map bitmap...used in the paralax stuff.
 static short mapxstart = 0;     //x-value for the bitmap.
 
+// [crispy] Used for automap background tiling and scrolling
+#define MAPBGROUNDWIDTH ORIGWIDTH
+#define MAPBGROUNDHEIGHT (ORIGHEIGHT - 42)
+
 //byte screens[][SCREENWIDTH*SCREENHEIGHT];
 //void V_MarkRect (int x, int y, int width, int height);
 
@@ -857,33 +861,15 @@ void AM_Ticker(void)
 
 }
 
-void AM_clearFB(int color)
+static void AM_drawBackground (void)
 {
     byte *src = W_CacheLumpName("AUTOPAGE", PU_CACHE);
     pixel_t *dest = I_VideoBuffer;
 
-    // [JN] Use static placement only because of parallax problem.
-    for (int y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++)
-    {
-#ifndef CRISPY_TRUECOLOR
-        for (int x = 0; x < SCREENWIDTH / 64; x++)
-        {
-            memcpy(dest, src + ((y & 63) << 6), 64);
-            dest += 64;
-        }
-        if (SCREENWIDTH & 63)
-        {
-            memcpy(dest, src + ((y & 63) << 6), SCREENWIDTH & 63);
-            dest += (SCREENWIDTH & 63);
-        }
-#else
-        for (int x = 0; x < SCREENWIDTH; x++)
-        {
-            *dest++ = colormaps[src[((y & 127) << 6) 
-                                   + (x & 127)]];
-        }
-#endif
-    }
+    // [JN] Use static background placement.
+    V_DrawRawTiled(MAPBGROUNDWIDTH << vid_hires,
+                   MAPBGROUNDHEIGHT >> vid_hires,
+                   SCREENHEIGHT - SBARHEIGHT, src, dest);
 }
 
 // Based on Cohen-Sutherland clipping algorithm but with a slightly
@@ -1593,7 +1579,7 @@ void AM_Drawer(void)
         return;
 
     UpdateState |= I_FULLSCRN;
-    AM_clearFB(BACKGROUND);
+    AM_drawBackground();
     if (grid)
         AM_drawGrid(GRIDCOLORS);
     AM_drawWalls();
