@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -73,7 +72,7 @@ void S_Start(void)
             S_StopSound(channel[i].mo);
         }
     }
-    memset(channel, 0, 8 * sizeof(channel_t));
+    memset(channel, 0, snd_Channels * sizeof(channel_t));
 }
 
 void S_StartSong(int song, boolean loop)
@@ -101,7 +100,15 @@ void S_StartSong(int song, boolean loop)
     {
         return;
     }
-    mus_lumpnum = W_GetNumForName(S_music[song].name);
+    // [crispy] support dedicated music tracks for each map
+    if (S_music[song][1].name && W_CheckNumForName(S_music[song][1].name) > 0)
+    {
+        mus_lumpnum = (W_GetNumForName(S_music[song][1].name));
+    }
+    else
+    {
+        mus_lumpnum = (W_GetNumForName(S_music[song][0].name));
+    }
     mus_sndptr = W_CacheLumpNum(mus_lumpnum, PU_MUSIC);
     mus_len = W_LumpLength(mus_lumpnum);
     rs = I_RegisterSong(mus_sndptr, mus_len);
@@ -153,7 +160,7 @@ void S_StartSound(void *_origin, int sound_id)
 
     listener = GetSoundListener();
 
-    if (sound_id == 0 || snd_MaxVolume == 0)
+    if (sound_id == 0 || snd_MaxVolume == 0 || (nodrawers && singletics))
         return;
     if (origin == NULL)
     {
@@ -268,7 +275,7 @@ void S_StartSound(void *_origin, int sound_id)
 //      vol = (snd_MaxVolume*16 + dist*(-snd_MaxVolume*16)/MAX_SND_DIST)>>9;
     vol = soundCurve[dist];
 
-    if (origin == listener)
+    if (origin == listener || snd_monosfx)
     {
         sep = 128;
     }
@@ -516,11 +523,6 @@ void S_UpdateSounds(mobj_t * listener)
 //          vol = (*((byte *)W_CacheLumpName("SNDCURVE", PU_CACHE)+dist)*(snd_MaxVolume*8))>>7;
             vol = soundCurve[dist];
 
-            angle = R_PointToAngle2(listener->x, listener->y,
-                                    channel[i].mo->x, channel[i].mo->y);
-            angle = (angle - viewangle) >> 24;
-            sep = angle * 2 - 128;
-
             // [JN] Support for mono sfx mode
             if (snd_monosfx)
             {
@@ -528,10 +530,14 @@ void S_UpdateSounds(mobj_t * listener)
             }
             else
             {
-            if (sep < 64)
-                sep = -sep;
-            if (sep > 192)
-                sep = 512 - sep;
+                angle = R_PointToAngle2(listener->x, listener->y,
+                                        channel[i].mo->x, channel[i].mo->y);
+                angle = (angle - viewangle) >> 24;
+                sep = angle * 2 - 128;
+                if (sep < 64)
+                    sep = -sep;
+                if (sep > 192)
+                    sep = 512 - sep;
             }
             // TODO: Pitch shifting.
             I_UpdateSoundParams(channel[i].handle, vol, sep);
@@ -546,9 +552,9 @@ void S_Init(void)
 {
     I_SetOPLDriverVer(opl_doom2_1_666);
     soundCurve = Z_Malloc(MAX_SND_DIST, PU_STATIC, NULL);
-    if (snd_Channels > 8)
+    if (snd_Channels > 16)
     {
-        snd_Channels = 8;
+        snd_Channels = 16;
     }
     I_SetMusicVolume(snd_MusicVolume * 8);
     S_SetMaxVolume(true);

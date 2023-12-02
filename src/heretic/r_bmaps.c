@@ -2,8 +2,8 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2013-2017 Brad Harding
-// Copyright(C) 2017-2022 Julia Nechaevskaya
 // Copyright(C) 2017-2022 Fabian Greffrath
+// Copyright(C) 2017-2022 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License

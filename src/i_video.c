@@ -67,7 +67,7 @@ static SDL_Renderer *renderer;
 
 // Window title
 
-static char *window_title = "";
+static const char *window_title = "";
 
 // [JN] Defines window title composition:
 // 1 - only game name will appear.
@@ -1169,7 +1169,7 @@ void I_SetPalette (int palette)
 // Set the window title
 //
 
-void I_SetWindowTitle(char *title)
+void I_SetWindowTitle(const char *title)
 {
     window_title = title;
 }

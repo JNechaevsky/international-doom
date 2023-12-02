@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -36,7 +35,7 @@
 
 #include "id_vars.h"
 
-vertex_t KeyPoints[NUMKEYS];
+vertex_t KeyPoints[NUM_KEY_TYPES];
 
 #define NUMALIAS 3              // Number of antialiased lines.
 // [crispy] precalculated color LUT for antialiased line drawing using COLORMAP
@@ -152,8 +151,6 @@ static int followplayer = 1;    // specifies whether to follow the player around
 static char cheat_amap[] = { 'r', 'a', 'v', 'm', 'a', 'p' };
 
 static byte cheatcount = 0;
-
-extern boolean viewactive;
 
 // [crispy] gradient table for map normal mode
 static pixel_t antialias_normal[NUMALIAS][8] = {

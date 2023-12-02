@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -44,6 +43,7 @@
 #include "i_input.h"
 #include "i_joystick.h"
 #include "i_sound.h"
+#include "i_swap.h" // [crispy] SHORT()
 #include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
@@ -73,7 +73,7 @@
 #define STARTUP_WINDOW_Y 7
 
 GameMode_t gamemode = indetermined;
-char *gamedescription = "unknown";
+const char *gamedescription = "unknown";
 
 boolean nomonsters;             // checkparm of -nomonsters
 boolean respawnparm;            // checkparm of -respawn
@@ -159,7 +159,6 @@ void DrawMessage(void)
 
 void D_Display(void)
 {
-    extern boolean askforquit;
 
     // For comparative timing / profiling
     if (nodrawers)
@@ -181,22 +180,19 @@ void D_Display(void)
         case GS_LEVEL:
             if (!gametic)
                 break;
-
-            // [JN] Update automap while playing and render
-            // full view so counters will show correct values.
-            R_RenderPlayerView(&players[displayplayer]);
-
-            if (automapactive)
+            if (automapactive && !automap_overlay)
             {
+                // [crispy] update automap while playing
+                R_RenderPlayerView (&players[displayplayer]);
                 AM_Drawer();
             }
-            // TODO
-            // else
-            // {
-            //     // [JN] RestlessRodent -- draw visplanes if overlayed
-            //     CRL_DrawVisPlanes(1);
-            // }
-
+            else
+                R_RenderPlayerView(&players[displayplayer]);
+            if (automapactive && automap_overlay)
+            {
+                AM_Drawer();
+                BorderNeedRefresh = true;
+            }
             // TODO
             // [JN] CRL Stats
             // CRL_StatDrawer();
@@ -334,7 +330,6 @@ void D_DoomLoop(void)
     while (1)
     {
         static int oldgametic;
-
         // Frame syncronous IO operations
         I_StartFrame();
 
@@ -548,6 +543,7 @@ void D_CheckRecordFrom(void)
 
 char *iwadfile;
 
+
 void wadprintf(void)
 {
     if (debugmode)
@@ -584,7 +580,6 @@ char smsg[80];                  // status bar line
 //
 //  Heretic startup screen shit
 //
-
 
 static int startup_line = STARTUP_WINDOW_Y;
 
@@ -816,6 +811,8 @@ static void D_Endoom(void)
     I_Endoom(endoom_data);
 }
 
+static const char *const loadparms[] = {"-file", "-merge", NULL}; // [crispy]
+
 //---------------------------------------------------------------------------
 //
 // PROC D_DoomMain
@@ -853,6 +850,7 @@ void D_DoomMain(void)
     I_AtExit(D_Endoom, false);
 
     //!
+    // @category game
     // @vanilla
     //
     // Disable monsters.
@@ -861,6 +859,7 @@ void D_DoomMain(void)
     nomonsters = M_ParmExists("-nomonsters");
 
     //!
+    // @category game
     // @vanilla
     //
     // Monsters respawn after being killed.
@@ -877,6 +876,7 @@ void D_DoomMain(void)
     ravpic = M_ParmExists("-ravpic");
 
     //!
+    // @category obscure
     // @vanilla
     //
     // Allow artifacts to be used when the run key is held down.
@@ -938,6 +938,7 @@ void D_DoomMain(void)
     }
 
     //!
+    // @category game
     // @arg <x> <y>
     // @vanilla
     //
@@ -963,6 +964,7 @@ void D_DoomMain(void)
 #ifdef _WIN32
 
     //!
+    // @category obscure
     // @platform windows
     // @vanilla
     //
@@ -978,7 +980,7 @@ void D_DoomMain(void)
 
     if (cdrom)
     {
-        M_SetConfigDir("c:\\heretic.cd");
+        M_SetConfigDir(DEH_String("c:\\heretic.cd"));
     }
     else
     {
@@ -1028,7 +1030,7 @@ void D_DoomMain(void)
     //
     // Disable auto-loading of .wad files.
     //
-    if (!M_ParmExists("-noautoload"))
+    if (!M_ParmExists("-noautoload") && gamemode != shareware)
     {
         char *autoload_dir;
         autoload_dir = M_GetAutoloadDir("heretic.wad");
@@ -1045,6 +1047,36 @@ void D_DoomMain(void)
 
     // Load PWAD files.
     W_ParseCommandLine();
+
+    // [crispy] add wad files from autoload PWAD directories
+
+    if (!M_ParmExists("-noautoload") && gamemode != shareware)
+    {
+        int i;
+
+        for (i = 0; loadparms[i]; i++)
+        {
+            int p;
+            p = M_CheckParmWithArgs(loadparms[i], 1);
+            if (p)
+            {
+                while (++p != myargc && myargv[p][0] != '-')
+                {
+                    char *autoload_dir;
+                    if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]))))
+                    {
+                        W_AutoLoadWADs(autoload_dir);
+                        free(autoload_dir);
+                    }
+                }
+            }
+        }
+    }
+
+    if (W_CheckNumForName("HEHACKED") != -1)
+    {
+        DEH_LoadLumpByName("HEHACKED", true, true);
+    }
 
     //!
     // @arg <demo>
@@ -1105,10 +1137,35 @@ void D_DoomMain(void)
     // Generate the WAD hash table.  Speed things up a bit.
     W_GenerateHashTable();
 
+    // [crispy] process .deh files from PWADs autoload directories
+
+    if (!M_ParmExists("-noautoload") && gamemode != shareware)
+    {
+        int i;
+
+        for (i = 0; loadparms[i]; i++)
+        {
+            int p;
+            p = M_CheckParmWithArgs(loadparms[i], 1);
+            if (p)
+            {
+                while (++p != myargc && myargv[p][0] != '-')
+                {
+                    char *autoload_dir;
+                    if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]))))
+                    {
+                        DEH_AutoLoadPatches(autoload_dir);
+                        free(autoload_dir);
+                    }
+                }
+            }
+        }
+    }
+
     //!
     // @category demo
     //
-    // Record or playback a demo without automatically quitting
+    // Record or playback a demo, automatically quitting
     // after either level exit or player respawn.
     //
 
@@ -1254,6 +1311,7 @@ void D_DoomMain(void)
     }
 
     //!
+    // @category game
     // @arg <s>
     // @vanilla
     //

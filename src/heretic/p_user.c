@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -250,7 +249,8 @@ void P_MovePlayer(player_t * player)
         else
         {
             player->lookdir += 5 * look;
-            if (player->lookdir > 90 || player->lookdir < -110)
+            if (player->lookdir > 90 ||
+                    player->lookdir < -110)
             {
                 player->lookdir -= 5 * look;
             }
@@ -323,8 +323,6 @@ void P_MovePlayer(player_t * player)
 */
 
 #define         ANG5    (ANG90/18)
-extern int inv_ptr;
-extern int curpos;
 
 void P_DeathThink(player_t * player)
 {
@@ -859,7 +857,7 @@ void P_PlayerNextArtifact(player_t * player)
     if (player == &players[consoleplayer])
     {
         inv_ptr--;
-        if (inv_ptr < 6)
+        if (inv_ptr < CURPOS_MAX)
         {
             curpos--;
             if (curpos < 0)
@@ -870,13 +868,13 @@ void P_PlayerNextArtifact(player_t * player)
         if (inv_ptr < 0)
         {
             inv_ptr = player->inventorySlotNum - 1;
-            if (inv_ptr < 6)
+            if (inv_ptr < CURPOS_MAX)
             {
                 curpos = inv_ptr;
             }
             else
             {
-                curpos = 6;
+                curpos = CURPOS_MAX;
             }
         }
         player->readyArtifact = player->inventory[inv_ptr].type;
@@ -904,22 +902,25 @@ void P_PlayerRemoveArtifact(player_t * player, int slot)
         player->inventorySlotNum--;
         if (player == &players[consoleplayer])
         {                       // Set position markers and get next readyArtifact
-            inv_ptr--;
-            if (inv_ptr < 6)
+            if (inv_ptr >= slot) // [crispy] preserve active artifact
             {
-                curpos--;
-                if (curpos < 0)
+                inv_ptr--;
+                if (inv_ptr < CURPOS_MAX)
                 {
-                    curpos = 0;
+                    curpos--;
+                    if (curpos < 0)
+                    {
+                        curpos = 0;
+                    }
                 }
-            }
-            if (inv_ptr >= player->inventorySlotNum)
-            {
-                inv_ptr = player->inventorySlotNum - 1;
-            }
-            if (inv_ptr < 0)
-            {
-                inv_ptr = 0;
+                if (inv_ptr >= player->inventorySlotNum)
+                {
+                    inv_ptr = player->inventorySlotNum - 1;
+                }
+                if (inv_ptr < 0)
+                {
+                    inv_ptr = 0;
+                }
             }
             player->readyArtifact = player->inventory[inv_ptr].type;
         }

@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,12 +26,10 @@
 #include "p_local.h"
 #include "v_video.h"
 
-//#include "crlcore.h"
 #include "id_vars.h"
 
 
 static FILE *SaveGameFP;
-const uint32_t P_ThinkerToIndex (const thinker_t *thinker);
 
 
 //==========================================================================
@@ -167,12 +164,6 @@ uint32_t SV_ReadLong(void)
     uint32_t result;
     SV_Read(&result, sizeof(int));
     return LONG(result);
-}
-
-// [JN] Separate function to read "mobj_s *target"
-static void *SV_ReadPtr(void)
-{
-    return (void *) (intptr_t) SV_ReadLong();
 }
 
 //
@@ -419,8 +410,8 @@ static void saveg_read_player_t(player_t *str)
         str->powers[i] = SV_ReadLong();
     }
 
-    // boolean keys[NUMKEYS];
-    for (i=0; i<NUMKEYS; ++i)
+    // boolean keys[NUM_KEY_TYPES];
+    for (i = 0; i < NUM_KEY_TYPES; ++i)
     {
         str->keys[i] = SV_ReadLong();
     }
@@ -589,7 +580,7 @@ static void saveg_write_player_t(player_t *str)
     }
 
     // boolean keys[NUMKEYS];
-    for (i=0; i<NUMKEYS; ++i)
+    for (i = 0; i < NUM_KEY_TYPES; ++i)
     {
         SV_WriteLong(str->keys[i]);
     }
@@ -904,17 +895,7 @@ static void saveg_read_mobj_t(mobj_t *str)
     str->movecount = SV_ReadLong();
 
     // struct mobj_s *target;
-    // [JN] Optionally restore monster targets.
-    // TODO
-    // if (!crl_restore_targets)
-    // {
-    //     SV_ReadLong();
-    //     str->target = NULL;
-    // }
-    // else
-    {
-        str->target = SV_ReadPtr();
-    }
+    str->target = (void *)(uintptr_t) SV_ReadLong();
 
     // int reactiontime;
     str->reactiontime = SV_ReadLong();
@@ -939,6 +920,53 @@ static void saveg_read_mobj_t(mobj_t *str)
 
     // mapthing_t spawnpoint;
     saveg_read_mapthing_t(&str->spawnpoint);
+}
+
+// [crispy] enumerate all thinker pointers
+static uint32_t P_ThinkerToIndex (const thinker_t *thinker)
+{
+    thinker_t *th;
+    uint32_t i;
+
+    if (!thinker)
+	return 0;
+
+    for (th = thinkercap.next, i = 0; th != &thinkercap; th = th->next)
+    {
+	if (th->function == P_MobjThinker)
+	{
+	    i++;
+	    if (th == thinker)
+		return i;
+	}
+    }
+
+    return 0;
+}
+
+// [crispy] replace indices with corresponding pointers
+static int restoretargets_fail = 0;
+static const thinker_t *P_IndexToThinker (uint32_t index)
+{
+    thinker_t *th;
+    uint32_t i;
+
+    if (!index)
+	return NULL;
+
+    for (th = thinkercap.next, i = 0; th != &thinkercap; th = th->next)
+    {
+	if (th->function == P_MobjThinker)
+	{
+	    i++;
+	    if (i == index)
+		return th;
+	}
+    }
+
+    restoretargets_fail++;
+
+    return NULL;
 }
 
 static void saveg_write_mobj_t(mobj_t *str)
@@ -1041,7 +1069,7 @@ static void saveg_write_mobj_t(mobj_t *str)
     SV_WriteLong(str->movecount);
 
     // struct mobj_s *target;
-    SV_WritePtr((void *)(uintptr_t) P_ThinkerToIndex((thinker_t *) str->target));
+    SV_WritePtr((void *)(uintptr_t) P_ThinkerToIndex((const thinker_t *) str->target));
 
     // int reactiontime;
     SV_WriteLong(str->reactiontime);
@@ -1734,12 +1762,7 @@ void P_UnArchiveThinkers(void)
             case tc_mobj:
                 mobj = Z_Malloc(sizeof(*mobj), PU_LEVEL, NULL);
                 saveg_read_mobj_t(mobj);
-                // [JN] Optionally restore monster targets.
-                // TODO
-                // if (!crl_restore_targets)
-                // {
-                //     mobj->target = NULL;
-                // }
+//              mobj->target = NULL;
                 P_SetThingPosition(mobj);
                 mobj->info = &mobjinfo[mobj->type];
                 mobj->floorz = mobj->subsector->sector->floorheight;
@@ -1758,6 +1781,28 @@ void P_UnArchiveThinkers(void)
 
 //=============================================================================
 
+// [crispy] after all the thinkers have been restored, replace all indices in
+// the mobj->target fields by the corresponding current pointers again
+void P_RestoreTargets (void)
+{
+    mobj_t *mo;
+    thinker_t *th;
+
+    restoretargets_fail = 0;
+    for (th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+	if (th->function == P_MobjThinker)
+	{
+	    mo = (mobj_t *) th;
+	    mo->target = (mobj_t *) P_IndexToThinker((uintptr_t) mo->target);
+	}
+    }
+
+    if (restoretargets_fail)
+    {
+	fprintf (stderr, "P_RestoreTargets: Failed to restore %d target pointers.\n", restoretargets_fail);
+    }
+}
 
 /*
 ====================
@@ -1933,90 +1978,4 @@ void P_UnArchiveSpecials(void)
 
 }
 
-// -----------------------------------------------------------------------------
-// [crispy] enumerate all thinker pointers
-// -----------------------------------------------------------------------------
 
-static int restoretargets_fail = 0;
-
-const uint32_t P_ThinkerToIndex (const thinker_t *thinker)
-{
-    thinker_t *th;
-    uint32_t   i;
-
-    if (!thinker)
-    {
-        return 0;
-    }
-
-    for (th = thinkercap.next, i = 1 ; th != &thinkercap ; th = th->next, i++)
-    {
-        if (th->function == P_MobjThinker)
-        {
-            if (th == thinker)
-            {
-                return i;
-            }
-        }
-    }
-
-    return 0;
-}
-
-// -----------------------------------------------------------------------------
-// [crispy] replace indizes with corresponding pointers
-// -----------------------------------------------------------------------------
-
-static thinker_t *P_IndexToThinker (uint32_t index)
-{
-    thinker_t *th;
-    uint32_t   i;
-
-    if (!index)
-    {
-        return NULL;
-    }
-
-    for (th = thinkercap.next, i = 1 ; th != &thinkercap ; th = th->next, i++)
-    {
-        if (th->function == P_MobjThinker)
-        {
-            if (i == index)
-            {
-                return th;
-            }
-        }
-    }
-
-    restoretargets_fail++;
-
-    return NULL;
-}
-
-// -----------------------------------------------------------------------------
-// [crispy] after all the thinkers have been restored, replace all indices in
-// the mobj->target and mobj->tracers fields by the corresponding current pointers again
-// -----------------------------------------------------------------------------
-
-void P_RestoreTargets (void)
-{
-    mobj_t    *mo;
-    thinker_t *th;
-    uint32_t   i;
-
-    for (th = thinkercap.next, i = 1 ; th != &thinkercap ; th = th->next, i++)
-    {
-        if (th->function == P_MobjThinker)
-        {
-            mo = (mobj_t*) th;
-            mo->target = (mobj_t*) P_IndexToThinker((uintptr_t) mo->target);
-        }
-    }
-
-    if (restoretargets_fail)
-    {
-        printf ("P_RestoreTargets: Failed to restore %d target thinkers.\n",
-                restoretargets_fail);
-        restoretargets_fail = 0;
-    }
-}

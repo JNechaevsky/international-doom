@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,12 +19,10 @@
 
 #include "doomdef.h"
 #include "i_system.h"
-#include "m_misc.h"
 #include "m_random.h"
 #include "p_local.h"
 #include "s_sound.h"
 #include "v_video.h"
-
 
 plat_t *activeplats[MAXPLATS];
 
@@ -243,7 +240,6 @@ void P_AddActivePlat(plat_t * plat)
         if (activeplats[i] == NULL)
         {
             activeplats[i] = plat;
-
             return;
         }
     I_Error("P_AddActivePlat: no more plats!");

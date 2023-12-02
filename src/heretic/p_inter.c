@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,6 +24,7 @@
 #include "m_random.h"
 #include "p_local.h"
 #include "s_sound.h"
+#include "am_map.h"
 #include "ct_chat.h"
 
 
@@ -196,6 +196,20 @@ boolean P_GiveAmmo(player_t * player, ammotype_t ammo, int count)
 //
 //--------------------------------------------------------------------------
 
+// [crispy] show weapon pickup messages in multiplayer games
+const char *const WeaponPickupMessages[NUMWEAPONS] =
+{
+    NULL, // wp_staff
+    NULL, // wp_goldwand
+    TXT_WPNCROSSBOW,
+    TXT_WPNBLASTER,
+    TXT_WPNSKULLROD,
+    TXT_WPNPHOENIXROD,
+    TXT_WPNMACE,
+    TXT_WPNGAUNTLETS,
+    NULL // wp_beak
+};
+
 boolean P_GiveWeapon(player_t * player, weapontype_t weapon)
 {
     boolean gaveAmmo;
@@ -211,6 +225,10 @@ boolean P_GiveWeapon(player_t * player, weapontype_t weapon)
         player->weaponowned[weapon] = true;
         P_GiveAmmo(player, wpnlev1info[weapon].ammo, GetWeaponAmmo[weapon]);
         player->pendingweapon = weapon;
+
+        // [crispy] show weapon pickup messages in multiplayer games
+        CT_SetMessage(player, DEH_String(WeaponPickupMessages[weapon]), false);
+
         if (player == &players[consoleplayer])
         {
             S_StartSound(NULL, sfx_wpnup);
@@ -295,8 +313,6 @@ boolean P_GiveArmor(player_t * player, int armortype)
 
 void P_GiveKey(player_t * player, keytype_t key)
 {
-    extern int playerkeys;
-    extern vertex_t KeyPoints[];
 
     if (player->keys[key])
     {
@@ -468,7 +484,7 @@ void P_SetDormantArtifact(mobj_t * arti)
 //
 //---------------------------------------------------------------------------
 
-void A_RestoreArtifact(mobj_t * arti)
+void A_RestoreArtifact(mobj_t * arti, player_t *player, pspdef_t *psp)
 {
     arti->flags |= MF_SPECIAL;
     P_SetMobjState(arti, arti->info->spawnstate);
@@ -496,7 +512,7 @@ void P_HideSpecialThing(mobj_t * thing)
 //
 //---------------------------------------------------------------------------
 
-void A_RestoreSpecialThing1(mobj_t * thing)
+void A_RestoreSpecialThing1(mobj_t * thing, player_t *player, pspdef_t *psp)
 {
     if (thing->type == MT_WMACE)
     {                           // Do random mace placement
@@ -512,7 +528,7 @@ void A_RestoreSpecialThing1(mobj_t * thing)
 //
 //---------------------------------------------------------------------------
 
-void A_RestoreSpecialThing2(mobj_t * thing)
+void A_RestoreSpecialThing2(mobj_t * thing, player_t *player, pspdef_t *psp)
 {
     thing->flags |= MF_SPECIAL;
     P_SetMobjState(thing, thing->info->spawnstate);
@@ -1216,7 +1232,6 @@ void P_DamageMobj
     int saved;
     player_t *player;
     fixed_t thrust;
-    // int temp;
 
     if (!(target->flags & MF_SHOOTABLE))
     {
@@ -1330,7 +1345,12 @@ void P_DamageMobj
         ang = R_PointToAngle2(inflictor->x, inflictor->y,
                               target->x, target->y);
         //thrust = damage*(FRACUNIT>>3)*100/target->info->mass;
-        thrust = damage * (FRACUNIT >> 3) * 150 / target->info->mass;
+        // We do this multiplication in unsigned because it might overflow
+        // and signed overflow is undefined behavior
+        // but then we must cast it back to signed for the division
+        // to match original behavior
+        // unsigned to signed cast is implementation defined behavior at worst
+        thrust = ((int) (damage * (FRACUNIT >> 3) * 150u)) / target->info->mass;
         // make fall forwards sometimes
         if ((damage < 40) && (damage > target->health)
             && (target->z - inflictor->z > 64 * FRACUNIT) && (P_Random() & 1))
@@ -1410,10 +1430,8 @@ void P_DamageMobj
         {
             player->damagecount = 100;  // teleport stomp does 10k points...
         }
-        // temp = damage < 100 ? damage : 100;
         if (player == &players[consoleplayer])
         {
-            // I_Tactile(40, 10, 40 + temp * 2);
             SB_PaletteFlash();
         }
     }

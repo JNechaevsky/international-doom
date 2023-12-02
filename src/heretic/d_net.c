@@ -1,8 +1,7 @@
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,10 +34,6 @@
 
 ticcmd_t *netcmds;
 
-extern void D_DoAdvanceDemo(void);
-extern void D_ProcessEvents(void);
-extern void G_BuildTiccmd(ticcmd_t *cmd, int maketic);
-extern boolean G_CheckDemoStatus(void);
 
 // Called when a player leaves the game
 
@@ -59,6 +54,7 @@ static void PlayerQuitGame(player_t *player)
 
     playeringame[player_num] = false;
     players[consoleplayer].message = exitmsg;
+
     // [crispy] don't interpolate players who left the game
     player->mo->interp = false;
 
@@ -72,7 +68,6 @@ static void PlayerQuitGame(player_t *player)
 
 static void RunTic(ticcmd_t *cmds, boolean *ingame)
 {
-    extern boolean advancedemo;
     unsigned int i;
 
     // Check for player quits.

@@ -1,7 +1,6 @@
 //
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -34,7 +33,7 @@
 typedef struct
 {
     int offsets[deh_hhe_num_versions];
-    void (*func)();
+    void (*func)(struct mobj_s *, struct player_s *, struct pspdef_s *);
 } hhe_action_pointer_t;
 
 // Offsets of action pointers within the Heretic executables.
@@ -218,7 +217,7 @@ static void *DEH_FrameStart(deh_context_t *context, char *line)
     return state;
 }
 
-static boolean GetActionPointerForOffset(int offset, void **result)
+static boolean GetActionPointerForOffset(int offset, void (**result)(struct mobj_s *, struct player_s *, struct pspdef_s *))
 {
     int i;
 
@@ -291,7 +290,7 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
 
     if (!strcasecmp(variable_name, "Action pointer"))
     {
-        void *func;
+        void (*func)(struct mobj_s *, struct player_s *, struct pspdef_s *);
 
         if (!GetActionPointerForOffset(ivalue, &func))
         {

@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -51,7 +50,6 @@
 
 // Functions
 
-boolean G_CheckDemoStatus(void);
 void G_ReadDemoTiccmd(ticcmd_t * cmd);
 void G_WriteDemoTiccmd(ticcmd_t * cmd);
 void G_PlayerReborn(int player);
@@ -302,10 +300,6 @@ boolean speedkeydown (void)
 = If recording a demo, write it out
 ====================
 */
-
-extern boolean inventory;
-extern int curpos;
-extern int inv_ptr;
 
 boolean usearti = true;
 
@@ -1474,7 +1468,6 @@ void G_InitPlayer(int player)
 = Can when a player completes a level
 ====================
 */
-extern int playerkeys;
 
 void G_PlayerFinishLevel(int player)
 {
@@ -1840,6 +1833,9 @@ void G_DoLoadGame(void)
     int a, b, c;
     char savestr[SAVESTRINGSIZE];
     char vcheck[VERSIONSIZE], readversion[VERSIONSIZE];
+    const player_t *p; // [crispy]
+
+    p = &players[consoleplayer]; // [crispy]
 
     gameaction = ga_nothing;
 
@@ -1880,14 +1876,23 @@ void G_DoLoadGame(void)
     P_UnArchiveWorld();
     P_UnArchiveThinkers();
     P_UnArchiveSpecials();
+    P_RestoreTargets();
+
+    // [crispy] point to active artifact after load
+    for (i = 0; i < p->inventorySlotNum; i++)
+    {
+        if (p->inventory[i].type == p->readyArtifact)
+        {
+            curpos = inv_ptr = i;
+            curpos = (curpos > CURPOS_MAX) ? CURPOS_MAX : curpos;
+            break;
+        }
+    }
 
     if (SV_ReadByte() != SAVE_GAME_TERMINATOR)
     {                           // Missing savegame termination marker
         I_Error("Bad savegame");
     }
-
-    // [JN] Restore monster targets.
-    P_RestoreTargets ();
 }
 
 
@@ -1923,7 +1928,7 @@ void G_InitNew(skill_t skill, int episode, int map)
 {
     int i;
     int speed;
-    static char *skyLumpNames[5] = {
+    static const char *skyLumpNames[5] = {
         "SKY1", "SKY2", "SKY3", "SKY1", "SKY3"
     };
 
@@ -1977,7 +1982,6 @@ void G_InitNew(skill_t skill, int episode, int map)
     gameepisode = episode;
     gamemap = map;
     gameskill = skill;
-    viewactive = true;
     BorderNeedRefresh = true;
 
     defdemotics = 0;
@@ -2117,8 +2121,22 @@ void G_WriteDemoTiccmd(ticcmd_t * cmd)
 
     if (demo_p > demoend - 16)
     {
-        // [JN] Vanilla demo limit disabled: unlimited demo lengths!
-        IncreaseDemoBuffer();
+        // [crispy] unconditionally disable savegame and demo limits
+        /*
+        if (vanilla_demo_limit)
+        {
+            // no more space
+            G_CheckDemoStatus();
+            return;
+        }
+        else
+        */
+        {
+            // Vanilla demo limit disabled: unlimited
+            // demo lengths!
+
+            IncreaseDemoBuffer();
+        }
     }
 
     G_ReadDemoTiccmd(cmd);      // make SURE it is exactly the same

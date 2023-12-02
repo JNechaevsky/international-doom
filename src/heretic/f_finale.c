@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -40,9 +39,6 @@ static const char *finaleflat;
 
 static int FontABaseLump;
 
-extern boolean viewactive;
-
-extern void D_StartTitle(void);
 
 /*
 =======================
@@ -152,8 +148,6 @@ void F_Ticker(void)
 =======================
 */
 
-//#include "hu_stuff.h"
-//extern        patch_t *hu_font[HU_FONTSIZE];
 
 void F_TextWrite(void)
 {
@@ -227,8 +221,6 @@ void F_TextWrite(void)
         w = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
         if (cx + SHORT(w->width) > SCREENWIDTH)
             break;
-        //V_DrawShadowedPatchRavenOptional(cx, cy, w, "NULL"); // [JN] TODO - proper name
-        // TODO
         V_DrawShadowedPatchOptional(cx, cy, 1, w);
         cx += SHORT(w->width);
     }
@@ -345,11 +337,8 @@ void F_DemonScroll(void)
 void F_DrawUnderwater(void)
 {
     static boolean underwawa = false;
-    extern boolean askforquit;
-#ifndef CRISPY_TRUECOLOR
     const char *lumpname;
     byte *palette;
-#endif
 
     // The underwater screen has its own palette, which is rather annoying.
     // The palette doesn't correspond to the normal palette. Because of
@@ -363,17 +352,14 @@ void F_DrawUnderwater(void)
             {
                 underwawa = true;
                 V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
-#ifndef CRISPY_TRUECOLOR
                 lumpname = DEH_String("E2PAL");
                 palette = W_CacheLumpName(lumpname, PU_STATIC);
+#ifndef CRISPY_TRUECOLOR
                 I_SetPalette(palette);
-                W_ReleaseLumpName(lumpname);
 #else
-                {
-                extern void R_SetUnderwaterPalette(void);
-                R_SetUnderwaterPalette();
-                }
+                R_SetUnderwaterPalette(palette);
 #endif
+                W_ReleaseLumpName(lumpname);
                 V_DrawFullscreenRawOrPatch(W_GetNumForName(DEH_String("E2END")));
             }
             paused = false;
@@ -390,9 +376,7 @@ void F_DrawUnderwater(void)
                 I_SetPalette(palette);
                 W_ReleaseLumpName(lumpname);
 #else
-                {
                 R_InitColormaps();
-                }
 #endif
                 underwawa = false;
             }

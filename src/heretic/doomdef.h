@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -317,7 +316,7 @@ typedef enum
     key_yellow,
     key_green,
     key_blue,
-    NUMKEYS
+    NUM_KEY_TYPES
 } keytype_t;
 
 typedef enum
@@ -454,7 +453,7 @@ typedef struct player_s
     int artifactCount;
     int inventorySlotNum;
     int powers[NUMPOWERS];
-    boolean keys[NUMKEYS];
+    boolean keys[NUM_KEY_TYPES];
     boolean backpack;
     signed int frags[MAXPLAYERS];       // kills of other players
     weapontype_t readyweapon;
@@ -539,6 +538,8 @@ extern boolean altpal;          // checkparm to use an alternate palette routine
 
 extern boolean cdrom;           // true if cd-rom mode active ("-cdrom")
 
+extern boolean viewactive;
+
 extern boolean deathmatch;      // only if started as net death
 
 extern boolean netgame;         // only true if >1 player
@@ -598,6 +599,7 @@ extern skill_t startskill;
 extern int startepisode;
 extern int startmap;
 extern boolean autostart;
+extern boolean advancedemo;
 
 extern boolean nodrawers;
 
@@ -635,6 +637,8 @@ void D_DoomLoop(void);
 // manages timing and IO
 // calls all ?_Responder, ?_Ticker, and ?_Drawer functions
 // calls I_GetTime, I_StartFrame, and I_StartTic
+
+void D_StartTitle(void);
 
 //---------
 //SYSTEM IO
@@ -719,11 +723,17 @@ void G_RecordDemo(skill_t skill, int numplayers, int episode, int map,
 
 void G_PlayDemo(char *name);
 void G_TimeDemo(char *name);
+boolean G_CheckDemoStatus(void);
+void D_DoAdvanceDemo(void);
 
 void G_ExitLevel(void);
 void G_SecretExitLevel(void);
 
+void D_ProcessEvents(void);
+
 void G_WorldDone(void);
+
+void G_BuildTiccmd(ticcmd_t *cmd, int maketic);
 
 void G_Ticker(void);
 boolean G_Responder(event_t * ev);
@@ -823,6 +833,13 @@ void F_StartFinale(void);
 // STATUS BAR (SB_bar.c)
 //----------------------
 
+#define CURPOS_MAX 6 // [crispy] 7 total artifact frames
+
+extern boolean inventory;
+extern int curpos;
+extern int inv_ptr;
+extern int playerkeys;
+
 void SB_Init(void);
 boolean SB_Responder(event_t * event);
 void SB_Ticker(void);
@@ -832,6 +849,7 @@ void SB_Drawer(void);
 // MENU (MN_menu.c)
 //-----------------
 
+extern boolean askforquit;
 extern boolean MenuActive;
 
 void MN_Init(void);

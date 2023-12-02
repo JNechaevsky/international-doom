@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -993,8 +992,6 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
         mobj->flags2 &= ~MF2_FEETARECLIPPED;
     }
 
-    mobj->thinker.function = P_MobjThinker;
-
     // [AM] Do not interpolate on spawn.
     mobj->interp = false;
 
@@ -1004,6 +1001,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
     mobj->oldz = mobj->z;
     mobj->oldangle = mobj->angle;
 
+    mobj->thinker.function = P_MobjThinker;
     P_AddThinker(&mobj->thinker);
     return (mobj);
 }
@@ -1045,7 +1043,6 @@ void P_SpawnPlayer(mapthing_t * mthing)
     fixed_t x, y, z;
     mobj_t *mobj;
     int i;
-    extern int playerkeys;
 
     if (!playeringame[mthing->type - 1])
         return;                 // not playing
@@ -1087,7 +1084,7 @@ void P_SpawnPlayer(mapthing_t * mthing)
     P_SetupPsprites(p);         // setup gun psprite        
     if (deathmatch)
     {                           // Give all keys in death match mode
-        for (i = 0; i < NUMKEYS; i++)
+        for (i = 0; i < NUM_KEY_TYPES; i++)
         {
             p->keys[i] = true;
             if (p == &players[consoleplayer])
@@ -1158,7 +1155,7 @@ void P_SpawnMapThing(mapthing_t * mthing)
         return;
     }
 
-// check for apropriate skill level
+// check for appropriate skill level
     if (!netgame && (mthing->options & 16))
         return;
 
@@ -1719,7 +1716,7 @@ mobj_t *P_SPMAngle(mobj_t * source, mobjtype_t type, angle_t angle)
 //
 //---------------------------------------------------------------------------
 
-void A_ContMobjSound(mobj_t * actor)
+void A_ContMobjSound(mobj_t * actor, player_t *player, pspdef_t *psp)
 {
     switch (actor->type)
     {
