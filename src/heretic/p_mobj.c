@@ -24,6 +24,7 @@
 #include "p_local.h"
 #include "sounds.h"
 #include "s_sound.h"
+#include "ct_chat.h"
 
 #include "id_vars.h"
 #include "crlfunc.h"
