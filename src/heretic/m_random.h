@@ -35,5 +35,10 @@ extern int rndindex;
 // Defined version of P_Random() - P_Random()
 int P_SubRandom (void);
 
+// [JN] Own random functions
+extern int ID_Random (void);
+extern int ID_SubRandom (void);
+extern int ID_RealRandom (void);
+
 #endif // HERETIC_M_RANDOM_H
 

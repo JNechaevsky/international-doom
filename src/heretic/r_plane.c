@@ -23,6 +23,7 @@
 #include "i_system.h"
 #include "m_misc.h"
 #include "r_local.h"
+#include "r_swirl.h" // [crispy] R_DistortedFlat()
 
 #include "id_vars.h"
 
@@ -420,6 +421,7 @@ void R_DrawPlanes (void)
     int lumpnum;
     int angle;
     byte *tempSource;
+    boolean swirling;
 
     pixel_t *dest;
     int count;
@@ -499,10 +501,12 @@ void R_DrawPlanes (void)
         //
         // regular flat
         //
+        swirling = flattranslation[pl->picnum] == -1;
+        if (!swirling) // [crispy] adapt swirl from src/doom to src/heretic
+        {
         lumpnum = firstflat + flattranslation[pl->picnum];
 
         tempSource = W_CacheLumpNum(lumpnum, PU_STATIC);
-        ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
 
         // [crispy] Use old value of interpfactor if uncapped and paused. This
         // ensures that scrolling stops smoothly when pausing.
@@ -575,6 +579,13 @@ void R_DrawPlanes (void)
                 ysmoothscrolloffset = 0;
                 ds_source = tempSource;
         }
+        }
+        else
+        {
+            lumpnum = firstflat+pl->picnum;
+            ds_source = R_DistortedFlat(lumpnum);
+        }
+        ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
         planeheight = abs(pl->height - viewz);
         light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
         if (light >= LIGHTLEVELS)
@@ -589,6 +600,7 @@ void R_DrawPlanes (void)
             R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
                         pl->bottom[x]);
 
+        if (!swirling)
         W_ReleaseLumpNum(lumpnum);
         }
     }

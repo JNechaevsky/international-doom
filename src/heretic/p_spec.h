@@ -41,25 +41,22 @@ typedef struct
 //
 //      source animation definition
 //
-typedef struct
+typedef PACKED_STRUCT (
 {
-    int istexture;          // if false, it's a flat
+    signed char istexture;      // if false, it's a flat
     char endname[9];
     char startname[9];
     int speed;
-} animdef_t;
+}) animdef_t;
 
 #define	MAXANIMS		32
 
-extern anim_t anims[MAXANIMS], *lastanim;
 extern int *TerrainTypes;
 
 //
 //      Animating line specials
 //
-// [JN] CRL - increase actual limit, render counter will blink
-// if scrolling value reaches 65 and above.
-#define MAXLINEANIMS		16385
+#define	MAXLINEANIMS		64*256
 extern short numlinespecials;
 extern line_t *linespeciallist[MAXLINEANIMS];
 
@@ -164,12 +161,12 @@ void P_SpawnGlowingLight(sector_t * sector);
 
 ===============================================================================
 */
-typedef struct
+typedef PACKED_STRUCT (
 {
     char name1[9];
     char name2[9];
     short episode;
-} switchlist_t;
+}) switchlist_t;
 
 typedef enum
 {
@@ -237,9 +234,7 @@ typedef struct
 
 #define	PLATWAIT	3
 #define	PLATSPEED	FRACUNIT
-// [JN] CRL - increase actual limit, render counter will blink
-// if active plats value reaches 31 and above.
-#define	MAXPLATS	7681
+#define	MAXPLATS	30*256
 
 extern plat_t *activeplats[MAXPLATS];
 
@@ -284,7 +279,7 @@ typedef struct
 
 void EV_VerticalDoor(line_t * line, mobj_t * thing);
 int EV_DoDoor(line_t * line, vldoor_e type, fixed_t speed);
-void T_VerticalDoor(thinker_t * thinker);
+void T_VerticalDoor(thinker_t *thinker);
 void P_SpawnDoorCloseIn30(sector_t * sec);
 void P_SpawnDoorRaiseIn5Mins(sector_t * sec, int secnum);
 
@@ -382,7 +377,7 @@ result_e T_MovePlane(sector_t * sector, fixed_t speed,
 
 int EV_BuildStairs(line_t * line, fixed_t stepDelta);
 int EV_DoFloor(line_t * line, floor_e floortype);
-void T_MoveFloor(thinker_t * thinker);
+void T_MoveFloor(thinker_t *thinker);
 
 /*
 ===============================================================================

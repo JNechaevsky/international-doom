@@ -18,15 +18,20 @@
 
 // P_Spec.c
 
+#include <stdlib.h> // [crispy] free()
+
 #include "doomdef.h"
 #include "deh_str.h"
 #include "i_system.h"
 #include "i_timer.h"
-#include "m_misc.h"
+#include "m_misc.h" // [crispy] So M_sprintf can be used
 #include "m_random.h"
 #include "p_local.h"
 #include "s_sound.h"
 #include "v_video.h"
+#include "i_swap.h" // [crispy] LONG()
+#include "w_wad.h"
+#include "r_swirl.h"
 
 #include "id_vars.h"
 
@@ -49,7 +54,9 @@ typedef enum
 
 // Data
 
-int *LevelAmbientSfx[MAX_AMBIENT_SFX];
+// [crispy] remove the ambient sound limit
+static int **LevelAmbientSfx = NULL;
+static int AmbSfxMax = 0;
 int *AmbSfxPtr;
 int AmbSfxCount;
 int AmbSfxTics;
@@ -179,7 +186,7 @@ int *AmbientSfx[] = {
     AmbSndSeq10                 // FastFootsteps
 };
 
-animdef_t animdefs[] = {
+animdef_t animdefs_vanilla[] = {
     // false = flat
     // true = texture
     {false, "FLTWAWA3", "FLTWAWA1", 8}, // Water
@@ -193,13 +200,30 @@ animdef_t animdefs[] = {
     {-1}
 };
 
-anim_t anims[MAXANIMS];
-anim_t *lastanim;
+// [JN] Same sequences with swirling liquids.
+static animdef_t animdefs_swirling[] = {
+    // false = flat
+    // true = texture
+    {false, "FLTWAWA3", "FLTWAWA1", 65536}, // Water
+    {false, "FLTSLUD3", "FLTSLUD1", 65536}, // Sludge
+    {false, "FLTTELE4", "FLTTELE1", 6}, // Teleport
+    {false, "FLTFLWW3", "FLTFLWW1", 9}, // River - West
+    {false, "FLTLAVA4", "FLTLAVA1", 8}, // Lava
+    {false, "FLATHUH4", "FLATHUH1", 65536}, // Super Lava
+    {true, "LAVAFL3", "LAVAFL1", 6},    // Texture: Lavaflow
+    {true, "WATRWAL3", "WATRWAL1", 4},  // Texture: Waterfall
+    {-1}
+};
+
+// [crispy] remove MAXANIMS limit
+anim_t* anims;
+anim_t* lastanim;
+static size_t maxanims;
 
 int *TerrainTypes;
 struct
 {
-    char *name;
+    const char *name;
     int type;
 } TerrainTypeDefs[] =
 {
@@ -262,10 +286,31 @@ void P_InitPicAnims(void)
     const char *startname;
     const char *endname;
     int i;
+    boolean init_swirl = false;
+    // [crispy] add support for ANIMATED lumps
+    animdef_t *animdefs;
+    const boolean from_lump = (W_CheckNumForName("ANIMATED") != -1);
+
+    if (from_lump)
+    {
+        animdefs = W_CacheLumpName("ANIMATED", PU_STATIC);
+    }
+    else
+    {
+        animdefs = vis_swirling_liquids ? animdefs_swirling : animdefs_vanilla;
+    }
 
     lastanim = anims;
     for (i = 0; animdefs[i].istexture != -1; i++)
     {
+        // [crispy] remove MAXANIMS limit
+        if (lastanim >= anims + maxanims)
+        {
+            size_t newmax = maxanims ? 2 * maxanims : MAXANIMS;
+            anims = I_Realloc(anims, newmax * sizeof(*anims));
+            lastanim = anims + maxanims;
+            maxanims = newmax;
+        }
         startname = DEH_String(animdefs[i].startname);
         endname = DEH_String(animdefs[i].endname);
 
@@ -289,13 +334,29 @@ void P_InitPicAnims(void)
         }
         lastanim->istexture = animdefs[i].istexture;
         lastanim->numpics = lastanim->picnum - lastanim->basepic + 1;
+        lastanim->speed = from_lump ? LONG(animdefs[i].speed) : animdefs[i].speed;
+        // [crispy] add support for SMMU swirling flats
+        if (lastanim->speed > 65535 || lastanim->numpics == 1)
+        {
+                init_swirl = true;
+        }
+        else
         if (lastanim->numpics < 2)
         {
-            I_Error("P_InitPicAnims: bad cycle from %s to %s",
-                    startname, endname);
-        }
-        lastanim->speed = animdefs[i].speed;
+            // [crispy] make non-fatal, skip invalid animation sequences
+            fprintf (stderr, "P_InitPicAnims: bad cycle from %s to %s\n",
+                     startname, endname);
+            continue;
+        }        
         lastanim++;
+    }
+    if (from_lump)
+    {
+        W_ReleaseLumpName("ANIMATED");
+    }
+    if (init_swirl)
+    {
+        R_InitDistortedFlats();
     }
 }
 
@@ -428,6 +489,13 @@ fixed_t P_FindNextHighestFloor(sector_t * sec, int currentheight)
 
             ++h;
         }
+    }
+
+    // Don't return INT_MAX if no higher floor is found.
+
+    if (!h)
+    {
+        return height;
     }
 
     // Compatibility note, in case of demo desyncs.
@@ -1001,6 +1069,12 @@ void P_UpdateSpecials(void)
             }
             else
             {
+                // [crispy] add support for SMMU swirling flats
+                if (anim->speed > 65535 || anim->numpics == 1)
+                {
+                    flattranslation[i] = -1;
+                }
+                else
                 flattranslation[i] = pic;
             }
         }
@@ -1015,13 +1089,13 @@ void P_UpdateSpecials(void)
                 // [crispy] smooth texture scrolling
                 sides[line->sidenum[0]].basetextureoffset += FRACUNIT;
                 sides[line->sidenum[0]].textureoffset =
-                sides[line->sidenum[0]].basetextureoffset;
+                    sides[line->sidenum[0]].basetextureoffset;
                 break;
             case 99:           // Effect_Scroll_Right
                 // [crispy] smooth texture scrolling
                 sides[line->sidenum[0]].basetextureoffset -= FRACUNIT;
                 sides[line->sidenum[0]].textureoffset =
-                sides[line->sidenum[0]].basetextureoffset;
+                    sides[line->sidenum[0]].basetextureoffset;
                 break;
         }
     }
@@ -1056,28 +1130,28 @@ void P_UpdateSpecials(void)
 }
 
 // [crispy] smooth texture scrolling
-void R_InterpolateTextureOffsets (void)
+void R_InterpolateTextureOffsets(void)
 {
-	if (vid_uncapped_fps && realleveltime > oldleveltime)
-	{
-		int i;
+    if (vid_uncapped_fps && realleveltime > oldleveltime)
+    {
+        int i;
 
-		for (i = 0; i < numlinespecials; i++)
-		{
-			const line_t *const line = linespeciallist[i];
-			side_t *const side = &sides[line->sidenum[0]];
+        for (i = 0; i < numlinespecials; i++)
+        {
+            const line_t* const line = linespeciallist[i];
+            side_t* const side = &sides[line->sidenum[0]];
 
-			if (line->special == 48)
-			{
-				side->textureoffset = side->basetextureoffset + fractionaltic;
-			}
-			else
-			if (line->special == 99)
-			{
-				side->textureoffset = side->basetextureoffset - fractionaltic;
-			}
-		}
-	}
+            if (line->special == 48)
+            {
+                side->textureoffset = side->basetextureoffset + fractionaltic;
+            }
+            else
+                if (line->special == 85)
+                {
+                    side->textureoffset = side->basetextureoffset - fractionaltic;
+                }
+        }
+    }
 }
 
 //============================================================
@@ -1254,12 +1328,24 @@ void P_SpawnSpecials(void)
 //
 //----------------------------------------------------------------------------
 
+// [crispy] fix ambient sounds stop playing
+static int (*Amb_Random)(void);
+
 void P_InitAmbientSound(void)
 {
     AmbSfxCount = 0;
     AmbSfxVolume = 0;
     AmbSfxTics = 10 * TICRATE;
     AmbSfxPtr = AmbSndSeqInit;
+    // [crispy] remove the ambient sound limit
+    AmbSfxMax = 0;
+    if (LevelAmbientSfx)
+    {
+        free(LevelAmbientSfx);
+        LevelAmbientSfx = NULL;
+    }
+    // [crispy] fix ambient sounds stop playing
+    Amb_Random = P_Random;
 }
 
 //----------------------------------------------------------------------------
@@ -1272,9 +1358,11 @@ void P_InitAmbientSound(void)
 
 void P_AddAmbientSfx(int sequence)
 {
-    if (AmbSfxCount == MAX_AMBIENT_SFX)
+    // [crispy] remove the ambient sound limit
+    if (AmbSfxCount >= AmbSfxMax)
     {
-        I_Error("Too many ambient sound sequences");
+        AmbSfxMax = AmbSfxMax ? AmbSfxMax * 2 : MAX_AMBIENT_SFX;
+        LevelAmbientSfx = I_Realloc(LevelAmbientSfx, sizeof(*LevelAmbientSfx) * AmbSfxMax);
     }
     LevelAmbientSfx[AmbSfxCount++] = AmbientSfx[sequence];
 }
@@ -1308,7 +1396,7 @@ void P_AmbientSound(void)
         switch (cmd)
         {
             case afxcmd_play:
-                AmbSfxVolume = P_Random() >> 2;
+                AmbSfxVolume = Amb_Random() >> 2;
                 S_StartSoundAtVolume(NULL, *AmbSfxPtr++, AmbSfxVolume);
                 break;
             case afxcmd_playabsvol:
@@ -1334,12 +1422,18 @@ void P_AmbientSound(void)
                 done = true;
                 break;
             case afxcmd_delayrand:
-                AmbSfxTics = P_Random() & (*AmbSfxPtr++);
+                AmbSfxTics = Amb_Random() & (*AmbSfxPtr++);
+                // [crispy] fix ambient sounds stop playing
+                if (AmbSfxTics == 0)
+                {
+                    AmbSfxTics++;
+                    Amb_Random = ID_Random;
+                }
                 done = true;
                 break;
             case afxcmd_end:
-                AmbSfxTics = 6 * TICRATE + P_Random();
-                AmbSfxPtr = LevelAmbientSfx[P_Random() % AmbSfxCount];
+                AmbSfxTics = 6 * TICRATE + Amb_Random();
+                AmbSfxPtr = LevelAmbientSfx[Amb_Random() % AmbSfxCount];
                 done = true;
                 break;
             default:
