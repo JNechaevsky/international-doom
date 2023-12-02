@@ -26,6 +26,7 @@
 #include "m_random.h"
 #include "p_local.h"
 #include "s_sound.h"
+#include "ct_chat.h"
 
 #include "id_vars.h"
 #include "crlfunc.h"
@@ -608,14 +609,6 @@ void P_PlayerThink(player_t * player)
     }
 // messageTics is above the rest of the counters so that messages will
 //              go away, even in death.
-    if (player->messageTics)
-    {
-        player->messageTics--;  // [JN] Can't go negative.
-    }
-    if (player->criticalmessageTics)
-    {
-        player->criticalmessageTics--;  // [JN] Can't go negative.
-    }
     if (!player->messageTics)
     {                           // Refresh the screen when a message goes away
         ultimatemsg = false;    // clear out any chat messages.

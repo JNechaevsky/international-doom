@@ -29,6 +29,7 @@
 #include "p_local.h"
 #include "am_map.h"
 #include "am_data.h"
+#include "ct_chat.h"
 
 #include "doomkeys.h"
 #include "v_video.h"
@@ -690,14 +691,14 @@ boolean AM_Responder(event_t * ev)
         {
             followplayer = !followplayer;
             f_oldloc.x = INT_MAX;
-            P_SetMessage(plr,
+            CT_SetMessage(plr,
                          followplayer ? AMSTR_FOLLOWON : AMSTR_FOLLOWOFF,
                          false);
         }
         else if (key == key_map_grid)
         {
             grid = !grid;
-            P_SetMessage(plr,
+            CT_SetMessage(plr,
                          grid ? AMSTR_GRIDON : AMSTR_GRIDOFF,
                          false);
         }

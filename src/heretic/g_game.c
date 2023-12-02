@@ -35,6 +35,7 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "v_video.h"
+#include "ct_chat.h"
 
 #include "id_vars.h"
 #include "crlfunc.h"
@@ -387,7 +388,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             joybspeed = MAX_JOY_BUTTONS;
         }
 
-        P_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
+        CT_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
                      CRL_AUTORUN_ON : CRL_AUTORUN_OFF, false);
         S_StartSound(NULL, sfx_chat);
         gamekeydown[key_autorun] = false;
@@ -401,7 +402,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         {
             look = TOCENTER;
         }
-        P_SetMessage(&players[consoleplayer], mouse_look ?
+        CT_SetMessage(&players[consoleplayer], mouse_look ?
                      CRL_MLOOK_ON : CRL_MLOOK_OFF, false);
         S_StartSound(NULL, sfx_chat);
         gamekeydown[key_mouse_look] = false;
@@ -643,6 +644,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
 
     next_weapon = 0;
+
+    // [JN] Show last message.
+    if (gamekeydown[key_message_refresh])
+    {
+        players[consoleplayer].messageTics = MESSAGETICS;
+    }
 
 //
 // mouse
@@ -907,7 +914,7 @@ void G_DoLoadLevel(void)
 
     if (testcontrols)
     {
-        P_SetMessage(&players[consoleplayer], "PRESS ESCAPE TO QUIT.", false);
+        CT_SetMessage(&players[consoleplayer], "PRESS ESCAPE TO QUIT.", false);
     }
 }
 
@@ -1140,7 +1147,7 @@ boolean G_Responder(event_t * ev)
             if (ev->data1 == key_spectator)
             {
                 crl_spectating ^= 1;
-                P_SetMessage(&players[consoleplayer], crl_spectating ?
+                CT_SetMessage(&players[consoleplayer], crl_spectating ?
                              CRL_SPECTATOR_ON : CRL_SPECTATOR_OFF, false);
                 pspr_interp = false;
             }        
@@ -1150,22 +1157,22 @@ boolean G_Responder(event_t * ev)
                 // Allow freeze only in single player game, otherwise desyncs may occur.
                 if (demorecording)
                 {
-                    P_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_R , false);
+                    CT_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_R , false);
                     return true;
                 }            
                 if (demoplayback)
                 {
-                    P_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_P , false);
+                    CT_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_P , false);
                     return true;
                 }   
                 if (netgame)
                 {
-                    P_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_N , false);
+                    CT_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_N , false);
                     return true;
                 }   
                 crl_freeze ^= 1;
 
-                P_SetMessage(&players[consoleplayer], crl_freeze ?
+                CT_SetMessage(&players[consoleplayer], crl_freeze ?
                              CRL_FREEZE_ON : CRL_FREEZE_OFF, false);
             }
             // [JN] CRL - Toggle notarget mode.
@@ -1176,23 +1183,23 @@ boolean G_Responder(event_t * ev)
                 // Allow notarget only in single player game, otherwise desyncs may occur.
                 if (demorecording)
                 {
-                    P_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_R , false);
+                    CT_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_R , false);
                     return true;
                 }
                 if (demoplayback)
                 {
-                    P_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_P , false);
+                    CT_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_P , false);
                     return true;
                 }
                 if (netgame)
                 {
-                    P_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_N , false);
+                    CT_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_N , false);
                     return true;
                 }   
 
                 player->cheats ^= CF_NOTARGET;
 
-                P_SetMessage(player, player->cheats & CF_NOTARGET ?
+                CT_SetMessage(player, player->cheats & CF_NOTARGET ?
                             CRL_NOTARGET_ON : CRL_NOTARGET_OFF, false);
             }
             return (true);      // eat key down events
@@ -1391,7 +1398,11 @@ void G_Ticker(void)
             P_Ticker();
             SB_Ticker();
             AM_Ticker();
-            CT_Ticker();
+            // [JN] Not really needed in single player game.
+            if (netgame)
+            {
+                CT_Ticker();
+            }
             // [JN] Target's health widget.
             if (widget_health /* || (xhair_draw && xhair_color > 1)*/)
             {
@@ -1410,6 +1421,10 @@ void G_Ticker(void)
             D_PageTicker();
             break;
     }
+
+    // [JN] Reduce message tics independently from framerate and game states.
+    // Tics can't go negative.
+    MSG_Ticker();
 }
 
 
@@ -1483,7 +1498,6 @@ void G_PlayerFinishLevel(int player)
         p->chickenTics = 0;
     }
     p->messageTics = 0;
-    p->criticalmessageTics = 0;
     p->targetsheathTics = 0;
     p->lookdir = p->oldlookdir = 0;
     p->mo->flags &= ~MF_SHADOW; // Remove invisibility
@@ -1544,7 +1558,6 @@ void G_PlayerReborn(int player)
     p->weaponowned[wp_staff] = true;
     p->weaponowned[wp_goldwand] = true;
     p->messageTics = 0;
-    p->criticalmessageTics = 0;
     p->targetsheathTics = 0;
     p->lookdir = 0;
     p->ammo[am_goldwand] = 50;
@@ -2481,7 +2494,7 @@ void G_DoSaveGame(void)
 
     gameaction = ga_nothing;
     savedescription[0] = 0;
-    P_SetMessage(&players[consoleplayer], DEH_String(TXT_GAMESAVED), true);
+    CT_SetMessage(&players[consoleplayer], DEH_String(TXT_GAMESAVED), true);
 
     free(filename);
 }

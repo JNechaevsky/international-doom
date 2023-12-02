@@ -473,11 +473,6 @@ typedef struct player_s
     const char *message;        // hint messages
     int messageTics;            // counter for showing messages
 
-    // [JN] CRL - hint critical messages.
-    const char *criticalmessage1;
-    const char *criticalmessage2;
-    int   criticalmessageTics;
-
     // [JN] CRL - target's health.
     const char*	targetsname;
     int         targetsheath;
@@ -815,19 +810,6 @@ extern boolean intermission;
 void IN_Start(void);
 void IN_Ticker(void);
 void IN_Drawer(void);
-
-//----------------------
-// Chat mode (CT_chat.c)
-//----------------------
-
-void CT_Init(void);
-void CT_Drawer(void);
-boolean CT_Responder(event_t * ev);
-void CT_Ticker(void);
-char CT_dequeueChatChar(void);
-
-extern boolean chatmodeon;
-extern boolean ultimatemsg;
 
 //--------------------
 // Finale (F_finale.c)

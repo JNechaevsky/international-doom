@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,24 +18,23 @@
 // Chat mode stuff
 //
 
-#ifndef HERETIC_CT_CHAT_H
-#define HERETIC_CT_CHAT_H
+#pragma once
 
-#define CT_PLR_GREEN	1
-#define CT_PLR_YELLOW	2
-#define CT_PLR_RED		3
-#define CT_PLR_BLUE		4
-#define CT_PLR_ALL		5
+#include "doomdef.h"
 
-#define CT_KEY_GREEN	'g'
-#define CT_KEY_YELLOW	'y'
-#define CT_KEY_RED		'r'
-#define CT_KEY_BLUE		'b'
-#define CT_KEY_ALL		't'
+
+extern void CT_Drawer (void);
+extern void CT_Init (void);
+extern void CT_SetMessage (player_t *player, const char *message, boolean ultmsg);
+extern void CT_Ticker (void);
+extern void MSG_Ticker (void);
+
+extern boolean chatmodeon;
+extern boolean ultimatemsg;
+extern boolean CT_Responder (event_t *ev);
 
 extern char *chat_macros[10];
+extern char  CT_dequeueChatChar(void);
+extern const char *lastmessage;
 
 extern int   showMessages;
-
-#endif /* #ifndef HERETIC_CT_CHAT_H */
-

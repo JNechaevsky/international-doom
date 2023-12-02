@@ -23,6 +23,7 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "v_video.h"
+#include "ct_chat.h"
 
 //==================================================================
 //==================================================================
@@ -227,7 +228,7 @@ void EV_VerticalDoor(line_t * line, mobj_t * thing)
             }
             if (!player->keys[key_blue])
             {
-                P_SetMessage(player, DEH_String(TXT_NEEDBLUEKEY), false);
+                CT_SetMessage(player, DEH_String(TXT_NEEDBLUEKEY), false);
                 S_StartSound(NULL, sfx_plroof);
                 return;
             }
@@ -240,7 +241,7 @@ void EV_VerticalDoor(line_t * line, mobj_t * thing)
             }
             if (!player->keys[key_yellow])
             {
-                P_SetMessage(player, DEH_String(TXT_NEEDYELLOWKEY), false);
+                CT_SetMessage(player, DEH_String(TXT_NEEDYELLOWKEY), false);
                 S_StartSound(NULL, sfx_plroof);
                 return;
             }
@@ -253,7 +254,7 @@ void EV_VerticalDoor(line_t * line, mobj_t * thing)
             }
             if (!player->keys[key_green])
             {
-                P_SetMessage(player, DEH_String(TXT_NEEDGREENKEY), false);
+                CT_SetMessage(player, DEH_String(TXT_NEEDGREENKEY), false);
                 S_StartSound(NULL, sfx_plroof);
                 return;
             }

@@ -2,8 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2011-2017 RestlessRodent
-// Copyright(C) 2018-2023 Julia Nechaevskaya
+// Copyright(C) 2016-2023 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,44 +31,40 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "v_video.h"
-
-//#include "crlcore.h"
+#include "ct_chat.h"
 
 
 #define QUEUESIZE		128
-#define MESSAGESIZE	128
-#define MESSAGELEN 	265
+#define MESSAGESIZE     128
+#define MESSAGELEN      265
 
-#define CT_PLR_GREEN		1
-#define CT_PLR_YELLOW	2
-#define CT_PLR_RED		3
-#define CT_PLR_BLUE		4
-#define CT_PLR_ALL		5
+#define CT_PLR_GREEN    1
+#define CT_PLR_YELLOW   2
+#define CT_PLR_RED      3
+#define CT_PLR_BLUE     4
+#define CT_PLR_ALL      5
+#define CT_ESCAPE       6
 
-#define CT_ESCAPE 6
+#define CT_KEY_GREEN    'g'
+#define CT_KEY_YELLOW   'y'
+#define CT_KEY_RED      'r'
+#define CT_KEY_BLUE     'b'
+#define CT_KEY_ALL      't'
 
-// Public data
 
+static void CT_queueChatChar (char ch);
+static void CT_ClearChatMessage (int player);
+static void CT_AddChar (int player, char c);
+static void CT_BackSpace (int player);
 
-boolean chatmodeon;
-
-// Private data
-
-void CT_queueChatChar(char ch);
-void CT_ClearChatMessage(int player);
-void CT_AddChar(int player, char c);
-void CT_BackSpace(int player);
-
-int head;
-int tail;
-byte ChatQueue[QUEUESIZE];
-int chat_dest[MAXPLAYERS];
-char chat_msg[MAXPLAYERS][MESSAGESIZE];
-char plr_lastmsg[MAXPLAYERS][MESSAGESIZE + 9];  // add in the length of the pre-string
-int msgptr[MAXPLAYERS];
-int msglen[MAXPLAYERS];
-
-boolean cheated;
+static int  head;
+static int  tail;
+static int  msgptr[MAXPLAYERS];
+static int  msglen[MAXPLAYERS];
+static int  chat_dest[MAXPLAYERS];
+static char chat_msg[MAXPLAYERS][MESSAGESIZE];
+static char plr_lastmsg[MAXPLAYERS][MESSAGESIZE + 9];  // add in the length of the pre-string
+static byte ChatQueue[QUEUESIZE];
 
 static int FontABaseLump;
 
@@ -84,71 +79,69 @@ char *chat_macros[10];
 
 boolean altdown;
 boolean shiftdown;
+boolean chatmodeon;
+boolean cheated;
 
+boolean     ultimatemsg;
+const char *lastmessage;
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_Init
-//
-//      Initialize chat mode data
-//===========================================================================
+// Initialize chat mode data.
+// -----------------------------------------------------------------------------
 
-void CT_Init(void)
+void CT_Init (void)
 {
-    int i;
-
-    head = 0;                   //initialize the queue index
+    head = 0;  // Initialize the queue index.
     tail = 0;
     chatmodeon = false;
     memset(ChatQueue, 0, QUEUESIZE);
-    for (i = 0; i < MAXPLAYERS; i++)
+
+    for (int i = 0; i < MAXPLAYERS; i++)
     {
         chat_dest[i] = 0;
         msgptr[i] = 0;
         memset(plr_lastmsg[i], 0, MESSAGESIZE);
         memset(chat_msg[i], 0, MESSAGESIZE);
     }
+
     FontABaseLump = W_GetNumForName(DEH_String("FONTA_S")) + 1;
-    return;
 }
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_Stop
-//
-//===========================================================================
+// -----------------------------------------------------------------------------
 
-void CT_Stop(void)
+static void CT_Stop (void)
 {
     chatmodeon = false;
     I_StopTextInput();
-    return;
 }
 
+// -----------------------------------------------------------------------------
+// ValidChatChar
 // These keys are allowed by Vanilla Heretic:
+// -----------------------------------------------------------------------------
 
-static boolean ValidChatChar(char c)
+static boolean ValidChatChar (char c)
 {
     return (c >= 'a' && c <= 'z')
         || (c >= 'A' && c <= 'Z')
         || (c >= '0' && c <= '9')
-        || c == '!' || c == '?'
-        || c == ' ' || c == '\''
-        || c == ',' || c == '.'
-        || c == '-' || c == '=';
+        ||  c == '!' || c == '?'
+        ||  c == ' ' || c == '\''
+        ||  c == ',' || c == '.'
+        ||  c == '-' || c == '=';
 }
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_Responder
-//
-//===========================================================================
+// -----------------------------------------------------------------------------
 
-boolean CT_Responder(event_t * ev)
+boolean CT_Responder (event_t *ev)
 {
-    char *macro;
-
     int sendto;
+    const char *macro;
 
     if (!netgame)
     {
@@ -192,7 +185,7 @@ boolean CT_Responder(event_t * ev)
             sendto = CT_PLR_BLUE;
         }
         if (sendto == 0 || (sendto != CT_PLR_ALL && !playeringame[sendto - 1])
-            || sendto == consoleplayer + 1)
+        ||  sendto == consoleplayer + 1)
         {
             return false;
         }
@@ -208,17 +201,18 @@ boolean CT_Responder(event_t * ev)
             if (ev->data1 >= '0' && ev->data1 <= '9')
             {
                 if (ev->data1 == '0')
-                {               // macro 0 comes after macro 9
+                {
+                    // macro 0 comes after macro 9
                     ev->data1 = '9' + 1;
                 }
                 macro = chat_macros[ev->data1 - '1'];
-                CT_queueChatChar(KEY_ENTER);    //send old message
-                CT_queueChatChar(chat_dest[consoleplayer]);     // chose the dest.
+                CT_queueChatChar(KEY_ENTER);  //send old message
+                CT_queueChatChar(chat_dest[consoleplayer]);  // chose the dest.
                 while (*macro)
                 {
                     CT_queueChatChar(toupper(*macro++));
                 }
-                CT_queueChatChar(KEY_ENTER);    //send it off...
+                CT_queueChatChar(KEY_ENTER);  // send it off...
                 CT_Stop();
                 return true;
             }
@@ -249,18 +243,15 @@ boolean CT_Responder(event_t * ev)
     return false;
 }
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_Ticker
-//
-//===========================================================================
+// -----------------------------------------------------------------------------
 
-void CT_Ticker(void)
+void CT_Ticker (void)
 {
-    int i;
-    int j;
+    int  i, j;
     char c;
-    int numplayers;
+    int  numplayers;
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
@@ -286,7 +277,7 @@ void CT_Ticker(void)
                 {
                     numplayers += playeringame[j];
                 }
-                CT_AddChar(i, 0);       // set the end of message character
+                CT_AddChar(i, 0);  // set the end of message character
                 if (numplayers > 2)
                 {
                     M_StringCopy(plr_lastmsg[i], DEH_String(CT_FromPlrText[i]),
@@ -303,7 +294,7 @@ void CT_Ticker(void)
                                            || chat_dest[i] == CT_PLR_ALL)
                     && *chat_msg[i])
                 {
-                    P_SetMessage(&players[consoleplayer], plr_lastmsg[i],
+                    CT_SetMessage(&players[consoleplayer], plr_lastmsg[i],
                                  true);
                     S_StartSound(NULL, sfx_chat);
                 }
@@ -311,13 +302,13 @@ void CT_Ticker(void)
                 {
                     if (numplayers > 1)
                     {
-                        P_SetMessage(&players[consoleplayer],
-                                     DEH_String("-MESSAGE SENT-"), true);
+                        // [JN] Replicate sended message locally.
+                        CT_SetMessage(&players[consoleplayer], plr_lastmsg[i], true);
                         S_StartSound(NULL, sfx_chat);
                     }
                     else
                     {
-                        P_SetMessage(&players[consoleplayer],
+                        CT_SetMessage(&players[consoleplayer],
                                      DEH_String("THERE ARE NO OTHER PLAYERS IN THE GAME!"),
                                      true);
                         S_StartSound(NULL, sfx_chat);
@@ -338,22 +329,17 @@ void CT_Ticker(void)
     return;
 }
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_Drawer
-//
-//===========================================================================
+// -----------------------------------------------------------------------------
 
-void CT_Drawer(void)
+void CT_Drawer (void)
 {
-    int i;
-    int x;
-    patch_t *patch;
-
     if (chatmodeon)
     {
-        x = 25;
-        for (i = 0; i < msgptr[consoleplayer]; i++)
+        int x = 25;
+
+        for (int i = 0; i < msgptr[consoleplayer]; i++)
         {
             if (chat_msg[consoleplayer][i] < 33)
             {
@@ -361,9 +347,9 @@ void CT_Drawer(void)
             }
             else
             {
-                patch = W_CacheLumpNum(FontABaseLump +
-                                       chat_msg[consoleplayer][i] - 33,
-                                       PU_CACHE);
+                patch_t *patch = W_CacheLumpNum(FontABaseLump +
+                                                chat_msg[consoleplayer][i] - 33,
+                                                PU_CACHE);
                 V_DrawPatch(x, 10, patch);
                 x += patch->width;
             }
@@ -374,109 +360,155 @@ void CT_Drawer(void)
     }
 }
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_queueChatChar
-//
-//===========================================================================
+// -----------------------------------------------------------------------------
 
-void CT_queueChatChar(char ch)
+static void CT_queueChatChar (char ch)
 {
     if (((tail + 1) & (QUEUESIZE - 1)) == head)
-    {                           // the queue is full
-        return;
+    {
+        return;  // the queue is full
     }
+
     ChatQueue[tail] = ch;
     tail = (tail + 1) & (QUEUESIZE - 1);
 }
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_dequeueChatChar
-//
-//===========================================================================
+// -----------------------------------------------------------------------------
 
-char CT_dequeueChatChar(void)
+char CT_dequeueChatChar (void)
 {
     byte temp;
 
     if (head == tail)
-    {                           // queue is empty
-        return 0;
+    {
+        return 0;  // queue is empty
     }
     temp = ChatQueue[head];
     head = (head + 1) & (QUEUESIZE - 1);
     return temp;
 }
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_AddChar
-//
-//===========================================================================
+// -----------------------------------------------------------------------------
 
-void CT_AddChar(int player, char c)
+static void CT_AddChar (int player, char c)
 {
-    patch_t *patch;
-
     if (msgptr[player] + 1 >= MESSAGESIZE || msglen[player] >= MESSAGELEN)
-    {                           // full.
-        return;
+    {
+        return;  // full.
     }
+
     chat_msg[player][msgptr[player]] = c;
     msgptr[player]++;
+
     if (c < 33)
     {
         msglen[player] += 6;
     }
     else
     {
+        patch_t *patch;
+
         patch = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
         msglen[player] += patch->width;
     }
 }
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_BackSpace
-//
-//      Backs up a space, when the user hits (obviously) backspace
-//===========================================================================
+// Backs up a space, when the user hits (obviously) backspace.
+// -----------------------------------------------------------------------------
 
-void CT_BackSpace(int player)
+void CT_BackSpace (int player)
 {
-    patch_t *patch;
     char c;
 
     if (msgptr[player] == 0)
-    {                           // message is already blank
-        return;
+    {
+        return;  // message is already blank
     }
+
     msgptr[player]--;
     c = chat_msg[player][msgptr[player]];
+
     if (c < 33)
     {
         msglen[player] -= 6;
     }
     else
     {
-        patch = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
+        patch_t *patch = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
         msglen[player] -= patch->width;
     }
+
     chat_msg[player][msgptr[player]] = 0;
 }
 
-//===========================================================================
-//
+// -----------------------------------------------------------------------------
 // CT_ClearChatMessage
-//
-//      Clears out the data for the chat message, but the player's message
-//              is still saved in plrmsg.
-//===========================================================================
+// Clears out the data for the chat message, but the player's message 
+// is still saved in plrmsg.
+// -----------------------------------------------------------------------------
 
-void CT_ClearChatMessage(int player)
+static void CT_ClearChatMessage (int player)
 {
     memset(chat_msg[player], 0, MESSAGESIZE);
     msgptr[player] = 0;
     msglen[player] = 0;
+}
+
+// -----------------------------------------------------------------------------
+// CT_SetMessage
+// [JN] Sets message parameters.
+// -----------------------------------------------------------------------------
+
+void CT_SetMessage (player_t *player, const char *message, boolean ultmsg)
+{
+    lastmessage = message;
+
+    if ((ultimatemsg || !showMessages) && !ultmsg)
+    {
+        return;
+    }
+    player->message = message;
+    player->messageTics = MESSAGETICS;
+    BorderTopRefresh = true;
+
+    if (ultmsg)
+    {
+        ultimatemsg = true;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// MSG_Ticker
+// [JN] Reduces message tics independently from framerate and game states.
+// Not to be confused with CT_Ticker.
+// -----------------------------------------------------------------------------
+
+void MSG_Ticker (void)
+{
+    player_t *player = &players[displayplayer];
+
+    if (player->messageTics > 0)
+    {
+        player->messageTics--;
+    }
+    if (!player->messageTics)
+    {                           // Refresh the screen when a message goes away
+        ultimatemsg = false;    // clear out any chat messages.
+    }
+    
+    // TODO
+    /*
+    if (player->messageCenteredTics > 0)
+    {
+        player->messageCenteredTics--;
+    }
+    */
 }

@@ -1310,7 +1310,7 @@ static boolean M_ID_B_Intensity (int choice)
 static boolean M_ID_Messages (int choice)
 {
     showMessages ^= 1;
-    P_SetMessage(&players[consoleplayer],
+    CT_SetMessage(&players[consoleplayer],
                  DEH_String(showMessages ? "MESSAGES ON" : "MESSAGES OFF"), true);
     S_StartSound(NULL, sfx_chat);
     return true;
@@ -3628,11 +3628,11 @@ static boolean SCNetCheck(int option)
     switch (option)
     {
         case 1:
-            P_SetMessage(&players[consoleplayer],
+            CT_SetMessage(&players[consoleplayer],
                          "YOU CAN'T START A NEW GAME IN NETPLAY!", true);
             break;
         case 2:
-            P_SetMessage(&players[consoleplayer],
+            CT_SetMessage(&players[consoleplayer],
                          "YOU CAN'T LOAD A GAME IN NETPLAY!", true);
             break;
         default:
@@ -3773,7 +3773,7 @@ static boolean SCEpisode(int option)
 {
     if (gamemode == shareware && option > 1)
     {
-        P_SetMessage(&players[consoleplayer],
+        CT_SetMessage(&players[consoleplayer],
                      "ONLY AVAILABLE IN THE REGISTERED VERSION", true);
     }
     else
@@ -4205,7 +4205,7 @@ boolean MN_Responder(event_t * event)
                     break;
 
                 case 3:
-                    P_SetMessage(&players[consoleplayer],
+                    CT_SetMessage(&players[consoleplayer],
                                  "QUICKSAVING....", false);
                     FileMenuKeySteal = true;
                     SCSaveGame(quicksave - 1);
@@ -4213,7 +4213,7 @@ boolean MN_Responder(event_t * event)
                     break;
 
                 case 4:
-                    P_SetMessage(&players[consoleplayer],
+                    CT_SetMessage(&players[consoleplayer],
                                  "QUICKLOADING....", false);
                     SCLoadGame(quickload - 1);
                     BorderNeedRefresh = true;
@@ -4380,7 +4380,7 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, sfx_dorcls);
                     slottextloaded = false; //reload the slot text, when needed
                     quicksave = -1;
-                    P_SetMessage(&players[consoleplayer],
+                    CT_SetMessage(&players[consoleplayer],
                                  "CHOOSE A QUICKSAVE SLOT", true);
                 }
                 else
@@ -4426,7 +4426,7 @@ boolean MN_Responder(event_t * event)
                 S_StartSound(NULL, sfx_dorcls);
                 slottextloaded = false;     //reload the slot text, when needed
                 quickload = -1;
-                P_SetMessage(&players[consoleplayer],
+                CT_SetMessage(&players[consoleplayer],
                              "CHOOSE A QUICKLOAD SLOT", true);
             }
             else
@@ -4457,7 +4457,7 @@ boolean MN_Responder(event_t * event)
             {
                 vid_gamma = 0;
             }
-            P_SetMessage(&players[consoleplayer], gammamsg[vid_gamma], false);
+            CT_SetMessage(&players[consoleplayer], gammamsg[vid_gamma], false);
 #ifndef CRISPY_TRUECOLOR
             I_SetPalette((byte *) W_CacheLumpName("PLAYPAL", PU_CACHE));
 #else

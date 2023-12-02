@@ -149,25 +149,6 @@ void DrawMessage(void)
     MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, 1, NULL);
 }
 
-// -----------------------------------------------------------------------------
-// CRL_DrawCriticalMessage
-// [JN] Draws critical message on the second and third lines line of the screen.
-// -----------------------------------------------------------------------------
-
-static void CRL_DrawCriticalMessage (void)
-{
-    player_t *player = &players[displayplayer];
-
-    if (player->criticalmessageTics <= 0
-    || !player->criticalmessage1 || !player->criticalmessage2)
-    {
-        return;  // No message
-    }
-
-    MN_DrTextACritical(player->criticalmessage1, player->criticalmessage2,
-                       10, gametic & 8 ? cr[CR_GRAY] : cr[CR_WHITE]);
-}
-
 //---------------------------------------------------------------------------
 //
 // PROC D_Display
@@ -287,9 +268,6 @@ void D_Display(void)
 
     // Menu drawing
     MN_Drawer();
-
-    // [JN] Critical messages are drawn even higher than on top everything!
-    CRL_DrawCriticalMessage();
 
     // Send out any new accumulation
     NetUpdate();
