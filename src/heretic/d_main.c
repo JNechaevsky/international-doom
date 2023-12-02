@@ -61,7 +61,7 @@
 #include "icon.c"
 
 #include "id_vars.h"
-#include "crlfunc.h"
+#include "id_func.h"
 
 
 #define CT_KEY_GREEN    'g'
@@ -204,34 +204,34 @@ void D_Display(void)
             // [crispy] demo timer widget
             if (demoplayback && (demo_timer == 1 || demo_timer == 3))
             {
-                CRL_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
+                ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
             }
             else if (demorecording && (demo_timer == 2 || demo_timer == 3))
             {
-                CRL_DemoTimer(leveltime);
+                ID_DemoTimer(leveltime);
             }
 
             // [JN] Target's health widget.
             // Actual health values are gathered in G_Ticker.
             if (widget_health)
             {
-                CRL_DrawTargetsHealth();
+                ID_DrawTargetsHealth();
             }
 
             CT_Drawer();
             UpdateState |= I_FULLVIEW;
             SB_Drawer();
 
+            // [JN] Draw right widgets in any states except finale text screens.
+            if (gamestate != GS_FINALE)
+            {
+                ID_RightWidgets();
+            }
+
             // [crispy] demo progress bar
             if (demoplayback && demo_bar)
             {
-                CRL_DemoBar();
-            }
-
-            // [JN] Draw FPS counter.
-            if (vid_showfps)
-            {
-                CRL_DrawFPS();
+                ID_DemoBar();
             }
 
             break;

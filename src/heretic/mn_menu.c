@@ -39,8 +39,8 @@
 #include "ct_chat.h"
 #include "sb_bar.h"
 
-#include "crlfunc.h"
 #include "id_vars.h"
+#include "id_func.h"
 
 // Macros
 
@@ -394,6 +394,7 @@ static boolean M_ID_G_Intensity (int choice);
 static boolean M_ID_B_Intensity (int choice);
 static boolean M_ID_Messages (int choice);
 static boolean M_ID_TextShadows (int choice);
+static boolean M_ID_LocalTime (int choice);
 
 static void M_Draw_ID_Sound (void);
 static boolean M_ID_MusicSystem (int option);
@@ -531,7 +532,7 @@ static boolean CRL_DefaulSkill (int option);
 static boolean CRL_PistolStart (int option);
 static boolean CRL_ColoredSBar (int option);
 static boolean CRL_RestoreTargets (int option);
-//static boolean CRL_DemoTimer (int option);
+static boolean CRL_DemoTimer (int option);
 static boolean CRL_TimerDirection (int option);
 static boolean CRL_ProgressBar (int option);
 static boolean CRL_InternalDemos (int option);
@@ -1035,7 +1036,7 @@ static MenuItem_t ID_Menu_Display[] = {
     { ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE },
     { ITT_LRFUNC, "MESSAGES ENABLED",        M_ID_Messages,        0, MENU_NONE },
     { ITT_LRFUNC, "TEXT CASTS SHADOWS",      M_ID_TextShadows,     0, MENU_NONE },
-    { ITT_LRFUNC, "LOCAL TIME",              NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "LOCAL TIME",              M_ID_LocalTime,       0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Display = {
@@ -1112,9 +1113,10 @@ static void M_Draw_ID_Display (void)
                M_Item_Glow(11, msg_text_shadows ? GLOW_GREEN : GLOW_DARKRED));
 
     // Local time
-    sprintf(str, "*TODO*");
+    sprintf(str, msg_local_time == 1 ? "12-HOUR FORMAT" :
+                 msg_local_time == 2 ? "24-HOUR FORMAT" : "OFF");
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 140,
-               M_Item_Glow(12, GLOW_RED));
+               M_Item_Glow(12, msg_local_time ? GLOW_GREEN : GLOW_DARKRED));
 }
 
 static boolean M_ID_Gamma (int choice)
@@ -1321,6 +1323,13 @@ static boolean M_ID_TextShadows (int choice)
     msg_text_shadows ^= 1;
     return true;
 }
+
+static boolean M_ID_LocalTime (int choice)
+{
+    msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice);
+    return true;
+}
+
 
 // -----------------------------------------------------------------------------
 // Sound options
@@ -2761,7 +2770,7 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     {ITT_LRFUNC, "COLORED STATUS BAR",      CRL_ColoredSBar,    0, MENU_NONE},
     {ITT_LRFUNC, "RESTORE MONSTER TARGETS", CRL_RestoreTargets, 0, MENU_NONE},
     {ITT_EMPTY,  NULL,                      NULL,               0, MENU_NONE},
-//    {ITT_LRFUNC, "SHOW DEMO TIMER",         CRL_DemoTimer,      0, MENU_NONE},
+    {ITT_LRFUNC, "SHOW DEMO TIMER",         CRL_DemoTimer,      0, MENU_NONE},
     {ITT_LRFUNC, "TIMER DIRECTION",         CRL_TimerDirection, 0, MENU_NONE},
     {ITT_LRFUNC, "SHOW PROGRESS BAR",       CRL_ProgressBar,    0, MENU_NONE},
     {ITT_LRFUNC, "PLAY INTERNAL DEMOS",     CRL_InternalDemos,  0, MENU_NONE}
@@ -2856,13 +2865,11 @@ static boolean CRL_RestoreTargets (int option)
     return true;
 }
 
-/*
 static boolean CRL_DemoTimer (int choice)
 {
     demo_timer = M_INT_Slider(demo_timer, 0, 3, choice);
     return true;
 }
-*/
 
 static boolean CRL_TimerDirection (int choice)
 {

@@ -29,7 +29,7 @@
 #include "ct_chat.h"
 
 #include "id_vars.h"
-#include "crlfunc.h"
+#include "id_func.h"
 
 
 void P_PlayerNextArtifact(player_t * player);

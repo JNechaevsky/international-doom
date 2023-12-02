@@ -27,7 +27,7 @@
 #include "ct_chat.h"
 
 #include "id_vars.h"
-#include "crlfunc.h"
+#include "id_func.h"
 
 
 void G_PlayerReborn(int player);

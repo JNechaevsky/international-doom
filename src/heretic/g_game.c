@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>   // [JN] Local time.
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "deh_str.h"
@@ -38,7 +39,7 @@
 #include "ct_chat.h"
 
 #include "id_vars.h"
-#include "crlfunc.h"
+#include "id_func.h"
 
 
 // Macros
@@ -1425,6 +1426,17 @@ void G_Ticker(void)
     // [JN] Reduce message tics independently from framerate and game states.
     // Tics can't go negative.
     MSG_Ticker();
+
+    // Local time
+    if (msg_local_time)
+    {
+        time_t t = time(NULL);
+        struct tm *tm = localtime(&t);
+
+        strftime(ID_Local_Time, sizeof(ID_Local_Time),
+                 msg_local_time == 1 ? "%I:%M %p" :   // 12-hour (HH:MM designation)
+                                       "%H:%M", tm);  // 24-hour (HH:MM)
+    }
 }
 
 

@@ -30,9 +30,8 @@
 #include "p_local.h"
 #include "s_sound.h"
 
-//#include "crlcore.h"
 #include "id_vars.h"
-#include "crlfunc.h"
+#include "id_func.h"
 
 
 void P_SpawnMapThing(mapthing_t * mthing);

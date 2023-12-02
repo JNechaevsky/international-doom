@@ -34,7 +34,7 @@
 #include "v_video.h"
 
 #include "id_vars.h"
-#include "crlfunc.h"
+#include "id_func.h"
 
 
 typedef enum
@@ -572,13 +572,13 @@ void IN_Drawer(void)
     if (((demoplayback && (demo_timer == 1 || demo_timer == 3))
     ||   (demorecording && (demo_timer == 2 || demo_timer == 3))))
     {
-        CRL_DemoTimer(leveltime);
+        ID_DemoTimer(leveltime);
     }
 
     // [crispy] demo progress bar
     if (demoplayback && demo_bar)
     {
-        CRL_DemoBar();
+        ID_DemoBar();
     }
 }
 
