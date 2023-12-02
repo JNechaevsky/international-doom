@@ -2,7 +2,6 @@ add_library(heretic STATIC
             am_data.h
             am_map.c            am_map.h
             ct_chat.c           ct_chat.h
-            crlfunc.c           crlfunc.h
             deh_ammo.c
             deh_frame.c
             deh_htext.c
@@ -17,6 +16,7 @@ add_library(heretic STATIC
                                 dstrings.h
             f_finale.c
             g_game.c
+            id_func.c           id_func.h
             info.c              info.h
             in_lude.c
             m_random.c          m_random.h

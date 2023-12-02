@@ -41,7 +41,7 @@ extern int CRL_counter_shadow;
 extern int CRL_counter_wings;
 extern int CRL_counter_torch;
 
-extern void CRL_DrawTargetsHealth (void);
+extern void ID_DrawTargetsHealth (void);
 
 // [crispy] demo progress bar and timer widget
 extern void ID_DemoTimer (const int time);
