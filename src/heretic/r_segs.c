@@ -386,7 +386,7 @@ void R_RenderSegLoop (void)
 
                 // [crispy] optional brightmaps
                 dc_colormap[0] = walllights[index];
-                dc_colormap[1] = vis_brightmaps ? colormaps : dc_colormap[0];
+                dc_colormap[1] = (!fixedcolormap && vis_brightmaps) ? colormaps : dc_colormap[0];
             }
 
             dc_x = rw_x;
