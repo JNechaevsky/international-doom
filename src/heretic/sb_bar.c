@@ -947,11 +947,13 @@ void SB_PaletteFlash(void)
     else if (CPlayer->bonuscount)
     {
         palette = (CPlayer->bonuscount + 7) >> 3;
+        // [JN] Fix missing first bonus palette index
+        // by sudstracting -1 from STARTBONUSPALS, not NUMBONUSPALS.
         if (palette >= NUMBONUSPALS)
         {
-            palette = NUMBONUSPALS - 1;
+            palette = NUMBONUSPALS;
         }
-        palette += STARTBONUSPALS;
+        palette += STARTBONUSPALS - 1;
     }
     else
     {
