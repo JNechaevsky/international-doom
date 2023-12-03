@@ -35,12 +35,6 @@
 //
 // lighting constants
 //
-#define	LIGHTLEVELS			16
-#define	LIGHTSEGSHIFT		4
-#define	MAXLIGHTSCALE		48
-#define	LIGHTSCALESHIFT		12
-#define	MAXLIGHTZ			128
-#define	LIGHTZSHIFT			20
 #define	NUMCOLORMAPS		32      // number of diminishing
 #define	INVERSECOLORMAP		32
 
@@ -326,6 +320,7 @@ extern angle_t clipangle;
 
 extern int viewangletox[FINEANGLES / 2];
 extern angle_t xtoviewangle[MAXWIDTH + 1];
+extern angle_t  linearskyangle[MAXWIDTH+1];
 
 extern fixed_t rw_distance;
 extern angle_t rw_normalangle;
@@ -343,9 +338,18 @@ extern fixed_t projection;
 
 extern int validcount;
 
-extern lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
-extern lighttable_t *scalelightfixed[MAXLIGHTSCALE];
-extern lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
+// [crispy] parameterized for smooth diminishing lighting
+extern int LIGHTLEVELS;
+extern int LIGHTSEGSHIFT;
+extern int LIGHTBRIGHT;
+extern int MAXLIGHTSCALE;
+extern int LIGHTSCALESHIFT;
+extern int MAXLIGHTZ;
+extern int LIGHTZSHIFT;
+
+extern lighttable_t***	scalelight;
+extern lighttable_t**	scalelightfixed;
+extern lighttable_t***	zlight;
 
 extern int extralight;
 extern lighttable_t *fixedcolormap;

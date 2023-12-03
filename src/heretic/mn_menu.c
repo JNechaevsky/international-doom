@@ -87,7 +87,9 @@ typedef enum
     MENU_ID_KBDBINDS8,
     MENU_ID_MOUSEBINDS,
     MENU_ID_WIDGETS,
-    MENU_ID_GAMEPLAY,
+    MENU_ID_GAMEPLAY_1,
+    MENU_ID_GAMEPLAY_2,
+    MENU_ID_GAMEPLAY_3,
     MENU_CRLLIMITS,
     MENU_NONE
 } MenuType_t;
@@ -365,6 +367,9 @@ static Menu_t Options2Menu = {
 #define ID_MENU_LEFTOFFSET_SML    (90)
 #define ID_MENU_RIGHTOFFSET_SML   (ORIGWIDTH - ID_MENU_LEFTOFFSET_SML)
 
+#define ID_MENU_LEFTOFFSET_BIG    (32)
+#define ID_MENU_RIGHTOFFSET_BIG   (ORIGWIDTH - ID_MENU_LEFTOFFSET_BIG)
+
 #define ITEM_HEIGHT_SMALL        10
 #define SELECTOR_XOFFSET_SMALL  -10
 
@@ -526,7 +531,19 @@ static boolean CRL_Widget_Powerups (int option);
 static boolean M_ID_Widget_Health (int option);
 static boolean M_ID_Automap_Secrets (int option);
 
-static void DrawCRLGameplay (void);
+static void M_Draw_ID_Gameplay_1 (void);
+static boolean M_ID_Brightmaps (int choice);
+static boolean M_ID_Translucency (int choice);
+static boolean M_ID_FakeContrast (int choice);
+static boolean M_ID_SmoothLighting (int choice);
+static boolean M_ID_SwirlingLiquids (int choice);
+static boolean M_ID_InvulSky (int choice);
+static boolean M_ID_LinearSky (int choice);
+static boolean M_ID_FlipCorpses (int choice);
+static boolean M_ID_Crosshair (int choice);
+static boolean M_ID_CrosshairColor (int choice);
+
+static void M_Draw_ID_Gameplay_2 (void);
 static boolean CRL_DefaulSkill (int option);
 static boolean CRL_PistolStart (int option);
 static boolean CRL_ColoredSBar (int option);
@@ -767,10 +784,10 @@ static MenuItem_t ID_Menu_Main[] = {
     { ITT_SETMENU, "SOUND OPTIONS",       NULL,      0, MENU_ID_SOUND    },
     { ITT_SETMENU, "CONTROL SETTINGS",    NULL,      0, MENU_ID_CONTROLS },
     { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,      0, MENU_ID_WIDGETS  },
-    { ITT_SETMENU, "GAMEPLAY FEATURES",   NULL,      0, MENU_ID_GAMEPLAY },
-    { ITT_SETMENU, "LEVEL SELECT",        NULL,      0, MENU_ID_GAMEPLAY },
-    { ITT_EFUNC,   "END GAME",            SCEndGame, 0, MENU_ID_GAMEPLAY },
-    { ITT_SETMENU, "RESET SETTINGS",      NULL,      0, MENU_ID_GAMEPLAY },
+    { ITT_SETMENU, "GAMEPLAY FEATURES",   NULL,      0, MENU_ID_GAMEPLAY_1 },
+    { ITT_SETMENU, "LEVEL SELECT",        NULL,      0, MENU_ID_GAMEPLAY_1 },
+    { ITT_EFUNC,   "END GAME",            SCEndGame, 0, MENU_ID_GAMEPLAY_1 },
+    { ITT_SETMENU, "RESET SETTINGS",      NULL,      0, MENU_ID_GAMEPLAY_1 },
 };
 
 static Menu_t ID_Def_Main = {
@@ -2764,6 +2781,196 @@ static boolean M_ID_Automap_Secrets (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_1[] = {
+    { ITT_LRFUNC,  "BRIGHTMAPS",                  M_ID_Brightmaps,      0, MENU_NONE          },
+    { ITT_LRFUNC,  "EXTRA TRANSLUCENCY",          M_ID_Translucency,    0, MENU_NONE          },
+    { ITT_LRFUNC,  "FAKE CONTRAST",               M_ID_FakeContrast,    0, MENU_NONE          },
+    { ITT_LRFUNC,  "DIMINISHED LIGHTING",         M_ID_SmoothLighting,  0, MENU_NONE          },
+    { ITT_LRFUNC,  "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "INVULNERABILITY AFFECTS SKY", M_ID_InvulSky,        0, MENU_NONE          },
+    { ITT_LRFUNC,  "SKY DRAWING MODE",            M_ID_LinearSky,       0, MENU_NONE          },
+    { ITT_LRFUNC,  "RANDOMLY MIRRORED CORPSES",   M_ID_FlipCorpses,     0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE          },
+    { ITT_LRFUNC,  "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE          },
+    { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE          },
+    { ITT_SETMENU, "", /*NEXT PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY_2 },
+    { ITT_SETMENU, "", /*< PREV PAGE*/            NULL,                 0, MENU_ID_GAMEPLAY_3 },
+};
+
+static Menu_t ID_Def_Gameplay_1 = {
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Gameplay_1,
+    13, ID_Menu_Gameplay_1,
+    0,
+    true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Gameplay_1 (void)
+{
+    char str[32];
+
+    M_ShadeBackground();
+
+    MN_DrTextACentered("VISUAL", 10, cr[CR_YELLOW]);
+
+    // Brightmaps
+    sprintf(str, vis_brightmaps ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 20,
+               M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Translucency
+#ifndef CRISPY_TRUECOLOR
+    sprintf(str, vis_translucency ? "ON" : "OFF");
+#else
+    sprintf(str, vis_translucency == 1 ? "ADDITIVE" :
+                 vis_translucency == 2 ? "BLENDING" : "OFF");
+#endif
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 30,
+               M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Fake contrast
+    sprintf(str, vis_fake_contrast ? "ORIGINAL" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 40,
+               M_Item_Glow(2, vis_fake_contrast ? GLOW_DARKRED : GLOW_GREEN));
+
+    // Diminished lighting
+    sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 50,
+               M_Item_Glow(3, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Liquids animation
+    sprintf(str, vis_swirling_liquids ? "SWIRLING" : "ORIGINAL");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 60,
+               M_Item_Glow(4, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Invulnerability affects sky
+    sprintf(str, vis_invul_sky ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 70,
+               M_Item_Glow(5, vis_invul_sky ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Sky drawing mode
+    sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 80,
+               M_Item_Glow(6, vis_linear_sky ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Randomly mirrored corpses
+    sprintf(str, vis_flip_corpses ? "ON" : "OFF");
+    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 90,
+    //            M_Item_Glow(7, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
+
+    MN_DrTextACentered("CROSSHAIR", 100, cr[CR_YELLOW]);
+
+    // Crosshair shape
+    sprintf(str, xhair_draw == 1 ? "CROSS 1" :
+                 xhair_draw == 2 ? "CROSS 2" :
+                 xhair_draw == 3 ? "X" :
+                 xhair_draw == 4 ? "CIRCLE" :
+                 xhair_draw == 5 ? "ANGLE" :
+                 xhair_draw == 6 ? "TRIANGLE" :
+                 xhair_draw == 7 ? "DOT" : "OFF");
+    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 110,
+    //            M_Item_Glow(9, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Crosshair indication
+    sprintf(str, xhair_color == 1 ? "HEALTH" :
+                 xhair_color == 2 ? "TARGET HIGHLIGHT" :
+                 xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
+    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 120,
+    //            M_Item_Glow(10, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
+
+    MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
+               M_Item_Glow(11, GLOW_UNCOLORED));
+    MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
+               M_Item_Glow(12, GLOW_UNCOLORED));
+
+    // Footer
+    sprintf(str, "PAGE 1/3");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 140, cr[CR_GRAY]);
+}
+
+static boolean M_ID_Brightmaps (int choice)
+{
+    vis_brightmaps ^= 1;
+    return true;
+}
+
+static boolean M_ID_Translucency (int choice)
+{
+#ifndef CRISPY_TRUECOLOR
+    vis_translucency++;
+
+    // [JN] Just in case user have "Blending" mode (2).
+    if (vis_translucency > 1)
+        vis_translucency = 0;
+#else
+    vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice);
+#endif
+    return true;
+}
+
+static boolean M_ID_FakeContrast (int choice)
+{
+    vis_fake_contrast ^= 1;
+    return true;
+}
+
+static void M_ID_SmoothLightingHook (void)
+{
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
+    // [crispy] re-calculate fake contrast
+    P_SegLengths(true);
+}
+
+static boolean M_ID_SmoothLighting (int choice)
+{
+    vis_smooth_light ^= 1;
+    post_rendering_hook = M_ID_SmoothLightingHook;
+    return true;
+}
+
+static boolean M_ID_SwirlingLiquids (int choice)
+{
+    vis_swirling_liquids ^= 1;
+    // [JN] Re-init animation sequences.
+    P_InitPicAnims();
+    return true;
+}
+
+static boolean M_ID_InvulSky (int choice)
+{
+    vis_invul_sky ^= 1;
+    return true;
+}
+
+static boolean M_ID_LinearSky (int choice)
+{
+    vis_linear_sky ^= 1;
+    return true;
+}
+
+static boolean M_ID_FlipCorpses (int choice)
+{
+    return true;
+}
+
+static boolean M_ID_Crosshair (int choice)
+{
+    return true;
+}
+
+static boolean M_ID_CrosshairColor (int choice)
+{
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// Gameplay features 2
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Gameplay_2[] = {
     {ITT_LRFUNC, "DEFAULT SKILL LEVEL",     CRL_DefaulSkill,    0, MENU_NONE},
     {ITT_LRFUNC, "WAND START GAME MODE",    CRL_PistolStart,    0, MENU_NONE},
     {ITT_LRFUNC, "COLORED STATUS BAR",      CRL_ColoredSBar,    0, MENU_NONE},
@@ -2775,16 +2982,16 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     {ITT_LRFUNC, "PLAY INTERNAL DEMOS",     CRL_InternalDemos,  0, MENU_NONE}
 };
 
-static Menu_t ID_Def_Gameplay_1 = {
+static Menu_t ID_Def_Gameplay_2 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
-    DrawCRLGameplay,
-    9, ID_Menu_Gameplay_1,
+    M_Draw_ID_Gameplay_2,
+    9, ID_Menu_Gameplay_2,
     0,
     true,
     MENU_ID_MAIN
 };
 
-static void DrawCRLGameplay (void)
+static void M_Draw_ID_Gameplay_2 (void)
 {
 /*
     static char str[32];
@@ -3030,6 +3237,7 @@ static Menu_t *Menus[] = {
     &ID_Def_MouseBinds,
     &ID_Def_Widgets,
     &ID_Def_Gameplay_1,
+	&ID_Def_Gameplay_2,
     &CRLLimits,
 };
 

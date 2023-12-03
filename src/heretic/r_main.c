@@ -78,11 +78,24 @@ int			viewangletox[FINEANGLES/2];
 // from clipangle to -clipangle.
 angle_t			xtoviewangle[MAXWIDTH+1];
 
-lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
-lighttable_t *scalelightfixed[MAXLIGHTSCALE];
-lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
+// [crispy] calculate the linear sky angle component here
+angle_t			linearskyangle[MAXWIDTH+1];
+
+// [crispy] parameterized for smooth diminishing lighting
+lighttable_t***		scalelight = NULL;
+lighttable_t**		scalelightfixed = NULL;
+lighttable_t***		zlight = NULL;
 
 int extralight;                 // bumped light from gun blasts
+
+// [crispy] parameterized for smooth diminishing lighting
+int LIGHTLEVELS;
+int LIGHTSEGSHIFT;
+int LIGHTBRIGHT;
+int MAXLIGHTSCALE;
+int LIGHTSCALESHIFT;
+int MAXLIGHTZ;
+int LIGHTZSHIFT;
 
 void (*colfunc) (void);
 void (*basecolfunc) (void);
@@ -605,6 +618,10 @@ void R_InitTextureMapping(void)
         while (viewangletox[i] > x)
             i++;
         xtoviewangle[x] = (i << ANGLETOFINESHIFT) - ANG90;
+	    // [crispy] calculate sky angle for drawing horizontally linear skies.
+	    // Taken from GZDoom and refactored for integer math.
+	    linearskyangle[x] = ((viewwidth / 2 - x) * ((NONWIDEWIDTH<<6) / viewwidth)) 
+	                                             * (ANG90 / (NONWIDEWIDTH<<6));
     }
 
 //
@@ -640,28 +657,83 @@ void R_InitTextureMapping(void)
 
 void R_InitLightTables(void)
 {
-    int i, j, level, startmap;
-    int scale;
+    int		i;
+    int		j;
+    int		level;
+    int		startmap; 	
+    int		scale;
+    
+    if (scalelight)
+    {
+	for (i = 0; i < LIGHTLEVELS; i++)
+	{
+		free(scalelight[i]);
+	}
+	free(scalelight);
+    }
+
+    if (scalelightfixed)
+    {
+	free(scalelightfixed);
+    }
+
+    if (zlight)
+    {
+	for (i = 0; i < LIGHTLEVELS; i++)
+	{
+		free(zlight[i]);
+	}
+	free(zlight);
+    }
+
+   // [crispy] smooth diminishing lighting
+    if (vis_smooth_light)
+    {
+	LIGHTLEVELS = 32;
+	LIGHTSEGSHIFT = 3;
+	LIGHTBRIGHT = 2;
+	MAXLIGHTSCALE = 48;
+	LIGHTSCALESHIFT = 12;
+	MAXLIGHTZ = 1024;
+	LIGHTZSHIFT = 17;
+    }
+    else
+    {
+	LIGHTLEVELS = 16;
+	LIGHTSEGSHIFT = 4;
+	LIGHTBRIGHT = 1;
+	MAXLIGHTSCALE = 48;
+	LIGHTSCALESHIFT = 12;
+	MAXLIGHTZ = 128;
+	LIGHTZSHIFT = 20;
+    }
+
+    scalelight = malloc(LIGHTLEVELS * sizeof(*scalelight));
+    scalelightfixed = malloc(MAXLIGHTSCALE * sizeof(*scalelightfixed));
+    zlight = malloc(LIGHTLEVELS * sizeof(*zlight));
 
 //
 // Calculate the light levels to use for each level / distance combination
 //
-    for (i = 0; i < LIGHTLEVELS; i++)
+    for (i=0 ; i< LIGHTLEVELS ; i++)
     {
-        startmap = ((LIGHTLEVELS - 1 - i) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
-        for (j = 0; j < MAXLIGHTZ; j++)
-        {
-            scale =
-                FixedDiv((ORIGWIDTH / 2 * FRACUNIT),
-                         (j + 1) << LIGHTZSHIFT);
-            scale >>= LIGHTSCALESHIFT;
-            level = startmap - scale / DISTMAP;
-            if (level < 0)
-                level = 0;
-            if (level >= NUMCOLORMAPS)
-                level = NUMCOLORMAPS - 1;
-            zlight[i][j] = colormaps + level * 256;
-        }
+	zlight[i] = malloc(MAXLIGHTZ * sizeof(**zlight));
+
+	startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+	for (j=0 ; j<MAXLIGHTZ ; j++)
+	{
+	    scale = FixedDiv ((ORIGWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
+	    scale >>= LIGHTSCALESHIFT;
+	    level = startmap - scale/DISTMAP;
+	    
+	    if (level < 0)
+		level = 0;
+
+	    if (level >= NUMCOLORMAPS)
+		level = NUMCOLORMAPS-1;
+
+	    zlight[i][j] = colormaps + level*256;
+	}
     }
 }
 
@@ -801,6 +873,7 @@ void R_ExecuteSetViewSize(void)
 //
     for (i = 0; i < LIGHTLEVELS; i++)
     {
+        scalelight[i] = malloc(MAXLIGHTSCALE * sizeof(**scalelight));
         startmap = ((LIGHTLEVELS - 1 - i) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
         for (j = 0; j < MAXLIGHTSCALE; j++)
         {
