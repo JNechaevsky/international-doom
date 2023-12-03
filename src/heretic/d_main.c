@@ -79,6 +79,7 @@ boolean nomonsters;             // checkparm of -nomonsters
 boolean respawnparm;            // checkparm of -respawn
 boolean debugmode;              // checkparm of -debug
 boolean ravpic;                 // checkparm of -ravpic
+boolean coop_spawns = false;    // [crispy] checkparm of -coop_spawns
 boolean cdrom;                  // true if cd-rom mode active
 boolean noartiskip;             // whether shift-enter skips an artifact
 
@@ -1277,6 +1278,18 @@ void D_DoomMain(void)
 //
 // start the appropriate game based on params
 //
+
+    //!
+    // @category game
+    //
+    // Start single player game with items spawns as in cooperative netgame.
+    //
+
+    p = M_ParmExists("-coop_spawns");
+    if (p)
+    {
+        coop_spawns = true;
+    }
 
     D_CheckRecordFrom();
 
