@@ -254,6 +254,7 @@ typedef struct
 #define	MF_NOTDMATCH	0x2000000 // don't spawn in death match (key cards)
 
 #define	MF_TRANSLATION	0xc000000 // if 0x4 0x8 or 0xc, use a translation
+#define MF_EXTRATRANS   0x18000000 // [JN] Extra translucecy
 #define	MF_TRANSSHIFT	26      // table for player colormaps
 
 // --- mobj.flags2 ---

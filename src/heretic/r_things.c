@@ -417,6 +417,15 @@ void R_DrawVisSprite (vissprite_t *vis)
             ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT - 8));
     }
 
+    if (vis->mobjflags & MF_EXTRATRANS && vis_translucency)
+    {
+        // [JN] Extra translucency feature.
+        colfunc = tlcolfunc;
+#ifdef CRISPY_TRUECOLOR
+        blendfunc = vis->blendfunc;
+#endif
+    }
+
     dc_iscale = abs(vis->xiscale) >> detailshift;
     dc_texturemid = vis->texturemid;
     frac = vis->startfrac;
@@ -677,6 +686,14 @@ void R_ProjectSprite (mobj_t* thing)
         // [crispy] not using additive blending (I_BlendAdd) here 
         // to preserve look & feel of original Heretic's translucency
         vis->blendfunc = I_BlendOverTinttab;
+    }
+
+    if (thing->flags & MF_EXTRATRANS)
+    {
+        // [JN] Extra translucency. Draw full bright sprites with 
+        // different functions, depending on user's choice.
+        vis->blendfunc = (thing->frame & FF_FULLBRIGHT)
+                       && vis_translucency == 1 ? I_BlendAdd : I_BlendOverExtra;
     }
 #endif
 }

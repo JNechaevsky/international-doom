@@ -2056,6 +2056,16 @@ const pixel_t I_BlendFuzz (const pixel_t bg, const pixel_t fg)
 	return amask | r | g | b;
 }
 
+// [JN] Extra translucency blending (50% opacity).
+const pixel_t I_BlendOverExtra (const pixel_t bg, const pixel_t fg)
+{
+	const uint32_t r = ((128 * (fg & rmask) + (0xff - 128) * (bg & rmask)) >> 8) & rmask;
+	const uint32_t g = ((128 * (fg & gmask) + (0xff - 128) * (bg & gmask)) >> 8) & gmask;
+	const uint32_t b = ((128 * (fg & bmask) + (0xff - 128) * (bg & bmask)) >> 8) & bmask;
+
+	return amask | r | g | b;
+}
+
 // [JN] Shade factor used for menu and automap background shading.
 const int I_ShadeFactor[] =
 {
