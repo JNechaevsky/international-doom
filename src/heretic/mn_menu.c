@@ -544,15 +544,15 @@ static boolean M_ID_Crosshair (int choice);
 static boolean M_ID_CrosshairColor (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
-static boolean CRL_DefaulSkill (int option);
-static boolean CRL_PistolStart (int option);
-static boolean CRL_ColoredSBar (int option);
-static boolean CRL_DemoTimer (int option);
-static boolean CRL_TimerDirection (int option);
-static boolean CRL_ProgressBar (int option);
-static boolean CRL_InternalDemos (int option);
+static boolean M_ID_ColoredSBar (int choice);
 
 static void M_Draw_ID_Gameplay_3 (void);
+static boolean M_ID_DefaulSkill (int choice);
+static boolean M_ID_DemoTimer (int choice);
+static boolean M_ID_TimerDirection (int choice);
+static boolean M_ID_ProgressBar (int choice);
+static boolean M_ID_InternalDemos (int choice);
+static boolean M_ID_PistolStart (int choice);
 
 static void DrawCRLLimits (void);
 static boolean CRL_ZMalloc (int option);
@@ -764,7 +764,6 @@ static const int M_INT_Slider (int val, int min, int max, int direction)
     return val;
 }
 
-/*
 static byte *DefSkillColor (const int skill)
 {
     return
@@ -784,7 +783,6 @@ static char *const DefSkillName[5] =
     "SMITE-MEISTER" ,
     "BLACK PLAGUE"
 };
-*/
 
 // -----------------------------------------------------------------------------
 // Main ID Menu
@@ -2983,19 +2981,19 @@ static boolean M_ID_CrosshairColor (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_2[] = {
-    { ITT_LRFUNC,  "COLORED ELEMENTS",            NULL, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "SHOW NEGATIVE HEALTH",        NULL, 0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      NULL, 0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", NULL, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     NULL, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  NULL, 0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
-    { ITT_SETMENU, "", /*LAST PAGE >*/            NULL, 0, MENU_ID_GAMEPLAY_3 },
-    { ITT_SETMENU, "", /*< FIRST PAGE*/           NULL, 0, MENU_ID_GAMEPLAY_1 },
+    { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "SHOW NEGATIVE HEALTH",        NULL,             0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
+    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      NULL,             0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
+    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", NULL,             0, MENU_NONE          },
+    { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     NULL,             0, MENU_NONE          },
+    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  NULL,             0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
+    { ITT_SETMENU, "", /*LAST PAGE >*/            NULL,             0, MENU_ID_GAMEPLAY_3 },
+    { ITT_SETMENU, "", /*< FIRST PAGE*/           NULL,             0, MENU_ID_GAMEPLAY_1 },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
@@ -3015,6 +3013,12 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     MN_DrTextACentered("STATUS BAR", 10, cr[CR_YELLOW]);
 
+    // Colored elements
+    sprintf(str, st_colored_stbar ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 20,
+               M_Item_Glow(0, st_colored_stbar? GLOW_GREEN : GLOW_DARKRED));
+
+
     MN_DrTextACentered("AUDIBLE", 40, cr[CR_YELLOW]);
 
     MN_DrTextACentered("PHYSICAL", 60, cr[CR_YELLOW]);
@@ -3029,24 +3033,30 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 140, cr[CR_GRAY]);
 }
 
+static boolean M_ID_ColoredSBar (int choice)
+{
+    st_colored_stbar ^= 1;
+    return true;
+}
+
 // -----------------------------------------------------------------------------
 // Gameplay features 3
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_3[] = {
-    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",     CRL_DefaulSkill,    0, MENU_NONE          },
-    { ITT_LRFUNC,  "REPORT REVEALED SECRETS",    CRL_PistolStart,    0, MENU_NONE          },
-    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY",      CRL_ColoredSBar,    0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,               0, MENU_NONE          },
-    { ITT_LRFUNC,  "SHOW DEMO TIMER",         CRL_DemoTimer,      0, MENU_NONE          },
-    { ITT_LRFUNC,  "TIMER DIRECTION",         CRL_TimerDirection, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "SHOW PROGRESS BAR",       CRL_ProgressBar,    0, MENU_NONE          },
-    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",     CRL_InternalDemos,  0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,               0, MENU_NONE          },
-    { ITT_LRFUNC,  "WAND START GAME MODE",        NULL, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "IMPROVED HIT DETECTION",      NULL, 0, MENU_NONE          },
-    { ITT_SETMENU, "", /*FIRST PAGE >*/       NULL,               0, MENU_ID_GAMEPLAY_1 },
-    { ITT_SETMENU, "", /*< PREV PAGE*/        NULL,               0, MENU_ID_GAMEPLAY_2 },
+    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,    0, MENU_NONE          },
+    { ITT_LRFUNC,  "REPORT REVEALED SECRETS",  NULL,                0, MENU_NONE          },
+    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY", NULL,                0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE          },
+    { ITT_LRFUNC,  "SHOW DEMO TIMER",          M_ID_DemoTimer,      0, MENU_NONE          },
+    { ITT_LRFUNC,  "TIMER DIRECTION",          M_ID_TimerDirection, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "SHOW PROGRESS BAR",        M_ID_ProgressBar,    0, MENU_NONE          },
+    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,  0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE          },
+    { ITT_LRFUNC,  "WAND START GAME MODE",     M_ID_PistolStart,    0, MENU_NONE          },
+    { ITT_LRFUNC,  "IMPROVED HIT DETECTION",   NULL,                0, MENU_NONE          },
+    { ITT_SETMENU, "", /*FIRST PAGE >*/        NULL,                0, MENU_ID_GAMEPLAY_1 },
+    { ITT_SETMENU, "", /*< PREV PAGE*/         NULL,                0, MENU_ID_GAMEPLAY_2 },
 };
 
 static Menu_t ID_Def_Gameplay_3 = {
@@ -3066,9 +3076,41 @@ static void M_Draw_ID_Gameplay_3 (void)
 
     MN_DrTextACentered("GAMEPLAY", 10, cr[CR_YELLOW]);
 
+    // Default skill level
+    M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 20,
+               DefSkillColor(gp_default_skill));
+
     MN_DrTextACentered("DEMOS", 50, cr[CR_YELLOW]);
 
+    // Show Demo timer
+    sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
+                 demo_timer == 2 ? "RECORDING" : 
+                 demo_timer == 3 ? "ALWAYS" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
+               M_Item_Glow(4, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Timer direction
+    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
+               M_Item_Glow(5, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Show progress bar
+    sprintf(str, demo_bar ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
+               M_Item_Glow(6, demo_bar? GLOW_GREEN : GLOW_DARKRED));
+
+    // Play internal demos
+    sprintf(str, demo_internal ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
+               M_Item_Glow(7, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
+
     MN_DrTextACentered("COMPATIBILITY-BREAKING", 100, cr[CR_YELLOW]);
+
+    // Wand start game mode
+    sprintf(str, compat_pistol_start ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 110,
+               M_Item_Glow(9, compat_pistol_start ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
                M_Item_Glow(11, GLOW_DARKGRAY));
@@ -3078,97 +3120,42 @@ static void M_Draw_ID_Gameplay_3 (void)
     // Footer
     sprintf(str, "PAGE 3/3");
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 140, cr[CR_GRAY]);
-/*
-
-
-    MN_DrTextACentered("GAMEPLAY", 10, cr[CR_YELLOW]);
-
-    // Default skill level
-    M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
-               DefSkillColor(gp_default_skill));
-
-    // Wand start game mode
-    sprintf(str, crl_pistol_start ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 40,
-               M_Item_Glow(1, crl_pistol_start ? GLOW_GREEN : GLOW_RED));
-
-    // Colored status bar
-    sprintf(str, crl_colored_stbar ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 50,
-               M_Item_Glow(2, crl_colored_stbar? GLOW_GREEN : GLOW_RED));
-
-    // Restore monster targets
-    // sprintf(str, crl_restore_targets ? "ON" : "OFF");
-    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
-    //            M_Item_Glow(3, crl_restore_targets? GLOW_GREEN : GLOW_RED));
-
-    MN_DrTextACentered("DEMOS", 70, cr[CR_YELLOW]);
-
-    // Show Demo timer
-    sprintf(str, demo_timerdir == 1 ? "PLAYBACK" : 
-                 demo_timerdir == 2 ? "RECORDING" : 
-                 demo_timerdir == 3 ? "ALWAYS" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
-               M_Item_Glow(5, demo_timerdir ? GLOW_GREEN : GLOW_RED));
-
-    // Timer direction
-    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
-               M_Item_Glow(6, demo_timerdir ? GLOW_GREEN : GLOW_RED));
-
-    // Show progress bar
-    sprintf(str, demo_bar ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 100,
-               M_Item_Glow(7, demo_bar? GLOW_GREEN : GLOW_RED));
-
-    // Play internal demos
-    sprintf(str, demo_internal ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 110,
-               M_Item_Glow(8, demo_internal? GLOW_GREEN : GLOW_RED));
-*/
 }
 
-static boolean CRL_DefaulSkill (int option)
+static boolean M_ID_DefaulSkill (int choice)
 {
-    gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, option);
+    gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice);
     SkillMenu.oldItPos = gp_default_skill;
     return true;
 }
 
-static boolean CRL_PistolStart (int option)
-{
-    compat_pistol_start ^= 1;
-    return true;
-}
-
-static boolean CRL_ColoredSBar (int option)
-{
-//    crl_colored_stbar ^= 1;
-    return true;
-}
-
-static boolean CRL_DemoTimer (int choice)
+static boolean M_ID_DemoTimer (int choice)
 {
     demo_timer = M_INT_Slider(demo_timer, 0, 3, choice);
     return true;
 }
 
-static boolean CRL_TimerDirection (int choice)
-{
-    demo_timerdir ^= 1;
-    return true;
-}
-
-static boolean CRL_ProgressBar (int option)
+static boolean M_ID_ProgressBar (int choice)
 {
     demo_bar ^= 1;
     return true;
 }
 
-static boolean CRL_InternalDemos (int option)
+static boolean M_ID_InternalDemos (int choice)
 {
     demo_internal ^= 1;
+    return true;
+}
+
+static boolean M_ID_PistolStart (int choice)
+{
+    compat_pistol_start ^= 1;
+    return true;
+}
+
+static boolean M_ID_TimerDirection (int choice)
+{
+    demo_timerdir ^= 1;
     return true;
 }
 
