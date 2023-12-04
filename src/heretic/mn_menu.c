@@ -714,10 +714,10 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
         {
             return
                 ITEMSETONTICS == 5 ? cr[CR_MENU_DARK1] :
-                ITEMSETONTICS == 4 ? cr[CR_MENU_DARK4] :
+                ITEMSETONTICS == 4 ? cr[CR_MENU_DARK2] :
                 ITEMSETONTICS == 3 ? cr[CR_MENU_DARK3] :
                 ITEMSETONTICS == 2 ? cr[CR_MENU_DARK4] :
-                ITEMSETONTICS == 1 ? cr[CR_MENU_DARK5] : cr[CR_MENU_DARK5];
+                ITEMSETONTICS == 1 ? cr[CR_MENU_DARK4] : cr[CR_MENU_DARK4];
         }
         if (color == GLOW_BLUE)
         {
