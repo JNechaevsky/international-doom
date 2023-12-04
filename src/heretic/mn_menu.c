@@ -3015,7 +3015,7 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     // Colored elements
     sprintf(str, st_colored_stbar ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 20,
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 20,
                M_Item_Glow(0, st_colored_stbar? GLOW_GREEN : GLOW_DARKRED));
 
 
@@ -3087,29 +3087,29 @@ static void M_Draw_ID_Gameplay_3 (void)
     sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
                  demo_timer == 2 ? "RECORDING" : 
                  demo_timer == 3 ? "ALWAYS" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 60,
                M_Item_Glow(4, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
 
     // Timer direction
     sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 70,
                M_Item_Glow(5, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
 
     // Show progress bar
     sprintf(str, demo_bar ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
-               M_Item_Glow(6, demo_bar? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 80,
+               M_Item_Glow(6, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
 
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 90,
                M_Item_Glow(7, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
 
     MN_DrTextACentered("COMPATIBILITY-BREAKING", 100, cr[CR_YELLOW]);
 
     // Wand start game mode
     sprintf(str, compat_pistol_start ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 110,
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 110,
                M_Item_Glow(9, compat_pistol_start ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
