@@ -421,15 +421,6 @@ typedef struct visplane_s
     int     minx;
     int     maxx;
 
-    // Is a find plane.
-    int          isfindplane;
-
-    // The seg that emitted this.
-    seg_t       *emitline;
-
-    // The subsector this visplane is in.
-    subsector_t *emitsub;
-
     // leave pads for [minx-1]/[maxx+1]
     unsigned short pad1;
     unsigned short top[MAXWIDTH];
