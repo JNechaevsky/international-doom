@@ -547,11 +547,12 @@ static void M_Draw_ID_Gameplay_2 (void);
 static boolean CRL_DefaulSkill (int option);
 static boolean CRL_PistolStart (int option);
 static boolean CRL_ColoredSBar (int option);
-static boolean CRL_RestoreTargets (int option);
 static boolean CRL_DemoTimer (int option);
 static boolean CRL_TimerDirection (int option);
 static boolean CRL_ProgressBar (int option);
 static boolean CRL_InternalDemos (int option);
+
+static void M_Draw_ID_Gameplay_3 (void);
 
 static void DrawCRLLimits (void);
 static boolean CRL_ZMalloc (int option);
@@ -633,7 +634,8 @@ static byte *M_Line_Glow (const int tics)
 #define GLOW_GREEN      3
 #define GLOW_YELLOW     4
 #define GLOW_LIGHTGRAY  5
-#define GLOW_BLUE       6
+#define GLOW_DARKGRAY   6
+#define GLOW_BLUE       7
 
 #define ITEMONTICS      CurrentMenu->items[CurrentItPos].tics
 #define ITEMSETONTICS   CurrentMenu->items[CurrentItPosOn].tics
@@ -648,6 +650,7 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
             color == GLOW_GREEN     ? cr[CR_GREEN_BRIGHT5]     :
             color == GLOW_YELLOW    ? cr[CR_YELLOW_BRIGHT5]    :
             color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY_BRIGHT5] :
+            color == GLOW_DARKGRAY  ? cr[CR_MENU_DARK1]        :
             color == GLOW_BLUE      ? cr[CR_BLUE2_BRIGHT5]     :
                                       cr[CR_MENU_BRIGHT5]      ; // GLOW_UNCOLORED
     }
@@ -706,6 +709,15 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
                 ITEMSETONTICS == 3 ? cr[CR_LIGHTGRAY_BRIGHT3] :
                 ITEMSETONTICS == 2 ? cr[CR_LIGHTGRAY_BRIGHT2] :
                 ITEMSETONTICS == 1 ? cr[CR_LIGHTGRAY_BRIGHT1] : cr[CR_LIGHTGRAY];
+        }
+        if (color == GLOW_DARKGRAY)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_MENU_DARK1] :
+                ITEMSETONTICS == 4 ? cr[CR_MENU_DARK4] :
+                ITEMSETONTICS == 3 ? cr[CR_MENU_DARK3] :
+                ITEMSETONTICS == 2 ? cr[CR_MENU_DARK4] :
+                ITEMSETONTICS == 1 ? cr[CR_MENU_DARK5] : cr[CR_MENU_DARK5];
         }
         if (color == GLOW_BLUE)
         {
@@ -2879,9 +2891,9 @@ static void M_Draw_ID_Gameplay_1 (void)
     //            M_Item_Glow(10, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
-               M_Item_Glow(11, GLOW_UNCOLORED));
+               M_Item_Glow(11, GLOW_DARKGRAY));
     MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
-               M_Item_Glow(12, GLOW_UNCOLORED));
+               M_Item_Glow(12, GLOW_DARKGRAY));
 
     // Footer
     sprintf(str, "PAGE 1/3");
@@ -2971,21 +2983,25 @@ static boolean M_ID_CrosshairColor (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_2[] = {
-    {ITT_LRFUNC, "DEFAULT SKILL LEVEL",     CRL_DefaulSkill,    0, MENU_NONE},
-    {ITT_LRFUNC, "WAND START GAME MODE",    CRL_PistolStart,    0, MENU_NONE},
-    {ITT_LRFUNC, "COLORED STATUS BAR",      CRL_ColoredSBar,    0, MENU_NONE},
-    {ITT_LRFUNC, "RESTORE MONSTER TARGETS", CRL_RestoreTargets, 0, MENU_NONE},
-    {ITT_EMPTY,  NULL,                      NULL,               0, MENU_NONE},
-    {ITT_LRFUNC, "SHOW DEMO TIMER",         CRL_DemoTimer,      0, MENU_NONE},
-    {ITT_LRFUNC, "TIMER DIRECTION",         CRL_TimerDirection, 0, MENU_NONE},
-    {ITT_LRFUNC, "SHOW PROGRESS BAR",       CRL_ProgressBar,    0, MENU_NONE},
-    {ITT_LRFUNC, "PLAY INTERNAL DEMOS",     CRL_InternalDemos,  0, MENU_NONE}
+    { ITT_LRFUNC,  "COLORED ELEMENTS",            NULL, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "SHOW NEGATIVE HEALTH",        NULL, 0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      NULL, 0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", NULL, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     NULL, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  NULL, 0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                          NULL, 0, MENU_NONE          },
+    { ITT_SETMENU, "", /*LAST PAGE >*/            NULL, 0, MENU_ID_GAMEPLAY_3 },
+    { ITT_SETMENU, "", /*< FIRST PAGE*/           NULL, 0, MENU_ID_GAMEPLAY_1 },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_2,
-    9, ID_Menu_Gameplay_2,
+    13, ID_Menu_Gameplay_2,
     0,
     true,
     MENU_ID_MAIN
@@ -2993,12 +3009,79 @@ static Menu_t ID_Def_Gameplay_2 = {
 
 static void M_Draw_ID_Gameplay_2 (void)
 {
-/*
-    static char str[32];
+    char str[32];
 
     M_ShadeBackground();
 
-    MN_DrTextACentered("GAMEPLAY FEATURES", 20, cr[CR_YELLOW]);
+    MN_DrTextACentered("STATUS BAR", 10, cr[CR_YELLOW]);
+
+    MN_DrTextACentered("AUDIBLE", 40, cr[CR_YELLOW]);
+
+    MN_DrTextACentered("PHYSICAL", 60, cr[CR_YELLOW]);
+
+    MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
+               M_Item_Glow(11, GLOW_DARKGRAY));
+    MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
+               M_Item_Glow(12, GLOW_DARKGRAY));
+
+    // Footer
+    sprintf(str, "PAGE 2/3");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 140, cr[CR_GRAY]);
+}
+
+// -----------------------------------------------------------------------------
+// Gameplay features 3
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Gameplay_3[] = {
+    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",     CRL_DefaulSkill,    0, MENU_NONE          },
+    { ITT_LRFUNC,  "REPORT REVEALED SECRETS",    CRL_PistolStart,    0, MENU_NONE          },
+    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY",      CRL_ColoredSBar,    0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,               0, MENU_NONE          },
+    { ITT_LRFUNC,  "SHOW DEMO TIMER",         CRL_DemoTimer,      0, MENU_NONE          },
+    { ITT_LRFUNC,  "TIMER DIRECTION",         CRL_TimerDirection, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "SHOW PROGRESS BAR",       CRL_ProgressBar,    0, MENU_NONE          },
+    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",     CRL_InternalDemos,  0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,               0, MENU_NONE          },
+    { ITT_LRFUNC,  "WAND START GAME MODE",        NULL, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "IMPROVED HIT DETECTION",      NULL, 0, MENU_NONE          },
+    { ITT_SETMENU, "", /*FIRST PAGE >*/       NULL,               0, MENU_ID_GAMEPLAY_1 },
+    { ITT_SETMENU, "", /*< PREV PAGE*/        NULL,               0, MENU_ID_GAMEPLAY_2 },
+};
+
+static Menu_t ID_Def_Gameplay_3 = {
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Gameplay_3,
+    13, ID_Menu_Gameplay_3,
+    0,
+    true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Gameplay_3 (void)
+{
+    char str[32];
+
+    M_ShadeBackground();
+
+    MN_DrTextACentered("GAMEPLAY", 10, cr[CR_YELLOW]);
+
+    MN_DrTextACentered("DEMOS", 50, cr[CR_YELLOW]);
+
+    MN_DrTextACentered("COMPATIBILITY-BREAKING", 100, cr[CR_YELLOW]);
+
+    MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
+               M_Item_Glow(11, GLOW_DARKGRAY));
+    MN_DrTextA("PREV PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
+               M_Item_Glow(12, GLOW_DARKGRAY));
+
+    // Footer
+    sprintf(str, "PAGE 3/3");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 140, cr[CR_GRAY]);
+/*
+
+
+    MN_DrTextACentered("GAMEPLAY", 10, cr[CR_YELLOW]);
 
     // Default skill level
     M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
@@ -3065,12 +3148,6 @@ static boolean CRL_ColoredSBar (int option)
     return true;
 }
 
-static boolean CRL_RestoreTargets (int option)
-{
-    // crl_restore_targets ^= 1;
-    return true;
-}
-
 static boolean CRL_DemoTimer (int choice)
 {
     demo_timer = M_INT_Slider(demo_timer, 0, 3, choice);
@@ -3093,6 +3170,32 @@ static boolean CRL_InternalDemos (int option)
 {
     demo_internal ^= 1;
     return true;
+}
+
+// -----------------------------------------------------------------------------
+// M_ScrollGameplayPages
+//  [JN] Scroll keyboard gameplay pages forward (direction = true)
+//  and backward (direction = false).
+// -----------------------------------------------------------------------------
+
+static void M_ScrollGameplayPages (boolean direction)
+{
+    if (CurrentMenu == &ID_Def_Gameplay_1)
+    {
+        SetMenu(direction ? MENU_ID_GAMEPLAY_2 : MENU_ID_GAMEPLAY_3);
+    }
+    else 
+    if (CurrentMenu == &ID_Def_Gameplay_2)
+    {
+        SetMenu(direction ? MENU_ID_GAMEPLAY_3 : MENU_ID_GAMEPLAY_1);
+    }
+    else
+    if (CurrentMenu == &ID_Def_Gameplay_3)
+    {
+        SetMenu(direction ? MENU_ID_GAMEPLAY_1 : MENU_ID_GAMEPLAY_2);
+    }
+
+    S_StartSound(NULL, sfx_switch);
 }
 
 // -----------------------------------------------------------------------------
@@ -3237,7 +3340,8 @@ static Menu_t *Menus[] = {
     &ID_Def_MouseBinds,
     &ID_Def_Widgets,
     &ID_Def_Gameplay_1,
-	&ID_Def_Gameplay_2,
+    &ID_Def_Gameplay_2,
+    &ID_Def_Gameplay_3,
     &CRLLimits,
 };
 
@@ -4781,18 +4885,34 @@ boolean MN_Responder(event_t * event)
         // [crispy] next/prev Crispness menu
         else if (key == KEY_PGUP)
         {
+            // [JN] ...or scroll key binds menu forward.
             if (KBD_BIND_MENUS)
             {
                 M_ScrollKeyBindPages(false);
+            }
+            // [JN] ...or scroll gameplay menu backward.
+            else
+            if (CurrentMenu == &ID_Def_Gameplay_1 || CurrentMenu == &ID_Def_Gameplay_2
+            ||  CurrentMenu == &ID_Def_Gameplay_3)
+            {
+                M_ScrollGameplayPages(false);
             }
             return (true);
         }
         // [crispy] next/prev Crispness menu
         else if (key == KEY_PGDN)
         {
+            // [JN] ...or scroll key binds menu forward.
             if (KBD_BIND_MENUS)
             {
                 M_ScrollKeyBindPages(true);
+            }
+            // [JN] ...or scroll gameplay menu forward.
+            else
+            if (CurrentMenu == &ID_Def_Gameplay_1 || CurrentMenu == &ID_Def_Gameplay_2
+            ||  CurrentMenu == &ID_Def_Gameplay_3)
+            {
+                M_ScrollGameplayPages(true);
             }
             return (true);
         }
