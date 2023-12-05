@@ -2655,18 +2655,17 @@ static boolean M_Bind_M_Reset (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Widgets[] = {
-    {ITT_LRFUNC, "PLAYER COORDS",       M_ID_Widget_Coords,    0, MENU_NONE},
-    {ITT_LRFUNC, "PLAYSTATE COUNTERS",  CRL_Widget_Playstate, 0, MENU_NONE},
-    {ITT_LRFUNC, "RENDER COUNTERS",     M_ID_Widget_Render,    0, MENU_NONE},
-    {ITT_LRFUNC, "KIS STATS",           M_ID_Widget_KIS,       0, MENU_NONE},
-    {ITT_LRFUNC, "LEVEL TIME",          M_ID_Widget_Time,      0, MENU_NONE},
-    {ITT_LRFUNC, "POWERUP TIMERS",      CRL_Widget_Powerups,  0, MENU_NONE},
-    {ITT_LRFUNC, "TARGET'S HEALTH",     M_ID_Widget_Health,    0, MENU_NONE},
-    {ITT_EMPTY,  NULL,                  NULL,                 0, MENU_NONE},
-    {ITT_LRFUNC, "MARK SECRET SECTORS", M_ID_Automap_Secrets,  0, MENU_NONE},
-    {ITT_EMPTY,  NULL,                  NULL,                 0, MENU_NONE},
-    {ITT_EMPTY,  NULL,                  NULL,                 0, MENU_NONE},
-    {ITT_EMPTY,  NULL,                  NULL,                 0, MENU_NONE}
+    { ITT_LRFUNC, "WIDGETS LOCATION",    NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "KIS STATS",           M_ID_Widget_KIS,      0, MENU_NONE },
+    { ITT_LRFUNC, "LEVEL/DM TIMER",      M_ID_Widget_Time,     0, MENU_NONE },
+    { ITT_LRFUNC, "TOTAL TIME",          NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "PLAYER COORDS",       M_ID_Widget_Coords,   0, MENU_NONE },
+    { ITT_LRFUNC, "RENDER COUNTERS",     M_ID_Widget_Render,   0, MENU_NONE },
+    { ITT_LRFUNC, "TARGET'S HEALTH",     M_ID_Widget_Health,   0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                  NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "MARK SECRET SECTORS", M_ID_Automap_Secrets, 0, MENU_NONE },
+    { ITT_LRFUNC, "ROTATE MODE",         NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "OVERLAY MODE",        M_ID_Automap_Secrets, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Widgets = {
@@ -2680,18 +2679,21 @@ static Menu_t ID_Def_Widgets = {
 
 static void M_Draw_ID_Widgets (void)
 {
-    /*
-    static char str[32];
+    char str[32];
 
     M_ShadeBackground();
 
-    MN_DrTextACentered("WIDGETS", 20, cr[CR_YELLOW]);
+    MN_DrTextACentered("WIDGETS", 10, cr[CR_YELLOW]);
 
     // Player coords
     sprintf(str, widget_coords ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
-               M_Item_Glow(0, widget_coords ? GLOW_GREEN : GLOW_RED));
+    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
+    //            M_Item_Glow(0, widget_coords ? GLOW_GREEN : GLOW_RED));
 
+    MN_DrTextACentered("AUTOMAP", 90, cr[CR_YELLOW]);
+
+
+    /*
     // Playstate counters
     // sprintf(str, crl_widget_playstate == 1 ? "ON" :
     //              crl_widget_playstate == 2 ? "OVERFLOWS" : "OFF");
@@ -2729,7 +2731,7 @@ static void M_Draw_ID_Widgets (void)
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
                M_Item_Glow(6, M_ID_Widget_Health ? GLOW_GREEN : GLOW_RED));
 
-    MN_DrTextACentered("AUTOMAP", 100, cr[CR_YELLOW]);
+
 
     // Mark secret sectors
     sprintf(str, M_ID_Automap_Secrets ? "ON" : "OFF");
