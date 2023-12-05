@@ -553,6 +553,7 @@ static boolean M_ID_TimerDirection (int choice);
 static boolean M_ID_ProgressBar (int choice);
 static boolean M_ID_InternalDemos (int choice);
 static boolean M_ID_PistolStart (int choice);
+static boolean M_ID_BlockmapFix (int choice);
 
 static void M_Draw_ID_Level_1 (void);
 static void M_Draw_ID_Level_2 (void);
@@ -3042,7 +3043,7 @@ static MenuItem_t ID_Menu_Gameplay_3[] = {
     { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,  0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE         },
     { ITT_LRFUNC,  "WAND START GAME MODE",     M_ID_PistolStart,    0, MENU_NONE         },
-    { ITT_LRFUNC,  "IMPROVED HIT DETECTION",   NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,    0, MENU_NONE         },
     { ITT_SETMENU, "", /*FIRST PAGE >*/        NULL,                0, MENU_ID_GAMEPLAY1 },
     { ITT_SETMENU, "", /*< PREV PAGE*/         NULL,                0, MENU_ID_GAMEPLAY2 },
 };
@@ -3100,6 +3101,11 @@ static void M_Draw_ID_Gameplay_3 (void)
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 110,
                M_Item_Glow(9, compat_pistol_start ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Improved hit detection
+    sprintf(str, compat_blockmap_fix ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 120,
+               M_Item_Glow(10, compat_blockmap_fix ? GLOW_GREEN : GLOW_DARKRED));
+
     MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
                M_Item_Glow(11, GLOW_DARKGRAY));
     MN_DrTextA("PREV PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
@@ -3138,6 +3144,12 @@ static boolean M_ID_InternalDemos (int choice)
 static boolean M_ID_PistolStart (int choice)
 {
     compat_pistol_start ^= 1;
+    return true;
+}
+
+static boolean M_ID_BlockmapFix (int choice)
+{
+    compat_blockmap_fix ^= 1;
     return true;
 }
 

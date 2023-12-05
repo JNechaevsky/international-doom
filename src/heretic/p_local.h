@@ -231,6 +231,7 @@ boolean P_CheckSight(mobj_t * t1, mobj_t * t2);
 void P_UseLines(player_t * player);
 
 boolean P_ChangeSector(sector_t * sector, boolean crunch);
+boolean PIT_ChangeSector(mobj_t * thing);
 
 extern mobj_t *linetarget;      // who got hit (or NULL)
 extern boolean  safe_intercept;
@@ -240,6 +241,7 @@ void P_LineAttack(mobj_t * t1, angle_t angle, fixed_t distance, fixed_t slope,
                   int damage);
 
 void P_RadiusAttack(mobj_t * spot, mobj_t * source, int damage);
+boolean PIT_RadiusAttack(mobj_t * thing);
 
 #define	MAXSPECIALCROSS		8
 extern line_t **spechit; // [crispy] remove SPECHIT limit
