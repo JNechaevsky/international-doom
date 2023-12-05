@@ -545,6 +545,7 @@ static boolean M_ID_CrosshairColor (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
 static boolean M_ID_ColoredSBar (int choice);
+static boolean M_ID_Torque (int choice);
 static boolean M_ID_Breathing (int choice);
 
 static void M_Draw_ID_Gameplay_3 (void);
@@ -2976,7 +2977,7 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
     { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      NULL,             0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
-    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", NULL,             0, MENU_NONE         },
+    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,      0, MENU_NONE         },
     { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     NULL,             0, MENU_NONE         },
     { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,   0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
@@ -3013,6 +3014,11 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     MN_DrTextACentered("PHYSICAL", 60, cr[CR_YELLOW]);
 
+    // Corpses sliding from ledges
+    sprintf(str, phys_torque ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 70,
+               M_Item_Glow(5, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 90,
@@ -3031,6 +3037,12 @@ static void M_Draw_ID_Gameplay_2 (void)
 static boolean M_ID_ColoredSBar (int choice)
 {
     st_colored_stbar ^= 1;
+    return true;
+}
+
+static boolean M_ID_Torque (int choice)
+{
+    phys_torque ^= 1;
     return true;
 }
 

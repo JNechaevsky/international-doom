@@ -233,6 +233,8 @@ void P_UseLines(player_t * player);
 boolean P_ChangeSector(sector_t * sector, boolean crunch);
 boolean PIT_ChangeSector(mobj_t * thing);
 
+void P_ApplyTorque (mobj_t *mo);
+
 extern mobj_t *linetarget;      // who got hit (or NULL)
 extern boolean  safe_intercept;
 fixed_t P_AimLineAttack(mobj_t * t1, angle_t angle, fixed_t distance, boolean safe);
