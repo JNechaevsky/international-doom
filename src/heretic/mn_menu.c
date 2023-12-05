@@ -545,6 +545,7 @@ static boolean M_ID_CrosshairColor (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
 static boolean M_ID_ColoredSBar (int choice);
+static boolean M_ID_Breathing (int choice);
 
 static void M_Draw_ID_Gameplay_3 (void);
 static boolean M_ID_DefaulSkill (int choice);
@@ -2977,7 +2978,7 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
     { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", NULL,             0, MENU_NONE         },
     { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     NULL,             0, MENU_NONE         },
-    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  NULL,             0, MENU_NONE         },
+    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,   0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
@@ -3005,12 +3006,17 @@ static void M_Draw_ID_Gameplay_2 (void)
     // Colored elements
     sprintf(str, st_colored_stbar ? "ON" : "OFF");
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 20,
-               M_Item_Glow(0, st_colored_stbar? GLOW_GREEN : GLOW_DARKRED));
+               M_Item_Glow(0, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
 
 
     MN_DrTextACentered("AUDIBLE", 40, cr[CR_YELLOW]);
 
     MN_DrTextACentered("PHYSICAL", 60, cr[CR_YELLOW]);
+
+    // Imitate player's breathing
+    sprintf(str, phys_breathing ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 90,
+               M_Item_Glow(7, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
                M_Item_Glow(11, GLOW_DARKGRAY));
@@ -3025,6 +3031,12 @@ static void M_Draw_ID_Gameplay_2 (void)
 static boolean M_ID_ColoredSBar (int choice)
 {
     st_colored_stbar ^= 1;
+    return true;
+}
+
+static boolean M_ID_Breathing (int choice)
+{
+    phys_breathing ^= 1;
     return true;
 }
 
