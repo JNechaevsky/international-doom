@@ -87,10 +87,12 @@ typedef enum
     MENU_ID_KBDBINDS8,
     MENU_ID_MOUSEBINDS,
     MENU_ID_WIDGETS,
-    MENU_ID_GAMEPLAY_1,
-    MENU_ID_GAMEPLAY_2,
-    MENU_ID_GAMEPLAY_3,
-    MENU_CRLLIMITS,
+    MENU_ID_GAMEPLAY1,
+    MENU_ID_GAMEPLAY2,
+    MENU_ID_GAMEPLAY3,
+    MENU_ID_LEVEL1,
+    MENU_ID_LEVEL2,
+    MENU_ID_LEVEL3,
     MENU_NONE
 } MenuType_t;
 
@@ -523,11 +525,9 @@ static boolean M_Bind_M_Reset (int option);
 
 static void M_Draw_ID_Widgets (void);
 static boolean M_ID_Widget_Coords (int option);
-static boolean CRL_Widget_Playstate (int option);
 static boolean M_ID_Widget_Render (int option);
 static boolean M_ID_Widget_KIS (int option);
 static boolean M_ID_Widget_Time (int option);
-static boolean CRL_Widget_Powerups (int option);
 static boolean M_ID_Widget_Health (int option);
 static boolean M_ID_Automap_Secrets (int option);
 
@@ -554,11 +554,9 @@ static boolean M_ID_ProgressBar (int choice);
 static boolean M_ID_InternalDemos (int choice);
 static boolean M_ID_PistolStart (int choice);
 
-static void DrawCRLLimits (void);
-static boolean CRL_ZMalloc (int option);
-static boolean CRL_SaveSizeWarning (int option);
-static boolean CRL_DemoSizeWarning (int option);
-static boolean CRL_Limits (int option);
+static void M_Draw_ID_Level_1 (void);
+static void M_Draw_ID_Level_2 (void);
+static void M_Draw_ID_Level_3 (void);
 
 // Keyboard binding prototypes
 static boolean KbdIsBinding;
@@ -789,15 +787,15 @@ static char *const DefSkillName[5] =
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Main[] = {
-    { ITT_SETMENU, "VIDEO OPTIONS",       NULL,      0, MENU_ID_VIDEO    },
-    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,      0, MENU_ID_DISPLAY  },
-    { ITT_SETMENU, "SOUND OPTIONS",       NULL,      0, MENU_ID_SOUND    },
-    { ITT_SETMENU, "CONTROL SETTINGS",    NULL,      0, MENU_ID_CONTROLS },
-    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,      0, MENU_ID_WIDGETS  },
-    { ITT_SETMENU, "GAMEPLAY FEATURES",   NULL,      0, MENU_ID_GAMEPLAY_1 },
-    { ITT_SETMENU, "LEVEL SELECT",        NULL,      0, MENU_ID_GAMEPLAY_1 },
-    { ITT_EFUNC,   "END GAME",            SCEndGame, 0, MENU_ID_GAMEPLAY_1 },
-    { ITT_SETMENU, "RESET SETTINGS",      NULL,      0, MENU_ID_GAMEPLAY_1 },
+    { ITT_SETMENU, "VIDEO OPTIONS",       NULL,      0, MENU_ID_VIDEO     },
+    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,      0, MENU_ID_DISPLAY   },
+    { ITT_SETMENU, "SOUND OPTIONS",       NULL,      0, MENU_ID_SOUND     },
+    { ITT_SETMENU, "CONTROL SETTINGS",    NULL,      0, MENU_ID_CONTROLS  },
+    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,      0, MENU_ID_WIDGETS   },
+    { ITT_SETMENU, "GAMEPLAY FEATURES",   NULL,      0, MENU_ID_GAMEPLAY1 },
+    { ITT_SETMENU, "LEVEL SELECT",        NULL,      0, MENU_ID_LEVEL1  },
+    { ITT_EFUNC,   "END GAME",            SCEndGame, 0, MENU_NONE         },
+    { ITT_SETMENU, "RESET SETTINGS",      NULL,      0, MENU_NONE         },
 };
 
 static Menu_t ID_Def_Main = {
@@ -2746,12 +2744,6 @@ static boolean M_ID_Widget_Coords (int option)
     return true;
 }
 
-static boolean CRL_Widget_Playstate (int option)
-{
-    //crl_widget_playstate = M_INT_Slider(crl_widget_playstate, 0, 2, option);
-    return true;
-}
-
 static boolean M_ID_Widget_Render (int option)
 {
     //M_ID_Widget_Render = M_INT_Slider(M_ID_Widget_Render, 0, 2, option);
@@ -2767,12 +2759,6 @@ static boolean M_ID_Widget_KIS (int option)
 static boolean M_ID_Widget_Time (int option)
 {
 //    M_ID_Widget_Time ^= 1;
-    return true;
-}
-
-static boolean CRL_Widget_Powerups (int option)
-{
-//    crl_widget_powerups ^= 1;
     return true;
 }
 
@@ -2804,8 +2790,8 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE          },
     { ITT_LRFUNC,  "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE          },
     { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE          },
-    { ITT_SETMENU, "", /*NEXT PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY_2 },
-    { ITT_SETMENU, "", /*< PREV PAGE*/            NULL,                 0, MENU_ID_GAMEPLAY_3 },
+    { ITT_SETMENU, "", /*NEXT PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY2 },
+    { ITT_SETMENU, "", /*< PREV PAGE*/            NULL,                 0, MENU_ID_GAMEPLAY3 },
 };
 
 static Menu_t ID_Def_Gameplay_1 = {
@@ -2983,19 +2969,19 @@ static boolean M_ID_CrosshairColor (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_2[] = {
-    { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "SHOW NEGATIVE HEALTH",        NULL,             0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
-    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      NULL,             0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
-    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", NULL,             0, MENU_NONE          },
-    { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     NULL,             0, MENU_NONE          },
-    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  NULL,             0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE          },
-    { ITT_SETMENU, "", /*LAST PAGE >*/            NULL,             0, MENU_ID_GAMEPLAY_3 },
-    { ITT_SETMENU, "", /*< FIRST PAGE*/           NULL,             0, MENU_ID_GAMEPLAY_1 },
+    { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar, 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW NEGATIVE HEALTH",        NULL,             0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
+    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      NULL,             0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
+    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", NULL,             0, MENU_NONE         },
+    { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     NULL,             0, MENU_NONE         },
+    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  NULL,             0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
+    { ITT_SETMENU, "", /*LAST PAGE >*/            NULL,             0, MENU_ID_GAMEPLAY3 },
+    { ITT_SETMENU, "", /*< FIRST PAGE*/           NULL,             0, MENU_ID_GAMEPLAY1 },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
@@ -3046,19 +3032,19 @@ static boolean M_ID_ColoredSBar (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_3[] = {
-    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,    0, MENU_NONE          },
-    { ITT_LRFUNC,  "REPORT REVEALED SECRETS",  NULL,                0, MENU_NONE          },
-    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY", NULL,                0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE          },
-    { ITT_LRFUNC,  "SHOW DEMO TIMER",          M_ID_DemoTimer,      0, MENU_NONE          },
-    { ITT_LRFUNC,  "TIMER DIRECTION",          M_ID_TimerDirection, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "SHOW PROGRESS BAR",        M_ID_ProgressBar,    0, MENU_NONE          },
-    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,  0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE          },
-    { ITT_LRFUNC,  "WAND START GAME MODE",     M_ID_PistolStart,    0, MENU_NONE          },
-    { ITT_LRFUNC,  "IMPROVED HIT DETECTION",   NULL,                0, MENU_NONE          },
-    { ITT_SETMENU, "", /*FIRST PAGE >*/        NULL,                0, MENU_ID_GAMEPLAY_1 },
-    { ITT_SETMENU, "", /*< PREV PAGE*/         NULL,                0, MENU_ID_GAMEPLAY_2 },
+    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "REPORT REVEALED SECRETS",  NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY", NULL,                0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW DEMO TIMER",          M_ID_DemoTimer,      0, MENU_NONE         },
+    { ITT_LRFUNC,  "TIMER DIRECTION",          M_ID_TimerDirection, 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW PROGRESS BAR",        M_ID_ProgressBar,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,  0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "WAND START GAME MODE",     M_ID_PistolStart,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "IMPROVED HIT DETECTION",   NULL,                0, MENU_NONE         },
+    { ITT_SETMENU, "", /*FIRST PAGE >*/        NULL,                0, MENU_ID_GAMEPLAY1 },
+    { ITT_SETMENU, "", /*< PREV PAGE*/         NULL,                0, MENU_ID_GAMEPLAY2 },
 };
 
 static Menu_t ID_Def_Gameplay_3 = {
@@ -3171,137 +3157,90 @@ static void M_ScrollGameplayPages (boolean direction)
 {
     if (CurrentMenu == &ID_Def_Gameplay_1)
     {
-        SetMenu(direction ? MENU_ID_GAMEPLAY_2 : MENU_ID_GAMEPLAY_3);
+        SetMenu(direction ? MENU_ID_GAMEPLAY2 : MENU_ID_GAMEPLAY3);
     }
     else 
     if (CurrentMenu == &ID_Def_Gameplay_2)
     {
-        SetMenu(direction ? MENU_ID_GAMEPLAY_3 : MENU_ID_GAMEPLAY_1);
+        SetMenu(direction ? MENU_ID_GAMEPLAY3 : MENU_ID_GAMEPLAY1);
     }
     else
     if (CurrentMenu == &ID_Def_Gameplay_3)
     {
-        SetMenu(direction ? MENU_ID_GAMEPLAY_1 : MENU_ID_GAMEPLAY_2);
+        SetMenu(direction ? MENU_ID_GAMEPLAY1 : MENU_ID_GAMEPLAY2);
     }
 
     S_StartSound(NULL, sfx_switch);
 }
 
 // -----------------------------------------------------------------------------
-// Static engine limits
+// Level select 1
 // -----------------------------------------------------------------------------
 
-static MenuItem_t CRLLimitsItems[] = {
-    {ITT_LRFUNC, "PREVENT Z[MALLOC ERRORS",    CRL_ZMalloc,         0, MENU_NONE},
-    {ITT_LRFUNC, "SAVE GAME LIMIT WARNING",    CRL_SaveSizeWarning, 0, MENU_NONE},
-    {ITT_LRFUNC, "DEMO LENGHT LIMIT WARNING",  CRL_DemoSizeWarning, 0, MENU_NONE},
-    {ITT_LRFUNC, "RENDER LIMITS LEVEL",        CRL_Limits,          0, MENU_NONE}
+static MenuItem_t ID_Menu_Level_1[] = {
+    { ITT_LRFUNC, "DUMMY", NULL, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,    NULL, 0, MENU_NONE },
 };
 
-static Menu_t CRLLimits = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
-    DrawCRLLimits,
-    4, CRLLimitsItems,
+static Menu_t ID_Def_Level_1 = {
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Level_1,
+    2, ID_Menu_Level_1,
     0,
     true,
     MENU_ID_MAIN
 };
 
-static void DrawCRLLimits (void)
+static void M_Draw_ID_Level_1 (void)
 {
-/*
-    static char str[32];
-
-    M_ShadeBackground();
-
-    MN_DrTextACentered("STATIC ENGINE LIMITS", 20, cr[CR_YELLOW]);
-
-    // TODO - remove
-
-    // Prevent Z_Malloc errors
-    sprintf(str, crl_prevent_zmalloc ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
-               M_Item_Glow(0, crl_prevent_zmalloc ? GLOW_GREEN : GLOW_RED));
-
-    // Save game limit warning
-    sprintf(str, vanilla_savegame_limit ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 40,
-               M_Item_Glow(1, vanilla_savegame_limit ? GLOW_GREEN : GLOW_RED));
-
-    // Demo lenght limit warning
-    sprintf(str, vanilla_demo_limit ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 50,
-               M_Item_Glow(2, vanilla_demo_limit ? GLOW_GREEN : GLOW_RED));
-
-    // TODO - remove
-    // Level of the limits
-    // sprintf(str, crl_vanilla_limits ? "VANILLA" : "HERETIC-PLUS");
-    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
-    //            M_Item_Glow(3, crl_vanilla_limits ? GLOW_RED : GLOW_GREEN));
-
-    MN_DrTextA("MAXVISPLANES", ID_MENU_LEFTOFFSET_SML + 16, 80, cr[CR_MENU_DARK2]);
-    MN_DrTextA("MAXDRAWSEGS", ID_MENU_LEFTOFFSET_SML + 16, 90, cr[CR_MENU_DARK2]);
-    MN_DrTextA("MAXVISSPRITES", ID_MENU_LEFTOFFSET_SML + 16, 100, cr[CR_MENU_DARK2]);
-    MN_DrTextA("MAXOPENINGS", ID_MENU_LEFTOFFSET_SML + 16, 110, cr[CR_MENU_DARK2]);
-    MN_DrTextA("MAXPLATS", ID_MENU_LEFTOFFSET_SML + 16, 120, cr[CR_MENU_DARK2]);
-    MN_DrTextA("MAXLINEANIMS", ID_MENU_LEFTOFFSET_SML + 16, 130, cr[CR_MENU_DARK2]);
-
-    if (crl_vanilla_limits)
-    {
-        MN_DrTextA("128", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("128"), 80, cr[CR_RED]);
-        MN_DrTextA("256", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("256"), 90, cr[CR_RED]);
-        MN_DrTextA("128", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("128"), 100, cr[CR_RED]);
-        MN_DrTextA("20480", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("20480"), 110, cr[CR_RED]);
-        MN_DrTextA("30", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("30"), 120, cr[CR_RED]);
-        MN_DrTextA("64", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("64"), 130, cr[CR_RED]);
-    }
-    else
-    {
-        MN_DrTextA("1024", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("1024"), 80, cr[CR_GREEN]);
-        MN_DrTextA("2048", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("2048"), 90, cr[CR_GREEN]);
-        MN_DrTextA("1024", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("1024"), 100, cr[CR_GREEN]);
-        MN_DrTextA("65536", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("65536"), 110, cr[CR_GREEN]);
-        MN_DrTextA("7680", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("7680"), 120, cr[CR_GREEN]);
-        MN_DrTextA("16384", ID_MENU_RIGHTOFFSET_SML - 16 - MN_TextAWidth("16384"), 130, cr[CR_GREEN]);
-    }
-
-*/
+    //
 }
 
-static boolean CRL_ZMalloc (int option)
+// -----------------------------------------------------------------------------
+// Level select 2
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Level_2[] = {
+    { ITT_LRFUNC, "DUMMY", NULL, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,    NULL, 0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Level_2 = {
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Level_2,
+    2, ID_Menu_Level_2,
+    0,
+    true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Level_2 (void)
 {
-    // TODO - remove
-    // crl_prevent_zmalloc ^= 1;
-    return true;
+    //
 }
 
-static boolean CRL_SaveSizeWarning (int option)
+// -----------------------------------------------------------------------------
+// Level select 3
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Level_3[] = {
+    { ITT_LRFUNC, "DUMMY", NULL, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,    NULL, 0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Level_3 = {
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Level_3,
+    2, ID_Menu_Level_3,
+    0,
+    true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Level_3 (void)
 {
-    // TODO - remove
-    //vanilla_savegame_limit ^= 1;
-    return true;
+    //
 }
-
-static boolean CRL_DemoSizeWarning (int option)
-{
-    // TODO - remove
-    // vanilla_demo_limit ^= 1;
-    return true;
-}
-
-static boolean CRL_Limits (int option)
-{
-    // TODO - remove
-    /*
-    crl_vanilla_limits ^= 1;
-
-    // [JN] CRL - re-define static engine limits.
-    // CRL_SetStaticLimits("HERETIC+");
-    */
-    return true;
-}
-
-
 
 static Menu_t *Menus[] = {
     &MainMenu,
@@ -3331,10 +3270,10 @@ static Menu_t *Menus[] = {
     &ID_Def_Gameplay_1,
     &ID_Def_Gameplay_2,
     &ID_Def_Gameplay_3,
-    &CRLLimits,
+    &ID_Def_Level_1,
+    &ID_Def_Level_2,
+    &ID_Def_Level_3,
 };
-
-
 
 //---------------------------------------------------------------------------
 //
