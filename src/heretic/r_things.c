@@ -596,6 +596,15 @@ void R_ProjectSprite (mobj_t* thing)
 	flip = (boolean)sprframe->flip[0];
     }
 
+    // [crispy] randomly flip corpse, blood and death animation sprites
+    if (vis_flip_corpses
+    && (thing->flags & MF_FLIPPABLE)
+    &&!(thing->flags & MF_SHOOTABLE)
+    && (thing->health & 1))
+    {
+	flip = !flip;
+    }
+
 //
 // calculate edges of the shape
 //

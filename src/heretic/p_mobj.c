@@ -1015,6 +1015,12 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
         mobj->flags2 &= ~MF2_FEETARECLIPPED;
     }
 
+    // [crispy] randomly flip corpse, blood and death animation sprites
+    if (mobj->flags & MF_FLIPPABLE && !(mobj->flags & MF_SHOOTABLE))
+    {
+        mobj->health = (mobj->health & (int)~1) - (ID_Random() & 1);
+    }
+
     // [AM] Do not interpolate on spawn.
     mobj->interp = false;
 

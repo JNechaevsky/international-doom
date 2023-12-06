@@ -2822,7 +2822,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_FLIPPABLE,      // flags
      0                          // flags2
      },
 
@@ -2877,7 +2877,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY|MF_FLIPPABLE,      // flags
      0                          // flags2
      },
 
@@ -2931,7 +2931,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW,  // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW | MF_FLIPPABLE,  // flags
      0                          // flags2
      },
 
@@ -2958,7 +2958,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW,  // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW | MF_FLIPPABLE,  // flags
      0                          // flags2
      },
 
@@ -3872,7 +3872,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP | MF_FLIPPABLE,             // flags
      0                          // flags2
      },
 
@@ -3926,7 +3926,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_PICKUP | MF_NOTDMATCH,   // flags
+     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_PICKUP | MF_NOTDMATCH | MF_FLIPPABLE,   // flags
      MF2_WINDTHRUST | MF2_FOOTCLIP | MF2_SLIDE | MF2_PASSMOBJ | MF2_TELESTOMP   // flags2
      },
 
@@ -4061,7 +4061,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      75,                        // mass
      0,                         // damage
      sfx_mumact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLIPPABLE,    // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ        // flags2
      },
 
@@ -4088,7 +4088,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      75,                        // mass
      0,                         // damage
      sfx_mumact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLIPPABLE,    // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ        // flags2
      },
 
@@ -4115,7 +4115,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      75,                        // mass
      0,                         // damage
      sfx_mumact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_SHADOW,        // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_SHADOW | MF_FLIPPABLE,        // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ        // flags2
      },
 
@@ -4142,7 +4142,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      75,                        // mass
      0,                         // damage
      sfx_mumact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_SHADOW,        // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_SHADOW | MF_FLIPPABLE,        // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ        // flags2
      },
 
@@ -4223,7 +4223,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      200,                       // mass
      0,                         // damage
      sfx_bstact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLIPPABLE,    // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ        // flags2
      },
 
@@ -4358,7 +4358,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_snkact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLIPPABLE,    // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ        // flags2
      },
 
@@ -4439,7 +4439,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      325,                       // mass
      0,                         // damage
      sfx_hedact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_NOBLOOD,       // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_NOBLOOD | MF_FLIPPABLE,       // flags
      MF2_PASSMOBJ               // flags2
      },
 
@@ -4574,7 +4574,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      75,                        // mass
      0,                         // damage
      sfx_clkact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_NOBLOOD,       // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_NOBLOOD | MF_FLIPPABLE,       // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ        // flags2
      },
 
@@ -4601,7 +4601,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_wizact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLOAT | MF_NOGRAVITY,  // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLOAT | MF_NOGRAVITY | MF_FLIPPABLE,  // flags
      MF2_PASSMOBJ               // flags2
      },
 
@@ -4655,7 +4655,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      50,                        // mass
      0,                         // damage
      sfx_impact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_FLOAT | MF_NOGRAVITY | MF_COUNTKILL,  // flags
+     MF_SOLID | MF_SHOOTABLE | MF_FLOAT | MF_NOGRAVITY | MF_COUNTKILL | MF_FLIPPABLE,  // flags
      MF2_SPAWNFLOAT | MF2_PASSMOBJ      // flags2
      },
 
@@ -4682,7 +4682,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      50,                        // mass
      0,                         // damage
      sfx_impact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_FLOAT | MF_NOGRAVITY | MF_COUNTKILL,  // flags
+     MF_SOLID | MF_SHOOTABLE | MF_FLOAT | MF_NOGRAVITY | MF_COUNTKILL | MF_FLIPPABLE,  // flags
      MF2_SPAWNFLOAT | MF2_PASSMOBJ      // flags2
      },
 
@@ -4709,7 +4709,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP | MF_FLIPPABLE,             // flags
      0                          // flags2
      },
 
@@ -4736,7 +4736,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP | MF_FLIPPABLE,             // flags
      0                          // flags2
      },
 
@@ -4790,7 +4790,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      150,                       // mass
      0,                         // damage
      sfx_kgtact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLIPPABLE,    // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ        // flags2
      },
 
@@ -4817,7 +4817,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      150,                       // mass
      0,                         // damage
      sfx_kgtact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_SHADOW,        // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_SHADOW | MF_FLIPPABLE,        // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ        // flags2
      },
 
@@ -4898,7 +4898,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      800,                       // mass
      0,                         // damage
      sfx_sbtact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLIPPABLE,    // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ | MF2_BOSS     // flags2
      },
 
@@ -5087,7 +5087,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      800,                       // mass
      7,                         // damage
      sfx_minact,                // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_DROPOFF,       // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_DROPOFF | MF_FLIPPABLE,       // flags
      MF2_FOOTCLIP | MF2_PASSMOBJ | MF2_BOSS     // flags2
      },
 
