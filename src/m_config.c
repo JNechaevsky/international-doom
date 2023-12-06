@@ -399,6 +399,11 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(mouseb_prevweapon),
     CONFIG_VARIABLE_INT(mouseb_nextweapon),
 
+    // Heretic: Inventory
+    CONFIG_VARIABLE_INT(mouseb_invleft),
+    CONFIG_VARIABLE_INT(mouseb_invright),
+    CONFIG_VARIABLE_INT(mouseb_useartifact),
+
     //
     // Joystick controls
     //

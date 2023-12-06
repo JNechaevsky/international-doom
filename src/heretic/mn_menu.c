@@ -521,6 +521,10 @@ static boolean M_Bind_M_StrafeLeft (int option);
 static boolean M_Bind_M_StrafeRight (int option);
 static boolean M_Bind_M_PrevWeapon (int option);
 static boolean M_Bind_M_NextWeapon (int option);
+static boolean M_Bind_M_InventoryLeft (int option);
+static boolean M_Bind_M_InventoryRight (int option);
+static boolean M_Bind_M_UseArtifact (int option);
+
 static boolean M_Bind_M_Reset (int option);
 
 static void M_Draw_ID_Widgets (void);
@@ -573,7 +577,7 @@ static void    M_ClearBind (int itemOn);
 static byte   *M_ColorizeBind (int itemSetOn, int key);
 static void    M_ResetBinds (void);
 static void    M_DrawBindKey (int itemNum, int yPos, int keyBind);
-static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
+static void    M_DrawBindFooter (char *pagenum, boolean drawPages, int y);
 static void    M_ScrollKeyBindPages (boolean direction);
 
 #define KBD_BIND_MENUS (CurrentMenu == &ID_Def_Keybinds_1 || CurrentMenu == &ID_Def_Keybinds_2 || \
@@ -1706,7 +1710,7 @@ static void M_Draw_ID_Keybinds_1 (void)
     M_DrawBindKey(10, 120, key_fire);
     M_DrawBindKey(11, 130, key_use);
 
-    M_DrawBindFooter("1", true);
+    M_DrawBindFooter("1", true, 150);
 }
 
 static boolean M_Bind_MoveForward (int option)
@@ -1824,7 +1828,7 @@ static void M_Draw_ID_Keybinds_2 (void)
     M_DrawBindKey(9, 110, key_invright);
     M_DrawBindKey(10, 120, key_useartifact);
 
-    M_DrawBindFooter("2", true);
+    M_DrawBindFooter("2", true, 150);
 }
 
 static boolean M_Bind_LookUp (int option)
@@ -1932,7 +1936,7 @@ static void M_Draw_ID_Keybinds_3 (void)
     M_DrawBindKey(10, 120, key_notarget);
     M_DrawBindKey(11, 130, key_buddha);
 
-    M_DrawBindFooter("3", true);
+    M_DrawBindFooter("3", true, 150);
 }
 
 static boolean M_Bind_AlwaysRun (int option)
@@ -2038,7 +2042,7 @@ static void M_Draw_ID_Keybinds_4 (void)
     M_DrawBindKey(8, 100, key_prevweapon);
     M_DrawBindKey(9, 110, key_nextweapon);
 
-    M_DrawBindFooter("4", true);
+    M_DrawBindFooter("4", true, 150);
 }
 
 static boolean M_Bind_Weapon1 (int option)
@@ -2144,7 +2148,7 @@ static void M_Draw_ID_Keybinds_5 (void)
     M_DrawBindKey(8, 100, key_arti_torch);
     M_DrawBindKey(9, 110, key_arti_morph);
 
-    M_DrawBindFooter("5", true);
+    M_DrawBindFooter("5", true, 150);
 }
 
 static boolean M_Bind_Quartz (int option)
@@ -2250,7 +2254,7 @@ static void M_Draw_ID_Keybinds_6 (void)
     M_DrawBindKey(8, 100, key_map_mark);
     M_DrawBindKey(9, 110, key_map_clearmark);
 
-    M_DrawBindFooter("6", true);
+    M_DrawBindFooter("6", true, 150);
 }
 
 static boolean M_Bind_ToggleMap (int option)
@@ -2358,7 +2362,7 @@ static void M_Draw_ID_Keybinds_7 (void)
     M_DrawBindKey(9, 110, key_menu_gamma);
     M_DrawBindKey(10, 120, key_spy);
 
-    M_DrawBindFooter("7", true);
+    M_DrawBindFooter("7", true, 150);
 }
 
 static boolean M_Bind_HelpScreen (int option)
@@ -2476,7 +2480,7 @@ static void M_Draw_ID_Keybinds_8 (void)
 
     MN_DrTextACentered("RESET", 120, cr[CR_YELLOW]);
 
-    M_DrawBindFooter("8", true);
+    M_DrawBindFooter("8", true, 150);
 }
 
 static boolean M_Bind_Pause (int option)
@@ -2546,23 +2550,26 @@ static boolean M_Bind_Reset (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_MouseBinds[] = {
-    {ITT_EFUNC, "FIRE/ATTACK",               M_Bind_M_FireAttack,   0, MENU_NONE},
-    {ITT_EFUNC, "MOVE FORWARD",              M_Bind_M_MoveForward,  0, MENU_NONE},
-    {ITT_EFUNC, "STRAFE ON",                 M_Bind_M_StrafeOn,     0, MENU_NONE},
-    {ITT_EFUNC, "MOVE BACKWARD",             M_Bind_M_MoveBackward, 0, MENU_NONE},
-    {ITT_EFUNC, "USE",                       M_Bind_M_Use,          0, MENU_NONE},
-    {ITT_EFUNC, "STRAFE LEFT",               M_Bind_M_StrafeLeft,   0, MENU_NONE},
-    {ITT_EFUNC, "STRAFE RIGHT",              M_Bind_M_StrafeRight,  0, MENU_NONE},
-    {ITT_EFUNC, "PREV WEAPON",               M_Bind_M_PrevWeapon,   0, MENU_NONE},
-    {ITT_EFUNC, "NEXT WEAPON",               M_Bind_M_NextWeapon,   0, MENU_NONE},
-    {ITT_EMPTY, NULL,                        NULL,                  0, MENU_NONE},
-    {ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset,        0, MENU_NONE},
+    { ITT_EFUNC, "FIRE/ATTACK",               M_Bind_M_FireAttack,     0, MENU_NONE },
+    { ITT_EFUNC, "MOVE FORWARD",              M_Bind_M_MoveForward,    0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE ON",                 M_Bind_M_StrafeOn,       0, MENU_NONE },
+    { ITT_EFUNC, "MOVE BACKWARD",             M_Bind_M_MoveBackward,   0, MENU_NONE },
+    { ITT_EFUNC, "USE",                       M_Bind_M_Use,            0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE LEFT",               M_Bind_M_StrafeLeft,     0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE RIGHT",              M_Bind_M_StrafeRight,    0, MENU_NONE },
+    { ITT_EFUNC, "PREV WEAPON",               M_Bind_M_PrevWeapon,     0, MENU_NONE },
+    { ITT_EFUNC, "NEXT WEAPON",               M_Bind_M_NextWeapon,     0, MENU_NONE },
+    { ITT_EFUNC, "INVENTORY LEFT",            M_Bind_M_InventoryLeft,  0, MENU_NONE },
+    { ITT_EFUNC, "INVENTORY RIGHT",           M_Bind_M_InventoryRight, 0, MENU_NONE },
+    { ITT_EFUNC, "USE ARTIFACT",              M_Bind_M_UseArtifact,    0, MENU_NONE },
+    { ITT_EMPTY, NULL,                        NULL,                    0, MENU_NONE },
+    { ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset,          0, MENU_NONE },
 };
 
 static Menu_t ID_Def_MouseBinds = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_MouseBinds,
-    11, ID_Menu_MouseBinds,
+    14, ID_Menu_MouseBinds,
     0,
     true,
     MENU_ID_CONTROLS
@@ -2570,6 +2577,7 @@ static Menu_t ID_Def_MouseBinds = {
 
 static void M_Draw_ID_MouseBinds (void)
 {
+    // TODO - background filling, not shading
     M_ShadeBackground();
 
     MN_DrTextACentered("MOUSE BINDINGS", 10, cr[CR_YELLOW]);
@@ -2583,10 +2591,13 @@ static void M_Draw_ID_MouseBinds (void)
     M_DrawBindButton(6, 80, mousebstraferight);
     M_DrawBindButton(7, 90, mousebprevweapon);
     M_DrawBindButton(8, 100, mousebnextweapon);
+    M_DrawBindButton(9, 110, mousebinvleft);
+    M_DrawBindButton(10, 120, mousebinvright);
+    M_DrawBindButton(11, 130, mousebuseartifact);
 
-    MN_DrTextACentered("RESET", 110, cr[CR_YELLOW]);
+    MN_DrTextACentered("RESET", 140, cr[CR_YELLOW]);
 
-    M_DrawBindFooter(NULL, false);
+    M_DrawBindFooter(NULL, false, 170);
 }
 
 static boolean M_Bind_M_FireAttack (int option)
@@ -2640,6 +2651,24 @@ static boolean M_Bind_M_PrevWeapon (int option)
 static boolean M_Bind_M_NextWeapon (int option)
 {
     M_StartMouseBind(1008);  // mousebnextweapon
+    return true;
+}
+
+static boolean M_Bind_M_InventoryLeft (int option)
+{
+    M_StartMouseBind(1009);  // mousebinvleft
+    return true;
+}
+
+static boolean M_Bind_M_InventoryRight (int option)
+{
+    M_StartMouseBind(1010);  // mousebinvright
+    return true;
+}
+
+static boolean M_Bind_M_UseArtifact (int option)
+{
+    M_StartMouseBind(1011);  // mousebuseartifact
     return true;
 }
 
@@ -4360,13 +4389,14 @@ boolean MN_Responder(event_t * event)
             }
 
             // [crispy] scroll menus with mouse wheel
-            if (mousebprevweapon >= 0 && event->data1 & (1 << mousebprevweapon))
+            // [JN] Buttons hardcoded to wheel so we won't mix it up with inventory scrolling.
+            if (/*mousebprevweapon >= 0 &&*/ event->data1 & (1 << 4/*mousebprevweapon*/))
             {
                 key = key_menu_down;
                 mousewait = I_GetTime() + 1;
             }
             else
-            if (mousebnextweapon >= 0 && event->data1 & (1 << mousebnextweapon))
+            if (/*mousebnextweapon >= 0 &&*/ event->data1 & (1 << 3/*mousebnextweapon*/))
             {
                 key = key_menu_up;
                 mousewait = I_GetTime() + 1;
@@ -5739,15 +5769,15 @@ static void M_DrawBindKey (int itemNum, int yPos, int keyBind)
 //  [JN] Draw footer in key binding pages with numeration.
 // -----------------------------------------------------------------------------
 
-static void M_DrawBindFooter (char *pagenum, boolean drawPages)
+static void M_DrawBindFooter (char *pagenum, boolean drawPages, int y)
 {
-    MN_DrTextACentered("PRESS ENTER TO BIND, DEL TO CLEAR", 140, cr[CR_GRAY]);
+    MN_DrTextACentered("PRESS ENTER TO BIND, DEL TO CLEAR", y, cr[CR_GRAY]);
     
     if (drawPages)
     {
-        MN_DrTextA("PGUP", ID_MENU_LEFTOFFSET, 150, cr[CR_GRAY]);
-        MN_DrTextACentered(M_StringJoin("PAGE ", pagenum, "/8", NULL), 150, cr[CR_GRAY]);
-        MN_DrTextA("PGDN", ID_MENU_RIGHTOFFSET - MN_TextAWidth("PGDN"), 150, cr[CR_GRAY]);
+        MN_DrTextA("PGUP", ID_MENU_LEFTOFFSET, y + 10, cr[CR_GRAY]);
+        MN_DrTextACentered(M_StringJoin("PAGE ", pagenum, "/8", NULL), y + 10, cr[CR_GRAY]);
+        MN_DrTextA("PGDN", ID_MENU_RIGHTOFFSET - MN_TextAWidth("PGDN"), y + 10, cr[CR_GRAY]);
     }
 }
 
@@ -5870,6 +5900,9 @@ static void M_CheckMouseBind (int btn)
     if (mousebstraferight == btn) mousebstraferight = -1;
     if (mousebprevweapon == btn)  mousebprevweapon  = -1;
     if (mousebnextweapon == btn)  mousebnextweapon  = -1;
+    if (mousebinvleft == btn)     mousebinvleft     = -1;
+    if (mousebinvright == btn)    mousebinvright    = -1;
+    if (mousebuseartifact == btn) mousebuseartifact = -1;
 }
 
 // -----------------------------------------------------------------------------
@@ -5891,6 +5924,9 @@ static void M_DoMouseBind (int btnnum, int btn)
         case 1006:  mousebstraferight = btn;  break;
         case 1007:  mousebprevweapon = btn;   break;
         case 1008:  mousebnextweapon = btn;   break;
+        case 1009:  mousebinvleft = btn;      break;
+        case 1010:  mousebinvright = btn;     break;
+        case 1011:  mousebuseartifact = btn;  break;
         default:                              break;
     }
 }
@@ -5904,15 +5940,18 @@ static void M_ClearMouseBind (int itemOn)
 {
     switch (itemOn)
     {
-        case 0:  mousebfire = -1;         break;
-        case 1:  mousebforward = -1;      break;
-        case 2:  mousebstrafe = -1;       break;
-        case 3:  mousebbackward = -1;     break;
-        case 4:  mousebuse = -1;          break;
-        case 5:  mousebstrafeleft = -1;   break;
-        case 6:  mousebstraferight = -1;  break;
-        case 7:  mousebprevweapon = -1;   break;
-        case 8:  mousebnextweapon = -1;   break;
+        case 0:   mousebfire = -1;         break;
+        case 1:   mousebforward = -1;      break;
+        case 2:   mousebstrafe = -1;       break;
+        case 3:   mousebbackward = -1;     break;
+        case 4:   mousebuse = -1;          break;
+        case 5:   mousebstrafeleft = -1;   break;
+        case 6:   mousebstraferight = -1;  break;
+        case 7:   mousebprevweapon = -1;   break;
+        case 8:   mousebnextweapon = -1;   break;
+        case 9:   mousebinvleft = -1;      break;
+        case 10:  mousebinvright = -1;     break;
+        case 11:  mousebuseartifact = -1;  break;
     }
 }
 
@@ -5979,4 +6018,7 @@ static void M_ResetMouseBinds (void)
     mousebstraferight = -1;
     mousebprevweapon = 4;
     mousebnextweapon = 3;
+    mousebinvleft = -1;
+    mousebinvright = -1;
+    mousebuseartifact = -1;
 }

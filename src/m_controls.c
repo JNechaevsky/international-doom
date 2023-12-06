@@ -174,6 +174,11 @@ int mousebstraferight = -1;
 int mousebprevweapon  = 4;
 int mousebnextweapon  = 3;
 
+// Heretic: Inventory
+int mousebinvleft = -1;
+int mousebinvright = -1;
+int mousebuseartifact = -1;
+
 // Control whether if a mouse button is double clicked,
 // it acts like "use" has been pressed.
 
@@ -353,11 +358,6 @@ void M_BindHereticControls (void)
     M_BindIntVariable("key_invright",       &key_invright);
     M_BindIntVariable("key_useartifact",    &key_useartifact);
 
-    // TODO
-    // M_BindIntVariable("mouseb_invleft",     &mousebinvleft);
-    // M_BindIntVariable("mouseb_invright",    &mousebinvright);
-    // M_BindIntVariable("mouseb_useartifact", &mousebuseartifact);
-
     M_BindIntVariable("key_arti_quartz",        &key_arti_quartz);
     M_BindIntVariable("key_arti_urn",           &key_arti_urn);
     M_BindIntVariable("key_arti_bomb",          &key_arti_bomb);
@@ -368,6 +368,10 @@ void M_BindHereticControls (void)
     M_BindIntVariable("key_arti_wings",         &key_arti_wings);
     M_BindIntVariable("key_arti_torch",         &key_arti_torch);
     M_BindIntVariable("key_arti_morph",         &key_arti_morph);
+
+    M_BindIntVariable("mouseb_invleft",     &mousebinvleft);
+    M_BindIntVariable("mouseb_invright",    &mousebinvright);
+    M_BindIntVariable("mouseb_useartifact", &mousebuseartifact);
 }
 
 void M_BindChatControls (unsigned int num_players)
