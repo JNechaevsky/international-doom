@@ -491,12 +491,6 @@ static void ShadeChain(void)
 {
     int i;
 
-    // [JN] Return early while active hook.
-    if (post_rendering_hook)
-    {
-        return;
-    }
-
     for (i = 0; i < 16; i++)
     {
         ShadeLine(277 + i, 190, 10, i / 2);

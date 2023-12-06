@@ -167,6 +167,15 @@ void D_Display(void)
         return;
     }
 
+    // [crispy] post-rendering function pointer to apply config changes
+    // that affect rendering and that are better applied after the current
+    // frame has finished rendering
+    if (post_rendering_hook)
+    {
+        post_rendering_hook();
+        post_rendering_hook = NULL;
+    }
+
     // Change the view size if needed
     if (setsizeneeded)
     {
@@ -268,15 +277,6 @@ void D_Display(void)
 
     // Send out any new accumulation
     NetUpdate();
-
-    // [crispy] post-rendering function pointer to apply config changes
-    // that affect rendering and that are better applied after the current
-    // frame has finished rendering
-    if (post_rendering_hook)
-    {
-        post_rendering_hook();
-        post_rendering_hook = NULL;
-    }
 
     // Flush buffered stuff to screen
     I_FinishUpdate();
