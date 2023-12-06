@@ -270,9 +270,10 @@ enum
 #define	MF_NOTDMATCH	0x2000000 // don't spawn in death match (key cards)
 
 #define	MF_TRANSLATION	0xc000000 // if 0x4 0x8 or 0xc, use a translation
-#define MF_EXTRATRANS   0x18000000 // [JN] Extra translucecy
-#define MF_FLIPPABLE    0x30000000 // [crispy] randomly flip corpse, blood and death animation sprites
 #define	MF_TRANSSHIFT	26      // table for player colormaps
+
+#define MF_EXTRATRANS   67108864  // [JN] Extra translucecy
+#define MF_FLIPPABLE    134217728 // [crispy] randomly flip corpse, blood and death animation sprites
 
 // --- mobj.flags2 ---
 
