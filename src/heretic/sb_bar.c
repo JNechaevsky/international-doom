@@ -491,6 +491,12 @@ static void ShadeChain(void)
 {
     int i;
 
+    // [JN] Return early while active hook.
+    if (post_rendering_hook)
+    {
+        return;
+    }
+
     for (i = 0; i < 16; i++)
     {
         ShadeLine(277 + i, 190, 10, i / 2);
@@ -668,12 +674,6 @@ void SB_Drawer(void)
     int frame;
     static boolean hitCenterFrame;
     int spinfly_x, spinbook_x; // [crispy]
-
-    // [JN] Return early while active hook.
-    if (post_rendering_hook)
-    {
-        return;
-    }
 
     // Sound info debug stuff
     if (DebugSound == true)
