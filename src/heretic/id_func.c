@@ -343,7 +343,7 @@ void ID_DrawTargetsHealth (void)
 
     if (widget_health == 1)  // Top
     {
-        MN_DrTextACentered(str, 20, ID_HealthColor(player->targetsheath,
+        MN_DrTextACentered(str, 10, ID_HealthColor(player->targetsheath,
                                                    player->targetsmaxheath));
     }
     else
