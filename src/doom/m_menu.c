@@ -816,23 +816,10 @@ static void M_ShadeBackground (void)
 
 static void M_FillBackground (void)
 {
-    int x, y;
     const byte *src = W_CacheLumpName("FLOOR4_8", PU_CACHE);
     pixel_t *dest = I_VideoBuffer;
 
-    for (y = 0 ; y < SCREENHEIGHT; y++)
-    {
-        for (x = 0; x < SCREENWIDTH; x++)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *dest++ = src[(((y >> vid_hires) & 63) << 6) 
-                         + ((x >> vid_hires) & 63)];
-#else
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
-                                   + ((x >> vid_hires) & 63)]];
-#endif
-        }
-    }
+    V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 }
 
 enum

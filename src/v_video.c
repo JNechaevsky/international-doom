@@ -702,32 +702,6 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
     }
 }
 
-// -----------------------------------------------------------------------------
-// [JN] V_FillFlat
-// Fill background with given flat, independent from rendering resolution.
-// -----------------------------------------------------------------------------
-
-void V_FillFlat (const char *lump)
-{
-    int x, y;
-    byte    *src = W_CacheLumpName(DEH_String(lump), PU_CACHE);
-    pixel_t *dest = I_VideoBuffer;
-
-    for (y = 0; y < SCREENHEIGHT; y++)
-    {
-        for (x = 0; x < SCREENWIDTH; x++)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *dest++ = src[(((y >> vid_hires) & 63) << 6) 
-                         + ((x >> vid_hires) & 63)];
-#else
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
-                               + ((x >> vid_hires) & 63)]];
-#endif
-        }
-    }
-}
-
 //
 // V_DrawBlock
 // Draw a linear block of pixels into the view buffer.
@@ -959,6 +933,28 @@ void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest)
             *dest++ = src[width * y + x];
 #else
             *dest++ = colormaps[src[width * y + x]];
+#endif
+        }
+    }
+}
+
+// [crispy] Unified function of flat filling. Used for intermission
+// and finale screens, view border and status bar's wide screen mode.
+void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
+                const byte *src, pixel_t *dest)
+{
+    int x, y;
+
+    for (y = y_start; y < y_stop; y++)
+    {
+        for (x = x_start; x < x_stop; x++)
+        {
+#ifndef CRISPY_TRUECOLOR
+            *dest++ = src[(((y >> vid_hires) & 63) * 64)
+                         + ((x >> vid_hires) & 63)];
+#else
+            *dest++ = colormaps[src[(((y >> vid_hires) & 63) * 64)
+                                   + ((x >> vid_hires) & 63)]];
 #endif
         }
     }

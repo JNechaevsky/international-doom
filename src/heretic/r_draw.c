@@ -495,27 +495,9 @@ void R_DrawViewBorder(void)
     }
     dest = I_VideoBuffer;
 
-    for (y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++)
-    {
-#ifndef CRISPY_TRUECOLOR
-        for (x = 0; x < SCREENWIDTH / 64; x++)
-        {
-            memcpy(dest, src + ((y & 63) << 6), 64);
-            dest += 64;
-        }
-        if (SCREENWIDTH & 63)
-        {
-            memcpy(dest, src + ((y & 63) << 6), SCREENWIDTH & 63);
-            dest += (SCREENWIDTH & 63);
-        }
-#else
-        for (x = 0; x < SCREENWIDTH; x++)
-        {
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6)
-                                   + ((x >> vid_hires) & 63)]];
-        }
-#endif
-    }
+    // [crispy] use unified flat filling function
+    V_FillFlat(0, SCREENHEIGHT - SBARHEIGHT, 0, SCREENWIDTH, src, dest);
+
     for (x = (viewwindowx >> vid_hires); x < (viewwindowx + viewwidth) >> vid_hires; x += 16)
     {
         V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy >> vid_hires) - 4,
@@ -559,7 +541,6 @@ void R_DrawTopBorder(void)
 {
     byte *src;
     pixel_t *dest;
-    int x, y;
 
     if (scaledviewwidth == SCREENWIDTH)
         return;
@@ -574,29 +555,13 @@ void R_DrawTopBorder(void)
     }
     dest = I_VideoBuffer;
 
-    for (y = 0; y < (30 << vid_hires); y++)
-    {
-#ifndef CRISPY_TRUECOLOR
-        for (x = 0; x < SCREENWIDTH / 64; x++)
-        {
-            memcpy(dest, src + ((y & 63) << 6), 64);
-            dest += 64;
-        }
-        if (SCREENWIDTH & 63)
-        {
-            memcpy(dest, src + ((y & 63) << 6), SCREENWIDTH & 63);
-            dest += (SCREENWIDTH & 63);
-        }
-#else
-        for (x = 0; x < SCREENWIDTH; x++)
-        {
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6)
-                                   + ((x >> vid_hires) & 63)]];
-        }
-#endif
-    }
+    // [crispy] use unified flat filling function
+    V_FillFlat(0, 30 << vid_hires, 0, SCREENWIDTH, src, dest);
+
     if ((viewwindowy >> vid_hires) < 25)
     {
+        int x;
+
         for (x = (viewwindowx >> vid_hires); x < (viewwindowx + viewwidth) >> vid_hires; x += 16)
         {
             V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy >> vid_hires) - 4,

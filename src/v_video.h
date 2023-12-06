@@ -62,7 +62,6 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch);
 void V_DrawPatchFullScreen(patch_t *patch, boolean flipped);
 void V_DrawPatchFlipped(int x, int y, patch_t *patch);
 void V_DrawTLPatch(int x, int y, patch_t *patch);
-void V_FillFlat (const char *lump);
 
 // Draw a linear block of pixels into the view buffer.
 
@@ -84,6 +83,8 @@ void V_DrawRawScreen(byte *raw);
 
 void V_DrawFullscreenRawOrPatch(lumpindex_t index); // [crispy]
 void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest);
+void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
+                const byte *src, pixel_t *dest);    // [crispy]
 void V_UseBuffer(pixel_t *buffer);
 
 // Return to using the normal screen buffer to draw graphics.

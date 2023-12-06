@@ -619,6 +619,14 @@ static void M_ShadeBackground (void)
     }
 }
 
+static void M_FillBackground (void)
+{
+    const byte *src = W_CacheLumpName("FLOOR16", PU_CACHE);
+    pixel_t *dest = I_VideoBuffer;
+
+    V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
+}
+
 static byte *M_Line_Glow (const int tics)
 {
     return
@@ -1691,7 +1699,7 @@ static Menu_t ID_Def_Keybinds_1 = {
 
 static void M_Draw_ID_Keybinds_1 (void)
 {
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("MOVEMENT", 10, cr[CR_YELLOW]);
 
@@ -1808,7 +1816,7 @@ static Menu_t ID_Def_Keybinds_2 = {
 
 static void M_Draw_ID_Keybinds_2 (void)
 {
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("VIEW", 10, cr[CR_YELLOW]);
 
@@ -1915,7 +1923,7 @@ static Menu_t ID_Def_Keybinds_3 = {
 
 static void M_Draw_ID_Keybinds_3 (void)
 {
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("ADVANCED MOVEMENT", 10, cr[CR_YELLOW]);
 
@@ -2027,7 +2035,7 @@ static Menu_t ID_Def_Keybinds_4 = {
 
 static void M_Draw_ID_Keybinds_4 (void)
 {
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("WEAPONS", 10, cr[CR_YELLOW]);
 
@@ -2133,7 +2141,7 @@ static Menu_t ID_Def_Keybinds_5 = {
 
 static void M_Draw_ID_Keybinds_5 (void)
 {
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("ARTIFACTS", 10, cr[CR_YELLOW]);
 
@@ -2239,7 +2247,7 @@ static Menu_t ID_Def_Keybinds_6 = {
 
 static void M_Draw_ID_Keybinds_6 (void)
 {
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("AUTOMAP", 10, cr[CR_YELLOW]);
 
@@ -2346,7 +2354,7 @@ static Menu_t ID_Def_Keybinds_7 = {
 
 static void M_Draw_ID_Keybinds_7 (void)
 {
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("FUNCTION KEYS", 10, cr[CR_YELLOW]);
 
@@ -2461,7 +2469,7 @@ static Menu_t ID_Def_Keybinds_8 = {
 
 static void M_Draw_ID_Keybinds_8 (void)
 {
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("SHORTCUT KEYS", 10, cr[CR_YELLOW]);
 
@@ -2577,8 +2585,7 @@ static Menu_t ID_Def_MouseBinds = {
 
 static void M_Draw_ID_MouseBinds (void)
 {
-    // TODO - background filling, not shading
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("MOUSE BINDINGS", 10, cr[CR_YELLOW]);
 

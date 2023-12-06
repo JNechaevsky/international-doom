@@ -1312,7 +1312,6 @@ void ST_Drawer (void)
         // fill the entire background of st_backing_screen with the bezel pattern,
         // so it appears to the left and right of the status bar in widescreen mode
         {
-            int x, y;
             byte *src;
             pixel_t *dest;
             const char *name = (gamemode == commercial) ? DEH_String("GRNROCK") : DEH_String("FLOOR7_2");
@@ -1320,23 +1319,13 @@ void ST_Drawer (void)
             src = W_CacheLumpName(name, PU_CACHE);
             dest = st_backing_screen;
 
-            for (y = SCREENHEIGHT-(ST_HEIGHT<<vid_hires); y < SCREENHEIGHT; y++)
-            {
-                for (x = 0; x < SCREENWIDTH; x++)
-                {
-#ifndef CRISPY_TRUECOLOR
-                    *dest++ = src[(((y >> vid_hires) & 63) << 6) 
-                                 + ((x >> vid_hires) & 63)];
-#else
-                    *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
-                                           + ((x >> vid_hires) & 63)]];
-#endif
-                }
-            }
+            // [crispy] use unified flat filling function
+            V_FillFlat(SCREENHEIGHT-(ST_HEIGHT<<vid_hires), SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 
             // [crispy] preserve bezel bottom edge
             if (scaledviewwidth == SCREENWIDTH)
             {
+                int x;
                 patch_t *patch = W_CacheLumpName(DEH_String("brdr_b"), PU_CACHE);
 
                 for (x = 0 ; x < WIDESCREENDELTA ; x += 8)

@@ -621,7 +621,6 @@ static void RefreshBackground()
 
     if ((SCREENWIDTH >> vid_hires) != ORIGWIDTH)
     {
-        int x, y;
         byte *src;
         pixel_t *dest;
         const char *name = (gamemode == shareware) ?
@@ -631,24 +630,12 @@ static void RefreshBackground()
         src = W_CacheLumpName(name, PU_CACHE);
         dest = st_backing_screen;
 
-        for (y = SCREENHEIGHT - (42 << vid_hires); y < SCREENHEIGHT; y++)
-        {
-            for (x = 0; x < SCREENWIDTH; x++)
-            {
-#ifndef CRISPY_TRUECOLOR
-                //*dest++ = src[((y & 63) << 6) + (x & 63)];
-                *dest++ = src[(((y >> vid_hires) & 63) << 6) 
-                             + ((x >> vid_hires) & 63)];
-#else
-                *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
-                                       + ((x >> vid_hires) & 63)]];
-#endif
-            }
-        }
+        V_FillFlat(SCREENHEIGHT - (42 << vid_hires), SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 
         // [crispy] preserve bezel bottom edge
         if (scaledviewwidth == SCREENWIDTH)
         {
+            int x;
             patch_t *const patch = W_CacheLumpName("bordb", PU_CACHE);
 
             for (x = 0; x < WIDESCREENDELTA; x += 16)
