@@ -201,4 +201,5 @@ extern int joybautomap;
 
 
 extern void M_BindControls (void);
+extern void M_BindHereticControls (void);
 extern void M_BindChatControls (unsigned int num_players);

@@ -760,6 +760,7 @@ void D_BindVariables(void)
     I_BindSoundVariables();
 
     M_BindControls();
+    M_BindHereticControls();
     M_BindChatControls(MAXPLAYERS);
 
     key_multi_msgplayer[0] = CT_KEY_GREEN;

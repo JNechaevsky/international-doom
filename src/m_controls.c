@@ -339,6 +339,37 @@ void M_BindControls (void)
     M_BindIntVariable("joyb_toggle_automap",    &joybautomap);
 }
 
+void M_BindHereticControls (void)
+{
+    M_BindIntVariable("key_lookup",         &key_lookup);
+    M_BindIntVariable("key_lookdown",       &key_lookdown);
+    M_BindIntVariable("key_lookcenter",     &key_lookcenter);
+
+    M_BindIntVariable("key_flyup",          &key_flyup);
+    M_BindIntVariable("key_flydown",        &key_flydown);
+    M_BindIntVariable("key_flycenter",      &key_flycenter);
+
+    M_BindIntVariable("key_invleft",        &key_invleft);
+    M_BindIntVariable("key_invright",       &key_invright);
+    M_BindIntVariable("key_useartifact",    &key_useartifact);
+
+    // TODO
+    // M_BindIntVariable("mouseb_invleft",     &mousebinvleft);
+    // M_BindIntVariable("mouseb_invright",    &mousebinvright);
+    // M_BindIntVariable("mouseb_useartifact", &mousebuseartifact);
+
+    M_BindIntVariable("key_arti_quartz",        &key_arti_quartz);
+    M_BindIntVariable("key_arti_urn",           &key_arti_urn);
+    M_BindIntVariable("key_arti_bomb",          &key_arti_bomb);
+    M_BindIntVariable("key_arti_tome",          &key_arti_tome);
+    M_BindIntVariable("key_arti_ring",          &key_arti_ring);
+    M_BindIntVariable("key_arti_chaosdevice",   &key_arti_chaosdevice);
+    M_BindIntVariable("key_arti_shadowsphere",  &key_arti_shadowsphere);
+    M_BindIntVariable("key_arti_wings",         &key_arti_wings);
+    M_BindIntVariable("key_arti_torch",         &key_arti_torch);
+    M_BindIntVariable("key_arti_morph",         &key_arti_morph);
+}
+
 void M_BindChatControls (unsigned int num_players)
 {
     char name[32];  // haleyjd: 20 not large enough - Thank you, come again!
