@@ -577,7 +577,7 @@ static void    M_ClearBind (int itemOn);
 static byte   *M_ColorizeBind (int itemSetOn, int key);
 static void    M_ResetBinds (void);
 static void    M_DrawBindKey (int itemNum, int yPos, int keyBind);
-static void    M_DrawBindFooter (char *pagenum, boolean drawPages, int y);
+static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
 static void    M_ScrollKeyBindPages (boolean direction);
 
 #define KBD_BIND_MENUS (CurrentMenu == &ID_Def_Keybinds_1 || CurrentMenu == &ID_Def_Keybinds_2 || \
@@ -1718,7 +1718,7 @@ static void M_Draw_ID_Keybinds_1 (void)
     M_DrawBindKey(10, 120, key_fire);
     M_DrawBindKey(11, 130, key_use);
 
-    M_DrawBindFooter("1", true, 150);
+    M_DrawBindFooter("1", true);
 }
 
 static boolean M_Bind_MoveForward (int option)
@@ -1836,7 +1836,7 @@ static void M_Draw_ID_Keybinds_2 (void)
     M_DrawBindKey(9, 110, key_invright);
     M_DrawBindKey(10, 120, key_useartifact);
 
-    M_DrawBindFooter("2", true, 150);
+    M_DrawBindFooter("2", true);
 }
 
 static boolean M_Bind_LookUp (int option)
@@ -1944,7 +1944,7 @@ static void M_Draw_ID_Keybinds_3 (void)
     M_DrawBindKey(10, 120, key_notarget);
     M_DrawBindKey(11, 130, key_buddha);
 
-    M_DrawBindFooter("3", true, 150);
+    M_DrawBindFooter("3", true);
 }
 
 static boolean M_Bind_AlwaysRun (int option)
@@ -2050,7 +2050,7 @@ static void M_Draw_ID_Keybinds_4 (void)
     M_DrawBindKey(8, 100, key_prevweapon);
     M_DrawBindKey(9, 110, key_nextweapon);
 
-    M_DrawBindFooter("4", true, 150);
+    M_DrawBindFooter("4", true);
 }
 
 static boolean M_Bind_Weapon1 (int option)
@@ -2156,7 +2156,7 @@ static void M_Draw_ID_Keybinds_5 (void)
     M_DrawBindKey(8, 100, key_arti_torch);
     M_DrawBindKey(9, 110, key_arti_morph);
 
-    M_DrawBindFooter("5", true, 150);
+    M_DrawBindFooter("5", true);
 }
 
 static boolean M_Bind_Quartz (int option)
@@ -2262,7 +2262,7 @@ static void M_Draw_ID_Keybinds_6 (void)
     M_DrawBindKey(8, 100, key_map_mark);
     M_DrawBindKey(9, 110, key_map_clearmark);
 
-    M_DrawBindFooter("6", true, 150);
+    M_DrawBindFooter("6", true);
 }
 
 static boolean M_Bind_ToggleMap (int option)
@@ -2370,7 +2370,7 @@ static void M_Draw_ID_Keybinds_7 (void)
     M_DrawBindKey(9, 110, key_menu_gamma);
     M_DrawBindKey(10, 120, key_spy);
 
-    M_DrawBindFooter("7", true, 150);
+    M_DrawBindFooter("7", true);
 }
 
 static boolean M_Bind_HelpScreen (int option)
@@ -2488,7 +2488,7 @@ static void M_Draw_ID_Keybinds_8 (void)
 
     MN_DrTextACentered("RESET", 120, cr[CR_YELLOW]);
 
-    M_DrawBindFooter("8", true, 150);
+    M_DrawBindFooter("8", true);
 }
 
 static boolean M_Bind_Pause (int option)
@@ -2604,7 +2604,7 @@ static void M_Draw_ID_MouseBinds (void)
 
     MN_DrTextACentered("RESET", 140, cr[CR_YELLOW]);
 
-    M_DrawBindFooter(NULL, false, 170);
+    M_DrawBindFooter(NULL, false);
 }
 
 static boolean M_Bind_M_FireAttack (int option)
@@ -5776,15 +5776,15 @@ static void M_DrawBindKey (int itemNum, int yPos, int keyBind)
 //  [JN] Draw footer in key binding pages with numeration.
 // -----------------------------------------------------------------------------
 
-static void M_DrawBindFooter (char *pagenum, boolean drawPages, int y)
+static void M_DrawBindFooter (char *pagenum, boolean drawPages)
 {
-    MN_DrTextACentered("PRESS ENTER TO BIND, DEL TO CLEAR", y, cr[CR_GRAY]);
+    MN_DrTextACentered("PRESS ENTER TO BIND, DEL TO CLEAR", 170, cr[CR_GRAY]);
     
     if (drawPages)
     {
-        MN_DrTextA("PGUP", ID_MENU_LEFTOFFSET, y + 10, cr[CR_GRAY]);
-        MN_DrTextACentered(M_StringJoin("PAGE ", pagenum, "/8", NULL), y + 10, cr[CR_GRAY]);
-        MN_DrTextA("PGDN", ID_MENU_RIGHTOFFSET - MN_TextAWidth("PGDN"), y + 10, cr[CR_GRAY]);
+        MN_DrTextA("PGUP", ID_MENU_LEFTOFFSET, 180, cr[CR_GRAY]);
+        MN_DrTextACentered(M_StringJoin("PAGE ", pagenum, "/8", NULL), 180, cr[CR_GRAY]);
+        MN_DrTextA("PGDN", ID_MENU_RIGHTOFFSET - MN_TextAWidth("PGDN"), 180, cr[CR_GRAY]);
     }
 }
 
