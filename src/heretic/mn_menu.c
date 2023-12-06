@@ -2691,6 +2691,14 @@ static void M_Draw_ID_Widgets (void)
     // MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
     //            M_Item_Glow(0, widget_coords ? GLOW_GREEN : GLOW_RED));
 
+    // Target's health
+    sprintf(str, widget_health == 1 ? "TOP" :
+                 widget_health == 2 ? "TOP+NAME" :
+                 widget_health == 3 ? "BOTTOM" :
+                 widget_health == 4 ? "BOTTOM+NAME" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
+               M_Item_Glow(6, widget_health ? GLOW_GREEN : GLOW_DARKRED));
+
     MN_DrTextACentered("AUTOMAP", 90, cr[CR_YELLOW]);
 
 
@@ -2723,16 +2731,6 @@ static void M_Draw_ID_Widgets (void)
     // sprintf(str, crl_widget_powerups ? "ON" : "OFF");
     // MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
     //            M_Item_Glow(5, crl_widget_powerups ? GLOW_GREEN : GLOW_RED));
-
-    // Target's health
-    sprintf(str, M_ID_Widget_Health == 1 ? "TOP" :
-                 M_ID_Widget_Health == 2 ? "TOP+NAME" :
-                 M_ID_Widget_Health == 3 ? "BOTTOM" :
-                 M_ID_Widget_Health == 4 ? "BOTTOM+NAME" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
-               M_Item_Glow(6, M_ID_Widget_Health ? GLOW_GREEN : GLOW_RED));
-
-
 
     // Mark secret sectors
     sprintf(str, M_ID_Automap_Secrets ? "ON" : "OFF");
