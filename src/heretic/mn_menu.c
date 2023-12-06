@@ -413,6 +413,7 @@ static boolean M_ID_Controls_Acceleration (int option);
 static boolean M_ID_Controls_Threshold (int option);
 static boolean M_ID_Controls_MLook (int option);
 static boolean M_ID_Controls_NoVert (int option);
+static boolean M_ID_Controls_InvertY (int option);
 
 static void M_Draw_ID_Keybinds_1 (void);
 static boolean M_Bind_MoveForward (int option);
@@ -1555,26 +1556,27 @@ static boolean M_ID_SFXChannels (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Controls[] = {
-    {ITT_SETMENU, "KEYBOARD BINDINGS",       NULL,                       0, MENU_ID_KBDBINDS1  },
-    {ITT_SETMENU, "MOUSE BINDINGS",          NULL,                       0, MENU_ID_MOUSEBINDS },
-    {ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    {ITT_LRFUNC,  "SENSIVITY",               SCMouseSensi,               0, MENU_NONE          },
-    {ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    {ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    {ITT_LRFUNC,  "ACCELERATION",            M_ID_Controls_Acceleration, 0, MENU_NONE          },
-    {ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    {ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    {ITT_LRFUNC,  "ACCELERATION THRESHOLD",  M_ID_Controls_Threshold,    0, MENU_NONE          },
-    {ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    {ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    {ITT_LRFUNC,  "MOUSE LOOK",              M_ID_Controls_MLook,        0, MENU_NONE          },
-    {ITT_LRFUNC,  "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,       0, MENU_NONE          },
+    { ITT_SETMENU, "KEYBOARD BINDINGS",       NULL,                       0, MENU_ID_KBDBINDS1  },
+    { ITT_SETMENU, "MOUSE BINDINGS",          NULL,                       0, MENU_ID_MOUSEBINDS },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC,  "SENSIVITY",               SCMouseSensi,               0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC,  "ACCELERATION",            M_ID_Controls_Acceleration, 0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC,  "ACCELERATION THRESHOLD",  M_ID_Controls_Threshold,    0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC,  "MOUSE LOOK",              M_ID_Controls_MLook,        0, MENU_NONE          },
+    { ITT_LRFUNC,  "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,       0, MENU_NONE          },
+    { ITT_LRFUNC,  "INVERT VERTICAL AXIS",    M_ID_Controls_InvertY,      0, MENU_NONE          },
 };
 
 static Menu_t ID_Def_Controls = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Controls,
-    14, ID_Menu_Controls,
+    15, ID_Menu_Controls,
     0,
     true,
     MENU_ID_MAIN
@@ -1584,7 +1586,7 @@ static void M_Draw_ID_Controls (void)
 {
     char str[32];
 
-    M_ShadeBackground();
+    M_FillBackground();
 
     MN_DrTextACentered("BINDINGS", 10, cr[CR_YELLOW]);
 
@@ -1612,6 +1614,11 @@ static void M_Draw_ID_Controls (void)
     sprintf(str, mouse_novert ? "OFF" : "ON");
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 150,
                M_Item_Glow(13, mouse_novert ? GLOW_RED : GLOW_GREEN));
+
+    // Invert vertical axis
+    sprintf(str, mouse_y_invert ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 160,
+               M_Item_Glow(14, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
 }
 
 static boolean M_ID_Controls_Acceleration (int option)
@@ -1666,6 +1673,12 @@ static boolean M_ID_Controls_MLook (int option)
 static boolean M_ID_Controls_NoVert (int option)
 {
     mouse_novert ^= 1;
+    return true;
+}
+
+static boolean M_ID_Controls_InvertY (int choice)
+{
+    mouse_y_invert ^= 1;
     return true;
 }
 
@@ -3644,8 +3657,8 @@ char *QuitEndMsg[] = {
     "ARE YOU SURE YOU WANT TO END THE GAME?",
     "DO YOU WANT TO QUICKSAVE THE GAME NAMED",
     "DO YOU WANT TO QUICKLOAD THE GAME NAMED",
-    "RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",  // [JN] typeofask 5 (reset keybinds)
-    "RESET MOUSE BINDINGS TO DEFAULT VALUES?",     // [JN] typeofask 6 (reset keybinds)
+    "RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",  // [JN] typeofask 5 (reset keyboard binds)
+    "RESET MOUSE BINDINGS TO DEFAULT VALUES?",     // [JN] typeofask 6 (reset mouse binds)
 };
 
 void MN_Drawer(void)
@@ -3662,6 +3675,14 @@ void MN_Drawer(void)
         if (askforquit)
         {
             message = DEH_String(QuitEndMsg[typeofask - 1]);
+
+            // [JN] Keep backgound filling while asking for 
+            // reset and inform about Y or N pressing.
+            if (typeofask == 5 || typeofask == 6)
+            {
+                M_FillBackground();
+                MN_DrTextACentered("PRESS Y OR N.", 100, NULL);
+            }
 
             MN_DrTextA(message, 160 - MN_TextAWidth(message) / 2, 80, NULL);
             if (typeofask == 3)
