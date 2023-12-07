@@ -555,6 +555,7 @@ static boolean M_ID_CrosshairColor (int choice);
 static void M_Draw_ID_Gameplay_2 (void);
 static boolean M_ID_ColoredSBar (int choice);
 static boolean M_ID_Torque (int choice);
+static boolean M_ID_WeaponAlignment (int choice);
 static boolean M_ID_Breathing (int choice);
 
 static void M_Draw_ID_Gameplay_3 (void);
@@ -3053,19 +3054,19 @@ static boolean M_ID_CrosshairColor (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_2[] = {
-    { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar, 0, MENU_NONE         },
-    { ITT_LRFUNC,  "SHOW NEGATIVE HEALTH",        NULL,             0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
-    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      NULL,             0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
-    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,      0, MENU_NONE         },
-    { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     NULL,             0, MENU_NONE         },
-    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,   0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,             0, MENU_NONE         },
-    { ITT_SETMENU, "", /*LAST PAGE >*/            NULL,             0, MENU_ID_GAMEPLAY3 },
-    { ITT_SETMENU, "", /*< FIRST PAGE*/           NULL,             0, MENU_ID_GAMEPLAY1 },
+    { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW NEGATIVE HEALTH",        NULL,                 0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      NULL,                 0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,          0, MENU_NONE         },
+    { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE         },
+    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_SETMENU, "", /*LAST PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY3 },
+    { ITT_SETMENU, "", /*< FIRST PAGE*/           NULL,                 0, MENU_ID_GAMEPLAY1 },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
@@ -3100,6 +3101,12 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 70,
                M_Item_Glow(5, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Weapon attack alignment
+    sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
+                 phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 80,
+               M_Item_Glow(6, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
+
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 90,
@@ -3124,6 +3131,13 @@ static boolean M_ID_ColoredSBar (int choice)
 static boolean M_ID_Torque (int choice)
 {
     phys_torque ^= 1;
+    return true;
+}
+
+static boolean M_ID_WeaponAlignment (int choice)
+{
+    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice);
+    pspr_interp = false;
     return true;
 }
 

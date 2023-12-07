@@ -513,6 +513,9 @@ typedef struct player_s
     // [AM] Previous position of viewz before think.
     //      Used to interpolate between camera positions.
     angle_t oldviewz;
+
+    // [crispy] squat down weapon sprite a bit after hitting the ground
+    fixed_t	psp_dy, psp_dy_max;
 } player_t;
 
 #define CF_NOCLIP		1

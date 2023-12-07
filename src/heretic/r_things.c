@@ -794,6 +794,11 @@ void R_DrawPSprite (pspdef_t* psp)
     vissprite_t*	vis;
     vissprite_t		avis;
 
+    fixed_t psp_sx = psp->sx, psp_sy = psp->sy;                               // [crispy]
+    const int state = viewplayer->psprites[ps_weapon].state - states;         // [crispy]
+    const weaponinfo_t *const winfo1 = &wpnlev1info[viewplayer->readyweapon]; // [crispy]
+    const weaponinfo_t *const winfo2 = &wpnlev2info[viewplayer->readyweapon]; // [crispy]
+
     int tempangle;
 
     // decide which patch to use
@@ -813,10 +818,38 @@ void R_DrawPSprite (pspdef_t* psp)
     lump = sprframe->lump[0];
     flip = (boolean)sprframe->flip[0];
 
+    // [JN] Weapon attack alignment. Common bobbing:
+    if (phys_weapon_alignment)
+    {
+        // Apply full bobbing to all states, except raising and lowering.
+        if ((state != winfo1->downstate && state != winfo1->upstate)
+        &&  (state != winfo2->downstate && state != winfo2->upstate))
+        {
+            if (phys_weapon_alignment == 2 && viewplayer->attackdown)
+            {
+                // Center weapon while firing.
+                psp_sx = FRACUNIT;
+                psp_sy = 32 * FRACUNIT; // WEAPONTOP
+            }
+            else
+            {
+                R_ApplyWeaponBob(&psp_sx, true, &psp_sy, true);
+            }
+        }
+        else
+        {
+            // Apply x-only bobbing to raising and lowering states.
+            R_ApplyWeaponBob(&psp_sx, true, 0, false);
+        }
+
+        // [crispy] squat down weapon sprite a bit after hitting the ground
+        psp_sy += abs(viewplayer->psp_dy);
+    }
+
 //
 // calculate edges of the shape
 //
-    tx = psp->sx - 160 * FRACUNIT;
+    tx = psp_sx - 160 * FRACUNIT;
 
     tx -= spriteoffset[lump];
     if (viewangleoffset)
@@ -846,7 +879,7 @@ void R_DrawPSprite (pspdef_t* psp)
     vis->footclip = 0;
     // [crispy] weapons drawn 1 pixel too high when player is idle
     vis->texturemid =
-        (BASEYCENTER << FRACBITS) + FRACUNIT / 4 - (psp->sy -
+        (BASEYCENTER << FRACBITS) + FRACUNIT / 5 - (psp_sy -
                                                     spritetopoffset[lump]);
     if (viewheight == SCREENHEIGHT)
     {

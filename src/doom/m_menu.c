@@ -3507,6 +3507,7 @@ static void M_ID_FloatingPowerups(int choice)
 static void M_ID_WeaponAlignment (int choice)
 {
     phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice);
+    pspr_interp = false;
 }
 
 static void M_ID_Breathing (int choice)
