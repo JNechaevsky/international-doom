@@ -235,8 +235,228 @@ void ID_LeftWidgets (void)
     //
     // Located at the bottom
     //
+    // TODO - dynamic placement, level name widget?
     else
     {
+        int yy = 0;
+
+        if (automapactive)
+        {
+            yy -= 10;
+        }
+
+        // Render counters
+        if (widget_render)
+        {
+            char spr[32];
+            char seg[32];
+            char opn[64];
+            char vis[32];
+            const int yy1 = widget_coords ? 0 : 34;
+
+            // Sprites
+            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 54 + yy1, cr[CR_GRAY]);
+            M_snprintf(spr, 16, "%d", IDRender.numsprites);
+            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 54 + yy1, cr[CR_GREEN]);
+
+            // Segments
+            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 63 + yy1, cr[CR_GRAY]);
+            M_snprintf(seg, 16, "%d", IDRender.numsegs);
+            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 63 + yy1, cr[CR_GREEN]);
+
+            // Openings
+            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 72 + yy1, cr[CR_GRAY]);
+            M_snprintf(opn, 16, "%d", IDRender.numopenings);
+            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 72 + yy1, cr[CR_GREEN]);
+
+            // Planes
+            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 81 + yy1, cr[CR_GRAY]);
+            M_snprintf(vis, 32, "%d", IDRender.numplanes);
+            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 81 + yy1, cr[CR_GREEN]);
+        }
+
+        // Player coords
+        if (widget_coords == 1
+        || (widget_coords == 2 && automapactive))
+        {
+            char str[128];
+
+            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 97, cr[CR_GRAY]);
+            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 106, cr[CR_GRAY]);
+            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 115, cr[CR_GRAY]);
+
+            sprintf(str, "%d", IDWidget.x);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 97, cr[CR_GREEN]);
+            sprintf(str, "%d", IDWidget.y);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 106, cr[CR_GREEN]);
+            sprintf(str, "%d", IDWidget.ang);
+            MN_DrTextA(str, 32 - WIDESCREENDELTA, 115, cr[CR_GREEN]);
+        }
+
+        // K/I/S stats
+        if (widget_kis == 1
+        || (widget_kis == 2 && automapactive))
+        {
+            if (!deathmatch)
+            {
+                char str1[8], str2[16];  // kills
+                char str3[8], str4[16];  // items
+                char str5[8], str6[16];  // secret
+        
+                // Kills:
+                sprintf(str1, "K ");
+                MN_DrTextA(str1, 0 - WIDESCREENDELTA, 145 + yy, cr[CR_GRAY]);
+                /*
+                // TODO - extra kills?
+                if (IDWidget.extrakills)
+                {
+                    sprintf(str2, "%d+%d/%d ", IDWidget.kills, IDWidget.extrakills, IDWidget.totalkills);
+                }
+                else
+                */
+                {
+                    sprintf(str2, "%d/%d ", IDWidget.kills, IDWidget.totalkills);
+                }
+                MN_DrTextA(str2, 0 - WIDESCREENDELTA + MN_TextAWidth(str1), 145 + yy, ID_WidgetColor(widget_kills));
+
+                // Items:
+                sprintf(str3, "I ");
+                MN_DrTextA(str3, 0 - WIDESCREENDELTA + MN_TextAWidth(str1) + MN_TextAWidth(str2), 145 + yy, cr[CR_GRAY]);
+
+                sprintf(str4, "%d/%d ", IDWidget.items, IDWidget.totalitems);
+                MN_DrTextA(str4, 0 - WIDESCREENDELTA     +
+                                     MN_TextAWidth(str1) +
+                                     MN_TextAWidth(str2) +
+                                     MN_TextAWidth(str3), 145 + yy, ID_WidgetColor(widget_items));
+
+                // Secret:
+                sprintf(str5, "S ");
+                MN_DrTextA(str5, 0 - WIDESCREENDELTA     +
+                                     MN_TextAWidth(str1) +
+                                     MN_TextAWidth(str2) +
+                                     MN_TextAWidth(str3) +
+                                     MN_TextAWidth(str4), 145 + yy, cr[CR_GRAY]);
+
+                sprintf(str6, "%d/%d", IDWidget.secrets, IDWidget.totalsecrets);
+                MN_DrTextA(str6, 0 - WIDESCREENDELTA     +
+                                     MN_TextAWidth(str1) +
+                                     MN_TextAWidth(str2) + 
+                                     MN_TextAWidth(str3) +
+                                     MN_TextAWidth(str4) +
+                                     MN_TextAWidth(str5), 145 + yy, ID_WidgetColor(widget_secret));
+            }
+            else
+            {
+                char str1[8] = {0}, str2[16] = {0};  // Green
+                char str3[8] = {0}, str4[16] = {0};  // Yellow
+                char str5[8] = {0}, str6[16] = {0};  // Red
+                char str7[8] = {0}, str8[16] = {0};  // Blue
+
+                // Green
+                if (playeringame[0])
+                {
+                    sprintf(str1, "G ");
+                    MN_DrTextA(str1, 0 - WIDESCREENDELTA, 145 + yy, cr[CR_GREEN]);
+
+                    sprintf(str2, "%d ", IDWidget.frags_g);
+                    MN_DrTextA(str2, 0 - WIDESCREENDELTA +
+                                         MN_TextAWidth(str1), 145 + yy, cr[CR_GREEN]);
+                }
+                // Yellow
+                if (playeringame[1])
+                {
+                    sprintf(str3, "I ");
+                    MN_DrTextA(str3, 0 - WIDESCREENDELTA +
+                                         MN_TextAWidth(str1) +
+                                         MN_TextAWidth(str2),
+                                         145 + yy, cr[CR_YELLOW]);
+
+                    sprintf(str4, "%d ", IDWidget.frags_i);
+                    MN_DrTextA(str4, 0 - WIDESCREENDELTA +
+                                         MN_TextAWidth(str1) +
+                                         MN_TextAWidth(str2) +
+                                         MN_TextAWidth(str3),
+                                         145 + yy, cr[CR_YELLOW]);
+                }
+                // Red
+                if (playeringame[2])
+                {
+                    sprintf(str5, "R ");
+                    MN_DrTextA(str5, 0 - WIDESCREENDELTA +
+                                         MN_TextAWidth(str1) +
+                                         MN_TextAWidth(str2) +
+                                         MN_TextAWidth(str3) +
+                                         MN_TextAWidth(str4),
+                                         145 + yy, cr[CR_RED]);
+
+                    sprintf(str6, "%d ", IDWidget.frags_b);
+                    MN_DrTextA(str6, 0 - WIDESCREENDELTA +
+                                         MN_TextAWidth(str1) +
+                                         MN_TextAWidth(str2) +
+                                         MN_TextAWidth(str3) +
+                                         MN_TextAWidth(str4) +
+                                         MN_TextAWidth(str5),
+                                         145 + yy, cr[CR_RED]);
+                }
+                // Blue
+                if (playeringame[3])
+                {
+                    sprintf(str7, "B ");
+                    MN_DrTextA(str7, 0 - WIDESCREENDELTA +
+                                         MN_TextAWidth(str1) +
+                                         MN_TextAWidth(str2) +
+                                         MN_TextAWidth(str3) +
+                                         MN_TextAWidth(str4) +
+                                         MN_TextAWidth(str5) +
+                                         MN_TextAWidth(str6),
+                                         145 + yy, cr[CR_BLUE2]);
+
+                    sprintf(str8, "%d ", IDWidget.frags_r);
+                    MN_DrTextA(str8, 0 - WIDESCREENDELTA +
+                                         MN_TextAWidth(str1) +
+                                         MN_TextAWidth(str2) +
+                                         MN_TextAWidth(str3) +
+                                         MN_TextAWidth(str4) +
+                                         MN_TextAWidth(str5) +
+                                         MN_TextAWidth(str6) +
+                                         MN_TextAWidth(str7),
+                                         145 + yy, cr[CR_BLUE2]);
+                }
+            }
+        }
+
+        if (widget_kis)
+        {
+            yy -= 10;
+        }
+
+        // Total time. Time gathered in G_Ticker.
+        if (widget_totaltime == 1
+        || (widget_totaltime == 2 && automapactive))
+        {
+            char stra[8];
+
+            sprintf(stra, "TOTAL ");
+            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 145 + yy, cr[CR_GRAY]);
+            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 145 + yy, cr[CR_LIGHTGRAY]);
+        }
+
+        if (widget_totaltime)
+        {
+            yy -= 10;
+        }
+
+        // Level / DeathMatch timer. Time gathered in G_Ticker.
+        if (widget_time == 1
+        || (widget_time == 2 && automapactive))
+        {
+            char stra[8];
+
+            sprintf(stra, "TIME ");
+            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 145 + yy, cr[CR_GRAY]);
+            MN_DrTextA(ID_Level_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 145 + yy, cr[CR_LIGHTGRAY]);
+        }
+
     }
 }
 

@@ -203,12 +203,6 @@ void D_Display(void)
                 AM_Drawer();
                 BorderNeedRefresh = true;
             }
-            // TODO
-            // [JN] CRL Stats
-            // CRL_StatDrawer();
-
-            // [JN] Left widgets are available while active game level.
-            ID_LeftWidgets();
 
             // [crispy] demo timer widget
             if (demoplayback && (demo_timer == 1 || demo_timer == 3))
@@ -230,6 +224,9 @@ void D_Display(void)
             CT_Drawer();
             UpdateState |= I_FULLVIEW;
             SB_Drawer();
+
+            // [JN] Left widgets are available while active game level.
+            ID_LeftWidgets();
 
             // [JN] Draw right widgets in any states except finale text screens.
             // TODO - unoptimal placement?
