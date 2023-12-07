@@ -4769,6 +4769,8 @@ boolean MN_Responder(event_t * event)
                 }
                 else
                 {
+                    // [JN] Do not ask for quick save confirmation.
+                    /*
                     askforquit = true;
                     typeofask = 3;
                     if (!netgame && !demoplayback)
@@ -4776,6 +4778,10 @@ boolean MN_Responder(event_t * event)
                         paused = true;
                     }
                     S_StartSound(NULL, sfx_chat);
+                    */
+                    S_StartSound(NULL, sfx_dorcls);
+                    FileMenuKeySteal = true;
+                    SCSaveGame(quicksave - 1);
                 }
             }
             return true;
@@ -4815,6 +4821,8 @@ boolean MN_Responder(event_t * event)
             }
             else
             {
+                // [JN] Do not ask for quick load confirmation.
+                /*
                 askforquit = true;
                 if (!netgame && !demoplayback)
                 {
@@ -4822,6 +4830,8 @@ boolean MN_Responder(event_t * event)
                 }
                 typeofask = 4;
                 S_StartSound(NULL, sfx_chat);
+                */
+                SCLoadGame(quickload - 1);
             }
             return true;
         }
@@ -5180,7 +5190,12 @@ void MN_DeactivateMenu(void)
     {
         paused = false;
     }
-    S_StartSound(NULL, sfx_dorcls);
+    // [JN] Do not play closing menu sound on quick save/loading actions.
+    // Quick save playing it separatelly, quick load doesn't need it at all.
+    if (!quicksave && !quickload)
+    {
+        S_StartSound(NULL, sfx_dorcls);
+    }
     if (soundchanged)
     {
         S_SetMaxVolume(true);   //recalc the sound curve
