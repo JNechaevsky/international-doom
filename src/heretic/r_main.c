@@ -25,6 +25,7 @@
 #include "sb_bar.h"
 
 #include "id_vars.h"
+#include "id_func.h"
 
 
 // Fineangles in the SCREENWIDTH wide window.
@@ -1070,6 +1071,8 @@ void R_SetupFrame (player_t* player)
 //
 void R_RenderPlayerView (player_t *player)
 {
+    // [JN] Reset render counters.
+    memset(&IDRender, 0, sizeof(IDRender));
 
     // Start frame
     R_SetupFrame (player);

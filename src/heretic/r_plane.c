@@ -25,6 +25,7 @@
 #include "r_swirl.h" // [crispy] R_DistortedFlat()
 
 #include "id_vars.h"
+#include "id_func.h"
 
 
 // -----------------------------------------------------------------------------
@@ -429,8 +430,11 @@ void R_DrawPlanes (void)
 
     extern int columnofs[MAXWIDTH];
 
+    // [JN] CRL - openings counter.
+    IDRender.numopenings = lastopening - openings;
+
     for (int i = 0 ; i < MAXVISPLANES ; i++)
-    for (visplane_t *pl = visplanes[i] ; pl ; pl = pl->next)
+    for (visplane_t *pl = visplanes[i] ; pl ; pl = pl->next, IDRender.numplanes++)
     if (pl->minx <= pl->maxx)
     {
         //

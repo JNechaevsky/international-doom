@@ -597,7 +597,8 @@ extern int prevmap;
 extern int totalkills, totalitems, totalsecret; // for intermission
 extern int levelstarttic;       // gametic at level start
 extern int leveltime;           // tics in game play for par
-extern  int	realleveltime;	// [JN] Keep ticking in Freeze mode.
+extern int realleveltime;       // [JN] Keep ticking in Freeze mode.
+extern int totalleveltimes;     // [crispy] CPhipps - total time for all completed levels
 
 extern ticcmd_t *netcmds;
 

@@ -38,30 +38,208 @@
 //
 // =============================================================================
 
+ID_Render_t IDRender;
+ID_Widget_t IDWidget;
+
+char ID_Level_Time[64];
+char ID_Total_Time[64];
 char ID_Local_Time[64];
 
-// -----------------------------------------------------------------------------
-// CRL_StatColor_Str, CRL_StatColor_Val
-//  [JN] Colorizes counter strings and values respectively.
-// -----------------------------------------------------------------------------
-
-/*
-static byte *CRL_StatColor_Str (const int val1, const int val2)
+enum
 {
-    return
-        val1 == val2 ? cr[CR_LIGHTGRAY] :
-        val1 >= val2 ? (gametic & 8 ? cr[CR_GRAY] : cr[CR_LIGHTGRAY]) : 
-                       cr[CR_GRAY];
+    widget_kills,
+    widget_items,
+    widget_secret
+} widgetcolor_t;
+
+static byte *ID_WidgetColor (const int i)
+{
+    switch (i)
+    {
+        case widget_kills:
+        {
+            return
+                IDWidget.totalkills == 0 ? cr[CR_GREEN] :
+                IDWidget.kills == 0 ? cr[CR_RED] :
+                IDWidget.kills < IDWidget.totalkills ? cr[CR_YELLOW] : cr[CR_GREEN];
+            break;
+        }
+        case widget_items:
+        {
+            return
+                IDWidget.totalitems == 0 ? cr[CR_GREEN] :
+                IDWidget.items == 0 ? cr[CR_RED] :
+                IDWidget.items < IDWidget.totalitems ? cr[CR_YELLOW] : cr[CR_GREEN];
+            break;
+        }
+        case widget_secret:
+        {
+            return
+                IDWidget.totalsecrets == 0 ? cr[CR_GREEN] :
+                IDWidget.secrets == 0 ? cr[CR_RED] :
+                IDWidget.secrets < IDWidget.totalsecrets ? cr[CR_YELLOW] : cr[CR_GREEN];
+            break;
+        }
+    }
+    return NULL;
 }
 
-static byte *CRL_StatColor_Val (const int val1, const int val2)
+// -----------------------------------------------------------------------------
+// ID_LeftWidgets.
+//  [JN] Draw all the widgets and counters.
+// -----------------------------------------------------------------------------
+
+void ID_LeftWidgets (void)
 {
-    return
-        val1 == val2 ? cr[CR_YELLOW] :
-        val1 >= val2 ? (gametic & 8 ? cr[CR_RED] : cr[CR_YELLOW]) :
-                       cr[CR_GREEN];
+    //
+    // Located on the top
+    //
+    if (widget_location == 1)
+    {
+        // K/I/S stats
+        if (widget_kis == 1
+        || (widget_kis == 2 && automapactive))
+        {
+            if (!deathmatch)
+            {
+                char str1[16];  // kills
+                char str2[16];  // items
+                char str3[16];  // secret
+
+                // Kills:
+                MN_DrTextA("K:", 0 - WIDESCREENDELTA, 10, cr[CR_GRAY]);
+                /*
+                // TODO - extra kills?
+                if (IDWidget.extrakills)
+                {
+                    sprintf(str1, "%d+%d/%d ", IDWidget.kills, IDWidget.extrakills, IDWidget.totalkills);
+                }
+                else
+                */
+                {
+                    sprintf(str1, "%d/%d ", IDWidget.kills, IDWidget.totalkills);
+                }
+                MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, ID_WidgetColor(widget_kills));
+
+                // Items:
+                MN_DrTextA("I:", 0 - WIDESCREENDELTA, 20, cr[CR_GRAY]);
+                sprintf(str2, "%d/%d ", IDWidget.items, IDWidget.totalitems);
+                MN_DrTextA(str2, 0 - WIDESCREENDELTA + 16, 20, ID_WidgetColor(widget_items));
+
+                // Secret:
+                MN_DrTextA("S:", 0 - WIDESCREENDELTA, 30, cr[CR_GRAY]);
+                sprintf(str3, "%d/%d ", IDWidget.secrets, IDWidget.totalsecrets);
+                MN_DrTextA(str3, 0 - WIDESCREENDELTA + 16, 30, ID_WidgetColor(widget_secret));
+            }
+            else
+            {
+                char str1[16] = {0};  // Green
+                char str2[16] = {0};  // Yellow
+                char str3[16] = {0};  // Red
+                char str4[16] = {0};  // Blue
+
+                // Green
+                if (playeringame[0])
+                {
+                    MN_DrTextA("G:", 0 - WIDESCREENDELTA, 10, cr[CR_GREEN]);
+                    sprintf(str1, "%d", IDWidget.frags_g);
+                    MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, cr[CR_GREEN]);
+                }
+                // Yellow
+                if (playeringame[1])
+                {
+                    MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 20, cr[CR_YELLOW]);
+                    sprintf(str2, "%d", IDWidget.frags_i);
+                    MN_DrTextA(str2, 0 - WIDESCREENDELTA + 16, 20, cr[CR_YELLOW]);
+                }
+                // Red
+                if (playeringame[2])
+                {
+                    MN_DrTextA("R:", 0 - WIDESCREENDELTA, 30, cr[CR_RED]);
+                    sprintf(str3, "%d", IDWidget.frags_b);
+                    MN_DrTextA(str3, 0 - WIDESCREENDELTA + 16, 30, cr[CR_RED]);
+                }
+                // Blue
+                if (playeringame[3])
+                {
+                    MN_DrTextA("B:", 0 - WIDESCREENDELTA, 40, cr[CR_RED]);
+                    sprintf(str4, "%d", IDWidget.frags_r);
+                    MN_DrTextA(str4, 0 - WIDESCREENDELTA + 16, 40, cr[CR_RED]);
+                }
+            }
+        }
+
+        // Level / DeathMatch timer. Time gathered in G_Ticker.
+        if (widget_time == 1
+        || (widget_time == 2 && automapactive))
+        {
+            MN_DrTextA("TIME", 0 - WIDESCREENDELTA, 40, cr[CR_GRAY]);
+            MN_DrTextA(ID_Level_Time, 0 - WIDESCREENDELTA, 50, cr[CR_LIGHTGRAY]);
+        }
+
+        // Total time. Time gathered in G_Ticker.
+        if (widget_totaltime == 1
+        || (widget_totaltime == 2 && automapactive))
+        {
+            MN_DrTextA("TOTAL", 0 - WIDESCREENDELTA, 60, cr[CR_GRAY]);
+            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA, 70, cr[CR_LIGHTGRAY]);
+        }
+
+        // Player coords
+        if (widget_coords == 1
+        || (widget_coords == 2 && automapactive))
+        {
+            char str[128];
+            
+            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 80, cr[CR_GRAY]);
+            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 90, cr[CR_GRAY]);
+            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 100, cr[CR_GRAY]);
+
+            sprintf(str, "%d", IDWidget.x);
+            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 80, cr[CR_GREEN]);
+            sprintf(str, "%d", IDWidget.y);
+            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 90, cr[CR_GREEN]);
+            sprintf(str, "%d", IDWidget.ang);
+            MN_DrTextA(str, 0 - WIDESCREENDELTA + 32, 100, cr[CR_GREEN]);
+        }
+
+        // Render counters
+        if (widget_render)
+        {
+            char spr[32];
+            char seg[32];
+            char opn[64];
+            char vis[32];
+
+            // Sprites
+            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 110, cr[CR_GRAY]);
+            M_snprintf(spr, 16, "%d", IDRender.numsprites);
+            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 110, cr[CR_GREEN]);
+
+            // Segments
+            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 120, cr[CR_GRAY]);
+            M_snprintf(seg, 16, "%d", IDRender.numsegs);
+            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 120, cr[CR_GREEN]);
+
+            // Openings
+            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 130, cr[CR_GRAY]);
+            M_snprintf(opn, 16, "%d", IDRender.numopenings);
+            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 130, cr[CR_GREEN]);
+
+            // Planes
+            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 140, cr[CR_GRAY]);
+            M_snprintf(vis, 32, "%d", IDRender.numplanes);
+            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 140, cr[CR_GREEN]);
+        }
+    }
+    //
+    // Located at the bottom
+    //
+    else
+    {
+    }
 }
-*/
+
 
 // -----------------------------------------------------------------------------
 // Draws CRL stats.

@@ -32,8 +32,8 @@
 #include "am_map.h"
 #include "ct_chat.h"
 
-//#include "crlcore.h"
 #include "id_vars.h"
+#include "id_func.h"
 
 
 // Types
@@ -301,22 +301,18 @@ void SB_Ticker(void)
         HealthMarker += delta;
     }
 
-    // [JN] Update CRL_Widgets_t data.
+    // [JN] Update IDWidget data.
     CPlayer = &players[displayplayer];
+    IDWidget.kills = CPlayer->killcount;
+    IDWidget.totalkills = totalkills;
+    IDWidget.items = CPlayer->itemcount;
+    IDWidget.totalitems = totalitems;
+    IDWidget.secrets = CPlayer->secretcount;
+    IDWidget.totalsecrets = totalsecret;
 
-// TODO
-/*
-    CRLWidgets.kills = CPlayer->killcount;
-    CRLWidgets.totalkills = totalkills;
-    CRLWidgets.items = CPlayer->itemcount;
-    CRLWidgets.totalitems = totalitems;
-    CRLWidgets.secrets = CPlayer->secretcount;
-    CRLWidgets.totalsecrets = totalsecret;
-
-    CRLWidgets.x = CPlayer->mo->x >> FRACBITS;
-    CRLWidgets.y = CPlayer->mo->y >> FRACBITS;
-    CRLWidgets.ang = CPlayer->mo->angle / ANG1;
-*/
+    IDWidget.x = CPlayer->mo->x >> FRACBITS;
+    IDWidget.y = CPlayer->mo->y >> FRACBITS;
+    IDWidget.ang = CPlayer->mo->angle / ANG1;
 }
 
 //---------------------------------------------------------------------------

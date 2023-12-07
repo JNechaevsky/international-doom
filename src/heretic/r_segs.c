@@ -22,6 +22,8 @@
 #include "r_local.h"
 
 #include "id_vars.h"
+#include "id_func.h"
+
 
 // OPTIMIZE: closed two sided lines as single sided
 
@@ -534,6 +536,8 @@ R_StoreWallRange
     int         lightnum;
     int64_t     dx, dy, dx1, dy1, dist; // [crispy] fix long wall wobble
     const uint32_t len = curline->length;
+
+    IDRender.numsegs++;
 
     // [JN] remove MAXDRAWSEGS Vanilla limit
     if (ds_p == drawsegs+maxdrawsegs)

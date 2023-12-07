@@ -25,6 +25,7 @@
 #include "v_trans.h" // [crispy] blending functions
 
 #include "id_vars.h"
+#include "id_func.h"
 
 
 typedef struct
@@ -1244,6 +1245,7 @@ void R_DrawMasked (void)
 
     // draw all vissprites back to front
 
+    IDRender.numsprites = num_vissprite;
     for (i = num_vissprite ; --i>=0 ; )
     {
         vissprite_t* spr = vissprite_ptrs[i];

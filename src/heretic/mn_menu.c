@@ -529,12 +529,15 @@ static boolean M_Bind_M_UseArtifact (int option);
 static boolean M_Bind_M_Reset (int option);
 
 static void M_Draw_ID_Widgets (void);
-static boolean M_ID_Widget_Coords (int option);
-static boolean M_ID_Widget_Render (int option);
-static boolean M_ID_Widget_KIS (int option);
-static boolean M_ID_Widget_Time (int option);
-static boolean M_ID_Widget_Health (int option);
-static boolean M_ID_Automap_Secrets (int option);
+static boolean M_ID_Widget_Location (int choice);
+static boolean M_ID_Widget_KIS (int choice);
+
+static boolean M_ID_Widget_Coords (int choice);
+static boolean M_ID_Widget_Render (int choice);
+static boolean M_ID_Widget_Time (int choice);
+static boolean M_ID_Widget_TotalTime (int choice);
+static boolean M_ID_Widget_Health (int choice);
+static boolean M_ID_Automap_Secrets (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static boolean M_ID_Brightmaps (int choice);
@@ -2705,17 +2708,17 @@ static boolean M_Bind_M_Reset (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Widgets[] = {
-    { ITT_LRFUNC, "WIDGETS LOCATION",    NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "KIS STATS",           M_ID_Widget_KIS,      0, MENU_NONE },
-    { ITT_LRFUNC, "LEVEL/DM TIMER",      M_ID_Widget_Time,     0, MENU_NONE },
-    { ITT_LRFUNC, "TOTAL TIME",          NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "PLAYER COORDS",       M_ID_Widget_Coords,   0, MENU_NONE },
-    { ITT_LRFUNC, "RENDER COUNTERS",     M_ID_Widget_Render,   0, MENU_NONE },
-    { ITT_LRFUNC, "TARGET'S HEALTH",     M_ID_Widget_Health,   0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                  NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "MARK SECRET SECTORS", M_ID_Automap_Secrets, 0, MENU_NONE },
-    { ITT_LRFUNC, "ROTATE MODE",         NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "OVERLAY MODE",        M_ID_Automap_Secrets, 0, MENU_NONE },
+    { ITT_LRFUNC, "WIDGETS LOCATION",    M_ID_Widget_Location,  0, MENU_NONE },
+    { ITT_LRFUNC, "KIS STATS",           M_ID_Widget_KIS,       0, MENU_NONE },
+    { ITT_LRFUNC, "LEVEL/DM TIMER",      M_ID_Widget_Time,      0, MENU_NONE },
+    { ITT_LRFUNC, "TOTAL TIME",          M_ID_Widget_TotalTime, 0, MENU_NONE },
+    { ITT_LRFUNC, "PLAYER COORDS",       M_ID_Widget_Coords,    0, MENU_NONE },
+    { ITT_LRFUNC, "RENDER COUNTERS",     M_ID_Widget_Render,    0, MENU_NONE },
+    { ITT_LRFUNC, "TARGET'S HEALTH",     M_ID_Widget_Health,    0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                  NULL,                  0, MENU_NONE },
+    { ITT_LRFUNC, "MARK SECRET SECTORS", M_ID_Automap_Secrets,  0, MENU_NONE },
+    { ITT_LRFUNC, "ROTATE MODE",         NULL,                  0, MENU_NONE },
+    { ITT_LRFUNC, "OVERLAY MODE",        M_ID_Automap_Secrets,  0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Widgets = {
@@ -2735,10 +2738,43 @@ static void M_Draw_ID_Widgets (void)
 
     MN_DrTextACentered("WIDGETS", 10, cr[CR_YELLOW]);
 
+    // Widgets location
+    sprintf(str, widget_location ? "TOP" : "BOTTOM");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 20,
+               M_Item_Glow(0, GLOW_GREEN));
+
+    // K/I/S stats
+    sprintf(str, widget_kis == 1 ? "ALWAYS"  :
+                 widget_kis == 2 ? "AUTOMAP" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
+               M_Item_Glow(1, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Level/DM timer
+    sprintf(str, widget_time == 1 ? "ALWAYS"  :
+                 widget_time == 2 ? "AUTOMAP" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 40,
+               M_Item_Glow(2, widget_time ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Total time
+    sprintf(str, widget_totaltime == 1 ? "ALWAYS"  :
+                 widget_totaltime == 2 ? "AUTOMAP" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 50,
+               M_Item_Glow(3, widget_totaltime ? GLOW_GREEN : GLOW_DARKRED));
+
     // Player coords
-    sprintf(str, widget_coords ? "ON" : "OFF");
-    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
-    //            M_Item_Glow(0, widget_coords ? GLOW_GREEN : GLOW_RED));
+    sprintf(str, widget_coords == 1 ? "ALWAYS"  :
+                 widget_coords == 2 ? "AUTOMAP" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
+               M_Item_Glow(4, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Render counters
+    sprintf(str, widget_render ? "ON" : "OFF");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
+               M_Item_Glow(5, widget_render ? GLOW_GREEN : GLOW_DARKRED));
+
+
+
+
 
     // Target's health
     sprintf(str, widget_health == 1 ? "TOP" :
@@ -2759,22 +2795,11 @@ static void M_Draw_ID_Widgets (void)
     //            M_Item_Glow(1, crl_widget_playstate == 1 ? GLOW_GREEN :
     //                           crl_widget_playstate == 2 ? GLOW_DARKGREEN : GLOW_RED));
 
-    // Render counters
-    sprintf(str, widget_render == 1 ? "ON" :
-                 widget_render == 2 ? "OVERFLOWS" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 50,
-               M_Item_Glow(2, widget_render == 1 ? GLOW_GREEN :
-                              widget_render == 2 ? GLOW_DARKGREEN : GLOW_RED));
 
-    // K/I/S stats
-    sprintf(str, widget_kis ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
-               M_Item_Glow(3, widget_kis ? GLOW_GREEN : GLOW_RED));
 
-    // Level time
-    sprintf(str, widget_time ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
-               M_Item_Glow(4, widget_time ? GLOW_GREEN : GLOW_RED));
+
+
+
 
     // Powerup timers
     // sprintf(str, crl_widget_powerups ? "ON" : "OFF");
@@ -2788,37 +2813,49 @@ static void M_Draw_ID_Widgets (void)
     */
 }
 
-static boolean M_ID_Widget_Coords (int option)
+static boolean M_ID_Widget_Location (int choice)
 {
-    //M_ID_Widget_Coords ^= 1;
+    widget_location ^= 1;
     return true;
 }
 
-static boolean M_ID_Widget_Render (int option)
+static boolean M_ID_Widget_KIS (int choice)
 {
-    //M_ID_Widget_Render = M_INT_Slider(M_ID_Widget_Render, 0, 2, option);
+    widget_kis = M_INT_Slider(widget_kis, 0, 2, choice);
     return true;
 }
 
-static boolean M_ID_Widget_KIS (int option)
+static boolean M_ID_Widget_Time (int choice)
 {
-    //M_ID_Widget_KIS ^= 1;
+    widget_time = M_INT_Slider(widget_time, 0, 2, choice);
     return true;
 }
 
-static boolean M_ID_Widget_Time (int option)
+static boolean M_ID_Widget_TotalTime (int choice)
 {
-//    M_ID_Widget_Time ^= 1;
+    widget_totaltime = M_INT_Slider(widget_totaltime, 0, 2, choice);
     return true;
 }
 
-static boolean M_ID_Widget_Health (int option)
+static boolean M_ID_Widget_Coords (int choice)
 {
-    widget_health = M_INT_Slider(widget_health, 0, 4, option);
+    widget_coords = M_INT_Slider(widget_coords, 0, 2, choice);
     return true;
 }
 
-static boolean M_ID_Automap_Secrets (int option)
+static boolean M_ID_Widget_Render (int choice)
+{
+    widget_render ^= 1;
+    return true;
+}
+
+static boolean M_ID_Widget_Health (int choice)
+{
+    widget_health = M_INT_Slider(widget_health, 0, 4, choice);
+    return true;
+}
+
+static boolean M_ID_Automap_Secrets (int choice)
 {
     automap_secrets ^= 1;
     return true;
