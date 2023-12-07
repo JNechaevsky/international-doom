@@ -688,7 +688,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     next_weapon = 0;
 
     // [JN] Show last message.
-    if (gamekeydown[key_message_refresh])
+    if (gamekeydown[key_message_refresh_hr])
     {
         players[consoleplayer].messageTics = MESSAGETICS;
     }

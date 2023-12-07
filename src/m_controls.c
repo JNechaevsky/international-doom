@@ -138,6 +138,8 @@ int key_spy           = KEY_F12;
 int key_pause           = KEY_PAUSE;
 int key_menu_screenshot = KEY_PRTSCR;
 int key_message_refresh = KEY_ENTER;
+// [JN] Heretic using ENTER for afrtifacts activation.
+int key_message_refresh_hr = 0;
 int key_demo_quit       = 'q';
 
 // Multiplayer
@@ -295,7 +297,6 @@ void M_BindControls (void)
 
     M_BindIntVariable("key_pause",              &key_pause);
     M_BindIntVariable("key_menu_screenshot",    &key_menu_screenshot);
-    M_BindIntVariable("key_message_refresh",    &key_message_refresh);
     M_BindIntVariable("key_demo_quit",          &key_demo_quit);
 
     // Special menu keys, not available for rebinding

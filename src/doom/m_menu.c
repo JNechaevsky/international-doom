@@ -6511,18 +6511,19 @@ static void M_CheckBind (int key)
     if (key_prevweapon == key)       key_prevweapon       = 0;
     if (key_nextweapon == key)       key_nextweapon       = 0;
     // Page 4
-    if (currentMenu == &ID_Def_Keybinds_1)
-    {
     if (key_map_toggle == key)       key_map_toggle       = 0;
-    if (key_map_zoomin == key)       key_map_zoomin       = 0;
-    if (key_map_zoomout == key)      key_map_zoomout      = 0;
-    if (key_map_maxzoom == key)      key_map_maxzoom      = 0;
-    if (key_map_follow == key)       key_map_follow       = 0;
-    if (key_map_rotate == key)       key_map_rotate       = 0;
-    if (key_map_overlay == key)      key_map_overlay      = 0;
-    if (key_map_grid == key)         key_map_grid         = 0;
-    if (key_map_mark == key)         key_map_mark         = 0;
-    if (key_map_clearmark == key)    key_map_clearmark    = 0;
+    // Do not override Automap binds in other pages.
+    if (currentMenu == &ID_Def_Keybinds_4)
+    {
+        if (key_map_zoomin == key)     key_map_zoomin     = 0;
+        if (key_map_zoomout == key)    key_map_zoomout    = 0;
+        if (key_map_maxzoom == key)    key_map_maxzoom    = 0;
+        if (key_map_follow == key)     key_map_follow     = 0;
+        if (key_map_rotate == key)     key_map_rotate     = 0;
+        if (key_map_overlay == key)    key_map_overlay    = 0;
+        if (key_map_grid == key)       key_map_grid       = 0;
+        if (key_map_mark == key)       key_map_mark       = 0;
+        if (key_map_clearmark == key)  key_map_clearmark  = 0;
     }
     // Page 5
     if (key_menu_help == key)        key_menu_help        = 0;
@@ -6543,12 +6544,13 @@ static void M_CheckBind (int key)
     if (key_message_refresh == key)  key_message_refresh  = 0;
     if (key_demo_quit == key)        key_demo_quit        = 0;
     if (key_multi_msg == key)        key_multi_msg        = 0;
+    // Do not override Send To binds in other pages.
     if (currentMenu == &ID_Def_Keybinds_6)
     {
-    if (key_multi_msgplayer[0] == key) key_multi_msgplayer[0] = 0;
-    if (key_multi_msgplayer[1] == key) key_multi_msgplayer[1] = 0;
-    if (key_multi_msgplayer[2] == key) key_multi_msgplayer[2] = 0;
-    if (key_multi_msgplayer[3] == key) key_multi_msgplayer[3] = 0;
+        if (key_multi_msgplayer[0] == key) key_multi_msgplayer[0] = 0;
+        if (key_multi_msgplayer[1] == key) key_multi_msgplayer[1] = 0;
+        if (key_multi_msgplayer[2] == key) key_multi_msgplayer[2] = 0;
+        if (key_multi_msgplayer[3] == key) key_multi_msgplayer[3] = 0;
     }
 }
 

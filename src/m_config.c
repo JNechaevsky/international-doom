@@ -341,6 +341,8 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_pause),
     CONFIG_VARIABLE_KEY(key_menu_screenshot),
     CONFIG_VARIABLE_KEY(key_message_refresh),
+    // [JN] Heretic using ENTER for afrtifacts activation.
+    CONFIG_VARIABLE_KEY(key_message_refresh_hr),
     CONFIG_VARIABLE_KEY(key_demo_quit),
 
     // Multiplayer

@@ -2488,7 +2488,7 @@ static void M_Draw_ID_Keybinds_8 (void)
 
     M_DrawBindKey(0, 20, key_pause);
     M_DrawBindKey(1, 30, key_menu_screenshot);
-    M_DrawBindKey(2, 40, key_message_refresh);
+    M_DrawBindKey(2, 40, key_message_refresh_hr);
     M_DrawBindKey(3, 50, key_demo_quit);
 
     MN_DrTextACentered("MULTIPLAYER", 60, cr[CR_YELLOW]);
@@ -2518,7 +2518,7 @@ static boolean M_Bind_SaveScreenshot (int option)
 
 static boolean M_Bind_LastMessage (int choice)
 {
-    M_StartBind(802);  // key_message_refresh
+    M_StartBind(802);  // key_message_refresh_hr
     return true;
 }
 
@@ -5350,15 +5350,19 @@ static void M_CheckBind (int key)
 
     // Page 6
     if (key_map_toggle == key)       key_map_toggle       = 0;
-    if (key_map_zoomin == key)       key_map_zoomin       = 0;
-    if (key_map_zoomout == key)      key_map_zoomout      = 0;
-    if (key_map_maxzoom == key)      key_map_maxzoom      = 0;
-    if (key_map_follow == key)       key_map_follow       = 0;
-    if (key_map_rotate == key)       key_map_rotate       = 0;
-    if (key_map_overlay == key)      key_map_overlay      = 0;
-    if (key_map_grid == key)         key_map_grid         = 0;
-    if (key_map_mark == key)         key_map_mark         = 0;
-    if (key_map_clearmark == key)    key_map_clearmark    = 0;
+    // Do not override Automap binds in other pages.
+    if (CurrentMenu == &ID_Def_Keybinds_6)
+    {
+        if (key_map_zoomin == key)     key_map_zoomin     = 0;
+        if (key_map_zoomout == key)    key_map_zoomout    = 0;
+        if (key_map_maxzoom == key)    key_map_maxzoom    = 0;
+        if (key_map_follow == key)     key_map_follow     = 0;
+        if (key_map_rotate == key)     key_map_rotate     = 0;
+        if (key_map_overlay == key)    key_map_overlay    = 0;
+        if (key_map_grid == key)       key_map_grid       = 0;
+        if (key_map_mark == key)       key_map_mark       = 0;
+        if (key_map_clearmark == key)  key_map_clearmark  = 0;
+    }
 
     // Page 7
     if (key_menu_help == key)        key_menu_help        = 0;
@@ -5374,15 +5378,19 @@ static void M_CheckBind (int key)
     if (key_spy == key)              key_spy              = 0;
 
     // Page 8
-    if (key_pause == key)              key_pause           = 0;
-    if (key_menu_screenshot == key)    key_menu_screenshot = 0;
-    if (key_message_refresh == key)    key_message_refresh = 0;
-    if (key_demo_quit == key)          key_demo_quit       = 0;
-    if (key_multi_msg == key)          key_multi_msg       = 0;
-    if (key_multi_msgplayer[0] == key) key_multi_msgplayer[0] = 0;
-    if (key_multi_msgplayer[1] == key) key_multi_msgplayer[1] = 0;
-    if (key_multi_msgplayer[2] == key) key_multi_msgplayer[2] = 0;
-    if (key_multi_msgplayer[3] == key) key_multi_msgplayer[3] = 0;
+    if (key_pause == key)              key_pause              = 0;
+    if (key_menu_screenshot == key)    key_menu_screenshot    = 0;
+    if (key_message_refresh_hr == key) key_message_refresh_hr = 0;
+    if (key_demo_quit == key)          key_demo_quit          = 0;
+    if (key_multi_msg == key)          key_multi_msg          = 0;
+    // Do not override Send To binds in other pages.
+    if (CurrentMenu == &ID_Def_Keybinds_8)
+    {
+        if (key_multi_msgplayer[0] == key) key_multi_msgplayer[0] = 0;
+        if (key_multi_msgplayer[1] == key) key_multi_msgplayer[1] = 0;
+        if (key_multi_msgplayer[2] == key) key_multi_msgplayer[2] = 0;
+        if (key_multi_msgplayer[3] == key) key_multi_msgplayer[3] = 0;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -5486,7 +5494,7 @@ static void M_DoBind (int keynum, int key)
         // Page 8
         case 800:  key_pause = key;              break;
         case 801:  key_menu_screenshot = key;    break;
-        case 802:  key_message_refresh = key;    break;
+        case 802:  key_message_refresh_hr = key; break;
         case 803:  key_demo_quit = key;          break;
         case 804:  key_multi_msg = key;          break;
         if (CurrentMenu == &ID_Def_Keybinds_8)
@@ -5630,7 +5638,7 @@ static void M_ClearBind (int CurrentItPos)
         {
             case 0:   key_pause = 0;              break;
             case 1:   key_menu_screenshot = 0;    break;
-            case 2:   key_message_refresh = 0;    break;
+            case 2:   key_message_refresh_hr = 0; break;
             case 3:   key_demo_quit = 0;          break;
             // Multiplayer title
             case 5:   key_multi_msg = 0;          break;
@@ -5658,7 +5666,7 @@ static void M_ResetBinds (void)
     key_straferight = 'd';
     key_strafe = KEY_RALT;
     key_speed = KEY_RSHIFT;
-    
+    key_180turn = 0;
     key_fire = KEY_RCTRL;
     key_use = ' ';
 
@@ -5683,6 +5691,7 @@ static void M_ResetBinds (void)
     key_spectator = 0;
     key_freeze = 0;
     key_notarget = 0;
+    key_buddha = 0;
 
     // Page 4
     key_weapon1 = '1';
@@ -5708,7 +5717,7 @@ static void M_ResetBinds (void)
     key_arti_torch = 0;
     key_arti_morph = 0;
 
-    // Page 7
+    // Page 6
     key_map_toggle = KEY_TAB;
     key_map_zoomin = '=';
     key_map_zoomout = '-';
@@ -5720,7 +5729,7 @@ static void M_ResetBinds (void)
     key_map_mark = 'm';
     key_map_clearmark = 'c';
 
-    // Page 8
+    // Page 7
     key_menu_help = KEY_F1;
     key_menu_save = KEY_F2;
     key_menu_load = KEY_F3;
@@ -5733,10 +5742,10 @@ static void M_ResetBinds (void)
     key_menu_gamma = KEY_F11;
     key_spy = KEY_F12;
 
-    // Page 9
+    // Page 8
     key_pause = KEY_PAUSE;
     key_menu_screenshot = KEY_PRTSCR;
-    key_message_refresh = KEY_ENTER;
+    key_message_refresh_hr = 0;
     key_demo_quit = 'q';
     key_multi_msg = 't';
     key_multi_msgplayer[0] = 'g';

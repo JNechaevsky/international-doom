@@ -445,6 +445,7 @@ void D_BindVariables(void)
 
     NET_BindVariables();
 
+    M_BindIntVariable("key_message_refresh",    &key_message_refresh);
     M_BindIntVariable("mouse_sensitivity",      &mouseSensitivity);
     M_BindIntVariable("sfx_volume",             &sfxVolume);
     M_BindIntVariable("music_volume",           &musicVolume);
