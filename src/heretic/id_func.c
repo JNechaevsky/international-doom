@@ -235,12 +235,12 @@ void ID_LeftWidgets (void)
     //
     // Located at the bottom
     //
-    // TODO - dynamic placement, level name widget?
     else
     {
         int yy = 0;
 
-        if (automapactive)
+        // Shift widgets one line up if Level Name widget is set to "always".
+        if (widget_levelname && !automapactive)
         {
             yy -= 10;
         }
@@ -252,27 +252,27 @@ void ID_LeftWidgets (void)
             char seg[32];
             char opn[64];
             char vis[32];
-            const int yy1 = widget_coords ? 0 : 34;
+            const int yy1 = widget_coords ? 0 : 45;
 
             // Sprites
-            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 54 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 25 + yy1, cr[CR_GRAY]);
             M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 54 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 25 + yy1, cr[CR_GREEN]);
 
             // Segments
-            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 63 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 35 + yy1, cr[CR_GRAY]);
             M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 63 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 35 + yy1, cr[CR_GREEN]);
 
             // Openings
-            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 72 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 45 + yy1, cr[CR_GRAY]);
             M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 72 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 45 + yy1, cr[CR_GREEN]);
 
             // Planes
-            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 81 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 55 + yy1, cr[CR_GRAY]);
             M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 81 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 55 + yy1, cr[CR_GREEN]);
         }
 
         // Player coords
@@ -281,16 +281,21 @@ void ID_LeftWidgets (void)
         {
             char str[128];
 
-            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 97, cr[CR_GRAY]);
-            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 106, cr[CR_GRAY]);
-            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 115, cr[CR_GRAY]);
+            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 75, cr[CR_GRAY]);
+            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 85, cr[CR_GRAY]);
+            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 95, cr[CR_GRAY]);
 
             sprintf(str, "%d", IDWidget.x);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 97, cr[CR_GREEN]);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 75, cr[CR_GREEN]);
             sprintf(str, "%d", IDWidget.y);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 106, cr[CR_GREEN]);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 85, cr[CR_GREEN]);
             sprintf(str, "%d", IDWidget.ang);
-            MN_DrTextA(str, 32 - WIDESCREENDELTA, 115, cr[CR_GREEN]);
+            MN_DrTextA(str, 32 - WIDESCREENDELTA, 95, cr[CR_GREEN]);
+        }
+
+        if (automapactive)
+        {
+            yy -= 10;
         }
 
         // K/I/S stats

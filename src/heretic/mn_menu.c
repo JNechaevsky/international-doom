@@ -536,6 +536,7 @@ static boolean M_ID_Widget_Coords (int choice);
 static boolean M_ID_Widget_Render (int choice);
 static boolean M_ID_Widget_Time (int choice);
 static boolean M_ID_Widget_TotalTime (int choice);
+static boolean M_ID_Widget_LevelName (int choice);
 static boolean M_ID_Widget_Health (int choice);
 static boolean M_ID_Automap_Secrets (int choice);
 
@@ -2712,6 +2713,7 @@ static MenuItem_t ID_Menu_Widgets[] = {
     { ITT_LRFUNC, "KIS STATS",           M_ID_Widget_KIS,       0, MENU_NONE },
     { ITT_LRFUNC, "LEVEL/DM TIMER",      M_ID_Widget_Time,      0, MENU_NONE },
     { ITT_LRFUNC, "TOTAL TIME",          M_ID_Widget_TotalTime, 0, MENU_NONE },
+    { ITT_LRFUNC, "LEVEL NAME",          M_ID_Widget_LevelName, 0, MENU_NONE },
     { ITT_LRFUNC, "PLAYER COORDS",       M_ID_Widget_Coords,    0, MENU_NONE },
     { ITT_LRFUNC, "RENDER COUNTERS",     M_ID_Widget_Render,    0, MENU_NONE },
     { ITT_LRFUNC, "TARGET'S HEALTH",     M_ID_Widget_Health,    0, MENU_NONE },
@@ -2724,7 +2726,7 @@ static MenuItem_t ID_Menu_Widgets[] = {
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    11, ID_Menu_Widgets,
+    12, ID_Menu_Widgets,
     0,
     true,
     MENU_ID_MAIN
@@ -2761,46 +2763,34 @@ static void M_Draw_ID_Widgets (void)
     MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 50,
                M_Item_Glow(3, widget_totaltime ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Level name
+    sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
+               M_Item_Glow(4, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
+
     // Player coords
     sprintf(str, widget_coords == 1 ? "ALWAYS"  :
                  widget_coords == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
-               M_Item_Glow(4, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
+               M_Item_Glow(5, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
 
     // Render counters
     sprintf(str, widget_render ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
-               M_Item_Glow(5, widget_render ? GLOW_GREEN : GLOW_DARKRED));
-
-
-
-
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
+               M_Item_Glow(6, widget_render ? GLOW_GREEN : GLOW_DARKRED));
 
     // Target's health
     sprintf(str, widget_health == 1 ? "TOP" :
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
-               M_Item_Glow(6, widget_health ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
+               M_Item_Glow(7, widget_health ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("AUTOMAP", 90, cr[CR_YELLOW]);
+    MN_DrTextACentered("AUTOMAP", 100, cr[CR_YELLOW]);
 
 
     /*
-    // Playstate counters
-    // sprintf(str, crl_widget_playstate == 1 ? "ON" :
-    //              crl_widget_playstate == 2 ? "OVERFLOWS" : "OFF");
-    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 40,
-    //            M_Item_Glow(1, crl_widget_playstate == 1 ? GLOW_GREEN :
-    //                           crl_widget_playstate == 2 ? GLOW_DARKGREEN : GLOW_RED));
-
-
-
-
-
-
-
     // Powerup timers
     // sprintf(str, crl_widget_powerups ? "ON" : "OFF");
     // MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
@@ -2834,6 +2824,12 @@ static boolean M_ID_Widget_Time (int choice)
 static boolean M_ID_Widget_TotalTime (int choice)
 {
     widget_totaltime = M_INT_Slider(widget_totaltime, 0, 2, choice);
+    return true;
+}
+
+static boolean M_ID_Widget_LevelName (int choice)
+{
+    widget_levelname ^= 1;
     return true;
 }
 

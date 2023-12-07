@@ -1568,11 +1568,41 @@ void AM_drawCrosshair(int color)
     fb[(f_w * (f_h + 1)) / 2] = color;  // single point for now
 }
 
-void AM_Drawer(void)
+// -----------------------------------------------------------------------------
+// AM_LevelNameDrawer
+// -----------------------------------------------------------------------------
+
+void AM_LevelNameDrawer (void)
 {
     char *level_name;
     int numepisodes;
 
+    if (gamemode == retail)
+    {
+        numepisodes = 5;
+    }
+    else
+    {
+        numepisodes = 3;
+    }
+
+    if (gameepisode <= numepisodes && gamemap < 10)
+    {
+        level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
+        MN_DrTextA(DEH_String(level_name), 20, 145, NULL);
+    }
+
+
+    /*
+    static char str[128];
+
+    sprintf(str, "%s", level_name);
+    M_WriteText(0 - WIDESCREENDELTA, 160, str, NULL);
+    */
+}
+
+void AM_Drawer(void)
+{
     if (!automapactive)
         return;
 
@@ -1592,20 +1622,12 @@ void AM_Drawer(void)
         AM_drawkeys();
     }
 
-    if (gamemode == retail)
+    // [JN] Draw level name only if Level Name widget is set to "automap".
+    if (!widget_levelname)
     {
-        numepisodes = 5;
-    }
-    else
-    {
-        numepisodes = 3;
+        AM_LevelNameDrawer();
     }
 
-    if (gameepisode <= numepisodes && gamemap < 10)
-    {
-        level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
-        MN_DrTextA(DEH_String(level_name), 20, 145, NULL);
-    }
 //  I_Update();
 //  V_MarkRect(f_x, f_y, f_w, f_h);
 }

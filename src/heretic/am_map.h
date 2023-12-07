@@ -114,5 +114,6 @@ extern vertex_t KeyPoints[];
 
 extern void AM_Start (void);
 extern void AM_LevelInit (boolean reinit);
+extern void AM_LevelNameDrawer (void);
 
 #endif

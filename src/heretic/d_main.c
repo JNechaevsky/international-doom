@@ -204,6 +204,12 @@ void D_Display(void)
                 BorderNeedRefresh = true;
             }
 
+            // [JN] Allow to draw level name separately from automap.
+            if (widget_levelname)
+            {
+                AM_LevelNameDrawer();
+            }
+
             // [crispy] demo timer widget
             if (demoplayback && (demo_timer == 1 || demo_timer == 3))
             {
