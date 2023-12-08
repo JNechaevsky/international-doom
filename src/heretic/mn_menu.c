@@ -2567,7 +2567,7 @@ static boolean M_Bind_Reset (int option)
 {
     MenuActive = false;
     askforquit = true;
-    typeofask = 5;      // [JN] keybinds reset
+    typeofask = 6;      // [JN] keybinds reset
     return true;
 }
 
@@ -2701,7 +2701,7 @@ static boolean M_Bind_M_Reset (int option)
 {
     MenuActive = false;
     askforquit = true;
-    typeofask = 6;      // [JN] mouse binds reset
+    typeofask = 7;      // [JN] mouse binds reset
     return true;
 }
 
@@ -3704,8 +3704,9 @@ char *QuitEndMsg[] = {
     "ARE YOU SURE YOU WANT TO END THE GAME?",
     "DO YOU WANT TO QUICKSAVE THE GAME NAMED",
     "DO YOU WANT TO QUICKLOAD THE GAME NAMED",
-    "RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",  // [JN] typeofask 5 (reset keyboard binds)
-    "RESET MOUSE BINDINGS TO DEFAULT VALUES?",     // [JN] typeofask 6 (reset mouse binds)
+    "DO YOU WANT TO DELETE THE GAME NAMED",        // [crispy] typeofask 5 (delete a savegame)
+    "RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",  // [JN] typeofask 6 (reset keyboard binds)
+    "RESET MOUSE BINDINGS TO DEFAULT VALUES?",     // [JN] typeofask 7 (reset mouse binds)
 };
 
 void MN_Drawer(void)
@@ -3725,7 +3726,7 @@ void MN_Drawer(void)
 
             // [JN] Keep backgound filling while asking for 
             // reset and inform about Y or N pressing.
-            if (typeofask == 5 || typeofask == 6)
+            if (typeofask == 6 || typeofask == 7)
             {
                 M_FillBackground();
                 MN_DrTextACentered("PRESS Y OR N.", 100, NULL);
@@ -3745,6 +3746,13 @@ void MN_Drawer(void)
                            MN_TextAWidth(SlotText[quickload - 1]) / 2, 90, NULL);
                 MN_DrTextA(DEH_String("?"), 160 +
                            MN_TextAWidth(SlotText[quickload - 1]) / 2, 90, NULL);
+            }
+            if (typeofask == 5)
+            {
+                MN_DrTextA(SlotText[CurrentItPos], 160 -
+                           MN_TextAWidth(SlotText[CurrentItPos]) / 2, 90, NULL);
+                MN_DrTextA(DEH_String("?"), 160 +
+                           MN_TextAWidth(SlotText[CurrentItPos]) / 2, 90, NULL);
             }
             UpdateState |= I_FULLSCRN;
         }
@@ -4097,6 +4105,25 @@ static boolean SCLoadGame(int option)
     return true;
 }
 
+static boolean SCDeleteGame(int option)
+{
+    char *filename;
+
+    if (!SlotStatus[option])
+    {
+        return false;
+    }
+
+    filename = SV_Filename(option);
+    remove(filename);
+    free(filename);
+
+    MN_LoadSlotText();
+    BorderNeedRefresh = true;
+
+    return true;
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC SCSaveGame
@@ -4345,6 +4372,14 @@ static int G_GotoNextLevel(void)
     }
 
     return changed;
+}
+
+static void MN_ReturnToMenu (void)
+{
+	Menu_t *cur = CurrentMenu;
+	MN_ActivateMenu();
+	CurrentMenu = cur;
+	CurrentItPos = CurrentMenu->oldItPos;
 }
 
 //---------------------------------------------------------------------------
@@ -4603,22 +4638,29 @@ boolean MN_Responder(event_t * event)
                     BorderNeedRefresh = true;
                     break;
 
-                case 5: // [JN] Reset keybinds.
+                case 5:
+                    SCDeleteGame(CurrentItPos);
+                    memset(SlotText[currentSlot], 0, SLOTTEXTLEN + 2);
+                    BorderNeedRefresh = true;
+                    MN_ReturnToMenu();
+                    break;
+
+                case 6: // [JN] Reset keybinds.
                     M_ResetBinds();
                     if (!netgame && !demoplayback)
                     {
                         paused = true;
                     }
-                    MenuActive = true;
+                    MN_ReturnToMenu();
                     break;
 
-                case 6: // [JN] Reset mouse binds.
+                case 7: // [JN] Reset mouse binds.
                     M_ResetMouseBinds();
                     if (!netgame && !demoplayback)
                     {
                         paused = true;
                     }
-                    MenuActive = true;
+                    MN_ReturnToMenu();
                     break;
 
                 default:
@@ -4633,7 +4675,7 @@ boolean MN_Responder(event_t * event)
         else if (key == key_menu_abort || key == KEY_ESCAPE)
         {
             // [JN] Do not close keybindings menu after reset canceling.
-            if (typeofask == 5 || typeofask == 6)
+            if (typeofask == 6 || typeofask == 7)
             {
                 if (!netgame && !demoplayback)
                 {
@@ -5042,6 +5084,20 @@ boolean MN_Responder(event_t * event)
         // [crispy] delete a savegame
         else if (key == key_menu_del)
         {
+            if (CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
+            {
+                if (SlotStatus[CurrentItPos])
+                {
+                    MenuActive = false;
+                    askforquit = true;
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    typeofask = 5;
+                    S_StartSound(NULL, sfx_chat);
+                }
+            }
             // [JN] ...or clear key bind.
             if (KBD_BIND_MENUS)
             {
