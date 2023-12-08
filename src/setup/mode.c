@@ -50,6 +50,14 @@ static mission_config_t mission_configs[] =
         "doom",
         PROGRAM_PREFIX "doom.ini",
         PROGRAM_PREFIX "doom"
+    },
+    {
+        "Heretic",
+        heretic,
+        IWAD_MASK_HERETIC,
+        "heretic",
+        PROGRAM_PREFIX "heretic.ini",
+        PROGRAM_PREFIX "heretic"
     }
 };
 

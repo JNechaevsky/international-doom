@@ -418,18 +418,18 @@ void WI_drawLF(void)
     if (gamemode != commercial || wbs->last < NUMCMAPS)
     {
         // draw <LevelName> 
-        V_DrawShadowedPatch((ORIGWIDTH - SHORT(lnames[wbs->last]->width))/2,
-                    y, lnames[wbs->last]);
+        V_DrawShadowedPatchOptional((ORIGWIDTH - SHORT(lnames[wbs->last]->width))/2,
+                    y, 0, lnames[wbs->last]);
 
         // draw "Finished!"
         y += (5*SHORT(lnames[wbs->last]->height))/4;
 
-        V_DrawShadowedPatch((ORIGWIDTH - SHORT(finished->width)) / 2, y, finished);
+        V_DrawShadowedPatchOptional((ORIGWIDTH - SHORT(finished->width)) / 2, y, 0, finished);
     }
     else if (wbs->last == NUMCMAPS)
     {
         // MAP33 - draw "Finished!" only
-        V_DrawShadowedPatch((ORIGWIDTH - SHORT(finished->width)) / 2, y, finished);
+        V_DrawShadowedPatchOptional((ORIGWIDTH - SHORT(finished->width)) / 2, y, 0, finished);
     }
     else if (wbs->last > NUMCMAPS)
     {
@@ -441,7 +441,7 @@ void WI_drawLF(void)
         patch_t tmp = { ORIGWIDTH, ORIGHEIGHT, 1, 1,
                         { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-        V_DrawShadowedPatch(0, y, &tmp);
+        V_DrawShadowedPatchOptional(0, y, 0, &tmp);
     }
 }
 
@@ -453,15 +453,15 @@ void WI_drawEL(void)
     int y = WI_TITLEY;
 
     // draw "Entering"
-    V_DrawShadowedPatch((ORIGWIDTH - SHORT(entering->width))/2,
-		y,
+    V_DrawShadowedPatchOptional((ORIGWIDTH - SHORT(entering->width))/2,
+		y, 0,
                 entering);
 
     // draw level
     y += (5*SHORT(lnames[wbs->next]->height))/4;
 
-    V_DrawShadowedPatch((ORIGWIDTH - SHORT(lnames[wbs->next]->width))/2,
-		y, 
+    V_DrawShadowedPatchOptional((ORIGWIDTH - SHORT(lnames[wbs->next]->width))/2,
+		y, 0,
                 lnames[wbs->next]);
 
 }
@@ -502,8 +502,8 @@ WI_drawOnLnode
 
     if (fits && i<2)
     {
-	V_DrawShadowedPatch(lnodes[wbs->epsd][n].x,
-                    lnodes[wbs->epsd][n].y,
+	V_DrawShadowedPatchOptional(lnodes[wbs->epsd][n].x,
+                    lnodes[wbs->epsd][n].y, 0,
 		    c[i]);
     }
     else
@@ -675,13 +675,13 @@ WI_drawNum
     while (digits--)
     {
 	x -= fontwidth;
-	V_DrawShadowedPatch(x, y, num[ n % 10 ]);
+	V_DrawShadowedPatchOptional(x, y, 0, num[ n % 10 ]);
 	n /= 10;
     }
 
     // draw a minus sign if necessary
     if (neg && wiminus)
-	V_DrawShadowedPatch(x-=8, y, wiminus);
+	V_DrawShadowedPatchOptional(x-=8, y, 0, wiminus);
 
     return x;
 
@@ -696,7 +696,7 @@ WI_drawPercent
     if (p < 0)
 	return;
 
-    V_DrawShadowedPatch(x, y, percent);
+    V_DrawShadowedPatchOptional(x, y, 0, percent);
     WI_drawNum(x, y, p, -1);
 }
 
@@ -732,7 +732,7 @@ WI_drawTime
 
 	    // draw
 	    if (div==60 || t / div)
-		V_DrawShadowedPatch(x, y, colon);
+		V_DrawShadowedPatchOptional(x, y, 0, colon);
 	    
 	} while (t / div && div < 3600);
 
@@ -745,7 +745,7 @@ WI_drawTime
     else
     {
 	// "sucks"
-	V_DrawShadowedPatch(x - SHORT(sucks->width), y, sucks);
+	V_DrawShadowedPatchOptional(x - SHORT(sucks->width), y, 0, sucks);
     }
 }
 
@@ -1044,12 +1044,12 @@ void WI_drawDeathmatchStats(void)
     WI_drawLF();
 
     // draw stat titles (top line)
-    V_DrawShadowedPatch(DM_TOTALSX-SHORT(total->width)/2,
-		DM_MATRIXY-WI_SPACINGY+10,
+    V_DrawShadowedPatchOptional(DM_TOTALSX-SHORT(total->width)/2,
+		DM_MATRIXY-WI_SPACINGY+10, 0,
 		total);
     
-    V_DrawShadowedPatch(DM_KILLERSX, DM_KILLERSY, killers);
-    V_DrawShadowedPatch(DM_VICTIMSX, DM_VICTIMSY, victims);
+    V_DrawShadowedPatchOptional(DM_KILLERSX, DM_KILLERSY, 0, killers);
+    V_DrawShadowedPatchOptional(DM_VICTIMSX, DM_VICTIMSY, 0, victims);
 
     // draw P?
     x = DM_MATRIXX + DM_SPACINGX;
@@ -1059,12 +1059,12 @@ void WI_drawDeathmatchStats(void)
     {
 	if (playeringame[i])
 	{
-	    V_DrawShadowedPatch(x-SHORT(p[i]->width)/2,
-			DM_MATRIXY - WI_SPACINGY,
+	    V_DrawShadowedPatchOptional(x-SHORT(p[i]->width)/2,
+			DM_MATRIXY - WI_SPACINGY, 0,
 			p[i]);
 	    
-	    V_DrawShadowedPatch(DM_MATRIXX-SHORT(p[i]->width)/2,
-			y,
+	    V_DrawShadowedPatchOptional(DM_MATRIXX-SHORT(p[i]->width)/2,
+			y, 0,
 			p[i]);
 
 	    if (i == me)
@@ -1314,18 +1314,18 @@ void WI_drawNetgameStats(void)
     WI_drawLF();
 
     // draw stat titles (top line)
-    V_DrawShadowedPatch(NG_STATSX+NG_SPACINGX-SHORT(kills->width),
-		NG_STATSY, kills);
+    V_DrawShadowedPatchOptional(NG_STATSX+NG_SPACINGX-SHORT(kills->width),
+		NG_STATSY, 0, kills);
 
-    V_DrawShadowedPatch(NG_STATSX+2*NG_SPACINGX-SHORT(items->width),
-		NG_STATSY, items);
+    V_DrawShadowedPatchOptional(NG_STATSX+2*NG_SPACINGX-SHORT(items->width),
+		NG_STATSY, 0, items);
 
-    V_DrawShadowedPatch(NG_STATSX+3*NG_SPACINGX-SHORT(secret->width),
-		NG_STATSY, secret);
+    V_DrawShadowedPatchOptional(NG_STATSX+3*NG_SPACINGX-SHORT(secret->width),
+		NG_STATSY, 0, secret);
     
     if (dofrags)
-	V_DrawShadowedPatch(NG_STATSX+4*NG_SPACINGX-SHORT(frags->width),
-		    NG_STATSY, frags);
+	V_DrawShadowedPatchOptional(NG_STATSX+4*NG_SPACINGX-SHORT(frags->width),
+		    NG_STATSY, 0, frags);
 
     // draw stats
     y = NG_STATSY + SHORT(kills->height);
@@ -1336,7 +1336,7 @@ void WI_drawNetgameStats(void)
 	    continue;
 
 	x = NG_STATSX;
-	V_DrawShadowedPatch(x-SHORT(p[i]->width), y, p[i]);
+	V_DrawShadowedPatchOptional(x-SHORT(p[i]->width), y, 0, p[i]);
 
 	if (i == me)
 	    V_DrawPatch(x-SHORT(p[i]->width), y, star);
@@ -1488,16 +1488,16 @@ void WI_drawStats(void)
     
     WI_drawLF();
 
-    V_DrawShadowedPatch(SP_STATSX, SP_STATSY, kills);
+    V_DrawShadowedPatchOptional(SP_STATSX, SP_STATSY, 0, kills);
     WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY, cnt_kills[0]);
 
-    V_DrawShadowedPatch(SP_STATSX, SP_STATSY+lh, items);
+    V_DrawShadowedPatchOptional(SP_STATSX, SP_STATSY+lh, 0, items);
     WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY+lh, cnt_items[0]);
 
-    V_DrawShadowedPatch(SP_STATSX, SP_STATSY+2*lh, sp_secret);
+    V_DrawShadowedPatchOptional(SP_STATSX, SP_STATSY+2*lh, 0, sp_secret);
     WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
 
-    V_DrawShadowedPatch(SP_TIMEX, SP_TIMEY, timepatch);
+    V_DrawShadowedPatchOptional(SP_TIMEX, SP_TIMEY, 0, timepatch);
     WI_drawTime(ORIGWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
 
 	// [JN] Extra conditions for PAR time drawing:
@@ -1505,7 +1505,7 @@ void WI_drawStats(void)
     || (wbs->epsd == 3 && singleplayer)  // Episode 4
     ||  wbs->epsd == 4)                  // Sigil
     {
-        V_DrawShadowedPatch(ORIGWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
+        V_DrawShadowedPatchOptional(ORIGWIDTH/2 + SP_TIMEX, SP_TIMEY, 0, par);
         WI_drawTime(ORIGWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
     }
 
@@ -1515,7 +1515,7 @@ void WI_drawStats(void)
 	const int ttime = wbs->totaltimes / TICRATE;
 	const boolean wide = (ttime > 61*59) || (SP_TIMEX + SHORT(total->width) >= ORIGWIDTH/4);
 
-	V_DrawShadowedPatch((SP_TIMEX), SP_TIMEY + 16, total);
+	V_DrawShadowedPatchOptional((SP_TIMEX), SP_TIMEY + 16, 0, total);
 	// [crispy] choose x-position depending on width of time string
 	WI_drawTime((wide ? ORIGWIDTH : ORIGWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, ttime, false);
     }

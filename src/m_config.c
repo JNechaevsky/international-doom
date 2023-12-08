@@ -252,6 +252,21 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_fire),
     CONFIG_VARIABLE_KEY(key_use),
 
+    // Heretic: View
+    CONFIG_VARIABLE_KEY(key_lookup),
+    CONFIG_VARIABLE_KEY(key_lookdown),
+    CONFIG_VARIABLE_KEY(key_lookcenter),
+
+    // Heretic: Fly
+    CONFIG_VARIABLE_KEY(key_flyup),
+    CONFIG_VARIABLE_KEY(key_flydown),
+    CONFIG_VARIABLE_KEY(key_flycenter),
+
+    // Heretic: Inventory
+    CONFIG_VARIABLE_KEY(key_invleft),
+    CONFIG_VARIABLE_KEY(key_invright),
+    CONFIG_VARIABLE_KEY(key_useartifact),
+
     // Advanced movement
     CONFIG_VARIABLE_KEY(key_autorun),
     CONFIG_VARIABLE_KEY(key_mouse_look),
@@ -261,6 +276,18 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_nextlevel),
     CONFIG_VARIABLE_KEY(key_demospeed),
     CONFIG_VARIABLE_KEY(key_flip_levels),
+
+    // Heretic: Artifacts
+    CONFIG_VARIABLE_KEY(key_arti_quartz),
+    CONFIG_VARIABLE_KEY(key_arti_urn),
+    CONFIG_VARIABLE_KEY(key_arti_bomb),
+    CONFIG_VARIABLE_KEY(key_arti_tome),
+    CONFIG_VARIABLE_KEY(key_arti_ring),
+    CONFIG_VARIABLE_KEY(key_arti_chaosdevice),
+    CONFIG_VARIABLE_KEY(key_arti_shadowsphere),
+    CONFIG_VARIABLE_KEY(key_arti_wings),
+    CONFIG_VARIABLE_KEY(key_arti_torch),
+    CONFIG_VARIABLE_KEY(key_arti_morph),
 
     // RestlessRodent -- CRL (Special modes)
     CONFIG_VARIABLE_KEY(key_spectator),
@@ -314,6 +341,8 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_pause),
     CONFIG_VARIABLE_KEY(key_menu_screenshot),
     CONFIG_VARIABLE_KEY(key_message_refresh),
+    // [JN] Heretic using ENTER for afrtifacts activation.
+    CONFIG_VARIABLE_KEY(key_message_refresh_hr),
     CONFIG_VARIABLE_KEY(key_demo_quit),
 
     // Multiplayer
@@ -371,6 +400,11 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(mouseb_backward),
     CONFIG_VARIABLE_INT(mouseb_prevweapon),
     CONFIG_VARIABLE_INT(mouseb_nextweapon),
+
+    // Heretic: Inventory
+    CONFIG_VARIABLE_INT(mouseb_invleft),
+    CONFIG_VARIABLE_INT(mouseb_invright),
+    CONFIG_VARIABLE_INT(mouseb_useartifact),
 
     //
     // Joystick controls

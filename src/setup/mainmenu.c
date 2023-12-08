@@ -57,7 +57,7 @@ static void SetIcon(void)
 
 static void SetWindowTitle(void)
 {
-    TXT_SetDesktopTitle("International Doom multiplayer launcher");
+    TXT_SetDesktopTitle("Multiplayer launcher");
 }
 
 // Initialize the textscreen library.

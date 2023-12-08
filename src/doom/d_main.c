@@ -123,6 +123,7 @@ boolean havessg = false;
 // [JN] Defaulted values
 // -----------------------------------------------------------------------------
 
+int vid_diskicon = 1;
 int vid_endoom = 0;       // [JN] Disabled by default
 int dp_detail_level = 0;  // Blocky mode, has default, 0 = high, 1 = normal
 int showMessages = 1;     // Show messages has default, 0 = off, 1 = on
@@ -225,6 +226,15 @@ static void D_Display (void)
         return;  // for comparative timing / profiling
     }
 
+    // [crispy] post-rendering function pointer to apply config changes
+    // that affect rendering and that are better applied after the current
+    // frame has finished rendering
+    if (post_rendering_hook)
+    {
+        post_rendering_hook();
+        post_rendering_hook = NULL;
+    }
+
     // change the view size if needed
     if (setsizeneeded)
     {
@@ -317,7 +327,7 @@ static void D_Display (void)
 	    y = 4;
 	else
 	    y = (viewwindowy >> vid_hires)+4;
-	V_DrawShadowedPatch((viewwindowx >> vid_hires) + ((scaledviewwidth >> vid_hires) - 68) / 2 - WIDESCREENDELTA, y,
+	V_DrawShadowedPatchOptional((viewwindowx >> vid_hires) + ((scaledviewwidth >> vid_hires) - 68) / 2 - WIDESCREENDELTA, y, 0,
                           W_CacheLumpName (DEH_String("M_PAUSE"), PU_CACHE));
     }
 
@@ -385,15 +395,6 @@ static void D_Display (void)
     M_Drawer ();   // menu is drawn even on top of everything
     NetUpdate ();  // send out any new accumulation
 
-    // [crispy] post-rendering function pointer to apply config changes
-    // that affect rendering and that are better applied after the current
-    // frame has finished rendering
-    if (post_rendering_hook && !wipe)
-    {
-        post_rendering_hook();
-        post_rendering_hook = NULL;
-    }
-
     // normal update
     if (!wipe)
     {
@@ -444,6 +445,7 @@ void D_BindVariables(void)
 
     NET_BindVariables();
 
+    M_BindIntVariable("key_message_refresh",    &key_message_refresh);
     M_BindIntVariable("mouse_sensitivity",      &mouseSensitivity);
     M_BindIntVariable("sfx_volume",             &sfxVolume);
     M_BindIntVariable("music_volume",           &musicVolume);

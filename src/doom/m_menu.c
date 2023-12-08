@@ -816,23 +816,10 @@ static void M_ShadeBackground (void)
 
 static void M_FillBackground (void)
 {
-    int x, y;
     const byte *src = W_CacheLumpName("FLOOR4_8", PU_CACHE);
     pixel_t *dest = I_VideoBuffer;
 
-    for (y = 0 ; y < SCREENHEIGHT; y++)
-    {
-        for (x = 0; x < SCREENWIDTH; x++)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *dest++ = src[(((y >> vid_hires) & 63) << 6) 
-                         + ((x >> vid_hires) & 63)];
-#else
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
-                                   + ((x >> vid_hires) & 63)]];
-#endif
-        }
-    }
+    V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 }
 
 enum
@@ -3520,6 +3507,7 @@ static void M_ID_FloatingPowerups(int choice)
 static void M_ID_WeaponAlignment (int choice)
 {
     phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice);
+    pspr_interp = false;
 }
 
 static void M_ID_Breathing (int choice)
@@ -4430,7 +4418,7 @@ static void M_DrawLoad(void)
     int             i;
 	
     M_ShadeBackground();
-    V_DrawShadowedPatch(72, 7, W_CacheLumpName(DEH_String("M_LOADG"), PU_CACHE));
+    V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_LOADG"), PU_CACHE));
 
     for (i = 0;i < load_end; i++)
     {
@@ -4450,15 +4438,15 @@ static void M_DrawSaveLoadBorder(int x,int y)
 {
     int             i;
 	
-    V_DrawShadowedPatch(x - 8, y, W_CacheLumpName(DEH_String("M_LSLEFT"), PU_CACHE));
+    V_DrawShadowedPatchOptional(x - 8, y, 0, W_CacheLumpName(DEH_String("M_LSLEFT"), PU_CACHE));
 	
     for (i = 0;i < 24;i++)
     {
-	V_DrawShadowedPatch(x, y, W_CacheLumpName(DEH_String("M_LSCNTR"), PU_CACHE));
+	V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(DEH_String("M_LSCNTR"), PU_CACHE));
 	x += 8;
     }
 
-    V_DrawShadowedPatch(x, y, W_CacheLumpName(DEH_String("M_LSRGHT"), PU_CACHE));
+    V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(DEH_String("M_LSRGHT"), PU_CACHE));
 }
 
 
@@ -4501,7 +4489,7 @@ static void M_DrawSave(void)
     int             i;
 	
     M_ShadeBackground();
-    V_DrawShadowedPatch(72, 7, W_CacheLumpName(DEH_String("M_SAVEG"), PU_CACHE));
+    V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_SAVEG"), PU_CACHE));
     for (i = 0;i < load_end; i++)
     {
 	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
@@ -4683,7 +4671,7 @@ static void M_DrawSound(void)
 
     M_ShadeBackground();
 
-    V_DrawShadowedPatch(60, 38, W_CacheLumpName(DEH_String("M_SVOL"), PU_CACHE));
+    V_DrawShadowedPatchOptional(60, 38, 0, W_CacheLumpName(DEH_String("M_SVOL"), PU_CACHE));
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (sfx_vol + 1), 16, sfxVolume);
     sprintf(str,"%d", sfxVolume);
@@ -4751,8 +4739,8 @@ static void M_DrawNewGame(void)
 {
     M_ShadeBackground();
 
-    V_DrawShadowedPatch(96, 14, W_CacheLumpName(DEH_String("M_NEWG"), PU_CACHE));
-    V_DrawShadowedPatch(54, 38, W_CacheLumpName(DEH_String("M_SKILL"), PU_CACHE));
+    V_DrawShadowedPatchOptional(96, 14, 0, W_CacheLumpName(DEH_String("M_NEWG"), PU_CACHE));
+    V_DrawShadowedPatchOptional(54, 38, 0, W_CacheLumpName(DEH_String("M_SKILL"), PU_CACHE));
 }
 
 static void M_NewGame(int choice)
@@ -4781,7 +4769,7 @@ static void M_DrawEpisode(void)
 {
     M_ShadeBackground();
 
-    V_DrawShadowedPatch(54, 38, W_CacheLumpName(DEH_String("M_EPISOD"), PU_CACHE));
+    V_DrawShadowedPatchOptional(54, 38, 0, W_CacheLumpName(DEH_String("M_EPISOD"), PU_CACHE));
 }
 
 static void M_VerifyNightmare(int key)
@@ -5038,14 +5026,14 @@ M_DrawThermo
     int		i;
 
     xx = x;
-    V_DrawShadowedPatch(xx, y, W_CacheLumpName(DEH_String("M_THERML"), PU_CACHE));
+    V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERML"), PU_CACHE));
     xx += 8;
     for (i=0;i<thermWidth;i++)
     {
-	V_DrawShadowedPatch(xx, y, W_CacheLumpName(DEH_String("M_THERMM"), PU_CACHE));
+	V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERMM"), PU_CACHE));
 	xx += 8;
     }
-    V_DrawShadowedPatch(xx, y, W_CacheLumpName(DEH_String("M_THERMR"), PU_CACHE));
+    V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERMR"), PU_CACHE));
 
     // [crispy] do not crash anymore if value exceeds thermometer range
     if (thermDot >= thermWidth)
@@ -5159,7 +5147,7 @@ void M_WriteText (int x, int y, const char *string, byte *table)
             break;
         }
 
-        V_DrawShadowedPatch(cx, cy, hu_font[c]);
+        V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
         cx+=w;
     }
 
@@ -5231,7 +5219,7 @@ void M_WriteTextCentered (const int y, const char *string, byte *table)
             break;
         }
         
-        V_DrawShadowedPatch(cx, cy, hu_font[c]);
+        V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
         cx += w;
     }
     
@@ -6237,7 +6225,7 @@ void M_Drawer (void)
         {
             if (name[0])
             {
-                V_DrawShadowedPatch(x, y, W_CacheLumpName(name, PU_CACHE));
+                V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(name, PU_CACHE));
             }
             y += LINEHEIGHT;
         }
@@ -6251,7 +6239,7 @@ void M_Drawer (void)
     else
     {
         // DRAW SKULL
-        V_DrawShadowedPatch(x + SKULLXOFF, currentMenu->y - 5 + itemOn*LINEHEIGHT,
+        V_DrawShadowedPatchOptional(x + SKULLXOFF, currentMenu->y - 5 + itemOn*LINEHEIGHT, 0,
                             W_CacheLumpName(DEH_String(skullName[whichSkull]), PU_CACHE));
     }
 }
@@ -6524,18 +6512,19 @@ static void M_CheckBind (int key)
     if (key_prevweapon == key)       key_prevweapon       = 0;
     if (key_nextweapon == key)       key_nextweapon       = 0;
     // Page 4
-    if (currentMenu == &ID_Def_Keybinds_1)
-    {
     if (key_map_toggle == key)       key_map_toggle       = 0;
-    if (key_map_zoomin == key)       key_map_zoomin       = 0;
-    if (key_map_zoomout == key)      key_map_zoomout      = 0;
-    if (key_map_maxzoom == key)      key_map_maxzoom      = 0;
-    if (key_map_follow == key)       key_map_follow       = 0;
-    if (key_map_rotate == key)       key_map_rotate       = 0;
-    if (key_map_overlay == key)      key_map_overlay      = 0;
-    if (key_map_grid == key)         key_map_grid         = 0;
-    if (key_map_mark == key)         key_map_mark         = 0;
-    if (key_map_clearmark == key)    key_map_clearmark    = 0;
+    // Do not override Automap binds in other pages.
+    if (currentMenu == &ID_Def_Keybinds_4)
+    {
+        if (key_map_zoomin == key)     key_map_zoomin     = 0;
+        if (key_map_zoomout == key)    key_map_zoomout    = 0;
+        if (key_map_maxzoom == key)    key_map_maxzoom    = 0;
+        if (key_map_follow == key)     key_map_follow     = 0;
+        if (key_map_rotate == key)     key_map_rotate     = 0;
+        if (key_map_overlay == key)    key_map_overlay    = 0;
+        if (key_map_grid == key)       key_map_grid       = 0;
+        if (key_map_mark == key)       key_map_mark       = 0;
+        if (key_map_clearmark == key)  key_map_clearmark  = 0;
     }
     // Page 5
     if (key_menu_help == key)        key_menu_help        = 0;
@@ -6556,12 +6545,13 @@ static void M_CheckBind (int key)
     if (key_message_refresh == key)  key_message_refresh  = 0;
     if (key_demo_quit == key)        key_demo_quit        = 0;
     if (key_multi_msg == key)        key_multi_msg        = 0;
+    // Do not override Send To binds in other pages.
     if (currentMenu == &ID_Def_Keybinds_6)
     {
-    if (key_multi_msgplayer[0] == key) key_multi_msgplayer[0] = 0;
-    if (key_multi_msgplayer[1] == key) key_multi_msgplayer[1] = 0;
-    if (key_multi_msgplayer[2] == key) key_multi_msgplayer[2] = 0;
-    if (key_multi_msgplayer[3] == key) key_multi_msgplayer[3] = 0;
+        if (key_multi_msgplayer[0] == key) key_multi_msgplayer[0] = 0;
+        if (key_multi_msgplayer[1] == key) key_multi_msgplayer[1] = 0;
+        if (key_multi_msgplayer[2] == key) key_multi_msgplayer[2] = 0;
+        if (key_multi_msgplayer[3] == key) key_multi_msgplayer[3] = 0;
     }
 }
 

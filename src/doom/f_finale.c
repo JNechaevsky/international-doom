@@ -380,6 +380,9 @@ static inline boolean F_AddLineBreak (char *c)
 }
 void F_TextWrite (void)
 {
+    byte*	src;
+    pixel_t*	dest;
+
     int		w;
     signed int	count;
     char *ch; // [crispy] un-const
@@ -388,8 +391,11 @@ void F_TextWrite (void)
     int		cy;
     
     // erase the entire screen to a tiled background
-    // [JN] Use simplified function.
-    V_FillFlat(finaleflat);
+    src = W_CacheLumpName ( finaleflat , PU_CACHE);
+    dest = I_VideoBuffer;
+
+    // [crispy] use unified flat filling function
+    V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 	
     V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
     
@@ -436,7 +442,7 @@ void F_TextWrite (void)
 	{
 	    break;
 	}
-	V_DrawShadowedPatch(cx, cy, hu_font[c]);
+	V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
 	cx+=w;
     }
 	

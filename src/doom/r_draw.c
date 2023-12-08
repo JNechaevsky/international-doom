@@ -1093,19 +1093,8 @@ void R_FillBackScreen (void)
     src = W_CacheLumpName(name, PU_CACHE); 
     dest = background_buffer;
 	 
-    for (y=0 ; y<SCREENHEIGHT-SBARHEIGHT ; y++) 
-    {
-        for (x = 0; x < SCREENWIDTH; x++)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *dest++ = src[(((y >> vid_hires) & 63) << 6) 
-                         + ((x >> vid_hires) & 63)];
-#else
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
-                                   + ((x >> vid_hires) & 63)]];
-#endif
-        }
-    }
+    // [crispy] use unified flat filling function
+    V_FillFlat(0, SCREENHEIGHT-SBARHEIGHT, 0, SCREENWIDTH, src, dest);
      
     // Draw screen and bezel; this is done to a separate screen buffer.
 
@@ -1162,9 +1151,8 @@ R_VideoErase
   //  is not optiomal, e.g. byte by byte on
   //  a 32bit CPU, as GNU GCC/Linux libc did
   //  at one point.
-  // [JN] No-op until post_rendering_hook is finished.
 
-    if (background_buffer != NULL && !post_rendering_hook)
+    if (background_buffer != NULL)
     {
         memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count * sizeof(*I_VideoBuffer));
     }

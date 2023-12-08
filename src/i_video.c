@@ -67,7 +67,7 @@ static SDL_Renderer *renderer;
 
 // Window title
 
-static char *window_title = "";
+static const char *window_title = "";
 
 // [JN] Defines window title composition:
 // 1 - only game name will appear.
@@ -110,6 +110,7 @@ static SDL_Texture *grnpane = NULL;
 static int pane_alpha;
 static unsigned int rmask, gmask, bmask, amask; // [crispy] moved up here
 static const uint8_t blend_alpha = 184; // [JN] Increased opacity from 0xa8 (168).
+static const uint8_t blend_alpha_tinttab = 0x60;
 extern pixel_t* colormaps; // [crispy] evil hack to get FPS dots working as in Vanilla
 #else
 static SDL_Color palette[256];
@@ -1168,7 +1169,7 @@ void I_SetPalette (int palette)
 // Set the window title
 //
 
-void I_SetWindowTitle(char *title)
+void I_SetWindowTitle(const char *title)
 {
     window_title = title;
 }
@@ -2015,6 +2016,16 @@ const pixel_t I_BlendOver (const pixel_t bg, const pixel_t fg)
 	return amask | r | g | b;
 }
 
+// [crispy] TINTTAB blending emulation, used for Heretic and Hexen
+const pixel_t I_BlendOverTinttab (const pixel_t bg, const pixel_t fg)
+{
+	const uint32_t r = ((blend_alpha_tinttab * (fg & rmask) + (0xff - blend_alpha_tinttab) * (bg & rmask)) >> 8) & rmask;
+	const uint32_t g = ((blend_alpha_tinttab * (fg & gmask) + (0xff - blend_alpha_tinttab) * (bg & gmask)) >> 8) & gmask;
+	const uint32_t b = ((blend_alpha_tinttab * (fg & bmask) + (0xff - blend_alpha_tinttab) * (bg & bmask)) >> 8) & bmask;
+
+	return amask | r | g | b;
+}
+
 const pixel_t (*blendfunc) (const pixel_t fg, const pixel_t bg) = I_BlendOver;
 
 const pixel_t I_MapRGB (const uint8_t r, const uint8_t g, const uint8_t b)
@@ -2041,6 +2052,16 @@ const pixel_t I_BlendFuzz (const pixel_t bg, const pixel_t fg)
 	const uint32_t r = ((96 * (fg & rmask) + (0xff - 96) * (bg & rmask)) >> 8) & rmask;
 	const uint32_t g = ((96 * (fg & gmask) + (0xff - 96) * (bg & gmask)) >> 8) & gmask;
 	const uint32_t b = ((96 * (fg & bmask) + (0xff - 96) * (bg & bmask)) >> 8) & bmask;
+
+	return amask | r | g | b;
+}
+
+// [JN] Extra translucency blending (50% opacity).
+const pixel_t I_BlendOverExtra (const pixel_t bg, const pixel_t fg)
+{
+	const uint32_t r = ((128 * (fg & rmask) + (0xff - 128) * (bg & rmask)) >> 8) & rmask;
+	const uint32_t g = ((128 * (fg & gmask) + (0xff - 128) * (bg & gmask)) >> 8) & gmask;
+	const uint32_t b = ((128 * (fg & bmask) + (0xff - 128) * (bg & bmask)) >> 8) & bmask;
 
 	return amask | r | g | b;
 }
