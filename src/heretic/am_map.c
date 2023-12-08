@@ -1589,7 +1589,7 @@ void AM_LevelNameDrawer (void)
     if (gameepisode <= numepisodes && gamemap < 10)
     {
         level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
-        MN_DrTextA(DEH_String(level_name), 20, 145, NULL);
+        MN_DrTextA(DEH_String(level_name), 20, 146, NULL);
     }
 
 

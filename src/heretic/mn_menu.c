@@ -176,9 +176,9 @@ boolean askforquit;
 static int typeofask;
 static boolean FileMenuKeySteal;
 static boolean slottextloaded;
-static char SlotText[6][SLOTTEXTLEN + 2];
+static char SlotText[SAVES_PER_PAGE][SLOTTEXTLEN + 2];
 static char oldSlotText[SLOTTEXTLEN + 2];
-static int SlotStatus[6];
+static int SlotStatus[SAVES_PER_PAGE];
 static int slotptr;
 static int currentSlot;
 static int quicksave;
@@ -280,9 +280,9 @@ static MenuItem_t LoadItems[] = {
 };
 
 static Menu_t LoadMenu = {
-    70, 30,
+    70, 26,
     DrawLoadMenu,
-    6, LoadItems,
+    SAVES_PER_PAGE, LoadItems,
     0,
     false,
     MENU_FILES
@@ -298,9 +298,9 @@ static MenuItem_t SaveItems[] = {
 };
 
 static Menu_t SaveMenu = {
-    70, 30,
+    70, 26,
     DrawSaveMenu,
-    6, SaveItems,
+    SAVES_PER_PAGE, SaveItems,
     0,
     false,
     MENU_FILES
@@ -3876,6 +3876,45 @@ static void DrawFilesMenu(void)
     players[consoleplayer].messageTics = 1;
 }
 
+// [crispy] support additional pages of savegames
+static void DrawSaveLoadBottomLine(const Menu_t *menu)
+{
+    char pagestr[16];
+    static short width;
+    const int y = menu->y + ITEM_HEIGHT * SAVES_PER_PAGE;
+
+    if (!width)
+    {
+        const patch_t *const p = W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE);
+        width = SHORT(p->width);
+    }
+    if (savepage > 0)
+        MN_DrTextA("PGUP", menu->x + 1, y, cr[CR_GRAY]);
+    if (savepage < SAVEPAGE_MAX)
+        MN_DrTextA("PGDN", menu->x + width - MN_TextAWidth("PGDN"), y, cr[CR_GRAY]);
+
+    M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, SAVEPAGE_MAX + 1);
+    MN_DrTextA(pagestr, ORIGWIDTH / 2 - MN_TextAWidth(pagestr) / 2, y, cr[CR_GRAY]);
+}
+
+// [JN] Scroll save/load pages by arrows and PGUP/PGDN keys.
+static void M_ScrollSavePages (boolean direction)
+{
+    if (savepage > 0 && !direction)
+    {
+        savepage--;
+        S_StartSound(NULL, sfx_switch);
+    }
+    else
+    if (savepage < SAVEPAGE_MAX && direction)
+    {
+        savepage++;
+        S_StartSound(NULL, sfx_switch);
+    }
+    quicksave = -1;
+    MN_LoadSlotText();
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC DrawLoadMenu
@@ -3888,12 +3927,13 @@ static void DrawLoadMenu(void)
 
     title = DEH_String("LOAD GAME");
 
-    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 10);
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
     }
     DrawFileSlots(&LoadMenu);
+    DrawSaveLoadBottomLine(&LoadMenu);
 }
 
 //---------------------------------------------------------------------------
@@ -3908,12 +3948,13 @@ static void DrawSaveMenu(void)
 
     title = DEH_String("SAVE GAME");
 
-    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 10);
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
     }
     DrawFileSlots(&SaveMenu);
+    DrawSaveLoadBottomLine(&SaveMenu);
 }
 
 //===========================================================================
@@ -3929,7 +3970,7 @@ void MN_LoadSlotText(void)
     int i;
     char *filename;
 
-    for (i = 0; i < 6; i++)
+    for (i = 0; i < SAVES_PER_PAGE; i++)
     {
         int retval;
         filename = SV_Filename(i);
@@ -3963,7 +4004,7 @@ static void DrawFileSlots(Menu_t * menu)
 
     x = menu->x;
     y = menu->y;
-    for (i = 0; i < 6; i++)
+    for (i = 0; i < SAVES_PER_PAGE; i++)
     {
         V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE));
         if (SlotStatus[i])
@@ -4979,8 +5020,12 @@ boolean MN_Responder(event_t * event)
                 item->func(LEFT_DIR);
                 S_StartSound(NULL, sfx_keyup);
             }
+            // [crispy] prev savegame page
+            if (CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
+            {
+                M_ScrollSavePages(false);
+            }
             // [JN] ...or scroll key binds menu backward.
-            else
             if (KBD_BIND_MENUS)
             {
                 M_ScrollKeyBindPages(false);
@@ -4994,8 +5039,12 @@ boolean MN_Responder(event_t * event)
                 item->func(RIGHT_DIR);
                 S_StartSound(NULL, sfx_keyup);
             }
+            // [crispy] next savegame page
+            if (CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
+            {
+                M_ScrollSavePages(true);
+            }
             // [JN] ...or scroll key binds menu forward.
-            else
             if (KBD_BIND_MENUS)
             {
                 M_ScrollKeyBindPages(true);
@@ -5005,13 +5054,17 @@ boolean MN_Responder(event_t * event)
         // [crispy] next/prev Crispness menu
         else if (key == KEY_PGUP)
         {
+            // [crispy] prev savegame page
+            if (CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
+            {
+                M_ScrollSavePages(false);
+            }
             // [JN] ...or scroll key binds menu forward.
             if (KBD_BIND_MENUS)
             {
                 M_ScrollKeyBindPages(false);
             }
             // [JN] ...or scroll gameplay menu backward.
-            else
             if (CurrentMenu == &ID_Def_Gameplay_1 || CurrentMenu == &ID_Def_Gameplay_2
             ||  CurrentMenu == &ID_Def_Gameplay_3)
             {
@@ -5022,13 +5075,17 @@ boolean MN_Responder(event_t * event)
         // [crispy] next/prev Crispness menu
         else if (key == KEY_PGDN)
         {
+            // [crispy] next savegame page
+            if (CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
+            {
+                M_ScrollSavePages(true);
+            }
             // [JN] ...or scroll key binds menu forward.
             if (KBD_BIND_MENUS)
             {
                 M_ScrollKeyBindPages(true);
             }
             // [JN] ...or scroll gameplay menu forward.
-            else
             if (CurrentMenu == &ID_Def_Gameplay_1 || CurrentMenu == &ID_Def_Gameplay_2
             ||  CurrentMenu == &ID_Def_Gameplay_3)
             {
