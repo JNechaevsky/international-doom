@@ -255,24 +255,24 @@ void ID_LeftWidgets (void)
             const int yy1 = widget_coords ? 0 : 45;
 
             // Sprites
-            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 25 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 26 + yy1, cr[CR_GRAY]);
             M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 25 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 26 + yy1, cr[CR_GREEN]);
 
             // Segments
-            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 35 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 36 + yy1, cr[CR_GRAY]);
             M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 35 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 36 + yy1, cr[CR_GREEN]);
 
             // Openings
-            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 45 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 46 + yy1, cr[CR_GRAY]);
             M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 45 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 46 + yy1, cr[CR_GREEN]);
 
             // Planes
-            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 55 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 56 + yy1, cr[CR_GRAY]);
             M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 55 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 56 + yy1, cr[CR_GREEN]);
         }
 
         // Player coords
@@ -281,16 +281,16 @@ void ID_LeftWidgets (void)
         {
             char str[128];
 
-            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 75, cr[CR_GRAY]);
-            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 85, cr[CR_GRAY]);
-            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 95, cr[CR_GRAY]);
+            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 76, cr[CR_GRAY]);
+            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 86, cr[CR_GRAY]);
+            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 96, cr[CR_GRAY]);
 
             sprintf(str, "%d", IDWidget.x);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 75, cr[CR_GREEN]);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 76, cr[CR_GREEN]);
             sprintf(str, "%d", IDWidget.y);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 85, cr[CR_GREEN]);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 86, cr[CR_GREEN]);
             sprintf(str, "%d", IDWidget.ang);
-            MN_DrTextA(str, 32 - WIDESCREENDELTA, 95, cr[CR_GREEN]);
+            MN_DrTextA(str, 32 - WIDESCREENDELTA, 96, cr[CR_GREEN]);
         }
 
         if (automapactive)
@@ -310,7 +310,7 @@ void ID_LeftWidgets (void)
         
                 // Kills:
                 sprintf(str1, "K ");
-                MN_DrTextA(str1, 0 - WIDESCREENDELTA, 145 + yy, cr[CR_GRAY]);
+                MN_DrTextA(str1, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
                 /*
                 // TODO - extra kills?
                 if (IDWidget.extrakills)
@@ -322,17 +322,17 @@ void ID_LeftWidgets (void)
                 {
                     sprintf(str2, "%d/%d ", IDWidget.kills, IDWidget.totalkills);
                 }
-                MN_DrTextA(str2, 0 - WIDESCREENDELTA + MN_TextAWidth(str1), 145 + yy, ID_WidgetColor(widget_kills));
+                MN_DrTextA(str2, 0 - WIDESCREENDELTA + MN_TextAWidth(str1), 146 + yy, ID_WidgetColor(widget_kills));
 
                 // Items:
                 sprintf(str3, "I ");
-                MN_DrTextA(str3, 0 - WIDESCREENDELTA + MN_TextAWidth(str1) + MN_TextAWidth(str2), 145 + yy, cr[CR_GRAY]);
+                MN_DrTextA(str3, 0 - WIDESCREENDELTA + MN_TextAWidth(str1) + MN_TextAWidth(str2), 146 + yy, cr[CR_GRAY]);
 
                 sprintf(str4, "%d/%d ", IDWidget.items, IDWidget.totalitems);
                 MN_DrTextA(str4, 0 - WIDESCREENDELTA     +
                                      MN_TextAWidth(str1) +
                                      MN_TextAWidth(str2) +
-                                     MN_TextAWidth(str3), 145 + yy, ID_WidgetColor(widget_items));
+                                     MN_TextAWidth(str3), 146 + yy, ID_WidgetColor(widget_items));
 
                 // Secret:
                 sprintf(str5, "S ");
@@ -340,7 +340,7 @@ void ID_LeftWidgets (void)
                                      MN_TextAWidth(str1) +
                                      MN_TextAWidth(str2) +
                                      MN_TextAWidth(str3) +
-                                     MN_TextAWidth(str4), 145 + yy, cr[CR_GRAY]);
+                                     MN_TextAWidth(str4), 146 + yy, cr[CR_GRAY]);
 
                 sprintf(str6, "%d/%d", IDWidget.secrets, IDWidget.totalsecrets);
                 MN_DrTextA(str6, 0 - WIDESCREENDELTA     +
@@ -348,7 +348,7 @@ void ID_LeftWidgets (void)
                                      MN_TextAWidth(str2) + 
                                      MN_TextAWidth(str3) +
                                      MN_TextAWidth(str4) +
-                                     MN_TextAWidth(str5), 145 + yy, ID_WidgetColor(widget_secret));
+                                     MN_TextAWidth(str5), 146 + yy, ID_WidgetColor(widget_secret));
             }
             else
             {
@@ -361,11 +361,11 @@ void ID_LeftWidgets (void)
                 if (playeringame[0])
                 {
                     sprintf(str1, "G ");
-                    MN_DrTextA(str1, 0 - WIDESCREENDELTA, 145 + yy, cr[CR_GREEN]);
+                    MN_DrTextA(str1, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GREEN]);
 
                     sprintf(str2, "%d ", IDWidget.frags_g);
                     MN_DrTextA(str2, 0 - WIDESCREENDELTA +
-                                         MN_TextAWidth(str1), 145 + yy, cr[CR_GREEN]);
+                                         MN_TextAWidth(str1), 146 + yy, cr[CR_GREEN]);
                 }
                 // Yellow
                 if (playeringame[1])
@@ -374,14 +374,14 @@ void ID_LeftWidgets (void)
                     MN_DrTextA(str3, 0 - WIDESCREENDELTA +
                                          MN_TextAWidth(str1) +
                                          MN_TextAWidth(str2),
-                                         145 + yy, cr[CR_YELLOW]);
+                                         146 + yy, cr[CR_YELLOW]);
 
                     sprintf(str4, "%d ", IDWidget.frags_i);
                     MN_DrTextA(str4, 0 - WIDESCREENDELTA +
                                          MN_TextAWidth(str1) +
                                          MN_TextAWidth(str2) +
                                          MN_TextAWidth(str3),
-                                         145 + yy, cr[CR_YELLOW]);
+                                         146 + yy, cr[CR_YELLOW]);
                 }
                 // Red
                 if (playeringame[2])
@@ -392,7 +392,7 @@ void ID_LeftWidgets (void)
                                          MN_TextAWidth(str2) +
                                          MN_TextAWidth(str3) +
                                          MN_TextAWidth(str4),
-                                         145 + yy, cr[CR_RED]);
+                                         146 + yy, cr[CR_RED]);
 
                     sprintf(str6, "%d ", IDWidget.frags_b);
                     MN_DrTextA(str6, 0 - WIDESCREENDELTA +
@@ -401,7 +401,7 @@ void ID_LeftWidgets (void)
                                          MN_TextAWidth(str3) +
                                          MN_TextAWidth(str4) +
                                          MN_TextAWidth(str5),
-                                         145 + yy, cr[CR_RED]);
+                                         146 + yy, cr[CR_RED]);
                 }
                 // Blue
                 if (playeringame[3])
@@ -414,7 +414,7 @@ void ID_LeftWidgets (void)
                                          MN_TextAWidth(str4) +
                                          MN_TextAWidth(str5) +
                                          MN_TextAWidth(str6),
-                                         145 + yy, cr[CR_BLUE2]);
+                                         146 + yy, cr[CR_BLUE2]);
 
                     sprintf(str8, "%d ", IDWidget.frags_r);
                     MN_DrTextA(str8, 0 - WIDESCREENDELTA +
@@ -425,7 +425,7 @@ void ID_LeftWidgets (void)
                                          MN_TextAWidth(str5) +
                                          MN_TextAWidth(str6) +
                                          MN_TextAWidth(str7),
-                                         145 + yy, cr[CR_BLUE2]);
+                                         146 + yy, cr[CR_BLUE2]);
                 }
             }
         }
@@ -442,8 +442,8 @@ void ID_LeftWidgets (void)
             char stra[8];
 
             sprintf(stra, "TOTAL ");
-            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 145 + yy, cr[CR_GRAY]);
-            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 145 + yy, cr[CR_LIGHTGRAY]);
+            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
+            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 146 + yy, cr[CR_LIGHTGRAY]);
         }
 
         if (widget_totaltime)
@@ -458,8 +458,8 @@ void ID_LeftWidgets (void)
             char stra[8];
 
             sprintf(stra, "TIME ");
-            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 145 + yy, cr[CR_GRAY]);
-            MN_DrTextA(ID_Level_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 145 + yy, cr[CR_LIGHTGRAY]);
+            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
+            MN_DrTextA(ID_Level_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 146 + yy, cr[CR_LIGHTGRAY]);
         }
 
     }
