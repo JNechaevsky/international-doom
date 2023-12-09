@@ -2932,15 +2932,15 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_draw == 5 ? "ANGLE" :
                  xhair_draw == 6 ? "TRIANGLE" :
                  xhair_draw == 7 ? "DOT" : "OFF");
-    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 110,
-    //            M_Item_Glow(9, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 110,
+               M_Item_Glow(9, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
 
     // Crosshair indication
     sprintf(str, xhair_color == 1 ? "HEALTH" :
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
                  xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
-    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 120,
-    //            M_Item_Glow(10, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 120,
+               M_Item_Glow(10, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
                M_Item_Glow(11, GLOW_DARKGRAY));
@@ -3023,11 +3023,13 @@ static boolean M_ID_FlipCorpses (int choice)
 
 static boolean M_ID_Crosshair (int choice)
 {
+    xhair_draw = M_INT_Slider(xhair_draw, 0, 7, choice);
     return true;
 }
 
 static boolean M_ID_CrosshairColor (int choice)
 {
+    xhair_color = M_INT_Slider(xhair_color, 0, 3, choice);
     return true;
 }
 

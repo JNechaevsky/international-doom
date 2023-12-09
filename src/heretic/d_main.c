@@ -227,6 +227,12 @@ void D_Display(void)
                 ID_DrawTargetsHealth();
             }
 
+            // [JN] Draw crosshair.
+            if (xhair_draw && !automapactive)
+            {
+                ID_DrawCrosshair();
+            }
+
             CT_Drawer();
             UpdateState |= I_FULLVIEW;
             SB_Drawer();
