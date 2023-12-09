@@ -184,42 +184,24 @@ static int currentSlot;
 static int quicksave;
 static int quickload;
 
-static const char gammamsg[15][32] =
+static char *gammalvls[16][32] =
 {
-    GAMMALVL05,
-    GAMMALVL055,
-    GAMMALVL06,
-    GAMMALVL065,
-    GAMMALVL07,
-    GAMMALVL075,
-    GAMMALVL08,
-    GAMMALVL085,
-    GAMMALVL09,
-    GAMMALVL095,
-    GAMMALVL0,
-    GAMMALVL1,
-    GAMMALVL2,
-    GAMMALVL3,
-    GAMMALVL4
-};
-
-static const char *gammalvl[15] =
-{
-    "0.50",
-    "0.55",
-    "0.60",
-    "0.65",
-    "0.70",
-    "0.75",
-    "0.80",
-    "0.85",
-    "0.90",
-    "0.95",
-    "OFF",
-    "1",
-    "2",
-    "3",
-    "4"
+    { GAMMALVL05,   "0.50" },
+    { GAMMALVL055,  "0.55" },
+    { GAMMALVL06,   "0.60" },
+    { GAMMALVL065,  "0.65" },
+    { GAMMALVL07,   "0.70" },
+    { GAMMALVL075,  "0.75" },
+    { GAMMALVL08,   "0.80" },
+    { GAMMALVL085,  "0.85" },
+    { GAMMALVL09,   "0.90" },
+    { GAMMALVL095,  "0.95" },
+    { GAMMALVL0,    "OFF"  },
+    { GAMMALVL1,    "1"    },
+    { GAMMALVL2,    "2"    },
+    { GAMMALVL3,    "3"    },
+    { GAMMALVL4,    "4"    },
+    { NULL,         NULL   },
 };
 
 static MenuItem_t MainItems[] = {
@@ -1103,8 +1085,7 @@ static void M_Draw_ID_Display (void)
     MN_DrTextACentered("DISPLAY OPTIONS", 10, cr[CR_YELLOW]);
 
     // Gamma-correction num
-    sprintf(str, gammalvl[vid_gamma]);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 20,
+    MN_DrTextA(gammalvls[vid_gamma][1], ID_MENU_RIGHTOFFSET - MN_TextAWidth(gammalvls[vid_gamma][1]), 20,
                M_Item_Glow(0, GLOW_LIGHTGRAY));
 
     // Field of View
@@ -4960,7 +4941,7 @@ boolean MN_Responder(event_t * event)
             {
                 vid_gamma = 0;
             }
-            CT_SetMessage(&players[consoleplayer], gammamsg[vid_gamma], false);
+            CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false);
 #ifndef CRISPY_TRUECOLOR
             I_SetPalette((byte *) W_CacheLumpName("PLAYPAL", PU_CACHE));
 #else

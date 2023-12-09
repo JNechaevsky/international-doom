@@ -662,7 +662,7 @@ const byte *R_BrightmapForState (const int state)
 
 // [crispy] initialize brightmaps
 
-void R_InitBrightmaps ()
+void R_InitBrightmaps (void)
 {
     // [crispy] only five select brightmapped flats
     bmapflatnum[0] = R_FlatNumForName("FLOOR21");
