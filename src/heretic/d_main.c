@@ -843,16 +843,16 @@ void D_DoomMain(void)
                            | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE
                            | FOREGROUND_INTENSITY);
 
-    for (p = 0 ; p < 34 ; p++) printf(" ");
-    printf(PACKAGE_STRING);
-    for (p = 0 ; p < 34 ; p++) printf(" ");
+    for (p = 0 ; p < 26 ; p++) printf(" ");
+    printf(PACKAGE_FULLNAME_HERETIC);
+    for (p = 0 ; p < 37 ; p++) printf(" ");
     printf("\n");
 
     // [JN] Fallback to standard console colos.
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
                             FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 #else
-    I_PrintBanner(PACKAGE_STRING);
+    I_PrintBanner(PACKAGE_FULLNAME_HERETIC);
 #endif
 
     I_AtExit(I_ShutdownGraphics, true);
@@ -1254,12 +1254,12 @@ void D_DoomMain(void)
     CT_Init();
 
     printf(DEH_String("R_Init: Init Heretic refresh daemon - ["));
-    printf(DEH_String("Loading graphics"));
+    //hprintf(DEH_String("Loading graphics\n"));
     R_Init();
     printf("]\n");
 
     printf(DEH_String("P_Init: Init Playloop state.\n"));
-    printf(DEH_String("Init game engine."));
+    //hprintf(DEH_String("Init game engine."));
     P_Init();
     //IncThermo();
 
@@ -1274,7 +1274,7 @@ void D_DoomMain(void)
     S_Start();
 
     printf(DEH_String("D_CheckNetGame: Checking network game status.\n"));
-    printf(DEH_String("Checking network game status."));
+    //hprintf(DEH_String("Checking network game status."));
     D_CheckNetGame();
     //IncThermo();
 
