@@ -1360,7 +1360,7 @@ static boolean M_ID_Messages (int choice)
     showMessages ^= 1;
     CT_SetMessage(&players[consoleplayer],
                  DEH_String(showMessages ? "MESSAGES ON" : "MESSAGES OFF"), true);
-    S_StartSound(NULL, sfx_chat);
+    S_StartSound(NULL, sfx_switch);
     return true;
 }
 

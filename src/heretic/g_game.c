@@ -386,7 +386,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
         CT_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
                      CRL_AUTORUN_ON : CRL_AUTORUN_OFF, false);
-        S_StartSound(NULL, sfx_chat);
+        S_StartSound(NULL, sfx_switch);
         gamekeydown[key_autorun] = false;
     }
 
@@ -400,7 +400,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         }
         CT_SetMessage(&players[consoleplayer], mouse_look ?
                      CRL_MLOOK_ON : CRL_MLOOK_OFF, false);
-        S_StartSound(NULL, sfx_chat);
+        S_StartSound(NULL, sfx_switch);
         gamekeydown[key_mouse_look] = false;
     }
 
