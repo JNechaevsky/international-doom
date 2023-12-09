@@ -981,7 +981,7 @@ void R_SetupFrame (player_t* player)
     if (vid_uncapped_fps &&
         // Don't interpolate on the first tic of a level,
         // otherwise oldviewz might be garbage.
-        realleveltime > 1 &&
+        leveltime > 1 &&
         // Don't interpolate if the player did something
         // that would necessitate turning it off for a tic.
         player->mo->interp == true &&

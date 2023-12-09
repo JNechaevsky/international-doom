@@ -923,6 +923,13 @@ static void saveg_read_mobj_t(mobj_t *str)
 
     // mapthing_t spawnpoint;
     saveg_read_mapthing_t(&str->spawnpoint);
+
+    // [crispy] new mobj_t fields used for interpolation
+    str->interp = 0;
+    str->oldx = 0;
+    str->oldy = 0;
+    str->oldz = 0;
+    str->oldangle = 0;
 }
 
 // [crispy] enumerate all thinker pointers

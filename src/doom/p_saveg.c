@@ -426,6 +426,13 @@ static void saveg_read_mobj_t(mobj_t *str)
 
     // boolean resurrected;
     str->resurrected = saveg_read32();
+
+    // [crispy] new mobj_t fields used for interpolation
+    str->interp = 0;
+    str->oldx = 0;
+    str->oldy = 0;
+    str->oldz = 0;
+    str->oldangle = 0;
 }
 
 static void saveg_write_mobj_t(mobj_t *str)
@@ -515,6 +522,8 @@ static void saveg_write_mobj_t(mobj_t *str)
     saveg_write32(str->movecount);
 
     // struct mobj_s* target;
+    // [crispy] instead of the actual pointer, store the
+    // corresponding index in the mobj->target field
     saveg_writep((void *)(uintptr_t) P_ThinkerToIndex((thinker_t *) str->target));
 
     // int reactiontime;
@@ -540,6 +549,8 @@ static void saveg_write_mobj_t(mobj_t *str)
     saveg_write_mapthing_t(&str->spawnpoint);
 
     // struct mobj_s* tracer;
+    // [crispy] instead of the actual pointer, store the
+    // corresponding index in the mobj->tracers field
     saveg_writep((void *)(uintptr_t) P_ThinkerToIndex((thinker_t *) str->tracer));
 
     // boolean resurrected;
@@ -1644,15 +1655,26 @@ void P_UnArchiveWorld (void)
     // do sectors
     for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
     {
+	// [crispy] add overflow guard for the flattranslation[] array
+	short floorpic, ceilingpic;
 	sec->floorheight = saveg_read16() << FRACBITS;
 	sec->ceilingheight = saveg_read16() << FRACBITS;
-	sec->floorpic = saveg_read16();
-	sec->ceilingpic = saveg_read16();
+	floorpic = saveg_read16();
+	ceilingpic = saveg_read16();
 	sec->lightlevel = saveg_read16();
 	sec->special = saveg_read16();		// needed?
 	sec->tag = saveg_read16();		// needed?
 	sec->specialdata = 0;
 	sec->soundtarget = 0;
+	// [crispy] add overflow guard for the flattranslation[] array
+	if (floorpic >= 0 && floorpic < numflats)
+	{
+	    sec->floorpic = floorpic;
+	}
+	if (ceilingpic >= 0 && ceilingpic < numflats)
+	{
+	    sec->ceilingpic = ceilingpic;
+	}
     }
     
     // do lines
