@@ -322,6 +322,8 @@ boolean D_GrabMouseCallback(void)
 
 void D_DoomLoop(void)
 {
+    static int oldgametic;
+
     if (M_CheckParm("-debugfile"))
     {
         char filename[20];
@@ -337,7 +339,6 @@ void D_DoomLoop(void)
 
     while (1)
     {
-        static int oldgametic;
         // Frame syncronous IO operations
         I_StartFrame();
 
