@@ -872,7 +872,6 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
     if (player == &players[consoleplayer])
     {
         S_StartSound(NULL, sound);
-        SB_PaletteFlash();
     }
 }
 
@@ -1435,10 +1434,6 @@ void P_DamageMobj
         if (player->damagecount > 100)
         {
             player->damagecount = 100;  // teleport stomp does 10k points...
-        }
-        if (player == &players[consoleplayer])
-        {
-            SB_PaletteFlash();
         }
     }
 

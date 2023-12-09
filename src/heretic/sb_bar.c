@@ -313,6 +313,9 @@ void SB_Ticker(void)
     IDWidget.x = CPlayer->mo->x >> FRACBITS;
     IDWidget.y = CPlayer->mo->y >> FRACBITS;
     IDWidget.ang = CPlayer->mo->angle / ANG1;
+
+    // [JN] Do red-/gold-shifts from damage/items.
+    SB_PaletteFlash();
 }
 
 //---------------------------------------------------------------------------
@@ -718,7 +721,6 @@ void SB_Drawer(void)
             SB_state = 1;
         }
     }
-    SB_PaletteFlash();
 
     // Flight icons
     if (CPlayer->powers[pw_flight])
