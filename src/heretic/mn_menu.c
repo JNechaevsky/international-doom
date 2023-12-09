@@ -341,16 +341,16 @@ static Menu_t OptionsMenu = {
 };
 
 static MenuItem_t Options2Items[] = {
-    {ITT_LRFUNC, "SCREEN SIZE", SCScreenSize, 0, MENU_NONE},
-    {ITT_EMPTY, NULL, NULL, 0, MENU_NONE},
-    {ITT_LRFUNC, "SFX VOLUME", SCSfxVolume, 0, MENU_NONE},
-    {ITT_EMPTY, NULL, NULL, 0, MENU_NONE},
-    {ITT_LRFUNC, "MUSIC VOLUME", SCMusicVolume, 0, MENU_NONE},
-    {ITT_EMPTY, NULL, NULL, 0, MENU_NONE}
+    { ITT_LRFUNC, "SFX VOLUME",   SCSfxVolume,   0, MENU_NONE },
+    { ITT_EMPTY,  NULL,           NULL,          0, MENU_NONE },
+    { ITT_LRFUNC, "MUSIC VOLUME", SCMusicVolume, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,           NULL,          0, MENU_NONE },
+    { ITT_LRFUNC, "SCREEN SIZE",  SCScreenSize,  0, MENU_NONE },
+    { ITT_EMPTY,  NULL,           NULL,          0, MENU_NONE },
 };
 
 static Menu_t Options2Menu = {
-    90, 20,
+    72, 20,
     DrawOptions2Menu,
     6, Options2Items,
     0,
@@ -4054,9 +4054,23 @@ static void DrawOptionsMenu(void)
 
 static void DrawOptions2Menu(void)
 {
-    DrawSlider(&Options2Menu, 1, 9, dp_screen_size - 3, true);
-    DrawSlider(&Options2Menu, 3, 16, snd_MaxVolume, true);
-    DrawSlider(&Options2Menu, 5, 16, snd_MusicVolume, true);
+    char str[32];
+
+    // SFX Volume
+    sprintf(str, "%d", snd_MaxVolume);
+    DrawSlider(&Options2Menu, 1, 16, snd_MaxVolume, true);
+    MN_DrTextA(str, 252, 45, cr[CR_LIGHTGRAY]);
+
+    // Music Volume
+    sprintf(str, "%d", snd_MusicVolume);
+    DrawSlider(&Options2Menu, 3, 16, snd_MusicVolume, true);
+    MN_DrTextA(str, 252, 85, cr[CR_LIGHTGRAY]);
+
+    // Screen Size
+    // TODO - widescreen modes have more screen sizes for status bar.
+    sprintf(str, "%d", dp_screen_size);
+    DrawSlider(&Options2Menu, 5,  9, dp_screen_size - 3, true);
+    MN_DrTextA(str, 196, 125, cr[CR_LIGHTGRAY]);
 }
 
 //---------------------------------------------------------------------------
