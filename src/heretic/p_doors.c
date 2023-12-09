@@ -42,6 +42,9 @@ void T_VerticalDoor(thinker_t *thinker)
     vldoor_t *door = (vldoor_t *) thinker;
     result_e res;
 
+    // [JN] Z-axis sfx distance: sound invoked from the ceiling.
+    door->sector->soundorg.z = door->sector->ceilingheight;
+
     switch (door->direction)
     {
         case 0:                // WAITING
@@ -166,6 +169,8 @@ int EV_DoDoor(line_t * line, vldoor_e type, fixed_t speed)
         sec->specialdata = door;
         door->thinker.function = T_VerticalDoor;
         door->sector = sec;
+        // [JN] Z-axis sfx distance: sound invoked from the ceiling.
+        door->sector->soundorg.z = door->sector->ceilingheight;
         switch (type)
         {
             case vld_close:
@@ -262,6 +267,8 @@ void EV_VerticalDoor(line_t * line, mobj_t * thing)
 
     // if the sector has an active thinker, use it
     sec = sides[line->sidenum[side ^ 1]].sector;
+    // [JN] Z-axis sfx distance: sound invoked from the ceiling.
+    sec->soundorg.z = sec->ceilingheight;
     if (sec->specialdata)
     {
         door = sec->specialdata;
@@ -274,6 +281,9 @@ void EV_VerticalDoor(line_t * line, mobj_t * thing)
                 if (door->direction == -1)
                 {
                     door->direction = 1;        // go back up
+                    // [crispy] & [JN] play sound effect when the door
+                    // is opened again while going down
+                    S_StartSound(&door->sector->soundorg, sfx_dormov);
                 }
                 else
                 {
@@ -282,6 +292,8 @@ void EV_VerticalDoor(line_t * line, mobj_t * thing)
                         return;
                     }
                     door->direction = -1;       // start going down immediately
+                    // [crispy] & [JN] play sound effect when the door is closed manually.
+                    S_StartSound(&door->sector->soundorg, sfx_dormov);
                 }
                 return;
         }

@@ -36,6 +36,9 @@ void T_PlatRaise(thinker_t *thinker)
     plat_t *plat = (plat_t *) thinker;
     result_e res;
 
+    // [JN] Z-axis sfx distance: sound invoked from the floor.
+    plat->sector->soundorg.z = plat->sector->floorheight;
+
     switch (plat->status)
     {
         case up:
@@ -158,6 +161,8 @@ int EV_DoPlat(line_t * line, plattype_e type, int amount)
         plat->thinker.function = T_PlatRaise;
         plat->crush = false;
         plat->tag = line->tag;
+        // [JN] Z-axis sfx distance: sound invoked from the floor.
+        sec->soundorg.z = sec->floorheight;
         switch (type)
         {
             case raiseToNearestAndChange:

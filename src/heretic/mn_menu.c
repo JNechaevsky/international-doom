@@ -554,6 +554,7 @@ static boolean M_ID_CrosshairColor (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
 static boolean M_ID_ColoredSBar (int choice);
+static boolean M_ID_ZAxisSfx (int choice);
 static boolean M_ID_Torque (int choice);
 static boolean M_ID_WeaponAlignment (int choice);
 static boolean M_ID_Breathing (int choice);
@@ -3057,7 +3058,7 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE         },
     { ITT_LRFUNC,  "SHOW NEGATIVE HEALTH",        NULL,                 0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
-    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      NULL,                 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,        0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,          0, MENU_NONE         },
     { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE         },
@@ -3094,6 +3095,11 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     MN_DrTextACentered("AUDIBLE", 40, cr[CR_YELLOW]);
 
+    // Sfx attenuation axises
+    sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 50,
+               M_Item_Glow(3, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
+
     MN_DrTextACentered("PHYSICAL", 60, cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
@@ -3125,6 +3131,12 @@ static void M_Draw_ID_Gameplay_2 (void)
 static boolean M_ID_ColoredSBar (int choice)
 {
     st_colored_stbar ^= 1;
+    return true;
+}
+
+static boolean M_ID_ZAxisSfx (int choice)
+{
+    aud_z_axis_sfx ^= 1;
     return true;
 }
 

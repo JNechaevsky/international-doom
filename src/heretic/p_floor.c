@@ -196,6 +196,10 @@ void T_MoveFloor(thinker_t *thinker)
     res = T_MovePlane(floor->sector, floor->speed,
                       floor->floordestheight, floor->crush, 0,
                       floor->direction);
+
+    // [JN] Z-axis sfx distance: sound invoked from the floor.
+    floor->sector->soundorg.z = floor->sector->floorheight;
+
     if (!(leveltime & 7))
     {
         S_StartSound(&floor->sector->soundorg, sfx_dormov);
