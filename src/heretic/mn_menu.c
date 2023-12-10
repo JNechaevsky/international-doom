@@ -354,6 +354,9 @@ static Menu_t Options2Menu = {
 #define ID_MENU_LEFTOFFSET_BIG    (32)
 #define ID_MENU_RIGHTOFFSET_BIG   (ORIGWIDTH - ID_MENU_LEFTOFFSET_BIG)
 
+#define MENU_LEFTOFFSET_LEVEL     (74)
+#define MENU_RIGHTOFFSET_LEVEL    (ORIGWIDTH - MENU_LEFTOFFSET_LEVEL)
+
 #define ITEM_HEIGHT_SMALL        10
 #define SELECTOR_XOFFSET_SMALL  -10
 
@@ -551,6 +554,10 @@ static boolean M_ID_PistolStart (int choice);
 static boolean M_ID_BlockmapFix (int choice);
 
 static void M_Draw_ID_Level_1 (void);
+static boolean M_ID_LevelSkill (int choice);
+static boolean M_ID_LevelEpisode (int choice);
+static boolean M_ID_LevelMap (int choice);
+
 static void M_Draw_ID_Level_2 (void);
 static void M_Draw_ID_Level_3 (void);
 
@@ -3304,14 +3311,29 @@ static void M_ScrollGameplayPages (boolean direction)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_1[] = {
-    { ITT_LRFUNC, "DUMMY", NULL, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,    NULL, 0, MENU_NONE },
+    { ITT_LRFUNC,  "SKILL LEVEL",       M_ID_LevelSkill,   0, MENU_NONE      },
+    { ITT_LRFUNC,  "EPISODE",           M_ID_LevelEpisode, 0, MENU_NONE      },
+    { ITT_LRFUNC,  "MAP",               M_ID_LevelMap,     0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "HEALTH",            NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "ARMOR",             NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "ARMOR TYPE",        NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "GAUNTLETS",         NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "ETHEREAL CROSSBOW", NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "DRAGON CLAW",       NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "HELLSTAFF",         NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "PHOENIX ROD",       NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "FIREMACE",          NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                NULL,              0, MENU_NONE      },
+    { ITT_SETMENU, "NEXT PAGE",         NULL,              0, MENU_ID_LEVEL2 },
+    { ITT_EFUNC,   "START GAME",        G_DoSelectiveGame, 0, MENU_NONE      },
 };
 
 static Menu_t ID_Def_Level_1 = {
-    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_1,
-    2, ID_Menu_Level_1,
+    17, ID_Menu_Level_1,
     0,
     true,
     MENU_ID_MAIN
@@ -3319,7 +3341,55 @@ static Menu_t ID_Def_Level_1 = {
 
 static void M_Draw_ID_Level_1 (void)
 {
-    //
+    char str[32];
+
+    M_FillBackground();
+
+    MN_DrTextACentered("LEVEL SELECT", 10, cr[CR_YELLOW]);
+
+    // Skill level
+    sprintf(str, "%s", DefSkillName[level_select[0]]);
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 20,
+               DefSkillColor(level_select[0]));
+
+    // Episode
+    sprintf(str, gamemode == shareware ? "1" : "%d", level_select[1]);
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 30,
+               M_Item_Glow(1, gamemode == shareware ?
+                             GLOW_DARKRED : GLOW_RED));
+
+    // Map
+    sprintf(str, "%d", level_select[2]);
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 40,
+               M_Item_Glow(2, GLOW_RED));
+
+    MN_DrTextACentered("PLAYER", 50, cr[CR_YELLOW]);
+
+    MN_DrTextACentered("WEAPONS", 90, cr[CR_YELLOW]);
+}
+
+static boolean M_ID_LevelSkill (int choice)
+{
+    level_select[0] = M_INT_Slider(level_select[0], 0, 4, choice);
+    return true;
+}
+
+static boolean M_ID_LevelEpisode (int choice)
+{
+    if (gamemode == shareware)
+    {
+        return false;
+    }
+
+    level_select[1] = M_INT_Slider(level_select[1], 1,
+                                   gamemode == retail ? 5 : 3, choice);
+    return true;
+}
+
+static boolean M_ID_LevelMap (int choice)
+{
+    level_select[2] = M_INT_Slider(level_select[2], 1, 9, choice);
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3327,14 +3397,29 @@ static void M_Draw_ID_Level_1 (void)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_2[] = {
-    { ITT_LRFUNC, "DUMMY", NULL, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,    NULL, 0, MENU_NONE },
+    { ITT_LRFUNC,  "BAG OF HOLDING",  NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "WAND CRYSTALS",   NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "ETHEREAL ARROWS", NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "CLAW ORBS",       NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "HELLSTAFF RUNES", NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "FLAME ORBS",      NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "MACE SPHERES",    NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,              NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "YELLOW KEY",      NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "GREEN KEY",       NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "BLUE KEY",        NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,              NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "FAST",            NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "RESPAWNING",      NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,              NULL,              0, MENU_NONE      },
+    { ITT_SETMENU, "LAST PAGE",       NULL,              0, MENU_ID_LEVEL3 },
+    { ITT_EFUNC,   "START GAME",      G_DoSelectiveGame, 0, MENU_NONE      },
 };
 
 static Menu_t ID_Def_Level_2 = {
-    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_2,
-    2, ID_Menu_Level_2,
+    17, ID_Menu_Level_2,
     0,
     true,
     MENU_ID_MAIN
@@ -3342,7 +3427,13 @@ static Menu_t ID_Def_Level_2 = {
 
 static void M_Draw_ID_Level_2 (void)
 {
-    //
+    M_FillBackground();
+
+    MN_DrTextACentered("AMMO", 10, cr[CR_YELLOW]);
+
+    MN_DrTextACentered("KEYS", 90, cr[CR_YELLOW]);
+
+    MN_DrTextACentered("MONSTERS", 130, cr[CR_YELLOW]);
 }
 
 // -----------------------------------------------------------------------------
@@ -3350,14 +3441,29 @@ static void M_Draw_ID_Level_2 (void)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_3[] = {
-    { ITT_LRFUNC, "DUMMY", NULL, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,    NULL, 0, MENU_NONE },
+    { ITT_LRFUNC,  "QUARTZ FLASK",          NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "MYSTIC URN",            NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "TIME BOMB",             NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "TOME OF POWER",         NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "RING OF INVINCIBILITY", NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "MORPH OVUM",            NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "CHAOS DEVICE",          NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "SHADOWSPHERE",          NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "WINGS OF WRATH",        NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "TORCH",                 NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_SETMENU, "FIRST PAGE",            NULL,              0, MENU_ID_LEVEL1 },
+    { ITT_EFUNC,   "START GAME",            G_DoSelectiveGame, 0, MENU_NONE      },
 };
 
 static Menu_t ID_Def_Level_3 = {
-    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_3,
-    2, ID_Menu_Level_3,
+    17, ID_Menu_Level_3,
     0,
     true,
     MENU_ID_MAIN
@@ -3365,7 +3471,9 @@ static Menu_t ID_Def_Level_3 = {
 
 static void M_Draw_ID_Level_3 (void)
 {
-    //
+    M_FillBackground();
+
+    MN_DrTextACentered("ARTIFACTS", 10, cr[CR_YELLOW]);
 }
 
 static Menu_t *Menus[] = {

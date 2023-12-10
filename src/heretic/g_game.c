@@ -2183,6 +2183,119 @@ void G_InitNew(skill_t skill, int episode, int map)
     G_DoLoadLevel();
 }
 
+// -----------------------------------------------------------------------------
+// G_DoSelectiveGame
+//  [JN] Start new game with given parameters in "Level select" menu.
+// -----------------------------------------------------------------------------
+
+boolean G_DoSelectiveGame (int choice)
+{
+    int i;
+    player_t *plr = &players[consoleplayer];
+    
+    /*
+    // [crispy] make sure "fast" parameters are really only applied once
+    static boolean fast_applied;
+
+    idmusnum = -1;  // [JN] Andrey Budko: allow new level's music to be loaded
+    demoplayback = false;
+    netdemo = false;
+    netgame = false;
+    deathmatch = false;
+    // [crispy] reset game speed after demo fast-forward
+    singletics = false;
+    playeringame[1] = playeringame[2] = playeringame[3] = 0;
+    consoleplayer = 0;
+    gameaction = ga_nothing;
+    */
+
+    // Close "Level select" menu
+    MenuActive = false;
+
+    G_InitNew (level_select[0],
+               gamemode == shareware ? 1 : level_select[1],
+               level_select[2]); 
+
+    /*
+    // Do not modify respawnparm parameter
+    respawnmonsters = level_select[25];
+
+    // Do not modify fastparm parameter
+    // [crispy] make sure "fast" parameters are really only applied once
+    if ((level_select[24] || gameskill == sk_nightmare) && !fast_applied)
+    {
+        for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
+        // [crispy] Fix infinite loop caused by Demon speed bug
+        if (states[i].tics > 1)
+        {
+            states[i].tics >>= 1;
+        }
+
+        mobjinfo[MT_BRUISERSHOT].speed = 20*FRACUNIT;
+        mobjinfo[MT_HEADSHOT].speed = 20*FRACUNIT;
+        mobjinfo[MT_TROOPSHOT].speed = 20*FRACUNIT;
+
+        fast_applied = true;
+    }
+    else if (!level_select[24] && gameskill != sk_nightmare && fast_applied)
+    {
+        for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
+        states[i].tics <<= 1;
+        mobjinfo[MT_BRUISERSHOT].speed = 15*FRACUNIT;
+        mobjinfo[MT_HEADSHOT].speed = 10*FRACUNIT;
+        mobjinfo[MT_TROOPSHOT].speed = 10*FRACUNIT;
+        fast_applied = false;
+    }
+
+    // Health
+    plr->health = level_select[3];
+    plr->mo->health = level_select[3];
+
+    // Armor
+    plr->armorpoints = level_select[4];
+    // Armor type. Set to 0 if no armor given.
+    plr->armortype = level_select[5] == 0 ? 0 : level_select[5];
+
+    // Weapons
+    plr->weaponowned[wp_chainsaw] = level_select[6];
+    plr->weaponowned[wp_shotgun] = level_select[7];
+    // Super shotgun available only in Doom 2
+    plr->weaponowned[wp_supershotgun] = gamemode == commercial ? level_select[8] : 0;
+    plr->weaponowned[wp_chaingun] = level_select[9];
+    plr->weaponowned[wp_missile] = level_select[10];
+    // Plasma Gun not available in Shareware
+    plr->weaponowned[wp_plasma] = gamemode == shareware ? 0 : level_select[11];
+    // BFG 9000 not available in shareware
+    plr->weaponowned[wp_bfg] = gamemode == shareware ? 0 : level_select[12];
+
+    // Backpack
+    plr->backpack = level_select[13];
+    if (level_select[13])
+    {
+        plr->maxammo[0] *= 2;
+        plr->maxammo[1] *= 2;
+        plr->maxammo[2] *= 2;
+        plr->maxammo[3] *= 2;
+    }
+
+    // Ammo
+    plr->ammo[0] = level_select[14]; // bullets
+    plr->ammo[1] = level_select[15]; // shells
+    plr->ammo[2] = level_select[17]; // cells
+    plr->ammo[3] = level_select[16]; // rockets
+
+    // Keys
+    plr->cards[0] = level_select[18]; // blue keycard
+    plr->cards[1] = level_select[19]; // yellow keycard
+    plr->cards[2] = level_select[20]; // red keycard
+    plr->cards[3] = level_select[21]; // blue skull key
+    plr->cards[4] = level_select[22]; // yellow skull key
+    plr->cards[5] = level_select[23]; // red skull key
+    */
+    
+    return true;
+}
+
 
 /*
 ===============================================================================

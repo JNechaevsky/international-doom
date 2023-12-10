@@ -89,6 +89,11 @@ extern void ID_DemoTimer (const int time);
 extern void ID_DemoBar (void);
 extern int  defdemotics, deftotaldemotics;
 
+//
+// Level Select one variable
+//
+
+extern int level_select[];
 
 extern int CRL_counter_tome;
 extern int CRL_counter_ring;

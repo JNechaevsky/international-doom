@@ -794,3 +794,46 @@ void ID_DemoBar (void)
     V_DrawHorizLine(0, SCREENHEIGHT - 1, i, white); // [crispy] white
 #endif
 }
+
+// =============================================================================
+//
+//                           Level Select one variable
+//
+// =============================================================================
+
+int level_select[] = {
+    2,    //  0 - Skill level
+    1,    //  1 - Episode
+    1,    //  2 - Map
+    100,  //  3 - Health
+    0,    //  4 - Armor
+    1,    //  5 - Armor type
+    0,    //  6 - Gauntlets
+    0,    //  7 - Ethereal Crossbow
+    0,    //  8 - Dragon Claw
+    0,    //  9 - Hellstaff
+    0,    // 10 - Phoenix Rod
+    0,    // 11 - Firemace
+    0,    // 12 - Bag of Holding
+    50,   // 13 - Wand crystals
+    0,    // 14 - Ethereal arrows
+    0,    // 15 - Claw orbs
+    0,    // 16 - Hellstaff runes
+    0,    // 17 - Flame orbs
+    0,    // 18 - Mace spheres
+    0,    // 19 - Yellow key
+    0,    // 20 - Green key
+    0,    // 21 - Blue key
+    0,    // 24 - Fast monsters
+    0,    // 25 - Respawning monsters
+    0,    // 26 - Quartz flask
+    0,    // 27 - Mystic urn
+    0,    // 28 - Time bomb
+    0,    // 29 - Tome of power
+    0,    // 30 - Ring of invincibility
+    0,    // 31 - Morph ovum
+    0,    // 32 - Chaos device
+    0,    // 33 - Shadowsphere
+    0,    // 34 - Wings of wrath
+    0,    // 35 - Torch
+};
