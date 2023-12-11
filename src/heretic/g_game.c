@@ -2246,6 +2246,7 @@ boolean G_DoSelectiveGame (int choice)
         mobjinfo[MT_TROOPSHOT].speed = 10*FRACUNIT;
         fast_applied = false;
     }
+    */
 
     // Health
     plr->health = level_select[3];
@@ -2256,6 +2257,7 @@ boolean G_DoSelectiveGame (int choice)
     // Armor type. Set to 0 if no armor given.
     plr->armortype = level_select[5] == 0 ? 0 : level_select[5];
 
+    /*
     // Weapons
     plr->weaponowned[wp_chainsaw] = level_select[6];
     plr->weaponowned[wp_shotgun] = level_select[7];

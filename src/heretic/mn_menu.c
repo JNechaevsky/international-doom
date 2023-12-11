@@ -557,6 +557,9 @@ static void M_Draw_ID_Level_1 (void);
 static boolean M_ID_LevelSkill (int choice);
 static boolean M_ID_LevelEpisode (int choice);
 static boolean M_ID_LevelMap (int choice);
+static boolean M_ID_LevelHealth (int choice);
+static boolean M_ID_LevelArmor (int choice);
+static boolean M_ID_LevelArmorType (int choice);
 
 static void M_Draw_ID_Level_2 (void);
 static void M_Draw_ID_Level_3 (void);
@@ -3311,23 +3314,23 @@ static void M_ScrollGameplayPages (boolean direction)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_1[] = {
-    { ITT_LRFUNC,  "SKILL LEVEL",       M_ID_LevelSkill,   0, MENU_NONE      },
-    { ITT_LRFUNC,  "EPISODE",           M_ID_LevelEpisode, 0, MENU_NONE      },
-    { ITT_LRFUNC,  "MAP",               M_ID_LevelMap,     0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,                NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "HEALTH",            NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "ARMOR",             NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "ARMOR TYPE",        NULL,              0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,                NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "GAUNTLETS",         NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "ETHEREAL CROSSBOW", NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "DRAGON CLAW",       NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "HELLSTAFF",         NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "PHOENIX ROD",       NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "FIREMACE",          NULL,              0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,                NULL,              0, MENU_NONE      },
-    { ITT_SETMENU, "NEXT PAGE",         NULL,              0, MENU_ID_LEVEL2 },
-    { ITT_EFUNC,   "START GAME",        G_DoSelectiveGame, 0, MENU_NONE      },
+    { ITT_LRFUNC,  "SKILL LEVEL",       M_ID_LevelSkill,     0, MENU_NONE      },
+    { ITT_LRFUNC,  "EPISODE",           M_ID_LevelEpisode,   0, MENU_NONE      },
+    { ITT_LRFUNC,  "MAP",               M_ID_LevelMap,       0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                NULL,                0, MENU_NONE      },
+    { ITT_LRFUNC,  "HEALTH",            M_ID_LevelHealth,    0, MENU_NONE      },
+    { ITT_LRFUNC,  "ARMOR",             M_ID_LevelArmor,     0, MENU_NONE      },
+    { ITT_LRFUNC,  "ARMOR TYPE",        M_ID_LevelArmorType, 0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                NULL,                0, MENU_NONE      },
+    { ITT_LRFUNC,  "GAUNTLETS",         NULL,                0, MENU_NONE      },
+    { ITT_LRFUNC,  "ETHEREAL CROSSBOW", NULL,                0, MENU_NONE      },
+    { ITT_LRFUNC,  "DRAGON CLAW",       NULL,                0, MENU_NONE      },
+    { ITT_LRFUNC,  "HELLSTAFF",         NULL,                0, MENU_NONE      },
+    { ITT_LRFUNC,  "PHOENIX ROD",       NULL,                0, MENU_NONE      },
+    { ITT_LRFUNC,  "FIREMACE",          NULL,                0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                NULL,                0, MENU_NONE      },
+    { ITT_SETMENU, "NEXT PAGE",         NULL,                0, MENU_ID_LEVEL2 },
+    { ITT_EFUNC,   "START GAME",        G_DoSelectiveGame,   0, MENU_NONE      },
 };
 
 static Menu_t ID_Def_Level_1 = {
@@ -3365,6 +3368,24 @@ static void M_Draw_ID_Level_1 (void)
 
     MN_DrTextACentered("PLAYER", 50, cr[CR_YELLOW]);
 
+    // Health
+    sprintf(str, "%d", level_select[3]);
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 60,
+               M_Item_Glow(4, level_select[3] >=  67 ? GLOW_GREEN  :
+                              level_select[3] >=  34 ? GLOW_YELLOW :
+                                                       GLOW_RED));
+
+    // Armor
+    sprintf(str, "%d", level_select[4]);
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 70,
+               M_Item_Glow(5, level_select[4] == 0 ? GLOW_RED :
+                              level_select[5] == 1 ? GLOW_LIGHTGRAY : GLOW_YELLOW));
+
+    // Armor type
+    sprintf(str, "%d", level_select[5]);
+    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 80,
+               M_Item_Glow(6, level_select[5] == 1 ? GLOW_LIGHTGRAY : GLOW_YELLOW));
+
     MN_DrTextACentered("WEAPONS", 90, cr[CR_YELLOW]);
 }
 
@@ -3389,6 +3410,32 @@ static boolean M_ID_LevelEpisode (int choice)
 static boolean M_ID_LevelMap (int choice)
 {
     level_select[2] = M_INT_Slider(level_select[2], 1, 9, choice);
+    return true;
+}
+
+static boolean M_ID_LevelHealth (int choice)
+{
+    level_select[3] = M_INT_Slider(level_select[3], 1, 100, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArmor (int choice)
+{
+    level_select[4] = M_INT_Slider(level_select[4], 0, 
+                                   level_select[5] == 1 ? 100 : 200, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArmorType (int choice)
+{
+    level_select[5] = M_INT_Slider(level_select[5], 1, 2, choice);
+
+    // [JN] Silver Shield armor can't go above 100.
+    if (level_select[5] == 1 && level_select[4] > 100)
+    {
+        level_select[4] = 100;
+    }
+
     return true;
 }
 
