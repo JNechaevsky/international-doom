@@ -207,7 +207,7 @@ void R_ClearClipSegs (void)
 // [AM] Interpolate the passed sector, if prudent.
 // -----------------------------------------------------------------------------
 
-void R_MaybeInterpolateSector(sector_t* sector)
+static void R_MaybeInterpolateSector(sector_t* sector)
 {
     if (vid_uncapped_fps &&
         // Only if we moved the sector last tic.

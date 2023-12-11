@@ -31,16 +31,16 @@
 // OPTIMIZE: closed two sided lines as single sided
 
 // True if any of the segs textures might be visible.
-boolean		segtextured;	
+static boolean		segtextured;	
 
 // False if the back side is the same plane.
-boolean		markfloor;	
-boolean		markceiling;
+static boolean		markfloor;	
+static boolean		markceiling;
 
-boolean		maskedtexture;
-int		toptexture;
-int		bottomtexture;
-int		midtexture;
+static boolean		maskedtexture;
+static int		toptexture;
+static int		bottomtexture;
+static int		midtexture;
 
 
 angle_t		rw_normalangle;
@@ -50,32 +50,32 @@ angle_t		rw_angle1;
 //
 // regular wall
 //
-int		rw_x;
-int		rw_stopx;
-angle_t		rw_centerangle;
-fixed_t		rw_offset;
+static int		rw_x;
+static int		rw_stopx;
+static angle_t		rw_centerangle;
+static fixed_t		rw_offset;
+static fixed_t		rw_scale;
+static fixed_t		rw_scalestep;
+static fixed_t		rw_midtexturemid;
+static fixed_t		rw_toptexturemid;
+static fixed_t		rw_bottomtexturemid;
 fixed_t		rw_distance;
-fixed_t		rw_scale;
-fixed_t		rw_scalestep;
-fixed_t		rw_midtexturemid;
-fixed_t		rw_toptexturemid;
-fixed_t		rw_bottomtexturemid;
 
-int		worldtop;
-int		worldbottom;
-int		worldhigh;
-int		worldlow;
+static int		worldtop;
+static int		worldbottom;
+static int		worldhigh;
+static int		worldlow;
 
-int64_t		pixhigh; // [crispy] WiggleFix
-int64_t		pixlow; // [crispy] WiggleFix
-fixed_t		pixhighstep;
-fixed_t		pixlowstep;
+static int64_t		pixhigh; // [crispy] WiggleFix
+static int64_t		pixlow; // [crispy] WiggleFix
+static fixed_t		pixhighstep;
+static fixed_t		pixlowstep;
 
-int64_t		topfrac; // [crispy] WiggleFix
-fixed_t		topstep;
+static int64_t		topfrac; // [crispy] WiggleFix
+static fixed_t		topstep;
 
-int64_t		bottomfrac; // [crispy] WiggleFix
-fixed_t		bottomstep;
+static int64_t		bottomfrac; // [crispy] WiggleFix
+static fixed_t		bottomstep;
 
 
 lighttable_t**	walllights;
@@ -318,9 +318,6 @@ R_RenderMaskedSegRange
 // -----------------------------------------------------------------------------
 
 static boolean didsolidcol;  // True if at least one column was marked solid
-
-#define HEIGHTBITS		12
-#define HEIGHTUNIT		(1<<HEIGHTBITS)
 
 void R_RenderSegLoop (void)
 {
