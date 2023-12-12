@@ -82,8 +82,8 @@ int			spanstop[MAXHEIGHT];
 //
 // texture mapping
 //
-lighttable_t**		planezlight;
-fixed_t			planeheight;
+static lighttable_t**		planezlight;
+static fixed_t			planeheight;
 
 fixed_t*			yslope;
 fixed_t			yslopes[LOOKDIRS][MAXHEIGHT];
@@ -116,7 +116,7 @@ void R_InitPlanes (void)
 //
 // BASIC PRIMITIVE
 //
-void
+static void
 R_MapPlane
 ( int		y,
   int		x1,
@@ -362,7 +362,7 @@ R_CheckPlane
 //
 // R_MakeSpans
 //
-void
+static void
 R_MakeSpans
 ( unsigned int		x,   // [JN] 32-bit integer math
   unsigned int		t1,  // [JN] 32-bit integer math

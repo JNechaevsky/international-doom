@@ -73,7 +73,7 @@ static int drawsegs_xrange_count = 0;
 fixed_t pspritescale;
 fixed_t pspriteiscale;
 
-lighttable_t **spritelights;
+static lighttable_t **spritelights;
 
 // constant arrays used for psprite clipping and initializing clipping
 int negonearray[MAXWIDTH];        // [JN] 32-bit integer math
@@ -177,7 +177,7 @@ static void R_InstallSpriteLump (int lump, unsigned frame, char rot, boolean fli
 // The rotation character can be 0 to signify no rotations.
 // -----------------------------------------------------------------------------
 
-void R_InitSpriteDefs(const char **namelist)
+static void R_InitSpriteDefs(const char **namelist)
 { 
     const char **check;
     int   i;
@@ -419,7 +419,7 @@ void R_DrawMaskedColumn (column_t *column)
 //  mfloorclip and mceilingclip should also be set.
 // -----------------------------------------------------------------------------
 
-void R_DrawVisSprite (vissprite_t *vis)
+static void R_DrawVisSprite (vissprite_t *vis)
 {
     int       texturecolumn;
     fixed_t   frac;
@@ -501,7 +501,7 @@ void R_DrawVisSprite (vissprite_t *vis)
 // Generates a vissprite for a thing
 //  if it might be visible.
 //
-void R_ProjectSprite (mobj_t* thing)
+static void R_ProjectSprite (mobj_t* thing)
 {
     fixed_t		tr_x;
     fixed_t		tr_y;
@@ -936,7 +936,7 @@ static inline void R_ApplyWeaponBob (fixed_t *sx, boolean bobx, fixed_t *sy, boo
 
 boolean pspr_interp = true; // interpolate weapon bobbing
 
-void R_DrawPSprite (pspdef_t* psp)
+static void R_DrawPSprite (pspdef_t* psp)
 {
     fixed_t		tx;
     int			x1;
@@ -1123,7 +1123,7 @@ void R_DrawPSprite (pspdef_t* psp)
 //
 // R_DrawPlayerSprites
 //
-void R_DrawPlayerSprites (void)
+static void R_DrawPlayerSprites (void)
 {
     int		i;
     int		lightnum;
@@ -1251,7 +1251,7 @@ static void R_SortVisSprites (void)
 //
 // R_DrawSprite
 //
-void R_DrawSprite (vissprite_t* spr)
+static void R_DrawSprite (vissprite_t* spr)
 {
     drawseg_t*		ds;
     int			clipbot[MAXWIDTH];  // [JN] 32-bit integer math

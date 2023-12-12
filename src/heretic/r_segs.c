@@ -731,7 +731,8 @@ R_StoreWallRange
 
         if (worldlow != worldbottom 
             || backsector->floorpic != frontsector->floorpic
-            || backsector->lightlevel != frontsector->lightlevel)
+            || backsector->lightlevel != frontsector->lightlevel
+            || backsector->special != frontsector->special)
         {
             markfloor = true;
         }

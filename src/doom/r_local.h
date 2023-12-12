@@ -534,22 +534,11 @@ extern line_t   *linedef;
 extern sector_t *frontsector;
 extern sector_t *backsector;
 
-extern int rw_x;
-extern int rw_stopx;
-
-extern boolean segtextured;
-extern boolean markfloor;		
-extern boolean markceiling;
-
 extern byte solidcol[MAXWIDTH];
 
 extern drawseg_t *drawsegs;
 extern drawseg_t *ds_p;
 extern unsigned   maxdrawsegs;
-
-extern lighttable_t **hscalelight;
-extern lighttable_t **vscalelight;
-extern lighttable_t **dscalelight;
 
 // -----------------------------------------------------------------------------
 // R_DATA
@@ -722,9 +711,6 @@ extern int detailshift;
 extern void R_ClearPlanes (void);
 extern void R_DrawPlanes (void);
 extern void R_InitPlanes (void);
-extern void R_MakeSpans (unsigned int x, unsigned int t1, unsigned int b1, 
-                         unsigned int t2, unsigned int b2);
-extern void R_MapPlane (int y, int x1, int x2);
 
 extern int  floorclip[MAXWIDTH];    // [JN] 32-bit integer math
 extern int  ceilingclip[MAXWIDTH];  // [JN] 32-bit integer math
@@ -732,7 +718,6 @@ extern int  ceilingclip[MAXWIDTH];  // [JN] 32-bit integer math
 extern size_t  maxopenings;         // [JN] 32-bit integer maths
 extern int    *lastopening;
 extern int    *openings;
-
 
 extern fixed_t *yslope;
 extern fixed_t  yslopes[LOOKDIRS][MAXHEIGHT];
