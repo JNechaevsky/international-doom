@@ -135,16 +135,12 @@ static void R_RecalcLineFlags (line_t *linedef)
         // Identical floor and ceiling on both sides,
         // identical light levels on both sides,
         // and no middle texture.
-        // CPhipps - recode for speed, not certain if this is portable though
         if (backsector->interpceilingheight != frontsector->interpceilingheight
         || backsector->interpfloorheight != frontsector->interpfloorheight
         || curline->sidedef->midtexture
-        || memcmp(&backsector->floor_xoffs, &frontsector->floor_xoffs,
-        sizeof(frontsector->floor_xoffs) + sizeof(frontsector->floor_yoffs) +
-        sizeof(frontsector->ceiling_xoffs) + sizeof(frontsector->ceiling_yoffs) +
-        sizeof(frontsector->ceilingpic) + sizeof(frontsector->floorpic) +
-        sizeof(frontsector->lightlevel) + sizeof(frontsector->floorlightsec) +
-        sizeof(frontsector->ceilinglightsec)))
+        || backsector->ceilingpic != frontsector->ceilingpic
+        || backsector->floorpic != frontsector->floorpic
+        || backsector->lightlevel != frontsector->lightlevel)
         {
             linedef->r_flags = 0;
             return;

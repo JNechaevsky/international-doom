@@ -70,11 +70,6 @@ typedef struct
 {
     fixed_t floorheight, ceilingheight;
 
-    // [JN] Improved column clipping.
-    fixed_t floor_xoffs,   floor_yoffs;
-    fixed_t ceiling_xoffs, ceiling_yoffs;
-    int     floorlightsec, ceilinglightsec;
-
     short floorpic, ceilingpic;
     short lightlevel;
     short special, tag;
