@@ -824,16 +824,16 @@ int level_select[] = {
     0,    // 19 - Yellow key
     0,    // 20 - Green key
     0,    // 21 - Blue key
-    0,    // 24 - Fast monsters
-    0,    // 25 - Respawning monsters
-    0,    // 26 - Quartz flask
-    0,    // 27 - Mystic urn
-    0,    // 28 - Time bomb
-    0,    // 29 - Tome of power
-    0,    // 30 - Ring of invincibility
-    0,    // 31 - Morph ovum
-    0,    // 32 - Chaos device
-    0,    // 33 - Shadowsphere
-    0,    // 34 - Wings of wrath
-    0,    // 35 - Torch
+    0,    // 22 - Fast monsters
+    0,    // 23 - Respawning monsters
+    0,    // 24 - Quartz flask
+    0,    // 25 - Mystic urn
+    0,    // 26 - Time bomb
+    0,    // 27 - Tome of power
+    0,    // 28 - Ring of invincibility
+    0,    // 29 - Morph ovum
+    0,    // 30 - Chaos device
+    0,    // 31 - Shadowsphere
+    0,    // 32 - Wings of wrath
+    0,    // 33 - Torch
 };

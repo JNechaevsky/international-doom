@@ -2191,13 +2191,8 @@ void G_InitNew(skill_t skill, int episode, int map)
 boolean G_DoSelectiveGame (int choice)
 {
     int i;
+    int speed;
     player_t *plr = &players[consoleplayer];
-    
-    /*
-    // [crispy] make sure "fast" parameters are really only applied once
-    static boolean fast_applied;
-
-    idmusnum = -1;  // [JN] Andrey Budko: allow new level's music to be loaded
     demoplayback = false;
     netdemo = false;
     netgame = false;
@@ -2207,7 +2202,7 @@ boolean G_DoSelectiveGame (int choice)
     playeringame[1] = playeringame[2] = playeringame[3] = 0;
     consoleplayer = 0;
     gameaction = ga_nothing;
-    */
+    automapactive = false;
 
     // Close "Level select" menu
     MenuActive = false;
@@ -2216,37 +2211,16 @@ boolean G_DoSelectiveGame (int choice)
                gamemode == shareware ? 1 : level_select[1],
                level_select[2]); 
 
-    /*
-    // Do not modify respawnparm parameter
-    respawnmonsters = level_select[25];
-
-    // Do not modify fastparm parameter
-    // [crispy] make sure "fast" parameters are really only applied once
-    if ((level_select[24] || gameskill == sk_nightmare) && !fast_applied)
+    // Fast monsters
+    speed = level_select[22] ? 1 : 0;
+    for (i = 0; MonsterMissileInfo[i].type != -1; i++)
     {
-        for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
-        // [crispy] Fix infinite loop caused by Demon speed bug
-        if (states[i].tics > 1)
-        {
-            states[i].tics >>= 1;
-        }
-
-        mobjinfo[MT_BRUISERSHOT].speed = 20*FRACUNIT;
-        mobjinfo[MT_HEADSHOT].speed = 20*FRACUNIT;
-        mobjinfo[MT_TROOPSHOT].speed = 20*FRACUNIT;
-
-        fast_applied = true;
+        mobjinfo[MonsterMissileInfo[i].type].speed
+               = MonsterMissileInfo[i].speed[speed] << FRACBITS;
     }
-    else if (!level_select[24] && gameskill != sk_nightmare && fast_applied)
-    {
-        for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
-        states[i].tics <<= 1;
-        mobjinfo[MT_BRUISERSHOT].speed = 15*FRACUNIT;
-        mobjinfo[MT_HEADSHOT].speed = 10*FRACUNIT;
-        mobjinfo[MT_TROOPSHOT].speed = 10*FRACUNIT;
-        fast_applied = false;
-    }
-    */
+
+    // Respawning monsters
+    respawnmonsters = level_select[23];
 
     // Health
     plr->health = level_select[3];
@@ -2257,7 +2231,7 @@ boolean G_DoSelectiveGame (int choice)
     // Armor type. Set to 0 if no armor given.
     plr->armortype = level_select[5] == 0 ? 0 : level_select[5];
 
-    // Weapons.
+    // Weapons
     plr->weaponowned[wp_gauntlets]  = level_select[6];
     plr->weaponowned[wp_crossbow]   = level_select[7];
     plr->weaponowned[wp_blaster]    = level_select[8];
@@ -2265,10 +2239,9 @@ boolean G_DoSelectiveGame (int choice)
     plr->weaponowned[wp_phoenixrod] = gamemode == shareware ? 0 : level_select[10];
     plr->weaponowned[wp_mace]       = gamemode == shareware ? 0 : level_select[11];
 
-/*
-    // Backpack
-    plr->backpack = level_select[13];
-    if (level_select[13])
+    // Bag of Holding
+    plr->backpack = level_select[12];
+    if (level_select[12])
     {
         plr->maxammo[0] *= 2;
         plr->maxammo[1] *= 2;
@@ -2277,20 +2250,18 @@ boolean G_DoSelectiveGame (int choice)
     }
 
     // Ammo
-    plr->ammo[0] = level_select[14]; // bullets
-    plr->ammo[1] = level_select[15]; // shells
-    plr->ammo[2] = level_select[17]; // cells
-    plr->ammo[3] = level_select[16]; // rockets
+    plr->ammo[0] = level_select[13]; // Wand crystals
+    plr->ammo[1] = level_select[14]; // Ethereal arrows
+    plr->ammo[2] = level_select[15]; // Claw orbs
+    plr->ammo[3] = level_select[16]; // Hellstaff runes
+    plr->ammo[4] = level_select[17]; // Flame orbs
+    plr->ammo[5] = level_select[18]; // Mace spheres
 
     // Keys
-    plr->cards[0] = level_select[18]; // blue keycard
-    plr->cards[1] = level_select[19]; // yellow keycard
-    plr->cards[2] = level_select[20]; // red keycard
-    plr->cards[3] = level_select[21]; // blue skull key
-    plr->cards[4] = level_select[22]; // yellow skull key
-    plr->cards[5] = level_select[23]; // red skull key
-    */
-    
+    plr->keys[0] = level_select[19]; // Yellow key
+    plr->keys[1] = level_select[20]; // Green key
+    plr->keys[2] = level_select[21]; // Blue key
+
     return true;
 }
 

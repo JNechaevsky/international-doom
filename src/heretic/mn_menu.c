@@ -567,6 +567,19 @@ static boolean M_ID_LevelPhoenixRod (int choice);
 static boolean M_ID_LevelFireMace (int choice);
 
 static void M_Draw_ID_Level_2 (void);
+static boolean M_ID_LevelBag (int choice);
+static boolean M_ID_LevelAmmo_0 (int choice);
+static boolean M_ID_LevelAmmo_1 (int choice);
+static boolean M_ID_LevelAmmo_2 (int choice);
+static boolean M_ID_LevelAmmo_3 (int choice);
+static boolean M_ID_LevelAmmo_4 (int choice);
+static boolean M_ID_LevelAmmo_5 (int choice);
+static boolean M_ID_LevelKey_0 (int choice);
+static boolean M_ID_LevelKey_1 (int choice);
+static boolean M_ID_LevelKey_2 (int choice);
+static boolean M_ID_LevelFast (int choice);
+static boolean M_ID_LevelRespawn (int choice);
+
 static void M_Draw_ID_Level_3 (void);
 
 // Keyboard binding prototypes
@@ -3537,23 +3550,23 @@ static boolean M_ID_LevelFireMace (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_2[] = {
-    { ITT_LRFUNC,  "BAG OF HOLDING",  NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "WAND CRYSTALS",   NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "ETHEREAL ARROWS", NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "CLAW ORBS",       NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "HELLSTAFF RUNES", NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "FLAME ORBS",      NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "MACE SPHERES",    NULL,              0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,              NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "YELLOW KEY",      NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "GREEN KEY",       NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "BLUE KEY",        NULL,              0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,              NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "FAST",            NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "RESPAWNING",      NULL,              0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,              NULL,              0, MENU_NONE      },
-    { ITT_SETMENU, "LAST PAGE",       NULL,              0, MENU_ID_LEVEL3 },
-    { ITT_EFUNC,   "START GAME",      G_DoSelectiveGame, 0, MENU_NONE      },
+    { ITT_LRFUNC,  "BAG OF HOLDING",  M_ID_LevelBag,     0, MENU_NONE      },
+    { ITT_LRFUNC,  "WAND CRYSTALS",   M_ID_LevelAmmo_0,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "ETHEREAL ARROWS", M_ID_LevelAmmo_1,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "CLAW ORBS",       M_ID_LevelAmmo_2,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "HELLSTAFF RUNES", M_ID_LevelAmmo_3,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "FLAME ORBS",      M_ID_LevelAmmo_4,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "MACE SPHERES",    M_ID_LevelAmmo_5,  0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,              NULL,                  0, MENU_NONE      },
+    { ITT_LRFUNC,  "YELLOW KEY",      M_ID_LevelKey_0,   0, MENU_NONE      },
+    { ITT_LRFUNC,  "GREEN KEY",       M_ID_LevelKey_1,   0, MENU_NONE      },
+    { ITT_LRFUNC,  "BLUE KEY",        M_ID_LevelKey_2,   0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,              NULL,                  0, MENU_NONE      },
+    { ITT_LRFUNC,  "FAST",            M_ID_LevelFast,    0, MENU_NONE      },
+    { ITT_LRFUNC,  "RESPAWNING",      M_ID_LevelRespawn, 0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,              NULL,                  0, MENU_NONE      },
+    { ITT_SETMENU, "LAST PAGE",       NULL,                  0, MENU_ID_LEVEL3 },
+    { ITT_EFUNC,   "START GAME",      G_DoSelectiveGame,     0, MENU_NONE      },
 };
 
 static Menu_t ID_Def_Level_2 = {
@@ -3567,13 +3580,169 @@ static Menu_t ID_Def_Level_2 = {
 
 static void M_Draw_ID_Level_2 (void)
 {
+    char str[32];
+
     M_FillBackground();
 
     MN_DrTextACentered("AMMO", 10, cr[CR_YELLOW]);
 
+    // Bag of Holding
+    sprintf(str, level_select[12] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, level_select[12] ? GLOW_GREEN : GLOW_RED));
+
+    // Wand crystals
+    sprintf(str, "%d", level_select[13]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, level_select[13] >= 50 ? GLOW_GREEN :
+                              level_select[13] >= 25 ? GLOW_YELLOW : GLOW_RED));
+
+    // Ethereal arrows
+    sprintf(str, "%d", level_select[14]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, level_select[14] >= 25 ? GLOW_GREEN :
+                              level_select[14] >= 12 ? GLOW_YELLOW : GLOW_RED));
+
+    // Claw orbs
+    sprintf(str, "%d", level_select[15]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, level_select[15] >= 100 ? GLOW_GREEN :
+                              level_select[15] >=  50 ? GLOW_YELLOW : GLOW_RED));
+
+    // Hellstaff runes
+    sprintf(str, "%d", level_select[16]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, level_select[16] >= 100 ? GLOW_GREEN :
+                              level_select[16] >=  50 ? GLOW_YELLOW : GLOW_RED));
+
+    // Flame orbs
+    sprintf(str, "%d", level_select[17]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, level_select[17] >= 10 ? GLOW_GREEN :
+                              level_select[17] >=  5 ? GLOW_YELLOW : GLOW_RED));
+
+    // Mace spheres
+    sprintf(str, "%d", level_select[18]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, level_select[18] >= 75 ? GLOW_GREEN :
+                              level_select[18] >= 37 ? GLOW_YELLOW : GLOW_RED));
+
     MN_DrTextACentered("KEYS", 90, cr[CR_YELLOW]);
 
+    // Yellow key
+    sprintf(str, level_select[19] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, level_select[19] ? GLOW_GREEN : GLOW_RED));
+
+    // Green key
+    sprintf(str, level_select[20] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, level_select[20] ? GLOW_GREEN : GLOW_RED));
+
+    // Blue key
+    sprintf(str, level_select[21] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, level_select[21] ? GLOW_GREEN : GLOW_RED));
+
     MN_DrTextACentered("MONSTERS", 130, cr[CR_YELLOW]);
+
+    // Fast monsters
+    sprintf(str, level_select[22] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
+               M_Item_Glow(12, level_select[22] ? GLOW_GREEN : GLOW_RED));
+
+    // Respawning monsters
+    sprintf(str, level_select[23] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 150,
+               M_Item_Glow(13, level_select[23] ? GLOW_GREEN : GLOW_RED));
+}
+
+static boolean M_ID_LevelBag (int choice)
+{
+    level_select[12] ^= 1;
+
+    if (!level_select[12])
+    {
+        if (level_select[13] > 100) // Wand crystals
+            level_select[13] = 100;
+        if (level_select[14] > 50)  // Ethereal arrows
+            level_select[14] = 50;
+        if (level_select[15] > 200) // Claw orbs
+            level_select[15] = 200;
+        if (level_select[16] > 200) // Hellstaff runes
+            level_select[16] = 200;
+        if (level_select[17] > 20)  // Flame orbs
+            level_select[17] = 20;
+        if (level_select[18] > 150) // Mace spheres
+            level_select[18] = 150;
+    }
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_0 (int choice)
+{
+    level_select[13] = M_INT_Slider(level_select[13], 0, level_select[12] ? 200 : 100, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_1 (int choice)
+{
+    level_select[14] = M_INT_Slider(level_select[14], 0, level_select[12] ? 100 : 50, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_2 (int choice)
+{
+    level_select[15] = M_INT_Slider(level_select[15], 0, level_select[12] ? 400 : 200, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_3 (int choice)
+{
+    level_select[16] = M_INT_Slider(level_select[16], 0, level_select[12] ? 400 : 200, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_4 (int choice)
+{
+    level_select[17] = M_INT_Slider(level_select[17], 0, level_select[12] ? 40 : 20, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_5 (int choice)
+{
+    level_select[18] = M_INT_Slider(level_select[18], 0, level_select[12] ? 300 : 150, choice);
+    return true;
+}
+
+static boolean M_ID_LevelKey_0 (int choice)
+{
+    level_select[19] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelKey_1 (int choice)
+{
+    level_select[20] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelKey_2 (int choice)
+{
+    level_select[21] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelFast (int choice)
+{
+    level_select[22] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelRespawn (int choice)
+{
+    level_select[23] ^= 1;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
