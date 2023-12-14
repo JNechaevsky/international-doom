@@ -2257,19 +2257,15 @@ boolean G_DoSelectiveGame (int choice)
     // Armor type. Set to 0 if no armor given.
     plr->armortype = level_select[5] == 0 ? 0 : level_select[5];
 
-    /*
-    // Weapons
-    plr->weaponowned[wp_chainsaw] = level_select[6];
-    plr->weaponowned[wp_shotgun] = level_select[7];
-    // Super shotgun available only in Doom 2
-    plr->weaponowned[wp_supershotgun] = gamemode == commercial ? level_select[8] : 0;
-    plr->weaponowned[wp_chaingun] = level_select[9];
-    plr->weaponowned[wp_missile] = level_select[10];
-    // Plasma Gun not available in Shareware
-    plr->weaponowned[wp_plasma] = gamemode == shareware ? 0 : level_select[11];
-    // BFG 9000 not available in shareware
-    plr->weaponowned[wp_bfg] = gamemode == shareware ? 0 : level_select[12];
+    // Weapons.
+    plr->weaponowned[wp_gauntlets]  = level_select[6];
+    plr->weaponowned[wp_crossbow]   = level_select[7];
+    plr->weaponowned[wp_blaster]    = level_select[8];
+    plr->weaponowned[wp_skullrod]   = gamemode == shareware ? 0 : level_select[9];
+    plr->weaponowned[wp_phoenixrod] = gamemode == shareware ? 0 : level_select[10];
+    plr->weaponowned[wp_mace]       = gamemode == shareware ? 0 : level_select[11];
 
+/*
     // Backpack
     plr->backpack = level_select[13];
     if (level_select[13])
