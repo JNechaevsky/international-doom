@@ -59,7 +59,6 @@
 
 #define SKULLXOFF		-32
 #define LINEHEIGHT       16
-#define LINEHEIGHT_SMALL 9
 
 
 boolean menuactive;
@@ -481,6 +480,9 @@ static menu_t SaveDef =
 #define ID_MENU_LEFTOFFSET_SML    (90)
 #define ID_MENU_LEFTOFFSET_BIG    (32)
 #define ID_MENU_LEFTOFFSET_LEVEL  (74)
+
+#define ID_MENU_LINEHEIGHT_SMALL  (9)
+#define ID_MENU_CURSOR_OFFSET     (10)
 
 // Utility function to align menu item names by the right side.
 static int M_ItemRightAlign (const char *text)
@@ -6218,7 +6220,7 @@ void M_Drawer (void)
                 // [JN] Apply fading effect in M_Ticker.
                 M_WriteText (x, y, name, M_Line_Glow(currentMenu->menuitems[i].tics));
             }
-            y += LINEHEIGHT_SMALL;
+            y += ID_MENU_LINEHEIGHT_SMALL;
         }
         else
         {
@@ -6233,7 +6235,8 @@ void M_Drawer (void)
     if (currentMenu->smallFont)
     {
         // [JN] Draw glowing * symbol.
-        M_WriteText(x - 10, currentMenu->y + itemOn * LINEHEIGHT_SMALL, "*", M_Cursor_Glow(cursor_tics));
+        M_WriteText(x - ID_MENU_CURSOR_OFFSET, currentMenu->y + itemOn * ID_MENU_LINEHEIGHT_SMALL,
+                    "*", M_Cursor_Glow(cursor_tics));
     }
     else
     {
