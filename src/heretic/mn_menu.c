@@ -3907,6 +3907,32 @@ static boolean M_ID_LevelArti_9 (int choice)
     return true;
 }
 
+// -----------------------------------------------------------------------------
+// M_ScrollGameplayPages
+//  [JN] Scroll keyboard gameplay pages forward (direction = true)
+//  and backward (direction = false).
+// -----------------------------------------------------------------------------
+
+static void M_ScrollLevelPages (boolean direction)
+{
+    if (CurrentMenu == &ID_Def_Level_1)
+    {
+        SetMenu(direction ? MENU_ID_LEVEL2 : MENU_ID_LEVEL3);
+    }
+    else 
+    if (CurrentMenu == &ID_Def_Level_2)
+    {
+        SetMenu(direction ? MENU_ID_LEVEL3 : MENU_ID_LEVEL1);
+    }
+    else
+    if (CurrentMenu == &ID_Def_Level_3)
+    {
+        SetMenu(direction ? MENU_ID_LEVEL1 : MENU_ID_LEVEL2);
+    }
+
+    S_StartSound(NULL, sfx_switch);
+}
+
 static Menu_t *Menus[] = {
     &MainMenu,
     &EpisodeMenu,
@@ -5618,6 +5644,12 @@ boolean MN_Responder(event_t * event)
             {
                 M_ScrollGameplayPages(false);
             }
+            // [JN] ...or scroll level select menu backward.
+            if (CurrentMenu == &ID_Def_Level_1 || CurrentMenu == &ID_Def_Level_2
+            ||  CurrentMenu == &ID_Def_Level_3)
+            {
+                M_ScrollLevelPages(false);
+            }
             return (true);
         }
         // [crispy] next/prev Crispness menu
@@ -5638,6 +5670,12 @@ boolean MN_Responder(event_t * event)
             ||  CurrentMenu == &ID_Def_Gameplay_3)
             {
                 M_ScrollGameplayPages(true);
+            }
+            // [JN] ...or scroll level select menu forward.
+            if (CurrentMenu == &ID_Def_Level_1 || CurrentMenu == &ID_Def_Level_2
+            ||  CurrentMenu == &ID_Def_Level_3)
+            {
+                M_ScrollLevelPages(true);
             }
             return (true);
         }
