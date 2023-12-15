@@ -581,6 +581,16 @@ static boolean M_ID_LevelFast (int choice);
 static boolean M_ID_LevelRespawn (int choice);
 
 static void M_Draw_ID_Level_3 (void);
+static boolean M_ID_LevelArti_0 (int choice);
+static boolean M_ID_LevelArti_1 (int choice);
+static boolean M_ID_LevelArti_2 (int choice);
+static boolean M_ID_LevelArti_3 (int choice);
+static boolean M_ID_LevelArti_4 (int choice);
+static boolean M_ID_LevelArti_5 (int choice);
+static boolean M_ID_LevelArti_6 (int choice);
+static boolean M_ID_LevelArti_7 (int choice);
+static boolean M_ID_LevelArti_8 (int choice);
+static boolean M_ID_LevelArti_9 (int choice);
 
 // Keyboard binding prototypes
 static boolean KbdIsBinding;
@@ -3750,16 +3760,16 @@ static boolean M_ID_LevelRespawn (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_3[] = {
-    { ITT_LRFUNC,  "QUARTZ FLASK",          NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "MYSTIC URN",            NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "TIME BOMB",             NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "TOME OF POWER",         NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "RING OF INVINCIBILITY", NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "MORPH OVUM",            NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "CHAOS DEVICE",          NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "SHADOWSPHERE",          NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "WINGS OF WRATH",        NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "TORCH",                 NULL,              0, MENU_NONE      },
+    { ITT_LRFUNC,  "QUARTZ FLASK",          M_ID_LevelArti_0,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "MYSTIC URN",            M_ID_LevelArti_1,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "TIME BOMB",             M_ID_LevelArti_2,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "TOME OF POWER",         M_ID_LevelArti_3,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "RING OF INVINCIBILITY", M_ID_LevelArti_4,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "MORPH OVUM",            M_ID_LevelArti_5,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "CHAOS DEVICE",          M_ID_LevelArti_6,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "SHADOWSPHERE",          M_ID_LevelArti_7,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "WINGS OF WRATH",        M_ID_LevelArti_8,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "TORCH",                 M_ID_LevelArti_9,  0, MENU_NONE      },
     { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
     { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
     { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
@@ -3780,9 +3790,121 @@ static Menu_t ID_Def_Level_3 = {
 
 static void M_Draw_ID_Level_3 (void)
 {
+    char str[32];
+
     M_FillBackground();
 
     MN_DrTextACentered("ARTIFACTS", 10, cr[CR_YELLOW]);
+
+    // Quartz flask
+    sprintf(str, "%d", level_select[24]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, level_select[24] ? GLOW_GREEN : GLOW_RED));
+
+    // Mystic urn
+    sprintf(str, "%d", level_select[25]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, level_select[25] ? GLOW_GREEN : GLOW_RED));
+
+    // Time bomb
+    sprintf(str, "%d", level_select[26]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, level_select[26] ? GLOW_GREEN : GLOW_RED));
+
+    // Tome of power
+    sprintf(str, "%d", level_select[27]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, level_select[27] ? GLOW_GREEN : GLOW_RED));
+
+    // Ring of invincibility
+    sprintf(str, "%d", level_select[28]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, level_select[28] ? GLOW_GREEN : GLOW_RED));
+
+    // Morph ovum
+    sprintf(str, "%d", level_select[29]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, level_select[29] ? GLOW_GREEN : GLOW_RED));
+
+    // Chaos device
+    sprintf(str, "%d", level_select[30]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, level_select[30] ? GLOW_GREEN : GLOW_RED));
+
+    // Shadowsphere
+    sprintf(str, "%d", level_select[31]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, level_select[31] ? GLOW_GREEN : GLOW_RED));
+
+    // Wings of wrath
+    sprintf(str, "%d", level_select[32]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, level_select[32] ? GLOW_GREEN : GLOW_RED));
+
+    // Torch
+    sprintf(str, "%d", level_select[33]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, level_select[33] ? GLOW_GREEN : GLOW_RED));
+}
+
+static boolean M_ID_LevelArti_0 (int choice)
+{
+    level_select[24] = M_INT_Slider(level_select[24], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_1 (int choice)
+{
+    level_select[25] = M_INT_Slider(level_select[25], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_2 (int choice)
+{
+    level_select[26] = M_INT_Slider(level_select[26], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_3 (int choice)
+{
+    level_select[27] = M_INT_Slider(level_select[27], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_4 (int choice)
+{
+    level_select[28] = M_INT_Slider(level_select[28], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_5 (int choice)
+{
+    level_select[29] = M_INT_Slider(level_select[29], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_6 (int choice)
+{
+    level_select[30] = M_INT_Slider(level_select[30], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_7 (int choice)
+{
+    level_select[31] = M_INT_Slider(level_select[31], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_8 (int choice)
+{
+    level_select[32] = M_INT_Slider(level_select[32], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_9 (int choice)
+{
+    level_select[33] = M_INT_Slider(level_select[33], 0, 16, choice);
+    return true;
 }
 
 static Menu_t *Menus[] = {

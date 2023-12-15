@@ -2262,6 +2262,18 @@ boolean G_DoSelectiveGame (int choice)
     plr->keys[1] = level_select[20]; // Green key
     plr->keys[2] = level_select[21]; // Blue key
 
+    // Artifacts
+    for (i = 0 ; i < level_select[24] ; i++) P_GiveArtifact(plr, arti_health, NULL);
+    for (i = 0 ; i < level_select[25] ; i++) P_GiveArtifact(plr, arti_superhealth, NULL);
+    for (i = 0 ; i < level_select[26] ; i++) P_GiveArtifact(plr, arti_firebomb, NULL);
+    for (i = 0 ; i < level_select[27] ; i++) P_GiveArtifact(plr, arti_tomeofpower, NULL);
+    for (i = 0 ; i < level_select[28] ; i++) P_GiveArtifact(plr, arti_invulnerability, NULL);
+    for (i = 0 ; i < level_select[29] ; i++) P_GiveArtifact(plr, arti_egg, NULL);
+    for (i = 0 ; i < level_select[30] ; i++) P_GiveArtifact(plr, arti_teleport, NULL);
+    for (i = 0 ; i < level_select[31] ; i++) P_GiveArtifact(plr, arti_invisibility, NULL);
+    for (i = 0 ; i < level_select[32] ; i++) P_GiveArtifact(plr, arti_fly, NULL);
+    for (i = 0 ; i < level_select[33] ; i++) P_GiveArtifact(plr, arti_torch, NULL);
+
     return true;
 }
 
