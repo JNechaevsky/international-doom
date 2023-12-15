@@ -344,18 +344,20 @@ static Menu_t Options2Menu = {
 // [JN] ID custom menu
 // =============================================================================
 
-#define ID_MENU_TOPOFFSET     (20)
-#define ID_MENU_LEFTOFFSET    (48)
-#define ID_MENU_RIGHTOFFSET   (ORIGWIDTH - ID_MENU_LEFTOFFSET)
-
+#define ID_MENU_TOPOFFSET         (20)
+#define ID_MENU_LEFTOFFSET        (48)
 #define ID_MENU_LEFTOFFSET_SML    (90)
-#define ID_MENU_RIGHTOFFSET_SML   (ORIGWIDTH - ID_MENU_LEFTOFFSET_SML)
-
 #define ID_MENU_LEFTOFFSET_BIG    (32)
-#define ID_MENU_RIGHTOFFSET_BIG   (ORIGWIDTH - ID_MENU_LEFTOFFSET_BIG)
+#define ID_MENU_LEFTOFFSET_LEVEL  (74)
 
-#define ITEM_HEIGHT_SMALL        10
-#define SELECTOR_XOFFSET_SMALL  -10
+#define ID_MENU_LINEHEIGHT_SMALL  (10)
+#define ID_MENU_CURSOR_OFFSET     (10)
+
+// Utility function to align menu item names by the right side.
+static int M_ItemRightAlign (const char *text)
+{
+    return ORIGWIDTH - CurrentMenu->x - MN_TextAWidth(text);
+}
 
 static player_t *player;
 
@@ -551,8 +553,44 @@ static boolean M_ID_PistolStart (int choice);
 static boolean M_ID_BlockmapFix (int choice);
 
 static void M_Draw_ID_Level_1 (void);
+static boolean M_ID_LevelSkill (int choice);
+static boolean M_ID_LevelEpisode (int choice);
+static boolean M_ID_LevelMap (int choice);
+static boolean M_ID_LevelHealth (int choice);
+static boolean M_ID_LevelArmor (int choice);
+static boolean M_ID_LevelArmorType (int choice);
+static boolean M_ID_LevelGauntlets (int choice);
+static boolean M_ID_LevelCrossbow (int choice);
+static boolean M_ID_LevelDragonClaw (int choice);
+static boolean M_ID_LevelHellStaff (int choice);
+static boolean M_ID_LevelPhoenixRod (int choice);
+static boolean M_ID_LevelFireMace (int choice);
+
 static void M_Draw_ID_Level_2 (void);
+static boolean M_ID_LevelBag (int choice);
+static boolean M_ID_LevelAmmo_0 (int choice);
+static boolean M_ID_LevelAmmo_1 (int choice);
+static boolean M_ID_LevelAmmo_2 (int choice);
+static boolean M_ID_LevelAmmo_3 (int choice);
+static boolean M_ID_LevelAmmo_4 (int choice);
+static boolean M_ID_LevelAmmo_5 (int choice);
+static boolean M_ID_LevelKey_0 (int choice);
+static boolean M_ID_LevelKey_1 (int choice);
+static boolean M_ID_LevelKey_2 (int choice);
+static boolean M_ID_LevelFast (int choice);
+static boolean M_ID_LevelRespawn (int choice);
+
 static void M_Draw_ID_Level_3 (void);
+static boolean M_ID_LevelArti_0 (int choice);
+static boolean M_ID_LevelArti_1 (int choice);
+static boolean M_ID_LevelArti_2 (int choice);
+static boolean M_ID_LevelArti_3 (int choice);
+static boolean M_ID_LevelArti_4 (int choice);
+static boolean M_ID_LevelArti_5 (int choice);
+static boolean M_ID_LevelArti_6 (int choice);
+static boolean M_ID_LevelArti_7 (int choice);
+static boolean M_ID_LevelArti_8 (int choice);
+static boolean M_ID_LevelArti_9 (int choice);
 
 // Keyboard binding prototypes
 static boolean KbdIsBinding;
@@ -854,13 +892,13 @@ static void M_Draw_ID_Video (void)
 
     // Truecolor Rendering
     sprintf(str, vid_truecolor ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 20,
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, vid_truecolor ? GLOW_GREEN : GLOW_DARKRED));
 
     // Rendering resolution
     sprintf(str, vid_hires == 1 ? "DOUBLE" :
                  vid_hires == 2 ? "QUAD" : "ORIGINAL");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, vid_hires == 1 ? GLOW_GREEN :
                               vid_hires == 2 ? GLOW_YELLOW : GLOW_DARKRED));
 
@@ -869,42 +907,42 @@ static void M_Draw_ID_Video (void)
                  vid_widescreen == 2 ? "16:10" :
                  vid_widescreen == 3 ? "16:9" :
                  vid_widescreen == 4 ? "21:9" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 40,
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
                M_Item_Glow(2, vid_widescreen ? GLOW_GREEN : GLOW_DARKRED));
 
     // Uncapped framerate
     sprintf(str, vid_uncapped_fps ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 50,
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
                M_Item_Glow(3, vid_uncapped_fps ? GLOW_GREEN : GLOW_DARKRED));
 
     // Framerate limit
     sprintf(str, !vid_uncapped_fps ? "35" :
                  vid_fpslimit ? "%d" : "NONE", vid_fpslimit);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
                M_Item_Glow(4, !vid_uncapped_fps ? GLOW_DARKRED :
                                vid_fpslimit == 0 ? GLOW_RED :
                                vid_fpslimit >= 500 ? GLOW_YELLOW : GLOW_GREEN));
 
     // Enable vsync
     sprintf(str, vid_vsync ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, vid_vsync ? GLOW_GREEN : GLOW_DARKRED));
 
     // Show FPS counter
     sprintf(str, vid_showfps ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
                M_Item_Glow(6, vid_showfps ? GLOW_GREEN : GLOW_DARKRED));
 
     // Pixel scaling
     sprintf(str, vid_smooth_scaling ? "SMOOTH" : "SHARP");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, vid_smooth_scaling ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextACentered("MISCELLANEOUS", 100, cr[CR_YELLOW]);
 
     // Show ENDTEXT screen
     sprintf(str, vid_endoom ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 110,
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, vid_endoom ? GLOW_GREEN : GLOW_RED));
 }
 
@@ -1085,23 +1123,23 @@ static void M_Draw_ID_Display (void)
     MN_DrTextACentered("DISPLAY OPTIONS", 10, cr[CR_YELLOW]);
 
     // Gamma-correction num
-    MN_DrTextA(gammalvls[vid_gamma][1], ID_MENU_RIGHTOFFSET - MN_TextAWidth(gammalvls[vid_gamma][1]), 20,
+    MN_DrTextA(gammalvls[vid_gamma][1], M_ItemRightAlign(gammalvls[vid_gamma][1]), 20,
                M_Item_Glow(0, GLOW_LIGHTGRAY));
 
     // Field of View
     sprintf(str, "*TODO*");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, GLOW_RED));
 
     // Background shading
     sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 40,
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
                M_Item_Glow(2, dp_menu_shading == 8 ? GLOW_YELLOW :
                               dp_menu_shading >  0 ? GLOW_GREEN  : GLOW_DARKRED));
 
     // Extra level brightness
     sprintf(str, dp_level_brightness ? "%d" : "OFF", dp_level_brightness);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 50,
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
                M_Item_Glow(3, dp_level_brightness == 8 ? GLOW_YELLOW :
                               dp_level_brightness >  0 ? GLOW_GREEN  : GLOW_DARKRED));
 
@@ -1109,40 +1147,40 @@ static void M_Draw_ID_Display (void)
 
     // Saturation
     M_snprintf(str, 6, "%d%%", vid_saturation);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, GLOW_LIGHTGRAY));
 
     // RED intensity
     M_snprintf(str, 6, "%3f", vid_r_intensity);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
                M_Item_Glow(6, GLOW_RED));
 
     // GREEN intensity
     M_snprintf(str, 6, "%3f", vid_g_intensity);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, GLOW_GREEN));
 
     // BLUE intensity
     M_snprintf(str, 6, "%3f", vid_b_intensity);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 100,
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
                M_Item_Glow(8, GLOW_BLUE));
 
     MN_DrTextACentered("MESSAGES SETTINGS", 110, cr[CR_YELLOW]);
 
     // Messages enabled
     sprintf(str, showMessages ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 120,
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
                M_Item_Glow(10, showMessages ? GLOW_DARKRED : GLOW_GREEN));
 
     // Text casts shadows
     sprintf(str, msg_text_shadows ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 130,
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
                M_Item_Glow(11, msg_text_shadows ? GLOW_GREEN : GLOW_DARKRED));
 
     // Local time
     sprintf(str, msg_local_time == 1 ? "12-HOUR FORMAT" :
                  msg_local_time == 2 ? "24-HOUR FORMAT" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 140,
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
                M_Item_Glow(12, msg_local_time ? GLOW_GREEN : GLOW_DARKRED));
 }
 
@@ -1411,22 +1449,22 @@ static void M_Draw_ID_Sound (void)
                  snd_musicdevice == 8 ?  "NATIVE MIDI" :
                  snd_musicdevice == 11 ? "FLUIDSYNTH" :
                                          "UNKNOWN");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, snd_musicdevice ? GLOW_GREEN : GLOW_RED));
 
     // Sound effects mode
     sprintf(str, snd_monosfx ? "MONO" : "STEREO");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 100,
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
                M_Item_Glow(8, snd_monosfx ? GLOW_RED : GLOW_GREEN));
 
     // Pitch-shifted sounds
     sprintf(str, snd_pitchshift ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 110,
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
 
     // Number of SFX to mix
     sprintf(str, "%i", snd_Channels);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 120,
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
                M_Item_Glow(10, snd_Channels == 8 ? GLOW_DARKRED :
                                snd_Channels == 1 ? GLOW_RED : GLOW_YELLOW));
 
@@ -1594,17 +1632,17 @@ static void M_Draw_ID_Controls (void)
 
     // Mouse look
     sprintf(str, mouse_look ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 140,
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
                M_Item_Glow(12, mouse_look ? GLOW_GREEN : GLOW_RED));
 
     // Vertical mouse movement
     sprintf(str, mouse_novert ? "OFF" : "ON");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 150,
+    MN_DrTextA(str, M_ItemRightAlign(str), 150,
                M_Item_Glow(13, mouse_novert ? GLOW_RED : GLOW_GREEN));
 
     // Invert vertical axis
     sprintf(str, mouse_y_invert ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 160,
+    MN_DrTextA(str, M_ItemRightAlign(str), 160,
                M_Item_Glow(14, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
 }
 
@@ -2725,41 +2763,41 @@ static void M_Draw_ID_Widgets (void)
 
     // Widgets location
     sprintf(str, widget_location ? "TOP" : "BOTTOM");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 20,
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, GLOW_GREEN));
 
     // K/I/S stats
     sprintf(str, widget_kis == 1 ? "ALWAYS"  :
                  widget_kis == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 30,
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
 
     // Level/DM timer
     sprintf(str, widget_time == 1 ? "ALWAYS"  :
                  widget_time == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 40,
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
                M_Item_Glow(2, widget_time ? GLOW_GREEN : GLOW_DARKRED));
 
     // Total time
     sprintf(str, widget_totaltime == 1 ? "ALWAYS"  :
                  widget_totaltime == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 50,
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
                M_Item_Glow(3, widget_totaltime ? GLOW_GREEN : GLOW_DARKRED));
 
     // Level name
     sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 60,
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
                M_Item_Glow(4, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
 
     // Player coords
     sprintf(str, widget_coords == 1 ? "ALWAYS"  :
                  widget_coords == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 70,
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
 
     // Render counters
     sprintf(str, widget_render ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
                M_Item_Glow(6, widget_render ? GLOW_GREEN : GLOW_DARKRED));
 
     // Target's health
@@ -2767,7 +2805,7 @@ static void M_Draw_ID_Widgets (void)
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 90,
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, widget_health ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextACentered("AUTOMAP", 100, cr[CR_YELLOW]);
@@ -2879,7 +2917,7 @@ static void M_Draw_ID_Gameplay_1 (void)
 
     // Brightmaps
     sprintf(str, vis_brightmaps ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 20,
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
 
     // Translucency
@@ -2889,37 +2927,37 @@ static void M_Draw_ID_Gameplay_1 (void)
     sprintf(str, vis_translucency == 1 ? "ADDITIVE" :
                  vis_translucency == 2 ? "BLENDING" : "OFF");
 #endif
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 30,
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
 
     // Fake contrast
     sprintf(str, vis_fake_contrast ? "ORIGINAL" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 40,
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
                M_Item_Glow(2, vis_fake_contrast ? GLOW_DARKRED : GLOW_GREEN));
 
     // Diminished lighting
     sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 50,
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
                M_Item_Glow(3, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
 
     // Liquids animation
     sprintf(str, vis_swirling_liquids ? "SWIRLING" : "ORIGINAL");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 60,
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
                M_Item_Glow(4, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
 
     // Invulnerability affects sky
     sprintf(str, vis_invul_sky ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 70,
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, vis_invul_sky ? GLOW_GREEN : GLOW_DARKRED));
 
     // Sky drawing mode
     sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 80,
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
                M_Item_Glow(6, vis_linear_sky ? GLOW_GREEN : GLOW_DARKRED));
 
     // Randomly mirrored corpses
     sprintf(str, vis_flip_corpses ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 90,
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextACentered("CROSSHAIR", 100, cr[CR_YELLOW]);
@@ -2932,14 +2970,14 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_draw == 5 ? "ANGLE" :
                  xhair_draw == 6 ? "TRIANGLE" :
                  xhair_draw == 7 ? "DOT" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 110,
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
 
     // Crosshair indication
     sprintf(str, xhair_color == 1 ? "HEALTH" :
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
                  xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 120,
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
                M_Item_Glow(10, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
@@ -2949,7 +2987,7 @@ static void M_Draw_ID_Gameplay_1 (void)
 
     // Footer
     sprintf(str, "PAGE 1/3");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 140, cr[CR_GRAY]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 140, cr[CR_GRAY]);
 }
 
 static boolean M_ID_Brightmaps (int choice)
@@ -3072,7 +3110,7 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     // Colored elements
     sprintf(str, st_colored_stbar ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 20,
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
 
 
@@ -3080,25 +3118,25 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     // Sfx attenuation axises
     sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 50,
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
                M_Item_Glow(3, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextACentered("PHYSICAL", 60, cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 70,
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
 
     // Weapon attack alignment
     sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
                  phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 80,
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
                M_Item_Glow(6, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 90,
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
@@ -3108,7 +3146,7 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     // Footer
     sprintf(str, "PAGE 2/3");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 140, cr[CR_GRAY]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 140, cr[CR_GRAY]);
 }
 
 static boolean M_ID_ColoredSBar (int choice)
@@ -3181,7 +3219,7 @@ static void M_Draw_ID_Gameplay_3 (void)
 
     // Default skill level
     M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 20,
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
                DefSkillColor(gp_default_skill));
 
     MN_DrTextACentered("DEMOS", 50, cr[CR_YELLOW]);
@@ -3190,34 +3228,34 @@ static void M_Draw_ID_Gameplay_3 (void)
     sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
                  demo_timer == 2 ? "RECORDING" : 
                  demo_timer == 3 ? "ALWAYS" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 60,
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
                M_Item_Glow(4, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
 
     // Timer direction
     sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 70,
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
 
     // Show progress bar
     sprintf(str, demo_bar ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 80,
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
                M_Item_Glow(6, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
 
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 90,
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
 
     MN_DrTextACentered("COMPATIBILITY-BREAKING", 100, cr[CR_YELLOW]);
 
     // Wand start game mode
     sprintf(str, compat_pistol_start ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 110,
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, compat_pistol_start ? GLOW_GREEN : GLOW_DARKRED));
 
     // Improved hit detection
     sprintf(str, compat_blockmap_fix ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 120,
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
                M_Item_Glow(10, compat_blockmap_fix ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
@@ -3227,7 +3265,7 @@ static void M_Draw_ID_Gameplay_3 (void)
 
     // Footer
     sprintf(str, "PAGE 3/3");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET_BIG - MN_TextAWidth(str), 140, cr[CR_GRAY]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 140, cr[CR_GRAY]);
 }
 
 static boolean M_ID_DefaulSkill (int choice)
@@ -3304,14 +3342,29 @@ static void M_ScrollGameplayPages (boolean direction)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_1[] = {
-    { ITT_LRFUNC, "DUMMY", NULL, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,    NULL, 0, MENU_NONE },
+    { ITT_LRFUNC,  "SKILL LEVEL",       M_ID_LevelSkill,      0, MENU_NONE      },
+    { ITT_LRFUNC,  "EPISODE",           M_ID_LevelEpisode,    0, MENU_NONE      },
+    { ITT_LRFUNC,  "MAP",               M_ID_LevelMap,        0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                NULL,                 0, MENU_NONE      },
+    { ITT_LRFUNC,  "HEALTH",            M_ID_LevelHealth,     0, MENU_NONE      },
+    { ITT_LRFUNC,  "ARMOR",             M_ID_LevelArmor,      0, MENU_NONE      },
+    { ITT_LRFUNC,  "ARMOR TYPE",        M_ID_LevelArmorType,  0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                NULL,                 0, MENU_NONE      },
+    { ITT_LRFUNC,  "GAUNTLETS",         M_ID_LevelGauntlets,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "ETHEREAL CROSSBOW", M_ID_LevelCrossbow,   0, MENU_NONE      },
+    { ITT_LRFUNC,  "DRAGON CLAW",       M_ID_LevelDragonClaw, 0, MENU_NONE      },
+    { ITT_LRFUNC,  "HELLSTAFF",         M_ID_LevelHellStaff,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "PHOENIX ROD",       M_ID_LevelPhoenixRod, 0, MENU_NONE      },
+    { ITT_LRFUNC,  "FIREMACE",          M_ID_LevelFireMace,   0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                NULL,                 0, MENU_NONE      },
+    { ITT_SETMENU, "NEXT PAGE",         NULL,                 0, MENU_ID_LEVEL2 },
+    { ITT_EFUNC,   "START GAME",        G_DoSelectiveGame,    0, MENU_NONE      },
 };
 
 static Menu_t ID_Def_Level_1 = {
-    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_1,
-    2, ID_Menu_Level_1,
+    17, ID_Menu_Level_1,
     0,
     true,
     MENU_ID_MAIN
@@ -3319,7 +3372,190 @@ static Menu_t ID_Def_Level_1 = {
 
 static void M_Draw_ID_Level_1 (void)
 {
-    //
+    char str[32];
+
+    M_FillBackground();
+
+    MN_DrTextACentered("LEVEL SELECT", 10, cr[CR_YELLOW]);
+
+    // Skill level
+    sprintf(str, "%s", DefSkillName[level_select[0]]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               DefSkillColor(level_select[0]));
+
+    // Episode
+    sprintf(str, gamemode == shareware ? "1" : "%d", level_select[1]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, gamemode == shareware ?
+                             GLOW_DARKRED : GLOW_LIGHTGRAY));
+
+    // Map
+    sprintf(str, "%d", level_select[2]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, GLOW_LIGHTGRAY));
+
+    MN_DrTextACentered("PLAYER", 50, cr[CR_YELLOW]);
+
+    // Health
+    sprintf(str, "%d", level_select[3]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, level_select[3] >= 67 ? GLOW_GREEN  :
+                              level_select[3] >= 34 ? GLOW_YELLOW :
+                                                      GLOW_RED));
+
+    // Armor
+    sprintf(str, "%d", level_select[4]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, level_select[4] == 0 ? GLOW_RED :
+                              level_select[5] == 1 ? GLOW_LIGHTGRAY : GLOW_YELLOW));
+
+    // Armor type
+    sprintf(str, "%d", level_select[5]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, level_select[5] == 1 ? GLOW_LIGHTGRAY : GLOW_YELLOW));
+
+    MN_DrTextACentered("WEAPONS", 90, cr[CR_YELLOW]);
+
+    // Gauntlets
+    sprintf(str, level_select[6] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, level_select[6] ? GLOW_GREEN : GLOW_RED));
+
+    // Ethereal Crossbow
+    sprintf(str, level_select[7] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, level_select[7] ? GLOW_GREEN : GLOW_RED));
+
+    // Dragon Claw
+    sprintf(str, level_select[8] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, level_select[8] ? GLOW_GREEN : GLOW_RED));
+
+    // Hellstaff
+    sprintf(str, gamemode == shareware ? "N/A" :
+                 level_select[9] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, gamemode == shareware ? GLOW_DARKRED :
+                               level_select[9] ? GLOW_GREEN : GLOW_RED));
+
+    // Phoenix Rod
+    sprintf(str, gamemode == shareware ? "N/A" :
+                 level_select[10] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
+               M_Item_Glow(12, gamemode == shareware ? GLOW_DARKRED :
+                               level_select[10] ? GLOW_GREEN : GLOW_RED));
+
+    // Firemace
+    sprintf(str, gamemode == shareware ? "N/A" :
+                 level_select[11] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 150,
+               M_Item_Glow(13, gamemode == shareware ? GLOW_DARKRED :
+                               level_select[11] ? GLOW_GREEN : GLOW_RED));
+
+    // Footer
+    sprintf(str, "PAGE 1/3");
+    MN_DrTextA(str, M_ItemRightAlign(str), 180, cr[CR_GRAY]);
+}
+
+static boolean M_ID_LevelSkill (int choice)
+{
+    level_select[0] = M_INT_Slider(level_select[0], 0, 4, choice);
+    return true;
+}
+
+static boolean M_ID_LevelEpisode (int choice)
+{
+    if (gamemode == shareware)
+    {
+        return false;
+    }
+
+    level_select[1] = M_INT_Slider(level_select[1], 1,
+                                   gamemode == retail ? 5 : 3, choice);
+    return true;
+}
+
+static boolean M_ID_LevelMap (int choice)
+{
+    level_select[2] = M_INT_Slider(level_select[2], 1, 9, choice);
+    return true;
+}
+
+static boolean M_ID_LevelHealth (int choice)
+{
+    level_select[3] = M_INT_Slider(level_select[3], 1, 100, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArmor (int choice)
+{
+    level_select[4] = M_INT_Slider(level_select[4], 0, 
+                                   level_select[5] == 1 ? 100 : 200, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArmorType (int choice)
+{
+    level_select[5] = M_INT_Slider(level_select[5], 1, 2, choice);
+
+    // [JN] Silver Shield armor can't go above 100.
+    if (level_select[5] == 1 && level_select[4] > 100)
+    {
+        level_select[4] = 100;
+    }
+
+    return true;
+}
+
+static boolean M_ID_LevelGauntlets (int choice)
+{
+    level_select[6] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelCrossbow (int choice)
+{
+    level_select[7] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelDragonClaw (int choice)
+{
+    level_select[8] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelHellStaff (int choice)
+{
+    if (gamemode == shareware)
+    {
+        return false;
+    }
+
+    level_select[9] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelPhoenixRod (int choice)
+{
+    if (gamemode == shareware)
+    {
+        return false;
+    }
+
+    level_select[10] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelFireMace (int choice)
+{
+    if (gamemode == shareware)
+    {
+        return false;
+    }
+    
+    level_select[11] ^= 1;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3327,14 +3563,29 @@ static void M_Draw_ID_Level_1 (void)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_2[] = {
-    { ITT_LRFUNC, "DUMMY", NULL, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,    NULL, 0, MENU_NONE },
+    { ITT_LRFUNC,  "BAG OF HOLDING",  M_ID_LevelBag,     0, MENU_NONE      },
+    { ITT_LRFUNC,  "WAND CRYSTALS",   M_ID_LevelAmmo_0,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "ETHEREAL ARROWS", M_ID_LevelAmmo_1,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "CLAW ORBS",       M_ID_LevelAmmo_2,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "HELLSTAFF RUNES", M_ID_LevelAmmo_3,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "FLAME ORBS",      M_ID_LevelAmmo_4,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "MACE SPHERES",    M_ID_LevelAmmo_5,  0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,              NULL,                  0, MENU_NONE      },
+    { ITT_LRFUNC,  "YELLOW KEY",      M_ID_LevelKey_0,   0, MENU_NONE      },
+    { ITT_LRFUNC,  "GREEN KEY",       M_ID_LevelKey_1,   0, MENU_NONE      },
+    { ITT_LRFUNC,  "BLUE KEY",        M_ID_LevelKey_2,   0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,              NULL,                  0, MENU_NONE      },
+    { ITT_LRFUNC,  "FAST",            M_ID_LevelFast,    0, MENU_NONE      },
+    { ITT_LRFUNC,  "RESPAWNING",      M_ID_LevelRespawn, 0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,              NULL,                  0, MENU_NONE      },
+    { ITT_SETMENU, "LAST PAGE",       NULL,                  0, MENU_ID_LEVEL3 },
+    { ITT_EFUNC,   "START GAME",      G_DoSelectiveGame,     0, MENU_NONE      },
 };
 
 static Menu_t ID_Def_Level_2 = {
-    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_2,
-    2, ID_Menu_Level_2,
+    17, ID_Menu_Level_2,
     0,
     true,
     MENU_ID_MAIN
@@ -3342,7 +3593,173 @@ static Menu_t ID_Def_Level_2 = {
 
 static void M_Draw_ID_Level_2 (void)
 {
-    //
+    char str[32];
+
+    M_FillBackground();
+
+    MN_DrTextACentered("AMMO", 10, cr[CR_YELLOW]);
+
+    // Bag of Holding
+    sprintf(str, level_select[12] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, level_select[12] ? GLOW_GREEN : GLOW_RED));
+
+    // Wand crystals
+    sprintf(str, "%d", level_select[13]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, level_select[13] >= 50 ? GLOW_GREEN :
+                              level_select[13] >= 25 ? GLOW_YELLOW : GLOW_RED));
+
+    // Ethereal arrows
+    sprintf(str, "%d", level_select[14]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, level_select[14] >= 25 ? GLOW_GREEN :
+                              level_select[14] >= 12 ? GLOW_YELLOW : GLOW_RED));
+
+    // Claw orbs
+    sprintf(str, "%d", level_select[15]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, level_select[15] >= 100 ? GLOW_GREEN :
+                              level_select[15] >=  50 ? GLOW_YELLOW : GLOW_RED));
+
+    // Hellstaff runes
+    sprintf(str, "%d", level_select[16]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, level_select[16] >= 100 ? GLOW_GREEN :
+                              level_select[16] >=  50 ? GLOW_YELLOW : GLOW_RED));
+
+    // Flame orbs
+    sprintf(str, "%d", level_select[17]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, level_select[17] >= 10 ? GLOW_GREEN :
+                              level_select[17] >=  5 ? GLOW_YELLOW : GLOW_RED));
+
+    // Mace spheres
+    sprintf(str, "%d", level_select[18]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, level_select[18] >= 75 ? GLOW_GREEN :
+                              level_select[18] >= 37 ? GLOW_YELLOW : GLOW_RED));
+
+    MN_DrTextACentered("KEYS", 90, cr[CR_YELLOW]);
+
+    // Yellow key
+    sprintf(str, level_select[19] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, level_select[19] ? GLOW_GREEN : GLOW_RED));
+
+    // Green key
+    sprintf(str, level_select[20] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, level_select[20] ? GLOW_GREEN : GLOW_RED));
+
+    // Blue key
+    sprintf(str, level_select[21] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, level_select[21] ? GLOW_GREEN : GLOW_RED));
+
+    MN_DrTextACentered("MONSTERS", 130, cr[CR_YELLOW]);
+
+    // Fast monsters
+    sprintf(str, level_select[22] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
+               M_Item_Glow(12, level_select[22] ? GLOW_GREEN : GLOW_RED));
+
+    // Respawning monsters
+    sprintf(str, level_select[23] ? "YES" : "NO");
+    MN_DrTextA(str, M_ItemRightAlign(str), 150,
+               M_Item_Glow(13, level_select[23] ? GLOW_GREEN : GLOW_RED));
+
+    // Footer
+    sprintf(str, "PAGE 2/3");
+    MN_DrTextA(str, M_ItemRightAlign(str), 180, cr[CR_GRAY]);
+}
+
+static boolean M_ID_LevelBag (int choice)
+{
+    level_select[12] ^= 1;
+
+    if (!level_select[12])
+    {
+        if (level_select[13] > 100) // Wand crystals
+            level_select[13] = 100;
+        if (level_select[14] > 50)  // Ethereal arrows
+            level_select[14] = 50;
+        if (level_select[15] > 200) // Claw orbs
+            level_select[15] = 200;
+        if (level_select[16] > 200) // Hellstaff runes
+            level_select[16] = 200;
+        if (level_select[17] > 20)  // Flame orbs
+            level_select[17] = 20;
+        if (level_select[18] > 150) // Mace spheres
+            level_select[18] = 150;
+    }
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_0 (int choice)
+{
+    level_select[13] = M_INT_Slider(level_select[13], 0, level_select[12] ? 200 : 100, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_1 (int choice)
+{
+    level_select[14] = M_INT_Slider(level_select[14], 0, level_select[12] ? 100 : 50, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_2 (int choice)
+{
+    level_select[15] = M_INT_Slider(level_select[15], 0, level_select[12] ? 400 : 200, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_3 (int choice)
+{
+    level_select[16] = M_INT_Slider(level_select[16], 0, level_select[12] ? 400 : 200, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_4 (int choice)
+{
+    level_select[17] = M_INT_Slider(level_select[17], 0, level_select[12] ? 40 : 20, choice);
+    return true;
+}
+
+static boolean M_ID_LevelAmmo_5 (int choice)
+{
+    level_select[18] = M_INT_Slider(level_select[18], 0, level_select[12] ? 300 : 150, choice);
+    return true;
+}
+
+static boolean M_ID_LevelKey_0 (int choice)
+{
+    level_select[19] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelKey_1 (int choice)
+{
+    level_select[20] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelKey_2 (int choice)
+{
+    level_select[21] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelFast (int choice)
+{
+    level_select[22] ^= 1;
+    return true;
+}
+
+static boolean M_ID_LevelRespawn (int choice)
+{
+    level_select[23] ^= 1;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3350,14 +3767,29 @@ static void M_Draw_ID_Level_2 (void)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_3[] = {
-    { ITT_LRFUNC, "DUMMY", NULL, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,    NULL, 0, MENU_NONE },
+    { ITT_LRFUNC,  "QUARTZ FLASK",          M_ID_LevelArti_0,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "MYSTIC URN",            M_ID_LevelArti_1,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "TIME BOMB",             M_ID_LevelArti_2,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "TOME OF POWER",         M_ID_LevelArti_3,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "RING OF INVINCIBILITY", M_ID_LevelArti_4,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "MORPH OVUM",            M_ID_LevelArti_5,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "CHAOS DEVICE",          M_ID_LevelArti_6,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "SHADOWSPHERE",          M_ID_LevelArti_7,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "WINGS OF WRATH",        M_ID_LevelArti_8,  0, MENU_NONE      },
+    { ITT_LRFUNC,  "TORCH",                 M_ID_LevelArti_9,  0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
+    { ITT_SETMENU, "FIRST PAGE",            NULL,              0, MENU_ID_LEVEL1 },
+    { ITT_EFUNC,   "START GAME",            G_DoSelectiveGame, 0, MENU_NONE      },
 };
 
 static Menu_t ID_Def_Level_3 = {
-    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_3,
-    2, ID_Menu_Level_3,
+    17, ID_Menu_Level_3,
     0,
     true,
     MENU_ID_MAIN
@@ -3365,7 +3797,151 @@ static Menu_t ID_Def_Level_3 = {
 
 static void M_Draw_ID_Level_3 (void)
 {
-    //
+    char str[32];
+
+    M_FillBackground();
+
+    MN_DrTextACentered("ARTIFACTS", 10, cr[CR_YELLOW]);
+
+    // Quartz flask
+    sprintf(str, "%d", level_select[24]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, level_select[24] ? GLOW_GREEN : GLOW_RED));
+
+    // Mystic urn
+    sprintf(str, "%d", level_select[25]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, level_select[25] ? GLOW_GREEN : GLOW_RED));
+
+    // Time bomb
+    sprintf(str, "%d", level_select[26]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, level_select[26] ? GLOW_GREEN : GLOW_RED));
+
+    // Tome of power
+    sprintf(str, "%d", level_select[27]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, level_select[27] ? GLOW_GREEN : GLOW_RED));
+
+    // Ring of invincibility
+    sprintf(str, "%d", level_select[28]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, level_select[28] ? GLOW_GREEN : GLOW_RED));
+
+    // Morph ovum
+    sprintf(str, "%d", level_select[29]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, level_select[29] ? GLOW_GREEN : GLOW_RED));
+
+    // Chaos device
+    sprintf(str, "%d", level_select[30]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, level_select[30] ? GLOW_GREEN : GLOW_RED));
+
+    // Shadowsphere
+    sprintf(str, "%d", level_select[31]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, level_select[31] ? GLOW_GREEN : GLOW_RED));
+
+    // Wings of wrath
+    sprintf(str, "%d", level_select[32]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, level_select[32] ? GLOW_GREEN : GLOW_RED));
+
+    // Torch
+    sprintf(str, "%d", level_select[33]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, level_select[33] ? GLOW_GREEN : GLOW_RED));
+
+    // Footer
+    sprintf(str, "PAGE 3/3");
+    MN_DrTextA(str, M_ItemRightAlign(str), 180, cr[CR_GRAY]);
+}
+
+static boolean M_ID_LevelArti_0 (int choice)
+{
+    level_select[24] = M_INT_Slider(level_select[24], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_1 (int choice)
+{
+    level_select[25] = M_INT_Slider(level_select[25], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_2 (int choice)
+{
+    level_select[26] = M_INT_Slider(level_select[26], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_3 (int choice)
+{
+    level_select[27] = M_INT_Slider(level_select[27], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_4 (int choice)
+{
+    level_select[28] = M_INT_Slider(level_select[28], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_5 (int choice)
+{
+    level_select[29] = M_INT_Slider(level_select[29], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_6 (int choice)
+{
+    level_select[30] = M_INT_Slider(level_select[30], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_7 (int choice)
+{
+    level_select[31] = M_INT_Slider(level_select[31], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_8 (int choice)
+{
+    level_select[32] = M_INT_Slider(level_select[32], 0, 16, choice);
+    return true;
+}
+
+static boolean M_ID_LevelArti_9 (int choice)
+{
+    level_select[33] = M_INT_Slider(level_select[33], 0, 16, choice);
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// M_ScrollGameplayPages
+//  [JN] Scroll keyboard gameplay pages forward (direction = true)
+//  and backward (direction = false).
+// -----------------------------------------------------------------------------
+
+static void M_ScrollLevelPages (boolean direction)
+{
+    if (CurrentMenu == &ID_Def_Level_1)
+    {
+        SetMenu(direction ? MENU_ID_LEVEL2 : MENU_ID_LEVEL3);
+    }
+    else 
+    if (CurrentMenu == &ID_Def_Level_2)
+    {
+        SetMenu(direction ? MENU_ID_LEVEL3 : MENU_ID_LEVEL1);
+    }
+    else
+    if (CurrentMenu == &ID_Def_Level_3)
+    {
+        SetMenu(direction ? MENU_ID_LEVEL1 : MENU_ID_LEVEL2);
+    }
+
+    S_StartSound(NULL, sfx_switch);
 }
 
 static Menu_t *Menus[] = {
@@ -3789,7 +4365,7 @@ void MN_Drawer(void)
                         MN_DrTextA(DEH_String(item->text), x, y, M_Line_Glow(CurrentMenu->items[i].tics));
                     }
                 }
-                y += ITEM_HEIGHT_SMALL;
+                y += ID_MENU_LINEHEIGHT_SMALL;
             }
             else
             {
@@ -3804,8 +4380,8 @@ void MN_Drawer(void)
         
         if (CurrentMenu->smallFont)
         {
-            y = CurrentMenu->y + (CurrentItPos * ITEM_HEIGHT_SMALL);
-            MN_DrTextA("*", x + SELECTOR_XOFFSET_SMALL, y, M_Cursor_Glow(cursor_tics));
+            y = CurrentMenu->y + (CurrentItPos * ID_MENU_LINEHEIGHT_SMALL);
+            MN_DrTextA("*", x - ID_MENU_CURSOR_OFFSET, y, M_Cursor_Glow(cursor_tics));
         }
         else
         {
@@ -5079,6 +5655,12 @@ boolean MN_Responder(event_t * event)
             {
                 M_ScrollGameplayPages(false);
             }
+            // [JN] ...or scroll level select menu backward.
+            if (CurrentMenu == &ID_Def_Level_1 || CurrentMenu == &ID_Def_Level_2
+            ||  CurrentMenu == &ID_Def_Level_3)
+            {
+                M_ScrollLevelPages(false);
+            }
             return (true);
         }
         // [crispy] next/prev Crispness menu
@@ -5099,6 +5681,12 @@ boolean MN_Responder(event_t * event)
             ||  CurrentMenu == &ID_Def_Gameplay_3)
             {
                 M_ScrollGameplayPages(true);
+            }
+            // [JN] ...or scroll level select menu forward.
+            if (CurrentMenu == &ID_Def_Level_1 || CurrentMenu == &ID_Def_Level_2
+            ||  CurrentMenu == &ID_Def_Level_3)
+            {
+                M_ScrollLevelPages(true);
             }
             return (true);
         }
@@ -5397,7 +5985,7 @@ static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean big
     int count;
 
     x = menu->x + 24;
-    y = menu->y + 2 + (item * (bigspacing ? ITEM_HEIGHT : ITEM_HEIGHT_SMALL));
+    y = menu->y + 2 + (item * (bigspacing ? ITEM_HEIGHT : ID_MENU_LINEHEIGHT_SMALL));
     V_DrawShadowedPatchOptional(x - 32, y, 1, W_CacheLumpName(DEH_String("M_SLDLT"), PU_CACHE));
     for (x2 = x, count = width; count--; x2 += 8)
     {
@@ -5980,7 +6568,7 @@ static byte *M_ColorizeBind (int CurrentItPosOn, int key)
 static void M_DrawBindKey (int itemNum, int yPos, int keyBind)
 {
     MN_DrTextA(M_NameBind(itemNum, keyBind),
-               ID_MENU_RIGHTOFFSET - MN_TextAWidth(M_NameBind(itemNum, keyBind)),
+               M_ItemRightAlign(M_NameBind(itemNum, keyBind)),
                yPos,
                M_ColorizeBind(itemNum, keyBind));
 }
@@ -5998,7 +6586,7 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
     {
         MN_DrTextA("PGUP", ID_MENU_LEFTOFFSET, 180, cr[CR_GRAY]);
         MN_DrTextACentered(M_StringJoin("PAGE ", pagenum, "/8", NULL), 180, cr[CR_GRAY]);
-        MN_DrTextA("PGDN", ID_MENU_RIGHTOFFSET - MN_TextAWidth("PGDN"), 180, cr[CR_GRAY]);
+        MN_DrTextA("PGDN", M_ItemRightAlign("PGDN"), 180, cr[CR_GRAY]);
     }
 }
 
@@ -6218,7 +6806,7 @@ static byte *M_ColorizeMouseBind (int CurrentItPosOn, int btn)
 static void M_DrawBindButton (int itemNum, int yPos, int btnBind)
 {
     MN_DrTextA(M_NameMouseBind(itemNum, btnBind),
-               ID_MENU_RIGHTOFFSET - MN_TextAWidth(M_NameMouseBind(itemNum, btnBind)),
+               M_ItemRightAlign(M_NameMouseBind(itemNum, btnBind)),
                yPos,
                M_ColorizeMouseBind(itemNum, btnBind));
 }

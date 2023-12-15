@@ -2183,6 +2183,100 @@ void G_InitNew(skill_t skill, int episode, int map)
     G_DoLoadLevel();
 }
 
+// -----------------------------------------------------------------------------
+// G_DoSelectiveGame
+//  [JN] Start new game with given parameters in "Level select" menu.
+// -----------------------------------------------------------------------------
+
+boolean G_DoSelectiveGame (int choice)
+{
+    int i;
+    int speed;
+    player_t *plr = &players[consoleplayer];
+    demoplayback = false;
+    netdemo = false;
+    netgame = false;
+    deathmatch = false;
+    // [crispy] reset game speed after demo fast-forward
+    singletics = false;
+    playeringame[1] = playeringame[2] = playeringame[3] = 0;
+    consoleplayer = 0;
+    gameaction = ga_nothing;
+    automapactive = false;
+
+    // Close "Level select" menu
+    MenuActive = false;
+
+    G_InitNew (level_select[0],
+               gamemode == shareware ? 1 : level_select[1],
+               level_select[2]); 
+
+    // Fast monsters
+    speed = level_select[22] ? 1 : 0;
+    for (i = 0; MonsterMissileInfo[i].type != -1; i++)
+    {
+        mobjinfo[MonsterMissileInfo[i].type].speed
+               = MonsterMissileInfo[i].speed[speed] << FRACBITS;
+    }
+
+    // Respawning monsters
+    respawnmonsters = level_select[23];
+
+    // Health
+    plr->health = level_select[3];
+    plr->mo->health = level_select[3];
+
+    // Armor
+    plr->armorpoints = level_select[4];
+    // Armor type. Set to 0 if no armor given.
+    plr->armortype = level_select[5] == 0 ? 0 : level_select[5];
+
+    // Weapons
+    plr->weaponowned[wp_gauntlets]  = level_select[6];
+    plr->weaponowned[wp_crossbow]   = level_select[7];
+    plr->weaponowned[wp_blaster]    = level_select[8];
+    plr->weaponowned[wp_skullrod]   = gamemode == shareware ? 0 : level_select[9];
+    plr->weaponowned[wp_phoenixrod] = gamemode == shareware ? 0 : level_select[10];
+    plr->weaponowned[wp_mace]       = gamemode == shareware ? 0 : level_select[11];
+
+    // Bag of Holding
+    plr->backpack = level_select[12];
+    if (level_select[12])
+    {
+        plr->maxammo[0] *= 2;
+        plr->maxammo[1] *= 2;
+        plr->maxammo[2] *= 2;
+        plr->maxammo[3] *= 2;
+    }
+
+    // Ammo
+    plr->ammo[0] = level_select[13]; // Wand crystals
+    plr->ammo[1] = level_select[14]; // Ethereal arrows
+    plr->ammo[2] = level_select[15]; // Claw orbs
+    plr->ammo[3] = level_select[16]; // Hellstaff runes
+    plr->ammo[4] = level_select[17]; // Flame orbs
+    plr->ammo[5] = level_select[18]; // Mace spheres
+
+    // Keys
+    plr->keys[0] = level_select[19]; // Yellow key
+    plr->keys[1] = level_select[20]; // Green key
+    plr->keys[2] = level_select[21]; // Blue key
+
+    // Artifacts
+    for (i = 0 ; i < level_select[24] ; i++) P_GiveArtifact(plr, arti_health, NULL);
+    for (i = 0 ; i < level_select[25] ; i++) P_GiveArtifact(plr, arti_superhealth, NULL);
+    for (i = 0 ; i < level_select[26] ; i++) P_GiveArtifact(plr, arti_firebomb, NULL);
+    for (i = 0 ; i < level_select[27] ; i++) P_GiveArtifact(plr, arti_tomeofpower, NULL);
+    for (i = 0 ; i < level_select[28] ; i++) P_GiveArtifact(plr, arti_invulnerability, NULL);
+    for (i = 0 ; i < level_select[29] ; i++) P_GiveArtifact(plr, arti_egg, NULL);
+    for (i = 0 ; i < level_select[30] ; i++) P_GiveArtifact(plr, arti_teleport, NULL);
+    for (i = 0 ; i < level_select[31] ; i++) P_GiveArtifact(plr, arti_invisibility, NULL);
+    for (i = 0 ; i < level_select[32] ; i++) P_GiveArtifact(plr, arti_fly, NULL);
+    for (i = 0 ; i < level_select[33] ; i++) P_GiveArtifact(plr, arti_torch, NULL);
+
+    return true;
+}
+
 
 /*
 ===============================================================================
