@@ -3452,6 +3452,9 @@ static void M_Draw_ID_Level_1 (void)
                M_Item_Glow(13, gamemode == shareware ? GLOW_DARKRED :
                                level_select[11] ? GLOW_GREEN : GLOW_RED));
 
+    // Footer
+    sprintf(str, "PAGE 1/3");
+    MN_DrTextA(str, M_ItemRightAlign(str), 180, cr[CR_GRAY]);
 }
 
 static boolean M_ID_LevelSkill (int choice)
@@ -3665,6 +3668,10 @@ static void M_Draw_ID_Level_2 (void)
     sprintf(str, level_select[23] ? "YES" : "NO");
     MN_DrTextA(str, M_ItemRightAlign(str), 150,
                M_Item_Glow(13, level_select[23] ? GLOW_GREEN : GLOW_RED));
+
+    // Footer
+    sprintf(str, "PAGE 2/3");
+    MN_DrTextA(str, M_ItemRightAlign(str), 180, cr[CR_GRAY]);
 }
 
 static boolean M_ID_LevelBag (int choice)
@@ -3845,6 +3852,10 @@ static void M_Draw_ID_Level_3 (void)
     sprintf(str, "%d", level_select[33]);
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, level_select[33] ? GLOW_GREEN : GLOW_RED));
+
+    // Footer
+    sprintf(str, "PAGE 3/3");
+    MN_DrTextA(str, M_ItemRightAlign(str), 180, cr[CR_GRAY]);
 }
 
 static boolean M_ID_LevelArti_0 (int choice)
