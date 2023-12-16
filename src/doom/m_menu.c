@@ -148,7 +148,9 @@ typedef struct menu_s
     short		x;
     short		y;		// x,y of menu
     short		lastOn;		// last item user was on in menu
-    boolean		smallFont;  // [JN] If true, use small font
+    boolean		smallFont;	// [JN] Menu is using small font
+    boolean		ScrollAR;	// [JN] Menu can be scrolled by arrow keys
+    boolean		ScrollPG;	// [JN] Menu can be scrolled by PGUP/PGDN keys
 } menu_t;
 
 // [JN] Macro definitions for first two items of menuitem_t.
@@ -253,7 +255,7 @@ static menu_t MainDef =
     M_DrawMainMenu,
     97,64,
     0,
-    false
+    false, false, false,
 };
 
 //
@@ -287,7 +289,7 @@ static menu_t EpiDef =
     M_DrawEpisode,  // drawing routine ->
     48,63,          // x,y
     ep1,            // lastOn
-    false
+    false, false, false,
 };
 
 //
@@ -321,7 +323,7 @@ static menu_t NewDef =
     M_DrawNewGame,  // drawing routine ->
     48,63,          // x,y
     hurtme,         // lastOn
-    false
+    false, false, false,
 };
 
 //
@@ -347,7 +349,7 @@ static menu_t ReadDef1 =
     M_DrawReadThis1,
     280,185,
     0,
-    false
+    false, false, false,
 };
 
 enum
@@ -369,7 +371,7 @@ static menu_t ReadDef2 =
     M_DrawReadThis2,
     330,175,
     0,
-    false
+    false, false, false,
 };
 
 //
@@ -401,7 +403,7 @@ static menu_t SoundDef =
     M_DrawSound,
     80,64,
     0,
-    false
+    false, false, false,
 };
 
 //
@@ -441,7 +443,7 @@ static menu_t LoadDef =
     M_DrawLoad,
     67,27,
     0,
-    false
+    false, true, true,
 };
 
 //
@@ -468,7 +470,7 @@ static menu_t SaveDef =
     M_DrawSave,
     67,27,
     0,
-    false
+    false, true, true,
 };
 
 // =============================================================================
@@ -616,31 +618,6 @@ static void M_Bind_ToPlayer3 (int choice);
 static void M_Bind_ToPlayer4 (int choice);
 static void M_Bind_Reset (int choice);
 
-static menu_t ID_Def_Keybinds_1;
-static menu_t ID_Def_Keybinds_2;
-static menu_t ID_Def_Keybinds_3;
-static menu_t ID_Def_Keybinds_4;
-static menu_t ID_Def_Keybinds_5;
-static menu_t ID_Def_Keybinds_6;
-
-// [JN] Remember last keybindings page.
-static menu_t *KeybindsMenus[] =
-{
-    &ID_Def_Keybinds_1,
-    &ID_Def_Keybinds_2,
-    &ID_Def_Keybinds_3,
-    &ID_Def_Keybinds_4,
-    &ID_Def_Keybinds_5,
-    &ID_Def_Keybinds_6,
-};
-
-static int Keybinds_Cur;
-
-static void M_Choose_ID_Keybinds (int choice)
-{
-    M_SetupNextMenu(KeybindsMenus[Keybinds_Cur]);
-}
-
 static void M_Choose_ID_MouseBinds (int choice);
 static void M_Draw_ID_MouseBinds (void);
 static void M_Bind_M_FireAttack (int choice);
@@ -713,25 +690,6 @@ static void M_ID_InternalDemos (int choice);
 static void M_ID_BlockmapFix (int choice);
 static void M_ID_DirectAiming (int choice);
 
-static menu_t ID_Def_Gameplay_1;
-static menu_t ID_Def_Gameplay_2;
-static menu_t ID_Def_Gameplay_3;
-
-// [JN] Remember last gameplay page.
-static menu_t *GameplayMenus[] =
-{
-    &ID_Def_Gameplay_1,
-    &ID_Def_Gameplay_2,
-    &ID_Def_Gameplay_3,
-};
-
-static int Gameplay_Cur;
-
-static void M_Choose_ID_Gameplay (int choice)
-{
-    M_SetupNextMenu(GameplayMenus[Gameplay_Cur]);
-}
-
 static void M_Choose_ID_Level_1 (int choice);
 static void M_Draw_ID_Level_1 (void);
 static void M_ID_LevelSkill (int choice);
@@ -779,7 +737,6 @@ static byte   *M_ColorizeBind (int itemSetOn, int key);
 static void    M_ResetBinds (void);
 static void    M_DrawBindKey (int itemNum, int yPos, int key);
 static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
-static void    M_ScrollKeyBindPages (boolean direction);
 
 // Mouse binding prototypes
 static boolean MouseIsBinding;
@@ -793,6 +750,103 @@ static void    M_ClearMouseBind (int itemOn);
 static byte   *M_ColorizeMouseBind (int itemSetOn, int btn);
 static void    M_DrawBindButton (int itemNum, int yPos, int btn);
 static void    M_ResetMouseBinds (void);
+
+// Forward declarations for scrolling and remembering last pages.
+static menu_t ID_Def_Keybinds_1;
+static menu_t ID_Def_Keybinds_2;
+static menu_t ID_Def_Keybinds_3;
+static menu_t ID_Def_Keybinds_4;
+static menu_t ID_Def_Keybinds_5;
+static menu_t ID_Def_Keybinds_6;
+static menu_t ID_Def_Gameplay_1;
+static menu_t ID_Def_Gameplay_2;
+static menu_t ID_Def_Gameplay_3;
+static menu_t ID_Def_Level_1;
+static menu_t ID_Def_Level_2;
+
+// Remember last keybindings page.
+static int Keybinds_Cur;
+
+static menu_t *KeybindsMenus[] =
+{
+    &ID_Def_Keybinds_1,
+    &ID_Def_Keybinds_2,
+    &ID_Def_Keybinds_3,
+    &ID_Def_Keybinds_4,
+    &ID_Def_Keybinds_5,
+    &ID_Def_Keybinds_6,
+};
+
+static void M_Choose_ID_Keybinds (int choice)
+{
+    M_SetupNextMenu(KeybindsMenus[Keybinds_Cur]);
+}
+
+// Remember last gameplay page.
+static int Gameplay_Cur;
+
+static menu_t *GameplayMenus[] =
+{
+    &ID_Def_Gameplay_1,
+    &ID_Def_Gameplay_2,
+    &ID_Def_Gameplay_3,
+};
+
+static void M_Choose_ID_Gameplay (int choice)
+{
+    M_SetupNextMenu(GameplayMenus[Gameplay_Cur]);
+}
+
+// Utility function for scrolling pages by arrows / PG keys.
+static void M_ScrollPages (boolean direction)
+{
+    // Remember cursor position.
+    currentMenu->lastOn = itemOn;
+
+    // Save/Load menu:
+    if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+    {
+        if (direction)
+        {
+            if (savepage < savepage_max)
+            {
+                savepage++;
+                S_StartSound(NULL, sfx_pstop);
+            }
+        }
+        else
+        {
+            if (savepage > 0)
+            {
+                savepage--;
+                S_StartSound(NULL, sfx_pstop);
+            }
+        }
+        quickSaveSlot = -1;
+        M_ReadSaveStrings();
+        return;
+    }
+
+    // Keyboard bindings:
+    else if (currentMenu == &ID_Def_Keybinds_1) M_SetupNextMenu(direction ? &ID_Def_Keybinds_2 : &ID_Def_Keybinds_6);
+    else if (currentMenu == &ID_Def_Keybinds_2) M_SetupNextMenu(direction ? &ID_Def_Keybinds_3 : &ID_Def_Keybinds_1);
+    else if (currentMenu == &ID_Def_Keybinds_3) M_SetupNextMenu(direction ? &ID_Def_Keybinds_4 : &ID_Def_Keybinds_2);
+    else if (currentMenu == &ID_Def_Keybinds_4) M_SetupNextMenu(direction ? &ID_Def_Keybinds_5 : &ID_Def_Keybinds_3);
+    else if (currentMenu == &ID_Def_Keybinds_5) M_SetupNextMenu(direction ? &ID_Def_Keybinds_6 : &ID_Def_Keybinds_4);
+    else if (currentMenu == &ID_Def_Keybinds_6) M_SetupNextMenu(direction ? &ID_Def_Keybinds_1 : &ID_Def_Keybinds_5);
+
+    // Gameplay features:
+    else if (currentMenu == &ID_Def_Gameplay_1) M_SetupNextMenu(direction ? &ID_Def_Gameplay_2 : &ID_Def_Gameplay_3);
+    else if (currentMenu == &ID_Def_Gameplay_2) M_SetupNextMenu(direction ? &ID_Def_Gameplay_3 : &ID_Def_Gameplay_1);
+    else if (currentMenu == &ID_Def_Gameplay_3) M_SetupNextMenu(direction ? &ID_Def_Gameplay_1 : &ID_Def_Gameplay_2);
+
+    // Level select:
+    else if (currentMenu == &ID_Def_Level_1) M_SetupNextMenu(&ID_Def_Level_2);
+    else if (currentMenu == &ID_Def_Level_2) M_SetupNextMenu(&ID_Def_Level_1);
+
+    // Play sound.
+    S_StartSound(NULL, sfx_pstop);
+}
 
 // -----------------------------------------------------------------------------
 
@@ -1032,7 +1086,7 @@ static menu_t ID_Def_Main =
     M_Draw_ID_Main,
     ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, false, false,
 };
 
 static void M_Choose_ID_Main (int choice)
@@ -1079,7 +1133,7 @@ static menu_t ID_Def_Video =
     M_Draw_ID_Video,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, false, false,
 };
 
 static void M_Choose_ID_Video (int choice)
@@ -1357,7 +1411,7 @@ static menu_t ID_Def_Display =
     M_Draw_ID_Display,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET - 9, // [JN] This menu is one line higher.
     0,
-    true
+    true, false, false,
 };
 
 static void M_Choose_ID_Display (int choice)
@@ -1692,7 +1746,7 @@ static menu_t ID_Def_Sound =
     M_Draw_ID_Sound,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, false, false,
 };
 
 static void M_Choose_ID_Sound (int choice)
@@ -1970,7 +2024,7 @@ static menu_t ID_Def_Controls =
     M_Draw_ID_Controls,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, false, false,
 };
 
 static void M_Choose_ID_Controls (int choice)
@@ -2116,7 +2170,7 @@ static menu_t ID_Def_Keybinds_1 =
     M_Draw_ID_Keybinds_1,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, true, true,
 };
 
 static void M_Bind_MoveForward (int choice)
@@ -2232,7 +2286,7 @@ static menu_t ID_Def_Keybinds_2 =
     M_Draw_ID_Keybinds_2,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, true, true,
 };
 
 static void M_Bind_AlwaysRun (int choice)
@@ -2345,7 +2399,7 @@ static menu_t ID_Def_Keybinds_3 =
     M_Draw_ID_Keybinds_3,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, true, true,
 };
 
 static void M_Bind_Weapon1 (int choice)
@@ -2452,7 +2506,7 @@ static menu_t ID_Def_Keybinds_4 =
     M_Draw_ID_Keybinds_4,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, true, true,
 };
 
 static void M_Bind_ToggleMap (int choice)
@@ -2559,7 +2613,7 @@ static menu_t ID_Def_Keybinds_5 =
     M_Draw_ID_Keybinds_5,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, true, true,
 };
 
 static void M_Bind_HelpScreen (int choice)
@@ -2677,7 +2731,7 @@ static menu_t ID_Def_Keybinds_6 =
     M_Draw_ID_Keybinds_6,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, true, true,
 };
 
 static void M_Bind_Pause (int choice)
@@ -2802,7 +2856,7 @@ static menu_t ID_Def_MouseBinds =
     M_Draw_ID_MouseBinds,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, false, false,
 };
 
 static void M_Choose_ID_MouseBinds (int choice)
@@ -2927,7 +2981,7 @@ static menu_t ID_Def_Widgets =
     M_Draw_ID_Widgets,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, false, false,
 };
 
 static void M_Choose_ID_Widgets (int choice)
@@ -3142,7 +3196,7 @@ static menu_t ID_Def_Gameplay_1 =
     M_Draw_ID_Gameplay_1,
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, false, true,
 };
 
 static void M_Choose_ID_Gameplay_1 (int choice)
@@ -3361,7 +3415,7 @@ static menu_t ID_Def_Gameplay_2 =
     M_Draw_ID_Gameplay_2,
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, false, true,
 };
 
 static void M_Choose_ID_Gameplay_2 (int choice)
@@ -3548,7 +3602,7 @@ static menu_t ID_Def_Gameplay_3 =
     M_Draw_ID_Gameplay_3,
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
-    true
+    true, false, true,
 };
 
 static void M_Choose_ID_Gameplay_3 (int choice)
@@ -3691,34 +3745,6 @@ static void M_ID_DirectAiming (int choice)
 }
 
 // -----------------------------------------------------------------------------
-// M_ScrollGameplayPages
-//  [JN] Scroll keyboard gameplay pages forward (direction = true)
-//  and backward (direction = false).
-// -----------------------------------------------------------------------------
-
-static void M_ScrollGameplayPages (boolean direction)
-{
-    currentMenu->lastOn = itemOn;
-
-    if (currentMenu == &ID_Def_Gameplay_1)
-    {
-        M_SetupNextMenu(direction ? &ID_Def_Gameplay_2 : &ID_Def_Gameplay_3);
-    }
-    else 
-    if (currentMenu == &ID_Def_Gameplay_2)
-    {
-        M_SetupNextMenu(direction ? &ID_Def_Gameplay_3 : &ID_Def_Gameplay_1);
-    }
-    else
-    if (currentMenu == &ID_Def_Gameplay_3)
-    {
-        M_SetupNextMenu(direction ? &ID_Def_Gameplay_1 : &ID_Def_Gameplay_2);
-    }
-
-    S_StartSound(NULL, sfx_pstop);
-}
-
-// -----------------------------------------------------------------------------
 // Level select 1
 // -----------------------------------------------------------------------------
 
@@ -3753,7 +3779,7 @@ static menu_t ID_Def_Level_1 =
     M_Draw_ID_Level_1,
     ID_MENU_LEFTOFFSET_LEVEL, 25,
     0,
-    true
+    true, false, true,
 };
 
 static void M_Choose_ID_Level_1 (int choice)
@@ -3968,7 +3994,7 @@ static menu_t ID_Def_Level_2 =
     M_Draw_ID_Level_2,
     ID_MENU_LEFTOFFSET_LEVEL, 25,
     0,
-    true
+    true, false, true,
 };
 
 static void M_Choose_ID_Level_2 (int choice)
@@ -4144,24 +4170,6 @@ static void M_ID_LevelFastMonsters (int choice)
 static void M_ID_LevelRespMonsters (int choice)
 {
     level_select[25] ^= 1;
-}
-
-// -----------------------------------------------------------------------------
-// M_ScrollLevelPages
-//  [JN] Scroll Level Select pages.
-// -----------------------------------------------------------------------------
-
-static void M_ScrollLevelPages (void)
-{
-    if (currentMenu == &ID_Def_Level_1)
-    {
-        currentMenu = &ID_Def_Level_2;
-    }
-    else
-    if (currentMenu == &ID_Def_Level_2)
-    {
-        currentMenu = &ID_Def_Level_1;
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -4379,35 +4387,6 @@ static void M_DrawSaveLoadBottomLine (void)
     M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, savepage_max + 1);
     
     M_WriteTextCentered(152, pagestr, cr[CR_MENU_DARK1]);
-}
-
-
-// [JN] Go to previous (false) or next (true) page in Save/Load menu.
-static boolean M_ScrollSaveLoad (boolean direction)
-{
-    currentMenu->lastOn = itemOn;
-
-    if (direction)
-    {
-        if (savepage < savepage_max)
-        {
-            savepage++;
-            S_StartSound(NULL, sfx_pstop);
-        }
-    }
-    else
-    {
-        if (savepage > 0)
-        {
-            savepage--;
-            S_StartSound(NULL, sfx_pstop);
-        }
-    }
-
-    quickSaveSlot = -1;
-    M_ReadSaveStrings();
-    
-    return true;
 }
 
 
@@ -5902,21 +5881,13 @@ boolean M_Responder (event_t* ev)
     }
     else if (key == key_menu_left)
     {
-        // [JN] Go to previous page in Save/Load menu.
-	if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+	// [JN] Go to previous-left menu by pressing Left Arrow.
+	if (currentMenu->ScrollAR)
 	{
-	    M_ScrollSaveLoad(false);
+	    M_ScrollPages(false);
 	}
-    // [JN] ...or scroll key binds menu backward.
-	else
-	if (currentMenu == &ID_Def_Keybinds_1 || currentMenu == &ID_Def_Keybinds_2
-	||  currentMenu == &ID_Def_Keybinds_3 || currentMenu == &ID_Def_Keybinds_4
-	||  currentMenu == &ID_Def_Keybinds_5 || currentMenu == &ID_Def_Keybinds_6)
-	{
-	    M_ScrollKeyBindPages(false);
-	}
-        // Slide slider left
 
+        // Slide slider left
 	if (currentMenu->menuitems[itemOn].routine &&
 	    currentMenu->menuitems[itemOn].status == 2)
 	{
@@ -5927,21 +5898,13 @@ boolean M_Responder (event_t* ev)
     }
     else if (key == key_menu_right)
     {
-        // [JN] Go to next page in Save/Load menu.
-	if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+	// [JN] Go to next-right menu by pressing Right Arrow.
+	if (currentMenu->ScrollAR)
 	{
-	    M_ScrollSaveLoad(true);
+	    M_ScrollPages(true);
 	}
-    // [JN] ...or scroll key binds menu forward.
-	else
-	if (currentMenu == &ID_Def_Keybinds_1 || currentMenu == &ID_Def_Keybinds_2
-	||  currentMenu == &ID_Def_Keybinds_3 || currentMenu == &ID_Def_Keybinds_4
-	||  currentMenu == &ID_Def_Keybinds_5 || currentMenu == &ID_Def_Keybinds_6)
-	{
-	    M_ScrollKeyBindPages(true);
-	}
-        // Slide slider right
 
+        // Slide slider right
 	if (currentMenu->menuitems[itemOn].routine &&
 	    currentMenu->menuitems[itemOn].status == 2)
 	{
@@ -6033,61 +5996,20 @@ boolean M_Responder (event_t* ev)
 	    return true;
 	}
     }
-    // [crispy] next/prev Crispness menu
-    else if (key == KEY_PGUP || key == key_menu_left)
+    // [JN] Go to previous-left menu by pressing Page Up key.
+    else if (key == KEY_PGUP)
     {
-        if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+        if (currentMenu->ScrollPG)
         {
-            M_ScrollSaveLoad(false);
-        }
-        // [JN] ...or scroll key binds menu backward.
-        else
-        if (currentMenu == &ID_Def_Keybinds_1 || currentMenu == &ID_Def_Keybinds_2
-        ||  currentMenu == &ID_Def_Keybinds_3 || currentMenu == &ID_Def_Keybinds_4
-        ||  currentMenu == &ID_Def_Keybinds_5 || currentMenu == &ID_Def_Keybinds_6)
-        {
-            M_ScrollKeyBindPages(false);
-        }
-        // [JN] ...or scroll gameplay menu backward.
-        else
-        if (currentMenu == &ID_Def_Gameplay_1 || currentMenu == &ID_Def_Gameplay_2
-        ||  currentMenu == &ID_Def_Gameplay_3)
-        {
-            M_ScrollGameplayPages(false);
-        }
-        // [JN] ...or scroll Level Select menu.
-        else
-        if (currentMenu == &ID_Def_Level_1 || currentMenu == &ID_Def_Level_2)
-        {
-            M_ScrollLevelPages();
+            M_ScrollPages(false);
         }
     }
-    else if (key == KEY_PGDN || key == key_menu_right)
+    // [JN] Go to next-right menu by pressing Page Down key.
+    else if (key == KEY_PGDN)
     {
-        if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+        if (currentMenu->ScrollPG)
         {
-            M_ScrollSaveLoad(true);
-        }
-        // [JN] ...or scroll key binds menu forward.
-        else
-        if (currentMenu == &ID_Def_Keybinds_1 || currentMenu == &ID_Def_Keybinds_2
-        ||  currentMenu == &ID_Def_Keybinds_3 || currentMenu == &ID_Def_Keybinds_4
-        ||  currentMenu == &ID_Def_Keybinds_5 || currentMenu == &ID_Def_Keybinds_6)
-        {
-            M_ScrollKeyBindPages(true);
-        }
-        // [JN] ...or scroll gameplay menu backward.
-        else
-        if (currentMenu == &ID_Def_Gameplay_1 || currentMenu == &ID_Def_Gameplay_2
-        ||  currentMenu == &ID_Def_Gameplay_3)
-        {
-            M_ScrollGameplayPages(true);
-        }
-        // [JN] ...or scroll Level Select menu.
-        else
-        if (currentMenu == &ID_Def_Level_1 || currentMenu == &ID_Def_Level_2)
-        {
-            M_ScrollLevelPages();
+            M_ScrollPages(true);
         }
     }
 
@@ -6888,49 +6810,6 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
         M_WriteTextCentered(151, M_StringJoin("PAGE ", pagenum, "/6", NULL), cr[CR_MENU_DARK2]);
         M_WriteText(M_ItemRightAlign("PGDN >"), 151, "PGDN >", cr[CR_MENU_DARK3]);
     }
-}
-
-// -----------------------------------------------------------------------------
-// M_ScrollKeyBindPages
-//  [JN] Scroll keyboard binding pages forward (direction = true)
-//  and backward (direction = false).
-// -----------------------------------------------------------------------------
-
-static void M_ScrollKeyBindPages (boolean direction)
-{
-    currentMenu->lastOn = itemOn;
-
-    if (currentMenu == &ID_Def_Keybinds_1)
-    {
-        M_SetupNextMenu(direction ? &ID_Def_Keybinds_2 : &ID_Def_Keybinds_6);
-    }
-    else 
-    if (currentMenu == &ID_Def_Keybinds_2)
-    {
-        M_SetupNextMenu(direction ? &ID_Def_Keybinds_3 : &ID_Def_Keybinds_1);
-    }
-    else
-    if (currentMenu == &ID_Def_Keybinds_3)
-    {
-        M_SetupNextMenu(direction ? &ID_Def_Keybinds_4 : &ID_Def_Keybinds_2);
-    }
-    else
-    if (currentMenu == &ID_Def_Keybinds_4)
-    {
-        M_SetupNextMenu(direction ? &ID_Def_Keybinds_5 : &ID_Def_Keybinds_3);
-    }
-    else
-    if (currentMenu == &ID_Def_Keybinds_5)
-    {
-        M_SetupNextMenu(direction ? &ID_Def_Keybinds_6 : &ID_Def_Keybinds_4);
-    }
-    else
-    if (currentMenu == &ID_Def_Keybinds_6)
-    {
-        M_SetupNextMenu(direction ? &ID_Def_Keybinds_1 : &ID_Def_Keybinds_5);
-    }
-
-    S_StartSound(NULL, sfx_pstop);
 }
 
 
