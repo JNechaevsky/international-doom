@@ -669,7 +669,7 @@ void AM_LevelInit (boolean reinit)
 
     f_x = f_y = 0;
     f_w = SCREENWIDTH;
-    f_h = SCREENHEIGHT - (ST_HEIGHT << vid_hires);
+    f_h = SCREENHEIGHT - (ST_HEIGHT * vid_hires);
 
     AM_SetdrawFline();
 
@@ -831,7 +831,7 @@ boolean AM_Responder (event_t *ev)
             if (!followplayer)
             {
                 m_paninc.x = gp_flip_levels ?
-                             -FTOM(f_paninc << vid_hires) : FTOM(f_paninc << vid_hires);
+                             -FTOM(f_paninc * vid_hires) : FTOM(f_paninc * vid_hires);
             }
             else
             {
@@ -843,7 +843,7 @@ boolean AM_Responder (event_t *ev)
             if (!followplayer)
             {
                 m_paninc.x = gp_flip_levels ?
-                             FTOM(f_paninc << vid_hires) : -FTOM(f_paninc << vid_hires);
+                             FTOM(f_paninc * vid_hires) : -FTOM(f_paninc * vid_hires);
             }
             else
             {
@@ -854,7 +854,7 @@ boolean AM_Responder (event_t *ev)
         {
             if (!followplayer)
             {
-                m_paninc.y = FTOM(f_paninc << vid_hires);
+                m_paninc.y = FTOM(f_paninc * vid_hires);
             }
             else
             {
@@ -865,7 +865,7 @@ boolean AM_Responder (event_t *ev)
         {
             if (!followplayer)
             {
-                m_paninc.y = -FTOM(f_paninc << vid_hires);
+                m_paninc.y = -FTOM(f_paninc * vid_hires);
             }
             else
             {
@@ -1062,7 +1062,7 @@ static void AM_doFollowPlayer (void)
     // [JN] Use interpolated player coords for smooth
     // scrolling and static player arrow position.
     // [crispy] FTOM(MTOF()) is needed to fix map line jitter in follow mode.
-    if (vid_hires)
+    if (vid_hires > 1)
     {
         m_x = (viewx >> FRACTOMAPBITS) - m_w/2;
         m_y = (viewy >> FRACTOMAPBITS) - m_h/2;
@@ -2155,7 +2155,7 @@ static void AM_drawPlayers (void)
         pt.y = viewy >> FRACTOMAPBITS;
 
         // [JN] Prevent arrow jitter in non-hires mode.
-        if (!vid_hires)
+        if (vid_hires == 1)
         {
             pt.x = FTOM(MTOF(pt.x));
             pt.y = FTOM(MTOF(pt.y));
@@ -2212,7 +2212,7 @@ static void AM_drawPlayers (void)
         }
 
         // [JN] Prevent arrow jitter in non-hires mode.
-        if (!vid_hires)
+        if (vid_hires == 1)
         {
             pt.x = FTOM(MTOF(pt.x));
             pt.y = FTOM(MTOF(pt.y));
@@ -2413,13 +2413,13 @@ static void AM_drawMarks (void)
 
             if (gp_flip_levels)
             {
-                fx = (flipscreenwidth[CXMTOF(pt.x)] >> vid_hires) - 1;
+                fx = (flipscreenwidth[CXMTOF(pt.x)] / vid_hires) - 1;
             }
             else
             {
-                fx = (CXMTOF(pt.x) >> vid_hires) - 1;
+                fx = (CXMTOF(pt.x) / vid_hires) - 1;
             }
-            fy = (CYMTOF(pt.y) >> vid_hires) - 2;
+            fy = (CYMTOF(pt.y) / vid_hires) - 2;
 
             do
             {
@@ -2431,8 +2431,8 @@ static void AM_drawMarks (void)
                     fx += (MARK_FLIP_1);
                 }
 
-                if (fx >= f_x && fx <= (f_w >> vid_hires) - 5
-                &&  fy >= f_y && fy <= (f_h >> vid_hires) - 6)
+                if (fx >= f_x && fx <= (f_w / vid_hires) - 5
+                &&  fy >= f_y && fy <= (f_h / vid_hires) - 6)
                 {
                     V_DrawPatch(fx - WIDESCREENDELTA, fy, marknums[d]);
                 }

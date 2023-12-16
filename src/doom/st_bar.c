@@ -1320,7 +1320,7 @@ void ST_Drawer (void)
             dest = st_backing_screen;
 
             // [crispy] use unified flat filling function
-            V_FillFlat(SCREENHEIGHT-(ST_HEIGHT<<vid_hires), SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
+            V_FillFlat(SCREENHEIGHT-(ST_HEIGHT*vid_hires), SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 
             // [crispy] preserve bezel bottom edge
             if (scaledviewwidth == SCREENWIDTH)
@@ -1359,7 +1359,7 @@ void ST_Drawer (void)
 
         V_RestoreBuffer();
 
-        V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, ST_HEIGHT << vid_hires, 0, ST_Y << vid_hires);
+        V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, ST_HEIGHT * vid_hires, 0, ST_Y * vid_hires);
     }
 
     // [crispy] draw berserk pack instead of no ammo if appropriate

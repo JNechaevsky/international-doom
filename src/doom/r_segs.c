@@ -256,7 +256,7 @@ R_RenderMaskedSegRange
 	{
 	    if (!fixedcolormap)
 	    {
-		index = spryscale>>(LIGHTSCALESHIFT + vid_hires);
+		index = (spryscale / vid_hires) >> LIGHTSCALESHIFT;
 
 		if (index >=  MAXLIGHTSCALE )
 		    index = MAXLIGHTSCALE-1;
@@ -385,7 +385,7 @@ void R_RenderSegLoop (void)
             // calculate lighting
             if (!fixedcolormap)
             {
-                int index = rw_scale>>(LIGHTSCALESHIFT + vid_hires);
+                int index = (rw_scale / vid_hires) >> LIGHTSCALESHIFT;
 
                 if (index >= MAXLIGHTSCALE)
                 {

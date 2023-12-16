@@ -913,8 +913,9 @@ static byte *M_Line_Glow (const int tics)
 #define GLOW_DARKRED    2
 #define GLOW_GREEN      3
 #define GLOW_YELLOW     4
-#define GLOW_LIGHTGRAY  5
-#define GLOW_BLUE       6
+#define GLOW_ORANGE     5
+#define GLOW_LIGHTGRAY  6
+#define GLOW_BLUE       7
 
 #define ITEMONTICS      currentMenu->menuitems[itemOn].tics
 #define ITEMSETONTICS   currentMenu->menuitems[itemSetOn].tics
@@ -928,6 +929,7 @@ static byte *M_Item_Glow (const int itemSetOn, const int color)
             color == GLOW_DARKRED   ? cr[CR_RED_BRIGHT5]       :
             color == GLOW_GREEN     ? cr[CR_GREEN_BRIGHT5]     :
             color == GLOW_YELLOW    ? cr[CR_YELLOW_BRIGHT5]    :
+            color == GLOW_ORANGE    ? cr[CR_ORANGE_BRIGHT5]    :
             color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY_BRIGHT5] :
             color == GLOW_BLUE      ? cr[CR_BLUE2_BRIGHT5]     :
                                       cr[CR_MENU_BRIGHT5]      ; // GLOW_UNCOLORED
@@ -978,6 +980,15 @@ static byte *M_Item_Glow (const int itemSetOn, const int color)
                 ITEMSETONTICS == 3 ? cr[CR_YELLOW_BRIGHT3] :
                 ITEMSETONTICS == 2 ? cr[CR_YELLOW_BRIGHT2] :
                 ITEMSETONTICS == 1 ? cr[CR_YELLOW_BRIGHT1] : cr[CR_YELLOW];
+        }
+        if (color == GLOW_ORANGE)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_ORANGE_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_ORANGE_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_ORANGE_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_ORANGE_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_ORANGE_BRIGHT1] : cr[CR_ORANGE];
         }
         if (color == GLOW_LIGHTGRAY)
         {
@@ -1160,11 +1171,13 @@ static void M_Draw_ID_Video (void)
 #endif
 
     // Rendering resolution
-    sprintf(str, vid_hires == 1 ? "DOUBLE" :
-                 vid_hires == 2 ? "QUAD" : "ORIGINAL");
+    sprintf(str, vid_hires == 2 ? "DOUBLE" :
+                 vid_hires == 3 ? "TRIPLE" :
+                 vid_hires == 4 ? "QUAD"   : "ORIGINAL");
     M_WriteText (M_ItemRightAlign(str), 36, str, 
-                 M_Item_Glow(1, vid_hires == 1 ? GLOW_GREEN :
-                                vid_hires == 2 ? GLOW_YELLOW : GLOW_DARKRED));
+                 M_Item_Glow(1, vid_hires == 2 ? GLOW_GREEN  :
+                                vid_hires == 3 ? GLOW_YELLOW : 
+                                vid_hires == 4 ? GLOW_ORANGE : GLOW_DARKRED));
 
     // Widescreen rendering
     sprintf(str, vid_widescreen == 1 ? "MATCH SCREEN" :
@@ -1261,7 +1274,7 @@ static void M_ID_RenderingResHook (void)
 
 static void M_ID_RenderingRes (int choice)
 {
-    vid_hires = M_INT_Slider(vid_hires, 0, 2, choice);
+    vid_hires = M_INT_Slider(vid_hires, 1, 4, choice);
     post_rendering_hook = M_ID_RenderingResHook;
 }
 
@@ -4183,7 +4196,7 @@ static void M_ID_ApplyResetHook (void)
 #ifdef CRISPY_TRUECOLOR
     vid_truecolor = 0;
 #endif
-    vid_hires = 1;
+    vid_hires = 2;
     vid_widescreen = 0;
     vid_uncapped_fps = 0;
     vid_fpslimit = 60;
