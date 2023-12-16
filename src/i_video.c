@@ -1664,8 +1664,8 @@ void I_GetScreenDimensions (void)
 	int w = 16, h = 10;
 	int ah;
 
-	SCREENWIDTH = ORIGWIDTH << vid_hires;
-	SCREENHEIGHT = ORIGHEIGHT << vid_hires;
+	SCREENWIDTH = ORIGWIDTH * vid_hires;
+	SCREENHEIGHT = ORIGHEIGHT * vid_hires;
 
 	NONWIDEWIDTH = SCREENWIDTH;
 
@@ -1709,7 +1709,7 @@ void I_GetScreenDimensions (void)
 		SCREENWIDTH = MIN(SCREENWIDTH, MAXWIDTH);
 	}
 
-	WIDESCREENDELTA = ((SCREENWIDTH - NONWIDEWIDTH) >> vid_hires) / 2;
+	WIDESCREENDELTA = ((SCREENWIDTH - NONWIDEWIDTH) / vid_hires) / 2;
 }
 
 void I_InitGraphics(void)
