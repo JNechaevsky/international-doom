@@ -459,19 +459,28 @@ static void ShadeLine(int x, int y, int height, int shade)
             *(dest + 1) = I_BlendDark(*dest, shade);
 #endif
         }
-// [JN] TODO - support for triple/quad.
-/*
         if (vid_hires == 3)
         {
 #ifndef CRISPY_TRUECOLOR
+            *(dest + 1) = *(shades + *dest);
+            *(dest + 2) = *(shades + *dest);
+#else
+            *(dest + 1) = I_BlendDark(*dest, shade);    
+            *(dest + 2) = I_BlendDark(*dest, shade);
+#endif
+        }
+        if (vid_hires == 4)
+        {
+#ifndef CRISPY_TRUECOLOR
+            *(dest + 1) = *(shades + *dest);
             *(dest + 2) = *(shades + *dest);
             *(dest + 3) = *(shades + *dest);
 #else
+            *(dest + 1) = I_BlendDark(*dest, shade);    
             *(dest + 2) = I_BlendDark(*dest, shade);
             *(dest + 3) = I_BlendDark(*dest, shade);
 #endif
         }
-*/
 
 #ifndef CRISPY_TRUECOLOR
         *(dest) = *(shades + *dest);
