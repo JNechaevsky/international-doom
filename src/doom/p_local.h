@@ -699,8 +699,7 @@ extern int     levelTimeCount;
 #define MAXSWITCHES     (50)
 
 // 4 players, 4 buttons each at once, max.
-// [JN] CRL - increased, warnings will appear instead of crash.
-#define MAXBUTTONS      (16*64)
+#define MAXBUTTONS      (16)
 
 // 1 second, in ticks. 
 #define BUTTONTIME      (TICRATE)

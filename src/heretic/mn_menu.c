@@ -949,9 +949,15 @@ static void M_Draw_ID_Video (void)
     MN_DrTextACentered("VIDEO OPTIONS", 10, cr[CR_YELLOW]);
 
     // Truecolor Rendering
+#ifndef CRISPY_TRUECOLOR
+    sprintf(str, "N/A");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, GLOW_DARKRED));
+#else
     sprintf(str, vid_truecolor ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, vid_truecolor ? GLOW_GREEN : GLOW_DARKRED));
+#endif
 
     // Rendering resolution
     sprintf(str, vid_hires == 1 ? "DOUBLE" :
@@ -1354,7 +1360,7 @@ static boolean M_ID_R_Intensity (int choice)
     vid_r_intensity = (float) atof(buf);
 
 #ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitColormaps();
     SB_ForceRedraw();
@@ -1388,7 +1394,7 @@ static boolean M_ID_G_Intensity (int choice)
     vid_g_intensity = (float) atof(buf);
 
 #ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitColormaps();
     SB_ForceRedraw();
@@ -1422,7 +1428,7 @@ static boolean M_ID_B_Intensity (int choice)
     vid_b_intensity = (float) atof(buf);
 
 #ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitColormaps();
     SB_ForceRedraw();

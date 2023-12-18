@@ -545,6 +545,7 @@ extern unsigned   maxdrawsegs;
 
 extern byte *R_GetColumn (int tex, int col);
 extern byte *R_GetColumnMod (int tex, int col);
+extern byte *R_GetColumnMod2 (int tex, int col);
 extern int   R_CheckTextureNumForName (const char *name);
 extern int   R_FlatNumForName (const char *name);
 extern int   R_TextureNumForName (const char *name);

@@ -241,6 +241,9 @@ P_StartButton
 	buttonlist = I_Realloc(buttonlist, sizeof(*buttonlist) * maxbuttons);
 	memset(buttonlist + maxbuttons/2, 0, sizeof(*buttonlist) * maxbuttons/2);
 	P_StartButton(line, w, texture, time);
+	// [JN] Separate return to fix -Wpedantic GCC compiler warning:
+	// ISO C forbids 'return' with expression, in function returning void
+	return;
     }
 
     I_Error("P_StartButton: no button slots left!");
