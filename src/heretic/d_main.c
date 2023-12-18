@@ -274,7 +274,7 @@ void D_Display(void)
     {
         if (!netgame)
         {
-            V_DrawShadowedPatchOptional(160, (viewwindowy >> vid_hires) + 5, 1, W_CacheLumpName(DEH_String("PAUSED"),
+            V_DrawShadowedPatchOptional(160, (viewwindowy / vid_hires) + 5, 1, W_CacheLumpName(DEH_String("PAUSED"),
                                                               PU_CACHE));
         }
         else

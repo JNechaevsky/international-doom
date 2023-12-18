@@ -775,25 +775,32 @@ void R_ExecuteSetViewSize(void)
 
     setsizeneeded = false;
 
-    if (setblocks == 11)
+    if (setblocks >= 11)
     {
         scaledviewwidth_nonwide = NONWIDEWIDTH;
         scaledviewwidth = SCREENWIDTH;
         viewheight = SCREENHEIGHT;
     }
+    // [crispy] hard-code to SCREENWIDTH and SCREENHEIGHT minus status bar height
+    else if (setblocks == 10)
+    {
+	scaledviewwidth_nonwide = NONWIDEWIDTH;
+	scaledviewwidth = SCREENWIDTH;
+	viewheight = SCREENHEIGHT-SBARHEIGHT;
+    }
     else
     {
-        scaledviewwidth_nonwide = (setblocks * 32) << vid_hires;
-        viewheight = ((setblocks * 158 / 10)) << vid_hires;
+        scaledviewwidth_nonwide = (setblocks * 32) * vid_hires;
+        viewheight = ((setblocks * 158 / 10)) * vid_hires;
 
 	// [crispy] regular viewwidth in non-widescreen mode
 	if (vid_widescreen)
 	{
-		const int widescreen_edge_aligner = (16 << vid_hires) - 1;
+		const int widescreen_edge_aligner = 16 * vid_hires;
 
-		scaledviewwidth = viewheight*SCREENWIDTH/(SCREENHEIGHT-(42<<vid_hires));
+		scaledviewwidth = viewheight*SCREENWIDTH/(SCREENHEIGHT-SBARHEIGHT);
 		// [crispy] make sure scaledviewwidth is an integer multiple of the bezel patch width
-		scaledviewwidth = (scaledviewwidth + widescreen_edge_aligner) & (int)~widescreen_edge_aligner;
+		scaledviewwidth = (scaledviewwidth / widescreen_edge_aligner) * widescreen_edge_aligner;
 		scaledviewwidth = MIN(scaledviewwidth, SCREENWIDTH);
 	}
 	else
@@ -854,7 +861,7 @@ void R_ExecuteSetViewSize(void)
         const fixed_t num = (viewwidth_nonwide<<detailshift)/2*FRACUNIT;
         for (j = 0; j < LOOKDIRS; j++)
         {
-        dy = ((i - (viewheight / 2 + ((j - LOOKDIRMIN) * (1 << vid_hires)) *
+        dy = ((i - (viewheight / 2 + ((j - LOOKDIRMIN) * (1 * vid_hires)) *
                 (dp_screen_size < 11 ? dp_screen_size : 11) / 10)) << FRACBITS) +
                 FRACUNIT / 2;
         dy = abs(dy);
@@ -1017,7 +1024,7 @@ void R_SetupFrame (player_t* player)
     extralight += dp_level_brightness;  // [JN] Level Brightness feature.
     // [crispy] apply new yslope[] whenever "lookdir", "detailshift" or
     // "dp_screen_size" change
-    tempCentery = viewheight / 2 + (pitch * (1 << vid_hires)) *
+    tempCentery = viewheight / 2 + (pitch * (1 * vid_hires)) *
                     (dp_screen_size < 11 ? dp_screen_size : 11) / 10;
     if (centery != tempCentery)
     {

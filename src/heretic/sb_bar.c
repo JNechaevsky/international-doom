@@ -439,19 +439,19 @@ static void ShadeLine(int x, int y, int height, int shade)
     byte *shades;
 #endif
 
-    x <<= vid_hires;
-    y <<= vid_hires;
-    height <<= vid_hires;
+    x *= vid_hires;
+    y *= vid_hires;
+    height *= vid_hires;
 
 #ifndef CRISPY_TRUECOLOR
     shades = colormaps + 9 * 256 + shade * 2 * 256;
 #else
     shade = 0xFF - (((9 + shade * 2) << 8) / NUMCOLORMAPS);
 #endif
-    dest = I_VideoBuffer + y * SCREENWIDTH + x + (WIDESCREENDELTA << vid_hires);
+    dest = I_VideoBuffer + y * SCREENWIDTH + x + (WIDESCREENDELTA * vid_hires);
     while (height--)
     {
-        if (vid_hires)
+        if (vid_hires == 2)
         {
 #ifndef CRISPY_TRUECOLOR
             *(dest + 1) = *(shades + *dest);
@@ -459,7 +459,9 @@ static void ShadeLine(int x, int y, int height, int shade)
             *(dest + 1) = I_BlendDark(*dest, shade);
 #endif
         }
-        if (vid_hires == 2)
+// [JN] TODO - support for triple/quad.
+/*
+        if (vid_hires == 3)
         {
 #ifndef CRISPY_TRUECOLOR
             *(dest + 2) = *(shades + *dest);
@@ -469,6 +471,7 @@ static void ShadeLine(int x, int y, int height, int shade)
             *(dest + 3) = I_BlendDark(*dest, shade);
 #endif
         }
+*/
 
 #ifndef CRISPY_TRUECOLOR
         *(dest) = *(shades + *dest);
@@ -618,7 +621,7 @@ static void RefreshBackground(void)
 {
     V_UseBuffer(st_backing_screen);
 
-    if ((SCREENWIDTH >> vid_hires) != ORIGWIDTH)
+    if ((SCREENWIDTH / vid_hires) != ORIGWIDTH)
     {
         byte *src;
         pixel_t *dest;
@@ -629,7 +632,7 @@ static void RefreshBackground(void)
         src = W_CacheLumpName(name, PU_CACHE);
         dest = st_backing_screen;
 
-        V_FillFlat(SCREENHEIGHT - (42 << vid_hires), SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
+        V_FillFlat(SCREENHEIGHT - SBARHEIGHT, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 
         // [crispy] preserve bezel bottom edge
         if (scaledviewwidth == SCREENWIDTH)
@@ -646,7 +649,7 @@ static void RefreshBackground(void)
     }
 
     V_RestoreBuffer();
-    V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, 42 << vid_hires, 0, 158 << vid_hires);
+    V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, SBARHEIGHT, 0, 158 * vid_hires);
 }
 
 void SB_Drawer(void)
