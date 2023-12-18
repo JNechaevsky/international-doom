@@ -879,10 +879,53 @@ void V_CopyScaledBuffer(pixel_t *dest, byte *src, size_t size)
     }
     }
 }
+
+void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
+{
+    pixel_t *dest;
+    int i, j;
+
+    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+
+    // [crispy] Fill pillarboxes in widescreen mode. Needs to be two separate
+    // pillars to allow for Heretic finale vertical scrolling.
+    if (SCREENWIDTH != NONWIDEWIDTH)
+    {
+        V_DrawFilledBox(0, 0, WIDESCREENDELTA * vid_hires, SCREENHEIGHT, 0);
+        V_DrawFilledBox(SCREENWIDTH - (WIDESCREENDELTA * vid_hires), 0,
+                        WIDESCREENDELTA * vid_hires, SCREENHEIGHT, 0);
+    }
+
+#ifdef RANGECHECK
+    if (x < 0
+     || x + width > SCREENWIDTH
+     || y < 0
+     || y + height > SCREENWIDTH)
+    {
+        I_Error ("Bad V_DrawScaledBlock");
+    }
+#endif
+
+    dest = dest_screen + (y * vid_hires) * SCREENWIDTH + (x * vid_hires);
+
+    for (i = 0; i < (height * vid_hires); i++)
+    {
+        for (j = 0; j < (width * vid_hires); j++)
+        {
+#ifndef CRISPY_TRUECOLOR
+            *(dest + i * SCREENWIDTH + j) = *(src + (i / vid_hires) * width + (j / vid_hires));
+#else
+            // [JN] TODO - true color support, handle via colormaps?
+            *(dest + i * SCREENWIDTH + j) = *(src + (i / vid_hires) * width + (j / vid_hires));
+#endif
+        }
+    }
+}
  
 void V_DrawRawScreen(byte *raw)
 {
-    V_CopyScaledBuffer(dest_screen, raw, ORIGWIDTH * ORIGHEIGHT);
+    //V_CopyScaledBuffer(dest_screen, raw, ORIGWIDTH * ORIGHEIGHT);
+    V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, raw);
 }
 
 //
