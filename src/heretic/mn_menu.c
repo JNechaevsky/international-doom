@@ -378,6 +378,7 @@ static boolean M_ID_EndText (int choice);
 
 static void M_Draw_ID_Display (void);
 static boolean M_ID_Gamma (int choice);
+static boolean M_ID_FOV (int choice);
 static boolean M_ID_MenuShading (int choice);
 static boolean M_ID_LevelBrightness (int choice);
 static boolean M_ID_Saturation (int choice);
@@ -1168,7 +1169,7 @@ static boolean M_ID_EndText (int option)
 
 static MenuItem_t ID_Menu_Display[] = {
     { ITT_LRFUNC, "GAMMA-CORRECTION",        M_ID_Gamma,           0, MENU_NONE },
-    { ITT_LRFUNC, "FIELD OF VIEW",           NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "FIELD OF VIEW",           M_ID_FOV,             0, MENU_NONE },
     { ITT_LRFUNC, "MENU BACKGROUND SHADING", M_ID_MenuShading,     0, MENU_NONE },
     { ITT_LRFUNC, "EXTRA LEVEL BRIGHTNESS",  M_ID_LevelBrightness, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE },
@@ -1204,9 +1205,10 @@ static void M_Draw_ID_Display (void)
                M_Item_Glow(0, GLOW_LIGHTGRAY));
 
     // Field of View
-    sprintf(str, "*TODO*");
+    sprintf(str, "%d", vid_fov);
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               M_Item_Glow(1, GLOW_RED));
+               M_Item_Glow(1, vid_fov == 135 || vid_fov == 45 ? GLOW_YELLOW :
+                              vid_fov == 90 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Background shading
     sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
@@ -1286,6 +1288,31 @@ static boolean M_ID_Gamma (int choice)
         SB_ForceRedraw();
     }
 #endif
+    return true;
+}
+
+static boolean M_ID_FOV (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (vid_fov > 45)
+            {
+                vid_fov -= 1;
+            }
+            break;
+        case 1:
+            if (vid_fov < 135)
+            {
+                vid_fov += 1;
+            }
+        default:
+            break;
+    }
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
     return true;
 }
 
