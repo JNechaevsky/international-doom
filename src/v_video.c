@@ -891,9 +891,9 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
     // pillars to allow for Heretic finale vertical scrolling.
     if (SCREENWIDTH != NONWIDEWIDTH)
     {
-        V_DrawFilledBox(0, 0, WIDESCREENDELTA * vid_hires, SCREENHEIGHT, 0);
-        V_DrawFilledBox(SCREENWIDTH - (WIDESCREENDELTA * vid_hires), 0,
-                        WIDESCREENDELTA * vid_hires, SCREENHEIGHT, 0);
+        V_DrawFilledBox(0, 0, (WIDESCREENDELTA + 1) * vid_hires, SCREENHEIGHT, 0);
+        V_DrawFilledBox(SCREENWIDTH - ((WIDESCREENDELTA + 1) * vid_hires), 0,
+                        (WIDESCREENDELTA + 1) * vid_hires, SCREENHEIGHT, 0);
     }
 
 #ifdef RANGECHECK
@@ -915,8 +915,7 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
 #ifndef CRISPY_TRUECOLOR
             *(dest + i * SCREENWIDTH + j) = *(src + (i / vid_hires) * width + (j / vid_hires));
 #else
-            // [JN] TODO - true color support, handle via colormaps?
-            *(dest + i * SCREENWIDTH + j) = *(src + (i / vid_hires) * width + (j / vid_hires));
+            *(dest + i * SCREENWIDTH + j) = colormaps[*(src + (i / vid_hires) * width + (j / vid_hires))];
 #endif
         }
     }
@@ -924,6 +923,8 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
  
 void V_DrawRawScreen(byte *raw)
 {
+    // [JN] TODO - V_CopyScaledBuffer:
+    // consider removing or consolidating with V_DrawScaledBlock
     //V_CopyScaledBuffer(dest_screen, raw, ORIGWIDTH * ORIGHEIGHT);
     V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, raw);
 }
