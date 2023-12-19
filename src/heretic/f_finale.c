@@ -274,10 +274,18 @@ void F_DemonScroll(void)
         if ((W_LumpLength(i1) == 64000) && (W_LumpLength(i2) == 64000))
         {
             // [JN] TODO - update for V_DrawScaledBlock
-            // V_CopyScaledBuffer(I_VideoBuffer, p2 + ORIGHEIGHT * ORIGWIDTH - yval, yval);
-            // V_CopyScaledBuffer(I_VideoBuffer + yval_dest, p1, ORIGHEIGHT * ORIGWIDTH - yval);
+            /*
+            V_CopyScaledBuffer(I_VideoBuffer, p2 + ORIGHEIGHT * ORIGWIDTH - yval, yval);
+            V_CopyScaledBuffer(I_VideoBuffer + yval_dest, p1, ORIGHEIGHT * ORIGWIDTH - yval);
 
             yval_dest += SCREENWIDTH * vid_hires;
+            */
+            
+            byte *src1 = W_CacheLumpName("FINAL1", PU_CACHE); // low pic
+            //const byte *src2 = W_CacheLumpName("FINAL2", PU_CACHE); // high pic
+            
+            V_DrawScaledBlock(0, y, 320, 200-y, src1);
+            y++;
         }
         else // [crispy] assume that FINAL1 and FINAL2 are in patch format
         {
