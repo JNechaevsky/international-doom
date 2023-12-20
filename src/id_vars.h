@@ -27,7 +27,7 @@
 #ifdef CRISPY_TRUECOLOR
 extern int vid_truecolor;
 #endif
-extern int vid_hires;
+extern int vid_resolution;
 extern int vid_widescreen;
 extern int vid_diskicon;
 extern int vid_endoom;

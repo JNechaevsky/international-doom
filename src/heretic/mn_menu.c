@@ -972,13 +972,13 @@ static void M_Draw_ID_Video (void)
 #endif
 
     // Rendering resolution
-    sprintf(str, vid_hires == 2 ? "DOUBLE" :
-                 vid_hires == 3 ? "TRIPLE" :
-                 vid_hires == 4 ? "QUAD"   : "ORIGINAL");
+    sprintf(str, vid_resolution == 2 ? "DOUBLE" :
+                 vid_resolution == 3 ? "TRIPLE" :
+                 vid_resolution == 4 ? "QUAD"   : "ORIGINAL");
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               M_Item_Glow(1, vid_hires == 2 ? GLOW_GREEN  :
-                              vid_hires == 3 ? GLOW_YELLOW : 
-                              vid_hires == 4 ? GLOW_ORANGE : GLOW_DARKRED));
+               M_Item_Glow(1, vid_resolution == 2 ? GLOW_GREEN  :
+                              vid_resolution == 3 ? GLOW_YELLOW : 
+                              vid_resolution == 4 ? GLOW_ORANGE : GLOW_DARKRED));
 
     // Widescreen mode
     sprintf(str, vid_widescreen == 1 ? "MATCH SCREEN" :
@@ -1064,7 +1064,7 @@ static void M_ID_RenderingResHook (void)
 
 static boolean M_ID_RenderingRes (int choice)
 {
-    vid_hires = M_INT_Slider(vid_hires, 1, 4, choice);
+    vid_resolution = M_INT_Slider(vid_resolution, 1, 4, choice);
     post_rendering_hook = M_ID_RenderingResHook;
     return true;
 }

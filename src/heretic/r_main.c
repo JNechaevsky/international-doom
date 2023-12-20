@@ -794,13 +794,13 @@ void R_ExecuteSetViewSize(void)
     }
     else
     {
-        scaledviewwidth_nonwide = (setblocks * 32) * vid_hires;
-        viewheight = ((setblocks * 158 / 10)) * vid_hires;
+        scaledviewwidth_nonwide = (setblocks * 32) * vid_resolution;
+        viewheight = ((setblocks * 158 / 10)) * vid_resolution;
 
 	// [crispy] regular viewwidth in non-widescreen mode
 	if (vid_widescreen)
 	{
-		const int widescreen_edge_aligner = 16 * vid_hires;
+		const int widescreen_edge_aligner = 16 * vid_resolution;
 
 		scaledviewwidth = viewheight*SCREENWIDTH/(SCREENHEIGHT-SBARHEIGHT);
 		// [crispy] make sure scaledviewwidth is an integer multiple of the bezel patch width
@@ -881,7 +881,7 @@ void R_ExecuteSetViewSize(void)
         const fixed_t num = FixedMul(FixedDiv(FRACUNIT, fovscale), (viewwidth<<detailshift)*FRACUNIT/2);
         for (j = 0; j < LOOKDIRS; j++)
         {
-        dy = ((i - (viewheight / 2 + ((j - LOOKDIRMIN) * (1 * vid_hires)) *
+        dy = ((i - (viewheight / 2 + ((j - LOOKDIRMIN) * (1 * vid_resolution)) *
                 (dp_screen_size < 11 ? dp_screen_size : 11) / 10)) << FRACBITS) +
                 FRACUNIT / 2;
         dy = abs(dy);
@@ -1044,7 +1044,7 @@ void R_SetupFrame (player_t* player)
     extralight += dp_level_brightness;  // [JN] Level Brightness feature.
     // [crispy] apply new yslope[] whenever "lookdir", "detailshift" or
     // "dp_screen_size" change
-    tempCentery = viewheight / 2 + (pitch * (1 * vid_hires)) *
+    tempCentery = viewheight / 2 + (pitch * (1 * vid_resolution)) *
                     (dp_screen_size < 11 ? dp_screen_size : 11) / 10;
     if (centery != tempCentery)
     {

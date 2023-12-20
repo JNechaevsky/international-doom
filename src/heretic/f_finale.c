@@ -283,7 +283,7 @@ void F_DemonScroll(void)
             V_CopyScaledBuffer(I_VideoBuffer, p2 + ORIGHEIGHT * ORIGWIDTH - yval, yval);
             V_CopyScaledBuffer(I_VideoBuffer + yval_dest, p1, ORIGHEIGHT * ORIGWIDTH - yval);
 
-            yval_dest += SCREENWIDTH * vid_hires;
+            yval_dest += SCREENWIDTH * vid_resolution;
             */
             
             // byte *src1 = W_CacheLumpName("FINAL1", PU_CACHE); // low pic
@@ -297,7 +297,7 @@ void F_DemonScroll(void)
             patch1 = (patch_t *)p1;
             patch2 = (patch_t *)p2;
 
-            x = ((SCREENWIDTH / vid_hires) - SHORT(patch1->width)) / 2
+            x = ((SCREENWIDTH / vid_resolution) - SHORT(patch1->width)) / 2
                 - WIDESCREENDELTA;
 
             // [crispy] pillar boxing

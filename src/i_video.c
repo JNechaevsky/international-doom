@@ -1667,8 +1667,8 @@ void I_GetScreenDimensions (void)
 	int w = 16, h = 9;
 	int ah;
 
-	SCREENWIDTH = ORIGWIDTH * vid_hires;
-	SCREENHEIGHT = ORIGHEIGHT * vid_hires;
+	SCREENWIDTH = ORIGWIDTH * vid_resolution;
+	SCREENHEIGHT = ORIGHEIGHT * vid_resolution;
 
 	NONWIDEWIDTH = SCREENWIDTH;
 
@@ -1722,16 +1722,16 @@ void I_GetScreenDimensions (void)
 		// In order to fit the widescreen status bar graphic exactly twice on
 		// screen, we *round down* to 2 * 426 px = 852 px.
 
-		while ((SCREENWIDTH * vid_hires) & 3)
+		while ((SCREENWIDTH * vid_resolution) & 3)
 		{
 			SCREENWIDTH++;
 		}
 
 		// [crispy] ... but never exceeds MAXWIDTH (array size!)
-		SCREENWIDTH = MIN(SCREENWIDTH, MAXWIDTH / vid_hires);
+		SCREENWIDTH = MIN(SCREENWIDTH, MAXWIDTH / vid_resolution);
 	}
 
-	WIDESCREENDELTA = ((SCREENWIDTH - NONWIDEWIDTH) / vid_hires) / 2;
+	WIDESCREENDELTA = ((SCREENWIDTH - NONWIDEWIDTH) / vid_resolution) / 2;
 }
 
 void I_InitGraphics(void)

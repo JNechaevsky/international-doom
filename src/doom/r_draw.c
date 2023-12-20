@@ -43,7 +43,7 @@
 
 
 // status bar height at bottom of screen
-#define SBARHEIGHT		(32 * vid_hires)
+#define SBARHEIGHT		(32 * vid_resolution)
 
 //
 // All drawing to the view buffer is accomplished in this file.
@@ -1102,36 +1102,36 @@ void R_FillBackScreen (void)
 
     patch = W_CacheLumpName(DEH_String("brdr_t"),PU_CACHE);
 
-    for (x=0 ; x<(scaledviewwidth / vid_hires) ; x+=8)
-	V_DrawPatch((viewwindowx / vid_hires)+x-WIDESCREENDELTA, (viewwindowy / vid_hires)-8, patch);
+    for (x=0 ; x<(scaledviewwidth / vid_resolution) ; x+=8)
+	V_DrawPatch((viewwindowx / vid_resolution)+x-WIDESCREENDELTA, (viewwindowy / vid_resolution)-8, patch);
     patch = W_CacheLumpName(DEH_String("brdr_b"),PU_CACHE);
 
-    for (x=0 ; x<(scaledviewwidth / vid_hires) ; x+=8)
-	V_DrawPatch((viewwindowx / vid_hires)+x-WIDESCREENDELTA, (viewwindowy / vid_hires)+(viewheight / vid_hires), patch);
+    for (x=0 ; x<(scaledviewwidth / vid_resolution) ; x+=8)
+	V_DrawPatch((viewwindowx / vid_resolution)+x-WIDESCREENDELTA, (viewwindowy / vid_resolution)+(viewheight / vid_resolution), patch);
     patch = W_CacheLumpName(DEH_String("brdr_l"),PU_CACHE);
 
-    for (y=0 ; y<(viewheight / vid_hires) ; y+=8)
-	V_DrawPatch((viewwindowx / vid_hires)-8-WIDESCREENDELTA, (viewwindowy / vid_hires)+y, patch);
+    for (y=0 ; y<(viewheight / vid_resolution) ; y+=8)
+	V_DrawPatch((viewwindowx / vid_resolution)-8-WIDESCREENDELTA, (viewwindowy / vid_resolution)+y, patch);
     patch = W_CacheLumpName(DEH_String("brdr_r"),PU_CACHE);
 
-    for (y=0 ; y<(viewheight / vid_hires) ; y+=8)
-	V_DrawPatch((viewwindowx / vid_hires)+(scaledviewwidth / vid_hires)-WIDESCREENDELTA, (viewwindowy / vid_hires)+y, patch);
+    for (y=0 ; y<(viewheight / vid_resolution) ; y+=8)
+	V_DrawPatch((viewwindowx / vid_resolution)+(scaledviewwidth / vid_resolution)-WIDESCREENDELTA, (viewwindowy / vid_resolution)+y, patch);
 
     // Draw beveled edge. 
-    V_DrawPatch((viewwindowx / vid_hires)-8-WIDESCREENDELTA,
-                (viewwindowy / vid_hires)-8,
+    V_DrawPatch((viewwindowx / vid_resolution)-8-WIDESCREENDELTA,
+                (viewwindowy / vid_resolution)-8,
                 W_CacheLumpName(DEH_String("brdr_tl"),PU_CACHE));
     
-    V_DrawPatch((viewwindowx / vid_hires)+(scaledviewwidth / vid_hires)-WIDESCREENDELTA,
-                (viewwindowy / vid_hires)-8,
+    V_DrawPatch((viewwindowx / vid_resolution)+(scaledviewwidth / vid_resolution)-WIDESCREENDELTA,
+                (viewwindowy / vid_resolution)-8,
                 W_CacheLumpName(DEH_String("brdr_tr"),PU_CACHE));
     
-    V_DrawPatch((viewwindowx / vid_hires)-8-WIDESCREENDELTA,
-                (viewwindowy / vid_hires)+(viewheight / vid_hires),
+    V_DrawPatch((viewwindowx / vid_resolution)-8-WIDESCREENDELTA,
+                (viewwindowy / vid_resolution)+(viewheight / vid_resolution),
                 W_CacheLumpName(DEH_String("brdr_bl"),PU_CACHE));
     
-    V_DrawPatch((viewwindowx / vid_hires)+(scaledviewwidth / vid_hires)-WIDESCREENDELTA,
-                (viewwindowy / vid_hires)+(viewheight / vid_hires),
+    V_DrawPatch((viewwindowx / vid_resolution)+(scaledviewwidth / vid_resolution)-WIDESCREENDELTA,
+                (viewwindowy / vid_resolution)+(viewheight / vid_resolution),
                 W_CacheLumpName(DEH_String("brdr_br"),PU_CACHE));
 
     V_RestoreBuffer();

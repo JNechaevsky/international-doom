@@ -865,8 +865,8 @@ static void AM_drawBackground (void)
     pixel_t *dest = I_VideoBuffer;
 
     // [JN] Use static background placement.
-    V_DrawRawTiled(MAPBGROUNDWIDTH * vid_hires,
-                   MAPBGROUNDHEIGHT / vid_hires,
+    V_DrawRawTiled(MAPBGROUNDWIDTH * vid_resolution,
+                   MAPBGROUNDHEIGHT / vid_resolution,
                    SCREENHEIGHT - SBARHEIGHT, src, dest);
 }
 

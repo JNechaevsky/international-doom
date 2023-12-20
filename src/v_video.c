@@ -414,7 +414,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
     int w;
 
     // [JN] Simplify math for shadow placement.
-    const int shadow_shift = (SCREENWIDTH + 1) * vid_hires;
+    const int shadow_shift = (SCREENWIDTH + 1) * vid_resolution;
     // [crispy] four different rendering functions
     drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
 
@@ -517,7 +517,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
 
 void V_DrawPatchFullScreen(patch_t *patch, boolean flipped)
 {
-    int x = ((SCREENWIDTH / vid_hires) - SHORT(patch->width)) / 2 - WIDESCREENDELTA;
+    int x = ((SCREENWIDTH / vid_resolution) - SHORT(patch->width)) / 2 - WIDESCREENDELTA;
 
     patch->leftoffset = 0;
     patch->topoffset = 0;
@@ -663,9 +663,9 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
     x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
     if (x < 0
-     || x + SHORT(patch->width) > (SCREENWIDTH / vid_hires)
+     || x + SHORT(patch->width) > (SCREENWIDTH / vid_resolution)
      || y < 0
-     || y + SHORT(patch->height) > (SCREENHEIGHT / vid_hires))
+     || y + SHORT(patch->height) > (SCREENHEIGHT / vid_resolution))
     {
         // [JN] Note: should be I_Error, but use return instead.
         // Render may still try to draw patch before undating 
@@ -723,8 +723,7 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
  
     V_MarkRect (x, y, width, height); 
  
-    // dest = dest_screen + y * SCREENWIDTH + x; 
-    dest = dest_screen + (y * vid_hires) * SCREENWIDTH + x;
+    dest = dest_screen + (y * vid_resolution) * SCREENWIDTH + x;
 
     while (height--) 
     { 
@@ -811,9 +810,9 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
     // rendering resolutions.
     if (SCREENWIDTH != NONWIDEWIDTH)
     {
-        V_DrawFilledBox(0, 0, (WIDESCREENDELTA + 1) * vid_hires, SCREENHEIGHT, 0);
-        V_DrawFilledBox(SCREENWIDTH - ((WIDESCREENDELTA + 1) * vid_hires), 0,
-                        (WIDESCREENDELTA + 1) * vid_hires, SCREENHEIGHT, 0);
+        V_DrawFilledBox(0, 0, (WIDESCREENDELTA + 1) * vid_resolution, SCREENHEIGHT, 0);
+        V_DrawFilledBox(SCREENWIDTH - ((WIDESCREENDELTA + 1) * vid_resolution), 0,
+                        (WIDESCREENDELTA + 1) * vid_resolution, SCREENHEIGHT, 0);
     }
 
 #ifdef RANGECHECK
@@ -826,16 +825,16 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
     }
 #endif
 
-    dest = dest_screen + (y * vid_hires) * SCREENWIDTH + (x * vid_hires);
+    dest = dest_screen + (y * vid_resolution) * SCREENWIDTH + (x * vid_resolution);
 
-    for (i = 0; i < (height * vid_hires); i++)
+    for (i = 0; i < (height * vid_resolution); i++)
     {
-        for (j = 0; j < (width * vid_hires); j++)
+        for (j = 0; j < (width * vid_resolution); j++)
         {
 #ifndef CRISPY_TRUECOLOR
-            *(dest + i * SCREENWIDTH + j) = *(src + (i / vid_hires) * width + (j / vid_hires));
+            *(dest + i * SCREENWIDTH + j) = *(src + (i / vid_resolution) * width + (j / vid_resolution));
 #else
-            *(dest + i * SCREENWIDTH + j) = colormaps[*(src + (i / vid_hires) * width + (j / vid_hires))];
+            *(dest + i * SCREENWIDTH + j) = colormaps[*(src + (i / vid_resolution) * width + (j / vid_resolution))];
 #endif
         }
     }
@@ -911,11 +910,11 @@ void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
         for (x = x_start; x < x_stop; x++)
         {
 #ifndef CRISPY_TRUECOLOR
-            *dest++ = src[(((y / vid_hires) & 63) * 64)
-                         + ((x / vid_hires) & 63)];
+            *dest++ = src[(((y / vid_resolution) & 63) * 64)
+                         + ((x / vid_resolution) & 63)];
 #else
-            *dest++ = colormaps[src[(((y / vid_hires) & 63) * 64)
-                                   + ((x / vid_hires) & 63)]];
+            *dest++ = colormaps[src[(((y / vid_resolution) & 63) * 64)
+                                   + ((x / vid_resolution) & 63)]];
 #endif
         }
     }
