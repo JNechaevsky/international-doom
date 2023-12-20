@@ -749,7 +749,7 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
             color == GLOW_DARKRED   ? cr[CR_RED_BRIGHT5]       :
             color == GLOW_GREEN     ? cr[CR_GREEN_BRIGHT5]     :
             color == GLOW_YELLOW    ? cr[CR_YELLOW_BRIGHT5]    :
-            color == GLOW_ORANGE    ? cr[CR_ORANGE_BRIGHT5]    :
+            color == GLOW_ORANGE    ? cr[CR_ORANGE_HR_BRIGHT5] :
             color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY_BRIGHT5] :
             color == GLOW_DARKGRAY  ? cr[CR_MENU_DARK1]        :
             color == GLOW_BLUE      ? cr[CR_BLUE2_BRIGHT5]     :
@@ -805,11 +805,11 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
         if (color == GLOW_ORANGE)
         {
             return
-                ITEMSETONTICS == 5 ? cr[CR_ORANGE_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_ORANGE_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_ORANGE_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_ORANGE_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_ORANGE_BRIGHT1] : cr[CR_ORANGE];
+                ITEMSETONTICS == 5 ? cr[CR_ORANGE_HR_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_ORANGE_HR_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_ORANGE_HR_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_ORANGE_HR_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_ORANGE_HR_BRIGHT1] : cr[CR_ORANGE_HR];
         }
         if (color == GLOW_LIGHTGRAY)
         {
