@@ -326,8 +326,8 @@ static void D_Display (void)
 	if (automapactive && !automap_overlay)
 	    y = 4;
 	else
-	    y = (viewwindowy >> vid_hires)+4;
-	V_DrawShadowedPatchOptional((viewwindowx >> vid_hires) + ((scaledviewwidth >> vid_hires) - 68) / 2 - WIDESCREENDELTA, y, 0,
+	    y = (viewwindowy / vid_resolution)+4;
+	V_DrawShadowedPatchOptional((viewwindowx / vid_resolution) + ((scaledviewwidth / vid_resolution) - 68) / 2 - WIDESCREENDELTA, y, 0,
                           W_CacheLumpName (DEH_String("M_PAUSE"), PU_CACHE));
     }
 

@@ -523,7 +523,7 @@ typedef struct player_s
 #define	CF_NOMOMENTUM	4       // not really a cheat, just a debug aid
 #define	CF_NOTARGET		8       // [JN] CRL - NOTARGET game mode.
 
-#define	SBARHEIGHT	(42 << vid_hires)      // status bar height at bottom of screen
+#define	SBARHEIGHT	(42 * vid_resolution)      // status bar height at bottom of screen
 
 
 /*

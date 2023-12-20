@@ -114,7 +114,7 @@ void R_InitSkyMap(void)
 {
     skyflatnum = R_FlatNumForName(DEH_String("F_SKY1"));
     skytexturemid = 200 * FRACUNIT;
-    skyiscale = FRACUNIT >> vid_hires;
+    skyiscale = FRACUNIT / vid_resolution;
 }
 
 

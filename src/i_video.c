@@ -861,8 +861,8 @@ fixed_t fractionaltic;
 //
 void I_FinishUpdate (void)
 {
-    static int lasttic;
-    int tics;
+    // static int lasttic;
+    // int tics;
     int i;
 
     if (!initialized)
@@ -911,6 +911,8 @@ void I_FinishUpdate (void)
 
     // draws little dots on the bottom of the screen
 
+    // [JN] Not used.
+    /*
     if (display_fps_dots)
     {
 	i = I_GetTime();
@@ -931,6 +933,7 @@ void I_FinishUpdate (void)
 	    I_VideoBuffer[ (SCREENHEIGHT-1)*SCREENWIDTH + i] = colormaps[0x0];
 #endif
     }
+    */
 
 	// [crispy] [AM] Real FPS counter
 	{
@@ -1661,11 +1664,11 @@ static void SetVideoMode(void)
 void I_GetScreenDimensions (void)
 {
 	SDL_DisplayMode mode;
-	int w = 16, h = 10;
+	int w = 16, h = 9;
 	int ah;
 
-	SCREENWIDTH = ORIGWIDTH << vid_hires;
-	SCREENHEIGHT = ORIGHEIGHT << vid_hires;
+	SCREENWIDTH = ORIGWIDTH * vid_resolution;
+	SCREENHEIGHT = ORIGHEIGHT * vid_resolution;
 
 	NONWIDEWIDTH = SCREENWIDTH;
 
@@ -1704,12 +1707,31 @@ void I_GetScreenDimensions (void)
 
 		SCREENWIDTH = w * ah / h;
 		// [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
-		SCREENWIDTH = (SCREENWIDTH + (vid_hires ? 0 : 3)) & (int)~3;
+
+		// [FG] For performance reasons, SDL2 insists that the screen pitch,
+		// i.e. the *number of bytes* that one horizontal row of pixels
+		// occupy in memory, must be a multiple of 4.
+		// And for a paletted framebuffer with only one byte per pixel
+		// this means we need to keep the *number of pixels* a multiple of 4.
+		//
+		// Now, in widescreen mode, 240 px * 16 / 9 = 426.7 px.
+		// The widescreen status bar graphic of the Unity port is 426 px wide.
+		// This, however, is not a multiple of 4, so we have to *round up*
+		// to 428 px for it to fit on screen (with one blank px left and right).
+		// In hires mode, 480 px * 16 / 9 = 853.3 px.
+		// In order to fit the widescreen status bar graphic exactly twice on
+		// screen, we *round down* to 2 * 426 px = 852 px.
+
+		while ((SCREENWIDTH * vid_resolution) & 3)
+		{
+			SCREENWIDTH++;
+		}
+
 		// [crispy] ... but never exceeds MAXWIDTH (array size!)
-		SCREENWIDTH = MIN(SCREENWIDTH, MAXWIDTH);
+		SCREENWIDTH = MIN(SCREENWIDTH, MAXWIDTH / vid_resolution);
 	}
 
-	WIDESCREENDELTA = ((SCREENWIDTH - NONWIDEWIDTH) >> vid_hires) / 2;
+	WIDESCREENDELTA = ((SCREENWIDTH - NONWIDEWIDTH) / vid_resolution) / 2;
 }
 
 void I_InitGraphics(void)

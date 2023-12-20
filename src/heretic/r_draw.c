@@ -498,31 +498,31 @@ void R_DrawViewBorder(void)
     // [crispy] use unified flat filling function
     V_FillFlat(0, SCREENHEIGHT - SBARHEIGHT, 0, SCREENWIDTH, src, dest);
 
-    for (x = (viewwindowx >> vid_hires); x < (viewwindowx + viewwidth) >> vid_hires; x += 16)
+    for (x = (viewwindowx / vid_resolution); x < (viewwindowx + viewwidth) / vid_resolution; x += 16)
     {
-        V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy >> vid_hires) - 4,
+        V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy / vid_resolution) - 4,
                     W_CacheLumpName(DEH_String("bordt"), PU_CACHE));
-        V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy + viewheight) >> vid_hires,
+        V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy + viewheight) / vid_resolution,
                     W_CacheLumpName(DEH_String("bordb"), PU_CACHE));
     }
-    for (y = (viewwindowy >> vid_hires); y < (viewwindowy + viewheight) >> vid_hires; y += 16)
+    for (y = (viewwindowy / vid_resolution); y < (viewwindowy + viewheight) / vid_resolution; y += 16)
     {
-        V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA, y,
+        V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA, y,
                     W_CacheLumpName(DEH_String("bordl"), PU_CACHE));
-        V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA, y,
+        V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA, y,
                     W_CacheLumpName(DEH_String("bordr"), PU_CACHE));
     }
-    V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
-                (viewwindowy >> vid_hires) - 4,
+    V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
+                (viewwindowy / vid_resolution) - 4,
                 W_CacheLumpName(DEH_String("bordtl"), PU_CACHE));
-    V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
-                (viewwindowy >> vid_hires) - 4,
+    V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
+                (viewwindowy / vid_resolution) - 4,
                 W_CacheLumpName(DEH_String("bordtr"), PU_CACHE));
-    V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
-                (viewwindowy + viewheight) >> vid_hires,
+    V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
+                (viewwindowy + viewheight) / vid_resolution,
                 W_CacheLumpName(DEH_String("bordbr"), PU_CACHE));
-    V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
-                (viewwindowy + viewheight) >> vid_hires,
+    V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
+                (viewwindowy + viewheight) / vid_resolution,
                 W_CacheLumpName(DEH_String("bordbl"), PU_CACHE));
 }
 
@@ -556,35 +556,35 @@ void R_DrawTopBorder(void)
     dest = I_VideoBuffer;
 
     // [crispy] use unified flat filling function
-    V_FillFlat(0, 30 << vid_hires, 0, SCREENWIDTH, src, dest);
+    V_FillFlat(0, 30 * vid_resolution, 0, SCREENWIDTH, src, dest);
 
-    if ((viewwindowy >> vid_hires) < 25)
+    if ((viewwindowy / vid_resolution) < 25)
     {
         int x;
 
-        for (x = (viewwindowx >> vid_hires); x < (viewwindowx + viewwidth) >> vid_hires; x += 16)
+        for (x = (viewwindowx / vid_resolution); x < (viewwindowx + viewwidth) / vid_resolution; x += 16)
         {
-            V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy >> vid_hires) - 4,
+            V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy / vid_resolution) - 4,
                         W_CacheLumpName(DEH_String("bordt"), PU_CACHE));
         }
-        V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
-                    viewwindowy >> vid_hires,
+        V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
+                    viewwindowy / vid_resolution,
                     W_CacheLumpName(DEH_String("bordl"), PU_CACHE));
-        V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
-                    viewwindowy >> vid_hires,
+        V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
+                    viewwindowy / vid_resolution,
                     W_CacheLumpName(DEH_String("bordr"), PU_CACHE));
-        V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
-                    (viewwindowy >> vid_hires) + 16,
+        V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
+                    (viewwindowy / vid_resolution) + 16,
                     W_CacheLumpName(DEH_String("bordl"), PU_CACHE));
-        V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
-                    (viewwindowy >> vid_hires) + 16,
+        V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
+                    (viewwindowy / vid_resolution) + 16,
                     W_CacheLumpName(DEH_String("bordr"), PU_CACHE));
 
-        V_DrawPatch((viewwindowx >> vid_hires) - 4 - WIDESCREENDELTA,
-                    (viewwindowy >> vid_hires) - 4,
+        V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
+                    (viewwindowy / vid_resolution) - 4,
                     W_CacheLumpName(DEH_String("bordtl"), PU_CACHE));
-        V_DrawPatch(((viewwindowx + viewwidth) >> vid_hires) - WIDESCREENDELTA,
-                    (viewwindowy >> vid_hires) - 4,
+        V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
+                    (viewwindowy / vid_resolution) - 4,
                     W_CacheLumpName(DEH_String("bordtr"), PU_CACHE));
     }
 }

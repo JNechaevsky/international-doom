@@ -769,21 +769,21 @@ void R_ExecuteSetViewSize (void)
     {
 	scaledviewwidth_nonwide = NONWIDEWIDTH;
 	scaledviewwidth = SCREENWIDTH;
-	viewheight = SCREENHEIGHT-(ST_HEIGHT<<vid_hires);
+	viewheight = SCREENHEIGHT-(ST_HEIGHT*vid_resolution);
     }
     else
     {
-	scaledviewwidth_nonwide = (setblocks*32)<<vid_hires;
-	viewheight = ((setblocks*168/10)&~7)<<vid_hires;
+	scaledviewwidth_nonwide = (setblocks*32)*vid_resolution;
+	viewheight = ((setblocks*168/10)&~7)*vid_resolution;
 
 	// [crispy] regular viewwidth in non-widescreen mode
 	if (vid_widescreen)
 	{
-		const int widescreen_edge_aligner = (8 << vid_hires) - 1;
+		const int widescreen_edge_aligner = 8 * vid_resolution;
 
-		scaledviewwidth = viewheight*SCREENWIDTH/(SCREENHEIGHT-(ST_HEIGHT<<vid_hires));
+		scaledviewwidth = viewheight*SCREENWIDTH/(SCREENHEIGHT-(ST_HEIGHT*vid_resolution));
 		// [crispy] make sure scaledviewwidth is an integer multiple of the bezel patch width
-		scaledviewwidth = (scaledviewwidth + widescreen_edge_aligner) & (int)~widescreen_edge_aligner;
+		scaledviewwidth = (scaledviewwidth / widescreen_edge_aligner) * widescreen_edge_aligner;
 		scaledviewwidth = MIN(scaledviewwidth, SCREENWIDTH);
 	}
 	else
@@ -860,7 +860,7 @@ void R_ExecuteSetViewSize (void)
 	const fixed_t num = FixedMul(FixedDiv(FRACUNIT, fovscale), (viewwidth<<detailshift)*FRACUNIT/2);
 	for (j = 0; j < LOOKDIRS; j++)
 	{
-	dy = ((i-(viewheight/2 + ((j-LOOKDIRMIN) * (1 << vid_hires)) * (dp_screen_size < 11 ? dp_screen_size : 11) / 10))<<FRACBITS)+FRACUNIT/2;
+	dy = ((i-(viewheight/2 + ((j-LOOKDIRMIN) * (1 * vid_resolution)) * (dp_screen_size < 11 ? dp_screen_size : 11) / 10))<<FRACBITS)+FRACUNIT/2;
 	dy = abs(dy);
 	yslopes[j][i] = FixedDiv (num, dy);
 	}
@@ -1053,7 +1053,7 @@ void R_SetupFrame (player_t* player)
 	pitch = -LOOKDIRMIN;
 
     // apply new yslope[] whenever "lookdir", "detailshift" or "screenblocks" change
-    tempCentery = viewheight/2 + (pitch * (1 << vid_hires)) * (dp_screen_size < 11 ? dp_screen_size : 11) / 10;
+    tempCentery = viewheight/2 + (pitch * (1 * vid_resolution)) * (dp_screen_size < 11 ? dp_screen_size : 11) / 10;
     if (centery != tempCentery)
     {
         centery = tempCentery;

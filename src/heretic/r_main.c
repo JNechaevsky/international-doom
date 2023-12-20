@@ -89,6 +89,10 @@ lighttable_t***		zlight = NULL;
 
 int extralight;                 // bumped light from gun blasts
 
+// [JN] FOV from DOOM Retro and Nugget Doom
+static fixed_t fovscale;	
+float  fovdiff;   // [Nugget] Used for some corrections
+
 // [crispy] parameterized for smooth diminishing lighting
 int LIGHTLEVELS;
 int LIGHTSEGSHIFT;
@@ -588,14 +592,13 @@ void R_InitTextureMapping(void)
 // viewangletox will give the next greatest x after the view angle
 //
     // calc focallength so FIELDOFVIEW angles covers SCREENWIDTH
-    focallength = FixedDiv(centerxfrac_nonwide,
-                           finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2]);
+    focallength = FixedDiv (centerxfrac, fovscale);
 
     for (i = 0; i < FINEANGLES / 2; i++)
     {
-        if (finetangent[i] > FRACUNIT * 2)
+        if (finetangent[i] > fovscale)
             t = -1;
-        else if (finetangent[i] < -FRACUNIT * 2)
+        else if (finetangent[i] < -fovscale)
             t = viewwidth + 1;
         else
         {
@@ -622,7 +625,7 @@ void R_InitTextureMapping(void)
 	    // [crispy] calculate sky angle for drawing horizontally linear skies.
 	    // Taken from GZDoom and refactored for integer math.
 	    linearskyangle[x] = ((viewwidth / 2 - x) * ((NONWIDEWIDTH<<6) / viewwidth)) 
-	                                             * (ANG90 / (NONWIDEWIDTH<<6));
+	                                             * (ANG90 / (NONWIDEWIDTH<<6)) / fovdiff;
     }
 
 //
@@ -772,28 +775,36 @@ void R_ExecuteSetViewSize(void)
 {
     fixed_t cosadj, dy;
     int i, j, level, startmap;
+    double WIDEFOVDELTA;  // [JN] FOV from DOOM Retro and Nugget Doom
 
     setsizeneeded = false;
 
-    if (setblocks == 11)
+    if (setblocks >= 11)
     {
         scaledviewwidth_nonwide = NONWIDEWIDTH;
         scaledviewwidth = SCREENWIDTH;
         viewheight = SCREENHEIGHT;
     }
+    // [crispy] hard-code to SCREENWIDTH and SCREENHEIGHT minus status bar height
+    else if (setblocks == 10)
+    {
+	scaledviewwidth_nonwide = NONWIDEWIDTH;
+	scaledviewwidth = SCREENWIDTH;
+	viewheight = SCREENHEIGHT-SBARHEIGHT;
+    }
     else
     {
-        scaledviewwidth_nonwide = (setblocks * 32) << vid_hires;
-        viewheight = ((setblocks * 158 / 10)) << vid_hires;
+        scaledviewwidth_nonwide = (setblocks * 32) * vid_resolution;
+        viewheight = ((setblocks * 158 / 10)) * vid_resolution;
 
 	// [crispy] regular viewwidth in non-widescreen mode
 	if (vid_widescreen)
 	{
-		const int widescreen_edge_aligner = (16 << vid_hires) - 1;
+		const int widescreen_edge_aligner = 16 * vid_resolution;
 
-		scaledviewwidth = viewheight*SCREENWIDTH/(SCREENHEIGHT-(42<<vid_hires));
+		scaledviewwidth = viewheight*SCREENWIDTH/(SCREENHEIGHT-SBARHEIGHT);
 		// [crispy] make sure scaledviewwidth is an integer multiple of the bezel patch width
-		scaledviewwidth = (scaledviewwidth + widescreen_edge_aligner) & (int)~widescreen_edge_aligner;
+		scaledviewwidth = (scaledviewwidth / widescreen_edge_aligner) * widescreen_edge_aligner;
 		scaledviewwidth = MIN(scaledviewwidth, SCREENWIDTH);
 	}
 	else
@@ -806,12 +817,27 @@ void R_ExecuteSetViewSize(void)
     viewwidth = scaledviewwidth >> detailshift;
     viewwidth_nonwide = scaledviewwidth_nonwide >> detailshift;
 
+    // [JN] FOV from DOOM Retro and Nugget Doom
+    fovdiff = (float) 90 / vid_fov;
+    if (vid_widescreen) 
+    {
+        // fov * 0.82 is vertical FOV for 4:3 aspect ratio
+        WIDEFOVDELTA = (atan(SCREENWIDTH / ((SCREENHEIGHT * 1.2)
+                     / tan(vid_fov * 0.82 * M_PI / 360.0))) * 360.0 / M_PI) - vid_fov;
+    }
+    else
+    {
+        WIDEFOVDELTA = 0;
+    }
+
     centery = viewheight / 2;
     centerx = viewwidth / 2;
     centerxfrac = centerx << FRACBITS;
     centeryfrac = centery << FRACBITS;
     centerxfrac_nonwide = (viewwidth_nonwide / 2) << FRACBITS;
-    projection = centerxfrac_nonwide;
+    // [JN] FOV from DOOM Retro and Nugget Doom
+    fovscale = finetangent[(int)(FINEANGLES / 4 + (vid_fov + WIDEFOVDELTA) * FINEANGLES / 360 / 2)];
+    projection = FixedDiv(centerxfrac, fovscale);
 
     if (!detailshift)
     {
@@ -851,10 +877,11 @@ void R_ExecuteSetViewSize(void)
     {
         // [crispy] re-generate lookup-table for yslope[] (free look)
         // whenever "detailshift" or "dp_screen_size" change
-        const fixed_t num = (viewwidth_nonwide<<detailshift)/2*FRACUNIT;
+        // [JN] FOV from DOOM Retro and Nugget Doom
+        const fixed_t num = FixedMul(FixedDiv(FRACUNIT, fovscale), (viewwidth<<detailshift)*FRACUNIT/2);
         for (j = 0; j < LOOKDIRS; j++)
         {
-        dy = ((i - (viewheight / 2 + ((j - LOOKDIRMIN) * (1 << vid_hires)) *
+        dy = ((i - (viewheight / 2 + ((j - LOOKDIRMIN) * (1 * vid_resolution)) *
                 (dp_screen_size < 11 ? dp_screen_size : 11) / 10)) << FRACBITS) +
                 FRACUNIT / 2;
         dy = abs(dy);
@@ -1017,7 +1044,7 @@ void R_SetupFrame (player_t* player)
     extralight += dp_level_brightness;  // [JN] Level Brightness feature.
     // [crispy] apply new yslope[] whenever "lookdir", "detailshift" or
     // "dp_screen_size" change
-    tempCentery = viewheight / 2 + (pitch * (1 << vid_hires)) *
+    tempCentery = viewheight / 2 + (pitch * (1 * vid_resolution)) *
                     (dp_screen_size < 11 ? dp_screen_size : 11) / 10;
     if (centery != tempCentery)
     {

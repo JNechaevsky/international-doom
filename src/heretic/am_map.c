@@ -474,7 +474,7 @@ void AM_LevelInit(boolean reinit)
     static boolean precalc_once;
 
     finit_width = SCREENWIDTH;
-    finit_height = SCREENHEIGHT - (42 << vid_hires);
+    finit_height = SCREENHEIGHT - SBARHEIGHT;
     f_x = f_y = 0;
     f_w = finit_width;
     f_h = finit_height;
@@ -865,8 +865,8 @@ static void AM_drawBackground (void)
     pixel_t *dest = I_VideoBuffer;
 
     // [JN] Use static background placement.
-    V_DrawRawTiled(MAPBGROUNDWIDTH << vid_hires,
-                   MAPBGROUNDHEIGHT >> vid_hires,
+    V_DrawRawTiled(MAPBGROUNDWIDTH * vid_resolution,
+                   MAPBGROUNDHEIGHT / vid_resolution,
                    SCREENHEIGHT - SBARHEIGHT, src, dest);
 }
 

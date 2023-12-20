@@ -121,7 +121,7 @@ static int wipe_doMelt (int ticks)
             else
             if (y[i] < SCREENHEIGHT)
             {
-                dy = (y[i] < 16) ? y[i]+1 : ((8 * vid_screenwipe) << vid_hires);
+                dy = (y[i] < 16) ? y[i]+1 : ((8 * vid_screenwipe) * vid_resolution);
 
                 if (y[i]+dy >= SCREENHEIGHT)
                 {

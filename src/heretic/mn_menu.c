@@ -378,6 +378,7 @@ static boolean M_ID_EndText (int choice);
 
 static void M_Draw_ID_Display (void);
 static boolean M_ID_Gamma (int choice);
+static boolean M_ID_FOV (int choice);
 static boolean M_ID_MenuShading (int choice);
 static boolean M_ID_LevelBrightness (int choice);
 static boolean M_ID_Saturation (int choice);
@@ -731,9 +732,10 @@ static byte *M_Line_Glow (const int tics)
 #define GLOW_DARKRED    2
 #define GLOW_GREEN      3
 #define GLOW_YELLOW     4
-#define GLOW_LIGHTGRAY  5
-#define GLOW_DARKGRAY   6
-#define GLOW_BLUE       7
+#define GLOW_ORANGE     5
+#define GLOW_LIGHTGRAY  6
+#define GLOW_DARKGRAY   7
+#define GLOW_BLUE       8
 
 #define ITEMONTICS      CurrentMenu->items[CurrentItPos].tics
 #define ITEMSETONTICS   CurrentMenu->items[CurrentItPosOn].tics
@@ -747,6 +749,7 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
             color == GLOW_DARKRED   ? cr[CR_RED_BRIGHT5]       :
             color == GLOW_GREEN     ? cr[CR_GREEN_BRIGHT5]     :
             color == GLOW_YELLOW    ? cr[CR_YELLOW_BRIGHT5]    :
+            color == GLOW_ORANGE    ? cr[CR_ORANGE_HR_BRIGHT5] :
             color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY_BRIGHT5] :
             color == GLOW_DARKGRAY  ? cr[CR_MENU_DARK1]        :
             color == GLOW_BLUE      ? cr[CR_BLUE2_BRIGHT5]     :
@@ -798,6 +801,15 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
                 ITEMSETONTICS == 3 ? cr[CR_YELLOW_BRIGHT3] :
                 ITEMSETONTICS == 2 ? cr[CR_YELLOW_BRIGHT2] :
                 ITEMSETONTICS == 1 ? cr[CR_YELLOW_BRIGHT1] : cr[CR_YELLOW];
+        }
+        if (color == GLOW_ORANGE)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_ORANGE_HR_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_ORANGE_HR_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_ORANGE_HR_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_ORANGE_HR_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_ORANGE_HR_BRIGHT1] : cr[CR_ORANGE_HR];
         }
         if (color == GLOW_LIGHTGRAY)
         {
@@ -960,11 +972,13 @@ static void M_Draw_ID_Video (void)
 #endif
 
     // Rendering resolution
-    sprintf(str, vid_hires == 1 ? "DOUBLE" :
-                 vid_hires == 2 ? "QUAD" : "ORIGINAL");
+    sprintf(str, vid_resolution == 2 ? "DOUBLE" :
+                 vid_resolution == 3 ? "TRIPLE" :
+                 vid_resolution == 4 ? "QUAD"   : "ORIGINAL");
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               M_Item_Glow(1, vid_hires == 1 ? GLOW_GREEN :
-                              vid_hires == 2 ? GLOW_YELLOW : GLOW_DARKRED));
+               M_Item_Glow(1, vid_resolution == 2 ? GLOW_GREEN  :
+                              vid_resolution == 3 ? GLOW_YELLOW : 
+                              vid_resolution == 4 ? GLOW_ORANGE : GLOW_DARKRED));
 
     // Widescreen mode
     sprintf(str, vid_widescreen == 1 ? "MATCH SCREEN" :
@@ -1050,7 +1064,7 @@ static void M_ID_RenderingResHook (void)
 
 static boolean M_ID_RenderingRes (int choice)
 {
-    vid_hires = M_INT_Slider(vid_hires, 0, 2, choice);
+    vid_resolution = M_INT_Slider(vid_resolution, 1, 4, choice);
     post_rendering_hook = M_ID_RenderingResHook;
     return true;
 }
@@ -1155,7 +1169,7 @@ static boolean M_ID_EndText (int option)
 
 static MenuItem_t ID_Menu_Display[] = {
     { ITT_LRFUNC, "GAMMA-CORRECTION",        M_ID_Gamma,           0, MENU_NONE },
-    { ITT_LRFUNC, "FIELD OF VIEW",           NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "FIELD OF VIEW",           M_ID_FOV,             0, MENU_NONE },
     { ITT_LRFUNC, "MENU BACKGROUND SHADING", M_ID_MenuShading,     0, MENU_NONE },
     { ITT_LRFUNC, "EXTRA LEVEL BRIGHTNESS",  M_ID_LevelBrightness, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE },
@@ -1191,9 +1205,10 @@ static void M_Draw_ID_Display (void)
                M_Item_Glow(0, GLOW_LIGHTGRAY));
 
     // Field of View
-    sprintf(str, "*TODO*");
+    sprintf(str, "%d", vid_fov);
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               M_Item_Glow(1, GLOW_RED));
+               M_Item_Glow(1, vid_fov == 135 || vid_fov == 45 ? GLOW_YELLOW :
+                              vid_fov == 90 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Background shading
     sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
@@ -1273,6 +1288,31 @@ static boolean M_ID_Gamma (int choice)
         SB_ForceRedraw();
     }
 #endif
+    return true;
+}
+
+static boolean M_ID_FOV (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (vid_fov > 45)
+            {
+                vid_fov -= 1;
+            }
+            break;
+        case 1:
+            if (vid_fov < 135)
+            {
+                vid_fov += 1;
+            }
+        default:
+            break;
+    }
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
     return true;
 }
 

@@ -153,7 +153,6 @@ void F_TextWrite(void)
 {
     byte *src;
     pixel_t *dest;
-    int x, y;
     int count;
     const char *ch;
     int c;
@@ -165,27 +164,9 @@ void F_TextWrite(void)
 //
     src = W_CacheLumpName(finaleflat, PU_CACHE);
     dest = I_VideoBuffer;
-    for (y = 0; y < SCREENHEIGHT; y++)
-    {
-#ifndef CRISPY_TRUECOLOR
-        for (x = 0; x < SCREENWIDTH / 64; x++)
-        {
-            memcpy(dest, src + ((y & 63) << 6), 64);
-            dest += 64;
-        }
-        if (SCREENWIDTH & 63)
-        {
-            memcpy(dest, src + ((y & 63) << 6), SCREENWIDTH & 63);
-            dest += (SCREENWIDTH & 63);
-        }
-#else
-        for (x = 0; x < SCREENWIDTH; x++)
-        {
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) << 6) 
-                                   + ((x >> vid_hires) & 63)]];
-        }
-#endif
-    }
+
+    // [crispy] use unified flat filling function
+    V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 
 //      V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
 
@@ -267,7 +248,7 @@ void F_DemonScroll(void)
 {
     byte *p1, *p2;
     static int yval = 0;
-    static int yval_dest = 0; // [crispy]
+    //static int yval_dest = 0; // [crispy]
     static int nextscroll = 0;
     lumpindex_t i1, i2; // [crispy]
     int x; // [crispy]
@@ -292,17 +273,31 @@ void F_DemonScroll(void)
     {
         if ((W_LumpLength(i1) == 64000) && (W_LumpLength(i2) == 64000))
         {
+            // [JN] TODO - update for V_DrawScaledBlock.
+            // Only static picture of demon face at the moment.
+
+            byte *src = W_CacheLumpName("FINAL2", PU_CACHE); // high pic
+            V_DrawScaledBlock(0, 0, 320, 200, src);
+
+            /*
             V_CopyScaledBuffer(I_VideoBuffer, p2 + ORIGHEIGHT * ORIGWIDTH - yval, yval);
             V_CopyScaledBuffer(I_VideoBuffer + yval_dest, p1, ORIGHEIGHT * ORIGWIDTH - yval);
 
-            yval_dest += SCREENWIDTH << vid_hires;
+            yval_dest += SCREENWIDTH * vid_resolution;
+            */
+            
+            // byte *src1 = W_CacheLumpName("FINAL1", PU_CACHE); // low pic
+            // byte *src2 = W_CacheLumpName("FINAL2", PU_CACHE); // high pic
+            
+            // V_DrawScaledBlock(0, y, 320, 200-y, src1);
+            // y++;
         }
         else // [crispy] assume that FINAL1 and FINAL2 are in patch format
         {
             patch1 = (patch_t *)p1;
             patch2 = (patch_t *)p2;
 
-            x = ((SCREENWIDTH >> vid_hires) - SHORT(patch1->width)) / 2
+            x = ((SCREENWIDTH / vid_resolution) - SHORT(patch1->width)) / 2
                 - WIDESCREENDELTA;
 
             // [crispy] pillar boxing

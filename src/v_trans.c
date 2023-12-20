@@ -76,6 +76,20 @@ static byte cr_yellow_bright2[256];
 static byte cr_yellow_bright1[256];
 
 static byte cr_orange[256];
+static byte cr_orange_bright5[256];
+static byte cr_orange_bright4[256];
+static byte cr_orange_bright3[256];
+static byte cr_orange_bright2[256];
+static byte cr_orange_bright1[256];
+
+// [JN] Slightly different orange for Heretic.
+static byte cr_orange_hr[256];
+static byte cr_orange_hr_bright5[256];
+static byte cr_orange_hr_bright4[256];
+static byte cr_orange_hr_bright3[256];
+static byte cr_orange_hr_bright2[256];
+static byte cr_orange_hr_bright1[256];
+
 static byte cr_white[256];
 static byte cr_gray[256];
 
@@ -177,6 +191,19 @@ byte *cr[] =
     (byte *) &cr_yellow_bright1,
 
     (byte *) &cr_orange,
+    (byte *) &cr_orange_bright5,
+    (byte *) &cr_orange_bright4,
+    (byte *) &cr_orange_bright3,
+    (byte *) &cr_orange_bright2,
+    (byte *) &cr_orange_bright1,
+
+    (byte *) &cr_orange_hr,
+    (byte *) &cr_orange_hr_bright5,
+    (byte *) &cr_orange_hr_bright4,
+    (byte *) &cr_orange_hr_bright3,
+    (byte *) &cr_orange_hr_bright2,
+    (byte *) &cr_orange_hr_bright1,
+
     (byte *) &cr_white,
     (byte *) &cr_gray,
 
@@ -623,9 +650,66 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
 
         else if (cr == CR_ORANGE)
         {
-            hsv.x = 0.0666;
+            hsv.x = 0.075;
             hsv.z *= 1.15;
         }
+        else if (cr == CR_ORANGE_BRIGHT5)
+        {
+            hsv.x = 0.075;
+            hsv.z *= 1.40;
+        }
+        else if (cr == CR_ORANGE_BRIGHT4)
+        {
+            hsv.x = 0.075;
+            hsv.z *= 1.35;
+        }
+        else if (cr == CR_ORANGE_BRIGHT3)
+        {
+            hsv.x = 0.075;
+            hsv.z *= 1.30;
+        }
+        else if (cr == CR_ORANGE_BRIGHT2)
+        {
+            hsv.x = 0.075;
+            hsv.z *= 1.25;
+        }
+        else if (cr == CR_ORANGE_BRIGHT1)
+        {
+            hsv.x = 0.075;
+            hsv.z *= 1.20;
+        }
+
+        else if (cr == CR_ORANGE_HR)
+        {
+            hsv.x = 0.0777;
+            hsv.z *= 1.15;
+        }
+        else if (cr == CR_ORANGE_HR_BRIGHT5)
+        {
+            hsv.x = 0.0777;
+            hsv.z *= 1.40;
+        }
+        else if (cr == CR_ORANGE_HR_BRIGHT4)
+        {
+            hsv.x = 0.0777;
+            hsv.z *= 1.35;
+        }
+        else if (cr == CR_ORANGE_HR_BRIGHT3)
+        {
+            hsv.x = 0.0777;
+            hsv.z *= 1.30;
+        }
+        else if (cr == CR_ORANGE_HR_BRIGHT2)
+        {
+            hsv.x = 0.0777;
+            hsv.z *= 1.25;
+        }
+        else if (cr == CR_ORANGE_HR_BRIGHT1)
+        {
+            hsv.x = 0.0777;
+            hsv.z *= 1.20;
+        }
+
         else if (cr == CR_WHITE)
         {
             hsv.y = 0;

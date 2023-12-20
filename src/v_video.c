@@ -414,7 +414,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
     int w;
 
     // [JN] Simplify math for shadow placement.
-    const int shadow_shift = (SCREENWIDTH + 1) << vid_hires;
+    const int shadow_shift = (SCREENWIDTH + 1) * vid_resolution;
     // [crispy] four different rendering functions
     drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
 
@@ -517,7 +517,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
 
 void V_DrawPatchFullScreen(patch_t *patch, boolean flipped)
 {
-    int x = ((SCREENWIDTH >> vid_hires) - SHORT(patch->width)) / 2 - WIDESCREENDELTA;
+    int x = ((SCREENWIDTH / vid_resolution) - SHORT(patch->width)) / 2 - WIDESCREENDELTA;
 
     patch->leftoffset = 0;
     patch->topoffset = 0;
@@ -663,9 +663,9 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
     x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
     if (x < 0
-     || x + SHORT(patch->width) > (SCREENWIDTH >> vid_hires)
+     || x + SHORT(patch->width) > (SCREENWIDTH / vid_resolution)
      || y < 0
-     || y + SHORT(patch->height) > (SCREENHEIGHT >> vid_hires))
+     || y + SHORT(patch->height) > (SCREENHEIGHT / vid_resolution))
     {
         // [JN] Note: should be I_Error, but use return instead.
         // Render may still try to draw patch before undating 
@@ -723,8 +723,7 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
  
     V_MarkRect (x, y, width, height); 
  
-    // dest = dest_screen + y * SCREENWIDTH + x; 
-    dest = dest_screen + (y << vid_hires) * SCREENWIDTH + x;
+    dest = dest_screen + (y * vid_resolution) * SCREENWIDTH + x;
 
     while (height--) 
     { 
@@ -798,91 +797,52 @@ void V_DrawBox(int x, int y, int w, int h, int c)
 // to the screen)
 //
 
-void V_CopyScaledBuffer(pixel_t *dest, byte *src, size_t size)
+void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
 {
-    int i, j, index;
+    pixel_t *dest;
+    int i, j;
 
-#ifdef RANGECHECK
-    if (size > ORIGWIDTH * ORIGHEIGHT)
-    {
-        I_Error("Bad V_CopyScaledBuffer");
-    }
-#endif
+    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
     // [crispy] Fill pillarboxes in widescreen mode. Needs to be two separate
     // pillars to allow for Heretic finale vertical scrolling.
+    // [JN] Add +1 to deltas to fix possible rounding errors in non-power-of-two
+    // rendering resolutions.
     if (SCREENWIDTH != NONWIDEWIDTH)
     {
-        V_DrawFilledBox(0, 0, WIDESCREENDELTA << vid_hires, SCREENHEIGHT, 0);
-        V_DrawFilledBox(SCREENWIDTH - (WIDESCREENDELTA << vid_hires), 0,
-                        WIDESCREENDELTA << vid_hires, SCREENHEIGHT, 0);
+        V_DrawFilledBox(0, 0, (WIDESCREENDELTA + 1) * vid_resolution, SCREENHEIGHT, 0);
+        V_DrawFilledBox(SCREENWIDTH - ((WIDESCREENDELTA + 1) * vid_resolution), 0,
+                        (WIDESCREENDELTA + 1) * vid_resolution, SCREENHEIGHT, 0);
     }
 
-    // [JN] Old code for quad res drawing:
-    if (vid_hires == 2)
+#ifdef RANGECHECK
+    if (x < 0
+     || x + width > SCREENWIDTH
+     || y < 0
+     || y + height > SCREENWIDTH)
     {
-        for (int k = 0; k < size; k++)
-        {
-            const int l = k / ORIGWIDTH; // current line in the source screen
-            const int p = k - l * ORIGWIDTH; // current pixel in this line
-
-            for (i = 0; i <= (vid_hires + 1); i++)
-            {
-                for (j = 0; j <= (vid_hires + 1); j++)
-                {
-
-#ifndef CRISPY_TRUECOLOR
-                    *(dest + (p << vid_hires) + ((l << vid_hires) + i) * SCREENWIDTH + j
-                           + (WIDESCREENDELTA << vid_hires)) = *(src + k);
-#else
-                    *(dest + (p << vid_hires) + ((l << vid_hires) + i) * SCREENWIDTH + j
-                           + (WIDESCREENDELTA << vid_hires)) = colormaps[src[k]];
+        I_Error ("Bad V_DrawScaledBlock");
+    }
 #endif
-                }
-            }
-        }
-    }
-    // [JN] New code:
-    else
-    {
-    index = ((size / ORIGWIDTH) << vid_hires) * SCREENWIDTH - 1;
 
-    if (size % ORIGWIDTH)
-    {
-        // [crispy] Handles starting in the middle of a row.
-        index += ((size % ORIGWIDTH) + WIDESCREENDELTA) << vid_hires;
-    }
-    else
-    {
-        index -= WIDESCREENDELTA << vid_hires;
-    }
+    dest = dest_screen + (y * vid_resolution) * SCREENWIDTH + (x * vid_resolution);
 
-    while (size--)
+    for (i = 0; i < (height * vid_resolution); i++)
     {
-        for (i = 0; i <= vid_hires; i++)
+        for (j = 0; j < (width * vid_resolution); j++)
         {
-            for (j = 0; j <= vid_hires; j++)
-            {
 #ifndef CRISPY_TRUECOLOR
-                *(dest + index - (j * SCREENWIDTH) - i) = *(src + size);
+            *(dest + i * SCREENWIDTH + j) = *(src + (i / vid_resolution) * width + (j / vid_resolution));
 #else
-                *(dest + index - (j * SCREENWIDTH) - i) = colormaps[src[size]];
+            *(dest + i * SCREENWIDTH + j) = colormaps[*(src + (i / vid_resolution) * width + (j / vid_resolution))];
 #endif
-            }
         }
-        if (size % ORIGWIDTH == 0)
-        {
-            index -= 2 * (WIDESCREENDELTA << vid_hires)
-                     + vid_hires * SCREENWIDTH;
-        }
-        index -= 1 + vid_hires;
-    }
     }
 }
  
 void V_DrawRawScreen(byte *raw)
 {
-    V_CopyScaledBuffer(dest_screen, raw, ORIGWIDTH * ORIGHEIGHT);
+    V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, raw);
 }
 
 //
@@ -950,11 +910,11 @@ void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
         for (x = x_start; x < x_stop; x++)
         {
 #ifndef CRISPY_TRUECOLOR
-            *dest++ = src[(((y >> vid_hires) & 63) * 64)
-                         + ((x >> vid_hires) & 63)];
+            *dest++ = src[(((y / vid_resolution) & 63) * 64)
+                         + ((x / vid_resolution) & 63)];
 #else
-            *dest++ = colormaps[src[(((y >> vid_hires) & 63) * 64)
-                                   + ((x >> vid_hires) & 63)]];
+            *dest++ = colormaps[src[(((y / vid_resolution) & 63) * 64)
+                                   + ((x / vid_resolution) & 63)]];
 #endif
         }
     }
@@ -969,9 +929,9 @@ void V_Init (void)
     if (NONWIDEWIDTH && SCREENHEIGHT)
     {
         dx = (NONWIDEWIDTH << FRACBITS) / ORIGWIDTH;
-        dxi = (ORIGWIDTH << FRACBITS) / NONWIDEWIDTH;
+        dxi = (ORIGWIDTH << FRACBITS) / NONWIDEWIDTH + 1;
         dy = (SCREENHEIGHT << FRACBITS) / ORIGHEIGHT;
-        dyi = (ORIGHEIGHT << FRACBITS) / SCREENHEIGHT;
+        dyi = (ORIGHEIGHT << FRACBITS) / SCREENHEIGHT + 1;
     }
     // no-op!
     // There used to be separate screens that could be drawn to; these are
