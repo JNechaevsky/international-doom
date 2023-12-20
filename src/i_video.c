@@ -861,8 +861,8 @@ fixed_t fractionaltic;
 //
 void I_FinishUpdate (void)
 {
-    static int lasttic;
-    int tics;
+    // static int lasttic;
+    // int tics;
     int i;
 
     if (!initialized)
@@ -911,6 +911,8 @@ void I_FinishUpdate (void)
 
     // draws little dots on the bottom of the screen
 
+    // [JN] Not used.
+    /*
     if (display_fps_dots)
     {
 	i = I_GetTime();
@@ -931,6 +933,7 @@ void I_FinishUpdate (void)
 	    I_VideoBuffer[ (SCREENHEIGHT-1)*SCREENWIDTH + i] = colormaps[0x0];
 #endif
     }
+    */
 
 	// [crispy] [AM] Real FPS counter
 	{
