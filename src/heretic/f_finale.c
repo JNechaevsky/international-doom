@@ -248,7 +248,7 @@ void F_DemonScroll(void)
 {
     byte *p1, *p2;
     static int yval = 0;
-    static int yval_dest = 0; // [crispy]
+    //static int yval_dest = 0; // [crispy]
     static int nextscroll = 0;
     lumpindex_t i1, i2; // [crispy]
     int x; // [crispy]
@@ -273,7 +273,12 @@ void F_DemonScroll(void)
     {
         if ((W_LumpLength(i1) == 64000) && (W_LumpLength(i2) == 64000))
         {
-            // [JN] TODO - update for V_DrawScaledBlock
+            // [JN] TODO - update for V_DrawScaledBlock.
+            // Only static picture of demon face at the moment.
+
+            byte *src = W_CacheLumpName("FINAL2", PU_CACHE); // high pic
+            V_DrawScaledBlock(0, 0, 320, 200, src);
+
             /*
             V_CopyScaledBuffer(I_VideoBuffer, p2 + ORIGHEIGHT * ORIGWIDTH - yval, yval);
             V_CopyScaledBuffer(I_VideoBuffer + yval_dest, p1, ORIGHEIGHT * ORIGWIDTH - yval);
@@ -281,11 +286,11 @@ void F_DemonScroll(void)
             yval_dest += SCREENWIDTH * vid_hires;
             */
             
-            byte *src1 = W_CacheLumpName("FINAL1", PU_CACHE); // low pic
-            //const byte *src2 = W_CacheLumpName("FINAL2", PU_CACHE); // high pic
+            // byte *src1 = W_CacheLumpName("FINAL1", PU_CACHE); // low pic
+            // byte *src2 = W_CacheLumpName("FINAL2", PU_CACHE); // high pic
             
-            V_DrawScaledBlock(0, y, 320, 200-y, src1);
-            y++;
+            // V_DrawScaledBlock(0, y, 320, 200-y, src1);
+            // y++;
         }
         else // [crispy] assume that FINAL1 and FINAL2 are in patch format
         {
