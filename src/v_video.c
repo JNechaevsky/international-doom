@@ -798,88 +798,6 @@ void V_DrawBox(int x, int y, int w, int h, int c)
 // to the screen)
 //
 
-void V_CopyScaledBuffer(pixel_t *dest, byte *src, size_t size)
-{
-    int i, j, index;
-
-#ifdef RANGECHECK
-    if (size > ORIGWIDTH * ORIGHEIGHT)
-    {
-        I_Error("Bad V_CopyScaledBuffer");
-    }
-#endif
-
-    // [crispy] Fill pillarboxes in widescreen mode. Needs to be two separate
-    // pillars to allow for Heretic finale vertical scrolling.
-    if (SCREENWIDTH != NONWIDEWIDTH)
-    {
-        V_DrawFilledBox(0, 0, WIDESCREENDELTA * vid_hires, SCREENHEIGHT, 0);
-        V_DrawFilledBox(SCREENWIDTH - (WIDESCREENDELTA * vid_hires), 0,
-                        WIDESCREENDELTA * vid_hires, SCREENHEIGHT, 0);
-    }
-
-    // [JN] Old code for quad res drawing:
-    if (vid_hires == 2)
-    {
-        for (int k = 0; k < size; k++)
-        {
-            const int l = k / ORIGWIDTH; // current line in the source screen
-            const int p = k - l * ORIGWIDTH; // current pixel in this line
-
-            for (i = 0; i <= (vid_hires + 1); i++)
-            {
-                for (j = 0; j <= (vid_hires + 1); j++)
-                {
-
-#ifndef CRISPY_TRUECOLOR
-                    *(dest + (p << vid_hires) + ((l * vid_hires) + i) * SCREENWIDTH + j
-                           + (WIDESCREENDELTA * vid_hires)) = *(src + k);
-#else
-                    *(dest + (p << vid_hires) + ((l * vid_hires) + i) * SCREENWIDTH + j
-                           + (WIDESCREENDELTA * vid_hires)) = colormaps[src[k]];
-#endif
-                }
-            }
-        }
-    }
-    // [JN] New code:
-    else
-    {
-    index = ((size / ORIGWIDTH) * vid_hires) * SCREENWIDTH - 1;
-
-    if (size % ORIGWIDTH)
-    {
-        // [crispy] Handles starting in the middle of a row.
-        index += ((size % ORIGWIDTH) + WIDESCREENDELTA) * vid_hires;
-    }
-    else
-    {
-        index -= WIDESCREENDELTA * vid_hires;
-    }
-
-    while (size--)
-    {
-        for (i = 0; i <= vid_hires; i++)
-        {
-            for (j = 0; j <= vid_hires; j++)
-            {
-#ifndef CRISPY_TRUECOLOR
-                *(dest + index - (j * SCREENWIDTH) - i) = *(src + size);
-#else
-                *(dest + index - (j * SCREENWIDTH) - i) = colormaps[src[size]];
-#endif
-            }
-        }
-        if (size % ORIGWIDTH == 0)
-        {
-            index -= 2 * (WIDESCREENDELTA * vid_hires)
-                     + vid_hires * SCREENWIDTH;
-        }
-        index -= 1 + vid_hires;
-    }
-    }
-}
-
 void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
 {
     pixel_t *dest;
@@ -889,6 +807,8 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
 
     // [crispy] Fill pillarboxes in widescreen mode. Needs to be two separate
     // pillars to allow for Heretic finale vertical scrolling.
+    // [JN] Add +1 to deltas to fix possible rounding errors in non-power-of-two
+    // rendering resolutions.
     if (SCREENWIDTH != NONWIDEWIDTH)
     {
         V_DrawFilledBox(0, 0, (WIDESCREENDELTA + 1) * vid_hires, SCREENHEIGHT, 0);
@@ -923,9 +843,6 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
  
 void V_DrawRawScreen(byte *raw)
 {
-    // [JN] TODO - V_CopyScaledBuffer:
-    // consider removing or consolidating with V_DrawScaledBlock
-    //V_CopyScaledBuffer(dest_screen, raw, ORIGWIDTH * ORIGHEIGHT);
     V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, raw);
 }
 
