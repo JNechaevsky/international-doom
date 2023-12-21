@@ -1279,7 +1279,7 @@ boolean G_Responder(event_t * ev)
             {
                 crl_spectating ^= 1;
                 CT_SetMessage(&players[consoleplayer], crl_spectating ?
-                             CRL_SPECTATOR_ON : CRL_SPECTATOR_OFF, false);
+                             ID_SPECTATOR_ON : ID_SPECTATOR_OFF, false);
                 pspr_interp = false;
             }        
             // [JN] CRL - Toggle freeze mode.
@@ -1288,23 +1288,23 @@ boolean G_Responder(event_t * ev)
                 // Allow freeze only in single player game, otherwise desyncs may occur.
                 if (demorecording)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_R , false);
+                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_R , false);
                     return true;
                 }            
                 if (demoplayback)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_P , false);
+                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_P , false);
                     return true;
                 }   
                 if (netgame)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_N , false);
+                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_N , false);
                     return true;
                 }   
                 crl_freeze ^= 1;
 
                 CT_SetMessage(&players[consoleplayer], crl_freeze ?
-                             CRL_FREEZE_ON : CRL_FREEZE_OFF, false);
+                             ID_FREEZE_ON : ID_FREEZE_OFF, false);
             }
             // [JN] CRL - Toggle notarget mode.
             if (ev->data1 == key_notarget)
@@ -1314,25 +1314,51 @@ boolean G_Responder(event_t * ev)
                 // Allow notarget only in single player game, otherwise desyncs may occur.
                 if (demorecording)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_R , false);
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_R , false);
                     return true;
                 }
                 if (demoplayback)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_P , false);
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_P , false);
                     return true;
                 }
                 if (netgame)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_N , false);
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_N , false);
                     return true;
                 }   
 
                 player->cheats ^= CF_NOTARGET;
 
                 CT_SetMessage(player, player->cheats & CF_NOTARGET ?
-                            CRL_NOTARGET_ON : CRL_NOTARGET_OFF, false);
+                            ID_NOTARGET_ON : ID_NOTARGET_OFF, false);
             }
+            // [JN] Woof - Toggle Buddha mode.
+            if (ev->data1 == key_buddha)
+            {
+                player_t *player = &players[consoleplayer];
+
+                // Allow notarget only in single player game, otherwise desyncs may occur.
+                if (demorecording)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_R , false);
+                    return true;
+                }
+                if (demoplayback)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_P , false);
+                    return true;
+                }
+                if (netgame)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_N , false);
+                    return true;
+                }
+                player->cheats ^= CF_BUDDHA;
+                CT_SetMessage(player, player->cheats & CF_BUDDHA ?
+                            ID_BUDDHA_ON : ID_BUDDHA_OFF, false);
+            }
+
             return (true);      // eat key down events
 
         case ev_keyup:

@@ -73,6 +73,11 @@ static void CheatMassacreFunc(player_t * player, Cheat_t * cheat);
 static void CheatIDKFAFunc(player_t * player, Cheat_t * cheat);
 static void CheatIDDQDFunc(player_t * player, Cheat_t * cheat);
 
+// [JN] New cheats:
+static void CheatFREEZEFunc(player_t * player, Cheat_t * cheat);
+static void CheatNOTARGETFunc(player_t * player, Cheat_t * cheat);
+static void CheatBUDDHAFunc(player_t * player, Cheat_t * cheat);
+
 // Public Data
 
 boolean DebugSound;             // debug flag for displaying sound info
@@ -172,6 +177,11 @@ cheatseq_t CheatMassacreSeq = CHEAT("massacre", 0);
 cheatseq_t CheatIDKFASeq = CHEAT("idkfa", 0);
 cheatseq_t CheatIDDQDSeq = CHEAT("iddqd", 0);
 
+// [JN] No target mode
+cheatseq_t CheatFREEZESeq = CHEAT("freeze", 0);
+cheatseq_t CheatNOTARGETSeq = CHEAT("notarget", 0);
+cheatseq_t CheatBUDDHASeq = CHEAT("buddha", 0);
+
 static Cheat_t Cheats[] = {
     {CheatGodFunc,       &CheatGodSeq},
     {CheatNoClipFunc,    &CheatNoClipSeq},
@@ -189,6 +199,10 @@ static Cheat_t Cheats[] = {
     {CheatMassacreFunc,  &CheatMassacreSeq},
     {CheatIDKFAFunc,     &CheatIDKFASeq},
     {CheatIDDQDFunc,     &CheatIDDQDSeq},
+    // [JN] New cheats:
+    {CheatFREEZEFunc,    &CheatFREEZESeq},
+    {CheatNOTARGETFunc,  &CheatNOTARGETSeq},
+    {CheatBUDDHAFunc,    &CheatBUDDHASeq},
     {NULL,               NULL} 
 };
 
@@ -1539,4 +1553,25 @@ static void CheatIDDQDFunc(player_t * player, Cheat_t * cheat)
 {
     P_DamageMobj(player->mo, NULL, player->mo, 10000);
     CT_SetMessage(player, DEH_String(TXT_CHEATIDDQD), true);
+}
+
+static void CheatFREEZEFunc(player_t * player, Cheat_t * cheat)
+{
+    crl_freeze ^= 1;
+    CT_SetMessage(&players[consoleplayer], crl_freeze ?
+                 ID_FREEZE_ON : ID_FREEZE_OFF, false);
+}
+
+static void CheatNOTARGETFunc(player_t * player, Cheat_t * cheat)
+{
+    player->cheats ^= CF_NOTARGET;
+    CT_SetMessage(player, player->cheats & CF_NOTARGET ?
+                  ID_NOTARGET_ON : ID_NOTARGET_OFF, false);
+}
+
+static void CheatBUDDHAFunc(player_t * player, Cheat_t * cheat)
+{
+    player->cheats ^= CF_BUDDHA;
+    CT_SetMessage(player, player->cheats & CF_BUDDHA ?
+                  ID_BUDDHA_ON : ID_BUDDHA_OFF, false);
 }
