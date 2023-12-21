@@ -381,9 +381,9 @@ const byte *ds_brightmap;       // [crispy] brightmaps
 
 void R_DrawSpan(void)
 {
-    fixed_t xfrac, yfrac;
     pixel_t *dest;
     int count, spot;
+    unsigned int xtemp, ytemp;
 
 #ifdef RANGECHECK
     if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= SCREENWIDTH
@@ -391,19 +391,20 @@ void R_DrawSpan(void)
         I_Error("R_DrawSpan: %i to %i at %i", ds_x1, ds_x2, ds_y);
 #endif
 
-    xfrac = ds_xfrac;
-    yfrac = ds_yfrac;
-
-    dest = ylookup[ds_y] + columnofs[ds_x1];
     count = ds_x2 - ds_x1;
     do
     {
         byte source;
-        spot = ((yfrac >> (16 - 6)) & (63 * 64)) + ((xfrac >> 16) & 63);
+        // [crispy] fix flats getting more distorted the closer they are to the right
+        ytemp = (ds_yfrac >> 10) & 0x0fc0;
+        xtemp = (ds_xfrac >> 16) & 0x3f;
+        spot = xtemp | ytemp;
+        
         source = ds_source[spot];
-        *dest++ = ds_colormap[ds_brightmap[source]][source];
-        xfrac += ds_xstep;
-        yfrac += ds_ystep;
+        dest = ylookup[ds_y] + columnofs[ds_x1++];
+        *dest = ds_colormap[ds_brightmap[source]][source];
+        ds_xfrac += ds_xstep;
+        ds_yfrac += ds_ystep;
     }
     while (count--);
 }
