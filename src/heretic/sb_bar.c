@@ -56,27 +56,6 @@ static void DrawMainBar(void);
 static void DrawInventoryBar(void);
 static void DrawFullScreenStuff(void);
 static boolean HandleCheats(byte key);
-static void CheatGodFunc(player_t * player, Cheat_t * cheat);
-static void CheatNoClipFunc(player_t * player, Cheat_t * cheat);
-static void CheatWeaponsFunc(player_t * player, Cheat_t * cheat);
-static void CheatPowerFunc(player_t * player, Cheat_t * cheat);
-static void CheatHealthFunc(player_t * player, Cheat_t * cheat);
-static void CheatKeysFunc(player_t * player, Cheat_t * cheat);
-static void CheatSoundFunc(player_t * player, Cheat_t * cheat);
-static void CheatTickerFunc(player_t * player, Cheat_t * cheat);
-static void CheatArtifact1Func(player_t * player, Cheat_t * cheat);
-static void CheatArtifact2Func(player_t * player, Cheat_t * cheat);
-static void CheatArtifact3Func(player_t * player, Cheat_t * cheat);
-static void CheatWarpFunc(player_t * player, Cheat_t * cheat);
-static void CheatChickenFunc(player_t * player, Cheat_t * cheat);
-static void CheatMassacreFunc(player_t * player, Cheat_t * cheat);
-static void CheatIDKFAFunc(player_t * player, Cheat_t * cheat);
-static void CheatIDDQDFunc(player_t * player, Cheat_t * cheat);
-
-// [JN] New cheats:
-static void CheatFREEZEFunc(player_t * player, Cheat_t * cheat);
-static void CheatNOTARGETFunc(player_t * player, Cheat_t * cheat);
-static void CheatBUDDHAFunc(player_t * player, Cheat_t * cheat);
 
 // Public Data
 
@@ -86,8 +65,6 @@ boolean inventory;
 int curpos;
 int inv_ptr;
 int ArtifactFlash;
-
-static int DisplayTicker = 0;
 
 // [crispy] for widescreen status bar background
 pixel_t *st_backing_screen;
@@ -132,78 +109,131 @@ int FontBNumBase;
 int spinbooklump;
 int spinflylump;
 
-// Toggle god mode
-cheatseq_t CheatGodSeq = CHEAT("quicken", 0);
+// -----------------------------------------------------------------------------
+//
+// CHEAT CODES
+//
+// -----------------------------------------------------------------------------
 
-// Toggle no clipping mode
-cheatseq_t CheatNoClipSeq = CHEAT("kitty", 0);
+// Toggle god mode
+static cheatseq_t CheatGodSeq = CHEAT("quicken", 0);
+static cheatseq_t CheatIDDQDSeq = CHEAT("iddqd", 0);
+static void CheatGodFunc (player_t *player, Cheat_t *cheat);
 
 // Get all weapons and ammo
-cheatseq_t CheatWeaponsSeq = CHEAT("rambo", 0);
+static cheatseq_t CheatWeaponsSeq = CHEAT("rambo", 0);
+static cheatseq_t CheatIDFASeq = CHEAT("idfa", 0);
+static void CheatWeaponsFunc (player_t *player, Cheat_t *cheat);
 
-// Toggle tome of power
-cheatseq_t CheatPowerSeq = CHEAT("shazam", 0);
+// Get all weapons and keys
+static cheatseq_t CheatIDKFASeq = CHEAT("idkfa", 0);
+static void CheatWeapKeysFunc (player_t *player, Cheat_t *cheat);
 
-// Get full health
-cheatseq_t CheatHealthSeq = CHEAT("ponce", 0);
+// Get Gauntlets of the Necromancer
+static cheatseq_t CheatIDCHOPPERSSeq = CHEAT("idchoppers", 0);
+static void CheatChoppersFunc (player_t *player, Cheat_t *cheat);
 
 // Get all keys
-cheatseq_t CheatKeysSeq = CHEAT("skel", 0);
+static cheatseq_t CheatKeysSeq = CHEAT("skel", 0);
+static cheatseq_t CheatIDKASeq = CHEAT("idka", 0);
+static void CheatKeysFunc (player_t *player, Cheat_t *cheat);
 
-// Toggle sound debug info
-cheatseq_t CheatSoundSeq = CHEAT("noise", 0);
-
-// Toggle ticker
-cheatseq_t CheatTickerSeq = CHEAT("ticker", 0);
-
-// Get an artifact 1st stage (ask for type)
-cheatseq_t CheatArtifact1Seq = CHEAT("gimme", 0);
-
-// Get an artifact 2nd stage (ask for count)
-cheatseq_t CheatArtifact2Seq = CHEAT("gimme", 1);
-
-// Get an artifact final stage
-cheatseq_t CheatArtifact3Seq = CHEAT("gimme", 2);
+// Toggle no clipping mode
+static cheatseq_t CheatNoClipSeq = CHEAT("kitty", 0);
+static cheatseq_t CheatIDCLIPSeq = CHEAT("idclip", 0);
+static cheatseq_t CheatIDSPISPOPDSeq = CHEAT("idspispopd", 0);
+static void CheatNoClipFunc (player_t *player, Cheat_t *cheat);
 
 // Warp to new level
-cheatseq_t CheatWarpSeq = CHEAT("engage", 2);
+static cheatseq_t CheatWarpSeq = CHEAT("engage", 2);
+static cheatseq_t CheatIDCLEVSeq = CHEAT("idclev", 2);
+static void CheatWarpFunc (player_t *player, Cheat_t *cheat);
 
-// Save a screenshot
-cheatseq_t CheatChickenSeq = CHEAT("cockadoodledoo", 0);
+// Artifacts
+static cheatseq_t CheatArtifact1Seq = CHEAT("gimme", 0);  // Get an artifact 1st stage (ask for type)
+static cheatseq_t CheatArtifact2Seq = CHEAT("gimme", 1);  // Get an artifact 2nd stage (ask for count)
+static cheatseq_t CheatArtifact3Seq = CHEAT("gimme", 2);  // Get an artifact final stage
+static cheatseq_t CheatIDBEHOLD1Seq = CHEAT("idbehold", 0);
+static cheatseq_t CheatIDBEHOLD2Seq = CHEAT("idbehold", 1);
+static cheatseq_t CheatIDBEHOLD3Seq = CHEAT("idbehold", 2);
+static void CheatArtifact1Func (player_t *player, Cheat_t *cheat);
+static void CheatArtifact2Func (player_t *player, Cheat_t *cheat);
+static void CheatArtifact3Func (player_t *player, Cheat_t *cheat);
+
+// Toggle tome of power
+static cheatseq_t CheatPowerSeq = CHEAT("shazam", 0);
+static void CheatPowerFunc (player_t *player, Cheat_t *cheat);
+
+// Get full health
+static cheatseq_t CheatHealthSeq = CHEAT("ponce", 0);
+static void CheatHealthFunc (player_t *player, Cheat_t *cheat);
+
+// Turn to chicken
+static cheatseq_t CheatChickenSeq = CHEAT("cockadoodledoo", 0);
+static void CheatChickenFunc (player_t *player, Cheat_t *cheat);
 
 // Kill all monsters
-cheatseq_t CheatMassacreSeq = CHEAT("massacre", 0);
+static cheatseq_t CheatMassacreSeq = CHEAT("massacre", 0);
+static cheatseq_t CheatTNTEMSeq = CHEAT("tntem", 0);
+static cheatseq_t CheatKILLEMseq = CHEAT("killem", 0);
+static void CheatMassacreFunc (player_t *player, Cheat_t *cheat);
+static void CheatTNTEMFunc (player_t *player, Cheat_t *cheat);
+static void CheatKILLEMFunc (player_t *player, Cheat_t *cheat);
 
-cheatseq_t CheatIDKFASeq = CHEAT("idkfa", 0);
-cheatseq_t CheatIDDQDSeq = CHEAT("iddqd", 0);
+// [JN] RAVMAP / IDDT, moved from am_map.c
+static cheatseq_t CheatAMapSeq = CHEAT("ravmap", 0);
+static cheatseq_t CheatIDDTSeq = CHEAT("iddt", 0);
+static void CheatAMapFunc (player_t *player, Cheat_t *cheat);
+
+// [JN] IDMYPOS coords
+static cheatseq_t CheatIDMYPOSSeq = CHEAT("idmypos", 0);
+static void CheatIDMYPOSFunc (player_t *player, Cheat_t *cheat);
+
+// [JN] Freeze mode
+static cheatseq_t CheatFREEZESeq = CHEAT("freeze", 0);
+static void CheatFREEZEFunc (player_t *player, Cheat_t *cheat);
 
 // [JN] No target mode
-cheatseq_t CheatFREEZESeq = CHEAT("freeze", 0);
-cheatseq_t CheatNOTARGETSeq = CHEAT("notarget", 0);
-cheatseq_t CheatBUDDHASeq = CHEAT("buddha", 0);
+static cheatseq_t CheatNOTARGETSeq = CHEAT("notarget", 0);
+static void CheatNOTARGETFunc (player_t *player, Cheat_t *cheat);
+
+// [JN] Buddha mode
+static cheatseq_t CheatBUDDHASeq = CHEAT("buddha", 0);
+static void CheatBUDDHAFunc (player_t *player, Cheat_t *cheat);
 
 static Cheat_t Cheats[] = {
-    {CheatGodFunc,       &CheatGodSeq},
-    {CheatNoClipFunc,    &CheatNoClipSeq},
-    {CheatWeaponsFunc,   &CheatWeaponsSeq},
-    {CheatPowerFunc,     &CheatPowerSeq},
-    {CheatHealthFunc,    &CheatHealthSeq},
-    {CheatKeysFunc,      &CheatKeysSeq},
-    {CheatSoundFunc,     &CheatSoundSeq},
-    {CheatTickerFunc,    &CheatTickerSeq},
-    {CheatArtifact1Func, &CheatArtifact1Seq},
-    {CheatArtifact2Func, &CheatArtifact2Seq},
-    {CheatArtifact3Func, &CheatArtifact3Seq},
-    {CheatWarpFunc,      &CheatWarpSeq},
-    {CheatChickenFunc,   &CheatChickenSeq},
-    {CheatMassacreFunc,  &CheatMassacreSeq},
-    {CheatIDKFAFunc,     &CheatIDKFASeq},
-    {CheatIDDQDFunc,     &CheatIDDQDSeq},
-    // [JN] New cheats:
-    {CheatFREEZEFunc,    &CheatFREEZESeq},
-    {CheatNOTARGETFunc,  &CheatNOTARGETSeq},
-    {CheatBUDDHAFunc,    &CheatBUDDHASeq},
-    {NULL,               NULL} 
+    { CheatGodFunc,       &CheatGodSeq        },
+    { CheatGodFunc,       &CheatIDDQDSeq      },
+    { CheatWeaponsFunc,   &CheatWeaponsSeq    },
+    { CheatWeaponsFunc,   &CheatIDFASeq       },
+    { CheatWeapKeysFunc,  &CheatIDKFASeq      },
+    { CheatChoppersFunc,  &CheatIDCHOPPERSSeq },
+    { CheatKeysFunc,      &CheatKeysSeq       },
+    { CheatKeysFunc,      &CheatIDKASeq       },
+    { CheatNoClipFunc,    &CheatNoClipSeq     },
+    { CheatNoClipFunc,    &CheatIDCLIPSeq     },
+    { CheatNoClipFunc,    &CheatIDSPISPOPDSeq },
+    { CheatWarpFunc,      &CheatWarpSeq       },
+    { CheatWarpFunc,      &CheatIDCLEVSeq     },
+    { CheatArtifact1Func, &CheatArtifact1Seq  },
+    { CheatArtifact2Func, &CheatArtifact2Seq  },
+    { CheatArtifact3Func, &CheatArtifact3Seq  },
+    { CheatArtifact1Func, &CheatIDBEHOLD1Seq  },
+    { CheatArtifact2Func, &CheatIDBEHOLD2Seq  },
+    { CheatArtifact3Func, &CheatIDBEHOLD3Seq  },
+    { CheatPowerFunc,     &CheatPowerSeq      },
+    { CheatHealthFunc,    &CheatHealthSeq     },
+    { CheatChickenFunc,   &CheatChickenSeq    },
+    { CheatMassacreFunc,  &CheatMassacreSeq   },
+    { CheatTNTEMFunc,     &CheatTNTEMSeq      },
+    { CheatKILLEMFunc,    &CheatKILLEMseq     },
+    { CheatAMapFunc,      &CheatAMapSeq       },
+    { CheatAMapFunc,      &CheatIDDTSeq       },
+    { CheatIDMYPOSFunc,   &CheatIDMYPOSSeq    },
+    { CheatFREEZEFunc,    &CheatFREEZESeq     },
+    { CheatNOTARGETFunc,  &CheatNOTARGETSeq   },
+    { CheatBUDDHAFunc,    &CheatBUDDHASeq     },
+    {NULL,                NULL                }
 };
 
 //---------------------------------------------------------------------------
@@ -1307,43 +1337,23 @@ static boolean HandleCheats(byte key)
     return (eat);
 }
 
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 // CHEAT FUNCTIONS
 //
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
-static void CheatGodFunc(player_t * player, Cheat_t * cheat)
+static void CheatGodFunc (player_t *player, Cheat_t *cheat)
 {
     player->cheats ^= CF_GODMODE;
-    if (player->cheats & CF_GODMODE)
-    {
-        CT_SetMessage(player, DEH_String(TXT_CHEATGODON), false);
-    }
-    else
-    {
-        CT_SetMessage(player, DEH_String(TXT_CHEATGODOFF), false);
-    }
+    CT_SetMessage(player, DEH_String(player->cheats & CF_GODMODE ?
+                  TXT_CHEATGODON : TXT_CHEATGODOFF), false);
     SB_state = -1;
 }
 
-static void CheatNoClipFunc(player_t * player, Cheat_t * cheat)
-{
-    player->cheats ^= CF_NOCLIP;
-    if (player->cheats & CF_NOCLIP)
-    {
-        CT_SetMessage(player, DEH_String(TXT_CHEATNOCLIPON), false);
-    }
-    else
-    {
-        CT_SetMessage(player, DEH_String(TXT_CHEATNOCLIPOFF), false);
-    }
-}
-
-static void CheatWeaponsFunc(player_t * player, Cheat_t * cheat)
+static void CheatWeaponsFunc (player_t *player, Cheat_t *cheat)
 {
     int i;
-    //extern boolean *WeaponInShareware;
 
     player->armorpoints = 200;
     player->armortype = 2;
@@ -1372,34 +1382,49 @@ static void CheatWeaponsFunc(player_t * player, Cheat_t * cheat)
     CT_SetMessage(player, DEH_String(TXT_CHEATWEAPONS), false);
 }
 
-static void CheatPowerFunc(player_t * player, Cheat_t * cheat)
+static void CheatWeapKeysFunc (player_t *player, Cheat_t *cheat)
 {
-    if (player->powers[pw_weaponlevel2])
+    int i;
+
+    player->armorpoints = 200;
+    player->armortype = 2;
+    if (!player->backpack)
     {
-        player->powers[pw_weaponlevel2] = 0;
-        CT_SetMessage(player, DEH_String(TXT_CHEATPOWEROFF), false);
+        for (i = 0; i < NUMAMMO; i++)
+        {
+            player->maxammo[i] *= 2;
+        }
+        player->backpack = true;
     }
-    else
+    for (i = 0; i < NUMWEAPONS - 1; i++)
     {
-        P_UseArtifact(player, arti_tomeofpower);
-        CT_SetMessage(player, DEH_String(TXT_CHEATPOWERON), false);
+        player->weaponowned[i] = true;
     }
+    if (gamemode == shareware)
+    {
+        player->weaponowned[wp_skullrod] = false;
+        player->weaponowned[wp_phoenixrod] = false;
+        player->weaponowned[wp_mace] = false;
+    }
+    for (i = 0; i < NUMAMMO; i++)
+    {
+        player->ammo[i] = player->maxammo[i];
+    }
+    player->keys[key_yellow] = true;
+    player->keys[key_green] = true;
+    player->keys[key_blue] = true;
+    playerkeys = 7;             // Key refresh flags
+    CT_SetMessage(player, DEH_String(TXT_CHEATWEAPKEYS), false);
 }
 
-static void CheatHealthFunc(player_t * player, Cheat_t * cheat)
+static void CheatChoppersFunc (player_t *player, Cheat_t *cheat)
 {
-    if (player->chickenTics)
-    {
-        player->health = player->mo->health = MAXCHICKENHEALTH;
-    }
-    else
-    {
-        player->health = player->mo->health = MAXHEALTH;
-    }
-    CT_SetMessage(player, DEH_String(TXT_CHEATHEALTH), false);
+    player->weaponowned[wp_gauntlets] = true;
+    player->powers[pw_invulnerability] = true;
+    CT_SetMessage(player, DEH_String(TXT_CHOPPERS), false);
 }
 
-static void CheatKeysFunc(player_t * player, Cheat_t * cheat)
+static void CheatKeysFunc (player_t *player, Cheat_t *cheat)
 {
     player->keys[key_yellow] = true;
     player->keys[key_green] = true;
@@ -1408,45 +1433,40 @@ static void CheatKeysFunc(player_t * player, Cheat_t * cheat)
     CT_SetMessage(player, DEH_String(TXT_CHEATKEYS), false);
 }
 
-static void CheatSoundFunc(player_t * player, Cheat_t * cheat)
+static void CheatNoClipFunc (player_t *player, Cheat_t *cheat)
 {
-    DebugSound = !DebugSound;
-    if (DebugSound)
+    player->cheats ^= CF_NOCLIP;
+    CT_SetMessage(player, DEH_String(player->cheats & CF_NOCLIP ?
+                  TXT_CHEATNOCLIPON : TXT_CHEATNOCLIPOFF), false);
+}
+
+static void CheatWarpFunc (player_t *player, Cheat_t *cheat)
+{
+    char args[2];
+    int episode;
+    int map;
+
+    cht_GetParam(cheat->seq, args);
+
+    episode = args[0] - '0';
+    map = args[1] - '0';
+    if (D_ValidEpisodeMap(heretic, gamemode, episode, map))
     {
-        CT_SetMessage(player, DEH_String(TXT_CHEATSOUNDON), false);
-    }
-    else
-    {
-        CT_SetMessage(player, DEH_String(TXT_CHEATSOUNDOFF), false);
+        G_DeferedInitNew(gameskill, episode, map);
     }
 }
 
-static void CheatTickerFunc(player_t * player, Cheat_t * cheat)
-{
-    DisplayTicker = !DisplayTicker;
-    if (DisplayTicker)
-    {
-        CT_SetMessage(player, DEH_String(TXT_CHEATTICKERON), false);
-    }
-    else
-    {
-        CT_SetMessage(player, DEH_String(TXT_CHEATTICKEROFF), false);
-    }
-
-    I_DisplayFPSDots(DisplayTicker);
-}
-
-static void CheatArtifact1Func(player_t * player, Cheat_t * cheat)
+static void CheatArtifact1Func (player_t *player, Cheat_t *cheat)
 {
     CT_SetMessage(player, DEH_String(TXT_CHEATARTIFACTS1), false);
 }
 
-static void CheatArtifact2Func(player_t * player, Cheat_t * cheat)
+static void CheatArtifact2Func (player_t *player, Cheat_t *cheat)
 {
     CT_SetMessage(player, DEH_String(TXT_CHEATARTIFACTS2), false);
 }
 
-static void CheatArtifact3Func(player_t * player, Cheat_t * cheat)
+static void CheatArtifact3Func (player_t *player, Cheat_t *cheat)
 {
     char args[2];
     int i;
@@ -1477,7 +1497,7 @@ static void CheatArtifact3Func(player_t * player, Cheat_t * cheat)
              && count > 0 && count < 10)
     {
         if (gamemode == shareware
-         && (type == arti_superhealth || type == arti_teleport))
+        && (type == arti_superhealth || type == arti_teleport))
         {
             CT_SetMessage(player, DEH_String(TXT_CHEATARTIFACTSFAIL), false);
             return;
@@ -1494,26 +1514,36 @@ static void CheatArtifact3Func(player_t * player, Cheat_t * cheat)
     }
 }
 
-static void CheatWarpFunc(player_t * player, Cheat_t * cheat)
+static void CheatPowerFunc (player_t *player, Cheat_t *cheat)
 {
-    char args[2];
-    int episode;
-    int map;
-
-    cht_GetParam(cheat->seq, args);
-
-    episode = args[0] - '0';
-    map = args[1] - '0';
-    if (D_ValidEpisodeMap(heretic, gamemode, episode, map))
+    if (player->powers[pw_weaponlevel2])
     {
-        G_DeferedInitNew(gameskill, episode, map);
-        CT_SetMessage(player, DEH_String(TXT_CHEATWARP), false);
+        player->powers[pw_weaponlevel2] = 0;
+        CT_SetMessage(player, DEH_String(TXT_CHEATPOWEROFF), false);
+    }
+    else
+    {
+        P_UseArtifact(player, arti_tomeofpower);
+        CT_SetMessage(player, DEH_String(TXT_CHEATPOWERON), false);
     }
 }
 
-static void CheatChickenFunc(player_t * player, Cheat_t * cheat)
+static void CheatHealthFunc (player_t *player, Cheat_t *cheat)
 {
-    extern boolean P_UndoPlayerChicken(player_t * player);
+    if (player->chickenTics)
+    {
+        player->health = player->mo->health = MAXCHICKENHEALTH;
+    }
+    else
+    {
+        player->health = player->mo->health = MAXHEALTH;
+    }
+    CT_SetMessage(player, DEH_String(TXT_CHEATHEALTH), false);
+}
+
+static void CheatChickenFunc (player_t *player, Cheat_t *cheat)
+{
+    extern boolean P_UndoPlayerChicken (player_t *player);
 
     if (player->chickenTics)
     {
@@ -1528,48 +1558,87 @@ static void CheatChickenFunc(player_t * player, Cheat_t * cheat)
     }
 }
 
-static void CheatMassacreFunc(player_t * player, Cheat_t * cheat)
+static void CheatMassacreFunc (player_t *player, Cheat_t *cheat)
 {
     P_Massacre();
     CT_SetMessage(player, DEH_String(TXT_CHEATMASSACRE), false);
 }
 
-static void CheatIDKFAFunc(player_t * player, Cheat_t * cheat)
+static int SB_Cheat_Massacre (boolean explode)
 {
-    int i;
-    if (player->chickenTics)
+    int killcount = 0;
+    int amount;
+    mobj_t *mo;
+    thinker_t *think;
+
+    for (think = thinkercap.next; think != &thinkercap; think = think->next)
     {
-        return;
+        if (think->function != P_MobjThinker)
+        {                       // Not a mobj thinker
+            continue;
+        }
+        mo = (mobj_t *) think;
+        amount = explode ? 10000 : mo->health;
+        if ((mo->flags & MF_COUNTKILL) && (mo->health > 0))
+        {
+            P_DamageMobj(mo, NULL, NULL, amount);
+            killcount++;
+        }
     }
-    for (i = 1; i < 8; i++)
-    {
-        player->weaponowned[i] = false;
-    }
-    player->pendingweapon = wp_staff;
-    CT_SetMessage(player, DEH_String(TXT_CHEATIDKFA), true);
+    return killcount;
 }
 
-static void CheatIDDQDFunc(player_t * player, Cheat_t * cheat)
+static void CheatTNTEMFunc (player_t *player, Cheat_t *cheat)
 {
-    P_DamageMobj(player->mo, NULL, player->mo, 10000);
-    CT_SetMessage(player, DEH_String(TXT_CHEATIDDQD), true);
+    static char buf[52];
+    const int killcount = SB_Cheat_Massacre(true);
+
+    M_snprintf(buf, sizeof(buf), "MONSTERS KILLED: %d", killcount);
+
+    CT_SetMessage(player, buf, false);
 }
 
-static void CheatFREEZEFunc(player_t * player, Cheat_t * cheat)
+static void CheatKILLEMFunc (player_t *player, Cheat_t *cheat)
+{
+    static char buf[52];
+    const int killcount = SB_Cheat_Massacre(false);
+
+    M_snprintf(buf, sizeof(buf), "MONSTERS KILLED: %d", killcount);
+
+    CT_SetMessage(player, buf, false);
+}
+
+static void CheatAMapFunc (player_t *player, Cheat_t *cheat)
+{
+    ravmap_cheating = (ravmap_cheating + 1) % 3;
+}
+
+static void CheatIDMYPOSFunc (player_t *player, Cheat_t *cheat)
+{
+    static char buf[52];
+
+    M_snprintf(buf, sizeof(buf), "ANG=0X%X;X,Y=(0X%X,0X%X)",
+               players[displayplayer].mo->angle,
+               players[displayplayer].mo->x,
+               players[displayplayer].mo->y);
+    CT_SetMessage(player, buf, false);
+}
+
+static void CheatFREEZEFunc (player_t *player, Cheat_t *cheat)
 {
     crl_freeze ^= 1;
     CT_SetMessage(&players[consoleplayer], crl_freeze ?
                  ID_FREEZE_ON : ID_FREEZE_OFF, false);
 }
 
-static void CheatNOTARGETFunc(player_t * player, Cheat_t * cheat)
+static void CheatNOTARGETFunc (player_t *player, Cheat_t *cheat)
 {
     player->cheats ^= CF_NOTARGET;
     CT_SetMessage(player, player->cheats & CF_NOTARGET ?
                   ID_NOTARGET_ON : ID_NOTARGET_OFF, false);
 }
 
-static void CheatBUDDHAFunc(player_t * player, Cheat_t * cheat)
+static void CheatBUDDHAFunc (player_t *player, Cheat_t *cheat)
 {
     player->cheats ^= CF_BUDDHA;
     CT_SetMessage(player, player->cheats & CF_BUDDHA ?

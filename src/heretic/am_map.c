@@ -148,10 +148,6 @@ static vertex_t oldplr;
 
 static int followplayer = 1;    // specifies whether to follow the player around
 
-static char cheat_amap[] = { 'r', 'a', 'v', 'm', 'a', 'p' };
-
-static byte cheatcount = 0;
-
 // [crispy] gradient table for map normal mode
 static pixel_t antialias_normal[NUMALIAS][8] = {
     {96, 97, 98, 99, 100, 101, 102, 103},
@@ -716,17 +712,6 @@ boolean AM_Responder(event_t * ev)
         else
         {
             rc = false;
-        }
-
-        if (cheat_amap[cheatcount] == ev->data1 && !netgame)
-            cheatcount++;
-        else
-            cheatcount = 0;
-        if (cheatcount == 6)
-        {
-            cheatcount = 0;
-            rc = false;
-            ravmap_cheating = (ravmap_cheating + 1) % 3;
         }
     }
 
