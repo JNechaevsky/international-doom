@@ -520,7 +520,9 @@ void R_DrawTranslatedColumn (void)
 	//  used with PLAY sprites.
 	// Thus the "green" ramp of the player 0 sprite
 	//  is mapped to gray, red, black/indigo. 
-	*dest = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
+	// [crispy] brightmaps
+	const byte source = dc_source[frac>>FRACBITS];
+	*dest = dc_colormap[dc_brightmap[source]][dc_translation[source]];
 	dest += SCREENWIDTH;
 	
 	frac += fracstep; 
@@ -570,8 +572,10 @@ void R_DrawTranslatedColumnLow (void)
 	//  used with PLAY sprites.
 	// Thus the "green" ramp of the player 0 sprite
 	//  is mapped to gray, red, black/indigo. 
-	*dest = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
-	*dest2 = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
+	// [crispy] brightmaps
+	const byte source = dc_source[frac>>FRACBITS];
+	*dest = dc_colormap[dc_brightmap[source]][dc_translation[source]];
+	*dest2 = dc_colormap[dc_brightmap[source]][dc_translation[source]];
 	dest += SCREENWIDTH;
 	dest2 += SCREENWIDTH;
 	
@@ -607,11 +611,13 @@ void R_DrawTLColumn (void)
 
     do
     {
+        // [crispy] brightmaps
+        const byte source = dc_source[frac>>FRACBITS];
 #ifndef CRISPY_TRUECOLOR
         // actual translucency map lookup taken from boom202s/R_DRAW.C:255
-        *dest = tintmap[(*dest<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
+        *dest = tintmap[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
 #else
-        const pixel_t destrgb = dc_colormap[0][dc_source[frac>>FRACBITS]];
+        const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
         *dest = blendfunc(*dest, destrgb);
 #endif
 	dest += SCREENWIDTH;
@@ -653,11 +659,13 @@ void R_DrawTLColumnLow (void)
 
     do
     {
+	// [crispy] brightmaps
+	const byte source = dc_source[frac>>FRACBITS];    
 #ifndef CRISPY_TRUECOLOR
-	*dest = tintmap[(*dest<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
-	*dest2 = tintmap[(*dest2<<8)+dc_colormap[0][dc_source[frac>>FRACBITS]]];
+	*dest = tintmap[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
+	*dest2 = tintmap[(*dest2<<8)+dc_colormap[dc_brightmap[source]][source]];
 #else
-	const pixel_t destrgb = dc_colormap[0][dc_source[frac>>FRACBITS]];
+	const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
 	*dest = blendfunc(*dest, destrgb);
 	*dest2 = blendfunc(*dest2, destrgb);
 #endif
