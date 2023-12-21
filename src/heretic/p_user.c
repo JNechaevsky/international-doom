@@ -601,8 +601,6 @@ void P_PlayerThink(player_t * player)
     player->oldlookdir = player->lookdir;
 
     // [JN] Handle Spectator camera:
-    // TODO
-    /*
     if (crl_spectating)
     {
         // If spectating, set old position and orientation for interpolation.
@@ -619,7 +617,6 @@ void P_PlayerThink(player_t * player)
         CRL_camera_z = player->mo->z + VIEWHEIGHT;
         CRL_camera_ang = player->mo->angle;
     }
-    */
 
     // No-clip cheat
     if (player->cheats & CF_NOCLIP)

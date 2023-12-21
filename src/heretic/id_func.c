@@ -837,3 +837,89 @@ int level_select[] = {
     0,    // 32 - Wings of wrath
     0,    // 33 - Torch
 };
+
+// =============================================================================
+//
+//                              Spectator Mode
+//
+// =============================================================================
+
+// Camera position and orientation.
+fixed_t CRL_camera_x, CRL_camera_y, CRL_camera_z;
+angle_t CRL_camera_ang;
+
+// [JN] An "old" position and orientation used for interpolation.
+fixed_t CRL_camera_oldx, CRL_camera_oldy, CRL_camera_oldz;
+angle_t CRL_camera_oldang;
+
+// -----------------------------------------------------------------------------
+// CRL_GetCameraPos
+//  Returns the camera position.
+// -----------------------------------------------------------------------------
+
+void CRL_GetCameraPos (fixed_t *x, fixed_t *y, fixed_t *z, angle_t *a)
+{
+    *x = CRL_camera_x;
+    *y = CRL_camera_y;
+    *z = CRL_camera_z;
+    *a = CRL_camera_ang;
+}
+
+// -----------------------------------------------------------------------------
+// CRL_ReportPosition
+//  Reports the position of the camera.
+//  @param x The x position.
+//  @param y The y position.
+//  @param z The z position.
+//  @param angle The angle used.
+// -----------------------------------------------------------------------------
+
+void CRL_ReportPosition (fixed_t x, fixed_t y, fixed_t z, angle_t angle)
+{
+	CRL_camera_oldx = x;
+	CRL_camera_oldy = y;
+	CRL_camera_oldz = z;
+	CRL_camera_oldang = angle;
+}
+
+// -----------------------------------------------------------------------------
+// CRL_ImpulseCamera
+//  @param fwm Forward movement.
+//  @param swm Sideways movement.
+//  @param at Angle turning.
+// -----------------------------------------------------------------------------
+
+void CRL_ImpulseCamera (fixed_t fwm, fixed_t swm, angle_t at)
+{
+    // Rotate camera first
+    CRL_camera_ang += at << FRACBITS;
+
+    // Forward movement
+    at = CRL_camera_ang >> ANGLETOFINESHIFT;
+    CRL_camera_x += FixedMul(fwm * 32768, finecosine[at]); 
+    CRL_camera_y += FixedMul(fwm * 32768, finesine[at]);
+
+    // Sideways movement
+    at = (CRL_camera_ang - ANG90) >> ANGLETOFINESHIFT;
+    CRL_camera_x += FixedMul(swm * 32768, finecosine[at]); 
+    CRL_camera_y += FixedMul(swm * 32768, finesine[at]);
+}
+
+// -----------------------------------------------------------------------------
+// CRL_ImpulseCameraVert
+//  [JN] Impulses the camera up/down.
+//  @param direction: true = up, false = down.
+//  @param intensity: 32 of 64 map unit, depending on player run mode.
+// -----------------------------------------------------------------------------
+
+void CRL_ImpulseCameraVert (boolean direction, fixed_t intensity)
+{
+    if (direction)
+    {
+        CRL_camera_z += FRACUNIT*intensity;
+    }
+    else
+    {
+        CRL_camera_z -= FRACUNIT*intensity;
+    }
+}

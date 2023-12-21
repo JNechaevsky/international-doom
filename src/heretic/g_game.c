@@ -328,7 +328,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
  	if (netgame && MenuActive)
  	return;
 
- 	// [JN] RestlessRodent -- If spectating then the player loses all input
+ 	// RestlessRodent -- If spectating then the player loses all input
  	memmove(&spect, cmd, sizeof(spect));
  	// [JN] Allow saving and pausing while spectating.
  	if (crl_spectating && !sendsave && !sendpause)
@@ -884,12 +884,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         }
     }
 
-    // TODO
-    // [JN] RestlessRodent -- If spectating, send the movement commands instead
-    /*
+    // RestlessRodent -- If spectating, send the movement commands instead
     if (crl_spectating && !MenuActive)
     	CRL_ImpulseCamera(cmd->forwardmove, cmd->sidemove, cmd->angleturn); 
-    */
 }
 
 
@@ -1073,45 +1070,45 @@ static void SetMouseButtons(unsigned int buttons_mask)
 
         if (!mousebuttons[i] && button_on)
         {
-            if (i == mousebprevweapon)
+            // [JN] CRL - move spectator camera up/down.
+            if (crl_spectating && !MenuActive)
             {
-                // TODO
-                // [JN] CRL - move spectator camera down.
-                // if (crl_spectating && !MenuActive)
-                // {
-                //     CRL_ImpulseCameraVert(false, crl_camzspeed ? 64 : 32);
-                //     
-                // }
-                // else
-                next_weapon = -1;
-            }
-            else if (i == mousebnextweapon)
-            {
-                // TODO
-                // [JN] CRL - move spectator camera up.
-                // if (crl_spectating && !MenuActive)
-                // {
-                //     CRL_ImpulseCameraVert(true, crl_camzspeed ? 64 : 32);
-                //     
-                // }
-                // else
-                next_weapon = 1;
-            }
-            else if (i == mousebinvleft)
-            {
-                InventoryMoveLeft();
-            }
-            else if (i == mousebinvright)
-            {
-                InventoryMoveRight();
-            }
-            else if (i == mousebuseartifact)
-            {
-                if (!inventory)
+                if (i == 4)  // Hardcoded mouse wheel down
                 {
-                    plr->readyArtifact = plr->inventory[inv_ptr].type;
+                    CRL_ImpulseCameraVert(false, crl_camzspeed ? 64 : 32); 
                 }
-                usearti = true;
+                else
+                if (i == 3)  // Hardcoded Mouse wheel down
+                {
+                    CRL_ImpulseCameraVert(true, crl_camzspeed ? 64 : 32);
+                }
+            }
+            else
+            {
+                if (i == mousebprevweapon)
+                {
+                    next_weapon = -1;
+                }
+                else if (i == mousebnextweapon)
+                {
+                    next_weapon = 1;
+                }
+                else if (i == mousebinvleft)
+                {
+                    InventoryMoveLeft();
+                }
+                else if (i == mousebinvright)
+                {
+                    InventoryMoveRight();
+                }
+                else if (i == mousebuseartifact)
+                {
+                    if (!inventory)
+                    {
+                        plr->readyArtifact = plr->inventory[inv_ptr].type;
+                    }
+                    usearti = true;
+                }
             }
         }
 
