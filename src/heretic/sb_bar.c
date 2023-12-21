@@ -180,6 +180,10 @@ static void CheatMassacreFunc (player_t *player, Cheat_t *cheat);
 static void CheatTNTEMFunc (player_t *player, Cheat_t *cheat);
 static void CheatKILLEMFunc (player_t *player, Cheat_t *cheat);
 
+// [JN] IDMUS
+static cheatseq_t CheatIDMUSSeq = CHEAT("idmus", 2);
+static void CheatIDMUSFunc (player_t *player, Cheat_t *cheat);
+
 // [JN] RAVMAP / IDDT, moved from am_map.c
 static cheatseq_t CheatAMapSeq = CHEAT("ravmap", 0);
 static cheatseq_t CheatIDDTSeq = CHEAT("iddt", 0);
@@ -227,6 +231,7 @@ static Cheat_t Cheats[] = {
     { CheatMassacreFunc,  &CheatMassacreSeq   },
     { CheatTNTEMFunc,     &CheatTNTEMSeq      },
     { CheatKILLEMFunc,    &CheatKILLEMseq     },
+    { CheatIDMUSFunc,     &CheatIDMUSSeq      },
     { CheatAMapFunc,      &CheatAMapSeq       },
     { CheatAMapFunc,      &CheatIDDTSeq       },
     { CheatIDMYPOSFunc,   &CheatIDMYPOSSeq    },
@@ -1633,6 +1638,30 @@ static void CheatKILLEMFunc (player_t *player, Cheat_t *cheat)
     M_snprintf(buf, sizeof(buf), "MONSTERS KILLED: %d", killcount);
 
     CT_SetMessage(player, buf, false);
+}
+
+static void CheatIDMUSFunc (player_t *player, Cheat_t *cheat)
+{
+    char buf[3];
+    int  musnum;
+
+    // [JN] Prevent impossible selection.
+    const int maxnum = gamemode == retail     ? 47 :  // 5 episodes
+                       gamemode == registered ? 26 :  // 3 episodes
+                                                 8 ;  // 1 episode (shareware)
+
+    cht_GetParam(cheat->seq, buf);
+    musnum = mus_e1m1 + (buf[0]-'1')*9 + (buf[1]-'1');
+
+    if (((buf[0]-'1')*9 + buf[1]-'1') > maxnum)
+    {
+        CT_SetMessage(player, DEH_String(TXT_NOMUS), false);
+    }
+    else
+    {
+        S_StartSong(musnum, true);
+        CT_SetMessage(player, DEH_String(TXT_MUS), false);
+    }
 }
 
 static void CheatAMapFunc (player_t *player, Cheat_t *cheat)

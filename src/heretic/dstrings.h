@@ -100,6 +100,8 @@
 #define TXT_CHEATCHICKENON		"CHICKEN ON"
 #define TXT_CHEATCHICKENOFF		"CHICKEN OFF"
 #define TXT_CHEATMASSACRE		"MASSACRE"
+#define TXT_MUS				"MUSIC CHANGE"
+#define TXT_NOMUS			"IMPOSSIBLE SELECTION"
 #define TXT_CHOPPERS			"... DOESN'T SUCK - GM"
 
 //---------------------------------------------------------------------------
