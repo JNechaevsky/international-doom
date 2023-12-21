@@ -328,7 +328,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
  	if (netgame && MenuActive)
  	return;
 
- 	// [JN] RestlessRodent -- If spectating then the player loses all input
+ 	// RestlessRodent -- If spectating then the player loses all input
  	memmove(&spect, cmd, sizeof(spect));
  	// [JN] Allow saving and pausing while spectating.
  	if (crl_spectating && !sendsave && !sendpause)
@@ -884,12 +884,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         }
     }
 
-    // TODO
-    // [JN] RestlessRodent -- If spectating, send the movement commands instead
-    /*
+    // RestlessRodent -- If spectating, send the movement commands instead
     if (crl_spectating && !MenuActive)
     	CRL_ImpulseCamera(cmd->forwardmove, cmd->sidemove, cmd->angleturn); 
-    */
 }
 
 
@@ -1073,45 +1070,45 @@ static void SetMouseButtons(unsigned int buttons_mask)
 
         if (!mousebuttons[i] && button_on)
         {
-            if (i == mousebprevweapon)
+            // [JN] CRL - move spectator camera up/down.
+            if (crl_spectating && !MenuActive)
             {
-                // TODO
-                // [JN] CRL - move spectator camera down.
-                // if (crl_spectating && !MenuActive)
-                // {
-                //     CRL_ImpulseCameraVert(false, crl_camzspeed ? 64 : 32);
-                //     
-                // }
-                // else
-                next_weapon = -1;
-            }
-            else if (i == mousebnextweapon)
-            {
-                // TODO
-                // [JN] CRL - move spectator camera up.
-                // if (crl_spectating && !MenuActive)
-                // {
-                //     CRL_ImpulseCameraVert(true, crl_camzspeed ? 64 : 32);
-                //     
-                // }
-                // else
-                next_weapon = 1;
-            }
-            else if (i == mousebinvleft)
-            {
-                InventoryMoveLeft();
-            }
-            else if (i == mousebinvright)
-            {
-                InventoryMoveRight();
-            }
-            else if (i == mousebuseartifact)
-            {
-                if (!inventory)
+                if (i == 4)  // Hardcoded mouse wheel down
                 {
-                    plr->readyArtifact = plr->inventory[inv_ptr].type;
+                    CRL_ImpulseCameraVert(false, crl_camzspeed ? 64 : 32); 
                 }
-                usearti = true;
+                else
+                if (i == 3)  // Hardcoded Mouse wheel down
+                {
+                    CRL_ImpulseCameraVert(true, crl_camzspeed ? 64 : 32);
+                }
+            }
+            else
+            {
+                if (i == mousebprevweapon)
+                {
+                    next_weapon = -1;
+                }
+                else if (i == mousebnextweapon)
+                {
+                    next_weapon = 1;
+                }
+                else if (i == mousebinvleft)
+                {
+                    InventoryMoveLeft();
+                }
+                else if (i == mousebinvright)
+                {
+                    InventoryMoveRight();
+                }
+                else if (i == mousebuseartifact)
+                {
+                    if (!inventory)
+                    {
+                        plr->readyArtifact = plr->inventory[inv_ptr].type;
+                    }
+                    usearti = true;
+                }
             }
         }
 
@@ -1279,7 +1276,7 @@ boolean G_Responder(event_t * ev)
             {
                 crl_spectating ^= 1;
                 CT_SetMessage(&players[consoleplayer], crl_spectating ?
-                             CRL_SPECTATOR_ON : CRL_SPECTATOR_OFF, false);
+                             ID_SPECTATOR_ON : ID_SPECTATOR_OFF, false);
                 pspr_interp = false;
             }        
             // [JN] CRL - Toggle freeze mode.
@@ -1288,23 +1285,23 @@ boolean G_Responder(event_t * ev)
                 // Allow freeze only in single player game, otherwise desyncs may occur.
                 if (demorecording)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_R , false);
+                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_R , false);
                     return true;
                 }            
                 if (demoplayback)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_P , false);
+                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_P , false);
                     return true;
                 }   
                 if (netgame)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_FREEZE_NA_N , false);
+                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_N , false);
                     return true;
                 }   
                 crl_freeze ^= 1;
 
                 CT_SetMessage(&players[consoleplayer], crl_freeze ?
-                             CRL_FREEZE_ON : CRL_FREEZE_OFF, false);
+                             ID_FREEZE_ON : ID_FREEZE_OFF, false);
             }
             // [JN] CRL - Toggle notarget mode.
             if (ev->data1 == key_notarget)
@@ -1314,25 +1311,51 @@ boolean G_Responder(event_t * ev)
                 // Allow notarget only in single player game, otherwise desyncs may occur.
                 if (demorecording)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_R , false);
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_R , false);
                     return true;
                 }
                 if (demoplayback)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_P , false);
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_P , false);
                     return true;
                 }
                 if (netgame)
                 {
-                    CT_SetMessage(&players[consoleplayer], CRL_NOTARGET_NA_N , false);
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_N , false);
                     return true;
                 }   
 
                 player->cheats ^= CF_NOTARGET;
 
                 CT_SetMessage(player, player->cheats & CF_NOTARGET ?
-                            CRL_NOTARGET_ON : CRL_NOTARGET_OFF, false);
+                            ID_NOTARGET_ON : ID_NOTARGET_OFF, false);
             }
+            // [JN] Woof - Toggle Buddha mode.
+            if (ev->data1 == key_buddha)
+            {
+                player_t *player = &players[consoleplayer];
+
+                // Allow notarget only in single player game, otherwise desyncs may occur.
+                if (demorecording)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_R , false);
+                    return true;
+                }
+                if (demoplayback)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_P , false);
+                    return true;
+                }
+                if (netgame)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_N , false);
+                    return true;
+                }
+                player->cheats ^= CF_BUDDHA;
+                CT_SetMessage(player, player->cheats & CF_BUDDHA ?
+                            ID_BUDDHA_ON : ID_BUDDHA_OFF, false);
+            }
+
             return (true);      // eat key down events
 
         case ev_keyup:
@@ -1747,8 +1770,6 @@ void G_PlayerReborn(int player)
 = because something is occupying it
 ====================
 */
-
-void P_SpawnPlayer(mapthing_t * mthing);
 
 boolean G_CheckSpot(int playernum, mapthing_t * mthing)
 {

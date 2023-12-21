@@ -984,7 +984,7 @@ void R_DrawPlayerSprites (void)
     int		lightnum;
     pspdef_t*	psp;
     
-    // [JN] RestlessRodent -- Do not draw player gun sprite if spectating
+    // RestlessRodent -- Do not draw player gun sprite if spectating
     if (crl_spectating)
     	return;
     
