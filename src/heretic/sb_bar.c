@@ -1319,12 +1319,9 @@ static boolean HandleCheats(byte key)
 
     // [JN] Modified logics: can't cheat in a net-game or in demos
     // to avoid desyncs, but allow in black plague skill level.
+    // Dead players can use cheats, primary for resurrection.
     if (netgame || demorecording || demoplayback /* || gameskill == sk_nightmare*/)
     {                           
-        return (false);
-    }
-    if (players[consoleplayer].health <= 0)
-    {                           // Dead players can't cheat
         return (false);
     }
     eat = false;
@@ -1347,6 +1344,34 @@ static boolean HandleCheats(byte key)
 
 static void CheatGodFunc (player_t *player, Cheat_t *cheat)
 {
+    // [crispy] dead players are first respawned at the current position
+    mapthing_t mt = {0};
+
+    if (player->playerstate == PST_DEAD)
+    {
+        angle_t an;
+
+        mt.x = player->mo->x >> FRACBITS;
+        mt.y = player->mo->y >> FRACBITS;
+        mt.angle = (player->mo->angle + ANG45/2)*(uint64_t)45/ANG45;
+        mt.type = consoleplayer + 1;
+        P_SpawnPlayer(&mt);
+
+        // [crispy] spawn a teleport fog
+        an = player->mo->angle >> ANGLETOFINESHIFT;
+        P_SpawnMobj(player->mo->x + 20 * finecosine[an],
+                    player->mo->y + 20 * finesine[an],
+                    player->mo->z + TELEFOGHEIGHT, MT_TFOG);
+        S_StartSound(player, sfx_telept);
+
+        // [crispy] fix reviving as "zombie" if god mode was already enabled
+        if (player->mo)
+        {
+            player->mo->health = MAXHEALTH;
+        }
+        player->health = MAXHEALTH;
+    }
+
     player->cheats ^= CF_GODMODE;
     CT_SetMessage(player, DEH_String(player->cheats & CF_GODMODE ?
                   TXT_CHEATGODON : TXT_CHEATGODOFF), false);

@@ -146,6 +146,7 @@ void P_MobjThinker(thinker_t * thinker);
 void P_BlasterMobjThinker(thinker_t * thinker);
 void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);
 void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage);
+void P_SpawnPlayer(mapthing_t * mthing);
 void P_BloodSplatter(fixed_t x, fixed_t y, fixed_t z, mobj_t * originator);
 void P_RipperBlood(mobj_t * mo);
 int P_GetThingFloorType(mobj_t * thing);

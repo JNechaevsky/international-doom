@@ -1771,8 +1771,6 @@ void G_PlayerReborn(int player)
 ====================
 */
 
-void P_SpawnPlayer(mapthing_t * mthing);
-
 boolean G_CheckSpot(int playernum, mapthing_t * mthing)
 {
     fixed_t x, y;
