@@ -773,6 +773,9 @@ boolean G_Responder(event_t * ev);
 
 void G_ScreenShot(void);
 
+// [crispy] holding down the "Run" key may trigger special behavior
+extern boolean speedkeydown (void);
+
 //-----
 //PLAY
 //-----
