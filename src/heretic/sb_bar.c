@@ -1048,7 +1048,9 @@ void DrawCommonBar(void)
         V_DrawPatch(0, 190, PatchLTFACE);
         V_DrawPatch(276, 190, PatchRTFACE);
         ShadeChain();
-        UpdateState |= I_STATBAR;
+        // [JN] Update full status bar area for proper chain background redrawing.
+        // UpdateState |= I_STATBAR;
+        SB_ForceRedraw();
     }
 }
 
