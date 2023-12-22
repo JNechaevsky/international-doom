@@ -709,6 +709,13 @@ boolean AM_Responder(event_t * ev)
             plr->message = AMSTR_MARKSCLEARED;
         }
         */
+        else if (key == key_map_overlay)
+        {
+            // [JN] Automap overlay mode.
+            automap_overlay = !automap_overlay;
+            CT_SetMessage(plr, DEH_String(automap_overlay ?
+                          ID_AUTOMAPOVERLAY_ON : ID_AUTOMAPOVERLAY_OFF), false);
+        }
         else
         {
             rc = false;
@@ -1592,7 +1599,13 @@ void AM_Drawer(void)
         return;
 
     UpdateState |= I_FULLSCRN;
-    AM_drawBackground();
+
+    if (!automap_overlay)
+    {
+        AM_drawBackground();
+        pspr_interp = false;  // [JN] Supress interpolated weapon bobbing.
+    }
+
     if (grid)
         AM_drawGrid(GRIDCOLORS);
     AM_drawWalls();
