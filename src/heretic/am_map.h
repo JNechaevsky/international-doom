@@ -63,12 +63,23 @@
 #define AM_NUMMARKPOINTS 10
 
 
+typedef struct
+{
+    int64_t x,y;
+} mpoint_t;
+
 extern int ravmap_cheating;
+
+extern mpoint_t *markpoints; 
+extern int markpointnum;
+extern int markpointnum_max;
 
 extern vertex_t KeyPoints[];
 
+extern void AM_Init (void);
 extern void AM_Start (void);
 extern void AM_LevelInit (boolean reinit);
 extern void AM_LevelNameDrawer (void);
+extern void AM_clearMarks (void);
 
 #endif

@@ -35,6 +35,7 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "v_video.h"
+#include "am_map.h"
 #include "ct_chat.h"
 
 #include "id_vars.h"
@@ -1983,7 +1984,8 @@ void G_DoWorldDone(void)
     gamestate = GS_LEVEL;
     G_DoLoadLevel();
     gameaction = ga_nothing;
-    viewactive = true;
+    // [JN] jff 4/12/98 clear any marks on the automap
+    AM_clearMarks();
 }
 
 //---------------------------------------------------------------------------
@@ -2069,6 +2071,8 @@ void G_DoLoadGame(void)
     P_UnArchiveThinkers();
     P_UnArchiveSpecials();
     P_RestoreTargets();
+    // [JN] Restore automap marks.
+    P_UnArchiveAutomap();
 
     // [crispy] point to active artifact after load
     for (i = 0; i < p->inventorySlotNum; i++)
@@ -2170,7 +2174,13 @@ void G_InitNew(skill_t skill, int episode, int map)
     demorecording = false;
     demoplayback = false;
     netdemo = false;
-    viewactive = true;
+    // [crispy] reset game speed after demo fast-forward
+    singletics = false;
+    // [JN] Reset automap scale. Fixes:
+    // https://doomwiki.org/wiki/Automap_scale_preserved_after_warps_in_Heretic_and_Hexen
+    automapactive = false; 
+    // [JN] jff 4/16/98 force marks on automap cleared every new level start
+    AM_clearMarks();
     gameepisode = episode;
     gamemap = map;
     gameskill = skill;
@@ -2179,6 +2189,9 @@ void G_InitNew(skill_t skill, int episode, int map)
     // [crispy] CPhipps - total time for all completed levels
     totalleveltimes = 0;
     defdemotics = 0;
+
+    // [JN] jff 4/16/98 force marks on automap cleared every new level start
+    AM_clearMarks();
 
     // Set the sky map
     if (episode > 5)
@@ -2220,6 +2233,8 @@ boolean G_DoSelectiveGame (int choice)
     deathmatch = false;
     // [crispy] reset game speed after demo fast-forward
     singletics = false;
+    // [JN] jff 4/16/98 force marks on automap cleared every new level start
+    AM_clearMarks();
     playeringame[1] = playeringame[2] = playeringame[3] = 0;
     consoleplayer = 0;
     gameaction = ga_nothing;
@@ -2812,6 +2827,8 @@ void G_DoSaveGame(void)
     P_ArchiveWorld();
     P_ArchiveThinkers();
     P_ArchiveSpecials();
+    // [JN] Archive automap marks.
+    P_ArchiveAutomap();
     SV_Close(filename);
 
     gameaction = ga_nothing;

@@ -27,6 +27,8 @@
 #include "i_video.h"
 #include "v_trans.h"
 #include "m_controls.h"
+#include "i_system.h"
+#include "m_misc.h"
 #include "p_local.h"
 #include "am_map.h"
 #include "ct_chat.h"
@@ -265,9 +267,12 @@ static fixed_t scale_ftom;
 
 static player_t *plr; // the player represented by an arrow
 
-//static patch_t *marknums[10]; // numbers used for marking by the automap
-//static mpoint_t markpoints[AM_NUMMARKPOINTS]; // where the points are
-//static int markpointnum = 0; // next point to be assigned
+static patch_t *marknums[10]; // numbers used for marking by the automap
+// [JN] killough 2/22/98: Remove limit on automap marks,
+// and make variables external for use in savegames.
+mpoint_t *markpoints = NULL;     // where the points are
+int       markpointnum = 0;      // next point to be assigned (also number of points now)
+int       markpointnum_max = 0;  // killough 2/22/98
 
 #define NUMALIAS 3   
 
@@ -329,10 +334,23 @@ static void AM_drawCrosshair(boolean force);
 void DrawWuLine(int X0, int Y0, int X1, int Y1, int Color,
                 int NumLevels, unsigned short IntensityBits);
 
+// -----------------------------------------------------------------------------
+// AM_Init
+// [JN] Predefine some variables at program startup.
+// -----------------------------------------------------------------------------
 
+void AM_Init (void)
+{
+    char namebuf[9];
+  
+    for (int i = 0 ; i < 10 ; i++)
+    {
+        DEH_snprintf(namebuf, 9, "SMALLIN%d", i);
+        marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
+    }
 
-
-// Functions
+    maplump = W_CacheLumpName(DEH_String("AUTOPAGE"), PU_STATIC);
+}
 
 // -----------------------------------------------------------------------------
 // AM_activateNewScale
@@ -400,7 +418,6 @@ static void AM_restoreScaleAndLoc (void)
 // Adds a marker at the current location.
 // -----------------------------------------------------------------------------
 
-/*
 static void AM_addMark (void)
 {
     // [JN] killough 2/22/98: remove limit on automap marks
@@ -424,7 +441,6 @@ static void AM_addMark (void)
     }
     markpointnum++;
 }
-*/
 
 // -----------------------------------------------------------------------------
 // AM_findMinMaxBoundaries
@@ -607,33 +623,14 @@ void AM_initVariables (void)
 //c  ST_Responder(&st_notify);
 }
 
-void AM_loadPics(void)
+// -----------------------------------------------------------------------------
+// AM_clearMarks
+// -----------------------------------------------------------------------------
+
+void AM_clearMarks (void)
 {
-    //int i;
-    //char namebuf[9];
-/*  for (i=0;i<10;i++)
-  {
-    M_snprintf(namebuf, sizeof(namebuf), "AMMNUM%d", i);
-    marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
-  }*/
-    maplump = W_CacheLumpName(DEH_String("AUTOPAGE"), PU_STATIC);
+    markpointnum = 0;
 }
-
-/*void AM_unloadPics(void)
-{
-  int i;
-  for (i=0;i<10;i++) Z_ChangeTag(marknums[i], PU_CACHE);
-
-}*/
-
-/*
-void AM_clearMarks(void)
-{
-  int i;
-  for (i=0;i<AM_NUMMARKPOINTS;i++) markpoints[i].x = -1; // means empty
-  markpointnum = 0;
-}
-*/
 
 // -----------------------------------------------------------------------------
 // AM_LevelInit
@@ -712,7 +709,6 @@ void AM_LevelInit (boolean reinit)
 
 void AM_Stop (void)
 {
-//  AM_unloadPics();
     automapactive = false;
     stopped = true;
     BorderNeedRefresh = true;
@@ -745,7 +741,6 @@ void AM_Start (void)
     }
 
     AM_initVariables();
-    AM_loadPics();
 }
 
 // -----------------------------------------------------------------------------
@@ -781,7 +776,8 @@ boolean AM_Responder (event_t *ev)
 {
     int         rc;
     static int  bigstate=0;
-    static int joywait = 0;
+    static char buffer[20];
+    static int  joywait = 0;
     int         key;
 
     key = ev->data1;
@@ -920,20 +916,29 @@ boolean AM_Responder (event_t *ev)
             CT_SetMessage(plr, DEH_String(grid ?
                           AMSTR_GRIDON : AMSTR_GRIDOFF), false);
         }
-        /*
         else if (key == key_map_mark)
         {
             M_snprintf(buffer, sizeof(buffer), "%s %d",
-                       AMSTR_MARKEDSPOT, markpointnum);
-            plr->message = buffer;
+                       DEH_String(AMSTR_MARKEDSPOT), markpointnum);
+            CT_SetMessage(plr, buffer, false);
             AM_addMark();
         }
-        else if (key == key_map_clearmark)
+        else if (key == key_map_clearmark && markpointnum > 0)
         {
-            AM_clearMarks();
-            plr->message = AMSTR_MARKSCLEARED;
+            // [JN] Clear all mark by holding "run" button and pressing "clear mark".
+            if (speedkeydown())
+            {
+                AM_clearMarks();
+                CT_SetMessage(plr, DEH_String(AMSTR_MARKSCLEARED), false);
+            }
+            else
+            {
+                markpointnum--;
+                M_snprintf(buffer, sizeof(buffer), "%s %d",
+                        DEH_String(AMSTR_MARKCLEARED), markpointnum);
+                CT_SetMessage(plr, buffer, false);
+            }
         }
-        */
         else if (key == key_map_rotate)
         {
             // [JN] Automap rotate mode.
@@ -2076,25 +2081,65 @@ static void AM_drawThings(int colors, int colorrange)
     }
 }
 
-/*
-void AM_drawMarks(void)
-{
-  int i, fx, fy, w, h;
+// -----------------------------------------------------------------------------
+// AM_drawMarks
+// Draw the marked locations on the automap.
+// -----------------------------------------------------------------------------
 
-  for (i=0;i<AM_NUMMARKPOINTS;i++)
-  {
-    if (markpoints[i].x != -1)
+#define MARK_W      (5)
+#define MARK_FLIP_1 (1)
+#define MARK_FLIP_2 (9)
+
+static void AM_drawMarks (void)
+{
+    int i, fx, fy;
+    // int fx_flip; // [crispy] support for marks drawing in flipped levels
+    mpoint_t pt;
+
+    // [JN] killough 2/22/98: remove automap mark limit
+    for ( i = 0 ; i < markpointnum ; i++)
     {
-      w = SHORT(marknums[i]->width);
-      h = SHORT(marknums[i]->height);
-      fx = CXMTOF(markpoints[i].x);
-      fy = CYMTOF(markpoints[i].y);
-      if (fx >= f_x && fx <= f_w - w && fy >= f_y && fy <= f_h - h)
-  			V_DrawPatch(fx, fy, marknums[i]);
+        if (markpoints[i].x != -1)
+        {
+            int j = i;
+
+            // [crispy] center marks around player
+            pt.x = markpoints[i].x;
+            pt.y = markpoints[i].y;
+
+            if (automap_rotate)
+            {
+                AM_rotatePoint(&pt);
+            }
+
+            fx = (CXMTOF(pt.x) / vid_resolution) - 1;
+            fy = (CYMTOF(pt.y) / vid_resolution) - 2;
+            // fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
+
+            do
+            {
+                int d = j % 10;
+
+                // killough 2/22/98: less spacing for '1'
+                if (d == 1)
+                {
+                    fx += (MARK_FLIP_1);
+                }
+
+                if (fx >= f_x && fx <= (f_w / vid_resolution) - 5
+                &&  fy >= f_y && fy <= (f_h / vid_resolution) - 6)
+                {
+                    V_DrawPatch(/*fx_flip*/ fx - WIDESCREENDELTA, fy, marknums[d]);
+                }
+
+                // killough 2/22/98: 1 space backwards
+                /*fx_flip*/ fx -= MARK_W - (MARK_FLIP_1);
+
+                j /= 10;
+            } while (j > 0);
+        }
     }
-  }
 }
-*/
 
 void AM_drawkeys(void)
 {
@@ -2254,7 +2299,7 @@ void AM_Drawer (void)
         AM_drawCrosshair(false);
     }
 
-    // AM_drawMarks();
+    AM_drawMarks();
 
     if (gameskill == sk_baby)
     {
