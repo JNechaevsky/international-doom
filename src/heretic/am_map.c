@@ -292,8 +292,6 @@ static int followplayer = 1; // specifies whether to follow the player around
 
 static boolean stopped = true;
 
-// [JN] Make wall colors of secret sectors palette-independent.
-static int secretwallcolors;
 
 /*
 static byte *aliasmax[NUMALIAS] = {
@@ -335,15 +333,37 @@ void DrawWuLine(fline_t* fl, int color);
 
 void AM_Init (void)
 {
-    char namebuf[9];
-  
-    for (int i = 0 ; i < 10 ; i++)
+    // [JN] Load map parch background and marks. Needs to be done only once.
+    static boolean gfx_loaded = false;
+
+    if (!gfx_loaded)
     {
-        DEH_snprintf(namebuf, 9, "SMALLIN%d", i);
-        marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
+        char namebuf[9];
+
+        for (int i = 0 ; i < 10 ; i++)
+        {
+            DEH_snprintf(namebuf, 9, "SMALLIN%d", i);
+            marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
+        }
+        maplump = W_CacheLumpName(DEH_String("AUTOPAGE"), PU_STATIC);
+        gfx_loaded = true;
     }
 
-    maplump = W_CacheLumpName(DEH_String("AUTOPAGE"), PU_STATIC);
+    // [crispy] Precalculate color lookup tables for antialiased line drawing using COLORMAP
+    for (int color = 0; color < 256; ++color)
+    {
+#define REINDEX(I) (color + I * 256)
+        // Pick a range of shades for a steep gradient to keep lines thin
+        int shade_index[NUMSHADES] =
+        {
+            REINDEX(0), REINDEX(1), REINDEX(2), REINDEX(3), REINDEX(4), REINDEX(5), REINDEX(6), REINDEX(7),
+        };
+#undef REINDEX
+        for (int shade = 0; shade < NUMSHADES; ++shade)
+        {
+            color_shades[color * NUMSHADES + shade] = colormaps[shade_index[shade]];
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -545,7 +565,6 @@ void AM_initVariables (void)
 {
     thinker_t *think;
     mobj_t *mo;
-    static boolean colors_set = false;
 
     automapactive = true;
 
@@ -602,14 +621,6 @@ void AM_initVariables (void)
         }
     }
 
-    // [JN] Defince secret color only once.
-    if (!colors_set)
-    {
-        secretwallcolors = V_GetPaletteIndex(W_CacheLumpName("PLAYPAL", PU_CACHE),
-                                                                     184, 0, 184);
-        colors_set = true;
-    }
-
     // [crispy]
     antialias = automap_overlay ? &antialias_overlay : &antialias_normal;
 }
@@ -632,8 +643,6 @@ void AM_clearMarks (void)
 void AM_LevelInit (boolean reinit)
 {
     static int f_h_old;
-    // [crispy] Only need to precalculate color lookup tables once
-    static boolean precalc_once;
 
     f_x = f_y = 0;
     f_w = SCREENWIDTH;
@@ -662,26 +671,6 @@ void AM_LevelInit (boolean reinit)
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
 
     f_h_old = f_h;
-
-    // [crispy] Precalculate color lookup tables for antialiased line drawing using COLORMAP
-    if (!precalc_once)
-    {
-        precalc_once = true;
-        for (int color = 0; color < 256; ++color)
-        {
-#define REINDEX(I) (color + I * 256)
-            // Pick a range of shades for a steep gradient to keep lines thin
-            int shade_index[NUMSHADES] =
-            {
-                REINDEX(0), REINDEX(1), REINDEX(2), REINDEX(3), REINDEX(4), REINDEX(5), REINDEX(6), REINDEX(7),
-            };
-#undef REINDEX
-            for (int shade = 0; shade < NUMSHADES; ++shade)
-            {
-                color_shades[color * NUMSHADES + shade] = colormaps[shade_index[shade]];
-            }
-        }
-    }
 
     // [JN] If running Deathmatch mode, mark all automap lines as mapped
     // so they will appear initially. DM mode is not about map reveal.
@@ -1328,6 +1317,7 @@ static void AM_drawFline(fline_t * fl, int color)
         case YELLOWKEY:     DrawWuLine(fl, 144);    break;
         case GREENKEY:      DrawWuLine(fl, 220);    break;
         case BLUEKEY:       DrawWuLine(fl, 197);    break;
+        case SECRETCOLORS:  DrawWuLine(fl, 175);    break;
         default:
         {
             // For debugging only
@@ -1716,13 +1706,12 @@ static void AM_drawWalls (void)
                 continue;
             if (!lines[i].backsector)
             {
-                // [JN] CRL - mark secret sectors.
-                // TODO
-                // if (crl_automap_secrets && lines[i].frontsector->special == 9)
-                // {
-                //     AM_drawMline(&l, secretwallcolors);
-                // }
-                // else
+                // [JN] Mark secret sectors.
+                if (automap_secrets && lines[i].frontsector->special == 9)
+                {
+                    AM_drawMline(&l, SECRETCOLORS);
+                }
+                else
                 {
                     AM_drawMline(&l, WALLCOLORS);
                 }
@@ -1740,17 +1729,13 @@ static void AM_drawWalls (void)
                     else
                         AM_drawMline(&l, WALLCOLORS);
                 }
-                // [JN] CRL - mark secret sectors.
-                // TODO
-                /*
-                else if (crl_automap_secrets 
+                // [JN] Mark secret sectors.
+                else if (automap_secrets 
                 && (lines[i].frontsector->special == 9
                 ||  lines[i].backsector->special == 9))
                 {
-                    AM_drawMline(&l, secretwallcolors);
+                    AM_drawMline(&l, SECRETCOLORS);
                 }
-                else 
-                */    
                 if (lines[i].special > 25 && lines[i].special < 35)
                 {
                     switch (lines[i].special)

@@ -56,6 +56,7 @@
 #define WALLCOLORS      96
 #define FDWALLCOLORS    112
 #define CDWALLCOLORS    80
+#define SECRETCOLORS    175
 
 // Hidden lines
 #define MLDONTDRAW1     40
