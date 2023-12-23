@@ -276,24 +276,21 @@ int       markpointnum_max = 0;  // killough 2/22/98
 
 #define NUMALIAS 3   
 
-// [crispy] gradient table for map normal mode
-static pixel_t antialias_normal[NUMALIAS][8] = {
-    {96, 97, 98, 99, 100, 101, 102, 103},
-    {110, 109, 108, 107, 106, 105, 104, 103},
-    {75, 76, 77, 78, 79, 80, 81, 103}
+// [crispy] line colors for map normal mode
+static byte antialias_normal[] = {
+    96,     // WALLCOLORS
 };
 
-// [crispy] gradient table for map overlay mode
-static pixel_t antialias_overlay[NUMALIAS][8] = {
-    {100, 99, 98, 97, 96, 95, 95, 95},
-    {110, 109, 108, 105, 102, 99, 97, 95},
-    {75, 74, 73, 72, 71, 70, 69, 95}
+// [crispy] line colors for map overlay mode
+static byte antialias_overlay[] = {
+    100,    // WALLCOLORS
 };
+
+static byte (*antialias)[]; // [crispy]
 
 static int followplayer = 1; // specifies whether to follow the player around
 
 static boolean stopped = true;
-static pixel_t (*antialias)[NUMALIAS][8]; // [crispy]
 
 // [JN] Make wall colors of secret sectors palette-independent.
 static int secretwallcolors;
@@ -304,8 +301,6 @@ static byte *aliasmax[NUMALIAS] = {
 };*/
 
 static byte *maplump;           // pointer to the raw data for the automap background.
-//static short mapystart = 0;     // y-value for the start of the map bitmap...used in the paralax stuff.
-//static short mapxstart = 0;     //x-value for the bitmap.
 
 // [crispy] Used for automap background tiling and scrolling
 #define MAPBGROUNDWIDTH ORIGWIDTH
@@ -331,8 +326,7 @@ static angle_t mapangle;
 
 static void AM_drawCrosshair(boolean force);
 
-void DrawWuLine(int X0, int Y0, int X1, int Y1, int Color,
-                int NumLevels, unsigned short IntensityBits);
+void DrawWuLine(fline_t* fl, int color);
 
 // -----------------------------------------------------------------------------
 // AM_Init
@@ -618,9 +612,6 @@ void AM_initVariables (void)
 
     // [crispy]
     antialias = automap_overlay ? &antialias_overlay : &antialias_normal;
-
-    // inform the status bar of the change
-//c  ST_Responder(&st_notify);
 }
 
 // -----------------------------------------------------------------------------
@@ -950,8 +941,16 @@ boolean AM_Responder (event_t *ev)
         {
             // [JN] Automap overlay mode.
             automap_overlay = !automap_overlay;
-            CT_SetMessage(plr, DEH_String(automap_overlay ?
-                          ID_AUTOMAPOVERLAY_ON : ID_AUTOMAPOVERLAY_OFF), false);
+            if (automap_overlay)
+            {
+                CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_ON), false);
+                antialias = &antialias_overlay;
+            }
+            else
+            {
+                CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_OFF), false);
+                antialias = &antialias_normal;
+            }
         }
         else
         {
@@ -1316,35 +1315,29 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 
 static void AM_drawFline(fline_t * fl, int color)
 {
-
     register int x, y, dx, dy, sx, sy, ax, ay, d;
-    static int fuck = 0;
 
     switch (color)
     {
-        case WALLCOLORS:
-            DrawWuLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, (*antialias)[0][0],
-                       8, 3);
-            break;
-        case FDWALLCOLORS:
-            DrawWuLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, (*antialias)[1][0],
-                       8, 3);
-            break;
-        case CDWALLCOLORS:
-            DrawWuLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, (*antialias)[2][0],
-                       8, 3);
-            break;
+        case WALLCOLORS:    DrawWuLine(fl, (*antialias)[0]);    break;
+        case FDWALLCOLORS:  DrawWuLine(fl, 110);                break;
+        case CDWALLCOLORS:  DrawWuLine(fl,  75);                break;
+        // [JN] Apply antialiasing for some extra lines as well:
+        case MLDONTDRAW1:   DrawWuLine(fl,  40);    break;
+        case MLDONTDRAW2:   DrawWuLine(fl,  43);    break;
+        case YELLOWKEY:     DrawWuLine(fl, 144);    break;
+        case GREENKEY:      DrawWuLine(fl, 220);    break;
+        case BLUEKEY:       DrawWuLine(fl, 197);    break;
         default:
+        {
+            // For debugging only
+            if (fl->a.x < 0 || fl->a.x >= f_w
+            ||  fl->a.y < 0 || fl->a.y >= f_h
+            ||  fl->b.x < 0 || fl->b.x >= f_w
+            ||  fl->b.y < 0 || fl->b.y >= f_h)
             {
-                // For debugging only
-                if (fl->a.x < 0 || fl->a.x >= f_w
-                    || fl->a.y < 0 || fl->a.y >= f_h
-                    || fl->b.x < 0 || fl->b.x >= f_w
-                    || fl->b.y < 0 || fl->b.y >= f_h)
-                {
-                    fprintf(stderr, "fuck %d \r", fuck++);
-                    return;
-                }
+                return;
+            }
 
 #ifndef CRISPY_TRUECOLOR
 #define DOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(cc)    //the MACRO!
@@ -1352,52 +1345,52 @@ static void AM_drawFline(fline_t * fl, int color)
 #define DOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(colormaps[cc])
 #endif
 
-                dx = fl->b.x - fl->a.x;
-                ax = 2 * (dx < 0 ? -dx : dx);
-                sx = dx < 0 ? -1 : 1;
+            dx = fl->b.x - fl->a.x;
+            ax = 2 * (dx < 0 ? -dx : dx);
+            sx = dx < 0 ? -1 : 1;
 
-                dy = fl->b.y - fl->a.y;
-                ay = 2 * (dy < 0 ? -dy : dy);
-                sy = dy < 0 ? -1 : 1;
+            dy = fl->b.y - fl->a.y;
+            ay = 2 * (dy < 0 ? -dy : dy);
+            sy = dy < 0 ? -1 : 1;
 
-                x = fl->a.x;
-                y = fl->a.y;
+            x = fl->a.x;
+            y = fl->a.y;
 
-                if (ax > ay)
+            if (ax > ay)
+            {
+                d = ay - ax / 2;
+                while (1)
                 {
-                    d = ay - ax / 2;
-                    while (1)
+                    DOT(x, y, color);
+                    if (x == fl->b.x)
+                        return;
+                    if (d >= 0)
                     {
-                        DOT(x, y, color);
-                        if (x == fl->b.x)
-                            return;
-                        if (d >= 0)
-                        {
-                            y += sy;
-                            d -= ax;
-                        }
-                        x += sx;
-                        d += ay;
-                    }
-                }
-                else
-                {
-                    d = ax - ay / 2;
-                    while (1)
-                    {
-                        DOT(x, y, color);
-                        if (y == fl->b.y)
-                            return;
-                        if (d >= 0)
-                        {
-                            x += sx;
-                            d -= ay;
-                        }
                         y += sy;
-                        d += ax;
+                        d -= ax;
                     }
+                    x += sx;
+                    d += ay;
                 }
             }
+            else
+            {
+                d = ax - ay / 2;
+                while (1)
+                {
+                    DOT(x, y, color);
+                    if (y == fl->b.y)
+                        return;
+                    if (d >= 0)
+                    {
+                        x += sx;
+                        d -= ay;
+                    }
+                    y += sy;
+                    d += ax;
+                }
+            }
+        }
     }
 }
 
@@ -1454,13 +1447,14 @@ void PUTDOT(short xx, short yy, pixel_t * cc, pixel_t * cm)
 //      fb[(yy)*f_w+(xx)]=*(cc);
 }
 
-void DrawWuLine(int X0, int Y0, int X1, int Y1, int Color,
-                int NumLevels, unsigned short IntensityBits)
+void DrawWuLine(fline_t* fl, int color)
 {
+    int X0 = fl->a.x, Y0 = fl->a.y, X1 = fl->b.x, Y1 = fl->b.y;
+    pixel_t* BaseColor = &color_shades[color * NUMSHADES];
+
     unsigned short IntensityShift, ErrorAdj, ErrorAcc;
     unsigned short ErrorAccTemp, Weighting, WeightingComplementMask;
     short DeltaX, DeltaY, Temp, XDir;
-    pixel_t *BaseColor = &color_shades[Color * NUMSHADES];
 
     /* Make sure the line runs top to bottom */
     if (Y0 > Y1)
@@ -1524,10 +1518,10 @@ void DrawWuLine(int X0, int Y0, int X1, int Y1, int Color,
     /* Line is not horizontal, diagonal, or vertical */
     ErrorAcc = 0;               /* initialize the line error accumulator to 0 */
     /* # of bits by which to shift ErrorAcc to get intensity level */
-    IntensityShift = 16 - IntensityBits;
+    IntensityShift = 16 - NUMSHADES_BITS;
     /* Mask used to flip all bits in an intensity weighting, producing the
        result (1 - intensity weighting) */
-    WeightingComplementMask = NumLevels - 1;
+    WeightingComplementMask = NUMSHADES - 1;
     /* Is this an X-major or Y-major line? */
     if (DeltaY > DeltaX)
     {
@@ -1789,7 +1783,7 @@ static void AM_drawWalls (void)
                 }
                 else if (ravmap_cheating)
                 {
-                    AM_drawMline(&l, TSWALLCOLORS);
+                    AM_drawMline(&l, MLDONTDRAW1);
                 }
             }
         }
@@ -1797,7 +1791,7 @@ static void AM_drawWalls (void)
         {
             if (!(lines[i].flags & ML_DONTDRAW))
             {
-                AM_drawMline(&l, GRAYS + 3);
+                AM_drawMline(&l, MLDONTDRAW2);
             }
         }
     }
@@ -2182,8 +2176,8 @@ static void AM_drawCrosshair (boolean force)
         // [JN] Do not draw crosshair while video re-init functions.
         if (!force)
         {
-            AM_drawFline(&h, 96);
-            AM_drawFline(&v, 96);
+            AM_drawFline(&h, XHAIRCOLORS);
+            AM_drawFline(&v, XHAIRCOLORS);
         }
     }
 }

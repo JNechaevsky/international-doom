@@ -34,34 +34,40 @@
 #define WHITE		4*8
 #define PARCH		13*8-1
 #define BLOODRED  150
-#define BLUEKEY 	197
-#define YELLOWKEY 144
-#define GREENKEY  220
 
 // Automap colors
 #define BACKGROUND	PARCH
 #define YOURCOLORS	WHITE
 #define YOURRANGE	0
-#define WALLCOLORS	REDS
 #define WALLRANGE	REDRANGE
-#define TSWALLCOLORS	GRAYS
-#define TSWALLRANGE	GRAYSRANGE
-#define FDWALLCOLORS	BROWNS
-#define FDWALLRANGE	BROWNRANGE
-#define CDWALLCOLORS	YELLOWS
-#define CDWALLRANGE	YELLOWRANGE
 #define THINGCOLORS	GREENS
 #define THINGRANGE	GREENRANGE
 #define SECRETWALLCOLORS WALLCOLORS
 #define SECRETWALLRANGE WALLRANGE
 #define GRIDCOLORS	(GRAYS + GRAYSRANGE/2)
 #define GRIDRANGE	0
-#define XHAIRCOLORS	GRAYS
 
-// drawing stuff
-#define	FB		0
-#define AM_NUMMARKPOINTS 10
 
+
+
+
+
+// Common walls
+#define WALLCOLORS      96
+#define FDWALLCOLORS    112
+#define CDWALLCOLORS    80
+
+// Hidden lines
+#define MLDONTDRAW1     40
+#define MLDONTDRAW2     43
+
+// Locked doors and keys
+#define YELLOWKEY       144
+#define GREENKEY        220
+#define BLUEKEY         197
+
+// Crosshair
+#define XHAIRCOLORS	    28
 
 typedef struct
 {
