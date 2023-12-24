@@ -1295,7 +1295,7 @@ static void M_ID_RenderingResHook (void)
 
 static void M_ID_RenderingRes (int choice)
 {
-    vid_resolution = M_INT_Slider(vid_resolution, 1, 6, choice);
+    vid_resolution = M_INT_Slider(vid_resolution, 1, MAXHIRES, choice);
     post_rendering_hook = M_ID_RenderingResHook;
 }
 

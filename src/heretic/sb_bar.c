@@ -300,7 +300,7 @@ void SB_Init(void)
     spinbooklump = W_GetNumForName(DEH_String("SPINBK0"));
     spinflylump = W_GetNumForName(DEH_String("SPFLY0"));
 
-    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (42 << 2) * sizeof(*st_backing_screen), PU_STATIC, 0);
+    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (42 * MAXHIRES) * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 
 //---------------------------------------------------------------------------

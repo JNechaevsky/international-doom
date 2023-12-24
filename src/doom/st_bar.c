@@ -1650,6 +1650,6 @@ void ST_Start (void)
 void ST_Init (void)
 {
     ST_loadData();
-    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ST_HEIGHT << 2)
+    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ST_HEIGHT * MAXHIRES)
                       * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
