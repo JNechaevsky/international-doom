@@ -526,6 +526,8 @@ static boolean M_ID_Widget_TotalTime (int choice);
 static boolean M_ID_Widget_LevelName (int choice);
 static boolean M_ID_Widget_Health (int choice);
 static boolean M_ID_Automap_Secrets (int choice);
+static boolean M_ID_Automap_Rotate (int choice);
+static boolean M_ID_Automap_Overlay (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static boolean M_ID_Brightmaps (int choice);
@@ -1054,7 +1056,6 @@ static void M_ID_RenderingResHook (void)
     // [crispy] re-draw bezel
     BorderNeedRefresh = true;
     // [crispy] re-calculate automap coordinates
-    // TODO
     AM_LevelInit(true);
     if (automapactive)
     {
@@ -1370,8 +1371,7 @@ static boolean M_ID_Saturation (int choice)
 #else
         R_InitColormaps();
         SB_ForceRedraw();
-        // TODO
-        //AM_Init();
+        AM_Init();
 #endif
     return true;
 }
@@ -1404,8 +1404,7 @@ static boolean M_ID_R_Intensity (int choice)
 #else
     R_InitColormaps();
     SB_ForceRedraw();
-    // TODO
-    //AM_Init();
+    AM_Init();
 #endif
     return true;
 }
@@ -1438,8 +1437,7 @@ static boolean M_ID_G_Intensity (int choice)
 #else
     R_InitColormaps();
     SB_ForceRedraw();
-    // TODO
-    //AM_Init();
+    AM_Init();
 #endif
     return true;
 }
@@ -1472,8 +1470,7 @@ static boolean M_ID_B_Intensity (int choice)
 #else
     R_InitColormaps();
     SB_ForceRedraw();
-    // TODO
-    //AM_Init();
+    AM_Init();
 #endif
     return true;
 }
@@ -2844,8 +2841,8 @@ static MenuItem_t ID_Menu_Widgets[] = {
     { ITT_LRFUNC, "TARGET'S HEALTH",     M_ID_Widget_Health,    0, MENU_NONE },
     { ITT_EMPTY,  NULL,                  NULL,                  0, MENU_NONE },
     { ITT_LRFUNC, "MARK SECRET SECTORS", M_ID_Automap_Secrets,  0, MENU_NONE },
-    { ITT_LRFUNC, "ROTATE MODE",         NULL,                  0, MENU_NONE },
-    { ITT_LRFUNC, "OVERLAY MODE",        M_ID_Automap_Secrets,  0, MENU_NONE },
+    { ITT_LRFUNC, "ROTATE MODE",         M_ID_Automap_Rotate,   0, MENU_NONE },
+    { ITT_LRFUNC, "OVERLAY MODE",        M_ID_Automap_Overlay,  0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Widgets = {
@@ -2914,18 +2911,20 @@ static void M_Draw_ID_Widgets (void)
 
     MN_DrTextACentered("AUTOMAP", 100, cr[CR_YELLOW]);
 
-
-    /*
-    // Powerup timers
-    // sprintf(str, crl_widget_powerups ? "ON" : "OFF");
-    // MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 80,
-    //            M_Item_Glow(5, crl_widget_powerups ? GLOW_GREEN : GLOW_RED));
-
     // Mark secret sectors
-    sprintf(str, M_ID_Automap_Secrets ? "ON" : "OFF");
-    MN_DrTextA(str, ID_MENU_RIGHTOFFSET - MN_TextAWidth(str), 110,
-               M_Item_Glow(8, M_ID_Automap_Secrets ? GLOW_GREEN : GLOW_RED));
-    */
+    sprintf(str, automap_secrets ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, automap_secrets ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Rotate mode
+    sprintf(str, automap_rotate ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, automap_rotate ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Overlay mode
+    sprintf(str, automap_overlay ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
 }
 
 static boolean M_ID_Widget_Location (int choice)
@@ -2979,6 +2978,18 @@ static boolean M_ID_Widget_Health (int choice)
 static boolean M_ID_Automap_Secrets (int choice)
 {
     automap_secrets ^= 1;
+    return true;
+}
+
+static boolean M_ID_Automap_Rotate (int choice)
+{
+    automap_rotate ^= 1;
+    return true;
+}
+
+static boolean M_ID_Automap_Overlay (int choice)
+{
+    automap_overlay ^= 1;
     return true;
 }
 

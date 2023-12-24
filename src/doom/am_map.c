@@ -192,13 +192,10 @@ static mline_t thintriangle_guy[] = {
 #undef R
 
 
-boolean     automapactive = false;
+boolean automapactive = false;
 
 int iddt_cheating = 0;
 static int   grid = 0;
-
-// static const int  finit_width = SCREENWIDTH;
-// static const int  finit_height = SCREENHEIGHT - ST_HEIGHT;
 
 // location of window on screen
 static int  f_x;
@@ -882,7 +879,7 @@ boolean AM_Responder (event_t *ev)
             mtof_zoommul = m_zoomin;
             ftom_zoommul = m_zoomout;
         }
-        else if (key == key_map_toggle)
+        else if (key == key_map_toggle)   // toggle map (tab)
         {
             bigstate = 0;
             AM_Stop ();
@@ -906,15 +903,14 @@ boolean AM_Responder (event_t *ev)
             followplayer = !followplayer;
 
             CT_SetMessage(plr, DEH_String(followplayer ?
-                           AMSTR_FOLLOWON : AMSTR_FOLLOWOFF), false, NULL);
+                          AMSTR_FOLLOWON : AMSTR_FOLLOWOFF), false, NULL);
         }
         else if (key == key_map_grid)
         {
             grid = !grid;
 
             CT_SetMessage(plr, DEH_String(grid ?
-                           AMSTR_GRIDON : AMSTR_GRIDOFF), false, NULL);
-
+                          AMSTR_GRIDON : AMSTR_GRIDOFF), false, NULL);
         }
         else if (key == key_map_mark)
         {
@@ -947,14 +943,14 @@ boolean AM_Responder (event_t *ev)
             // [JN] Automap rotate mode.
             automap_rotate = !automap_rotate;
             CT_SetMessage(plr, DEH_String(automap_rotate ?
-                           ID_AUTOMAPROTATE_ON : ID_AUTOMAPROTATE_OFF), false, NULL);
+                          ID_AUTOMAPROTATE_ON : ID_AUTOMAPROTATE_OFF), false, NULL);
         }
         else if (key == key_map_overlay)
         {
             // [JN] Automap overlay mode.
             automap_overlay = !automap_overlay;
             CT_SetMessage(plr, DEH_String(automap_overlay ?
-                           ID_AUTOMAPOVERLAY_ON : ID_AUTOMAPOVERLAY_OFF), false, NULL);
+                          ID_AUTOMAPOVERLAY_ON : ID_AUTOMAPOVERLAY_OFF), false, NULL);
         }
         else
         {
@@ -1181,7 +1177,7 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 
     int      dx;
     int      dy;
-    fpoint_t tmp;
+    fpoint_t tmp = { 0, 0 };
 
 #define DOOUTCODE(oc, mx, my) \
     (oc) = 0; \
@@ -1208,7 +1204,7 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
     {
         outcode2 = BOTTOM;
     }
-    
+
     if (outcode1 & outcode2)
     {
         return false; // trivially outside
@@ -1278,7 +1274,7 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
             dy = fl->a.y - fl->b.y;
             dx = fl->b.x - fl->a.x;
             tmp.x = fl->a.x + (fixed_t)(((int64_t)dx*(fl->a.y-(f_y+f_h)))/dy);
-            tmp.y = f_h-1;
+            tmp.y = f_h - 1;
         }
         else if (outside & RIGHT)
         {
@@ -2528,7 +2524,7 @@ void AM_Drawer (void)
 	if (!automap_overlay)
     {
 		AM_clearFB(doom_0);
-		pspr_interp = false; // interpolate weapon bobbing
+		pspr_interp = false;  // [JN] Supress interpolated weapon bobbing.
     }
 
     if (automap_shading && automap_overlay)
@@ -2563,7 +2559,7 @@ void AM_Drawer (void)
     }
 
     AM_drawMarks();
-	
+
     // [JN] Draw level name only if Level Name widget is set to "automap".
     if (!widget_levelname)
     {

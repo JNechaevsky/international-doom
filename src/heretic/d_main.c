@@ -1290,6 +1290,9 @@ void D_DoomMain(void)
     SB_Init();
     //IncThermo();
 
+    printf(DEH_String("AM_Init: Loading automap data.\n"));
+    AM_Init();
+
 //
 // start the appropriate game based on params
 //

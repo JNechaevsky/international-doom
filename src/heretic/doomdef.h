@@ -738,6 +738,7 @@ void SV_Write(void *buffer, int size);
 void SV_WriteByte(byte val);
 void SV_WriteWord(unsigned short val);
 void SV_WriteLong(unsigned int val);
+void SV_WriteLongLong(int64_t val);
 void SV_Read(void *buffer, int size);
 byte SV_ReadByte(void);
 uint16_t SV_ReadWord(void);
@@ -773,6 +774,9 @@ boolean G_Responder(event_t * ev);
 
 void G_ScreenShot(void);
 
+// [crispy] holding down the "Run" key may trigger special behavior
+extern boolean speedkeydown (void);
+
 //-----
 //PLAY
 //-----
@@ -796,6 +800,8 @@ void P_ArchiveThinkers(void);
 void P_UnArchiveThinkers(void);
 void P_ArchiveSpecials(void);
 void P_UnArchiveSpecials(void);
+void P_ArchiveAutomap(void);
+void P_UnArchiveAutomap(void);
 // load / save game routines
 
 

@@ -25,6 +25,7 @@
 #include "m_misc.h"
 #include "p_local.h"
 #include "v_video.h"
+#include "am_map.h"
 
 #include "id_vars.h"
 
@@ -125,6 +126,12 @@ void SV_WriteLong(unsigned int val)
     SV_Write(&val, sizeof(int));
 }
 
+void SV_WriteLongLong(int64_t val)
+{
+    val = (int64_t)(val);
+    SV_Write(&val, sizeof(int64_t));
+}
+
 void SV_WritePtr(const void *ptr)
 {
     long val = (long)(intptr_t) ptr;
@@ -167,6 +174,13 @@ uint32_t SV_ReadLong(void)
     uint32_t result;
     SV_Read(&result, sizeof(int));
     return LONG(result);
+}
+
+int64_t SV_ReadLongLong(void)
+{
+    int64_t result;
+    SV_Read(&result, sizeof(int64_t));
+    return (int64_t)(result);
 }
 
 //
@@ -1988,4 +2002,42 @@ void P_UnArchiveSpecials(void)
 
 }
 
+// -----------------------------------------------------------------------------
+// P_ArchiveAutomap
+// -----------------------------------------------------------------------------
 
+void P_ArchiveAutomap (void)
+{
+    SV_WriteLong(markpointnum);
+
+    if (markpointnum)
+    {
+        for (int i = 0; i < markpointnum; ++i)
+        {
+            SV_WriteLongLong(markpoints[i].x);
+            SV_WriteLongLong(markpoints[i].y);
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// P_UnArchiveAutomap
+// -----------------------------------------------------------------------------
+
+void P_UnArchiveAutomap (void)
+{
+    markpointnum = SV_ReadLong();
+    markpointnum_max = markpointnum;
+
+    markpoints = I_Realloc(markpoints, sizeof(*markpoints) * markpointnum_max);
+    if (markpointnum_max == 0)
+    {
+        markpoints = NULL;
+    }
+
+    for (int i = 0; i < markpointnum; ++i)
+    {
+        markpoints[i].x = SV_ReadLongLong();
+        markpoints[i].y = SV_ReadLongLong();
+    }
+}

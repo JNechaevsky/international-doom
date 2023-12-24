@@ -34,86 +34,59 @@
 #define WHITE		4*8
 #define PARCH		13*8-1
 #define BLOODRED  150
-#define BLUEKEY 	197
-#define YELLOWKEY 144
-#define GREENKEY  220
 
 // Automap colors
 #define BACKGROUND	PARCH
 #define YOURCOLORS	WHITE
 #define YOURRANGE	0
-#define WALLCOLORS	REDS
 #define WALLRANGE	REDRANGE
-#define TSWALLCOLORS	GRAYS
-#define TSWALLRANGE	GRAYSRANGE
-#define FDWALLCOLORS	BROWNS
-#define FDWALLRANGE	BROWNRANGE
-#define CDWALLCOLORS	YELLOWS
-#define CDWALLRANGE	YELLOWRANGE
 #define THINGCOLORS	GREENS
 #define THINGRANGE	GREENRANGE
 #define SECRETWALLCOLORS WALLCOLORS
 #define SECRETWALLRANGE WALLRANGE
 #define GRIDCOLORS	(GRAYS + GRAYSRANGE/2)
 #define GRIDRANGE	0
-#define XHAIRCOLORS	GRAYS
 
-// drawing stuff
-#define	FB		0
 
-#define AM_NUMMARKPOINTS 10
 
-#define AM_MSGHEADER (('a'<<24)+('m'<<16))
-#define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))
-#define AM_MSGEXITED (AM_MSGHEADER | ('x'<<8))
 
-#define INITSCALEMTOF (.2*FRACUNIT)     // scale on entry
-// how much the automap moves window per tic in frame-buffer coordinates
-#define F_PANINC	4       // moves 140 pixels in 1 second
-// how much zoom-in per tic
-#define M_ZOOMIN        ((int) (1.02*FRACUNIT)) // goes to 2x in 1 second
-// how much zoom-out per tic
-#define M_ZOOMOUT       ((int) (FRACUNIT/1.02)) // pulls out to 0.5x in 1 second
 
-// translates between frame-buffer and map distances
-#define FTOM(x) FixedMul(((x)<<16),scale_ftom)
-#define MTOF(x) (FixedMul((x),scale_mtof)>>16)
-// translates between frame-buffer and map coordinates
-#define CXMTOF(x)  (f_x + MTOF((x)-m_x))
-#define CYMTOF(y)  (f_y + (f_h - MTOF((y)-m_y)))
 
-// the following is crap
-#define LINE_NEVERSEE ML_DONTDRAW
+// Common walls
+#define WALLCOLORS      96
+#define FDWALLCOLORS    112
+#define CDWALLCOLORS    80
+#define SECRETCOLORS    175
+
+// Hidden lines
+#define MLDONTDRAW1     40
+#define MLDONTDRAW2     43
+
+// Locked doors and keys
+#define YELLOWKEY       144
+#define GREENKEY        220
+#define BLUEKEY         197
+
+// Crosshair
+#define XHAIRCOLORS	    28
 
 typedef struct
 {
-    int x, y;
-} fpoint_t;
+    int64_t x,y;
+} mpoint_t;
 
-typedef struct
-{
-    fpoint_t a, b;
-} fline_t;
-
-typedef vertex_t mpoint_t;
-
-typedef struct
-{
-    mpoint_t a, b;
-} mline_t;
-
-typedef struct
-{
-    fixed_t slp, islp;
-} islope_t;
-
-// extern int f_x, f_y, f_w, f_h;
 extern int ravmap_cheating;
+
+extern mpoint_t *markpoints; 
+extern int markpointnum;
+extern int markpointnum_max;
 
 extern vertex_t KeyPoints[];
 
+extern void AM_Init (void);
 extern void AM_Start (void);
 extern void AM_LevelInit (boolean reinit);
 extern void AM_LevelNameDrawer (void);
+extern void AM_clearMarks (void);
 
 #endif
