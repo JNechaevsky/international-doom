@@ -77,6 +77,7 @@ static int recvtic;
 // The number of tics that have been run (using RunTic) so far.
 
 int gametic;
+int oldgametic;   // [JN] Invoke certain actions independently from uncapped framerate.
 int oldleveltime; // [crispy] check if leveltime keeps tickin'
 
 // [JN] used by player, render and interpolation. Always ticking.

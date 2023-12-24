@@ -1295,8 +1295,10 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 // [JN] Main drawing function, totally rewritten.
 // -----------------------------------------------------------------------------
 
-void ST_Drawer (void)
+void ST_Drawer (boolean force)
 {
+    if (force)
+    {
     // [JN] Wide status bar.
     const int wide_x = dp_screen_size > 12 && (!automapactive || automap_overlay) ?
                        WIDESCREENDELTA : 0;
@@ -1485,6 +1487,7 @@ void ST_Drawer (void)
     ST_DrawSmallNumberY(plyr->maxammo[1], 306 + wide_x, 179);
     ST_DrawSmallNumberY(plyr->maxammo[3], 306 + wide_x, 185);
     ST_DrawSmallNumberY(plyr->maxammo[2], 306 + wide_x, 191);
+    }
 }
 
 typedef void (*load_callback_t)(const char *lumpname, patch_t **variable); 
