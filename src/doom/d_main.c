@@ -279,6 +279,12 @@ static void D_Display (void)
         R_RenderPlayerView(&players[displayplayer]);
     }
 
+    // [JN] Fail-safe: return earlier if post rendering hook is still active.
+    if (post_rendering_hook)
+    {
+        return;
+    }
+
     // clean up border stuff
     if (gamestate != oldgamestate && gamestate != GS_LEVEL)
 #ifndef CRISPY_TRUECOLOR

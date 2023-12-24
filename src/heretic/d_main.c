@@ -198,6 +198,13 @@ void D_Display(void)
             }
             else
                 R_RenderPlayerView(&players[displayplayer]);
+
+            // [JN] Fail-safe: return earlier if post rendering hook is still active.
+            if (post_rendering_hook)
+            {
+                return;
+            }
+
             if (automapactive && automap_overlay)
             {
                 AM_Drawer();
