@@ -1142,7 +1142,10 @@ static void AM_clearFB(int color)
 
 static void AM_shadeBackground (void)
 {
-        for (int y = 0; y < SCREENWIDTH * SCREENHEIGHT - ST_HEIGHT ; y++)
+    const int height = dp_screen_size > 10 ?
+                       SCREENHEIGHT : (SCREENHEIGHT - (ST_HEIGHT * vid_resolution));
+
+        for (int y = 0; y < SCREENWIDTH * height ; y++)
         {
 #ifndef CRISPY_TRUECOLOR
             I_VideoBuffer[y] = colormaps[((automap_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
