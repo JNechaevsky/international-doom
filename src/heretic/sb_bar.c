@@ -300,7 +300,7 @@ void SB_Init(void)
     spinbooklump = W_GetNumForName(DEH_String("SPINBK0"));
     spinflylump = W_GetNumForName(DEH_String("SPFLY0"));
 
-    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (42 << 2) * sizeof(*st_backing_screen), PU_STATIC, 0);
+    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (42 * MAXHIRES) * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 
 //---------------------------------------------------------------------------
@@ -500,6 +500,7 @@ static void ShadeLine(int x, int y, int height, int shade)
     dest = I_VideoBuffer + y * SCREENWIDTH + x + (WIDESCREENDELTA * vid_resolution);
     while (height--)
     {
+        // [JN] TODO - simplify this mess...
         if (vid_resolution == 2)
         {
 #ifndef CRISPY_TRUECOLOR
@@ -528,6 +529,36 @@ static void ShadeLine(int x, int y, int height, int shade)
             *(dest + 1) = I_BlendDark(*dest, shade);    
             *(dest + 2) = I_BlendDark(*dest, shade);
             *(dest + 3) = I_BlendDark(*dest, shade);
+#endif
+        }
+        if (vid_resolution == 5)
+        {
+#ifndef CRISPY_TRUECOLOR
+            *(dest + 1) = *(shades + *dest);
+            *(dest + 2) = *(shades + *dest);
+            *(dest + 3) = *(shades + *dest);
+            *(dest + 4) = *(shades + *dest);
+#else
+            *(dest + 1) = I_BlendDark(*dest, shade);    
+            *(dest + 2) = I_BlendDark(*dest, shade);
+            *(dest + 3) = I_BlendDark(*dest, shade);
+            *(dest + 4) = I_BlendDark(*dest, shade);
+#endif
+        }
+        if (vid_resolution == 6)
+        {
+#ifndef CRISPY_TRUECOLOR
+            *(dest + 1) = *(shades + *dest);
+            *(dest + 2) = *(shades + *dest);
+            *(dest + 3) = *(shades + *dest);
+            *(dest + 4) = *(shades + *dest);
+            *(dest + 5) = *(shades + *dest);
+#else
+            *(dest + 1) = I_BlendDark(*dest, shade);    
+            *(dest + 2) = I_BlendDark(*dest, shade);
+            *(dest + 3) = I_BlendDark(*dest, shade);
+            *(dest + 4) = I_BlendDark(*dest, shade);
+            *(dest + 5) = I_BlendDark(*dest, shade);
 #endif
         }
 

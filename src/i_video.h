@@ -30,9 +30,12 @@
 #define ORIGWIDTH  320 // [crispy]
 #define ORIGHEIGHT 200 // [crispy]
 
-// [JN] Increase more (+2) to support quad rendering resolution.
+// [JN] Allocate enough to support higher rendering resolutions.
 #define MAXWIDTH  (ORIGWIDTH << 5)  // [crispy] 
 #define MAXHEIGHT (ORIGHEIGHT << 4) // [crispy] 
+
+// [JN] Maximum available rendering resolution.
+#define MAXHIRES 6
 
 extern int SCREENWIDTH;
 extern int SCREENHEIGHT;

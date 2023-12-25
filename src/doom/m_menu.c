@@ -1171,13 +1171,20 @@ static void M_Draw_ID_Video (void)
 #endif
 
     // Rendering resolution
-    sprintf(str, vid_resolution == 2 ? "DOUBLE" :
-                 vid_resolution == 3 ? "TRIPLE" :
-                 vid_resolution == 4 ? "QUAD"   : "ORIGINAL");
+    sprintf(str, vid_resolution == 1 ? "1X (200P)"  :
+                 vid_resolution == 2 ? "2X (400P)"  :
+                 vid_resolution == 3 ? "3X (600P)"  :
+                 vid_resolution == 4 ? "4X (800P)"  :
+                 vid_resolution == 5 ? "5X (1000P)" :
+                 vid_resolution == 6 ? "6X (1200P)" :
+                                       "CUSTOM");
     M_WriteText (M_ItemRightAlign(str), 36, str, 
-                 M_Item_Glow(1, vid_resolution == 2 ? GLOW_GREEN  :
-                                vid_resolution == 3 ? GLOW_YELLOW : 
-                                vid_resolution == 4 ? GLOW_ORANGE : GLOW_DARKRED));
+                 M_Item_Glow(1, vid_resolution == 1 ? GLOW_DARKRED :
+                                vid_resolution == 2 ||
+                                vid_resolution == 3 ? GLOW_GREEN :
+                                vid_resolution == 4 ||
+                                vid_resolution == 5 ? GLOW_YELLOW :
+                                                      GLOW_ORANGE));
 
     // Widescreen rendering
     sprintf(str, vid_widescreen == 1 ? "MATCH SCREEN" :
@@ -1233,6 +1240,20 @@ static void M_Draw_ID_Video (void)
     sprintf(str, vid_endoom ? "ON" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 126, str, 
                  M_Item_Glow(11, vid_endoom ? GLOW_DARKRED : GLOW_GREEN));
+
+    // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
+    if (itemOn == 1 || itemOn == 2)
+    {
+        char  width[8];
+        char  height[8];
+        const char *resolution;
+
+        M_snprintf(width, 8, "%d", (ORIGWIDTH + (WIDESCREENDELTA*2)) * vid_resolution);
+        M_snprintf(height, 8, "%d", ORIGHEIGHT_4_3 * vid_resolution);
+        resolution = M_StringJoin("CURRENT RESOLUTION: ", width, "x", height, NULL);
+
+        M_WriteTextCentered(144, resolution, cr[CR_LIGHTGRAY_DARK1]);
+    }
 }
 
 #ifdef CRISPY_TRUECOLOR
@@ -1274,7 +1295,7 @@ static void M_ID_RenderingResHook (void)
 
 static void M_ID_RenderingRes (int choice)
 {
-    vid_resolution = M_INT_Slider(vid_resolution, 1, 4, choice);
+    vid_resolution = M_INT_Slider(vid_resolution, 1, MAXHIRES, choice);
     post_rendering_hook = M_ID_RenderingResHook;
 }
 
