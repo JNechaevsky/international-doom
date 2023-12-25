@@ -186,6 +186,10 @@ static int currentSlot;
 static int quicksave;
 static int quickload;
 
+// [JN] Show custom titles while performing quick save/load.
+static boolean quicksaveTitle = false;
+static boolean quickloadTitle = false;
+
 static char *gammalvls[16][32] =
 {
     { GAMMALVL05,   "0.50" },
@@ -4562,7 +4566,7 @@ static void DrawLoadMenu(void)
 {
     const char *title;
 
-    title = DEH_String("LOAD GAME");
+    title = DEH_String(quickloadTitle ? "QUICK LOAD GAME" : "LOAD GAME");
 
     MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
     if (!slottextloaded)
@@ -4583,7 +4587,7 @@ static void DrawSaveMenu(void)
 {
     const char *title;
 
-    title = DEH_String("SAVE GAME");
+    title = DEH_String(quicksaveTitle ? "QUICK SAVE GAME" : "SAVE GAME");
 
     MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
     if (!slottextloaded)
@@ -4822,6 +4826,19 @@ static boolean SCDeleteGame(int option)
 //
 //---------------------------------------------------------------------------
 
+// [crispy] override savegame name if it already starts with a map identifier
+static boolean StartsWithMapIdentifier (char *str)
+{
+    if (strlen(str) >= 4 &&
+        toupper(str[0]) == 'E' && isdigit(str[1]) &&
+        toupper(str[2]) == 'M' && isdigit(str[3]))
+    {
+        return true;
+    }
+
+    return false;
+}
+
 static boolean SCSaveGame(int option)
 {
     char *ptr;
@@ -4839,6 +4856,9 @@ static boolean SCSaveGame(int option)
 
         M_StringCopy(oldSlotText, SlotText[option], sizeof(oldSlotText));
         ptr = SlotText[option];
+        // [crispy] generate a default save slot name when the user saves to an empty slot
+        if (!oldSlotText[0] || StartsWithMapIdentifier(oldSlotText))
+          M_snprintf(ptr, sizeof(oldSlotText), "E%dM%d", gameepisode, gamemap);
         while (*ptr)
         {
             ptr++;
@@ -5332,7 +5352,6 @@ boolean MN_Responder(event_t * event)
 
                 case 5:
                     SCDeleteGame(CurrentItPos);
-                    memset(SlotText[currentSlot], 0, SLOTTEXTLEN + 2);
                     BorderNeedRefresh = true;
                     MN_ReturnToMenu();
                     break;
@@ -5439,6 +5458,7 @@ boolean MN_Responder(event_t * event)
                 }
                 S_StartSound(NULL, sfx_dorcls);
                 slottextloaded = false;     //reload the slot text, when needed
+                quicksaveTitle = false;  // [JN] "Save game" title.
             }
             return true;
         }
@@ -5457,6 +5477,7 @@ boolean MN_Responder(event_t * event)
                 }
                 S_StartSound(NULL, sfx_dorcls);
                 slottextloaded = false;     //reload the slot text, when needed
+                quickloadTitle = false;  // [JN] "Load game" title.
             }
             return true;
         }
@@ -5498,8 +5519,12 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, sfx_dorcls);
                     slottextloaded = false; //reload the slot text, when needed
                     quicksave = -1;
+                    // [JN] "Quick save game" title instead of message.
+                    quicksaveTitle = true;
+                    /*
                     CT_SetMessage(&players[consoleplayer],
                                  "CHOOSE A QUICKSAVE SLOT", true);
+                    */
                 }
                 else
                 {
@@ -5550,8 +5575,12 @@ boolean MN_Responder(event_t * event)
                 S_StartSound(NULL, sfx_dorcls);
                 slottextloaded = false;     //reload the slot text, when needed
                 quickload = -1;
+                // [JN] "Quick load game" title instead of message.
+                quickloadTitle = true;
+                /*
                 CT_SetMessage(&players[consoleplayer],
                              "CHOOSE A QUICKLOAD SLOT", true);
+                */
             }
             else
             {
