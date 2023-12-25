@@ -213,8 +213,11 @@ void A_FireOldBFG(mobj_t *mobj, player_t *player, pspdef_t *psp)
 	  // killough 8/2/98: make autoaiming prefer enemies
 	  int mask = 0;//MF_FRIEND;
 	  fixed_t slope;
-	  if (compat_vertical_aiming)
+	  if (compat_vertical_aiming == 1)
+	  {
 	    slope = PLAYER_SLOPE(player);
+	    slope /= P_SlopeFOVCorrecton();
+	  }
 	  else
 	  do
 	    {
@@ -224,9 +227,8 @@ void A_FireOldBFG(mobj_t *mobj, player_t *player, pspdef_t *psp)
 	      if (!linetarget)
 		slope = P_AimLineAttack(mo, an -= 2<<26, 16*64*FRACUNIT, false);//, mask);
 	      if (!linetarget)
-		slope = PLAYER_SLOPE(player), an = mo->angle;
-		// [JN] Always allow vertical autoaiming.
-		// slope = compat_vertical_aiming ? PLAYER_SLOPE(player) : 0, an = mo->angle;
+		slope = compat_vertical_aiming == 2 ? PLAYER_SLOPE(player) : 0, an = mo->angle;
+		  slope /= P_SlopeFOVCorrecton();
 	    }
 	  while (mask && (mask=0, !linetarget));     // killough 8/2/98
 	  an1 += an - mo->angle;

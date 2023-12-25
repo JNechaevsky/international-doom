@@ -688,7 +688,7 @@ static void M_ID_TimerDirection (int choice);
 static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
 static void M_ID_BlockmapFix (int choice);
-static void M_ID_DirectAiming (int choice);
+static void M_ID_VerticalAiming (int choice);
 
 static void M_Choose_ID_Level_1 (int choice);
 static void M_Draw_ID_Level_1 (void);
@@ -3621,7 +3621,7 @@ static menuitem_t ID_Menu_Gameplay_3[]=
     { M_SKIP, "", 0, '\0' },
     { M_LFRT, "PISTOL START GAME MODE",   M_ID_PistolStart,       'p' },
     { M_LFRT, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,       'i' },
-    { M_LFRT, "DIRECT MOUSE LOOK AIMING", M_ID_DirectAiming,      'd' },
+    { M_LFRT, "VERTICAL AIMING",          M_ID_VerticalAiming,    'v' },
     { M_SKIP, "", 0, '\0' },
     { M_SWTC, "", /*FIRST PAGE >*/        M_Choose_ID_Gameplay_1, 'n' },
     { M_SWTC, "", /*< PREV PAGE*/         M_Choose_ID_Gameplay_2, 'p' },
@@ -3705,8 +3705,9 @@ static void M_Draw_ID_Gameplay_3 (void)
     M_WriteText (M_ItemRightAlign(str), 117, str,
                  M_Item_Glow(10, compat_blockmap_fix ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Direct vertical aiming
-    sprintf(str, compat_vertical_aiming ? "ON" : "OFF");
+    // Vertical aiming
+    sprintf(str, compat_vertical_aiming == 1 ? "DIRECT" :
+                 compat_vertical_aiming == 2 ? "BOTH" : "AUTOAIM");
     M_WriteText (M_ItemRightAlign(str), 126, str,
                  M_Item_Glow(11, compat_vertical_aiming ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3773,9 +3774,9 @@ static void M_ID_BlockmapFix (int choice)
     compat_blockmap_fix ^= 1;
 }
 
-static void M_ID_DirectAiming (int choice)
+static void M_ID_VerticalAiming (int choice)
 {
-    compat_vertical_aiming ^= 1;
+    compat_vertical_aiming = M_INT_Slider(compat_vertical_aiming, 0, 2, choice);
 }
 
 // -----------------------------------------------------------------------------

@@ -1378,6 +1378,13 @@ P_SpawnPlayerMissile
     
     // see which target is to be aimed at
     an = source->angle;
+    if (singleplayer && compat_vertical_aiming == 1)
+    {
+	slope = PLAYER_SLOPE(source->player);
+	slope /= P_SlopeFOVCorrecton();
+    }
+    else
+    {
     slope = P_AimLineAttack (source, an, 16*64*FRACUNIT, false);
     
     if (!linetarget)
@@ -1394,15 +1401,15 @@ P_SpawnPlayerMissile
 	if (!linetarget)
 	{
 	    an = source->angle;
+	    if (singleplayer && compat_vertical_aiming == 2)
+	    {
+	    slope = PLAYER_SLOPE(source->player);
+	      slope /= P_SlopeFOVCorrecton();
+	    }
+	    else
 	    slope = 0;
 	}
-
-    // [JN] Direct vertical aiming.
-	if (singleplayer && !linetarget && mouse_look && compat_vertical_aiming)
-	{
-	    slope = (source->player->lookdir / MLOOKUNIT << FRACBITS) / 173;
-	    slope /= P_SlopeFOVCorrecton();
-	}
+    }
     }
 		
     x = source->x;

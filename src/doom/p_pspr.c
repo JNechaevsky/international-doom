@@ -479,13 +479,6 @@ A_Punch
     angle += P_SubRandom() << 18;
     slope = P_AimLineAttack (player->mo, angle, MELEERANGE, false);
 
-    // [JN] Direct vertical aiming
-	if (singleplayer && !linetarget && mouse_look && compat_vertical_aiming)
-	{
-	slope = (player->lookdir / MLOOKUNIT << FRACBITS) / 173;
-	slope /= P_SlopeFOVCorrecton();
-	}
-
     P_LineAttack (player->mo, angle, MELEERANGE, slope, damage);
 
     // turn to face target
@@ -520,13 +513,6 @@ A_Saw
     
     // use meleerange + 1 se the puff doesn't skip the flash
     slope = P_AimLineAttack (player->mo, angle, MELEERANGE+1, false);
-
-    // [JN] Direct vertical aiming.
-	if (singleplayer && !linetarget && mouse_look && compat_vertical_aiming)
-	{
-	slope = (player->lookdir / MLOOKUNIT << FRACBITS) / 173;
-	slope /= P_SlopeFOVCorrecton();
-	}
 
     P_LineAttack (player->mo, angle, MELEERANGE+1, slope, damage);
 
@@ -646,6 +632,13 @@ void P_BulletSlope (mobj_t*	mo)
 {
     angle_t	an;
     
+    if (singleplayer && compat_vertical_aiming == 1)
+    {
+    bulletslope = PLAYER_SLOPE(mo->player);
+    bulletslope /= P_SlopeFOVCorrecton();
+    }
+    else
+    {
     // see which target is to be aimed at
     an = mo->angle;
     bulletslope = P_AimLineAttack (mo, an, 16*64*FRACUNIT, false);
@@ -658,13 +651,13 @@ void P_BulletSlope (mobj_t*	mo)
 	{
 	    an -= 2<<26;
 	    bulletslope = P_AimLineAttack (mo, an, 16*64*FRACUNIT, false);
+	    if (singleplayer && compat_vertical_aiming == 2)
+	    {
+	        bulletslope = PLAYER_SLOPE(mo->player);
+	        bulletslope /= P_SlopeFOVCorrecton();
+	    }
 	}
-    // [JN] Direct vertical aiming.
-	if (singleplayer && mouse_look && compat_vertical_aiming)
-	{
-	    bulletslope = (mo->player->lookdir / MLOOKUNIT << FRACBITS) / 173;
-	    bulletslope /= P_SlopeFOVCorrecton();
-	}
+    }
     }
 }
 
