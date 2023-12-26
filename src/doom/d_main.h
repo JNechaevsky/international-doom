@@ -50,8 +50,8 @@ extern void D_StartTitle (void);
 extern int dp_detail_level;
 
 extern boolean advancedemo;
-extern boolean sigil_compat;
 extern boolean sigil;
+extern boolean sigil2;
 extern boolean nerve;
 
 extern boolean havessg;

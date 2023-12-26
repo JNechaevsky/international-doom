@@ -415,8 +415,8 @@ boolean ST_Responder (event_t *ev)
                 {
                     musnum = mus_runnin + (buf[0]-'0')*10 + buf[1]-'0' - 1;
 
-                    if (((buf[0]-'0')*10 + buf[1]-'0') > 35
-                    && gameversion >= exe_doom_1_8)
+                    // [crispy] prevent crash with IDMUS00
+                    if (musnum < mus_runnin || musnum >= NUMMUSIC)
                     {
                         CT_SetMessage(plyr, DEH_String(STSTR_NOMUS), false, NULL);
                     }
@@ -431,13 +431,18 @@ boolean ST_Responder (event_t *ev)
                 {
                     musnum = mus_e1m1 + (buf[0]-'1')*9 + (buf[1]-'1');
 
-                    if (((buf[0]-'1')*9 + buf[1]-'1') > 31)
+                    // [crispy] prevent crash with IDMUS0x or IDMUSx0
+                    if (musnum < mus_e1m1 || musnum >= mus_runnin
+                    // [crispy] support dedicated music tracks for the 4th episode
+                    || S_music[musnum].lumpnum == -1)
                     {
                         CT_SetMessage(plyr, DEH_String(STSTR_NOMUS), false, NULL);
                     }
                     else
                     {
                         S_ChangeMusic(musnum, 1);
+                        // [JN] jff 3/17/98 remember idmus number for restore
+                        idmusnum = musnum;
                     }
                 }
 
@@ -612,7 +617,8 @@ boolean ST_Responder (event_t *ev)
                 if (epsd > 4)
                 {
                     // [crispy] Sigil
-                    if (!sigil)
+                    if (!(sigil && epsd == 5) &&
+                        !(sigil2 && epsd == 6))
                     return false;
                 }
                 if (epsd == 4 && gameversion < exe_ultimate)
