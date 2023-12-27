@@ -111,8 +111,10 @@ gamestate_t wipegamestate = GS_DEMOSCREEN;
 
 // [JN] Semi-official addons.
 // SIGIL
-boolean sigil_compat = false;
+static boolean sigil_compat = false;
 boolean sigil = false;
+// SIGIL 2
+boolean sigil2 = false;
 // NERVE
 boolean nerve = false;
 
@@ -986,6 +988,10 @@ void D_SetGameDescription(void)
         {
             gamedescription = "SIGIL";
         }
+        if (sigil2)
+        {
+            gamedescription = "SIGIL II";
+        }
     }
     else
     {
@@ -1816,8 +1822,7 @@ void D_DoomMain (void)
 
     I_AtExit(G_CheckDemoStatusAtExit, true);
 
-    // [JN] Check for SIGIL loading.
-    // Only main version with five episodes is supported.
+    // [JN] Check for SIGIL and NERVE loading.
     p = M_CheckParmWithArgs ("-file", 1);
     if (p)
     {
@@ -1830,14 +1835,19 @@ void D_DoomMain (void)
             {
                 sigil_compat = true;
             }
-            // SIGIL main.
-            if (M_StrCaseStr(myargv[p], "SIGIL_v1_21.wad")
-            ||  M_StrCaseStr(myargv[p], "SIGIL_v1_2.wad")
-            ||  M_StrCaseStr(myargv[p], "SIGIL.wad"))
-            {
-                sigil = true;
-            }
-            // NERVE.
+            // SIGIL I
+            sigil = (gameversion == exe_ultimate) &&
+                    (W_CheckNumForName("m_epi5") != -1) &&
+                    (W_CheckNumForName("e5m1") != -1) &&
+                    (W_CheckNumForName("wilv40") != -1);
+
+            // SIGIL II
+            sigil2 = (gameversion == exe_ultimate) &&
+                     (W_CheckNumForName("m_epi6") != -1) &&
+                     (W_CheckNumForName("e6m1") != -1) &&
+                     (W_CheckNumForName("wilv50") != -1);
+
+            // NERVE
             if (M_StrCaseStr(myargv[p], "NERVE.wad"))
             {
                 nerve = true;

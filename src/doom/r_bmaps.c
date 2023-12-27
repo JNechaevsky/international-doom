@@ -490,6 +490,8 @@ static const fullbright_t fullbright_walls[] = {
     {"SW2SATYR", DOOM1AND2, brighttan},
     {"SW2LION",  DOOM1AND2, brighttan},
     {"SW2GARG",  DOOM1AND2, brighttan},
+    // [JN] SIGIL I
+    {"SIGIL",    DOOM1ONLY, redonly},
 };
 
 static const fullbright_t fullbright_finaldoom[] = {
@@ -517,8 +519,6 @@ static const fullbright_t fullbright_finaldoom[] = {
     {"YELMETAL", DOOM2ONLY, yellowonly},
     // Plutonia exclusive
 //  {"SW2SKULL", DOOM2ONLY, redonly},
-    // [JN] SIGIL
-    {"SIGIL",    DOOM1ONLY, redonly},
     
 };
 
