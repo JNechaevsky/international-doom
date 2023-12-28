@@ -1599,6 +1599,7 @@ static void M_ID_Gamma (int choice)
     R_InitColormaps();
     R_FillBackScreen();
 #endif
+    st_fullupdate = true;
 }
 
 static void M_ID_FOV (int choice)
@@ -3837,6 +3838,9 @@ static void M_Choose_ID_Level_1 (int choice)
 static void M_Draw_ID_Level_1 (void)
 {
     char str[32];
+
+    st_fullupdate = true;
+
     M_FillBackground();
     
     M_WriteTextCentered(16, "LEVEL SELECT", cr[CR_YELLOW]);
@@ -4052,6 +4056,8 @@ static void M_Choose_ID_Level_2 (int choice)
 static void M_Draw_ID_Level_2 (void)
 {
     char str[32];
+
+    st_fullupdate = true;
 
     M_FillBackground();
     
@@ -4668,6 +4674,7 @@ static void M_QuickLoad(void)
 static void M_DrawReadThis1(void)
 {
     V_DrawPatchFullScreen(W_CacheLumpName(DEH_String("HELP2"), PU_CACHE), false);
+    st_fullupdate = true;
 }
 
 
@@ -4681,11 +4688,13 @@ static void M_DrawReadThis2(void)
     // gameversion == exe_doom_1_9 and gamemode == registered
 
     V_DrawPatchFullScreen(W_CacheLumpName(DEH_String("HELP1"), PU_CACHE), false);
+    st_fullupdate = true;
 }
 
 static void M_DrawReadThisCommercial(void)
 {
     V_DrawPatchFullScreen(W_CacheLumpName(DEH_String("HELP"), PU_CACHE), false);
+    st_fullupdate = true;
 }
 
 
@@ -5893,6 +5902,7 @@ boolean M_Responder (event_t* ev)
             R_FillBackScreen();
         }
 #endif
+        st_fullupdate = true;
         return true;
     }
 

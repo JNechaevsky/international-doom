@@ -1297,12 +1297,114 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 }
 
 // -----------------------------------------------------------------------------
+// ST_UpdateElementsBackground
+// [JN] Use V_CopyRect to draw/update background under elements.
+//      This is notably faster than re-drawing entire background.
+// -----------------------------------------------------------------------------
+
+#define AMMO_X          (WIDESCREENDELTA * vid_resolution)
+#define AMMO_Y_START    (2 * vid_resolution)
+#define AMMO_Y_END      (170 * vid_resolution)
+
+#define HEALTH_X        ((49 + WIDESCREENDELTA) * vid_resolution)
+#define HEALTH_Y_START  (2 * vid_resolution)
+#define HEALTH_Y_END    AMMO_Y_END
+
+#define FACE_X          ((142 + WIDESCREENDELTA) * vid_resolution)
+#define FACE_Y_START    (0)
+#define FACE_Y_END      (168 * vid_resolution)
+
+#define ARMOR_X         ((179 + WIDESCREENDELTA) * vid_resolution)
+#define ARMOR_Y_START   (2 * vid_resolution)
+#define ARMOR_Y_END     AMMO_Y_END
+
+#define KEYS_X          ((236 + WIDESCREENDELTA) * vid_resolution)
+#define KEYS_Y_START    (0)
+#define KEYS_Y_END      (168 * vid_resolution)
+
+#define AMMO_C_X        ((272 + WIDESCREENDELTA) * vid_resolution)
+#define AMMO_C_Y_START  (5 * vid_resolution)
+#define AMMO_C_Y_END    (173 * vid_resolution)
+
+#define AMMO_M_X        ((298 + WIDESCREENDELTA) * vid_resolution)
+#define AMMO_M_Y_START  AMMO_C_Y_START
+#define AMMO_M_Y_END    AMMO_C_Y_END
+
+#define DISK_X          ((304 + WIDESCREENDELTA * 2) * vid_resolution)
+#define DISK_Y_START    (17 * vid_resolution)
+#define DISK_Y_END      (185 * vid_resolution)
+
+static void ST_UpdateElementsBackground (void)
+{
+    // Ammo
+    V_CopyRect(AMMO_X, AMMO_Y_START, 
+               st_backing_screen, 
+               45 * vid_resolution,
+               20 * vid_resolution,
+               AMMO_X, AMMO_Y_END);
+
+    // Health
+    V_CopyRect(HEALTH_X, HEALTH_Y_START,
+               st_backing_screen, 
+               55 * vid_resolution,
+               20 * vid_resolution,
+               HEALTH_X, HEALTH_Y_END);
+
+    // Player face
+    V_CopyRect(FACE_X, FACE_Y_START,
+               st_backing_screen, 
+               37 * vid_resolution,
+               32 * vid_resolution,
+               FACE_X, FACE_Y_END);
+
+    // Armor
+    V_CopyRect(ARMOR_X, ARMOR_Y_START,
+               st_backing_screen, 
+               56 * vid_resolution,
+               20 * vid_resolution,
+               ARMOR_X, ARMOR_Y_END);
+
+    // Keys
+    V_CopyRect(KEYS_X, KEYS_Y_START,
+               st_backing_screen, 
+               13 * vid_resolution,
+               32 * vid_resolution,
+               KEYS_X, KEYS_Y_END);
+
+    // Ammo (current)
+    V_CopyRect(AMMO_C_X, AMMO_C_Y_START,
+               st_backing_screen, 
+               16 * vid_resolution,
+               24 * vid_resolution,
+               AMMO_C_X, AMMO_C_Y_END);
+
+    // Ammo (max)
+    V_CopyRect(AMMO_M_X, AMMO_M_Y_START,
+               st_backing_screen, 
+               16 * vid_resolution,
+               24 * vid_resolution,
+               AMMO_M_X, AMMO_M_Y_END);
+
+    // Disk icon
+    V_CopyRect(DISK_X, DISK_Y_START,
+               st_backing_screen, 
+               16 * vid_resolution,
+               16 * vid_resolution,
+               DISK_X, DISK_Y_END);
+}
+
+// -----------------------------------------------------------------------------
 // ST_Drawer
 // [JN] Main drawing function, totally rewritten.
 // -----------------------------------------------------------------------------
 
+boolean st_fullupdate = true;
+
 void ST_Drawer (boolean force)
 {
+    const boolean st_background_on = 
+                    dp_screen_size <= 10 || (automapactive && !automap_overlay);
+
     if (force)
     {
     // [JN] Wide status bar.
@@ -1312,7 +1414,7 @@ void ST_Drawer (boolean force)
     plyr = &players[displayplayer];
 
     // Status bar background.
-    if (dp_screen_size <= 10 || (automapactive && !automap_overlay))
+    if (st_background_on && st_fullupdate)
     {
         V_UseBuffer(st_backing_screen);
 
@@ -1368,6 +1470,13 @@ void ST_Drawer (boolean force)
         V_RestoreBuffer();
 
         V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, ST_HEIGHT * vid_resolution, 0, ST_Y * vid_resolution);
+    }
+
+    st_fullupdate = false;
+
+    if (st_background_on)
+    {
+        ST_UpdateElementsBackground();
     }
 
     // [crispy] draw berserk pack instead of no ammo if appropriate

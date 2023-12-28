@@ -65,5 +65,6 @@ extern cheatseq_t cheat_clev;
 extern cheatseq_t cheat_mypos;
 
 extern int st_palette;
+extern boolean st_fullupdate;
 
 #endif

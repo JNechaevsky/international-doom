@@ -815,6 +815,10 @@ boolean AM_Responder (event_t *ev)
         if (ev->type == ev_keydown && ev->data1 == key_map_toggle)
         {
             AM_Start ();
+            if (automapactive && !automap_overlay)
+            {
+                st_fullupdate = true;
+            }
             rc = true;
         }
     }
@@ -951,6 +955,10 @@ boolean AM_Responder (event_t *ev)
             automap_overlay = !automap_overlay;
             CT_SetMessage(plr, DEH_String(automap_overlay ?
                           ID_AUTOMAPOVERLAY_ON : ID_AUTOMAPOVERLAY_OFF), false, NULL);
+            if (automapactive && !automap_overlay)
+            {
+                st_fullupdate = true;
+            }
         }
         else
         {
