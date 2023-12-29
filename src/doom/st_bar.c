@@ -1312,38 +1312,6 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 //      This is notably faster than re-drawing entire background.
 // -----------------------------------------------------------------------------
 
-#define AMMO_X          (WIDESCREENDELTA * vid_resolution)
-#define AMMO_Y_START    (2 * vid_resolution)
-#define AMMO_Y_END      (170 * vid_resolution)
-
-#define HEALTH_X        ((49 + WIDESCREENDELTA) * vid_resolution)
-#define HEALTH_Y_START  (2 * vid_resolution)
-#define HEALTH_Y_END    AMMO_Y_END
-
-#define FACE_X          ((142 + WIDESCREENDELTA) * vid_resolution)
-#define FACE_Y_START    (0)
-#define FACE_Y_END      (168 * vid_resolution)
-
-#define ARMOR_X         ((179 + WIDESCREENDELTA) * vid_resolution)
-#define ARMOR_Y_START   (2 * vid_resolution)
-#define ARMOR_Y_END     AMMO_Y_END
-
-#define KEYS_X          ((236 + WIDESCREENDELTA) * vid_resolution)
-#define KEYS_Y_START    (0)
-#define KEYS_Y_END      (168 * vid_resolution)
-
-#define AMMO_C_X        ((272 + WIDESCREENDELTA) * vid_resolution)
-#define AMMO_C_Y_START  (5 * vid_resolution)
-#define AMMO_C_Y_END    (173 * vid_resolution)
-
-#define AMMO_M_X        ((298 + WIDESCREENDELTA) * vid_resolution)
-#define AMMO_M_Y_START  AMMO_C_Y_START
-#define AMMO_M_Y_END    AMMO_C_Y_END
-
-#define DISK_X          ((304 + WIDESCREENDELTA * 2) * vid_resolution)
-#define DISK_Y_START    (17 * vid_resolution)
-#define DISK_Y_END      (185 * vid_resolution)
-
 static void ST_UpdateElementsBackground (void)
 {
     // Ammo
