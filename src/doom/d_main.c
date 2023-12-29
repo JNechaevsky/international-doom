@@ -1823,7 +1823,7 @@ void D_DoomMain (void)
 
     I_AtExit(G_CheckDemoStatusAtExit, true);
 
-    // [JN] Check for SIGIL and NERVE loading.
+    // [JN] Check for SIGIL (compat) and NERVE loading.
     p = M_CheckParmWithArgs ("-file", 1);
     if (p)
     {
@@ -1836,17 +1836,6 @@ void D_DoomMain (void)
             {
                 sigil_compat = true;
             }
-            // SIGIL I
-            sigil = (gameversion == exe_ultimate) &&
-                    (W_CheckNumForName("m_epi5") != -1) &&
-                    (W_CheckNumForName("e5m1") != -1) &&
-                    (W_CheckNumForName("wilv40") != -1);
-
-            // SIGIL II
-            sigil2 = (gameversion == exe_ultimate) &&
-                     (W_CheckNumForName("m_epi6") != -1) &&
-                     (W_CheckNumForName("e6m1") != -1) &&
-                     (W_CheckNumForName("wilv50") != -1);
 
             // NERVE
             if (M_StrCaseStr(myargv[p], "NERVE.wad"))
@@ -1854,6 +1843,21 @@ void D_DoomMain (void)
                 nerve = true;
             }
         }
+    }
+
+    // [JN] Check for SIGIL (main) and SIGIL II.
+    {
+        // SIGIL I
+        sigil = (gameversion == exe_ultimate) &&
+                (W_CheckNumForName("m_epi5") != -1) &&
+                (W_CheckNumForName("e5m1") != -1) &&
+                (W_CheckNumForName("wilv40") != -1);
+
+        // SIGIL II
+        sigil2 = (gameversion == exe_ultimate) &&
+                 (W_CheckNumForName("m_epi6") != -1) &&
+                 (W_CheckNumForName("e6m1") != -1) &&
+                 (W_CheckNumForName("wilv50") != -1);
     }
 
     // Generate the WAD hash table.  Speed things up a bit.
