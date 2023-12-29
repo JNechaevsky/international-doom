@@ -1745,9 +1745,9 @@ void ST_InitElementsBackground (void)
     ammo_bg[4] = 170 * vid_resolution;
 
     // Health
-    hlth_bg[0] = (49 + WIDESCREENDELTA) * vid_resolution;
+    hlth_bg[0] = (48 + WIDESCREENDELTA) * vid_resolution;
     hlth_bg[1] = 2 * vid_resolution;
-    hlth_bg[2] = 55 * vid_resolution;
+    hlth_bg[2] = 57 * vid_resolution;
     hlth_bg[3] = 20 * vid_resolution;
     hlth_bg[4] = 170 * vid_resolution;
 
