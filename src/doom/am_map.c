@@ -800,6 +800,11 @@ boolean AM_Responder (event_t *ev)
         if (!automapactive)
         {
             AM_Start ();
+            if (!automap_overlay)
+            {
+                // [JN] Redraw status bar background.
+                st_fullupdate = true;
+            }
         }
         else
         {
@@ -815,6 +820,11 @@ boolean AM_Responder (event_t *ev)
         if (ev->type == ev_keydown && ev->data1 == key_map_toggle)
         {
             AM_Start ();
+            if (!automap_overlay)
+            {
+                // [JN] Redraw status bar background.
+                st_fullupdate = true;
+            }
             rc = true;
         }
     }
