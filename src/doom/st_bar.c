@@ -120,6 +120,16 @@ static int st_faceindex = 1;  // current face index, used by w_faces
 static int st_randomnumber; // a random number per tick
 static int faceindex; // [crispy] fix status bar face hysteresis
 
+// [JN] Variables for buffered status bar drawing via V_CopyRect.
+static int ammo_x, ammo_size_x, ammo_size_y, ammo_y_start, ammo_y_end;
+static int hlth_x, hlth_size_x, hlth_size_y, hlth_y_start, hlth_y_end;
+static int face_x, face_size_x, face_size_y, face_y_start, face_y_end;
+static int armr_x, armr_size_x, armr_size_y, armr_y_start, armr_y_end;
+static int keys_x, keys_size_x, keys_size_y, keys_y_start, keys_y_end;
+static int amoc_x, amoc_size_x, amoc_size_y, amoc_y_start, amoc_y_end;
+static int amom_x, amom_size_x, amom_size_y, amom_y_start, amom_y_end;
+static int disk_x, disk_size_x, disk_size_y, disk_y_start, disk_y_end;
+
 cheatseq_t cheat_wait = CHEAT("id", 0);
 cheatseq_t cheat_mus = CHEAT("idmus", 2);
 cheatseq_t cheat_god = CHEAT("iddqd", 0);
@@ -1337,60 +1347,44 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 static void ST_UpdateElementsBackground (void)
 {
     // Ammo
-    V_CopyRect(AMMO_X, AMMO_Y_START, 
-               st_backing_screen, 
-               45 * vid_resolution,
-               20 * vid_resolution,
-               AMMO_X, AMMO_Y_END);
+    V_CopyRect(ammo_x, ammo_y_start, st_backing_screen,
+               ammo_size_x, ammo_size_y,
+               ammo_x, ammo_y_end);
 
     // Health
-    V_CopyRect(HEALTH_X, HEALTH_Y_START,
-               st_backing_screen, 
-               55 * vid_resolution,
-               20 * vid_resolution,
-               HEALTH_X, HEALTH_Y_END);
+    V_CopyRect(hlth_x, hlth_y_start, st_backing_screen,
+               hlth_size_x, hlth_size_y,
+               hlth_x, hlth_y_end);
 
     // Player face
-    V_CopyRect(FACE_X, FACE_Y_START,
-               st_backing_screen, 
-               37 * vid_resolution,
-               32 * vid_resolution,
-               FACE_X, FACE_Y_END);
+    V_CopyRect(face_x, face_y_start, st_backing_screen,
+               face_size_x, face_size_y,
+               face_x, face_y_end);
 
     // Armor
-    V_CopyRect(ARMOR_X, ARMOR_Y_START,
-               st_backing_screen, 
-               56 * vid_resolution,
-               20 * vid_resolution,
-               ARMOR_X, ARMOR_Y_END);
+    V_CopyRect(armr_x, armr_y_start, st_backing_screen,
+               armr_size_x, armr_size_y,
+               armr_x, armr_y_end);
 
     // Keys
-    V_CopyRect(KEYS_X, KEYS_Y_START,
-               st_backing_screen, 
-               13 * vid_resolution,
-               32 * vid_resolution,
-               KEYS_X, KEYS_Y_END);
+    V_CopyRect(keys_x, keys_y_start, st_backing_screen,
+               keys_size_x, keys_size_y,
+               keys_x, keys_y_end);
 
     // Ammo (current)
-    V_CopyRect(AMMO_C_X, AMMO_C_Y_START,
-               st_backing_screen, 
-               16 * vid_resolution,
-               24 * vid_resolution,
-               AMMO_C_X, AMMO_C_Y_END);
+    V_CopyRect(amoc_x, amoc_y_start, st_backing_screen,
+               amoc_size_x, amoc_size_y,
+               amoc_x, amoc_y_end);
 
     // Ammo (max)
-    V_CopyRect(AMMO_M_X, AMMO_M_Y_START,
-               st_backing_screen, 
-               16 * vid_resolution,
-               24 * vid_resolution,
-               AMMO_M_X, AMMO_M_Y_END);
+    V_CopyRect(amom_x, amom_y_start, st_backing_screen,
+               amom_size_x, amom_size_y,
+               amom_x, amom_y_end);
 
     // Disk icon
-    V_CopyRect(DISK_X, DISK_Y_START,
-               st_backing_screen, 
-               16 * vid_resolution,
-               16 * vid_resolution,
-               DISK_X, DISK_Y_END);
+    V_CopyRect(disk_x, disk_y_start, st_backing_screen,
+               disk_size_x, disk_size_y,
+               disk_x, disk_y_end);
 }
 
 // -----------------------------------------------------------------------------
@@ -1770,4 +1764,69 @@ void ST_Init (void)
     ST_loadData();
     st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ST_HEIGHT * MAXHIRES)
                       * sizeof(*st_backing_screen), PU_STATIC, 0);
+}
+
+// -----------------------------------------------------------------------------
+// ST_InitElementsBackground
+// [JN] Preallocate rectangle sizes for status bar buffered drawing 
+//      to avoid some extra multiplying calculations while drawing.
+// -----------------------------------------------------------------------------
+
+void ST_InitElementsBackground (void)
+{
+    // Ammo
+    ammo_x = WIDESCREENDELTA * vid_resolution;
+    ammo_size_x = 45 * vid_resolution;
+    ammo_size_y = 20 * vid_resolution;
+    ammo_y_start = 2 * vid_resolution;
+    ammo_y_end = 170 * vid_resolution;
+
+    // Health
+    hlth_x = (49 + WIDESCREENDELTA) * vid_resolution;
+    hlth_size_x = 55 * vid_resolution;
+    hlth_size_y = 20 * vid_resolution;
+    hlth_y_start = 2 * vid_resolution;
+    hlth_y_end = 170 * vid_resolution;
+
+    // Player face background
+    face_x = (142 + WIDESCREENDELTA) * vid_resolution;
+    face_size_x = 37 * vid_resolution;
+    face_size_y = 32 * vid_resolution;
+    face_y_start = 0;
+    face_y_end = 168 * vid_resolution;
+
+    // Armor
+    armr_x = (179 + WIDESCREENDELTA) * vid_resolution;
+    armr_size_x = 56 * vid_resolution;
+    armr_size_y = 20 * vid_resolution;
+    armr_y_start = 2 * vid_resolution;
+    armr_y_end = 170 * vid_resolution;
+
+    // Keys
+    keys_x = (236 + WIDESCREENDELTA) * vid_resolution;
+    keys_size_x = 13 * vid_resolution;
+    keys_size_y = 32 * vid_resolution;
+    keys_y_start = 0;
+    keys_y_end = 168 * vid_resolution;
+
+    // Ammo (current)
+    amoc_x = (272 + WIDESCREENDELTA) * vid_resolution;
+    amoc_size_x = 16 * vid_resolution;
+    amoc_size_y = 24 * vid_resolution;
+    amoc_y_start = 5 * vid_resolution;
+    amoc_y_end = 173 * vid_resolution;
+
+    // Ammo (max)
+    amom_x = (298 + WIDESCREENDELTA) * vid_resolution;
+    amom_size_x = 16 * vid_resolution;
+    amom_size_y = 24 * vid_resolution;
+    amom_y_start = 5 * vid_resolution;
+    amom_y_end = 173 * vid_resolution;
+
+    // Disk icon
+    disk_x = (304 + WIDESCREENDELTA * 2) * vid_resolution;
+    disk_size_x = 16 * vid_resolution;
+    disk_size_y = 16 * vid_resolution;
+    disk_y_start = 17 * vid_resolution;
+    disk_y_end = 185 * vid_resolution;
 }

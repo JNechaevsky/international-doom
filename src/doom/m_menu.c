@@ -1299,6 +1299,8 @@ static void M_ID_RenderingResHook (void)
     R_FillBackScreen();
     // [crispy] re-calculate disk icon coordinates
     V_EnableLoadingDisk();
+    // [JN] re-calculate status bar elements background buffers
+    ST_InitElementsBackground();
     // [crispy] re-calculate automap coordinates
     AM_LevelInit(true);
     if (automapactive)
@@ -1323,6 +1325,8 @@ static void M_ID_WidescreenHook (void)
     R_FillBackScreen();
     // [crispy] re-calculate disk icon coordinates
     V_EnableLoadingDisk();
+    // [JN] re-calculate status bar elements background buffers
+    ST_InitElementsBackground();
     // [crispy] re-calculate automap coordinates
     AM_LevelInit(true);
     if (automapactive)

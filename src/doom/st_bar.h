@@ -52,6 +52,9 @@ void ST_Start (void);
 // Called by startup code.
 void ST_Init (void);
 
+// [JN] Preallocate rectangle sizes for status bar buffered drawing.
+extern void ST_InitElementsBackground (void);
+
 
 extern cheatseq_t cheat_mus;
 extern cheatseq_t cheat_god;
