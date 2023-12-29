@@ -1044,7 +1044,7 @@ static void M_Draw_ID_Video (void)
         const char *resolution;
 
         M_snprintf(width, 8, "%d", (ORIGWIDTH + (WIDESCREENDELTA*2)) * vid_resolution);
-        M_snprintf(height, 8, "%d", ORIGHEIGHT_4_3 * vid_resolution);
+        M_snprintf(height, 8, "%d", (vid_aspect_ratio_correct == 1 ? ORIGHEIGHT_4_3 : ORIGHEIGHT) * vid_resolution);
         resolution = M_StringJoin("CURRENT RESOLUTION: ", width, "X", height, NULL);
 
         MN_DrTextACentered(resolution, 130, cr[CR_LIGHTGRAY_DARK1]);
