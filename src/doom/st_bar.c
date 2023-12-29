@@ -123,15 +123,9 @@ static int faceindex; // [crispy] fix status bar face hysteresis
 // [JN] Condition to redraw status bar background. 
 boolean st_fullupdate = true;
 
-// [JN] Variables for buffered status bar drawing via V_CopyRect.
-static int ammo_x, ammo_size_x, ammo_size_y, ammo_y_start, ammo_y_end;
-static int hlth_x, hlth_size_x, hlth_size_y, hlth_y_start, hlth_y_end;
-static int face_x, face_size_x, face_size_y, face_y_start, face_y_end;
-static int armr_x, armr_size_x, armr_size_y, armr_y_start, armr_y_end;
-static int keys_x, keys_size_x, keys_size_y, keys_y_start, keys_y_end;
-static int amoc_x, amoc_size_x, amoc_size_y, amoc_y_start, amoc_y_end;
-static int amom_x, amom_size_x, amom_size_y, amom_y_start, amom_y_end;
-static int disk_x, disk_size_x, disk_size_y, disk_y_start, disk_y_end;
+// [JN] Arrays for holding buffered background of status bar elements.
+static int ammo_bg[5], hlth_bg[5], face_bg[5], armr_bg[5];
+static int keys_bg[5], amoc_bg[5], amom_bg[5], disk_bg[5];
 
 cheatseq_t cheat_wait = CHEAT("id", 0);
 cheatseq_t cheat_mus = CHEAT("idmus", 2);
@@ -1318,44 +1312,44 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 static void ST_UpdateElementsBackground (void)
 {
     // Ammo
-    V_CopyRect(ammo_x, ammo_y_start, st_backing_screen,
-               ammo_size_x, ammo_size_y,
-               ammo_x, ammo_y_end);
+    V_CopyRect(ammo_bg[0], ammo_bg[1], st_backing_screen,
+               ammo_bg[2], ammo_bg[3],
+               ammo_bg[0], ammo_bg[4]);
 
     // Health
-    V_CopyRect(hlth_x, hlth_y_start, st_backing_screen,
-               hlth_size_x, hlth_size_y,
-               hlth_x, hlth_y_end);
+    V_CopyRect(hlth_bg[0], hlth_bg[1], st_backing_screen,
+               hlth_bg[2], hlth_bg[3],
+               hlth_bg[0], hlth_bg[4]);
 
     // Player face
-    V_CopyRect(face_x, face_y_start, st_backing_screen,
-               face_size_x, face_size_y,
-               face_x, face_y_end);
+    V_CopyRect(face_bg[0], face_bg[1], st_backing_screen,
+               face_bg[2], face_bg[3],
+               face_bg[0], face_bg[4]);
 
     // Armor
-    V_CopyRect(armr_x, armr_y_start, st_backing_screen,
-               armr_size_x, armr_size_y,
-               armr_x, armr_y_end);
+    V_CopyRect(armr_bg[0], armr_bg[1], st_backing_screen,
+               armr_bg[2], armr_bg[3],
+               armr_bg[0], armr_bg[4]);
 
     // Keys
-    V_CopyRect(keys_x, keys_y_start, st_backing_screen,
-               keys_size_x, keys_size_y,
-               keys_x, keys_y_end);
+    V_CopyRect(keys_bg[0], keys_bg[1], st_backing_screen,
+               keys_bg[2], keys_bg[3],
+               keys_bg[0], keys_bg[4]);
 
     // Ammo (current)
-    V_CopyRect(amoc_x, amoc_y_start, st_backing_screen,
-               amoc_size_x, amoc_size_y,
-               amoc_x, amoc_y_end);
+    V_CopyRect(amoc_bg[0], amoc_bg[1], st_backing_screen,
+               amoc_bg[2], amoc_bg[3],
+               amoc_bg[0], amoc_bg[4]);
 
     // Ammo (max)
-    V_CopyRect(amom_x, amom_y_start, st_backing_screen,
-               amom_size_x, amom_size_y,
-               amom_x, amom_y_end);
+    V_CopyRect(amom_bg[0], amom_bg[1], st_backing_screen,
+               amom_bg[2], amom_bg[3],
+               amom_bg[0], amom_bg[4]);
 
     // Disk icon
-    V_CopyRect(disk_x, disk_y_start, st_backing_screen,
-               disk_size_x, disk_size_y,
-               disk_x, disk_y_end);
+    V_CopyRect(disk_bg[0], disk_bg[1], st_backing_screen,
+               disk_bg[2], disk_bg[3],
+               disk_bg[0], disk_bg[4]);
 }
 
 // -----------------------------------------------------------------------------
@@ -1744,58 +1738,58 @@ void ST_Init (void)
 void ST_InitElementsBackground (void)
 {
     // Ammo
-    ammo_x = WIDESCREENDELTA * vid_resolution;
-    ammo_size_x = 45 * vid_resolution;
-    ammo_size_y = 20 * vid_resolution;
-    ammo_y_start = 2 * vid_resolution;
-    ammo_y_end = 170 * vid_resolution;
+    ammo_bg[0] = WIDESCREENDELTA * vid_resolution;
+    ammo_bg[1] = 2 * vid_resolution;
+    ammo_bg[2] = 45 * vid_resolution;
+    ammo_bg[3] = 20 * vid_resolution;
+    ammo_bg[4] = 170 * vid_resolution;
 
     // Health
-    hlth_x = (49 + WIDESCREENDELTA) * vid_resolution;
-    hlth_size_x = 55 * vid_resolution;
-    hlth_size_y = 20 * vid_resolution;
-    hlth_y_start = 2 * vid_resolution;
-    hlth_y_end = 170 * vid_resolution;
+    hlth_bg[0] = (49 + WIDESCREENDELTA) * vid_resolution;
+    hlth_bg[1] = 2 * vid_resolution;
+    hlth_bg[2] = 55 * vid_resolution;
+    hlth_bg[3] = 20 * vid_resolution;
+    hlth_bg[4] = 170 * vid_resolution;
 
     // Player face background
-    face_x = (142 + WIDESCREENDELTA) * vid_resolution;
-    face_size_x = 37 * vid_resolution;
-    face_size_y = 32 * vid_resolution;
-    face_y_start = 0;
-    face_y_end = 168 * vid_resolution;
+    face_bg[0] = (142 + WIDESCREENDELTA) * vid_resolution;
+    face_bg[1] = 0;
+    face_bg[2] = 37 * vid_resolution;
+    face_bg[3] = 32 * vid_resolution;
+    face_bg[4] = 168 * vid_resolution;
 
     // Armor
-    armr_x = (179 + WIDESCREENDELTA) * vid_resolution;
-    armr_size_x = 56 * vid_resolution;
-    armr_size_y = 20 * vid_resolution;
-    armr_y_start = 2 * vid_resolution;
-    armr_y_end = 170 * vid_resolution;
+    armr_bg[0] = (179 + WIDESCREENDELTA) * vid_resolution;
+    armr_bg[1] = 2 * vid_resolution;
+    armr_bg[2] = 56 * vid_resolution;
+    armr_bg[3] = 20 * vid_resolution;
+    armr_bg[4] = 170 * vid_resolution;    
 
     // Keys
-    keys_x = (236 + WIDESCREENDELTA) * vid_resolution;
-    keys_size_x = 13 * vid_resolution;
-    keys_size_y = 32 * vid_resolution;
-    keys_y_start = 0;
-    keys_y_end = 168 * vid_resolution;
+    keys_bg[0] = (236 + WIDESCREENDELTA) * vid_resolution;
+    keys_bg[1] = 0;
+    keys_bg[2] = 13 * vid_resolution;
+    keys_bg[3] = 32 * vid_resolution;
+    keys_bg[4] = 168 * vid_resolution;
 
     // Ammo (current)
-    amoc_x = (272 + WIDESCREENDELTA) * vid_resolution;
-    amoc_size_x = 16 * vid_resolution;
-    amoc_size_y = 24 * vid_resolution;
-    amoc_y_start = 5 * vid_resolution;
-    amoc_y_end = 173 * vid_resolution;
+    amoc_bg[0] = (272 + WIDESCREENDELTA) * vid_resolution;
+    amoc_bg[1] = 5 * vid_resolution;
+    amoc_bg[2] = 16 * vid_resolution;
+    amoc_bg[3] = 24 * vid_resolution;
+    amoc_bg[4] = 173 * vid_resolution;
 
     // Ammo (max)
-    amom_x = (298 + WIDESCREENDELTA) * vid_resolution;
-    amom_size_x = 16 * vid_resolution;
-    amom_size_y = 24 * vid_resolution;
-    amom_y_start = 5 * vid_resolution;
-    amom_y_end = 173 * vid_resolution;
+    amom_bg[0] = (298 + WIDESCREENDELTA) * vid_resolution;
+    amom_bg[1] = 5 * vid_resolution;
+    amom_bg[2] = 16 * vid_resolution;
+    amom_bg[3] = 24 * vid_resolution;
+    amom_bg[4] = 173 * vid_resolution;
 
     // Disk icon
-    disk_x = (304 + WIDESCREENDELTA * 2) * vid_resolution;
-    disk_size_x = 16 * vid_resolution;
-    disk_size_y = 16 * vid_resolution;
-    disk_y_start = 17 * vid_resolution;
-    disk_y_end = 185 * vid_resolution;
+    disk_bg[0] = (304 + WIDESCREENDELTA * 2) * vid_resolution;
+    disk_bg[1] = 17 * vid_resolution;
+    disk_bg[2] = 16 * vid_resolution;
+    disk_bg[3] = 16 * vid_resolution;
+    disk_bg[4] = 185 * vid_resolution;
 }
