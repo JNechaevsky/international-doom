@@ -1,130 +1,214 @@
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-cmake_minimum_required(VERSION 3.9)
-project("Inter" VERSION 7.3.0 LANGUAGES C)
-
-# Autotools variables
-set(top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
-set(top_builddir ${CMAKE_CURRENT_BINARY_DIR})
-
-# AC_INIT variables
-set(PACKAGE_VERSION "7.3")
-set(PACKAGE_NAME "${PROJECT_NAME}")
-set(PACKAGE_FULLNAME "International Doom ${PACKAGE_VERSION}")
-set(PACKAGE_TARNAME "inter-doom")
-set(PACKAGE_STRING "${PROJECT_NAME} ${PACKAGE_VERSION}")
-
-set(PACKAGE_VERSION_HERETIC "7.0")
-set(PACKAGE_FULLNAME_HERETIC "International Heretic ${PACKAGE_VERSION_HERETIC}")
-set(PACKAGE_TARNAME_HERETIC "inter-heretic")
-set(PACKAGE_STRING_HERETIC "${PROJECT_NAME} ${PACKAGE_VERSION_HERETIC}")
-
-set(PACKAGE_BUGREPORT "julia.nechaevskaya@live.com")
-
-string(REGEX REPLACE " Doom$" "" PACKAGE_SHORTNAME "${PACKAGE_NAME}")
-set(PACKAGE_COPYRIGHT "Copyright (C) 2016-2024 Julia Nechaevskaya")
-set(PACKAGE_LICENSE "GNU GPL (version 2)")
-
-# Any settings that should apply to all targets in this directory and all
-# subdirectories should go here.  Use judiciously.
-if(MSVC)
-    add_definitions("/D_CRT_SECURE_NO_WARNINGS" "/D_CRT_SECURE_NO_DEPRECATE"
-                    "/D_CRT_NONSTDC_NO_DEPRECATE")
-else()
-    add_compile_options("-Wall"
-                        "-Wdeclaration-after-statement"
-                        "-Wredundant-decls"
-                        "-Wpedantic"
-                        # "-Wextra"
-                        # "-Wno-ignored-qualifiers"
-                        )
-endif()
-
-# Enable LTO if available.  Hovewer, CMake does not appear to support
-# LTO properly for MinGW GCC which results in much longer linking time.
-# Consider only enabling it when making a release.
-if(POLICY CMP0069)
-    cmake_policy(SET CMP0069 NEW)
-endif()
-
-include(CheckIPOSupported)
-check_ipo_supported(RESULT HAVE_LTO)
-
-include(CMakeDependentOption) # Note: replace first ON to OFF to disable.
-cmake_dependent_option(ENABLE_LTO "Use link-time optimization" ON "HAVE_LTO" OFF)
-
-# Enable ASan (AddressSanitizer).
-# Note: doesn't work with MinGW, use Clang64 if using MSYS enviroment.
-option(ENABLE_ASAN "Enable ASan" OFF)
-if(ENABLE_ASAN)
-    add_compile_options("-fsanitize=address")
-    add_link_options(-fsanitize=address)
-endif()
-
-option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
-       "Lookup package config files before using find modules" On)
-
-option(ENABLE_SDL2_NET "Enable SDL2_net" On)
-option(ENABLE_SDL2_MIXER "Enable SDL2_mixer" On)
-
-find_package(SDL2 2.0.18)
-if(ENABLE_SDL2_MIXER)
-    find_package(SDL2_mixer 2.0.2)
-else()
-    add_compile_definitions(DISABLE_SDL2MIXER=1)
-endif()
-
-if(ENABLE_SDL2_NET)
-    find_package(SDL2_net 2.0.0)
-else()
-    add_compile_definitions(DISABLE_SDL2NET=1)
-endif()
-
-option(CRISPY_TRUECOLOR "True color rendering" ON)
-
-# Check for libsamplerate.
-find_package(SampleRate)
-if(SampleRate_FOUND)
-    set(HAVE_LIBSAMPLERATE TRUE)
-endif()
-
-# Check for Miniz (replaces libpng).
-find_package(miniz 2.0.0)
-if(NOT miniz_FOUND)
-    message(STATUS "Using vendored miniz library")
-    add_subdirectory("miniz")
-endif()
-
-# Check for FluidSynth.
-find_package(FluidSynth 2.2.0)
-if(FluidSynth_FOUND)
-    set(HAVE_FLUIDSYNTH TRUE)
-endif()
-
-find_package(m)
-
-include(CheckSymbolExists)
-include(CheckIncludeFile)
-check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
-check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
-check_include_file("dirent.h" HAVE_DIRENT_H)
-
-string(CONCAT WINDOWS_RC_VERSION "${PROJECT_VERSION_MAJOR}, "
-    "${PROJECT_VERSION_MINOR}, ${PROJECT_VERSION_PATCH}, 0")
-
-# Without a hyphen. This is used for the bash-completion scripts.
-string(TOLOWER "${PACKAGE_SHORTNAME}" PROGRAM_SPREFIX)
-
-# With a hyphen, used almost everywhere else.
-set(PROGRAM_PREFIX "${PROGRAM_SPREFIX}-")
-
-configure_file(cmake/config.h.cin config.h)
-
-configure_file(src/doom-res.rc.in src/doom-res.rc)
-configure_file(src/heretic-res.rc.in src/heretic-res.rc)
-configure_file(src/setup-res.rc.in src/setup-res.rc)
-configure_file(src/setup/setup-manifest.xml.in src/setup/setup-manifest.xml)
-
-foreach(SUBDIR textscreen opl pcsound src)
+foreach(SUBDIR
+    doom 
+    heretic 
+    setup)
     add_subdirectory("${SUBDIR}")
 endforeach()
+
+# Common source files used by absolutely everything:
+
+set(COMMON_SOURCE_FILES
+    i_main.c
+    i_system.c           i_system.h
+    m_argv.c             m_argv.h
+    m_misc.c             m_misc.h)
+
+# Dedicated server (chocolate-server):
+
+set(DEDSERV_FILES
+    d_dedicated.c
+    d_iwad.c            d_iwad.h
+    d_mode.c            d_mode.h
+    deh_str.c           deh_str.h
+    i_timer.c           i_timer.h
+    m_config.c          m_config.h
+    net_common.c        net_common.h
+    net_dedicated.c     net_dedicated.h
+    net_io.c            net_io.h
+    net_packet.c        net_packet.h
+    net_sdl.c           net_sdl.h
+    net_query.c         net_query.h
+    net_server.c        net_server.h
+    net_structrw.c      net_structrw.h
+    z_native.c          z_zone.h)
+
+# Source files used by the game binaries (chocolate-doom, etc.)
+
+set(GAME_SOURCE_FILES
+    aes_prng.c          aes_prng.h
+    d_event.c           d_event.h
+                        doomkeys.h
+                        doomtype.h
+    d_iwad.c            d_iwad.h
+    d_loop.c            d_loop.h
+    d_mode.c            d_mode.h
+                        d_ticcmd.h
+    deh_str.c           deh_str.h
+    gusconf.c           gusconf.h
+    i_endoom.c          i_endoom.h
+    i_flmusic.c
+    i_glob.c            i_glob.h
+    i_input.c           i_input.h
+    i_joystick.c        i_joystick.h
+                        i_swap.h
+    i_musicpack.c
+    i_oplmusic.c
+    i_pcsound.c
+    i_sdlmusic.c
+    i_sdlsound.c
+    i_sound.c           i_sound.h
+    i_timer.c           i_timer.h
+    i_video.c           i_video.h
+    id_vars.c           id_vars.h
+    midifile.c          midifile.h
+    mus2mid.c           mus2mid.h
+    m_bbox.c            m_bbox.h
+    m_cheat.c           m_cheat.h
+    m_config.c          m_config.h
+    m_controls.c        m_controls.h
+    m_fixed.c           m_fixed.h
+    net_client.c        net_client.h
+    net_common.c        net_common.h
+    net_dedicated.c     net_dedicated.h
+    net_defs.h
+    net_gui.c           net_gui.h
+    net_io.c            net_io.h
+    net_loop.c          net_loop.h
+    net_packet.c        net_packet.h
+    net_petname.c       net_petname.h
+    net_query.c         net_query.h
+    net_sdl.c           net_sdl.h
+    net_server.c        net_server.h
+    net_structrw.c      net_structrw.h
+    sha1.c              sha1.h
+    memio.c             memio.h
+    tables.c            tables.h
+    v_diskicon.c        v_diskicon.h
+    v_trans.c           v_trans.h
+    v_video.c           v_video.h
+                        v_patch.h
+    w_checksum.c        w_checksum.h
+    w_main.c            w_main.h
+    w_wad.c             w_wad.h
+    w_file.c            w_file.h
+    w_file_stdc.c
+    w_merge.c           w_merge.h
+    z_zone.c            z_zone.h)
+
+# Platform-dependent source files:
+
+if(WIN32)
+    list(APPEND GAME_SOURCE_FILES i_winmusic.c)
+    list(APPEND GAME_SOURCE_FILES midifallback.c    midifallback.h)
+    list(APPEND GAME_SOURCE_FILES w_file_win32.c)
+elseif(POSIX)
+    list(APPEND GAME_SOURCE_FILES w_file_posix.c)
+endif()
+
+set(GAME_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/../")
+
+set(DEHACKED_SOURCE_FILES
+    deh_defs.h
+    deh_io.c            deh_io.h
+    deh_main.c          deh_main.h
+    deh_mapping.c       deh_mapping.h
+    deh_text.c)
+
+# Some games support dehacked patches, some don't:
+
+set(SOURCE_FILES ${COMMON_SOURCE_FILES} ${GAME_SOURCE_FILES})
+set(SOURCE_FILES_WITH_DEH ${SOURCE_FILES} ${DEHACKED_SOURCE_FILES})
+
+set(EXTRA_LIBS "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>" SDL2::SDL2 miniz::miniz textscreen pcsound opl)
+if(ENABLE_SDL2_MIXER)
+    list(APPEND EXTRA_LIBS SDL2_mixer::SDL2_mixer)
+endif()
+if(ENABLE_SDL2_NET)
+    list(APPEND EXTRA_LIBS SDL2_net::SDL2_net)
+endif()
+if(SampleRate_FOUND)
+    list(APPEND EXTRA_LIBS SampleRate::samplerate)
+endif()
+if(FluidSynth_FOUND)
+    list(APPEND EXTRA_LIBS FluidSynth::libfluidsynth)
+endif()
+if(WIN32)
+	list(APPEND EXTRA_LIBS winmm)
+endif()
+
+if(WIN32)
+    add_executable("${PROGRAM_PREFIX}doom" WIN32 ${SOURCE_FILES_WITH_DEH} "${CMAKE_CURRENT_BINARY_DIR}/doom-res.rc")
+else()
+    add_executable("${PROGRAM_PREFIX}doom" ${SOURCE_FILES_WITH_DEH})
+endif()
+
+target_include_directories("${PROGRAM_PREFIX}doom" PRIVATE ${GAME_INCLUDE_DIRS})
+target_link_libraries("${PROGRAM_PREFIX}doom" doom ${EXTRA_LIBS})
+
+if(MSVC)
+    set_target_properties("${PROGRAM_PREFIX}doom" PROPERTIES
+                          LINK_FLAGS "/MANIFEST:NO")
+endif()
+
+if(WIN32)
+    add_executable("${PROGRAM_PREFIX}heretic" WIN32 ${SOURCE_FILES_WITH_DEH} "${CMAKE_CURRENT_BINARY_DIR}/heretic-res.rc")
+else()
+    add_executable("${PROGRAM_PREFIX}heretic" ${SOURCE_FILES_WITH_DEH})
+endif()
+
+target_include_directories("${PROGRAM_PREFIX}heretic" PRIVATE ${GAME_INCLUDE_DIRS})
+target_link_libraries("${PROGRAM_PREFIX}heretic" heretic ${EXTRA_LIBS})
+
+if(MSVC)
+    set_target_properties("${PROGRAM_PREFIX}heretic" PROPERTIES
+                          LINK_FLAGS "/MANIFEST:NO")
+endif()
+
+set_target_properties("${PROGRAM_PREFIX}doom" PROPERTIES
+                      INTERPROCEDURAL_OPTIMIZATION ${ENABLE_LTO})
+set_target_properties("${PROGRAM_PREFIX}heretic" PROPERTIES
+                      INTERPROCEDURAL_OPTIMIZATION ${ENABLE_LTO})
+
+# Source files needed for chocolate-setup:
+
+set(SETUP_FILES
+    deh_str.c           deh_str.h
+    d_mode.c            d_mode.h
+    d_iwad.c            d_iwad.h
+    i_timer.c           i_timer.h
+    m_config.c          m_config.h
+    m_controls.c        m_controls.h
+    net_io.c            net_io.h
+    net_packet.c        net_packet.h
+    net_petname.c       net_petname.h
+    net_sdl.c           net_sdl.h
+    net_query.c         net_query.h
+    net_structrw.c      net_structrw.h
+    z_native.c          z_zone.h)
+
+if(WIN32)
+    add_executable("${PROGRAM_PREFIX}setup" WIN32 ${SETUP_FILES} ${COMMON_SOURCE_FILES} "${CMAKE_CURRENT_BINARY_DIR}/setup-res.rc")
+else()
+    add_executable("${PROGRAM_PREFIX}setup" ${SETUP_FILES} ${COMMON_SOURCE_FILES})
+endif()
+
+target_include_directories("${PROGRAM_PREFIX}setup"
+                           PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+target_link_libraries("${PROGRAM_PREFIX}setup" "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>" SDL2::SDL2 setup textscreen)
+if(ENABLE_SDL2_MIXER)
+    target_link_libraries("${PROGRAM_PREFIX}setup" SDL2_mixer::SDL2_mixer)
+endif()
+if(ENABLE_SDL2_NET)
+    target_link_libraries("${PROGRAM_PREFIX}setup" SDL2_net::SDL2_net)
+endif()
+if(WIN32)
+    target_link_libraries("${PROGRAM_PREFIX}setup" winmm)
+endif()
+
+if(MSVC)
+    set_target_properties("${PROGRAM_PREFIX}setup" PROPERTIES
+                          LINK_FLAGS "/MANIFEST:NO")
+endif()
+
+set_target_properties("${PROGRAM_PREFIX}setup" PROPERTIES
+                      INTERPROCEDURAL_OPTIMIZATION ${ENABLE_LTO})
