@@ -878,6 +878,8 @@ static void M_ShadeBackground (void)
             I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], I_ShadeFactor[dp_menu_shading]);
 #endif
         }
+        
+        st_fullupdate = true;
     }
 }
 
@@ -1598,8 +1600,8 @@ static void M_ID_Gamma (int choice)
     I_SetPalette (st_palette);
     R_InitColormaps();
     R_FillBackScreen();
-#endif
     st_fullupdate = true;
+#endif
 }
 
 static void M_ID_FOV (int choice)
@@ -4673,8 +4675,9 @@ static void M_QuickLoad(void)
 //
 static void M_DrawReadThis1(void)
 {
-    V_DrawPatchFullScreen(W_CacheLumpName(DEH_String("HELP2"), PU_CACHE), false);
     st_fullupdate = true;
+
+    V_DrawPatchFullScreen(W_CacheLumpName(DEH_String("HELP2"), PU_CACHE), false);
 }
 
 
@@ -4684,17 +4687,19 @@ static void M_DrawReadThis1(void)
 //
 static void M_DrawReadThis2(void)
 {
+    st_fullupdate = true;
+
     // We only ever draw the second page if this is 
     // gameversion == exe_doom_1_9 and gamemode == registered
 
     V_DrawPatchFullScreen(W_CacheLumpName(DEH_String("HELP1"), PU_CACHE), false);
-    st_fullupdate = true;
 }
 
 static void M_DrawReadThisCommercial(void)
 {
-    V_DrawPatchFullScreen(W_CacheLumpName(DEH_String("HELP"), PU_CACHE), false);
     st_fullupdate = true;
+
+    V_DrawPatchFullScreen(W_CacheLumpName(DEH_String("HELP"), PU_CACHE), false);
 }
 
 
@@ -4762,6 +4767,9 @@ static void M_DrawMainMenu(void)
 {
     M_ShadeBackground();
 
+    // [JN] Refresh the status bar.
+    st_fullupdate = true;
+
     V_DrawPatch(94, 2, W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
 }
 
@@ -4774,6 +4782,9 @@ static void M_DrawMainMenu(void)
 static void M_DrawNewGame(void)
 {
     M_ShadeBackground();
+
+    // [JN] Refresh the status bar.
+    st_fullupdate = true;
 
     V_DrawShadowedPatchOptional(96, 14, 0, W_CacheLumpName(DEH_String("M_NEWG"), PU_CACHE));
     V_DrawShadowedPatchOptional(54, 38, 0, W_CacheLumpName(DEH_String("M_SKILL"), PU_CACHE));
@@ -4804,6 +4815,9 @@ static int epi;
 static void M_DrawEpisode(void)
 {
     M_ShadeBackground();
+
+    // [JN] Refresh the status bar.
+    st_fullupdate = true;
 
     V_DrawShadowedPatchOptional(54, 38, 0, W_CacheLumpName(DEH_String("M_EPISOD"), PU_CACHE));
 }
@@ -5900,9 +5914,10 @@ boolean M_Responder (event_t* ev)
             I_SetPalette (st_palette);
             R_InitColormaps();
             R_FillBackScreen();
+            st_fullupdate = true;
         }
 #endif
-        st_fullupdate = true;
+        
         return true;
     }
 

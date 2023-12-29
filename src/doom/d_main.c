@@ -373,10 +373,9 @@ static void D_Display (void)
         {
             // [JN] Only forcefully update/redraw on...
             const boolean st_forceredraw = 
-                             (oldgametic < gametic             // Every game tic
-                          ||  dp_screen_size > 10              // Crispy HUD (no solid status bar background)
-                          ||  setsizeneeded                    // Screen size changing
-                          || (menuactive && dp_menu_shading)); // Active menu and background shading effect
+                             (oldgametic < gametic  // Every game tic
+                          ||  dp_screen_size > 10   // Crispy HUD (no solid status bar background)
+                          ||  setsizeneeded);       // Screen size changing
 
             ST_Drawer(st_forceredraw);
         }
