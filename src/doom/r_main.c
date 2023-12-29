@@ -903,6 +903,8 @@ void R_ExecuteSetViewSize (void)
     flipviewwidth = flipscreenwidth + (gp_flip_levels ? (SCREENWIDTH - scaledviewwidth) : 0);
 
     pspr_interp = false; // [crispy] interpolate weapon bobbing
+    
+    st_fullupdate = true; // [JN] Redraw status bar background.
 }
 
 

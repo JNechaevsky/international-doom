@@ -120,6 +120,13 @@ static int st_faceindex = 1;  // current face index, used by w_faces
 static int st_randomnumber; // a random number per tick
 static int faceindex; // [crispy] fix status bar face hysteresis
 
+// [JN] Condition to redraw status bar background. 
+boolean st_fullupdate = true;
+
+// [JN] Arrays for holding buffered background of status bar elements.
+static int ammo_bg[5], hlth_bg[5], face_bg[5], armr_bg[5];
+static int keys_bg[5], amoc_bg[5], amom_bg[5], disk_bg[5];
+
 cheatseq_t cheat_wait = CHEAT("id", 0);
 cheatseq_t cheat_mus = CHEAT("idmus", 2);
 cheatseq_t cheat_god = CHEAT("iddqd", 0);
@@ -1297,12 +1304,64 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 }
 
 // -----------------------------------------------------------------------------
+// ST_UpdateElementsBackground
+// [JN] Use V_CopyRect to draw/update background under elements.
+//      This is notably faster than re-drawing entire background.
+// -----------------------------------------------------------------------------
+
+static void ST_UpdateElementsBackground (void)
+{
+    // Ammo
+    V_CopyRect(ammo_bg[0], ammo_bg[1], st_backing_screen,
+               ammo_bg[2], ammo_bg[3],
+               ammo_bg[0], ammo_bg[4]);
+
+    // Health
+    V_CopyRect(hlth_bg[0], hlth_bg[1], st_backing_screen,
+               hlth_bg[2], hlth_bg[3],
+               hlth_bg[0], hlth_bg[4]);
+
+    // Player face
+    V_CopyRect(face_bg[0], face_bg[1], st_backing_screen,
+               face_bg[2], face_bg[3],
+               face_bg[0], face_bg[4]);
+
+    // Armor
+    V_CopyRect(armr_bg[0], armr_bg[1], st_backing_screen,
+               armr_bg[2], armr_bg[3],
+               armr_bg[0], armr_bg[4]);
+
+    // Keys
+    V_CopyRect(keys_bg[0], keys_bg[1], st_backing_screen,
+               keys_bg[2], keys_bg[3],
+               keys_bg[0], keys_bg[4]);
+
+    // Ammo (current)
+    V_CopyRect(amoc_bg[0], amoc_bg[1], st_backing_screen,
+               amoc_bg[2], amoc_bg[3],
+               amoc_bg[0], amoc_bg[4]);
+
+    // Ammo (max)
+    V_CopyRect(amom_bg[0], amom_bg[1], st_backing_screen,
+               amom_bg[2], amom_bg[3],
+               amom_bg[0], amom_bg[4]);
+
+    // Disk icon
+    V_CopyRect(disk_bg[0], disk_bg[1], st_backing_screen,
+               disk_bg[2], disk_bg[3],
+               disk_bg[0], disk_bg[4]);
+}
+
+// -----------------------------------------------------------------------------
 // ST_Drawer
 // [JN] Main drawing function, totally rewritten.
 // -----------------------------------------------------------------------------
 
 void ST_Drawer (boolean force)
 {
+    const boolean st_background_on = 
+                    dp_screen_size <= 10 || (automapactive && !automap_overlay);
+
     if (force)
     {
     // [JN] Wide status bar.
@@ -1312,7 +1371,7 @@ void ST_Drawer (boolean force)
     plyr = &players[displayplayer];
 
     // Status bar background.
-    if (dp_screen_size <= 10 || (automapactive && !automap_overlay))
+    if (st_background_on && st_fullupdate)
     {
         V_UseBuffer(st_backing_screen);
 
@@ -1368,6 +1427,13 @@ void ST_Drawer (boolean force)
         V_RestoreBuffer();
 
         V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, ST_HEIGHT * vid_resolution, 0, ST_Y * vid_resolution);
+    }
+
+    st_fullupdate = false;
+
+    if (st_background_on)
+    {
+        ST_UpdateElementsBackground();
     }
 
     // [crispy] draw berserk pack instead of no ammo if appropriate
@@ -1661,4 +1727,69 @@ void ST_Init (void)
     ST_loadData();
     st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ST_HEIGHT * MAXHIRES)
                       * sizeof(*st_backing_screen), PU_STATIC, 0);
+}
+
+// -----------------------------------------------------------------------------
+// ST_InitElementsBackground
+// [JN] Preallocate rectangle sizes for status bar buffered drawing 
+//      to avoid some extra multiplying calculations while drawing.
+// -----------------------------------------------------------------------------
+
+void ST_InitElementsBackground (void)
+{
+    // Ammo
+    ammo_bg[0] = WIDESCREENDELTA * vid_resolution;
+    ammo_bg[1] = 2 * vid_resolution;
+    ammo_bg[2] = 45 * vid_resolution;
+    ammo_bg[3] = 20 * vid_resolution;
+    ammo_bg[4] = 170 * vid_resolution;
+
+    // Health
+    hlth_bg[0] = (49 + WIDESCREENDELTA) * vid_resolution;
+    hlth_bg[1] = 2 * vid_resolution;
+    hlth_bg[2] = 55 * vid_resolution;
+    hlth_bg[3] = 20 * vid_resolution;
+    hlth_bg[4] = 170 * vid_resolution;
+
+    // Player face background
+    face_bg[0] = (142 + WIDESCREENDELTA) * vid_resolution;
+    face_bg[1] = 0;
+    face_bg[2] = 37 * vid_resolution;
+    face_bg[3] = 32 * vid_resolution;
+    face_bg[4] = 168 * vid_resolution;
+
+    // Armor
+    armr_bg[0] = (179 + WIDESCREENDELTA) * vid_resolution;
+    armr_bg[1] = 2 * vid_resolution;
+    armr_bg[2] = 56 * vid_resolution;
+    armr_bg[3] = 20 * vid_resolution;
+    armr_bg[4] = 170 * vid_resolution;    
+
+    // Keys
+    keys_bg[0] = (236 + WIDESCREENDELTA) * vid_resolution;
+    keys_bg[1] = 0;
+    keys_bg[2] = 13 * vid_resolution;
+    keys_bg[3] = 32 * vid_resolution;
+    keys_bg[4] = 168 * vid_resolution;
+
+    // Ammo (current)
+    amoc_bg[0] = (272 + WIDESCREENDELTA) * vid_resolution;
+    amoc_bg[1] = 5 * vid_resolution;
+    amoc_bg[2] = 16 * vid_resolution;
+    amoc_bg[3] = 24 * vid_resolution;
+    amoc_bg[4] = 173 * vid_resolution;
+
+    // Ammo (max)
+    amom_bg[0] = (298 + WIDESCREENDELTA) * vid_resolution;
+    amom_bg[1] = 5 * vid_resolution;
+    amom_bg[2] = 16 * vid_resolution;
+    amom_bg[3] = 24 * vid_resolution;
+    amom_bg[4] = 173 * vid_resolution;
+
+    // Disk icon
+    disk_bg[0] = (304 + WIDESCREENDELTA * 2) * vid_resolution;
+    disk_bg[1] = 17 * vid_resolution;
+    disk_bg[2] = 16 * vid_resolution;
+    disk_bg[3] = 16 * vid_resolution;
+    disk_bg[4] = 185 * vid_resolution;
 }

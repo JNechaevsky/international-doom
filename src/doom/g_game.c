@@ -1491,6 +1491,11 @@ void G_PlayerFinishLevel (int player)
     // [crispy] reset additional player properties
     p->lookdir = p->oldlookdir = p->centering = 0;
     st_palette = 0;
+    // [JN] Redraw status bar background.
+    if (p == &players[consoleplayer])
+    {
+        st_fullupdate = true;
+    }
     // [JN] Return controls to the player.
     crl_spectating = 0;
 } 
@@ -1540,6 +1545,11 @@ void G_PlayerReborn (int player)
     for (i=0 ; i<NUMAMMO ; i++) 
 	p->maxammo[i] = maxammo[i]; 
 		 
+    // [JN] Redraw status bar background.
+    if (p == &players[consoleplayer])
+    {
+        st_fullupdate = true;
+    }
 }
 
 //

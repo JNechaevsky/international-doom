@@ -800,6 +800,11 @@ boolean AM_Responder (event_t *ev)
         if (!automapactive)
         {
             AM_Start ();
+            if (!automap_overlay)
+            {
+                // [JN] Redraw status bar background.
+                st_fullupdate = true;
+            }
         }
         else
         {
@@ -815,6 +820,11 @@ boolean AM_Responder (event_t *ev)
         if (ev->type == ev_keydown && ev->data1 == key_map_toggle)
         {
             AM_Start ();
+            if (!automap_overlay)
+            {
+                // [JN] Redraw status bar background.
+                st_fullupdate = true;
+            }
             rc = true;
         }
     }
@@ -949,8 +959,16 @@ boolean AM_Responder (event_t *ev)
         {
             // [JN] Automap overlay mode.
             automap_overlay = !automap_overlay;
-            CT_SetMessage(plr, DEH_String(automap_overlay ?
-                          ID_AUTOMAPOVERLAY_ON : ID_AUTOMAPOVERLAY_OFF), false, NULL);
+            if (automap_overlay)
+            {
+                CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_ON), false, NULL);
+            }
+            else
+            {
+                CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_OFF), false, NULL);
+                // [JN] Redraw status bar background.
+                st_fullupdate = true;
+            }
         }
         else
         {
