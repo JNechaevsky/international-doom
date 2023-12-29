@@ -537,7 +537,8 @@ void D_DoomLoop (void)
     I_RegisterWindowIcon(doom_data, doom_w, doom_h);
     I_InitGraphics();
     V_EnableLoadingDisk();
-    ST_InitElementsBackground(); // [JN] re-calculate status bar elements background buffers
+    // [JN] Calculate status bar elements background buffers.
+    ST_InitElementsBackground();
 
     TryRunTics();
 

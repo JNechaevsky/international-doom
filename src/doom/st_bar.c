@@ -120,6 +120,9 @@ static int st_faceindex = 1;  // current face index, used by w_faces
 static int st_randomnumber; // a random number per tick
 static int faceindex; // [crispy] fix status bar face hysteresis
 
+// [JN] Condition to redraw status bar background. 
+boolean st_fullupdate = true;
+
 // [JN] Variables for buffered status bar drawing via V_CopyRect.
 static int ammo_x, ammo_size_x, ammo_size_y, ammo_y_start, ammo_y_end;
 static int hlth_x, hlth_size_x, hlth_size_y, hlth_y_start, hlth_y_end;
@@ -1359,8 +1362,6 @@ static void ST_UpdateElementsBackground (void)
 // ST_Drawer
 // [JN] Main drawing function, totally rewritten.
 // -----------------------------------------------------------------------------
-
-boolean st_fullupdate = true;
 
 void ST_Drawer (boolean force)
 {

@@ -904,7 +904,7 @@ void R_ExecuteSetViewSize (void)
 
     pspr_interp = false; // [crispy] interpolate weapon bobbing
     
-    st_fullupdate = true; // [JN] Redraw status bar.
+    st_fullupdate = true; // [JN] Redraw status bar background.
 }
 
 

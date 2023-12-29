@@ -4771,7 +4771,7 @@ static void M_DrawMainMenu(void)
 {
     M_ShadeBackground();
 
-    // [JN] Refresh the status bar.
+    // [JN] Always redraw status bar background.
     st_fullupdate = true;
 
     V_DrawPatch(94, 2, W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
@@ -4787,7 +4787,7 @@ static void M_DrawNewGame(void)
 {
     M_ShadeBackground();
 
-    // [JN] Refresh the status bar.
+    // [JN] Always redraw status bar background.
     st_fullupdate = true;
 
     V_DrawShadowedPatchOptional(96, 14, 0, W_CacheLumpName(DEH_String("M_NEWG"), PU_CACHE));
@@ -4820,7 +4820,7 @@ static void M_DrawEpisode(void)
 {
     M_ShadeBackground();
 
-    // [JN] Refresh the status bar.
+    // [JN] Always redraw status bar background.
     st_fullupdate = true;
 
     V_DrawShadowedPatchOptional(54, 38, 0, W_CacheLumpName(DEH_String("M_EPISOD"), PU_CACHE));
@@ -5921,7 +5921,6 @@ boolean M_Responder (event_t* ev)
             st_fullupdate = true;
         }
 #endif
-        
         return true;
     }
 
