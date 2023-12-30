@@ -124,7 +124,7 @@ static int faceindex; // [crispy] fix status bar face hysteresis
 boolean st_fullupdate = true;
 
 // [JN] Arrays for holding buffered background of status bar elements.
-static int ammo_bg[5], hlth_bg[5], face_bg[5], armr_bg[5];
+static int ammo_bg[5], hlth_bg[5], frgs_bg[5], face_bg[5], armr_bg[5];
 static int keys_bg[5], amoc_bg[5], amom_bg[5], disk_bg[5];
 
 cheatseq_t cheat_wait = CHEAT("id", 0);
@@ -1321,6 +1321,11 @@ static void ST_UpdateElementsBackground (void)
                hlth_bg[2], hlth_bg[3],
                hlth_bg[0], hlth_bg[4]);
 
+    // ARMS or frags
+    V_CopyRect(frgs_bg[0], frgs_bg[1], st_backing_screen,
+               frgs_bg[2], frgs_bg[3],
+               frgs_bg[0], frgs_bg[4]);
+
     // Player face
     V_CopyRect(face_bg[0], face_bg[1], st_backing_screen,
                face_bg[2], face_bg[3],
@@ -1750,6 +1755,13 @@ void ST_InitElementsBackground (void)
     hlth_bg[2] = 57 * vid_resolution;
     hlth_bg[3] = 20 * vid_resolution;
     hlth_bg[4] = 170 * vid_resolution;
+
+    // ARMS or frags
+    frgs_bg[0] = (105 + WIDESCREENDELTA) * vid_resolution;
+    frgs_bg[1] = 2 * vid_resolution;
+    frgs_bg[2] = 37 * vid_resolution;
+    frgs_bg[3] = 20 * vid_resolution;
+    frgs_bg[4] = 170 * vid_resolution;
 
     // Player face background
     face_bg[0] = (142 + WIDESCREENDELTA) * vid_resolution;
