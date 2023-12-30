@@ -2501,6 +2501,14 @@ G_InitNew
 
     M_ClearRandom ();
 
+    // [crispy] Spider Mastermind gets increased health in Sigil II. Normally
+    // the Sigil II DEH handles this, but we don't load the DEH if the WAD gets
+    // sideloaded.
+    if (sigil2)
+    {
+        mobjinfo[MT_SPIDER].spawnhealth = (episode == 6) ? 9000 : 3000;
+    }
+
     if (skill == sk_nightmare || respawnparm )
 	respawnmonsters = true;
     else
