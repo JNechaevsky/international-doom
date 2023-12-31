@@ -7,14 +7,14 @@ International Doom is created by [Julia Nechaevskaya](mailto:julia.nechaevskaya@
 
 ### Download
 
-International Doom, version 7.2.1 (released: October 29, 2023):
-* Windows (32-bit): [inter-doom-7.2.1-win32.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.2.1/inter-doom-7.2.1-win32.zip)
-* Windows (64-bit): [inter-doom-7.2.1-win64.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.2.1/inter-doom-7.2.1-win64.zip)
+International Doom, version 7.3 (released: December 31, 2023):
+* Windows (32-bit): [inter-doom-7.3-win32.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.3/inter-doom-7.3-win32.zip)
+* Windows (64-bit): [inter-doom-7.3-win64.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.3/inter-doom-7.3-win64.zip)
 
 ### Major features
 
 * Optional True Color render.
-* Original, double and quad rendering resolution.
+* Up to x6 (1200p) rendering resolutions.
 * Uncapped framerate.
 * Additional, darker gamma-correction levels.
 * Support for OPL2, OPL3, MIDI, Fluidsynth and GUS music playback.
@@ -25,7 +25,7 @@ International Doom, version 7.2.1 (released: October 29, 2023):
 * Support for nodes in extended format (ZDBSP and DeePBSP).
 * Support for BEX/DEHEXTRA DeHackEd extensions.
 
-Note: no BOOM/MBF compatibility is provided﻿.
+Note: BOOM/MBF/MBF21 specifications are not supported.
 
 ### License
 
