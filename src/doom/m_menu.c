@@ -3781,6 +3781,10 @@ static void M_ID_TimerDirection (int choice)
 static void M_ID_ProgressBar (int choice)
 {
     demo_bar ^= 1;
+
+    // [JN] Redraw status bar to possibly 
+    // clean up remainings of progress bar.
+    st_fullupdate = true;
 }
 
 static void M_ID_InternalDemos (int choice)
