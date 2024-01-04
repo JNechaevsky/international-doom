@@ -500,66 +500,17 @@ static void ShadeLine(int x, int y, int height, int shade)
     dest = I_VideoBuffer + y * SCREENWIDTH + x + (WIDESCREENDELTA * vid_resolution);
     while (height--)
     {
-        // [JN] TODO - simplify this mess...
-        if (vid_resolution == 2)
+        // [JN] Need to draw extra lines for higher resolutions.
+        if (vid_resolution > 1)
         {
+            for (int i = 0 ; i < vid_resolution - 1 ; i++)
+            {
 #ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
+                *(dest + i + 1) = *(shades + *dest);
 #else
-            *(dest + 1) = I_BlendDark(*dest, shade);
+                *(dest + i + 1) = I_BlendDark(*dest, shade);
 #endif
-        }
-        if (vid_resolution == 3)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
-            *(dest + 2) = *(shades + *dest);
-#else
-            *(dest + 1) = I_BlendDark(*dest, shade);    
-            *(dest + 2) = I_BlendDark(*dest, shade);
-#endif
-        }
-        if (vid_resolution == 4)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
-            *(dest + 2) = *(shades + *dest);
-            *(dest + 3) = *(shades + *dest);
-#else
-            *(dest + 1) = I_BlendDark(*dest, shade);    
-            *(dest + 2) = I_BlendDark(*dest, shade);
-            *(dest + 3) = I_BlendDark(*dest, shade);
-#endif
-        }
-        if (vid_resolution == 5)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
-            *(dest + 2) = *(shades + *dest);
-            *(dest + 3) = *(shades + *dest);
-            *(dest + 4) = *(shades + *dest);
-#else
-            *(dest + 1) = I_BlendDark(*dest, shade);    
-            *(dest + 2) = I_BlendDark(*dest, shade);
-            *(dest + 3) = I_BlendDark(*dest, shade);
-            *(dest + 4) = I_BlendDark(*dest, shade);
-#endif
-        }
-        if (vid_resolution == 6)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
-            *(dest + 2) = *(shades + *dest);
-            *(dest + 3) = *(shades + *dest);
-            *(dest + 4) = *(shades + *dest);
-            *(dest + 5) = *(shades + *dest);
-#else
-            *(dest + 1) = I_BlendDark(*dest, shade);    
-            *(dest + 2) = I_BlendDark(*dest, shade);
-            *(dest + 3) = I_BlendDark(*dest, shade);
-            *(dest + 4) = I_BlendDark(*dest, shade);
-            *(dest + 5) = I_BlendDark(*dest, shade);
-#endif
+            }
         }
 
 #ifndef CRISPY_TRUECOLOR
@@ -893,6 +844,105 @@ void SB_Drawer(void)
             UpdateState |= I_MESSAGES;
         }
     }
+
+    // [JN] Ammo widget.
+    if (st_ammo_widget)
+    {
+        char str[8];
+        // [JN] Move widgets slightly down when using a fullscreen status bar.
+        const int yy = dp_screen_size > 10
+                        && (!automapactive || automap_overlay) ? 13 : 0;
+
+        // Brief
+        if (st_ammo_widget < 3)
+        {
+            dp_translucent = (st_ammo_widget == 2);
+
+            MN_DrTextA("W", 282 + WIDESCREENDELTA,  96 + yy, cr[CR_YELLOW]);
+            MN_DrTextA("E", 282 + WIDESCREENDELTA, 106 + yy, cr[CR_GREEN]);
+            MN_DrTextA("D", 282 + WIDESCREENDELTA, 116 + yy, cr[CR_BLUE2]);
+            MN_DrTextA("H", 282 + WIDESCREENDELTA, 126 + yy, cr[CR_RED]);
+            MN_DrTextA("P", 282 + WIDESCREENDELTA, 136 + yy, cr[CR_ORANGE]);
+            MN_DrTextA("M", 282 + WIDESCREENDELTA, 146 + yy, cr[CR_LIGHTGRAY]);
+
+            // Elven Wand
+            sprintf(str, "%d",  CPlayer->ammo[am_goldwand]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96 + yy, cr[CR_GRAY]);
+
+            // Ethereal Crossbow
+            sprintf(str, "%d",  CPlayer->ammo[am_crossbow]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106 + yy, cr[CR_GRAY]);
+
+            // Dragon Claw
+            sprintf(str, "%d",  CPlayer->ammo[am_blaster]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116 + yy, cr[CR_GRAY]);
+
+            // Hellstaff
+            sprintf(str, "%d",  CPlayer->ammo[am_skullrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126 + yy, cr[CR_GRAY]);
+
+            // Phoenix Rod
+            sprintf(str, "%d",  CPlayer->ammo[am_phoenixrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136 + yy, cr[CR_GRAY]);
+
+            // Firemace
+            sprintf(str, "%d",  CPlayer->ammo[am_mace]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
+
+            dp_translucent = false;
+        }
+        // Full
+        else
+        {
+            dp_translucent = (st_ammo_widget == 4);
+
+            MN_DrTextA("W", 251 + WIDESCREENDELTA,  96 + yy, cr[CR_YELLOW]);
+            MN_DrTextA("E", 251 + WIDESCREENDELTA, 106 + yy, cr[CR_GREEN]);
+            MN_DrTextA("D", 251 + WIDESCREENDELTA, 116 + yy, cr[CR_BLUE2]);
+            MN_DrTextA("H", 251 + WIDESCREENDELTA, 126 + yy, cr[CR_RED]);
+            MN_DrTextA("P", 251 + WIDESCREENDELTA, 136 + yy, cr[CR_ORANGE]);
+            MN_DrTextA("M", 251 + WIDESCREENDELTA, 146 + yy, cr[CR_LIGHTGRAY]);
+
+            // Elven Wand
+            sprintf(str, "%d/",  CPlayer->ammo[am_goldwand]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 96 + yy, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_goldwand]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96 + yy, cr[CR_GRAY]);
+
+            // Ethereal Crossbow
+            sprintf(str, "%d/",  CPlayer->ammo[am_crossbow]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 106 + yy, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_crossbow]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106 + yy, cr[CR_GRAY]);
+
+            // Dragon Claw
+            sprintf(str, "%d/",  CPlayer->ammo[am_blaster]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 116 + yy, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_blaster]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116 + yy, cr[CR_GRAY]);
+
+            // Hellstaff
+            sprintf(str, "%d/",  CPlayer->ammo[am_skullrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 126 + yy, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_skullrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126 + yy, cr[CR_GRAY]);
+
+            // Phoenix Rod
+            sprintf(str, "%d/",  CPlayer->ammo[am_phoenixrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 136 + yy, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_phoenixrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136 + yy, cr[CR_GRAY]);
+
+            // Firemace
+            sprintf(str, "%d/",  CPlayer->ammo[am_mace]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 146 + yy, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_mace]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
+
+            dp_translucent = false;
+        }
+    }
+
 /*
 		if(CPlayer->powers[pw_weaponlevel2] > BLINKTHRESHOLD
 			|| (CPlayer->powers[pw_weaponlevel2]&8))
@@ -908,7 +958,7 @@ void SB_Drawer(void)
 }
 
 // -----------------------------------------------------------------------------
-// SB_MainBarColor
+// SB_NumberColor
 // [crispy] return ammo/health/armor widget color
 // -----------------------------------------------------------------------------
 
@@ -920,7 +970,7 @@ enum
     hudcolor_armor
 } hudcolor_t;
 
-static byte *SB_MainBarColor (int i)
+static byte *SB_NumberColor (int i)
 {
     if (!st_colored_stbar)
     {
@@ -1079,9 +1129,7 @@ void DrawCommonBar(void)
         V_DrawPatch(0, 190, PatchLTFACE);
         V_DrawPatch(276, 190, PatchRTFACE);
         ShadeChain();
-        // [JN] Update full status bar area for proper chain background redrawing.
-        // UpdateState |= I_STATBAR;
-        SB_ForceRedraw();
+        UpdateState |= I_STATBAR;
     }
 }
 
@@ -1135,7 +1183,7 @@ void DrawMainBar(void)
         if (temp != oldfrags)
         {
             V_DrawPatch(57, 171, PatchARMCLEAR);
-            dp_translation = SB_MainBarColor(hudcolor_frags);
+            dp_translation = SB_NumberColor(hudcolor_frags);
             DrINumber(temp, 61, 170);
             dp_translation = NULL;
             oldfrags = temp;
@@ -1153,11 +1201,13 @@ void DrawMainBar(void)
         {
             temp = 100;
         }
-        if (oldlife != temp)
+        // [JN] Need to perform update for colored status bar.
+        // TODO - not very optimal, ideally to update once after invul. runs out.
+        if (oldlife != temp || st_colored_stbar)
         {
             oldlife = temp;
             V_DrawPatch(57, 171, PatchARMCLEAR);
-            dp_translation = SB_MainBarColor(hudcolor_health);
+            dp_translation = SB_NumberColor(hudcolor_health);
             DrINumber(temp, 61, 170);
             dp_translation = NULL;
             UpdateState |= I_STATBAR;
@@ -1189,7 +1239,7 @@ void DrawMainBar(void)
         V_DrawPatch(108, 161, PatchBLACKSQ);
         if (temp && CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
         {
-            dp_translation = SB_MainBarColor(hudcolor_ammo);
+            dp_translation = SB_NumberColor(hudcolor_ammo);
             DrINumber(temp, 109, 162);
             dp_translation = NULL;
             V_DrawPatch(111, 172,
@@ -1202,10 +1252,12 @@ void DrawMainBar(void)
     }
 
     // Armor
-    if (oldarmor != CPlayer->armorpoints)
+    // [JN] Need to perform update for colored status bar.
+    // TODO - not very optimal, ideally to update once after invul. runs out.
+    if (oldarmor != CPlayer->armorpoints || st_colored_stbar)
     {
         V_DrawPatch(224, 171, PatchARMCLEAR);
-        dp_translation = SB_MainBarColor(hudcolor_armor);
+        dp_translation = SB_NumberColor(hudcolor_armor);
         DrINumber(CPlayer->armorpoints, 228, 170);
         dp_translation = NULL;
         oldarmor = CPlayer->armorpoints;
@@ -1253,74 +1305,134 @@ void DrawInventoryBar(void)
     }
 }
 
-void DrawFullScreenStuff(void)
+// -----------------------------------------------------------------------------
+// DrawFullScreenStuff
+// [JN] Upgraded to draw extra elements.
+// -----------------------------------------------------------------------------
+
+static void DrawFullScreenStuff (void)
 {
     const char *patch;
+    const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
     int i;
-    int x;
-    int temp;
 
     UpdateState |= I_FULLSCRN;
-    dp_translation = SB_MainBarColor(hudcolor_health);
-    if (CPlayer->mo->health > 0)
-    {
-        DrBNumber(CPlayer->mo->health, 5, 180);
-    }
-    else
-    {
-        DrBNumber(0, 5, 180);
-    }
+
+    // Health.
+    dp_translation = SB_NumberColor(hudcolor_health);
+    DrBNumber(CPlayer->health, -1 - wide_x, 175);
     dp_translation = NULL;
-    if (deathmatch)
-    {
-        temp = 0;
-        for (i = 0; i < MAXPLAYERS; i++)
-        {
-            if (playeringame[i])
-            {
-                temp += CPlayer->frags[i];
-            }
-        }
-        dp_translation = SB_MainBarColor(hudcolor_frags);
-        DrINumber(temp, 45, 185);
-        dp_translation = NULL;
-    }
+    // Draw health vial.
+    V_DrawShadowedPatch(41 - wide_x, 217, W_CacheLumpName(DEH_String("PTN1A0"), PU_CACHE));
+
     if (!inventory)
     {
+        // Armor.
+        if (CPlayer->armorpoints > 0)
+        {
+            dp_translation = SB_NumberColor(hudcolor_armor);
+            DrBNumber(CPlayer->armorpoints, 51 - wide_x, 175);
+            dp_translation = NULL;
+
+            // [JN] Draw an appropriate picture of a shield.
+            // Slightly different placements needed for better placement.
+            if (CPlayer->armortype == 1)
+            {
+                V_DrawShadowedPatch(103 - wide_x, 213, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
+            }
+            else
+            {
+                V_DrawShadowedPatch(101 - wide_x, 214, W_CacheLumpName(DEH_String("SHD2A0"), PU_CACHE));
+            }
+        }
+
+        // Frags.
+        if (deathmatch)
+        {
+            int temp = 0;
+
+            for (i = 0 ; i < MAXPLAYERS ; i++)
+            {
+                if (playeringame[i])
+                {
+                    temp += CPlayer->frags[i];
+                }
+            }
+
+            dp_translation = SB_NumberColor(hudcolor_frags);
+            DrINumber(temp, 111 - wide_x, 178);
+            dp_translation = NULL;
+        }
+
+        // Ready artifact.
         if (CPlayer->readyArtifact > 0)
         {
+            // [JN] Move a little to the right until player has one of 
+            // the keys to avoid drawing too much empty space.
+            const int xx = CPlayer->keys[key_yellow]
+                        || CPlayer->keys[key_green]
+                        || CPlayer->keys[key_blue] ? 0 : 16;
+
             patch = DEH_String(patcharti[CPlayer->readyArtifact]);
-            V_DrawTLPatch(286, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
-            V_DrawPatch(286, 170, W_CacheLumpName(patch, PU_CACHE));
-            DrSmallNumber(CPlayer->inventory[inv_ptr].count, 307, 192);
+
+            V_DrawTLPatch(211 + xx + wide_x, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+            V_DrawShadowedPatch(211 + xx + wide_x, 170, W_CacheLumpName(patch, PU_CACHE));
+            DrSmallNumber(CPlayer->inventory[inv_ptr].count, 232 + xx + wide_x, 192);
+        }
+
+        // Keys.
+        {
+            if (CPlayer->keys[key_yellow])
+            {
+                V_DrawShadowedPatch(247 + wide_x, 173, W_CacheLumpName(DEH_String("YKEYICON"), PU_CACHE));
+            }
+            if (CPlayer->keys[key_green])
+            {
+                V_DrawShadowedPatch(247 + wide_x, 181, W_CacheLumpName(DEH_String("GKEYICON"), PU_CACHE));
+            }
+            if (CPlayer->keys[key_blue])
+            {
+                V_DrawShadowedPatch(247 + wide_x, 189, W_CacheLumpName(DEH_String("BKEYICON"), PU_CACHE));
+            }
         }
     }
     else
     {
-        x = inv_ptr - curpos;
-        for (i = 0; i < 7; i++)
+        int x = inv_ptr - curpos;
+
+        for (i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(50 + i * 31, 168,
-                          W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
-            if (CPlayer->inventorySlotNum > x + i
-                && CPlayer->inventory[x + i].type != arti_none)
+            V_DrawTLPatch(47 + i * 31, 169, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+
+            if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
                 patch = DEH_String(patcharti[CPlayer->inventory[x + i].type]);
-                V_DrawPatch(50 + i * 31, 168,
-                            W_CacheLumpName(patch, PU_CACHE));
-                DrSmallNumber(CPlayer->inventory[x + i].count, 69 + i * 31,
-                              190);
+                V_DrawPatch(47 + i * 31, 169, W_CacheLumpName(patch, PU_CACHE));
+                DrSmallNumber(CPlayer->inventory[x + i].count, 66 + i * 31, 191);
             }
         }
-        V_DrawPatch(50 + curpos * 31, 197, PatchSELECTBOX);
+
+        V_DrawPatch(47 + curpos * 31, 198, PatchSELECTBOX);
+
         if (x != 0)
         {
-            V_DrawPatch(38, 167, !(leveltime & 4) ? PatchINVLFGEM1 : PatchINVLFGEM2);
+            V_DrawPatch(35, 168, !(leveltime & 4) ? PatchINVLFGEM1 : PatchINVLFGEM2);
         }
         if (CPlayer->inventorySlotNum - x > 7)
         {
-            V_DrawPatch(269, 167, !(leveltime & 4) ? PatchINVRTGEM1 : PatchINVRTGEM2);
+            V_DrawPatch(266, 168, !(leveltime & 4) ? PatchINVRTGEM1 : PatchINVRTGEM2);
         }
+    }
+
+    // [JN] Draw amount of current weapon ammo. Don't draw for staff and gauntlets.
+    if (CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
+    {
+        dp_translation = SB_NumberColor(hudcolor_ammo);
+        DrBNumber(CPlayer->ammo[wpnlev1info[CPlayer->readyweapon].ammo], 262 + wide_x, 175);
+        dp_translation = NULL;
+
+        // Draw appropriate ammo picture.
+        V_DrawShadowedPatch(297 + wide_x, 177, W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]), PU_CACHE));
     }
 }
 

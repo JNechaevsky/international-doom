@@ -244,6 +244,11 @@ void ID_LeftWidgets (void)
         {
             yy -= 10;
         }
+        // Move widgets slightly more down when using a fullscreen status bar.
+        if (dp_screen_size > 10 && (!automapactive || automap_overlay))
+        {
+            yy += 13;
+        }
 
         // Render counters
         if (widget_render)

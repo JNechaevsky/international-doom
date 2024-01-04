@@ -98,6 +98,7 @@ int xhair_color = 0;
 int st_colored_stbar = 0;
 int st_negative_health = 0;
 int st_blinking_keys = 0;
+int st_ammo_widget = 0;  // Heretic only
 
 int aud_z_axis_sfx = 0;
 int aud_full_sounds = 0;

@@ -495,6 +495,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(st_colored_stbar),
     CONFIG_VARIABLE_INT(st_negative_health),
     CONFIG_VARIABLE_INT(st_blinking_keys),
+    CONFIG_VARIABLE_INT(st_ammo_widget),  // Heretic only
 
     // Audible
     CONFIG_VARIABLE_INT(aud_z_axis_sfx),

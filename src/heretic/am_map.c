@@ -786,6 +786,11 @@ boolean AM_Responder (event_t *ev)
         if (!automapactive)
         {
             AM_Start ();
+            if (!automap_overlay)
+            {
+                // [JN] Redraw status bar background.
+                SB_state = -1;
+            }
         }
         else
         {
@@ -800,6 +805,11 @@ boolean AM_Responder (event_t *ev)
          && gamestate == GS_LEVEL)
         {
             AM_Start ();
+            if (!automap_overlay)
+            {
+                // [JN] Redraw status bar background.
+                SB_state = -1;
+            }
             rc = true;
         }
     }
@@ -939,6 +949,8 @@ boolean AM_Responder (event_t *ev)
             {
                 CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_OFF), false);
                 antialias = &antialias_normal;
+                // [JN] Redraw status bar background.
+                SB_state = -1;
             }
         }
         else
@@ -2187,8 +2199,22 @@ void AM_LevelNameDrawer (void)
 
     if (gameepisode <= numepisodes && gamemap < 10)
     {
+        int x, y;
+
+        // [JN] Move widgets slightly down when using a fullscreen status bar.
+        if (dp_screen_size > 10 && (!automapactive || automap_overlay))
+        {
+            x = -WIDESCREENDELTA;
+            y = 159;
+        }
+        else
+        {
+            x = 20;
+            y = 146;
+        }
+
         level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
-        MN_DrTextA(DEH_String(level_name), 20, 146, NULL);
+        MN_DrTextA(DEH_String(level_name), x, y, NULL);
     }
 
 
