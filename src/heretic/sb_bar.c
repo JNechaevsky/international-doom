@@ -1175,9 +1175,7 @@ void DrawCommonBar(void)
         V_DrawPatch(0, 190, PatchLTFACE);
         V_DrawPatch(276, 190, PatchRTFACE);
         ShadeChain();
-        // [JN] Update full status bar area for proper chain background redrawing.
-        // UpdateState |= I_STATBAR;
-        SB_ForceRedraw();
+        UpdateState |= I_STATBAR;
     }
 }
 
@@ -1249,7 +1247,9 @@ void DrawMainBar(void)
         {
             temp = 100;
         }
-        if (oldlife != temp)
+        // [JN] Need to perform update for colored status bar.
+        // TODO - not very optimal, ideally to update once after invul. runs out.
+        if (oldlife != temp || st_colored_stbar)
         {
             oldlife = temp;
             V_DrawPatch(57, 171, PatchARMCLEAR);
@@ -1298,7 +1298,9 @@ void DrawMainBar(void)
     }
 
     // Armor
-    if (oldarmor != CPlayer->armorpoints)
+    // [JN] Need to perform update for colored status bar.
+    // TODO - not very optimal, ideally to update once after invul. runs out.
+    if (oldarmor != CPlayer->armorpoints || st_colored_stbar)
     {
         V_DrawPatch(224, 171, PatchARMCLEAR);
         dp_translation = SB_NumberColor(hudcolor_armor);
