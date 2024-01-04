@@ -849,42 +849,45 @@ void SB_Drawer(void)
     if (st_ammo_widget)
     {
         char str[8];
+        // [JN] Move widgets slightly down when using a fullscreen status bar.
+        const int yy = dp_screen_size > 10
+                        && (!automapactive || automap_overlay) ? 13 : 0;
 
         // Brief
         if (st_ammo_widget < 3)
         {
             dp_translucent = (st_ammo_widget == 2);
 
-            MN_DrTextA("W", 282 + WIDESCREENDELTA,  96, cr[CR_YELLOW]);
-            MN_DrTextA("E", 282 + WIDESCREENDELTA, 106, cr[CR_GREEN]);
-            MN_DrTextA("D", 282 + WIDESCREENDELTA, 116, cr[CR_BLUE2]);
-            MN_DrTextA("H", 282 + WIDESCREENDELTA, 126, cr[CR_RED]);
-            MN_DrTextA("P", 282 + WIDESCREENDELTA, 136, cr[CR_ORANGE]);
-            MN_DrTextA("M", 282 + WIDESCREENDELTA, 146, cr[CR_LIGHTGRAY]);
+            MN_DrTextA("W", 282 + WIDESCREENDELTA,  96 + yy, cr[CR_YELLOW]);
+            MN_DrTextA("E", 282 + WIDESCREENDELTA, 106 + yy, cr[CR_GREEN]);
+            MN_DrTextA("D", 282 + WIDESCREENDELTA, 116 + yy, cr[CR_BLUE2]);
+            MN_DrTextA("H", 282 + WIDESCREENDELTA, 126 + yy, cr[CR_RED]);
+            MN_DrTextA("P", 282 + WIDESCREENDELTA, 136 + yy, cr[CR_ORANGE]);
+            MN_DrTextA("M", 282 + WIDESCREENDELTA, 146 + yy, cr[CR_LIGHTGRAY]);
 
             // Elven Wand
             sprintf(str, "%d",  CPlayer->ammo[am_goldwand]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96 + yy, cr[CR_GRAY]);
 
             // Ethereal Crossbow
             sprintf(str, "%d",  CPlayer->ammo[am_crossbow]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106 + yy, cr[CR_GRAY]);
 
             // Dragon Claw
             sprintf(str, "%d",  CPlayer->ammo[am_blaster]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116 + yy, cr[CR_GRAY]);
 
             // Hellstaff
             sprintf(str, "%d",  CPlayer->ammo[am_skullrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126 + yy, cr[CR_GRAY]);
 
             // Phoenix Rod
             sprintf(str, "%d",  CPlayer->ammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136 + yy, cr[CR_GRAY]);
 
             // Firemace
             sprintf(str, "%d",  CPlayer->ammo[am_mace]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
 
             dp_translucent = false;
         }
@@ -893,48 +896,48 @@ void SB_Drawer(void)
         {
             dp_translucent = (st_ammo_widget == 4);
 
-            MN_DrTextA("W", 251 + WIDESCREENDELTA,  96, cr[CR_YELLOW]);
-            MN_DrTextA("E", 251 + WIDESCREENDELTA, 106, cr[CR_GREEN]);
-            MN_DrTextA("D", 251 + WIDESCREENDELTA, 116, cr[CR_BLUE2]);
-            MN_DrTextA("H", 251 + WIDESCREENDELTA, 126, cr[CR_RED]);
-            MN_DrTextA("P", 251 + WIDESCREENDELTA, 136, cr[CR_ORANGE]);
-            MN_DrTextA("M", 251 + WIDESCREENDELTA, 146, cr[CR_LIGHTGRAY]);
+            MN_DrTextA("W", 251 + WIDESCREENDELTA,  96 + yy, cr[CR_YELLOW]);
+            MN_DrTextA("E", 251 + WIDESCREENDELTA, 106 + yy, cr[CR_GREEN]);
+            MN_DrTextA("D", 251 + WIDESCREENDELTA, 116 + yy, cr[CR_BLUE2]);
+            MN_DrTextA("H", 251 + WIDESCREENDELTA, 126 + yy, cr[CR_RED]);
+            MN_DrTextA("P", 251 + WIDESCREENDELTA, 136 + yy, cr[CR_ORANGE]);
+            MN_DrTextA("M", 251 + WIDESCREENDELTA, 146 + yy, cr[CR_LIGHTGRAY]);
 
             // Elven Wand
             sprintf(str, "%d/",  CPlayer->ammo[am_goldwand]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 96, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 96 + yy, cr[CR_GRAY]);
             sprintf(str, "%d",  CPlayer->maxammo[am_goldwand]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96 + yy, cr[CR_GRAY]);
 
             // Ethereal Crossbow
             sprintf(str, "%d/",  CPlayer->ammo[am_crossbow]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 106, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 106 + yy, cr[CR_GRAY]);
             sprintf(str, "%d",  CPlayer->maxammo[am_crossbow]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106 + yy, cr[CR_GRAY]);
 
             // Dragon Claw
             sprintf(str, "%d/",  CPlayer->ammo[am_blaster]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 116, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 116 + yy, cr[CR_GRAY]);
             sprintf(str, "%d",  CPlayer->maxammo[am_blaster]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116 + yy, cr[CR_GRAY]);
 
             // Hellstaff
             sprintf(str, "%d/",  CPlayer->ammo[am_skullrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 126, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 126 + yy, cr[CR_GRAY]);
             sprintf(str, "%d",  CPlayer->maxammo[am_skullrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126 + yy, cr[CR_GRAY]);
 
             // Phoenix Rod
             sprintf(str, "%d/",  CPlayer->ammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 136, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 136 + yy, cr[CR_GRAY]);
             sprintf(str, "%d",  CPlayer->maxammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136 + yy, cr[CR_GRAY]);
 
             // Firemace
             sprintf(str, "%d/",  CPlayer->ammo[am_mace]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 146, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 146 + yy, cr[CR_GRAY]);
             sprintf(str, "%d",  CPlayer->maxammo[am_mace]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
 
             dp_translucent = false;
         }
@@ -1399,25 +1402,25 @@ static void DrawFullScreenStuff (void)
 
         for (i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(47 + i * 31, 168, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+            V_DrawTLPatch(47 + i * 31, 169, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
 
             if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
                 patch = DEH_String(patcharti[CPlayer->inventory[x + i].type]);
-                V_DrawPatch(47 + i * 31, 168, W_CacheLumpName(patch, PU_CACHE));
-                DrSmallNumber(CPlayer->inventory[x + i].count, 66 + i * 31, 190);
+                V_DrawPatch(47 + i * 31, 169, W_CacheLumpName(patch, PU_CACHE));
+                DrSmallNumber(CPlayer->inventory[x + i].count, 66 + i * 31, 191);
             }
         }
 
-        V_DrawPatch(47 + curpos * 31, 197, PatchSELECTBOX);
+        V_DrawPatch(47 + curpos * 31, 198, PatchSELECTBOX);
 
         if (x != 0)
         {
-            V_DrawPatch(35, 167, !(leveltime & 4) ? PatchINVLFGEM1 : PatchINVLFGEM2);
+            V_DrawPatch(35, 168, !(leveltime & 4) ? PatchINVLFGEM1 : PatchINVLFGEM2);
         }
         if (CPlayer->inventorySlotNum - x > 7)
         {
-            V_DrawPatch(266, 167, !(leveltime & 4) ? PatchINVRTGEM1 : PatchINVRTGEM2);
+            V_DrawPatch(266, 168, !(leveltime & 4) ? PatchINVRTGEM1 : PatchINVRTGEM2);
         }
     }
 
