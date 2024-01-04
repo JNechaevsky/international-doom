@@ -893,6 +893,102 @@ void SB_Drawer(void)
             UpdateState |= I_MESSAGES;
         }
     }
+
+    // [JN] Ammo widget.
+    if (st_ammo_widget)
+    {
+        char str[8];
+
+        // Brief
+        if (st_ammo_widget < 3)
+        {
+            dp_translucent = (st_ammo_widget == 2);
+
+            MN_DrTextA("W", 282 + WIDESCREENDELTA,  96, cr[CR_YELLOW]);
+            MN_DrTextA("E", 282 + WIDESCREENDELTA, 106, cr[CR_GREEN]);
+            MN_DrTextA("D", 282 + WIDESCREENDELTA, 116, cr[CR_BLUE2]);
+            MN_DrTextA("H", 282 + WIDESCREENDELTA, 126, cr[CR_RED]);
+            MN_DrTextA("P", 282 + WIDESCREENDELTA, 136, cr[CR_ORANGE]);
+            MN_DrTextA("M", 282 + WIDESCREENDELTA, 146, cr[CR_LIGHTGRAY]);
+
+            // Elven Wand
+            sprintf(str, "%d",  CPlayer->ammo[am_goldwand]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96, cr[CR_GRAY]);
+
+            // Ethereal Crossbow
+            sprintf(str, "%d",  CPlayer->ammo[am_crossbow]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106, cr[CR_GRAY]);
+
+            // Dragon Claw
+            sprintf(str, "%d",  CPlayer->ammo[am_blaster]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116, cr[CR_GRAY]);
+
+            // Hellstaff
+            sprintf(str, "%d",  CPlayer->ammo[am_skullrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126, cr[CR_GRAY]);
+
+            // Phoenix Rod
+            sprintf(str, "%d",  CPlayer->ammo[am_phoenixrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136, cr[CR_GRAY]);
+
+            // Firemace
+            sprintf(str, "%d",  CPlayer->ammo[am_mace]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146, cr[CR_GRAY]);
+
+            dp_translucent = false;
+        }
+        // Full
+        else
+        {
+            dp_translucent = (st_ammo_widget == 4);
+
+            MN_DrTextA("W", 251 + WIDESCREENDELTA,  96, cr[CR_YELLOW]);
+            MN_DrTextA("E", 251 + WIDESCREENDELTA, 106, cr[CR_GREEN]);
+            MN_DrTextA("D", 251 + WIDESCREENDELTA, 116, cr[CR_BLUE2]);
+            MN_DrTextA("H", 251 + WIDESCREENDELTA, 126, cr[CR_RED]);
+            MN_DrTextA("P", 251 + WIDESCREENDELTA, 136, cr[CR_ORANGE]);
+            MN_DrTextA("M", 251 + WIDESCREENDELTA, 146, cr[CR_LIGHTGRAY]);
+
+            // Elven Wand
+            sprintf(str, "%d/",  CPlayer->ammo[am_goldwand]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 96, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_goldwand]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96, cr[CR_GRAY]);
+
+            // Ethereal Crossbow
+            sprintf(str, "%d/",  CPlayer->ammo[am_crossbow]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 106, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_crossbow]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106, cr[CR_GRAY]);
+
+            // Dragon Claw
+            sprintf(str, "%d/",  CPlayer->ammo[am_blaster]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 116, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_blaster]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116, cr[CR_GRAY]);
+
+            // Hellstaff
+            sprintf(str, "%d/",  CPlayer->ammo[am_skullrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 126, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_skullrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126, cr[CR_GRAY]);
+
+            // Phoenix Rod
+            sprintf(str, "%d/",  CPlayer->ammo[am_phoenixrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 136, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_phoenixrod]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136, cr[CR_GRAY]);
+
+            // Firemace
+            sprintf(str, "%d/",  CPlayer->ammo[am_mace]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 146, cr[CR_GRAY]);
+            sprintf(str, "%d",  CPlayer->maxammo[am_mace]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146, cr[CR_GRAY]);
+
+            dp_translucent = false;
+        }
+    }
+
 /*
 		if(CPlayer->powers[pw_weaponlevel2] > BLINKTHRESHOLD
 			|| (CPlayer->powers[pw_weaponlevel2]&8))
