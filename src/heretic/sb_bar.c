@@ -1253,74 +1253,133 @@ void DrawInventoryBar(void)
     }
 }
 
-void DrawFullScreenStuff(void)
+// -----------------------------------------------------------------------------
+// DrawFullScreenStuff
+// [JN] Upgraded to draw extra elements.
+// -----------------------------------------------------------------------------
+
+static void DrawFullScreenStuff (void)
 {
     const char *patch;
     int i;
-    int x;
-    int temp;
 
     UpdateState |= I_FULLSCRN;
+
+    // Health.
     dp_translation = SB_MainBarColor(hudcolor_health);
-    if (CPlayer->mo->health > 0)
-    {
-        DrBNumber(CPlayer->mo->health, 5, 180);
-    }
-    else
-    {
-        DrBNumber(0, 5, 180);
-    }
+    DrBNumber(CPlayer->health, -1, 175);
     dp_translation = NULL;
-    if (deathmatch)
-    {
-        temp = 0;
-        for (i = 0; i < MAXPLAYERS; i++)
-        {
-            if (playeringame[i])
-            {
-                temp += CPlayer->frags[i];
-            }
-        }
-        dp_translation = SB_MainBarColor(hudcolor_frags);
-        DrINumber(temp, 45, 185);
-        dp_translation = NULL;
-    }
+    // Draw health vial.
+    V_DrawShadowedPatch(41, 217, W_CacheLumpName(DEH_String("PTN1A0"), PU_CACHE));
+
     if (!inventory)
     {
+        // Armor.
+        if (CPlayer->armorpoints > 0)
+        {
+            dp_translation = SB_MainBarColor(hudcolor_armor);
+            DrBNumber(CPlayer->armorpoints, 51, 175);
+            dp_translation = NULL;
+
+            // [JN] Draw an appropriate picture of a shield.
+            // Slightly different placements needed for better placement.
+            if (CPlayer->armortype == 1)
+            {
+                V_DrawShadowedPatch(103, 213, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
+            }
+            else
+            {
+                V_DrawShadowedPatch(101, 214, W_CacheLumpName(DEH_String("SHD2A0"), PU_CACHE));
+            }
+        }
+
+        // Frags.
+        if (deathmatch)
+        {
+            int temp = 0;
+
+            for (i = 0 ; i < MAXPLAYERS ; i++)
+            {
+                if (playeringame[i])
+                {
+                    temp += CPlayer->frags[i];
+                }
+            }
+
+            dp_translation = SB_MainBarColor(hudcolor_frags);
+            DrINumber(temp, 111, 178);
+            dp_translation = NULL;
+        }
+
+        // Ready artifact.
         if (CPlayer->readyArtifact > 0)
         {
+            // [JN] Move a little to the right until player has one of 
+            // the keys to avoid drawing too much empty space.
+            const int xx = CPlayer->keys[key_yellow]
+                        || CPlayer->keys[key_green]
+                        || CPlayer->keys[key_blue] ? 0 : 16;
+
             patch = DEH_String(patcharti[CPlayer->readyArtifact]);
-            V_DrawTLPatch(286, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
-            V_DrawPatch(286, 170, W_CacheLumpName(patch, PU_CACHE));
-            DrSmallNumber(CPlayer->inventory[inv_ptr].count, 307, 192);
+
+            V_DrawTLPatch(211 + xx, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+            V_DrawShadowedPatch(211 + xx, 170, W_CacheLumpName(patch, PU_CACHE));
+            DrSmallNumber(CPlayer->inventory[inv_ptr].count, 232 + xx, 192);
+        }
+
+        // Keys.
+        {
+            if (CPlayer->keys[key_yellow])
+            {
+                V_DrawShadowedPatch(247, 173, W_CacheLumpName(DEH_String("YKEYICON"), PU_CACHE));
+            }
+            if (CPlayer->keys[key_green])
+            {
+                V_DrawShadowedPatch(247, 181, W_CacheLumpName(DEH_String("GKEYICON"), PU_CACHE));
+            }
+            if (CPlayer->keys[key_blue])
+            {
+                V_DrawShadowedPatch(247, 189, W_CacheLumpName(DEH_String("BKEYICON"), PU_CACHE));
+            }
         }
     }
     else
     {
-        x = inv_ptr - curpos;
-        for (i = 0; i < 7; i++)
+        int x = inv_ptr - curpos;
+
+        for (i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(50 + i * 31, 168,
-                          W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
-            if (CPlayer->inventorySlotNum > x + i
-                && CPlayer->inventory[x + i].type != arti_none)
+            V_DrawTLPatch(47 + i * 31, 168, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+
+            if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
                 patch = DEH_String(patcharti[CPlayer->inventory[x + i].type]);
-                V_DrawPatch(50 + i * 31, 168,
-                            W_CacheLumpName(patch, PU_CACHE));
-                DrSmallNumber(CPlayer->inventory[x + i].count, 69 + i * 31,
-                              190);
+                V_DrawPatch(47 + i * 31, 168, W_CacheLumpName(patch, PU_CACHE));
+                DrSmallNumber(CPlayer->inventory[x + i].count, 66 + i * 31, 190);
             }
         }
-        V_DrawPatch(50 + curpos * 31, 197, PatchSELECTBOX);
+
+        V_DrawPatch(47 + curpos * 31, 197, PatchSELECTBOX);
+
         if (x != 0)
         {
-            V_DrawPatch(38, 167, !(leveltime & 4) ? PatchINVLFGEM1 : PatchINVLFGEM2);
+            V_DrawPatch(35, 167, !(leveltime & 4) ? PatchINVLFGEM1 : PatchINVLFGEM2);
         }
         if (CPlayer->inventorySlotNum - x > 7)
         {
-            V_DrawPatch(269, 167, !(leveltime & 4) ? PatchINVRTGEM1 : PatchINVRTGEM2);
+            V_DrawPatch(266, 167, !(leveltime & 4) ? PatchINVRTGEM1 : PatchINVRTGEM2);
         }
+    }
+
+    // [JN] Draw amount of current weapon ammo. Don't draw for staff and gauntlets.
+    if (CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
+    {
+        dp_translation = SB_MainBarColor(hudcolor_ammo);
+        DrBNumber(CPlayer->ammo[wpnlev1info[CPlayer->readyweapon].ammo], 262, 175);
+        dp_translation = NULL;
+
+        // Draw appropriate ammo picture.
+        V_DrawShadowedPatch(297, 177, W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]), PU_CACHE));
     }
 }
 
