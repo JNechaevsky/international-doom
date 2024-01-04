@@ -1004,7 +1004,7 @@ void SB_Drawer(void)
 }
 
 // -----------------------------------------------------------------------------
-// SB_MainBarColor
+// SB_NumberColor
 // [crispy] return ammo/health/armor widget color
 // -----------------------------------------------------------------------------
 
@@ -1016,7 +1016,7 @@ enum
     hudcolor_armor
 } hudcolor_t;
 
-static byte *SB_MainBarColor (int i)
+static byte *SB_NumberColor (int i)
 {
     if (!st_colored_stbar)
     {
@@ -1231,7 +1231,7 @@ void DrawMainBar(void)
         if (temp != oldfrags)
         {
             V_DrawPatch(57, 171, PatchARMCLEAR);
-            dp_translation = SB_MainBarColor(hudcolor_frags);
+            dp_translation = SB_NumberColor(hudcolor_frags);
             DrINumber(temp, 61, 170);
             dp_translation = NULL;
             oldfrags = temp;
@@ -1253,7 +1253,7 @@ void DrawMainBar(void)
         {
             oldlife = temp;
             V_DrawPatch(57, 171, PatchARMCLEAR);
-            dp_translation = SB_MainBarColor(hudcolor_health);
+            dp_translation = SB_NumberColor(hudcolor_health);
             DrINumber(temp, 61, 170);
             dp_translation = NULL;
             UpdateState |= I_STATBAR;
@@ -1285,7 +1285,7 @@ void DrawMainBar(void)
         V_DrawPatch(108, 161, PatchBLACKSQ);
         if (temp && CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
         {
-            dp_translation = SB_MainBarColor(hudcolor_ammo);
+            dp_translation = SB_NumberColor(hudcolor_ammo);
             DrINumber(temp, 109, 162);
             dp_translation = NULL;
             V_DrawPatch(111, 172,
@@ -1301,7 +1301,7 @@ void DrawMainBar(void)
     if (oldarmor != CPlayer->armorpoints)
     {
         V_DrawPatch(224, 171, PatchARMCLEAR);
-        dp_translation = SB_MainBarColor(hudcolor_armor);
+        dp_translation = SB_NumberColor(hudcolor_armor);
         DrINumber(CPlayer->armorpoints, 228, 170);
         dp_translation = NULL;
         oldarmor = CPlayer->armorpoints;
@@ -1363,7 +1363,7 @@ static void DrawFullScreenStuff (void)
     UpdateState |= I_FULLSCRN;
 
     // Health.
-    dp_translation = SB_MainBarColor(hudcolor_health);
+    dp_translation = SB_NumberColor(hudcolor_health);
     DrBNumber(CPlayer->health, -1 - wide_x, 175);
     dp_translation = NULL;
     // Draw health vial.
@@ -1374,7 +1374,7 @@ static void DrawFullScreenStuff (void)
         // Armor.
         if (CPlayer->armorpoints > 0)
         {
-            dp_translation = SB_MainBarColor(hudcolor_armor);
+            dp_translation = SB_NumberColor(hudcolor_armor);
             DrBNumber(CPlayer->armorpoints, 51 - wide_x, 175);
             dp_translation = NULL;
 
@@ -1403,7 +1403,7 @@ static void DrawFullScreenStuff (void)
                 }
             }
 
-            dp_translation = SB_MainBarColor(hudcolor_frags);
+            dp_translation = SB_NumberColor(hudcolor_frags);
             DrINumber(temp, 111 - wide_x, 178);
             dp_translation = NULL;
         }
@@ -1471,7 +1471,7 @@ static void DrawFullScreenStuff (void)
     // [JN] Draw amount of current weapon ammo. Don't draw for staff and gauntlets.
     if (CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
     {
-        dp_translation = SB_MainBarColor(hudcolor_ammo);
+        dp_translation = SB_NumberColor(hudcolor_ammo);
         DrBNumber(CPlayer->ammo[wpnlev1info[CPlayer->readyweapon].ammo], 262 + wide_x, 175);
         dp_translation = NULL;
 
