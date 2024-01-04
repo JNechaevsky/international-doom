@@ -500,66 +500,17 @@ static void ShadeLine(int x, int y, int height, int shade)
     dest = I_VideoBuffer + y * SCREENWIDTH + x + (WIDESCREENDELTA * vid_resolution);
     while (height--)
     {
-        // [JN] TODO - simplify this mess...
-        if (vid_resolution == 2)
+        // [JN] Need to draw extra lines for higher resolutions.
+        if (vid_resolution > 1)
         {
+            for (int i = 0 ; i < vid_resolution - 1 ; i++)
+            {
 #ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
+                *(dest + i + 1) = *(shades + *dest);
 #else
-            *(dest + 1) = I_BlendDark(*dest, shade);
+                *(dest + i + 1) = I_BlendDark(*dest, shade);
 #endif
-        }
-        if (vid_resolution == 3)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
-            *(dest + 2) = *(shades + *dest);
-#else
-            *(dest + 1) = I_BlendDark(*dest, shade);    
-            *(dest + 2) = I_BlendDark(*dest, shade);
-#endif
-        }
-        if (vid_resolution == 4)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
-            *(dest + 2) = *(shades + *dest);
-            *(dest + 3) = *(shades + *dest);
-#else
-            *(dest + 1) = I_BlendDark(*dest, shade);    
-            *(dest + 2) = I_BlendDark(*dest, shade);
-            *(dest + 3) = I_BlendDark(*dest, shade);
-#endif
-        }
-        if (vid_resolution == 5)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
-            *(dest + 2) = *(shades + *dest);
-            *(dest + 3) = *(shades + *dest);
-            *(dest + 4) = *(shades + *dest);
-#else
-            *(dest + 1) = I_BlendDark(*dest, shade);    
-            *(dest + 2) = I_BlendDark(*dest, shade);
-            *(dest + 3) = I_BlendDark(*dest, shade);
-            *(dest + 4) = I_BlendDark(*dest, shade);
-#endif
-        }
-        if (vid_resolution == 6)
-        {
-#ifndef CRISPY_TRUECOLOR
-            *(dest + 1) = *(shades + *dest);
-            *(dest + 2) = *(shades + *dest);
-            *(dest + 3) = *(shades + *dest);
-            *(dest + 4) = *(shades + *dest);
-            *(dest + 5) = *(shades + *dest);
-#else
-            *(dest + 1) = I_BlendDark(*dest, shade);    
-            *(dest + 2) = I_BlendDark(*dest, shade);
-            *(dest + 3) = I_BlendDark(*dest, shade);
-            *(dest + 4) = I_BlendDark(*dest, shade);
-            *(dest + 5) = I_BlendDark(*dest, shade);
-#endif
+            }
         }
 
 #ifndef CRISPY_TRUECOLOR
