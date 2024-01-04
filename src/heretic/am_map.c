@@ -786,6 +786,11 @@ boolean AM_Responder (event_t *ev)
         if (!automapactive)
         {
             AM_Start ();
+            if (!automap_overlay)
+            {
+                // [JN] Redraw status bar background.
+                SB_state = -1;
+            }
         }
         else
         {
@@ -800,6 +805,11 @@ boolean AM_Responder (event_t *ev)
          && gamestate == GS_LEVEL)
         {
             AM_Start ();
+            if (!automap_overlay)
+            {
+                // [JN] Redraw status bar background.
+                SB_state = -1;
+            }
             rc = true;
         }
     }
@@ -939,6 +949,8 @@ boolean AM_Responder (event_t *ev)
             {
                 CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_OFF), false);
                 antialias = &antialias_normal;
+                // [JN] Redraw status bar background.
+                SB_state = -1;
             }
         }
         else

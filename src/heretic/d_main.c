@@ -242,7 +242,12 @@ void D_Display(void)
 
             CT_Drawer();
             UpdateState |= I_FULLVIEW;
-            SB_Drawer();
+
+            // [JN] Main status bar drawing function.
+            if (dp_screen_size < 13 || (automapactive && !automap_overlay))
+            {
+                SB_Drawer();
+            }
 
             // [JN] Left widgets are available while active game level.
             ID_LeftWidgets();

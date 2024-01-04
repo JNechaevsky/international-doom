@@ -1357,16 +1357,17 @@ void DrawInventoryBar(void)
 static void DrawFullScreenStuff (void)
 {
     const char *patch;
+    const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
     int i;
 
     UpdateState |= I_FULLSCRN;
 
     // Health.
     dp_translation = SB_MainBarColor(hudcolor_health);
-    DrBNumber(CPlayer->health, -1, 175);
+    DrBNumber(CPlayer->health, -1 - wide_x, 175);
     dp_translation = NULL;
     // Draw health vial.
-    V_DrawShadowedPatch(41, 217, W_CacheLumpName(DEH_String("PTN1A0"), PU_CACHE));
+    V_DrawShadowedPatch(41 - wide_x, 217, W_CacheLumpName(DEH_String("PTN1A0"), PU_CACHE));
 
     if (!inventory)
     {
@@ -1374,18 +1375,18 @@ static void DrawFullScreenStuff (void)
         if (CPlayer->armorpoints > 0)
         {
             dp_translation = SB_MainBarColor(hudcolor_armor);
-            DrBNumber(CPlayer->armorpoints, 51, 175);
+            DrBNumber(CPlayer->armorpoints, 51 - wide_x, 175);
             dp_translation = NULL;
 
             // [JN] Draw an appropriate picture of a shield.
             // Slightly different placements needed for better placement.
             if (CPlayer->armortype == 1)
             {
-                V_DrawShadowedPatch(103, 213, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
+                V_DrawShadowedPatch(103 - wide_x, 213, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
             }
             else
             {
-                V_DrawShadowedPatch(101, 214, W_CacheLumpName(DEH_String("SHD2A0"), PU_CACHE));
+                V_DrawShadowedPatch(101 - wide_x, 214, W_CacheLumpName(DEH_String("SHD2A0"), PU_CACHE));
             }
         }
 
@@ -1403,7 +1404,7 @@ static void DrawFullScreenStuff (void)
             }
 
             dp_translation = SB_MainBarColor(hudcolor_frags);
-            DrINumber(temp, 111, 178);
+            DrINumber(temp, 111 - wide_x, 178);
             dp_translation = NULL;
         }
 
@@ -1418,24 +1419,24 @@ static void DrawFullScreenStuff (void)
 
             patch = DEH_String(patcharti[CPlayer->readyArtifact]);
 
-            V_DrawTLPatch(211 + xx, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
-            V_DrawShadowedPatch(211 + xx, 170, W_CacheLumpName(patch, PU_CACHE));
-            DrSmallNumber(CPlayer->inventory[inv_ptr].count, 232 + xx, 192);
+            V_DrawTLPatch(211 + xx + wide_x, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+            V_DrawShadowedPatch(211 + xx + wide_x, 170, W_CacheLumpName(patch, PU_CACHE));
+            DrSmallNumber(CPlayer->inventory[inv_ptr].count, 232 + xx + wide_x, 192);
         }
 
         // Keys.
         {
             if (CPlayer->keys[key_yellow])
             {
-                V_DrawShadowedPatch(247, 173, W_CacheLumpName(DEH_String("YKEYICON"), PU_CACHE));
+                V_DrawShadowedPatch(247 + wide_x, 173, W_CacheLumpName(DEH_String("YKEYICON"), PU_CACHE));
             }
             if (CPlayer->keys[key_green])
             {
-                V_DrawShadowedPatch(247, 181, W_CacheLumpName(DEH_String("GKEYICON"), PU_CACHE));
+                V_DrawShadowedPatch(247 + wide_x, 181, W_CacheLumpName(DEH_String("GKEYICON"), PU_CACHE));
             }
             if (CPlayer->keys[key_blue])
             {
-                V_DrawShadowedPatch(247, 189, W_CacheLumpName(DEH_String("BKEYICON"), PU_CACHE));
+                V_DrawShadowedPatch(247 + wide_x, 189, W_CacheLumpName(DEH_String("BKEYICON"), PU_CACHE));
             }
         }
     }
@@ -1471,11 +1472,11 @@ static void DrawFullScreenStuff (void)
     if (CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
     {
         dp_translation = SB_MainBarColor(hudcolor_ammo);
-        DrBNumber(CPlayer->ammo[wpnlev1info[CPlayer->readyweapon].ammo], 262, 175);
+        DrBNumber(CPlayer->ammo[wpnlev1info[CPlayer->readyweapon].ammo], 262 + wide_x, 175);
         dp_translation = NULL;
 
         // Draw appropriate ammo picture.
-        V_DrawShadowedPatch(297, 177, W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]), PU_CACHE));
+        V_DrawShadowedPatch(297 + wide_x, 177, W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]), PU_CACHE));
     }
 }
 
