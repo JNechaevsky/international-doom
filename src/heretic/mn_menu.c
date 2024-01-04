@@ -547,6 +547,7 @@ static boolean M_ID_CrosshairColor (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
 static boolean M_ID_ColoredSBar (int choice);
+static boolean M_ID_AmmoWidget (int choice);
 static boolean M_ID_ZAxisSfx (int choice);
 static boolean M_ID_Torque (int choice);
 static boolean M_ID_WeaponAlignment (int choice);
@@ -3218,13 +3219,13 @@ static boolean M_ID_CrosshairColor (int choice)
 static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE         },
     { ITT_LRFUNC,  "SHOW NEGATIVE HEALTH",        NULL,                 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW AMMO WIDGET",            M_ID_AmmoWidget,      0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,        0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,          0, MENU_NONE         },
     { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE         },
     { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_SETMENU, "", /*LAST PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY3 },
@@ -3253,31 +3254,38 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Ammo widget
+    sprintf(str, st_ammo_widget == 1 ? "BRIEF" :
+                 st_ammo_widget == 2 ? "BRIEF+TRANSLUCENT" :
+                 st_ammo_widget == 3 ? "FULL" :
+                 st_ammo_widget == 4 ? "FULL+TRANSLUCENT" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, st_ammo_widget ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("AUDIBLE", 40, cr[CR_YELLOW]);
+    MN_DrTextACentered("AUDIBLE", 50, cr[CR_YELLOW]);
 
     // Sfx attenuation axises
     sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("PHYSICAL", 60, cr[CR_YELLOW]);
+    MN_DrTextACentered("PHYSICAL", 70, cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 70,
-               M_Item_Glow(5, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
 
     // Weapon attack alignment
     sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
                  phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
                M_Item_Glow(11, GLOW_DARKGRAY));
@@ -3292,6 +3300,12 @@ static void M_Draw_ID_Gameplay_2 (void)
 static boolean M_ID_ColoredSBar (int choice)
 {
     st_colored_stbar ^= 1;
+    return true;
+}
+
+static boolean M_ID_AmmoWidget (int choice)
+{
+    st_ammo_widget = M_INT_Slider(st_ammo_widget, 0, 4, choice);
     return true;
 }
 
@@ -4696,10 +4710,9 @@ static void DrawOptions2Menu(void)
     MN_DrTextA(str, 252, 85, cr[CR_LIGHTGRAY]);
 
     // Screen Size
-    // TODO - widescreen modes have more screen sizes for status bar.
     sprintf(str, "%d", dp_screen_size);
-    DrawSlider(&Options2Menu, 5,  9, dp_screen_size - 3, true);
-    MN_DrTextA(str, 196, 125, cr[CR_LIGHTGRAY]);
+    DrawSlider(&Options2Menu, 5,  11, dp_screen_size - 3, true);
+    MN_DrTextA(str, 212, 125, cr[CR_LIGHTGRAY]);
 }
 
 //---------------------------------------------------------------------------
@@ -4998,16 +5011,33 @@ static boolean SCMusicVolume(int option)
 
 static boolean SCScreenSize(int option)
 {
-    if (option == RIGHT_DIR)
+    switch (option)
     {
-        if (dp_screen_size < 11)
+        case LEFT_DIR:
+        if (dp_screen_size > 3)
+        {
+            dp_screen_size--;
+            // [JN] Skip wide status bar in non-wide screen mode.
+            if (!vid_widescreen)
+            {
+                if (dp_screen_size == 11)
+                    dp_screen_size  = 10;
+            }
+        }
+        break;
+
+        case RIGHT_DIR:
+        if (dp_screen_size < 13)
         {
             dp_screen_size++;
+            // [JN] Skip wide status bar in non-wide screen mode.
+            if (!vid_widescreen)
+            {
+                if (dp_screen_size == 11)
+                    dp_screen_size  = 12;
+            }
         }
-    }
-    else if (dp_screen_size > 3)
-    {
-        dp_screen_size--;
+        break;
     }
     R_SetViewSize(dp_screen_size, detailLevel);
     return true;
