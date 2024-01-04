@@ -811,7 +811,9 @@ void D_BindVariables(void)
 
 	// [JN] Bind ID-specific config variables.
 	ID_BindVariables();
+
     // TODO - bind Heretic variables!
+    M_BindIntVariable("st_ammo_widget",           &st_ammo_widget);
 }
 
 // 

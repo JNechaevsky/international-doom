@@ -100,6 +100,7 @@ extern int xhair_color;
 extern int st_colored_stbar;
 extern int st_negative_health;
 extern int st_blinking_keys;
+extern int st_ammo_widget;  // Heretic only
 
 extern int aud_z_axis_sfx;
 extern int aud_full_sounds;
