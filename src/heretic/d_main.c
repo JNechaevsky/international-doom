@@ -250,13 +250,9 @@ void D_Display(void)
             }
 
             // [JN] Left widgets are available while active game level.
-            ID_LeftWidgets();
-
-            // [JN] Draw right widgets in any states except finale text screens.
-            // TODO - unoptimal placement?
-            if (gamestate != GS_FINALE)
+            if (dp_screen_size < 13)
             {
-                ID_RightWidgets();
+                ID_LeftWidgets();
             }
 
             // [crispy] demo progress bar
@@ -275,6 +271,12 @@ void D_Display(void)
         case GS_DEMOSCREEN:
             D_PageDrawer();
             break;
+    }
+
+    // [JN] Right widgets are not available while finale screens.
+    if (dp_screen_size < 13 && gamestate != GS_FINALE)
+    {
+        ID_RightWidgets();
     }
 
     if (testcontrols)
