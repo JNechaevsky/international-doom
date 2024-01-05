@@ -38,4 +38,6 @@ void S_GetChannelInfo(SoundInfo_t * s);
 void S_SetMaxVolume(boolean fullprocess);
 void S_SetMusicVolume(void);
 
+extern void S_MuteUnmuteSound (boolean mute);
+
 #endif
