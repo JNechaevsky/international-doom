@@ -555,6 +555,7 @@ static boolean M_ID_Breathing (int choice);
 
 static void M_Draw_ID_Gameplay_3 (void);
 static boolean M_ID_DefaulSkill (int choice);
+static boolean M_ID_RevealedSecrets (int choice);
 static boolean M_ID_DemoTimer (int choice);
 static boolean M_ID_TimerDirection (int choice);
 static boolean M_ID_ProgressBar (int choice);
@@ -3340,7 +3341,7 @@ static boolean M_ID_Breathing (int choice)
 
 static MenuItem_t ID_Menu_Gameplay_3[] = {
     { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,    0, MENU_NONE         },
-    { ITT_LRFUNC,  "REPORT REVEALED SECRETS",  NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "REPORT REVEALED SECRETS",  M_ID_RevealedSecrets,0, MENU_NONE         },
     { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY", NULL,                0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE         },
     { ITT_LRFUNC,  "SHOW DEMO TIMER",          M_ID_DemoTimer,      0, MENU_NONE         },
@@ -3375,6 +3376,11 @@ static void M_Draw_ID_Gameplay_3 (void)
     M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
     MN_DrTextA(str, M_ItemRightAlign(str), 20,
                DefSkillColor(gp_default_skill));
+
+    // Report revealed secrets
+    sprintf(str, gp_revealed_secrets ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, gp_revealed_secrets ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextACentered("DEMOS", 50, cr[CR_YELLOW]);
 
@@ -3426,6 +3432,12 @@ static boolean M_ID_DefaulSkill (int choice)
 {
     gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice);
     SkillMenu.oldItPos = gp_default_skill;
+    return true;
+}
+
+static boolean M_ID_RevealedSecrets (int choice)
+{
+    gp_revealed_secrets ^= 1;
     return true;
 }
 
@@ -4547,6 +4559,8 @@ static void DrawFilesMenu(void)
     quickload = 0;
     players[consoleplayer].message = NULL;
     players[consoleplayer].messageTics = 1;
+    players[consoleplayer].messageCentered = NULL;
+    players[consoleplayer].messageCenteredTics = 1;
 }
 
 // [crispy] support additional pages of savegames

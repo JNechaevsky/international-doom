@@ -31,6 +31,7 @@
 #include "i_swap.h" // [crispy] LONG()
 #include "w_wad.h"
 #include "r_swirl.h"
+#include "ct_chat.h"
 
 #include "id_vars.h"
 
@@ -958,6 +959,12 @@ void P_PlayerInSpecialSector(player_t * player)
         case 9:                // SecretArea
             player->secretcount++;
             sector->special = 0;
+            // [JN] "A secret is revelaed!" message.
+            if (gp_revealed_secrets)
+            {
+                CT_SetMessageCentered(player, DEH_String(ID_SECRET_FOUND));
+                S_StartSound(NULL, sfx_chat);
+            }
             break;
         case 11:               // Exit_SuperDamage (DOOM E1M8 finale)
             /*

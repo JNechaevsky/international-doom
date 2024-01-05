@@ -1683,6 +1683,7 @@ void G_PlayerFinishLevel(int player)
         p->chickenTics = 0;
     }
     p->messageTics = 0;
+    p->messageCenteredTics = 0;
     p->targetsheathTics = 0;
     p->lookdir = p->oldlookdir = 0;
     p->mo->flags &= ~MF_SHADOW; // Remove invisibility
@@ -1743,6 +1744,7 @@ void G_PlayerReborn(int player)
     p->weaponowned[wp_staff] = true;
     p->weaponowned[wp_goldwand] = true;
     p->messageTics = 0;
+    p->messageCenteredTics = 0;
     p->targetsheathTics = 0;
     p->lookdir = 0;
     p->ammo[am_goldwand] = 50;

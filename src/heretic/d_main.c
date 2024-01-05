@@ -150,6 +150,24 @@ void DrawMessage(void)
     MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, 1, NULL);
 }
 
+// -----------------------------------------------------------------------------
+// ID_DrawMessageCentered
+// [JN] Draws message on the screen.
+// -----------------------------------------------------------------------------
+
+static void ID_DrawMessageCentered (void)
+{
+    player_t *player = &players[displayplayer];
+
+    if (player->messageCenteredTics <= 0 || !player->messageCentered)
+    {
+        return;  // No message
+    }
+
+    // Always centered and colored yellow.
+    MN_DrTextACentered(player->messageCentered, 60, cr[CR_YELLOW]);
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC D_Display
@@ -298,6 +316,9 @@ void D_Display(void)
     }
     // Handle player messages
     DrawMessage();
+
+    // [JN] Handle centered player messages.
+    ID_DrawMessageCentered();
 
     // Menu drawing
     MN_Drawer();

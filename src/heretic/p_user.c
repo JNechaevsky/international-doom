@@ -635,13 +635,6 @@ void P_PlayerThink(player_t * player)
         cmd->sidemove = 0;
         player->mo->flags &= ~MF_JUSTATTACKED;
     }
-// messageTics is above the rest of the counters so that messages will
-//              go away, even in death.
-    if (!player->messageTics)
-    {                           // Refresh the screen when a message goes away
-        ultimatemsg = false;    // clear out any chat messages.
-        BorderTopRefresh = true;
-    }
     if (player->playerstate == PST_DEAD)
     {
         P_DeathThink(player);
