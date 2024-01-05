@@ -363,8 +363,6 @@ boolean D_GrabMouseCallback(void)
 
 void D_DoomLoop(void)
 {
-    static int oldgametic;
-
     if (M_CheckParm("-debugfile"))
     {
         char filename[20];
@@ -387,13 +385,18 @@ void D_DoomLoop(void)
         // Will run at least one tic
         TryRunTics();
 
+        // Update display, next frame, with current state.
+        if (screenvisible)
+        {
+            D_Display();
+        }
+
+        // Move positional sounds
         if (oldgametic < gametic)
         {
-            // Move positional sounds
             S_UpdateSounds(players[consoleplayer].mo);
             oldgametic = gametic;
         }
-        D_Display();
     }
 }
 
