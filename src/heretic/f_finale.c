@@ -54,6 +54,7 @@ void F_StartFinale(void)
     gamestate = GS_FINALE;
     viewactive = false;
     automapactive = false;
+    players[consoleplayer].cheatTics = 1;
     players[consoleplayer].messageTics = 1;
     players[consoleplayer].message = NULL;
     players[consoleplayer].messageCenteredTics = 1;

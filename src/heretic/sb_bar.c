@@ -21,6 +21,7 @@
 #include "deh_str.h"
 #include "i_video.h"
 #include "i_swap.h"
+#include "i_timer.h"
 #include "m_controls.h"
 #include "m_cheat.h"
 #include "m_misc.h"
@@ -115,6 +116,11 @@ int spinflylump;
 //
 // -----------------------------------------------------------------------------
 
+// [JN] CRL - prevent other than typing actions in G_Responder
+// while cheat tics are ticking.
+static cheatseq_t CheatWaitSeq = CHEAT("id", 0);
+static void CheatWaitFunc (player_t *player, Cheat_t *cheat);
+
 // Toggle god mode
 static cheatseq_t CheatGodSeq = CHEAT("quicken", 0);
 static cheatseq_t CheatIDDQDSeq = CHEAT("iddqd", 0);
@@ -206,6 +212,7 @@ static cheatseq_t CheatBUDDHASeq = CHEAT("buddha", 0);
 static void CheatBUDDHAFunc (player_t *player, Cheat_t *cheat);
 
 static Cheat_t Cheats[] = {
+    { CheatWaitFunc,      &CheatWaitSeq       },
     { CheatGodFunc,       &CheatGodSeq        },
     { CheatGodFunc,       &CheatIDDQDSeq      },
     { CheatWeaponsFunc,   &CheatWeaponsSeq    },
@@ -1480,7 +1487,11 @@ static boolean HandleCheats(byte key)
         if (cht_CheckCheat(Cheats[i].seq, key))
         {
             Cheats[i].func(&players[consoleplayer], &Cheats[i]);
-            S_StartSound(NULL, sfx_dorcls);
+            // [JN] Do not play sound after typing just "ID".
+            if (Cheats[i].func != CheatWaitFunc)
+            {
+                S_StartSound(NULL, sfx_dorcls);
+            }
         }
     }
     return (eat);
@@ -1491,6 +1502,13 @@ static boolean HandleCheats(byte key)
 // CHEAT FUNCTIONS
 //
 //------------------------------------------------------------------------------
+
+static void CheatWaitFunc (player_t *player, Cheat_t *cheat)
+{
+    // [JN] If user types "id", activate timer to prevent
+    // other than typing actions in G_Responder.
+    player->cheatTics = TICRATE * 2;
+}
 
 static void CheatGodFunc (player_t *player, Cheat_t *cheat)
 {
@@ -1526,6 +1544,7 @@ static void CheatGodFunc (player_t *player, Cheat_t *cheat)
     CT_SetMessage(player, DEH_String(player->cheats & CF_GODMODE ?
                   TXT_CHEATGODON : TXT_CHEATGODOFF), false);
     SB_state = -1;
+    player->cheatTics = 1;
 }
 
 static void CheatWeaponsFunc (player_t *player, Cheat_t *cheat)
@@ -1557,6 +1576,7 @@ static void CheatWeaponsFunc (player_t *player, Cheat_t *cheat)
         player->ammo[i] = player->maxammo[i];
     }
     CT_SetMessage(player, DEH_String(TXT_CHEATWEAPONS), false);
+    player->cheatTics = 1;
 }
 
 static void CheatWeapKeysFunc (player_t *player, Cheat_t *cheat)
@@ -1592,6 +1612,7 @@ static void CheatWeapKeysFunc (player_t *player, Cheat_t *cheat)
     player->keys[key_blue] = true;
     playerkeys = 7;             // Key refresh flags
     CT_SetMessage(player, DEH_String(TXT_CHEATWEAPKEYS), false);
+    player->cheatTics = 1;
 }
 
 static void CheatChoppersFunc (player_t *player, Cheat_t *cheat)
@@ -1608,6 +1629,7 @@ static void CheatKeysFunc (player_t *player, Cheat_t *cheat)
     player->keys[key_blue] = true;
     playerkeys = 7;             // Key refresh flags
     CT_SetMessage(player, DEH_String(TXT_CHEATKEYS), false);
+    player->cheatTics = 1;
 }
 
 static void CheatNoClipFunc (player_t *player, Cheat_t *cheat)
@@ -1615,6 +1637,7 @@ static void CheatNoClipFunc (player_t *player, Cheat_t *cheat)
     player->cheats ^= CF_NOCLIP;
     CT_SetMessage(player, DEH_String(player->cheats & CF_NOCLIP ?
                   TXT_CHEATNOCLIPON : TXT_CHEATNOCLIPOFF), false);
+    player->cheatTics = 1;
 }
 
 static void CheatWarpFunc (player_t *player, Cheat_t *cheat)
@@ -1631,6 +1654,7 @@ static void CheatWarpFunc (player_t *player, Cheat_t *cheat)
     {
         G_DeferedInitNew(gameskill, episode, map);
     }
+    player->cheatTics = 1;
 }
 
 static void CheatArtifact1Func (player_t *player, Cheat_t *cheat)
@@ -1689,6 +1713,7 @@ static void CheatArtifact3Func (player_t *player, Cheat_t *cheat)
     {                           // Bad input
         CT_SetMessage(player, DEH_String(TXT_CHEATARTIFACTSFAIL), false);
     }
+    player->cheatTics = 1;
 }
 
 static void CheatPowerFunc (player_t *player, Cheat_t *cheat)
@@ -1703,6 +1728,7 @@ static void CheatPowerFunc (player_t *player, Cheat_t *cheat)
         P_UseArtifact(player, arti_tomeofpower);
         CT_SetMessage(player, DEH_String(TXT_CHEATPOWERON), false);
     }
+    player->cheatTics = 1;
 }
 
 static void CheatHealthFunc (player_t *player, Cheat_t *cheat)
@@ -1716,6 +1742,7 @@ static void CheatHealthFunc (player_t *player, Cheat_t *cheat)
         player->health = player->mo->health = MAXHEALTH;
     }
     CT_SetMessage(player, DEH_String(TXT_CHEATHEALTH), false);
+    player->cheatTics = 1;
 }
 
 static void CheatChickenFunc (player_t *player, Cheat_t *cheat)
@@ -1733,12 +1760,14 @@ static void CheatChickenFunc (player_t *player, Cheat_t *cheat)
     {
         CT_SetMessage(player, DEH_String(TXT_CHEATCHICKENON), false);
     }
+    player->cheatTics = 1;
 }
 
 static void CheatMassacreFunc (player_t *player, Cheat_t *cheat)
 {
     P_Massacre();
     CT_SetMessage(player, DEH_String(TXT_CHEATMASSACRE), false);
+    player->cheatTics = 1;
 }
 
 static int SB_Cheat_Massacre (boolean explode)
@@ -1773,6 +1802,7 @@ static void CheatTNTEMFunc (player_t *player, Cheat_t *cheat)
     M_snprintf(buf, sizeof(buf), "MONSTERS KILLED: %d", killcount);
 
     CT_SetMessage(player, buf, false);
+    player->cheatTics = 1;
 }
 
 static void CheatKILLEMFunc (player_t *player, Cheat_t *cheat)
@@ -1783,6 +1813,7 @@ static void CheatKILLEMFunc (player_t *player, Cheat_t *cheat)
     M_snprintf(buf, sizeof(buf), "MONSTERS KILLED: %d", killcount);
 
     CT_SetMessage(player, buf, false);
+    player->cheatTics = 1;
 }
 
 static void CheatIDMUSFunc (player_t *player, Cheat_t *cheat)
@@ -1807,11 +1838,13 @@ static void CheatIDMUSFunc (player_t *player, Cheat_t *cheat)
         S_StartSong(musnum, true);
         CT_SetMessage(player, DEH_String(TXT_MUS), false);
     }
+    player->cheatTics = 1;
 }
 
 static void CheatAMapFunc (player_t *player, Cheat_t *cheat)
 {
     ravmap_cheating = (ravmap_cheating + 1) % 3;
+    player->cheatTics = 1;
 }
 
 static void CheatIDMYPOSFunc (player_t *player, Cheat_t *cheat)
@@ -1823,6 +1856,7 @@ static void CheatIDMYPOSFunc (player_t *player, Cheat_t *cheat)
                players[displayplayer].mo->x,
                players[displayplayer].mo->y);
     CT_SetMessage(player, buf, false);
+    player->cheatTics = 1;
 }
 
 static void CheatFREEZEFunc (player_t *player, Cheat_t *cheat)
@@ -1830,6 +1864,7 @@ static void CheatFREEZEFunc (player_t *player, Cheat_t *cheat)
     crl_freeze ^= 1;
     CT_SetMessage(&players[consoleplayer], crl_freeze ?
                  ID_FREEZE_ON : ID_FREEZE_OFF, false);
+    player->cheatTics = 1;
 }
 
 static void CheatNOTARGETFunc (player_t *player, Cheat_t *cheat)
@@ -1837,6 +1872,7 @@ static void CheatNOTARGETFunc (player_t *player, Cheat_t *cheat)
     player->cheats ^= CF_NOTARGET;
     CT_SetMessage(player, player->cheats & CF_NOTARGET ?
                   ID_NOTARGET_ON : ID_NOTARGET_OFF, false);
+    player->cheatTics = 1;
 }
 
 static void CheatBUDDHAFunc (player_t *player, Cheat_t *cheat)
@@ -1844,4 +1880,5 @@ static void CheatBUDDHAFunc (player_t *player, Cheat_t *cheat)
     player->cheats ^= CF_BUDDHA;
     CT_SetMessage(player, player->cheats & CF_BUDDHA ?
                   ID_BUDDHA_ON : ID_BUDDHA_OFF, false);
+    player->cheatTics = 1;
 }
