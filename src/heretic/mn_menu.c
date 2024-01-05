@@ -1596,7 +1596,7 @@ static void M_Draw_ID_Sound (void)
     sprintf(str, "%i", snd_Channels);
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
                M_Item_Glow(10, snd_Channels == 8 ? GLOW_DARKRED :
-                               snd_Channels == 1 ? GLOW_RED : GLOW_YELLOW));
+                               snd_Channels  < 3 ? GLOW_RED : GLOW_YELLOW));
 
     // Mute inactive window
     sprintf(str, snd_mute_inactive ? "ON" : "OFF");
@@ -1696,10 +1696,13 @@ static boolean M_ID_PitchShift (int option)
 
 static boolean M_ID_SFXChannels (int option)
 {
+    // [JN] Note: cap minimum channels to 2, not 1.
+    // Only one channel produces a strange effect, 
+    // as if there were no channels at all.
     switch (option)
     {
         case 0:
-            if (snd_Channels > 1)
+            if (snd_Channels > 2)
                 snd_Channels--;
             break;
         case 1:
