@@ -315,8 +315,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     int flyheight;
     ticcmd_t spect;
 
-    extern boolean noartiskip;
-
     // haleyjd: removed externdriver crap
 
     memset(cmd, 0, sizeof(*cmd));
@@ -566,7 +564,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     // Use artifact key
     if (gamekeydown[key_useartifact] || mousebuttons[mousebuseartifact])
     {
-        if (gamekeydown[key_speed] && !noartiskip)
+        if (gamekeydown[key_speed] && !ctrl_noartiskip)
         {
             if (players[consoleplayer].inventory[inv_ptr].type != arti_none)
             {

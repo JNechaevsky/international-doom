@@ -453,6 +453,9 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(joyb_menu_activate),
     CONFIG_VARIABLE_INT(joyb_toggle_automap),
 
+    // Controls
+    CONFIG_VARIABLE_INT(ctrl_noartiskip),
+    
     // Widgets
     CONFIG_VARIABLE_INT(widget_location),
     CONFIG_VARIABLE_INT(widget_kis),

@@ -81,7 +81,6 @@ boolean debugmode;              // checkparm of -debug
 boolean ravpic;                 // checkparm of -ravpic
 boolean coop_spawns = false;    // [crispy] checkparm of -coop_spawns
 boolean cdrom;                  // true if cd-rom mode active
-boolean noartiskip;             // whether shift-enter skips an artifact
 
 skill_t startskill;
 int startepisode;
@@ -850,6 +849,7 @@ void D_BindVariables(void)
 	ID_BindVariables();
 
     // TODO - bind Heretic variables!
+    M_BindIntVariable("ctrl_noartiskip",          &ctrl_noartiskip);
     M_BindIntVariable("st_ammo_widget",           &st_ammo_widget);
 }
 
@@ -936,15 +936,6 @@ void D_DoomMain(void)
     //
 
     ravpic = M_ParmExists("-ravpic");
-
-    //!
-    // @category obscure
-    // @vanilla
-    //
-    // Allow artifacts to be used when the run key is held down.
-    //
-
-    noartiskip = M_ParmExists("-noartiskip");
 
     debugmode = M_ParmExists("-debug");
     // [JN] Use choosen default skill level.

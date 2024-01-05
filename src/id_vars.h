@@ -60,6 +60,9 @@ extern int msg_local_time;
 extern int crl_spectating;
 extern int crl_freeze;
 
+// Controls
+extern int ctrl_noartiskip;
+
 // Widgets
 extern int widget_location;
 extern int widget_coords;
