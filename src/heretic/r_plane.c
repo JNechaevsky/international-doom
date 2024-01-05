@@ -415,9 +415,7 @@ R_MakeSpans
 // At the end of each frame.
 //
 
-// [crispy]
-// [JN] 200+1 so sky texture may cover full view height.
-#define SKYTEXTUREMIDSHIFTED 201
+#define SKYTEXTUREMIDSHIFTED 200 // [crispy]
 
 void R_DrawPlanes (void)
 {
