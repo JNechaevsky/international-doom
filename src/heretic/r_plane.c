@@ -414,6 +414,11 @@ R_MakeSpans
 // R_DrawPlanes
 // At the end of each frame.
 //
+
+// [crispy]
+// [JN] 200+1 so sky texture may cover full view height.
+#define SKYTEXTUREMIDSHIFTED 201
+
 void R_DrawPlanes (void)
 {
     int light;
@@ -426,6 +431,7 @@ void R_DrawPlanes (void)
     pixel_t *dest;
     int count;
     fixed_t frac, fracstep;
+    int heightmask; // [crispy]
     static int interpfactor; // [crispy]
 
     extern int columnofs[MAXWIDTH];
@@ -485,17 +491,45 @@ void R_DrawPlanes (void)
 
                     fracstep = dc_iscale;
                     frac = dc_texturemid + (dc_yl - centery) * fracstep;
-                    do
+                    heightmask = SKYTEXTUREMIDSHIFTED - 1; // [crispy]
+                    // not a power of 2 -- killough
+                    if (SKYTEXTUREMIDSHIFTED & heightmask)
                     {
-                        const byte source = dc_source[frac >> FRACBITS];
-                        *dest = dc_colormap[dc_brightmap[source]][source];
+                        heightmask++;
+                        heightmask <<= FRACBITS;
 
-                        dest += SCREENWIDTH;
-                        frac += fracstep;
-                    }
-                    while (count--);
+                        if (frac < 0)
+                            while ((frac += heightmask) < 0);
+                        else
+                            while (frac >= heightmask)
+                                frac -= heightmask;
+                        do
+                        {
+                            const byte source = dc_source[frac >> FRACBITS];
+
+                            *dest = dc_colormap[dc_brightmap[source]][source];
+                            dest += SCREENWIDTH;
+
+                            if ((frac += fracstep) >= heightmask)
+                            {
+                                frac -= heightmask;
+                            }
+                        } while (count--);
 
 //                                      colfunc ();
+                    }
+                    // texture height is a power of 2 -- killough
+                    else
+                    {
+                        do
+                        {
+                            const byte source = dc_source[(frac >> FRACBITS) & heightmask];
+
+                            *dest = dc_colormap[dc_brightmap[source]][source];
+                            dest += SCREENWIDTH;
+                            frac += fracstep;
+                        } while (count--);
+                    }
                 }
             }
         }
