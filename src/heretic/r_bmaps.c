@@ -442,17 +442,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_BEASTBALL4:
             case S_BEASTBALL5:
             case S_BEASTBALL6:
-            // Iron Lich flame wall
-            case S_HEADFX3_1:
-            case S_HEADFX3_2:
-            case S_HEADFX3_3:
-            case S_HEADFX3_4:
-            case S_HEADFX3_5:
-            case S_HEADFX3_6:
-            case S_HEADFXI3_1:
-            case S_HEADFXI3_2:
-            case S_HEADFXI3_3:
-            case S_HEADFXI3_4:
             // Volcano fireball
             case S_VOLCANOBALL1:
             case S_VOLCANOBALL2:
