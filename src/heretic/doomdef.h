@@ -612,6 +612,8 @@ extern int leveltime;           // tics in game play for par
 extern int realleveltime;       // [JN] Keep ticking in Freeze mode.
 extern int totalleveltimes;     // [crispy] CPhipps - total time for all completed levels
 
+extern boolean finalintermission; // [crispy] track intermission at end of episode
+
 extern ticcmd_t *netcmds;
 
 #define SAVEGAMESIZE 0x30000

@@ -82,6 +82,9 @@ extern int markpointnum;
 extern int markpointnum_max;
 
 extern vertex_t KeyPoints[];
+extern const char *LevelNames[];
+
+void AM_Stop(void);
 
 extern void AM_Init (void);
 extern void AM_Start (void);
