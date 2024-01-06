@@ -104,7 +104,7 @@ boolean sendsave;               // send a save event next tic
 boolean usergame;               // ok to save / end game
 
 boolean timingdemo;             // if true, exit with report on completion
-boolean nodrawers;              // for comparative timing purposes 
+boolean nodrawers = false; // [crispy] for the demowarp feature
 int starttime;                  // for comparative timing purposes
 
 boolean viewactive;
@@ -2213,8 +2213,6 @@ void G_InitNew(skill_t skill, int episode, int map)
     demorecording = false;
     demoplayback = false;
     netdemo = false;
-    // [crispy] reset game speed after demo fast-forward
-    singletics = false;
     // [JN] Reset automap scale. Fixes:
     // https://doomwiki.org/wiki/Automap_scale_preserved_after_warps_in_Heretic_and_Hexen
     automapactive = false; 
@@ -2626,6 +2624,13 @@ void G_DeferedPlayDemo(const char *name)
 {
     defdemoname = name;
     gameaction = ga_playdemo;
+
+    // [crispy] fast-forward demo up to the desired map
+    if (demowarp)
+    {
+        nodrawers = true;
+        singletics = true;
+    }
 }
 
 void G_DoPlayDemo(void)
@@ -2708,8 +2713,6 @@ void G_TimeDemo(char *name)
     skill_t skill;
     int episode, map, i;
     int lumpnum, lumplength; // [crispy]
-
-    nodrawers = M_CheckParm ("-nodraw");
 
     demobuffer = demo_p = W_CacheLumpName(name, PU_STATIC);
 

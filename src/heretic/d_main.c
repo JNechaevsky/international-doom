@@ -988,6 +988,9 @@ void D_DoomMain(void)
         startepisode = myargv[p + 1][0] - '0';
         startmap = myargv[p + 2][0] - '0';
         autostart = true;
+
+        // [crispy] if used with -playdemo, fast-forward demo up to the desired map
+        demowarp = startmap;
     }
 
 //
@@ -1374,6 +1377,9 @@ void D_DoomMain(void)
         G_DeferedPlayDemo(demolumpname);
         D_DoomLoop();           // Never returns
     }
+
+    // [crispy] we don't play a demo, so don't skip maps
+    demowarp = 0;
 
     p = M_CheckParmWithArgs("-timedemo", 1);
     if (p)
