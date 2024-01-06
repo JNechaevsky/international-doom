@@ -86,8 +86,7 @@ void S_SetSfxVolume(int volume);
 
 extern void S_ChangeSFXSystem (void);
 extern void S_UpdateStereoSeparation (void);
-extern void S_MuteSound (void);
-extern void S_UnMuteSound (void);
+extern void S_MuteUnmuteSound (boolean mute);
 
 extern int snd_channels;
 extern int current_mus_num;
