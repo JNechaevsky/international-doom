@@ -469,8 +469,8 @@ void R_DrawPlanes (void)
                 if ((unsigned) dc_yl <= dc_yh)  // [JN] 32-bit integer math
                 {
                     // [crispy] Optionally draw skies horizontally linear.
-                    angle = (viewangle + (vis_linear_sky ? 
-                                          linearskyangle[x] : xtoviewangle[x])) >> ANGLETOSKYSHIFT;
+                    angle = ((viewangle + (vis_linear_sky ? 
+                                          linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
                     dc_x = x;
                     dc_source = R_GetColumn(skytexture, angle);
 
@@ -485,7 +485,7 @@ void R_DrawPlanes (void)
                                 dc_x);
 #endif
 
-                    dest = ylookup[dc_yl] + columnofs[dc_x];
+                    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
                     fracstep = dc_iscale;
                     frac = dc_texturemid + (dc_yl - centery) * fracstep;

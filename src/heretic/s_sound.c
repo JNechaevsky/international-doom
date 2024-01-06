@@ -299,6 +299,8 @@ void S_StartSound(void *_origin, int sound_id)
     {
         angle = R_PointToAngle2(listener->x, listener->y,
                                 origin->x, origin->y);
+        if (gp_flip_levels)
+            angle = -angle;
         angle = (angle - viewangle) >> 24;
         sep = angle * 2 - 128;
         if (sep < 64)
@@ -552,6 +554,8 @@ void S_UpdateSounds(mobj_t * listener)
             {
                 angle = R_PointToAngle2(listener->x, listener->y,
                                         channel[i].mo->x, channel[i].mo->y);
+                if (gp_flip_levels)
+                    angle = -angle;
                 angle = (angle - viewangle) >> 24;
                 sep = angle * 2 - 128;
                 if (sep < 64)

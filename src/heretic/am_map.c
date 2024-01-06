@@ -1342,9 +1342,9 @@ static void AM_drawFline(fline_t * fl, int color)
             }
 
 #ifndef CRISPY_TRUECOLOR
-#define DOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(cc)    //the MACRO!
+#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(cc)    //the MACRO!
 #else
-#define DOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(colormaps[cc])
+#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(colormaps[cc])
 #endif
 
             dx = fl->b.x - fl->a.x;
@@ -1445,7 +1445,7 @@ void PUTDOT(short xx, short yy, pixel_t * cc, pixel_t * cm)
         oldyy = yy;
         oldyyshifted = yy * f_w;
     }
-    fb[oldyyshifted + xx] = *(cc);
+    fb[oldyyshifted + flipscreenwidth[xx]] = *(cc);
 //      fb[(yy)*f_w+(xx)]=*(cc);
 }
 
@@ -2084,7 +2084,7 @@ static void AM_drawThings(int colors, int colorrange)
 static void AM_drawMarks (void)
 {
     int i, fx, fy;
-    // int fx_flip; // [crispy] support for marks drawing in flipped levels
+    int fx_flip; // [crispy] support for marks drawing in flipped levels
     mpoint_t pt;
 
     // [JN] killough 2/22/98: remove automap mark limit
@@ -2105,7 +2105,7 @@ static void AM_drawMarks (void)
 
             fx = (CXMTOF(pt.x) / vid_resolution) - 1;
             fy = (CYMTOF(pt.y) / vid_resolution) - 2;
-            // fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
+            fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
 
             do
             {
@@ -2120,11 +2120,11 @@ static void AM_drawMarks (void)
                 if (fx >= f_x && fx <= (f_w / vid_resolution) - 5
                 &&  fy >= f_y && fy <= (f_h / vid_resolution) - 6)
                 {
-                    V_DrawPatch(/*fx_flip*/ fx - WIDESCREENDELTA, fy, marknums[d]);
+                    V_DrawPatch(fx_flip - WIDESCREENDELTA, fy, marknums[d]);
                 }
 
                 // killough 2/22/98: 1 space backwards
-                /*fx_flip*/ fx -= MARK_W - (MARK_FLIP_1);
+                fx_flip -= MARK_W - (MARK_FLIP_1);
 
                 j /= 10;
             } while (j > 0);

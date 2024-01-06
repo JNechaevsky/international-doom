@@ -82,6 +82,10 @@ angle_t			xtoviewangle[MAXWIDTH+1];
 // [crispy] calculate the linear sky angle component here
 angle_t			linearskyangle[MAXWIDTH+1];
 
+// [crispy] lookup table for horizontal screen coordinates
+int  flipscreenwidth[MAXWIDTH];
+int *flipviewwidth;
+
 // [crispy] parameterized for smooth diminishing lighting
 lighttable_t***		scalelight = NULL;
 lighttable_t**		scalelightfixed = NULL;
@@ -915,6 +919,14 @@ void R_ExecuteSetViewSize(void)
             scalelight[i][j] = colormaps + level * 256;
         }
     }
+
+    // [crispy] lookup table for horizontal screen coordinates
+    for (i = 0, j = SCREENWIDTH - 1; i < SCREENWIDTH; i++, j--)
+    {
+        flipscreenwidth[i] = gp_flip_levels ? j : i;
+    }
+
+    flipviewwidth = flipscreenwidth + (gp_flip_levels ? (SCREENWIDTH - scaledviewwidth) : 0);
 
 //
 // draw the border

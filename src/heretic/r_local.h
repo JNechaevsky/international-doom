@@ -333,6 +333,10 @@ extern fixed_t projection;
 
 extern int validcount;
 
+// [crispy] lookup table for horizontal screen coordinates
+extern int  flipscreenwidth[MAXWIDTH];
+extern int *flipviewwidth;
+
 // [crispy] parameterized for smooth diminishing lighting
 extern int LIGHTLEVELS;
 extern int LIGHTSEGSHIFT;

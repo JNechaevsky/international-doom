@@ -75,7 +75,7 @@ void R_DrawColumn(void)
         I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -131,7 +131,7 @@ void R_DrawColumnLow(void)
         I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -197,7 +197,7 @@ void R_DrawTLColumn(void)
         I_Error("R_DrawTLColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -278,7 +278,7 @@ void R_DrawTranslatedColumn(void)
         I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -309,7 +309,7 @@ void R_DrawTranslatedTLColumn(void)
         I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -408,7 +408,7 @@ void R_DrawSpan(void)
         spot = xtemp | ytemp;
         
         source = ds_source[spot];
-        dest = ylookup[ds_y] + columnofs[ds_x1++];
+        dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
         *dest = ds_colormap[ds_brightmap[source]][source];
         ds_xfrac += ds_xstep;
         ds_yfrac += ds_ystep;
