@@ -1579,7 +1579,7 @@ void G_Ticker(void)
                 CT_Ticker();
             }
             // [JN] Target's health widget.
-            if (widget_health /* || (xhair_draw && xhair_color > 1)*/)
+            if (widget_health  || (xhair_draw && xhair_color > 1))
             {
                 player_t *player = &players[displayplayer];
                 // Do an overflow-safe trace to gather target's health.
