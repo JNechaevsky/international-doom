@@ -1225,7 +1225,8 @@ void D_DoomMain(void)
     // after either level exit or player respawn.
     //
 
-    demoextend = M_ParmExists("-demoextend");
+    demoextend = (!M_ParmExists("-nodemoextend"));
+    //[crispy] make demoextend the default
 
     if (W_CheckNumForName(DEH_String("E2M1")) == -1)
     {
