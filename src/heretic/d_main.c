@@ -938,8 +938,6 @@ void D_DoomMain(void)
     ravpic = M_ParmExists("-ravpic");
 
     debugmode = M_ParmExists("-debug");
-    // [JN] Use choosen default skill level.
-    startskill = gp_default_skill;
     startepisode = 1;
     startmap = 1;
     autostart = false;
@@ -961,21 +959,7 @@ void D_DoomMain(void)
     }
 
     //!
-    // @arg <skill>
-    // @vanilla
-    //
-    // Set the game skill, 1-5 (1: easiest, 5: hardest).  A skill of
-    // 0 disables all monsters.
-    //
-
-    p = M_CheckParmWithArgs("-skill", 1);
-    if (p)
-    {
-        startskill = myargv[p + 1][0] - '1';
-        autostart = true;
-    }
-
-    //!
+    // @category game
     // @arg <n>
     // @vanilla
     //
@@ -1043,14 +1027,13 @@ void D_DoomMain(void)
     // [JN] Set screeenshot files dir.
     M_SetScreenshotDir();
 
-    DEH_printf("Z_Init: Init zone memory allocation daemon.\n");
-    Z_Init();
-
     // Load defaults before initing other systems
     DEH_printf("M_LoadDefaults: Load system defaults.\n");
     D_BindVariables();
     M_SetConfigFilenames(PROGRAM_PREFIX "heretic.ini");
     M_LoadDefaults();
+
+    I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
 #ifdef _WIN32
     // [JN] Pressing PrintScreen on Windows 11 is opening Snipping Tool.
@@ -1063,7 +1046,27 @@ void D_DoomMain(void)
     }
 #endif
 
-    I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
+    // [JN] Use choosen default skill level.
+    startskill = gp_default_skill;
+
+    //!
+    // @category game
+    // @arg <skill>
+    // @vanilla
+    //
+    // Set the game skill, 1-5 (1: easiest, 5: hardest).  A skill of
+    // 0 disables all monsters.
+    //
+
+    p = M_CheckParmWithArgs("-skill", 1);
+    if (p)
+    {
+        startskill = myargv[p + 1][0] - '1';
+        autostart = true;
+    }
+
+    DEH_printf("Z_Init: Init zone memory allocation daemon.\n");
+    Z_Init();
 
     DEH_printf("W_Init: Init WADfiles.\n");
 
@@ -1359,7 +1362,7 @@ void D_DoomMain(void)
     p = M_CheckParmWithArgs("-record", 1);
     if (p)
     {
-        G_RecordDemo(gp_default_skill, 1, startepisode, startmap, myargv[p + 1]);
+        G_RecordDemo(startskill, 1, startepisode, startmap, myargv[p + 1]);
         D_DoomLoop();           // Never returns
     }
 
