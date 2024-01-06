@@ -1998,8 +1998,8 @@ static void AM_drawPlayers (void)
             smoothangle = R_InterpolateAngle(p->mo->oldangle, p->mo->angle, fractionaltic);
         }
 
-        AM_drawLineCharacter(player_arrow, NUMPLYRLINES, 0, smoothangle,
-                             color, p->mo->x, p->mo->y);
+        AM_drawLineCharacter(player_arrow, NUMPLYRLINES, 0,
+                             smoothangle, color, pt.x, pt.y);
     }
 }
 
