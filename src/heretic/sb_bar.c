@@ -1836,6 +1836,8 @@ static void CheatIDMUSFunc (player_t *player, Cheat_t *cheat)
     else
     {
         S_StartSong(musnum, true);
+        // [JN] jff 3/17/98 remember idmus number for restore
+        idmusnum = musnum;
         CT_SetMessage(player, DEH_String(TXT_MUS), false);
     }
     player->cheatTics = 1;
