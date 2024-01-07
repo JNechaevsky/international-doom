@@ -1474,13 +1474,13 @@ static boolean HandleCheats(byte key)
     int i;
     boolean eat;
 
-    // [JN] Modified logics: can't cheat in a net-game or in demos
-    // to avoid desyncs, but allow in black plague skill level.
-    // Dead players can use cheats, primary for resurrection.
-    if (netgame || demorecording || demoplayback /* || gameskill == sk_nightmare*/)
-    {                           
+    /* [crispy] check for nightmare/netgame per cheat, to allow "harmless" cheats
+    ** [JN] Allow in nightmare and for dead player (can be resurrected).
+    if (netgame || gameskill == sk_nightmare)
+    {                           // Can't cheat in a net-game, or in nightmare mode
         return (false);
     }
+    */
     eat = false;
     for (i = 0; Cheats[i].func != NULL; i++)
     {
@@ -1503,8 +1503,12 @@ static boolean HandleCheats(byte key)
 //
 //------------------------------------------------------------------------------
 
+#define FULL_CHEAT_CHECK if(netgame || demorecording || demoplayback){return;}
+#define SAFE_CHEAT_CHECK if(netgame || demorecording){return;}
+
 static void CheatWaitFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     // [JN] If user types "id", activate timer to prevent
     // other than typing actions in G_Responder.
     player->cheatTics = TICRATE * 2;
@@ -1514,6 +1518,8 @@ static void CheatGodFunc (player_t *player, Cheat_t *cheat)
 {
     // [crispy] dead players are first respawned at the current position
     mapthing_t mt = {0};
+
+    FULL_CHEAT_CHECK;
 
     if (player->playerstate == PST_DEAD)
     {
@@ -1551,6 +1557,7 @@ static void CheatWeaponsFunc (player_t *player, Cheat_t *cheat)
 {
     int i;
 
+    FULL_CHEAT_CHECK;
     player->armorpoints = 200;
     player->armortype = 2;
     if (!player->backpack)
@@ -1583,6 +1590,7 @@ static void CheatWeapKeysFunc (player_t *player, Cheat_t *cheat)
 {
     int i;
 
+    FULL_CHEAT_CHECK;
     player->armorpoints = 200;
     player->armortype = 2;
     if (!player->backpack)
@@ -1617,6 +1625,7 @@ static void CheatWeapKeysFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatChoppersFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     player->weaponowned[wp_gauntlets] = true;
     player->powers[pw_invulnerability] = true;
     CT_SetMessage(player, DEH_String(TXT_CHOPPERS), false);
@@ -1624,6 +1633,7 @@ static void CheatChoppersFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatKeysFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     player->keys[key_yellow] = true;
     player->keys[key_green] = true;
     player->keys[key_blue] = true;
@@ -1634,6 +1644,7 @@ static void CheatKeysFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatNoClipFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     player->cheats ^= CF_NOCLIP;
     CT_SetMessage(player, DEH_String(player->cheats & CF_NOCLIP ?
                   TXT_CHEATNOCLIPON : TXT_CHEATNOCLIPOFF), false);
@@ -1646,24 +1657,44 @@ static void CheatWarpFunc (player_t *player, Cheat_t *cheat)
     int episode;
     int map;
 
+    // [JN] Safe to use IDCLEV/ENGAGE while demo playback.
+    SAFE_CHEAT_CHECK;
+
     cht_GetParam(cheat->seq, args);
 
     episode = args[0] - '0';
     map = args[1] - '0';
     if (D_ValidEpisodeMap(heretic, gamemode, episode, map))
     {
-        G_DeferedInitNew(gameskill, episode, map);
+        // [crisp] allow IDCLEV during demo playback and warp to the requested map
+        if (demoplayback)
+        {
+            demowarp = map;
+            nodrawers = true;
+            singletics = true;
+
+            if (map <= gamemap)
+            {
+                G_DoPlayDemo();
+            }
+        }
+        else
+        {
+            G_DeferedInitNew(gameskill, episode, map);
+            player->cheatTics = 1;
+        }
     }
-    player->cheatTics = 1;
 }
 
 static void CheatArtifact1Func (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     CT_SetMessage(player, DEH_String(TXT_CHEATARTIFACTS1), false);
 }
 
 static void CheatArtifact2Func (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     CT_SetMessage(player, DEH_String(TXT_CHEATARTIFACTS2), false);
 }
 
@@ -1674,6 +1705,8 @@ static void CheatArtifact3Func (player_t *player, Cheat_t *cheat)
     int j;
     int type;
     int count;
+
+    FULL_CHEAT_CHECK;
 
     cht_GetParam(cheat->seq, args);
     type = args[0] - 'a' + 1;
@@ -1718,6 +1751,8 @@ static void CheatArtifact3Func (player_t *player, Cheat_t *cheat)
 
 static void CheatPowerFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
+
     if (player->powers[pw_weaponlevel2])
     {
         player->powers[pw_weaponlevel2] = 0;
@@ -1733,6 +1768,8 @@ static void CheatPowerFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatHealthFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
+
     if (player->chickenTics)
     {
         player->health = player->mo->health = MAXCHICKENHEALTH;
@@ -1747,7 +1784,7 @@ static void CheatHealthFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatChickenFunc (player_t *player, Cheat_t *cheat)
 {
-    extern boolean P_UndoPlayerChicken (player_t *player);
+    FULL_CHEAT_CHECK;
 
     if (player->chickenTics)
     {
@@ -1765,6 +1802,7 @@ static void CheatChickenFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatMassacreFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     P_Massacre();
     CT_SetMessage(player, DEH_String(TXT_CHEATMASSACRE), false);
     player->cheatTics = 1;
@@ -1797,7 +1835,11 @@ static int SB_Cheat_Massacre (boolean explode)
 static void CheatTNTEMFunc (player_t *player, Cheat_t *cheat)
 {
     static char buf[52];
-    const int killcount = SB_Cheat_Massacre(true);
+    int killcount;
+    
+    FULL_CHEAT_CHECK;
+    
+    killcount = SB_Cheat_Massacre(true);
 
     M_snprintf(buf, sizeof(buf), "MONSTERS KILLED: %d", killcount);
 
@@ -1808,7 +1850,11 @@ static void CheatTNTEMFunc (player_t *player, Cheat_t *cheat)
 static void CheatKILLEMFunc (player_t *player, Cheat_t *cheat)
 {
     static char buf[52];
-    const int killcount = SB_Cheat_Massacre(false);
+    int killcount;
+
+    FULL_CHEAT_CHECK;
+    
+    killcount = SB_Cheat_Massacre(false);
 
     M_snprintf(buf, sizeof(buf), "MONSTERS KILLED: %d", killcount);
 
@@ -1820,6 +1866,8 @@ static void CheatIDMUSFunc (player_t *player, Cheat_t *cheat)
 {
     char buf[3];
     int  musnum;
+
+    // [JN] Harmless cheat, always allow.
 
     // [JN] Prevent impossible selection.
     const int maxnum = gamemode == retail     ? 47 :  // 5 episodes
@@ -1845,6 +1893,7 @@ static void CheatIDMUSFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatAMapFunc (player_t *player, Cheat_t *cheat)
 {
+    // [JN] Harmless cheat, always allow.
     ravmap_cheating = (ravmap_cheating + 1) % 3;
     player->cheatTics = 1;
 }
@@ -1853,6 +1902,7 @@ static void CheatIDMYPOSFunc (player_t *player, Cheat_t *cheat)
 {
     static char buf[52];
 
+    // [JN] Harmless cheat, always allow.
     M_snprintf(buf, sizeof(buf), "ANG=0X%X;X,Y=(0X%X,0X%X)",
                players[displayplayer].mo->angle,
                players[displayplayer].mo->x,
@@ -1863,6 +1913,7 @@ static void CheatIDMYPOSFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatFREEZEFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     crl_freeze ^= 1;
     CT_SetMessage(&players[consoleplayer], crl_freeze ?
                  ID_FREEZE_ON : ID_FREEZE_OFF, false);
@@ -1871,6 +1922,7 @@ static void CheatFREEZEFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatNOTARGETFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     player->cheats ^= CF_NOTARGET;
     CT_SetMessage(player, player->cheats & CF_NOTARGET ?
                   ID_NOTARGET_ON : ID_NOTARGET_OFF, false);
@@ -1879,6 +1931,7 @@ static void CheatNOTARGETFunc (player_t *player, Cheat_t *cheat)
 
 static void CheatBUDDHAFunc (player_t *player, Cheat_t *cheat)
 {
+    FULL_CHEAT_CHECK;
     player->cheats ^= CF_BUDDHA;
     CT_SetMessage(player, player->cheats & CF_BUDDHA ?
                   ID_BUDDHA_ON : ID_BUDDHA_OFF, false);
