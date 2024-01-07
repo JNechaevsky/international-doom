@@ -762,7 +762,7 @@ extern int savepage;
 #define SAVEPAGE_MAX 7
 
 void G_RecordDemo(skill_t skill, int numplayers, int episode, int map,
-                  char *name);
+                  const char *name);
 // only called by startup code
 
 void G_PlayDemo(char *name);

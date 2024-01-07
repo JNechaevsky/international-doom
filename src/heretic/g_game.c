@@ -28,6 +28,7 @@
 #include "i_joystick.h"
 #include "i_timer.h"
 #include "i_system.h"
+#include "i_swap.h"
 #include "m_argv.h"
 #include "m_controls.h"
 #include "m_misc.h"
@@ -35,6 +36,10 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "v_video.h"
+
+#include "deh_main.h" // [crispy] for demo footer
+#include "memio.h"
+
 #include "am_map.h"
 #include "ct_chat.h"
 
@@ -124,7 +129,8 @@ boolean finalintermission; // [crispy] track intermission at end of episode
 
 int mouseSensitivity = 5;
 
-char demoname[32];
+char *demoname;
+static const char *orig_demoname = NULL; // [crispy] the name originally chosen for the demo, i.e. without "-00000"
 boolean demorecording;
 boolean longtics;               // specify high resolution turning in demos
 boolean lowres_turn;
@@ -1935,10 +1941,89 @@ void G_SecretExitLevel(void)
     gameaction = ga_completed;
 }
 
+// [crispy] format time for level statistics
+#define TIMESTRSIZE 16
+static void G_FormatLevelStatTime(char *str, int tics)
+{
+    int exitHours, exitMinutes;
+    float exitTime, exitSeconds;
+
+    exitTime = (float) tics / 35;
+    exitHours = exitTime / 3600;
+    exitTime -= exitHours * 3600;
+    exitMinutes = exitTime / 60;
+    exitTime -= exitMinutes * 60;
+    exitSeconds = exitTime;
+
+    if (exitHours)
+    {
+        M_snprintf(str, TIMESTRSIZE, "%d:%02d:%05.2f",
+                    exitHours, exitMinutes, exitSeconds);
+    }
+    else
+    {
+        M_snprintf(str, TIMESTRSIZE, "%01d:%05.2f", exitMinutes, exitSeconds);
+    }
+}
+
+// [crispy] Write level statistics upon exit
+static void G_WriteLevelStat(void)
+{
+    static FILE *fstream = NULL;
+
+    int i, playerKills = 0, playerItems = 0, playerSecrets = 0;
+
+    char levelTimeString[TIMESTRSIZE];
+    char totalTimeString[TIMESTRSIZE];
+    char *decimal;
+
+    if (fstream == NULL)
+    {
+        fstream = fopen("levelstat.txt", "w");
+
+        if (fstream == NULL)
+        {
+            fprintf(stderr, "G_WriteLevelStat: Unable to open levelstat.txt for writing!\n");
+            return;
+        }
+    }
+
+    G_FormatLevelStatTime(levelTimeString, leveltime);
+    G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime);
+
+    // Total time ignores centiseconds
+    decimal = strchr(totalTimeString, '.');
+    if (decimal != NULL)
+    {
+        *decimal = '\0';
+    }
+
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (playeringame[i])
+        {
+            playerKills += players[i].killcount;
+            playerItems += players[i].itemcount;
+            playerSecrets += players[i].secretcount;
+        }
+    }
+
+    fprintf(fstream, "E%dM%d%s - %s (%s)  K: %d/%d  I: %d/%d  S: %d/%d\n",
+            gameepisode, gamemap, (secretexit ? "s" : ""),
+            levelTimeString, totalTimeString, playerKills, totalkills, 
+            playerItems, totalitems, playerSecrets, totalsecret);
+}
+
 void G_DoCompleted(void)
 {
     int i;
     static int afterSecret[5] = { 7, 5, 5, 5, 4 };
+
+    // [crispy] Write level statistics upon exit
+    if (M_ParmExists("-levelstat"))
+    {
+        G_WriteLevelStat();
+    }
 
     gameaction = ga_nothing;
 
@@ -2149,6 +2234,14 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
     d_episode = episode;
     d_map = map;
     gameaction = ga_newgame;
+
+    // [crispy] if a new game is started during demo recording, start a new demo
+    if (demorecording)
+    {
+	G_CheckDemoStatus();
+	Z_Free(demoname);
+	G_RecordDemo(skill, 1, episode, map, orig_demoname);
+    }
 }
 
 void G_DoNewGame(void)
@@ -2372,8 +2465,6 @@ boolean G_DoSelectiveGame (int choice)
 
 // [crispy] demo progress bar and timer widget
 int defdemotics = 0, deftotaldemotics;
-// [crispy] moved here
-static const char *defdemoname;
 
 void G_ReadDemoTiccmd(ticcmd_t * cmd)
 {
@@ -2499,10 +2590,21 @@ void G_WriteDemoTiccmd(ticcmd_t * cmd)
 */
 
 void G_RecordDemo(skill_t skill, int numplayers, int episode, int map,
-                  char *name)
+                  const char *name)
 {
+    size_t demoname_size;
     int i;
     int maxsize;
+
+    // [crispy] demo file name suffix counter
+    static unsigned int j = 0;
+    FILE *fp = NULL;
+
+    // [crispy] the name originally chosen for the demo, i.e. without "-00000"
+    if (!orig_demoname)
+    {
+	orig_demoname = name;
+    }
 
     //!
     // @category demo
@@ -2520,16 +2622,25 @@ void G_RecordDemo(skill_t skill, int numplayers, int episode, int map,
     //!
     // @category demo
     //
-    // Smooth out low resolution turning when recording a demo.
+    // Don't smooth out low resolution turning when recording a demo.
     //
 
-    shortticfix = M_ParmExists("-shortticfix");
+    shortticfix = (!M_ParmExists("-noshortticfix"));
+    //[crispy] make shortticfix the default
 
     G_InitNew(skill, episode, map);
     usergame = false;
-    M_StringCopy(demoname, name, sizeof(demoname));
-    M_StringConcat(demoname, ".lmp", sizeof(demoname));
+    demoname_size = strlen(name) + 5 + 6; // [crispy] + 6 for "-00000"
+    demoname = Z_Malloc(demoname_size, PU_STATIC, NULL);
+    M_snprintf(demoname, demoname_size, "%s.lmp", name);
     maxsize = 0x20000;
+
+    // [crispy] prevent overriding demos by adding a file name suffix
+    for ( ; j <= 99999 && (fp = fopen(demoname, "rb")) != NULL; j++)
+    {
+	M_snprintf(demoname, demoname_size, "%s-%05d.lmp", name, j);
+	fclose (fp);
+    }
 
     //!
     // @arg <size>
@@ -2620,6 +2731,8 @@ static void G_DemoProgressBar (const int lumplength)
 ===================
 */
 
+static const char *defdemoname;
+
 void G_DeferedPlayDemo(const char *name)
 {
     defdemoname = name;
@@ -2692,7 +2805,7 @@ void G_DoPlayDemo(void)
 
     if (netgame == true)
     {
-        netdemo = true;
+      netdemo = true;
     }
 
     // [crispy] demo progress bar
@@ -2745,7 +2858,7 @@ void G_TimeDemo(char *name)
     if (playeringame[1] || M_CheckParm("-solo-net") > 0
                         || M_CheckParm("-netdemo") > 0)
     {
-        netgame = true;
+      netgame = true;
     }
 
     G_InitNew(skill, episode, map);
@@ -2758,13 +2871,131 @@ void G_TimeDemo(char *name)
 
     if (netgame == true)
     {
-        netdemo = true;
+      netdemo = true;
     }
 
     // [crispy] demo progress bar
     G_DemoProgressBar(lumplength);
 }
 
+#define DEMO_FOOTER_SEPARATOR "\n"
+#define NUM_DEMO_FOOTER_LUMPS 4
+
+static size_t WriteCmdLineLump(MEMFILE *stream)
+{
+    int i;
+    long pos;
+    char *tmp, **filenames;
+
+    filenames = W_GetWADFileNames();
+
+    pos = mem_ftell(stream);
+
+    tmp = M_StringJoin("-iwad \"", M_BaseName(filenames[0]), "\"", NULL);
+    mem_fputs(tmp, stream);
+    free(tmp);
+
+    if (filenames[1])
+    {
+        mem_fputs(" -file", stream);
+
+        for (i = 1; filenames[i]; i++)
+        {
+            tmp = M_StringJoin(" \"", M_BaseName(filenames[i]), "\"", NULL);
+            mem_fputs(tmp, stream);
+            free(tmp);
+        }
+    }
+
+    filenames = DEH_GetFileNames();
+
+    if (filenames)
+    {
+        mem_fputs(" -deh", stream);
+
+        for (i = 0; filenames[i]; i++)
+        {
+            tmp = M_StringJoin(" \"", M_BaseName(filenames[i]), "\"", NULL);
+            mem_fputs(tmp, stream);
+            free(tmp);
+        }
+    }
+
+    mem_fputs(" -complevel 0", stream);
+
+    if (M_CheckParm("-solo-net"))
+    {
+        mem_fputs(" -solo-net", stream);
+    }
+
+    return mem_ftell(stream) - pos;
+}
+
+static void WriteFileInfo(const char *name, size_t size, MEMFILE *stream)
+{
+    filelump_t fileinfo = { 0 };
+    static long filepos = sizeof(wadinfo_t);
+
+    fileinfo.filepos = LONG(filepos);
+    fileinfo.size = LONG(size);
+
+    if (name)
+    {
+        size_t len = strnlen(name, 8);
+        if (len < 8)
+        {
+            len++;
+        }
+        memcpy(fileinfo.name, name, len);
+    }
+
+    mem_fwrite(&fileinfo, 1, sizeof(fileinfo), stream);
+
+    filepos += size;
+}
+
+static void G_AddDemoFooter(void)
+{
+    byte *data;
+    size_t size;
+    char *project_string;
+
+    MEMFILE *stream = mem_fopen_write();
+
+    wadinfo_t header = { "PWAD" };
+    header.numlumps = LONG(NUM_DEMO_FOOTER_LUMPS);
+    mem_fwrite(&header, 1, sizeof(header), stream);
+
+    project_string = M_StringReplace(PACKAGE_STRING, "Doom", "Heretic");
+
+    mem_fputs(PACKAGE_FULLNAME_HERETIC, stream);  // [JN] Use full port name.
+    mem_fputs(DEMO_FOOTER_SEPARATOR, stream);
+    size = WriteCmdLineLump(stream);
+    mem_fputs(DEMO_FOOTER_SEPARATOR, stream);
+
+    header.infotableofs = LONG(mem_ftell(stream));
+    mem_fseek(stream, 0, MEM_SEEK_SET);
+    mem_fwrite(&header, 1, sizeof(header), stream);
+    mem_fseek(stream, 0, MEM_SEEK_END);
+
+    WriteFileInfo("PORTNAME", strlen(project_string), stream);
+    WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
+    WriteFileInfo("CMDLINE", size, stream);
+    WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
+
+    mem_get_buf(stream, (void **)&data, &size);
+
+    while (demo_p > demoend - size)
+    {
+        IncreaseDemoBuffer();
+    }
+
+    memcpy(demo_p, data, size);
+    demo_p += size;
+
+    free(project_string);
+    mem_fclose(stream);
+}
 
 /*
 ===================
@@ -2806,10 +3037,19 @@ boolean G_CheckDemoStatus(void)
     if (demorecording)
     {
         *demo_p++ = DEMOMARKER;
+        G_AddDemoFooter();
         M_WriteFile(demoname, demobuffer, demo_p - demobuffer);
         Z_Free(demobuffer);
         demorecording = false;
+        // [crispy] if a new game is started during demo recording, start a new demo
+        if (gameaction != ga_newgame)
+        {
         I_Error("Demo %s recorded", demoname);
+        }
+        else
+        {
+            fprintf(stderr, "Demo %s recorded\n", demoname);
+        }
     }
 
     return false;
