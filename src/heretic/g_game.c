@@ -853,7 +853,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     if (sendpause)
     {
         sendpause = false;
+        // [crispy] ignore un-pausing in menus during demo recording
+        if (!(MenuActive && demorecording && paused) && gameaction != ga_loadgame)
+        {
         cmd->buttons = BT_SPECIAL | BTS_PAUSE;
+        }
     }
 
     if (sendsave)
@@ -1143,6 +1147,20 @@ boolean G_Responder(event_t * ev)
     player_t *plr;
 
     plr = &players[consoleplayer];
+
+    // [crispy] demo pause (from prboom-plus)
+    if (gameaction == ga_nothing && 
+        (demoplayback || gamestate == GS_INTERMISSION))
+    {
+        if (ev->type == ev_keydown && ev->data1 == key_pause)
+        {
+            if (paused ^= 2)
+                S_PauseSound();
+            else
+                S_ResumeSound();
+            return true;
+        }
+    }
 
     // [crispy] demo fast-forward
     if (ev->type == ev_keydown && ev->data1 == key_demospeed
@@ -1471,6 +1489,13 @@ void G_Ticker(void)
     }
 
 
+    // [crispy] demo sync of revenant tracers and RNG (from prboom-plus)
+    if (paused & 2 || (!demoplayback && MenuActive && !netgame))
+    {
+        // [JN] Means: no-op! Stop tics from running while demo is paused.
+    }
+    else
+    {
 //
 // get commands, check consistancy, and build new consistancy check
 //
@@ -1533,6 +1558,9 @@ void G_Ticker(void)
                         break;
 
                     case BTS_SAVEGAME:
+                        // [crispy] never override savegames by demo playback
+                        if (demoplayback)
+                        break;
                         if (!savedescription[0])
                         {
                             if (netgame)
@@ -1552,10 +1580,15 @@ void G_Ticker(void)
                             (players[i].cmd.
                              buttons & BTS_SAVEMASK) >> BTS_SAVESHIFT;
                         gameaction = ga_savegame;
+                        // [crispy] un-pause immediately after saving
+                        // (impossible to send save and pause specials within the same tic)
+                        if (demorecording && paused)
+                        sendpause = true;
                         break;
                 }
             }
         }
+    }
     // turn inventory off after a certain amount of time
     if (inventory && !(--inventoryTics))
     {
@@ -1566,6 +1599,15 @@ void G_Ticker(void)
     }
 
     oldleveltime = realleveltime;
+
+    // [crispy] no pause at intermission screen during demo playback 
+    // to avoid desyncs (from prboom-plus)
+    if ((paused & 2 || (!demoplayback && MenuActive && !netgame)) 
+        && gamestate == GS_INTERMISSION)
+    {
+    return;
+    }
+
 //
 // do main actions
 //
