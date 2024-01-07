@@ -90,8 +90,9 @@ void S_StartSong(int song, boolean loop)
 {
     int mus_len;
 
-    // [JN] CRL - do not play music while demo-warp.
-    if (nodrawers /*|| demowarp*/)
+    // [JN] Do not play music while demo-warp,
+    // but still change while fast forwarding to next level in demo playback.
+    if ((nodrawers || demowarp) && !demo_gotonextlvl)
     {
         return;
     }

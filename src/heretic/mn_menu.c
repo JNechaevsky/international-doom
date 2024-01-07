@@ -5721,13 +5721,41 @@ boolean MN_Responder(event_t * event)
         }
         // [crispy] those two can be considered as shortcuts for the IDCLEV cheat
         // and should be treated as such, i.e. add "if (!netgame)"
-        else if (!netgame && key != 0 && key == key_reloadlevel)
+        // [JN] Hovewer, allow while multiplayer demos.
+        else if ((!netgame || netdemo) && key != 0 && key == key_reloadlevel)
         {
+            if (demoplayback)
+            {
+                if (demowarp)
+                {
+                    // [JN] Enable screen render back before replaying.
+                    nodrawers = false;
+                    singletics = false;
+                }
+                // [JN] Replay demo lump or file.
+                G_DoPlayDemo();
+                return true;
+            }
+            else
             if (G_ReloadLevel())
             return true;
         }
-        else if (!netgame && key != 0 && key == key_nextlevel)
+        else if ((!netgame || netdemo) && key != 0 && key == key_nextlevel)
         {
+            if (demoplayback)
+            {
+                // [JN] TODO - trying to go to next level while paused state
+                // is restarting current level with demo desync. But why?
+                if (paused)
+                {
+                    return true;
+                }
+                // [JN] Go to next level.
+                demo_gotonextlvl = true;
+                G_DemoGoToNextLevel(true);
+                return true;
+            }
+            else
             if (G_GotoNextLevel())
             return true;
         }
