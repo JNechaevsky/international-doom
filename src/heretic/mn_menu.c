@@ -5844,25 +5844,6 @@ boolean MN_Responder(event_t * event)
             }
             return true;
         }
-        else if (key == key_menu_gamma)           // F11 (gamma correction)
-        {
-            if (++vid_gamma > 14)
-            {
-                vid_gamma = 0;
-            }
-            CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false);
-#ifndef CRISPY_TRUECOLOR
-            I_SetPalette((byte *) W_CacheLumpName("PLAYPAL", PU_CACHE));
-#else
-            {
-            I_SetPalette(0);
-            R_InitColormaps();
-            BorderNeedRefresh = true;
-            SB_state = -1;
-            }
-#endif
-            return true;
-        }
         // [crispy] those two can be considered as shortcuts for the IDCLEV cheat
         // and should be treated as such, i.e. add "if (!netgame)"
         // [JN] Hovewer, allow while multiplayer demos.
@@ -5904,6 +5885,27 @@ boolean MN_Responder(event_t * event)
             return true;
         }
 
+    }
+
+    // [JN] Allow to change gamma while active menu.
+    if (key == key_menu_gamma)           // F11 (gamma correction)
+    {
+        if (++vid_gamma > 14)
+        {
+            vid_gamma = 0;
+        }
+        CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false);
+#ifndef CRISPY_TRUECOLOR
+        I_SetPalette((byte *) W_CacheLumpName("PLAYPAL", PU_CACHE));
+#else
+        {
+        I_SetPalette(0);
+        R_InitColormaps();
+        BorderNeedRefresh = true;
+        SB_state = -1;
+        }
+#endif
+        return true;
     }
 
     if (!MenuActive)
