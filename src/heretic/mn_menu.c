@@ -606,6 +606,9 @@ static boolean M_ID_LevelArti_7 (int choice);
 static boolean M_ID_LevelArti_8 (int choice);
 static boolean M_ID_LevelArti_9 (int choice);
 
+static boolean M_ID_SettingReset (int choice);
+static void M_ID_ApplyReset (void);
+
 // Keyboard binding prototypes
 static boolean KbdIsBinding;
 static int     keyToBind;
@@ -910,15 +913,15 @@ static char *const DefSkillName[5] =
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Main[] = {
-    { ITT_SETMENU, "VIDEO OPTIONS",       NULL,      0, MENU_ID_VIDEO     },
-    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,      0, MENU_ID_DISPLAY   },
-    { ITT_SETMENU, "SOUND OPTIONS",       NULL,      0, MENU_ID_SOUND     },
-    { ITT_SETMENU, "CONTROL SETTINGS",    NULL,      0, MENU_ID_CONTROLS  },
-    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,      0, MENU_ID_WIDGETS   },
-    { ITT_SETMENU, "GAMEPLAY FEATURES",   NULL,      0, MENU_ID_GAMEPLAY1 },
-    { ITT_SETMENU, "LEVEL SELECT",        NULL,      0, MENU_ID_LEVEL1  },
-    { ITT_EFUNC,   "END GAME",            SCEndGame, 0, MENU_NONE         },
-    { ITT_SETMENU, "RESET SETTINGS",      NULL,      0, MENU_NONE         },
+    { ITT_SETMENU, "VIDEO OPTIONS",       NULL,              0, MENU_ID_VIDEO     },
+    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,              0, MENU_ID_DISPLAY   },
+    { ITT_SETMENU, "SOUND OPTIONS",       NULL,              0, MENU_ID_SOUND     },
+    { ITT_SETMENU, "CONTROL SETTINGS",    NULL,              0, MENU_ID_CONTROLS  },
+    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,              0, MENU_ID_WIDGETS   },
+    { ITT_SETMENU, "GAMEPLAY FEATURES",   NULL,              0, MENU_ID_GAMEPLAY1 },
+    { ITT_SETMENU, "LEVEL SELECT",        NULL,              0, MENU_ID_LEVEL1    },
+    { ITT_EFUNC,   "END GAME",            SCEndGame,         0, MENU_NONE         },
+    { ITT_EFUNC,   "RESET SETTINGS",      M_ID_SettingReset, 0, MENU_NONE         },
 };
 
 static Menu_t ID_Def_Main = {
@@ -4106,6 +4109,132 @@ static boolean M_ID_LevelArti_9 (int choice)
     return true;
 }
 
+// -----------------------------------------------------------------------------
+// Reset settings
+// -----------------------------------------------------------------------------
+
+static void M_ID_ApplyResetHook (void)
+{
+    // Video
+#ifdef CRISPY_TRUECOLOR
+    vid_truecolor = 0;
+#endif
+    vid_resolution = 2;
+    vid_widescreen = 0;
+    vid_uncapped_fps = 0;
+    vid_fpslimit = 60;
+    vid_vsync = 1;
+    vid_showfps = 0;
+    vid_smooth_scaling = 0;
+    vid_endoom = 0;
+
+    // Display
+    vid_gamma = 10;
+    vid_fov = 90;
+    dp_screen_size = 10;    
+    dp_menu_shading = 0;
+    dp_level_brightness = 0;
+    vid_saturation = 100;
+    vid_r_intensity = 1.000000;
+    vid_g_intensity = 1.000000;
+    vid_b_intensity = 1.000000;
+    showMessages = 1;
+    msg_text_shadows = 0;
+    msg_local_time = 0;
+
+    // Sound
+    snd_MaxVolume = 10;
+    snd_MusicVolume = 10;
+    snd_monosfx = 0;
+    snd_pitchshift = 1;
+    snd_Channels = 8;
+    snd_mute_inactive = 0;
+
+    // Widgets
+    widget_location = 0;
+    widget_kis = 0;
+    widget_time = 0;
+    widget_totaltime = 0;
+    widget_levelname = 0;
+    widget_coords = 0;
+    widget_render = 0;
+    widget_health = 0;
+
+    // Automap
+    automap_secrets = 0;
+    automap_rotate = 0;
+    automap_overlay = 0;
+    // automap_shading = 0; // [JN] TODO - implement automap overlay shading
+
+    // Gameplay features
+    vis_brightmaps = 0;
+    vis_translucency = 0;
+    vis_fake_contrast = 1;
+    vis_smooth_light = 0;
+    vis_swirling_liquids = 0;
+    vis_invul_sky = 0;
+    vis_linear_sky = 0;
+    vis_flip_corpses = 0;
+    xhair_draw = 0;
+    xhair_color = 0;
+    st_colored_stbar = 0;
+    st_ammo_widget = 0;
+    aud_z_axis_sfx = 0;
+    phys_torque = 0;
+    phys_weapon_alignment = 0;
+    phys_breathing = 0;
+    gp_default_skill = 2;
+    gp_revealed_secrets = 0;
+    gp_flip_levels = 0;
+    demo_timer = 0;
+    demo_timerdir = 0;
+    demo_bar = 0;
+    demo_internal = 1;
+    compat_pistol_start = 0;
+    compat_blockmap_fix = 0;
+
+    // Restart graphical systems
+    I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    R_InitLightTables();
+    R_SetViewSize(dp_screen_size, 0 /*dp_detail_level*/);
+    R_ExecuteSetViewSize();
+    I_ToggleVsync();
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+#else
+    I_SetPalette(sb_palette);
+#endif
+    R_InitColormaps();
+    AM_LevelInit(true);
+    if (automapactive)
+    {
+        AM_Start();
+    }
+
+    // Restart audio systems (sort of...)
+    S_SetMaxVolume(true);  // Recalc the sound curve now.
+    S_SetMusicVolume();
+}
+
+static void M_ID_ApplyReset (void)
+{
+    post_rendering_hook = M_ID_ApplyResetHook;
+}
+
+static boolean M_ID_SettingReset (int choice)
+{
+    MenuActive = false;
+    askforquit = true;
+    typeofask = 8;      // [JN] Settings reset
+
+    if (!netgame && !demoplayback)
+    {
+        paused = true;
+    }
+
+    return true;
+}
+
 static Menu_t *Menus[] = {
     &MainMenu,
     &EpisodeMenu,
@@ -4440,6 +4569,7 @@ char *QuitEndMsg[] = {
     "DO YOU WANT TO DELETE THE GAME NAMED",        // [crispy] typeofask 5 (delete a savegame)
     "RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",  // [JN] typeofask 6 (reset keyboard binds)
     "RESET MOUSE BINDINGS TO DEFAULT VALUES?",     // [JN] typeofask 7 (reset mouse binds)
+    "",                                            // [JN] typeofask 8 (setting reset), full text in drawer below
 };
 
 void MN_Drawer(void)
@@ -4486,6 +4616,13 @@ void MN_Drawer(void)
                            MN_TextAWidth(SlotText[CurrentItPos]) / 2, 90, NULL);
                 MN_DrTextA(DEH_String("?"), 160 +
                            MN_TextAWidth(SlotText[CurrentItPos]) / 2, 90, NULL);
+            }
+            if (typeofask == 8)
+            {
+                MN_DrTextACentered("GRAPHICAL, AUDIO AND GAMEPLAY SETTINGS", 70, NULL);
+                MN_DrTextACentered("WILL BE RESET TO DEFAULT VALUES.", 80, NULL);
+                MN_DrTextACentered("ARE YOU SURE WANT TO CONTINUE?", 100, NULL);
+                MN_DrTextACentered("PRESS Y OR N.", 120, NULL);
             }
             UpdateState |= I_FULLSCRN;
         }
@@ -5466,6 +5603,13 @@ boolean MN_Responder(event_t * event)
                     MN_ReturnToMenu();
                     break;
 
+                case 8: // [JN] Setting reset.
+                    M_ID_ApplyReset();
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    MN_ReturnToMenu();
                 default:
                     break;
             }
@@ -5477,8 +5621,8 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_abort || key == KEY_ESCAPE)
         {
-            // [JN] Do not close keybindings menu after reset canceling.
-            if (typeofask == 6 || typeofask == 7)
+            // [JN] Do not close reset menus after canceling.
+            if (typeofask == 6 || typeofask == 7 || typeofask == 8)
             {
                 if (!netgame && !demoplayback)
                 {
