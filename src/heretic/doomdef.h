@@ -729,6 +729,12 @@ void G_DeferedInitNew(skill_t skill, int episode, int map);
 extern boolean G_DoSelectiveGame (int choice);
 
 void G_DeferedPlayDemo(const char *demo);
+void G_DoPlayDemo(void);
+
+extern boolean netdemo;
+
+extern boolean demo_gotonextlvl;
+void G_DemoGoToNextLevel (boolean start);
 
 void G_LoadGame(char *name);
 // can be called by the startup code or M_Responder

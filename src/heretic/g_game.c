@@ -64,7 +64,6 @@ void G_DoReborn(int playernum);
 
 void G_DoLoadLevel(void);
 void G_DoNewGame(void);
-void G_DoPlayDemo(void);
 void G_DoCompleted(void);
 void G_DoVictory(void);
 void G_DoWorldDone(void);
@@ -3128,3 +3127,21 @@ void G_DoSaveGame(void)
     free(filename);
 }
 
+//
+// G_DemoGoToNextLevel
+// [JN] Fast forward to next level while demo playback.
+//
+
+boolean demo_gotonextlvl;
+
+void G_DemoGoToNextLevel (boolean start)
+{
+    // Disable screen rendering while fast forwarding.
+    nodrawers = start;
+
+    // Switch to fast tics running mode if not in -timedemo.
+    if (!timingdemo)
+    {
+        singletics = start;
+    }
+} 
