@@ -1315,6 +1315,15 @@ boolean G_Responder(event_t * ev)
             {
                 gamekeydown[ev->data1] = true;
             }
+            // [JN] Flip level horizontally.
+            if (ev->data1 == key_flip_levels)
+            {
+                gp_flip_levels ^= 1;
+                // Redraw game screen
+                R_ExecuteSetViewSize();
+                // Audible feedback
+                S_StartSound(NULL, sfx_switch);
+            }
             // [JN] CRL - Toggle spectator mode.
             if (ev->data1 == key_spectator)
             {
