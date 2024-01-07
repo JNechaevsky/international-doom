@@ -2999,15 +2999,12 @@ static void G_AddDemoFooter(void)
 {
     byte *data;
     size_t size;
-    char *project_string;
 
     MEMFILE *stream = mem_fopen_write();
 
     wadinfo_t header = { "PWAD" };
     header.numlumps = LONG(NUM_DEMO_FOOTER_LUMPS);
     mem_fwrite(&header, 1, sizeof(header), stream);
-
-    project_string = M_StringReplace(PACKAGE_STRING, "Doom", "Heretic");
 
     mem_fputs(PACKAGE_FULLNAME_HERETIC, stream);  // [JN] Use full port name.
     mem_fputs(DEMO_FOOTER_SEPARATOR, stream);
@@ -3019,7 +3016,7 @@ static void G_AddDemoFooter(void)
     mem_fwrite(&header, 1, sizeof(header), stream);
     mem_fseek(stream, 0, MEM_SEEK_END);
 
-    WriteFileInfo("PORTNAME", strlen(project_string), stream);
+    WriteFileInfo("PORTNAME", strlen(PACKAGE_STRING), stream);
     WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
     WriteFileInfo("CMDLINE", size, stream);
     WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
@@ -3034,7 +3031,6 @@ static void G_AddDemoFooter(void)
     memcpy(demo_p, data, size);
     demo_p += size;
 
-    free(project_string);
     mem_fclose(stream);
 }
 
