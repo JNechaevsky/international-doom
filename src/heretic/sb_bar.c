@@ -703,7 +703,6 @@ void SB_Drawer(void)
 {
     int frame;
     static boolean hitCenterFrame;
-    int spinfly_x, spinbook_x; // [crispy]
 
     // Sound info debug stuff
     if (DebugSound == true)
@@ -775,11 +774,14 @@ void SB_Drawer(void)
     // Flight icons
     if (CPlayer->powers[pw_flight])
     {
-        spinfly_x = 20 - WIDESCREENDELTA; // [crispy]
+        int spinfly_x = 20 - WIDESCREENDELTA; // [crispy]
 
-        // [crispy] Move flight icon out of the way of stats widget.
-        // left_widget_w is 0 if stats widget is off.
-        spinfly_x += 0;// left_widget_w;
+        // [JN] Shift wings icon right if widgets
+        // are placed on top and if KIS stats are on.
+        if (widget_location == 1 && widget_kis == 1)
+        {
+            spinfly_x += 70;
+        }
 
         if (CPlayer->powers[pw_flight] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_flight] & 16))
@@ -830,11 +832,16 @@ void SB_Drawer(void)
 
     if (CPlayer->powers[pw_weaponlevel2] && !CPlayer->chickenTics)
     {
-        spinbook_x = 300 + WIDESCREENDELTA; // [crispy]
+        int spinbook_x = 300 + WIDESCREENDELTA; // [crispy]
 
-        // [crispy] Move tome icon out of the way of coordinates widget and fps
-        // counter. right_widget_w is 0 if those are off.
-        spinbook_x -= 0; //right_widget_w;
+        // [JN] Shift wings icon right if widgets
+        // are placed on top and if KIS stats are on.
+        if (vid_showfps
+        || (demoplayback && (demo_timer == 1 || demo_timer == 3))
+        || (demorecording && (demo_timer == 2 || demo_timer == 3)))
+        {
+            spinbook_x -= 70;
+        }
 
         if (CPlayer->powers[pw_weaponlevel2] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_weaponlevel2] & 16))

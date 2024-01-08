@@ -117,18 +117,18 @@ void ID_LeftWidgets (void)
                 else
                 */
                 {
-                    sprintf(str1, "%d/%d ", IDWidget.kills, IDWidget.totalkills);
+                    sprintf(str1, "%d/%d", IDWidget.kills, IDWidget.totalkills);
                 }
                 MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, ID_WidgetColor(widget_kills));
 
                 // Items:
                 MN_DrTextA("I:", 0 - WIDESCREENDELTA, 20, cr[CR_GRAY]);
-                sprintf(str2, "%d/%d ", IDWidget.items, IDWidget.totalitems);
+                sprintf(str2, "%d/%d", IDWidget.items, IDWidget.totalitems);
                 MN_DrTextA(str2, 0 - WIDESCREENDELTA + 16, 20, ID_WidgetColor(widget_items));
 
                 // Secret:
                 MN_DrTextA("S:", 0 - WIDESCREENDELTA, 30, cr[CR_GRAY]);
-                sprintf(str3, "%d/%d ", IDWidget.secrets, IDWidget.totalsecrets);
+                sprintf(str3, "%d/%d", IDWidget.secrets, IDWidget.totalsecrets);
                 MN_DrTextA(str3, 0 - WIDESCREENDELTA + 16, 30, ID_WidgetColor(widget_secret));
             }
             else
