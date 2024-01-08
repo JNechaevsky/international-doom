@@ -64,10 +64,11 @@ typedef PACKED_STRUCT (
 
 typedef PACKED_STRUCT (
 {
-    short v1, v2;
-    short flags;
+    unsigned short v1, v2; // [crispy] extended nodes
+    unsigned short flags; // [crispy] extended nodes
     short special, tag;
-    short sidenum[2];           // sidenum[1] will be -1 if one sided
+    // sidenum[1] will be NO_INDEX if one sided
+    unsigned short sidenum[2]; // [crispy] extended nodes
 }) maplinedef_t;
 
 #define	ML_BLOCKING			1
@@ -99,25 +100,89 @@ typedef PACKED_STRUCT (
 
 typedef PACKED_STRUCT (
 {
-    short numsegs;
-    short firstseg;             // segs are stored sequentially
+    unsigned short numsegs; // [crispy] extended nodes
+    // segs are stored sequentially
+    unsigned short firstseg; // [crispy] extended nodes
 }) mapsubsector_t;
+
+// [crispy] allow loading of maps with DeePBSP nodes
+// taken from prboom-plus/src/doomdata.h:163-166
+typedef PACKED_STRUCT (
+{
+    unsigned short numsegs;
+    int firstseg;
+}) mapsubsector_deepbsp_t;
+
+// [crispy] allow loading of maps with ZDBSP nodes
+// taken from prboom-plus/src/doomdata.h:168-170
+typedef PACKED_STRUCT (
+{
+    unsigned int numsegs;
+}) mapsubsector_zdbsp_t;
 
 typedef PACKED_STRUCT (
 {
-    short v1, v2;
+    unsigned short v1, v2; // [crispy] extended nodes
     short angle;
-    short linedef, side;
+    unsigned short linedef; // [crispy] extended nodes
+    short side;
     short offset;
 }) mapseg_t;
 
-#define	NF_SUBSECTOR	0x8000
+// [crispy] allow loading of maps with DeePBSP nodes
+// taken from prboom-plus/src/doomdata.h:183-190
+typedef PACKED_STRUCT (
+{
+    int v1;
+    int v2;
+    unsigned short angle;
+    unsigned short linedef;
+    short side;
+    unsigned short offset;
+}) mapseg_deepbsp_t;
+
+// [crispy] allow loading of maps with ZDBSP nodes
+// taken from prboom-plus/src/doomdata.h:192-196
+typedef PACKED_STRUCT (
+{
+    unsigned int v1, v2;
+    unsigned short linedef;
+    unsigned char side;
+}) mapseg_zdbsp_t;
+
+#define	NF_SUBSECTOR_VANILLA	0x8000
+#define	NF_SUBSECTOR	0x80000000 // [crispy] extended nodes
+#define	NO_INDEX	((unsigned short)-1) // [crispy] extended nodes
 typedef PACKED_STRUCT (
 {
     short x, y, dx, dy;         // partition line
     short bbox[2][4];           // bounding box for each child
     unsigned short children[2]; // if NF_SUBSECTOR its a subsector
 }) mapnode_t;
+
+// [crispy] allow loading of maps with DeePBSP nodes
+// taken from prboom-plus/src/doomdata.h:216-225
+typedef PACKED_STRUCT (
+{
+    short x;
+    short y;
+    short dx;
+    short dy;
+    short bbox[2][4];
+    int children[2];
+}) mapnode_deepbsp_t;
+
+// [crispy] allow loading of maps with ZDBSP nodes
+// taken from prboom-plus/src/doomdata.h:227-136
+typedef PACKED_STRUCT (
+{
+    short x;
+    short y;
+    short dx;
+    short dy;
+    short bbox[2][4];
+    int children[2];
+}) mapnode_zdbsp_t;
 
 typedef PACKED_STRUCT (
 {

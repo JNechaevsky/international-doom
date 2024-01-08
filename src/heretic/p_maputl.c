@@ -267,7 +267,7 @@ void P_LineOpening(line_t * linedef)
 {
     sector_t *front, *back;
 
-    if (linedef->sidenum[1] == -1)
+    if (linedef->sidenum[1] == NO_INDEX) // [crispy] extended nodes
     {                           // single sided line
         openrange = 0;
         return;
@@ -431,7 +431,7 @@ If the function returns false, exit with false without checking anything else.
 boolean P_BlockLinesIterator(int x, int y, boolean(*func) (line_t *))
 {
     int offset;
-    short *list;
+    int32_t *list; // [crispy] BLOCKMAP limit
     line_t *ld;
 
     if (x < 0 || y < 0 || x >= bmapwidth || y >= bmapheight)

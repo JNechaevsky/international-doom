@@ -3201,7 +3201,7 @@ static void M_ID_SmoothLightingHook (void)
     // [crispy] re-calculate the scalelight[][] array
     R_ExecuteSetViewSize();
     // [crispy] re-calculate fake contrast
-    P_SegLengths(true);
+    P_SegLengths();
 }
 
 static boolean M_ID_SmoothLighting (int choice)
