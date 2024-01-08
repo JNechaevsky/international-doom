@@ -1205,6 +1205,10 @@ static void P_CreateBlockMap (void)
 =
 = Builds sector line lists and subsector sector numbers
 = Finds block bounding boxes for sectors
+=
+= [JN] Updated old Doom 1.2 code with actual code,
+=      speeds up loading of complex levels a lot.
+=
 =================
 */
 
@@ -1214,17 +1218,31 @@ void P_GroupLines(void)
     int i, j, total;
     line_t *li;
     sector_t *sector;
-    subsector_t *ss;
     seg_t *seg;
     fixed_t bbox[4];
     int block;
 
 // look up sector number for each subsector
-    ss = subsectors;
-    for (i = 0; i < numsubsectors; i++, ss++)
+// [JN] Fix infinite loop if subsector is not a part of any sector.
+// Written by figgi, adapted from Pr-Boom+.
+    for (i = 0; i < numsubsectors; i++)
     {
-        seg = &segs[ss->firstline];
-        ss->sector = seg->sidedef->sector;
+        seg = &segs[subsectors[i].firstline];
+        subsectors[i].sector = NULL;
+        
+        for (j = 0; j < subsectors[i].numlines; j++)
+        {
+            if(seg->sidedef)
+            {
+                subsectors[i].sector = seg->sidedef->sector;
+                break;
+            }
+            seg++;
+        }
+        if (subsectors[i].sector == NULL)
+        {
+            I_Error("P_GroupLines: Subsector %d is not a part of any sector!\n", i);
+        }
     }
 
 // count number of lines in each sector
@@ -1243,23 +1261,51 @@ void P_GroupLines(void)
 
 // build line tables for each sector    
     linebuffer = Z_Malloc(total * sizeof(line_t *), PU_LEVEL, 0);
+    for (i = 0; i < numsectors; ++i)
+    {
+        // assign the line buffer for this sector
+        sectors[i].lines = linebuffer;
+        linebuffer += sectors[i].linecount;
+
+        // reset linecount to zero so in the next stage we can count 
+        // lines into the list
+        sectors[i].linecount = 0;
+    }
+
+// assign lines to sectors
+    for (i = 0; i < numlines; ++i)
+    { 
+        li = &lines[i];
+
+        if (li->frontsector != NULL)
+        {
+            sector = li->frontsector;
+
+            sector->lines[sector->linecount] = li;
+            ++sector->linecount;
+        }
+
+        if (li->backsector != NULL && li->frontsector != li->backsector)
+        {
+            sector = li->backsector;
+
+            sector->lines[sector->linecount] = li;
+            ++sector->linecount;
+        }
+    }
+    
+// generate bounding boxes for sectors
     sector = sectors;
     for (i = 0; i < numsectors; i++, sector++)
     {
         M_ClearBox(bbox);
-        sector->lines = linebuffer;
-        li = lines;
-        for (j = 0; j < numlines; j++, li++)
+        for (j = 0; j < sector->linecount; j++)
         {
-            if (li->frontsector == sector || li->backsector == sector)
-            {
-                *linebuffer++ = li;
-                M_AddToBox(bbox, li->v1->x, li->v1->y);
-                M_AddToBox(bbox, li->v2->x, li->v2->y);
-            }
+            li = sector->lines[j];
+
+            M_AddToBox (bbox, li->v1->x, li->v1->y);
+            M_AddToBox (bbox, li->v2->x, li->v2->y);
         }
-        if (linebuffer - sector->lines != sector->linecount)
-            I_Error("P_GroupLines: miscounted");
 
         // set the degenmobj_t to the middle of the bounding box
         sector->soundorg.x = (bbox[BOXRIGHT] + bbox[BOXLEFT]) / 2;
