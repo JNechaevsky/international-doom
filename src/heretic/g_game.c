@@ -2914,6 +2914,9 @@ void G_TimeDemo(char *name)
     G_InitNew(skill, episode, map);
     starttime = I_GetTime();
 
+    // [JN] Disable rendering the screen entirely.
+    nodrawers = M_CheckParm ("-nodraw");
+
     usergame = false;
     demoplayback = true;
     timingdemo = true;
@@ -3055,16 +3058,19 @@ static void G_AddDemoFooter(void)
 
 boolean G_CheckDemoStatus(void)
 {
-    int endtime, realtics;
-
     if (timingdemo)
     {
-        float fps;
-        endtime = I_GetTime();
-        realtics = endtime - starttime;
-        fps = ((float) gametic * TICRATE) / realtics;
-        I_Error("timed %i gametics in %i realtics (%f fps)",
-                gametic, realtics, fps);
+        const int endtime = I_GetTime();
+        const int realtics = endtime - starttime;
+        const float fps = ((float)gametic * TICRATE) / realtics;
+
+        // Prevent recursive calls
+        timingdemo = false;
+        demoplayback = false;
+
+        i_error_safe = true;
+        I_Error ("Timed %i gametics in %i realtics.\n"
+                 "Average fps: %f", gametic, realtics, fps);
     }
 
     if (demoplayback)
