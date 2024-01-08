@@ -104,33 +104,43 @@ mapformat_t P_CheckMapFormat(int lumpnum)
     byte *nodes = NULL;
     int b;
 
-    if (!((b = lumpnum + ML_NODES) < numlumps &&
-          (nodes = W_CacheLumpNum(b, PU_CACHE)) &&
-          W_LumpLength(b) > 0))
+    /*
+    if ((b = lumpnum+ML_BLOCKMAP+1) < numlumps &&
+        !strncasecmp(lumpinfo[b]->name, "BEHAVIOR", 8))
     {
-        fprintf(stderr, "no nodes");
-    }
-    else if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
-    {
-        fprintf(stderr, "DeePBSP nodes");
-        format |= MFMT_DEEPBSP;
-    }
-    else if (!memcmp(nodes, "XNOD", 4))
-    {
-        fprintf(stderr, "ZDBSP nodes");
-        format |= MFMT_ZDBSPX;
-    }
-    else if (!memcmp(nodes, "ZNOD", 4))
-    {
-        fprintf(stderr, "compressed ZDBSP nodes");
-        format |= MFMT_ZDBSPZ;
+	fprintf(stderr, "Hexen format (");
+	format |= MFMT_HEXEN;
     }
     else
-    {
-        fprintf(stderr, "BSP nodes");
-    }
+    */
+	fprintf(stderr, "Heretic format (");
 
-    fprintf(stderr, " are detected\n");
+    if (!((b = lumpnum+ML_NODES) < numlumps &&
+        (nodes = W_CacheLumpNum(b, PU_CACHE)) &&
+        W_LumpLength(b) > 0))
+	fprintf(stderr, "no nodes");
+    else
+    if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
+    {
+	fprintf(stderr, "DeePBSP");
+	format |= MFMT_DEEPBSP;
+    }
+    else
+    if (!memcmp(nodes, "XNOD", 4))
+    {
+	fprintf(stderr, "ZDBSP");
+	format |= MFMT_ZDBSPX;
+    }
+    else
+    if (!memcmp(nodes, "ZNOD", 4))
+    {
+	fprintf(stderr, "compressed ZDBSP");
+	format |= MFMT_ZDBSPZ;
+    }
+    else
+	fprintf(stderr, "BSP");
+
+    fprintf(stderr, "), ");
 
     if (nodes)
     {
@@ -1200,6 +1210,9 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     realleveltime = 0;
     oldleveltime = 0;  // [crispy] Track if game is running
 
+    // [JN] Indicate the map we are loading.
+    fprintf(stderr, "P_SetupLevel: E%dM%d, ", gameepisode, gamemap);
+
     lumpnum = W_GetNumForName(lumpname);
 
     // [crispy] check and log map and nodes format
@@ -1296,8 +1309,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     crl_spectating = 0;
 
     // [JN] Print amount of level loading time.
-    printf("P_SetupLevel: E%dM%d, loaded in %d ms.\n",
-           gameepisode, gamemap, SDL_GetTicks() - starttime);
+    printf("loaded in %d ms.\n", SDL_GetTicks() - starttime);
 
 //printf ("free memory: 0x%x\n", Z_FreeMemory());
 
