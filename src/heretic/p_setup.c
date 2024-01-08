@@ -29,6 +29,10 @@
 #include "p_local.h"
 #include "s_sound.h"
 
+// [crispy] support maps with compressed ZDBSP nodes
+// [JN] Support via MINIZ library, thanks Leonid Murin (Dasperal).
+#include "miniz.h"
+
 #include "id_vars.h"
 #include "id_func.h"
 
@@ -281,9 +285,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 {
     byte *data;
     unsigned int i;
-#ifdef HAVE_LIBZ
-    byte *output = NULL;
-#endif
+    byte *output;
 
     unsigned int orgVerts, newVerts;
     unsigned int numSubs, currSeg;
@@ -297,7 +299,6 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 
     if (compressed)
     {
-#ifdef HAVE_LIBZ
         const int len =  W_LumpLength(lump);
         int outlen, err;
         z_stream *zstream;
@@ -342,14 +343,13 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
         // release the original data lump
         W_ReleaseLumpNum(lump);
         free(zstream);
-#else
-        I_Error("P_LoadNodes: Compressed ZDBSP nodes are not supported!");
-#endif
     }
     else
     {
         // skip header
         data += 4;
+	// [JN] Shut up compiler warning.
+	output = 0;
     }
 
     // 1. Load new vertices added during node building
@@ -505,13 +505,11 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
         }
     }
 
-#ifdef HAVE_LIBZ
-    if (compressed && output)
+    if (compressed)
     {
         Z_Free(output);
     }
     else
-#endif
     {
         W_ReleaseLumpNum(lump);
     }
