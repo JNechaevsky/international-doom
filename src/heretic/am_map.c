@@ -1145,6 +1145,26 @@ static void AM_drawBackground (void)
 }
 
 // -----------------------------------------------------------------------------
+// AM_shadeBackground
+//  [JN] Shade background in overlay mode.
+// -----------------------------------------------------------------------------
+
+static void AM_shadeBackground (void)
+{
+    const int height = dp_screen_size > 10 ?
+                       SCREENHEIGHT : (SCREENHEIGHT - (42 * vid_resolution));
+
+        for (int y = 0; y < SCREENWIDTH * height ; y++)
+        {
+#ifndef CRISPY_TRUECOLOR
+            I_VideoBuffer[y] = colormaps[((automap_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
+#else
+            I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], I_ShadeFactor[automap_shading]);
+#endif
+        }
+}
+
+// -----------------------------------------------------------------------------
 // AM_clipMline
 // Automap clipping of lines.
 //
@@ -2274,6 +2294,11 @@ void AM_Drawer (void)
     {
         AM_drawBackground();
         pspr_interp = false;  // [JN] Supress interpolated weapon bobbing.
+    }
+
+    if (automap_shading && automap_overlay)
+    {
+        AM_shadeBackground();
     }
 
     if (grid)

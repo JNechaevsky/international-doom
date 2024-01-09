@@ -534,6 +534,7 @@ static boolean M_ID_Widget_Health (int choice);
 static boolean M_ID_Automap_Secrets (int choice);
 static boolean M_ID_Automap_Rotate (int choice);
 static boolean M_ID_Automap_Overlay (int choice);
+static boolean M_ID_Automap_Shading (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static boolean M_ID_Brightmaps (int choice);
@@ -2906,12 +2907,13 @@ static MenuItem_t ID_Menu_Widgets[] = {
     { ITT_LRFUNC, "MARK SECRET SECTORS", M_ID_Automap_Secrets,  0, MENU_NONE },
     { ITT_LRFUNC, "ROTATE MODE",         M_ID_Automap_Rotate,   0, MENU_NONE },
     { ITT_LRFUNC, "OVERLAY MODE",        M_ID_Automap_Overlay,  0, MENU_NONE },
+    { ITT_LRFUNC, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    12, ID_Menu_Widgets,
+    13, ID_Menu_Widgets,
     0,
     true, false, false,
     MENU_ID_MAIN
@@ -2988,6 +2990,13 @@ static void M_Draw_ID_Widgets (void)
     sprintf(str, automap_overlay ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 130,
                M_Item_Glow(11, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Overlay shading level
+    sprintf(str,"%d", automap_shading);
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
+               M_Item_Glow(12, !automap_overlay ? GLOW_DARKRED :
+                                automap_shading ==  0 ? GLOW_RED :
+                                automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
 }
 
 static boolean M_ID_Widget_Location (int choice)
@@ -3053,6 +3062,23 @@ static boolean M_ID_Automap_Rotate (int choice)
 static boolean M_ID_Automap_Overlay (int choice)
 {
     automap_overlay ^= 1;
+    return true;
+}
+
+static boolean M_ID_Automap_Shading (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (automap_shading)
+                automap_shading--;
+            break;
+        case 1:
+            if (automap_shading < 12)
+                automap_shading++;
+        default:
+            break;
+    }
     return true;
 }
 
@@ -4164,7 +4190,7 @@ static void M_ID_ApplyResetHook (void)
     automap_secrets = 0;
     automap_rotate = 0;
     automap_overlay = 0;
-    // automap_shading = 0; // [JN] TODO - implement automap overlay shading
+    automap_shading = 0;
 
     // Gameplay features
     vis_brightmaps = 0;
