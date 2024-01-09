@@ -198,14 +198,8 @@ void D_Display(void)
         case GS_LEVEL:
             if (!gametic)
                 break;
-            if (automapactive && !automap_overlay)
-            {
-                // [crispy] update automap while playing
-                R_RenderPlayerView (&players[displayplayer]);
-                AM_Drawer();
-            }
-            else
-                R_RenderPlayerView(&players[displayplayer]);
+            // draw the view directly
+            R_RenderPlayerView(&players[displayplayer]);
 
             // [JN] Fail-safe: return earlier if post rendering hook is still active.
             if (post_rendering_hook)
@@ -213,7 +207,7 @@ void D_Display(void)
                 return;
             }
 
-            if (automapactive && automap_overlay)
+            if (automapactive)
             {
                 AM_Drawer();
                 BorderNeedRefresh = true;
