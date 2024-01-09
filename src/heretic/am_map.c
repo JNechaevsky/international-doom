@@ -34,6 +34,7 @@
 #include "ct_chat.h"
 #include "doomkeys.h"
 #include "v_video.h"
+#include "p_action.h"
 
 #include "id_vars.h"
 
@@ -131,12 +132,11 @@ static int m_zoomout;
 // for uncapped framerate and uses different coloring logics:
 // Active monsters: up-up-up-up
 // Inactive monsters: up-down-up-down
-/*
 #define IDDT_REDS_RANGE (10)
-#define IDDT_REDS_MIN   (176)
-#define IDDT_REDS_MAX   (176+ IDDT_REDS_RANGE)
+#define IDDT_REDS_MIN   (150)
+#define IDDT_REDS_MAX   (150 + IDDT_REDS_RANGE)
 static  int     iddt_reds_active;
-static  int     iddt_reds_inactive = 176;
+static  int     iddt_reds_inactive = IDDT_REDS_MIN;
 static  boolean iddt_reds_direction = false;
 // [JN] Pulse player arrow in Spectator mode.
 #define ARROW_WHITE_RANGE (10)
@@ -144,7 +144,6 @@ static  boolean iddt_reds_direction = false;
 #define ARROW_WHITE_MAX   (96)
 static  int     arrow_color = 80;
 static  boolean arrow_color_direction = false;
-*/
 
 typedef struct
 {
@@ -1090,7 +1089,6 @@ void AM_Ticker (void)
     prev_m_x = m_x;
     prev_m_y = m_y;
 
-/*
     // [JN] Animate IDDT monster colors:
 
     // Inactive:
@@ -1110,7 +1108,7 @@ void AM_Ticker (void)
     }
 
     // Active:
-    iddt_reds_active = (172) + ((gametic >> 1) % IDDT_REDS_RANGE);
+    iddt_reds_active = (IDDT_REDS_MIN) + ((gametic >> 1) % IDDT_REDS_RANGE);
 
     // [JN] Pulse player arrow in Spectator mode:
 
@@ -1125,7 +1123,6 @@ void AM_Ticker (void)
     {
         arrow_color_direction = false;
     }
-*/
 }
 
 // -----------------------------------------------------------------------------
@@ -2034,6 +2031,8 @@ static void AM_drawThings(int colors, int colorrange)
     mpoint_t  pt;
     mobj_t *t;
     angle_t   actualangle;
+    // RestlessRodent -- Carbon copy from ReMooD
+    int       color = colors;
 
     for (i = 0 ; i < numsectors ; i++)
     {
@@ -2075,11 +2074,20 @@ static void AM_drawThings(int colors, int colorrange)
                 AM_rotatePoint(&pt);
             }
 
-            // [JN] RAVMAP extended thing colors.
+            // [JN] CRL - ReMooD-inspired monsters coloring.
+            if (t->target && t->state && t->state->action != A_Look)
+            {
+                color = iddt_reds_active;
+            }
+            else
+            {
+                color = iddt_reds_inactive;
+            }
+
             AM_drawLineCharacter(thintriangle_guy, NUMTHINTRIANGLEGUYLINES,
                                  actualradius, actualangle,
                                  // Monsters
-                                 t->flags & MF_COUNTKILL ? (t->health > 0 ? 160 : 15) :
+                                 t->flags & MF_COUNTKILL ? (t->health > 0 ? color : 15) :
                                  // Explosive pod (does not have a MF_COUNTKILL flag)
                                  t->type == MT_POD ? 141 :
                                  // Countable items
