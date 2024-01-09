@@ -52,7 +52,6 @@ void F_StartFinale(void)
 {
     gameaction = ga_nothing;
     gamestate = GS_FINALE;
-    viewactive = false;
     automapactive = false;
     players[consoleplayer].cheatTics = 1;
     players[consoleplayer].messageTics = 1;

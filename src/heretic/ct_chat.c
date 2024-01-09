@@ -46,12 +46,6 @@
 #define CT_PLR_ALL      5
 #define CT_ESCAPE       6
 
-#define CT_KEY_GREEN    'g'
-#define CT_KEY_YELLOW   'y'
-#define CT_KEY_RED      'r'
-#define CT_KEY_BLUE     'b'
-#define CT_KEY_ALL      't'
-
 
 static void CT_queueChatChar (char ch);
 static void CT_ClearChatMessage (int player);

@@ -23,6 +23,13 @@
 #include "doomdef.h"
 
 
+#define CT_KEY_GREEN    'g'
+#define CT_KEY_YELLOW   'y'
+#define CT_KEY_RED      'r'
+#define CT_KEY_BLUE     'b'
+#define CT_KEY_ALL      't'
+
+
 extern void CT_Drawer (void);
 extern void CT_Init (void);
 extern void CT_SetMessage (player_t *player, const char *message, boolean ultmsg);

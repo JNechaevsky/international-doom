@@ -111,8 +111,6 @@ boolean timingdemo;             // if true, exit with report on completion
 boolean nodrawers = false; // [crispy] for the demowarp feature
 int starttime;                  // for comparative timing purposes
 
-boolean viewactive;
-
 boolean deathmatch;             // only if started as net death
 boolean netgame;                // only true if packets are broadcast
 boolean playeringame[MAXPLAYERS];

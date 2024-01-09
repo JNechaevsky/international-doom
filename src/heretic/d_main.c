@@ -64,11 +64,6 @@
 #include "id_func.h"
 
 
-#define CT_KEY_GREEN    'g'
-#define CT_KEY_YELLOW   'y'
-#define CT_KEY_RED      'r'
-#define CT_KEY_BLUE     'b'
-
 #define STARTUP_WINDOW_X 17
 #define STARTUP_WINDOW_Y 7
 
@@ -77,7 +72,6 @@ const char *gamedescription = "unknown";
 
 boolean nomonsters;             // checkparm of -nomonsters
 boolean respawnparm;            // checkparm of -respawn
-boolean debugmode;              // checkparm of -debug
 boolean ravpic;                 // checkparm of -ravpic
 boolean coop_spawns = false;    // [crispy] checkparm of -coop_spawns
 boolean cdrom;                  // true if cd-rom mode active
@@ -92,8 +86,6 @@ static boolean main_loop_started = false;
 boolean autostart;
 
 boolean advancedemo;
-
-FILE *debugfile;
 
 int vid_diskicon = 0;
 int vid_endoom = 0;
@@ -137,11 +129,10 @@ void D_ProcessEvents(void)
 //
 //---------------------------------------------------------------------------
 
-void DrawMessage(void)
+static void DrawMessage (void)
 {
-    player_t *player;
-
-    player = &players[consoleplayer];
+    player_t *player = &players[consoleplayer];
+    
     if (player->messageTics <= 0 || !player->message)
     {                           // No message
         return;
@@ -362,12 +353,6 @@ boolean D_GrabMouseCallback(void)
 
 void D_DoomLoop(void)
 {
-    if (M_CheckParm("-debugfile"))
-    {
-        char filename[20];
-        M_snprintf(filename, sizeof(filename), "debug%i.txt", consoleplayer);
-        debugfile = M_fopen(filename, "w");
-    }
     I_GraphicsCheckCommandLine();
     I_SetGrabMouseCallback(D_GrabMouseCallback);
     I_RegisterWindowIcon(heretic_data, heretic_w, heretic_h);
@@ -601,15 +586,6 @@ void D_CheckRecordFrom(void)
 
 char *iwadfile;
 
-
-void wadprintf(void)
-{
-    if (debugmode)
-    {
-        return;
-    }
-}
-
 boolean D_AddFile(char *file)
 {
     wad_file_t *handle;
@@ -833,7 +809,6 @@ void D_BindVariables(void)
     M_BindIntVariable("msg_show",               &showMessages);
     M_BindIntVariable("snd_channels",           &snd_Channels);
     //M_BindIntVariable("graphical_startup",      &graphical_startup);
-    M_BindIntVariable("vid_diskicon",           &vid_diskicon);
 
     // Multiplayer chat macros
 
@@ -937,7 +912,6 @@ void D_DoomMain(void)
 
     ravpic = M_ParmExists("-ravpic");
 
-    debugmode = M_ParmExists("-debug");
     startepisode = 1;
     startmap = 1;
     autostart = false;
@@ -1296,7 +1270,6 @@ void D_DoomMain(void)
         status(temp);
     }
     */
-    wadprintf();                // print the added wadfiles
 
     printf(DEH_String("MN_Init: Init menu system.\n"));
     MN_Init();
