@@ -1067,6 +1067,12 @@ void R_SetupFrame (player_t* player)
             viewangle = player->mo->angle + viewangleoffset;
             pitch = player->lookdir; // [crispy]
         }
+
+        // [JN] Limit pitch (lookdir amplitude) for higher FOV levels.
+        if (vid_fov > 90)
+        {
+            pitch *= fovdiff*fovdiff;
+        }
     }
 
     tableAngle = viewangle >> ANGLETOFINESHIFT;

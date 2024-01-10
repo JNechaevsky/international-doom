@@ -1242,7 +1242,7 @@ static void M_Draw_ID_Display (void)
     // Field of View
     sprintf(str, "%d", vid_fov);
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               M_Item_Glow(1, vid_fov == 135 || vid_fov == 45 ? GLOW_YELLOW :
+               M_Item_Glow(1, vid_fov == 135 || vid_fov == 70 ? GLOW_YELLOW :
                               vid_fov == 90 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Background shading
@@ -1331,7 +1331,7 @@ static boolean M_ID_FOV (int choice)
     switch (choice)
     {
         case 0:
-            if (vid_fov > 45)
+            if (vid_fov > 70)
             {
                 vid_fov -= 1;
             }
