@@ -688,19 +688,8 @@ void S_ShutDown(void)
 
 void S_MuteUnmuteSound (boolean mute)
 {
-    static int snd_MaxVolume_old;
-    static int snd_MusicVolume_old;
-
     if (mute)
     {
-        // Remember current sound and music volume.
-        snd_MaxVolume_old = snd_MaxVolume;
-        snd_MusicVolume_old = snd_MusicVolume;
-
-        // Set volume variables to zero.
-        snd_MaxVolume = 0;
-        snd_MusicVolume = 0;
-
         // Stop all sounds and clear sfx channels.
         for (int i = 0 ; i < snd_Channels ; i++)
         {
@@ -711,17 +700,17 @@ void S_MuteUnmuteSound (boolean mute)
         }
         memset(channel, 0, snd_Channels * sizeof(channel_t));
 
-        // Set actual volume to zero.
+        // Set volume to zero.
         I_SetMusicVolume(0);
-        S_SetMaxVolume(true);
+        for (int i = 0; i < MAX_SND_DIST; i++)
+        {
+            soundCurve[i] = 0;
+        }
+
     }
     else
     {
-        // Restore volume variables.
-        snd_MaxVolume = snd_MaxVolume_old;
-        snd_MusicVolume = snd_MusicVolume_old;
-
-        // Set actual volume to restored values.
+        // Restore volume to actual values.
         I_SetMusicVolume(snd_MusicVolume * 8);
         S_SetMaxVolume(true);
     }
