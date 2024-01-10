@@ -363,12 +363,6 @@ void D_DoomLoop(void)
         // Will run at least one tic
         TryRunTics();
 
-        // Update display, next frame, with current state.
-        if (screenvisible)
-        {
-            D_Display();
-        }
-
         // Move positional sounds
         if (oldgametic < gametic)
         {
@@ -381,6 +375,13 @@ void D_DoomLoop(void)
             S_UpdateSounds(players[consoleplayer].mo);
             oldgametic = gametic;
         }
+
+        // Update display, next frame, with current state.
+        if (screenvisible)
+        {
+            D_Display();
+        }
+
     }
 }
 

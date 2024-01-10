@@ -170,7 +170,7 @@ void S_StartSound(void *_origin, int sound_id)
     int i;
     int priority;
     int sep;
-    int64_t angle;
+    int angle;
     int64_t absx;
     int64_t absy;
     int64_t absz;  // [JN] Z-axis sfx distance
@@ -313,7 +313,7 @@ void S_StartSound(void *_origin, int sound_id)
                                 origin->x, origin->y);
         angle = (angle - viewangle) >> 24;
         if (gp_flip_levels)
-            angle = -angle;
+            angle = 255 - angle;
         sep = angle * 2 - 128;
         if (sep < 64)
             sep = -sep;
@@ -494,7 +494,7 @@ void S_ResumeSound(void)
 void S_UpdateSounds(mobj_t * listener)
 {
     int i, dist, vol;
-    int64_t angle;
+    int angle;
     int sep;
     int priority;
     int64_t absx;
@@ -568,7 +568,7 @@ void S_UpdateSounds(mobj_t * listener)
                                         channel[i].mo->x, channel[i].mo->y);
                 angle = (angle - viewangle) >> 24;
                 if (gp_flip_levels)
-                    angle = -angle;
+                    angle = 255 - angle;
                 sep = angle * 2 - 128;
                 if (sep < 64)
                     sep = -sep;
