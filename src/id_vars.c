@@ -58,9 +58,6 @@ int msg_local_time = 0;
 int crl_spectating = 0;
 int crl_freeze = 0;
 
-// Controls
-int ctrl_noartiskip = 0;  // Allow artifacts to be used when the run key is held down.
-
 // Widgets
 int widget_location = 0;
 int widget_coords = 0;

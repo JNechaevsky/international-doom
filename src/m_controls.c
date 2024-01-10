@@ -201,6 +201,12 @@ int joybnextweapon = -1;
 int joybmenu = -1;
 int joybautomap = -1;
 
+//
+// Allow artifacts to be used when the run key is held down.
+//
+
+int ctrl_noartiskip = 0;
+
 
 // 
 // Bind all of the common controls used by Doom and all other games.
@@ -373,6 +379,8 @@ void M_BindHereticControls (void)
     M_BindIntVariable("mouseb_invleft",     &mousebinvleft);
     M_BindIntVariable("mouseb_invright",    &mousebinvright);
     M_BindIntVariable("mouseb_useartifact", &mousebuseartifact);
+
+    M_BindIntVariable("ctrl_noartiskip",        &ctrl_noartiskip);
 }
 
 void M_BindChatControls (unsigned int num_players)

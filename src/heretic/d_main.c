@@ -818,7 +818,6 @@ void D_BindVariables(void)
 	ID_BindVariables();
 
     // TODO - bind Heretic variables!
-    M_BindIntVariable("ctrl_noartiskip",          &ctrl_noartiskip);
     M_BindIntVariable("st_ammo_widget",           &st_ammo_widget);
 }
 

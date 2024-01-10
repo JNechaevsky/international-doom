@@ -204,6 +204,12 @@ extern int joybnextweapon;
 extern int joybmenu;
 extern int joybautomap;
 
+//
+// Allow artifacts to be used when the run key is held down.
+//
+
+extern int ctrl_noartiskip;
+
 
 extern void M_BindControls (void);
 extern void M_BindHereticControls (void);
