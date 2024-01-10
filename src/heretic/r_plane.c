@@ -620,6 +620,8 @@ void R_DrawPlanes (void)
         else
         {
             lumpnum = firstflat+pl->picnum;
+            xsmoothscrolloffset = 0;
+            ysmoothscrolloffset = 0;
             ds_source = R_DistortedFlat(lumpnum);
         }
         ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
