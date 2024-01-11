@@ -108,17 +108,7 @@ void ID_LeftWidgets (void)
 
                 // Kills:
                 MN_DrTextA("K:", 0 - WIDESCREENDELTA, 10, cr[CR_GRAY]);
-                /*
-                // TODO - extra kills?
-                if (IDWidget.extrakills)
-                {
-                    sprintf(str1, "%d+%d/%d ", IDWidget.kills, IDWidget.extrakills, IDWidget.totalkills);
-                }
-                else
-                */
-                {
-                    sprintf(str1, "%d/%d", IDWidget.kills, IDWidget.totalkills);
-                }
+                sprintf(str1, "%d/%d", IDWidget.kills, IDWidget.totalkills);
                 MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, ID_WidgetColor(widget_kills));
 
                 // Items:
@@ -316,17 +306,7 @@ void ID_LeftWidgets (void)
                 // Kills:
                 sprintf(str1, "K ");
                 MN_DrTextA(str1, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
-                /*
-                // TODO - extra kills?
-                if (IDWidget.extrakills)
-                {
-                    sprintf(str2, "%d+%d/%d ", IDWidget.kills, IDWidget.extrakills, IDWidget.totalkills);
-                }
-                else
-                */
-                {
-                    sprintf(str2, "%d/%d ", IDWidget.kills, IDWidget.totalkills);
-                }
+                sprintf(str2, "%d/%d ", IDWidget.kills, IDWidget.totalkills);
                 MN_DrTextA(str2, 0 - WIDESCREENDELTA + MN_TextAWidth(str1), 146 + yy, ID_WidgetColor(widget_kills));
 
                 // Items:

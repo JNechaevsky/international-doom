@@ -604,7 +604,7 @@ intercept_t *intercepts, *intercept_p; // [crispy] remove INTERCEPTS limit
 // 2 - P_SightBlockLinesIterator
 
 // [crispy] remove INTERCEPTS limit
-void check_intercept (const short func)
+void check_intercept (void)
 {
     static size_t num_intercepts;
     const size_t offset = intercept_p - intercepts;
@@ -614,26 +614,6 @@ void check_intercept (const short func)
         num_intercepts = num_intercepts ? num_intercepts * 2 : MAXINTERCEPTS;
         intercepts = I_Realloc(intercepts, sizeof(*intercepts) * num_intercepts);
         intercept_p = intercepts + offset;
-
-        /*
-        // TODO
-        if (num_intercepts == 2 * MAXINTERCEPTS)
-        {
-            // [JN] Oh my, we have to make different strings for in-game
-            // and console prints, because of different font handling.
-            char *function = func == 0 ? "PIT[ADDLINEINTERCEPTS:"     :
-                             func == 1 ? "PIT[ADDTHINGINTERCEPTS:"    :
-                                         "P[SIGHTBLOCKLINESITERATOR:" ;
-            char *message = "HIT INTERCEPTS LIMIT! (VANILLA CRASHES HERE)";
-            
-            CRL_printf(M_StringJoin(func == 0 ? "PIT_AddLineIntercepts: "     :
-                                    func == 1 ? "PIT_AddThingIntercepts: "    :
-                                                "P_SightBlockLinesIterator: " ,
-                                                "Hit INTERCEPTS limit!\n", NULL), true);
-            
-            CRL_SetCriticalMessage(function, message, MESSAGETICS);
-        }
-        */
     }
 }
 
@@ -686,7 +666,7 @@ boolean PIT_AddLineIntercepts(line_t * ld)
     if (earlyout && frac < FRACUNIT && !ld->backsector)
         return false;           // stop checking
 
-    check_intercept(0); // [crispy] remove INTERCEPTS limit
+    check_intercept(); // [crispy] remove INTERCEPTS limit
     intercept_p->frac = frac;
     intercept_p->isaline = true;
     intercept_p->d.line = ld;
@@ -745,7 +725,7 @@ boolean PIT_AddThingIntercepts(mobj_t * thing)
     frac = P_InterceptVector(&trace, &dl);
     if (frac < 0)
         return true;            // behind source
-    check_intercept(1); // [crispy] remove INTERCEPTS limit
+    check_intercept(); // [crispy] remove INTERCEPTS limit
     intercept_p->frac = frac;
     intercept_p->isaline = false;
     intercept_p->d.thing = thing;

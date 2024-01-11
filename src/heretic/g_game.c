@@ -389,7 +389,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         }
 
         CT_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
-                     CRL_AUTORUN_ON : CRL_AUTORUN_OFF, false);
+                     ID_AUTORUN_ON : ID_AUTORUN_OFF, false);
         S_StartSound(NULL, sfx_switch);
         gamekeydown[key_autorun] = false;
     }
@@ -403,7 +403,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             look = TOCENTER;
         }
         CT_SetMessage(&players[consoleplayer], mouse_look ?
-                     CRL_MLOOK_ON : CRL_MLOOK_OFF, false);
+                     ID_MLOOK_ON : ID_MLOOK_OFF, false);
         S_StartSound(NULL, sfx_switch);
         gamekeydown[key_mouse_look] = false;
     }
@@ -2463,10 +2463,10 @@ boolean G_DoSelectiveGame (int choice)
     plr->backpack = level_select[12];
     if (level_select[12])
     {
-        plr->maxammo[0] *= 2;
-        plr->maxammo[1] *= 2;
-        plr->maxammo[2] *= 2;
-        plr->maxammo[3] *= 2;
+        for (i = 0 ; i < NUMAMMO ; i++)
+        {
+            plr->maxammo[i] *= 2;
+        }
     }
 
     // Ammo

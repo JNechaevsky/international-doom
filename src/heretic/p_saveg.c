@@ -84,17 +84,6 @@ void SV_Close(char *fileName)
 {
     SV_WriteByte(SAVE_GAME_TERMINATOR);
 
-    // Enforce the same savegame size limit as in Vanilla Heretic
-
-/*
-    if (vanilla_savegame_limit && ftell(SaveGameFP) > SAVEGAMESIZE)
-    {
-        // [JN] CRL - print a warnings instead of quit with an error.
-        // TODO
-        // CRL_SetCriticalMessage("SV[CLOSE:", "SAVEGAME OVERFLOW (VANILLA CRASHES HERE)", MESSAGETICS);
-    }
-*/
-
     fclose(SaveGameFP);
 }
 
