@@ -42,6 +42,10 @@ static const char *finaleflat;
 
 static int FontABaseLump;
 
+// [JN] Externalized F_DemonScroll variables to allow repeated scrolling.
+static int yval;
+static int nextscroll;
+static int y;
 
 /*
 =======================
@@ -92,6 +96,10 @@ void F_StartFinale(void)
     // no extra "attack/use" button pressing is needed for skipping.
     finaleendcount = strlen(finaletext) * TEXTSPEED + TEXTEND;
     FontABaseLump = W_GetNumForName(DEH_String("FONTA_S")) + 1;
+    // [JN] Reset F_DemonScroll variables.
+    yval = 0;
+    nextscroll = 0;
+    y = 0;
 
 //      S_ChangeMusic(mus_victor, true);
     S_StartSong(mus_cptd, true);
@@ -151,11 +159,11 @@ void F_Ticker(void)
             }
 
             // [JN] Double-skip by pressing "attack" button.
-            if (players[consoleplayer].cmd.buttons & BT_ATTACK && !MenuActive)
+            if (players[consoleplayer].cmd.buttons & BT_ATTACK && !MenuActive && !finalestage)
             {
                 if (!players[consoleplayer].attackdown)
                 {
-                    if (finalecount >= finaleendcount && !finalestage)
+                    if (finalecount >= finaleendcount)
                     {
                         finalestage = 1;
                     }
@@ -171,11 +179,11 @@ void F_Ticker(void)
             }
 
             // [JN] Double-skip by pressing "use" button.
-            if (players[consoleplayer].cmd.buttons & BT_USE && !MenuActive)
+            if (players[consoleplayer].cmd.buttons & BT_USE && !MenuActive && !finalestage)
             {
                 if (!players[consoleplayer].usedown)
                 {
-                    if (finalecount >= finaleendcount && !finalestage)
+                    if (finalecount >= finaleendcount)
                     {
                         finalestage = 1;
                     }
@@ -326,13 +334,14 @@ void F_DrawPatchCol(int x, patch_t * patch, int col)
 void F_DemonScroll(void)
 {
     byte *p1, *p2;
-    static int yval = 0;
     //static int yval_dest = 0; // [crispy]
-    static int nextscroll = 0;
     lumpindex_t i1, i2; // [crispy]
     int x; // [crispy]
     patch_t *patch1, *patch2; // [crispy]
-    static int y = 0; // [crispy]
+    // [JN] Externalized:
+    // static int yval = 0;
+    // static int nextscroll = 0;
+    // static int y = 0; // [crispy]
 
     if (finalecount < nextscroll)
     {
