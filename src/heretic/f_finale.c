@@ -27,12 +27,15 @@
 #include "r_local.h"
 
 #include "id_vars.h"
+#include "id_func.h"
 
 static int finalestage;                // 0 = text, 1 = art screen
 static int finalecount;
+static int finaleendcount;
 
 #define TEXTSPEED       3
 #define TEXTWAIT        250
+#define	TEXTEND         25
 
 static const char *finaletext;
 static const char *finaleflat;
@@ -85,6 +88,9 @@ void F_StartFinale(void)
 
     finalestage = 0;
     finalecount = 0;
+    // [JN] Count intermission/finale text lenght. Once it's fully printed, 
+    // no extra "attack/use" button pressing is needed for skipping.
+    finaleendcount = strlen(finaletext) * TEXTSPEED + TEXTEND;
     FontABaseLump = W_GetNumForName(DEH_String("FONTA_S")) + 1;
 
 //      S_ChangeMusic(mus_victor, true);
@@ -123,6 +129,76 @@ boolean F_Responder(event_t * event)
 
 void F_Ticker(void)
 {
+    // [JN] If we are in single player mode, allow double skipping of
+    // finale texts. The first skip is printing all the text,
+    // the second is advancing to next state.
+    if (singleplayer)
+    {
+        // [JN] Make PAUSE working properly on text screen
+        if (paused)
+        {
+            return;
+        }
+
+        // [JN] Check for skipping. Allow double-press skiping, 
+        // but don't skip immediately.
+        if (finalecount > 10)
+        {
+            // [JN] Don't allow skipping by pressing PAUSE button.
+            if (players[consoleplayer].cmd.buttons == (BT_SPECIAL | BTS_PAUSE))
+            {
+                return;
+            }
+
+            // [JN] Double-skip by pressing "attack" button.
+            if (players[consoleplayer].cmd.buttons & BT_ATTACK && !MenuActive)
+            {
+                if (!players[consoleplayer].attackdown)
+                {
+                    if (finalecount >= finaleendcount && !finalestage)
+                    {
+                        finalestage = 1;
+                    }
+
+                    finalecount += finaleendcount;
+                    players[consoleplayer].attackdown = true;
+                }
+                players[consoleplayer].attackdown = true;
+            }
+            else
+            {
+                players[consoleplayer].attackdown = false;
+            }
+
+            // [JN] Double-skip by pressing "use" button.
+            if (players[consoleplayer].cmd.buttons & BT_USE && !MenuActive)
+            {
+                if (!players[consoleplayer].usedown)
+                {
+                    if (finalecount >= finaleendcount && !finalestage)
+                    {
+                        finalestage = 1;
+                    }
+    
+                    finalecount += finaleendcount;
+                    players[consoleplayer].usedown = true;
+                }
+                players[consoleplayer].usedown = true;
+            }
+            else
+            {
+                players[consoleplayer].usedown = false;
+            }
+        }
+
+        // Advance animation.
+        finalecount++;
+    }
+    //
+    // [JN] Standard Heretic routine, safe for network game and demos.
+    //
+    else
+    {
     finalecount++;
     if (!finalestage
         && finalecount > strlen(finaletext) * TEXTSPEED + TEXTWAIT)
@@ -138,6 +214,7 @@ void F_Ticker(void)
 		if (gameepisode == 3)
 			S_StartMusic (mus_bunny);
 */
+    }
     }
 }
 
