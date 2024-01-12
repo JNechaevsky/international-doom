@@ -2419,7 +2419,7 @@ void A_ESound(mobj_t *mo, player_t *player, pspdef_t *psp)
         default:
             break;
     }
-    S_StartSound(mo, sound);
+    S_StartSoundAmbient(mo, sound);
 }
 
 //----------------------------------------------------------------------------

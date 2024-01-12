@@ -28,6 +28,7 @@ extern int idmusnum;
 
 void S_Start(void);
 void S_StartSound(void *origin, int sound_id);
+void S_StartSoundAmbient (void *_origin, int sound_id);
 void S_StartSoundAtVolume(void *origin, int sound_id, int volume);
 void S_StopSound(void *origin);
 void S_PauseSound(void);

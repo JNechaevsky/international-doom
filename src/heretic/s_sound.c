@@ -340,6 +340,101 @@ void S_StartSound(void *_origin, int sound_id)
     }
 }
 
+// -----------------------------------------------------------------------------
+// S_StartSoundAmbient
+// [JN] Plays ambient sound with updated-on-fly stereo separation.
+// -----------------------------------------------------------------------------
+
+void S_StartSoundAmbient (void *_origin, int sound_id)
+{
+    mobj_t *origin = _origin;
+    mobj_t *listener;
+    int dist, vol;
+    int i;
+    int sep;
+    int angle;
+    int64_t absx;
+    int64_t absy;
+    int64_t absz;  // [JN] Z-axis sfx distance
+
+    if (sound_id == 0 || snd_MaxVolume == 0 || (nodrawers && singletics))
+    {
+        return;
+    }
+
+    listener = GetSoundListener();
+
+    if (origin == NULL)
+    {
+        origin = listener;
+    }
+
+    if (origin == listener || snd_monosfx)
+    {
+        sep = 128;
+    }
+    else
+    {
+        angle = R_PointToAngle2(listener->x, listener->y, origin->x, origin->y);
+        angle = (angle - viewangle) >> 24;
+        if (gp_flip_levels)
+            angle = 255 - angle;
+        sep = angle * 2 - 128;
+        if (sep < 64)
+            sep = -sep;
+        if (sep > 192)
+            sep = 512 - sep;
+    }
+
+    // [JN] Calculate the distance.
+    absx = llabs(origin->x - listener->x);
+    absy = llabs(origin->y - listener->y);
+    absz = aud_z_axis_sfx ?
+           llabs(origin->z - listener->z) : 0;
+    dist = S_ApproxDistanceZ(absx, absy, absz);
+    dist >>= FRACBITS;
+
+    if (dist >= MAX_SND_DIST)
+    {
+        dist = MAX_SND_DIST - 1;
+    }
+    if (dist < 0)
+    {
+        dist = 0;
+    }
+
+    // [JN] Calculate the volume based upon the distance from the sound origin.
+    vol = soundCurve[dist];
+    
+    // [JN] No priority checking.
+    for (i = 0; i < snd_Channels; i++)
+    {
+        if (channel[i].mo == NULL)
+        {
+            break;
+        }
+    }
+
+    if (i >= snd_Channels)
+    {
+        return;
+    }
+
+    channel[i].pitch = (byte) (NORM_PITCH + (M_Random() & 7) - (M_Random() & 7));
+    channel[i].handle = I_StartSound(&S_sfx[sound_id], i, vol, sep, channel[i].pitch);
+    channel[i].mo = origin;
+    channel[i].sound_id = sound_id;
+
+    if (S_sfx[sound_id].usefulness == -1)
+    {
+        S_sfx[sound_id].usefulness = 1;
+    }
+    else
+    {
+        S_sfx[sound_id].usefulness++;
+    }
+}
+
 void S_StartSoundAtVolume(void *_origin, int sound_id, int volume)
 {
     mobj_t *origin = _origin;
