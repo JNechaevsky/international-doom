@@ -569,4 +569,20 @@ void F_Drawer(void)
                 break;
         }
     }
+
+    // [crispy] demo timer widget
+    if (demoplayback && (demo_timer == 1 || demo_timer == 3))
+    {
+        ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
+    }
+    else if (demorecording && (demo_timer == 2 || demo_timer == 3))
+    {
+        ID_DemoTimer(leveltime);
+    }
+
+    // [crispy] demo progress bar
+    if (demoplayback && demo_bar)
+    {
+        ID_DemoBar();
+    }
 }
