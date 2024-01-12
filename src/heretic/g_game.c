@@ -1007,7 +1007,7 @@ static void SetJoyButtons(unsigned int buttons_mask)
 
 static boolean InventoryMoveLeft(void)
 {
-    if (MenuActive)
+    if (MenuActive || demoplayback)
     {
         return false;
     }
@@ -1039,7 +1039,7 @@ static boolean InventoryMoveRight(void)
 
     plr = &players[consoleplayer];
 
-    if (MenuActive)
+    if (MenuActive || demoplayback)
     {
         return false;
     }
@@ -1256,7 +1256,7 @@ boolean G_Responder(event_t * ev)
     switch (ev->type)
     {
         case ev_keydown:
-            if (ev->data1 == key_invleft)
+            if (ev->data1 == key_invleft && !demoplayback)
             {
                 inventoryTics = 5 * 35;
                 if (!inventory)
@@ -1279,7 +1279,7 @@ boolean G_Responder(event_t * ev)
                 }
                 return (true);
             }
-            if (ev->data1 == key_invright)
+            if (ev->data1 == key_invright && !demoplayback)
             {
                 inventoryTics = 5 * 35;
                 if (!inventory)
