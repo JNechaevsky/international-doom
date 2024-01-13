@@ -910,6 +910,7 @@ void P_ShootSpecialLine(mobj_t * thing, line_t * line)
 void P_PlayerInSpecialSector(player_t * player)
 {
     sector_t *sector;
+    static sector_t *error; // [crispy] for sectors with unknown special
     static int pushTab[5] = {
         2048 * 5,
         2048 * 10,
@@ -958,13 +959,13 @@ void P_PlayerInSpecialSector(player_t * player)
             break;
         case 9:                // SecretArea
             player->secretcount++;
-            sector->special = 0;
             // [JN] "A secret is revelaed!" message.
             if (gp_revealed_secrets)
             {
                 CT_SetMessageCentered(player, DEH_String(ID_SECRET_FOUND));
                 S_StartSound(NULL, sfx_chat);
             }
+            sector->special = 0;
             break;
         case 11:               // Exit_SuperDamage (DOOM E1M8 finale)
             /*
@@ -1041,8 +1042,14 @@ void P_PlayerInSpecialSector(player_t * player)
             break;
 
         default:
-            I_Error("P_PlayerInSpecialSector: "
-                    "unknown special %i", sector->special);
+            // [crispy] ignore unknown special sectors
+            if (error != sector)
+            {
+                error = sector;
+                printf("P_PlayerInSpecialSector: "
+                       "unknown special %i\n", sector->special);
+            }
+            break;
     }
 }
 
@@ -1308,6 +1315,7 @@ void P_SpawnSpecials(void)
     //
     numlinespecials = 0;
     for (i = 0; i < numlines; i++)
+    {
         switch (lines[i].special)
         {
             case 48:           // Effect_Scroll_Left
@@ -1315,7 +1323,22 @@ void P_SpawnSpecials(void)
                 linespeciallist[numlinespecials] = &lines[i];
                 numlinespecials++;
                 break;
+            // [crispy] add support for MBF sky transfers
+            case 271:
+            case 272:
+              {
+                int secnum;
+                for (secnum = 0; secnum < numsectors; secnum++)
+                  {
+                    if (sectors[secnum].tag == lines[i].tag)
+                        {
+                            sectors[secnum].sky = i | PL_SKYFLAT;
+                        }
+                  }
+              }
+             break;
         }
+    }
 
     //
     //      Init other misc stuff

@@ -275,7 +275,8 @@ R_FindPlane
     visplane_t *check;
     unsigned int hash;
 
-    if (picnum == skyflatnum)
+    // [crispy] add support for MBF sky transfers
+    if (picnum == skyflatnum || picnum & PL_SKYFLAT)
     {
         lightlevel = 0;   // killough 7/19/98: most skies map together
 
@@ -443,9 +444,29 @@ void R_DrawPlanes (void)
     {
         //
         // sky flat
+        // [crispy] add support for MBF sky transfers
         //
-        if (pl->picnum == skyflatnum)
+        if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
         {
+            int texture;
+            angle_t an = viewangle, flip;
+
+            if (pl->picnum & PL_SKYFLAT)
+            {
+                const line_t *l = &lines[pl->picnum & ~PL_SKYFLAT];
+                const side_t *s = *l->sidenum + sides;
+                texture = texturetranslation[s->toptexture];
+                dc_texturemid = s->rowoffset - 28*FRACUNIT;
+                flip = (l->special == 272) ? 0u : ~0u;
+                an += s->textureoffset;
+            }
+            else
+            {
+                texture = skytexture;
+                dc_texturemid = skytexturemid;
+                flip = 0;
+            }
+            
             dc_iscale = skyiscale;
             // [crispy] no brightmaps for sky
             // [JN] Invulnerability affects sky feature.
@@ -460,8 +481,7 @@ void R_DrawPlanes (void)
                 // sky is allways drawn full bright
                 dc_colormap[0] = dc_colormap[1] = colormaps;
             }
-            dc_texturemid = skytexturemid;
-            dc_texheight = textureheight[skytexture]>>FRACBITS;
+            dc_texheight = textureheight[texture]>>FRACBITS;
             for (x = pl->minx; x <= pl->maxx; x++)
             {
                 dc_yl = pl->top[x];
@@ -469,10 +489,10 @@ void R_DrawPlanes (void)
                 if ((unsigned) dc_yl <= dc_yh)  // [JN] 32-bit integer math
                 {
                     // [crispy] Optionally draw skies horizontally linear.
-                    angle = ((viewangle + (vis_linear_sky ? 
-                                          linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
+                    angle = ((an + (vis_linear_sky ? 
+                                    linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels ^ flip) >> ANGLETOSKYSHIFT;
                     dc_x = x;
-                    dc_source = R_GetColumn(skytexture, angle);
+                    dc_source = R_GetColumn(texture, angle);
 
                     count = dc_yh - dc_yl;
                     if (count < 0)

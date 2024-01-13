@@ -22,6 +22,7 @@
 #include "i_video.h"
 #include "v_patch.h"
 
+#define PL_SKYFLAT (0x80000000)
 #define	ANGLETOSKYSHIFT		22      // sky map is 256*128*4 maps
 
 #define	BASEYCENTER			100
@@ -85,6 +86,9 @@ typedef struct
     void *specialdata;          // thinker_t for reversable actions
     int linecount;
     struct line_s **lines;      // [linecount] size
+
+    // [crispy] add support for MBF sky transfers
+    int sky;
 
     // [crispy] WiggleFix: [kb] for R_FixWiggle()
     int cachedheight;
