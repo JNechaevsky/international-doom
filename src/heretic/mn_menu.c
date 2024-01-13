@@ -4142,7 +4142,10 @@ static boolean M_ID_LevelArti_9 (int choice)
 
 static void M_ID_ApplyResetHook (void)
 {
-    // Video
+    //
+    // Video options
+    //
+
 #ifdef CRISPY_TRUECOLOR
     vid_truecolor = 0;
 #endif
@@ -4153,23 +4156,31 @@ static void M_ID_ApplyResetHook (void)
     vid_vsync = 1;
     vid_showfps = 0;
     vid_smooth_scaling = 0;
+    // Miscellaneous
     vid_endoom = 0;
 
-    // Display
+    //
+    // Display options
+    //
+    dp_screen_size = 10;
     vid_gamma = 10;
     vid_fov = 90;
-    dp_screen_size = 10;    
     dp_menu_shading = 0;
     dp_level_brightness = 0;
+    // Color settings
     vid_saturation = 100;
     vid_r_intensity = 1.000000;
     vid_g_intensity = 1.000000;
     vid_b_intensity = 1.000000;
+    // Messages Settings
     msg_show = 1;
     msg_text_shadows = 0;
     msg_local_time = 0;
 
-    // Sound
+    //
+    // Sound options
+    //
+
     snd_MaxVolume = 10;
     snd_MusicVolume = 10;
     snd_monosfx = 0;
@@ -4177,7 +4188,10 @@ static void M_ID_ApplyResetHook (void)
     snd_channels = 8;
     snd_mute_inactive = 0;
 
-    // Widgets
+    //
+    // Widgets and automap
+    //
+
     widget_location = 0;
     widget_kis = 0;
     widget_time = 0;
@@ -4186,14 +4200,17 @@ static void M_ID_ApplyResetHook (void)
     widget_coords = 0;
     widget_render = 0;
     widget_health = 0;
-
     // Automap
     automap_secrets = 0;
     automap_rotate = 0;
     automap_overlay = 0;
     automap_shading = 0;
 
+    //
     // Gameplay features
+    //
+
+    // Visual
     vis_brightmaps = 0;
     vis_translucency = 0;
     vis_fake_contrast = 1;
@@ -4202,21 +4219,35 @@ static void M_ID_ApplyResetHook (void)
     vis_invul_sky = 0;
     vis_linear_sky = 0;
     vis_flip_corpses = 0;
+
+    // Crosshair
     xhair_draw = 0;
     xhair_color = 0;
+
+    // Status bar
     st_colored_stbar = 0;
     st_ammo_widget = 0;
+
+    // Audible
     aud_z_axis_sfx = 0;
+
+    // Physical
     phys_torque = 0;
     phys_weapon_alignment = 0;
     phys_breathing = 0;
+
+    // Gameplay
     gp_default_skill = 2;
     gp_revealed_secrets = 0;
     gp_flip_levels = 0;
+
+    // Demos
     demo_timer = 0;
     demo_timerdir = 0;
     demo_bar = 0;
     demo_internal = 1;
+
+    // Compatibility-breaking
     compat_pistol_start = 0;
     compat_blockmap_fix = 0;
 
