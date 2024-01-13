@@ -22,7 +22,6 @@
 
 extern int snd_MaxVolume;
 extern int snd_MusicVolume;
-extern int snd_Channels;
 
 extern int idmusnum;
 

@@ -53,6 +53,9 @@
 #include "id_vars.h"
 
 
+static int vid_startup_delay = 35;
+static int vid_resize_delay = 35;
+
 int SCREENWIDTH, SCREENHEIGHT, SCREENHEIGHT_4_3;
 int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
@@ -164,7 +167,6 @@ int vid_fullscreen = true;
 // Aspect ratio correction mode
 
 int vid_aspect_ratio_correct = true;
-int vid_smooth_scaling = 0;
 static int actualheight;
 
 // Force integer scales for resolution-independent rendering
@@ -956,7 +958,7 @@ void I_FinishUpdate (void)
 	}
 
     // Draw disk icon before blit, if necessary.
-    if (vid_diskicon)
+    if (vid_diskicon && diskicon_enabled)
     {
         V_DrawDiskIcon();
     }
@@ -1972,11 +1974,11 @@ void I_ToggleVsync (void)
 // file system.
 void I_BindVideoVariables(void)
 {
-    M_BindIntVariable("mouse_enable",                  &usemouse);
+    M_BindIntVariable("vid_startup_delay",             &vid_startup_delay);
+    M_BindIntVariable("vid_resize_delay",              &vid_resize_delay);
     M_BindIntVariable("vid_fullscreen",                &vid_fullscreen);
     M_BindIntVariable("vid_video_display",             &vid_video_display);
     M_BindIntVariable("vid_aspect_ratio_correct",      &vid_aspect_ratio_correct);
-    M_BindIntVariable("vid_smooth_scaling",            &vid_smooth_scaling);
     M_BindIntVariable("vid_integer_scaling",           &vid_integer_scaling);
     M_BindIntVariable("vid_vga_porch_flash",           &vid_vga_porch_flash);
     M_BindIntVariable("vid_fullscreen_width",          &vid_fullscreen_width);
@@ -1986,11 +1988,12 @@ void I_BindVideoVariables(void)
     M_BindIntVariable("vid_max_scaling_buffer_pixels", &vid_max_scaling_buffer_pixels);
     M_BindIntVariable("vid_window_width",              &vid_window_width);
     M_BindIntVariable("vid_window_height",             &vid_window_height);
-    M_BindIntVariable("mouse_grab",                    &mouse_grab);
     M_BindStringVariable("vid_video_driver",           &vid_video_driver);
     M_BindStringVariable("vid_screen_scale_api",       &vid_screen_scale_api);
     M_BindIntVariable("vid_window_position_x",         &vid_window_position_x);
     M_BindIntVariable("vid_window_position_y",         &vid_window_position_y);
+    M_BindIntVariable("mouse_enable",                  &usemouse);
+    M_BindIntVariable("mouse_grab",                    &mouse_grab);
 }
 #ifdef CRISPY_TRUECOLOR
 const pixel_t I_BlendAdd (const pixel_t bg, const pixel_t fg)

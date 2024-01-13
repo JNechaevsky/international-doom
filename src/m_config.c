@@ -144,7 +144,6 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vid_window_position_y),
     CONFIG_VARIABLE_INT(vid_video_display),
     CONFIG_VARIABLE_INT(vid_aspect_ratio_correct),
-    CONFIG_VARIABLE_INT(vid_smooth_scaling),
     CONFIG_VARIABLE_INT(vid_integer_scaling),
     CONFIG_VARIABLE_INT(vid_vga_porch_flash),
     CONFIG_VARIABLE_INT(vid_window_width),
@@ -155,7 +154,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vid_force_software_renderer),
     CONFIG_VARIABLE_INT(vid_max_scaling_buffer_pixels),
 
-    // Video
+    // Video options
     CONFIG_VARIABLE_INT(vid_truecolor),
     CONFIG_VARIABLE_INT(vid_resolution),
     CONFIG_VARIABLE_INT(vid_widescreen),
@@ -163,17 +162,18 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vid_fpslimit),
     CONFIG_VARIABLE_INT(vid_vsync),
     CONFIG_VARIABLE_INT(vid_showfps),
+    CONFIG_VARIABLE_INT(vid_smooth_scaling),
+    CONFIG_VARIABLE_INT(vid_screenwipe),
+    CONFIG_VARIABLE_INT(vid_diskicon),
+    CONFIG_VARIABLE_INT(vid_endoom),
+
+    // Display options
     CONFIG_VARIABLE_INT(vid_gamma),
     CONFIG_VARIABLE_INT(vid_fov),
     CONFIG_VARIABLE_INT(vid_saturation),
     CONFIG_VARIABLE_FLOAT(vid_r_intensity),
     CONFIG_VARIABLE_FLOAT(vid_g_intensity),
     CONFIG_VARIABLE_FLOAT(vid_b_intensity),
-    CONFIG_VARIABLE_INT(vid_screenwipe),
-    CONFIG_VARIABLE_INT(vid_diskicon),
-    CONFIG_VARIABLE_INT(vid_endoom),
-
-    // Display
     CONFIG_VARIABLE_INT(dp_screen_size),
     CONFIG_VARIABLE_INT(dp_detail_level),
     CONFIG_VARIABLE_INT(dp_menu_shading),
@@ -192,15 +192,14 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(sfx_volume),
     CONFIG_VARIABLE_INT(music_volume),
     CONFIG_VARIABLE_INT(snd_sfxdevice),
-    CONFIG_VARIABLE_INT(snd_monosfx),
-    CONFIG_VARIABLE_INT(snd_pitchshift),
-    CONFIG_VARIABLE_INT(snd_channels),
-    CONFIG_VARIABLE_INT(snd_mute_inactive),
     CONFIG_VARIABLE_INT(snd_musicdevice),
     CONFIG_VARIABLE_STRING(snd_musiccmd),
     CONFIG_VARIABLE_STRING(snd_dmxoption),
     CONFIG_VARIABLE_INT_HEX(opl_io_port),
-
+    CONFIG_VARIABLE_INT(snd_monosfx),
+    CONFIG_VARIABLE_INT(snd_pitchshift),
+    CONFIG_VARIABLE_INT(snd_channels),
+    CONFIG_VARIABLE_INT(snd_mute_inactive),
 #ifdef HAVE_FLUIDSYNTH
     CONFIG_VARIABLE_INT(fsynth_chorus_active),
     CONFIG_VARIABLE_FLOAT(fsynth_chorus_depth),
@@ -289,8 +288,8 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_arti_torch),
     CONFIG_VARIABLE_KEY(key_arti_morph),
 
-    // RestlessRodent -- CRL (Special modes)
-    CONFIG_VARIABLE_KEY(key_spectator),
+    // Game modes
+    CONFIG_VARIABLE_KEY(key_spectator),  // RestlessRodent -- CRL
     CONFIG_VARIABLE_KEY(key_freeze),
     CONFIG_VARIABLE_KEY(key_notarget),
     CONFIG_VARIABLE_KEY(key_buddha),
@@ -341,8 +340,6 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_pause),
     CONFIG_VARIABLE_KEY(key_menu_screenshot),
     CONFIG_VARIABLE_KEY(key_message_refresh),
-    // [JN] Heretic using ENTER for afrtifacts activation.
-    CONFIG_VARIABLE_KEY(key_message_refresh_hr),
     CONFIG_VARIABLE_KEY(key_demo_quit),
 
     // Multiplayer
@@ -406,6 +403,9 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(mouseb_invright),
     CONFIG_VARIABLE_INT(mouseb_useartifact),
 
+    // Heretic: permanent "noartiskip" mode
+    CONFIG_VARIABLE_INT(ctrl_noartiskip),
+
     //
     // Joystick controls
     //
@@ -453,9 +453,6 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(joyb_menu_activate),
     CONFIG_VARIABLE_INT(joyb_toggle_automap),
 
-    // Controls
-    CONFIG_VARIABLE_INT(ctrl_noartiskip),
-    
     // Widgets
     CONFIG_VARIABLE_INT(widget_location),
     CONFIG_VARIABLE_INT(widget_kis),
@@ -498,7 +495,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(st_colored_stbar),
     CONFIG_VARIABLE_INT(st_negative_health),
     CONFIG_VARIABLE_INT(st_blinking_keys),
-    CONFIG_VARIABLE_INT(st_ammo_widget),  // Heretic only
+    CONFIG_VARIABLE_INT(st_ammo_widget),
 
     // Audible
     CONFIG_VARIABLE_INT(aud_z_axis_sfx),

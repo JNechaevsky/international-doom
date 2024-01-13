@@ -30,4 +30,6 @@ extern void V_BeginRead (size_t nbytes);
 extern void V_DrawDiskIcon (void);
 extern void V_RestoreDiskBackground (void);
 
+extern boolean diskicon_enabled;
+
 #endif

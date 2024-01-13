@@ -1527,9 +1527,9 @@ static void M_Draw_ID_Display (void)
     M_WriteTextCentered(117, "MESSAGES SETTINGS", cr[CR_YELLOW]);
 
     // Messages enabled
-    sprintf(str, showMessages ? "ON" : "OFF");
+    sprintf(str, msg_show ? "ON" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, showMessages ? GLOW_DARKRED : GLOW_GREEN));
+                 M_Item_Glow(12, msg_show ? GLOW_DARKRED : GLOW_GREEN));
 
     // Messages alignment
     sprintf(str, msg_alignment == 1 ? "STATUS BAR" :
@@ -4241,8 +4241,10 @@ static void M_ID_LevelRespMonsters (int choice)
 
 static void M_ID_ApplyResetHook (void)
 {
+    //
+    // Video options
+    //
 
-    // Video
 #ifdef CRISPY_TRUECOLOR
     vid_truecolor = 0;
 #endif
@@ -4253,33 +4255,36 @@ static void M_ID_ApplyResetHook (void)
     vid_vsync = 1;
     vid_showfps = 0;
     vid_smooth_scaling = 0;
-    vid_gamma = 10;
-    vid_fov = 90;
-
     // Miscellaneous
     vid_screenwipe = 1;
     vid_diskicon = 1;
     vid_endoom = 0;
 
-    // Display
+    //
+    // Display options
+    //
+
     dp_screen_size = 10;
     dp_detail_level = 0;
+    vid_gamma = 10;
+    vid_fov = 90;
     dp_menu_shading = 0;
     dp_level_brightness = 0;
-
     // Color settings
     vid_saturation = 100;
     vid_r_intensity = 1.000000;
     vid_g_intensity = 1.000000;
     vid_b_intensity = 1.000000;
-
     // Messages settings
-    showMessages = 1;
+    msg_show = 1;
     msg_alignment = 0;
     msg_text_shadows = 0;
     msg_local_time = 0;
 
-    // Sound
+    //
+    // Sound options
+    //
+
     sfxVolume = 8;
     musicVolume = 8;
     snd_sfxdevice = 3;
@@ -4290,7 +4295,10 @@ static void M_ID_ApplyResetHook (void)
     snd_channels = 8;
     snd_mute_inactive = 0;
 
-    // Widgets
+    //
+    // Widgets and automap
+    //
+
     widget_location = 0;
     widget_kis = 0;
     widget_time = 0;
@@ -4299,7 +4307,6 @@ static void M_ID_ApplyResetHook (void)
     widget_coords = 0;
     widget_render = 0;
     widget_health = 0;
-
     // Automap
     automap_scheme = 0;
     automap_smooth = 0;
@@ -4308,7 +4315,11 @@ static void M_ID_ApplyResetHook (void)
     automap_overlay = 0;
     automap_shading = 0;
 
+    //
     // Gameplay features
+    //
+
+    // Visual
     vis_brightmaps = 0;
     vis_translucency = 0;
     vis_fake_contrast = 1;
@@ -4319,27 +4330,41 @@ static void M_ID_ApplyResetHook (void)
     vis_invul_sky = 0;
     vis_linear_sky = 0;
     vis_flip_corpses = 0;
+
+    // Crosshair
     xhair_draw = 0;
     xhair_color = 0;
+
+    // Status bar
     st_colored_stbar = 0;
     st_negative_health = 0;
     st_blinking_keys = 0;
+
+    // Audible
     aud_z_axis_sfx = 0;
     aud_full_sounds = 0;
     aud_exit_sounds = 0;
+
+    // Physical
     phys_torque = 0;
     phys_ssg_tear_monsters = 0;
     phys_toss_drop = 0;
     phys_floating_powerups = 0;
     phys_weapon_alignment = 0;
+    phys_breathing = 0;
+
+    // Gameplay
     gp_default_skill = 2;
     gp_revealed_secrets = 0;
-    phys_breathing = 0;
     gp_flip_levels = 0;
+
+    // Demos
     demo_timer = 0;
     demo_timerdir = 0;
     demo_bar = 0;
     demo_internal = 1;
+
+    // Compatibility-breaking
     compat_pistol_start = 0;
     compat_blockmap_fix = 0;
     compat_vertical_aiming = 0;
@@ -4874,10 +4899,10 @@ static void M_Episode(int choice)
 //
 static void M_ChangeMessages(int choice)
 {
-    showMessages ^= 1;
+    msg_show ^= 1;
 	
 	CT_SetMessage(&players[consoleplayer],
-                   DEH_String(showMessages ? MSGON : MSGOFF), true, NULL);
+                   DEH_String(msg_show ? MSGON : MSGOFF), true, NULL);
 }
 
 

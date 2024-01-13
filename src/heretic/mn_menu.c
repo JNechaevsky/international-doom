@@ -1282,9 +1282,9 @@ static void M_Draw_ID_Display (void)
     MN_DrTextACentered("MESSAGES SETTINGS", 110, cr[CR_YELLOW]);
 
     // Messages enabled
-    sprintf(str, showMessages ? "ON" : "OFF");
+    sprintf(str, msg_show ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, showMessages ? GLOW_DARKRED : GLOW_GREEN));
+               M_Item_Glow(10, msg_show ? GLOW_DARKRED : GLOW_GREEN));
 
     // Text casts shadows
     sprintf(str, msg_text_shadows ? "ON" : "OFF");
@@ -1511,9 +1511,9 @@ static boolean M_ID_B_Intensity (int choice)
 
 static boolean M_ID_Messages (int choice)
 {
-    showMessages ^= 1;
+    msg_show ^= 1;
     CT_SetMessage(&players[consoleplayer],
-                 DEH_String(showMessages ? "MESSAGES ON" : "MESSAGES OFF"), true);
+                 DEH_String(msg_show ? "MESSAGES ON" : "MESSAGES OFF"), true);
     S_StartSound(NULL, sfx_switch);
     return true;
 }
@@ -1599,10 +1599,10 @@ static void M_Draw_ID_Sound (void)
                M_Item_Glow(9, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
 
     // Number of SFX to mix
-    sprintf(str, "%i", snd_Channels);
+    sprintf(str, "%i", snd_channels);
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, snd_Channels == 8 ? GLOW_DARKRED :
-                               snd_Channels  < 3 ? GLOW_RED : GLOW_YELLOW));
+               M_Item_Glow(10, snd_channels == 8 ? GLOW_DARKRED :
+                               snd_channels  < 3 ? GLOW_RED : GLOW_YELLOW));
 
     // Mute inactive window
     sprintf(str, snd_mute_inactive ? "ON" : "OFF");
@@ -1708,12 +1708,12 @@ static boolean M_ID_SFXChannels (int option)
     switch (option)
     {
         case 0:
-            if (snd_Channels > 2)
-                snd_Channels--;
+            if (snd_channels > 2)
+                snd_channels--;
             break;
         case 1:
-            if (snd_Channels < 16)
-                snd_Channels++;
+            if (snd_channels < 16)
+                snd_channels++;
         default:
             break;
     }
@@ -4142,7 +4142,10 @@ static boolean M_ID_LevelArti_9 (int choice)
 
 static void M_ID_ApplyResetHook (void)
 {
-    // Video
+    //
+    // Video options
+    //
+
 #ifdef CRISPY_TRUECOLOR
     vid_truecolor = 0;
 #endif
@@ -4153,31 +4156,42 @@ static void M_ID_ApplyResetHook (void)
     vid_vsync = 1;
     vid_showfps = 0;
     vid_smooth_scaling = 0;
+    // Miscellaneous
     vid_endoom = 0;
 
-    // Display
+    //
+    // Display options
+    //
+    dp_screen_size = 10;
     vid_gamma = 10;
     vid_fov = 90;
-    dp_screen_size = 10;    
     dp_menu_shading = 0;
     dp_level_brightness = 0;
+    // Color settings
     vid_saturation = 100;
     vid_r_intensity = 1.000000;
     vid_g_intensity = 1.000000;
     vid_b_intensity = 1.000000;
-    showMessages = 1;
+    // Messages Settings
+    msg_show = 1;
     msg_text_shadows = 0;
     msg_local_time = 0;
 
-    // Sound
+    //
+    // Sound options
+    //
+
     snd_MaxVolume = 10;
     snd_MusicVolume = 10;
     snd_monosfx = 0;
     snd_pitchshift = 1;
-    snd_Channels = 8;
+    snd_channels = 8;
     snd_mute_inactive = 0;
 
-    // Widgets
+    //
+    // Widgets and automap
+    //
+
     widget_location = 0;
     widget_kis = 0;
     widget_time = 0;
@@ -4186,14 +4200,17 @@ static void M_ID_ApplyResetHook (void)
     widget_coords = 0;
     widget_render = 0;
     widget_health = 0;
-
     // Automap
     automap_secrets = 0;
     automap_rotate = 0;
     automap_overlay = 0;
     automap_shading = 0;
 
+    //
     // Gameplay features
+    //
+
+    // Visual
     vis_brightmaps = 0;
     vis_translucency = 0;
     vis_fake_contrast = 1;
@@ -4202,21 +4219,35 @@ static void M_ID_ApplyResetHook (void)
     vis_invul_sky = 0;
     vis_linear_sky = 0;
     vis_flip_corpses = 0;
+
+    // Crosshair
     xhair_draw = 0;
     xhair_color = 0;
+
+    // Status bar
     st_colored_stbar = 0;
     st_ammo_widget = 0;
+
+    // Audible
     aud_z_axis_sfx = 0;
+
+    // Physical
     phys_torque = 0;
     phys_weapon_alignment = 0;
     phys_breathing = 0;
+
+    // Gameplay
     gp_default_skill = 2;
     gp_revealed_secrets = 0;
     gp_flip_levels = 0;
+
+    // Demos
     demo_timer = 0;
     demo_timerdir = 0;
     demo_bar = 0;
     demo_internal = 1;
+
+    // Compatibility-breaking
     compat_pistol_start = 0;
     compat_blockmap_fix = 0;
 
@@ -4904,7 +4935,7 @@ static void DrawFileSlots(Menu_t * menu)
 
 static void DrawOptionsMenu(void)
 {
-    if (showMessages)
+    if (msg_show)
     {
         MN_DrTextB(DEH_String("ON"), 196, 50);
     }

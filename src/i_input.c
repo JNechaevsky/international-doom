@@ -87,6 +87,9 @@ static boolean text_input_enabled = true;
 // Bit mask of mouse button state.
 static unsigned int mouse_button_state = 0;
 
+// [JN] Defauld mouse sensivity.
+int mouseSensitivity = 5;
+
 // Disallow mouse and joystick movement to cause forward/backward
 // motion.  Specified with the '-mouse_novert' command line parameter.
 // This is an int to allow saving to config file
@@ -511,6 +514,7 @@ void I_ReadMouse(void)
 // Bind all variables controlling input options.
 void I_BindInputVariables(void)
 {
+    M_BindIntVariable("mouse_sensitivity",         &mouseSensitivity);
     M_BindFloatVariable("mouse_acceleration",      &mouse_acceleration);
     M_BindIntVariable("mouse_threshold",           &mouse_threshold);
     M_BindIntVariable("vanilla_keyboard_mapping",  &vanilla_keyboard_mapping);

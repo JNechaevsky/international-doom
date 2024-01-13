@@ -113,10 +113,6 @@ static musicinfo_t *mus_playing = NULL;
 
 #define MAX_SND_CHANNELS 16
 
-// Number of channels to use
-
-int snd_channels = 8;
-
 // [JN] External music number, used for music playback hot-swapping.
 int current_mus_num;
 

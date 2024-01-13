@@ -28,6 +28,9 @@
 #include "id_vars.h"
 
 
+// [JN] Should be enabled only for Doom.
+boolean diskicon_enabled;
+
 // Only display the disk icon if more then this much bytes have been read
 // during the previous tic.
 static const int diskicon_threshold = 20*1024;
