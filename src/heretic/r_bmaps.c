@@ -305,14 +305,6 @@ const byte *R_BrightmapForSprite (const int state)
                 return hellstaff_world;
                 break;
             }
-            // Flame Orb
-            case S_AMP1_1:
-            case S_AMP1_2:
-            case S_AMP1_3:
-            // Infernal Orb
-            case S_AMP2_1:
-            case S_AMP2_2:
-            case S_AMP2_3:
             // Chandeiler
             case S_CHANDELIER1:
             case S_CHANDELIER2:
@@ -485,6 +477,33 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ARTI_TRCH3:
             {
                 return fullbright;
+                break;
+            }
+        }
+    }
+
+    // [JN] Ammo types, lit up only if "on+ammo".
+    if (vis_brightmaps == 2)
+    {
+        switch (state)
+        {
+            // Quiver of Ethereal Arrows
+            case S_AMC2_1:
+            case S_AMC2_2:
+            case S_AMC2_3:
+            {
+                return consumables;
+            }
+            // Flame Orb
+            case S_AMP1_1:
+            case S_AMP1_2:
+            case S_AMP1_3:
+            // Infernal Orb
+            case S_AMP2_1:
+            case S_AMP2_2:
+            case S_AMP2_3:
+            {
+                return flame;
                 break;
             }
         }

@@ -685,7 +685,30 @@ void R_ProjectSprite (mobj_t* thing)
 	    index = MAXLIGHTSCALE-1;
 
 	// [crispy] brightmaps for select sprites
+	// [JN] If brightmaps are set to "on+ammo", ammo will be lit with double power:
+	if (vis_brightmaps == 2
+	&& (thing->type == MT_AMGWNDWIMPY
+	||  thing->type == MT_AMGWNDHEFTY
+	||  thing->type == MT_AMCBOWWIMPY
+	||  thing->type == MT_AMBLSRWIMPY
+	||  thing->type == MT_AMBLSRHEFTY
+	||  thing->type == MT_AMSKRDWIMPY
+	||  thing->type == MT_AMSKRDHEFTY))
+	{
+	int bright_index = index + 24; // [JN] 24 is rounded ((MAXLIGHTSCALE-1) / 2)
+
+	if (bright_index > MAXLIGHTSCALE-1)
+	{
+	bright_index = MAXLIGHTSCALE-1;
+	}
+
+	vis->colormap[0] = spritelights[bright_index];
+	}
+	else
+	{
 	vis->colormap[0] = spritelights[index];
+	}
+    
     vis->colormap[1] = colormaps;
     }
 

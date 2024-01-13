@@ -3120,7 +3120,8 @@ static void M_Draw_ID_Gameplay_1 (void)
     MN_DrTextACentered("VISUAL", 10, cr[CR_YELLOW]);
 
     // Brightmaps
-    sprintf(str, vis_brightmaps ? "ON" : "OFF");
+    sprintf(str, vis_brightmaps == 1 ? "ON" :
+                 vis_brightmaps == 2 ? "ON+AMMO" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3196,7 +3197,7 @@ static void M_Draw_ID_Gameplay_1 (void)
 
 static boolean M_ID_Brightmaps (int choice)
 {
-    vis_brightmaps ^= 1;
+    vis_brightmaps = M_INT_Slider(vis_brightmaps, 0, 2, choice);
     return true;
 }
 
