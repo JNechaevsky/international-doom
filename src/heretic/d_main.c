@@ -794,6 +794,7 @@ void D_BindVariables(void)
 
     NET_BindVariables();
 
+    // [JN] Game-dependent variables:
     M_BindIntVariable("key_message_refresh",    &key_message_refresh_hr);
     M_BindIntVariable("sfx_volume",             &snd_MaxVolume);
     M_BindIntVariable("music_volume",           &snd_MusicVolume);

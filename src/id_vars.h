@@ -36,8 +36,6 @@ extern int vid_widescreen;
 extern int vid_diskicon;
 extern int vid_endoom;
 
-extern int vid_startup_delay;
-extern int vid_resize_delay;
 extern int vid_uncapped_fps;
 extern int vid_fpslimit;
 extern int vid_vsync;
