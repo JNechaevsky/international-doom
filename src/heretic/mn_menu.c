@@ -3120,8 +3120,8 @@ static void M_Draw_ID_Gameplay_1 (void)
     MN_DrTextACentered("VISUAL", 10, cr[CR_YELLOW]);
 
     // Brightmaps
-    sprintf(str, vis_brightmaps == 1 ? "ON" :
-                 vis_brightmaps == 2 ? "ON+AMMO" : "OFF");
+    sprintf(str, vis_brightmaps == 1 ? "STANDARD" :
+                 vis_brightmaps == 2 ? "FULL" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
 
