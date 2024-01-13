@@ -47,8 +47,6 @@ extern void D_StartTitle (void);
 // GLOBAL VARIABLES
 //
 
-extern int dp_detail_level;
-
 extern boolean advancedemo;
 extern boolean sigil;
 extern boolean sigil2;

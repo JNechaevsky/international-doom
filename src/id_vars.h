@@ -16,6 +16,9 @@
 //
 
 
+#include "d_mode.h"  // [JN] M_BindIntVariable
+
+
 #pragma once
 
 
@@ -29,6 +32,7 @@ extern int vid_truecolor;
 #endif
 extern int vid_resolution;
 extern int vid_widescreen;
+
 extern int vid_diskicon;
 extern int vid_endoom;
 
@@ -49,10 +53,12 @@ extern int vid_screenwipe;
 extern int msg_text_shadows;
 
 // Display
+extern int dp_detail_level;
 extern int dp_menu_shading;
 extern int dp_level_brightness;
 
 // Messages
+extern int msg_show;
 extern int msg_alignment;
 extern int msg_local_time;
 
@@ -72,6 +78,7 @@ extern int widget_health;
 
 // Sound
 extern int snd_monosfx;
+extern int snd_channels;
 extern int snd_mute_inactive;
 
 // Automap
@@ -131,4 +138,4 @@ extern int compat_vertical_aiming;
 // Mouse look
 extern int mouse_look;
 
-extern void ID_BindVariables (void);
+extern void ID_BindVariables (GameMission_t mission);

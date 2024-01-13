@@ -54,6 +54,7 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "w_main.h"
+#include "v_diskicon.h"
 #include "v_trans.h"
 #include "v_video.h"
 #include "am_map.h"
@@ -86,10 +87,6 @@ static boolean main_loop_started = false;
 boolean autostart;
 
 boolean advancedemo;
-
-int vid_diskicon = 0;
-int vid_endoom = 0;
-int showMessages = 1;     // Show messages has default, 0 = off, 1 = on
 
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
@@ -798,11 +795,8 @@ void D_BindVariables(void)
     NET_BindVariables();
 
     M_BindIntVariable("key_message_refresh",    &key_message_refresh_hr);
-    M_BindIntVariable("mouse_sensitivity",      &mouseSensitivity);
     M_BindIntVariable("sfx_volume",             &snd_MaxVolume);
     M_BindIntVariable("music_volume",           &snd_MusicVolume);
-    M_BindIntVariable("msg_show",               &showMessages);
-    M_BindIntVariable("snd_channels",           &snd_Channels);
     //M_BindIntVariable("graphical_startup",      &graphical_startup);
 
     // Multiplayer chat macros
@@ -816,10 +810,7 @@ void D_BindVariables(void)
     }
 
 	// [JN] Bind ID-specific config variables.
-	ID_BindVariables();
-
-    // TODO - bind Heretic variables!
-    M_BindIntVariable("st_ammo_widget",           &st_ammo_widget);
+	ID_BindVariables(heretic);
 }
 
 // 
@@ -1003,6 +994,9 @@ void D_DoomMain(void)
     D_BindVariables();
     M_SetConfigFilenames(PROGRAM_PREFIX "heretic.ini");
     M_LoadDefaults();
+
+    // [JN] Disk icon can't be enabled for Heretic.
+    diskicon_enabled = false;
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 

@@ -16,6 +16,7 @@
 //
 
 
+#include "id_vars.h"  // [JN] M_BindIntVariable
 #include "m_config.h"  // [JN] M_BindIntVariable
 
 
@@ -29,13 +30,17 @@ int vid_truecolor = 0;
 #endif
 int vid_resolution = 2;
 int vid_widescreen = 0;
-
 int vid_startup_delay = 35;
 int vid_resize_delay = 35;
 int vid_uncapped_fps = 0;
 int vid_fpslimit = 60;
 int vid_vsync = 1;
 int vid_showfps = 0;
+
+int vid_diskicon = 1;
+int vid_diskicon_off = 0;
+int vid_endoom = 0;
+
 int vid_gamma = 10;
 int vid_fov = 90;
 int vid_saturation = 100;
@@ -47,10 +52,12 @@ int vid_screenwipe = 1;
 int msg_text_shadows = 0;
 
 // Display
+int dp_detail_level = 0;  // Blocky mode (0 = high, 1 = normal)
 int dp_menu_shading = 0;
 int dp_level_brightness = 0;
 
 // Messages
+int msg_show = 1;
 int msg_alignment = 0;
 int msg_local_time = 0;
 
@@ -70,6 +77,7 @@ int widget_health = 0;
 
 // Sound
 int snd_monosfx = 0;
+int snd_channels = 8;
 int snd_mute_inactive = 0;
 
 // Automap
@@ -130,18 +138,17 @@ int compat_vertical_aiming = 0;
 int mouse_look = 0;
 
 // -----------------------------------------------------------------------------
-// [JN] ID-specific config variables binding function.
+// [JN] ID-specific config variables binding functions.
 // -----------------------------------------------------------------------------
 
-void ID_BindVariables (void)
+void ID_BindVariables (GameMission_t mission)
 {
-    // System and video
+    // Video
 #ifdef CRISPY_TRUECOLOR
     M_BindIntVariable("vid_truecolor",                  &vid_truecolor);
 #endif
     M_BindIntVariable("vid_resolution",                 &vid_resolution);
     M_BindIntVariable("vid_widescreen",                 &vid_widescreen);
-    
     M_BindIntVariable("vid_startup_delay",              &vid_startup_delay);
     M_BindIntVariable("vid_resize_delay",               &vid_resize_delay);
     M_BindIntVariable("vid_uncapped_fps",               &vid_uncapped_fps);
@@ -149,22 +156,39 @@ void ID_BindVariables (void)
     M_BindIntVariable("vid_vsync",                      &vid_vsync);
     M_BindIntVariable("vid_showfps",                    &vid_showfps);
     M_BindIntVariable("vid_gamma",                      &vid_gamma);
+    
+    if (mission == doom)
+    {
+        M_BindIntVariable("vid_diskicon",               &vid_diskicon);
+    }
+    M_BindIntVariable("vid_endoom",                     &vid_endoom);
+    
     M_BindIntVariable("vid_fov",                        &vid_fov);
     M_BindIntVariable("vid_saturation",                 &vid_saturation);
     M_BindFloatVariable("vid_r_intensity",              &vid_r_intensity);
     M_BindFloatVariable("vid_g_intensity",              &vid_g_intensity);
     M_BindFloatVariable("vid_b_intensity",              &vid_b_intensity);
-    M_BindIntVariable("dp_screen_size",                 &dp_screen_size);
     M_BindIntVariable("vid_screenwipe",                 &vid_screenwipe);
-    M_BindIntVariable("msg_text_shadows",               &msg_text_shadows);
 
     // Display
+    M_BindIntVariable("dp_screen_size",                 &dp_screen_size);
+    M_BindIntVariable("dp_detail_level",                &dp_detail_level);
     M_BindIntVariable("dp_menu_shading",                &dp_menu_shading);
     M_BindIntVariable("dp_level_brightness",            &dp_level_brightness);
 
     // Messages
+    M_BindIntVariable("msg_show",                       &msg_show);
+    M_BindIntVariable("msg_text_shadows",               &msg_text_shadows);
     M_BindIntVariable("msg_alignment",                  &msg_alignment);
     M_BindIntVariable("msg_local_time",                 &msg_local_time);
+
+    // Sound
+    M_BindIntVariable("snd_monosfx",                    &snd_monosfx);
+    M_BindIntVariable("snd_channels",                   &snd_channels);
+    M_BindIntVariable("snd_mute_inactive",              &snd_mute_inactive);
+
+    // Control
+    M_BindIntVariable("mouse_look",                     &mouse_look);
 
     // Widgets
     M_BindIntVariable("widget_location",                &widget_location);
@@ -176,19 +200,22 @@ void ID_BindVariables (void)
     M_BindIntVariable("widget_levelname",               &widget_levelname);
     M_BindIntVariable("widget_health",                  &widget_health);
 
-    // Sound
-    M_BindIntVariable("snd_monosfx",                    &snd_monosfx);
-    M_BindIntVariable("snd_mute_inactive",              &snd_mute_inactive);
-
     // Automap
-    M_BindIntVariable("automap_scheme",                 &automap_scheme);
+    if (mission == doom)
+    {
+        M_BindIntVariable("automap_scheme",             &automap_scheme);
+    }
     M_BindIntVariable("automap_smooth",                 &automap_smooth);
     M_BindIntVariable("automap_secrets",                &automap_secrets);
     M_BindIntVariable("automap_rotate",                 &automap_rotate);
     M_BindIntVariable("automap_overlay",                &automap_overlay);
     M_BindIntVariable("automap_shading",                &automap_shading);
 
+    //
     // Gameplay features
+    //
+
+    // Visual
     M_BindIntVariable("vis_brightmaps",                 &vis_brightmaps);
     M_BindIntVariable("vis_translucency",               &vis_translucency);
     M_BindIntVariable("vis_fake_contrast",              &vis_fake_contrast);
@@ -199,40 +226,52 @@ void ID_BindVariables (void)
     M_BindIntVariable("vis_invul_sky",                  &vis_invul_sky);
     M_BindIntVariable("vis_linear_sky",                 &vis_linear_sky);
     M_BindIntVariable("vis_flip_corpses",               &vis_flip_corpses);
-
+    
+    // Crosshair
     M_BindIntVariable("xhair_draw",                     &xhair_draw);
     M_BindIntVariable("xhair_color",                    &xhair_color);
-
+    
+    // Status bar
     M_BindIntVariable("st_colored_stbar",               &st_colored_stbar);
     M_BindIntVariable("st_negative_health",             &st_negative_health);
-    M_BindIntVariable("st_blinking_keys",               &st_blinking_keys);
-
+    if (mission == doom)
+    {
+        M_BindIntVariable("st_blinking_keys",           &st_blinking_keys);
+    }
+    if (mission == heretic)
+    {
+        M_BindIntVariable("st_ammo_widget",             &st_ammo_widget);
+    }
+    
+    // Audible
     M_BindIntVariable("aud_z_axis_sfx",                 &aud_z_axis_sfx);
     M_BindIntVariable("aud_full_sounds",                &aud_full_sounds);
-    M_BindIntVariable("aud_exit_sounds",                &aud_exit_sounds);
-
+    if (mission == doom)
+    {
+        M_BindIntVariable("aud_exit_sounds",            &aud_exit_sounds);
+    }
+    
+    // Physical
     M_BindIntVariable("phys_torque",                    &phys_torque);
     M_BindIntVariable("phys_ssg_tear_monsters",         &phys_ssg_tear_monsters);
     M_BindIntVariable("phys_toss_drop",                 &phys_toss_drop);
     M_BindIntVariable("phys_floating_powerups",         &phys_floating_powerups);
     M_BindIntVariable("phys_weapon_alignment",          &phys_weapon_alignment);
-
+    M_BindIntVariable("phys_breathing",                 &phys_breathing);
+    
+    // Gameplay
     M_BindIntVariable("gp_default_skill",               &gp_default_skill);
     M_BindIntVariable("gp_revealed_secrets",            &gp_revealed_secrets);
-    M_BindIntVariable("phys_breathing",                 &phys_breathing);
     M_BindIntVariable("gp_flip_levels",                 &gp_flip_levels);
-
+    
     // Demos
     M_BindIntVariable("demo_timer",                     &demo_timer);
     M_BindIntVariable("demo_timerdir",                  &demo_timerdir);
     M_BindIntVariable("demo_bar",                       &demo_bar);
     M_BindIntVariable("demo_internal",                  &demo_internal);
-
+    
     // Compatibility-breaking
     M_BindIntVariable("compat_pistol_start",            &compat_pistol_start);
     M_BindIntVariable("compat_blockmap_fix",            &compat_blockmap_fix);
     M_BindIntVariable("compat_vertical_aiming",         &compat_vertical_aiming);
-
-    // Mouse look
-    M_BindIntVariable("mouse_look",                     &mouse_look);
 }

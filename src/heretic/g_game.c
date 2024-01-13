@@ -124,8 +124,6 @@ int totaltimes, totalleveltimes; // [crispy] CPhipps - total time for all comple
 
 boolean finalintermission; // [crispy] track intermission at end of episode
 
-int mouseSensitivity = 5;
-
 char *demoname;
 static const char *orig_demoname = NULL; // [crispy] the name originally chosen for the demo, i.e. without "-00000"
 boolean demorecording;

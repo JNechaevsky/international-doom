@@ -34,6 +34,8 @@
 #include "z_zone.h"
 #include "sounds.h"
 
+#include "id_vars.h"
+
 
 #define QUEUESIZE       128
 #define MESSAGESIZE     128
@@ -473,7 +475,7 @@ void CT_SetMessage (player_t *player, const char *message, boolean ultmsg, byte 
 {
     lastmessage = message;
 
-    if ((ultimatemsg || !showMessages) && !ultmsg)
+    if ((ultimatemsg || !msg_show) && !ultmsg)
     {
         return;
     }

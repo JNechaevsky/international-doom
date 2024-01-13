@@ -34,6 +34,8 @@
 #include "i_timer.h"
 #include "ct_chat.h"
 
+#include "id_vars.h"
+
 
 #define QUEUESIZE		128
 #define MESSAGESIZE     128
@@ -466,7 +468,7 @@ void CT_SetMessage (player_t *player, const char *message, boolean ultmsg)
 {
     lastmessage = message;
 
-    if ((ultimatemsg || !showMessages) && !ultmsg)
+    if ((ultimatemsg || !msg_show) && !ultmsg)
     {
         return;
     }

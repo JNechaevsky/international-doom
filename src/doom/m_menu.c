@@ -1527,9 +1527,9 @@ static void M_Draw_ID_Display (void)
     M_WriteTextCentered(117, "MESSAGES SETTINGS", cr[CR_YELLOW]);
 
     // Messages enabled
-    sprintf(str, showMessages ? "ON" : "OFF");
+    sprintf(str, msg_show ? "ON" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, showMessages ? GLOW_DARKRED : GLOW_GREEN));
+                 M_Item_Glow(12, msg_show ? GLOW_DARKRED : GLOW_GREEN));
 
     // Messages alignment
     sprintf(str, msg_alignment == 1 ? "STATUS BAR" :
@@ -4274,7 +4274,7 @@ static void M_ID_ApplyResetHook (void)
     vid_b_intensity = 1.000000;
 
     // Messages settings
-    showMessages = 1;
+    msg_show = 1;
     msg_alignment = 0;
     msg_text_shadows = 0;
     msg_local_time = 0;
@@ -4874,10 +4874,10 @@ static void M_Episode(int choice)
 //
 static void M_ChangeMessages(int choice)
 {
-    showMessages ^= 1;
+    msg_show ^= 1;
 	
 	CT_SetMessage(&players[consoleplayer],
-                   DEH_String(showMessages ? MSGON : MSGOFF), true, NULL);
+                   DEH_String(msg_show ? MSGON : MSGOFF), true, NULL);
 }
 
 

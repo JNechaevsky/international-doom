@@ -1282,9 +1282,9 @@ static void M_Draw_ID_Display (void)
     MN_DrTextACentered("MESSAGES SETTINGS", 110, cr[CR_YELLOW]);
 
     // Messages enabled
-    sprintf(str, showMessages ? "ON" : "OFF");
+    sprintf(str, msg_show ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, showMessages ? GLOW_DARKRED : GLOW_GREEN));
+               M_Item_Glow(10, msg_show ? GLOW_DARKRED : GLOW_GREEN));
 
     // Text casts shadows
     sprintf(str, msg_text_shadows ? "ON" : "OFF");
@@ -1511,9 +1511,9 @@ static boolean M_ID_B_Intensity (int choice)
 
 static boolean M_ID_Messages (int choice)
 {
-    showMessages ^= 1;
+    msg_show ^= 1;
     CT_SetMessage(&players[consoleplayer],
-                 DEH_String(showMessages ? "MESSAGES ON" : "MESSAGES OFF"), true);
+                 DEH_String(msg_show ? "MESSAGES ON" : "MESSAGES OFF"), true);
     S_StartSound(NULL, sfx_switch);
     return true;
 }
@@ -1599,10 +1599,10 @@ static void M_Draw_ID_Sound (void)
                M_Item_Glow(9, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
 
     // Number of SFX to mix
-    sprintf(str, "%i", snd_Channels);
+    sprintf(str, "%i", snd_channels);
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, snd_Channels == 8 ? GLOW_DARKRED :
-                               snd_Channels  < 3 ? GLOW_RED : GLOW_YELLOW));
+               M_Item_Glow(10, snd_channels == 8 ? GLOW_DARKRED :
+                               snd_channels  < 3 ? GLOW_RED : GLOW_YELLOW));
 
     // Mute inactive window
     sprintf(str, snd_mute_inactive ? "ON" : "OFF");
@@ -1708,12 +1708,12 @@ static boolean M_ID_SFXChannels (int option)
     switch (option)
     {
         case 0:
-            if (snd_Channels > 2)
-                snd_Channels--;
+            if (snd_channels > 2)
+                snd_channels--;
             break;
         case 1:
-            if (snd_Channels < 16)
-                snd_Channels++;
+            if (snd_channels < 16)
+                snd_channels++;
         default:
             break;
     }
@@ -4165,7 +4165,7 @@ static void M_ID_ApplyResetHook (void)
     vid_r_intensity = 1.000000;
     vid_g_intensity = 1.000000;
     vid_b_intensity = 1.000000;
-    showMessages = 1;
+    msg_show = 1;
     msg_text_shadows = 0;
     msg_local_time = 0;
 
@@ -4174,7 +4174,7 @@ static void M_ID_ApplyResetHook (void)
     snd_MusicVolume = 10;
     snd_monosfx = 0;
     snd_pitchshift = 1;
-    snd_Channels = 8;
+    snd_channels = 8;
     snd_mute_inactive = 0;
 
     // Widgets
@@ -4904,7 +4904,7 @@ static void DrawFileSlots(Menu_t * menu)
 
 static void DrawOptionsMenu(void)
 {
-    if (showMessages)
+    if (msg_show)
     {
         MN_DrTextB(DEH_String("ON"), 196, 50);
     }

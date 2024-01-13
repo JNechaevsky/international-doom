@@ -121,16 +121,6 @@ boolean nerve = false;
 // [JN] Check for available SSG from Crispy Doom.
 boolean havessg = false;
 
-// -----------------------------------------------------------------------------
-// [JN] Defaulted values
-// -----------------------------------------------------------------------------
-
-int vid_diskicon = 1;
-int vid_endoom = 0;       // [JN] Disabled by default
-int dp_detail_level = 0;  // Blocky mode, has default, 0 = high, 1 = normal
-int showMessages = 1;     // Show messages has default, 0 = off, 1 = on
-int mouseSensitivity = 5;
-
 
 // -----------------------------------------------------------------------------
 // D_ProcessEvents
@@ -460,13 +450,8 @@ void D_BindVariables(void)
     NET_BindVariables();
 
     M_BindIntVariable("key_message_refresh",    &key_message_refresh);
-    M_BindIntVariable("mouse_sensitivity",      &mouseSensitivity);
     M_BindIntVariable("sfx_volume",             &sfxVolume);
     M_BindIntVariable("music_volume",           &musicVolume);
-    M_BindIntVariable("msg_show",               &showMessages);
-    M_BindIntVariable("dp_detail_level",        &dp_detail_level);
-    M_BindIntVariable("snd_channels",           &snd_channels);
-    M_BindIntVariable("vid_endoom",             &vid_endoom);
 
     // Multiplayer chat macros
 
@@ -479,7 +464,7 @@ void D_BindVariables(void)
     }
 
 	// [JN] Bind ID-specific config variables.
-	ID_BindVariables();
+	ID_BindVariables(doom);
 }
 
 //
@@ -1593,6 +1578,9 @@ void D_DoomMain (void)
     M_SetConfigFilenames(PROGRAM_PREFIX "doom.ini");
     D_BindVariables();
     M_LoadDefaults();
+
+    // [JN] Disk icon can be enabled for Doom.
+    diskicon_enabled = true;
 
 #ifdef _WIN32
     // [JN] Pressing PrintScreen on Windows 11 is opening Snipping Tool.
