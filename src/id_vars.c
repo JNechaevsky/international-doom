@@ -16,7 +16,7 @@
 //
 
 
-#include "id_vars.h"  // [JN] M_BindIntVariable
+#include "id_vars.h"
 #include "m_config.h"  // [JN] M_BindIntVariable
 
 
