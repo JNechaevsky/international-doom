@@ -151,6 +151,8 @@ typedef struct line_s
     RF_CLOSED    = 16,  // Line blocks view
     } r_flags;
 
+    // [crispy] calculate sound origin of line to be its midpoint
+    degenmobj_t	soundorg;
 } line_t;
 
 

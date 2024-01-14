@@ -207,7 +207,8 @@ void P_StartButton(line_t * line, bwhere_e w, int texture, int time)
             buttonlist[i].where = w;
             buttonlist[i].btexture = texture;
             buttonlist[i].btimer = time;
-            buttonlist[i].soundorg = &line->frontsector->soundorg;
+            // [JN] [crispy] Corrected sound source.
+            buttonlist[i].soundorg = &line->soundorg;
             return;
         }
 
@@ -238,6 +239,9 @@ void P_ChangeSwitchTexture(line_t * line, int useAgain)
     int texBot;
     int i;
     int sound;
+    // [crispy] register up to three buttons at once 
+    // for lines with more than one switch texture.
+    boolean playsound = false;
 
     if (!useAgain)
         line->special = 0;
@@ -251,30 +255,57 @@ void P_ChangeSwitchTexture(line_t * line, int useAgain)
     //      sound = sfx_swtchx;
 
     for (i = 0; i < numswitches * 2; i++)
+    {
         if (switchlist[i] == texTop)
         {
-            S_StartSound(buttonlist->soundorg, sound);
+            playsound = true;
             sides[line->sidenum[0]].toptexture = switchlist[i ^ 1];
             if (useAgain)
                 P_StartButton(line, top, switchlist[i], BUTTONTIME);
-            return;
         }
         else if (switchlist[i] == texMid)
         {
-            S_StartSound(buttonlist->soundorg, sound);
+            playsound = true;
             sides[line->sidenum[0]].midtexture = switchlist[i ^ 1];
             if (useAgain)
                 P_StartButton(line, middle, switchlist[i], BUTTONTIME);
-            return;
         }
         else if (switchlist[i] == texBot)
         {
-            S_StartSound(buttonlist->soundorg, sound);
+            playsound = true;
             sides[line->sidenum[0]].bottomtexture = switchlist[i ^ 1];
             if (useAgain)
                 P_StartButton(line, bottom, switchlist[i], BUTTONTIME);
-            return;
         }
+    }
+
+    // [crispy] corrected sound source
+    if (playsound)
+    {
+        // [JN] Z-axis sfx distance: sound invoked from the floor segmented source
+        if (line->backsector 
+        &&  line->backsector->floorheight > line->frontsector->floorheight)
+        {
+            line->soundorg.z = (line->backsector->floorheight 
+                             -  line->frontsector->floorheight) / 2;
+        }
+        // [JN] Z-axis sfx distance: sound invoked from the ceiling segmented source
+        else 
+        if (line->backsector 
+        &&  line->backsector->ceilingheight < line->frontsector->ceilingheight)
+        {
+            line->soundorg.z = (line->frontsector->ceilingheight
+                             +  line->backsector->ceilingheight) / 2;
+        }
+        // [JN] Z-axis sfx distance: sound invoked from the middle of the line
+        else
+        {
+            line->soundorg.z = (line->frontsector->ceilingheight
+                             +  line->frontsector->floorheight) / 2;
+        }
+
+        S_StartSound(buttonlist->soundorg, sound);
+    }
 }
 
 /*

@@ -1135,7 +1135,13 @@ void P_UpdateSpecials(void)
                             buttonlist[i].btexture;
                         break;
                 }
+                // [crispy] & [JN] Logically proper sound behavior.
+                // Do not play second "sfx_switch" on two-sided linedefs that attached to special sectors,
+                // and always play second sound on single-sided linedefs.
+                if (!buttonlist[i].line->backsector || !buttonlist[i].line->backsector->specialdata)
+                {
                 S_StartSound(buttonlist[i].soundorg, sfx_switch);
+                }
                 memset(&buttonlist[i], 0, sizeof(button_t));
             }
         }
