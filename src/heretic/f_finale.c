@@ -333,60 +333,63 @@ void F_DrawPatchCol(int x, patch_t * patch, int col)
 
 void F_DemonScroll(void)
 {
-    byte *p1, *p2;
-    //static int yval_dest = 0; // [crispy]
-    lumpindex_t i1, i2; // [crispy]
-    int x; // [crispy]
-    patch_t *patch1, *patch2; // [crispy]
-    // [JN] Externalized:
-    // static int yval = 0;
-    // static int nextscroll = 0;
-    // static int y = 0; // [crispy]
+    int i1 = W_GetNumForName(DEH_String("FINAL1"));
+    int i2 = W_GetNumForName(DEH_String("FINAL2"));
 
-    if (finalecount < nextscroll)
+    // [JN] assume that FINAL1 and FINAL2 are in RAW format
+    if ((W_LumpLength(i1) == 64000) && (W_LumpLength(i2) == 64000))
     {
-        return;
-    }
-    i1 = W_GetNumForName(DEH_String("FINAL1"));
-    i2 = W_GetNumForName(DEH_String("FINAL2"));
-    p1 = W_CacheLumpNum(i1, PU_LEVEL);
-    p2 = W_CacheLumpNum(i2, PU_LEVEL);
-    if (finalecount < 70)
-    {
-        V_DrawFullscreenRawOrPatch(i1);
-        nextscroll = finalecount;
-        return;
-    }
-    if (yval < 64000)
-    {
-        if ((W_LumpLength(i1) == 64000) && (W_LumpLength(i2) == 64000))
+        byte *DemonBuffer = Z_Malloc(W_LumpLength(i1) + W_LumpLength(i2), PU_STATIC, NULL);
+        byte *p1 = W_CacheLumpNum(i1, PU_LEVEL);
+        byte *p2 = W_CacheLumpNum(i2, PU_LEVEL);
+
+        memcpy(DemonBuffer, p2, W_LumpLength(i2));
+        memcpy(DemonBuffer + W_LumpLength(i2), p1, W_LumpLength(i1));
+
+        // [rfomin] show first screen for a while
+        if (finalecount < 70)
         {
-            // [JN] TODO - update for V_DrawScaledBlock.
-            // Only static picture of demon face at the moment.
-
-            byte *src = W_CacheLumpName("FINAL2", PU_CACHE); // high pic
-            V_DrawScaledBlock(0, 0, 320, 200, src);
-
-            /*
-            V_CopyScaledBuffer(I_VideoBuffer, p2 + ORIGHEIGHT * ORIGWIDTH - yval, yval);
-            V_CopyScaledBuffer(I_VideoBuffer + yval_dest, p1, ORIGHEIGHT * ORIGWIDTH - yval);
-
-            yval_dest += SCREENWIDTH * vid_resolution;
-            */
-            
-            // byte *src1 = W_CacheLumpName("FINAL1", PU_CACHE); // low pic
-            // byte *src2 = W_CacheLumpName("FINAL2", PU_CACHE); // high pic
-            
-            // V_DrawScaledBlock(0, y, 320, 200-y, src1);
-            // y++;
+            V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, DemonBuffer + 64000);
+            nextscroll = finalecount;
+            yval = 0;
+            return;
         }
-        else // [crispy] assume that FINAL1 and FINAL2 are in patch format
-        {
-            patch1 = (patch_t *)p1;
-            patch2 = (patch_t *)p2;
 
-            x = ((SCREENWIDTH / vid_resolution) - SHORT(patch1->width)) / 2
-                - WIDESCREENDELTA;
+        if (yval < 64000)
+        {
+            // [rfomin] scroll up one line at a time until only the top screen shows
+            V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, DemonBuffer + 64000 - yval);
+    
+            if (finalecount >= nextscroll)
+            {
+                yval += ORIGWIDTH; // [rfomin] move up one line
+                nextscroll = finalecount + 3; // [rfomin] don't scroll too fast
+            }
+        }
+        else
+        {
+            // [rfomin] finished scrolling
+            V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, DemonBuffer);
+        }
+        Z_Free(DemonBuffer);
+    }
+    // [crispy] assume that FINAL1 and FINAL2 are in patch format
+    else
+    {
+        patch_t *patch1 = W_CacheLumpName(DEH_String("FINAL1"), PU_LEVEL);
+        patch_t *patch2 = W_CacheLumpName(DEH_String("FINAL2"), PU_LEVEL);
+
+        if (finalecount < 70)
+        {
+            V_DrawPatchFullScreen(patch1, false);
+            nextscroll = finalecount;
+            return;
+        }
+
+        if (yval < 64000)
+        {
+            int x = ((SCREENWIDTH / vid_resolution) - SHORT(patch1->width)) / 2
+                  - WIDESCREENDELTA; // [crispy]
 
             // [crispy] pillar boxing
             if (x > -WIDESCREENDELTA)
@@ -398,14 +401,21 @@ void F_DemonScroll(void)
 
             V_DrawPatch(x, y - 200, patch2);
             V_DrawPatch(x, 0 + y, patch1);
-            y++;
+
+            // [rfomin] don't scroll too fast
+            // [JN] and do not use "return" here to keep screen buffer active
+            if (finalecount >= nextscroll)
+            {
+                y++;
+                yval += ORIGWIDTH;
+                nextscroll = finalecount + 3;
+            }
         }
-        yval += ORIGWIDTH;
-        nextscroll = finalecount + 3;
-    }
-    else
-    {                           //else, we'll just sit here and wait, for now
-        V_DrawFullscreenRawOrPatch(i2);
+        else
+        {
+            // else, we'll just sit here and wait, for now
+            V_DrawPatchFullScreen(patch2, false);
+        }
     }
 }
 
