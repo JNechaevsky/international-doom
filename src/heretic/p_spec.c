@@ -32,6 +32,7 @@
 #include "w_wad.h"
 #include "r_swirl.h"
 #include "ct_chat.h"
+#include "v_trans.h"
 
 #include "id_vars.h"
 
@@ -962,7 +963,15 @@ void P_PlayerInSpecialSector(player_t * player)
             // [JN] "A secret is revelaed!" message.
             if (gp_revealed_secrets)
             {
-                CT_SetMessageCentered(player, DEH_String(ID_SECRET_FOUND));
+                if (gp_revealed_secrets == 1)  // [JN] Top
+                {
+                    CT_SetMessage(player, DEH_String(ID_SECRET_FOUND), true, cr[CR_YELLOW]);
+                }
+                else
+                if (gp_revealed_secrets == 2)  // [JN] Centered
+                {
+                    CT_SetMessageCentered(player, DEH_String(ID_SECRET_FOUND));
+                }
                 S_StartSound(NULL, sfx_chat);
             }
             sector->special = 0;

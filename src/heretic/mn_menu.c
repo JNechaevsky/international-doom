@@ -1423,7 +1423,7 @@ static boolean M_ID_Messages (int choice)
 {
     msg_show ^= 1;
     CT_SetMessage(&players[consoleplayer],
-                 DEH_String(msg_show ? "MESSAGES ON" : "MESSAGES OFF"), true);
+                 DEH_String(msg_show ? "MESSAGES ON" : "MESSAGES OFF"), true, NULL);
     S_StartSound(NULL, sfx_switch);
     return true;
 }
@@ -3302,7 +3302,8 @@ static void M_Draw_ID_Gameplay_3 (void)
                DefSkillColor(gp_default_skill));
 
     // Report revealed secrets
-    sprintf(str, gp_revealed_secrets ? "ON" : "OFF");
+    sprintf(str, gp_revealed_secrets == 1 ? "TOP" :
+                 gp_revealed_secrets == 2 ? "CENTERED" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, gp_revealed_secrets ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3366,7 +3367,7 @@ static boolean M_ID_DefaulSkill (int choice)
 
 static boolean M_ID_RevealedSecrets (int choice)
 {
-    gp_revealed_secrets ^= 1;
+    gp_revealed_secrets = M_INT_Slider(gp_revealed_secrets, 0, 2, choice, false);
     return true;
 }
 
@@ -4849,11 +4850,11 @@ static boolean SCNetCheck(int option)
     {
         case 1:
             CT_SetMessage(&players[consoleplayer],
-                         "YOU CAN'T START A NEW GAME IN NETPLAY!", true);
+                         "YOU CAN'T START A NEW GAME IN NETPLAY!", true, NULL);
             break;
         case 2:
             CT_SetMessage(&players[consoleplayer],
-                         "YOU CAN'T LOAD A GAME IN NETPLAY!", true);
+                         "YOU CAN'T LOAD A GAME IN NETPLAY!", true, NULL);
             break;
         default:
             break;
@@ -5029,7 +5030,7 @@ static boolean SCEpisode(int option)
     if (gamemode == shareware && option > 1)
     {
         CT_SetMessage(&players[consoleplayer],
-                     "ONLY AVAILABLE IN THE REGISTERED VERSION", true);
+                     "ONLY AVAILABLE IN THE REGISTERED VERSION", true, NULL);
     }
     else
     {
@@ -5456,7 +5457,7 @@ boolean MN_Responder(event_t * event)
 
                 case 3:
                     CT_SetMessage(&players[consoleplayer],
-                                 "QUICKSAVING....", false);
+                                 "QUICKSAVING....", false, NULL);
                     FileMenuKeySteal = true;
                     SCSaveGame(quicksave - 1);
                     BorderNeedRefresh = true;
@@ -5464,7 +5465,7 @@ boolean MN_Responder(event_t * event)
 
                 case 4:
                     CT_SetMessage(&players[consoleplayer],
-                                 "QUICKLOADING....", false);
+                                 "QUICKLOADING....", false, NULL);
                     SCLoadGame(quickload - 1);
                     BorderNeedRefresh = true;
                     break;
@@ -5649,7 +5650,7 @@ boolean MN_Responder(event_t * event)
                     quicksaveTitle = true;
                     /*
                     CT_SetMessage(&players[consoleplayer],
-                                 "CHOOSE A QUICKSAVE SLOT", true);
+                                 "CHOOSE A QUICKSAVE SLOT", true, NULL);
                     */
                 }
                 else
@@ -5705,7 +5706,7 @@ boolean MN_Responder(event_t * event)
                 quickloadTitle = true;
                 /*
                 CT_SetMessage(&players[consoleplayer],
-                             "CHOOSE A QUICKLOAD SLOT", true);
+                             "CHOOSE A QUICKLOAD SLOT", true, NULL);
                 */
             }
             else
@@ -5781,7 +5782,7 @@ boolean MN_Responder(event_t * event)
     if (key == key_menu_gamma)           // F11 (gamma correction)
     {
         vid_gamma = M_INT_Slider(vid_gamma, 0, 14, 1 /*right*/, false);
-        CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false);
+        CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false, NULL);
 #ifndef CRISPY_TRUECOLOR
         I_SetPalette((byte *) W_CacheLumpName("PLAYPAL", PU_CACHE));
 #else

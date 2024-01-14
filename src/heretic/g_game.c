@@ -387,7 +387,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         }
 
         CT_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
-                     ID_AUTORUN_ON : ID_AUTORUN_OFF, false);
+                     ID_AUTORUN_ON : ID_AUTORUN_OFF, false, NULL);
         S_StartSound(NULL, sfx_switch);
         gamekeydown[key_autorun] = false;
     }
@@ -401,7 +401,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             look = TOCENTER;
         }
         CT_SetMessage(&players[consoleplayer], mouse_look ?
-                     ID_MLOOK_ON : ID_MLOOK_OFF, false);
+                     ID_MLOOK_ON : ID_MLOOK_OFF, false, NULL);
         S_StartSound(NULL, sfx_switch);
         gamekeydown[key_mouse_look] = false;
     }
@@ -966,7 +966,7 @@ void G_DoLoadLevel(void)
 
     if (testcontrols)
     {
-        CT_SetMessage(&players[consoleplayer], "PRESS ESCAPE TO QUIT.", false);
+        CT_SetMessage(&players[consoleplayer], "PRESS ESCAPE TO QUIT.", false, NULL);
     }
 }
 
@@ -1325,7 +1325,7 @@ boolean G_Responder(event_t * ev)
             {
                 crl_spectating ^= 1;
                 CT_SetMessage(&players[consoleplayer], crl_spectating ?
-                             ID_SPECTATOR_ON : ID_SPECTATOR_OFF, false);
+                             ID_SPECTATOR_ON : ID_SPECTATOR_OFF, false, NULL);
                 pspr_interp = false;
             }        
             // [JN] CRL - Toggle freeze mode.
@@ -1334,23 +1334,23 @@ boolean G_Responder(event_t * ev)
                 // Allow freeze only in single player game, otherwise desyncs may occur.
                 if (demorecording)
                 {
-                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_R , false);
+                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_R , false, NULL);
                     return true;
                 }            
                 if (demoplayback)
                 {
-                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_P , false);
+                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_P , false, NULL);
                     return true;
                 }   
                 if (netgame)
                 {
-                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_N , false);
+                    CT_SetMessage(&players[consoleplayer], ID_FREEZE_NA_N , false, NULL);
                     return true;
                 }   
                 crl_freeze ^= 1;
 
                 CT_SetMessage(&players[consoleplayer], crl_freeze ?
-                             ID_FREEZE_ON : ID_FREEZE_OFF, false);
+                             ID_FREEZE_ON : ID_FREEZE_OFF, false, NULL);
             }
             // [JN] CRL - Toggle notarget mode.
             if (ev->data1 == key_notarget)
@@ -1360,24 +1360,24 @@ boolean G_Responder(event_t * ev)
                 // Allow notarget only in single player game, otherwise desyncs may occur.
                 if (demorecording)
                 {
-                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_R , false);
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_R, false, NULL);
                     return true;
                 }
                 if (demoplayback)
                 {
-                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_P , false);
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_P, false, NULL);
                     return true;
                 }
                 if (netgame)
                 {
-                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_N , false);
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_N, false, NULL);
                     return true;
                 }   
 
                 player->cheats ^= CF_NOTARGET;
 
                 CT_SetMessage(player, player->cheats & CF_NOTARGET ?
-                            ID_NOTARGET_ON : ID_NOTARGET_OFF, false);
+                            ID_NOTARGET_ON : ID_NOTARGET_OFF, false, NULL);
             }
             // [JN] Woof - Toggle Buddha mode.
             if (ev->data1 == key_buddha)
@@ -1387,22 +1387,22 @@ boolean G_Responder(event_t * ev)
                 // Allow notarget only in single player game, otherwise desyncs may occur.
                 if (demorecording)
                 {
-                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_R , false);
+                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_R, false, NULL);
                     return true;
                 }
                 if (demoplayback)
                 {
-                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_P , false);
+                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_P, false, NULL);
                     return true;
                 }
                 if (netgame)
                 {
-                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_N , false);
+                    CT_SetMessage(&players[consoleplayer], ID_BUDDHA_NA_N, false, NULL);
                     return true;
                 }
                 player->cheats ^= CF_BUDDHA;
                 CT_SetMessage(player, player->cheats & CF_BUDDHA ?
-                            ID_BUDDHA_ON : ID_BUDDHA_OFF, false);
+                            ID_BUDDHA_ON : ID_BUDDHA_OFF, false, NULL);
             }
 
             return (true);      // eat key down events
@@ -3171,7 +3171,7 @@ void G_DoSaveGame(void)
 
     gameaction = ga_nothing;
     savedescription[0] = 0;
-    CT_SetMessage(&players[consoleplayer], DEH_String(TXT_GAMESAVED), true);
+    CT_SetMessage(&players[consoleplayer], DEH_String(TXT_GAMESAVED), true, NULL);
 
     free(filename);
 }

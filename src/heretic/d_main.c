@@ -134,7 +134,7 @@ static void DrawMessage (void)
     {                           // No message
         return;
     }
-    MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, 1, NULL);
+    MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, 1, player->messageColor);
 }
 
 // -----------------------------------------------------------------------------

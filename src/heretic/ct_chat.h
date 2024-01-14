@@ -32,7 +32,7 @@
 
 extern void CT_Drawer (void);
 extern void CT_Init (void);
-extern void CT_SetMessage (player_t *player, const char *message, boolean ultmsg);
+extern void CT_SetMessage (player_t *player, const char *message, boolean ultmsg, byte *table);
 extern void CT_SetMessageCentered (player_t *player, const char *message);
 extern void CT_Ticker (void);
 extern void MSG_Ticker (void);

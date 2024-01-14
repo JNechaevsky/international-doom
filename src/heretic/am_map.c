@@ -896,20 +896,20 @@ boolean AM_Responder (event_t *ev)
             followplayer = !followplayer;
 
             CT_SetMessage(plr, DEH_String(followplayer ?
-                          AMSTR_FOLLOWON : AMSTR_FOLLOWOFF), false);
+                          AMSTR_FOLLOWON : AMSTR_FOLLOWOFF), false, NULL);
         }
         else if (key == key_map_grid)
         {
             grid = !grid;
 
             CT_SetMessage(plr, DEH_String(grid ?
-                          AMSTR_GRIDON : AMSTR_GRIDOFF), false);
+                          AMSTR_GRIDON : AMSTR_GRIDOFF), false, NULL);
         }
         else if (key == key_map_mark)
         {
             M_snprintf(buffer, sizeof(buffer), "%s %d",
                        DEH_String(AMSTR_MARKEDSPOT), markpointnum);
-            CT_SetMessage(plr, buffer, false);
+            CT_SetMessage(plr, buffer, false, NULL);
             AM_addMark();
         }
         else if (key == key_map_clearmark && markpointnum > 0)
@@ -918,14 +918,14 @@ boolean AM_Responder (event_t *ev)
             if (speedkeydown())
             {
                 AM_clearMarks();
-                CT_SetMessage(plr, DEH_String(AMSTR_MARKSCLEARED), false);
+                CT_SetMessage(plr, DEH_String(AMSTR_MARKSCLEARED), false, NULL);
             }
             else
             {
                 markpointnum--;
                 M_snprintf(buffer, sizeof(buffer), "%s %d",
                         DEH_String(AMSTR_MARKCLEARED), markpointnum);
-                CT_SetMessage(plr, buffer, false);
+                CT_SetMessage(plr, buffer, false, NULL);
             }
         }
         else if (key == key_map_rotate)
@@ -933,7 +933,7 @@ boolean AM_Responder (event_t *ev)
             // [JN] Automap rotate mode.
             automap_rotate = !automap_rotate;
             CT_SetMessage(plr, DEH_String(automap_rotate ?
-                          ID_AUTOMAPROTATE_ON : ID_AUTOMAPROTATE_OFF), false);
+                          ID_AUTOMAPROTATE_ON : ID_AUTOMAPROTATE_OFF), false, NULL);
         }
         else if (key == key_map_overlay)
         {
@@ -941,12 +941,12 @@ boolean AM_Responder (event_t *ev)
             automap_overlay = !automap_overlay;
             if (automap_overlay)
             {
-                CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_ON), false);
+                CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_ON), false, NULL);
                 antialias = &antialias_overlay;
             }
             else
             {
-                CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_OFF), false);
+                CT_SetMessage(plr, DEH_String(ID_AUTOMAPOVERLAY_OFF), false, NULL);
                 antialias = &antialias_normal;
                 // [JN] Redraw status bar background.
                 SB_state = -1;

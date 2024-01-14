@@ -292,7 +292,7 @@ void CT_Ticker (void)
                     && *chat_msg[i])
                 {
                     CT_SetMessage(&players[consoleplayer], plr_lastmsg[i],
-                                 true);
+                                 true, NULL);
                     S_StartSound(NULL, sfx_chat);
                 }
                 else if (i == consoleplayer && (*chat_msg[i]))
@@ -300,14 +300,14 @@ void CT_Ticker (void)
                     if (numplayers > 1)
                     {
                         // [JN] Replicate sended message locally.
-                        CT_SetMessage(&players[consoleplayer], plr_lastmsg[i], true);
+                        CT_SetMessage(&players[consoleplayer], plr_lastmsg[i], true, NULL);
                         S_StartSound(NULL, sfx_chat);
                     }
                     else
                     {
                         CT_SetMessage(&players[consoleplayer],
                                      DEH_String("THERE ARE NO OTHER PLAYERS IN THE GAME!"),
-                                     true);
+                                     true, NULL);
                         S_StartSound(NULL, sfx_chat);
                     }
                 }
@@ -464,7 +464,7 @@ static void CT_ClearChatMessage (int player)
 // [JN] Sets message parameters.
 // -----------------------------------------------------------------------------
 
-void CT_SetMessage (player_t *player, const char *message, boolean ultmsg)
+void CT_SetMessage (player_t *player, const char *message, boolean ultmsg, byte *table)
 {
     lastmessage = message;
 
@@ -474,6 +474,7 @@ void CT_SetMessage (player_t *player, const char *message, boolean ultmsg)
     }
     player->message = message;
     player->messageTics = MESSAGETICS;
+    player->messageColor = table;
     BorderTopRefresh = true;
 
     if (ultmsg)

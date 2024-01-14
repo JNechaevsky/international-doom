@@ -490,6 +490,7 @@ typedef struct player_s
     int killcount, itemcount, secretcount;      // for intermission
     const char *message;        // hint messages
     int messageTics;            // counter for showing messages
+    byte *messageColor;
 
     // [JN] Hint centered messages.
     const char *messageCentered;	
