@@ -1039,22 +1039,48 @@ static byte *M_Cursor_Glow (const int tics)
         tics == -7 || tics == -8 ? cr[CR_MENU_DARK4]   : NULL;
 }
 
-static const int M_INT_Slider (int val, int min, int max, int direction)
+static const int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
 {
     switch (direction)
     {
         case 0:
         val--;
         if (val < min) 
-            val = max;
+            val = capped ? min : max;
         break;
 
         case 1:
         val++;
         if (val > max)
-            val = min;
+            val = capped ? max : min;
         break;
     }
+    return val;
+}
+
+static const float M_FLOAT_Slider (float val, float min, float max, float step,
+                                   int direction, boolean capped)
+{
+    char buf[9];
+
+    switch (direction)
+    {
+        case 0:
+        val -= step;
+        if (val < min) 
+            val = capped ? min : max;
+        break;
+
+        case 1:
+        val += step;
+        if (val > max)
+            val = capped ? max : min;
+        break;
+    }
+
+    // [JN] Do a float correction to always get x.xxx000 values:
+    sprintf (buf, "%f", val);
+    val = (float)atof(buf);
     return val;
 }
 
@@ -1311,7 +1337,7 @@ static void M_ID_RenderingResHook (void)
 
 static void M_ID_RenderingRes (int choice)
 {
-    vid_resolution = M_INT_Slider(vid_resolution, 1, MAXHIRES, choice);
+    vid_resolution = M_INT_Slider(vid_resolution, 1, MAXHIRES, choice, false);
     post_rendering_hook = M_ID_RenderingResHook;
 }
 
@@ -1337,7 +1363,7 @@ static void M_ID_WidescreenHook (void)
 
 static void M_ID_Widescreen (int choice)
 {
-    vid_widescreen = M_INT_Slider(vid_widescreen, 0, 4, choice);
+    vid_widescreen = M_INT_Slider(vid_widescreen, 0, 4, choice, false);
     post_rendering_hook = M_ID_WidescreenHook;
 }
 
@@ -1417,12 +1443,12 @@ static void M_ID_PixelScaling (int choice)
 
 static void M_ID_ScreenWipe (int choice)
 {
-    vid_screenwipe = M_INT_Slider(vid_screenwipe, 0, 2, choice);
+    vid_screenwipe = M_INT_Slider(vid_screenwipe, 0, 2, choice, false);
 }
 
 static void M_ID_DiskIcon (int choice)
 {
-    vid_diskicon = M_INT_Slider(vid_diskicon, 0, 2, choice);
+    vid_diskicon = M_INT_Slider(vid_diskicon, 0, 2, choice, false);
     V_EnableLoadingDisk();
 }
 
@@ -1551,52 +1577,18 @@ static void M_Draw_ID_Display (void)
 
 static void M_ID_MenuShading (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (dp_menu_shading)
-                dp_menu_shading--;
-            break;
-        case 1:
-            if (dp_menu_shading < 8)
-                dp_menu_shading++;
-        default:
-            break;
-    }
+    dp_menu_shading = M_INT_Slider(dp_menu_shading, 0, 8, choice, true);
 }
 
 static void M_ID_LevelBrightness (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (dp_level_brightness)
-                dp_level_brightness--;
-            break;
-        case 1:
-            if (dp_level_brightness < 8)
-                dp_level_brightness++;
-        default:
-            break;
-    }
+    dp_level_brightness = M_INT_Slider(dp_level_brightness, 0, 8, choice, true);
 }
 
 static void M_ID_Gamma (int choice)
 {
     shade_wait = I_GetTime() + 25;
-
-    switch (choice)
-    {
-        case 0:
-            if (vid_gamma)
-                vid_gamma--;
-            break;
-        case 1:
-            if (vid_gamma < 14)
-                vid_gamma++;
-        default:
-            break;
-    }
+    vid_gamma = M_INT_Slider(vid_gamma, 0, 14, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
@@ -1610,22 +1602,8 @@ static void M_ID_Gamma (int choice)
 
 static void M_ID_FOV (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (vid_fov > 45)
-            {
-                    vid_fov -= 1;
-            }
-            break;
-        case 1:
-            if (vid_fov < 135)
-            {
-                    vid_fov += 1;
-            }
-        default:
-            break;
-    }
+    vid_fov = M_INT_Slider(vid_fov, 45, 135, choice, true);
+
     // [crispy] re-calculate the zlight[][] array
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
@@ -1634,7 +1612,7 @@ static void M_ID_FOV (int choice)
 
 static void M_ID_MessagesAlignment (int choice)
 {
-    msg_alignment = M_INT_Slider(msg_alignment, 0, 2, choice);
+    msg_alignment = M_INT_Slider(msg_alignment, 0, 2, choice, false);
 }
 
 static void M_ID_TextShadows (int choice)
@@ -1644,23 +1622,12 @@ static void M_ID_TextShadows (int choice)
 
 static void M_ID_LocalTime (int choice)
 {
-    msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice);
+    msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice, false);
 }
 
 static void M_ID_Saturation (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (vid_saturation)
-                vid_saturation--;
-            break;
-        case 1:
-            if (vid_saturation < 100)
-                vid_saturation++;
-        default:
-            break;
-    }
+    vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
@@ -1673,26 +1640,7 @@ static void M_ID_Saturation (int choice)
 
 static void M_ID_R_Intensity (int choice)
 {
-    char buf[9];
-
-    switch (choice)
-    {
-        case 0:
-            vid_r_intensity -= 0.025000f;
-            if (vid_r_intensity < 0)
-                vid_r_intensity = 0;
-            break;
-        case 1:
-            vid_r_intensity += 0.025000f;
-            if (vid_r_intensity > 1.000000f)
-                vid_r_intensity = 1.000000f;
-        default:
-            break;
-    }
-
-    // [JN] Do a float correction to always get x.x00000 values:
-    sprintf (buf, "%f", vid_r_intensity);
-    vid_r_intensity = (float) atof(buf);
+    vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
@@ -1705,26 +1653,7 @@ static void M_ID_R_Intensity (int choice)
 
 static void M_ID_G_Intensity (int choice)
 {
-    char buf[9];
-
-    switch (choice)
-    {
-        case 0:
-            vid_g_intensity -= 0.025000f;
-            if (vid_g_intensity < 0)
-                vid_g_intensity = 0;
-            break;
-        case 1:
-            vid_g_intensity += 0.025000f;
-            if (vid_g_intensity > 1.000000f)
-                vid_g_intensity = 1.000000f;
-        default:
-            break;
-    }
-
-    // [JN] Do a float correction to always get x.x00000 values:
-    sprintf (buf, "%f", vid_g_intensity);
-    vid_g_intensity = (float) atof(buf);
+    vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
@@ -1737,26 +1666,7 @@ static void M_ID_G_Intensity (int choice)
 
 static void M_ID_B_Intensity (int choice)
 {
-    char buf[9];
-
-    switch (choice)
-    {
-        case 0:
-            vid_b_intensity -= 0.025000f;
-            if (vid_b_intensity < 0)
-                vid_b_intensity = 0;
-            break;
-        case 1:
-            vid_b_intensity += 0.025000f;
-            if (vid_b_intensity > 1.000000f)
-                vid_b_intensity = 1.000000f;
-        default:
-            break;
-    }
-
-    // [JN] Do a float correction to always get x.x00000 values:
-    sprintf (buf, "%f", vid_b_intensity);
-    vid_b_intensity = (float) atof(buf);
+    vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
@@ -2026,18 +1936,7 @@ static void M_ID_PitchShift (int choice)
 
 static void M_ID_SFXChannels (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (snd_channels > 1)
-                snd_channels--;
-            break;
-        case 1:
-            if (snd_channels < 16)
-                snd_channels++;
-        default:
-            break;
-    }
+    snd_channels = M_INT_Slider(snd_channels, 1, 16, choice, true);
 }
 
 static void M_ID_MuteInactive (int choice)
@@ -2126,54 +2025,18 @@ static void M_Draw_ID_Controls (void)
 
 static void M_ID_Controls_Sensivity (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-        if (mouseSensitivity)
-            mouseSensitivity--;
-        break;
-        case 1:
-        if (mouseSensitivity < 255) // [crispy] extended range
-            mouseSensitivity++;
-        break;
-    }
+    // [crispy] extended range
+    mouseSensitivity = M_INT_Slider(mouseSensitivity, 0, 255, choice, true);
 }
 
 static void M_ID_Controls_Acceleration (int choice)
 {
-    char buf[9];
-
-    switch (choice)
-    {   // 1.0 ... 5.0
-        case 0:
-        if (mouse_acceleration > 1.0f)
-            mouse_acceleration -= 0.1f;
-        break;
-
-        case 1:
-        if (mouse_acceleration < 5.0f)
-            mouse_acceleration += 0.1f;
-        break;
-    }
-
-    // [JN] Do a float correction to always get x.x00000 values:
-    sprintf (buf, "%f", mouse_acceleration);
-    mouse_acceleration = (float) atof(buf);
+    mouse_acceleration = M_FLOAT_Slider(mouse_acceleration, 1.000000f, 5.000000f, 0.100000f, choice, true);
 }
 
 static void M_ID_Controls_Threshold (int choice)
 {
-    switch (choice)
-    {   // 0 ... 32
-        case 0:
-        if (mouse_threshold)
-            mouse_threshold--;
-        break;
-        case 1:
-        if (mouse_threshold < 32)
-            mouse_threshold++;
-        break;
-    }
+    mouse_threshold = M_INT_Slider(mouse_threshold, 0, 32, choice, true);
 }
 
 static void M_ID_Controls_NoVert (int choice)
@@ -3142,17 +3005,17 @@ static void M_ID_Widget_Location (int choice)
 
 static void M_ID_Widget_KIS (int choice)
 {
-    widget_kis = M_INT_Slider(widget_kis, 0, 2, choice);
+    widget_kis = M_INT_Slider(widget_kis, 0, 2, choice, false);
 }
 
 static void M_ID_Widget_Time (int choice)
 {
-    widget_time = M_INT_Slider(widget_time, 0, 2, choice);
+    widget_time = M_INT_Slider(widget_time, 0, 2, choice, false);
 }
 
 static void M_ID_Widget_TotalTime (int choice)
 {
-    widget_totaltime = M_INT_Slider(widget_totaltime, 0, 2, choice);
+    widget_totaltime = M_INT_Slider(widget_totaltime, 0, 2, choice, false);
 }
 
 static void M_ID_Widget_LevelName (int choice)
@@ -3162,7 +3025,7 @@ static void M_ID_Widget_LevelName (int choice)
 
 static void M_ID_Widget_Coords (int choice)
 {
-    widget_coords = M_INT_Slider(widget_coords, 0, 2, choice);
+    widget_coords = M_INT_Slider(widget_coords, 0, 2, choice, false);
 }
 
 static void M_ID_Widget_Render (int choice)
@@ -3172,12 +3035,12 @@ static void M_ID_Widget_Render (int choice)
 
 static void M_ID_Widget_Health (int choice)
 {
-    widget_health = M_INT_Slider(widget_health, 0, 4, choice);
+    widget_health = M_INT_Slider(widget_health, 0, 4, choice, false);
 }
 
 static void M_ID_Automap_Colors (int choice)
 {
-    automap_scheme = M_INT_Slider(automap_scheme, 0, 3, choice);
+    automap_scheme = M_INT_Slider(automap_scheme, 0, 3, choice, false);
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3198,18 +3061,7 @@ static void M_ID_Automap_Overlay (int choice)
 
 static void M_ID_Automap_Shading (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (automap_shading)
-                automap_shading--;
-            break;
-        case 1:
-            if (automap_shading < 12)
-                automap_shading++;
-        default:
-            break;
-    }
+    automap_shading = M_INT_Slider(automap_shading, 0, 12, choice, true);
 }
 
 static void M_ID_Automap_Secrets (int choice)
@@ -3366,7 +3218,7 @@ static void M_ID_Translucency (int choice)
     if (vis_translucency > 1)
         vis_translucency = 0;
 #else
-    vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice);
+    vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
 
     // [JN] Re-initialize translucency blending function.
     I_SetBlendAddFunc();
@@ -3396,7 +3248,7 @@ static void M_ID_SmoothLighting (int choice)
 
 static void M_ID_ImprovedFuzz (int choice)
 {
-    vis_improved_fuzz = M_INT_Slider(vis_improved_fuzz, 0, 2, choice);
+    vis_improved_fuzz = M_INT_Slider(vis_improved_fuzz, 0, 2, choice, false);
 }
 
 static void M_ID_ColoredBlood (int choice)
@@ -3428,12 +3280,12 @@ static void M_ID_FlipCorpses (int choice)
 
 static void M_ID_Crosshair (int choice)
 {
-    xhair_draw = M_INT_Slider(xhair_draw, 0, 7, choice);
+    xhair_draw = M_INT_Slider(xhair_draw, 0, 7, choice, false);
 }
 
 static void M_ID_CrosshairColor (int choice)
 {
-    xhair_color = M_INT_Slider(xhair_color, 0, 3, choice);
+    xhair_color = M_INT_Slider(xhair_color, 0, 3, choice, false);
 }
 
 // -----------------------------------------------------------------------------
@@ -3609,12 +3461,12 @@ static void M_ID_TossDrop(int choice)
 
 static void M_ID_FloatingPowerups(int choice)
 {
-    phys_floating_powerups = M_INT_Slider(phys_floating_powerups, 0, 3, choice);
+    phys_floating_powerups = M_INT_Slider(phys_floating_powerups, 0, 3, choice, false);
 }
 
 static void M_ID_WeaponAlignment (int choice)
 {
-    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice);
+    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice, false);
     pspr_interp = false;
 }
 
@@ -3742,7 +3594,7 @@ static void M_Draw_ID_Gameplay_3 (void)
 
 static void M_ID_DefaulSkill (int choice)
 {
-    gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice);
+    gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice, false);
     // [JN] Set new skill in skill level menu.
     NewDef.lastOn = gp_default_skill;
 }
@@ -3754,7 +3606,7 @@ static void M_ID_PistolStart (int choice)
 
 static void M_ID_RevealedSecrets (int choice)
 {
-    gp_revealed_secrets = M_INT_Slider(gp_revealed_secrets, 0, 2, choice);
+    gp_revealed_secrets = M_INT_Slider(gp_revealed_secrets, 0, 2, choice, false);
 }
 
 static void M_ID_FlipLevels (int choice)
@@ -3770,7 +3622,7 @@ static void M_ID_FlipLevels (int choice)
 
 static void M_ID_DemoTimer (int choice)
 {
-    demo_timer = M_INT_Slider(demo_timer, 0, 3, choice);
+    demo_timer = M_INT_Slider(demo_timer, 0, 3, choice, false);
 }
 
 static void M_ID_TimerDirection (int choice)
@@ -3799,7 +3651,7 @@ static void M_ID_BlockmapFix (int choice)
 
 static void M_ID_VerticalAiming (int choice)
 {
-    compat_vertical_aiming = M_INT_Slider(compat_vertical_aiming, 0, 2, choice);
+    compat_vertical_aiming = M_INT_Slider(compat_vertical_aiming, 0, 2, choice, false);
 }
 
 // -----------------------------------------------------------------------------
@@ -3945,7 +3797,7 @@ static void M_Draw_ID_Level_1 (void)
 
 static void M_ID_LevelSkill (int choice)
 {
-    level_select[0] = M_INT_Slider(level_select[0], 0, 4, choice);
+    level_select[0] = M_INT_Slider(level_select[0], 0, 4, choice, false);
 }
 
 static void M_ID_LevelEpisode (int choice)
@@ -3957,28 +3809,28 @@ static void M_ID_LevelEpisode (int choice)
 
     level_select[1] = M_INT_Slider(level_select[1], 1,
                                    sigil ? 5 :
-                                   gamemode == retail ? 4 : 3, choice);
+                                   gamemode == retail ? 4 : 3, choice, false);
 }
 
 static void M_ID_LevelMap (int choice)
 {
     level_select[2] = M_INT_Slider(level_select[2], 1,
-                                   gamemode == commercial ? 32 : 9, choice);
+                                   gamemode == commercial ? 32 : 9, choice, false);
 }
 
 static void M_ID_LevelHealth (int choice)
 {
-    level_select[3] = M_INT_Slider(level_select[3], 1, 200, choice);
+    level_select[3] = M_INT_Slider(level_select[3], 1, 200, choice, false);
 }
 
 static void M_ID_LevelArmor (int choice)
 {
-    level_select[4] = M_INT_Slider(level_select[4], 0, 200, choice);
+    level_select[4] = M_INT_Slider(level_select[4], 0, 200, choice, false);
 }
 
 static void M_ID_LevelArmorType (int choice)
 {
-    level_select[5] = M_INT_Slider(level_select[5], 1, 2, choice);
+    level_select[5] = M_INT_Slider(level_select[5], 1, 2, choice, false);
 }
 
 static void M_ID_LevelChainsaw (int choice)
@@ -4174,25 +4026,25 @@ static void M_ID_LevelBackpack (int choice)
 static void M_ID_LevelBullets (int choice)
 {
     level_select[14] = M_INT_Slider(level_select[14], 0,
-                                    level_select[13] ? 400 : 200, choice);
+                                    level_select[13] ? 400 : 200, choice, false);
 }
 
 static void M_ID_LevelShells (int choice)
 {
     level_select[15] = M_INT_Slider(level_select[15], 0,
-                                    level_select[13] ? 100 : 50, choice);
+                                    level_select[13] ? 100 : 50, choice, false);
 }
 
 static void M_ID_LevelRockets (int choice)
 {
     level_select[16] = M_INT_Slider(level_select[16], 0,
-                                    level_select[13] ? 100 : 50, choice);
+                                    level_select[13] ? 100 : 50, choice, false);
 }
 
 static void M_ID_LevelCells (int choice)
 {
     level_select[17] = M_INT_Slider(level_select[17], 0,
-                                    level_select[13] ? 600 : 300, choice);
+                                    level_select[13] ? 600 : 300, choice, false);
 }
 
 static void M_ID_LevelBlueKeycard (int choice)
@@ -5935,10 +5787,7 @@ boolean M_Responder (event_t* ev)
     // [JN] Allow to change gamma while active menu.
     if (key == key_menu_gamma)    // gamma toggle
     {
-        if (++vid_gamma > 14)
-        {
-            vid_gamma = 0;
-        }
+        vid_gamma = M_INT_Slider(vid_gamma, 0, 14, 1 /*right*/, false);
         CT_SetMessage(&players[consoleplayer], DEH_String(gammalvls[vid_gamma][0]), false, NULL);
 #ifndef CRISPY_TRUECOLOR
         I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);

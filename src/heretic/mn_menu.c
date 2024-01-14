@@ -889,8 +889,8 @@ static const int M_INT_Slider (int val, int min, int max, int direction, boolean
     return val;
 }
 
-static float M_FLOAT_Slider (float val, float min, float max, float step,
-                             int direction, boolean capped)
+static const float M_FLOAT_Slider (float val, float min, float max, float step,
+                                   int direction, boolean capped)
 {
     char buf[9];
 
