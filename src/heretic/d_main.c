@@ -996,9 +996,6 @@ void D_DoomMain(void)
     M_SetConfigFilenames(PROGRAM_PREFIX "heretic.ini");
     M_LoadDefaults();
 
-    // [JN] Disk icon can't be enabled for Heretic.
-    diskicon_enabled = false;
-
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
 #ifdef _WIN32

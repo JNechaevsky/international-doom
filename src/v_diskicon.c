@@ -29,7 +29,7 @@
 
 
 // [JN] Should be enabled only for Doom.
-boolean diskicon_enabled;
+boolean diskicon_enabled = false;
 
 // Only display the disk icon if more then this much bytes have been read
 // during the previous tic.
