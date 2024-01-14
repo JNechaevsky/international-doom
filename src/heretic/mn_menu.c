@@ -870,20 +870,20 @@ static byte *M_Cursor_Glow (const int tics)
         tics == -7 || tics == -8 ? cr[CR_MENU_DARK4]   : NULL;
 }
 
-static const int M_INT_Slider (int val, int min, int max, int direction)
+static const int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
 {
     switch (direction)
     {
         case 0:
         val--;
         if (val < min) 
-            val = max;
+            val = capped ? min : max;
         break;
 
         case 1:
         val++;
         if (val > max)
-            val = min;
+            val = capped ? max : min;
         break;
     }
     return val;
@@ -1099,7 +1099,7 @@ static void M_ID_RenderingResHook (void)
 
 static boolean M_ID_RenderingRes (int choice)
 {
-    vid_resolution = M_INT_Slider(vid_resolution, 1, MAXHIRES, choice);
+    vid_resolution = M_INT_Slider(vid_resolution, 1, MAXHIRES, choice, false);
     post_rendering_hook = M_ID_RenderingResHook;
     return true;
 }
@@ -1124,7 +1124,7 @@ static void M_ID_WidescreenHook (void)
 
 static boolean M_ID_Widescreen (int choice)
 {
-    vid_widescreen = M_INT_Slider(vid_widescreen, 0, 4, choice);
+    vid_widescreen = M_INT_Slider(vid_widescreen, 0, 4, choice, false);
     post_rendering_hook = M_ID_WidescreenHook;
     return true;
 }
@@ -1302,48 +1302,22 @@ static boolean M_ID_Gamma (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
 
-    switch (choice)
-    {
-        case 0:
-            if (vid_gamma)
-                vid_gamma--;
-            break;
-        case 1:
-            if (vid_gamma < 14)
-                vid_gamma++;
-        default:
-            break;
-    }
+    vid_gamma = M_INT_Slider(vid_gamma, 0, 14, choice, true);
+
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 #else
-    {
-        I_SetPalette(sb_palette);
-        R_InitColormaps();
-        SB_ForceRedraw();
-    }
+    I_SetPalette(sb_palette);
+    R_InitColormaps();
+    SB_ForceRedraw();
 #endif
     return true;
 }
 
 static boolean M_ID_FOV (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (vid_fov > 70)
-            {
-                vid_fov -= 1;
-            }
-            break;
-        case 1:
-            if (vid_fov < 135)
-            {
-                vid_fov += 1;
-            }
-        default:
-            break;
-    }
+    vid_fov = M_INT_Slider(vid_fov, 70, 135, choice, true);
+
     // [crispy] re-calculate the zlight[][] array
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
@@ -1353,59 +1327,26 @@ static boolean M_ID_FOV (int choice)
 
 static boolean M_ID_MenuShading (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (dp_menu_shading)
-                dp_menu_shading--;
-            break;
-        case 1:
-            if (dp_menu_shading < 8)
-                dp_menu_shading++;
-        default:
-            break;
-    }
+    dp_menu_shading = M_INT_Slider(dp_menu_shading, 0, 8, choice, true);
     return true;
 }
 
 static boolean M_ID_LevelBrightness (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (dp_level_brightness)
-                dp_level_brightness--;
-            break;
-        case 1:
-            if (dp_level_brightness < 8)
-                dp_level_brightness++;
-        default:
-            break;
-    }
+    dp_level_brightness = M_INT_Slider(dp_level_brightness, 0, 8, choice, true);
     return true;
 }
 
 static boolean M_ID_Saturation (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (vid_saturation)
-                vid_saturation--;
-            break;
-        case 1:
-            if (vid_saturation < 100)
-                vid_saturation++;
-        default:
-            break;
-    }
+    vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
-        R_InitColormaps();
-        SB_ForceRedraw();
-        AM_Init();
+    R_InitColormaps();
+    SB_ForceRedraw();
+    AM_Init();
 #endif
     return true;
 }
@@ -1526,7 +1467,7 @@ static boolean M_ID_TextShadows (int choice)
 
 static boolean M_ID_LocalTime (int choice)
 {
-    msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice);
+    msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice, false);
     return true;
 }
 
@@ -1705,18 +1646,7 @@ static boolean M_ID_SFXChannels (int option)
     // [JN] Note: cap minimum channels to 2, not 1.
     // Only one channel produces a strange effect, 
     // as if there were no channels at all.
-    switch (option)
-    {
-        case 0:
-            if (snd_channels > 2)
-                snd_channels--;
-            break;
-        case 1:
-            if (snd_channels < 16)
-                snd_channels++;
-        default:
-            break;
-    }
+    snd_channels = M_INT_Slider(snd_channels, 2, 16, option, true);
     return true;
 }
 
@@ -1830,17 +1760,7 @@ static boolean M_ID_Controls_Acceleration (int option)
 
 static boolean M_ID_Controls_Threshold (int option)
 {
-    switch (option)
-    {   // 0 ... 32
-        case 0:
-        if (mouse_threshold)
-            mouse_threshold--;
-        break;
-        case 1:
-        if (mouse_threshold < 32)
-            mouse_threshold++;
-        break;
-    }
+    mouse_threshold = M_INT_Slider(mouse_threshold, 0, 32, option, true);
     return true;
 }
 
@@ -3007,19 +2927,19 @@ static boolean M_ID_Widget_Location (int choice)
 
 static boolean M_ID_Widget_KIS (int choice)
 {
-    widget_kis = M_INT_Slider(widget_kis, 0, 2, choice);
+    widget_kis = M_INT_Slider(widget_kis, 0, 2, choice, false);
     return true;
 }
 
 static boolean M_ID_Widget_Time (int choice)
 {
-    widget_time = M_INT_Slider(widget_time, 0, 2, choice);
+    widget_time = M_INT_Slider(widget_time, 0, 2, choice, false);
     return true;
 }
 
 static boolean M_ID_Widget_TotalTime (int choice)
 {
-    widget_totaltime = M_INT_Slider(widget_totaltime, 0, 2, choice);
+    widget_totaltime = M_INT_Slider(widget_totaltime, 0, 2, choice, false);
     return true;
 }
 
@@ -3031,7 +2951,7 @@ static boolean M_ID_Widget_LevelName (int choice)
 
 static boolean M_ID_Widget_Coords (int choice)
 {
-    widget_coords = M_INT_Slider(widget_coords, 0, 2, choice);
+    widget_coords = M_INT_Slider(widget_coords, 0, 2, choice, false);
     return true;
 }
 
@@ -3043,7 +2963,7 @@ static boolean M_ID_Widget_Render (int choice)
 
 static boolean M_ID_Widget_Health (int choice)
 {
-    widget_health = M_INT_Slider(widget_health, 0, 4, choice);
+    widget_health = M_INT_Slider(widget_health, 0, 4, choice, false);
     return true;
 }
 
@@ -3067,18 +2987,7 @@ static boolean M_ID_Automap_Overlay (int choice)
 
 static boolean M_ID_Automap_Shading (int choice)
 {
-    switch (choice)
-    {
-        case 0:
-            if (automap_shading)
-                automap_shading--;
-            break;
-        case 1:
-            if (automap_shading < 12)
-                automap_shading++;
-        default:
-            break;
-    }
+    automap_shading = M_INT_Slider(automap_shading, 0, 12, choice, true);
     return true;
 }
 
@@ -3197,7 +3106,7 @@ static void M_Draw_ID_Gameplay_1 (void)
 
 static boolean M_ID_Brightmaps (int choice)
 {
-    vis_brightmaps = M_INT_Slider(vis_brightmaps, 0, 2, choice);
+    vis_brightmaps = M_INT_Slider(vis_brightmaps, 0, 2, choice, false);
     return true;
 }
 
@@ -3210,7 +3119,7 @@ static boolean M_ID_Translucency (int choice)
     if (vis_translucency > 1)
         vis_translucency = 0;
 #else
-    vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice);
+    vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
 #endif
     return true;
 }
@@ -3266,13 +3175,13 @@ static boolean M_ID_FlipCorpses (int choice)
 
 static boolean M_ID_Crosshair (int choice)
 {
-    xhair_draw = M_INT_Slider(xhair_draw, 0, 7, choice);
+    xhair_draw = M_INT_Slider(xhair_draw, 0, 7, choice, false);
     return true;
 }
 
 static boolean M_ID_CrosshairColor (int choice)
 {
-    xhair_color = M_INT_Slider(xhair_color, 0, 3, choice);
+    xhair_color = M_INT_Slider(xhair_color, 0, 3, choice, false);
     return true;
 }
 
@@ -3369,7 +3278,7 @@ static boolean M_ID_ColoredSBar (int choice)
 
 static boolean M_ID_AmmoWidget (int choice)
 {
-    st_ammo_widget = M_INT_Slider(st_ammo_widget, 0, 4, choice);
+    st_ammo_widget = M_INT_Slider(st_ammo_widget, 0, 4, choice, false);
     return true;
 }
 
@@ -3387,7 +3296,7 @@ static boolean M_ID_Torque (int choice)
 
 static boolean M_ID_WeaponAlignment (int choice)
 {
-    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice);
+    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice, false);
     pspr_interp = false;
     return true;
 }
@@ -3498,7 +3407,7 @@ static void M_Draw_ID_Gameplay_3 (void)
 
 static boolean M_ID_DefaulSkill (int choice)
 {
-    gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice);
+    gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice, false);
     SkillMenu.oldItPos = gp_default_skill;
     return true;
 }
@@ -3521,7 +3430,7 @@ static boolean M_ID_FlipLevels (int choice)
 
 static boolean M_ID_DemoTimer (int choice)
 {
-    demo_timer = M_INT_Slider(demo_timer, 0, 3, choice);
+    demo_timer = M_INT_Slider(demo_timer, 0, 3, choice, false);
     return true;
 }
 
@@ -3677,7 +3586,7 @@ static void M_Draw_ID_Level_1 (void)
 
 static boolean M_ID_LevelSkill (int choice)
 {
-    level_select[0] = M_INT_Slider(level_select[0], 0, 4, choice);
+    level_select[0] = M_INT_Slider(level_select[0], 0, 4, choice, false);
     return true;
 }
 
@@ -3689,32 +3598,32 @@ static boolean M_ID_LevelEpisode (int choice)
     }
 
     level_select[1] = M_INT_Slider(level_select[1], 1,
-                                   gamemode == retail ? 5 : 3, choice);
+                                   gamemode == retail ? 5 : 3, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelMap (int choice)
 {
-    level_select[2] = M_INT_Slider(level_select[2], 1, 9, choice);
+    level_select[2] = M_INT_Slider(level_select[2], 1, 9, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelHealth (int choice)
 {
-    level_select[3] = M_INT_Slider(level_select[3], 1, 100, choice);
+    level_select[3] = M_INT_Slider(level_select[3], 1, 100, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArmor (int choice)
 {
     level_select[4] = M_INT_Slider(level_select[4], 0, 
-                                   level_select[5] == 1 ? 100 : 200, choice);
+                                   level_select[5] == 1 ? 100 : 200, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArmorType (int choice)
 {
-    level_select[5] = M_INT_Slider(level_select[5], 1, 2, choice);
+    level_select[5] = M_INT_Slider(level_select[5], 1, 2, choice, false);
 
     // [JN] Silver Shield armor can't go above 100.
     if (level_select[5] == 1 && level_select[4] > 100)
@@ -3916,37 +3825,37 @@ static boolean M_ID_LevelBag (int choice)
 
 static boolean M_ID_LevelAmmo_0 (int choice)
 {
-    level_select[13] = M_INT_Slider(level_select[13], 0, level_select[12] ? 200 : 100, choice);
+    level_select[13] = M_INT_Slider(level_select[13], 0, level_select[12] ? 200 : 100, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelAmmo_1 (int choice)
 {
-    level_select[14] = M_INT_Slider(level_select[14], 0, level_select[12] ? 100 : 50, choice);
+    level_select[14] = M_INT_Slider(level_select[14], 0, level_select[12] ? 100 : 50, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelAmmo_2 (int choice)
 {
-    level_select[15] = M_INT_Slider(level_select[15], 0, level_select[12] ? 400 : 200, choice);
+    level_select[15] = M_INT_Slider(level_select[15], 0, level_select[12] ? 400 : 200, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelAmmo_3 (int choice)
 {
-    level_select[16] = M_INT_Slider(level_select[16], 0, level_select[12] ? 400 : 200, choice);
+    level_select[16] = M_INT_Slider(level_select[16], 0, level_select[12] ? 400 : 200, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelAmmo_4 (int choice)
 {
-    level_select[17] = M_INT_Slider(level_select[17], 0, level_select[12] ? 40 : 20, choice);
+    level_select[17] = M_INT_Slider(level_select[17], 0, level_select[12] ? 40 : 20, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelAmmo_5 (int choice)
 {
-    level_select[18] = M_INT_Slider(level_select[18], 0, level_select[12] ? 300 : 150, choice);
+    level_select[18] = M_INT_Slider(level_select[18], 0, level_select[12] ? 300 : 150, choice, false);
     return true;
 }
 
@@ -4078,61 +3987,61 @@ static void M_Draw_ID_Level_3 (void)
 
 static boolean M_ID_LevelArti_0 (int choice)
 {
-    level_select[24] = M_INT_Slider(level_select[24], 0, 16, choice);
+    level_select[24] = M_INT_Slider(level_select[24], 0, 16, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArti_1 (int choice)
 {
-    level_select[25] = M_INT_Slider(level_select[25], 0, 16, choice);
+    level_select[25] = M_INT_Slider(level_select[25], 0, 16, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArti_2 (int choice)
 {
-    level_select[26] = M_INT_Slider(level_select[26], 0, 16, choice);
+    level_select[26] = M_INT_Slider(level_select[26], 0, 16, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArti_3 (int choice)
 {
-    level_select[27] = M_INT_Slider(level_select[27], 0, 16, choice);
+    level_select[27] = M_INT_Slider(level_select[27], 0, 16, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArti_4 (int choice)
 {
-    level_select[28] = M_INT_Slider(level_select[28], 0, 16, choice);
+    level_select[28] = M_INT_Slider(level_select[28], 0, 16, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArti_5 (int choice)
 {
-    level_select[29] = M_INT_Slider(level_select[29], 0, 16, choice);
+    level_select[29] = M_INT_Slider(level_select[29], 0, 16, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArti_6 (int choice)
 {
-    level_select[30] = M_INT_Slider(level_select[30], 0, 16, choice);
+    level_select[30] = M_INT_Slider(level_select[30], 0, 16, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArti_7 (int choice)
 {
-    level_select[31] = M_INT_Slider(level_select[31], 0, 16, choice);
+    level_select[31] = M_INT_Slider(level_select[31], 0, 16, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArti_8 (int choice)
 {
-    level_select[32] = M_INT_Slider(level_select[32], 0, 16, choice);
+    level_select[32] = M_INT_Slider(level_select[32], 0, 16, choice, false);
     return true;
 }
 
 static boolean M_ID_LevelArti_9 (int choice)
 {
-    level_select[33] = M_INT_Slider(level_select[33], 0, 16, choice);
+    level_select[33] = M_INT_Slider(level_select[33], 0, 16, choice, false);
     return true;
 }
 
@@ -5199,17 +5108,8 @@ static boolean SCSkill(int option)
 
 static boolean SCMouseSensi(int option)
 {
-    if (option == RIGHT_DIR)
-    {
-        if (mouseSensitivity < 255) // [crispy] extended range
-        {
-            mouseSensitivity++;
-        }
-    }
-    else if (mouseSensitivity)
-    {
-        mouseSensitivity--;
-    }
+    // [crispy] extended range
+    mouseSensitivity = M_INT_Slider(mouseSensitivity, 0, 255, option, true);
     return true;
 }
 
@@ -5221,17 +5121,7 @@ static boolean SCMouseSensi(int option)
 
 static boolean SCSfxVolume(int option)
 {
-    if (option == RIGHT_DIR)
-    {
-        if (snd_MaxVolume < 15)
-        {
-            snd_MaxVolume++;
-        }
-    }
-    else if (snd_MaxVolume)
-    {
-        snd_MaxVolume--;
-    }
+    snd_MaxVolume = M_INT_Slider(snd_MaxVolume, 0, 15, option, true);
     S_SetMaxVolume(false);      // don't recalc the sound curve, yet
     soundchanged = true;        // we'll set it when we leave the menu
     return true;
@@ -5245,17 +5135,7 @@ static boolean SCSfxVolume(int option)
 
 static boolean SCMusicVolume(int option)
 {
-    if (option == RIGHT_DIR)
-    {
-        if (snd_MusicVolume < 15)
-        {
-            snd_MusicVolume++;
-        }
-    }
-    else if (snd_MusicVolume)
-    {
-        snd_MusicVolume--;
-    }
+    snd_MusicVolume = M_INT_Slider(snd_MusicVolume, 0, 15, option, true);
     S_SetMusicVolume();
     return true;
 }
@@ -5948,20 +5828,15 @@ boolean MN_Responder(event_t * event)
     // [JN] Allow to change gamma while active menu.
     if (key == key_menu_gamma)           // F11 (gamma correction)
     {
-        if (++vid_gamma > 14)
-        {
-            vid_gamma = 0;
-        }
+        vid_gamma = M_INT_Slider(vid_gamma, 0, 14, 1 /*right*/, false);
         CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false);
 #ifndef CRISPY_TRUECOLOR
         I_SetPalette((byte *) W_CacheLumpName("PLAYPAL", PU_CACHE));
 #else
-        {
         I_SetPalette(0);
         R_InitColormaps();
         BorderNeedRefresh = true;
         SB_state = -1;
-        }
 #endif
         return true;
     }
