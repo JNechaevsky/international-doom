@@ -889,6 +889,32 @@ static const int M_INT_Slider (int val, int min, int max, int direction, boolean
     return val;
 }
 
+static float M_FLOAT_Slider (float val, float min, float max, float step,
+                             int direction, boolean capped)
+{
+    char buf[9];
+
+    switch (direction)
+    {
+        case 0:
+        val -= step;
+        if (val < min) 
+            val = capped ? min : max;
+        break;
+
+        case 1:
+        val += step;
+        if (val > max)
+            val = capped ? max : min;
+        break;
+    }
+
+    // [JN] Do a float correction to always get x.xxx000 values:
+    sprintf (buf, "%f", val);
+    val = (float)atof(buf);
+    return val;
+}
+
 static byte *DefSkillColor (const int skill)
 {
     return
@@ -1353,26 +1379,7 @@ static boolean M_ID_Saturation (int choice)
 
 static boolean M_ID_R_Intensity (int choice)
 {
-    char buf[9];
-
-    switch (choice)
-    {
-        case 0:
-            vid_r_intensity -= 0.025000f;
-            if (vid_r_intensity < 0)
-                vid_r_intensity = 0;
-            break;
-        case 1:
-            vid_r_intensity += 0.025000f;
-            if (vid_r_intensity > 1.000000f)
-                vid_r_intensity = 1.000000f;
-        default:
-            break;
-    }
-
-    // [JN] Do a float correction to always get x.x00000 values:
-    sprintf (buf, "%f", vid_r_intensity);
-    vid_r_intensity = (float) atof(buf);
+    vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
@@ -1386,26 +1393,7 @@ static boolean M_ID_R_Intensity (int choice)
 
 static boolean M_ID_G_Intensity (int choice)
 {
-    char buf[9];
-
-    switch (choice)
-    {
-        case 0:
-            vid_g_intensity -= 0.025000f;
-            if (vid_g_intensity < 0)
-                vid_g_intensity = 0;
-            break;
-        case 1:
-            vid_g_intensity += 0.025000f;
-            if (vid_g_intensity > 1.000000f)
-                vid_g_intensity = 1.000000f;
-        default:
-            break;
-    }
-
-    // [JN] Do a float correction to always get x.x00000 values:
-    sprintf (buf, "%f", vid_g_intensity);
-    vid_g_intensity = (float) atof(buf);
+    vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
@@ -1419,26 +1407,7 @@ static boolean M_ID_G_Intensity (int choice)
 
 static boolean M_ID_B_Intensity (int choice)
 {
-    char buf[9];
-
-    switch (choice)
-    {
-        case 0:
-            vid_b_intensity -= 0.025000f;
-            if (vid_b_intensity < 0)
-                vid_b_intensity = 0;
-            break;
-        case 1:
-            vid_b_intensity += 0.025000f;
-            if (vid_b_intensity > 1.000000f)
-                vid_b_intensity = 1.000000f;
-        default:
-            break;
-    }
-
-    // [JN] Do a float correction to always get x.x00000 values:
-    sprintf (buf, "%f", vid_b_intensity);
-    vid_b_intensity = (float) atof(buf);
+    vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
@@ -1737,24 +1706,7 @@ static void M_Draw_ID_Controls (void)
 
 static boolean M_ID_Controls_Acceleration (int option)
 {
-    char buf[9];
-
-    switch (option)
-    {   // 1.0 ... 5.0
-        case 0:
-        if (mouse_acceleration > 1.0f)
-            mouse_acceleration -= 0.1f;
-        break;
-
-        case 1:
-        if (mouse_acceleration < 5.0f)
-            mouse_acceleration += 0.1f;
-        break;
-    }
-
-    // [JN] Do a float correction to always get x.x00000 values:
-    sprintf (buf, "%f", mouse_acceleration);
-    mouse_acceleration = (float) atof(buf);
+    mouse_acceleration = M_FLOAT_Slider(mouse_acceleration, 1.000000f, 5.000000f, 0.100000f, option, true);
     return true;
 }
 
