@@ -1102,83 +1102,6 @@ void R_InitSpriteLumps (void)
     }
 }
 
-#ifndef CRISPY_TRUECOLOR
-// [crispy] initialize translucency filter map
-// based in parts on the implementation from boom202s/R_DATA.C:676-787
-
-enum {
-    r, g, b
-} rgb_t;
-
-static void R_InitTintMap (void)
-{
-    // [JN] Check if we have a modified PLAYPAL palette to decide
-    // how to load translucency table: as pregenerated or as generated dynamically.
-    if (original_playpal)
-    {
-        // [JN] We don't. Load pregenerated table for faster startup.
-        tintmap = tintmap_original;
-        shadowmap = shadowmap_original;
-        fuzzmap = fuzzmap_original;
-    }
-    else
-    {
-        // [JN] We do. Generate table dynamically.
-
-        // Compose a default transparent filter map based on PLAYPAL.
-        unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-
-        tintmap = Z_Malloc(256*256, PU_STATIC, 0);
-        shadowmap = Z_Malloc(256*256, PU_STATIC, 0);
-        fuzzmap = Z_Malloc(256*256, PU_STATIC, 0);
-
-        {
-            byte *fg, *bg, blend[3];
-            byte *tm = tintmap;
-            byte *sm = shadowmap;
-            byte *fm = fuzzmap;
-            int i, j;
-
-            // [crispy] background color
-            for (i = 0; i < 256; i++)
-            {
-                // [crispy] foreground color
-                for (j = 0; j < 256; j++)
-                {
-                    // [crispy] shortcut: identical foreground and background
-                    if (i == j)
-                    {
-                        *tm++ = i;
-                        *sm++ = i;
-                        *fm++ = i;
-                        continue;
-                    }
-
-                    bg = playpal + 3*i;
-                    fg = playpal + 3*j;
-
-                    blend[r] = (80 * fg[r] + (100 - 80) * bg[r]) / 100;
-                    blend[g] = (80 * fg[g] + (100 - 80) * bg[g]) / 100;
-                    blend[b] = (80 * fg[b] + (100 - 80) * bg[b]) / 100;
-                    *tm++ = V_GetPaletteIndex(playpal, blend[r], blend[g], blend[b]);
-
-                    blend[r] = (50 * fg[r] + (100 - 50) * bg[r]) / 100;
-                    blend[g] = (50 * fg[g] + (100 - 50) * bg[g]) / 100;
-                    blend[b] = (50 * fg[b] + (100 - 50) * bg[b]) / 100;
-                    *sm++ = V_GetPaletteIndex(playpal, blend[r], blend[g], blend[b]);
-
-                    blend[r] = (30 * fg[r] + (100 - 30) * bg[r]) / 100;
-                    blend[g] = (30 * fg[g] + (100 - 30) * bg[g]) / 100;
-                    blend[b] = (30 * fg[b] + (100 - 30) * bg[b]) / 100;
-                    *fm++ = V_GetPaletteIndex(playpal, blend[r], blend[g], blend[b]);
-                }
-            }
-        }
-        
-        W_ReleaseLumpName("PLAYPAL");
-    }
-}
-#endif
 
 //
 // R_InitColormaps
@@ -1393,11 +1316,9 @@ void R_InitData (void)
     R_InitColormaps ();
     printf (".");    
 #ifndef CRISPY_TRUECOLOR
-    R_InitTintMap ();
+    // [JN] Compose translucency tables.
+    V_InitTransMaps ();
     printf (".");
-#else
-    // [JN] Initialize translucency blending function.
-    I_SetBlendAddFunc ();
 #endif
 }
 

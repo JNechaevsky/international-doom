@@ -54,7 +54,8 @@
 byte *tinttable = NULL;
 
 // [JN] Blending tables for different translucency effects:
-byte *tintmap = NULL;    // Used for sprites (80%)
+byte *tintmap = NULL;    // Used for sprites (75%)
+byte *addmap = NULL;     // Used for sprites (additive blending)
 byte *shadowmap = NULL;  // Used for shadowed texts (50%)
 byte *fuzzmap = NULL;    // Used for translucent fuzz (30%)
 
@@ -843,15 +844,6 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
 void V_DrawRawScreen(byte *raw)
 {
     V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, raw);
-}
-
-//
-// Load tint table from TINTTAB lump.
-//
-
-void V_LoadTintTable(void)
-{
-    tinttable = W_CacheLumpName("TINTTAB", PU_STATIC);
 }
 
 // [crispy] For Heretic and Hexen widescreen support of replacement TITLE,

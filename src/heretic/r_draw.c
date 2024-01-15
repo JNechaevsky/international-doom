@@ -252,6 +252,80 @@ void R_DrawTLColumn(void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// R_DrawExtraTLColumn
+// [JN] Extra translucent column.
+// -----------------------------------------------------------------------------
+
+void R_DrawExtraTLColumn(void)
+{
+    int count;
+    pixel_t *dest;
+    fixed_t frac, fracstep;
+    int heightmask = dc_texheight - 1; // [crispy]
+
+    count = dc_yh - dc_yl;
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if ((unsigned) dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+        I_Error("R_DrawTLColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+#endif
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    if (dc_texheight & heightmask) // not a power of 2 -- killough
+    {
+        heightmask++;
+        heightmask <<= FRACBITS;
+
+        if (frac < 0)
+            while ((frac += heightmask) < 0);
+        else
+            while (frac >= heightmask)
+                frac -= heightmask;
+
+        do
+        {
+            // [crispy] brightmaps
+            const byte source = dc_source[frac >> FRACBITS];
+#ifndef CRISPY_TRUECOLOR
+            // [JN] Draw full bright sprites with different functions, depending on user's choice.
+            *dest = blendfunc[((*dest) << 8) + dc_colormap[dc_brightmap[source]][source]];
+#else
+            const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+            *dest = blendfunc(*dest, destrgb);
+#endif
+            dest += SCREENWIDTH;
+            if ((frac += fracstep) >= heightmask)
+                frac -= heightmask;
+        } while (count--);
+    }
+    else // texture height is a power of 2 -- killough
+    {
+        do
+        {
+            // [crispy] brightmaps
+            const byte source = dc_source[(frac >> FRACBITS) & heightmask];
+#ifndef CRISPY_TRUECOLOR
+            // [JN] Draw full bright sprites with different functions, depending on user's choice.
+            *dest = blendfunc[((*dest) << 8) + dc_colormap[dc_brightmap[source]][source]];
+#else
+            const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+            *dest = blendfunc(*dest, destrgb);
+#endif
+
+            dest += SCREENWIDTH;
+            frac += fracstep;
+        }
+        while (count--);
+    }
+}
+
 /*
 ========================
 =
@@ -341,10 +415,6 @@ void R_DrawTranslatedTLColumn(void)
 void R_InitTranslationTables(void)
 {
     int i;
-
-#ifndef CRISPY_TRUECOLOR
-    V_LoadTintTable();
-#endif
 
     // Allocate translation tables
     translationtables = Z_Malloc(256 * 3, PU_STATIC, 0);

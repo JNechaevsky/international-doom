@@ -614,8 +614,8 @@ void R_DrawTLColumn (void)
         // [crispy] brightmaps
         const byte source = dc_source[frac>>FRACBITS];
 #ifndef CRISPY_TRUECOLOR
-        // actual translucency map lookup taken from boom202s/R_DRAW.C:255
-        *dest = tintmap[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
+        // [JN] Draw full bright sprites with different functions, depending on user's choice.
+        *dest = blendfunc[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
 #else
         const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
         *dest = blendfunc(*dest, destrgb);
@@ -662,8 +662,9 @@ void R_DrawTLColumnLow (void)
 	// [crispy] brightmaps
 	const byte source = dc_source[frac>>FRACBITS];    
 #ifndef CRISPY_TRUECOLOR
-	*dest = tintmap[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
-	*dest2 = tintmap[(*dest2<<8)+dc_colormap[dc_brightmap[source]][source]];
+	// [JN] Draw full bright sprites with different functions, depending on user's choice.
+	*dest = blendfunc[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
+	*dest2 = blendfunc[(*dest2<<8)+dc_colormap[dc_brightmap[source]][source]];
 #else
 	const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
 	*dest = blendfunc(*dest, destrgb);

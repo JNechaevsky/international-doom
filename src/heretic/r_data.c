@@ -771,7 +771,9 @@ void R_InitData(void)
     // to initialize brightmaps depending on gameversion in R_InitTextures().
     //tprintf("\nR_InitTextures ", 0);
     R_InitFlats();
+    printf (".");
     R_InitBrightmaps();
+    printf (".");
     R_InitTextures();
     printf (".");
     //tprintf("R_InitFlats\n", 0);
@@ -783,6 +785,15 @@ void R_InitData(void)
     //IncThermo();
     printf (".");
     R_InitColormaps();
+    printf (".");
+#ifndef CRISPY_TRUECOLOR
+    // [JN] Load original TINTTAB lump.
+    V_LoadTintTable();
+    printf (".");
+    // [JN] Compose extra translucency tables.
+    V_InitTransMaps();
+    printf (".");
+#endif
 }
 
 
