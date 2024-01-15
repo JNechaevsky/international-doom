@@ -1132,13 +1132,12 @@ void AM_Ticker (void)
 
 static void AM_drawBackground (void)
 {
-    byte *src = W_CacheLumpName("AUTOPAGE", PU_CACHE);
     pixel_t *dest = I_VideoBuffer;
 
     // [JN] Use static background placement.
     V_DrawRawTiled(MAPBGROUNDWIDTH * vid_resolution,
                    MAPBGROUNDHEIGHT / vid_resolution,
-                   SCREENHEIGHT - SBARHEIGHT, src, dest);
+                   SCREENHEIGHT - SBARHEIGHT, maplump, dest);
 }
 
 // -----------------------------------------------------------------------------
