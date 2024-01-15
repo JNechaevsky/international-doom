@@ -1316,12 +1316,9 @@ void R_InitData (void)
     R_InitColormaps ();
     printf (".");    
 #ifndef CRISPY_TRUECOLOR
+    // [JN] Compose translucency tables.
     V_InitTransMaps ();
-    V_InitTransFunc ();
     printf (".");
-#else
-    // [JN] Initialize translucency blending function.
-    I_SetBlendAddFunc ();
 #endif
 }
 

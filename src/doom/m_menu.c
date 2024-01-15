@@ -3208,13 +3208,6 @@ static void M_ID_Brightmaps (int choice)
 static void M_ID_Translucency (int choice)
 {
     vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
-
-    // [JN] Re-initialize translucency blending function.
-#ifndef CRISPY_TRUECOLOR
-    V_InitTransFunc();
-#else
-    I_SetBlendAddFunc();
-#endif
 }
 
 static void M_ID_FakeContrast (int choice)

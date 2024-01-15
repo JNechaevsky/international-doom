@@ -56,7 +56,6 @@ byte *tinttable = NULL;
 // [JN] Blending tables for different translucency effects:
 byte *tintmap = NULL;    // Used for sprites (75%)
 byte *addmap = NULL;     // Used for sprites (additive blending)
-byte (*transfunc);       // Pointer to additive and blending functions.
 byte *shadowmap = NULL;  // Used for shadowed texts (50%)
 byte *fuzzmap = NULL;    // Used for translucent fuzz (30%)
 

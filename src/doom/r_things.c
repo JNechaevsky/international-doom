@@ -864,13 +864,16 @@ static void R_ProjectSprite (mobj_t* thing)
     }
 
     // [crispy] translucent sprites
-    // [JN] Draw full bright sprites with different functions, depending on user's choice.
+    // [JN] Draw full bright translucent sprites with different functions,
+    // depending on user's choice.
     if (thing->flags & MF_TRANSLUCENT)
     {
+        vis->blendfunc = 
+            (thing->frame & FF_FULLBRIGHT) ? (vis_translucency == 1 ?
 #ifndef CRISPY_TRUECOLOR
-	vis->blendfunc = (thing->frame & FF_FULLBRIGHT) ? transfunc : tintmap;
+                addmap : tintmap) : tintmap;
 #else
-	vis->blendfunc = (thing->frame & FF_FULLBRIGHT) ? I_BlendAddFunc : I_BlendOver;
+                I_BlendAdd : I_BlendOver) : I_BlendOver;
 #endif
     }
 }

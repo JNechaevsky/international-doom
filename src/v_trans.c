@@ -776,12 +776,14 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
 }
 
 #ifndef CRISPY_TRUECOLOR
+// [JN] Draw full bright translucent sprites with different functions,
+// depending on user's choice.
+byte *blendfunc;
+
 // -----------------------------------------------------------------------------
 // V_InitTransMaps
 // [JN] Composes translucency tables, based on implementation from DOOM Retro.
 // -----------------------------------------------------------------------------
-
-byte *blendfunc;
 
 void V_InitTransMaps (void)
 {
@@ -823,10 +825,5 @@ void V_InitTransMaps (void)
     }
 
     W_ReleaseLumpName("PLAYPAL");
-}
-
-void V_InitTransFunc (void)
-{
-    transfunc = (vis_translucency == 1 ? addmap : tintmap);
 }
 #endif
