@@ -27,9 +27,7 @@
 // -----------------------------------------------------------------------------
 
 // System and video
-#ifdef CRISPY_TRUECOLOR
 extern int vid_truecolor;
-#endif
 extern int vid_resolution;
 extern int vid_widescreen;
 
