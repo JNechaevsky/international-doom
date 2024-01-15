@@ -23,7 +23,7 @@
 #include "i_system.h"
 #include "r_local.h"
 #include "v_trans.h" // [crispy] blending functions
-#include "v_video.h" // [crispy] blending functions
+#include "v_video.h" // [JN] translucency tables
 
 #include "id_vars.h"
 #include "id_func.h"
