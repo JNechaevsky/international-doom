@@ -16,10 +16,8 @@
 
 
 #include <math.h>
-#include "id_vars.h"
 #include "m_fixed.h"
 #include "v_trans.h"
-#include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -776,8 +774,8 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
 }
 
 #ifndef CRISPY_TRUECOLOR
-// [JN] Draw full bright translucent sprites with different functions,
-// depending on user's choice.
+// [JN] Draw full bright translucent sprites with different functions
+// (additive or blending), depending on user's choice.
 byte *blendfunc;
 
 // -----------------------------------------------------------------------------
