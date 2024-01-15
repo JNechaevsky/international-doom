@@ -3124,12 +3124,8 @@ static void M_Draw_ID_Gameplay_1 (void)
                  M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
 
     // Translucency
-#ifndef CRISPY_TRUECOLOR
-    sprintf(str, vis_translucency ? "ON" : "OFF");
-#else
     sprintf(str, vis_translucency == 1 ? "ADDITIVE" :
                  vis_translucency == 2 ? "BLENDING" : "OFF");
-#endif
     M_WriteText (M_ItemRightAlign(str), 36, str,
                  M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3211,16 +3207,12 @@ static void M_ID_Brightmaps (int choice)
 
 static void M_ID_Translucency (int choice)
 {
-#ifndef CRISPY_TRUECOLOR
-    vis_translucency++;
-
-    // [JN] Just in case user have "Blending" mode (2).
-    if (vis_translucency > 1)
-        vis_translucency = 0;
-#else
     vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
 
     // [JN] Re-initialize translucency blending function.
+#ifndef CRISPY_TRUECOLOR
+    V_InitTransFunc();
+#else
     I_SetBlendAddFunc();
 #endif
 }

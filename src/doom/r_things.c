@@ -32,6 +32,7 @@
 #include "doomstat.h"
 
 #include "v_trans.h" // [crispy] colored blood sprites
+#include "v_video.h"
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -468,9 +469,7 @@ static void R_DrawVisSprite (vissprite_t *vis)
     else if (vis_translucency && vis->mobjflags & MF_TRANSLUCENT)
     {
 	    colfunc = tlcolfunc;
-#ifdef CRISPY_TRUECOLOR
-	blendfunc = vis->blendfunc;
-#endif
+        blendfunc = vis->blendfunc;
     }
 	
     dc_iscale = abs(vis->xiscale)>>detailshift;
@@ -864,14 +863,16 @@ static void R_ProjectSprite (mobj_t* thing)
 	}
     }
 
-#ifdef CRISPY_TRUECOLOR
     // [crispy] translucent sprites
     // [JN] Draw full bright sprites with different functions, depending on user's choice.
     if (thing->flags & MF_TRANSLUCENT)
     {
+#ifndef CRISPY_TRUECOLOR
+	vis->blendfunc = (thing->frame & FF_FULLBRIGHT) ? transfunc : tintmap;
+#else
 	vis->blendfunc = (thing->frame & FF_FULLBRIGHT) ? I_BlendAddFunc : I_BlendOver;
-    }
 #endif
+    }
 }
 
 

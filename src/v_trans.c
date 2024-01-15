@@ -16,6 +16,7 @@
 
 
 #include <math.h>
+#include "id_vars.h"
 #include "m_fixed.h"
 #include "v_trans.h"
 #include "v_video.h"
@@ -776,11 +777,13 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
 
 #ifndef CRISPY_TRUECOLOR
 // -----------------------------------------------------------------------------
-// V_InitTintMaps
+// V_InitTransMaps
 // [JN] Composes translucency tables, based on implementation from DOOM Retro.
 // -----------------------------------------------------------------------------
 
-void V_InitTintMaps (void)
+byte *blendfunc;
+
+void V_InitTransMaps (void)
 {
     unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
     byte r, g, b;
@@ -797,9 +800,9 @@ void V_InitTintMaps (void)
             byte *color1 = &playpal[background * 3];
             byte *color2 = &playpal[foreground * 3];
 
-            r = ((byte)color1[0] * 20 + (byte)color2[0] * (100 - 20)) / 100;
-            g = ((byte)color1[1] * 20 + (byte)color2[1] * (100 - 20)) / 100;
-            b = ((byte)color1[2] * 20 + (byte)color2[2] * (100 - 20)) / 100;
+            r = ((byte)color1[0] * 25 + (byte)color2[0] * (100 - 25)) / 100;
+            g = ((byte)color1[1] * 25 + (byte)color2[1] * (100 - 25)) / 100;
+            b = ((byte)color1[2] * 25 + (byte)color2[2] * (100 - 25)) / 100;
             tintmap[(background << 8) + foreground] = V_GetPaletteIndex(playpal, r, g, b);
 
             r = ((byte)color1[0] * 50 + (byte)color2[0] * (100 - 50)) / 100;
@@ -820,5 +823,10 @@ void V_InitTintMaps (void)
     }
 
     W_ReleaseLumpName("PLAYPAL");
+}
+
+void V_InitTransFunc (void)
+{
+    transfunc = (vis_translucency == 1 ? addmap : tintmap);
 }
 #endif

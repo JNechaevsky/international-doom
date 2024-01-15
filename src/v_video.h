@@ -42,6 +42,7 @@ extern int dirtybox[4];
 extern byte *tinttable;
 extern byte *tintmap;
 extern byte *addmap;
+extern byte (*transfunc);
 extern byte *shadowmap;
 extern byte *fuzzmap;
 extern byte *dp_translation;
