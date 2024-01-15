@@ -18,6 +18,7 @@
 #include <math.h>
 #include "m_fixed.h"
 #include "v_trans.h"
+#include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
 

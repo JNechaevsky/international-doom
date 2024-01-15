@@ -32,6 +32,7 @@
 #include "doomstat.h"
 
 #include "v_trans.h" // [crispy] colored blood sprites
+#include "v_video.h" // [JN] translucency tables
 
 #include "id_vars.h"
 #include "id_func.h"
