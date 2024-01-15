@@ -16,8 +16,11 @@
 
 
 #include <math.h>
-//#include "d_name.h"
+#include "m_fixed.h"
 #include "v_trans.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 
 // -----------------------------------------------------------------------------
@@ -770,3 +773,52 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
 
     return V_GetPaletteIndex(playpal, (int) rgb.x, (int) rgb.y, (int) rgb.z);
 }
+
+#ifndef CRISPY_TRUECOLOR
+// -----------------------------------------------------------------------------
+// V_InitTintMaps
+// [JN] Composes translucency tables, based on implementation from DOOM Retro.
+// -----------------------------------------------------------------------------
+
+void V_InitTintMaps (void)
+{
+    unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+    byte r, g, b;
+
+    tintmap = Z_Malloc(256*256, PU_STATIC, 0);
+    shadowmap = Z_Malloc(256*256, PU_STATIC, 0);
+    fuzzmap = Z_Malloc(256*256, PU_STATIC, 0);
+    addmap = Z_Malloc(256*256, PU_STATIC, 0);
+
+    for (int foreground = 0; foreground < 256; foreground++)
+    {
+        for (int background = 0; background < 256; background++)
+        {
+            byte *color1 = &playpal[background * 3];
+            byte *color2 = &playpal[foreground * 3];
+
+            r = ((byte)color1[0] * 20 + (byte)color2[0] * (100 - 20)) / 100;
+            g = ((byte)color1[1] * 20 + (byte)color2[1] * (100 - 20)) / 100;
+            b = ((byte)color1[2] * 20 + (byte)color2[2] * (100 - 20)) / 100;
+            tintmap[(background << 8) + foreground] = V_GetPaletteIndex(playpal, r, g, b);
+
+            r = ((byte)color1[0] * 50 + (byte)color2[0] * (100 - 50)) / 100;
+            g = ((byte)color1[1] * 50 + (byte)color2[1] * (100 - 50)) / 100;
+            b = ((byte)color1[2] * 50 + (byte)color2[2] * (100 - 50)) / 100;
+            shadowmap[(background << 8) + foreground] = V_GetPaletteIndex(playpal, r, g, b);
+
+            r = ((byte)color1[0] * 70 + (byte)color2[0] * (100 - 70)) / 100;
+            g = ((byte)color1[1] * 70 + (byte)color2[1] * (100 - 70)) / 100;
+            b = ((byte)color1[2] * 70 + (byte)color2[2] * (100 - 70)) / 100;
+            fuzzmap[(background << 8) + foreground] = V_GetPaletteIndex(playpal, r, g, b);
+            
+            r = MIN(color1[0] + color2[0], 255);
+            g = MIN(color1[1] + color2[1], 255);
+            b = MIN(color1[2] + color2[2], 255);
+            addmap[(background << 8) + foreground] = V_GetPaletteIndex(playpal, r, g, b);
+        }
+    }
+
+    W_ReleaseLumpName("PLAYPAL");
+}
+#endif

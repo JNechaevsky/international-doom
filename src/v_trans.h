@@ -127,7 +127,7 @@ extern char **crstr;
 #define cr_esc '~'
 
 #ifndef CRISPY_TRUECOLOR
-extern byte *tranmap;
+void V_InitTintMaps (void);
 #else
 extern const pixel_t (*blendfunc) (const pixel_t fg, const pixel_t bg);
 extern const pixel_t I_BlendAdd (const pixel_t bg, const pixel_t fg);
