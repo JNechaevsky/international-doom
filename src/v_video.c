@@ -846,15 +846,6 @@ void V_DrawRawScreen(byte *raw)
     V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, raw);
 }
 
-//
-// Load tint table from TINTTAB lump.
-//
-
-void V_LoadTintTable(void)
-{
-    tinttable = W_CacheLumpName("TINTTAB", PU_STATIC);
-}
-
 // [crispy] For Heretic and Hexen widescreen support of replacement TITLE,
 // HELP1, etc. These lumps are normally 320 x 200 raw graphics. If the lump
 // size is larger than expected, proceed as if it were a patch.

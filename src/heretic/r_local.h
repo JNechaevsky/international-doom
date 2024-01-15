@@ -257,7 +257,9 @@ typedef struct vissprite_s
     int mobjflags;              // for color translation and shadow draw
     boolean psprite;            // true if psprite
     fixed_t footclip;           // foot clipping
-#ifdef CRISPY_TRUECOLOR
+#ifndef CRISPY_TRUECOLOR
+    byte *blendfunc;
+#else
     const pixel_t (*blendfunc)(const pixel_t fg, const pixel_t bg);
 #endif
 } vissprite_t;
@@ -368,6 +370,7 @@ extern int detailshift;         // 0 = high, 1 = low
 extern void (*colfunc) (void);
 extern void (*basecolfunc) (void);
 extern void (*tlcolfunc) (void);
+extern void (*extratlcolfunc) (void);
 extern void (*spanfunc) (void);
 
 // [crispy] smooth texture scrolling
@@ -552,6 +555,7 @@ void R_DrawColumn(void);
 void R_DrawColumnLow(void);
 void R_DrawTLColumn(void);
 void R_DrawTLColumnLow(void);
+void R_DrawExtraTLColumn(void);
 void R_DrawTranslatedColumn(void);
 void R_DrawTranslatedTLColumn(void);
 void R_DrawTranslatedColumnLow(void);

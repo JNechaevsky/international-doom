@@ -23,6 +23,7 @@
 #include "i_system.h"
 #include "r_local.h"
 #include "v_trans.h" // [crispy] blending functions
+#include "v_video.h" // [crispy] blending functions
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -406,9 +407,7 @@ void R_DrawVisSprite (vissprite_t *vis)
         {                       // Draw using shadow column function
             colfunc = tlcolfunc;
         }
-#ifdef CRISPY_TRUECOLOR
         blendfunc = vis->blendfunc;
-#endif
     }
     else if (vis->mobjflags & MF_TRANSLATION)
     {
@@ -421,10 +420,8 @@ void R_DrawVisSprite (vissprite_t *vis)
     if (vis->mobjflags & MF_EXTRATRANS && vis_translucency)
     {
         // [JN] Extra translucency feature.
-        colfunc = tlcolfunc;
-#ifdef CRISPY_TRUECOLOR
+        colfunc = extratlcolfunc;
         blendfunc = vis->blendfunc;
-#endif
     }
 
     dc_iscale = abs(vis->xiscale) >> detailshift;
@@ -721,15 +718,20 @@ void R_ProjectSprite (mobj_t* thing)
         // to preserve look & feel of original Heretic's translucency
         vis->blendfunc = I_BlendOverTinttab;
     }
+#endif
 
+    // [JN] Extra translucency. Draw full bright sprites with 
+    // different functions, depending on user's choice.
     if (thing->flags & MF_EXTRATRANS)
     {
-        // [JN] Extra translucency. Draw full bright sprites with 
-        // different functions, depending on user's choice.
-        vis->blendfunc = (thing->frame & FF_FULLBRIGHT)
-                       && vis_translucency == 1 ? I_BlendAdd : I_BlendOverExtra;
-    }
+        vis->blendfunc = 
+            (thing->frame & FF_FULLBRIGHT) ? (vis_translucency == 1 ?
+#ifndef CRISPY_TRUECOLOR
+            addmap : tintmap) : tintmap;
+#else
+            I_BlendAdd : I_BlendOverExtra) : I_BlendOverExtra;
 #endif
+    }
 }
 
 

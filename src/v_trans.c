@@ -825,4 +825,14 @@ void V_InitTransMaps (void)
 
     W_ReleaseLumpName("PLAYPAL");
 }
+
+// -----------------------------------------------------------------------------
+// V_LoadTintTable
+// [JN] Load original tint table from TINTTAB lump. Used for Heretic.
+// -----------------------------------------------------------------------------
+
+void V_LoadTintTable (void)
+{
+    tinttable = W_CacheLumpName("TINTTAB", PU_STATIC);
+}
 #endif

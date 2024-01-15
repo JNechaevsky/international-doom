@@ -98,11 +98,6 @@ void V_RestoreBuffer(void);
 
 void V_ScreenShot(char *format);
 
-// Load the lookup table for translucency calculations from the TINTTAB
-// lump.
-
-void V_LoadTintTable(void);
-
 void V_DrawMouseSpeedBox(int speed);
 
 #endif
