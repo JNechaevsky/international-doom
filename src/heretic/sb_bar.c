@@ -868,9 +868,9 @@ void SB_Drawer(void)
                         && (!automapactive || automap_overlay) ? 13 : 0;
 
         // Brief
-        if (st_ammo_widget < 3)
+        if (st_ammo_widget == 1)
         {
-            dp_translucent = (st_ammo_widget == 2);
+            dp_translucent = (st_ammo_widget_translucent);
 
             MN_DrTextA("W", 282 + WIDESCREENDELTA,  96 + yy, cr[CR_YELLOW]);
             MN_DrTextA("E", 282 + WIDESCREENDELTA, 106 + yy, cr[CR_GREEN]);
@@ -908,7 +908,7 @@ void SB_Drawer(void)
         // Full
         else
         {
-            dp_translucent = (st_ammo_widget == 4);
+            dp_translucent = (st_ammo_widget_translucent);
 
             MN_DrTextA("W", 251 + WIDESCREENDELTA,  96 + yy, cr[CR_YELLOW]);
             MN_DrTextA("E", 251 + WIDESCREENDELTA, 106 + yy, cr[CR_GREEN]);

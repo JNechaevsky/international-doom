@@ -126,6 +126,8 @@ int st_colored_stbar = 0;
 int st_negative_health = 0;
 int st_blinking_keys = 0;
 int st_ammo_widget = 0;
+int st_ammo_widget_translucent = 0;
+int st_ammo_widget_colors = 0;
 
 // Audible
 int aud_z_axis_sfx = 0;
@@ -277,6 +279,8 @@ void ID_BindVariables (GameMission_t mission)
     if (mission == heretic)
     {
         M_BindIntVariable("st_ammo_widget",             &st_ammo_widget);
+        M_BindIntVariable("st_ammo_widget_translucent", &st_ammo_widget_translucent);
+        M_BindIntVariable("st_ammo_widget_colors",      &st_ammo_widget_colors);
     }
     
     // Audible
