@@ -352,7 +352,6 @@ void CT_Drawer (void)
             }
         }
         V_DrawPatch(x, 10, W_CacheLumpName(DEH_String("FONTA59"), PU_CACHE));
-        BorderTopRefresh = true;
         UpdateState |= I_MESSAGES;
     }
 }
@@ -475,7 +474,6 @@ void CT_SetMessage (player_t *player, const char *message, boolean ultmsg, byte 
     player->message = message;
     player->messageTics = MESSAGETICS;
     player->messageColor = table;
-    BorderTopRefresh = true;
 
     if (ultmsg)
     {
@@ -511,7 +509,6 @@ void MSG_Ticker (void)
     if (!player->messageTics)
     {                           // Refresh the screen when a message goes away
         ultimatemsg = false;    // clear out any chat messages.
-        BorderTopRefresh = true;
     }
     if (player->messageCenteredTics > 0)
     {

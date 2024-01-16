@@ -1123,25 +1123,6 @@ void R_SetupFrame (player_t* player)
         fixedcolormap = 0;
     }
     validcount++;
-    if (BorderNeedRefresh)
-    {
-        if (setblocks < 10)
-        {
-            R_DrawViewBorder();
-        }
-        BorderNeedRefresh = false;
-        BorderTopRefresh = false;
-        UpdateState |= I_FULLSCRN;
-    }
-    if (BorderTopRefresh)
-    {
-        if (setblocks < 10)
-        {
-            R_DrawTopBorder();
-        }
-        BorderTopRefresh = false;
-        UpdateState |= I_MESSAGES;
-    }
 }
 
 //

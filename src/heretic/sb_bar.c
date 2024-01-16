@@ -609,7 +609,6 @@ static void DrawSoundInfo(void)
         MN_DrTextA(text, xPos[x++], y, NULL);
     }
     UpdateState |= I_FULLSCRN;
-    BorderNeedRefresh = true;
 }
 
 //---------------------------------------------------------------------------
@@ -820,12 +819,10 @@ void SB_Drawer(void)
                     hitCenterFrame = true;
                 }
             }
-            BorderTopRefresh = true;
             UpdateState |= I_MESSAGES;
         }
         else
         {
-            BorderTopRefresh = true;
             UpdateState |= I_MESSAGES;
         }
     }
@@ -849,12 +846,10 @@ void SB_Drawer(void)
             frame = (leveltime / 3) & 15;
             V_DrawPatch(spinbook_x, 17,
                         W_CacheLumpNum(spinbooklump + frame, PU_CACHE));
-            BorderTopRefresh = true;
             UpdateState |= I_MESSAGES;
         }
         else
         {
-            BorderTopRefresh = true;
             UpdateState |= I_MESSAGES;
         }
     }

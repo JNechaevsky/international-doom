@@ -165,6 +165,7 @@ static void ID_DrawMessageCentered (void)
 
 void D_Display(void)
 {
+    static gamestate_t oldgamestate = -1;
 
     // For comparative timing / profiling
     if (nodrawers)
@@ -185,6 +186,7 @@ void D_Display(void)
     if (setsizeneeded)
     {
         R_ExecuteSetViewSize();
+        oldgamestate = -1;  // force background redraw
     }
 
 //
@@ -204,10 +206,21 @@ void D_Display(void)
                 return;
             }
 
+            // [JN] See if the border needs to be initially drawn.
+            if (oldgamestate != GS_LEVEL)
+            {
+                R_FillBackScreen();
+            }
+
+            // [JN] See if the border needs to be updated to the screen.
+            if (scaledviewwidth != SCREENWIDTH)
+            {
+                R_DrawViewBorder();
+            }
+
             if (automapactive)
             {
                 AM_Drawer();
-                BorderNeedRefresh = true;
             }
 
             // [JN] Allow to draw level name separately from automap.
@@ -282,6 +295,8 @@ void D_Display(void)
     {
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
     }
+
+    oldgamestate = gamestate;
 
     if (paused && !MenuActive && !askforquit)
     {
@@ -466,7 +481,6 @@ void D_DoAdvanceDemo(void)
             pagename = DEH_String("TITLE");
             break;
         case 2:
-            BorderNeedRefresh = true;
             UpdateState |= I_FULLSCRN;
             if (demo_internal)
             {
@@ -479,7 +493,6 @@ void D_DoAdvanceDemo(void)
             pagename = DEH_String("CREDIT");
             break;
         case 4:
-            BorderNeedRefresh = true;
             UpdateState |= I_FULLSCRN;
             if (demo_internal)
             {
@@ -499,7 +512,6 @@ void D_DoAdvanceDemo(void)
             }
             break;
         case 6:
-            BorderNeedRefresh = true;
             UpdateState |= I_FULLSCRN;
             if (demo_internal)
             {
@@ -1386,7 +1398,6 @@ void D_DoomMain(void)
     if (gameaction != ga_loadgame)
     {
         UpdateState |= I_FULLSCRN;
-        BorderNeedRefresh = true;
         if (autostart || netgame)
         {
             G_InitNew(startskill, startepisode, startmap);

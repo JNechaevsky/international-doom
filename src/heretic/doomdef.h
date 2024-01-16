@@ -824,9 +824,6 @@ void P_UnArchiveAutomap(void);
 
 extern boolean setsizeneeded;
 
-extern boolean BorderNeedRefresh;
-extern boolean BorderTopRefresh;
-
 extern int UpdateState;
 // define the different areas for the dirty map
 #define I_NOUPDATE	0
@@ -842,7 +839,7 @@ void R_Init(void);
 // called by startup code
 
 void R_DrawViewBorder(void);
-void R_DrawTopBorder(void);
+void R_FillBackScreen(void);
 // if the view size is not full screen, draws a border around it
 
 void R_SetViewSize(int blocks, int detail);
