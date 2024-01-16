@@ -552,6 +552,7 @@ void R_FillBackScreen (void)
 	pixel_t *dest;
 	int x;
 	int y;
+	int yy = 0;
 	
 	// If we are running full screen, there is no need to do any of this,
 	// and the background buffer can be freed if it was previously in use.
@@ -574,6 +575,12 @@ void R_FillBackScreen (void)
 						* sizeof(*background_buffer), PU_STATIC, NULL);
 	}
 	
+	// [JN] Attempt to round up precision problem on lower screen sizes.
+	if (dp_screen_size < 6)
+	{
+		yy = 1;
+	}
+	
 	src = W_CacheLumpName(DEH_String(gamemode == shareware ? "FLOOR04" : "FLAT513"), PU_CACHE); 
 	dest = background_buffer;
 	
@@ -586,7 +593,7 @@ void R_FillBackScreen (void)
 
 	for (x = (viewwindowx / vid_resolution); x < (viewwindowx + viewwidth) / vid_resolution; x += 16)
 	{
-		V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy / vid_resolution) - 4,
+		V_DrawPatch(x - WIDESCREENDELTA, ((viewwindowy / vid_resolution) - 4) + yy,
 					W_CacheLumpName(DEH_String("bordt"), PU_CACHE));
 		V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy + viewheight) / vid_resolution,
 					W_CacheLumpName(DEH_String("bordb"), PU_CACHE));
@@ -599,10 +606,10 @@ void R_FillBackScreen (void)
 					W_CacheLumpName(DEH_String("bordr"), PU_CACHE));
 	}
 	V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
-				(viewwindowy / vid_resolution) - 4,
+				((viewwindowy / vid_resolution) - 4) + yy,
 				W_CacheLumpName(DEH_String("bordtl"), PU_CACHE));
 	V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
-				(viewwindowy / vid_resolution) - 4,
+				((viewwindowy / vid_resolution) - 4) + yy,
 				W_CacheLumpName(DEH_String("bordtr"), PU_CACHE));
 	V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
 				(viewwindowy + viewheight) / vid_resolution,
@@ -625,28 +632,34 @@ static void R_VideoErase (unsigned ofs, int count)
 
 void R_DrawViewBorder (void) 
 { 
-	int top, top2;
+	int top, top2, top3;
+	int yy2 = 0, yy3 = 0;
 	int side;
 	int ofs;
 	int i; 
     
-	// [JN] Attempt to round up precision problem on lower screen sizes.
-	const int yy = dp_screen_size < 6 ? 1 : 0;
-	
 	if (scaledviewwidth == SCREENWIDTH)
 	{
 		return;
 	}
 
+	// [JN] Attempt to round up precision problem on lower screen sizes.
+	if (dp_screen_size < 6)
+	{
+		yy2 = 3;
+		yy3 = 2;
+	}
+
 	top = ((SCREENHEIGHT - SBARHEIGHT) - viewheight) / 2;
-	top2 = ((SCREENHEIGHT - SBARHEIGHT) - viewheight + yy) / 2;
+	top2 = ((SCREENHEIGHT - SBARHEIGHT) - viewheight + yy2) / 2;
+	top3 = (((SCREENHEIGHT - SBARHEIGHT) - viewheight) - yy3) / 2;
 	side = (SCREENWIDTH - scaledviewwidth) / 2;
 
 	// copy top and one line of left side
 	R_VideoErase(0, top * SCREENWIDTH + side);
  
 	// copy one line of right side and bottom 
-	ofs = (viewheight + top) * SCREENWIDTH - side;
+	ofs = (viewheight + top3) * SCREENWIDTH - side;
 	R_VideoErase(ofs, top2 * SCREENWIDTH + side);
 
 	// copy sides using wraparound
