@@ -223,7 +223,6 @@ void IN_Stop(void)
     intermission = false;
     IN_UnloadPics();
     SB_state = -1;
-    BorderNeedRefresh = true;
 }
 
 //========================================================================

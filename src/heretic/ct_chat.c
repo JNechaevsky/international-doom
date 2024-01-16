@@ -352,7 +352,6 @@ void CT_Drawer (void)
             }
         }
         V_DrawPatch(x, 10, W_CacheLumpName(DEH_String("FONTA59"), PU_CACHE));
-        UpdateState |= I_MESSAGES;
     }
 }
 

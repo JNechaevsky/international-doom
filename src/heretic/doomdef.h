@@ -829,7 +829,6 @@ extern int UpdateState;
 #define I_NOUPDATE	0
 #define I_FULLVIEW	1
 #define I_STATBAR	2
-#define I_MESSAGES	4
 #define I_FULLSCRN	8
 
 void R_RenderPlayerView(player_t * player);
