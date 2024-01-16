@@ -612,7 +612,6 @@ void R_FillBackScreen (void)
 				W_CacheLumpName(DEH_String("bordbl"), PU_CACHE));
                 
 	V_RestoreBuffer();
-	printf ("☻");
 } 
 
 
@@ -626,10 +625,13 @@ static void R_VideoErase (unsigned ofs, int count)
 
 void R_DrawViewBorder (void) 
 { 
-	int top;
+	int top, top2;
 	int side;
 	int ofs;
 	int i; 
+    
+	// [JN] Attempt to round up precision problem on lower screen sizes.
+	const int yy = dp_screen_size < 6 ? 1 : 0;
 	
 	if (scaledviewwidth == SCREENWIDTH)
 	{
@@ -637,6 +639,7 @@ void R_DrawViewBorder (void)
 	}
 
 	top = ((SCREENHEIGHT - SBARHEIGHT) - viewheight) / 2;
+	top2 = ((SCREENHEIGHT - SBARHEIGHT) - viewheight + yy) / 2;
 	side = (SCREENWIDTH - scaledviewwidth) / 2;
 
 	// copy top and one line of left side
@@ -644,7 +647,7 @@ void R_DrawViewBorder (void)
  
 	// copy one line of right side and bottom 
 	ofs = (viewheight + top) * SCREENWIDTH - side;
-	R_VideoErase(ofs, top * SCREENWIDTH + side);
+	R_VideoErase(ofs, top2 * SCREENWIDTH + side);
 
 	// copy sides using wraparound
 	ofs = top * SCREENWIDTH + SCREENWIDTH - side;
