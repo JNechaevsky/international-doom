@@ -834,7 +834,7 @@ static void D_Endoom(void)
     I_Endoom(endoom_data);
 }
 
-static const char *const loadparms[] = {"-file", "-merge", NULL}; // [crispy]
+// static const char *const loadparms[] = {"-file", "-merge", NULL}; // [crispy]
 
 //---------------------------------------------------------------------------
 //
@@ -1068,7 +1068,10 @@ void D_DoomMain(void)
     W_ParseCommandLine();
 
     // [crispy] add wad files from autoload PWAD directories
+    // [JN] Please do not. No need to create additional directories,
+    // consider using "heretic.wad" for autoloading purposes.
 
+    /*
     if (!M_ParmExists("-noautoload") && gamemode != shareware)
     {
         int i;
@@ -1091,6 +1094,7 @@ void D_DoomMain(void)
             }
         }
     }
+    */
 
     if (W_CheckNumForName("HEHACKED") != -1)
     {
@@ -1157,7 +1161,10 @@ void D_DoomMain(void)
     W_GenerateHashTable();
 
     // [crispy] process .deh files from PWADs autoload directories
+    // [JN] Please do not. No need to create additional directories,
+    // consider using "heretic.wad" for autoloading purposes.
 
+    /*
     if (!M_ParmExists("-noautoload") && gamemode != shareware)
     {
         int i;
@@ -1180,6 +1187,7 @@ void D_DoomMain(void)
             }
         }
     }
+    */
 
     //!
     // @category demo
