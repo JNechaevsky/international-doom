@@ -2258,7 +2258,7 @@ void G_DoLoadGame(void)
         I_Error("Bad savegame");
     }
 
-    // draw the pattern into the back screen
+    // Draw the pattern into the back screen
     R_FillBackScreen();
 }
 
@@ -3177,7 +3177,7 @@ void G_DoSaveGame(void)
 
     free(filename);
 
-    // draw the pattern into the back screen
+    // Draw the pattern into the back screen
     R_FillBackScreen();
 }
 

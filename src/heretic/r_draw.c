@@ -546,6 +546,12 @@ void R_InitBuffer(int width, int height)
         ylookup[i] = I_VideoBuffer + (i + viewwindowy) * SCREENWIDTH;
 }
 
+// -----------------------------------------------------------------------------
+// [JN] Replaced Heretic's original R_DrawViewBorder and R_DrawTopBorder
+// functions with Doom's implementation to improve performance and avoid
+// precision problems when drawing beveled edges on smaller screen sizes.
+// -----------------------------------------------------------------------------
+
 void R_FillBackScreen (void) 
 { 
 	byte    *src;

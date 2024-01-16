@@ -165,6 +165,7 @@ static void ID_DrawMessageCentered (void)
 
 void D_Display(void)
 {
+    // [JN] Optimized screen background and beveled edge drawing.
     static gamestate_t oldgamestate = -1;
 
     // For comparative timing / profiling
@@ -186,7 +187,8 @@ void D_Display(void)
     if (setsizeneeded)
     {
         R_ExecuteSetViewSize();
-        oldgamestate = -1;  // force background redraw
+        // Force background redraw
+        oldgamestate = -1;
     }
 
 //
