@@ -749,7 +749,6 @@ void P_PlayerThink(player_t * player)
 
             player->mo->flags2 &= ~MF2_FLY;
             player->mo->flags &= ~MF_NOGRAVITY;
-            BorderTopRefresh = true;    //make sure the sprite's cleared out
         }
     }
     if (player->powers[pw_weaponlevel2])
@@ -771,7 +770,6 @@ void P_PlayerThink(player_t * player)
             {
                 player->pendingweapon = player->readyweapon;
             }
-            BorderTopRefresh = true;
         }
     }
     if (player->damagecount)

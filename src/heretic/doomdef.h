@@ -824,15 +824,11 @@ void P_UnArchiveAutomap(void);
 
 extern boolean setsizeneeded;
 
-extern boolean BorderNeedRefresh;
-extern boolean BorderTopRefresh;
-
 extern int UpdateState;
 // define the different areas for the dirty map
 #define I_NOUPDATE	0
 #define I_FULLVIEW	1
 #define I_STATBAR	2
-#define I_MESSAGES	4
 #define I_FULLSCRN	8
 
 void R_RenderPlayerView(player_t * player);
@@ -842,7 +838,7 @@ void R_Init(void);
 // called by startup code
 
 void R_DrawViewBorder(void);
-void R_DrawTopBorder(void);
+void R_FillBackScreen(void);
 // if the view size is not full screen, draws a border around it
 
 void R_SetViewSize(int blocks, int detail);

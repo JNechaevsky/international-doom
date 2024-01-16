@@ -1091,6 +1091,7 @@ static void M_ID_TrueColorHook (void)
 {
     I_SetPalette (sb_palette);
     R_InitColormaps();
+    R_FillBackScreen();
 }
 #endif
 
@@ -1111,10 +1112,10 @@ static void M_ID_RenderingResHook (void)
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
     // [crispy] re-calculate framebuffer coordinates
     R_ExecuteSetViewSize();
+    // [crispy] re-draw bezel
+    R_FillBackScreen();
     // [JN] re-calculate sky texture scaling
     R_InitSkyMap();
-    // [crispy] re-draw bezel
-    BorderNeedRefresh = true;
     // [crispy] re-calculate automap coordinates
     AM_LevelInit(true);
     if (automapactive)
@@ -1136,10 +1137,10 @@ static void M_ID_WidescreenHook (void)
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
     // [crispy] re-calculate framebuffer coordinates
     R_ExecuteSetViewSize();
+    // [crispy] re-draw bezel
+    R_FillBackScreen();
     // [JN] re-calculate sky texture scaling
     R_InitSkyMap();
-    // [crispy] re-draw bezel
-    BorderNeedRefresh = true;
     // [crispy] re-calculate automap coordinates
     AM_LevelInit(true);
     if (automapactive)
@@ -1335,6 +1336,7 @@ static boolean M_ID_Gamma (int choice)
 #else
     I_SetPalette(sb_palette);
     R_InitColormaps();
+    R_FillBackScreen();
     SB_ForceRedraw();
 #endif
     return true;
@@ -1371,6 +1373,7 @@ static boolean M_ID_Saturation (int choice)
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitColormaps();
+    R_FillBackScreen();
     SB_ForceRedraw();
     AM_Init();
 #endif
@@ -1385,6 +1388,7 @@ static boolean M_ID_R_Intensity (int choice)
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitColormaps();
+    R_FillBackScreen();
     SB_ForceRedraw();
     AM_Init();
 #endif
@@ -1399,6 +1403,7 @@ static boolean M_ID_G_Intensity (int choice)
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitColormaps();
+    R_FillBackScreen();
     SB_ForceRedraw();
     AM_Init();
 #endif
@@ -1413,6 +1418,7 @@ static boolean M_ID_B_Intensity (int choice)
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitColormaps();
+    R_FillBackScreen();
     SB_ForceRedraw();
     AM_Init();
 #endif
@@ -4113,6 +4119,7 @@ static void M_ID_ApplyResetHook (void)
     I_SetPalette(sb_palette);
 #endif
     R_InitColormaps();
+    R_FillBackScreen();
     AM_LevelInit(true);
     if (automapactive)
     {
@@ -4544,10 +4551,6 @@ void MN_Drawer(void)
             MN_DrawInfo();
             return;
         }
-        if (dp_screen_size < 10)
-        {
-            BorderNeedRefresh = true;
-        }
         if (CurrentMenu->drawFunc != NULL)
         {
             CurrentMenu->drawFunc();
@@ -4911,7 +4914,6 @@ static boolean SCLoadGame(int option)
     free(filename);
 
     MN_DeactivateMenu();
-    BorderNeedRefresh = true;
     if (quickload == -1)
     {
         quickload = option + 1;
@@ -4935,7 +4937,6 @@ static boolean SCDeleteGame(int option)
     free(filename);
 
     MN_LoadSlotText();
-    BorderNeedRefresh = true;
 
     return true;
 }
@@ -4997,7 +4998,6 @@ static boolean SCSaveGame(int option)
         I_StopTextInput();
         MN_DeactivateMenu();
     }
-    BorderNeedRefresh = true;
     if (quicksave == -1)
     {
         quicksave = option + 1;
@@ -5366,7 +5366,6 @@ boolean MN_Responder(event_t * event)
             paused = false;
             MN_DeactivateMenu();
             SB_state = -1;      //refresh the statbar
-            BorderNeedRefresh = true;
         }
         S_StartSound(NULL, sfx_dorcls);
         return (true);          //make the info screen eat the keypress
@@ -5448,19 +5447,16 @@ boolean MN_Responder(event_t * event)
                                  "QUICKSAVING....", false, NULL);
                     FileMenuKeySteal = true;
                     SCSaveGame(quicksave - 1);
-                    BorderNeedRefresh = true;
                     break;
 
                 case 4:
                     CT_SetMessage(&players[consoleplayer],
                                  "QUICKLOADING....", false, NULL);
                     SCLoadGame(quickload - 1);
-                    BorderNeedRefresh = true;
                     break;
 
                 case 5:
                     SCDeleteGame(CurrentItPos);
-                    BorderNeedRefresh = true;
                     MN_ReturnToMenu();
                     break;
 
@@ -5518,7 +5514,6 @@ boolean MN_Responder(event_t * event)
                 typeofask = 0;
                 paused = false;
                 UpdateState |= I_FULLSCRN;
-                BorderNeedRefresh = true;
                 return true;
             }
         }
@@ -5536,7 +5531,6 @@ boolean MN_Responder(event_t * event)
             }
             SCScreenSize(LEFT_DIR);
             S_StartSound(NULL, sfx_keyup);
-            BorderNeedRefresh = true;
             UpdateState |= I_FULLSCRN;
             return (true);
         }
@@ -5548,7 +5542,6 @@ boolean MN_Responder(event_t * event)
             }
             SCScreenSize(RIGHT_DIR);
             S_StartSound(NULL, sfx_keyup);
-            BorderNeedRefresh = true;
             UpdateState |= I_FULLSCRN;
             return (true);
         }
@@ -5776,7 +5769,7 @@ boolean MN_Responder(event_t * event)
 #else
         I_SetPalette(0);
         R_InitColormaps();
-        BorderNeedRefresh = true;
+        R_FillBackScreen();
         SB_state = -1;
 #endif
         return true;

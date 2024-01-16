@@ -2257,6 +2257,9 @@ void G_DoLoadGame(void)
     {                           // Missing savegame termination marker
         I_Error("Bad savegame");
     }
+
+    // Draw the pattern into the back screen
+    R_FillBackScreen();
 }
 
 
@@ -2360,7 +2363,6 @@ void G_InitNew(skill_t skill, int episode, int map)
     gameepisode = episode;
     gamemap = map;
     gameskill = skill;
-    BorderNeedRefresh = true;
 
     // [crispy] CPhipps - total time for all completed levels
     totalleveltimes = 0;
@@ -3174,6 +3176,9 @@ void G_DoSaveGame(void)
     CT_SetMessage(&players[consoleplayer], DEH_String(TXT_GAMESAVED), true, NULL);
 
     free(filename);
+
+    // Draw the pattern into the back screen
+    R_FillBackScreen();
 }
 
 //
