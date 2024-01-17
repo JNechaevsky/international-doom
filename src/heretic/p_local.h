@@ -137,6 +137,7 @@ extern mobjtype_t PuffType;
 extern mobj_t *MissileMobj;
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
+mobj_t *P_SpawnMobjSafe(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type, boolean safe);
 void P_RemoveMobj(mobj_t * th);
 boolean P_SetMobjState(mobj_t * mobj, statenum_t state);
 boolean P_SetMobjStateNF(mobj_t * mobj, statenum_t state);
@@ -146,6 +147,7 @@ boolean P_SeekerMissile(mobj_t * actor, angle_t thresh, angle_t turnMax);
 void P_MobjThinker(thinker_t * thinker);
 void P_BlasterMobjThinker(thinker_t * thinker);
 void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);
+void P_SpawnPuffSafe(fixed_t x, fixed_t y, fixed_t z, boolean safe);
 void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage);
 void P_SpawnPlayer(mapthing_t * mthing);
 void P_BloodSplatter(fixed_t x, fixed_t y, fixed_t z, mobj_t * originator);
