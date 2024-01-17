@@ -551,6 +551,8 @@ static boolean M_ID_CrosshairColor (int choice);
 static void M_Draw_ID_Gameplay_2 (void);
 static boolean M_ID_ColoredSBar (int choice);
 static boolean M_ID_AmmoWidget (int choice);
+static boolean M_ID_AmmoWidgetTranslucent (int choice);
+static boolean M_ID_AmmoWidgetColors (int choice);
 static boolean M_ID_ZAxisSfx (int choice);
 static boolean M_ID_Torque (int choice);
 static boolean M_ID_WeaponAlignment (int choice);
@@ -3138,14 +3140,14 @@ static boolean M_ID_CrosshairColor (int choice)
 static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE         },
     { ITT_LRFUNC,  "SHOW AMMO WIDGET",            M_ID_AmmoWidget,      0, MENU_NONE         },
+    { ITT_LRFUNC,  "AMMO WIDGET TRANSLUCENCY",    M_ID_AmmoWidgetTranslucent, 0, MENU_NONE   },
+    { ITT_LRFUNC,  "AMMO WIDGET COLORING",        M_ID_AmmoWidgetColors,0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,        0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,          0, MENU_NONE         },
     { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE         },
     { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_SETMENU, "", /*LAST PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY3 },
     { ITT_SETMENU, "", /*< FIRST PAGE*/           NULL,                 0, MENU_ID_GAMEPLAY1 },
@@ -3175,36 +3177,46 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     // Ammo widget
     sprintf(str, st_ammo_widget == 1 ? "BRIEF" :
-                 st_ammo_widget == 2 ? "BRIEF+TRANSLUCENT" :
-                 st_ammo_widget == 3 ? "FULL" :
-                 st_ammo_widget == 4 ? "FULL+TRANSLUCENT" : "OFF");
+                 st_ammo_widget == 2 ? "FULL" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, st_ammo_widget ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("AUDIBLE", 40, cr[CR_YELLOW]);
+    // Ammo widget translucency
+    sprintf(str, st_ammo_widget_translucent ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, st_ammo_widget_translucent ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Ammo widget colors
+    sprintf(str, st_ammo_widget_colors == 1 ? "AMMO+WEAPONS" :
+                 st_ammo_widget_colors == 2 ? "AMMO ONLY" :
+                 st_ammo_widget_colors == 3 ? "WEAPONS ONLY" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, st_ammo_widget_colors ? GLOW_GREEN : GLOW_DARKRED));
+
+    MN_DrTextACentered("AUDIBLE", 60, cr[CR_YELLOW]);
 
     // Sfx attenuation axises
     sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("PHYSICAL", 60, cr[CR_YELLOW]);
+    MN_DrTextACentered("PHYSICAL", 80, cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 70,
-               M_Item_Glow(5, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
 
     // Weapon attack alignment
     sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
                  phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
                M_Item_Glow(11, GLOW_DARKGRAY));
@@ -3224,10 +3236,21 @@ static boolean M_ID_ColoredSBar (int choice)
 
 static boolean M_ID_AmmoWidget (int choice)
 {
-    st_ammo_widget = M_INT_Slider(st_ammo_widget, 0, 4, choice, false);
+    st_ammo_widget = M_INT_Slider(st_ammo_widget, 0, 2, choice, false);
     return true;
 }
 
+static boolean M_ID_AmmoWidgetTranslucent (int choice)
+{
+    st_ammo_widget_translucent = M_INT_Slider(st_ammo_widget_translucent, 0, 1, choice, false);
+    return true;
+}
+
+static boolean M_ID_AmmoWidgetColors (int choice)
+{
+    st_ammo_widget_colors = M_INT_Slider(st_ammo_widget_colors, 0, 3, choice, false);
+    return true;
+}
 static boolean M_ID_ZAxisSfx (int choice)
 {
     aud_z_axis_sfx ^= 1;
@@ -4083,6 +4106,8 @@ static void M_ID_ApplyResetHook (void)
     // Status bar
     st_colored_stbar = 0;
     st_ammo_widget = 0;
+    st_ammo_widget_translucent = 0;
+    st_ammo_widget_colors = 0;
 
     // Audible
     aud_z_axis_sfx = 0;

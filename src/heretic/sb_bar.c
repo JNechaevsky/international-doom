@@ -698,6 +698,67 @@ static void RefreshBackground(void)
     V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, SBARHEIGHT, 0, 158 * vid_resolution);
 }
 
+enum
+{
+    ammowidgetcolor_ammo,
+    ammowidgetcolor_weapon
+} ammowidgetcolor_t;
+
+
+// -----------------------------------------------------------------------------
+// SB_AmmoWidgetColor
+// [international-doom] return ammo/health/armor widget color
+// -----------------------------------------------------------------------------
+
+static byte *SB_AmmoWidgetColor (int i, weapontype_t weapon)
+{
+    switch (i)
+    {
+        case ammowidgetcolor_ammo:
+        {
+
+            const int ammo = CPlayer->ammo[wpnlev1info[weapon].ammo];
+            const int fullammo = CPlayer->maxammo[wpnlev1info[weapon].ammo];
+
+            if (st_ammo_widget_colors != 1 && st_ammo_widget_colors != 2)
+            {
+                return cr[CR_GRAY];
+            }
+
+            if (ammo < fullammo/4)
+                return cr[CR_RED];
+            else if (ammo < fullammo/2)
+                return cr[CR_YELLOW];
+            else
+                return cr[CR_GREEN];
+        }
+        case ammowidgetcolor_weapon:
+        {
+            // always color the weapon letter if ammo widget coloring is OFF
+            if ((st_ammo_widget_colors != 1 && st_ammo_widget_colors != 3) ||
+                CPlayer->weaponowned[weapon] == true)
+            {
+                switch (weapon)
+                {
+                    case wp_goldwand:   return cr[CR_YELLOW];
+                    case wp_crossbow:   return cr[CR_GREEN];
+                    case wp_blaster:    return cr[CR_BLUE2];
+                    case wp_skullrod:   return cr[CR_RED];
+                    case wp_phoenixrod: return cr[CR_ORANGE];
+                    case wp_mace:       return cr[CR_LIGHTGRAY];
+                    default:            return cr[CR_GRAY];
+                }
+            }
+            else
+            {
+                return cr[CR_GRAY];
+            }
+        }
+    }
+
+    return NULL;
+}
+
 void SB_Drawer(void)
 {
     int frame;
@@ -853,90 +914,90 @@ void SB_Drawer(void)
                         && (!automapactive || automap_overlay) ? 13 : 0;
 
         // Brief
-        if (st_ammo_widget < 3)
+        if (st_ammo_widget == 1)
         {
-            dp_translucent = (st_ammo_widget == 2);
+            dp_translucent = (st_ammo_widget_translucent);
 
-            MN_DrTextA("W", 282 + WIDESCREENDELTA,  96 + yy, cr[CR_YELLOW]);
-            MN_DrTextA("E", 282 + WIDESCREENDELTA, 106 + yy, cr[CR_GREEN]);
-            MN_DrTextA("D", 282 + WIDESCREENDELTA, 116 + yy, cr[CR_BLUE2]);
-            MN_DrTextA("H", 282 + WIDESCREENDELTA, 126 + yy, cr[CR_RED]);
-            MN_DrTextA("P", 282 + WIDESCREENDELTA, 136 + yy, cr[CR_ORANGE]);
-            MN_DrTextA("M", 282 + WIDESCREENDELTA, 146 + yy, cr[CR_LIGHTGRAY]);
+            MN_DrTextA("W", 282 + WIDESCREENDELTA,  96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_goldwand));
+            MN_DrTextA("E", 282 + WIDESCREENDELTA, 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_crossbow));
+            MN_DrTextA("D", 282 + WIDESCREENDELTA, 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_blaster));
+            MN_DrTextA("H", 282 + WIDESCREENDELTA, 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_skullrod));
+            MN_DrTextA("P", 282 + WIDESCREENDELTA, 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_phoenixrod));
+            MN_DrTextA("M", 282 + WIDESCREENDELTA, 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_mace));
 
             // Elven Wand
             sprintf(str, "%d",  CPlayer->ammo[am_goldwand]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_goldwand));
 
             // Ethereal Crossbow
             sprintf(str, "%d",  CPlayer->ammo[am_crossbow]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_crossbow));
 
             // Dragon Claw
             sprintf(str, "%d",  CPlayer->ammo[am_blaster]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_blaster));
 
             // Hellstaff
             sprintf(str, "%d",  CPlayer->ammo[am_skullrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_skullrod));
 
             // Phoenix Rod
             sprintf(str, "%d",  CPlayer->ammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_phoenixrod));
 
             // Firemace
             sprintf(str, "%d",  CPlayer->ammo[am_mace]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_mace));
 
             dp_translucent = false;
         }
         // Full
         else
         {
-            dp_translucent = (st_ammo_widget == 4);
+            dp_translucent = (st_ammo_widget_translucent);
 
-            MN_DrTextA("W", 251 + WIDESCREENDELTA,  96 + yy, cr[CR_YELLOW]);
-            MN_DrTextA("E", 251 + WIDESCREENDELTA, 106 + yy, cr[CR_GREEN]);
-            MN_DrTextA("D", 251 + WIDESCREENDELTA, 116 + yy, cr[CR_BLUE2]);
-            MN_DrTextA("H", 251 + WIDESCREENDELTA, 126 + yy, cr[CR_RED]);
-            MN_DrTextA("P", 251 + WIDESCREENDELTA, 136 + yy, cr[CR_ORANGE]);
-            MN_DrTextA("M", 251 + WIDESCREENDELTA, 146 + yy, cr[CR_LIGHTGRAY]);
+            MN_DrTextA("W", 251 + WIDESCREENDELTA,  96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_goldwand));
+            MN_DrTextA("E", 251 + WIDESCREENDELTA, 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_crossbow));
+            MN_DrTextA("D", 251 + WIDESCREENDELTA, 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_blaster));
+            MN_DrTextA("H", 251 + WIDESCREENDELTA, 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_skullrod));
+            MN_DrTextA("P", 251 + WIDESCREENDELTA, 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_phoenixrod));
+            MN_DrTextA("M", 251 + WIDESCREENDELTA, 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_mace));
 
             // Elven Wand
             sprintf(str, "%d/",  CPlayer->ammo[am_goldwand]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 96 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_goldwand));
             sprintf(str, "%d",  CPlayer->maxammo[am_goldwand]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_goldwand));
 
             // Ethereal Crossbow
             sprintf(str, "%d/",  CPlayer->ammo[am_crossbow]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 106 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_crossbow));
             sprintf(str, "%d",  CPlayer->maxammo[am_crossbow]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_crossbow));
 
             // Dragon Claw
             sprintf(str, "%d/",  CPlayer->ammo[am_blaster]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 116 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_blaster));
             sprintf(str, "%d",  CPlayer->maxammo[am_blaster]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_blaster));
 
             // Hellstaff
             sprintf(str, "%d/",  CPlayer->ammo[am_skullrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 126 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_skullrod));
             sprintf(str, "%d",  CPlayer->maxammo[am_skullrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_skullrod));
 
             // Phoenix Rod
             sprintf(str, "%d/",  CPlayer->ammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 136 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_phoenixrod));
             sprintf(str, "%d",  CPlayer->maxammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_phoenixrod));
 
             // Firemace
             sprintf(str, "%d/",  CPlayer->ammo[am_mace]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 146 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA - MN_TextAWidth(str), 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_mace));
             sprintf(str, "%d",  CPlayer->maxammo[am_mace]);
-            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
+            MN_DrTextA(str, 293 + WIDESCREENDELTA, 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_mace));
 
             dp_translucent = false;
         }
