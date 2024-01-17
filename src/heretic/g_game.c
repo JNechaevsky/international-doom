@@ -327,7 +327,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
 	// [JN] Deny all player control events while active menu 
 	// in multiplayer to eliminate movement and camera rotation.
- 	if (netgame && MenuActive)
+ 	if (netgame && (MenuActive || askforquit))
  	return;
 
  	// RestlessRodent -- If spectating then the player loses all input
