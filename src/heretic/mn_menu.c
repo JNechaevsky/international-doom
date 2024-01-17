@@ -639,7 +639,7 @@ static byte   *M_ColorizeMouseBind (int CurrentItPosOn, int btn);
 static void    M_DrawBindButton (int itemNum, int yPos, int btnBind);
 static void    M_ResetMouseBinds (void);
 
-// Forward declarations for scrolling pages.
+// Forward declarations for scrolling and remembering last pages.
 static Menu_t ID_Def_Keybinds_1;
 static Menu_t ID_Def_Keybinds_2;
 static Menu_t ID_Def_Keybinds_3;
@@ -654,6 +654,24 @@ static Menu_t ID_Def_Gameplay_3;
 static Menu_t ID_Def_Level_1;
 static Menu_t ID_Def_Level_2;
 static Menu_t ID_Def_Level_3;
+
+// Remember last keybindings page.
+static int Keybinds_Cur;
+
+static boolean M_Choose_ID_Keybinds (int choice)
+{
+    SetMenu(Keybinds_Cur);
+    return true;
+}
+
+// Remember last gameplay page.
+static int Gameplay_Cur;
+
+static boolean M_Choose_ID_Gameplay (int choice)
+{
+    SetMenu(Gameplay_Cur);
+    return true;
+}
 
 // Utility function for scrolling pages by arrows / PG keys.
 static void M_ScrollPages (boolean direction)
@@ -942,15 +960,15 @@ static char *const DefSkillName[5] =
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Main[] = {
-    { ITT_SETMENU, "VIDEO OPTIONS",       NULL,              0, MENU_ID_VIDEO     },
-    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,              0, MENU_ID_DISPLAY   },
-    { ITT_SETMENU, "SOUND OPTIONS",       NULL,              0, MENU_ID_SOUND     },
-    { ITT_SETMENU, "CONTROL SETTINGS",    NULL,              0, MENU_ID_CONTROLS  },
-    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,              0, MENU_ID_WIDGETS   },
-    { ITT_SETMENU, "GAMEPLAY FEATURES",   NULL,              0, MENU_ID_GAMEPLAY1 },
-    { ITT_SETMENU, "LEVEL SELECT",        NULL,              0, MENU_ID_LEVEL1    },
-    { ITT_EFUNC,   "END GAME",            SCEndGame,         0, MENU_NONE         },
-    { ITT_EFUNC,   "RESET SETTINGS",      M_ID_SettingReset, 0, MENU_NONE         },
+    { ITT_SETMENU, "VIDEO OPTIONS",       NULL,                 0, MENU_ID_VIDEO     },
+    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,                 0, MENU_ID_DISPLAY   },
+    { ITT_SETMENU, "SOUND OPTIONS",       NULL,                 0, MENU_ID_SOUND     },
+    { ITT_SETMENU, "CONTROL SETTINGS",    NULL,                 0, MENU_ID_CONTROLS  },
+    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,                 0, MENU_ID_WIDGETS   },
+    { ITT_EFUNC,   "GAMEPLAY FEATURES",   M_Choose_ID_Gameplay, 0, MENU_NONE         },
+    { ITT_SETMENU, "LEVEL SELECT",        NULL,                 0, MENU_ID_LEVEL1    },
+    { ITT_EFUNC,   "END GAME",            SCEndGame,            0, MENU_NONE         },
+    { ITT_EFUNC,   "RESET SETTINGS",      M_ID_SettingReset,    0, MENU_NONE         },
 };
 
 static Menu_t ID_Def_Main = {
@@ -1638,7 +1656,7 @@ static boolean M_ID_MuteInactive (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Controls[] = {
-    { ITT_SETMENU, "KEYBOARD BINDINGS",       NULL,                       0, MENU_ID_KBDBINDS1  },
+    { ITT_EFUNC,   "KEYBOARD BINDINGS",       M_Choose_ID_Keybinds,       0, MENU_NONE          },
     { ITT_SETMENU, "MOUSE BINDINGS",          NULL,                       0, MENU_ID_MOUSEBINDS },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_LRFUNC,  "SENSIVITY",               SCMouseSensi,               0, MENU_NONE          },
@@ -1782,6 +1800,8 @@ static Menu_t ID_Def_Keybinds_1 = {
 
 static void M_Draw_ID_Keybinds_1 (void)
 {
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS1;
+
     M_FillBackground();
 
     MN_DrTextACentered("MOVEMENT", 10, cr[CR_YELLOW]);
@@ -1899,6 +1919,8 @@ static Menu_t ID_Def_Keybinds_2 = {
 
 static void M_Draw_ID_Keybinds_2 (void)
 {
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS2;
+
     M_FillBackground();
 
     MN_DrTextACentered("VIEW", 10, cr[CR_YELLOW]);
@@ -2006,6 +2028,8 @@ static Menu_t ID_Def_Keybinds_3 = {
 
 static void M_Draw_ID_Keybinds_3 (void)
 {
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS3;
+
     M_FillBackground();
 
     MN_DrTextACentered("ADVANCED MOVEMENT", 10, cr[CR_YELLOW]);
@@ -2118,6 +2142,8 @@ static Menu_t ID_Def_Keybinds_4 = {
 
 static void M_Draw_ID_Keybinds_4 (void)
 {
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS4;
+
     M_FillBackground();
 
     MN_DrTextACentered("WEAPONS", 10, cr[CR_YELLOW]);
@@ -2224,6 +2250,8 @@ static Menu_t ID_Def_Keybinds_5 = {
 
 static void M_Draw_ID_Keybinds_5 (void)
 {
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS5;
+
     M_FillBackground();
 
     MN_DrTextACentered("ARTIFACTS", 10, cr[CR_YELLOW]);
@@ -2330,6 +2358,8 @@ static Menu_t ID_Def_Keybinds_6 = {
 
 static void M_Draw_ID_Keybinds_6 (void)
 {
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS6;
+
     M_FillBackground();
 
     MN_DrTextACentered("AUTOMAP", 10, cr[CR_YELLOW]);
@@ -2437,6 +2467,8 @@ static Menu_t ID_Def_Keybinds_7 = {
 
 static void M_Draw_ID_Keybinds_7 (void)
 {
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS7;
+
     M_FillBackground();
 
     MN_DrTextACentered("FUNCTION KEYS", 10, cr[CR_YELLOW]);
@@ -2552,6 +2584,8 @@ static Menu_t ID_Def_Keybinds_8 = {
 
 static void M_Draw_ID_Keybinds_8 (void)
 {
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS8;
+
     M_FillBackground();
 
     MN_DrTextACentered("SHORTCUT KEYS", 10, cr[CR_YELLOW]);
@@ -2983,6 +3017,7 @@ static Menu_t ID_Def_Gameplay_1 = {
 static void M_Draw_ID_Gameplay_1 (void)
 {
     char str[32];
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY1;
 
     M_ShadeBackground();
 
@@ -3165,6 +3200,7 @@ static Menu_t ID_Def_Gameplay_2 = {
 static void M_Draw_ID_Gameplay_2 (void)
 {
     char str[32];
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY2;
 
     M_ShadeBackground();
 
@@ -3310,6 +3346,7 @@ static Menu_t ID_Def_Gameplay_3 = {
 static void M_Draw_ID_Gameplay_3 (void)
 {
     char str[32];
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY3;
 
     M_ShadeBackground();
 
@@ -4233,6 +4270,10 @@ void MN_Init(void)
 
     // [crispy] apply default difficulty
     SkillMenu.oldItPos = gp_default_skill;
+    
+    // [JN] Apply default first page of Keybinds and Gameplay menus.
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS1;
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY1;
 }
 
 //---------------------------------------------------------------------------
