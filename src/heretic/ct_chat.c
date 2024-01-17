@@ -347,11 +347,11 @@ void CT_Drawer (void)
                 patch_t *patch = W_CacheLumpNum(FontABaseLump +
                                                 chat_msg[consoleplayer][i] - 33,
                                                 PU_CACHE);
-                V_DrawPatch(x, 10, patch);
+                V_DrawShadowedPatchOptional(x, 10, 1, patch);
                 x += patch->width;
             }
         }
-        V_DrawPatch(x, 10, W_CacheLumpName(DEH_String("FONTA59"), PU_CACHE));
+        V_DrawShadowedPatchOptional(x, 10, 1, W_CacheLumpName(DEH_String("FONTA59"), PU_CACHE));
     }
 }
 
