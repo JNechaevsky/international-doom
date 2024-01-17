@@ -85,6 +85,40 @@ boolean P_SetMobjState(mobj_t * mobj, statenum_t state)
     return (true);
 }
 
+// [crispy] return the latest "safe" state in a state sequence,
+// so that no action pointer is ever called
+static statenum_t P_LatestSafeState(statenum_t state)
+{
+    statenum_t safestate = S_NULL;
+    static statenum_t laststate, lastsafestate;
+
+    if (state == laststate)
+    {
+	return lastsafestate;
+    }
+
+    for (laststate = state; state != S_NULL; state = states[state].nextstate)
+    {
+	if (safestate == S_NULL)
+	{
+	    safestate = state;
+	}
+
+	if (states[state].action)
+	{
+	    safestate = S_NULL;
+	}
+
+	// [crispy] a state with -1 tics never changes
+	if (states[state].tics == -1 || state == states[state].nextstate)
+	{
+	    break;
+	}
+    }
+
+    return lastsafestate = safestate;
+}
+
 //----------------------------------------------------------------------------
 //
 // FUNC P_SetMobjStateNF
@@ -117,7 +151,7 @@ boolean P_SetMobjStateNF(mobj_t * mobj, statenum_t state)
 //
 //----------------------------------------------------------------------------
 
-void P_ExplodeMissile(mobj_t * mo)
+static void P_ExplodeMissileSafe(mobj_t * mo, boolean safe)
 {
     if (mo->type == MT_WHIRLWIND)
     {
@@ -127,13 +161,20 @@ void P_ExplodeMissile(mobj_t * mo)
         }
     }
     mo->momx = mo->momy = mo->momz = 0;
-    P_SetMobjState(mo, mobjinfo[mo->type].deathstate);
+    P_SetMobjState(mo, safe ? P_LatestSafeState(mobjinfo[mo->type].deathstate) : (statenum_t)mobjinfo[mo->type].deathstate);
     //mo->tics -= P_Random()&3;
     mo->flags &= ~MF_MISSILE;
+    // [JN] Missile explosions are extra translucent.
+    mo->flags |= MF_EXTRATRANS;
     if (mo->info->deathsound)
     {
         S_StartSound(mo, mo->info->deathsound);
     }
+}
+
+void P_ExplodeMissile(mobj_t * mo)
+{
+    P_ExplodeMissileSafe(mo, false);
 }
 
 //----------------------------------------------------------------------------
@@ -368,6 +409,7 @@ void P_XYMovement(mobj_t * mo)
             }
             else if (mo->flags & MF_MISSILE)
             {                   // Explode a missile
+                boolean safe = false;
                 if (ceilingline && ceilingline->backsector
                     && ceilingline->backsector->ceilingpic == skyflatnum)
                 {               // Hack to prevent missiles exploding against the sky
@@ -376,13 +418,17 @@ void P_XYMovement(mobj_t * mo)
                         mo->momx = mo->momy = 0;
                         mo->momz = -FRACUNIT;
                     }
-                    else
+                    if (mo->z > ceilingline->backsector->ceilingheight)
                     {
                         P_RemoveMobj(mo);
-                    }
                     return;
+                    }
+                    else
+                    {
+                        safe = true;
+                    }
                 }
-                P_ExplodeMissile(mo);
+                P_ExplodeMissileSafe(mo, safe);
             }
             //else if(mo->info->crashstate)
             //{
@@ -936,7 +982,7 @@ static const int P_FindDoomedNum (unsigned type)
 ===============
 */
 
-mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
+mobj_t *P_SpawnMobjSafe(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type, boolean safe)
 {
     mobj_t *mobj;
     state_t *st;
@@ -960,12 +1006,12 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
     {
         mobj->reactiontime = info->reactiontime;
     }
-    mobj->lastlook = P_Random() % MAXPLAYERS;
+    mobj->lastlook = safe ? ID_Random () % MAXPLAYERS : P_Random () % MAXPLAYERS;
 
     // Set the state, but do not use P_SetMobjState, because action
     // routines can't be called yet.  If the spawnstate has an action
     // routine, it will not be called.
-    st = &states[info->spawnstate];
+    st = &states[safe ? P_LatestSafeState(info->spawnstate) : (statenum_t)info->spawnstate];
     mobj->state = st;
     mobj->tics = st->tics;
     mobj->sprite = st->sprite;
@@ -1033,6 +1079,11 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
     mobj->thinker.function = P_MobjThinker;
     P_AddThinker(&mobj->thinker);
     return (mobj);
+}
+
+mobj_t *P_SpawnMobj (fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
+{
+    return P_SpawnMobjSafe(x, y, z, type, false);
 }
 
 /*
@@ -1311,10 +1362,15 @@ extern fixed_t attackrange;
 
 void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z)
 {
+    P_SpawnPuffSafe(x, y, z, false);
+}
+
+void P_SpawnPuffSafe(fixed_t x, fixed_t y, fixed_t z, boolean safe)
+{
     mobj_t *puff;
 
-    z += (P_SubRandom() << 10);
-    puff = P_SpawnMobj(x, y, z, PuffType);
+    z += safe ? (ID_SubRandom() << 10) : (P_SubRandom() << 10);
+    puff = P_SpawnMobjSafe(x, y, z, PuffType, safe);
     if (puff->info->attacksound)
     {
         S_StartSound(puff, puff->info->attacksound);
