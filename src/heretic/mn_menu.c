@@ -3184,14 +3184,16 @@ static void M_Draw_ID_Gameplay_2 (void)
     // Ammo widget translucency
     sprintf(str, st_ammo_widget_translucent ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, st_ammo_widget_translucent ? GLOW_GREEN : GLOW_DARKRED));
+               M_Item_Glow(2, !st_ammo_widget ? GLOW_DARKRED :
+                              st_ammo_widget_translucent ? GLOW_GREEN : GLOW_DARKRED));
 
     // Ammo widget colors
     sprintf(str, st_ammo_widget_colors == 1 ? "AMMO+WEAPONS" :
                  st_ammo_widget_colors == 2 ? "AMMO ONLY" :
                  st_ammo_widget_colors == 3 ? "WEAPONS ONLY" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, st_ammo_widget_colors ? GLOW_GREEN : GLOW_DARKRED));
+               M_Item_Glow(3, !st_ammo_widget ? GLOW_DARKRED :
+                              st_ammo_widget_colors ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextACentered("AUDIBLE", 60, cr[CR_YELLOW]);
 
