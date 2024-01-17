@@ -3083,7 +3083,8 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
                  xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
+               M_Item_Glow(10, !xhair_draw ? GLOW_DARKRED :
+                               xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
                M_Item_Glow(11, GLOW_DARKGRAY));
