@@ -172,7 +172,6 @@ static Menu_t *CurrentMenu;
 static int CurrentItPos;
 static int MenuEpisode;
 static int MenuTime;
-static boolean soundchanged;
 
 boolean askforquit;
 static int typeofask;
@@ -4192,7 +4191,7 @@ static void M_ID_ApplyResetHook (void)
     }
 
     // Restart audio systems (sort of...)
-    S_SetMaxVolume(true);  // Recalc the sound curve now.
+    S_SetMaxVolume();
     S_SetMusicVolume();
 }
 
@@ -5132,8 +5131,10 @@ static boolean SCMouseSensi(int option)
 static boolean SCSfxVolume(int option)
 {
     snd_MaxVolume = M_INT_Slider(snd_MaxVolume, 0, 15, option, true);
-    S_SetMaxVolume(false);      // don't recalc the sound curve, yet
-    soundchanged = true;        // we'll set it when we leave the menu
+    // [JN] Always do a full recalc of the sound curve imideatelly.
+    // Needed for proper volume update of ambient sounds
+    // while active menu and in demo playback mode.
+    S_SetMaxVolume();
     return true;
 }
 
@@ -6160,11 +6161,6 @@ void MN_DeactivateMenu(void)
     if (!quicksave && !quickload)
     {
         S_StartSound(NULL, sfx_dorcls);
-    }
-    if (soundchanged)
-    {
-        S_SetMaxVolume(true);   //recalc the sound curve
-        soundchanged = false;
     }
     players[consoleplayer].message = NULL;
     players[consoleplayer].messageTics = 1;

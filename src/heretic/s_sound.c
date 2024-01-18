@@ -689,7 +689,7 @@ void S_Init(void)
         snd_channels = 16;
     }
     I_SetMusicVolume(snd_MusicVolume * 8);
-    S_SetMaxVolume(true);
+    S_SetMaxVolume();
 
     I_AtExit(S_ShutDown, true);
 
@@ -730,24 +730,15 @@ void S_GetChannelInfo(SoundInfo_t * s)
     }
 }
 
-void S_SetMaxVolume(boolean fullprocess)
+void S_SetMaxVolume(void)
 {
     int i;
 
-    if (!fullprocess)
+    for (i = 0; i < MAX_SND_DIST; i++)
     {
-        soundCurve[0] =
-            (*((byte *) W_CacheLumpName("SNDCURVE", PU_CACHE)) *
+        soundCurve[i] =
+            (*((byte *) W_CacheLumpName("SNDCURVE", PU_CACHE) + i) *
              (snd_MaxVolume * 8)) >> 7;
-    }
-    else
-    {
-        for (i = 0; i < MAX_SND_DIST; i++)
-        {
-            soundCurve[i] =
-                (*((byte *) W_CacheLumpName("SNDCURVE", PU_CACHE) + i) *
-                 (snd_MaxVolume * 8)) >> 7;
-        }
     }
 }
 
@@ -806,7 +797,7 @@ void S_MuteUnmuteSound (boolean mute)
     {
         // Restore volume to actual values.
         I_SetMusicVolume(snd_MusicVolume * 8);
-        S_SetMaxVolume(true);
+        S_SetMaxVolume();
     }
 
     // All done, no need to invoke function until next 
