@@ -1063,9 +1063,9 @@ static byte *SB_NumberColor (int i)
         {
             const int health = CPlayer->health;
 
-            // [crispy] Invulnerability powerup and God Mode cheat turn Health values gray
+            // [crispy] Invulnerability powerup and God Mode cheat turn Health values into flame gold
             if (CPlayer->cheats & CF_GODMODE || CPlayer->powers[pw_invulnerability])
-                return cr[CR_WHITE];
+                return cr[CR_FLAME];
             else if (health >= 67)
                 return cr[CR_GREEN];
             else if (health >= 34)
@@ -1088,9 +1088,9 @@ static byte *SB_NumberColor (int i)
         }
         case hudcolor_armor:
         {
-	    // [crispy] Invulnerability powerup and God Mode cheat turn Armor values gray
+	    // [crispy] Invulnerability powerup and God Mode cheat turn Armor values into flame gold
 	    if (CPlayer->cheats & CF_GODMODE || CPlayer->powers[pw_invulnerability])
-                return cr[CR_WHITE];
+                return cr[CR_FLAME];
 	    // [crispy] color by armor type
 	    else if (CPlayer->armortype >= 2)
                 return cr[CR_YELLOW];

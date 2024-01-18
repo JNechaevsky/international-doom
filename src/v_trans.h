@@ -113,6 +113,7 @@ enum
     CR_LIGHTGRAY_DARK1,
 
     CR_BROWN,
+    CR_FLAME,
 
     CR_RED2BLUE,
     CR_RED2GREEN,
