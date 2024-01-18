@@ -1815,7 +1815,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF |   // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (raising water splash)
      MF2_NOTELEPORT | MF2_LOGRAV | MF2_CANNOTPUSH       // flags2
      },
 
@@ -1843,7 +1843,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP |            // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (water splash pool)
      0                          // flags2
      },
 
@@ -1871,7 +1871,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP |            // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (raising lava splash)
      0                          // flags2
      },
 
@@ -2655,7 +2655,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY | MF_NOSECTOR |        // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (red teleport glitter generator)
      0                          // flags2
      },
 
@@ -2683,7 +2683,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY | MF_NOSECTOR |        // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (blue teleport glitter generator)
      0                          // flags2
      },
 
@@ -2711,7 +2711,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY | MF_MISSILE | // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (red teleport glitter)
      0                          // flags2
      },
 
@@ -2739,7 +2739,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY | MF_MISSILE | // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (blue teleport glitter)
      0                          // flags2
      },
 
@@ -2767,7 +2767,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (teleport fog)
      0                          // flags2
      },
 
@@ -2821,7 +2821,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_FLIPPABLE,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_FLIPPABLE |      // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (staff puff)
      0                          // flags2
      },
 
@@ -2849,7 +2850,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered staff energy puff)
      0                          // flags2
      },
 
@@ -2876,7 +2877,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY|MF_FLIPPABLE,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY|MF_FLIPPABLE|      // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (beak puff)
      0                          // flags2
      },
 
@@ -3012,7 +3014,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      2,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Dragon Claw ultra-fast missile)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3094,7 +3096,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Dragon Claw puff, hit)
      0                          // flags2
      },
 
@@ -3122,7 +3124,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY | MF_EXTRATRANS |      // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Dragon Claw puff, miss)
      0                          // flags2
      },
 
@@ -3312,7 +3314,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      3,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Hell Staff fireball)
      MF2_WINDTHRUST | MF2_NOTELEPORT    // flags2
      },
 
@@ -3340,7 +3342,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      10,                        // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Hell Staff fireball)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3368,7 +3370,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      5,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Hell Staff rain effect 1)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3396,7 +3398,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      5,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Hell Staff rain effect 2)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3424,7 +3426,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      5,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Hell Staff rain effect 3)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3452,7 +3454,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      5,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Hell Staff rain effect 4)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3480,7 +3482,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      2,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (???)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3508,7 +3510,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      1,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Wand missile)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3536,7 +3538,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Wand puff)
      0                          // flags2
      },
 
@@ -3564,7 +3566,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Wand hitscan puff)
      0                          // flags2
      },
 
@@ -3619,7 +3621,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      20,                        // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Phoenix Rod fireball)
      MF2_THRUGHOST | MF2_NOTELEPORT     // flags2
      },
 
@@ -3705,7 +3707,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      2,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Phoenix Rod fire)
      MF2_NOTELEPORT | MF2_FIREDAMAGE    // flags2
      },
 
@@ -3760,7 +3762,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      10,                        // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Ethereal Crossbow arrow 1)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3788,7 +3790,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      6,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Ethereal Crossbow arrow 1)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -3816,7 +3818,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      2,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Ethereal Crossbow arrow 1)
      MF2_WINDTHRUST | MF2_THRUGHOST | MF2_NOTELEPORT    // flags2
      },
 
@@ -3844,7 +3846,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP |            // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (powered Ethereal Crossbow arrow 2)
      MF2_LOGRAV                 // flags2
      },
 
@@ -4520,7 +4522,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      5,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Iron Lich fire wall)
      MF2_WINDTHRUST | MF2_NOTELEPORT    // flags2
      },
 
@@ -4628,7 +4630,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      3,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Disciple of D'Sparil missile)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -4763,7 +4766,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      1,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Fire Gargoyle fireball)
      MF2_WINDTHRUST | MF2_NOTELEPORT    // flags2
      },
 
@@ -4926,7 +4930,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      10,                        // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (D'Sparil blue magic missile)
      MF2_NOTELEPORT | MF2_FIREDAMAGE    // flags2
      },
 
@@ -4981,7 +4985,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      1,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (D'Sparil blue magic missile trail)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -5009,7 +5013,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (D'Sparil blue magic missile trail)
      MF2_NOTELEPORT | MF2_CANNOTPUSH    // flags2
      },
 
@@ -5036,7 +5040,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      10,                        // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (D'Sparil wizard spawner missile)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -5118,7 +5123,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      3,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Maulotaur swing firebal)
      MF2_NOTELEPORT | MF2_FIREDAMAGE    // flags2
      },
 
@@ -5146,7 +5151,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      4,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Maulotaur on ground firebal)
      MF2_NOTELEPORT | MF2_FIREDAMAGE    // flags2
      },
 
@@ -5174,7 +5179,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      4,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency
+     MF_EXTRATRANS,             // [JN] Extra translucency (Maulotaur on ground firebal)
      MF2_NOTELEPORT | MF2_FIREDAMAGE    // flags2
      },
 
