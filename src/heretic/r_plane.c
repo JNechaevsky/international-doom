@@ -433,8 +433,6 @@ void R_DrawPlanes (void)
     int heightmask; // [crispy]
     static int interpfactor; // [crispy]
 
-    extern int columnofs[MAXWIDTH];
-
     // [JN] CRL - openings counter.
     IDRender.numopenings = lastopening - openings;
 

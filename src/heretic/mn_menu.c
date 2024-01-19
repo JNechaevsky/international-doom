@@ -155,11 +155,6 @@ static void DrawSaveMenu(void);
 static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean bigspacing);
 void MN_LoadSlotText(void);
 
-// External Data
-
-extern int detailLevel;
-//extern int screenblocks;
-
 // Public Data
 
 boolean MenuActive;
@@ -4989,7 +4984,7 @@ static void SCScreenSize(int option)
         }
         break;
     }
-    R_SetViewSize(dp_screen_size, detailLevel);
+    R_SetViewSize(dp_screen_size, 0 /*dp_detail_level*/);
 }
 
 //---------------------------------------------------------------------------

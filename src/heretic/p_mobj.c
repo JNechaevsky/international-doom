@@ -982,7 +982,7 @@ static const int P_FindDoomedNum (unsigned type)
 ===============
 */
 
-mobj_t *P_SpawnMobjSafe(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type, boolean safe)
+static mobj_t *P_SpawnMobjSafe(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type, boolean safe)
 {
     mobj_t *mobj;
     state_t *st;
@@ -1356,13 +1356,6 @@ void P_SpawnMapThing(mapthing_t * mthing)
 //
 //---------------------------------------------------------------------------
 
-extern fixed_t attackrange;
-
-void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z)
-{
-    P_SpawnPuffSafe(x, y, z, false);
-}
-
 void P_SpawnPuffSafe(fixed_t x, fixed_t y, fixed_t z, boolean safe)
 {
     mobj_t *puff;
@@ -1404,6 +1397,11 @@ void P_SpawnPuffSafe(fixed_t x, fixed_t y, fixed_t z, boolean safe)
 
     // [crispy] suppress interpolation for the first tic
     puff->interp = -1;
+}
+
+void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z)
+{
+    P_SpawnPuffSafe(x, y, z, false);
 }
 
 /*

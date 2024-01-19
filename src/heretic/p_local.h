@@ -137,7 +137,6 @@ extern mobjtype_t PuffType;
 extern mobj_t *MissileMobj;
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
-mobj_t *P_SpawnMobjSafe(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type, boolean safe);
 void P_RemoveMobj(mobj_t * th);
 boolean P_SetMobjState(mobj_t * mobj, statenum_t state);
 boolean P_SetMobjStateNF(mobj_t * mobj, statenum_t state);
@@ -222,6 +221,7 @@ void P_SetThingPosition(mobj_t * thing);
 
 extern boolean floatok;         // if true, move would be ok if
 extern fixed_t tmfloorz, tmceilingz;    // within tmfloorz - tmceilingz
+extern fixed_t attackrange;
 
 extern line_t *ceilingline;
 boolean P_TestMobjLocation(mobj_t * mobj);
@@ -294,6 +294,11 @@ void SB_PaletteFlash(void);
 // ***** P_SAVEG *****
 
 void P_RestoreTargets (void);
+
+// ***** P_SIGHT *****
+
+extern fixed_t topslope, bottomslope;   // slopes to top and bottom of target
+
 
 #include "p_spec.h"
 

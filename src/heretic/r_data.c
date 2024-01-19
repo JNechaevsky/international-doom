@@ -29,7 +29,6 @@
 
 #include "id_vars.h"
 
-//extern void CheckAbortStartup(void);
 
 typedef struct
 {
