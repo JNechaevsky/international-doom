@@ -80,7 +80,6 @@ boolean cdrom;                  // true if cd-rom mode active
 skill_t startskill;
 int startepisode;
 int startmap;
-int UpdateState;
 //int graphical_startup = 0;
 //static boolean using_graphical_startup;
 static boolean main_loop_started = false;
@@ -255,7 +254,6 @@ void D_Display(void)
             }
 
             CT_Drawer();
-            UpdateState |= I_FULLVIEW;
 
             // [JN] Main status bar drawing function.
             if (dp_screen_size < 13 || (automapactive && !automap_overlay))
@@ -444,7 +442,6 @@ void D_PageDrawer(void)
     {
         V_DrawPatch(4, 160, W_CacheLumpName(DEH_String("ADVISOR"), PU_CACHE));
     }
-    UpdateState |= I_FULLSCRN;
 }
 
 /*
@@ -483,7 +480,6 @@ void D_DoAdvanceDemo(void)
             pagename = DEH_String("TITLE");
             break;
         case 2:
-            UpdateState |= I_FULLSCRN;
             if (demo_internal)
             {
                 G_DeferedPlayDemo(DEH_String("demo1"));
@@ -495,7 +491,6 @@ void D_DoAdvanceDemo(void)
             pagename = DEH_String("CREDIT");
             break;
         case 4:
-            UpdateState |= I_FULLSCRN;
             if (demo_internal)
             {
                 G_DeferedPlayDemo(DEH_String("demo2"));
@@ -514,7 +509,6 @@ void D_DoAdvanceDemo(void)
             }
             break;
         case 6:
-            UpdateState |= I_FULLSCRN;
             if (demo_internal)
             {
                 G_DeferedPlayDemo(DEH_String("demo3"));
@@ -1399,7 +1393,6 @@ void D_DoomMain(void)
 
     if (gameaction != ga_loadgame)
     {
-        UpdateState |= I_FULLSCRN;
         if (autostart || netgame)
         {
             G_InitNew(startskill, startepisode, startmap);

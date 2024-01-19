@@ -2347,6 +2347,4 @@ void AM_Drawer (void)
     {
         AM_LevelNameDrawer();
     }
-
-    UpdateState |= I_FULLSCRN;
 }

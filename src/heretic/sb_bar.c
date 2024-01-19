@@ -608,7 +608,6 @@ static void DrawSoundInfo(void)
         M_snprintf(text, sizeof(text), "%d", c->distance);
         MN_DrTextA(text, xPos[x++], y, NULL);
     }
-    UpdateState |= I_FULLSCRN;
 }
 
 //---------------------------------------------------------------------------
@@ -1189,7 +1188,6 @@ void DrawCommonBar(void)
         V_DrawPatch(0, 190, PatchLTFACE);
         V_DrawPatch(276, 190, PatchRTFACE);
         ShadeChain();
-        UpdateState |= I_STATBAR;
     }
 }
 
@@ -1214,7 +1212,6 @@ void DrawMainBar(void)
         V_DrawPatch(182, 161, W_CacheLumpNum(temp, PU_CACHE));
         ArtifactFlash--;
         oldarti = -1;           // so that the correct artifact fills in after the flash
-        UpdateState |= I_STATBAR;
     }
     else if (oldarti != CPlayer->readyArtifact
              || oldartiCount != CPlayer->inventory[inv_ptr].count)
@@ -1229,7 +1226,6 @@ void DrawMainBar(void)
         }
         oldarti = CPlayer->readyArtifact;
         oldartiCount = CPlayer->inventory[inv_ptr].count;
-        UpdateState |= I_STATBAR;
     }
 
     // Frags
@@ -1247,7 +1243,6 @@ void DrawMainBar(void)
             DrINumber(temp, 61, 170);
             dp_translation = NULL;
             oldfrags = temp;
-            UpdateState |= I_STATBAR;
         }
     }
     else
@@ -1270,7 +1265,6 @@ void DrawMainBar(void)
             dp_translation = SB_NumberColor(hudcolor_health);
             DrINumber(temp, 61, 170);
             dp_translation = NULL;
-            UpdateState |= I_STATBAR;
         }
     }
 
@@ -1290,7 +1284,6 @@ void DrawMainBar(void)
             V_DrawPatch(153, 180, W_CacheLumpName(DEH_String("bkeyicon"), PU_CACHE));
         }
         oldkeys = playerkeys;
-        UpdateState |= I_STATBAR;
     }
     // Ammo
     temp = CPlayer->ammo[wpnlev1info[CPlayer->readyweapon].ammo];
@@ -1308,7 +1301,6 @@ void DrawMainBar(void)
         }
         oldammo = temp;
         oldweapon = CPlayer->readyweapon;
-        UpdateState |= I_STATBAR;
     }
 
     // Armor
@@ -1321,7 +1313,6 @@ void DrawMainBar(void)
         DrINumber(CPlayer->armorpoints, 228, 170);
         dp_translation = NULL;
         oldarmor = CPlayer->armorpoints;
-        UpdateState |= I_STATBAR;
     }
 }
 
@@ -1338,7 +1329,6 @@ void DrawInventoryBar(void)
     int x;
 
     x = inv_ptr - curpos;
-    UpdateState |= I_STATBAR;
     V_DrawPatch(34, 160, PatchINVBAR);
     for (i = 0; i < 7; i++)
     {
@@ -1375,8 +1365,6 @@ static void DrawFullScreenStuff (void)
     const char *patch;
     const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
     int i;
-
-    UpdateState |= I_FULLSCRN;
 
     // Health.
     dp_translation = SB_NumberColor(hudcolor_health);

@@ -564,7 +564,6 @@ void IN_Drawer(void)
     {
         return;
     }
-    UpdateState |= I_FULLSCRN;
     if (oldinterstate != 2 && interstate == 2)
     {
         S_StartSound(NULL, sfx_pstop);

@@ -550,7 +550,6 @@ void F_BunnyScroll(void)
 
 void F_Drawer(void)
 {
-    UpdateState |= I_FULLSCRN;
     if (!finalestage)
         F_TextWrite();
     else

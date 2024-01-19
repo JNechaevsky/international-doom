@@ -4608,13 +4608,11 @@ void MN_Drawer(void)
                 MN_DrTextACentered("ARE YOU SURE WANT TO CONTINUE?", 100, NULL);
                 MN_DrTextACentered("PRESS Y OR N.", 120, NULL);
             }
-            UpdateState |= I_FULLSCRN;
         }
         return;
     }
     else
     {
-        UpdateState |= I_FULLSCRN;
         if (InfoType)
         {
             MN_DrawInfo();
@@ -5596,7 +5594,6 @@ boolean MN_Responder(event_t * event)
                 askforquit = false;
                 typeofask = 0;
                 paused = false;
-                UpdateState |= I_FULLSCRN;
                 return true;
             }
         }
@@ -5614,7 +5611,6 @@ boolean MN_Responder(event_t * event)
             }
             SCScreenSize(LEFT_DIR);
             S_StartSound(NULL, sfx_keyup);
-            UpdateState |= I_FULLSCRN;
             return (true);
         }
         else if (key == key_menu_incscreen)
@@ -5625,7 +5621,6 @@ boolean MN_Responder(event_t * event)
             }
             SCScreenSize(RIGHT_DIR);
             S_StartSound(NULL, sfx_keyup);
-            UpdateState |= I_FULLSCRN;
             return (true);
         }
         else if (key == key_menu_help)           // F1

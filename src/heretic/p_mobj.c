@@ -1178,14 +1178,12 @@ void P_SpawnPlayer(mapthing_t * mthing)
             if (p == &players[consoleplayer])
             {
                 playerkeys = 7;
-                UpdateState |= I_STATBAR;
             }
         }
     }
     else if (p == &players[consoleplayer])
     {
         playerkeys = 0;
-        UpdateState |= I_STATBAR;
     }
 }
 
