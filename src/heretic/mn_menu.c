@@ -137,6 +137,7 @@ static boolean SCSfxVolume(int option);
 static boolean SCMusicVolume(int option);
 static boolean SCScreenSize(int option);
 static boolean SCLoadGame(int option);
+static boolean SCSaveCheck(int option);
 static boolean SCSaveGame(int option);
 static boolean SCEndGame(int option);
 static boolean SCInfo(int option);
@@ -244,8 +245,8 @@ static Menu_t EpisodeMenu = {
 };
 
 static MenuItem_t FilesItems[] = {
-    {ITT_EFUNC, "LOAD GAME", SCNetCheck, 2, MENU_LOAD},
-    {ITT_SETMENU, "SAVE GAME", NULL, 0, MENU_SAVE}
+    { ITT_EFUNC, "LOAD GAME", SCNetCheck,  2, MENU_LOAD },
+    { ITT_EFUNC, "SAVE GAME", SCSaveCheck, 0, MENU_SAVE },
 };
 
 static Menu_t FilesMenu = {
@@ -4721,10 +4722,6 @@ static void DrawFilesMenu(void)
 // clear out the quicksave/quickload stuff
     quicksave = 0;
     quickload = 0;
-    players[consoleplayer].message = NULL;
-    players[consoleplayer].messageTics = 1;
-    players[consoleplayer].messageCentered = NULL;
-    players[consoleplayer].messageCenteredTics = 1;
 }
 
 // [crispy] support additional pages of savegames
@@ -5026,6 +5023,22 @@ static boolean StartsWithMapIdentifier (char *str)
     }
 
     return false;
+}
+
+// [JN] Check if Save Game menu should be accessable.
+static boolean SCSaveCheck(int option)
+{
+    if (!usergame)
+    {
+        CT_SetMessage(&players[consoleplayer],
+                     "YOU CAN'T SAVE IF YOU AREN'T PLAYING", true, NULL);
+        return false;
+    }
+    else
+    {
+        SetMenu(MENU_SAVE);
+        return true;
+    }
 }
 
 static boolean SCSaveGame(int option)
