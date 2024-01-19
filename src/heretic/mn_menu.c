@@ -100,7 +100,7 @@ typedef struct
 {
     ItemType_t type;
     char *text;
-    boolean(*func) (int option);
+    void (*func) (int option);
     int option;
     MenuType_t menu;
     short tics;  // [JN] Menu item timer for glowing effect.
@@ -129,18 +129,19 @@ typedef struct
 static void InitFonts(void);
 static void SetMenu(MenuType_t menu);
 static boolean SCNetCheck(int option);
-static boolean SCQuitGame(int option);
-static boolean SCEpisode(int option);
-static boolean SCSkill(int option);
-static boolean SCMouseSensi(int option);
-static boolean SCSfxVolume(int option);
-static boolean SCMusicVolume(int option);
-static boolean SCScreenSize(int option);
-static boolean SCLoadGame(int option);
-static boolean SCSaveCheck(int option);
-static boolean SCSaveGame(int option);
-static boolean SCEndGame(int option);
-static boolean SCInfo(int option);
+static void SCNetCheck2(int option);
+static void SCQuitGame(int option);
+static void SCEpisode(int option);
+static void SCSkill(int option);
+static void SCMouseSensi(int option);
+static void SCSfxVolume(int option);
+static void SCMusicVolume(int option);
+static void SCScreenSize(int option);
+static void SCLoadGame(int option);
+static void SCSaveCheck(int option);
+static void SCSaveGame(int option);
+static void SCEndGame(int option);
+static void SCInfo(int option);
 static void DrawMainMenu(void);
 static void DrawEpisodeMenu(void);
 static void DrawSkillMenu(void);
@@ -211,7 +212,7 @@ static char *gammalvls[16][32] =
 };
 
 static MenuItem_t MainItems[] = {
-    {ITT_EFUNC, "NEW GAME", SCNetCheck, 1, MENU_EPISODE},
+    {ITT_SETMENU, "NEW GAME", SCNetCheck2, 1, MENU_EPISODE},
     {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_ID_MAIN},
     {ITT_SETMENU, "GAME FILES", NULL, 0, MENU_FILES},
     {ITT_EFUNC, "INFO", SCInfo, 0, MENU_NONE},
@@ -245,8 +246,8 @@ static Menu_t EpisodeMenu = {
 };
 
 static MenuItem_t FilesItems[] = {
-    { ITT_EFUNC, "LOAD GAME", SCNetCheck,  2, MENU_LOAD },
-    { ITT_EFUNC, "SAVE GAME", SCSaveCheck, 0, MENU_SAVE },
+    { ITT_SETMENU, "LOAD GAME", SCNetCheck2,  2, MENU_LOAD },
+    { ITT_SETMENU, "SAVE GAME", NULL, 0, MENU_SAVE },
 };
 
 static Menu_t FilesMenu = {
@@ -370,246 +371,245 @@ static player_t *player;
 static void M_Draw_ID_Main (void);
 
 static void M_Draw_ID_Video (void);
-static boolean M_ID_TrueColor (int choice);
-static boolean M_ID_RenderingRes (int choice);
-static boolean M_ID_Widescreen (int choice);
-static boolean M_ID_UncappedFPS (int choice);
-static boolean M_ID_LimitFPS (int choice);
-static boolean M_ID_VSync (int choice);
-static boolean M_ID_ShowFPS (int choice);
-static boolean M_ID_PixelScaling (int choice);
-static boolean M_ID_EndText (int choice);
+static void M_ID_TrueColor (int choice);
+static void M_ID_RenderingRes (int choice);
+static void M_ID_Widescreen (int choice);
+static void M_ID_UncappedFPS (int choice);
+static void M_ID_LimitFPS (int choice);
+static void M_ID_VSync (int choice);
+static void M_ID_ShowFPS (int choice);
+static void M_ID_PixelScaling (int choice);
+static void M_ID_EndText (int choice);
 
 static void M_Draw_ID_Display (void);
-static boolean M_ID_Gamma (int choice);
-static boolean M_ID_FOV (int choice);
-static boolean M_ID_MenuShading (int choice);
-static boolean M_ID_LevelBrightness (int choice);
-static boolean M_ID_Saturation (int choice);
-static boolean M_ID_R_Intensity (int choice);
-static boolean M_ID_G_Intensity (int choice);
-static boolean M_ID_B_Intensity (int choice);
-static boolean M_ID_Messages (int choice);
-static boolean M_ID_TextShadows (int choice);
-static boolean M_ID_LocalTime (int choice);
+static void M_ID_Gamma (int choice);
+static void M_ID_FOV (int choice);
+static void M_ID_MenuShading (int choice);
+static void M_ID_LevelBrightness (int choice);
+static void M_ID_Saturation (int choice);
+static void M_ID_R_Intensity (int choice);
+static void M_ID_G_Intensity (int choice);
+static void M_ID_B_Intensity (int choice);
+static void M_ID_Messages (int choice);
+static void M_ID_TextShadows (int choice);
+static void M_ID_LocalTime (int choice);
 
 static void M_Draw_ID_Sound (void);
-static boolean M_ID_MusicSystem (int option);
-static boolean M_ID_SFXMode (int option);
-static boolean M_ID_PitchShift (int option);
-static boolean M_ID_SFXChannels (int option);
-static boolean M_ID_MuteInactive (int option);
+static void M_ID_MusicSystem (int option);
+static void M_ID_SFXMode (int option);
+static void M_ID_PitchShift (int option);
+static void M_ID_SFXChannels (int option);
+static void M_ID_MuteInactive (int option);
 
 static void M_Draw_ID_Controls (void);
-static boolean M_ID_Controls_Acceleration (int option);
-static boolean M_ID_Controls_Threshold (int option);
-static boolean M_ID_Controls_MLook (int option);
-static boolean M_ID_Controls_NoVert (int option);
-static boolean M_ID_Controls_InvertY (int option);
-static boolean M_ID_Controls_NoArtiSkip (int option);
+static void M_ID_Controls_Acceleration (int option);
+static void M_ID_Controls_Threshold (int option);
+static void M_ID_Controls_MLook (int option);
+static void M_ID_Controls_NoVert (int option);
+static void M_ID_Controls_InvertY (int option);
+static void M_ID_Controls_NoArtiSkip (int option);
 
 static void M_Draw_ID_Keybinds_1 (void);
-static boolean M_Bind_MoveForward (int option);
-static boolean M_Bind_MoveBackward (int option);
-static boolean M_Bind_TurnLeft (int option);
-static boolean M_Bind_TurnRight (int option);
-static boolean M_Bind_StrafeLeft (int option);
-static boolean M_Bind_StrafeRight (int option);
-static boolean M_Bind_StrafeOn (int option);
-static boolean M_Bind_SpeedOn (int option);
-static boolean M_Bind_180Turn (int option);
-static boolean M_Bind_FireAttack (int option);
-static boolean M_Bind_Use (int option);
+static void M_Bind_MoveForward (int option);
+static void M_Bind_MoveBackward (int option);
+static void M_Bind_TurnLeft (int option);
+static void M_Bind_TurnRight (int option);
+static void M_Bind_StrafeLeft (int option);
+static void M_Bind_StrafeRight (int option);
+static void M_Bind_StrafeOn (int option);
+static void M_Bind_SpeedOn (int option);
+static void M_Bind_180Turn (int option);
+static void M_Bind_FireAttack (int option);
+static void M_Bind_Use (int option);
 
 static void M_Draw_ID_Keybinds_2 (void);
-static boolean M_Bind_LookUp (int option);
-static boolean M_Bind_LookDown (int option);
-static boolean M_Bind_LookCenter (int option);
-static boolean M_Bind_FlyUp (int option);
-static boolean M_Bind_FlyDown (int option);
-static boolean M_Bind_FlyCenter (int option);
-static boolean M_Bind_InvLeft (int option);
-static boolean M_Bind_InvRight (int option);
-static boolean M_Bind_UseArti (int option);
+static void M_Bind_LookUp (int option);
+static void M_Bind_LookDown (int option);
+static void M_Bind_LookCenter (int option);
+static void M_Bind_FlyUp (int option);
+static void M_Bind_FlyDown (int option);
+static void M_Bind_FlyCenter (int option);
+static void M_Bind_InvLeft (int option);
+static void M_Bind_InvRight (int option);
+static void M_Bind_UseArti (int option);
 
 static void M_Draw_ID_Keybinds_3 (void);
-static boolean M_Bind_AlwaysRun (int option);
-static boolean M_Bind_MouseLook (int option);
-static boolean M_Bind_RestartLevel (int option);
-static boolean M_Bind_NextLevel (int option);
-static boolean M_Bind_FastForward (int option);
-static boolean M_Bind_FlipLevels (int option);
-static boolean M_Bind_SpectatorMode (int option);
-static boolean M_Bind_FreezeMode (int option);
-static boolean M_Bind_NotargetMode (int option);
-static boolean M_Bind_BuddhaMode (int option);
+static void M_Bind_AlwaysRun (int option);
+static void M_Bind_MouseLook (int option);
+static void M_Bind_RestartLevel (int option);
+static void M_Bind_NextLevel (int option);
+static void M_Bind_FastForward (int option);
+static void M_Bind_FlipLevels (int option);
+static void M_Bind_SpectatorMode (int option);
+static void M_Bind_FreezeMode (int option);
+static void M_Bind_NotargetMode (int option);
+static void M_Bind_BuddhaMode (int option);
 
 static void M_Draw_ID_Keybinds_4 (void);
-static boolean M_Bind_Weapon1 (int option);
-static boolean M_Bind_Weapon2 (int option);
-static boolean M_Bind_Weapon3 (int option);
-static boolean M_Bind_Weapon4 (int option);
-static boolean M_Bind_Weapon5 (int option);
-static boolean M_Bind_Weapon6 (int option);
-static boolean M_Bind_Weapon7 (int option);
-static boolean M_Bind_Weapon8 (int option);
-static boolean M_Bind_PrevWeapon (int option);
-static boolean M_Bind_NextWeapon (int option);
+static void M_Bind_Weapon1 (int option);
+static void M_Bind_Weapon2 (int option);
+static void M_Bind_Weapon3 (int option);
+static void M_Bind_Weapon4 (int option);
+static void M_Bind_Weapon5 (int option);
+static void M_Bind_Weapon6 (int option);
+static void M_Bind_Weapon7 (int option);
+static void M_Bind_Weapon8 (int option);
+static void M_Bind_PrevWeapon (int option);
+static void M_Bind_NextWeapon (int option);
 
 static void M_Draw_ID_Keybinds_5 (void);
-static boolean M_Bind_Quartz (int option);
-static boolean M_Bind_Urn (int option);
-static boolean M_Bind_Bomb (int option);
-static boolean M_Bind_Tome (int option);
-static boolean M_Bind_Ring (int option);
-static boolean M_Bind_Chaosdevice (int option);
-static boolean M_Bind_Shadowsphere (int option);
-static boolean M_Bind_Wings (int option);
-static boolean M_Bind_Torch (int option);
-static boolean M_Bind_Morph (int option);
+static void M_Bind_Quartz (int option);
+static void M_Bind_Urn (int option);
+static void M_Bind_Bomb (int option);
+static void M_Bind_Tome (int option);
+static void M_Bind_Ring (int option);
+static void M_Bind_Chaosdevice (int option);
+static void M_Bind_Shadowsphere (int option);
+static void M_Bind_Wings (int option);
+static void M_Bind_Torch (int option);
+static void M_Bind_Morph (int option);
 
 static void M_Draw_ID_Keybinds_6 (void);
-static boolean M_Bind_ToggleMap (int option);
-static boolean M_Bind_ZoomIn (int option);
-static boolean M_Bind_ZoomOut (int option);
-static boolean M_Bind_MaxZoom (int option);
-static boolean M_Bind_FollowMode (int option);
-static boolean M_Bind_RotateMode (int option);
-static boolean M_Bind_OverlayMode (int option);
-static boolean M_Bind_ToggleGrid (int option);
-static boolean M_Bind_AddMark (int option);
-static boolean M_Bind_ClearMarks (int option);
+static void M_Bind_ToggleMap (int option);
+static void M_Bind_ZoomIn (int option);
+static void M_Bind_ZoomOut (int option);
+static void M_Bind_MaxZoom (int option);
+static void M_Bind_FollowMode (int option);
+static void M_Bind_RotateMode (int option);
+static void M_Bind_OverlayMode (int option);
+static void M_Bind_ToggleGrid (int option);
+static void M_Bind_AddMark (int option);
+static void M_Bind_ClearMarks (int option);
 
 static void M_Draw_ID_Keybinds_7 (void);
-static boolean M_Bind_HelpScreen (int option);
-static boolean M_Bind_SaveGame (int option);
-static boolean M_Bind_LoadGame (int option);
-static boolean M_Bind_SoundVolume (int option);
-static boolean M_Bind_QuickSave (int option);
-static boolean M_Bind_EndGame (int option);
-static boolean M_Bind_ToggleMessages (int option);
-static boolean M_Bind_QuickLoad (int option);
-static boolean M_Bind_QuitGame (int option);
-static boolean M_Bind_ToggleGamma (int option);
-static boolean M_Bind_MultiplayerSpy (int option);
+static void M_Bind_HelpScreen (int option);
+static void M_Bind_SaveGame (int option);
+static void M_Bind_LoadGame (int option);
+static void M_Bind_SoundVolume (int option);
+static void M_Bind_QuickSave (int option);
+static void M_Bind_EndGame (int option);
+static void M_Bind_ToggleMessages (int option);
+static void M_Bind_QuickLoad (int option);
+static void M_Bind_QuitGame (int option);
+static void M_Bind_ToggleGamma (int option);
+static void M_Bind_MultiplayerSpy (int option);
 
 static void M_Draw_ID_Keybinds_8 (void);
-static boolean M_Bind_Pause (int option);
-static boolean M_Bind_SaveScreenshot (int option);
-static boolean M_Bind_LastMessage (int option);
-static boolean M_Bind_FinishDemo (int option);
-static boolean M_Bind_SendMessage (int option);
-static boolean M_Bind_ToPlayer1 (int option);
-static boolean M_Bind_ToPlayer2 (int option);
-static boolean M_Bind_ToPlayer3 (int option);
-static boolean M_Bind_ToPlayer4 (int option);
-static boolean M_Bind_Reset (int option);
+static void M_Bind_Pause (int option);
+static void M_Bind_SaveScreenshot (int option);
+static void M_Bind_LastMessage (int option);
+static void M_Bind_FinishDemo (int option);
+static void M_Bind_SendMessage (int option);
+static void M_Bind_ToPlayer1 (int option);
+static void M_Bind_ToPlayer2 (int option);
+static void M_Bind_ToPlayer3 (int option);
+static void M_Bind_ToPlayer4 (int option);
+static void M_Bind_Reset (int option);
 
 static void M_Draw_ID_MouseBinds (void);
-static boolean M_Bind_M_FireAttack (int option);
-static boolean M_Bind_M_MoveForward (int option);
-static boolean M_Bind_M_StrafeOn (int option);
-static boolean M_Bind_M_MoveBackward (int option);
-static boolean M_Bind_M_Use (int option);
-static boolean M_Bind_M_StrafeLeft (int option);
-static boolean M_Bind_M_StrafeRight (int option);
-static boolean M_Bind_M_PrevWeapon (int option);
-static boolean M_Bind_M_NextWeapon (int option);
-static boolean M_Bind_M_InventoryLeft (int option);
-static boolean M_Bind_M_InventoryRight (int option);
-static boolean M_Bind_M_UseArtifact (int option);
+static void M_Bind_M_FireAttack (int option);
+static void M_Bind_M_MoveForward (int option);
+static void M_Bind_M_StrafeOn (int option);
+static void M_Bind_M_MoveBackward (int option);
+static void M_Bind_M_Use (int option);
+static void M_Bind_M_StrafeLeft (int option);
+static void M_Bind_M_StrafeRight (int option);
+static void M_Bind_M_PrevWeapon (int option);
+static void M_Bind_M_NextWeapon (int option);
+static void M_Bind_M_InventoryLeft (int option);
+static void M_Bind_M_InventoryRight (int option);
+static void M_Bind_M_UseArtifact (int option);
 
-static boolean M_Bind_M_Reset (int option);
+static void M_Bind_M_Reset (int option);
 
 static void M_Draw_ID_Widgets (void);
-static boolean M_ID_Widget_Location (int choice);
-static boolean M_ID_Widget_KIS (int choice);
-
-static boolean M_ID_Widget_Coords (int choice);
-static boolean M_ID_Widget_Render (int choice);
-static boolean M_ID_Widget_Time (int choice);
-static boolean M_ID_Widget_TotalTime (int choice);
-static boolean M_ID_Widget_LevelName (int choice);
-static boolean M_ID_Widget_Health (int choice);
-static boolean M_ID_Automap_Secrets (int choice);
-static boolean M_ID_Automap_Rotate (int choice);
-static boolean M_ID_Automap_Overlay (int choice);
-static boolean M_ID_Automap_Shading (int choice);
+static void M_ID_Widget_Location (int choice);
+static void M_ID_Widget_KIS (int choice);
+static void M_ID_Widget_Coords (int choice);
+static void M_ID_Widget_Render (int choice);
+static void M_ID_Widget_Time (int choice);
+static void M_ID_Widget_TotalTime (int choice);
+static void M_ID_Widget_LevelName (int choice);
+static void M_ID_Widget_Health (int choice);
+static void M_ID_Automap_Secrets (int choice);
+static void M_ID_Automap_Rotate (int choice);
+static void M_ID_Automap_Overlay (int choice);
+static void M_ID_Automap_Shading (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
-static boolean M_ID_Brightmaps (int choice);
-static boolean M_ID_Translucency (int choice);
-static boolean M_ID_FakeContrast (int choice);
-static boolean M_ID_SmoothLighting (int choice);
-static boolean M_ID_SwirlingLiquids (int choice);
-static boolean M_ID_InvulSky (int choice);
-static boolean M_ID_LinearSky (int choice);
-static boolean M_ID_FlipCorpses (int choice);
-static boolean M_ID_Crosshair (int choice);
-static boolean M_ID_CrosshairColor (int choice);
+static void M_ID_Brightmaps (int choice);
+static void M_ID_Translucency (int choice);
+static void M_ID_FakeContrast (int choice);
+static void M_ID_SmoothLighting (int choice);
+static void M_ID_SwirlingLiquids (int choice);
+static void M_ID_InvulSky (int choice);
+static void M_ID_LinearSky (int choice);
+static void M_ID_FlipCorpses (int choice);
+static void M_ID_Crosshair (int choice);
+static void M_ID_CrosshairColor (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
-static boolean M_ID_ColoredSBar (int choice);
-static boolean M_ID_AmmoWidget (int choice);
-static boolean M_ID_AmmoWidgetTranslucent (int choice);
-static boolean M_ID_AmmoWidgetColors (int choice);
-static boolean M_ID_ZAxisSfx (int choice);
-static boolean M_ID_Torque (int choice);
-static boolean M_ID_WeaponAlignment (int choice);
-static boolean M_ID_Breathing (int choice);
+static void M_ID_ColoredSBar (int choice);
+static void M_ID_AmmoWidget (int choice);
+static void M_ID_AmmoWidgetTranslucent (int choice);
+static void M_ID_AmmoWidgetColors (int choice);
+static void M_ID_ZAxisSfx (int choice);
+static void M_ID_Torque (int choice);
+static void M_ID_WeaponAlignment (int choice);
+static void M_ID_Breathing (int choice);
 
 static void M_Draw_ID_Gameplay_3 (void);
-static boolean M_ID_DefaulSkill (int choice);
-static boolean M_ID_RevealedSecrets (int choice);
-static boolean M_ID_FlipLevels (int choice);
-static boolean M_ID_DemoTimer (int choice);
-static boolean M_ID_TimerDirection (int choice);
-static boolean M_ID_ProgressBar (int choice);
-static boolean M_ID_InternalDemos (int choice);
-static boolean M_ID_PistolStart (int choice);
-static boolean M_ID_BlockmapFix (int choice);
+static void M_ID_DefaulSkill (int choice);
+static void M_ID_RevealedSecrets (int choice);
+static void M_ID_FlipLevels (int choice);
+static void M_ID_DemoTimer (int choice);
+static void M_ID_TimerDirection (int choice);
+static void M_ID_ProgressBar (int choice);
+static void M_ID_InternalDemos (int choice);
+static void M_ID_PistolStart (int choice);
+static void M_ID_BlockmapFix (int choice);
 
 static void M_Draw_ID_Level_1 (void);
-static boolean M_ID_LevelSkill (int choice);
-static boolean M_ID_LevelEpisode (int choice);
-static boolean M_ID_LevelMap (int choice);
-static boolean M_ID_LevelHealth (int choice);
-static boolean M_ID_LevelArmor (int choice);
-static boolean M_ID_LevelArmorType (int choice);
-static boolean M_ID_LevelGauntlets (int choice);
-static boolean M_ID_LevelCrossbow (int choice);
-static boolean M_ID_LevelDragonClaw (int choice);
-static boolean M_ID_LevelHellStaff (int choice);
-static boolean M_ID_LevelPhoenixRod (int choice);
-static boolean M_ID_LevelFireMace (int choice);
+static void M_ID_LevelSkill (int choice);
+static void M_ID_LevelEpisode (int choice);
+static void M_ID_LevelMap (int choice);
+static void M_ID_LevelHealth (int choice);
+static void M_ID_LevelArmor (int choice);
+static void M_ID_LevelArmorType (int choice);
+static void M_ID_LevelGauntlets (int choice);
+static void M_ID_LevelCrossbow (int choice);
+static void M_ID_LevelDragonClaw (int choice);
+static void M_ID_LevelHellStaff (int choice);
+static void M_ID_LevelPhoenixRod (int choice);
+static void M_ID_LevelFireMace (int choice);
 
 static void M_Draw_ID_Level_2 (void);
-static boolean M_ID_LevelBag (int choice);
-static boolean M_ID_LevelAmmo_0 (int choice);
-static boolean M_ID_LevelAmmo_1 (int choice);
-static boolean M_ID_LevelAmmo_2 (int choice);
-static boolean M_ID_LevelAmmo_3 (int choice);
-static boolean M_ID_LevelAmmo_4 (int choice);
-static boolean M_ID_LevelAmmo_5 (int choice);
-static boolean M_ID_LevelKey_0 (int choice);
-static boolean M_ID_LevelKey_1 (int choice);
-static boolean M_ID_LevelKey_2 (int choice);
-static boolean M_ID_LevelFast (int choice);
-static boolean M_ID_LevelRespawn (int choice);
+static void M_ID_LevelBag (int choice);
+static void M_ID_LevelAmmo_0 (int choice);
+static void M_ID_LevelAmmo_1 (int choice);
+static void M_ID_LevelAmmo_2 (int choice);
+static void M_ID_LevelAmmo_3 (int choice);
+static void M_ID_LevelAmmo_4 (int choice);
+static void M_ID_LevelAmmo_5 (int choice);
+static void M_ID_LevelKey_0 (int choice);
+static void M_ID_LevelKey_1 (int choice);
+static void M_ID_LevelKey_2 (int choice);
+static void M_ID_LevelFast (int choice);
+static void M_ID_LevelRespawn (int choice);
 
 static void M_Draw_ID_Level_3 (void);
-static boolean M_ID_LevelArti_0 (int choice);
-static boolean M_ID_LevelArti_1 (int choice);
-static boolean M_ID_LevelArti_2 (int choice);
-static boolean M_ID_LevelArti_3 (int choice);
-static boolean M_ID_LevelArti_4 (int choice);
-static boolean M_ID_LevelArti_5 (int choice);
-static boolean M_ID_LevelArti_6 (int choice);
-static boolean M_ID_LevelArti_7 (int choice);
-static boolean M_ID_LevelArti_8 (int choice);
-static boolean M_ID_LevelArti_9 (int choice);
+static void M_ID_LevelArti_0 (int choice);
+static void M_ID_LevelArti_1 (int choice);
+static void M_ID_LevelArti_2 (int choice);
+static void M_ID_LevelArti_3 (int choice);
+static void M_ID_LevelArti_4 (int choice);
+static void M_ID_LevelArti_5 (int choice);
+static void M_ID_LevelArti_6 (int choice);
+static void M_ID_LevelArti_7 (int choice);
+static void M_ID_LevelArti_8 (int choice);
+static void M_ID_LevelArti_9 (int choice);
 
-static boolean M_ID_SettingReset (int choice);
+static void M_ID_SettingReset (int choice);
 static void M_ID_ApplyReset (void);
 
 // Keyboard binding prototypes
@@ -658,19 +658,17 @@ static Menu_t ID_Def_Level_3;
 // Remember last keybindings page.
 static int Keybinds_Cur;
 
-static boolean M_Choose_ID_Keybinds (int choice)
+static void M_Choose_ID_Keybinds (int choice)
 {
     SetMenu(Keybinds_Cur);
-    return true;
 }
 
 // Remember last gameplay page.
 static int Gameplay_Cur;
 
-static boolean M_Choose_ID_Gameplay (int choice)
+static void M_Choose_ID_Gameplay (int choice)
 {
     SetMenu(Gameplay_Cur);
-    return true;
 }
 
 // Utility function for scrolling pages by arrows / PG keys.
@@ -1115,14 +1113,13 @@ static void M_ID_TrueColorHook (void)
 }
 #endif
 
-static boolean M_ID_TrueColor (int option)
+static void M_ID_TrueColor (int option)
 {
 #ifndef CRISPY_TRUECOLOR
-    return false;
+    // TODO return false;
 #else
     vid_truecolor ^= 1;
     post_rendering_hook = M_ID_TrueColorHook;
-    return true;
 #endif
 }
 
@@ -1144,11 +1141,10 @@ static void M_ID_RenderingResHook (void)
     }
 }
 
-static boolean M_ID_RenderingRes (int choice)
+static void M_ID_RenderingRes (int choice)
 {
     vid_resolution = M_INT_Slider(vid_resolution, 1, MAXHIRES, choice, false);
     post_rendering_hook = M_ID_RenderingResHook;
-    return true;
 }
 
 static void M_ID_WidescreenHook (void)
@@ -1169,27 +1165,24 @@ static void M_ID_WidescreenHook (void)
     }
 }
 
-static boolean M_ID_Widescreen (int choice)
+static void M_ID_Widescreen (int choice)
 {
     vid_widescreen = M_INT_Slider(vid_widescreen, 0, 4, choice, false);
     post_rendering_hook = M_ID_WidescreenHook;
-    return true;
 }
 
-static boolean M_ID_UncappedFPS (int choice)
+static void M_ID_UncappedFPS (int choice)
 {
     vid_uncapped_fps ^= 1;
     // [JN] Skip weapon bobbing interpolation for next frame.
     pspr_interp = false;
-    return true;
 }
 
-static boolean M_ID_LimitFPS (int choice)
+static void M_ID_LimitFPS (int choice)
 {
-
     if (!vid_uncapped_fps)
     {
-        return false;  // Do not allow change value in capped framerate.
+        return;  // Do not allow change value in capped framerate.
     }
     
     switch (choice)
@@ -1212,23 +1205,20 @@ static boolean M_ID_LimitFPS (int choice)
         default:
             break;
     }
-    return true;
 }
 
-static boolean M_ID_VSync (int choice)
+static void M_ID_VSync (int choice)
 {
     vid_vsync ^= 1;
     I_ToggleVsync();
-    return true;
 }
 
-static boolean M_ID_ShowFPS (int choice)
+static void M_ID_ShowFPS (int choice)
 {
     vid_showfps ^= 1;
-    return true;
 }
 
-static boolean M_ID_PixelScaling (int choice)
+static void M_ID_PixelScaling (int choice)
 {
     vid_smooth_scaling ^= 1;
 
@@ -1236,13 +1226,11 @@ static boolean M_ID_PixelScaling (int choice)
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
     R_ExecuteSetViewSize();
-    return true;
 }
 
-static boolean M_ID_EndText (int option)
+static void M_ID_EndText (int option)
 {
     vid_endoom ^= 1;
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -1345,7 +1333,7 @@ static void M_Draw_ID_Display (void)
                M_Item_Glow(12, msg_local_time ? GLOW_GREEN : GLOW_DARKRED));
 }
 
-static boolean M_ID_Gamma (int choice)
+static void M_ID_Gamma (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
 
@@ -1359,10 +1347,9 @@ static boolean M_ID_Gamma (int choice)
     R_FillBackScreen();
     SB_ForceRedraw();
 #endif
-    return true;
 }
 
-static boolean M_ID_FOV (int choice)
+static void M_ID_FOV (int choice)
 {
     vid_fov = M_INT_Slider(vid_fov, 70, 135, choice, true);
 
@@ -1370,22 +1357,19 @@ static boolean M_ID_FOV (int choice)
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
     R_ExecuteSetViewSize();
-    return true;
 }
 
-static boolean M_ID_MenuShading (int choice)
+static void M_ID_MenuShading (int choice)
 {
     dp_menu_shading = M_INT_Slider(dp_menu_shading, 0, 8, choice, true);
-    return true;
 }
 
-static boolean M_ID_LevelBrightness (int choice)
+static void M_ID_LevelBrightness (int choice)
 {
     dp_level_brightness = M_INT_Slider(dp_level_brightness, 0, 8, choice, true);
-    return true;
 }
 
-static boolean M_ID_Saturation (int choice)
+static void M_ID_Saturation (int choice)
 {
     vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
 
@@ -1397,10 +1381,9 @@ static boolean M_ID_Saturation (int choice)
     SB_ForceRedraw();
     AM_Init();
 #endif
-    return true;
 }
 
-static boolean M_ID_R_Intensity (int choice)
+static void M_ID_R_Intensity (int choice)
 {
     vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
@@ -1412,10 +1395,9 @@ static boolean M_ID_R_Intensity (int choice)
     SB_ForceRedraw();
     AM_Init();
 #endif
-    return true;
 }
 
-static boolean M_ID_G_Intensity (int choice)
+static void M_ID_G_Intensity (int choice)
 {
     vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
@@ -1427,10 +1409,9 @@ static boolean M_ID_G_Intensity (int choice)
     SB_ForceRedraw();
     AM_Init();
 #endif
-    return true;
 }
 
-static boolean M_ID_B_Intensity (int choice)
+static void M_ID_B_Intensity (int choice)
 {
     vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
@@ -1442,30 +1423,25 @@ static boolean M_ID_B_Intensity (int choice)
     SB_ForceRedraw();
     AM_Init();
 #endif
-    return true;
 }
 
-static boolean M_ID_Messages (int choice)
+static void M_ID_Messages (int choice)
 {
     msg_show ^= 1;
     CT_SetMessage(&players[consoleplayer],
                  DEH_String(msg_show ? "MESSAGES ON" : "MESSAGES OFF"), true, NULL);
     S_StartSound(NULL, sfx_switch);
-    return true;
 }
 
-static boolean M_ID_TextShadows (int choice)
+static void M_ID_TextShadows (int choice)
 {
     msg_text_shadows ^= 1;
-    return true;
 }
 
-static boolean M_ID_LocalTime (int choice)
+static void M_ID_LocalTime (int choice)
 {
     msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice, false);
-    return true;
 }
-
 
 // -----------------------------------------------------------------------------
 // Sound options
@@ -1552,7 +1528,7 @@ static void M_Draw_ID_Sound (void)
     }
 }
 
-static boolean M_ID_MusicSystem (int option)
+static void M_ID_MusicSystem (int option)
 {
     switch (option)
     {
@@ -1621,34 +1597,29 @@ static boolean M_ID_MusicSystem (int option)
                 break;
             }
     }
-    return true;
 }
 
-static boolean M_ID_SFXMode (int option)
+static void M_ID_SFXMode (int option)
 {
     snd_monosfx ^= 1;
-    return true;
 }
 
-static boolean M_ID_PitchShift (int option)
+static void M_ID_PitchShift (int option)
 {
     snd_pitchshift ^= 1;
-    return true;
 }
 
-static boolean M_ID_SFXChannels (int option)
+static void M_ID_SFXChannels (int option)
 {
     // [JN] Note: cap minimum channels to 2, not 1.
     // Only one channel produces a strange effect, 
     // as if there were no channels at all.
     snd_channels = M_INT_Slider(snd_channels, 2, 16, option, true);
-    return true;
 }
 
-static boolean M_ID_MuteInactive (int option)
+static void M_ID_MuteInactive (int option)
 {
     snd_mute_inactive ^= 1;
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -1730,44 +1701,38 @@ static void M_Draw_ID_Controls (void)
                M_Item_Glow(16, ctrl_noartiskip ? GLOW_GREEN : GLOW_RED));
 }
 
-static boolean M_ID_Controls_Acceleration (int option)
+static void M_ID_Controls_Acceleration (int option)
 {
     mouse_acceleration = M_FLOAT_Slider(mouse_acceleration, 1.000000f, 5.000000f, 0.100000f, option, true);
-    return true;
 }
 
-static boolean M_ID_Controls_Threshold (int option)
+static void M_ID_Controls_Threshold (int option)
 {
     mouse_threshold = M_INT_Slider(mouse_threshold, 0, 32, option, true);
-    return true;
 }
 
-static boolean M_ID_Controls_MLook (int option)
+static void M_ID_Controls_MLook (int option)
 {
     mouse_look ^= 1;
     if (!mouse_look)
     {
         players[consoleplayer].centering = true;
     }
-    return true;
 }
 
-static boolean M_ID_Controls_NoVert (int option)
+static void M_ID_Controls_NoVert (int option)
 {
     mouse_novert ^= 1;
-    return true;
 }
 
-static boolean M_ID_Controls_InvertY (int choice)
+static void M_ID_Controls_InvertY (int choice)
 {
     mouse_y_invert ^= 1;
-    return true;
 }
 
-static boolean M_ID_Controls_NoArtiSkip (int choice)
+static void M_ID_Controls_NoArtiSkip (int choice)
 {
     ctrl_noartiskip ^= 1;
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -1824,70 +1789,59 @@ static void M_Draw_ID_Keybinds_1 (void)
     M_DrawBindFooter("1", true);
 }
 
-static boolean M_Bind_MoveForward (int option)
+static void M_Bind_MoveForward (int option)
 {
     M_StartBind(100);  // key_up
-    return true;
 }
 
-static boolean M_Bind_MoveBackward (int option)
+static void M_Bind_MoveBackward (int option)
 {
     M_StartBind(101);  // key_down
-    return true;
 }
 
-static boolean M_Bind_TurnLeft (int option)
+static void M_Bind_TurnLeft (int option)
 {
     M_StartBind(102);  // key_left
-    return true;
 }
 
-static boolean M_Bind_TurnRight (int option)
+static void M_Bind_TurnRight (int option)
 {
     M_StartBind(103);  // key_right
-    return true;
 }
 
-static boolean M_Bind_StrafeLeft (int option)
+static void M_Bind_StrafeLeft (int option)
 {
     M_StartBind(104);  // key_strafeleft
-    return true;
 }
 
-static boolean M_Bind_StrafeRight (int option)
+static void M_Bind_StrafeRight (int option)
 {
     M_StartBind(105);  // key_straferight
-    return true;
 }
 
-static boolean M_Bind_StrafeOn (int option)
+static void M_Bind_StrafeOn (int option)
 {
     M_StartBind(106);  // key_strafe
-    return true;
 }
 
-static boolean M_Bind_SpeedOn (int option)
+static void M_Bind_SpeedOn (int option)
 {
     M_StartBind(107);  // key_speed
-    return true;
 }
 
-static boolean M_Bind_180Turn (int choice)
+static void M_Bind_180Turn (int choice)
 {
     M_StartBind(108);  // key_180turn
-    return true;
 }
 
-static boolean M_Bind_FireAttack (int option)
+static void M_Bind_FireAttack (int option)
 {
     M_StartBind(109);  // key_fire
-    return true;
 }
 
-static boolean M_Bind_Use (int option)
+static void M_Bind_Use (int option)
 {
     M_StartBind(110);  // key_use
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -1944,58 +1898,49 @@ static void M_Draw_ID_Keybinds_2 (void)
     M_DrawBindFooter("2", true);
 }
 
-static boolean M_Bind_LookUp (int option)
+static void M_Bind_LookUp (int option)
 {
     M_StartBind(200);  // key_lookup
-    return true;
 }
 
-static boolean M_Bind_LookDown (int option)
+static void M_Bind_LookDown (int option)
 {
     M_StartBind(201);  // key_lookdown
-    return true;
 }
 
-static boolean M_Bind_LookCenter (int option)
+static void M_Bind_LookCenter (int option)
 {
     M_StartBind(202);  // key_lookcenter
-    return true;
 }
 
-static boolean M_Bind_FlyUp (int option)
+static void M_Bind_FlyUp (int option)
 {
     M_StartBind(203);  // key_flyup
-    return true;
 }
 
-static boolean M_Bind_FlyDown (int option)
+static void M_Bind_FlyDown (int option)
 {
     M_StartBind(204);  // key_flydown
-    return true;
 }
 
-static boolean M_Bind_FlyCenter (int option)
+static void M_Bind_FlyCenter (int option)
 {
     M_StartBind(205);  // key_flycenter
-    return true;
 }
 
-static boolean M_Bind_InvLeft (int option)
+static void M_Bind_InvLeft (int option)
 {
     M_StartBind(206);  // key_invleft
-    return true;
 }
 
-static boolean M_Bind_InvRight (int option)
+static void M_Bind_InvRight (int option)
 {
     M_StartBind(207);  // key_invright
-    return true;
 }
 
-static boolean M_Bind_UseArti (int option)
+static void M_Bind_UseArti (int option)
 {
     M_StartBind(208);  // key_useartifact
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -2054,64 +1999,54 @@ static void M_Draw_ID_Keybinds_3 (void)
     M_DrawBindFooter("3", true);
 }
 
-static boolean M_Bind_AlwaysRun (int option)
+static void M_Bind_AlwaysRun (int option)
 {
     M_StartBind(300);  // key_autorun
-    return true;
 }
 
-static boolean M_Bind_MouseLook (int option)
+static void M_Bind_MouseLook (int option)
 {
     M_StartBind(301);  // key_mouse_look
-    return true;
 }
 
-static boolean M_Bind_RestartLevel (int option)
+static void M_Bind_RestartLevel (int option)
 {
     M_StartBind(302);  // key_reloadlevel
-    return true;
 }
 
-static boolean M_Bind_NextLevel (int option)
+static void M_Bind_NextLevel (int option)
 {
     M_StartBind(303);  // key_nextlevel
-    return true;
 }
 
-static boolean M_Bind_FastForward (int option)
+static void M_Bind_FastForward (int option)
 {
     M_StartBind(304);  // key_demospeed
-    return true;
 }
 
-static boolean M_Bind_FlipLevels (int choice)
+static void M_Bind_FlipLevels (int choice)
 {
     M_StartBind(305);  // key_flip_levels
-    return true;
 }
 
-static boolean M_Bind_SpectatorMode (int option)
+static void M_Bind_SpectatorMode (int option)
 {
     M_StartBind(306);  // key_spectator
-    return true;
 }
 
-static boolean M_Bind_FreezeMode (int option)
+static void M_Bind_FreezeMode (int option)
 {
     M_StartBind(307);  // key_freeze
-    return true;
 }
 
-static boolean M_Bind_NotargetMode (int option)
+static void M_Bind_NotargetMode (int option)
 {
     M_StartBind(308);  // key_notarget
-    return true;
 }
 
-static boolean M_Bind_BuddhaMode (int choice)
+static void M_Bind_BuddhaMode (int choice)
 {
     M_StartBind(309);  // key_buddha
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -2162,64 +2097,54 @@ static void M_Draw_ID_Keybinds_4 (void)
     M_DrawBindFooter("4", true);
 }
 
-static boolean M_Bind_Weapon1 (int option)
+static void M_Bind_Weapon1 (int option)
 {
     M_StartBind(400);  // key_weapon1
-    return true;
 }
 
-static boolean M_Bind_Weapon2 (int option)
+static void M_Bind_Weapon2 (int option)
 {
     M_StartBind(401);  // key_weapon2
-    return true;
 }
 
-static boolean M_Bind_Weapon3 (int option)
+static void M_Bind_Weapon3 (int option)
 {
     M_StartBind(402);  // key_weapon3
-    return true;
 }
 
-static boolean M_Bind_Weapon4 (int option)
+static void M_Bind_Weapon4 (int option)
 {
     M_StartBind(403);  // key_weapon4
-    return true;
 }
 
-static boolean M_Bind_Weapon5 (int option)
+static void M_Bind_Weapon5 (int option)
 {
     M_StartBind(404);  // key_weapon5
-    return true;
 }
 
-static boolean M_Bind_Weapon6 (int option)
+static void M_Bind_Weapon6 (int option)
 {
     M_StartBind(405);  // key_weapon6
-    return true;
 }
 
-static boolean M_Bind_Weapon7 (int option)
+static void M_Bind_Weapon7 (int option)
 {
     M_StartBind(406);  // key_weapon7
-    return true;
 }
 
-static boolean M_Bind_Weapon8 (int option)
+static void M_Bind_Weapon8 (int option)
 {
     M_StartBind(407);  // key_weapon8
-    return true;
 }
 
-static boolean M_Bind_PrevWeapon (int option)
+static void M_Bind_PrevWeapon (int option)
 {
     M_StartBind(408);  // key_prevweapon
-    return true;
 }
 
-static boolean M_Bind_NextWeapon (int option)
+static void M_Bind_NextWeapon (int option)
 {
     M_StartBind(409);  // key_nextweapon
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -2270,64 +2195,54 @@ static void M_Draw_ID_Keybinds_5 (void)
     M_DrawBindFooter("5", true);
 }
 
-static boolean M_Bind_Quartz (int option)
+static void M_Bind_Quartz (int option)
 {
     M_StartBind(500);  // key_arti_quartz
-    return true;
 }
 
-static boolean M_Bind_Urn (int option)
+static void M_Bind_Urn (int option)
 {
     M_StartBind(501);  // key_arti_urn
-    return true;
 }
 
-static boolean M_Bind_Bomb (int option)
+static void M_Bind_Bomb (int option)
 {
     M_StartBind(502);  // key_arti_bomb
-    return true;
 }
 
-static boolean M_Bind_Tome (int option)
+static void M_Bind_Tome (int option)
 {
     M_StartBind(503);  // key_arti_tome
-    return true;
 }
 
-static boolean M_Bind_Ring (int option)
+static void M_Bind_Ring (int option)
 {
     M_StartBind(504);  // key_arti_ring
-    return true;
 }
 
-static boolean M_Bind_Chaosdevice (int option)
+static void M_Bind_Chaosdevice (int option)
 {
     M_StartBind(505);  // key_arti_chaosdevice
-    return true;
 }
 
-static boolean M_Bind_Shadowsphere (int option)
+static void M_Bind_Shadowsphere (int option)
 {
     M_StartBind(506);  // key_arti_shadowsphere
-    return true;
 }
 
-static boolean M_Bind_Wings (int option)
+static void M_Bind_Wings (int option)
 {
     M_StartBind(507);  // key_arti_wings
-    return true;
 }
 
-static boolean M_Bind_Torch (int option)
+static void M_Bind_Torch (int option)
 {
     M_StartBind(508);  // key_arti_torch
-    return true;
 }
 
-static boolean M_Bind_Morph (int option)
+static void M_Bind_Morph (int option)
 {
     M_StartBind(509);  // key_arti_morph
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -2378,64 +2293,54 @@ static void M_Draw_ID_Keybinds_6 (void)
     M_DrawBindFooter("6", true);
 }
 
-static boolean M_Bind_ToggleMap (int option)
+static void M_Bind_ToggleMap (int option)
 {
     M_StartBind(600);  // key_map_toggle
-    return true;
 }
 
-static boolean M_Bind_ZoomIn (int option)
+static void M_Bind_ZoomIn (int option)
 {
     M_StartBind(601);  // key_map_zoomin
-    return true;
 }
 
-static boolean M_Bind_ZoomOut (int option)
+static void M_Bind_ZoomOut (int option)
 {
     M_StartBind(602);  // key_map_zoomout
-    return true;
 }
 
-static boolean M_Bind_MaxZoom (int option)
+static void M_Bind_MaxZoom (int option)
 {
     M_StartBind(603);  // key_map_maxzoom
-    return true;
 }
 
-static boolean M_Bind_FollowMode (int option)
+static void M_Bind_FollowMode (int option)
 {
     M_StartBind(604);  // key_map_follow
-    return true;
 }
 
-static boolean M_Bind_RotateMode (int option)
+static void M_Bind_RotateMode (int option)
 {
     M_StartBind(605);  // key_map_rotate
-    return true;
 }
 
-static boolean M_Bind_OverlayMode (int option)
+static void M_Bind_OverlayMode (int option)
 {
     M_StartBind(606);  // key_map_overlay
-    return true;
 }
 
-static boolean M_Bind_ToggleGrid (int option)
+static void M_Bind_ToggleGrid (int option)
 {
     M_StartBind(607);  // key_map_grid
-    return true;
 }
 
-static boolean M_Bind_AddMark (int option)
+static void M_Bind_AddMark (int option)
 {
     M_StartBind(608);  // key_map_mark
-    return true;
 }
 
-static boolean M_Bind_ClearMarks (int option)
+static void M_Bind_ClearMarks (int option)
 {
     M_StartBind(609);  // key_map_clearmark
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -2488,70 +2393,59 @@ static void M_Draw_ID_Keybinds_7 (void)
     M_DrawBindFooter("7", true);
 }
 
-static boolean M_Bind_HelpScreen (int option)
+static void M_Bind_HelpScreen (int option)
 {
     M_StartBind(700);  // key_menu_help
-    return true;
 }
 
-static boolean M_Bind_SaveGame (int option)
+static void M_Bind_SaveGame (int option)
 {
     M_StartBind(701);  // key_menu_save
-    return true;
 }
 
-static boolean M_Bind_LoadGame (int option)
+static void M_Bind_LoadGame (int option)
 {
     M_StartBind(702);  // key_menu_load
-    return true;
 }
 
-static boolean M_Bind_SoundVolume (int option)
+static void M_Bind_SoundVolume (int option)
 {
     M_StartBind(703);  // key_menu_volume
-    return true;
 }
 
-static boolean M_Bind_QuickSave (int option)
+static void M_Bind_QuickSave (int option)
 {
     M_StartBind(704);  // key_menu_qsave
-    return true;
 }
 
-static boolean M_Bind_EndGame (int option)
+static void M_Bind_EndGame (int option)
 {
     M_StartBind(705);  // key_menu_endgame
-    return true;
 }
 
-static boolean M_Bind_ToggleMessages (int option)
+static void M_Bind_ToggleMessages (int option)
 {
     M_StartBind(706);  // key_menu_messages
-    return true;
 }
 
-static boolean M_Bind_QuickLoad (int option)
+static void M_Bind_QuickLoad (int option)
 {
     M_StartBind(707);  // key_menu_qload
-    return true;
 }
 
-static boolean M_Bind_QuitGame (int option)
+static void M_Bind_QuitGame (int option)
 {
     M_StartBind(708);  // key_menu_quit
-    return true;
 }
 
-static boolean M_Bind_ToggleGamma (int option)
+static void M_Bind_ToggleGamma (int option)
 {
     M_StartBind(709);  // key_menu_gamma
-    return true;
 }
 
-static boolean M_Bind_MultiplayerSpy (int option)
+static void M_Bind_MultiplayerSpy (int option)
 {
     M_StartBind(710);  // key_spy
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -2608,66 +2502,56 @@ static void M_Draw_ID_Keybinds_8 (void)
     M_DrawBindFooter("8", true);
 }
 
-static boolean M_Bind_Pause (int option)
+static void M_Bind_Pause (int option)
 {
     M_StartBind(800);  // key_pause
-    return true;
 }
 
-static boolean M_Bind_SaveScreenshot (int option)
+static void M_Bind_SaveScreenshot (int option)
 {
     M_StartBind(801);  // key_menu_screenshot
-    return true;
 }
 
-static boolean M_Bind_LastMessage (int choice)
+static void M_Bind_LastMessage (int choice)
 {
     M_StartBind(802);  // key_message_refresh_hr
-    return true;
 }
 
-static boolean M_Bind_FinishDemo (int option)
+static void M_Bind_FinishDemo (int option)
 {
     M_StartBind(803);  // key_demo_quit
-    return true;
 }
 
-static boolean M_Bind_SendMessage (int option)
+static void M_Bind_SendMessage (int option)
 {
     M_StartBind(804);  // key_multi_msg
-    return true;
 }
 
-static boolean M_Bind_ToPlayer1 (int option)
+static void M_Bind_ToPlayer1 (int option)
 {
     M_StartBind(805);  // key_multi_msgplayer[0]
-    return true;
 }
 
-static boolean M_Bind_ToPlayer2 (int option)
+static void M_Bind_ToPlayer2 (int option)
 {
     M_StartBind(806);  // key_multi_msgplayer[1]
-    return true;
 }
 
-static boolean M_Bind_ToPlayer3 (int option)
+static void M_Bind_ToPlayer3 (int option)
 {
     M_StartBind(807);  // key_multi_msgplayer[2]
-    return true;
 }
 
-static boolean M_Bind_ToPlayer4 (int option)
+static void M_Bind_ToPlayer4 (int option)
 {
     M_StartBind(808);  // key_multi_msgplayer[3]
-    return true;
 }
 
-static boolean M_Bind_Reset (int option)
+static void M_Bind_Reset (int option)
 {
     MenuActive = false;
     askforquit = true;
     typeofask = 6;      // [JN] keybinds reset
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -2724,84 +2608,71 @@ static void M_Draw_ID_MouseBinds (void)
     M_DrawBindFooter(NULL, false);
 }
 
-static boolean M_Bind_M_FireAttack (int option)
+static void M_Bind_M_FireAttack (int option)
 {
     M_StartMouseBind(1000);  // mousebfire
-    return true;
 }
 
-static boolean M_Bind_M_MoveForward (int option)
+static void M_Bind_M_MoveForward (int option)
 {
     M_StartMouseBind(1001);  // mousebforward
-    return true;
 }
 
-static boolean M_Bind_M_StrafeOn (int option)
+static void M_Bind_M_StrafeOn (int option)
 {
     M_StartMouseBind(1002);  // mousebstrafe
-    return true;
 }
 
-static boolean M_Bind_M_MoveBackward (int option)
+static void M_Bind_M_MoveBackward (int option)
 {
     M_StartMouseBind(1003);  // mousebbackward
-    return true;
 }
 
-static boolean M_Bind_M_Use (int option)
+static void M_Bind_M_Use (int option)
 {
     M_StartMouseBind(1004);  // mousebuse
-    return true;
 }
 
-static boolean M_Bind_M_StrafeLeft (int option)
+static void M_Bind_M_StrafeLeft (int option)
 {
     M_StartMouseBind(1005);  // mousebstrafeleft
-    return true;
 }
 
-static boolean M_Bind_M_StrafeRight (int option)
+static void M_Bind_M_StrafeRight (int option)
 {
     M_StartMouseBind(1006);  // mousebstraferight
-    return true;
 }
 
-static boolean M_Bind_M_PrevWeapon (int option)
+static void M_Bind_M_PrevWeapon (int option)
 {
     M_StartMouseBind(1007);  // mousebprevweapon
-    return true;
 }
 
-static boolean M_Bind_M_NextWeapon (int option)
+static void M_Bind_M_NextWeapon (int option)
 {
     M_StartMouseBind(1008);  // mousebnextweapon
-    return true;
 }
 
-static boolean M_Bind_M_InventoryLeft (int option)
+static void M_Bind_M_InventoryLeft (int option)
 {
     M_StartMouseBind(1009);  // mousebinvleft
-    return true;
 }
 
-static boolean M_Bind_M_InventoryRight (int option)
+static void M_Bind_M_InventoryRight (int option)
 {
     M_StartMouseBind(1010);  // mousebinvright
-    return true;
 }
 
-static boolean M_Bind_M_UseArtifact (int option)
+static void M_Bind_M_UseArtifact (int option)
 {
     M_StartMouseBind(1011);  // mousebuseartifact
-    return true;
 }
 
-static boolean M_Bind_M_Reset (int option)
+static void M_Bind_M_Reset (int option)
 {
     MenuActive = false;
     askforquit = true;
     typeofask = 7;      // [JN] mouse binds reset
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -2913,76 +2784,64 @@ static void M_Draw_ID_Widgets (void)
                                 automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
 }
 
-static boolean M_ID_Widget_Location (int choice)
+static void M_ID_Widget_Location (int choice)
 {
     widget_location ^= 1;
-    return true;
 }
 
-static boolean M_ID_Widget_KIS (int choice)
+static void M_ID_Widget_KIS (int choice)
 {
     widget_kis = M_INT_Slider(widget_kis, 0, 2, choice, false);
-    return true;
 }
 
-static boolean M_ID_Widget_Time (int choice)
+static void M_ID_Widget_Time (int choice)
 {
     widget_time = M_INT_Slider(widget_time, 0, 2, choice, false);
-    return true;
 }
 
-static boolean M_ID_Widget_TotalTime (int choice)
+static void M_ID_Widget_TotalTime (int choice)
 {
     widget_totaltime = M_INT_Slider(widget_totaltime, 0, 2, choice, false);
-    return true;
 }
 
-static boolean M_ID_Widget_LevelName (int choice)
+static void M_ID_Widget_LevelName (int choice)
 {
     widget_levelname ^= 1;
-    return true;
 }
 
-static boolean M_ID_Widget_Coords (int choice)
+static void M_ID_Widget_Coords (int choice)
 {
     widget_coords = M_INT_Slider(widget_coords, 0, 2, choice, false);
-    return true;
 }
 
-static boolean M_ID_Widget_Render (int choice)
+static void M_ID_Widget_Render (int choice)
 {
     widget_render ^= 1;
-    return true;
 }
 
-static boolean M_ID_Widget_Health (int choice)
+static void M_ID_Widget_Health (int choice)
 {
     widget_health = M_INT_Slider(widget_health, 0, 4, choice, false);
-    return true;
 }
 
-static boolean M_ID_Automap_Secrets (int choice)
+static void M_ID_Automap_Secrets (int choice)
 {
     automap_secrets ^= 1;
-    return true;
 }
 
-static boolean M_ID_Automap_Rotate (int choice)
+static void M_ID_Automap_Rotate (int choice)
 {
     automap_rotate ^= 1;
-    return true;
 }
 
-static boolean M_ID_Automap_Overlay (int choice)
+static void M_ID_Automap_Overlay (int choice)
 {
     automap_overlay ^= 1;
-    return true;
 }
 
-static boolean M_ID_Automap_Shading (int choice)
+static void M_ID_Automap_Shading (int choice)
 {
     automap_shading = M_INT_Slider(automap_shading, 0, 12, choice, true);
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3096,22 +2955,19 @@ static void M_Draw_ID_Gameplay_1 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 140, cr[CR_GRAY]);
 }
 
-static boolean M_ID_Brightmaps (int choice)
+static void M_ID_Brightmaps (int choice)
 {
     vis_brightmaps = M_INT_Slider(vis_brightmaps, 0, 2, choice, false);
-    return true;
 }
 
-static boolean M_ID_Translucency (int choice)
+static void M_ID_Translucency (int choice)
 {
     vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
-    return true;
 }
 
-static boolean M_ID_FakeContrast (int choice)
+static void M_ID_FakeContrast (int choice)
 {
     vis_fake_contrast ^= 1;
-    return true;
 }
 
 static void M_ID_SmoothLightingHook (void)
@@ -3124,49 +2980,42 @@ static void M_ID_SmoothLightingHook (void)
     P_SegLengths();
 }
 
-static boolean M_ID_SmoothLighting (int choice)
+static void M_ID_SmoothLighting (int choice)
 {
     vis_smooth_light ^= 1;
     post_rendering_hook = M_ID_SmoothLightingHook;
-    return true;
 }
 
-static boolean M_ID_SwirlingLiquids (int choice)
+static void M_ID_SwirlingLiquids (int choice)
 {
     vis_swirling_liquids ^= 1;
     // [JN] Re-init animation sequences.
     P_InitPicAnims();
-    return true;
 }
 
-static boolean M_ID_InvulSky (int choice)
+static void M_ID_InvulSky (int choice)
 {
     vis_invul_sky ^= 1;
-    return true;
 }
 
-static boolean M_ID_LinearSky (int choice)
+static void M_ID_LinearSky (int choice)
 {
     vis_linear_sky ^= 1;
-    return true;
 }
 
-static boolean M_ID_FlipCorpses (int choice)
+static void M_ID_FlipCorpses (int choice)
 {
     vis_flip_corpses ^= 1;
-    return true;
 }
 
-static boolean M_ID_Crosshair (int choice)
+static void M_ID_Crosshair (int choice)
 {
     xhair_draw = M_INT_Slider(xhair_draw, 0, 7, choice, false);
-    return true;
 }
 
-static boolean M_ID_CrosshairColor (int choice)
+static void M_ID_CrosshairColor (int choice)
 {
     xhair_color = M_INT_Slider(xhair_color, 0, 3, choice, false);
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3267,52 +3116,45 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 140, cr[CR_GRAY]);
 }
 
-static boolean M_ID_ColoredSBar (int choice)
+static void M_ID_ColoredSBar (int choice)
 {
     st_colored_stbar ^= 1;
-    return true;
 }
 
-static boolean M_ID_AmmoWidget (int choice)
+static void M_ID_AmmoWidget (int choice)
 {
     st_ammo_widget = M_INT_Slider(st_ammo_widget, 0, 2, choice, false);
-    return true;
 }
 
-static boolean M_ID_AmmoWidgetTranslucent (int choice)
+static void M_ID_AmmoWidgetTranslucent (int choice)
 {
     st_ammo_widget_translucent = M_INT_Slider(st_ammo_widget_translucent, 0, 1, choice, false);
-    return true;
 }
 
-static boolean M_ID_AmmoWidgetColors (int choice)
+static void M_ID_AmmoWidgetColors (int choice)
 {
     st_ammo_widget_colors = M_INT_Slider(st_ammo_widget_colors, 0, 3, choice, false);
-    return true;
 }
-static boolean M_ID_ZAxisSfx (int choice)
+
+static void M_ID_ZAxisSfx (int choice)
 {
     aud_z_axis_sfx ^= 1;
-    return true;
 }
 
-static boolean M_ID_Torque (int choice)
+static void M_ID_Torque (int choice)
 {
     phys_torque ^= 1;
-    return true;
 }
 
-static boolean M_ID_WeaponAlignment (int choice)
+static void M_ID_WeaponAlignment (int choice)
 {
     phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice, false);
     pspr_interp = false;
-    return true;
 }
 
-static boolean M_ID_Breathing (int choice)
+static void M_ID_Breathing (int choice)
 {
     phys_breathing ^= 1;
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3415,63 +3257,53 @@ static void M_Draw_ID_Gameplay_3 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 140, cr[CR_GRAY]);
 }
 
-static boolean M_ID_DefaulSkill (int choice)
+static void M_ID_DefaulSkill (int choice)
 {
     gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice, false);
     SkillMenu.oldItPos = gp_default_skill;
-    return true;
 }
 
-static boolean M_ID_RevealedSecrets (int choice)
+static void M_ID_RevealedSecrets (int choice)
 {
     gp_revealed_secrets = M_INT_Slider(gp_revealed_secrets, 0, 2, choice, false);
-    return true;
 }
 
-static boolean M_ID_FlipLevels (int choice)
+static void M_ID_FlipLevels (int choice)
 {
     gp_flip_levels ^= 1;
 
     // Redraw game screen
     R_ExecuteSetViewSize();
-
-    return true;
 }
 
-static boolean M_ID_DemoTimer (int choice)
+static void M_ID_DemoTimer (int choice)
 {
     demo_timer = M_INT_Slider(demo_timer, 0, 3, choice, false);
-    return true;
 }
 
-static boolean M_ID_ProgressBar (int choice)
+static void M_ID_ProgressBar (int choice)
 {
     demo_bar ^= 1;
-    return true;
 }
 
-static boolean M_ID_InternalDemos (int choice)
+static void M_ID_InternalDemos (int choice)
 {
     demo_internal ^= 1;
-    return true;
 }
 
-static boolean M_ID_PistolStart (int choice)
+static void M_ID_PistolStart (int choice)
 {
     compat_pistol_start ^= 1;
-    return true;
 }
 
-static boolean M_ID_BlockmapFix (int choice)
+static void M_ID_BlockmapFix (int choice)
 {
     compat_blockmap_fix ^= 1;
-    return true;
 }
 
-static boolean M_ID_TimerDirection (int choice)
+static void M_ID_TimerDirection (int choice)
 {
     demo_timerdir ^= 1;
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3594,44 +3426,39 @@ static void M_Draw_ID_Level_1 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 180, cr[CR_GRAY]);
 }
 
-static boolean M_ID_LevelSkill (int choice)
+static void M_ID_LevelSkill (int choice)
 {
     level_select[0] = M_INT_Slider(level_select[0], 0, 4, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelEpisode (int choice)
+static void M_ID_LevelEpisode (int choice)
 {
     if (gamemode == shareware)
     {
-        return false;
+        return;
     }
 
     level_select[1] = M_INT_Slider(level_select[1], 1,
                                    gamemode == retail ? 5 : 3, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelMap (int choice)
+static void M_ID_LevelMap (int choice)
 {
     level_select[2] = M_INT_Slider(level_select[2], 1, 9, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelHealth (int choice)
+static void M_ID_LevelHealth (int choice)
 {
     level_select[3] = M_INT_Slider(level_select[3], 1, 100, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArmor (int choice)
+static void M_ID_LevelArmor (int choice)
 {
     level_select[4] = M_INT_Slider(level_select[4], 0, 
                                    level_select[5] == 1 ? 100 : 200, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArmorType (int choice)
+static void M_ID_LevelArmorType (int choice)
 {
     level_select[5] = M_INT_Slider(level_select[5], 1, 2, choice, false);
 
@@ -3640,59 +3467,51 @@ static boolean M_ID_LevelArmorType (int choice)
     {
         level_select[4] = 100;
     }
-
-    return true;
 }
 
-static boolean M_ID_LevelGauntlets (int choice)
+static void M_ID_LevelGauntlets (int choice)
 {
     level_select[6] ^= 1;
-    return true;
 }
 
-static boolean M_ID_LevelCrossbow (int choice)
+static void M_ID_LevelCrossbow (int choice)
 {
     level_select[7] ^= 1;
-    return true;
 }
 
-static boolean M_ID_LevelDragonClaw (int choice)
+static void M_ID_LevelDragonClaw (int choice)
 {
     level_select[8] ^= 1;
-    return true;
 }
 
-static boolean M_ID_LevelHellStaff (int choice)
+static void M_ID_LevelHellStaff (int choice)
 {
     if (gamemode == shareware)
     {
-        return false;
+        return;
     }
 
     level_select[9] ^= 1;
-    return true;
 }
 
-static boolean M_ID_LevelPhoenixRod (int choice)
+static void M_ID_LevelPhoenixRod (int choice)
 {
     if (gamemode == shareware)
     {
-        return false;
+        return;
     }
 
     level_select[10] ^= 1;
-    return true;
 }
 
-static boolean M_ID_LevelFireMace (int choice)
+static void M_ID_LevelFireMace (int choice)
 {
     if (gamemode == shareware)
     {
-        return false;
+        return;
     }
     
     level_select[11] ^= 1;
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3811,7 +3630,7 @@ static void M_Draw_ID_Level_2 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 180, cr[CR_GRAY]);
 }
 
-static boolean M_ID_LevelBag (int choice)
+static void M_ID_LevelBag (int choice)
 {
     level_select[12] ^= 1;
 
@@ -3830,73 +3649,61 @@ static boolean M_ID_LevelBag (int choice)
         if (level_select[18] > 150) // Mace spheres
             level_select[18] = 150;
     }
-    return true;
 }
 
-static boolean M_ID_LevelAmmo_0 (int choice)
+static void M_ID_LevelAmmo_0 (int choice)
 {
     level_select[13] = M_INT_Slider(level_select[13], 0, level_select[12] ? 200 : 100, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelAmmo_1 (int choice)
+static void M_ID_LevelAmmo_1 (int choice)
 {
     level_select[14] = M_INT_Slider(level_select[14], 0, level_select[12] ? 100 : 50, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelAmmo_2 (int choice)
+static void M_ID_LevelAmmo_2 (int choice)
 {
     level_select[15] = M_INT_Slider(level_select[15], 0, level_select[12] ? 400 : 200, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelAmmo_3 (int choice)
+static void M_ID_LevelAmmo_3 (int choice)
 {
     level_select[16] = M_INT_Slider(level_select[16], 0, level_select[12] ? 400 : 200, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelAmmo_4 (int choice)
+static void M_ID_LevelAmmo_4 (int choice)
 {
     level_select[17] = M_INT_Slider(level_select[17], 0, level_select[12] ? 40 : 20, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelAmmo_5 (int choice)
+static void M_ID_LevelAmmo_5 (int choice)
 {
     level_select[18] = M_INT_Slider(level_select[18], 0, level_select[12] ? 300 : 150, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelKey_0 (int choice)
+static void M_ID_LevelKey_0 (int choice)
 {
     level_select[19] ^= 1;
-    return true;
 }
 
-static boolean M_ID_LevelKey_1 (int choice)
+static void M_ID_LevelKey_1 (int choice)
 {
     level_select[20] ^= 1;
-    return true;
 }
 
-static boolean M_ID_LevelKey_2 (int choice)
+static void M_ID_LevelKey_2 (int choice)
 {
     level_select[21] ^= 1;
-    return true;
 }
 
-static boolean M_ID_LevelFast (int choice)
+static void M_ID_LevelFast (int choice)
 {
     level_select[22] ^= 1;
-    return true;
 }
 
-static boolean M_ID_LevelRespawn (int choice)
+static void M_ID_LevelRespawn (int choice)
 {
     level_select[23] ^= 1;
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -3995,64 +3802,54 @@ static void M_Draw_ID_Level_3 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 180, cr[CR_GRAY]);
 }
 
-static boolean M_ID_LevelArti_0 (int choice)
+static void M_ID_LevelArti_0 (int choice)
 {
     level_select[24] = M_INT_Slider(level_select[24], 0, 16, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArti_1 (int choice)
+static void M_ID_LevelArti_1 (int choice)
 {
     level_select[25] = M_INT_Slider(level_select[25], 0, 16, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArti_2 (int choice)
+static void M_ID_LevelArti_2 (int choice)
 {
     level_select[26] = M_INT_Slider(level_select[26], 0, 16, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArti_3 (int choice)
+static void M_ID_LevelArti_3 (int choice)
 {
     level_select[27] = M_INT_Slider(level_select[27], 0, 16, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArti_4 (int choice)
+static void M_ID_LevelArti_4 (int choice)
 {
     level_select[28] = M_INT_Slider(level_select[28], 0, 16, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArti_5 (int choice)
+static void M_ID_LevelArti_5 (int choice)
 {
     level_select[29] = M_INT_Slider(level_select[29], 0, 16, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArti_6 (int choice)
+static void M_ID_LevelArti_6 (int choice)
 {
     level_select[30] = M_INT_Slider(level_select[30], 0, 16, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArti_7 (int choice)
+static void M_ID_LevelArti_7 (int choice)
 {
     level_select[31] = M_INT_Slider(level_select[31], 0, 16, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArti_8 (int choice)
+static void M_ID_LevelArti_8 (int choice)
 {
     level_select[32] = M_INT_Slider(level_select[32], 0, 16, choice, false);
-    return true;
 }
 
-static boolean M_ID_LevelArti_9 (int choice)
+static void M_ID_LevelArti_9 (int choice)
 {
     level_select[33] = M_INT_Slider(level_select[33], 0, 16, choice, false);
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -4201,7 +3998,7 @@ static void M_ID_ApplyReset (void)
     post_rendering_hook = M_ID_ApplyResetHook;
 }
 
-static boolean M_ID_SettingReset (int choice)
+static void M_ID_SettingReset (int choice)
 {
     MenuActive = false;
     askforquit = true;
@@ -4211,8 +4008,6 @@ static boolean M_ID_SettingReset (int choice)
     {
         paused = true;
     }
-
-    return true;
 }
 
 static Menu_t *Menus[] = {
@@ -4910,11 +4705,18 @@ static boolean SCNetCheck(int option)
             CT_SetMessage(&players[consoleplayer],
                          "YOU CAN'T LOAD A GAME IN NETPLAY!", true, NULL);
             break;
-        default:
+        case 3:                // end game
+            CT_SetMessage(&players[consoleplayer],
+                         "YOU CAN'T END A GAME IN NETPLAY!", true, NULL);
             break;
     }
     MenuActive = false;
     return false;
+}
+
+static void SCNetCheck2(int option)
+{
+    SCNetCheck(option);
 }
 
 //---------------------------------------------------------------------------
@@ -4923,7 +4725,7 @@ static boolean SCNetCheck(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCQuitGame(int option)
+static void SCQuitGame(int option)
 {
     MenuActive = false;
     askforquit = true;
@@ -4932,7 +4734,6 @@ static boolean SCQuitGame(int option)
     {
         paused = true;
     }
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -4941,20 +4742,22 @@ static boolean SCQuitGame(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCEndGame(int option)
+static void SCEndGame(int option)
 {
     if (demoplayback || netgame)
     {
-        return false;
+        return;
     }
-    MenuActive = false;
-    askforquit = true;
-    typeofask = 2;              //endgame
-    if (!netgame && !demoplayback)
+    if (SCNetCheck(3))
     {
-        paused = true;
+        MenuActive = false;
+        askforquit = true;
+        typeofask = 2;              //endgame
+        if (!netgame && !demoplayback)
+        {
+            paused = true;
+        }
     }
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -4963,13 +4766,13 @@ static boolean SCEndGame(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCLoadGame(int option)
+static void SCLoadGame(int option)
 {
     char *filename;
 
     if (!SlotStatus[option])
     {                           // slot's empty...don't try and load
-        return false;
+        return;
     }
 
     filename = SV_Filename(option);
@@ -4983,16 +4786,15 @@ static boolean SCLoadGame(int option)
         players[consoleplayer].message = NULL;
         players[consoleplayer].messageTics = 1;
     }
-    return true;
 }
 
-static boolean SCDeleteGame(int option)
+static void SCDeleteGame(int option)
 {
     char *filename;
 
     if (!SlotStatus[option])
     {
-        return false;
+        return;
     }
 
     filename = SV_Filename(option);
@@ -5000,8 +4802,6 @@ static boolean SCDeleteGame(int option)
     free(filename);
 
     MN_LoadSlotText();
-
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -5024,22 +4824,20 @@ static boolean StartsWithMapIdentifier (char *str)
 }
 
 // [JN] Check if Save Game menu should be accessable.
-static boolean SCSaveCheck(int option)
+static void SCSaveCheck(int option)
 {
     if (!usergame)
     {
         CT_SetMessage(&players[consoleplayer],
                      "YOU CAN'T SAVE IF YOU AREN'T PLAYING", true, NULL);
-        return false;
     }
     else
     {
         SetMenu(MENU_SAVE);
-        return true;
     }
 }
 
-static boolean SCSaveGame(int option)
+static void SCSaveGame(int option)
 {
     char *ptr;
 
@@ -5068,7 +4866,7 @@ static boolean SCSaveGame(int option)
         SlotStatus[option]++;
         currentSlot = option;
         slotptr = ptr - SlotText[option];
-        return false;
+        return;
     }
     else
     {
@@ -5083,7 +4881,6 @@ static boolean SCSaveGame(int option)
         players[consoleplayer].message = NULL;
         players[consoleplayer].messageTics = 1;
     }
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -5092,7 +4889,7 @@ static boolean SCSaveGame(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCEpisode(int option)
+static void SCEpisode(int option)
 {
     if (gamemode == shareware && option > 1)
     {
@@ -5104,7 +4901,6 @@ static boolean SCEpisode(int option)
         MenuEpisode = option;
         SetMenu(MENU_SKILL);
     }
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -5113,11 +4909,10 @@ static boolean SCEpisode(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCSkill(int option)
+static void SCSkill(int option)
 {
     G_DeferedInitNew(option, MenuEpisode, 1);
     MN_DeactivateMenu();
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -5126,11 +4921,10 @@ static boolean SCSkill(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCMouseSensi(int option)
+static void SCMouseSensi(int option)
 {
     // [crispy] extended range
     mouseSensitivity = M_INT_Slider(mouseSensitivity, 0, 255, option, true);
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -5139,14 +4933,13 @@ static boolean SCMouseSensi(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCSfxVolume(int option)
+static void SCSfxVolume(int option)
 {
     snd_MaxVolume = M_INT_Slider(snd_MaxVolume, 0, 15, option, true);
     // [JN] Always do a full recalc of the sound curve imideatelly.
     // Needed for proper volume update of ambient sounds
     // while active menu and in demo playback mode.
     S_SetMaxVolume();
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -5155,11 +4948,10 @@ static boolean SCSfxVolume(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCMusicVolume(int option)
+static void SCMusicVolume(int option)
 {
     snd_MusicVolume = M_INT_Slider(snd_MusicVolume, 0, 15, option, true);
     S_SetMusicVolume();
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -5168,7 +4960,7 @@ static boolean SCMusicVolume(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCScreenSize(int option)
+static void SCScreenSize(int option)
 {
     switch (option)
     {
@@ -5199,7 +4991,6 @@ static boolean SCScreenSize(int option)
         break;
     }
     R_SetViewSize(dp_screen_size, detailLevel);
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -5208,7 +4999,7 @@ static boolean SCScreenSize(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCInfo(int option)
+static void SCInfo(int option)
 {
     InfoType = 1;
     S_StartSound(NULL, sfx_dorcls);
@@ -5216,7 +5007,6 @@ static boolean SCInfo(int option)
     {
         paused = true;
     }
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -5707,23 +5497,10 @@ boolean MN_Responder(event_t * event)
                     quicksave = -1;
                     // [JN] "Quick save game" title instead of message.
                     quicksaveTitle = true;
-                    /*
-                    CT_SetMessage(&players[consoleplayer],
-                                 "CHOOSE A QUICKSAVE SLOT", true, NULL);
-                    */
                 }
                 else
                 {
                     // [JN] Do not ask for quick save confirmation.
-                    /*
-                    askforquit = true;
-                    typeofask = 3;
-                    if (!netgame && !demoplayback)
-                    {
-                        paused = true;
-                    }
-                    S_StartSound(NULL, sfx_chat);
-                    */
                     S_StartSound(NULL, sfx_dorcls);
                     FileMenuKeySteal = true;
                     SCSaveGame(quicksave - 1);
@@ -5733,10 +5510,13 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_endgame)         // F7 (end game)
         {
-            if (gamestate == GS_LEVEL && !demoplayback)
+            if (SCNetCheck(3))
             {
-                S_StartSound(NULL, sfx_chat);
-                SCEndGame(0);
+                if (gamestate == GS_LEVEL && !demoplayback)
+                {
+                    S_StartSound(NULL, sfx_chat);
+                    SCEndGame(0);
+                }
             }
             return true;
         }
@@ -5747,40 +5527,30 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_qload)           // F9 (quickload)
         {
-            if (!quickload || quickload == -1)
+            if (SCNetCheck(2))
             {
-                MenuActive = true;
-                FileMenuKeySteal = false;
-                MenuTime = 0;
-                CurrentMenu = &LoadMenu;
-                CurrentItPos = CurrentMenu->oldItPos;
-                if (!netgame && !demoplayback)
+                if (!quickload || quickload == -1)
                 {
-                    paused = true;
+                    MenuActive = true;
+                    FileMenuKeySteal = false;
+                    MenuTime = 0;
+                    CurrentMenu = &LoadMenu;
+                    CurrentItPos = CurrentMenu->oldItPos;
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    S_StartSound(NULL, sfx_dorcls);
+                    slottextloaded = false;     //reload the slot text, when needed
+                    quickload = -1;
+                    // [JN] "Quick load game" title instead of message.
+                    quickloadTitle = true;
                 }
-                S_StartSound(NULL, sfx_dorcls);
-                slottextloaded = false;     //reload the slot text, when needed
-                quickload = -1;
-                // [JN] "Quick load game" title instead of message.
-                quickloadTitle = true;
-                /*
-                CT_SetMessage(&players[consoleplayer],
-                             "CHOOSE A QUICKLOAD SLOT", true, NULL);
-                */
-            }
-            else
-            {
-                // [JN] Do not ask for quick load confirmation.
-                /*
-                askforquit = true;
-                if (!netgame && !demoplayback)
+                else
                 {
-                    paused = true;
+                    // [JN] Do not ask for quick load confirmation.
+                    SCLoadGame(quickload - 1);
                 }
-                typeofask = 4;
-                S_StartSound(NULL, sfx_chat);
-                */
-                SCLoadGame(quickload - 1);
             }
             return true;
         }
@@ -5954,6 +5724,10 @@ boolean MN_Responder(event_t * event)
         {
             if (item->type == ITT_SETMENU)
             {
+                if (item->func != NULL)
+                {
+                    item->func(item->option);
+                }
                 SetMenu(item->menu);
             }
             else if (item->func != NULL)
@@ -5965,13 +5739,7 @@ boolean MN_Responder(event_t * event)
                 }
                 else if (item->type == ITT_EFUNC)
                 {
-                    if (item->func(item->option))
-                    {
-                        if (item->menu != MENU_NONE)
-                        {
-                            SetMenu(item->menu);
-                        }
-                    }
+                    item->func(item->option);
                 }
             }
             S_StartSound(NULL, sfx_dorcls);
