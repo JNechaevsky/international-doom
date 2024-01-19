@@ -247,7 +247,7 @@ static Menu_t EpisodeMenu = {
 
 static MenuItem_t FilesItems[] = {
     { ITT_SETMENU, "LOAD GAME", SCNetCheck2,  2, MENU_LOAD },
-    { ITT_SETMENU, "SAVE GAME", NULL, 0, MENU_SAVE },
+    { ITT_EFUNC, "SAVE GAME", SCSaveCheck, 0, MENU_SAVE },
 };
 
 static Menu_t FilesMenu = {
