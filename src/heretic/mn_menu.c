@@ -1372,7 +1372,6 @@ static void M_ID_Saturation (int choice)
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
-    AM_Init();
 #endif
 }
 
@@ -1386,7 +1385,6 @@ static void M_ID_R_Intensity (int choice)
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
-    AM_Init();
 #endif
 }
 
@@ -1400,7 +1398,6 @@ static void M_ID_G_Intensity (int choice)
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
-    AM_Init();
 #endif
 }
 
@@ -1414,7 +1411,6 @@ static void M_ID_B_Intensity (int choice)
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
-    AM_Init();
 #endif
 }
 

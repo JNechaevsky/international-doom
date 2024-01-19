@@ -96,6 +96,13 @@ const char *LevelNames[] = {
     "E6M3:  ",
 };
 
+// [crispy] simplify (automap framebuffer)
+#define fb I_VideoBuffer
+
+// [crispy] Used for automap background tiling and scrolling
+#define MAPBGROUNDWIDTH  (ORIGWIDTH)
+#define MAPBGROUNDHEIGHT (ORIGHEIGHT - 42)
+
 // [JN] FRACTOMAPBITS: overflow-safe coordinate system.
 // Written by Andrey Budko (entryway), adapted from prboom-plus/src/am_map.*
 #define MAPBITS 12
@@ -214,8 +221,6 @@ mline_t thintriangle_guy[] = {
 #define NUMTHINTRIANGLEGUYLINES (sizeof(thintriangle_guy)/sizeof(mline_t))
 
 
-boolean automapactive = false;
-
 int ravmap_cheating = 0;
 static int     grid = 0;
 
@@ -226,8 +231,6 @@ static int  f_y;
 // size of window on screen
 static int  f_w;
 static int  f_h;
-
-#define fb I_VideoBuffer // [crispy] simplify
 
 static mpoint_t m_paninc;     // how far the window pans each tic (map coords)
 static fixed_t  mtof_zoommul; // how far the window zooms in each tic (map coords)
@@ -273,47 +276,43 @@ mpoint_t *markpoints = NULL;     // where the points are
 int       markpointnum = 0;      // next point to be assigned (also number of points now)
 int       markpointnum_max = 0;  // killough 2/22/98
 
-#define NUMALIAS 3   
+#define NUMALIAS      9
+#define NUMLEVELS     8
+#define INTENSITYBITS 3
 
 // [crispy] line colors for map normal mode
-static byte antialias_normal[] = {
-    96,     // WALLCOLORS
+static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
+    { 96,  97,  98,  99, 100, 101, 102, 103},   // WALLCOLORS
+    {110, 109, 108, 107, 106, 105, 104, 103},   // FDWALLCOLORS
+    { 75,  76,  77,  78,  79,  80,  81, 103},   // CDWALLCOLORS
+    { 40,  40,  41,  41,  42,  42,  43,  43},   // MLDONTDRAW1
+    { 43,  43,  43,  42,  42,  42,  41,  41},   // MLDONTDRAW2
+    {143, 143, 142, 142, 141, 141, 141, 141},   // YELLOWKEY
+    {220, 220, 219, 219, 218, 218, 217, 217},   // GREENKEY
+    {197, 197, 196, 196, 195, 195, 194, 194},   // BLUEKEY
+    {170, 170, 171, 171, 172, 172, 173, 173}    // SECRETCOLORS
 };
 
 // [crispy] line colors for map overlay mode
-static byte antialias_overlay[] = {
-    100,    // WALLCOLORS
+static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
+    {100,  99,  98,  98,  97,  97,  96,  96},   // WALLCOLORS
+    {106, 105, 104, 103, 102, 101, 100,  99},   // FDWALLCOLORS
+    { 75,  75,  74,  74,  73,  73,  72,  72},   // CDWALLCOLORS
+    { 40,  39,  39,  38,  38,  37,  37,  36},   // MLDONTDRAW1
+    { 43,  42,  41,  40,  39,  38,  37,  36},   // MLDONTDRAW2
+    {143, 143, 142, 142, 141, 141, 140, 140},   // YELLOWKEY
+    {220, 219, 218, 217, 216, 215, 214, 213},   // GREENKEY
+    {197, 197, 196, 196, 195, 195, 194, 194},   // BLUEKEY
+    {175, 174, 173, 172, 171, 170, 169, 169}    // SECRETWALLCOLORS
 };
 
-static byte (*antialias)[]; // [crispy]
+static byte (*antialias)[NUMALIAS][NUMLEVELS]; // [crispy]
+static byte *maplump;           // pointer to the raw data for the automap background.
 
 static int followplayer = 1; // specifies whether to follow the player around
 
+boolean automapactive = false;
 static boolean stopped = true;
-
-
-/*
-static byte *aliasmax[NUMALIAS] = {
-	&antialias[0][7], &antialias[1][7], &antialias[2][7]
-};*/
-
-static byte *maplump;           // pointer to the raw data for the automap background.
-
-// [crispy] Used for automap background tiling and scrolling
-#define MAPBGROUNDWIDTH ORIGWIDTH
-#define MAPBGROUNDHEIGHT (ORIGHEIGHT - 42)
-
-// [crispy] Antialiased lines with more colors
-#define NUMSHADES 8
-#define NUMSHADES_BITS 3 // log2(NUMSHADES)
-static pixel_t color_shades[NUMSHADES * 256];
-           // Number of antialiased lines.
-
-// Forward declare for AM_LevelInit
-// static void AM_drawFline_Vanilla(fline_t* fl, int color);
-// static void AM_drawFline_Smooth(fline_t* fl, int color);
-// // Indirect through this to avoid having to test crispy->smoothmap for every line
-// void (*AM_drawFline)(fline_t*, int) = AM_drawFline_Vanilla;
 
 // [crispy] automap rotate mode needs these early on
 static void AM_rotate (int64_t *x, int64_t *y, angle_t a);
@@ -322,8 +321,8 @@ static mpoint_t mapcenter;
 static angle_t mapangle;
 
 static void AM_drawCrosshair(boolean force);
+static void DrawWuLine(fline_t* fl, byte *BaseColor);
 
-void DrawWuLine(fline_t* fl, int color);
 
 // -----------------------------------------------------------------------------
 // AM_Init
@@ -332,37 +331,14 @@ void DrawWuLine(fline_t* fl, int color);
 
 void AM_Init (void)
 {
-    // [JN] Load map parch background and marks. Needs to be done only once.
-    static boolean gfx_loaded = false;
+    char namebuf[9];
 
-    if (!gfx_loaded)
+    for (int i = 0 ; i < 10 ; i++)
     {
-        char namebuf[9];
-
-        for (int i = 0 ; i < 10 ; i++)
-        {
-            DEH_snprintf(namebuf, 9, "SMALLIN%d", i);
-            marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
-        }
-        maplump = W_CacheLumpName(DEH_String("AUTOPAGE"), PU_STATIC);
-        gfx_loaded = true;
+        DEH_snprintf(namebuf, 9, "SMALLIN%d", i);
+        marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
     }
-
-    // [crispy] Precalculate color lookup tables for antialiased line drawing using COLORMAP
-    for (int color = 0; color < 256; ++color)
-    {
-#define REINDEX(I) (color + I * 256)
-        // Pick a range of shades for a steep gradient to keep lines thin
-        int shade_index[NUMSHADES] =
-        {
-            REINDEX(0), REINDEX(1), REINDEX(2), REINDEX(3), REINDEX(4), REINDEX(5), REINDEX(6), REINDEX(7),
-        };
-#undef REINDEX
-        for (int shade = 0; shade < NUMSHADES; ++shade)
-        {
-            color_shades[color * NUMSHADES + shade] = colormaps[shade_index[shade]];
-        }
-    }
+    maplump = W_CacheLumpName(DEH_String("AUTOPAGE"), PU_STATIC);
 }
 
 // -----------------------------------------------------------------------------
@@ -620,7 +596,7 @@ void AM_initVariables (void)
         }
     }
 
-    // [crispy]
+    // [crispy] pointer to antialiased tables for line drawing
     antialias = automap_overlay ? &antialias_overlay : &antialias_normal;
 }
 
@@ -646,8 +622,6 @@ void AM_LevelInit (boolean reinit)
     f_x = f_y = 0;
     f_w = SCREENWIDTH;
     f_h = SCREENHEIGHT - SBARHEIGHT;
-
-    // AM_SetdrawFline();
 
     AM_findMinMaxBoundaries();
 
@@ -959,7 +933,6 @@ boolean AM_Responder (event_t *ev)
     else if (ev->type == ev_keyup)
     {
         rc = false;
-        // key = ev->data1;
 
         if (key == key_map_east)
         {
@@ -1335,16 +1308,16 @@ static void AM_drawFline(fline_t * fl, int color)
 
     switch (color)
     {
-        case WALLCOLORS:    DrawWuLine(fl, (*antialias)[0]);    break;
-        case FDWALLCOLORS:  DrawWuLine(fl, 110);                break;
-        case CDWALLCOLORS:  DrawWuLine(fl,  75);                break;
+        case WALLCOLORS:    DrawWuLine(fl, &(*antialias)[0][0]);  break;
+        case FDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[1][0]);  break;
+        case CDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[2][0]);  break;
         // [JN] Apply antialiasing for some extra lines as well:
-        case MLDONTDRAW1:   DrawWuLine(fl,  40);    break;
-        case MLDONTDRAW2:   DrawWuLine(fl,  43);    break;
-        case YELLOWKEY:     DrawWuLine(fl, 144);    break;
-        case GREENKEY:      DrawWuLine(fl, 220);    break;
-        case BLUEKEY:       DrawWuLine(fl, 197);    break;
-        case SECRETCOLORS:  DrawWuLine(fl, 175);    break;
+        case MLDONTDRAW1:   DrawWuLine(fl, &(*antialias)[3][0]);  break;
+        case MLDONTDRAW2:   DrawWuLine(fl, &(*antialias)[4][0]);  break;
+        case YELLOWKEY:     DrawWuLine(fl, &(*antialias)[5][0]);  break;
+        case GREENKEY:      DrawWuLine(fl, &(*antialias)[6][0]);  break;
+        case BLUEKEY:       DrawWuLine(fl, &(*antialias)[7][0]);  break;
+        case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  break;
         default:
         {
             // For debugging only
@@ -1420,11 +1393,11 @@ static void AM_drawFline(fline_t * fl, int color)
  * IntensityBits = log base 2 of NumLevels; the # of bits used to describe
  *          the intensity of the drawing color. 2**IntensityBits==NumLevels
  */
-void PUTDOT(short xx, short yy, pixel_t * cc, pixel_t * cm)
+void PUTDOT(short xx, short yy, byte * cc, byte * cm)
 {
     static int oldyy;
     static int oldyyshifted;
-    pixel_t *oldcc = cc;
+    byte *oldcc = cc;
 
     if (xx < 32)
         cc += 7 - (xx >> 2);
@@ -1460,14 +1433,12 @@ void PUTDOT(short xx, short yy, pixel_t * cc, pixel_t * cm)
         oldyy = yy;
         oldyyshifted = yy * f_w;
     }
-    fb[oldyyshifted + flipscreenwidth[xx]] = *(cc);
-//      fb[(yy)*f_w+(xx)]=*(cc);
+    fb[oldyyshifted + flipscreenwidth[xx]] = colormaps[*(cc)];
 }
 
-void DrawWuLine(fline_t* fl, int color)
+static void DrawWuLine(fline_t* fl, byte *BaseColor)
 {
     int X0 = fl->a.x, Y0 = fl->a.y, X1 = fl->b.x, Y1 = fl->b.y;
-    pixel_t* BaseColor = &color_shades[color * NUMSHADES];
 
     unsigned short IntensityShift, ErrorAdj, ErrorAcc;
     unsigned short ErrorAccTemp, Weighting, WeightingComplementMask;
@@ -1535,10 +1506,10 @@ void DrawWuLine(fline_t* fl, int color)
     /* Line is not horizontal, diagonal, or vertical */
     ErrorAcc = 0;               /* initialize the line error accumulator to 0 */
     /* # of bits by which to shift ErrorAcc to get intensity level */
-    IntensityShift = 16 - NUMSHADES_BITS;
+    IntensityShift = 16 - INTENSITYBITS;
     /* Mask used to flip all bits in an intensity weighting, producing the
        result (1 - intensity weighting) */
-    WeightingComplementMask = NUMSHADES - 1;
+    WeightingComplementMask = NUMLEVELS - 1;
     /* Is this an X-major or Y-major line? */
     if (DeltaY > DeltaX)
     {
@@ -1920,7 +1891,6 @@ static void AM_drawLineCharacter (mline_t *lineguy, int lineguylines,
 
 static void AM_drawPlayers (void)
 {
-
     int i;
     mpoint_t  pt;
     player_t *p;
@@ -2242,14 +2212,6 @@ void AM_LevelNameDrawer (void)
         level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
         MN_DrTextA(DEH_String(level_name), x, y, NULL);
     }
-
-
-    /*
-    static char str[128];
-
-    sprintf(str, "%s", level_name);
-    M_WriteText(0 - WIDESCREENDELTA, 160, str, NULL);
-    */
 }
 
 // -----------------------------------------------------------------------------
