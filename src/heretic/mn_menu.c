@@ -1115,9 +1115,7 @@ static void M_ID_TrueColorHook (void)
 
 static void M_ID_TrueColor (int option)
 {
-#ifndef CRISPY_TRUECOLOR
-    // TODO return false;
-#else
+#ifdef CRISPY_TRUECOLOR
     vid_truecolor ^= 1;
     post_rendering_hook = M_ID_TrueColorHook;
 #endif
@@ -1442,6 +1440,7 @@ static void M_ID_LocalTime (int choice)
 {
     msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice, false);
 }
+
 
 // -----------------------------------------------------------------------------
 // Sound options
