@@ -950,11 +950,20 @@ void D_DoomMain(void)
     // Start a game immediately, warping to level ExMy.
     //
 
-    p = M_CheckParmWithArgs("-warp", 2);
-    if (p && p < myargc - 2)
+    p = M_CheckParmWithArgs("-warp", 1);
+    if (p)
     {
         startepisode = myargv[p + 1][0] - '0';
-        startmap = myargv[p + 2][0] - '0';
+        // [crispy] only if second argument is not another option
+        if (p + 2 < myargc && myargv[p+2][0] != '-')
+        {
+            startmap = myargv[p + 2][0] - '0';
+        }
+        else
+        {
+            // [crispy] allow second digit without space in between for Heretic
+            startmap = myargv[p + 1][1] - '0';
+        }
         autostart = true;
 
         // [crispy] if used with -playdemo, fast-forward demo up to the desired map
