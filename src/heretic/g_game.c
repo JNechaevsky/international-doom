@@ -2404,7 +2404,7 @@ void G_InitNew(skill_t skill, int episode, int map)
 //  [JN] Start new game with given parameters in "Level select" menu.
 // -----------------------------------------------------------------------------
 
-boolean G_DoSelectiveGame (int choice)
+void G_DoSelectiveGame (int choice)
 {
     int i;
     int speed;
@@ -2493,8 +2493,6 @@ boolean G_DoSelectiveGame (int choice)
     for (i = 0 ; i < level_select[31] ; i++) P_GiveArtifact(plr, arti_invisibility, NULL);
     for (i = 0 ; i < level_select[32] ; i++) P_GiveArtifact(plr, arti_fly, NULL);
     for (i = 0 ; i < level_select[33] ; i++) P_GiveArtifact(plr, arti_torch, NULL);
-
-    return true;
 }
 
 
