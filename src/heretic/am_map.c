@@ -1331,16 +1331,16 @@ static void AM_drawFline(fline_t * fl, int color)
 
     switch (color)
     {
-        case WALLCOLORS:    DrawWuLine(fl, automap_overlay ? &antialias_overlay[0][0] : &antialias_normal[0][0]);  break;
-        case FDWALLCOLORS:  DrawWuLine(fl, automap_overlay ? &antialias_overlay[1][0] : &antialias_normal[1][0]);  break;
-        case CDWALLCOLORS:  DrawWuLine(fl, automap_overlay ? &antialias_overlay[2][0] : &antialias_normal[2][0]);  break;
+        case WALLCOLORS:    DrawWuLine(fl, &(*antialias)[0][0]);  break;
+        case FDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[1][0]);  break;
+        case CDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[2][0]);  break;
         // [JN] Apply antialiasing for some extra lines as well:
-        case MLDONTDRAW1:   DrawWuLine(fl, automap_overlay ? &antialias_overlay[3][0] : &antialias_normal[3][0]);  break;
-        case MLDONTDRAW2:   DrawWuLine(fl, automap_overlay ? &antialias_overlay[4][0] : &antialias_normal[4][0]);  break;
-        case YELLOWKEY:     DrawWuLine(fl, automap_overlay ? &antialias_overlay[5][0] : &antialias_normal[5][0]);  break;
-        case GREENKEY:      DrawWuLine(fl, automap_overlay ? &antialias_overlay[6][0] : &antialias_normal[6][0]);  break;
-        case BLUEKEY:       DrawWuLine(fl, automap_overlay ? &antialias_overlay[7][0] : &antialias_normal[7][0]);  break;
-        case SECRETCOLORS:  DrawWuLine(fl, automap_overlay ? &antialias_overlay[8][0] : &antialias_normal[8][0]);  break;
+        case MLDONTDRAW1:   DrawWuLine(fl, &(*antialias)[3][0]);  break;
+        case MLDONTDRAW2:   DrawWuLine(fl, &(*antialias)[4][0]);  break;
+        case YELLOWKEY:     DrawWuLine(fl, &(*antialias)[5][0]);  break;
+        case GREENKEY:      DrawWuLine(fl, &(*antialias)[6][0]);  break;
+        case BLUEKEY:       DrawWuLine(fl, &(*antialias)[7][0]);  break;
+        case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  break;
         default:
         {
             // For debugging only
