@@ -370,6 +370,28 @@ void SB_Ticker(void)
     IDWidget.y = CPlayer->mo->y >> FRACBITS;
     IDWidget.ang = CPlayer->mo->angle / ANG1;
 
+    if (deathmatch)
+    {
+        static int totalFrags[MAXPLAYERS];
+
+        for (int i = 0 ; i < MAXPLAYERS ; i++)
+        {
+            totalFrags[i] = 0;
+
+            if (playeringame[i])
+            {
+                for (int j = 0 ; j < MAXPLAYERS ; j++)
+                {
+                    totalFrags[i] += players[i].frags[j];
+                }
+            }
+            IDWidget.frags_g = totalFrags[0];
+            IDWidget.frags_y = totalFrags[1];
+            IDWidget.frags_r = totalFrags[2];
+            IDWidget.frags_b = totalFrags[3];
+        }
+    }
+
     // [JN] Do red-/gold-shifts from damage/items.
     SB_PaletteFlash();
 }

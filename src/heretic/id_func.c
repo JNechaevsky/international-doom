@@ -152,9 +152,9 @@ void ID_LeftWidgets (void)
                 // Blue
                 if (playeringame[3])
                 {
-                    MN_DrTextA("B:", 0 - WIDESCREENDELTA, 40, cr[CR_RED]);
+                    MN_DrTextA("B:", 0 - WIDESCREENDELTA, 40, cr[CR_BLUE2]);
                     sprintf(str4, "%d", IDWidget.frags_b);
-                    MN_DrTextA(str4, 0 - WIDESCREENDELTA + 16, 40, cr[CR_RED]);
+                    MN_DrTextA(str4, 0 - WIDESCREENDELTA + 16, 40, cr[CR_BLUE2]);
                 }
             }
         }
