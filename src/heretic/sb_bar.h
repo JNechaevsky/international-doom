@@ -18,6 +18,4 @@
 #pragma once
 
 
-extern void SB_ForceRedraw (void);
-
 extern int sb_palette;

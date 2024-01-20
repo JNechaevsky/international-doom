@@ -83,7 +83,7 @@ patch_t *PatchRTFACE;
 patch_t *PatchBARBACK;
 patch_t *PatchCHAIN;
 patch_t *PatchSTATBAR;
-patch_t *PatchLIFEGEM;
+patch_t *PatchLIFEGEM[MAXPLAYERS];  // [JN] Make array for hot swapping in coop spy.
 //patch_t *PatchEMPWEAP;
 //patch_t *PatchLIL4BOX;
 patch_t *PatchLTFCTOP;
@@ -272,14 +272,12 @@ void SB_Init(void)
     {
         PatchSTATBAR = W_CacheLumpName(DEH_String("LIFEBAR"), PU_STATIC);
     }
-    if (!netgame)
-    {                           // single player game uses red life gem
-        PatchLIFEGEM = W_CacheLumpName(DEH_String("LIFEGEM2"), PU_STATIC);
-    }
-    else
+    // [JN] Better support for spy mode by loading
+    // all health gems and using displayplayer to choose them:
+    startLump = W_GetNumForName(DEH_String("LIFEGEM0"));
+    for (i = 0; i < MAXPLAYERS; i++)
     {
-        PatchLIFEGEM = W_CacheLumpNum(W_GetNumForName(DEH_String("LIFEGEM0"))
-                                      + consoleplayer, PU_STATIC);
+        PatchLIFEGEM[i] = W_CacheLumpNum(startLump + i, PU_STATIC);
     }
     PatchLTFCTOP = W_CacheLumpName(DEH_String("LTFCTOP"), PU_STATIC);
     PatchRTFCTOP = W_CacheLumpName(DEH_String("RTFCTOP"), PU_STATIC);
@@ -325,7 +323,7 @@ void SB_Ticker(void)
     {
         ChainWiggle = P_Random() & 1;
     }
-    curHealth = players[consoleplayer].mo->health;
+    curHealth = players[displayplayer].mo->health;
     if (curHealth < 0)
     {
         curHealth = 0;
@@ -369,6 +367,28 @@ void SB_Ticker(void)
     IDWidget.x = CPlayer->mo->x >> FRACBITS;
     IDWidget.y = CPlayer->mo->y >> FRACBITS;
     IDWidget.ang = CPlayer->mo->angle / ANG1;
+
+    if (deathmatch)
+    {
+        static int totalFrags[MAXPLAYERS];
+
+        for (int i = 0 ; i < MAXPLAYERS ; i++)
+        {
+            totalFrags[i] = 0;
+
+            if (playeringame[i])
+            {
+                for (int j = 0 ; j < MAXPLAYERS ; j++)
+                {
+                    totalFrags[i] += players[i].frags[j];
+                }
+            }
+            IDWidget.frags_g = totalFrags[0];
+            IDWidget.frags_y = totalFrags[1];
+            IDWidget.frags_r = totalFrags[2];
+            IDWidget.frags_b = totalFrags[3];
+        }
+    }
 
     // [JN] Do red-/gold-shifts from damage/items.
     SB_PaletteFlash();
@@ -768,7 +788,7 @@ void SB_Drawer(void)
     {
         DrawSoundInfo();
     }
-    CPlayer = &players[consoleplayer];
+    CPlayer = &players[displayplayer];
     if (viewheight == SCREENHEIGHT && (!automapactive || automap_overlay))
     {
         DrawFullScreenStuff();
@@ -792,7 +812,7 @@ void SB_Drawer(void)
                 V_DrawPatch(0, 158, PatchBARBACK);
             }
 
-            if (players[consoleplayer].cheats & CF_GODMODE)
+            if (players[displayplayer].cheats & CF_GODMODE)
             {
                 V_DrawPatch(16, 167,
                             W_CacheLumpName(DEH_String("GOD1"), PU_CACHE));
@@ -1075,7 +1095,7 @@ static byte *SB_NumberColor (int i)
         }
         case hudcolor_frags:
         {
-            const int frags = CPlayer->frags[consoleplayer];
+            const int frags = CPlayer->frags[displayplayer];
 
             if (frags < 0)
                 return cr[CR_RED];
@@ -1113,7 +1133,7 @@ void SB_PaletteFlash(void)
     byte *pal;
 #endif
 
-    CPlayer = &players[consoleplayer];
+    CPlayer = &players[displayplayer];
 
     if (CPlayer->damagecount)
     {
@@ -1184,7 +1204,10 @@ void DrawCommonBar(void)
             (HealthMarker == CPlayer->/*mo->*/health) ? 191 : 191 + ChainWiggle;
         V_DrawPatch(0, 190, PatchCHAINBACK);
         V_DrawPatch(2 + (healthPos % 17), chainY, PatchCHAIN);
-        V_DrawPatch(17 + healthPos, chainY, PatchLIFEGEM);
+        // [JN] Make health gem change with displayplayer.
+        // Single player game uses red life gem.
+        V_DrawPatch(17 + healthPos, chainY,
+                    !netgame ? PatchLIFEGEM[2] : PatchLIFEGEM[displayplayer]);
         V_DrawPatch(0, 190, PatchLTFACE);
         V_DrawPatch(276, 190, PatchRTFACE);
         ShadeChain();

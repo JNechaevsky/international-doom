@@ -21,6 +21,7 @@
 #include "doomdef.h"
 #include "m_bbox.h"
 #include "r_local.h"
+#include "p_local.h"
 #include "tables.h"
 #include "sb_bar.h"
 

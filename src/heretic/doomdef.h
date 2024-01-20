@@ -272,8 +272,8 @@ enum
 #define	MF_TRANSLATION	0xc000000 // if 0x4 0x8 or 0xc, use a translation
 #define	MF_TRANSSHIFT	26      // table for player colormaps
 
-#define MF_EXTRATRANS   134217728  // [JN] Extra translucecy
-#define MF_FLIPPABLE    268435456  // [crispy] randomly flip corpse, blood and death animation sprites
+#define MF_EXTRATRANS   (int)0x40000000  // [JN] Extra translucecy
+#define MF_FLIPPABLE    (int)0x80000000  // [crispy] randomly flip corpse, blood and death animation sprites
 
 // --- mobj.flags2 ---
 

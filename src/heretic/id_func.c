@@ -139,22 +139,22 @@ void ID_LeftWidgets (void)
                 if (playeringame[1])
                 {
                     MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 20, cr[CR_YELLOW]);
-                    sprintf(str2, "%d", IDWidget.frags_i);
+                    sprintf(str2, "%d", IDWidget.frags_y);
                     MN_DrTextA(str2, 0 - WIDESCREENDELTA + 16, 20, cr[CR_YELLOW]);
                 }
                 // Red
                 if (playeringame[2])
                 {
                     MN_DrTextA("R:", 0 - WIDESCREENDELTA, 30, cr[CR_RED]);
-                    sprintf(str3, "%d", IDWidget.frags_b);
+                    sprintf(str3, "%d", IDWidget.frags_r);
                     MN_DrTextA(str3, 0 - WIDESCREENDELTA + 16, 30, cr[CR_RED]);
                 }
                 // Blue
                 if (playeringame[3])
                 {
-                    MN_DrTextA("B:", 0 - WIDESCREENDELTA, 40, cr[CR_RED]);
-                    sprintf(str4, "%d", IDWidget.frags_r);
-                    MN_DrTextA(str4, 0 - WIDESCREENDELTA + 16, 40, cr[CR_RED]);
+                    MN_DrTextA("B:", 0 - WIDESCREENDELTA, 40, cr[CR_BLUE2]);
+                    sprintf(str4, "%d", IDWidget.frags_b);
+                    MN_DrTextA(str4, 0 - WIDESCREENDELTA + 16, 40, cr[CR_BLUE2]);
                 }
             }
         }
@@ -355,13 +355,13 @@ void ID_LeftWidgets (void)
                 // Yellow
                 if (playeringame[1])
                 {
-                    sprintf(str3, "I ");
+                    sprintf(str3, "Y ");
                     MN_DrTextA(str3, 0 - WIDESCREENDELTA +
                                          MN_TextAWidth(str1) +
                                          MN_TextAWidth(str2),
                                          146 + yy, cr[CR_YELLOW]);
 
-                    sprintf(str4, "%d ", IDWidget.frags_i);
+                    sprintf(str4, "%d ", IDWidget.frags_y);
                     MN_DrTextA(str4, 0 - WIDESCREENDELTA +
                                          MN_TextAWidth(str1) +
                                          MN_TextAWidth(str2) +
@@ -379,7 +379,7 @@ void ID_LeftWidgets (void)
                                          MN_TextAWidth(str4),
                                          146 + yy, cr[CR_RED]);
 
-                    sprintf(str6, "%d ", IDWidget.frags_b);
+                    sprintf(str6, "%d ", IDWidget.frags_r);
                     MN_DrTextA(str6, 0 - WIDESCREENDELTA +
                                          MN_TextAWidth(str1) +
                                          MN_TextAWidth(str2) +
@@ -401,7 +401,7 @@ void ID_LeftWidgets (void)
                                          MN_TextAWidth(str6),
                                          146 + yy, cr[CR_BLUE2]);
 
-                    sprintf(str8, "%d ", IDWidget.frags_r);
+                    sprintf(str8, "%d ", IDWidget.frags_b);
                     MN_DrTextA(str8, 0 - WIDESCREENDELTA +
                                          MN_TextAWidth(str1) +
                                          MN_TextAWidth(str2) +

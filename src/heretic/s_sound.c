@@ -136,7 +136,7 @@ static mobj_t *GetSoundListener(void)
 
     if (players[consoleplayer].mo != NULL)
     {
-        return players[consoleplayer].mo;
+        return players[displayplayer].mo;
     }
     else
     {

@@ -31,6 +31,7 @@
 #include "deh_main.h"
 
 #include "d_loop.h"
+#include "ct_chat.h"
 
 ticcmd_t *netcmds;
 
@@ -44,16 +45,12 @@ static void PlayerQuitGame(player_t *player)
 
     player_num = player - players;
 
-    // Note:
-    // The Heretic source code does this, which doesn't actually work.
-    // As a result, the exit message is never seen.
-
+    // [JN] Fixed non working quit message:
     M_StringCopy(exitmsg, "PLAYER 1 LEFT THE GAME", sizeof(exitmsg));
     exitmsg[7] += player_num;
-    players[consoleplayer].message = exitmsg;
 
     playeringame[player_num] = false;
-    players[consoleplayer].message = exitmsg;
+    CT_SetMessage(&players[consoleplayer], exitmsg, true, NULL);
 
     // [crispy] don't interpolate players who left the game
     player->mo->interp = false;
