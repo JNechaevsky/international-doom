@@ -290,7 +290,8 @@ void P_MovePlayer(player_t * player)
         }
     }
     // [crispy] Handle mouselook
-    if (!demoplayback)
+    // [JN] Not working in netgame, may cause desync!
+    if (!demoplayback && !netgame)
     {
         player->lookdir = BETWEEN(-110, 90,
                                      player->lookdir + cmd->lookdir);
