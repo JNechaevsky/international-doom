@@ -2120,7 +2120,9 @@ static void AM_drawMarks (void)
                 if (fx >= f_x && fx <= (f_w / vid_resolution) - 5
                 &&  fy >= f_y && fy <= (f_h / vid_resolution) - 6)
                 {
+                    dp_translation = cr[CR_GREEN];
                     V_DrawPatch(fx_flip - WIDESCREENDELTA, fy, marknums[d]);
+                    dp_translation = NULL;
                 }
 
                 // killough 2/22/98: 1 space backwards
