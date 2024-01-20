@@ -1433,7 +1433,11 @@ void PUTDOT(short xx, short yy, byte * cc, byte * cm)
         oldyy = yy;
         oldyyshifted = yy * f_w;
     }
+#ifndef CRISPY_TRUECOLOR
+    fb[oldyyshifted + flipscreenwidth[xx]] = *(cc);
+#else
     fb[oldyyshifted + flipscreenwidth[xx]] = colormaps[*(cc)];
+#endif
 }
 
 static void DrawWuLine(fline_t* fl, byte *BaseColor)
