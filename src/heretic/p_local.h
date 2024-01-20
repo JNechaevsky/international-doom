@@ -289,6 +289,7 @@ void AM_Drawer(void);
 
 extern int SB_state;
 extern int ArtifactFlash;
+extern void SB_ForceRedraw (void);
 void SB_PaletteFlash(void);
 
 // ***** P_SAVEG *****
