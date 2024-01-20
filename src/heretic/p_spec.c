@@ -1174,7 +1174,7 @@ void R_InterpolateTextureOffsets(void)
                 side->textureoffset = side->basetextureoffset + fractionaltic;
             }
             else
-                if (line->special == 85)
+                if (line->special == 99)
                 {
                     side->textureoffset = side->basetextureoffset - fractionaltic;
                 }
