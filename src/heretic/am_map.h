@@ -67,6 +67,12 @@
 #define GREENKEY        220
 #define BLUEKEY         197
 
+// Teleporters
+#define TELEPORTERS     156
+
+// Exits
+#define EXITS           182
+
 // Crosshair
 #define XHAIRCOLORS	    28
 

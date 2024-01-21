@@ -276,7 +276,7 @@ mpoint_t *markpoints = NULL;     // where the points are
 int       markpointnum = 0;      // next point to be assigned (also number of points now)
 int       markpointnum_max = 0;  // killough 2/22/98
 
-#define NUMALIAS      9
+#define NUMALIAS      11
 #define NUMLEVELS     8
 #define INTENSITYBITS 3
 
@@ -290,7 +290,9 @@ static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
     {143, 143, 142, 142, 141, 141, 141, 141},   // YELLOWKEY
     {220, 220, 219, 219, 218, 218, 217, 217},   // GREENKEY
     {197, 197, 196, 196, 195, 195, 194, 194},   // BLUEKEY
-    {170, 170, 171, 171, 172, 172, 173, 173}    // SECRETCOLORS
+    {173, 173, 173, 173, 173, 173, 173, 173},   // SECRETCOLORS
+    {155, 155, 154, 154, 154, 153, 153, 153},   // TELEPORTERS
+    {182, 182, 182, 182, 181, 181, 181, 181},   // EXITS
 };
 
 // [crispy] line colors for map overlay mode
@@ -303,7 +305,9 @@ static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
     {143, 143, 142, 142, 141, 141, 140, 140},   // YELLOWKEY
     {220, 219, 218, 217, 216, 215, 214, 213},   // GREENKEY
     {197, 197, 196, 196, 195, 195, 194, 194},   // BLUEKEY
-    {175, 174, 173, 172, 171, 170, 169, 169}    // SECRETWALLCOLORS
+    {175, 175, 174, 174, 173, 173, 172, 172},   // SECRETCOLORS
+    {156, 156, 155, 154, 153, 152, 150, 149},   // TELEPORTERS
+    {182, 182, 181, 181, 180, 180, 179, 179},   // EXITS
 };
 
 static byte (*antialias)[NUMALIAS][NUMLEVELS]; // [crispy]
@@ -1318,6 +1322,8 @@ static void AM_drawFline(fline_t * fl, int color)
         case GREENKEY:      DrawWuLine(fl, &(*antialias)[6][0]);  break;
         case BLUEKEY:       DrawWuLine(fl, &(*antialias)[7][0]);  break;
         case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  break;
+        case TELEPORTERS:   DrawWuLine(fl, &(*antialias)[9][0]);  break;
+        case EXITS:         DrawWuLine(fl, &(*antialias)[10][0]); break;
         default:
         {
             // For debugging only
@@ -1713,6 +1719,12 @@ static void AM_drawWalls (void)
                 {
                     AM_drawMline(&l, SECRETCOLORS);
                 }
+                // [JN] Colorize 1-sided exits with azure.
+                else
+                if (lines[i].special == 11 || lines[i].special == 51)
+                {
+                    AM_drawMline(&l, EXITS);
+                }
                 else
                 {
                     AM_drawMline(&l, WALLCOLORS);
@@ -1720,11 +1732,7 @@ static void AM_drawWalls (void)
             }
             else
             {
-                if (lines[i].special == 39)
-                {               // teleporters
-                    AM_drawMline(&l, WALLCOLORS + WALLRANGE / 2);
-                }
-                else if (lines[i].flags & ML_SECRET)    // secret door
+                if (lines[i].flags & ML_SECRET)    // secret door
                 {
                     if (ravmap_cheating)
                         AM_drawMline(&l, 0);
@@ -1757,6 +1765,19 @@ static void AM_drawWalls (void)
                         default:
                             break;
                     }
+                }
+                // [JN] Colorize teleporters with red.
+                else
+                if (lines[i].special == 39
+                ||  lines[i].special == 97)
+                {               
+                    AM_drawMline(&l, TELEPORTERS);
+                }
+                // [JN] Colorize 2-sided exits with azure.
+                else
+                if (lines[i].special == 52 || lines[i].special == 105)
+                {               
+                    AM_drawMline(&l, EXITS);
                 }
                 else if (lines[i].backsector->floorheight
                          != lines[i].frontsector->floorheight)
