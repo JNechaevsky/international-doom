@@ -1048,9 +1048,8 @@ R_InitBuffer
 
     if (background_buffer != NULL)
     {
-        Z_Free(background_buffer);
-        background_buffer = NULL;
-        printf ("\n --- FREED (R_InitBuffer)");
+	    Z_Free(background_buffer);
+	    background_buffer = NULL;
     }
 } 
  
@@ -1091,9 +1090,8 @@ void R_FillBackScreen (void)
 	
     if (background_buffer == NULL)
     {
-		const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
-		background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
-		printf ("\n +++ ALLOCATED (R_FillBackScreen)");
+        const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
+        background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
     }
 
     if (gamemode == commercial)

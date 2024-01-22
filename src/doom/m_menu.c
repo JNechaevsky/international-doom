@@ -4913,7 +4913,7 @@ static void M_SizeDisplay(int choice)
 	        if (dp_screen_size == 13 || dp_screen_size == 12)
 	            dp_screen_size -= 2;
 	    }
-        R_SetViewSize (dp_screen_size, dp_detail_level);
+	    R_SetViewSize (dp_screen_size, dp_detail_level);
 	}
 	break;
       case 1:
@@ -4925,7 +4925,7 @@ static void M_SizeDisplay(int choice)
 	    {
 	        if (dp_screen_size == 13) dp_screen_size += 2;
 	    }
-        R_SetViewSize (dp_screen_size, dp_detail_level);
+	    R_SetViewSize (dp_screen_size, dp_detail_level);
 	}
 	break;
     }

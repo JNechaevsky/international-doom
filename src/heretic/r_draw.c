@@ -549,7 +549,6 @@ void R_InitBuffer(int width, int height)
     {
         Z_Free(background_buffer);
         background_buffer = NULL;
-        printf ("\n --- FREED (R_InitBuffer)");
     }
 }
 
@@ -581,7 +580,6 @@ void R_FillBackScreen (void)
 	{
 		const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
 		background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
-		printf ("\n +++ ALLOCATED (R_FillBackScreen)");
 	}
 
 	// Draw screen and bezel; this is done to a separate screen buffer.
