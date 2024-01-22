@@ -2095,6 +2095,12 @@ void G_DoCompleted(void)
     else if (gamemap == 9)
     {                           // Finished secret level
         gamemap = afterSecret[gameepisode - 1];
+        // [JN] Force set "didsecret" flag, so cross mark
+        // will not dissapear on interlude screen.
+        for (i = 0 ; i < MAXPLAYERS ; i++)
+        {
+            players[i].didsecret = true;
+        }
     }
     else if (gamemap == 8)
     {
