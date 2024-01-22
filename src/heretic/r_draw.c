@@ -544,6 +544,12 @@ void R_InitBuffer(int width, int height)
     viewwindowy &= ~1;
     for (i = 0; i < height; i++)
         ylookup[i] = I_VideoBuffer + (i + viewwindowy) * SCREENWIDTH;
+
+    if (background_buffer != NULL)
+    {
+        Z_Free(background_buffer);
+        background_buffer = NULL;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -565,11 +571,6 @@ void R_FillBackScreen (void)
 	
 	if (scaledviewwidth == SCREENWIDTH)
 	{
-		if (background_buffer != NULL)
-		{
-			Z_Free(background_buffer);
-			background_buffer = NULL;
-		}
 		return;
 	}
 	
@@ -577,9 +578,13 @@ void R_FillBackScreen (void)
 	
 	if (background_buffer == NULL)
 	{
-		background_buffer = Z_Malloc(MAXWIDTH * (MAXHEIGHT - SBARHEIGHT)
-						* sizeof(*background_buffer), PU_STATIC, NULL);
+		const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
+		background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
 	}
+
+	// Draw screen and bezel; this is done to a separate screen buffer.
+	
+	V_UseBuffer(background_buffer);
 	
 	// [JN] Attempt to round up precision problem on lower screen sizes.
 	if (dp_screen_size < 6)
@@ -593,10 +598,6 @@ void R_FillBackScreen (void)
 	// [crispy] use unified flat filling function
 	V_FillFlat(0, SCREENHEIGHT-SBARHEIGHT, 0, SCREENWIDTH, src, dest);
 	
-	// Draw screen and bezel; this is done to a separate screen buffer.
-	
-	V_UseBuffer(background_buffer);
-
 	for (x = (viewwindowx / vid_resolution); x < (viewwindowx + viewwidth) / vid_resolution; x += 16)
 	{
 		V_DrawPatch(x - WIDESCREENDELTA, ((viewwindowy / vid_resolution) - 4) + yy,
