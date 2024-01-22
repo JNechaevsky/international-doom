@@ -1094,6 +1094,10 @@ void R_FillBackScreen (void)
         background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
     }
 
+    // Draw screen and bezel; this is done to a separate screen buffer.
+
+    V_UseBuffer(background_buffer);
+
     if (gamemode == commercial)
 	name = name2;
     else
@@ -1105,10 +1109,6 @@ void R_FillBackScreen (void)
     // [crispy] use unified flat filling function
     V_FillFlat(0, SCREENHEIGHT-SBARHEIGHT, 0, SCREENWIDTH, src, dest);
      
-    // Draw screen and bezel; this is done to a separate screen buffer.
-
-    V_UseBuffer(background_buffer);
-
     patch = W_CacheLumpName(DEH_String("brdr_t"),PU_CACHE);
 
     for (x=0 ; x<(scaledviewwidth / vid_resolution) ; x+=8)
