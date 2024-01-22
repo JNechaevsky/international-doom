@@ -4964,6 +4964,7 @@ static void SCScreenSize(int option)
                 if (dp_screen_size == 11)
                     dp_screen_size  = 10;
             }
+            R_SetViewSize(dp_screen_size, 0 /*dp_detail_level*/);
         }
         break;
 
@@ -4977,10 +4978,10 @@ static void SCScreenSize(int option)
                 if (dp_screen_size == 11)
                     dp_screen_size  = 12;
             }
+            R_SetViewSize(dp_screen_size, 0 /*dp_detail_level*/);
         }
         break;
     }
-    R_SetViewSize(dp_screen_size, 0 /*dp_detail_level*/);
 }
 
 //---------------------------------------------------------------------------
