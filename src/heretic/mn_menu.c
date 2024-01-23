@@ -136,6 +136,7 @@ static void SCSkill(int option);
 static void SCMouseSensi(int option);
 static void SCSfxVolume(int option);
 static void SCMusicVolume(int option);
+static void SCChangeDetail(int option);
 static void SCScreenSize(int option);
 static void SCLoadGame(int option);
 static void SCSaveCheck(int option);
@@ -481,6 +482,7 @@ static void M_Bind_HelpScreen (int option);
 static void M_Bind_SaveGame (int option);
 static void M_Bind_LoadGame (int option);
 static void M_Bind_SoundVolume (int option);
+static void M_Bind_ToggleDetail (int option);
 static void M_Bind_QuickSave (int option);
 static void M_Bind_EndGame (int option);
 static void M_Bind_ToggleMessages (int option);
@@ -2342,6 +2344,7 @@ static MenuItem_t ID_Menu_Keybinds_7[] = {
     {ITT_EFUNC, "SAVE GAME",       M_Bind_SaveGame,       0, MENU_NONE},
     {ITT_EFUNC, "LOAD GAME",       M_Bind_LoadGame,       0, MENU_NONE},
     {ITT_EFUNC, "SOUND VOLUME",    M_Bind_SoundVolume,    0, MENU_NONE},
+    {ITT_EFUNC, "TOGGLE DETAIL",   M_Bind_ToggleDetail,   0, MENU_NONE},
     {ITT_EFUNC, "QUICK SAVE",      M_Bind_QuickSave,      0, MENU_NONE},
     {ITT_EFUNC, "END GAME",        M_Bind_EndGame,        0, MENU_NONE},
     {ITT_EFUNC, "TOGGLE MESSAGES", M_Bind_ToggleMessages, 0, MENU_NONE},
@@ -2354,7 +2357,7 @@ static MenuItem_t ID_Menu_Keybinds_7[] = {
 static Menu_t ID_Def_Keybinds_7 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_7,
-    11, ID_Menu_Keybinds_7,
+    12, ID_Menu_Keybinds_7,
     0,
     true, true, true,
     MENU_ID_CONTROLS
@@ -2372,13 +2375,14 @@ static void M_Draw_ID_Keybinds_7 (void)
     M_DrawBindKey(1, 30, key_menu_save);
     M_DrawBindKey(2, 40, key_menu_load);
     M_DrawBindKey(3, 50, key_menu_volume);
-    M_DrawBindKey(4, 60, key_menu_qsave);
-    M_DrawBindKey(5, 70, key_menu_endgame);
-    M_DrawBindKey(6, 80, key_menu_messages);
-    M_DrawBindKey(7, 90, key_menu_qload);
-    M_DrawBindKey(8, 100, key_menu_quit);
-    M_DrawBindKey(9, 110, key_menu_gamma);
-    M_DrawBindKey(10, 120, key_spy);
+    M_DrawBindKey(4, 60, key_menu_detail);
+    M_DrawBindKey(5, 70, key_menu_qsave);
+    M_DrawBindKey(6, 80, key_menu_endgame);
+    M_DrawBindKey(7, 90, key_menu_messages);
+    M_DrawBindKey(8, 100, key_menu_qload);
+    M_DrawBindKey(9, 110, key_menu_quit);
+    M_DrawBindKey(10, 120, key_menu_gamma);
+    M_DrawBindKey(11, 130, key_spy);
 
     M_DrawBindFooter("7", true);
 }
@@ -2403,39 +2407,44 @@ static void M_Bind_SoundVolume (int option)
     M_StartBind(703);  // key_menu_volume
 }
 
+static void M_Bind_ToggleDetail (int option)
+{
+    M_StartBind(704);  // key_menu_detail
+}
+
 static void M_Bind_QuickSave (int option)
 {
-    M_StartBind(704);  // key_menu_qsave
+    M_StartBind(705);  // key_menu_qsave
 }
 
 static void M_Bind_EndGame (int option)
 {
-    M_StartBind(705);  // key_menu_endgame
+    M_StartBind(706);  // key_menu_endgame
 }
 
 static void M_Bind_ToggleMessages (int option)
 {
-    M_StartBind(706);  // key_menu_messages
+    M_StartBind(707);  // key_menu_messages
 }
 
 static void M_Bind_QuickLoad (int option)
 {
-    M_StartBind(707);  // key_menu_qload
+    M_StartBind(708);  // key_menu_qload
 }
 
 static void M_Bind_QuitGame (int option)
 {
-    M_StartBind(708);  // key_menu_quit
+    M_StartBind(709);  // key_menu_quit
 }
 
 static void M_Bind_ToggleGamma (int option)
 {
-    M_StartBind(709);  // key_menu_gamma
+    M_StartBind(710);  // key_menu_gamma
 }
 
 static void M_Bind_MultiplayerSpy (int option)
 {
-    M_StartBind(710);  // key_spy
+    M_StartBind(711);  // key_spy
 }
 
 // -----------------------------------------------------------------------------
@@ -3962,7 +3971,7 @@ static void M_ID_ApplyResetHook (void)
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
     R_InitLightTables();
-    R_SetViewSize(dp_screen_size, 0 /*dp_detail_level*/);
+    R_SetViewSize(dp_screen_size, dp_detail_level);
     R_ExecuteSetViewSize();
     I_ToggleVsync();
 #ifndef CRISPY_TRUECOLOR
@@ -4944,6 +4953,14 @@ static void SCMusicVolume(int option)
     S_SetMusicVolume();
 }
 
+static void SCChangeDetail (int option)
+{
+    dp_detail_level ^= 1;
+    R_SetViewSize (dp_screen_size, dp_detail_level);
+    CT_SetMessage(&players[consoleplayer], DEH_String(!dp_detail_level ? 
+                                           DETAILHI : DETAILLO), false, NULL);
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC SCScreenSize
@@ -4964,7 +4981,7 @@ static void SCScreenSize(int option)
                 if (dp_screen_size == 11)
                     dp_screen_size  = 10;
             }
-            R_SetViewSize(dp_screen_size, 0 /*dp_detail_level*/);
+            R_SetViewSize(dp_screen_size, dp_detail_level);
         }
         break;
 
@@ -4978,7 +4995,7 @@ static void SCScreenSize(int option)
                 if (dp_screen_size == 11)
                     dp_screen_size  = 12;
             }
-            R_SetViewSize(dp_screen_size, 0 /*dp_detail_level*/);
+            R_SetViewSize(dp_screen_size, dp_detail_level);
         }
         break;
     }
@@ -5465,7 +5482,8 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_detail)          // F5 (detail)
         {
-            // F5 isn't used in Heretic. (detail level)
+            SCChangeDetail(0);
+            S_StartSound(NULL, sfx_switch);
             return true;
         }
         else if (key == key_menu_qsave)           // F6 (quicksave)
@@ -6159,6 +6177,7 @@ static void M_CheckBind (int key)
     if (key_menu_save == key)        key_menu_save        = 0;
     if (key_menu_load == key)        key_menu_load        = 0;
     if (key_menu_volume == key)      key_menu_volume      = 0;
+    if (key_menu_detail == key)      key_menu_detail      = 0;
     if (key_menu_qsave == key)       key_menu_qsave       = 0;
     if (key_menu_endgame == key)     key_menu_endgame     = 0;
     if (key_menu_messages == key)    key_menu_messages    = 0;
@@ -6273,13 +6292,14 @@ static void M_DoBind (int keynum, int key)
         case 701:  key_menu_save = key;         break;
         case 702:  key_menu_load = key;         break;
         case 703:  key_menu_volume = key;       break;
-        case 704:  key_menu_qsave = key;        break;
-        case 705:  key_menu_endgame = key;      break;
-        case 706:  key_menu_messages = key;     break;
-        case 707:  key_menu_qload = key;        break;
-        case 708:  key_menu_quit = key;         break;
-        case 709:  key_menu_gamma = key;        break;
-        case 710:  key_spy = key;               break;
+        case 704:  key_menu_detail = key;       break;
+        case 705:  key_menu_qsave = key;        break;
+        case 706:  key_menu_endgame = key;      break;
+        case 707:  key_menu_messages = key;     break;
+        case 708:  key_menu_qload = key;        break;
+        case 709:  key_menu_quit = key;         break;
+        case 710:  key_menu_gamma = key;        break;
+        case 711:  key_spy = key;               break;
 
         // Page 8
         case 800:  key_pause = key;              break;
@@ -6413,13 +6433,14 @@ static void M_ClearBind (int CurrentItPos)
             case 1:   key_menu_save = 0;        break;
             case 2:   key_menu_load = 0;        break;
             case 3:   key_menu_volume = 0;      break;
-            case 4:   key_menu_qsave = 0;       break;
-            case 5:   key_menu_endgame = 0;     break;
-            case 6:   key_menu_messages = 0;    break;
-            case 7:   key_menu_qload = 0;       break;
-            case 8:   key_menu_quit = 0;        break;
-            case 9:   key_menu_gamma = 0;       break;
-            case 10:  key_spy = 0;              break;
+            case 4:   key_menu_detail = 0;      break;
+            case 5:   key_menu_qsave = 0;       break;
+            case 6:   key_menu_endgame = 0;     break;
+            case 7:   key_menu_messages = 0;    break;
+            case 8:   key_menu_qload = 0;       break;
+            case 9:   key_menu_quit = 0;        break;
+            case 10:  key_menu_gamma = 0;       break;
+            case 11:  key_spy = 0;              break;
         }
     }
     if (CurrentMenu == &ID_Def_Keybinds_8)
@@ -6524,6 +6545,7 @@ static void M_ResetBinds (void)
     key_menu_save = KEY_F2;
     key_menu_load = KEY_F3;
     key_menu_volume = KEY_F4;
+    key_menu_detail = KEY_F5;
     key_menu_qsave = KEY_F6;
     key_menu_endgame = KEY_F7;
     key_menu_messages = KEY_F8;

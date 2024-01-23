@@ -399,7 +399,7 @@ void R_DrawVisSprite (vissprite_t *vis)
     {
         if (vis->mobjflags & MF_TRANSLATION)
         {
-            colfunc = R_DrawTranslatedTLColumn;
+            colfunc = transtlcolfunc;
             dc_translation = translationtables - 256 +
                 ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT - 8));
         }
@@ -435,7 +435,7 @@ void R_DrawVisSprite (vissprite_t *vis)
     if (vis->psprite)
     {
         dc_texturemid += FixedMul(((centery - viewheight / 2) << FRACBITS),
-                                  pspriteiscale);
+                                  pspriteiscale >> detailshift);
         sprtopscreen += (viewheight / 2 - centery) << FRACBITS;
     }
 

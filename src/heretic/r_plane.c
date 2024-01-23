@@ -423,11 +423,9 @@ void R_DrawPlanes (void)
     int light;
     int x;
     int lumpnum;
-    int angle;
     byte *tempSource;
     boolean swirling;
 
-    pixel_t *dest;
     int count;
     fixed_t frac, fracstep;
     int heightmask; // [crispy]
@@ -487,7 +485,7 @@ void R_DrawPlanes (void)
                 if ((unsigned) dc_yl <= dc_yh)  // [JN] 32-bit integer math
                 {
                     // [crispy] Optionally draw skies horizontally linear.
-                    angle = ((an + (vis_linear_sky ? 
+                    const int angle = ((an + (vis_linear_sky ? 
                                     linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels ^ flip) >> ANGLETOSKYSHIFT;
                     dc_x = x;
                     dc_source = R_GetColumn(texture, angle);
@@ -503,11 +501,17 @@ void R_DrawPlanes (void)
                                 dc_x);
 #endif
 
-                    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
-
                     fracstep = dc_iscale;
                     frac = dc_texturemid + (dc_yl - centery) * fracstep;
                     heightmask = SKYTEXTUREMIDSHIFTED - 1; // [crispy]
+
+                    //
+                    // [JN] High detail.
+                    //
+                    if (!detailshift)
+                    {
+                    pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
                     // not a power of 2 -- killough
                     if (SKYTEXTUREMIDSHIFTED & heightmask)
                     {
@@ -545,6 +549,65 @@ void R_DrawPlanes (void)
                             dest += SCREENWIDTH;
                             frac += fracstep;
                         } while (count--);
+                    }
+                    }
+                    //
+                    // [JN] Low detail.
+                    //
+                    else
+                    {
+                        const int x = dc_x << 1;  // Blocky mode, need to multiply by 2.
+                        pixel_t *dest1 = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+                        pixel_t *dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
+                        pixel_t *dest3 = dest1;
+                        pixel_t *dest4 = dest2;
+
+                        // not a power of 2 -- killough
+                        if (SKYTEXTUREMIDSHIFTED & heightmask)
+                        {
+                            heightmask++;
+                            heightmask <<= FRACBITS;
+                        
+                            if (frac < 0)
+                                while ((frac += heightmask) < 0);
+                            else
+                                while (frac >= heightmask)
+                                    frac -= heightmask;
+
+                            do
+                            {
+                                const byte source = dc_source[frac>>FRACBITS];
+
+                                *dest4 = *dest3 = *dest2 = *dest1 = dc_colormap[dc_brightmap[source]][source];
+                                dest1 += SCREENWIDTH;
+                                dest2 += SCREENWIDTH;
+                                dest3 += SCREENWIDTH;
+                                dest4 += SCREENWIDTH;
+
+                                if ((frac += fracstep) >= heightmask)
+                                {
+                                    frac -= heightmask;
+                                }
+                            } while (count--);
+                        }
+                        // texture height is a power of 2 -- killough
+                        else
+                        {
+                            do 
+                            {
+                                // [crispy] brightmaps
+                                const byte source = dc_source[(frac >> FRACBITS) & heightmask];
+
+                                *dest4 = *dest3 = *dest2 = *dest1 = dc_colormap[dc_brightmap[source]][source];
+                                dest1 += SCREENWIDTH;
+                                dest2 += SCREENWIDTH;
+                                dest3 += SCREENWIDTH;
+                                dest4 += SCREENWIDTH;
+
+                                frac += fracstep; 
+
+                            } while (count--);
+                        }
                     }
                 }
             }
