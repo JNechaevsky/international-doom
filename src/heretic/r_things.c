@@ -399,7 +399,7 @@ void R_DrawVisSprite (vissprite_t *vis)
     {
         if (vis->mobjflags & MF_TRANSLATION)
         {
-            colfunc = R_DrawTranslatedTLColumn;
+            colfunc = transtlcolfunc;
             dc_translation = translationtables - 256 +
                 ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT - 8));
         }

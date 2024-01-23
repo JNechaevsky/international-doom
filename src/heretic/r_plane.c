@@ -503,10 +503,16 @@ void R_DrawPlanes (void)
                                 dc_x);
 #endif
 
-                    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
-
                     fracstep = dc_iscale;
                     frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+                    //
+                    // [JN] High detail.
+                    //
+                    if (!detailshift)
+                    {
+                    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
                     heightmask = SKYTEXTUREMIDSHIFTED - 1; // [crispy]
                     // not a power of 2 -- killough
                     if (SKYTEXTUREMIDSHIFTED & heightmask)
@@ -545,6 +551,70 @@ void R_DrawPlanes (void)
                             dest += SCREENWIDTH;
                             frac += fracstep;
                         } while (count--);
+                    }
+                    }
+                    //
+                    // [JN] Low detail.
+                    //
+                    else
+                    {
+                        const int x = dc_x << 1;  // Blocky mode, need to multiply by 2.
+                        pixel_t *dest1 = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+                        pixel_t *dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
+                        pixel_t *dest3 = ylookup[dc_yl + 1] + columnofs[flipviewwidth[x]];
+                        pixel_t *dest4 = ylookup[dc_yl + 1] + columnofs[flipviewwidth[x + 1]];
+                        
+                        {
+                            const byte *source = dc_source;
+                            const byte *brightmap = dc_brightmap;
+                            //const lighttable_t *const *colormap = dc_colormap;
+                            int heightmask = SKYTEXTUREMIDSHIFTED - 1;
+                        
+                            if (SKYTEXTUREMIDSHIFTED & heightmask) // not a power of 2 -- killough
+                            {
+                                heightmask++;
+                                heightmask <<= FRACBITS;
+                        
+                                if (frac < 0)
+                                    while ((frac += heightmask) < 0);
+                                else
+                                    while (frac >= heightmask)
+                                        frac -= heightmask;
+                        
+                                do
+                                {
+                                    const byte src = source[frac>>FRACBITS];
+                                    *dest4 = *dest3 = *dest2 = *dest1 = dc_colormap[brightmap[0]][src];
+                        
+                                    dest1 += SCREENWIDTH;
+                                    dest2 += SCREENWIDTH;
+                                    dest3 += SCREENWIDTH;
+                                    dest4 += SCREENWIDTH;
+                        
+                                    if ((frac += fracstep) >= heightmask)
+                                    {
+                                        frac -= heightmask;
+                                    }
+                                } while (count--);
+                            }
+                            else  // texture height is a power of 2 -- killough
+                            {
+                                do 
+                                {
+                                    // [crispy] brightmaps
+                                    const byte src = source[(frac>>FRACBITS)&heightmask];
+                                    *dest4 = *dest3 = *dest2 = *dest1 = dc_colormap[brightmap[0]][src];
+                        
+                                    dest1 += SCREENWIDTH;
+                                    dest2 += SCREENWIDTH;
+                                    dest3 += SCREENWIDTH;
+                                    dest4 += SCREENWIDTH;
+                        
+                                    frac += fracstep; 
+                        
+                                } while (count--);
+                            }
+                        }
                     }
                 }
             }

@@ -122,8 +122,9 @@ void R_DrawColumn(void)
 void R_DrawColumnLow(void)
 {
     int count;
-    pixel_t *dest;
+    pixel_t *dest, *dest2;
     fixed_t frac, fracstep;
+    int x;
     int heightmask = dc_texheight - 1; // [crispy]
 
     count = dc_yh - dc_yl;
@@ -135,7 +136,11 @@ void R_DrawColumnLow(void)
         I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+    // Blocky mode, need to multiply by 2.
+    x = dc_x << 1;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -155,8 +160,9 @@ void R_DrawColumnLow(void)
         {
             // [crispy] brightmaps
             const byte source = dc_source[frac>>FRACBITS];
-            *dest = dc_colormap[dc_brightmap[source]][source];
+            *dest2 = *dest = dc_colormap[dc_brightmap[source]][source];
             dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
             if ((frac += fracstep) >= heightmask)
                 frac -= heightmask;
         } while (count--);
@@ -167,8 +173,9 @@ void R_DrawColumnLow(void)
         {
             // [crispy] brightmaps
             const byte source = dc_source[(frac >> FRACBITS) & heightmask];
-            *dest = dc_colormap[dc_brightmap[source]][source];
+            *dest2 = *dest = dc_colormap[dc_brightmap[source]][source];
             dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
             frac += fracstep;
         }
         while (count--);
@@ -256,6 +263,84 @@ void R_DrawTLColumn(void)
     }
 }
 
+void R_DrawTLColumnLow(void)
+{
+    int count;
+    pixel_t *dest, *dest2;
+    fixed_t frac, fracstep;
+    int x;
+    int heightmask = dc_texheight - 1; // [crispy]
+
+    count = dc_yh - dc_yl;
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if ((unsigned) dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+        I_Error("R_DrawTLColumnLow: %i to %i at %i", dc_yl, dc_yh, dc_x);
+#endif
+
+    // Blocky mode, need to multiply by 2.
+    x = dc_x << 1;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
+
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    if (dc_texheight & heightmask) // not a power of 2 -- killough
+    {
+        heightmask++;
+        heightmask <<= FRACBITS;
+
+        if (frac < 0)
+            while ((frac += heightmask) < 0);
+        else
+            while (frac >= heightmask)
+                frac -= heightmask;
+
+        do
+        {
+            // [crispy] brightmaps
+            const byte source = dc_source[frac >> FRACBITS];
+#ifndef CRISPY_TRUECOLOR
+            *dest2 = *dest =
+                tinttable[((*dest) << 8) +
+                          dc_colormap[dc_brightmap[source]][source]];
+#else
+            const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+            *dest2 = *dest = blendfunc(*dest, destrgb);
+#endif
+            dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
+            if ((frac += fracstep) >= heightmask)
+                frac -= heightmask;
+        } while (count--);
+    }
+    else // texture height is a power of 2 -- killough
+    {
+        do
+        {
+            // [crispy] brightmaps
+            const byte source = dc_source[(frac >> FRACBITS) & heightmask];
+#ifndef CRISPY_TRUECOLOR
+            *dest2 = *dest =
+                tinttable[((*dest) << 8) +
+                          dc_colormap[dc_brightmap[source]][source]];
+#else
+            const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+            *dest2 = *dest = blendfunc(*dest, destrgb);
+#endif
+
+            dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
+            frac += fracstep;
+        }
+        while (count--);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // R_DrawExtraTLColumn
 // [JN] Extra translucent column.
@@ -330,6 +415,82 @@ void R_DrawExtraTLColumn(void)
     }
 }
 
+void R_DrawExtraTLColumnLow(void)
+{
+    int count;
+    pixel_t *dest, *dest2;
+    fixed_t frac, fracstep;
+    int x;
+    int heightmask = dc_texheight - 1; // [crispy]
+
+    count = dc_yh - dc_yl;
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if ((unsigned) dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+        I_Error("R_DrawTLColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+#endif
+
+    // Blocky mode, need to multiply by 2.
+    x = dc_x << 1;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
+
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    if (dc_texheight & heightmask) // not a power of 2 -- killough
+    {
+        heightmask++;
+        heightmask <<= FRACBITS;
+
+        if (frac < 0)
+            while ((frac += heightmask) < 0);
+        else
+            while (frac >= heightmask)
+                frac -= heightmask;
+
+        do
+        {
+            // [crispy] brightmaps
+            const byte source = dc_source[frac >> FRACBITS];
+#ifndef CRISPY_TRUECOLOR
+            // [JN] Draw full bright sprites with different functions, depending on user's choice.
+            *dest2 = *dest = blendfunc[((*dest) << 8) + dc_colormap[dc_brightmap[source]][source]];
+#else
+            const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+            *dest2 = *dest = blendfunc(*dest, destrgb);
+#endif
+            dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
+            if ((frac += fracstep) >= heightmask)
+                frac -= heightmask;
+        } while (count--);
+    }
+    else // texture height is a power of 2 -- killough
+    {
+        do
+        {
+            // [crispy] brightmaps
+            const byte source = dc_source[(frac >> FRACBITS) & heightmask];
+#ifndef CRISPY_TRUECOLOR
+            // [JN] Draw full bright sprites with different functions, depending on user's choice.
+            *dest2 = *dest = blendfunc[((*dest) << 8) + dc_colormap[dc_brightmap[source]][source]];
+#else
+            const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+            *dest2 = *dest = blendfunc(*dest, destrgb);
+#endif
+
+            dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
+            frac += fracstep;
+        }
+        while (count--);
+    }
+}
+
 /*
 ========================
 =
@@ -372,6 +533,42 @@ void R_DrawTranslatedColumn(void)
     while (count--);
 }
 
+void R_DrawTranslatedColumnLow(void)
+{
+    int count, x;
+    pixel_t *dest, *dest2;
+    fixed_t frac, fracstep;
+
+    count = dc_yh - dc_yl;
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if ((unsigned) dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+        I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+#endif
+
+    // Blocky mode, need to multiply by 2.
+    x = dc_x << 1;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
+
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    do
+    {
+        // [crispy] brightmaps
+        const byte source = dc_source[frac>>FRACBITS];
+        *dest2 = *dest = dc_colormap[dc_brightmap[source]][dc_translation[source]];
+        dest += SCREENWIDTH;
+        dest2 += SCREENWIDTH;
+        frac += fracstep;
+    }
+    while (count--);
+}
+
 void R_DrawTranslatedTLColumn(void)
 {
     int count;
@@ -405,6 +602,49 @@ void R_DrawTranslatedTLColumn(void)
         *dest = blendfunc(*dest, destrgb);
 #endif
         dest += SCREENWIDTH;
+        frac += fracstep;
+    }
+    while (count--);
+}
+
+void R_DrawTranslatedTLColumnLow(void)
+{
+    int count, x;
+    pixel_t *dest, *dest2;
+    fixed_t frac, fracstep;
+
+    count = dc_yh - dc_yl;
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if ((unsigned) dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+        I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+#endif
+
+    // Blocky mode, need to multiply by 2.
+    x = dc_x << 1;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
+
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    do
+    {
+        // [crispy] brightmaps
+        byte src = dc_translation[dc_source[frac >> FRACBITS]];
+#ifndef CRISPY_TRUECOLOR
+        *dest2 = *dest = tinttable[((*dest) << 8)
+                          +
+                          dc_colormap[dc_brightmap[src]][src]];
+#else
+        const pixel_t destrgb = dc_colormap[dc_brightmap[src]][src];
+        *dest2 = *dest = blendfunc(*dest, destrgb);
+#endif
+        dest += SCREENWIDTH;
+        dest2 += SCREENWIDTH;
         frac += fracstep;
     }
     while (count--);
@@ -492,7 +732,7 @@ void R_DrawSpan(void)
 
 void R_DrawSpanLow(void)
 {
-    fixed_t xfrac, yfrac;
+    unsigned int xtemp, ytemp;
     pixel_t *dest;
     int count, spot;
 
@@ -502,19 +742,31 @@ void R_DrawSpanLow(void)
         I_Error("R_DrawSpan: %i to %i at %i", ds_x1, ds_x2, ds_y);
 #endif
 
-    xfrac = ds_xfrac;
-    yfrac = ds_yfrac;
-
-    dest = ylookup[ds_y] + columnofs[ds_x1];
     count = ds_x2 - ds_x1;
+    
+    // Blocky mode, need to multiply by 2.
+    ds_x1 <<= 1;
+    ds_x2 <<= 1;
+    
     do
     {
         byte source;
-        spot = ((yfrac >> (16 - 6)) & (63 * 64)) + ((xfrac >> 16) & 63);
+        // Calculate current texture index in u,v.
+        // [crispy] fix flats getting more distorted the closer they are to the right
+        ytemp = (ds_yfrac >> 10) & 0x0fc0;
+        xtemp = (ds_xfrac >> 16) & 0x3f;
+        spot = xtemp | ytemp;
+        
+        // Lowres/blocky mode does it twice,
+        //  while scale is adjusted appropriately.
         source = ds_source[spot];
+        dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
         *dest = ds_colormap[ds_brightmap[source]][source];
-        xfrac += ds_xstep;
-        yfrac += ds_ystep;
+        dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
+        *dest = ds_colormap[ds_brightmap[source]][source];
+
+        ds_xfrac += ds_xstep;
+        ds_yfrac += ds_ystep;
     }
     while (count--);
 }

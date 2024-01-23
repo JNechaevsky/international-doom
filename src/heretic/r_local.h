@@ -371,6 +371,7 @@ extern void (*colfunc) (void);
 extern void (*basecolfunc) (void);
 extern void (*tlcolfunc) (void);
 extern void (*extratlcolfunc) (void);
+extern void (*transtlcolfunc) (void);
 extern void (*spanfunc) (void);
 
 // [crispy] smooth texture scrolling
@@ -557,9 +558,10 @@ void R_DrawColumnLow(void);
 void R_DrawTLColumn(void);
 void R_DrawTLColumnLow(void);
 void R_DrawExtraTLColumn(void);
+void R_DrawExtraTLColumnLow(void);
 void R_DrawTranslatedColumn(void);
-void R_DrawTranslatedTLColumn(void);
 void R_DrawTranslatedColumnLow(void);
+void R_DrawTranslatedTLColumn(void);
 
 extern int ds_y;
 extern int ds_x1;
