@@ -851,7 +851,7 @@ void R_ExecuteSetViewSize(void)
         colfunc = basecolfunc = R_DrawColumn;
         tlcolfunc = R_DrawTLColumn;
         transcolfunc = R_DrawTranslatedColumn;
-        transtlcolfunc = R_DrawTranslatedColumn;
+        transtlcolfunc = R_DrawTranslatedTLColumn;
         extratlcolfunc = R_DrawExtraTLColumn;
         spanfunc = R_DrawSpan;
     }
@@ -860,7 +860,7 @@ void R_ExecuteSetViewSize(void)
         colfunc = basecolfunc = R_DrawColumnLow;
         tlcolfunc = R_DrawTLColumnLow;
         transcolfunc = R_DrawTranslatedColumnLow;
-        transtlcolfunc = R_DrawTranslatedColumnLow;
+        transtlcolfunc = R_DrawTranslatedTLColumnLow;
         extratlcolfunc = R_DrawExtraTLColumnLow;
         spanfunc = R_DrawSpanLow;
     }
