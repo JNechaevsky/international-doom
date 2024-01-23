@@ -423,11 +423,9 @@ void R_DrawPlanes (void)
     int light;
     int x;
     int lumpnum;
-    int angle;
     byte *tempSource;
     boolean swirling;
 
-    pixel_t *dest;
     int count;
     fixed_t frac, fracstep;
     int heightmask; // [crispy]
@@ -487,7 +485,7 @@ void R_DrawPlanes (void)
                 if ((unsigned) dc_yl <= dc_yh)  // [JN] 32-bit integer math
                 {
                     // [crispy] Optionally draw skies horizontally linear.
-                    angle = ((an + (vis_linear_sky ? 
+                    const int angle = ((an + (vis_linear_sky ? 
                                     linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels ^ flip) >> ANGLETOSKYSHIFT;
                     dc_x = x;
                     dc_source = R_GetColumn(texture, angle);
@@ -512,7 +510,7 @@ void R_DrawPlanes (void)
                     //
                     if (!detailshift)
                     {
-                    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+                    pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
                     // not a power of 2 -- killough
                     if (SKYTEXTUREMIDSHIFTED & heightmask)
