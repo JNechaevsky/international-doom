@@ -3878,6 +3878,7 @@ static void M_ID_ApplyResetHook (void)
     // Display options
     //
     dp_screen_size = 10;
+    dp_detail_level = 0;
     vid_gamma = 10;
     vid_fov = 90;
     dp_menu_shading = 0;
@@ -3971,6 +3972,7 @@ static void M_ID_ApplyResetHook (void)
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
     R_InitLightTables();
+    R_InitSkyMap();
     R_SetViewSize(dp_screen_size, dp_detail_level);
     R_ExecuteSetViewSize();
     I_ToggleVsync();
