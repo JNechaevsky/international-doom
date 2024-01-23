@@ -110,8 +110,9 @@ int LIGHTZSHIFT;
 void (*colfunc) (void);
 void (*basecolfunc) (void);
 void (*tlcolfunc) (void);
-void (*extratlcolfunc) (void);
 void (*transcolfunc) (void);
+void (*transtlcolfunc) (void);
+void (*extratlcolfunc) (void);
 void (*spanfunc) (void);
 
 //
@@ -849,16 +850,18 @@ void R_ExecuteSetViewSize(void)
     {
         colfunc = basecolfunc = R_DrawColumn;
         tlcolfunc = R_DrawTLColumn;
-        extratlcolfunc = R_DrawExtraTLColumn;
         transcolfunc = R_DrawTranslatedColumn;
+        transtlcolfunc = R_DrawTranslatedColumn;
+        extratlcolfunc = R_DrawExtraTLColumn;
         spanfunc = R_DrawSpan;
     }
     else
     {
         colfunc = basecolfunc = R_DrawColumnLow;
-        tlcolfunc = R_DrawTLColumn;
-        extratlcolfunc = R_DrawExtraTLColumn;
-        transcolfunc = R_DrawTranslatedColumn;
+        tlcolfunc = R_DrawTLColumnLow;
+        transcolfunc = R_DrawTranslatedColumnLow;
+        transtlcolfunc = R_DrawTranslatedColumnLow;
+        extratlcolfunc = R_DrawExtraTLColumnLow;
         spanfunc = R_DrawSpanLow;
     }
 
@@ -952,8 +955,6 @@ void R_ExecuteSetViewSize(void)
 ==============
 */
 
-int detailLevel;
-
 void R_Init(void)
 {
     //tprintf("R_InitData ", 1);
@@ -964,9 +965,9 @@ void R_Init(void)
     printf (".");
     //tprintf("R_InitTables ", 0);
     R_InitTables();
-    // viewwidth / viewheight / detailLevel are set by the defaults
+    // viewwidth / viewheight / dp_detail_level are set by the defaults
     printf (".");
-    R_SetViewSize(dp_screen_size, detailLevel);
+    R_SetViewSize(dp_screen_size, dp_detail_level);
     //tprintf("R_InitLightTables ", 0);
     R_InitLightTables();
     printf (".");

@@ -370,8 +370,8 @@ extern int detailshift;         // 0 = high, 1 = low
 extern void (*colfunc) (void);
 extern void (*basecolfunc) (void);
 extern void (*tlcolfunc) (void);
-extern void (*extratlcolfunc) (void);
 extern void (*transtlcolfunc) (void);
+extern void (*extratlcolfunc) (void);
 extern void (*spanfunc) (void);
 
 // [crispy] smooth texture scrolling
