@@ -938,7 +938,7 @@ void R_ExecuteSetViewSize(void)
 //
 // draw the border
 //
-    R_DrawViewBorder();         // erase old menu stuff
+    R_FillBackScreen();         // erase old menu stuff
 
     // [crispy] Redraw status bar, needed for widescreen HUD
     SB_ForceRedraw();

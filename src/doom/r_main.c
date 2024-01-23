@@ -904,6 +904,8 @@ void R_ExecuteSetViewSize (void)
 
     pspr_interp = false; // [crispy] interpolate weapon bobbing
     
+    R_FillBackScreen();   // erase old menu stuff
+
     st_fullupdate = true; // [JN] Redraw status bar background.
 }
 
