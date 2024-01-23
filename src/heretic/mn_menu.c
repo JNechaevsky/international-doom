@@ -5483,6 +5483,7 @@ boolean MN_Responder(event_t * event)
         else if (key == key_menu_detail)          // F5 (detail)
         {
             SCChangeDetail(0);
+            S_StartSound(NULL, sfx_switch);
             return true;
         }
         else if (key == key_menu_qsave)           // F6 (quicksave)
