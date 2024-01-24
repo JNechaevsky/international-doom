@@ -628,10 +628,10 @@ void AM_initVariables (void)
 }
 
 // -----------------------------------------------------------------------------
-// AM_clearMarks
+// AM_ClearMarks
 // -----------------------------------------------------------------------------
 
-void AM_clearMarks (void)
+void AM_ClearMarks (void)
 {
     markpointnum = 0;
 }
@@ -917,7 +917,7 @@ boolean AM_Responder (event_t *ev)
             // [JN] Clear all mark by holding "run" button and pressing "clear mark".
             if (speedkeydown())
             {
-                AM_clearMarks();
+                AM_ClearMarks();
                 CT_SetMessage(plr, DEH_String(AMSTR_MARKSCLEARED), false, NULL);
             }
             else
@@ -1637,7 +1637,7 @@ static void AM_drawMline (mline_t *ml, int color)
 // Draws flat (floor/ceiling tile) aligned grid lines.
 // -----------------------------------------------------------------------------
 
-static void AM_drawGrid (int color)
+static void AM_drawGrid (void)
 {
     int64_t x, y;
     int64_t start, end;
@@ -1678,7 +1678,7 @@ static void AM_drawGrid (int color)
             AM_rotatePoint(&ml.a);
             AM_rotatePoint(&ml.b);
         }
-        AM_drawMline(&ml, color);
+        AM_drawMline(&ml, GRIDCOLORS);
     }
 
     // Figure out start of horizontal gridlines
@@ -1715,7 +1715,7 @@ static void AM_drawGrid (int color)
             AM_rotatePoint(&ml.a);
             AM_rotatePoint(&ml.b);
         }
-        AM_drawMline(&ml, color);
+        AM_drawMline(&ml, GRIDCOLORS);
     }
 }
 
@@ -1953,7 +1953,7 @@ static void AM_drawPlayers (void)
     int i;
     mpoint_t  pt;
     player_t *p;
-    static int their_colors[] = { GREENKEY, YELLOWKEY, BLOODRED, BLUEKEY };
+    static int their_colors[] = { PL_GREEN, PL_YELLOW, PL_RED, PL_BLUE };
     int their_color = -1;
     int color;
 
@@ -1982,7 +1982,7 @@ static void AM_drawPlayers (void)
         }
 
         AM_drawLineCharacter(player_arrow, NUMPLYRLINES, 0, smoothangle,
-                             WHITE, pt.x, pt.y);
+                             PL_WHITE, pt.x, pt.y);
         return;
     }
 
@@ -2052,7 +2052,7 @@ static void AM_drawPlayers (void)
 // Draws the things on the automap in double IDDT cheat mode.
 // -----------------------------------------------------------------------------
 
-static void AM_drawThings(int colors, int colorrange)
+static void AM_drawThings(void)
 {
     int i;
     mpoint_t  pt;
@@ -2109,7 +2109,7 @@ static void AM_drawThings(int colors, int colorrange)
                                  // Countable items
                                  t->flags & MF_COUNTITEM ? IDDT_GREEN :
                                  // Everything else
-                                 colors,
+                                 IDDT_GRAY,
                                  pt.x, pt.y);
             t = t->snext;
         }
@@ -2321,7 +2321,7 @@ void AM_Drawer (void)
 
     if (grid)
     {
-        AM_drawGrid(GRIDCOLORS);
+        AM_drawGrid();
     }
 
     AM_drawWalls();
@@ -2330,7 +2330,7 @@ void AM_Drawer (void)
 
     if (ravmap_cheating == 2)
     {
-        AM_drawThings(THINGCOLORS, THINGRANGE);
+        AM_drawThings();
     }
 
     // [JN] CRL - draw pulsing triangle for player in Spectator mode.
