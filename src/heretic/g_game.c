@@ -1196,7 +1196,7 @@ boolean G_Responder(event_t * ev)
 
     // [JN] CRL - same to Doom behavior:
     // any other key pops up menu if in demos
-    if (gameaction == ga_nothing && !singledemo
+    if (gameaction == ga_nothing && !singledemo && !askforquit
     && (demoplayback || gamestate == GS_DEMOSCREEN)) 
     {
         if (ev->type == ev_keydown
