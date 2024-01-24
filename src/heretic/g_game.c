@@ -2154,7 +2154,7 @@ void G_DoWorldDone(void)
     G_DoLoadLevel();
     gameaction = ga_nothing;
     // [JN] jff 4/12/98 clear any marks on the automap
-    AM_clearMarks();
+    AM_ClearMarks();
 }
 
 //---------------------------------------------------------------------------
@@ -2367,7 +2367,7 @@ void G_InitNew(skill_t skill, int episode, int map)
     // https://doomwiki.org/wiki/Automap_scale_preserved_after_warps_in_Heretic_and_Hexen
     automapactive = false; 
     // [JN] jff 4/16/98 force marks on automap cleared every new level start
-    AM_clearMarks();
+    AM_ClearMarks();
     gameepisode = episode;
     gamemap = map;
     gameskill = skill;
@@ -2379,9 +2379,6 @@ void G_InitNew(skill_t skill, int episode, int map)
     finalintermission = false;
 
     defdemotics = 0;
-
-    // [JN] jff 4/16/98 force marks on automap cleared every new level start
-    AM_clearMarks();
 
     // Set the sky map
     if (episode > 5)
@@ -2426,7 +2423,7 @@ void G_DoSelectiveGame (int choice)
     // [crispy] reset game speed after demo fast-forward
     singletics = false;
     // [JN] jff 4/16/98 force marks on automap cleared every new level start
-    AM_clearMarks();
+    AM_ClearMarks();
     playeringame[1] = playeringame[2] = playeringame[3] = 0;
     consoleplayer = 0;
     gameaction = ga_nothing;
