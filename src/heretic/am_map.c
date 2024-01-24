@@ -300,7 +300,7 @@ static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
     {153, 153, 152, 152, 151, 151, 150, 150},
     {154, 154, 153, 153, 152, 152, 151, 151},
     {155, 155, 154, 154, 153, 153, 152, 152},
-    {156, 156, 155, 155, 154, 154, 153, 153},
+    {156, 156, 155, 155, 154, 154, 153, 153},   // Used for TELEPORTERS as well
     {157, 157, 156, 156, 155, 155, 154, 154},
     {158, 158, 157, 157, 156, 156, 155, 155},
     {159, 159, 158, 158, 157, 157, 156, 156},    
@@ -327,7 +327,7 @@ static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
     {153, 153, 152, 152, 151, 151, 150, 150},
     {154, 154, 153, 153, 152, 152, 151, 151},
     {155, 155, 154, 154, 153, 153, 152, 152},
-    {156, 156, 155, 155, 154, 154, 153, 153},
+    {156, 156, 155, 155, 154, 154, 153, 153},   // Used for TELEPORTERS as well
     {157, 157, 156, 156, 155, 155, 154, 154},
     {158, 158, 157, 157, 156, 156, 155, 155},
     {159, 159, 158, 158, 157, 157, 156, 156},   
@@ -1342,8 +1342,7 @@ static void AM_drawFline(fline_t * fl, int color)
         case GREENKEY:      DrawWuLine(fl, &(*antialias)[6][0]);  break;
         case BLUEKEY:       DrawWuLine(fl, &(*antialias)[7][0]);  break;
         case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  break;
-        //case TELEPORTERS:   DrawWuLine(fl, &(*antialias)[9][0]);  break;
-        case EXITS:         DrawWuLine(fl, &(*antialias)[9][0]); break;
+        case EXITS:         DrawWuLine(fl, &(*antialias)[9][0]);  break;
         // IDDT extended colors:
         case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[10][0]); break;
         case IDDT_YELLOW:   DrawWuLine(fl, &(*antialias)[11][0]); break;
