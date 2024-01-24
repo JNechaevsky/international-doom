@@ -276,7 +276,7 @@ mpoint_t *markpoints = NULL;     // where the points are
 int       markpointnum = 0;      // next point to be assigned (also number of points now)
 int       markpointnum_max = 0;  // killough 2/22/98
 
-#define NUMALIAS      11
+#define NUMALIAS      13
 #define NUMLEVELS     8
 #define INTENSITYBITS 3
 
@@ -293,6 +293,8 @@ static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
     {173, 173, 173, 173, 173, 173, 173, 173},   // SECRETCOLORS
     {155, 155, 154, 154, 154, 153, 153, 153},   // TELEPORTERS
     {182, 182, 182, 182, 181, 181, 181, 181},   // EXITS
+    {224, 224, 223, 223, 222, 222, 221, 221},   // IDDT_GREEN
+    {142, 142, 141, 141, 141, 140, 140, 140},   // IDDT_YELLOW
 };
 
 // [crispy] line colors for map overlay mode
@@ -308,6 +310,8 @@ static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
     {175, 175, 174, 174, 173, 173, 172, 172},   // SECRETCOLORS
     {156, 156, 155, 154, 153, 152, 150, 149},   // TELEPORTERS
     {182, 182, 181, 181, 180, 180, 179, 179},   // EXITS
+    {224, 223, 222, 221, 220, 219, 218, 217},   // IDDT_GREEN
+    {142, 142, 141, 141, 140, 139, 138, 137},   // IDDT_YELLOW
 };
 
 static byte (*antialias)[NUMALIAS][NUMLEVELS]; // [crispy]
@@ -1324,6 +1328,8 @@ static void AM_drawFline(fline_t * fl, int color)
         case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  break;
         case TELEPORTERS:   DrawWuLine(fl, &(*antialias)[9][0]);  break;
         case EXITS:         DrawWuLine(fl, &(*antialias)[10][0]); break;
+        case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[11][0]); break;
+        case IDDT_YELLOW:   DrawWuLine(fl, &(*antialias)[12][0]); break;
         default:
         {
             // For debugging only
@@ -2082,9 +2088,9 @@ static void AM_drawThings(int colors, int colorrange)
                                  // Monsters
                                  t->flags & MF_COUNTKILL ? (t->health > 0 ? color : 15) :
                                  // Explosive pod (does not have a MF_COUNTKILL flag)
-                                 t->type == MT_POD ? 141 :
+                                 t->type == MT_POD ? IDDT_YELLOW :
                                  // Countable items
-                                 t->flags & MF_COUNTITEM ? 224 :
+                                 t->flags & MF_COUNTITEM ? IDDT_GREEN :
                                  // Everything else
                                  colors,
                                  pt.x, pt.y);

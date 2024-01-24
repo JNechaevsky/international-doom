@@ -73,6 +73,10 @@
 // Exits
 #define EXITS           182
 
+// IDDT triangles
+#define IDDT_GREEN      222
+#define IDDT_YELLOW     140
+
 // Crosshair
 #define XHAIRCOLORS	    28
 
