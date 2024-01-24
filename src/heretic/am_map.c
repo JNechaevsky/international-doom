@@ -139,11 +139,10 @@ static int m_zoomout;
 // for uncapped framerate and uses different coloring logics:
 // Active monsters: up-up-up-up
 // Inactive monsters: up-down-up-down
-#define IDDT_REDS_RANGE (10)
-#define IDDT_REDS_MIN   (150)
-#define IDDT_REDS_MAX   (150 + IDDT_REDS_RANGE)
-static  int     iddt_reds_active;
-static  int     iddt_reds_inactive = IDDT_REDS_MIN;
+#define IDDT_REDS_RANGE (7)
+#define IDDT_REDS_MIN   (152)
+#define IDDT_REDS_MAX   (IDDT_REDS_MIN + IDDT_REDS_RANGE)
+static  int     iddt_reds = IDDT_REDS_MIN;
 static  boolean iddt_reds_direction = false;
 // [JN] Pulse player arrow in Spectator mode.
 #define ARROW_WHITE_RANGE (10)
@@ -276,7 +275,7 @@ mpoint_t *markpoints = NULL;     // where the points are
 int       markpointnum = 0;      // next point to be assigned (also number of points now)
 int       markpointnum_max = 0;  // killough 2/22/98
 
-#define NUMALIAS      13
+#define NUMALIAS      23
 #define NUMLEVELS     8
 #define INTENSITYBITS 3
 
@@ -291,10 +290,20 @@ static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
     {220, 220, 219, 219, 218, 218, 217, 217},   // GREENKEY
     {197, 197, 196, 196, 195, 195, 194, 194},   // BLUEKEY
     {173, 173, 173, 173, 173, 173, 173, 173},   // SECRETCOLORS
-    {155, 155, 154, 154, 154, 153, 153, 153},   // TELEPORTERS
     {182, 182, 182, 182, 181, 181, 181, 181},   // EXITS
+    // IDDT extended colors
     {224, 224, 223, 223, 222, 222, 221, 221},   // IDDT_GREEN
     {142, 142, 141, 141, 141, 140, 140, 140},   // IDDT_YELLOW
+    {150, 150, 149, 149, 148, 148, 147, 147},   // IDDT_RED
+    {151, 151, 150, 150, 149, 149, 148, 148},
+    {152, 152, 151, 151, 150, 150, 149, 149},
+    {153, 153, 152, 152, 151, 151, 150, 150},
+    {154, 154, 153, 153, 152, 152, 151, 151},
+    {155, 155, 154, 154, 153, 153, 152, 152},
+    {156, 156, 155, 155, 154, 154, 153, 153},
+    {157, 157, 156, 156, 155, 155, 154, 154},
+    {158, 158, 157, 157, 156, 156, 155, 155},
+    {159, 159, 158, 158, 157, 157, 156, 156},    
 };
 
 // [crispy] line colors for map overlay mode
@@ -308,10 +317,20 @@ static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
     {220, 219, 218, 217, 216, 215, 214, 213},   // GREENKEY
     {197, 197, 196, 196, 195, 195, 194, 194},   // BLUEKEY
     {175, 175, 174, 174, 173, 173, 172, 172},   // SECRETCOLORS
-    {156, 156, 155, 154, 153, 152, 150, 149},   // TELEPORTERS
     {182, 182, 181, 181, 180, 180, 179, 179},   // EXITS
+    // IDDT extended colors
     {224, 223, 222, 221, 220, 219, 218, 217},   // IDDT_GREEN
     {142, 142, 141, 141, 140, 139, 138, 137},   // IDDT_YELLOW
+    {150, 150, 149, 149, 148, 148, 147, 147},   // IDDT_RED
+    {151, 151, 150, 150, 149, 149, 148, 148},
+    {152, 152, 151, 151, 150, 150, 149, 149},
+    {153, 153, 152, 152, 151, 151, 150, 150},
+    {154, 154, 153, 153, 152, 152, 151, 151},
+    {155, 155, 154, 154, 153, 153, 152, 152},
+    {156, 156, 155, 155, 154, 154, 153, 153},
+    {157, 157, 156, 156, 155, 155, 154, 154},
+    {158, 158, 157, 157, 156, 156, 155, 155},
+    {159, 159, 158, 158, 157, 157, 156, 156},   
 };
 
 static byte (*antialias)[NUMALIAS][NUMLEVELS]; // [crispy]
@@ -1075,20 +1094,17 @@ void AM_Ticker (void)
     if (gametic & 1)
     {
         // Brightening
-        if (!iddt_reds_direction && ++iddt_reds_inactive == IDDT_REDS_MAX)
+        if (!iddt_reds_direction && ++iddt_reds == IDDT_REDS_MAX)
         {
             iddt_reds_direction = true;
         }
         // Darkening
         else
-        if (iddt_reds_direction && --iddt_reds_inactive == IDDT_REDS_MIN)
+        if (iddt_reds_direction && --iddt_reds == IDDT_REDS_MIN)
         {
             iddt_reds_direction = false;
         }
     }
-
-    // Active:
-    iddt_reds_active = (IDDT_REDS_MIN) + ((gametic >> 1) % IDDT_REDS_RANGE);
 
     // [JN] Pulse player arrow in Spectator mode:
 
@@ -1326,10 +1342,22 @@ static void AM_drawFline(fline_t * fl, int color)
         case GREENKEY:      DrawWuLine(fl, &(*antialias)[6][0]);  break;
         case BLUEKEY:       DrawWuLine(fl, &(*antialias)[7][0]);  break;
         case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  break;
-        case TELEPORTERS:   DrawWuLine(fl, &(*antialias)[9][0]);  break;
-        case EXITS:         DrawWuLine(fl, &(*antialias)[10][0]); break;
-        case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[11][0]); break;
-        case IDDT_YELLOW:   DrawWuLine(fl, &(*antialias)[12][0]); break;
+        //case TELEPORTERS:   DrawWuLine(fl, &(*antialias)[9][0]);  break;
+        case EXITS:         DrawWuLine(fl, &(*antialias)[9][0]); break;
+        // IDDT extended colors:
+        case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[10][0]); break;
+        case IDDT_YELLOW:   DrawWuLine(fl, &(*antialias)[11][0]); break;
+        case 150:           DrawWuLine(fl, &(*antialias)[12][0]); break;
+        case 151:           DrawWuLine(fl, &(*antialias)[13][0]); break;
+        case 152:           DrawWuLine(fl, &(*antialias)[14][0]); break;
+        case 153:           DrawWuLine(fl, &(*antialias)[15][0]); break;
+        case 154:           DrawWuLine(fl, &(*antialias)[16][0]); break;
+        case 155:           DrawWuLine(fl, &(*antialias)[17][0]); break;
+        case 156:           DrawWuLine(fl, &(*antialias)[18][0]); break;  // Used for TELEPORTERS as well
+        case 157:           DrawWuLine(fl, &(*antialias)[19][0]); break;
+        case 158:           DrawWuLine(fl, &(*antialias)[20][0]); break;
+        case 159:           DrawWuLine(fl, &(*antialias)[21][0]); break;
+        
         default:
         {
             // For debugging only
@@ -2030,8 +2058,6 @@ static void AM_drawThings(int colors, int colorrange)
     mpoint_t  pt;
     mobj_t *t;
     angle_t   actualangle;
-    // RestlessRodent -- Carbon copy from ReMooD
-    int       color = colors;
 
     for (i = 0 ; i < numsectors ; i++)
     {
@@ -2073,20 +2099,11 @@ static void AM_drawThings(int colors, int colorrange)
                 AM_rotatePoint(&pt);
             }
 
-            // [JN] CRL - ReMooD-inspired monsters coloring.
-            if (t->target && t->state && t->state->action != A_Look)
-            {
-                color = iddt_reds_active;
-            }
-            else
-            {
-                color = iddt_reds_inactive;
-            }
-
             AM_drawLineCharacter(thintriangle_guy, NUMTHINTRIANGLEGUYLINES,
                                  actualradius, actualangle,
                                  // Monsters
-                                 t->flags & MF_COUNTKILL ? (t->health > 0 ? color : 15) :
+                                 // [JN] CRL - ReMooD-inspired monsters coloring.
+                                 t->flags & MF_COUNTKILL ? (t->health > 0 ? iddt_reds : 15) :
                                  // Explosive pod (does not have a MF_COUNTKILL flag)
                                  t->type == MT_POD ? IDDT_YELLOW :
                                  // Countable items

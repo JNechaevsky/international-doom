@@ -76,6 +76,8 @@
 // IDDT triangles
 #define IDDT_GREEN      222
 #define IDDT_YELLOW     140
+#define IDDT_RED        150
+
 
 // Crosshair
 #define XHAIRCOLORS	    28
