@@ -620,12 +620,6 @@ void R_ProjectSprite (mobj_t* thing)
     if (x2 < 0)
 	return;
     
-    // [JN] quickly reject sprites with bad x ranges
-    if (x1 >= x2)
-    {
-	return;
-    }
-
     // store information in a vissprite
     vis = R_NewVisSprite ();
     vis->mobjflags = thing->flags;
