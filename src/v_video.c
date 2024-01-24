@@ -174,34 +174,31 @@ static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t sou
 
 // [JN] The shadow of the patch rendering functions:
 // Doom
-static const inline pixel_t drawshadow (const pixel_t dest, const pixel_t source)
+static const inline pixel_t drawshadow_doom (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return shadowmap[(dest<<8)];}
 #else
 {return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
 #endif
 // Heretic
-// (1) normal, translucent patch
-static const inline pixel_t drawtinttab0 (const pixel_t dest, const pixel_t source)
+static const inline pixel_t drawshadow_raven (const pixel_t dest, const pixel_t source)
+#ifndef CRISPY_TRUECOLOR
+{return tinttable[(dest<<8)];}
+#else
+{return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
+#endif
+
+// [JN] V_DrawTLPatch (translucent patch, no coloring or color-translation are used)
+static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[(dest<<8)+source];}
 #else
 {return I_BlendOverTinttab(dest, colormaps[source]);}
 #endif
-// (2) translucent shadow only
-static const inline pixel_t drawtinttab1 (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return tinttable[(dest<<8)];}
-#else
-{return I_BlendDark(dest, 0xB4);}
-#endif
 
 // [crispy] array of function pointers holding the different rendering functions
 typedef const pixel_t drawpatchpx_t (const pixel_t dest, const pixel_t source);
 static drawpatchpx_t *const drawpatchpx_a[2][2] = {{drawpatchpx11, drawpatchpx10}, {drawpatchpx01, drawpatchpx00}};
-// [JN] Pointers of handling patch shadows:
-static drawpatchpx_t *const drawshadow_a = drawshadow;
-static drawpatchpx_t *const drawtinttab_a[2] = {drawtinttab0, drawtinttab1};
 
 static fixed_t dx, dxi, dy, dyi;
 
@@ -314,7 +311,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     // [JN] Patch itself: opaque, can be colored.
     drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
     // [crispy] shadow, no coloring or color-translation are used
-    drawpatchpx_t *const drawpatchpx2 = drawtinttab_a[1];
+    drawpatchpx_t *const drawpatchpx2 = drawshadow_raven;
 
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
@@ -420,17 +417,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
     drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
 
     // [JN] Shadow, blending depending on game type:
-    drawpatchpx_t *drawpatchpx2;
-    switch (shadow_type)
-    {
-        default:
-        case 0: // Doom
-            drawpatchpx2 = drawshadow_a;
-        break;
-        case 1: // Heretic
-            drawpatchpx2 = drawtinttab_a[1];
-        break;
-    }
+    drawpatchpx_t *const drawpatchpx2 = shadow_type == 0 ? drawshadow_doom : drawshadow_raven;
 
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
@@ -657,7 +644,7 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
     int w;
 
     // [crispy] translucent patch, no coloring or color-translation are used
-    drawpatchpx_t *const drawpatchpx = drawtinttab_a[dp_translucent];
+    drawpatchpx_t *const drawpatchpx = drawtinttab;
 
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
