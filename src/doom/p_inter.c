@@ -702,11 +702,11 @@ P_TouchSpecialThing
 	player->itemcount++;
     P_RemoveMobj (special);
 
+    player->bonuscount += BONUSADD;
     // [JN] Limit bonus palette duration to 4 seconds.
     if (player->bonuscount > 4 * TICRATE)
 	player->bonuscount = 4 * TICRATE;
 
-    player->bonuscount += BONUSADD;
     if (player == &players[displayplayer])
 	S_StartSound (NULL, sound);
 }

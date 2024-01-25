@@ -869,6 +869,11 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
         P_RemoveMobj(special);
     }
     player->bonuscount += BONUSADD;
+    // [JN] Limit bonus palette duration to 4 seconds.
+    if (player->bonuscount > 4 * TICRATE)
+    {
+        player->bonuscount = 4 * TICRATE;
+    }
     if (player == &players[consoleplayer])
     {
         S_StartSound(NULL, sound);
@@ -929,6 +934,10 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
         target->player->powers[pw_weaponlevel2] = 0;
         target->player->playerstate = PST_DEAD;
         P_DropWeapon(target->player);
+        // [JN] & [crispy] Reset the yellow bonus palette when the player dies
+        target->player->bonuscount = 0;
+        // [JN] & [crispy] Remove the invelnerability palette and torch effect
+        target->player->fixedcolormap = 0;
         if (target->flags2 & MF2_FIREDAMAGE)
         {                       // Player flame death
             P_SetMobjState(target, S_PLAY_FDTH1);
