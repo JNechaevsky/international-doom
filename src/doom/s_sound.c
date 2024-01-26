@@ -180,6 +180,16 @@ void S_Init(int sfxVolume, int musicVolume)
 
     I_AtExit(S_Shutdown, true);
 
+    // [crispy] initialize dedicated music tracks for the 4th episode
+    for (i = mus_e4m1; i <= mus_e6m9; i++)
+    {
+        musicinfo_t *const music = &S_music[i];
+        char namebuf[9];
+
+        M_snprintf(namebuf, sizeof(namebuf), "d_%s", DEH_String(music->name));
+        music->lumpnum = W_CheckNumForName(namebuf);
+    }
+
     // [crispy] handle stereo separation for mono-sfx and flipped levels
     S_UpdateStereoSeparation();
 }
@@ -346,6 +356,16 @@ void S_Start(void)
         else
         {
             mnum = spmus[gamemap-1];
+
+            // [crispy] support dedicated music tracks for the 4th episode
+            {
+                const int sp_mnum = mus_e1m1 + 3 * 9 + gamemap - 1;
+
+                if (S_music[sp_mnum].lumpnum > 0)
+                {
+                    mnum = sp_mnum;
+                }
+            }
         }
     }
 
