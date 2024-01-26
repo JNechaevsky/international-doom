@@ -1408,7 +1408,15 @@ void ST_Drawer (boolean force)
             }
         }
 
-        V_DrawPatch(0, 0, sbar);
+        // [crispy] center unity rerelease wide status bar
+        if (SHORT(sbar->width) > ORIGWIDTH && SHORT(sbar->leftoffset) == 0)
+        {
+            V_DrawPatch((ORIGWIDTH - SHORT(sbar->width)) / 2, 0, sbar);
+        }
+        else
+        {
+            V_DrawPatch(0, 0, sbar);
+        }
 
         // draw right side of bar if needed (Doom 1.0)
         if (sbarr)
