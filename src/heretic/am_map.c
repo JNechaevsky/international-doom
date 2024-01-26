@@ -127,6 +127,15 @@ static int m_zoomout;
 #define M_ZOOMOUT_SLOW ((int) (FRACUNIT/1.04))
 #define M_ZOOMOUT_FAST ((int) (FRACUNIT/1.08))
 
+// [crispy] zoom faster with the mouse wheel
+#define M2_ZOOMIN_SLOW  ((int) (1.08*FRACUNIT))
+#define M2_ZOOMOUT_SLOW ((int) (FRACUNIT/1.08))
+#define M2_ZOOMIN_FAST  ((int) (1.5*FRACUNIT))
+#define M2_ZOOMOUT_FAST ((int) (FRACUNIT/1.5))
+static int m_zoomin_mouse;
+static int m_zoomout_mouse;
+static boolean mousewheelzoom;
+
 // translates between frame-buffer and map distances
 #define FTOM(x) (((int64_t)((x)<<16) * scale_ftom) >> FRACBITS)
 #define MTOF(x) ((((int64_t)(x) * scale_mtof) >> FRACBITS)>>16)
@@ -573,6 +582,7 @@ void AM_initVariables (void)
     m_paninc.x = m_paninc.y = 0;
     ftom_zoommul = FRACUNIT;
     mtof_zoommul = FRACUNIT;
+    mousewheelzoom = false; // [crispy]
 
     m_w = FTOM(f_w);
     m_h = FTOM(f_h);
@@ -767,12 +777,16 @@ boolean AM_Responder (event_t *ev)
         f_paninc = F_PANINC_FAST;
         m_zoomin = M_ZOOMIN_FAST;
         m_zoomout = M_ZOOMOUT_FAST;
+        m_zoomin_mouse = M2_ZOOMIN_FAST;
+        m_zoomout_mouse = M2_ZOOMOUT_FAST;
     }
     else
     {
         f_paninc = F_PANINC_SLOW;
         m_zoomin = M_ZOOMIN_SLOW;
         m_zoomout = M_ZOOMOUT_SLOW;
+        m_zoomin_mouse = M2_ZOOMIN_SLOW;
+        m_zoomout_mouse = M2_ZOOMOUT_SLOW;
     }
 
     rc = false;
@@ -809,6 +823,26 @@ boolean AM_Responder (event_t *ev)
                 // [JN] Redraw status bar background.
                 SB_state = -1;
             }
+            rc = true;
+        }
+    }
+    // [crispy] zoom Automap with the mouse wheel
+    // [JN] Mouse wheel "buttons" hardcoded.
+    else if (ev->type == ev_mouse && !MenuActive)
+    {
+        if (/*mousebmapzoomout >= 0 &&*/ ev->data1 & (1 << 4 /*mousebmapzoomout*/))
+        {
+            mtof_zoommul = m_zoomout_mouse;
+            ftom_zoommul = m_zoomin_mouse;
+            mousewheelzoom = true;
+            rc = true;
+        }
+        else
+        if (/*mousebmapzoomin >= 0 &&*/ ev->data1 & (1 << 3 /*mousebmapzoomin*/))
+        {
+            mtof_zoommul = m_zoomin_mouse;
+            ftom_zoommul = m_zoomout_mouse;
+            mousewheelzoom = true;
             rc = true;
         }
     }
@@ -1032,6 +1066,14 @@ static void AM_changeWindowScale (void)
     // Change the scaling multipliers
     scale_mtof = FixedMul(scale_mtof, mtof_zoommul);
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+
+    // [crispy] reset after zooming with the mouse wheel
+    if (mousewheelzoom)
+    {
+        mtof_zoommul = FRACUNIT;
+        ftom_zoommul = FRACUNIT;
+        mousewheelzoom = false;
+    }
 
     if (scale_mtof < min_scale_mtof)
     {
