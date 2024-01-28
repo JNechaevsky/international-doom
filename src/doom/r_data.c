@@ -1258,7 +1258,6 @@ static void R_InitHSVColors (void)
 	char c[3];
 	int i, j;
 	boolean keepgray = false;
-	const int starttime = I_GetTimeMS();
 
 	if (!crstr)
 	    crstr = I_Realloc(NULL, CRMAX * sizeof(*crstr));
@@ -1294,7 +1293,6 @@ static void R_InitHSVColors (void)
 	{
 	    cr[CR_RED2BLUE] = W_CacheLumpNum(i, PU_STATIC);
 	}
-	printf("\nR_InitHSVColors took %d ms.\n", I_GetTimeMS() - starttime);
 }
 
 

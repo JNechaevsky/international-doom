@@ -721,7 +721,6 @@ static void R_InitHSVColors (void)
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
     char c[3];
     int i, j;
-    const int starttime = I_GetTimeMS();
 
     if (!crstr)
     {
@@ -741,7 +740,6 @@ static void R_InitHSVColors (void)
     }
 
     W_ReleaseLumpName("PLAYPAL");
-	printf("\nR_InitHSVColors took %d ms.\n", I_GetTimeMS() - starttime);
 }
 
 #ifdef CRISPY_TRUECOLOR
