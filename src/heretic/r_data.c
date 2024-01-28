@@ -703,31 +703,45 @@ void R_InitColormaps(void)
 
 	W_ReleaseLumpName("COLORMAP");
 #endif
-    // [crispy] initialize color translation and color strings tables
+}
+
+
+/*
+================
+=
+= R_InitHSVColors
+=
+= [crispy] initialize color translation and color strings tables
+=
+=================
+*/
+
+static void R_InitHSVColors (void)
+{
+    byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+    char c[3];
+    int i, j;
+    const int starttime = I_GetTimeMS();
+
+    if (!crstr)
     {
-        byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-        char c[3];
-        int i, j;
-
-        if (!crstr)
-        {
-            crstr = realloc(NULL, CRMAX * sizeof(*crstr));
-        }
-
-        // [JN] TODO - get rid of -2
-        for (i = 0 ; i < CRMAX-2 ; i++)
-        {
-            for (j = 0; j < 256; j++)
-            {
-                cr[i][j] = V_Colorize(playpal, i, j, false);
-            }
-
-            M_snprintf(c, sizeof(c), "%c%c", cr_esc, '0' + i);
-            crstr[i] = M_StringDuplicate(c);
-        }
-
-        W_ReleaseLumpName("PLAYPAL");
+        crstr = realloc(NULL, CRMAX * sizeof(*crstr));
     }
+
+    // [JN] TODO - get rid of -2
+    for (i = 0 ; i < CRMAX-2 ; i++)
+    {
+        for (j = 0; j < 256; j++)
+        {
+            cr[i][j] = V_Colorize(playpal, i, j, false);
+        }
+
+        M_snprintf(c, sizeof(c), "%c%c", cr_esc, '0' + i);
+        crstr[i] = M_StringDuplicate(c);
+    }
+
+    W_ReleaseLumpName("PLAYPAL");
+	printf("\nR_InitHSVColors took %d ms.\n", I_GetTimeMS() - starttime);
 }
 
 #ifdef CRISPY_TRUECOLOR
@@ -784,6 +798,8 @@ void R_InitData(void)
     //IncThermo();
     printf (".");
     R_InitColormaps();
+    printf (".");
+    R_InitHSVColors();
     printf (".");
 #ifndef CRISPY_TRUECOLOR
     // [JN] Load original TINTTAB lump.

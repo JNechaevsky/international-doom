@@ -1245,13 +1245,20 @@ void R_InitColormaps (void)
 
 	W_ReleaseLumpName("COLORMAP");
 #endif
+}
 
-    // [crispy] initialize color translation and color strings tables
-    {
+
+//
+// R_InitHSVColors
+// [crispy] initialize color translation and color strings tables
+//
+static void R_InitHSVColors (void)
+{
 	byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 	char c[3];
 	int i, j;
 	boolean keepgray = false;
+	const int starttime = I_GetTimeMS();
 
 	if (!crstr)
 	    crstr = I_Realloc(NULL, CRMAX * sizeof(*crstr));
@@ -1287,9 +1294,8 @@ void R_InitColormaps (void)
 	{
 	    cr[CR_RED2BLUE] = W_CacheLumpNum(i, PU_STATIC);
 	}
-    }
+	printf("\nR_InitHSVColors took %d ms.\n", I_GetTimeMS() - starttime);
 }
-
 
 
 //
@@ -1314,6 +1320,8 @@ void R_InitData (void)
     R_InitSpriteLumps ();
     printf (".");
     R_InitColormaps ();
+    printf (".");    
+    R_InitHSVColors ();
     printf (".");    
 #ifndef CRISPY_TRUECOLOR
     // [JN] Compose translucency tables.
