@@ -95,6 +95,9 @@ int curpos;
 int inv_ptr;
 int ArtifactFlash;
 
+// [crispy] for widescreen status bar background
+pixel_t *st_backing_screen;
+
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static int DisplayTicker = 0;
@@ -301,6 +304,7 @@ void SB_Init(void)
     SpinSpeedLump = W_GetNumForName("SPBOOT0");
     SpinDefenseLump = W_GetNumForName("SPSHLD0");
 
+    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ORIGSBARHEIGHT << 1) * sizeof(*st_backing_screen), PU_STATIC, 0);
     if (deathmatch)
     {
         PatchKILLS = W_CacheLumpName("KILLS", PU_STATIC);
@@ -415,6 +419,7 @@ void SB_Ticker(void)
         }
         HealthMarker += delta;
     }
+    SB_PaletteFlash(false);
 }
 
 //==========================================================================
@@ -740,6 +745,50 @@ static int oldweapon = -1;
 static int oldkeys = -1;
 
 
+// [crispy] Needed to support widescreen status bar.
+void SB_ForceRedraw(void)
+{
+    SB_state = -1;
+}
+
+// [crispy] Create background texture which appears at each side of the status
+// bar in widescreen rendering modes. The chosen textures match those which
+// surround the non-fullscreen game window.
+static void RefreshBackground(void)
+{
+    V_UseBuffer(st_backing_screen);
+
+    if ((SCREENWIDTH / vid_resolution) != ORIGWIDTH)
+    {
+        byte *src;
+        pixel_t *dest;
+
+        src = W_CacheLumpName("F_022", PU_CACHE);
+        dest = st_backing_screen;
+
+        V_FillFlat(SCREENHEIGHT - SBARHEIGHT, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
+
+        // [crispy] preserve bezel bottom edge
+        if (scaledviewwidth == SCREENWIDTH)
+        {
+            int x;
+            patch_t *const patch = W_CacheLumpName("bordb", PU_CACHE);
+
+            for (x = 0; x < WIDESCREENDELTA; x += 16)
+            {
+                V_DrawPatch(x - WIDESCREENDELTA, 0, patch);
+                V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 16, 0, patch);
+            }
+        }
+    }
+
+    V_RestoreBuffer();
+    V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH,
+                   SBARHEIGHT, 0, (ORIGHEIGHT - ORIGSBARHEIGHT) * vid_resolution);
+}
+
+extern int right_widget_w; // [crispy]
+
 void SB_Drawer(void)
 {
     // Sound info debug stuff
@@ -748,7 +797,8 @@ void SB_Drawer(void)
         DrawSoundInfo();
     }
     CPlayer = &players[consoleplayer];
-    if (viewheight == SCREENHEIGHT && !automapactive)
+    if (viewheight == SCREENHEIGHT
+        && !(automapactive && !automap_overlay))
     {
         DrawFullScreenStuff();
         SB_state = -1;
@@ -757,7 +807,20 @@ void SB_Drawer(void)
     {
         if (SB_state == -1)
         {
-            V_DrawPatch(0, 134, PatchH2BAR);
+            RefreshBackground(); // [crispy] for widescreen
+
+            // [crispy] support wide status bars with 0 offset
+            if (SHORT(PatchH2BAR->width) > ORIGWIDTH &&
+                    SHORT(PatchH2BAR->leftoffset) == 0)
+            {
+                V_DrawPatch((ORIGWIDTH - SHORT(PatchH2BAR->width)) / 2, 134,
+                        PatchH2BAR);
+            }
+            else
+            {
+                V_DrawPatch(0, 134, PatchH2BAR);
+            }
+
             oldhealth = -1;
         }
         DrawCommonBar();
@@ -766,7 +829,7 @@ void SB_Drawer(void)
             if (SB_state != 0)
             {
                 // Main interface
-                if (!automapactive)
+                if (!(automapactive && !automap_overlay))
                 {
                     V_DrawPatch(38, 162, PatchSTATBAR);
                 }
@@ -784,7 +847,7 @@ void SB_Drawer(void)
                 oldweapon = -1;
                 oldkeys = -1;
             }
-            if (!automapactive)
+            if (!(automapactive && !automap_overlay))
             {
                 DrawMainBar();
             }
@@ -800,7 +863,6 @@ void SB_Drawer(void)
             SB_state = 1;
         }
     }
-    SB_PaletteFlash(false);
     DrawAnimatedIcons();
 }
 
@@ -814,10 +876,13 @@ static void DrawAnimatedIcons(void)
 {
     int frame;
     static boolean hitCenterFrame;
+    int spinfly_x, spinspeed_x, spindefense_x, spinminotaur_x; // [crispy]
 
     // Wings of wrath
     if (CPlayer->powers[pw_flight])
     {
+        spinfly_x = 20 - WIDESCREENDELTA; // [crispy]
+
         if (CPlayer->powers[pw_flight] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_flight] & 16))
         {
@@ -826,13 +891,15 @@ static void DrawAnimatedIcons(void)
             {
                 if (hitCenterFrame && (frame != 15 && frame != 0))
                 {
-                    V_DrawPatch(20, 19, W_CacheLumpNum(SpinFlylump + 15,
-                                                       PU_CACHE));
+                    V_DrawPatch(spinfly_x, 19,
+                                W_CacheLumpNum(SpinFlylump + 15,
+                                                PU_CACHE));
                 }
                 else
                 {
-                    V_DrawPatch(20, 19, W_CacheLumpNum(SpinFlylump + frame,
-                                                       PU_CACHE));
+                    V_DrawPatch(spinfly_x, 19,
+                                W_CacheLumpNum(SpinFlylump + frame,
+                                                PU_CACHE));
                     hitCenterFrame = false;
                 }
             }
@@ -840,14 +907,16 @@ static void DrawAnimatedIcons(void)
             {
                 if (!hitCenterFrame && (frame != 15 && frame != 0))
                 {
-                    V_DrawPatch(20, 19, W_CacheLumpNum(SpinFlylump + frame,
-                                                       PU_CACHE));
+                    V_DrawPatch(spinfly_x, 19,
+                                W_CacheLumpNum(SpinFlylump + frame,
+                                                PU_CACHE));
                     hitCenterFrame = false;
                 }
                 else
                 {
-                    V_DrawPatch(20, 19, W_CacheLumpNum(SpinFlylump + 15,
-                                                       PU_CACHE));
+                    V_DrawPatch(spinfly_x, 19,
+                                W_CacheLumpNum(SpinFlylump + 15,
+                                                PU_CACHE));
                     hitCenterFrame = true;
                 }
             }
@@ -859,12 +928,15 @@ static void DrawAnimatedIcons(void)
     // Speed Boots
     if (CPlayer->powers[pw_speed])
     {
+        spinspeed_x = 60 - WIDESCREENDELTA; // [crispy]
+
         if (CPlayer->powers[pw_speed] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_speed] & 16))
         {
             frame = (leveltime / 3) & 15;
-            V_DrawPatch(60, 19, W_CacheLumpNum(SpinSpeedLump + frame,
-                                               PU_CACHE));
+            V_DrawPatch(spinspeed_x, 19,
+                        W_CacheLumpNum(SpinSpeedLump + frame,
+                                        PU_CACHE));
         }
         BorderTopRefresh = true;
         UpdateState |= I_MESSAGES;
@@ -873,12 +945,16 @@ static void DrawAnimatedIcons(void)
     // Defensive power
     if (CPlayer->powers[pw_invulnerability])
     {
+        spindefense_x = 260 + WIDESCREENDELTA; // [crispy]
+        spindefense_x -= right_widget_w; // [crispy]
+
         if (CPlayer->powers[pw_invulnerability] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_invulnerability] & 16))
         {
             frame = (leveltime / 3) & 15;
-            V_DrawPatch(260, 19, W_CacheLumpNum(SpinDefenseLump + frame,
-                                                PU_CACHE));
+            V_DrawPatch(spindefense_x, 19,
+                        W_CacheLumpNum(SpinDefenseLump + frame,
+                                        PU_CACHE));
         }
         BorderTopRefresh = true;
         UpdateState |= I_MESSAGES;
@@ -887,12 +963,16 @@ static void DrawAnimatedIcons(void)
     // Minotaur Active
     if (CPlayer->powers[pw_minotaur])
     {
+        spinminotaur_x = 300 + WIDESCREENDELTA; // [crispy]
+        spinminotaur_x -= right_widget_w; // [crispy]
+
         if (CPlayer->powers[pw_minotaur] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_minotaur] & 16))
         {
             frame = (leveltime / 3) & 15;
-            V_DrawPatch(300, 19, W_CacheLumpNum(SpinMinotaurLump + frame,
-                                                PU_CACHE));
+            V_DrawPatch(spinminotaur_x, 19,
+                        W_CacheLumpNum(SpinMinotaurLump + frame,
+                                        PU_CACHE));
         }
         BorderTopRefresh = true;
         UpdateState |= I_MESSAGES;
@@ -912,7 +992,9 @@ void SB_PaletteFlash(boolean forceChange)
 {
     static int sb_palette = 0;
     int palette;
+#ifndef CRISPY_TRUECOLOR
     byte *pal;
+#endif
 
     if (forceChange)
     {
@@ -965,8 +1047,12 @@ void SB_PaletteFlash(boolean forceChange)
     if (palette != sb_palette)
     {
         sb_palette = palette;
+#ifndef CRISPY_TRUECOLOR
         pal = (byte *) W_CacheLumpNum(PlayPalette, PU_CACHE) + palette * 768;
         I_SetPalette(pal);
+#else
+        I_SetPalette(palette);
+#endif
     }
 }
 
@@ -1011,7 +1097,7 @@ void DrawCommonBar(void)
 
 void DrawMainBar(void)
 {
-    int i;
+    int i, j, k;
     int temp;
     patch_t *manaPatch1, *manaPatch2;
     patch_t *manaVialPatch1, *manaVialPatch2;
@@ -1175,16 +1261,30 @@ void DrawMainBar(void)
         V_DrawPatch(94, 164, manaVialPatch1);
         for (i = 165; i < 187 - (22 * CPlayer->mana[0]) / MAX_MANA; i++)
         {
-            I_VideoBuffer[i * SCREENWIDTH + 95] = 0;
-            I_VideoBuffer[i * SCREENWIDTH + 96] = 0;
-            I_VideoBuffer[i * SCREENWIDTH + 97] = 0;
+         for (j = 0; j <= vid_resolution; j++)
+          for (k = 0; k <= vid_resolution; k++)
+          {
+            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
+                          + ((95 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
+            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
+                          + ((96 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
+            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
+                          + ((97 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
+          }
         }
         V_DrawPatch(102, 164, manaVialPatch2);
         for (i = 165; i < 187 - (22 * CPlayer->mana[1]) / MAX_MANA; i++)
         {
-            I_VideoBuffer[i * SCREENWIDTH + 103] = 0;
-            I_VideoBuffer[i * SCREENWIDTH + 104] = 0;
-            I_VideoBuffer[i * SCREENWIDTH + 105] = 0;
+         for (j = 0; j <= vid_resolution; j++)
+          for (k = 0; k <= vid_resolution; k++)
+          {
+            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
+                          + ((103 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
+            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
+                          + ((104 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
+            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
+                          + ((105 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
+          }
         }
         oldweapon = CPlayer->readyweapon;
         UpdateState |= I_STATBAR;

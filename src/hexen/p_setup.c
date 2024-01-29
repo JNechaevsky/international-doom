@@ -179,6 +179,10 @@ void P_LoadVertexes(int lump)
     {
         li->x = SHORT(ml->x) << FRACBITS;
         li->y = SHORT(ml->y) << FRACBITS;
+
+        // [crispy] initialize vertex coordinates *only* used in rendering
+        li->r_x = li->x;
+        li->r_y = li->y;
     }
 
     W_ReleaseLumpNum(lump);
@@ -215,6 +219,7 @@ void P_LoadSegs(int lump)
         li->v2 = &vertexes[SHORT(ml->v2)];
 
         li->angle = (SHORT(ml->angle)) << 16;
+        li->r_angle = li->angle; // [crispy] initialize rendering angle
         li->offset = (SHORT(ml->offset)) << 16;
         linedef = SHORT(ml->linedef);
         ldef = &lines[linedef];
@@ -231,6 +236,23 @@ void P_LoadSegs(int lump)
     W_ReleaseLumpNum(lump);
 }
 
+// [crispy] fix long wall wobble
+
+static void P_SegLengths (void)
+{
+    int i;
+
+    for (i = 0; i < numsegs; i++)
+    {
+        seg_t *const li = &segs[i];
+        int64_t dx, dy;
+
+        dx = li->v2->x - li->v1->x;
+        dy = li->v2->y - li->v1->y;
+
+        li->length = (uint32_t)(sqrt((double)dx*dx + (double)dy*dy)/2);
+    }
+}
 
 /*
 =================
@@ -298,6 +320,19 @@ void P_LoadSectors(int lump)
         ss->tag = SHORT(ms->tag);
         ss->thinglist = NULL;
         ss->seqType = SEQTYPE_STONE;    // default seqType
+
+        // [crispy] WiggleFix: [kb] for R_FixWiggle()
+        ss->cachedheight = 0;
+
+        // [AM] Sector interpolation.  Even if we're
+        //      not running uncapped, the renderer still
+        //      uses this data.
+        ss->oldfloorheight = ss->floorheight;
+        ss->interpfloorheight = ss->floorheight;
+        ss->oldceilingheight = ss->ceilingheight;
+        ss->interpceilingheight = ss->ceilingheight;
+        // [crispy] inhibit sector interpolation during the 0th gametic
+        ss->oldgametic = -1;
     }
     W_ReleaseLumpNum(lump);
 }
@@ -696,6 +731,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
     P_InitThinkers();
     leveltime = 0;
+    oldleveltime = 0;  // [crispy] Track if game is running
 
     M_snprintf(lumpname, sizeof(lumpname), "MAP%02d", map);
     lumpnum = W_GetNumForName(lumpname);
@@ -716,6 +752,10 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     P_LoadSegs(lumpnum + ML_SEGS);
     rejectmatrix = W_CacheLumpNum(lumpnum + ML_REJECT, PU_LEVEL);
     P_GroupLines();
+
+    // [crispy] fix long wall wobble
+    P_SegLengths();
+
     bodyqueslot = 0;
     po_NumPolyobjs = 0;
     deathmatch_p = deathmatchstarts;
@@ -770,11 +810,22 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     if (i == W_GetNumForName("COLORMAP"))
     {
         LevelUseFullBright = true;
+#ifdef CRISPY_TRUECOLOR
+        actual_colormap = "COLORMAP";
+#endif
     }
     else
     {                           // Probably fog ... don't use fullbright sprites
         LevelUseFullBright = false;
+#ifdef CRISPY_TRUECOLOR
+        // [cirspy] TODO - do not use hardcoded "FOGMAP" lump name.
+        // Need to get it from MAPINFO's fadetable variable, but it's int type there.
+        actual_colormap = "FOGMAP";
+#endif
     }
+#ifdef CRISPY_TRUECOLOR
+    R_InitColormaps(actual_colormap);
+#endif
 
 // preload graphics
     if (precache)

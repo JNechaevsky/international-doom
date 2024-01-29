@@ -200,6 +200,31 @@ void R_ClearClipSegs(void)
     newend = solidsegs + 2;
 }
 
+// [AM] Interpolate the passed sector, if prudent.
+void R_CheckInterpolateSector(sector_t* sector)
+{
+    if (vid_uncapped_fps &&
+        // Only if we moved the sector last tic ...
+        sector->oldgametic == gametic - 1 &&
+        // ... and it has a thinker associated with it.
+        sector->specialdata)
+    {
+        // Interpolate between current and last floor/ceiling position.
+        if (sector->floorheight != sector->oldfloorheight)
+            sector->interpfloorheight = sector->oldfloorheight + FixedMul(sector->floorheight - sector->oldfloorheight, fractionaltic);
+        else
+            sector->interpfloorheight = sector->floorheight;
+        if (sector->ceilingheight != sector->oldceilingheight)
+            sector->interpceilingheight = sector->oldceilingheight + FixedMul(sector->ceilingheight - sector->oldceilingheight, fractionaltic);
+        else
+            sector->interpceilingheight = sector->ceilingheight;
+    }
+    else
+    {
+        sector->interpfloorheight = sector->floorheight;
+        sector->interpceilingheight = sector->ceilingheight;
+    }
+}
 
 //=============================================================================
 
@@ -222,8 +247,8 @@ void R_AddLine(seg_t * line)
 
 // OPTIMIZE: quickly reject orthogonal back sides
 
-    angle1 = R_PointToAngle(line->v1->x, line->v1->y);
-    angle2 = R_PointToAngle(line->v2->x, line->v2->y);
+    angle1 = R_PointToAngle(line->v1->r_x, line->v1->r_y);
+    angle2 = R_PointToAngle(line->v2->r_x, line->v2->r_y);
 
 //
 // clip to view edges
@@ -268,12 +293,17 @@ void R_AddLine(seg_t * line)
     if (!backsector)
         goto clipsolid;         // single sided line
 
-    if (backsector->ceilingheight <= frontsector->floorheight
-        || backsector->floorheight >= frontsector->ceilingheight)
+    // [AM] Interpolate sector movement before
+    //      running clipping tests.  Frontsector
+    //      should already be interpolated.
+    R_CheckInterpolateSector(backsector);
+
+    if (backsector->interpceilingheight <= frontsector->interpfloorheight
+        || backsector->interpfloorheight >= frontsector->interpceilingheight)
         goto clipsolid;         // closed door
 
-    if (backsector->ceilingheight != frontsector->ceilingheight
-        || backsector->floorheight != frontsector->floorheight)
+    if (backsector->interpceilingheight != frontsector->interpceilingheight
+        || backsector->interpfloorheight != frontsector->interpfloorheight)
         goto clippass;          // window
 
 // reject empty lines used for triggers and special events
@@ -427,9 +457,13 @@ void R_Subsector(int num)
     count = sub->numlines;
     line = &segs[sub->firstline];
 
-    if (frontsector->floorheight < viewz)
+    // [AM] Interpolate sector movement.  Usually only needed
+    //      when you're standing inside the sector.
+    R_CheckInterpolateSector(frontsector);
+
+    if (frontsector->interpfloorheight < viewz)
     {
-        floorplane = R_FindPlane(frontsector->floorheight,
+        floorplane = R_FindPlane(frontsector->interpfloorheight,
                                  frontsector->floorpic,
                                  frontsector->lightlevel,
                                  frontsector->special);
@@ -439,10 +473,10 @@ void R_Subsector(int num)
         floorplane = NULL;
     }
 
-    if (frontsector->ceilingheight > viewz
+    if (frontsector->interpceilingheight > viewz
         || frontsector->ceilingpic == skyflatnum)
     {
-        ceilingplane = R_FindPlane(frontsector->ceilingheight,
+        ceilingplane = R_FindPlane(frontsector->interpceilingheight,
                                    frontsector->ceilingpic,
                                    frontsector->lightlevel, 0);
     }
@@ -468,7 +502,7 @@ void R_Subsector(int num)
     }
 
     // check for solidsegs overflow - extremely unsatisfactory!
-    if(newend > &solidsegs[32])
+    if(newend > &solidsegs[32] && false)
         I_Error("R_Subsector: solidsegs overflow (vanilla may crash here)\n");
 }
 

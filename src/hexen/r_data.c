@@ -20,9 +20,10 @@
 #include "i_system.h"
 #include "i_swap.h"
 #include "m_misc.h"
+#include "r_bmaps.h"
 #include "r_local.h"
 #include "p_local.h"
-#include "v_trans.h"
+#include "v_trans.h" // [crispy] color translation and color string tables
 
 typedef struct
 {
@@ -57,6 +58,7 @@ int *texturecompositesize;
 short **texturecolumnlump;
 unsigned short **texturecolumnofs;
 byte **texturecomposite;
+const byte **texturebrightmap;  // [crispy] brightmaps
 
 int *flattranslation;           // for global animation
 int *texturetranslation;        // for global animation
@@ -66,6 +68,7 @@ fixed_t *spriteoffset;
 fixed_t *spritetopoffset;
 
 lighttable_t *colormaps;
+char *actual_colormap;
 
 
 /*
@@ -345,6 +348,7 @@ void R_InitTextures(void)
     texturecompositesize = Z_Malloc(numtextures * sizeof(int), PU_STATIC, 0);
     texturewidthmask = Z_Malloc(numtextures * sizeof(int), PU_STATIC, 0);
     textureheight = Z_Malloc(numtextures * sizeof(fixed_t), PU_STATIC, 0);
+    texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
 
     for (i = 0; i < numtextures; i++, directory++)
     {
@@ -370,6 +374,8 @@ void R_InitTextures(void)
         memcpy(texture->name, mtexture->name, sizeof(texture->name));
         mpatch = &mtexture->patches[0];
         patch = &texture->patches[0];
+        // [crispy] initialize brightmaps
+        texturebrightmap[i] = R_BrightmapForTexName(texture->name);
         for (j = 0; j < texture->patchcount; j++, mpatch++, patch++)
         {
             patch->originx = SHORT(mpatch->originx);
@@ -478,8 +484,9 @@ void R_InitSpriteLumps(void)
 =================
 */
 
-void R_InitColormaps(void)
+void R_InitColormaps(char *current_colormap)
 {
+#ifndef CRISPY_TRUECOLOR
     int lump, length;
 //
 // load in the light tables
@@ -489,6 +496,75 @@ void R_InitColormaps(void)
     length = W_LumpLength(lump);
     colormaps = Z_Malloc(length, PU_STATIC, 0);
     W_ReadLump(lump, colormaps);
+#else
+	byte *playpal;
+	byte *const colormap = W_CacheLumpName(current_colormap, PU_STATIC);
+	int c, i, j = 0;
+	byte r, g, b;
+
+	playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+
+	if (!colormaps)
+	{
+		colormaps = (lighttable_t*) Z_Malloc((NUMCOLORMAPS + 1) * 256 * sizeof(lighttable_t), PU_STATIC, 0);
+	}
+
+	if (vid_truecolor && LevelUseFullBright)
+	{
+		for (c = 0; c < NUMCOLORMAPS; c++)
+		{
+			const float scale = 1. * c / NUMCOLORMAPS;
+
+			for (i = 0; i < 256; i++)
+			{
+				r = gammatable[vid_gamma][playpal[3 * i + 0]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+				g = gammatable[vid_gamma][playpal[3 * i + 1]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+				b = gammatable[vid_gamma][playpal[3 * i + 2]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+
+				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+			}
+		}
+	}
+	else
+	{
+		for (c = 0; c < NUMCOLORMAPS; c++)
+		{
+			for (i = 0; i < 256; i++)
+			{
+				r = gammatable[vid_gamma][playpal[3 * colormap[c * 256 + i] + 0]] & ~3;
+				g = gammatable[vid_gamma][playpal[3 * colormap[c * 256 + i] + 1]] & ~3;
+				b = gammatable[vid_gamma][playpal[3 * colormap[c * 256 + i] + 2]] & ~3;
+
+				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+			}
+		}
+	}
+
+	W_ReleaseLumpName(current_colormap);
+#endif
+    // [crispy] initialize color translation and color string tables
+    {
+	byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+	char c[3];
+	int i, j;
+
+	if (!crstr)
+	    crstr = I_Realloc(NULL, CRMAX * sizeof(*crstr));
+
+	// [crispy] CRMAX - 2: don't override the original GREN and BLUE2 Boom tables
+	for (i = 0; i < CRMAX - 2; i++)
+	{
+	    for (j = 0; j < 256; j++)
+	    {
+		cr[i][j] = V_Colorize(playpal, i, j, false);
+	    }
+
+	    M_snprintf(c, sizeof(c), "%c%c", cr_esc, '0' + i);
+	    crstr[i] = M_StringDuplicate(c);
+	}
+
+	W_ReleaseLumpName("PLAYPAL");
+    }
 }
 
 
@@ -507,7 +583,12 @@ void R_InitData(void)
     R_InitTextures();
     R_InitFlats();
     R_InitSpriteLumps();
-    R_InitColormaps();
+#ifndef CRISPY_TRUECOLOR
+    R_InitColormaps("COLORMAP");
+#else
+    actual_colormap = "COLORMAP";
+    R_InitColormaps(actual_colormap);
+#endif
 #ifndef CRISPY_TRUECOLOR
     // [JN] Load original TINTTAB lump.
     V_LoadTintTable();

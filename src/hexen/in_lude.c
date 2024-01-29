@@ -100,7 +100,11 @@ static char *HubText;
 void IN_Start(void)
 {
     int i;
+#ifndef CRISPY_TRUECOLOR
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+#else
+    I_SetPalette(0);
+#endif
     InitStats();
     LoadPics();
     intermission = true;
@@ -400,7 +404,7 @@ void IN_Drawer(void)
         return;
     }
     UpdateState |= I_FULLSCRN;
-    memcpy(I_VideoBuffer, (byte *) patchINTERPIC, SCREENWIDTH * SCREENHEIGHT);
+    V_DrawFullscreenRawOrPatch(W_GetNumForName("INTERPIC")); // [crispy]
 
     if (gametype == SINGLE)
     {

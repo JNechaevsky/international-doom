@@ -269,7 +269,11 @@ static void InitializeFade(boolean fadeIn)
             PaletteDelta[i] = FixedDiv(Palette[i], -70 * FRACUNIT);
         }
     }
+#ifndef CRISPY_TRUECOLOR
     I_SetPalette(RealPalette);
+#else
+    // [cirspy] TODO - perform fading via I_BlendDark function?
+#endif
 }
 
 //===========================================================================
@@ -300,7 +304,11 @@ static void FadePic(void)
         Palette[i] += PaletteDelta[i];
         RealPalette[i] = Palette[i] >> FRACBITS;
     }
+#ifndef CRISPY_TRUECOLOR
     I_SetPalette(RealPalette);
+#else
+    // [cirspy] TODO - perform fading via I_BlendDark function?
+#endif
 }
 
 //===========================================================================

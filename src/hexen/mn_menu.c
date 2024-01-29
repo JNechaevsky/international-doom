@@ -161,6 +161,26 @@ static int currentSlot;
 static int quicksave;
 static int quickload;
 
+static char *gammalvls[16][32] =
+{
+    { GAMMALVL05,   "0.50" },
+    { GAMMALVL055,  "0.55" },
+    { GAMMALVL06,   "0.60" },
+    { GAMMALVL065,  "0.65" },
+    { GAMMALVL07,   "0.70" },
+    { GAMMALVL075,  "0.75" },
+    { GAMMALVL08,   "0.80" },
+    { GAMMALVL085,  "0.85" },
+    { GAMMALVL09,   "0.90" },
+    { GAMMALVL095,  "0.95" },
+    { GAMMALVL0,    "OFF"  },
+    { GAMMALVL1,    "1"    },
+    { GAMMALVL2,    "2"    },
+    { GAMMALVL3,    "3"    },
+    { GAMMALVL4,    "4"    },
+    { NULL,         NULL   },
+};
+
 static MenuItem_t MainItems[] = {
     {ITT_SETMENU, "NEW GAME", SCNetCheck2, 1, MENU_CLASS},
     {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_OPTIONS},
@@ -296,14 +316,6 @@ static Menu_t *Menus[] = {
     &FilesMenu,
     &LoadMenu,
     &SaveMenu
-};
-
-static const char *GammaText[] = {
-    TXT_GAMMA_LEVEL_OFF,
-    TXT_GAMMA_LEVEL_1,
-    TXT_GAMMA_LEVEL_2,
-    TXT_GAMMA_LEVEL_3,
-    TXT_GAMMA_LEVEL_4
 };
 
 // CODE --------------------------------------------------------------------
@@ -1394,7 +1406,11 @@ boolean MN_Responder(event_t * event)
                     askforquit = false;
                     typeofask = 0;
                     paused = false;
+#ifndef CRISPY_TRUECOLOR
                     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+#else
+                    I_SetPalette(0);
+#endif
                     H2_StartTitle();    // go to intro/demo mode.
                     return false;
                 case 3:
@@ -1623,12 +1639,17 @@ boolean MN_Responder(event_t * event)
         else if (key == key_menu_gamma)          // F11 (gamma correction)
         {
             vid_gamma++;
-            if (vid_gamma > 4)
+            if (vid_gamma > 14)
             {
                 vid_gamma = 0;
             }
             SB_PaletteFlash(true);  // force change
-            P_SetMessage(&players[consoleplayer], GammaText[vid_gamma],
+#ifdef CRISPY_TRUECOLOR
+            R_InitColormaps(actual_colormap);
+            BorderNeedRefresh = true;
+            SB_state = -1;
+#endif
+            P_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0],
                          false);
             return true;
         }
@@ -1907,10 +1928,37 @@ void MN_DeactivateMenu(void)
 
 void MN_DrawInfo(void)
 {
+    lumpindex_t lumpindex; // [crispy]
+
+#ifndef CRISPY_TRUECOLOR
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-    memcpy(I_VideoBuffer,
-           (byte *) W_CacheLumpNum(W_GetNumForName("TITLE") + InfoType,
-                                   PU_CACHE), SCREENWIDTH * SCREENHEIGHT);
+#else
+    I_SetPalette(0);
+#endif
+
+    // [crispy] Refactor to allow for use of V_DrawFullscreenRawOrPatch
+
+    switch (InfoType)
+    {
+        case 1:
+            lumpindex = W_GetNumForName("HELP1");
+            break;
+
+        case 2:
+            lumpindex = W_GetNumForName("HELP2");
+            break;
+
+        case 3:
+            lumpindex = W_GetNumForName("CREDIT");
+            break;
+
+        default:
+            lumpindex = W_GetNumForName("TITLE");
+            break;
+    }
+
+    V_DrawFullscreenRawOrPatch(lumpindex);
+
 //      V_DrawPatch(0, 0, W_CacheLumpNum(W_GetNumForName("TITLE")+InfoType,
 //              PU_CACHE));
 }

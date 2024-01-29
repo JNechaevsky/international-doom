@@ -188,6 +188,9 @@ void D_BindVariables(void)
         M_snprintf(buf, sizeof(buf), "chatmacro%i", i);
         M_BindStringVariable(buf, &chat_macros[i]);
     }
+
+	// [JN] Bind ID-specific config variables.
+	ID_BindVariables(hexen);
 }
 
 // Set the default directory where hub savegames are saved.
@@ -454,7 +457,7 @@ void D_DoomMain(void)
     //
     // Disable auto-loading of .wad files.
     //
-    if (!M_ParmExists("-noautoload"))
+    if (!M_ParmExists("-noautoload") && gamemode != shareware)
     {
         char *autoload_dir;
         autoload_dir = M_GetAutoloadDir("hexen.wad");
@@ -765,11 +768,12 @@ static void HandleArgs(void)
     //!
     // @category demo
     //
-    // Record or playback a demo without automatically quitting
+    // Record or playback a demo, automatically quitting
     // after either level exit or player respawn.
     //
 
-    demoextend = M_ParmExists("-demoextend");
+    demoextend = (!M_ParmExists("-nodemoextend"));
+    //[crispy] make demoextend the default
 
     if (M_ParmExists("-testcontrols"))
     {
@@ -853,10 +857,24 @@ void H2_GameLoop(void)
         // Will run at least one tic
         TryRunTics();
 
-        // Move positional sounds
-        S_UpdateSounds(players[displayplayer].mo);
+        if (oldgametic < gametic)
+        {
+            // Move positional sounds
+            S_UpdateSounds(players[displayplayer].mo);
+            oldgametic = gametic;
+        }
 
         DrawAndBlit();
+
+
+        // [crispy] post-rendering function pointer to apply config changes
+        // that affect rendering and that are better applied after the current
+        // frame has finished rendering
+        if (post_rendering_hook)
+        {
+            post_rendering_hook();
+            post_rendering_hook = NULL;
+        }
     }
 }
 
@@ -915,13 +933,20 @@ static void DrawAndBlit(void)
             {
                 break;
             }
-            if (automapactive)
+            if (automapactive && !automap_overlay)
             {
+                // [crispy] update automap while playing
+                R_RenderPlayerView(&players[displayplayer]);
                 AM_Drawer();
             }
             else
             {
                 R_RenderPlayerView(&players[displayplayer]);
+            }
+            if (automapactive && automap_overlay)
+            {
+                AM_Drawer();
+                BorderNeedRefresh = true;
             }
             CT_Drawer();
             UpdateState |= I_FULLVIEW;
@@ -947,7 +972,7 @@ static void DrawAndBlit(void)
     {
         if (!netgame)
         {
-            V_DrawPatch(160, viewwindowy + 5, W_CacheLumpName("PAUSED",
+            V_DrawPatch(160, (viewwindowy / vid_resolution) + 5, W_CacheLumpName("PAUSED",
                                                               PU_CACHE));
         }
         else
@@ -996,6 +1021,7 @@ static void DrawMessage(void)
     }
 }
 
+int right_widget_w, right_widget_h; // [crispy]
 //==========================================================================
 //
 // H2_PageTicker
@@ -1018,7 +1044,8 @@ void H2_PageTicker(void)
 
 static void PageDrawer(void)
 {
-    V_DrawRawScreen(W_CacheLumpName(pagename, PU_CACHE));
+    V_DrawFullscreenRawOrPatch(W_GetNumForName(pagename)); // [crispy]
+
     if (demosequence == 1)
     {
         V_DrawPatch(4, 160, W_CacheLumpName("ADVISOR", PU_CACHE));

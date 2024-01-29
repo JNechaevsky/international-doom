@@ -23,6 +23,8 @@
 #include <stdlib.h>
 //#include <values.h>
 
+#include "id_vars.h"
+
 #include "st_start.h"
 // haleyjd: removed WATCOMC
 
@@ -227,6 +229,16 @@ typedef struct mobj_s
     short tid;                  // thing identifier
     byte special;               // special
     byte args[5];               // special arguments
+
+    // [AM] If true, ok to interpolate this tic.
+    int                 interp;
+
+    // [AM] Previous position of mobj before think.
+    //      Used to interpolate between positions.
+    fixed_t		oldx;
+    fixed_t		oldy;
+    fixed_t		oldz;
+    angle_t		oldangle;
 } mobj_t;
 
 // each sector has a degenmobj_t in it's center for sound origin purposes
@@ -361,6 +373,7 @@ typedef struct pspdef_s
     state_t *state;             // a NULL state means not active
     int tics;
     fixed_t sx, sy;
+    fixed_t sx2, sy2; // [crispy] variable weapon sprite bob
 } pspdef_t;
 
 /* Old Heretic key type
@@ -533,7 +546,7 @@ typedef struct player_s
     fixed_t bob;                // bounded/scaled total momentum
 
     int flyheight;
-    int lookdir;
+    int lookdir, oldlookdir;
     boolean centering;
     int health;                 // only used between levels, mo->health
     // is used during levels
@@ -572,13 +585,21 @@ typedef struct player_s
     int morphTics;              // player is a pig if > 0
     unsigned int jumpTics;      // delay the next jump for a moment
     unsigned int worldTimer;    // total time the player's been playing
+
+    // [AM] Previous position of viewz before think.
+    //      Used to interpolate between camera positions.
+    fixed_t		oldviewz;
+
+    // [crispy] variable player view bob
+    fixed_t bob2;
 } player_t;
 
 #define CF_NOCLIP		1
 #define	CF_GODMODE		2
 #define	CF_NOMOMENTUM	4       // not really a cheat, just a debug aid
 
-#define	SBARHEIGHT	39      // status bar height at bottom of screen
+#define ORIGSBARHEIGHT          39 // [crispy]
+#define	SBARHEIGHT	(ORIGSBARHEIGHT * vid_resolution)      // status bar height at bottom of screen
 
 void NET_SendFrags(player_t * player);
 
@@ -839,6 +860,12 @@ extern boolean gamekeydown[NUMKEYS];
 #define HXS_VERSION_TEXT_LENGTH 16
 #define HXS_DESCRIPTION_LENGTH 24
 
+// [crispy] support up to 8 pages of savegames
+#define SAVES_PER_PAGE 6
+#define SAVEPAGE_MAX 7
+
+extern int savepage; // [crispy]
+
 extern char *SavePath;
 
 void SV_SaveGame(int slot, const char *description);
@@ -851,6 +878,7 @@ void SV_UpdateRebornSlot(void);
 void SV_ClearRebornSlot(void);
 boolean SV_RebornSlotAvailable(void);
 int SV_GetRebornSlot(void);
+void SV_ClearSaveSlot(int slot); // [crispy]
 
 //-----
 //PLAY
@@ -1073,6 +1101,8 @@ void F_StartFinale(void);
 //----------------------
 // STATUS BAR (SB_bar.c)
 //----------------------
+
+#define CURPOS_MAX 6 // [crispy] 7 total artifact frames
 
 extern int inv_ptr;
 extern int curpos;

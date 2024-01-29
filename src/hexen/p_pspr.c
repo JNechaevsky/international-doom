@@ -1188,9 +1188,13 @@ void A_MStaffAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     {
         player->damagecount = 0;
         player->bonuscount = 0;
+#ifndef CRISPY_TRUECOLOR
         I_SetPalette((byte *) W_CacheLumpNum(W_GetNumForName("playpal"),
                                              PU_CACHE) +
                      STARTSCOURGEPAL * 768);
+#else
+        I_SetPalette(STARTSCOURGEPAL);
+#endif
     }
 }
 
@@ -1211,8 +1215,12 @@ void A_MStaffPalette(mobj_t *actor, player_t *player, pspdef_t *psp)
         {                       // reset back to original playpal
             pal = 0;
         }
+#ifndef CRISPY_TRUECOLOR
         I_SetPalette((byte *) W_CacheLumpNum(W_GetNumForName("playpal"),
                                              PU_CACHE) + pal * 768);
+#else
+        I_SetPalette(pal);
+#endif
     }
 }
 
@@ -1930,8 +1938,12 @@ void A_CHolyAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     {
         player->damagecount = 0;
         player->bonuscount = 0;
+#ifndef CRISPY_TRUECOLOR
         I_SetPalette((byte *) W_CacheLumpNum(W_GetNumForName("playpal"),
                                              PU_CACHE) + STARTHOLYPAL * 768);
+#else
+        I_SetPalette(STARTHOLYPAL);
+#endif
     }
     S_StartSound(player->mo, SFX_CHOLY_FIRE);
 }
@@ -1953,8 +1965,12 @@ void A_CHolyPalette(mobj_t *actor, player_t *player, pspdef_t *psp)
         {                       // reset back to original playpal
             pal = 0;
         }
+#ifndef CRISPY_TRUECOLOR
         I_SetPalette((byte *) W_CacheLumpNum(W_GetNumForName("playpal"),
                                              PU_CACHE) + pal * 768);
+#else
+        I_SetPalette(pal);
+#endif
     }
 }
 
@@ -2474,4 +2490,41 @@ void P_MovePsprites(player_t * player)
     }
     player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
     player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
+
+    // [crispy] apply bobbing (or centering) to the player's weapon sprite
+    psp = &player->psprites[0];
+    psp->sx2 = psp->sx;
+    psp->sy2 = psp->sy;
+    if (psp->state && (phys_weapon_alignment || vid_uncapped_fps))
+    {
+        // [crispy] don't align swiping weapons
+        const boolean swiping_weapon = player->class == PCLASS_FIGHTER ||
+                                       (player->class == PCLASS_CLERIC &&
+                                        player->readyweapon == WP_FIRST);
+
+        // [crispy] don't center vertically during lowering and raising states
+        if (psp->state->action == A_Lower || psp->state->action == A_Raise)
+        {
+        }
+        else
+        // [crispy] not attacking means idle
+        if (!player->attackdown ||
+            (phys_weapon_alignment == 2 && !swiping_weapon))
+        {
+            angle_t angle = (128 * leveltime) & FINEMASK;
+            psp->sx2 = FRACUNIT + FixedMul(player->bob2, finecosine[angle]);
+            angle &= FINEANGLES / 2 - 1;
+            psp->sy2 = WEAPONTOP + FixedMul(player->bob2, finesine[angle]);
+        }
+        else
+        // [crispy] center the weapon sprite horizontally and push up vertically
+        if (phys_weapon_alignment == 2 && !swiping_weapon)
+        {
+            psp->sx2 = FRACUNIT;
+            psp->sy2 = WEAPONTOP;
+        }
+    }
+
+    player->psprites[ps_flash].sx2 = psp->sx2;
+    player->psprites[ps_flash].sy2 = psp->sy2;
 }

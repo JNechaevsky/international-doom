@@ -117,7 +117,6 @@ static void RestoreSSThinker(thinker_t *sst);
 static void RestorePlatRaise(thinker_t *thinker);
 static void RestoreMoveCeiling(thinker_t *thinker);
 static void AssertSegment(gameArchiveSegment_t segType);
-static void ClearSaveSlot(int slot);
 static void CopySaveSlot(int sourceSlot, int destSlot);
 static void CopyFile(char *sourceName, char *destName);
 static boolean ExistingFile(char *name);
@@ -142,6 +141,9 @@ static void SV_WritePtr(void *ptr);
 #define DEFAULT_SAVEPATH                "hexndata/"
 
 char *SavePath = DEFAULT_SAVEPATH;
+
+
+int savepage; // [crispy] support 8 pages of savegames
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
@@ -308,6 +310,10 @@ static void StreamIn_pspdef_t(pspdef_t *str)
     // fixed_t sx, sy;
     str->sx = SV_ReadLong();
     str->sy = SV_ReadLong();
+
+    // [crispy] variable weapon sprite bob
+    str->sx2 = str->sx;
+    str->sy2 = str->sy;
 }
 
 static void StreamOut_pspdef_t(pspdef_t *str)
@@ -366,6 +372,9 @@ static void StreamIn_player_t(player_t *str)
 
     // fixed_t bob;
     str->bob = SV_ReadLong();
+
+    // [crispy] variable player view bob
+    str->bob2 = str->bob;
 
     // int flyheight;
     str->flyheight = SV_ReadLong();
@@ -1971,8 +1980,14 @@ void SV_SaveGame(int slot, const char *description)
     char versionText[HXS_VERSION_TEXT_LENGTH];
     unsigned int i;
 
+    // [crispy] get expanded save slot number
+    if (slot != BASE_SLOT && slot != REBORN_SLOT)
+    {
+        slot += savepage * 10;
+    }
+
     // Open the output file
-    M_snprintf(fileName, sizeof(fileName), "%shex6.hxs", SavePath);
+    M_snprintf(fileName, sizeof(fileName), "%shex%d.hxs", SavePath, BASE_SLOT);
     SV_OpenWrite(fileName);
 
     // Write game save description
@@ -2013,7 +2028,7 @@ void SV_SaveGame(int slot, const char *description)
     SV_SaveMap(true);           // true = save player info
 
     // Clear all save files at destination slot
-    ClearSaveSlot(slot);
+    SV_ClearSaveSlot(slot);
 
     // Copy base slot to destination slot
     CopySaveSlot(BASE_SLOT, slot);
@@ -2032,7 +2047,8 @@ void SV_SaveMap(boolean savePlayers)
     SavingPlayers = savePlayers;
 
     // Open the output file
-    M_snprintf(fileName, sizeof(fileName), "%shex6%02d.hxs", SavePath, gamemap);
+    M_snprintf(fileName, sizeof(fileName), "%shex%d%02d.hxs",
+                SavePath, BASE_SLOT, gamemap);
     SV_OpenWrite(fileName);
 
     // Place a header marker
@@ -2072,16 +2088,25 @@ void SV_LoadGame(int slot)
     char version_text[HXS_VERSION_TEXT_LENGTH];
     player_t playerBackup[MAXPLAYERS];
     mobj_t *mobj;
+    player_t *p; // [crispy]
+
+    p = &players[consoleplayer]; // [crispy]
+
+    // [crispy] get expanded save slot number
+    if (slot != BASE_SLOT && slot != REBORN_SLOT)
+    {
+        slot += savepage * 10;
+    }
 
     // Copy all needed save files to the base slot
     if (slot != BASE_SLOT)
     {
-        ClearSaveSlot(BASE_SLOT);
+        SV_ClearSaveSlot(BASE_SLOT);
         CopySaveSlot(slot, BASE_SLOT);
     }
 
     // Create the name
-    M_snprintf(fileName, sizeof(fileName), "%shex6.hxs", SavePath);
+    M_snprintf(fileName, sizeof(fileName), "%shex%d.hxs", SavePath, BASE_SLOT);
 
     // Load the file
     SV_OpenRead(fileName);
@@ -2140,16 +2165,26 @@ void SV_LoadGame(int slot)
     // Restore player structs
     inv_ptr = 0;
     curpos = 0;
+
     for (i = 0; i < maxplayers; i++)
     {
         mobj = players[i].mo;
         players[i] = playerBackup[i];
         players[i].mo = mobj;
-        if (i == consoleplayer)
+    }
+
+    // [crispy] point to active artifact after load
+    for (i = 0; i < p->inventorySlotNum; i++)
+    {
+        if (p->inventory[i].type == p->readyArtifact)
         {
-            players[i].readyArtifact = players[i].inventory[inv_ptr].type;
+            curpos = inv_ptr = i;
+            curpos = (curpos > CURPOS_MAX) ? CURPOS_MAX : curpos;
+            p->readyArtifact = p->inventory[inv_ptr].type;
+            break;
         }
     }
+
 }
 
 //==========================================================================
@@ -2162,7 +2197,7 @@ void SV_LoadGame(int slot)
 
 void SV_UpdateRebornSlot(void)
 {
-    ClearSaveSlot(REBORN_SLOT);
+    SV_ClearSaveSlot(REBORN_SLOT);
     CopySaveSlot(BASE_SLOT, REBORN_SLOT);
 }
 
@@ -2174,7 +2209,7 @@ void SV_UpdateRebornSlot(void)
 
 void SV_ClearRebornSlot(void)
 {
-    ClearSaveSlot(REBORN_SLOT);
+    SV_ClearSaveSlot(REBORN_SLOT);
 }
 
 //==========================================================================
@@ -2208,7 +2243,7 @@ void SV_MapTeleport(int map, int position)
         }
         else
         {                       // Entering new cluster - clear base slot
-            ClearSaveSlot(BASE_SLOT);
+            SV_ClearSaveSlot(BASE_SLOT);
         }
     }
 
@@ -2229,7 +2264,8 @@ void SV_MapTeleport(int map, int position)
     TargetPlayerAddrs = NULL;
 
     gamemap = map;
-    M_snprintf(fileName, sizeof(fileName), "%shex6%02d.hxs", SavePath, gamemap);
+    M_snprintf(fileName, sizeof(fileName),
+                "%shex%d%02d.hxs", SavePath, BASE_SLOT, gamemap);
     if (!deathmatch && ExistingFile(fileName))
     {                           // Unarchive map
         SV_LoadMap();
@@ -2400,7 +2436,8 @@ void SV_LoadMap(void)
     RemoveAllThinkers();
 
     // Create the name
-    M_snprintf(fileName, sizeof(fileName), "%shex6%02d.hxs", SavePath, gamemap);
+    M_snprintf(fileName, sizeof(fileName),
+                "%shex%d%02d.hxs", SavePath, BASE_SLOT, gamemap);
 
     // Load the file
     SV_OpenRead(fileName);
@@ -2433,7 +2470,7 @@ void SV_LoadMap(void)
 
 void SV_InitBaseSlot(void)
 {
-    ClearSaveSlot(BASE_SLOT);
+    SV_ClearSaveSlot(BASE_SLOT);
 }
 
 //==========================================================================
@@ -2736,9 +2773,15 @@ static void SetMobjPtr(mobj_t **ptr, unsigned int archiveNum)
         TargetPlayerAddrs[TargetPlayerCount++] = ptr;
         *ptr = NULL;
     }
-    else
+    // [Dasperal] If the save is corrupted and the identity number is higher than the number of objects on the map restore it as a NULL pointer.
+    // This still potentially leaves complex objects broken but NULL is safer than garbage value.
+    else if(archiveNum < MobjCount)
     {
         *ptr = MobjList[archiveNum];
+    }
+    else
+    {
+        *ptr = NULL;
     }
 }
 
@@ -3206,10 +3249,10 @@ static void UnarchivePolyobjs(void)
         {
             I_Error("UnarchivePolyobjs: Invalid polyobj tag");
         }
-        PO_RotatePolyobj(polyobjs[i].tag, (angle_t) SV_ReadLong());
+        PO_RotatePolyobj(polyobjs[i].tag, (angle_t) SV_ReadLong(), false);
         deltaX = SV_ReadLong() - polyobjs[i].startSpot.x;
         deltaY = SV_ReadLong() - polyobjs[i].startSpot.y;
-        PO_MovePolyobj(polyobjs[i].tag, deltaX, deltaY);
+        PO_MovePolyobj(polyobjs[i].tag, deltaX, deltaY, false);
     }
 }
 
@@ -3230,16 +3273,22 @@ static void AssertSegment(gameArchiveSegment_t segType)
 
 //==========================================================================
 //
-// ClearSaveSlot
+// SV_ClearSaveSlot
 //
 // Deletes all save game files associated with a slot number.
 //
 //==========================================================================
 
-static void ClearSaveSlot(int slot)
+void SV_ClearSaveSlot(int slot)
 {
     int i;
     char fileName[100];
+
+    // [crispy] get expanded save slot number
+    if (slot != BASE_SLOT && slot != REBORN_SLOT)
+    {
+        slot += savepage * 10;
+    }
 
     for (i = 0; i < MAX_MAPS; i++)
     {
