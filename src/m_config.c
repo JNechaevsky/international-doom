@@ -130,6 +130,7 @@ static default_t	doom_defaults_list[] =
 
     CONFIG_VARIABLE_STRING(autoload_path),
     CONFIG_VARIABLE_STRING(music_pack_path),
+    CONFIG_VARIABLE_STRING(savedir),
 
     //
     // Render
@@ -266,6 +267,9 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_invright),
     CONFIG_VARIABLE_KEY(key_useartifact),
 
+    // Hexen: Jump
+    CONFIG_VARIABLE_KEY(key_jump),
+
     // Advanced movement
     CONFIG_VARIABLE_KEY(key_autorun),
     CONFIG_VARIABLE_KEY(key_mouse_look),
@@ -287,6 +291,16 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_arti_wings),
     CONFIG_VARIABLE_KEY(key_arti_torch),
     CONFIG_VARIABLE_KEY(key_arti_morph),
+
+    // Hexen: Artifacts
+    CONFIG_VARIABLE_KEY(key_arti_all),
+    CONFIG_VARIABLE_KEY(key_arti_health),
+    CONFIG_VARIABLE_KEY(key_arti_poisonbag),
+    CONFIG_VARIABLE_KEY(key_arti_blastradius),
+    CONFIG_VARIABLE_KEY(key_arti_teleport),
+    CONFIG_VARIABLE_KEY(key_arti_teleportother),
+    CONFIG_VARIABLE_KEY(key_arti_egg),
+    CONFIG_VARIABLE_KEY(key_arti_invulnerability),
 
     // Game modes
     CONFIG_VARIABLE_KEY(key_spectator),  // RestlessRodent -- CRL
@@ -348,6 +362,10 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_multi_msgplayer2),
     CONFIG_VARIABLE_KEY(key_multi_msgplayer3),
     CONFIG_VARIABLE_KEY(key_multi_msgplayer4),
+    CONFIG_VARIABLE_KEY(key_multi_msgplayer5),
+    CONFIG_VARIABLE_KEY(key_multi_msgplayer6),
+    CONFIG_VARIABLE_KEY(key_multi_msgplayer7),
+    CONFIG_VARIABLE_KEY(key_multi_msgplayer8),
     CONFIG_VARIABLE_STRING(player_name),
     CONFIG_VARIABLE_STRING(chatmacro0),
     CONFIG_VARIABLE_STRING(chatmacro1),
@@ -397,6 +415,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(mouseb_backward),
     CONFIG_VARIABLE_INT(mouseb_prevweapon),
     CONFIG_VARIABLE_INT(mouseb_nextweapon),
+    CONFIG_VARIABLE_INT(mouseb_jump),
 
     // Heretic: Inventory
     CONFIG_VARIABLE_INT(mouseb_invleft),
@@ -446,6 +465,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(joyb_strafe),
     CONFIG_VARIABLE_INT(joyb_use),
     CONFIG_VARIABLE_INT(joyb_speed),
+    CONFIG_VARIABLE_INT(joyb_jump),
     CONFIG_VARIABLE_INT(joyb_strafeleft),
     CONFIG_VARIABLE_INT(joyb_straferight),
     CONFIG_VARIABLE_INT(joyb_prevweapon),

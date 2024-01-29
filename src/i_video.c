@@ -110,6 +110,11 @@ static SDL_Texture *curpane = NULL;
 static SDL_Texture *redpane = NULL;
 static SDL_Texture *yelpane = NULL;
 static SDL_Texture *grnpane = NULL;
+// Hexen exclusive color panes
+static SDL_Texture *grnspane = NULL;
+static SDL_Texture *bluepane = NULL;
+static SDL_Texture *graypane = NULL;
+static SDL_Texture *orngpane = NULL;
 static int pane_alpha;
 static unsigned int rmask, gmask, bmask, amask; // [crispy] moved up here
 static const uint8_t blend_alpha = 184; // [JN] Increased opacity from 0xa8 (168).
@@ -1163,6 +1168,64 @@ void I_SetPalette (int palette)
 	    curpane = grnpane;
 	    pane_alpha = 0xff * 125 / 1000;
 	    break;
+	// Hexen exclusive color panes and palette indexes
+	// https://doomwiki.org/wiki/PLAYPAL#Hexen
+	case 14:  // STARTPOISONPALS + 1 (13 is shared with other games)
+	    curpane = grnspane;
+	    pane_alpha = 0x33; // 51 (20%)
+	    break;
+	case 15:
+	    curpane = grnspane;
+	    pane_alpha = 0x4c; // 76 (30%)
+	    break;
+	case 16:
+	    curpane = grnspane;
+	    pane_alpha = 0x66; // 102 (40%)
+	    break;
+	case 17:
+	    curpane = grnspane;
+	    pane_alpha = 0x7f; // 127 (50%)
+	    break;
+	case 18:
+	    curpane = grnspane;
+	    pane_alpha = 0x99; // 153 (60%)
+	    break;
+	case 19:
+	    curpane = grnspane;
+	    pane_alpha = 0xb2; // 178 (70%)
+	    break;
+	case 20:
+	    curpane = grnspane;
+	    pane_alpha = 0xcc; // 204 (80%)
+	    break;
+	case 21:  // STARTICEPAL
+	    curpane = bluepane;
+	    pane_alpha = 0x80; // 128 (50%)
+	    break;
+	case 22:  // STARTHOLYPAL
+	    curpane = graypane;
+	    pane_alpha = 0x7f; // 127 (50%)
+	    break;
+	case 23:
+	    curpane = graypane;
+	    pane_alpha = 0x6a; // 106
+	    break;
+	case 24:
+	    curpane = graypane;
+	    pane_alpha = 0x34; // 52
+	    break;
+	case 25:  // STARTSCOURGEPAL
+	    curpane = orngpane;
+	    pane_alpha = 0x7f; // 127 (50%)
+	    break;
+	case 26:
+	    curpane = orngpane;
+	    pane_alpha = 0x60; // 96
+	    break;
+	case 27:
+	    curpane = orngpane;
+	    pane_alpha = 0x48; // 72
+	    break;
 	default:
 	    I_Error("Unknown palette: %d!\n", palette);
 	    break;
@@ -1628,6 +1691,22 @@ static void SetVideoMode(void)
         SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x0, 0xff, 0x0));
         grnpane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
         SDL_SetTextureBlendMode(grnpane, SDL_BLENDMODE_BLEND);
+
+        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x2c, 0x5c, 0x24)); // 44, 92, 36
+        grnspane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
+        SDL_SetTextureBlendMode(grnspane, SDL_BLENDMODE_BLEND);
+
+        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x0, 0x0, 0xe0)); // 0, 0, 224
+        bluepane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
+        SDL_SetTextureBlendMode(bluepane, SDL_BLENDMODE_BLEND);
+
+        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x82, 0x82, 0x82)); // 130, 130, 130
+        graypane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
+        SDL_SetTextureBlendMode(graypane, SDL_BLENDMODE_BLEND);
+
+        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x96, 0x6e, 0x0)); // 150, 110, 0
+        orngpane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
+        SDL_SetTextureBlendMode(orngpane, SDL_BLENDMODE_BLEND);
 #endif
         SDL_FillRect(argbbuffer, NULL, 0);
     }

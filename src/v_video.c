@@ -691,6 +691,66 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
 }
 
 //
+// V_DrawAltTLPatch
+//
+// Masks a column based translucent masked pic to the screen.
+//
+
+void V_DrawAltTLPatch(int x, int y, patch_t * patch)
+{
+    int count, col;
+    column_t *column;
+    pixel_t *desttop, *dest;
+    byte *source;
+    int w;
+
+    // [crispy] translucent patch, no coloring or color-translation are used
+    drawpatchpx_t *const drawpatchpx = drawtinttab;
+
+    y -= SHORT(patch->topoffset);
+    x -= SHORT(patch->leftoffset);
+    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+
+    if (x < 0
+     || x + SHORT(patch->width) > (SCREENWIDTH / vid_resolution)
+     || y < 0
+     || y + SHORT(patch->height) > (SCREENHEIGHT / vid_resolution))
+    {
+        // [JN] Note: should be I_Error, but use return instead.
+        // Render may still try to draw patch before undating 
+        // SCREENWIDTH/HEIGHT values upon resolution toggling.
+        // I_Error("Bad V_DrawAltTLPatch");
+    }
+
+    col = 0;
+    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+
+    w = SHORT(patch->width);
+    for (; col < w << FRACBITS; x++, col+=dxi, desttop++)
+    {
+        column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
+
+        // step through the posts in a column
+
+        while (column->topdelta != 0xff)
+        {
+            int srccol = 0;
+            source = (byte *) column + 3;
+            dest = desttop + ((column->topdelta * dy) >> FRACBITS) * SCREENWIDTH;
+            count = (column->length * dy) >> FRACBITS;
+
+            while (count--)
+            {
+                *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
+                srccol += dyi;
+                dest += SCREENWIDTH;
+            }
+            column = (column_t *) ((byte *) column + column->length + 4);
+        }
+    }
+}
+
+//
 // V_DrawBlock
 // Draw a linear block of pixels into the view buffer.
 //

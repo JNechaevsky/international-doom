@@ -81,6 +81,19 @@ int key_arti_wings = 0;
 int key_arti_torch = 0;
 int key_arti_morph = 0;
 
+// Hexen keyboard controls
+
+int key_jump = '/';
+
+int key_arti_all             = KEY_BACKSPACE;
+int key_arti_health          = '\\';
+int key_arti_poisonbag       = '0';
+int key_arti_blastradius     = '9';
+int key_arti_teleport        = '8';
+int key_arti_teleportother   = '7';
+int key_arti_egg             = '6';
+int key_arti_invulnerability = '5';
+
 // Special modes
 
 int key_spectator = 0;
@@ -175,6 +188,7 @@ int mousebstrafeleft  = -1;
 int mousebstraferight = -1;
 int mousebprevweapon  = 4;
 int mousebnextweapon  = 3;
+int mousebjump        = -1;
 
 // Heretic: Inventory
 int mousebinvleft = -1;
@@ -200,6 +214,7 @@ int joybprevweapon = -1;
 int joybnextweapon = -1;
 int joybmenu = -1;
 int joybautomap = -1;
+int joybjump = -1;
 
 //
 // Allow artifacts to be used when the run key is held down.
@@ -381,6 +396,22 @@ void M_BindHereticControls (void)
     M_BindIntVariable("mouseb_useartifact", &mousebuseartifact);
 
     M_BindIntVariable("ctrl_noartiskip",        &ctrl_noartiskip);
+}
+
+void M_BindHexenControls(void)
+{
+    M_BindIntVariable("key_jump",           &key_jump);
+    M_BindIntVariable("mouseb_jump",        &mousebjump);
+    M_BindIntVariable("joyb_jump",          &joybjump);
+
+    M_BindIntVariable("key_arti_all",             &key_arti_all);
+    M_BindIntVariable("key_arti_health",          &key_arti_health);
+    M_BindIntVariable("key_arti_poisonbag",       &key_arti_poisonbag);
+    M_BindIntVariable("key_arti_blastradius",     &key_arti_blastradius);
+    M_BindIntVariable("key_arti_teleport",        &key_arti_teleport);
+    M_BindIntVariable("key_arti_teleportother",   &key_arti_teleportother);
+    M_BindIntVariable("key_arti_egg",             &key_arti_egg);
+    M_BindIntVariable("key_arti_invulnerability", &key_arti_invulnerability);
 }
 
 void M_BindChatControls (unsigned int num_players)

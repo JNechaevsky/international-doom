@@ -64,6 +64,10 @@ extern int key_invleft;
 extern int key_invright;
 extern int key_useartifact;
 
+// Hexen
+
+extern int key_jump;
+
 // RestlessRodent -- CRL (Special modes)
 
 extern int key_spectator;
@@ -184,6 +188,8 @@ extern int mousebinvleft;
 extern int mousebinvright;
 extern int mousebuseartifact;
 
+extern int mousebjump;
+
 // Control whether if a mouse button is double clicked,
 // it acts like "use" has been pressed.
 
@@ -203,6 +209,7 @@ extern int joybprevweapon;
 extern int joybnextweapon;
 extern int joybmenu;
 extern int joybautomap;
+extern int joybjump;
 
 //
 // Allow artifacts to be used when the run key is held down.
@@ -213,4 +220,5 @@ extern int ctrl_noartiskip;
 
 extern void M_BindControls (void);
 extern void M_BindHereticControls (void);
+extern void M_BindHexenControls (void);
 extern void M_BindChatControls (unsigned int num_players);
