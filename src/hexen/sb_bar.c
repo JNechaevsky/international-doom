@@ -98,6 +98,9 @@ int ArtifactFlash;
 // [crispy] for widescreen status bar background
 pixel_t *st_backing_screen;
 
+// [JN] Externalazied variable of current palette index.
+int SB_palette = 0;
+
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static int DisplayTicker = 0;
@@ -990,7 +993,6 @@ static void DrawAnimatedIcons(void)
 
 void SB_PaletteFlash(boolean forceChange)
 {
-    static int sb_palette = 0;
     int palette;
 #ifndef CRISPY_TRUECOLOR
     byte *pal;
@@ -998,7 +1000,7 @@ void SB_PaletteFlash(boolean forceChange)
 
     if (forceChange)
     {
-        sb_palette = -1;
+        SB_palette = -1;
     }
     if (gamestate == GS_LEVEL)
     {
@@ -1044,9 +1046,9 @@ void SB_PaletteFlash(boolean forceChange)
     {
         palette = 0;
     }
-    if (palette != sb_palette)
+    if (palette != SB_palette)
     {
-        sb_palette = palette;
+        SB_palette = palette;
 #ifndef CRISPY_TRUECOLOR
         pal = (byte *) W_CacheLumpNum(PlayPalette, PU_CACHE) + palette * 768;
         I_SetPalette(pal);

@@ -355,6 +355,7 @@ void A_UnHideThing(mobj_t *actor, player_t *player, pspdef_t *psp);
 
 // ***** SB_BAR *****
 
+extern int SB_palette;
 extern int SB_state;
 extern int ArtifactFlash;
 void SB_PaletteFlash(boolean forceChange);

@@ -70,7 +70,6 @@
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
-void R_ExecuteSetViewSize(void);
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
 boolean F_Responder(event_t * ev);
@@ -867,15 +866,6 @@ void H2_GameLoop(void)
         }
 
         DrawAndBlit();
-
-        // [crispy] post-rendering function pointer to apply config changes
-        // that affect rendering and that are better applied after the current
-        // frame has finished rendering
-        if (post_rendering_hook)
-        {
-            post_rendering_hook();
-            post_rendering_hook = NULL;
-        }
     }
 }
 
@@ -920,6 +910,15 @@ void H2_ProcessEvents(void)
 
 static void DrawAndBlit(void)
 {
+    // [crispy] post-rendering function pointer to apply config changes
+    // that affect rendering and that are better applied after the current
+    // frame has finished rendering
+    if (post_rendering_hook)
+    {
+        post_rendering_hook();
+        post_rendering_hook = NULL;
+    }
+
     // Change the view size if needed
     if (setsizeneeded)
     {
@@ -944,6 +943,13 @@ static void DrawAndBlit(void)
             {
                 R_RenderPlayerView(&players[displayplayer]);
             }
+
+            // [JN] Fail-safe: return earlier if post rendering hook is still active.
+            if (post_rendering_hook)
+            {
+                return;
+            }
+
             if (automapactive && automap_overlay)
             {
                 AM_Drawer();
