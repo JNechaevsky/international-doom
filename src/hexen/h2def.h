@@ -1129,7 +1129,7 @@ void MN_DeactivateMenu(void);
 boolean MN_Responder(event_t * event);
 void MN_Ticker(void);
 void MN_Drawer(void);
-void MN_DrTextA(const char *text, int x, int y);
+void MN_DrTextA(const char *text, int x, int y, byte *table);
 void MN_DrTextAYellow(const char *text, int x, int y);
 int MN_TextAWidth(const char *text);
 void MN_DrTextB(const char *text, int x, int y);

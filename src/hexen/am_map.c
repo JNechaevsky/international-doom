@@ -40,7 +40,7 @@ static int finit_height;
 static int f_x, f_y;            // location of window on screen
 static int f_w, f_h;            // size of window on screen
 static int lightlev;            // used for funky strobing effect
-static byte *fb;                // pseudo-frame buffer
+static pixel_t *fb;             // pseudo-frame buffer
 static int amclock;
 
 static mpoint_t m_paninc;       // how far the window pans each tic (map coords)
@@ -1401,7 +1401,7 @@ void AM_Drawer(void)
 //  AM_drawMarks();
 //      if(gameskill == sk_baby) AM_drawkeys();
 
-    MN_DrTextA(P_GetMapName(gamemap), 38, 144);
+    MN_DrTextA(P_GetMapName(gamemap), 38, 144, NULL);
     if (ShowKills && netgame && deathmatch)
     {
         AM_DrawDeathmatchStats();
@@ -1486,10 +1486,10 @@ void AM_DrawDeathmatchStats(void)
         }
         else
         {
-            MN_DrTextA(PlayerColorText[order[i]], 8, yPosition);
+            MN_DrTextA(PlayerColorText[order[i]], 8, yPosition, NULL);
             M_snprintf(textBuffer, sizeof(textBuffer),
                        "%d", fragCount[order[i]]);
-            MN_DrTextA(textBuffer, 80, yPosition);
+            MN_DrTextA(textBuffer, 80, yPosition, NULL);
             yPosition += 10;
         }
     }
@@ -1524,7 +1524,7 @@ static void DrawWorldTimer(void)
 
     M_snprintf(timeBuffer, sizeof(timeBuffer),
                "%.2d : %.2d : %.2d", hours, minutes, seconds);
-    MN_DrTextA(timeBuffer, 240, 8);
+    MN_DrTextA(timeBuffer, 240, 8, NULL);
 
     if (days)
     {
@@ -1536,10 +1536,10 @@ static void DrawWorldTimer(void)
         {
             M_snprintf(dayBuffer, sizeof(dayBuffer), "%.2d DAYS", days);
         }
-        MN_DrTextA(dayBuffer, 240, 20);
+        MN_DrTextA(dayBuffer, 240, 20, NULL);
         if (days >= 5)
         {
-            MN_DrTextA("YOU FREAK!!!", 230, 35);
+            MN_DrTextA("YOU FREAK!!!", 230, 35, NULL);
         }
     }
 }

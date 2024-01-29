@@ -53,6 +53,8 @@
 
 #include "icon.c"
 
+#include "id_func.h"
+
 // MACROS ------------------------------------------------------------------
 
 #define MAXWADFILES 20
@@ -962,6 +964,12 @@ static void DrawAndBlit(void)
             break;
     }
 
+    // [JN] Right widgets are not available while finale screens.
+    if (dp_screen_size < 13 && gamestate != GS_FINALE)
+    {
+        ID_RightWidgets();
+    }
+
     if (testcontrols)
     {
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
@@ -1016,7 +1024,7 @@ static void DrawMessage(void)
     else
     {
         MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2,
-                   1);
+                   1, NULL);
     }
 }
 

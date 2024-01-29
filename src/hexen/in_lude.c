@@ -506,7 +506,7 @@ static void DrDeathTally(void)
                 }
                 else
                 {
-                    MN_DrTextA("--", x - temp, y);
+                    MN_DrTextA("--", x - temp, y, NULL);
                 }
             }
         }
@@ -535,7 +535,7 @@ static void DrNumber(int val, int x, int y, int wrapThresh)
         M_snprintf(buff, sizeof(buff), "%d",
                    val >= wrapThresh ? val % wrapThresh : val);
     }
-    MN_DrTextA(buff, x - MN_TextAWidth(buff) / 2, y);
+    MN_DrTextA(buff, x - MN_TextAWidth(buff) / 2, y, NULL);
 }
 
 //==========================================================================

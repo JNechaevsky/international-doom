@@ -355,10 +355,12 @@ static void InitFonts(void)
 //
 //---------------------------------------------------------------------------
 
-void MN_DrTextA(const char *text, int x, int y)
+void MN_DrTextA (const char *text, int x, int y, byte *table)
 {
     char c;
     patch_t *p;
+
+    dp_translation = table;
 
     while ((c = *text++) != 0)
     {
@@ -373,6 +375,8 @@ void MN_DrTextA(const char *text, int x, int y)
             x += SHORT(p->width) - 1;
         }
     }
+
+    dp_translation = NULL;
 }
 
 //==========================================================================
@@ -531,20 +535,20 @@ void MN_Drawer(void)
         if (askforquit)
         {
             MN_DrTextA(QuitEndMsg[typeofask - 1], 160 -
-                       MN_TextAWidth(QuitEndMsg[typeofask - 1]) / 2, 80);
+                       MN_TextAWidth(QuitEndMsg[typeofask - 1]) / 2, 80, NULL);
             if (typeofask == 3)
             {
                 MN_DrTextA(SlotText[quicksave - 1], 160 -
-                           MN_TextAWidth(SlotText[quicksave - 1]) / 2, 90);
+                           MN_TextAWidth(SlotText[quicksave - 1]) / 2, 90, NULL);
                 MN_DrTextA("?", 160 +
-                           MN_TextAWidth(SlotText[quicksave - 1]) / 2, 90);
+                           MN_TextAWidth(SlotText[quicksave - 1]) / 2, 90, NULL);
             }
             if (typeofask == 4)
             {
                 MN_DrTextA(SlotText[quickload - 1], 160 -
-                           MN_TextAWidth(SlotText[quickload - 1]) / 2, 90);
+                           MN_TextAWidth(SlotText[quickload - 1]) / 2, 90, NULL);
                 MN_DrTextA("?", 160 +
-                           MN_TextAWidth(SlotText[quicksave - 1]) / 2, 90);
+                           MN_TextAWidth(SlotText[quicksave - 1]) / 2, 90, NULL);
             }
             UpdateState |= I_FULLSCRN;
         }
@@ -762,7 +766,7 @@ static void DrawFileSlots(Menu_t * menu)
         V_DrawPatch(x, y, W_CacheLumpName("M_FSLOT", PU_CACHE));
         if (SlotStatus[i])
         {
-            MN_DrTextA(SlotText[i], x + 5, y + 5);
+            MN_DrTextA(SlotText[i], x + 5, y + 5, NULL);
         }
         y += ITEM_HEIGHT;
     }

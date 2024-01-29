@@ -644,7 +644,7 @@ static void DrawSoundInfo(void)
 
     if (leveltime & 16)
     {
-        MN_DrTextA("*** SOUND DEBUG INFO ***", xPos[0], 20);
+        MN_DrTextA("*** SOUND DEBUG INFO ***", xPos[0], 20, NULL);
     }
     S_GetChannelInfo(&s);
     if (s.channelCount == 0)
@@ -652,13 +652,13 @@ static void DrawSoundInfo(void)
         return;
     }
     x = 0;
-    MN_DrTextA("NAME", xPos[x++], 30);
-    MN_DrTextA("MO.T", xPos[x++], 30);
-    MN_DrTextA("MO.X", xPos[x++], 30);
-    MN_DrTextA("MO.Y", xPos[x++], 30);
-    MN_DrTextA("ID", xPos[x++], 30);
-    MN_DrTextA("PRI", xPos[x++], 30);
-    MN_DrTextA("DIST", xPos[x++], 30);
+    MN_DrTextA("NAME", xPos[x++], 30, NULL);
+    MN_DrTextA("MO.T", xPos[x++], 30, NULL);
+    MN_DrTextA("MO.X", xPos[x++], 30, NULL);
+    MN_DrTextA("MO.Y", xPos[x++], 30, NULL);
+    MN_DrTextA("ID", xPos[x++], 30, NULL);
+    MN_DrTextA("PRI", xPos[x++], 30, NULL);
+    MN_DrTextA("DIST", xPos[x++], 30, NULL);
     for (i = 0; i < s.channelCount; i++)
     {
         c = &s.chan[i];
@@ -666,24 +666,24 @@ static void DrawSoundInfo(void)
         y = 40 + i * 10;
         if (c->mo == NULL)
         {                       // Channel is unused
-            MN_DrTextA("------", xPos[0], y);
+            MN_DrTextA("------", xPos[0], y, NULL);
             continue;
         }
         M_snprintf(text, sizeof(text), "%s", c->name);
         M_ForceUppercase(text);
-        MN_DrTextA(text, xPos[x++], y);
+        MN_DrTextA(text, xPos[x++], y, NULL);
         M_snprintf(text, sizeof(text), "%d", c->mo->type);
-        MN_DrTextA(text, xPos[x++], y);
+        MN_DrTextA(text, xPos[x++], y, NULL);
         M_snprintf(text, sizeof(text), "%d", c->mo->x >> FRACBITS);
-        MN_DrTextA(text, xPos[x++], y);
+        MN_DrTextA(text, xPos[x++], y, NULL);
         M_snprintf(text, sizeof(text), "%d", c->mo->y >> FRACBITS);
-        MN_DrTextA(text, xPos[x++], y);
+        MN_DrTextA(text, xPos[x++], y, NULL);
         M_snprintf(text, sizeof(text), "%d", (int) c->id);
-        MN_DrTextA(text, xPos[x++], y);
+        MN_DrTextA(text, xPos[x++], y, NULL);
         M_snprintf(text, sizeof(text), "%d", c->priority);
-        MN_DrTextA(text, xPos[x++], y);
+        MN_DrTextA(text, xPos[x++], y, NULL);
         M_snprintf(text, sizeof(text), "%d", c->distance);
-        MN_DrTextA(text, xPos[x++], y);
+        MN_DrTextA(text, xPos[x++], y, NULL);
     }
     UpdateState |= I_FULLSCRN;
     BorderNeedRefresh = true;

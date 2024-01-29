@@ -17,6 +17,7 @@
 
 
 #include <string.h>
+#include <time.h>   // [JN] Local time.
 #include "m_random.h"
 #include "h2def.h"
 #include "s_sound.h"
@@ -31,6 +32,9 @@
 #include "m_misc.h"
 #include "p_local.h"
 #include "v_video.h"
+
+#include "id_vars.h"
+#include "id_func.h"
 
 #define AM_STARTKEY	9
 
@@ -1274,6 +1278,21 @@ void G_Ticker(void)
         case GS_DEMOSCREEN:
             H2_PageTicker();
             break;
+    }
+
+    //
+    // [JN] Query time for time-related widgets:
+    //
+
+    // Local time
+    if (msg_local_time)
+    {
+        time_t t = time(NULL);
+        struct tm *tm = localtime(&t);
+
+        strftime(ID_Local_Time, sizeof(ID_Local_Time),
+                 msg_local_time == 1 ? "%I:%M %p" :   // 12-hour (HH:MM designation)
+                                       "%H:%M", tm);  // 24-hour (HH:MM)
     }
 }
 

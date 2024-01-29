@@ -62,11 +62,28 @@ int viewangletox[FINEANGLES / 2];
 // that maps back to x ranges from clipangle to -clipangle
 angle_t xtoviewangle[MAXWIDTH + 1];
 
-lighttable_t *scalelight[LIGHTLEVELS][MAXLIGHTSCALE];
-lighttable_t *scalelightfixed[MAXLIGHTSCALE];
-lighttable_t *zlight[LIGHTLEVELS][MAXLIGHTZ];
+// [crispy] calculate the linear sky angle component here
+angle_t linearskyangle[MAXWIDTH+1];
+
+// [crispy] parameterized for smooth diminishing lighting
+lighttable_t***		scalelight = NULL;
+lighttable_t**		scalelightfixed = NULL;
+lighttable_t***		zlight = NULL;
 
 int extralight;                 // bumped light from gun blasts
+
+// [JN] FOV from DOOM Retro and Nugget Doom
+static fixed_t fovscale;	
+float  fovdiff;   // [Nugget] Used for some corrections
+
+// [crispy] parameterized for smooth diminishing lighting
+int LIGHTLEVELS;
+int LIGHTSEGSHIFT;
+int LIGHTBRIGHT;
+int MAXLIGHTSCALE;
+int LIGHTSCALESHIFT;
+int MAXLIGHTZ;
+int LIGHTZSHIFT;
 
 void (*colfunc) (void);
 void (*basecolfunc) (void);
@@ -458,14 +475,13 @@ void R_InitTextureMapping(void)
 // viewangletox will give the next greatest x after the view angle
 //
     // calc focallength so FIELDOFVIEW angles covers SCREENWIDTH
-    focallength = FixedDiv(centerxfrac_nonwide,
-                           finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2]);
+    focallength = FixedDiv (centerxfrac, fovscale);
 
     for (i = 0; i < FINEANGLES / 2; i++)
     {
-        if (finetangent[i] > FRACUNIT * 2)
+        if (finetangent[i] > fovscale)
             t = -1;
-        else if (finetangent[i] < -FRACUNIT * 2)
+        else if (finetangent[i] < -fovscale)
             t = viewwidth + 1;
         else
         {
@@ -489,6 +505,10 @@ void R_InitTextureMapping(void)
         while (viewangletox[i] > x)
             i++;
         xtoviewangle[x] = (i << ANGLETOFINESHIFT) - ANG90;
+	    // [crispy] calculate sky angle for drawing horizontally linear skies.
+	    // Taken from GZDoom and refactored for integer math.
+	    linearskyangle[x] = ((viewwidth / 2 - x) * ((NONWIDEWIDTH<<6) / viewwidth)) 
+	                                             * (ANG90 / (NONWIDEWIDTH<<6)) / fovdiff;
     }
 
 //
@@ -527,11 +547,61 @@ void R_InitLightTables(void)
     int i, j, level, startmap;
     int scale;
 
+    if (scalelight)
+    {
+	for (i = 0; i < LIGHTLEVELS; i++)
+	{
+		free(scalelight[i]);
+	}
+	free(scalelight);
+    }
+
+    if (scalelightfixed)
+    {
+	free(scalelightfixed);
+    }
+
+    if (zlight)
+    {
+	for (i = 0; i < LIGHTLEVELS; i++)
+	{
+		free(zlight[i]);
+	}
+	free(zlight);
+    }
+
+   // [crispy] smooth diminishing lighting
+    if (vis_smooth_light)
+    {
+	LIGHTLEVELS = 32;
+	LIGHTSEGSHIFT = 3;
+	LIGHTBRIGHT = 2;
+	MAXLIGHTSCALE = 48;
+	LIGHTSCALESHIFT = 12;
+	MAXLIGHTZ = 1024;
+	LIGHTZSHIFT = 17;
+    }
+    else
+    {
+	LIGHTLEVELS = 16;
+	LIGHTSEGSHIFT = 4;
+	LIGHTBRIGHT = 1;
+	MAXLIGHTSCALE = 48;
+	LIGHTSCALESHIFT = 12;
+	MAXLIGHTZ = 128;
+	LIGHTZSHIFT = 20;
+    }
+
+    scalelight = malloc(LIGHTLEVELS * sizeof(*scalelight));
+    scalelightfixed = malloc(MAXLIGHTSCALE * sizeof(*scalelightfixed));
+    zlight = malloc(LIGHTLEVELS * sizeof(*zlight));
+
 //
 // Calculate the light levels to use for each level / distance combination
 //
     for (i = 0; i < LIGHTLEVELS; i++)
     {
+        zlight[i] = malloc(MAXLIGHTZ * sizeof(**zlight));
         startmap = ((LIGHTLEVELS - 1 - i) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
         for (j = 0; j < MAXLIGHTZ; j++)
         {
@@ -583,6 +653,7 @@ void R_ExecuteSetViewSize(void)
 {
     fixed_t cosadj, dy;
     int i, j, level, startmap;
+    double WIDEFOVDELTA;  // [JN] FOV from DOOM Retro and Nugget Doom
 
     setsizeneeded = false;
 
@@ -617,12 +688,27 @@ void R_ExecuteSetViewSize(void)
     viewwidth = scaledviewwidth >> detailshift;
     viewwidth_nonwide = scaledviewwidth_nonwide >> detailshift;
 
+    // [JN] FOV from DOOM Retro and Nugget Doom
+    fovdiff = (float) 90 / vid_fov;
+    if (vid_widescreen) 
+    {
+        // fov * 0.82 is vertical FOV for 4:3 aspect ratio
+        WIDEFOVDELTA = (atan(SCREENWIDTH / ((SCREENHEIGHT * 1.2)
+                     / tan(vid_fov * 0.82 * M_PI / 360.0))) * 360.0 / M_PI) - vid_fov;
+    }
+    else
+    {
+        WIDEFOVDELTA = 0;
+    }
+
     centery = viewheight / 2;
     centerx = viewwidth / 2;
     centerxfrac = centerx << FRACBITS;
     centeryfrac = centery << FRACBITS;
     centerxfrac_nonwide = (viewwidth_nonwide / 2) << FRACBITS;
-    projection = centerxfrac_nonwide;
+    // [JN] FOV from DOOM Retro and Nugget Doom
+    fovscale = finetangent[(int)(FINEANGLES / 4 + (vid_fov + WIDEFOVDELTA) * FINEANGLES / 360 / 2)];
+    projection = FixedDiv(centerxfrac, fovscale);
 
     if (!detailshift)
     {
@@ -662,7 +748,8 @@ void R_ExecuteSetViewSize(void)
     {
         // [crispy] re-generate lookup-table for yslope[] (free look)
         // whenever "detailshift" or "dp_screen_size" change
-        const fixed_t num = (viewwidth_nonwide<<detailshift)/2*FRACUNIT;
+        // [JN] FOV from DOOM Retro and Nugget Doom
+        const fixed_t num = FixedMul(FixedDiv(FRACUNIT, fovscale), (viewwidth<<detailshift)*FRACUNIT/2);
         for (j = 0; j < LOOKDIRS; j++)
         {
         dy = ((i - (viewheight / 2 + ((j - LOOKDIRMIN) * (1 * vid_resolution)) *
@@ -685,6 +772,7 @@ void R_ExecuteSetViewSize(void)
 //
     for (i = 0; i < LIGHTLEVELS; i++)
     {
+        scalelight[i] = malloc(MAXLIGHTSCALE * sizeof(**scalelight));
         startmap = ((LIGHTLEVELS - 1 - i) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
         for (j = 0; j < MAXLIGHTSCALE; j++)
         {
@@ -799,6 +887,12 @@ void R_SetupFrame(player_t * player)
         viewy = player->mo->y;
         viewz = player->viewz;
         pitch = player->lookdir; // [crispy]
+    }
+
+    // [JN] Limit pitch (lookdir amplitude) for higher FOV levels.
+    if (vid_fov > 90)
+    {
+        pitch *= fovdiff*fovdiff;
     }
 
     if (localQuakeHappening[displayplayer] && !paused)

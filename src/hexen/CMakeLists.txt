@@ -9,6 +9,7 @@ add_library(hexen STATIC
             g_game.c
                                 h2def.h
             h2_main.c
+            id_func.c           id_func.h
             info.c              info.h
             in_lude.c
             m_random.c          m_random.h
