@@ -519,8 +519,7 @@ void R_InitData(void);
 void R_PrecacheLevel(void);
 
 #ifdef CRISPY_TRUECOLOR
-extern char *actual_colormap;
-extern void R_InitColormaps(char *current_colormap);
+extern void R_InitTrueColormaps(char *current_colormap);
 #endif
 
 //

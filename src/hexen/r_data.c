@@ -68,7 +68,6 @@ fixed_t *spriteoffset;
 fixed_t *spritetopoffset;
 
 lighttable_t *colormaps;
-char *actual_colormap;
 
 
 /*
@@ -484,9 +483,9 @@ void R_InitSpriteLumps(void)
 =================
 */
 
-void R_InitColormaps(char *current_colormap)
-{
 #ifndef CRISPY_TRUECOLOR
+void R_InitColormaps(void)
+{
     int lump, length;
 //
 // load in the light tables
@@ -496,7 +495,13 @@ void R_InitColormaps(char *current_colormap)
     length = W_LumpLength(lump);
     colormaps = Z_Malloc(length, PU_STATIC, 0);
     W_ReadLump(lump, colormaps);
+}
+
 #else
+
+// [crispy] Our own function to generate colormaps for normal and foggy levels.
+void R_InitTrueColormaps(char *current_colormap)
+{
 	byte *playpal;
 	byte *const colormap = W_CacheLumpName(current_colormap, PU_STATIC);
 	int c, i, j = 0;
@@ -509,17 +514,21 @@ void R_InitColormaps(char *current_colormap)
 		colormaps = (lighttable_t*) Z_Malloc((NUMCOLORMAPS + 1) * 256 * sizeof(lighttable_t), PU_STATIC, 0);
 	}
 
-	if (vid_truecolor && LevelUseFullBright)
+	if (vid_truecolor)
 	{
+		// [crispy] If level is allowed to use full bright mode, fade colormaps to 
+		// black (0) color. Otherwise, fade to gray (147) to emulate FOGMAP table.
+		const int fade_color = LevelUseFullBright ? 0 : 147;
+
 		for (c = 0; c < NUMCOLORMAPS; c++)
 		{
 			const float scale = 1. * c / NUMCOLORMAPS;
 
 			for (i = 0; i < 256; i++)
 			{
-				r = gammatable[vid_gamma][playpal[3 * i + 0]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
-				g = gammatable[vid_gamma][playpal[3 * i + 1]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
-				b = gammatable[vid_gamma][playpal[3 * i + 2]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+				r = gammatable[vid_gamma][playpal[3 * i + 0]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
+				g = gammatable[vid_gamma][playpal[3 * i + 1]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
+				b = gammatable[vid_gamma][playpal[3 * i + 2]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
 
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 			}
@@ -541,9 +550,12 @@ void R_InitColormaps(char *current_colormap)
 	}
 
 	W_ReleaseLumpName(current_colormap);
+}
 #endif
-    // [crispy] initialize color translation and color string tables
-    {
+
+// [crispy] initialize color translation and color string tables
+static void R_InitHSVColors(void)
+{
 	byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 	char c[3];
 	int i, j;
@@ -564,7 +576,6 @@ void R_InitColormaps(char *current_colormap)
 	}
 
 	W_ReleaseLumpName("PLAYPAL");
-    }
 }
 
 
@@ -584,11 +595,12 @@ void R_InitData(void)
     R_InitFlats();
     R_InitSpriteLumps();
 #ifndef CRISPY_TRUECOLOR
-    R_InitColormaps("COLORMAP");
+    R_InitColormaps();
 #else
-    actual_colormap = "COLORMAP";
-    R_InitColormaps(actual_colormap);
+    R_InitTrueColormaps("COLORMAP");
 #endif
+    // [crispy] initialize color translation and color string tables
+    R_InitHSVColors();
 #ifndef CRISPY_TRUECOLOR
     // [JN] Load original TINTTAB lump.
     V_LoadTintTable();
