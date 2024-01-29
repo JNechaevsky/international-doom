@@ -783,7 +783,7 @@ void R_SetupFrame(player_t * player)
     viewplayer = player;
     // haleyjd: removed WATCOMC
     // haleyjd FIXME: viewangleoffset handling?
-    if (vid_uncapped_fps && leveltime > 1 && player->mo->interp == true && leveltime > oldleveltime)
+    if (vid_uncapped_fps && leveltime > 1 && player->mo->interp == true && realleveltime > oldleveltime)
     {
         viewx = player->mo->oldx + FixedMul(player->mo->x - player->mo->oldx, fractionaltic);
         viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);

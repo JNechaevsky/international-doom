@@ -77,6 +77,8 @@ void P_Ticker(void)
     P_UpdateSpecials();
     P_AnimateSurfaces();
     leveltime++;
+
+    realleveltime++;
 }
 
 //==========================================================================

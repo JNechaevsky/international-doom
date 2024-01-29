@@ -524,7 +524,7 @@ void A_WeaponReady(mobj_t *obj, player_t *player, pspdef_t *psp)
     if (!player->morphTics)
     {
         // Bob the weapon based on movement speed.
-        angle = (128 * leveltime) & FINEMASK;
+        angle = (128 * realleveltime) & FINEMASK;
         psp->sx = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
         angle &= FINEANGLES / 2 - 1;
         psp->sy = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
@@ -2495,6 +2495,8 @@ void P_MovePsprites(player_t * player)
     psp = &player->psprites[0];
     psp->sx2 = psp->sx;
     psp->sy2 = psp->sy;
+    // [JN] TODO
+    /*
     if (psp->state && (phys_weapon_alignment || vid_uncapped_fps))
     {
         // [crispy] don't align swiping weapons
@@ -2524,6 +2526,7 @@ void P_MovePsprites(player_t * player)
             psp->sy2 = WEAPONTOP;
         }
     }
+    */
 
     player->psprites[ps_flash].sx2 = psp->sx2;
     player->psprites[ps_flash].sy2 = psp->sy2;

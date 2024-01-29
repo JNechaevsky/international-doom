@@ -611,7 +611,7 @@ void R_DrawPlanes(void)
 
         // [crispy] Use old value of interpfactor if uncapped and paused. This
         // ensures that scrolling stops smoothly when pausing.
-        if (vid_uncapped_fps && leveltime > oldleveltime)
+        if (vid_uncapped_fps && realleveltime > oldleveltime)
         {
             // [crispy] Scrolling normally advances every *other* gametic, so
             // interpolation needs to span two tics

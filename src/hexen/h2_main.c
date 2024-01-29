@@ -866,7 +866,6 @@ void H2_GameLoop(void)
 
         DrawAndBlit();
 
-
         // [crispy] post-rendering function pointer to apply config changes
         // that affect rendering and that are better applied after the current
         // frame has finished rendering

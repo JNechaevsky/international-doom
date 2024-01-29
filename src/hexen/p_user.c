@@ -133,7 +133,7 @@ void P_CalcHeight(player_t * player)
         return;
     }
 
-    angle = (FINEANGLES / 20 * leveltime) & FINEMASK;
+    angle = (FINEANGLES / 20 * realleveltime) & FINEMASK;
     bob = FixedMul(player->bob / 2, finesine[angle]);
 
 //
@@ -249,11 +249,18 @@ void P_MovePlayer(player_t * player)
         else
         {
             player->lookdir += 5 * look;
-            if (player->lookdir > 90 || player->lookdir < -110)
+            if (player->lookdir > 90 ||
+                    player->lookdir < -110)
             {
                 player->lookdir -= 5 * look;
             }
         }
+    }
+    // [crispy] Handle mouselook
+    if (!demoplayback)
+    {
+        player->lookdir = BETWEEN(-110, 90,
+                                    player->lookdir + cmd->lookdir);
     }
     if (player->centering)
     {
@@ -606,6 +613,18 @@ void P_PlayerThink(player_t * player)
     weapontype_t newweapon;
     int floorType;
     mobj_t *pmo;
+
+    // [AM] Assume we can interpolate at the beginning
+    //      of the tic.
+    player->mo->interp = true;
+
+    // [AM] Store starting position for player interpolation.
+    player->mo->oldx = player->mo->x;
+    player->mo->oldy = player->mo->y;
+    player->mo->oldz = player->mo->z;
+    player->mo->oldangle = player->mo->angle;
+    player->oldviewz = player->viewz;
+    player->oldlookdir = player->lookdir;
 
     // No-clip cheat
     if (player->cheats & CF_NOCLIP)
@@ -1333,7 +1352,7 @@ void P_PlayerNextArtifact(player_t * player)
     if (player == &players[consoleplayer])
     {
         inv_ptr--;
-        if (inv_ptr < 6)
+        if (inv_ptr < CURPOS_MAX)
         {
             curpos--;
             if (curpos < 0)
@@ -1344,13 +1363,13 @@ void P_PlayerNextArtifact(player_t * player)
         if (inv_ptr < 0)
         {
             inv_ptr = player->inventorySlotNum - 1;
-            if (inv_ptr < 6)
+            if (inv_ptr < CURPOS_MAX)
             {
                 curpos = inv_ptr;
             }
             else
             {
-                curpos = 6;
+                curpos = CURPOS_MAX;
             }
         }
         player->readyArtifact = player->inventory[inv_ptr].type;
@@ -1379,22 +1398,25 @@ void P_PlayerRemoveArtifact(player_t * player, int slot)
         player->inventorySlotNum--;
         if (player == &players[consoleplayer])
         {                       // Set position markers and get next readyArtifact
-            inv_ptr--;
-            if (inv_ptr < 6)
+            if (inv_ptr >= slot) // [crispy] preserve active artifact
             {
-                curpos--;
-                if (curpos < 0)
+                inv_ptr--;
+                if (inv_ptr < CURPOS_MAX)
                 {
-                    curpos = 0;
+                    curpos--;
+                    if (curpos < 0)
+                    {
+                        curpos = 0;
+                    }
                 }
-            }
-            if (inv_ptr >= player->inventorySlotNum)
-            {
-                inv_ptr = player->inventorySlotNum - 1;
-            }
-            if (inv_ptr < 0)
-            {
-                inv_ptr = 0;
+                if (inv_ptr >= player->inventorySlotNum)
+                {
+                    inv_ptr = player->inventorySlotNum - 1;
+                }
+                if (inv_ptr < 0)
+                {
+                    inv_ptr = 0;
+                }
             }
             player->readyArtifact = player->inventory[inv_ptr].type;
         }

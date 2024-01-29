@@ -34,6 +34,9 @@
 
 #define AM_STARTKEY	9
 
+#define MLOOKUNIT 8 // [crispy] for mouselook
+#define MLOOKUNITLOWRES 16 // [crispy] for mouselook when recording
+
 // External functions
 
 
@@ -188,6 +191,12 @@ int testcontrols_mousespeed;
 
 boolean usearti = true;
 
+boolean speedkeydown (void)
+{
+    return (key_speed < NUMKEYS && gamekeydown[key_speed]) ||
+           (joybspeed < MAX_JOY_BUTTONS && joybuttons[joybspeed]);
+}
+
 void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 {
     int i;
@@ -216,10 +225,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     // Allow joybspeed hack.
 
-    speed = key_speed >= NUMKEYS
-        || joybspeed >= MAX_JOY_BUTTONS
-        || gamekeydown[key_speed]
-        || joybuttons[joybspeed];
+    speed = (key_speed >= NUMKEYS
+        || joybspeed >= MAX_JOY_BUTTONS);
+    speed ^= speedkeydown();
 
     // haleyjd: removed externdriver crap
     
@@ -255,6 +263,29 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         lspeed = 2;             // 5;
     }
 
+    // [crispy] toggle "always run"
+    if (gamekeydown[key_autorun])
+    {
+        static int joybspeed_old = 2;
+
+        if (joybspeed >= MAX_JOY_BUTTONS)
+        {
+            joybspeed = joybspeed_old;
+        }
+        else
+        {
+            joybspeed_old = joybspeed;
+            joybspeed = 29;
+        }
+
+        P_SetMessage(&players[consoleplayer], (joybspeed >= MAX_JOY_BUTTONS) ?
+                     "ALWAYS RUN ON" :
+                     "ALWAYS RUN OFF", false);
+
+        S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+
+        gamekeydown[key_autorun] = false;
+    }
 //
 // let movement keys cancel each other out
 //
@@ -639,9 +670,40 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         testcontrols_mousespeed = 0;
     }
 
-    forward += mousey;
-    mousex = mousey = 0;
+    if (mouse_look)
+    {
+        if (demorecording || lowres_turn)
+        {
+            // [Dasperal] Skip mouse look if it is TOCENTER cmd
+            if (look != TOCENTER)
+            {
+                // [crispy] Map mouse movement to look variable when recording
+                look += mouse_y_invert ? -mousey / MLOOKUNITLOWRES
+                                       :  mousey / MLOOKUNITLOWRES;
 
+                // [crispy] Limit to max speed of keyboard look up/down
+                if (look > 2)
+                    look = 2;
+                else if (look < -2)
+                    look = -2;
+            }
+        }
+        else
+        {
+            cmd->lookdir = mouse_y_invert ? -mousey : mousey;
+            // [Dasperal] Allow precise vertical look with near 0 mouse movement
+            if (cmd->lookdir > 0)
+                cmd->lookdir = (cmd->lookdir + MLOOKUNIT - 1) / MLOOKUNIT;
+            else
+                cmd->lookdir = (cmd->lookdir - MLOOKUNIT + 1) / MLOOKUNIT;
+        }
+    }
+    else if (!mouse_novert)
+    {
+        forward += mousey;
+    }
+
+    mousex = mousey = 0;
     if (forward > MaxPlayerMove[pClass])
     {
         forward = MaxPlayerMove[pClass];
@@ -847,9 +909,9 @@ static boolean InventoryMoveRight()
     else
     {
         curpos++;
-        if (curpos > 6)
+        if (curpos > CURPOS_MAX)
         {
-            curpos = 6;
+            curpos = CURPOS_MAX;
         }
     }
     return true;
@@ -1186,6 +1248,9 @@ void G_Ticker(void)
         inventory = false;
         cmd->arti = 0;
     }
+
+    oldleveltime = realleveltime; // [crispy] Track if game is running
+
 //
 // do main actions
 //
@@ -2076,10 +2141,11 @@ void G_RecordDemo(skill_t skill, int numplayers, int episode, int map,
     //!
     // @category demo
     //
-    // Smooth out low resolution turning when recording a demo.
+    // Don't smooth out low resolution turning when recording a demo.
     //
 
-    shortticfix = M_ParmExists("-shortticfix");
+    shortticfix = (!M_ParmExists("-noshortticfix"));
+    //[crispy] make shortticfix the default
 
     G_InitNew(skill, episode, map);
     usergame = false;

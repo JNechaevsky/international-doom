@@ -680,6 +680,7 @@ extern int gamemap;
 extern int prevmap;
 extern int levelstarttic;       // gametic at level start
 extern int leveltime;           // tics in game play for par
+extern int realleveltime;       // [JN] Keep ticking in Freeze mode.
 
 extern ticcmd_t *netcmds;
 

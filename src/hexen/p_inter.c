@@ -293,7 +293,6 @@ static void TryPickupWeapon(player_t * player, pclass_t weaponClass,
     if (player == &players[consoleplayer])
     {
         S_StartSound(NULL, SFX_PICKUP_WEAPON);
-        SB_PaletteFlash(false);
     }
 }
 
@@ -495,10 +494,6 @@ static void TryPickupWeaponPiece(player_t * player, pclass_t matchClass,
         }
     }
     player->bonuscount += BONUSADD;
-    if (player == &players[consoleplayer])
-    {
-        SB_PaletteFlash(false);
-    }
 
     // Check if fourth weapon assembled
     if (checkAssembled)
@@ -848,9 +843,9 @@ boolean P_GiveArtifact(player_t * player, artitype_t arti, mobj_t * mo)
     {
         inv_ptr++;
         curpos++;
-        if (curpos > 6)
+        if (curpos > CURPOS_MAX)
         {
-            curpos = 6;
+            curpos = CURPOS_MAX;
         }
     }
     player->artifactCount++;
@@ -1030,7 +1025,6 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
             if (player == &players[consoleplayer])
             {
                 S_StartSound(NULL, sound);
-                SB_PaletteFlash(false);
             }
             return;
 
@@ -1244,7 +1238,6 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
     if (player == &players[consoleplayer])
     {
         S_StartSound(NULL, sound);
-        SB_PaletteFlash(false);
     }
 }
 
@@ -1982,10 +1975,6 @@ void P_DamageMobj
         if (player->damagecount > 100)
         {
             player->damagecount = 100;  // teleport stomp does 10k points...
-        }
-        if (player == &players[consoleplayer])
-        {
-            SB_PaletteFlash(false);
         }
     }
 
