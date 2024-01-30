@@ -73,6 +73,7 @@ typedef enum
     MENU_ID_MAIN,
     MENU_ID_VIDEO,
     MENU_ID_DISPLAY,
+    MENU_ID_SOUND,
     MENU_NONE
 } MenuType_t;
 
@@ -136,7 +137,7 @@ static void DrawFilesMenu(void);
 static void MN_DrawInfo(void);
 static void DrawLoadMenu(void);
 static void DrawSaveMenu(void);
-static void DrawSlider(Menu_t * menu, int item, int width, int slot);
+static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean bigspacing);
 void MN_LoadSlotText(void);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
@@ -371,6 +372,13 @@ static void M_ID_Messages (int choice);
 static void M_ID_TextShadows (int choice);
 static void M_ID_LocalTime (int choice);
 
+static void M_Draw_ID_Sound (void);
+static void M_ID_MusicSystem (int option);
+static void M_ID_SFXMode (int option);
+static void M_ID_PitchShift (int option);
+static void M_ID_SFXChannels (int option);
+static void M_ID_MuteInactive (int option);
+
 // -----------------------------------------------------------------------------
 
 // [JN] Delay before shading.
@@ -577,12 +585,13 @@ static const float M_FLOAT_Slider (float val, float min, float max, float step,
 static MenuItem_t ID_Menu_Main[] = {
     { ITT_SETMENU, "VIDEO OPTIONS",       NULL,                 0, MENU_ID_VIDEO     },
     { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,                 0, MENU_ID_DISPLAY   },
+    { ITT_SETMENU, "SOUND OPTIONS",       NULL,                 0, MENU_ID_SOUND     },
 };
 
 static Menu_t ID_Def_Main = {
     ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
     M_Draw_ID_Main,
-    2, ID_Menu_Main,
+    3, ID_Menu_Main,
     0,
     true, false, false,
     MENU_MAIN
@@ -1039,6 +1048,190 @@ static void M_ID_LocalTime (int choice)
     msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice, false);
 }
 
+// -----------------------------------------------------------------------------
+// Sound options
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Sound[] = {
+    { ITT_LRFUNC, "SFX VOLUME",           SCSfxVolume,         MENU_NONE },
+    { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
+    { ITT_LRFUNC, "MUSIC VOLUME",         SCMusicVolume,       MENU_NONE },
+    { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
+    { ITT_LRFUNC, "MUSIC PLAYBACK",       M_ID_MusicSystem, 0, MENU_NONE },
+    { ITT_LRFUNC, "SOUNDS EFFECTS MODE",  M_ID_SFXMode,     0, MENU_NONE },
+    { ITT_LRFUNC, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,  0, MENU_NONE },
+    { ITT_LRFUNC, "NUMBER OF SFX TO MIX", M_ID_SFXChannels, 0, MENU_NONE },
+    { ITT_LRFUNC, "MUTE INACTIVE WINDOW", M_ID_MuteInactive,0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Sound = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Sound,
+    12, ID_Menu_Sound,
+    0,
+    true, false, false,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Sound (void)
+{
+    char str[32];
+
+    M_ShadeBackground();
+
+    MN_DrTextACentered("SOUND OPTIONS", 10, cr[CR_YELLOW]);
+
+    DrawSlider(&ID_Def_Sound, 1, 16, snd_MaxVolume, false);
+    sprintf(str,"%d", snd_MaxVolume);
+    MN_DrTextA(str, 228, 35, M_Item_Glow(0, GLOW_LIGHTGRAY));
+
+    DrawSlider(&ID_Def_Sound, 4, 16, snd_MusicVolume, false);
+    sprintf(str,"%d", snd_MusicVolume);
+    MN_DrTextA(str, 228, 65, M_Item_Glow(3, GLOW_LIGHTGRAY));
+
+    MN_DrTextACentered("SOUND SYSTEM", 80, cr[CR_YELLOW]);
+
+    // Music playback
+    sprintf(str, snd_musicdevice == 0 ? "DISABLED" :
+                (snd_musicdevice == 3 && !strcmp(snd_dmxoption, "")) ? "OPL2 SYNTH" : 
+                (snd_musicdevice == 3 && !strcmp(snd_dmxoption, "-opl3")) ? "OPL3 SYNTH" : 
+                 snd_musicdevice == 5 ?  "GUS (EMULATED)" :
+                 snd_musicdevice == 8 ?  "NATIVE MIDI" :
+                 snd_musicdevice == 11 ? "FLUIDSYNTH" :
+                                         "UNKNOWN");
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, snd_musicdevice ? GLOW_GREEN : GLOW_RED));
+
+    // Sound effects mode
+    // sprintf(str, snd_monosfx ? "MONO" : "STEREO");
+    sprintf(str, "TODO!");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, snd_monosfx ? GLOW_RED : GLOW_GREEN));
+
+    // Pitch-shifted sounds
+    // sprintf(str, snd_pitchshift ? "ON" : "OFF");
+    sprintf(str, "TODO!");
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
+
+    // Number of SFX to mix
+    // sprintf(str, "%i", snd_channels);
+    sprintf(str, "TODO!");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, snd_channels == 8 ? GLOW_DARKRED :
+                               snd_channels  < 3 ? GLOW_RED : GLOW_YELLOW));
+
+    // Mute inactive window
+    //sprintf(str, snd_mute_inactive ? "ON" : "OFF");
+    // [JN] Implement window-toggle safe function or use SNDCURVE like in Heretic.
+    sprintf(str, "TODO!");
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, snd_mute_inactive ? GLOW_GREEN : GLOW_RED));
+
+    // Inform that music system is not hot-swappable. :(
+    if (CurrentItPos == 7)
+    {
+        MN_DrTextACentered("CHANGE WILL REQUIRE RESTART OF THE PROGRAM", 142, cr[CR_GRAY]);
+    }
+}
+
+static void M_ID_MusicSystem (int option)
+{
+    switch (option)
+    {
+        case 0:
+            if (snd_musicdevice == 0)
+            {
+                snd_musicdevice = 5;    // Set to GUS
+            }
+            else if (snd_musicdevice == 5)
+#ifdef HAVE_FLUIDSYNTH
+            {
+                snd_musicdevice = 11;    // Set to FluidSynth
+            }
+            else if (snd_musicdevice == 11)
+#endif // HAVE_FLUIDSYNTH
+            {
+                snd_musicdevice = 8;    // Set to Native MIDI
+            }
+            else if (snd_musicdevice == 8)
+            {
+                snd_musicdevice = 3;    // Set to OPL3
+                snd_dmxoption = "-opl3";
+            }
+            else if (snd_musicdevice == 3  && !strcmp(snd_dmxoption, "-opl3"))
+            {
+                snd_musicdevice = 3;    // Set to OPL2
+                snd_dmxoption = "";
+            }
+            else if (snd_musicdevice == 3 && !strcmp(snd_dmxoption, ""))
+            {
+                snd_musicdevice = 0;    // Disable
+            }
+            break;
+        case 1:
+            if (snd_musicdevice == 0)
+            {
+                snd_musicdevice  = 3;   // Set to OPL2
+                snd_dmxoption = "";
+            }
+            else if (snd_musicdevice == 3 && !strcmp(snd_dmxoption, ""))
+            {
+                snd_musicdevice  = 3;   // Set to OPL3
+                snd_dmxoption = "-opl3";
+            }
+            else if (snd_musicdevice == 3 && !strcmp(snd_dmxoption, "-opl3"))
+            {
+                snd_musicdevice  = 8;   // Set to Native MIDI
+            }
+            else if (snd_musicdevice == 8)
+#ifdef HAVE_FLUIDSYNTH
+            {
+                snd_musicdevice  = 11;   // Set to FluidSynth
+            }
+            else if (snd_musicdevice == 11)
+#endif // HAVE_FLUIDSYNTH
+            {
+                snd_musicdevice  = 5;   // Set to GUS
+            }
+            else if (snd_musicdevice == 5)
+            {
+                snd_musicdevice  = 0;   // Disable
+            }
+            break;
+        default:
+            {
+                break;
+            }
+    }
+}
+
+static void M_ID_SFXMode (int option)
+{
+    snd_monosfx ^= 1;
+}
+
+static void M_ID_PitchShift (int option)
+{
+    snd_pitchshift ^= 1;
+}
+
+static void M_ID_SFXChannels (int option)
+{
+    // [JN] Note: cap minimum channels to 2, not 1.
+    // Only one channel produces a strange effect, 
+    // as if there were no channels at all.
+    snd_channels = M_INT_Slider(snd_channels, 2, 16, option, true);
+}
+
+static void M_ID_MuteInactive (int option)
+{
+    snd_mute_inactive ^= 1;
+}
+
 // CODE --------------------------------------------------------------------
 
 static Menu_t *Menus[] = {
@@ -1054,6 +1247,7 @@ static Menu_t *Menus[] = {
     &ID_Def_Main,
     &ID_Def_Video,
     &ID_Def_Display,
+    &ID_Def_Sound,
 };
 
 //---------------------------------------------------------------------------
@@ -1617,7 +1811,7 @@ static void DrawOptionsMenu(void)
     {
         MN_DrTextB("OFF", 196, 50);
     }
-    DrawSlider(&OptionsMenu, 3, 10, mouseSensitivity);
+    DrawSlider(&OptionsMenu, 3, 10, mouseSensitivity, true);
 }
 
 //---------------------------------------------------------------------------
@@ -1628,9 +1822,9 @@ static void DrawOptionsMenu(void)
 
 static void DrawOptions2Menu(void)
 {
-    DrawSlider(&Options2Menu, 1, 9, dp_screen_size - 3);
-    DrawSlider(&Options2Menu, 3, 16, snd_MaxVolume);
-    DrawSlider(&Options2Menu, 5, 16, snd_MusicVolume);
+    DrawSlider(&Options2Menu, 1, 9, dp_screen_size - 3, true);
+    DrawSlider(&Options2Menu, 3, 16, snd_MaxVolume, true);
+    DrawSlider(&Options2Menu, 5, 16, snd_MusicVolume, true);
 }
 
 //---------------------------------------------------------------------------
@@ -2784,7 +2978,7 @@ static void SetMenu(MenuType_t menu)
 //
 //---------------------------------------------------------------------------
 
-static void DrawSlider(Menu_t * menu, int item, int width, int slot)
+static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean bigspacing)
 {
     int x;
     int y;
@@ -2792,7 +2986,7 @@ static void DrawSlider(Menu_t * menu, int item, int width, int slot)
     int count;
 
     x = menu->x + 24;
-    y = menu->y + 2 + (item * ITEM_HEIGHT);
+    y = menu->y + 2 + (item * (bigspacing ? ITEM_HEIGHT : ID_MENU_LINEHEIGHT_SMALL));
     V_DrawShadowedPatchOptional(x - 32, y, 1, W_CacheLumpName("M_SLDLT", PU_CACHE));
     for (x2 = x, count = width; count--; x2 += 8)
     {
