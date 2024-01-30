@@ -191,6 +191,14 @@ static const inline pixel_t drawshadow_raven (const pixel_t dest, const pixel_t 
 // [JN] V_DrawTLPatch (translucent patch, no coloring or color-translation are used)
 static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
+{return tinttable[(dest+(source<<8)];}
+#else
+{return I_BlendOverTinttab(dest, colormaps[source]);}
+#endif
+
+// [JN] V_DrawAltTLPatch (translucent patch, no coloring or color-translation are used)
+static const inline pixel_t drawalttinttab (const pixel_t dest, const pixel_t source)
+#ifndef CRISPY_TRUECOLOR
 {return tinttable[(dest<<8)+source];}
 #else
 {return I_BlendOverTinttab(dest, colormaps[source]);}
@@ -705,7 +713,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
     int w;
 
     // [crispy] translucent patch, no coloring or color-translation are used
-    drawpatchpx_t *const drawpatchpx = drawtinttab;
+    drawpatchpx_t *const drawpatchpx = drawalttinttab;
 
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
