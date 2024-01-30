@@ -2032,6 +2032,9 @@ boolean MN_Responder(event_t * event)
     int i;
     MenuItem_t *item;
     char *textBuffer;
+    static int mousewait = 0;
+    static int mousey = 0;
+    static int lasty = 0;
     // int dir;
 
     // In testcontrols mode, none of the function keys should do anything
@@ -2074,115 +2077,93 @@ boolean MN_Responder(event_t * event)
     charTyped = 0;
     key = -1;
 
-/*
+    // Allow the menu to be activated from a joystick button if a button
+    // is bound for joybmenu.
     if (event->type == ev_joystick)
     {
-        // Simulate key presses from joystick events to interact with the menu.
-
-        if (MenuActive)
-        {
-            if (JOY_GET_DPAD(event->data6) != JOY_DIR_NONE)
-            {
-                dir = JOY_GET_DPAD(event->data6);
-            }
-            else if (JOY_GET_LSTICK(event->data6) != JOY_DIR_NONE)
-            {
-                dir = JOY_GET_LSTICK(event->data6);
-            }
-            else
-            {
-                dir = JOY_GET_RSTICK(event->data6);
-            }
-
-            if (dir & JOY_DIR_UP)
-            {
-                key = key_menu_up;
-                joywait = I_GetTime() + 5;
-            }
-            else if (dir & JOY_DIR_DOWN)
-            {
-                key = key_menu_down;
-                joywait = I_GetTime() + 5;
-            }
-            if (dir & JOY_DIR_LEFT)
-            {
-                key = key_menu_left;
-                joywait = I_GetTime() + 5;
-            }
-            else if (dir & JOY_DIR_RIGHT)
-            {
-                key = key_menu_right;
-                joywait = I_GetTime() + 5;
-            }
-
-#define JOY_BUTTON_MAPPED(x) ((x) >= 0)
-#define JOY_BUTTON_PRESSED(x) (JOY_BUTTON_MAPPED(x) && (event->data1 & (1 << (x))) != 0)
-
-            if (JOY_BUTTON_PRESSED(joybfire))
-            {
-                // Simulate pressing "Enter" when we are supplying a save slot name
-                if (FileMenuKeySteal)
-                {
-                    key = KEY_ENTER;
-                }
-                else
-                {
-                    // if selecting a save slot via joypad, set a flag
-                    if (CurrentMenu == &SaveMenu)
-                    {
-                        joypadsave = true;
-                    }
-                    key = key_menu_forward;
-                }
-                joywait = I_GetTime() + 5;
-            }
-            if (JOY_BUTTON_PRESSED(joybuse))
-            {
-                // If user was entering a save name, back out
-                if (FileMenuKeySteal)
-                {
-                    key = KEY_ESCAPE;
-                }
-                else
-                {
-                    key = key_menu_back;
-                }
-                joywait = I_GetTime() + 5;
-            }
-        }
-        else if (askforquit)
-        {
-            if (JOY_BUTTON_PRESSED(joybfire))
-            {
-                // Simulate a 'Y' keypress
-                key = key_menu_confirm;
-                joywait = I_GetTime() + 5;
-            }
-            if (JOY_BUTTON_PRESSED(joybuse))
-            {
-                // Simulate a 'N' keypress
-                key = key_menu_abort;
-                joywait = I_GetTime() + 5;
-            }
-        }
-        if (JOY_BUTTON_PRESSED(joybmenu))
+        if (joybmenu >= 0 && (event->data1 & (1 << joybmenu)) != 0)
         {
             MN_ActivateMenu();
-            joywait = I_GetTime() + 5;
             return true;
         }
     }
-*/
+    else
+    {
+        // [JN] Allow menu control by mouse.
+        if (event->type == ev_mouse && mousewait < I_GetTime())
+        {
+            // [crispy] mouse_novert disables controlling the menus with the mouse
+            if (!mouse_novert)
+            {
+                mousey += event->data3;
+            }
 
-    if (event->type != ev_keydown && key == -1)
+            if (mousey < lasty - 30)
+            {
+                key = key_menu_down;
+                mousewait = I_GetTime() + 5;
+                mousey = lasty -= 30;
+            }
+            else if (mousey > lasty + 30)
+            {
+                key = key_menu_up;
+                mousewait = I_GetTime() + 5;
+                mousey = lasty += 30;
+            }
+
+            // [JN] Handle mouse bindings before going any farther.
+            // Catch only button pressing events, i.e. event->data1.
+            /*
+            if (MouseIsBinding && event->data1)
+            {
+                M_CheckMouseBind(SDL_mouseButton);
+                M_DoMouseBind(btnToBind, SDL_mouseButton);
+                btnToBind = 0;
+                MouseIsBinding = false;
+                mousewait = I_GetTime() + 15;
+                return true;
+            }
+            */
+
+            if (event->data1 & 1)
+            {
+                key = key_menu_forward;
+                mousewait = I_GetTime() + 5;
+            }
+
+            if (event->data1 & 2)
+            {
+                key = key_menu_back;
+                mousewait = I_GetTime() + 5;
+            }
+
+            // [crispy] scroll menus with mouse wheel
+            // [JN] Buttons hardcoded to wheel so we won't mix it up with inventory scrolling.
+            if (/*mousebprevweapon >= 0 &&*/ event->data1 & (1 << 4/*mousebprevweapon*/))
+            {
+                key = key_menu_down;
+                mousewait = I_GetTime() + 1;
+            }
+            else
+            if (/*mousebnextweapon >= 0 &&*/ event->data1 & (1 << 3/*mousebnextweapon*/))
+            {
+                key = key_menu_up;
+                mousewait = I_GetTime() + 1;
+            }
+        }
+        else
+        {
+            if (event->type == ev_keydown)
+            {
+                key = event->data1;
+                charTyped = event->data2;
+            }
+        }
+    }
+    
+    if (key == -1)
     {
         return false;
-    }
-
-    if (event->type == ev_keydown)
-    {
-        key = event->data1;
-        charTyped = event->data2;
     }
 
     if (InfoType)
