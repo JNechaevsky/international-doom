@@ -983,6 +983,12 @@ static void DrawAndBlit(void)
             break;
     }
 
+    // [JN] Right widgets are not available while finale screens.
+    if (dp_screen_size < 13 && gamestate != GS_FINALE)
+    {
+        ID_RightWidgets();
+    }
+
     if (testcontrols)
     {
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
@@ -1006,12 +1012,6 @@ static void DrawAndBlit(void)
 
     // Draw Menu
     MN_Drawer();
-
-    // [JN] Right widgets are not available while finale screens.
-    if (dp_screen_size < 13 && gamestate != GS_FINALE)
-    {
-        ID_RightWidgets();
-    }
 
     // Send out any new accumulation
     NetUpdate();
