@@ -82,10 +82,6 @@ void P_SetMessage(player_t * player, const char *message, boolean ultmsg)
     {
         player->ultimateMessage = true;
     }
-    if (player == &players[consoleplayer])
-    {
-        BorderTopRefresh = true;
-    }
 }
 
 //==========================================================================
@@ -107,10 +103,6 @@ void P_SetYellowMessage(player_t * player, const char *message, boolean ultmsg)
     {
         player->ultimateMessage = true;
     }
-    if (player == &players[consoleplayer])
-    {
-        BorderTopRefresh = true;
-    }
 }
 
 //==========================================================================
@@ -122,10 +114,6 @@ void P_SetYellowMessage(player_t * player, const char *message, boolean ultmsg)
 void P_ClearMessage(player_t * player)
 {
     player->messageTics = 0;
-    if (player == &players[consoleplayer])
-    {
-        BorderTopRefresh = true;
-    }
 }
 
 //----------------------------------------------------------------------------

@@ -650,10 +650,6 @@ void P_PlayerThink(player_t * player)
     {                           // Refresh the screen when a message goes away
         player->ultimateMessage = false;        // clear out any chat messages.
         player->yellowMessage = false;
-        if (player == &players[consoleplayer])
-        {
-            BorderTopRefresh = true;
-        }
     }
     player->worldTimer++;
     if (player->playerstate == PST_DEAD)
@@ -899,7 +895,6 @@ void P_PlayerThink(player_t * player)
             }
             player->mo->flags2 &= ~MF2_FLY;
             player->mo->flags &= ~MF_NOGRAVITY;
-            BorderTopRefresh = true;    //make sure the sprite's cleared out
         }
     }
     if (player->powers[pw_speed])

@@ -370,7 +370,6 @@ void AM_Stop(void)
     automapactive = false;
 //  ST_Responder(&st_notify);
     stopped = true;
-    BorderNeedRefresh = true;
 }
 
 void AM_Start(void)
@@ -1386,7 +1385,6 @@ void AM_Drawer(void)
     if (!automapactive)
         return;
 
-    UpdateState |= I_FULLSCRN;
     AM_clearFB(BACKGROUND);
     if (grid)
         AM_drawGrid(GRIDCOLORS);

@@ -36,6 +36,10 @@ pixel_t *ylookup[MAXHEIGHT];
 int columnofs[MAXWIDTH];
 //byte translations[3][256]; // color tables for different players
 
+// Backing buffer containing the bezel drawn around the screen and 
+// surrounding background.
+static pixel_t *background_buffer = NULL;
+
 /*
 ==================
 =
@@ -571,124 +575,130 @@ void R_InitBuffer(int width, int height)
     viewwindowy &= ~1;
     for (i = 0; i < height; i++)
         ylookup[i] = I_VideoBuffer + (i + viewwindowy) * SCREENWIDTH;
+
+    if (background_buffer != NULL)
+    {
+        Z_Free(background_buffer);
+        background_buffer = NULL;
+    }
 }
 
+// -----------------------------------------------------------------------------
+// [JN] Replaced Hexen's original R_DrawViewBorder and R_DrawTopBorder
+// functions with Doom's implementation to improve performance and avoid
+// precision problems when drawing beveled edges on smaller screen sizes.
+// -----------------------------------------------------------------------------
 
-/*
-==================
-=
-= R_DrawViewBorder
-=
-= Draws the border around the view for different size windows
-==================
-*/
-
-boolean BorderNeedRefresh;
-
-void R_DrawViewBorder(void)
-{
-    byte *src;
-    pixel_t *dest;
-    int x, y;
-
-    if (scaledviewwidth == SCREENWIDTH)
-        return;
-
-    src = W_CacheLumpName("F_022", PU_CACHE);
-    dest = I_VideoBuffer;
-
-    // [crispy] use unified flat filling function
-    V_FillFlat(0, SCREENHEIGHT - SBARHEIGHT, 0, SCREENWIDTH, src, dest);
-
-    for (x = (viewwindowx / vid_resolution); x < (viewwindowx + viewwidth) / vid_resolution; x += 16)
-    {
-        V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy / vid_resolution) - 4,
-                    W_CacheLumpName("bordt", PU_CACHE));
-        V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy + viewheight)/ vid_resolution,
-                    W_CacheLumpName("bordb", PU_CACHE));
-    }
-    for (y = (viewwindowy / vid_resolution); y < (viewwindowy + viewheight)/ vid_resolution; y += 16)
-    {
-        V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA, y,
-                     W_CacheLumpName("bordl", PU_CACHE));
-        V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA, y,
-                      W_CacheLumpName("bordr", PU_CACHE));
-    }
-    V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
-                (viewwindowy / vid_resolution) - 4,
-                 W_CacheLumpName("bordtl", PU_CACHE));
-    V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
-                (viewwindowy / vid_resolution) - 4,
-                W_CacheLumpName("bordtr", PU_CACHE));
-    V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
-                (viewwindowy + viewheight) / vid_resolution,
-                W_CacheLumpName("bordbr", PU_CACHE));
-    V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
-                (viewwindowy + viewheight) / vid_resolution,
-                W_CacheLumpName("bordbl", PU_CACHE));
-}
-
-/*
-==================
-=
-= R_DrawTopBorder
-=
-= Draws the top border around the view for different size windows
-==================
-*/
-
-boolean BorderTopRefresh;
-
-void R_DrawTopBorder(void)
-{
-    byte *src;
-    pixel_t *dest;
-
-    if (scaledviewwidth == SCREENWIDTH)
-        return;
-
-/*	if(gamemode == shareware)
+void R_FillBackScreen (void) 
+{ 
+	byte    *src;
+	pixel_t *dest;
+	int x;
+	int y;
+	// [JN] Attempt to round up precision problem.
+	int yy = 1;
+	
+	// If we are running full screen, there is no need to do any of this,
+	// and the background buffer can be freed if it was previously in use.
+	
+	if (scaledviewwidth == SCREENWIDTH)
 	{
-		src = W_CacheLumpName ("FLOOR04", PU_CACHE);
+		return;
 	}
-	else
+	
+	// Allocate the background buffer if necessary
+	
+	if (background_buffer == NULL)
 	{
-		src = W_CacheLumpName ("FLAT513", PU_CACHE);
+		const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
+		background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
 	}
-*/
-    src = W_CacheLumpName("F_022", PU_CACHE);
-    dest = I_VideoBuffer;
 
-    // [crispy] use unified flat filling function
-    V_FillFlat(0, 34 * vid_resolution, 0, SCREENWIDTH, src, dest);
+	// Draw screen and bezel; this is done to a separate screen buffer.
+	
+	V_UseBuffer(background_buffer);
+	
+	src = W_CacheLumpName("F_022", PU_CACHE);
+	dest = background_buffer;
+	
+	// [crispy] use unified flat filling function
+	V_FillFlat(0, SCREENHEIGHT-SBARHEIGHT, 0, SCREENWIDTH, src, dest);
+	
+	for (x = (viewwindowx / vid_resolution); x < (viewwindowx + scaledviewwidth) / vid_resolution; x += 16)
+	{
+		V_DrawPatch(x - WIDESCREENDELTA, ((viewwindowy / vid_resolution) - 4) + yy,
+					W_CacheLumpName("bordt", PU_CACHE));
+		V_DrawPatch(x - WIDESCREENDELTA, ((viewwindowy + viewheight) / vid_resolution) - yy,
+					W_CacheLumpName("bordb", PU_CACHE));
+	}
+	for (y = (viewwindowy / vid_resolution); y < (viewwindowy + viewheight) / vid_resolution; y += 16)
+	{
+		V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA, y,
+					W_CacheLumpName("bordl", PU_CACHE));
+		V_DrawPatch(((viewwindowx + scaledviewwidth) / vid_resolution) - WIDESCREENDELTA, y,
+					W_CacheLumpName("bordr", PU_CACHE));
+	}
+	V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
+				((viewwindowy / vid_resolution) - 4) + yy,
+				W_CacheLumpName("bordtl", PU_CACHE));
+	V_DrawPatch(((viewwindowx + scaledviewwidth) / vid_resolution) - WIDESCREENDELTA,
+				((viewwindowy / vid_resolution) - 4) + yy,
+				W_CacheLumpName("bordtr", PU_CACHE));
+	V_DrawPatch(((viewwindowx + scaledviewwidth) / vid_resolution) - WIDESCREENDELTA,
+				((viewwindowy + viewheight) / vid_resolution) - yy,
+				W_CacheLumpName("bordbr", PU_CACHE));
+	V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
+				((viewwindowy + viewheight) / vid_resolution) - yy,
+				W_CacheLumpName("bordbl", PU_CACHE));
+                
+	V_RestoreBuffer();
+} 
 
-    if ((viewwindowy / vid_resolution) < 35)
-    {
-        int x;
 
-        for (x = (viewwindowx / vid_resolution); x < (viewwindowx + viewwidth) / vid_resolution; x += 16)
-        {
-            V_DrawPatch(x - WIDESCREENDELTA, (viewwindowy / vid_resolution) - 4,
-                        W_CacheLumpName("bordt", PU_CACHE));
-        }
-        V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
-                    viewwindowy / vid_resolution,
-                    W_CacheLumpName("bordl", PU_CACHE));
-        V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
-                    viewwindowy / vid_resolution,
-                    W_CacheLumpName("bordr", PU_CACHE));
-        V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
-                    (viewwindowy / vid_resolution) + 16,
-                    W_CacheLumpName("bordl", PU_CACHE));
-        V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
-                    (viewwindowy / vid_resolution) + 16,
-                    W_CacheLumpName("bordr", PU_CACHE));
+static void R_VideoErase (unsigned ofs, int count)
+{ 
+	if (background_buffer != NULL)
+	{
+		memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count * sizeof(*I_VideoBuffer));
+	}
+} 
 
-        V_DrawPatch((viewwindowx / vid_resolution) - 4 - WIDESCREENDELTA,
-                    (viewwindowy / vid_resolution) - 4,
-                    W_CacheLumpName("bordtl", PU_CACHE));
-        V_DrawPatch(((viewwindowx + viewwidth) / vid_resolution) - WIDESCREENDELTA,
-                    (viewwindowy / vid_resolution) - 4,
-                    W_CacheLumpName("bordtr", PU_CACHE));
-    }
+void R_DrawViewBorder (void) 
+{ 
+	int top, top2, top3;
+	int side;
+	int ofs;
+	int i; 
+	// [JN] Attempt to round up precision problem.
+	int yy2 = 3, yy3 = 2;
+    
+	if (scaledviewwidth == SCREENWIDTH)
+	{
+		return;
+	}
+
+	top = ((SCREENHEIGHT - SBARHEIGHT) - viewheight) / 2;
+	top2 = ((SCREENHEIGHT - SBARHEIGHT) - viewheight + yy2) / 2;
+	top3 = (((SCREENHEIGHT - SBARHEIGHT) - viewheight) - yy3) / 2;
+	side = (SCREENWIDTH - scaledviewwidth) / 2;
+
+	// copy top and one line of left side
+	R_VideoErase(0, top * SCREENWIDTH + side);
+ 
+	// copy one line of right side and bottom 
+	ofs = (viewheight + top3) * SCREENWIDTH - side;
+	R_VideoErase(ofs, top2 * SCREENWIDTH + side);
+
+	// copy sides using wraparound
+	ofs = top * SCREENWIDTH + SCREENWIDTH - side;
+	side <<= 1;
+
+	for (i = 1 ; i < viewheight ; i++)
+	{
+		R_VideoErase (ofs, side);
+		ofs += SCREENWIDTH;
+	} 
+
+	// ?
+	V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT - SBARHEIGHT);
 }

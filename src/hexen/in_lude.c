@@ -149,7 +149,6 @@ static void Stop(void)
     intermission = false;
     UnloadPics();
     SB_state = -1;
-    BorderNeedRefresh = true;
 }
 
 //========================================================================
@@ -403,7 +402,6 @@ void IN_Drawer(void)
     {
         return;
     }
-    UpdateState |= I_FULLSCRN;
     V_DrawFullscreenRawOrPatch(W_GetNumForName("INTERPIC")); // [crispy]
 
     if (gametype == SINGLE)

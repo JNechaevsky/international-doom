@@ -363,7 +363,6 @@ void F_Drawer(void)
             TextWrite();
             break;
     }
-    UpdateState |= I_FULLSCRN;
 }
 
 //==========================================================================

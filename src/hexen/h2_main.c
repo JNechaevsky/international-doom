@@ -584,8 +584,6 @@ void D_DoomMain(void)
 
     if (gameaction != ga_loadgame)
     {
-        UpdateState |= I_FULLSCRN;
-        BorderNeedRefresh = true;
         if (autostart || netgame)
         {
             G_StartNewInit();
@@ -910,6 +908,9 @@ void H2_ProcessEvents(void)
 
 static void DrawAndBlit(void)
 {
+    // [JN] Optimized screen background and beveled edge drawing.
+    static gamestate_t oldgamestate = -1;
+
     // [crispy] post-rendering function pointer to apply config changes
     // that affect rendering and that are better applied after the current
     // frame has finished rendering
@@ -923,6 +924,8 @@ static void DrawAndBlit(void)
     if (setsizeneeded)
     {
         R_ExecuteSetViewSize();
+        // Force background redraw
+        oldgamestate = -1;
     }
 
     // Do buffered drawing
@@ -950,13 +953,23 @@ static void DrawAndBlit(void)
                 return;
             }
 
+            // [JN] See if the border needs to be initially drawn.
+            if (oldgamestate != GS_LEVEL)
+            {
+                R_FillBackScreen();
+            }
+
+            // [JN] See if the border needs to be updated to the screen.
+            if (scaledviewwidth != SCREENWIDTH)
+            {
+                R_DrawViewBorder();
+            }
+
             if (automapactive && automap_overlay)
             {
                 AM_Drawer();
-                BorderNeedRefresh = true;
             }
             CT_Drawer();
-            UpdateState |= I_FULLVIEW;
             SB_Drawer();
             break;
         case GS_INTERMISSION:
@@ -1063,7 +1076,6 @@ static void PageDrawer(void)
     {
         V_DrawPatch(4, 160, W_CacheLumpName("ADVISOR", PU_CACHE));
     }
-    UpdateState |= I_FULLSCRN;
 }
 
 //==========================================================================
@@ -1107,8 +1119,6 @@ void H2_DoAdvanceDemo(void)
             pagename = "TITLE";
             break;
         case 2:
-            BorderNeedRefresh = true;
-            UpdateState |= I_FULLSCRN;
             G_DeferedPlayDemo("demo1");
             break;
         case 3:
@@ -1117,8 +1127,6 @@ void H2_DoAdvanceDemo(void)
             pagename = "CREDIT";
             break;
         case 4:
-            BorderNeedRefresh = true;
-            UpdateState |= I_FULLSCRN;
             G_DeferedPlayDemo("demo2");
             break;
         case 5:
@@ -1127,8 +1135,6 @@ void H2_DoAdvanceDemo(void)
             pagename = "CREDIT";
             break;
         case 6:
-            BorderNeedRefresh = true;
-            UpdateState |= I_FULLSCRN;
             G_DeferedPlayDemo("demo3");
             break;
     }

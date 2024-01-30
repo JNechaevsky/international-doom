@@ -710,7 +710,7 @@ static void M_ID_TrueColorHook (void)
 {
     I_SetPalette (SB_palette);
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
-    // [JN] TODO R_FillBackScreen();
+    R_FillBackScreen();
 }
 #endif
 
@@ -729,8 +729,7 @@ static void M_ID_RenderingResHook (void)
     // [crispy] re-calculate framebuffer coordinates
     R_ExecuteSetViewSize();
     // [crispy] re-draw bezel
-    // [JN] TODO
-    // R_FillBackScreen();
+    R_FillBackScreen();
     // [JN] re-calculate sky texture scaling
     R_InitSkyMap();
     // [crispy] re-calculate automap coordinates
@@ -757,8 +756,7 @@ static void M_ID_WidescreenHook (void)
     // [crispy] re-calculate framebuffer coordinates
     R_ExecuteSetViewSize();
     // [crispy] re-draw bezel
-    // [JN] TODO
-    // R_FillBackScreen();
+    R_FillBackScreen();
     // [JN] re-calculate sky texture scaling
     R_InitSkyMap();
     // [crispy] re-calculate automap coordinates
@@ -946,8 +944,7 @@ static void M_ID_Gamma (int choice)
 #else
     I_SetPalette(SB_palette);
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
-    // [JN] TODO
-    // R_FillBackScreen();
+    R_FillBackScreen();
     SB_ForceRedraw();
 #endif
 }
@@ -980,8 +977,7 @@ static void M_ID_Saturation (int choice)
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
-    // [JN] TODO
-    // R_FillBackScreen();
+    R_FillBackScreen();
     SB_ForceRedraw();
 #endif
 }
@@ -994,8 +990,7 @@ static void M_ID_R_Intensity (int choice)
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
-    // [JN] TODO
-    // R_FillBackScreen();
+    R_FillBackScreen();
     SB_ForceRedraw();
 #endif
 }
@@ -1008,8 +1003,7 @@ static void M_ID_G_Intensity (int choice)
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
-    // [JN] TODO
-    // R_FillBackScreen();
+    R_FillBackScreen();
     SB_ForceRedraw();
 #endif
 }
@@ -1022,8 +1016,7 @@ static void M_ID_B_Intensity (int choice)
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
 #else
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
-    // [JN] TODO
-    // R_FillBackScreen();
+    R_FillBackScreen();
     SB_ForceRedraw();
 #endif
 }
@@ -1360,21 +1353,15 @@ void MN_Drawer(void)
                 MN_DrTextA("?", 160 +
                            MN_TextAWidth(SlotText[quicksave - 1]) / 2, 90, NULL);
             }
-            UpdateState |= I_FULLSCRN;
         }
         return;
     }
     else
     {
-        UpdateState |= I_FULLSCRN;
         if (InfoType)
         {
             MN_DrawInfo();
             return;
-        }
-        if (dp_screen_size < 10)
-        {
-            BorderNeedRefresh = true;
         }
         if (CurrentMenu->drawFunc != NULL)
         {
@@ -1422,7 +1409,7 @@ void MN_Drawer(void)
         {
             y = CurrentMenu->y + (CurrentItPos * ITEM_HEIGHT) + SELECTOR_YOFFSET;
             selName = MenuTime & 16 ? "M_SLCTR1" : "M_SLCTR2";
-            V_DrawPatch(x + SELECTOR_XOFFSET, y,
+            V_DrawShadowedPatchOptional(x + SELECTOR_XOFFSET, y, 1,
                         W_CacheLumpName(selName, PU_CACHE));
         }
     }
@@ -1770,7 +1757,6 @@ static void SCLoadGame(int option)
     }
     G_LoadGame(option);
     MN_DeactivateMenu();
-    BorderNeedRefresh = true;
     if (quickload == -1)
     {
         quickload = option + 1;
@@ -1856,7 +1842,6 @@ static void SCSaveGame(int option)
         I_StopTextInput();
         MN_DeactivateMenu();
     }
-    BorderNeedRefresh = true;
     if (quicksave == -1)
     {
         quicksave = option + 1;
@@ -2224,7 +2209,6 @@ boolean MN_Responder(event_t * event)
             }
             MN_DeactivateMenu();
             SB_state = -1;      //refresh the statbar
-            BorderNeedRefresh = true;
         }
         S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
         return (true);          //make the info screen eat the keypress
@@ -2264,16 +2248,13 @@ boolean MN_Responder(event_t * event)
                                  "QUICKSAVING....", false);
                     FileMenuKeySteal = true;
                     SCSaveGame(quicksave - 1);
-                    BorderNeedRefresh = true;
                     break;
                 case 4:
                     P_SetMessage(&players[consoleplayer],
                                  "QUICKLOADING....", false);
                     SCLoadGame(quickload - 1);
-                    BorderNeedRefresh = true;
                     break;
                 case 5:
-                    BorderNeedRefresh = true;
                     mn_SuicideConsole = true;
                     break;
                 default:
@@ -2291,8 +2272,6 @@ boolean MN_Responder(event_t * event)
             askforquit = false;
             typeofask = 0;
             paused = false;
-            UpdateState |= I_FULLSCRN;
-            BorderNeedRefresh = true;
             return true;
         }
 
@@ -2308,8 +2287,6 @@ boolean MN_Responder(event_t * event)
             }
             SCScreenSize(LEFT_DIR);
             S_StartSound(NULL, SFX_PICKUP_KEY);
-            BorderNeedRefresh = true;
-            UpdateState |= I_FULLSCRN;
             return (true);
         }
         else if (key == key_menu_incscreen)
@@ -2320,8 +2297,6 @@ boolean MN_Responder(event_t * event)
             }
             SCScreenSize(RIGHT_DIR);
             S_StartSound(NULL, SFX_PICKUP_KEY);
-            BorderNeedRefresh = true;
-            UpdateState |= I_FULLSCRN;
             return (true);
         }
         else if (key == key_menu_help)           // F1 (help screen)
@@ -2492,7 +2467,6 @@ boolean MN_Responder(event_t * event)
             SB_PaletteFlash(true);  // force change
 #ifdef CRISPY_TRUECOLOR
             R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
-            BorderNeedRefresh = true;
             SB_state = -1;
 #endif
             P_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0],

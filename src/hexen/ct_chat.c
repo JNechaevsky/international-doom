@@ -385,8 +385,6 @@ void CT_Drawer(void)
             }
         }
         V_DrawShadowedPatchOptional(x, 10, 1, W_CacheLumpName("FONTA59", PU_CACHE));
-        BorderTopRefresh = true;
-        UpdateState |= I_MESSAGES;
     }
 }
 

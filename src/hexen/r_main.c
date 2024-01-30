@@ -790,7 +790,7 @@ void R_ExecuteSetViewSize(void)
 //
 // draw the border
 //
-    R_DrawViewBorder();         // erase old menu stuff
+    R_FillBackScreen();         // erase old menu stuff
 
     // [crispy] Redraw status bar needed for widescreen HUD
     SB_ForceRedraw();
@@ -958,25 +958,6 @@ void R_SetupFrame(player_t * player)
     }
     framecount++;
     validcount++;
-    if (BorderNeedRefresh)
-    {
-        if (setblocks < 10)
-        {
-            R_DrawViewBorder();
-        }
-        BorderNeedRefresh = false;
-        BorderTopRefresh = false;
-        UpdateState |= I_FULLSCRN;
-    }
-    if (BorderTopRefresh)
-    {
-        if (setblocks < 10)
-        {
-            R_DrawTopBorder();
-        }
-        BorderTopRefresh = false;
-        UpdateState |= I_MESSAGES;
-    }
 
 #if 0
     {

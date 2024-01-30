@@ -1854,6 +1854,9 @@ void G_DoLoadGame(void)
         SV_UpdateRebornSlot();
     }
     SB_SetClassData();
+
+    // Draw the pattern into the back screen
+    R_FillBackScreen();
 }
 
 //==========================================================================
@@ -1885,6 +1888,9 @@ void G_DoSaveGame(void)
     gameaction = ga_nothing;
     savedescription[0] = 0;
     P_SetMessage(&players[consoleplayer], TXT_GAMESAVED, true);
+
+    // Draw the pattern into the back screen
+    R_FillBackScreen();
 }
 
 //==========================================================================
@@ -1985,7 +1991,6 @@ void G_InitNew(skill_t skill, int episode, int map)
     gameepisode = episode;
     gamemap = map;
     gameskill = skill;
-    BorderNeedRefresh = true;
 
     // Initialize the sky
     R_InitSky(map);

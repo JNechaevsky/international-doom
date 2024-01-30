@@ -377,7 +377,6 @@ void SB_SetClassData(void)
                                       PU_STATIC);
     }
     SB_state = -1;
-    UpdateState |= I_FULLSCRN;
 }
 
 //==========================================================================
@@ -688,8 +687,6 @@ static void DrawSoundInfo(void)
         M_snprintf(text, sizeof(text), "%d", c->distance);
         MN_DrTextA(text, xPos[x++], y, NULL);
     }
-    UpdateState |= I_FULLSCRN;
-    BorderNeedRefresh = true;
 }
 
 //==========================================================================
@@ -924,8 +921,6 @@ static void DrawAnimatedIcons(void)
                 }
             }
         }
-        BorderTopRefresh = true;
-        UpdateState |= I_MESSAGES;
     }
 
     // Speed Boots
@@ -941,8 +936,6 @@ static void DrawAnimatedIcons(void)
                         W_CacheLumpNum(SpinSpeedLump + frame,
                                         PU_CACHE));
         }
-        BorderTopRefresh = true;
-        UpdateState |= I_MESSAGES;
     }
 
     // Defensive power
@@ -959,8 +952,6 @@ static void DrawAnimatedIcons(void)
                         W_CacheLumpNum(SpinDefenseLump + frame,
                                         PU_CACHE));
         }
-        BorderTopRefresh = true;
-        UpdateState |= I_MESSAGES;
     }
 
     // Minotaur Active
@@ -977,8 +968,6 @@ static void DrawAnimatedIcons(void)
                         W_CacheLumpNum(SpinMinotaurLump + frame,
                                         PU_CACHE));
         }
-        BorderTopRefresh = true;
-        UpdateState |= I_MESSAGES;
     }
 }
 
@@ -1087,7 +1076,6 @@ void DrawCommonBar(void)
         V_DrawPatch(0, 193, PatchLFEDGE);
         V_DrawPatch(277, 193, PatchRTEDGE);
 //              ShadeChain();
-        UpdateState |= I_STATBAR;
     }
 }
 
@@ -1117,7 +1105,6 @@ void DrawMainBar(void)
                                              + ArtifactFlash - 1, PU_CACHE));
         ArtifactFlash--;
         oldarti = -1;           // so that the correct artifact fills in after the flash
-        UpdateState |= I_STATBAR;
     }
     else if (oldarti != CPlayer->readyArtifact
              || oldartiCount != CPlayer->inventory[inv_ptr].count)
@@ -1135,7 +1122,6 @@ void DrawMainBar(void)
         }
         oldarti = CPlayer->readyArtifact;
         oldartiCount = CPlayer->inventory[inv_ptr].count;
-        UpdateState |= I_STATBAR;
     }
 
     // Frags
@@ -1151,7 +1137,6 @@ void DrawMainBar(void)
             V_DrawPatch(38, 162, PatchKILLS);
             DrINumber(temp, 40, 176);
             oldfrags = temp;
-            UpdateState |= I_STATBAR;
         }
     }
     else
@@ -1177,7 +1162,6 @@ void DrawMainBar(void)
             {
                 DrRedINumber(temp, 40, 176);
             }
-            UpdateState |= I_STATBAR;
         }
     }
     // Mana
@@ -1196,7 +1180,6 @@ void DrawMainBar(void)
             manaPatch1 = PatchMANABRIGHT1;
         }
         oldmana1 = temp;
-        UpdateState |= I_STATBAR;
     }
     temp = CPlayer->mana[1];
     if (oldmana2 != temp)
@@ -1213,7 +1196,6 @@ void DrawMainBar(void)
             manaPatch2 = PatchMANABRIGHT2;
         }
         oldmana2 = temp;
-        UpdateState |= I_STATBAR;
     }
     if (oldweapon != CPlayer->readyweapon || manaPatch1 || manaPatch2
         || manaVialPatch1)
@@ -1289,7 +1271,6 @@ void DrawMainBar(void)
           }
         }
         oldweapon = CPlayer->readyweapon;
-        UpdateState |= I_STATBAR;
     }
     // Armor
     temp = AutoArmorSave[CPlayer->class]
@@ -1302,14 +1283,12 @@ void DrawMainBar(void)
         oldarmor = temp;
         V_DrawPatch(255, 178, PatchARMCLEAR);
         DrINumber(FixedDiv(temp, 5 * FRACUNIT) >> FRACBITS, 250, 176);
-        UpdateState |= I_STATBAR;
     }
     // Weapon Pieces
     if (oldpieces != CPlayer->pieces)
     {
         DrawWeaponPieces();
         oldpieces = CPlayer->pieces;
-        UpdateState |= I_STATBAR;
     }
 }
 
@@ -1325,7 +1304,6 @@ void DrawInventoryBar(void)
     int x;
 
     x = inv_ptr - curpos;
-    UpdateState |= I_STATBAR;
     V_DrawPatch(38, 162, PatchINVBAR);
     for (i = 0; i < 7; i++)
     {
@@ -1383,7 +1361,6 @@ void DrawKeyBar(void)
             }
         }
         oldkeys = CPlayer->keys;
-        UpdateState |= I_STATBAR;
     }
     temp = AutoArmorSave[CPlayer->class]
         + CPlayer->armorpoints[ARMOR_ARMOR] +
@@ -1420,7 +1397,6 @@ void DrawKeyBar(void)
             }
         }
         oldarmor = temp;
-        UpdateState |= I_STATBAR;
     }
 }
 
@@ -1471,7 +1447,6 @@ void DrawFullScreenStuff(void)
     int x;
     int temp;
 
-    UpdateState |= I_FULLSCRN;
     if (CPlayer->mo->health > 0)
     {
         DrBNumber(CPlayer->mo->health, 5, 180);
@@ -1552,9 +1527,7 @@ void Draw_TeleportIcon(void)
     patch_t *patch;
     patch = W_CacheLumpNum(W_GetNumForName("teleicon"), PU_CACHE);
     V_DrawPatch(100, 68, patch);
-    UpdateState |= I_FULLSCRN;
     I_FinishUpdate();
-    UpdateState |= I_FULLSCRN;
 }
 
 //==========================================================================
@@ -1567,9 +1540,7 @@ void Draw_SaveIcon(void)
     patch_t *patch;
     patch = W_CacheLumpNum(W_GetNumForName("saveicon"), PU_CACHE);
     V_DrawPatch(100, 68, patch);
-    UpdateState |= I_FULLSCRN;
     I_FinishUpdate();
-    UpdateState |= I_FULLSCRN;
 }
 
 //==========================================================================
@@ -1582,9 +1553,7 @@ void Draw_LoadIcon(void)
     patch_t *patch;
     patch = W_CacheLumpNum(W_GetNumForName("loadicon"), PU_CACHE);
     V_DrawPatch(100, 68, patch);
-    UpdateState |= I_FULLSCRN;
     I_FinishUpdate();
-    UpdateState |= I_FULLSCRN;
 }
 
 
@@ -1955,7 +1924,6 @@ static void CheatClassFunc2(player_t * player, Cheat_t * cheat)
     P_PostMorphWeapon(player, WP_FIRST);
     SB_SetClassData();
     SB_state = -1;
-    UpdateState |= I_FULLSCRN;
 }
 
 static void CheatVersionFunc(player_t * player, Cheat_t * cheat)
