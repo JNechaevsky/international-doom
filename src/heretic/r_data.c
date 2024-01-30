@@ -701,6 +701,7 @@ void R_InitColormaps(void)
 		}
 	}
 
+	W_ReleaseLumpName("PLAYPAL");
 	W_ReleaseLumpName("COLORMAP");
 #endif
 }
