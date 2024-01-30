@@ -1245,8 +1245,8 @@ void DrawMainBar(void)
         V_DrawPatch(94, 164, manaVialPatch1);
         for (i = 165; i < 187 - (22 * CPlayer->mana[0]) / MAX_MANA; i++)
         {
-         for (j = 0; j <= vid_resolution; j++)
-          for (k = 0; k <= vid_resolution; k++)
+         for (j = 0; j < vid_resolution; j++)
+          for (k = 0; k < vid_resolution; k++)
           {
             I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
                           + ((95 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
@@ -1259,8 +1259,8 @@ void DrawMainBar(void)
         V_DrawPatch(102, 164, manaVialPatch2);
         for (i = 165; i < 187 - (22 * CPlayer->mana[1]) / MAX_MANA; i++)
         {
-         for (j = 0; j <= vid_resolution; j++)
-          for (k = 0; k <= vid_resolution; k++)
+         for (j = 0; j < vid_resolution; j++)
+          for (k = 0; k < vid_resolution; k++)
           {
             I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
                           + ((103 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
