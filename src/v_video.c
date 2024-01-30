@@ -180,7 +180,7 @@ static const inline pixel_t drawshadow_doom (const pixel_t dest, const pixel_t s
 #else
 {return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
 #endif
-// Heretic
+// Heretic & Hexen
 static const inline pixel_t drawshadow_raven (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[(dest<<8)];}
@@ -191,7 +191,7 @@ static const inline pixel_t drawshadow_raven (const pixel_t dest, const pixel_t 
 // [JN] V_DrawTLPatch (translucent patch, no coloring or color-translation are used)
 static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
-{return tinttable[(dest+(source<<8)];}
+{return tinttable[dest+(source<<8)];}
 #else
 {return I_BlendOverTinttab(dest, colormaps[source]);}
 #endif
@@ -201,7 +201,7 @@ static const inline pixel_t drawalttinttab (const pixel_t dest, const pixel_t so
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[(dest<<8)+source];}
 #else
-{return I_BlendOverTinttab(dest, colormaps[source]);}
+{return I_BlendOverAltTinttab(dest, colormaps[source]);}
 #endif
 
 // [crispy] array of function pointers holding the different rendering functions

@@ -1446,7 +1446,7 @@ static void DrawFullScreenStuff (void)
 
             patch = DEH_String(patcharti[CPlayer->readyArtifact]);
 
-            V_DrawTLPatch(211 + xx + wide_x, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+            V_DrawAltTLPatch(211 + xx + wide_x, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
             V_DrawShadowedPatch(211 + xx + wide_x, 170, W_CacheLumpName(patch, PU_CACHE));
             DrSmallNumber(CPlayer->inventory[inv_ptr].count, 232 + xx + wide_x, 192);
         }
@@ -1473,7 +1473,7 @@ static void DrawFullScreenStuff (void)
 
         for (i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(47 + i * 31, 169, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+            V_DrawAltTLPatch(47 + i * 31, 169, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
 
             if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
