@@ -380,7 +380,7 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
     Channel[i].mo = origin;
 
     vol = (SoundCurve[dist] * (snd_MaxVolume * 8) * volume) >> 14;
-    if (origin == listener)
+    if (origin == listener || snd_monosfx)
     {
         sep = 128;
 //              vol = (volume*(snd_MaxVolume+1)*8)>>7;
@@ -654,7 +654,7 @@ void S_UpdateSounds(mobj_t * listener)
             vol =
                 (SoundCurve[dist] * (snd_MaxVolume * 8) *
                  Channel[i].volume) >> 14;
-            if (Channel[i].mo == listener)
+            if (Channel[i].mo == listener || snd_monosfx)
             {
                 sep = 128;
             }
@@ -689,9 +689,9 @@ void S_Init(void)
     SoundCurve = W_CacheLumpName("SNDCURVE", PU_STATIC);
 //      SoundCurve = Z_Malloc(MAX_SND_DIST, PU_STATIC, NULL);
 
-    if (snd_Channels > 8)
+    if (snd_Channels > 16)
     {
-        snd_Channels = 8;
+        snd_Channels = 16;
     }
     I_SetMusicVolume(snd_MusicVolume * 8);
 

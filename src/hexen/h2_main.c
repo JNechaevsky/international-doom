@@ -863,7 +863,11 @@ void H2_GameLoop(void)
             oldgametic = gametic;
         }
 
-        DrawAndBlit();
+        // Update display, next frame, with current state.
+        if (screenvisible)
+        {
+            DrawAndBlit();
+        }
     }
 }
 

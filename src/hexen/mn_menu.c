@@ -325,7 +325,7 @@ static Menu_t Options2Menu = {
     6, Options2Items,
     0,
     false, false, false,
-    MENU_OPTIONS
+    MENU_ID_MAIN
 };
 
 // =============================================================================
@@ -377,7 +377,7 @@ static void M_ID_MusicSystem (int option);
 static void M_ID_SFXMode (int option);
 static void M_ID_PitchShift (int option);
 static void M_ID_SFXChannels (int option);
-static void M_ID_MuteInactive (int option);
+// static void M_ID_MuteInactive (int option);
 
 // -----------------------------------------------------------------------------
 
@@ -1064,13 +1064,13 @@ static MenuItem_t ID_Menu_Sound[] = {
     { ITT_LRFUNC, "SOUNDS EFFECTS MODE",  M_ID_SFXMode,     0, MENU_NONE },
     { ITT_LRFUNC, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,  0, MENU_NONE },
     { ITT_LRFUNC, "NUMBER OF SFX TO MIX", M_ID_SFXChannels, 0, MENU_NONE },
-    { ITT_LRFUNC, "MUTE INACTIVE WINDOW", M_ID_MuteInactive,0, MENU_NONE },
+//  { ITT_LRFUNC, "MUTE INACTIVE WINDOW", M_ID_MuteInactive,0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Sound = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Sound,
-    12, ID_Menu_Sound,
+    11, ID_Menu_Sound,
     0,
     true, false, false,
     MENU_ID_MAIN
@@ -1106,30 +1106,25 @@ static void M_Draw_ID_Sound (void)
                M_Item_Glow(7, snd_musicdevice ? GLOW_GREEN : GLOW_RED));
 
     // Sound effects mode
-    // sprintf(str, snd_monosfx ? "MONO" : "STEREO");
-    sprintf(str, "TODO!");
+    sprintf(str, snd_monosfx ? "MONO" : "STEREO");
     MN_DrTextA(str, M_ItemRightAlign(str), 100,
                M_Item_Glow(8, snd_monosfx ? GLOW_RED : GLOW_GREEN));
 
     // Pitch-shifted sounds
-    // sprintf(str, snd_pitchshift ? "ON" : "OFF");
-    sprintf(str, "TODO!");
+    sprintf(str, snd_pitchshift ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
 
     // Number of SFX to mix
-    // sprintf(str, "%i", snd_channels);
-    sprintf(str, "TODO!");
+    sprintf(str, "%i", snd_Channels);
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, snd_channels == 8 ? GLOW_DARKRED :
-                               snd_channels  < 3 ? GLOW_RED : GLOW_YELLOW));
+               M_Item_Glow(10, snd_Channels == 8 ? GLOW_DARKRED :
+                               snd_Channels  < 3 ? GLOW_RED : GLOW_YELLOW));
 
     // Mute inactive window
-    //sprintf(str, snd_mute_inactive ? "ON" : "OFF");
-    // [JN] Implement window-toggle safe function or use SNDCURVE like in Heretic.
-    sprintf(str, "TODO!");
-    MN_DrTextA(str, M_ItemRightAlign(str), 130,
-               M_Item_Glow(11, snd_mute_inactive ? GLOW_GREEN : GLOW_RED));
+    // sprintf(str, snd_mute_inactive ? "ON" : "OFF");
+    // MN_DrTextA(str, M_ItemRightAlign(str), 130,
+    //            M_Item_Glow(11, snd_mute_inactive ? GLOW_GREEN : GLOW_RED));
 
     // Inform that music system is not hot-swappable. :(
     if (CurrentItPos == 7)
@@ -1224,13 +1219,16 @@ static void M_ID_SFXChannels (int option)
     // [JN] Note: cap minimum channels to 2, not 1.
     // Only one channel produces a strange effect, 
     // as if there were no channels at all.
-    snd_channels = M_INT_Slider(snd_channels, 2, 16, option, true);
+    snd_Channels = M_INT_Slider(snd_Channels, 2, 16, option, true);
 }
 
+// [JN] TODO?
+/*
 static void M_ID_MuteInactive (int option)
 {
     snd_mute_inactive ^= 1;
 }
+*/
 
 // CODE --------------------------------------------------------------------
 
