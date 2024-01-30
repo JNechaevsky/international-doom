@@ -183,7 +183,10 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("vid_screenwipe",             &vid_screenwipe);
         M_BindIntVariable("vid_diskicon",               &vid_diskicon);
     }
-    M_BindIntVariable("vid_endoom",                     &vid_endoom);
+    if (mission == doom || mission == heretic)
+    {
+        M_BindIntVariable("vid_endoom",                 &vid_endoom);
+    }
 
     //
     // Display options
@@ -241,7 +244,10 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("automap_scheme",             &automap_scheme);
         M_BindIntVariable("automap_smooth",             &automap_smooth);
     }
-    M_BindIntVariable("automap_secrets",                &automap_secrets);
+    if (mission == doom || mission == heretic)
+    {
+        M_BindIntVariable("automap_secrets",            &automap_secrets);
+    }
     M_BindIntVariable("automap_rotate",                 &automap_rotate);
     M_BindIntVariable("automap_overlay",                &automap_overlay);
     M_BindIntVariable("automap_shading",                &automap_shading);
@@ -253,7 +259,10 @@ void ID_BindVariables (GameMission_t mission)
     // Visual
     M_BindIntVariable("vis_brightmaps",                 &vis_brightmaps);
     M_BindIntVariable("vis_translucency",               &vis_translucency);
-    M_BindIntVariable("vis_fake_contrast",              &vis_fake_contrast);
+    if (mission == doom || mission == heretic)
+    {
+        M_BindIntVariable("vis_fake_contrast",          &vis_fake_contrast);
+    }
     M_BindIntVariable("vis_smooth_light",               &vis_smooth_light);
     if (mission == doom)
     {
@@ -261,7 +270,10 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("vis_colored_blood",          &vis_colored_blood);
     }
     M_BindIntVariable("vis_swirling_liquids",           &vis_swirling_liquids);
-    M_BindIntVariable("vis_invul_sky",                  &vis_invul_sky);
+    if (mission == doom || mission == heretic)
+    {
+        M_BindIntVariable("vis_invul_sky",              &vis_invul_sky);
+    }
     M_BindIntVariable("vis_linear_sky",                 &vis_linear_sky);
     M_BindIntVariable("vis_flip_corpses",               &vis_flip_corpses);
     
@@ -284,7 +296,10 @@ void ID_BindVariables (GameMission_t mission)
     }
     
     // Audible
-    M_BindIntVariable("aud_z_axis_sfx",                 &aud_z_axis_sfx);
+    if (mission == doom || mission == heretic)
+    {
+        M_BindIntVariable("aud_z_axis_sfx",             &aud_z_axis_sfx);
+    }
     if (mission == doom)
     {
         M_BindIntVariable("aud_full_sounds",            &aud_full_sounds);
@@ -304,7 +319,10 @@ void ID_BindVariables (GameMission_t mission)
     
     // Gameplay
     M_BindIntVariable("gp_default_skill",               &gp_default_skill);
-    M_BindIntVariable("gp_revealed_secrets",            &gp_revealed_secrets);
+    if (mission == doom || mission == heretic)
+    {
+        M_BindIntVariable("gp_revealed_secrets",        &gp_revealed_secrets);
+    }
     M_BindIntVariable("gp_flip_levels",                 &gp_flip_levels);
     
     // Demos
@@ -314,7 +332,10 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("demo_internal",                  &demo_internal);
     
     // Compatibility-breaking
-    M_BindIntVariable("compat_pistol_start",            &compat_pistol_start);
+    if (mission == doom || mission == heretic)
+    {
+        M_BindIntVariable("compat_pistol_start",        &compat_pistol_start);
+    }
     M_BindIntVariable("compat_blockmap_fix",            &compat_blockmap_fix);
     if (mission == doom)
     {
