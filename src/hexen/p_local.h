@@ -358,6 +358,7 @@ void A_UnHideThing(mobj_t *actor, player_t *player, pspdef_t *psp);
 extern int SB_palette;
 extern int SB_state;
 extern int ArtifactFlash;
+void SB_ForceRedraw(void);
 void SB_PaletteFlash(boolean forceChange);
 
 // ===== PO_MAN =====

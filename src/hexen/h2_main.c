@@ -985,12 +985,12 @@ static void DrawAndBlit(void)
     {
         if (!netgame)
         {
-            V_DrawPatch(160, (viewwindowy / vid_resolution) + 5, W_CacheLumpName("PAUSED",
+            V_DrawShadowedPatchOptional(160, (viewwindowy / vid_resolution) + 5, 1, W_CacheLumpName("PAUSED",
                                                               PU_CACHE));
         }
         else
         {
-            V_DrawPatch(160, 70, W_CacheLumpName("PAUSED", PU_CACHE));
+            V_DrawShadowedPatchOptional(160, 70, 1, W_CacheLumpName("PAUSED", PU_CACHE));
         }
     }
 

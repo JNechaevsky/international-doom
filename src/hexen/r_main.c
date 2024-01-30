@@ -925,6 +925,7 @@ void R_SetupFrame(player_t * player)
     }
 
     extralight = player->extralight;
+    extralight += dp_level_brightness;  // [JN] Level Brightness feature.
 
     tableAngle = viewangle >> ANGLETOFINESHIFT;
 

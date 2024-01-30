@@ -72,6 +72,7 @@ typedef enum
     MENU_SAVE,
     MENU_ID_MAIN,
     MENU_ID_VIDEO,
+    MENU_ID_DISPLAY,
     MENU_NONE
 } MenuType_t;
 
@@ -357,7 +358,23 @@ static void M_ID_VSync (int choice);
 static void M_ID_ShowFPS (int choice);
 static void M_ID_PixelScaling (int choice);
 
+static void M_Draw_ID_Display (void);
+static void M_ID_Gamma (int choice);
+static void M_ID_FOV (int choice);
+static void M_ID_MenuShading (int choice);
+static void M_ID_LevelBrightness (int choice);
+static void M_ID_Saturation (int choice);
+static void M_ID_R_Intensity (int choice);
+static void M_ID_G_Intensity (int choice);
+static void M_ID_B_Intensity (int choice);
+static void M_ID_Messages (int choice);
+static void M_ID_TextShadows (int choice);
+static void M_ID_LocalTime (int choice);
+
 // -----------------------------------------------------------------------------
+
+// [JN] Delay before shading.
+static int shade_wait;
 
 // [JN] Shade background while in CRL menu.
 static void M_ShadeBackground (void)
@@ -527,18 +544,45 @@ static const int M_INT_Slider (int val, int min, int max, int direction, boolean
     return val;
 }
 
+static const float M_FLOAT_Slider (float val, float min, float max, float step,
+                                   int direction, boolean capped)
+{
+    char buf[9];
+
+    switch (direction)
+    {
+        case 0:
+        val -= step;
+        if (val < min) 
+            val = capped ? min : max;
+        break;
+
+        case 1:
+        val += step;
+        if (val > max)
+            val = capped ? max : min;
+        break;
+    }
+
+    // [JN] Do a float correction to always get x.xxx000 values:
+    sprintf (buf, "%f", val);
+    val = (float)atof(buf);
+    return val;
+}
+
 // -----------------------------------------------------------------------------
 // Main ID Menu
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Main[] = {
     { ITT_SETMENU, "VIDEO OPTIONS",       NULL,                 0, MENU_ID_VIDEO     },
+    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,                 0, MENU_ID_DISPLAY   },
 };
 
 static Menu_t ID_Def_Main = {
     ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
     M_Draw_ID_Main,
-    1, ID_Menu_Main,
+    2, ID_Menu_Main,
     0,
     true, false, false,
     MENU_MAIN
@@ -791,6 +835,217 @@ static void M_ID_PixelScaling (int choice)
     R_ExecuteSetViewSize();
 }
 
+// -----------------------------------------------------------------------------
+// Display options
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Display[] = {
+    { ITT_LRFUNC, "GAMMA-CORRECTION",        M_ID_Gamma,           0, MENU_NONE },
+    { ITT_LRFUNC, "FIELD OF VIEW",           M_ID_FOV,             0, MENU_NONE },
+    { ITT_LRFUNC, "MENU BACKGROUND SHADING", M_ID_MenuShading,     0, MENU_NONE },
+    { ITT_LRFUNC, "EXTRA LEVEL BRIGHTNESS",  M_ID_LevelBrightness, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "SATURATION",              M_ID_Saturation,      0, MENU_NONE },
+    { ITT_LRFUNC, "RED INTENSITY",           M_ID_R_Intensity,     0, MENU_NONE },
+    { ITT_LRFUNC, "GREEN INTENSITY",         M_ID_G_Intensity,     0, MENU_NONE },
+    { ITT_LRFUNC, "BLUE INTENSITY",          M_ID_B_Intensity,     0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "MESSAGES ENABLED",        M_ID_Messages,        0, MENU_NONE },
+    { ITT_LRFUNC, "TEXT CASTS SHADOWS",      M_ID_TextShadows,     0, MENU_NONE },
+    { ITT_LRFUNC, "LOCAL TIME",              M_ID_LocalTime,       0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Display = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Display,
+    13, ID_Menu_Display,
+    0,
+    true, false, false,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Display (void)
+{
+    char str[32];
+
+    M_ShadeBackground();
+
+    MN_DrTextACentered("DISPLAY OPTIONS", 10, cr[CR_YELLOW]);
+
+    // Gamma-correction num
+    MN_DrTextA(gammalvls[vid_gamma][1], M_ItemRightAlign(gammalvls[vid_gamma][1]), 20,
+               M_Item_Glow(0, GLOW_LIGHTGRAY));
+
+    // Field of View
+    sprintf(str, "%d", vid_fov);
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, vid_fov == 135 || vid_fov == 70 ? GLOW_YELLOW :
+                              vid_fov == 90 ? GLOW_DARKRED : GLOW_GREEN));
+
+    // Background shading
+    sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, dp_menu_shading == 8 ? GLOW_YELLOW :
+                              dp_menu_shading >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+
+    // Extra level brightness
+    sprintf(str, dp_level_brightness ? "%d" : "OFF", dp_level_brightness);
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, dp_level_brightness == 8 ? GLOW_YELLOW :
+                              dp_level_brightness >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+
+    MN_DrTextACentered("COLOR SETTINGS", 60, cr[CR_YELLOW]);
+
+    // Saturation
+    M_snprintf(str, 6, "%d%%", vid_saturation);
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, GLOW_LIGHTGRAY));
+
+    // RED intensity
+    M_snprintf(str, 6, "%3f", vid_r_intensity);
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, GLOW_RED));
+
+    // GREEN intensity
+    M_snprintf(str, 6, "%3f", vid_g_intensity);
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, GLOW_GREEN));
+
+    // BLUE intensity
+    M_snprintf(str, 6, "%3f", vid_b_intensity);
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, GLOW_BLUE));
+
+    MN_DrTextACentered("MESSAGES SETTINGS", 110, cr[CR_YELLOW]);
+
+    // Messages enabled
+    sprintf(str, msg_show ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, msg_show ? GLOW_DARKRED : GLOW_GREEN));
+
+    // Text casts shadows
+    sprintf(str, msg_text_shadows ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, msg_text_shadows ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Local time
+    sprintf(str, msg_local_time == 1 ? "12-HOUR FORMAT" :
+                 msg_local_time == 2 ? "24-HOUR FORMAT" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
+               M_Item_Glow(12, msg_local_time ? GLOW_GREEN : GLOW_DARKRED));
+}
+
+static void M_ID_Gamma (int choice)
+{
+    shade_wait = I_GetTime() + TICRATE;
+
+    vid_gamma = M_INT_Slider(vid_gamma, 0, 14, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+#else
+    I_SetPalette(SB_palette);
+    R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+    // [JN] TODO
+    // R_FillBackScreen();
+    SB_ForceRedraw();
+#endif
+}
+
+static void M_ID_FOV (int choice)
+{
+    vid_fov = M_INT_Slider(vid_fov, 70, 135, choice, true);
+
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
+}
+
+static void M_ID_MenuShading (int choice)
+{
+    dp_menu_shading = M_INT_Slider(dp_menu_shading, 0, 8, choice, true);
+}
+
+static void M_ID_LevelBrightness (int choice)
+{
+    dp_level_brightness = M_INT_Slider(dp_level_brightness, 0, 8, choice, true);
+}
+
+static void M_ID_Saturation (int choice)
+{
+    vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
+#else
+    R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+    // [JN] TODO
+    // R_FillBackScreen();
+    SB_ForceRedraw();
+#endif
+}
+
+static void M_ID_R_Intensity (int choice)
+{
+    vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
+#else
+    R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+    // [JN] TODO
+    // R_FillBackScreen();
+    SB_ForceRedraw();
+#endif
+}
+
+static void M_ID_G_Intensity (int choice)
+{
+    vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
+#else
+    R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+    // [JN] TODO
+    // R_FillBackScreen();
+    SB_ForceRedraw();
+#endif
+}
+
+static void M_ID_B_Intensity (int choice)
+{
+    vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
+#else
+    R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+    // [JN] TODO
+    // R_FillBackScreen();
+    SB_ForceRedraw();
+#endif
+}
+
+static void M_ID_Messages (int choice)
+{
+    msg_show ^= 1;
+    P_SetMessage(&players[consoleplayer],
+                 msg_show ? "MESSAGES ON" : "MESSAGES OFF", true);
+    S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+}
+
+static void M_ID_TextShadows (int choice)
+{
+    msg_text_shadows ^= 1;
+}
+
+static void M_ID_LocalTime (int choice)
+{
+    msg_local_time = M_INT_Slider(msg_local_time, 0, 2, choice, false);
+}
+
 // CODE --------------------------------------------------------------------
 
 static Menu_t *Menus[] = {
@@ -805,6 +1060,7 @@ static Menu_t *Menus[] = {
     // [JN] ID menu items
     &ID_Def_Main,
     &ID_Def_Video,
+    &ID_Def_Display,
 };
 
 //---------------------------------------------------------------------------
@@ -858,7 +1114,7 @@ void MN_DrTextA (const char *text, int x, int y, byte *table)
         else
         {
             p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
-            V_DrawPatch(x, y, p);
+            V_DrawShadowedPatchOptional(x, y, 1, p);
             x += SHORT(p->width) - 1;
         }
     }
@@ -913,7 +1169,7 @@ void MN_DrTextAYellow(const char *text, int x, int y)
         else
         {
             p = W_CacheLumpNum(FontAYellowBaseLump + c - 33, PU_CACHE);
-            V_DrawPatch(x, y, p);
+            V_DrawShadowedPatchOptional(x, y, 1, p);
             x += SHORT(p->width) - 1;
         }
     }
@@ -971,7 +1227,7 @@ void MN_DrTextB(const char *text, int x, int y)
         else
         {
             p = W_CacheLumpNum(FontBBaseLump + c - 33, PU_CACHE);
-            V_DrawPatch(x, y, p);
+            V_DrawShadowedPatchOptional(x, y, 1, p);
             x += SHORT(p->width) - 1;
         }
     }
@@ -1170,6 +1426,9 @@ void MN_Drawer(void)
                         W_CacheLumpName(selName, PU_CACHE));
         }
     }
+
+    // [JN] Always refresh statbar while menu is active.
+    SB_ForceRedraw();
 }
 
 //---------------------------------------------------------------------------
@@ -1346,7 +1605,7 @@ static void DrawFileSlots(Menu_t * menu)
     y = menu->y;
     for (i = 0; i < 6; i++)
     {
-        V_DrawPatch(x, y, W_CacheLumpName("M_FSLOT", PU_CACHE));
+        V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName("M_FSLOT", PU_CACHE));
         if (SlotStatus[i])
         {
             MN_DrTextA(SlotText[i], x + 5, y + 5, NULL);
@@ -2579,13 +2838,20 @@ static void DrawSlider(Menu_t * menu, int item, int width, int slot)
 
     x = menu->x + 24;
     y = menu->y + 2 + (item * ITEM_HEIGHT);
-    V_DrawPatch(x - 32, y, W_CacheLumpName("M_SLDLT", PU_CACHE));
+    V_DrawShadowedPatchOptional(x - 32, y, 1, W_CacheLumpName("M_SLDLT", PU_CACHE));
     for (x2 = x, count = width; count--; x2 += 8)
     {
-        V_DrawPatch(x2, y, W_CacheLumpName(count & 1 ? "M_SLDMD1"
+        V_DrawShadowedPatchOptional(x2, y, 1, W_CacheLumpName(count & 1 ? "M_SLDMD1"
                                            : "M_SLDMD2", PU_CACHE));
     }
-    V_DrawPatch(x2, y, W_CacheLumpName("M_SLDRT", PU_CACHE));
+    V_DrawShadowedPatchOptional(x2, y, 1, W_CacheLumpName("M_SLDRT", PU_CACHE));
+
+    // [JN] Prevent gem go out of slider bounds.
+    if (slot > width - 1)
+    {
+        slot = width - 1;
+    }
+
     V_DrawPatch(x + 4 + slot * 8, y + 7,
                 W_CacheLumpName("M_SLDKB", PU_CACHE));
 }
