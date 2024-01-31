@@ -170,8 +170,7 @@ static void TextWrite(void)
     int cx, cy;
     patch_t *w;
 
-    memcpy(I_VideoBuffer, W_CacheLumpNum(FinaleLumpNum, PU_CACHE),
-           SCREENWIDTH * SCREENHEIGHT);
+    V_DrawFullscreenRawOrPatch(FinaleLumpNum); // [crispy]
     if (FinaleStage == 5)
     {                           // Chess pic, draw the correct character graphic
         if (netgame)
@@ -319,8 +318,7 @@ static void FadePic(void)
 
 static void DrawPic(void)
 {
-    memcpy(I_VideoBuffer, W_CacheLumpNum(FinaleLumpNum, PU_CACHE),
-           SCREENWIDTH * SCREENHEIGHT);
+    V_DrawFullscreenRawOrPatch(FinaleLumpNum); // [crispy]
     if (FinaleStage == 4 || FinaleStage == 5)
     {                           // Chess pic, draw the correct character graphic
         if (netgame)
