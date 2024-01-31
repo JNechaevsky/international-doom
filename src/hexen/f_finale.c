@@ -27,6 +27,7 @@
 #include "v_video.h"
 #include "i_swap.h"
 #include "am_map.h"
+#include "v_trans.h"
 
 
 // MACROS ------------------------------------------------------------------
@@ -62,9 +63,14 @@ static int FinaleLumpNum;
 static int FontABaseLump;
 static char *FinaleText;
 
+#ifndef CRISPY_TRUECOLOR
 static fixed_t *Palette;
 static fixed_t *PaletteDelta;
 static byte *RealPalette;
+#else
+// [JN] Tics representing opacity value for blending function.
+static int BlendTic;
+#endif
 
 // CODE --------------------------------------------------------------------
 
@@ -154,6 +160,26 @@ void F_Ticker(void)
     {
         FadePic();
     }
+#ifdef CRISPY_TRUECOLOR
+    // [JN] Fade in (from-black-to-normal) on 0 and 4 stages,
+    // and fade out (from normal-to-black) on 3 stage.
+    if (FinaleStage == 0 || FinaleStage == 4)
+    {
+        BlendTic += 4;
+        if (BlendTic > 255)
+        {
+            BlendTic = 255;
+        }
+    }
+    if (FinaleStage == 3)
+    {
+        BlendTic -= 4;
+        if (BlendTic < 0)
+        {
+            BlendTic = 0;
+        }
+    }
+#endif
 }
 
 //===========================================================================
@@ -241,6 +267,7 @@ static void TextWrite(void)
 
 static void InitializeFade(boolean fadeIn)
 {
+#ifndef CRISPY_TRUECOLOR
     unsigned i;
 
     Palette = Z_Malloc(768 * sizeof(fixed_t), PU_STATIC, 0);
@@ -268,10 +295,10 @@ static void InitializeFade(boolean fadeIn)
             PaletteDelta[i] = FixedDiv(Palette[i], -70 * FRACUNIT);
         }
     }
-#ifndef CRISPY_TRUECOLOR
     I_SetPalette(RealPalette);
 #else
-    // [cirspy] TODO - perform fading via I_BlendDark function?
+    // [JN] Reset blending tic to initial value.
+    BlendTic = fadeIn ? 0 : 255;
 #endif
 }
 
@@ -283,9 +310,11 @@ static void InitializeFade(boolean fadeIn)
 
 static void DeInitializeFade(void)
 {
+#ifndef CRISPY_TRUECOLOR
     Z_Free(Palette);
     Z_Free(PaletteDelta);
     Z_Free(RealPalette);
+#endif
 }
 
 //===========================================================================
@@ -296,6 +325,7 @@ static void DeInitializeFade(void)
 
 static void FadePic(void)
 {
+#ifndef CRISPY_TRUECOLOR
     unsigned i;
 
     for (i = 0; i < 768; i++)
@@ -303,10 +333,7 @@ static void FadePic(void)
         Palette[i] += PaletteDelta[i];
         RealPalette[i] = Palette[i] >> FRACBITS;
     }
-#ifndef CRISPY_TRUECOLOR
     I_SetPalette(RealPalette);
-#else
-    // [cirspy] TODO - perform fading via I_BlendDark function?
 #endif
 }
 
@@ -332,6 +359,13 @@ static void DrawPic(void)
                                               1, PU_CACHE));
         }
     }
+#ifdef CRISPY_TRUECOLOR
+    // [JN] Apply true color blending on top of patch drawing functions.
+    for (int y = 0; y < SCREENWIDTH * SCREENHEIGHT; y++)
+    {
+        I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], BlendTic);
+    }
+#endif
 }
 
 //===========================================================================
