@@ -2230,6 +2230,10 @@ void SV_MapTeleport(int map, int position)
     int currentInvPos;
     boolean rClass;
     boolean playerWasReborn;
+// [JN] Shut up useless GCC compiler warning:
+#if defined (__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
     boolean oldWeaponowned[NUMWEAPONS];
     int oldKeys = 0;
     int oldPieces = 0;
