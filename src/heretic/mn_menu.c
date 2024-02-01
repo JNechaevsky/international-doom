@@ -5295,6 +5295,8 @@ boolean MN_Responder(event_t * event)
         (key != 0 && key == key_menu_screenshot))
     {
         G_ScreenShot();
+        // [JN] Audible feedback.
+        S_StartSound(NULL, sfx_itemup);
         return (true);
     }
 
