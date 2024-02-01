@@ -74,6 +74,7 @@ typedef enum
     MENU_ID_VIDEO,
     MENU_ID_DISPLAY,
     MENU_ID_SOUND,
+    MENU_ID_CONTROLS,
     MENU_NONE
 } MenuType_t;
 
@@ -379,6 +380,14 @@ static void M_ID_PitchShift (int option);
 static void M_ID_SFXChannels (int option);
 // static void M_ID_MuteInactive (int option);
 
+static void M_Draw_ID_Controls (void);
+static void M_ID_Controls_Acceleration (int option);
+static void M_ID_Controls_Threshold (int option);
+static void M_ID_Controls_MLook (int option);
+static void M_ID_Controls_NoVert (int option);
+static void M_ID_Controls_InvertY (int option);
+static void M_ID_Controls_NoArtiSkip (int option);
+
 // -----------------------------------------------------------------------------
 
 // [JN] Delay before shading.
@@ -398,6 +407,14 @@ static void M_ShadeBackground (void)
 #endif
         }
     }
+}
+
+static void M_FillBackground (void)
+{
+    const byte *src = W_CacheLumpName("F_032", PU_CACHE);
+    pixel_t *dest = I_VideoBuffer;
+
+    V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 }
 
 static byte *M_Line_Glow (const int tics)
@@ -586,12 +603,13 @@ static MenuItem_t ID_Menu_Main[] = {
     { ITT_SETMENU, "VIDEO OPTIONS",       NULL,                 0, MENU_ID_VIDEO     },
     { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,                 0, MENU_ID_DISPLAY   },
     { ITT_SETMENU, "SOUND OPTIONS",       NULL,                 0, MENU_ID_SOUND     },
+    { ITT_SETMENU, "CONTROL SETTINGS",    NULL,                 0, MENU_ID_CONTROLS  },
 };
 
 static Menu_t ID_Def_Main = {
     ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
     M_Draw_ID_Main,
-    3, ID_Menu_Main,
+    4, ID_Menu_Main,
     0,
     true, false, false,
     MENU_MAIN
@@ -1230,6 +1248,121 @@ static void M_ID_MuteInactive (int option)
 }
 */
 
+// -----------------------------------------------------------------------------
+// Control settings
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Controls[] = {
+    { ITT_EMPTY,   "KEYBOARD BINDINGS",       NULL,                       0, MENU_NONE /*TODO*/ },
+    { ITT_EMPTY,   "MOUSE BINDINGS",          NULL,                       0, MENU_NONE /*TODO*/ },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC,  "SENSIVITY",               SCMouseSensi,               0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC,  "ACCELERATION",            M_ID_Controls_Acceleration, 0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC,  "ACCELERATION THRESHOLD",  M_ID_Controls_Threshold,    0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC,  "MOUSE LOOK",              M_ID_Controls_MLook,        0, MENU_NONE          },
+    { ITT_LRFUNC,  "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,       0, MENU_NONE          },
+    { ITT_LRFUNC,  "INVERT VERTICAL AXIS",    M_ID_Controls_InvertY,      0, MENU_NONE          },
+    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC,  "PERMANENT \"NOARTISKIP\" MODE", M_ID_Controls_NoArtiSkip, 0, MENU_NONE      },
+};
+
+static Menu_t ID_Def_Controls = {
+    /*ID_MENU_LEFTOFFSET*/ 44, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Controls,
+    17, ID_Menu_Controls,
+    0,
+    true, false, false,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Controls (void)
+{
+    char str[32];
+
+    M_FillBackground();
+
+    MN_DrTextACentered("BINDINGS", 10, cr[CR_YELLOW]);
+
+    MN_DrTextACentered("MOUSE CONFIGURATION", 40, cr[CR_YELLOW]);
+
+    DrawSlider(&ID_Def_Controls, 4, 10, mouseSensitivity, false);
+    sprintf(str,"%d", mouseSensitivity);
+    MN_DrTextA(str, 180, 65, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
+                                         mouseSensitivity > 9 ? GLOW_GREEN : GLOW_LIGHTGRAY));
+
+    DrawSlider(&ID_Def_Controls, 7, 12, mouse_acceleration * 2, false);
+    sprintf(str,"%.1f", mouse_acceleration);
+    MN_DrTextA(str, 196, 95, M_Item_Glow(6, GLOW_LIGHTGRAY));
+
+    DrawSlider(&ID_Def_Controls, 10, 14, mouse_threshold / 2, false);
+    sprintf(str,"%d", mouse_threshold);
+    MN_DrTextA(str, 212, 125, M_Item_Glow(9, GLOW_LIGHTGRAY));
+
+    // Mouse look
+    sprintf(str, mouse_look ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
+               M_Item_Glow(12, mouse_look ? GLOW_GREEN : GLOW_RED));
+
+    // Vertical mouse movement
+    sprintf(str, mouse_novert ? "OFF" : "ON");
+    MN_DrTextA(str, M_ItemRightAlign(str), 150,
+               M_Item_Glow(13, mouse_novert ? GLOW_RED : GLOW_GREEN));
+
+    // Invert vertical axis
+    sprintf(str, mouse_y_invert ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 160,
+               M_Item_Glow(14, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
+
+    MN_DrTextACentered("MISCELLANEOUS", 170, cr[CR_YELLOW]);
+
+    // Permanent "noartiskip" mode
+    sprintf(str, ctrl_noartiskip ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 180,
+               M_Item_Glow(16, ctrl_noartiskip ? GLOW_GREEN : GLOW_RED));
+}
+
+static void M_ID_Controls_Acceleration (int option)
+{
+    mouse_acceleration = M_FLOAT_Slider(mouse_acceleration, 1.000000f, 5.000000f, 0.100000f, option, true);
+}
+
+static void M_ID_Controls_Threshold (int option)
+{
+    mouse_threshold = M_INT_Slider(mouse_threshold, 0, 32, option, true);
+}
+
+static void M_ID_Controls_MLook (int option)
+{
+    mouse_look ^= 1;
+    if (!mouse_look)
+    {
+        players[consoleplayer].centering = true;
+    }
+}
+
+static void M_ID_Controls_NoVert (int option)
+{
+    mouse_novert ^= 1;
+}
+
+static void M_ID_Controls_InvertY (int choice)
+{
+    mouse_y_invert ^= 1;
+}
+
+static void M_ID_Controls_NoArtiSkip (int choice)
+{
+    ctrl_noartiskip ^= 1;
+}
+
+
+
 // CODE --------------------------------------------------------------------
 
 static Menu_t *Menus[] = {
@@ -1246,6 +1379,7 @@ static Menu_t *Menus[] = {
     &ID_Def_Video,
     &ID_Def_Display,
     &ID_Def_Sound,
+    &ID_Def_Controls,
 };
 
 //---------------------------------------------------------------------------
