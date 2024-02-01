@@ -83,6 +83,7 @@ typedef enum
     MENU_ID_KBDBINDS6,
     MENU_ID_KBDBINDS7,
     MENU_ID_KBDBINDS8,
+    MENU_ID_MOUSEBINDS,
     MENU_NONE
 } MenuType_t;
 
@@ -494,7 +495,6 @@ static void M_Bind_ToPlayer3 (int option);
 static void M_Bind_ToPlayer4 (int option);
 static void M_Bind_Reset (int option);
 
-/*
 static void M_Draw_ID_MouseBinds (void);
 static void M_Bind_M_FireAttack (int option);
 static void M_Bind_M_MoveForward (int option);
@@ -510,7 +510,6 @@ static void M_Bind_M_InventoryRight (int option);
 static void M_Bind_M_UseArtifact (int option);
 
 static void M_Bind_M_Reset (int option);
-*/
 
 // Keyboard binding prototypes
 static boolean KbdIsBinding;
@@ -525,6 +524,19 @@ static byte   *M_ColorizeBind (int itemSetOn, int key);
 static void    M_ResetBinds (void);
 static void    M_DrawBindKey (int itemNum, int yPos, int keyBind);
 static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
+
+// Mouse binding prototypes
+static boolean MouseIsBinding;
+static int     btnToBind;
+
+static char   *M_NameMouseBind (int CurrentItPosOn, int btn);
+static void    M_StartMouseBind (int btn);
+static void    M_CheckMouseBind (int btn);
+static void    M_DoMouseBind (int btnnum, int btn);
+static void    M_ClearMouseBind (int itemOn);
+static byte   *M_ColorizeMouseBind (int CurrentItPosOn, int btn);
+static void    M_DrawBindButton (int itemNum, int yPos, int btnBind);
+static void    M_ResetMouseBinds (void);
 
 // Forward declarations for scrolling and remembering last pages.
 static Menu_t ID_Def_Keybinds_1;
@@ -1446,7 +1458,7 @@ static void M_ID_MuteInactive (int option)
 
 static MenuItem_t ID_Menu_Controls[] = {
     { ITT_EFUNC,   "KEYBOARD BINDINGS",       M_Choose_ID_Keybinds,       0, MENU_NONE          },
-    { ITT_EMPTY,   "MOUSE BINDINGS",          NULL,                       0, MENU_NONE /*TODO*/ },
+    { ITT_SETMENU, "MOUSE BINDINGS",          NULL,                       0, MENU_ID_MOUSEBINDS },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_LRFUNC,  "SENSIVITY",               SCMouseSensi,               0, MENU_NONE          },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
@@ -2379,6 +2391,126 @@ static void M_Bind_Reset (int option)
     typeofask = 7;      // [JN] keybinds reset
 }
 
+// -----------------------------------------------------------------------------
+// Mouse bindings
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_MouseBinds[] = {
+    { ITT_EFUNC, "FIRE/ATTACK",               M_Bind_M_FireAttack,     0, MENU_NONE },
+    { ITT_EFUNC, "MOVE FORWARD",              M_Bind_M_MoveForward,    0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE ON",                 M_Bind_M_StrafeOn,       0, MENU_NONE },
+    { ITT_EFUNC, "MOVE BACKWARD",             M_Bind_M_MoveBackward,   0, MENU_NONE },
+    { ITT_EFUNC, "USE",                       M_Bind_M_Use,            0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE LEFT",               M_Bind_M_StrafeLeft,     0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE RIGHT",              M_Bind_M_StrafeRight,    0, MENU_NONE },
+    { ITT_EFUNC, "PREV WEAPON",               M_Bind_M_PrevWeapon,     0, MENU_NONE },
+    { ITT_EFUNC, "NEXT WEAPON",               M_Bind_M_NextWeapon,     0, MENU_NONE },
+    { ITT_EFUNC, "INVENTORY LEFT",            M_Bind_M_InventoryLeft,  0, MENU_NONE },
+    { ITT_EFUNC, "INVENTORY RIGHT",           M_Bind_M_InventoryRight, 0, MENU_NONE },
+    { ITT_EFUNC, "USE ARTIFACT",              M_Bind_M_UseArtifact,    0, MENU_NONE },
+    { ITT_EMPTY, NULL,                        NULL,                    0, MENU_NONE },
+    { ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset,          0, MENU_NONE },
+};
+
+static Menu_t ID_Def_MouseBinds = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_MouseBinds,
+    14, ID_Menu_MouseBinds,
+    0,
+    true, false, false,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_MouseBinds (void)
+{
+    M_FillBackground();
+
+    MN_DrTextACentered("MOUSE BINDINGS", 10, cr[CR_YELLOW]);
+
+    M_DrawBindButton(0, 20, mousebfire);
+    M_DrawBindButton(1, 30, mousebforward);
+    M_DrawBindButton(2, 40, mousebstrafe);
+    M_DrawBindButton(3, 50, mousebbackward);
+    M_DrawBindButton(4, 60, mousebuse);
+    M_DrawBindButton(5, 70, mousebstrafeleft);
+    M_DrawBindButton(6, 80, mousebstraferight);
+    M_DrawBindButton(7, 90, mousebprevweapon);
+    M_DrawBindButton(8, 100, mousebnextweapon);
+    M_DrawBindButton(9, 110, mousebinvleft);
+    M_DrawBindButton(10, 120, mousebinvright);
+    M_DrawBindButton(11, 130, mousebuseartifact);
+
+    MN_DrTextACentered("RESET", 140, cr[CR_YELLOW]);
+
+    M_DrawBindFooter(NULL, false);
+}
+
+static void M_Bind_M_FireAttack (int option)
+{
+    M_StartMouseBind(1000);  // mousebfire
+}
+
+static void M_Bind_M_MoveForward (int option)
+{
+    M_StartMouseBind(1001);  // mousebforward
+}
+
+static void M_Bind_M_StrafeOn (int option)
+{
+    M_StartMouseBind(1002);  // mousebstrafe
+}
+
+static void M_Bind_M_MoveBackward (int option)
+{
+    M_StartMouseBind(1003);  // mousebbackward
+}
+
+static void M_Bind_M_Use (int option)
+{
+    M_StartMouseBind(1004);  // mousebuse
+}
+
+static void M_Bind_M_StrafeLeft (int option)
+{
+    M_StartMouseBind(1005);  // mousebstrafeleft
+}
+
+static void M_Bind_M_StrafeRight (int option)
+{
+    M_StartMouseBind(1006);  // mousebstraferight
+}
+
+static void M_Bind_M_PrevWeapon (int option)
+{
+    M_StartMouseBind(1007);  // mousebprevweapon
+}
+
+static void M_Bind_M_NextWeapon (int option)
+{
+    M_StartMouseBind(1008);  // mousebnextweapon
+}
+
+static void M_Bind_M_InventoryLeft (int option)
+{
+    M_StartMouseBind(1009);  // mousebinvleft
+}
+
+static void M_Bind_M_InventoryRight (int option)
+{
+    M_StartMouseBind(1010);  // mousebinvright
+}
+
+static void M_Bind_M_UseArtifact (int option)
+{
+    M_StartMouseBind(1011);  // mousebuseartifact
+}
+
+static void M_Bind_M_Reset (int option)
+{
+    MenuActive = false;
+    askforquit = true;
+    typeofask = 8;      // [JN] mouse binds reset
+}
 
 // CODE --------------------------------------------------------------------
 
@@ -2405,6 +2537,7 @@ static Menu_t *Menus[] = {
     &ID_Def_Keybinds_6,
     &ID_Def_Keybinds_7,
     &ID_Def_Keybinds_8,
+    &ID_Def_MouseBinds,
 };
 
 //---------------------------------------------------------------------------
@@ -3390,6 +3523,14 @@ static void SCInfo(int option)
     }
 }
 
+static void MN_ReturnToMenu (void)
+{
+	Menu_t *cur = CurrentMenu;
+	MN_ActivateMenu();
+	CurrentMenu = cur;
+	CurrentItPos = CurrentMenu->oldItPos;
+}
+
 //---------------------------------------------------------------------------
 //
 // FUNC MN_Responder
@@ -3484,7 +3625,6 @@ boolean MN_Responder(event_t * event)
 
             // [JN] Handle mouse bindings before going any farther.
             // Catch only button pressing events, i.e. event->data1.
-            /*
             if (MouseIsBinding && event->data1)
             {
                 M_CheckMouseBind(SDL_mouseButton);
@@ -3494,7 +3634,6 @@ boolean MN_Responder(event_t * event)
                 mousewait = I_GetTime() + 15;
                 return true;
             }
-            */
 
             if (event->data1 & 1)
             {
@@ -3634,6 +3773,23 @@ boolean MN_Responder(event_t * event)
                     break;
                 case 5:
                     mn_SuicideConsole = true;
+                    break;
+                case 7: // [JN] Reset keybinds.
+                    M_ResetBinds();
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    MN_ReturnToMenu();
+                    break;
+
+                case 8: // [JN] Reset mouse binds.
+                    M_ResetMouseBinds();
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    MN_ReturnToMenu();
                     break;
                 default:
                     break;
@@ -4040,12 +4196,10 @@ boolean MN_Responder(event_t * event)
                 M_ClearBind(CurrentItPos);
             }
             // [JN] ...or clear mouse bind.
-            /*
             else if (CurrentMenu == &ID_Def_MouseBinds)
             {
                 M_ClearMouseBind(CurrentItPos);
             }
-            */
             return (true);
         }
         else if (charTyped != 0)
@@ -4863,4 +5017,194 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
         MN_DrTextACentered(M_StringJoin("PAGE ", pagenum, "/8", NULL), 180, cr[CR_GRAY]);
         MN_DrTextA("PGDN", M_ItemRightAlign("PGDN"), 180, cr[CR_GRAY]);
     }
+}
+
+
+// =============================================================================
+//
+//                          [JN] Mouse binding routines.
+//                    Drawing, coloring, checking and binding.
+//
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// M_NameBind
+//  [JN] Draw mouse button number as printable string.
+// -----------------------------------------------------------------------------
+
+static char *M_NameMouseBind (int CurrentItPosOn, int btn)
+{
+    if (CurrentItPos == CurrentItPosOn && MouseIsBinding)
+    {
+        return "?";  // Means binding now
+    }
+    else
+    {
+        switch (btn)
+        {
+            case -1:  return  "---";            break;  // Means empty
+            case  0:  return  "LEFT BUTTON";    break;
+            case  1:  return  "RIGHT BUTTON";   break;
+            case  2:  return  "MIDDLE BUTTON";  break;
+            case  3:  return  "BUTTON #4";      break;
+            case  4:  return  "BUTTON #5";      break;
+            case  5:  return  "BUTTON #6";      break;
+            case  6:  return  "BUTTON #7";      break;
+            case  7:  return  "BUTTON #8";      break;
+            case  8:  return  "BUTTON #9";      break;
+            default:  return  "UNKNOWN";        break;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_StartMouseBind
+//  [JN] Indicate that mouse button binding is started (MouseIsBinding), and
+//  pass internal number (btnToBind) for binding a new button.
+// -----------------------------------------------------------------------------
+
+static void M_StartMouseBind (int btn)
+{
+    MouseIsBinding = true;
+    btnToBind = btn;
+}
+
+// -----------------------------------------------------------------------------
+// M_CheckMouseBind
+//  [JN] Check if pressed button is already binded, clear previous bind if found.
+// -----------------------------------------------------------------------------
+
+static void M_CheckMouseBind (int btn)
+{
+    if (mousebfire == btn)        mousebfire        = -1;
+    if (mousebforward == btn)     mousebforward     = -1;
+    if (mousebstrafe == btn)      mousebstrafe      = -1;
+    if (mousebbackward == btn)    mousebbackward    = -1;
+    if (mousebuse == btn)         mousebuse         = -1;
+    if (mousebstrafeleft == btn)  mousebstrafeleft  = -1;
+    if (mousebstraferight == btn) mousebstraferight = -1;
+    if (mousebprevweapon == btn)  mousebprevweapon  = -1;
+    if (mousebnextweapon == btn)  mousebnextweapon  = -1;
+    if (mousebinvleft == btn)     mousebinvleft     = -1;
+    if (mousebinvright == btn)    mousebinvright    = -1;
+    if (mousebuseartifact == btn) mousebuseartifact = -1;
+}
+
+// -----------------------------------------------------------------------------
+// M_DoMouseBind
+//  [JN] By catching internal bind number (btnnum), do actual binding
+//  of pressed button (btn) to real mouse bind.
+// -----------------------------------------------------------------------------
+
+static void M_DoMouseBind (int btnnum, int btn)
+{
+    switch (btnnum)
+    {
+        case 1000:  mousebfire = btn;         break;
+        case 1001:  mousebforward = btn;      break;
+        case 1002:  mousebstrafe = btn;       break;
+        case 1003:  mousebbackward = btn;     break;
+        case 1004:  mousebuse = btn;          break;
+        case 1005:  mousebstrafeleft = btn;   break;
+        case 1006:  mousebstraferight = btn;  break;
+        case 1007:  mousebprevweapon = btn;   break;
+        case 1008:  mousebnextweapon = btn;   break;
+        case 1009:  mousebinvleft = btn;      break;
+        case 1010:  mousebinvright = btn;     break;
+        case 1011:  mousebuseartifact = btn;  break;
+        default:                              break;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_ClearMouseBind
+//  [JN] Clear mouse bind on the line where cursor is placed (itemOn).
+// -----------------------------------------------------------------------------
+
+static void M_ClearMouseBind (int itemOn)
+{
+    switch (itemOn)
+    {
+        case 0:   mousebfire = -1;         break;
+        case 1:   mousebforward = -1;      break;
+        case 2:   mousebstrafe = -1;       break;
+        case 3:   mousebbackward = -1;     break;
+        case 4:   mousebuse = -1;          break;
+        case 5:   mousebstrafeleft = -1;   break;
+        case 6:   mousebstraferight = -1;  break;
+        case 7:   mousebprevweapon = -1;   break;
+        case 8:   mousebnextweapon = -1;   break;
+        case 9:   mousebinvleft = -1;      break;
+        case 10:  mousebinvright = -1;     break;
+        case 11:  mousebuseartifact = -1;  break;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_ColorizeMouseBind
+//  [JN] Do mouse bind coloring.
+// -----------------------------------------------------------------------------
+
+static byte *M_ColorizeMouseBind (int CurrentItPosOn, int btn)
+{
+    if (CurrentItPos == CurrentItPosOn && MouseIsBinding)
+    {
+        return cr[CR_YELLOW];
+    }
+    else
+    {
+        if (btn == -1)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_RED_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_RED_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_RED_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_RED_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_RED_BRIGHT1] : cr[CR_RED];
+        }
+        else
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_DrawBindButton
+//  [JN] Do mouse button bind drawing.
+// -----------------------------------------------------------------------------
+
+static void M_DrawBindButton (int itemNum, int yPos, int btnBind)
+{
+    MN_DrTextA(M_NameMouseBind(itemNum, btnBind),
+               M_ItemRightAlign(M_NameMouseBind(itemNum, btnBind)),
+               yPos,
+               M_ColorizeMouseBind(itemNum, btnBind));
+}
+
+// -----------------------------------------------------------------------------
+// M_ResetBinds
+//  [JN] Reset all mouse binding to it's defaults.
+// -----------------------------------------------------------------------------
+
+static void M_ResetMouseBinds (void)
+{
+    mousebfire = 0;
+    mousebforward = 2;
+    mousebstrafe = 1;
+    mousebbackward = -1;
+    mousebuse = -1;
+    mousebstrafeleft = -1;
+    mousebstraferight = -1;
+    mousebprevweapon = 4;
+    mousebnextweapon = 3;
+    mousebinvleft = -1;
+    mousebinvright = -1;
+    mousebuseartifact = -1;
 }
