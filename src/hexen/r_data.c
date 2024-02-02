@@ -68,6 +68,7 @@ fixed_t *spriteoffset;
 fixed_t *spritetopoffset;
 
 lighttable_t *colormaps;
+lighttable_t *pal_color; // [crispy] array holding palette colors for true color mode
 
 
 /*
@@ -502,10 +503,11 @@ void R_InitColormaps(void)
 // [crispy] Our own function to generate colormaps for normal and foggy levels.
 void R_InitTrueColormaps(char *current_colormap)
 {
-	byte *playpal;
-	byte *const colormap = W_CacheLumpName(current_colormap, PU_STATIC);
 	int c, i, j = 0;
 	byte r, g, b;
+
+	byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+	byte *const colormap = W_CacheLumpName(current_colormap, PU_STATIC);
 
 	// [JN] Handle RGB channels separatelly
 	// to support variable saturation and color intensity.
@@ -517,8 +519,6 @@ void R_InitTrueColormaps(char *current_colormap)
 	// and floats must be 1.0 to get proper colors.
 	const float a_hi = vid_saturation < 100 ? I_SaturationPercent[vid_saturation] : 0;
 	const float a_lo = vid_saturation < 100 ? (a_hi / 2) : 0;
-
-	playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
 	if (!colormaps)
 	{
@@ -537,20 +537,22 @@ void R_InitTrueColormaps(char *current_colormap)
 
 			for (i = 0; i < 256; i++)
 			{
+				const byte k = colormap[i];
+
 				r_channel = 
-					(byte) ((1 - a_hi) * playpal[3 * i + 0]  +
-							(0 + a_lo) * playpal[3 * i + 1]  +
-							(0 + a_lo) * playpal[3 * i + 2]) * vid_r_intensity;
+					(byte) ((1 - a_hi) * playpal[3 * k + 0]  +
+							(0 + a_lo) * playpal[3 * k + 1]  +
+							(0 + a_lo) * playpal[3 * k + 2]) * vid_r_intensity;
 
 				g_channel = 
-					(byte) ((0 + a_lo) * playpal[3 * i + 0]  +
-							(1 - a_hi) * playpal[3 * i + 1]  +
-							(0 + a_lo) * playpal[3 * i + 2]) * vid_g_intensity;
+					(byte) ((0 + a_lo) * playpal[3 * k + 0]  +
+							(1 - a_hi) * playpal[3 * k + 1]  +
+							(0 + a_lo) * playpal[3 * k + 2]) * vid_g_intensity;
 
 				b_channel = 
-					(byte) ((0 + a_lo) * playpal[3 * i + 0] +
-							(0 + a_lo) * playpal[3 * i + 1] +
-							(1 - a_hi) * playpal[3 * i + 2] * vid_b_intensity);
+					(byte) ((0 + a_lo) * playpal[3 * k + 0] +
+							(0 + a_lo) * playpal[3 * k + 1] +
+							(1 - a_hi) * playpal[3 * k + 2] * vid_b_intensity);
 
 				r = gammatable[vid_gamma][r_channel] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
 				g = gammatable[vid_gamma][g_channel] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
@@ -590,8 +592,23 @@ void R_InitTrueColormaps(char *current_colormap)
 		}
 	}
 
-	W_ReleaseLumpName("PLAYPAL");
 	W_ReleaseLumpName(current_colormap);
+
+	if (!pal_color)
+	{
+		pal_color = (pixel_t*) Z_Malloc(256 * sizeof(pixel_t), PU_STATIC, 0);
+	}
+
+	for (i = 0, j = 0; i < 256; i++)
+	{
+		r = gammatable[vid_gamma][playpal[3 * i + 0]];
+		g = gammatable[vid_gamma][playpal[3 * i + 1]];
+		b = gammatable[vid_gamma][playpal[3 * i + 2]];
+
+		pal_color[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+	}
+
+	W_ReleaseLumpName("PLAYPAL");
 }
 #endif
 
@@ -639,6 +656,7 @@ void R_InitData(void)
 #ifndef CRISPY_TRUECOLOR
     R_InitColormaps();
 #else
+    // [crispy] Generate initial colormaps[] array from standard COLORMAP.
     R_InitTrueColormaps("COLORMAP");
 #endif
     // [crispy] initialize color translation and color string tables

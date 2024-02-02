@@ -1413,7 +1413,7 @@ static void AM_drawFline(fline_t * fl, int color)
 #ifndef CRISPY_TRUECOLOR
 #define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(cc)    //the MACRO!
 #else
-#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(colormaps[cc])
+#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(pal_color[cc])
 #endif
 
             dx = fl->b.x - fl->a.x;
@@ -1517,7 +1517,7 @@ void PUTDOT(short xx, short yy, byte * cc, byte * cm)
 #ifndef CRISPY_TRUECOLOR
     fb[oldyyshifted + flipscreenwidth[xx]] = *(cc);
 #else
-    fb[oldyyshifted + flipscreenwidth[xx]] = colormaps[*(cc)];
+    fb[oldyyshifted + flipscreenwidth[xx]] = pal_color[*(cc)];
 #endif
 }
 

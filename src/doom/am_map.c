@@ -1413,7 +1413,7 @@ static void AM_drawFline_Vanilla (fline_t *fl, int color)
 #ifndef CRISPY_TRUECOLOR
 #define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,cc)
 #else
-#define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,(colormaps[(cc)]))
+#define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,(pal_color[(cc)]))
 #endif
 
     dx = fl->b.x - fl->a.x;
