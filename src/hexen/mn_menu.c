@@ -624,10 +624,15 @@ static void M_FillBackground (void)
 static byte *M_Line_Glow (const int tics)
 {
     return
-        tics == 5 ? NULL :
-        tics == 4 ? cr[CR_MENU_DARK1] :
-        tics == 3 ? cr[CR_MENU_DARK2] :
-                    cr[CR_MENU_DARK3] ;
+        tics == 5 ? cr[CR_MENU_BRIGHT2] :
+        tics == 4 ? cr[CR_MENU_BRIGHT1] :
+        tics == 3 ? NULL :
+        tics == 2 ? cr[CR_MENU_DARK1]   :
+                    cr[CR_MENU_DARK2]   ;
+        /*            
+        tics == 1 ? cr[CR_MENU_DARK2]  :
+                    cr[CR_MENU_DARK3]  ;
+        */
 }
 
 #define GLOW_UNCOLORED  0
@@ -748,6 +753,10 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
 static byte *M_Cursor_Glow (const int tics)
 {
     return
+        tics ==  8 || tics ==  7 ? cr[CR_MENU_BRIGHT4] :
+        tics ==  6 || tics ==  5 ? cr[CR_MENU_BRIGHT3] :
+        tics ==  4 || tics ==  3 ? cr[CR_MENU_BRIGHT2] :
+        tics ==  2 || tics ==  1 ? cr[CR_MENU_BRIGHT1] :
         tics == -1 || tics == -2 ? cr[CR_MENU_DARK1]   :
         tics == -3 || tics == -4 ? cr[CR_MENU_DARK2]   :
         tics == -5 || tics == -6 ? cr[CR_MENU_DARK3]   :
@@ -2870,7 +2879,7 @@ void MN_Drawer(void)
                     if (CurrentItPos == i)
                     {
                         // [JN] Highlight menu item on which the cursor is positioned.
-                        MN_DrTextA(item->text, x, y, NULL);
+                        MN_DrTextA(item->text, x, y, cr[CR_MENU_BRIGHT2]);
                     }
                     else
                     {
