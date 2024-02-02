@@ -440,6 +440,7 @@ extern fixed_t *spriteoffset;
 extern fixed_t *spritetopoffset;
 
 extern lighttable_t *colormaps;
+extern lighttable_t *pal_color; // [crispy] array holding palette colors for true color mode
 
 extern int viewwidth;
 extern int scaledviewwidth;

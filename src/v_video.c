@@ -63,7 +63,7 @@ byte *fuzzmap = NULL;    // Used for translucent fuzz (30%)
 byte *dp_translation = NULL;
 boolean dp_translucent = false;
 #ifdef CRISPY_TRUECOLOR
-extern pixel_t *colormaps;
+extern pixel_t *pal_color;
 #endif
 
 // The screen buffer that the v_video.c code draws to.
@@ -148,28 +148,28 @@ static const inline pixel_t drawpatchpx00 (const pixel_t dest, const pixel_t sou
 #ifndef CRISPY_TRUECOLOR
 {return source;}
 #else
-{return colormaps[source];}
+{return pal_color[source];}
 #endif
 // (2) color-translated, opaque patch
 static const inline pixel_t drawpatchpx01 (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return dp_translation[source];}
 #else
-{return colormaps[dp_translation[source]];}
+{return pal_color[dp_translation[source]];}
 #endif
 // (3) normal, translucent patch
 static const inline pixel_t drawpatchpx10 (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return tintmap[(dest<<8)+source];}
 #else
-{return I_BlendOver(dest, colormaps[source]);}
+{return I_BlendOver(dest, pal_color[source]);}
 #endif
 // (4) color-translated, translucent patch
 static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return tintmap[(dest<<8)+dp_translation[source]];}
 #else
-{return I_BlendOver(dest, colormaps[dp_translation[source]]);}
+{return I_BlendOver(dest, pal_color[dp_translation[source]]);}
 #endif
 
 // [JN] The shadow of the patch rendering functions:
@@ -193,7 +193,7 @@ static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t sourc
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[dest+(source<<8)];}
 #else
-{return I_BlendOverTinttab(dest, colormaps[source]);}
+{return I_BlendOverTinttab(dest, pal_color[source]);}
 #endif
 
 // [JN] V_DrawAltTLPatch (translucent patch, no coloring or color-translation are used)
@@ -201,7 +201,7 @@ static const inline pixel_t drawalttinttab (const pixel_t dest, const pixel_t so
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[(dest<<8)+source];}
 #else
-{return I_BlendOverAltTinttab(dest, colormaps[source]);}
+{return I_BlendOverAltTinttab(dest, pal_color[source]);}
 #endif
 
 // [crispy] array of function pointers holding the different rendering functions
@@ -626,7 +626,7 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
 #ifndef CRISPY_TRUECOLOR
                     *dest = source[srccol >> FRACBITS];
 #else
-                    *dest = colormaps[source[srccol >> FRACBITS]];
+                    *dest = pal_color[source[srccol >> FRACBITS]];
 #endif
                 }
                 srccol += dyi;
@@ -890,7 +890,7 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
 #ifndef CRISPY_TRUECOLOR
             *(dest + i * SCREENWIDTH + j) = *(src + (i / vid_resolution) * width + (j / vid_resolution));
 #else
-            *(dest + i * SCREENWIDTH + j) = colormaps[*(src + (i / vid_resolution) * width + (j / vid_resolution))];
+            *(dest + i * SCREENWIDTH + j) = pal_color[*(src + (i / vid_resolution) * width + (j / vid_resolution))];
 #endif
         }
     }
@@ -939,7 +939,7 @@ void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest)
 #ifndef CRISPY_TRUECOLOR
             *dest++ = src[width * y + x];
 #else
-            *dest++ = colormaps[src[width * y + x]];
+            *dest++ = pal_color[src[width * y + x]];
 #endif
         }
     }
@@ -960,7 +960,7 @@ void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
             *dest++ = src[(((y / vid_resolution) & 63) * 64)
                          + ((x / vid_resolution) & 63)];
 #else
-            *dest++ = colormaps[src[(((y / vid_resolution) & 63) * 64)
+            *dest++ = pal_color[src[(((y / vid_resolution) & 63) * 64)
                                    + ((x / vid_resolution) & 63)]];
 #endif
         }

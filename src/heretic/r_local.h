@@ -486,6 +486,7 @@ extern fixed_t *spritewidth;    // needed for pre rendering (fracs)
 extern fixed_t *spriteoffset;
 extern fixed_t *spritetopoffset;
 extern lighttable_t *colormaps;
+extern lighttable_t *pal_color;
 extern int firstflat;
 extern int numflats;
 
