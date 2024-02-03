@@ -979,14 +979,11 @@ static void M_ID_RenderingResHook (void)
     // [JN] re-calculate sky texture scaling
     R_InitSkyMap();
     // [crispy] re-calculate automap coordinates
-    // [JN] TODO
-    /*
     AM_LevelInit(true);
     if (automapactive)
     {
         AM_Start();
     }
-    */
 }
 
 static void M_ID_RenderingRes (int choice)
@@ -1006,14 +1003,11 @@ static void M_ID_WidescreenHook (void)
     // [JN] re-calculate sky texture scaling
     R_InitSkyMap();
     // [crispy] re-calculate automap coordinates
-    // [JN] TODO
-    /*
     AM_LevelInit(true);
     if (automapactive)
     {
         AM_Start();
     }
-    */
 }
 
 static void M_ID_Widescreen (int choice)

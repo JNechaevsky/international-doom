@@ -172,6 +172,13 @@
 #define AMSTR_FOLLOWON		"FOLLOW MODE ON"
 #define AMSTR_FOLLOWOFF		"FOLLOW MODE OFF"
 
+#define AMSTR_GRIDON		"GRID ON"
+#define AMSTR_GRIDOFF		"GRID OFF"
+
+#define AMSTR_MARKEDSPOT	"MARKED SPOT"
+#define AMSTR_MARKCLEARED	"CLEARED SPOT"
+#define AMSTR_MARKSCLEARED	"ALL MARKS CLEARED"
+
 // -----------------------------------------------------------------------------
 // [JN] ID-specific strings.
 // -----------------------------------------------------------------------------

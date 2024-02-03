@@ -1,6 +1,5 @@
 add_library(hexen STATIC
             a_action.c
-                                am_data.h
             am_map.c            am_map.h
             ct_chat.c
                                 ct_chat.h

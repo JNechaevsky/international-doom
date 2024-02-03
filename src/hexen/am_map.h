@@ -16,8 +16,14 @@
 //
 
 
-#ifndef __AMMAP_H__
-#define __AMMAP_H__
+#pragma once
+
+
+typedef struct
+{
+    int64_t x,y;
+} mpoint_t;
+
 
 // For use if I do walls with outsides/insides
 #define REDS		12*8
@@ -66,9 +72,7 @@
 #define THINGRANGE	GREENRANGE
 #define SECRETWALLCOLORS WALLCOLORS
 #define SECRETWALLRANGE WALLRANGE
-#define GRIDCOLORS	(GRAYS + GRAYSRANGE/2)
 #define GRIDRANGE	0
-#define XHAIRCOLORS	GRAYS
 
 // drawing stuff
 
@@ -78,52 +82,48 @@
 #define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))
 #define AM_MSGEXITED (AM_MSGHEADER | ('x'<<8))
 
-#define INITSCALEMTOF (.2*FRACUNIT)     // scale on entry
-// how much the automap moves window per tic in frame-buffer coordinates
-#define F_PANINC	4       // moves 140 pixels in 1 second
-// how much zoom-in per tic
-#define M_ZOOMIN        ((int) (1.02*FRACUNIT)) // goes to 2x in 1 second
-// how much zoom-out per tic
-#define M_ZOOMOUT       ((int) (FRACUNIT/1.02)) // pulls out to 0.5x in 1 second
-
-// translates between frame-buffer and map distances
-#define FTOM(x) FixedMul(((x)<<16),scale_ftom)
-#define MTOF(x) (FixedMul((x),scale_mtof)>>16)
-// translates between frame-buffer and map coordinates
-#define CXMTOF(x)  (f_x + MTOF((x)-m_x))
-#define CYMTOF(y)  (f_y + (f_h - MTOF((y)-m_y)))
 
 // the following is crap
 #define LINE_NEVERSEE ML_DONTDRAW
 
-typedef struct
-{
-    int x, y;
-} fpoint_t;
 
-typedef struct
-{
-    fpoint_t a, b;
-} fline_t;
 
-typedef vertex_t mpoint_t;
-
-typedef struct
-{
-    mpoint_t a, b;
-} mline_t;
-
-typedef struct
-{
-    fixed_t slp, islp;
-} islope_t;
 
 
 extern int cheating;
 extern boolean automapactive;
 
+extern mpoint_t *markpoints; 
+extern int markpointnum;
+extern int markpointnum_max;
 
-void AM_Stop(void);
+extern void AM_ClearMarks (void);
+extern void AM_Init (void);
+extern void AM_LevelInit (boolean reinit);
+extern void AM_LevelNameDrawer (void);
+extern void AM_Start (void);
+extern void AM_Stop (void);
 
 
-#endif
+//
+// Automap colors:
+//
+
+// Players (no antialiasing)
+#define PL_WHITE        32
+#define PL_GREEN        221
+#define PL_YELLOW       145
+#define PL_RED          160
+#define PL_BLUE         198
+
+// Grid (no antialiasing)
+#define GRIDCOLORS      39
+
+// Crosshair
+#define XHAIRCOLORS	    28
+
+// IDDT triangles
+#define IDDT_GREEN      222
+#define IDDT_YELLOW     140
+#define IDDT_RED        150
+#define IDDT_GRAY       9

@@ -530,6 +530,9 @@ void D_DoomMain(void)
 
     ST_Done();
 
+    ST_Message("AM_Init: Loading automap data.\n");
+    AM_Init();
+
     if (autostart)
     {
         ST_Message("Warp to Map %d (\"%s\":%d), Skill %d\n",
