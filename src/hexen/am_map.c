@@ -2214,7 +2214,7 @@ static void DrawWorldTimer(void)
 
     M_snprintf(timeBuffer, sizeof(timeBuffer),
                "%.2d : %.2d : %.2d", hours, minutes, seconds);
-    MN_DrTextA(timeBuffer, 240, 10 + yy, NULL);
+    MN_DrTextA(timeBuffer, 240 + WIDESCREENDELTA, 10 + yy, NULL);
 
     if (days)
     {
@@ -2226,7 +2226,7 @@ static void DrawWorldTimer(void)
         {
             M_snprintf(dayBuffer, sizeof(dayBuffer), "%.2d DAYS", days);
         }
-        MN_DrTextA(dayBuffer, 240, 10 + yy, NULL);
+        MN_DrTextA(dayBuffer, 240 + WIDESCREENDELTA, 10 + yy, NULL);
         // [JN] Not in this project. Let's be nice to each other.
         /*
         if (days >= 5)
