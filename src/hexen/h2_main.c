@@ -393,6 +393,8 @@ void D_DoomMain(void)
     I_PrintBanner(PACKAGE_FULLNAME_HEXEN);
 #endif
 
+    I_AtExit(I_ShutdownGraphics, true);
+
 #ifdef _WIN32
 
     //!
