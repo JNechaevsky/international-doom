@@ -279,16 +279,34 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         else
         {
             joybspeed_old = joybspeed;
-            joybspeed = 29;
+            joybspeed = MAX_JOY_BUTTONS;
         }
 
-        P_SetMessage(&players[consoleplayer], (joybspeed >= MAX_JOY_BUTTONS) ?
-                     "ALWAYS RUN ON" :
-                     "ALWAYS RUN OFF", false);
-
+        P_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
+                     ID_AUTORUN_ON : ID_AUTORUN_OFF, false);
         S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
-
         gamekeydown[key_autorun] = false;
+    }
+
+    // [JN] Toggle mouse look.
+    if (gamekeydown[key_mouse_look])
+    {
+        mouse_look ^= 1;
+        if (!mouse_look)
+        {
+            look = TOCENTER;
+        }
+        P_SetMessage(&players[consoleplayer], mouse_look ?
+                     ID_MLOOK_ON : ID_MLOOK_OFF, false);
+        S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+        gamekeydown[key_mouse_look] = false;
+    }
+
+    // [crispy] add quick 180° reverse
+    if (gamekeydown[key_180turn])
+    {
+        cmd->angleturn += ANG180 >> FRACBITS;
+        gamekeydown[key_180turn] = false;
     }
 //
 // let movement keys cancel each other out
@@ -531,6 +549,53 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     {
         gamekeydown[key_arti_invulnerability] = false;
         cmd->arti = arti_invulnerability;
+    }
+    // [JN] Add dedicated binds for all artifacts.
+    else if (gamekeydown[key_arti_urn] && !cmd->arti
+             && (players[consoleplayer].mo->health < MAXHEALTH))
+    {
+        gamekeydown[key_arti_urn] = false;
+        cmd->arti = arti_superhealth;
+    }
+    else if (gamekeydown[key_arti_wings] && !cmd->arti)
+    {
+        gamekeydown[key_arti_wings] = false;
+        cmd->arti = arti_fly;
+    }
+    else if (gamekeydown[key_arti_servant] && !cmd->arti)
+    {
+        gamekeydown[key_arti_servant] = false;
+        cmd->arti = arti_summon;
+    }
+    else if (gamekeydown[key_arti_bracers] && !cmd->arti)
+    {
+        gamekeydown[key_arti_bracers] = false;
+        cmd->arti = arti_boostarmor;
+    }
+    else if (gamekeydown[key_arti_boots] && !cmd->arti)
+    {
+        gamekeydown[key_arti_boots] = false;
+        cmd->arti = arti_speed;
+    }
+    else if (gamekeydown[key_arti_torch] && !cmd->arti)
+    {
+        gamekeydown[key_arti_torch] = false;
+        cmd->arti = arti_torch;
+    }
+    else if (gamekeydown[key_arti_krater] && !cmd->arti)
+    {
+        gamekeydown[key_arti_krater] = false;
+        cmd->arti = arti_boostmana;
+    }
+    else if (gamekeydown[key_arti_incant] && !cmd->arti)
+    {
+        gamekeydown[key_arti_incant] = false;
+        cmd->arti = arti_healingradius;
+    }
+    else if (gamekeydown[key_arti_incant] && !cmd->arti)
+    {
+        gamekeydown[key_arti_incant] = false;
+        cmd->arti = arti_healingradius;
     }
 
 //

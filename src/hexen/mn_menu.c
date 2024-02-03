@@ -406,6 +406,7 @@ static void M_Bind_StrafeLeft (int option);
 static void M_Bind_StrafeRight (int option);
 static void M_Bind_StrafeOn (int option);
 static void M_Bind_SpeedOn (int option);
+static void M_Bind_Jump (int option);
 static void M_Bind_180Turn (int option);
 static void M_Bind_FireAttack (int option);
 static void M_Bind_Use (int option);
@@ -438,24 +439,27 @@ static void M_Bind_Weapon1 (int option);
 static void M_Bind_Weapon2 (int option);
 static void M_Bind_Weapon3 (int option);
 static void M_Bind_Weapon4 (int option);
-static void M_Bind_Weapon5 (int option);
-static void M_Bind_Weapon6 (int option);
-static void M_Bind_Weapon7 (int option);
-static void M_Bind_Weapon8 (int option);
+static void M_Bind_Quartz (int option);
+static void M_Bind_Urn (int option);
+static void M_Bind_Flechette (int option);
+static void M_Bind_Disk (int option);
+static void M_Bind_Icon (int option);
 static void M_Bind_PrevWeapon (int option);
 static void M_Bind_NextWeapon (int option);
 
 static void M_Draw_ID_Keybinds_5 (void);
-static void M_Bind_Quartz (int option);
-static void M_Bind_Urn (int option);
-static void M_Bind_Bomb (int option);
-static void M_Bind_Tome (int option);
-static void M_Bind_Ring (int option);
-static void M_Bind_Chaosdevice (int option);
-static void M_Bind_Shadowsphere (int option);
+static void M_Bind_Porkalator (int option);
+static void M_Bind_Chaos (int option);
+static void M_Bind_Banishment (int option);
 static void M_Bind_Wings (int option);
+static void M_Bind_Servant (int option);
+static void M_Bind_Bracers (int option);
+static void M_Bind_Boots (int option);
 static void M_Bind_Torch (int option);
-static void M_Bind_Morph (int option);
+static void M_Bind_Krater (int option);
+static void M_Bind_Incant (int option);
+static void M_Bind_AllArti (int option);
+
 
 static void M_Draw_ID_Keybinds_6 (void);
 static void M_Bind_ToggleMap (int option);
@@ -474,7 +478,7 @@ static void M_Bind_HelpScreen (int option);
 static void M_Bind_SaveGame (int option);
 static void M_Bind_LoadGame (int option);
 static void M_Bind_SoundVolume (int option);
-static void M_Bind_ToggleDetail (int option);
+static void M_Bind_Suicide (int option);
 static void M_Bind_QuickSave (int option);
 static void M_Bind_EndGame (int option);
 static void M_Bind_ToggleMessages (int option);
@@ -489,11 +493,13 @@ static void M_Bind_SaveScreenshot (int option);
 static void M_Bind_LastMessage (int option);
 static void M_Bind_FinishDemo (int option);
 static void M_Bind_SendMessage (int option);
+static void M_Bind_Reset (int option);
+/*
 static void M_Bind_ToPlayer1 (int option);
 static void M_Bind_ToPlayer2 (int option);
 static void M_Bind_ToPlayer3 (int option);
 static void M_Bind_ToPlayer4 (int option);
-static void M_Bind_Reset (int option);
+*/
 
 static void M_Draw_ID_MouseBinds (void);
 static void M_Bind_M_FireAttack (int option);
@@ -1587,6 +1593,7 @@ static MenuItem_t ID_Menu_Keybinds_1[] = {
     { ITT_EFUNC, "STRAFE RIGHT",    M_Bind_StrafeRight,  0, MENU_NONE },
     { ITT_EFUNC, "STRAFE ON",       M_Bind_StrafeOn,     0, MENU_NONE },
     { ITT_EFUNC, "SPEED ON",        M_Bind_SpeedOn,      0, MENU_NONE },
+    { ITT_EFUNC, "JUMP",            M_Bind_Jump,         0, MENU_NONE },
     { ITT_EFUNC, "180 DEGREE TURN", M_Bind_180Turn,      0, MENU_NONE },
     { ITT_EMPTY, NULL,              NULL,                0, MENU_NONE },
     { ITT_EFUNC, "FIRE/ATTACK",     M_Bind_FireAttack,   0, MENU_NONE },
@@ -1596,7 +1603,7 @@ static MenuItem_t ID_Menu_Keybinds_1[] = {
 static Menu_t ID_Def_Keybinds_1 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_1,
-    12, ID_Menu_Keybinds_1,
+    13, ID_Menu_Keybinds_1,
     0,
     true, true, true,
     MENU_ID_CONTROLS
@@ -1618,12 +1625,13 @@ static void M_Draw_ID_Keybinds_1 (void)
     M_DrawBindKey(5, 70, key_straferight);
     M_DrawBindKey(6, 80, key_strafe);
     M_DrawBindKey(7, 90, key_speed);
-    M_DrawBindKey(8, 100, key_180turn);
+    M_DrawBindKey(8, 100, key_jump);
+    M_DrawBindKey(9, 110, key_180turn);
 
-    MN_DrTextACentered("ACTION", 110, cr[CR_YELLOW]);
+    MN_DrTextACentered("ACTION", 120, cr[CR_YELLOW]);
 
-    M_DrawBindKey(10, 120, key_fire);
-    M_DrawBindKey(11, 130, key_use);
+    M_DrawBindKey(11, 130, key_fire);
+    M_DrawBindKey(12, 140, key_use);
 
     M_DrawBindFooter("1", true);
 }
@@ -1668,19 +1676,24 @@ static void M_Bind_SpeedOn (int option)
     M_StartBind(107);  // key_speed
 }
 
+static void M_Bind_Jump (int option)
+{
+    M_StartBind(108);  // key_jump
+}
+
 static void M_Bind_180Turn (int choice)
 {
-    M_StartBind(108);  // key_180turn
+    M_StartBind(109);  // key_180turn
 }
 
 static void M_Bind_FireAttack (int option)
 {
-    M_StartBind(109);  // key_fire
+    M_StartBind(110);  // key_fire
 }
 
 static void M_Bind_Use (int option)
 {
-    M_StartBind(110);  // key_use
+    M_StartBind(111);  // key_use
 }
 
 // -----------------------------------------------------------------------------
@@ -1893,22 +1906,24 @@ static void M_Bind_BuddhaMode (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Keybinds_4[] = {
-    { ITT_EFUNC, "WEAPON 1",        M_Bind_Weapon1,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 2",        M_Bind_Weapon2,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 3",        M_Bind_Weapon3,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 4",        M_Bind_Weapon4,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 5",        M_Bind_Weapon5,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 6",        M_Bind_Weapon6,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 7",        M_Bind_Weapon7,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 8",        M_Bind_Weapon8,    0, MENU_NONE },
-    { ITT_EFUNC, "PREVIOUS WEAPON", M_Bind_PrevWeapon, 0, MENU_NONE },
-    { ITT_EFUNC, "NEXT WEAPON",     M_Bind_NextWeapon, 0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 1",             M_Bind_Weapon1,    0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 2",             M_Bind_Weapon2,    0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 3",             M_Bind_Weapon3,    0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 4",             M_Bind_Weapon4,    0, MENU_NONE },
+    { ITT_EFUNC, "PREVIOUS WEAPON",      M_Bind_PrevWeapon, 0, MENU_NONE },
+    { ITT_EFUNC, "NEXT WEAPON",          M_Bind_NextWeapon, 0, MENU_NONE },
+    { ITT_EMPTY, NULL,                   NULL,              0, MENU_NONE },
+    { ITT_EFUNC, "QUARTZ FLASK",         M_Bind_Quartz,     0, MENU_NONE },
+    { ITT_EFUNC, "MYSTIC URN",           M_Bind_Urn,        0, MENU_NONE },
+    { ITT_EFUNC, "FLECHETTE",            M_Bind_Flechette,  0, MENU_NONE },
+    { ITT_EFUNC, "DISK OF REPULSTION",   M_Bind_Disk,       0, MENU_NONE },
+    { ITT_EFUNC, "ICON OF THE DEFENDER", M_Bind_Icon,       0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Keybinds_4 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_4,
-    10, ID_Menu_Keybinds_4,
+    12, ID_Menu_Keybinds_4,
     0,
     true, true, true,
     MENU_ID_CONTROLS
@@ -1926,12 +1941,16 @@ static void M_Draw_ID_Keybinds_4 (void)
     M_DrawBindKey(1, 30, key_weapon2);
     M_DrawBindKey(2, 40, key_weapon3);
     M_DrawBindKey(3, 50, key_weapon4);
-    M_DrawBindKey(4, 60, key_weapon5);
-    M_DrawBindKey(5, 70, key_weapon6);
-    M_DrawBindKey(6, 80, key_weapon7);
-    M_DrawBindKey(7, 90, key_weapon8);
-    M_DrawBindKey(8, 100, key_prevweapon);
-    M_DrawBindKey(9, 110, key_nextweapon);
+    M_DrawBindKey(4, 60, key_prevweapon);
+    M_DrawBindKey(5, 70, key_nextweapon);
+
+    MN_DrTextACentered("ARTIFACTS", 80, cr[CR_YELLOW]);
+
+    M_DrawBindKey(7, 90, key_arti_health);
+    M_DrawBindKey(8, 100, key_arti_urn);
+    M_DrawBindKey(9, 110, key_arti_poisonbag);
+    M_DrawBindKey(10, 120, key_arti_blastradius);
+    M_DrawBindKey(11, 130, key_arti_invulnerability);
 
     M_DrawBindFooter("4", true);
 }
@@ -1956,34 +1975,39 @@ static void M_Bind_Weapon4 (int option)
     M_StartBind(403);  // key_weapon4
 }
 
-static void M_Bind_Weapon5 (int option)
-{
-    M_StartBind(404);  // key_weapon5
-}
-
-static void M_Bind_Weapon6 (int option)
-{
-    M_StartBind(405);  // key_weapon6
-}
-
-static void M_Bind_Weapon7 (int option)
-{
-    M_StartBind(406);  // key_weapon7
-}
-
-static void M_Bind_Weapon8 (int option)
-{
-    M_StartBind(407);  // key_weapon8
-}
-
 static void M_Bind_PrevWeapon (int option)
 {
-    M_StartBind(408);  // key_prevweapon
+    M_StartBind(404);  // key_prevweapon
 }
 
 static void M_Bind_NextWeapon (int option)
 {
-    M_StartBind(409);  // key_nextweapon
+    M_StartBind(405);  // key_nextweapon
+}
+
+static void M_Bind_Quartz (int option)
+{
+    M_StartBind(406);  // key_arti_health
+}
+
+static void M_Bind_Urn (int option)
+{
+    M_StartBind(407);  // key_arti_urn
+}
+
+static void M_Bind_Flechette (int option)
+{
+    M_StartBind(408);  // key_arti_poisonbag
+}
+
+static void M_Bind_Disk (int option)
+{
+    M_StartBind(409);  // key_arti_blastradius
+}
+
+static void M_Bind_Icon (int option)
+{
+    M_StartBind(410);  // key_arti_invulnerability
 }
 
 // -----------------------------------------------------------------------------
@@ -1991,22 +2015,23 @@ static void M_Bind_NextWeapon (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Keybinds_5[] = {
-    { ITT_EFUNC, "QUARTZ FLASK",          M_Bind_Quartz,       0, MENU_NONE },
-    { ITT_EFUNC, "MYSTIC URN",            M_Bind_Urn,          0, MENU_NONE },
-    { ITT_EFUNC, "TIMEBOMB",              M_Bind_Bomb,         0, MENU_NONE },
-    { ITT_EFUNC, "TOME OF POWER",         M_Bind_Tome,         0, MENU_NONE },
-    { ITT_EFUNC, "RING OF INVINCIBILITY", M_Bind_Ring,         0, MENU_NONE },
-    { ITT_EFUNC, "CHAOS DEVICE",          M_Bind_Chaosdevice,  0, MENU_NONE },
-    { ITT_EFUNC, "SHADOWSPHERE",          M_Bind_Shadowsphere, 0, MENU_NONE },
-    { ITT_EFUNC, "WINGS OF WRATH",        M_Bind_Wings,        0, MENU_NONE },
-    { ITT_EFUNC, "TORCH",                 M_Bind_Torch,        0, MENU_NONE },
-    { ITT_EFUNC, "MORPH OVUM",            M_Bind_Morph,        0, MENU_NONE },
+    { ITT_EFUNC, "PORKALATOR",          M_Bind_Porkalator, 0, MENU_NONE },
+    { ITT_EFUNC, "CHAOS DEVICE",        M_Bind_Chaos,      0, MENU_NONE },
+    { ITT_EFUNC, "BANISHMENT DEVICE",   M_Bind_Banishment, 0, MENU_NONE },
+    { ITT_EFUNC, "WINGS OF WRATH",      M_Bind_Wings,      0, MENU_NONE },
+    { ITT_EFUNC, "DARK SERVANT",        M_Bind_Servant,    0, MENU_NONE },
+    { ITT_EFUNC, "DRAGONSKIN BRACERS",  M_Bind_Bracers,    0, MENU_NONE },
+    { ITT_EFUNC, "BOOTS OF SPEED",      M_Bind_Boots,      0, MENU_NONE },
+    { ITT_EFUNC, "TORCH",               M_Bind_Torch,      0, MENU_NONE },
+    { ITT_EFUNC, "KRATER OF MIGHT",     M_Bind_Krater,     0, MENU_NONE },
+    { ITT_EFUNC, "MYSTIC AMBIT INCANT", M_Bind_Incant,     0, MENU_NONE },    
+    { ITT_EFUNC, "ONE OF EACH",         M_Bind_AllArti,    0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Keybinds_5 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_5,
-    10, ID_Menu_Keybinds_5,
+    11, ID_Menu_Keybinds_5,
     0,
     true, true, true,
     MENU_ID_CONTROLS
@@ -2020,68 +2045,74 @@ static void M_Draw_ID_Keybinds_5 (void)
 
     MN_DrTextACentered("ARTIFACTS", 10, cr[CR_YELLOW]);
 
-    M_DrawBindKey(0, 20, key_arti_quartz);
-    M_DrawBindKey(1, 30, key_arti_urn);
-    M_DrawBindKey(2, 40, key_arti_bomb);
-    M_DrawBindKey(3, 50, key_arti_tome);
-    M_DrawBindKey(4, 60, key_arti_ring);
-    M_DrawBindKey(5, 70, key_arti_chaosdevice);
-    M_DrawBindKey(6, 80, key_arti_shadowsphere);
-    M_DrawBindKey(7, 90, key_arti_wings);
-    M_DrawBindKey(8, 100, key_arti_torch);
-    M_DrawBindKey(9, 110, key_arti_morph);
+    M_DrawBindKey(0, 20, key_arti_egg);
+    M_DrawBindKey(1, 30, key_arti_teleport);
+    M_DrawBindKey(2, 40, key_arti_teleportother);
+    M_DrawBindKey(3, 50, key_arti_wings);
+    M_DrawBindKey(4, 60, key_arti_servant);
+    M_DrawBindKey(5, 70, key_arti_bracers);
+    M_DrawBindKey(6, 80, key_arti_boots);
+    M_DrawBindKey(7, 90, key_arti_torch);
+    M_DrawBindKey(8, 100, key_arti_krater);
+    M_DrawBindKey(9, 110, key_arti_incant);
+    M_DrawBindKey(10, 120, key_arti_all);
 
     M_DrawBindFooter("5", true);
 }
 
-static void M_Bind_Quartz (int option)
+static void M_Bind_Porkalator (int option)
 {
-    M_StartBind(500);  // key_arti_quartz
+    M_StartBind(500);  // key_arti_egg
 }
 
-static void M_Bind_Urn (int option)
+static void M_Bind_Chaos (int option)
 {
-    M_StartBind(501);  // key_arti_urn
+    M_StartBind(501);  // key_arti_teleport
 }
 
-static void M_Bind_Bomb (int option)
+static void M_Bind_Banishment (int option)
 {
-    M_StartBind(502);  // key_arti_bomb
-}
-
-static void M_Bind_Tome (int option)
-{
-    M_StartBind(503);  // key_arti_tome
-}
-
-static void M_Bind_Ring (int option)
-{
-    M_StartBind(504);  // key_arti_ring
-}
-
-static void M_Bind_Chaosdevice (int option)
-{
-    M_StartBind(505);  // key_arti_chaosdevice
-}
-
-static void M_Bind_Shadowsphere (int option)
-{
-    M_StartBind(506);  // key_arti_shadowsphere
+    M_StartBind(502);  // key_arti_teleportother
 }
 
 static void M_Bind_Wings (int option)
 {
-    M_StartBind(507);  // key_arti_wings
+    M_StartBind(503);  // key_arti_wings
+}
+
+static void M_Bind_Servant (int option)
+{
+    M_StartBind(504);  // key_arti_servant
+}
+
+static void M_Bind_Bracers (int option)
+{
+    M_StartBind(505);  // key_arti_bracers
+}
+
+static void M_Bind_Boots (int option)
+{
+    M_StartBind(506);  // key_arti_boots
 }
 
 static void M_Bind_Torch (int option)
 {
-    M_StartBind(508);  // key_arti_torch
+    M_StartBind(507);  // key_arti_torch
 }
 
-static void M_Bind_Morph (int option)
+static void M_Bind_Krater (int option)
 {
-    M_StartBind(509);  // key_arti_morph
+    M_StartBind(508);  // key_arti_krater
+}
+
+static void M_Bind_Incant (int option)
+{
+    M_StartBind(509);  // key_arti_incant
+}
+
+static void M_Bind_AllArti (int option)
+{
+    M_StartBind(510);  // key_arti_all
 }
 
 // -----------------------------------------------------------------------------
@@ -2191,7 +2222,7 @@ static MenuItem_t ID_Menu_Keybinds_7[] = {
     {ITT_EFUNC, "SAVE GAME",       M_Bind_SaveGame,       0, MENU_NONE},
     {ITT_EFUNC, "LOAD GAME",       M_Bind_LoadGame,       0, MENU_NONE},
     {ITT_EFUNC, "SOUND VOLUME",    M_Bind_SoundVolume,    0, MENU_NONE},
-    {ITT_EFUNC, "TOGGLE DETAIL",   M_Bind_ToggleDetail,   0, MENU_NONE},
+    {ITT_EFUNC, "SUICIDE",         M_Bind_Suicide,        0, MENU_NONE},
     {ITT_EFUNC, "QUICK SAVE",      M_Bind_QuickSave,      0, MENU_NONE},
     {ITT_EFUNC, "END GAME",        M_Bind_EndGame,        0, MENU_NONE},
     {ITT_EFUNC, "TOGGLE MESSAGES", M_Bind_ToggleMessages, 0, MENU_NONE},
@@ -2254,8 +2285,9 @@ static void M_Bind_SoundVolume (int option)
     M_StartBind(703);  // key_menu_volume
 }
 
-static void M_Bind_ToggleDetail (int option)
+static void M_Bind_Suicide (int option)
 {
+    // [JN] TODO own key to detail toggling?
     M_StartBind(704);  // key_menu_detail
 }
 
@@ -2305,18 +2337,24 @@ static MenuItem_t ID_Menu_Keybinds_8[] = {
     {ITT_EFUNC, "FINISH DEMO RECORDING", M_Bind_FinishDemo,     0, MENU_NONE},
     {ITT_EMPTY, NULL,                    NULL,                  0, MENU_NONE},
     {ITT_EFUNC, "SEND MESSAGE",          M_Bind_SendMessage,    0, MENU_NONE},
+    {ITT_EMPTY, NULL,                    NULL,                  0, MENU_NONE},
+    {ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_Reset,      0, MENU_NONE},
+    /*
     {ITT_EFUNC, "- TO PLAYER 1",         M_Bind_ToPlayer1,      0, MENU_NONE},
     {ITT_EFUNC, "- TO PLAYER 2",         M_Bind_ToPlayer2,      0, MENU_NONE},
     {ITT_EFUNC, "- TO PLAYER 3",         M_Bind_ToPlayer3,      0, MENU_NONE},
     {ITT_EFUNC, "- TO PLAYER 4",         M_Bind_ToPlayer4,      0, MENU_NONE},
-    {ITT_EMPTY, NULL,                    NULL,                  0, MENU_NONE},
-    {ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_Reset,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 5",         M_Bind_ToPlayer5,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 6",         M_Bind_ToPlayer6,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 7",         M_Bind_ToPlayer7,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 8",         M_Bind_ToPlayer8,      0, MENU_NONE},
+    */
 };
 
 static Menu_t ID_Def_Keybinds_8 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_8,
-    12, ID_Menu_Keybinds_8,
+    8, ID_Menu_Keybinds_8,
     0,
     true, true, true,
     MENU_ID_CONTROLS
@@ -2338,12 +2376,15 @@ static void M_Draw_ID_Keybinds_8 (void)
     MN_DrTextACentered("MULTIPLAYER", 60, cr[CR_YELLOW]);
 
     M_DrawBindKey(5, 70, key_multi_msg);
+
+    MN_DrTextACentered("RESET", 80, cr[CR_YELLOW]);
+    
+    /*
     M_DrawBindKey(6, 80, key_multi_msgplayer[0]);
     M_DrawBindKey(7, 90, key_multi_msgplayer[1]);
     M_DrawBindKey(8, 100, key_multi_msgplayer[2]);
     M_DrawBindKey(9, 110, key_multi_msgplayer[3]);
-
-    MN_DrTextACentered("RESET", 120, cr[CR_YELLOW]);
+    */
 
     M_DrawBindFooter("8", true);
 }
@@ -2373,6 +2414,7 @@ static void M_Bind_SendMessage (int option)
     M_StartBind(804);  // key_multi_msg
 }
 
+/*
 static void M_Bind_ToPlayer1 (int option)
 {
     M_StartBind(805);  // key_multi_msgplayer[0]
@@ -2392,6 +2434,7 @@ static void M_Bind_ToPlayer4 (int option)
 {
     M_StartBind(808);  // key_multi_msgplayer[3]
 }
+*/
 
 static void M_Bind_Reset (int option)
 {
@@ -4503,6 +4546,7 @@ static void M_CheckBind (int key)
     if (key_straferight == key)      key_straferight      = 0;
     if (key_strafe == key)           key_strafe           = 0;
     if (key_speed == key)            key_speed            = 0;
+    if (key_jump == key)             key_jump             = 0;
     if (key_180turn == key)          key_180turn          = 0;
     if (key_fire == key)             key_fire             = 0;
     if (key_use == key)              key_use              = 0;
@@ -4535,24 +4579,26 @@ static void M_CheckBind (int key)
     if (key_weapon2 == key)          key_weapon2          = 0;
     if (key_weapon3 == key)          key_weapon3          = 0;
     if (key_weapon4 == key)          key_weapon4          = 0;
-    if (key_weapon5 == key)          key_weapon5          = 0;
-    if (key_weapon6 == key)          key_weapon6          = 0;
-    if (key_weapon7 == key)          key_weapon7          = 0;
-    if (key_weapon8 == key)          key_weapon8          = 0;
     if (key_prevweapon == key)       key_prevweapon       = 0;
     if (key_nextweapon == key)       key_nextweapon       = 0;
+    if (key_arti_health == key)      key_arti_health      = 0;
+    if (key_arti_urn == key)         key_arti_urn         = 0;
+    if (key_arti_poisonbag == key)   key_arti_poisonbag   = 0;
+    if (key_arti_blastradius == key) key_arti_blastradius = 0;
+    if (key_arti_invulnerability == key) key_arti_invulnerability = 0;
 
     // Page 5
-    if (key_arti_quartz == key)      key_arti_quartz      = 0;
-    if (key_arti_urn == key)         key_arti_urn         = 0;
-    if (key_arti_bomb == key)        key_arti_bomb        = 0;
-    if (key_arti_tome == key)        key_arti_tome        = 0;
-    if (key_arti_ring == key)        key_arti_ring        = 0;
-    if (key_arti_chaosdevice == key) key_arti_chaosdevice = 0;
-    if (key_arti_shadowsphere == key) key_arti_shadowsphere = 0;
-    if (key_arti_wings == key)       key_arti_wings       = 0;
-    if (key_arti_torch == key)       key_arti_torch       = 0;
-    if (key_arti_morph == key)       key_arti_morph       = 0;
+    if (key_arti_egg == key)           key_arti_egg           = 0;
+    if (key_arti_teleport == key)      key_arti_teleport      = 0;
+    if (key_arti_teleportother == key) key_arti_teleportother = 0;
+    if (key_arti_wings == key)         key_arti_wings         = 0;
+    if (key_arti_servant == key)       key_arti_servant       = 0;
+    if (key_arti_bracers == key)       key_arti_bracers       = 0;
+    if (key_arti_boots == key)         key_arti_boots         = 0;
+    if (key_arti_torch == key)         key_arti_torch         = 0;
+    if (key_arti_krater == key)        key_arti_krater        = 0;
+    if (key_arti_incant == key)        key_arti_incant        = 0;
+    if (key_arti_all == key)           key_arti_all           = 0;
 
     // Page 6
     if (key_map_toggle == key)       key_map_toggle       = 0;
@@ -4619,9 +4665,10 @@ static void M_DoBind (int keynum, int key)
         case 105:  key_straferight = key;       break;
         case 106:  key_strafe = key;            break;
         case 107:  key_speed = key;             break;
-        case 108:  key_180turn = key;           break;
-        case 109:  key_fire = key;              break;
-        case 110:  key_use = key;               break;
+        case 108:  key_jump = key;              break;
+        case 109:  key_180turn = key;           break;
+        case 110:  key_fire = key;              break;
+        case 111:  key_use = key;               break;
 
         // Page 2
         case 200:  key_lookup = key;            break;
@@ -4651,24 +4698,26 @@ static void M_DoBind (int keynum, int key)
         case 401:  key_weapon2 = key;           break;
         case 402:  key_weapon3 = key;           break;
         case 403:  key_weapon4 = key;           break;
-        case 404:  key_weapon5 = key;           break;
-        case 405:  key_weapon6 = key;           break;
-        case 406:  key_weapon7 = key;           break;
-        case 407:  key_weapon8 = key;           break;
-        case 408:  key_prevweapon = key;        break;
-        case 409:  key_nextweapon = key;        break;
+        case 404:  key_prevweapon = key;        break;
+        case 405:  key_nextweapon = key;        break;
+        case 406:  key_arti_health = key;       break;
+        case 407:  key_arti_urn = key;          break;
+        case 408:  key_arti_poisonbag = key;    break;
+        case 409:  key_arti_blastradius = key;  break;
+        case 410:  key_arti_invulnerability = key; break;
 
         // Page 5
-        case 500:  key_arti_quartz = key;       break;
-        case 501:  key_arti_urn = key;          break;
-        case 502:  key_arti_bomb = key;         break;
-        case 503:  key_arti_tome = key;         break;
-        case 504:  key_arti_ring = key;         break;
-        case 505:  key_arti_chaosdevice = key;  break;
-        case 506:  key_arti_shadowsphere = key; break;
-        case 507:  key_arti_wings = key;        break;
-        case 508:  key_arti_torch = key;        break;
-        case 509:  key_arti_morph = key;        break;
+        case 500:  key_arti_egg = key;          break;
+        case 501:  key_arti_teleport = key;     break;
+        case 502:  key_arti_teleportother = key; break;
+        case 503:  key_arti_wings = key;        break;
+        case 504:  key_arti_servant = key;      break;
+        case 505:  key_arti_bracers = key;      break;
+        case 506:  key_arti_boots = key;        break;
+        case 507:  key_arti_torch = key;        break;
+        case 508:  key_arti_krater = key;       break;
+        case 509:  key_arti_incant = key;       break;
+        case 510:  key_arti_all = key;          break;
 
         // Page 6
         if (CurrentMenu == &ID_Def_Keybinds_6)
@@ -4734,10 +4783,11 @@ static void M_ClearBind (int CurrentItPos)
             case 5:   key_straferight = 0;      break;
             case 6:   key_strafe = 0;           break;
             case 7:   key_speed = 0;            break;
-            case 8:   key_180turn = 0;          break;
+            case 8:   key_jump = 0;             break;
+            case 9:   key_180turn = 0;          break;
             // Action title
-            case 10:  key_fire = 0;             break;
-            case 11:  key_use = 0;              break;
+            case 11:  key_fire = 0;             break;
+            case 12:  key_use = 0;              break;
         }
     }
     if (CurrentMenu == &ID_Def_Keybinds_2)
@@ -4783,28 +4833,31 @@ static void M_ClearBind (int CurrentItPos)
             case 1:   key_weapon2 = 0;          break;
             case 2:   key_weapon3 = 0;          break;
             case 3:   key_weapon4 = 0;          break;
-            case 4:   key_weapon5 = 0;          break;
-            case 5:   key_weapon6 = 0;          break;
-            case 6:   key_weapon7 = 0;          break;
-            case 7:   key_weapon8 = 0;          break;
-            case 8:   key_prevweapon = 0;       break;
-            case 9:   key_nextweapon = 0;       break;
+            case 4:   key_prevweapon = 0;       break;
+            case 5:   key_nextweapon = 0;       break;
+            
+            case 7:   key_arti_health = 0;      break;
+            case 8:   key_arti_urn = 0;         break;
+            case 9:   key_arti_poisonbag = 0;   break;
+            case 10:  key_arti_blastradius = 0; break;
+            case 11:  key_arti_invulnerability = 0; break;
         }
     }
     if (CurrentMenu == &ID_Def_Keybinds_5)
     {
         switch (CurrentItPos)
         {
-            case 0:   key_arti_quartz = 0;      break;
-            case 1:   key_arti_urn = 0;         break;
-            case 2:   key_arti_bomb = 0;        break;
-            case 3:   key_arti_tome = 0;        break;
-            case 4:   key_arti_ring = 0;        break;
-            case 5:   key_arti_chaosdevice = 0; break;
-            case 6:   key_arti_shadowsphere = 0; break;
-            case 7:   key_arti_wings = 0;       break;
-            case 8:   key_arti_torch = 0;       break;
-            case 9:   key_arti_morph = 0;       break;
+            case 0:   key_arti_egg = 0;         break;
+            case 1:   key_arti_teleport = 0;    break;
+            case 2:   key_arti_teleportother = 0; break;
+            case 3:   key_arti_wings = 0;       break;
+            case 4:   key_arti_servant = 0;     break;
+            case 5:   key_arti_bracers = 0;     break;
+            case 6:   key_arti_boots = 0;       break;
+            case 7:   key_arti_torch = 0;       break;
+            case 8:   key_arti_krater = 0;      break;
+            case 9:   key_arti_incant = 0;      break;
+            case 10:  key_arti_all = 0;         break;
         }
     }
     if (CurrentMenu == &ID_Def_Keybinds_6)
@@ -4875,6 +4928,7 @@ static void M_ResetBinds (void)
     key_straferight = 'd';
     key_strafe = KEY_RALT;
     key_speed = KEY_RSHIFT;
+    key_jump = '/';
     key_180turn = 0;
     key_fire = KEY_RCTRL;
     key_use = ' ';
@@ -4907,24 +4961,26 @@ static void M_ResetBinds (void)
     key_weapon2 = '2';
     key_weapon3 = '3';
     key_weapon4 = '4';
-    key_weapon5 = '5';
-    key_weapon6 = '6';
-    key_weapon7 = '7';
-    key_weapon8 = '8';
     key_prevweapon = 0;
     key_nextweapon = 0;
+    key_arti_health = '\\';
+    key_arti_urn = 0;
+    key_arti_poisonbag = '0';
+    key_arti_blastradius = '9';
+    key_arti_invulnerability = '5';
 
     // Page 5
-    key_arti_quartz = 0;
-    key_arti_urn = 0;
-    key_arti_bomb = 0;
-    key_arti_tome = 127; // backspace
-    key_arti_ring = 0;
-    key_arti_chaosdevice = 0;
-    key_arti_shadowsphere = 0;
+    key_arti_egg = '6';
+    key_arti_teleport = '8';
+    key_arti_teleportother = '7';
     key_arti_wings = 0;
+    key_arti_servant = 0;
+    key_arti_bracers = 0;
+    key_arti_boots = 0;
     key_arti_torch = 0;
-    key_arti_morph = 0;
+    key_arti_krater = 0;
+    key_arti_incant = 0;
+    key_arti_all = KEY_BACKSPACE;
 
     // Page 6
     key_map_toggle = KEY_TAB;
