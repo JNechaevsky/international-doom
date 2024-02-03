@@ -82,8 +82,6 @@ static void CheatScriptFunc1(player_t * player, Cheat_t * cheat);
 static void CheatScriptFunc2(player_t * player, Cheat_t * cheat);
 static void CheatScriptFunc3(player_t * player, Cheat_t * cheat);
 static void CheatRevealFunc(player_t * player, Cheat_t * cheat);
-static void CheatTrackFunc1(player_t * player, Cheat_t * cheat);
-static void CheatTrackFunc2(player_t * player, Cheat_t * cheat);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
@@ -213,13 +211,7 @@ cheatseq_t CheatScriptSeq3 = CHEAT("puke", 2);
 
 cheatseq_t CheatRevealSeq = CHEAT("mapsco", 0);
 
-cheatseq_t CheatTrackSeq1 = CHEAT("`", 0);
-
-cheatseq_t CheatTrackSeq2 = CHEAT("`", 2);
-
 static Cheat_t Cheats[] = {
-    {CheatTrackFunc1, &CheatTrackSeq1},
-    {CheatTrackFunc2, &CheatTrackSeq2},
     {CheatGodFunc, &CheatGodSeq},
     {CheatNoClipFunc, &CheatNoClipSeq},
     {CheatWeaponsFunc, &CheatWeaponsSeq},
@@ -1984,80 +1976,4 @@ static void CheatScriptFunc3(player_t * player, Cheat_t * cheat)
 static void CheatRevealFunc(player_t * player, Cheat_t * cheat)
 {
     cheating = (cheating + 1) % 3;
-}
-
-//===========================================================================
-//
-// CheatTrackFunc1
-//
-//===========================================================================
-
-static void CheatTrackFunc1(player_t * player, Cheat_t * cheat)
-{
-    // [JN] TODO - remove, no CD music.
-    /*
-    char buffer[80];
-
-    if (!cdmusic)
-    {
-        return;
-    }
-
-    if (I_CDMusInit() == -1)
-    {
-        P_SetMessage(player, "ERROR INITIALIZING CD", true);
-    }
-
-    M_snprintf(buffer, sizeof(buffer), "ENTER DESIRED CD TRACK (%.2d - %.2d):\n",
-               I_CDMusFirstTrack(), I_CDMusLastTrack());
-    P_SetMessage(player, buffer, true);
-    */
-}
-
-//===========================================================================
-//
-// CheatTrackFunc2
-//
-//===========================================================================
-
-static void CheatTrackFunc2(player_t * player, Cheat_t * cheat)
-{
-    // [JN] TODO - remove, no CD music.
-    /*
-    char buffer[80];
-    int track;
-    char args[2];
-
-    cht_GetParam(cheat->seq, args);
-
-    if (!cdmusic)
-    {
-        return;
-    }
-
-    track = (args[0] - '0') * 10 + (args[1] - '0');
-    if (track < I_CDMusFirstTrack() || track > I_CDMusLastTrack())
-    {
-        P_SetMessage(player, "INVALID TRACK NUMBER\n", true);
-        return;
-    }
-
-    if (track == S_GetCurrentCDTrack())
-    {
-        return;
-    }
-
-    if (!S_StartCustomCDTrack(track))
-    {
-        M_snprintf(buffer, sizeof(buffer),
-                   "ERROR WHILE TRYING TO PLAY CD TRACK: %.2d\n", track);
-        P_SetMessage(player, buffer, true);
-    }
-    else
-    {
-        // No error encountered while attempting to play the track
-        M_snprintf(buffer, sizeof(buffer), "PLAYING TRACK: %.2d\n", track);
-        P_SetMessage(player, buffer, true);
-    }
-    */
 }
