@@ -93,6 +93,12 @@ int key_arti_teleport        = '8';
 int key_arti_teleportother   = '7';
 int key_arti_egg             = '6';
 int key_arti_invulnerability = '5';
+// Extra artifacts
+int key_arti_servant = 0;
+int key_arti_bracers = 0;
+int key_arti_boots = 0;
+int key_arti_krater = 0;
+int key_arti_incant = 0;
 
 // Special modes
 
@@ -412,6 +418,12 @@ void M_BindHexenControls(void)
     M_BindIntVariable("key_arti_teleportother",   &key_arti_teleportother);
     M_BindIntVariable("key_arti_egg",             &key_arti_egg);
     M_BindIntVariable("key_arti_invulnerability", &key_arti_invulnerability);
+    // Extra artifacts
+    M_BindIntVariable("key_arti_servant",         &key_arti_servant);
+    M_BindIntVariable("key_arti_bracers",         &key_arti_bracers);
+    M_BindIntVariable("key_arti_boots",           &key_arti_boots);
+    M_BindIntVariable("key_arti_krater",          &key_arti_krater);
+    M_BindIntVariable("key_arti_incant",          &key_arti_incant);
 }
 
 void M_BindChatControls (unsigned int num_players)

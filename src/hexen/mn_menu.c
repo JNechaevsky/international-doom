@@ -75,6 +75,15 @@ typedef enum
     MENU_ID_DISPLAY,
     MENU_ID_SOUND,
     MENU_ID_CONTROLS,
+    MENU_ID_KBDBINDS1,
+    MENU_ID_KBDBINDS2,
+    MENU_ID_KBDBINDS3,
+    MENU_ID_KBDBINDS4,
+    MENU_ID_KBDBINDS5,
+    MENU_ID_KBDBINDS6,
+    MENU_ID_KBDBINDS7,
+    MENU_ID_KBDBINDS8,
+    MENU_ID_MOUSEBINDS,
     MENU_NONE
 } MenuType_t;
 
@@ -388,6 +397,207 @@ static void M_ID_Controls_NoVert (int option);
 static void M_ID_Controls_InvertY (int option);
 static void M_ID_Controls_NoArtiSkip (int option);
 
+static void M_Draw_ID_Keybinds_1 (void);
+static void M_Bind_MoveForward (int option);
+static void M_Bind_MoveBackward (int option);
+static void M_Bind_TurnLeft (int option);
+static void M_Bind_TurnRight (int option);
+static void M_Bind_StrafeLeft (int option);
+static void M_Bind_StrafeRight (int option);
+static void M_Bind_StrafeOn (int option);
+static void M_Bind_SpeedOn (int option);
+static void M_Bind_Jump (int option);
+static void M_Bind_180Turn (int option);
+static void M_Bind_FireAttack (int option);
+static void M_Bind_Use (int option);
+
+static void M_Draw_ID_Keybinds_2 (void);
+static void M_Bind_LookUp (int option);
+static void M_Bind_LookDown (int option);
+static void M_Bind_LookCenter (int option);
+static void M_Bind_FlyUp (int option);
+static void M_Bind_FlyDown (int option);
+static void M_Bind_FlyCenter (int option);
+static void M_Bind_InvLeft (int option);
+static void M_Bind_InvRight (int option);
+static void M_Bind_UseArti (int option);
+
+static void M_Draw_ID_Keybinds_3 (void);
+static void M_Bind_AlwaysRun (int option);
+static void M_Bind_MouseLook (int option);
+static void M_Bind_RestartLevel (int option);
+static void M_Bind_NextLevel (int option);
+static void M_Bind_FastForward (int option);
+static void M_Bind_FlipLevels (int option);
+static void M_Bind_SpectatorMode (int option);
+static void M_Bind_FreezeMode (int option);
+static void M_Bind_NotargetMode (int option);
+static void M_Bind_BuddhaMode (int option);
+
+static void M_Draw_ID_Keybinds_4 (void);
+static void M_Bind_Weapon1 (int option);
+static void M_Bind_Weapon2 (int option);
+static void M_Bind_Weapon3 (int option);
+static void M_Bind_Weapon4 (int option);
+static void M_Bind_Quartz (int option);
+static void M_Bind_Urn (int option);
+static void M_Bind_Flechette (int option);
+static void M_Bind_Disk (int option);
+static void M_Bind_Icon (int option);
+static void M_Bind_PrevWeapon (int option);
+static void M_Bind_NextWeapon (int option);
+
+static void M_Draw_ID_Keybinds_5 (void);
+static void M_Bind_Porkalator (int option);
+static void M_Bind_Chaos (int option);
+static void M_Bind_Banishment (int option);
+static void M_Bind_Wings (int option);
+static void M_Bind_Servant (int option);
+static void M_Bind_Bracers (int option);
+static void M_Bind_Boots (int option);
+static void M_Bind_Torch (int option);
+static void M_Bind_Krater (int option);
+static void M_Bind_Incant (int option);
+static void M_Bind_AllArti (int option);
+
+
+static void M_Draw_ID_Keybinds_6 (void);
+static void M_Bind_ToggleMap (int option);
+static void M_Bind_ZoomIn (int option);
+static void M_Bind_ZoomOut (int option);
+static void M_Bind_MaxZoom (int option);
+static void M_Bind_FollowMode (int option);
+static void M_Bind_RotateMode (int option);
+static void M_Bind_OverlayMode (int option);
+static void M_Bind_ToggleGrid (int option);
+static void M_Bind_AddMark (int option);
+static void M_Bind_ClearMarks (int option);
+
+static void M_Draw_ID_Keybinds_7 (void);
+static void M_Bind_HelpScreen (int option);
+static void M_Bind_SaveGame (int option);
+static void M_Bind_LoadGame (int option);
+static void M_Bind_SoundVolume (int option);
+static void M_Bind_Suicide (int option);
+static void M_Bind_QuickSave (int option);
+static void M_Bind_EndGame (int option);
+static void M_Bind_ToggleMessages (int option);
+static void M_Bind_QuickLoad (int option);
+static void M_Bind_QuitGame (int option);
+static void M_Bind_ToggleGamma (int option);
+static void M_Bind_MultiplayerSpy (int option);
+
+static void M_Draw_ID_Keybinds_8 (void);
+static void M_Bind_Pause (int option);
+static void M_Bind_SaveScreenshot (int option);
+static void M_Bind_LastMessage (int option);
+static void M_Bind_FinishDemo (int option);
+static void M_Bind_SendMessage (int option);
+static void M_Bind_Reset (int option);
+/*
+static void M_Bind_ToPlayer1 (int option);
+static void M_Bind_ToPlayer2 (int option);
+static void M_Bind_ToPlayer3 (int option);
+static void M_Bind_ToPlayer4 (int option);
+*/
+
+static void M_Draw_ID_MouseBinds (void);
+static void M_Bind_M_FireAttack (int option);
+static void M_Bind_M_MoveForward (int option);
+static void M_Bind_M_StrafeOn (int option);
+static void M_Bind_M_MoveBackward (int option);
+static void M_Bind_M_Use (int option);
+static void M_Bind_M_StrafeLeft (int option);
+static void M_Bind_M_StrafeRight (int option);
+static void M_Bind_M_PrevWeapon (int option);
+static void M_Bind_M_NextWeapon (int option);
+static void M_Bind_M_InventoryLeft (int option);
+static void M_Bind_M_InventoryRight (int option);
+static void M_Bind_M_UseArtifact (int option);
+
+static void M_Bind_M_Reset (int option);
+
+// Keyboard binding prototypes
+static boolean KbdIsBinding;
+static int     keyToBind;
+
+static char   *M_NameBind (int itemSetOn, int key);
+static void    M_StartBind (int keynum);
+static void    M_CheckBind (int key);
+static void    M_DoBind (int keynum, int key);
+static void    M_ClearBind (int itemOn);
+static byte   *M_ColorizeBind (int itemSetOn, int key);
+static void    M_ResetBinds (void);
+static void    M_DrawBindKey (int itemNum, int yPos, int keyBind);
+static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
+
+// Mouse binding prototypes
+static boolean MouseIsBinding;
+static int     btnToBind;
+
+static char   *M_NameMouseBind (int CurrentItPosOn, int btn);
+static void    M_StartMouseBind (int btn);
+static void    M_CheckMouseBind (int btn);
+static void    M_DoMouseBind (int btnnum, int btn);
+static void    M_ClearMouseBind (int itemOn);
+static byte   *M_ColorizeMouseBind (int CurrentItPosOn, int btn);
+static void    M_DrawBindButton (int itemNum, int yPos, int btnBind);
+static void    M_ResetMouseBinds (void);
+
+// Forward declarations for scrolling and remembering last pages.
+static Menu_t ID_Def_Keybinds_1;
+static Menu_t ID_Def_Keybinds_2;
+static Menu_t ID_Def_Keybinds_3;
+static Menu_t ID_Def_Keybinds_4;
+static Menu_t ID_Def_Keybinds_5;
+static Menu_t ID_Def_Keybinds_6;
+static Menu_t ID_Def_Keybinds_7;
+static Menu_t ID_Def_Keybinds_8;
+
+// Remember last keybindings page.
+static int Keybinds_Cur;
+
+static void M_Choose_ID_Keybinds (int choice)
+{
+    SetMenu(Keybinds_Cur);
+}
+
+// Utility function for scrolling pages by arrows / PG keys.
+static void M_ScrollPages (boolean direction)
+{
+    // Save/Load menu:
+    if (CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
+    {
+        if (savepage > 0 && !direction)
+        {
+            savepage--;
+            S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+        }
+        else
+        if (savepage < SAVEPAGE_MAX && direction)
+        {
+            savepage++;
+            S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+        }
+        quicksave = -1;
+        MN_LoadSlotText();
+        return;
+    }
+
+    // Keyboard bindings:
+    else if (CurrentMenu == &ID_Def_Keybinds_1) SetMenu(direction ? MENU_ID_KBDBINDS2 : MENU_ID_KBDBINDS8);
+    else if (CurrentMenu == &ID_Def_Keybinds_2) SetMenu(direction ? MENU_ID_KBDBINDS3 : MENU_ID_KBDBINDS1);
+    else if (CurrentMenu == &ID_Def_Keybinds_3) SetMenu(direction ? MENU_ID_KBDBINDS4 : MENU_ID_KBDBINDS2);
+    else if (CurrentMenu == &ID_Def_Keybinds_4) SetMenu(direction ? MENU_ID_KBDBINDS5 : MENU_ID_KBDBINDS3);
+    else if (CurrentMenu == &ID_Def_Keybinds_5) SetMenu(direction ? MENU_ID_KBDBINDS6 : MENU_ID_KBDBINDS4);
+    else if (CurrentMenu == &ID_Def_Keybinds_6) SetMenu(direction ? MENU_ID_KBDBINDS7 : MENU_ID_KBDBINDS5);
+    else if (CurrentMenu == &ID_Def_Keybinds_7) SetMenu(direction ? MENU_ID_KBDBINDS8 : MENU_ID_KBDBINDS6);
+    else if (CurrentMenu == &ID_Def_Keybinds_8) SetMenu(direction ? MENU_ID_KBDBINDS1 : MENU_ID_KBDBINDS7);
+
+    // Play sound.
+    S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+}
+
 // -----------------------------------------------------------------------------
 
 // [JN] Delay before shading.
@@ -420,10 +630,15 @@ static void M_FillBackground (void)
 static byte *M_Line_Glow (const int tics)
 {
     return
-        tics == 5 ? NULL :
-        tics == 4 ? cr[CR_MENU_DARK1] :
-        tics == 3 ? cr[CR_MENU_DARK2] :
-                    cr[CR_MENU_DARK3] ;
+        tics == 5 ? cr[CR_MENU_BRIGHT2] :
+        tics == 4 ? cr[CR_MENU_BRIGHT1] :
+        tics == 3 ? NULL :
+        tics == 2 ? cr[CR_MENU_DARK1]   :
+                    cr[CR_MENU_DARK2]   ;
+        /*            
+        tics == 1 ? cr[CR_MENU_DARK2]  :
+                    cr[CR_MENU_DARK3]  ;
+        */
 }
 
 #define GLOW_UNCOLORED  0
@@ -544,6 +759,10 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
 static byte *M_Cursor_Glow (const int tics)
 {
     return
+        tics ==  8 || tics ==  7 ? cr[CR_MENU_BRIGHT4] :
+        tics ==  6 || tics ==  5 ? cr[CR_MENU_BRIGHT3] :
+        tics ==  4 || tics ==  3 ? cr[CR_MENU_BRIGHT2] :
+        tics ==  2 || tics ==  1 ? cr[CR_MENU_BRIGHT1] :
         tics == -1 || tics == -2 ? cr[CR_MENU_DARK1]   :
         tics == -3 || tics == -4 ? cr[CR_MENU_DARK2]   :
         tics == -5 || tics == -6 ? cr[CR_MENU_DARK3]   :
@@ -1253,8 +1472,8 @@ static void M_ID_MuteInactive (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Controls[] = {
-    { ITT_EMPTY,   "KEYBOARD BINDINGS",       NULL,                       0, MENU_NONE /*TODO*/ },
-    { ITT_EMPTY,   "MOUSE BINDINGS",          NULL,                       0, MENU_NONE /*TODO*/ },
+    { ITT_EFUNC,   "KEYBOARD BINDINGS",       M_Choose_ID_Keybinds,       0, MENU_NONE          },
+    { ITT_SETMENU, "MOUSE BINDINGS",          NULL,                       0, MENU_ID_MOUSEBINDS },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_LRFUNC,  "SENSIVITY",               SCMouseSensi,               0, MENU_NONE          },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
@@ -1361,7 +1580,989 @@ static void M_ID_Controls_NoArtiSkip (int choice)
     ctrl_noartiskip ^= 1;
 }
 
+// -----------------------------------------------------------------------------
+// Keybinds 1
+// -----------------------------------------------------------------------------
 
+static MenuItem_t ID_Menu_Keybinds_1[] = {
+    { ITT_EFUNC, "MOVE FORWARD",    M_Bind_MoveForward,  0, MENU_NONE },
+    { ITT_EFUNC, "MOVE BACKWARD",   M_Bind_MoveBackward, 0, MENU_NONE },
+    { ITT_EFUNC, "TURN LEFT",       M_Bind_TurnLeft,     0, MENU_NONE },
+    { ITT_EFUNC, "TURN RIGHT",      M_Bind_TurnRight,    0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE LEFT",     M_Bind_StrafeLeft,   0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE RIGHT",    M_Bind_StrafeRight,  0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE ON",       M_Bind_StrafeOn,     0, MENU_NONE },
+    { ITT_EFUNC, "SPEED ON",        M_Bind_SpeedOn,      0, MENU_NONE },
+    { ITT_EFUNC, "JUMP",            M_Bind_Jump,         0, MENU_NONE },
+    { ITT_EFUNC, "180 DEGREE TURN", M_Bind_180Turn,      0, MENU_NONE },
+    { ITT_EMPTY, NULL,              NULL,                0, MENU_NONE },
+    { ITT_EFUNC, "FIRE/ATTACK",     M_Bind_FireAttack,   0, MENU_NONE },
+    { ITT_EFUNC, "USE",             M_Bind_Use,          0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Keybinds_1 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Keybinds_1,
+    13, ID_Menu_Keybinds_1,
+    0,
+    true, true, true,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_Keybinds_1 (void)
+{
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS1;
+
+    M_FillBackground();
+
+    MN_DrTextACentered("MOVEMENT", 10, cr[CR_YELLOW]);
+
+    M_DrawBindKey(0, 20, key_up);
+    M_DrawBindKey(1, 30, key_down);
+    M_DrawBindKey(2, 40, key_left);
+    M_DrawBindKey(3, 50, key_right);
+    M_DrawBindKey(4, 60, key_strafeleft);
+    M_DrawBindKey(5, 70, key_straferight);
+    M_DrawBindKey(6, 80, key_strafe);
+    M_DrawBindKey(7, 90, key_speed);
+    M_DrawBindKey(8, 100, key_jump);
+    M_DrawBindKey(9, 110, key_180turn);
+
+    MN_DrTextACentered("ACTION", 120, cr[CR_YELLOW]);
+
+    M_DrawBindKey(11, 130, key_fire);
+    M_DrawBindKey(12, 140, key_use);
+
+    M_DrawBindFooter("1", true);
+}
+
+static void M_Bind_MoveForward (int option)
+{
+    M_StartBind(100);  // key_up
+}
+
+static void M_Bind_MoveBackward (int option)
+{
+    M_StartBind(101);  // key_down
+}
+
+static void M_Bind_TurnLeft (int option)
+{
+    M_StartBind(102);  // key_left
+}
+
+static void M_Bind_TurnRight (int option)
+{
+    M_StartBind(103);  // key_right
+}
+
+static void M_Bind_StrafeLeft (int option)
+{
+    M_StartBind(104);  // key_strafeleft
+}
+
+static void M_Bind_StrafeRight (int option)
+{
+    M_StartBind(105);  // key_straferight
+}
+
+static void M_Bind_StrafeOn (int option)
+{
+    M_StartBind(106);  // key_strafe
+}
+
+static void M_Bind_SpeedOn (int option)
+{
+    M_StartBind(107);  // key_speed
+}
+
+static void M_Bind_Jump (int option)
+{
+    M_StartBind(108);  // key_jump
+}
+
+static void M_Bind_180Turn (int choice)
+{
+    M_StartBind(109);  // key_180turn
+}
+
+static void M_Bind_FireAttack (int option)
+{
+    M_StartBind(110);  // key_fire
+}
+
+static void M_Bind_Use (int option)
+{
+    M_StartBind(111);  // key_use
+}
+
+// -----------------------------------------------------------------------------
+// Keybinds 2
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Keybinds_2[] = {
+    { ITT_EFUNC, "LOOK UP",         M_Bind_LookUp,     0, MENU_NONE },
+    { ITT_EFUNC, "LOOK DOWN",       M_Bind_LookDown,   0, MENU_NONE },
+    { ITT_EFUNC, "CENTER VIEW",     M_Bind_LookCenter, 0, MENU_NONE },
+    { ITT_EMPTY, NULL,              NULL,              0, MENU_NONE },
+    { ITT_EFUNC, "FLY UP",          M_Bind_FlyUp,      0, MENU_NONE },
+    { ITT_EFUNC, "FLY DOWN",        M_Bind_FlyDown,    0, MENU_NONE },
+    { ITT_EFUNC, "FLY CENTER",      M_Bind_FlyCenter,  0, MENU_NONE },
+    { ITT_EMPTY, NULL,              NULL,              0, MENU_NONE },
+    { ITT_EFUNC, "INVENTORY LEFT",  M_Bind_InvLeft,    0, MENU_NONE },
+    { ITT_EFUNC, "INVENTORY RIGHT", M_Bind_InvRight,   0, MENU_NONE },
+    { ITT_EFUNC, "USE ARTIFACT",    M_Bind_UseArti,    0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Keybinds_2 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Keybinds_2,
+    11, ID_Menu_Keybinds_2,
+    0,
+    true, true, true,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_Keybinds_2 (void)
+{
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS2;
+
+    M_FillBackground();
+
+    MN_DrTextACentered("VIEW", 10, cr[CR_YELLOW]);
+
+    M_DrawBindKey(0, 20, key_lookup);
+    M_DrawBindKey(1, 30, key_lookdown);
+    M_DrawBindKey(2, 40, key_lookcenter);
+
+    MN_DrTextACentered("FLYING", 50, cr[CR_YELLOW]);
+
+    M_DrawBindKey(4, 60, key_flyup);
+    M_DrawBindKey(5, 70, key_flydown);
+    M_DrawBindKey(6, 80, key_flycenter);
+
+    MN_DrTextACentered("INVENTORY", 90, cr[CR_YELLOW]);
+
+    M_DrawBindKey(8, 100, key_invleft);
+    M_DrawBindKey(9, 110, key_invright);
+    M_DrawBindKey(10, 120, key_useartifact);
+
+    M_DrawBindFooter("2", true);
+}
+
+static void M_Bind_LookUp (int option)
+{
+    M_StartBind(200);  // key_lookup
+}
+
+static void M_Bind_LookDown (int option)
+{
+    M_StartBind(201);  // key_lookdown
+}
+
+static void M_Bind_LookCenter (int option)
+{
+    M_StartBind(202);  // key_lookcenter
+}
+
+static void M_Bind_FlyUp (int option)
+{
+    M_StartBind(203);  // key_flyup
+}
+
+static void M_Bind_FlyDown (int option)
+{
+    M_StartBind(204);  // key_flydown
+}
+
+static void M_Bind_FlyCenter (int option)
+{
+    M_StartBind(205);  // key_flycenter
+}
+
+static void M_Bind_InvLeft (int option)
+{
+    M_StartBind(206);  // key_invleft
+}
+
+static void M_Bind_InvRight (int option)
+{
+    M_StartBind(207);  // key_invright
+}
+
+static void M_Bind_UseArti (int option)
+{
+    M_StartBind(208);  // key_useartifact
+}
+
+// -----------------------------------------------------------------------------
+// Keybinds 3
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Keybinds_3[] = {
+    { ITT_EFUNC, "ALWAYS RUN",              M_Bind_AlwaysRun,     0, MENU_NONE },
+    { ITT_EFUNC, "MOUSE LOOK",              M_Bind_MouseLook,     0, MENU_NONE },
+    { ITT_EMPTY, NULL,                      NULL,                 0, MENU_NONE },
+    { ITT_EFUNC, "RESTART LEVEL/DEMO",      M_Bind_RestartLevel,  0, MENU_NONE },
+    { ITT_EFUNC, "GO TO NEXT LEVEL",        M_Bind_NextLevel,     0, MENU_NONE },
+    { ITT_EFUNC, "DEMO FAST-FORWARD",       M_Bind_FastForward,   0, MENU_NONE },
+    { ITT_EFUNC, "FLIP LEVEL HORIZONTALLY", M_Bind_FlipLevels,    0, MENU_NONE },
+    { ITT_EMPTY, NULL,                      NULL,                 0, MENU_NONE },
+    { ITT_EFUNC, "SPECTATOR MODE",          M_Bind_SpectatorMode, 0, MENU_NONE },
+    { ITT_EFUNC, "FREEZE MODE",             M_Bind_FreezeMode,    0, MENU_NONE },
+    { ITT_EFUNC, "NOTARGET MODE",           M_Bind_NotargetMode,  0, MENU_NONE },
+    { ITT_EFUNC, "BUDDHA MODE",             M_Bind_BuddhaMode,    0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Keybinds_3 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Keybinds_3,
+    12, ID_Menu_Keybinds_3,
+    0,
+    true, true, true,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_Keybinds_3 (void)
+{
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS3;
+
+    M_FillBackground();
+
+    MN_DrTextACentered("ADVANCED MOVEMENT", 10, cr[CR_YELLOW]);
+
+    M_DrawBindKey(0, 20, key_autorun);
+    M_DrawBindKey(1, 30, key_mouse_look);
+
+    MN_DrTextACentered("SPECIAL KEYS", 40, cr[CR_YELLOW]);
+
+    M_DrawBindKey(3, 50, key_reloadlevel);
+    M_DrawBindKey(4, 60, key_nextlevel);
+    M_DrawBindKey(5, 70, key_demospeed);
+    M_DrawBindKey(6, 80, key_flip_levels);
+
+    MN_DrTextACentered("SPECIAL MODES", 90, cr[CR_YELLOW]);
+
+    M_DrawBindKey(8, 100, key_spectator);
+    M_DrawBindKey(9, 110, key_freeze);
+    M_DrawBindKey(10, 120, key_notarget);
+    M_DrawBindKey(11, 130, key_buddha);
+
+    M_DrawBindFooter("3", true);
+}
+
+static void M_Bind_AlwaysRun (int option)
+{
+    M_StartBind(300);  // key_autorun
+}
+
+static void M_Bind_MouseLook (int option)
+{
+    M_StartBind(301);  // key_mouse_look
+}
+
+static void M_Bind_RestartLevel (int option)
+{
+    M_StartBind(302);  // key_reloadlevel
+}
+
+static void M_Bind_NextLevel (int option)
+{
+    M_StartBind(303);  // key_nextlevel
+}
+
+static void M_Bind_FastForward (int option)
+{
+    M_StartBind(304);  // key_demospeed
+}
+
+static void M_Bind_FlipLevels (int choice)
+{
+    M_StartBind(305);  // key_flip_levels
+}
+
+static void M_Bind_SpectatorMode (int option)
+{
+    M_StartBind(306);  // key_spectator
+}
+
+static void M_Bind_FreezeMode (int option)
+{
+    M_StartBind(307);  // key_freeze
+}
+
+static void M_Bind_NotargetMode (int option)
+{
+    M_StartBind(308);  // key_notarget
+}
+
+static void M_Bind_BuddhaMode (int choice)
+{
+    M_StartBind(309);  // key_buddha
+}
+
+// -----------------------------------------------------------------------------
+// Keybinds 4
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Keybinds_4[] = {
+    { ITT_EFUNC, "WEAPON 1",             M_Bind_Weapon1,    0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 2",             M_Bind_Weapon2,    0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 3",             M_Bind_Weapon3,    0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 4",             M_Bind_Weapon4,    0, MENU_NONE },
+    { ITT_EFUNC, "PREVIOUS WEAPON",      M_Bind_PrevWeapon, 0, MENU_NONE },
+    { ITT_EFUNC, "NEXT WEAPON",          M_Bind_NextWeapon, 0, MENU_NONE },
+    { ITT_EMPTY, NULL,                   NULL,              0, MENU_NONE },
+    { ITT_EFUNC, "QUARTZ FLASK",         M_Bind_Quartz,     0, MENU_NONE },
+    { ITT_EFUNC, "MYSTIC URN",           M_Bind_Urn,        0, MENU_NONE },
+    { ITT_EFUNC, "FLECHETTE",            M_Bind_Flechette,  0, MENU_NONE },
+    { ITT_EFUNC, "DISK OF REPULSTION",   M_Bind_Disk,       0, MENU_NONE },
+    { ITT_EFUNC, "ICON OF THE DEFENDER", M_Bind_Icon,       0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Keybinds_4 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Keybinds_4,
+    12, ID_Menu_Keybinds_4,
+    0,
+    true, true, true,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_Keybinds_4 (void)
+{
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS4;
+
+    M_FillBackground();
+
+    MN_DrTextACentered("WEAPONS", 10, cr[CR_YELLOW]);
+
+    M_DrawBindKey(0, 20, key_weapon1);
+    M_DrawBindKey(1, 30, key_weapon2);
+    M_DrawBindKey(2, 40, key_weapon3);
+    M_DrawBindKey(3, 50, key_weapon4);
+    M_DrawBindKey(4, 60, key_prevweapon);
+    M_DrawBindKey(5, 70, key_nextweapon);
+
+    MN_DrTextACentered("ARTIFACTS", 80, cr[CR_YELLOW]);
+
+    M_DrawBindKey(7, 90, key_arti_health);
+    M_DrawBindKey(8, 100, key_arti_urn);
+    M_DrawBindKey(9, 110, key_arti_poisonbag);
+    M_DrawBindKey(10, 120, key_arti_blastradius);
+    M_DrawBindKey(11, 130, key_arti_invulnerability);
+
+    M_DrawBindFooter("4", true);
+}
+
+static void M_Bind_Weapon1 (int option)
+{
+    M_StartBind(400);  // key_weapon1
+}
+
+static void M_Bind_Weapon2 (int option)
+{
+    M_StartBind(401);  // key_weapon2
+}
+
+static void M_Bind_Weapon3 (int option)
+{
+    M_StartBind(402);  // key_weapon3
+}
+
+static void M_Bind_Weapon4 (int option)
+{
+    M_StartBind(403);  // key_weapon4
+}
+
+static void M_Bind_PrevWeapon (int option)
+{
+    M_StartBind(404);  // key_prevweapon
+}
+
+static void M_Bind_NextWeapon (int option)
+{
+    M_StartBind(405);  // key_nextweapon
+}
+
+static void M_Bind_Quartz (int option)
+{
+    M_StartBind(406);  // key_arti_health
+}
+
+static void M_Bind_Urn (int option)
+{
+    M_StartBind(407);  // key_arti_urn
+}
+
+static void M_Bind_Flechette (int option)
+{
+    M_StartBind(408);  // key_arti_poisonbag
+}
+
+static void M_Bind_Disk (int option)
+{
+    M_StartBind(409);  // key_arti_blastradius
+}
+
+static void M_Bind_Icon (int option)
+{
+    M_StartBind(410);  // key_arti_invulnerability
+}
+
+// -----------------------------------------------------------------------------
+// Keybinds 5
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Keybinds_5[] = {
+    { ITT_EFUNC, "PORKALATOR",          M_Bind_Porkalator, 0, MENU_NONE },
+    { ITT_EFUNC, "CHAOS DEVICE",        M_Bind_Chaos,      0, MENU_NONE },
+    { ITT_EFUNC, "BANISHMENT DEVICE",   M_Bind_Banishment, 0, MENU_NONE },
+    { ITT_EFUNC, "WINGS OF WRATH",      M_Bind_Wings,      0, MENU_NONE },
+    { ITT_EFUNC, "DARK SERVANT",        M_Bind_Servant,    0, MENU_NONE },
+    { ITT_EFUNC, "DRAGONSKIN BRACERS",  M_Bind_Bracers,    0, MENU_NONE },
+    { ITT_EFUNC, "BOOTS OF SPEED",      M_Bind_Boots,      0, MENU_NONE },
+    { ITT_EFUNC, "TORCH",               M_Bind_Torch,      0, MENU_NONE },
+    { ITT_EFUNC, "KRATER OF MIGHT",     M_Bind_Krater,     0, MENU_NONE },
+    { ITT_EFUNC, "MYSTIC AMBIT INCANT", M_Bind_Incant,     0, MENU_NONE },    
+    { ITT_EFUNC, "ONE OF EACH",         M_Bind_AllArti,    0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Keybinds_5 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Keybinds_5,
+    11, ID_Menu_Keybinds_5,
+    0,
+    true, true, true,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_Keybinds_5 (void)
+{
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS5;
+
+    M_FillBackground();
+
+    MN_DrTextACentered("ARTIFACTS", 10, cr[CR_YELLOW]);
+
+    M_DrawBindKey(0, 20, key_arti_egg);
+    M_DrawBindKey(1, 30, key_arti_teleport);
+    M_DrawBindKey(2, 40, key_arti_teleportother);
+    M_DrawBindKey(3, 50, key_arti_wings);
+    M_DrawBindKey(4, 60, key_arti_servant);
+    M_DrawBindKey(5, 70, key_arti_bracers);
+    M_DrawBindKey(6, 80, key_arti_boots);
+    M_DrawBindKey(7, 90, key_arti_torch);
+    M_DrawBindKey(8, 100, key_arti_krater);
+    M_DrawBindKey(9, 110, key_arti_incant);
+    M_DrawBindKey(10, 120, key_arti_all);
+
+    M_DrawBindFooter("5", true);
+}
+
+static void M_Bind_Porkalator (int option)
+{
+    M_StartBind(500);  // key_arti_egg
+}
+
+static void M_Bind_Chaos (int option)
+{
+    M_StartBind(501);  // key_arti_teleport
+}
+
+static void M_Bind_Banishment (int option)
+{
+    M_StartBind(502);  // key_arti_teleportother
+}
+
+static void M_Bind_Wings (int option)
+{
+    M_StartBind(503);  // key_arti_wings
+}
+
+static void M_Bind_Servant (int option)
+{
+    M_StartBind(504);  // key_arti_servant
+}
+
+static void M_Bind_Bracers (int option)
+{
+    M_StartBind(505);  // key_arti_bracers
+}
+
+static void M_Bind_Boots (int option)
+{
+    M_StartBind(506);  // key_arti_boots
+}
+
+static void M_Bind_Torch (int option)
+{
+    M_StartBind(507);  // key_arti_torch
+}
+
+static void M_Bind_Krater (int option)
+{
+    M_StartBind(508);  // key_arti_krater
+}
+
+static void M_Bind_Incant (int option)
+{
+    M_StartBind(509);  // key_arti_incant
+}
+
+static void M_Bind_AllArti (int option)
+{
+    M_StartBind(510);  // key_arti_all
+}
+
+// -----------------------------------------------------------------------------
+// Keybinds 6
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Keybinds_6[] = {
+    { ITT_EFUNC, "TOGGLE MAP",       M_Bind_ToggleMap,   0, MENU_NONE },
+    { ITT_EFUNC, "ZOOM IN",          M_Bind_ZoomIn,      0, MENU_NONE },
+    { ITT_EFUNC, "ZOOM OUT",         M_Bind_ZoomOut,     0, MENU_NONE },
+    { ITT_EFUNC, "MAXIMUM ZOOM OUT", M_Bind_MaxZoom,     0, MENU_NONE },
+    { ITT_EFUNC, "FOLLOW MODE",      M_Bind_FollowMode,  0, MENU_NONE },
+    { ITT_EFUNC, "ROTATE MODE",      M_Bind_RotateMode,  0, MENU_NONE },
+    { ITT_EFUNC, "OVERLAY MODE",     M_Bind_OverlayMode, 0, MENU_NONE },
+    { ITT_EFUNC, "TOGGLE GRID",      M_Bind_ToggleGrid,  0, MENU_NONE },
+    { ITT_EFUNC, "MARK LOCATION",    M_Bind_AddMark,     0, MENU_NONE },
+    { ITT_EFUNC, "CLEAR ALL MARKS",  M_Bind_ClearMarks,  0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Keybinds_6 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Keybinds_6,
+    10, ID_Menu_Keybinds_6,
+    0,
+    true, true, true,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_Keybinds_6 (void)
+{
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS6;
+
+    M_FillBackground();
+
+    MN_DrTextACentered("AUTOMAP", 10, cr[CR_YELLOW]);
+
+    M_DrawBindKey(0, 20, key_map_toggle);
+    M_DrawBindKey(1, 30, key_map_zoomin);
+    M_DrawBindKey(2, 40, key_map_zoomout);
+    M_DrawBindKey(3, 50, key_map_maxzoom);
+    M_DrawBindKey(4, 60, key_map_follow);
+    M_DrawBindKey(5, 70, key_map_rotate);
+    M_DrawBindKey(6, 80, key_map_overlay);
+    M_DrawBindKey(7, 90, key_map_grid);
+    M_DrawBindKey(8, 100, key_map_mark);
+    M_DrawBindKey(9, 110, key_map_clearmark);
+
+    M_DrawBindFooter("6", true);
+}
+
+static void M_Bind_ToggleMap (int option)
+{
+    M_StartBind(600);  // key_map_toggle
+}
+
+static void M_Bind_ZoomIn (int option)
+{
+    M_StartBind(601);  // key_map_zoomin
+}
+
+static void M_Bind_ZoomOut (int option)
+{
+    M_StartBind(602);  // key_map_zoomout
+}
+
+static void M_Bind_MaxZoom (int option)
+{
+    M_StartBind(603);  // key_map_maxzoom
+}
+
+static void M_Bind_FollowMode (int option)
+{
+    M_StartBind(604);  // key_map_follow
+}
+
+static void M_Bind_RotateMode (int option)
+{
+    M_StartBind(605);  // key_map_rotate
+}
+
+static void M_Bind_OverlayMode (int option)
+{
+    M_StartBind(606);  // key_map_overlay
+}
+
+static void M_Bind_ToggleGrid (int option)
+{
+    M_StartBind(607);  // key_map_grid
+}
+
+static void M_Bind_AddMark (int option)
+{
+    M_StartBind(608);  // key_map_mark
+}
+
+static void M_Bind_ClearMarks (int option)
+{
+    M_StartBind(609);  // key_map_clearmark
+}
+
+// -----------------------------------------------------------------------------
+// Keybinds 7
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Keybinds_7[] = {
+    {ITT_EFUNC, "HELP SCREEN",     M_Bind_HelpScreen,     0, MENU_NONE},
+    {ITT_EFUNC, "SAVE GAME",       M_Bind_SaveGame,       0, MENU_NONE},
+    {ITT_EFUNC, "LOAD GAME",       M_Bind_LoadGame,       0, MENU_NONE},
+    {ITT_EFUNC, "SOUND VOLUME",    M_Bind_SoundVolume,    0, MENU_NONE},
+    {ITT_EFUNC, "SUICIDE",         M_Bind_Suicide,        0, MENU_NONE},
+    {ITT_EFUNC, "QUICK SAVE",      M_Bind_QuickSave,      0, MENU_NONE},
+    {ITT_EFUNC, "END GAME",        M_Bind_EndGame,        0, MENU_NONE},
+    {ITT_EFUNC, "TOGGLE MESSAGES", M_Bind_ToggleMessages, 0, MENU_NONE},
+    {ITT_EFUNC, "QUICK LOAD",      M_Bind_QuickLoad,      0, MENU_NONE},
+    {ITT_EFUNC, "QUIT GAME",       M_Bind_QuitGame,       0, MENU_NONE},
+    {ITT_EFUNC, "TOGGLE GAMMA",    M_Bind_ToggleGamma,    0, MENU_NONE},
+    {ITT_EFUNC, "MULTIPLAYER SPY", M_Bind_MultiplayerSpy, 0, MENU_NONE}
+};
+
+static Menu_t ID_Def_Keybinds_7 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Keybinds_7,
+    12, ID_Menu_Keybinds_7,
+    0,
+    true, true, true,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_Keybinds_7 (void)
+{
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS7;
+
+    M_FillBackground();
+
+    MN_DrTextACentered("FUNCTION KEYS", 10, cr[CR_YELLOW]);
+
+    M_DrawBindKey(0, 20, key_menu_help);
+    M_DrawBindKey(1, 30, key_menu_save);
+    M_DrawBindKey(2, 40, key_menu_load);
+    M_DrawBindKey(3, 50, key_menu_volume);
+    M_DrawBindKey(4, 60, key_menu_detail);
+    M_DrawBindKey(5, 70, key_menu_qsave);
+    M_DrawBindKey(6, 80, key_menu_endgame);
+    M_DrawBindKey(7, 90, key_menu_messages);
+    M_DrawBindKey(8, 100, key_menu_qload);
+    M_DrawBindKey(9, 110, key_menu_quit);
+    M_DrawBindKey(10, 120, key_menu_gamma);
+    M_DrawBindKey(11, 130, key_spy);
+
+    M_DrawBindFooter("7", true);
+}
+
+static void M_Bind_HelpScreen (int option)
+{
+    M_StartBind(700);  // key_menu_help
+}
+
+static void M_Bind_SaveGame (int option)
+{
+    M_StartBind(701);  // key_menu_save
+}
+
+static void M_Bind_LoadGame (int option)
+{
+    M_StartBind(702);  // key_menu_load
+}
+
+static void M_Bind_SoundVolume (int option)
+{
+    M_StartBind(703);  // key_menu_volume
+}
+
+static void M_Bind_Suicide (int option)
+{
+    // [JN] TODO own key to detail toggling?
+    M_StartBind(704);  // key_menu_detail
+}
+
+static void M_Bind_QuickSave (int option)
+{
+    M_StartBind(705);  // key_menu_qsave
+}
+
+static void M_Bind_EndGame (int option)
+{
+    M_StartBind(706);  // key_menu_endgame
+}
+
+static void M_Bind_ToggleMessages (int option)
+{
+    M_StartBind(707);  // key_menu_messages
+}
+
+static void M_Bind_QuickLoad (int option)
+{
+    M_StartBind(708);  // key_menu_qload
+}
+
+static void M_Bind_QuitGame (int option)
+{
+    M_StartBind(709);  // key_menu_quit
+}
+
+static void M_Bind_ToggleGamma (int option)
+{
+    M_StartBind(710);  // key_menu_gamma
+}
+
+static void M_Bind_MultiplayerSpy (int option)
+{
+    M_StartBind(711);  // key_spy
+}
+
+// -----------------------------------------------------------------------------
+// Keybinds 8
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Keybinds_8[] = {
+    {ITT_EFUNC, "PAUSE GAME",            M_Bind_Pause,          0, MENU_NONE},
+    {ITT_EFUNC, "SAVE A SCREENSHOT",     M_Bind_SaveScreenshot, 0, MENU_NONE},
+    {ITT_EFUNC, "DISPLAY LAST MESSAGE",  M_Bind_LastMessage,    0, MENU_NONE},
+    {ITT_EFUNC, "FINISH DEMO RECORDING", M_Bind_FinishDemo,     0, MENU_NONE},
+    {ITT_EMPTY, NULL,                    NULL,                  0, MENU_NONE},
+    {ITT_EFUNC, "SEND MESSAGE",          M_Bind_SendMessage,    0, MENU_NONE},
+    {ITT_EMPTY, NULL,                    NULL,                  0, MENU_NONE},
+    {ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_Reset,      0, MENU_NONE},
+    /*
+    {ITT_EFUNC, "- TO PLAYER 1",         M_Bind_ToPlayer1,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 2",         M_Bind_ToPlayer2,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 3",         M_Bind_ToPlayer3,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 4",         M_Bind_ToPlayer4,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 5",         M_Bind_ToPlayer5,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 6",         M_Bind_ToPlayer6,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 7",         M_Bind_ToPlayer7,      0, MENU_NONE},
+    {ITT_EFUNC, "- TO PLAYER 8",         M_Bind_ToPlayer8,      0, MENU_NONE},
+    */
+};
+
+static Menu_t ID_Def_Keybinds_8 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Keybinds_8,
+    8, ID_Menu_Keybinds_8,
+    0,
+    true, true, true,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_Keybinds_8 (void)
+{
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS8;
+
+    M_FillBackground();
+
+    MN_DrTextACentered("SHORTCUT KEYS", 10, cr[CR_YELLOW]);
+
+    M_DrawBindKey(0, 20, key_pause);
+    M_DrawBindKey(1, 30, key_menu_screenshot);
+    M_DrawBindKey(2, 40, key_message_refresh_hr);
+    M_DrawBindKey(3, 50, key_demo_quit);
+
+    MN_DrTextACentered("MULTIPLAYER", 60, cr[CR_YELLOW]);
+
+    M_DrawBindKey(5, 70, key_multi_msg);
+
+    MN_DrTextACentered("RESET", 80, cr[CR_YELLOW]);
+    
+    /*
+    M_DrawBindKey(6, 80, key_multi_msgplayer[0]);
+    M_DrawBindKey(7, 90, key_multi_msgplayer[1]);
+    M_DrawBindKey(8, 100, key_multi_msgplayer[2]);
+    M_DrawBindKey(9, 110, key_multi_msgplayer[3]);
+    */
+
+    M_DrawBindFooter("8", true);
+}
+
+static void M_Bind_Pause (int option)
+{
+    M_StartBind(800);  // key_pause
+}
+
+static void M_Bind_SaveScreenshot (int option)
+{
+    M_StartBind(801);  // key_menu_screenshot
+}
+
+static void M_Bind_LastMessage (int choice)
+{
+    M_StartBind(802);  // key_message_refresh_hr
+}
+
+static void M_Bind_FinishDemo (int option)
+{
+    M_StartBind(803);  // key_demo_quit
+}
+
+static void M_Bind_SendMessage (int option)
+{
+    M_StartBind(804);  // key_multi_msg
+}
+
+/*
+static void M_Bind_ToPlayer1 (int option)
+{
+    M_StartBind(805);  // key_multi_msgplayer[0]
+}
+
+static void M_Bind_ToPlayer2 (int option)
+{
+    M_StartBind(806);  // key_multi_msgplayer[1]
+}
+
+static void M_Bind_ToPlayer3 (int option)
+{
+    M_StartBind(807);  // key_multi_msgplayer[2]
+}
+
+static void M_Bind_ToPlayer4 (int option)
+{
+    M_StartBind(808);  // key_multi_msgplayer[3]
+}
+*/
+
+static void M_Bind_Reset (int option)
+{
+    MenuActive = false;
+    askforquit = true;
+    typeofask = 7;      // [JN] keybinds reset
+}
+
+// -----------------------------------------------------------------------------
+// Mouse bindings
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_MouseBinds[] = {
+    { ITT_EFUNC, "FIRE/ATTACK",               M_Bind_M_FireAttack,     0, MENU_NONE },
+    { ITT_EFUNC, "MOVE FORWARD",              M_Bind_M_MoveForward,    0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE ON",                 M_Bind_M_StrafeOn,       0, MENU_NONE },
+    { ITT_EFUNC, "MOVE BACKWARD",             M_Bind_M_MoveBackward,   0, MENU_NONE },
+    { ITT_EFUNC, "USE",                       M_Bind_M_Use,            0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE LEFT",               M_Bind_M_StrafeLeft,     0, MENU_NONE },
+    { ITT_EFUNC, "STRAFE RIGHT",              M_Bind_M_StrafeRight,    0, MENU_NONE },
+    { ITT_EFUNC, "PREV WEAPON",               M_Bind_M_PrevWeapon,     0, MENU_NONE },
+    { ITT_EFUNC, "NEXT WEAPON",               M_Bind_M_NextWeapon,     0, MENU_NONE },
+    { ITT_EFUNC, "INVENTORY LEFT",            M_Bind_M_InventoryLeft,  0, MENU_NONE },
+    { ITT_EFUNC, "INVENTORY RIGHT",           M_Bind_M_InventoryRight, 0, MENU_NONE },
+    { ITT_EFUNC, "USE ARTIFACT",              M_Bind_M_UseArtifact,    0, MENU_NONE },
+    { ITT_EMPTY, NULL,                        NULL,                    0, MENU_NONE },
+    { ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset,          0, MENU_NONE },
+};
+
+static Menu_t ID_Def_MouseBinds = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_MouseBinds,
+    14, ID_Menu_MouseBinds,
+    0,
+    true, false, false,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_MouseBinds (void)
+{
+    M_FillBackground();
+
+    MN_DrTextACentered("MOUSE BINDINGS", 10, cr[CR_YELLOW]);
+
+    M_DrawBindButton(0, 20, mousebfire);
+    M_DrawBindButton(1, 30, mousebforward);
+    M_DrawBindButton(2, 40, mousebstrafe);
+    M_DrawBindButton(3, 50, mousebbackward);
+    M_DrawBindButton(4, 60, mousebuse);
+    M_DrawBindButton(5, 70, mousebstrafeleft);
+    M_DrawBindButton(6, 80, mousebstraferight);
+    M_DrawBindButton(7, 90, mousebprevweapon);
+    M_DrawBindButton(8, 100, mousebnextweapon);
+    M_DrawBindButton(9, 110, mousebinvleft);
+    M_DrawBindButton(10, 120, mousebinvright);
+    M_DrawBindButton(11, 130, mousebuseartifact);
+
+    MN_DrTextACentered("RESET", 140, cr[CR_YELLOW]);
+
+    M_DrawBindFooter(NULL, false);
+}
+
+static void M_Bind_M_FireAttack (int option)
+{
+    M_StartMouseBind(1000);  // mousebfire
+}
+
+static void M_Bind_M_MoveForward (int option)
+{
+    M_StartMouseBind(1001);  // mousebforward
+}
+
+static void M_Bind_M_StrafeOn (int option)
+{
+    M_StartMouseBind(1002);  // mousebstrafe
+}
+
+static void M_Bind_M_MoveBackward (int option)
+{
+    M_StartMouseBind(1003);  // mousebbackward
+}
+
+static void M_Bind_M_Use (int option)
+{
+    M_StartMouseBind(1004);  // mousebuse
+}
+
+static void M_Bind_M_StrafeLeft (int option)
+{
+    M_StartMouseBind(1005);  // mousebstrafeleft
+}
+
+static void M_Bind_M_StrafeRight (int option)
+{
+    M_StartMouseBind(1006);  // mousebstraferight
+}
+
+static void M_Bind_M_PrevWeapon (int option)
+{
+    M_StartMouseBind(1007);  // mousebprevweapon
+}
+
+static void M_Bind_M_NextWeapon (int option)
+{
+    M_StartMouseBind(1008);  // mousebnextweapon
+}
+
+static void M_Bind_M_InventoryLeft (int option)
+{
+    M_StartMouseBind(1009);  // mousebinvleft
+}
+
+static void M_Bind_M_InventoryRight (int option)
+{
+    M_StartMouseBind(1010);  // mousebinvright
+}
+
+static void M_Bind_M_UseArtifact (int option)
+{
+    M_StartMouseBind(1011);  // mousebuseartifact
+}
+
+static void M_Bind_M_Reset (int option)
+{
+    MenuActive = false;
+    askforquit = true;
+    typeofask = 8;      // [JN] mouse binds reset
+}
 
 // CODE --------------------------------------------------------------------
 
@@ -1380,6 +2581,15 @@ static Menu_t *Menus[] = {
     &ID_Def_Display,
     &ID_Def_Sound,
     &ID_Def_Controls,
+    &ID_Def_Keybinds_1,
+    &ID_Def_Keybinds_2,
+    &ID_Def_Keybinds_3,
+    &ID_Def_Keybinds_4,
+    &ID_Def_Keybinds_5,
+    &ID_Def_Keybinds_6,
+    &ID_Def_Keybinds_7,
+    &ID_Def_Keybinds_8,
+    &ID_Def_MouseBinds,
 };
 
 //---------------------------------------------------------------------------
@@ -1394,6 +2604,9 @@ void MN_Init(void)
     MenuActive = false;
 //      messageson = true;              // Set by defaults in .CFG
     MauloBaseLump = W_GetNumForName("FBULA0");  // ("M_SKL00");
+
+    // [JN] Apply default first page of Keybinds and Gameplay menus.
+    Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS1;
 }
 
 //---------------------------------------------------------------------------
@@ -1649,6 +2862,10 @@ const char *QuitEndMsg[] = {
     "DO YOU WANT TO QUICKSAVE THE GAME NAMED",
     "DO YOU WANT TO QUICKLOAD THE GAME NAMED",
     "ARE YOU SURE YOU WANT TO SUICIDE?"
+    "DO YOU WANT TO DELETE THE GAME NAMED",        // [crispy] typeofask 6 (delete a savegame)
+    "RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",  // [JN] typeofask 7 (reset keyboard binds)
+    "RESET MOUSE BINDINGS TO DEFAULT VALUES?",     // [JN] typeofask 8 (reset mouse binds)
+    "",                                            // [JN] typeofask 9 (setting reset), full text in drawer below
 };
 
 void MN_Drawer(void)
@@ -1705,7 +2922,7 @@ void MN_Drawer(void)
                     if (CurrentItPos == i)
                     {
                         // [JN] Highlight menu item on which the cursor is positioned.
-                        MN_DrTextA(item->text, x, y, NULL);
+                        MN_DrTextA(item->text, x, y, cr[CR_MENU_BRIGHT2]);
                     }
                     else
                     {
@@ -2358,6 +3575,14 @@ static void SCInfo(int option)
     }
 }
 
+static void MN_ReturnToMenu (void)
+{
+	Menu_t *cur = CurrentMenu;
+	MN_ActivateMenu();
+	CurrentMenu = cur;
+	CurrentItPos = CurrentMenu->oldItPos;
+}
+
 //---------------------------------------------------------------------------
 //
 // FUNC MN_Responder
@@ -2452,7 +3677,6 @@ boolean MN_Responder(event_t * event)
 
             // [JN] Handle mouse bindings before going any farther.
             // Catch only button pressing events, i.e. event->data1.
-            /*
             if (MouseIsBinding && event->data1)
             {
                 M_CheckMouseBind(SDL_mouseButton);
@@ -2462,7 +3686,6 @@ boolean MN_Responder(event_t * event)
                 mousewait = I_GetTime() + 15;
                 return true;
             }
-            */
 
             if (event->data1 & 1)
             {
@@ -2534,6 +3757,32 @@ boolean MN_Responder(event_t * event)
         return (true);          //make the info screen eat the keypress
     }
 
+    // [JN] Handle keyboard bindings:
+    if (KbdIsBinding)
+    {
+        if (event->type == ev_mouse)
+        {
+            // Reject mouse buttons, but keep binding active.
+            return false;
+        }
+
+        if (key == KEY_ESCAPE)
+        {
+            // Pressing ESC will cancel binding and leave key unchanged.
+            keyToBind = 0;
+            KbdIsBinding = false;
+            return false;
+        }
+        else
+        {
+            M_CheckBind(key);
+            M_DoBind(keyToBind, key);
+            keyToBind = 0;
+            KbdIsBinding = false;
+            return true;
+        }
+    }
+
     if ((ravpic && key == KEY_F1) ||
         (key != 0 && key == key_menu_screenshot))
     {
@@ -2576,6 +3825,23 @@ boolean MN_Responder(event_t * event)
                     break;
                 case 5:
                     mn_SuicideConsole = true;
+                    break;
+                case 7: // [JN] Reset keybinds.
+                    M_ResetBinds();
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    MN_ReturnToMenu();
+                    break;
+
+                case 8: // [JN] Reset mouse binds.
+                    M_ResetMouseBinds();
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    MN_ReturnToMenu();
                     break;
                 default:
                     break;
@@ -2869,6 +4135,11 @@ boolean MN_Responder(event_t * event)
                 item->func(LEFT_DIR);
                 S_StartSound(NULL, SFX_PICKUP_KEY);
             }
+            // [JN] Go to previous-left menu by pressing Left Arrow.
+            if (CurrentMenu->ScrollAR)
+            {
+                M_ScrollPages(false);
+            }
             return (true);
         }
         else if (key == key_menu_right)          // Slider right
@@ -2877,6 +4148,29 @@ boolean MN_Responder(event_t * event)
             {
                 item->func(RIGHT_DIR);
                 S_StartSound(NULL, SFX_PICKUP_KEY);
+            }
+            // [JN] Go to next-right menu by pressing Right Arrow.
+            if (CurrentMenu->ScrollAR)
+            {
+                M_ScrollPages(true);
+            }
+            return (true);
+        }
+        // [JN] Go to previous-left menu by pressing Page Up key.
+        else if (key == KEY_PGUP)
+        {
+            if (CurrentMenu->ScrollPG)
+            {
+                M_ScrollPages(false);
+            }
+            return (true);
+        }
+        // [JN] Go to next-right menu by pressing Page Down key.
+        else if (key == KEY_PGDN)
+        {
+            if (CurrentMenu->ScrollPG)
+            {
+                M_ScrollPages(true);
             }
             return (true);
         }
@@ -2921,6 +4215,42 @@ boolean MN_Responder(event_t * event)
             else
             {
                 SetMenu(CurrentMenu->prevMenu);
+            }
+            return (true);
+        }
+        // [crispy] delete a savegame
+        else if (key == key_menu_del)
+        {
+            // [JN] TODO
+            /*
+            if (CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
+            {
+                if (SlotStatus[CurrentItPos])
+                {
+                    MenuActive = false;
+                    askforquit = true;
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    typeofask = 5;
+                    S_StartSound(NULL, sfx_chat);
+                }
+            }
+            */
+            // [JN] ...or clear key bind.
+            //else
+            if (CurrentMenu == &ID_Def_Keybinds_1 || CurrentMenu == &ID_Def_Keybinds_2
+            ||  CurrentMenu == &ID_Def_Keybinds_3 || CurrentMenu == &ID_Def_Keybinds_4
+            ||  CurrentMenu == &ID_Def_Keybinds_5 || CurrentMenu == &ID_Def_Keybinds_6
+            ||  CurrentMenu == &ID_Def_Keybinds_7 || CurrentMenu == &ID_Def_Keybinds_8)
+            {
+                M_ClearBind(CurrentItPos);
+            }
+            // [JN] ...or clear mouse bind.
+            else if (CurrentMenu == &ID_Def_MouseBinds)
+            {
+                M_ClearMouseBind(CurrentItPos);
             }
             return (true);
         }
@@ -3148,4 +4478,798 @@ static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean big
 
     V_DrawPatch(x + 4 + slot * 8, y + 7,
                 W_CacheLumpName("M_SLDKB", PU_CACHE));
+}
+
+
+// =============================================================================
+//
+//                        [JN] Keyboard binding routines.
+//                    Drawing, coloring, checking and binding.
+//
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// M_NameBind
+//  [JN] Convert Doom key number into printable string.
+// -----------------------------------------------------------------------------
+
+static struct {
+    int key;
+    char *name;
+} key_names[] = KEY_NAMES_ARRAY_RAVEN;
+
+static char *M_NameBind (int CurrentItPosOn, int key)
+{
+    if (CurrentItPos == CurrentItPosOn && KbdIsBinding)
+    {
+        return "?";  // Means binding now
+    }
+    else
+    {
+        for (int i = 0; i < arrlen(key_names); ++i)
+        {
+            if (key_names[i].key == key)
+            {
+                return key_names[i].name;
+            }
+        }
+    }
+    return "---";  // Means empty
+}
+
+// -----------------------------------------------------------------------------
+// M_StartBind
+//  [JN] Indicate that key binding is started (KbdIsBinding), and
+//  pass internal number (keyToBind) for binding a new key.
+// -----------------------------------------------------------------------------
+
+static void M_StartBind (int keynum)
+{
+    KbdIsBinding = true;
+    keyToBind = keynum;
+}
+
+// -----------------------------------------------------------------------------
+// M_CheckBind
+//  [JN] Check if pressed key is already binded, clear previous bind if found.
+// -----------------------------------------------------------------------------
+
+static void M_CheckBind (int key)
+{
+    // Page 1
+    if (key_up == key)               key_up               = 0;
+    if (key_down == key)             key_down             = 0;
+    if (key_left == key)             key_left             = 0;
+    if (key_right == key)            key_right            = 0;
+    if (key_strafeleft == key)       key_strafeleft       = 0;
+    if (key_straferight == key)      key_straferight      = 0;
+    if (key_strafe == key)           key_strafe           = 0;
+    if (key_speed == key)            key_speed            = 0;
+    if (key_jump == key)             key_jump             = 0;
+    if (key_180turn == key)          key_180turn          = 0;
+    if (key_fire == key)             key_fire             = 0;
+    if (key_use == key)              key_use              = 0;
+
+    // Page 2
+    if (key_lookup == key)           key_lookup           = 0;
+    if (key_lookdown == key)         key_lookdown         = 0;
+    if (key_lookcenter == key)       key_lookcenter       = 0;
+    if (key_flyup == key)            key_flyup            = 0;
+    if (key_flydown == key)          key_flydown          = 0;
+    if (key_flycenter == key)        key_flycenter        = 0;
+    if (key_invleft == key)          key_invleft          = 0;
+    if (key_invright == key)         key_invright         = 0;
+    if (key_useartifact == key)      key_useartifact      = 0;
+
+    // Page 3
+    if (key_autorun == key)          key_autorun          = 0;
+    if (key_mouse_look == key)       key_mouse_look       = 0;
+    if (key_reloadlevel == key)      key_reloadlevel      = 0;
+    if (key_nextlevel == key)        key_nextlevel        = 0;
+    if (key_demospeed == key)        key_demospeed        = 0;
+    if (key_flip_levels == key)      key_flip_levels      = 0;
+    if (key_spectator == key)        key_spectator        = 0;
+    if (key_freeze == key)           key_freeze           = 0;
+    if (key_notarget == key)         key_notarget         = 0;
+    if (key_buddha == key)           key_buddha           = 0;
+
+    // Page 4
+    if (key_weapon1 == key)          key_weapon1          = 0;
+    if (key_weapon2 == key)          key_weapon2          = 0;
+    if (key_weapon3 == key)          key_weapon3          = 0;
+    if (key_weapon4 == key)          key_weapon4          = 0;
+    if (key_prevweapon == key)       key_prevweapon       = 0;
+    if (key_nextweapon == key)       key_nextweapon       = 0;
+    if (key_arti_health == key)      key_arti_health      = 0;
+    if (key_arti_urn == key)         key_arti_urn         = 0;
+    if (key_arti_poisonbag == key)   key_arti_poisonbag   = 0;
+    if (key_arti_blastradius == key) key_arti_blastradius = 0;
+    if (key_arti_invulnerability == key) key_arti_invulnerability = 0;
+
+    // Page 5
+    if (key_arti_egg == key)           key_arti_egg           = 0;
+    if (key_arti_teleport == key)      key_arti_teleport      = 0;
+    if (key_arti_teleportother == key) key_arti_teleportother = 0;
+    if (key_arti_wings == key)         key_arti_wings         = 0;
+    if (key_arti_servant == key)       key_arti_servant       = 0;
+    if (key_arti_bracers == key)       key_arti_bracers       = 0;
+    if (key_arti_boots == key)         key_arti_boots         = 0;
+    if (key_arti_torch == key)         key_arti_torch         = 0;
+    if (key_arti_krater == key)        key_arti_krater        = 0;
+    if (key_arti_incant == key)        key_arti_incant        = 0;
+    if (key_arti_all == key)           key_arti_all           = 0;
+
+    // Page 6
+    if (key_map_toggle == key)       key_map_toggle       = 0;
+    // Do not override Automap binds in other pages.
+    if (CurrentMenu == &ID_Def_Keybinds_6)
+    {
+        if (key_map_zoomin == key)     key_map_zoomin     = 0;
+        if (key_map_zoomout == key)    key_map_zoomout    = 0;
+        if (key_map_maxzoom == key)    key_map_maxzoom    = 0;
+        if (key_map_follow == key)     key_map_follow     = 0;
+        if (key_map_rotate == key)     key_map_rotate     = 0;
+        if (key_map_overlay == key)    key_map_overlay    = 0;
+        if (key_map_grid == key)       key_map_grid       = 0;
+        if (key_map_mark == key)       key_map_mark       = 0;
+        if (key_map_clearmark == key)  key_map_clearmark  = 0;
+    }
+
+    // Page 7
+    if (key_menu_help == key)        key_menu_help        = 0;
+    if (key_menu_save == key)        key_menu_save        = 0;
+    if (key_menu_load == key)        key_menu_load        = 0;
+    if (key_menu_volume == key)      key_menu_volume      = 0;
+    if (key_menu_detail == key)      key_menu_detail      = 0;
+    if (key_menu_qsave == key)       key_menu_qsave       = 0;
+    if (key_menu_endgame == key)     key_menu_endgame     = 0;
+    if (key_menu_messages == key)    key_menu_messages    = 0;
+    if (key_menu_qload == key)       key_menu_qload       = 0;
+    if (key_menu_quit == key)        key_menu_quit        = 0;
+    if (key_menu_gamma == key)       key_menu_gamma       = 0;
+    if (key_spy == key)              key_spy              = 0;
+
+    // Page 8
+    if (key_pause == key)              key_pause              = 0;
+    if (key_menu_screenshot == key)    key_menu_screenshot    = 0;
+    if (key_message_refresh_hr == key) key_message_refresh_hr = 0;
+    if (key_demo_quit == key)          key_demo_quit          = 0;
+    if (key_multi_msg == key)          key_multi_msg          = 0;
+    // Do not override Send To binds in other pages.
+    if (CurrentMenu == &ID_Def_Keybinds_8)
+    {
+        if (key_multi_msgplayer[0] == key) key_multi_msgplayer[0] = 0;
+        if (key_multi_msgplayer[1] == key) key_multi_msgplayer[1] = 0;
+        if (key_multi_msgplayer[2] == key) key_multi_msgplayer[2] = 0;
+        if (key_multi_msgplayer[3] == key) key_multi_msgplayer[3] = 0;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_DoBind
+//  [JN] By catching internal bind number (keynum), do actual binding
+//  of pressed key (key) to real keybind.
+// -----------------------------------------------------------------------------
+
+static void M_DoBind (int keynum, int key)
+{
+    switch (keynum)
+    {
+        // Page 1
+        case 100:  key_up = key;                break;
+        case 101:  key_down = key;              break;
+        case 102:  key_left = key;              break;
+        case 103:  key_right = key;             break;
+        case 104:  key_strafeleft = key;        break;
+        case 105:  key_straferight = key;       break;
+        case 106:  key_strafe = key;            break;
+        case 107:  key_speed = key;             break;
+        case 108:  key_jump = key;              break;
+        case 109:  key_180turn = key;           break;
+        case 110:  key_fire = key;              break;
+        case 111:  key_use = key;               break;
+
+        // Page 2
+        case 200:  key_lookup = key;            break;
+        case 201:  key_lookdown = key;          break;
+        case 202:  key_lookcenter = key;        break;
+        case 203:  key_flyup = key;             break;
+        case 204:  key_flydown = key;           break;
+        case 205:  key_flycenter = key;         break;
+        case 206:  key_invleft = key;           break;
+        case 207:  key_invright = key;          break;
+        case 208:  key_useartifact = key;       break;
+
+        // Page 3
+        case 300:  key_autorun = key;           break;
+        case 301:  key_mouse_look = key;        break;
+        case 302:  key_reloadlevel = key;       break;
+        case 303:  key_nextlevel = key;         break;
+        case 304:  key_demospeed = key;         break;
+        case 305:  key_flip_levels = key;       break;
+        case 306:  key_spectator = key;         break;
+        case 307:  key_freeze = key;            break;
+        case 308:  key_notarget = key;          break;
+        case 309:  key_buddha = key;            break;
+
+        // Page 4
+        case 400:  key_weapon1 = key;           break;
+        case 401:  key_weapon2 = key;           break;
+        case 402:  key_weapon3 = key;           break;
+        case 403:  key_weapon4 = key;           break;
+        case 404:  key_prevweapon = key;        break;
+        case 405:  key_nextweapon = key;        break;
+        case 406:  key_arti_health = key;       break;
+        case 407:  key_arti_urn = key;          break;
+        case 408:  key_arti_poisonbag = key;    break;
+        case 409:  key_arti_blastradius = key;  break;
+        case 410:  key_arti_invulnerability = key; break;
+
+        // Page 5
+        case 500:  key_arti_egg = key;          break;
+        case 501:  key_arti_teleport = key;     break;
+        case 502:  key_arti_teleportother = key; break;
+        case 503:  key_arti_wings = key;        break;
+        case 504:  key_arti_servant = key;      break;
+        case 505:  key_arti_bracers = key;      break;
+        case 506:  key_arti_boots = key;        break;
+        case 507:  key_arti_torch = key;        break;
+        case 508:  key_arti_krater = key;       break;
+        case 509:  key_arti_incant = key;       break;
+        case 510:  key_arti_all = key;          break;
+
+        // Page 6
+        if (CurrentMenu == &ID_Def_Keybinds_6)
+        {
+        case 600:  key_map_toggle = key;        break;
+        case 601:  key_map_zoomin = key;        break;
+        case 602:  key_map_zoomout = key;       break;
+        case 603:  key_map_maxzoom = key;       break;
+        case 604:  key_map_follow = key;        break;
+        case 605:  key_map_rotate = key;        break;
+        case 606:  key_map_overlay = key;       break;
+        case 607:  key_map_grid = key;          break;
+        case 608:  key_map_mark = key;          break;
+        case 609:  key_map_clearmark = key;     break;
+        }
+
+        // Page 7
+        case 700:  key_menu_help = key;         break;
+        case 701:  key_menu_save = key;         break;
+        case 702:  key_menu_load = key;         break;
+        case 703:  key_menu_volume = key;       break;
+        case 704:  key_menu_detail = key;       break;
+        case 705:  key_menu_qsave = key;        break;
+        case 706:  key_menu_endgame = key;      break;
+        case 707:  key_menu_messages = key;     break;
+        case 708:  key_menu_qload = key;        break;
+        case 709:  key_menu_quit = key;         break;
+        case 710:  key_menu_gamma = key;        break;
+        case 711:  key_spy = key;               break;
+
+        // Page 8
+        case 800:  key_pause = key;              break;
+        case 801:  key_menu_screenshot = key;    break;
+        case 802:  key_message_refresh_hr = key; break;
+        case 803:  key_demo_quit = key;          break;
+        case 804:  key_multi_msg = key;          break;
+        if (CurrentMenu == &ID_Def_Keybinds_8)
+        {
+        case 805:  key_multi_msgplayer[0] = key; break;
+        case 806:  key_multi_msgplayer[1] = key; break;
+        case 807:  key_multi_msgplayer[2] = key; break;
+        case 808:  key_multi_msgplayer[3] = key; break;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_ClearBind
+//  [JN] Clear key bind on the line where cursor is placed (itemOn).
+// -----------------------------------------------------------------------------
+
+static void M_ClearBind (int CurrentItPos)
+{
+    if (CurrentMenu == &ID_Def_Keybinds_1)
+    {
+        switch (CurrentItPos)
+        {
+            case 0:   key_up = 0;               break;
+            case 1:   key_down = 0;             break;
+            case 2:   key_left = 0;             break;
+            case 3:   key_right = 0;            break;
+            case 4:   key_strafeleft = 0;       break;
+            case 5:   key_straferight = 0;      break;
+            case 6:   key_strafe = 0;           break;
+            case 7:   key_speed = 0;            break;
+            case 8:   key_jump = 0;             break;
+            case 9:   key_180turn = 0;          break;
+            // Action title
+            case 11:  key_fire = 0;             break;
+            case 12:  key_use = 0;              break;
+        }
+    }
+    if (CurrentMenu == &ID_Def_Keybinds_2)
+    {
+        switch (CurrentItPos)
+        {
+            case 0:   key_lookup = 0;           break;
+            case 1:   key_lookdown = 0;         break;
+            case 2:   key_lookcenter = 0;       break;
+            // Flying title
+            case 4:   key_flyup = 0;            break;
+            case 5:   key_flydown = 0;          break;
+            case 6:   key_flycenter = 0;        break;
+            // Inventory title
+            case 8:   key_invleft = 0;          break;
+            case 9:   key_invright = 0;         break;
+            case 10:  key_useartifact = 0;      break;
+        }
+    }
+    if (CurrentMenu == &ID_Def_Keybinds_3)
+    {
+        switch (CurrentItPos)
+        {
+            case 0:   key_autorun = 0;          break;
+            case 1:   key_mouse_look = 0;       break;
+            // Special keys title
+            case 3:   key_reloadlevel = 0;      break;
+            case 4:   key_nextlevel = 0;        break;
+            case 5:   key_demospeed = 0;        break;
+            case 6:   key_flip_levels = 0;      break;
+            // Special modes title
+            case 8:   key_spectator = 0;        break;
+            case 9:   key_freeze = 0;           break;
+            case 10:  key_notarget = 0;         break;
+            case 11:  key_notarget = 0;         break;
+        }
+    }
+    if (CurrentMenu == &ID_Def_Keybinds_4)
+    {
+        switch (CurrentItPos)
+        {
+            case 0:   key_weapon1 = 0;          break;
+            case 1:   key_weapon2 = 0;          break;
+            case 2:   key_weapon3 = 0;          break;
+            case 3:   key_weapon4 = 0;          break;
+            case 4:   key_prevweapon = 0;       break;
+            case 5:   key_nextweapon = 0;       break;
+            
+            case 7:   key_arti_health = 0;      break;
+            case 8:   key_arti_urn = 0;         break;
+            case 9:   key_arti_poisonbag = 0;   break;
+            case 10:  key_arti_blastradius = 0; break;
+            case 11:  key_arti_invulnerability = 0; break;
+        }
+    }
+    if (CurrentMenu == &ID_Def_Keybinds_5)
+    {
+        switch (CurrentItPos)
+        {
+            case 0:   key_arti_egg = 0;         break;
+            case 1:   key_arti_teleport = 0;    break;
+            case 2:   key_arti_teleportother = 0; break;
+            case 3:   key_arti_wings = 0;       break;
+            case 4:   key_arti_servant = 0;     break;
+            case 5:   key_arti_bracers = 0;     break;
+            case 6:   key_arti_boots = 0;       break;
+            case 7:   key_arti_torch = 0;       break;
+            case 8:   key_arti_krater = 0;      break;
+            case 9:   key_arti_incant = 0;      break;
+            case 10:  key_arti_all = 0;         break;
+        }
+    }
+    if (CurrentMenu == &ID_Def_Keybinds_6)
+    {
+        switch (CurrentItPos)
+        {
+            case 0:   key_map_toggle = 0;       break;
+            case 1:   key_map_zoomin = 0;       break;
+            case 2:   key_map_zoomout = 0;      break;
+            case 3:   key_map_maxzoom = 0;      break;
+            case 4:   key_map_follow = 0;       break;
+            case 5:   key_map_rotate = 0;       break;
+            case 6:   key_map_overlay = 0;      break;
+            case 7:   key_map_grid = 0;         break;
+            case 8:   key_map_mark = 0;         break;
+            case 9:   key_map_clearmark = 0;    break;
+        }
+    }
+    if (CurrentMenu == &ID_Def_Keybinds_7)
+    {
+        switch (CurrentItPos)
+        {
+            case 0:   key_menu_help = 0;        break;
+            case 1:   key_menu_save = 0;        break;
+            case 2:   key_menu_load = 0;        break;
+            case 3:   key_menu_volume = 0;      break;
+            case 4:   key_menu_detail = 0;      break;
+            case 5:   key_menu_qsave = 0;       break;
+            case 6:   key_menu_endgame = 0;     break;
+            case 7:   key_menu_messages = 0;    break;
+            case 8:   key_menu_qload = 0;       break;
+            case 9:   key_menu_quit = 0;        break;
+            case 10:  key_menu_gamma = 0;       break;
+            case 11:  key_spy = 0;              break;
+        }
+    }
+    if (CurrentMenu == &ID_Def_Keybinds_8)
+    {
+        switch (CurrentItPos)
+        {
+            case 0:   key_pause = 0;              break;
+            case 1:   key_menu_screenshot = 0;    break;
+            case 2:   key_message_refresh_hr = 0; break;
+            case 3:   key_demo_quit = 0;          break;
+            // Multiplayer title
+            case 5:   key_multi_msg = 0;          break;
+            case 6:   key_multi_msgplayer[0] = 0; break;
+            case 7:   key_multi_msgplayer[1] = 0; break;
+            case 8:   key_multi_msgplayer[2] = 0; break;
+            case 9:   key_multi_msgplayer[3] = 0; break;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_ResetBinds
+//  [JN] Reset all keyboard bindings to default.
+// -----------------------------------------------------------------------------
+
+static void M_ResetBinds (void)
+{
+    // Page 1
+    key_up = 'w';
+    key_down = 's'; 
+    key_left = KEY_LEFTARROW;
+    key_right = KEY_RIGHTARROW;
+    key_strafeleft = 'a';
+    key_straferight = 'd';
+    key_strafe = KEY_RALT;
+    key_speed = KEY_RSHIFT;
+    key_jump = '/';
+    key_180turn = 0;
+    key_fire = KEY_RCTRL;
+    key_use = ' ';
+
+    // Page 2
+    key_lookup = KEY_PGDN;
+    key_lookdown = KEY_DEL;
+    key_lookcenter = KEY_END;
+    key_flyup = KEY_PGUP;
+    key_flydown = KEY_INS;
+    key_flycenter = KEY_HOME;
+    key_invleft = '[';
+    key_invright = ']';
+    key_useartifact = KEY_ENTER;
+
+    // Page 3
+    key_autorun = KEY_CAPSLOCK;
+    key_mouse_look = 0;
+    key_reloadlevel = 0;
+    key_nextlevel = 0;
+    key_demospeed = 0;
+    key_flip_levels = 0;
+    key_spectator = 0;
+    key_freeze = 0;
+    key_notarget = 0;
+    key_buddha = 0;
+
+    // Page 4
+    key_weapon1 = '1';
+    key_weapon2 = '2';
+    key_weapon3 = '3';
+    key_weapon4 = '4';
+    key_prevweapon = 0;
+    key_nextweapon = 0;
+    key_arti_health = '\\';
+    key_arti_urn = 0;
+    key_arti_poisonbag = '0';
+    key_arti_blastradius = '9';
+    key_arti_invulnerability = '5';
+
+    // Page 5
+    key_arti_egg = '6';
+    key_arti_teleport = '8';
+    key_arti_teleportother = '7';
+    key_arti_wings = 0;
+    key_arti_servant = 0;
+    key_arti_bracers = 0;
+    key_arti_boots = 0;
+    key_arti_torch = 0;
+    key_arti_krater = 0;
+    key_arti_incant = 0;
+    key_arti_all = KEY_BACKSPACE;
+
+    // Page 6
+    key_map_toggle = KEY_TAB;
+    key_map_zoomin = '=';
+    key_map_zoomout = '-';
+    key_map_maxzoom = '0';
+    key_map_follow = 'f';
+    key_map_rotate = 'r';
+    key_map_overlay = 'o';
+    key_map_grid = 'g';
+    key_map_mark = 'm';
+    key_map_clearmark = 'c';
+
+    // Page 7
+    key_menu_help = KEY_F1;
+    key_menu_save = KEY_F2;
+    key_menu_load = KEY_F3;
+    key_menu_volume = KEY_F4;
+    key_menu_detail = KEY_F5;
+    key_menu_qsave = KEY_F6;
+    key_menu_endgame = KEY_F7;
+    key_menu_messages = KEY_F8;
+    key_menu_qload = KEY_F9;
+    key_menu_quit = KEY_F10;
+    key_menu_gamma = KEY_F11;
+    key_spy = KEY_F12;
+
+    // Page 8
+    key_pause = KEY_PAUSE;
+    key_menu_screenshot = KEY_PRTSCR;
+    key_message_refresh_hr = 0;
+    key_demo_quit = 'q';
+    key_multi_msg = 't';
+    key_multi_msgplayer[0] = 'g';
+    key_multi_msgplayer[1] = 'i';
+    key_multi_msgplayer[2] = 'b';
+    key_multi_msgplayer[3] = 'r';
+}
+
+// -----------------------------------------------------------------------------
+// M_ColorizeBind
+//  [JN] Do key bind coloring.
+// -----------------------------------------------------------------------------
+
+static byte *M_ColorizeBind (int CurrentItPosOn, int key)
+{
+    if (CurrentItPos == CurrentItPosOn && KbdIsBinding)
+    {
+        return cr[CR_YELLOW];
+    }
+    else
+    {
+        if (key == 0)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_RED_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_RED_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_RED_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_RED_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_RED_BRIGHT1] : cr[CR_RED];
+        }
+        else
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_DrawBindKey
+//  [JN] Do keyboard bind drawing.
+// -----------------------------------------------------------------------------
+
+static void M_DrawBindKey (int itemNum, int yPos, int keyBind)
+{
+    MN_DrTextA(M_NameBind(itemNum, keyBind),
+               M_ItemRightAlign(M_NameBind(itemNum, keyBind)),
+               yPos,
+               M_ColorizeBind(itemNum, keyBind));
+}
+
+// -----------------------------------------------------------------------------
+// M_DrawBindFooter
+//  [JN] Draw footer in key binding pages with numeration.
+// -----------------------------------------------------------------------------
+
+static void M_DrawBindFooter (char *pagenum, boolean drawPages)
+{
+    MN_DrTextACentered("PRESS ENTER TO BIND, DEL TO CLEAR", 170, cr[CR_GRAY]);
+    
+    if (drawPages)
+    {
+        MN_DrTextA("PGUP", ID_MENU_LEFTOFFSET, 180, cr[CR_GRAY]);
+        MN_DrTextACentered(M_StringJoin("PAGE ", pagenum, "/8", NULL), 180, cr[CR_GRAY]);
+        MN_DrTextA("PGDN", M_ItemRightAlign("PGDN"), 180, cr[CR_GRAY]);
+    }
+}
+
+
+// =============================================================================
+//
+//                          [JN] Mouse binding routines.
+//                    Drawing, coloring, checking and binding.
+//
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// M_NameBind
+//  [JN] Draw mouse button number as printable string.
+// -----------------------------------------------------------------------------
+
+static char *M_NameMouseBind (int CurrentItPosOn, int btn)
+{
+    if (CurrentItPos == CurrentItPosOn && MouseIsBinding)
+    {
+        return "?";  // Means binding now
+    }
+    else
+    {
+        switch (btn)
+        {
+            case -1:  return  "---";            break;  // Means empty
+            case  0:  return  "LEFT BUTTON";    break;
+            case  1:  return  "RIGHT BUTTON";   break;
+            case  2:  return  "MIDDLE BUTTON";  break;
+            case  3:  return  "BUTTON #4";      break;
+            case  4:  return  "BUTTON #5";      break;
+            case  5:  return  "BUTTON #6";      break;
+            case  6:  return  "BUTTON #7";      break;
+            case  7:  return  "BUTTON #8";      break;
+            case  8:  return  "BUTTON #9";      break;
+            default:  return  "UNKNOWN";        break;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_StartMouseBind
+//  [JN] Indicate that mouse button binding is started (MouseIsBinding), and
+//  pass internal number (btnToBind) for binding a new button.
+// -----------------------------------------------------------------------------
+
+static void M_StartMouseBind (int btn)
+{
+    MouseIsBinding = true;
+    btnToBind = btn;
+}
+
+// -----------------------------------------------------------------------------
+// M_CheckMouseBind
+//  [JN] Check if pressed button is already binded, clear previous bind if found.
+// -----------------------------------------------------------------------------
+
+static void M_CheckMouseBind (int btn)
+{
+    if (mousebfire == btn)        mousebfire        = -1;
+    if (mousebforward == btn)     mousebforward     = -1;
+    if (mousebstrafe == btn)      mousebstrafe      = -1;
+    if (mousebbackward == btn)    mousebbackward    = -1;
+    if (mousebuse == btn)         mousebuse         = -1;
+    if (mousebstrafeleft == btn)  mousebstrafeleft  = -1;
+    if (mousebstraferight == btn) mousebstraferight = -1;
+    if (mousebprevweapon == btn)  mousebprevweapon  = -1;
+    if (mousebnextweapon == btn)  mousebnextweapon  = -1;
+    if (mousebinvleft == btn)     mousebinvleft     = -1;
+    if (mousebinvright == btn)    mousebinvright    = -1;
+    if (mousebuseartifact == btn) mousebuseartifact = -1;
+}
+
+// -----------------------------------------------------------------------------
+// M_DoMouseBind
+//  [JN] By catching internal bind number (btnnum), do actual binding
+//  of pressed button (btn) to real mouse bind.
+// -----------------------------------------------------------------------------
+
+static void M_DoMouseBind (int btnnum, int btn)
+{
+    switch (btnnum)
+    {
+        case 1000:  mousebfire = btn;         break;
+        case 1001:  mousebforward = btn;      break;
+        case 1002:  mousebstrafe = btn;       break;
+        case 1003:  mousebbackward = btn;     break;
+        case 1004:  mousebuse = btn;          break;
+        case 1005:  mousebstrafeleft = btn;   break;
+        case 1006:  mousebstraferight = btn;  break;
+        case 1007:  mousebprevweapon = btn;   break;
+        case 1008:  mousebnextweapon = btn;   break;
+        case 1009:  mousebinvleft = btn;      break;
+        case 1010:  mousebinvright = btn;     break;
+        case 1011:  mousebuseartifact = btn;  break;
+        default:                              break;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_ClearMouseBind
+//  [JN] Clear mouse bind on the line where cursor is placed (itemOn).
+// -----------------------------------------------------------------------------
+
+static void M_ClearMouseBind (int itemOn)
+{
+    switch (itemOn)
+    {
+        case 0:   mousebfire = -1;         break;
+        case 1:   mousebforward = -1;      break;
+        case 2:   mousebstrafe = -1;       break;
+        case 3:   mousebbackward = -1;     break;
+        case 4:   mousebuse = -1;          break;
+        case 5:   mousebstrafeleft = -1;   break;
+        case 6:   mousebstraferight = -1;  break;
+        case 7:   mousebprevweapon = -1;   break;
+        case 8:   mousebnextweapon = -1;   break;
+        case 9:   mousebinvleft = -1;      break;
+        case 10:  mousebinvright = -1;     break;
+        case 11:  mousebuseartifact = -1;  break;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_ColorizeMouseBind
+//  [JN] Do mouse bind coloring.
+// -----------------------------------------------------------------------------
+
+static byte *M_ColorizeMouseBind (int CurrentItPosOn, int btn)
+{
+    if (CurrentItPos == CurrentItPosOn && MouseIsBinding)
+    {
+        return cr[CR_YELLOW];
+    }
+    else
+    {
+        if (btn == -1)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_RED_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_RED_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_RED_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_RED_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_RED_BRIGHT1] : cr[CR_RED];
+        }
+        else
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_DrawBindButton
+//  [JN] Do mouse button bind drawing.
+// -----------------------------------------------------------------------------
+
+static void M_DrawBindButton (int itemNum, int yPos, int btnBind)
+{
+    MN_DrTextA(M_NameMouseBind(itemNum, btnBind),
+               M_ItemRightAlign(M_NameMouseBind(itemNum, btnBind)),
+               yPos,
+               M_ColorizeMouseBind(itemNum, btnBind));
+}
+
+// -----------------------------------------------------------------------------
+// M_ResetBinds
+//  [JN] Reset all mouse binding to it's defaults.
+// -----------------------------------------------------------------------------
+
+static void M_ResetMouseBinds (void)
+{
+    mousebfire = 0;
+    mousebforward = 2;
+    mousebstrafe = 1;
+    mousebbackward = -1;
+    mousebuse = -1;
+    mousebstrafeleft = -1;
+    mousebstraferight = -1;
+    mousebprevweapon = 4;
+    mousebnextweapon = 3;
+    mousebinvleft = -1;
+    mousebinvright = -1;
+    mousebuseartifact = -1;
 }

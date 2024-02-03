@@ -109,6 +109,12 @@ extern int key_arti_teleport;
 extern int key_arti_teleportother;
 extern int key_arti_egg;
 extern int key_arti_invulnerability;
+// Extra artifacts
+extern int key_arti_servant;
+extern int key_arti_bracers;
+extern int key_arti_boots;
+extern int key_arti_krater;
+extern int key_arti_incant;
 
 // Automap
 

@@ -301,6 +301,12 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_arti_teleportother),
     CONFIG_VARIABLE_KEY(key_arti_egg),
     CONFIG_VARIABLE_KEY(key_arti_invulnerability),
+    // Hexen: Artifacts (extra)
+    CONFIG_VARIABLE_KEY(key_arti_servant),
+    CONFIG_VARIABLE_KEY(key_arti_bracers),
+    CONFIG_VARIABLE_KEY(key_arti_boots),
+    CONFIG_VARIABLE_KEY(key_arti_krater),
+    CONFIG_VARIABLE_KEY(key_arti_incant),
 
     // Game modes
     CONFIG_VARIABLE_KEY(key_spectator),  // RestlessRodent -- CRL
