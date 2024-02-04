@@ -247,8 +247,9 @@ void R_AddLine(seg_t * line)
 
 // OPTIMIZE: quickly reject orthogonal back sides
 
-    angle1 = R_PointToAngle(line->v1->r_x, line->v1->r_y);
-    angle2 = R_PointToAngle(line->v2->r_x, line->v2->r_y);
+    // [crispy] remove slime trails
+    angle1 = R_PointToAngleCrispy(line->v1->r_x, line->v1->r_y);
+    angle2 = R_PointToAngleCrispy(line->v2->r_x, line->v2->r_y);
 
 //
 // clip to view edges
@@ -386,8 +387,8 @@ boolean R_CheckBBox(fixed_t * bspcoord)
 //
 // check clip list for an open space
 //
-    angle1 = R_PointToAngle(x1, y1) - viewangle;
-    angle2 = R_PointToAngle(x2, y2) - viewangle;
+    angle1 = R_PointToAngleCrispy(x1, y1) - viewangle;
+    angle2 = R_PointToAngleCrispy(x2, y2) - viewangle;
 
     span = angle1 - angle2;
     if (span >= ANG180)
