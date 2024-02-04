@@ -1245,7 +1245,7 @@ static void M_ID_Saturation (int choice)
     vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
+    I_SetPalette ((byte *)W_CacheLumpName("PLAYPAL", PU_CACHE) + SB_palette * 768);
 #else
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
     R_FillBackScreen();
@@ -1258,7 +1258,7 @@ static void M_ID_R_Intensity (int choice)
     vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
+    I_SetPalette ((byte *)W_CacheLumpName("PLAYPAL", PU_CACHE) + SB_palette * 768);
 #else
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
     R_FillBackScreen();
@@ -1271,7 +1271,7 @@ static void M_ID_G_Intensity (int choice)
     vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
+    I_SetPalette ((byte *)W_CacheLumpName("PLAYPAL", PU_CACHE) + SB_palette * 768);
 #else
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
     R_FillBackScreen();
@@ -1284,7 +1284,7 @@ static void M_ID_B_Intensity (int choice)
     vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
+    I_SetPalette ((byte *)W_CacheLumpName("PLAYPAL", PU_CACHE) + SB_palette * 768);
 #else
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
     R_FillBackScreen();
