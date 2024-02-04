@@ -249,7 +249,7 @@ static angle_t anglediff(angle_t a, angle_t b)
         return b - a;
 }
 
-static void P_SegLengths (void)
+void P_SegLengths (void)
 {
     int i;
 

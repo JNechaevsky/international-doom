@@ -309,6 +309,8 @@ void P_RadiusAttack(mobj_t * spot, mobj_t * source, int damage, int distance,
 
 // ***** P_SETUP *****
 
+extern void P_SegLengths (void);
+
 extern byte *rejectmatrix;      // for fast sight rejection
 extern short *blockmaplump;     // offsets in blockmap are from here
 extern short *blockmap;

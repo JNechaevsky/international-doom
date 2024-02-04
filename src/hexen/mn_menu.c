@@ -84,6 +84,9 @@ typedef enum
     MENU_ID_KBDBINDS7,
     MENU_ID_KBDBINDS8,
     MENU_ID_MOUSEBINDS,
+    MENU_ID_WIDGETS,
+    MENU_ID_GAMEPLAY1,
+    MENU_ID_GAMEPLAY2,
     MENU_NONE
 } MenuType_t;
 
@@ -517,6 +520,17 @@ static void M_Bind_M_UseArtifact (int option);
 
 static void M_Bind_M_Reset (int option);
 
+static void M_Draw_ID_Widgets (void);
+static void M_Draw_ID_Gameplay_1 (void);
+static void M_ID_Brightmaps (int choice);
+static void M_ID_Translucency (int choice);
+static void M_ID_SmoothLighting (int choice);
+static void M_ID_SwirlingLiquids (int choice);
+static void M_ID_LinearSky (int choice);
+static void M_ID_FlipCorpses (int choice);
+
+static void M_Draw_ID_Gameplay_2 (void);
+
 // Keyboard binding prototypes
 static boolean KbdIsBinding;
 static int     keyToBind;
@@ -553,6 +567,8 @@ static Menu_t ID_Def_Keybinds_5;
 static Menu_t ID_Def_Keybinds_6;
 static Menu_t ID_Def_Keybinds_7;
 static Menu_t ID_Def_Keybinds_8;
+static Menu_t ID_Def_Gameplay_1;
+static Menu_t ID_Def_Gameplay_2;
 
 // Remember last keybindings page.
 static int Keybinds_Cur;
@@ -560,6 +576,14 @@ static int Keybinds_Cur;
 static void M_Choose_ID_Keybinds (int choice)
 {
     SetMenu(Keybinds_Cur);
+}
+
+// Remember last gameplay page.
+static int Gameplay_Cur;
+
+static void M_Choose_ID_Gameplay (int choice)
+{
+    SetMenu(Gameplay_Cur);
 }
 
 // Utility function for scrolling pages by arrows / PG keys.
@@ -593,6 +617,10 @@ static void M_ScrollPages (boolean direction)
     else if (CurrentMenu == &ID_Def_Keybinds_6) SetMenu(direction ? MENU_ID_KBDBINDS7 : MENU_ID_KBDBINDS5);
     else if (CurrentMenu == &ID_Def_Keybinds_7) SetMenu(direction ? MENU_ID_KBDBINDS8 : MENU_ID_KBDBINDS6);
     else if (CurrentMenu == &ID_Def_Keybinds_8) SetMenu(direction ? MENU_ID_KBDBINDS1 : MENU_ID_KBDBINDS7);
+
+    // Gameplay features:
+    else if (CurrentMenu == &ID_Def_Gameplay_1) SetMenu(MENU_ID_GAMEPLAY2);
+    else if (CurrentMenu == &ID_Def_Gameplay_2) SetMenu(MENU_ID_GAMEPLAY1);
 
     // Play sound.
     S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
@@ -823,12 +851,15 @@ static MenuItem_t ID_Menu_Main[] = {
     { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,                 0, MENU_ID_DISPLAY   },
     { ITT_SETMENU, "SOUND OPTIONS",       NULL,                 0, MENU_ID_SOUND     },
     { ITT_SETMENU, "CONTROL SETTINGS",    NULL,                 0, MENU_ID_CONTROLS  },
+    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,                 0, MENU_ID_WIDGETS   },
+    { ITT_EFUNC,   "GAMEPLAY FEATURES",   M_Choose_ID_Gameplay, 0, MENU_NONE         },
+    { ITT_EFUNC,   "END GAME",            SCEndGame,            0, MENU_NONE         },
 };
 
 static Menu_t ID_Def_Main = {
     ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
     M_Draw_ID_Main,
-    4, ID_Menu_Main,
+    7, ID_Menu_Main,
     0,
     true, false, false,
     MENU_MAIN
@@ -2558,6 +2589,180 @@ static void M_Bind_M_Reset (int option)
     typeofask = 8;      // [JN] mouse binds reset
 }
 
+// -----------------------------------------------------------------------------
+// Widgets and Automap
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Widgets[] = {
+    { ITT_EFUNC, "NOTHING FOR NOW,",        NULL, 0, MENU_NONE },
+    { ITT_EFUNC, "PLEASE COME BACK LATER!", NULL, 0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Widgets = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Widgets,
+    2, ID_Menu_Widgets,
+    0,
+    true, false, false,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Widgets (void)
+{
+    char str[32];
+
+    M_ShadeBackground();
+}
+
+// -----------------------------------------------------------------------------
+// Gameplay features 1
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Gameplay_1[] = {
+    { ITT_LRFUNC,  "BRIGHTMAPS",                  M_ID_Brightmaps,      0, MENU_NONE          },
+    { ITT_LRFUNC,  "EXTRA TRANSLUCENCY",          M_ID_Translucency,    0, MENU_NONE          },
+    { ITT_LRFUNC,  "DIMINISHED LIGHTING",         M_ID_SmoothLighting,  0, MENU_NONE          },
+    { ITT_LRFUNC,  "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids, 0, MENU_NONE          },
+    { ITT_LRFUNC,  "SKY DRAWING MODE",            M_ID_LinearSky,       0, MENU_NONE          },
+    { ITT_LRFUNC,  "RANDOMLY MIRRORED CORPSES",   M_ID_FlipCorpses,     0, MENU_NONE          },
+    // { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE          },
+    // { ITT_LRFUNC,  "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE          },
+    // { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE          },
+    // { ITT_SETMENU, "", /*NEXT PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY2 },
+    // { ITT_SETMENU, "", /*< PREV PAGE*/            NULL,                 0, MENU_ID_GAMEPLAY3 },
+};
+
+static Menu_t ID_Def_Gameplay_1 = {
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Gameplay_1,
+    6, ID_Menu_Gameplay_1,
+    0,
+    true, false, true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Gameplay_1 (void)
+{
+    char str[32];
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY1;
+
+    M_ShadeBackground();
+
+    MN_DrTextACentered("VISUAL", 10, cr[CR_YELLOW]);
+
+    // Brightmaps
+    sprintf(str, vis_brightmaps ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Translucency
+    /*
+    sprintf(str, vis_translucency == 1 ? "ADDITIVE" :
+                 vis_translucency == 2 ? "BLENDING" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Diminished lighting
+    sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Liquids animation
+    /*
+    sprintf(str, vis_swirling_liquids ? "SWIRLING" : "ORIGINAL");
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Sky drawing mode
+    sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, vis_linear_sky ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Randomly mirrored corpses
+    /*
+    sprintf(str, vis_flip_corpses ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
+    */
+}
+
+static void M_ID_Brightmaps (int choice)
+{
+    vis_brightmaps ^= 1;
+}
+
+static void M_ID_Translucency (int choice)
+{
+    /*
+    vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
+    */
+}
+
+static void M_ID_SmoothLightingHook (void)
+{
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
+    // [crispy] re-calculate fake contrast
+    P_SegLengths();
+}
+
+static void M_ID_SmoothLighting (int choice)
+{
+    vis_smooth_light ^= 1;
+    post_rendering_hook = M_ID_SmoothLightingHook;
+}
+
+static void M_ID_SwirlingLiquids (int choice)
+{
+    /*
+    vis_swirling_liquids ^= 1;
+    // [JN] Re-init animation sequences.
+    P_InitPicAnims();
+    */
+}
+
+static void M_ID_LinearSky (int choice)
+{
+    vis_linear_sky ^= 1;
+}
+
+static void M_ID_FlipCorpses (int choice)
+{
+    /*
+    vis_flip_corpses ^= 1;
+    */
+}
+
+// -----------------------------------------------------------------------------
+// Gameplay features 2
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Gameplay_2[] = {
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+};
+
+static Menu_t ID_Def_Gameplay_2 = {
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Gameplay_2,
+    2, ID_Menu_Gameplay_2,
+    0,
+    true, false, true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Gameplay_2 (void)
+{
+    char str[32];
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY2;
+
+    M_ShadeBackground();
+}
+
 // CODE --------------------------------------------------------------------
 
 static Menu_t *Menus[] = {
@@ -2584,6 +2789,9 @@ static Menu_t *Menus[] = {
     &ID_Def_Keybinds_7,
     &ID_Def_Keybinds_8,
     &ID_Def_MouseBinds,
+    &ID_Def_Widgets,
+    &ID_Def_Gameplay_1,
+    &ID_Def_Gameplay_2,
 };
 
 //---------------------------------------------------------------------------
@@ -2601,6 +2809,7 @@ void MN_Init(void)
 
     // [JN] Apply default first page of Keybinds and Gameplay menus.
     Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS1;
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY1;
 }
 
 //---------------------------------------------------------------------------

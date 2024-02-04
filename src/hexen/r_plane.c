@@ -440,7 +440,6 @@ void R_DrawPlanes(void)
 {
     int light;
     int x;
-    int angle;
     byte *tempSource;
     byte *source;
     byte *source2;
@@ -474,13 +473,15 @@ void R_DrawPlanes(void)
                     dc_yh = pl->bottom[x];
                     if ((unsigned) dc_yl <= dc_yh) // [crispy] 32-bit integer math
                     {
+                        // [crispy] Optionally draw skies horizontally linear.
+                        const int angle = ((viewangle + (vis_linear_sky ? 
+                                        linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
+
                         count = dc_yh - dc_yl;
                         if (count < 0)
                         {
                             return;
                         }
-                        angle = (viewangle + xtoviewangle[x])
-                            >> ANGLETOSKYSHIFT;
                         source = R_GetColumn(skyTexture, angle + offset);
                         source2 = R_GetColumn(skyTexture2, angle + offset2);
                         dest = ylookup[dc_yl] + columnofs[x];
@@ -572,13 +573,15 @@ void R_DrawPlanes(void)
                     dc_yh = pl->bottom[x];
                     if ((unsigned) dc_yl <= dc_yh) // [crispy] 32-bit integer math
                     {
+                        // [crispy] Optionally draw skies horizontally linear.
+                        const int angle = ((viewangle + (vis_linear_sky ? 
+                                        linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
+
                         count = dc_yh - dc_yl;
                         if (count < 0)
                         {
                             return;
                         }
-                        angle = (viewangle + xtoviewangle[x])
-                            >> ANGLETOSKYSHIFT;
                         source = R_GetColumn(skyTexture, angle + offset);
                         dest = ylookup[dc_yl] + columnofs[x];
                         frac = SKYTEXTUREMIDSHIFTED * FRACUNIT + (dc_yl - centery) * fracstep;
