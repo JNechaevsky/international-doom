@@ -2609,7 +2609,7 @@ static Menu_t ID_Def_Widgets = {
 
 static void M_Draw_ID_Widgets (void)
 {
-    char str[32];
+//    char str[32];
 
     M_ShadeBackground();
 }
@@ -2757,7 +2757,7 @@ static Menu_t ID_Def_Gameplay_2 = {
 
 static void M_Draw_ID_Gameplay_2 (void)
 {
-    char str[32];
+//    char str[32];
     Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY2;
 
     M_ShadeBackground();
@@ -3064,7 +3064,7 @@ const char *QuitEndMsg[] = {
     "ARE YOU SURE YOU WANT TO END THE GAME?",
     "DO YOU WANT TO QUICKSAVE THE GAME NAMED",
     "DO YOU WANT TO QUICKLOAD THE GAME NAMED",
-    "ARE YOU SURE YOU WANT TO SUICIDE?"
+    "ARE YOU SURE YOU WANT TO SUICIDE?",
     "DO YOU WANT TO DELETE THE GAME NAMED",        // [crispy] typeofask 6 (delete a savegame)
     "RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",  // [JN] typeofask 7 (reset keyboard binds)
     "RESET MOUSE BINDINGS TO DEFAULT VALUES?",     // [JN] typeofask 8 (reset mouse binds)
@@ -3083,6 +3083,14 @@ void MN_Drawer(void)
     {
         if (askforquit)
         {
+            // [JN] Keep backgound filling while asking for 
+            // reset and inform about Y or N pressing.
+            if (typeofask == 7 || typeofask == 8)
+            {
+                M_FillBackground();
+                MN_DrTextACentered("PRESS Y OR N.", 100, NULL);
+            }
+
             MN_DrTextA(QuitEndMsg[typeofask - 1], 160 -
                        MN_TextAWidth(QuitEndMsg[typeofask - 1]) / 2, 80, NULL);
             if (typeofask == 3)
@@ -3098,6 +3106,13 @@ void MN_Drawer(void)
                            MN_TextAWidth(SlotText[quickload - 1]) / 2, 90, NULL);
                 MN_DrTextA("?", 160 +
                            MN_TextAWidth(SlotText[quicksave - 1]) / 2, 90, NULL);
+            }
+            if (typeofask == 9)
+            {
+                MN_DrTextACentered("GRAPHICAL, AUDIO AND GAMEPLAY SETTINGS", 70, NULL);
+                MN_DrTextACentered("WILL BE RESET TO DEFAULT VALUES.", 80, NULL);
+                MN_DrTextACentered("ARE YOU SURE WANT TO CONTINUE?", 100, NULL);
+                MN_DrTextACentered("PRESS Y OR N.", 120, NULL);
             }
         }
         return;
@@ -4072,11 +4087,25 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_abort || key == KEY_ESCAPE)
         {
-            players[consoleplayer].messageTics = 0;
-            askforquit = false;
-            typeofask = 0;
-            paused = false;
-            return true;
+            // [JN] Do not close reset menus after canceling.
+            if (typeofask == 7 || typeofask == 8 || typeofask == 9)
+            {
+                if (!netgame && !demoplayback)
+                {
+                    paused = true;
+                }
+                MenuActive = true;
+                askforquit = false;
+                typeofask = 0;
+            }
+            else
+            {
+                players[consoleplayer].messageTics = 1;  //set the msg to be cleared
+                askforquit = false;
+                typeofask = 0;
+                paused = false;
+                return true;
+            }
         }
 
         return false;           // don't let the keys filter thru
