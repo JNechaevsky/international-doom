@@ -26,7 +26,10 @@ side_t *sidedef;
 line_t *linedef;
 sector_t *frontsector, *backsector;
 
-drawseg_t drawsegs[MAXDRAWSEGS], *ds_p;
+// [JN] killough: New code which removes 2s linedef limit
+drawseg_t *drawsegs;
+drawseg_t *ds_p;
+unsigned   maxdrawsegs;
 
 void R_StoreWallRange(int start, int stop);
 

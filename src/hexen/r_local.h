@@ -274,7 +274,7 @@ typedef struct drawseg_s
 #define SIL_TOP         2
 #define SIL_BOTH        3
 
-#define MAXDRAWSEGS             256*8
+#define MAXDRAWSEGS             256
 
 // A vissprite_t is a thing that will be drawn during a refresh
 typedef struct vissprite_s
@@ -429,7 +429,9 @@ extern boolean markfloor;       // false if the back side is the same plane
 extern boolean markceiling;
 extern boolean skymap;
 
-extern drawseg_t drawsegs[MAXDRAWSEGS], *ds_p;
+extern drawseg_t *drawsegs;
+extern drawseg_t *ds_p;
+extern unsigned   maxdrawsegs;
 
 extern lighttable_t **hscalelight, **vscalelight, **dscalelight;
 
@@ -529,10 +531,6 @@ extern void R_InitTrueColormaps(char *current_colormap);
 //
 // R_things.c
 //
-#define MAXVISSPRITES   192*8
-
-extern vissprite_t vissprites[MAXVISSPRITES], *vissprite_p;
-extern vissprite_t vsprsortedhead;
 
 // constant arrays used for psprite clipping and initializing clipping
 extern int negonearray[MAXWIDTH];  // [crispy] 32-bit integer math
@@ -551,8 +549,6 @@ extern boolean pspr_interp; // [crispy] interpolate weapon bobbing
 
 void R_DrawMaskedColumn(column_t * column, signed int baseclip);
 
-
-void R_SortVisSprites(void);
 
 void R_AddSprites(sector_t * sec);
 void R_AddPSprites(void);

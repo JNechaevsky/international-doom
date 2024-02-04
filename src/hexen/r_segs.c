@@ -495,8 +495,14 @@ void R_StoreWallRange(int start, int stop)
     const uint32_t len = curline->length;
     extern boolean automapactive;
 
-    if (ds_p == &drawsegs[MAXDRAWSEGS])
-        return;                 // don't overflow and crash
+    // [JN] remove MAXDRAWSEGS Vanilla limit
+    if (ds_p == drawsegs+maxdrawsegs)
+    {
+        unsigned newmax = maxdrawsegs ? maxdrawsegs*2 : 128; // killough
+        drawsegs = I_Realloc(drawsegs,newmax*sizeof(*drawsegs));
+        ds_p = drawsegs+maxdrawsegs;
+        maxdrawsegs = newmax;
+    }
 
 #ifdef RANGECHECK
     if (start >= viewwidth || start > stop)

@@ -70,6 +70,26 @@ spriteframe_t sprtemp[30];
 int maxframe;
 static const char *spritename;
 
+static size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs; // killough
+static vissprite_t *vissprites, **vissprite_ptrs;                     // killough
+
+typedef struct drawseg_xrange_item_s
+{
+    short x1, x2;
+    drawseg_t *user;
+} drawseg_xrange_item_t;
+
+typedef struct drawsegs_xrange_s
+{
+    drawseg_xrange_item_t *items;
+    int count;
+} drawsegs_xrange_t;
+
+#define DS_RANGES_COUNT 3
+static drawsegs_xrange_t drawsegs_xranges[DS_RANGES_COUNT];
+static drawseg_xrange_item_t *drawsegs_xrange;
+static unsigned int drawsegs_xrange_size = 0;
+static int drawsegs_xrange_count = 0;
 
 
 /*
@@ -248,63 +268,51 @@ void R_InitSpriteDefs(const char **namelist)
 ===============================================================================
 */
 
-vissprite_t vissprites[MAXVISSPRITES], *vissprite_p;
-int newvissprite;
 
+// -----------------------------------------------------------------------------
+// R_InitSprites
+// Called at program start.
+// -----------------------------------------------------------------------------
 
-/*
-===================
-=
-= R_InitSprites
-=
-= Called at program start
-===================
-*/
-
-void R_InitSprites(const char **namelist)
+void R_InitSprites (const char **namelist)
 {
-    int i;
-
-    for (i = 0; i < SCREENWIDTH; i++)
+    for (int i = 0 ; i < SCREENWIDTH ; i++)
     {
         negonearray[i] = -1;
     }
 
-    R_InitSpriteDefs(namelist);
+    R_InitSpriteDefs (namelist);
 }
 
+// -----------------------------------------------------------------------------
+// R_ClearSprites
+// Called at frame start.
+// -----------------------------------------------------------------------------
 
-/*
-===================
-=
-= R_ClearSprites
-=
-= Called at frame start
-===================
-*/
-
-void R_ClearSprites(void)
+void R_ClearSprites (void)
 {
-    vissprite_p = vissprites;
+    num_vissprite = 0;  // [JN] killough
 }
 
+// -----------------------------------------------------------------------------
+// R_NewVisSprite
+// -----------------------------------------------------------------------------
 
-/*
-===================
-=
-= R_NewVisSprite
-=
-===================
-*/
-
-vissprite_t overflowsprite;
-
-vissprite_t *R_NewVisSprite(void)
+static vissprite_t *R_NewVisSprite (void)
 {
-    if (vissprite_p == &vissprites[MAXVISSPRITES])
-        return &overflowsprite;
-    vissprite_p++;
-    return vissprite_p - 1;
+    if (num_vissprite >= num_vissprite_alloc)   // [JN] killough
+    {
+        
+        size_t num_vissprite_alloc_prev = num_vissprite_alloc;
+        num_vissprite_alloc = num_vissprite_alloc ? num_vissprite_alloc*2 : 128;
+        vissprites = I_Realloc(vissprites,num_vissprite_alloc*sizeof(*vissprites));
+
+        // [JN] Andrey Budko: set all fields to zero
+        memset(vissprites + num_vissprite_alloc_prev, 0,
+        (num_vissprite_alloc - num_vissprite_alloc_prev)*sizeof(*vissprites));
+    }
+
+    return vissprites + num_vissprite++;
 }
 
 
@@ -699,6 +707,7 @@ void R_AddSprites(sector_t * sec)
     mobj_t *thing;
     int lightnum;
 
+    // [JN] TODO - hadle it via BSP traversal.
     if (sec->validcount == validcount)
         return;                 // already added
 
@@ -949,61 +958,90 @@ void R_DrawPlayerSprites(void)
 }
 
 
-/*
-========================
-=
-= R_SortVisSprites
-=
-========================
-*/
+// -----------------------------------------------------------------------------
+// R_SortVisSprites
+//
+// Rewritten by Lee Killough to avoid using unnecessary
+// linked lists, and to use faster sorting algorithm.
+// -----------------------------------------------------------------------------
 
-vissprite_t vsprsortedhead;
+#define bcopyp(d, s, n) memcpy(d, s, (n) * sizeof(void *))
 
-void R_SortVisSprites(void)
+// killough 9/2/98: merge sort
+
+static void msort(vissprite_t **s, vissprite_t **t, const int n)
 {
-    int i, count;
-    vissprite_t *ds, *best;
-    static vissprite_t unsorted;
-    fixed_t bestscale;
-
-    count = vissprite_p - vissprites;
-
-    unsorted.next = unsorted.prev = &unsorted;
-    if (!count)
-        return;
-
-    for (ds = vissprites; ds < vissprite_p; ds++)
+    if (n >= 16)
     {
-        ds->next = ds + 1;
-        ds->prev = ds - 1;
+        int n1 = n/2, n2 = n - n1;
+        vissprite_t **s1 = s, **s2 = s + n1, **d = t;
+
+        msort(s1, t, n1);
+        msort(s2, t, n2);
+
+        while ((*s1)->scale >= (*s2)->scale ?
+              (*d++ = *s1++, --n1) : (*d++ = *s2++, --n2));
+
+        if (n2)
+        bcopyp(d, s2, n2);
+        else
+        bcopyp(d, s1, n1);
+
+        bcopyp(s, t, n);
     }
-    vissprites[0].prev = &unsorted;
-    unsorted.next = &vissprites[0];
-    (vissprite_p - 1)->next = &unsorted;
-    unsorted.prev = vissprite_p - 1;
-
-//
-// pull the vissprites out by scale
-//
-    best = 0;                   // shut up the compiler warning
-    vsprsortedhead.next = vsprsortedhead.prev = &vsprsortedhead;
-    for (i = 0; i < count; i++)
+    else
     {
-        bestscale = INT_MAX;
-        for (ds = unsorted.next; ds != &unsorted; ds = ds->next)
+        int i;
+
+        for (i = 1; i < n; i++)
         {
-            if (ds->scale < bestscale)
+            vissprite_t *temp = s[i];
+
+            if (s[i-1]->scale < temp->scale)
             {
-                bestscale = ds->scale;
-                best = ds;
+                int j = i;
+
+                while ((s[j] = s[j-1])->scale < temp->scale && --j);
+                s[j] = temp;
             }
         }
-        best->next->prev = best->prev;
-        best->prev->next = best->next;
-        best->next = &vsprsortedhead;
-        best->prev = vsprsortedhead.prev;
-        vsprsortedhead.prev->next = best;
-        vsprsortedhead.prev = best;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// R_SortVisSprites
+// -----------------------------------------------------------------------------
+
+static void R_SortVisSprites (void)
+{
+    if (num_vissprite)
+    {
+        int i = num_vissprite;
+
+        // If we need to allocate more pointers for the vissprites,
+        // allocate as many as were allocated for sprites -- killough
+        // killough 9/22/98: allocate twice as many
+
+        if (num_vissprite_ptrs < num_vissprite*2)
+        {
+            free(vissprite_ptrs);  // better than realloc -- no preserving needed
+            vissprite_ptrs = malloc((num_vissprite_ptrs = num_vissprite_alloc*2)
+                                    * sizeof *vissprite_ptrs);
+        }
+
+        // Sprites of equal distance need to be sorted in inverse order.
+        // This is most easily achieved by filling the sort array
+        // backwards before the sort.
+
+        while (--i >= 0)
+        {
+            vissprite_ptrs[num_vissprite-i-1] = vissprites+i;
+        }
+
+        // killough 9/22/98: replace qsort with merge sort, since the keys
+        // are roughly in order to begin with, due to BSP rendering.
+
+        msort(vissprite_ptrs, vissprite_ptrs + num_vissprite, num_vissprite);
     }
 }
 
@@ -1116,47 +1154,103 @@ void R_DrawSprite(vissprite_t * spr)
 }
 
 
-/*
-========================
-=
-= R_DrawMasked
-=
-========================
-*/
+// -------------------------------------------------------------------------
+// R_DrawMasked
+// -------------------------------------------------------------------------
 
-void R_DrawMasked(void)
+void R_DrawMasked (void)
 {
-    vissprite_t *spr;
+    int        i;
     drawseg_t *ds;
 
     R_SortVisSprites();
 
-    if (vissprite_p > vissprites)
+    // [JN] Andrey Budko
+    // Makes sense for scenes with huge amount of drawsegs.
+    // ~12% of speed improvement on epic.wad map05
+    for (i = 0 ; i < DS_RANGES_COUNT ; i++)
     {
-        // draw all vissprites back to front
-
-        for (spr = vsprsortedhead.next; spr != &vsprsortedhead;
-             spr = spr->next)
-            R_DrawSprite(spr);
+        drawsegs_xranges[i].count = 0;
     }
 
-//
-// render any remaining masked mid textures
-//
-    for (ds = ds_p - 1; ds >= drawsegs; ds--)
+    if (num_vissprite > 0)
+    {
+        if (drawsegs_xrange_size < maxdrawsegs)
+        {
+            drawsegs_xrange_size = 2 * maxdrawsegs;
+
+            for(i = 0; i < DS_RANGES_COUNT; i++)
+            {
+                drawsegs_xranges[i].items = I_Realloc(
+                drawsegs_xranges[i].items,
+                drawsegs_xrange_size * sizeof(drawsegs_xranges[i].items[0]));
+            }
+        }
+
+        for (ds = ds_p; ds-- > drawsegs;)
+        {
+            if (ds->silhouette || ds->maskedtexturecol)
+            {
+                drawsegs_xranges[0].items[drawsegs_xranges[0].count].x1 = ds->x1;
+                drawsegs_xranges[0].items[drawsegs_xranges[0].count].x2 = ds->x2;
+                drawsegs_xranges[0].items[drawsegs_xranges[0].count].user = ds;
+
+                // [JN] Andrey Budko: ~13% of speed improvement on sunder.wad map10
+                if (ds->x1 < centerx)
+                {
+                    drawsegs_xranges[1].items[drawsegs_xranges[1].count] = 
+                    drawsegs_xranges[0].items[drawsegs_xranges[0].count];
+                    drawsegs_xranges[1].count++;
+                }
+                if (ds->x2 >= centerx)
+                {
+                    drawsegs_xranges[2].items[drawsegs_xranges[2].count] = 
+                    drawsegs_xranges[0].items[drawsegs_xranges[0].count];
+                    drawsegs_xranges[2].count++;
+                }
+
+                drawsegs_xranges[0].count++;
+            }
+        }
+    }
+
+    // [JN] TODO - IDRender.numsprites = num_vissprite;
+    for (i = num_vissprite ; --i>=0 ; )
+    {
+        vissprite_t* spr = vissprite_ptrs[i];
+
+        if (spr->x2 < centerx)
+        {
+            drawsegs_xrange = drawsegs_xranges[1].items;
+            drawsegs_xrange_count = drawsegs_xranges[1].count;
+        }
+        else if (spr->x1 >= centerx)
+        {
+            drawsegs_xrange = drawsegs_xranges[2].items;
+            drawsegs_xrange_count = drawsegs_xranges[2].count;
+        }
+        else
+        {
+            drawsegs_xrange = drawsegs_xranges[0].items;
+            drawsegs_xrange_count = drawsegs_xranges[0].count;
+        }
+
+        R_DrawSprite(vissprite_ptrs[i]);    // [JN] killough
+    }
+
+    // render any remaining masked mid textures
+
+    // Modified by Lee Killough:
+    // (pointer check was originally nonportable
+    // and buggy, by going past LEFT end of array):
+    for (ds = ds_p ; ds-- > drawsegs ; )
         if (ds->maskedtexturecol)
-            R_RenderMaskedSegRange(ds, ds->x1, ds->x2);
+            R_RenderMaskedSegRange (ds, ds->x1, ds->x2);
 
-//
-// draw the psprites on top of everything
-//
-// Added for the sideviewing with an external device
-    if (viewangleoffset <= 1024 << ANGLETOFINESHIFT || viewangleoffset >=
-        -(1024 << ANGLETOFINESHIFT))
-    {                           // don't draw on side views
-        R_DrawPlayerSprites();
+    // draw the psprites on top of everything
+    //  but does not draw on side views
+    if (!viewangleoffset)
+    {
+        R_DrawPlayerSprites ();
     }
-
-//      if (!viewangleoffset)           // don't draw on side views
-//              R_DrawPlayerSprites ();
 }
