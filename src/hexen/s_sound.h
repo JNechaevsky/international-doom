@@ -71,7 +71,6 @@ typedef struct
 
 extern int snd_MaxVolume;
 extern int snd_MusicVolume;
-extern int snd_Channels;
 extern boolean cdmusic;
 
 void S_Start(void);

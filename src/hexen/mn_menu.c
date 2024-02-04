@@ -1347,10 +1347,10 @@ static void M_Draw_ID_Sound (void)
                M_Item_Glow(9, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
 
     // Number of SFX to mix
-    sprintf(str, "%i", snd_Channels);
+    sprintf(str, "%i", snd_channels);
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, snd_Channels == 8 ? GLOW_DARKRED :
-                               snd_Channels  < 3 ? GLOW_RED : GLOW_YELLOW));
+               M_Item_Glow(10, snd_channels == 8 ? GLOW_DARKRED :
+                               snd_channels  < 3 ? GLOW_RED : GLOW_YELLOW));
 
     // Mute inactive window
     // sprintf(str, snd_mute_inactive ? "ON" : "OFF");
@@ -1450,7 +1450,7 @@ static void M_ID_SFXChannels (int option)
     // [JN] Note: cap minimum channels to 2, not 1.
     // Only one channel produces a strange effect, 
     // as if there were no channels at all.
-    snd_Channels = M_INT_Slider(snd_Channels, 2, 16, option, true);
+    snd_channels = M_INT_Slider(snd_channels, 2, 16, option, true);
 }
 
 // [JN] TODO?

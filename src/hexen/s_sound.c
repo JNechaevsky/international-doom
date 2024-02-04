@@ -27,6 +27,9 @@
 #include "sounds.h"
 #include "s_sound.h"
 
+#include "id_vars.h"
+
+
 #define PRIORITY_MAX_ADJUST 10
 #define DIST_ADJUST (MAX_SND_DIST/PRIORITY_MAX_ADJUST)
 
@@ -61,7 +64,6 @@ static byte *SoundCurve;
 
 int snd_MaxVolume = 10;                // maximum volume for sound
 int snd_MusicVolume = 10;              // maximum volume for music
-int snd_Channels = 8;
 
 // int AmbChan;
 
@@ -317,11 +319,11 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
         return;                 // other sounds have greater priority
     }
     #endif
-    for (i = 0; i < snd_Channels; i++)
+    for (i = 0; i < snd_channels; i++)
     {
         if (origin->player)
         {
-            i = snd_Channels;
+            i = snd_channels;
             break;              // let the player have more than one sound.
         }
         if (origin == Channel[i].mo)
@@ -330,26 +332,26 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
             break;
         }
     }
-    if (i >= snd_Channels)
+    if (i >= snd_channels)
     {
-        for (i = 0; i < snd_Channels; i++)
+        for (i = 0; i < snd_channels; i++)
         {
             if (Channel[i].mo == NULL)
             {
                 break;
             }
         }
-        if (i >= snd_Channels)
+        if (i >= snd_channels)
         {
             // look for a lower priority sound to replace.
             sndcount++;
-            if (sndcount >= snd_Channels)
+            if (sndcount >= snd_channels)
             {
                 sndcount = 0;
             }
-            for (chan = 0; chan < snd_Channels; chan++)
+            for (chan = 0; chan < snd_channels; chan++)
             {
-                i = (sndcount + chan) % snd_Channels;
+                i = (sndcount + chan) % snd_channels;
                 if (priority >= Channel[i].priority)
                 {
                     chan = -1;  //denote that sound should be replaced.
@@ -450,7 +452,7 @@ boolean S_StopSoundID(int sound_id, int priority)
     }
     lp = -1;                    //denote the argument sound_id
     found = 0;
-    for (i = 0; i < snd_Channels; i++)
+    for (i = 0; i < snd_channels; i++)
     {
         if (Channel[i].sound_id == sound_id && Channel[i].mo)
         {
@@ -495,7 +497,7 @@ void S_StopSound(mobj_t * origin)
 {
     int i;
 
-    for (i = 0; i < snd_Channels; i++)
+    for (i = 0; i < snd_channels; i++)
     {
         if (Channel[i].mo == origin)
         {
@@ -521,14 +523,14 @@ void S_StopAllSound(void)
     int i;
 
     //stop all sounds
-    for (i = 0; i < snd_Channels; i++)
+    for (i = 0; i < snd_channels; i++)
     {
         if (Channel[i].handle)
         {
             S_StopSound(Channel[i].mo);
         }
     }
-    memset(Channel, 0, snd_Channels * sizeof(channel_t));
+    memset(Channel, 0, snd_channels * sizeof(channel_t));
 }
 
 //==========================================================================
@@ -541,7 +543,7 @@ void S_SoundLink(mobj_t * oldactor, mobj_t * newactor)
 {
     int i;
 
-    for (i = 0; i < snd_Channels; i++)
+    for (i = 0; i < snd_channels; i++)
     {
         if (Channel[i].mo == oldactor)
             Channel[i].mo = newactor;
@@ -613,7 +615,7 @@ void S_UpdateSounds(mobj_t * listener)
     // Update any Sequences
     SN_UpdateActiveSequences();
 
-    for (i = 0; i < snd_Channels; i++)
+    for (i = 0; i < snd_channels; i++)
     {
         if (!Channel[i].handle || S_sfx[Channel[i].sound_id].usefulness == -1)
         {
@@ -689,9 +691,9 @@ void S_Init(void)
     SoundCurve = W_CacheLumpName("SNDCURVE", PU_STATIC);
 //      SoundCurve = Z_Malloc(MAX_SND_DIST, PU_STATIC, NULL);
 
-    if (snd_Channels > 16)
+    if (snd_channels > 16)
     {
-        snd_Channels = 16;
+        snd_channels = 16;
     }
     I_SetMusicVolume(snd_MusicVolume * 8);
 
@@ -717,10 +719,10 @@ void S_GetChannelInfo(SoundInfo_t * s)
     int i;
     ChanInfo_t *c;
 
-    s->channelCount = snd_Channels;
+    s->channelCount = snd_channels;
     s->musicVolume = snd_MusicVolume;
     s->soundVolume = snd_MaxVolume;
-    for (i = 0; i < snd_Channels; i++)
+    for (i = 0; i < snd_channels; i++)
     {
         c = &s->chan[i];
         c->id = Channel[i].sound_id;
@@ -750,7 +752,7 @@ boolean S_GetSoundPlayingInfo(mobj_t * mobj, int sound_id)
 {
     int i;
 
-    for (i = 0; i < snd_Channels; i++)
+    for (i = 0; i < snd_channels; i++)
     {
         if (Channel[i].sound_id == sound_id && Channel[i].mo == mobj)
         {

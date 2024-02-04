@@ -175,7 +175,6 @@ void D_BindVariables(void)
     M_BindIntVariable("mouse_sensitivity",      &mouseSensitivity);
     M_BindIntVariable("sfx_volume",             &snd_MaxVolume);
     M_BindIntVariable("music_volume",           &snd_MusicVolume);
-    M_BindIntVariable("snd_channels",           &snd_Channels);
 
     M_BindStringVariable("savedir", &SavePathConfig);
 
