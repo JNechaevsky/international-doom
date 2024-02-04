@@ -3585,15 +3585,14 @@ static void MN_ReturnToMenu (void)
 
 boolean MN_Responder(event_t * event)
 {
-    int key;
     int charTyped;
+    int key;
     int i;
     MenuItem_t *item;
     char *textBuffer;
     static int mousewait = 0;
     static int mousey = 0;
     static int lasty = 0;
-    // int dir;
 
     // In testcontrols mode, none of the function keys should do anything
     // - the only key is escape to quit.
@@ -3628,10 +3627,11 @@ boolean MN_Responder(event_t * event)
             SCQuitGame(0);
             S_StartSound(NULL, SFX_CHAT);
         }
-
         return true;
     }
 
+    // key is the key pressed, ch is the actual character typed
+  
     charTyped = 0;
     key = -1;
 
@@ -3716,7 +3716,7 @@ boolean MN_Responder(event_t * event)
             }
         }
     }
-    
+
     if (key == -1)
     {
         return false;
@@ -3777,10 +3777,25 @@ boolean MN_Responder(event_t * event)
         }
     }
 
+    // [JN] Disallow keyboard pressing and stop binding
+    // while mouse binding is active.
+    if (MouseIsBinding)
+    {
+        if (event->type != ev_mouse)
+        {
+            btnToBind = 0;
+            MouseIsBinding = false;
+            return false;
+        }
+    }
+
+
     if ((ravpic && key == KEY_F1) ||
         (key != 0 && key == key_menu_screenshot))
     {
         G_ScreenShot();
+        // [JN] Audible feedback.
+        S_StartSound(NULL, SFX_PICKUP_ITEM);
         return (true);
     }
 

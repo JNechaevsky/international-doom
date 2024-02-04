@@ -936,6 +936,12 @@ static void SetJoyButtons(unsigned int buttons_mask)
 
 static boolean InventoryMoveLeft()
 {
+    // [JN] Do not pop-up while active menu or demo playback.
+    if (MenuActive || demoplayback)
+    {
+        return false;
+    }
+
     inventoryTics = 5 * 35;
     if (!inventory)
     {
@@ -963,6 +969,13 @@ static boolean InventoryMoveRight()
     player_t *plr;
 
     plr = &players[consoleplayer];
+
+    // [JN] Do not pop-up while active menu or demo playback.
+    if (MenuActive || demoplayback)
+    {
+        return false;
+    }
+
     inventoryTics = 5 * 35;
     if (!inventory)
     {

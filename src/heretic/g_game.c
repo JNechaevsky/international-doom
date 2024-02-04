@@ -1005,6 +1005,7 @@ static void SetJoyButtons(unsigned int buttons_mask)
 
 static boolean InventoryMoveLeft(void)
 {
+    // [JN] Do not pop-up while active menu or demo playback.
     if (MenuActive || demoplayback)
     {
         return false;
@@ -1037,6 +1038,7 @@ static boolean InventoryMoveRight(void)
 
     plr = &players[consoleplayer];
 
+    // [JN] Do not pop-up while active menu or demo playback.
     if (MenuActive || demoplayback)
     {
         return false;
@@ -1256,53 +1258,21 @@ boolean G_Responder(event_t * ev)
     switch (ev->type)
     {
         case ev_keydown:
-            if (ev->data1 == key_invleft && !demoplayback)
+            if (ev->data1 == key_invleft)
             {
-                inventoryTics = 5 * 35;
-                if (!inventory)
+                if (InventoryMoveLeft())
                 {
-                    inventory = true;
-                    break;
+                    return (true);
                 }
-                inv_ptr--;
-                if (inv_ptr < 0)
-                {
-                    inv_ptr = 0;
-                }
-                else
-                {
-                    curpos--;
-                    if (curpos < 0)
-                    {
-                        curpos = 0;
-                    }
-                }
-                return (true);
+                break;
             }
-            if (ev->data1 == key_invright && !demoplayback)
+            if (ev->data1 == key_invright)
             {
-                inventoryTics = 5 * 35;
-                if (!inventory)
+                if (InventoryMoveRight())
                 {
-                    inventory = true;
-                    break;
+                    return (true);
                 }
-                inv_ptr++;
-                if (inv_ptr >= plr->inventorySlotNum)
-                {
-                    inv_ptr--;
-                    if (inv_ptr < 0)
-                        inv_ptr = 0;
-                }
-                else
-                {
-                    curpos++;
-                    if (curpos > 6)
-                    {
-                        curpos = 6;
-                    }
-                }
-                return (true);
+                break;
             }
             if (ev->data1 == key_pause && !MenuActive)
             {
