@@ -164,6 +164,17 @@ typedef struct line_s
     sector_t *backsector;
     int validcount;
     void *specialdata;
+
+    // [JN] Improved column clipping.
+    int r_validcount;   // cph: if == gametic, r_flags already done
+    enum {              // cph:
+    RF_TOP_TILE  = 1,   // Upper texture needs tiling
+    RF_MID_TILE  = 2,   // Mid texture needs tiling
+    RF_BOT_TILE  = 4,   // Lower texture needs tiling
+    RF_IGNORE    = 8,   // Renderer can skip this line
+    RF_CLOSED    = 16,  // Line blocks view
+    } r_flags;
+
 } line_t;
 
 typedef struct
@@ -235,11 +246,10 @@ typedef struct
 
 typedef pixel_t lighttable_t;      // this could be wider for >8 bit display
 
-#define MAXVISPLANES    160*8
-#define MAXOPENINGS             MAXWIDTH*64*4
-
-typedef struct
+typedef struct visplane_s
 {
+    struct visplane_s *next; // [JN] Next visplane in hash chain -- killough
+
     fixed_t height;
     int picnum;
     int lightlevel;
@@ -399,7 +409,7 @@ extern void (*spanfunc) (void);
 // [crispy] smooth texture scrolling
 extern void R_InterpolateTextureOffsets (void);
 
-int R_PointOnSide(fixed_t x, fixed_t y, node_t * node);
+int R_PointOnSide(fixed_t x, fixed_t y, const node_t *node);
 int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t * line);
 angle_t R_PointToAngle(fixed_t x, fixed_t y);
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y);
@@ -428,6 +438,8 @@ extern boolean segtextured;
 extern boolean markfloor;       // false if the back side is the same plane
 extern boolean markceiling;
 extern boolean skymap;
+
+extern byte solidcol[MAXWIDTH];
 
 extern drawseg_t *drawsegs;
 extern drawseg_t *ds_p;
@@ -464,7 +476,9 @@ extern fixed_t Sky2ColumnOffset;
 extern int skyflatnum;
 extern boolean DoubleSky;
 
-extern int openings[MAXOPENINGS], *lastopening; // [crispy] 32-bit integer math
+extern size_t  maxopenings;         // [JN] 32-bit integer maths
+extern int    *lastopening;
+extern int    *openings;
 
 extern int floorclip[MAXWIDTH]; // [crispy] 32-bit integer math
 extern int ceilingclip[MAXWIDTH]; // [crispy] 32-bit integer math
@@ -484,6 +498,7 @@ void R_DrawPlanes(void);
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
                         int special);
 visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop);
+extern visplane_t *R_DupPlane (const visplane_t *pl, int start, int stop);
 
 void R_InitSky(int map);
 

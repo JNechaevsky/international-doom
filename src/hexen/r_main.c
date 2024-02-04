@@ -116,50 +116,36 @@ void R_AddPointToBox (int x, int y, fixed_t *box)
 */
 
 
-/*
-===============================================================================
-=
-= R_PointOnSide
-=
-= Returns side 0 (front) or 1 (back)
-===============================================================================
-*/
+// -----------------------------------------------------------------------------
+// R_PointOnSide
+// Traverse BSP (sub) tree, check point against partition plane.
+// Returns side 0 (front) or 1 (back).
+//
+// [JN] killough 5/2/98: reformatted
+// -----------------------------------------------------------------------------
 
-int R_PointOnSide(fixed_t x, fixed_t y, node_t * node)
+int R_PointOnSide (fixed_t x, fixed_t y, const node_t *node)
 {
-    fixed_t dx, dy;
-    fixed_t left, right;
-
     if (!node->dx)
     {
-        if (x <= node->x)
-            return node->dy > 0;
-        return node->dy < 0;
+        return x <= node->x ? node->dy > 0 : node->dy < 0;
     }
+
     if (!node->dy)
     {
-        if (y <= node->y)
-            return node->dx < 0;
-        return node->dx > 0;
+        return y <= node->y ? node->dx < 0 : node->dx > 0;
     }
 
-    dx = (x - node->x);
-    dy = (y - node->y);
+    x -= node->x;
+    y -= node->y;
 
-// try to quickly decide by looking at sign bits
-    if ((node->dy ^ node->dx ^ dx ^ dy) & 0x80000000)
+    // Try to quickly decide by looking at sign bits.
+    if ((node->dy ^ node->dx ^ x ^ y) < 0)
     {
-        if ((node->dy ^ dx) & 0x80000000)
-            return 1;           // (left is negative)
-        return 0;
+        return (node->dy ^ x) < 0;  // (left is negative)
     }
 
-    left = FixedMul(node->dy >> FRACBITS, dx);
-    right = FixedMul(dy, node->dx >> FRACBITS);
-
-    if (right < left)
-        return 0;               // front side
-    return 1;                   // back side
+    return FixedMul(y, node->dx>>FRACBITS) >= FixedMul(node->dy>>FRACBITS, x);		
 }
 
 
