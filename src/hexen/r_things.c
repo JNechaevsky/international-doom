@@ -707,12 +707,6 @@ void R_AddSprites(sector_t * sec)
     mobj_t *thing;
     int lightnum;
 
-    // [JN] TODO - hadle it via BSP traversal.
-    if (sec->validcount == validcount)
-        return;                 // already added
-
-    sec->validcount = validcount;
-
     lightnum = (sec->lightlevel >> LIGHTSEGSHIFT) + extralight;
     if (lightnum < 0)
         spritelights = scalelight[0];
