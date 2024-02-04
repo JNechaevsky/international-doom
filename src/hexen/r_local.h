@@ -255,13 +255,12 @@ typedef struct visplane_s
     int lightlevel;
     int special;
     int minx, maxx;
-	// leave pads for [minx-1]/[maxx+1]
-    unsigned int pad1;                  // [crispy] 32-bit integer math
-    unsigned int top[MAXWIDTH];			// [crispy] 32-bit integer math
-    unsigned int pad2;					// [crispy] 32-bit integer math
-    unsigned int pad3;					// [crispy] 32-bit integer math
-    unsigned int bottom[MAXWIDTH];		// [crispy] 32-bit integer math
-    unsigned int pad4;					// [crispy] 32-bit integer math
+    unsigned short pad1;
+    unsigned short top[MAXWIDTH];
+    unsigned short pad2;
+    unsigned short pad3;
+    unsigned short bottom[MAXWIDTH];
+    unsigned short pad4;
 } visplane_t;
 
 typedef struct drawseg_s

@@ -515,11 +515,6 @@ boolean P_BlockThingsIterator(int x, int y, boolean(*func) (mobj_t *))
 
 intercept_t *intercepts, *intercept_p; // [crispy] remove INTERCEPTS limit
 
-// [JN] Show which function exactlly is hitting limit:
-// 0 - PIT_AddLineIntercepts
-// 1 - PIT_AddThingIntercepts
-// 2 - P_SightBlockLinesIterator
-
 // [crispy] remove INTERCEPTS limit
 void check_intercept (void)
 {
