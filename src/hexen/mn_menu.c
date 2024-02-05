@@ -348,8 +348,7 @@ static Menu_t Options2Menu = {
 #define ID_MENU_TOPOFFSET         (20)
 #define ID_MENU_LEFTOFFSET        (48)
 #define ID_MENU_LEFTOFFSET_SML    (90)
-#define ID_MENU_LEFTOFFSET_BIG    (32)
-#define ID_MENU_LEFTOFFSET_LEVEL  (74)
+#define ID_MENU_LEFTOFFSET_BIG    (38)
 
 #define ID_MENU_LINEHEIGHT_SMALL  (10)
 #define ID_MENU_CURSOR_OFFSET     (10)
@@ -521,6 +520,16 @@ static void M_Bind_M_UseArtifact (int option);
 static void M_Bind_M_Reset (int option);
 
 static void M_Draw_ID_Widgets (void);
+static void M_ID_Widget_Location (int option);
+static void M_ID_Widget_Kills (int option);
+static void M_ID_Widget_LevelName (int option);
+static void M_ID_Widget_Coords (int option);
+static void M_ID_Widget_Render (int option);
+static void M_ID_Widget_Health (int option);
+static void M_ID_Automap_Rotate (int option);
+static void M_ID_Automap_Overlay (int option);
+static void M_ID_Automap_Shading (int option);
+
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
@@ -528,8 +537,20 @@ static void M_ID_SmoothLighting (int choice);
 static void M_ID_SwirlingLiquids (int choice);
 static void M_ID_LinearSky (int choice);
 static void M_ID_FlipCorpses (int choice);
+static void M_ID_Crosshair (int choice);
+static void M_ID_CrosshairColor (int choice);
+static void M_ID_ColoredSBar (int choice);
+static void M_ID_WeaponWidget (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
+static void M_ID_Torque (int choice);
+static void M_ID_Breathing (int choice);
+static void M_ID_DefaulSkill (int choice);
+static void M_ID_FlipLevels (int choice);
+static void M_ID_DemoTimer (int choice);
+static void M_ID_TimerDirection (int choice);
+static void M_ID_ProgressBar (int choice);
+static void M_ID_InternalDemos (int choice);
 
 // Keyboard binding prototypes
 static boolean KbdIsBinding;
@@ -2594,14 +2615,22 @@ static void M_Bind_M_Reset (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Widgets[] = {
-    { ITT_EFUNC, "NOTHING FOR NOW,",        NULL, 0, MENU_NONE },
-    { ITT_EFUNC, "PLEASE COME BACK LATER!", NULL, 0, MENU_NONE },
+    { ITT_LRFUNC, "WIDGETS LOCATION",      M_ID_Widget_Location,   0, MENU_NONE },
+    { ITT_LRFUNC, "TOTAL KILLS",           M_ID_Widget_Kills,      0, MENU_NONE },
+    { ITT_LRFUNC, "LEVEL NAME",            M_ID_Widget_LevelName,  0, MENU_NONE },
+    { ITT_LRFUNC, "PLAYER COORDS",         M_ID_Widget_Coords,     0, MENU_NONE },
+    { ITT_LRFUNC, "RENDER COUNTERS",       M_ID_Widget_Render,     0, MENU_NONE },
+    { ITT_LRFUNC, "TARGET'S HEALTH",       M_ID_Widget_Health,     0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                    NULL,                   0, MENU_NONE },
+    { ITT_LRFUNC, "ROTATE MODE",           M_ID_Automap_Rotate,    0, MENU_NONE },
+    { ITT_LRFUNC, "OVERLAY MODE",          M_ID_Automap_Overlay,   0, MENU_NONE },
+    { ITT_LRFUNC, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    2, ID_Menu_Widgets,
+    10, ID_Menu_Widgets,
     0,
     true, false, false,
     MENU_ID_MAIN
@@ -2609,33 +2638,166 @@ static Menu_t ID_Def_Widgets = {
 
 static void M_Draw_ID_Widgets (void)
 {
-//    char str[32];
+    char str[32];
 
     M_ShadeBackground();
+
+    MN_DrTextACentered("WIDGETS", 10, cr[CR_YELLOW]);
+
+    // Widgets location
+    /*
+    sprintf(str, widget_location ? "TOP" : "BOTTOM");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, GLOW_GREEN));
+    */
+
+    // Total kills
+    /*
+    sprintf(str, widget_kis == 1 ? "ALWAYS"  :
+                 widget_kis == 2 ? "AUTOMAP" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Level name
+    /*
+    sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Player coords
+    /*
+    sprintf(str, widget_coords == 1 ? "ALWAYS"  :
+                 widget_coords == 2 ? "AUTOMAP" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Render counters
+    /*
+    sprintf(str, widget_render ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, widget_render ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Target's health
+    /*
+    sprintf(str, widget_health == 1 ? "TOP" :
+                 widget_health == 2 ? "TOP+NAME" :
+                 widget_health == 3 ? "BOTTOM" :
+                 widget_health == 4 ? "BOTTOM+NAME" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, widget_health ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    MN_DrTextACentered("AUTOMAP", 80, cr[CR_YELLOW]);
+
+    // Rotate mode
+    sprintf(str, automap_rotate ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, automap_rotate ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Overlay mode
+    sprintf(str, automap_overlay ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Overlay shading level
+    /*
+    sprintf(str,"%d", automap_shading);
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, !automap_overlay ? GLOW_DARKRED :
+                               automap_shading ==  0 ? GLOW_RED :
+                               automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
+    */
 }
+
+static void M_ID_Widget_Location (int choice)
+{
+    /*
+    widget_location ^= 1;
+    */
+}
+
+static void M_ID_Widget_Kills (int choice)
+{
+    /*
+    ??? = M_INT_Slider(???, 0, 2, choice, false);
+    */
+}
+
+static void M_ID_Widget_LevelName (int choice)
+{
+    /*
+    widget_levelname ^= 1;
+    */
+}
+
+static void M_ID_Widget_Coords (int choice)
+{
+    /*
+    widget_coords = M_INT_Slider(widget_coords, 0, 2, choice, false);
+    */
+}
+
+static void M_ID_Widget_Render (int choice)
+{
+    /*
+    widget_render ^= 1;
+    */
+}
+
+static void M_ID_Widget_Health (int choice)
+{
+    /*
+    widget_health = M_INT_Slider(widget_health, 0, 4, choice, false);
+    */
+}
+
+static void M_ID_Automap_Rotate (int choice)
+{
+    automap_rotate ^= 1;
+}
+
+static void M_ID_Automap_Overlay (int choice)
+{
+    automap_overlay ^= 1;
+}
+
+static void M_ID_Automap_Shading (int choice)
+{
+    /*
+    automap_shading = M_INT_Slider(automap_shading, 0, 12, choice, true);
+    */
+}
+
 
 // -----------------------------------------------------------------------------
 // Gameplay features 1
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_1[] = {
-    { ITT_LRFUNC,  "BRIGHTMAPS",                  M_ID_Brightmaps,      0, MENU_NONE          },
-    { ITT_LRFUNC,  "EXTRA TRANSLUCENCY",          M_ID_Translucency,    0, MENU_NONE          },
-    { ITT_LRFUNC,  "DIMINISHED LIGHTING",         M_ID_SmoothLighting,  0, MENU_NONE          },
-    { ITT_LRFUNC,  "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids, 0, MENU_NONE          },
-    { ITT_LRFUNC,  "SKY DRAWING MODE",            M_ID_LinearSky,       0, MENU_NONE          },
-    { ITT_LRFUNC,  "RANDOMLY MIRRORED CORPSES",   M_ID_FlipCorpses,     0, MENU_NONE          },
-    // { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE          },
-    // { ITT_LRFUNC,  "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE          },
-    // { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE          },
-    // { ITT_SETMENU, "", /*NEXT PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY2 },
-    // { ITT_SETMENU, "", /*< PREV PAGE*/            NULL,                 0, MENU_ID_GAMEPLAY3 },
+    { ITT_LRFUNC,  "BRIGHTMAPS",                  M_ID_Brightmaps,      0, MENU_NONE         },
+    { ITT_LRFUNC,  "EXTRA TRANSLUCENCY",          M_ID_Translucency,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "DIMINISHED LIGHTING",         M_ID_SmoothLighting,  0, MENU_NONE         },
+    { ITT_LRFUNC,  "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids, 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SKY DRAWING MODE",            M_ID_LinearSky,       0, MENU_NONE         },
+    { ITT_LRFUNC,  "RANDOMLY MIRRORED CORPSES",   M_ID_FlipCorpses,     0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE         },
+    { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE         },
+    { ITT_LRFUNC,  "ASSEMBLED WEAPON WIDGET",     M_ID_WeaponWidget,    0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_SETMENU, "", /*NEXT PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY2 },
 };
 
 static Menu_t ID_Def_Gameplay_1 = {
-    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_1,
-    6, ID_Menu_Gameplay_1,
+    14, ID_Menu_Gameplay_1,
     0,
     true, false, true,
     MENU_ID_MAIN
@@ -2686,6 +2848,40 @@ static void M_Draw_ID_Gameplay_1 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
     */
+
+    MN_DrTextACentered("CROSSHAIR", 80, cr[CR_YELLOW]);
+
+    // Crosshair shape
+    /*
+    sprintf(str, xhair_draw == 1 ? "CROSS 1" :
+                 xhair_draw == 2 ? "CROSS 2" :
+                 xhair_draw == 3 ? "X" :
+                 xhair_draw == 4 ? "CIRCLE" :
+                 xhair_draw == 5 ? "ANGLE" :
+                 xhair_draw == 6 ? "TRIANGLE" :
+                 xhair_draw == 7 ? "DOT" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Crosshair indication
+    /*
+    sprintf(str, xhair_color == 1 ? "HEALTH" :
+                 xhair_color == 2 ? "TARGET HIGHLIGHT" :
+                 xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, !xhair_draw ? GLOW_DARKRED :
+                               xhair_color ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    MN_DrTextACentered("STATUS BAR", 110, cr[CR_YELLOW]);
+
+    MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET, 150,
+               M_Item_Glow(13, GLOW_DARKGRAY));
+
+    // Footer
+    sprintf(str, "PAGE 1/2");
+    MN_DrTextA(str, M_ItemRightAlign(str), 150, M_Item_Glow(13, GLOW_DARKGRAY));
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -2737,19 +2933,59 @@ static void M_ID_FlipCorpses (int choice)
     */
 }
 
+static void M_ID_Crosshair (int choice)
+{
+    /*
+    xhair_draw = M_INT_Slider(xhair_draw, 0, 7, choice, false);
+    */
+}
+
+static void M_ID_CrosshairColor (int choice)
+{
+    /*
+    xhair_color = M_INT_Slider(xhair_color, 0, 3, choice, false);
+    */
+}
+
+static void M_ID_ColoredSBar (int choice)
+{
+    /*
+    st_colored_stbar ^= 1;
+    */
+}
+
+static void M_ID_WeaponWidget (int choice)
+{
+    /*
+    ??? = M_INT_Slider(???, 0, 2, choice, false);
+    */
+}
+
 // -----------------------------------------------------------------------------
 // Gameplay features 2
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_2[] = {
-    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,         0, MENU_NONE         },
+    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,      0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",         M_ID_DefaulSkill,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY",    M_ID_FlipLevels,     0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW DEMO TIMER",             M_ID_DemoTimer,      0, MENU_NONE         },
+    { ITT_LRFUNC,  "TIMER DIRECTION",             M_ID_TimerDirection, 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW PROGRESS BAR",           M_ID_ProgressBar,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",         M_ID_InternalDemos,  0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_SETMENU, "", /*PREVIOUS PAGE >*/        NULL,                0, MENU_ID_GAMEPLAY1 },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
-    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_2,
-    2, ID_Menu_Gameplay_2,
+    14, ID_Menu_Gameplay_2,
     0,
     true, false, true,
     MENU_ID_MAIN
@@ -2757,10 +2993,141 @@ static Menu_t ID_Def_Gameplay_2 = {
 
 static void M_Draw_ID_Gameplay_2 (void)
 {
-//    char str[32];
+    char str[32];
     Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY2;
 
     M_ShadeBackground();
+
+    MN_DrTextACentered("PHYSICAL", 10, cr[CR_YELLOW]);
+
+    // Corpses sliding from ledges
+    /*
+    sprintf(str, phys_torque ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Imitate player's breathing
+    /*
+    sprintf(str, phys_breathing ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    MN_DrTextACentered("GAMEPLAY", 40, cr[CR_YELLOW]);
+
+    // Default skill level
+    /*
+    M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               DefSkillColor(gp_default_skill));
+    */
+
+    // Flip levels horizontally
+    /*
+    sprintf(str, gp_flip_levels ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, gp_flip_levels ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    MN_DrTextACentered("DEMOS", 70, cr[CR_YELLOW]);
+
+    // Show Demo timer
+    /*
+    sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
+                 demo_timer == 2 ? "RECORDING" : 
+                 demo_timer == 3 ? "ALWAYS" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Timer direction
+    /*
+    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Show progress bar
+    /*
+    sprintf(str, demo_bar ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    // Play internal demos
+    /*
+    sprintf(str, demo_internal ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
+    */
+
+    MN_DrTextA("PREVIOUS PAGE", ID_MENU_LEFTOFFSET, 150,
+               M_Item_Glow(13, GLOW_DARKGRAY));
+
+    // Footer
+    sprintf(str, "PAGE 2/2");
+    MN_DrTextA(str, M_ItemRightAlign(str), 150, M_Item_Glow(13, GLOW_DARKGRAY));
+}
+
+static void M_ID_Torque (int choice)
+{
+    /*
+    phys_torque ^= 1;
+    */
+}
+
+static void M_ID_Breathing (int choice)
+{
+    /*
+    phys_breathing ^= 1;
+    */
+}
+
+static void M_ID_DefaulSkill (int choice)
+{
+    /*
+    gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice, false);
+    SkillMenu.oldItPos = gp_default_skill;
+    */
+}
+
+static void M_ID_FlipLevels (int choice)
+{
+    /*
+    gp_flip_levels ^= 1;
+
+    // Redraw game screen
+    R_ExecuteSetViewSize();
+    */
+}
+
+static void M_ID_DemoTimer (int choice)
+{
+    /*
+    demo_timer = M_INT_Slider(demo_timer, 0, 3, choice, false);
+    */
+}
+
+static void M_ID_TimerDirection (int choice)
+{
+    /*
+    demo_timerdir ^= 1;
+    */
+}
+
+static void M_ID_ProgressBar (int choice)
+{
+    /*
+    demo_bar ^= 1;
+    */
+}
+
+static void M_ID_InternalDemos (int choice)
+{
+    /*
+    demo_internal ^= 1;
+    */
 }
 
 // CODE --------------------------------------------------------------------
