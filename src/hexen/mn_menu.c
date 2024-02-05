@@ -29,6 +29,7 @@
 #include "i_video.h"
 #include "m_controls.h"
 #include "m_misc.h"
+#include "m_random.h"
 #include "p_local.h"
 #include "r_local.h"
 #include "s_sound.h"
@@ -227,13 +228,14 @@ static Menu_t MainMenu = {
 static MenuItem_t ClassItems[] = {
     {ITT_EFUNC, "FIGHTER", SCClass, 0, MENU_NONE},
     {ITT_EFUNC, "CLERIC", SCClass, 1, MENU_NONE},
-    {ITT_EFUNC, "MAGE", SCClass, 2, MENU_NONE}
+    {ITT_EFUNC, "MAGE", SCClass, 2, MENU_NONE},
+    {ITT_EFUNC, "RANDOM", SCClass, 4, MENU_NONE},
 };
 
 static Menu_t ClassMenu = {
-    66, 66,
+    66, 60,
     DrawClassMenu,
-    3, ClassItems,
+    4, ClassItems,
     0,
     false, false, false,
     MENU_MAIN
@@ -3597,10 +3599,13 @@ static void DrawClassMenu(void)
 
     MN_DrTextB("CHOOSE CLASS:", 34, 24);
     class = (pclass_t) CurrentMenu->items[CurrentItPos].option;
-    V_DrawPatch(174, 8, W_CacheLumpName(boxLumpName[class], PU_CACHE));
-    V_DrawPatch(174 + 24, 8 + 12,
-                W_CacheLumpNum(W_GetNumForName(walkLumpName[class])
-                               + ((MenuTime >> 3) & 3), PU_CACHE));
+    if (class < 3)
+    {
+        V_DrawPatch(174, 8, W_CacheLumpName(boxLumpName[class], PU_CACHE));
+        V_DrawPatch(174 + 24, 8 + 12,
+                    W_CacheLumpNum(W_GetNumForName(walkLumpName[class])
+                                   + ((MenuTime >> 3) & 3), PU_CACHE));
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -4043,6 +4048,14 @@ static void SCClass(int option)
             SkillItems[3].text = "WARLOCK";
             SkillItems[4].text = "ARCHIMAGE";
             break;
+        case PCLASS_RANDOM:
+            SkillMenu.x = 38;
+            SkillItems[0].text = "THOU NEEDETH A WET-NURSE";
+            SkillItems[1].text = "YELLOWBELLIES-R-US";
+            SkillItems[2].text = "BRINGEST THEM ONETH";
+            SkillItems[3].text = "THOU ART A SMITE-MEISTER";
+            SkillItems[4].text = "BLACK PLAGUE POSSESSES THEE";
+            break;
     }
     SetMenu(MENU_SKILL);
 }
@@ -4061,7 +4074,14 @@ static void SCSkill(int option)
         demoextend = false;
     }
 
-    PlayerClass[consoleplayer] = MenuPClass;
+    if (MenuPClass < 3)
+    {
+        PlayerClass[consoleplayer] = MenuPClass;
+    }
+    else
+    {
+        PlayerClass[consoleplayer] = ID_RealRandom () % 3;
+    }
     G_DeferredNewGame(option);
     SB_SetClassData();
     SB_state = -1;

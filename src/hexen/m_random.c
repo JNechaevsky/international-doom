@@ -15,6 +15,7 @@
 // GNU General Public License for more details.
 //
 
+#include <stdlib.h>  // [JN] rand()
 
 // HEADER FILES ------------------------------------------------------------
 
@@ -78,4 +79,22 @@ int P_SubRandom (void)
 {
     int r = P_Random();
     return r - P_Random();
+}
+
+// [JN] Own random functions:
+int ID_Random (void)
+{
+    rndindex = (rndindex + 1) & 0xff;
+    return rndtable[rndindex];
+}
+
+int ID_SubRandom (void)
+{
+    int r = ID_Random();
+    return r - ID_Random();
+}
+
+int ID_RealRandom (void)
+{
+    return rand();
 }

@@ -349,6 +349,7 @@ typedef enum
     PCLASS_CLERIC,
     PCLASS_MAGE,
     PCLASS_PIG,
+    PCLASS_RANDOM,
     NUMCLASSES
 } pclass_t;
 
