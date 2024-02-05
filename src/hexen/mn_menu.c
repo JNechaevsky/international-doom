@@ -2704,13 +2704,11 @@ static void M_Draw_ID_Widgets (void)
                M_Item_Glow(8, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
 
     // Overlay shading level
-    /*
     sprintf(str,"%d", automap_shading);
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, !automap_overlay ? GLOW_DARKRED :
                                automap_shading ==  0 ? GLOW_RED :
                                automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
-    */
 }
 
 static void M_ID_Widget_Location (int choice)
@@ -2767,9 +2765,7 @@ static void M_ID_Automap_Overlay (int choice)
 
 static void M_ID_Automap_Shading (int choice)
 {
-    /*
     automap_shading = M_INT_Slider(automap_shading, 0, 12, choice, true);
-    */
 }
 
 

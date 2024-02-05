@@ -1031,7 +1031,7 @@ static void AM_drawBackground (void)
 static void AM_shadeBackground (void)
 {
     const int height = dp_screen_size > 10 ?
-                       SCREENHEIGHT : (SCREENHEIGHT - (42 * vid_resolution));
+                       SCREENHEIGHT : (SCREENHEIGHT - SBARHEIGHT);
 
         for (int y = 0; y < SCREENWIDTH * height ; y++)
         {
