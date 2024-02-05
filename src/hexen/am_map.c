@@ -2201,8 +2201,12 @@ static void DrawWorldTimer(void)
     seconds = worldTimer;
 
     // [JN] Shift world timer one or two lines down,
-    // if fps or demo timer widgets are active.
+    // if fps, local time or demo timer widgets are active.
     if (vid_showfps)
+    {
+        yy += 10;
+    }
+    if (msg_local_time)
     {
         yy += 10;
     }
