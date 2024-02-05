@@ -712,7 +712,7 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
         return
             color == GLOW_RED ||
             color == GLOW_DARKRED   ? cr[CR_RED_BRIGHT5]       :
-            color == GLOW_GREEN     ? cr[CR_GREEN_BRIGHT5]     :
+            color == GLOW_GREEN     ? cr[CR_GREEN_BRIGHT5_HX]  :
             color == GLOW_YELLOW    ? cr[CR_YELLOW_BRIGHT5]    :
             color == GLOW_ORANGE    ? cr[CR_ORANGE_HR_BRIGHT5] :
             color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY_BRIGHT5] :
@@ -752,11 +752,11 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
         if (color == GLOW_GREEN)
         {
             return
-                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
+                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5_HX] :
+                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4_HX] :
+                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3_HX] :
+                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2_HX] :
+                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1_HX] : cr[CR_GREEN_HX];
         }
         if (color == GLOW_YELLOW)
         {
@@ -870,7 +870,7 @@ static byte *DefSkillColor (const int skill)
     return
         skill == 0 ? cr[CR_OLIVE]     :
         skill == 1 ? cr[CR_DARKGREEN] :
-        skill == 2 ? cr[CR_GREEN]     :
+        skill == 2 ? cr[CR_GREEN_HX]  :
         skill == 3 ? cr[CR_YELLOW]    :
         skill == 4 ? cr[CR_RED]       :
                      NULL;
@@ -5690,11 +5690,11 @@ static byte *M_ColorizeBind (int CurrentItPosOn, int key)
         else
         {
             return
-                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
+                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5_HX] :
+                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4_HX] :
+                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3_HX] :
+                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2_HX] :
+                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1_HX] : cr[CR_GREEN_HX];
         }
     }
 }
@@ -5876,11 +5876,11 @@ static byte *M_ColorizeMouseBind (int CurrentItPosOn, int btn)
         else
         {
             return
-                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
+                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5_HX] :
+                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4_HX] :
+                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3_HX] :
+                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2_HX] :
+                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1_HX] : cr[CR_GREEN_HX];
         }
     }
 }

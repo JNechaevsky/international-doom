@@ -62,6 +62,13 @@ static byte cr_green_bright3[256];
 static byte cr_green_bright2[256];
 static byte cr_green_bright1[256];
 
+static byte cr_green_hx[256];
+static byte cr_green_bright5_hx[256];
+static byte cr_green_bright4_hx[256];
+static byte cr_green_bright3_hx[256];
+static byte cr_green_bright2_hx[256];
+static byte cr_green_bright1_hx[256];
+
 static byte cr_darkgreen[256];
 static byte cr_olive[256];
 static byte cr_blue2[256];
@@ -177,6 +184,13 @@ byte *cr[] =
     (byte *) &cr_green_bright3,
     (byte *) &cr_green_bright2,
     (byte *) &cr_green_bright1,
+
+    (byte *) &cr_green_hx,
+    (byte *) &cr_green_bright5_hx,
+    (byte *) &cr_green_bright4_hx,
+    (byte *) &cr_green_bright3_hx,
+    (byte *) &cr_green_bright2_hx,
+    (byte *) &cr_green_bright1_hx,
 
     (byte *) &cr_darkgreen,
     (byte *) &cr_olive,
@@ -571,6 +585,43 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
         {
             hsv.x = 0.3;
             hsv.z *= 1.1;
+        }
+        // [JN] Slightly different for Hexen...
+        else if (cr == CR_GREEN_HX)
+        {
+            hsv.x = 0.425;
+            hsv.y = 0.75;
+            hsv.z *= 0.8;
+        }
+        else if (cr == CR_GREEN_BRIGHT5_HX)
+        {
+            hsv.x = 0.425;
+            hsv.y = 0.75;
+            hsv.z *= 1.15;
+        }
+        else if (cr == CR_GREEN_BRIGHT4_HX)
+        {
+            hsv.x = 0.425;
+            hsv.y = 0.75;
+            hsv.z *= 1.1;
+        }
+        else if (cr == CR_GREEN_BRIGHT3_HX)
+        {
+            hsv.x = 0.425;
+            hsv.y = 0.75;
+            hsv.z *= 1.0;
+        }
+        else if (cr == CR_GREEN_BRIGHT2_HX)
+        {
+            hsv.x = 0.425;
+            hsv.y = 0.75;
+            hsv.z *= 0.95;
+        }
+        else if (cr == CR_GREEN_BRIGHT1_HX)
+        {
+            hsv.x = 0.425;
+            hsv.y = 0.75;
+            hsv.z *= 0.9;
         }
 
         else if (cr == CR_DARKGREEN)
