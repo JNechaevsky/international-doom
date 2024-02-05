@@ -27,6 +27,10 @@
 
 #define MAXBOB 0x100000         // 16 pixels of bob
 
+// [JN] Player's breathing imitation.
+#define BREATHING_STEP 32
+#define BREATHING_MAX  1408
+
 // Data
 
 boolean onground;
@@ -142,6 +146,35 @@ void P_CalcHeight(player_t * player)
     if (player->playerstate == PST_LIVE)
     {
         player->viewheight += player->deltaviewheight;
+
+        // [JN] Imitate player's breathing.
+        if (phys_breathing)
+        {
+            static fixed_t breathing_val;
+            static boolean breathing_dir;
+
+            if (breathing_dir)
+            {
+                // Inhale (camera up)
+                breathing_val += BREATHING_STEP;
+                if (breathing_val >= BREATHING_MAX)
+                {
+                    breathing_dir = false;
+                }
+            }
+            else
+            {
+                // Exhale (camera down)
+                breathing_val -= BREATHING_STEP;
+                if (breathing_val <= -BREATHING_MAX)
+                {
+                    breathing_dir = true;
+                }
+            }
+
+            player->viewheight += breathing_val;
+        }
+
         if (player->viewheight > VIEWHEIGHT)
         {
             player->viewheight = VIEWHEIGHT;

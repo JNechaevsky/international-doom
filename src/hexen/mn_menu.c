@@ -3004,11 +3004,9 @@ static void M_Draw_ID_Gameplay_2 (void)
     */
 
     // Imitate player's breathing
-    /*
     sprintf(str, phys_breathing ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     MN_DrTextACentered("GAMEPLAY", 40, cr[CR_YELLOW]);
 
@@ -3075,9 +3073,7 @@ static void M_ID_Torque (int choice)
 
 static void M_ID_Breathing (int choice)
 {
-    /*
     phys_breathing ^= 1;
-    */
 }
 
 static void M_ID_DefaulSkill (int choice)
