@@ -32,6 +32,7 @@
 
 #include "config.h"
 
+#include "doomkeys.h"
 #include "h2def.h"
 #include "ct_chat.h"
 #include "d_iwad.h"
@@ -53,6 +54,7 @@
 
 #include "icon.c"
 
+#include "id_vars.h"
 #include "id_func.h"
 
 // MACROS ------------------------------------------------------------------
@@ -370,7 +372,6 @@ void D_DoomMain(void)
     I_AtExit(D_HexenQuitMessage, false);
     startepisode = 1;
     autostart = false;
-    startskill = sk_medium;
     startmap = 1;
     gamemode = commercial;
 
@@ -395,6 +396,14 @@ void D_DoomMain(void)
     I_AtExit(I_ShutdownGraphics, true);
 
 #ifdef _WIN32
+    // [JN] Pressing PrintScreen on Windows 11 is opening Snipping Tool.
+    // Re-register PrintScreen key pressing for port needs to avoid this.
+    // Taken from DOOM Retro.
+    if (key_menu_screenshot == KEY_PRTSCR)
+    {
+        RegisterHotKey(NULL, 1, MOD_ALT, VK_SNAPSHOT);
+        RegisterHotKey(NULL, 2, 0, VK_SNAPSHOT);
+    }
 
     //!
     // @category obscure
@@ -429,6 +438,9 @@ void D_DoomMain(void)
     D_SetDefaultSavePath();
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
+
+    // [JN] Use choosen default skill level.
+    startskill = gp_default_skill;
 
     // Now that the savedir is loaded, make sure it exists
     CreateSavePath();

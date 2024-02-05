@@ -863,6 +863,26 @@ static const float M_FLOAT_Slider (float val, float min, float max, float step,
     return val;
 }
 
+static byte *DefSkillColor (const int skill)
+{
+    return
+        skill == 0 ? cr[CR_OLIVE]     :
+        skill == 1 ? cr[CR_DARKGREEN] :
+        skill == 2 ? cr[CR_GREEN]     :
+        skill == 3 ? cr[CR_YELLOW]    :
+        skill == 4 ? cr[CR_RED]       :
+                     NULL;
+}
+
+static char *const DefSkillName[5] = 
+{
+    "EASIEST" ,
+    "EASY"    ,
+    "NORMAL"  ,
+    "HARD"    ,
+    "HARDEST"
+};
+
 // -----------------------------------------------------------------------------
 // Main ID Menu
 // -----------------------------------------------------------------------------
@@ -3011,11 +3031,9 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextACentered("GAMEPLAY", 40, cr[CR_YELLOW]);
 
     // Default skill level
-    /*
     M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
     MN_DrTextA(str, M_ItemRightAlign(str), 50,
                DefSkillColor(gp_default_skill));
-    */
 
     // Flip levels horizontally
     /*
@@ -3078,10 +3096,8 @@ static void M_ID_Breathing (int choice)
 
 static void M_ID_DefaulSkill (int choice)
 {
-    /*
     gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice, false);
     SkillMenu.oldItPos = gp_default_skill;
-    */
 }
 
 static void M_ID_FlipLevels (int choice)
@@ -3165,6 +3181,9 @@ void MN_Init(void)
     MenuActive = false;
 //      messageson = true;              // Set by defaults in .CFG
     MauloBaseLump = W_GetNumForName("FBULA0");  // ("M_SKL00");
+
+    // [crispy] apply default difficulty
+    SkillMenu.oldItPos = gp_default_skill;
 
     // [JN] Apply default first page of Keybinds and Gameplay menus.
     Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS1;
