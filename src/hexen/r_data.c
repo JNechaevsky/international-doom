@@ -781,9 +781,24 @@ void R_InitTrueColormaps(char *current_colormap)
 
 	for (i = 0, j = 0; i < 256; i++)
 	{
-		r = gammatable[vid_gamma][playpal[3 * i + 0]];
-		g = gammatable[vid_gamma][playpal[3 * i + 1]];
-		b = gammatable[vid_gamma][playpal[3 * i + 2]];
+		r_channel = 
+			(byte) ((1 - a_hi) * playpal[3 * i + 0]  +
+					(0 + a_lo) * playpal[3 * i + 1]  +
+					(0 + a_lo) * playpal[3 * i + 2]) * vid_r_intensity;
+
+		g_channel = 
+			(byte) ((0 + a_lo) * playpal[3 * i + 0]  +
+					(1 - a_hi) * playpal[3 * i + 1]  +
+					(0 + a_lo) * playpal[3 * i + 2]) * vid_g_intensity;
+
+		b_channel = 
+			(byte) ((0 + a_lo) * playpal[3 * i + 0] +
+					(0 + a_lo) * playpal[3 * i + 1] +
+					(1 - a_hi) * playpal[3 * i + 2] * vid_b_intensity);
+
+		r = gammatable[vid_gamma][r_channel];
+		g = gammatable[vid_gamma][g_channel];
+		b = gammatable[vid_gamma][b_channel];
 
 		pal_color[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 	}
