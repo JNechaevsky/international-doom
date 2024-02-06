@@ -455,6 +455,7 @@ void R_DrawPlanes(void)
     int fracstep = FRACUNIT / vid_resolution;
     static int interpfactor; // [crispy]
     int heightmask; // [crispy]
+    int smoothDelta1 = 0, smoothDelta2 = 0; // [JN] Smooth sky scrolling.
 
     for (int i = 0 ; i < MAXVISPLANES ; i++)
     for (visplane_t *pl = visplanes[i] ; pl ; pl = pl->next /*, IDRender.numplanes++*/)
@@ -464,10 +465,22 @@ void R_DrawPlanes(void)
         {                       // Sky flat
             if (DoubleSky)
             {                   // Render 2 layers, sky 1 in front
-                offset = Sky1ColumnOffset >> 16;
                 skyTexture = texturetranslation[Sky1Texture];
-                offset2 = Sky2ColumnOffset >> 16;
                 skyTexture2 = texturetranslation[Sky2Texture];
+
+                if (vid_uncapped_fps)
+                {
+                    offset = 0;
+                    offset2 = 0;
+                    smoothDelta1 = Sky1ColumnOffset << 6;
+                    smoothDelta2 = Sky2ColumnOffset << 6;
+                }
+                else
+                {
+                    offset = Sky1ColumnOffset >> 16;
+                    offset2 = Sky2ColumnOffset >> 16;
+                }
+                
                 for (x = pl->minx; x <= pl->maxx; x++)
                 {
                     dc_yl = pl->top[x];
@@ -475,8 +488,10 @@ void R_DrawPlanes(void)
                     if ((unsigned) dc_yl <= dc_yh) // [crispy] 32-bit integer math
                     {
                         // [crispy] Optionally draw skies horizontally linear.
-                        const int angle = ((viewangle + (vis_linear_sky ? 
+                        const int angle = ((viewangle + smoothDelta1 + (vis_linear_sky ? 
                                         linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
+                        const int angle2 = ((viewangle + smoothDelta2 + (vis_linear_sky ? 
+                                         linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
 
                         count = dc_yh - dc_yl;
                         if (count < 0)
@@ -484,7 +499,7 @@ void R_DrawPlanes(void)
                             return;
                         }
                         source = R_GetColumn(skyTexture, angle + offset);
-                        source2 = R_GetColumn(skyTexture2, angle + offset2);
+                        source2 = R_GetColumn(skyTexture2, angle2 + offset2);
                         dest = ylookup[dc_yl] + columnofs[x];
                         frac = SKYTEXTUREMIDSHIFTED * FRACUNIT + (dc_yl - centery) * fracstep;
                         heightmask = SKYTEXTUREMIDSHIFTED - 1; // [crispy]
@@ -565,7 +580,15 @@ void R_DrawPlanes(void)
                 }
                 else
                 {               // Use sky 1
-                    offset = Sky1ColumnOffset >> 16;
+                    if (vid_uncapped_fps)
+                    {
+                        offset = 0;
+                        smoothDelta1 = Sky1ColumnOffset << 6;
+                    }
+                    else
+                    {
+                        offset = Sky1ColumnOffset >> 16;
+                    }
                     skyTexture = texturetranslation[Sky1Texture];
                 }
                 for (x = pl->minx; x <= pl->maxx; x++)
@@ -575,7 +598,7 @@ void R_DrawPlanes(void)
                     if ((unsigned) dc_yl <= dc_yh) // [crispy] 32-bit integer math
                     {
                         // [crispy] Optionally draw skies horizontally linear.
-                        const int angle = ((viewangle + (vis_linear_sky ? 
+                        const int angle = ((viewangle + smoothDelta1 + (vis_linear_sky ? 
                                         linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
 
                         count = dc_yh - dc_yl;
