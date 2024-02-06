@@ -45,6 +45,7 @@ add_library(hexen STATIC
             r_main.c
             r_plane.c
             r_segs.c
+            r_swirl.c           r_swirl.h
             r_things.c
             s_sound.c           s_sound.h
             sb_bar.c

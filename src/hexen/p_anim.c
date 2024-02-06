@@ -22,6 +22,7 @@
 #include "m_random.h"
 #include "i_system.h"
 #include "p_local.h"
+#include "r_swirl.h"
 #include "s_sound.h"
 
 // MACROS ------------------------------------------------------------------
@@ -86,6 +87,8 @@ static boolean LevelHasLightning;
 static int NextLightningFlash;
 static int LightningFlash;
 static int *LightningLightLevels;
+// [JN] Swirling surfaces (variable names same to flat names):
+static int x_001, x_005, x_009;
 
 // CODE --------------------------------------------------------------------
 
@@ -124,8 +127,19 @@ void P_AnimateSurfaces(void)
             }
             if (ad->type == ANIM_FLAT)
             {
+                // [JN] Add support for SMMU swirling flats.
+                if (vis_swirling_liquids
+                && (ad->index == x_001
+                ||  ad->index == x_005
+                ||  ad->index == x_009))
+                {
+                flattranslation[ad->index] = -1;
+                }
+                else
+                {
                 flattranslation[ad->index] =
                     FrameDefs[ad->currentFrameDef].index;
+                }
             }
             else
             {                   // Texture
@@ -527,4 +541,11 @@ void P_InitFTAnims(void)
         }
     }
     SC_Close();
+
+    // [JN] Initialize swirling surfaces.
+    R_InitDistortedFlats();
+    // [JN] Predefine flat names to avoid extra hitting of R_FlatNumForName.
+    x_001 = R_FlatNumForName("x_001");
+    x_005 = R_FlatNumForName("x_005");
+    x_009 = R_FlatNumForName("x_009");
 }

@@ -2849,11 +2849,9 @@ static void M_Draw_ID_Gameplay_1 (void)
                M_Item_Glow(2, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
 
     // Liquids animation
-    /*
     sprintf(str, vis_swirling_liquids ? "SWIRLING" : "ORIGINAL");
     MN_DrTextA(str, M_ItemRightAlign(str), 50,
                M_Item_Glow(3, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Sky drawing mode
     sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
@@ -2932,11 +2930,7 @@ static void M_ID_SmoothLighting (int choice)
 
 static void M_ID_SwirlingLiquids (int choice)
 {
-    /*
     vis_swirling_liquids ^= 1;
-    // [JN] Re-init animation sequences.
-    P_InitPicAnims();
-    */
 }
 
 static void M_ID_LinearSky (int choice)

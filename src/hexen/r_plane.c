@@ -22,6 +22,7 @@
 #include "i_system.h"
 #include "r_local.h"
 #include "p_spec.h"
+#include "r_swirl.h"
 
 #include "id_vars.h"
 
@@ -661,8 +662,10 @@ void R_DrawPlanes(void)
             const int stop = pl->maxx + 1;
 
         // Regular flat
-        tempSource = W_CacheLumpNum(firstflat +
-                                    flattranslation[pl->picnum], PU_STATIC);
+        // [JN] add support for SMMU swirling flats
+        tempSource = flattranslation[pl->picnum] == -1 ?
+                     R_DistortedFlat(pl->picnum) :
+                     W_CacheLumpNum(firstflat + flattranslation[pl->picnum], PU_STATIC);
 
         // [crispy] Use old value of interpfactor if uncapped and paused. This
         // ensures that scrolling stops smoothly when pausing.
@@ -759,6 +762,7 @@ void R_DrawPlanes(void)
             R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
                         pl->bottom[x]);
 
+        if (flattranslation[pl->picnum] != -1)
         W_ReleaseLumpNum(firstflat + flattranslation[pl->picnum]);
         }
     }
