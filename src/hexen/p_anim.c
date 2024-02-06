@@ -71,12 +71,6 @@ static void P_LightningFlash(void);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
-// [JN] Smooth sky scrolling.
-extern fixed_t Sky1SmoothScrollFactor;
-extern fixed_t Sky2SmoothScrollFactor;
-extern fixed_t Sky1SmoothScrollDelta;
-extern fixed_t Sky2SmoothScrollDelta;
-
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
 fixed_t Sky1ScrollDelta;
@@ -176,10 +170,6 @@ void P_AnimateSurfaces(void)
     // Update sky column offsets
     Sky1ColumnOffset += Sky1ScrollDelta;
     Sky2ColumnOffset += Sky2ScrollDelta;
-
-    // [JN] Update smoothed sky column offsets.
-    Sky1SmoothScrollDelta += Sky1ScrollDelta > 0 ? (FRACUNIT*Sky1SmoothScrollFactor) + 16 : 0;
-    Sky2SmoothScrollDelta += Sky2ScrollDelta > 0 ? (FRACUNIT*Sky2SmoothScrollFactor) + 16 : 0;
 
     if (LevelHasLightning)
     {
