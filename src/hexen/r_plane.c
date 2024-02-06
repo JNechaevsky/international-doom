@@ -50,6 +50,12 @@ fixed_t skyiscale;
 boolean DoubleSky;
 planefunction_t floorfunc, ceilingfunc;
 
+// [JN] Smooth sky scrolling.
+fixed_t Sky1SmoothScrollFactor;
+fixed_t Sky2SmoothScrollFactor;
+fixed_t Sky1SmoothScrollDelta;
+fixed_t Sky2SmoothScrollDelta;
+
 // -----------------------------------------------------------------------------
 // MAXVISPLANES is no longer a limit on the number of visplanes,
 // but a limit on the number of hash slots; larger numbers mean
@@ -125,6 +131,10 @@ void R_InitSky(int map)
     Sky1ColumnOffset = 0;
     Sky2ColumnOffset = 0;
     DoubleSky = P_GetMapDoubleSky(map);
+
+    // [JN] Make smooth scroll factor equal to MAPINFO data, with division by 4.
+    Sky1SmoothScrollFactor = P_GetMapSky1ScrollDelta(map) / 1024;
+    Sky2SmoothScrollFactor = P_GetMapSky2ScrollDelta(map) / 1024;
 }
 
 //==========================================================================
@@ -451,6 +461,8 @@ void R_DrawPlanes(void)
     int skyTexture;
     int offset2;
     int skyTexture2;
+    int smoothDelta1; // [JN]
+    int smoothDelta2; // [JN]
     int frac;
     int fracstep = FRACUNIT / vid_resolution;
     static int interpfactor; // [crispy]
@@ -464,10 +476,24 @@ void R_DrawPlanes(void)
         {                       // Sky flat
             if (DoubleSky)
             {                   // Render 2 layers, sky 1 in front
-                offset = Sky1ColumnOffset >> 16;
                 skyTexture = texturetranslation[Sky1Texture];
-                offset2 = Sky2ColumnOffset >> 16;
                 skyTexture2 = texturetranslation[Sky2Texture];
+
+                if (vid_uncapped_fps)
+                {
+                    offset = 0;
+                    offset2 = 0;
+                    smoothDelta1 = Sky1SmoothScrollDelta;
+                    smoothDelta2 = Sky2SmoothScrollDelta;
+                }
+                else
+                {
+                    offset = Sky1ColumnOffset >> 16;
+                    offset2 = Sky2ColumnOffset >> 16;
+                    smoothDelta1 = 0;
+                    smoothDelta2 = 0;
+                }
+                
                 for (x = pl->minx; x <= pl->maxx; x++)
                 {
                     dc_yl = pl->top[x];
@@ -475,8 +501,10 @@ void R_DrawPlanes(void)
                     if ((unsigned) dc_yl <= dc_yh) // [crispy] 32-bit integer math
                     {
                         // [crispy] Optionally draw skies horizontally linear.
-                        const int angle = ((viewangle + (vis_linear_sky ? 
+                        const int angle = ((viewangle + smoothDelta1 + (vis_linear_sky ? 
                                         linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
+                        const int angle2 = ((viewangle + smoothDelta2 + (vis_linear_sky ? 
+                                         linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
 
                         count = dc_yh - dc_yl;
                         if (count < 0)
@@ -484,7 +512,7 @@ void R_DrawPlanes(void)
                             return;
                         }
                         source = R_GetColumn(skyTexture, angle + offset);
-                        source2 = R_GetColumn(skyTexture2, angle + offset2);
+                        source2 = R_GetColumn(skyTexture2, angle2 + offset2);
                         dest = ylookup[dc_yl] + columnofs[x];
                         frac = SKYTEXTUREMIDSHIFTED * FRACUNIT + (dc_yl - centery) * fracstep;
                         heightmask = SKYTEXTUREMIDSHIFTED - 1; // [crispy]
@@ -565,7 +593,16 @@ void R_DrawPlanes(void)
                 }
                 else
                 {               // Use sky 1
-                    offset = Sky1ColumnOffset >> 16;
+                    if (vid_uncapped_fps)
+                    {
+                        offset = 0;
+                        smoothDelta1 = Sky1SmoothScrollDelta;
+                    }
+                    else
+                    {
+                        offset = Sky1ColumnOffset >> 16;
+                        smoothDelta1 = 0;
+                    }
                     skyTexture = texturetranslation[Sky1Texture];
                 }
                 for (x = pl->minx; x <= pl->maxx; x++)
@@ -575,7 +612,7 @@ void R_DrawPlanes(void)
                     if ((unsigned) dc_yl <= dc_yh) // [crispy] 32-bit integer math
                     {
                         // [crispy] Optionally draw skies horizontally linear.
-                        const int angle = ((viewangle + (vis_linear_sky ? 
+                        const int angle = ((viewangle + Sky1SmoothScrollDelta + (vis_linear_sky ? 
                                         linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
 
                         count = dc_yh - dc_yl;
