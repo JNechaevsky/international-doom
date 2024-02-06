@@ -369,6 +369,7 @@ const byte *R_BrightmapForSprite (const int state)
             case S_SERPTORCH3:
             {
                 return serptorch;
+                break;
             }
             // Iron Lich (idle and attack states)
             case S_HEAD_LOOK:
