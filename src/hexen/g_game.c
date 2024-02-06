@@ -1361,7 +1361,18 @@ void G_Ticker(void)
             P_Ticker();
             SB_Ticker();
             AM_Ticker();
-            CT_Ticker();
+            // [JN] Not really needed in single player game.
+            if (netgame)
+            {
+                CT_Ticker();
+            }
+            // [JN] Target's health widget.
+            if (widget_health || (xhair_draw && xhair_color > 1))
+            {
+                player_t *player = &players[displayplayer];
+                // Do an overflow-safe trace to gather target's health.
+                P_AimLineAttack(player->mo, player->mo->angle, MISSILERANGE, true);
+            }
             break;
         case GS_INTERMISSION:
             IN_Ticker();

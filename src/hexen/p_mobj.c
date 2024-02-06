@@ -2256,15 +2256,15 @@ mobj_t *P_SpawnPlayerMissile(mobj_t * source, mobjtype_t type)
 
     // Try to find a target
     an = source->angle;
-    slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+    slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, false);
     if (!linetarget)
     {
         an += 1 << 26;
-        slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+        slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, false);
         if (!linetarget)
         {
             an -= 2 << 26;
-            slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+            slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, false);
         }
         if (!linetarget)
         {
@@ -2389,15 +2389,15 @@ mobj_t *P_SPMAngle(mobj_t * source, mobjtype_t type, angle_t angle)
 // see which target is to be aimed at
 //
     an = angle;
-    slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+    slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, false);
     if (!linetarget)
     {
         an += 1 << 26;
-        slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+        slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, false);
         if (!linetarget)
         {
             an -= 2 << 26;
-            slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+            slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, false);
         }
         if (!linetarget)
         {
@@ -2440,15 +2440,15 @@ mobj_t *P_SPMAngleXYZ(mobj_t * source, fixed_t x, fixed_t y,
 // see which target is to be aimed at
 //
     an = angle;
-    slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+    slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, false);
     if (!linetarget)
     {
         an += 1 << 26;
-        slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+        slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, false);
         if (!linetarget)
         {
             an -= 2 << 26;
-            slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT);
+            slope = P_AimLineAttack(source, an, 16 * 64 * FRACUNIT, false);
         }
         if (!linetarget)
         {

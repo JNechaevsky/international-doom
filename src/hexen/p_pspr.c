@@ -697,7 +697,7 @@ void A_SnoutAttack(mobj_t *mobj, player_t *player, pspdef_t *psp)
 
     damage = 3 + (P_Random() & 3);
     angle = player->mo->angle;
-    slope = P_AimLineAttack(player->mo, angle, MELEERANGE);
+    slope = P_AimLineAttack(player->mo, angle, MELEERANGE, false);
     PuffType = MT_SNOUTPUFF;
     PuffSpawned = NULL;
     P_LineAttack(player->mo, angle, MELEERANGE, slope, damage);
@@ -737,7 +737,7 @@ void A_FHammerAttack(mobj_t *mobj, player_t *player, pspdef_t *psp)
     for (i = 0; i < 16; i++)
     {
         angle = pmo->angle + i * (ANG45 / 32);
-        slope = P_AimLineAttack(pmo, angle, HAMMER_RANGE);
+        slope = P_AimLineAttack(pmo, angle, HAMMER_RANGE, false);
         if (linetarget)
         {
             P_LineAttack(pmo, angle, HAMMER_RANGE, slope, damage);
@@ -750,7 +750,7 @@ void A_FHammerAttack(mobj_t *mobj, player_t *player, pspdef_t *psp)
             goto hammerdone;
         }
         angle = pmo->angle - i * (ANG45 / 32);
-        slope = P_AimLineAttack(pmo, angle, HAMMER_RANGE);
+        slope = P_AimLineAttack(pmo, angle, HAMMER_RANGE, false);
         if (linetarget)
         {
             P_LineAttack(pmo, angle, HAMMER_RANGE, slope, damage);
@@ -766,7 +766,7 @@ void A_FHammerAttack(mobj_t *mobj, player_t *player, pspdef_t *psp)
     // didn't find any targets in meleerange, so set to throw out a hammer
     PuffSpawned = NULL;
     angle = pmo->angle;
-    slope = P_AimLineAttack(pmo, angle, HAMMER_RANGE);
+    slope = P_AimLineAttack(pmo, angle, HAMMER_RANGE, false);
     P_LineAttack(pmo, angle, HAMMER_RANGE, slope, damage);
     if (PuffSpawned)
     {
@@ -1329,7 +1329,7 @@ void A_FPunchAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     for (i = 0; i < 16; i++)
     {
         angle = pmo->angle + i * (ANG45 / 16);
-        slope = P_AimLineAttack(pmo, angle, 2 * MELEERANGE);
+        slope = P_AimLineAttack(pmo, angle, 2 * MELEERANGE, false);
         if (linetarget)
         {
             player->mo->special1.i++;
@@ -1348,7 +1348,7 @@ void A_FPunchAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
             goto punchdone;
         }
         angle = pmo->angle - i * (ANG45 / 16);
-        slope = P_AimLineAttack(pmo, angle, 2 * MELEERANGE);
+        slope = P_AimLineAttack(pmo, angle, 2 * MELEERANGE, false);
         if (linetarget)
         {
             pmo->special1.i++;
@@ -1371,7 +1371,7 @@ void A_FPunchAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     pmo->special1.i = 0;
 
     angle = pmo->angle;
-    slope = P_AimLineAttack(pmo, angle, MELEERANGE);
+    slope = P_AimLineAttack(pmo, angle, MELEERANGE, false);
     P_LineAttack(pmo, angle, MELEERANGE, slope, damage);
 
   punchdone:
@@ -1421,7 +1421,7 @@ void A_FAxeAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     for (i = 0; i < 16; i++)
     {
         angle = pmo->angle + i * (ANG45 / 16);
-        slope = P_AimLineAttack(pmo, angle, AXERANGE);
+        slope = P_AimLineAttack(pmo, angle, AXERANGE, false);
         if (linetarget)
         {
             P_LineAttack(pmo, angle, AXERANGE, slope, damage);
@@ -1434,7 +1434,7 @@ void A_FAxeAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
             goto axedone;
         }
         angle = pmo->angle - i * (ANG45 / 16);
-        slope = P_AimLineAttack(pmo, angle, AXERANGE);
+        slope = P_AimLineAttack(pmo, angle, AXERANGE, false);
         if (linetarget)
         {
             P_LineAttack(pmo, angle, AXERANGE, slope, damage);
@@ -1451,7 +1451,7 @@ void A_FAxeAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     pmo->special1.m = NULL;
 
     angle = pmo->angle;
-    slope = P_AimLineAttack(pmo, angle, MELEERANGE);
+    slope = P_AimLineAttack(pmo, angle, MELEERANGE, false);
     P_LineAttack(pmo, angle, MELEERANGE, slope, damage);
 
   axedone:
@@ -1485,7 +1485,7 @@ void A_CMaceAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     for (i = 0; i < 16; i++)
     {
         angle = player->mo->angle + i * (ANG45 / 16);
-        slope = P_AimLineAttack(player->mo, angle, 2 * MELEERANGE);
+        slope = P_AimLineAttack(player->mo, angle, 2 * MELEERANGE, false);
         if (linetarget)
         {
             P_LineAttack(player->mo, angle, 2 * MELEERANGE, slope, damage);
@@ -1495,7 +1495,7 @@ void A_CMaceAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
             goto macedone;
         }
         angle = player->mo->angle - i * (ANG45 / 16);
-        slope = P_AimLineAttack(player->mo, angle, 2 * MELEERANGE);
+        slope = P_AimLineAttack(player->mo, angle, 2 * MELEERANGE, false);
         if (linetarget)
         {
             P_LineAttack(player->mo, angle, 2 * MELEERANGE, slope, damage);
@@ -1509,7 +1509,7 @@ void A_CMaceAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     player->mo->special1.m = NULL;
 
     angle = player->mo->angle;
-    slope = P_AimLineAttack(player->mo, angle, MELEERANGE);
+    slope = P_AimLineAttack(player->mo, angle, MELEERANGE, false);
     P_LineAttack(player->mo, angle, MELEERANGE, slope, damage);
   macedone:
     return;
@@ -1536,7 +1536,7 @@ void A_CStaffCheck(mobj_t *actor, player_t *player, pspdef_t *psp)
     for (i = 0; i < 3; i++)
     {
         angle = pmo->angle + i * (ANG45 / 16);
-        slope = P_AimLineAttack(pmo, angle, 1.5 * MELEERANGE);
+        slope = P_AimLineAttack(pmo, angle, 1.5 * MELEERANGE, false);
         if (linetarget)
         {
             P_LineAttack(pmo, angle, 1.5 * MELEERANGE, slope, damage);
@@ -1555,7 +1555,7 @@ void A_CStaffCheck(mobj_t *actor, player_t *player, pspdef_t *psp)
             break;
         }
         angle = pmo->angle - i * (ANG45 / 16);
-        slope = P_AimLineAttack(player->mo, angle, 1.5 * MELEERANGE);
+        slope = P_AimLineAttack(player->mo, angle, 1.5 * MELEERANGE, false);
         if (linetarget)
         {
             P_LineAttack(pmo, angle, 1.5 * MELEERANGE, slope, damage);
@@ -2288,7 +2288,7 @@ void A_FireConePL1(mobj_t *actor, player_t *player, pspdef_t *psp)
     for (i = 0; i < 16; i++)
     {
         angle = pmo->angle + i * (ANG45 / 16);
-        P_AimLineAttack(pmo, angle, MELEERANGE);
+        P_AimLineAttack(pmo, angle, MELEERANGE, false);
         if (linetarget)
         {
             pmo->flags2 |= MF2_ICEDAMAGE;

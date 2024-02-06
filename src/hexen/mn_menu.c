@@ -2868,7 +2868,6 @@ static void M_Draw_ID_Gameplay_1 (void)
     MN_DrTextACentered("CROSSHAIR", 80, cr[CR_YELLOW]);
 
     // Crosshair shape
-    /*
     sprintf(str, xhair_draw == 1 ? "CROSS 1" :
                  xhair_draw == 2 ? "CROSS 2" :
                  xhair_draw == 3 ? "X" :
@@ -2878,17 +2877,14 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_draw == 7 ? "DOT" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Crosshair indication
-    /*
     sprintf(str, xhair_color == 1 ? "HEALTH" :
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
-                 xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
+                 xhair_color == 3 ? "TGT HIGHLIGHT+HEALTH" : "STATIC");
     MN_DrTextA(str, M_ItemRightAlign(str), 100,
                M_Item_Glow(8, !xhair_draw ? GLOW_DARKRED :
                                xhair_color ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     MN_DrTextACentered("STATUS BAR", 110, cr[CR_YELLOW]);
 
@@ -2947,16 +2943,12 @@ static void M_ID_FlipCorpses (int choice)
 
 static void M_ID_Crosshair (int choice)
 {
-    /*
     xhair_draw = M_INT_Slider(xhair_draw, 0, 7, choice, false);
-    */
 }
 
 static void M_ID_CrosshairColor (int choice)
 {
-    /*
     xhair_color = M_INT_Slider(xhair_color, 0, 3, choice, false);
-    */
 }
 
 static void M_ID_ColoredSBar (int choice)

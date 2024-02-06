@@ -989,6 +989,13 @@ static void DrawAndBlit(void)
             {
                 AM_Drawer();
             }
+
+            // [JN] Draw crosshair.
+            if (xhair_draw && !automapactive)
+            {
+                ID_DrawCrosshair();
+            }
+
             CT_Drawer();
             SB_Drawer();
             break;

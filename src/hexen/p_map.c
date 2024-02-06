@@ -1565,6 +1565,9 @@ mobj_t *PuffSpawned;
 mobj_t *linetarget;             // who got hit (or NULL)
 mobj_t *shootthing;
 fixed_t shootz;                 // height if not aiming up or down
+// [JN] CRL - if true, this intercept will not cause overflow.
+// Needed for P_AimLineAttack calls to gather target's health.
+static boolean safe_intercept = false;
                                                                         // ???: use slope for monsters?
 int la_damage;
 fixed_t attackrange;
@@ -1630,8 +1633,16 @@ boolean PTR_AimTraverse(intercept_t * in)
     if (th == shootthing)
         return true;            // can't shoot self
     if (!(th->flags & MF_SHOOTABLE))
-    {                           // corpse or something
-        return true;
+    {
+        // [JN] Stop showing target's health, if target is dead.
+        if (safe_intercept && th->health <= 0
+        && (th->state == &states[th->info->deathstate]
+        ||  th->state == &states[th->info->xdeathstate]))
+        {
+            //player->targetsheathTics = 0;
+            return false;
+        }
+        return true;            // corpse or something
     }
     if (th->player && netgame && !deathmatch)
     {                           // don't aim at fellow co-op players
@@ -1807,9 +1818,12 @@ boolean PTR_ShootTraverse(intercept_t * in)
 =================
 */
 
-fixed_t P_AimLineAttack(mobj_t * t1, angle_t angle, fixed_t distance)
+fixed_t P_AimLineAttack(mobj_t * t1, angle_t angle, fixed_t distance, boolean safe)
 {
     fixed_t x2, y2;
+
+    // [JN] CRL - will this trace be safe for line/thing intercepts overflow?
+    safe_intercept = safe ? true : false;
 
     angle >>= ANGLETOFINESHIFT;
     shootthing = t1;
