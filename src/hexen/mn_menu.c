@@ -1775,7 +1775,7 @@ static MenuItem_t ID_Menu_Keybinds_2[] = {
     { ITT_EMPTY, NULL,              NULL,              0, MENU_NONE },
     { ITT_EFUNC, "FLY UP",          M_Bind_FlyUp,      0, MENU_NONE },
     { ITT_EFUNC, "FLY DOWN",        M_Bind_FlyDown,    0, MENU_NONE },
-    { ITT_EFUNC, "FLY CENTER",      M_Bind_FlyCenter,  0, MENU_NONE },
+    { ITT_EFUNC, "STOP FLYING",     M_Bind_FlyCenter,  0, MENU_NONE },
     { ITT_EMPTY, NULL,              NULL,              0, MENU_NONE },
     { ITT_EFUNC, "INVENTORY LEFT",  M_Bind_InvLeft,    0, MENU_NONE },
     { ITT_EFUNC, "INVENTORY RIGHT", M_Bind_InvRight,   0, MENU_NONE },
