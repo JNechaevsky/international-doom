@@ -479,8 +479,6 @@ void R_DrawPlanes(void)
                 {
                     offset = Sky1ColumnOffset >> 16;
                     offset2 = Sky2ColumnOffset >> 16;
-                    smoothDelta1 = 0;
-                    smoothDelta2 = 0;
                 }
                 
                 for (x = pl->minx; x <= pl->maxx; x++)
@@ -590,7 +588,6 @@ void R_DrawPlanes(void)
                     else
                     {
                         offset = Sky1ColumnOffset >> 16;
-                        smoothDelta1 = 0;
                     }
                     skyTexture = texturetranslation[Sky1Texture];
                 }
