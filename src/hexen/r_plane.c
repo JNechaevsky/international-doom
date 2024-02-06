@@ -472,8 +472,8 @@ void R_DrawPlanes(void)
                 {
                     offset = 0;
                     offset2 = 0;
-                    smoothDelta1 = Sky1ColumnOffset << 6; // Sky1SmoothScrollDelta;
-                    smoothDelta2 = Sky2ColumnOffset << 6; // Sky2SmoothScrollDelta;
+                    smoothDelta1 = Sky1ColumnOffset << 6;
+                    smoothDelta2 = Sky2ColumnOffset << 6;
                 }
                 else
                 {

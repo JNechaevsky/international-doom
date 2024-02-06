@@ -71,6 +71,7 @@ static void P_LightningFlash(void);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
+
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
 fixed_t Sky1ScrollDelta;
