@@ -435,6 +435,8 @@ void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2, unsig
 //==========================================================================
 
 #define SKYTEXTUREMIDSHIFTED 200
+#define FLATSCROLL(X) \
+    ((interpfactor << (X)) - (((63 - ((leveltime >> 1) & 63)) << (X) & 63) * FRACUNIT))
 
 void R_DrawPlanes(void)
 {
@@ -449,7 +451,6 @@ void R_DrawPlanes(void)
     int skyTexture;
     int offset2;
     int skyTexture2;
-    int scrollOffset;
     int frac;
     int fracstep = FRACUNIT / vid_resolution;
     static int interpfactor; // [crispy]
@@ -639,11 +640,10 @@ void R_DrawPlanes(void)
         // Regular flat
         tempSource = W_CacheLumpNum(firstflat +
                                     flattranslation[pl->picnum], PU_STATIC);
-        scrollOffset = leveltime >> 1 & 63;
 
         // [crispy] Use old value of interpfactor if uncapped and paused. This
         // ensures that scrolling stops smoothly when pausing.
-        if (vid_uncapped_fps && realleveltime > oldleveltime)
+        if (vid_uncapped_fps && realleveltime > oldleveltime && !crl_freeze)
         {
             // [crispy] Scrolling normally advances every *other* gametic, so
             // interpolation needs to span two tics
@@ -661,82 +661,63 @@ void R_DrawPlanes(void)
             interpfactor = 0;
         }
 
+        //[crispy] use smoothscrolloffsets to unconditonally animate all scrolling floors
         switch (pl->special)
         {                       // Handle scrolling flats
             case 201:
             case 202:
             case 203:          // Scroll_North_xxx
                 xsmoothscrolloffset = 0;
-                ysmoothscrolloffset = interpfactor << (pl->special - 201);
-                ds_source = tempSource + ((scrollOffset
-                                           << (pl->special - 201) & 63) << 6);
+                ysmoothscrolloffset = FLATSCROLL(pl->special - 201);
                 break;
             case 204:
             case 205:
             case 206:          // Scroll_East_xxx
-                xsmoothscrolloffset = -(interpfactor << (pl->special - 204));
+                xsmoothscrolloffset = -FLATSCROLL(pl->special - 204);
                 ysmoothscrolloffset = 0;
-                ds_source = tempSource + ((63 - scrollOffset)
-                                          << (pl->special - 204) & 63);
                 break;
             case 207:
             case 208:
             case 209:          // Scroll_South_xxx
                 xsmoothscrolloffset = 0;
-                ysmoothscrolloffset = -(interpfactor << (pl->special - 207));
-                ds_source = tempSource + (((63 - scrollOffset)
-                                           << (pl->special - 207) & 63) << 6);
+                ysmoothscrolloffset = -FLATSCROLL(pl->special - 207);
                 break;
             case 210:
             case 211:
             case 212:          // Scroll_West_xxx
-                xsmoothscrolloffset = interpfactor << (pl->special - 210);
+                xsmoothscrolloffset = FLATSCROLL(pl->special - 210);
                 ysmoothscrolloffset = 0;
-                ds_source = tempSource + (scrollOffset
-                                          << (pl->special - 210) & 63);
                 break;
             case 213:
             case 214:
             case 215:          // Scroll_NorthWest_xxx
-                xsmoothscrolloffset = interpfactor << (pl->special - 213);
-                ysmoothscrolloffset = interpfactor << (pl->special - 213);
-                ds_source = tempSource + (scrollOffset
-                                          << (pl->special - 213) & 63) +
-                    ((scrollOffset << (pl->special - 213) & 63) << 6);
+                xsmoothscrolloffset = FLATSCROLL(pl->special - 213);
+                ysmoothscrolloffset = FLATSCROLL(pl->special - 213);
                 break;
             case 216:
             case 217:
             case 218:          // Scroll_NorthEast_xxx
-                xsmoothscrolloffset = -(interpfactor << (pl->special - 216));
-                ysmoothscrolloffset = interpfactor << (pl->special - 216);
-                ds_source = tempSource + ((63 - scrollOffset)
-                                          << (pl->special - 216) & 63) +
-                    ((scrollOffset << (pl->special - 216) & 63) << 6);
+                xsmoothscrolloffset = -FLATSCROLL(pl->special - 216);
+                ysmoothscrolloffset = FLATSCROLL(pl->special - 216);
                 break;
             case 219:
             case 220:
             case 221:          // Scroll_SouthEast_xxx
-                xsmoothscrolloffset = -(interpfactor << (pl->special - 219));
-                ysmoothscrolloffset = -(interpfactor << (pl->special - 219));
-                ds_source = tempSource + ((63 - scrollOffset)
-                                          << (pl->special - 219) & 63) +
-                    (((63 - scrollOffset) << (pl->special - 219) & 63) << 6);
+                xsmoothscrolloffset = -FLATSCROLL(pl->special - 219);
+                ysmoothscrolloffset = -FLATSCROLL(pl->special - 219);
                 break;
             case 222:
             case 223:
             case 224:          // Scroll_SouthWest_xxx
-                xsmoothscrolloffset = interpfactor << (pl->special - 222);
-                ysmoothscrolloffset = -(interpfactor << (pl->special - 222));
-                ds_source = tempSource + (scrollOffset
-                                          << (pl->special - 222) & 63) +
-                    (((63 - scrollOffset) << (pl->special - 222) & 63) << 6);
+                xsmoothscrolloffset = FLATSCROLL(pl->special - 222);
+                ysmoothscrolloffset = -FLATSCROLL(pl->special - 222);
                 break;
             default:
                 xsmoothscrolloffset = 0;
                 ysmoothscrolloffset = 0;
-                ds_source = tempSource;
                 break;
         }
+        ds_source = tempSource;
         planeheight = abs(pl->height - viewz);
         light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
         if (light >= LIGHTLEVELS)

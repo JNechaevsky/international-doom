@@ -192,7 +192,7 @@ void R_InterpolateTextureOffsets(void)
     side_t* side;
     int i;
 
-    if (!(vid_uncapped_fps && leveltime > oldleveltime))
+    if (!(vid_uncapped_fps && realleveltime > oldleveltime))
     {
         return;
     }
