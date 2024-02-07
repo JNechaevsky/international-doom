@@ -2667,19 +2667,15 @@ static void M_Draw_ID_Widgets (void)
     MN_DrTextACentered("WIDGETS", 10, cr[CR_YELLOW]);
 
     // Widgets location
-    /*
     sprintf(str, widget_location ? "TOP" : "BOTTOM");
     MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, GLOW_GREEN));
-    */
 
     // Total kills
-    /*
     sprintf(str, widget_kis == 1 ? "ALWAYS"  :
                  widget_kis == 2 ? "AUTOMAP" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Level name
     /*
@@ -2735,16 +2731,12 @@ static void M_Draw_ID_Widgets (void)
 
 static void M_ID_Widget_Location (int choice)
 {
-    /*
     widget_location ^= 1;
-    */
 }
 
 static void M_ID_Widget_Kills (int choice)
 {
-    /*
-    ??? = M_INT_Slider(???, 0, 2, choice, false);
-    */
+    widget_kis = M_INT_Slider(widget_kis, 0, 2, choice, false);
 }
 
 static void M_ID_Widget_LevelName (int choice)

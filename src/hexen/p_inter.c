@@ -1291,6 +1291,11 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
     }
     if (source && source->player)
     {                           // Check for frag changes
+        // [JN] Count killed monsters for "Total kills" widget.
+        if (target->flags & MF_COUNTKILL)
+        {
+            source->player->killcount++;
+        }
         if (target->player)
         {
             if (target == source)
@@ -1312,6 +1317,11 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
                 }
             }
         }
+    }
+    // [JN] Count killed monsters for "Total kills" widget.
+    else if (!netgame && (target->flags & MF_COUNTKILL))
+    {
+        players[0].killcount++;
     }
     if (target->player)
     {                           // Player death

@@ -94,75 +94,22 @@ static byte *ID_WidgetColor (const int i)
 
 void ID_LeftWidgets (void)
 {
-    /*
     //
     // Located on the top
     //
     if (widget_location == 1)
     {
-        // K/I/S stats
+        // Total kills
         if (widget_kis == 1
         || (widget_kis == 2 && automapactive))
         {
-            if (!deathmatch)
-            {
                 char str1[16];  // kills
-                char str2[16];  // items
-                char str3[16];  // secret
 
-                // Kills:
                 MN_DrTextA("K:", 0 - WIDESCREENDELTA, 10, cr[CR_GRAY]);
-                sprintf(str1, "%d/%d", IDWidget.kills, IDWidget.totalkills);
-                MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, ID_WidgetColor(widget_kills));
-
-                // Items:
-                MN_DrTextA("I:", 0 - WIDESCREENDELTA, 20, cr[CR_GRAY]);
-                sprintf(str2, "%d/%d", IDWidget.items, IDWidget.totalitems);
-                MN_DrTextA(str2, 0 - WIDESCREENDELTA + 16, 20, ID_WidgetColor(widget_items));
-
-                // Secret:
-                MN_DrTextA("S:", 0 - WIDESCREENDELTA, 30, cr[CR_GRAY]);
-                sprintf(str3, "%d/%d", IDWidget.secrets, IDWidget.totalsecrets);
-                MN_DrTextA(str3, 0 - WIDESCREENDELTA + 16, 30, ID_WidgetColor(widget_secret));
-            }
-            else
-            {
-                char str1[16] = {0};  // Green
-                char str2[16] = {0};  // Yellow
-                char str3[16] = {0};  // Red
-                char str4[16] = {0};  // Blue
-
-                // Green
-                if (playeringame[0])
-                {
-                    MN_DrTextA("G:", 0 - WIDESCREENDELTA, 10, cr[CR_GREEN]);
-                    sprintf(str1, "%d", IDWidget.frags_g);
-                    MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, cr[CR_GREEN]);
-                }
-                // Yellow
-                if (playeringame[1])
-                {
-                    MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 20, cr[CR_YELLOW]);
-                    sprintf(str2, "%d", IDWidget.frags_y);
-                    MN_DrTextA(str2, 0 - WIDESCREENDELTA + 16, 20, cr[CR_YELLOW]);
-                }
-                // Red
-                if (playeringame[2])
-                {
-                    MN_DrTextA("R:", 0 - WIDESCREENDELTA, 30, cr[CR_RED]);
-                    sprintf(str3, "%d", IDWidget.frags_r);
-                    MN_DrTextA(str3, 0 - WIDESCREENDELTA + 16, 30, cr[CR_RED]);
-                }
-                // Blue
-                if (playeringame[3])
-                {
-                    MN_DrTextA("B:", 0 - WIDESCREENDELTA, 40, cr[CR_BLUE2]);
-                    sprintf(str4, "%d", IDWidget.frags_b);
-                    MN_DrTextA(str4, 0 - WIDESCREENDELTA + 16, 40, cr[CR_BLUE2]);
-                }
-            }
+                sprintf(str1, "%d", IDWidget.kills);
+                MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, cr[CR_GREEN_HX]);
         }
-
+/*
         // Level / DeathMatch timer. Time gathered in G_Ticker.
         if (widget_time == 1
         || (widget_time == 2 && automapactive))
@@ -225,6 +172,7 @@ void ID_LeftWidgets (void)
             M_snprintf(vis, 32, "%d", IDRender.numplanes);
             MN_DrTextA(vis, 32 - WIDESCREENDELTA, 140, cr[CR_GREEN]);
         }
+*/
     }
     //
     // Located at the bottom
@@ -243,7 +191,7 @@ void ID_LeftWidgets (void)
         {
             yy += 13;
         }
-
+            /*
         // Render counters
         if (widget_render)
         {
@@ -292,131 +240,23 @@ void ID_LeftWidgets (void)
             MN_DrTextA(str, 32 - WIDESCREENDELTA, 96, cr[CR_GREEN]);
         }
 
+*/
+
         if (automapactive)
         {
             yy -= 10;
         }
 
-        // K/I/S stats
+        // Total kills
         if (widget_kis == 1
         || (widget_kis == 2 && automapactive))
         {
-            if (!deathmatch)
-            {
-                char str1[8], str2[16];  // kills
-                char str3[8], str4[16];  // items
-                char str5[8], str6[16];  // secret
-        
-                // Kills:
-                sprintf(str1, "K ");
-                MN_DrTextA(str1, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
-                sprintf(str2, "%d/%d ", IDWidget.kills, IDWidget.totalkills);
-                MN_DrTextA(str2, 0 - WIDESCREENDELTA + MN_TextAWidth(str1), 146 + yy, ID_WidgetColor(widget_kills));
-
-                // Items:
-                sprintf(str3, "I ");
-                MN_DrTextA(str3, 0 - WIDESCREENDELTA + MN_TextAWidth(str1) + MN_TextAWidth(str2), 146 + yy, cr[CR_GRAY]);
-
-                sprintf(str4, "%d/%d ", IDWidget.items, IDWidget.totalitems);
-                MN_DrTextA(str4, 0 - WIDESCREENDELTA     +
-                                     MN_TextAWidth(str1) +
-                                     MN_TextAWidth(str2) +
-                                     MN_TextAWidth(str3), 146 + yy, ID_WidgetColor(widget_items));
-
-                // Secret:
-                sprintf(str5, "S ");
-                MN_DrTextA(str5, 0 - WIDESCREENDELTA     +
-                                     MN_TextAWidth(str1) +
-                                     MN_TextAWidth(str2) +
-                                     MN_TextAWidth(str3) +
-                                     MN_TextAWidth(str4), 146 + yy, cr[CR_GRAY]);
-
-                sprintf(str6, "%d/%d", IDWidget.secrets, IDWidget.totalsecrets);
-                MN_DrTextA(str6, 0 - WIDESCREENDELTA     +
-                                     MN_TextAWidth(str1) +
-                                     MN_TextAWidth(str2) + 
-                                     MN_TextAWidth(str3) +
-                                     MN_TextAWidth(str4) +
-                                     MN_TextAWidth(str5), 146 + yy, ID_WidgetColor(widget_secret));
-            }
-            else
-            {
-                char str1[8] = {0}, str2[16] = {0};  // Green
-                char str3[8] = {0}, str4[16] = {0};  // Yellow
-                char str5[8] = {0}, str6[16] = {0};  // Red
-                char str7[8] = {0}, str8[16] = {0};  // Blue
-
-                // Green
-                if (playeringame[0])
-                {
-                    sprintf(str1, "G ");
-                    MN_DrTextA(str1, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GREEN]);
-
-                    sprintf(str2, "%d ", IDWidget.frags_g);
-                    MN_DrTextA(str2, 0 - WIDESCREENDELTA +
-                                         MN_TextAWidth(str1), 146 + yy, cr[CR_GREEN]);
-                }
-                // Yellow
-                if (playeringame[1])
-                {
-                    sprintf(str3, "Y ");
-                    MN_DrTextA(str3, 0 - WIDESCREENDELTA +
-                                         MN_TextAWidth(str1) +
-                                         MN_TextAWidth(str2),
-                                         146 + yy, cr[CR_YELLOW]);
-
-                    sprintf(str4, "%d ", IDWidget.frags_y);
-                    MN_DrTextA(str4, 0 - WIDESCREENDELTA +
-                                         MN_TextAWidth(str1) +
-                                         MN_TextAWidth(str2) +
-                                         MN_TextAWidth(str3),
-                                         146 + yy, cr[CR_YELLOW]);
-                }
-                // Red
-                if (playeringame[2])
-                {
-                    sprintf(str5, "R ");
-                    MN_DrTextA(str5, 0 - WIDESCREENDELTA +
-                                         MN_TextAWidth(str1) +
-                                         MN_TextAWidth(str2) +
-                                         MN_TextAWidth(str3) +
-                                         MN_TextAWidth(str4),
-                                         146 + yy, cr[CR_RED]);
-
-                    sprintf(str6, "%d ", IDWidget.frags_r);
-                    MN_DrTextA(str6, 0 - WIDESCREENDELTA +
-                                         MN_TextAWidth(str1) +
-                                         MN_TextAWidth(str2) +
-                                         MN_TextAWidth(str3) +
-                                         MN_TextAWidth(str4) +
-                                         MN_TextAWidth(str5),
-                                         146 + yy, cr[CR_RED]);
-                }
-                // Blue
-                if (playeringame[3])
-                {
-                    sprintf(str7, "B ");
-                    MN_DrTextA(str7, 0 - WIDESCREENDELTA +
-                                         MN_TextAWidth(str1) +
-                                         MN_TextAWidth(str2) +
-                                         MN_TextAWidth(str3) +
-                                         MN_TextAWidth(str4) +
-                                         MN_TextAWidth(str5) +
-                                         MN_TextAWidth(str6),
-                                         146 + yy, cr[CR_BLUE2]);
-
-                    sprintf(str8, "%d ", IDWidget.frags_b);
-                    MN_DrTextA(str8, 0 - WIDESCREENDELTA +
-                                         MN_TextAWidth(str1) +
-                                         MN_TextAWidth(str2) +
-                                         MN_TextAWidth(str3) +
-                                         MN_TextAWidth(str4) +
-                                         MN_TextAWidth(str5) +
-                                         MN_TextAWidth(str6) +
-                                         MN_TextAWidth(str7),
-                                         146 + yy, cr[CR_BLUE2]);
-                }
-            }
+            char str1[8], str2[16];  // kills
+    
+            sprintf(str1, "K ");
+            MN_DrTextA(str1, 0 - WIDESCREENDELTA, 144 + yy, cr[CR_GRAY]);
+            sprintf(str2, "%d", IDWidget.kills);
+            MN_DrTextA(str2, 0 - WIDESCREENDELTA + MN_TextAWidth(str1), 144 + yy, cr[CR_GREEN_HX]);
         }
 
         if (widget_kis)
@@ -424,6 +264,7 @@ void ID_LeftWidgets (void)
             yy -= 10;
         }
 
+/*
         // Total time. Time gathered in G_Ticker.
         if (widget_totaltime == 1
         || (widget_totaltime == 2 && automapactive))
@@ -450,9 +291,8 @@ void ID_LeftWidgets (void)
             MN_DrTextA(stra, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
             MN_DrTextA(ID_Level_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 146 + yy, cr[CR_LIGHTGRAY]);
         }
-
+*/
     }
-    */
 }
 
 // -----------------------------------------------------------------------------

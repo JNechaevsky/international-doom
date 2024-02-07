@@ -618,6 +618,8 @@ extern GameMode_t gamemode;         // Always commercial
 
 extern gameaction_t gameaction;
 
+extern boolean automapactive;   // In AutoMap mode?
+
 extern boolean paused;
 
 extern boolean DevMaps;         // true = map development mode

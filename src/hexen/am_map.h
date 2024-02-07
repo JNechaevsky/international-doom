@@ -91,7 +91,6 @@ typedef struct
 
 
 extern int cheating;
-extern boolean automapactive;
 
 extern mpoint_t *markpoints; 
 extern int markpointnum;

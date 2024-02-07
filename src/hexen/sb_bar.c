@@ -30,6 +30,8 @@
 #include "i_swap.h"
 #include "am_map.h"
 
+#include "id_func.h"
+
 
 // TYPES -------------------------------------------------------------------
 
@@ -414,6 +416,11 @@ void SB_Ticker(void)
         }
         HealthMarker += delta;
     }
+
+    // [JN] Update IDWidget data.
+    CPlayer = &players[displayplayer];
+    IDWidget.kills = CPlayer->killcount;
+
     SB_PaletteFlash(false);
 }
 

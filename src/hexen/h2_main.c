@@ -1001,6 +1001,12 @@ static void DrawAndBlit(void)
             CT_Drawer();
             SB_Drawer();
 
+            // [JN] Left widgets are available while active game level.
+            if (dp_screen_size < 13)
+            {
+                ID_LeftWidgets();
+            }
+
             // [crispy] demo progress bar
             if (demoplayback && demo_bar)
             {
