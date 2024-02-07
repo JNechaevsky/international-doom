@@ -3057,11 +3057,9 @@ static void M_Draw_ID_Gameplay_2 (void)
     */
 
     // Play internal demos
-    /*
     sprintf(str, demo_internal ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
-    */
 
     MN_DrTextA("PREVIOUS PAGE", ID_MENU_LEFTOFFSET, 150,
                M_Item_Glow(13, GLOW_DARKGRAY));
@@ -3120,9 +3118,7 @@ static void M_ID_ProgressBar (int choice)
 
 static void M_ID_InternalDemos (int choice)
 {
-    /*
     demo_internal ^= 1;
-    */
 }
 
 // CODE --------------------------------------------------------------------

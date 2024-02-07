@@ -1126,6 +1126,7 @@ void H2_AdvanceDemo(void)
 
 void H2_DoAdvanceDemo(void)
 {
+    static boolean mus_played = false;
     players[consoleplayer].playerstate = PST_LIVE;      // don't reborn
     advancedemo = false;
     usergame = false;           // can't save/end game here
@@ -1138,7 +1139,14 @@ void H2_DoAdvanceDemo(void)
             pagetic = 280;
             gamestate = GS_DEMOSCREEN;
             pagename = "TITLE";
-            S_StartSongName("hexen", true);
+            // [JN] Slightly modified logics for intro music:
+            // - replay only if internal demos are on
+            // - disallow playing again if internal demos are off
+            if (!mus_played)
+            {
+                S_StartSongName("hexen", demo_internal);
+            }
+            mus_played = !demo_internal;
             break;
         case 1:
             pagetic = 210;
@@ -1146,7 +1154,10 @@ void H2_DoAdvanceDemo(void)
             pagename = "TITLE";
             break;
         case 2:
-            G_DeferedPlayDemo("demo1");
+            if (demo_internal)
+            {
+                G_DeferedPlayDemo("demo1");
+            }
             break;
         case 3:
             pagetic = 200;
@@ -1154,7 +1165,10 @@ void H2_DoAdvanceDemo(void)
             pagename = "CREDIT";
             break;
         case 4:
-            G_DeferedPlayDemo("demo2");
+            if (demo_internal)
+            {
+                G_DeferedPlayDemo("demo2");
+            }
             break;
         case 5:
             pagetic = 200;
@@ -1162,7 +1176,10 @@ void H2_DoAdvanceDemo(void)
             pagename = "CREDIT";
             break;
         case 6:
-            G_DeferedPlayDemo("demo3");
+            if (demo_internal)
+            {
+                G_DeferedPlayDemo("demo3");
+            }
             break;
     }
 }
