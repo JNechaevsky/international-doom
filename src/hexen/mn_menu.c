@@ -2683,12 +2683,10 @@ static void M_Draw_ID_Widgets (void)
                M_Item_Glow(2, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
 
     // Player coords
-    /*
     sprintf(str, widget_coords == 1 ? "ALWAYS"  :
                  widget_coords == 2 ? "AUTOMAP" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 50,
                M_Item_Glow(3, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Render counters
     /*
@@ -2744,9 +2742,7 @@ static void M_ID_Widget_LevelName (int choice)
 
 static void M_ID_Widget_Coords (int choice)
 {
-    /*
     widget_coords = M_INT_Slider(widget_coords, 0, 2, choice, false);
-    */
 }
 
 static void M_ID_Widget_Render (int choice)

@@ -420,6 +420,9 @@ void SB_Ticker(void)
     // [JN] Update IDWidget data.
     CPlayer = &players[displayplayer];
     IDWidget.kills = CPlayer->killcount;
+    IDWidget.x = CPlayer->mo->x >> FRACBITS;
+    IDWidget.y = CPlayer->mo->y >> FRACBITS;
+    IDWidget.ang = CPlayer->mo->angle / ANG1;
 
     SB_PaletteFlash(false);
 }

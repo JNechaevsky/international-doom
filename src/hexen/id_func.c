@@ -109,22 +109,6 @@ void ID_LeftWidgets (void)
                 sprintf(str1, "%d", IDWidget.kills);
                 MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, cr[CR_GREEN_HX]);
         }
-/*
-        // Level / DeathMatch timer. Time gathered in G_Ticker.
-        if (widget_time == 1
-        || (widget_time == 2 && automapactive))
-        {
-            MN_DrTextA("TIME", 0 - WIDESCREENDELTA, 40, cr[CR_GRAY]);
-            MN_DrTextA(ID_Level_Time, 0 - WIDESCREENDELTA, 50, cr[CR_LIGHTGRAY]);
-        }
-
-        // Total time. Time gathered in G_Ticker.
-        if (widget_totaltime == 1
-        || (widget_totaltime == 2 && automapactive))
-        {
-            MN_DrTextA("TOTAL", 0 - WIDESCREENDELTA, 60, cr[CR_GRAY]);
-            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA, 70, cr[CR_LIGHTGRAY]);
-        }
 
         // Player coords
         if (widget_coords == 1
@@ -132,17 +116,19 @@ void ID_LeftWidgets (void)
         {
             char str[128];
             
-            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 80, cr[CR_GRAY]);
-            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 90, cr[CR_GRAY]);
-            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 100, cr[CR_GRAY]);
+            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 30, cr[CR_GRAY]);
+            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 40, cr[CR_GRAY]);
+            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 50, cr[CR_GRAY]);
 
             sprintf(str, "%d", IDWidget.x);
-            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 80, cr[CR_GREEN]);
+            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 30, cr[CR_GREEN_HX]);
             sprintf(str, "%d", IDWidget.y);
-            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 90, cr[CR_GREEN]);
+            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 40, cr[CR_GREEN_HX]);
             sprintf(str, "%d", IDWidget.ang);
-            MN_DrTextA(str, 0 - WIDESCREENDELTA + 32, 100, cr[CR_GREEN]);
+            MN_DrTextA(str, 0 - WIDESCREENDELTA + 32, 50, cr[CR_GREEN_HX]);
         }
+
+/*
 
         // Render counters
         if (widget_render)
@@ -222,25 +208,25 @@ void ID_LeftWidgets (void)
             MN_DrTextA(vis, 32 - WIDESCREENDELTA, 56 + yy1, cr[CR_GREEN]);
         }
 
+*/
+
         // Player coords
         if (widget_coords == 1
         || (widget_coords == 2 && automapactive))
         {
             char str[128];
 
-            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 76, cr[CR_GRAY]);
-            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 86, cr[CR_GRAY]);
-            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 96, cr[CR_GRAY]);
+            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 104, cr[CR_GRAY]);
+            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 114, cr[CR_GRAY]);
+            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 124, cr[CR_GRAY]);
 
             sprintf(str, "%d", IDWidget.x);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 76, cr[CR_GREEN]);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 104, cr[CR_GREEN_HX]);
             sprintf(str, "%d", IDWidget.y);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 86, cr[CR_GREEN]);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 114, cr[CR_GREEN_HX]);
             sprintf(str, "%d", IDWidget.ang);
-            MN_DrTextA(str, 32 - WIDESCREENDELTA, 96, cr[CR_GREEN]);
+            MN_DrTextA(str, 32 - WIDESCREENDELTA, 124, cr[CR_GREEN_HX]);
         }
-
-*/
 
         if (automapactive)
         {

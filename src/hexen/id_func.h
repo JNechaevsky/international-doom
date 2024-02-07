@@ -45,20 +45,7 @@ typedef struct ID_Widget_s
     int y;    // Player Y coord
     int ang;  // Player angle
 
-    int time; // Time spent on the level.
-
     int kills;         // Current kill count
-    int extrakills;    // Current extra kill count
-    int totalkills;    // Total enemy count on the level
-    int items;         // Current items count
-    int totalitems;    // Total item count on the level
-    int secrets;       // Current secrets count
-    int totalsecrets;  // Total secrets on the level
-
-    int frags_g;       // Frags counter of green player
-    int frags_y;       // Frags counter of yellow player
-    int frags_r;       // Frags counter of red player
-    int frags_b;       // Frags counter of blue player
 } ID_Widget_t;
 
 extern ID_Widget_t IDWidget;
