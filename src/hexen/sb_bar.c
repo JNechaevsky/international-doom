@@ -25,6 +25,7 @@
 #include "m_misc.h"
 #include "p_local.h"
 #include "s_sound.h"
+#include "v_trans.h"
 #include "v_video.h"
 #include "i_swap.h"
 #include "am_map.h"
@@ -963,6 +964,121 @@ static void DrawAnimatedIcons(void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// SB_NumberColor
+// [crispy] return ammo/health/armor widget color
+// -----------------------------------------------------------------------------
+
+enum
+{
+    hudcolor_health,
+    hudcolor_armor,
+    hudcolor_mana_blue,
+    hudcolor_mana_green,
+    // [JN] TODO - hudcolor_frags ?
+} hudcolor_t;
+
+static byte *SB_NumberColor (int i)
+{
+    const int armor = AutoArmorSave[CPlayer->class]
+                    + CPlayer->armorpoints[ARMOR_ARMOR]
+                    + CPlayer->armorpoints[ARMOR_SHIELD]
+                    + CPlayer->armorpoints[ARMOR_HELMET]
+                    + CPlayer->armorpoints[ARMOR_AMULET];
+
+    if (!st_colored_stbar)
+    {
+        return NULL;
+    }
+
+    switch (i)
+    {
+        case hudcolor_health:
+        {
+            const int health = CPlayer->health;
+
+            if (CPlayer->cheats & CF_GODMODE || CPlayer->powers[pw_invulnerability])
+                return cr[CR_LIGHTGRAY];
+            else if (health >= 67)
+                return cr[CR_GREEN_HX];
+            else if (health >= 34)
+                return cr[CR_YELLOW];
+            else
+                return cr[CR_RED];
+            break;
+        }
+
+        // [JN] Well... Hexen armor system is a bit mind blowing,
+        // so let's just use some hard-coded values here.
+        case hudcolor_armor:
+        {
+            if (CPlayer->cheats & CF_GODMODE || CPlayer->powers[pw_invulnerability])
+            {
+                return cr[CR_LIGHTGRAY];
+            }
+            else
+            if ((FixedDiv(armor, 5 * FRACUNIT) >> FRACBITS)
+            >=  (CPlayer->class == 0 ? 8 :  // Fighted
+                 CPlayer->class == 1 ? 7 :  // Cleric
+                                       6))  // Mage
+            {
+                return cr[CR_GREEN_HX];
+            }
+            else 
+            if ((FixedDiv(armor, 5 * FRACUNIT) >> FRACBITS)
+            >   (CPlayer->class == 0 ? 3 :  // Fighted
+                 CPlayer->class == 1 ? 2 :  // Cleric
+                                       1))  // Mage
+            {
+                return cr[CR_YELLOW];
+            }
+            else
+            {
+                return cr[CR_RED];
+            }
+            break;
+        }
+        
+        case hudcolor_mana_blue:
+        {
+            if (CPlayer->mana[0] >= MAX_MANA / 2)
+            {
+                return cr[CR_GREEN_HX];
+            }
+            else
+            if (CPlayer->mana[0] >= MAX_MANA / 4)
+            {
+                return cr[CR_YELLOW];
+            }
+            else
+            {
+                return cr[CR_RED];
+            }
+        }
+        break;
+
+        case hudcolor_mana_green:
+        {
+            if (CPlayer->mana[1] >= MAX_MANA / 2)
+            {
+                return cr[CR_GREEN_HX];
+            }
+            else
+            if (CPlayer->mana[1] >= MAX_MANA / 4)
+            {
+                return cr[CR_YELLOW];
+            }
+            else
+            {
+                return cr[CR_RED];
+            }
+        }
+        break;
+    }
+
+    return NULL;
+}
+
 //==========================================================================
 //
 // SB_PaletteFlash
@@ -1142,13 +1258,17 @@ void DrawMainBar(void)
         {
             temp = 100;
         }
-        if (oldlife != temp)
+        // [JN] Need to perform update for colored status bar.
+        // TODO - not very optimal, ideally to update once after invul. runs out.
+        if (oldlife != temp || st_colored_stbar)
         {
             oldlife = temp;
             V_DrawPatch(41, 178, PatchARMCLEAR);
             if (temp >= 25)
             {
+                dp_translation = SB_NumberColor(hudcolor_health);
                 DrINumber(temp, 40, 176);
+                dp_translation = NULL;
             }
             else
             {
@@ -1161,7 +1281,9 @@ void DrawMainBar(void)
     if (oldmana1 != temp)
     {
         V_DrawPatch(77, 178, PatchMANACLEAR);
+        dp_translation = SB_NumberColor(hudcolor_mana_blue);
         DrSmallNumber(temp, 79, 181);
+        dp_translation = NULL;
         manaVialPatch1 = (patch_t *) 1; // force a vial update
         if (temp == 0)
         {                       // Draw Dim Mana icon
@@ -1177,7 +1299,9 @@ void DrawMainBar(void)
     if (oldmana2 != temp)
     {
         V_DrawPatch(109, 178, PatchMANACLEAR);
+        dp_translation = SB_NumberColor(hudcolor_mana_green);
         DrSmallNumber(temp, 111, 181);
+        dp_translation = NULL;
         manaVialPatch1 = (patch_t *) 1; // force a vial update
         if (temp == 0)
         {                       // Draw Dim Mana icon
@@ -1270,11 +1394,15 @@ void DrawMainBar(void)
         CPlayer->armorpoints[ARMOR_SHIELD] +
         CPlayer->armorpoints[ARMOR_HELMET] +
         CPlayer->armorpoints[ARMOR_AMULET];
-    if (oldarmor != temp)
+    // [JN] Need to perform update for colored status bar.
+    // TODO - not very optimal, ideally to update once after invul. runs out.
+    if (oldarmor != temp || st_colored_stbar)
     {
         oldarmor = temp;
         V_DrawPatch(255, 178, PatchARMCLEAR);
+        dp_translation = SB_NumberColor(hudcolor_armor);
         DrINumber(FixedDiv(temp, 5 * FRACUNIT) >> FRACBITS, 250, 176);
+        dp_translation = NULL;
     }
     // Weapon Pieces
     if (oldpieces != CPlayer->pieces)
@@ -1439,6 +1567,7 @@ void DrawFullScreenStuff(void)
     int x;
     int temp;
 
+    dp_translation = SB_NumberColor(hudcolor_health);
     if (CPlayer->mo->health > 0)
     {
         DrBNumber(CPlayer->mo->health, 5, 180);
@@ -1447,6 +1576,7 @@ void DrawFullScreenStuff(void)
     {
         DrBNumber(0, 5, 180);
     }
+    dp_translation = NULL;
     if (deathmatch)
     {
         temp = 0;

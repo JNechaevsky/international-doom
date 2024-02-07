@@ -2888,6 +2888,11 @@ static void M_Draw_ID_Gameplay_1 (void)
 
     MN_DrTextACentered("STATUS BAR", 110, cr[CR_YELLOW]);
 
+    // Colored elements
+    sprintf(str, st_colored_stbar ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
+
     MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET, 150,
                M_Item_Glow(13, GLOW_DARKGRAY));
 
@@ -2953,9 +2958,7 @@ static void M_ID_CrosshairColor (int choice)
 
 static void M_ID_ColoredSBar (int choice)
 {
-    /*
     st_colored_stbar ^= 1;
-    */
 }
 
 static void M_ID_WeaponWidget (int choice)
