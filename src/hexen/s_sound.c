@@ -393,6 +393,8 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
                                 listener->y,
                                 Channel[i].mo->x, Channel[i].mo->y);
         angle = (angle - viewangle) >> 24;
+        if (gp_flip_levels)
+            angle = 255 - angle;
         sep = angle * 2 - 128;
         if (sep < 64)
             sep = -sep;
@@ -665,6 +667,8 @@ void S_UpdateSounds(mobj_t * listener)
                 angle = R_PointToAngle2(listener->x, listener->y,
                                         Channel[i].mo->x, Channel[i].mo->y);
                 angle = (angle - viewangle) >> 24;
+                if (gp_flip_levels)
+                    angle = 255 - angle;
                 sep = angle * 2 - 128;
                 if (sep < 64)
                     sep = -sep;

@@ -828,6 +828,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             BT_SPECIAL | BTS_SAVEGAME | (savegameslot << BTS_SAVESHIFT);
     }
 
+    if (gp_flip_levels)
+    {
+        cmd->angleturn = -cmd->angleturn;
+        cmd->sidemove = -cmd->sidemove;
+    }
+
     if (lowres_turn)
     {
         if (shortticfix)
@@ -1158,6 +1164,15 @@ boolean G_Responder(event_t * ev)
             if (ev->data1 < NUMKEYS)
             {
                 gamekeydown[ev->data1] = true;
+            }
+            // [JN] Flip level horizontally.
+            if (ev->data1 == key_flip_levels)
+            {
+                gp_flip_levels ^= 1;
+                // Redraw game screen
+                R_ExecuteSetViewSize();
+                // Audible feedback
+                S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
             }
             return (true);      // eat key down events
 

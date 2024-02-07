@@ -80,7 +80,7 @@ void R_DrawColumn(void)
         I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -136,7 +136,7 @@ void R_DrawColumnLow(void)
 //      dccount++;
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -196,7 +196,7 @@ void R_DrawTLColumn(void)
         I_Error("R_DrawTLColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -276,7 +276,7 @@ void R_DrawAltTLColumn(void)
         I_Error("R_DrawAltTLColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -353,7 +353,7 @@ void R_DrawTranslatedColumn(void)
         I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -390,7 +390,7 @@ void R_DrawTranslatedTLColumn(void)
         I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
-    dest = ylookup[dc_yl] + columnofs[dc_x];
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
     fracstep = dc_iscale;
     frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -496,28 +496,28 @@ int dscount;                    // just for profiling
 
 void R_DrawSpan(void)
 {
-    fixed_t xfrac, yfrac;
     pixel_t *dest;
     int count, spot;
+    unsigned int xtemp, ytemp;
 
 #ifdef RANGECHECK
     if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= SCREENWIDTH
         || (unsigned) ds_y > SCREENHEIGHT)
         I_Error("R_DrawSpan: %i to %i at %i", ds_x1, ds_x2, ds_y);
-//      dscount++;
 #endif
 
-    xfrac = ds_xfrac;
-    yfrac = ds_yfrac;
-
-    dest = ylookup[ds_y] + columnofs[ds_x1];
     count = ds_x2 - ds_x1;
     do
     {
-        spot = ((yfrac >> (16 - 6)) & (63 * 64)) + ((xfrac >> 16) & 63);
+        // [crispy] fix flats getting more distorted the closer they are to the right
+        ytemp = (ds_yfrac >> 10) & 0x0fc0;
+        xtemp = (ds_xfrac >> 16) & 0x3f;
+        spot = xtemp | ytemp;
+        
+        dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
         *dest++ = ds_colormap[ds_source[spot]];
-        xfrac += ds_xstep;
-        yfrac += ds_ystep;
+        ds_xfrac += ds_xstep;
+        ds_yfrac += ds_ystep;
     }
     while (count--);
 }

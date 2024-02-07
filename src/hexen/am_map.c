@@ -1235,11 +1235,9 @@ static void AM_drawFline(fline_t * fl, int color)
             }
 
 #ifndef CRISPY_TRUECOLOR
-#define DOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(cc)    //the MACRO!
-//#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(cc)    //the MACRO!
+#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(cc)    //the MACRO!
 #else
-#define DOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(pal_color[cc])
-//#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(pal_color[cc])
+#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(pal_color[cc])
 #endif
 
             dx = fl->b.x - fl->a.x;
@@ -1341,10 +1339,9 @@ void PUTDOT(short xx, short yy, byte * cc, byte * cm)
         oldyyshifted = yy * f_w;
     }
 #ifndef CRISPY_TRUECOLOR
-    // fb[oldyyshifted + flipscreenwidth[xx]] = *(cc);
-    fb[oldyyshifted + xx] = *(cc);
+    fb[oldyyshifted + flipscreenwidth[xx]] = *(cc);
 #else
-    fb[oldyyshifted + xx] = pal_color[*(cc)];
+    fb[oldyyshifted + flipscreenwidth[xx]] = pal_color[*(cc)];
 #endif
 }
 
@@ -1974,8 +1971,7 @@ static void AM_drawMarks (void)
 
             fx = (CXMTOF(pt.x) / vid_resolution) - 1;
             fy = (CYMTOF(pt.y) / vid_resolution) - 2;
-            fx_flip = (CXMTOF(pt.x) / vid_resolution) - 1;
-            // fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
+            fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
 
             do
             {

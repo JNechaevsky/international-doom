@@ -449,7 +449,7 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
     if (vis->psprite)
     {
         dc_texturemid += FixedMul(((centery - viewheight / 2) << FRACBITS),
-                                  vis->xiscale);
+                                  pspriteiscale);
         sprtopscreen += (viewheight / 2 - centery) << FRACBITS;
     }
 
@@ -597,7 +597,8 @@ void R_ProjectSprite(mobj_t * thing)
 //
 // calculate edges of the shape
 //
-    tx -= spriteoffset[lump];
+    // [crispy] fix sprite offsets for mirrored sprites
+    tx -= flip ? spritewidth[lump] - spriteoffset[lump] : spriteoffset[lump];
     x1 = (centerxfrac + FixedMul(tx, xscale)) >> FRACBITS;
     if (x1 > viewwidth)
         return;                 // off the right side
@@ -768,14 +769,15 @@ void R_DrawPSprite(pspdef_t * psp)
     sprframe = &sprdef->spriteframes[psp->state->frame & FF_FRAMEMASK];
 
     lump = sprframe->lump[0];
-    flip = (boolean) sprframe->flip[0];
+    flip = (boolean)sprframe->flip[0] ^ gp_flip_levels;
 
 //
 // calculate edges of the shape
 //
     tx = psp->sx2 - 160 * FRACUNIT;
 
-    tx -= spriteoffset[lump];
+    // [crispy] fix sprite offsets for mirrored sprites
+    tx -= flip ? 2 * tx - spriteoffset[lump] + spritewidth[lump] : spriteoffset[lump];
     if (viewangleoffset)
     {
         tempangle =

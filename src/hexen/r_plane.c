@@ -501,7 +501,7 @@ void R_DrawPlanes(void)
                         }
                         source = R_GetColumn(skyTexture, angle + offset);
                         source2 = R_GetColumn(skyTexture2, angle2 + offset2);
-                        dest = ylookup[dc_yl] + columnofs[x];
+                        dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
                         frac = SKYTEXTUREMIDSHIFTED * FRACUNIT + (dc_yl - centery) * fracstep;
                         heightmask = SKYTEXTUREMIDSHIFTED - 1; // [crispy]
 
@@ -608,7 +608,7 @@ void R_DrawPlanes(void)
                             return;
                         }
                         source = R_GetColumn(skyTexture, angle + offset);
-                        dest = ylookup[dc_yl] + columnofs[x];
+                        dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
                         frac = SKYTEXTUREMIDSHIFTED * FRACUNIT + (dc_yl - centery) * fracstep;
                         heightmask = SKYTEXTUREMIDSHIFTED - 1; // [crispy]
                         // not a power of 2 -- killough

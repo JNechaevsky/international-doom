@@ -389,6 +389,10 @@ extern fixed_t projection;
 
 extern int validcount;
 
+// [crispy] lookup table for horizontal screen coordinates
+extern int  flipscreenwidth[MAXWIDTH];
+extern int *flipviewwidth;
+
 extern int sscount, linecount, loopcount;
 extern lighttable_t***	scalelight;
 extern lighttable_t**	scalelightfixed;

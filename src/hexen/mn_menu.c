@@ -3024,11 +3024,9 @@ static void M_Draw_ID_Gameplay_2 (void)
                DefSkillColor(gp_default_skill));
 
     // Flip levels horizontally
-    /*
     sprintf(str, gp_flip_levels ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 60,
                M_Item_Glow(4, gp_flip_levels ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     MN_DrTextACentered("DEMOS", 70, cr[CR_YELLOW]);
 
@@ -3090,12 +3088,10 @@ static void M_ID_DefaulSkill (int choice)
 
 static void M_ID_FlipLevels (int choice)
 {
-    /*
     gp_flip_levels ^= 1;
 
     // Redraw game screen
     R_ExecuteSetViewSize();
-    */
 }
 
 static void M_ID_DemoTimer (int choice)
