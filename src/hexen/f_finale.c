@@ -29,6 +29,8 @@
 #include "am_map.h"
 #include "v_trans.h"
 
+#include "id_func.h"
+
 
 // MACROS ------------------------------------------------------------------
 
@@ -394,6 +396,19 @@ void F_Drawer(void)
         case 5:
             TextWrite();
             break;
+    }
+
+    // [crispy] demo timer widget
+    if (((demoplayback && (demo_timer == 1 || demo_timer == 3))
+    ||   (demorecording && (demo_timer == 2 || demo_timer == 3))))
+    {
+        ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
+    }
+
+    // [crispy] demo progress bar
+    if (demoplayback && demo_bar)
+    {
+        ID_DemoBar();
     }
 }
 

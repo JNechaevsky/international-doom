@@ -27,6 +27,8 @@
 #include "i_swap.h"
 #include "am_map.h"
 
+#include "id_func.h"
+
 
 // MACROS ------------------------------------------------------------------
 
@@ -414,6 +416,19 @@ void IN_Drawer(void)
     else
     {
         DrDeathTally();
+    }
+
+    // [crispy] demo timer widget
+    if (((demoplayback && (demo_timer == 1 || demo_timer == 3))
+    ||   (demorecording && (demo_timer == 2 || demo_timer == 3))))
+    {
+        ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
+    }
+
+    // [crispy] demo progress bar
+    if (demoplayback && demo_bar)
+    {
+        ID_DemoBar();
     }
 }
 

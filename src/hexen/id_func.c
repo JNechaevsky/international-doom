@@ -733,7 +733,6 @@ void ID_DrawCrosshair (void)
 
 void ID_DemoTimer (const int time)
 {
-    /*
     const int hours = time / (3600 * TICRATE);
     const int mins = time / (60 * TICRATE) % 60;
     const float secs = (float)(time % (60 * TICRATE)) / TICRATE;
@@ -751,7 +750,6 @@ void ID_DemoTimer (const int time)
     }
 
     MN_DrTextA(n, x + WIDESCREENDELTA, 10, cr[CR_LIGHTGRAY]);
-    */
 }
 
 // -----------------------------------------------------------------------------
@@ -761,7 +759,6 @@ void ID_DemoTimer (const int time)
 
 void ID_DemoBar (void)
 {
-    /*
     static boolean colors_set = false;
     static int black = 0;
     static int white = 0;
@@ -788,7 +785,6 @@ void ID_DemoBar (void)
     V_DrawHorizLine(0, SCREENHEIGHT - 2, i, black); // [crispy] black
     V_DrawHorizLine(0, SCREENHEIGHT - 1, i, white); // [crispy] white
 #endif
-    */
 }
 
 // =============================================================================

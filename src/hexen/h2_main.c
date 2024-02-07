@@ -956,16 +956,8 @@ static void DrawAndBlit(void)
             {
                 break;
             }
-            if (automapactive && !automap_overlay)
-            {
-                // [crispy] update automap while playing
-                R_RenderPlayerView(&players[displayplayer]);
-                AM_Drawer();
-            }
-            else
-            {
-                R_RenderPlayerView(&players[displayplayer]);
-            }
+            // draw the view directly
+            R_RenderPlayerView(&players[displayplayer]);
 
             // [JN] Fail-safe: return earlier if post rendering hook is still active.
             if (post_rendering_hook)
@@ -985,9 +977,19 @@ static void DrawAndBlit(void)
                 R_DrawViewBorder();
             }
 
-            if (automapactive && automap_overlay)
+            if (automapactive)
             {
                 AM_Drawer();
+            }
+
+            // [crispy] demo timer widget
+            if (demoplayback && (demo_timer == 1 || demo_timer == 3))
+            {
+                ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
+            }
+            else if (demorecording && (demo_timer == 2 || demo_timer == 3))
+            {
+                ID_DemoTimer(leveltime);
             }
 
             // [JN] Draw crosshair.
@@ -998,6 +1000,13 @@ static void DrawAndBlit(void)
 
             CT_Drawer();
             SB_Drawer();
+
+            // [crispy] demo progress bar
+            if (demoplayback && demo_bar)
+            {
+                ID_DemoBar();
+            }
+
             break;
         case GS_INTERMISSION:
             IN_Drawer();

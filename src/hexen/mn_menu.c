@@ -3034,27 +3034,21 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextACentered("DEMOS", 70, cr[CR_YELLOW]);
 
     // Show Demo timer
-    /*
     sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
                  demo_timer == 2 ? "RECORDING" : 
                  demo_timer == 3 ? "ALWAYS" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 80,
                M_Item_Glow(6, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Timer direction
-    /*
     sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
     MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Show progress bar
-    /*
     sprintf(str, demo_bar ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 100,
                M_Item_Glow(8, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
@@ -3097,23 +3091,17 @@ static void M_ID_FlipLevels (int choice)
 
 static void M_ID_DemoTimer (int choice)
 {
-    /*
     demo_timer = M_INT_Slider(demo_timer, 0, 3, choice, false);
-    */
 }
 
 static void M_ID_TimerDirection (int choice)
 {
-    /*
     demo_timerdir ^= 1;
-    */
 }
 
 static void M_ID_ProgressBar (int choice)
 {
-    /*
     demo_bar ^= 1;
-    */
 }
 
 static void M_ID_InternalDemos (int choice)
@@ -4709,9 +4697,12 @@ boolean MN_Responder(event_t * event)
 
     if (!MenuActive)
     {
-        if (key == key_menu_activate || gamestate == GS_DEMOSCREEN || demoplayback)
+        // [JN] Open Heretic/CRL menu only by pressing it's keys to allow 
+        // certain CRL features to be toggled. This behavior is same to Doom.
+        if (key == key_menu_activate)
         {
             MN_ActivateMenu();
+
             return (true);
         }
         return (false);

@@ -1066,6 +1066,15 @@ boolean G_Responder(event_t * ev)
     player_t *plr;
 
     plr = &players[consoleplayer];
+
+    // [crispy] demo fast-forward
+    if (ev->type == ev_keydown && ev->data1 == key_demospeed
+    && (demoplayback || gamestate == GS_DEMOSCREEN))
+    {
+        singletics = !singletics;
+        return (true);
+    }
+
     if (ev->type == ev_keyup && ev->data1 == key_useartifact)
     {                           // flag to denote that it's okay to use an artifact
         if (!inventory)
@@ -1308,6 +1317,12 @@ void G_Ticker(void)
                     consistancy[i][buf] = rndindex;
             }
         }
+
+    // [crispy] increase demo tics counter
+    if (demoplayback || demorecording)
+    {
+        defdemotics++;
+    }
 
 //
 // check for special buttons
@@ -2119,6 +2134,10 @@ void G_InitNew(skill_t skill, int episode, int map)
     gamemap = map;
     gameskill = skill;
 
+    // [JN] No-op! Do not reset demo tics between hubs and levels,
+    // so demo timer and bar will show proper time and lenght.
+    // defdemotics = 0;
+
     // Initialize the sky
     R_InitSky(map);
 
@@ -2145,6 +2164,9 @@ void G_InitNew(skill_t skill, int episode, int map)
 #define DEMOHEADER_RESPAWN    0x20
 #define DEMOHEADER_LONGTICS   0x10
 #define DEMOHEADER_NOMONSTERS 0x02
+
+// [crispy] demo progress bar and timer widget
+int defdemotics = 0, deftotaldemotics;
 
 void G_ReadDemoTiccmd(ticcmd_t * cmd)
 {
@@ -2356,6 +2378,40 @@ void G_RecordDemo(skill_t skill, int numplayers, int episode, int map,
     demorecording = true;
 }
 
+/*
+================================================================================
+=
+= G_DemoProgressBar
+=
+= [crispy] demo progress bar
+=
+================================================================================
+*/
+
+static void G_DemoProgressBar (const int lumplength)
+{
+    int   numplayersingame = 0;
+    byte *demo_ptr = demo_p;
+
+    for (int i = 0; i < MAXPLAYERS; i++)
+    {
+        if (playeringame[i])
+        {
+            numplayersingame++;
+        }
+    }
+
+    deftotaldemotics = defdemotics = 0;
+
+    while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
+    {
+        // [JN] Note: Heretic using extra two pointers: lookfly and arti,
+        // so unlike Doom (5 : 4) we using (7 : 6) here.
+        // Thanks to Roman Fomin for pointing out.
+        demo_ptr += numplayersingame * (longtics ? 7 : 6);
+        deftotaldemotics++;
+    }
+}
 
 /*
 ===================
@@ -2377,10 +2433,21 @@ void G_DoPlayDemo(void)
 {
     skill_t skill;
     int i, lumpnum, episode, map;
+    int lumplength; // [crispy]
 
     gameaction = ga_nothing;
     lumpnum = W_GetNumForName(defdemoname);
     demobuffer = W_CacheLumpNum(lumpnum, PU_STATIC);
+
+    // [crispy] ignore empty demo lumps
+    lumplength = W_LumpLength(lumpnum);
+    if (lumplength < 0xd)
+    {
+        demoplayback = true;
+        G_CheckDemoStatus();
+        return;
+    }
+
     demo_p = demobuffer;
     skill = *demo_p++;
     episode = *demo_p++;
@@ -2432,6 +2499,9 @@ void G_DoPlayDemo(void)
     {
         netdemo = true;
     }
+
+    // [crispy] demo progress bar
+    G_DemoProgressBar(lumplength);
 }
 
 
