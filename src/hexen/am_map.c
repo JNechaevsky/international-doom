@@ -2032,42 +2032,10 @@ static void AM_drawCrosshair (boolean force)
 // AM_LevelNameDrawer
 // -----------------------------------------------------------------------------
 
-/*
 void AM_LevelNameDrawer (void)
 {
-    const char *level_name;
-    int numepisodes;
-
-    if (gamemode == retail)
-    {
-        numepisodes = 5;
-    }
-    else
-    {
-        numepisodes = 3;
-    }
-
-    if (gameepisode <= numepisodes && gamemap < 10)
-    {
-        int x, y;
-
-        // [JN] Move widgets slightly down when using a fullscreen status bar.
-        if (dp_screen_size > 10 && (!automapactive || automap_overlay))
-        {
-            x = -WIDESCREENDELTA;
-            y = 159;
-        }
-        else
-        {
-            x = 20;
-            y = 146;
-        }
-
-        level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
-        MN_DrTextA(DEH_String(level_name), x, y, NULL);
-    }
+    MN_DrTextA(P_GetMapName(gamemap), 38, 144, NULL);
 }
-*/
 
 // -----------------------------------------------------------------------------
 // AM_Drawer
@@ -2157,15 +2125,10 @@ void AM_Drawer (void)
     AM_drawMarks();
 
     // [JN] Draw level name only if Level Name widget is set to "automap".
-    // TODO - there is a simple function below.
-    /*
     if (!widget_levelname)
     {
         AM_LevelNameDrawer();
     }
-    */
-
-    MN_DrTextA(P_GetMapName(gamemap), 38, 144, NULL);
 }
 
 //===========================================================================

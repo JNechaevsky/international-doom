@@ -2678,11 +2678,9 @@ static void M_Draw_ID_Widgets (void)
                M_Item_Glow(1, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
 
     // Level name
-    /*
     sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
     MN_DrTextA(str, M_ItemRightAlign(str), 40,
                M_Item_Glow(2, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Player coords
     /*
@@ -2741,9 +2739,7 @@ static void M_ID_Widget_Kills (int choice)
 
 static void M_ID_Widget_LevelName (int choice)
 {
-    /*
     widget_levelname ^= 1;
-    */
 }
 
 static void M_ID_Widget_Coords (int choice)
