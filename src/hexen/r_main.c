@@ -23,6 +23,7 @@
 #include "r_local.h"
 
 #include "id_vars.h"
+#include "id_func.h"
 
 
 int viewangleoffset;
@@ -1007,6 +1008,9 @@ void R_SetupFrame(player_t * player)
 void R_RenderPlayerView(player_t * player)
 {
     extern void PO_InterpolatePolyObjects(void);
+
+    // [JN] Reset render counters.
+    memset(&IDRender, 0, sizeof(IDRender));
 
     R_SetupFrame(player);
     R_ClearClipSegs();

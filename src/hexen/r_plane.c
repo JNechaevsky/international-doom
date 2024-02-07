@@ -25,6 +25,7 @@
 #include "r_swirl.h"
 
 #include "id_vars.h"
+#include "id_func.h"
 
 
 // MACROS ------------------------------------------------------------------
@@ -458,8 +459,10 @@ void R_DrawPlanes(void)
     int heightmask; // [crispy]
     int smoothDelta1 = 0, smoothDelta2 = 0; // [JN] Smooth sky scrolling.
 
+    IDRender.numopenings = lastopening - openings;
+
     for (int i = 0 ; i < MAXVISPLANES ; i++)
-    for (visplane_t *pl = visplanes[i] ; pl ; pl = pl->next /*, IDRender.numplanes++*/)
+    for (visplane_t *pl = visplanes[i] ; pl ; pl = pl->next, IDRender.numplanes++)
     if (pl->minx <= pl->maxx)
     {
         if (pl->picnum == skyflatnum)

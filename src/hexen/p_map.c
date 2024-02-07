@@ -19,6 +19,7 @@
 #include "h2def.h"
 #include "m_random.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "m_bbox.h"
 #include "p_local.h"
 #include "s_sound.h"
@@ -1574,6 +1575,31 @@ fixed_t attackrange;
 
 fixed_t aimslope;
 
+static char *CRL_GetMobjName (mobjtype_t type)
+{
+    switch (type)
+    {
+        case MT_ETTIN:         return "ETTIN";               break;
+        case MT_FIREDEMON:     return "AFFRIT";              break;
+        case MT_DEMON:         return "GREEN CHAOS SERPENT"; break;
+        case MT_DEMON2:        return "BROWN CHAOS SERPENT"; break;
+        case MT_CENTAUR:       return "CENTAUR";             break;
+        case MT_CENTAURLEADER: return "SLAUGHTAUR";          break;
+        case MT_ICEGUY:        return "WENDIGO";             break;
+        case MT_BISHOP:        return "DARK BISHOP";         break;
+        case MT_PIG:           return "PIG";                 break;
+        case MT_WRAITH: case MT_WRAITHB: return "REIVER";         break;
+        case MT_SERPENT: case MT_SERPENTLEADER: return "STALKER"; break;
+        case MT_DRAGON:        return "DEATH WYVERN";        break;
+        case MT_SORCBOSS:      return "HERESIARCH";          break;
+        case MT_FIGHTER_BOSS:  return "ZEDEK";               break;
+        case MT_CLERIC_BOSS:   return "TRADUCTUS";           break;
+        case MT_MAGE_BOSS:     return "MENELKIR";            break;
+        case MT_KORAX:         return "KORAX";               break;
+        default:               return "";
+    }
+}
+
 
 /*
 ===============================================================================
@@ -1590,6 +1616,7 @@ boolean PTR_AimTraverse(intercept_t * in)
     mobj_t *th;
     fixed_t slope, thingtopslope, thingbottomslope;
     fixed_t dist;
+    player_t *player = &players[displayplayer];
 
     if (in->isaline)
     {
@@ -1639,7 +1666,7 @@ boolean PTR_AimTraverse(intercept_t * in)
         && (th->state == &states[th->info->deathstate]
         ||  th->state == &states[th->info->xdeathstate]))
         {
-            //player->targetsheathTics = 0;
+            player->targetsheathTics = 0;
             return false;
         }
         return true;            // corpse or something
@@ -1669,6 +1696,25 @@ boolean PTR_AimTraverse(intercept_t * in)
 
     aimslope = (thingtopslope + thingbottomslope) / 2;
     linetarget = th;
+
+    // [JN] CRL - gather thing health for target's health widget.
+    // Run following code only for overflow-safe trace,
+    // and don't gather health of explosive barrels and players.
+    if (safe_intercept && th->tics > 0 && th->flags & MF_SHOOTABLE
+    && th->type != MT_PLAYER_FIGHTER
+    && th->type != MT_PLAYER_CLERIC
+    && th->type != MT_PLAYER_MAGE
+    && th->type != MT_PIGPLAYER)
+    {
+        // Get target's current health.
+        player->targetsheath = th->health;
+        // Get target's maximum health.
+        player->targetsmaxheath = th->info->spawnhealth;
+        // Set widget's timer to 1 second.
+        player->targetsheathTics = TICRATE;
+        // Get target's Dehackedable name.
+        player->targetsname = CRL_GetMobjName(th->type);
+    }
 
     return false;               // don't go any farther
 }

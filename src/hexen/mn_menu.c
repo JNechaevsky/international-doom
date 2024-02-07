@@ -2689,21 +2689,17 @@ static void M_Draw_ID_Widgets (void)
                M_Item_Glow(3, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
 
     // Render counters
-    /*
     sprintf(str, widget_render ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 60,
                M_Item_Glow(4, widget_render ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Target's health
-    /*
     sprintf(str, widget_health == 1 ? "TOP" :
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, widget_health ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     MN_DrTextACentered("AUTOMAP", 80, cr[CR_YELLOW]);
 
@@ -2747,16 +2743,12 @@ static void M_ID_Widget_Coords (int choice)
 
 static void M_ID_Widget_Render (int choice)
 {
-    /*
     widget_render ^= 1;
-    */
 }
 
 static void M_ID_Widget_Health (int choice)
 {
-    /*
     widget_health = M_INT_Slider(widget_health, 0, 4, choice, false);
-    */
 }
 
 static void M_ID_Automap_Rotate (int choice)

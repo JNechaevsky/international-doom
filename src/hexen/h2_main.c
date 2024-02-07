@@ -998,6 +998,13 @@ static void DrawAndBlit(void)
                 ID_DemoTimer(leveltime);
             }
 
+            // [JN] Target's health widget.
+            // Actual health values are gathered in G_Ticker.
+            if (widget_health)
+            {
+                ID_DrawTargetsHealth();
+            }
+
             // [JN] Draw crosshair.
             if (xhair_draw && !automapactive)
             {

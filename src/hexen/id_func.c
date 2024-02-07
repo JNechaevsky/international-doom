@@ -52,41 +52,6 @@ enum
     widget_secret
 } widgetcolor_t;
 
-/*
-static byte *ID_WidgetColor (const int i)
-{
-    switch (i)
-    {
-        case widget_kills:
-        {
-            return
-                IDWidget.totalkills == 0 ? cr[CR_GREEN] :
-                IDWidget.kills == 0 ? cr[CR_RED] :
-                IDWidget.kills < IDWidget.totalkills ? cr[CR_YELLOW] : cr[CR_GREEN];
-            break;
-        }
-        case widget_items:
-        {
-            return
-                IDWidget.totalitems == 0 ? cr[CR_GREEN] :
-                IDWidget.items == 0 ? cr[CR_RED] :
-                IDWidget.items < IDWidget.totalitems ? cr[CR_YELLOW] : cr[CR_GREEN];
-            break;
-        }
-        case widget_secret:
-        {
-            return
-                IDWidget.totalsecrets == 0 ? cr[CR_GREEN] :
-                IDWidget.secrets == 0 ? cr[CR_RED] :
-                IDWidget.secrets < IDWidget.totalsecrets ? cr[CR_YELLOW] : cr[CR_GREEN];
-            break;
-        }
-    }
-
-    return NULL;
-}
-*/
-
 // -----------------------------------------------------------------------------
 // ID_LeftWidgets.
 //  [JN] Draw all the widgets and counters.
@@ -128,8 +93,6 @@ void ID_LeftWidgets (void)
             MN_DrTextA(str, 0 - WIDESCREENDELTA + 32, 50, cr[CR_GREEN_HX]);
         }
 
-/*
-
         // Render counters
         if (widget_render)
         {
@@ -139,26 +102,25 @@ void ID_LeftWidgets (void)
             char vis[32];
 
             // Sprites
-            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 110, cr[CR_GRAY]);
+            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 70, cr[CR_GRAY]);
             M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 110, cr[CR_GREEN]);
+            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 70, cr[CR_GREEN_HX]);
 
             // Segments
-            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 120, cr[CR_GRAY]);
+            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 80, cr[CR_GRAY]);
             M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 120, cr[CR_GREEN]);
+            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 80, cr[CR_GREEN_HX]);
 
             // Openings
-            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 130, cr[CR_GRAY]);
+            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 90, cr[CR_GRAY]);
             M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 130, cr[CR_GREEN]);
+            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 90, cr[CR_GREEN_HX]);
 
             // Planes
-            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 140, cr[CR_GRAY]);
+            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 100, cr[CR_GRAY]);
             M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 140, cr[CR_GREEN]);
+            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 100, cr[CR_GREEN_HX]);
         }
-*/
     }
     //
     // Located at the bottom
@@ -177,7 +139,7 @@ void ID_LeftWidgets (void)
         {
             yy += 13;
         }
-            /*
+
         // Render counters
         if (widget_render)
         {
@@ -188,27 +150,25 @@ void ID_LeftWidgets (void)
             const int yy1 = widget_coords ? 0 : 45;
 
             // Sprites
-            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 26 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 54 + yy1, cr[CR_GRAY]);
             M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 26 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 54 + yy1, cr[CR_GREEN_HX]);
 
             // Segments
-            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 36 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 64 + yy1, cr[CR_GRAY]);
             M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 36 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 64 + yy1, cr[CR_GREEN_HX]);
 
             // Openings
-            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 46 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 74 + yy1, cr[CR_GRAY]);
             M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 46 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 74 + yy1, cr[CR_GREEN_HX]);
 
             // Planes
-            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 56 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 84 + yy1, cr[CR_GRAY]);
             M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 56 + yy1, cr[CR_GREEN]);
+            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 84 + yy1, cr[CR_GREEN_HX]);
         }
-
-*/
 
         // Player coords
         if (widget_coords == 1
@@ -249,35 +209,6 @@ void ID_LeftWidgets (void)
         {
             yy -= 10;
         }
-
-/*
-        // Total time. Time gathered in G_Ticker.
-        if (widget_totaltime == 1
-        || (widget_totaltime == 2 && automapactive))
-        {
-            char stra[8];
-
-            sprintf(stra, "TOTAL ");
-            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
-            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 146 + yy, cr[CR_LIGHTGRAY]);
-        }
-
-        if (widget_totaltime)
-        {
-            yy -= 10;
-        }
-
-        // Level / DeathMatch timer. Time gathered in G_Ticker.
-        if (widget_time == 1
-        || (widget_time == 2 && automapactive))
-        {
-            char stra[8];
-
-            sprintf(stra, "TIME ");
-            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 146 + yy, cr[CR_GRAY]);
-            MN_DrTextA(ID_Level_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 146 + yy, cr[CR_LIGHTGRAY]);
-        }
-*/
     }
 }
 
@@ -330,13 +261,12 @@ void ID_RightWidgets (void)
 //  [JN] Indicates and colorizes current target's health.
 // -----------------------------------------------------------------------------
 
-    /*
 static byte *ID_HealthColor (const int val1, const int val2)
 {
     return
         val1 <= val2/4 ? cr[CR_RED]    :
         val1 <= val2/2 ? cr[CR_YELLOW] :
-                         cr[CR_GREEN]  ;
+                         cr[CR_GREEN_HX]  ;
 }
 
 void ID_DrawTargetsHealth (void)
@@ -379,7 +309,6 @@ void ID_DrawTargetsHealth (void)
                                                     player->targetsmaxheath));
     }
 }
-*/
 
 // =============================================================================
 //

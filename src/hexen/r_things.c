@@ -25,6 +25,9 @@
 #include "r_local.h"
 #include "v_trans.h" // [crispy] blending functions
 
+#include "id_func.h"
+
+
 //void R_DrawTranslatedAltTLColumn(void);
 
 typedef struct
@@ -1210,7 +1213,9 @@ void R_DrawMasked (void)
         }
     }
 
-    // [JN] TODO - IDRender.numsprites = num_vissprite;
+    // draw all vissprites back to front
+
+    IDRender.numsprites = num_vissprite;
     for (i = num_vissprite ; --i>=0 ; )
     {
         vissprite_t* spr = vissprite_ptrs[i];

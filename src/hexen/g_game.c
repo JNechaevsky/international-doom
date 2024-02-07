@@ -1500,6 +1500,7 @@ void G_PlayerExitMap(int playerNumber)
         player->morphTics = 0;
     }
     player->messageTics = 0;
+    player->targetsheathTics = 0;
     player->lookdir = 0;
     player->mo->flags &= ~MF_SHADOW;    // Remove invisibility
     player->extralight = 0;     // Remove weapon flashes
@@ -1552,6 +1553,7 @@ void G_PlayerReborn(int player)
     p->readyweapon = p->pendingweapon = WP_FIRST;
     p->weaponowned[WP_FIRST] = true;
     p->messageTics = 0;
+    p->targetsheathTics = 0;
     p->lookdir = 0;
     localQuakeHappening[player] = false;
     if (p == &players[consoleplayer])
