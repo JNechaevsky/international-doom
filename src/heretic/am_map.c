@@ -296,8 +296,8 @@ static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
     { 40,  40,  41,  41,  42,  42,  43,  43},   // MLDONTDRAW1
     { 40,  40,  41,  41,  42,  42,  43,  43},   // MLDONTDRAW2
     {143, 143, 142, 142, 141, 141, 141, 141},   // YELLOWKEY
-    {220, 220, 219, 219, 218, 218, 217, 217},   // GREENKEY
-    {197, 197, 196, 196, 195, 195, 194, 194},   // BLUEKEY
+    {223, 223, 222, 222, 221, 221, 220, 220},   // GREENKEY
+    {197, 197, 197, 196, 196, 196, 195, 195},   // BLUEKEY
     {173, 173, 173, 173, 173, 173, 173, 173},   // SECRETCOLORS
     {182, 182, 182, 182, 181, 181, 181, 181},   // EXITS
     // IDDT extended colors
@@ -323,8 +323,8 @@ static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
     { 40,  39,  39,  38,  38,  37,  37,  36},   // MLDONTDRAW1
     { 43,  42,  41,  40,  39,  38,  37,  36},   // MLDONTDRAW2
     {143, 143, 142, 142, 141, 141, 140, 140},   // YELLOWKEY
-    {220, 219, 218, 217, 216, 215, 214, 213},   // GREENKEY
-    {197, 197, 196, 196, 195, 195, 194, 194},   // BLUEKEY
+    {223, 222, 221, 220, 219, 218, 217, 216},   // GREENKEY
+    {198, 198, 197, 197, 196, 196, 195, 195},   // BLUEKEY
     {175, 175, 174, 174, 173, 173, 172, 172},   // SECRETCOLORS
     {182, 182, 181, 181, 180, 180, 179, 179},   // EXITS
     // IDDT extended colors
@@ -2221,20 +2221,40 @@ static void AM_drawMarks (void)
 
 void AM_drawkeys(void)
 {
+    mpoint_t pt;
+
     if (KeyPoints[0].x != 0 || KeyPoints[0].y != 0)
     {
+        pt.x = KeyPoints[0].x >> FRACTOMAPBITS;
+        pt.y = KeyPoints[0].y >> FRACTOMAPBITS;
+        if (automap_rotate)
+        {
+            AM_rotatePoint(&pt);
+        }
         AM_drawLineCharacter(keysquare, NUMKEYSQUARELINES, 0, 0, YELLOWKEY,
-                             KeyPoints[0].x, KeyPoints[0].y);
+                             pt.x, pt.y);
     }
     if (KeyPoints[1].x != 0 || KeyPoints[1].y != 0)
     {
+        pt.x = KeyPoints[1].x >> FRACTOMAPBITS;
+        pt.y = KeyPoints[1].y >> FRACTOMAPBITS;
+        if (automap_rotate)
+        {
+            AM_rotatePoint(&pt);
+        }
         AM_drawLineCharacter(keysquare, NUMKEYSQUARELINES, 0, 0, GREENKEY,
-                             KeyPoints[1].x, KeyPoints[1].y);
+                             pt.x, pt.y);
     }
     if (KeyPoints[2].x != 0 || KeyPoints[2].y != 0)
     {
+        pt.x = KeyPoints[2].x >> FRACTOMAPBITS;
+        pt.y = KeyPoints[2].y >> FRACTOMAPBITS;
+        if (automap_rotate)
+        {
+            AM_rotatePoint(&pt);
+        }
         AM_drawLineCharacter(keysquare, NUMKEYSQUARELINES, 0, 0, BLUEKEY,
-                             KeyPoints[2].x, KeyPoints[2].y);
+                             pt.x, pt.y);
     }
 }
 
