@@ -441,6 +441,13 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
             ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT - 8));
     }
 
+    if (vis->mobjflags & MF_EXTRATRANS && vis_translucency)
+    {
+        // [JN] Extra translucency feature.
+        colfunc = extratlcolfunc;
+        blendfunc = vis->blendfunc;
+    }
+
     dc_iscale = abs(vis->xiscale) >> detailshift;
     dc_texturemid = vis->texturemid;
     frac = vis->startfrac;
@@ -693,6 +700,19 @@ void R_ProjectSprite(mobj_t * thing)
         vis->blendfunc = I_BlendOverAltTinttab;
     }
 #endif
+
+    // [JN] Extra translucency. Draw full bright sprites with 
+    // different functions, depending on user's choice.
+    if (thing->flags & MF_EXTRATRANS)
+    {
+        vis->blendfunc = 
+            (thing->frame & FF_FULLBRIGHT) ? (vis_translucency == 1 ?
+#ifndef CRISPY_TRUECOLOR
+            addmap : tintmap) : tintmap;
+#else
+            I_BlendAdd : I_BlendOverExtra) : I_BlendOverExtra;
+#endif
+    }
 }
 
 

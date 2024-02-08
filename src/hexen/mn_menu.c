@@ -2812,12 +2812,10 @@ static void M_Draw_ID_Gameplay_1 (void)
                M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
 
     // Translucency
-    /*
     sprintf(str, vis_translucency == 1 ? "ADDITIVE" :
                  vis_translucency == 2 ? "BLENDING" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Diminished lighting
     sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
@@ -2884,9 +2882,7 @@ static void M_ID_Brightmaps (int choice)
 
 static void M_ID_Translucency (int choice)
 {
-    /*
     vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
-    */
 }
 
 static void M_ID_SmoothLightingHook (void)
