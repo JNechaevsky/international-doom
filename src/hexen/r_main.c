@@ -94,6 +94,7 @@ void (*colfunc) (void);
 void (*basecolfunc) (void);
 void (*tlcolfunc) (void);
 void (*transcolfunc) (void);
+void (*extratlcolfunc) (void);
 void (*spanfunc) (void);
 
 void SB_ForceRedraw(void); // [crispy] sb_bar.c
@@ -736,6 +737,7 @@ void R_ExecuteSetViewSize(void)
         colfunc = basecolfunc = R_DrawColumn;
         tlcolfunc = R_DrawTLColumn;
         transcolfunc = R_DrawTranslatedColumn;
+        extratlcolfunc = R_DrawExtraTLColumn;
         spanfunc = R_DrawSpan;
     }
     else
@@ -743,6 +745,7 @@ void R_ExecuteSetViewSize(void)
         colfunc = basecolfunc = R_DrawColumnLow;
         tlcolfunc = R_DrawTLColumn;
         transcolfunc = R_DrawTranslatedColumn;
+        extratlcolfunc = R_DrawExtraTLColumnLow;
         spanfunc = R_DrawSpanLow;
     }
 
