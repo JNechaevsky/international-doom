@@ -4361,7 +4361,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      1,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (explosion of Porkalator missile)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -8978,7 +8979,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (red flash of teleport)
      0                          // flags2
      },
 
@@ -9005,7 +9007,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (red fog of teleport)
      0                          // flags2
      },
 
@@ -9140,7 +9143,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Timon's axe blue flash)
      0                          // flags2
      },
 
@@ -9221,7 +9225,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      10,                        // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS | MF2_FIREDAMAGE  // flags2
      },
 
@@ -9275,7 +9279,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      8,                         // damage
      SFX_NONE,                  // activesound
-     MF_MISSILE | MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF,    // flags
+     MF_MISSILE | MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Quietus big green smoke)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS   // flags2
      },
 
@@ -9356,7 +9361,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      5,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Serpent Staff missile)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS   // flags2
      },
 
@@ -9518,7 +9524,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      2,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Firestorm small flames, appearing on impact only)
      MF2_NOTELEPORT | MF2_FIREDAMAGE    // flags2
      },
 
@@ -9545,7 +9552,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      8,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Firestorm big flame)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS | MF2_DONTDRAW | MF2_FIREDAMAGE   // flags2
      },
 
@@ -9761,7 +9769,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      2,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Sapphire want missile)
      MF2_NOTELEPORT | MF2_RIP | MF2_IMPACT | MF2_PCROSS | MF2_NODMGTHRUST | MF2_CANNOTPUSH      // flags2
      },
 
@@ -9815,7 +9824,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      8,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_MISSILE | MF_DROPOFF,    // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_MISSILE | MF_DROPOFF |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Arc of Death top lightning)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS   // flags2
      },
 
@@ -9842,7 +9852,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      8,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_MISSILE | MF_DROPOFF,    // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_MISSILE | MF_DROPOFF |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Arc of Death bottom lightning)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS   // flags2
      },
 
@@ -9869,7 +9880,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      2,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_MISSILE | MF_DROPOFF,    // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_MISSILE | MF_DROPOFF |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Arc of Death middle lightning)
      0                          // flags2
      },
 
@@ -9896,7 +9908,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      6,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
      MF2_NOTELEPORT | MF2_FIREDAMAGE | MF2_RIP | MF2_IMPACT | MF2_PCROSS        // flags2
      },
 
@@ -9923,7 +9935,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      4,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Bloodscourge explosion)
      MF2_NOTELEPORT | MF2_FIREDAMAGE | MF2_IMPACT | MF2_PCROSS | MF2_SEEKERMISSILE      // flags2
      },
 
@@ -10247,7 +10260,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      1,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Frost Shards missile and puff)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS | MF2_ICEDAMAGE   // flags2
      },
 
@@ -10625,7 +10639,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      4,                         // damage
      SFX_NONE,                  // activesound
-     MF_MISSILE | MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF,    // flags
+     MF_MISSILE | MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Slaugtaur missile)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS   // flags2
      },
 
@@ -10868,7 +10883,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      5,                         // damage
      SFX_NONE,                  // activesound
-     MF_MISSILE | MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF,    // flags
+     MF_MISSILE | MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Green Chaos Seprent fireball)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS | MF2_FIREDAMAGE  // flags2
      },
 
@@ -11138,7 +11154,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      5,                         // mass
      5,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF | MF_MISSILE,    // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF | MF_MISSILE |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Reiver fireball)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS | MF2_FLOORCLIP | MF2_FIREDAMAGE  // flags2
      },
 
@@ -11732,7 +11749,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      1,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Dark Bishop missile)
      MF2_NOTELEPORT | MF2_SEEKERMISSILE // flags2
      },
 
@@ -11786,7 +11804,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      6,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Death Wyvern fireball)
      MF2_NOTELEPORT | MF2_FIREDAMAGE    // flags2
      },
 
@@ -12650,7 +12669,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      15,                        // mass
      1,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF | MF_MISSILE,    // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF | MF_MISSILE |    // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Affrit fireballs)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS | MF2_FLOORCLIP | MF2_FIREDAMAGE  // flags2
      },
 
@@ -13055,7 +13075,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE,        // flags
+     MF_NOBLOCKMAP | MF_MISSILE |        // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Heresiarch attack)
      MF2_NOTELEPORT | MF2_FLOORBOUNCE   // flags2
      },
 
@@ -13082,7 +13103,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Heresiarch attack)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -13136,7 +13158,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE,        // flags
+     MF_NOBLOCKMAP | MF_MISSILE |        // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Heresiarch attack)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -13190,7 +13213,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_NOGRAVITY, // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_NOGRAVITY | // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Heresiarch attack)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -13217,7 +13241,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_DROPOFF,        // flags
+     MF_NOBLOCKMAP | MF_DROPOFF |        // flags
+     MF_EXTRATRANS,             // [JN] Extra translucency (Heresiarch attack)
      MF2_NOTELEPORT | MF2_LOGRAV        // flags2
      },
 
