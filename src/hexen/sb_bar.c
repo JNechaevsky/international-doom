@@ -985,7 +985,7 @@ enum
     hudcolor_armor,
     hudcolor_mana_blue,
     hudcolor_mana_green,
-    // [JN] TODO - hudcolor_frags ?
+    hudcolor_frags,
 } hudcolor_t;
 
 static byte *SB_NumberColor (int i)
@@ -1082,6 +1082,19 @@ static byte *SB_NumberColor (int i)
             {
                 return cr[CR_RED];
             }
+        }
+        break;
+
+        case hudcolor_frags:
+        {
+            const int frags = CPlayer->frags[displayplayer];
+
+            if (frags < 0)
+                return cr[CR_RED];
+            else if (frags == 0)
+                return cr[CR_YELLOW];
+            else
+                return cr[CR_GREEN];
         }
         break;
     }
@@ -1632,21 +1645,23 @@ static void DrawFullScreenStuff(void)
             V_DrawShadowedPatch(81 - wide_x, 177, (patch_t*)id_armor_icon);
         }
 
-        /*
-        // [JN] TODO?
+        // Frags.
         if (deathmatch)
         {
             int temp = 0;
-            for (i = 0; i < maxplayers; i++)
+
+            for (i = 0 ; i < maxplayers ; i++)
             {
                 if (playeringame[i])
                 {
                     temp += CPlayer->frags[i];
                 }
             }
-            DrINumber(temp, 45, 185);
+
+            dp_translation = SB_NumberColor(hudcolor_frags);
+            DrINumber(temp, 111 - wide_x, 178);
+            dp_translation = NULL;
         }
-        */
 
         // Ready artifact.
         if (CPlayer->readyArtifact > 0)
@@ -1662,12 +1677,11 @@ static void DrawFullScreenStuff(void)
     else
     {
         int x = inv_ptr - curpos;
-        for (i = 0; i < 7; i++)
+
+        for (i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(50 + i * 31, 168, W_CacheLumpName("ARTIBOX",
-                                                            PU_CACHE));
-            if (CPlayer->inventorySlotNum > x + i
-                && CPlayer->inventory[x + i].type != arti_none)
+            V_DrawTLPatch(50 + i * 31, 168, W_CacheLumpName("ARTIBOX", PU_CACHE));
+            if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
                 V_DrawPatch(49 + i * 31, 167,
                             W_CacheLumpName(patcharti
@@ -1680,7 +1694,9 @@ static void DrawFullScreenStuff(void)
                 }
             }
         }
+
         V_DrawPatch(50 + curpos * 31, 167, PatchSELECTBOX);
+
         if (x != 0)
         {
             V_DrawPatch(40, 167, !(leveltime & 4) ? PatchINVLFGEM1 :
