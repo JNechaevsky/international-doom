@@ -5009,6 +5009,9 @@ void MN_DrawInfo(void)
 
     V_DrawFullscreenRawOrPatch(lumpindex);
 
+    // [JN] Always refresh statbar while drawing full screen graphics.
+    SB_ForceRedraw();
+
 //      V_DrawPatch(0, 0, W_CacheLumpNum(W_GetNumForName("TITLE")+InfoType,
 //              PU_CACHE));
 }
