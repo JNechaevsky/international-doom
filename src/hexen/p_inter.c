@@ -20,6 +20,7 @@
 #include "m_misc.h"
 #include "m_random.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "p_local.h"
 #include "s_sound.h"
 
@@ -278,6 +279,11 @@ static void TryPickupWeapon(player_t * player, pclass_t weaponClass,
     }
 
     player->bonuscount += BONUSADD;
+    // [JN] Limit bonus palette duration to 4 seconds.
+    if (player->bonuscount > 4 * TICRATE)
+    {
+        player->bonuscount = 4 * TICRATE;
+    }
     if (player == &players[consoleplayer])
     {
         S_StartSound(NULL, SFX_PICKUP_WEAPON);
@@ -1339,6 +1345,10 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
         target->player->powers[pw_flight] = 0;
         target->player->playerstate = PST_DEAD;
         P_DropWeapon(target->player);
+        // [JN] & [crispy] Reset the yellow bonus palette when the player dies
+        target->player->bonuscount = 0;
+        // [JN] & [crispy] Remove torch effect
+        target->player->fixedcolormap = 0;
         if (target->flags2 & MF2_FIREDAMAGE)
         {                       // Player flame death
             switch (target->player->class)
