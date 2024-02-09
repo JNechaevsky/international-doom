@@ -1666,32 +1666,32 @@ static void DrawFullScreenStuff(void)
     // [JN] Draw amount of current mana.
     if (CPlayer->readyweapon == WP_FIRST)
     {
-        V_DrawShadowedPatch(301 + wide_x, 170, PatchMANADIM1);
-        V_DrawShadowedPatch(301 + wide_x, 184, PatchMANADIM2);
+        V_DrawShadowedPatch(302 + wide_x, 170, PatchMANADIM1);
+        V_DrawShadowedPatch(302 + wide_x, 184, PatchMANADIM2);
     }
     else if (CPlayer->readyweapon == WP_SECOND)
     {
-        V_DrawShadowedPatch(301 + wide_x, 170, PatchMANABRIGHT1);
-        V_DrawShadowedPatch(301 + wide_x, 184, PatchMANADIM2);
+        V_DrawShadowedPatch(302 + wide_x, 170, PatchMANABRIGHT1);
+        V_DrawShadowedPatch(302 + wide_x, 184, PatchMANADIM2);
     }
     else if (CPlayer->readyweapon == WP_THIRD)
     {
-        V_DrawShadowedPatch(301 + wide_x, 170, PatchMANADIM1);
-        V_DrawShadowedPatch(301 + wide_x, 184, PatchMANABRIGHT2);
+        V_DrawShadowedPatch(302 + wide_x, 170, PatchMANADIM1);
+        V_DrawShadowedPatch(302 + wide_x, 184, PatchMANABRIGHT2);
     }
     else
     {
-        V_DrawShadowedPatch(301 + wide_x, 170, PatchMANABRIGHT1);
-        V_DrawShadowedPatch(301 + wide_x, 184, PatchMANABRIGHT2);
+        V_DrawShadowedPatch(302 + wide_x, 170, PatchMANABRIGHT1);
+        V_DrawShadowedPatch(302 + wide_x, 184, PatchMANABRIGHT2);
     }
 
     // [JN] Draw mana points, colorize if necessary. Do not draw negative values.
     dp_translation = SB_NumberColor(hudcolor_mana_blue);
-    DrINumber(CPlayer->mana[0] >= 0 ? CPlayer->mana[0] : 0, 273 + wide_x, 170);
+    DrINumber(CPlayer->mana[0] >= 0 ? CPlayer->mana[0] : 0, 274 + wide_x, 170);
     dp_translation = NULL;
 
     dp_translation = SB_NumberColor(hudcolor_mana_green);
-    DrINumber(CPlayer->mana[1] >= 0 ? CPlayer->mana[1] : 0, 273 + wide_x, 184); 
+    DrINumber(CPlayer->mana[1] >= 0 ? CPlayer->mana[1] : 0, 274 + wide_x, 184); 
     dp_translation = NULL;
 }
 
