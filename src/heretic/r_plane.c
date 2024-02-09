@@ -621,11 +621,10 @@ void R_DrawPlanes (void)
         //
         // regular flat
         //
-        swirling = flattranslation[pl->picnum] == -1;
-        if (!swirling) // [crispy] adapt swirl from src/doom to src/heretic
-        {
-        lumpnum = firstflat + flattranslation[pl->picnum];
 
+        // [crispy] adapt swirl from src/doom to src/heretic
+        swirling = flattranslation[pl->picnum] == -1;
+        lumpnum = firstflat + flattranslation[pl->picnum];
         tempSource = W_CacheLumpNum(lumpnum, PU_STATIC);
 
         // [crispy] Use old value of interpfactor if uncapped and paused. This
@@ -658,7 +657,6 @@ void R_DrawPlanes (void)
             case 29:           // Scroll_North
                 xsmoothscrolloffset = 0;
                 ysmoothscrolloffset = FLATSCROLL(pl->special - 25);
-                ds_source = tempSource;
                 break;
             case 20:
             case 21:
@@ -671,8 +669,6 @@ void R_DrawPlanes (void)
                 // animation, unwanted visplane merging of adjacent flats with different scrollers)
                 xsmoothscrolloffset = -FLATSCROLL(pl->special - 20);
                 ysmoothscrolloffset = 0;
-                ds_source = tempSource;
-                //ds_source = tempSource+((leveltime>>1)&63);
                 break;
             case 30:
             case 31:
@@ -681,7 +677,6 @@ void R_DrawPlanes (void)
             case 34:           // Scroll_South
                 xsmoothscrolloffset = 0;
                 ysmoothscrolloffset = -FLATSCROLL(pl->special - 30);
-                ds_source = tempSource;
                 break;
             case 35:
             case 36:
@@ -690,27 +685,20 @@ void R_DrawPlanes (void)
             case 39:           // Scroll_West
                 xsmoothscrolloffset = FLATSCROLL(pl->special - 35);
                 ysmoothscrolloffset = 0;
-                ds_source = tempSource;
                 break;
             case 4:            // Scroll_EastLavaDamage
                 // [crispy] calculation moved from tempSource, see Scroll_East above
                 xsmoothscrolloffset = -FLATSCROLL(3);
                 ysmoothscrolloffset = 0;
-                ds_source = tempSource;
                 break;
             default:
                 xsmoothscrolloffset = 0;
                 ysmoothscrolloffset = 0;
-                ds_source = tempSource;
+                break;
         }
-        }
-        else
-        {
-            lumpnum = firstflat+pl->picnum;
-            xsmoothscrolloffset = 0;
-            ysmoothscrolloffset = 0;
-            ds_source = R_DistortedFlat(lumpnum);
-        }
+
+        lumpnum = firstflat+pl->picnum;
+        ds_source = swirling ? R_DistortedFlat(lumpnum) : tempSource;
         ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
         planeheight = abs(pl->height - viewz);
         light = (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);

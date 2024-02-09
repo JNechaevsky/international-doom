@@ -208,7 +208,7 @@ static animdef_t animdefs_swirling[] = {
     {false, "FLTWAWA3", "FLTWAWA1", 65536}, // Water
     {false, "FLTSLUD3", "FLTSLUD1", 65536}, // Sludge
     {false, "FLTTELE4", "FLTTELE1", 6}, // Teleport
-    {false, "FLTFLWW3", "FLTFLWW1", 9}, // River - West
+    {false, "FLTFLWW3", "FLTFLWW1", 65536}, // River - West
     {false, "FLTLAVA4", "FLTLAVA1", 8}, // Lava
     {false, "FLATHUH4", "FLATHUH1", 65536}, // Super Lava
     {true, "LAVAFL3", "LAVAFL1", 6},    // Texture: Lavaflow
