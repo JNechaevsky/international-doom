@@ -4037,17 +4037,8 @@ static void SCSkill(int option)
 
 static void SCMouseSensi(int option)
 {
-    if (option == RIGHT_DIR)
-    {
-        if (mouseSensitivity < 9)
-        {
-            mouseSensitivity++;
-        }
-    }
-    else if (mouseSensitivity)
-    {
-        mouseSensitivity--;
-    }
+    // [crispy] extended range
+    mouseSensitivity = M_INT_Slider(mouseSensitivity, 0, 255, option, true);
 }
 
 //---------------------------------------------------------------------------
