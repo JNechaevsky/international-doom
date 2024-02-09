@@ -422,12 +422,7 @@ R_MakeSpans
 
 void R_DrawPlanes (void)
 {
-    int light;
     int x;
-    int lumpnum;
-    byte *tempSource;
-    boolean swirling;
-
     int count;
     fixed_t frac, fracstep;
     int heightmask; // [crispy]
@@ -614,108 +609,108 @@ void R_DrawPlanes (void)
                 }
             }
         }
-        else
+        else  // regular flat
         {
+            int light = (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);
+            const boolean swirling = (flattranslation[pl->picnum] == -1);
             const int stop = pl->maxx + 1;
-            
-        //
-        // regular flat
-        //
+            const int lumpnum = firstflat + (swirling ? pl->picnum : flattranslation[pl->picnum]);
 
-        // [crispy] adapt swirl from src/doom to src/heretic
-        swirling = flattranslation[pl->picnum] == -1;
-        lumpnum = firstflat + flattranslation[pl->picnum];
-        tempSource = W_CacheLumpNum(lumpnum, PU_STATIC);
+            // [crispy] adapt swirl from src/doom to src/heretic
+            ds_source = swirling ? R_DistortedFlat(lumpnum) : W_CacheLumpNum(lumpnum, PU_STATIC);
+            ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
 
-        // [crispy] Use old value of interpfactor if uncapped and paused. This
-        // ensures that scrolling stops smoothly when pausing.
-        if (vid_uncapped_fps && realleveltime > oldleveltime && !crl_freeze)
-        {
-            // [crispy] Scrolling normally advances every *other* gametic, so
-            // interpolation needs to span two tics
-            if (leveltime & 1)
+            // [crispy] Use old value of interpfactor if uncapped and paused. This
+            // ensures that scrolling stops smoothly when pausing.
+            if (vid_uncapped_fps && realleveltime > oldleveltime && !crl_freeze)
             {
-                interpfactor = (FRACUNIT + fractionaltic) >> 1;
+                // [crispy] Scrolling normally advances every *other* gametic, so
+                // interpolation needs to span two tics
+                if (leveltime & 1)
+                {
+                    interpfactor = (FRACUNIT + fractionaltic) >> 1;
+                }
+                else
+                {
+                    interpfactor = fractionaltic >> 1;
+                }
             }
-            else
+            else if (!vid_uncapped_fps)
             {
-                interpfactor = fractionaltic >> 1;
+                interpfactor = 0;
             }
-        }
-        else if (!vid_uncapped_fps)
-        {
-            interpfactor = 0;
-        }
 
-        //[crispy] use smoothscrolloffsets to unconditonally animate all scrolling floors
-        switch (pl->special)
-        {
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:           // Scroll_North
-                xsmoothscrolloffset = 0;
-                ysmoothscrolloffset = FLATSCROLL(pl->special - 25);
-                break;
-            case 20:
-            case 21:
-            case 22:
-            case 23:
-            case 24:           // Scroll_East
-                // [crispy] vanilla Heretic animates Eastward scrollers by adding to tempSource.
-                // this directly offsets the position the flat is read from, and results in
-                // visual artifacts (tutti-frutti on flats that aren't at least 65px tall, jittery
-                // animation, unwanted visplane merging of adjacent flats with different scrollers)
-                xsmoothscrolloffset = -FLATSCROLL(pl->special - 20);
-                ysmoothscrolloffset = 0;
-                break;
-            case 30:
-            case 31:
-            case 32:
-            case 33:
-            case 34:           // Scroll_South
-                xsmoothscrolloffset = 0;
-                ysmoothscrolloffset = -FLATSCROLL(pl->special - 30);
-                break;
-            case 35:
-            case 36:
-            case 37:
-            case 38:
-            case 39:           // Scroll_West
-                xsmoothscrolloffset = FLATSCROLL(pl->special - 35);
-                ysmoothscrolloffset = 0;
-                break;
-            case 4:            // Scroll_EastLavaDamage
-                // [crispy] calculation moved from tempSource, see Scroll_East above
-                xsmoothscrolloffset = -FLATSCROLL(3);
-                ysmoothscrolloffset = 0;
-                break;
-            default:
-                xsmoothscrolloffset = 0;
-                ysmoothscrolloffset = 0;
-                break;
-        }
+            //[crispy] use smoothscrolloffsets to unconditonally animate all scrolling floors
+            switch (pl->special)
+            {
+                case 25:
+                case 26:
+                case 27:
+                case 28:
+                case 29:           // Scroll_North
+                    xsmoothscrolloffset = 0;
+                    ysmoothscrolloffset = FLATSCROLL(pl->special - 25);
+                    break;
+                case 20:
+                case 21:
+                case 22:
+                case 23:
+                case 24:           // Scroll_East
+                    // [crispy] vanilla Heretic animates Eastward scrollers by adding to tempSource.
+                    // this directly offsets the position the flat is read from, and results in
+                    // visual artifacts (tutti-frutti on flats that aren't at least 65px tall, jittery
+                    // animation, unwanted visplane merging of adjacent flats with different scrollers)
+                    xsmoothscrolloffset = -FLATSCROLL(pl->special - 20);
+                    ysmoothscrolloffset = 0;
+                    break;
+                case 30:
+                case 31:
+                case 32:
+                case 33:
+                case 34:           // Scroll_South
+                    xsmoothscrolloffset = 0;
+                    ysmoothscrolloffset = -FLATSCROLL(pl->special - 30);
+                    break;
+                case 35:
+                case 36:
+                case 37:
+                case 38:
+                case 39:           // Scroll_West
+                    xsmoothscrolloffset = FLATSCROLL(pl->special - 35);
+                    ysmoothscrolloffset = 0;
+                    break;
+                case 4:            // Scroll_EastLavaDamage
+                    // [crispy] calculation moved from tempSource, see Scroll_East above
+                    xsmoothscrolloffset = -FLATSCROLL(3);
+                    ysmoothscrolloffset = 0;
+                    break;
+                default:
+                    xsmoothscrolloffset = 0;
+                    ysmoothscrolloffset = 0;
+                    break;
+            }
 
-        lumpnum = firstflat+pl->picnum;
-        ds_source = swirling ? R_DistortedFlat(lumpnum) : tempSource;
-        ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
-        planeheight = abs(pl->height - viewz);
-        light = (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);
-        if (light >= LIGHTLEVELS)
-            light = LIGHTLEVELS - 1;
-        if (light < 0)
-            light = 0;
-        planezlight = zlight[light];
+            planeheight = abs(pl->height-viewz);
+            if (light >= LIGHTLEVELS)
+            {
+                light = LIGHTLEVELS-1;
+            }
+            if (light < 0)
+            {
+                light = 0;
+            }
+            planezlight = zlight[light];
+            pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
 
-        pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
+            for (int x = pl->minx ; x <= stop ; x++)
+            {
+                R_MakeSpans(x,pl->top[x-1], pl->bottom[x-1], pl->top[x], pl->bottom[x]);
+            }
 
-        for (x = pl->minx; x <= stop; x++)
-            R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
-                        pl->bottom[x]);
-
-        if (!swirling)
-        W_ReleaseLumpNum(lumpnum);
+            if (!swirling)
+            {
+                W_ReleaseLumpNum(lumpnum);
+            }
         }
     }
 }
