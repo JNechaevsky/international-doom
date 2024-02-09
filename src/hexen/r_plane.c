@@ -442,11 +442,7 @@ void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2, unsig
 
 void R_DrawPlanes(void)
 {
-    int light;
     int x;
-    int lumpnum;
-    boolean swirling;
-    byte *tempSource;
     byte *source;
     byte *source2;
     pixel_t *dest;
@@ -575,7 +571,6 @@ void R_DrawPlanes(void)
                         }
                     }
                 }
-                continue;       // Next visplane
             }
             else
             {                   // Render single layer
@@ -659,118 +654,116 @@ void R_DrawPlanes(void)
                         }
                     }
                 }
-                continue;       // Next visplane
             }
         }
-        else
+        else  // regular flat
         {
+            int light = (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);
+            const boolean swirling = (flattranslation[pl->picnum] == -1);
             const int stop = pl->maxx + 1;
+            const int lumpnum = firstflat + (swirling ? pl->picnum : flattranslation[pl->picnum]);
 
-        // Regular flat
-        // [JN] add support for SMMU swirling flats
-        swirling = flattranslation[pl->picnum] == -1;
-        lumpnum = firstflat + flattranslation[pl->picnum];
-        tempSource = W_CacheLumpNum(lumpnum, PU_STATIC);
+            // [crispy] adapt swirl from src/doom to src/hexen
+            ds_source = swirling ? R_DistortedFlat(lumpnum) : W_CacheLumpNum(lumpnum, PU_STATIC);
 
-        // [crispy] Use old value of interpfactor if uncapped and paused. This
-        // ensures that scrolling stops smoothly when pausing.
-        if (vid_uncapped_fps && realleveltime > oldleveltime && !crl_freeze)
-        {
-            // [crispy] Scrolling normally advances every *other* gametic, so
-            // interpolation needs to span two tics
-            if (leveltime & 1)
+            // [crispy] Use old value of interpfactor if uncapped and paused. This
+            // ensures that scrolling stops smoothly when pausing.
+            if (vid_uncapped_fps && realleveltime > oldleveltime && !crl_freeze)
             {
-                interpfactor = (FRACUNIT + fractionaltic) >> 1;
+                // [crispy] Scrolling normally advances every *other* gametic, so
+                // interpolation needs to span two tics
+                if (leveltime & 1)
+                {
+                    interpfactor = (FRACUNIT + fractionaltic) >> 1;
+                }
+                else
+                {
+                    interpfactor = fractionaltic >> 1;
+                }
             }
-            else
+            else if (!vid_uncapped_fps)
             {
-                interpfactor = fractionaltic >> 1;
+                interpfactor = 0;
             }
-        }
-        else if (!vid_uncapped_fps)
-        {
-            interpfactor = 0;
-        }
 
-        //[crispy] use smoothscrolloffsets to unconditonally animate all scrolling floors
-        switch (pl->special)
-        {                       // Handle scrolling flats
-            case 201:
-            case 202:
-            case 203:          // Scroll_North_xxx
-                xsmoothscrolloffset = 0;
-                ysmoothscrolloffset = FLATSCROLL(pl->special - 201);
-                break;
-            case 204:
-            case 205:
-            case 206:          // Scroll_East_xxx
-                xsmoothscrolloffset = -FLATSCROLL(pl->special - 204);
-                ysmoothscrolloffset = 0;
-                break;
-            case 207:
-            case 208:
-            case 209:          // Scroll_South_xxx
-                xsmoothscrolloffset = 0;
-                ysmoothscrolloffset = -FLATSCROLL(pl->special - 207);
-                break;
-            case 210:
-            case 211:
-            case 212:          // Scroll_West_xxx
-                xsmoothscrolloffset = FLATSCROLL(pl->special - 210);
-                ysmoothscrolloffset = 0;
-                break;
-            case 213:
-            case 214:
-            case 215:          // Scroll_NorthWest_xxx
-                xsmoothscrolloffset = FLATSCROLL(pl->special - 213);
-                ysmoothscrolloffset = FLATSCROLL(pl->special - 213);
-                break;
-            case 216:
-            case 217:
-            case 218:          // Scroll_NorthEast_xxx
-                xsmoothscrolloffset = -FLATSCROLL(pl->special - 216);
-                ysmoothscrolloffset = FLATSCROLL(pl->special - 216);
-                break;
-            case 219:
-            case 220:
-            case 221:          // Scroll_SouthEast_xxx
-                xsmoothscrolloffset = -FLATSCROLL(pl->special - 219);
-                ysmoothscrolloffset = -FLATSCROLL(pl->special - 219);
-                break;
-            case 222:
-            case 223:
-            case 224:          // Scroll_SouthWest_xxx
-                xsmoothscrolloffset = FLATSCROLL(pl->special - 222);
-                ysmoothscrolloffset = -FLATSCROLL(pl->special - 222);
-                break;
-            default:
-                xsmoothscrolloffset = 0;
-                ysmoothscrolloffset = 0;
-                break;
-        }
+            //[crispy] use smoothscrolloffsets to unconditonally animate all scrolling floors
+            switch (pl->special)
+            {                       // Handle scrolling flats
+                case 201:
+                case 202:
+                case 203:          // Scroll_North_xxx
+                    xsmoothscrolloffset = 0;
+                    ysmoothscrolloffset = FLATSCROLL(pl->special - 201);
+                    break;
+                case 204:
+                case 205:
+                case 206:          // Scroll_East_xxx
+                    xsmoothscrolloffset = -FLATSCROLL(pl->special - 204);
+                    ysmoothscrolloffset = 0;
+                    break;
+                case 207:
+                case 208:
+                case 209:          // Scroll_South_xxx
+                    xsmoothscrolloffset = 0;
+                    ysmoothscrolloffset = -FLATSCROLL(pl->special - 207);
+                    break;
+                case 210:
+                case 211:
+                case 212:          // Scroll_West_xxx
+                    xsmoothscrolloffset = FLATSCROLL(pl->special - 210);
+                    ysmoothscrolloffset = 0;
+                    break;
+                case 213:
+                case 214:
+                case 215:          // Scroll_NorthWest_xxx
+                    xsmoothscrolloffset = FLATSCROLL(pl->special - 213);
+                    ysmoothscrolloffset = FLATSCROLL(pl->special - 213);
+                    break;
+                case 216:
+                case 217:
+                case 218:          // Scroll_NorthEast_xxx
+                    xsmoothscrolloffset = -FLATSCROLL(pl->special - 216);
+                    ysmoothscrolloffset = FLATSCROLL(pl->special - 216);
+                    break;
+                case 219:
+                case 220:
+                case 221:          // Scroll_SouthEast_xxx
+                    xsmoothscrolloffset = -FLATSCROLL(pl->special - 219);
+                    ysmoothscrolloffset = -FLATSCROLL(pl->special - 219);
+                    break;
+                case 222:
+                case 223:
+                case 224:          // Scroll_SouthWest_xxx
+                    xsmoothscrolloffset = FLATSCROLL(pl->special - 222);
+                    ysmoothscrolloffset = -FLATSCROLL(pl->special - 222);
+                    break;
+                default:
+                    xsmoothscrolloffset = 0;
+                    ysmoothscrolloffset = 0;
+                    break;
+            }
+        
+            planeheight = abs(pl->height-viewz);
+            if (light >= LIGHTLEVELS)
+            {
+                light = LIGHTLEVELS-1;
+            }
+            if (light < 0)
+            {
+                light = 0;
+            }
+            planezlight = zlight[light];
+            pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
 
-        lumpnum = firstflat+pl->picnum;
-        ds_source = swirling ? R_DistortedFlat(lumpnum) : tempSource;
-        planeheight = abs(pl->height - viewz);
-        light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
-        if (light >= LIGHTLEVELS)
-        {
-            light = LIGHTLEVELS - 1;
-        }
-        if (light < 0)
-        {
-            light = 0;
-        }
-        planezlight = zlight[light];
+            for (int x = pl->minx ; x <= stop ; x++)
+            {
+                R_MakeSpans(x,pl->top[x-1], pl->bottom[x-1], pl->top[x], pl->bottom[x]);
+            }
 
-        pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
-
-        for (x = pl->minx; x <= stop; x++)
-            R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
-                        pl->bottom[x]);
-
-        if (!swirling)
-        W_ReleaseLumpNum(lumpnum);
+            if (!swirling)
+            {
+                W_ReleaseLumpNum(lumpnum);
+            }
         }
     }
 }
