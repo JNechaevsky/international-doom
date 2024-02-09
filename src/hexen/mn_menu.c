@@ -547,7 +547,8 @@ static void M_ID_WeaponWidget (int choice);
 static void M_Draw_ID_Gameplay_2 (void);
 static void M_ID_Torque (int choice);
 static void M_ID_Breathing (int choice);
-static void M_ID_DefaulSkill (int choice);
+static void M_ID_DefaultClass (int choice);
+static void M_ID_DefaultSkill (int choice);
 static void M_ID_FlipLevels (int choice);
 static void M_ID_DemoTimer (int choice);
 static void M_ID_TimerDirection (int choice);
@@ -875,6 +876,13 @@ static byte *DefSkillColor (const int skill)
         skill == 4 ? cr[CR_RED]       :
                      NULL;
 }
+
+static char *const DefClassName[3] = 
+{
+    "FIGHTER" ,
+    "CLERIC"  ,
+    "MAGE"    ,
+};
 
 static char *const DefSkillName[5] = 
 {
@@ -2948,14 +2956,14 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,         0, MENU_NONE         },
     { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,      0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
-    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",         M_ID_DefaulSkill,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "DEFAULT PLAYER CLASS",        M_ID_DefaultClass,   0, MENU_NONE         },
+    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",         M_ID_DefaultSkill,   0, MENU_NONE         },
     { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY",    M_ID_FlipLevels,     0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
     { ITT_LRFUNC,  "SHOW DEMO TIMER",             M_ID_DemoTimer,      0, MENU_NONE         },
     { ITT_LRFUNC,  "TIMER DIRECTION",             M_ID_TimerDirection, 0, MENU_NONE         },
     { ITT_LRFUNC,  "SHOW PROGRESS BAR",           M_ID_ProgressBar,    0, MENU_NONE         },
     { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",         M_ID_InternalDemos,  0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
     { ITT_SETMENU, "", /*PREVIOUS PAGE >*/        NULL,                0, MENU_ID_GAMEPLAY1 },
@@ -2993,39 +3001,45 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     MN_DrTextACentered("GAMEPLAY", 40, cr[CR_YELLOW]);
 
+    // Default player class
+    M_snprintf(str, sizeof(str), "%s", DefClassName[gp_default_class]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, gp_default_class == 0 ? GLOW_GREEN :
+                              gp_default_class == 1 ? GLOW_BLUE : GLOW_RED));
+
     // Default skill level
     M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
                DefSkillColor(gp_default_skill));
 
     // Flip levels horizontally
     sprintf(str, gp_flip_levels ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               M_Item_Glow(4, gp_flip_levels ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, gp_flip_levels ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("DEMOS", 70, cr[CR_YELLOW]);
+    MN_DrTextACentered("DEMOS", 80, cr[CR_YELLOW]);
 
     // Show Demo timer
     sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
                  demo_timer == 2 ? "RECORDING" : 
                  demo_timer == 3 ? "ALWAYS" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Timer direction
-    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
     MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Timer direction
+    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+
     // Show progress bar
     sprintf(str, demo_bar ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 100,
-               M_Item_Glow(8, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
 
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
 
     MN_DrTextA("PREVIOUS PAGE", ID_MENU_LEFTOFFSET, 150,
                M_Item_Glow(13, GLOW_DARKGRAY));
@@ -3047,7 +3061,13 @@ static void M_ID_Breathing (int choice)
     phys_breathing ^= 1;
 }
 
-static void M_ID_DefaulSkill (int choice)
+static void M_ID_DefaultClass (int choice)
+{
+    gp_default_class = M_INT_Slider(gp_default_class, 0, 2, choice, false);
+    ClassMenu.oldItPos = gp_default_class;
+}
+
+static void M_ID_DefaultSkill (int choice)
 {
     gp_default_skill = M_INT_Slider(gp_default_skill, 0, 4, choice, false);
     SkillMenu.oldItPos = gp_default_skill;
@@ -3125,6 +3145,8 @@ void MN_Init(void)
 //      messageson = true;              // Set by defaults in .CFG
     MauloBaseLump = W_GetNumForName("FBULA0");  // ("M_SKL00");
 
+    // [JN] Apply default player class.
+    ClassMenu.oldItPos = gp_default_class;
     // [crispy] apply default difficulty
     SkillMenu.oldItPos = gp_default_skill;
 

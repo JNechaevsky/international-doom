@@ -539,6 +539,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(phys_breathing),
 
     // Gameplay
+    CONFIG_VARIABLE_INT(gp_default_class),
     CONFIG_VARIABLE_INT(gp_default_skill),
     CONFIG_VARIABLE_INT(gp_revealed_secrets),
     CONFIG_VARIABLE_INT(gp_flip_levels),

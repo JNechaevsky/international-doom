@@ -143,6 +143,7 @@ int phys_weapon_alignment = 0;
 int phys_breathing = 0;
 
 // Gameplay
+int gp_default_class = 0;
 int gp_default_skill = 2;
 int gp_revealed_secrets = 0;
 int gp_flip_levels = 0;
@@ -318,6 +319,10 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("phys_breathing",                 &phys_breathing);
     
     // Gameplay
+    if (mission == hexen)
+    {
+        M_BindIntVariable("gp_default_class",           &gp_default_class);
+    }
     M_BindIntVariable("gp_default_skill",               &gp_default_skill);
     if (mission == doom || mission == heretic)
     {

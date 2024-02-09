@@ -194,7 +194,8 @@ static void InitConnectData(net_connect_data_t *connect_data)
     }
     else
     {
-        connect_data->player_class = PCLASS_FIGHTER;
+        // [JN] Use choosen default player class.
+        connect_data->player_class = gp_default_class;
     }
 
     // Read checksums of our WAD directory and dehacked information

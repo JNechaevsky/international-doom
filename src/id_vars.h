@@ -117,6 +117,7 @@ extern int phys_toss_drop;
 extern int phys_floating_powerups;
 extern int phys_weapon_alignment;
 
+extern int gp_default_class;
 extern int gp_default_skill;
 extern int gp_revealed_secrets;
 extern int phys_breathing;
