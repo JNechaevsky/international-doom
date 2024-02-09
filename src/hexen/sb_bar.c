@@ -1567,31 +1567,28 @@ static void DrawWeaponPieces(void)
     }
 }
 
-//==========================================================================
-//
+// -----------------------------------------------------------------------------
 // DrawFullScreenStuff
-//
-//==========================================================================
+// [JN] Upgraded to draw extra elements.
+// -----------------------------------------------------------------------------
 
-void DrawFullScreenStuff(void)
+static void DrawFullScreenStuff(void)
 {
+    const char *patch;
+    const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
     int i;
-    int x;
-    int temp;
 
+    // Health.
     dp_translation = SB_NumberColor(hudcolor_health);
-    if (CPlayer->mo->health > 0)
-    {
-        DrBNumber(CPlayer->mo->health, 5, 180);
-    }
-    else
-    {
-        DrBNumber(0, 5, 180);
-    }
+    DrBNumber(CPlayer->health, -1 - wide_x, 175);
     dp_translation = NULL;
+    // Draw health vial.
+    V_DrawShadowedPatch(41 - wide_x, 217, W_CacheLumpName("PTN1A0", PU_CACHE));
+
+
     if (deathmatch)
     {
-        temp = 0;
+        int temp = 0;
         for (i = 0; i < maxplayers; i++)
         {
             if (playeringame[i])
@@ -1617,7 +1614,7 @@ void DrawFullScreenStuff(void)
     }
     else
     {
-        x = inv_ptr - curpos;
+        int x = inv_ptr - curpos;
         for (i = 0; i < 7; i++)
         {
             V_DrawTLPatch(50 + i * 31, 168, W_CacheLumpName("ARTIBOX",
