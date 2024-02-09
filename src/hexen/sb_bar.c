@@ -985,7 +985,7 @@ enum
     hudcolor_armor,
     hudcolor_mana_blue,
     hudcolor_mana_green,
-    // [JN] TODO - hudcolor_frags ?
+    hudcolor_frags,
 } hudcolor_t;
 
 static byte *SB_NumberColor (int i)
@@ -1082,6 +1082,19 @@ static byte *SB_NumberColor (int i)
             {
                 return cr[CR_RED];
             }
+        }
+        break;
+
+        case hudcolor_frags:
+        {
+            const int frags = CPlayer->frags[displayplayer];
+
+            if (frags < 0)
+                return cr[CR_RED];
+            else if (frags == 0)
+                return cr[CR_YELLOW];
+            else
+                return cr[CR_GREEN];
         }
         break;
     }
@@ -1567,63 +1580,108 @@ static void DrawWeaponPieces(void)
     }
 }
 
-//==========================================================================
-//
-// DrawFullScreenStuff
-//
-//==========================================================================
-
-void DrawFullScreenStuff(void)
+// [JN] Generic armor icon.
+static const byte id_armor_icon[] =
 {
-    int i;
-    int x;
-    int temp;
+    0x0D, 0x00, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3C, 0x00, 0x00, 0x00, 
+    0x4B, 0x00, 0x00, 0x00, 0x5C, 0x00, 0x00, 0x00, 0x6F, 0x00, 0x00, 0x00, 
+    0x83, 0x00, 0x00, 0x00, 0x98, 0x00, 0x00, 0x00, 0xAE, 0x00, 0x00, 0x00, 
+    0xC4, 0x00, 0x00, 0x00, 0xDA, 0x00, 0x00, 0x00, 0xEF, 0x00, 0x00, 0x00, 
+    0x03, 0x01, 0x00, 0x00, 0x16, 0x01, 0x00, 0x00, 0x27, 0x01, 0x00, 0x00, 
+    0x02, 0x0A, 0x89, 0x89, 0x8A, 0x88, 0x87, 0x86, 0x85, 0x84, 0x82, 0x81, 
+    0x80, 0x80, 0xFF, 0x01, 0x0C, 0x89, 0x89, 0x03, 0x33, 0x04, 0x04, 0x04, 
+    0x03, 0x02, 0x02, 0x01, 0x81, 0x7E, 0x7E, 0xFF, 0x00, 0x0E, 0x87, 0x87, 
+    0x03, 0x06, 0x08, 0x09, 0x23, 0x08, 0x06, 0x04, 0x03, 0x02, 0x01, 0x80, 
+    0x7E, 0x7E, 0xFF, 0x00, 0x0F, 0x89, 0x89, 0x04, 0x08, 0x09, 0x0A, 0x09, 
+    0x08, 0x07, 0x06, 0x04, 0x03, 0x02, 0x01, 0x80, 0x7E, 0x7E, 0xFF, 0x00, 
+    0x10, 0x8A, 0x8A, 0x22, 0x0A, 0x25, 0x0D, 0x0C, 0x24, 0x23, 0x07, 0x06, 
+    0x04, 0x03, 0x02, 0x01, 0x80, 0x7E, 0x7E, 0xFF, 0x00, 0x11, 0x89, 0x89, 
+    0x06, 0x09, 0x24, 0x0B, 0x0A, 0x09, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 
+    0x01, 0x00, 0x80, 0x7E, 0x7E, 0xFF, 0x00, 0x11, 0x87, 0x87, 0x22, 0x0A, 
+    0x0C, 0x25, 0x0B, 0x0A, 0x23, 0x07, 0x06, 0x05, 0x04, 0x02, 0x02, 0x01, 
+    0x00, 0x81, 0x81, 0xFF, 0x00, 0x11, 0x86, 0x86, 0x06, 0x09, 0x24, 0x0B, 
+    0x24, 0x09, 0x07, 0x06, 0x21, 0x04, 0x03, 0x02, 0x01, 0x00, 0x81, 0x7D, 
+    0x7D, 0xFF, 0x00, 0x10, 0x85, 0x85, 0x06, 0x0A, 0x0C, 0x25, 0x0C, 0x24, 
+    0x08, 0x07, 0x06, 0x04, 0x03, 0x02, 0x01, 0x81, 0x7D, 0x7D, 0xFF, 0x00, 
+    0x0F, 0x84, 0x84, 0x04, 0x08, 0x0A, 0x24, 0x09, 0x08, 0x22, 0x21, 0x04, 
+    0x03, 0x02, 0x01, 0x81, 0x7D, 0x7D, 0xFF, 0x00, 0x0E, 0x83, 0x83, 0x03, 
+    0x06, 0x08, 0x23, 0x08, 0x08, 0x06, 0x04, 0x03, 0x02, 0x01, 0x80, 0x7D, 
+    0x7D, 0xFF, 0x01, 0x0C, 0x83, 0x83, 0x03, 0x04, 0x04, 0x04, 0x04, 0x03, 
+    0x02, 0x02, 0x01, 0x80, 0x7D, 0x7D, 0xFF, 0x02, 0x0A, 0x84, 0x84, 0x83, 
+    0x81, 0x80, 0x80, 0x7F, 0x7F, 0x7F, 0x7F, 0x7D, 0x7D, 0xFF
+};
 
+// -----------------------------------------------------------------------------
+// DrawFullScreenStuff
+// [JN] Upgraded to draw extra elements.
+// -----------------------------------------------------------------------------
+
+static void DrawFullScreenStuff(void)
+{
+    const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
+    int i;
+
+    // Health.
     dp_translation = SB_NumberColor(hudcolor_health);
-    if (CPlayer->mo->health > 0)
-    {
-        DrBNumber(CPlayer->mo->health, 5, 180);
-    }
-    else
-    {
-        DrBNumber(0, 5, 180);
-    }
+    DrBNumber(CPlayer->health, -1 - wide_x, 175);
     dp_translation = NULL;
-    if (deathmatch)
-    {
-        temp = 0;
-        for (i = 0; i < maxplayers; i++)
-        {
-            if (playeringame[i])
-            {
-                temp += CPlayer->frags[i];
-            }
-        }
-        DrINumber(temp, 45, 185);
-    }
+    // Draw health vial.
+    V_DrawShadowedPatch(41 - wide_x, 217, W_CacheLumpName("PTN1A0", PU_CACHE));
+
     if (!inventory)
     {
+        // Armor.
+        {
+            const int currentArmor = AutoArmorSave[CPlayer->class]
+                                   + CPlayer->armorpoints[ARMOR_ARMOR]
+                                   + CPlayer->armorpoints[ARMOR_SHIELD]
+                                   + CPlayer->armorpoints[ARMOR_HELMET]
+                                   + CPlayer->armorpoints[ARMOR_AMULET];
+
+            dp_translation = SB_NumberColor(hudcolor_armor);
+            DrBNumber(FixedDiv(currentArmor, 5 * FRACUNIT) >> FRACBITS, 41 - wide_x, 175);
+            dp_translation = NULL;
+            // Draw generic armor icon.
+            V_DrawShadowedPatch(81 - wide_x, 177, (patch_t*)id_armor_icon);
+        }
+
+        // Frags.
+        if (deathmatch)
+        {
+            int temp = 0;
+
+            for (i = 0 ; i < maxplayers ; i++)
+            {
+                if (playeringame[i])
+                {
+                    temp += CPlayer->frags[i];
+                }
+            }
+
+            dp_translation = SB_NumberColor(hudcolor_frags);
+            DrINumber(temp, 111 - wide_x, 178);
+            dp_translation = NULL;
+        }
+
+        // Ready artifact.
         if (CPlayer->readyArtifact > 0)
         {
-            V_DrawTLPatch(286, 170, W_CacheLumpName("ARTIBOX", PU_CACHE));
-            V_DrawPatch(284, 169,
-                        W_CacheLumpName(patcharti[CPlayer->readyArtifact],
-                                        PU_CACHE));
+            V_DrawTLPatch(232 + wide_x, 170, W_CacheLumpName("ARTIBOX", PU_CACHE));
+            V_DrawPatch(230 + wide_x, 169, W_CacheLumpName(patcharti[CPlayer->readyArtifact], PU_CACHE));
             if (CPlayer->inventory[inv_ptr].count > 1)
             {
-                DrSmallNumber(CPlayer->inventory[inv_ptr].count, 302, 192);
+                DrSmallNumber(CPlayer->inventory[inv_ptr].count, 248 + wide_x, 192);
             }
         }
     }
     else
     {
-        x = inv_ptr - curpos;
-        for (i = 0; i < 7; i++)
+        int x = inv_ptr - curpos;
+
+        for (i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(50 + i * 31, 168, W_CacheLumpName("ARTIBOX",
-                                                            PU_CACHE));
-            if (CPlayer->inventorySlotNum > x + i
-                && CPlayer->inventory[x + i].type != arti_none)
+            V_DrawTLPatch(50 + i * 31, 168, W_CacheLumpName("ARTIBOX", PU_CACHE));
+            if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
                 V_DrawPatch(49 + i * 31, 167,
                             W_CacheLumpName(patcharti
@@ -1636,7 +1694,9 @@ void DrawFullScreenStuff(void)
                 }
             }
         }
+
         V_DrawPatch(50 + curpos * 31, 167, PatchSELECTBOX);
+
         if (x != 0)
         {
             V_DrawPatch(40, 167, !(leveltime & 4) ? PatchINVLFGEM1 :
@@ -1648,6 +1708,37 @@ void DrawFullScreenStuff(void)
                         PatchINVRTGEM1 : PatchINVRTGEM2);
         }
     }
+
+    // [JN] Draw amount of current mana.
+    if (CPlayer->readyweapon == WP_FIRST)
+    {
+        V_DrawShadowedPatch(302 + wide_x, 170, PatchMANADIM1);
+        V_DrawShadowedPatch(302 + wide_x, 184, PatchMANADIM2);
+    }
+    else if (CPlayer->readyweapon == WP_SECOND)
+    {
+        V_DrawShadowedPatch(302 + wide_x, 170, PatchMANABRIGHT1);
+        V_DrawShadowedPatch(302 + wide_x, 184, PatchMANADIM2);
+    }
+    else if (CPlayer->readyweapon == WP_THIRD)
+    {
+        V_DrawShadowedPatch(302 + wide_x, 170, PatchMANADIM1);
+        V_DrawShadowedPatch(302 + wide_x, 184, PatchMANABRIGHT2);
+    }
+    else
+    {
+        V_DrawShadowedPatch(302 + wide_x, 170, PatchMANABRIGHT1);
+        V_DrawShadowedPatch(302 + wide_x, 184, PatchMANABRIGHT2);
+    }
+
+    // [JN] Draw mana points, colorize if necessary. Do not draw negative values.
+    dp_translation = SB_NumberColor(hudcolor_mana_blue);
+    DrINumber(CPlayer->mana[0] >= 0 ? CPlayer->mana[0] : 0, 274 + wide_x, 170);
+    dp_translation = NULL;
+
+    dp_translation = SB_NumberColor(hudcolor_mana_green);
+    DrINumber(CPlayer->mana[1] >= 0 ? CPlayer->mana[1] : 0, 274 + wide_x, 184); 
+    dp_translation = NULL;
 }
 
 

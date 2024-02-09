@@ -1012,7 +1012,12 @@ static void DrawAndBlit(void)
             }
 
             CT_Drawer();
-            SB_Drawer();
+
+            // [JN] Main status bar drawing function.
+            if (dp_screen_size < 13 || (automapactive && !automap_overlay))
+            {
+                SB_Drawer();
+            }
 
             // [JN] Left widgets are available while active game level.
             if (dp_screen_size < 13)

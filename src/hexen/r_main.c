@@ -679,11 +679,18 @@ void R_ExecuteSetViewSize(void)
 
     setsizeneeded = false;
 
-    if (setblocks == 11)
+    if (setblocks >= 11)
     {
         scaledviewwidth_nonwide = NONWIDEWIDTH;
         scaledviewwidth = SCREENWIDTH;
         viewheight = SCREENHEIGHT;
+    }
+    // [crispy] hard-code to SCREENWIDTH and SCREENHEIGHT minus status bar height
+    else if (setblocks == 10)
+    {
+	scaledviewwidth_nonwide = NONWIDEWIDTH;
+	scaledviewwidth = SCREENWIDTH;
+	viewheight = SCREENHEIGHT-SBARHEIGHT;
     }
     else
     {

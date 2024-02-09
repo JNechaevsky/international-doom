@@ -2034,7 +2034,21 @@ static void AM_drawCrosshair (boolean force)
 
 void AM_LevelNameDrawer (void)
 {
-    MN_DrTextA(P_GetMapName(gamemap), 38, 144, NULL);
+    int x, y;
+
+    // [JN] Move level name slightly down-right when using a fullscreen status bar.
+    if (dp_screen_size > 10 && (!automapactive || automap_overlay))
+    {
+        x = -WIDESCREENDELTA;
+        y = 159;
+    }
+    else
+    {
+        x = 38;
+        y = 144;
+    }
+
+    MN_DrTextA(P_GetMapName(gamemap), x, y, NULL);
 }
 
 // -----------------------------------------------------------------------------
