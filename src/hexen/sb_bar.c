@@ -1574,7 +1574,6 @@ static void DrawWeaponPieces(void)
 
 static void DrawFullScreenStuff(void)
 {
-    const char *patch;
     const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
     int i;
 
@@ -1585,30 +1584,48 @@ static void DrawFullScreenStuff(void)
     // Draw health vial.
     V_DrawShadowedPatch(41 - wide_x, 217, W_CacheLumpName("PTN1A0", PU_CACHE));
 
-
-    if (deathmatch)
-    {
-        int temp = 0;
-        for (i = 0; i < maxplayers; i++)
-        {
-            if (playeringame[i])
-            {
-                temp += CPlayer->frags[i];
-            }
-        }
-        DrINumber(temp, 45, 185);
-    }
     if (!inventory)
     {
+        // Armor.
+        {
+            const int currentArmor = AutoArmorSave[CPlayer->class]
+                                   + CPlayer->armorpoints[ARMOR_ARMOR]
+                                   + CPlayer->armorpoints[ARMOR_SHIELD]
+                                   + CPlayer->armorpoints[ARMOR_HELMET]
+                                   + CPlayer->armorpoints[ARMOR_AMULET];
+
+            dp_translation = SB_NumberColor(hudcolor_armor);
+            DrBNumber(FixedDiv(currentArmor, 5 * FRACUNIT) >> FRACBITS, 41 - wide_x, 175);
+            dp_translation = NULL;
+            // Draw generic armor icon.
+            // [JN] TODO - draw new icon! 
+             V_DrawShadowedPatch(92 - wide_x, 190, W_CacheLumpName("PIGYA1", PU_CACHE));
+        }
+
+        /*
+        // [JN] TODO?
+        if (deathmatch)
+        {
+            int temp = 0;
+            for (i = 0; i < maxplayers; i++)
+            {
+                if (playeringame[i])
+                {
+                    temp += CPlayer->frags[i];
+                }
+            }
+            DrINumber(temp, 45, 185);
+        }
+        */
+
+        // Ready artifact.
         if (CPlayer->readyArtifact > 0)
         {
-            V_DrawTLPatch(286, 170, W_CacheLumpName("ARTIBOX", PU_CACHE));
-            V_DrawPatch(284, 169,
-                        W_CacheLumpName(patcharti[CPlayer->readyArtifact],
-                                        PU_CACHE));
+            V_DrawTLPatch(232 + wide_x, 170, W_CacheLumpName("ARTIBOX", PU_CACHE));
+            V_DrawPatch(230 + wide_x, 169, W_CacheLumpName(patcharti[CPlayer->readyArtifact], PU_CACHE));
             if (CPlayer->inventory[inv_ptr].count > 1)
             {
-                DrSmallNumber(CPlayer->inventory[inv_ptr].count, 302, 192);
+                DrSmallNumber(CPlayer->inventory[inv_ptr].count, 248 + wide_x, 192);
             }
         }
     }
@@ -1645,6 +1662,37 @@ static void DrawFullScreenStuff(void)
                         PatchINVRTGEM1 : PatchINVRTGEM2);
         }
     }
+
+    // [JN] Draw amount of current mana.
+    if (CPlayer->readyweapon == WP_FIRST)
+    {
+        V_DrawShadowedPatch(301 + wide_x, 170, PatchMANADIM1);
+        V_DrawShadowedPatch(301 + wide_x, 184, PatchMANADIM2);
+    }
+    else if (CPlayer->readyweapon == WP_SECOND)
+    {
+        V_DrawShadowedPatch(301 + wide_x, 170, PatchMANABRIGHT1);
+        V_DrawShadowedPatch(301 + wide_x, 184, PatchMANADIM2);
+    }
+    else if (CPlayer->readyweapon == WP_THIRD)
+    {
+        V_DrawShadowedPatch(301 + wide_x, 170, PatchMANADIM1);
+        V_DrawShadowedPatch(301 + wide_x, 184, PatchMANABRIGHT2);
+    }
+    else
+    {
+        V_DrawShadowedPatch(301 + wide_x, 170, PatchMANABRIGHT1);
+        V_DrawShadowedPatch(301 + wide_x, 184, PatchMANABRIGHT2);
+    }
+
+    // [JN] Draw mana points, colorize if necessary. Do not draw negative values.
+    dp_translation = SB_NumberColor(hudcolor_mana_blue);
+    DrINumber(CPlayer->mana[0] >= 0 ? CPlayer->mana[0] : 0, 273 + wide_x, 170);
+    dp_translation = NULL;
+
+    dp_translation = SB_NumberColor(hudcolor_mana_green);
+    DrINumber(CPlayer->mana[1] >= 0 ? CPlayer->mana[1] : 0, 273 + wide_x, 184); 
+    dp_translation = NULL;
 }
 
 
