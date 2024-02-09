@@ -444,6 +444,8 @@ void R_DrawPlanes(void)
 {
     int light;
     int x;
+    int lumpnum;
+    boolean swirling;
     byte *tempSource;
     byte *source;
     byte *source2;
@@ -666,9 +668,9 @@ void R_DrawPlanes(void)
 
         // Regular flat
         // [JN] add support for SMMU swirling flats
-        tempSource = flattranslation[pl->picnum] == -1 ?
-                     R_DistortedFlat(pl->picnum) :
-                     W_CacheLumpNum(firstflat + flattranslation[pl->picnum], PU_STATIC);
+        swirling = flattranslation[pl->picnum] == -1;
+        lumpnum = firstflat + flattranslation[pl->picnum];
+        tempSource = W_CacheLumpNum(lumpnum, PU_STATIC);
 
         // [crispy] Use old value of interpfactor if uncapped and paused. This
         // ensures that scrolling stops smoothly when pausing.
@@ -746,7 +748,9 @@ void R_DrawPlanes(void)
                 ysmoothscrolloffset = 0;
                 break;
         }
-        ds_source = tempSource;
+
+        lumpnum = firstflat+pl->picnum;
+        ds_source = swirling ? R_DistortedFlat(lumpnum) : tempSource;
         planeheight = abs(pl->height - viewz);
         light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
         if (light >= LIGHTLEVELS)
@@ -765,8 +769,8 @@ void R_DrawPlanes(void)
             R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
                         pl->bottom[x]);
 
-        if (flattranslation[pl->picnum] != -1)
-        W_ReleaseLumpNum(firstflat + flattranslation[pl->picnum]);
+        if (!swirling)
+        W_ReleaseLumpNum(lumpnum);
         }
     }
 }

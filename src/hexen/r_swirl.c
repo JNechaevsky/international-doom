@@ -26,7 +26,6 @@
 #include <z_zone.h>
 
 #include "h2def.h"
-#include "r_local.h"  // [JN] firstflat
 
 // swirl factors determine the number of waves per flat width
 
@@ -109,12 +108,14 @@ byte *R_DistortedFlat(int flatnum)
 		byte *normalflat;
 		int i;
 
-		normalflat = W_CacheLumpNum(firstflat + flatnum, PU_LEVEL);
+		normalflat = W_CacheLumpNum(flatnum, PU_STATIC);
 
 		for (i = 0; i < FLATSIZE; i++)
 		{
 			distortedflat[i] = normalflat[offset[i]];
 		}
+
+		W_ReleaseLumpNum(flatnum);
 
 		swirlflat = flatnum;
 	}
