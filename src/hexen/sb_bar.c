@@ -1612,6 +1612,24 @@ static const byte id_armor_icon[] =
     0x81, 0x80, 0x80, 0x7F, 0x7F, 0x7F, 0x7F, 0x7D, 0x7D, 0xFF
 };
 
+static const int PiecesX[3] = {
+    307, // Quietus
+    301, // Wraithverge
+    311, // Bloodscourge 
+};
+
+static const int PiecesY[3][3] = {
+    {133, 157, 169}, // Quietus
+    {135, 151, 167}, // Wraithverge
+    {125, 143, 165}, // Bloodscourge 
+};
+
+static const char *PiecesGfx[][3] = {
+    {"WFR1A0", "WFR2A0", "WFR3A0"},
+    {"WCH1A0", "WCH2A0", "WCH3A0"},
+    {"WMS1A0", "WMS2A0", "WMS3A0"},
+};
+
 // -----------------------------------------------------------------------------
 // DrawFullScreenStuff
 // [JN] Upgraded to draw extra elements.
@@ -1740,6 +1758,36 @@ static void DrawFullScreenStuff(void)
     dp_translation = SB_NumberColor(hudcolor_mana_green);
     DrINumber(CPlayer->mana[1] >= 0 ? CPlayer->mana[1] : 0, 274 + wide_x, 184); 
     dp_translation = NULL;
+
+    // [JN] Assembled weapon widget.
+    if (st_weapon_widget)
+    {
+        const int class = PlayerClass[displayplayer];
+        patch_t *patch1 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][0]), PU_CACHE);
+        patch_t *patch2 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][1]), PU_CACHE);
+        patch_t *patch3 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][2]), PU_CACHE);
+
+        dp_translucent = (st_weapon_widget == 2);
+
+        if (CPlayer->pieces & WPIECE1)
+        {
+            // God-awful hack to shift BloodScrouge's upper piece
+            // one pixel left for better placement.
+            const int xx = (class == PCLASS_MAGE ? 1 : 0);
+
+            V_DrawPatch(PiecesX[class] + WIDESCREENDELTA - xx, PiecesY[class][0], patch1);
+        }
+        if (CPlayer->pieces & WPIECE2)
+        {
+            V_DrawPatch(PiecesX[class] + WIDESCREENDELTA, PiecesY[class][1], patch2);
+        }
+        if (CPlayer->pieces & WPIECE3)
+        {
+            V_DrawPatch(PiecesX[class] + WIDESCREENDELTA, PiecesY[class][2], patch3);
+        }
+
+        dp_translucent = false;
+    }
 }
 
 

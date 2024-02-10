@@ -2796,7 +2796,7 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE         },
-    { ITT_LRFUNC,  "ASSEMBLED WEAPON WIDGET",     M_ID_WeaponWidget,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "4TH WEAPON WIDGET",            M_ID_WeaponWidget,    0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_SETMENU, "", /*NEXT PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY2 },
 };
@@ -2880,6 +2880,12 @@ static void M_Draw_ID_Gameplay_1 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
                M_Item_Glow(10, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Fourth weapon widget
+    sprintf(str, st_weapon_widget == 1 ? "SOLID" :
+                 st_weapon_widget == 2 ? "TRANSLUCENT" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, st_weapon_widget ? GLOW_GREEN : GLOW_DARKRED));
+
     MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET, 150,
                M_Item_Glow(13, GLOW_DARKGRAY));
 
@@ -2948,9 +2954,7 @@ static void M_ID_ColoredSBar (int choice)
 
 static void M_ID_WeaponWidget (int choice)
 {
-    /*
-    ??? = M_INT_Slider(???, 0, 2, choice, false);
-    */
+    st_weapon_widget = M_INT_Slider(st_weapon_widget, 0, 2, choice, false);
 }
 
 // -----------------------------------------------------------------------------

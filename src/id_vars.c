@@ -128,6 +128,7 @@ int st_blinking_keys = 0;
 int st_ammo_widget = 0;
 int st_ammo_widget_translucent = 0;
 int st_ammo_widget_colors = 0;
+int st_weapon_widget = 0;
 
 // Audible
 int aud_z_axis_sfx = 0;
@@ -295,6 +296,10 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("st_ammo_widget_translucent", &st_ammo_widget_translucent);
         M_BindIntVariable("st_ammo_widget_colors",      &st_ammo_widget_colors);
     }
+    if (mission == hexen)
+    {
+        M_BindIntVariable("st_weapon_widget",           &st_weapon_widget);
+    }        
     
     // Audible
     if (mission == doom || mission == heretic)
