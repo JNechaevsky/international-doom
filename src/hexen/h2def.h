@@ -162,9 +162,10 @@ typedef enum
 ===============================================================================
 */
 
+#define OVERDRIVE (6)
+#define MAXGEAR   (OVERDRIVE+16)
 
 struct thinker_s;
-
 
 // think_t is a function pointer to a routine to handle an actor
 typedef void (*think_t)(struct thinker_s *);
@@ -230,6 +231,10 @@ typedef struct mobj_s
     byte special;               // special
     byte args[5];               // special arguments
 
+    int   intflags;  // killough 9/15/98: internal flags
+    short gear;      // killough 11/98: used in torque simulation
+    int   geartics;  // [JN] Duration of torque sumulation.
+
     // [AM] If true, ok to interpolate this tic.
     int                 interp;
 
@@ -247,6 +252,15 @@ typedef struct
     thinker_t thinker;          // not used for anything
     fixed_t x, y, z;
 } degenmobj_t;
+
+// killough 9/15/98: Same, but internal flags, not intended for .deh
+// (some degree of opaqueness is good, to avoid compatibility woes)
+enum 
+{
+    MIF_FALLING = 1,      // Object is falling
+    MIF_ARMED = 2,        // Object is armed (for MF_TOUCHY objects)
+    MIF_LINEDONE = 4,     // Object has activated W1 or S1 linedef via DEH frame
+};
 
 //
 // frame flags

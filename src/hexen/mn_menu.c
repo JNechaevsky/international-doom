@@ -2989,11 +2989,9 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextACentered("PHYSICAL", 10, cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
-    /*
     sprintf(str, phys_torque ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 20,
                M_Item_Glow(0, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
@@ -3052,9 +3050,7 @@ static void M_Draw_ID_Gameplay_2 (void)
 
 static void M_ID_Torque (int choice)
 {
-    /*
     phys_torque ^= 1;
-    */
 }
 
 static void M_ID_Breathing (int choice)

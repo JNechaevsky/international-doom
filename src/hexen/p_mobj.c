@@ -21,10 +21,14 @@
 #include "h2def.h"
 #include "m_random.h"
 #include "i_system.h"
+#include "i_timer.h"  // [JN] TICRATE
 #include "p_local.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "ct_chat.h"
+
+#include "id_func.h"
+
 
 // MACROS ------------------------------------------------------------------
 
@@ -1169,6 +1173,22 @@ void P_MobjThinker(thinker_t *thinker)
         }
     }
 
+    // [JN] killough 9/12/98: objects fall off ledges if they are hanging off
+    // slightly push off of ledge if hanging more than halfway off
+    if (singleplayer && phys_torque)
+    {
+        if (!(mobj->flags & MF_NOGRAVITY)  // Only objects which fall
+        &&  (mobj->flags & MF_CORPSE)      // [JN] And only for corpses
+        &&   mobj->geartics > 0)           // [JN] And only if torque tics are available.
+        {
+            P_ApplyTorque(mobj);           // Apply torque
+        }
+        else
+        {
+            mobj->intflags &= ~MIF_FALLING, mobj->gear = 0;  // Reset torque
+        }
+    }
+
     // Cycle through states, calling action functions at transitions
     if (mobj->tics != -1)
     {
@@ -1224,6 +1244,9 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
     mobj->tics = st->tics;
     mobj->sprite = st->sprite;
     mobj->frame = st->frame;
+
+    // [JN] Initialize mobj's torque limit with duration of 15 seconds.
+    mobj->geartics = 15 * TICRATE;
 
     // Set subsector and/or block links.
     P_SetThingPosition(mobj);
