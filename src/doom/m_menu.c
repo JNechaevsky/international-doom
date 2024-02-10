@@ -913,13 +913,23 @@ enum
     m_id_end
 } id1_e;
 
-static byte *M_Line_Glow (const int tics)
+static byte *M_Small_Line_Glow (const int tics)
 {
     return
         tics == 5 ? cr[CR_MENU_BRIGHT5] :
         tics == 4 ? cr[CR_MENU_BRIGHT4] :
         tics == 3 ? cr[CR_MENU_BRIGHT3] :
         tics == 2 ? cr[CR_MENU_BRIGHT2] :
+        tics == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
+}
+
+static byte *M_Big_Line_Glow (const int tics)
+{
+    return
+        tics == 5 ? cr[CR_MENU_BRIGHT3] :
+        tics == 4 ? cr[CR_MENU_BRIGHT2] :
+        tics == 3 ? cr[CR_MENU_BRIGHT2] :
+        tics == 2 ? cr[CR_MENU_BRIGHT1] :
         tics == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
 }
 
@@ -6112,7 +6122,7 @@ void M_Drawer (void)
             else
             {
                 // [JN] Apply fading effect in M_Ticker.
-                M_WriteText (x, y, name, M_Line_Glow(currentMenu->menuitems[i].tics));
+                M_WriteText (x, y, name, M_Small_Line_Glow(currentMenu->menuitems[i].tics));
             }
             y += ID_MENU_LINEHEIGHT_SMALL;
         }
@@ -6120,9 +6130,20 @@ void M_Drawer (void)
         {
             if (name[0])
             {
+                if (itemOn == (short) i)
+                {
+                    // [JN] Highlight menu item on which the cursor is positioned.
+                    dp_translation = cr[CR_MENU_BRIGHT3];
+                }
+                else
+                {
+                    // [JN] Apply fading effect in M_Ticker.
+                    dp_translation = M_Big_Line_Glow(currentMenu->menuitems[i].tics);
+                }
                 V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(name, PU_CACHE));
             }
             y += LINEHEIGHT;
+            dp_translation = NULL;
         }
     }
 
@@ -6189,20 +6210,17 @@ void M_Ticker (void)
 
     // [JN] Menu item fading effect:
 
-    if (currentMenu->smallFont)
+    for (int i = 0 ; i < currentMenu->numitems ; i++)
     {
-        for (int i = 0 ; i < currentMenu->numitems ; i++)
+        if (itemOn == i)
         {
-            if (itemOn == i)
-            {
-                // Keep menu item bright
-                currentMenu->menuitems[i].tics = 5;
-            }
-            else
-            {
-                // Decrease tics for glowing effect
-                currentMenu->menuitems[i].tics--;
-            }
+            // Keep menu item bright
+            currentMenu->menuitems[i].tics = 5;
+        }
+        else
+        {
+            // Decrease tics for glowing effect
+            currentMenu->menuitems[i].tics--;
         }
     }
 }
