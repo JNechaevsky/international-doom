@@ -48,7 +48,7 @@
 #define ITEM_HEIGHT 20
 #define SELECTOR_XOFFSET (-28)
 #define SELECTOR_YOFFSET (-1)
-#define SLOTTEXTLEN	16
+#define SLOTTEXTLEN	22
 #define ASCII_CURSOR '['
 
 // TYPES -------------------------------------------------------------------
@@ -189,6 +189,10 @@ static int currentSlot;
 static int quicksave;
 static int quickload;
 
+// [JN] Show custom titles while performing quick save/load.
+static boolean quicksaveTitle = false;
+static boolean quickloadTitle = false;
+
 static char *gammalvls[16][32] =
 {
     { GAMMALVL05,   "0.50" },
@@ -266,9 +270,9 @@ static MenuItem_t LoadItems[] = {
 };
 
 static Menu_t LoadMenu = {
-    70, 30,
+    70, 26,
     DrawLoadMenu,
-    6, LoadItems,
+    SAVES_PER_PAGE, LoadItems,
     0,
     false, true, true,
     MENU_FILES
@@ -284,9 +288,9 @@ static MenuItem_t SaveItems[] = {
 };
 
 static Menu_t SaveMenu = {
-    70, 30,
+    70, 26,
     DrawSaveMenu,
-    6, SaveItems,
+    SAVES_PER_PAGE, SaveItems,
     0,
     false, true, true,
     MENU_FILES
@@ -3447,6 +3451,13 @@ void MN_Drawer(void)
                 MN_DrTextA("?", 160 +
                            MN_TextAWidth(SlotText[quicksave - 1]) / 2, 90, NULL);
             }
+            if (typeofask == 6)
+            {
+                MN_DrTextA(SlotText[CurrentItPos], 160 -
+                           MN_TextAWidth(SlotText[CurrentItPos]) / 2, 90, NULL);
+                MN_DrTextA("?", 160 +
+                           MN_TextAWidth(SlotText[CurrentItPos]) / 2, 90, NULL);
+            }
             if (typeofask == 9)
             {
                 MN_DrTextACentered("GRAPHICAL, AUDIO AND GAMEPLAY SETTINGS", 70, NULL);
@@ -3593,6 +3604,27 @@ static void DrawFilesMenu(void)
     CT_ClearMessage(&players[consoleplayer]);
 }
 
+// [crispy] support additional pages of savegames
+static void DrawSaveLoadBottomLine(const Menu_t *menu)
+{
+    char pagestr[16];
+    static short width;
+    const int y = menu->y + ITEM_HEIGHT * SAVES_PER_PAGE;
+
+    if (!width)
+    {
+        const patch_t *const p = W_CacheLumpName("M_FSLOT", PU_CACHE);
+        width = SHORT(p->width);
+    }
+    if (savepage > 0)
+        MN_DrTextA("PGUP", menu->x + 1, y, cr[CR_GRAY]);
+    if (savepage < SAVEPAGE_MAX)
+        MN_DrTextA("PGDN", menu->x + width - MN_TextAWidth("PGDN"), y, cr[CR_GRAY]);
+
+    M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, SAVEPAGE_MAX + 1);
+    MN_DrTextA(pagestr, ORIGWIDTH / 2 - MN_TextAWidth(pagestr) / 2, y, cr[CR_GRAY]);
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC DrawLoadMenu
@@ -3601,12 +3633,17 @@ static void DrawFilesMenu(void)
 
 static void DrawLoadMenu(void)
 {
-    MN_DrTextB("LOAD GAME", 160 - MN_TextBWidth("LOAD GAME") / 2, 10);
+    const char *title;
+
+    title = quickloadTitle ? "QUICK LOAD GAME" : "LOAD GAME";
+
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
     }
     DrawFileSlots(&LoadMenu);
+    DrawSaveLoadBottomLine(&LoadMenu);
 }
 
 //---------------------------------------------------------------------------
@@ -3617,12 +3654,17 @@ static void DrawLoadMenu(void)
 
 static void DrawSaveMenu(void)
 {
-    MN_DrTextB("SAVE GAME", 160 - MN_TextBWidth("SAVE GAME") / 2, 10);
+    const char *title;
+
+    title = quicksaveTitle ? "QUICK SAVE GAME" : "SAVE GAME";
+
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
     }
     DrawFileSlots(&SaveMenu);
+    DrawSaveLoadBottomLine(&SaveMenu);
 }
 
 static boolean ReadDescriptionForSlot(int slot, char *description)
@@ -3632,7 +3674,9 @@ static boolean ReadDescriptionForSlot(int slot, char *description)
     char name[100];
     char versionText[HXS_VERSION_TEXT_LENGTH];
 
-    M_snprintf(name, sizeof(name), "%shex%d.hxs", SavePath, slot);
+    slot += savepage * 10; // [crispy]
+
+    M_snprintf(name, sizeof(name), "%shex%d.sav", SavePath, slot);
 
     fp = M_fopen(name, "rb");
 
@@ -3694,7 +3738,7 @@ static void DrawFileSlots(Menu_t * menu)
 
     x = menu->x;
     y = menu->y;
-    for (i = 0; i < 6; i++)
+    for (i = 0; i < SAVES_PER_PAGE; i++)
     {
         V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName("M_FSLOT", PU_CACHE));
         if (SlotStatus[i])
@@ -3881,6 +3925,18 @@ static void SCLoadGame(int option)
     }
 }
 
+// [crispy]
+static void SCDeleteGame(int option)
+{
+    if (!SlotStatus[option])
+    {
+        return;
+    }
+
+    SV_ClearSaveSlot(option);
+    MN_LoadSlotText();
+}
+
 //
 // Generate a default save slot name when the user saves to
 // an empty slot via the joypad.
@@ -3918,6 +3974,14 @@ static void SetDefaultSaveName(int slot)
 //
 //---------------------------------------------------------------------------
 
+static const char *const class_str[NUMCLASSES] =
+{
+    "FIGHTER",
+    "CLERIC",
+    "MAGE",
+    "PIG",
+};
+
 static void SCSaveGame(int option)
 {
     char *ptr;
@@ -3936,9 +4000,13 @@ static void SCSaveGame(int option)
         M_StringCopy(oldSlotText, SlotText[option], sizeof(oldSlotText));
         ptr = SlotText[option];
 
-        if (!strcmp(ptr, "") && joypadsave)
+        // [crispy] generate a default save slot name when saving to an empty slot
+        if (!strcmp(ptr, "") /* && joypadsave */ || (strlen(oldSlotText) >= 3 && !strncmp(oldSlotText, "HUB", 3)))
         {
             SetDefaultSaveName(option);
+          M_snprintf(ptr, sizeof(oldSlotText), "HUB %d.%d, %s",
+                     P_GetMapCluster(gamemap), gamemap,
+                     class_str[PlayerClass[consoleplayer]]);
         }
 
         while (*ptr)
@@ -4426,6 +4494,9 @@ boolean MN_Responder(event_t * event)
                 case 5:
                     mn_SuicideConsole = true;
                     break;
+                case 6:
+                    SCDeleteGame(CurrentItPos);
+                    MN_ReturnToMenu();
                 case 7: // [JN] Reset keybinds.
                     M_ResetBinds();
                     if (!netgame && !demoplayback)
@@ -4519,6 +4590,7 @@ boolean MN_Responder(event_t * event)
                 }
                 S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
                 slottextloaded = false;     //reload the slot text, when needed
+                quicksaveTitle = false;  // [JN] "Save game" title.
             }
             return true;
         }
@@ -4537,6 +4609,7 @@ boolean MN_Responder(event_t * event)
                 }
                 S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
                 slottextloaded = false;     //reload the slot text, when needed
+                quickloadTitle = false;  // [JN] "Load game" title.
             }
             return true;
         }
@@ -4580,18 +4653,15 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
                     slottextloaded = false; //reload the slot text
                     quicksave = -1;
-                    CT_SetMessage(&players[consoleplayer],
-                                  "CHOOSE A QUICKSAVE SLOT", true, NULL);
+                    // [JN] "Quick save game" title instead of message.
+                    quicksaveTitle = true;
                 }
                 else
                 {
-                    askforquit = true;
-                    typeofask = 3;
-                    if (!netgame && !demoplayback)
-                    {
-                        paused = true;
-                    }
-                    S_StartSound(NULL, SFX_CHAT);
+                    // [JN] Do not ask for quick save confirmation.
+                    S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+                    FileMenuKeySteal = true;
+                    SCSaveGame(quicksave - 1);
                 }
             }
             return true;
@@ -4631,18 +4701,13 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
                     slottextloaded = false; // reload the slot text
                     quickload = -1;
-                    CT_SetMessage(&players[consoleplayer],
-                                  "CHOOSE A QUICKLOAD SLOT", true, NULL);
+                    // [JN] "Quick load game" title instead of message.
+                    quickloadTitle = true;
                 }
                 else
                 {
-                    askforquit = true;
-                    if (!netgame && !demoplayback)
-                    {
-                        paused = true;
-                    }
-                    typeofask = 4;
-                    S_StartSound(NULL, SFX_CHAT);
+                    // [JN] Do not ask for quick load confirmation.
+                    SCLoadGame(quickload - 1);
                 }
             }
             return true;
@@ -4835,8 +4900,6 @@ boolean MN_Responder(event_t * event)
         // [crispy] delete a savegame
         else if (key == key_menu_del)
         {
-            // [JN] TODO
-            /*
             if (CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
             {
                 if (SlotStatus[CurrentItPos])
@@ -4847,13 +4910,10 @@ boolean MN_Responder(event_t * event)
                     {
                         paused = true;
                     }
-                    typeofask = 5;
-                    S_StartSound(NULL, sfx_chat);
+                    typeofask = 6;
+                    S_StartSound(NULL, SFX_CHAT);
                 }
             }
-            */
-            // [JN] ...or clear key bind.
-            //else
             if (CurrentMenu == &ID_Def_Keybinds_1 || CurrentMenu == &ID_Def_Keybinds_2
             ||  CurrentMenu == &ID_Def_Keybinds_3 || CurrentMenu == &ID_Def_Keybinds_4
             ||  CurrentMenu == &ID_Def_Keybinds_5 || CurrentMenu == &ID_Def_Keybinds_6

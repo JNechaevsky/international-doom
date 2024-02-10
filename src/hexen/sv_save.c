@@ -1993,7 +1993,7 @@ void SV_SaveGame(int slot, const char *description)
     }
 
     // Open the output file
-    M_snprintf(fileName, sizeof(fileName), "%shex%d.hxs", SavePath, BASE_SLOT);
+    M_snprintf(fileName, sizeof(fileName), "%shex%d.sav", SavePath, BASE_SLOT);
     SV_OpenWrite(fileName);
 
     // Write game save description
@@ -2053,7 +2053,7 @@ void SV_SaveMap(boolean savePlayers)
     SavingPlayers = savePlayers;
 
     // Open the output file
-    M_snprintf(fileName, sizeof(fileName), "%shex%d%02d.hxs",
+    M_snprintf(fileName, sizeof(fileName), "%shex%d%02d.sav",
                 SavePath, BASE_SLOT, gamemap);
     SV_OpenWrite(fileName);
 
@@ -2114,7 +2114,7 @@ void SV_LoadGame(int slot)
     }
 
     // Create the name
-    M_snprintf(fileName, sizeof(fileName), "%shex%d.hxs", SavePath, BASE_SLOT);
+    M_snprintf(fileName, sizeof(fileName), "%shex%d.sav", SavePath, BASE_SLOT);
 
     // Load the file
     SV_OpenRead(fileName);
@@ -2277,7 +2277,7 @@ void SV_MapTeleport(int map, int position)
 
     gamemap = map;
     M_snprintf(fileName, sizeof(fileName),
-                "%shex%d%02d.hxs", SavePath, BASE_SLOT, gamemap);
+                "%shex%d%02d.sav", SavePath, BASE_SLOT, gamemap);
     if (!deathmatch && ExistingFile(fileName))
     {                           // Unarchive map
         SV_LoadMap();
@@ -2427,7 +2427,7 @@ boolean SV_RebornSlotAvailable(void)
 {
     char fileName[100];
 
-    M_snprintf(fileName, sizeof(fileName), "%shex%d.hxs", SavePath, REBORN_SLOT);
+    M_snprintf(fileName, sizeof(fileName), "%shex%d.sav", SavePath, REBORN_SLOT);
     return ExistingFile(fileName);
 }
 
@@ -2449,7 +2449,7 @@ void SV_LoadMap(void)
 
     // Create the name
     M_snprintf(fileName, sizeof(fileName),
-                "%shex%d%02d.hxs", SavePath, BASE_SLOT, gamemap);
+                "%shex%d%02d.sav", SavePath, BASE_SLOT, gamemap);
 
     // Load the file
     SV_OpenRead(fileName);
@@ -3359,10 +3359,10 @@ void SV_ClearSaveSlot(int slot)
     for (i = 0; i < MAX_MAPS; i++)
     {
         M_snprintf(fileName, sizeof(fileName),
-                   "%shex%d%02d.hxs", SavePath, slot, i);
+                   "%shex%d%02d.sav", SavePath, slot, i);
         M_remove(fileName);
     }
-    M_snprintf(fileName, sizeof(fileName), "%shex%d.hxs", SavePath, slot);
+    M_snprintf(fileName, sizeof(fileName), "%shex%d.sav", SavePath, slot);
     M_remove(fileName);
 }
 
@@ -3383,20 +3383,20 @@ static void CopySaveSlot(int sourceSlot, int destSlot)
     for (i = 0; i < MAX_MAPS; i++)
     {
         M_snprintf(sourceName, sizeof(sourceName),
-                   "%shex%d%02d.hxs", SavePath, sourceSlot, i);
+                   "%shex%d%02d.sav", SavePath, sourceSlot, i);
         if (ExistingFile(sourceName))
         {
             M_snprintf(destName, sizeof(destName),
-                       "%shex%d%02d.hxs", SavePath, destSlot, i);
+                       "%shex%d%02d.sav", SavePath, destSlot, i);
             CopyFile(sourceName, destName);
         }
     }
     M_snprintf(sourceName, sizeof(sourceName),
-               "%shex%d.hxs", SavePath, sourceSlot);
+               "%shex%d.sav", SavePath, sourceSlot);
     if (ExistingFile(sourceName))
     {
         M_snprintf(destName, sizeof(destName),
-                   "%shex%d.hxs", SavePath, destSlot);
+                   "%shex%d.sav", SavePath, destSlot);
         CopyFile(sourceName, destName);
     }
     else
@@ -3511,7 +3511,7 @@ static void SV_OpenRead(char *fileName)
 {
     SavingFP = M_fopen(fileName, "rb");
 
-    // Should never happen, only if hex6.hxs cannot ever be created.
+    // Should never happen, only if hex6.sav cannot ever be created.
     if (SavingFP == NULL)
     {
         I_Error("Could not load savegame %s", fileName);

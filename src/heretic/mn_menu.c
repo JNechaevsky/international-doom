@@ -48,7 +48,7 @@
 #define ITEM_HEIGHT 20
 #define SELECTOR_XOFFSET (-28)
 #define SELECTOR_YOFFSET (-1)
-#define SLOTTEXTLEN     16
+#define SLOTTEXTLEN     22
 #define ASCII_CURSOR '['
 
 // Types
@@ -5951,8 +5951,6 @@ void MN_DeactivateMenu(void)
     {
         S_StartSound(NULL, sfx_dorcls);
     }
-    players[consoleplayer].message = NULL;
-    players[consoleplayer].messageTics = 1;
 }
 
 //---------------------------------------------------------------------------
