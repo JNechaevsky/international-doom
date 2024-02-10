@@ -903,7 +903,7 @@ void MN_DrTextA(const char *text, int x, int y, byte *table);
 int MN_TextAWidth(const char *text);
 void MN_DrTextACentered (const char *text, int y, byte *table);
 void MN_DrTextACritical (const char *text1, const char *text2, int y, byte *table);
-void MN_DrTextB(const char *text, int x, int y);
+void MN_DrTextB(const char *text, int x, int y, byte *table);
 int MN_TextBWidth(const char *text);
 
 #include "sounds.h"

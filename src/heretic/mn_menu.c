@@ -4239,10 +4239,12 @@ void MN_DrTextACritical (const char *text1, const char *text2, int y, byte *tabl
 //
 //---------------------------------------------------------------------------
 
-void MN_DrTextB(const char *text, int x, int y)
+void MN_DrTextB(const char *text, int x, int y, byte *table)
 {
     char c;
     patch_t *p;
+
+    dp_translation = table;
 
     while ((c = *text++) != 0)
     {
@@ -4257,6 +4259,8 @@ void MN_DrTextB(const char *text, int x, int y)
             x += SHORT(p->width) - 1;
         }
     }
+
+    dp_translation = NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -4453,17 +4457,14 @@ void MN_Drawer(void)
                     if (CurrentItPos == i)
                     {
                         // [JN] Highlight menu item on which the cursor is positioned.
-                        dp_translation = cr[CR_MENU_BRIGHT3];
-                        MN_DrTextB(DEH_String(item->text), x, y);
+                        MN_DrTextB(DEH_String(item->text), x, y, cr[CR_MENU_BRIGHT3]);
                     }
                     else
                     {
                         // [JN] Apply fading effect in MN_Ticker.
-                        dp_translation = M_Big_Line_Glow(CurrentMenu->items[i].tics);
-                        MN_DrTextB(DEH_String(item->text), x, y);
+                        MN_DrTextB(DEH_String(item->text), x, y, M_Big_Line_Glow(CurrentMenu->items[i].tics));
                     }
                 }
-                dp_translation = NULL;
                 y += ITEM_HEIGHT;
             }
             item++;
@@ -4569,7 +4570,7 @@ static void DrawLoadMenu(void)
 
     title = DEH_String(quickloadTitle ? "QUICK LOAD GAME" : "LOAD GAME");
 
-    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7, NULL);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
@@ -4590,7 +4591,7 @@ static void DrawSaveMenu(void)
 
     title = DEH_String(quicksaveTitle ? "QUICK SAVE GAME" : "SAVE GAME");
 
-    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7, NULL);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
@@ -4667,11 +4668,11 @@ static void DrawOptionsMenu(void)
 {
     if (msg_show)
     {
-        MN_DrTextB(DEH_String("ON"), 196, 50);
+        MN_DrTextB(DEH_String("ON"), 196, 50, NULL);
     }
     else
     {
-        MN_DrTextB(DEH_String("OFF"), 196, 50);
+        MN_DrTextB(DEH_String("OFF"), 196, 50, NULL);
     }
     DrawSlider(&OptionsMenu, 3, 10, mouseSensitivity, true);
 }
