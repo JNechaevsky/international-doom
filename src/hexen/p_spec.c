@@ -23,6 +23,7 @@
 #include "m_misc.h"
 #include "p_local.h"
 #include "s_sound.h"
+#include "ct_chat.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -423,7 +424,7 @@ static boolean CheckedLockedDoor(mobj_t * mo, byte lock)
     {
         M_snprintf(LockedBuffer, sizeof(LockedBuffer),
                    "YOU NEED THE %s\n", TextKeyMessages[lock - 1]);
-        P_SetMessage(mo->player, LockedBuffer, true);
+        CT_SetMessage(mo->player, LockedBuffer, true, NULL);
         S_StartSound(mo, SFX_DOOR_LOCKED);
         return false;
     }

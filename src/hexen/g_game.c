@@ -33,6 +33,7 @@
 #include "p_local.h"
 #include "v_video.h"
 #include "am_map.h"
+#include "ct_chat.h"
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -283,8 +284,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             joybspeed = MAX_JOY_BUTTONS;
         }
 
-        P_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
-                     ID_AUTORUN_ON : ID_AUTORUN_OFF, false);
+        CT_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
+                      ID_AUTORUN_ON : ID_AUTORUN_OFF, false, NULL);
         S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
         gamekeydown[key_autorun] = false;
     }
@@ -297,8 +298,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         {
             look = TOCENTER;
         }
-        P_SetMessage(&players[consoleplayer], mouse_look ?
-                     ID_MLOOK_ON : ID_MLOOK_OFF, false);
+        CT_SetMessage(&players[consoleplayer], mouse_look ?
+                      ID_MLOOK_ON : ID_MLOOK_OFF, false, NULL);
         S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
         gamekeydown[key_mouse_look] = false;
     }
@@ -903,7 +904,7 @@ void G_DoLoadLevel(void)
 
     if (testcontrols)
     {
-        P_SetMessage(&players[consoleplayer], "PRESS ESCAPE TO QUIT.", false);
+        CT_SetMessage(&players[consoleplayer], "PRESS ESCAPE TO QUIT.", false, NULL);
     }
 }
 
@@ -1263,7 +1264,7 @@ void G_Ticker(void)
                 break;
             case ga_screenshot:
                 V_ScreenShot("HEXEN%02i.%s");
-                P_SetMessage(&players[consoleplayer], "SCREEN SHOT", false);
+                CT_SetMessage(&players[consoleplayer], "SCREEN SHOT", false, NULL);
                 gameaction = ga_nothing;
                 break;
             case ga_leavemap:
@@ -1414,6 +1415,10 @@ void G_Ticker(void)
             H2_PageTicker();
             break;
     }
+
+    // [JN] Reduce message tics independently from framerate and game states.
+    // Tics can't go negative.
+    MSG_Ticker();
 
     //
     // [JN] Query time for time-related widgets:
@@ -1839,7 +1844,7 @@ void G_Completed(int map, int position)
 {
     if (gamemode == shareware && map > 4)
     {
-        P_SetMessage(&players[consoleplayer], "ACCESS DENIED -- DEMO", true);
+        CT_SetMessage(&players[consoleplayer], "ACCESS DENIED -- DEMO", true, NULL);
         S_StartSound(NULL, SFX_CHAT);
         return;
     }
@@ -2026,7 +2031,7 @@ void G_DoSaveGame(void)
     SV_SaveGame(savegameslot, savedescription);
     gameaction = ga_nothing;
     savedescription[0] = 0;
-    P_SetMessage(&players[consoleplayer], TXT_GAMESAVED, true);
+    CT_SetMessage(&players[consoleplayer], TXT_GAMESAVED, false, NULL);
 
     // Draw the pattern into the back screen
     R_FillBackScreen();

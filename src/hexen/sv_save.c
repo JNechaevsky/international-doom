@@ -24,6 +24,7 @@
 #include "i_swap.h"
 #include "p_local.h"
 #include "am_map.h"
+#include "ct_chat.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -2304,7 +2305,7 @@ void SV_MapTeleport(int map, int position)
             continue;
         }
         players[i] = playerBackup[i];
-        P_ClearMessage(&players[i]);
+        CT_ClearMessage(&players[i]);
         players[i].attacker = NULL;
         players[i].poisoner = NULL;
 
@@ -2535,7 +2536,7 @@ static void UnarchivePlayers(void)
         }
         PlayerClass[i] = SV_ReadByte();
         StreamIn_player_t(&players[i]);
-        P_ClearMessage(&players[i]);
+        CT_ClearMessage(&players[i]);
     }
 }
 

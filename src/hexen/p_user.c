@@ -21,6 +21,7 @@
 #include "i_system.h"
 #include "p_local.h"
 #include "s_sound.h"
+#include "ct_chat.h"
 
 
 // Macros
@@ -675,14 +676,6 @@ void P_PlayerThink(player_t * player)
         cmd->forwardmove = 0xc800 / 512;
         cmd->sidemove = 0;
         player->mo->flags &= ~MF_JUSTATTACKED;
-    }
-// messageTics is above the rest of the counters so that messages will 
-//              go away, even in death.
-    player->messageTics--;      // Can go negative
-    if (!player->messageTics || player->messageTics == -1)
-    {                           // Refresh the screen when a message goes away
-        player->ultimateMessage = false;        // clear out any chat messages.
-        player->yellowMessage = false;
     }
     player->worldTimer++;
     if (player->playerstate == PST_DEAD)
@@ -1674,7 +1667,7 @@ boolean P_UseArtifact(player_t * player, artitype_t arti)
             }
             else
             {
-                P_SetYellowMessage(player, TXT_USEPUZZLEFAILED, false);
+                CT_SetYellowMessage(player, TXT_USEPUZZLEFAILED, false);
                 return false;
             }
             break;

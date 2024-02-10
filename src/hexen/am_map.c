@@ -29,6 +29,7 @@
 #include "am_map.h"
 #include "v_trans.h"
 #include "v_video.h"
+#include "ct_chat.h"
 
 
 // [crispy] simplify (automap framebuffer)
@@ -779,18 +780,18 @@ boolean AM_Responder (event_t *ev)
         else if (key == key_map_follow)
         {
             followplayer = !followplayer;
-            P_SetMessage(plr, followplayer ? AMSTR_FOLLOWON : AMSTR_FOLLOWOFF, false);
+            CT_SetMessage(plr, followplayer ? AMSTR_FOLLOWON : AMSTR_FOLLOWOFF, false, NULL);
         }
         else if (key == key_map_grid)
         {
             grid = !grid;
 
-            P_SetMessage(plr, grid ? AMSTR_GRIDON : AMSTR_GRIDOFF, false);
+            CT_SetMessage(plr, grid ? AMSTR_GRIDON : AMSTR_GRIDOFF, false, NULL);
         }
         else if (key == key_map_mark)
         {
             M_snprintf(buffer, sizeof(buffer), "%s %d", AMSTR_MARKEDSPOT, markpointnum);
-            P_SetMessage(plr, buffer, false);
+            CT_SetMessage(plr, buffer, false, NULL);
             AM_addMark();
         }
         else if (key == key_map_clearmark && markpointnum > 0)
@@ -799,20 +800,20 @@ boolean AM_Responder (event_t *ev)
             if (speedkeydown())
             {
                 AM_ClearMarks();
-                P_SetMessage(plr, AMSTR_MARKSCLEARED, false);
+                CT_SetMessage(plr, AMSTR_MARKSCLEARED, false, NULL);
             }
             else
             {
                 markpointnum--;
                 M_snprintf(buffer, sizeof(buffer), "%s %d", AMSTR_MARKCLEARED, markpointnum);
-                P_SetMessage(plr, buffer, false);
+                CT_SetMessage(plr, buffer, false, NULL);
             }
         }
         else if (key == key_map_rotate)
         {
             // [JN] Automap rotate mode.
             automap_rotate = !automap_rotate;
-            P_SetMessage(plr, automap_rotate ? ID_AUTOMAPROTATE_ON : ID_AUTOMAPROTATE_OFF, false);
+            CT_SetMessage(plr, automap_rotate ? ID_AUTOMAPROTATE_ON : ID_AUTOMAPROTATE_OFF, false, NULL);
         }
         else if (key == key_map_overlay)
         {
@@ -820,12 +821,12 @@ boolean AM_Responder (event_t *ev)
             automap_overlay = !automap_overlay;
             if (automap_overlay)
             {
-                P_SetMessage(plr, ID_AUTOMAPOVERLAY_ON, false);
+                CT_SetMessage(plr, ID_AUTOMAPOVERLAY_ON, false, NULL);
                 antialias = &antialias_overlay;
             }
             else
             {
-                P_SetMessage(plr, ID_AUTOMAPOVERLAY_OFF, false);
+                CT_SetMessage(plr, ID_AUTOMAPOVERLAY_OFF, false, NULL);
                 antialias = &antialias_normal;
             }
             // [JN] Redraw status bar to properly hide armor/keys panel.

@@ -29,6 +29,7 @@
 #include "v_video.h"
 #include "i_swap.h"
 #include "am_map.h"
+#include "ct_chat.h"
 
 #include "id_func.h"
 
@@ -1895,11 +1896,11 @@ static void CheatGodFunc(player_t * player, Cheat_t * cheat)
     player->cheats ^= CF_GODMODE;
     if (player->cheats & CF_GODMODE)
     {
-        P_SetMessage(player, TXT_CHEATGODON, true);
+        CT_SetMessage(player, TXT_CHEATGODON, false, NULL);
     }
     else
     {
-        P_SetMessage(player, TXT_CHEATGODOFF, true);
+        CT_SetMessage(player, TXT_CHEATGODOFF, false, NULL);
     }
     SB_state = -1;
 }
@@ -1909,11 +1910,11 @@ static void CheatNoClipFunc(player_t * player, Cheat_t * cheat)
     player->cheats ^= CF_NOCLIP;
     if (player->cheats & CF_NOCLIP)
     {
-        P_SetMessage(player, TXT_CHEATNOCLIPON, true);
+        CT_SetMessage(player, TXT_CHEATNOCLIPON, false, NULL);
     }
     else
     {
-        P_SetMessage(player, TXT_CHEATNOCLIPOFF, true);
+        CT_SetMessage(player, TXT_CHEATNOCLIPOFF, false, NULL);
     }
 }
 
@@ -1933,7 +1934,7 @@ static void CheatWeaponsFunc(player_t * player, Cheat_t * cheat)
     {
         player->mana[i] = MAX_MANA;
     }
-    P_SetMessage(player, TXT_CHEATWEAPONS, true);
+    CT_SetMessage(player, TXT_CHEATWEAPONS, false, NULL);
 }
 
 static void CheatHealthFunc(player_t * player, Cheat_t * cheat)
@@ -1946,13 +1947,13 @@ static void CheatHealthFunc(player_t * player, Cheat_t * cheat)
     {
         player->health = player->mo->health = MAXHEALTH;
     }
-    P_SetMessage(player, TXT_CHEATHEALTH, true);
+    CT_SetMessage(player, TXT_CHEATHEALTH, false, NULL);
 }
 
 static void CheatKeysFunc(player_t * player, Cheat_t * cheat)
 {
     player->keys = 2047;
-    P_SetMessage(player, TXT_CHEATKEYS, true);
+    CT_SetMessage(player, TXT_CHEATKEYS, false, NULL);
 }
 
 static void CheatSoundFunc(player_t * player, Cheat_t * cheat)
@@ -1960,11 +1961,11 @@ static void CheatSoundFunc(player_t * player, Cheat_t * cheat)
     DebugSound = !DebugSound;
     if (DebugSound)
     {
-        P_SetMessage(player, TXT_CHEATSOUNDON, true);
+        CT_SetMessage(player, TXT_CHEATSOUNDON, false, NULL);
     }
     else
     {
-        P_SetMessage(player, TXT_CHEATSOUNDOFF, true);
+        CT_SetMessage(player, TXT_CHEATSOUNDOFF, false, NULL);
     }
 }
 
@@ -1973,11 +1974,11 @@ static void CheatTickerFunc(player_t * player, Cheat_t * cheat)
     DisplayTicker = !DisplayTicker;
     if (DisplayTicker)
     {
-        P_SetMessage(player, TXT_CHEATTICKERON, true);
+        CT_SetMessage(player, TXT_CHEATTICKERON, false, NULL);
     }
     else
     {
-        P_SetMessage(player, TXT_CHEATTICKEROFF, true);
+        CT_SetMessage(player, TXT_CHEATTICKEROFF, false, NULL);
     }
 
     I_DisplayFPSDots(DisplayTicker);
@@ -1995,7 +1996,7 @@ static void CheatArtifactAllFunc(player_t * player, Cheat_t * cheat)
             P_GiveArtifact(player, i, NULL);
         }
     }
-    P_SetMessage(player, TXT_CHEATARTIFACTS3, true);
+    CT_SetMessage(player, TXT_CHEATARTIFACTS3, false, NULL);
 }
 
 static void CheatPuzzleFunc(player_t * player, Cheat_t * cheat)
@@ -2006,13 +2007,13 @@ static void CheatPuzzleFunc(player_t * player, Cheat_t * cheat)
     {
         P_GiveArtifact(player, i, NULL);
     }
-    P_SetMessage(player, TXT_CHEATARTIFACTS3, true);
+    CT_SetMessage(player, TXT_CHEATARTIFACTS3, false, NULL);
 }
 
 static void CheatInitFunc(player_t * player, Cheat_t * cheat)
 {
     G_DeferedInitNew(gameskill, gameepisode, gamemap);
-    P_SetMessage(player, TXT_CHEATWARP, true);
+    CT_SetMessage(player, TXT_CHEATWARP, false, NULL);
 }
 
 static void CheatWarpFunc(player_t * player, Cheat_t * cheat)
@@ -2029,27 +2030,27 @@ static void CheatWarpFunc(player_t * player, Cheat_t * cheat)
     ones = args[1] - '0';
     if (tens < 0 || tens > 9 || ones < 0 || ones > 9)
     {                           // Bad map
-        P_SetMessage(player, TXT_CHEATBADINPUT, true);
+        CT_SetMessage(player, TXT_CHEATBADINPUT, false, NULL);
         return;
     }
     map = P_TranslateMap((args[0] - '0') * 10 + args[1] - '0');
     if (map == -1)
     {                           // Not found
-        P_SetMessage(player, TXT_CHEATNOMAP, true);
+        CT_SetMessage(player, TXT_CHEATNOMAP, false, NULL);
         return;
     }
     if (map == gamemap)
     {                           // Don't try to teleport to current map
-        P_SetMessage(player, TXT_CHEATBADINPUT, true);
+        CT_SetMessage(player, TXT_CHEATBADINPUT, false, NULL);
         return;
     }
     M_snprintf(mapName, sizeof(mapName), "MAP%02d", map);
     if (W_CheckNumForName(mapName) == -1)
     {                       // Can't find
-        P_SetMessage(player, TXT_CHEATNOMAP, true);
+        CT_SetMessage(player, TXT_CHEATNOMAP, false, NULL);
         return;
     }
-    P_SetMessage(player, TXT_CHEATWARP, true);
+    CT_SetMessage(player, TXT_CHEATWARP, false, NULL);
     G_TeleportNewMap(map, 0);
 }
 
@@ -2063,7 +2064,7 @@ static void CheatPigFunc(player_t * player, Cheat_t * cheat)
     {
         P_MorphPlayer(player);
     }
-    P_SetMessage(player, "SQUEAL!!", true);
+    CT_SetMessage(player, "SQUEAL!!", false, NULL);
 }
 
 static void CheatMassacreFunc(player_t * player, Cheat_t * cheat)
@@ -2073,7 +2074,7 @@ static void CheatMassacreFunc(player_t * player, Cheat_t * cheat)
 
     count = P_Massacre();
     M_snprintf(buffer, sizeof(buffer), "%d MONSTERS KILLED\n", count);
-    P_SetMessage(player, buffer, true);
+    CT_SetMessage(player, buffer, false, NULL);
 }
 
 static void CheatIDKFAFunc(player_t * player, Cheat_t * cheat)
@@ -2098,28 +2099,28 @@ static void CheatIDKFAFunc(player_t * player, Cheat_t * cheat)
     player->usedown = 0;
 
     player->pendingweapon = WP_FIRST;
-    P_SetMessage(player, TXT_CHEATIDKFA, true);
+    CT_SetMessage(player, TXT_CHEATIDKFA, false, NULL);
 }
 
 static void CheatQuickenFunc1(player_t * player, Cheat_t * cheat)
 {
-    P_SetMessage(player, "TRYING TO CHEAT?  THAT'S ONE....", true);
+    CT_SetMessage(player, "TRYING TO CHEAT?  THAT'S ONE....", false, NULL);
 }
 
 static void CheatQuickenFunc2(player_t * player, Cheat_t * cheat)
 {
-    P_SetMessage(player, "THAT'S TWO....", true);
+    CT_SetMessage(player, "THAT'S TWO....", false, NULL);
 }
 
 static void CheatQuickenFunc3(player_t * player, Cheat_t * cheat)
 {
     P_DamageMobj(player->mo, NULL, player->mo, 10000);
-    P_SetMessage(player, "THAT'S THREE!  TIME TO DIE.", true);
+    CT_SetMessage(player, "THAT'S THREE!  TIME TO DIE.", false, NULL);
 }
 
 static void CheatClassFunc1(player_t * player, Cheat_t * cheat)
 {
-    P_SetMessage(player, "ENTER NEW PLAYER CLASS (0 - 2)", true);
+    CT_SetMessage(player, "ENTER NEW PLAYER CLASS (0 - 2)", false, NULL);
 }
 
 static void CheatClassFunc2(player_t * player, Cheat_t * cheat)
@@ -2137,7 +2138,7 @@ static void CheatClassFunc2(player_t * player, Cheat_t * cheat)
     class = args[0] - '0';
     if (class > 2 || class < 0)
     {
-        P_SetMessage(player, "INVALID PLAYER CLASS", true);
+        CT_SetMessage(player, "INVALID PLAYER CLASS", false, NULL);
         return;
     }
     player->class = class;
@@ -2153,7 +2154,7 @@ static void CheatClassFunc2(player_t * player, Cheat_t * cheat)
 
 static void CheatVersionFunc(player_t * player, Cheat_t * cheat)
 {
-    P_SetMessage(player, HEXEN_VERSIONTEXT, true);
+    CT_SetMessage(player, HEXEN_VERSIONTEXT, false, NULL);
 }
 
 static void CheatDebugFunc(player_t * player, Cheat_t * cheat)
@@ -2165,17 +2166,17 @@ static void CheatDebugFunc(player_t * player, Cheat_t * cheat)
                gamemap,
                player->mo->x >> FRACBITS,
                player->mo->y >> FRACBITS, player->mo->z >> FRACBITS);
-    P_SetMessage(player, textBuffer, true);
+    CT_SetMessage(player, textBuffer, false, NULL);
 }
 
 static void CheatScriptFunc1(player_t * player, Cheat_t * cheat)
 {
-    P_SetMessage(player, "RUN WHICH SCRIPT(01-99)?", true);
+    CT_SetMessage(player, "RUN WHICH SCRIPT(01-99)?", false, NULL);
 }
 
 static void CheatScriptFunc2(player_t * player, Cheat_t * cheat)
 {
-    P_SetMessage(player, "RUN WHICH SCRIPT(01-99)?", true);
+    CT_SetMessage(player, "RUN WHICH SCRIPT(01-99)?", false, NULL);
 }
 
 static void CheatScriptFunc3(player_t * player, Cheat_t * cheat)
@@ -2201,7 +2202,7 @@ static void CheatScriptFunc3(player_t * player, Cheat_t * cheat)
     {
         M_snprintf(textBuffer, sizeof(textBuffer),
                    "RUNNING SCRIPT %.2d", script);
-        P_SetMessage(player, textBuffer, true);
+        CT_SetMessage(player, textBuffer, false, NULL);
     }
 }
 

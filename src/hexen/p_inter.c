@@ -23,6 +23,7 @@
 #include "i_timer.h"
 #include "p_local.h"
 #include "s_sound.h"
+#include "ct_chat.h"
 
 #include "id_vars.h"
 
@@ -61,61 +62,6 @@ static void TryPickupWeapon(player_t * player, pclass_t weaponClass,
                             const char *message);
 static void TryPickupWeaponPiece(player_t * player, pclass_t matchClass,
                                  int pieceValue, mobj_t * pieceMobj);
-
-//--------------------------------------------------------------------------
-//
-// PROC P_SetMessage
-//
-//--------------------------------------------------------------------------
-
-void P_SetMessage(player_t * player, const char *message, boolean ultmsg)
-{
-    if ((player->ultimateMessage || !msg_show) && !ultmsg)
-    {
-        return;
-    }
-
-    M_StringCopy(player->message, message, sizeof(player->message));
-//    strupr(player->message);
-    player->messageTics = MESSAGETICS;
-    player->yellowMessage = false;
-    if (ultmsg)
-    {
-        player->ultimateMessage = true;
-    }
-}
-
-//==========================================================================
-//
-// P_SetYellowMessage
-//
-//==========================================================================
-
-void P_SetYellowMessage(player_t * player, const char *message, boolean ultmsg)
-{
-    if ((player->ultimateMessage || !msg_show) && !ultmsg)
-    {
-        return;
-    }
-    M_StringCopy(player->message, message, sizeof(player->message));
-    player->messageTics = 5 * MESSAGETICS;      // Bold messages last longer
-    player->yellowMessage = true;
-    if (ultmsg)
-    {
-        player->ultimateMessage = true;
-    }
-}
-
-//==========================================================================
-//
-// P_ClearMessage
-//
-//==========================================================================
-
-void P_ClearMessage(player_t * player)
-{
-    player->messageTics = 0;
-}
 
 //----------------------------------------------------------------------------
 //
@@ -258,7 +204,7 @@ static void TryPickupWeapon(player_t * player, pclass_t weaponClass,
         }
     }
 
-    P_SetMessage(player, message, false);
+    CT_SetMessage(player, message, false, NULL);
     if (weapon->special)
     {
         P_ExecuteLineSpecial(weapon->special, weapon->args,
@@ -503,13 +449,13 @@ static void TryPickupWeaponPiece(player_t * player, pclass_t matchClass,
 
     if (gaveWeapon)
     {
-        P_SetMessage(player, fourthWeaponText[matchClass], false);
+        CT_SetMessage(player, fourthWeaponText[matchClass], false, NULL);
         // Play the build-sound full volume for all players
         S_StartSound(NULL, SFX_WEAPON_BUILD);
     }
     else
     {
-        P_SetMessage(player, weaponPieceText[matchClass], false);
+        CT_SetMessage(player, weaponPieceText[matchClass], false, NULL);
         if (player == &players[consoleplayer])
         {
             S_StartSound(NULL, SFX_PICKUP_WEAPON);
@@ -757,12 +703,12 @@ static void TryPickupArtifact(player_t * player, artitype_t artifactType,
         {
             SetDormantArtifact(artifact);
             S_StartSound(artifact, SFX_PICKUP_ARTIFACT);
-            P_SetMessage(player, artifactMessages[artifactType], false);
+            CT_SetMessage(player, artifactMessages[artifactType], false, NULL);
         }
         else
         {                       // Puzzle item
             S_StartSound(NULL, SFX_PICKUP_ITEM);
-            P_SetMessage(player, artifactMessages[artifactType], true);
+            CT_SetMessage(player, artifactMessages[artifactType], true, NULL);
             if (!netgame || deathmatch)
             {                   // Remove puzzle items if not cooperative netplay
                 P_RemoveMobj(artifact);
@@ -951,35 +897,35 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
             {
                 return;
             }
-            P_SetMessage(player, TXT_ITEMHEALTH, false);
+            CT_SetMessage(player, TXT_ITEMHEALTH, false, NULL);
             break;
         case SPR_ARM1:
             if (!P_GiveArmor(player, ARMOR_ARMOR, -1))
             {
                 return;
             }
-            P_SetMessage(player, TXT_ARMOR1, false);
+            CT_SetMessage(player, TXT_ARMOR1, false, NULL);
             break;
         case SPR_ARM2:
             if (!P_GiveArmor(player, ARMOR_SHIELD, -1))
             {
                 return;
             }
-            P_SetMessage(player, TXT_ARMOR2, false);
+            CT_SetMessage(player, TXT_ARMOR2, false, NULL);
             break;
         case SPR_ARM3:
             if (!P_GiveArmor(player, ARMOR_HELMET, -1))
             {
                 return;
             }
-            P_SetMessage(player, TXT_ARMOR3, false);
+            CT_SetMessage(player, TXT_ARMOR3, false, NULL);
             break;
         case SPR_ARM4:
             if (!P_GiveArmor(player, ARMOR_AMULET, -1))
             {
                 return;
             }
-            P_SetMessage(player, TXT_ARMOR4, false);
+            CT_SetMessage(player, TXT_ARMOR4, false, NULL);
             break;
 
             // Keys
@@ -998,8 +944,8 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
             {
                 return;
             }
-            P_SetMessage(player, TextKeyMessages[special->sprite - SPR_KEY1],
-                         true);
+            CT_SetMessage(player, TextKeyMessages[special->sprite - SPR_KEY1],
+                         true, NULL);
             sound = SFX_PICKUP_KEY;
 
             // Check and process the special now in case the key doesn't
@@ -1128,14 +1074,14 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
             {
                 return;
             }
-            P_SetMessage(player, TXT_MANA_1, false);
+            CT_SetMessage(player, TXT_MANA_1, false, NULL);
             break;
         case SPR_MAN2:
             if (!P_GiveMana(player, MANA_2, 15))
             {
                 return;
             }
-            P_SetMessage(player, TXT_MANA_2, false);
+            CT_SetMessage(player, TXT_MANA_2, false, NULL);
             break;
         case SPR_MAN3:         // Double Mana Dodecahedron
             if (!P_GiveMana(player, MANA_1, 20))
@@ -1149,7 +1095,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
             {
                 P_GiveMana(player, MANA_2, 20);
             }
-            P_SetMessage(player, TXT_MANA_BOTH, false);
+            CT_SetMessage(player, TXT_MANA_BOTH, false, NULL);
             break;
 
             // 2nd and 3rd Mage Weapons

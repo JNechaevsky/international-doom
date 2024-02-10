@@ -27,6 +27,7 @@
 #include "v_video.h"
 #include "i_swap.h"
 #include "am_map.h"
+#include "ct_chat.h"
 #include "v_trans.h"
 
 #include "id_func.h"
@@ -88,7 +89,7 @@ void F_StartFinale(void)
     gamestate = GS_FINALE;
     viewactive = false;
     automapactive = false;
-    P_ClearMessage(&players[consoleplayer]);
+    CT_ClearMessage(&players[consoleplayer]);
 
     FinaleStage = 0;
     FinaleCount = 0;

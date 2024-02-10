@@ -36,6 +36,7 @@
 #include "v_trans.h"
 #include "v_video.h"
 #include "am_map.h"
+#include "ct_chat.h"
 
 #include "id_vars.h"
 
@@ -1346,8 +1347,8 @@ static void M_ID_B_Intensity (int choice)
 static void M_ID_Messages (int choice)
 {
     msg_show ^= 1;
-    P_SetMessage(&players[consoleplayer],
-                 msg_show ? "MESSAGES ON" : "MESSAGES OFF", true);
+    CT_SetMessage(&players[consoleplayer],
+                  msg_show ? "MESSAGES ON" : "MESSAGES OFF", true, NULL);
     S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
 }
 
@@ -3593,7 +3594,7 @@ static void DrawFilesMenu(void)
 // clear out the quicksave/quickload stuff
     quicksave = 0;
     quickload = 0;
-    P_ClearMessage(&players[consoleplayer]);
+    CT_ClearMessage(&players[consoleplayer]);
 }
 
 //---------------------------------------------------------------------------
@@ -3805,11 +3806,11 @@ static void SCMessages(int option)
     msg_show ^= 1;
     if (msg_show)
     {
-        P_SetMessage(&players[consoleplayer], "MESSAGES ON", true);
+        CT_SetMessage(&players[consoleplayer], "MESSAGES ON", true, NULL);
     }
     else
     {
-        P_SetMessage(&players[consoleplayer], "MESSAGES OFF", true);
+        CT_SetMessage(&players[consoleplayer], "MESSAGES OFF", true, NULL);
     }
     S_StartSound(NULL, SFX_CHAT);
 }
@@ -3829,16 +3830,16 @@ static boolean SCNetCheck(int option)
     switch (option)
     {
         case 1:                // new game
-            P_SetMessage(&players[consoleplayer],
-                         "YOU CAN'T START A NEW GAME IN NETPLAY!", true);
+            CT_SetMessage(&players[consoleplayer],
+                          "YOU CAN'T START A NEW GAME IN NETPLAY!", true, NULL);
             break;
         case 2:                // load game
-            P_SetMessage(&players[consoleplayer],
-                         "YOU CAN'T LOAD A GAME IN NETPLAY!", true);
+            CT_SetMessage(&players[consoleplayer],
+                          "YOU CAN'T LOAD A GAME IN NETPLAY!", true, NULL);
             break;
         case 3:                // end game
-            P_SetMessage(&players[consoleplayer],
-                         "YOU CAN'T END A GAME IN NETPLAY!", true);
+            CT_SetMessage(&players[consoleplayer],
+                          "YOU CAN'T END A GAME IN NETPLAY!", true, NULL);
             break;
     }
     MenuActive = false;
@@ -3880,7 +3881,7 @@ static void SCLoadGame(int option)
     if (quickload == -1)
     {
         quickload = option + 1;
-        P_ClearMessage(&players[consoleplayer]);
+        CT_ClearMessage(&players[consoleplayer]);
     }
 }
 
@@ -3965,7 +3966,7 @@ static void SCSaveGame(int option)
     if (quicksave == -1)
     {
         quicksave = option + 1;
-        P_ClearMessage(&players[consoleplayer]);
+        CT_ClearMessage(&players[consoleplayer]);
     }
 }
 
@@ -3979,9 +3980,9 @@ static void SCClass(int option)
 {
     if (netgame)
     {
-        P_SetMessage(&players[consoleplayer],
-                     "YOU CAN'T START A NEW GAME FROM WITHIN A NETGAME!",
-                     true);
+        CT_SetMessage(&players[consoleplayer],
+                      "YOU CAN'T START A NEW GAME FROM WITHIN A NETGAME!",
+                     true, NULL);
         return;
     }
     MenuPClass = option;
@@ -4404,7 +4405,7 @@ boolean MN_Responder(event_t * event)
                     I_Quit();
                     return false;
                 case 2:
-                    P_ClearMessage(&players[consoleplayer]);
+                    CT_ClearMessage(&players[consoleplayer]);
                     askforquit = false;
                     typeofask = 0;
                     paused = false;
@@ -4416,14 +4417,14 @@ boolean MN_Responder(event_t * event)
                     H2_StartTitle();    // go to intro/demo mode.
                     return false;
                 case 3:
-                    P_SetMessage(&players[consoleplayer],
-                                 "QUICKSAVING....", false);
+                    CT_SetMessage(&players[consoleplayer],
+                                  "QUICKSAVING....", false, NULL);
                     FileMenuKeySteal = true;
                     SCSaveGame(quicksave - 1);
                     break;
                 case 4:
-                    P_SetMessage(&players[consoleplayer],
-                                 "QUICKLOADING....", false);
+                    CT_SetMessage(&players[consoleplayer],
+                                  "QUICKLOADING....", false, NULL);
                     SCLoadGame(quickload - 1);
                     break;
                 case 5:
@@ -4470,7 +4471,6 @@ boolean MN_Responder(event_t * event)
             }
             else
             {
-                players[consoleplayer].messageTics = 1;  //set the msg to be cleared
                 askforquit = false;
                 typeofask = 0;
                 paused = false;
@@ -4584,8 +4584,8 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
                     slottextloaded = false; //reload the slot text
                     quicksave = -1;
-                    P_SetMessage(&players[consoleplayer],
-                                 "CHOOSE A QUICKSAVE SLOT", true);
+                    CT_SetMessage(&players[consoleplayer],
+                                  "CHOOSE A QUICKSAVE SLOT", true, NULL);
                 }
                 else
                 {
@@ -4635,8 +4635,8 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
                     slottextloaded = false; // reload the slot text
                     quickload = -1;
-                    P_SetMessage(&players[consoleplayer],
-                                 "CHOOSE A QUICKLOAD SLOT", true);
+                    CT_SetMessage(&players[consoleplayer],
+                                  "CHOOSE A QUICKLOAD SLOT", true, NULL);
                 }
                 else
                 {
@@ -4660,22 +4660,6 @@ boolean MN_Responder(event_t * event)
             }
             return true;
         }
-        else if (key == key_menu_gamma)          // F11 (gamma correction)
-        {
-            vid_gamma++;
-            if (vid_gamma > 14)
-            {
-                vid_gamma = 0;
-            }
-            SB_PaletteFlash(true);  // force change
-#ifdef CRISPY_TRUECOLOR
-            R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
-            SB_state = -1;
-#endif
-            P_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0],
-                         false);
-            return true;
-        }
         else if (key == KEY_F12)                 // F12 (???)
         {
             // F12 - reload current map (devmaps mode)
@@ -4693,9 +4677,23 @@ boolean MN_Responder(event_t * event)
                 nomonsters = true;
             }
             G_DeferedInitNew(gameskill, gameepisode, gamemap);
-            P_SetMessage(&players[consoleplayer], TXT_CHEATWARP, false);
+            CT_SetMessage(&players[consoleplayer], TXT_CHEATWARP, false, NULL);
             return true;
         }
+    }
+
+    // [JN] Allow to change gamma while active menu.
+    if (key == key_menu_gamma)          // F11 (gamma correction)
+    {
+        vid_gamma = M_INT_Slider(vid_gamma, 0, 14, 1 /*right*/, false);
+        CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false, NULL);
+        SB_PaletteFlash(true);  // force change
+#ifdef CRISPY_TRUECOLOR
+        R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+        R_FillBackScreen();
+        SB_state = -1;
+#endif
+        return true;
     }
 
     if (!MenuActive)
@@ -5007,7 +5005,6 @@ void MN_DeactivateMenu(void)
         paused = false;
     }
     S_StartSound(NULL, SFX_PLATFORM_STOP);
-    P_ClearMessage(&players[consoleplayer]);
 }
 
 //---------------------------------------------------------------------------

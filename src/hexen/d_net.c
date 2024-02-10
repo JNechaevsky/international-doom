@@ -30,10 +30,9 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "w_checksum.h"
-
 #include "deh_main.h"
-
 #include "d_loop.h"
+#include "ct_chat.h"
 
 ticcmd_t *netcmds;
 
@@ -49,7 +48,7 @@ static void PlayerQuitGame(player_t *player)
 
     M_StringCopy(exitmsg, "PLAYER 1 LEFT THE GAME", sizeof(exitmsg));
     exitmsg[7] += player_num;
-    P_SetMessage(&players[consoleplayer], exitmsg, true);
+    CT_SetMessage(&players[consoleplayer], exitmsg, true, NULL);
     S_StartSound(NULL, SFX_CHAT);
 
     playeringame[player_num] = false;

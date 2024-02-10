@@ -24,6 +24,7 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "ct_chat.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -1392,7 +1393,7 @@ void P_SpawnPlayer(mapthing_t * mthing)
     p->mo = mobj;
     p->playerstate = PST_LIVE;
     p->refire = 0;
-    P_ClearMessage(p);
+    CT_ClearMessage(p);
     p->damagecount = 0;
     p->bonuscount = 0;
     p->poisoncount = 0;

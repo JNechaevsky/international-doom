@@ -25,6 +25,7 @@
 #include "i_swap.h"
 #include "i_system.h"
 #include "p_local.h"
+#include "ct_chat.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -594,7 +595,7 @@ boolean P_StartACS(int number, int map, byte * args, mobj_t * activator,
         //I_Error("P_StartACS: Unknown script number %d", number);
         M_snprintf(ErrorMsg, sizeof(ErrorMsg),
                    "P_STARTACS ERROR: UNKNOWN SCRIPT %d", number);
-        P_SetMessage(&players[consoleplayer], ErrorMsg, true);
+        CT_SetMessage(&players[consoleplayer], ErrorMsg, true, NULL);
     }
     statePtr = &ACSInfo[infoIndex].state;
     if (*statePtr == ASTE_SUSPENDED)
@@ -689,7 +690,7 @@ boolean P_StartLockedACS(line_t * line, byte * args, mobj_t * mo, int side)
         {
             M_snprintf(LockedBuffer, sizeof(LockedBuffer),
                        "YOU NEED THE %s\n", TextKeyMessages[lock - 1]);
-            P_SetMessage(mo->player, LockedBuffer, true);
+            CT_SetMessage(mo->player, LockedBuffer, true, NULL);
             S_StartSound(mo, SFX_DOOR_LOCKED);
             return false;
         }
@@ -1774,7 +1775,7 @@ static int CmdEndPrint(void)
     {
         player = &players[consoleplayer];
     }
-    P_SetMessage(player, PrintBuffer, true);
+    CT_SetMessage(player, PrintBuffer, true, NULL);
     return SCRIPT_CONTINUE;
 }
 
@@ -1786,7 +1787,7 @@ static int CmdEndPrintBold(void)
     {
         if (playeringame[i])
         {
-            P_SetYellowMessage(&players[i], PrintBuffer, true);
+            CT_SetYellowMessage(&players[i], PrintBuffer, true);
         }
     }
     return SCRIPT_CONTINUE;
