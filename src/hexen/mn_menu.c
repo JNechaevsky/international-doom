@@ -698,6 +698,16 @@ static byte *M_Line_Glow (const int tics)
         */
 }
 
+static byte *M_Big_Line_Glow (const int tics)
+{
+    return
+        tics == 5 ? cr[CR_MENU_BRIGHT3] :
+        tics == 4 ? cr[CR_MENU_BRIGHT2] :
+        tics == 3 ? cr[CR_MENU_BRIGHT2] :
+        tics == 2 ? cr[CR_MENU_BRIGHT1] :
+        tics == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
+}
+
 #define GLOW_UNCOLORED  0
 #define GLOW_RED        1
 #define GLOW_DARKRED    2
@@ -3383,20 +3393,17 @@ void MN_Ticker(void)
 
     // [JN] Menu item fading effect:
 
-    if (CurrentMenu->smallFont)
+    for (int i = 0 ; i < CurrentMenu->itemCount ; i++)
     {
-        for (int i = 0 ; i < CurrentMenu->itemCount ; i++)
+        if (CurrentItPos == i)
         {
-            if (CurrentItPos == i)
-            {
-                // Keep menu item bright
-                CurrentMenu->items[i].tics = 5;
-            }
-            else
-            {
-                // Decrease tics for glowing effect
-                CurrentMenu->items[i].tics--;
-            }
+            // Keep menu item bright
+            CurrentMenu->items[i].tics = 5;
+        }
+        else
+        {
+            // Decrease tics for glowing effect
+            CurrentMenu->items[i].tics--;
         }
     }
 }
@@ -3509,8 +3516,20 @@ void MN_Drawer(void)
             {
                 if (item->type != ITT_EMPTY && item->text)
                 {
-                    MN_DrTextB(item->text, x, y);
+                    if (CurrentItPos == i)
+                    {
+                        // [JN] Highlight menu item on which the cursor is positioned.
+                        dp_translation = cr[CR_MENU_BRIGHT3];
+                        MN_DrTextB(item->text, x, y);
+                    }
+                    else
+                    {
+                        // [JN] Apply fading effect in MN_Ticker.
+                        dp_translation = M_Big_Line_Glow(CurrentMenu->items[i].tics);
+                        MN_DrTextB(item->text, x, y);
+                    }
                 }
+                dp_translation = NULL;
                 y += ITEM_HEIGHT;
             }
             item++;

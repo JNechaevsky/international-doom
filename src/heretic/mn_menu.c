@@ -4453,7 +4453,7 @@ void MN_Drawer(void)
                     if (CurrentItPos == i)
                     {
                         // [JN] Highlight menu item on which the cursor is positioned.
-                        dp_translation = cr[CR_MENU_BRIGHT2];
+                        dp_translation = cr[CR_MENU_BRIGHT3];
                         MN_DrTextB(DEH_String(item->text), x, y);
                     }
                     else
