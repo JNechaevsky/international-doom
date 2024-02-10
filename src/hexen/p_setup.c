@@ -338,6 +338,8 @@ void P_LoadSectors(int lump)
         ss->floorpic = R_FlatNumForName(ms->floorpic);
         ss->ceilingpic = R_FlatNumForName(ms->ceilingpic);
         ss->lightlevel = SHORT(ms->lightlevel);
+        // [JN] Initialize temp sector brightness variable.
+        ss->lightlevel_unlit = SHORT(ms->lightlevel);
         ss->special = SHORT(ms->special);
         ss->tag = SHORT(ms->tag);
         ss->thinglist = NULL;
@@ -715,6 +717,41 @@ void P_GroupLines(void)
 
 lumpinfo_t *maplumpinfo;
 
+// -----------------------------------------------------------------------------
+// P_SaveSectorBrightness / P_RestoreSectorBrightness
+// [JN] Saves/restores correct sector brightness, changed by lightning effect.
+// -----------------------------------------------------------------------------
+
+static void P_SaveSectorBrightness (void)
+{
+    sector_t *brightSec = sectors;
+
+    for (int i = 0; i < numsectors; i++, brightSec++)
+    {
+        if (brightSec->ceilingpic == skyflatnum
+        ||  brightSec->special == 198     // LIGHTNING_SPECIAL
+        ||  brightSec->special == 199)    // LIGHTNING_SPECIAL2
+        {
+            brightSec->lightlevel_unlit = brightSec->lightlevel;
+        }
+    }
+}
+
+void P_RestoreSectorBrightness (void)
+{
+    sector_t *brightSec = sectors;
+
+    for (int i = 0; i < numsectors; i++, brightSec++)
+    {
+        if (brightSec->ceilingpic == skyflatnum
+        ||  brightSec->special == 198     // LIGHTNING_SPECIAL
+        ||  brightSec->special == 199)    // LIGHTNING_SPECIAL2
+        {
+            brightSec->lightlevel = brightSec->lightlevel_unlit;
+        }
+    }
+}
+
 /*
 =================
 =
@@ -778,6 +815,10 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
     // [crispy] fix long wall wobble
     P_SegLengths();
+
+    // [JN] Remember initial sector brightness, 
+    // which will be changed by lightning effect.
+    P_SaveSectorBrightness(); 
 
     bodyqueslot = 0;
     po_NumPolyobjs = 0;

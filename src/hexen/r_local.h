@@ -73,6 +73,9 @@ typedef struct
     fixed_t floorheight, ceilingheight;
     short floorpic, ceilingpic;
     short lightlevel;
+    // [JN] Temp variable to remember initial sector brightness,
+    // for saving/restoring after lightning effect.
+    short lightlevel_unlit;
     short special, tag;
 
     int soundtraversed;         // 0 = untraversed, 1,2 = sndlines -1
