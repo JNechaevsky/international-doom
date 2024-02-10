@@ -886,7 +886,10 @@ int R_FlatNumForName(const char *name)
     {
         namet[8] = 0;
         memcpy(namet, name, 8);
-        I_Error("R_FlatNumForName: %s not found", namet);
+        printf("R_FlatNumForName: %s not found\n", namet);
+        // [crispy] since there is no "No Flat" marker,
+        // render missing flats as SKY
+        return skyflatnum;
     }
     return i - firstflat;
 }
@@ -930,7 +933,11 @@ int R_TextureNumForName(const char *name)
 
     i = R_CheckTextureNumForName(name);
     if (i == -1)
-        I_Error("R_TextureNumForName: %s not found", name);
+    {
+        // [crispy] make missing texture non-fatal
+        printf("R_TextureNumForName: %.8s not found\n", name);
+        return 0;
+    }
 
     return i;
 }

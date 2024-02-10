@@ -90,6 +90,7 @@ static int QualifyMap(int map);
 int MapCount;
 mapthing_t deathmatchstarts[MAXDEATHMATCHSTARTS], *deathmatch_p;
 mapthing_t playerstarts[MAX_PLAYER_STARTS][MAXPLAYERS];
+boolean playerstartsingame[MAXPLAYERS];
 int numvertexes;
 vertex_t *vertexes;
 int numsegs;
@@ -444,6 +445,14 @@ void P_LoadThings(int lump)
 
     if (!deathmatch)
     {                           // Don't need to check deathmatch spots
+        for (i = 0; i < 4 /*MAXPLAYERS*/; i++)
+        {
+            // [JN] Inform about missing player 1-4 starts.
+            if (playeringame[i] && !playerstartsingame[i])
+            {
+                I_Error("P_LoadThings: Player %d start missing (vanilla crashes here)", i + 1);
+            }
+        }
         return;
     }
     playerCount = 0;

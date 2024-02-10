@@ -720,6 +720,7 @@ extern int RebornPosition;
 
 #define MAX_PLAYER_STARTS 8
 extern mapthing_t playerstarts[MAX_PLAYER_STARTS][MAXPLAYERS];
+extern boolean playerstartsingame[MAXPLAYERS];
 extern int maxplayers;
 
 extern int mouseSensitivity;

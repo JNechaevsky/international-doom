@@ -1477,6 +1477,7 @@ void P_SpawnMapThing(mapthing_t * mthing)
     if (mthing->type <= 4)
     {
         playerstarts[mthing->arg1][mthing->type - 1] = *mthing;
+        playerstartsingame[mthing->type - 1] = true;
         if (!deathmatch && !mthing->arg1)
         {
             P_SpawnPlayer(mthing);
@@ -1581,7 +1582,8 @@ void P_SpawnMapThing(mapthing_t * mthing)
 
     if (i == NUMMOBJTYPES)
     {                           // Can't find thing type
-        I_Error("P_SpawnMapThing: Unknown type %i at (%i, %i)",
+        // [crispy] ignore unknown map things
+        printf("P_SpawnMapThing: Unknown type %i at (%i, %i)\n",
                 mthing->type, mthing->x, mthing->y);
     }
 
