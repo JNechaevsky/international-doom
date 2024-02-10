@@ -551,6 +551,7 @@ static void M_Draw_ID_Controls (void);
 static void M_ID_Controls_Sensivity (int choice);
 static void M_ID_Controls_Acceleration (int choice);
 static void M_ID_Controls_Threshold (int choice);
+static void M_ID_Controls_MLook (int choice);
 static void M_ID_Controls_NoVert (int choice);
 static void M_ID_Controls_DblClck (int choice);
 static void M_ID_Controls_InvertY (int choice);
@@ -1966,6 +1967,7 @@ static menuitem_t ID_Menu_Controls[]=
     { M_LFRT, "ACCELERATION THRESHOLD",       M_ID_Controls_Threshold,    'a' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "MOUSE LOOK",                   M_ID_Controls_MLook,        'm' },
     { M_LFRT, "VERTICAL MOUSE MOVEMENT",      M_ID_Controls_NoVert,       'v' },
     { M_LFRT, "INVERT VERTICAL AXIS",         M_ID_Controls_InvertY,      'v' },
     { M_LFRT, "DOUBLE CLICK ACTS AS \"USE\"", M_ID_Controls_DblClck,      'd' },
@@ -1978,7 +1980,7 @@ static menu_t ID_Def_Controls =
     &ID_Def_Main,
     ID_Menu_Controls,
     M_Draw_ID_Controls,
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET - 9, // [JN] This menu is one line higher.
     0,
     true, false, false,
 };
@@ -1994,37 +1996,43 @@ static void M_Draw_ID_Controls (void)
 
     M_ShadeBackground();
     
-    M_WriteTextCentered(18, "BINDINGS", cr[CR_YELLOW]);
+    M_WriteTextCentered(9, "BINDINGS", cr[CR_YELLOW]);
     
-    M_WriteTextCentered(45, "MOUSE CONFIGURATION", cr[CR_YELLOW]);
+    M_WriteTextCentered(36, "MOUSE CONFIGURATION", cr[CR_YELLOW]);
 
-    M_DrawThermo(46, 63, 10, mouseSensitivity);
+    M_DrawThermo(46, 54, 10, mouseSensitivity);
     sprintf(str,"%d", mouseSensitivity);
-    M_WriteText (144, 66, str, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
+    M_WriteText (144, 57, str, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
                                               mouseSensitivity > 9 ? GLOW_GREEN : GLOW_UNCOLORED));
 
-    M_DrawThermo(46, 90, 12, (mouse_acceleration * 3) - 3);
+    M_DrawThermo(46, 81, 12, (mouse_acceleration * 3) - 3);
     sprintf(str,"%.1f", mouse_acceleration);
-    M_WriteText (160, 93, str, M_Item_Glow(6, GLOW_UNCOLORED));
+    M_WriteText (160, 84, str, M_Item_Glow(6, GLOW_UNCOLORED));
 
-    M_DrawThermo(46, 117, 15, mouse_threshold / 2);
+    M_DrawThermo(46, 108, 15, mouse_threshold / 2);
     sprintf(str,"%d", mouse_threshold);
-    M_WriteText (184, 120, str, M_Item_Glow(9, GLOW_UNCOLORED));
+    M_WriteText (184, 111, str, M_Item_Glow(9, GLOW_UNCOLORED));
+
+    // Mouse look
+    sprintf(str, mouse_look ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 126, str,
+                 M_Item_Glow(12, mouse_look ? GLOW_GREEN : GLOW_RED));
 
     // Vertical mouse movement
     sprintf(str, mouse_novert ? "OFF" : "ON");
     M_WriteText (M_ItemRightAlign(str), 135, str,
-                 M_Item_Glow(12, mouse_novert ? GLOW_RED : GLOW_GREEN));
+                 M_Item_Glow(13, mouse_novert ? GLOW_RED : GLOW_GREEN));
 
     // Invert vertical axis
     sprintf(str, mouse_y_invert ? "ON" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 144, str,
-                 M_Item_Glow(13, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
+                 M_Item_Glow(14, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
 
     // Double click acts as "use"
     sprintf(str, mouse_dclick_use ? "ON" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 153, str,
-                 M_Item_Glow(14, mouse_dclick_use ? GLOW_GREEN : GLOW_RED));
+                 M_Item_Glow(15, mouse_dclick_use ? GLOW_GREEN : GLOW_RED));
+
 }
 
 static void M_ID_Controls_Sensivity (int choice)
@@ -2041,6 +2049,16 @@ static void M_ID_Controls_Acceleration (int choice)
 static void M_ID_Controls_Threshold (int choice)
 {
     mouse_threshold = M_INT_Slider(mouse_threshold, 0, 32, choice, true);
+}
+
+static void M_ID_Controls_MLook (int choice)
+{
+    mouse_look ^= 1;
+    if (!mouse_look)
+    {
+        players[consoleplayer].lookdir = 0;
+    }
+    R_InitSkyMap();
 }
 
 static void M_ID_Controls_NoVert (int choice)
@@ -4224,6 +4242,7 @@ static void M_ID_ApplyResetHook (void)
     R_InitColormaps();
     R_FillBackScreen();
     V_EnableLoadingDisk();
+    ST_InitElementsBackground();
     AM_LevelInit(true);
     if (automapactive)
     {
