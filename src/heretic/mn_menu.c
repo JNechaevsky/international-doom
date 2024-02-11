@@ -751,20 +751,13 @@ static byte *M_Small_Line_Glow (const int tics)
         tics == 3 ? NULL :
         tics == 2 ? cr[CR_MENU_DARK1]   :
                     cr[CR_MENU_DARK2]   ;
-        /*            
-        tics == 1 ? cr[CR_MENU_DARK2]  :
-                    cr[CR_MENU_DARK3]  ;
-        */
 }
 
 static byte *M_Big_Line_Glow (const int tics)
 {
     return
-        tics == 5 ? cr[CR_MENU_BRIGHT3] :
-        tics == 4 ? cr[CR_MENU_BRIGHT2] :
-        tics == 3 ? cr[CR_MENU_BRIGHT2] :
-        tics == 2 ? cr[CR_MENU_BRIGHT1] :
-        tics == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
+        tics >= 4 ? cr[CR_MENU_BRIGHT2] :
+        tics >= 2 ? cr[CR_MENU_BRIGHT1] : NULL;
 }
 
 #define GLOW_UNCOLORED  0
@@ -4433,40 +4426,21 @@ void MN_Drawer(void)
         item = CurrentMenu->items;
         for (i = 0; i < CurrentMenu->itemCount; i++)
         {
-            if (CurrentMenu->smallFont)
+            if (item->type != ITT_EMPTY && item->text)
             {
-                if (item->type != ITT_EMPTY && item->text)
+                // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
+                if (CurrentMenu->smallFont)
                 {
-                    if (CurrentItPos == i)
-                    {
-                        // [JN] Highlight menu item on which the cursor is positioned.
-                        MN_DrTextA(DEH_String(item->text), x, y, cr[CR_MENU_BRIGHT2]);
-                    }
-                    else
-                    {
-                        // [JN] Apply fading effect in MN_Ticker.
-                        MN_DrTextA(DEH_String(item->text), x, y, M_Small_Line_Glow(CurrentMenu->items[i].tics));
-                    }
+                    MN_DrTextA(item->text, x, y, CurrentItPos == i ?
+                               cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(CurrentMenu->items[i].tics));
                 }
-                y += ID_MENU_LINEHEIGHT_SMALL;
-            }
-            else
-            {
-                if (item->type != ITT_EMPTY && item->text)
+                else
                 {
-                    if (CurrentItPos == i)
-                    {
-                        // [JN] Highlight menu item on which the cursor is positioned.
-                        MN_DrTextB(DEH_String(item->text), x, y, cr[CR_MENU_BRIGHT3]);
-                    }
-                    else
-                    {
-                        // [JN] Apply fading effect in MN_Ticker.
-                        MN_DrTextB(DEH_String(item->text), x, y, M_Big_Line_Glow(CurrentMenu->items[i].tics));
-                    }
+                    MN_DrTextB(item->text, x, y, CurrentItPos == i ?
+                               cr[CR_MENU_BRIGHT2] : M_Big_Line_Glow(CurrentMenu->items[i].tics));
                 }
-                y += ITEM_HEIGHT;
             }
+            y += CurrentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : ITEM_HEIGHT;
             item++;
         }
         
@@ -4652,7 +4626,9 @@ static void DrawFileSlots(Menu_t * menu)
         V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE));
         if (SlotStatus[i])
         {
-            MN_DrTextA(SlotText[i], x + 5, y + 5, NULL);
+            // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
+            MN_DrTextA(SlotText[i], x + 5, y + 5, CurrentItPos == i ?
+                       cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(CurrentMenu->items[i].tics));
         }
         y += ITEM_HEIGHT;
     }
