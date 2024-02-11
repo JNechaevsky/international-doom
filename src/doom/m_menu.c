@@ -4359,7 +4359,7 @@ static void M_DrawLoad(void)
     for (i = 0;i < load_end; i++)
     {
 	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-	// [JN] Highlight selected item (itemOn == i), or apply fading effect.
+	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
 	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], itemOn == i ?
 	            cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
     }
@@ -4431,7 +4431,7 @@ static void M_DrawSave(void)
     for (i = 0;i < load_end; i++)
     {
 	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-	// [JN] Highlight selected item (itemOn == i), or apply fading effect.
+	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
 	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], itemOn == i ?
 	            cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
     }

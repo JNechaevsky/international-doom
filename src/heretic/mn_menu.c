@@ -756,8 +756,9 @@ static byte *M_Small_Line_Glow (const int tics)
 static byte *M_Big_Line_Glow (const int tics)
 {
     return
-        tics >= 4 ? cr[CR_MENU_BRIGHT2] :
-        tics >= 2 ? cr[CR_MENU_BRIGHT1] : NULL;
+        tics == 5 ? cr[CR_MENU_BRIGHT3] :
+        tics >= 3 ? cr[CR_MENU_BRIGHT2] :
+        tics >= 1 ? cr[CR_MENU_BRIGHT1] : NULL;
 }
 
 #define GLOW_UNCOLORED  0
@@ -4437,7 +4438,7 @@ void MN_Drawer(void)
                 else
                 {
                     MN_DrTextB(item->text, x, y, CurrentItPos == i ?
-                               cr[CR_MENU_BRIGHT2] : M_Big_Line_Glow(CurrentMenu->items[i].tics));
+                               cr[CR_MENU_BRIGHT3] : M_Big_Line_Glow(CurrentMenu->items[i].tics));
                 }
             }
             y += CurrentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : ITEM_HEIGHT;
