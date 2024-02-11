@@ -223,6 +223,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     cmd->consistancy = consistancy[consoleplayer][maketic % BACKUPTICS];
 
+    // [JN] Deny all player control events while active menu 
+    // in multiplayer to eliminate movement and camera rotation.
+    if (netgame && (MenuActive || askforquit))
+    return;
+
 //printf ("cons: %i\n",cmd->consistancy);
 
     strafe = gamekeydown[key_strafe]
