@@ -928,8 +928,6 @@ static Menu_t ID_Def_Main = {
 
 static void M_Draw_ID_Main (void)
 {
-    M_ShadeBackground();
-
     MN_DrTextACentered("OPTIONS", 10, cr[CR_YELLOW]);
 }
 
@@ -962,8 +960,6 @@ static Menu_t ID_Def_Video = {
 static void M_Draw_ID_Video (void)
 {
     char str[32];
-
-    M_ShadeBackground();
 
     MN_DrTextACentered("VIDEO OPTIONS", 10, cr[CR_YELLOW]);
 
@@ -1214,8 +1210,6 @@ static void M_Draw_ID_Display (void)
 {
     char str[32];
 
-    M_ShadeBackground();
-
     MN_DrTextACentered("DISPLAY OPTIONS", 10, cr[CR_YELLOW]);
 
     // Gamma-correction num
@@ -1231,8 +1225,8 @@ static void M_Draw_ID_Display (void)
     // Background shading
     sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
     MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, dp_menu_shading == 8 ? GLOW_YELLOW :
-                              dp_menu_shading >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+               M_Item_Glow(2, dp_menu_shading == 12 ? GLOW_YELLOW :
+                              dp_menu_shading  >  0 ? GLOW_GREEN  : GLOW_DARKRED));
 
     // Extra level brightness
     sprintf(str, dp_level_brightness ? "%d" : "OFF", dp_level_brightness);
@@ -1284,7 +1278,6 @@ static void M_Draw_ID_Display (void)
 static void M_ID_Gamma (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
-
     vid_gamma = M_INT_Slider(vid_gamma, 0, 14, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1309,7 +1302,7 @@ static void M_ID_FOV (int choice)
 
 static void M_ID_MenuShading (int choice)
 {
-    dp_menu_shading = M_INT_Slider(dp_menu_shading, 0, 8, choice, true);
+    dp_menu_shading = M_INT_Slider(dp_menu_shading, 0, 12, choice, true);
 }
 
 static void M_ID_LevelBrightness (int choice)
@@ -1319,6 +1312,7 @@ static void M_ID_LevelBrightness (int choice)
 
 static void M_ID_Saturation (int choice)
 {
+    shade_wait = I_GetTime() + TICRATE;
     vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1332,6 +1326,7 @@ static void M_ID_Saturation (int choice)
 
 static void M_ID_R_Intensity (int choice)
 {
+    shade_wait = I_GetTime() + TICRATE;
     vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1345,6 +1340,7 @@ static void M_ID_R_Intensity (int choice)
 
 static void M_ID_G_Intensity (int choice)
 {
+    shade_wait = I_GetTime() + TICRATE;
     vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1358,6 +1354,7 @@ static void M_ID_G_Intensity (int choice)
 
 static void M_ID_B_Intensity (int choice)
 {
+    shade_wait = I_GetTime() + TICRATE;
     vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1418,8 +1415,6 @@ static Menu_t ID_Def_Sound = {
 static void M_Draw_ID_Sound (void)
 {
     char str[32];
-
-    M_ShadeBackground();
 
     MN_DrTextACentered("SOUND OPTIONS", 10, cr[CR_YELLOW]);
 
@@ -2696,8 +2691,6 @@ static void M_Draw_ID_Widgets (void)
 {
     char str[32];
 
-    M_ShadeBackground();
-
     MN_DrTextACentered("WIDGETS", 10, cr[CR_YELLOW]);
 
     // Widgets location
@@ -2835,8 +2828,6 @@ static void M_Draw_ID_Gameplay_1 (void)
 {
     char str[32];
     Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY1;
-
-    M_ShadeBackground();
 
     MN_DrTextACentered("VISUAL", 10, cr[CR_YELLOW]);
 
@@ -3012,8 +3003,6 @@ static void M_Draw_ID_Gameplay_2 (void)
 {
     char str[32];
     Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY2;
-
-    M_ShadeBackground();
 
     MN_DrTextACentered("PHYSICAL", 10, cr[CR_YELLOW]);
 
@@ -3448,6 +3437,17 @@ void MN_Drawer(void)
     int y;
     MenuItem_t *item;
     const char *selName;
+
+    if (MenuActive || typeofask)
+    {
+        // Temporary unshade while changing certain settings.
+        if (shade_wait < I_GetTime())
+        {
+            M_ShadeBackground();
+        }
+        // Always redraw status bar background.
+        SB_ForceRedraw();
+    }
 
     if (MenuActive == false)
     {
