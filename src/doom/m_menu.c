@@ -880,8 +880,6 @@ static void M_ShadeBackground (void)
             I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], I_ShadeFactor[dp_menu_shading]);
 #endif
         }
-        
-        st_fullupdate = true;
     }
 }
 
@@ -1157,8 +1155,6 @@ static void M_Choose_ID_Main (int choice)
 
 static void M_Draw_ID_Main (void)
 {
-    M_ShadeBackground();
-
     M_WriteTextCentered(18, "OPTIONS", cr[CR_YELLOW]);
 }
 
@@ -1205,8 +1201,6 @@ static void M_Choose_ID_Video (int choice)
 static void M_Draw_ID_Video (void)
 {
     char str[32];
-
-    M_ShadeBackground();
 
     M_WriteTextCentered(18, "VIDEO OPTIONS", cr[CR_YELLOW]);
 
@@ -1511,8 +1505,6 @@ static void M_Draw_ID_Display (void)
 {
     char str[32];
 
-    M_ShadeBackground();
-
     M_WriteTextCentered(9, "DISPLAY OPTIONS", cr[CR_YELLOW]);
 
     // Gamma-correction slider and num
@@ -1529,8 +1521,8 @@ static void M_Draw_ID_Display (void)
     // Background shading
     sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
     M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, dp_menu_shading == 8 ? GLOW_YELLOW :
-                                dp_menu_shading >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+                 M_Item_Glow(4, dp_menu_shading == 12 ? GLOW_YELLOW :
+                                dp_menu_shading  >  0 ? GLOW_GREEN  : GLOW_DARKRED));
 
     // Extra level brightness
     sprintf(str, dp_level_brightness ? "%d" : "OFF", dp_level_brightness);
@@ -1587,7 +1579,7 @@ static void M_Draw_ID_Display (void)
 
 static void M_ID_MenuShading (int choice)
 {
-    dp_menu_shading = M_INT_Slider(dp_menu_shading, 0, 8, choice, true);
+    dp_menu_shading = M_INT_Slider(dp_menu_shading, 0, 12, choice, true);
 }
 
 static void M_ID_LevelBrightness (int choice)
@@ -1597,7 +1589,7 @@ static void M_ID_LevelBrightness (int choice)
 
 static void M_ID_Gamma (int choice)
 {
-    shade_wait = I_GetTime() + 25;
+    shade_wait = I_GetTime() + TICRATE;
     vid_gamma = M_INT_Slider(vid_gamma, 0, 14, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1637,6 +1629,7 @@ static void M_ID_LocalTime (int choice)
 
 static void M_ID_Saturation (int choice)
 {
+    shade_wait = I_GetTime() + TICRATE;
     vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1651,6 +1644,7 @@ static void M_ID_Saturation (int choice)
 
 static void M_ID_R_Intensity (int choice)
 {
+    shade_wait = I_GetTime() + TICRATE;
     vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1665,6 +1659,7 @@ static void M_ID_R_Intensity (int choice)
 
 static void M_ID_G_Intensity (int choice)
 {
+    shade_wait = I_GetTime() + TICRATE;
     vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1679,6 +1674,7 @@ static void M_ID_G_Intensity (int choice)
 
 static void M_ID_B_Intensity (int choice)
 {
+    shade_wait = I_GetTime() + TICRATE;
     vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
@@ -1734,8 +1730,6 @@ static void M_Choose_ID_Sound (int choice)
 static void M_Draw_ID_Sound (void)
 {
     char str[16];
-
-    M_ShadeBackground();
 
     M_WriteTextCentered(18, "VOLUME", cr[CR_YELLOW]);
 
@@ -2003,8 +1997,6 @@ static void M_Draw_ID_Controls (void)
 {
     char str[32];
 
-    M_ShadeBackground();
-    
     M_WriteTextCentered(9, "BINDINGS", cr[CR_YELLOW]);
     
     M_WriteTextCentered(36, "MOUSE CONFIGURATION", cr[CR_YELLOW]);
@@ -2179,8 +2171,6 @@ static void M_Draw_ID_Keybinds_1 (void)
 {
     Keybinds_Cur = 0;
 
-    M_ShadeBackground();
-
     M_WriteTextCentered(18, "MOVEMENT", cr[CR_YELLOW]);
 
     M_DrawBindKey(0, 27, key_up);
@@ -2289,8 +2279,6 @@ static void M_Bind_BuddhaMode (int choice)
 static void M_Draw_ID_Keybinds_2 (void)
 {
     Keybinds_Cur = 1;
-
-    M_ShadeBackground();
 
     M_WriteTextCentered(18, "ADVANCED MOVEMENT", cr[CR_YELLOW]);
 
@@ -2403,8 +2391,6 @@ static void M_Draw_ID_Keybinds_3 (void)
 {
     Keybinds_Cur = 2;
 
-    M_ShadeBackground();
-
     M_WriteTextCentered(18, "WEAPONS", cr[CR_YELLOW]);
 
     M_DrawBindKey(0, 27, key_weapon1);
@@ -2509,8 +2495,6 @@ static void M_Bind_ClearMarks (int choice)
 static void M_Draw_ID_Keybinds_4 (void)
 {
     Keybinds_Cur = 3;
-
-    M_ShadeBackground();
 
     M_WriteTextCentered(18, "AUTOMAP", cr[CR_YELLOW]);
 
@@ -2625,8 +2609,6 @@ static void M_Bind_MultiplayerSpy (int choice)
 static void M_Draw_ID_Keybinds_5 (void)
 {
     Keybinds_Cur = 4;
-
-    M_ShadeBackground();
 
     M_WriteTextCentered(18, "FUNCTION KEYS", cr[CR_YELLOW]);
 
@@ -2748,8 +2730,6 @@ static void M_Bind_Reset (int choice)
 static void M_Draw_ID_Keybinds_6 (void)
 {
     Keybinds_Cur = 5;
-
-    M_ShadeBackground();
 
     M_WriteTextCentered(18, "SHORTCUT KEYS", cr[CR_YELLOW]);
 
@@ -2877,8 +2857,6 @@ static void M_Bind_M_Reset (int choice)
 
 static void M_Draw_ID_MouseBinds (void)
 {
-    M_ShadeBackground();
-
     M_WriteTextCentered(18, "MOUSE BINDINGS", cr[CR_YELLOW]);
 
     M_DrawBindButton(0, 27, mousebfire);
@@ -2939,8 +2917,6 @@ static void M_Choose_ID_Widgets (int choice)
 static void M_Draw_ID_Widgets (void)
 {
     char str[32];
-
-    M_ShadeBackground();
 
     M_WriteTextCentered(18, "WIDGETS", cr[CR_YELLOW]);
 
@@ -3145,8 +3121,6 @@ static void M_Draw_ID_Gameplay_1 (void)
     char str[32];
     Gameplay_Cur = 0;
 
-    M_ShadeBackground();
-
     M_WriteTextCentered(9, "VISUAL", cr[CR_YELLOW]);
 
     // Brightmaps
@@ -3349,8 +3323,6 @@ static void M_Draw_ID_Gameplay_2 (void)
     char str[32];
     Gameplay_Cur = 1;
 
-    M_ShadeBackground();
-
     M_WriteTextCentered(9, "STATUS BAR", cr[CR_YELLOW]);
 
     // Colored elements
@@ -3535,8 +3507,6 @@ static void M_Draw_ID_Gameplay_3 (void)
 {
     char str[32];
     Gameplay_Cur = 2;
-
-    M_ShadeBackground();
 
     M_WriteTextCentered(9, "GAMEPLAY", cr[CR_YELLOW]);
 
@@ -4354,7 +4324,6 @@ static void M_DrawLoad(void)
 {
     int             i;
 	
-    M_ShadeBackground();
     V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_LOADG"), PU_CACHE));
 
     for (i = 0;i < load_end; i++)
@@ -4427,7 +4396,6 @@ static void M_DrawSave(void)
 {
     int             i;
 	
-    M_ShadeBackground();
     V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_SAVEG"), PU_CACHE));
     for (i = 0;i < load_end; i++)
     {
@@ -4617,8 +4585,6 @@ static void M_DrawSound(void)
 {
     char str[8];
 
-    M_ShadeBackground();
-
     V_DrawShadowedPatchOptional(60, 38, 0, W_CacheLumpName(DEH_String("M_SVOL"), PU_CACHE));
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (sfx_vol + 1), 16, sfxVolume);
@@ -4672,11 +4638,6 @@ static void M_MusicVol(int choice)
 //
 static void M_DrawMainMenu(void)
 {
-    M_ShadeBackground();
-
-    // [JN] Always redraw status bar background.
-    st_fullupdate = true;
-
     V_DrawPatch(94, 2, W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
 }
 
@@ -4688,11 +4649,6 @@ static void M_DrawMainMenu(void)
 //
 static void M_DrawNewGame(void)
 {
-    M_ShadeBackground();
-
-    // [JN] Always redraw status bar background.
-    st_fullupdate = true;
-
     V_DrawShadowedPatchOptional(96, 14, 0, W_CacheLumpName(DEH_String("M_NEWG"), PU_CACHE));
     V_DrawShadowedPatchOptional(54, 38, 0, W_CacheLumpName(DEH_String("M_SKILL"), PU_CACHE));
 }
@@ -4721,11 +4677,6 @@ static int epi;
 
 static void M_DrawEpisode(void)
 {
-    M_ShadeBackground();
-
-    // [JN] Always redraw status bar background.
-    st_fullupdate = true;
-
     V_DrawShadowedPatchOptional(54, 38, 0, W_CacheLumpName(DEH_String("M_EPISOD"), PU_CACHE));
 }
 
@@ -6074,10 +6025,21 @@ void M_Drawer (void)
     const char *name;
     int			start;
 
+    // [JN] Shade background while active menu.
+    if (menuactive)
+    {
+        // Temporary unshade while changing certain settings.
+        if (shade_wait < I_GetTime())
+        {
+            M_ShadeBackground();
+        }
+        // Always redraw status bar background.
+        st_fullupdate = true;
+    }
+
     // Horiz. & Vertically center string and print it.
     if (messageToPrint)
     {
-	M_ShadeBackground();
 	start = 0;
 	y = ORIGHEIGHT/2 - M_StringHeight(messageString) / 2;
 	while (messageString[start] != '\0')
