@@ -743,7 +743,7 @@ static void M_FillBackground (void)
     V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 }
 
-static byte *M_Line_Glow (const int tics)
+static byte *M_Small_Line_Glow (const int tics)
 {
     return
         tics == 5 ? cr[CR_MENU_BRIGHT2] :
@@ -751,10 +751,14 @@ static byte *M_Line_Glow (const int tics)
         tics == 3 ? NULL :
         tics == 2 ? cr[CR_MENU_DARK1]   :
                     cr[CR_MENU_DARK2]   ;
-        /*            
-        tics == 1 ? cr[CR_MENU_DARK2]  :
-                    cr[CR_MENU_DARK3]  ;
-        */
+}
+
+static byte *M_Big_Line_Glow (const int tics)
+{
+    return
+        tics == 5 ? cr[CR_MENU_BRIGHT3] :
+        tics >= 3 ? cr[CR_MENU_BRIGHT2] :
+        tics >= 1 ? cr[CR_MENU_BRIGHT1] : NULL;
 }
 
 #define GLOW_UNCOLORED  0
@@ -4229,10 +4233,12 @@ void MN_DrTextACritical (const char *text1, const char *text2, int y, byte *tabl
 //
 //---------------------------------------------------------------------------
 
-void MN_DrTextB(const char *text, int x, int y)
+void MN_DrTextB(const char *text, int x, int y, byte *table)
 {
     char c;
     patch_t *p;
+
+    dp_translation = table;
 
     while ((c = *text++) != 0)
     {
@@ -4247,6 +4253,8 @@ void MN_DrTextB(const char *text, int x, int y)
             x += SHORT(p->width) - 1;
         }
     }
+
+    dp_translation = NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -4316,23 +4324,19 @@ void MN_Ticker(void)
 
     // [JN] Menu item fading effect:
 
-    if (CurrentMenu->smallFont)
+    for (int i = 0 ; i < CurrentMenu->itemCount ; i++)
     {
-        for (int i = 0 ; i < CurrentMenu->itemCount ; i++)
+        if (CurrentItPos == i)
         {
-            if (CurrentItPos == i)
-            {
-                // Keep menu item bright
-                CurrentMenu->items[i].tics = 5;
-            }
-            else
-            {
-                // Decrease tics for glowing effect
-                CurrentMenu->items[i].tics--;
-            }
+            // Keep menu item bright
+            CurrentMenu->items[i].tics = 5;
+        }
+        else
+        {
+            // Decrease tics for glowing effect
+            CurrentMenu->items[i].tics--;
         }
     }
-
 }
 
 //---------------------------------------------------------------------------
@@ -4423,31 +4427,21 @@ void MN_Drawer(void)
         item = CurrentMenu->items;
         for (i = 0; i < CurrentMenu->itemCount; i++)
         {
-            if (CurrentMenu->smallFont)
+            if (item->type != ITT_EMPTY && item->text)
             {
-                if (item->type != ITT_EMPTY && item->text)
+                // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
+                if (CurrentMenu->smallFont)
                 {
-                    if (CurrentItPos == i)
-                    {
-                        // [JN] Highlight menu item on which the cursor is positioned.
-                        MN_DrTextA(DEH_String(item->text), x, y, cr[CR_MENU_BRIGHT2]);
-                    }
-                    else
-                    {
-                        // [JN] Apply fading effect in MN_Ticker.
-                        MN_DrTextA(DEH_String(item->text), x, y, M_Line_Glow(CurrentMenu->items[i].tics));
-                    }
+                    MN_DrTextA(item->text, x, y, CurrentItPos == i ?
+                               cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(CurrentMenu->items[i].tics));
                 }
-                y += ID_MENU_LINEHEIGHT_SMALL;
-            }
-            else
-            {
-                if (item->type != ITT_EMPTY && item->text)
+                else
                 {
-                    MN_DrTextB(DEH_String(item->text), x, y);
+                    MN_DrTextB(item->text, x, y, CurrentItPos == i ?
+                               cr[CR_MENU_BRIGHT3] : M_Big_Line_Glow(CurrentMenu->items[i].tics));
                 }
-                y += ITEM_HEIGHT;
             }
+            y += CurrentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : ITEM_HEIGHT;
             item++;
         }
         
@@ -4551,7 +4545,7 @@ static void DrawLoadMenu(void)
 
     title = DEH_String(quickloadTitle ? "QUICK LOAD GAME" : "LOAD GAME");
 
-    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7, NULL);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
@@ -4572,7 +4566,7 @@ static void DrawSaveMenu(void)
 
     title = DEH_String(quicksaveTitle ? "QUICK SAVE GAME" : "SAVE GAME");
 
-    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7);
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7, NULL);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
@@ -4633,7 +4627,9 @@ static void DrawFileSlots(Menu_t * menu)
         V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE));
         if (SlotStatus[i])
         {
-            MN_DrTextA(SlotText[i], x + 5, y + 5, NULL);
+            // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
+            MN_DrTextA(SlotText[i], x + 5, y + 5, CurrentItPos == i ?
+                       cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(CurrentMenu->items[i].tics));
         }
         y += ITEM_HEIGHT;
     }
@@ -4649,11 +4645,11 @@ static void DrawOptionsMenu(void)
 {
     if (msg_show)
     {
-        MN_DrTextB(DEH_String("ON"), 196, 50);
+        MN_DrTextB(DEH_String("ON"), 196, 50, NULL);
     }
     else
     {
-        MN_DrTextB(DEH_String("OFF"), 196, 50);
+        MN_DrTextB(DEH_String("OFF"), 196, 50, NULL);
     }
     DrawSlider(&OptionsMenu, 3, 10, mouseSensitivity, true);
 }

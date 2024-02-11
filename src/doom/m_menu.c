@@ -913,7 +913,7 @@ enum
     m_id_end
 } id1_e;
 
-static byte *M_Line_Glow (const int tics)
+static byte *M_Small_Line_Glow (const int tics)
 {
     return
         tics == 5 ? cr[CR_MENU_BRIGHT5] :
@@ -921,6 +921,14 @@ static byte *M_Line_Glow (const int tics)
         tics == 3 ? cr[CR_MENU_BRIGHT3] :
         tics == 2 ? cr[CR_MENU_BRIGHT2] :
         tics == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
+}
+
+static byte *M_Big_Line_Glow (const int tics)
+{
+    return
+        tics == 5 ? cr[CR_MENU_BRIGHT3] :
+        tics >= 3 ? cr[CR_MENU_BRIGHT2] :
+        tics >= 1 ? cr[CR_MENU_BRIGHT1] : NULL;
 }
 
 #define GLOW_UNCOLORED  0
@@ -4351,7 +4359,9 @@ static void M_DrawLoad(void)
     for (i = 0;i < load_end; i++)
     {
 	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], NULL);
+	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
+	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], itemOn == i ?
+	            cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
     }
 
     M_DrawSaveLoadBottomLine();
@@ -4421,13 +4431,16 @@ static void M_DrawSave(void)
     for (i = 0;i < load_end; i++)
     {
 	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], NULL);
+	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
+	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], itemOn == i ?
+	            cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
     }
 	
     if (saveStringEnter)
     {
 	i = M_StringWidth(savegamestrings[saveSlot]);
-	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", NULL);
+	// [JN] Highlight "_" cursor, line is always active while typing.
+	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", cr[CR_MENU_BRIGHT5]);
     }
 
     M_DrawSaveLoadBottomLine();
@@ -6102,28 +6115,22 @@ void M_Drawer (void)
     {
         name = DEH_String(currentMenu->menuitems[i].name);
 
+        // [JN] Highlight selected item (itemOn == i) or apply fading effect.
         if (currentMenu->smallFont)
         {
-            if (itemOn == (short) i)
-            {
-                // [JN] Highlight menu item on which the cursor is positioned.
-                M_WriteText (x, y, name, cr[CR_MENU_BRIGHT5]);
-            }
-            else
-            {
-                // [JN] Apply fading effect in M_Ticker.
-                M_WriteText (x, y, name, M_Line_Glow(currentMenu->menuitems[i].tics));
-            }
-            y += ID_MENU_LINEHEIGHT_SMALL;
+            M_WriteText (x, y, name, itemOn == i ?
+                         cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
         }
         else
         {
             if (name[0])
             {
+                dp_translation = itemOn == i ? cr[CR_MENU_BRIGHT3] : M_Big_Line_Glow(currentMenu->menuitems[i].tics);
                 V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(name, PU_CACHE));
+                dp_translation = NULL;
             }
-            y += LINEHEIGHT;
         }
+        y += currentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : LINEHEIGHT;
     }
 
     if (currentMenu->smallFont)
@@ -6189,20 +6196,17 @@ void M_Ticker (void)
 
     // [JN] Menu item fading effect:
 
-    if (currentMenu->smallFont)
+    for (int i = 0 ; i < currentMenu->numitems ; i++)
     {
-        for (int i = 0 ; i < currentMenu->numitems ; i++)
+        if (itemOn == i)
         {
-            if (itemOn == i)
-            {
-                // Keep menu item bright
-                currentMenu->menuitems[i].tics = 5;
-            }
-            else
-            {
-                // Decrease tics for glowing effect
-                currentMenu->menuitems[i].tics--;
-            }
+            // Keep menu item bright
+            currentMenu->menuitems[i].tics = 5;
+        }
+        else
+        {
+            // Decrease tics for glowing effect
+            currentMenu->menuitems[i].tics--;
         }
     }
 }
