@@ -1661,7 +1661,7 @@ static void DrawFullScreenStuff(void)
             DrBNumber(FixedDiv(currentArmor, 5 * FRACUNIT) >> FRACBITS, 41 - wide_x, 175);
             dp_translation = NULL;
             // Draw generic armor icon.
-            V_DrawShadowedPatch(81 - wide_x, 177, (patch_t*)id_armor_icon);
+            V_DrawShadowedPatch(81 - wide_x, 176, (patch_t*)id_armor_icon);
         }
 
         // Frags.
