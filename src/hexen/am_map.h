@@ -40,11 +40,13 @@ typedef struct
 #define YELLOWRANGE	1
 #define BLACK		0
 #define WHITE		4*8
+
 #define PARCH		13*8-1
 #define BLOODRED  	177
-#define BLUEKEY 	157
+#define BLUEKEY 	159
 #define YELLOWKEY 	137
 #define GREENKEY  	198
+#define MLDONTDRAW	43
 
 // Automap colors
 
@@ -122,7 +124,5 @@ extern void AM_Stop (void);
 #define XHAIRCOLORS	    28
 
 // IDDT triangles
-#define IDDT_GREEN      222
-#define IDDT_YELLOW     140
-#define IDDT_RED        150
+#define IDDT_GREEN      213
 #define IDDT_GRAY       9
