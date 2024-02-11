@@ -365,7 +365,8 @@ static void D_Display (void)
             const boolean st_forceredraw = 
                              (oldgametic < gametic  // Every game tic
                           ||  dp_screen_size > 10   // Crispy HUD (no solid status bar background)
-                          ||  setsizeneeded);       // Screen size changing
+                          ||  setsizeneeded         // Screen size changing
+                          || (menuactive && dp_menu_shading)); // Menu shading while non-capped game mode
 
             ST_Drawer(st_forceredraw);
         }
