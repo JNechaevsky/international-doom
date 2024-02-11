@@ -40,11 +40,13 @@ typedef struct
 #define YELLOWRANGE	1
 #define BLACK		0
 #define WHITE		4*8
+
 #define PARCH		13*8-1
 #define BLOODRED  	177
-#define BLUEKEY 	157
+#define BLUEKEY 	159
 #define YELLOWKEY 	137
 #define GREENKEY  	198
+#define MLDONTDRAW	43
 
 // Automap colors
 

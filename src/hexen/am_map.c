@@ -206,7 +206,7 @@ mpoint_t *markpoints = NULL;     // where the points are
 int       markpointnum = 0;      // next point to be assigned (also number of points now)
 int       markpointnum_max = 0;  // killough 2/22/98
 
-#define NUMALIAS      3
+#define NUMALIAS      7
 #define NUMLEVELS     8
 #define INTENSITYBITS 3
 
@@ -215,13 +215,21 @@ static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
     { 83,  84,  85,  86,  87,  88,  89,  90},   // WALLCOLORS
     { 96,  96,  95,  94,  93,  92,  91,  90},   // FDWALLCOLORS
     {107, 108, 109, 110, 111, 112,  89,  90},   // CDWALLCOLORS
+    {202, 202, 201, 201, 200, 200, 199, 198},   // GREENKEY (locked door line)
+    {159, 159, 159, 158, 158, 158, 157, 157},   // BLUEKEY (intra-level teleports)
+    {177, 177, 177, 178, 178, 178, 179, 179},   // BLOODRED (inter-level teleports)
+    { 40,  40,  41,  41,  42,  42,  43,  43},   // TSWALLCOLORS (only visible while IDDT)
 };
 
 // [crispy] line colors for map overlay mode
 static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
-    { 86,  85,  84,  83,  82,  81, 100,  99},   // WALLCOLORS
-    { 96,  93,  90,  87,  85,  83,  81,  99},   // FDWALLCOLORS
-    {107, 105, 104, 103, 102, 101, 100,  99},   // CDWALLCOLORS
+    { 86,  85,  85,  84,  83,  83,  82,  81},   // WALLCOLORS
+    { 93,  93,  92,  91,  90,  89,  88,  87},   // FDWALLCOLORS
+    {107, 107, 106, 105, 104, 103, 102, 101},   // CDWALLCOLORS
+    {201, 201, 200, 200, 199, 198, 197, 196},   // GREENKEY (locked door line)
+    {159, 159, 158, 158, 157, 156, 155, 154},   // BLUEKEY (intra-level teleports)
+    {177, 177, 176, 176, 175, 175, 174, 173},   // BLOODRED (inter-level teleports)
+    { 40,  39,  39,  38,  38,  37,  37,  36},   // TSWALLCOLORS (only visible while IDDT)
 };
 
 static byte (*antialias)[NUMALIAS][NUMLEVELS]; // [crispy]
@@ -1224,6 +1232,10 @@ static void AM_drawFline(fline_t * fl, int color)
         case FDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[1][0]);  break;
         case CDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[2][0]);  break;
         // [JN] TODO - other line types.
+        case GREENKEY:      DrawWuLine(fl, &(*antialias)[3][0]);  break;
+        case BLUEKEY:       DrawWuLine(fl, &(*antialias)[4][0]);  break;
+        case BLOODRED:      DrawWuLine(fl, &(*antialias)[5][0]);  break;
+        case TSWALLCOLORS:  DrawWuLine(fl, &(*antialias)[6][0]);  break;
         default:
         {
             // For debugging only
