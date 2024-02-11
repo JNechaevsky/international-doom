@@ -167,6 +167,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vid_screenwipe),
     CONFIG_VARIABLE_INT(vid_diskicon),
     CONFIG_VARIABLE_INT(vid_endoom),
+    CONFIG_VARIABLE_INT(vid_graphical_startup),    
 
     // Display options
     CONFIG_VARIABLE_INT(vid_gamma),

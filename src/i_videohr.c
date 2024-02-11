@@ -43,7 +43,8 @@ boolean I_SetVideoModeHR(void)
         return false;
     }
 
-    I_GetWindowPosition(&x, &y, HR_SCREENWIDTH, HR_SCREENHEIGHT);
+    // [JN] Use different window centering function.
+    CenterWindow(&x, &y, HR_SCREENWIDTH, HR_SCREENHEIGHT);
 
     // Create screen surface at the native desktop pixel depth (bpp=0),
     // as we cannot trust true 8-bit to reliably work nowadays.

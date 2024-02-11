@@ -1468,7 +1468,7 @@ static void SetSDLVideoDriver(void)
 // Check the display bounds of the display referred to by 'vid_video_display' and
 // set x and y to a location that places the window in the center of that
 // display.
-static void CenterWindow(int *x, int *y, int w, int h)
+void CenterWindow(int *x, int *y, int w, int h)
 {
     SDL_Rect bounds;
 

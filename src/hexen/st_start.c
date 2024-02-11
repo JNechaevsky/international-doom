@@ -25,6 +25,7 @@
 
 #include "h2def.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "i_video.h"
 #include "i_videohr.h"
 #include "s_sound.h"
@@ -49,11 +50,9 @@ void ST_UpdateNotches(int notchPosition);
 void ST_UpdateNetNotches(int notchPosition);
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
-//static const byte *bitmap = NULL;
-int graphical_startup = 0;
+static const byte *bitmap = NULL;
 static boolean using_graphical_startup;
 
-/*
 static const byte notchTable[] = {
     // plane 0
     0x00, 0x80, 0x01, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x40,
@@ -99,7 +98,6 @@ static const byte netnotchTable[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00
 };
-*/
 
 // CODE --------------------------------------------------------------------
 
@@ -120,14 +118,14 @@ static const byte netnotchTable[] = {
 
 void ST_Init(void)
 {
-    //byte *pal;
-    //byte *buffer;
+    byte *pal;
+    byte *buffer;
     
     using_graphical_startup = false;
-/*
-    if (graphical_startup && !debugmode && !testcontrols)
+
+    if (vid_graphical_startup && !debugmode && !testcontrols)
     {
-        I_SetWindowTitleHR("Hexen startup - " PACKAGE_STRING);
+        I_SetWindowTitleHR("Hexen startup"); // [JN] Short window title.
 
         // Set 640x480x16 mode
         if (I_SetVideoModeHR())
@@ -151,18 +149,15 @@ void ST_Init(void)
             Z_Free(buffer);
         }
     }
-*/
 }
 
 void ST_Done(void)
 {
-    /*
     if (using_graphical_startup)
     {
         I_ClearScreenHR();
         I_UnsetVideoModeHR();
     }
-    */
 }
 
 
@@ -174,11 +169,9 @@ void ST_Done(void)
 
 void ST_UpdateNotches(int notchPosition)
 {
-    /*
     int x = ST_PROGRESS_X + notchPosition * ST_NOTCH_WIDTH;
     int y = ST_PROGRESS_Y;
     I_SlamBlockHR(x, y, ST_NOTCH_WIDTH, ST_NOTCH_HEIGHT, notchTable);
-    */
 }
 
 
@@ -190,11 +183,9 @@ void ST_UpdateNotches(int notchPosition)
 
 void ST_UpdateNetNotches(int notchPosition)
 {
-    /*
     int x = ST_NETPROGRESS_X + notchPosition * ST_NETNOTCH_WIDTH;
     int y = ST_NETPROGRESS_Y;
     I_SlamBlockHR(x, y, ST_NETNOTCH_WIDTH, ST_NETNOTCH_HEIGHT, netnotchTable);
-    */
 }
 
 
@@ -206,8 +197,6 @@ void ST_UpdateNetNotches(int notchPosition)
 
 void ST_Progress(void)
 {
-    // [JN] TODO - remove
-    /*
     // Check for ESC press -- during startup all events eaten here
     if (I_CheckAbortHR())
     {
@@ -224,10 +213,14 @@ void ST_Progress(void)
             ST_UpdateNotches(notchPosition);
             S_StartSound(NULL, SFX_STARTUP_TICK);
             //I_Sleep(1000);
+            // [JN] Emulate slower startup.
+            if (vid_graphical_startup == 2)
+            {
+                I_Sleep(50);
+            }
             notchPosition++;
         }
     }
-    */
 
     printf(".");
 }

@@ -45,6 +45,7 @@ int vid_smooth_scaling = 0;
 int vid_screenwipe = 1;
 int vid_diskicon = 1;
 int vid_endoom = 0;
+int vid_graphical_startup = 0;
 
 //
 // Display options
@@ -189,6 +190,10 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("vid_endoom",                 &vid_endoom);
     }
+    if (mission == hexen)
+    {
+        M_BindIntVariable("vid_graphical_startup",      &vid_graphical_startup);
+    }  
 
     //
     // Display options
