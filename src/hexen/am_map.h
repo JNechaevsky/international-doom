@@ -124,7 +124,5 @@ extern void AM_Stop (void);
 #define XHAIRCOLORS	    28
 
 // IDDT triangles
-#define IDDT_GREEN      222
-#define IDDT_YELLOW     140
-#define IDDT_RED        150
+#define IDDT_GREEN      213
 #define IDDT_GRAY       9

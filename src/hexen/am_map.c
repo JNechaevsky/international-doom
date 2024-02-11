@@ -85,7 +85,7 @@ static boolean mousewheelzoom;
 // Active monsters: up-up-up-up
 // Inactive monsters: up-down-up-down
 #define IDDT_REDS_RANGE (7)
-#define IDDT_REDS_MIN   (152)
+#define IDDT_REDS_MIN   (175)
 #define IDDT_REDS_MAX   (IDDT_REDS_MIN + IDDT_REDS_RANGE)
 static  int     iddt_reds = IDDT_REDS_MIN;
 static  boolean iddt_reds_direction = false;
@@ -206,7 +206,7 @@ mpoint_t *markpoints = NULL;     // where the points are
 int       markpointnum = 0;      // next point to be assigned (also number of points now)
 int       markpointnum_max = 0;  // killough 2/22/98
 
-#define NUMALIAS      7
+#define NUMALIAS      16
 #define NUMLEVELS     8
 #define INTENSITYBITS 3
 
@@ -217,8 +217,18 @@ static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
     {107, 108, 109, 110, 111, 112,  89,  90},   // CDWALLCOLORS
     {202, 202, 201, 201, 200, 200, 199, 198},   // GREENKEY (locked door line)
     {159, 159, 159, 158, 158, 158, 157, 157},   // BLUEKEY (intra-level teleports)
-    {177, 177, 177, 178, 178, 178, 179, 179},   // BLOODRED (inter-level teleports)
+    {177, 177, 176, 176, 175, 175, 174, 173},   // BLOODRED (inter-level teleports)
     { 40,  40,  41,  41,  42,  42,  43,  43},   // TSWALLCOLORS (only visible while IDDT)
+    // IDDT extended colors
+    {213, 213, 213, 213, 212, 212, 212, 212},   // IDDT_GREEN
+    {175, 175, 174, 174, 173, 173, 172, 172},   // IDDT_RED
+    {176, 176, 175, 175, 174, 174, 173, 173},
+    {178, 178, 177, 177, 176, 176, 175, 175},
+    {179, 179, 178, 178, 177, 177, 176, 176},
+    {180, 180, 179, 179, 178, 178, 177, 177},
+    {181, 181, 180, 180, 179, 179, 178, 178},
+    {182, 182, 181, 181, 180, 180, 179, 179},
+    { 15,  15,  16,  16,  17,  17,  18,  18},   // IDDT_GRAY
 };
 
 // [crispy] line colors for map overlay mode
@@ -230,6 +240,16 @@ static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
     {159, 159, 158, 158, 157, 156, 155, 154},   // BLUEKEY (intra-level teleports)
     {177, 177, 176, 176, 175, 175, 174, 173},   // BLOODRED (inter-level teleports)
     { 40,  39,  39,  38,  38,  37,  37,  36},   // TSWALLCOLORS (only visible while IDDT)
+    // IDDT extended colors
+    {214, 214, 213, 213, 212, 212, 211, 211},   // IDDT_GREEN
+    {175, 175, 174, 174, 173, 173, 172, 172},   // IDDT_RED
+    {176, 176, 175, 175, 174, 174, 173, 173},
+    {178, 178, 177, 177, 176, 176, 175, 175},
+    {179, 179, 178, 178, 177, 177, 176, 176},
+    {180, 180, 179, 179, 178, 178, 177, 177},
+    {181, 181, 180, 180, 179, 179, 178, 178},
+    {182, 182, 181, 181, 180, 180, 179, 179},
+    { 15,  15,  14,  14,  13,  13,  12,  12},   // IDDT_GRAY
 };
 
 static byte (*antialias)[NUMALIAS][NUMLEVELS]; // [crispy]
@@ -1231,11 +1251,20 @@ static void AM_drawFline(fline_t * fl, int color)
         case WALLCOLORS:    DrawWuLine(fl, &(*antialias)[0][0]);  break;
         case FDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[1][0]);  break;
         case CDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[2][0]);  break;
-        // [JN] TODO - other line types.
         case GREENKEY:      DrawWuLine(fl, &(*antialias)[3][0]);  break;
         case BLUEKEY:       DrawWuLine(fl, &(*antialias)[4][0]);  break;
         case BLOODRED:      DrawWuLine(fl, &(*antialias)[5][0]);  break;
         case TSWALLCOLORS:  DrawWuLine(fl, &(*antialias)[6][0]);  break;
+        // [JN] IDDT extended colors
+        case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[7][0]);   break;
+        case 175:           DrawWuLine(fl, &(*antialias)[8][0]);   break;
+        case 176:           DrawWuLine(fl, &(*antialias)[9][0]);   break;
+        case 178:           DrawWuLine(fl, &(*antialias)[10][0]);  break;
+        case 179:           DrawWuLine(fl, &(*antialias)[11][0]);  break;
+        case 180:           DrawWuLine(fl, &(*antialias)[12][0]);  break;
+        case 181:           DrawWuLine(fl, &(*antialias)[13][0]);  break;
+        case 182:           DrawWuLine(fl, &(*antialias)[14][0]);  break;
+        case IDDT_GRAY:     DrawWuLine(fl, &(*antialias)[15][0]);  break;
         default:
         {
             // For debugging only
@@ -1940,9 +1969,11 @@ static void AM_drawThings(void)
                                  // Monsters
                                  // [JN] CRL - ReMooD-inspired monsters coloring.
                                  t->flags & MF_COUNTKILL ? (t->health > 0 ? iddt_reds : 15) :
-                                 // Countable items
-                                 // [JN] TODO - what flag?
-                                 // t->flags & MF_COUNTITEM ? IDDT_GREEN :
+                                 // Countable items:
+                                 t->type == MT_MANA1 ? BLUEKEY :  // Blue mana
+                                 t->type == MT_MANA2 ? GREENKEY : // Green mana
+                                 t->type == MT_MANA3 ? 177 :      // Combined mana
+                                 t->flags & MF_SPECIAL ? 213 :    // The rest of pickups
                                  // Everything else
                                  IDDT_GRAY,
                                  pt.x, pt.y);
