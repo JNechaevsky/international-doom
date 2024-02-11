@@ -58,7 +58,15 @@ static mission_config_t mission_configs[] =
         "heretic",
         PROGRAM_PREFIX "heretic.ini",
         PROGRAM_PREFIX "heretic"
-    }
+    },
+    {
+        "Hexen",
+        hexen,
+        IWAD_MASK_HEXEN,
+        "hexen",
+        PROGRAM_PREFIX "hexen.ini",
+        PROGRAM_PREFIX "hexen"
+    },
 };
 
 static GameSelectCallback game_selected_callback;
