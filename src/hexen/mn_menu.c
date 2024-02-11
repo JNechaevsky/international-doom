@@ -4461,7 +4461,8 @@ boolean MN_Responder(event_t * event)
 
     if (askforquit)
     {
-        if (key == key_menu_confirm)
+        if (key == key_menu_confirm
+        || (event->type == ev_mouse && event->data1 & 1))  // [JN] Confirm by left mouse button.
         {
             switch (typeofask)
             {
@@ -4524,7 +4525,9 @@ boolean MN_Responder(event_t * event)
 
             return true;
         }
-        else if (key == key_menu_abort || key == KEY_ESCAPE)
+        else
+        if (key == key_menu_abort || key == KEY_ESCAPE
+        || (event->type == ev_mouse && event->data1 & 2))  // [JN] Cancel by right mouse button.
         {
             // [JN] Do not close reset menus after canceling.
             if (typeofask == 7 || typeofask == 8 || typeofask == 9)

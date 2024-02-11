@@ -5497,13 +5497,27 @@ boolean M_Responder (event_t* ev)
 
 	    if (ev->data1&1)
 	    {
+		if (messageToPrint && messageNeedsInput)
+		{
+		key = key_menu_confirm;  // [JN] Confirm by left mouse button.
+		}
+		else
+		{
 		key = key_menu_forward;
+		}
 		mousewait = I_GetTime() + 5;
 	    }
 			
 	    if (ev->data1&2)
 	    {
+		if (messageToPrint && messageNeedsInput)
+		{
+		key = key_menu_abort;  // [JN] Cancel by right mouse button.
+		}
+		else
+		{
 		key = key_menu_back;
+		}
 		mousewait = I_GetTime() + 5;
 	    }
 
