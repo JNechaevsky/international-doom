@@ -86,9 +86,13 @@ void S_StartSong(int song, boolean loop);
 void S_StartSongName(const char *songLump, boolean loop);
 void S_Init(void);
 void S_GetChannelInfo(SoundInfo_t * s);
-void S_SetMusicVolume(void);
 boolean S_GetSoundPlayingInfo(mobj_t * mobj, int sound_id);
 boolean S_StartCustomCDTrack(int tracknum);
 int S_GetCurrentCDTrack(void);
+
+extern void S_SetSfxVolume (int volume);
+extern void S_SetMusicVolume (int volume);
+
+extern void S_MuteUnmuteSound (boolean mute);
 
 #endif

@@ -64,6 +64,9 @@ static byte *SoundCurve;
 
 int snd_MaxVolume = 10;                // maximum volume for sound
 int snd_MusicVolume = 10;              // maximum volume for music
+// [JN] Internal sound variables, friendly with muting.
+static int sfxVolume;
+static int musVolume;
 
 // int AmbChan;
 
@@ -282,7 +285,7 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
     static int sndcount = 0;
     int chan;
 
-    if (sound_id == 0 || snd_MaxVolume == 0)
+    if (sound_id == 0 || sfxVolume == 0)
         return;
 
     listener = GetSoundListener();
@@ -381,11 +384,11 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
 
     Channel[i].mo = origin;
 
-    vol = (SoundCurve[dist] * (snd_MaxVolume * 8) * volume) >> 14;
+    vol = (SoundCurve[dist] * (sfxVolume * 8) * volume) >> 14;
     if (origin == listener || snd_monosfx)
     {
         sep = 128;
-//              vol = (volume*(snd_MaxVolume+1)*8)>>7;
+//              vol = (volume*(sfxVolume+1)*8)>>7;
     }
     else
     {
@@ -609,7 +612,7 @@ void S_UpdateSounds(mobj_t * listener)
 
     I_UpdateSound();
 
-    if (snd_MaxVolume == 0)
+    if (sfxVolume == 0)
     {
         return;
     }
@@ -656,7 +659,7 @@ void S_UpdateSounds(mobj_t * listener)
             }
             //vol = SoundCurve[dist];
             vol =
-                (SoundCurve[dist] * (snd_MaxVolume * 8) *
+                (SoundCurve[dist] * (sfxVolume * 8) *
                  Channel[i].volume) >> 14;
             if (Channel[i].mo == listener || snd_monosfx)
             {
@@ -699,7 +702,10 @@ void S_Init(void)
     {
         snd_channels = 16;
     }
-    I_SetMusicVolume(snd_MusicVolume * 8);
+    // [JN] Initialize internal volume variables.
+    sfxVolume = snd_MaxVolume;
+    musVolume = snd_MusicVolume;
+    I_SetMusicVolume(musVolume * 8);
 
     I_AtExit(S_ShutDown, true);
 
@@ -724,8 +730,8 @@ void S_GetChannelInfo(SoundInfo_t * s)
     ChanInfo_t *c;
 
     s->channelCount = snd_channels;
-    s->musicVolume = snd_MusicVolume;
-    s->soundVolume = snd_MaxVolume;
+    s->musicVolume = musVolume;
+    s->soundVolume = sfxVolume;
     for (i = 0; i < snd_channels; i++)
     {
         c = &s->chan[i];
@@ -769,17 +775,28 @@ boolean S_GetSoundPlayingInfo(mobj_t * mobj, int sound_id)
     return false;
 }
 
+// -----------------------------------------------------------------------------
+// S_SetSfxVolume
+// -----------------------------------------------------------------------------
+
+void S_SetSfxVolume (int volume)
+{
+    sfxVolume = volume;
+}
+
 //==========================================================================
 //
 // S_SetMusicVolume
 //
 //==========================================================================
 
-void S_SetMusicVolume(void)
+void S_SetMusicVolume (int volume)
 {
-    I_SetMusicVolume(snd_MusicVolume * 8);
+    musVolume = volume;
+    
+    I_SetMusicVolume(musVolume * 8);
 
-    if (snd_MusicVolume == 0)
+    if (musVolume == 0)
     {
         I_PauseSong();
         MusicPaused = true;
@@ -872,3 +889,32 @@ void S_InitScript(void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// S_MuteUnmuteSound
+// [JN] Sets sfx and music volume to 0 when window loses 
+//      it's focus and restores back when focus is regained.
+// -----------------------------------------------------------------------------
+
+void S_MuteUnmuteSound (boolean mute)
+{
+    if (mute)
+    {
+        // Stop all sounds and clear sfx channels.
+        S_StopAllSound();
+
+        // Set volume to zero.
+        S_SetSfxVolume(0);
+        S_SetMusicVolume(0);
+
+    }
+    else
+    {
+        // Restore volume to actual values.
+        S_SetSfxVolume(snd_MaxVolume);
+        S_SetMusicVolume(snd_MusicVolume);
+    }
+
+    // All done, no need to invoke function until next 
+    // minimizing/restoring of game window is happened.
+    volume_needs_update = false;
+}

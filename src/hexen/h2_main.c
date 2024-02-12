@@ -873,6 +873,12 @@ void H2_GameLoop(void)
 
         if (oldgametic < gametic)
         {
+            // [JN] Mute and restore sound and music volume.
+            if (snd_mute_inactive && volume_needs_update)
+            {
+                S_MuteUnmuteSound (!window_focused);
+            }
+
             // Move positional sounds
             S_UpdateSounds(players[displayplayer].mo);
             oldgametic = gametic;
