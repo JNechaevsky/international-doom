@@ -153,12 +153,6 @@ static boolean mousewheelzoom;
 #define IDDT_REDS_MAX   (IDDT_REDS_MIN + IDDT_REDS_RANGE)
 static  int     iddt_reds = IDDT_REDS_MIN;
 static  boolean iddt_reds_direction = false;
-// [JN] Pulse player arrow in Spectator mode.
-#define ARROW_WHITE_RANGE (10)
-#define ARROW_WHITE_MIN   (80)
-#define ARROW_WHITE_MAX   (96)
-static  int     arrow_color = 80;
-static  boolean arrow_color_direction = false;
 
 typedef struct
 {
@@ -1146,20 +1140,6 @@ void AM_Ticker (void)
         {
             iddt_reds_direction = false;
         }
-    }
-
-    // [JN] Pulse player arrow in Spectator mode:
-
-    // Brightening
-    if (!arrow_color_direction && ++arrow_color == ARROW_WHITE_MAX)
-    {
-        arrow_color_direction = true;
-    }
-    // Darkening
-    else
-    if (arrow_color_direction && --arrow_color == ARROW_WHITE_MIN)
-    {
-        arrow_color_direction = false;
     }
 }
 
@@ -2158,6 +2138,62 @@ static void AM_drawThings(void)
 }
 
 // -----------------------------------------------------------------------------
+// AM_drawSpectator
+// [JN] Draw spectator as sword, player as triangle.
+// -----------------------------------------------------------------------------
+
+static void AM_drawSpectator (void)
+{
+    int       i;
+    mpoint_t  pt;
+    mobj_t   *t;
+    angle_t   actualangle;
+
+    for (i = 0 ; i < numsectors ; i++)
+    {
+        t = sectors[i].thinglist;
+        while (t)
+        {
+            // [JN] Interpolate things if possible.
+            if (vid_uncapped_fps && realleveltime > oldleveltime)
+            {
+                pt.x = (t->oldx + FixedMul(t->x - t->oldx, fractionaltic)) >> FRACTOMAPBITS;
+                pt.y = (t->oldy + FixedMul(t->y - t->oldy, fractionaltic)) >> FRACTOMAPBITS;
+                actualangle = R_InterpolateAngle(t->oldangle, t->angle, fractionaltic);
+            }
+            else
+            {
+                pt.x = t->x >> FRACTOMAPBITS;
+                pt.y = t->y >> FRACTOMAPBITS;
+                actualangle = t->angle;
+            }
+
+            // [JN] Keep things static in Spectator + rotate mode.
+            if (crl_spectating && automap_rotate)
+            {
+                actualangle = t->angle - mapangle - viewangle + ANG90;
+            }
+
+            if (automap_rotate)
+            {
+                AM_rotatePoint(&pt);
+            }
+
+            // [crispy] do not draw an extra triangle for the player
+            if (t == plr->mo)
+            {
+                AM_drawLineCharacter(thintriangle_guy, arrlen(thintriangle_guy),
+                                     t->radius >> FRACTOMAPBITS, actualangle,
+                                     35, pt.x, pt.y);
+            }
+
+            t = t->snext;
+            continue;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 // AM_drawMarks
 // Draw the marked locations on the automap.
 // -----------------------------------------------------------------------------
@@ -2395,12 +2431,10 @@ void AM_Drawer (void)
     }
 
     // [JN] CRL - draw pulsing triangle for player in Spectator mode.
-    /*
     if (crl_spectating)
     {
         AM_drawSpectator();
     }
-    */
 
     // [JN] Do not draw in following mode.
     if (!followplayer)

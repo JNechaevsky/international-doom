@@ -23,6 +23,8 @@
 #include "s_sound.h"
 #include "ct_chat.h"
 
+#include "id_func.h"
+
 
 // Macros
 
@@ -659,6 +661,24 @@ void P_PlayerThink(player_t * player)
     player->mo->oldangle = player->mo->angle;
     player->oldviewz = player->viewz;
     player->oldlookdir = player->lookdir;
+
+    // [JN] Handle Spectator camera:
+    if (crl_spectating)
+    {
+        // If spectating, set old position and orientation for interpolation.
+        CRL_ReportPosition(CRL_camera_oldx,
+                           CRL_camera_oldy,
+                           CRL_camera_oldz,
+                           CRL_camera_oldang);
+    }
+    else
+    {
+        // Else, just follow player's coords.
+        CRL_camera_x = player->mo->x;
+        CRL_camera_y = player->mo->y;
+        CRL_camera_z = player->mo->z + VIEWHEIGHT;
+        CRL_camera_ang = player->mo->angle;
+    }
 
     // No-clip cheat
     if (player->cheats & CF_NOCLIP)

@@ -169,6 +169,9 @@ int joylook;
 boolean joyarray[MAX_JOY_BUTTONS + 1];
 boolean *joybuttons = &joyarray[1];     // allow [-1]
 
+// [JN] Determinates speed of camera Z-axis movement in spectator mode.
+static int crl_camzspeed;
+
 int savegameslot;
 char savedescription[32];
 
@@ -212,6 +215,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     int look, arti;
     int flyheight;
     int pClass;
+    ticcmd_t spect;
 
     // haleyjd: removed externdriver crap
 
@@ -228,6 +232,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     if (netgame && (MenuActive || askforquit))
     return;
 
+ 	// RestlessRodent -- If spectating then the player loses all input
+ 	memmove(&spect, cmd, sizeof(spect));
+ 	// [JN] Allow saving and pausing while spectating.
+ 	if (crl_spectating && !sendsave && !sendpause)
+ 		cmd = &spect;
+
 //printf ("cons: %i\n",cmd->consistancy);
 
     strafe = gamekeydown[key_strafe]
@@ -239,6 +249,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     speed = (key_speed >= NUMKEYS
         || joybspeed >= MAX_JOY_BUTTONS);
     speed ^= speedkeydown();
+    crl_camzspeed = speed;
 
     // haleyjd: removed externdriver crap
     
@@ -866,6 +877,10 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             cmd->angleturn &= 0xff00;
         }
     }
+
+    // RestlessRodent -- If spectating, send the movement commands instead
+    if (crl_spectating && !MenuActive)
+    	CRL_ImpulseCamera(cmd->forwardmove, cmd->sidemove, cmd->angleturn); 
 }
 
 
@@ -1027,6 +1042,21 @@ static void SetMouseButtons(unsigned int buttons_mask)
 
         if (!mousebuttons[i] && button_on)
         {
+            // [JN] CRL - move spectator camera up/down.
+            if (crl_spectating && !MenuActive)
+            {
+                if (i == 4)  // Hardcoded mouse wheel down
+                {
+                    CRL_ImpulseCameraVert(false, crl_camzspeed ? 64 : 32); 
+                }
+                else
+                if (i == 3)  // Hardcoded Mouse wheel down
+                {
+                    CRL_ImpulseCameraVert(true, crl_camzspeed ? 64 : 32);
+                }
+            }
+            else
+            {
             if (i == mousebprevweapon)
             {
                 next_weapon = -1;
@@ -1050,6 +1080,7 @@ static void SetMouseButtons(unsigned int buttons_mask)
                     plr->readyArtifact = plr->inventory[inv_ptr].type;
                 }
                 usearti = true;
+            }
             }
         }
 
@@ -1189,6 +1220,14 @@ boolean G_Responder(event_t * ev)
                 // Audible feedback
                 S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
             }
+            // [JN] CRL - Toggle spectator mode.
+            if (ev->data1 == key_spectator)
+            {
+                crl_spectating ^= 1;
+                CT_SetMessage(&players[consoleplayer], crl_spectating ?
+                             ID_SPECTATOR_ON : ID_SPECTATOR_OFF, false, NULL);
+                pspr_interp = false;
+            }  
             return (true);      // eat key down events
 
         case ev_keyup:
@@ -1523,6 +1562,8 @@ void G_PlayerExitMap(int playerNumber)
         SB_state = -1;          // refresh the status bar
         viewangleoffset = 0;
     }
+    // [JN] Return controls to the player.
+    crl_spectating = 0;
 }
 
 //==========================================================================

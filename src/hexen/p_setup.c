@@ -899,6 +899,9 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     if (precache)
         R_PrecacheLevel();
 
+    // [JN] Force to disable spectator mode.
+    crl_spectating = 0;
+
     // Check if the level is a lightning level
     P_InitLightning();
 

@@ -905,6 +905,33 @@ void R_SetupFrame(player_t * player)
     viewplayer = player;
     // haleyjd: removed WATCOMC
     // haleyjd FIXME: viewangleoffset handling?
+
+    if (crl_spectating)
+    {
+        fixed_t bx, by, bz;
+        angle_t ba;
+
+    	// RestlessRodent -- Get camera position
+    	CRL_GetCameraPos(&bx, &by, &bz, &ba);
+        
+        if (vid_uncapped_fps)
+        {
+            viewx = CRL_camera_oldx + FixedMul(bx - CRL_camera_oldx, fractionaltic);
+            viewy = CRL_camera_oldy + FixedMul(by - CRL_camera_oldy, fractionaltic);
+            viewz = CRL_camera_oldz + FixedMul(bz - CRL_camera_oldz, fractionaltic);
+            viewangle = R_InterpolateAngle(CRL_camera_oldang, ba, fractionaltic);
+        }
+        else
+        {
+            viewx = bx;
+            viewy = by;
+            viewz = bz;
+            viewangle = ba;
+        }
+        pitch = 0;
+    }
+    else
+    {
     if (vid_uncapped_fps && leveltime > 1 && player->mo->interp == true && realleveltime > oldleveltime)
     {
         viewx = player->mo->oldx + FixedMul(player->mo->x - player->mo->oldx, fractionaltic);
@@ -921,6 +948,7 @@ void R_SetupFrame(player_t * player)
         viewy = player->mo->y;
         viewz = player->viewz;
         pitch = player->lookdir; // [crispy]
+    }
     }
 
     // [JN] Limit pitch (lookdir amplitude) for higher FOV levels.
@@ -960,6 +988,9 @@ void R_SetupFrame(player_t * player)
 
     extralight = player->extralight;
     extralight += dp_level_brightness;  // [JN] Level Brightness feature.
+
+    // RestlessRodent -- Just report it
+    CRL_ReportPosition(viewx, viewy, viewz, viewangle);
 
     tableAngle = viewangle >> ANGLETOFINESHIFT;
 
