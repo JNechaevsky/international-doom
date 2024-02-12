@@ -448,7 +448,7 @@ void S_StartSoundAtVolume(void *_origin, int sound_id, int volume)
 
     listener = GetSoundListener();
 
-    if (sound_id == 0 || snd_MaxVolume == 0)
+    if (sound_id == 0 || snd_MaxVolume == 0 || soundCurve[0] == 0)
         return;
     if (origin == NULL)
     {
