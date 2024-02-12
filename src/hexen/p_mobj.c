@@ -2027,7 +2027,7 @@ int P_HitFloor(mobj_t * thing)
                     P_NoiseAlert(thing, thing);
             }
             S_StartSound(mo, SFX_LAVA_SIZZLE);
-            if (thing->player && leveltime & 31)
+            if ((thing->player && leveltime & 31) && !crl_freeze)
             {
                 P_DamageMobj(thing, &LavaInflictor, NULL, 5);
             }

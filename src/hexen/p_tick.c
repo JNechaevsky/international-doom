@@ -78,9 +78,13 @@ void P_Ticker(void)
         }
     }
     RunThinkers();
-    P_UpdateSpecials();
-    P_AnimateSurfaces();
-    leveltime++;
+    // [JN] CRL - do not update mobjs and thinkers in freeze mode.
+    if (!crl_freeze)
+    {
+        P_UpdateSpecials();
+        P_AnimateSurfaces();
+        leveltime++;
+    }
 
     realleveltime++;
 }
@@ -98,6 +102,20 @@ static void RunThinkers(void)
     currentthinker = thinkercap.next;
     while (currentthinker != &thinkercap)
     {
+        // [JN] CRL - do not run other than player thinkers in freeze mode.
+        if (crl_freeze)
+        {
+            mobj_t *mo = (mobj_t *)currentthinker;
+
+            if ((mo->type != MT_PLAYER_FIGHTER
+            &&   mo->type != MT_PLAYER_CLERIC
+            &&   mo->type != MT_PLAYER_MAGE)
+            ||   currentthinker->function != P_MobjThinker)
+            {
+                goto skip;
+            }
+        }
+
         if (currentthinker->function == (think_t) - 1)
         {                       // Time to remove it
             nextthinker = currentthinker->next;
@@ -109,6 +127,8 @@ static void RunThinkers(void)
         {
             if (currentthinker->function)
                 currentthinker->function(currentthinker);
+
+            skip:
             nextthinker = currentthinker->next;
         }
 

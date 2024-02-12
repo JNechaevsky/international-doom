@@ -539,7 +539,15 @@ void R_ProjectSprite(mobj_t * thing)
         // that would necessitate turning it off for a tic.
         thing->interp == true &&
         // Don't interpolate during a paused state.
-        realleveltime > oldleveltime)
+        realleveltime > oldleveltime &&
+        // [JN] Don't interpolate things while freeze mode.
+        (!crl_freeze ||
+        // [JN] ... Hovewer, interpolate player while freeze mode,
+        // so their sprite won't get desynced with moving camera.
+        (crl_freeze
+        && (thing->type == MT_PLAYER_FIGHTER
+        ||  thing->type == MT_PLAYER_CLERIC
+        ||  thing->type == MT_PLAYER_MAGE))))
     {
         interpx = thing->oldx + FixedMul(thing->x - thing->oldx, fractionaltic);
         interpy = thing->oldy + FixedMul(thing->y - thing->oldy, fractionaltic);

@@ -957,7 +957,7 @@ void R_SetupFrame(player_t * player)
         pitch *= fovdiff*fovdiff;
     }
 
-    if (localQuakeHappening[displayplayer] && !paused)
+    if (localQuakeHappening[displayplayer] && !paused && !crl_freeze)
     {
         // [crispy] only get new quake values once every gametic
         if (leveltime > quaketime)
@@ -1061,8 +1061,11 @@ void R_RenderPlayerView(player_t * player)
     }
 
     NetUpdate();                // check for new console commands
+    if (!crl_freeze)
+    {
     PO_InterpolatePolyObjects(); // [crispy] Interpolate polyobjects here
     R_InterpolateTextureOffsets(); // [crispy] Smooth texture scrolling
+    }
 
     // Make displayed player invisible locally
     if (localQuakeHappening[displayplayer] && gamestate == GS_LEVEL)

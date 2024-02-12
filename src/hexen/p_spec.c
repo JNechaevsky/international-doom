@@ -996,7 +996,7 @@ void P_PlayerInSpecialSector(player_t * player)
 
 void P_PlayerOnSpecialFlat(player_t * player, int floorType)
 {
-    if (player->mo->z != player->mo->floorz)
+    if (player->mo->z != player->mo->floorz || crl_freeze)
     {                           // Player is not touching the floor
         return;
     }
