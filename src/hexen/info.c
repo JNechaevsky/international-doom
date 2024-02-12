@@ -7718,7 +7718,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP |             // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Sitting corpse shards)
      MF2_TELESTOMP              // flags2
      },
 
