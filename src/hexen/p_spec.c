@@ -919,42 +919,66 @@ void P_PlayerInSpecialSector(player_t * player)
         case 201:
         case 202:
         case 203:              // Scroll_North_xxx
-            P_Thrust(player, ANG90, pushTab[sector->special - 201]);
+            if (!crl_freeze)
+            {
+                P_Thrust(player, ANG90, pushTab[sector->special - 201]);
+            }
             break;
         case 204:
         case 205:
         case 206:              // Scroll_East_xxx
-            P_Thrust(player, 0, pushTab[sector->special - 204]);
+            if (!crl_freeze)
+            {
+                P_Thrust(player, 0, pushTab[sector->special - 204]);
+            }
             break;
         case 207:
         case 208:
         case 209:              // Scroll_South_xxx
-            P_Thrust(player, ANG270, pushTab[sector->special - 207]);
+            if (!crl_freeze)
+            {
+                P_Thrust(player, ANG270, pushTab[sector->special - 207]);
+            }
             break;
         case 210:
         case 211:
         case 212:              // Scroll_West_xxx
-            P_Thrust(player, ANG180, pushTab[sector->special - 210]);
+            if (!crl_freeze)
+            {
+                P_Thrust(player, ANG180, pushTab[sector->special - 210]);
+            }
             break;
         case 213:
         case 214:
         case 215:              // Scroll_NorthWest_xxx
-            P_Thrust(player, ANG90 + ANG45, pushTab[sector->special - 213]);
+            if (!crl_freeze)
+            {
+                P_Thrust(player, ANG90 + ANG45, pushTab[sector->special - 213]);
+            }
             break;
         case 216:
         case 217:
         case 218:              // Scroll_NorthEast_xxx
-            P_Thrust(player, ANG45, pushTab[sector->special - 216]);
+            if (!crl_freeze)
+            {
+                P_Thrust(player, ANG45, pushTab[sector->special - 216]);
+            }
             break;
         case 219:
         case 220:
         case 221:              // Scroll_SouthEast_xxx
-            P_Thrust(player, ANG270 + ANG45, pushTab[sector->special - 219]);
+            if (!crl_freeze)
+            {
+                P_Thrust(player, ANG270 + ANG45, pushTab[sector->special - 219]);
+            }
             break;
         case 222:
         case 223:
         case 224:              // Scroll_SouthWest_xxx
-            P_Thrust(player, ANG180 + ANG45, pushTab[sector->special - 222]);
+            if (!crl_freeze)
+            {
+                P_Thrust(player, ANG180 + ANG45, pushTab[sector->special - 222]);
+            }
             break;
 
         case 40:

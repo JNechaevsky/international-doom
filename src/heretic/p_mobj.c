@@ -197,6 +197,11 @@ void P_FloorBounceMissile(mobj_t * mo)
 
 void P_ThrustMobj(mobj_t * mo, angle_t angle, fixed_t move)
 {
+    if (crl_freeze)
+    {
+        return;
+    }
+
     angle >>= ANGLETOFINESHIFT;
     mo->momx += FixedMul(move, finecosine[angle]);
     mo->momy += FixedMul(move, finesine[angle]);
