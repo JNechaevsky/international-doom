@@ -6341,7 +6341,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID,                  // flags
+     MF_SOLID |                 // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Impaled corpse)
      0                          // flags2
      },
 
@@ -6584,7 +6585,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY, // flags
+     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY | // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Hanging corpse)
      0                          // flags2
      },
 
@@ -7637,7 +7639,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY, // flags
+     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY | // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Lynched corpse)
      0                          // flags2
      },
 
@@ -7664,7 +7667,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY, // flags
+     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY | // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Lynched corpse (heartless))
      0                          // flags2
      },
 
@@ -7773,7 +7777,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP |            // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (pool of blood)
      0                          // flags2
      },
 
