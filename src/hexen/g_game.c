@@ -1252,6 +1252,33 @@ boolean G_Responder(event_t * ev)
                 CT_SetMessage(&players[consoleplayer], crl_freeze ?
                              ID_FREEZE_ON : ID_FREEZE_OFF, false, NULL);
             }
+            // [JN] CRL - Toggle notarget mode.
+            if (ev->data1 == key_notarget)
+            {
+                player_t *player = &players[consoleplayer];
+
+                // Allow notarget only in single player game, otherwise desyncs may occur.
+                if (demorecording)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_R, false, NULL);
+                    return true;
+                }
+                if (demoplayback)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_P, false, NULL);
+                    return true;
+                }
+                if (netgame)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_NOTARGET_NA_N, false, NULL);
+                    return true;
+                }   
+
+                player->cheats ^= CF_NOTARGET;
+
+                CT_SetMessage(player, player->cheats & CF_NOTARGET ?
+                            ID_NOTARGET_ON : ID_NOTARGET_OFF, false, NULL);
+            }
             return (true);      // eat key down events
 
         case ev_keyup:
