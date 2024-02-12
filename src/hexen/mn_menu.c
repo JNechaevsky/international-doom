@@ -2858,11 +2858,9 @@ static void M_Draw_ID_Gameplay_1 (void)
                M_Item_Glow(4, vis_linear_sky ? GLOW_GREEN : GLOW_DARKRED));
 
     // Randomly mirrored corpses
-    /*
     sprintf(str, vis_flip_corpses ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
-    */
 
     MN_DrTextACentered("CROSSHAIR", 80, cr[CR_YELLOW]);
 
@@ -2944,9 +2942,7 @@ static void M_ID_LinearSky (int choice)
 
 static void M_ID_FlipCorpses (int choice)
 {
-    /*
     vis_flip_corpses ^= 1;
-    */
 }
 
 static void M_ID_Crosshair (int choice)

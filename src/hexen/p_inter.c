@@ -1453,6 +1453,12 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
     }
     target->tics -= P_Random() & 3;
 //      I_StartSound(&actor->r, actor->info->deathsound);
+
+    // [crispy] randomly flip corpse, blood and death animation sprites
+    if (target->flags & MF_FLIPPABLE)
+    {
+        target->health = (target->health & (int)~1) - (ID_RealRandom() & 1);
+    }
 }
 
 //---------------------------------------------------------------------------

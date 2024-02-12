@@ -6341,7 +6341,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID,                  // flags
+     MF_SOLID |                 // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Impaled corpse)
      0                          // flags2
      },
 
@@ -6584,7 +6585,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY, // flags
+     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY | // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Hanging corpse)
      0                          // flags2
      },
 
@@ -7637,7 +7639,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY, // flags
+     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY | // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Lynched corpse)
      0                          // flags2
      },
 
@@ -7664,7 +7667,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY, // flags
+     MF_SOLID | MF_SPAWNCEILING | MF_NOGRAVITY | // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Lynched corpse (heartless))
      0                          // flags2
      },
 
@@ -7718,7 +7722,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP |             // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Sitting corpse shards)
      MF2_TELESTOMP              // flags2
      },
 
@@ -7772,7 +7777,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP |            // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (pool of blood)
      0                          // flags2
      },
 
@@ -10377,7 +10383,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_PICKUP | MF_NOTDMATCH,   // flags
+     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_PICKUP | MF_NOTDMATCH |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Fighter player)
      MF2_WINDTHRUST | MF2_FLOORCLIP | MF2_SLIDE | MF2_PASSMOBJ | MF2_TELESTOMP | MF2_PUSHWALL   // flags2
      },
 
@@ -10404,7 +10411,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_DROPOFF,        // flags
+     MF_NOBLOCKMAP | MF_DROPOFF |        // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Separated head from player)
      MF2_LOGRAV | MF2_CANNOTPUSH        // flags2
      },
 
@@ -10458,7 +10466,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_DROPOFF,        // flags
+     MF_NOBLOCKMAP | MF_DROPOFF |        // flags
+     MF_EXTRATRANS |            // [JN] Extra translucency (Wendigo ice chunk)
+     MF_FLIPPABLE,              // [JN] Flip randomly (Wendigo ice chunk)
      MF2_LOGRAV | MF2_CANNOTPUSH | MF2_FLOORCLIP        // flags2
      },
 
@@ -10485,7 +10495,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_PICKUP | MF_NOTDMATCH,   // flags
+     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_PICKUP | MF_NOTDMATCH |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Cleric player)
      MF2_WINDTHRUST | MF2_FLOORCLIP | MF2_SLIDE | MF2_PASSMOBJ | MF2_TELESTOMP | MF2_PUSHWALL   // flags2
      },
 
@@ -10512,7 +10523,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_PICKUP | MF_NOTDMATCH,   // flags
+     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_PICKUP | MF_NOTDMATCH |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Mage player)
      MF2_WINDTHRUST | MF2_FLOORCLIP | MF2_SLIDE | MF2_PASSMOBJ | MF2_TELESTOMP | MF2_PUSHWALL   // flags2
      },
 
@@ -10539,7 +10551,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_NOTDMATCH,       // flags
+     MF_SOLID | MF_SHOOTABLE | MF_DROPOFF | MF_NOTDMATCH |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Pig player)
      MF2_WINDTHRUST | MF2_SLIDE | MF2_PASSMOBJ | MF2_FLOORCLIP | MF2_TELESTOMP | MF2_PUSHWALL   // flags2
      },
 
@@ -10566,7 +10579,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      60,                        // mass
      0,                         // damage
      SFX_PIG_ACTIVE1,           // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL |    // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Pig)
      MF2_WINDTHRUST | MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_PUSHWALL | MF2_TELESTOMP       // flags2
      },
 
@@ -10675,7 +10689,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_DROPOFF | MF_CORPSE,    // flags
+     MF_DROPOFF | MF_CORPSE |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Centaur's shield)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -10702,7 +10717,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_DROPOFF | MF_CORPSE,    // flags
+     MF_DROPOFF | MF_CORPSE |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Centaur's sword)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -10729,7 +10745,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      220,                       // mass
      0,                         // damage
      SFX_DEMON_ACTIVE,          // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL |    // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Green Chaos Serpent)
      MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_MCROSS | MF2_TELESTOMP  // flags2
      },
 
@@ -10756,7 +10773,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Green Chaos Serpent chunk 1)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -10783,7 +10801,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Green Chaos Serpent chunk 2)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -10810,7 +10829,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Green Chaos Serpent chunk 3)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -10837,7 +10857,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Green Chaos Serpent chunk 4)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -10864,7 +10885,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Green Chaos Serpent chunk 5)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -10919,7 +10941,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      220,                       // mass
      0,                         // damage
      SFX_DEMON_ACTIVE,          // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL |    // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Brown Chaos Serpent)
      MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_MCROSS | MF2_TELESTOMP  // flags2
      },
 
@@ -10946,7 +10969,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Brown Chaos Serpent chunk 1)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -10973,7 +10997,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Brown Chaos Serpent chunk 2)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -11000,7 +11025,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Brown Chaos Serpent chunk 3)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -11027,7 +11053,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Brown Chaos Serpent chunk 4)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -11054,7 +11081,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE,       // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_CORPSE |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Brown Chaos Serpent chunk 5)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -11108,7 +11136,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      75,                        // mass
      10,                        // damage
      SFX_WRAITH_ACTIVE,         // activesound
-     MF_DROPOFF | MF_NOGRAVITY | MF_FLOAT | MF_COUNTKILL,       // flags
+     MF_DROPOFF | MF_NOGRAVITY | MF_FLOAT | MF_COUNTKILL |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Buried Reiver)
      MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_PUSHWALL | MF2_TELESTOMP | MF2_DONTDRAW // flags2
      },
 
@@ -11135,7 +11164,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      75,                        // mass
      10,                        // damage
      SFX_WRAITH_ACTIVE,         // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_DROPOFF | MF_NOGRAVITY | MF_FLOAT,     // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_DROPOFF | MF_NOGRAVITY | MF_FLOAT |     // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Reiver)
      MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_PUSHWALL | MF2_TELESTOMP        // flags2
      },
 
@@ -11460,7 +11490,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      INT_MAX,                    // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_COUNTKILL | MF_NOBLOOD,      // flags
+     MF_SOLID | MF_COUNTKILL | MF_NOBLOOD |      // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Stalker)
      MF2_PASSMOBJ | MF2_DONTDRAW | MF2_CANTLEAVEFLOORPIC | MF2_NONSHOOTABLE | MF2_MCROSS        // flags2
      },
 
@@ -11487,7 +11518,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      200,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_COUNTKILL | MF_NOBLOOD,      // flags
+     MF_SOLID | MF_COUNTKILL | MF_NOBLOOD |      // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Stalker boss)
      MF2_PASSMOBJ | MF2_DONTDRAW | MF2_CANTLEAVEFLOORPIC | MF2_NONSHOOTABLE | MF2_MCROSS        // flags2
      },
 
@@ -11541,7 +11573,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP |            // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Stalker head)
      MF2_LOGRAV                 // flags2
      },
 
@@ -11568,7 +11601,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Stalker gib 1)
      0                          // flags2
      },
 
@@ -11595,7 +11629,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Stalker gib 2)
      0                          // flags2
      },
 
@@ -11622,7 +11657,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY,      // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Stalker gib 3)
      0                          // flags2
      },
 
@@ -11649,7 +11685,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_BISHOP_ACTIVE,         // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLOAT | MF_NOGRAVITY | MF_NOBLOOD,     // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLOAT | MF_NOGRAVITY | MF_NOBLOOD |     // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Dark Bishop)
      MF2_PASSMOBJ | MF2_PUSHWALL | MF2_TELESTOMP        // flags2
      },
 
@@ -11676,7 +11713,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SHADOW | MF_NOBLOCKMAP | MF_NOGRAVITY,  // flags
+     MF_SHADOW | MF_NOBLOCKMAP | MF_NOGRAVITY |  // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Dark Bishop's gray puff after death)
      0                          // flags2
      },
 
@@ -11785,7 +11823,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      INT_MAX,                    // mass
      0,                         // damage
      SFX_DRAGON_ACTIVE,         // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLOAT | MF_NOGRAVITY | MF_NOBLOOD,     // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLOAT | MF_NOGRAVITY | MF_NOBLOOD |     // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Death Wyvern)
      MF2_PASSMOBJ | MF2_BOSS    // flags2
      },
 
@@ -12434,7 +12473,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_DROPOFF | MF_CORPSE,    // flags
+     MF_DROPOFF | MF_CORPSE |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Ettin's mace)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -12461,7 +12501,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      75,                        // mass
      1,                         // damage
      SFX_FIRED_ACTIVE,          // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_DROPOFF | MF_NOGRAVITY | MF_FLOAT,     // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_DROPOFF | MF_NOGRAVITY | MF_FLOAT |     // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Affrit)
      MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_PUSHWALL | MF2_INVULNERABLE | MF2_MCROSS | MF2_TELESTOMP        // flags2
      },
 
@@ -12488,7 +12529,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_DROPOFF | MF_CORPSE,    // flags
+     MF_DROPOFF | MF_CORPSE |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Affrit's chunk 1)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -12515,7 +12557,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_DROPOFF | MF_CORPSE,    // flags
+     MF_DROPOFF | MF_CORPSE |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Affrit's chunk 1)
      MF2_NOTELEPORT | MF2_FLOORCLIP     // flags2
      },
 
@@ -12705,7 +12748,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      150,                       // mass
      0,                         // damage
      SFX_ICEGUY_ACTIVE,         // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_NOBLOOD,       // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_NOBLOOD |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Wendigo)
      MF2_PASSMOBJ | MF2_PUSHWALL | MF2_ICEDAMAGE | MF2_MCROSS | MF2_TELESTOMP   // flags2
      },
 
@@ -12840,7 +12884,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_DROPOFF | MF_NOGRAVITY | MF_ALTSHADOW | MF_MISSILE,     // flags
+     MF_NOBLOCKMAP | MF_DROPOFF | MF_NOGRAVITY | MF_ALTSHADOW | MF_MISSILE |     // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Wendige ice breath)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -12867,7 +12912,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_DROPOFF | MF_NOGRAVITY | MF_ALTSHADOW | MF_MISSILE,     // flags
+     MF_NOBLOCKMAP | MF_DROPOFF | MF_NOGRAVITY | MF_ALTSHADOW | MF_MISSILE |     // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Wendige ice breath)
      MF2_NOTELEPORT             // flags2
      },
 
@@ -12894,7 +12940,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL |    // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Zedek)
      MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_TELESTOMP | MF2_PUSHWALL | MF2_MCROSS   // flags2
      },
 
@@ -12921,7 +12968,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL |    // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Traductus)
      MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_TELESTOMP | MF2_PUSHWALL | MF2_MCROSS   // flags2
      },
 
@@ -12948,7 +12996,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL,    // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL |    // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Menelkir)
      MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_TELESTOMP | MF2_PUSHWALL | MF2_MCROSS   // flags2
      },
 
@@ -12975,7 +13024,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      500,                       // mass
      9,                         // damage
      SFX_SORCERER_ACTIVE,       // activesound
-     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_NOBLOOD,       // flags
+     MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_NOBLOOD |       // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Heresiarch)
      MF2_FLOORCLIP | MF2_PASSMOBJ | MF2_PUSHWALL | MF2_BOSS | MF2_MCROSS        // flags2
      },
 
