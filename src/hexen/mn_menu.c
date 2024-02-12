@@ -561,6 +561,9 @@ static void M_ID_TimerDirection (int choice);
 static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
 
+static void M_ID_SettingReset (int choice);
+static void M_ID_ApplyReset (void);
+
 // Keyboard binding prototypes
 static boolean KbdIsBinding;
 static int     keyToBind;
@@ -915,12 +918,13 @@ static MenuItem_t ID_Menu_Main[] = {
     { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,                 0, MENU_ID_WIDGETS   },
     { ITT_EFUNC,   "GAMEPLAY FEATURES",   M_Choose_ID_Gameplay, 0, MENU_NONE         },
     { ITT_EFUNC,   "END GAME",            SCEndGame,            0, MENU_NONE         },
+    { ITT_EFUNC,   "RESET SETTINGS",      M_ID_SettingReset,    0, MENU_NONE         },
 };
 
 static Menu_t ID_Def_Main = {
     ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
     M_Draw_ID_Main,
-    7, ID_Menu_Main,
+    8, ID_Menu_Main,
     0,
     true, false, false,
     MENU_MAIN
@@ -3112,6 +3116,151 @@ static void M_ID_InternalDemos (int choice)
     demo_internal ^= 1;
 }
 
+// -----------------------------------------------------------------------------
+// Reset settings
+// -----------------------------------------------------------------------------
+
+static void M_ID_ApplyResetHook (void)
+{
+
+    //
+    // Video options
+    //
+
+#ifdef CRISPY_TRUECOLOR
+    vid_truecolor = 0;
+#endif
+    vid_resolution = 2;
+    vid_widescreen = 0;
+    vid_uncapped_fps = 0;
+    vid_fpslimit = 60;
+    vid_vsync = 1;
+    vid_showfps = 0;
+    vid_smooth_scaling = 0;
+    // Miscellaneous
+    vid_graphical_startup = 0;
+
+    //
+    // Display options
+    //
+    dp_screen_size = 10;
+    dp_detail_level = 0;
+    vid_gamma = 10;
+    vid_fov = 90;
+    dp_menu_shading = 0;
+    dp_level_brightness = 0;
+    // Color settings
+    vid_saturation = 100;
+    vid_r_intensity = 1.000000;
+    vid_g_intensity = 1.000000;
+    vid_b_intensity = 1.000000;
+    // Messages Settings
+    msg_show = 1;
+    msg_text_shadows = 0;
+    msg_local_time = 0;
+
+    //
+    // Sound options
+    //
+
+    snd_MaxVolume = 10;
+    snd_MusicVolume = 10;
+    snd_monosfx = 0;
+    snd_pitchshift = 1;
+    snd_channels = 8;
+    snd_mute_inactive = 0;
+
+    //
+    // Widgets and automap
+    //
+
+    widget_location = 0;
+    widget_kis = 0;
+    widget_levelname = 0;
+    widget_coords = 0;
+    widget_render = 0;
+    widget_health = 0;
+    // Automap
+    automap_rotate = 0;
+    automap_overlay = 0;
+    automap_shading = 0;
+
+    //
+    // Gameplay features
+    //
+
+    // Visual
+    vis_brightmaps = 0;
+    vis_translucency = 0;
+    vis_smooth_light = 0;
+    vis_swirling_liquids = 0;
+    vis_linear_sky = 0;
+    vis_flip_corpses = 0;
+
+    // Crosshair
+    xhair_draw = 0;
+    xhair_color = 0;
+
+    // Status bar
+    st_colored_stbar = 0;
+    st_weapon_widget = 0;
+
+    // Physical
+    phys_torque = 0;
+    phys_breathing = 0;
+
+    // Gameplay
+    gp_default_class = 0;
+    gp_default_skill = 2;
+    gp_flip_levels = 0;
+
+    // Demos
+    demo_timer = 0;
+    demo_timerdir = 0;
+    demo_bar = 0;
+    demo_internal = 1;
+
+    // Restart graphical systems
+    I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    R_InitLightTables();
+    R_InitSkyMap();
+    R_SetViewSize(dp_screen_size, dp_detail_level);
+    R_ExecuteSetViewSize();
+    I_ToggleVsync();
+#ifndef CRISPY_TRUECOLOR
+    SB_PaletteFlash(true);
+#endif
+    R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+    R_FillBackScreen();
+    AM_LevelInit(true);
+    if (automapactive)
+    {
+        AM_Start();
+    }
+
+    // Restart audio systems (sort of...)
+    snd_MaxVolume = 10;
+    S_SetMusicVolume();
+}
+
+static void M_ID_ApplyReset (void)
+{
+    post_rendering_hook = M_ID_ApplyResetHook;
+}
+
+static void M_ID_SettingReset (int choice)
+{
+    MenuActive = false;
+    askforquit = true;
+    typeofask = 9;      // [JN] Settings reset
+
+    if (!netgame && !demoplayback)
+    {
+        paused = true;
+    }
+
+}
+
 // CODE --------------------------------------------------------------------
 
 static Menu_t *Menus[] = {
@@ -4529,6 +4678,14 @@ boolean MN_Responder(event_t * event)
                     }
                     MN_ReturnToMenu();
                     break;
+
+                case 9: // [JN] Setting reset.
+                    M_ID_ApplyReset();
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
+                    MN_ReturnToMenu();
                 default:
                     break;
             }
