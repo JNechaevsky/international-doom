@@ -1988,6 +1988,7 @@ static void CheatNOTARGETFunc (player_t *player, Cheat_t *cheat)
 {
     FULL_CHEAT_CHECK;
     player->cheats ^= CF_NOTARGET;
+    P_ForgetPlayer(player);
     CT_SetMessage(player, player->cheats & CF_NOTARGET ?
                   ID_NOTARGET_ON : ID_NOTARGET_OFF, false, NULL);
     player->cheatTics = 1;

@@ -218,6 +218,7 @@ extern void A_VileChase (mobj_t *actor);
 extern void A_VileStart (mobj_t *actor);
 extern void A_VileTarget (mobj_t *actor);
 extern void A_XScream (mobj_t *actor);
+extern void P_ForgetPlayer (player_t *player);
 extern void P_NoiseAlert (mobj_t *target, mobj_t *emmiter);
 
 extern boolean P_CheckMeleeRange (mobj_t *actor);

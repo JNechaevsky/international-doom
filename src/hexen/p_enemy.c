@@ -108,6 +108,42 @@ void P_NoiseAlert(mobj_t * target, mobj_t * emmiter)
     P_RecursiveSound(emmiter->subsector->sector, 0);
 }
 
+// -----------------------------------------------------------------------------
+// P_ForgetPlayer
+// [crispy] let mobjs forget their target and tracer,
+// and let sectors forget their soundtarget
+// -----------------------------------------------------------------------------
+
+void P_ForgetPlayer (player_t *player)
+{
+    if (player->cheats & CF_NOTARGET)
+    {
+        int i;
+        thinker_t *th;
+
+        // [crispy] let mobjs forget their target and tracer
+        for (th = thinkercap.next; th != &thinkercap; th = th->next)
+        {
+            if (th->function == P_MobjThinker)
+            {
+                mobj_t *const mo = (mobj_t *)th;
+    
+                if (mo->target && mo->target->player)
+                {
+                    mo->target = NULL;
+                }
+            }
+        }
+        // [crispy] let sectors forget their soundtarget
+        for (i = 0; i < numsectors; i++)
+        {
+            sector_t *const sector = &sectors[i];
+    
+            sector->soundtarget = NULL;
+        }
+    }
+}
+
 //----------------------------------------------------------------------------
 //
 // FUNC P_CheckMeleeRange

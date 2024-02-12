@@ -1347,6 +1347,7 @@ boolean G_Responder(event_t * ev)
                 }   
 
                 player->cheats ^= CF_NOTARGET;
+                P_ForgetPlayer(player);
 
                 CT_SetMessage(player, player->cheats & CF_NOTARGET ?
                             ID_NOTARGET_ON : ID_NOTARGET_OFF, false, NULL);

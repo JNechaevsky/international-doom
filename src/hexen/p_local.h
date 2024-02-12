@@ -184,6 +184,7 @@ mobj_t *P_SpawnKoraxMissile(fixed_t x, fixed_t y, fixed_t z,
 // ***** P_ENEMY *****
 
 void P_NoiseAlert(mobj_t * target, mobj_t * emmiter);
+void P_ForgetPlayer (player_t *player);
 int P_Massacre(void);
 boolean A_RaiseMobj(mobj_t * actor);
 boolean A_SinkMobj(mobj_t * actor);

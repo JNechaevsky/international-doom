@@ -163,6 +163,7 @@ mobj_t *P_SPMAngle(mobj_t * source, mobjtype_t type, angle_t angle);
 // ***** P_ENEMY *****
 
 void P_NoiseAlert(mobj_t * target, mobj_t * emmiter);
+void P_ForgetPlayer (player_t *player);
 void P_InitMonsters(void);
 void P_AddBossSpot(fixed_t x, fixed_t y, angle_t angle);
 void P_Massacre(void);
