@@ -50,8 +50,6 @@ typedef struct ID_Widget_s
 
 extern ID_Widget_t IDWidget;
 
-extern char ID_Level_Time[64];
-extern char ID_Total_Time[64];
 extern char ID_Local_Time[64];
 
 //
@@ -75,12 +73,6 @@ extern void ID_DrawCrosshair (void);
 extern void ID_DemoTimer (const int time);
 extern void ID_DemoBar (void);
 extern int  defdemotics, deftotaldemotics;
-
-//
-// Level Select one variable
-//
-
-extern int level_select[];
 
 //
 // Spectator Mode

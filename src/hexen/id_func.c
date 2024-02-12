@@ -41,8 +41,6 @@
 ID_Render_t IDRender;
 ID_Widget_t IDWidget;
 
-char ID_Level_Time[64];
-char ID_Total_Time[64];
 char ID_Local_Time[64];
 
 enum
@@ -541,49 +539,6 @@ void ID_DemoBar (void)
     V_DrawHorizLine(0, SCREENHEIGHT - 1, i, white); // [crispy] white
 #endif
 }
-
-// =============================================================================
-//
-//                           Level Select one variable
-//
-// =============================================================================
-
-int level_select[] = {
-    2,    //  0 - Skill level
-    1,    //  1 - Episode
-    1,    //  2 - Map
-    100,  //  3 - Health
-    0,    //  4 - Armor
-    1,    //  5 - Armor type
-    0,    //  6 - Gauntlets
-    0,    //  7 - Ethereal Crossbow
-    0,    //  8 - Dragon Claw
-    0,    //  9 - Hellstaff
-    0,    // 10 - Phoenix Rod
-    0,    // 11 - Firemace
-    0,    // 12 - Bag of Holding
-    50,   // 13 - Wand crystals
-    0,    // 14 - Ethereal arrows
-    0,    // 15 - Claw orbs
-    0,    // 16 - Hellstaff runes
-    0,    // 17 - Flame orbs
-    0,    // 18 - Mace spheres
-    0,    // 19 - Yellow key
-    0,    // 20 - Green key
-    0,    // 21 - Blue key
-    0,    // 22 - Fast monsters
-    0,    // 23 - Respawning monsters
-    0,    // 24 - Quartz flask
-    0,    // 25 - Mystic urn
-    0,    // 26 - Time bomb
-    0,    // 27 - Tome of power
-    0,    // 28 - Ring of invincibility
-    0,    // 29 - Morph ovum
-    0,    // 30 - Chaos device
-    0,    // 31 - Shadowsphere
-    0,    // 32 - Wings of wrath
-    0,    // 33 - Torch
-};
 
 // =============================================================================
 //
