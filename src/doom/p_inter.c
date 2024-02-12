@@ -812,7 +812,7 @@ P_KillMobj
     // [crispy] randomly flip corpse, blood and death animation sprites
     if (target->flags & MF_FLIPPABLE)
     {
-	target->health = (target->health & (int)~1) - (ID_Random() & 1);
+	target->health = (target->health & (int)~1) - (ID_RealRandom() & 1);
     }
 
     if (target->tics < 1)
