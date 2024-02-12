@@ -623,6 +623,7 @@ typedef struct player_s
 #define	CF_GODMODE		2
 #define	CF_NOMOMENTUM	4       // not really a cheat, just a debug aid
 #define	CF_NOTARGET		8       // [JN] CRL - NOTARGET game mode.
+#define	CF_BUDDHA		16      // [JN] BUDDHA cheat.
 
 #define ORIGSBARHEIGHT          39 // [crispy]
 #define	SBARHEIGHT	(ORIGSBARHEIGHT * vid_resolution)      // status bar height at bottom of screen

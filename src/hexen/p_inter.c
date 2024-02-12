@@ -1926,6 +1926,12 @@ void P_DamageMobj
             P_AutoUseHealth(player, damage - player->health + 1);
         }
         player->health -= damage;       // mirror mobj health here for Dave
+        // [JN] BUDDHA cheat.
+        if (player->cheats & CF_BUDDHA && player->health < 1)
+        {
+            player->health = 1;
+        }
+        else
         if (player->health < 0)
         {
             player->health = 0;
@@ -1942,6 +1948,12 @@ void P_DamageMobj
     // do the damage
     //
     target->health -= damage;
+    // [JN] BUDDHA cheat.
+    if (player && player->cheats & CF_BUDDHA && target->health < 1)
+    {
+	    target->health = 1;
+    }
+    else
     if (target->health <= 0)
     {                           // Death
         if (inflictor)
