@@ -215,7 +215,7 @@ static void M_DrawSave(void);
 
 static void M_DrawSaveLoadBorder(int x,int y);
 static void M_SetupNextMenu(menu_t *menudef);
-static void M_DrawThermo(int x,int y,int thermWidth,int thermDot);
+static void M_DrawThermo(int x,int y,int thermWidth,int thermDot,int itemPos);
 static int  M_StringHeight(const char *string);
 static void M_StartMessage(const char *string, void (*routine)(int), boolean input);
 static void M_ClearMenus (void);
@@ -1508,7 +1508,7 @@ static void M_Draw_ID_Display (void)
     M_WriteTextCentered(9, "DISPLAY OPTIONS", cr[CR_YELLOW]);
 
     // Gamma-correction slider and num
-    M_DrawThermo(46, 27, 15, vid_gamma);
+    M_DrawThermo(46, 27, 15, vid_gamma, 0);
     M_WriteText (184, 30, gammalvls[vid_gamma][1],
                           M_Item_Glow(0, GLOW_UNCOLORED));
 
@@ -1733,11 +1733,11 @@ static void M_Draw_ID_Sound (void)
 
     M_WriteTextCentered(18, "VOLUME", cr[CR_YELLOW]);
 
-    M_DrawThermo(46, 36, 16, sfxVolume);
+    M_DrawThermo(46, 36, 16, sfxVolume, 0);
     sprintf(str,"%d", sfxVolume);
     M_WriteText (192, 39, str, M_Item_Glow(0, GLOW_UNCOLORED));
 
-    M_DrawThermo(46, 63, 16, musicVolume);
+    M_DrawThermo(46, 63, 16, musicVolume, 3);
     sprintf(str,"%d", musicVolume);
     M_WriteText (192, 66, str, M_Item_Glow(3, GLOW_UNCOLORED));
 
@@ -2001,16 +2001,16 @@ static void M_Draw_ID_Controls (void)
     
     M_WriteTextCentered(36, "MOUSE CONFIGURATION", cr[CR_YELLOW]);
 
-    M_DrawThermo(46, 54, 10, mouseSensitivity);
+    M_DrawThermo(46, 54, 10, mouseSensitivity, 3);
     sprintf(str,"%d", mouseSensitivity);
     M_WriteText (144, 57, str, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
                                               mouseSensitivity > 9 ? GLOW_GREEN : GLOW_UNCOLORED));
 
-    M_DrawThermo(46, 81, 12, (mouse_acceleration * 3) - 3);
+    M_DrawThermo(46, 81, 12, (mouse_acceleration * 3) - 3, 6);
     sprintf(str,"%.1f", mouse_acceleration);
     M_WriteText (160, 84, str, M_Item_Glow(6, GLOW_UNCOLORED));
 
-    M_DrawThermo(46, 108, 15, mouse_threshold / 2);
+    M_DrawThermo(46, 108, 15, mouse_threshold / 2, 9);
     sprintf(str,"%d", mouse_threshold);
     M_WriteText (184, 111, str, M_Item_Glow(9, GLOW_UNCOLORED));
 
@@ -4587,13 +4587,13 @@ static void M_DrawSound(void)
 
     V_DrawShadowedPatchOptional(60, 38, 0, W_CacheLumpName(DEH_String("M_SVOL"), PU_CACHE));
 
-    M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (sfx_vol + 1), 16, sfxVolume);
+    M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (sfx_vol + 1), 16, sfxVolume, 0);
     sprintf(str,"%d", sfxVolume);
-    M_WriteText (226, 83, str, sfxVolume ? NULL : cr[CR_DARK]);
+    M_WriteText (226, 83, str, M_Item_Glow(0, sfxVolume ? GLOW_UNCOLORED : GLOW_DARKRED));
 
-    M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (music_vol + 1), 16, musicVolume);
+    M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (music_vol + 1), 16, musicVolume, 2);
     sprintf(str,"%d", musicVolume);
-    M_WriteText (226, 115, str, musicVolume ? NULL : cr[CR_DARK]);
+    M_WriteText (226, 115, str, M_Item_Glow(2, musicVolume ? GLOW_UNCOLORED : GLOW_DARKRED));
 }
 
 static void M_SfxVol(int choice)
@@ -4930,10 +4930,17 @@ M_DrawThermo
 ( int	x,
   int	y,
   int	thermWidth,
-  int	thermDot )
+  int	thermDot,
+  int	itemPos )
 {
     int		xx;
     int		i;
+
+    // [JN] Highlight active slider and gem.
+    if (itemPos == itemOn)
+    {
+        dp_translation = cr[CR_MENU_BRIGHT2];
+    }
 
     xx = x;
     V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERML"), PU_CACHE));
@@ -4952,6 +4959,8 @@ M_DrawThermo
     }
 
     V_DrawPatch((x + 8) + thermDot * 8, y, W_CacheLumpName(DEH_String("M_THERMO"), PU_CACHE));
+
+    dp_translation = NULL;
 }
 
 static void

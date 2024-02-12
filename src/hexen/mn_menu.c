@@ -152,7 +152,7 @@ static void DrawFilesMenu(void);
 static void MN_DrawInfo(void);
 static void DrawLoadMenu(void);
 static void DrawSaveMenu(void);
-static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean bigspacing);
+static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean bigspacing, int itemPos);
 void MN_LoadSlotText(void);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
@@ -1421,11 +1421,11 @@ static void M_Draw_ID_Sound (void)
 
     MN_DrTextACentered("SOUND OPTIONS", 10, cr[CR_YELLOW]);
 
-    DrawSlider(&ID_Def_Sound, 1, 16, snd_MaxVolume, false);
+    DrawSlider(&ID_Def_Sound, 1, 16, snd_MaxVolume, false, 0);
     sprintf(str,"%d", snd_MaxVolume);
     MN_DrTextA(str, 228, 35, M_Item_Glow(0, GLOW_LIGHTGRAY));
 
-    DrawSlider(&ID_Def_Sound, 4, 16, snd_MusicVolume, false);
+    DrawSlider(&ID_Def_Sound, 4, 16, snd_MusicVolume, false, 3);
     sprintf(str,"%d", snd_MusicVolume);
     MN_DrTextA(str, 228, 65, M_Item_Glow(3, GLOW_LIGHTGRAY));
 
@@ -1607,16 +1607,16 @@ static void M_Draw_ID_Controls (void)
 
     MN_DrTextACentered("MOUSE CONFIGURATION", 40, cr[CR_YELLOW]);
 
-    DrawSlider(&ID_Def_Controls, 4, 10, mouseSensitivity, false);
+    DrawSlider(&ID_Def_Controls, 4, 10, mouseSensitivity, false, 3);
     sprintf(str,"%d", mouseSensitivity);
     MN_DrTextA(str, 180, 65, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
                                          mouseSensitivity > 9 ? GLOW_GREEN : GLOW_LIGHTGRAY));
 
-    DrawSlider(&ID_Def_Controls, 7, 12, mouse_acceleration * 2, false);
+    DrawSlider(&ID_Def_Controls, 7, 12, mouse_acceleration * 2, false, 6);
     sprintf(str,"%.1f", mouse_acceleration);
     MN_DrTextA(str, 196, 95, M_Item_Glow(6, GLOW_LIGHTGRAY));
 
-    DrawSlider(&ID_Def_Controls, 10, 14, mouse_threshold / 2, false);
+    DrawSlider(&ID_Def_Controls, 10, 14, mouse_threshold / 2, false, 9);
     sprintf(str,"%d", mouse_threshold);
     MN_DrTextA(str, 212, 125, M_Item_Glow(9, GLOW_LIGHTGRAY));
 
@@ -3926,7 +3926,7 @@ static void DrawOptionsMenu(void)
     {
         MN_DrTextB("OFF", 196, 50, NULL);
     }
-    DrawSlider(&OptionsMenu, 3, 10, mouseSensitivity, true);
+    DrawSlider(&OptionsMenu, 3, 10, mouseSensitivity, true, 0);
 }
 
 //---------------------------------------------------------------------------
@@ -3941,18 +3941,18 @@ static void DrawOptions2Menu(void)
 
     // SFX Volume
     sprintf(str, "%d", snd_MaxVolume);
-    DrawSlider(&Options2Menu, 1, 16, snd_MaxVolume, true);
-    MN_DrTextA(str, 252, 45, cr[CR_LIGHTGRAY]);
+    DrawSlider(&Options2Menu, 1, 16, snd_MaxVolume, true, 0);
+    MN_DrTextA(str, 252, 45, M_Item_Glow(0, snd_MaxVolume ? GLOW_LIGHTGRAY : GLOW_DARKGRAY));
 
     // Music Volume
     sprintf(str, "%d", snd_MusicVolume);
-    DrawSlider(&Options2Menu, 3, 16, snd_MusicVolume, true);
-    MN_DrTextA(str, 252, 85, cr[CR_LIGHTGRAY]);
+    DrawSlider(&Options2Menu, 3, 16, snd_MusicVolume, true, 2);
+    MN_DrTextA(str, 252, 85, M_Item_Glow(2, snd_MusicVolume ? GLOW_LIGHTGRAY : GLOW_DARKGRAY));
 
     // Screen Size
     sprintf(str, "%d", dp_screen_size);
-    DrawSlider(&Options2Menu, 5,  11, dp_screen_size - 3, true);
-    MN_DrTextA(str, 212, 125, cr[CR_LIGHTGRAY]);
+    DrawSlider(&Options2Menu, 5,  11, dp_screen_size - 3, true, 4);
+    MN_DrTextA(str, 212, 125, M_Item_Glow(4, GLOW_LIGHTGRAY));
 }
 
 //---------------------------------------------------------------------------
@@ -5281,7 +5281,7 @@ static void SetMenu(MenuType_t menu)
 //
 //---------------------------------------------------------------------------
 
-static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean bigspacing)
+static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean bigspacing, int itemPos)
 {
     int x;
     int y;
@@ -5290,6 +5290,13 @@ static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean big
 
     x = menu->x + 24;
     y = menu->y + 2 + (item * (bigspacing ? ITEM_HEIGHT : ID_MENU_LINEHEIGHT_SMALL));
+
+    // [JN] Highlight active slider and gem.
+    if (itemPos == CurrentItPos)
+    {
+        dp_translation = cr[CR_MENU_BRIGHT2];
+    }
+
     V_DrawShadowedPatchOptional(x - 32, y, 1, W_CacheLumpName("M_SLDLT", PU_CACHE));
     for (x2 = x, count = width; count--; x2 += 8)
     {
@@ -5306,6 +5313,8 @@ static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean big
 
     V_DrawPatch(x + 4 + slot * 8, y + 7,
                 W_CacheLumpName("M_SLDKB", PU_CACHE));
+
+    dp_translation = NULL;
 }
 
 
