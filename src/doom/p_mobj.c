@@ -803,7 +803,7 @@ P_SpawnMobjSafe
     // [crispy] randomly flip corpse, blood and death animation sprites
     if (mobj->flags & MF_FLIPPABLE && !(mobj->flags & MF_SHOOTABLE))
     {
-	mobj->health = (mobj->health & (int)~1) - (ID_Random() & 1);
+	mobj->health = (mobj->health & (int)~1) - (ID_RealRandom() & 1);
     }
     
     // [JN] Set floating z value to actual mobj z coord.
