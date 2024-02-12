@@ -4430,12 +4430,12 @@ void MN_Drawer(void)
                 // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
                 if (CurrentMenu->smallFont)
                 {
-                    MN_DrTextA(item->text, x, y, CurrentItPos == i ?
+                    MN_DrTextA(DEH_String(item->text), x, y, CurrentItPos == i ?
                                cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(CurrentMenu->items[i].tics));
                 }
                 else
                 {
-                    MN_DrTextB(item->text, x, y, CurrentItPos == i ?
+                    MN_DrTextB(DEH_String(item->text), x, y, CurrentItPos == i ?
                                cr[CR_MENU_BRIGHT3] : M_Big_Line_Glow(CurrentMenu->items[i].tics));
                 }
             }
