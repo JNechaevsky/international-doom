@@ -145,7 +145,7 @@ mline_t thintriangle_guy[] = {
 #define NUMTHINTRIANGLEGUYLINES (sizeof(thintriangle_guy)/sizeof(mline_t))
 
 
-int cheating = 0;
+int mapsco_cheating;
 static int grid = 0;
 
 // location of window on screen
@@ -1629,9 +1629,9 @@ static void AM_drawWalls (void)
             AM_rotatePoint(&l.b);
         }
 
-        if (cheating || (lines[i].flags & ML_MAPPED))
+        if (mapsco_cheating || (lines[i].flags & ML_MAPPED))
         {
-            if ((lines[i].flags & LINE_NEVERSEE) && !cheating)
+            if ((lines[i].flags & LINE_NEVERSEE) && !mapsco_cheating)
                 continue;
             if (!lines[i].backsector)
             {
@@ -1641,7 +1641,7 @@ static void AM_drawWalls (void)
             {
                 if (lines[i].flags & ML_SECRET) // secret door
                 {
-                    if (cheating)
+                    if (mapsco_cheating)
                         AM_drawMline(&l, 0);
                     else
                         AM_drawMline(&l, WALLCOLORS);
@@ -1668,7 +1668,7 @@ static void AM_drawWalls (void)
                 {
                     AM_drawMline(&l, CDWALLCOLORS);  // ceiling level change
                 }
-                else if (cheating)
+                else if (mapsco_cheating)
                 {
                     AM_drawMline(&l, TSWALLCOLORS);
                 }
@@ -2197,7 +2197,7 @@ void AM_Drawer (void)
 
     DrawWorldTimer();
 
-    if (cheating == 2)
+    if (mapsco_cheating == 2)
     {
         AM_drawThings();
     }

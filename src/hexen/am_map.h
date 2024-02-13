@@ -92,7 +92,7 @@ typedef struct
 
 
 
-extern int cheating;
+extern int mapsco_cheating;
 
 extern mpoint_t *markpoints; 
 extern int markpointnum;
