@@ -593,6 +593,10 @@ typedef struct player_s
     short ultimateMessage;
     short yellowMessage;
 
+    // [JN] CRL - prevent other than typing actions in G_Responder
+    // while cheat tics are ticking.
+    int cheatTics;
+
     // [JN] CRL - target's health.
     const char*	targetsname;
     int         targetsheath;

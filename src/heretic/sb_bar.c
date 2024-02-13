@@ -1600,7 +1600,7 @@ static void CheatGodFunc (player_t *player, Cheat_t *cheat)
         P_SpawnMobj(player->mo->x + 20 * finecosine[an],
                     player->mo->y + 20 * finesine[an],
                     player->mo->z + TELEFOGHEIGHT, MT_TFOG);
-        S_StartSound(player, sfx_telept);
+        S_StartSound(NULL, sfx_telept);
 
         // [crispy] fix reviving as "zombie" if god mode was already enabled
         if (player->mo)
@@ -1608,6 +1608,7 @@ static void CheatGodFunc (player_t *player, Cheat_t *cheat)
             player->mo->health = MAXHEALTH;
         }
         player->health = MAXHEALTH;
+        player->lookdir = 0;
     }
 
     player->cheats ^= CF_GODMODE;

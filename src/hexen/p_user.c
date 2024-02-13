@@ -821,6 +821,11 @@ void P_PlayerThink(player_t * player)
         }
         else if (cmd->arti & AFLAG_SUICIDE)
         {
+            // [JN] Cancel god mode.
+            if (player->cheats & CF_GODMODE)
+            {
+                player->cheats &= ~CF_GODMODE;
+            }
             P_DamageMobj(player->mo, NULL, NULL, 10000);
         }
         if (cmd->arti == NUMARTIFACTS)

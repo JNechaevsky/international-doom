@@ -314,7 +314,7 @@ boolean ST_Responder (event_t *ev)
                     // [crispy] spawn a teleport fog
                     an = plyr->mo->angle >> ANGLETOFINESHIFT;
                     P_SpawnMobj(plyr->mo->x+20*finecosine[an], plyr->mo->y+20*finesine[an], plyr->mo->z, MT_TFOG);
-                    S_StartSound(plyr, sfx_slop);
+                    S_StartSound(NULL, sfx_telept);
 
                     // [crispy] fix reviving as "zombie" if god mode was already enabled
                     if (plyr->mo)
