@@ -28,6 +28,7 @@
 #include "v_trans.h"
 #include "v_video.h"
 #include "i_swap.h"
+#include "i_timer.h"
 #include "am_map.h"
 #include "ct_chat.h"
 
@@ -61,7 +62,6 @@ static void DrawFullScreenStuff(void);
 static void DrawAnimatedIcons(void);
 static boolean HandleCheats(byte key);
 static boolean CheatAddKey(Cheat_t * cheat, byte key, boolean * eat);
-static void CheatGodFunc(player_t * player, Cheat_t * cheat);
 static void CheatNoClipFunc(player_t * player, Cheat_t * cheat);
 static void CheatWeaponsFunc(player_t * player, Cheat_t * cheat);
 static void CheatHealthFunc(player_t * player, Cheat_t * cheat);
@@ -152,8 +152,22 @@ static patch_t *PatchINVLFGEM2;
 static patch_t *PatchINVRTGEM1;
 static patch_t *PatchINVRTGEM2;
 
+// -----------------------------------------------------------------------------
+//
+// CHEAT CODES
+//
+// -----------------------------------------------------------------------------
+
+// [JN] CRL - prevent other than typing actions in G_Responder
+// while cheat tics are ticking.
+static cheatseq_t CheatWaitSeq = CHEAT("id", 0);
+static void CheatWaitFunc (player_t *player, Cheat_t *cheat);
+
 // Toggle god mode
-cheatseq_t CheatGodSeq = CHEAT("satan", 0);
+static cheatseq_t CheatGodSeq = CHEAT("satan", 0);
+static cheatseq_t CheatGodHticSeq = CHEAT("quicken", 0);
+static cheatseq_t CheatGodDoomSeq = CHEAT("iddqd", 0);
+static void CheatGodFunc(player_t * player, Cheat_t * cheat);
 
 // Toggle no clipping mode
 cheatseq_t CheatNoClipSeq = CHEAT("casper", 0);
@@ -216,7 +230,12 @@ cheatseq_t CheatScriptSeq3 = CHEAT("puke", 2);
 cheatseq_t CheatRevealSeq = CHEAT("mapsco", 0);
 
 static Cheat_t Cheats[] = {
-    {CheatGodFunc, &CheatGodSeq},
+    { CheatWaitFunc,      &CheatWaitSeq       },
+    { CheatGodFunc,       &CheatGodSeq        },
+    { CheatGodFunc,       &CheatGodHticSeq    },
+    { CheatGodFunc,       &CheatGodDoomSeq    },
+    
+    
     {CheatNoClipFunc, &CheatNoClipSeq},
     {CheatWeaponsFunc, &CheatWeaponsSeq},
     {CheatHealthFunc, &CheatHealthSeq},
@@ -1863,6 +1882,8 @@ static boolean HandleCheats(byte key)
     int i;
     boolean eat;
 
+    /* [crispy] check for nightmare/netgame per cheat, to allow "harmless" cheats
+    ** [JN] Allow in nightmare and for dead player (can be resurrected).
     if (gameskill == sk_nightmare)
     {                           // Can't cheat in nightmare mode
         return (false);
@@ -1876,13 +1897,18 @@ static boolean HandleCheats(byte key)
     {                           // Dead players can't cheat
         return (false);
     }
+    */
     eat = false;
     for (i = 0; i<arrlen(Cheats); ++i)
     {
         if (CheatAddKey(&Cheats[i], key, &eat))
         {
             Cheats[i].func(&players[consoleplayer], &Cheats[i]);
-            S_StartSound(NULL, SFX_PLATFORM_STOP);
+            // [JN] Do not play sound after typing just "ID".
+            if (Cheats[i].func != CheatWaitFunc)
+            {
+                S_StartSound(NULL, SFX_PLATFORM_STOP);
+            }
         }
     }
     return (eat);
@@ -1939,18 +1965,55 @@ static boolean CheatAddKey(Cheat_t * cheat, byte key, boolean * eat)
 //
 //==========================================================================
 
+#define FULL_CHEAT_CHECK if(netgame || demorecording || demoplayback){return;}
+#define SAFE_CHEAT_CHECK if(netgame || demorecording){return;}
+
+static void CheatWaitFunc (player_t *player, Cheat_t *cheat)
+{
+    FULL_CHEAT_CHECK;
+    // [JN] If user types "id", activate timer to prevent
+    // other than typing actions in G_Responder.
+    player->cheatTics = TICRATE * 2;
+}
+
 static void CheatGodFunc(player_t * player, Cheat_t * cheat)
 {
+    // [crispy] dead players are first respawned at the current position
+    mapthing_t mt = {0};
+
+    FULL_CHEAT_CHECK;
+
+    if (player->playerstate == PST_DEAD)
+    {
+        angle_t an;
+
+        mt.x = player->mo->x >> FRACBITS;
+        mt.y = player->mo->y >> FRACBITS;
+        mt.angle = (player->mo->angle + ANG45/2)*(uint64_t)45/ANG45;
+        mt.type = consoleplayer + 1;
+        P_SpawnPlayer(&mt);
+
+        // [crispy] spawn a teleport fog
+        an = player->mo->angle >> ANGLETOFINESHIFT;
+        P_SpawnMobj(player->mo->x + 20 * finecosine[an],
+                    player->mo->y + 20 * finesine[an],
+                    player->mo->z + TELEFOGHEIGHT, MT_TFOG);
+        S_StartSound(NULL, SFX_TELEPORT);
+
+        // [crispy] fix reviving as "zombie" if god mode was already enabled
+        if (player->mo)
+        {
+            player->mo->health = MAXHEALTH;
+        }
+        player->health = MAXHEALTH;
+        player->lookdir = 0;
+    }
+
     player->cheats ^= CF_GODMODE;
-    if (player->cheats & CF_GODMODE)
-    {
-        CT_SetMessage(player, TXT_CHEATGODON, false, NULL);
-    }
-    else
-    {
-        CT_SetMessage(player, TXT_CHEATGODOFF, false, NULL);
-    }
+    CT_SetMessage(player, player->cheats & CF_GODMODE ?
+                  TXT_CHEATGODON : TXT_CHEATGODOFF, false, NULL);
     SB_state = -1;
+    player->cheatTics = 1;
 }
 
 static void CheatNoClipFunc(player_t * player, Cheat_t * cheat)

@@ -1167,6 +1167,20 @@ boolean G_Responder(event_t * ev)
         {                       // Automap ate the event
             return (true);
         }
+
+        if (players[consoleplayer].cheatTics)
+        {
+            // [JN] Reset cheatTics if user have opened menu or moved/pressed mouse buttons.
+            if (MenuActive || ev->type == ev_mouse)
+            {
+                players[consoleplayer].cheatTics = 0;
+            }
+            // [JN] Prevent other keys while cheatTics is running after typing "ID".
+            if (players[consoleplayer].cheatTics > 0)
+            {
+                return true;
+            }
+        }
     }
 
     if (ev->type == ev_mouse)
@@ -1702,8 +1716,6 @@ void G_PlayerReborn(int player)
 = because something is occupying it
 ====================
 */
-
-void P_SpawnPlayer(mapthing_t * mthing);
 
 boolean G_CheckSpot(int playernum, mapthing_t * mthing)
 {
