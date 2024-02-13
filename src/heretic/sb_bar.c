@@ -122,17 +122,19 @@ static cheatseq_t CheatWaitSeq = CHEAT("id", 0);
 static void CheatWaitFunc (player_t *player, Cheat_t *cheat);
 
 // Toggle god mode
-static cheatseq_t CheatGodSeq = CHEAT("quicken", 0);
-static cheatseq_t CheatIDDQDSeq = CHEAT("iddqd", 0);
+static cheatseq_t CheatGodDoomSeq = CHEAT("iddqd", 0);
+static cheatseq_t CheatGodHticSeq = CHEAT("quicken", 0);
+static cheatseq_t CheatGodHexnSeq = CHEAT("satan", 0);
 static void CheatGodFunc (player_t *player, Cheat_t *cheat);
 
 // Get all weapons and ammo
-static cheatseq_t CheatWeaponsSeq = CHEAT("rambo", 0);
-static cheatseq_t CheatIDFASeq = CHEAT("idfa", 0);
+static cheatseq_t CheatWeaponsDoomSeq = CHEAT("idfa", 0);
+static cheatseq_t CheatWeaponsHticSeq = CHEAT("rambo", 0);
+static cheatseq_t CheatWeaponsHexnSeq = CHEAT("nra", 0);
 static void CheatWeaponsFunc (player_t *player, Cheat_t *cheat);
 
 // Get all weapons and keys
-static cheatseq_t CheatIDKFASeq = CHEAT("idkfa", 0);
+static cheatseq_t CheatWpnsKeysDoomSeq = CHEAT("idkfa", 0);
 static void CheatWeapKeysFunc (player_t *player, Cheat_t *cheat);
 
 // Get Gauntlets of the Necromancer
@@ -140,19 +142,22 @@ static cheatseq_t CheatIDCHOPPERSSeq = CHEAT("idchoppers", 0);
 static void CheatChoppersFunc (player_t *player, Cheat_t *cheat);
 
 // Get all keys
-static cheatseq_t CheatKeysSeq = CHEAT("skel", 0);
-static cheatseq_t CheatIDKASeq = CHEAT("idka", 0);
+static cheatseq_t CheatKeysDoomSeq = CHEAT("idka", 0);
+static cheatseq_t CheatKeysHticSeq = CHEAT("skel", 0);
+static cheatseq_t CheatKeysHexnSeq = CHEAT("locksmith", 0);
 static void CheatKeysFunc (player_t *player, Cheat_t *cheat);
 
 // Toggle no clipping mode
-static cheatseq_t CheatNoClipSeq = CHEAT("kitty", 0);
-static cheatseq_t CheatIDCLIPSeq = CHEAT("idclip", 0);
-static cheatseq_t CheatIDSPISPOPDSeq = CHEAT("idspispopd", 0);
+static cheatseq_t CheatNoClipDoomSeq = CHEAT("idclip", 0);
+static cheatseq_t CheatNoClipDmSwSeq = CHEAT("idspispopd", 0);
+static cheatseq_t CheatNoClipHticSeq = CHEAT("kitty", 0);
+static cheatseq_t CheatNoClipHexnSeq = CHEAT("casper", 0);
 static void CheatNoClipFunc (player_t *player, Cheat_t *cheat);
 
 // Warp to new level
-static cheatseq_t CheatWarpSeq = CHEAT("engage", 2);
-static cheatseq_t CheatIDCLEVSeq = CHEAT("idclev", 2);
+static cheatseq_t CheatWarpDoomSeq = CHEAT("idclev", 2);
+static cheatseq_t CheatWarpHticSeq = CHEAT("engage", 2);
+static cheatseq_t CheatWarpHexnSeq = CHEAT("visit", 2);
 static void CheatWarpFunc (player_t *player, Cheat_t *cheat);
 
 // Artifacts
@@ -166,22 +171,29 @@ static void CheatArtifact1Func (player_t *player, Cheat_t *cheat);
 static void CheatArtifact2Func (player_t *player, Cheat_t *cheat);
 static void CheatArtifact3Func (player_t *player, Cheat_t *cheat);
 
+// Get all artifacts
+static cheatseq_t CheatArtifactsHexnSeq = CHEAT("indiana", 0);
+static void CheatArtifactAllFunc (player_t *player, Cheat_t *cheat);
+
 // Toggle tome of power
 static cheatseq_t CheatPowerSeq = CHEAT("shazam", 0);
 static void CheatPowerFunc (player_t *player, Cheat_t *cheat);
 
 // Get full health
-static cheatseq_t CheatHealthSeq = CHEAT("ponce", 0);
+static cheatseq_t CheatHealthHticSeq = CHEAT("ponce", 0);
+static cheatseq_t CheatHealthHexnSeq = CHEAT("clubmed", 0);
 static void CheatHealthFunc (player_t *player, Cheat_t *cheat);
 
-// Turn to chicken
-static cheatseq_t CheatChickenSeq = CHEAT("cockadoodledoo", 0);
+// Turn to a chicken
+static cheatseq_t CheatChickenHticSeq = CHEAT("cockadoodledoo", 0);
+static cheatseq_t CheatChickenHexnSeq = CHEAT("deliverance", 0);
 static void CheatChickenFunc (player_t *player, Cheat_t *cheat);
 
 // Kill all monsters
-static cheatseq_t CheatMassacreSeq = CHEAT("massacre", 0);
-static cheatseq_t CheatTNTEMSeq = CHEAT("tntem", 0);
-static cheatseq_t CheatKILLEMseq = CHEAT("killem", 0);
+static cheatseq_t CheatMassacreDoomBSeq = CHEAT("tntem", 0);
+static cheatseq_t CheatMassacreDoomMSeq = CHEAT("killem", 0);
+static cheatseq_t CheatMassacreHticSeq = CHEAT("massacre", 0);
+static cheatseq_t CheatMassacreHexnSeq = CHEAT("butcher", 0);
 static void CheatMassacreFunc (player_t *player, Cheat_t *cheat);
 static void CheatTNTEMFunc (player_t *player, Cheat_t *cheat);
 static void CheatKILLEMFunc (player_t *player, Cheat_t *cheat);
@@ -190,13 +202,15 @@ static void CheatKILLEMFunc (player_t *player, Cheat_t *cheat);
 static cheatseq_t CheatIDMUSSeq = CHEAT("idmus", 2);
 static void CheatIDMUSFunc (player_t *player, Cheat_t *cheat);
 
-// [JN] RAVMAP / IDDT, moved from am_map.c
-static cheatseq_t CheatAMapSeq = CHEAT("ravmap", 0);
-static cheatseq_t CheatIDDTSeq = CHEAT("iddt", 0);
+// Reveal all map
+static cheatseq_t CheatRevealDoomSeq = CHEAT("iddt", 0);
+static cheatseq_t CheatRevealHticSeq = CHEAT("ravmap", 0);
+static cheatseq_t CheatRevealHexnSeq = CHEAT("mapsco", 0);
 static void CheatAMapFunc (player_t *player, Cheat_t *cheat);
 
 // [JN] IDMYPOS coords
-static cheatseq_t CheatIDMYPOSSeq = CHEAT("idmypos", 0);
+static cheatseq_t CheatDebugDoomSeq = CHEAT("idmypos", 0);
+static cheatseq_t CheatDebugHexnSeq = CHEAT("where", 0);
 static void CheatIDMYPOSFunc (player_t *player, Cheat_t *cheat);
 
 // [JN] Freeze mode
@@ -212,40 +226,68 @@ static cheatseq_t CheatBUDDHASeq = CHEAT("buddha", 0);
 static void CheatBUDDHAFunc (player_t *player, Cheat_t *cheat);
 
 static Cheat_t Cheats[] = {
-    { CheatWaitFunc,      &CheatWaitSeq       },
-    { CheatGodFunc,       &CheatGodSeq        },
-    { CheatGodFunc,       &CheatIDDQDSeq      },
-    { CheatWeaponsFunc,   &CheatWeaponsSeq    },
-    { CheatWeaponsFunc,   &CheatIDFASeq       },
-    { CheatWeapKeysFunc,  &CheatIDKFASeq      },
-    { CheatChoppersFunc,  &CheatIDCHOPPERSSeq },
-    { CheatKeysFunc,      &CheatKeysSeq       },
-    { CheatKeysFunc,      &CheatIDKASeq       },
-    { CheatNoClipFunc,    &CheatNoClipSeq     },
-    { CheatNoClipFunc,    &CheatIDCLIPSeq     },
-    { CheatNoClipFunc,    &CheatIDSPISPOPDSeq },
-    { CheatWarpFunc,      &CheatWarpSeq       },
-    { CheatWarpFunc,      &CheatIDCLEVSeq     },
-    { CheatArtifact1Func, &CheatArtifact1Seq  },
-    { CheatArtifact2Func, &CheatArtifact2Seq  },
-    { CheatArtifact3Func, &CheatArtifact3Seq  },
-    { CheatArtifact1Func, &CheatIDBEHOLD1Seq  },
-    { CheatArtifact2Func, &CheatIDBEHOLD2Seq  },
-    { CheatArtifact3Func, &CheatIDBEHOLD3Seq  },
-    { CheatPowerFunc,     &CheatPowerSeq      },
-    { CheatHealthFunc,    &CheatHealthSeq     },
-    { CheatChickenFunc,   &CheatChickenSeq    },
-    { CheatMassacreFunc,  &CheatMassacreSeq   },
-    { CheatTNTEMFunc,     &CheatTNTEMSeq      },
-    { CheatKILLEMFunc,    &CheatKILLEMseq     },
-    { CheatIDMUSFunc,     &CheatIDMUSSeq      },
-    { CheatAMapFunc,      &CheatAMapSeq       },
-    { CheatAMapFunc,      &CheatIDDTSeq       },
-    { CheatIDMYPOSFunc,   &CheatIDMYPOSSeq    },
-    { CheatFREEZEFunc,    &CheatFREEZESeq     },
-    { CheatNOTARGETFunc,  &CheatNOTARGETSeq   },
-    { CheatBUDDHAFunc,    &CheatBUDDHASeq     },
-    {NULL,                NULL                }
+    { CheatWaitFunc,        &CheatWaitSeq          },
+    // Toggle god mode
+    { CheatGodFunc,         &CheatGodDoomSeq       },
+    { CheatGodFunc,         &CheatGodHticSeq       },
+    { CheatGodFunc,         &CheatGodHexnSeq       },
+    // Get all weapons and ammo
+    { CheatWeaponsFunc,     &CheatWeaponsDoomSeq   },
+    { CheatWeaponsFunc,     &CheatWeaponsHticSeq   },
+    { CheatWeaponsFunc,     &CheatWeaponsHexnSeq   },
+    // Get all weapons and keys
+    { CheatWeapKeysFunc,    &CheatWpnsKeysDoomSeq  },
+    // Get Gauntlets of the Necromancer
+    { CheatChoppersFunc,    &CheatIDCHOPPERSSeq    },
+    // Get all keys
+    { CheatKeysFunc,        &CheatKeysDoomSeq      },
+    { CheatKeysFunc,        &CheatKeysHticSeq      },
+    { CheatKeysFunc,        &CheatKeysHexnSeq      },
+    // Toggle no clipping mode
+    { CheatNoClipFunc,      &CheatNoClipDoomSeq    },
+    { CheatNoClipFunc,      &CheatNoClipDmSwSeq    },
+    { CheatNoClipFunc,      &CheatNoClipHticSeq    },
+    { CheatNoClipFunc,      &CheatNoClipHexnSeq    },
+    // Warp to new level
+    { CheatWarpFunc,        &CheatWarpDoomSeq      },
+    { CheatWarpFunc,        &CheatWarpHticSeq      },
+    { CheatWarpFunc,        &CheatWarpHexnSeq      },
+    // Artifacts
+    { CheatArtifact1Func, &CheatArtifact1Seq       },
+    { CheatArtifact2Func, &CheatArtifact2Seq       },
+    { CheatArtifact3Func, &CheatArtifact3Seq       },
+    { CheatArtifact1Func, &CheatIDBEHOLD1Seq       },
+    { CheatArtifact2Func, &CheatIDBEHOLD2Seq       },
+    { CheatArtifact3Func, &CheatIDBEHOLD3Seq       },
+    // Get all artifacts
+    { CheatArtifactAllFunc, &CheatArtifactsHexnSeq },
+    // Toggle tome of power
+    { CheatPowerFunc,     &CheatPowerSeq           },
+    // Get full health
+    { CheatHealthFunc,    &CheatHealthHticSeq      },
+    { CheatHealthFunc,    &CheatHealthHexnSeq      },
+    // Turn to a chicken
+    { CheatChickenFunc,   &CheatChickenHticSeq     },
+    { CheatChickenFunc,   &CheatChickenHexnSeq     },    
+    // Kill all monsters
+    { CheatTNTEMFunc,     &CheatMassacreDoomBSeq   },
+    { CheatKILLEMFunc,    &CheatMassacreDoomMSeq   },
+    { CheatMassacreFunc,  &CheatMassacreHticSeq    },
+    { CheatMassacreFunc,  &CheatMassacreHexnSeq    },
+    // [JN] IDMUS
+    { CheatIDMUSFunc,     &CheatIDMUSSeq           },
+    // Reveal all map
+    { CheatAMapFunc,      &CheatRevealDoomSeq      },
+    { CheatAMapFunc,      &CheatRevealHticSeq      },
+    { CheatAMapFunc,      &CheatRevealHexnSeq      },
+    // [JN] IDMYPOS coords
+    { CheatIDMYPOSFunc,   &CheatDebugDoomSeq       },
+    { CheatIDMYPOSFunc,   &CheatDebugHexnSeq       },
+    // [JN] ID-specific modes
+    { CheatFREEZEFunc,    &CheatFREEZESeq          },
+    { CheatNOTARGETFunc,  &CheatNOTARGETSeq        },
+    { CheatBUDDHAFunc,    &CheatBUDDHASeq          },
+    {NULL,                NULL                     }
 };
 
 //---------------------------------------------------------------------------
@@ -1811,6 +1853,24 @@ static void CheatArtifact3Func (player_t *player, Cheat_t *cheat)
     {                           // Bad input
         CT_SetMessage(player, DEH_String(TXT_CHEATARTIFACTSFAIL), false, NULL);
     }
+    player->cheatTics = 1;
+}
+
+static void CheatArtifactAllFunc (player_t *player, Cheat_t *cheat)
+{
+    int i;
+    int j;
+
+    FULL_CHEAT_CHECK;
+
+    for (i = arti_none + 1; i < NUMARTIFACTS; i++)
+    {
+        for (j = 0; j < 16; j++)
+        {
+            P_GiveArtifact(player, i, NULL);
+        }
+    }
+    CT_SetMessage(player, DEH_String(TXT_CHEATARTIFACTS4), false, NULL);
     player->cheatTics = 1;
 }
 
