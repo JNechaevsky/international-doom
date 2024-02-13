@@ -2006,7 +2006,6 @@ static boolean CheatAddKey(Cheat_t * cheat, byte key, boolean * eat)
 //==========================================================================
 
 #define FULL_CHEAT_CHECK if(netgame || demorecording || demoplayback){return;}
-#define SAFE_CHEAT_CHECK if(netgame || demorecording){return;}
 
 static void CheatWaitFunc (player_t *player, Cheat_t *cheat)
 {
@@ -2059,6 +2058,7 @@ static void CheatGodFunc (player_t *player, Cheat_t *cheat)
 static void CheatNoClipFunc (player_t *player, Cheat_t *cheat)
 {
     FULL_CHEAT_CHECK;
+
     player->cheats ^= CF_NOCLIP;
     CT_SetMessage(player, player->cheats & CF_NOCLIP ?
                   TXT_CHEATNOCLIPON : TXT_CHEATNOCLIPOFF, false, NULL);
@@ -2070,6 +2070,7 @@ static void CheatWeaponsFunc (player_t *player, Cheat_t *cheat)
     int i;
 
     FULL_CHEAT_CHECK;
+
     for (i = 0; i < NUMARMOR; i++)
     {
         player->armorpoints[i] = ArmorIncrement[player->class][i];
@@ -2091,6 +2092,7 @@ static void CheatWpnsKeysFunc (player_t *player, Cheat_t *cheat)
     int i;
 
     FULL_CHEAT_CHECK;
+
     for (i = 0; i < NUMARMOR; i++)
     {
         player->armorpoints[i] = ArmorIncrement[player->class][i];
@@ -2127,6 +2129,7 @@ static void CheatHealthFunc (player_t *player, Cheat_t *cheat)
 static void CheatKeysFunc (player_t *player, Cheat_t *cheat)
 {
     FULL_CHEAT_CHECK;
+
     player->keys = 2047;
     CT_SetMessage(player, TXT_CHEATKEYS, false, NULL);
     player->cheatTics = 1;
@@ -2136,6 +2139,8 @@ static void CheatArtifactAllFunc (player_t *player, Cheat_t *cheat)
 {
     int i;
     int j;
+
+    FULL_CHEAT_CHECK;
 
     for (i = arti_none + 1; i < arti_firstpuzzitem; i++)
     {
@@ -2151,6 +2156,8 @@ static void CheatArtifactAllFunc (player_t *player, Cheat_t *cheat)
 static void CheatPuzzleFunc (player_t *player, Cheat_t *cheat)
 {
     int i;
+
+    FULL_CHEAT_CHECK;
 
     for (i = arti_firstpuzzitem; i < NUMARTIFACTS; i++)
     {
@@ -2204,6 +2211,7 @@ static void CheatWarpFunc (player_t *player, Cheat_t *cheat)
 static void CheatPigFunc (player_t *player, Cheat_t *cheat)
 {
     FULL_CHEAT_CHECK;
+
     if (player->morphTics)
     {
         P_UndoPlayerMorph(player);
@@ -2332,7 +2340,6 @@ static void CheatScriptFunc3 (player_t *player, Cheat_t *cheat)
     }
     player->cheatTics = 1;
 }
-
 
 static void CheatRevealFunc (player_t *player, Cheat_t *cheat)
 {
