@@ -1020,7 +1020,7 @@ static boolean D_AddFile(char *filename)
 // Some dehacked mods replace these.  These are only displayed if they are 
 // replaced by dehacked.
 
-static char *copyright_banners[] =
+static const char *copyright_banners[] =
 {
     "===========================================================================\n"
     "ATTENTION:  This version of DOOM has been modified.  If you would like to\n"
@@ -1068,8 +1068,8 @@ void PrintDehackedBanners(void)
 
 static struct 
 {
-    char *description;
-    char *cmdline;
+    const char *description;
+    const char *cmdline;
     GameVersion_t version;
 } gameversions[] = {
     {"Doom 1.2",             "1.2",        exe_doom_1_2},
@@ -1100,9 +1100,9 @@ static void InitGameVersion(void)
     // @arg <version>
     // @category compat
     //
-    // Emulate a specific version of Doom.  Valid values are "1.666",
-    // "1.7", "1.8", "1.9", "ultimate", "final", "final2", "hacx" and
-    // "chex".
+    // Emulate a specific version of Doom.  Valid values are "1.2", 
+    // "1.666", "1.7", "1.8", "1.9", "ultimate", "final", "final2",
+    // "hacx" and "chex".
     //
 
     p = M_CheckParmWithArgs("-gameversion", 1);
@@ -1269,6 +1269,14 @@ static void D_Endoom(void)
     I_Endoom(endoom);
 }
 
+boolean IsFrenchIWAD(void)
+{
+    return (gamemission == doom2 && W_CheckNumForName("M_RDTHIS") < 0
+          && W_CheckNumForName("M_EPISOD") < 0 && W_CheckNumForName("M_EPI1") < 0
+          && W_CheckNumForName("M_EPI2") < 0 && W_CheckNumForName("M_EPI3") < 0
+          && W_CheckNumForName("WIOSTF") < 0 && W_CheckNumForName("WIOBJ") >= 0);
+}
+
 // Load dehacked patches needed for certain IWADs.
 static void LoadIwadDeh(void)
 {
@@ -1281,6 +1289,7 @@ static void LoadIwadDeh(void)
         DEH_LoadLumpByName("DEHACKED", false, true);
     }
 
+    else // [crispy]
     // If this is the HACX IWAD, we need to load the DEHACKED lump.
     if (gameversion == exe_hacx)
     {
@@ -1291,28 +1300,18 @@ static void LoadIwadDeh(void)
         }
     }
 
+    else // [crispy]
     // Chex Quest needs a separate Dehacked patch which must be downloaded
     // and installed next to the IWAD.
     if (gameversion == exe_chex)
     {
         char *chex_deh = NULL;
-        char *sep;
+        char *dirname;
 
         // Look for chex.deh in the same directory as the IWAD file.
-        sep = strrchr(iwadfile, DIR_SEPARATOR);
-
-        if (sep != NULL)
-        {
-            size_t chex_deh_len = strlen(iwadfile) + 9;
-            chex_deh = malloc(chex_deh_len);
-            M_StringCopy(chex_deh, iwadfile, chex_deh_len);
-            chex_deh[sep - iwadfile + 1] = '\0';
-            M_StringConcat(chex_deh, "chex.deh", chex_deh_len);
-        }
-        else
-        {
-            chex_deh = M_StringDuplicate("chex.deh");
-        }
+        dirname = M_DirName(iwadfile);
+        chex_deh = M_StringJoin(dirname, DIR_SEPARATOR_S, "chex.deh", NULL);
+        free(dirname);
 
         // If the dehacked patch isn't found, try searching the WAD
         // search path instead.  We might find it...
@@ -1335,6 +1334,47 @@ static void LoadIwadDeh(void)
         if (!DEH_LoadFile(chex_deh))
         {
             I_Error("Failed to load chex.deh needed for emulating chex.exe.");
+        }
+    }
+    // [crispy] try anyway...
+    else if (W_CheckNumForName("DEHACKED") != -1)
+    {
+        DEH_LoadLumpByName("DEHACKED", true, true);
+    }
+
+    if (IsFrenchIWAD())
+    {
+        char *french_deh = NULL;
+        char *dirname;
+
+        // Look for french.deh in the same directory as the IWAD file.
+        dirname = M_DirName(iwadfile);
+        french_deh = M_StringJoin(dirname, DIR_SEPARATOR_S, "french.deh", NULL);
+        printf("French version\n");
+        free(dirname);
+
+        // If the dehacked patch isn't found, try searching the WAD
+        // search path instead.  We might find it...
+        if (!M_FileExists(french_deh))
+        {
+            free(french_deh);
+            french_deh = D_FindWADByName("french.deh");
+        }
+
+        // Still not found?
+        if (french_deh == NULL)
+        {
+            I_Error("Unable to find French Doom II dehacked file\n"
+                    "(french.deh).  The dehacked file is required in order to\n"
+                    "emulate French doom2.exe correctly.  It can be found in\n"
+                    "your nearest /idgames repository mirror at:\n\n"
+                    "   utils/exe_edit/patches/french.zip");
+        }
+
+        if (!DEH_LoadFile(french_deh))
+        {
+            I_Error("Failed to load french.deh needed for emulating French\n"
+                    "doom2.exe.");
         }
     }
 }
