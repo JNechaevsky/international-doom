@@ -482,6 +482,7 @@ void R_ProjectSprite (mobj_t* thing)
     
     fixed_t		gxt;
     fixed_t		gyt;
+    fixed_t		gzt; // [JN] killough 3/27/98
     
     fixed_t		tx;
     fixed_t		tz;
@@ -620,6 +621,14 @@ void R_ProjectSprite (mobj_t* thing)
     if (x2 < 0)
 	return;
     
+    // [JN] killough 4/9/98: clip things which are out of view due to height
+    gzt = interpz + spritetopoffset[lump];
+    if (interpz > viewz + FixedDiv(viewheight << FRACBITS, xscale) ||
+        gzt < (int64_t)viewz - FixedDiv((viewheight << FRACBITS)-viewheight, xscale))
+    {
+	return;
+    }
+
     // store information in a vissprite
     vis = R_NewVisSprite ();
     vis->mobjflags = thing->flags;
@@ -628,7 +637,7 @@ void R_ProjectSprite (mobj_t* thing)
     vis->gx = interpx;
     vis->gy = interpy;
     vis->gz = interpz;
-    vis->gzt = interpz + spritetopoffset[lump];
+    vis->gzt = gzt; // [JN] killough 3/27/98
     // foot clipping
     if (thing->flags2 & MF2_FEETARECLIPPED
         && interpz <= thing->subsector->sector->floorheight)
@@ -637,7 +646,7 @@ void R_ProjectSprite (mobj_t* thing)
     }
     else
         vis->footclip = 0;
-    vis->texturemid = vis->gzt - viewz - (vis->footclip << FRACBITS);
+    vis->texturemid = gzt - viewz - (vis->footclip << FRACBITS);
 
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;	
