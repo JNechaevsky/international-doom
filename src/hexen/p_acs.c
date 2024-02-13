@@ -594,7 +594,9 @@ boolean P_StartACS(int number, int map, byte * args, mobj_t * activator,
     {                           // Script not found
         //I_Error("P_StartACS: Unknown script number %d", number);
         M_snprintf(ErrorMsg, sizeof(ErrorMsg),
-                   "P_STARTACS ERROR: UNKNOWN SCRIPT %d", number);
+                   // [JN] Fix vanilla bug:
+                   // Replace "_" with "[" because of Raven font system.
+                   "P[STARTACS ERROR: UNKNOWN SCRIPT %d", number);
         CT_SetMessage(&players[consoleplayer], ErrorMsg, true, NULL);
     }
     statePtr = &ACSInfo[infoIndex].state;
