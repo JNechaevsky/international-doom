@@ -142,18 +142,22 @@ static void CheatWaitFunc (player_t *player, Cheat_t *cheat);
 static cheatseq_t CheatGodDoomSeq = CHEAT("iddqd", 0);
 static cheatseq_t CheatGodHticSeq = CHEAT("quicken", 0);
 static cheatseq_t CheatGodHexnSeq = CHEAT("satan", 0);
+static cheatseq_t CheatGodHxSwSeq = CHEAT("bgokey", 0);
 static void CheatGodFunc(player_t *player, Cheat_t * cheat);
 
 // Toggle no clipping mode
 static cheatseq_t CheatNoClipDoomSeq = CHEAT("idclip", 0);
+static cheatseq_t CheatNoClipDmSwSeq = CHEAT("idspispopd", 0);
 static cheatseq_t CheatNoClipHticSeq = CHEAT("kitty", 0);
 static cheatseq_t CheatNoClipHexnSeq = CHEAT("casper", 0);
+static cheatseq_t CheatNoClipHxSwSeq = CHEAT("rjohnson", 0);
 static void CheatNoClipFunc (player_t *player, Cheat_t *cheat);
 
 // Get all weapons and mana
 static cheatseq_t CheatWeaponsDoomSeq = CHEAT("idfa", 0);
 static cheatseq_t CheatWeaponsHticSeq = CHEAT("rambo", 0);
 static cheatseq_t CheatWeaponsHexnSeq = CHEAT("nra", 0);
+static cheatseq_t CheatWeaponsHxSwSeq = CHEAT("crhinehart", 0);
 static void CheatWeaponsFunc (player_t *player, Cheat_t *cheat);
 
 // Get all weapons and mana and keys
@@ -163,31 +167,37 @@ static void CheatWpnsKeysFunc (player_t *player, Cheat_t *cheat);
 // Get full health
 static cheatseq_t CheatHealthHticSeq = CHEAT("ponce", 0);
 static cheatseq_t CheatHealthHexnSeq = CHEAT("clubmed", 0);
+static cheatseq_t CheatHealthHxSwSeq = CHEAT("sgurno", 0);
 static void CheatHealthFunc (player_t *player, Cheat_t *cheat);
 
 // Get all keys
 static cheatseq_t CheatKeysDoomSeq = CHEAT("idka", 0);
 static cheatseq_t CheatKeysHticSeq = CHEAT("skel", 0);
 static cheatseq_t CheatKeysHexnSeq = CHEAT("locksmith", 0);
+static cheatseq_t CheatKeysHxSwSeq = CHEAT("mraymondjudy", 0);
 static void CheatKeysFunc (player_t *player, Cheat_t *cheat);
 
 // Get all artifacts
-static cheatseq_t CheatArtifactAllSeq = CHEAT("indiana", 0);
+static cheatseq_t CheatArtifactsHexnSeq = CHEAT("indiana", 0);
+static cheatseq_t CheatArtifactsHxSwSeq = CHEAT("braffel", 0);
 static void CheatArtifactAllFunc (player_t *player, Cheat_t *cheat);
 
 // Get all puzzle pieces
-static cheatseq_t CheatPuzzleSeq = CHEAT("sherlock", 0);
+static cheatseq_t CheatPuzzleHexnSeq = CHEAT("sherlock", 0);
+static cheatseq_t CheatPuzzleHxSwSeq = CHEAT("tmoore", 0);
 static void CheatPuzzleFunc (player_t *player, Cheat_t *cheat);
 
 // Warp to new level
 static cheatseq_t CheatWarpDoomSeq = CHEAT("idclev", 2);
 static cheatseq_t CheatWarpHticSeq = CHEAT("engage", 2);
 static cheatseq_t CheatWarpHexnSeq = CHEAT("visit", 2);
+static cheatseq_t CheatWarpHxSwSeq = CHEAT("bpelletier", 2);
 static void CheatWarpFunc (player_t *player, Cheat_t *cheat);
 
 // Become a pig
 static cheatseq_t CheatPigHticSeq = CHEAT("cockadoodledoo", 0);
 static cheatseq_t CheatPigHexnSeq = CHEAT("deliverance", 0);
+static cheatseq_t CheatPigHxSwSeq = CHEAT("ebiessman", 0);
 static void CheatPigFunc (player_t *player, Cheat_t *cheat);
 
 // Kill all monsters
@@ -195,11 +205,14 @@ static cheatseq_t CheatMassacreDoomBSeq = CHEAT("tntem", 0);
 static cheatseq_t CheatMassacreDoomMSeq = CHEAT("killem", 0);
 static cheatseq_t CheatMassacreHticSeq = CHEAT("massacre", 0);
 static cheatseq_t CheatMassacreHexnSeq = CHEAT("butcher", 0);
+static cheatseq_t CheatMassacreHxSwSeq = CHEAT("cstika", 0);
 static void CheatMassacreFunc (player_t *player, Cheat_t *cheat);
 
 // New class
-static cheatseq_t CheatClass1Seq = CHEAT("shadowcaster", 0);
-static cheatseq_t CheatClass2Seq = CHEAT("shadowcaster", 1);
+static cheatseq_t CheatClass1HexnSeq = CHEAT("shadowcaster", 0);
+static cheatseq_t CheatClass2HexnSeq = CHEAT("shadowcaster", 1);
+static cheatseq_t CheatClass1HxSwSeq = CHEAT("plipo", 0);
+static cheatseq_t CheatClass2HxSwSeq = CHEAT("plipo", 1);
 static void CheatClassFunc1(player_t * player, Cheat_t * cheat);
 static void CheatClassFunc2(player_t * player, Cheat_t * cheat);
 
@@ -208,19 +221,24 @@ static cheatseq_t CheatInitSeq = CHEAT("init", 0);
 static void CheatInitFunc (player_t *player, Cheat_t *cheat);
 
 // Show Hexen (not source port) version
-static cheatseq_t CheatVersion1Seq = CHEAT("mrjones", 0);
-static cheatseq_t CheatVersion2Seq = CHEAT("version", 0);
+static cheatseq_t CheatVersionDoomSeq = CHEAT("version", 0);
+static cheatseq_t CheatVersionHexnSeq = CHEAT("mrjones", 0);
+static cheatseq_t CheatVersionHxSwSeq = CHEAT("pmacarther", 0);
 static void CheatVersionFunc (player_t *player, Cheat_t *cheat);
 
 // Show player coords and map info
 static cheatseq_t CheatDebugDoomSeq = CHEAT("idmypos", 0);
 static cheatseq_t CheatDebugHexnSeq = CHEAT("where", 0);
+static cheatseq_t CheatDebugHxSwSeq = CHEAT("jsumwalt", 0);
 static void CheatDebugFunc (player_t *player, Cheat_t *cheat);
 
 // Execute defined ACS map scripts
-static cheatseq_t CheatScriptSeq1 = CHEAT("puke", 0);
-static cheatseq_t CheatScriptSeq2 = CHEAT("puke", 1);
-static cheatseq_t CheatScriptSeq3 = CHEAT("puke", 2);
+static cheatseq_t CheatScriptSeqHexn1 = CHEAT("puke", 0);
+static cheatseq_t CheatScriptSeqHexn2 = CHEAT("puke", 1);
+static cheatseq_t CheatScriptSeqHexn3 = CHEAT("puke", 2);
+static cheatseq_t CheatScriptSeqHxSw1 = CHEAT("mwagabaza", 0);
+static cheatseq_t CheatScriptSeqHxSw2 = CHEAT("mwagabaza", 1);
+static cheatseq_t CheatScriptSeqHxSw3 = CHEAT("mwagabaza", 2);
 static void CheatScriptFunc1 (player_t *player, Cheat_t *cheat);
 static void CheatScriptFunc2 (player_t *player, Cheat_t *cheat);
 static void CheatScriptFunc3 (player_t *player, Cheat_t *cheat);
@@ -229,6 +247,7 @@ static void CheatScriptFunc3 (player_t *player, Cheat_t *cheat);
 static cheatseq_t CheatRevealDoomSeq = CHEAT("iddt", 0);
 static cheatseq_t CheatRevealHticSeq = CHEAT("ravmap", 0);
 static cheatseq_t CheatRevealHexnSeq = CHEAT("mapsco", 0);
+static cheatseq_t CheatRevealHxSwSeq = CHEAT("reveal", 0);
 static void CheatRevealFunc (player_t *player, Cheat_t *cheat);
 
 
@@ -238,58 +257,77 @@ static Cheat_t Cheats[] = {
     { CheatGodFunc,         &CheatGodDoomSeq       },
     { CheatGodFunc,         &CheatGodHticSeq       },
     { CheatGodFunc,         &CheatGodHexnSeq       },
+    { CheatGodFunc,         &CheatGodHxSwSeq       },
     // Toggle no clipping mode
     { CheatNoClipFunc,      &CheatNoClipDoomSeq    },
+    { CheatNoClipFunc,      &CheatNoClipDmSwSeq    },
     { CheatNoClipFunc,      &CheatNoClipHticSeq    },
     { CheatNoClipFunc,      &CheatNoClipHexnSeq    },
+    { CheatNoClipFunc,      &CheatNoClipHxSwSeq    },
     // Get all weapons and mana
     { CheatWeaponsFunc,     &CheatWeaponsDoomSeq   },
     { CheatWeaponsFunc,     &CheatWeaponsHticSeq   },
     { CheatWeaponsFunc,     &CheatWeaponsHexnSeq   },
+    { CheatWeaponsFunc,     &CheatWeaponsHxSwSeq   },
     // Get all weapons and mana and keys
     { CheatWpnsKeysFunc,    &CheatWpnsKeysDoomSeq  },
     // Get full health
     { CheatHealthFunc,      &CheatHealthHticSeq    },
     { CheatHealthFunc,      &CheatHealthHexnSeq    },
+    { CheatHealthFunc,      &CheatHealthHxSwSeq    },
     // Get all keys
     { CheatKeysFunc,        &CheatKeysDoomSeq      },
     { CheatKeysFunc,        &CheatKeysHticSeq      },
     { CheatKeysFunc,        &CheatKeysHexnSeq      },
+    { CheatKeysFunc,        &CheatKeysHxSwSeq      },
     // Get all artifacts
-    { CheatArtifactAllFunc, &CheatArtifactAllSeq   },
+    { CheatArtifactAllFunc, &CheatArtifactsHexnSeq },
+    { CheatArtifactAllFunc, &CheatArtifactsHxSwSeq },
     // Get all puzzle pieces
-    { CheatPuzzleFunc,      &CheatPuzzleSeq        },
+    { CheatPuzzleFunc,      &CheatPuzzleHexnSeq    },
+    { CheatPuzzleFunc,      &CheatPuzzleHxSwSeq    },
     // Warp to new level
     { CheatWarpFunc,        &CheatWarpDoomSeq      },
     { CheatWarpFunc,        &CheatWarpHticSeq      },
     { CheatWarpFunc,        &CheatWarpHexnSeq      },
+    { CheatWarpFunc,        &CheatWarpHxSwSeq      },
     // Become a pig
     { CheatPigFunc,         &CheatPigHticSeq       },
     { CheatPigFunc,         &CheatPigHexnSeq       },
+    { CheatPigFunc,         &CheatPigHxSwSeq       },
     // Kill all monsters
     { CheatMassacreFunc,    &CheatMassacreDoomBSeq },
     { CheatMassacreFunc,    &CheatMassacreDoomMSeq },
     { CheatMassacreFunc,    &CheatMassacreHticSeq  },
     { CheatMassacreFunc,    &CheatMassacreHexnSeq  },
+    { CheatMassacreFunc,    &CheatMassacreHxSwSeq  },
     // New class
-    { CheatClassFunc1,      &CheatClass1Seq        },
-    { CheatClassFunc2,      &CheatClass2Seq        },
+    { CheatClassFunc1,      &CheatClass1HexnSeq    },
+    { CheatClassFunc2,      &CheatClass2HexnSeq    },
+    { CheatClassFunc1,      &CheatClass1HxSwSeq    },
+    { CheatClassFunc2,      &CheatClass2HxSwSeq    },
     // Restart level from scratch
     { CheatInitFunc,        &CheatInitSeq          },
     // Show Hexen (not source port) version
-    { CheatVersionFunc,     &CheatVersion1Seq      },
-    { CheatVersionFunc,     &CheatVersion2Seq      },
+    { CheatVersionFunc,     &CheatVersionDoomSeq   },
+    { CheatVersionFunc,     &CheatVersionHexnSeq   },
+    { CheatVersionFunc,     &CheatVersionHxSwSeq   },
     // Show player coords and map info
     { CheatDebugFunc,       &CheatDebugDoomSeq     },
     { CheatDebugFunc,       &CheatDebugHexnSeq     },
+    { CheatDebugFunc,       &CheatDebugHxSwSeq     },
     // Execute defined ACS map scripts
-    { CheatScriptFunc1,     &CheatScriptSeq1       },
-    { CheatScriptFunc2,     &CheatScriptSeq2       },
-    { CheatScriptFunc3,     &CheatScriptSeq3       },
+    { CheatScriptFunc1,     &CheatScriptSeqHexn1   },
+    { CheatScriptFunc2,     &CheatScriptSeqHexn2   },
+    { CheatScriptFunc3,     &CheatScriptSeqHexn3   },
+    { CheatScriptFunc1,     &CheatScriptSeqHxSw1   },
+    { CheatScriptFunc2,     &CheatScriptSeqHxSw2   },
+    { CheatScriptFunc3,     &CheatScriptSeqHxSw3   },
     // Reveal all map
     { CheatRevealFunc,      &CheatRevealDoomSeq    },
     { CheatRevealFunc,      &CheatRevealHticSeq    },
     { CheatRevealFunc,      &CheatRevealHexnSeq    },
+    { CheatRevealFunc,      &CheatRevealHxSwSeq    },
 };
 
 #define SET_CHEAT(cheat, seq) \
@@ -358,35 +396,6 @@ void SB_Init(void)
         PatchKILLS = W_CacheLumpName("KILLS", PU_STATIC);
     }
     SB_SetClassData();
-
-    // [JN] TODO?
-    /*
-    if (gamemode == shareware)
-    {
-	SET_CHEAT(CheatGodSeq, "bgokey");
-	SET_CHEAT(CheatNoClipSeq, "rjohnson");
-	SET_CHEAT(CheatWeaponsSeq, "crhinehart");
-	SET_CHEAT(CheatHealthSeq,"sgurno");
-	SET_CHEAT(CheatKeysSeq, "mraymondjudy");
-	SET_CHEAT(CheatArtifactAllSeq, "braffel");
-	SET_CHEAT(CheatPuzzleSeq, "tmoore");
-	SET_CHEAT(CheatWarpSeq, "bpelletier");
-	SET_CHEAT(CheatPigSeq, "ebiessman");
-	SET_CHEAT(CheatMassacreSeq, "cstika");
-	SET_CHEAT(CheatIDKFASeq, "rambo");
-	SET_CHEAT(CheatQuickenSeq1, "quicken");
-	SET_CHEAT(CheatQuickenSeq2, "quickenquicken");
-	SET_CHEAT(CheatQuickenSeq3, "quickenquickenquicken");
-	SET_CHEAT(CheatClass1Seq, "plipo");
-	SET_CHEAT(CheatClass2Seq, "plipo");
-	SET_CHEAT(CheatVersionSeq, "pmacarther");
-	SET_CHEAT(CheatDebugSeq, "jsumwalt");
-	SET_CHEAT(CheatScriptSeq1, "mwagabaza");
-	SET_CHEAT(CheatScriptSeq2, "mwagabaza");
-	SET_CHEAT(CheatScriptSeq3, "mwagabaza");
-	SET_CHEAT(CheatRevealSeq, "reveal");
-    }
-    */
 }
 
 //==========================================================================
