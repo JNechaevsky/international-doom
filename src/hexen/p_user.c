@@ -827,6 +827,12 @@ void P_PlayerThink(player_t * player)
                 player->cheats &= ~CF_GODMODE;
             }
             P_DamageMobj(player->mo, NULL, NULL, 10000);
+            // [JN] Zero-out armor points for all types.
+            // Fixes vanilla bug of overflowing points after suicide.
+            for (int i = 0; i < NUMARMOR; i++)
+            {
+                player->armorpoints[i] = 0;
+            }
         }
         if (cmd->arti == NUMARTIFACTS)
         {                       // use one of each artifact (except puzzle artifacts)
