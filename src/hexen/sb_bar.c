@@ -250,6 +250,18 @@ static cheatseq_t CheatRevealHexnSeq = CHEAT("mapsco", 0);
 static cheatseq_t CheatRevealHxSwSeq = CHEAT("reveal", 0);
 static void CheatRevealFunc (player_t *player, Cheat_t *cheat);
 
+// [JN] Freeze mode
+static cheatseq_t CheatFREEZESeq = CHEAT("freeze", 0);
+static void CheatFREEZEFunc (player_t *player, Cheat_t *cheat);
+
+// [JN] No target mode
+static cheatseq_t CheatNOTARGETSeq = CHEAT("notarget", 0);
+static void CheatNOTARGETFunc (player_t *player, Cheat_t *cheat);
+
+// [JN] Buddha mode
+static cheatseq_t CheatBUDDHASeq = CHEAT("buddha", 0);
+static void CheatBUDDHAFunc (player_t *player, Cheat_t *cheat);
+
 
 static Cheat_t Cheats[] = {
     { CheatWaitFunc,        &CheatWaitSeq          },
@@ -328,6 +340,10 @@ static Cheat_t Cheats[] = {
     { CheatRevealFunc,      &CheatRevealHticSeq    },
     { CheatRevealFunc,      &CheatRevealHexnSeq    },
     { CheatRevealFunc,      &CheatRevealHxSwSeq    },
+    // [JN] ID-specific modes
+    { CheatFREEZEFunc,     &CheatFREEZESeq         },
+    { CheatNOTARGETFunc,   &CheatNOTARGETSeq       },
+    { CheatBUDDHAFunc,     &CheatBUDDHASeq         },
 };
 
 #define SET_CHEAT(cheat, seq) \
@@ -2345,5 +2361,33 @@ static void CheatRevealFunc (player_t *player, Cheat_t *cheat)
 {
     // [JN] Harmless cheat, always allow.
     mapsco_cheating = (mapsco_cheating + 1) % 3;
+    player->cheatTics = 1;
+}
+
+static void CheatFREEZEFunc (player_t *player, Cheat_t *cheat)
+{
+    FULL_CHEAT_CHECK;
+    crl_freeze ^= 1;
+    CT_SetMessage(&players[consoleplayer], crl_freeze ?
+                 ID_FREEZE_ON : ID_FREEZE_OFF, false, NULL);
+    player->cheatTics = 1;
+}
+
+static void CheatNOTARGETFunc (player_t *player, Cheat_t *cheat)
+{
+    FULL_CHEAT_CHECK;
+    player->cheats ^= CF_NOTARGET;
+    P_ForgetPlayer(player);
+    CT_SetMessage(player, player->cheats & CF_NOTARGET ?
+                  ID_NOTARGET_ON : ID_NOTARGET_OFF, false, NULL);
+    player->cheatTics = 1;
+}
+
+static void CheatBUDDHAFunc (player_t *player, Cheat_t *cheat)
+{
+    FULL_CHEAT_CHECK;
+    player->cheats ^= CF_BUDDHA;
+    CT_SetMessage(player, player->cheats & CF_BUDDHA ?
+                  ID_BUDDHA_ON : ID_BUDDHA_OFF, false, NULL);
     player->cheatTics = 1;
 }
