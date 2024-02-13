@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include "h2def.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "m_argv.h"
 #include "m_bbox.h"
 #include "m_misc.h"
@@ -775,6 +776,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     char lumpname[9];
     int lumpnum;
     mobj_t *mobj;
+    // [JN] CRL - indicate level loading time in console.
+    const int starttime = I_GetTimeMS();
 
     for (i = 0; i < maxplayers; i++)
     {
@@ -805,6 +808,9 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     lumpnum = W_GetNumForName(lumpname);
 
     maplumpinfo = lumpinfo[lumpnum];
+
+    // [JN] Indicate the map we are loading.
+    printf("P_SetupLevel: MAP%d (\"%s\"), ", map, P_GetMapName(map));
 
     //
     // Begin processing map lumps
@@ -907,6 +913,9 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     S_StopAllSound();
     SN_StopAllSequences();
     S_StartSong(gamemap, true);
+
+    // [JN] Print amount of level loading time.
+    printf("loaded in %d ms.\n", I_GetTimeMS() - starttime);
 
 //printf ("free memory: 0x%x\n", Z_FreeMemory());
 

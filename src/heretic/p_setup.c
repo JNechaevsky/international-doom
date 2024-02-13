@@ -20,11 +20,11 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <SDL.h>  // [JN] SDL_GetTicks()
 
 #include "doomdef.h"
 #include "i_swap.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "m_argv.h"
 #include "m_bbox.h"
 #include "p_local.h"
@@ -1411,7 +1411,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     boolean	crispy_validblockmap;
     mapformat_t crispy_mapformat;
     // [JN] CRL - indicate level loading time in console.
-    const int starttime = SDL_GetTicks();
+    const int starttime = I_GetTimeMS();
 
     totalkills = totalitems = totalsecret = 0;
     for (i = 0; i < MAXPLAYERS; i++)
@@ -1448,7 +1448,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     oldleveltime = 0;  // [crispy] Track if game is running
 
     // [JN] Indicate the map we are loading.
-    fprintf(stderr, "P_SetupLevel: E%dM%d, ", gameepisode, gamemap);
+    printf("P_SetupLevel: E%dM%d, ", gameepisode, gamemap);
 
     lumpnum = W_GetNumForName(lumpname);
 
@@ -1552,7 +1552,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     crl_spectating = 0;
 
     // [JN] Print amount of level loading time.
-    printf("loaded in %d ms.\n", SDL_GetTicks() - starttime);
+    printf("loaded in %d ms.\n", I_GetTimeMS() - starttime);
 
 //printf ("free memory: 0x%x\n", Z_FreeMemory());
 

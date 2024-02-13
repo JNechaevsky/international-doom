@@ -19,7 +19,6 @@
 //
 
 
-#include <SDL.h>  // [JN] SDL_GetTicks()
 #include <math.h>
 #include "z_zone.h"
 #include "deh_main.h"
@@ -29,6 +28,7 @@
 #include "d_main.h"
 #include "g_game.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "w_wad.h"
 #include "p_local.h"
 #include "s_sound.h"
@@ -1395,7 +1395,7 @@ P_SetupLevel
     boolean	crispy_validblockmap;
     mapformat_t	crispy_mapformat;
     // [JN] Indicate level loading time in console.
-    const int starttime = SDL_GetTicks();
+    const int starttime = I_GetTimeMS();
 	
     totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
     wminfo.partime = 180;
@@ -1456,11 +1456,11 @@ P_SetupLevel
     // [JN] Indicate the map we are loading.
     if (gamemode == commercial)
     {
-        fprintf(stderr, "P_SetupLevel: MAP%02d, ", gamemap);
+        printf("P_SetupLevel: MAP%02d, ", gamemap);
     }
     else
     {
-        fprintf(stderr, "P_SetupLevel: E%dM%d, ", gameepisode, gamemap);
+        printf("P_SetupLevel: E%dM%d, ", gameepisode, gamemap);
     }
 
     // [crispy] check and log map and nodes format
@@ -1543,7 +1543,7 @@ P_SetupLevel
     crl_spectating = 0;
 
     // [JN] Print amount of level loading time.
-    printf("loaded in %d ms.\n", SDL_GetTicks() - starttime);
+    printf("loaded in %d ms.\n", I_GetTimeMS() - starttime);
 
     //printf ("free memory: 0x%x\n", Z_FreeMemory());
 
