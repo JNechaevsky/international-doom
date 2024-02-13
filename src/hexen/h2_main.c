@@ -943,6 +943,12 @@ static void DrawAndBlit(void)
     // [JN] Optimized screen background and beveled edge drawing.
     static gamestate_t oldgamestate = -1;
 
+    // For comparative timing / profiling
+    if (nodrawers)
+    {
+        return;
+    }
+
     // [crispy] post-rendering function pointer to apply config changes
     // that affect rendering and that are better applied after the current
     // frame has finished rendering

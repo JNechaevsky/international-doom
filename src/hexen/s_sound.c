@@ -94,6 +94,11 @@ void S_StartSong(int song, boolean loop)
     int lumpnum;
     int length;
 
+    if (nodrawers)
+    {
+        return;
+    }
+
     // If we're in CD music mode, play a CD track, instead:
     /*
     if (cdmusic)
@@ -152,7 +157,7 @@ void S_StartSongName(const char *songLump, boolean loop)
     int lumpnum;
     int length;
 
-    if (!songLump)
+    if (!songLump || nodrawers)
     {
         return;
     }
@@ -285,7 +290,7 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
     static int sndcount = 0;
     int chan;
 
-    if (sound_id == 0 || sfxVolume == 0)
+    if (sound_id == 0 || sfxVolume == 0 || nodrawers)
         return;
 
     listener = GetSoundListener();
