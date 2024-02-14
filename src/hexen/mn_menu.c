@@ -4893,7 +4893,7 @@ boolean MN_Responder(event_t * event)
             CT_SetMessage(&players[consoleplayer], TXT_CHEATWARP, false, NULL);
             return true;
         }
-        // [crispy] this one can be considered as shortcuts for the IDCLEV cheat
+        // [crispy] these two can be considered as shortcuts for the IDCLEV cheat
         // and should be treated as such, i.e. add "if (!netgame)"
         // [JN] Hovewer, allow while multiplayer demos.
         else if ((!netgame || netdemo) && key != 0 && key == key_reloadlevel)
@@ -4918,7 +4918,32 @@ boolean MN_Responder(event_t * event)
                 // use the reborn code if the save slot is available,
                 // or start a new game if there's no reborn info.
                 players[consoleplayer].playerstate = PST_REBORN;
+                return true;
             }
+        }
+        else if ((!netgame || netdemo) && key != 0 && key == key_nextlevel)
+        {
+            if (demoplayback)
+            {
+                // [JN] TODO - handle demo playback.
+                return false;
+            }
+            else
+            {
+                // [JN] Query MAPINFO for next map:
+                if (P_GetMapNextMap(gamemap) == 1)
+                {
+                    // [JN] Next map is 1? Restart the game then.
+                    G_DoNewGame();
+                    return true;
+                }
+                else
+                {
+                    // [JN] Proceed to next map.
+                    G_Completed(P_TranslateMap(P_GetMapNextMap(gamemap)), 0);
+                    return true;
+                }
+            }   
         }
     }
 

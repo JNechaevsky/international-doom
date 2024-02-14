@@ -696,6 +696,7 @@ extern boolean DebugSound;      // debug flag for displaying sound info
 extern boolean demorecording;
 extern boolean demoplayback;
 extern boolean demoextend;      // allow demos to persist through exit/respawn
+extern boolean netdemo;
 extern int maxzone;             // Maximum chunk allocated for zone heap
 
 // Truncate angleturn in ticcmds to nearest 256.
@@ -883,6 +884,9 @@ void G_Ticker(void);
 boolean G_Responder(event_t * ev);
 
 void G_ScreenShot(void);
+
+void G_DoNewGame(void);
+void G_DoPlayDemo(void);
 
 // [crispy] holding down the "Run" key may trigger special behavior
 extern boolean speedkeydown (void);

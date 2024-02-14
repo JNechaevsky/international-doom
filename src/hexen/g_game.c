@@ -55,8 +55,6 @@ void G_DoReborn(int playernum);
 
 void G_DoLoadLevel(void);
 void G_DoInitNew(void);
-void G_DoNewGame(void);
-void G_DoPlayDemo(void);
 void G_DoTeleportNewMap(void);
 void G_DoCompleted(void);
 void G_DoVictory(void);
