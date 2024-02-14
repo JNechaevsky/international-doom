@@ -786,6 +786,14 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     }
     players[consoleplayer].viewz = 1;   // will be set by player think
 
+    // [crispy] stop demo warp mode now
+    if (demowarp == map)
+    {
+        demowarp = 0;
+        nodrawers = false;
+        singletics = false;
+    }
+
     // Waiting-for-level-load song; not played if playing music from CD
     // (the seek time will be so long it will just make loading take
     // longer)

@@ -583,6 +583,9 @@ void D_DoomMain(void)
         H2_GameLoop();          // Never returns
     }
 
+    // [crispy] we don't play a demo, so don't skip maps
+    demowarp = 0;
+
     p = M_CheckParmWithArgs("-timedemo", 1);
     if (p)
     {
@@ -836,6 +839,9 @@ static void WarpCheck(void)
         {                       // Found a valid startmap
             startmap = map;
             autostart = true;
+
+            // [crispy] if used with -playdemo, fast-forward demo up to the desired map
+            demowarp = startmap;
         }
     }
     else
