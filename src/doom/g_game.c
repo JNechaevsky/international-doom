@@ -2333,7 +2333,7 @@ void G_DoSelectiveGame (int choice)
     // [crispy] reset game speed after demo fast-forward
     singletics = false;
     // [JN] jff 4/16/98 force marks on automap cleared every new level start
-    AM_ClearMarks();
+    AM_clearMarks();
     playeringame[1] = playeringame[2] = playeringame[3] = 0;
     consoleplayer = 0;
     gameaction = ga_nothing;
