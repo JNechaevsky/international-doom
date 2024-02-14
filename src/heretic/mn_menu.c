@@ -352,6 +352,7 @@ static Menu_t Options2Menu = {
 #define ID_MENU_LEFTOFFSET_SML    (90)
 #define ID_MENU_LEFTOFFSET_BIG    (32)
 #define ID_MENU_LEFTOFFSET_LEVEL  (74)
+#define ID_MENU_CTRLSOFFSET       (44)
 
 #define ID_MENU_LINEHEIGHT_SMALL  (10)
 #define ID_MENU_CURSOR_OFFSET     (10)
@@ -1638,7 +1639,7 @@ static MenuItem_t ID_Menu_Controls[] = {
 };
 
 static Menu_t ID_Def_Controls = {
-    /*ID_MENU_LEFTOFFSET*/ 44, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Controls,
     17, ID_Menu_Controls,
     0,
@@ -1746,7 +1747,7 @@ static MenuItem_t ID_Menu_Keybinds_1[] = {
 };
 
 static Menu_t ID_Def_Keybinds_1 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_1,
     12, ID_Menu_Keybinds_1,
     0,
@@ -1854,7 +1855,7 @@ static MenuItem_t ID_Menu_Keybinds_2[] = {
 };
 
 static Menu_t ID_Def_Keybinds_2 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_2,
     11, ID_Menu_Keybinds_2,
     0,
@@ -1954,7 +1955,7 @@ static MenuItem_t ID_Menu_Keybinds_3[] = {
 };
 
 static Menu_t ID_Def_Keybinds_3 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_3,
     12, ID_Menu_Keybinds_3,
     0,
@@ -2058,7 +2059,7 @@ static MenuItem_t ID_Menu_Keybinds_4[] = {
 };
 
 static Menu_t ID_Def_Keybinds_4 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_4,
     10, ID_Menu_Keybinds_4,
     0,
@@ -2156,7 +2157,7 @@ static MenuItem_t ID_Menu_Keybinds_5[] = {
 };
 
 static Menu_t ID_Def_Keybinds_5 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_5,
     10, ID_Menu_Keybinds_5,
     0,
@@ -2254,7 +2255,7 @@ static MenuItem_t ID_Menu_Keybinds_6[] = {
 };
 
 static Menu_t ID_Def_Keybinds_6 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_6,
     10, ID_Menu_Keybinds_6,
     0,
@@ -2354,7 +2355,7 @@ static MenuItem_t ID_Menu_Keybinds_7[] = {
 };
 
 static Menu_t ID_Def_Keybinds_7 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_7,
     12, ID_Menu_Keybinds_7,
     0,
@@ -2466,7 +2467,7 @@ static MenuItem_t ID_Menu_Keybinds_8[] = {
 };
 
 static Menu_t ID_Def_Keybinds_8 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_8,
     12, ID_Menu_Keybinds_8,
     0,
@@ -2574,7 +2575,7 @@ static MenuItem_t ID_Menu_MouseBinds[] = {
 };
 
 static Menu_t ID_Def_MouseBinds = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_MouseBinds,
     14, ID_Menu_MouseBinds,
     0,
