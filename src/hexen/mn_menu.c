@@ -4893,6 +4893,33 @@ boolean MN_Responder(event_t * event)
             CT_SetMessage(&players[consoleplayer], TXT_CHEATWARP, false, NULL);
             return true;
         }
+        // [crispy] this one can be considered as shortcuts for the IDCLEV cheat
+        // and should be treated as such, i.e. add "if (!netgame)"
+        // [JN] Hovewer, allow while multiplayer demos.
+        else if ((!netgame || netdemo) && key != 0 && key == key_reloadlevel)
+        {
+            if (demoplayback)
+            {
+                if (demowarp)
+                {
+                    // [JN] Enable screen render back before replaying.
+                    nodrawers = false;
+                    singletics = false;
+                }
+                // [JN] Replay demo lump or file.
+                G_DoPlayDemo();
+                return true;
+            }
+            else
+            {
+                // [JN] Unlike Doom and Heretic, full reload of game level can
+                // make progress impossible by taking out puzzle items and etc.
+                // Thus, do "reborn" action with same logic as with suicide:
+                // use the reborn code if the save slot is available,
+                // or start a new game if there's no reborn info.
+                players[consoleplayer].playerstate = PST_REBORN;
+            }
+        }
     }
 
     // [JN] Allow to change gamma while active menu.
