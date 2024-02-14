@@ -2089,6 +2089,7 @@ void G_DoWorldDone (void)
     gamemap = wminfo.next+1; 
     G_DoLoadLevel (); 
     gameaction = ga_nothing; 
+    AM_clearMarks();  // [JN] jff 4/12/98 clear any marks on the automap
 } 
  
 
@@ -2331,6 +2332,8 @@ void G_DoSelectiveGame (int choice)
     deathmatch = false;
     // [crispy] reset game speed after demo fast-forward
     singletics = false;
+    // [JN] jff 4/16/98 force marks on automap cleared every new level start
+    AM_ClearMarks();
     playeringame[1] = playeringame[2] = playeringame[3] = 0;
     consoleplayer = 0;
     gameaction = ga_nothing;
