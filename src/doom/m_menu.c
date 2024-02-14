@@ -4434,9 +4434,41 @@ static void M_DoSave(int slot)
 //
 static void SetDefaultSaveName(int slot)
 {
-    M_snprintf(savegamestrings[itemOn], SAVESTRINGSIZE - 1,
-               "JOYSTICK SLOT %i", itemOn + 1);
+    // [JN] Generate save name. ExMx for Doom 1, MAPxx for Doom 2.
+    if (gamemode == commercial)
+    {
+        M_snprintf(savegamestrings[itemOn], SAVESTRINGSIZE - 1,
+                   "MAP%02d", gamemap);
+    }
+    else
+    {
+        M_snprintf(savegamestrings[itemOn], SAVESTRINGSIZE - 1,
+                   "E%dM%d", gameepisode, gamemap);
+    }
+    M_ForceUppercase(savegamestrings[itemOn]);
     joypadSave = false;
+}
+
+// [crispy] override savegame name if it already starts with a map identifier
+static boolean StartsWithMapIdentifier (char *str)
+{
+    M_ForceUppercase(str);
+
+    if (strlen(str) >= 4 &&
+        str[0] == 'E' && isdigit(str[1]) &&
+        str[2] == 'M' && isdigit(str[3]))
+    {
+        return true;
+    }
+
+    if (strlen(str) >= 5 &&
+        str[0] == 'M' && str[1] == 'A' && str[2] == 'P' &&
+        isdigit(str[3]) && isdigit(str[4]))
+    {
+        return true;
+    }
+
+    return false;
 }
 
 //
@@ -4449,6 +4481,9 @@ static void M_SaveSelect(int choice)
     // we are going to be intercepting all chars
     saveStringEnter = 1;
 
+    // [crispy] load the last game you saved
+    LoadDef.lastOn = choice;
+
     // We need to turn on text input:
     x = LoadDef.x - 11;
     y = LoadDef.y + choice * LINEHEIGHT - 4;
@@ -4456,11 +4491,13 @@ static void M_SaveSelect(int choice)
 
     saveSlot = choice;
     M_StringCopy(saveOldString,savegamestrings[choice], SAVESTRINGSIZE);
-    if (!strcmp(savegamestrings[choice], EMPTYSTRING))
+    if (!strcmp(savegamestrings[choice], EMPTYSTRING) ||
+        // [crispy] override savegame name if it already starts with a map identifier
+        StartsWithMapIdentifier(savegamestrings[choice]))
     {
         savegamestrings[choice][0] = 0;
 
-        if (joypadSave)
+        if (joypadSave || true) // [crispy] always prefill empty savegame slot names
         {
             SetDefaultSaveName(choice);
         }
