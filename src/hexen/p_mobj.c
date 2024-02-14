@@ -1429,6 +1429,9 @@ void P_SpawnPlayer(mapthing_t * mthing)
     p->refire = 0;
     p->cheatTics = 0;
     CT_ClearMessage(p);
+    // [JN] Reset ultimatemsg, so other messages may appear.
+    // See: https://github.com/chocolate-doom/chocolate-doom/issues/781
+    p->ultimateMessage = false;
     p->damagecount = 0;
     p->bonuscount = 0;
     p->poisoncount = 0;
