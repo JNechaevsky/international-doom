@@ -1362,6 +1362,13 @@ void P_SpawnPlayer(mapthing_t * mthing)
     fixed_t x, y, z;
     mobj_t *mobj;
 
+    // [JN] Stop fast forward after entering new level while demo playback.
+    if (demo_gotonextlvl)
+    {
+        demo_gotonextlvl = false;
+        G_DemoGoToNextLevel(false);
+    }
+
     if (mthing->type - 1 >= maxplayers || !playeringame[mthing->type - 1])
     {                           // Not playing
         return;

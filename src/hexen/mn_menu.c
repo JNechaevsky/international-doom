@@ -4925,8 +4925,16 @@ boolean MN_Responder(event_t * event)
         {
             if (demoplayback)
             {
-                // [JN] TODO - handle demo playback.
-                return false;
+                // [JN] TODO - trying to go to next level while paused state
+                // is restarting current level with demo desync. But why?
+                if (paused)
+                {
+                    return true;
+                }
+                // [JN] Go to next level.
+                demo_gotonextlvl = true;
+                G_DemoGoToNextLevel(true);
+                return true;
             }
             else
             {

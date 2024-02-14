@@ -2804,3 +2804,22 @@ boolean G_CheckDemoStatus(void)
 
     return false;
 }
+
+//
+// G_DemoGoToNextLevel
+// [JN] Fast forward to next level while demo playback.
+//
+
+boolean demo_gotonextlvl;
+
+void G_DemoGoToNextLevel (boolean start)
+{
+    // Disable screen rendering while fast forwarding.
+    nodrawers = start;
+
+    // Switch to fast tics running mode if not in -timedemo.
+    if (!timingdemo)
+    {
+        singletics = start;
+    }
+}

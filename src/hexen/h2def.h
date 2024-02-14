@@ -887,6 +887,8 @@ void G_ScreenShot(void);
 
 void G_DoNewGame(void);
 void G_DoPlayDemo(void);
+extern boolean demo_gotonextlvl;
+void G_DemoGoToNextLevel (boolean start);
 
 // [crispy] holding down the "Run" key may trigger special behavior
 extern boolean speedkeydown (void);
