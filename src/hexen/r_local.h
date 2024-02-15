@@ -63,7 +63,14 @@ extern int LIGHTZSHIFT;
 typedef struct
 {
     fixed_t x, y;
-    fixed_t r_x, r_y; // [crispy] for rendering only
+
+// [crispy] remove slime trails
+// vertex coordinates *only* used in rendering that have been
+// moved towards the linedef associated with their seg by projecting them
+// using the law of cosines in p_setup.c:P_RemoveSlimeTrails();
+    fixed_t r_x;
+    fixed_t r_y;
+    boolean moved;
 } vertex_t;
 
 struct line_s;
