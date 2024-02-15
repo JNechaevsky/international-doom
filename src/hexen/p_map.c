@@ -1776,14 +1776,16 @@ boolean PTR_AimTraverse(intercept_t * in)
 
         dist = FixedMul(attackrange, in->frac);
 
-        if (li->frontsector->floorheight != li->backsector->floorheight)
+        if (li->backsector == NULL
+        ||  li->frontsector->floorheight != li->backsector->floorheight)
         {
             slope = FixedDiv(openbottom - shootz, dist);
             if (slope > bottomslope)
                 bottomslope = slope;
         }
 
-        if (li->frontsector->ceilingheight != li->backsector->ceilingheight)
+        if (li->backsector == NULL
+        ||  li->frontsector->ceilingheight != li->backsector->ceilingheight)
         {
             slope = FixedDiv(opentop - shootz, dist);
             if (slope < topslope)
