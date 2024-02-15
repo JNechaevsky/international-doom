@@ -378,6 +378,7 @@ static void M_ID_VSync (int choice);
 static void M_ID_ShowFPS (int choice);
 static void M_ID_PixelScaling (int choice);
 static void M_ID_GfxStartup (int choice);
+static void M_ID_Banners (int choice);
 
 static void M_Draw_ID_Display (void);
 static void M_ID_Gamma (int choice);
@@ -950,12 +951,13 @@ static MenuItem_t ID_Menu_Video[] = {
     { ITT_LRFUNC, "PIXEL SCALING",        M_ID_PixelScaling, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                   NULL,              0, MENU_NONE },
     { ITT_LRFUNC, "GRAPHICAL STARTUP",    M_ID_GfxStartup,   0, MENU_NONE },
+    { ITT_LRFUNC, "SHOW BANNERS",         M_ID_Banners,      0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Video = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Video,
-    10, ID_Menu_Video,
+    11, ID_Menu_Video,
     0,
     true, false, false,
     MENU_ID_MAIN
@@ -1038,6 +1040,13 @@ static void M_Draw_ID_Video (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, vid_graphical_startup == 1 ? GLOW_GREEN :
                               vid_graphical_startup == 2 ? GLOW_YELLOW : GLOW_RED));
+
+    // Show banners
+    sprintf(str, vid_banners == 1 ? "SAVE/LOAD/TRAVEL" :
+                 vid_banners == 2 ? "TRAVEL ONLY" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, vid_banners == 1 ? GLOW_GREEN :
+                               vid_banners == 2 ? GLOW_YELLOW : GLOW_RED));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
     if (CurrentItPos == 1 || CurrentItPos == 2)
@@ -1179,6 +1188,11 @@ static void M_ID_PixelScaling (int choice)
 static void M_ID_GfxStartup (int choice)
 {
     vid_graphical_startup = M_INT_Slider(vid_graphical_startup, 0, 2, choice, false);
+}
+
+static void M_ID_Banners (int choice)
+{
+    vid_banners = M_INT_Slider(vid_banners, 0, 2, choice, false);
 }
 
 // -----------------------------------------------------------------------------
@@ -3136,6 +3150,7 @@ static void M_ID_ApplyResetHook (void)
     vid_smooth_scaling = 0;
     // Miscellaneous
     vid_graphical_startup = 0;
+    vid_banners = 1;
 
     //
     // Display options

@@ -46,6 +46,7 @@ int vid_screenwipe = 1;
 int vid_diskicon = 1;
 int vid_endoom = 0;
 int vid_graphical_startup = 0;
+int vid_banners = 1;
 
 //
 // Display options
@@ -193,6 +194,7 @@ void ID_BindVariables (GameMission_t mission)
     if (mission == hexen)
     {
         M_BindIntVariable("vid_graphical_startup",      &vid_graphical_startup);
+        M_BindIntVariable("vid_banners",                &vid_banners);
     }  
 
     //

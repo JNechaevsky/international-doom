@@ -1398,11 +1398,19 @@ void G_Ticker(void)
                 G_DoNewGame();
                 break;
             case ga_loadgame:
-                Draw_LoadIcon();
+                // [JN] Make optional (save/load/travel)
+                if (vid_banners == 1)
+                {
+                    Draw_LoadIcon();
+                }
                 G_DoLoadGame();
                 break;
             case ga_savegame:
-                Draw_SaveIcon();
+                // [JN] Make optional (save/load/travel)
+                if (vid_banners == 1)
+                {
+                    Draw_SaveIcon();
+                }
                 G_DoSaveGame();
                 break;
             case ga_singlereborn:
@@ -1417,7 +1425,11 @@ void G_Ticker(void)
                 gameaction = ga_nothing;
                 break;
             case ga_leavemap:
-                Draw_TeleportIcon();
+                // [JN] Make optional (save/load/travel or travel only)
+                if (vid_banners)
+                {
+                    Draw_TeleportIcon();
+                }
                 G_DoTeleportNewMap();
                 break;
             case ga_completed:
