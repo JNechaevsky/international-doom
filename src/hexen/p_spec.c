@@ -898,6 +898,7 @@ boolean P_ActivateLine(line_t * line, mobj_t * mo, int side,
 void P_PlayerInSpecialSector(player_t * player)
 {
     sector_t *sector;
+    static sector_t *error; // [crispy] for sectors with unknown special
     static int pushTab[3] = {
         2048 * 5,
         2048 * 10,
@@ -1007,8 +1008,14 @@ void P_PlayerInSpecialSector(player_t * player)
             // Used in (R_plane):R_Drawplanes
             break;
         default:
-            I_Error("P_PlayerInSpecialSector: "
-                    "unknown special %i", sector->special);
+            // [crispy] ignore unknown special sectors
+            if (error != sector)
+            {
+                error = sector;
+                printf("P_PlayerInSpecialSector: "
+                       "unknown special %i\n", sector->special);
+            break;
+            }
     }
 }
 
