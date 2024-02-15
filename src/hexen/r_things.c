@@ -24,6 +24,7 @@
 #include "r_bmaps.h"
 #include "r_local.h"
 #include "v_trans.h" // [crispy] blending functions
+#include "v_video.h" // [JN] translucency tables
 
 #include "id_func.h"
 
@@ -428,9 +429,7 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
         {
             colfunc = R_DrawAltTLColumn;
         }
-#ifdef CRISPY_TRUECOLOR
         blendfunc = vis->blendfunc;
-#endif
     }
     else if (vis->mobjflags & MF_TRANSLATION)
     {

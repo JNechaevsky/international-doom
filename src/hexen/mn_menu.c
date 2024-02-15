@@ -3224,11 +3224,12 @@ static void M_ID_ApplyResetHook (void)
     R_SetViewSize(dp_screen_size, dp_detail_level);
     R_ExecuteSetViewSize();
     I_ToggleVsync();
-#ifndef CRISPY_TRUECOLOR
     SB_PaletteFlash(true);
-#endif
+#ifdef CRISPY_TRUECOLOR
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+#endif
     R_FillBackScreen();
+    SB_state = -1;
     AM_LevelInit(true);
     if (automapactive)
     {
