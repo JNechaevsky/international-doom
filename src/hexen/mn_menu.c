@@ -1039,14 +1039,14 @@ static void M_Draw_ID_Video (void)
                  vid_graphical_startup == 2 ? "SLOW" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, vid_graphical_startup == 1 ? GLOW_GREEN :
-                              vid_graphical_startup == 2 ? GLOW_YELLOW : GLOW_RED));
+                              vid_graphical_startup == 2 ? GLOW_YELLOW : GLOW_DARKRED));
 
     // Show banners
     sprintf(str, vid_banners == 1 ? "SAVE/LOAD/TRAVEL" :
                  vid_banners == 2 ? "TRAVEL ONLY" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
                M_Item_Glow(10, vid_banners == 1 ? GLOW_GREEN :
-                               vid_banners == 2 ? GLOW_YELLOW : GLOW_RED));
+                               vid_banners == 2 ? GLOW_YELLOW : GLOW_DARKRED));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
     if (CurrentItPos == 1 || CurrentItPos == 2)
