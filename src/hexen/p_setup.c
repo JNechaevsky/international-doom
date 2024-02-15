@@ -818,7 +818,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     maplumpinfo = lumpinfo[lumpnum];
 
     // [JN] Indicate the map we are loading.
-    printf("P_SetupLevel: MAP%d (\"%s\"), ", map, P_GetMapName(map));
+    printf("P_SetupLevel: MAP%02d (\"%s\"), ", map, P_GetMapName(map));
 
     //
     // Begin processing map lumps
