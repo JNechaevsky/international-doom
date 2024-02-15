@@ -1815,6 +1815,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF |   // flags
+     MF_FLIPPABLE  |            // [JN] Flip randomly (water splash pool)
      MF_EXTRATRANS,             // [JN] Extra translucency (raising water splash)
      MF2_NOTELEPORT | MF2_LOGRAV | MF2_CANNOTPUSH       // flags2
      },
@@ -1843,6 +1844,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP |            // flags
+     MF_FLIPPABLE  |            // [JN] Flip randomly (water splash pool)
      MF_EXTRATRANS,             // [JN] Extra translucency (water splash pool)
      0                          // flags2
      },
@@ -1871,6 +1873,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      sfx_None,                  // activesound
      MF_NOBLOCKMAP |            // flags
+     MF_FLIPPABLE  |            // [JN] Flip randomly (raising lava splash)
      MF_EXTRATRANS,             // [JN] Extra translucency (raising lava splash)
      0                          // flags2
      },
@@ -1898,7 +1901,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW,  // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW |  // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (lava splash smoke)
      0                          // flags2
      },
 
@@ -1925,7 +1929,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF,   // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (sludge splash chunk)
      MF2_NOTELEPORT | MF2_LOGRAV | MF2_CANNOTPUSH       // flags2
      },
 
@@ -1952,7 +1957,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP |            // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (sludge splash base)
      0                          // flags2
      },
 
@@ -3900,7 +3906,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      sfx_None,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF,   // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (blood splat)
      MF2_NOTELEPORT | MF2_CANNOTPUSH    // flags2
      },
 

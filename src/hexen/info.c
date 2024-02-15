@@ -5261,7 +5261,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF,   // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF |   // flags
+     MF_FLIPPABLE  |            // [JN] Flip randomly (raising water splash)
+     MF_EXTRATRANS,             // [JN] Extra translucency (raising water splash)
      MF2_NOTELEPORT | MF2_LOGRAV | MF2_CANNOTPUSH       // flags2
      },
 
@@ -5288,7 +5290,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP |            // flags
+     MF_FLIPPABLE  |            // [JN] Flip randomly (water splash pool)
+     MF_EXTRATRANS,             // [JN] Extra translucency (water splash pool)
      0                          // flags2
      },
 
@@ -5315,7 +5319,9 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP |            // flags
+     MF_FLIPPABLE  |            // [JN] Flip randomly (raising lava splash)
+     MF_EXTRATRANS,             // [JN] Extra translucency (raising lava splash)
      0                          // flags2
      },
 
@@ -5342,7 +5348,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW,  // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW |  // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (lava splash smoke)
      0                          // flags2
      },
 
@@ -5369,7 +5376,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF,   // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (sludge splash chunk)
      MF2_NOTELEPORT | MF2_LOGRAV | MF2_CANNOTPUSH       // flags2
      },
 
@@ -5396,7 +5404,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP,             // flags
+     MF_NOBLOCKMAP |            // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (sludge splash base)
      0                          // flags2
      },
 
@@ -9076,7 +9085,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW,  // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW |  // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (fighter punch puff)
      0                          // flags2
      },
 
@@ -9130,7 +9140,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW,  // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW |  // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (Timon's axe unpowered puff)
      0                          // flags2
      },
 
@@ -9158,6 +9169,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      0,                         // damage
      SFX_NONE,                  // activesound
      MF_NOBLOCKMAP | MF_NOGRAVITY |      // flags
+     MF_FLIPPABLE |             // [JN] Flip randomly (Timon's axe blue flash)
      MF_EXTRATRANS,             // [JN] Extra translucency (Timon's axe blue flash)
      0                          // flags2
      },
@@ -9185,7 +9197,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF, // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF | // flags
+     MF_FLIPPABLE,             // [JN] Flip randomly (Timon's axe blood splash)
      MF2_NOTELEPORT | MF2_CANNOTPUSH    // flags2
      },
 
@@ -9266,7 +9279,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW,  // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW |  // flags
+     MF_FLIPPABLE,             // [JN] Flip randomly (Hammer puff)
      0                          // flags2
      },
 
@@ -9567,6 +9581,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      8,                         // damage
      SFX_NONE,                  // activesound
      MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY |    // flags
+     MF_FLIPPABLE  |            // [JN] Flip randomly (Firestorm big flame)
      MF_EXTRATRANS,             // [JN] Extra translucency (Firestorm big flame)
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS | MF2_DONTDRAW | MF2_FIREDAMAGE   // flags2
      },
@@ -10329,7 +10344,8 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      5,                         // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF,   // flags
+     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF |   // flags
+     MF_FLIPPABLE,              // [JN] Flip randomly (blood splat)
      MF2_NOTELEPORT | MF2_CANNOTPUSH    // flags2
      },
 
