@@ -1421,7 +1421,6 @@ void G_Ticker(void)
                 break;
             case ga_screenshot:
                 V_ScreenShot("HEXEN%02i.%s");
-                CT_SetMessage(&players[consoleplayer], "SCREEN SHOT", false, NULL);
                 gameaction = ga_nothing;
                 break;
             case ga_leavemap:
