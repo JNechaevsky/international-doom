@@ -33,12 +33,14 @@
 #define MAGIC_JUNK 1234
 #define MAX_MACE_SPOTS 8
 
+// [JN] Remove mace spawning spots limit.
 static int MaceSpotCount;
+static int MaceSpotCountMax;
 static struct
 {
     fixed_t x;
     fixed_t y;
-} MaceSpots[MAX_MACE_SPOTS];
+} *MaceSpots = NULL;
 
 fixed_t bulletslope;
 
@@ -255,9 +257,10 @@ void P_OpenWeapons(void)
 
 void P_AddMaceSpot(mapthing_t * mthing)
 {
-    if (MaceSpotCount == MAX_MACE_SPOTS)
+    if (MaceSpotCount == MaceSpotCountMax)
     {
-        I_Error("Too many mace spots.");
+        MaceSpotCountMax = MaceSpotCountMax ? MaceSpotCountMax * 2 : MAX_MACE_SPOTS;
+        MaceSpots = I_Realloc(MaceSpots, sizeof(*MaceSpots) * MaceSpotCountMax);
     }
     MaceSpots[MaceSpotCount].x = mthing->x << FRACBITS;
     MaceSpots[MaceSpotCount].y = mthing->y << FRACBITS;
