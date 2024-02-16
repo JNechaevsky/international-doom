@@ -125,6 +125,7 @@ extern int gp_default_skill;
 extern int gp_revealed_secrets;
 extern int phys_breathing;
 extern int gp_flip_levels;
+extern int gp_on_death_action;
 
 // Demos
 extern int demo_timer;
