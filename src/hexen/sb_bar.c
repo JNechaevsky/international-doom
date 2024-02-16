@@ -2099,6 +2099,7 @@ static void CheatWeaponsFunc (player_t *player, Cheat_t *cheat)
     {
         player->mana[i] = MAX_MANA;
     }
+    player->pieces = 7;
     CT_SetMessage(player, TXT_CHEATWEAPONS, false, NULL);
     player->cheatTics = 1;
 }
@@ -2121,6 +2122,7 @@ static void CheatWpnsKeysFunc (player_t *player, Cheat_t *cheat)
     {
         player->mana[i] = MAX_MANA;
     }
+    player->pieces = 7;
     player->keys = 2047;
     CT_SetMessage(player, TXT_CHEATWPNSKEYS, false, NULL);
     player->cheatTics = 1;
