@@ -377,6 +377,12 @@ const byte *R_BrightmapForSprite (const int state)
                 return surfaces1;
                 break;
             }
+            // Glitter bridge
+            case S_BBALL2:
+            {
+                return fullbright;
+                break;
+            }
         }            
     }
     else
