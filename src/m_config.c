@@ -275,6 +275,7 @@ static default_t	doom_defaults_list[] =
     // Advanced movement
     CONFIG_VARIABLE_KEY(key_autorun),
     CONFIG_VARIABLE_KEY(key_mouse_look),
+    CONFIG_VARIABLE_KEY(key_novert),
 
     // Special keys
     CONFIG_VARIABLE_KEY(key_reloadlevel),

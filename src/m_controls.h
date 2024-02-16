@@ -44,6 +44,7 @@ extern int key_use;
 
 extern int key_autorun;
 extern int key_mouse_look; // [crispy]
+extern int key_novert;
 
 // Special keys
 

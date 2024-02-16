@@ -48,6 +48,7 @@ int key_use  = ' ';
 
 int key_autorun    = KEY_CAPSLOCK; // [crispy]
 int key_mouse_look = 0;            // [crispy]
+int key_novert     = 0;
 
 // Special keys
 
@@ -260,6 +261,7 @@ void M_BindControls (void)
 
     M_BindIntVariable("key_autorun",         &key_autorun); // [crispy]
     M_BindIntVariable("key_mouse_look",      &key_mouse_look);
+    M_BindIntVariable("key_novert",          &key_novert);
 
     // Special keys
 

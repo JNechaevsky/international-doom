@@ -427,6 +427,16 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         gamekeydown[key_mouse_look] = false;
     }
 
+    // [JN] Toggle vertical mouse movement.
+    if (gamekeydown[key_novert])
+    {
+        mouse_novert ^= 1;
+        CT_SetMessage(&players[consoleplayer], mouse_novert ?
+                      ID_NOVERT_ON : ID_NOVERT_OFF, false, NULL);
+        S_StartSound(NULL, sfx_swtchn);
+        gamekeydown[key_novert] = false;
+    }
+
     // let movement keys cancel each other out
     if (strafe) 
     { 
