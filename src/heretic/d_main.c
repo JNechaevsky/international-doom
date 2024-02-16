@@ -151,7 +151,8 @@ static void ID_DrawMessageCentered (void)
     }
 
     // Always centered and colored yellow.
-    MN_DrTextACentered(player->messageCentered, 60, cr[CR_YELLOW]);
+    MN_DrTextACentered(player->messageCentered,
+                       gp_revealed_secrets == 1 ? 10 : 60, cr[CR_YELLOW]);
 }
 
 //---------------------------------------------------------------------------
