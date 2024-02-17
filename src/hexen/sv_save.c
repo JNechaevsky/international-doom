@@ -2073,6 +2073,8 @@ void SV_SaveMap(boolean savePlayers)
     ArchiveMisc();
     // [JN] Archive automap marks.
     ArchiveAutomap();
+    
+    M_StringCopy(savename, fileName, sizeof(savename));
 
     // Place a termination marker
     SV_WriteLong(ASEG_END);
@@ -2113,6 +2115,7 @@ void SV_LoadGame(int slot)
 
     // Create the name
     M_snprintf(fileName, sizeof(fileName), "%shex%d.sav", SavePath, BASE_SLOT);
+    M_StringCopy(savename, fileName, sizeof(savename));
 
     // Load the file
     SV_OpenRead(fileName);

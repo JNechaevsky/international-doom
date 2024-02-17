@@ -342,10 +342,7 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("gp_revealed_secrets",        &gp_revealed_secrets);
     }
     M_BindIntVariable("gp_flip_levels",                 &gp_flip_levels);
-    if (mission == doom || mission == heretic)
-    {
-        M_BindIntVariable("gp_death_use_action",        &gp_death_use_action);
-    }    
+    M_BindIntVariable("gp_death_use_action",            &gp_death_use_action);
     
     // Demos
     M_BindIntVariable("demo_timer",                     &demo_timer);

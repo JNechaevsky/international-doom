@@ -174,6 +174,7 @@ static int crl_camzspeed;
 
 int savegameslot;
 char savedescription[32];
+char savename[256];
 
 int inventoryTics;
 
@@ -1834,6 +1835,13 @@ void G_DeathMatchSpawnPlayer(int playernum)
     P_SpawnPlayer(&playerstarts[0][playernum]);
 }
 
+// [crispy] clear the "savename" variable,
+// i.e. restart level from scratch upon resurrection
+void G_ClearSavename (void)
+{
+    M_StringCopy(savename, "", sizeof(savename));
+}
+
 //==========================================================================
 //
 // G_DoReborn
@@ -2187,6 +2195,18 @@ void G_DoLoadGame(void)
 
     // Draw the pattern into the back screen
     R_FillBackScreen();
+
+    // [crispy] if the player is dead in this savegame,
+    // do not consider it for reload
+    if (players[consoleplayer].health <= 0)
+	G_ClearSavename();
+
+    // [JN] If "On death action" is set to "last save",
+    // then prevent holded "use" button to work for next few tics.
+    // This fixes imidiate pressing on wall upon reloading
+    // a save game, if "use" button is kept pressed.
+    if (singleplayer && gp_death_use_action == 1)
+	players[consoleplayer].usedown = true;
 }
 
 //==========================================================================
@@ -2351,6 +2371,7 @@ void G_InitNew(skill_t skill, int episode, int map)
     //memset (netcmds,0,sizeof(netcmds));
 
     G_DoLoadLevel();
+    G_ClearSavename();
 }
 
 /*
