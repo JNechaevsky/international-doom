@@ -41,8 +41,10 @@ typedef struct
 
 // Private Data
 
+// [JN] Remove D'Sparil spawning spots limit.
 static int BossSpotCount;
-static BossSpot_t BossSpots[MAX_BOSS_SPOTS];
+static int BossSpotCountMax;
+static BossSpot_t *BossSpots;
 
 //----------------------------------------------------------------------------
 //
@@ -65,9 +67,10 @@ void P_InitMonsters(void)
 
 void P_AddBossSpot(fixed_t x, fixed_t y, angle_t angle)
 {
-    if (BossSpotCount == MAX_BOSS_SPOTS)
+    if (BossSpotCount == BossSpotCountMax)
     {
-        I_Error("Too many boss spots.");
+        BossSpotCountMax = BossSpotCountMax ? BossSpotCountMax * 2 : MAX_BOSS_SPOTS;
+        BossSpots = I_Realloc(BossSpots, sizeof(*BossSpots) * BossSpotCountMax);
     }
     BossSpots[BossSpotCount].x = x;
     BossSpots[BossSpotCount].y = y;
