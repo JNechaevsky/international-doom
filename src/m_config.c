@@ -1223,9 +1223,20 @@ char *M_GetSaveGameDir(const char *iwadname)
     else if (!strcmp(configdir, exedir))
     {
 #ifdef _WIN32
- 	// [JN] Always use "savegames" folder in program folder.
- 	savegamedir = M_StringJoin(M_StringDuplicate(exedir), "savegames", DIR_SEPARATOR_S, NULL);
- 	M_MakeDirectory(savegamedir);
+        // [JN] Check if "savedir" variable is existing in config file.
+        const char *existing_path = M_GetStringVariable("savedir");
+
+        if (existing_path != NULL && strlen(existing_path) > 0)
+        {
+            // It exist, use it's provided path.
+            savegamedir = M_StringDuplicate("");
+        }
+        else
+        {
+            // Otherwise, create and use "savegames" folder in program folder.
+            savegamedir = M_StringJoin(M_StringDuplicate(exedir), "savegames", DIR_SEPARATOR_S, NULL);
+        }
+        M_MakeDirectory(savegamedir);
 #else
 	savegamedir = M_StringDuplicate("");
 #endif
