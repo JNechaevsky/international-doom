@@ -150,6 +150,7 @@ int gp_default_class = 0;
 int gp_default_skill = 2;
 int gp_revealed_secrets = 0;
 int gp_flip_levels = 0;
+int gp_death_use_action = 0;
 
 // Demos
 int demo_timer = 0;
@@ -341,6 +342,7 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("gp_revealed_secrets",        &gp_revealed_secrets);
     }
     M_BindIntVariable("gp_flip_levels",                 &gp_flip_levels);
+    M_BindIntVariable("gp_death_use_action",            &gp_death_use_action);
     
     // Demos
     M_BindIntVariable("demo_timer",                     &demo_timer);

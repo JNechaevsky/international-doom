@@ -698,6 +698,7 @@ static void M_ID_DefaulSkill (int choice);
 static void M_ID_PistolStart (int choice);
 static void M_ID_RevealedSecrets (int choice);
 static void M_ID_FlipLevels (int choice);
+static void M_ID_OnDeathAction (int choice);
 static void M_ID_DemoTimer (int choice);
 static void M_ID_TimerDirection (int choice);
 static void M_ID_ProgressBar (int choice);
@@ -3479,6 +3480,7 @@ static menuitem_t ID_Menu_Gameplay_3[]=
     { M_LFRT, "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,       'd' },
     { M_LFRT, "REPORT REVEALED SECRETS",  M_ID_RevealedSecrets,   'r' },
     { M_LFRT, "FLIP LEVELS HORIZONTALLY", M_ID_FlipLevels,        'f' },
+    { M_LFRT, "ON DEATH ACTION",          M_ID_OnDeathAction,     'o' },
     { M_SKIP, "", 0, '\0' },
     { M_LFRT, "SHOW DEMO TIMER",          M_ID_DemoTimer,         's' },
     { M_LFRT, "TIMER DIRECTION",          M_ID_TimerDirection,    't' },
@@ -3488,7 +3490,6 @@ static menuitem_t ID_Menu_Gameplay_3[]=
     { M_LFRT, "PISTOL START GAME MODE",   M_ID_PistolStart,       'p' },
     { M_LFRT, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,       'i' },
     { M_LFRT, "VERTICAL AIMING",          M_ID_VerticalAiming,    'v' },
-    { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SWTC, "", /*FIRST PAGE >*/        M_Choose_ID_Gameplay_1, 'n' },
     { M_SWTC, "", /*< PREV PAGE*/         M_Choose_ID_Gameplay_2, 'p' },
@@ -3533,47 +3534,53 @@ static void M_Draw_ID_Gameplay_3 (void)
     M_WriteText (M_ItemRightAlign(str), 36, str,
                  M_Item_Glow(2, gp_flip_levels ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(45, "DEMOS", cr[CR_YELLOW]);
+    // On death action
+    sprintf(str, gp_death_use_action == 1 ? "LAST SAVE" :
+                 gp_death_use_action == 2 ? "NOTHING" : "DEFAULT");
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(3, gp_death_use_action ? GLOW_GREEN : GLOW_DARKRED));
+
+    M_WriteTextCentered(54, "DEMOS", cr[CR_YELLOW]);
 
     // Demo timer
     sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
                  demo_timer == 2 ? "RECORDING" : 
                  demo_timer == 3 ? "ALWAYS" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Timer direction
-    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
     M_WriteText (M_ItemRightAlign(str), 63, str,
                  M_Item_Glow(5, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Timer direction
+    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(6, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+
     // Progress bar
     sprintf(str, demo_bar ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 81, str,
+                 M_Item_Glow(7, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
 
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
+    M_WriteText (M_ItemRightAlign(str), 90, str,
+                 M_Item_Glow(8, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
 
-    M_WriteTextCentered(90, "COMPATIBILITY-BREAKING", cr[CR_YELLOW]);
+    M_WriteTextCentered(99, "COMPATIBILITY-BREAKING", cr[CR_YELLOW]);
 
     // Pistol start game mode
     sprintf(str, compat_pistol_start ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, compat_pistol_start ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 108, str,
+                 M_Item_Glow(10, compat_pistol_start ? GLOW_GREEN : GLOW_DARKRED));
 
     // Improved hit detection
     sprintf(str, compat_blockmap_fix ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, compat_blockmap_fix ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 117, str,
+                 M_Item_Glow(11, compat_blockmap_fix ? GLOW_GREEN : GLOW_DARKRED));
 
     // Vertical aiming
     sprintf(str, compat_vertical_aiming == 1 ? "DIRECT" :
                  compat_vertical_aiming == 2 ? "BOTH" : "AUTOAIM");
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(11, compat_vertical_aiming ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 126, str,
+                 M_Item_Glow(12, compat_vertical_aiming ? GLOW_GREEN : GLOW_DARKRED));
 
     M_WriteText (ID_MENU_LEFTOFFSET_BIG, 144, "FIRST PAGE >",
                  M_Item_Glow(14, GLOW_LIGHTGRAY));
@@ -3611,6 +3618,11 @@ static void M_ID_FlipLevels (int choice)
 
     // Update stereo separation
     S_UpdateStereoSeparation();
+}
+
+static void M_ID_OnDeathAction (int choice)
+{
+    gp_death_use_action = M_INT_Slider(gp_death_use_action, 0, 2, choice, false);
 }
 
 static void M_ID_DemoTimer (int choice)
@@ -4202,6 +4214,7 @@ static void M_ID_ApplyResetHook (void)
     gp_default_skill = 2;
     gp_revealed_secrets = 0;
     gp_flip_levels = 0;
+    gp_death_use_action = 0;
 
     // Demos
     demo_timer = 0;

@@ -913,6 +913,9 @@ extern int savepage; // [crispy]
 
 extern char *SavePath;
 
+extern char savename[256];
+extern void G_ClearSavename (void);
+
 void SV_SaveGame(int slot, const char *description);
 void SV_SaveMap(boolean savePlayers);
 void SV_LoadGame(int slot);

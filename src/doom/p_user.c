@@ -291,7 +291,36 @@ void P_DeathThink (player_t* player)
 	
 
     if (player->cmd.buttons & BT_USE)
-	player->playerstate = PST_REBORN;
+    {
+        if (demorecording || demoplayback || netgame)
+        {
+            player->playerstate = PST_REBORN;
+        }
+        else
+        {
+            // [JN] "On death action", mostly taken from Crispy Doom and Woof.
+            switch (gp_death_use_action)
+            {
+                case 0:  // Default (reload the level from scratch)
+                    gameaction = ga_loadlevel;
+                    G_ClearSavename();
+                break;
+                case 1:  // Load last save
+                    if (*savename)
+                    {
+                        gameaction = ga_loadgame;
+                    }
+                    else
+                    {
+                        player->playerstate = PST_REBORN;
+                    }
+                break;
+                case 2:  // Nothing
+                default:
+                break;
+            }
+        }
+    }
 }
 
 
