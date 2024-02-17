@@ -561,6 +561,7 @@ static void M_Draw_ID_Gameplay_3 (void);
 static void M_ID_DefaulSkill (int choice);
 static void M_ID_RevealedSecrets (int choice);
 static void M_ID_FlipLevels (int choice);
+static void M_ID_OnDeathAction (int choice);
 static void M_ID_DemoTimer (int choice);
 static void M_ID_TimerDirection (int choice);
 static void M_ID_ProgressBar (int choice);
@@ -2865,8 +2866,8 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE          },
     { ITT_LRFUNC,  "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE          },
     { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE          },
-    { ITT_SETMENU, "", /*NEXT PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY2 },
-    { ITT_SETMENU, "", /*< PREV PAGE*/            NULL,                 0, MENU_ID_GAMEPLAY3 },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE          },
+    { ITT_SETMENU, "", /* NEXT PAGE */            NULL,                 0, MENU_ID_GAMEPLAY2  },
 };
 
 static Menu_t ID_Def_Gameplay_1 = {
@@ -2948,14 +2949,12 @@ static void M_Draw_ID_Gameplay_1 (void)
                M_Item_Glow(10, !xhair_draw ? GLOW_DARKRED :
                                xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
-               M_Item_Glow(11, GLOW_DARKGRAY));
-    MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
+    MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
                M_Item_Glow(12, GLOW_DARKGRAY));
 
     // Footer
     sprintf(str, "PAGE 1/3");
-    MN_DrTextA(str, M_ItemRightAlign(str), 140, cr[CR_GRAY]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 140, M_Item_Glow(12, GLOW_DARKGRAY));
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3037,8 +3036,8 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE         },
     { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
-    { ITT_SETMENU, "", /*LAST PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY3 },
-    { ITT_SETMENU, "", /*< FIRST PAGE*/           NULL,                 0, MENU_ID_GAMEPLAY1 },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_SETMENU, "", /* LAST PAGE */            NULL,                 0, MENU_ID_GAMEPLAY3 },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
@@ -3107,14 +3106,12 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
-               M_Item_Glow(11, GLOW_DARKGRAY));
-    MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
+    MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
                M_Item_Glow(12, GLOW_DARKGRAY));
 
     // Footer
     sprintf(str, "PAGE 2/3");
-    MN_DrTextA(str, M_ItemRightAlign(str), 140, cr[CR_GRAY]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 140, M_Item_Glow(12, GLOW_DARKGRAY));
 }
 
 static void M_ID_ColoredSBar (int choice)
@@ -3166,6 +3163,7 @@ static MenuItem_t ID_Menu_Gameplay_3[] = {
     { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,    0, MENU_NONE         },
     { ITT_LRFUNC,  "REPORT REVEALED SECRETS",  M_ID_RevealedSecrets,0, MENU_NONE         },
     { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY", M_ID_FlipLevels,     0, MENU_NONE         },
+    { ITT_LRFUNC,  "ON DEATH ACTION",          M_ID_OnDeathAction,  0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE         },
     { ITT_LRFUNC,  "SHOW DEMO TIMER",          M_ID_DemoTimer,      0, MENU_NONE         },
     { ITT_LRFUNC,  "TIMER DIRECTION",          M_ID_TimerDirection, 0, MENU_NONE         },
@@ -3174,8 +3172,7 @@ static MenuItem_t ID_Menu_Gameplay_3[] = {
     { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE         },
     { ITT_LRFUNC,  "WAND START GAME MODE",     M_ID_PistolStart,    0, MENU_NONE         },
     { ITT_LRFUNC,  "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,    0, MENU_NONE         },
-    { ITT_SETMENU, "", /*FIRST PAGE >*/        NULL,                0, MENU_ID_GAMEPLAY1 },
-    { ITT_SETMENU, "", /*< PREV PAGE*/         NULL,                0, MENU_ID_GAMEPLAY2 },
+    { ITT_SETMENU, "", /* FIRST PAGE */        NULL,                0, MENU_ID_GAMEPLAY1 },
 };
 
 static Menu_t ID_Def_Gameplay_3 = {
@@ -3210,50 +3207,54 @@ static void M_Draw_ID_Gameplay_3 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 40,
                M_Item_Glow(2, gp_flip_levels ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("DEMOS", 50, cr[CR_YELLOW]);
+    // On death action
+    sprintf(str, gp_death_use_action == 1 ? "LAST SAVE" :
+                 gp_death_use_action == 2 ? "NOTHING" : "DEFAULT");
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, gp_death_use_action ? GLOW_GREEN : GLOW_DARKRED));
+
+    MN_DrTextACentered("DEMOS", 60, cr[CR_YELLOW]);
 
     // Show Demo timer
     sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
                  demo_timer == 2 ? "RECORDING" : 
                  demo_timer == 3 ? "ALWAYS" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               M_Item_Glow(4, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Timer direction
-    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
     MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Timer direction
+    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+
     // Show progress bar
     sprintf(str, demo_bar ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
 
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
 
-    MN_DrTextACentered("COMPATIBILITY-BREAKING", 100, cr[CR_YELLOW]);
+    MN_DrTextACentered("COMPATIBILITY-BREAKING", 110, cr[CR_YELLOW]);
 
     // Wand start game mode
     sprintf(str, compat_pistol_start ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, compat_pistol_start ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, compat_pistol_start ? GLOW_GREEN : GLOW_DARKRED));
 
     // Improved hit detection
     sprintf(str, compat_blockmap_fix ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, compat_blockmap_fix ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, compat_blockmap_fix ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET_BIG, 130,
-               M_Item_Glow(11, GLOW_DARKGRAY));
-    MN_DrTextA("PREV PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
+    MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
                M_Item_Glow(12, GLOW_DARKGRAY));
 
     // Footer
     sprintf(str, "PAGE 3/3");
-    MN_DrTextA(str, M_ItemRightAlign(str), 140, cr[CR_GRAY]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 140, M_Item_Glow(12, GLOW_DARKGRAY));
 }
 
 static void M_ID_DefaulSkill (int choice)
@@ -3273,6 +3274,11 @@ static void M_ID_FlipLevels (int choice)
 
     // Redraw game screen
     R_ExecuteSetViewSize();
+}
+
+static void M_ID_OnDeathAction (int choice)
+{
+    gp_death_use_action = M_INT_Slider(gp_death_use_action, 0, 2, choice, false);
 }
 
 static void M_ID_DemoTimer (int choice)
@@ -3958,6 +3964,7 @@ static void M_ID_ApplyResetHook (void)
     gp_default_skill = 2;
     gp_revealed_secrets = 0;
     gp_flip_levels = 0;
+    gp_death_use_action = 0;
 
     // Demos
     demo_timer = 0;

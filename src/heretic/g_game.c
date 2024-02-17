@@ -141,6 +141,7 @@ boolean precache = true;        // if true, load all graphics at start
 // TODO: Heretic uses 16-bit shorts for consistency?
 byte consistancy[MAXPLAYERS][BACKUPTICS];
 char *savegamedir;
+char  savename[256];
 
 boolean testcontrols = false;
 int testcontrols_mousespeed;
@@ -1894,6 +1895,13 @@ void G_DeathMatchSpawnPlayer(int playernum)
     P_SpawnPlayer(&playerstarts[playernum]);
 }
 
+// [crispy] clear the "savename" variable,
+// i.e. restart level from scratch upon resurrection
+void G_ClearSavename (void)
+{
+    M_StringCopy(savename, "", sizeof(savename));
+}
+
 /*
 ====================
 =
@@ -2146,11 +2154,9 @@ void G_DoWorldDone(void)
 //
 //---------------------------------------------------------------------------
 
-static char *savename = NULL;
-
 void G_LoadGame(char *name)
 {
-    savename = M_StringDuplicate(name);
+    M_StringCopy(savename, name, sizeof(savename));
     gameaction = ga_loadgame;
 }
 
@@ -2179,8 +2185,12 @@ void G_DoLoadGame(void)
 
     SV_OpenRead(savename);
 
+    // [JN] Do not erase save data,
+    // it will be needed for "On death action" feature.
+    /*
     free(savename);
     savename = NULL;
+    */
 
     // Skip the description field
     SV_Read(savestr, SAVESTRINGSIZE);
@@ -2249,6 +2259,11 @@ void G_DoLoadGame(void)
 
     // Draw the pattern into the back screen
     R_FillBackScreen();
+
+    // [crispy] if the player is dead in this savegame,
+    // do not consider it for reload
+    if (players[consoleplayer].health <= 0)
+	G_ClearSavename();
 }
 
 
@@ -2271,6 +2286,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
     d_skill = skill;
     d_episode = episode;
     d_map = map;
+    G_ClearSavename();
     gameaction = ga_newgame;
 
     // [crispy] if a new game is started during demo recording, start a new demo
