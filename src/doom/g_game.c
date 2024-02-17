@@ -2274,6 +2274,7 @@ void G_DoSaveGame (void)
 
     gameaction = ga_nothing;
     M_StringCopy(savedescription, "", sizeof(savedescription));
+    M_StringCopy(savename, savegame_file, sizeof(savename));
 
     CT_SetMessage(&players[consoleplayer], DEH_String(GGSAVED), false, NULL);
 
