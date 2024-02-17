@@ -2761,22 +2761,24 @@ void G_DoPlayDemo(void)
 
 void G_TimeDemo(char *name)
 {
+    // [JN] Note: original "-timedemo" code causing desyncs on demo playback.
+    // To simplify things, just play demo via G_DoPlayDemo functions, with
+    // all necessary parameters for timing demo set.
+
+    defdemoname = name;
+    gameaction = ga_playdemo;
+    timingdemo = true;
+    singletics = true;
+    starttime = I_GetTime();
+
+    // [JN] Disable rendering the screen entirely, if needed.
+    nodrawers = M_CheckParm ("-nodraw");
+
+    /*
     skill_t skill;
     int episode, map, i;
-    int lumpnum, lumplength; // [crispy]
 
     demobuffer = demo_p = W_CacheLumpName(name, PU_STATIC);
-
-    // [crispy] ignore empty demo lumps
-    lumpnum = W_GetNumForName(name);
-    lumplength = W_LumpLength(lumpnum);
-    if (lumplength < 0xd)
-    {
-        demoplayback = true;
-        G_CheckDemoStatus();
-        return;
-    }
-
     skill = *demo_p++;
     episode = *demo_p++;
     map = *demo_p++;
@@ -2800,9 +2802,6 @@ void G_TimeDemo(char *name)
         netgame = true;
     }
 
-    // [JN] Disable rendering the screen entirely.
-    nodrawers = M_CheckParm ("-nodraw");
-
     G_InitNew(skill, episode, map);
     starttime = I_GetTime();
 
@@ -2815,9 +2814,7 @@ void G_TimeDemo(char *name)
     {
         netdemo = true;
     }
-
-    // [crispy] demo progress bar
-    G_DemoProgressBar(lumplength);
+    */
 }
 
 
