@@ -2188,6 +2188,13 @@ void G_DoLoadGame (void)
     // do not consider it for reload
     if (players[consoleplayer].health <= 0)
 	G_ClearSavename();
+
+    // [JN] If "On death action" is set to "last save",
+    // then prevent holded "use" button to work for next few tics.
+    // This fixes imidiate pressing on wall upon reloading
+    // a save game, if "use" button is kept pressed.
+    if (singleplayer && gp_death_use_action == 1)
+	players[consoleplayer].usedown = true;
 } 
  
 
