@@ -138,6 +138,7 @@ static void SCScreenSize(int option);
 static boolean SCNetCheck(int option);
 static void SCNetCheck2(int option);
 static void SCLoadGame(int option);
+static void SCSaveCheck(int option);
 static void SCSaveGame(int option);
 static void SCMessages(int option);
 static void SCEndGame(int option);
@@ -247,7 +248,7 @@ static Menu_t ClassMenu = {
 
 static MenuItem_t FilesItems[] = {
     {ITT_SETMENU, "LOAD GAME", SCNetCheck2, 2, MENU_LOAD},
-    {ITT_SETMENU, "SAVE GAME", NULL, 0, MENU_SAVE}
+    {ITT_EFUNC, "SAVE GAME", SCSaveCheck, 0, MENU_SAVE}
 };
 
 static Menu_t FilesMenu = {
@@ -3798,7 +3799,6 @@ static void DrawFilesMenu(void)
 // clear out the quicksave/quickload stuff
     quicksave = 0;
     quickload = 0;
-    CT_ClearMessage(&players[consoleplayer]);
 }
 
 // [crispy] support additional pages of savegames
@@ -4180,6 +4180,20 @@ static const char *const class_str[NUMCLASSES] =
     "MAGE",
     "PIG",
 };
+
+// [JN] Check if Save Game menu should be accessable.
+static void SCSaveCheck(int option)
+{
+    if (!usergame)
+    {
+        CT_SetMessage(&players[consoleplayer],
+                     "YOU CAN'T SAVE IF YOU AREN'T PLAYING", true, NULL);
+    }
+    else
+    {
+        SetMenu(MENU_SAVE);
+    }
+}
 
 static void SCSaveGame(int option)
 {
