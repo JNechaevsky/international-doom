@@ -730,7 +730,7 @@ void R_ProjectSprite(mobj_t * thing)
     if (thing->flags & MF_EXTRATRANS)
     {
         vis->blendfunc = 
-            (thing->frame & FF_FULLBRIGHT) ? (vis_translucency == 1 ?
+            (LevelUseFullBright && thing->frame & FF_FULLBRIGHT) ? (vis_translucency == 1 ?
 #ifndef CRISPY_TRUECOLOR
             addmap : tintmap) : tintmap;
 #else
