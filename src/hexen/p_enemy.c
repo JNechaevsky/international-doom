@@ -571,6 +571,7 @@ boolean P_LookForPlayers(mobj_t * actor, boolean allaround)
     player_t *player;
     angle_t an;
     fixed_t dist;
+    int i = 0; // For breaking vanilla infinite loop.
 
     if (!netgame && players[0].health <= 0)
     {                           // Single player game and player is dead, look for monsters
@@ -578,18 +579,21 @@ boolean P_LookForPlayers(mobj_t * actor, boolean allaround)
     }
     c = 0;
 
-    // NOTE: This behavior has been changed from the Vanilla behavior, where
-    // an infinite loop can occur if players 0-3 all quit the game. Although
-    // technically this is not what Vanilla does, fixing this is highly
-    // desirable, and having the game simply lock up is not acceptable.
-    // stop = (actor->lastlook - 1) & 3;
-    // for (;; actor->lastlook = (actor->lastlook + 1) & 3)
-
-    stop = (actor->lastlook + maxplayers - 1) % maxplayers;
-    for (;; actor->lastlook = (actor->lastlook + 1) % maxplayers)
+    stop = (actor->lastlook - 1) & 3;
+    for (;; actor->lastlook = (actor->lastlook + 1) & 3)
     {
         if (!playeringame[actor->lastlook])
+        {
+            // In vanilla, an infinite loop can occur here if there are > 4
+            // players and players 0 - 3 all quit the game. Error out instead.
+            if (i++ == 4)
+            {
+                I_Error("P_LookForPlayers: No player 1 - 4.\n");
+            }
             continue;
+        }
+
+        i = 0; // Found a player.
 
         if (c++ == 2 || actor->lastlook == stop)
             return false;       // done looking
