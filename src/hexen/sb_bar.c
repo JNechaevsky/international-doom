@@ -955,12 +955,18 @@ static void DrawAnimatedIcons(void)
 {
     int frame;
     static boolean hitCenterFrame;
-    int spinfly_x, spinspeed_x, spindefense_x, spinminotaur_x; // [crispy]
 
     // Wings of wrath
     if (CPlayer->powers[pw_flight])
     {
-        spinfly_x = 20 - WIDESCREENDELTA; // [crispy]
+        int spinfly_x = 20 - WIDESCREENDELTA; // [crispy]
+
+        // [JN] Shift wings icon right if widgets
+        // are placed on top and if KIS stats are on.
+        if (widget_location == 1 && widget_kis == 1)
+        {
+            spinfly_x += 70;
+        }
 
         if (CPlayer->powers[pw_flight] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_flight] & 16))
@@ -1005,7 +1011,14 @@ static void DrawAnimatedIcons(void)
     // Speed Boots
     if (CPlayer->powers[pw_speed])
     {
-        spinspeed_x = 60 - WIDESCREENDELTA; // [crispy]
+        int spinspeed_x = 60 - WIDESCREENDELTA; // [crispy]
+
+        // [JN] Shift boots icon right if widgets
+        // are placed on top and if KIS stats are on.
+        if (widget_location == 1 && widget_kis == 1)
+        {
+            spinspeed_x += 70;
+        }
 
         if (CPlayer->powers[pw_speed] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_speed] & 16))
@@ -1020,8 +1033,18 @@ static void DrawAnimatedIcons(void)
     // Defensive power
     if (CPlayer->powers[pw_invulnerability])
     {
-        spindefense_x = 260 + WIDESCREENDELTA; // [crispy]
+        int spindefense_x = 260 + WIDESCREENDELTA; // [crispy]
         spindefense_x -= right_widget_w; // [crispy]
+
+        // [JN] Shift chess icon left if fps counter,
+        // local time or demo timer is active.
+        if (vid_showfps
+        ||  msg_local_time
+        || (demoplayback && (demo_timer == 1 || demo_timer == 3))
+        || (demorecording && (demo_timer == 2 || demo_timer == 3)))
+        {
+            spindefense_x -= 70;
+        }
 
         if (CPlayer->powers[pw_invulnerability] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_invulnerability] & 16))
@@ -1036,8 +1059,18 @@ static void DrawAnimatedIcons(void)
     // Minotaur Active
     if (CPlayer->powers[pw_minotaur])
     {
-        spinminotaur_x = 300 + WIDESCREENDELTA; // [crispy]
+        int spinminotaur_x = 300 + WIDESCREENDELTA; // [crispy]
         spinminotaur_x -= right_widget_w; // [crispy]
+
+        // [JN] Shift minotaur icon left if fps counter,
+        // local time or demo timer is active.
+        if (vid_showfps
+        ||  msg_local_time
+        || (demoplayback && (demo_timer == 1 || demo_timer == 3))
+        || (demorecording && (demo_timer == 2 || demo_timer == 3)))
+        {
+            spinminotaur_x -= 70;
+        }
 
         if (CPlayer->powers[pw_minotaur] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_minotaur] & 16))

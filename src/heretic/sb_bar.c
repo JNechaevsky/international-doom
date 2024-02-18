@@ -948,9 +948,10 @@ void SB_Drawer(void)
     {
         int spinbook_x = 300 + WIDESCREENDELTA; // [crispy]
 
-        // [JN] Shift wings icon right if widgets
-        // are placed on top and if KIS stats are on.
+        // [JN] Shift tome icon left if fps counter,
+        // local time or demo timer is active.
         if (vid_showfps
+        ||  msg_local_time
         || (demoplayback && (demo_timer == 1 || demo_timer == 3))
         || (demorecording && (demo_timer == 2 || demo_timer == 3)))
         {
