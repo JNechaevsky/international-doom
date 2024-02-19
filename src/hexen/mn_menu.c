@@ -558,7 +558,6 @@ static void M_ID_WeaponWidget (int choice);
 static void M_ID_ArmorIcon (int choice);
 static void M_ID_ZAxisSfx (int choice);
 static void M_ID_Torque (int choice);
-static void M_ID_WeaponAlignment (int choice);
 static void M_ID_Breathing (int choice);
 
 static void M_Draw_ID_Gameplay_3 (void);
@@ -2986,8 +2985,8 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,        0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,          0, MENU_NONE         },
-    { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE         },
     { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
@@ -3040,17 +3039,10 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 80,
                M_Item_Glow(6, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Weapon attack alignment
-    /*
-    sprintf(str, phys_torque ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
-    */
-
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 100,
-               M_Item_Glow(8, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET, 140,
                M_Item_Glow(12, GLOW_DARKGRAY));
@@ -3083,11 +3075,6 @@ static void M_ID_ZAxisSfx (int choice)
 static void M_ID_Torque (int choice)
 {
     phys_torque ^= 1;
-}
-
-static void M_ID_WeaponAlignment (int choice)
-{
-    // phys_torque ^= 1;
 }
 
 static void M_ID_Breathing (int choice)

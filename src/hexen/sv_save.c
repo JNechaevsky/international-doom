@@ -314,10 +314,6 @@ static void StreamIn_pspdef_t(pspdef_t *str)
     // fixed_t sx, sy;
     str->sx = SV_ReadLong();
     str->sy = SV_ReadLong();
-
-    // [crispy] variable weapon sprite bob
-    str->sx2 = str->sx;
-    str->sy2 = str->sy;
 }
 
 static void StreamOut_pspdef_t(pspdef_t *str)

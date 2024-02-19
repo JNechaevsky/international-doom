@@ -390,7 +390,6 @@ typedef struct pspdef_s
     state_t *state;             // a NULL state means not active
     int tics;
     fixed_t sx, sy;
-    fixed_t sx2, sy2; // [crispy] variable weapon sprite bob
 } pspdef_t;
 
 /* Old Heretic key type

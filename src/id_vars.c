@@ -327,7 +327,10 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("phys_toss_drop",             &phys_toss_drop);
         M_BindIntVariable("phys_floating_powerups",     &phys_floating_powerups);
     }
-    M_BindIntVariable("phys_weapon_alignment",          &phys_weapon_alignment);
+    if (mission == doom || mission == heretic)
+    {
+        M_BindIntVariable("phys_weapon_alignment",      &phys_weapon_alignment);
+    }
     M_BindIntVariable("phys_breathing",                 &phys_breathing);
     
     // Gameplay
