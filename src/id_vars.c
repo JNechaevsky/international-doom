@@ -131,6 +131,7 @@ int st_ammo_widget = 0;
 int st_ammo_widget_translucent = 0;
 int st_ammo_widget_colors = 0;
 int st_weapon_widget = 0;
+int st_armor_icon = 0;
 
 // Audible
 int aud_z_axis_sfx = 0;
@@ -307,13 +308,11 @@ void ID_BindVariables (GameMission_t mission)
     if (mission == hexen)
     {
         M_BindIntVariable("st_weapon_widget",           &st_weapon_widget);
+        M_BindIntVariable("st_armor_icon",              &st_armor_icon);
     }        
     
     // Audible
-    if (mission == doom || mission == heretic)
-    {
-        M_BindIntVariable("aud_z_axis_sfx",             &aud_z_axis_sfx);
-    }
+    M_BindIntVariable("aud_z_axis_sfx",                 &aud_z_axis_sfx);
     if (mission == doom)
     {
         M_BindIntVariable("aud_full_sounds",            &aud_full_sounds);
@@ -328,7 +327,10 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("phys_toss_drop",             &phys_toss_drop);
         M_BindIntVariable("phys_floating_powerups",     &phys_floating_powerups);
     }
-    M_BindIntVariable("phys_weapon_alignment",          &phys_weapon_alignment);
+    if (mission == doom || mission == heretic)
+    {
+        M_BindIntVariable("phys_weapon_alignment",      &phys_weapon_alignment);
+    }
     M_BindIntVariable("phys_breathing",                 &phys_breathing);
     
     // Gameplay

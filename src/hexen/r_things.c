@@ -821,7 +821,7 @@ void R_DrawPSprite(pspdef_t * psp)
 //
 // calculate edges of the shape
 //
-    tx = psp->sx2 - 160 * FRACUNIT;
+    tx = psp->sx - 160 * FRACUNIT;
 
     // [crispy] fix sprite offsets for mirrored sprites
     tx -= flip ? 2 * tx - spriteoffset[lump] + spritewidth[lump] : spriteoffset[lump];
@@ -852,7 +852,7 @@ void R_DrawPSprite(pspdef_t * psp)
     vis->psprite = true;
     vis->floorclip = 0;
     vis->texturemid = (BASEYCENTER << FRACBITS) /* + FRACUNIT / 2 */
-        - (psp->sy2 - spritetopoffset[lump]);
+        - (psp->sy - spritetopoffset[lump]);
     if (viewheight == SCREENHEIGHT)
     {
         vis->texturemid -= PSpriteSY[viewplayer->class]
