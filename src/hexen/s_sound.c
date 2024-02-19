@@ -270,6 +270,20 @@ static mobj_t *GetSoundListener(void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// P_ApproxDistanceZ
+// [JN] Gives an estimation of distance using three axises.
+// Adapted from EDGE, converted to fixed point math.
+// -----------------------------------------------------------------------------
+
+static int64_t S_ApproxDistanceZ (int64_t dx, int64_t dy, int64_t dz)
+{
+    const int64_t dxy = (dy > dx) ? dy + dx/2 : dx + dy/2;
+
+    return (dz > dxy) ? dz + dxy/2 : dxy + dz/2;
+}
+
+
 //==========================================================================
 //
 // S_StartSoundAtVolume
@@ -284,8 +298,9 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
     int priority;
     int sep;
     int angle;
-    int absx;
-    int absy;
+    int64_t absx;
+    int64_t absy;
+    int64_t absz;  // [JN] Z-axis sfx distance
 
     static int sndcount = 0;
     int chan;
@@ -308,7 +323,9 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
     // sounds that are beyond the hearing range.
     absx = abs(origin->x - listener->x);
     absy = abs(origin->y - listener->y);
-    dist = absx + absy - (absx > absy ? absy >> 1 : absx >> 1);
+    absz = aud_z_axis_sfx ?
+           llabs(origin->z - listener->z) : 0;
+    dist = S_ApproxDistanceZ(absx, absy, absz);
     dist >>= FRACBITS;
     if (dist >= MAX_SND_DIST)
     {
@@ -612,8 +629,9 @@ void S_UpdateSounds(mobj_t * listener)
     int angle;
     int sep;
     int priority;
-    int absx;
-    int absy;
+    int64_t absx;
+    int64_t absy;
+    int64_t absz;  // [JN] Z-axis sfx distance
 
     I_UpdateSound();
 
@@ -650,7 +668,10 @@ void S_UpdateSounds(mobj_t * listener)
         {
             absx = abs(Channel[i].mo->x - listener->x);
             absy = abs(Channel[i].mo->y - listener->y);
-            dist = absx + absy - (absx > absy ? absy >> 1 : absx >> 1);
+            // [JN] Z-axis sfx distance.
+            absz = aud_z_axis_sfx ? 
+                   llabs(Channel[i].mo->z - listener->z) : 0;
+            dist = S_ApproxDistanceZ(absx, absy, absz);
             dist >>= FRACBITS;
 
             if (dist >= MAX_SND_DIST)

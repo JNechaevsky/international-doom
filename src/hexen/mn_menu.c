@@ -3031,12 +3031,9 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextACentered("AUDIBLE", 50, cr[CR_YELLOW]);
 
     // Sfx Attenuation Axises
-    /*
-    sprintf(str, st_weapon_widget == 1 ? "SOLID" :
-                 st_weapon_widget == 2 ? "TRANSLUCENT" : "OFF");
+    sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
     MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               M_Item_Glow(4, st_weapon_widget ? GLOW_GREEN : GLOW_DARKRED));
-    */
+               M_Item_Glow(4, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextACentered("PHYSICAL", 70, cr[CR_YELLOW]);
 
@@ -3082,7 +3079,7 @@ static void M_ID_ArmorIcon (int choice)
 
 static void M_ID_ZAxisSfx (int choice)
 {
-    // phys_torque ^= 1;
+    aud_z_axis_sfx ^= 1;
 }
 
 static void M_ID_Torque (int choice)
@@ -3325,6 +3322,9 @@ static void M_ID_ApplyResetHook (void)
     st_colored_stbar = 0;
     st_weapon_widget = 0;
     st_armor_icon = 0;
+
+    // Audible
+    aud_z_axis_sfx = 0;
 
     // Physical
     phys_torque = 0;

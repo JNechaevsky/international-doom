@@ -312,10 +312,7 @@ void ID_BindVariables (GameMission_t mission)
     }        
     
     // Audible
-    if (mission == doom || mission == heretic)
-    {
-        M_BindIntVariable("aud_z_axis_sfx",             &aud_z_axis_sfx);
-    }
+    M_BindIntVariable("aud_z_axis_sfx",                 &aud_z_axis_sfx);
     if (mission == doom)
     {
         M_BindIntVariable("aud_full_sounds",            &aud_full_sounds);
