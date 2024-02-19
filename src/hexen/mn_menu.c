@@ -551,12 +551,17 @@ static void M_ID_LinearSky (int choice);
 static void M_ID_FlipCorpses (int choice);
 static void M_ID_Crosshair (int choice);
 static void M_ID_CrosshairColor (int choice);
-static void M_ID_ColoredSBar (int choice);
-static void M_ID_WeaponWidget (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
+static void M_ID_ColoredSBar (int choice);
+static void M_ID_WeaponWidget (int choice);
+static void M_ID_ArmorIcon (int choice);
+static void M_ID_ZAxisSfx (int choice);
 static void M_ID_Torque (int choice);
+static void M_ID_WeaponAlignment (int choice);
 static void M_ID_Breathing (int choice);
+
+static void M_Draw_ID_Gameplay_3 (void);
 static void M_ID_DefaultClass (int choice);
 static void M_ID_DefaultSkill (int choice);
 static void M_ID_FlipLevels (int choice);
@@ -565,8 +570,6 @@ static void M_ID_DemoTimer (int choice);
 static void M_ID_TimerDirection (int choice);
 static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
-
-static void M_Draw_ID_Gameplay_3 (void);
 
 static void M_ID_SettingReset (int choice);
 static void M_ID_ApplyReset (void);
@@ -2839,8 +2842,7 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_LRFUNC,  "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE         },
     { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
-    { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE         },
-    { ITT_LRFUNC,  "4TH WEAPON WIDGET",           M_ID_WeaponWidget,    0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_SETMENU, "", /* NEXT PAGE */            NULL,                 0, MENU_ID_GAMEPLAY2 },
 };
@@ -2848,7 +2850,7 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
 static Menu_t ID_Def_Gameplay_1 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_1,
-    14, ID_Menu_Gameplay_1,
+    13, ID_Menu_Gameplay_1,
     0,
     true, false, true,
     MENU_ID_MAIN
@@ -2913,25 +2915,12 @@ static void M_Draw_ID_Gameplay_1 (void)
                M_Item_Glow(8, !xhair_draw ? GLOW_DARKRED :
                                xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("STATUS BAR", 110, cr[CR_YELLOW]);
-
-    // Colored elements
-    sprintf(str, st_colored_stbar ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Fourth weapon widget
-    sprintf(str, st_weapon_widget == 1 ? "SOLID" :
-                 st_weapon_widget == 2 ? "TRANSLUCENT" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 130,
-               M_Item_Glow(11, st_weapon_widget ? GLOW_GREEN : GLOW_DARKRED));
-
-    MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET, 150,
-               M_Item_Glow(13, GLOW_DARKGRAY));
+    MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET, 140,
+               M_Item_Glow(12, GLOW_DARKGRAY));
 
     // Footer
     sprintf(str, "PAGE 1/3");
-    MN_DrTextA(str, M_ItemRightAlign(str), 150, M_Item_Glow(13, GLOW_DARKGRAY));
+    MN_DrTextA(str, M_ItemRightAlign(str), 140, M_Item_Glow(12, GLOW_DARKGRAY));
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -2985,41 +2974,30 @@ static void M_ID_CrosshairColor (int choice)
     xhair_color = M_INT_Slider(xhair_color, 0, 3, choice, false);
 }
 
-static void M_ID_ColoredSBar (int choice)
-{
-    st_colored_stbar ^= 1;
-}
-
-static void M_ID_WeaponWidget (int choice)
-{
-    st_weapon_widget = M_INT_Slider(st_weapon_widget, 0, 2, choice, false);
-}
-
 // -----------------------------------------------------------------------------
 // Gameplay features 2
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_2[] = {
-    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,         0, MENU_NONE         },
-    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,      0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
-    { ITT_LRFUNC,  "DEFAULT PLAYER CLASS",        M_ID_DefaultClass,   0, MENU_NONE         },
-    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",         M_ID_DefaultSkill,   0, MENU_NONE         },
-    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY",    M_ID_FlipLevels,     0, MENU_NONE         },
-    { ITT_LRFUNC,  "ON DEATH ACTION",             M_ID_OnDeathAction,  0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
-    { ITT_LRFUNC,  "SHOW DEMO TIMER",             M_ID_DemoTimer,      0, MENU_NONE         },
-    { ITT_LRFUNC,  "TIMER DIRECTION",             M_ID_TimerDirection, 0, MENU_NONE         },
-    { ITT_LRFUNC,  "SHOW PROGRESS BAR",           M_ID_ProgressBar,    0, MENU_NONE         },
-    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",         M_ID_InternalDemos,  0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
-    { ITT_SETMENU, "", /* LAST PAGE */            NULL,                0, MENU_ID_GAMEPLAY3 },
+    { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE         },
+    { ITT_LRFUNC,  "4TH WEAPON WIDGET",           M_ID_WeaponWidget,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "ARMOR ICON",                  M_ID_ArmorIcon,       0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,        0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,          0, MENU_NONE         },
+    { ITT_LRFUNC,  "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE         },
+    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
+    { ITT_SETMENU, "", /* LAST PAGE */            NULL,                 0, MENU_ID_GAMEPLAY3 },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_2,
-    14, ID_Menu_Gameplay_2,
+    13, ID_Menu_Gameplay_2,
     0,
     true, false, true,
     MENU_ID_MAIN
@@ -3030,72 +3008,82 @@ static void M_Draw_ID_Gameplay_2 (void)
     char str[32];
     Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY2;
 
-    MN_DrTextACentered("PHYSICAL", 10, cr[CR_YELLOW]);
+    MN_DrTextACentered("STATUS BAR", 10, cr[CR_YELLOW]);
+
+    // Colored elements
+    sprintf(str, st_colored_stbar ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Fourth weapon widget
+    sprintf(str, st_weapon_widget == 1 ? "SOLID" :
+                 st_weapon_widget == 2 ? "TRANSLUCENT" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, st_weapon_widget ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Armor icon
+    /*
+    sprintf(str, st_weapon_widget == 1 ? "SOLID" :
+                 st_weapon_widget == 2 ? "TRANSLUCENT" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, st_weapon_widget ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    MN_DrTextACentered("AUDIBLE", 50, cr[CR_YELLOW]);
+
+    // Sfx Attenuation Axises
+    /*
+    sprintf(str, st_weapon_widget == 1 ? "SOLID" :
+                 st_weapon_widget == 2 ? "TRANSLUCENT" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, st_weapon_widget ? GLOW_GREEN : GLOW_DARKRED));
+    */
+
+    MN_DrTextACentered("PHYSICAL", 70, cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 20,
-               M_Item_Glow(0, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Weapon attack alignment
+    /*
+    sprintf(str, phys_torque ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+    */
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               M_Item_Glow(1, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
-
-    MN_DrTextACentered("GAMEPLAY", 40, cr[CR_YELLOW]);
-
-    // Default player class
-    M_snprintf(str, sizeof(str), "%s", DefClassName[gp_default_class]);
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, gp_default_class == 0 ? GLOW_GREEN :
-                              gp_default_class == 1 ? GLOW_BLUE : GLOW_RED));
-
-    // Default skill level
-    M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
-    MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               DefSkillColor(gp_default_skill));
-
-    // Flip levels horizontally
-    sprintf(str, gp_flip_levels ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 70,
-               M_Item_Glow(5, gp_flip_levels ? GLOW_GREEN : GLOW_DARKRED));
-
-    // On death action
-    sprintf(str, gp_death_use_action == 1 ? "LAST SAVE" :
-                 gp_death_use_action == 2 ? "NOTHING" : "DEFAULT");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, gp_death_use_action ? GLOW_GREEN : GLOW_DARKRED));
-
-    MN_DrTextACentered("DEMOS", 90, cr[CR_YELLOW]);
-
-    // Show Demo timer
-    sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
-                 demo_timer == 2 ? "RECORDING" : 
-                 demo_timer == 3 ? "ALWAYS" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 100,
-               M_Item_Glow(8, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+               M_Item_Glow(8, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Timer direction
-    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
-    MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Show progress bar
-    sprintf(str, demo_bar ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Play internal demos
-    sprintf(str, demo_internal ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 130,
-               M_Item_Glow(11, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
-
-    MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET, 150,
-               M_Item_Glow(13, GLOW_DARKGRAY));
+    MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET, 140,
+               M_Item_Glow(12, GLOW_DARKGRAY));
 
     // Footer
     sprintf(str, "PAGE 2/3");
-    MN_DrTextA(str, M_ItemRightAlign(str), 150, M_Item_Glow(13, GLOW_DARKGRAY));
+    MN_DrTextA(str, M_ItemRightAlign(str), 140, M_Item_Glow(12, GLOW_DARKGRAY));
+}
+
+static void M_ID_ColoredSBar (int choice)
+{
+    st_colored_stbar ^= 1;
+}
+
+static void M_ID_WeaponWidget (int choice)
+{
+    st_weapon_widget = M_INT_Slider(st_weapon_widget, 0, 2, choice, false);
+}
+
+static void M_ID_ArmorIcon (int choice)
+{
+    // phys_torque ^= 1;
+}
+
+static void M_ID_ZAxisSfx (int choice)
+{
+    // phys_torque ^= 1;
 }
 
 static void M_ID_Torque (int choice)
@@ -3103,9 +3091,104 @@ static void M_ID_Torque (int choice)
     phys_torque ^= 1;
 }
 
+static void M_ID_WeaponAlignment (int choice)
+{
+    // phys_torque ^= 1;
+}
+
 static void M_ID_Breathing (int choice)
 {
     phys_breathing ^= 1;
+}
+
+// -----------------------------------------------------------------------------
+// Gameplay features 3
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Gameplay_3[] = {
+    { ITT_LRFUNC,  "DEFAULT PLAYER CLASS",        M_ID_DefaultClass,   0, MENU_NONE         },
+    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",         M_ID_DefaultSkill,   0, MENU_NONE         },
+    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY",    M_ID_FlipLevels,     0, MENU_NONE         },
+    { ITT_LRFUNC,  "ON DEATH ACTION",             M_ID_OnDeathAction,  0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW DEMO TIMER",             M_ID_DemoTimer,      0, MENU_NONE         },
+    { ITT_LRFUNC,  "TIMER DIRECTION",             M_ID_TimerDirection, 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW PROGRESS BAR",           M_ID_ProgressBar,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",         M_ID_InternalDemos,  0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_SETMENU, "", /* FIRST PAGE */           NULL,                0, MENU_ID_GAMEPLAY1 },
+};
+
+static Menu_t ID_Def_Gameplay_3 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Gameplay_3,
+    13, ID_Menu_Gameplay_3,
+    0,
+    true, false, true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Gameplay_3 (void)
+{
+    char str[32];
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY3;
+
+    MN_DrTextACentered("GAMEPLAY", 10, cr[CR_YELLOW]);
+
+    // Default player class
+    M_snprintf(str, sizeof(str), "%s", DefClassName[gp_default_class]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, gp_default_class == 0 ? GLOW_GREEN :
+                              gp_default_class == 1 ? GLOW_BLUE : GLOW_RED));
+
+    // Default skill level
+    M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               DefSkillColor(gp_default_skill));
+
+    // Flip levels horizontally
+    sprintf(str, gp_flip_levels ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, gp_flip_levels ? GLOW_GREEN : GLOW_DARKRED));
+
+    // On death action
+    sprintf(str, gp_death_use_action == 1 ? "LAST SAVE" :
+                 gp_death_use_action == 2 ? "NOTHING" : "DEFAULT");
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, gp_death_use_action ? GLOW_GREEN : GLOW_DARKRED));
+
+    MN_DrTextACentered("DEMOS", 60, cr[CR_YELLOW]);
+
+    // Show Demo timer
+    sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
+                 demo_timer == 2 ? "RECORDING" : 
+                 demo_timer == 3 ? "ALWAYS" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Timer direction
+    sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Show progress bar
+    sprintf(str, demo_bar ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Play internal demos
+    sprintf(str, demo_internal ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
+
+    MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET, 140,
+               M_Item_Glow(12, GLOW_DARKGRAY));
+
+    // Footer
+    sprintf(str, "PAGE 3/3");
+    MN_DrTextA(str, M_ItemRightAlign(str), 140, M_Item_Glow(12, GLOW_DARKGRAY));
 }
 
 static void M_ID_DefaultClass (int choice)
@@ -3151,49 +3234,6 @@ static void M_ID_ProgressBar (int choice)
 static void M_ID_InternalDemos (int choice)
 {
     demo_internal ^= 1;
-}
-
-// -----------------------------------------------------------------------------
-// Gameplay features 3
-// -----------------------------------------------------------------------------
-
-static MenuItem_t ID_Menu_Gameplay_3[] = {
-    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,         0, MENU_NONE         },
-    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,      0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
-    { ITT_LRFUNC,  "DEFAULT PLAYER CLASS",        M_ID_DefaultClass,   0, MENU_NONE         },
-    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",         M_ID_DefaultSkill,   0, MENU_NONE         },
-    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY",    M_ID_FlipLevels,     0, MENU_NONE         },
-    { ITT_LRFUNC,  "ON DEATH ACTION",             M_ID_OnDeathAction,  0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
-    { ITT_LRFUNC,  "SHOW DEMO TIMER",             M_ID_DemoTimer,      0, MENU_NONE         },
-    { ITT_LRFUNC,  "TIMER DIRECTION",             M_ID_TimerDirection, 0, MENU_NONE         },
-    { ITT_LRFUNC,  "SHOW PROGRESS BAR",           M_ID_ProgressBar,    0, MENU_NONE         },
-    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",         M_ID_InternalDemos,  0, MENU_NONE         },
-    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
-    { ITT_SETMENU, "", /* FIRST PAGE */           NULL,                0, MENU_ID_GAMEPLAY1 },
-};
-
-static Menu_t ID_Def_Gameplay_3 = {
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
-    M_Draw_ID_Gameplay_3,
-    14, ID_Menu_Gameplay_3,
-    0,
-    true, false, true,
-    MENU_ID_MAIN
-};
-
-static void M_Draw_ID_Gameplay_3 (void)
-{
-    char str[32];
-    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY3;
-
-    MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET, 150,
-               M_Item_Glow(13, GLOW_DARKGRAY));
-
-    // Footer
-    sprintf(str, "PAGE 3/3");
-    MN_DrTextA(str, M_ItemRightAlign(str), 150, M_Item_Glow(13, GLOW_DARKGRAY));
 }
 
 // -----------------------------------------------------------------------------
