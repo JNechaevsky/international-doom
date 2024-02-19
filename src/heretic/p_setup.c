@@ -808,6 +808,8 @@ void P_LoadThings(int lump)
     mapthing_t spawnthing;
     mapthing_t *mt;
     int numthings;
+    // [JN] Initialize counters for playstate limits.
+    int boss_count = 0, ambs_count = 0, mace_count = 0;
 
     data = W_CacheLumpNum(lump, PU_STATIC);
     numthings = W_LumpLength(lump) / sizeof(mapthing_t);
@@ -821,6 +823,40 @@ void P_LoadThings(int lump)
         spawnthing.type = SHORT(mt->type);
         spawnthing.options = SHORT(mt->options);
         P_SpawnMapThing(&spawnthing);
+
+        // [JN] Print console warnings when playstate limits has been reached.
+        switch (spawnthing.type)
+        {
+            // D'Sparil teleport location
+            case 56:
+                boss_count++;
+                if (boss_count == 9)
+                {
+                    printf ("\n  Warning: more than 8 D'Sparil teleporters found,"
+                            " this map won't work in vanilla Heretic. ");
+                }
+            break;
+            // Sound sequences
+            case 1200: case 1201: case 1202: case 1203: 
+            case 1204: case 1205: case 1206: case 1207:
+            case 1208: case 1209:
+                ambs_count++;
+                if (ambs_count == 9)
+                {
+                    printf ("\n  Warning: more than 8 sound sequences found,"
+                            " this map won't work in vanilla Heretic. ");
+                }
+            break;
+            // Firemace
+            case 2002:
+                mace_count++;
+                if (mace_count == 9)
+                {
+                    printf ("\n  Warning: more than 8 Firemace spots found,"
+                            " this map won't work in vanilla Heretic. ");
+                }
+            break;
+        }
     }
 
     if (!deathmatch)
