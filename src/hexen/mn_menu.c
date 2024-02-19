@@ -89,6 +89,7 @@ typedef enum
     MENU_ID_WIDGETS,
     MENU_ID_GAMEPLAY1,
     MENU_ID_GAMEPLAY2,
+    MENU_ID_GAMEPLAY3,
     MENU_NONE
 } MenuType_t;
 
@@ -565,6 +566,8 @@ static void M_ID_TimerDirection (int choice);
 static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
 
+static void M_Draw_ID_Gameplay_3 (void);
+
 static void M_ID_SettingReset (int choice);
 static void M_ID_ApplyReset (void);
 
@@ -606,6 +609,7 @@ static Menu_t ID_Def_Keybinds_7;
 static Menu_t ID_Def_Keybinds_8;
 static Menu_t ID_Def_Gameplay_1;
 static Menu_t ID_Def_Gameplay_2;
+static Menu_t ID_Def_Gameplay_3;
 
 // Remember last keybindings page.
 static int Keybinds_Cur;
@@ -656,8 +660,9 @@ static void M_ScrollPages (boolean direction)
     else if (CurrentMenu == &ID_Def_Keybinds_8) SetMenu(direction ? MENU_ID_KBDBINDS1 : MENU_ID_KBDBINDS7);
 
     // Gameplay features:
-    else if (CurrentMenu == &ID_Def_Gameplay_1) SetMenu(MENU_ID_GAMEPLAY2);
-    else if (CurrentMenu == &ID_Def_Gameplay_2) SetMenu(MENU_ID_GAMEPLAY1);
+    else if (CurrentMenu == &ID_Def_Gameplay_1) SetMenu(direction ? MENU_ID_GAMEPLAY2 : MENU_ID_GAMEPLAY3);
+    else if (CurrentMenu == &ID_Def_Gameplay_2) SetMenu(direction ? MENU_ID_GAMEPLAY3 : MENU_ID_GAMEPLAY1);
+    else if (CurrentMenu == &ID_Def_Gameplay_3) SetMenu(direction ? MENU_ID_GAMEPLAY1 : MENU_ID_GAMEPLAY2);
 
     // Play sound.
     S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
@@ -2835,9 +2840,9 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
     { ITT_LRFUNC,  "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE         },
-    { ITT_LRFUNC,  "4TH WEAPON WIDGET",            M_ID_WeaponWidget,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "4TH WEAPON WIDGET",           M_ID_WeaponWidget,    0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE         },
-    { ITT_SETMENU, "", /*NEXT PAGE >*/            NULL,                 0, MENU_ID_GAMEPLAY2 },
+    { ITT_SETMENU, "", /* NEXT PAGE */            NULL,                 0, MENU_ID_GAMEPLAY2 },
 };
 
 static Menu_t ID_Def_Gameplay_1 = {
@@ -2925,7 +2930,7 @@ static void M_Draw_ID_Gameplay_1 (void)
                M_Item_Glow(13, GLOW_DARKGRAY));
 
     // Footer
-    sprintf(str, "PAGE 1/2");
+    sprintf(str, "PAGE 1/3");
     MN_DrTextA(str, M_ItemRightAlign(str), 150, M_Item_Glow(13, GLOW_DARKGRAY));
 }
 
@@ -3008,7 +3013,7 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC,  "SHOW PROGRESS BAR",           M_ID_ProgressBar,    0, MENU_NONE         },
     { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",         M_ID_InternalDemos,  0, MENU_NONE         },
     { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
-    { ITT_SETMENU, "", /*PREVIOUS PAGE >*/        NULL,                0, MENU_ID_GAMEPLAY1 },
+    { ITT_SETMENU, "", /* LAST PAGE */            NULL,                0, MENU_ID_GAMEPLAY3 },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
@@ -3085,11 +3090,11 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 130,
                M_Item_Glow(11, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
 
-    MN_DrTextA("PREVIOUS PAGE", ID_MENU_LEFTOFFSET, 150,
+    MN_DrTextA("LAST PAGE", ID_MENU_LEFTOFFSET, 150,
                M_Item_Glow(13, GLOW_DARKGRAY));
 
     // Footer
-    sprintf(str, "PAGE 2/2");
+    sprintf(str, "PAGE 2/3");
     MN_DrTextA(str, M_ItemRightAlign(str), 150, M_Item_Glow(13, GLOW_DARKGRAY));
 }
 
@@ -3146,6 +3151,49 @@ static void M_ID_ProgressBar (int choice)
 static void M_ID_InternalDemos (int choice)
 {
     demo_internal ^= 1;
+}
+
+// -----------------------------------------------------------------------------
+// Gameplay features 3
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Gameplay_3[] = {
+    { ITT_LRFUNC,  "CORPSES SLIDING FROM LEDGES", M_ID_Torque,         0, MENU_NONE         },
+    { ITT_LRFUNC,  "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,      0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "DEFAULT PLAYER CLASS",        M_ID_DefaultClass,   0, MENU_NONE         },
+    { ITT_LRFUNC,  "DEFAULT SKILL LEVEL",         M_ID_DefaultSkill,   0, MENU_NONE         },
+    { ITT_LRFUNC,  "FLIP LEVELS HORIZONTALLY",    M_ID_FlipLevels,     0, MENU_NONE         },
+    { ITT_LRFUNC,  "ON DEATH ACTION",             M_ID_OnDeathAction,  0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW DEMO TIMER",             M_ID_DemoTimer,      0, MENU_NONE         },
+    { ITT_LRFUNC,  "TIMER DIRECTION",             M_ID_TimerDirection, 0, MENU_NONE         },
+    { ITT_LRFUNC,  "SHOW PROGRESS BAR",           M_ID_ProgressBar,    0, MENU_NONE         },
+    { ITT_LRFUNC,  "PLAY INTERNAL DEMOS",         M_ID_InternalDemos,  0, MENU_NONE         },
+    { ITT_EMPTY,   NULL,                          NULL,                0, MENU_NONE         },
+    { ITT_SETMENU, "", /* FIRST PAGE */           NULL,                0, MENU_ID_GAMEPLAY1 },
+};
+
+static Menu_t ID_Def_Gameplay_3 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Gameplay_3,
+    14, ID_Menu_Gameplay_3,
+    0,
+    true, false, true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Gameplay_3 (void)
+{
+    char str[32];
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY3;
+
+    MN_DrTextA("FIRST PAGE", ID_MENU_LEFTOFFSET, 150,
+               M_Item_Glow(13, GLOW_DARKGRAY));
+
+    // Footer
+    sprintf(str, "PAGE 3/3");
+    MN_DrTextA(str, M_ItemRightAlign(str), 150, M_Item_Glow(13, GLOW_DARKGRAY));
 }
 
 // -----------------------------------------------------------------------------
@@ -3327,6 +3375,7 @@ static Menu_t *Menus[] = {
     &ID_Def_Widgets,
     &ID_Def_Gameplay_1,
     &ID_Def_Gameplay_2,
+    &ID_Def_Gameplay_3,
 };
 
 //---------------------------------------------------------------------------
