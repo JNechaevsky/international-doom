@@ -3022,11 +3022,9 @@ static void M_Draw_ID_Gameplay_2 (void)
                M_Item_Glow(1, st_weapon_widget ? GLOW_GREEN : GLOW_DARKRED));
 
     // Armor icon
-    sprintf(str, st_armor_icon ? "CLASS-BASED" : "GENERIC");
+    sprintf(str, st_armor_icon ? "GENERIC" : "CLASS-BASED");
     MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, !st_armor_icon ? GLOW_DARKRED :
-                               gp_default_class == 0 ? GLOW_GREEN :
-                               gp_default_class == 1 ? GLOW_BLUE : GLOW_RED));
+               M_Item_Glow(2, st_armor_icon ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextACentered("AUDIBLE", 50, cr[CR_YELLOW]);
 

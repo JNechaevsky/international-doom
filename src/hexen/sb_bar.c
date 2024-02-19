@@ -1689,6 +1689,25 @@ static void DrawWeaponPieces(void)
     }
 }
 
+// [JN] Class-based icon variables.
+static const int ClassArmorX[3] = {
+    96, // Fighter
+    94, // Cleric
+    94, // Mage
+};
+
+static const int ClassArmorY[3] = {
+    214, // Fighter
+    212, // Cleric
+    208, // Mage
+};
+
+static const char *ClassArmorIcon[3] = {
+    "ARM1A0", // Mesh armor
+    "ARM2A0", // Falcon Shield
+    "ARM4A0", // Amulet of Warding
+};
+
 // [JN] Generic armor icon.
 static const byte id_armor_icon[] =
 {
@@ -1738,24 +1757,6 @@ static const char *PiecesGfx[][3] = {
     {"WMS1A0", "WMS2A0", "WMS3A0"},
 };
 
-static const int ClassArmorX[3] = {
-    96, // Fighter
-    94, // Cleric
-    94, // Mage
-};
-
-static const int ClassArmorY[3] = {
-    214, // Fighter
-    212, // Cleric
-    208, // Mage
-};
-
-static const char *ClassArmorIcon[3] = {
-    "ARM1A0", // Mesh armor
-    "ARM2A0", // Falcon Shield
-    "ARM4A0", // Amulet of Warding
-};
-
 // -----------------------------------------------------------------------------
 // DrawFullScreenStuff
 // [JN] Upgraded to draw extra elements.
@@ -1764,6 +1765,7 @@ static const char *ClassArmorIcon[3] = {
 static void DrawFullScreenStuff(void)
 {
     const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
+    const int class = PlayerClass[displayplayer];
     int i;
 
     // Health.
@@ -1788,16 +1790,14 @@ static void DrawFullScreenStuff(void)
             dp_translation = NULL;
             if (st_armor_icon)
             {
-                const int class = PlayerClass[displayplayer];
-                
-                // Draw class-based icon.
-                V_DrawShadowedPatch(ClassArmorX[class] - wide_x, ClassArmorY[class],
-                                    W_CacheLumpName(ClassArmorIcon[class], PU_CACHE));
+                // Draw generic armor icon.
+                V_DrawShadowedPatch(81 - wide_x, 176, (patch_t*)id_armor_icon);
             }
             else
             {
-                // Draw generic armor icon.
-                V_DrawShadowedPatch(81 - wide_x, 176, (patch_t*)id_armor_icon);
+                // Draw class-based icon.
+                V_DrawShadowedPatch(ClassArmorX[class] - wide_x, ClassArmorY[class],
+                                    W_CacheLumpName(ClassArmorIcon[class], PU_CACHE));
             }
         }
 
@@ -1899,7 +1899,6 @@ static void DrawFullScreenStuff(void)
     // [JN] Assembled weapon widget.
     if (st_weapon_widget)
     {
-        const int class = PlayerClass[displayplayer];
         patch_t *patch1 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][0]), PU_CACHE);
         patch_t *patch2 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][1]), PU_CACHE);
         patch_t *patch3 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][2]), PU_CACHE);
