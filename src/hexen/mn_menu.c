@@ -3022,12 +3022,11 @@ static void M_Draw_ID_Gameplay_2 (void)
                M_Item_Glow(1, st_weapon_widget ? GLOW_GREEN : GLOW_DARKRED));
 
     // Armor icon
-    /*
-    sprintf(str, st_weapon_widget == 1 ? "SOLID" :
-                 st_weapon_widget == 2 ? "TRANSLUCENT" : "OFF");
+    sprintf(str, st_armor_icon ? "CLASS-BASED" : "GENERIC");
     MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, st_weapon_widget ? GLOW_GREEN : GLOW_DARKRED));
-    */
+               M_Item_Glow(2, !st_armor_icon ? GLOW_DARKRED :
+                               gp_default_class == 0 ? GLOW_GREEN :
+                               gp_default_class == 1 ? GLOW_BLUE : GLOW_RED));
 
     MN_DrTextACentered("AUDIBLE", 50, cr[CR_YELLOW]);
 
@@ -3078,7 +3077,7 @@ static void M_ID_WeaponWidget (int choice)
 
 static void M_ID_ArmorIcon (int choice)
 {
-    // phys_torque ^= 1;
+    st_armor_icon ^= 1;
 }
 
 static void M_ID_ZAxisSfx (int choice)
@@ -3325,6 +3324,7 @@ static void M_ID_ApplyResetHook (void)
     // Status bar
     st_colored_stbar = 0;
     st_weapon_widget = 0;
+    st_armor_icon = 0;
 
     // Physical
     phys_torque = 0;
