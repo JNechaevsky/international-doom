@@ -357,7 +357,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
         // step through the posts in a column
         while (column->topdelta != 0xff)
         {
-            int top, srccol = 0;
+            int top, top2, srccol = 0;
             // [crispy] support for DeePsea tall patches
             if (column->topdelta <= topdelta)
             {
@@ -368,16 +368,17 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
                 topdelta = column->topdelta;
             }
             top = ((y + topdelta) * dy) >> FRACBITS;
+            top2 = top;
             source = (byte *)column + 3;
             dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
             dest2 = desttop2 + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
             count2 = count = (column->length * dy) >> FRACBITS;
 
-            // [crispy] too low / height
-            if (top + count2 > (SCREENHEIGHT-(2*vid_resolution)))
+            if (top + count2 > (SCREENHEIGHT - (2 * vid_resolution)))
             {
-                count2 = (SCREENHEIGHT-(2*vid_resolution)) - top;
+                count2 = (SCREENHEIGHT - (2 * vid_resolution)) - top;
             }
+            // [crispy] too low / height
             if (top + count > SCREENHEIGHT)
             {
                 count = SCREENHEIGHT - top;
@@ -391,7 +392,10 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 
             while (count2--)
             {
-                *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
+                if (top2++ >= 0)
+                {
+                    *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
+                }
                 dest2 += SCREENWIDTH;
             }
             while (count--)
