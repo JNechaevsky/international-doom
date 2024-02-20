@@ -308,7 +308,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 
 void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 {
-    int count;
+    int count, count2;
     int col;
     column_t *column;
     pixel_t *desttop, *desttop2;
@@ -357,7 +357,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
         // step through the posts in a column
         while (column->topdelta != 0xff)
         {
-            int top, srccol = 0;
+            int top, top2, srccol = 0;
             // [crispy] support for DeePsea tall patches
             if (column->topdelta <= topdelta)
             {
@@ -368,28 +368,38 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
                 topdelta = column->topdelta;
             }
             top = ((y + topdelta) * dy) >> FRACBITS;
+            top2 = top;
             source = (byte *)column + 3;
             dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
             dest2 = desttop2 + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
-            count = (column->length * dy) >> FRACBITS;
+            count2 = count = (column->length * dy) >> FRACBITS;
 
-            // [crispy] too low / height
-            if (top + count > (SCREENHEIGHT-(2*vid_resolution)))
+            if (top + count2 > (SCREENHEIGHT - (2 * vid_resolution)))
             {
-                count = (SCREENHEIGHT-(2*vid_resolution)) - top;
+                count2 = (SCREENHEIGHT - (2 * vid_resolution)) - top;
+            }
+            // [crispy] too low / height
+            if (top + count > SCREENHEIGHT)
+            {
+                count = SCREENHEIGHT - top;
             }
 
             // [crispy] nothing left to draw?
-            if (count < 1)
+            if (count < 1 || count2 < 1)
             {
                 break;
             }
 
+            while (count2--)
+            {
+                if (top2++ >= 0)
+                {
+                    *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
+                }
+                dest2 += SCREENWIDTH;
+            }
             while (count--)
             {
-                *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
-                dest2 += SCREENWIDTH;
-
                 // [crispy] too high
                 if (top++ >= 0)
                 {
@@ -412,7 +422,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 
 void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
 {
-    int count, col;
+    int count, count2, col;
     column_t *column;
     pixel_t *desttop, *dest;
     byte *source;
@@ -462,7 +472,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
         // step through the posts in a column
         while (column->topdelta != 0xff)
         {
-            int top, srccol = 0;
+            int top, top2, srccol = 0;
             // [crispy] support for DeePsea tall patches
             if (column->topdelta <= topdelta)
             {
@@ -473,31 +483,41 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
                 topdelta = column->topdelta;
             }
             top = ((y + topdelta) * dy) >> FRACBITS;
+            top2 = top;
             source = (byte *)column + 3;
             dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
             dest2 = dest + shadow_shift;
-            count = (column->length * dy) >> FRACBITS;
+            count2 = count = (column->length * dy) >> FRACBITS;
 
-            // [crispy] too low / height
-            if (top + count > (SCREENHEIGHT-(2*vid_resolution)))
+            if (top + count2 > (SCREENHEIGHT - (1 * vid_resolution)))
             {
-                count = (SCREENHEIGHT-(2*vid_resolution)) - top;
+                count2 = (SCREENHEIGHT - (1 * vid_resolution)) - top;
+            }
+            // [crispy] too low / height
+            if (top + count > SCREENHEIGHT)
+            {
+                count = SCREENHEIGHT - top;
             }
 
             // [crispy] nothing left to draw?
-            if (count < 1)
+            if (count < 1 || count2 < 1)
             {
                 break;
             }
 
-            while (count--)
+            if (msg_text_shadows)
             {
-                if (msg_text_shadows)
+                while (count2--)
                 {
-                    *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
+                    if (top2++ >= 0)
+                    {
+                        *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
+                    }
                     dest2 += SCREENWIDTH;
                 }
-
+            }
+            while (count--)
+            {
                 // [crispy] too high
                 if (top++ >= 0)
                 {
