@@ -374,9 +374,9 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
             count = (column->length * dy) >> FRACBITS;
 
             // [crispy] too low / height
-            if (top + count > (SCREENHEIGHT-2))
+            if (top + count > (SCREENHEIGHT-(2*vid_resolution)))
             {
-                count = (SCREENHEIGHT-2) - top;
+                count = (SCREENHEIGHT-(2*vid_resolution)) - top;
             }
 
             // [crispy] nothing left to draw?
@@ -479,9 +479,9 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
             count = (column->length * dy) >> FRACBITS;
 
             // [crispy] too low / height
-            if (top + count > (SCREENHEIGHT-2))
+            if (top + count > (SCREENHEIGHT-(2*vid_resolution)))
             {
-                count = (SCREENHEIGHT-2) - top;
+                count = (SCREENHEIGHT-(2*vid_resolution)) - top;
             }
 
             // [crispy] nothing left to draw?
