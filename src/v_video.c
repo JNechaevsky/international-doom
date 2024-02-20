@@ -308,7 +308,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 
 void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 {
-    int count;
+    int count, count2;
     int col;
     column_t *column;
     pixel_t *desttop, *desttop2;
@@ -371,25 +371,31 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
             source = (byte *)column + 3;
             dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
             dest2 = desttop2 + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
-            count = (column->length * dy) >> FRACBITS;
+            count2 = count = (column->length * dy) >> FRACBITS;
 
             // [crispy] too low / height
-            if (top + count > (SCREENHEIGHT-(2*vid_resolution)))
+            if (top + count2 > (SCREENHEIGHT-(2*vid_resolution)))
             {
-                count = (SCREENHEIGHT-(2*vid_resolution)) - top;
+                count2 = (SCREENHEIGHT-(2*vid_resolution)) - top;
+            }
+            if (top + count > SCREENHEIGHT)
+            {
+                count = SCREENHEIGHT - top;
             }
 
             // [crispy] nothing left to draw?
-            if (count < 1)
+            if (count < 1 || count2 < 1)
             {
                 break;
             }
 
-            while (count--)
+            while (count2--)
             {
                 *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
                 dest2 += SCREENWIDTH;
-
+            }
+            while (count--)
+            {
                 // [crispy] too high
                 if (top++ >= 0)
                 {
