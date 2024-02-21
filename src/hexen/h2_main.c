@@ -403,9 +403,6 @@ void D_DoomMain(void)
 
     I_AtExit(I_ShutdownGraphics, true);
 
-    // [JN] Set screeenshot files dir.
-    M_SetScreenshotDir();
-
     // Load defaults before initing other systems
     ST_Message("M_LoadDefaults: Load system defaults.\n");
     D_BindVariables();
@@ -445,6 +442,9 @@ void D_DoomMain(void)
     M_LoadDefaults();
 
     D_SetDefaultSavePath();
+
+    // [JN] Set screeenshot files dir.
+    M_SetScreenshotDir();
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 

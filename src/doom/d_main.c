@@ -1587,9 +1587,6 @@ void D_DoomMain (void)
         M_SetConfigDir(NULL);
     }
 
-    // [JN] Set screeenshot files dir.
-    M_SetScreenshotDir();
-
     //!
     // @arg <x>
     // @vanilla
@@ -1620,6 +1617,9 @@ void D_DoomMain (void)
     M_SetConfigFilenames(PROGRAM_PREFIX "doom.ini");
     D_BindVariables();
     M_LoadDefaults();
+
+    // [JN] Set screeenshot files dir.
+    M_SetScreenshotDir();
 
     // [JN] Disk icon can be enabled for Doom.
     diskicon_enabled = true;

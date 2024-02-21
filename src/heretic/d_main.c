@@ -1005,14 +1005,14 @@ void D_DoomMain(void)
         M_SetConfigDir(NULL);
     }
 
-    // [JN] Set screeenshot files dir.
-    M_SetScreenshotDir();
-
     // Load defaults before initing other systems
     DEH_printf("M_LoadDefaults: Load system defaults.\n");
     D_BindVariables();
     M_SetConfigFilenames(PROGRAM_PREFIX "heretic.ini");
     M_LoadDefaults();
+
+    // [JN] Set screeenshot files dir.
+    M_SetScreenshotDir();
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
