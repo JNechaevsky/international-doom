@@ -362,6 +362,8 @@ void D_SetGameDescription(void)
     }
 }
 
+static const char *const loadparms[] = {"-file", "-merge", NULL}; // [crispy]
+
 //==========================================================================
 //
 // H2_Main
@@ -732,6 +734,38 @@ static void HandleArgs(void)
         autostart = true;
     }
 
+    // [crispy] add wad files from autoload PWAD directories
+    // [JN] Please do not. No need to create additional directories,
+    // consider using "hexen.wad" for autoloading purposes.
+    // But allow autoload for Deathkings of the Dark Citadel (hexdd.wad),
+    // as is it's an official addon, made as PWAD, not IWAD.
+
+    if (!M_ParmExists("-noautoload") && gamemode != shareware)
+    {
+        int i;
+
+        for (i = 0; loadparms[i]; i++)
+        {
+            int p;
+            p = M_CheckParmWithArgs(loadparms[i], 1);
+            if (p)
+            {
+                while (++p != myargc && myargv[p][0] != '-')
+                {
+                    if (M_StrCaseStr(myargv[p], "hexdd.wad"))
+                    {
+                        char *autoload_dir;
+                        if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]))))
+                        {
+                            W_AutoLoadWADs(autoload_dir);
+                            free(autoload_dir);
+                        }
+                        gamedescription = "Hexen: Deathkings of the Dark Citadel";
+                    }
+                }
+            }
+        }
+    }
     //!
     // @arg <demo>
     // @category demo
