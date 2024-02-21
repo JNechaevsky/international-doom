@@ -1437,7 +1437,7 @@ static void DrawFullScreenStuff (void)
     DrBNumber(CPlayer->health, -1 - wide_x, 175);
     dp_translation = NULL;
     // Draw health vial.
-    V_DrawShadowedPatch(41 - wide_x, 217, W_CacheLumpName(DEH_String("PTN1A0"), PU_CACHE));
+    V_DrawShadowedPatchNoOffsets(39 - wide_x, 176, W_CacheLumpName(DEH_String("PTN1A0"), PU_CACHE));
 
     if (!inventory)
     {
@@ -1452,11 +1452,11 @@ static void DrawFullScreenStuff (void)
             // Slightly different placements needed for better placement.
             if (CPlayer->armortype == 1)
             {
-                V_DrawShadowedPatch(103 - wide_x, 213, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
+                V_DrawShadowedPatchNoOffsets(91 - wide_x, 174, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
             }
             else
             {
-                V_DrawShadowedPatch(101 - wide_x, 214, W_CacheLumpName(DEH_String("SHD2A0"), PU_CACHE));
+                V_DrawShadowedPatchNoOffsets(91 - wide_x, 172, W_CacheLumpName(DEH_String("SHD2A0"), PU_CACHE));
             }
         }
 

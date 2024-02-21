@@ -414,6 +414,18 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 }
 
 //
+// V_DrawShadowedPatchNoOffsets
+// [JN] Zero-out predefined sprite offsets to use only function-defined ones.
+//
+
+void V_DrawShadowedPatchNoOffsets(int x, int y, patch_t *patch)
+{
+    patch->topoffset = 0;
+    patch->leftoffset = 0;
+    V_DrawShadowedPatch(x, y, patch);
+}
+
+//
 // V_DrawShadowedOptional
 // [JN] Draws patch with shadow if "Text casts shadows" feature is enabled.
 //  dest  - main patch, drawed second on top of shadow.

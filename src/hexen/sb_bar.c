@@ -1691,15 +1691,15 @@ static void DrawWeaponPieces(void)
 
 // [JN] Class-based icon variables.
 static const int ClassArmorX[3] = {
-    96, // Fighter
-    94, // Cleric
-    94, // Mage
+    81, // Fighter
+    83, // Cleric
+    82, // Mage
 };
 
 static const int ClassArmorY[3] = {
-    214, // Fighter
-    212, // Cleric
-    208, // Mage
+   172, // Fighter
+   170, // Cleric
+   168, // Mage
 };
 
 static const char *ClassArmorIcon[3] = {
@@ -1773,7 +1773,7 @@ static void DrawFullScreenStuff(void)
     DrBNumber(CPlayer->health, -1 - wide_x, 175);
     dp_translation = NULL;
     // Draw health vial.
-    V_DrawShadowedPatch(41 - wide_x, 217, W_CacheLumpName("PTN1A0", PU_CACHE));
+    V_DrawShadowedPatchNoOffsets(39 - wide_x, 176, W_CacheLumpName("PTN1A0", PU_CACHE));
 
     if (!inventory)
     {
@@ -1796,7 +1796,7 @@ static void DrawFullScreenStuff(void)
             else
             {
                 // Draw class-based icon.
-                V_DrawShadowedPatch(ClassArmorX[class] - wide_x, ClassArmorY[class],
+                V_DrawShadowedPatchNoOffsets(ClassArmorX[class] - wide_x, ClassArmorY[class],
                                     W_CacheLumpName(ClassArmorIcon[class], PU_CACHE));
             }
         }
