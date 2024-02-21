@@ -401,6 +401,13 @@ void D_DoomMain(void)
 
     I_AtExit(I_ShutdownGraphics, true);
 
+    // [JN] Set screeenshot files dir.
+    M_SetScreenshotDir();
+
+    // Load defaults before initing other systems
+    ST_Message("M_LoadDefaults: Load system defaults.\n");
+    D_BindVariables();
+
 #ifdef _WIN32
     // [JN] Pressing PrintScreen on Windows 11 is opening Snipping Tool.
     // Re-register PrintScreen key pressing for port needs to avoid this.
@@ -432,12 +439,6 @@ void D_DoomMain(void)
         M_SetConfigDir(NULL);
     }
 
-    // [JN] Set screeenshot files dir.
-    M_SetScreenshotDir();
-
-    // Load defaults before initing other systems
-    ST_Message("M_LoadDefaults: Load system defaults.\n");
-    D_BindVariables();
     M_SetConfigFilenames(PROGRAM_PREFIX "hexen.ini");
     M_LoadDefaults();
 
