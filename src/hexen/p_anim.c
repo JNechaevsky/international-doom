@@ -80,8 +80,10 @@ fixed_t Sky2ScrollDelta;
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
-static animDef_t AnimDefs[MAX_ANIM_DEFS];
-static frameDef_t FrameDefs[MAX_FRAME_DEFS];
+static animDef_t *AnimDefs = NULL;    // [JN] Remove MAX_ANIM_DEFS limit.
+static int AnimDefsMax = 0;
+static frameDef_t *FrameDefs = NULL;  // [JN] Remove MAX_FRAME_DEFS limit.
+static int FrameDefsMax = 0;
 static int AnimDefCount;
 static boolean LevelHasLightning;
 static int NextLightningFlash;
@@ -432,9 +434,15 @@ void P_InitFTAnims(void)
     SC_Open(ANIM_SCRIPT_NAME);
     while (SC_GetString())
     {
-        if (AnimDefCount == MAX_ANIM_DEFS)
+        // [JN] Remove MAX_ANIM_DEFS limit.
+        if (AnimDefCount == AnimDefsMax)
         {
-            I_Error("P_InitFTAnims: too many AnimDefs.");
+            ptrdiff_t old;
+
+            old = ad - AnimDefs;
+            AnimDefs = I_Realloc(AnimDefs, (AnimDefsMax = AnimDefsMax ?
+                                 AnimDefsMax * 2 : MAX_ANIM_DEFS) * sizeof(*AnimDefs));
+            ad = AnimDefs + old;
         }
         if (SC_Compare(SCI_FLAT))
         {
@@ -480,9 +488,11 @@ void P_InitFTAnims(void)
             {
                 if (SC_Compare(SCI_PIC))
                 {
-                    if (fd == MAX_FRAME_DEFS)
+                    // [JN] Remove MAX_FRAME_DEFS limit.
+                    if (fd == FrameDefsMax)
                     {
-                        I_Error("P_InitFTAnims: too many FrameDefs.");
+                        FrameDefs = I_Realloc(FrameDefs, (FrameDefsMax = FrameDefsMax ?
+                                              FrameDefsMax * 2 : MAX_FRAME_DEFS) * sizeof(*FrameDefs));
                     }
                     SC_MustGetNumber();
                     if (ignore == false)
