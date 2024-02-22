@@ -630,6 +630,7 @@ typedef struct mobj_s
     boolean     resurrected;
 
     // [JN] Amplitude of floating powerups, used *only* while rendering.
+    fixed_t     float_amp;
     fixed_t     float_z;
     fixed_t     old_float_z;
 
