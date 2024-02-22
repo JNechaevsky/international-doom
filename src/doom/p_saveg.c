@@ -30,6 +30,7 @@
 #include "m_misc.h"
 #include "am_map.h"
 #include "s_sound.h"
+#include "m_random.h"
 #include "m_menu.h"
 
 #include "id_vars.h"
@@ -433,6 +434,9 @@ static void saveg_read_mobj_t(mobj_t *str)
     str->oldy = 0;
     str->oldz = 0;
     str->oldangle = 0;
+
+    // [JN] Randomize floating powerups amplitude.
+    str->float_amp = ID_RealRandom() % 63;
 }
 
 static void saveg_write_mobj_t(mobj_t *str)

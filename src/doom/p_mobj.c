@@ -627,7 +627,7 @@ void P_MobjThinker (mobj_t* mobj)
                       + (phys_floating_powerups == 1 ? FloatBobOffsetsS :  // Low amplitude
                          phys_floating_powerups == 2 ? FloatBobOffsetsM :  // Middle amplitude
                                                        FloatBobOffsetsB)   // High amplitude
-                                                       [leveltime & 63];
+                                                       [(mobj->float_amp++) & 63];
     }
 
     // [JN] killough 9/12/98: objects fall off ledges if they are hanging off
@@ -755,25 +755,12 @@ P_SpawnMobjSafe
     mobj->radius = info->radius;
     mobj->height = info->height;
     mobj->flags = info->flags;
+    mobj->health = info->spawnhealth;
     // [JN] Resurrected monsters counter (not resurrected at spawn).
     mobj->resurrected = false;
     // [JN] Initialize animated brightmaps;
     mobj->bmap_flick = 0;
     mobj->bmap_glow = 0;
-    // [JN] Randomize spawn health for floating powerups,
-    /*
-    // so they will spawn at random height.
-    if (mobj->type == MT_MEGA    // Megasphere
-    ||  mobj->type == MT_MISC12  // Supercharge
-    ||  mobj->type == MT_INV     // Invulnerability
-    ||  mobj->type == MT_INS)    // Partial invisibility
-    {
-        mobj->health = info->spawnhealth + ID_RealRandom() % 255;
-    }
-    */
-    {
-        mobj->health = info->spawnhealth;
-    }
 
     if (gameskill != sk_nightmare)
 	mobj->reactiontime = info->reactiontime;
@@ -807,8 +794,17 @@ P_SpawnMobjSafe
 	mobj->health = (mobj->health & (int)~1) - (ID_RealRandom() & 1);
     }
     
-    // [JN] Set floating z value to actual mobj z coord.
-    mobj->old_float_z = mobj->float_z = mobj->z;
+    // [JN] Set floating z value of floating powerups
+    // to actual mobj z coord and randomize amplitude
+    // so they will spawn at random height.
+    if (mobj->type == MT_MEGA    // Megasphere
+    ||  mobj->type == MT_MISC12  // Supercharge
+    ||  mobj->type == MT_INV     // Invulnerability
+    ||  mobj->type == MT_INS)    // Partial invisibility
+    {
+        mobj->old_float_z = mobj->float_z = mobj->z;
+        mobj->float_amp = ID_RealRandom() % 63;
+    }
 
     // [AM] Do not interpolate on spawn.
     mobj->interp = false;

@@ -570,7 +570,7 @@ static void R_ProjectSprite (mobj_t* thing)
     ||  thing->type == MT_INV        // Invulnerability
     ||  thing->type == MT_INS))      // Partial invisibility
     {
-        if (realleveltime > oldleveltime)
+        if ((realleveltime > oldleveltime) && !crl_freeze)
         {
             interpz = thing->old_float_z + FixedMul(thing->float_z - thing->old_float_z, fractionaltic);
         }
