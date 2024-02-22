@@ -173,7 +173,6 @@ void D_BindVariables(void)
 
     NET_BindVariables();
 
-    M_BindIntVariable("mouse_sensitivity",      &mouseSensitivity);
     M_BindIntVariable("sfx_volume",             &snd_MaxVolume);
     M_BindIntVariable("music_volume",           &snd_MusicVolume);
 
@@ -403,10 +402,6 @@ void D_DoomMain(void)
 
     I_AtExit(I_ShutdownGraphics, true);
 
-    // Load defaults before initing other systems
-    ST_Message("M_LoadDefaults: Load system defaults.\n");
-    D_BindVariables();
-
 #ifdef _WIN32
     // [JN] Pressing PrintScreen on Windows 11 is opening Snipping Tool.
     // Re-register PrintScreen key pressing for port needs to avoid this.
@@ -438,6 +433,9 @@ void D_DoomMain(void)
         M_SetConfigDir(NULL);
     }
 
+    // Load defaults before initing other systems
+    ST_Message("M_LoadDefaults: Load system defaults.\n");
+    D_BindVariables();
     M_SetConfigFilenames(PROGRAM_PREFIX "hexen.ini");
     M_LoadDefaults();
 
