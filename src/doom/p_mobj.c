@@ -1147,21 +1147,11 @@ void P_SpawnMapThing (mapthing_t* mthing)
     if (mobj->info->spawnstate == S_PLAY_DIE7
     ||  mobj->info->spawnstate == S_PLAY_XDIE9)
     {
-        mobj->health -= ID_RealRandom() & 1;
         // [crispy] randomly colorize space marine corpse objects
         if (!netgame && vis_colored_blood)
         {
             mobj->flags |= (ID_RealRandom() & 3) << MF_TRANSSHIFT;
         }
-    }
-    // [JN] Randomly flip dead monster map objects as well.
-    if (mobj->info->spawnstate == S_POSS_DIE5
-    ||  mobj->info->spawnstate == S_SPOS_DIE5
-    ||  mobj->info->spawnstate == S_TROO_DIE5
-    ||  mobj->info->spawnstate == S_SARG_DIE6
-    ||  mobj->info->spawnstate == S_HEAD_DIE6)
-    {
-        mobj->health -= ID_RealRandom() & 1;
     }
 
     // [crispy] blinking key or skull in the status bar
