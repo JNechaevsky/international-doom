@@ -616,6 +616,7 @@ void P_MobjThinker (mobj_t* mobj)
 	    return;		// mobj was removed
     }
 
+/*
     // [JN] Set amplitude of floating powerups:
     if (phys_floating_powerups
     && (mobj->type == MT_MEGA       // Megasphere
@@ -629,6 +630,7 @@ void P_MobjThinker (mobj_t* mobj)
                                                       FloatBobOffsetsB)   // High amplitude
                                                       [(mobj->health++) & 63];
     }
+*/
 
     // [JN] killough 9/12/98: objects fall off ledges if they are hanging off
     // slightly push off of ledge if hanging more than halfway off
@@ -761,6 +763,7 @@ P_SpawnMobjSafe
     mobj->bmap_flick = 0;
     mobj->bmap_glow = 0;
     // [JN] Randomize spawn health for floating powerups,
+    /*
     // so they will spawn at random height.
     if (mobj->type == MT_MEGA    // Megasphere
     ||  mobj->type == MT_MISC12  // Supercharge
@@ -770,6 +773,7 @@ P_SpawnMobjSafe
         mobj->health = info->spawnhealth + ID_RealRandom() % 255;
     }
     else
+    */
     {
         mobj->health = info->spawnhealth;
     }
