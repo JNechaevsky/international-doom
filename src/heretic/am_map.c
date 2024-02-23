@@ -1746,6 +1746,9 @@ static void AM_drawGrid (void)
 // This is LineDef based, not LineSeg based.
 // -----------------------------------------------------------------------------
 
+#define LINESECRETSECTOR1S automap_secrets && lines[i].frontsector->special == 9
+#define LINESECRETSECTOR2S automap_secrets && (lines[i].frontsector->special == 9 || lines[i].backsector->special == 9)
+
 static void AM_drawWalls (void)
 {
     static mline_t l;
@@ -1769,16 +1772,16 @@ static void AM_drawWalls (void)
                 continue;
             if (!lines[i].backsector)
             {
-                // [JN] Mark secret sectors.
-                if (automap_secrets && lines[i].frontsector->special == 9)
-                {
-                    AM_drawMline(&l, SECRETCOLORS);
-                }
                 // [JN] Colorize 1-sided exits with azure.
-                else
                 if (lines[i].special == 11 || lines[i].special == 51)
                 {
                     AM_drawMline(&l, EXITS);
+                }
+                // [JN] Mark secret sectors.
+                else
+                if (LINESECRETSECTOR1S)
+                {
+                    AM_drawMline(&l, SECRETCOLORS);
                 }
                 else
                 {
@@ -1789,19 +1792,21 @@ static void AM_drawWalls (void)
             {
                 if (lines[i].flags & ML_SECRET)    // secret door
                 {
+                     // [plums] secret sectors still get colored when option is on
+                    if (LINESECRETSECTOR2S)
+                        AM_drawMline(&l, SECRETCOLORS);
+                    else
                     if (ravmap_cheating)
                         AM_drawMline(&l, 0);
                     else
                         AM_drawMline(&l, WALLCOLORS);
                 }
-                // [JN] Mark secret sectors.
-                else if (automap_secrets 
-                && (lines[i].frontsector->special == 9
-                ||  lines[i].backsector->special == 9))
+                else
                 {
-                    AM_drawMline(&l, SECRETCOLORS);
-                }
-                if (lines[i].special > 25 && lines[i].special < 35)
+                // [plums] check only colored door types, to not interfere
+                // with secret sector marking of types 28-31.
+                if ((lines[i].special > 25 && lines[i].special < 28)
+                ||  (lines[i].special > 31 && lines[i].special < 35))
                 {
                     switch (lines[i].special)
                     {
@@ -1825,14 +1830,21 @@ static void AM_drawWalls (void)
                 else
                 if (lines[i].special == 39
                 ||  lines[i].special == 97)
-                {               
+                {
                     AM_drawMline(&l, TELEPORTERS);
                 }
                 // [JN] Colorize 2-sided exits with azure.
+                // Switches can still be 2-sided.
                 else
-                if (lines[i].special == 52 || lines[i].special == 105)
-                {               
+                if (lines[i].special == 52 || lines[i].special == 105
+                ||  lines[i].special == 11 || lines[i].special == 51)
+                {
                     AM_drawMline(&l, EXITS);
+                }
+                // [JN] Mark secret sectors.
+                else if (LINESECRETSECTOR2S)
+                {
+                    AM_drawMline(&l, SECRETCOLORS);
                 }
                 else if (lines[i].backsector->floorheight
                          != lines[i].frontsector->floorheight)
@@ -1847,6 +1859,7 @@ static void AM_drawWalls (void)
                 else if (ravmap_cheating)
                 {
                     AM_drawMline(&l, MLDONTDRAW1);
+                }
                 }
             }
         }
