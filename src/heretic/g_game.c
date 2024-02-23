@@ -960,12 +960,6 @@ void G_DoLoadLevel(void)
     }
 
     P_SetupLevel(gameepisode, gamemap, 0, gameskill);
-    // view the guy you are playing
-    // [JN] Do not reset chosen player view while multiplayer demo playback.
-    if (!netgame && !demoplayback)
-    {
-        displayplayer = consoleplayer;
-    }
     gameaction = ga_nothing;
     Z_CheckHeap();
 
@@ -2872,6 +2866,10 @@ void G_DoPlayDemo(void)
     {
       netdemo = true;
     }
+
+    // [JN] Moved from G_DoLoadLevel to to not reset 
+    // chosen player view while multiplayer demo playback.
+    displayplayer = consoleplayer;      // view the guy you are playing
 
     // [crispy] demo progress bar
     G_DemoProgressBar(lumplength);
