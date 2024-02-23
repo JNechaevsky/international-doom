@@ -385,7 +385,7 @@ void D_DoomLoop(void)
                 S_MuteUnmuteSound (!window_focused);
             }
 
-            S_UpdateSounds(players[consoleplayer].mo);
+            S_UpdateSounds(players[displayplayer].mo);
             oldgametic = gametic;
         }
 

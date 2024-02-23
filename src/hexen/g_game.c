@@ -1157,6 +1157,8 @@ boolean G_Responder(event_t * ev)
             {
                 displayplayer = 0;
             }
+            // [JN] Re-set appropriate assembled weapon widget graphics.
+            SB_SetClassData();
         }
         while (!playeringame[displayplayer]
                && displayplayer != consoleplayer);
@@ -2747,6 +2749,9 @@ void G_DoPlayDemo(void)
     {
         netdemo = true;
     }
+
+    // [JN] Set appropriate assembled weapon widget graphics.
+    SB_SetClassData();
 
     // [crispy] demo progress bar
     G_DemoProgressBar(lumplength);
