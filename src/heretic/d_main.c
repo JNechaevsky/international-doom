@@ -127,7 +127,7 @@ void D_ProcessEvents(void)
 
 static void DrawMessage (void)
 {
-    player_t *player = &players[consoleplayer];
+    player_t *player = &players[displayplayer];
     
     if (player->messageTics <= 0 || !player->message)
     {                           // No message
