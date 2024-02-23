@@ -5402,7 +5402,12 @@ void MN_DeactivateMenu(void)
     {
         paused = false;
     }
-    S_StartSound(NULL, SFX_PLATFORM_STOP);
+    // [JN] Do not play closing menu sound on quick save/loading actions.
+    // Quick save playing it separatelly, quick load doesn't need it at all.
+    if (!quicksave && !quickload)
+    {
+        S_StartSound(NULL, SFX_PLATFORM_STOP);
+    }
 }
 
 //---------------------------------------------------------------------------
