@@ -1027,7 +1027,7 @@ void D_DoomMain(void)
     }
 #endif
 
-    // [JN] Use choosen default skill level.
+    // [JN] Use chosen default skill level.
     startskill = gp_default_skill;
 
     //!

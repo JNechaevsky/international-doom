@@ -446,7 +446,7 @@ void D_DoomMain(void)
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
-    // [JN] Use choosen default skill level.
+    // [JN] Use chosen default skill level.
     startskill = gp_default_skill;
 
     // Now that the savedir is loaded, make sure it exists

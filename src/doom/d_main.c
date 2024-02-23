@@ -1991,7 +1991,7 @@ void D_DoomMain (void)
     D_ConnectNetGame();
 
     // get skill / episode / map from parms
-    // [JN] Use choosen default skill level.
+    // [JN] Use chosen default skill level.
     startskill = gp_default_skill;
     startepisode = 1;
     startmap = 1;
