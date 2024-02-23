@@ -193,7 +193,7 @@ static void InitConnectData(net_connect_data_t *connect_data)
     }
     else
     {
-        // [JN] Use choosen default player class.
+        // [JN] Use chosen default player class.
         connect_data->player_class = gp_default_class;
     }
 

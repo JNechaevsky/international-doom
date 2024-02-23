@@ -918,7 +918,12 @@ void G_DoLoadLevel(void)
 
     SN_StopAllSequences();
     P_SetupLevel(gameepisode, gamemap, 0, gameskill);
-    displayplayer = consoleplayer;      // view the guy you are playing   
+    // view the guy you are playing
+    // [JN] Do not reset chosen player view while multiplayer demo playback.
+    if (!netgame && !demoplayback)
+    {
+        displayplayer = consoleplayer;
+    }
     gameaction = ga_nothing;
     Z_CheckHeap();
 
@@ -1157,9 +1162,18 @@ boolean G_Responder(event_t * ev)
             {
                 displayplayer = 0;
             }
+            // [JN] Re-set appropriate assembled weapon widget graphics.
+            SB_SetClassData();
         }
         while (!playeringame[displayplayer]
                && displayplayer != consoleplayer);
+        // [JN] Refresh status bar.
+        SB_ForceRedraw();
+        // [JN] Update sound values for appropriate player.
+        S_UpdateSounds(players[displayplayer].mo);
+        // [JN] Re-init automap variables for correct player arrow angle.
+        if (automapactive)
+        AM_initVariables();
         return (true);
     }
 
@@ -2747,6 +2761,9 @@ void G_DoPlayDemo(void)
     {
         netdemo = true;
     }
+
+    // [JN] Set appropriate assembled weapon widget graphics.
+    SB_SetClassData();
 
     // [crispy] demo progress bar
     G_DemoProgressBar(lumplength);

@@ -64,7 +64,7 @@ void S_Start(void)
 {
     int i;
 
-    // [JN] If music was choosen by cheat code, play it.
+    // [JN] If music was chosen by cheat code, play it.
     if (idmusnum != -1)
     {
         S_StartSong(idmusnum, true);

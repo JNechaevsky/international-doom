@@ -424,7 +424,7 @@ void SB_SetClassData(void)
 {
     int class;
 
-    class = PlayerClass[consoleplayer]; // original player class (not pig)
+    class = PlayerClass[displayplayer]; // original player class (not pig)
     PatchWEAPONSLOT = W_CacheLumpNum(W_GetNumForName("wpslot0")
                                      + class, PU_STATIC);
     PatchWEAPONFULL = W_CacheLumpNum(W_GetNumForName("wpfull0")
@@ -444,7 +444,7 @@ void SB_SetClassData(void)
     else
     {
         PatchLIFEGEM = W_CacheLumpNum(W_GetNumForName("lifegem")
-                                      + maxplayers * class + consoleplayer,
+                                      + maxplayers * class + displayplayer,
                                       PU_STATIC);
     }
     SB_state = -1;
@@ -461,7 +461,7 @@ void SB_Ticker(void)
     int delta;
     int curHealth;
 
-    curHealth = players[consoleplayer].mo->health;
+    curHealth = players[displayplayer].mo->health;
     if (curHealth < 0)
     {
         curHealth = 0;
@@ -875,7 +875,7 @@ void SB_Drawer(void)
     {
         DrawSoundInfo();
     }
-    CPlayer = &players[consoleplayer];
+    CPlayer = &players[displayplayer];
     if (viewheight == SCREENHEIGHT
         && !(automapactive && !automap_overlay))
     {
@@ -1233,7 +1233,7 @@ void SB_PaletteFlash(boolean forceChange)
     }
     if (gamestate == GS_LEVEL)
     {
-        CPlayer = &players[consoleplayer];
+        CPlayer = &players[displayplayer];
         if (CPlayer->poisoncount)
         {
             palette = 0;
@@ -1677,15 +1677,15 @@ static void DrawWeaponPieces(void)
     V_DrawPatch(190, 162, PatchWEAPONSLOT);
     if (CPlayer->pieces & WPIECE1)
     {
-        V_DrawPatch(PieceX[PlayerClass[consoleplayer]][0], 162, PatchPIECE1);
+        V_DrawPatch(PieceX[PlayerClass[displayplayer]][0], 162, PatchPIECE1);
     }
     if (CPlayer->pieces & WPIECE2)
     {
-        V_DrawPatch(PieceX[PlayerClass[consoleplayer]][1], 162, PatchPIECE2);
+        V_DrawPatch(PieceX[PlayerClass[displayplayer]][1], 162, PatchPIECE2);
     }
     if (CPlayer->pieces & WPIECE3)
     {
-        V_DrawPatch(PieceX[PlayerClass[consoleplayer]][2], 162, PatchPIECE3);
+        V_DrawPatch(PieceX[PlayerClass[displayplayer]][2], 162, PatchPIECE3);
     }
 }
 

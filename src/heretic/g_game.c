@@ -960,7 +960,12 @@ void G_DoLoadLevel(void)
     }
 
     P_SetupLevel(gameepisode, gamemap, 0, gameskill);
-    displayplayer = consoleplayer;      // view the guy you are playing
+    // view the guy you are playing
+    // [JN] Do not reset chosen player view while multiplayer demo playback.
+    if (!netgame && !demoplayback)
+    {
+        displayplayer = consoleplayer;
+    }
     gameaction = ga_nothing;
     Z_CheckHeap();
 
@@ -1204,6 +1209,11 @@ boolean G_Responder(event_t * ev)
                && displayplayer != consoleplayer);
         // [JN] Refresh status bar.
         SB_ForceRedraw();
+        // [JN] Update sound values for appropriate player.
+        S_UpdateSounds(players[displayplayer].mo);
+        // [JN] Re-init automap variables for correct player arrow angle.
+        if (automapactive)
+        AM_initVariables();
         return (true);
     }
 
@@ -2206,7 +2216,7 @@ void G_DoLoadGame(void)
     gameskill = SV_ReadByte();
     gameepisode = SV_ReadByte();
     gamemap = SV_ReadByte();
-    // [JN] Read choosen by IDMUS music from saved game.
+    // [JN] Read chosen by IDMUS music from saved game.
     idmusnum = SV_ReadByte();
     // [JN] jff 3/18/98 account for unsigned byte
     if (idmusnum == 255)
@@ -3157,7 +3167,7 @@ void G_DoSaveGame(void)
     SV_WriteByte(gameskill);
     SV_WriteByte(gameepisode);
     SV_WriteByte(gamemap);
-    // [JN] Write choosen by IDMUS music into saved game.
+    // [JN] Write chosen by IDMUS music into saved game.
     SV_WriteByte(idmusnum);
     for (i = 0; i < MAXPLAYERS; i++)
     {

@@ -127,7 +127,7 @@ void D_ProcessEvents(void)
 
 static void DrawMessage (void)
 {
-    player_t *player = &players[consoleplayer];
+    player_t *player = &players[displayplayer];
     
     if (player->messageTics <= 0 || !player->message)
     {                           // No message
@@ -385,7 +385,7 @@ void D_DoomLoop(void)
                 S_MuteUnmuteSound (!window_focused);
             }
 
-            S_UpdateSounds(players[consoleplayer].mo);
+            S_UpdateSounds(players[displayplayer].mo);
             oldgametic = gametic;
         }
 
@@ -1027,7 +1027,7 @@ void D_DoomMain(void)
     }
 #endif
 
-    // [JN] Use choosen default skill level.
+    // [JN] Use chosen default skill level.
     startskill = gp_default_skill;
 
     //!
