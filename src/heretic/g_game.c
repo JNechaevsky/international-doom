@@ -220,7 +220,7 @@ static int crl_camzspeed;
 int savegameslot;
 char savedescription[32];
 
-int inventoryTics;
+static int inventoryTics;
 
 // haleyjd: removed WATCOMC
 
@@ -1021,12 +1021,14 @@ static void SetJoyButtons(unsigned int buttons_mask)
 
 static boolean InventoryMoveLeft(void)
 {
+    inventoryTics = 5 * TICRATE;
+
     // [JN] Do not pop-up while active menu or demo playback.
     if (MenuActive || demoplayback)
     {
         return false;
     }
-    inventoryTics = 5 * 35;
+
     if (!inventory)
     {
         inventory = true;
@@ -1053,14 +1055,13 @@ static boolean InventoryMoveRight(void)
     player_t *plr;
 
     plr = &players[consoleplayer];
+    inventoryTics = 5 * TICRATE;
 
     // [JN] Do not pop-up while active menu or demo playback.
     if (MenuActive || demoplayback)
     {
         return false;
     }
-
-    inventoryTics = 5 * 35;
 
     if (!inventory)
     {
@@ -1594,7 +1595,6 @@ void G_Ticker(void)
         players[consoleplayer].readyArtifact =
             players[consoleplayer].inventory[inv_ptr].type;
         inventory = false;
-        cmd->arti = 0;
     }
 
     oldleveltime = realleveltime;

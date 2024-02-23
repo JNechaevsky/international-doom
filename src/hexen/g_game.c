@@ -176,7 +176,7 @@ int savegameslot;
 char savedescription[32];
 char savename[256];
 
-int inventoryTics;
+static int inventoryTics;
 
 // haleyjd: removed externdriver crap
 
@@ -979,13 +979,14 @@ static void SetJoyButtons(unsigned int buttons_mask)
 
 static boolean InventoryMoveLeft()
 {
+    inventoryTics = 5 * TICRATE;
+
     // [JN] Do not pop-up while active menu or demo playback.
     if (MenuActive || demoplayback)
     {
         return false;
     }
 
-    inventoryTics = 5 * 35;
     if (!inventory)
     {
         inventory = true;
@@ -1012,6 +1013,7 @@ static boolean InventoryMoveRight()
     player_t *plr;
 
     plr = &players[consoleplayer];
+    inventoryTics = 5 * TICRATE;
 
     // [JN] Do not pop-up while active menu or demo playback.
     if (MenuActive || demoplayback)
@@ -1019,7 +1021,6 @@ static boolean InventoryMoveRight()
         return false;
     }
 
-    inventoryTics = 5 * 35;
     if (!inventory)
     {
         inventory = true;
@@ -1568,7 +1569,6 @@ void G_Ticker(void)
         players[consoleplayer].readyArtifact =
             players[consoleplayer].inventory[inv_ptr].type;
         inventory = false;
-        cmd->arti = 0;
     }
 
     oldleveltime = realleveltime; // [crispy] Track if game is running
