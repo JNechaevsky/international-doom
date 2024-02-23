@@ -918,11 +918,11 @@ void G_DoLoadLevel(void)
 
     SN_StopAllSequences();
     P_SetupLevel(gameepisode, gamemap, 0, gameskill);
-    // view the guy you are playing
-    // [JN] Do not reset chosen player view while multiplayer demo playback.
-    if (!netgame && !demoplayback)
+    // [JN] Do not reset chosen player view across levels in multiplayer
+    // demo playback. However, it must be reset when starting a new game.
+    if (usergame)
     {
-        displayplayer = consoleplayer;
+        displayplayer = consoleplayer;      // view the guy you are playing
     }
     gameaction = ga_nothing;
     Z_CheckHeap();
