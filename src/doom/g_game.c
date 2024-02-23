@@ -830,7 +830,12 @@ void G_DoLoadLevel (void)
     }
 
     P_SetupLevel (gameepisode, gamemap);    
-    displayplayer = consoleplayer;		// view the guy you are playing    
+    // view the guy you are playing
+    // [JN] But do not reset choosen player view while demo playback.
+    if (!demoplayback)
+    {
+        displayplayer = consoleplayer;
+    } 
     gameaction = ga_nothing; 
     Z_CheckHeap ();
     
@@ -959,6 +964,8 @@ boolean G_Responder (event_t* ev)
 	    if (displayplayer == MAXPLAYERS) 
 		displayplayer = 0; 
 	} while (!playeringame[displayplayer] && displayplayer != consoleplayer); 
+    // [JN] Refresh status bar.
+    st_fullupdate = true;
     // [JN] Update sound values for appropriate player.
 	S_UpdateSounds(players[displayplayer].mo);
 	// [JN] Re-init automap variables for correct player arrow angle.
