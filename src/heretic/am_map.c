@@ -106,7 +106,6 @@ const char *LevelNames[] = {
 // [JN] FRACTOMAPBITS: overflow-safe coordinate system.
 // Written by Andrey Budko (entryway), adapted from prboom-plus/src/am_map.*
 #define MAPBITS 12
-#define MAPUNIT (1<<MAPBITS)
 #define FRACTOMAPBITS (FRACBITS-MAPBITS)
 
 // scale on entry
@@ -114,8 +113,11 @@ const char *LevelNames[] = {
 
 // [JN] How much the automap moves window per tic in frame-buffer coordinates.
 static int f_paninc;
-#define F_PANINC_SLOW 4   // 280 map units in 1 second.
-#define F_PANINC_FAST 8  // 560 map units in 1 second.
+#define F_PANINC_SLOW 4  // 140 map units in 1 second.
+#define F_PANINC_FAST 8  // 280 map units in 1 second.
+static int f_paninc_zoom;
+#define F_PANINC_ZOOM_SLOW 8   // 280 map units in 1 second.
+#define F_PANINC_ZOOM_FAST 16  // 560 map units in 1 second.
 
 // [JN] How much zoom-in per tic goes to 2x in 1 second.
 static int m_zoomin;
@@ -769,6 +771,7 @@ boolean AM_Responder (event_t *ev)
     if (speedkeydown())
     {
         f_paninc = F_PANINC_FAST;
+        f_paninc_zoom = F_PANINC_ZOOM_FAST;
         m_zoomin = M_ZOOMIN_FAST;
         m_zoomout = M_ZOOMOUT_FAST;
         m_zoomin_mouse = M2_ZOOMIN_FAST;
@@ -777,6 +780,7 @@ boolean AM_Responder (event_t *ev)
     else
     {
         f_paninc = F_PANINC_SLOW;
+        f_paninc_zoom = F_PANINC_ZOOM_SLOW;
         m_zoomin = M_ZOOMIN_SLOW;
         m_zoomout = M_ZOOMOUT_SLOW;
         m_zoomin_mouse = M2_ZOOMIN_SLOW;
@@ -828,6 +832,7 @@ boolean AM_Responder (event_t *ev)
         {
             mtof_zoommul = m_zoomout_mouse;
             ftom_zoommul = m_zoomin_mouse;
+            curr_mtof_zoommul = mtof_zoommul;
             mousewheelzoom = true;
             rc = true;
         }
@@ -836,6 +841,7 @@ boolean AM_Responder (event_t *ev)
         {
             mtof_zoommul = m_zoomin_mouse;
             ftom_zoommul = m_zoomout_mouse;
+            curr_mtof_zoommul = mtof_zoommul;
             mousewheelzoom = true;
             rc = true;
         }
@@ -894,11 +900,13 @@ boolean AM_Responder (event_t *ev)
         {
             mtof_zoommul = m_zoomout;
             ftom_zoommul = m_zoomin;
+            curr_mtof_zoommul = mtof_zoommul;
         }
         else if (key == key_map_zoomin)   // zoom in
         {
             mtof_zoommul = m_zoomin;
             ftom_zoommul = m_zoomout;
+            curr_mtof_zoommul = mtof_zoommul;
         }
         else if (key == key_map_toggle)   // toggle map (tab)
         {
@@ -1036,7 +1044,7 @@ static void AM_changeWindowScale (void)
 {
     if (vid_uncapped_fps && realleveltime > oldleveltime)
     {
-        float f_paninc_smooth = (float)f_paninc / (float)FRACUNIT * (float)fractionaltic;
+        float f_paninc_smooth = (float)f_paninc_zoom / (float)FRACUNIT * (float)fractionaltic;
 
         if (f_paninc_smooth < 0.01f)
         {
