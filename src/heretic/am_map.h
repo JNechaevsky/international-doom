@@ -70,7 +70,7 @@ extern void AM_Stop (void);
 // Players (no antialiasing)
 #define PL_WHITE        32
 #define PL_GREEN        221
-#define PL_YELLOW       145
+#define PL_YELLOW       241
 #define PL_RED          160
 #define PL_BLUE         198
 
