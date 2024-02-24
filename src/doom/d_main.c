@@ -1424,6 +1424,7 @@ void D_DoomMain (void)
     // Call I_ShutdownGraphics on quit
 
    	I_AtExit(I_ShutdownGraphics, true);
+   	i_error_title = PACKAGE_FULLNAME;
 
    	I_AtExit(D_Endoom, false);
 

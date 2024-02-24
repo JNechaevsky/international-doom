@@ -401,6 +401,7 @@ void D_DoomMain(void)
 #endif
 
     I_AtExit(I_ShutdownGraphics, true);
+    i_error_title = PACKAGE_FULLNAME_HEXEN;
 
 #ifdef _WIN32
     // [JN] Pressing PrintScreen on Windows 11 is opening Snipping Tool.

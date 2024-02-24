@@ -52,6 +52,7 @@ ticcmd_t* I_BaseTiccmd (void);
 void I_Quit (void) NORETURN;
 
 extern boolean i_error_safe;
+extern char *i_error_title;
 void I_Error (const char *error, ...) NORETURN PRINTF_ATTR(1, 2);
 
 void *I_Realloc(void *ptr, size_t size);

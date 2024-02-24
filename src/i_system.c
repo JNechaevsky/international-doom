@@ -253,8 +253,11 @@ static boolean already_quitting = false;
 // [JN] Indicates if I_Error is not an error, but infomative message instead.
 // If false, a stop-sign icon appears.
 // If true, an icon consisting of a lowercase letter i in a circle appears.
-
 boolean i_error_safe = false;
+
+// [JN] Different games using different I_Error dialogue box titles.
+// Just in case, set a generic title first.
+char *i_error_title = "Program quit";
 
 void I_Error (const char *error, ...)
 {
@@ -321,11 +324,11 @@ void I_Error (const char *error, ...)
 
         // [JN] On Windows OS use system, nicer dialog box.
         MultiByteToWideChar(CP_UTF8, 0, msgbuf, -1, win_error_message, 1024);
-        MultiByteToWideChar(CP_UTF8, 0, PACKAGE_FULLNAME, -1, win_error_title, 128);
+        MultiByteToWideChar(CP_UTF8, 0, i_error_title, -1, win_error_title, 128);
         MessageBoxW(NULL, win_error_message, win_error_title, i_error_safe ? MB_ICONASTERISK : MB_ICONSTOP);
 #else
         SDL_ShowSimpleMessageBox(i_error_safe ? SDL_MESSAGEBOX_INFORMATION : SDL_MESSAGEBOX_ERROR,
-                                 PACKAGE_FULLNAME, msgbuf, NULL);
+                                 i_error_title, msgbuf, NULL);
 #endif
     }
 
