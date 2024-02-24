@@ -207,6 +207,66 @@ static const byte twintorch[256] =
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
+static const byte walltorch[256] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0,
+    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+static const byte candles[256] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0,
+    1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+static const byte cauldron[256] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
 static const byte greenonly[256] =
 {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -439,6 +499,45 @@ const byte *R_BrightmapForSprite (const int state)
                 return twintorch;
                 break;
             }
+            // Wall Torch
+            case S_ZWALLTORCH1:
+            case S_ZWALLTORCH2:
+            case S_ZWALLTORCH3:
+            case S_ZWALLTORCH4:
+            case S_ZWALLTORCH5:
+            case S_ZWALLTORCH6:
+            case S_ZWALLTORCH7:
+            case S_ZWALLTORCH8:
+            {
+                return walltorch;
+                break;
+            }
+            // Three Candles
+            case S_ZCANDLE1:
+            case S_ZCANDLE2:
+            case S_ZCANDLE3:
+            // Blue Candle
+            case S_ZBLUE_CANDLE1:
+            case S_ZBLUE_CANDLE2:
+            case S_ZBLUE_CANDLE3:
+            case S_ZBLUE_CANDLE4:
+            case S_ZBLUE_CANDLE5:
+            {
+                return candles;
+                break;
+            }
+            // Cauldron
+            case S_ZCAULDRON1:
+            case S_ZCAULDRON2:
+            case S_ZCAULDRON3:
+            case S_ZCAULDRON4:
+            case S_ZCAULDRON5:
+            case S_ZCAULDRON6:
+            case S_ZCAULDRON7:
+            {
+                return cauldron;
+                break;
+            }
             // Wendigo
             case S_ICEGUY_LOOK:
             case S_ICEGUY_DORMANT:
@@ -578,6 +677,33 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZTWINEDTORCH_6:
             case S_ZTWINEDTORCH_7:
             case S_ZTWINEDTORCH_8:
+            // Wall Torch
+            case S_ZWALLTORCH1:
+            case S_ZWALLTORCH2:
+            case S_ZWALLTORCH3:
+            case S_ZWALLTORCH4:
+            case S_ZWALLTORCH5:
+            case S_ZWALLTORCH6:
+            case S_ZWALLTORCH7:
+            case S_ZWALLTORCH8:
+            // Three Candles
+            case S_ZCANDLE1:
+            case S_ZCANDLE2:
+            case S_ZCANDLE3:
+            // Blue Candle
+            case S_ZBLUE_CANDLE1:
+            case S_ZBLUE_CANDLE2:
+            case S_ZBLUE_CANDLE3:
+            case S_ZBLUE_CANDLE4:
+            case S_ZBLUE_CANDLE5:
+            // Cauldron
+            case S_ZCAULDRON1:
+            case S_ZCAULDRON2:
+            case S_ZCAULDRON3:
+            case S_ZCAULDRON4:
+            case S_ZCAULDRON5:
+            case S_ZCAULDRON6:
+            case S_ZCAULDRON7:
             {
                 return fullbright;
                 break;

@@ -706,7 +706,26 @@ void R_ProjectSprite(mobj_t * thing)
         if (index >= MAXLIGHTSCALE)
             index = MAXLIGHTSCALE - 1;
         // [crispy] brightmaps for select sprites
-        vis->colormap[0] = spritelights[index];
+        // [JN] Following objects have brightmaps, but for proper and
+        // decent look their unlit pixels must bit lit a little bit:
+        if (vis_brightmaps
+        && (thing->type == MT_MISC79        // Three candles
+        ||  thing->type == MT_ZBLUE_CANDLE  // Blue candle
+        ||  thing->type == MT_ZCAULDRON     // Cauldron
+        ||  thing->type == MT_ZWALLTORCH))  // Wall torch
+        {
+            int bright_index = index + 18; // [JN] 18 is rounded ((MAXLIGHTSCALE-1) / 3)
+
+            if (bright_index > MAXLIGHTSCALE-1)
+            {
+                bright_index = MAXLIGHTSCALE-1;
+            }
+            vis->colormap[0] = spritelights[bright_index];
+        }
+        else
+        {
+            vis->colormap[0] = spritelights[index];
+        }
         vis->colormap[1] = LevelUseFullBright ? colormaps : spritelights[index];
     }
 
