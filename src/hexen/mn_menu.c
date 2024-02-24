@@ -4768,6 +4768,7 @@ boolean MN_Responder(event_t * event)
                 case 6:
                     SCDeleteGame(CurrentItPos);
                     MN_ReturnToMenu();
+                    break;
                 case 7: // [JN] Reset keybinds.
                     M_ResetBinds();
                     if (!netgame && !demoplayback)
