@@ -708,7 +708,7 @@ void R_ProjectSprite(mobj_t * thing)
         // [crispy] brightmaps for select sprites
         // [JN] Following objects have brightmaps, but for proper and
         // decent look their unlit pixels must bit lit a little bit:
-        if (vis_brightmaps
+        if (LevelUseFullBright && vis_brightmaps
         && (thing->type == MT_MISC79        // Three candles
         ||  thing->type == MT_ZBLUE_CANDLE  // Blue candle
         ||  thing->type == MT_ZCAULDRON     // Cauldron
