@@ -768,7 +768,7 @@ enum
 
 // -----------------------------------------------------------------------------
 // SB_AmmoWidgetColor
-// [international-doom] return ammo/health/armor widget color
+// [plums] return ammo/health/armor widget color
 // -----------------------------------------------------------------------------
 
 static byte *SB_AmmoWidgetColor (int i, weapontype_t weapon)
