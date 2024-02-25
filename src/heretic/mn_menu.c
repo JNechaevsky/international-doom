@@ -4638,10 +4638,11 @@ static void DrawFileSlots(Menu_t * menu)
     y = menu->y;
     for (i = 0; i < SAVES_PER_PAGE; i++)
     {
+        // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
+        dp_translation = CurrentItPos == i ? cr[CR_MENU_BRIGHT2] : NULL;
         V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE));
         if (SlotStatus[i])
         {
-            // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
             MN_DrTextA(SlotText[i], x + 5, y + 5, CurrentItPos == i ?
                        cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(CurrentMenu->items[i].tics));
         }

@@ -4348,8 +4348,9 @@ static void M_DrawLoad(void)
 
     for (i = 0;i < load_end; i++)
     {
-	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
 	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
+	dp_translation = i == itemOn ? cr[CR_MENU_BRIGHT2] : NULL;
+	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
 	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], itemOn == i ?
 	            cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
     }
@@ -4419,8 +4420,9 @@ static void M_DrawSave(void)
     V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_SAVEG"), PU_CACHE));
     for (i = 0;i < load_end; i++)
     {
-	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
 	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
+	dp_translation = i == itemOn ? cr[CR_MENU_BRIGHT2] : NULL;
+	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
 	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], itemOn == i ?
 	            cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
     }
