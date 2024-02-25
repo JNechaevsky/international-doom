@@ -34,6 +34,7 @@
 
 #define	TEXTSPEED 3
 #define	TEXTWAIT 140
+#define	TEXTEND 25
 
 // TYPES -------------------------------------------------------------------
 
@@ -89,6 +90,12 @@ static signed int totalFrags[MAXPLAYERS];
 
 static int HubCount;
 static char *HubText;
+
+// [JN] Check that the level change has a hub text to allow double skipping.
+static boolean HubAllowSkip;
+// [JN] Same delay to HubCount excluding TEXTWAIT, for proper text lenght count.
+static int HubTextCount;
+
 
 // CODE --------------------------------------------------------------------
 
@@ -180,6 +187,9 @@ static void InitStats(void)
     int msgSize;
     int msgLump;
 
+    // [JN] Disallow double skip until level change has a hub text.
+    HubAllowSkip = false;
+
     if (!deathmatch)
     {
         gametype = SINGLE;
@@ -200,6 +210,10 @@ static void InitStats(void)
                 ClusterMessage[msgSize] = 0;    // Append terminator
                 HubText = ClusterMessage;
                 HubCount = strlen(HubText) * TEXTSPEED + TEXTWAIT;
+                // [JN] This level change have a hub text, allow double skip
+                // and count text lenght precicely for proper skipping.
+                HubAllowSkip = true;
+                HubTextCount = HubCount - TEXTWAIT;
                 S_StartSongName("hub", true);
             }
         }
@@ -310,6 +324,76 @@ void IN_Ticker(void)
     {
         return;
     }
+    
+    // [JN] If we are in single player mode, and level change have a hub text,
+    // allow double skipping by pressing "attack" or "use" keys. First skip
+    // is printing all the text, second is advancing to next level.
+    if (singleplayer && HubAllowSkip)
+    {
+        // [JN] Make PAUSE working properly on text screen.
+        if (paused)
+        {
+            return;
+        }
+
+        // [JN] Check for skipping. Allow double press skiping, 
+        // but don't skip immediately.
+        if (intertime > 10)
+        {
+            // [JN] Don't allow skipping by pressing PAUSE button.
+            if (players[consoleplayer].cmd.buttons == (BT_SPECIAL | BTS_PAUSE))
+            {
+                return;
+            }
+
+            // [JN] Double skip by pressing "attack" button.
+            if (players[consoleplayer].cmd.buttons & BT_ATTACK && !MenuActive)
+            {
+                if (!players[consoleplayer].attackdown)
+                {
+                    if (intertime >= HubTextCount)
+                    {
+                        gameaction = ga_leavemap;
+                    }
+
+                    intertime += HubTextCount;
+                    players[consoleplayer].attackdown = true;
+                }
+                players[consoleplayer].attackdown = true;
+            }
+            else
+            {
+                players[consoleplayer].attackdown = false;
+            }
+            // [JN] Double skip by pressing "use" button.
+            if (players[consoleplayer].cmd.buttons & BT_USE && !MenuActive)
+            {
+                if (!players[consoleplayer].usedown)
+                {
+                    if (intertime >= HubTextCount)
+                    {
+                        gameaction = ga_leavemap;
+                    }
+    
+                    intertime += HubTextCount;
+                    players[consoleplayer].usedown = true;
+                }
+                players[consoleplayer].usedown = true;
+            }
+            else
+            {
+                players[consoleplayer].usedown = false;
+            }
+        }
+
+        // [JN] Advance animation.
+        intertime++;
+    }
+    //
+    // [JN] Standard Hexen routine, safe for network game and demos.
+    //
+    else
+    {
     if (interstate)
     {
         WaitStop();
@@ -324,6 +408,7 @@ void IN_Ticker(void)
         cnt = 10;
         skipintermission = false;
         //S_StartSound(NULL, sfx_dorcls);
+    }
     }
 }
 
