@@ -619,7 +619,7 @@ static void DrawHubText(void)
         {
             break;
         }
-        V_DrawPatch(cx, cy, w);
+        V_DrawShadowedPatchOptional(cx, cy, 1, w);
         cx += SHORT(w->width);
     }
 }
