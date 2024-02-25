@@ -23,6 +23,7 @@
 #include "deh_str.h"
 #include "doomdef.h"
 #include "doomkeys.h"
+#include "gusconf.h"
 #include "i_input.h"
 #include "i_system.h"
 #include "i_swap.h"
@@ -1518,7 +1519,18 @@ static void M_Draw_ID_Sound (void)
     // Inform that music system is not hot-swappable. :(
     if (CurrentItPos == 7)
     {
-        MN_DrTextACentered("CHANGE WILL REQUIRE RESTART OF THE PROGRAM", 142, cr[CR_GRAY]);
+        MN_DrTextACentered("CHANGE WILL REQUIRE RESTART OF THE PROGRAM", 140, cr[CR_GRAY]);
+
+        if (snd_musicdevice == 5 && strcmp(gus_patch_path, "") == 0)
+        {
+            MN_DrTextACentered("\"GUS[PATCH[PATH\" VARIABLE IS NOT SET", 150, cr[CR_GRAY]);
+        }
+#ifdef HAVE_FLUIDSYNTH
+        if (snd_musicdevice == 11 && strcmp(fsynth_sf_path, "") == 0)
+        {
+            MN_DrTextACentered("\"FSYNTH[SF[PATH\" VARIABLE IS NOT SET", 150, cr[CR_GRAY]);
+        }
+#endif // HAVE_FLUIDSYNTH
     }
 }
 

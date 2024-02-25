@@ -1790,12 +1790,12 @@ static void M_Draw_ID_Sound (void)
     {
         if (snd_musicdevice == 5 && strcmp(gus_patch_path, "") == 0)
         {
-            M_WriteTextCentered(147, "\"GUS_PATCH_PATH\" VARIABLE IS NOT SET.", cr[CR_GRAY]);
+            M_WriteTextCentered(147, "\"GUS_PATCH_PATH\" VARIABLE IS NOT SET", cr[CR_GRAY]);
         }
 #ifdef HAVE_FLUIDSYNTH
         if (snd_musicdevice == 11 && strcmp(fsynth_sf_path, "") == 0)
         {
-            M_WriteTextCentered(147, "\"FSYNTH_SF_PATH\" VARIABLE IS NOT SET.", cr[CR_GRAY]);
+            M_WriteTextCentered(147, "\"FSYNTH_SF_PATH\" VARIABLE IS NOT SET", cr[CR_GRAY]);
         }
 #endif // HAVE_FLUIDSYNTH
     }
