@@ -20,7 +20,9 @@
 
 #include "h2def.h"
 #include "i_system.h"
+#include "i_timer.h"  // [JN] TICRATE
 #include "i_video.h"
+#include "m_misc.h"  // [JN] M_snprintf
 #include "p_local.h"
 #include "s_sound.h"
 #include <ctype.h>
@@ -371,6 +373,33 @@ static void DrawPic(void)
 #endif
 }
 
+// -----------------------------------------------------------------------------
+// F_DrawTotalTime
+// [JN] Draw total time on finale screens.
+// -----------------------------------------------------------------------------
+
+static void F_DrawTotalTime (void)
+{
+    const int worldTimer = players[consoleplayer].worldTimer;
+    const int hours = worldTimer / (3600 * TICRATE);
+    const int mins = worldTimer / (60 * TICRATE) % 60;
+    const float secs = (float)(worldTimer % (60 * TICRATE)) / TICRATE;
+    char n[32];
+
+    if (hours)
+    {
+        M_snprintf(n, sizeof(n), "TOTAL TIME: %02i:%02i:%05.02f", hours, mins, secs);
+    }
+    else
+    {
+        M_snprintf(n, sizeof(n), "TOTAL TIME: %02i:%05.02f", mins, secs);
+    }
+
+    dp_translucent = true;
+    MN_DrTextACentered(n, 188, cr[CR_MENU_DARK4]);
+    dp_translucent = false;
+}
+
 //===========================================================================
 //
 // F_Drawer
@@ -387,6 +416,7 @@ void F_Drawer(void)
         case 1:
         case 2:
             TextWrite();
+            F_DrawTotalTime(); // [JN] Draw total time.
             break;
         case 3:                // Fade screen out
             DrawPic();
