@@ -2083,6 +2083,7 @@ static boolean CheatAddKey(Cheat_t * cheat, byte key, boolean * eat)
 //==========================================================================
 
 #define FULL_CHEAT_CHECK if(netgame || demorecording || demoplayback){return;}
+#define SAFE_CHEAT_CHECK if(netgame || demorecording){return;}
 
 static void CheatWaitFunc (player_t *player, Cheat_t *cheat)
 {
@@ -2254,7 +2255,8 @@ static void CheatWarpFunc (player_t *player, Cheat_t *cheat)
     char mapName[9];
     char args[2];
 
-    FULL_CHEAT_CHECK;
+    // [JN] Safe to use IDCLEV/ENGAGE/VISIT while demo playback.
+    SAFE_CHEAT_CHECK;
 
     cht_GetParam(cheat->seq, args);
 
@@ -2284,7 +2286,23 @@ static void CheatWarpFunc (player_t *player, Cheat_t *cheat)
     }
     CT_SetMessage(player, TXT_CHEATWARP, false, NULL);
     player->cheatTics = 1;
-    G_TeleportNewMap(map, 0);
+    
+    // [JN] Allow warping during demo playback and go to the requested map.
+    if (demoplayback)
+    {
+        demowarp = map;
+        nodrawers = true;
+        singletics = true;
+
+        if (map <= gamemap)
+        {
+            G_DoPlayDemo();
+        }
+    }
+    else
+    {
+        G_TeleportNewMap(map, 0);
+    }
 }
 
 static void CheatPigFunc (player_t *player, Cheat_t *cheat)
