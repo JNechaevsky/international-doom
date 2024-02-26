@@ -111,6 +111,15 @@ typedef struct
 static short   cursor_tics = 0;
 static boolean cursor_direction = false;
 
+// [JN] Font enum's used by FontType in Menu_t below.
+// NoFont is used only in Save/Load menu for allowing to 
+// choose slot by pressing number key.
+enum {
+    NoFont,
+    SmallFont,
+    BigFont
+} FontType_t;
+
 typedef struct
 {
     int x;
@@ -119,7 +128,7 @@ typedef struct
     int itemCount;
     MenuItem_t *items;
     int oldItPos;
-    boolean smallFont;  // [JN] Menu is using small font
+    int FontType;       // [JN] 0 = no font, 1 = small font, 2 = big font
     boolean ScrollAR;   // [JN] Menu can be scrolled by arrow keys
     boolean ScrollPG;   // [JN] Menu can be scrolled by PGUP/PGDN keys
     MenuType_t prevMenu;
@@ -221,7 +230,7 @@ static Menu_t MainMenu = {
     DrawMainMenu,
     5, MainItems,
     0,
-    false, false, false,
+    BigFont, false, false,
     MENU_NONE
 };
 
@@ -238,7 +247,7 @@ static Menu_t EpisodeMenu = {
     DrawEpisodeMenu,
     3, EpisodeItems,
     0,
-    false, false, false,
+    BigFont, false, false,
     MENU_MAIN
 };
 
@@ -252,17 +261,19 @@ static Menu_t FilesMenu = {
     DrawFilesMenu,
     2, FilesItems,
     0,
-    false, false, false,
+    BigFont, false, false,
     MENU_MAIN
 };
 
+// [JN] Allow to chose slot by pressing number key.
+// This behavior is same to Doom.
 static MenuItem_t LoadItems[] = {
-    {ITT_EFUNC, NULL, SCLoadGame, 0, MENU_NONE},
-    {ITT_EFUNC, NULL, SCLoadGame, 1, MENU_NONE},
-    {ITT_EFUNC, NULL, SCLoadGame, 2, MENU_NONE},
-    {ITT_EFUNC, NULL, SCLoadGame, 3, MENU_NONE},
-    {ITT_EFUNC, NULL, SCLoadGame, 4, MENU_NONE},
-    {ITT_EFUNC, NULL, SCLoadGame, 5, MENU_NONE}
+    {ITT_EFUNC, "1", SCLoadGame, 0, MENU_NONE},
+    {ITT_EFUNC, "2", SCLoadGame, 1, MENU_NONE},
+    {ITT_EFUNC, "3", SCLoadGame, 2, MENU_NONE},
+    {ITT_EFUNC, "4", SCLoadGame, 3, MENU_NONE},
+    {ITT_EFUNC, "5", SCLoadGame, 4, MENU_NONE},
+    {ITT_EFUNC, "6", SCLoadGame, 5, MENU_NONE}
 };
 
 static Menu_t LoadMenu = {
@@ -270,17 +281,19 @@ static Menu_t LoadMenu = {
     DrawLoadMenu,
     SAVES_PER_PAGE, LoadItems,
     0,
-    false, true, true,
+    NoFont, true, true,
     MENU_FILES
 };
 
+// [JN] Allow to chose slot by pressing number key.
+// This behavior is same to Doom.
 static MenuItem_t SaveItems[] = {
-    {ITT_EFUNC, NULL, SCSaveGame, 0, MENU_NONE},
-    {ITT_EFUNC, NULL, SCSaveGame, 1, MENU_NONE},
-    {ITT_EFUNC, NULL, SCSaveGame, 2, MENU_NONE},
-    {ITT_EFUNC, NULL, SCSaveGame, 3, MENU_NONE},
-    {ITT_EFUNC, NULL, SCSaveGame, 4, MENU_NONE},
-    {ITT_EFUNC, NULL, SCSaveGame, 5, MENU_NONE}
+    {ITT_EFUNC, "1", SCSaveGame, 0, MENU_NONE},
+    {ITT_EFUNC, "2", SCSaveGame, 1, MENU_NONE},
+    {ITT_EFUNC, "3", SCSaveGame, 2, MENU_NONE},
+    {ITT_EFUNC, "4", SCSaveGame, 3, MENU_NONE},
+    {ITT_EFUNC, "5", SCSaveGame, 4, MENU_NONE},
+    {ITT_EFUNC, "6", SCSaveGame, 5, MENU_NONE}
 };
 
 static Menu_t SaveMenu = {
@@ -288,7 +301,7 @@ static Menu_t SaveMenu = {
     DrawSaveMenu,
     SAVES_PER_PAGE, SaveItems,
     0,
-    false, true, true,
+    NoFont, true, true,
     MENU_FILES
 };
 
@@ -306,7 +319,7 @@ static Menu_t SkillMenu = {
     DrawSkillMenu,
     5, SkillItems,
     2,
-    false, false, false,
+    BigFont, false, false,
     MENU_EPISODE
 };
 
@@ -322,7 +335,7 @@ static Menu_t OptionsMenu = {
     DrawOptionsMenu,
     4, OptionsItems,
     0,
-    false, false, false,
+    BigFont, false, false,
     MENU_ID_MAIN
 };
 
@@ -340,7 +353,7 @@ static Menu_t Options2Menu = {
     DrawOptions2Menu,
     6, Options2Items,
     0,
-    false, false, false,
+    BigFont, false, false,
     MENU_ID_MAIN
 };
 
@@ -979,7 +992,7 @@ static Menu_t ID_Def_Main = {
     M_Draw_ID_Main,
     9, ID_Menu_Main,
     0,
-    true, false, false,
+    SmallFont, false, false,
     MENU_MAIN
 };
 
@@ -1010,7 +1023,7 @@ static Menu_t ID_Def_Video = {
     M_Draw_ID_Video,
     10, ID_Menu_Video,
     0,
-    true, false, false,
+    SmallFont, false, false,
     MENU_ID_MAIN
 };
 
@@ -1257,7 +1270,7 @@ static Menu_t ID_Def_Display = {
     M_Draw_ID_Display,
     13, ID_Menu_Display,
     0,
-    true, false, false,
+    SmallFont, false, false,
     MENU_ID_MAIN
 };
 
@@ -1464,7 +1477,7 @@ static Menu_t ID_Def_Sound = {
     M_Draw_ID_Sound,
     12, ID_Menu_Sound,
     0,
-    true, false, false,
+    SmallFont, false, false,
     MENU_ID_MAIN
 };
 
@@ -1657,7 +1670,7 @@ static Menu_t ID_Def_Controls = {
     M_Draw_ID_Controls,
     17, ID_Menu_Controls,
     0,
-    true, false, false,
+    SmallFont, false, false,
     MENU_ID_MAIN
 };
 
@@ -1765,7 +1778,7 @@ static Menu_t ID_Def_Keybinds_1 = {
     M_Draw_ID_Keybinds_1,
     12, ID_Menu_Keybinds_1,
     0,
-    true, true, true,
+    SmallFont, true, true,
     MENU_ID_CONTROLS
 };
 
@@ -1873,7 +1886,7 @@ static Menu_t ID_Def_Keybinds_2 = {
     M_Draw_ID_Keybinds_2,
     11, ID_Menu_Keybinds_2,
     0,
-    true, true, true,
+    SmallFont, true, true,
     MENU_ID_CONTROLS
 };
 
@@ -1974,7 +1987,7 @@ static Menu_t ID_Def_Keybinds_3 = {
     M_Draw_ID_Keybinds_3,
     13, ID_Menu_Keybinds_3,
     0,
-    true, true, true,
+    SmallFont, true, true,
     MENU_ID_CONTROLS
 };
 
@@ -2084,7 +2097,7 @@ static Menu_t ID_Def_Keybinds_4 = {
     M_Draw_ID_Keybinds_4,
     10, ID_Menu_Keybinds_4,
     0,
-    true, true, true,
+    SmallFont, true, true,
     MENU_ID_CONTROLS
 };
 
@@ -2182,7 +2195,7 @@ static Menu_t ID_Def_Keybinds_5 = {
     M_Draw_ID_Keybinds_5,
     10, ID_Menu_Keybinds_5,
     0,
-    true, true, true,
+    SmallFont, true, true,
     MENU_ID_CONTROLS
 };
 
@@ -2280,7 +2293,7 @@ static Menu_t ID_Def_Keybinds_6 = {
     M_Draw_ID_Keybinds_6,
     10, ID_Menu_Keybinds_6,
     0,
-    true, true, true,
+    SmallFont, true, true,
     MENU_ID_CONTROLS
 };
 
@@ -2380,7 +2393,7 @@ static Menu_t ID_Def_Keybinds_7 = {
     M_Draw_ID_Keybinds_7,
     12, ID_Menu_Keybinds_7,
     0,
-    true, true, true,
+    SmallFont, true, true,
     MENU_ID_CONTROLS
 };
 
@@ -2492,7 +2505,7 @@ static Menu_t ID_Def_Keybinds_8 = {
     M_Draw_ID_Keybinds_8,
     12, ID_Menu_Keybinds_8,
     0,
-    true, true, true,
+    SmallFont, true, true,
     MENU_ID_CONTROLS
 };
 
@@ -2600,7 +2613,7 @@ static Menu_t ID_Def_MouseBinds = {
     M_Draw_ID_MouseBinds,
     14, ID_Menu_MouseBinds,
     0,
-    true, false, false,
+    SmallFont, false, false,
     MENU_ID_CONTROLS
 };
 
@@ -2720,7 +2733,7 @@ static Menu_t ID_Def_Widgets = {
     M_Draw_ID_Widgets,
     13, ID_Menu_Widgets,
     0,
-    true, false, false,
+    SmallFont, false, false,
     MENU_ID_MAIN
 };
 
@@ -2887,7 +2900,7 @@ static Menu_t ID_Def_Gameplay_1 = {
     M_Draw_ID_Gameplay_1,
     13, ID_Menu_Gameplay_1,
     0,
-    true, false, true,
+    SmallFont, false, true,
     MENU_ID_MAIN
 };
 
@@ -3057,7 +3070,7 @@ static Menu_t ID_Def_Gameplay_2 = {
     M_Draw_ID_Gameplay_2,
     13, ID_Menu_Gameplay_2,
     0,
-    true, false, true,
+    SmallFont, false, true,
     MENU_ID_MAIN
 };
 
@@ -3192,7 +3205,7 @@ static Menu_t ID_Def_Gameplay_3 = {
     M_Draw_ID_Gameplay_3,
     13, ID_Menu_Gameplay_3,
     0,
-    true, false, true,
+    SmallFont, false, true,
     MENU_ID_MAIN
 };
 
@@ -3352,7 +3365,7 @@ static Menu_t ID_Def_Level_1 = {
     M_Draw_ID_Level_1,
     17, ID_Menu_Level_1,
     0,
-    true, false, true,
+    SmallFont, false, true,
     MENU_ID_MAIN
 };
 
@@ -3560,7 +3573,7 @@ static Menu_t ID_Def_Level_2 = {
     M_Draw_ID_Level_2,
     17, ID_Menu_Level_2,
     0,
-    true, false, true,
+    SmallFont, false, true,
     MENU_ID_MAIN
 };
 
@@ -3752,7 +3765,7 @@ static Menu_t ID_Def_Level_3 = {
     M_Draw_ID_Level_3,
     17, ID_Menu_Level_3,
     0,
-    true, false, true,
+    SmallFont, false, true,
     MENU_ID_MAIN
 };
 
@@ -4456,22 +4469,24 @@ void MN_Drawer(void)
             if (item->type != ITT_EMPTY && item->text)
             {
                 // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
-                if (CurrentMenu->smallFont)
+                if (CurrentMenu->FontType == SmallFont)
                 {
                     MN_DrTextA(DEH_String(item->text), x, y, CurrentItPos == i ?
                                cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(CurrentMenu->items[i].tics));
                 }
                 else
+                if (CurrentMenu->FontType == BigFont)
                 {
                     MN_DrTextB(DEH_String(item->text), x, y, CurrentItPos == i ?
                                cr[CR_MENU_BRIGHT3] : M_Big_Line_Glow(CurrentMenu->items[i].tics));
                 }
+                // [JN] Else, don't draw file slot names (1, 2, 3, ...) in Save/Load menus.
             }
-            y += CurrentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : ITEM_HEIGHT;
+            y += CurrentMenu->FontType == SmallFont ? ID_MENU_LINEHEIGHT_SMALL : ITEM_HEIGHT;
             item++;
         }
         
-        if (CurrentMenu->smallFont)
+        if (CurrentMenu->FontType == SmallFont)
         {
             y = CurrentMenu->y + (CurrentItPos * ID_MENU_LINEHEIGHT_SMALL);
             MN_DrTextA("*", x - ID_MENU_CURSOR_OFFSET, y, M_Cursor_Glow(cursor_tics));
