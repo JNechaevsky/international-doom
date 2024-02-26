@@ -3302,6 +3302,7 @@ static void M_ID_ApplyResetHook (void)
 
     widget_location = 0;
     widget_kis = 0;
+    widget_totaltime = 0;
     widget_levelname = 0;
     widget_coords = 0;
     widget_render = 0;

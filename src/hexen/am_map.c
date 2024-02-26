@@ -2203,7 +2203,12 @@ void AM_Drawer (void)
 
     AM_drawPlayers();
 
-    DrawWorldTimer();
+    // [JN] If total time widget is set to always, 
+    // then use it instead of standard one.
+    if (!widget_totaltime)
+    {
+        DrawWorldTimer();
+    }
 
     if (mapsco_cheating == 2)
     {

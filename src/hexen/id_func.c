@@ -212,8 +212,7 @@ void ID_LeftWidgets (void)
         }
 
         // Total time. Time gathered in G_Ticker.
-        if (widget_totaltime == 1
-        || (widget_totaltime == 2 && automapactive))
+        if (widget_totaltime)
         {
             char stra[8];
 
