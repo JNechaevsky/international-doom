@@ -49,6 +49,8 @@ static void PlayerQuitGame(player_t *player)
     M_StringCopy(exitmsg, "PLAYER 1 LEFT THE GAME", sizeof(exitmsg));
     exitmsg[7] += player_num;
     CT_SetMessage(&players[consoleplayer], exitmsg, true, NULL);
+    // [crispy] don't interpolate players who left the game
+    player->mo->interp = false;
     S_StartSound(NULL, SFX_CHAT);
 
     playeringame[player_num] = false;
@@ -226,8 +228,6 @@ void D_ConnectNetGame(void)
     }
 }
 
-// [JN] TODO - remove
-/*
 static boolean StartupProgress(int now_ready, int total)
 {
 
@@ -244,7 +244,6 @@ static boolean StartupProgress(int now_ready, int total)
     // Allow the user to hit escape during netgame startup to abort.
     return !I_CheckAbortHR();
 }
-*/
 
 //
 // D_CheckNetGame
@@ -270,7 +269,7 @@ void D_CheckNetGame(void)
 
     if (netgame)
     {
-        //StartupProgress(settings.num_players, settings.num_players);
+        StartupProgress(settings.num_players, settings.num_players);
         ST_NetDone();
     }
 }
