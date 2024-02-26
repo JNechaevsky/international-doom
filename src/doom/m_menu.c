@@ -5538,6 +5538,12 @@ boolean M_Responder (event_t* ev)
 		key = key_menu_abort;  // [JN] Cancel by right mouse button.
 		}
 		else
+		if (saveStringEnter)
+		{
+		key = key_menu_abort;
+		saveStringEnter = 0;
+		}
+		else
 		{
 		key = key_menu_back;
 		}

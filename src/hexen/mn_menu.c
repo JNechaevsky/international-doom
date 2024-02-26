@@ -4667,7 +4667,15 @@ boolean MN_Responder(event_t * event)
 
             if (event->data1 & 2)
             {
-                key = key_menu_back;
+                if (FileMenuKeySteal)
+                {
+                    key = KEY_ESCAPE;
+                    FileMenuKeySteal = false;
+                }
+                else
+                {
+                    key = key_menu_back;
+                }
                 mousewait = I_GetTime() + 5;
             }
 
