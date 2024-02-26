@@ -526,7 +526,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             }
         }
     }
-    if (gamekeydown[key_jump] /* || [JN] TODO ? mousebuttons[mousebjump]*/)
+    if (gamekeydown[key_jump] || mousebuttons[mousebjump])
     {
         cmd->arti |= AFLAG_JUMP;
     }

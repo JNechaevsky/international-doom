@@ -522,6 +522,7 @@ static void M_Bind_M_MoveForward (int option);
 static void M_Bind_M_StrafeOn (int option);
 static void M_Bind_M_MoveBackward (int option);
 static void M_Bind_M_Use (int option);
+static void M_Bind_M_Jump (int option);
 static void M_Bind_M_StrafeLeft (int option);
 static void M_Bind_M_StrafeRight (int option);
 static void M_Bind_M_PrevWeapon (int option);
@@ -2595,6 +2596,7 @@ static MenuItem_t ID_Menu_MouseBinds[] = {
     { ITT_EFUNC, "STRAFE ON",                 M_Bind_M_StrafeOn,       0, MENU_NONE },
     { ITT_EFUNC, "MOVE BACKWARD",             M_Bind_M_MoveBackward,   0, MENU_NONE },
     { ITT_EFUNC, "USE",                       M_Bind_M_Use,            0, MENU_NONE },
+    { ITT_EFUNC, "JUMP",                      M_Bind_M_Jump,           0, MENU_NONE },
     { ITT_EFUNC, "STRAFE LEFT",               M_Bind_M_StrafeLeft,     0, MENU_NONE },
     { ITT_EFUNC, "STRAFE RIGHT",              M_Bind_M_StrafeRight,    0, MENU_NONE },
     { ITT_EFUNC, "PREV WEAPON",               M_Bind_M_PrevWeapon,     0, MENU_NONE },
@@ -2609,7 +2611,7 @@ static MenuItem_t ID_Menu_MouseBinds[] = {
 static Menu_t ID_Def_MouseBinds = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_MouseBinds,
-    14, ID_Menu_MouseBinds,
+    15, ID_Menu_MouseBinds,
     0,
     true, false, false,
     MENU_ID_CONTROLS
@@ -2626,17 +2628,18 @@ static void M_Draw_ID_MouseBinds (void)
     M_DrawBindButton(2, 40, mousebstrafe);
     M_DrawBindButton(3, 50, mousebbackward);
     M_DrawBindButton(4, 60, mousebuse);
-    M_DrawBindButton(5, 70, mousebstrafeleft);
-    M_DrawBindButton(6, 80, mousebstraferight);
-    M_DrawBindButton(7, 90, mousebprevweapon);
-    M_DrawBindButton(8, 100, mousebnextweapon);
-    M_DrawBindButton(9, 110, mousebinvleft);
-    M_DrawBindButton(10, 120, mousebinvright);
-    M_DrawBindButton(11, 130, mousebuseartifact);
+    M_DrawBindButton(5, 70, mousebjump);
+    M_DrawBindButton(6, 80, mousebstrafeleft);
+    M_DrawBindButton(7, 90, mousebstraferight);
+    M_DrawBindButton(8, 100, mousebprevweapon);
+    M_DrawBindButton(9, 110, mousebnextweapon);
+    M_DrawBindButton(10, 120, mousebinvleft);
+    M_DrawBindButton(11, 130, mousebinvright);
+    M_DrawBindButton(12, 140, mousebuseartifact);
 
-    MN_DrTextACentered("RESET", 140, cr[CR_YELLOW]);
+    MN_DrTextACentered("RESET", 150, cr[CR_YELLOW]);
 
-    M_DrawBindFooter(NULL, false);
+    MN_DrTextACentered("PRESS ENTER TO BIND, DEL TO CLEAR", 180, cr[CR_GRAY]);
 }
 
 static void M_Bind_M_FireAttack (int option)
@@ -2664,39 +2667,44 @@ static void M_Bind_M_Use (int option)
     M_StartMouseBind(1004);  // mousebuse
 }
 
+static void M_Bind_M_Jump (int option)
+{
+    M_StartMouseBind(1005);  // mousebjump
+}
+
 static void M_Bind_M_StrafeLeft (int option)
 {
-    M_StartMouseBind(1005);  // mousebstrafeleft
+    M_StartMouseBind(1006);  // mousebstrafeleft
 }
 
 static void M_Bind_M_StrafeRight (int option)
 {
-    M_StartMouseBind(1006);  // mousebstraferight
+    M_StartMouseBind(1007);  // mousebstraferight
 }
 
 static void M_Bind_M_PrevWeapon (int option)
 {
-    M_StartMouseBind(1007);  // mousebprevweapon
+    M_StartMouseBind(1008);  // mousebprevweapon
 }
 
 static void M_Bind_M_NextWeapon (int option)
 {
-    M_StartMouseBind(1008);  // mousebnextweapon
+    M_StartMouseBind(1009);  // mousebnextweapon
 }
 
 static void M_Bind_M_InventoryLeft (int option)
 {
-    M_StartMouseBind(1009);  // mousebinvleft
+    M_StartMouseBind(1010);  // mousebinvleft
 }
 
 static void M_Bind_M_InventoryRight (int option)
 {
-    M_StartMouseBind(1010);  // mousebinvright
+    M_StartMouseBind(1011);  // mousebinvright
 }
 
 static void M_Bind_M_UseArtifact (int option)
 {
-    M_StartMouseBind(1011);  // mousebuseartifact
+    M_StartMouseBind(1012);  // mousebuseartifact
 }
 
 static void M_Bind_M_Reset (int option)
@@ -6210,6 +6218,7 @@ static void M_CheckMouseBind (int btn)
     if (mousebstrafe == btn)      mousebstrafe      = -1;
     if (mousebbackward == btn)    mousebbackward    = -1;
     if (mousebuse == btn)         mousebuse         = -1;
+    if (mousebjump == btn)        mousebjump        = -1;
     if (mousebstrafeleft == btn)  mousebstrafeleft  = -1;
     if (mousebstraferight == btn) mousebstraferight = -1;
     if (mousebprevweapon == btn)  mousebprevweapon  = -1;
@@ -6234,13 +6243,14 @@ static void M_DoMouseBind (int btnnum, int btn)
         case 1002:  mousebstrafe = btn;       break;
         case 1003:  mousebbackward = btn;     break;
         case 1004:  mousebuse = btn;          break;
-        case 1005:  mousebstrafeleft = btn;   break;
-        case 1006:  mousebstraferight = btn;  break;
-        case 1007:  mousebprevweapon = btn;   break;
-        case 1008:  mousebnextweapon = btn;   break;
-        case 1009:  mousebinvleft = btn;      break;
-        case 1010:  mousebinvright = btn;     break;
-        case 1011:  mousebuseartifact = btn;  break;
+        case 1005:  mousebjump = btn;         break;
+        case 1006:  mousebstrafeleft = btn;   break;
+        case 1007:  mousebstraferight = btn;  break;
+        case 1008:  mousebprevweapon = btn;   break;
+        case 1009:  mousebnextweapon = btn;   break;
+        case 1010:  mousebinvleft = btn;      break;
+        case 1011:  mousebinvright = btn;     break;
+        case 1012:  mousebuseartifact = btn;  break;
         default:                              break;
     }
 }
@@ -6259,13 +6269,14 @@ static void M_ClearMouseBind (int itemOn)
         case 2:   mousebstrafe = -1;       break;
         case 3:   mousebbackward = -1;     break;
         case 4:   mousebuse = -1;          break;
-        case 5:   mousebstrafeleft = -1;   break;
-        case 6:   mousebstraferight = -1;  break;
-        case 7:   mousebprevweapon = -1;   break;
-        case 8:   mousebnextweapon = -1;   break;
-        case 9:   mousebinvleft = -1;      break;
-        case 10:  mousebinvright = -1;     break;
-        case 11:  mousebuseartifact = -1;  break;
+        case 5:   mousebjump = -1;         break;
+        case 6:   mousebstrafeleft = -1;   break;
+        case 7:   mousebstraferight = -1;  break;
+        case 8:   mousebprevweapon = -1;   break;
+        case 9:   mousebnextweapon = -1;   break;
+        case 10:  mousebinvleft = -1;      break;
+        case 11:  mousebinvright = -1;     break;
+        case 12:  mousebuseartifact = -1;  break;
     }
 }
 
@@ -6328,6 +6339,7 @@ static void M_ResetMouseBinds (void)
     mousebstrafe = 1;
     mousebbackward = -1;
     mousebuse = -1;
+    mousebjump = -1;
     mousebstrafeleft = -1;
     mousebstraferight = -1;
     mousebprevweapon = 4;
