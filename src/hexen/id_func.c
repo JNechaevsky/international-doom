@@ -63,6 +63,8 @@ void ID_LeftWidgets (void)
     //
     if (widget_location == 1)
     {
+        int yy = 0;
+
         // Total kills
         if (widget_kis == 1
         || (widget_kis == 2 && automapactive))
@@ -74,11 +76,16 @@ void ID_LeftWidgets (void)
                 MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, cr[CR_GREEN_HX]);
         }
 
+        if (!widget_kis)
+        {
+            yy -= 10;
+        }
+
         // Total time. Time gathered in G_Ticker.
         if (widget_totaltime)
         {
-            MN_DrTextA("TIME", 0 - WIDESCREENDELTA, 20, cr[CR_GRAY]);
-            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA, 30, cr[CR_LIGHTGRAY]);
+            MN_DrTextA("TIME", 0 - WIDESCREENDELTA, 20 + yy, cr[CR_GRAY]);
+            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA, 30 + yy, cr[CR_LIGHTGRAY]);
         }
 
         // Player coords
@@ -87,16 +94,16 @@ void ID_LeftWidgets (void)
         {
             char str[128];
             
-            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 30, cr[CR_GRAY]);
-            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 40, cr[CR_GRAY]);
-            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 50, cr[CR_GRAY]);
+            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 50, cr[CR_GRAY]);
+            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 60, cr[CR_GRAY]);
+            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 70, cr[CR_GRAY]);
 
             sprintf(str, "%d", IDWidget.x);
-            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 30, cr[CR_GREEN_HX]);
+            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 50, cr[CR_GREEN_HX]);
             sprintf(str, "%d", IDWidget.y);
-            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 40, cr[CR_GREEN_HX]);
+            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 60, cr[CR_GREEN_HX]);
             sprintf(str, "%d", IDWidget.ang);
-            MN_DrTextA(str, 0 - WIDESCREENDELTA + 32, 50, cr[CR_GREEN_HX]);
+            MN_DrTextA(str, 0 - WIDESCREENDELTA + 32, 70, cr[CR_GREEN_HX]);
         }
 
         // Render counters
@@ -108,24 +115,24 @@ void ID_LeftWidgets (void)
             char vis[32];
 
             // Sprites
-            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 70, cr[CR_GRAY]);
+            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 90, cr[CR_GRAY]);
             M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 70, cr[CR_GREEN_HX]);
+            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 90, cr[CR_GREEN_HX]);
 
             // Segments
-            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 80, cr[CR_GRAY]);
+            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 100, cr[CR_GRAY]);
             M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 80, cr[CR_GREEN_HX]);
+            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 100, cr[CR_GREEN_HX]);
 
             // Openings
-            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 90, cr[CR_GRAY]);
+            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 110, cr[CR_GRAY]);
             M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 90, cr[CR_GREEN_HX]);
+            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 110, cr[CR_GREEN_HX]);
 
             // Planes
-            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 100, cr[CR_GRAY]);
+            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 120, cr[CR_GRAY]);
             M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 100, cr[CR_GREEN_HX]);
+            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 120, cr[CR_GREEN_HX]);
         }
     }
     //
@@ -156,24 +163,24 @@ void ID_LeftWidgets (void)
             const int yy1 = widget_coords ? 0 : 45;
 
             // Sprites
-            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 54 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 34 + yy1, cr[CR_GRAY]);
             M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 54 + yy1, cr[CR_GREEN_HX]);
+            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 34 + yy1, cr[CR_GREEN_HX]);
 
             // Segments
-            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 64 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 44 + yy1, cr[CR_GRAY]);
             M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 64 + yy1, cr[CR_GREEN_HX]);
+            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 44 + yy1, cr[CR_GREEN_HX]);
 
             // Openings
-            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 74 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 54 + yy1, cr[CR_GRAY]);
             M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 74 + yy1, cr[CR_GREEN_HX]);
+            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 54 + yy1, cr[CR_GREEN_HX]);
 
             // Planes
-            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 84 + yy1, cr[CR_GRAY]);
+            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 64 + yy1, cr[CR_GRAY]);
             M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 84 + yy1, cr[CR_GREEN_HX]);
+            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 64 + yy1, cr[CR_GREEN_HX]);
         }
 
         // Player coords
@@ -182,21 +189,37 @@ void ID_LeftWidgets (void)
         {
             char str[128];
 
-            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 104, cr[CR_GRAY]);
-            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 114, cr[CR_GRAY]);
-            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 124, cr[CR_GRAY]);
+            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 84, cr[CR_GRAY]);
+            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 94, cr[CR_GRAY]);
+            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 104, cr[CR_GRAY]);
 
             sprintf(str, "%d", IDWidget.x);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 104, cr[CR_GREEN_HX]);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 84, cr[CR_GREEN_HX]);
             sprintf(str, "%d", IDWidget.y);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 114, cr[CR_GREEN_HX]);
+            MN_DrTextA(str, 16 - WIDESCREENDELTA, 94, cr[CR_GREEN_HX]);
             sprintf(str, "%d", IDWidget.ang);
-            MN_DrTextA(str, 32 - WIDESCREENDELTA, 124, cr[CR_GREEN_HX]);
+            MN_DrTextA(str, 32 - WIDESCREENDELTA, 104, cr[CR_GREEN_HX]);
         }
 
         if (automapactive)
         {
             yy -= 10;
+        }
+
+        if (!widget_kis)
+        {
+            yy += 10;
+        }
+
+        // Total time. Time gathered in G_Ticker.
+        if (widget_totaltime == 1
+        || (widget_totaltime == 2 && automapactive))
+        {
+            char stra[8];
+
+            sprintf(stra, "TIME ");
+            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 134 + yy, cr[CR_GRAY]);
+            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 134 + yy, cr[CR_LIGHTGRAY]);
         }
 
         // Total kills
