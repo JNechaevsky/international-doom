@@ -535,6 +535,7 @@ static void M_Bind_M_Reset (int option);
 static void M_Draw_ID_Widgets (void);
 static void M_ID_Widget_Location (int option);
 static void M_ID_Widget_Kills (int option);
+static void M_ID_Widget_TotalTime (int option);
 static void M_ID_Widget_LevelName (int option);
 static void M_ID_Widget_Coords (int option);
 static void M_ID_Widget_Render (int option);
@@ -2712,6 +2713,7 @@ static void M_Bind_M_Reset (int option)
 static MenuItem_t ID_Menu_Widgets[] = {
     { ITT_LRFUNC, "WIDGETS LOCATION",      M_ID_Widget_Location,   0, MENU_NONE },
     { ITT_LRFUNC, "TOTAL KILLS",           M_ID_Widget_Kills,      0, MENU_NONE },
+    { ITT_LRFUNC, "TOTAL TIME",            M_ID_Widget_TotalTime,  0, MENU_NONE },
     { ITT_LRFUNC, "LEVEL NAME",            M_ID_Widget_LevelName,  0, MENU_NONE },
     { ITT_LRFUNC, "PLAYER COORDS",         M_ID_Widget_Coords,     0, MENU_NONE },
     { ITT_LRFUNC, "RENDER COUNTERS",       M_ID_Widget_Render,     0, MENU_NONE },
@@ -2719,13 +2721,13 @@ static MenuItem_t ID_Menu_Widgets[] = {
     { ITT_EMPTY,  NULL,                    NULL,                   0, MENU_NONE },
     { ITT_LRFUNC, "ROTATE MODE",           M_ID_Automap_Rotate,    0, MENU_NONE },
     { ITT_LRFUNC, "OVERLAY MODE",          M_ID_Automap_Overlay,   0, MENU_NONE },
-    { ITT_LRFUNC, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading, 0, MENU_NONE },
+    { ITT_LRFUNC, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,   0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    10, ID_Menu_Widgets,
+    11, ID_Menu_Widgets,
     0,
     true, false, false,
     MENU_ID_MAIN
@@ -2748,48 +2750,53 @@ static void M_Draw_ID_Widgets (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Total time
+    sprintf(str, widget_totaltime ? "ALWAYS" : "AUTOMAP");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, widget_totaltime ? GLOW_GREEN : GLOW_DARKRED));
+
     // Level name
     sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
-    MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
 
     // Player coords
     sprintf(str, widget_coords == 1 ? "ALWAYS"  :
                  widget_coords == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
 
     // Render counters
     sprintf(str, widget_render ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               M_Item_Glow(4, widget_render ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, widget_render ? GLOW_GREEN : GLOW_DARKRED));
 
     // Target's health
     sprintf(str, widget_health == 1 ? "TOP" :
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 70,
-               M_Item_Glow(5, widget_health ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, widget_health ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("AUTOMAP", 80, cr[CR_YELLOW]);
+    MN_DrTextACentered("AUTOMAP", 90, cr[CR_YELLOW]);
 
     // Rotate mode
     sprintf(str, automap_rotate ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, automap_rotate ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, automap_rotate ? GLOW_GREEN : GLOW_DARKRED));
 
     // Overlay mode
     sprintf(str, automap_overlay ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 100,
-               M_Item_Glow(8, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
 
     // Overlay shading level
     sprintf(str,"%d", automap_shading);
-    MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, !automap_overlay ? GLOW_DARKRED :
-                               automap_shading ==  0 ? GLOW_RED :
-                               automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, !automap_overlay ? GLOW_DARKRED :
+                                automap_shading ==  0 ? GLOW_RED :
+                                automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
 }
 
 static void M_ID_Widget_Location (int choice)
@@ -2800,6 +2807,11 @@ static void M_ID_Widget_Location (int choice)
 static void M_ID_Widget_Kills (int choice)
 {
     widget_kis = M_INT_Slider(widget_kis, 0, 2, choice, false);
+}
+
+static void M_ID_Widget_TotalTime (int choice)
+{
+    widget_totaltime ^= 1;
 }
 
 static void M_ID_Widget_LevelName (int choice)

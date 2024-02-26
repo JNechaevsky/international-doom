@@ -41,6 +41,7 @@
 ID_Render_t IDRender;
 ID_Widget_t IDWidget;
 
+char ID_Total_Time[64];
 char ID_Local_Time[64];
 
 enum
@@ -71,6 +72,13 @@ void ID_LeftWidgets (void)
                 MN_DrTextA("K:", 0 - WIDESCREENDELTA, 10, cr[CR_GRAY]);
                 sprintf(str1, "%d", IDWidget.kills);
                 MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, cr[CR_GREEN_HX]);
+        }
+
+        // Total time. Time gathered in G_Ticker.
+        if (widget_totaltime)
+        {
+            MN_DrTextA("TIME", 0 - WIDESCREENDELTA, 20, cr[CR_GRAY]);
+            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA, 30, cr[CR_LIGHTGRAY]);
         }
 
         // Player coords
