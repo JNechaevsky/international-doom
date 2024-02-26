@@ -1625,6 +1625,16 @@ void G_Ticker(void)
     // [JN] Query time for time-related widgets:
     //
 
+    // Total time
+    if (widget_totaltime)
+    {
+        const int worldTimer = players[consoleplayer].worldTimer;
+        const int hours = worldTimer / (3600 * TICRATE);
+        const int mins = worldTimer / (60 * TICRATE) % 60;
+        const int secs = (worldTimer % (60 * TICRATE)) / TICRATE;
+
+        M_snprintf(ID_Total_Time, sizeof(ID_Total_Time), "%02i:%02i:%02i", hours, mins, secs);
+    }
     // Local time
     if (msg_local_time)
     {
