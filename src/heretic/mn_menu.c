@@ -5867,6 +5867,7 @@ boolean MN_Responder(event_t * event)
                         == toupper(DEH_String(CurrentMenu->items[i].text)[0]))
                     {
                         CurrentItPos = i;
+                        S_StartSound(NULL, sfx_switch);
                         return (true);
                     }
                 }
@@ -5879,6 +5880,7 @@ boolean MN_Responder(event_t * event)
                         == toupper(DEH_String(CurrentMenu->items[i].text)[0]))
                     {
                         CurrentItPos = i;
+                        S_StartSound(NULL, sfx_switch);
                         return (true);
                     }
                 }

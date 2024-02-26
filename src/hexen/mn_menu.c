@@ -5334,6 +5334,7 @@ boolean MN_Responder(event_t * event)
                         == toupper(CurrentMenu->items[i].text[0]))
                     {
                         CurrentItPos = i;
+                        S_StartSound(NULL, SFX_FIGHTER_HAMMER_HITWALL);
                         return (true);
                     }
                 }
@@ -5346,6 +5347,7 @@ boolean MN_Responder(event_t * event)
                         == toupper(CurrentMenu->items[i].text[0]))
                     {
                         CurrentItPos = i;
+                        S_StartSound(NULL, SFX_FIGHTER_HAMMER_HITWALL);
                         return (true);
                     }
                 }
