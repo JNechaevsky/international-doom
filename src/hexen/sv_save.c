@@ -2070,8 +2070,6 @@ void SV_SaveMap(boolean savePlayers)
     // [JN] Archive automap marks.
     ArchiveAutomap();
     
-    M_StringCopy(savename, fileName, sizeof(savename));
-
     // Place a termination marker
     SV_WriteLong(ASEG_END);
 
@@ -2111,7 +2109,6 @@ void SV_LoadGame(int slot)
 
     // Create the name
     M_snprintf(fileName, sizeof(fileName), "%shex%d.sav", SavePath, BASE_SLOT);
-    M_StringCopy(savename, fileName, sizeof(savename));
 
     // Load the file
     SV_OpenRead(fileName);
@@ -3388,6 +3385,7 @@ static void CopySaveSlot(int sourceSlot, int destSlot)
             M_snprintf(destName, sizeof(destName),
                        "%shex%d%02d.sav", SavePath, destSlot, i);
             CopyFile(sourceName, destName);
+            M_StringCopy(savename, destName, sizeof(savename));
         }
     }
     M_snprintf(sourceName, sizeof(sourceName),
@@ -3397,6 +3395,7 @@ static void CopySaveSlot(int sourceSlot, int destSlot)
         M_snprintf(destName, sizeof(destName),
                    "%shex%d.sav", SavePath, destSlot);
         CopyFile(sourceName, destName);
+        M_StringCopy(savename, destName, sizeof(savename));
     }
     else
     {
