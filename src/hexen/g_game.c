@@ -2246,6 +2246,7 @@ void G_SaveGame(int slot, char *description)
     savegameslot = slot;
     M_StringCopy(savedescription, description, sizeof(savedescription));
     sendsave = true;
+    GameLoadSlot = slot;
 }
 
 //==========================================================================
