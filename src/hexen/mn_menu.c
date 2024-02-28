@@ -4255,6 +4255,12 @@ static void SCDeleteGame(int option)
         return;
     }
 
+    // [JN] If last "On Death" save slot is deleted, reset it.
+    if (option == OnDeathLoadSlot)
+    {
+        OnDeathLoadSlot = -1;
+    }
+
     SV_ClearSaveSlot(option);
     MN_LoadSlotText();
 }

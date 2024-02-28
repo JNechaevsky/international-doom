@@ -483,30 +483,27 @@ void P_DeathThink(player_t * player)
         // Let the mobj know the player has entered the reborn state.  Some
         // mobjs need to know when it's ok to remove themselves.
         player->mo->special2.i = 666;
-        G_ClearSavename();
         }
         else
         {
+            // [JN] Handle last save slot for "On Death Action":
             if (gp_death_use_action == 1)
             {
-                // Load last save
-                if (*savename)
+                if (OnDeathLoadSlot != -1)
                 {
-                    gameaction = ga_loadgame;
+                    // If last save exist, load it.
+                    G_LoadGame(OnDeathLoadSlot);
+                }
+                else
+                if (SV_RebornSlotAvailable())
+                {
+                    // No last save? Try to load reborn slot.
+                    gameaction = ga_singlereborn;
                 }
                 else
                 {
-#ifndef CRISPY_TRUECOLOR
-                    I_SetPalette(W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE));
-#else
-                    I_SetPalette(0);
-#endif
-                    inv_ptr = 0;
-                    curpos = 0;
-                    newtorch = 0;
-                    newtorchdelta = 0;
-                    player->playerstate = PST_REBORN;
-                    player->mo->special2.i = 666;
+                    // Still nothing? Just start a new game.
+                    gameaction = ga_newgame;
                 }
             }
             else
