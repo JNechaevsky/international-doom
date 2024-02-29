@@ -3385,7 +3385,6 @@ static void CopySaveSlot(int sourceSlot, int destSlot)
             M_snprintf(destName, sizeof(destName),
                        "%shex%d%02d.sav", SavePath, destSlot, i);
             CopyFile(sourceName, destName);
-            M_StringCopy(savename, destName, sizeof(savename));
         }
     }
     M_snprintf(sourceName, sizeof(sourceName),
@@ -3395,7 +3394,6 @@ static void CopySaveSlot(int sourceSlot, int destSlot)
         M_snprintf(destName, sizeof(destName),
                    "%shex%d.sav", SavePath, destSlot);
         CopyFile(sourceName, destName);
-        M_StringCopy(savename, destName, sizeof(savename));
     }
     else
     {

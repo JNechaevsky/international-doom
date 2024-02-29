@@ -174,7 +174,6 @@ static int crl_camzspeed;
 
 int savegameslot;
 char savedescription[32];
-char savename[256];
 
 static int inventoryTics;
 
@@ -1859,13 +1858,6 @@ void G_DeathMatchSpawnPlayer(int playernum)
     P_SpawnPlayer(&playerstarts[0][playernum]);
 }
 
-// [crispy] clear the "savename" variable,
-// i.e. restart level from scratch upon resurrection
-void G_ClearSavename (void)
-{
-    M_StringCopy(savename, "", sizeof(savename));
-}
-
 //==========================================================================
 //
 // G_DoReborn
@@ -2192,6 +2184,10 @@ void G_DoSingleReborn(void)
 //==========================================================================
 
 static int GameLoadSlot;
+// [JN] & [plums] "On Death Action" feature: unlike Doom and Heretic,
+// Hexen mostly handles save slots via their numbers, not file names.
+// "-1" means "no last save slot".
+int OnDeathLoadSlot = -1;
 
 void G_LoadGame(int slot)
 {
@@ -2223,7 +2219,7 @@ void G_DoLoadGame(void)
     // [crispy] if the player is dead in this savegame,
     // do not consider it for reload
     if (players[consoleplayer].health <= 0)
-	G_ClearSavename();
+	OnDeathLoadSlot = -1;
 
     // [JN] If "On death action" is set to "last save",
     // then prevent holded "use" button to work for next few tics.
@@ -2246,7 +2242,7 @@ void G_SaveGame(int slot, char *description)
     savegameslot = slot;
     M_StringCopy(savedescription, description, sizeof(savedescription));
     sendsave = true;
-    GameLoadSlot = slot;
+    OnDeathLoadSlot = slot;
 }
 
 //==========================================================================
@@ -2398,7 +2394,6 @@ void G_InitNew(skill_t skill, int episode, int map)
     //memset (netcmds,0,sizeof(netcmds));
 
     G_DoLoadLevel();
-    G_ClearSavename();
 }
 
 /*
