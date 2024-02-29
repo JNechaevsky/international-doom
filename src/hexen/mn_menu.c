@@ -742,6 +742,8 @@ static byte *M_Big_Line_Glow (const int tics)
 #define GLOW_LIGHTGRAY  6
 #define GLOW_DARKGRAY   7
 #define GLOW_BLUE       8
+#define GLOW_OLIVE      9
+#define GLOW_DARKGREEN  10
 
 #define ITEMONTICS      CurrentMenu->items[CurrentItPos].tics
 #define ITEMSETONTICS   CurrentMenu->items[CurrentItPosOn].tics
@@ -759,6 +761,8 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
             color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY_BRIGHT5] :
             color == GLOW_DARKGRAY  ? cr[CR_MENU_DARK1]        :
             color == GLOW_BLUE      ? cr[CR_BLUE2_BRIGHT5]     :
+            color == GLOW_OLIVE     ? cr[CR_OLIVE_BRIGHT5]     :
+            color == GLOW_DARKGREEN ? cr[CR_DARKGREEN_BRIGHT5] :
                                       cr[CR_MENU_BRIGHT5]      ; // GLOW_UNCOLORED
     }
     else
@@ -844,6 +848,24 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
                 ITEMSETONTICS == 2 ? cr[CR_BLUE2_BRIGHT2] :
                 ITEMSETONTICS == 1 ? cr[CR_BLUE2_BRIGHT1] : cr[CR_BLUE2];
         }
+        if (color == GLOW_OLIVE)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_OLIVE_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_OLIVE_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_OLIVE_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_OLIVE_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_OLIVE_BRIGHT1] : cr[CR_OLIVE];
+        }
+        if (color == GLOW_DARKGREEN)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_DARKGREEN_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_DARKGREEN_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_DARKGREEN_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_DARKGREEN_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_DARKGREEN_BRIGHT1] : cr[CR_DARKGREEN];
+        }
     }
     return NULL;
 }
@@ -906,15 +928,15 @@ static const float M_FLOAT_Slider (float val, float min, float max, float step,
     return val;
 }
 
-static byte *DefSkillColor (const int skill)
+static int DefSkillColor (const int skill)
 {
     return
-        skill == 0 ? cr[CR_OLIVE]     :
-        skill == 1 ? cr[CR_DARKGREEN] :
-        skill == 2 ? cr[CR_GREEN_HX]  :
-        skill == 3 ? cr[CR_YELLOW]    :
-        skill == 4 ? cr[CR_RED]       :
-                     NULL;
+        skill == 0 ? GLOW_OLIVE     :
+        skill == 1 ? GLOW_DARKGREEN :
+        skill == 2 ? GLOW_GREEN     :
+        skill == 3 ? GLOW_YELLOW    :
+        skill == 4 ? GLOW_ORANGE    :
+                     GLOW_RED       ;
 }
 
 static char *const DefClassName[3] = 
@@ -3172,7 +3194,7 @@ static void M_Draw_ID_Gameplay_3 (void)
     // Default skill level
     M_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               DefSkillColor(gp_default_skill));
+               M_Item_Glow(1, DefSkillColor(gp_default_skill)));
 
     // Flip levels horizontally
     sprintf(str, gp_flip_levels ? "ON" : "OFF");
