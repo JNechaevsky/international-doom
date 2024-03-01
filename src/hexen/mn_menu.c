@@ -4284,6 +4284,7 @@ static void SCDeleteGame(int option)
     }
 
     SV_ClearSaveSlot(option);
+    CurrentMenu->oldItPos = CurrentItPos;  // [JN] Do not reset cursor position.
     MN_LoadSlotText();
 }
 

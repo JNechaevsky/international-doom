@@ -4862,6 +4862,7 @@ static void SCDeleteGame(int option)
     remove(filename);
     free(filename);
 
+    CurrentMenu->oldItPos = CurrentItPos;  // [JN] Do not reset cursor position.
     MN_LoadSlotText();
 }
 
