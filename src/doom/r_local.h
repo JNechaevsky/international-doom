@@ -722,6 +722,9 @@ extern fixed_t *yslope;
 extern fixed_t  yslopes[LOOKDIRS][MAXHEIGHT];
 extern fixed_t distscale[MAXWIDTH];
 
+extern fixed_t swirlCoord_x;
+extern fixed_t swirlCoord_y;
+
 extern visplane_t *R_FindPlane (fixed_t height, int picnum, int lightlevel);
 extern visplane_t *R_CheckPlane (visplane_t *pl, int start, int stop);
 extern visplane_t *R_DupPlane (const visplane_t *pl, int start, int stop);
