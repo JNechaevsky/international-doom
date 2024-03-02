@@ -1334,13 +1334,14 @@ void P_UpdateSpecials (void)
     // [crispy] draw fuzz effect independent of rendering frame rate
     R_SetFuzzPosTic();
 
-    // [JN] Calculate offsets for flowing effect of swirling liquids.
+    // [JN] Set offsets for flowing effect of swirling liquids.
     if (vis_swirling_liquids)
     {
-        const fixed_t swirlCoord = (42 * leveltime) & FINEMASK;
+        static int i;
 
-        swirlCoord_x = finesine[swirlCoord] * 4;
-        swirlCoord_y = finecosine[swirlCoord] * 4;
+        if (++i > 195) i = 0;
+        swirlCoord_x = SwirlFlowSine[i];
+        swirlCoord_y = SwirlFlowCosine[i];
     }
 }
 
