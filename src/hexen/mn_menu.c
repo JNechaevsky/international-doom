@@ -3836,17 +3836,14 @@ void MN_Drawer(void)
         {
             if (item->type != ITT_EMPTY && item->text)
             {
-                // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
                 if (CurrentMenu->FontType == SmallFont)
                 {
-                    MN_DrTextA(item->text, x, y, CurrentItPos == i ?
-                               cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(CurrentMenu->items[i].tics));
+                    MN_DrTextA(item->text, x, y, M_Small_Line_Glow(CurrentMenu->items[i].tics));
                 }
                 else
                 if (CurrentMenu->FontType == BigFont)
                 {
-                    MN_DrTextB(item->text, x, y, CurrentItPos == i ?
-                               cr[CR_MENU_BRIGHT3] : M_Big_Line_Glow(CurrentMenu->items[i].tics));
+                    MN_DrTextB(item->text, x, y, M_Big_Line_Glow(CurrentMenu->items[i].tics));
                 }
                 // [JN] Else, don't draw file slot names (1, 2, 3, ...) in Save/Load menus.
             }

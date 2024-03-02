@@ -6187,39 +6187,37 @@ void M_Drawer (void)
     y = currentMenu->y;
     max = currentMenu->numitems;
 
-    for (i=0;i<max;i++)
-    {
-        name = DEH_String(currentMenu->menuitems[i].name);
-
-        // [JN] Highlight selected item (itemOn == i) or apply fading effect.
-        if (currentMenu->smallFont)
-        {
-            M_WriteText (x, y, name, itemOn == i ?
-                         cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
-        }
-        else
-        {
-            if (name[0])
-            {
-                dp_translation = itemOn == i ? cr[CR_MENU_BRIGHT3] : M_Big_Line_Glow(currentMenu->menuitems[i].tics);
-                V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(name, PU_CACHE));
-                dp_translation = NULL;
-            }
-        }
-        y += currentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : LINEHEIGHT;
-    }
-
     if (currentMenu->smallFont)
     {
         // [JN] Draw glowing * symbol.
-        M_WriteText(x - ID_MENU_CURSOR_OFFSET, currentMenu->y + itemOn * ID_MENU_LINEHEIGHT_SMALL,
-                    "*", M_Cursor_Glow(cursor_tics));
+        M_WriteText(x - ID_MENU_CURSOR_OFFSET, y + itemOn * ID_MENU_LINEHEIGHT_SMALL, "*",
+                    M_Cursor_Glow(cursor_tics));
+
+        for (i = 0 ; i < max ; i++)
+        {
+            M_WriteText (x, y, currentMenu->menuitems[i].name,
+                         M_Small_Line_Glow(currentMenu->menuitems[i].tics));
+            y += ID_MENU_LINEHEIGHT_SMALL;
+        }
     }
     else
     {
         // DRAW SKULL
-        V_DrawShadowedPatchOptional(x + SKULLXOFF, currentMenu->y - 5 + itemOn*LINEHEIGHT, 0,
-                            W_CacheLumpName(DEH_String(skullName[whichSkull]), PU_CACHE));
+        V_DrawShadowedPatchOptional(x + SKULLXOFF, y - 5 + itemOn * LINEHEIGHT, 0,
+                                    W_CacheLumpName(DEH_String(skullName[whichSkull]), PU_CACHE));
+
+        for (i = 0 ; i < max ; i++)
+        {
+            name = DEH_String(currentMenu->menuitems[i].name);
+
+            if (name[0])
+            {
+                dp_translation = M_Big_Line_Glow(currentMenu->menuitems[i].tics);
+                V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(name, PU_CACHE));
+                dp_translation = NULL;
+            }
+            y += LINEHEIGHT;
+        }
     }
 }
 
