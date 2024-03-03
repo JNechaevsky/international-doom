@@ -93,12 +93,9 @@ extern const angle_t tantoangle[SLOPERANGE+1];
 int SlopeDiv(unsigned int num, unsigned int den);
 int SlopeDivCrispy(unsigned int num, unsigned int den);
 
-#ifndef CRISPY_TRUECOLOR
-// [JN] Pregenerated TINTMAP transluceny table.
-extern byte tintmap_original[];
-extern byte shadowmap_original[];
-extern byte fuzzmap_original[];
-#endif
+// [JN] Flowing effect for swirling liquids.
+extern const fixed_t SwirlFlowSine[196];
+extern const fixed_t SwirlFlowCosine[196];
 
 #endif
 

@@ -461,6 +461,9 @@ extern fixed_t *yslope;
 extern fixed_t yslopes[LOOKDIRS][MAXHEIGHT]; // [crispy]
 extern fixed_t distscale[MAXWIDTH];
 
+extern fixed_t swirlCoord_x;
+extern fixed_t swirlCoord_y;
+
 void R_ClearPlanes(void);
 void R_MapPlane(int y, int x1, int x2);
 extern void R_MakeSpans (unsigned int x, unsigned int t1, unsigned int b1, 
