@@ -1151,11 +1151,8 @@ void P_UpdateSpecials(void)
     // [JN] Set offsets for flowing effect of swirling liquids.
     if (vis_swirling_liquids)
     {
-        static int i;
-
-        if (++i > 195) i = 0;
-        swirlCoord_x = SwirlFlowSine[i];
-        swirlCoord_y = SwirlFlowCosine[i];
+        swirlCoord_x = SwirlFlowSine[leveltime % 195];
+        swirlCoord_y = SwirlFlowCosine[leveltime % 195];
     }
 }
 
