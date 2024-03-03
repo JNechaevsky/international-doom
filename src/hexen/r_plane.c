@@ -108,7 +108,7 @@ fixed_t cachedystep[MAXHEIGHT];
 // Render-only coords:
 static fixed_t swirlFlow_x;
 static fixed_t swirlFlow_y;
-// Actual coords, updates on game tic via P_UpdateSpecials:
+// Actual coords, updates on game tic via P_AnimateSurfaces:
 fixed_t swirlCoord_x;
 fixed_t swirlCoord_y;
 
