@@ -104,6 +104,14 @@ fixed_t cacheddistance[MAXHEIGHT];
 fixed_t cachedxstep[MAXHEIGHT];
 fixed_t cachedystep[MAXHEIGHT];
 
+// [JN] Flowing effect for swirling liquids.
+// Render-only coords:
+static fixed_t swirlFlow_x;
+static fixed_t swirlFlow_y;
+// Actual coords, updates on game tic via P_UpdateSpecials:
+fixed_t swirlCoord_x;
+fixed_t swirlCoord_y;
+
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 static fixed_t xsmoothscrolloffset; // [crispy]
 static fixed_t ysmoothscrolloffset; // [crispy]
@@ -214,6 +222,10 @@ void R_MapPlane(int y, int x1, int x2)
      // [crispy]
     ds_xfrac += xsmoothscrolloffset;
     ds_yfrac += ysmoothscrolloffset;
+
+    // [JN] Add flowing offsets.
+    ds_xfrac += swirlFlow_x;
+    ds_yfrac += swirlFlow_y;
 
     if (fixedcolormap)
     {
@@ -665,6 +677,18 @@ void R_DrawPlanes(void)
 
             // [crispy] adapt swirl from src/doom to src/hexen
             ds_source = swirling ? R_DistortedFlat(lumpnum) : W_CacheLumpNum(lumpnum, PU_STATIC);
+
+            // [JN] Apply flowing effect to swirling liquids.
+            if (swirling)
+            {
+                swirlFlow_x = swirlCoord_x;
+                swirlFlow_y = swirlCoord_y;
+            }
+            else
+            {
+                swirlFlow_x = 0;
+                swirlFlow_y = 0;
+            }
 
             // [crispy] Use old value of interpfactor if uncapped and paused. This
             // ensures that scrolling stops smoothly when pausing.
