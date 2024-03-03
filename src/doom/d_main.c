@@ -333,7 +333,10 @@ static void D_Display (void)
     if (gamestate == GS_LEVEL)
     {
         // [JN] Left widgets are available while active game level.
-        ID_LeftWidgets ();
+        if (dp_screen_size < 15)
+        {
+            ID_LeftWidgets();
+        }
 
         // [crispy] demo timer widget
         if (demoplayback && (demo_timer == 1 || demo_timer == 3))
