@@ -4763,7 +4763,7 @@ static void M_DrawEpisode(void)
 
 static void M_VerifyNightmare(int key)
 {
-    if (key != key_menu_confirm)
+    if (key != key_menu_confirm && key != key_menu_forward)
 	return;
 		
     G_DeferedInitNew((skill_t)nightmare,epi+1,1);
@@ -4817,7 +4817,7 @@ static void M_ChangeMessages(int choice)
 //
 static void M_EndGameResponse(int key)
 {
-    if (key != key_menu_confirm)
+    if (key != key_menu_confirm && key != key_menu_forward)
 	return;
 		
     currentMenu->lastOn = itemOn;
@@ -4902,7 +4902,7 @@ static const int quitsounds2[8] =
 
 static void M_QuitResponse(int key)
 {
-    if (key != key_menu_confirm)
+    if (key != key_menu_confirm && key != key_menu_forward)
 	return;
 
     // [JN] Play exit sound optionally.
@@ -5675,7 +5675,9 @@ boolean M_Responder (event_t* ev)
 	if (messageNeedsInput)
         {
             if (key != ' ' && key != KEY_ESCAPE
-             && key != key_menu_confirm && key != key_menu_abort)
+             && key != key_menu_confirm && key != key_menu_abort
+             // [JN] Allow to confirm nightmare, end game and quit by pressing Enter.
+             && key != key_menu_forward)
             {
                 return false;
             }
