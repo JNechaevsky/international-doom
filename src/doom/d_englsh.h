@@ -61,7 +61,15 @@
 #define NETEND	"you can't end a netgame!\n\n"PRESSKEY
 #define ENDGAME	"are you sure you want to end the game?\n\n"PRESSYN
 
+#ifdef _WIN32
+#define DOSY		"(press y to quit to windows.)"
+#elif __linux__
+#define DOSY		"(press y to quit to linux.)"
+#elif __APPLE__
+#define DOSY		"(press y to quit to macos.)"
+#else
 #define DOSY		"(press y to quit to dos.)"
+#endif
 
 #define DETAILHI	"High detail"
 #define DETAILLO	"Low detail"
