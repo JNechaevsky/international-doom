@@ -515,7 +515,7 @@ WI_drawOnLnode
 
 
 
-void WI_initAnimatedBack(void)
+void WI_initAnimatedBack(boolean firstcall)
 {
     int		i;
     anim_t*	a;
@@ -531,6 +531,9 @@ void WI_initAnimatedBack(void)
 	a = &anims[wbs->epsd][i];
 
 	// init variables
+	// [JN] Do not reset animation timers upon switching to "Entering" state
+	// (WI_initShowNextLoc). Fixes notable blinking of Tower of Babel drawing.
+	if (firstcall)
 	a->ctr = -1;
 
 	// specify the next time to draw it
@@ -795,7 +798,7 @@ void WI_initShowNextLoc(void)
     acceleratestage = 0;
     cnt = SHOWNEXTLOCDELAY * TICRATE;
 
-    WI_initAnimatedBack();
+    WI_initAnimatedBack(false);
 }
 
 void WI_updateShowNextLoc(void)
@@ -920,7 +923,7 @@ void WI_initDeathmatchStats(void)
 	}
     }
     
-    WI_initAnimatedBack();
+    WI_initAnimatedBack(true);
 }
 
 
@@ -1139,7 +1142,7 @@ void WI_initNetgameStats(void)
 
     dofrags = !!dofrags;
 
-    WI_initAnimatedBack();
+    WI_initAnimatedBack(true);
 }
 
 
@@ -1365,7 +1368,7 @@ void WI_initStats(void)
     cnt_time = cnt_par = -1;
     cnt_pause = TICRATE;
 
-    WI_initAnimatedBack();
+    WI_initAnimatedBack(true);
 }
 
 void WI_updateStats(void)
