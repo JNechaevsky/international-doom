@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "doomdef.h"
 #include "doomkeys.h"
@@ -4346,16 +4347,28 @@ static void M_DrawSaveLoadBottomLine (void)
 
     if (savepage > 0)
     {
-        M_WriteText(LoadDef.x, 152, "< PGUP", cr[CR_MENU_DARK2]);
+        M_WriteText(LoadDef.x, 151, "< PGUP", cr[CR_MENU_DARK2]);
     }
     if (savepage < savepage_max)
     {
-        M_WriteText(LoadDef.x+(SAVESTRINGSIZE-6)*8, 152, "PGDN >", cr[CR_MENU_DARK2]);
+        M_WriteText(LoadDef.x+(SAVESTRINGSIZE-6)*8, 151, "PGDN >", cr[CR_MENU_DARK2]);
     }
 
     M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, savepage_max + 1);
     
-    M_WriteTextCentered(152, pagestr, cr[CR_MENU_DARK1]);
+    M_WriteTextCentered(151, pagestr, cr[CR_MENU_DARK1]);
+
+    // [JN] Print "modified" (or created initially) time of
+    // savegame file in YYYY-MM-DD HH:MM:SS format.
+    if (LoadMenu[itemOn].status)
+    {
+        struct stat filestat;
+        char filedate[32];
+
+        stat(P_SaveGameFile(itemOn), &filestat);
+        strftime(filedate, sizeof(filedate), "%Y-%m-%d %X", localtime(&filestat.st_mtime));
+        M_WriteTextCentered(160, filedate, cr[CR_MENU_DARK2]);
+    }
 }
 
 
