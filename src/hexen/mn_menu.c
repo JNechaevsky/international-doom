@@ -19,6 +19,7 @@
 // HEADER FILES ------------------------------------------------------------
 
 #include <ctype.h>
+#include <time.h>
 #include "h2def.h"
 #include "doomkeys.h"
 #include "gusconf.h"
@@ -283,7 +284,7 @@ static MenuItem_t LoadItems[] = {
 };
 
 static Menu_t LoadMenu = {
-    70, 26,
+    70, 18,
     DrawLoadMenu,
     SAVES_PER_PAGE, LoadItems,
     0,
@@ -303,7 +304,7 @@ static MenuItem_t SaveItems[] = {
 };
 
 static Menu_t SaveMenu = {
-    70, 26,
+    70, 18,
     DrawSaveMenu,
     SAVES_PER_PAGE, SaveItems,
     0,
@@ -3955,12 +3956,26 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
         width = SHORT(p->width);
     }
     if (savepage > 0)
-        MN_DrTextA("PGUP", menu->x + 1, y, cr[CR_GRAY]);
+        MN_DrTextA("PGUP", menu->x + 1, y, cr[CR_MENU_DARK4]);
     if (savepage < SAVEPAGE_MAX)
-        MN_DrTextA("PGDN", menu->x + width - MN_TextAWidth("PGDN"), y, cr[CR_GRAY]);
+        MN_DrTextA("PGDN", menu->x + width - MN_TextAWidth("PGDN"), y, cr[CR_MENU_DARK4]);
 
     M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, SAVEPAGE_MAX + 1);
-    MN_DrTextA(pagestr, ORIGWIDTH / 2 - MN_TextAWidth(pagestr) / 2, y, cr[CR_GRAY]);
+    MN_DrTextA(pagestr, ORIGWIDTH / 2 - MN_TextAWidth(pagestr) / 2, y, cr[CR_MENU_DARK4]);
+
+    // [JN] Print "modified" (or created initially) time of
+    // savegame file in YYYY-MM-DD HH:MM:SS format.
+    if (SlotStatus[CurrentItPos] && !FileMenuKeySteal)
+    {
+        struct stat filestat;
+        char filedate[32];
+        char filename[100];
+
+        M_snprintf(filename, sizeof(filename), "%shex%d.sav", SavePath, CurrentItPos + (savepage * 10));
+        stat(filename, &filestat);
+        strftime(filedate, sizeof(filedate), "%Y-%m-%d %X", localtime(&filestat.st_mtime));
+        MN_DrTextACentered(filedate, y + 10, cr[CR_MENU_DARK4]);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -3975,12 +3990,12 @@ static void DrawLoadMenu(void)
 
     title = quickloadTitle ? "QUICK LOAD GAME" : "LOAD GAME";
 
-    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7, NULL);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
     }
     DrawFileSlots(&LoadMenu);
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 1, NULL);
     DrawSaveLoadBottomLine(&LoadMenu);
 }
 
@@ -3996,12 +4011,12 @@ static void DrawSaveMenu(void)
 
     title = quicksaveTitle ? "QUICK SAVE GAME" : "SAVE GAME";
 
-    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 7, NULL);
     if (!slottextloaded)
     {
         MN_LoadSlotText();
     }
     DrawFileSlots(&SaveMenu);
+    MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 1, NULL);
     DrawSaveLoadBottomLine(&SaveMenu);
 }
 
