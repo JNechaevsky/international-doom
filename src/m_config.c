@@ -1289,7 +1289,13 @@ char *M_GetAutoloadDir(const char *iwadname)
             return NULL;
         }
         autoload_path = M_StringJoin(prefdir, "autoload", NULL);
+#ifdef _WIN32
+        // [JN] Note: prefdir not gathered via SDL_GetPrefPath,
+        // so just use system "free" function, not SDL_free.
+        free(prefdir);
+#else
         SDL_free(prefdir);
+#endif
     }
 
     M_MakeDirectory(autoload_path);
