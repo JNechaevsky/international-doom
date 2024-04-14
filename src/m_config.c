@@ -57,7 +57,8 @@ static const char *default_main_config;
 
 // [JN] Location where screenshots are saved.
 
-const char *screenshotdir;
+char *screenshotdir;
+char *ShotPathConfig;
 
 typedef enum 
 {
@@ -130,7 +131,8 @@ static default_t	doom_defaults_list[] =
 
     CONFIG_VARIABLE_STRING(autoload_path),
     CONFIG_VARIABLE_STRING(music_pack_path),
-    CONFIG_VARIABLE_STRING(savedir),
+    CONFIG_VARIABLE_STRING(savegames_path),
+    CONFIG_VARIABLE_STRING(screenshots_path),
 
     //
     // Render
@@ -1225,8 +1227,8 @@ char *M_GetSaveGameDir(const char *iwadname)
     else if (!strcmp(configdir, exedir))
     {
 #ifdef _WIN32
-        // [JN] Check if "savedir" variable is existing in config file.
-        const char *existing_path = M_GetStringVariable("savedir");
+        // [JN] Check if "savegames_path" variable is existing in config file.
+        const char *existing_path = M_GetStringVariable("savegames_path");
 
         if (existing_path != NULL && strlen(existing_path) > 0)
         {
@@ -1310,12 +1312,31 @@ char *M_GetAutoloadDir(const char *iwadname)
 
 void M_SetScreenshotDir (void)
 {
+    int p = M_CheckParmWithArgs("-shotdir", 1);
+
+    if (p)
+    {
+        screenshotdir = myargv[p + 1];
+
+        if (!M_FileExists(screenshotdir))
+        {
+            M_MakeDirectory(screenshotdir);
+        }
+        
+        screenshotdir = M_StringJoin(screenshotdir, DIR_SEPARATOR_S, NULL);
+
+        printf("Screenshot directory changed to %s.\n", screenshotdir);
+    }
+    else
+    {
 #ifdef _WIN32
- 	// [JN] Always use "savegames" folder in program folder.
- 	screenshotdir = M_StringJoin(exedir, "screenshots", DIR_SEPARATOR_S, NULL);
+		// [JN] Always use "savegames" folder in program folder.
+		screenshotdir = M_StringJoin(exedir, "screenshots", DIR_SEPARATOR_S, NULL);
 #else
-    // ~/.local/share/inter-doom/screenshots
-    screenshotdir = M_StringJoin(configdir, "screenshots", DIR_SEPARATOR_S, NULL);
+		// ~/.local/share/inter-doom/screenshots
+		screenshotdir = M_StringJoin(configdir, "screenshots", DIR_SEPARATOR_S, NULL);
 #endif
-    M_MakeDirectory(screenshotdir);
+		M_MakeDirectory(screenshotdir);
+		ShotPathConfig = screenshotdir;
+    }
 }

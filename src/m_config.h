@@ -41,6 +41,7 @@ char *M_GetAutoloadDir(const char *iwadname);
 void M_SetScreenshotDir (void);
 
 extern const char *configdir;
-extern const char *screenshotdir;
+extern char *screenshotdir;
+extern char *ShotPathConfig;
 
 #endif
