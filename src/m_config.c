@@ -58,6 +58,9 @@ static const char *default_main_config;
 // [JN] Location where screenshots are saved.
 
 char *screenshotdir;
+
+// [JN] "screenshots_path" config file variable.
+
 char *ShotPathConfig;
 
 typedef enum 

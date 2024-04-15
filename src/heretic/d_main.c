@@ -87,7 +87,7 @@ boolean autostart;
 
 boolean advancedemo;
 
-static char *SavePathConfig;  // [JN] "savedir" config file variable.
+static char *SavePathConfig;  // [JN] "savegames_path" config file variable.
 
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);

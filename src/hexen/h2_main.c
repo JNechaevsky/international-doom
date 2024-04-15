@@ -128,7 +128,7 @@ static int WarpMap;
 static int demosequence;
 static int pagetic;
 static const char *pagename;
-static char *SavePathConfig;
+static char *SavePathConfig;  // [JN] "savegames_path" config file variable.
 
 // CODE --------------------------------------------------------------------
 

@@ -102,7 +102,7 @@ static boolean storedemo;  // Store demo, do not accept any inputs
 static int   demosequence;
 static int   pagetic;
 static const char *pagename;
-static char *SavePathConfig;  // [JN] "savedir" config file variable.
+static char *SavePathConfig;  // [JN] "savegames_path" config file variable.
 
 // If true, the main game loop has started.
 boolean main_loop_started = false;
