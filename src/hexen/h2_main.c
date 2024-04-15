@@ -441,9 +441,10 @@ void D_DoomMain(void)
     M_SetConfigFilenames(PROGRAM_PREFIX "hexen.ini");
     M_LoadDefaults();
 
+    // [JN] Set the default directory where savegames are saved.
     D_SetDefaultSavePath();
 
-    // [JN] Set screeenshot files dir.
+    // [JN] Set the default directory where screenshots are saved.
     M_SetScreenshotDir();
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit

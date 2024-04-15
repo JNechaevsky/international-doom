@@ -1211,7 +1211,7 @@ char *M_GetSaveGameDir(const char *iwadname)
         // add separator at end just in case
         savegamedir = M_StringJoin(savegamedir, DIR_SEPARATOR_S, NULL);
 
-        printf("Save directory changed to %s.\n", savegamedir);
+        printf("Save directory changed to %s\n", savegamedir);
     }
 #ifdef _WIN32
     // In -cdrom mode, we write savegames to a specific directory
@@ -1325,7 +1325,7 @@ void M_SetScreenshotDir (void)
         
         screenshotdir = M_StringJoin(screenshotdir, DIR_SEPARATOR_S, NULL);
 
-        printf("Screenshot directory changed to %s.\n", screenshotdir);
+        printf("Screenshot directory changed to %s\n", screenshotdir);
     }
     else
     {

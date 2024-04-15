@@ -1050,9 +1050,6 @@ void D_DoomMain(void)
     M_SetConfigFilenames(PROGRAM_PREFIX "heretic.ini");
     M_LoadDefaults();
 
-    // [JN] Set screeenshot files dir.
-    M_SetScreenshotDir();
-
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
 #ifdef _WIN32
@@ -1278,6 +1275,9 @@ void D_DoomMain(void)
 
     // [JN] Set the default directory where savegames are saved.
     D_SetDefaultSavePath();
+
+    // [JN] Set the default directory where screenshots are saved.
+    M_SetScreenshotDir();
 
     I_PrintStartupBanner(gamedescription);
 

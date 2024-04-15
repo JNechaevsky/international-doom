@@ -1659,9 +1659,6 @@ void D_DoomMain (void)
     D_BindVariables();
     M_LoadDefaults();
 
-    // [JN] Set screeenshot files dir.
-    M_SetScreenshotDir();
-
     // [JN] Disk icon can be enabled for Doom.
     diskicon_enabled = true;
 
@@ -1965,6 +1962,9 @@ void D_DoomMain (void)
 
     // [JN] Set the default directory where savegames are saved.
     D_SetDefaultSavePath();
+
+    // [JN] Set the default directory where screenshots are saved.
+    M_SetScreenshotDir();
 
     // Check for -file in shareware
     if (modifiedgame && (gamevariant != freedoom))
