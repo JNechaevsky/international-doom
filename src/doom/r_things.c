@@ -866,7 +866,7 @@ static void R_ProjectSprite (mobj_t* thing)
 #ifndef CRISPY_TRUECOLOR
 			addmap : tintmap) : tintmap;
 #else
-			I_BlendAdd : I_BlendOver) : I_BlendOver;
+			I_BlendAdd : I_BlendOverTranmap) : I_BlendOverTranmap;
 #endif
     }
 }
