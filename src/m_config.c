@@ -1185,7 +1185,13 @@ void M_SetMusicPackDir(void)
 
     free(readme_path);
     free(music_pack_path);
+#ifdef _WIN32
+    // [JN] Note: prefdir not gathered via SDL_GetPrefPath,
+    // so just use system "free" function, not SDL_free.
+    free(prefdir);
+#else
     SDL_free(prefdir);
+#endif
 }
 
 //
@@ -1246,8 +1252,6 @@ char *M_GetSaveGameDir(const char *iwadname)
         {
             // Config file variable not existing or emptry, generate a path.
             savegamedir = M_StringJoin(M_StringDuplicate(exedir), "savegames", NULL);
-            // add separator at end just in case
-            savegamedir = M_StringJoin(savegamedir, DIR_SEPARATOR_S, NULL);
         }
         M_MakeDirectory(savegamedir);
 #else
@@ -1276,6 +1280,8 @@ char *M_GetSaveGameDir(const char *iwadname)
     if (!M_ParmExists("-savedir") && !M_ParmExists("-cdrom"))
     {
         SavePathConfig = savegamedir;
+        // add separator at end just in case
+        savegamedir = M_StringJoin(savegamedir, DIR_SEPARATOR_S, NULL);
     }
 
     return savegamedir;
@@ -1345,14 +1351,27 @@ void M_SetScreenshotDir (void)
     }
     else
     {
+        // [JN] Check if "screenshots_path" variable is existing in config file.
+        const char *existing_path = M_GetStringVariable("screenshots_path");
+
+        if (existing_path != NULL && strlen(existing_path) > 0)
+        {
+            // Variable existing, use it's path.
+            screenshotdir = M_StringDuplicate(ShotPathConfig);
+        }
+        else
+        {
 #ifdef _WIN32
- 	// [JN] Always use "savegames" folder in program folder.
- 	screenshotdir = M_StringJoin(exedir, "screenshots", DIR_SEPARATOR_S, NULL);
+            // [JN] Always use "savegames" folder in program folder.
+            screenshotdir = M_StringJoin(exedir, "screenshots", NULL);
 #else
-    // ~/.local/share/inter-doom/screenshots
-    screenshotdir = M_StringJoin(configdir, "screenshots", DIR_SEPARATOR_S, NULL);
+            // ~/.local/share/inter-doom/screenshots
+            screenshotdir = M_StringJoin(configdir, "screenshots", NULL);
 #endif
-    M_MakeDirectory(screenshotdir);
-    ShotPathConfig = screenshotdir;
+        }
+        M_MakeDirectory(screenshotdir);
+        ShotPathConfig = screenshotdir;
+        // add separator at end just in case
+        screenshotdir = M_StringJoin(screenshotdir, DIR_SEPARATOR_S, NULL);
     }
 }
