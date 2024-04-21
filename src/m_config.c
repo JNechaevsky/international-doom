@@ -1246,10 +1246,9 @@ char *M_GetSaveGameDir(const char *iwadname)
         {
             // Config file variable not existing or emptry, generate a path.
             savegamedir = M_StringJoin(M_StringDuplicate(exedir), "savegames", NULL);
+            // add separator at end just in case
+            savegamedir = M_StringJoin(savegamedir, DIR_SEPARATOR_S, NULL);
         }
-
-        // add separator at end just in case
-        savegamedir = M_StringJoin(savegamedir, DIR_SEPARATOR_S, NULL);
 
         M_MakeDirectory(savegamedir);
 #else
@@ -1278,6 +1277,7 @@ char *M_GetSaveGameDir(const char *iwadname)
     if (!M_ParmExists("-savedir") && !M_ParmExists("-cdrom"))
     {
         SavePathConfig = savegamedir;
+        M_BindStringVariable("savegames_path", &SavePathConfig);
     }
 
     return savegamedir;
@@ -1356,5 +1356,6 @@ void M_SetScreenshotDir (void)
 #endif
 		M_MakeDirectory(screenshotdir);
 		ShotPathConfig = screenshotdir;
+		M_BindStringVariable("screenshots_path", &ShotPathConfig);
     }
 }
