@@ -128,7 +128,6 @@ static int WarpMap;
 static int demosequence;
 static int pagetic;
 static const char *pagename;
-static char *SavePathConfig;
 
 // CODE --------------------------------------------------------------------
 
@@ -176,7 +175,8 @@ void D_BindVariables(void)
     M_BindIntVariable("sfx_volume",             &snd_MaxVolume);
     M_BindIntVariable("music_volume",           &snd_MusicVolume);
 
-    M_BindStringVariable("savedir", &SavePathConfig);
+    M_BindStringVariable("savegames_path",      &SavePathConfig);
+    M_BindStringVariable("screenshots_path",    &ShotPathConfig);
 
     // Multiplayer chat macros
 
@@ -440,9 +440,10 @@ void D_DoomMain(void)
     M_SetConfigFilenames(PROGRAM_PREFIX "hexen.ini");
     M_LoadDefaults();
 
+    // [JN] Set the default directory where savegames are saved.
     D_SetDefaultSavePath();
 
-    // [JN] Set screeenshot files dir.
+    // [JN] Set the default directory where screenshots are saved.
     M_SetScreenshotDir();
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit

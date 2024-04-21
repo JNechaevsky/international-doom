@@ -809,6 +809,9 @@ void D_BindVariables(void)
     M_BindIntVariable("music_volume",           &snd_MusicVolume);
     //M_BindIntVariable("graphical_startup",      &graphical_startup);
 
+    M_BindStringVariable("savegames_path",      &SavePathConfig);
+    M_BindStringVariable("screenshots_path",    &ShotPathConfig);
+
     // Multiplayer chat macros
 
     for (i=0; i<10; ++i)
@@ -1011,9 +1014,6 @@ void D_DoomMain(void)
     D_BindVariables();
     M_SetConfigFilenames(PROGRAM_PREFIX "heretic.ini");
     M_LoadDefaults();
-
-    // [JN] Set screeenshot files dir.
-    M_SetScreenshotDir();
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
@@ -1238,7 +1238,11 @@ void D_DoomMain(void)
 
     I_SetWindowTitle(gamedescription);
 
+    // [JN] Set the default directory where savegames are saved.
     savegamedir = M_GetSaveGameDir("heretic.wad");
+
+    // [JN] Set the default directory where screenshots are saved.
+    M_SetScreenshotDir();
 
     I_PrintStartupBanner(gamedescription);
 

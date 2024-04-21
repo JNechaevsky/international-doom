@@ -457,6 +457,9 @@ void D_BindVariables(void)
     M_BindIntVariable("key_message_refresh",    &key_message_refresh);
     M_BindIntVariable("sfx_volume",             &sfxVolume);
     M_BindIntVariable("music_volume",           &musicVolume);
+    
+    M_BindStringVariable("savegames_path",      &SavePathConfig);
+    M_BindStringVariable("screenshots_path",    &ShotPathConfig);
 
     // Multiplayer chat macros
 
@@ -1622,9 +1625,6 @@ void D_DoomMain (void)
     D_BindVariables();
     M_LoadDefaults();
 
-    // [JN] Set screeenshot files dir.
-    M_SetScreenshotDir();
-
     // [JN] Disk icon can be enabled for Doom.
     diskicon_enabled = true;
 
@@ -1926,7 +1926,11 @@ void D_DoomMain (void)
     // we've finished loading Dehacked patches.
     D_SetGameDescription();
 
+    // [JN] Set the default directory where savegames are saved.
     savegamedir = M_GetSaveGameDir(D_SaveGameIWADName(gamemission, gamevariant));
+
+    // [JN] Set the default directory where screenshots are saved.
+    M_SetScreenshotDir();
 
     // Check for -file in shareware
     if (modifiedgame && (gamevariant != freedoom))
