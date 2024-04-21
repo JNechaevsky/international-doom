@@ -457,6 +457,9 @@ void D_BindVariables(void)
     M_BindIntVariable("key_message_refresh",    &key_message_refresh);
     M_BindIntVariable("sfx_volume",             &sfxVolume);
     M_BindIntVariable("music_volume",           &musicVolume);
+    
+    M_BindStringVariable("savegames_path",      &SavePathConfig);
+    M_BindStringVariable("screenshots_path",    &ShotPathConfig);
 
     // Multiplayer chat macros
 

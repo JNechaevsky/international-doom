@@ -809,6 +809,9 @@ void D_BindVariables(void)
     M_BindIntVariable("music_volume",           &snd_MusicVolume);
     //M_BindIntVariable("graphical_startup",      &graphical_startup);
 
+    M_BindStringVariable("savegames_path",      &SavePathConfig);
+    M_BindStringVariable("screenshots_path",    &ShotPathConfig);
+
     // Multiplayer chat macros
 
     for (i=0; i<10; ++i)

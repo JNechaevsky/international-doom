@@ -1277,7 +1277,6 @@ char *M_GetSaveGameDir(const char *iwadname)
     if (!M_ParmExists("-savedir") && !M_ParmExists("-cdrom"))
     {
         SavePathConfig = savegamedir;
-        M_BindStringVariable("savegames_path", &SavePathConfig);
     }
 
     return savegamedir;
@@ -1356,6 +1355,5 @@ void M_SetScreenshotDir (void)
 #endif
 		M_MakeDirectory(screenshotdir);
 		ShotPathConfig = screenshotdir;
-		M_BindStringVariable("screenshots_path", &ShotPathConfig);
     }
 }
