@@ -1349,6 +1349,15 @@ void M_SetScreenshotDir (void)
 
         printf("Screenshot directory changed to %s\n", screenshotdir);
     }
+#ifdef _WIN32
+    // In -cdrom mode, we write screenshots to a specific directory
+    // in addition to configs.
+
+    else if (M_ParmExists("-cdrom"))
+    {
+        screenshotdir = M_StringDuplicate(configdir);
+    }
+#endif
     else
     {
         // [JN] Check if "screenshots_path" variable is existing in config file.
@@ -1362,7 +1371,7 @@ void M_SetScreenshotDir (void)
         else
         {
 #ifdef _WIN32
-            // [JN] Always use "savegames" folder in program folder.
+            // [JN] Always use "screenshots" folder in program folder.
             screenshotdir = M_StringJoin(exedir, "screenshots", NULL);
 #else
             // ~/.local/share/inter-doom/screenshots
