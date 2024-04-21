@@ -55,6 +55,10 @@ static char *autoload_path = "";
 
 static const char *default_main_config;
 
+// [JN] "savegames_path" config file variable.
+
+char *SavePathConfig;
+
 // [JN] Location where screenshots are saved.
 
 char *screenshotdir;
@@ -1235,14 +1239,18 @@ char *M_GetSaveGameDir(const char *iwadname)
 
         if (existing_path != NULL && strlen(existing_path) > 0)
         {
-            // It exist, use it's provided path.
-            savegamedir = M_StringDuplicate("");
+            // Variable existing, use it's path.
+            savegamedir = M_StringDuplicate(SavePathConfig);
         }
         else
         {
-            // Otherwise, create and use "savegames" folder in program folder.
-            savegamedir = M_StringJoin(M_StringDuplicate(exedir), "savegames", DIR_SEPARATOR_S, NULL);
+            // Config file variable not existing or emptry, generate a path.
+            savegamedir = M_StringJoin(M_StringDuplicate(exedir), "savegames", NULL);
         }
+
+        // add separator at end just in case
+        savegamedir = M_StringJoin(savegamedir, DIR_SEPARATOR_S, NULL);
+
         M_MakeDirectory(savegamedir);
 #else
 	savegamedir = M_StringDuplicate("");
@@ -1263,6 +1271,13 @@ char *M_GetSaveGameDir(const char *iwadname)
         M_MakeDirectory(savegamedir);
 
         free(topdir);
+    }
+
+    // Overwrite config file variable only if following command line
+    // parameters are not present:
+    if (!M_ParmExists("-savedir") && !M_ParmExists("-cdrom"))
+    {
+        SavePathConfig = savegamedir;
     }
 
     return savegamedir;

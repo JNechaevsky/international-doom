@@ -87,8 +87,6 @@ boolean autostart;
 
 boolean advancedemo;
 
-static char *SavePathConfig;  // [JN] "savegames_path" config file variable.
-
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
 void D_PageDrawer(void);
@@ -828,39 +826,6 @@ void D_BindVariables(void)
 	ID_BindVariables(heretic);
 }
 
-// -----------------------------------------------------------------------------
-// D_SetDefaultSavePath
-// [JN] Set the default directory where savegames are saved.
-// -----------------------------------------------------------------------------
-
-static void D_SetDefaultSavePath (void)
-{
-    // Gather default "savegames" folder location.
-    savegamedir = M_GetSaveGameDir("heretic.wad");
-
-    if (!strcmp(savegamedir, ""))
-    {
-        if (SavePathConfig == NULL || !strcmp(SavePathConfig, ""))
-        {
-            // Config file variable not existing or emptry,
-            // so use generated path from above.
-            savegamedir = M_StringDuplicate("");
-        }
-        else
-        {
-            // Variable existing, use it's path.
-            savegamedir = M_StringDuplicate(SavePathConfig);
-        }
-    }
-
-    // Overwrite config file variable only if following command line
-    // parameters are not present:
-    if (!M_ParmExists("-savedir") && !M_ParmExists("-cdrom"))
-    {
-        SavePathConfig = savegamedir;
-    }
-}
-
 // 
 // Called at exit to display the ENDOOM screen (ENDTEXT in Heretic)
 //
@@ -1274,7 +1239,7 @@ void D_DoomMain(void)
     I_SetWindowTitle(gamedescription);
 
     // [JN] Set the default directory where savegames are saved.
-    D_SetDefaultSavePath();
+    savegamedir = M_GetSaveGameDir("heretic.wad");
 
     // [JN] Set the default directory where screenshots are saved.
     M_SetScreenshotDir();

@@ -102,7 +102,6 @@ static boolean storedemo;  // Store demo, do not accept any inputs
 static int   demosequence;
 static int   pagetic;
 static const char *pagename;
-static char *SavePathConfig;  // [JN] "savegames_path" config file variable.
 
 // If true, the main game loop has started.
 boolean main_loop_started = false;
@@ -474,39 +473,6 @@ void D_BindVariables(void)
 
 	// [JN] Bind ID-specific config variables.
 	ID_BindVariables(doom);
-}
-
-// -----------------------------------------------------------------------------
-// D_SetDefaultSavePath
-// [JN] Set the default directory where savegames are saved.
-// -----------------------------------------------------------------------------
-
-static void D_SetDefaultSavePath (void)
-{
-    // Gather default "savegames" folder location.
-    savegamedir = M_GetSaveGameDir(D_SaveGameIWADName(gamemission, gamevariant));
-
-    if (!strcmp(savegamedir, ""))
-    {
-        if (SavePathConfig == NULL || !strcmp(SavePathConfig, ""))
-        {
-            // Config file variable not existing or emptry,
-            // so use generated path from above.
-            savegamedir = M_StringDuplicate("");
-        }
-        else
-        {
-            // Variable existing, use it's path.
-            savegamedir = M_StringDuplicate(SavePathConfig);
-        }
-    }
-
-    // Overwrite config file variable only if following command line
-    // parameters are not present:
-    if (!M_ParmExists("-savedir") && !M_ParmExists("-cdrom"))
-    {
-        SavePathConfig = savegamedir;
-    }
 }
 
 //
@@ -1961,7 +1927,7 @@ void D_DoomMain (void)
     D_SetGameDescription();
 
     // [JN] Set the default directory where savegames are saved.
-    D_SetDefaultSavePath();
+    savegamedir = M_GetSaveGameDir(D_SaveGameIWADName(gamemission, gamevariant));
 
     // [JN] Set the default directory where screenshots are saved.
     M_SetScreenshotDir();
