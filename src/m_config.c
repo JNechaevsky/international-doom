@@ -1249,7 +1249,6 @@ char *M_GetSaveGameDir(const char *iwadname)
             // add separator at end just in case
             savegamedir = M_StringJoin(savegamedir, DIR_SEPARATOR_S, NULL);
         }
-
         M_MakeDirectory(savegamedir);
 #else
 	savegamedir = M_StringDuplicate("");
@@ -1347,13 +1346,13 @@ void M_SetScreenshotDir (void)
     else
     {
 #ifdef _WIN32
-		// [JN] Always use "savegames" folder in program folder.
-		screenshotdir = M_StringJoin(exedir, "screenshots", DIR_SEPARATOR_S, NULL);
+ 	// [JN] Always use "savegames" folder in program folder.
+ 	screenshotdir = M_StringJoin(exedir, "screenshots", DIR_SEPARATOR_S, NULL);
 #else
-		// ~/.local/share/inter-doom/screenshots
-		screenshotdir = M_StringJoin(configdir, "screenshots", DIR_SEPARATOR_S, NULL);
+    // ~/.local/share/inter-doom/screenshots
+    screenshotdir = M_StringJoin(configdir, "screenshots", DIR_SEPARATOR_S, NULL);
 #endif
-		M_MakeDirectory(screenshotdir);
-		ShotPathConfig = screenshotdir;
+    M_MakeDirectory(screenshotdir);
+    ShotPathConfig = screenshotdir;
     }
 }
