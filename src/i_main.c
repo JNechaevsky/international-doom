@@ -19,6 +19,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <locale.h> // [Woof!] setlocale
 #include <time.h>   // [JN] srand(time(0))
 #include <SDL.h>
 
@@ -56,6 +57,9 @@ int main(int argc, char **argv)
     {
         myargv[i] = M_StringDuplicate(argv[i]);
     }
+
+   // [Woof!] Print date and time in the Load/Save Game menus in the current locale
+   setlocale(LC_TIME, "");
 
 #if defined(_WIN32)
     // [JN] Create console output window if "-console" parameter is present.

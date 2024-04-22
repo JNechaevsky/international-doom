@@ -3973,7 +3973,15 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
 
         M_snprintf(filename, sizeof(filename), "%shex%d.sav", SavePath, CurrentItPos + (savepage * 10));
         stat(filename, &filestat);
-        strftime(filedate, sizeof(filedate), "%Y-%m-%d %X", localtime(&filestat.st_mtime));
+// [FG] suppress the most useless compiler warning ever
+#if defined(__GNUC__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wformat-y2k"
+#endif
+        strftime(filedate, sizeof(filedate), "%x %X", localtime(&filestat.st_mtime));
+#if defined(__GNUC__)
+#  pragma GCC diagnostic pop
+#endif
         MN_DrTextACentered(filedate, y + 10, cr[CR_MENU_DARK4]);
     }
 }
