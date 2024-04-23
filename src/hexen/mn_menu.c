@@ -3963,8 +3963,7 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
     M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, SAVEPAGE_MAX + 1);
     MN_DrTextA(pagestr, ORIGWIDTH / 2 - MN_TextAWidth(pagestr) / 2, y, cr[CR_MENU_DARK4]);
 
-    // [JN] Print "modified" (or created initially) time of
-    // savegame file in YYYY-MM-DD HH:MM:SS format.
+    // [JN] Print "modified" (or created initially) time of savegame file.
     if (SlotStatus[CurrentItPos] && !FileMenuKeySteal)
     {
         struct stat filestat;
