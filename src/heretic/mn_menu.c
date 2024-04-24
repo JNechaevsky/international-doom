@@ -4140,6 +4140,33 @@ static void InitFonts(void)
     FontBBaseLump = W_GetNumForName(DEH_String("FONTB_S")) + 1;
 }
 
+// [crispy] Check if printable character is existing in FONTA/FONTB sets
+// and do a replacement or case correction if needed.
+
+enum {
+    big_font, small_font
+} fontsize_t;
+
+static const char MN_CheckValidChar (char ascii_index, int have_cursor)
+{
+    if ((ascii_index > 'Z' + have_cursor && ascii_index < 'a') || ascii_index > 'z')
+    {
+        // Replace "\]^_`" and "{|}~" with spaces,
+        // allow "[" (cursor symbol) only in small fonts.
+        return ' ';
+    }
+    else if (ascii_index >= 'a' && ascii_index <= 'z')
+    {
+        // Force lowercase "a...z" characters to uppercase "A...Z".
+        return ascii_index + 'A' - 'a';
+    }
+    else
+    {
+        // Valid char, do not modify it's ASCII index.
+        return ascii_index;
+    }
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC MN_DrTextA
@@ -4157,6 +4184,8 @@ void MN_DrTextA (const char *text, int x, int y, byte *table)
 
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, small_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             x += 5;
@@ -4189,6 +4218,8 @@ int MN_TextAWidth(const char *text)
     width = 0;
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, small_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             width += 5;
@@ -4214,6 +4245,8 @@ void MN_DrTextACentered (const char *text, int y, byte *table)
 
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, small_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             cx += 5;
@@ -4223,53 +4256,6 @@ void MN_DrTextACentered (const char *text, int y, byte *table)
             p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
             V_DrawShadowedPatchOptional(cx, y, 1, p);
             cx += SHORT(p->width) - 1;
-        }
-    }
-
-    dp_translation = NULL;
-}
-
-// -----------------------------------------------------------------------------
-// M_WriteTextCritical
-// [JN] Write a two line strings.
-// -----------------------------------------------------------------------------
-
-void MN_DrTextACritical (const char *text1, const char *text2, int y, byte *table)
-{
-    char c;
-    int cx1, cx2;
-    patch_t *p;
-
-    cx1 = 160 - MN_TextAWidth(text1) / 2;
-    cx2 = 160 - MN_TextAWidth(text2) / 2;
-    
-    dp_translation = table;
-
-    while ((c = *text1++) != 0)
-    {
-        if (c < 33)
-        {
-            cx1 += 5;
-        }
-        else
-        {
-            p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
-            V_DrawShadowedPatchOptional(cx1, y, 1, p);
-            cx1 += SHORT(p->width) - 1;
-        }
-    }
-
-    while ((c = *text2++) != 0)
-    {
-        if (c < 33)
-        {
-            cx2 += 5;
-        }
-        else
-        {
-            p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
-            V_DrawShadowedPatchOptional(cx2, y+10, 1, p);
-            cx2 += SHORT(p->width) - 1;
         }
     }
 
@@ -4293,6 +4279,8 @@ void MN_DrTextB(const char *text, int x, int y, byte *table)
 
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, big_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             x += 8;
@@ -4325,6 +4313,8 @@ int MN_TextBWidth(const char *text)
     width = 0;
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, big_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             width += 5;

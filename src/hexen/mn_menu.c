@@ -3508,6 +3508,33 @@ static void InitFonts(void)
     FontBBaseLump = W_GetNumForName("FONTB_S") + 1;
 }
 
+// [crispy] Check if printable character is existing in FONTA(Y)/FONTB sets
+// and do a replacement or case correction if needed.
+
+enum {
+    big_font, small_font
+} fontsize_t;
+
+static const char MN_CheckValidChar (char ascii_index, int have_cursor)
+{
+    if ((ascii_index > 'Z' + have_cursor && ascii_index < 'a') || ascii_index > 'z')
+    {
+        // Replace "\]^_`" and "{|}~" with spaces,
+        // allow "[" (cursor symbol) only in small fonts.
+        return ' ';
+    }
+    else if (ascii_index >= 'a' && ascii_index <= 'z')
+    {
+        // Force lowercase "a...z" characters to uppercase "A...Z".
+        return ascii_index + 'A' - 'a';
+    }
+    else
+    {
+        // Valid char, do not modify it's ASCII index.
+        return ascii_index;
+    }
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC MN_DrTextA
@@ -3525,6 +3552,8 @@ void MN_DrTextA (const char *text, int x, int y, byte *table)
 
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, small_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             x += 5;
@@ -3552,6 +3581,8 @@ void MN_DrTextACentered (const char *text, int y, byte *table)
 
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, small_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             cx += 5;
@@ -3580,6 +3611,8 @@ void MN_DrTextAYellow(const char *text, int x, int y)
 
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, small_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             x += 5;
@@ -3610,6 +3643,8 @@ int MN_TextAWidth(const char *text)
     width = 0;
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, small_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             width += 5;
@@ -3640,6 +3675,8 @@ void MN_DrTextB(const char *text, int x, int y, byte *table)
 
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, big_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             x += 8;
@@ -3672,6 +3709,8 @@ int MN_TextBWidth(const char *text)
     width = 0;
     while ((c = *text++) != 0)
     {
+        c = MN_CheckValidChar(c, big_font); // [crispy] check for valid characters
+
         if (c < 33)
         {
             width += 5;
