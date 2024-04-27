@@ -171,6 +171,17 @@ typedef struct
     mpoint_t a, b;
 } mline_t;
 
+#define M_ARRAY_INIT_CAPACITY 500
+#include "m_array.h"
+
+typedef struct
+{
+    mline_t l;
+    int color;
+} am_line_t;
+
+static am_line_t *lines_1S = NULL;
+
 vertex_t KeyPoints[NUM_KEY_TYPES];
 
 // -----------------------------------------------------------------------------
@@ -1783,17 +1794,17 @@ static void AM_drawWalls (void)
                 // [JN] Colorize 1-sided exits with azure.
                 if (lines[i].special == 11 || lines[i].special == 51)
                 {
-                    AM_drawMline(&l, EXITS);
+                    array_push(lines_1S, ((am_line_t){l, EXITS}));
                 }
                 // [JN] Mark secret sectors.
                 else
                 if (LINESECRETSECTOR1S)
                 {
-                    AM_drawMline(&l, SECRETCOLORS);
+                    array_push(lines_1S, ((am_line_t){l, SECRETCOLORS}));
                 }
                 else
                 {
-                    AM_drawMline(&l, WALLCOLORS);
+                    array_push(lines_1S, ((am_line_t){l, WALLCOLORS}));
                 }
             }
             else
@@ -1879,6 +1890,12 @@ static void AM_drawWalls (void)
             }
         }
     }
+
+    for (int i = 0; i < array_size(lines_1S); ++i)
+    {
+        AM_drawMline(&lines_1S[i].l, lines_1S[i].color);
+    }
+    array_clear(lines_1S);
 }
 
 // -----------------------------------------------------------------------------

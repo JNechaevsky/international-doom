@@ -107,6 +107,17 @@ typedef struct
     mpoint_t a, b;
 } mline_t;
 
+#define M_ARRAY_INIT_CAPACITY 500
+#include "m_array.h"
+
+typedef struct
+{
+    mline_t l;
+    int color;
+} am_line_t;
+
+static am_line_t *lines_1S = NULL;
+
 // -----------------------------------------------------------------------------
 // The vector graphics for the automap.
 // A line drawing of the player pointing right, starting from the middle.
@@ -1643,7 +1654,7 @@ static void AM_drawWalls (void)
                 continue;
             if (!lines[i].backsector)
             {
-                AM_drawMline(&l, WALLCOLORS);
+                array_push(lines_1S, ((am_line_t){l, WALLCOLORS}));
             }
             else
             {
@@ -1688,6 +1699,12 @@ static void AM_drawWalls (void)
                 AM_drawMline(&l, GRAYS + 3);
         }
     }
+
+    for (int i = 0; i < array_size(lines_1S); ++i)
+    {
+        AM_drawMline(&lines_1S[i].l, lines_1S[i].color);
+    }
+    array_clear(lines_1S);
 }
 
 // -----------------------------------------------------------------------------

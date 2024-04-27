@@ -158,6 +158,17 @@ typedef struct
     mpoint_t a, b;
 } mline_t;
 
+#define M_ARRAY_INIT_CAPACITY 500
+#include "m_array.h"
+
+typedef struct
+{
+    mline_t l;
+    int color;
+} am_line_t;
+
+static am_line_t *lines_1S = NULL;
+
 // -----------------------------------------------------------------------------
 // The vector graphics for the automap.
 // A line drawing of the player pointing right, starting from the middle.
@@ -1768,11 +1779,11 @@ static void AM_drawWalls (void)
                             // [JN] Highlight secret sectors
                             if (automap_secrets && lines[i].frontsector->special == 9)
                             {
-                                AM_drawMline(&l, secretwallcolors);
+                                array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
                             }
                             else
                             {
-                                AM_drawMline(&l, boom_23);
+                                array_push(lines_1S, ((am_line_t){l, boom_23}));
                             }
                         }
                         else
@@ -1871,11 +1882,11 @@ static void AM_drawWalls (void)
                             // [JN] Highlight secret sectors
                             if (automap_secrets && lines[i].frontsector->special == 9)
                             {    
-                                AM_drawMline(&l, secretwallcolors);
+                                array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
                             }
                             else
                             {
-                                AM_drawMline(&l, doom_184);
+                                array_push(lines_1S, ((am_line_t){l, doom_184}));
                             }
                         }
                         else
@@ -1968,11 +1979,11 @@ static void AM_drawWalls (void)
                             // [JN] Highlight secret sectors
                             if (automap_secrets && lines[i].frontsector->special == 9)
                             {
-                                AM_drawMline(&l, secretwallcolors);
+                                array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
                             }
                             else
                             {
-                                AM_drawMline(&l, jaguar_32);
+                                array_push(lines_1S, ((am_line_t){l, jaguar_32}));
                             }
                         }
                         else
@@ -2031,11 +2042,11 @@ static void AM_drawWalls (void)
                         // [JN] Mark secret sectors.
                         if (automap_secrets && lines[i].frontsector->special == 9)
                         {
-                            AM_drawMline(&l, secretwallcolors);
+                            array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
                         }
                         else
                         {
-                            AM_drawMline(&l, doom_176);
+                            array_push(lines_1S, ((am_line_t){l, doom_176}));
                         }
                     }
                     else
@@ -2088,6 +2099,12 @@ static void AM_drawWalls (void)
             }
         }
     }
+
+    for (int i = 0; i < array_size(lines_1S); ++i)
+    {
+        AM_drawMline(&lines_1S[i].l, lines_1S[i].color);
+    }
+    array_clear(lines_1S);
 }
 
 // -----------------------------------------------------------------------------
