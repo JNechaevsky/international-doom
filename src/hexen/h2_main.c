@@ -404,15 +404,6 @@ void D_DoomMain(void)
     i_error_title = PACKAGE_FULLNAME_HEXEN;
 
 #ifdef _WIN32
-    // [JN] Pressing PrintScreen on Windows 11 is opening Snipping Tool.
-    // Re-register PrintScreen key pressing for port needs to avoid this.
-    // Taken from DOOM Retro.
-    if (key_menu_screenshot == KEY_PRTSCR)
-    {
-        RegisterHotKey(NULL, 1, MOD_ALT, VK_SNAPSHOT);
-        RegisterHotKey(NULL, 2, 0, VK_SNAPSHOT);
-    }
-
     //!
     // @category obscure
     // @platform windows

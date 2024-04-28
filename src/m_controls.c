@@ -22,6 +22,13 @@
 #include "m_config.h"
 #include "m_misc.h"
 
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>  // [JN] RegisterHotKey
+#endif
+
 
 //
 // Keyboard controls
@@ -326,6 +333,16 @@ void M_BindControls (void)
 
     M_BindIntVariable("key_pause",              &key_pause);
     M_BindIntVariable("key_menu_screenshot",    &key_menu_screenshot);
+#ifdef _WIN32
+    // [JN] Pressing PrintScreen on Windows 11 opens the Snipping Tool.
+    // Re-register PrintScreen key pressing for port needs to avoid this.
+    // Taken from DOOM Retro.
+    if (key_menu_screenshot == KEY_PRTSCR)
+    {
+        RegisterHotKey(NULL, 1, MOD_ALT, VK_SNAPSHOT);
+        RegisterHotKey(NULL, 2, 0, VK_SNAPSHOT);
+    }
+#endif
     M_BindIntVariable("key_demo_quit",          &key_demo_quit);
 
     // Special menu keys, not available for rebinding
