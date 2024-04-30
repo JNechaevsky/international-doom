@@ -1070,14 +1070,6 @@ void R_FillBackScreen (void)
     int		y; 
     patch_t*	patch;
 
-    // DOOM border patch.
-    const char *name1 = DEH_String("FLOOR7_2");
-
-    // DOOM II border patch.
-    const char *name2 = DEH_String("GRNROCK");
-
-    const char *name;
-
     // If we are running full screen, there is no need to do any of this,
     // and the background buffer can be freed if it was previously in use.
 
@@ -1097,13 +1089,8 @@ void R_FillBackScreen (void)
     // Draw screen and bezel; this is done to a separate screen buffer.
 
     V_UseBuffer(background_buffer);
-
-    if (gamemode == commercial)
-	name = name2;
-    else
-	name = name1;
     
-    src = W_CacheLumpName(name, PU_CACHE); 
+    src = W_CacheLumpName(DEH_String(gamemode == commercial ? "GRNROCK" : "FLOOR7_2"), PU_CACHE); 
     dest = background_buffer;
 	 
     // [crispy] use unified flat filling function
