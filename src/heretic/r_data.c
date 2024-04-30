@@ -832,7 +832,7 @@ void R_InitColormaps(void)
 		{
 			for (i = 0; i < 256; i++)
 			{
-				r_channel = g_channel =  b_channel = 
+				r_channel =
 					(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
 							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
 							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
@@ -859,7 +859,7 @@ void R_InitColormaps(void)
 	// [crispy] Invulnerability (c == COLORMAPS), generated from COLORMAP lump
 	for (i = 0; i < 256; i++)
 	{
-		r_channel = g_channel =  b_channel = 
+		r_channel =
 			(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
 					(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
 					(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;

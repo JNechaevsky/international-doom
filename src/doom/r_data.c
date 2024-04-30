@@ -1192,7 +1192,7 @@ void R_InitColormaps (void)
 				// [JN] We do. Fallback to 256 tablified colors from modified lump
 				// to provide better compatibility with mods. This is less nicer,
 				// but barely will be notable, since no light levels are used.
-				r_channel = g_channel =  b_channel = 
+				r_channel =
 					(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
 							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
 							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
@@ -1221,7 +1221,7 @@ void R_InitColormaps (void)
 		{
 			for (i = 0; i < 256; i++)
 			{
-				r_channel = g_channel =  b_channel = 
+				r_channel =
 					(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
 							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
 							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
