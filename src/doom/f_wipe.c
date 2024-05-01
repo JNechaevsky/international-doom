@@ -193,11 +193,7 @@ static int wipe_doCrossfade (int ticks)
 
     // [JN] Brain-dead correction №1:
     // for proper blending alpha value.
-    alpha_corrector = fade_counter * 16;
-    if (alpha_corrector > 255)
-    {
-        alpha_corrector = 238;
-    }
+    alpha_corrector = MIN(fade_counter * 16, 238);
 
     for (int i = pix; i > 0; i--)
     {
