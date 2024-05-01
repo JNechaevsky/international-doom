@@ -114,6 +114,11 @@ static void wipe_initCrossfade (void)
 #endif
 }
 
+static void wipe_init (void)
+{
+    return vid_screenwipe < 3 ? wipe_initMelt () : wipe_initCrossfade();
+}
+
 // -----------------------------------------------------------------------------
 // wipe_doMelt
 // -----------------------------------------------------------------------------
@@ -191,7 +196,7 @@ static int wipe_doCrossfade (int ticks)
     alpha_corrector = fade_counter * 16;
     if (alpha_corrector > 255)
     {
-        alpha_corrector = 229;
+        alpha_corrector = 238;
     }
 
     for (int i = pix; i > 0; i--)
@@ -212,12 +217,18 @@ static int wipe_doCrossfade (int ticks)
     return !changed;
 }
 
+static int wipe_do (int ticks)
+{
+    return vid_screenwipe < 3 ? wipe_doMelt(ticks) : wipe_doCrossfade(ticks);
+}
+
 // -----------------------------------------------------------------------------
 // wipe_exitMelt
 // -----------------------------------------------------------------------------
 
-static void wipe_exitMelt (void)
+static void wipe_exit (void)
 {
+    if (vid_screenwipe < 3)  // [JN] y is not allocated in crossfade wipe.
     Z_Free(y);
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
@@ -258,31 +269,18 @@ const int wipe_ScreenWipe (const int ticks)
     {
         go = true;
         wipe_scr = I_VideoBuffer;
-        if (vid_screenwipe < 3)
-        wipe_initMelt();
-        else
-        wipe_initCrossfade();
+        wipe_init();
     }
 
     // do a piece of wipe-in
     V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
     // final stuff
-  if (vid_screenwipe < 3)
-  {
-    if (vid_screenwipe < 3 ? (*wipe_doMelt)(ticks) : (*wipe_doCrossfade)(ticks))
+    if ((*wipe_do)(ticks))
     {
         go = false;
-        wipe_exitMelt();
+        wipe_exit();
     }
-  }
-  else
-  {
-      if ((*wipe_doCrossfade)(ticks))
-      {
-          go = false;
-      }
-  }
 
     return !go;
 }
