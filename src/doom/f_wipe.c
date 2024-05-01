@@ -37,6 +37,10 @@ static pixel_t *wipe_scr_end;
 static pixel_t *wipe_scr;
 static int     *y;
 
+// [JN] Function pointers to melt and crossfade effects.
+static void (*wipe_init) (void);
+static int (*wipe_do) (int ticks);
+
 // [crispy] Additional fail-safe counter for performing crossfade effect.
 static int fade_counter;
 
@@ -112,11 +116,6 @@ static void wipe_initCrossfade (void)
     // to keep effect smooth enough.
     fade_counter = 32;
 #endif
-}
-
-static void wipe_init (void)
-{
-    return vid_screenwipe < 3 ? wipe_initMelt () : wipe_initCrossfade();
 }
 
 // -----------------------------------------------------------------------------
@@ -217,11 +216,6 @@ static int wipe_doCrossfade (int ticks)
     return !changed;
 }
 
-static int wipe_do (int ticks)
-{
-    return vid_screenwipe < 3 ? wipe_doMelt(ticks) : wipe_doCrossfade(ticks);
-}
-
 // -----------------------------------------------------------------------------
 // wipe_exitMelt
 // -----------------------------------------------------------------------------
@@ -263,6 +257,18 @@ const int wipe_ScreenWipe (const int ticks)
 {
     // when zero, stop the wipe
     static boolean go = false;
+
+    // [JN] Initialize function pointers to melt and crossfade effects.
+    if (vid_screenwipe < 3)
+    {
+        wipe_init = wipe_initMelt;
+        wipe_do = wipe_doMelt;
+    }
+    else
+    {
+        wipe_init = wipe_initCrossfade;
+        wipe_do = wipe_doCrossfade;
+    }
 
     // initial stuff
     if (!go)
