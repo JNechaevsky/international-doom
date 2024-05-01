@@ -185,15 +185,14 @@ static int wipe_doCrossfade (int ticks)
     pixel_t   *cur_screen = wipe_scr;
     pixel_t   *end_screen = wipe_scr_end;
     const int  pix = SCREENWIDTH*SCREENHEIGHT;
-    int        alpha_corrector;
+#ifdef CRISPY_TRUECOLOR
+    // [JN] Brain-dead correction №1: proper blending alpha value.
+    const int  alpha_corrector = MIN(fade_counter * 16, 238);
+#endif
     boolean changed = false;
 
     // [crispy] reduce fail-safe crossfade counter tics
     fade_counter--;
-
-    // [JN] Brain-dead correction №1:
-    // for proper blending alpha value.
-    alpha_corrector = MIN(fade_counter * 16, 238);
 
     for (int i = pix; i > 0; i--)
     {
@@ -210,8 +209,7 @@ static int wipe_doCrossfade (int ticks)
         ++end_screen;
     }
     
-    // [JN] Brain-dead correction №2:
-    // prevent small delay after actual crossfade is over.
+    // [JN] Brain-dead correction №2: prevent small delay after crossfade is over.
     if (fade_counter == 6) fade_counter = 1;
 
     return !changed;
