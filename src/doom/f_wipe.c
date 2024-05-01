@@ -187,7 +187,7 @@ static int wipe_doCrossfade (int ticks)
     const int  pix = SCREENWIDTH*SCREENHEIGHT;
 #ifdef CRISPY_TRUECOLOR
     // [JN] Brain-dead correction №1: proper blending alpha value.
-    const int  alpha_corrector = MIN(fade_counter * 16, 238);
+    const int  fade_alpha = MIN(fade_counter * 16, 238);
 #endif
     boolean changed = false;
 
@@ -202,7 +202,7 @@ static int wipe_doCrossfade (int ticks)
 #ifndef CRISPY_TRUECOLOR
             *cur_screen = shadowmap[(*cur_screen << 8) + *end_screen];
 #else
-            *cur_screen = I_BlendOver(*end_screen, *cur_screen, alpha_corrector);
+            *cur_screen = I_BlendOver(*end_screen, *cur_screen, fade_alpha);
 #endif
         }
         ++cur_screen;
