@@ -191,7 +191,8 @@ static int wipe_doCrossfade (int ticks)
     // [crispy] reduce fail-safe crossfade counter tics
     fade_counter--;
 
-    // [JN] Brain-dead correction for proper blending alpha value.
+    // [JN] Brain-dead correction №1:
+    // for proper blending alpha value.
     alpha_corrector = fade_counter * 16;
     if (alpha_corrector > 255)
     {
@@ -212,6 +213,10 @@ static int wipe_doCrossfade (int ticks)
         ++cur_screen;
         ++end_screen;
     }
+    
+    // [JN] Brain-dead correction №2:
+    // prevent small delay after actual crossfade is over.
+    if (fade_counter == 6) fade_counter = 1;
 
     return !changed;
 }
