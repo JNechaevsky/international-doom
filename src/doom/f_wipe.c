@@ -21,6 +21,7 @@
 
 #include "z_zone.h"
 #include "i_video.h"
+#include "v_trans.h" // [crispy] blending functions
 #include "v_video.h"
 #include "m_random.h"
 
@@ -35,6 +36,9 @@ static pixel_t *wipe_scr_start;
 static pixel_t *wipe_scr_end;
 static pixel_t *wipe_scr;
 static int     *y;
+
+// [crispy] Additional fail-safe counter for performing crossfade effect.
+static int fade_counter;
 
 // -----------------------------------------------------------------------------
 // wipe_shittyColMajorXform
@@ -93,6 +97,21 @@ static void wipe_initMelt (void)
             y[i] = -15;
         }
     }
+}
+
+static void wipe_initCrossfade (void)
+{
+    memcpy(wipe_scr, wipe_scr_start, SCREENWIDTH*SCREENHEIGHT*sizeof(*wipe_scr));
+    // [JN] Arm fail-safe crossfade counter with...
+#ifndef CRISPY_TRUECOLOR
+    // 8 screen screen transitions in paletted render,
+    // since effect is not really smooth there.
+    fade_counter = 8;
+#else
+    // 32 screen screen transitions in TrueColor render,
+    // to keep effect smooth enough.
+    fade_counter = 32;
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -157,6 +176,42 @@ static int wipe_doMelt (int ticks)
     return done;
 }
 
+static int wipe_doCrossfade (int ticks)
+{
+    pixel_t   *cur_screen = wipe_scr;
+    pixel_t   *end_screen = wipe_scr_end;
+    const int  pix = SCREENWIDTH*SCREENHEIGHT;
+    int        alpha_corrector;
+    boolean changed = false;
+
+    // [crispy] reduce fail-safe crossfade counter tics
+    fade_counter--;
+
+    // [JN] Brain-dead correction for proper blending alpha value.
+    alpha_corrector = fade_counter * 16;
+    if (alpha_corrector > 255)
+    {
+        alpha_corrector = 229;
+    }
+
+    for (int i = pix; i > 0; i--)
+    {
+        if (fade_counter)
+        {
+            changed = true;
+#ifndef CRISPY_TRUECOLOR
+            *cur_screen = shadowmap[(*cur_screen << 8) + *end_screen];
+#else
+            *cur_screen = I_BlendOver(*end_screen, *cur_screen, alpha_corrector);
+#endif
+        }
+        ++cur_screen;
+        ++end_screen;
+    }
+
+    return !changed;
+}
+
 // -----------------------------------------------------------------------------
 // wipe_exitMelt
 // -----------------------------------------------------------------------------
@@ -203,18 +258,31 @@ const int wipe_ScreenWipe (const int ticks)
     {
         go = true;
         wipe_scr = I_VideoBuffer;
+        if (vid_screenwipe < 3)
         wipe_initMelt();
+        else
+        wipe_initCrossfade();
     }
 
     // do a piece of wipe-in
     V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
     // final stuff
-    if ((*wipe_doMelt)(ticks))
+  if (vid_screenwipe < 3)
+  {
+    if (vid_screenwipe < 3 ? (*wipe_doMelt)(ticks) : (*wipe_doCrossfade)(ticks))
     {
         go = false;
         wipe_exitMelt();
     }
+  }
+  else
+  {
+      if ((*wipe_doCrossfade)(ticks))
+      {
+          go = false;
+      }
+  }
 
     return !go;
 }

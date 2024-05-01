@@ -421,7 +421,12 @@ static void D_Display (void)
             nowtime = I_GetTime ();
             tics = nowtime - wipestart;
             I_Sleep(1);
+        
+#ifndef CRISPY_TRUECOLOR
+        } while (vid_screenwipe < 3 ? (tics <= 0) : (tics < 3));
+#else
         } while (tics <= 0);
+#endif
 
         wipestart = nowtime;
         done = wipe_ScreenWipe(tics);
