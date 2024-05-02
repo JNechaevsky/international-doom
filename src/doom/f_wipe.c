@@ -24,6 +24,7 @@
 #include "v_trans.h" // [crispy] blending functions
 #include "v_video.h"
 #include "m_random.h"
+#include "st_bar.h"
 
 #include "id_vars.h"
 
@@ -210,7 +211,11 @@ static int wipe_doCrossfade (int ticks)
     }
     
     // [JN] Brain-dead correction №2: prevent small delay after crossfade is over.
-    if (fade_counter == 6) fade_counter = 1;
+    if (fade_counter <= 6)
+    {
+        fade_counter = 1;
+        st_fullupdate = true;
+    }
 
     return !changed;
 }
