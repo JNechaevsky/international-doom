@@ -48,6 +48,7 @@ extern float vid_g_intensity;
 extern float vid_b_intensity;
 extern int dp_screen_size;
 extern int vid_screenwipe;
+extern int vid_screenwipe_hr;
 extern int msg_text_shadows;
 
 // Display

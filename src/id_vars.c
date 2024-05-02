@@ -43,6 +43,8 @@ int vid_showfps = 0;
 int vid_smooth_scaling = 0;
 // Miscellaneous
 int vid_screenwipe = 1;
+// [JN] Heretic and Hexen doesn't have screen wipe enabled by default.
+int vid_screenwipe_hr = 0;
 int vid_diskicon = 1;
 int vid_endoom = 0;
 int vid_graphical_startup = 0;
@@ -187,6 +189,14 @@ void ID_BindVariables (GameMission_t mission)
     if (mission == doom)
     {
         M_BindIntVariable("vid_screenwipe",             &vid_screenwipe);
+    }
+    if (mission == heretic)
+    {
+        M_BindIntVariable("vid_screenwipe",             &vid_screenwipe_hr);
+    }
+
+    if (mission == doom)
+    {
         M_BindIntVariable("vid_diskicon",               &vid_diskicon);
     }
     if (mission == doom || mission == heretic)

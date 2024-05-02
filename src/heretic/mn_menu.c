@@ -391,6 +391,7 @@ static void M_ID_LimitFPS (int choice);
 static void M_ID_VSync (int choice);
 static void M_ID_ShowFPS (int choice);
 static void M_ID_PixelScaling (int choice);
+static void M_ID_ScreenWipe (int choice);
 static void M_ID_EndText (int choice);
 
 static void M_Draw_ID_Display (void);
@@ -1038,13 +1039,14 @@ static MenuItem_t ID_Menu_Video[] = {
     { ITT_LRFUNC, "SHOW FPS COUNTER",     M_ID_ShowFPS,      0, MENU_NONE },
     { ITT_LRFUNC, "PIXEL SCALING",        M_ID_PixelScaling, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                   NULL,              0, MENU_NONE },
+    { ITT_LRFUNC, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   0, MENU_NONE },
     { ITT_LRFUNC, "SHOW ENDTEXT SCREEN",  M_ID_EndText,      0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Video = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Video,
-    10, ID_Menu_Video,
+    11, ID_Menu_Video,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -1122,9 +1124,14 @@ static void M_Draw_ID_Video (void)
     MN_DrTextACentered("MISCELLANEOUS", 100, cr[CR_YELLOW]);
 
     // Show ENDTEXT screen
-    sprintf(str, vid_endoom ? "ON" : "OFF");
+    sprintf(str, vid_screenwipe_hr ? "CROSSFADE" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, vid_endoom ? GLOW_GREEN : GLOW_RED));
+               M_Item_Glow(9, vid_screenwipe_hr ? GLOW_GREEN : GLOW_RED));
+
+    // Show ENDTEXT screen
+    sprintf(str, vid_endoom ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, vid_endoom ? GLOW_GREEN : GLOW_RED));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
     if (CurrentItPos == 1 || CurrentItPos == 2)
@@ -1261,6 +1268,11 @@ static void M_ID_PixelScaling (int choice)
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
     R_ExecuteSetViewSize();
+}
+
+static void M_ID_ScreenWipe (int choice)
+{
+    vid_screenwipe_hr ^= 1;
 }
 
 static void M_ID_EndText (int option)
@@ -3926,6 +3938,7 @@ static void M_ID_ApplyResetHook (void)
     vid_showfps = 0;
     vid_smooth_scaling = 0;
     // Miscellaneous
+    vid_screenwipe_hr = 0;
     vid_endoom = 0;
 
     //

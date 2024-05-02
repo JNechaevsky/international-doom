@@ -39,6 +39,7 @@
 #include "doomkeys.h"
 #include "deh_main.h"
 #include "d_iwad.h"
+#include "f_wipe.h"
 #include "i_endoom.h"
 #include "i_input.h"
 #include "i_joystick.h"
@@ -84,6 +85,9 @@ int startmap;
 //static boolean using_graphical_startup;
 static boolean main_loop_started = false;
 boolean autostart;
+
+// wipegamestate can be set to -1 to force a wipe on the next draw
+gamestate_t wipegamestate = GS_DEMOSCREEN;
 
 boolean advancedemo;
 
@@ -165,6 +169,11 @@ static void ID_DrawMessageCentered (void)
 
 void D_Display(void)
 {
+    int      nowtime;
+    int      tics;
+    int      wipestart;
+    boolean  done;
+    boolean  wipe;
     // [JN] Optimized screen background and beveled edge drawing.
     static gamestate_t oldgamestate = -1;
 
@@ -189,6 +198,18 @@ void D_Display(void)
         R_ExecuteSetViewSize();
         // Force background redraw
         oldgamestate = -1;
+    }
+
+    // save the current screen if about to wipe
+    // [JN] Make screen wipe optional, use external config variable.
+    if (gamestate != wipegamestate && vid_screenwipe_hr)
+    {
+        wipe = true;
+        wipe_StartScreen();
+    }
+    else
+    {
+        wipe = false;
     }
 
 //
@@ -297,7 +318,7 @@ void D_Display(void)
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
     }
 
-    oldgamestate = gamestate;
+    oldgamestate = wipegamestate = gamestate;
 
     if (paused && !MenuActive && !askforquit)
     {
@@ -323,8 +344,36 @@ void D_Display(void)
     // Send out any new accumulation
     NetUpdate();
 
+    // Normal update
+    if (!wipe)
+    {
     // Flush buffered stuff to screen
     I_FinishUpdate();
+    return;
+    }
+
+    // Wipe update
+    wipe_EndScreen();
+    wipestart = I_GetTime () - 1;
+
+    do
+    {
+        do
+        {
+            nowtime = I_GetTime ();
+            tics = nowtime - wipestart;
+            I_Sleep(1);
+#ifndef CRISPY_TRUECOLOR
+        } while (tics < 3);
+#else
+        } while (tics <= 0);
+#endif
+
+            wipestart = nowtime;
+            done = wipe_ScreenWipe(tics);
+            MN_Drawer();       // Menu is drawn even on top of wipes
+            I_FinishUpdate();  // Flush buffered stuff to screen
+        } while (!done);
 }
 
 //
