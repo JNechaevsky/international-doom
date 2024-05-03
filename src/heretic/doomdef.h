@@ -621,6 +621,10 @@ extern mapthing_t deathmatchstarts[10];
 extern mapthing_t playerstarts[MAXPLAYERS];
 extern boolean playerstartsingame[MAXPLAYERS];
 
+// wipegamestate can be set to -1
+//  to force a wipe on the next draw
+extern gamestate_t wipegamestate;
+
 extern int mouseSensitivity;
 
 extern boolean precache;        // if true, load all graphics at level load

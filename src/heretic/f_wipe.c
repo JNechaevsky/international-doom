@@ -13,18 +13,11 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// DESCRIPTION:
-//	Mission begin melt/wipe screen special effect.
-//
-
-#include <string.h>
 
 #include "z_zone.h"
 #include "i_video.h"
 #include "v_trans.h" // [crispy] blending functions
 #include "v_video.h"
-#include "m_random.h"
-#include "st_bar.h"
 
 #include "id_vars.h"
 
@@ -36,73 +29,14 @@
 static pixel_t *wipe_scr_start;
 static pixel_t *wipe_scr_end;
 static pixel_t *wipe_scr;
-static int     *y;
-
-// [JN] Function pointers to melt and crossfade effects.
-static void (*wipe_init) (void);
-static int (*wipe_do) (int ticks);
 
 // [crispy] Additional fail-safe counter for performing crossfade effect.
 static int fade_counter;
 
-// -----------------------------------------------------------------------------
-// wipe_shittyColMajorXform
-// -----------------------------------------------------------------------------
-
-static void wipe_shittyColMajorXform (dpixel_t *array)
-{
-    const int width = SCREENWIDTH/2;
-    dpixel_t *dest = (dpixel_t*) Z_Malloc(width*SCREENHEIGHT*sizeof(*dest), PU_STATIC, 0);
-
-    for (int y = 0 ; y < SCREENHEIGHT ; y++)
-    {
-        for (int x = 0 ; x < width ; x++)
-        {
-            dest[x*SCREENHEIGHT+y] = array[y*width+x];
-        }
-    }
-
-    memcpy(array, dest, width*SCREENHEIGHT*sizeof(*dest));
-
-    Z_Free(dest);
-}
 
 // -----------------------------------------------------------------------------
-// wipe_initMelt
+// wipe_initCrossfade
 // -----------------------------------------------------------------------------
-
-static void wipe_initMelt (void)
-{
-    // copy start screen to main screen
-    memcpy(wipe_scr, wipe_scr_start, SCREENWIDTH*SCREENHEIGHT*sizeof(*wipe_scr));
-
-    // makes this wipe faster (in theory)
-    // to have stuff in column-major format
-    wipe_shittyColMajorXform((dpixel_t*)wipe_scr_start);
-    wipe_shittyColMajorXform((dpixel_t*)wipe_scr_end);
-
-    // setup initial column positions
-    // (y<0 => not ready to scroll yet)
-    y = (int *) Z_Malloc(SCREENWIDTH*sizeof(int), PU_STATIC, 0);
-    y[0] = -(ID_RealRandom()%16);
-
-    for (int i = 1 ; i < SCREENWIDTH ; i++)
-    {
-        int r = (ID_RealRandom()%3) - 1;
-
-        y[i] = y[i-1] + r;
-
-        if (y[i] > 0)
-        {
-            y[i] = 0;
-        }
-        else
-        if (y[i] == -16)
-        {
-            y[i] = -15;
-        }
-    }
-}
 
 static void wipe_initCrossfade (void)
 {
@@ -120,68 +54,10 @@ static void wipe_initCrossfade (void)
 }
 
 // -----------------------------------------------------------------------------
-// wipe_doMelt
+// wipe_doCrossfade
 // -----------------------------------------------------------------------------
 
-static int wipe_doMelt (int ticks)
-{
-    int j;
-    int dy;
-    int idx;
-    const int width = SCREENWIDTH/2;
-
-    dpixel_t *s;
-    dpixel_t *d;
-    boolean	done = true;
-
-    while (ticks--)
-    {
-        for (int i = 0 ; i < width ; i++)
-        {
-            if (y[i]<0)
-            {
-                y[i]++; done = false;
-            }
-            else
-            if (y[i] < SCREENHEIGHT)
-            {
-                dy = (y[i] < 16) ? y[i]+1 : ((8 * vid_screenwipe) * vid_resolution);
-
-                if (y[i]+dy >= SCREENHEIGHT)
-                {
-                    dy = SCREENHEIGHT - y[i];
-                }
-
-                s = &((dpixel_t *)wipe_scr_end)[i*SCREENHEIGHT+y[i]];
-                d = &((dpixel_t *)wipe_scr)[y[i]*width+i];
-                idx = 0;
-
-                for (j = dy ; j ; j--)
-                {
-                    d[idx] = *(s++);
-                    idx += width;
-                }
-
-                y[i] += dy;
-                s = &((dpixel_t *)wipe_scr_start)[i*SCREENHEIGHT];
-                d = &((dpixel_t *)wipe_scr)[y[i]*width+i];
-                idx = 0;
-
-                for (j=SCREENHEIGHT-y[i];j;j--)
-                {
-                    d[idx] = *(s++);
-                    idx += width;
-                }
-
-                done = false;
-            }
-        }
-    }
-
-    return done;
-}
-
-static int wipe_doCrossfade (int ticks)
+static const int wipe_doCrossfade (const int ticks)
 {
     pixel_t   *cur_screen = wipe_scr;
     pixel_t   *end_screen = wipe_scr_end;
@@ -191,6 +67,7 @@ static int wipe_doCrossfade (int ticks)
     const int  fade_alpha = MIN(fade_counter * 16, 238);
 #endif
     boolean changed = false;
+    extern int SB_state;
 
     // [crispy] reduce fail-safe crossfade counter tics
     fade_counter--;
@@ -213,8 +90,7 @@ static int wipe_doCrossfade (int ticks)
     // [JN] Brain-dead correction №2: prevent small delay after crossfade is over.
     if (fade_counter <= 6)
     {
-        fade_counter = 1;
-        st_fullupdate = true;
+        SB_state = -1;
     }
 
     return !changed;
@@ -226,8 +102,6 @@ static int wipe_doCrossfade (int ticks)
 
 static void wipe_exit (void)
 {
-    if (vid_screenwipe < 3)  // [JN] y is not allocated in crossfade wipe.
-    Z_Free(y);
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
 }
@@ -250,7 +124,6 @@ void wipe_EndScreen (void)
 {
     wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
-    V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_start); // restore start scr.
 }
 
 // -----------------------------------------------------------------------------
@@ -262,31 +135,16 @@ const int wipe_ScreenWipe (const int ticks)
     // when zero, stop the wipe
     static boolean go = false;
 
-    // [JN] Initialize function pointers to melt and crossfade effects.
-    if (vid_screenwipe < 3)
-    {
-        wipe_init = wipe_initMelt;
-        wipe_do = wipe_doMelt;
-    }
-    else
-    {
-        wipe_init = wipe_initCrossfade;
-        wipe_do = wipe_doCrossfade;
-    }
-
     // initial stuff
     if (!go)
     {
         go = true;
         wipe_scr = I_VideoBuffer;
-        wipe_init();
+        wipe_initCrossfade();
     }
 
-    // do a piece of wipe-in
-    V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT);
-
     // final stuff
-    if ((*wipe_do)(ticks))
+    if ((*wipe_doCrossfade)(ticks))
     {
         go = false;
         wipe_exit();

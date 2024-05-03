@@ -14,6 +14,7 @@ add_library(heretic STATIC
                                 doomdef.h
                                 dstrings.h
             f_finale.c
+            f_wipe.c            f_wipe.h
             g_game.c
             id_func.c           id_func.h
             info.c              info.h

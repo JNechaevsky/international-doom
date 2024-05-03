@@ -33,6 +33,9 @@ static int finalestage;                // 0 = text, 1 = art screen
 static int finalecount;
 static int finaleendcount;
 
+// [JN] Do screen wipe only once after text skipping.
+static boolean finale_wipe_done;
+
 #define TEXTSPEED       3
 #define TEXTWAIT        250
 #define	TEXTEND         25
@@ -60,6 +63,7 @@ void F_StartFinale(void)
     gameaction = ga_nothing;
     gamestate = GS_FINALE;
     automapactive = false;
+    finale_wipe_done = false;
     players[consoleplayer].cheatTics = 1;
     players[consoleplayer].messageTics = 1;
     players[consoleplayer].message = NULL;
@@ -197,6 +201,13 @@ void F_Ticker(void)
             {
                 players[consoleplayer].usedown = false;
             }
+        }
+
+        // [JN] Force a wipe after skipping text screen.
+        if (finalestage && !finale_wipe_done)
+        {
+            finale_wipe_done = true;
+            wipegamestate = -1;
         }
 
         // Advance animation.
