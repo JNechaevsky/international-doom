@@ -1641,7 +1641,6 @@ void P_ArchiveWorld (void)
 	    saveg_write16(si->midtexture);	
 	}
     }
-
 }
 
 
@@ -1700,7 +1699,6 @@ void P_UnArchiveWorld (void)
 	    si->midtexture = saveg_read16();
 	}
     }
-
 }
 
 
@@ -2236,7 +2234,6 @@ void P_UnArchiveAutomap (void)
         markpoints[i].y = saveg_read64();
     }
 }
-
 
 // -----------------------------------------------------------------------------
 // P_ArchiveOldSpecials
