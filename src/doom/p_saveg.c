@@ -1641,6 +1641,7 @@ void P_ArchiveWorld (void)
 	    saveg_write16(si->midtexture);	
 	}
     }
+
 }
 
 
@@ -1699,6 +1700,7 @@ void P_UnArchiveWorld (void)
 	    si->midtexture = saveg_read16();
 	}
     }
+
 }
 
 
@@ -2232,5 +2234,40 @@ void P_UnArchiveAutomap (void)
     {
         markpoints[i].x = saveg_read64();
         markpoints[i].y = saveg_read64();
+    }
+}
+
+
+// -----------------------------------------------------------------------------
+// P_ArchiveOldSpecials
+// -----------------------------------------------------------------------------
+
+void P_ArchiveOldSpecials (void)
+{
+    int			i;
+    sector_t*		sec;
+
+    for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
+    {
+	saveg_write16(sec->oldspecial);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// P_UnArchiveOldSpecials
+// -----------------------------------------------------------------------------
+
+void P_UnArchiveOldSpecials (void)
+{
+    int			i;
+    sector_t*		sec;
+
+    for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
+    {
+    sec->oldspecial = saveg_read16();
+    // only vaild oldspecial value is 9 (secret)
+    // returns -1 if no data
+    if (sec->oldspecial != 9)
+        sec->oldspecial = 0;
     }
 }

@@ -3013,7 +3013,8 @@ static void M_Draw_ID_Widgets (void)
                  M_Item_Glow(10, automap_smooth ? GLOW_GREEN : GLOW_DARKRED));
 
     // Mark secret sectors
-    sprintf(str, automap_secrets ? "ON" : "OFF");
+    sprintf(str, automap_secrets == 1 ? "REVEALED"  :
+                 automap_secrets == 2 ? "ALWAYS" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 126, str,
                  M_Item_Glow(11, automap_secrets ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3103,7 +3104,7 @@ static void M_ID_Automap_Shading (int choice)
 
 static void M_ID_Automap_Secrets (int choice)
 {
-    automap_secrets ^= 1;
+    automap_secrets = M_INT_Slider(automap_secrets, 0, 2, choice, false);
 }
 
 // -----------------------------------------------------------------------------
