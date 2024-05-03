@@ -5266,7 +5266,7 @@ static int G_ReloadLevel (void)
 {
     int result = false;
 
-    if (gamestate == GS_LEVEL)
+    if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
     {
         // [crispy] restart demos from the map they were started
         if (demorecording)
@@ -5346,7 +5346,7 @@ static int G_GotoNextLevel (void)
         }
     }
 
-    if (gamestate == GS_LEVEL)
+    if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
     {
         int epsd, map;
 
