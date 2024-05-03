@@ -1123,7 +1123,7 @@ static void M_Draw_ID_Video (void)
 
     MN_DrTextACentered("MISCELLANEOUS", 100, cr[CR_YELLOW]);
 
-    // Show ENDTEXT screen
+    // Screen wipe effect
     sprintf(str, vid_screenwipe_hr ? "CROSSFADE" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, vid_screenwipe_hr ? GLOW_GREEN : GLOW_RED));
