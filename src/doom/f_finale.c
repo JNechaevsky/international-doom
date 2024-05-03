@@ -293,6 +293,10 @@ void F_Ticker (void)
                 }
                 else
                 {
+                    // [JN] Supress FIRE/USE keystroke upon entering new level.
+                    players[i].attackdown = true;
+                    players[i].usedown = true;
+
                     gameaction = ga_worlddone;
                 }
             }
