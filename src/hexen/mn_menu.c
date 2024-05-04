@@ -4710,7 +4710,8 @@ boolean MN_Responder(event_t * event)
     else
     {
         // [JN] Allow menu control by mouse.
-        if (event->type == ev_mouse && mousewait < I_GetTime())
+        if (event->type == ev_mouse && mousewait < I_GetTime()
+        && !event->data2 && !event->data3) // [JN] Do not consider movement as pressing.
         {
             // [crispy] mouse_novert disables controlling the menus with the mouse
             // [JN] Not needed, as menu is fully controllable by mouse wheel and buttons.
