@@ -5509,7 +5509,8 @@ boolean M_Responder (event_t* ev)
     }
     else
     {
-	if (ev->type == ev_mouse && mousewait < I_GetTime())
+	if (ev->type == ev_mouse && mousewait < I_GetTime()
+	&& !ev->data2 && !ev->data3) // [JN] Do not consider movement as pressing.
 	{
 	    // [crispy] mouse_novert disables controlling the menus with the mouse
 	    // [JN] Not needed, as menu is fully controllable by mouse wheel and buttons.
