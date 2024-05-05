@@ -291,7 +291,7 @@ mpoint_t *markpoints = NULL;     // where the points are
 int       markpointnum = 0;      // next point to be assigned (also number of points now)
 int       markpointnum_max = 0;  // killough 2/22/98
 
-#define NUMALIAS      23
+#define NUMALIAS      24
 #define NUMLEVELS     8
 #define INTENSITYBITS 3
 
@@ -306,6 +306,7 @@ static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
     {223, 223, 222, 222, 221, 221, 220, 220},   // GREENKEY
     {197, 197, 197, 196, 196, 196, 195, 195},   // BLUEKEY
     {173, 173, 173, 173, 173, 173, 173, 173},   // SECRETCOLORS
+    {206, 206, 206, 206, 206, 206, 206, 206},   // FSECRETCOLORS (revealed secrets)
     {182, 182, 182, 182, 181, 181, 181, 181},   // EXITS
     // IDDT extended colors
     {224, 224, 223, 223, 222, 222, 221, 221},   // IDDT_GREEN
@@ -333,6 +334,7 @@ static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
     {223, 222, 221, 220, 219, 218, 217, 216},   // GREENKEY
     {198, 198, 197, 197, 196, 196, 195, 195},   // BLUEKEY
     {175, 175, 174, 174, 173, 173, 172, 172},   // SECRETCOLORS
+    {206, 206, 206, 205, 205, 205, 204, 204},   // FSECRETCOLORS
     {182, 182, 181, 181, 180, 180, 179, 179},   // EXITS
     // IDDT extended colors
     {224, 223, 222, 221, 220, 219, 218, 217},   // IDDT_GREEN
@@ -1383,20 +1385,21 @@ static void AM_drawFline(fline_t * fl, int color)
         case GREENKEY:      DrawWuLine(fl, &(*antialias)[6][0]);  break;
         case BLUEKEY:       DrawWuLine(fl, &(*antialias)[7][0]);  break;
         case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  break;
-        case EXITS:         DrawWuLine(fl, &(*antialias)[9][0]);  break;
+        case FSECRETCOLORS: DrawWuLine(fl, &(*antialias)[9][0]);  break;
+        case EXITS:         DrawWuLine(fl, &(*antialias)[10][0]); break;
         // IDDT extended colors:
-        case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[10][0]); break;
-        case IDDT_YELLOW:   DrawWuLine(fl, &(*antialias)[11][0]); break;
-        case 150:           DrawWuLine(fl, &(*antialias)[12][0]); break;
-        case 151:           DrawWuLine(fl, &(*antialias)[13][0]); break;
-        case 152:           DrawWuLine(fl, &(*antialias)[14][0]); break;
-        case 153:           DrawWuLine(fl, &(*antialias)[15][0]); break;
-        case 154:           DrawWuLine(fl, &(*antialias)[16][0]); break;
-        case 155:           DrawWuLine(fl, &(*antialias)[17][0]); break;
-        case 156:           DrawWuLine(fl, &(*antialias)[18][0]); break;  // Used for TELEPORTERS as well
-        case 157:           DrawWuLine(fl, &(*antialias)[19][0]); break;
-        case 158:           DrawWuLine(fl, &(*antialias)[20][0]); break;
-        case 159:           DrawWuLine(fl, &(*antialias)[21][0]); break;
+        case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[11][0]); break;
+        case IDDT_YELLOW:   DrawWuLine(fl, &(*antialias)[12][0]); break;
+        case 150:           DrawWuLine(fl, &(*antialias)[13][0]); break;
+        case 151:           DrawWuLine(fl, &(*antialias)[14][0]); break;
+        case 152:           DrawWuLine(fl, &(*antialias)[15][0]); break;
+        case 153:           DrawWuLine(fl, &(*antialias)[16][0]); break;
+        case 154:           DrawWuLine(fl, &(*antialias)[17][0]); break;
+        case 155:           DrawWuLine(fl, &(*antialias)[18][0]); break;
+        case 156:           DrawWuLine(fl, &(*antialias)[19][0]); break;  // Used for TELEPORTERS as well
+        case 157:           DrawWuLine(fl, &(*antialias)[20][0]); break;
+        case 158:           DrawWuLine(fl, &(*antialias)[21][0]); break;
+        case 159:           DrawWuLine(fl, &(*antialias)[22][0]); break;
         
         default:
         {
@@ -1765,8 +1768,10 @@ static void AM_drawGrid (void)
 // This is LineDef based, not LineSeg based.
 // -----------------------------------------------------------------------------
 
-#define LINESECRETSECTOR1S automap_secrets && lines[i].frontsector->special == 9
-#define LINESECRETSECTOR2S automap_secrets && (lines[i].frontsector->special == 9 || lines[i].backsector->special == 9)
+#define LINESECRETSECTOR_1S automap_secrets > 1 && lines[i].frontsector->special == 9
+#define LINESECRETSECTOR_2S automap_secrets > 1 && (lines[i].frontsector->special == 9 || lines[i].backsector->special == 9)
+#define LINEFOUNDSECRETSECTOR_1S automap_secrets && lines[i].frontsector->oldspecial == 9
+#define LINEFOUNDSECRETSECTOR_2S automap_secrets && (lines[i].frontsector->oldspecial == 9 || lines[i].backsector->oldspecial == 9)
 
 static void AM_drawWalls (void)
 {
@@ -1798,9 +1803,14 @@ static void AM_drawWalls (void)
                 }
                 // [JN] Mark secret sectors.
                 else
-                if (LINESECRETSECTOR1S)
+                if (LINESECRETSECTOR_1S)
                 {
                     array_push(lines_1S, ((am_line_t){l, SECRETCOLORS}));
+                }
+                else
+                if (LINEFOUNDSECRETSECTOR_1S)
+                {
+                    array_push(lines_1S, ((am_line_t){l, FSECRETCOLORS}));
                 }
                 else
                 {
@@ -1812,8 +1822,11 @@ static void AM_drawWalls (void)
                 if (lines[i].flags & ML_SECRET)    // secret door
                 {
                      // [plums] secret sectors still get colored when option is on
-                    if (LINESECRETSECTOR2S)
+                    if (LINESECRETSECTOR_2S)
                         AM_drawMline(&l, SECRETCOLORS);
+                    else
+                    if (LINEFOUNDSECRETSECTOR_2S)
+                        AM_drawMline(&l, FSECRETCOLORS);
                     else
                     if (ravmap_cheating)
                         AM_drawMline(&l, 0);
@@ -1861,9 +1874,13 @@ static void AM_drawWalls (void)
                     AM_drawMline(&l, EXITS);
                 }
                 // [JN] Mark secret sectors.
-                else if (LINESECRETSECTOR2S)
+                else if (LINESECRETSECTOR_2S)
                 {
                     AM_drawMline(&l, SECRETCOLORS);
+                }
+                else if (LINEFOUNDSECRETSECTOR_2S)
+                {
+                    AM_drawMline(&l, FSECRETCOLORS);
                 }
                 else if (lines[i].backsector->floorheight
                          != lines[i].frontsector->floorheight)

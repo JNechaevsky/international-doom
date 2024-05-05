@@ -2256,6 +2256,8 @@ void G_DoLoadGame(void)
     P_RestoreTargets();
     // [JN] Restore automap marks.
     P_UnArchiveAutomap();
+    // [plums] restore old sector specials.
+    P_UnArchiveOldSpecials();
 
     // [crispy] point to active artifact after load
     for (i = 0; i < p->inventorySlotNum; i++)
@@ -3192,6 +3194,9 @@ void G_DoSaveGame(void)
     P_ArchiveSpecials();
     // [JN] Archive automap marks.
     P_ArchiveAutomap();
+    // [plums] write old sector specials (for revealed secrets) at the end
+    // to keep save compatibility with previous versions.
+    P_ArchiveOldSpecials();
     SV_Close(filename);
 
     gameaction = ga_nothing;

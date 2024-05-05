@@ -822,6 +822,8 @@ void P_ArchiveSpecials(void);
 void P_UnArchiveSpecials(void);
 void P_ArchiveAutomap(void);
 void P_UnArchiveAutomap(void);
+void P_ArchiveOldSpecials(void);
+void P_UnArchiveOldSpecials(void);
 // load / save game routines
 
 

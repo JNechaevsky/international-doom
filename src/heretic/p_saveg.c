@@ -2032,3 +2032,45 @@ void P_UnArchiveAutomap (void)
         markpoints[i].y = SV_ReadLongLong();
     }
 }
+
+// -----------------------------------------------------------------------------
+// P_ArchiveOldSpecials
+// -----------------------------------------------------------------------------
+
+void P_ArchiveOldSpecials (void)
+{
+    int i;
+    sector_t* sec;
+
+    SV_WriteByte(0); // padding for where the savegame termination marker was.
+
+    for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
+    {
+        SV_WriteWord(sec->oldspecial);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// P_UnArchiveOldSpecials
+// -----------------------------------------------------------------------------
+
+void P_UnArchiveOldSpecials (void)
+{
+    int i;
+    int termbyte;
+    sector_t* sec;
+
+    termbyte = SV_ReadByte();
+
+    // a savegame termination marker here means a save from an older version.
+    // rewind 1 byte so G_DoLoadGame can find the termination marker, and fill
+    // oldspecial with 0s.
+    if (termbyte == SAVE_GAME_TERMINATOR)
+        fseek(SaveGameFP, -1, SEEK_CUR);
+
+    for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
+    {
+        sec->oldspecial = (termbyte == SAVE_GAME_TERMINATOR) ?
+                           0 : SV_ReadWord();
+    }
+}
