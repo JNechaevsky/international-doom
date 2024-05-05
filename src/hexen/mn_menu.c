@@ -458,6 +458,7 @@ static void M_Bind_RestartLevel (int option);
 static void M_Bind_NextLevel (int option);
 static void M_Bind_FastForward (int option);
 static void M_Bind_FlipLevels (int option);
+static void M_Bind_ExtendedHUD (int choice);
 static void M_Bind_SpectatorMode (int option);
 static void M_Bind_FreezeMode (int option);
 static void M_Bind_NotargetMode (int option);
@@ -1980,6 +1981,7 @@ static MenuItem_t ID_Menu_Keybinds_3[] = {
     { ITT_EFUNC, "GO TO NEXT LEVEL",        M_Bind_NextLevel,     0, MENU_NONE },
     { ITT_EFUNC, "DEMO FAST-FORWARD",       M_Bind_FastForward,   0, MENU_NONE },
     { ITT_EFUNC, "FLIP LEVEL HORIZONTALLY", M_Bind_FlipLevels,    0, MENU_NONE },
+    { ITT_EFUNC, "TOGGLE EXTENDED HUD",     M_Bind_ExtendedHUD,   0, MENU_NONE },
     { ITT_EMPTY, NULL,                      NULL,                 0, MENU_NONE },
     { ITT_EFUNC, "SPECTATOR MODE",          M_Bind_SpectatorMode, 0, MENU_NONE },
     { ITT_EFUNC, "FREEZE MODE",             M_Bind_FreezeMode,    0, MENU_NONE },
@@ -1990,7 +1992,7 @@ static MenuItem_t ID_Menu_Keybinds_3[] = {
 static Menu_t ID_Def_Keybinds_3 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_3,
-    13, ID_Menu_Keybinds_3,
+    14, ID_Menu_Keybinds_3,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -2014,13 +2016,14 @@ static void M_Draw_ID_Keybinds_3 (void)
     M_DrawBindKey(5, 70, key_nextlevel);
     M_DrawBindKey(6, 80, key_demospeed);
     M_DrawBindKey(7, 90, key_flip_levels);
+    M_DrawBindKey(8, 100, key_widget_enable);
 
-    MN_DrTextACentered("SPECIAL MODES", 100, cr[CR_YELLOW]);
+    MN_DrTextACentered("SPECIAL MODES", 110, cr[CR_YELLOW]);
 
-    M_DrawBindKey(9, 110, key_spectator);
-    M_DrawBindKey(10, 120, key_freeze);
-    M_DrawBindKey(11, 130, key_notarget);
-    M_DrawBindKey(12, 140, key_buddha);
+    M_DrawBindKey(10, 120, key_spectator);
+    M_DrawBindKey(11, 130, key_freeze);
+    M_DrawBindKey(12, 140, key_notarget);
+    M_DrawBindKey(13, 150, key_buddha);
 
     M_DrawBindFooter("3", true);
 }
@@ -2060,24 +2063,29 @@ static void M_Bind_FlipLevels (int choice)
     M_StartBind(306);  // key_flip_levels
 }
 
+static void M_Bind_ExtendedHUD (int choice)
+{
+    M_StartBind(307);  // key_widget_enable
+}
+
 static void M_Bind_SpectatorMode (int option)
 {
-    M_StartBind(307);  // key_spectator
+    M_StartBind(308);  // key_spectator
 }
 
 static void M_Bind_FreezeMode (int option)
 {
-    M_StartBind(308);  // key_freeze
+    M_StartBind(309);  // key_freeze
 }
 
 static void M_Bind_NotargetMode (int option)
 {
-    M_StartBind(309);  // key_notarget
+    M_StartBind(310);  // key_notarget
 }
 
 static void M_Bind_BuddhaMode (int choice)
 {
-    M_StartBind(310);  // key_buddha
+    M_StartBind(311);  // key_buddha
 }
 
 // -----------------------------------------------------------------------------
@@ -5768,6 +5776,7 @@ static void M_CheckBind (int key)
     if (key_nextlevel == key)        key_nextlevel        = 0;
     if (key_demospeed == key)        key_demospeed        = 0;
     if (key_flip_levels == key)      key_flip_levels      = 0;
+    if (key_widget_enable == key)    key_widget_enable    = 0;
     if (key_spectator == key)        key_spectator        = 0;
     if (key_freeze == key)           key_freeze           = 0;
     if (key_notarget == key)         key_notarget         = 0;
@@ -5888,10 +5897,11 @@ static void M_DoBind (int keynum, int key)
         case 304:  key_nextlevel = key;         break;
         case 305:  key_demospeed = key;         break;
         case 306:  key_flip_levels = key;       break;
-        case 307:  key_spectator = key;         break;
-        case 308:  key_freeze = key;            break;
-        case 309:  key_notarget = key;          break;
-        case 310:  key_buddha = key;            break;
+        case 307:  key_widget_enable = key;     break;
+        case 308:  key_spectator = key;         break;
+        case 309:  key_freeze = key;            break;
+        case 310:  key_notarget = key;          break;
+        case 311:  key_buddha = key;            break;
 
         // Page 4
         case 400:  key_weapon1 = key;           break;
@@ -6019,11 +6029,12 @@ static void M_ClearBind (int CurrentItPos)
             case 5:   key_nextlevel = 0;        break;
             case 6:   key_demospeed = 0;        break;
             case 7:   key_flip_levels = 0;      break;
+            case 8:   key_widget_enable = 0;    break;
             // Special modes title
-            case 9:   key_spectator = 0;        break;
-            case 10:  key_freeze = 0;           break;
-            case 11:  key_notarget = 0;         break;
-            case 12:  key_buddha = 0;           break;
+            case 10:  key_spectator = 0;        break;
+            case 11:  key_freeze = 0;           break;
+            case 12:  key_notarget = 0;         break;
+            case 13:  key_buddha = 0;           break;
         }
     }
     if (CurrentMenu == &ID_Def_Keybinds_4)
@@ -6153,6 +6164,7 @@ static void M_ResetBinds (void)
     key_nextlevel = 0;
     key_demospeed = 0;
     key_flip_levels = 0;
+    key_widget_enable = 0;
     key_spectator = 0;
     key_freeze = 0;
     key_notarget = 0;
