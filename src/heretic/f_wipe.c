@@ -14,6 +14,8 @@
 // GNU General Public License for more details.
 //
 
+#include <string.h>
+
 #include "z_zone.h"
 #include "i_video.h"
 #include "v_trans.h" // [crispy] blending functions
