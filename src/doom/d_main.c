@@ -332,27 +332,30 @@ static void D_Display (void)
     // [JN] Do not draw any widgets if not in game level.
     if (gamestate == GS_LEVEL)
     {
-        // [JN] Left widgets are available while active game level.
-        if (dp_screen_size < 15)
+        if (widget_enable)
         {
-            ID_LeftWidgets();
-        }
+            // [JN] Left widgets are available while active game level.
+            if (dp_screen_size < 15)
+            {
+                ID_LeftWidgets();
+            }
 
-        // [crispy] demo timer widget
-        if (demoplayback && (demo_timer == 1 || demo_timer == 3))
-        {
-            ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
-        }
-        else if (demorecording && (demo_timer == 2 || demo_timer == 3))
-        {
-            ID_DemoTimer(leveltime);
-        }
+            // [crispy] demo timer widget
+            if (demoplayback && (demo_timer == 1 || demo_timer == 3))
+            {
+                ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
+            }
+            else if (demorecording && (demo_timer == 2 || demo_timer == 3))
+            {
+                ID_DemoTimer(leveltime);
+            }
 
-        // [JN] Target's health widget.
-        // Actual health values are gathered in G_Ticker.
-        if (widget_health)
-        {
-            ID_DrawTargetsHealth();
+            // [JN] Target's health widget.
+            // Actual health values are gathered in G_Ticker.
+            if (widget_health)
+            {
+                ID_DrawTargetsHealth();
+            }
         }
 
         // [JN] Draw crosshair.
@@ -382,15 +385,18 @@ static void D_Display (void)
     }
 
     // [JN] Draw right widgets in any states except finale text screens.
-    if (gamestate != GS_FINALE)
+    if (widget_enable)
     {
-        ID_RightWidgets();
-    }
+        if (gamestate != GS_FINALE)
+        {
+            ID_RightWidgets();
+        }
 
-    // [crispy] Demo Timer widget
-    if (demoplayback && demo_bar)
-    {
-        ID_DemoBar();
+        // [crispy] Demo Timer widget
+        if (demoplayback && demo_bar)
+        {
+            ID_DemoBar();
+        }
     }
 
     // Handle player messages

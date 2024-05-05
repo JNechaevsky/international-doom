@@ -246,6 +246,9 @@
 // [JN] ID-specific strings.
 // -----------------------------------------------------------------------------
 
+#define ID_EXTHUD_ON        "EXTENDED HUD ON"
+#define ID_EXTHUD_OFF       "EXTENDED HUD OFF"
+
 #define ID_SPECTATOR_ON     "SPECTATOR MODE ON"
 #define ID_SPECTATOR_OFF    "SPECTATOR MODE OFF"
 

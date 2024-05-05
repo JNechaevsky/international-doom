@@ -291,6 +291,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_nextlevel),
     CONFIG_VARIABLE_KEY(key_demospeed),
     CONFIG_VARIABLE_KEY(key_flip_levels),
+    CONFIG_VARIABLE_KEY(key_widget_enable),
 
     // Heretic: Artifacts
     CONFIG_VARIABLE_KEY(key_arti_quartz),
@@ -492,6 +493,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(joyb_toggle_automap),
 
     // Widgets
+    CONFIG_VARIABLE_INT(widget_enable),
     CONFIG_VARIABLE_INT(widget_location),
     CONFIG_VARIABLE_INT(widget_kis),
     CONFIG_VARIABLE_INT(widget_time),

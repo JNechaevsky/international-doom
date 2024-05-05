@@ -579,6 +579,7 @@ static void M_Bind_RestartLevel (int choice);
 static void M_Bind_NextLevel (int choice);
 static void M_Bind_FastForward (int choice);
 static void M_Bind_FlipLevels (int choice);
+static void M_Bind_ExtendedHUD (int choice);
 static void M_Bind_SpectatorMode (int choice);
 static void M_Bind_FreezeMode (int choice);
 static void M_Bind_NotargetMode (int choice);
@@ -2195,7 +2196,10 @@ static void M_Bind_Use (int choice)
 
 static void M_Draw_ID_Keybinds_1 (void)
 {
+    st_fullupdate = true;
     Keybinds_Cur = 0;
+
+    M_FillBackground();
 
     M_WriteTextCentered(9, "MOVEMENT", cr[CR_YELLOW]);
 
@@ -2231,12 +2235,12 @@ static menuitem_t ID_Menu_Keybinds_2[]=
     { M_SWTC, "GO TO NEXT LEVEL",        M_Bind_NextLevel,      'd' },
     { M_SWTC, "DEMO FAST-FORWARD",       M_Bind_FastForward,    'd' },
     { M_SWTC, "FLIP LEVEL HORIZONTALLY", M_Bind_FlipLevels,     'f' },
+    { M_SWTC, "TOGGLE EXTENDED HUD",     M_Bind_ExtendedHUD,    't' },
     { M_SKIP, "", 0, '\0'},
     { M_SWTC, "SPECTATOR MODE",           M_Bind_SpectatorMode, 's' },
     { M_SWTC, "FREEZE MODE",              M_Bind_FreezeMode,    'f' },
     { M_SWTC, "NOTARGET MODE",            M_Bind_NotargetMode,  'n' },
     { M_SWTC, "BUDDHA MODE",              M_Bind_BuddhaMode,    'b' },
-    { M_SKIP, "", 0, '\0'},
     { M_SKIP, "", 0, '\0'},
     { M_SKIP, "", 0, '\0'},
 };
@@ -2287,29 +2291,37 @@ static void M_Bind_FlipLevels (int choice)
     M_StartBind(206);  // key_flip_levels
 }
 
+static void M_Bind_ExtendedHUD (int choice)
+{
+    M_StartBind(207);  // key_widget_enable
+}
+
 static void M_Bind_SpectatorMode (int choice)
 {
-    M_StartBind(207);  // key_spectator
+    M_StartBind(208);  // key_spectator
 }
 
 static void M_Bind_FreezeMode (int choice)
 {
-    M_StartBind(208);  // key_freeze
+    M_StartBind(209);  // key_freeze
 }
 
 static void M_Bind_NotargetMode (int choice)
 {
-    M_StartBind(209);  // key_notarget
+    M_StartBind(210);  // key_notarget
 }
 
 static void M_Bind_BuddhaMode (int choice)
 {
-    M_StartBind(210);  // key_buddha
+    M_StartBind(211);  // key_buddha
 }
 
 static void M_Draw_ID_Keybinds_2 (void)
 {
+    st_fullupdate = true;
     Keybinds_Cur = 1;
+
+    M_FillBackground();
 
     M_WriteTextCentered(9, "ADVANCED MOVEMENT", cr[CR_YELLOW]);
 
@@ -2323,13 +2335,14 @@ static void M_Draw_ID_Keybinds_2 (void)
     M_DrawBindKey(5, 63, key_nextlevel);
     M_DrawBindKey(6, 72, key_demospeed);
     M_DrawBindKey(7, 81, key_flip_levels);
+    M_DrawBindKey(8, 90, key_widget_enable);
 
-    M_WriteTextCentered(90, "SPECIAL MODES", cr[CR_YELLOW]);
+    M_WriteTextCentered(99, "SPECIAL MODES", cr[CR_YELLOW]);
 
-    M_DrawBindKey(9, 99, key_spectator);
-    M_DrawBindKey(10, 108, key_freeze);
-    M_DrawBindKey(11, 117, key_notarget);
-    M_DrawBindKey(12, 126, key_buddha);
+    M_DrawBindKey(10, 108, key_spectator);
+    M_DrawBindKey(11, 117, key_freeze);
+    M_DrawBindKey(12, 126, key_notarget);
+    M_DrawBindKey(13, 135, key_buddha);
 
     M_DrawBindFooter("2", true);
 }
@@ -2421,7 +2434,10 @@ static void M_Bind_NextWeapon (int choice)
 
 static void M_Draw_ID_Keybinds_3 (void)
 {
+    st_fullupdate = true;
     Keybinds_Cur = 2;
+
+    M_FillBackground();
 
     M_WriteTextCentered(9, "WEAPONS", cr[CR_YELLOW]);
 
@@ -2526,7 +2542,10 @@ static void M_Bind_ClearMarks (int choice)
 
 static void M_Draw_ID_Keybinds_4 (void)
 {
+    st_fullupdate = true;
     Keybinds_Cur = 3;
+
+    M_FillBackground();
 
     M_WriteTextCentered(9, "AUTOMAP", cr[CR_YELLOW]);
 
@@ -2640,7 +2659,10 @@ static void M_Bind_MultiplayerSpy (int choice)
 }
 static void M_Draw_ID_Keybinds_5 (void)
 {
+    st_fullupdate = true;
     Keybinds_Cur = 4;
+
+    M_FillBackground();
 
     M_WriteTextCentered(9, "FUNCTION KEYS", cr[CR_YELLOW]);
 
@@ -2761,7 +2783,10 @@ static void M_Bind_Reset (int choice)
 
 static void M_Draw_ID_Keybinds_6 (void)
 {
+    st_fullupdate = true;
     Keybinds_Cur = 5;
+
+    M_FillBackground();
 
     M_WriteTextCentered(9, "SHORTCUT KEYS", cr[CR_YELLOW]);
 
@@ -2889,6 +2914,10 @@ static void M_Bind_M_Reset (int choice)
 
 static void M_Draw_ID_MouseBinds (void)
 {
+    st_fullupdate = true;
+
+    M_FillBackground();
+
     M_WriteTextCentered(9, "MOUSE BINDINGS", cr[CR_YELLOW]);
 
     M_DrawBindButton(0, 18, mousebfire);
@@ -6504,6 +6533,7 @@ static void M_CheckBind (int key)
     if (key_nextlevel == key)        key_nextlevel        = 0;
     if (key_demospeed == key)        key_demospeed        = 0;
     if (key_flip_levels == key)      key_flip_levels      = 0;
+    if (key_widget_enable == key)    key_widget_enable    = 0;
     if (key_spectator == key)        key_spectator        = 0;
     if (key_freeze == key)           key_freeze           = 0;
     if (key_notarget == key)         key_notarget         = 0;
@@ -6593,10 +6623,11 @@ static void M_DoBind (int keynum, int key)
         case 204:  key_nextlevel = key;         break;
         case 205:  key_demospeed = key;         break;
         case 206:  key_flip_levels = key;       break;
-        case 207:  key_spectator = key;         break;
-        case 208:  key_freeze = key;            break;
-        case 209:  key_notarget = key;          break;
-        case 210:  key_buddha = key;            break;
+        case 207:  key_widget_enable = key;     break;
+        case 208:  key_spectator = key;         break;
+        case 209:  key_freeze = key;            break;
+        case 210:  key_notarget = key;          break;
+        case 211:  key_buddha = key;            break;
         // Page 3  
         case 300:  key_weapon1 = key;           break;
         case 301:  key_weapon2 = key;           break;
@@ -6682,11 +6713,12 @@ static void M_ClearBind (int itemOn)
             case 5:   key_nextlevel = 0;        break;
             case 6:   key_demospeed = 0;        break;
             case 7:   key_flip_levels = 0;      break;
+            case 8:   key_widget_enable = 0;    break;
             // Special modes title
-            case 9:   key_spectator = 0;        break;
-            case 10:  key_freeze = 0;           break;
-            case 11:  key_notarget = 0;         break;
-            case 12:  key_buddha = 0;           break;
+            case 10:  key_spectator = 0;        break;
+            case 11:  key_freeze = 0;           break;
+            case 12:  key_notarget = 0;         break;
+            case 13:  key_buddha = 0;           break;
         }
     }
     if (currentMenu == &ID_Def_Keybinds_3)
@@ -6784,6 +6816,7 @@ static void M_ResetBinds (void)
     key_nextlevel = 0;
     key_demospeed = 0;
     key_flip_levels = 0;
+    key_widget_enable = 0;
     key_spectator = 0;
     key_freeze = 0;
     key_notarget = 0;
@@ -6889,13 +6922,13 @@ static void M_DrawBindKey (int itemNum, int yPos, int key)
 
 static void M_DrawBindFooter (char *pagenum, boolean drawPages)
 {
-    M_WriteTextCentered(142, "PRESS ENTER TO BIND, DEL TO CLEAR",  cr[CR_MENU_DARK1]);
+    M_WriteTextCentered(171, "PRESS ENTER TO BIND, DEL TO CLEAR",  cr[CR_MENU_DARK1]);
 
     if (drawPages)
     {
-        M_WriteText(ID_MENU_LEFTOFFSET, 151, "< PGUP", cr[CR_MENU_DARK3]);
-        M_WriteTextCentered(151, M_StringJoin("PAGE ", pagenum, "/6", NULL), cr[CR_MENU_DARK2]);
-        M_WriteText(M_ItemRightAlign("PGDN >"), 151, "PGDN >", cr[CR_MENU_DARK3]);
+        M_WriteText(ID_MENU_LEFTOFFSET, 180, "< PGUP", cr[CR_MENU_DARK3]);
+        M_WriteTextCentered(180, M_StringJoin("PAGE ", pagenum, "/6", NULL), cr[CR_MENU_DARK2]);
+        M_WriteText(M_ItemRightAlign("PGDN >"), 180, "PGDN >", cr[CR_MENU_DARK3]);
     }
 }
 
