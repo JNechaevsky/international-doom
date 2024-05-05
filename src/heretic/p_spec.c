@@ -966,6 +966,7 @@ void P_PlayerInSpecialSector(player_t * player)
                 CT_SetMessageCentered(player, DEH_String(ID_SECRET_FOUND));
                 S_StartSound(NULL, sfx_chat);
             }
+            sector->oldspecial = sector->special;
             sector->special = 0;
             break;
         case 11:               // Exit_SuperDamage (DOOM E1M8 finale)

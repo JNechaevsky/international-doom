@@ -51,6 +51,7 @@ extern void AM_Stop (void);
 #define FDWALLCOLORS    112
 #define CDWALLCOLORS    80
 #define SECRETCOLORS    175
+#define FSECRETCOLORS   206
 
 // Hidden lines
 #define MLDONTDRAW1     40

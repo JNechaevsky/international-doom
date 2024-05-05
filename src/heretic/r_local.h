@@ -111,6 +111,9 @@ typedef struct
     //      the renderer.
     fixed_t	interpfloorheight;
     fixed_t	interpceilingheight;
+
+    // [crispy] revealed secrets
+    short	oldspecial;
 } sector_t;
 
 typedef struct

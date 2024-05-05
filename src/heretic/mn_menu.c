@@ -2828,7 +2828,8 @@ static void M_Draw_ID_Widgets (void)
     MN_DrTextACentered("AUTOMAP", 100, cr[CR_YELLOW]);
 
     // Mark secret sectors
-    sprintf(str, automap_secrets ? "ON" : "OFF");
+    sprintf(str, automap_secrets == 1 ? "REVEALED" :
+                 automap_secrets == 2 ? "ALWAYS" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 110,
                M_Item_Glow(9, automap_secrets ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -2892,7 +2893,7 @@ static void M_ID_Widget_Health (int choice)
 
 static void M_ID_Automap_Secrets (int choice)
 {
-    automap_secrets ^= 1;
+    automap_secrets = M_INT_Slider(automap_secrets, 0, 2, choice, false);
 }
 
 static void M_ID_Automap_Rotate (int choice)
