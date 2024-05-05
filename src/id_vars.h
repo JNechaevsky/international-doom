@@ -66,6 +66,7 @@ extern int crl_spectating;
 extern int crl_freeze;
 
 // Widgets
+extern int widget_enable;
 extern int widget_location;
 extern int widget_coords;
 extern int widget_render;

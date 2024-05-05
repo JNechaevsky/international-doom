@@ -63,6 +63,7 @@ int key_reloadlevel = 0; // [crispy]
 int key_nextlevel   = 0; // [crispy]
 int key_demospeed   = 0; // [crispy]
 int key_flip_levels = 0; // [crispy]
+int key_widget_enable = 0;
 
 // Heretic keyboard controls
  
@@ -276,6 +277,7 @@ void M_BindControls (void)
     M_BindIntVariable("key_nextlevel",       &key_nextlevel);   // [crispy]
     M_BindIntVariable("key_demospeed",       &key_demospeed);   // [crispy]
     M_BindIntVariable("key_flip_levels",     &key_flip_levels); // [crispy]
+    M_BindIntVariable("key_widget_enable",   &key_widget_enable);
 
     // RestlessRodent -- CRL (Special modes)
 
