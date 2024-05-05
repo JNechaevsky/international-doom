@@ -9315,8 +9315,13 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      8,                         // damage
      SFX_NONE,                  // activesound
-     MF_MISSILE | MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF |    // flags
-     MF_EXTRATRANS,             // [JN] Extra translucency (Quietus big green smoke)
+     MF_MISSILE | MF_NOBLOCKMAP | MF_NOGRAVITY | MF_DROPOFF    // flags
+#ifndef CRISPY_TRUECOLOR
+     | MF_EXTRATRANS,           // [JN] Extra translucency (Quietus big green smoke)
+#else
+     ,                          // [JN] Too expensive in TrueColor...
+#endif
+
      MF2_NOTELEPORT | MF2_IMPACT | MF2_PCROSS   // flags2
      },
 
@@ -9343,7 +9348,12 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      100,                       // mass
      0,                         // damage
      SFX_NONE,                  // activesound
-     MF_NOBLOCKMAP | MF_NOGRAVITY | MF_SHADOW,  // flags
+     MF_NOBLOCKMAP | MF_NOGRAVITY
+#ifndef CRISPY_TRUECOLOR
+     | MF_SHADOW,  // flags
+#else
+     ,                          // [JN] Too expensive in TrueColor...
+#endif
      0                          // flags2
      },
 
