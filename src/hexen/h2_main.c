@@ -193,39 +193,6 @@ void D_BindVariables(void)
 	ID_BindVariables(hexen);
 }
 
-// Set the default directory where hub savegames are saved.
-
-static void D_SetDefaultSavePath(void)
-{
-    SavePath = M_GetSaveGameDir("hexen.wad");
-
-    if (!strcmp(SavePath, ""))
-    {
-        // only get hexen.cfg path if one is not already found
-
-        if (SavePathConfig == NULL || !strcmp(SavePathConfig, ""))
-        {
-            // If we are not using a savegame path (probably because we are on
-            // Windows and not using a config dir), behave like Vanilla Hexen
-            // and use hexndata/:
-
-            SavePath = malloc(10);
-            M_snprintf(SavePath, 10, "hexndata%c", DIR_SEPARATOR);
-        }
-        else
-        {
-            SavePath = M_StringDuplicate(SavePathConfig);
-        }
-    }
-
-    // only set hexen.cfg path if using default handling
-
-    if (!M_ParmExists("-savedir") && !M_ParmExists("-cdrom"))
-    {
-        SavePathConfig = SavePath;
-    }
-}
-
 // The Mac version of the Hexen IWAD is different to the "normal" DOS
 // version - it doesn't include lumps used by the DOS DMX library.
 // This means that we can't do GUS or OPL emulation and need to apply
@@ -432,7 +399,7 @@ void D_DoomMain(void)
     M_LoadDefaults();
 
     // [JN] Set the default directory where savegames are saved.
-    D_SetDefaultSavePath();
+    SavePath = M_GetSaveGameDir("hexen.wad");
 
     // [JN] Set the default directory where screenshots are saved.
     M_SetScreenshotDir();
