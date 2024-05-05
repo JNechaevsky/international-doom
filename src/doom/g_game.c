@@ -2182,6 +2182,8 @@ void G_DoLoadGame (void)
     P_RestoreTargets ();
     // [JN] Restore automap marks.
     P_UnArchiveAutomap ();
+    // [plums] Restore old sector specials.
+    P_UnArchiveOldSpecials ();
 
     fclose(save_stream);
     
@@ -2265,6 +2267,10 @@ void G_DoSaveGame (void)
     P_ArchiveTotalTimes ();
 
     P_ArchiveAutomap ();
+
+    // [plums] write old sector specials (for revealed secrets) at the end
+    // to keep save compatibility with previous versions
+    P_ArchiveOldSpecials ();
 
     // Finish up, close the savegame file.
 

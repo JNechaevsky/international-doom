@@ -79,6 +79,7 @@ static int jaguar_163;
 static int jaguar_254;
 
 static int secretwallcolors;
+static int foundsecretwallcolors;
 
 // drawing stuff
 #define AM_NUMMARKPOINTS 10
@@ -360,6 +361,7 @@ void AM_Init (void)
         jaguar_254 = 254;
 
         secretwallcolors = 252;
+        foundsecretwallcolors = 112;
     }
     else
     {
@@ -400,6 +402,7 @@ void AM_Init (void)
         jaguar_254 = V_GetPaletteIndex(playpal, 111,   1, 107);
 
         secretwallcolors = V_GetPaletteIndex(playpal, 255, 1, 255);
+        foundsecretwallcolors = V_GetPaletteIndex(playpal, 119, 255, 111);
     }
 
     W_ReleaseLumpName("PLAYPAL");
@@ -1777,9 +1780,14 @@ static void AM_drawWalls (void)
                         if (!lines[i].backsector)
                         {
                             // [JN] Highlight secret sectors
-                            if (automap_secrets && lines[i].frontsector->special == 9)
+                            if (automap_secrets > 1 && lines[i].frontsector->special == 9)
                             {
                                 array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
+                            }
+                            // [plums] show revealed secrets
+                            else if (automap_secrets && lines[i].frontsector->oldspecial == 9)
+                            {
+                                array_push(lines_1S, ((am_line_t){l, foundsecretwallcolors}));
                             }
                             else
                             {
@@ -1800,11 +1808,18 @@ static void AM_drawWalls (void)
                                 AM_drawMline(&l, boom_23);      // wall color
                             }
                             // [JN] Highlight secret sectors
-                            else if (automap_secrets
+                            else if (automap_secrets > 1
                             && (lines[i].frontsector->special == 9
                             ||  lines[i].backsector->special == 9))
                             {
                                 AM_drawMline(&l, secretwallcolors);
+                            }
+                            // [plums] show revealed secrets
+                            else if (automap_secrets
+                            && (lines[i].frontsector->oldspecial == 9
+                            ||  lines[i].backsector->oldspecial == 9))
+                            {
+                                AM_drawMline(&l, foundsecretwallcolors);
                             }
                             // BLUE locked doors
                             else
@@ -1880,9 +1895,14 @@ static void AM_drawWalls (void)
                         if (!lines[i].backsector)
                         {
                             // [JN] Highlight secret sectors
-                            if (automap_secrets && lines[i].frontsector->special == 9)
+                            if (automap_secrets > 1 && lines[i].frontsector->special == 9)
                             {    
                                 array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
+                            }
+                            // [plums] show revealed secrets
+                            else if (automap_secrets && lines[i].frontsector->oldspecial == 9)
+                            {
+                                array_push(lines_1S, ((am_line_t){l, foundsecretwallcolors}));
                             }
                             else
                             {
@@ -1897,11 +1917,18 @@ static void AM_drawWalls (void)
                                 AM_drawMline(&l, doom_184);
                             }
                             // [JN] Highlight secret sectors
-                            else if (automap_secrets
+                            else if (automap_secrets > 1
                             && (lines[i].frontsector->special == 9
                             ||  lines[i].backsector->special == 9))
                             {
                                 AM_drawMline(&l, secretwallcolors);
+                            }
+                            // [plums] show revealed secrets
+                            else if (automap_secrets
+                            && (lines[i].frontsector->oldspecial == 9
+                            ||  lines[i].backsector->oldspecial == 9))
+                            {
+                                AM_drawMline(&l, foundsecretwallcolors);
                             }
                             // [JN] Various Doors
                             else
@@ -1977,9 +2004,14 @@ static void AM_drawWalls (void)
                         if (!lines[i].backsector)
                         {
                             // [JN] Highlight secret sectors
-                            if (automap_secrets && lines[i].frontsector->special == 9)
+                            if (automap_secrets > 1 && lines[i].frontsector->special == 9)
                             {
                                 array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
+                            }
+                            // [plums] show revealed secrets
+                            else if (automap_secrets && lines[i].frontsector->oldspecial == 9)
+                            {
+                                array_push(lines_1S, ((am_line_t){l, foundsecretwallcolors}));
                             }
                             else
                             {
@@ -1999,11 +2031,18 @@ static void AM_drawWalls (void)
                                 AM_drawMline(&l, jaguar_32);
                             }
                             // [JN] Highlight secret sectors
-                            else if (automap_secrets
+                            else if (automap_secrets > 1
                             && (lines[i].frontsector->special == 9
                             ||  lines[i].backsector->special == 9))
                             {
                                 AM_drawMline(&l, secretwallcolors);
+                            }
+                            // [plums] show revealed secrets
+                            else if (automap_secrets
+                            && (lines[i].frontsector->oldspecial == 9
+                            ||  lines[i].backsector->oldspecial == 9))
+                            {
+                                AM_drawMline(&l, foundsecretwallcolors);
                             }
                             // Any special linedef
                             else if (lines[i].special)
@@ -2040,9 +2079,14 @@ static void AM_drawWalls (void)
                     if (!lines[i].backsector)
                     {
                         // [JN] Mark secret sectors.
-                        if (automap_secrets && lines[i].frontsector->special == 9)
+                        if (automap_secrets > 1 && lines[i].frontsector->special == 9)
                         {
                             array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
+                        }
+                        // [plums] show revealed secrets
+                        else if (automap_secrets && lines[i].frontsector->oldspecial == 9)
+                        {
+                            array_push(lines_1S, ((am_line_t){l, foundsecretwallcolors}));
                         }
                         else
                         {
@@ -2063,11 +2107,18 @@ static void AM_drawWalls (void)
                         }
                         // [JN] Mark secret sectors.
                         else
-                        if (automap_secrets 
+                        if (automap_secrets > 1
                         && (lines[i].frontsector->special == 9
                         ||  lines[i].backsector->special == 9))
                         {
                             AM_drawMline(&l, secretwallcolors);
+                        }
+                        // [plums] show revealed secrets
+                        else if (automap_secrets
+                        && (lines[i].frontsector->oldspecial == 9
+                        ||  lines[i].backsector->oldspecial == 9))
+                        {
+                            AM_drawMline(&l, foundsecretwallcolors);
                         }
                         else
                         if (lines[i].backsector->floorheight

@@ -1173,6 +1173,7 @@ void P_PlayerInSpecialSector (player_t* player)
       case 9:
 	// SECRET SECTOR
 	player->secretcount++;
+	sector->oldspecial = sector->special;
 	sector->special = 0;
 	// [JN] "A secret is revelaed!" message.
 	if (gp_revealed_secrets)
