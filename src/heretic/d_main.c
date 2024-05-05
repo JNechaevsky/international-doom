@@ -252,29 +252,6 @@ void D_Display(void)
                 AM_LevelNameDrawer();
             }
 
-            // [crispy] demo timer widget
-            if (demoplayback && (demo_timer == 1 || demo_timer == 3))
-            {
-                ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
-            }
-            else if (demorecording && (demo_timer == 2 || demo_timer == 3))
-            {
-                ID_DemoTimer(leveltime);
-            }
-
-            // [JN] Target's health widget.
-            // Actual health values are gathered in G_Ticker.
-            if (widget_health)
-            {
-                ID_DrawTargetsHealth();
-            }
-
-            // [JN] Draw crosshair.
-            if (xhair_draw && !automapactive)
-            {
-                ID_DrawCrosshair();
-            }
-
             CT_Drawer();
 
             // [JN] Main status bar drawing function.
@@ -283,16 +260,42 @@ void D_Display(void)
                 SB_Drawer();
             }
 
-            // [JN] Left widgets are available while active game level.
-            if (dp_screen_size < 13)
+            if (widget_enable)
             {
-                ID_LeftWidgets();
+                // [JN] Left widgets are available while active game level.
+                if (dp_screen_size < 13)
+                {
+                    ID_LeftWidgets();
+                }
+
+                // [crispy] demo progress bar
+                if (demoplayback && demo_bar)
+                {
+                    ID_DemoBar();
+                }
+
+                // [crispy] demo timer widget
+                if (demoplayback && (demo_timer == 1 || demo_timer == 3))
+                {
+                    ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
+                }
+                else if (demorecording && (demo_timer == 2 || demo_timer == 3))
+                {
+                    ID_DemoTimer(leveltime);
+                }
+
+                // [JN] Target's health widget.
+                // Actual health values are gathered in G_Ticker.
+                if (widget_health)
+                {
+                    ID_DrawTargetsHealth();
+                }
             }
 
-            // [crispy] demo progress bar
-            if (demoplayback && demo_bar)
+            // [JN] Draw crosshair.
+            if (xhair_draw && !automapactive)
             {
-                ID_DemoBar();
+                ID_DrawCrosshair();
             }
 
             break;
@@ -308,9 +311,12 @@ void D_Display(void)
     }
 
     // [JN] Right widgets are not available while finale screens.
-    if (dp_screen_size < 13 && gamestate != GS_FINALE)
+    if (widget_enable)
     {
-        ID_RightWidgets();
+        if (dp_screen_size < 13 && gamestate != GS_FINALE)
+        {
+            ID_RightWidgets();
+        }
     }
 
     if (testcontrols)

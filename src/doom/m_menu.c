@@ -6715,7 +6715,7 @@ static void M_ClearBind (int itemOn)
             case 7:   key_flip_levels = 0;      break;
             case 8:   key_widget_enable = 0;    break;
             // Special modes title
-            case 10:   key_spectator = 0;        break;
+            case 10:  key_spectator = 0;        break;
             case 11:  key_freeze = 0;           break;
             case 12:  key_notarget = 0;         break;
             case 13:  key_buddha = 0;           break;
