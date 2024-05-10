@@ -1308,9 +1308,10 @@ static void M_Draw_ID_Video (void)
                  M_Item_Glow(10, vid_diskicon == 1 ? GLOW_DARKRED : GLOW_GREEN));
 
     // Show ENDOOM screen
-    sprintf(str, vid_endoom ? "ON" : "OFF");
+    sprintf(str, vid_endoom == 1 ? "ALWAYS" :
+                 vid_endoom == 2 ? "PWAD ONLY" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 126, str, 
-                 M_Item_Glow(11, vid_endoom ? GLOW_DARKRED : GLOW_GREEN));
+                 M_Item_Glow(11, vid_endoom == 1 ? GLOW_DARKRED : GLOW_GREEN));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
     if (itemOn == 1 || itemOn == 2)
@@ -1485,7 +1486,7 @@ static void M_ID_DiskIcon (int choice)
 
 static void M_ID_ShowENDOOM (int choice)
 {
-    vid_endoom ^= 1;
+    vid_endoom = M_INT_Slider(vid_endoom, 0, 2, choice, false);
 }
 
 // -----------------------------------------------------------------------------

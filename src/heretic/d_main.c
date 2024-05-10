@@ -890,6 +890,7 @@ void D_BindVariables(void)
 static void D_Endoom(void)
 {
     byte *endoom_data;
+    const char *endoom_name;
 
     // Disable ENDOOM?
 
@@ -898,9 +899,15 @@ static void D_Endoom(void)
         return;
     }
 
-    endoom_data = W_CacheLumpName(DEH_String("ENDTEXT"), PU_STATIC);
-
-    I_Endoom(endoom_data);
+    // [JN] Extended to show for "PWAD only".
+    endoom_name = DEH_String("ENDTEXT");
+    endoom_data = W_CacheLumpName(endoom_name, PU_STATIC);
+    
+    if (vid_endoom == 1
+    || (vid_endoom == 2 && !W_IsIWADLump(lumpinfo[W_GetNumForName(endoom_name)])))
+    {
+        I_Endoom(endoom_data);
+    }
 }
 
 // static const char *const loadparms[] = {"-file", "-merge", NULL}; // [crispy]

@@ -1130,9 +1130,10 @@ static void M_Draw_ID_Video (void)
                M_Item_Glow(9, vid_screenwipe_hr ? GLOW_GREEN : GLOW_RED));
 
     // Show ENDTEXT screen
-    sprintf(str, vid_endoom ? "ON" : "OFF");
+    sprintf(str, vid_endoom == 1 ? "ALWAYS" :
+                 vid_endoom == 2 ? "PWAD ONLY" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, vid_endoom ? GLOW_GREEN : GLOW_RED));
+               M_Item_Glow(10, vid_endoom == 1 ? GLOW_RED : GLOW_GREEN));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
     if (CurrentItPos == 1 || CurrentItPos == 2)
@@ -1278,7 +1279,7 @@ static void M_ID_ScreenWipe (int choice)
 
 static void M_ID_EndText (int option)
 {
-    vid_endoom ^= 1;
+    vid_endoom = M_INT_Slider(vid_endoom, 0, 2, option, false);
 }
 
 // -----------------------------------------------------------------------------
