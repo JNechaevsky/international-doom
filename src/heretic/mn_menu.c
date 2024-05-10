@@ -1131,7 +1131,7 @@ static void M_Draw_ID_Video (void)
 
     // Show ENDTEXT screen
     sprintf(str, vid_endoom == 1 ? "ALWAYS" :
-                 vid_endoom == 2 ? "PWAD ONLY" : "OFF");
+                 vid_endoom == 2 ? "PWAD ONLY" : "NEVER");
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
                M_Item_Glow(10, vid_endoom == 1 ? GLOW_RED : GLOW_GREEN));
 

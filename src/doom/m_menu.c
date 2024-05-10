@@ -1309,7 +1309,7 @@ static void M_Draw_ID_Video (void)
 
     // Show ENDOOM screen
     sprintf(str, vid_endoom == 1 ? "ALWAYS" :
-                 vid_endoom == 2 ? "PWAD ONLY" : "OFF");
+                 vid_endoom == 2 ? "PWAD ONLY" : "NEVER");
     M_WriteText (M_ItemRightAlign(str), 126, str, 
                  M_Item_Glow(11, vid_endoom == 1 ? GLOW_DARKRED : GLOW_GREEN));
 
