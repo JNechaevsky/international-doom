@@ -71,6 +71,8 @@ static int quickSaveSlot;
 static int messageToPrint;
 // ...and here is the message string!
 static const char *messageString;
+// [JN] Certain messages needs background filling.
+static boolean messageFillBG;
 
 // message x & y
 static int messageLastMenuActive;
@@ -2779,6 +2781,7 @@ static void M_Bind_Reset (int choice)
 	    M_StringJoin("RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",
                      "\n\n", PRESSYN, NULL);
 
+    messageFillBG = true;
     M_StartMessage(resetwarning, M_Bind_ResetResponse, true);
 }
 
@@ -2910,6 +2913,7 @@ static void M_Bind_M_Reset (int choice)
 	    M_StringJoin("RESET MOUSE BINDINGS TO DEFAULT VALUES?",
                      "\n\n", PRESSYN, NULL);
 
+    messageFillBG = true;
     M_StartMessage(resetwarning, M_Bind_M_ResetResponse, true);
 }
 
@@ -5737,6 +5741,7 @@ boolean M_Responder (event_t* ev)
 	}
 
 	menuactive = messageLastMenuActive;
+	messageFillBG = false;
 	messageToPrint = 0;
 	if (messageRoutine)
 	    messageRoutine(key);
@@ -6189,6 +6194,12 @@ void M_Drawer (void)
         }
         // Always redraw status bar background.
         st_fullupdate = true;
+    }
+
+    // [JN] Certain messages (binds reset) needs background filling.
+    if (messageFillBG)
+    {
+        M_FillBackground();
     }
 
     // Horiz. & Vertically center string and print it.
