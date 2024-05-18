@@ -78,6 +78,7 @@ static int jaguar_120;
 static int jaguar_163;
 static int jaguar_254;
 
+static int exitcolors;
 static int secretwallcolors;
 static int foundsecretwallcolors;
 
@@ -360,6 +361,7 @@ void AM_Init (void)
         jaguar_163 = 163;
         jaguar_254 = 254;
 
+        exitcolors = 195;
         secretwallcolors = 252;
         foundsecretwallcolors = 112;
     }
@@ -401,6 +403,7 @@ void AM_Init (void)
         jaguar_163 = V_GetPaletteIndex(playpal, 195, 155,  47);
         jaguar_254 = V_GetPaletteIndex(playpal, 111,   1, 107);
 
+        exitcolors = V_GetPaletteIndex(playpal, 143, 143, 255);
         secretwallcolors = V_GetPaletteIndex(playpal, 255, 1, 255);
         foundsecretwallcolors = V_GetPaletteIndex(playpal, 119, 255, 111);
     }
@@ -1865,6 +1868,12 @@ static void AM_drawWalls (void)
                                 AM_drawMline(&l, boom_88);
                             }
                         }
+                        // [JN] Exit (can be one-sided or two-sided)
+                        if (lines[i].special == 11 || lines[i].special == 51
+                        ||  lines[i].special == 52 || lines[i].special == 124)
+                        {
+                            AM_drawMline(&l, exitcolors);
+                        }
                     }
                     // computermap visible lines
                     else if (plr->powers[pw_allmap])
@@ -1982,7 +1991,7 @@ static void AM_drawWalls (void)
                         if (lines[i].special == 11 || lines[i].special == 51
                         ||  lines[i].special == 52 || lines[i].special == 124)
                         {
-                            AM_drawMline(&l, doom_112);
+                            array_push(lines_1S, ((am_line_t){l, exitcolors}));
                         }
                     }
                     // [JN] Computermap visible lines
@@ -2061,6 +2070,12 @@ static void AM_drawWalls (void)
                             {
                                 AM_drawMline(&l, doom_96);
                             }
+                        }
+                        // [JN] Exit (can be one-sided or two-sided)
+                        if (lines[i].special == 11 || lines[i].special == 51
+                        ||  lines[i].special == 52 || lines[i].special == 124)
+                        {
+                            array_push(lines_1S, ((am_line_t){l, exitcolors}));
                         }
                     }
                     else if (plr->powers[pw_allmap])
