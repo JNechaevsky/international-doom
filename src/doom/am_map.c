@@ -1872,7 +1872,7 @@ static void AM_drawWalls (void)
                         if (lines[i].special == 11 || lines[i].special == 51
                         ||  lines[i].special == 52 || lines[i].special == 124)
                         {
-                            AM_drawMline(&l, exitcolors);
+                            array_push(lines_1S, ((am_line_t){l, exitcolors}));
                         }
                     }
                     // computermap visible lines
