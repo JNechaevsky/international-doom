@@ -218,7 +218,7 @@ static mline_t thintriangle_guy[] = {
 boolean automapactive = false;
 
 int iddt_cheating = 0;
-static int   grid = 0;
+static boolean grid = false;
 
 // location of window on screen
 static int  f_x;
@@ -1000,9 +1000,6 @@ boolean AM_Responder (event_t *ev)
                         DEH_String(AMSTR_MARKCLEARED), markpointnum);
                 CT_SetMessage(plr, buffer, false, NULL);
             }
-                
-
-            
         }
         else if (key == key_map_rotate)
         {
@@ -1212,9 +1209,9 @@ void AM_Ticker (void)
 // Clear automap frame buffer.
 // -----------------------------------------------------------------------------
 
-static void AM_clearFB(int color)
+static void AM_clearFB (void)
 {
-    memset(I_VideoBuffer, color, f_w*f_h*sizeof(*I_VideoBuffer));
+    memset(I_VideoBuffer, doom_0, f_w*f_h*sizeof(*I_VideoBuffer));
 }
 
 // -----------------------------------------------------------------------------
@@ -1657,7 +1654,7 @@ static void AM_drawMline (mline_t *ml, int color)
 // Draws flat (floor/ceiling tile) aligned grid lines.
 // -----------------------------------------------------------------------------
 
-static void AM_drawGrid (int color)
+static void AM_drawGrid (void)
 {
     int64_t x, y;
     int64_t start, end;
@@ -1698,7 +1695,7 @@ static void AM_drawGrid (int color)
             AM_rotatePoint(&ml.a);
             AM_rotatePoint(&ml.b);
         }
-        AM_drawMline(&ml, color);
+        AM_drawMline(&ml, doom_104);
     }
 
     // Figure out start of horizontal gridlines
@@ -1735,7 +1732,7 @@ static void AM_drawGrid (int color)
             AM_rotatePoint(&ml.a);
             AM_rotatePoint(&ml.b);
         }
-        AM_drawMline(&ml, color);
+        AM_drawMline(&ml, doom_104);
     }
 }
 
@@ -2374,14 +2371,14 @@ static void AM_drawPlayers (void)
 // Draws the things on the automap in double IDDT cheat mode.
 // -----------------------------------------------------------------------------
 
-static void AM_drawThings (int colors)
+static void AM_drawThings (void)
 {
     int       i;
     mpoint_t  pt;
     mobj_t   *t;
     angle_t   actualangle;
     // RestlessRodent -- Carbon copy from ReMooD
-    int       color = colors;
+    int       color = doom_112;
 
     for (i = 0 ; i < numsectors ; i++)
     {
@@ -2662,7 +2659,7 @@ void AM_Drawer (void)
 
 	if (!automap_overlay)
     {
-		AM_clearFB(doom_0);
+		AM_clearFB();
 		pspr_interp = false;  // [JN] Supress interpolated weapon bobbing.
     }
 
@@ -2673,7 +2670,7 @@ void AM_Drawer (void)
 
     if (grid)
     {
-        AM_drawGrid(doom_104);
+        AM_drawGrid();
     }
 
     AM_drawWalls();
@@ -2682,7 +2679,7 @@ void AM_Drawer (void)
 
     if (iddt_cheating == 2)
     {
-        AM_drawThings(doom_112);
+        AM_drawThings();
     }
 
     // [JN] CRL - draw pulsing triangle for player in Spectator mode.
