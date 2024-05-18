@@ -303,7 +303,7 @@ R_DrawColumnInCache
 //
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 
-void R_GenerateComposite (int texnum)
+static void R_GenerateComposite (int texnum)
 {
     byte*		block, *block2;
     texture_t*		texture;
@@ -1467,7 +1467,7 @@ void R_PrecacheLevel (void)
     }
 
     {
-        const int size = numflats > numsprites  ? numflats : numsprites;
+        size_t size = numflats > numsprites   ? numflats : numsprites;
         hitlist = Z_Malloc(numtextures > size ? numtextures : size, PU_STATIC, 0);
     }
 
@@ -1514,9 +1514,6 @@ void R_PrecacheLevel (void)
         {
             texture_t *texture = textures[i];
             int j = texture->patchcount;
-
-            // [crispy] precache composite textures
-            R_GenerateComposite(i);
 
             while (--j >= 0)
             {
