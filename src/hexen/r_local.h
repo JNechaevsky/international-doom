@@ -30,6 +30,7 @@
 #define CENTERY                         (SCREENHEIGHT/2)
 
 #define MINZ                    (FRACUNIT*4)
+#define	MAXZ                    (FRACUNIT*8192)
 
 #define FIELDOFVIEW             2048    // fineangles in the SCREENWIDTH wide window
 

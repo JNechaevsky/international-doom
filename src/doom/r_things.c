@@ -39,6 +39,7 @@
 
 
 #define MINZ				(FRACUNIT*4)
+#define MAXZ				(FRACUNIT*8192)
 #define BASEYCENTER			(ORIGHEIGHT/2)
 
 
@@ -590,7 +591,7 @@ static void R_ProjectSprite (mobj_t* thing)
     tz = gxt-gyt; 
 
     // thing is behind view plane?
-    if (tz < MINZ)
+    if (tz < MINZ || tz > MAXZ)
 	return;
     
     xscale = FixedDiv(projection, tz);

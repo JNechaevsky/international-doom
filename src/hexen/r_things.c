@@ -573,7 +573,7 @@ void R_ProjectSprite(mobj_t * thing)
     gyt = -FixedMul(try, viewsin);
     tz = gxt - gyt;
 
-    if (tz < MINZ)
+    if (tz < MINZ || tz > MAXZ)
         return;                 // thing is behind view plane
     xscale = FixedDiv(projection, tz);
 

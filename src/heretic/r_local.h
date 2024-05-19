@@ -32,6 +32,7 @@
 #define	CENTERY				(SCREENHEIGHT/2)
 
 #define	MINZ			(FRACUNIT*4)
+#define	MAXZ			(FRACUNIT*8192)
 
 //
 // lighting constants
