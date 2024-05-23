@@ -72,7 +72,19 @@ char *CT_FromPlrText[MAXPLAYERS] = {
     "BLUE:  "
 };
 
-char *chat_macros[10];
+char *chat_macros[10] =
+{
+    "I'm ready to kick butt!",
+    "I'm OK.",
+    "I'm not looking too good!",
+    "Help!",
+    "You suck!",
+    "Next time, scumbag...",
+    "Come here!",
+    "I'll take care of it.",
+    "Yes",
+    "No",
+};
 
 boolean altdown;
 boolean shiftdown;
