@@ -1090,11 +1090,11 @@ static void DrawAndBlit(void)
         }
     }
 
-    // Draw current message
-    DrawMessage();
-
     // Draw Menu
     MN_Drawer();
+
+    // [JN] Draw current message on top of game menu.
+    DrawMessage();
 
     // Send out any new accumulation
     NetUpdate();

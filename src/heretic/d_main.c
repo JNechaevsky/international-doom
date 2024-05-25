@@ -338,14 +338,14 @@ void D_Display(void)
             V_DrawShadowedPatchOptional(160, 70, 1, W_CacheLumpName(DEH_String("PAUSED"), PU_CACHE));
         }
     }
-    // Handle player messages
-    DrawMessage();
-
     // [JN] Handle centered player messages.
     ID_DrawMessageCentered();
 
     // Menu drawing
     MN_Drawer();
+
+    // [JN] Handle player messages on top of game menu.
+    DrawMessage();
 
     // Send out any new accumulation
     NetUpdate();
