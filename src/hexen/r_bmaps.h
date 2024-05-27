@@ -21,8 +21,6 @@
 #ifndef __R_BMAPS__
 #define __R_BMAPS__
 
-extern void R_InitBrightmaps ();
-
 extern const byte *R_BrightmapForTexName (const char *texname);
 extern const byte *R_BrightmapForSprite (const int state);
 extern const byte *R_BrightmapForState (const int state);

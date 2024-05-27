@@ -976,7 +976,7 @@ static void SetJoyButtons(unsigned int buttons_mask)
 // selected item. This action is indicated by a return value of false.
 // Otherwise, it attempts to change items and will return a value of true.
 
-static boolean InventoryMoveLeft()
+static boolean InventoryMoveLeft(void)
 {
     inventoryTics = 5 * TICRATE;
 
@@ -1007,7 +1007,7 @@ static boolean InventoryMoveLeft()
     return true;
 }
 
-static boolean InventoryMoveRight()
+static boolean InventoryMoveRight(void)
 {
     player_t *plr;
 
