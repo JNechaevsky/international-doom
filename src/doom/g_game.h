@@ -27,6 +27,8 @@
 
 extern boolean G_CheckDemoStatus (void);
 extern boolean G_Responder (event_t *ev);
+void G_FastResponder (void); // [crispy]
+void G_PrepTiccmd (void); // [crispy]
 
 extern char *demoname;
 extern int   demostarttic; // [crispy] fix revenant internal demo

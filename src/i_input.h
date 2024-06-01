@@ -31,12 +31,18 @@
 extern int mouse_sensitivity;
 extern float mouse_acceleration;
 extern int mouse_threshold;
+extern float mouse_acceleration_y; // [crispy]
+extern int mouse_threshold_y; // [crispy]
 extern int mouse_y_invert; // [crispy]
 extern int mouse_novert; // [crispy]
 extern int SDL_mouseButton; // [JN] Catch mouse button number to provide into mouse binding menu.
 
+// [crispy]
+double I_AccelerateMouse(int val);
+double I_AccelerateMouseY(int val);
 void I_BindInputVariables(void);
 void I_ReadMouse(void);
+void I_ReadMouseUncapped(void); // [crispy]
 
 // I_StartTextInput begins text input, activating the on-screen keyboard
 // (if one is used). The caller indicates that any entered text will be

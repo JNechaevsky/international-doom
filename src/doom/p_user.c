@@ -199,6 +199,13 @@ void P_MovePlayer (player_t* player)
     //  if not onground.
     onground = (player->mo->z <= player->mo->floorz);
 	
+    // [crispy] fast polling
+    if (player == &players[consoleplayer])
+    {
+        localview.ticangle += localview.ticangleturn << 16;
+        localview.ticangleturn = 0;
+    }
+
     if (cmd->forwardmove && onground)
 	P_Thrust (player, player->mo->angle, cmd->forwardmove*2048);
     
@@ -344,6 +351,12 @@ void P_PlayerThink (player_t* player)
     player->mo->oldangle = player->mo->angle;
     player->oldviewz = player->viewz;
     player->oldlookdir = player->lookdir;
+
+    // [crispy] fast polling
+    if (player == &players[consoleplayer])
+    {
+        localview.oldticangle = localview.ticangle;
+    }
 
     // [crispy] update weapon sound source coordinates
     if (player->so != player->mo)

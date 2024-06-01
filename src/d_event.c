@@ -25,6 +25,10 @@
 
 #define MAXEVENTS 64
 
+// [crispy]
+event_t fastmouse;
+boolean newfastmouse;
+
 static event_t events[MAXEVENTS];
 static int eventhead;
 static int eventtail;

@@ -127,6 +127,8 @@ void I_StartFrame (void);
 
 void I_StartTic (void);
 
+void I_StartDisplay (void); // [crispy]
+
 
 extern char *vid_video_driver;
 extern boolean screenvisible;
