@@ -3310,7 +3310,7 @@ static void M_ID_ApplyResetHook (void)
     vid_resolution = 2;
     vid_widescreen = 0;
     vid_uncapped_fps = 0;
-    vid_fpslimit = 60;
+    vid_fpslimit = 0;
     vid_vsync = 1;
     vid_showfps = 0;
     vid_smooth_scaling = 0;
