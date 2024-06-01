@@ -241,6 +241,13 @@ void P_MovePlayer(player_t * player)
     onground = (player->mo->z <= player->mo->floorz
                 || (player->mo->flags2 & MF2_ONMOBJ));
 
+    // [crispy] fast polling
+    if (player == &players[consoleplayer])
+    {
+        localview.ticangle += localview.ticangleturn << 16;
+        localview.ticangleturn = 0;
+    }
+
     if (cmd->forwardmove)
     {
         if (onground || player->mo->flags2 & MF2_FLY)
@@ -693,6 +700,12 @@ void P_PlayerThink(player_t * player)
     player->mo->oldangle = player->mo->angle;
     player->oldviewz = player->viewz;
     player->oldlookdir = player->lookdir;
+
+    // [crispy] fast polling
+    if (player == &players[consoleplayer])
+    {
+        localview.oldticangle = localview.ticangle;
+    }
 
     // [JN] Handle Spectator camera:
     if (crl_spectating)
