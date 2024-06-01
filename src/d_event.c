@@ -25,7 +25,8 @@
 
 #define MAXEVENTS 64
 
-// [crispy]
+// [crispy] For fast polling
+// Written by ceski, Michael Day and Roman Fomin, thanks!
 event_t fastmouse;
 boolean newfastmouse;
 
