@@ -551,10 +551,10 @@ static void R_ProjectSprite (mobj_t* thing)
         // so their sprite won't get desynced with moving camera.
         (crl_freeze && thing->type == MT_PLAYER)))
     {
-        interpx = thing->oldx + FixedMul(thing->x - thing->oldx, fractionaltic);
-        interpy = thing->oldy + FixedMul(thing->y - thing->oldy, fractionaltic);
-        interpz = thing->oldz + FixedMul(thing->z - thing->oldz, fractionaltic);
-        interpangle = R_InterpolateAngle(thing->oldangle, thing->angle, fractionaltic);
+        interpx = LerpFixed(thing->oldx, thing->x);
+        interpy = LerpFixed(thing->oldy, thing->y);
+        interpz = LerpFixed(thing->oldz, thing->z);
+        interpangle = LerpAngle(thing->oldangle, thing->angle);
     }
     else
     {
@@ -1092,14 +1092,11 @@ static void R_DrawPSprite (pspdef_t* psp)
 
         if (lump == oldlump && pspr_interp)
         {
-            int deltax = x2 - vis->x1;
-            vis->x1 = oldx1 + FixedMul(vis->x1 - oldx1, fractionaltic);
+            int deltax = vis->x2 - vis->x1;
+            vis->x1 = LerpFixed(oldx1, vis->x1);
             vis->x2 = vis->x1 + deltax;
-            if (vis->x2 >= viewwidth)
-            {
-                vis->x2 = viewwidth - 1;
-            }
-            vis->texturemid = oldtexturemid + FixedMul(vis->texturemid - oldtexturemid, fractionaltic);
+            vis->x2 = vis->x2 >= viewwidth ? viewwidth - 1 : vis->x2;
+            vis->texturemid = LerpFixed(oldtexturemid, vis->texturemid);
         }
         else
         {

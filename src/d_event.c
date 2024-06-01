@@ -25,6 +25,11 @@
 
 #define MAXEVENTS 64
 
+// [crispy] For fast polling
+// Written by ceski, Michael Day and Roman Fomin, thanks!
+event_t fastmouse;
+boolean newfastmouse;
+
 static event_t events[MAXEVENTS];
 static int eventhead;
 static int eventtail;

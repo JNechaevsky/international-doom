@@ -482,6 +482,16 @@ extern node_t      *nodes;
 extern line_t      *lines;
 extern side_t      *sides;
 
+// [crispy]
+typedef struct localview_s
+{
+    angle_t oldticangle;
+    angle_t ticangle;
+    short ticangleturn;
+    double rawangle;
+    angle_t angle;
+} localview_t;
+
 //
 // POV data.
 //
@@ -492,6 +502,7 @@ extern fixed_t viewz;
 
 extern angle_t   viewangle;
 extern player_t *viewplayer;
+extern localview_t localview; // [crispy]
 
 extern int      viewangletox[FINEANGLES/2];
 extern angle_t  xtoviewangle[MAXWIDTH+1];
@@ -639,8 +650,36 @@ extern int     R_PointOnSide (fixed_t x, fixed_t y, const node_t *node);
 extern subsector_t *R_PointInSubsector (fixed_t x, fixed_t y);
 extern void    R_AddPointToBox (int x, int y, fixed_t *box);
 
+inline static fixed_t LerpFixed(fixed_t oldvalue, fixed_t newvalue)
+{
+    return (oldvalue + FixedMul(newvalue - oldvalue, fractionaltic));
+}
+
+inline static int LerpInt(int oldvalue, int newvalue)
+{
+    return (oldvalue + (int)((newvalue - oldvalue) * FIXED2DOUBLE(fractionaltic)));
+}
+
 // [AM] Interpolate between two angles.
-angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale);
+inline static angle_t LerpAngle(angle_t oangle, angle_t nangle)
+{
+    if (nangle == oangle)
+        return nangle;
+    else if (nangle > oangle)
+    {
+        if (nangle - oangle < ANG270)
+            return oangle + (angle_t)((nangle - oangle) * FIXED2DOUBLE(fractionaltic));
+        else // Wrapped around
+            return oangle - (angle_t)((oangle - nangle) * FIXED2DOUBLE(fractionaltic));
+    }
+    else // nangle < oangle
+    {
+        if (oangle - nangle < ANG270)
+            return oangle - (angle_t)((oangle - nangle) * FIXED2DOUBLE(fractionaltic));
+        else // Wrapped around
+            return oangle + (angle_t)((nangle - oangle) * FIXED2DOUBLE(fractionaltic));
+    }
+}
 
 // Function pointers to switch refresh/drawing functions.
 // Used to select shadow mode etc.

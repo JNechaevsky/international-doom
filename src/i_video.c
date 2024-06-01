@@ -668,6 +668,19 @@ void I_StartTic (void)
     }
 }
 
+void I_StartDisplay(void) // [crispy]
+{
+    // [AM] Figure out how far into the current tic we're in as a fixed_t.
+    fractionaltic = I_GetFracRealTime();
+
+    SDL_PumpEvents();
+
+    if (usemouse && !nomouse && window_focused)
+    {
+        I_ReadMouseUncapped();
+    }
+}
+
 static void UpdateGrab(void)
 {
     static boolean currently_grabbed = false;
@@ -1054,9 +1067,6 @@ void I_FinishUpdate (void)
                 }
             }
         }
-
-        // [AM] Figure out how far into the current tic we're in as a fixed_t.
-        fractionaltic = I_GetFracRealTime();
     }
 }
 
