@@ -192,6 +192,13 @@ void D_Display(void)
         post_rendering_hook = NULL;
     }
 
+    if (vid_uncapped_fps)
+    {
+        I_StartDisplay();
+        G_FastResponder();
+        G_PrepTiccmd();
+    }
+
     // Change the view size if needed
     if (setsizeneeded)
     {
