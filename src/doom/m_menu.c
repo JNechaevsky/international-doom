@@ -5739,6 +5739,13 @@ boolean M_Responder (event_t* ev)
     {
 	if (messageNeedsInput)
         {
+             // [JN] Allow to exclusevely confirm quit game by pressing F10 again.
+            if (key == key_menu_quit && messageRoutine == M_QuitResponse)
+            {
+                I_Quit ();
+                return true;
+            }
+
             if (key != ' ' && key != KEY_ESCAPE
              && key != key_menu_confirm && key != key_menu_abort
              // [JN] Allow to confirm nightmare, end game and quit by pressing Enter.

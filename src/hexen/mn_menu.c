@@ -4886,7 +4886,10 @@ boolean MN_Responder(event_t * event)
         if (key == key_menu_confirm
         // [JN] Allow to confirm quit (1) and end game (2) by pressing Enter.
         || (key == key_menu_forward && (typeofask == 1 || typeofask == 2))
-        || (event->type == ev_mouse && event->data1 & 1))  // [JN] Confirm by left mouse button.
+        // [JN] Confirm by left mouse button.
+        || (event->type == ev_mouse && event->data1 & 1)
+        // [JN] Allow to exclusevely confirm quit game by pressing F10 again.
+        || (key == key_menu_quit && typeofask == 1))
         {
             switch (typeofask)
             {
