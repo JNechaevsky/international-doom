@@ -1533,7 +1533,7 @@ void G_PrepTiccmd (void)
         mousex = 0;
     }
 
-    if (mousey && mouse_look)
+    if (mousey && mouse_look && !crl_spectating)
     {
         const double vert = CalcMouseVert(mousey);
         basecmd.lookdir += mouse_y_invert ?
