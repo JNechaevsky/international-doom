@@ -496,7 +496,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         mouse_look ^= 1;
         if (!mouse_look)
         {
-            players[consoleplayer].lookdir = 0;
+            cmd->lookdir = players[consoleplayer].lookdir = 0;
         }
         R_InitSkyMap();
         CT_SetMessage(&players[consoleplayer], mouse_look ?
