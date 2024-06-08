@@ -1565,6 +1565,14 @@ void G_PrepTiccmd (void)
     const boolean strafe = gamekeydown[key_strafe] ||
         mousebuttons[mousebstrafe] || joybuttons[joybstrafe];
 
+    // [JN] Deny camera rotation/looking while active menu in multiplayer.
+    if (netgame && (MenuActive || askforquit))
+    {
+        mousex = 0;
+        mousey = 0;
+        return;
+    }
+
     if (mousex && !strafe)
     {
         localview.rawangle -= CalcMouseAngle(mousex);
