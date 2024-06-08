@@ -126,7 +126,7 @@ void P_BringUpWeapon (player_t* player)
 	player->pendingweapon = player->readyweapon;
 		
     if (player->pendingweapon == wp_chainsaw)
-	S_StartSound (player->mo, sfx_sawup); // [crispy] intentionally not weapon sound source
+	S_StartSound (player->so, sfx_sawup); // [crispy] weapon sound source
 		
     newstate = weaponinfo[player->pendingweapon].upstate;
 
