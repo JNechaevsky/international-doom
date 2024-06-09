@@ -249,7 +249,7 @@ void ID_LeftWidgets (void)
 
 void ID_RightWidgets (void)
 {
-    int yy = 0;
+    int yy = 10;
 
     // [JN] If demo timer is active and running,
     // shift FPS and time widgets one line down.
@@ -269,9 +269,9 @@ void ID_RightWidgets (void)
         sprintf(fps_str, "FPS");
 
         MN_DrTextA(fps, ORIGWIDTH + WIDESCREENDELTA - 11 - MN_TextAWidth(fps) 
-                                  - MN_TextAWidth(fps_str), 10 + yy, cr[CR_LIGHTGRAY_DARK1]);
+                                  - MN_TextAWidth(fps_str), yy, cr[CR_LIGHTGRAY_DARK1]);
 
-        MN_DrTextA(fps_str, ORIGWIDTH + WIDESCREENDELTA - 7 - MN_TextAWidth(fps_str), 10 + yy, cr[CR_LIGHTGRAY_DARK1]);
+        MN_DrTextA(fps_str, ORIGWIDTH + WIDESCREENDELTA - 7 - MN_TextAWidth(fps_str), yy, cr[CR_LIGHTGRAY_DARK1]);
 
         yy += 10;
     }
@@ -280,7 +280,7 @@ void ID_RightWidgets (void)
     if (msg_local_time)
     {
         MN_DrTextA(ID_Local_Time, ORIGWIDTH + WIDESCREENDELTA - 7
-                              - MN_TextAWidth(ID_Local_Time), 10 + yy, cr[CR_GRAY]);
+                              - MN_TextAWidth(ID_Local_Time), yy, cr[CR_GRAY]);
     }
 }
 
