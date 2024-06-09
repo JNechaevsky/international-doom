@@ -359,7 +359,7 @@ static double CalcMouseVert(int mousey)
     if (!mouseSensitivity)
         return 0.0;
 
-    return (I_AccelerateMouseY(mousey) * (mouseSensitivity + 5) * 1.75 / 10);
+    return (I_AccelerateMouseY(mousey) * (mouseSensitivity + 5) * 2 / 10);
 }
 
 /*
