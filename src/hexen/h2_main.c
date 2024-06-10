@@ -1155,11 +1155,11 @@ static void DrawAndBlit(void)
         } while (tics <= 0);
 #endif
 
-        wipestart = nowtime;
-        done = wipe_ScreenWipe(tics);
-        MN_Drawer();       // Menu is drawn even on top of wipes
-        I_FinishUpdate();  // Flush buffered stuff to screen
-    } while (!done);
+            wipestart = nowtime;
+            done = wipe_ScreenWipe(tics);
+            MN_Drawer();       // Menu is drawn even on top of wipes
+            I_FinishUpdate();  // Flush buffered stuff to screen
+        } while (!done);
         
     if (done)
     {

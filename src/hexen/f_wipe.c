@@ -28,8 +28,8 @@
 // SCREEN WIPE PACKAGE
 // =============================================================================
 
-// [JN] Do not perform frame interpolation while crossfade effect.
-// Otherwise visual glitches may occur when traveling changing map in one hub.
+// [JN] Do not perform frame interpolation while crossfade effect,
+// otherwise visual glitches will occur when warping from map to map in one hub.
 boolean do_wipe;
 
 static pixel_t *wipe_scr_start;
