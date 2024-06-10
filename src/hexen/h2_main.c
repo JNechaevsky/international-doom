@@ -123,6 +123,9 @@ FILE *debugfile;
 int UpdateState;
 int maxplayers = MAXPLAYERS;
 
+// wipegamestate can be set to -1 to force a wipe on the next draw
+gamestate_t wipegamestate = GS_DEMOSCREEN;
+
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static int WarpMap;
@@ -979,8 +982,9 @@ static void DrawAndBlit(void)
 
     // save the current screen if about to wipe
     // [JN] Make screen wipe optional, use external config variable.
-    if (do_wipe && vid_screenwipe_hr)
+    if (gamestate != wipegamestate && vid_screenwipe_hr)
     {
+        do_wipe = true;
         wipe_StartScreen();
     }
     else
@@ -1099,6 +1103,8 @@ static void DrawAndBlit(void)
     {
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
     }
+
+    oldgamestate = wipegamestate = gamestate;
 
     if (paused && !MenuActive && !askforquit)
     {

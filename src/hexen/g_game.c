@@ -18,7 +18,6 @@
 
 #include <string.h>
 #include <time.h>   // [JN] Local time.
-#include "f_wipe.h"
 #include "m_random.h"
 #include "h2def.h"
 #include "s_sound.h"
@@ -1006,6 +1005,12 @@ void G_DoLoadLevel(void)
     int i;
 
     levelstarttic = gametic;    // for time calculation 
+
+    if (wipegamestate == GS_LEVEL)
+    {
+        wipegamestate = -1;             // force a wipe
+    }
+
     gamestate = GS_LEVEL;
     for (i = 0; i < maxplayers; i++)
     {
@@ -1584,7 +1589,6 @@ void G_Ticker(void)
                 {
                     Draw_LoadIcon();
                 }
-                do_wipe = true;
                 G_DoLoadGame();
                 break;
             case ga_savegame:
@@ -1611,18 +1615,15 @@ void G_Ticker(void)
                 {
                     Draw_TeleportIcon();
                 }
-                do_wipe = true;
                 G_DoTeleportNewMap();
                 break;
             case ga_completed:
-                do_wipe = true;
                 G_DoCompleted();
                 break;
             case ga_worlddone:
                 G_DoWorldDone();
                 break;
             case ga_victory:
-                do_wipe = true;
                 F_StartFinale();
                 break;
             default:

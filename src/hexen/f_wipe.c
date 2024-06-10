@@ -28,8 +28,8 @@
 // SCREEN WIPE PACKAGE
 // =============================================================================
 
-// [JN] Because of odd behavior of going from map to map in one hub,
-// we have to call wipe manually instead of relying to gamestate changes.
+// [JN] Do not perform frame interpolation while crossfade effect.
+// Otherwise visual glitches may occur when traveling changing map in one hub.
 boolean do_wipe;
 
 static pixel_t *wipe_scr_start;
