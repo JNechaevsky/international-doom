@@ -1005,6 +1005,12 @@ void G_DoLoadLevel(void)
     int i;
 
     levelstarttic = gametic;    // for time calculation 
+
+    if (wipegamestate == GS_LEVEL)
+    {
+        wipegamestate = -1;             // force a wipe
+    }
+
     gamestate = GS_LEVEL;
     for (i = 0; i < maxplayers; i++)
     {

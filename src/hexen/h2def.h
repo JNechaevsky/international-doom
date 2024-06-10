@@ -729,6 +729,10 @@ extern mapthing_t playerstarts[MAX_PLAYER_STARTS][MAXPLAYERS];
 extern boolean playerstartsingame[MAXPLAYERS];
 extern int maxplayers;
 
+// wipegamestate can be set to -1
+//  to force a wipe on the next draw
+extern gamestate_t wipegamestate;
+
 extern int mouseSensitivity;
 
 extern boolean precache;        // if true, load all graphics at level load
