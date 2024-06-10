@@ -1096,7 +1096,7 @@ static void M_Draw_ID_Video (void)
     // Screen wipe effect
     sprintf(str, vid_screenwipe_hr ? "CROSSFADE" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, vid_screenwipe_hr ? GLOW_GREEN : GLOW_RED));
+               M_Item_Glow(10, vid_screenwipe_hr ? GLOW_GREEN : GLOW_DARKRED));
 
     // Show banners
     sprintf(str, vid_banners == 1 ? "SAVE/LOAD/TRAVEL" :
