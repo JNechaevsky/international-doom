@@ -17,6 +17,7 @@
 
 
 #include <math.h>
+#include "f_wipe.h"
 #include "m_random.h"
 #include "h2def.h"
 #include "m_bbox.h"
@@ -950,7 +951,8 @@ void R_SetupFrame(player_t * player)
     }
     else
     {
-    if (vid_uncapped_fps && leveltime > 1 && player->mo->interp == true && realleveltime > oldleveltime)
+    if (vid_uncapped_fps && leveltime > 1 && player->mo->interp == true
+    && realleveltime > oldleveltime && !do_wipe)
     {
             const boolean use_localview = CheckLocalView(player);
 
