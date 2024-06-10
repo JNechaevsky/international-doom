@@ -5,6 +5,7 @@ add_library(hexen STATIC
                                 ct_chat.h
             d_net.c
             f_finale.c
+            f_wipe.c            f_wipe.h
             g_game.c
                                 h2def.h
             h2_main.c

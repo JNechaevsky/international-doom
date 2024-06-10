@@ -37,6 +37,7 @@
 #include "ct_chat.h"
 #include "d_iwad.h"
 #include "d_mode.h"
+#include "f_wipe.h"
 #include "m_misc.h"
 #include "s_sound.h"
 #include "i_input.h"
@@ -939,6 +940,10 @@ void H2_ProcessEvents(void)
 
 static void DrawAndBlit(void)
 {
+    int      nowtime;
+    int      tics;
+    int      wipestart;
+    boolean  done;
     // [JN] Optimized screen background and beveled edge drawing.
     static gamestate_t oldgamestate = -1;
 
@@ -970,6 +975,17 @@ static void DrawAndBlit(void)
         R_ExecuteSetViewSize();
         // Force background redraw
         oldgamestate = -1;
+    }
+
+    // save the current screen if about to wipe
+    // [JN] Make screen wipe optional, use external config variable.
+    if (do_wipe && vid_screenwipe_hr)
+    {
+        wipe_StartScreen();
+    }
+    else
+    {
+        do_wipe = false;
     }
 
     // Do buffered drawing
@@ -1106,8 +1122,43 @@ static void DrawAndBlit(void)
     // Send out any new accumulation
     NetUpdate();
 
+    // Normal update
+    if (!do_wipe)
+    {
     // Flush buffered stuff to screen
     I_FinishUpdate();
+    return;
+    }
+
+    // Wipe update
+    wipe_EndScreen();
+    wipestart = I_GetTime () - 1;
+
+    do
+    {
+        do
+        {
+            nowtime = I_GetTime ();
+            tics = nowtime - wipestart;
+            I_Sleep(1);
+#ifndef CRISPY_TRUECOLOR
+        // [JN] Note: in paletted render tics are counting slower,
+        // since the effect can't be smooth because of palette limitation.
+        } while (tics < 3);
+#else
+        } while (tics <= 0);
+#endif
+
+        wipestart = nowtime;
+        done = wipe_ScreenWipe(tics);
+        MN_Drawer();       // Menu is drawn even on top of wipes
+        I_FinishUpdate();  // Flush buffered stuff to screen
+    } while (!done);
+        
+    if (done)
+    {
+        do_wipe = false;
+    }
 }
 
 //==========================================================================
