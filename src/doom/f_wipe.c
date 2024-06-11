@@ -195,6 +195,12 @@ static int wipe_doCrossfade (int ticks)
     // [crispy] reduce fail-safe crossfade counter tics
     fade_counter--;
 
+    // [JN] Return slightly earlier for smoother ending of fade effect.
+    if (fade_counter < 4)
+    {    
+        return !changed;
+    }
+
     for (int i = pix; i > 0; i--)
     {
         if (fade_counter)
@@ -208,13 +214,6 @@ static int wipe_doCrossfade (int ticks)
         }
         ++cur_screen;
         ++end_screen;
-    }
-    
-    // [JN] Brain-dead correction №2: prevent small delay after crossfade is over.
-    if (fade_counter <= 6)
-    {
-        fade_counter = 1;
-        st_fullupdate = true;
     }
 
     return !changed;
@@ -230,6 +229,9 @@ static void wipe_exit (void)
     Z_Free(y);
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
+
+    // [JN] Refresh status bar to clean up possible remainings of blended pixels.
+    st_fullupdate = true;
 }
 
 // -----------------------------------------------------------------------------

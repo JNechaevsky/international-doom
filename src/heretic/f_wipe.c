@@ -69,10 +69,15 @@ static const int wipe_doCrossfade (const int ticks)
     const int  fade_alpha = MIN(fade_counter * 16, 238);
 #endif
     boolean changed = false;
-    extern int SB_state;
 
     // [crispy] reduce fail-safe crossfade counter tics
     fade_counter--;
+
+    // [JN] Return slightly earlier for smoother ending of fade effect.
+    if (fade_counter < 4)
+    {
+        return !changed;
+    }
 
     for (int i = pix; i > 0; i--)
     {
@@ -89,12 +94,6 @@ static const int wipe_doCrossfade (const int ticks)
         ++end_screen;
     }
     
-    // [JN] Brain-dead correction №2: prevent small delay after crossfade is over.
-    if (fade_counter <= 6)
-    {
-        SB_state = -1;
-    }
-
     return !changed;
 }
 
@@ -104,8 +103,13 @@ static const int wipe_doCrossfade (const int ticks)
 
 static void wipe_exit (void)
 {
+    extern void SB_ForceRedraw(void);
+
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
+
+    // [JN] Refresh status bar to clean up possible remainings of blended pixels.
+    SB_ForceRedraw();
 }
 
 // -----------------------------------------------------------------------------
