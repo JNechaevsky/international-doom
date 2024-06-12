@@ -1088,6 +1088,50 @@ static struct
     { NULL,                  NULL,         0},
 };
 
+// [FG] support named complevels on the command line, e.g. "-complevel boom"
+
+static const int G_GetNamedComplevel (const char *arg)
+{
+    const struct 
+    {
+        int level;
+        const char *const name;
+        int exe;
+    }
+    named_complevel[] = {
+    {-1,  "vanilla",              -1},
+    { 0,        "0",   exe_doom_1_2 },
+    { 0,      "1.2",   exe_doom_1_2 },
+    { 1,        "1", exe_doom_1_666 },
+    { 1,    "1.666", exe_doom_1_666 },
+    { 2,        "2",   exe_doom_1_9 },
+    { 2,      "1.9",   exe_doom_1_9 },
+    { 2,    "doom2",   exe_doom_1_9 },
+    { 3,        "3",   exe_ultimate },
+    { 3, "ultimate",   exe_ultimate },
+    { 4,        "4",      exe_final },
+    { 4,    "final",      exe_final },
+    { 4, "plutonia",      exe_final },
+    { 4,      "tnt",      exe_final },
+    };
+
+    for (int i = 0 ; i < sizeof(named_complevel)/sizeof(*named_complevel) ; i++)
+    {
+        if (!strcasecmp(arg, named_complevel[i].name))
+        {
+            if (named_complevel[i].exe >= 0)
+            {
+                gameversion = named_complevel[i].exe;
+            }
+
+            return named_complevel[i].level;
+        }
+    }
+
+    return -1;
+}
+
+
 // Initialize the game version
 
 static void InitGameVersion(void)
@@ -1211,6 +1255,36 @@ static void InitGameVersion(void)
             // most demos correctly.
 
             gameversion = exe_final;
+        }
+    }
+
+    //!
+    // @arg <version>
+    // @category compat
+    //
+    // [JN] Emulate a specific version of Doom via '-complevel N' parameter.
+    //
+
+    p = M_CheckParmWithArgs("-complevel", 1);
+
+    if (p)
+    {
+        int l = G_GetNamedComplevel(myargv[p+1]);
+
+        if (l > -1)
+        {
+            demoversion = l;
+        }
+        else
+        {
+            const char *valid_complvls = "0 - Doom v1.2\n"
+                                         "1 - Doom v1.666\n"
+                                         "2 - Doom v1.9\n"
+                                         "3 - Ultimate Doom\n"
+                                         "4 - Final Doom\n";
+
+            I_Error("Invalid parameter '%s' for -complevel.\n"
+                    "Valid parameters are:\n%s", myargv[p + 1], valid_complvls);
         }
     }
 
