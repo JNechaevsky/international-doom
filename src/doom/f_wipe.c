@@ -229,9 +229,6 @@ static void wipe_exit (void)
     Z_Free(y);
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
-
-    // [JN] Refresh status bar to clean up possible remainings of blended pixels.
-    st_fullupdate = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -283,9 +280,6 @@ const int wipe_ScreenWipe (const int ticks)
         wipe_scr = I_VideoBuffer;
         wipe_init();
     }
-
-    // do a piece of wipe-in
-    V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
     // final stuff
     if ((*wipe_do)(ticks))

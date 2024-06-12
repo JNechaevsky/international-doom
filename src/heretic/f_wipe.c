@@ -103,13 +103,8 @@ static const int wipe_doCrossfade (const int ticks)
 
 static void wipe_exit (void)
 {
-    extern void SB_ForceRedraw(void);
-
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
-
-    // [JN] Refresh status bar to clean up possible remainings of blended pixels.
-    SB_ForceRedraw();
 }
 
 // -----------------------------------------------------------------------------
