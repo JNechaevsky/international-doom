@@ -32,6 +32,9 @@
 // otherwise visual glitches will occur when warping from map to map in one hub.
 boolean do_wipe;
 
+// [JN] Shortcut of SCREENWIDTH * SCREENHEIGHT, i.e. whole screen area.
+static uint32_t wipe_scr_area;
+
 static pixel_t *wipe_scr_start;
 static pixel_t *wipe_scr_end;
 static pixel_t *wipe_scr;
@@ -46,7 +49,7 @@ static int fade_counter;
 
 static void wipe_initCrossfade (void)
 {
-    memcpy(wipe_scr, wipe_scr_start, SCREENWIDTH*SCREENHEIGHT*sizeof(*wipe_scr));
+    memcpy(wipe_scr, wipe_scr_start, wipe_scr_area*sizeof(*wipe_scr));
     // [JN] Arm fail-safe crossfade counter with...
 #ifndef CRISPY_TRUECOLOR
     // 8 screen screen transitions in paletted render,
@@ -63,25 +66,26 @@ static void wipe_initCrossfade (void)
 // wipe_doCrossfade
 // -----------------------------------------------------------------------------
 
+#ifdef CRISPY_TRUECOLOR
 static const uint8_t alpha_table[32] = {
      16,  32,  48,  64,  80,  96, 112, 128,
     144, 160, 176, 192, 208, 224, 238, 238,
     238, 238, 238, 238, 238, 238, 238, 238,
     238, 238, 238, 238, 238, 238, 238, 238,
 };
+#endif
 
 static const int wipe_doCrossfade (const int ticks)
 {
-    pixel_t   *cur_screen = wipe_scr;
-    pixel_t   *end_screen = wipe_scr_end;
-    const int  pix = SCREENWIDTH*SCREENHEIGHT;
-    boolean changed = false;
+    pixel_t *cur_screen = wipe_scr;
+    pixel_t *end_screen = wipe_scr_end;
+    boolean  changed = false;
 
     // [crispy] reduce fail-safe crossfade counter tics
     // [JN] Return slightly earlier for smoother ending of fade effect.
     if (--fade_counter > 4)
     {
-        for (int i = pix; i > 0; i--)
+        for (int i = wipe_scr_area; i > 0; i--)
         {
             changed = true;
 #ifndef CRISPY_TRUECOLOR
@@ -116,7 +120,8 @@ static void wipe_exit (void)
 
 void wipe_StartScreen (void)
 {
-    wipe_scr_start = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start), PU_STATIC, NULL);
+    wipe_scr_area = SCREENWIDTH * SCREENHEIGHT;
+    wipe_scr_start = Z_Malloc(wipe_scr_area * sizeof(*wipe_scr_start), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_start);
 }
 
@@ -126,7 +131,7 @@ void wipe_StartScreen (void)
 
 void wipe_EndScreen (void)
 {
-    wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
+    wipe_scr_end = Z_Malloc(wipe_scr_area * sizeof(*wipe_scr_end), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
 }
 
