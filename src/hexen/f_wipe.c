@@ -63,39 +63,35 @@ static void wipe_initCrossfade (void)
 // wipe_doCrossfade
 // -----------------------------------------------------------------------------
 
+static const uint8_t alpha_table[32] = {
+     16,  32,  48,  64,  80,  96, 112, 128,
+    144, 160, 176, 192, 208, 224, 238, 238,
+    238, 238, 238, 238, 238, 238, 238, 238,
+    238, 238, 238, 238, 238, 238, 238, 238,
+};
+
 static const int wipe_doCrossfade (const int ticks)
 {
     pixel_t   *cur_screen = wipe_scr;
     pixel_t   *end_screen = wipe_scr_end;
     const int  pix = SCREENWIDTH*SCREENHEIGHT;
-#ifdef CRISPY_TRUECOLOR
-    // [JN] Brain-dead correction №1: proper blending alpha value.
-    const int  fade_alpha = MIN(fade_counter * 16, 238);
-#endif
     boolean changed = false;
 
     // [crispy] reduce fail-safe crossfade counter tics
-    fade_counter--;
-
     // [JN] Return slightly earlier for smoother ending of fade effect.
-    if (fade_counter < 4)
-    {    
-        return !changed;
-    }
-
-    for (int i = pix; i > 0; i--)
+    if (--fade_counter > 4)
     {
-        if (fade_counter)
+        for (int i = pix; i > 0; i--)
         {
             changed = true;
 #ifndef CRISPY_TRUECOLOR
             *cur_screen = shadowmap[(*cur_screen << 8) + *end_screen];
 #else
-            *cur_screen = I_BlendOver(*end_screen, *cur_screen, fade_alpha);
+            *cur_screen = I_BlendOver(*end_screen, *cur_screen, alpha_table[fade_counter]);
 #endif
+            ++cur_screen;
+            ++end_screen;
         }
-        ++cur_screen;
-        ++end_screen;
     }
 
     return !changed;
@@ -107,8 +103,11 @@ static const int wipe_doCrossfade (const int ticks)
 
 static void wipe_exit (void)
 {
+    extern void SB_ForceRedraw(void);
+
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
+    SB_ForceRedraw();
 }
 
 // -----------------------------------------------------------------------------
