@@ -46,7 +46,7 @@ static int fade_counter;
 
 static void wipe_initCrossfade (void)
 {
-    memcpy(wipe_scr, wipe_scr_start, SCREENAREA*sizeof(*wipe_scr));
+    memcpy(wipe_scr, wipe_scr_start, SCREENWIDTH*SCREENHEIGHT*sizeof(*wipe_scr));
     // [JN] Arm fail-safe crossfade counter with...
 #ifndef CRISPY_TRUECOLOR
     // 8 screen screen transitions in paletted render,
@@ -77,6 +77,7 @@ static const int wipe_doCrossfade (const int ticks)
     pixel_t *cur_screen = wipe_scr;
     pixel_t *end_screen = wipe_scr_end;
     boolean  changed = false;
+    const int screen_area = SCREENWIDTH*SCREENHEIGHT;
 
     // [crispy] reduce fail-safe crossfade counter tics
     if (--fade_counter > 0)
@@ -84,7 +85,7 @@ static const int wipe_doCrossfade (const int ticks)
         // [JN] Keep solid background to prevent blending with empty space.
         V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_start);
 
-        for (int i = SCREENAREA; i > 0; i--)
+        for (int i = screen_area; i > 0; i--)
         {
             changed = true;
 #ifndef CRISPY_TRUECOLOR
@@ -118,7 +119,7 @@ static void wipe_exit (void)
 
 void wipe_StartScreen (void)
 {
-    wipe_scr_start = Z_Malloc(SCREENAREA * sizeof(*wipe_scr_start), PU_STATIC, NULL);
+    wipe_scr_start = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_start);
 }
 
@@ -128,7 +129,7 @@ void wipe_StartScreen (void)
 
 void wipe_EndScreen (void)
 {
-    wipe_scr_end = Z_Malloc(SCREENAREA * sizeof(*wipe_scr_end), PU_STATIC, NULL);
+    wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
 }
 
