@@ -56,9 +56,9 @@ static void wipe_initCrossfade (void)
     // since effect is not really smooth there.
     fade_counter = 8;
 #else
-    // 32 screen screen transitions in TrueColor render,
+    // 28 screen screen transitions in TrueColor render,
     // to keep effect smooth enough.
-    fade_counter = 32;
+    fade_counter = 28;
 #endif
 }
 
@@ -67,11 +67,11 @@ static void wipe_initCrossfade (void)
 // -----------------------------------------------------------------------------
 
 #ifdef CRISPY_TRUECOLOR
-static const uint8_t alpha_table[32] = {
-     16,  32,  48,  64,  80,  96, 112, 128,
-    144, 160, 176, 192, 208, 224, 238, 238,
-    238, 238, 238, 238, 238, 238, 238, 238,
-    238, 238, 238, 238, 238, 238, 238, 238,
+static const uint8_t alpha_table[] = {
+     16,  32,  48,  64,  80,  96, 112,
+    128, 144, 160, 176, 192, 208, 224,
+    238, 238, 238, 238, 238, 238, 238,
+    238, 238, 238, 238, 238, 238, 238
 };
 #endif
 
@@ -82,8 +82,7 @@ static const int wipe_doCrossfade (const int ticks)
     boolean  changed = false;
 
     // [crispy] reduce fail-safe crossfade counter tics
-    // [JN] Return slightly earlier for smoother ending of fade effect.
-    if (--fade_counter > 4)
+    if (--fade_counter > 0)
     {
         for (int i = wipe_scr_area; i > 0; i--)
         {
