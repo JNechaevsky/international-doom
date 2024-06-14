@@ -53,9 +53,9 @@ static void wipe_initCrossfade (void)
     // since effect is not really smooth there.
     fade_counter = 8;
 #else
-    // 28 screen screen transitions in TrueColor render,
+    // 32 screen screen transitions in TrueColor render,
     // to keep effect smooth enough.
-    fade_counter = 28;
+    fade_counter = 32;
 #endif
 }
 
@@ -65,10 +65,10 @@ static void wipe_initCrossfade (void)
 
 #ifdef CRISPY_TRUECOLOR
 static const uint8_t alpha_table[] = {
-     16,  32,  48,  64,  80,  96, 112,
-    128, 144, 160, 176, 192, 208, 224,
-    238, 238, 238, 238, 238, 238, 238,
-    238, 238, 238, 238, 238, 238, 238
+      0,   8,  16,  24,  32,  40,  48,  56,
+     64,  72,  80,  88,  96, 104, 112, 120,
+    128, 136, 144, 152, 160, 168, 176, 184,
+    192, 200, 208, 216, 224, 232, 240, 248,
 };
 #endif
 
@@ -81,6 +81,9 @@ static const int wipe_doCrossfade (const int ticks)
     // [crispy] reduce fail-safe crossfade counter tics
     if (--fade_counter > 0)
     {
+        // [JN] Keep solid background to prevent blending with empty space.
+        V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_start);
+
         for (int i = SCREENAREA; i > 0; i--)
         {
             changed = true;
@@ -103,11 +106,10 @@ static const int wipe_doCrossfade (const int ticks)
 
 static void wipe_exit (void)
 {
-    extern void SB_ForceRedraw(void);
-
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
-    SB_ForceRedraw();
+    // [JN] Blit final screen.
+    V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_end);
 }
 
 // -----------------------------------------------------------------------------
