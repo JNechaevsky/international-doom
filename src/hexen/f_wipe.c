@@ -74,10 +74,10 @@ static const uint8_t alpha_table[] = {
 
 static const int wipe_doCrossfade (const int ticks)
 {
-    pixel_t *cur_screen = wipe_scr;
-    pixel_t *end_screen = wipe_scr_end;
-    boolean  changed = false;
-    const int screen_area = SCREENWIDTH*SCREENHEIGHT;
+    pixel_t   *cur_screen = wipe_scr;
+    pixel_t   *end_screen = wipe_scr_end;
+    const int  pix = SCREENWIDTH*SCREENHEIGHT;
+    boolean changed = false;
 
     // [crispy] reduce fail-safe crossfade counter tics
     if (--fade_counter > 0)
@@ -85,7 +85,7 @@ static const int wipe_doCrossfade (const int ticks)
         // [JN] Keep solid background to prevent blending with empty space.
         V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_start);
 
-        for (int i = screen_area; i > 0; i--)
+        for (int i = pix; i > 0; i--)
         {
             changed = true;
 #ifndef CRISPY_TRUECOLOR
