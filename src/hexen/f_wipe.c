@@ -109,6 +109,8 @@ static void wipe_exit (void)
 {
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
+    // [JN] Blit final screen.
+    V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_end);
 }
 
 // -----------------------------------------------------------------------------
@@ -129,8 +131,6 @@ void wipe_EndScreen (void)
 {
     wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
-    // [JN] Blit final screen.
-    V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_end);
 }
 
 // -----------------------------------------------------------------------------
