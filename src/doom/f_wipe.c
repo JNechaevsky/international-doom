@@ -24,7 +24,6 @@
 #include "v_trans.h" // [crispy] blending functions
 #include "v_video.h"
 #include "m_random.h"
-#include "st_bar.h"
 
 #include "id_vars.h"
 
@@ -104,6 +103,10 @@ static void wipe_initMelt (void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// wipe_initCrossfade
+// -----------------------------------------------------------------------------
+
 static void wipe_initCrossfade (void)
 {
     memcpy(wipe_scr, wipe_scr_start, SCREENWIDTH*SCREENHEIGHT*sizeof(*wipe_scr));
@@ -181,39 +184,43 @@ static int wipe_doMelt (int ticks)
     return done;
 }
 
-static int wipe_doCrossfade (int ticks)
+// -----------------------------------------------------------------------------
+// wipe_doCrossfade
+// -----------------------------------------------------------------------------
+
+#ifdef CRISPY_TRUECOLOR
+static const uint8_t alpha_table[] = {
+      0,   8,  16,  24,  32,  40,  48,  56,
+     64,  72,  80,  88,  96, 104, 112, 120,
+    128, 136, 144, 152, 160, 168, 176, 184,
+    192, 200, 208, 216, 224, 232, 240, 248,
+};
+#endif
+
+static const int wipe_doCrossfade (const int ticks)
 {
     pixel_t   *cur_screen = wipe_scr;
     pixel_t   *end_screen = wipe_scr_end;
     const int  pix = SCREENWIDTH*SCREENHEIGHT;
-#ifdef CRISPY_TRUECOLOR
-    // [JN] Brain-dead correction №1: proper blending alpha value.
-    const int  fade_alpha = MIN(fade_counter * 16, 238);
-#endif
     boolean changed = false;
 
     // [crispy] reduce fail-safe crossfade counter tics
-    fade_counter--;
-
-    // [JN] Return slightly earlier for smoother ending of fade effect.
-    if (fade_counter < 4)
-    {    
-        return !changed;
-    }
-
-    for (int i = pix; i > 0; i--)
+    if (--fade_counter > 0)
     {
-        if (fade_counter)
+        // [JN] Keep solid background to prevent blending with empty space.
+        V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_start);
+
+        for (int i = pix; i > 0; i--)
         {
             changed = true;
 #ifndef CRISPY_TRUECOLOR
             *cur_screen = shadowmap[(*cur_screen << 8) + *end_screen];
 #else
-            *cur_screen = I_BlendOver(*end_screen, *cur_screen, fade_alpha);
+            *cur_screen = I_BlendOver(*end_screen, *cur_screen, alpha_table[fade_counter]);
 #endif
+            ++cur_screen;
+            ++end_screen;
         }
-        ++cur_screen;
-        ++end_screen;
     }
 
     return !changed;
