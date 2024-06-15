@@ -87,12 +87,15 @@ static const int wipe_doCrossfade (const int ticks)
 
         for (int i = pix; i > 0; i--)
         {
-            changed = true;
+            if (*cur_screen != *end_screen && fade_counter)
+            {
+                changed = true;
 #ifndef CRISPY_TRUECOLOR
-            *cur_screen = shadowmap[(*cur_screen << 8) + *end_screen];
+                *cur_screen = shadowmap[(*cur_screen << 8) + *end_screen];
 #else
-            *cur_screen = I_BlendOver(*end_screen, *cur_screen, alpha_table[fade_counter]);
+                *cur_screen = I_BlendOver(*end_screen, *cur_screen, alpha_table[fade_counter]);
 #endif
+            }
             ++cur_screen;
             ++end_screen;
         }
@@ -107,10 +110,10 @@ static const int wipe_doCrossfade (const int ticks)
 
 static void wipe_exit (void)
 {
-    Z_Free(wipe_scr_start);
-    Z_Free(wipe_scr_end);
     // [JN] Blit final screen.
     V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_end);
+    Z_Free(wipe_scr_start);
+    Z_Free(wipe_scr_end);
 }
 
 // -----------------------------------------------------------------------------
