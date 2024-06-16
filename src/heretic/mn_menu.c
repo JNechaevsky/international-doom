@@ -391,6 +391,7 @@ static void M_ID_LimitFPS (int choice);
 static void M_ID_VSync (int choice);
 static void M_ID_ShowFPS (int choice);
 static void M_ID_PixelScaling (int choice);
+static void M_ID_GfxStartup (int choice);
 static void M_ID_ScreenWipe (int choice);
 static void M_ID_EndText (int choice);
 
@@ -1040,6 +1041,7 @@ static MenuItem_t ID_Menu_Video[] = {
     { ITT_LRFUNC, "SHOW FPS COUNTER",     M_ID_ShowFPS,      0, MENU_NONE },
     { ITT_LRFUNC, "PIXEL SCALING",        M_ID_PixelScaling, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                   NULL,              0, MENU_NONE },
+    { ITT_LRFUNC, "GRAPHICAL STARTUP",    M_ID_GfxStartup,   0, MENU_NONE },
     { ITT_LRFUNC, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   0, MENU_NONE },
     { ITT_LRFUNC, "SHOW ENDTEXT SCREEN",  M_ID_EndText,      0, MENU_NONE },
 };
@@ -1047,7 +1049,7 @@ static MenuItem_t ID_Menu_Video[] = {
 static Menu_t ID_Def_Video = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Video,
-    11, ID_Menu_Video,
+    12, ID_Menu_Video,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -1124,16 +1126,23 @@ static void M_Draw_ID_Video (void)
 
     MN_DrTextACentered("MISCELLANEOUS", 100, cr[CR_YELLOW]);
 
+    // Graphical startup
+    sprintf(str, vid_graphical_startup == 1 ? "FAST" :
+                 vid_graphical_startup == 2 ? "SLOW" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, vid_graphical_startup == 1 ? GLOW_GREEN :
+                              vid_graphical_startup == 2 ? GLOW_YELLOW : GLOW_DARKRED));
+
     // Screen wipe effect
     sprintf(str, vid_screenwipe_hr ? "CROSSFADE" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, vid_screenwipe_hr ? GLOW_GREEN : GLOW_RED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, vid_screenwipe_hr ? GLOW_GREEN : GLOW_RED));
 
     // Show ENDTEXT screen
     sprintf(str, vid_endoom == 1 ? "ALWAYS" :
                  vid_endoom == 2 ? "PWAD ONLY" : "NEVER");
-    MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, vid_endoom == 1 ? GLOW_RED : GLOW_GREEN));
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, vid_endoom == 1 ? GLOW_RED : GLOW_GREEN));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
     if (CurrentItPos == 1 || CurrentItPos == 2)
@@ -1146,7 +1155,7 @@ static void M_Draw_ID_Video (void)
         M_snprintf(height, 8, "%d", (vid_aspect_ratio_correct == 1 ? ORIGHEIGHT_4_3 : ORIGHEIGHT) * vid_resolution);
         resolution = M_StringJoin("CURRENT RESOLUTION: ", width, "X", height, NULL);
 
-        MN_DrTextACentered(resolution, 130, cr[CR_LIGHTGRAY_DARK1]);
+        MN_DrTextACentered(resolution, 140, cr[CR_LIGHTGRAY_DARK1]);
     }
 }
 
@@ -1270,6 +1279,11 @@ static void M_ID_PixelScaling (int choice)
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
     R_ExecuteSetViewSize();
+}
+
+static void M_ID_GfxStartup (int choice)
+{
+    vid_graphical_startup = M_INT_Slider(vid_graphical_startup, 0, 2, choice, false);
 }
 
 static void M_ID_ScreenWipe (int choice)
@@ -3948,6 +3962,7 @@ static void M_ID_ApplyResetHook (void)
     vid_showfps = 0;
     vid_smooth_scaling = 0;
     // Miscellaneous
+    vid_graphical_startup = 0;
     vid_screenwipe_hr = 0;
     vid_endoom = 0;
 

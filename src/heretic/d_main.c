@@ -766,6 +766,12 @@ void DrawThermo(void)
     }
 
     TXT_UpdateScreen();
+    
+    // [JN] Emulate slower startup.
+    if (vid_graphical_startup == 2)
+    {
+        I_Sleep(50);
+    }
 }
 
 void initStartup(void)
