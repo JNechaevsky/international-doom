@@ -589,16 +589,14 @@ void R_InitTextures(void)
     //
     //      Init the startup thermometer at this point...
     //
-    /*
     {
         int start, end;
         int spramount;
         start = W_GetNumForName(DEH_String("S_START"));
         end = W_GetNumForName(DEH_String("S_END"));
         spramount = end - start + 1;
-        //InitThermo(spramount + numtextures + 6);
+        InitThermo(spramount + numtextures + 6);
     }
-    */
 
     textures = Z_Malloc(numtextures * sizeof(texture_t *), PU_STATIC, 0);
     texturecolumnlump = Z_Malloc(numtextures * sizeof(short *), PU_STATIC, 0);
@@ -615,7 +613,7 @@ void R_InitTextures(void)
         if (!(i & 63))
             printf(".");
 #else
-        // IncThermo();
+        IncThermo();
 #endif
         if (i == numtextures1)
         {                       // start looking in second texture file
@@ -675,7 +673,7 @@ void R_InitTextures(void)
     for (i = 0; i < numtextures; i++)
     {
         R_GenerateLookup(i);
-        //CheckAbortStartup();
+        CheckAbortStartup();
     }
 
 //
@@ -740,7 +738,7 @@ void R_InitSpriteLumps(void)
         if (!(i & 63))
             printf(".");
 #else
-        // IncThermo();
+        IncThermo();
 #endif
         patch = W_CacheLumpNum(firstspritelump + i, PU_CACHE);
         spritewidth[i] = SHORT(patch->width) << FRACBITS;

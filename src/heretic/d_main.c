@@ -74,6 +74,7 @@ const char *gamedescription = "unknown";
 
 boolean nomonsters;             // checkparm of -nomonsters
 boolean respawnparm;            // checkparm of -respawn
+boolean debugmode;              // checkparm of -debug
 boolean ravpic;                 // checkparm of -ravpic
 boolean coop_spawns = false;    // [crispy] checkparm of -coop_spawns
 boolean cdrom;                  // true if cd-rom mode active
@@ -82,7 +83,7 @@ skill_t startskill;
 int startepisode;
 int startmap;
 //int graphical_startup = 0;
-//static boolean using_graphical_startup;
+static boolean using_graphical_startup;
 static boolean main_loop_started = false;
 boolean autostart;
 
@@ -651,6 +652,15 @@ void D_CheckRecordFrom(void)
 
 char *iwadfile;
 
+
+void wadprintf(void)
+{
+    if (debugmode)
+    {
+        return;
+    }
+}
+
 boolean D_AddFile(char *file)
 {
     wad_file_t *handle;
@@ -667,7 +677,6 @@ boolean D_AddFile(char *file)
 //  Startup Thermo code
 //
 //==========================================================
-/*
 #define MSG_Y       9
 #define THERM_X     14
 #define THERM_Y     14
@@ -764,7 +773,7 @@ void initStartup(void)
     byte *textScreen;
     byte *loading;
 
-    if (!graphical_startup || debugmode || testcontrols)
+    if (!vid_graphical_startup || debugmode || testcontrols)
     {
         using_graphical_startup = false;
         return;
@@ -841,7 +850,6 @@ void InitThermo(int max)
     thermMax = max;
     thermCurrent = 0;
 }
-*/
 
 //
 // Add configuration file variable bindings.
@@ -1318,19 +1326,17 @@ void D_DoomMain(void)
     I_InitSound(heretic);
     I_InitMusic();
 
-    printf("NET_Init: Init network subsystem.\n");
+    tprintf("NET_Init: Init network subsystem.\n", 1);
     NET_Init ();
 
     D_ConnectNetGame();
 
     // haleyjd: removed WATCOMC
-    // TODO 
-    // initStartup();
+    initStartup();
 
     //
     //  Build status bar line!
     //
-    /*
     smsg[0] = 0;
     if (deathmatch)
         status(DEH_String("DeathMatch..."));
@@ -1346,45 +1352,45 @@ void D_DoomMain(void)
                      startepisode, startmap, startskill + 1);
         status(temp);
     }
-    */
+    wadprintf();                // print the added wadfiles
 
-    printf(DEH_String("MN_Init: Init menu system.\n"));
+    tprintf(DEH_String("MN_Init: Init menu system.\n"), 1);
     MN_Init();
 
     CT_Init();
 
-    printf(DEH_String("R_Init: Init Heretic refresh daemon - ["));
-    //hprintf(DEH_String("Loading graphics\n"));
+    tprintf(DEH_String("R_Init: Init Heretic refresh daemon - ["), 1);
+    hprintf(DEH_String("Loading graphics"));
     R_Init();
-    printf("]\n");
+    tprintf("]\n", 0);
 
-    printf(DEH_String("P_Init: Init Playloop state.\n"));
-    //hprintf(DEH_String("Init game engine."));
+    tprintf(DEH_String("P_Init: Init Playloop state.\n"), 1);
+    hprintf(DEH_String("Init game engine."));
     P_Init();
-    //IncThermo();
+    IncThermo();
 
-    printf(DEH_String("I_Init: Setting up machine state.\n"));
+    tprintf(DEH_String("I_Init: Setting up machine state.\n"), 1);
     I_CheckIsScreensaver();
     I_InitJoystick();
-    //IncThermo();
+    IncThermo();
 
-    printf(DEH_String("S_Init: Setting up sound.\n"));
+    tprintf(DEH_String("S_Init: Setting up sound.\n"), 1);
     S_Init();
     //IO_StartupTimer();
     S_Start();
 
-    printf(DEH_String("D_CheckNetGame: Checking network game status.\n"));
-    //hprintf(DEH_String("Checking network game status."));
+    tprintf(DEH_String("D_CheckNetGame: Checking network game status.\n"), 1);
+    hprintf(DEH_String("Checking network game status."));
     D_CheckNetGame();
-    //IncThermo();
+    IncThermo();
 
     // haleyjd: removed WATCOMC
 
-    printf(DEH_String("SB_Init: Loading patches.\n"));
+    tprintf(DEH_String("SB_Init: Loading patches.\n"), 1);
     SB_Init();
-    //IncThermo();
+    IncThermo();
 
-    printf(DEH_String("AM_Init: Loading automap data.\n"));
+    tprintf(DEH_String("AM_Init: Loading automap data.\n"), 1);
     AM_Init();
 
 //
@@ -1478,7 +1484,7 @@ void D_DoomMain(void)
         }
     }
 
-    //finishStartup();
+    finishStartup();
 
     // [JN] Show startup process time.
     printf("Startup process took %d ms.\n", SDL_GetTicks() - starttime);
