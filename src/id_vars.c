@@ -204,9 +204,12 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("vid_endoom",                 &vid_endoom);
     }
-    if (mission == hexen)
+    if (mission == heretic || mission == hexen)
     {
         M_BindIntVariable("vid_graphical_startup",      &vid_graphical_startup);
+    }
+    if (mission == hexen)
+    {
         M_BindIntVariable("vid_banners",                &vid_banners);
     }  
 
