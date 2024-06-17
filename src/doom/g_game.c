@@ -1618,7 +1618,7 @@ void G_Ticker (void)
         struct tm *tm = localtime(&t);
 
         strftime(ID_Local_Time, sizeof(ID_Local_Time),
-                 msg_local_time == 1 ? "%I:%M %p" :   // 12-hour (HH:MM designation)
+                 msg_local_time == 1 ? "%I:%M%p" :    // 12-hour (HH:MM designation)
                                        "%H:%M", tm);  // 24-hour (HH:MM)
     }
 } 
