@@ -996,6 +996,7 @@ void D_DoomMain(void)
 
     ravpic = M_ParmExists("-ravpic");
 
+    debugmode = M_ParmExists("-debug");
     startepisode = 1;
     startmap = 1;
     autostart = false;
