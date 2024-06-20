@@ -545,7 +545,8 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
 
 void V_DrawPatchFullScreen(patch_t *patch, boolean flipped)
 {
-    int x = ((SCREENWIDTH / vid_resolution) - SHORT(patch->width)) / 2 - WIDESCREENDELTA;
+    int x = (((SCREENWIDTH / vid_resolution) - SHORT(patch->width)) / 2 - WIDESCREENDELTA)
+          & (int)~1;  // [JN] Since we have a multiple resolutions, round up x coord.
 
     patch->leftoffset = 0;
     patch->topoffset = 0;
@@ -1008,9 +1009,9 @@ void V_Init (void)
     if (NONWIDEWIDTH && SCREENHEIGHT)
     {
         dx = (NONWIDEWIDTH << FRACBITS) / ORIGWIDTH;
-        dxi = (ORIGWIDTH << FRACBITS) / NONWIDEWIDTH + 1;
+        dxi = (ORIGWIDTH << FRACBITS) / NONWIDEWIDTH + 1;  // [JN] +1 for multiple resolutions
         dy = (SCREENHEIGHT << FRACBITS) / ORIGHEIGHT;
-        dyi = (ORIGHEIGHT << FRACBITS) / SCREENHEIGHT + 1;
+        dyi = (ORIGHEIGHT << FRACBITS) / SCREENHEIGHT + 1; // [JN] +1 for multiple resolutions
     }
     // no-op!
     // There used to be separate screens that could be drawn to; these are
