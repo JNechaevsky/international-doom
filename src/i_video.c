@@ -1807,7 +1807,7 @@ void I_GetScreenDimensions (void)
 		}
 
 		// [crispy] ... but never exceeds MAXWIDTH (array size!)
-		SCREENWIDTH = MIN(SCREENWIDTH, MAXWIDTH / 3);
+		SCREENWIDTH = MIN(SCREENWIDTH, MAXWIDTH);
 	}
 
 	WIDESCREENDELTA = ((SCREENWIDTH - NONWIDEWIDTH) / vid_resolution) / 2;
