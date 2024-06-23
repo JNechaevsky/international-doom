@@ -779,8 +779,8 @@ void F_BunnyScroll (void)
 
     for (x = pillar_width; x < SCREENWIDTH - pillar_width; x++)
     {
-        // [JN] Added -1 to support higher than 3x rendering resolutions.
-        int x2 = ((x * dxi) >> FRACBITS) - WIDESCREENDELTA + scrolled - 1;
+        // [JN] Added -1 to support higher rendering resolutions and wide screen modes.
+        const int x2 = ((x * dxi) >> FRACBITS) - WIDESCREENDELTA + scrolled - (scrolled ? 1 : 0);
 
         if (x2 < p2offset)
             F_DrawPatchCol (x, p1, x2 - p1offset);
