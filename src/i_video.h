@@ -52,6 +52,7 @@ enum
     RATIO_16_10,
     RATIO_16_9,
     RATIO_21_9,
+    RATIO_32_9,
     NUM_RATIOS
 };
 

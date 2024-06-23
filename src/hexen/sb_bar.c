@@ -406,7 +406,7 @@ void SB_Init(void)
     SpinSpeedLump = W_GetNumForName("SPBOOT0");
     SpinDefenseLump = W_GetNumForName("SPSHLD0");
 
-    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ORIGSBARHEIGHT << 1) * sizeof(*st_backing_screen), PU_STATIC, 0);
+    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ORIGSBARHEIGHT * MAXHIRES) * sizeof(*st_backing_screen), PU_STATIC, 0);
     if (deathmatch)
     {
         PatchKILLS = W_CacheLumpName("KILLS", PU_STATIC);

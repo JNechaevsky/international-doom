@@ -1092,7 +1092,8 @@ static void M_Draw_ID_Video (void)
     sprintf(str, vid_widescreen == 1 ? "MATCH SCREEN" :
                  vid_widescreen == 2 ? "16:10" :
                  vid_widescreen == 3 ? "16:9" :
-                 vid_widescreen == 4 ? "21:9" : "OFF");
+                 vid_widescreen == 4 ? "21:9" :
+                 vid_widescreen == 5 ? "32:9" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 40,
                M_Item_Glow(2, vid_widescreen ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -1220,7 +1221,7 @@ static void M_ID_WidescreenHook (void)
 
 static void M_ID_Widescreen (int choice)
 {
-    vid_widescreen = M_INT_Slider(vid_widescreen, 0, 4, choice, false);
+    vid_widescreen = M_INT_Slider(vid_widescreen, 0, 5, choice, false);
     post_rendering_hook = M_ID_WidescreenHook;
 }
 
