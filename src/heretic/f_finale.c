@@ -405,9 +405,7 @@ void F_DemonScroll(void)
             // [crispy] pillar boxing
             if (x > -WIDESCREENDELTA)
             {
-                V_DrawFilledBox(0, 0, WIDESCREENDELTA + x, SCREENHEIGHT, 0);
-                V_DrawFilledBox(SCREENWIDTH - WIDESCREENDELTA - x, 0,
-                                WIDESCREENDELTA + x, SCREENHEIGHT, 0);
+                V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
             }
 
             V_DrawPatch(x, y - 200, patch2);
