@@ -220,7 +220,15 @@ static int CarryError(double value, const double *prevcarry, double *carry)
 
 static short CarryAngle(double angle)
 {
-    return CarryError(angle, &prevcarry.angle, &carry.angle);
+    if (lowres_turn && abs(angle + prevcarry.angle) < 128)
+    {
+        carry.angle = angle + prevcarry.angle;
+        return 0;
+    }
+    else
+    {
+        return CarryError(angle, &prevcarry.angle, &carry.angle);
+    }
 }
 
 static short CarryPitch(double pitch)
@@ -275,6 +283,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     boolean strafe, bstrafe;
     int speed, tspeed, lspeed;
     int angle = 0; // [crispy]
+    short mousex_angleturn; // [crispy]
     int forward, side;
     int look, arti;
     int flyheight;
@@ -847,16 +856,30 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         angle -= mousex*0x8;
     }
 
-    if (mousex == 0)
+    mousex_angleturn = cmd->angleturn;
+
+    if (mousex_angleturn == 0)
     {
         testcontrols_mousespeed = 0;
     }
 
     if (angle)
     {
+        if (!crl_spectating)
+        {
+        cmd->angleturn = CarryAngle(cmd->angleturn + angle);
+        localview.ticangleturn = gp_flip_levels ?
+            (mousex_angleturn - cmd->angleturn) :
+            (cmd->angleturn - mousex_angleturn);
+        }
+        else
+        {
         const short old_angleturn = cmd->angleturn;
         cmd->angleturn = CarryAngle(localview.rawangle + angle);
-        localview.ticangleturn = cmd->angleturn - old_angleturn;
+        localview.ticangleturn = gp_flip_levels ?
+            (old_angleturn - cmd->angleturn) :
+            (cmd->angleturn - old_angleturn);
+        }
     }
 
     if (cmd->lookdir)
@@ -955,6 +978,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     if (gp_flip_levels)
     {
+        mousex_angleturn = -mousex_angleturn;
         cmd->angleturn = -cmd->angleturn;
         cmd->sidemove = -cmd->sidemove;
     }
@@ -963,20 +987,26 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     {
         if (shortticfix)
         {
-            static signed short carry = 0;
             signed short desired_angleturn;
 
-            desired_angleturn = cmd->angleturn + carry;
+            desired_angleturn = cmd->angleturn;
 
             // round angleturn to the nearest 256 unit boundary
             // for recording demos with single byte values for turn
 
             cmd->angleturn = (desired_angleturn + 128) & 0xff00;
 
+            if (angle)
+            {
+                localview.ticangleturn = cmd->angleturn - mousex_angleturn;
+            }
+
             // Carry forward the error from the reduced resolution to the
             // next tic, so that successive small movements can accumulate.
 
-            carry = desired_angleturn - cmd->angleturn;
+            prevcarry.angle += gp_flip_levels ?
+                                cmd->angleturn - desired_angleturn :
+                                desired_angleturn - cmd->angleturn;
         }
         else
         {
