@@ -780,10 +780,21 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     
     if (angle)
     {
+        if (!crl_spectating)
+        {
         cmd->angleturn = CarryAngle(cmd->angleturn + angle);
         localview.ticangleturn = gp_flip_levels ?
             (mousex_angleturn - cmd->angleturn) :
             (cmd->angleturn - mousex_angleturn);
+        }
+        else
+        {
+        const short old_angleturn = cmd->angleturn;
+        cmd->angleturn = CarryAngle(localview.rawangle + angle);
+        localview.ticangleturn = gp_flip_levels ?
+            (old_angleturn - cmd->angleturn) :
+            (cmd->angleturn - old_angleturn);
+        }
     }
 
     mousex = mousey = 0;
