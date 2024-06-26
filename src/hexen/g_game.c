@@ -1565,7 +1565,8 @@ void G_PrepTiccmd (void)
     {
         localview.rawangle -= CalcMouseAngle(mousex);
         basecmd.angleturn = CarryAngle(localview.rawangle);
-        localview.angle = basecmd.angleturn << 16;
+        localview.angle = gp_flip_levels ?
+            -(basecmd.angleturn << 16) : (basecmd.angleturn << 16);
         mousex = 0;
     }
 
