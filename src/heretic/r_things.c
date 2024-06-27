@@ -909,7 +909,7 @@ void R_DrawPSprite (pspdef_t* psp)
     vis->footclip = 0;
     // [crispy] weapons drawn 1 pixel too high when player is idle
     vis->texturemid =
-        (BASEYCENTER << FRACBITS) + FRACUNIT / 5 - (psp_sy -
+        (BASEYCENTER << FRACBITS) + FRACUNIT / (1 + vid_resolution) - (psp_sy -
                                                     spritetopoffset[lump]);
     if (viewheight == SCREENHEIGHT)
     {

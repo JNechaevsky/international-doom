@@ -1017,7 +1017,7 @@ static void R_DrawPSprite (pspdef_t* psp)
     vis->translation = NULL; // [crispy] no color translation
     vis->mobjflags = 0;
     // [crispy] weapons drawn 1 pixel too high when player is idle
-    vis->texturemid = (BASEYCENTER<<FRACBITS)+FRACUNIT/5-(psp_sy-spritetopoffset[lump]);
+    vis->texturemid = (BASEYCENTER<<FRACBITS)+FRACUNIT/(1+vid_resolution)-(psp_sy-spritetopoffset[lump]);
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;	
     vis->scale = pspritescale<<detailshift;
