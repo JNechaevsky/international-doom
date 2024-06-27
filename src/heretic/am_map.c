@@ -1837,7 +1837,7 @@ static void AM_drawWalls (void)
                 {
                 // [plums] check only colored door types, to not interfere
                 // with secret sector marking of types 28-31.
-                if ((lines[i].special > 25 && lines[i].special < 28)
+                if ((lines[i].special > 25 && lines[i].special < 29)
                 ||  (lines[i].special > 31 && lines[i].special < 35))
                 {
                     switch (lines[i].special)
