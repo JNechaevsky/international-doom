@@ -220,7 +220,7 @@ static int CarryError(double value, const double *prevcarry, double *carry)
 
 static short CarryAngle(double angle)
 {
-    if (lowres_turn && abs(angle + prevcarry.angle) < 128)
+    if (lowres_turn && fabs(angle + prevcarry.angle) < 128)
     {
         carry.angle = angle + prevcarry.angle;
         return 0;

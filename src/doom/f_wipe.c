@@ -39,7 +39,7 @@ static int     *y;
 
 // [JN] Function pointers to melt and crossfade effects.
 static void (*wipe_init) (void);
-static int (*wipe_do) (int ticks);
+static const int (*wipe_do) (int ticks);
 
 // [crispy] Additional fail-safe counter for performing crossfade effect.
 static int fade_counter;
@@ -126,7 +126,7 @@ static void wipe_initCrossfade (void)
 // wipe_doMelt
 // -----------------------------------------------------------------------------
 
-static int wipe_doMelt (int ticks)
+static const int wipe_doMelt (int ticks)
 {
     int j;
     int dy;
