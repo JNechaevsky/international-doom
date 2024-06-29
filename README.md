@@ -7,17 +7,17 @@ The project is created by [Julia Nechaevskaya](mailto:julia.nechaevskaya@live.co
 
 ### Download
 
-**International Doom, version 7.4 (released: March 8, 2024):**
-* Windows (32-bit): [inter-doom-7.4-win32.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.4/inter-doom-7.4-win32.zip)
-* Windows (64-bit): [inter-doom-7.4-win64.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.4/inter-doom-7.4-win64.zip)
+**International Doom, version 7.5 (released: June 29, 2024):**
+* Windows (64-bit): [inter-doom-7.5-win64.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.5/inter-doom-7.5-win64.zip)
+* Windows (32-bit): [inter-doom-7.5-win32.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.5/inter-doom-7.5-win32.zip)
 
-**International Heretic, version 7.0 (released: March 8, 2024):**
-* Windows (32-bit): [inter-heretic-7.0-win32.zip](https://github.com/JNechaevsky/international-doom/releases/download/htic-7.0/inter-heretic-7.0-win32.zip)
-* Windows (64-bit): [inter-heretic-7.0-win64.zip](https://github.com/JNechaevsky/international-doom/releases/download/htic-7.0/inter-heretic-7.0-win64.zip)
+**International Heretic, version 7.1 (released: June 29, 2024):**
+* Windows (64-bit): [inter-heretic-7.1-win64.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.5/inter-heretic-7.1-win64.zip)
+* Windows (32-bit): [inter-heretic-7.1-win32.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.5/inter-heretic-7.1-win32.zip)
 
-**International Hexen, version 7.0 (released: March 8, 2024):**
-* Windows (32-bit): [inter-hexen-7.0-win32.zip](https://github.com/JNechaevsky/international-doom/releases/download/hxn-7.0/inter-hexen-7.0-win32.zip)
-* Windows (64-bit): [inter-hexen-7.0-win64.zip](https://github.com/JNechaevsky/international-doom/releases/download/hxn-7.0/inter-hexen-7.0-win64.zip)
+**International Hexen, version 7.1 (released: June 29, 2024):**
+* Windows (64-bit): [inter-hexen-7.1-win64.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.5/inter-hexen-7.1-win64.zip)
+* Windows (32-bit): [inter-hexen-7.1-win32.zip](https://github.com/JNechaevsky/international-doom/releases/download/7.5/inter-hexen-7.1-win32.zip)
 
 ### Major features
 
