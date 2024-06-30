@@ -601,7 +601,8 @@ static void R_ProjectSprite (mobj_t* thing)
     tx = -(gyt+gxt); 
 
     // too far off the side?
-    if (abs(tx)>(tz<<2))
+    // [ceski] [JN] Possibly use an extended value (fovtx) and prevent overflows (int64_t).
+    if ((int64_t)(abs(tx) >> fovtx) > (abs(tz)))
 	return;
     
     // decide which patch to use for sprite relative to player

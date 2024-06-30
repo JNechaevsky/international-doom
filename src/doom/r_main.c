@@ -105,6 +105,9 @@ int			extralight;
 // [JN] FOV from DOOM Retro and Nugget Doom
 static fixed_t fovscale;	
 float  fovdiff;   // [Nugget] Used for some corrections
+// [ceski] [JN] Higher than 21:9 aspect ratios require an extended range
+// of 'tx' value, used by R_ProjectSprite for sprite projection.
+fixed_t fovtx;
 
 // [crispy] parameterized for smooth diminishing lighting
 int LIGHTLEVELS;
@@ -797,6 +800,7 @@ void R_ExecuteSetViewSize (void)
     centerxfrac_nonwide = (viewwidth_nonwide/2)<<FRACBITS;
     // [JN] FOV from DOOM Retro and Nugget Doom
     fovscale = finetangent[(int)(FINEANGLES / 4 + (vid_fov + WIDEFOVDELTA) * FINEANGLES / 360 / 2)];
+    fovtx = (vid_widescreen > 4 && vid_fov >= 90) ? 4 : 2;
     projection = FixedDiv(centerxfrac, fovscale);
 
     if (!detailshift)
