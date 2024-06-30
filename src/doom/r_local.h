@@ -706,6 +706,7 @@ extern int     viewwindowy;
 
 // [JN] FOV from DOOM Retro and Nugget Doom
 extern float fovdiff;
+extern fixed_t fovtx;
 
 // [crispy] lookup table for horizontal screen coordinates
 extern int     flipscreenwidth[MAXWIDTH];
