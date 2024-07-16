@@ -95,9 +95,10 @@ lighttable_t***		zlight = NULL;
 
 int extralight;                 // bumped light from gun blasts
 
-// [JN] FOV from DOOM Retro and Nugget Doom
+// [JN] FOV from DOOM Retro, Woof! and Nugget Doom
 static fixed_t fovscale;	
 float  fovdiff;   // [Nugget] Used for some corrections
+int    max_project_slope = 4;  // [Woof!]
 
 // [crispy] parameterized for smooth diminishing lighting
 int LIGHTLEVELS;
@@ -558,6 +559,26 @@ void R_InitTables(void)
 static int scaledviewwidth_nonwide, viewwidth_nonwide;
 static fixed_t centerxfrac_nonwide;
 
+//
+// CalcMaxProjectSlope
+// [Woof!] Calculate the minimum divider needed to provide at least 45 degrees
+// of FOV padding. For fast rejection during sprite/voxel projection.
+//
+
+static void CalcMaxProjectSlope (int fov)
+{
+    max_project_slope = 16;
+
+    for (int i = 1; i < 16; i++)
+    {
+        if (atan(i) * FINEANGLES / M_PI - fov >= FINEANGLES / 8)
+        {
+            max_project_slope = i;
+            break;
+        }
+    }
+}
+
 /*
 =================
 =
@@ -572,6 +593,7 @@ void R_InitTextureMapping(void)
     int x;
     int t;
     fixed_t focallength;
+    angle_t fov; // [Woof!]
 
 
 //
@@ -580,6 +602,17 @@ void R_InitTextureMapping(void)
 //
     // calc focallength so FIELDOFVIEW angles covers SCREENWIDTH
     focallength = FixedDiv (centerxfrac, fovscale);
+
+    if (vid_fov == 90 && centerxfrac == centerxfrac_nonwide)
+    {
+        fov = FIELDOFVIEW;
+    }
+    else
+    {
+        const double slope = (tan(vid_fov * M_PI / 360.0) *
+                              centerxfrac / centerxfrac_nonwide);
+        fov = atan(slope) * FINEANGLES / M_PI;
+    }
 
     for (i = 0; i < FINEANGLES / 2; i++)
     {
@@ -629,6 +662,7 @@ void R_InitTextureMapping(void)
     }
 
     clipangle = xtoviewangle[0];
+    CalcMaxProjectSlope(fov);
 }
 
 //=============================================================================

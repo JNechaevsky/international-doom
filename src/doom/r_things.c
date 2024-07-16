@@ -594,16 +594,16 @@ static void R_ProjectSprite (mobj_t* thing)
     if (tz < MINZ || tz > MAXZ)
 	return;
     
-    xscale = FixedDiv(projection, tz);
-	
     gxt = -FixedMul(tr_x,viewsin); 
     gyt = FixedMul(tr_y,viewcos); 
     tx = -(gyt+gxt); 
 
     // too far off the side?
-    if (abs(tx)>(tz<<2))
+    if (abs(tx) / max_project_slope > tz)
 	return;
     
+    xscale = FixedDiv(projection, tz);
+
     // decide which patch to use for sprite relative to player
 #ifdef RANGECHECK
     if ((unsigned int) thing->sprite >= (unsigned int) numsprites)
@@ -665,14 +665,14 @@ static void R_ProjectSprite (mobj_t* thing)
     // calculate edges of the shape
     // [crispy] fix sprite offsets for mirrored sprites
     tx -= flip ? spritewidth[lump] - spriteoffset[lump] : spriteoffset[lump];
-    x1 = (centerxfrac + FixedMul (tx,xscale) ) >>FRACBITS;
+    x1 = (centerxfrac + FixedMul64 (tx,xscale) ) >>FRACBITS;
 
     // off the right side?
     if (x1 > viewwidth)
 	return;
     
     tx +=  spritewidth[lump];
-    x2 = ((centerxfrac + FixedMul (tx,xscale) ) >>FRACBITS) - 1;
+    x2 = ((centerxfrac + FixedMul64 (tx,xscale) ) >>FRACBITS) - 1;
 
     // off the left side
     if (x2 < 0)

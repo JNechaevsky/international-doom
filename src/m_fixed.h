@@ -21,6 +21,7 @@
 #ifndef __M_FIXED__
 #define __M_FIXED__
 
+#include <stdint.h>
 
 
 
@@ -35,6 +36,11 @@ typedef int fixed_t;
 
 fixed_t FixedMul	(fixed_t a, fixed_t b);
 fixed_t FixedDiv	(fixed_t a, fixed_t b);
+
+inline static int64_t FixedMul64 (int64_t a, int64_t b)
+{
+    return (a * b >> FRACBITS);
+}
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 

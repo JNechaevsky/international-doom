@@ -409,6 +409,10 @@ extern fixed_t centerxfrac;
 extern fixed_t centeryfrac;
 extern fixed_t projection;
 
+// [JN] FOV from DOOM Retro, Woof! and Nugget Doom
+extern  float fovdiff;
+extern  int   max_project_slope;
+
 extern int validcount;
 
 // [crispy] lookup table for horizontal screen coordinates

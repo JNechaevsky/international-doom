@@ -575,14 +575,15 @@ void R_ProjectSprite(mobj_t * thing)
 
     if (tz < MINZ || tz > MAXZ)
         return;                 // thing is behind view plane
-    xscale = FixedDiv(projection, tz);
 
     gxt = -FixedMul(trx, viewsin);
     gyt = FixedMul(try, viewcos);
     tx = -(gyt + gxt);
 
-    if (abs(tx) > (tz << 2))
+    if (abs(tx) / max_project_slope > tz)
         return;                 // too far off the side
+
+    xscale = FixedDiv(projection, tz);
 
 //
 // decide which patch to use for sprite reletive to player
@@ -626,11 +627,11 @@ void R_ProjectSprite(mobj_t * thing)
 //
     // [crispy] fix sprite offsets for mirrored sprites
     tx -= flip ? spritewidth[lump] - spriteoffset[lump] : spriteoffset[lump];
-    x1 = (centerxfrac + FixedMul(tx, xscale)) >> FRACBITS;
+    x1 = (centerxfrac + FixedMul64(tx, xscale)) >> FRACBITS;
     if (x1 > viewwidth)
         return;                 // off the right side
     tx += spritewidth[lump];
-    x2 = ((centerxfrac + FixedMul(tx, xscale)) >> FRACBITS) - 1;
+    x2 = ((centerxfrac + FixedMul64(tx, xscale)) >> FRACBITS) - 1;
     if (x2 < 0)
         return;                 // off the left side
 
