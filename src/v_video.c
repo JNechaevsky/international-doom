@@ -545,8 +545,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
 
 void V_DrawPatchFullScreen(patch_t *patch, boolean flipped)
 {
-    int x = (((SCREENWIDTH / vid_resolution) - SHORT(patch->width)) / 2 - WIDESCREENDELTA)
-          & (int)~1;  // [JN] Since we have a multiple resolutions, round up x coord.
+    const int x = DivRoundClosest((ORIGWIDTH - SHORT(patch->width)), 2);
 
     patch->leftoffset = 0;
     patch->topoffset = 0;
