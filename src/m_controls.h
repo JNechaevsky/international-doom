@@ -184,6 +184,7 @@ extern int key_menu_del; // [crispy]
 
 extern int mousebfire;
 extern int mousebforward;
+extern int mousebspeed;
 extern int mousebstrafe;
 extern int mousebbackward;
 extern int mousebuse;

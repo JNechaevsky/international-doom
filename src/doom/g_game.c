@@ -330,6 +330,7 @@ static int G_NextWeapon(int direction)
 boolean speedkeydown (void)
 {
     return (key_speed < NUMKEYS && gamekeydown[key_speed]) ||
+           (mousebspeed < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed]) ||
            (joybspeed < MAX_JOY_BUTTONS && joybuttons[joybspeed]);
 }
 
