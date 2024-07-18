@@ -6995,19 +6995,19 @@ static char *M_NameMouseBind (int itemSetOn, int btn)
     }
     else
     {
+        char  num[8]; 
+        char *other_button;
+
+        M_snprintf(num, 8, "%d", btn + 1);
+        other_button = M_StringJoin("BUTTON #", num, NULL);
+
         switch (btn)
         {
             case -1:  return  "---";            break;  // Means empty
             case  0:  return  "LEFT BUTTON";    break;
             case  1:  return  "RIGHT BUTTON";   break;
             case  2:  return  "MIDDLE BUTTON";  break;
-            case  3:  return  "BUTTON #4";      break;
-            case  4:  return  "BUTTON #5";      break;
-            case  5:  return  "BUTTON #6";      break;
-            case  6:  return  "BUTTON #7";      break;
-            case  7:  return  "BUTTON #8";      break;
-            case  8:  return  "BUTTON #9";      break;
-            default:  return  "UNKNOWN";        break;
+            default:  return  other_button;     break;
         }
     }
 }
