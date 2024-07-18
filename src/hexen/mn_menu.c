@@ -6362,6 +6362,8 @@ static char *M_NameMouseBind (int CurrentItPosOn, int btn)
             case  0:  return  "LEFT BUTTON";    break;
             case  1:  return  "RIGHT BUTTON";   break;
             case  2:  return  "MIDDLE BUTTON";  break;
+            case  3:  return  "WHEEL UP";       break;
+            case  4:  return  "WHEEL DOWN";     break;
             default:  return  other_button;     break;
         }
     }
