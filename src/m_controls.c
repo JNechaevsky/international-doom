@@ -196,20 +196,22 @@ int key_menu_del       = KEY_DEL; // [crispy]
 
 int mousebfire        = 0;
 int mousebforward     = 2;
-int mousebspeed       = -1;
-int mousebstrafe      = 1;
 int mousebbackward    = -1;
 int mousebuse         = -1;
+int mousebspeed       = -1;
+int mousebstrafe      = 1;
 int mousebstrafeleft  = -1;
 int mousebstraferight = -1;
 int mousebprevweapon  = 4;
 int mousebnextweapon  = 3;
-int mousebjump        = -1;
 
-// Heretic: Inventory
-int mousebinvleft = -1;
-int mousebinvright = -1;
+// Heretic & Hexen: Inventory
+int mousebinvleft     = -1;
+int mousebinvright    = -1;
 int mousebuseartifact = -1;
+
+// Hexen: Jump
+int mousebjump        = -1;
 
 // Control whether if a mouse button is double clicked,
 // it acts like "use" has been pressed.
@@ -368,16 +370,16 @@ void M_BindControls (void)
 
     M_BindIntVariable("mouseb_fire",            &mousebfire);
     M_BindIntVariable("mouseb_forward",         &mousebforward);
-    M_BindIntVariable("mouseb_speed",           &mousebspeed);
-    M_BindIntVariable("mouseb_strafe",          &mousebstrafe);
     M_BindIntVariable("mouseb_backward",        &mousebbackward);
     M_BindIntVariable("mouseb_use",             &mousebuse);
+    M_BindIntVariable("mouseb_speed",           &mousebspeed);
+    M_BindIntVariable("mouseb_strafe",          &mousebstrafe);
     M_BindIntVariable("mouseb_strafeleft",      &mousebstrafeleft);
     M_BindIntVariable("mouseb_straferight",     &mousebstraferight);
     M_BindIntVariable("mouseb_prevweapon",      &mousebprevweapon);
     M_BindIntVariable("mouseb_nextweapon",      &mousebnextweapon);
 
-    M_BindIntVariable("mouse_dclick_use",             &mouse_dclick_use);
+    M_BindIntVariable("mouse_dclick_use",       &mouse_dclick_use);
 
     //
     // Joystick controls

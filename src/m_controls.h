@@ -184,20 +184,18 @@ extern int key_menu_del; // [crispy]
 
 extern int mousebfire;
 extern int mousebforward;
-extern int mousebspeed;
-extern int mousebstrafe;
 extern int mousebbackward;
 extern int mousebuse;
+extern int mousebjump;
+extern int mousebspeed;
+extern int mousebstrafe;
 extern int mousebstrafeleft;
 extern int mousebstraferight;
 extern int mousebprevweapon;
 extern int mousebnextweapon;
-
 extern int mousebinvleft;
 extern int mousebinvright;
 extern int mousebuseartifact;
-
-extern int mousebjump;
 
 // Control whether if a mouse button is double clicked,
 // it acts like "use" has been pressed.
