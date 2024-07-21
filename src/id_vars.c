@@ -113,6 +113,7 @@ int automap_shading = 0;
 // Visual
 int vis_brightmaps = 0;
 int vis_translucency = 0;
+int vis_smooth_palette = 0;
 int vis_fake_contrast = 1;
 int vis_smooth_light = 0;
 int vis_improved_fuzz = 0;
@@ -285,6 +286,10 @@ void ID_BindVariables (GameMission_t mission)
     // Visual
     M_BindIntVariable("vis_brightmaps",                 &vis_brightmaps);
     M_BindIntVariable("vis_translucency",               &vis_translucency);
+    if (mission == doom)
+    {
+        M_BindIntVariable("vis_smooth_palette",         &vis_smooth_palette);
+    }
     if (mission == doom || mission == heretic)
     {
         M_BindIntVariable("vis_fake_contrast",          &vis_fake_contrast);
