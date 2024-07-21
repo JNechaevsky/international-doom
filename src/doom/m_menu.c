@@ -672,9 +672,9 @@ static void M_Choose_ID_Gameplay_1 (int choice);
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
-static void M_ID_SmoothPalette (int choice);
 static void M_ID_FakeContrast (int choice);
 static void M_ID_SmoothLighting (int choice);
+static void M_ID_SmoothPalette (int choice);
 static void M_ID_ImprovedFuzz (int choice);
 static void M_ID_ColoredBlood (int choice);
 static void M_ID_SwirlingLiquids (int choice);
@@ -3160,9 +3160,9 @@ static menuitem_t ID_Menu_Gameplay_1[]=
 {
     { M_LFRT, "BRIGHTMAPS",                  M_ID_Brightmaps,        'b' },
     { M_LFRT, "TRANSLUCENCY",                M_ID_Translucency,      't' },
-    { M_LFRT, "RED/YELLOW PALETTE FADING",   M_ID_SmoothPalette,     'r' },
     { M_LFRT, "FAKE CONTRAST",               M_ID_FakeContrast,      'f' },
     { M_LFRT, "DIMINISHED LIGHTING",         M_ID_SmoothLighting,    'd' },
+    { M_LFRT, "PALETTE FADING EFFECT",       M_ID_SmoothPalette,     'p' },
     { M_LFRT, "FUZZ EFFECT",                 M_ID_ImprovedFuzz,      'f' },
     { M_LFRT, "COLORED BLOOD AND CORPSES",   M_ID_ColoredBlood,      'c' },
     { M_LFRT, "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids,   'l' },
@@ -3210,26 +3210,26 @@ static void M_Draw_ID_Gameplay_1 (void)
     M_WriteText (M_ItemRightAlign(str), 27, str,
                  M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Palette change
-#ifndef CRISPY_TRUECOLOR
-    sprintf(str, "N/A");
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, GLOW_DARKRED));
-#else
-    sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, vis_smooth_palette ? GLOW_GREEN : GLOW_DARKRED));
-#endif
-
     // Fake contrast
     sprintf(str, vis_fake_contrast ? "ORIGINAL" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, vis_fake_contrast ? GLOW_DARKRED : GLOW_GREEN));
+    M_WriteText (M_ItemRightAlign(str), 36, str,
+                 M_Item_Glow(2, vis_fake_contrast ? GLOW_DARKRED : GLOW_GREEN));
 
     // Diminished lighting
     sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(3, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Palette fading effect
+#ifndef CRISPY_TRUECOLOR
+    sprintf(str, "N/A");
     M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(4, GLOW_DARKRED));
+#else
+    sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
+    M_WriteText (M_ItemRightAlign(str), 54, str,
+                 M_Item_Glow(4, vis_smooth_palette ? GLOW_GREEN : GLOW_DARKRED));
+#endif
 
     // Fuzz effect
     sprintf(str, vis_improved_fuzz == 1 ? "IMPROVED" :
@@ -3302,15 +3302,6 @@ static void M_ID_Translucency (int choice)
     vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
 }
 
-static void M_ID_SmoothPalette (int choice)
-{
-#ifndef CRISPY_TRUECOLOR
-    return;
-#else
-    vis_smooth_palette ^= 1;
-#endif
-}
-
 static void M_ID_FakeContrast (int choice)
 {
     vis_fake_contrast ^= 1;
@@ -3330,6 +3321,15 @@ static void M_ID_SmoothLighting (int choice)
 {
     vis_smooth_light ^= 1;
     post_rendering_hook = M_ID_SmoothLightingHook;
+}
+
+static void M_ID_SmoothPalette (int choice)
+{
+#ifndef CRISPY_TRUECOLOR
+    return;
+#else
+    vis_smooth_palette ^= 1;
+#endif
 }
 
 static void M_ID_ImprovedFuzz (int choice)
@@ -4267,9 +4267,9 @@ static void M_ID_ApplyResetHook (void)
     // Visual
     vis_brightmaps = 0;
     vis_translucency = 0;
-    vis_smooth_palette = 0;
     vis_fake_contrast = 1;
     vis_smooth_light = 0;
+    vis_smooth_palette = 0;
     vis_improved_fuzz = 0;
     vis_colored_blood = 0;
     vis_swirling_liquids = 0;

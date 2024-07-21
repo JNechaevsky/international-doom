@@ -557,9 +557,9 @@ static void M_ID_Automap_Shading (int choice);
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
-static void M_ID_SmoothPalette (int choice);
 static void M_ID_FakeContrast (int choice);
 static void M_ID_SmoothLighting (int choice);
+static void M_ID_SmoothPalette (int choice);
 static void M_ID_SwirlingLiquids (int choice);
 static void M_ID_InvulSky (int choice);
 static void M_ID_LinearSky (int choice);
@@ -2951,9 +2951,9 @@ static void M_ID_Automap_Shading (int choice)
 static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_LRFUNC,  "BRIGHTMAPS",                  M_ID_Brightmaps,      0, MENU_NONE          },
     { ITT_LRFUNC,  "EXTRA TRANSLUCENCY",          M_ID_Translucency,    0, MENU_NONE          },
-    { ITT_LRFUNC,  "RED/YELLOW PALETTE FADING",   M_ID_SmoothPalette,   0, MENU_NONE          },
     { ITT_LRFUNC,  "FAKE CONTRAST",               M_ID_FakeContrast,    0, MENU_NONE          },
     { ITT_LRFUNC,  "DIMINISHED LIGHTING",         M_ID_SmoothLighting,  0, MENU_NONE          },
+    { ITT_LRFUNC,  "PALETTE FADING EFFECT",       M_ID_SmoothPalette,   0, MENU_NONE          },
     { ITT_LRFUNC,  "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids, 0, MENU_NONE          },
     { ITT_LRFUNC,  "INVULNERABILITY AFFECTS SKY", M_ID_InvulSky,        0, MENU_NONE          },
     { ITT_LRFUNC,  "SKY DRAWING MODE",            M_ID_LinearSky,       0, MENU_NONE          },
@@ -2992,26 +2992,26 @@ static void M_Draw_ID_Gameplay_1 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
                M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Red/yellow palette fading
-#ifndef CRISPY_TRUECOLOR
-    sprintf(str, "N/A");
-    MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, GLOW_DARKRED));
-#else
-    sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
-    MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, vis_smooth_palette ? GLOW_GREEN : GLOW_DARKRED));
-#endif
-
     // Fake contrast
     sprintf(str, vis_fake_contrast ? "ORIGINAL" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, vis_fake_contrast ? GLOW_DARKRED : GLOW_GREEN));
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, vis_fake_contrast ? GLOW_DARKRED : GLOW_GREEN));
 
     // Diminished lighting
     sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Palette fading effect
+#ifndef CRISPY_TRUECOLOR
+    sprintf(str, "N/A");
     MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               M_Item_Glow(4, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
+               M_Item_Glow(4, GLOW_DARKRED));
+#else
+    sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, vis_smooth_palette ? GLOW_GREEN : GLOW_DARKRED));
+#endif
 
     // Liquids animation
     sprintf(str, vis_swirling_liquids ? "SWIRLING" : "ORIGINAL");
@@ -3072,15 +3072,6 @@ static void M_ID_Translucency (int choice)
     vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
 }
 
-static void M_ID_SmoothPalette (int choice)
-{
-#ifndef CRISPY_TRUECOLOR
-    return;
-#else
-    vis_smooth_palette ^= 1;
-#endif
-}
-
 static void M_ID_FakeContrast (int choice)
 {
     vis_fake_contrast ^= 1;
@@ -3100,6 +3091,15 @@ static void M_ID_SmoothLighting (int choice)
 {
     vis_smooth_light ^= 1;
     post_rendering_hook = M_ID_SmoothLightingHook;
+}
+
+static void M_ID_SmoothPalette (int choice)
+{
+#ifndef CRISPY_TRUECOLOR
+    return;
+#else
+    vis_smooth_palette ^= 1;
+#endif
 }
 
 static void M_ID_SwirlingLiquids (int choice)
@@ -4051,9 +4051,9 @@ static void M_ID_ApplyResetHook (void)
     // Visual
     vis_brightmaps = 0;
     vis_translucency = 0;
-    vis_smooth_palette = 0;
     vis_fake_contrast = 1;
     vis_smooth_light = 0;
+    vis_smooth_palette = 0;
     vis_swirling_liquids = 0;
     vis_invul_sky = 0;
     vis_linear_sky = 0;

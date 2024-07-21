@@ -92,9 +92,9 @@ extern int automap_shading;
 // Gameplay features
 extern int vis_brightmaps;
 extern int vis_translucency;
-extern int vis_smooth_palette;
 extern int vis_fake_contrast;
 extern int vis_smooth_light;
+extern int vis_smooth_palette;
 extern int vis_improved_fuzz;
 extern int vis_colored_blood;
 extern int vis_swirling_liquids;
