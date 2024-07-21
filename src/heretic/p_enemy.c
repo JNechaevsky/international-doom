@@ -2651,6 +2651,7 @@ void A_SkullPop(mobj_t *actor, player_t *player_, pspdef_t *psp)
         player->mo = mo;
         player->lookdir = 0;
         player->damagecount = 32;
+        red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
     }
 }
 
