@@ -436,6 +436,7 @@ void P_DeathThink(player_t * player)
             }
             if (player->poisoncount)
             {
+                grn_pane_alpha = player->poisoncount * 5;  // [JN] Smooth palette.
                 player->poisoncount--;
             }
         }
@@ -462,6 +463,7 @@ void P_DeathThink(player_t * player)
         }
         else
         {
+            grn_pane_alpha = player->poisoncount * 5;  // [JN] Smooth palette.
             player->poisoncount--;
         }
     }
@@ -1025,6 +1027,7 @@ void P_PlayerThink(player_t * player)
         {
             player->poisoncount = 0;
         }
+        grn_pane_alpha = player->poisoncount * 5;  // [JN] Smooth palette.
         P_PoisonDamage(player, player->poisoner, 1, true);
     }
     // Colormaps

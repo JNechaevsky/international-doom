@@ -1318,14 +1318,7 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         CPlayer = &players[displayplayer];
         if (CPlayer->poisoncount)
         {
-            // palette = 14; [JN] TODO - smooth poisoncount fading?
-            palette = 0;
-            palette = (CPlayer->poisoncount + 7) >> 3;
-            if (palette >= NUMPOISONPALS)
-            {
-                palette = NUMPOISONPALS - 1;
-            }
-            palette += STARTPOISONPALS;
+            palette = 14;
         }
         else if (CPlayer->damagecount)
         {
