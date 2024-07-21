@@ -286,10 +286,7 @@ void ID_BindVariables (GameMission_t mission)
     // Visual
     M_BindIntVariable("vis_brightmaps",                 &vis_brightmaps);
     M_BindIntVariable("vis_translucency",               &vis_translucency);
-    if (mission == doom || mission == heretic)
-    {
-        M_BindIntVariable("vis_smooth_palette",         &vis_smooth_palette);
-    }
+    M_BindIntVariable("vis_smooth_palette",             &vis_smooth_palette);
     if (mission == doom || mission == heretic)
     {
         M_BindIntVariable("vis_fake_contrast",          &vis_fake_contrast);
