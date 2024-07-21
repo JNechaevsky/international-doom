@@ -28,7 +28,7 @@
 #include "id_vars.h"
 
 
-#define BONUSADD (vis_smooth_palette ? 10 : 6)  // [JN] Smooth palette.
+#define BONUSADD (vis_smooth_palette ? 8 : 6)  // [JN] Smooth palette.
 
 int ArmorIncrement[NUMCLASSES][NUMARMOR] = {
     {25 * FRACUNIT, 20 * FRACUNIT, 15 * FRACUNIT, 5 * FRACUNIT},

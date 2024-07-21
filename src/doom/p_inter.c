@@ -33,7 +33,7 @@
 #include "id_func.h"
 
 
-#define BONUSADD	(vis_smooth_palette ? 10 : 6)  // [JN] Smooth palette.
+#define BONUSADD	(vis_smooth_palette ? 8 : 6)  // [JN] Smooth palette.
 
 
 

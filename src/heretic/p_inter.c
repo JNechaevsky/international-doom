@@ -30,7 +30,7 @@
 #include "id_vars.h"
 
 
-#define BONUSADD (vis_smooth_palette ? 10 : 6)  // [JN] Smooth palette.
+#define BONUSADD (vis_smooth_palette ? 8 : 6)  // [JN] Smooth palette.
 
 int WeaponValue[] = {
     1,                          // staff
