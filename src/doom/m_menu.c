@@ -674,6 +674,7 @@ static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
 static void M_ID_FakeContrast (int choice);
 static void M_ID_SmoothLighting (int choice);
+static void M_ID_SmoothPalette (int choice);
 static void M_ID_ImprovedFuzz (int choice);
 static void M_ID_ColoredBlood (int choice);
 static void M_ID_SwirlingLiquids (int choice);
@@ -3161,6 +3162,7 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { M_LFRT, "TRANSLUCENCY",                M_ID_Translucency,      't' },
     { M_LFRT, "FAKE CONTRAST",               M_ID_FakeContrast,      'f' },
     { M_LFRT, "DIMINISHED LIGHTING",         M_ID_SmoothLighting,    'd' },
+    { M_LFRT, "PALETTE FADING EFFECT",       M_ID_SmoothPalette,     'p' },
     { M_LFRT, "FUZZ EFFECT",                 M_ID_ImprovedFuzz,      'f' },
     { M_LFRT, "COLORED BLOOD AND CORPSES",   M_ID_ColoredBlood,      'c' },
     { M_LFRT, "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids,   'l' },
@@ -3170,7 +3172,6 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { M_SKIP, "", 0, '\0' },
     { M_LFRT, "SHAPE",                       M_ID_Crosshair,         's' },
     { M_LFRT, "INDICATION",                  M_ID_CrosshairColor,    'i' },
-    { M_SKIP, "", 0, '\0' },
     { M_SWTC, "", /*NEXT PAGE >*/            M_Choose_ID_Gameplay_2, 'n' },
     { M_SWTC, "", /*< LAST PAGE*/            M_Choose_ID_Gameplay_3, 'p' },
 };
@@ -3219,38 +3220,49 @@ static void M_Draw_ID_Gameplay_1 (void)
     M_WriteText (M_ItemRightAlign(str), 45, str,
                  M_Item_Glow(3, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Palette fading effect
+#ifndef CRISPY_TRUECOLOR
+    sprintf(str, "N/A");
+    M_WriteText (M_ItemRightAlign(str), 54, str,
+                 M_Item_Glow(4, GLOW_DARKRED));
+#else
+    sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
+    M_WriteText (M_ItemRightAlign(str), 54, str,
+                 M_Item_Glow(4, vis_smooth_palette ? GLOW_GREEN : GLOW_DARKRED));
+#endif
+
     // Fuzz effect
     sprintf(str, vis_improved_fuzz == 1 ? "IMPROVED" :
                  vis_improved_fuzz == 2 ? "TRANSLUCENT" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, vis_improved_fuzz ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 63, str,
+                 M_Item_Glow(5, vis_improved_fuzz ? GLOW_GREEN : GLOW_DARKRED));
 
     // Colored blood and corpses
     sprintf(str, vis_colored_blood ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, vis_colored_blood ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(6, vis_colored_blood ? GLOW_GREEN : GLOW_DARKRED));
 
     // Liquids animation
     sprintf(str, vis_swirling_liquids ? "SWIRLING" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 81, str,
+                 M_Item_Glow(7, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
 
     // Invulnerability affects sky
     sprintf(str, vis_invul_sky ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, vis_invul_sky ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 90, str,
+                 M_Item_Glow(8, vis_invul_sky ? GLOW_GREEN : GLOW_DARKRED));
 
     // Sky drawing mode
     sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, vis_linear_sky ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 99, str,
+                 M_Item_Glow(9, vis_linear_sky ? GLOW_GREEN : GLOW_DARKRED));
 
     // Randomly mirrored corpses
     sprintf(str, vis_flip_corpses ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 108, str,
+                 M_Item_Glow(10, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(108, "CROSSHAIR", cr[CR_YELLOW]);
+    M_WriteTextCentered(117, "CROSSHAIR", cr[CR_YELLOW]);
 
     // Crosshair shape
     sprintf(str, xhair_draw == 1 ? "CROSS 1" :
@@ -3260,15 +3272,15 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_draw == 5 ? "ANGLE" :
                  xhair_draw == 6 ? "TRIANGLE" :
                  xhair_draw == 7 ? "DOT" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(11, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 126, str,
+                 M_Item_Glow(12, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
 
     // Crosshair indication
     sprintf(str, xhair_color == 1 ? "HEALTH" :
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
                  xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 135, str,
+                 M_Item_Glow(13, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
     M_WriteText (ID_MENU_LEFTOFFSET_BIG, 144, "NEXT PAGE >",
                  M_Item_Glow(14, GLOW_LIGHTGRAY));
@@ -3309,6 +3321,15 @@ static void M_ID_SmoothLighting (int choice)
 {
     vis_smooth_light ^= 1;
     post_rendering_hook = M_ID_SmoothLightingHook;
+}
+
+static void M_ID_SmoothPalette (int choice)
+{
+#ifndef CRISPY_TRUECOLOR
+    return;
+#else
+    vis_smooth_palette ^= 1;
+#endif
 }
 
 static void M_ID_ImprovedFuzz (int choice)
@@ -4248,6 +4269,7 @@ static void M_ID_ApplyResetHook (void)
     vis_translucency = 0;
     vis_fake_contrast = 1;
     vis_smooth_light = 0;
+    vis_smooth_palette = 0;
     vis_improved_fuzz = 0;
     vis_colored_blood = 0;
     vis_swirling_liquids = 0;

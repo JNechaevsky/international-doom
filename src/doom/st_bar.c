@@ -986,6 +986,71 @@ void ST_doPaletteStuff (void)
 }
 
 // -----------------------------------------------------------------------------
+// ST_doSmoothPaletteStuff
+// [JN] Smooth palette handling.
+// -----------------------------------------------------------------------------
+
+#ifdef CRISPY_TRUECOLOR
+static void ST_doSmoothPaletteStuff (void)
+{
+    int palette;
+    int red = plyr->damagecount;
+    int yel = plyr->bonuscount;
+
+    if (plyr->powers[pw_strength])
+    {
+        // slowly fade the berzerk out
+        const int bzc = 12 - (plyr->powers[pw_strength] >> 6);
+        red_pane_alpha = plyr->powers[pw_strength];
+
+        if (bzc > red)
+        {
+            red = bzc;
+            red_pane_alpha = bzc * 8;
+        }
+        else
+        {
+            red_pane_alpha = red * 4;
+        }
+    }
+
+    if (red)
+    {
+        palette = 1;
+    }
+    else if (yel)
+    {
+        palette = 9;
+    }
+    else if (plyr->powers[pw_ironfeet] > 4*32 || plyr->powers[pw_ironfeet] & 8)
+    {
+        palette = RADIATIONPAL;
+    }
+    else
+    {
+        palette = 0;
+    }
+
+    // In Chex Quest, the player never sees red.  Instead, the
+    // radiation suit palette is used to tint the screen green,
+    // as though the player is being covered in goo by an
+    // attacking flemoid.
+
+    if (gameversion == exe_chex
+    &&  palette >= STARTREDPALS && palette < STARTREDPALS + NUMREDPALS)
+    {
+        palette = RADIATIONPAL;
+    }
+
+    if (palette != st_palette || red || yel)
+    {
+        st_palette = palette;
+        I_SetPalette (palette);
+    }
+}
+#endif
+
+// -----------------------------------------------------------------------------
 // ST_UpdateFragsCounter
 // [JN] Updated to int type, allowing to show frags of any player.
 // -----------------------------------------------------------------------------
@@ -1074,7 +1139,18 @@ void ST_Ticker (void)
     }
 
     // Do red-/gold-shifts from damage/items
+#ifndef CRISPY_TRUECOLOR
     ST_doPaletteStuff();
+#else
+    if (vis_smooth_palette)
+    {
+        ST_doSmoothPaletteStuff();
+    }
+    else
+    {
+        ST_doPaletteStuff();
+    }
+#endif
 }
 
 // -----------------------------------------------------------------------------

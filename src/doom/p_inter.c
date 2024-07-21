@@ -33,7 +33,7 @@
 #include "id_func.h"
 
 
-#define BONUSADD	6
+#define BONUSADD	(vis_smooth_palette ? 8 : 6)  // [JN] Smooth palette.
 
 
 
@@ -190,6 +190,7 @@ P_GiveWeapon
 	    return false;
 
 	player->bonuscount += BONUSADD;
+	yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
 	player->weaponowned[weapon] = true;
 
 	if (deathmatch)
@@ -293,6 +294,7 @@ P_GiveCard
 	return;
     
     player->bonuscount += netgame ? BONUSADD : 0; // [crispy] Fix "Key pickup resets palette"
+    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
     player->cards[card] = 1;
 }
 
@@ -703,6 +705,7 @@ P_TouchSpecialThing
     P_RemoveMobj (special);
 
     player->bonuscount += BONUSADD;
+    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
     // [JN] Limit bonus palette duration to 4 seconds.
     if (player->bonuscount > 4 * TICRATE)
 	player->bonuscount = 4 * TICRATE;
@@ -962,6 +965,12 @@ P_DamageMobj
 	player->attacker = source;
 	player->damagecount += damage;	// add damage after armor / invuln
 
+#ifdef CRISPY_TRUECOLOR
+	// [JN] Smooth palette. Avoid using too low red values, since palette
+	// is counted from alpha values, not from palette indexes.
+	if (vis_smooth_palette && player->damagecount < 16) 
+	    player->damagecount = 16;
+#endif
 	if (player->damagecount > 100)
 	    player->damagecount = 100;	// teleport stomp does 10k points...
     }

@@ -286,7 +286,10 @@ void P_DeathThink (player_t* player)
 	    player->mo->angle = angle;
 
 	    if (player->damagecount)
+	    {
+		red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
 		player->damagecount--;
+	    }
 	}
 	else if (delta < ANG180)
 	    player->mo->angle += ANG5;
@@ -294,7 +297,10 @@ void P_DeathThink (player_t* player)
 	    player->mo->angle -= ANG5;
     }
     else if (player->damagecount)
+    {
+	red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
 	player->damagecount--;
+    }
 	
 
     if (player->cmd.buttons & BT_USE)
@@ -510,10 +516,16 @@ void P_PlayerThink (player_t* player)
 	player->powers[pw_ironfeet]--;
 		
     if (player->damagecount)
+    {
+	red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
 	player->damagecount--;
+    }
 		
     if (player->bonuscount)
+    {
+	yel_pane_alpha = player->bonuscount * 4;  // [JN] Smooth palette.
 	player->bonuscount--;
+    }
 
     
     // Handling colormaps.

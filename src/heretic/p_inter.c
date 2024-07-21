@@ -27,8 +27,10 @@
 #include "am_map.h"
 #include "ct_chat.h"
 
+#include "id_vars.h"
 
-#define BONUSADD 6
+
+#define BONUSADD (vis_smooth_palette ? 8 : 6)  // [JN] Smooth palette.
 
 int WeaponValue[] = {
     1,                          // staff
@@ -222,6 +224,7 @@ boolean P_GiveWeapon(player_t * player, weapontype_t weapon)
             return (false);
         }
         player->bonuscount += BONUSADD;
+        yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
         player->weaponowned[weapon] = true;
         P_GiveAmmo(player, wpnlev1info[weapon].ammo, GetWeaponAmmo[weapon]);
         player->pendingweapon = weapon;
@@ -325,6 +328,7 @@ void P_GiveKey(player_t * player, keytype_t key)
         KeyPoints[key].y = 0;
     }
     player->bonuscount = BONUSADD;
+    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
     player->keys[key] = true;
 }
 
@@ -869,6 +873,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
         P_RemoveMobj(special);
     }
     player->bonuscount += BONUSADD;
+    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
     // [JN] Limit bonus palette duration to 4 seconds.
     if (player->bonuscount > 4 * TICRATE)
     {
@@ -1446,6 +1451,14 @@ void P_DamageMobj
         }
         player->attacker = source;
         player->damagecount += damage;  // add damage after armor / invuln
+#ifdef CRISPY_TRUECOLOR
+        // [JN] Smooth palette. Avoid using too low red values, since palette
+        // is counted from alpha values, not from palette indexes.
+        if (vis_smooth_palette && player->damagecount < 16) 
+        {
+            player->damagecount = 16;
+        }
+#endif
         if (player->damagecount > 100)
         {
             player->damagecount = 100;  // teleport stomp does 10k points...

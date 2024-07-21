@@ -368,6 +368,7 @@ extern int SB_state;
 extern int ArtifactFlash;
 void SB_ForceRedraw(void);
 void SB_PaletteFlash(boolean forceChange);
+void SB_SmoothPaletteFlash(boolean forceChange);
 
 // ===== PO_MAN =====
 

@@ -431,10 +431,12 @@ void P_DeathThink(player_t * player)
         {                       // Looking at killer, so fade damage and poison counters
             if (player->damagecount)
             {
+                red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
                 player->damagecount--;
             }
             if (player->poisoncount)
             {
+                grn_pane_alpha = player->poisoncount * 5;  // [JN] Smooth palette.
                 player->poisoncount--;
             }
         }
@@ -456,10 +458,12 @@ void P_DeathThink(player_t * player)
     {
         if (player->damagecount)
         {
+            red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
             player->damagecount--;
         }
         else
         {
+            grn_pane_alpha = player->poisoncount * 5;  // [JN] Smooth palette.
             player->poisoncount--;
         }
     }
@@ -1008,10 +1012,12 @@ void P_PlayerThink(player_t * player)
     }
     if (player->damagecount)
     {
+        red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
         player->damagecount--;
     }
     if (player->bonuscount)
     {
+        yel_pane_alpha = player->bonuscount * 4;  // [JN] Smooth palette.
         player->bonuscount--;
     }
     if (player->poisoncount && !(leveltime & 15))
@@ -1021,6 +1027,7 @@ void P_PlayerThink(player_t * player)
         {
             player->poisoncount = 0;
         }
+        grn_pane_alpha = player->poisoncount * 5;  // [JN] Smooth palette.
         P_PoisonDamage(player, player->poisoner, 1, true);
     }
     // Colormaps

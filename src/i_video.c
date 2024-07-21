@@ -122,6 +122,8 @@ extern pixel_t* pal_color; // [crispy] evil hack to get FPS dots working as in V
 static SDL_Color palette[256];
 #endif
 static boolean palette_to_set;
+// [JN] Smooth palette.
+int    red_pane_alpha, yel_pane_alpha, grn_pane_alpha;
 
 // display has been set up?
 
@@ -1155,6 +1157,12 @@ void I_SetPalette (int palette)
 	    curpane = NULL;
 	    break;
 	case 1:
+	    if (vis_smooth_palette)
+	    {
+	    curpane = redpane;
+	    pane_alpha = MIN(red_pane_alpha, 226);
+	    break;
+	    }
 	case 2:
 	case 3:
 	case 4:
@@ -1166,6 +1174,12 @@ void I_SetPalette (int palette)
 	    pane_alpha = 0xff * palette / 9;
 	    break;
 	case 9:
+	    if (vis_smooth_palette)
+	    {
+	    curpane = yelpane;
+	    pane_alpha = MIN(yel_pane_alpha, 127);
+	    break;
+	    }
 	case 10:
 	case 11:
 	case 12:
@@ -1180,7 +1194,14 @@ void I_SetPalette (int palette)
 	// https://doomwiki.org/wiki/PLAYPAL#Hexen
 	case 14:  // STARTPOISONPALS + 1 (13 is shared with other games)
 	    curpane = grnspane;
+	    if (vis_smooth_palette)
+	    {
+	    pane_alpha = MIN(grn_pane_alpha, 204);
+	    }
+	    else
+	    {
 	    pane_alpha = 0x33; // 51 (20%)
+	    }
 	    break;
 	case 15:
 	    curpane = grnspane;

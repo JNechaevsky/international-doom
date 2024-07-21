@@ -559,6 +559,7 @@ static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
 static void M_ID_FakeContrast (int choice);
 static void M_ID_SmoothLighting (int choice);
+static void M_ID_SmoothPalette (int choice);
 static void M_ID_SwirlingLiquids (int choice);
 static void M_ID_InvulSky (int choice);
 static void M_ID_LinearSky (int choice);
@@ -2952,6 +2953,7 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_LRFUNC,  "EXTRA TRANSLUCENCY",          M_ID_Translucency,    0, MENU_NONE          },
     { ITT_LRFUNC,  "FAKE CONTRAST",               M_ID_FakeContrast,    0, MENU_NONE          },
     { ITT_LRFUNC,  "DIMINISHED LIGHTING",         M_ID_SmoothLighting,  0, MENU_NONE          },
+    { ITT_LRFUNC,  "PALETTE FADING EFFECT",       M_ID_SmoothPalette,   0, MENU_NONE          },
     { ITT_LRFUNC,  "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids, 0, MENU_NONE          },
     { ITT_LRFUNC,  "INVULNERABILITY AFFECTS SKY", M_ID_InvulSky,        0, MENU_NONE          },
     { ITT_LRFUNC,  "SKY DRAWING MODE",            M_ID_LinearSky,       0, MENU_NONE          },
@@ -2959,7 +2961,6 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE          },
     { ITT_LRFUNC,  "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE          },
     { ITT_LRFUNC,  "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE          },
     { ITT_SETMENU, "", /* NEXT PAGE */            NULL,                 0, MENU_ID_GAMEPLAY2  },
 };
 
@@ -3001,27 +3002,38 @@ static void M_Draw_ID_Gameplay_1 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 50,
                M_Item_Glow(3, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Palette fading effect
+#ifndef CRISPY_TRUECOLOR
+    sprintf(str, "N/A");
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, GLOW_DARKRED));
+#else
+    sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, vis_smooth_palette ? GLOW_GREEN : GLOW_DARKRED));
+#endif
+
     // Liquids animation
     sprintf(str, vis_swirling_liquids ? "SWIRLING" : "ORIGINAL");
-    MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               M_Item_Glow(4, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
 
     // Invulnerability affects sky
     sprintf(str, vis_invul_sky ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 70,
-               M_Item_Glow(5, vis_invul_sky ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, vis_invul_sky ? GLOW_GREEN : GLOW_DARKRED));
 
     // Sky drawing mode
     sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, vis_linear_sky ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, vis_linear_sky ? GLOW_GREEN : GLOW_DARKRED));
 
     // Randomly mirrored corpses
     sprintf(str, vis_flip_corpses ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("CROSSHAIR", 100, cr[CR_YELLOW]);
+    MN_DrTextACentered("CROSSHAIR", 110, cr[CR_YELLOW]);
 
     // Crosshair shape
     sprintf(str, xhair_draw == 1 ? "CROSS 1" :
@@ -3031,15 +3043,15 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_draw == 5 ? "ANGLE" :
                  xhair_draw == 6 ? "TRIANGLE" :
                  xhair_draw == 7 ? "DOT" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
 
     // Crosshair indication
     sprintf(str, xhair_color == 1 ? "HEALTH" :
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
                  xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
-    MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, !xhair_draw ? GLOW_DARKRED :
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, !xhair_draw ? GLOW_DARKRED :
                                xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
     MN_DrTextA("NEXT PAGE", ID_MENU_LEFTOFFSET_BIG, 140,
@@ -3079,6 +3091,15 @@ static void M_ID_SmoothLighting (int choice)
 {
     vis_smooth_light ^= 1;
     post_rendering_hook = M_ID_SmoothLightingHook;
+}
+
+static void M_ID_SmoothPalette (int choice)
+{
+#ifndef CRISPY_TRUECOLOR
+    return;
+#else
+    vis_smooth_palette ^= 1;
+#endif
 }
 
 static void M_ID_SwirlingLiquids (int choice)
@@ -4032,6 +4053,7 @@ static void M_ID_ApplyResetHook (void)
     vis_translucency = 0;
     vis_fake_contrast = 1;
     vis_smooth_light = 0;
+    vis_smooth_palette = 0;
     vis_swirling_liquids = 0;
     vis_invul_sky = 0;
     vis_linear_sky = 0;

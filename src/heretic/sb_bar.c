@@ -433,7 +433,18 @@ void SB_Ticker(void)
     }
 
     // [JN] Do red-/gold-shifts from damage/items.
+#ifndef CRISPY_TRUECOLOR
     SB_PaletteFlash();
+#else
+    if (vis_smooth_palette)
+    {
+        SB_SmoothPaletteFlash();
+    }
+    else
+    {
+        SB_PaletteFlash();
+    }
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -1211,6 +1222,37 @@ void SB_PaletteFlash(void)
 #else
         I_SetPalette(palette);
 #endif
+    }
+}
+
+// -----------------------------------------------------------------------------
+// SB_SmoothPaletteFlash
+// [JN] Smooth palette handling.
+// -----------------------------------------------------------------------------
+
+void SB_SmoothPaletteFlash (void)
+{
+    int palette;
+
+    CPlayer = &players[displayplayer];
+
+    if (CPlayer->damagecount)
+    {
+        palette = 1;
+    }
+    else if (CPlayer->bonuscount)
+    {
+        palette = 9;
+    }
+    else
+    {
+        palette = 0;
+    }
+
+    if (palette != sb_palette || CPlayer->damagecount || CPlayer->bonuscount)
+    {
+        sb_palette = palette;
+        I_SetPalette(palette);
     }
 }
 

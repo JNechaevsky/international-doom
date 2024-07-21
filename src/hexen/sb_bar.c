@@ -500,7 +500,18 @@ void SB_Ticker(void)
     IDWidget.y = CPlayer->mo->y >> FRACBITS;
     IDWidget.ang = CPlayer->mo->angle / ANG1;
 
+#ifndef CRISPY_TRUECOLOR
     SB_PaletteFlash(false);
+#else
+    if (vis_smooth_palette)
+    {
+        SB_SmoothPaletteFlash(false);
+    }
+    else
+    {
+        SB_PaletteFlash(false);
+    }
+#endif
 }
 
 //==========================================================================
@@ -1286,6 +1297,55 @@ void SB_PaletteFlash(boolean forceChange)
 #else
         I_SetPalette(palette);
 #endif
+    }
+}
+
+// -----------------------------------------------------------------------------
+// SB_SmoothPaletteFlash
+// [JN] Smooth palette handling.
+// -----------------------------------------------------------------------------
+
+void SB_SmoothPaletteFlash (boolean forceChange)
+{
+    int palette;
+
+    if (forceChange)
+    {
+        SB_palette = -1;
+    }
+    if (gamestate == GS_LEVEL)
+    {
+        CPlayer = &players[displayplayer];
+        if (CPlayer->poisoncount)
+        {
+            palette = 14;
+        }
+        else if (CPlayer->damagecount)
+        {
+            palette = 1;
+        }
+        else if (CPlayer->bonuscount)
+        {
+            palette = 9;
+        }
+        else if (CPlayer->mo->flags2 & MF2_ICEDAMAGE)
+        {                       // Frozen player
+            palette = STARTICEPAL;
+        }
+        else
+        {
+            palette = 0;
+        }
+    }
+    else
+    {
+        palette = 0;
+    }
+
+    if (palette != SB_palette || CPlayer->poisoncount || CPlayer->damagecount || CPlayer->bonuscount)
+    {
+        SB_palette = palette;
+        I_SetPalette(palette);
     }
 }
 
