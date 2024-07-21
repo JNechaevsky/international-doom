@@ -1944,12 +1944,14 @@ void P_DamageMobj
         }
         player->attacker = source;
         player->damagecount += damage;  // add damage after armor / invuln
+#ifdef CRISPY_TRUECOLOR
         // [JN] Smooth palette. Avoid using too low red values, since palette
         // is counted from alpha values, not from palette indexes.
         if (vis_smooth_palette && player->damagecount < 16) 
         {
             player->damagecount = 16;
         }
+#endif
         if (player->damagecount > 100)
         {
             player->damagecount = 100;  // teleport stomp does 10k points...
