@@ -17,6 +17,7 @@
 //	Mission begin melt/wipe screen special effect.
 //
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "z_zone.h"
@@ -51,7 +52,7 @@ static int fade_counter;
 static void wipe_shittyColMajorXform (dpixel_t *array)
 {
     const int width = SCREENWIDTH/2;
-    dpixel_t *dest = (dpixel_t*) Z_Malloc(width*SCREENHEIGHT*sizeof(*dest), PU_STATIC, 0);
+    dpixel_t *dest = (dpixel_t*) malloc(width*SCREENHEIGHT*sizeof(*dest));
 
     for (int y = 0 ; y < SCREENHEIGHT ; y++)
     {
@@ -63,7 +64,7 @@ static void wipe_shittyColMajorXform (dpixel_t *array)
 
     memcpy(array, dest, width*SCREENHEIGHT*sizeof(*dest));
 
-    Z_Free(dest);
+    free(dest);
 }
 
 // -----------------------------------------------------------------------------
@@ -82,7 +83,7 @@ static void wipe_initMelt (void)
 
     // setup initial column positions
     // (y<0 => not ready to scroll yet)
-    y = (int *) Z_Malloc(SCREENWIDTH*sizeof(int), PU_STATIC, 0);
+    y = (int *) malloc(SCREENWIDTH*sizeof(int));
     y[0] = -(ID_RealRandom()%16);
 
     for (int i = 1 ; i < SCREENWIDTH ; i++)
@@ -236,9 +237,9 @@ static const int wipe_doCrossfade (const int ticks)
 static void wipe_exit (void)
 {
     if (vid_screenwipe < 3)  // [JN] y is not allocated in crossfade wipe.
-    Z_Free(y);
-    Z_Free(wipe_scr_start);
-    Z_Free(wipe_scr_end);
+    free(y);
+    free(wipe_scr_start);
+    free(wipe_scr_end);
 }
 
 // -----------------------------------------------------------------------------
@@ -247,7 +248,7 @@ static void wipe_exit (void)
 
 void wipe_StartScreen (void)
 {
-    wipe_scr_start = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start), PU_STATIC, NULL);
+    wipe_scr_start = malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start));
     I_ReadScreen(wipe_scr_start);
 }
 
@@ -257,7 +258,7 @@ void wipe_StartScreen (void)
 
 void wipe_EndScreen (void)
 {
-    wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
+    wipe_scr_end = malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end));
     I_ReadScreen(wipe_scr_end);
     V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_start); // restore start scr.
 }
