@@ -14,6 +14,7 @@
 // GNU General Public License for more details.
 //
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "z_zone.h"
@@ -112,8 +113,8 @@ static void wipe_exit (void)
 {
     // [JN] Blit final screen.
     V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_end);
-    Z_Free(wipe_scr_start);
-    Z_Free(wipe_scr_end);
+    free(wipe_scr_start);
+    free(wipe_scr_end);
 }
 
 // -----------------------------------------------------------------------------
@@ -122,7 +123,7 @@ static void wipe_exit (void)
 
 void wipe_StartScreen (void)
 {
-    wipe_scr_start = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start), PU_STATIC, NULL);
+    wipe_scr_start = malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start));
     I_ReadScreen(wipe_scr_start);
 }
 
@@ -132,7 +133,7 @@ void wipe_StartScreen (void)
 
 void wipe_EndScreen (void)
 {
-    wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end), PU_STATIC, NULL);
+    wipe_scr_end = malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end));
     I_ReadScreen(wipe_scr_end);
 }
 

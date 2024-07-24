@@ -1467,8 +1467,8 @@ void R_PrecacheLevel (void)
     }
 
     {
-        size_t size = numflats > numsprites   ? numflats : numsprites;
-        hitlist = Z_Malloc(numtextures > size ? numtextures : size, PU_STATIC, 0);
+        const size_t size = numflats > numsprites ? numflats : numsprites;
+        hitlist = malloc(numtextures > size ? numtextures : size);
     }
 
     // Precache flats.
@@ -1555,7 +1555,7 @@ void R_PrecacheLevel (void)
         }
     }
 
-    Z_Free(hitlist);
+    free(hitlist);
 }
 
 
