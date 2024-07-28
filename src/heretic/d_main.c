@@ -255,7 +255,7 @@ void D_Display(void)
             }
 
             // [JN] Allow to draw level name separately from automap.
-            if (widget_levelname)
+            if (automapactive || (widget_levelname && widget_enable && dp_screen_size < 13))
             {
                 AM_LevelNameDrawer();
             }
