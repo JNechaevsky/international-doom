@@ -1349,8 +1349,9 @@ void P_GroupLines(void)
         }
 
         // set the degenmobj_t to the middle of the bounding box
-        sector->soundorg.x = (bbox[BOXRIGHT] + bbox[BOXLEFT]) / 2;
-        sector->soundorg.y = (bbox[BOXTOP] + bbox[BOXBOTTOM]) / 2;
+        // Andrey Budko: fix sound origin for large levels
+        sector->soundorg.x = bbox[BOXRIGHT] / 2 + bbox[BOXLEFT] / 2;
+        sector->soundorg.y = bbox[BOXTOP] / 2 + bbox[BOXBOTTOM] / 2;
 
         // adjust bounding box to map blocks
         block = (bbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
