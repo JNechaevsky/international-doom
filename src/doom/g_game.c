@@ -2166,7 +2166,7 @@ void G_DoCompleted (void)
         {
             int cpars32;
 
-            memcpy(&cpars32, DEH_String(GAMMALVL0), sizeof(int));
+            memcpy(&cpars32, DEH_String(GAMMALVL_OFF), sizeof(int));
             cpars32 = LONG(cpars32);
 
             wminfo.partime = TICRATE*cpars32;
