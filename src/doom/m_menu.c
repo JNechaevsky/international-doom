@@ -82,24 +82,49 @@ static boolean messageNeedsInput;
 
 static void (*messageRoutine)(int response);
 
-static char *gammalvls[16][2] =
+static char *gammalvls[MAXGAMMA][2] =
 {
-    { GAMMALVL05,   "0.50" },
-    { GAMMALVL055,  "0.55" },
-    { GAMMALVL06,   "0.60" },
-    { GAMMALVL065,  "0.65" },
-    { GAMMALVL07,   "0.70" },
-    { GAMMALVL075,  "0.75" },
-    { GAMMALVL08,   "0.80" },
-    { GAMMALVL085,  "0.85" },
-    { GAMMALVL09,   "0.90" },
-    { GAMMALVL095,  "0.95" },
-    { GAMMALVL0,    "OFF"  },
-    { GAMMALVL1,    "1"    },
-    { GAMMALVL2,    "2"    },
-    { GAMMALVL3,    "3"    },
-    { GAMMALVL4,    "4"    },
-    { NULL,         NULL   },
+    { GAMMALVL_N050,  "-0.50" },
+    { GAMMALVL_N055,  "-0.55" },
+    { GAMMALVL_N060,  "-0.60" },
+    { GAMMALVL_N065,  "-0.65" },
+    { GAMMALVL_N070,  "-0.70" },
+    { GAMMALVL_N075,  "-0.75" },
+    { GAMMALVL_N080,  "-0.80" },
+    { GAMMALVL_N085,  "-0.85" },
+    { GAMMALVL_N090,  "-0.90" },
+    { GAMMALVL_N095,  "-0.95" },
+    { GAMMALVL_OFF,   "OFF"   },
+    { GAMMALVL_010,   "0.1"   },
+    { GAMMALVL_020,   "0.2"   },
+    { GAMMALVL_030,   "0.3"   },
+    { GAMMALVL_040,   "0.4"   },
+    { GAMMALVL_050,   "0.5"   },
+    { GAMMALVL_060,   "0.6"   },
+    { GAMMALVL_070,   "0.7"   },
+    { GAMMALVL_080,   "0.8"   },
+    { GAMMALVL_090,   "0.9"   },
+    { GAMMALVL_100,   "1.0"   },
+    { GAMMALVL_110,   "1.1"   },
+    { GAMMALVL_120,   "1.2"   },
+    { GAMMALVL_130,   "1.3"   },
+    { GAMMALVL_140,   "1.4"   },
+    { GAMMALVL_150,   "1.5"   },
+    { GAMMALVL_160,   "1.6"   },
+    { GAMMALVL_170,   "1.7"   },
+    { GAMMALVL_180,   "1.8"   },
+    { GAMMALVL_190,   "1.9"   },
+    { GAMMALVL_200,   "2.0"   },
+    { GAMMALVL_220,   "2.2"   },
+    { GAMMALVL_240,   "2.4"   },
+    { GAMMALVL_260,   "2.6"   },
+    { GAMMALVL_280,   "2.8"   },
+    { GAMMALVL_300,   "3.0"   },
+    { GAMMALVL_320,   "3.2"   },
+    { GAMMALVL_340,   "3.4"   },
+    { GAMMALVL_360,   "3.6"   },
+    { GAMMALVL_380,   "3.8"   },
+    { GAMMALVL_400,   "4.0"   },
 };
 
 // we are going to be entering a savegame string
@@ -219,6 +244,7 @@ static void M_DrawSave(void);
 static void M_DrawSaveLoadBorder(int x,int y);
 static void M_SetupNextMenu(menu_t *menudef);
 static void M_DrawThermo(int x,int y,int thermWidth,int thermDot,int itemPos);
+static void M_DrawGammaThermo(int x, int y, int width, int dot, int itemPos);
 static int  M_StringHeight(const char *string);
 static void M_StartMessage(const char *string, void (*routine)(int), boolean input);
 static void M_ClearMenus (void);
@@ -1541,8 +1567,8 @@ static void M_Draw_ID_Display (void)
     M_WriteTextCentered(9, "DISPLAY OPTIONS", cr[CR_YELLOW]);
 
     // Gamma-correction slider and num
-    M_DrawThermo(46, 27, 15, vid_gamma, 0);
-    M_WriteText (184, 30, gammalvls[vid_gamma][1],
+    M_DrawGammaThermo(46, 27, 16, vid_gamma, 0);
+    M_WriteText (192, 30, gammalvls[vid_gamma][1],
                           M_Item_Glow(0, GLOW_UNCOLORED));
 
     // Field of View
@@ -1623,7 +1649,7 @@ static void M_ID_LevelBrightness (int choice)
 static void M_ID_Gamma (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
-    vid_gamma = M_INT_Slider(vid_gamma, 0, 14, choice, true);
+    vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
@@ -5138,6 +5164,28 @@ M_DrawThermo
     dp_translation = NULL;
 }
 
+static void M_DrawGammaThermo (int x, int y, int width, int dot, int itemPos)
+{
+    int xx = x;
+
+    // [JN] Highlight active slider and gem.
+    if (itemPos == itemOn)
+    {
+        dp_translation = cr[CR_MENU_BRIGHT2];
+    }
+
+    V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName("M_THERML", PU_CACHE));
+    xx += 8;
+    for (int i = 0 ; i < width ; i++)
+    {
+        V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName("M_THERMM", PU_CACHE));
+        xx += 8;
+    }
+    V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName("M_THERMR", PU_CACHE));
+    V_DrawPatch((x + 8) + dot * 3, y, W_CacheLumpName("M_THERMO", PU_CACHE));
+    dp_translation = NULL;
+}
+
 static void
 M_StartMessage
 ( const char*	string,
@@ -5977,7 +6025,7 @@ boolean M_Responder (event_t* ev)
     // [JN] Allow to change gamma while active menu.
     if (key == key_menu_gamma)    // gamma toggle
     {
-        vid_gamma = M_INT_Slider(vid_gamma, 0, 14, 1 /*right*/, false);
+        vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, 1 /*right*/, false);
         CT_SetMessage(&players[consoleplayer], DEH_String(gammalvls[vid_gamma][0]), false, NULL);
 #ifndef CRISPY_TRUECOLOR
         I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
