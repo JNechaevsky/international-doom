@@ -815,7 +815,7 @@ static void ST_updateFaceWidget (void)
                     // head-on    
                     faceindex = ST_RAMPAGEOFFSET;
                 }
-                else if (i)
+                else if (i ^ gp_flip_levels) // [Nugget] Flip levels
                 {
                     // turn face right
                     faceindex = ST_TURNOFFSET;
