@@ -809,6 +809,14 @@ static byte *M_Big_Line_Glow (const int tics)
         tics >= 1 ? cr[CR_MENU_BRIGHT1] : NULL;
 }
 
+static void M_Reset_Line_Glow (void)
+{
+    for (int i = 0 ; i < CurrentMenu->itemCount ; i++)
+    {
+        CurrentMenu->items[i].tics = 0;
+    }
+}
+
 #define GLOW_UNCOLORED  0
 #define GLOW_RED        1
 #define GLOW_DARKRED    2
@@ -6113,6 +6121,7 @@ void MN_ActivateMenu(void)
     FileMenuKeySteal = false;
     MenuTime = 0;
     CurrentMenu = &MainMenu;
+    M_Reset_Line_Glow();
     CurrentItPos = CurrentMenu->oldItPos;
     if (!netgame && !demoplayback)
     {
@@ -6132,6 +6141,7 @@ void MN_DeactivateMenu(void)
 {
     if (CurrentMenu != NULL)
     {
+        M_Reset_Line_Glow();
         CurrentMenu->oldItPos = CurrentItPos;
     }
     MenuActive = false;
@@ -6208,6 +6218,7 @@ static void SetMenu(MenuType_t menu)
 {
     CurrentMenu->oldItPos = CurrentItPos;
     CurrentMenu = Menus[menu];
+    M_Reset_Line_Glow();
     CurrentItPos = CurrentMenu->oldItPos;
 }
 
