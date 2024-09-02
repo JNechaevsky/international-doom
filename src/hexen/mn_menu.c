@@ -4095,7 +4095,8 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
         char filename[100];
 
         M_snprintf(filename, sizeof(filename), "%shex%d.sav", SavePath, CurrentItPos + (savepage * 10));
-        stat(filename, &filestat);
+        if (M_stat(filename, &filestat) == 0)
+        {
 // [FG] suppress the most useless compiler warning ever
 #if defined(__GNUC__)
 #  pragma GCC diagnostic push
@@ -4106,6 +4107,7 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
 #  pragma GCC diagnostic pop
 #endif
         MN_DrTextACentered(filedate, y + 10, cr[CR_MENU_DARK4]);
+        }
     }
 }
 
