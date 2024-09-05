@@ -3108,6 +3108,8 @@ static void M_ID_Translucency (int choice)
 static void M_ID_FakeContrast (int choice)
 {
     vis_fake_contrast ^= 1;
+    // [crispy] re-calculate fake contrast
+    P_SegLengths(true);
 }
 
 static void M_ID_SmoothLightingHook (void)
@@ -3117,7 +3119,7 @@ static void M_ID_SmoothLightingHook (void)
     // [crispy] re-calculate the scalelight[][] array
     R_ExecuteSetViewSize();
     // [crispy] re-calculate fake contrast
-    P_SegLengths();
+    P_SegLengths(true);
 }
 
 static void M_ID_SmoothLighting (int choice)

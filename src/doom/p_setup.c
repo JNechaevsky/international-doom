@@ -439,7 +439,11 @@ static angle_t anglediff(angle_t a, angle_t b)
 void P_SegLengths (boolean contrast_only)
 {
     int i;
-    // const int rightangle = abs(finesine[(ANG60/2) >> ANGLETOFINESHIFT]);
+    const int rightangle = abs(finesine[(ANG60/2) >> ANGLETOFINESHIFT]);
+    // [JN] Make fake contrast optional.
+    const int smooth_factor   = vis_fake_contrast ? LIGHTBRIGHT : 0;
+    // [JN] Apply smoother fake contrast for smooth diminishing lighting.
+    const int smoother_factor = vis_fake_contrast && vis_smooth_light ? (LIGHTBRIGHT / 2) : 0;
 
     for (i = 0; i < numsegs; i++)
     {
@@ -466,21 +470,19 @@ void P_SegLengths (boolean contrast_only)
 	}
 
 	// [crispy] smoother fake contrast
-    /*
 	if (!dy)
-	    li->fakecontrast = -LIGHTBRIGHT;
+	    li->fakecontrast = -smooth_factor;
 	else
 	if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-	    li->fakecontrast = -(LIGHTBRIGHT >> 1);
+	    li->fakecontrast = -smoother_factor;
 	else
 	if (!dx)
-	    li->fakecontrast = LIGHTBRIGHT;
+	    li->fakecontrast = smooth_factor;
 	else
 	if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-	    li->fakecontrast = LIGHTBRIGHT >> 1;
+	    li->fakecontrast = smoother_factor;
 	else
 	    li->fakecontrast = 0;
-    */
     }
 }
 

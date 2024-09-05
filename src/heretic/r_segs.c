@@ -200,18 +200,8 @@ R_RenderMaskedSegRange
 	
     lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);
 
-    // [JN] Make fake contrast optional.
-    if (vis_fake_contrast)
-    {
-        if (curline->v1->y == curline->v2->y)
-        {
-            lightnum--;
-        }
-        else if (curline->v1->x == curline->v2->x)
-        {
-            lightnum++;
-        }
-    }
+    // [crispy] smoother fake contrast
+    lightnum += curline->fakecontrast;
 
     if (lightnum < 0)		
 	walllights = scalelight[0];
@@ -823,18 +813,8 @@ R_StoreWallRange
         {
             lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);
 
-            // [JN] Make fake contrast optional.
-            if (vis_fake_contrast)
-            {
-                if (curline->v1->y == curline->v2->y)
-                {
-                    lightnum--;
-                }
-                else if (curline->v1->x == curline->v2->x)
-                {
-                    lightnum++;
-                }
-            }
+            // [crispy] smoother fake contrast
+            lightnum += curline->fakecontrast;
 
             walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
         }

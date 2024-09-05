@@ -256,7 +256,7 @@ extern int numspechit;
 
 // ***** P_SETUP *****
 
-extern void P_SegLengths (void);
+extern void P_SegLengths (boolean contrast_only);
 
 extern byte *rejectmatrix;      // for fast sight rejection
 extern int32_t *blockmaplump;   // offsets in blockmap are from here // [crispy] BLOCKMAP limit

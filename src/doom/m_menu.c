@@ -3339,6 +3339,8 @@ static void M_ID_Translucency (int choice)
 static void M_ID_FakeContrast (int choice)
 {
     vis_fake_contrast ^= 1;
+    // [crispy] re-calculate fake contrast
+    P_SegLengths(true);
 }
 
 static void M_ID_SmoothLightingHook (void)
