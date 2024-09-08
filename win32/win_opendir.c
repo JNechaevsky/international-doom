@@ -298,7 +298,7 @@ out_of_memory:
     return NULL;
 }
 
-static wchar_t *__get_buffer()
+static wchar_t *__get_buffer(void)
 {
     wchar_t *name = malloc(sizeof(wchar_t) * (NTFS_MAX_PATH + NAME_MAX + 8));
     if (name)
