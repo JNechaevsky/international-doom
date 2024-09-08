@@ -1069,13 +1069,14 @@ void PrintDehackedBanners(void)
     }
 }
 
-static struct 
+static const struct
 {
     const char *description;
     const char *cmdline;
     GameVersion_t version;
 } gameversions[] = {
     {"Doom 1.2",             "1.2",        exe_doom_1_2},
+    {"Doom 1.5",             "1.5",        exe_doom_1_5},
     {"Doom 1.666",           "1.666",      exe_doom_1_666},
     {"Doom 1.7/1.7a",        "1.7",        exe_doom_1_7},
     {"Doom 1.8",             "1.8",        exe_doom_1_8},
@@ -1143,13 +1144,13 @@ static void InitGameVersion(void)
     int i;
     boolean status;
 
-    //! 
+    //!
     // @arg <version>
     // @category compat
     //
-    // Emulate a specific version of Doom.  Valid values are "1.2", 
-    // "1.666", "1.7", "1.8", "1.9", "ultimate", "final", "final2",
-    // "hacx" and "chex".
+    // Emulate a specific version of Doom. Valid values are "1.2", 
+    // "1.5", "1.666", "1.7", "1.8", "1.9", "ultimate", "final", 
+    // "final2", "hacx" and "chex".
     //
 
     p = M_CheckParmWithArgs("-gameversion", 1);
@@ -1164,8 +1165,8 @@ static void InitGameVersion(void)
                 break;
             }
         }
-        
-        if (gameversions[i].description == NULL) 
+
+        if (gameversions[i].description == NULL)
         {
             printf("Supported game versions:\n");
 
@@ -1174,7 +1175,7 @@ static void InitGameVersion(void)
                 printf("\t%s (%s)\n", gameversions[i].cmdline,
                         gameversions[i].description);
             }
-            
+
             I_Error("Unknown game version '%s'", myargv[p+1]);
         }
     }
