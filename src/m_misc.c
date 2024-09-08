@@ -29,23 +29,15 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <io.h>
-#ifdef _MSC_VER
 #include <direct.h>
-#endif
 #else
 #include <sys/types.h>
 #endif
 
 #include "doomtype.h"
 
-#include "deh_str.h"
-
-#include "i_swap.h"
 #include "i_system.h"
-#include "i_video.h"
 #include "m_misc.h"
-#include "v_video.h"
-#include "w_wad.h"
 #include "z_zone.h"
 
 #ifdef _WIN32
@@ -123,16 +115,6 @@ char *M_ConvertWideToUtf8(const wchar_t *wstr)
     return ConvertWideToMultiByte(wstr, CP_UTF8);
 }
 
-static wchar_t *ConvertSysNativeMBToWide(const char *str)
-{
-    return ConvertMultiByteToWide(str, CP_ACP);
-}
-
-static char *ConvertWideToSysNativeMB(const wchar_t *wstr)
-{
-    return ConvertWideToMultiByte(wstr, CP_ACP);
-}
-
 // Convert UTF8 string to a wide string. The result is newly allocated and must
 // be freed by the caller after use.
 
@@ -141,58 +123,6 @@ wchar_t *M_ConvertUtf8ToWide(const char *str)
     return ConvertMultiByteToWide(str, CP_UTF8);
 }
 #endif
-
-// Convert multibyte string in system encoding to UTF8. The result is newly
-// allocated and must be freed by the caller after use.
-
-char *M_ConvertSysNativeMBToUtf8(const char *str)
-{
-#ifdef _WIN32
-    char *ret = NULL;
-    wchar_t *wstr = NULL;
-
-    wstr = ConvertSysNativeMBToWide(str);
-
-    if (!wstr)
-    {
-        return NULL;
-    }
-
-    ret = M_ConvertWideToUtf8(wstr);
-
-    free(wstr);
-
-    return ret;
-#else
-    return M_StringDuplicate(str);
-#endif
-}
-
-// Convert UTF8 string to multibyte string in system encoding. The result is
-// newly allocated and must be freed by the caller after use.
-
-char *M_ConvertUtf8ToSysNativeMB(const char *str)
-{
-#ifdef _WIN32
-    char *ret = NULL;
-    wchar_t *wstr = NULL;
-
-    wstr = M_ConvertUtf8ToWide(str);
-
-    if (!wstr)
-    {
-        return NULL;
-    }
-
-    ret = ConvertWideToSysNativeMB(wstr);
-
-    free(wstr);
-
-    return ret;
-#else
-    return M_StringDuplicate(str);
-#endif
-}
 
 FILE *M_fopen(const char *filename, const char *mode)
 {
@@ -769,7 +699,8 @@ char *M_StringDuplicate(const char *orig)
 
     if (result == NULL)
     {
-        I_Error("Failed to duplicate string (length %lli)\n", (long long int)strlen(orig));
+        I_Error("Failed to duplicate string (length %lli)\n",
+                (long long int)strlen(orig));
     }
 
     return result;
