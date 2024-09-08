@@ -1,8 +1,4 @@
-foreach(SUBDIR
-    doom 
-    heretic 
-    hexen 
-    setup)
+foreach(SUBDIR doom heretic hexen setup)
     add_subdirectory("${SUBDIR}")
 endforeach()
 
@@ -11,6 +7,7 @@ endforeach()
 set(COMMON_SOURCE_FILES
     i_main.c
     i_system.c           i_system.h
+    id_vars.c            id_vars.h
     m_argv.c             m_argv.h
     m_misc.c             m_misc.h)
 
@@ -61,10 +58,9 @@ set(GAME_SOURCE_FILES
     i_timer.c           i_timer.h
     i_video.c           i_video.h
     i_videohr.c         i_videohr.h
-    id_vars.c           id_vars.h
     midifile.c          midifile.h
     mus2mid.c           mus2mid.h
-    m_array.h
+                        m_array.h
     m_bbox.c            m_bbox.h
     m_cheat.c           m_cheat.h
     m_config.c          m_config.h
@@ -87,9 +83,9 @@ set(GAME_SOURCE_FILES
     memio.c             memio.h
     tables.c            tables.h
     v_diskicon.c        v_diskicon.h
-    v_trans.c           v_trans.h
     v_video.c           v_video.h
                         v_patch.h
+    v_trans.c           v_trans.h
     w_checksum.c        w_checksum.h
     w_main.c            w_main.h
     w_wad.c             w_wad.h
@@ -100,15 +96,19 @@ set(GAME_SOURCE_FILES
 
 # Platform-dependent source files:
 
+set(GAME_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/../")
+
 if(WIN32)
     list(APPEND GAME_SOURCE_FILES i_winmusic.c)
     list(APPEND GAME_SOURCE_FILES midifallback.c    midifallback.h)
     list(APPEND GAME_SOURCE_FILES w_file_win32.c)
+    list(APPEND GAME_SOURCE_FILES
+        "../win32/win_opendir.c" "../win32/win_opendir.h")
+    list(APPEND GAME_INCLUDE_DIRS
+         "${PROJECT_SOURCE_DIR}/win32/")
 elseif(POSIX)
     list(APPEND GAME_SOURCE_FILES w_file_posix.c)
 endif()
-
-set(GAME_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 set(DEHACKED_SOURCE_FILES
     deh_defs.h
@@ -122,7 +122,7 @@ set(DEHACKED_SOURCE_FILES
 set(SOURCE_FILES ${COMMON_SOURCE_FILES} ${GAME_SOURCE_FILES})
 set(SOURCE_FILES_WITH_DEH ${SOURCE_FILES} ${DEHACKED_SOURCE_FILES})
 
-set(EXTRA_LIBS "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>" SDL2::SDL2 miniz::miniz textscreen pcsound opl)
+set(EXTRA_LIBS SDL2::SDL2main SDL2::SDL2 miniz::miniz textscreen pcsound opl)
 if(ENABLE_SDL2_MIXER)
     list(APPEND EXTRA_LIBS SDL2_mixer::SDL2_mixer)
 endif()
@@ -136,7 +136,7 @@ if(FluidSynth_FOUND)
     list(APPEND EXTRA_LIBS FluidSynth::libfluidsynth)
 endif()
 if(WIN32)
-	list(APPEND EXTRA_LIBS winmm)
+	list(APPEND EXTRA_LIBS winmm shlwapi)
 endif()
 
 if(WIN32)
@@ -213,7 +213,7 @@ endif()
 
 target_include_directories("${PROGRAM_PREFIX}setup"
                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
-target_link_libraries("${PROGRAM_PREFIX}setup" "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>" SDL2::SDL2 setup textscreen)
+target_link_libraries("${PROGRAM_PREFIX}setup" SDL2::SDL2main SDL2::SDL2 setup textscreen)
 if(ENABLE_SDL2_MIXER)
     target_link_libraries("${PROGRAM_PREFIX}setup" SDL2_mixer::SDL2_mixer)
 endif()
