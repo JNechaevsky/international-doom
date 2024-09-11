@@ -695,7 +695,7 @@ void R_ProjectSprite (mobj_t* thing)
 	||  thing->type == MT_AMSKRDWIMPY
 	||  thing->type == MT_AMSKRDHEFTY))
 	{
-	int bright_index = index + 24; // [JN] 24 is rounded ((MAXLIGHTSCALE-1) / 2)
+	int bright_index = index + BMAPSHIFTINDEX;
 
 	if (bright_index > MAXLIGHTSCALE-1)
 	{

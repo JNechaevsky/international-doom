@@ -519,8 +519,6 @@ extern visplane_t *ceilingplane;
 // R_BMAPS
 // -----------------------------------------------------------------------------
 
-#define MAXDIMINDEX 47
-
 extern void R_InitBrightmaps (void);
 
 extern const byte  *R_BrightmapForTexName (const char *texname);
@@ -730,6 +728,9 @@ extern int LIGHTSCALESHIFT;
 extern int MAXLIGHTZ;
 extern int LIGHTZSHIFT;
 
+extern int BMAPMAXDIMINDEX;
+extern int BMAPANIMSHIFT;
+
 extern lighttable_t***	scalelight;
 extern lighttable_t**	scalelightfixed;
 extern lighttable_t***	zlight;
@@ -739,7 +740,8 @@ extern lighttable_t *fixedcolormap;
 
 // Number of diminishing brightness levels.
 // There a 0-31, i.e. 32 LUT in the COLORMAP lump.
-#define NUMCOLORMAPS    32
+// [crispy] parameterized for smooth diminishing lighting
+extern int NUMCOLORMAPS;
 
 // Blocky/low detail mode. 0 = high, 1 = low
 extern int detailshift;	

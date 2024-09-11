@@ -768,6 +768,7 @@ void R_InitColormaps(void)
     length = W_LumpLength(lump);
     colormaps = Z_Malloc(length, PU_STATIC, 0);
     W_ReadLump(lump, colormaps);
+    NUMCOLORMAPS = 32; // [crispy] smooth diminishing lighting
 #else
 	int c, i, j = 0;
 	byte r, g, b;
@@ -786,10 +787,19 @@ void R_InitColormaps(void)
 	const float a_hi = vid_saturation < 100 ? I_SaturationPercent[vid_saturation] : 0;
 	const float a_lo = vid_saturation < 100 ? (a_hi / 2) : 0;
 
-	if (!colormaps)
+	// [crispy] Smoothest diminishing lighting.
+	// Compiled in but not enabled TrueColor mode
+	// can't use more than original 32 colormaps.
+	if (vid_truecolor && vis_smooth_light)
 	{
-		colormaps = (lighttable_t*) Z_Malloc((NUMCOLORMAPS + 1) * 256 * sizeof(lighttable_t), PU_STATIC, 0);
+		NUMCOLORMAPS = 256;
 	}
+	else
+	{
+		NUMCOLORMAPS = 32;
+	}
+
+	colormaps = I_Realloc(colormaps, (NUMCOLORMAPS + 1) * 256 * sizeof(lighttable_t));
 
 	if (vid_truecolor)
 	{
@@ -858,19 +868,19 @@ void R_InitColormaps(void)
 	for (i = 0; i < 256; i++)
 	{
 		r_channel =
-			(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
-					(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
-					(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+			(byte) ((1 - a_hi) * (playpal[3 * colormap[INVERSECOLORMAP * 256 + i] + 0])  +
+					(0 + a_lo) * (playpal[3 * colormap[INVERSECOLORMAP * 256 + i] + 1])  +
+					(0 + a_lo) * (playpal[3 * colormap[INVERSECOLORMAP * 256 + i] + 2])) * vid_r_intensity;
 
 		g_channel =
-			(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
-					(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 1])  +
-					(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_g_intensity;
+			(byte) ((0 + a_lo) * (playpal[3 * colormap[INVERSECOLORMAP * 256 + i] + 0])  +
+					(1 - a_hi) * (playpal[3 * colormap[INVERSECOLORMAP * 256 + i] + 1])  +
+					(0 + a_lo) * (playpal[3 * colormap[INVERSECOLORMAP * 256 + i] + 2])) * vid_g_intensity;
 
 		b_channel =
-			(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
-					(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
-					(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_b_intensity;
+			(byte) ((0 + a_lo) * (playpal[3 * colormap[INVERSECOLORMAP * 256 + i] + 0])  +
+					(0 + a_lo) * (playpal[3 * colormap[INVERSECOLORMAP * 256 + i] + 1])  +
+					(1 - a_hi) * (playpal[3 * colormap[INVERSECOLORMAP * 256 + i] + 2])) * vid_b_intensity;
 
 		r = gammatable[vid_gamma][r_channel] & ~3;
 		g = gammatable[vid_gamma][g_channel] & ~3;

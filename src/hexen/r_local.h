@@ -45,7 +45,8 @@ extern int MAXLIGHTSCALE;
 extern int LIGHTSCALESHIFT;
 extern int MAXLIGHTZ;
 extern int LIGHTZSHIFT;
-#define NUMCOLORMAPS            32      // number of diminishing
+// [crispy] parameterized for smooth diminishing lighting
+extern int NUMCOLORMAPS;      // number of diminishing
 #define INVERSECOLORMAP         32
 
 #define LOOKDIRMIN 110 // [crispy] -110, actually

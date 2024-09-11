@@ -1370,18 +1370,25 @@ static void M_Draw_ID_Video (void)
 #ifdef CRISPY_TRUECOLOR
 static void M_ID_TrueColorHook (void)
 {
+    vid_truecolor ^= 1;
+
     I_SetPalette (st_palette);
+    // [crispy] re-calculate amount of colormaps and light tables
     R_InitColormaps();
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
+    // [crispy] re-calculate fake contrast
+    P_SegLengths(true);
+    // [crispy] re-draw bezel
     R_FillBackScreen();
 }
 #endif
 
 static void M_ID_TrueColor (int choice)
 {
-#ifndef CRISPY_TRUECOLOR
-    return;
-#else
-    vid_truecolor ^= 1;
+#ifdef CRISPY_TRUECOLOR
     post_rendering_hook = M_ID_TrueColorHook;
 #endif
 }
@@ -3345,6 +3352,12 @@ static void M_ID_FakeContrast (int choice)
 
 static void M_ID_SmoothLightingHook (void)
 {
+    vis_smooth_light ^= 1;
+
+#ifdef CRISPY_TRUECOLOR
+    // [crispy] re-calculate amount of colormaps and light tables
+    R_InitColormaps();
+#endif
     // [crispy] re-calculate the zlight[][] array
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
@@ -3355,7 +3368,6 @@ static void M_ID_SmoothLightingHook (void)
 
 static void M_ID_SmoothLighting (int choice)
 {
-    vis_smooth_light ^= 1;
     post_rendering_hook = M_ID_SmoothLightingHook;
 }
 

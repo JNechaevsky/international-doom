@@ -108,6 +108,7 @@ float  fovdiff;   // [Nugget] Used for some corrections
 int    max_project_slope = 4;  // [Woof!]
 
 // [crispy] parameterized for smooth diminishing lighting
+int NUMCOLORMAPS;
 int LIGHTLEVELS;
 int LIGHTSEGSHIFT;
 int LIGHTBRIGHT;
@@ -115,6 +116,10 @@ int MAXLIGHTSCALE;
 int LIGHTSCALESHIFT;
 int MAXLIGHTZ;
 int LIGHTZSHIFT;
+// [JN] Maximum diminished lighting index for half-brights.
+int BMAPMAXDIMINDEX;
+// [JN] Shifring value for glowing and flickering brightmaps.
+int BMAPANIMSHIFT;
 
 
 void (*colfunc) (void);
@@ -650,23 +655,46 @@ void R_InitLightTables (void)
    // [crispy] smooth diminishing lighting
     if (vis_smooth_light)
     {
-	LIGHTLEVELS = 32;
-	LIGHTSEGSHIFT = 3;
-	LIGHTBRIGHT = 2;
-	MAXLIGHTSCALE = 48;
-	LIGHTSCALESHIFT = 12;
-	MAXLIGHTZ = 1024;
-	LIGHTZSHIFT = 17;
+#ifdef CRISPY_TRUECOLOR
+    if (vid_truecolor)
+    {
+	    // [crispy] if in TrueColor mode, use smoothest diminished lighting
+	    LIGHTLEVELS =      16 << 4;
+	    LIGHTSEGSHIFT =     4 -  4;
+	    LIGHTBRIGHT =       1 << 4;
+	    MAXLIGHTSCALE =    48 << 3;
+	    LIGHTSCALESHIFT =  12 -  3;
+	    MAXLIGHTZ =       128 << 6;
+	    LIGHTZSHIFT =      20 -  6;
+	    BMAPMAXDIMINDEX =  47 << 3;
+	    BMAPANIMSHIFT  =    0 +  3;
+    }
+    else
+#endif
+    {
+	    // [crispy] else, use paletted approach
+	    LIGHTLEVELS =      16 << 1;
+	    LIGHTSEGSHIFT =     4 -  1;
+	    LIGHTBRIGHT =       1 << 1;
+	    MAXLIGHTSCALE =    48 << 0;
+	    LIGHTSCALESHIFT =  12 -  0;
+	    MAXLIGHTZ =       128 << 3;
+	    LIGHTZSHIFT =      20 -  3;
+	    BMAPMAXDIMINDEX =  47 << 0;
+	    BMAPANIMSHIFT =     0 +  0;
+    }
     }
     else
     {
-	LIGHTLEVELS = 16;
-	LIGHTSEGSHIFT = 4;
-	LIGHTBRIGHT = 1;
-	MAXLIGHTSCALE = 48;
-	LIGHTSCALESHIFT = 12;
-	MAXLIGHTZ = 128;
-	LIGHTZSHIFT = 20;
+	LIGHTLEVELS =      16;
+	LIGHTSEGSHIFT =     4;
+	LIGHTBRIGHT =       1;
+	MAXLIGHTSCALE =    48;
+	LIGHTSCALESHIFT =  12;
+	MAXLIGHTZ =       128;
+	LIGHTZSHIFT =      20;
+	BMAPMAXDIMINDEX =  47;
+	BMAPANIMSHIFT =     0;
     }
 
     scalelight = malloc(LIGHTLEVELS * sizeof(*scalelight));
@@ -1113,7 +1141,7 @@ void R_SetupFrame (player_t* player)
     {
 	fixedcolormap =
 	    colormaps
-	    + player->fixedcolormap*256;
+	    + player->fixedcolormap*(NUMCOLORMAPS / 32)*256; // [crispy] smooth diminishing lighting
 	
 	walllights = scalelightfixed;
 

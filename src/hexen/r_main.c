@@ -81,6 +81,7 @@ float  fovdiff;   // [Nugget] Used for some corrections
 int    max_project_slope = 4;  // [Woof!]
 
 // [crispy] parameterized for smooth diminishing lighting
+int NUMCOLORMAPS;
 int LIGHTLEVELS;
 int LIGHTSEGSHIFT;
 int LIGHTBRIGHT;
@@ -627,23 +628,40 @@ void R_InitLightTables(void)
    // [crispy] smooth diminishing lighting
     if (vis_smooth_light)
     {
-	LIGHTLEVELS = 32;
-	LIGHTSEGSHIFT = 3;
-	LIGHTBRIGHT = 2;
-	MAXLIGHTSCALE = 48;
-	LIGHTSCALESHIFT = 12;
-	MAXLIGHTZ = 1024;
-	LIGHTZSHIFT = 17;
+#ifdef CRISPY_TRUECOLOR
+        if (vid_truecolor)
+        {
+            // [crispy] if in TrueColor mode, use smoothest diminished lighting
+            LIGHTLEVELS =      16 << 4;
+            LIGHTSEGSHIFT =     4 -  4;
+            LIGHTBRIGHT =       1 << 4;
+            MAXLIGHTSCALE =    48 << 3;
+            LIGHTSCALESHIFT =  12 -  3;
+            MAXLIGHTZ =       128 << 6;
+            LIGHTZSHIFT =      20 -  6;
+        }
+        else
+#endif
+        {
+            // [crispy] else, use paletted approach
+            LIGHTLEVELS =      16 << 1;
+            LIGHTSEGSHIFT =     4 -  1;
+            LIGHTBRIGHT =       1 << 1;
+            MAXLIGHTSCALE =    48 << 0;
+            LIGHTSCALESHIFT =  12 -  0;
+            MAXLIGHTZ =       128 << 3;
+            LIGHTZSHIFT =      20 -  3;
+        }
     }
     else
     {
-	LIGHTLEVELS = 16;
-	LIGHTSEGSHIFT = 4;
-	LIGHTBRIGHT = 1;
-	MAXLIGHTSCALE = 48;
-	LIGHTSCALESHIFT = 12;
-	MAXLIGHTZ = 128;
-	LIGHTZSHIFT = 20;
+        LIGHTLEVELS =      16;
+        LIGHTSEGSHIFT =     4;
+        LIGHTBRIGHT =       1;
+        MAXLIGHTSCALE =    48;
+        LIGHTSCALESHIFT =  12;
+        MAXLIGHTZ =       128;
+        LIGHTZSHIFT =      20;
     }
 
     scalelight = malloc(LIGHTLEVELS * sizeof(*scalelight));
@@ -657,7 +675,7 @@ void R_InitLightTables(void)
     {
         scalelight[i] = malloc(MAXLIGHTSCALE * sizeof(**scalelight));
         zlight[i] = malloc(MAXLIGHTZ * sizeof(**zlight));
-        startmap = ((LIGHTLEVELS - 1 - i) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
+        startmap = ((LIGHTLEVELS - LIGHTBRIGHT - i) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
         for (j = 0; j < MAXLIGHTZ; j++)
         {
             scale =
@@ -836,7 +854,7 @@ void R_ExecuteSetViewSize(void)
 //
     for (i = 0; i < LIGHTLEVELS; i++)
     {
-        startmap = ((LIGHTLEVELS - 1 - i) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
+        startmap = ((LIGHTLEVELS - LIGHTBRIGHT - i) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
         for (j = 0; j < MAXLIGHTSCALE; j++)
         {
             level =
@@ -1075,6 +1093,7 @@ void R_SetupFrame(player_t * player)
     if (player->fixedcolormap)
     {
         fixedcolormap = colormaps + player->fixedcolormap
+            * (NUMCOLORMAPS / 32) // [crispy] smooth diminishing lighting
             // [crispy] sizeof(lighttable_t) not needed in paletted render
             // and breaks Torch's fixed colormap indexes in true color render
             * 256 /* * sizeof(lighttable_t)*/;

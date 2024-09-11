@@ -757,7 +757,7 @@ static void R_ProjectSprite (mobj_t* thing)
         if (thing->sprite == SPR_BON2   // Armor Bonus
         ||  thing->sprite == SPR_BAR1)  // Explosive Barrel
         {
-            vis->colormap[1] = spritelights[MAXDIMINDEX];
+            vis->colormap[1] = spritelights[BMAPMAXDIMINDEX];
         }
         // Demi-brigths:
         else
@@ -768,7 +768,7 @@ static void R_ProjectSprite (mobj_t* thing)
         ||  thing->sprite == SPR_TLMP   // Tall Tech Lamp
         ||  thing->sprite == SPR_TLP2)  // Short Tech Lamp
         {
-            const int demi_bright = MIN(index*2, MAXDIMINDEX);
+            const int demi_bright = MIN(index*2, BMAPMAXDIMINDEX);
 
             vis->colormap[0] = spritelights[demi_bright];
 
@@ -776,12 +776,12 @@ static void R_ProjectSprite (mobj_t* thing)
             if (thing->sprite == SPR_CAND   // Candestick
             ||  thing->sprite == SPR_CBRA)  // Candelabra
             {
-                vis->colormap[1] = &colormaps[thing->bmap_flick*256];
+                vis->colormap[1] = &colormaps[(thing->bmap_flick<<BMAPANIMSHIFT)*256];
             }
             else
             if (thing->sprite == SPR_FCAN)  // Flaming Barrel
             {
-                vis->colormap[1] = &colormaps[thing->bmap_glow*256];
+                vis->colormap[1] = &colormaps[(thing->bmap_glow<<BMAPANIMSHIFT)*256];
             }
             else
             {
@@ -794,10 +794,10 @@ static void R_ProjectSprite (mobj_t* thing)
         ||  thing->sprite == SPR_TGRN   // Tall Green Torch
         ||  thing->sprite == SPR_TRED)  // Tall Red Torch
         {
-            const int hemi_bright = MIN(index*4, MAXDIMINDEX);
+            const int hemi_bright = MIN(index*4, BMAPMAXDIMINDEX);
 
             vis->colormap[0] = spritelights[hemi_bright];
-            vis->colormap[1] = &colormaps[thing->bmap_flick/3*256];
+            vis->colormap[1] = &colormaps[(thing->bmap_flick<<BMAPANIMSHIFT)/3*256];
         }
         // Just animated:
         else
@@ -806,20 +806,20 @@ static void R_ProjectSprite (mobj_t* thing)
         ||  thing->sprite == SPR_SMRT)  // Short Red Torch
         {
             vis->colormap[0] = vis->colormap[1]
-                             = &colormaps[thing->bmap_flick/4*256];
+                             = &colormaps[(thing->bmap_flick<<BMAPANIMSHIFT)/4*256];
         }
         else
         if (thing->sprite == SPR_CEYE   // Evil Eye
         ||  thing->sprite == SPR_FSKU)  // Floating Skull Rock
         {
             vis->colormap[0] = vis->colormap[1]
-                             = &colormaps[thing->bmap_glow*256];
+                             = &colormaps[(thing->bmap_glow<<BMAPANIMSHIFT)*256];
         }
         else
         if (thing->sprite == SPR_POL3)  // Pile of Skulls and Candles
         {
             vis->colormap[0] = vis->colormap[1]
-                             = &colormaps[thing->bmap_flick/3*256];
+                             = &colormaps[(thing->bmap_flick<<BMAPANIMSHIFT)/3*256];
         }
         // Normal brightmap:
         else

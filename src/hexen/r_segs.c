@@ -183,7 +183,7 @@ void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2)
     backsector = curline->backsector;
     texnum = texturetranslation[curline->sidedef->midtexture];
 
-    lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + extralight;
+    lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT); // [crispy] smooth diminishing lighting
     //if (curline->v1->y == curline->v2->y)
     //      lightnum--;
     //else if (curline->v1->x == curline->v2->x)
@@ -808,7 +808,7 @@ void R_StoreWallRange(int start, int stop)
         // OPTIMIZE: get rid of LIGHTSEGSHIFT globally
         if (!fixedcolormap)
         {
-            lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);
+            lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT); // [crispy] smooth diminishing lighting
             walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
         }
     }
