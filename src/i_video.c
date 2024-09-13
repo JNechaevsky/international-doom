@@ -101,8 +101,6 @@ static SDL_Rect blit_rect = {
 };
 #endif
 
-static uint32_t pixel_format;
-
 // palette
 
 #ifdef CRISPY_TRUECOLOR
@@ -187,11 +185,11 @@ int vid_vga_porch_flash = false;
 
 int vid_force_software_renderer = false;
 
-// Grab the mouse? (int type for config code). nomouse_grab_override allows
+// Grab the mouse? (int type for config code). nograbmouse_override allows
 // this to be temporarily disabled via the command line.
 
 static int mouse_grab = true;
-static boolean nomouse_grab_override = false;
+static boolean nograbmouse_override = false;
 
 // The screen buffer; this is modified to draw things to the screen
 
@@ -291,7 +289,7 @@ static boolean MouseShouldBeGrabbed(void)
 
     // if we specify not to grab the mouse, never grab
 
-    if (nomouse_grab_override || !mouse_grab)
+    if (nograbmouse_override || !mouse_grab)
         return false;
 
     // Invoke the mouse_grab callback function to determine whether
@@ -342,67 +340,7 @@ void I_ShutdownGraphics(void)
     }
 }
 
-void I_RenderReadPixels (byte **data, int *w, int *h)
-{
-    SDL_Rect rect;
-    SDL_PixelFormat *format;
-    int temp;
-    uint32_t png_format;
-    byte *pixels;
 
-    // [crispy] adjust cropping rectangle if necessary
-    rect.x = rect.y = 0;
-    SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
-    if (vid_aspect_ratio_correct)
-    {
-        if (rect.w * actualheight > rect.h * SCREENWIDTH)
-        {
-            temp = rect.w;
-            rect.w = rect.h * SCREENWIDTH / actualheight;
-            rect.x = (temp - rect.w) / 2;
-        }
-        else
-        if (rect.h * SCREENWIDTH > rect.w * actualheight)
-        {
-            temp = rect.h;
-            rect.h = rect.w * actualheight / SCREENWIDTH;
-            rect.y = (temp - rect.h) / 2;
-        }
-    }
-
-    // [crispy] native PNG pixel format
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-    png_format = SDL_PIXELFORMAT_ABGR8888;
-#else
-    png_format = SDL_PIXELFORMAT_RGBA8888;
-#endif
-    format = SDL_AllocFormat(png_format);
-    temp = rect.w * format->BytesPerPixel; // [crispy] pitch
-
-    // [crispy] As far as I understand the issue, SDL_RenderPresent()
-    // may return early, i.e. before it has actually finished rendering the
-    // current texture to screen -- from where we want to capture it.
-    // However, it does never return before it has finished rendering the
-    // *previous* texture.
-    // Thus, we add a second call to SDL_RenderPresent() here to make sure
-    // that it has at least finished rendering the previous texture, which
-    // already contains the scene that we actually want to capture.
-    if (post_rendering_hook)
-    {
-        SDL_RenderCopy(renderer, vid_smooth_scaling ? texture_upscaled : texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
-    }
-
-    // [crispy] allocate memory for screenshot image
-    pixels = malloc(rect.h * temp);
-    SDL_RenderReadPixels(renderer, &rect, format->format, pixels, temp);
-
-    *data = pixels;
-    *w = rect.w;
-    *h = rect.h;
-
-    SDL_FreeFormat(format);
-}
 
 //
 // I_StartFrame
@@ -550,7 +488,7 @@ static int HandleWindowResize (void* data, SDL_Event *event)
     return 0;
 }
 
-static boolean Togglevid_fullscreenKeyShortcut(SDL_Keysym *sym)
+static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
 {
     Uint16 flags = (KMOD_LALT | KMOD_RALT);
 #if defined(__MACOSX__)
@@ -560,7 +498,7 @@ static boolean Togglevid_fullscreenKeyShortcut(SDL_Keysym *sym)
             sym->scancode == SDL_SCANCODE_KP_ENTER) && (sym->mod & flags) != 0;
 }
 
-static void I_Togglevid_fullscreen(void)
+static void I_ToggleFullScreen(void)
 {
     unsigned int flags = 0;
 
@@ -601,9 +539,9 @@ void I_GetEvent(void)
         switch (sdlevent.type)
         {
             case SDL_KEYDOWN:
-                if (Togglevid_fullscreenKeyShortcut(&sdlevent.key.keysym))
+                if (ToggleFullScreenKeyShortcut(&sdlevent.key.keysym))
                 {
-                    I_Togglevid_fullscreen();
+                    I_ToggleFullScreen();
                     break;
                 }
                 // deliberate fall-though
@@ -858,7 +796,7 @@ static void CreateUpscaledTexture(boolean force)
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
     new_texture = SDL_CreateTexture(renderer,
-                                pixel_format,
+                                SDL_PIXELFORMAT_ARGB8888,
                                 SDL_TEXTUREACCESS_TARGET,
                                 w_upscale*SCREENWIDTH,
                                 h_upscale*SCREENHEIGHT);
@@ -977,9 +915,7 @@ void I_FinishUpdate (void)
 
     // Draw disk icon before blit, if necessary.
     if (vid_diskicon && diskicon_enabled)
-    {
-        V_DrawDiskIcon();
-    }
+    V_DrawDiskIcon();
 
 #ifndef CRISPY_TRUECOLOR
     if (palette_to_set)
@@ -997,14 +933,16 @@ void I_FinishUpdate (void)
     }
 
     // Blit from the paletted 8-bit screen buffer to the intermediate
-    // 32-bit RGBA buffer that we can load into the texture.
+    // 32-bit RGBA buffer and update the intermediate texture with the
+    // contents of the RGBA buffer.
 
+    SDL_LockTexture(texture, &blit_rect, &argbbuffer->pixels,
+                    &argbbuffer->pitch);
     SDL_LowerBlit(screenbuffer, &blit_rect, argbbuffer, &blit_rect);
-#endif
-
-    // Update the intermediate texture with the contents of the RGBA buffer.
-
+    SDL_UnlockTexture(texture);
+#else
     SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
+#endif
 
     // Make sure the pillarboxes are kept clear each frame.
 
@@ -1105,6 +1043,7 @@ void I_SetPalette (byte *doompalette)
         // Zero out the bottom two bits of each channel - the PC VGA
         // controller only supports 6 bits of accuracy.
 
+        palette[i].a = 0xFFU;
         palette[i].r = (byte)((p + (r - p) * s) * vid_r_intensity) & ~3;
         palette[i].g = (byte)((p + (g - p) * s) * vid_g_intensity) & ~3;
         palette[i].b = (byte)((p + (b - p) * s) * vid_b_intensity) & ~3;
@@ -1313,10 +1252,20 @@ void I_InitWindowIcon(void)
 
 static void SetScaleFactor(int factor)
 {
+    int height;
+
     // Pick 320x200 or 320x240, depending on aspect ratio correct
+    if (vid_aspect_ratio_correct)
+    {
+        height = SCREENHEIGHT_4_3;
+    }
+    else
+    {
+        height = SCREENHEIGHT;
+    }
 
     vid_window_width = factor * SCREENWIDTH;
-    vid_window_height = factor * actualheight;
+    vid_window_height = factor * height;
     vid_fullscreen = false;
 }
 
@@ -1339,10 +1288,10 @@ void I_GraphicsCheckCommandLine(void)
     // Don't grab the mouse when running in windowed mode.
     //
 
-    nomouse_grab_override = M_ParmExists("-nomouse_grab");
+    nograbmouse_override = M_ParmExists("-nograbmouse");
 
-    // default to vid_fullscreen mode, allow override with command line
-    // novid_fullscreen because we love prboom
+    // default to fullscreen mode, allow override with command line
+    // nofullscreen because we love prboom
 
     //!
     // @category video 
@@ -1350,7 +1299,7 @@ void I_GraphicsCheckCommandLine(void)
     // Run in a window.
     //
 
-    if (M_CheckParm("-window") || M_CheckParm("-novid_fullscreen"))
+    if (M_CheckParm("-window") || M_CheckParm("-nofullscreen"))
     {
         vid_fullscreen = false;
     }
@@ -1358,10 +1307,10 @@ void I_GraphicsCheckCommandLine(void)
     //!
     // @category video 
     //
-    // Run in vid_fullscreen mode.
+    // Run in fullscreen mode.
     //
 
-    if (M_CheckParm("-vid_fullscreen"))
+    if (M_CheckParm("-fullscreen"))
     {
         vid_fullscreen = true;
     }
@@ -1427,6 +1376,24 @@ void I_GraphicsCheckCommandLine(void)
             vid_window_width = w;
             vid_window_height = h;
             vid_fullscreen = false;
+        }
+    }
+
+    //!
+    // @category video
+    // @arg <x>
+    //
+    // Specify the display number on which to show the screen.
+    //
+
+    i = M_CheckParmWithArgs("-display", 1);
+
+    if (i > 0)
+    {
+        int display = atoi(myargv[i + 1]);
+        if (display >= 0)
+        {
+            vid_video_display = display;
         }
     }
 
@@ -1515,10 +1482,6 @@ static void SetVideoMode(void)
 {
     int w, h;
     int x = 0, y = 0;
-#ifndef CRISPY_TRUECOLOR
-    unsigned int rmask, gmask, bmask, amask;
-#endif
-    int bpp;
     int window_flags = 0, renderer_flags = 0;
     SDL_DisplayMode mode;
 
@@ -1583,8 +1546,6 @@ static void SetVideoMode(void)
             I_Error("Error creating window for video startup: %s",
             SDL_GetError());
         }
-
-        pixel_format = SDL_GetWindowPixelFormat(screen);
 
         SDL_SetWindowMinimumSize(screen, SCREENWIDTH, actualheight);
 
@@ -1703,12 +1664,10 @@ static void SetVideoMode(void)
 
     if (argbbuffer == NULL)
     {
-        SDL_PixelFormatEnumToMasks(pixel_format, &bpp,
-                                   &rmask, &gmask, &bmask, &amask);
-        argbbuffer = SDL_CreateRGBSurface(0,
-                                          SCREENWIDTH, SCREENHEIGHT, bpp,
-                                          rmask, gmask, bmask, amask);
 #ifdef CRISPY_TRUECOLOR
+        argbbuffer = SDL_CreateRGBSurfaceWithFormat(
+                     0, SCREENWIDTH, SCREENHEIGHT, 32, SDL_PIXELFORMAT_ARGB8888);
+
         SDL_FillRect(argbbuffer, NULL, I_MapRGB(0xff, 0x0, 0x0));
         redpane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
         SDL_SetTextureBlendMode(redpane, SDL_BLENDMODE_BLEND);
@@ -1736,8 +1695,12 @@ static void SetVideoMode(void)
         SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x96, 0x6e, 0x0)); // 150, 110, 0
         orngpane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
         SDL_SetTextureBlendMode(orngpane, SDL_BLENDMODE_BLEND);
+#else
+	    // pixels and pitch will be filled with the texture's values
+	    // in I_FinishUpdate()
+	    argbbuffer = SDL_CreateRGBSurfaceWithFormatFrom(
+                     NULL, w, h, 0, 0, SDL_PIXELFORMAT_ARGB8888);
 #endif
-        SDL_FillRect(argbbuffer, NULL, 0);
     }
 
     if (texture != NULL)
@@ -1756,7 +1719,7 @@ static void SetVideoMode(void)
     // is going to change frequently.
 
     texture = SDL_CreateTexture(renderer,
-                                pixel_format,
+                                SDL_PIXELFORMAT_ARGB8888,
                                 SDL_TEXTUREACCESS_STREAMING,
                                 SCREENWIDTH, SCREENHEIGHT);
 
@@ -1836,6 +1799,16 @@ void I_GetScreenDimensions (void)
 	}
 
 	WIDESCREENDELTA = ((SCREENWIDTH - NONWIDEWIDTH) / vid_resolution) / 2;
+}
+
+// [crispy] calls native SDL vsync toggle
+void I_ToggleVsync (void)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+    SDL_RenderSetVSync(renderer, vid_vsync);
+#else
+    I_ReInitGraphics(REINIT_RENDERER | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+#endif
 }
 
 void I_InitGraphics(void)
@@ -1962,9 +1935,6 @@ void I_ReInitGraphics (int reinit)
 	// [crispy] re-set rendering resolution and re-create framebuffers
 	if (reinit & REINIT_FRAMEBUFFERS)
 	{
-		unsigned int rmask, gmask, bmask, amask;
-		int unused_bpp;
-
 		I_GetScreenDimensions();
 
 #ifndef CRISPY_TRUECOLOR
@@ -1983,11 +1953,9 @@ void I_ReInitGraphics (int reinit)
 #endif
 
 		SDL_FreeSurface(argbbuffer);
-		SDL_PixelFormatEnumToMasks(pixel_format, &unused_bpp,
-		                           &rmask, &gmask, &bmask, &amask);
-		argbbuffer = SDL_CreateRGBSurface(0,
-		                                  SCREENWIDTH, SCREENHEIGHT, 32,
-		                                  rmask, gmask, bmask, amask);
+		argbbuffer = SDL_CreateRGBSurfaceWithFormat(0,
+				                    SCREENWIDTH, SCREENHEIGHT, 32,
+				                    SDL_PIXELFORMAT_ARGB8888);
 #ifndef CRISPY_TRUECOLOR
 		// [crispy] re-set the framebuffer pointer
 		I_VideoBuffer = screenbuffer->pixels;
@@ -2032,7 +2000,7 @@ void I_ReInitGraphics (int reinit)
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
 		texture = SDL_CreateTexture(renderer,
-		                            pixel_format,
+		                            SDL_PIXELFORMAT_ARGB8888,
 		                            SDL_TEXTUREACCESS_STREAMING,
 		                            SCREENWIDTH, SCREENHEIGHT);
 
@@ -2072,14 +2040,68 @@ void I_ReInitGraphics (int reinit)
 	need_resize = true;
 }
 
-// -----------------------------------------------------------------------------
-// I_ToggleVsync
-// [JN] Uses native SDL VSync toggling function.
-// -----------------------------------------------------------------------------
+// [crispy] take screenshot of the rendered image
 
-void I_ToggleVsync (void)
+void I_RenderReadPixels (byte **data, int *w, int *h)
 {
-    SDL_RenderSetVSync(renderer, vid_vsync);
+	SDL_Rect rect;
+	SDL_PixelFormat *format;
+	int temp;
+	uint32_t png_format;
+	byte *pixels;
+
+    // [crispy] adjust cropping rectangle if necessary
+    rect.x = rect.y = 0;
+    SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
+    if (vid_aspect_ratio_correct)
+    {
+        if (rect.w * actualheight > rect.h * SCREENWIDTH)
+        {
+            temp = rect.w;
+            rect.w = rect.h * SCREENWIDTH / actualheight;
+            rect.x = (temp - rect.w) / 2;
+        }
+        else
+        if (rect.h * SCREENWIDTH > rect.w * actualheight)
+        {
+            temp = rect.h;
+            rect.h = rect.w * actualheight / SCREENWIDTH;
+            rect.y = (temp - rect.h) / 2;
+        }
+    }
+
+    // [crispy] native PNG pixel format
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+    png_format = SDL_PIXELFORMAT_ABGR8888;
+#else
+    png_format = SDL_PIXELFORMAT_RGBA8888;
+#endif
+    format = SDL_AllocFormat(png_format);
+    temp = rect.w * format->BytesPerPixel; // [crispy] pitch
+
+    // [crispy] As far as I understand the issue, SDL_RenderPresent()
+    // may return early, i.e. before it has actually finished rendering the
+    // current texture to screen -- from where we want to capture it.
+    // However, it does never return before it has finished rendering the
+    // *previous* texture.
+    // Thus, we add a second call to SDL_RenderPresent() here to make sure
+    // that it has at least finished rendering the previous texture, which
+    // already contains the scene that we actually want to capture.
+    if (post_rendering_hook)
+    {
+        SDL_RenderCopy(renderer, vid_smooth_scaling ? texture_upscaled : texture, NULL, NULL);
+        SDL_RenderPresent(renderer);
+    }
+
+    // [crispy] allocate memory for screenshot image
+    pixels = malloc(rect.h * temp);
+    SDL_RenderReadPixels(renderer, &rect, format->format, pixels, temp);
+
+    *data = pixels;
+    *w = rect.w;
+    *h = rect.h;
+
+    SDL_FreeFormat(format);
 }
 
 // Bind all variables controlling video options into the configuration
