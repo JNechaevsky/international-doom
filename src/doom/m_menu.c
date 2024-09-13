@@ -738,7 +738,7 @@ static void M_ID_VerticalAiming (int choice);
 static void M_ScrollGameplay (int choice);
 static void M_DrawGameplayFooter (char *pagenum);
 
-static void M_Choose_ID_Level_1 (int choice);
+static void M_Choose_ID_Level (int choice);
 static void M_Draw_ID_Level_1 (void);
 static void M_ID_LevelSkill (int choice);
 static void M_ID_LevelEpisode (int choice);
@@ -754,7 +754,6 @@ static void M_ID_LevelRLauncher (int choice);
 static void M_ID_LevelPlasmagun (int choice);
 static void M_ID_LevelBFG9000 (int choice);
 
-static void M_Choose_ID_Level_2 (int choice);
 static void M_Draw_ID_Level_2 (void);
 static void M_ID_LevelBackpack (int choice);
 static void M_ID_LevelBullets (int choice);
@@ -769,6 +768,8 @@ static void M_ID_LevelYellowSkull (int choice);
 static void M_ID_LevelRedSkull (int choice);
 static void M_ID_LevelFastMonsters (int choice);
 static void M_ID_LevelRespMonsters (int choice);
+
+static void M_ScrollLevel (int choice);
 
 static void M_Choose_ID_Reset (int choice);
 
@@ -1200,7 +1201,7 @@ static menuitem_t ID_Menu_Main[]=
     { M_SWTC, "CONTROL SETTINGS",    M_Choose_ID_Controls, 'c' },
     { M_SWTC, "WIDGETS AND AUTOMAP", M_Choose_ID_Widgets,  'w' },
     { M_SWTC, "GAMEPLAY FEATURES",   M_Choose_ID_Gameplay, 'g' },
-    { M_SWTC, "LEVEL SELECT",        M_Choose_ID_Level_1,  'l' },
+    { M_SWTC, "LEVEL SELECT",        M_Choose_ID_Level,    'l' },
     { M_SWTC, "END GAME",            M_EndGame,            'e' },
     { M_SWTC, "RESET SETTINGS",      M_Choose_ID_Reset,    'r' },
     { M_SKIP, "", 0, '\0' },
@@ -3822,7 +3823,7 @@ static menuitem_t ID_Menu_Level_1[]=
     { M_LFRT, "PLASMA RIFLE",       M_ID_LevelPlasmagun, 'p' },
     { M_LFRT, "BFG 9000",           M_ID_LevelBFG9000,   'b' },
     { M_SKIP, "", 0, '\0' },  // WEAPONS
-    { M_SWTC, "", /* NEXT PAGE > */ M_Choose_ID_Level_2, 'n' },
+    { M_LFRT, "", /* NEXT PAGE > */ M_ScrollLevel,       'n' },
     { M_SWTC, "", /* START GAME  */ G_DoSelectiveGame,   's' }
 };
 
@@ -3838,7 +3839,7 @@ static menu_t ID_Def_Level_1 =
     true, false, true,
 };
 
-static void M_Choose_ID_Level_1 (int choice)
+static void M_Choose_ID_Level (int choice)
 {
     M_SetupNextMenu(&ID_Def_Level_1);
 }
@@ -4040,7 +4041,7 @@ static menuitem_t ID_Menu_Level_2[]=
     { M_LFRT, "FAST MONSTERS",       M_ID_LevelFastMonsters,  'f' },
     { M_LFRT, "RESPAWNING MONSTERS", M_ID_LevelRespMonsters,  'r' },
     { M_SKIP, "", 0, '\0' },  // WEAPONS
-    { M_SWTC, "", /* < PREV PAGE */  M_Choose_ID_Level_1,     'p' },
+    { M_LFRT, "", /* < PREV PAGE */  M_ScrollLevel,           'p' },
     { M_SWTC, "", /* START GAME  */  G_DoSelectiveGame,       's' }
 };
 
@@ -4055,11 +4056,6 @@ static menu_t ID_Def_Level_2 =
     0,
     true, false, true,
 };
-
-static void M_Choose_ID_Level_2 (int choice)
-{
-    M_SetupNextMenu(&ID_Def_Level_2);
-}
 
 static void M_Draw_ID_Level_2 (void)
 {
@@ -4231,6 +4227,12 @@ static void M_ID_LevelFastMonsters (int choice)
 static void M_ID_LevelRespMonsters (int choice)
 {
     level_select[25] ^= 1;
+}
+
+static void M_ScrollLevel (int choice)
+{
+         if (currentMenu == &ID_Def_Level_1) { ID_Def_Level_2.lastOn = 16; M_SetupNextMenu(&ID_Def_Level_2); }
+    else if (currentMenu == &ID_Def_Level_2) { ID_Def_Level_1.lastOn = 16; M_SetupNextMenu(&ID_Def_Level_1); }
 }
 
 // -----------------------------------------------------------------------------
