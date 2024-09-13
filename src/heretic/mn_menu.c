@@ -1200,7 +1200,6 @@ static void M_ID_TrueColorHook (void)
 {
     vid_truecolor ^= 1;
 
-    I_SetPalette (sb_palette);
     // [crispy] re-calculate amount of colormaps and light tables
     R_InitColormaps();
     // [crispy] re-calculate the zlight[][] array
@@ -1209,8 +1208,6 @@ static void M_ID_TrueColorHook (void)
     R_ExecuteSetViewSize();
     // [crispy] re-calculate fake contrast
     P_SegLengths(true);
-    // [crispy] re-draw bezel
-    R_FillBackScreen();
 }
 #endif
 
