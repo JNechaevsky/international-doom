@@ -1000,8 +1000,15 @@ static void ST_doSmoothPaletteStuff (void)
 
     if (plyr->powers[pw_strength])
     {
-        // slowly fade the berzerk out
-        const int bzc = (12 << 1) - (plyr->powers[pw_strength] >> (6 - 1));
+        // [JN] Smoother berserk fading.
+        int bzc = (12 << 1) - (plyr->powers[pw_strength] >> (6 - 1));
+        
+        // [JN] Remove almost faded out berzerk faster,
+        // so yellow and green palettes may appear sooner.
+        if (bzc < 7 && bzc > 0)
+        {
+            bzc = 583 - plyr->powers[pw_strength];
+        }
 
         if (bzc > red)
         {
