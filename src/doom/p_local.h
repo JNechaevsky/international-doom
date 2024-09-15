@@ -301,7 +301,7 @@ extern result_e T_MovePlane (sector_t *sector, fixed_t speed, fixed_t dest,
 // -----------------------------------------------------------------------------
 
 #define BONUSADD    6  // [JN] Externalized for smooth fading.
-#define PAINADD     4  // [JN] Paint palette multiplier for smooth fading.
+#define PAINADD     4  // [JN] Pain palette multiplier for smooth fading.
 
 extern boolean P_GivePower(player_t*, int);
 extern void    P_TouchSpecialThing (mobj_t *special, mobj_t *toucher);

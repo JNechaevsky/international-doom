@@ -1135,7 +1135,7 @@ void I_SetPalette (int palette)
 	    curpane = grnspane;
 	    if (vis_smooth_palette)
 	    {
-	    pane_alpha = MIN(grn_pane_alpha, 204);
+	    pane_alpha = grn_pane_alpha;
 	    }
 	    else
 	    {

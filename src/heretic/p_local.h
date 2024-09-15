@@ -268,7 +268,7 @@ extern mobj_t **blocklinks;     // for thing chains
 // ***** P_INTER *****
 
 #define BONUSADD 6  // [JN] Externalized for smooth fading.
-#define PAINADD  4  // [JN] Paint palette multiplier for smooth fading.
+#define PAINADD  4  // [JN] Pain palette multiplier for smooth fading.
 
 extern int maxammo[NUMAMMO];
 extern int clipammo[NUMAMMO];
