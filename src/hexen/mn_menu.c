@@ -1161,15 +1161,12 @@ static void M_ID_TrueColorHook (void)
 {
     vid_truecolor ^= 1;
 
-    I_SetPalette (SB_palette);
     // [crispy] re-calculate amount of colormaps and light tables
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
     // [crispy] re-calculate the zlight[][] array
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
     R_ExecuteSetViewSize();
-    // [crispy] re-draw bezel
-    R_FillBackScreen();
 }
 #endif
 

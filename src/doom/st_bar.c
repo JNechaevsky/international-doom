@@ -996,33 +996,37 @@ static void ST_doSmoothPaletteStuff (void)
     int palette;
     int red = plyr->damagecount;
     int yel = plyr->bonuscount;
+    int grn = plyr->powers[pw_ironfeet] > 4*32 || plyr->powers[pw_ironfeet] & 8;
 
     if (plyr->powers[pw_strength])
     {
-        // slowly fade the berzerk out
-        const int bzc = 12 - (plyr->powers[pw_strength] >> 6);
-        red_pane_alpha = plyr->powers[pw_strength];
+        // [JN] Smoother berserk fading.
+        int bzc = (12 << 1) - (plyr->powers[pw_strength] >> (6 - 1));
+        
+        // [JN] Remove almost faded out berzerk faster,
+        // so yellow and green palettes may appear sooner.
+        if (bzc < 7 && bzc > 0)
+        {
+            bzc = 583 - plyr->powers[pw_strength];
+        }
 
         if (bzc > red)
         {
             red = bzc;
-            red_pane_alpha = bzc * 8;
-        }
-        else
-        {
-            red_pane_alpha = red * 4;
         }
     }
 
     if (red)
     {
         palette = 1;
+        red_pane_alpha = MIN(red * PAINADD, 226);   // 226 pane alpha max
     }
     else if (yel)
     {
         palette = 9;
+        yel_pane_alpha = MIN(yel * BONUSADD, 127);  // 127 pane alpha max
     }
-    else if (plyr->powers[pw_ironfeet] > 4*32 || plyr->powers[pw_ironfeet] & 8)
+    else if (grn)
     {
         palette = RADIATIONPAL;
     }

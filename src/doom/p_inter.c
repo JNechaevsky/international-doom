@@ -33,7 +33,6 @@
 #include "id_func.h"
 
 
-#define BONUSADD	(vis_smooth_palette ? 8 : 6)  // [JN] Smooth palette.
 
 
 
@@ -190,7 +189,6 @@ P_GiveWeapon
 	    return false;
 
 	player->bonuscount += BONUSADD;
-	yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
 	player->weaponowned[weapon] = true;
 
 	if (deathmatch)
@@ -294,7 +292,6 @@ P_GiveCard
 	return;
     
     player->bonuscount += netgame ? BONUSADD : 0; // [crispy] Fix "Key pickup resets palette"
-    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
     player->cards[card] = 1;
 }
 
@@ -705,7 +702,6 @@ P_TouchSpecialThing
     P_RemoveMobj (special);
 
     player->bonuscount += BONUSADD;
-    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
     // [JN] Limit bonus palette duration to 4 seconds.
     if (player->bonuscount > 4 * TICRATE)
 	player->bonuscount = 4 * TICRATE;

@@ -1099,7 +1099,7 @@ void I_SetPalette (int palette)
 	    if (vis_smooth_palette)
 	    {
 	    curpane = redpane;
-	    pane_alpha = MIN(red_pane_alpha, 226);
+	    pane_alpha = red_pane_alpha;
 	    break;
 	    }
 	case 2:
@@ -1116,7 +1116,7 @@ void I_SetPalette (int palette)
 	    if (vis_smooth_palette)
 	    {
 	    curpane = yelpane;
-	    pane_alpha = MIN(yel_pane_alpha, 127);
+	    pane_alpha = yel_pane_alpha;
 	    break;
 	    }
 	case 10:
@@ -1135,7 +1135,7 @@ void I_SetPalette (int palette)
 	    curpane = grnspane;
 	    if (vis_smooth_palette)
 	    {
-	    pane_alpha = MIN(grn_pane_alpha, 204);
+	    pane_alpha = grn_pane_alpha;
 	    }
 	    else
 	    {
@@ -1665,6 +1665,10 @@ static void SetVideoMode(void)
     if (argbbuffer == NULL)
     {
 #ifdef CRISPY_TRUECOLOR
+        int bpp;
+
+        SDL_PixelFormatEnumToMasks(SDL_PIXELFORMAT_ARGB8888, &bpp,
+                                   &rmask, &gmask, &bmask, &amask);
         argbbuffer = SDL_CreateRGBSurfaceWithFormat(
                      0, SCREENWIDTH, SCREENHEIGHT, 32, SDL_PIXELFORMAT_ARGB8888);
 

@@ -28,7 +28,6 @@
 #include "id_vars.h"
 
 
-#define BONUSADD (vis_smooth_palette ? 8 : 6)  // [JN] Smooth palette.
 
 int ArmorIncrement[NUMCLASSES][NUMARMOR] = {
     {25 * FRACUNIT, 20 * FRACUNIT, 15 * FRACUNIT, 5 * FRACUNIT},
@@ -225,7 +224,6 @@ static void TryPickupWeapon(player_t * player, pclass_t weaponClass,
     }
 
     player->bonuscount += BONUSADD;
-    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
     // [JN] Limit bonus palette duration to 4 seconds.
     if (player->bonuscount > 4 * TICRATE)
     {
@@ -435,7 +433,6 @@ static void TryPickupWeaponPiece(player_t * player, pclass_t matchClass,
         }
     }
     player->bonuscount += BONUSADD;
-    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
 
     // Check if fourth weapon assembled
     if (checkAssembled)
@@ -553,7 +550,6 @@ int P_GiveKey(player_t * player, keytype_t key)
         return false;
     }
     player->bonuscount += BONUSADD;
-    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
     player->keys |= 1 << key;
     return true;
 }
@@ -702,7 +698,6 @@ static void TryPickupArtifact(player_t * player, artitype_t artifactType,
             artifact->special = 0;
         }
         player->bonuscount += BONUSADD;
-        yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
         if (artifactType < arti_firstpuzzitem)
         {
             SetDormantArtifact(artifact);
@@ -966,7 +961,6 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
                 break;
             }
             player->bonuscount += BONUSADD;
-            yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
             if (player == &players[consoleplayer])
             {
                 S_StartSound(NULL, sound);
@@ -1180,7 +1174,6 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
         P_RemoveMobj(special);
     }
     player->bonuscount += BONUSADD;
-    yel_pane_alpha += player->bonuscount;  // [JN] Smooth palette.
     if (player == &players[consoleplayer])
     {
         S_StartSound(NULL, sound);
