@@ -325,6 +325,10 @@ extern mobj_t **blocklinks;     // for thing chains
 
 // ***** P_INTER *****
 
+#define BONUSADD    6  // [JN] Externalized for smooth fading.
+#define PAINADD     4  // [JN] Pain palette multiplier for smooth fading.
+#define POISONADD   5  // [JN] Poison palette multiplier for smooth fading.
+
 extern int clipmana[NUMMANA];
 extern int ArmorIncrement[NUMCLASSES][NUMARMOR];
 extern int AutoArmorSave[NUMCLASSES];

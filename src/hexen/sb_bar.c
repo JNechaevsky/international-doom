@@ -1319,14 +1319,17 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         if (CPlayer->poisoncount)
         {
             palette = 14;
+            grn_pane_alpha = MIN(CPlayer->poisoncount * POISONADD, 204); // 204 pane alpha max
         }
         else if (CPlayer->damagecount)
         {
             palette = 1;
+            red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, 226);   // 226 pane alpha max
         }
         else if (CPlayer->bonuscount)
         {
             palette = 9;
+            yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, 127);   // 127 pane alpha max
         }
         else if (CPlayer->mo->flags2 & MF2_ICEDAMAGE)
         {                       // Frozen player

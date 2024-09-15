@@ -1239,10 +1239,12 @@ void SB_SmoothPaletteFlash (void)
     if (CPlayer->damagecount)
     {
         palette = 1;
+        red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, 226);   // 226 pane alpha max
     }
     else if (CPlayer->bonuscount)
     {
         palette = 9;
+        yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, 127);  // 127 pane alpha max
     }
     else
     {

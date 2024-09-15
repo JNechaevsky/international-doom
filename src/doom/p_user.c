@@ -287,7 +287,6 @@ void P_DeathThink (player_t* player)
 
 	    if (player->damagecount)
 	    {
-		red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
 		player->damagecount--;
 	    }
 	}
@@ -298,7 +297,6 @@ void P_DeathThink (player_t* player)
     }
     else if (player->damagecount)
     {
-	red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
 	player->damagecount--;
     }
 	
@@ -517,13 +515,11 @@ void P_PlayerThink (player_t* player)
 		
     if (player->damagecount)
     {
-	red_pane_alpha = player->damagecount * 4;  // [JN] Smooth palette.
 	player->damagecount--;
     }
 		
     if (player->bonuscount)
     {
-	yel_pane_alpha = player->bonuscount * 4;  // [JN] Smooth palette.
 	player->bonuscount--;
     }
 
