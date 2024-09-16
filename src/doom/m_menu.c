@@ -3774,16 +3774,17 @@ static void M_ScrollGameplay (int choice)
 {
     if (choice) // Scroll right
     {
-             if (currentMenu == &ID_Def_Gameplay_1) { ID_Def_Gameplay_2.lastOn = 14; M_SetupNextMenu(&ID_Def_Gameplay_2); }
-        else if (currentMenu == &ID_Def_Gameplay_2) { ID_Def_Gameplay_3.lastOn = 14; M_SetupNextMenu(&ID_Def_Gameplay_3); }
-        else if (currentMenu == &ID_Def_Gameplay_3) { ID_Def_Gameplay_1.lastOn = 14; M_SetupNextMenu(&ID_Def_Gameplay_1); }
+             if (currentMenu == &ID_Def_Gameplay_1) { M_SetupNextMenu(&ID_Def_Gameplay_2); }
+        else if (currentMenu == &ID_Def_Gameplay_2) { M_SetupNextMenu(&ID_Def_Gameplay_3); }
+        else if (currentMenu == &ID_Def_Gameplay_3) { M_SetupNextMenu(&ID_Def_Gameplay_1); }
     }
     else
     {           // Scroll left
-             if (currentMenu == &ID_Def_Gameplay_1) { ID_Def_Gameplay_3.lastOn = 14; M_SetupNextMenu(&ID_Def_Gameplay_3); }
-        else if (currentMenu == &ID_Def_Gameplay_2) { ID_Def_Gameplay_1.lastOn = 14; M_SetupNextMenu(&ID_Def_Gameplay_1); }
-        else if (currentMenu == &ID_Def_Gameplay_3) { ID_Def_Gameplay_2.lastOn = 14; M_SetupNextMenu(&ID_Def_Gameplay_2); }
+             if (currentMenu == &ID_Def_Gameplay_1) { M_SetupNextMenu(&ID_Def_Gameplay_3); }
+        else if (currentMenu == &ID_Def_Gameplay_2) { M_SetupNextMenu(&ID_Def_Gameplay_1); }
+        else if (currentMenu == &ID_Def_Gameplay_3) { M_SetupNextMenu(&ID_Def_Gameplay_2); }
     }
+    itemOn = 14;
 }
 
 static void M_DrawGameplayFooter (char *pagenum)

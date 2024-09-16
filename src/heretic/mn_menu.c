@@ -3317,19 +3317,19 @@ static void M_ID_Breathing (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_3[] = {
-    { ITT_LRFUNC, "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,    0, MENU_NONE },
-    { ITT_LRFUNC, "REPORT REVEALED SECRETS",  M_ID_RevealedSecrets,0, MENU_NONE },
-    { ITT_LRFUNC, "FLIP LEVELS HORIZONTALLY", M_ID_FlipLevels,     0, MENU_NONE },
-    { ITT_LRFUNC, "ON DEATH ACTION",          M_ID_OnDeathAction,  0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                       NULL,                0, MENU_NONE },
-    { ITT_LRFUNC, "SHOW DEMO TIMER",          M_ID_DemoTimer,      0, MENU_NONE },
-    { ITT_LRFUNC, "TIMER DIRECTION",          M_ID_TimerDirection, 0, MENU_NONE },
-    { ITT_LRFUNC, "SHOW PROGRESS BAR",        M_ID_ProgressBar,    0, MENU_NONE },
-    { ITT_LRFUNC, "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,  0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                       NULL,                0, MENU_NONE },
-    { ITT_LRFUNC, "WAND START GAME MODE",     M_ID_PistolStart,    0, MENU_NONE },
-    { ITT_LRFUNC, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,    0, MENU_NONE },
-    { ITT_LRFUNC, "", /* SCROLLS PAGES */     M_ScrollGameplay,    0, MENU_NONE },
+    { ITT_LRFUNC, "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,     0, MENU_NONE },
+    { ITT_LRFUNC, "REPORT REVEALED SECRETS",  M_ID_RevealedSecrets, 0, MENU_NONE },
+    { ITT_LRFUNC, "FLIP LEVELS HORIZONTALLY", M_ID_FlipLevels,      0, MENU_NONE },
+    { ITT_LRFUNC, "ON DEATH ACTION",          M_ID_OnDeathAction,   0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                       NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "SHOW DEMO TIMER",          M_ID_DemoTimer,       0, MENU_NONE },
+    { ITT_LRFUNC, "TIMER DIRECTION",          M_ID_TimerDirection,  0, MENU_NONE },
+    { ITT_LRFUNC, "SHOW PROGRESS BAR",        M_ID_ProgressBar,     0, MENU_NONE },
+    { ITT_LRFUNC, "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,   0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                       NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC, "WAND START GAME MODE",     M_ID_PistolStart,     0, MENU_NONE },
+    { ITT_LRFUNC, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,     0, MENU_NONE },
+    { ITT_LRFUNC, "", /* SCROLLS PAGES */     M_ScrollGameplay,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Gameplay_3 = {
@@ -3468,17 +3468,18 @@ static void M_ScrollGameplay (int choice)
 {
     if (choice) // Scroll right
     {
-             if (CurrentMenu == &ID_Def_Gameplay_1) { ID_Def_Gameplay_2.oldItPos = 12; SetMenu(MENU_ID_GAMEPLAY2); }
-        else if (CurrentMenu == &ID_Def_Gameplay_2) { ID_Def_Gameplay_3.oldItPos = 12; SetMenu(MENU_ID_GAMEPLAY3); }
-        else if (CurrentMenu == &ID_Def_Gameplay_3) { ID_Def_Gameplay_1.oldItPos = 12; SetMenu(MENU_ID_GAMEPLAY1); }
+             if (CurrentMenu == &ID_Def_Gameplay_1) { SetMenu(MENU_ID_GAMEPLAY2); }
+        else if (CurrentMenu == &ID_Def_Gameplay_2) { SetMenu(MENU_ID_GAMEPLAY3); }
+        else if (CurrentMenu == &ID_Def_Gameplay_3) { SetMenu(MENU_ID_GAMEPLAY1); }
     }
     else
     {           // Scroll left
-             if (CurrentMenu == &ID_Def_Gameplay_1) { ID_Def_Gameplay_3.oldItPos = 12; SetMenu(MENU_ID_GAMEPLAY3); }
-        else if (CurrentMenu == &ID_Def_Gameplay_2) { ID_Def_Gameplay_1.oldItPos = 12; SetMenu(MENU_ID_GAMEPLAY1); }
-        else if (CurrentMenu == &ID_Def_Gameplay_3) { ID_Def_Gameplay_2.oldItPos = 12; SetMenu(MENU_ID_GAMEPLAY2); }
+             if (CurrentMenu == &ID_Def_Gameplay_1) { SetMenu(MENU_ID_GAMEPLAY3); }
+        else if (CurrentMenu == &ID_Def_Gameplay_2) { SetMenu(MENU_ID_GAMEPLAY1); }
+        else if (CurrentMenu == &ID_Def_Gameplay_3) { SetMenu(MENU_ID_GAMEPLAY2); }
         
     }
+    CurrentItPos = 12;
 }
 
 static void M_DrawGameplayFooter (char *pagenum)
@@ -3706,23 +3707,23 @@ static void M_ID_LevelFireMace (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_2[] = {
-    { ITT_LRFUNC,  "BAG OF HOLDING",  M_ID_LevelBag,     0, MENU_NONE      },
-    { ITT_LRFUNC,  "WAND CRYSTALS",   M_ID_LevelAmmo_0,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "ETHEREAL ARROWS", M_ID_LevelAmmo_1,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "CLAW ORBS",       M_ID_LevelAmmo_2,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "HELLSTAFF RUNES", M_ID_LevelAmmo_3,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "FLAME ORBS",      M_ID_LevelAmmo_4,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "MACE SPHERES",    M_ID_LevelAmmo_5,  0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,              NULL,                  0, MENU_NONE      },
-    { ITT_LRFUNC,  "YELLOW KEY",      M_ID_LevelKey_0,   0, MENU_NONE      },
-    { ITT_LRFUNC,  "GREEN KEY",       M_ID_LevelKey_1,   0, MENU_NONE      },
-    { ITT_LRFUNC,  "BLUE KEY",        M_ID_LevelKey_2,   0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,              NULL,                  0, MENU_NONE      },
-    { ITT_LRFUNC,  "FAST",            M_ID_LevelFast,    0, MENU_NONE      },
-    { ITT_LRFUNC,  "RESPAWNING",      M_ID_LevelRespawn, 0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,              NULL,                  0, MENU_NONE      },
-    { ITT_LRFUNC,  "LAST PAGE",       M_ScrollLevel,        0, MENU_NONE },
-    { ITT_EFUNC,   "START GAME",      G_DoSelectiveGame,     0, MENU_NONE      },
+    { ITT_LRFUNC, "BAG OF HOLDING",  M_ID_LevelBag,     0, MENU_NONE },
+    { ITT_LRFUNC, "WAND CRYSTALS",   M_ID_LevelAmmo_0,  0, MENU_NONE },
+    { ITT_LRFUNC, "ETHEREAL ARROWS", M_ID_LevelAmmo_1,  0, MENU_NONE },
+    { ITT_LRFUNC, "CLAW ORBS",       M_ID_LevelAmmo_2,  0, MENU_NONE },
+    { ITT_LRFUNC, "HELLSTAFF RUNES", M_ID_LevelAmmo_3,  0, MENU_NONE },
+    { ITT_LRFUNC, "FLAME ORBS",      M_ID_LevelAmmo_4,  0, MENU_NONE },
+    { ITT_LRFUNC, "MACE SPHERES",    M_ID_LevelAmmo_5,  0, MENU_NONE },
+    { ITT_EMPTY,  NULL,              NULL,              0, MENU_NONE },
+    { ITT_LRFUNC, "YELLOW KEY",      M_ID_LevelKey_0,   0, MENU_NONE },
+    { ITT_LRFUNC, "GREEN KEY",       M_ID_LevelKey_1,   0, MENU_NONE },
+    { ITT_LRFUNC, "BLUE KEY",        M_ID_LevelKey_2,   0, MENU_NONE },
+    { ITT_EMPTY,  NULL,              NULL,              0, MENU_NONE },
+    { ITT_LRFUNC, "FAST",            M_ID_LevelFast,    0, MENU_NONE },
+    { ITT_LRFUNC, "RESPAWNING",      M_ID_LevelRespawn, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,              NULL,              0, MENU_NONE },
+    { ITT_LRFUNC, "LAST PAGE",       M_ScrollLevel,     0, MENU_NONE },
+    { ITT_EFUNC,  "START GAME",      G_DoSelectiveGame, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Level_2 = {
@@ -3899,23 +3900,23 @@ static void M_ID_LevelRespawn (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_3[] = {
-    { ITT_LRFUNC,  "QUARTZ FLASK",          M_ID_LevelArti_0,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "MYSTIC URN",            M_ID_LevelArti_1,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "TIME BOMB",             M_ID_LevelArti_2,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "TOME OF POWER",         M_ID_LevelArti_3,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "RING OF INVINCIBILITY", M_ID_LevelArti_4,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "MORPH OVUM",            M_ID_LevelArti_5,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "CHAOS DEVICE",          M_ID_LevelArti_6,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "SHADOWSPHERE",          M_ID_LevelArti_7,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "WINGS OF WRATH",        M_ID_LevelArti_8,  0, MENU_NONE      },
-    { ITT_LRFUNC,  "TORCH",                 M_ID_LevelArti_9,  0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
-    { ITT_EMPTY,   NULL,                    NULL,              0, MENU_NONE      },
-    { ITT_LRFUNC,  "FIRST PAGE",            M_ScrollLevel,     0, MENU_NONE      },
-    { ITT_EFUNC,   "START GAME",            G_DoSelectiveGame, 0, MENU_NONE      },
+    { ITT_LRFUNC, "QUARTZ FLASK",          M_ID_LevelArti_0,  0, MENU_NONE },
+    { ITT_LRFUNC, "MYSTIC URN",            M_ID_LevelArti_1,  0, MENU_NONE },
+    { ITT_LRFUNC, "TIME BOMB",             M_ID_LevelArti_2,  0, MENU_NONE },
+    { ITT_LRFUNC, "TOME OF POWER",         M_ID_LevelArti_3,  0, MENU_NONE },
+    { ITT_LRFUNC, "RING OF INVINCIBILITY", M_ID_LevelArti_4,  0, MENU_NONE },
+    { ITT_LRFUNC, "MORPH OVUM",            M_ID_LevelArti_5,  0, MENU_NONE },
+    { ITT_LRFUNC, "CHAOS DEVICE",          M_ID_LevelArti_6,  0, MENU_NONE },
+    { ITT_LRFUNC, "SHADOWSPHERE",          M_ID_LevelArti_7,  0, MENU_NONE },
+    { ITT_LRFUNC, "WINGS OF WRATH",        M_ID_LevelArti_8,  0, MENU_NONE },
+    { ITT_LRFUNC, "TORCH",                 M_ID_LevelArti_9,  0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
+    { ITT_LRFUNC, "FIRST PAGE",            M_ScrollLevel,     0, MENU_NONE },
+    { ITT_EFUNC,  "START GAME",            G_DoSelectiveGame, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Level_3 = {
