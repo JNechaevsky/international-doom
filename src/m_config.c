@@ -546,6 +546,7 @@ static default_t	doom_defaults_list[] =
     // Audible
     CONFIG_VARIABLE_INT(aud_z_axis_sfx),
     CONFIG_VARIABLE_INT(aud_full_sounds),
+    CONFIG_VARIABLE_INT(aud_crushed_corpse),
     CONFIG_VARIABLE_INT(aud_exit_sounds),
 
     // Physical

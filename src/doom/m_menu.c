@@ -715,6 +715,7 @@ static void M_ID_NegativeHealth (int choice);
 static void M_ID_BlinkingKeys (int choice);
 static void M_ID_ZAxisSfx (int choice);
 static void M_ID_FullSounds (int choice);
+static void M_ID_SndOfCrushedCorpse (int choice);
 static void M_ID_Torque (int choice);
 static void M_ID_SSGTearMonsters (int choice);
 static void M_ID_TossDrop (int choice);
@@ -3432,6 +3433,7 @@ static menuitem_t ID_Menu_Gameplay_2[]=
     { M_SKIP, "", 0, '\0' },
     { M_LFRT, "SFX ATTENUATION AXISES",        M_ID_ZAxisSfx,          's' },
     { M_LFRT, "PLAY SOUNDS IN FULL LENGTH",    M_ID_FullSounds,        'p' },
+    { M_LFRT, "SOUND OF CRUSHED CORPSE",       M_ID_SndOfCrushedCorpse,'s' },
     { M_SKIP, "", 0, '\0' },
     { M_LFRT, "CORPSES SLIDING FROM LEDGES",   M_ID_Torque,            'c' },
     { M_LFRT, "POINT-BLANK SSG TEAR MONSTERS", M_ID_SSGTearMonsters,   'p' },
@@ -3439,7 +3441,6 @@ static menuitem_t ID_Menu_Gameplay_2[]=
     { M_LFRT, "FLOATING POWERUPS AMPLITUDE",   M_ID_FloatingPowerups,  'f' },
     { M_LFRT, "WEAPON ATTACK ALIGNMENT",       M_ID_WeaponAlignment,   'w' },
     { M_LFRT, "IMITATE PLAYER'S BREATHING",    M_ID_Breathing,         'i' },
-    { M_SKIP, "", 0, '\0' },
     { M_LFRT, "", /* < SCROLL PAGES >*/        M_ScrollGameplay,       's' },
     { M_SKIP, "", 0, '\0' },
 };
@@ -3489,40 +3490,45 @@ static void M_Draw_ID_Gameplay_2 (void)
     M_WriteText (M_ItemRightAlign(str), 63, str,
                  M_Item_Glow(5, aud_full_sounds ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(72, "PHYSICAL", cr[CR_YELLOW]);
+    // Sound of crushed corpse
+    sprintf(str, aud_crushed_corpse ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(6, aud_crushed_corpse ? GLOW_GREEN : GLOW_DARKRED));
+
+    M_WriteTextCentered(81, "PHYSICAL", cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 90, str,
+                 M_Item_Glow(8, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
 
     // Point-blank SSG tear monsters
     sprintf(str, phys_ssg_tear_monsters ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, phys_ssg_tear_monsters ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 99, str,
+                 M_Item_Glow(9, phys_ssg_tear_monsters ? GLOW_GREEN : GLOW_DARKRED));
 
     // Items are tossed when dropped
     sprintf(str, phys_toss_drop ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, phys_toss_drop ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 108, str,
+                 M_Item_Glow(10, phys_toss_drop ? GLOW_GREEN : GLOW_DARKRED));
 
     // Floating powerups amplitude
     sprintf(str, phys_floating_powerups == 1 ? "LOW" :
                  phys_floating_powerups == 2 ? "MIDDLE" :
                  phys_floating_powerups == 3 ? "HIGH" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, phys_floating_powerups ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 117, str,
+                 M_Item_Glow(11, phys_floating_powerups ? GLOW_GREEN : GLOW_DARKRED));
 
     // Weapon attack alignment
     sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
                  phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(11, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 126, str,
+                 M_Item_Glow(12, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 135, str,
+                 M_Item_Glow(13, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
     // Footer
     M_DrawGameplayFooter("2");
@@ -3560,6 +3566,11 @@ static void M_ID_FullSounds (int choice)
             players[i].so = Crispy_PlayerSO(i);
         }
     }
+}
+
+static void M_ID_SndOfCrushedCorpse (int choice)
+{
+    aud_crushed_corpse ^= 1;
 }
 
 static void M_ID_Torque (int choice)
@@ -4342,6 +4353,7 @@ static void M_ID_ApplyResetHook (void)
     // Audible
     aud_z_axis_sfx = 0;
     aud_full_sounds = 0;
+    aud_crushed_corpse = 0;
     aud_exit_sounds = 0;
 
     // Physical

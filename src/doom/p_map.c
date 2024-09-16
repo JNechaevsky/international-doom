@@ -1610,6 +1610,13 @@ boolean PIT_ChangeSector (mobj_t*	thing)
 	thing->height = 0;
 	thing->radius = 0;
 
+	// [JN] Optionally play DSSLOP upon corpse crushing.
+	// No sound for explosive barrels, though.
+	if (aud_crushed_corpse && thing->type != MT_BARREL)
+	{
+	S_StartSound(thing, sfx_slop);
+	}
+
 	// [crispy] connect giblet object with the crushed monster
 	thing->target = thing;
 

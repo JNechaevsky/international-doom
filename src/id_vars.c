@@ -140,6 +140,7 @@ int st_armor_icon = 0;
 // Audible
 int aud_z_axis_sfx = 0;
 int aud_full_sounds = 0;
+int aud_crushed_corpse = 0;
 int aud_exit_sounds = 0;
 
 // Physical
@@ -333,6 +334,7 @@ void ID_BindVariables (GameMission_t mission)
     if (mission == doom)
     {
         M_BindIntVariable("aud_full_sounds",            &aud_full_sounds);
+        M_BindIntVariable("aud_crushed_corpse",         &aud_crushed_corpse);
         M_BindIntVariable("aud_exit_sounds",            &aud_exit_sounds);
     }
     

@@ -116,6 +116,7 @@ extern int st_armor_icon;  // Hexen only
 
 extern int aud_z_axis_sfx;
 extern int aud_full_sounds;
+extern int aud_crushed_corpse;
 extern int aud_exit_sounds;
 
 extern int phys_torque;
