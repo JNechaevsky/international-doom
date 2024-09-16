@@ -694,7 +694,6 @@ static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
 static void M_ID_Automap_Shading (int choice);
 
-static void M_Choose_ID_Gameplay_1 (int choice);
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
@@ -710,7 +709,6 @@ static void M_ID_FlipCorpses (int choice);
 static void M_ID_Crosshair (int choice);
 static void M_ID_CrosshairColor (int choice);
 
-static void M_Choose_ID_Gameplay_2 (int choice);
 static void M_Draw_ID_Gameplay_2 (void);
 static void M_ID_ColoredSTBar (int choice);
 static void M_ID_NegativeHealth (int choice);
@@ -724,7 +722,6 @@ static void M_ID_FloatingPowerups (int choice);
 static void M_ID_WeaponAlignment (int choice);
 static void M_ID_Breathing (int choice);
 
-static void M_Choose_ID_Gameplay_3 (int choice);
 static void M_Draw_ID_Gameplay_3 (void);
 static void M_ID_DefaulSkill (int choice);
 static void M_ID_PistolStart (int choice);
@@ -738,7 +735,10 @@ static void M_ID_InternalDemos (int choice);
 static void M_ID_BlockmapFix (int choice);
 static void M_ID_VerticalAiming (int choice);
 
-static void M_Choose_ID_Level_1 (int choice);
+static void M_ScrollGameplay (int choice);
+static void M_DrawGameplayFooter (char *pagenum);
+
+static void M_Choose_ID_Level (int choice);
 static void M_Draw_ID_Level_1 (void);
 static void M_ID_LevelSkill (int choice);
 static void M_ID_LevelEpisode (int choice);
@@ -754,7 +754,6 @@ static void M_ID_LevelRLauncher (int choice);
 static void M_ID_LevelPlasmagun (int choice);
 static void M_ID_LevelBFG9000 (int choice);
 
-static void M_Choose_ID_Level_2 (int choice);
 static void M_Draw_ID_Level_2 (void);
 static void M_ID_LevelBackpack (int choice);
 static void M_ID_LevelBullets (int choice);
@@ -769,6 +768,8 @@ static void M_ID_LevelYellowSkull (int choice);
 static void M_ID_LevelRedSkull (int choice);
 static void M_ID_LevelFastMonsters (int choice);
 static void M_ID_LevelRespMonsters (int choice);
+
+static void M_ScrollLevel (int choice);
 
 static void M_Choose_ID_Reset (int choice);
 
@@ -982,6 +983,7 @@ static void M_Reset_Line_Glow (void)
 #define GLOW_BLUE       7
 #define GLOW_OLIVE      8
 #define GLOW_DARKGREEN  9
+#define GLOW_GRAY       10
 
 #define ITEMONTICS      currentMenu->menuitems[itemOn].tics
 #define ITEMSETONTICS   currentMenu->menuitems[itemSetOn].tics
@@ -1000,6 +1002,7 @@ static byte *M_Item_Glow (const int itemSetOn, const int color)
             color == GLOW_BLUE      ? cr[CR_BLUE2_BRIGHT5]     :
             color == GLOW_OLIVE     ? cr[CR_OLIVE_BRIGHT5]     :
             color == GLOW_DARKGREEN ? cr[CR_DARKGREEN_BRIGHT5] :
+            color == GLOW_GRAY      ? cr[CR_GRAY_BRIGHT5]      :
                                       cr[CR_MENU_BRIGHT5]      ; // GLOW_UNCOLORED
     }
     else
@@ -1093,6 +1096,15 @@ static byte *M_Item_Glow (const int itemSetOn, const int color)
                 ITEMSETONTICS == 3 ? cr[CR_DARKGREEN_BRIGHT3] :
                 ITEMSETONTICS == 2 ? cr[CR_DARKGREEN_BRIGHT2] :
                 ITEMSETONTICS == 1 ? cr[CR_DARKGREEN_BRIGHT1] : cr[CR_DARKGREEN];
+        }
+        if (color == GLOW_GRAY)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_GRAY_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_GRAY_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_GRAY_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_GRAY_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_GRAY_BRIGHT1] : cr[CR_GRAY];
         }
     }
     return NULL;
@@ -1189,7 +1201,7 @@ static menuitem_t ID_Menu_Main[]=
     { M_SWTC, "CONTROL SETTINGS",    M_Choose_ID_Controls, 'c' },
     { M_SWTC, "WIDGETS AND AUTOMAP", M_Choose_ID_Widgets,  'w' },
     { M_SWTC, "GAMEPLAY FEATURES",   M_Choose_ID_Gameplay, 'g' },
-    { M_SWTC, "LEVEL SELECT",        M_Choose_ID_Level_1,  'l' },
+    { M_SWTC, "LEVEL SELECT",        M_Choose_ID_Level,    'l' },
     { M_SWTC, "END GAME",            M_EndGame,            'e' },
     { M_SWTC, "RESET SETTINGS",      M_Choose_ID_Reset,    'r' },
     { M_SKIP, "", 0, '\0' },
@@ -3210,8 +3222,8 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { M_SKIP, "", 0, '\0' },
     { M_LFRT, "SHAPE",                       M_ID_Crosshair,         's' },
     { M_LFRT, "INDICATION",                  M_ID_CrosshairColor,    'i' },
-    { M_SWTC, "", /*NEXT PAGE >*/            M_Choose_ID_Gameplay_2, 'n' },
-    { M_SWTC, "", /*< LAST PAGE*/            M_Choose_ID_Gameplay_3, 'p' },
+    { M_LFRT, "", /* < SCROLL PAGES >*/      M_ScrollGameplay,       's' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Gameplay_1 =
@@ -3224,11 +3236,6 @@ static menu_t ID_Def_Gameplay_1 =
     0,
     true, false, true,
 };
-
-static void M_Choose_ID_Gameplay_1 (int choice)
-{
-    M_SetupNextMenu(&ID_Def_Gameplay_1);
-}
 
 static void M_Draw_ID_Gameplay_1 (void)
 {
@@ -3320,14 +3327,8 @@ static void M_Draw_ID_Gameplay_1 (void)
     M_WriteText (M_ItemRightAlign(str), 135, str,
                  M_Item_Glow(13, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteText (ID_MENU_LEFTOFFSET_BIG, 144, "NEXT PAGE >",
-                 M_Item_Glow(14, GLOW_LIGHTGRAY));
-    M_WriteText (ID_MENU_LEFTOFFSET_BIG, 153, "< LAST PAGE",
-                 M_Item_Glow(15, GLOW_LIGHTGRAY));
-
     // Footer
-    sprintf(str, "PAGE 1/3");
-    M_WriteText(M_ItemRightAlign(str), 153, str, cr[CR_GRAY]);
+    M_DrawGameplayFooter("1");
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3439,8 +3440,8 @@ static menuitem_t ID_Menu_Gameplay_2[]=
     { M_LFRT, "WEAPON ATTACK ALIGNMENT",       M_ID_WeaponAlignment,   'w' },
     { M_LFRT, "IMITATE PLAYER'S BREATHING",    M_ID_Breathing,         'i' },
     { M_SKIP, "", 0, '\0' },
-    { M_SWTC, "", /*NEXT PAGE >*/              M_Choose_ID_Gameplay_3, 'n' },
-    { M_SWTC, "", /*< PREV PAGE*/              M_Choose_ID_Gameplay_1, 'p' },
+    { M_LFRT, "", /* < SCROLL PAGES >*/        M_ScrollGameplay,       's' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Gameplay_2 =
@@ -3453,11 +3454,6 @@ static menu_t ID_Def_Gameplay_2 =
     0,
     true, false, true,
 };
-
-static void M_Choose_ID_Gameplay_2 (int choice)
-{
-    M_SetupNextMenu(&ID_Def_Gameplay_2);
-}
 
 static void M_Draw_ID_Gameplay_2 (void)
 {
@@ -3528,15 +3524,8 @@ static void M_Draw_ID_Gameplay_2 (void)
     M_WriteText (M_ItemRightAlign(str), 126, str,
                  M_Item_Glow(12, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
-
-    M_WriteText (ID_MENU_LEFTOFFSET_BIG, 144, "NEXT PAGE >",
-                 M_Item_Glow(14, GLOW_LIGHTGRAY));
-    M_WriteText (ID_MENU_LEFTOFFSET_BIG, 153, "< PREV PAGE",
-                 M_Item_Glow(15, GLOW_LIGHTGRAY));
-
     // Footer
-    sprintf(str, "PAGE 2/3");
-    M_WriteText(M_ItemRightAlign(str), 153, str, cr[CR_GRAY]);
+    M_DrawGameplayFooter("2");
 }
 
 static void M_ID_ColoredSTBar (int choice)
@@ -3624,8 +3613,8 @@ static menuitem_t ID_Menu_Gameplay_3[]=
     { M_LFRT, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,       'i' },
     { M_LFRT, "VERTICAL AIMING",          M_ID_VerticalAiming,    'v' },
     { M_SKIP, "", 0, '\0' },
-    { M_SWTC, "", /*FIRST PAGE >*/        M_Choose_ID_Gameplay_1, 'n' },
-    { M_SWTC, "", /*< PREV PAGE*/         M_Choose_ID_Gameplay_2, 'p' },
+    { M_LFRT, "", /* < SCROLL PAGES >*/   M_ScrollGameplay,       's' },
+    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Gameplay_3 =
@@ -3638,11 +3627,6 @@ static menu_t ID_Def_Gameplay_3 =
     0,
     true, false, true,
 };
-
-static void M_Choose_ID_Gameplay_3 (int choice)
-{
-    M_SetupNextMenu(&ID_Def_Gameplay_3);
-}
 
 static void M_Draw_ID_Gameplay_3 (void)
 {
@@ -3715,14 +3699,8 @@ static void M_Draw_ID_Gameplay_3 (void)
     M_WriteText (M_ItemRightAlign(str), 126, str,
                  M_Item_Glow(12, compat_vertical_aiming ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteText (ID_MENU_LEFTOFFSET_BIG, 144, "FIRST PAGE >",
-                 M_Item_Glow(14, GLOW_LIGHTGRAY));
-    M_WriteText (ID_MENU_LEFTOFFSET_BIG, 153, "< PREV PAGE",
-                 M_Item_Glow(15, GLOW_LIGHTGRAY));
-
     // Footer
-    sprintf(str, "PAGE 3/3");
-    M_WriteText(M_ItemRightAlign(str), 153, str, cr[CR_GRAY]);
+    M_DrawGameplayFooter("3");
 }
 
 static void M_ID_DefaulSkill (int choice)
@@ -3792,6 +3770,35 @@ static void M_ID_VerticalAiming (int choice)
     compat_vertical_aiming = M_INT_Slider(compat_vertical_aiming, 0, 2, choice, false);
 }
 
+static void M_ScrollGameplay (int choice)
+{
+    if (choice) // Scroll right
+    {
+             if (currentMenu == &ID_Def_Gameplay_1) { M_SetupNextMenu(&ID_Def_Gameplay_2); }
+        else if (currentMenu == &ID_Def_Gameplay_2) { M_SetupNextMenu(&ID_Def_Gameplay_3); }
+        else if (currentMenu == &ID_Def_Gameplay_3) { M_SetupNextMenu(&ID_Def_Gameplay_1); }
+    }
+    else
+    {           // Scroll left
+             if (currentMenu == &ID_Def_Gameplay_1) { M_SetupNextMenu(&ID_Def_Gameplay_3); }
+        else if (currentMenu == &ID_Def_Gameplay_2) { M_SetupNextMenu(&ID_Def_Gameplay_1); }
+        else if (currentMenu == &ID_Def_Gameplay_3) { M_SetupNextMenu(&ID_Def_Gameplay_2); }
+    }
+    itemOn = 14;
+}
+
+static void M_DrawGameplayFooter (char *pagenum)
+{
+    char str[32];
+    
+    M_WriteText(ID_MENU_LEFTOFFSET_BIG, 144, "< SCROLL PAGES >",
+                M_Item_Glow(14, GLOW_LIGHTGRAY));
+
+    sprintf(str, M_StringJoin("PAGE ", pagenum, "/3", NULL));
+    M_WriteText(M_ItemRightAlign(str), 144, str,
+                M_Item_Glow(14, GLOW_GRAY));
+}
+
 // -----------------------------------------------------------------------------
 // Level select 1
 // -----------------------------------------------------------------------------
@@ -3814,7 +3821,7 @@ static menuitem_t ID_Menu_Level_1[]=
     { M_LFRT, "PLASMA RIFLE",       M_ID_LevelPlasmagun, 'p' },
     { M_LFRT, "BFG 9000",           M_ID_LevelBFG9000,   'b' },
     { M_SKIP, "", 0, '\0' },  // WEAPONS
-    { M_SWTC, "", /* NEXT PAGE > */ M_Choose_ID_Level_2, 'n' },
+    { M_LFRT, "", /* NEXT PAGE > */ M_ScrollLevel,       'n' },
     { M_SWTC, "", /* START GAME  */ G_DoSelectiveGame,   's' }
 };
 
@@ -3830,7 +3837,7 @@ static menu_t ID_Def_Level_1 =
     true, false, true,
 };
 
-static void M_Choose_ID_Level_1 (int choice)
+static void M_Choose_ID_Level (int choice)
 {
     M_SetupNextMenu(&ID_Def_Level_1);
 }
@@ -4032,7 +4039,7 @@ static menuitem_t ID_Menu_Level_2[]=
     { M_LFRT, "FAST MONSTERS",       M_ID_LevelFastMonsters,  'f' },
     { M_LFRT, "RESPAWNING MONSTERS", M_ID_LevelRespMonsters,  'r' },
     { M_SKIP, "", 0, '\0' },  // WEAPONS
-    { M_SWTC, "", /* < PREV PAGE */  M_Choose_ID_Level_1,     'p' },
+    { M_LFRT, "", /* < PREV PAGE */  M_ScrollLevel,           'p' },
     { M_SWTC, "", /* START GAME  */  G_DoSelectiveGame,       's' }
 };
 
@@ -4047,11 +4054,6 @@ static menu_t ID_Def_Level_2 =
     0,
     true, false, true,
 };
-
-static void M_Choose_ID_Level_2 (int choice)
-{
-    M_SetupNextMenu(&ID_Def_Level_2);
-}
 
 static void M_Draw_ID_Level_2 (void)
 {
@@ -4223,6 +4225,12 @@ static void M_ID_LevelFastMonsters (int choice)
 static void M_ID_LevelRespMonsters (int choice)
 {
     level_select[25] ^= 1;
+}
+
+static void M_ScrollLevel (int choice)
+{
+         if (currentMenu == &ID_Def_Level_1) { ID_Def_Level_2.lastOn = 16; M_SetupNextMenu(&ID_Def_Level_2); }
+    else if (currentMenu == &ID_Def_Level_2) { ID_Def_Level_1.lastOn = 16; M_SetupNextMenu(&ID_Def_Level_1); }
 }
 
 // -----------------------------------------------------------------------------
