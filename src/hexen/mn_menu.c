@@ -177,6 +177,8 @@ boolean MenuActive;
 int InfoType;
 boolean mn_SuicideConsole;
 
+int savepage; // [crispy] support 8 pages of savegames
+
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static int FontABaseLump;
@@ -4457,7 +4459,7 @@ static void SCDeleteGame(int option)
         OnDeathLoadSlot = -1;
     }
 
-    SV_ClearSaveSlot(option);
+    SV_ClearSaveSlot(option + savepage * 10);
     CurrentMenu->oldItPos = CurrentItPos;  // [JN] Do not reset cursor position.
     MN_LoadSlotText();
 }
