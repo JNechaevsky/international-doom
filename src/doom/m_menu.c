@@ -4383,16 +4383,18 @@ static void M_ID_ApplyResetHook (void)
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    R_InitColormaps();
     R_InitLightTables();
     R_SetViewSize(dp_screen_size, dp_detail_level);
     R_ExecuteSetViewSize();
+    P_SegLengths(true);
+    P_InitPicAnims();
     I_ToggleVsync();
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
 #else
     I_SetPalette(st_palette);
 #endif
-    R_InitColormaps();
     R_FillBackScreen();
     V_EnableLoadingDisk();
     ST_InitElementsBackground();

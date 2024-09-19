@@ -4187,17 +4187,19 @@ static void M_ID_ApplyResetHook (void)
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    R_InitColormaps();
     R_InitLightTables();
     R_InitSkyMap();
     R_SetViewSize(dp_screen_size, dp_detail_level);
     R_ExecuteSetViewSize();
+    P_SegLengths(true);
+    P_InitPicAnims();
     I_ToggleVsync();
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 #else
     I_SetPalette(sb_palette);
 #endif
-    R_InitColormaps();
     R_FillBackScreen();
     AM_LevelInit(true);
     if (automapactive)
