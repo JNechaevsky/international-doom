@@ -1001,13 +1001,21 @@ static void ST_doSmoothPaletteStuff (void)
     if (plyr->powers[pw_strength])
     {
         // [JN] Smoother berserk fading.
-        int bzc = (12 << 1) - (plyr->powers[pw_strength] >> (6 - 1));
+        int bzc = (12 << 1) - (plyr->powers[pw_strength] >> 6);
         
-        // [JN] Remove almost faded out berzerk faster,
-        // so yellow and green palettes may appear sooner.
-        if (bzc < 7 && bzc > 0)
+        // [JN] Berserk is almost faded out. Handle final fading differently:
+        if (bzc > 0 && bzc < 13)
         {
-            bzc = 583 - plyr->powers[pw_strength];
+            if (plyr->powers[pw_ironfeet])
+            {
+                // If have a radiation suit, switch to the green palette immediately.
+                bzc = 0;
+            }
+            else
+            {
+                // Otherwise, perform a smooth and fast final fade.
+                bzc = 780 - plyr->powers[pw_strength];
+            }
         }
 
         if (bzc > red)
