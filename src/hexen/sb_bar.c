@@ -1305,6 +1305,7 @@ void SB_PaletteFlash(boolean forceChange)
 // [JN] Smooth palette handling.
 // -----------------------------------------------------------------------------
 
+#ifdef CRISPY_TRUECOLOR
 void SB_SmoothPaletteFlash (boolean forceChange)
 {
     int palette;
@@ -1362,6 +1363,7 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         I_SetPalette(palette);
     }
 }
+#endif
 
 //==========================================================================
 //

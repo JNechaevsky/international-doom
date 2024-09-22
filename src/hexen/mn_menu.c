@@ -3523,7 +3523,9 @@ static void M_ID_ApplyResetHook (void)
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+#ifdef CRISPY_TRUECOLOR
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+#endif
     R_InitLightTables();
     R_InitSkyMap();
     R_SetViewSize(dp_screen_size, dp_detail_level);

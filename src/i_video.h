@@ -22,6 +22,7 @@
 #define __I_VIDEO__
 
 #include "doomtype.h"
+#include "i_truecolor.h"
 #include "m_fixed.h"
 
 
@@ -96,8 +97,6 @@ int I_GetPaletteIndex(int r, int g, int b);
 #else
 void I_SetPalette (int palette);
 extern const pixel_t I_MapRGB (const uint8_t r, const uint8_t g, const uint8_t b);
-extern const int I_ShadeFactor[];
-extern const float I_SaturationPercent[];
 #endif
 void I_FinishUpdate (void);
 
