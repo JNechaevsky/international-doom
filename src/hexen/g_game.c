@@ -1916,6 +1916,8 @@ void G_PlayerExitMap(int playerNumber)
     player->damagecount = 0;    // No palette changes
     player->bonuscount = 0;
     player->poisoncount = 0;
+    // [JN] Reset smooth palette fading for Wraithwerge and Bloodscourge.
+    player->graycount = player->orngcount = 0;
     if (player == &players[consoleplayer])
     {
         SB_state = -1;          // refresh the status bar

@@ -121,6 +121,7 @@ static SDL_Color palette[256];
 static boolean palette_to_set;
 // [JN] Smooth palette.
 int    red_pane_alpha, yel_pane_alpha, grn_pane_alpha;
+int    gray_pane_alpha, orng_pane_alpha;
 
 // display has been set up?
 
@@ -1171,7 +1172,14 @@ void I_SetPalette (int palette)
 	    break;
 	case 22:  // STARTHOLYPAL
 	    curpane = graypane;
+	    if (vis_smooth_palette)
+	    {
+	    pane_alpha = gray_pane_alpha;
+	    }
+	    else
+	    {
 	    pane_alpha = 0x7f; // 127 (50%)
+	    }
 	    break;
 	case 23:
 	    curpane = graypane;
@@ -1183,7 +1191,14 @@ void I_SetPalette (int palette)
 	    break;
 	case 25:  // STARTSCOURGEPAL
 	    curpane = orngpane;
+	    if (vis_smooth_palette)
+	    {
+	    pane_alpha = orng_pane_alpha;
+	    }
+	    else
+	    {
 	    pane_alpha = 0x7f; // 127 (50%)
+	    }
 	    break;
 	case 26:
 	    curpane = orngpane;

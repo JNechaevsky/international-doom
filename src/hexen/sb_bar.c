@@ -1331,6 +1331,16 @@ void SB_SmoothPaletteFlash (boolean forceChange)
             palette = 9;
             yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, 127);   // 127 pane alpha max
         }
+        else if (CPlayer->graycount)
+        {
+            palette = 22;  // STARTHOLYPAL
+            gray_pane_alpha = CPlayer->graycount;  // 127 pane alpha max set in A_CHolyAttack
+        }
+        else if (CPlayer->orngcount)
+        {
+            palette = 25;  // STARTSCOURGEPAL
+            orng_pane_alpha = CPlayer->orngcount;  // 127 pane alpha max set in A_MStaffAttack
+        }
         else if (CPlayer->mo->flags2 & MF2_ICEDAMAGE)
         {                       // Frozen player
             palette = STARTICEPAL;
@@ -1345,7 +1355,8 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         palette = 0;
     }
 
-    if (palette != SB_palette || CPlayer->poisoncount || CPlayer->damagecount || CPlayer->bonuscount)
+    if (palette != SB_palette || CPlayer->poisoncount || CPlayer->damagecount || CPlayer->bonuscount
+    ||  CPlayer->graycount || CPlayer->orngcount)
     {
         SB_palette = palette;
         I_SetPalette(palette);

@@ -604,6 +604,7 @@ typedef struct player_s
 
     int damagecount, bonuscount;        // for screen flashing
     int poisoncount;            // screen flash for poison damage
+    int graycount, orngcount;   // [JN] Smooth palette fading for Wraithwerge and Bloodscourge.
     mobj_t *poisoner;           // NULL for non-player mobjs
     mobj_t *attacker;           // who did damage (NULL for floors)
     int extralight;             // so gun flashes light up areas

@@ -151,6 +151,7 @@ extern int demowarp;
 
 // [JN] Smooth palette.
 extern int red_pane_alpha, yel_pane_alpha, grn_pane_alpha;
+extern int gray_pane_alpha, orng_pane_alpha;
 
 // [AM] Fractional part of the current tic, in the half-open
 //      range of [0.0, 1.0).  Used for interpolation.
