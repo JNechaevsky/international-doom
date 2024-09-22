@@ -1023,6 +1023,18 @@ void P_PlayerThink(player_t * player)
         }
         P_PoisonDamage(player, player->poisoner, 1, true);
     }
+
+    // [JN] Smooth palette fading for Cleric's Wraithwerge and Mage's Bloodscourge.
+    if (player->graycount)
+    {
+        player->graycount -= 12;
+        player->graycount = MAX(0, player->graycount);
+    }
+    if (player->orngcount)
+    {
+        player->orngcount -= 12;
+        player->orngcount = MAX(0, player->orngcount);
+    }
     // Colormaps
 //      if(player->powers[pw_invulnerability])
 //      {

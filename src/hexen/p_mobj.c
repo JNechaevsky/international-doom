@@ -1444,6 +1444,8 @@ void P_SpawnPlayer(mapthing_t * mthing)
     p->damagecount = 0;
     p->bonuscount = 0;
     p->poisoncount = 0;
+    // [JN] Reset smooth palette fading for Wraithwerge and Bloodscourge.
+    p->graycount = p->orngcount = 0;
     p->morphTics = 0;
     p->extralight = 0;
     p->fixedcolormap = 0;

@@ -3106,6 +3106,15 @@ static void M_ID_SmoothPalette (int choice)
     return;
 #else
     vis_smooth_palette ^= 1;
+    // [JN] Properly handle current palette effect.
+    if (vis_smooth_palette)
+    {
+        SB_SmoothPaletteFlash(true);
+    }
+    else
+    {
+        SB_PaletteFlash(true);
+    }
 #endif
 }
 
