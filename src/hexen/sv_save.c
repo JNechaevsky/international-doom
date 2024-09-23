@@ -514,6 +514,9 @@ static void StreamIn_player_t(player_t *str)
 
     // unsigned int worldTimer;
     str->worldTimer = SV_ReadLong();
+
+    // [JN] Reset smooth palette fading for Wraithwerge and Bloodscourge.
+    str->graycount = str->orngcount = 0;
 }
 
 static void StreamOut_player_t(player_t *str)
