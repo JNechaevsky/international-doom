@@ -74,8 +74,12 @@ static int unity_200;
 
 // Jaguar color scheme:
 static int jaguar_32;
+static int jaguar_75;
 static int jaguar_120;
 static int jaguar_163;
+static int jaguar_176;
+static int jaguar_200;
+static int jaguar_228;
 static int jaguar_254;
 
 static int exitcolors;
@@ -357,8 +361,12 @@ void AM_Init (void)
 
         // Jaguar color scheme
         jaguar_32 = 32;
+        jaguar_75 = 75;
         jaguar_120 = 120;
         jaguar_163 = 163;
+        jaguar_176 = 176;
+        jaguar_200 = 200;
+        jaguar_228 = 228;
         jaguar_254 = 254;
 
         exitcolors = 195;
@@ -399,8 +407,12 @@ void AM_Init (void)
 
         // Jaguar color scheme
         jaguar_32  = V_GetPaletteIndex(playpal, 155,  51,  51);
+        jaguar_75  = V_GetPaletteIndex(playpal,  83,  63,  31);
         jaguar_120 = V_GetPaletteIndex(playpal,  63, 131,  47);
         jaguar_163 = V_GetPaletteIndex(playpal, 195, 155,  47);
+        jaguar_176 = V_GetPaletteIndex(playpal, 255,   0,   0);
+        jaguar_200 = V_GetPaletteIndex(playpal,   0,   0, 255);
+        jaguar_228 = V_GetPaletteIndex(playpal, 255, 255, 107);
         jaguar_254 = V_GetPaletteIndex(playpal, 111,   1, 107);
 
         exitcolors = V_GetPaletteIndex(playpal, 143, 143, 255);
@@ -2036,6 +2048,28 @@ static void AM_drawWalls (void)
                             {
                                 AM_drawMline(&l, jaguar_32);
                             }
+
+                            // [JN] RED Key-locked doors
+                            else
+                            if (lines[i].special == 28  || lines[i].special == 33
+                            ||  lines[i].special == 134 || lines[i].special == 135)
+                            {
+                                AM_drawMline(&l, jaguar_176);
+                            }
+                            // [JN] BLUE Key-locked doors
+                            else
+                            if (lines[i].special == 26  || lines[i].special == 32
+                            ||  lines[i].special == 99  || lines[i].special == 133)
+                            {
+                                AM_drawMline(&l, jaguar_200);
+                            }
+                            // [JN] YELLOW Key-locked doors
+                            else
+                            if (lines[i].special == 27  || lines[i].special == 34
+                            ||  lines[i].special == 136 || lines[i].special == 137)
+                            {
+                                AM_drawMline(&l, jaguar_228);
+                            }
                             // [JN] Highlight secret sectors
                             else if (automap_secrets > 1
                             && (lines[i].frontsector->special == 9
@@ -2063,7 +2097,7 @@ static void AM_drawWalls (void)
                             // Ceiling level change
                             else if (lines[i].backsector->ceilingheight != lines[i].frontsector->ceilingheight)
                             {
-                                AM_drawMline(&l, jaguar_163);
+                                AM_drawMline(&l, jaguar_75);
                             }
                             // Hidden gray walls
                             else if (iddt_cheating)
