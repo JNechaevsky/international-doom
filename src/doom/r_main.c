@@ -21,6 +21,7 @@
 
 
 #include <stdlib.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include "doomstat.h" // [AM] leveltime, paused, menuactive
 #include "m_bbox.h"

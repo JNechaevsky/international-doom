@@ -16,6 +16,7 @@
 //
 
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include "f_wipe.h"
 #include "m_random.h"
