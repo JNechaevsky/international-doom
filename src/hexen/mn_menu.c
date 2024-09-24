@@ -3404,7 +3404,7 @@ static void M_DrawGameplayFooter (char *pagenum)
     MN_DrTextA("SCROLL PAGES", ID_MENU_LEFTOFFSET_BIG, 140,
                M_Item_Glow(12, GLOW_DARKGRAY));
 
-    sprintf(str, M_StringJoin("PAGE ", pagenum, "/3", NULL));
+    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, "/3", NULL));
     MN_DrTextA(str, M_ItemRightAlign(str), 140, M_Item_Glow(12, GLOW_DARKGRAY));
 }
 
