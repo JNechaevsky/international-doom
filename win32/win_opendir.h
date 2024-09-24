@@ -23,6 +23,7 @@ SOFTWARE.
 #ifndef WIN_OPENDIR_H
 #define WIN_OPENDIR_H
 
+#include <stdint.h>
 #include <sys/types.h>
 
 #ifndef NAME_MAX
