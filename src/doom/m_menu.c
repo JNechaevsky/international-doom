@@ -3097,7 +3097,7 @@ static void M_Draw_ID_Widgets (void)
 
     // Color scheme
     sprintf(str, automap_scheme == 1 ? "BOOM" :
-                 automap_scheme == 2 ? "UNITY" :
+                 automap_scheme == 2 ? "REMASTER" :
                  automap_scheme == 3 ? "JAGUAR" :
                                        "ORIGINAL");
     M_WriteText (M_ItemRightAlign(str), 108, str,

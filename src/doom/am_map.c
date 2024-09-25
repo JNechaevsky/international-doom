@@ -65,12 +65,12 @@ static int boom_204;
 static int boom_208;
 static int boom_215;
 
-// Unity color scheme:
-static int unity_72;
-static int unity_81;
-static int unity_120;
-static int unity_160;
-static int unity_200;
+// Remaster color scheme:
+static int remaster_72;
+static int remaster_81;
+static int remaster_120;
+static int remaster_160;
+static int remaster_200;
 
 // Jaguar color scheme:
 static int jaguar_32;
@@ -352,12 +352,12 @@ void AM_Init (void)
         boom_208 = 208;
         boom_215 = 215;
 
-        // Unity color scheme
-        unity_72  = 72;
-        unity_81  = 81;
-        unity_120 = 120;
-        unity_160 = 160;
-        unity_200 = 200;
+        // Remaster color scheme
+        remaster_72  = 72;
+        remaster_81  = 81;
+        remaster_120 = 120;
+        remaster_160 = 160;
+        remaster_200 = 200;
 
         // Jaguar color scheme
         jaguar_32 = 32;
@@ -398,12 +398,12 @@ void AM_Init (void)
         boom_208 = V_GetPaletteIndex(playpal, 255, 255, 255);
         boom_215 = V_GetPaletteIndex(playpal, 255, 127,  27);
 
-        // Unity color scheme
-        unity_72  = V_GetPaletteIndex(playpal, 119,  79,  43);
-        unity_81  = V_GetPaletteIndex(playpal, 231, 231, 231);
-        unity_120 = V_GetPaletteIndex(playpal,  63, 131,  47);
-        unity_160 = V_GetPaletteIndex(playpal, 255, 255, 115);
-        unity_200 = V_GetPaletteIndex(playpal,   1,   1, 255);
+        // Remaster color scheme
+        remaster_72  = V_GetPaletteIndex(playpal, 119,  79,  43);
+        remaster_81  = V_GetPaletteIndex(playpal, 231, 231, 231);
+        remaster_120 = V_GetPaletteIndex(playpal,  63, 131,  47);
+        remaster_160 = V_GetPaletteIndex(playpal, 255, 255, 115);
+        remaster_200 = V_GetPaletteIndex(playpal,   1,   1, 255);
 
         // Jaguar color scheme
         jaguar_32  = V_GetPaletteIndex(playpal, 155,  51,  51);
@@ -1904,7 +1904,7 @@ static void AM_drawWalls (void)
                 }
                 break;
 
-                // Unity
+                // Remaster
                 case 2:
                 {
                     if (iddt_cheating || (lines[i].flags & ML_MAPPED))
@@ -1953,21 +1953,21 @@ static void AM_drawWalls (void)
                             if (lines[i].special == 1   || lines[i].special == 31
                             ||  lines[i].special == 117 || lines[i].special == 118)
                             {
-                                AM_drawMline(&l, unity_81);
+                                AM_drawMline(&l, remaster_81);
                             }
                             // [JN] Various teleporters
                             else
                             if (lines[i].special == 39  || lines[i].special == 97
                             ||  lines[i].special == 125 || lines[i].special == 126)
                             {
-                                AM_drawMline(&l, unity_120);
+                                AM_drawMline(&l, remaster_120);
                             }
                             // [JN] BLUE locked doors
                             else
                             if (lines[i].special == 26 || lines[i].special == 32
                             ||  lines[i].special == 99 || lines[i].special == 133)
                             {
-                                AM_drawMline(&l, unity_200);
+                                AM_drawMline(&l, remaster_200);
                             }
                             // [JN] RED locked doors
                             else
@@ -1981,12 +1981,12 @@ static void AM_drawWalls (void)
                             if (lines[i].special == 27  || lines[i].special == 34
                             ||  lines[i].special == 136 || lines[i].special == 137)
                             {
-                                AM_drawMline(&l, unity_160);
+                                AM_drawMline(&l, remaster_160);
                             }
                             // [JN] Floor level change
                             else if (lines[i].backsector->floorheight != lines[i].frontsector->floorheight) 
                             {
-                                AM_drawMline(&l, unity_72);
+                                AM_drawMline(&l, remaster_72);
                             }
                             // [JN] Ceiling level change
                             else if (lines[i].backsector->ceilingheight != lines[i].frontsector->ceilingheight) 
