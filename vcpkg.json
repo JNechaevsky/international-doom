@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "dependencies": [
+    "sdl2",
+    {
+        "name": "sdl2-mixer",
+        "features": [ "libflac", "libmodplug", "mpg123", "opusfile" ]
+    },
+    "sdl2-net",
+    "libsamplerate",
+    "fluidsynth"
+  ]
+}
