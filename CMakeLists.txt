@@ -104,10 +104,10 @@ endif()
 add_subdirectory("miniz")
 
 # Check for FluidSynth.
-# find_package(FluidSynth 2.2.0)
-# if(FluidSynth_FOUND)
-#     set(HAVE_FLUIDSYNTH TRUE)
-# endif()
+find_package(FluidSynth)
+if(FluidSynth_FOUND)
+    set(HAVE_FLUIDSYNTH TRUE)
+endif()
 
 find_package(m)
 
