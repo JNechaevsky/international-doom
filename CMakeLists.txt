@@ -35,6 +35,9 @@ set(PACKAGE_LICENSE "GNU GPL (version 2)")
 if(MSVC)
     add_definitions("/D_CRT_SECURE_NO_WARNINGS" "/D_CRT_SECURE_NO_DEPRECATE"
                     "/D_CRT_NONSTDC_NO_DEPRECATE")
+# Disable several warnings for cl.exe.
+# [JN] TODO -- clarify warning types here on English language.
+add_compile_options("/wd4018" "/wd4146" "/wd4244" "/wd4267" "/wd4305")
 else()
     add_compile_options("-Wall"
                         "-Wdeclaration-after-statement"
