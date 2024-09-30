@@ -1,5 +1,5 @@
 #cmakedefine PACKAGE_NAME "@PACKAGE_NAME@"
-#cmakedefine PACKAGE_FULLNAME "International Doom @PACKAGE_VERSION@"
+#cmakedefine PACKAGE_FULLNAME "International Doom @PACKAGE_VERSION_DOOM@"
 #cmakedefine PACKAGE_FULLNAME_HERETIC "International Heretic @PACKAGE_VERSION_HERETIC@"
 #cmakedefine PACKAGE_FULLNAME_HEXEN "International Hexen @PACKAGE_VERSION_HEXEN@"
 #cmakedefine PACKAGE_TARNAME "@PACKAGE_TARNAME@"

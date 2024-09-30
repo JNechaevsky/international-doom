@@ -13,13 +13,13 @@ FILETYPE 1
  {
   BLOCK "040904E4"
   {
-   VALUE "FileVersion", "@PACKAGE_VERSION@.0"
+   VALUE "FileVersion", "@PACKAGE_VERSION_DOOM@.0"
    VALUE "FileDescription", "@PACKAGE_FULLNAME@"
    VALUE "InternalName", "@PACKAGE_TARNAME@"
    VALUE "CompanyName", "@PACKAGE_BUGREPORT@"
    VALUE "LegalCopyright", "@PACKAGE_COPYRIGHT@. Licensed under @PACKAGE_LICENSE@"
    VALUE "ProductName", "@PACKAGE_NAME@"
-   VALUE "ProductVersion", "@PACKAGE_VERSION@"
+   VALUE "ProductVersion", "@PACKAGE_VERSION_DOOM@"
   }
  }
  BLOCK "VarFileInfo"
