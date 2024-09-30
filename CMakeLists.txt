@@ -35,6 +35,14 @@ set(PACKAGE_LICENSE "GNU GPL (version 2)")
 if(MSVC)
     add_definitions("/D_CRT_SECURE_NO_WARNINGS" "/D_CRT_SECURE_NO_DEPRECATE"
                     "/D_CRT_NONSTDC_NO_DEPRECATE")
+# Disable several warnings for cl.exe.
+add_compile_options("/wd4013" # Function undefined; assuming extern returning int
+                    "/wd4018" # Signed/unsigned mismatch
+                    "/wd4146" # Unary minus operator applied to unsigned type, result still unsigned
+                    "/wd4244" # Conversion from 'type1' to 'type2', possible loss of data
+                    "/wd4267" # Conversion from 'size_t' to 'type', possible loss of data
+                    "/wd4305" # Truncation from 'type1' to 'type2'
+                    )
 else()
     add_compile_options("-Wall"
                         "-Wdeclaration-after-statement"
