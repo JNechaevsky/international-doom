@@ -77,10 +77,10 @@ char *player_names[] =
     HUSTR_PLRRED
 };
 
-static void CT_queueChatChar (char ch);
-static void CT_ClearChatMessage (int player);
-static void CT_AddChar(int player, char c);
-static void CT_BackSpace(int player);
+static void CT_queueChatChar (const char ch);
+static void CT_ClearChatMessage (const int player);
+static void CT_AddChar(const int player, const char c);
+static void CT_BackSpace(const int player);
 
 static int  head;
 static int  tail;

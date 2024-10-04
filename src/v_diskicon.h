@@ -26,7 +26,7 @@
 #define LOADING_DISK_H 16
 
 extern void V_EnableLoadingDisk (void);
-extern void V_BeginRead (size_t nbytes);
+extern void V_BeginRead (const size_t nbytes);
 extern void V_DrawDiskIcon (void);
 extern void V_RestoreDiskBackground (void);
 
