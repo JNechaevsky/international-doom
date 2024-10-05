@@ -89,6 +89,7 @@ typedef enum
     MENU_ID_KBDBINDS8,
     MENU_ID_MOUSEBINDS,
     MENU_ID_WIDGETS,
+    MENU_ID_AUTOMAP,
     MENU_ID_GAMEPLAY1,
     MENU_ID_GAMEPLAY2,
     MENU_ID_GAMEPLAY3,
@@ -574,6 +575,8 @@ static void M_ID_Widget_Time (int choice);
 static void M_ID_Widget_TotalTime (int choice);
 static void M_ID_Widget_LevelName (int choice);
 static void M_ID_Widget_Health (int choice);
+
+static void M_Draw_ID_Automap (void);
 static void M_ID_Automap_Secrets (int choice);
 static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
@@ -1042,21 +1045,22 @@ static char *const DefSkillName[5] =
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Main[] = {
-    { ITT_SETMENU, "VIDEO OPTIONS",       NULL,                 0, MENU_ID_VIDEO     },
-    { ITT_SETMENU, "DISPLAY OPTIONS",     NULL,                 0, MENU_ID_DISPLAY   },
-    { ITT_SETMENU, "SOUND OPTIONS",       NULL,                 0, MENU_ID_SOUND     },
-    { ITT_SETMENU, "CONTROL SETTINGS",    NULL,                 0, MENU_ID_CONTROLS  },
-    { ITT_SETMENU, "WIDGETS AND AUTOMAP", NULL,                 0, MENU_ID_WIDGETS   },
-    { ITT_EFUNC,   "GAMEPLAY FEATURES",   M_Choose_ID_Gameplay, 0, MENU_NONE         },
-    { ITT_SETMENU, "LEVEL SELECT",        NULL,                 0, MENU_ID_LEVEL1    },
-    { ITT_EFUNC,   "END GAME",            SCEndGame,            0, MENU_NONE         },
-    { ITT_EFUNC,   "RESET SETTINGS",      M_ID_SettingReset,    0, MENU_NONE         },
+    { ITT_SETMENU, "VIDEO OPTIONS",     NULL,                 0, MENU_ID_VIDEO     },
+    { ITT_SETMENU, "DISPLAY OPTIONS",   NULL,                 0, MENU_ID_DISPLAY   },
+    { ITT_SETMENU, "SOUND OPTIONS",     NULL,                 0, MENU_ID_SOUND     },
+    { ITT_SETMENU, "CONTROL SETTINGS",  NULL,                 0, MENU_ID_CONTROLS  },
+    { ITT_SETMENU, "WIDGET SETTINGS",   NULL,                 0, MENU_ID_WIDGETS   },
+    { ITT_SETMENU, "AUTOMAP SETTINGS",  NULL,                 0, MENU_ID_AUTOMAP   },
+    { ITT_EFUNC,   "GAMEPLAY FEATURES", M_Choose_ID_Gameplay, 0, MENU_NONE         },
+    { ITT_SETMENU, "LEVEL SELECT",      NULL,                 0, MENU_ID_LEVEL1    },
+    { ITT_EFUNC,   "END GAME",          SCEndGame,            0, MENU_NONE         },
+    { ITT_EFUNC,   "RESET SETTINGS",    M_ID_SettingReset,    0, MENU_NONE         },
 };
 
 static Menu_t ID_Def_Main = {
     ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
     M_Draw_ID_Main,
-    9, ID_Menu_Main,
+    10, ID_Menu_Main,
     0,
     SmallFont, false, false,
     MENU_MAIN
@@ -2821,29 +2825,24 @@ static void M_Bind_M_Reset (int option)
 }
 
 // -----------------------------------------------------------------------------
-// Widgets and Automap
+// Widget settings
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Widgets[] = {
-    { ITT_LRFUNC, "WIDGETS LOCATION",    M_ID_Widget_Location,  0, MENU_NONE },
-    { ITT_LRFUNC, "KIS STATS",           M_ID_Widget_KIS,       0, MENU_NONE },
-    { ITT_LRFUNC, "LEVEL/DM TIMER",      M_ID_Widget_Time,      0, MENU_NONE },
-    { ITT_LRFUNC, "TOTAL TIME",          M_ID_Widget_TotalTime, 0, MENU_NONE },
-    { ITT_LRFUNC, "LEVEL NAME",          M_ID_Widget_LevelName, 0, MENU_NONE },
-    { ITT_LRFUNC, "PLAYER COORDS",       M_ID_Widget_Coords,    0, MENU_NONE },
-    { ITT_LRFUNC, "RENDER COUNTERS",     M_ID_Widget_Render,    0, MENU_NONE },
-    { ITT_LRFUNC, "TARGET'S HEALTH",     M_ID_Widget_Health,    0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                  NULL,                  0, MENU_NONE },
-    { ITT_LRFUNC, "MARK SECRET SECTORS", M_ID_Automap_Secrets,  0, MENU_NONE },
-    { ITT_LRFUNC, "ROTATE MODE",         M_ID_Automap_Rotate,   0, MENU_NONE },
-    { ITT_LRFUNC, "OVERLAY MODE",        M_ID_Automap_Overlay,  0, MENU_NONE },
-    { ITT_LRFUNC, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,0, MENU_NONE },
+    { ITT_LRFUNC, "WIDGETS LOCATION", M_ID_Widget_Location,  0, MENU_NONE },
+    { ITT_LRFUNC, "KIS STATS",        M_ID_Widget_KIS,       0, MENU_NONE },
+    { ITT_LRFUNC, "LEVEL/DM TIMER",   M_ID_Widget_Time,      0, MENU_NONE },
+    { ITT_LRFUNC, "TOTAL TIME",       M_ID_Widget_TotalTime, 0, MENU_NONE },
+    { ITT_LRFUNC, "LEVEL NAME",       M_ID_Widget_LevelName, 0, MENU_NONE },
+    { ITT_LRFUNC, "PLAYER COORDS",    M_ID_Widget_Coords,    0, MENU_NONE },
+    { ITT_LRFUNC, "RENDER COUNTERS",  M_ID_Widget_Render,    0, MENU_NONE },
+    { ITT_LRFUNC, "TARGET'S HEALTH",  M_ID_Widget_Health,    0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    13, ID_Menu_Widgets,
+    8, ID_Menu_Widgets,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -2901,31 +2900,6 @@ static void M_Draw_ID_Widgets (void)
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, widget_health ? GLOW_GREEN : GLOW_DARKRED));
-
-    MN_DrTextACentered("AUTOMAP", 100, cr[CR_YELLOW]);
-
-    // Mark secret sectors
-    sprintf(str, automap_secrets == 1 ? "REVEALED" :
-                 automap_secrets == 2 ? "ALWAYS" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, automap_secrets ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Rotate mode
-    sprintf(str, automap_rotate ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, automap_rotate ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Overlay mode
-    sprintf(str, automap_overlay ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 130,
-               M_Item_Glow(11, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Overlay shading level
-    sprintf(str,"%d", automap_shading);
-    MN_DrTextA(str, M_ItemRightAlign(str), 140,
-               M_Item_Glow(12, !automap_overlay ? GLOW_DARKRED :
-                                automap_shading ==  0 ? GLOW_RED :
-                                automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
 }
 
 static void M_ID_Widget_Location (int choice)
@@ -2968,6 +2942,56 @@ static void M_ID_Widget_Health (int choice)
     widget_health = M_INT_Slider(widget_health, 0, 4, choice, false);
 }
 
+// -----------------------------------------------------------------------------
+// Automap settings
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Automap[] = {
+    { ITT_LRFUNC, "MARK SECRET SECTORS",   M_ID_Automap_Secrets, 0, MENU_NONE },
+    { ITT_LRFUNC, "ROTATE MODE",           M_ID_Automap_Rotate,  0, MENU_NONE },
+    { ITT_LRFUNC, "OVERLAY MODE",          M_ID_Automap_Overlay, 0, MENU_NONE },
+    { ITT_LRFUNC, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading, 0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Automap = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Automap,
+    4, ID_Menu_Automap,
+    0,
+    SmallFont, false, false,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Automap (void)
+{
+    char str[32];
+
+    MN_DrTextACentered("AUTOMAP", 10, cr[CR_YELLOW]);
+
+    // Mark secret sectors
+    sprintf(str, automap_secrets == 1 ? "REVEALED" :
+                 automap_secrets == 2 ? "ALWAYS" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, automap_secrets ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Rotate mode
+    sprintf(str, automap_rotate ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, automap_rotate ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Overlay mode
+    sprintf(str, automap_overlay ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Overlay shading level
+    sprintf(str,"%d", automap_shading);
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, !automap_overlay ? GLOW_DARKRED :
+                               automap_shading ==  0 ? GLOW_RED :
+                               automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
+}
+
 static void M_ID_Automap_Secrets (int choice)
 {
     automap_secrets = M_INT_Slider(automap_secrets, 0, 2, choice, false);
@@ -2981,6 +3005,8 @@ static void M_ID_Automap_Rotate (int choice)
 static void M_ID_Automap_Overlay (int choice)
 {
     automap_overlay ^= 1;
+    // [JN] Reinitialize pointer to antialiased tables for line drawing.
+    AM_initOverlayMode();
 }
 
 static void M_ID_Automap_Shading (int choice)
@@ -4201,6 +4227,7 @@ static void M_ID_ApplyResetHook (void)
     I_SetPalette(sb_palette);
 #endif
     R_FillBackScreen();
+    AM_initOverlayMode();
     AM_LevelInit(true);
     if (automapactive)
     {
@@ -4254,6 +4281,7 @@ static Menu_t *Menus[] = {
     &ID_Def_Keybinds_8,
     &ID_Def_MouseBinds,
     &ID_Def_Widgets,
+    &ID_Def_Automap,
     &ID_Def_Gameplay_1,
     &ID_Def_Gameplay_2,
     &ID_Def_Gameplay_3,

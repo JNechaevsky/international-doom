@@ -100,6 +100,7 @@ extern int markpointnum_max;
 
 extern void AM_ClearMarks (void);
 extern void AM_Init (void);
+extern void AM_initOverlayMode (void);
 extern void AM_initVariables (void);
 extern void AM_LevelInit (boolean reinit);
 extern void AM_LevelNameDrawer (void);

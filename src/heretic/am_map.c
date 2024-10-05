@@ -578,6 +578,16 @@ static void AM_changeWindowLoc (void)
 }
 
 // -----------------------------------------------------------------------------
+// AM_initOverlayMode
+// -----------------------------------------------------------------------------
+
+void AM_initOverlayMode (void)
+{
+    // [crispy] pointer to antialiased tables for line drawing
+    antialias = automap_overlay ? &antialias_overlay : &antialias_normal;
+}
+
+// -----------------------------------------------------------------------------
 // AM_initVariables
 // -----------------------------------------------------------------------------
 
@@ -642,8 +652,7 @@ void AM_initVariables (void)
         }
     }
 
-    // [crispy] pointer to antialiased tables for line drawing
-    antialias = automap_overlay ? &antialias_overlay : &antialias_normal;
+    AM_initOverlayMode();
 }
 
 // -----------------------------------------------------------------------------

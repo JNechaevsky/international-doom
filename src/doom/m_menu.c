@@ -521,7 +521,7 @@ static menu_t SaveDef =
 #define ID_MENU_TOPOFFSET         (27)
 #define ID_MENU_TOPOFFSET_SML     (18)
 #define ID_MENU_LEFTOFFSET        (48)
-#define ID_MENU_LEFTOFFSET_SML    (90)
+#define ID_MENU_LEFTOFFSET_SML    (93)
 #define ID_MENU_LEFTOFFSET_BIG    (32)
 #define ID_MENU_LEFTOFFSET_LEVEL  (74)
 
@@ -687,6 +687,9 @@ static void M_ID_Widget_LevelName (int choice);
 static void M_ID_Widget_Coords (int choice);
 static void M_ID_Widget_Render (int choice);
 static void M_ID_Widget_Health (int choice);
+
+static void M_Choose_ID_Automap (int choice);
+static void M_Draw_ID_Automap (void);
 static void M_ID_Automap_Colors (int choice);
 static void M_ID_Automap_Smooth (int choice);
 static void M_ID_Automap_Secrets (int choice);
@@ -926,27 +929,6 @@ static void M_FillBackground (void)
 
     V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 }
-
-enum
-{
-    m_id_01,    // 18
-    m_id_02,    // 27
-    m_id_03,    // 36
-    m_id_04,    // 45
-    m_id_05,    // 54
-    m_id_06,    // 63
-    m_id_07,    // 72
-    m_id_08,    // 81
-    m_id_09,    // 90
-    m_id_10,    // 99
-    m_id_11,    // 108
-    m_id_12,    // 117
-    m_id_13,    // 126
-    m_id_14,    // 135
-    m_id_15,    // 144
-    m_id_16,    // 153
-    m_id_end
-} id1_e;
 
 static byte *M_Small_Line_Glow (const int tics)
 {
@@ -1196,27 +1178,21 @@ static char *const DefSkillName[5] =
 
 static menuitem_t ID_Menu_Main[]=
 {
-    { M_SWTC, "VIDEO OPTIONS",       M_Choose_ID_Video,    'v' },
-    { M_SWTC, "DISPLAY OPTIONS",     M_Choose_ID_Display,  'd' },
-    { M_SWTC, "SOUND OPTIONS",       M_Choose_ID_Sound,    's' },
-    { M_SWTC, "CONTROL SETTINGS",    M_Choose_ID_Controls, 'c' },
-    { M_SWTC, "WIDGETS AND AUTOMAP", M_Choose_ID_Widgets,  'w' },
-    { M_SWTC, "GAMEPLAY FEATURES",   M_Choose_ID_Gameplay, 'g' },
-    { M_SWTC, "LEVEL SELECT",        M_Choose_ID_Level,    'l' },
-    { M_SWTC, "END GAME",            M_EndGame,            'e' },
-    { M_SWTC, "RESET SETTINGS",      M_Choose_ID_Reset,    'r' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
+    { M_SWTC, "VIDEO OPTIONS",     M_Choose_ID_Video,    'v' },
+    { M_SWTC, "DISPLAY OPTIONS",   M_Choose_ID_Display,  'd' },
+    { M_SWTC, "SOUND OPTIONS",     M_Choose_ID_Sound,    's' },
+    { M_SWTC, "CONTROL SETTINGS",  M_Choose_ID_Controls, 'c' },
+    { M_SWTC, "WIDGET SETTINGS",   M_Choose_ID_Widgets,  'w' },
+    { M_SWTC, "AUTOMAP SETTINGS",  M_Choose_ID_Automap,  'a' },
+    { M_SWTC, "GAMEPLAY FEATURES", M_Choose_ID_Gameplay, 'g' },
+    { M_SWTC, "LEVEL SELECT",      M_Choose_ID_Level,    'l' },
+    { M_SWTC, "END GAME",          M_EndGame,            'e' },
+    { M_SWTC, "RESET SETTINGS",    M_Choose_ID_Reset,    'r' },
 };
 
 static menu_t ID_Def_Main =
 {
-    m_id_end,
+    10,
     &MainDef,
     ID_Menu_Main,
     M_Draw_ID_Main,
@@ -1253,15 +1229,11 @@ static menuitem_t ID_Menu_Video[]=
     { M_LFRT, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   's' },
     { M_LFRT, "SHOW DISK ICON",       M_ID_DiskIcon,     's' },
     { M_LFRT, "SHOW ENDOOM SCREEN",   M_ID_ShowENDOOM,   's' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Video =
 {
-    m_id_end,
+    12,
     &ID_Def_Main,
     ID_Menu_Video,
     M_Draw_ID_Video,
@@ -1571,7 +1543,7 @@ static menuitem_t ID_Menu_Display[]=
 
 static menu_t ID_Def_Display =
 {
-    m_id_end,
+    16,
     &ID_Def_Main,
     ID_Menu_Display,
     M_Draw_ID_Display,
@@ -1790,14 +1762,11 @@ static menuitem_t ID_Menu_Sound[]=
     { M_LFRT, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,   'p' },
     { M_LFRT, "NUMBER OF SFX TO MIX", M_ID_SFXChannels,  'n' },
     { M_LFRT, "MUTE INACTIVE WINDOW", M_ID_MuteInactive, 'm' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Sound =
 {
-    m_id_end,
+    13,
     &ID_Def_Main,
     ID_Menu_Sound,
     M_Draw_ID_Sound,
@@ -2058,12 +2027,11 @@ static menuitem_t ID_Menu_Controls[]=
     { M_LFRT, "VERTICAL MOUSE MOVEMENT",      M_ID_Controls_NoVert,       'v' },
     { M_LFRT, "INVERT VERTICAL AXIS",         M_ID_Controls_InvertY,      'v' },
     { M_LFRT, "DOUBLE CLICK ACTS AS \"USE\"", M_ID_Controls_DblClck,      'd' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Controls =
 {
-    m_id_end,
+    16,
     &ID_Def_Main,
     ID_Menu_Controls,
     M_Draw_ID_Controls,
@@ -2179,15 +2147,11 @@ static menuitem_t ID_Menu_Keybinds_1[]=
     { M_SKIP, "", 0, '\0'},
     { M_SWTC, "FIRE/ATTACK",     M_Bind_FireAttack,   'f' },
     { M_SWTC, "USE",             M_Bind_Use,          'u' },
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
 };
 
 static menu_t ID_Def_Keybinds_1 =
 {
-    m_id_end,
+    12,
     &ID_Def_Controls,
     ID_Menu_Keybinds_1,
     M_Draw_ID_Keybinds_1,
@@ -2298,13 +2262,11 @@ static menuitem_t ID_Menu_Keybinds_2[]=
     { M_SWTC, "FREEZE MODE",              M_Bind_FreezeMode,    'f' },
     { M_SWTC, "NOTARGET MODE",            M_Bind_NotargetMode,  'n' },
     { M_SWTC, "BUDDHA MODE",              M_Bind_BuddhaMode,    'b' },
-    { M_SKIP, "", 0, '\0'},
-    { M_SKIP, "", 0, '\0'},
 };
 
 static menu_t ID_Def_Keybinds_2 =
 {
-    m_id_end,
+    14,
     &ID_Def_Controls,
     ID_Menu_Keybinds_2,
     M_Draw_ID_Keybinds_2,
@@ -2420,17 +2382,11 @@ static menuitem_t ID_Menu_Keybinds_3[]=
     { M_SWTC, "WEAPON 8",        M_Bind_Weapon8,    'w' },
     { M_SWTC, "PREVIOUS WEAPON", M_Bind_PrevWeapon, 'p' },
     { M_SWTC, "NEXT WEAPON",     M_Bind_NextWeapon, 'n' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Keybinds_3 =
 {
-    m_id_end,
+    10,
     &ID_Def_Controls,
     ID_Menu_Keybinds_3,
     M_Draw_ID_Keybinds_3,
@@ -2528,17 +2484,11 @@ static menuitem_t ID_Menu_Keybinds_4[]=
     { M_SWTC, "TOGGLE GRID",      M_Bind_ToggleGrid,  't' },
     { M_SWTC, "MARK LOCATION",    M_Bind_AddMark,     'm' },
     { M_SWTC, "CLEAR ALL MARKS",  M_Bind_ClearMarks,  'c' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Keybinds_4 =
 {
-    m_id_end,
+    10,
     &ID_Def_Controls,
     ID_Menu_Keybinds_4,
     M_Draw_ID_Keybinds_4,
@@ -2638,15 +2588,11 @@ static menuitem_t ID_Menu_Keybinds_5[]=
     { M_SWTC, "QUIT GAME",       M_Bind_QuitGame,       'q' },
     { M_SWTC, "TOGGLE GAMMA",    M_Bind_ToggleGamma,    't' },
     { M_SWTC, "MULTIPLAYER SPY", M_Bind_MultiplayerSpy, 'm' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Keybinds_5 =
 {
-    m_id_end,
+    12,
     &ID_Def_Controls,
     ID_Menu_Keybinds_5,
     M_Draw_ID_Keybinds_5,
@@ -2757,15 +2703,11 @@ static menuitem_t ID_Menu_Keybinds_6[]=
     { M_SWTC, "- TO PLAYER 4",             M_Bind_ToPlayer4,      '4' },
     { M_SKIP, "", 0, '\0' },
     { M_SWTC, "RESET BINDINGS TO DEFAULT", M_Bind_Reset,          'r' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Keybinds_6 =
 {
-    m_id_end,
+    12,
     &ID_Def_Controls,
     ID_Menu_Keybinds_6,
     M_Draw_ID_Keybinds_6,
@@ -2884,15 +2826,11 @@ static menuitem_t ID_Menu_MouseBinds[]=
     { M_SWTC, "NEXT WEAPON",               M_Bind_M_NextWeapon,   'n' },
     { M_SKIP, "", 0, '\0' },
     { M_SWTC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset,        'r' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_MouseBinds =
 {
-    m_id_end,
+    12,
     &ID_Def_Controls,
     ID_Menu_MouseBinds,
     M_Draw_ID_MouseBinds,
@@ -3001,7 +2939,7 @@ static void M_Draw_ID_MouseBinds (void)
 }
 
 // -----------------------------------------------------------------------------
-// Widgets and Automap
+// Widget settings
 // -----------------------------------------------------------------------------
 
 static menuitem_t ID_Menu_Widgets[]=
@@ -3014,19 +2952,11 @@ static menuitem_t ID_Menu_Widgets[]=
     { M_LFRT, "PLAYER COORDS",         M_ID_Widget_Coords,    'p' },
     { M_LFRT, "RENDER COUNTERS",       M_ID_Widget_Render,    'r' },
     { M_LFRT, "TARGET'S HEALTH",       M_ID_Widget_Health,    't' },
-    { M_SKIP, "", 0, '\0' },
-    { M_LFRT, "COLOR SCHEME",          M_ID_Automap_Colors,   'c' },
-    { M_LFRT, "SMOOTH LINES",          M_ID_Automap_Smooth,   's' },
-    { M_LFRT, "MARK SECRET SECTORS",   M_ID_Automap_Secrets,  'm' },
-    { M_LFRT, "ROTATE MODE",           M_ID_Automap_Rotate,   'r' },
-    { M_LFRT, "OVERLAY MODE",          M_ID_Automap_Overlay,  'o' },
-    { M_LFRT, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  'o' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Widgets =
 {
-    m_id_end,
+    8,
     &ID_Def_Main,
     ID_Menu_Widgets,
     M_Draw_ID_Widgets,
@@ -3092,44 +3022,6 @@ static void M_Draw_ID_Widgets (void)
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 90, str,
                  M_Item_Glow(7, widget_health ? GLOW_GREEN : GLOW_DARKRED));
-
-    M_WriteTextCentered(99, "AUTOMAP", cr[CR_YELLOW]);
-
-    // Color scheme
-    sprintf(str, automap_scheme == 1 ? "BOOM" :
-                 automap_scheme == 2 ? "REMASTER" :
-                 automap_scheme == 3 ? "JAGUAR" :
-                                       "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(9, automap_scheme ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Smooth lines
-    sprintf(str, automap_smooth ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(10, automap_smooth ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Mark secret sectors
-    sprintf(str, automap_secrets == 1 ? "REVEALED" :
-                 automap_secrets == 2 ? "ALWAYS" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(11, automap_secrets ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Rotate mode
-    sprintf(str, automap_rotate ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 135, str,
-                 M_Item_Glow(12, automap_rotate ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Overlay mode
-    sprintf(str, automap_overlay ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 144, str,
-                 M_Item_Glow(13, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Overlay shading level
-    sprintf(str,"%d", automap_shading);
-    M_WriteText (M_ItemRightAlign(str), 153, str,
-                 M_Item_Glow(14, !automap_overlay ? GLOW_DARKRED :
-                                  automap_shading ==  0 ? GLOW_RED :
-                                  automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
 }
 
 static void M_ID_Widget_Location (int choice)
@@ -3175,6 +3067,79 @@ static void M_ID_Widget_Health (int choice)
 static void M_ID_Automap_Colors (int choice)
 {
     automap_scheme = M_INT_Slider(automap_scheme, 0, 3, choice, false);
+}
+
+// -----------------------------------------------------------------------------
+// Automap settings
+// -----------------------------------------------------------------------------
+
+static menuitem_t ID_Menu_Automap[]=
+{
+    { M_LFRT, "COLOR SCHEME",          M_ID_Automap_Colors,   'c' },
+    { M_LFRT, "SMOOTH LINES",          M_ID_Automap_Smooth,   's' },
+    { M_LFRT, "MARK SECRET SECTORS",   M_ID_Automap_Secrets,  'm' },
+    { M_LFRT, "ROTATE MODE",           M_ID_Automap_Rotate,   'r' },
+    { M_LFRT, "OVERLAY MODE",          M_ID_Automap_Overlay,  'o' },
+    { M_LFRT, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  'o' },
+};
+
+static menu_t ID_Def_Automap =
+{
+    6,
+    &ID_Def_Main,
+    ID_Menu_Automap,
+    M_Draw_ID_Automap,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    0,
+    true, false, false,
+};
+
+static void M_Choose_ID_Automap (int choice)
+{
+    M_SetupNextMenu (&ID_Def_Automap);
+}
+
+static void M_Draw_ID_Automap (void)
+{
+    char str[32];
+
+    M_WriteTextCentered(18, "AUTOMAP", cr[CR_YELLOW]);
+
+    // Color scheme
+    sprintf(str, automap_scheme == 1 ? "BOOM" :
+                 automap_scheme == 2 ? "REMASTER" :
+                 automap_scheme == 3 ? "JAGUAR" :
+                                       "ORIGINAL");
+    M_WriteText (M_ItemRightAlign(str), 27, str,
+                 M_Item_Glow(0, automap_scheme ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Smooth lines
+    sprintf(str, automap_smooth ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 36, str,
+                 M_Item_Glow(1, automap_smooth ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Mark secret sectors
+    sprintf(str, automap_secrets == 1 ? "REVEALED" :
+                 automap_secrets == 2 ? "ALWAYS" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(2, automap_secrets ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Rotate mode
+    sprintf(str, automap_rotate ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 54, str,
+                 M_Item_Glow(3, automap_rotate ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Overlay mode
+    sprintf(str, automap_overlay ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 63, str,
+                 M_Item_Glow(4, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Overlay shading level
+    sprintf(str,"%d", automap_shading);
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(5, !automap_overlay ? GLOW_DARKRED :
+                                 automap_shading ==  0 ? GLOW_RED :
+                                 automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3224,12 +3189,11 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { M_LFRT, "SHAPE",                       M_ID_Crosshair,         's' },
     { M_LFRT, "INDICATION",                  M_ID_CrosshairColor,    'i' },
     { M_LFRT, "", /* < SCROLL PAGES >*/      M_ScrollGameplay,       's' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Gameplay_1 =
 {
-    m_id_end,
+    15,
     &ID_Def_Main,
     ID_Menu_Gameplay_1,
     M_Draw_ID_Gameplay_1,
@@ -3442,12 +3406,11 @@ static menuitem_t ID_Menu_Gameplay_2[]=
     { M_LFRT, "WEAPON ATTACK ALIGNMENT",       M_ID_WeaponAlignment,   'w' },
     { M_LFRT, "IMITATE PLAYER'S BREATHING",    M_ID_Breathing,         'i' },
     { M_LFRT, "", /* < SCROLL PAGES >*/        M_ScrollGameplay,       's' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Gameplay_2 =
 {
-    m_id_end,
+    15,
     &ID_Def_Main,
     ID_Menu_Gameplay_2,
     M_Draw_ID_Gameplay_2,
@@ -3625,12 +3588,11 @@ static menuitem_t ID_Menu_Gameplay_3[]=
     { M_LFRT, "VERTICAL AIMING",          M_ID_VerticalAiming,    'v' },
     { M_SKIP, "", 0, '\0' },
     { M_LFRT, "", /* < SCROLL PAGES >*/   M_ScrollGameplay,       's' },
-    { M_SKIP, "", 0, '\0' },
 };
 
 static menu_t ID_Def_Gameplay_3 =
 {
-    m_id_end,
+    15,
     &ID_Def_Main,
     ID_Menu_Gameplay_3,
     M_Draw_ID_Gameplay_3,
@@ -3839,7 +3801,7 @@ static menuitem_t ID_Menu_Level_1[]=
 
 static menu_t ID_Def_Level_1 =
 {
-    m_id_end + 2,
+    18,
     &ID_Def_Main,
     ID_Menu_Level_1,
     M_Draw_ID_Level_1,
@@ -4057,7 +4019,7 @@ static menuitem_t ID_Menu_Level_2[]=
 
 static menu_t ID_Def_Level_2 =
 {
-    m_id_end + 2,
+    18,
     &ID_Def_Main,
     ID_Menu_Level_2,
     M_Draw_ID_Level_2,
