@@ -294,9 +294,10 @@ static void AM_drawFline_Smooth(fline_t* fl, int color);
 // Indirect through this to avoid having to test crispy->smoothmap for every line
 void (*AM_drawFline)(fline_t*, int) = AM_drawFline_Vanilla;
 
-// [crispy] automap rotate mode needs these early on
+// [crispy/Woof!] automap rotate mode and square aspect ratio need these early on
+#define ADJUST_ASPECT_RATIO (vid_aspect_ratio_correct && automap_square)
 static void AM_rotate (int64_t *x, int64_t *y, angle_t a);
-static void AM_rotatePoint (mpoint_t *pt);
+static void AM_transformPoint (mpoint_t *pt);
 static mpoint_t mapcenter;
 static angle_t mapangle;
 
@@ -1703,19 +1704,19 @@ static void AM_drawGrid (void)
         // [crispy] moved here
         ml.a.y = m_y;
         ml.b.y = m_y+m_h;
-        if (automap_rotate)
+        if (automap_rotate || ADJUST_ASPECT_RATIO)
         {
             ml.a.y -= m_w / 2;
             ml.b.y += m_w / 2;
-            AM_rotatePoint(&ml.a);
-            AM_rotatePoint(&ml.b);
         }
+        AM_transformPoint(&ml.a);
+        AM_transformPoint(&ml.b);
         AM_drawMline(&ml, doom_104);
     }
 
     // Figure out start of horizontal gridlines
     start = m_y;
-    if (automap_rotate)
+    if (automap_rotate || ADJUST_ASPECT_RATIO)
     {
         start -= m_w / 2;
     }
@@ -1727,7 +1728,7 @@ static void AM_drawGrid (void)
 
     end = m_y + m_h;
 
-    if (automap_rotate)
+    if (automap_rotate || ADJUST_ASPECT_RATIO)
     {
         end += m_w / 2;
     }
@@ -1744,9 +1745,9 @@ static void AM_drawGrid (void)
         {
             ml.a.x -= m_h / 2;
             ml.b.x += m_h / 2;
-            AM_rotatePoint(&ml.a);
-            AM_rotatePoint(&ml.b);
         }
+        AM_transformPoint(&ml.a);
+        AM_transformPoint(&ml.b);
         AM_drawMline(&ml, doom_104);
     }
 }
@@ -1767,12 +1768,8 @@ static void AM_drawWalls (void)
         l.a.y = lines[i].v1->y >> FRACTOMAPBITS;
         l.b.x = lines[i].v2->x >> FRACTOMAPBITS;
         l.b.y = lines[i].v2->y >> FRACTOMAPBITS;
-
-        if (automap_rotate)
-        {
-            AM_rotatePoint(&l.a);
-            AM_rotatePoint(&l.b);
-        }
+        AM_transformPoint(&l.a);
+        AM_transformPoint(&l.b);
 
         if (iddt_cheating || (lines[i].flags & ML_MAPPED))
         {
@@ -2225,29 +2222,39 @@ static void AM_rotate (int64_t *x, int64_t *y, angle_t a)
 }
 
 // -----------------------------------------------------------------------------
-// AM_rotatePoint
+// AM_transformPoint
 // [crispy] rotate point around map center
 // adapted from prboom-plus/src/am_map.c:898-920
+// [Woof!] Also, scale y coordinate of point for square aspect ratio
 // -----------------------------------------------------------------------------
 
-static void AM_rotatePoint (mpoint_t *pt)
+static void AM_transformPoint(mpoint_t *pt)
 {
-    int64_t tmpx;
-    const angle_t actualangle = ((!(!followplayer && automap_overlay)) ?
-                                 ANG90 - viewangle : mapangle) >> ANGLETOFINESHIFT;
+    if (automap_rotate)
+    {
+        int64_t tmpx;
+        const angle_t actualangle = ((!(!followplayer && automap_overlay)) ?
+                                     ANG90 - viewangle : mapangle) >> ANGLETOFINESHIFT;
 
-    pt->x -= mapcenter.x;
-    pt->y -= mapcenter.y;
+        pt->x -= mapcenter.x;
+        pt->y -= mapcenter.y;
 
-    tmpx = (int64_t)FixedMul(pt->x, finecosine[actualangle])
-         - (int64_t)FixedMul(pt->y, finesine[actualangle])
-         + mapcenter.x;
+        tmpx = (int64_t)FixedMul(pt->x, finecosine[actualangle])
+             - (int64_t)FixedMul(pt->y, finesine[actualangle])
+             + mapcenter.x;
 
-    pt->y = (int64_t)FixedMul(pt->x, finesine[actualangle])
-          + (int64_t)FixedMul(pt->y, finecosine[actualangle])
-          + mapcenter.y;
+        pt->y = (int64_t)FixedMul(pt->x, finesine[actualangle])
+              + (int64_t)FixedMul(pt->y, finecosine[actualangle])
+              + mapcenter.y;
 
-    pt->x = tmpx;
+        pt->x = tmpx;
+    }
+    if (ADJUST_ASPECT_RATIO)
+    {
+        int64_t diff = pt->y - mapcenter.y;
+        diff = 5 * diff / 6;
+        pt->y = mapcenter.y + diff;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -2283,6 +2290,11 @@ static void AM_drawLineCharacter (mline_t *lineguy, int lineguylines,
             AM_rotate(&l.a.x, &l.a.y, angle);
         }
 
+        if (ADJUST_ASPECT_RATIO)
+        {
+            l.a.y = 5 * l.a.y / 6;
+        }
+
         l.a.x += x;
         l.a.y += y;
 
@@ -2298,6 +2310,11 @@ static void AM_drawLineCharacter (mline_t *lineguy, int lineguylines,
         if (angle)
         {
             AM_rotate(&l.b.x, &l.b.y, angle);
+        }
+
+        if (ADJUST_ASPECT_RATIO)
+        {
+            l.b.y = 5 * l.b.y / 6;
         }
 
         l.b.x += x;
@@ -2342,10 +2359,7 @@ static void AM_drawPlayers (void)
             pt.y = FTOM(MTOF(pt.y));
         }
 
-        if (automap_rotate)
-        {
-            AM_rotatePoint(&pt);
-        }
+        AM_transformPoint(&pt);
 
         AM_drawLineCharacter(cheat_player_arrow, iddt_cheating ?
                              arrlen(cheat_player_arrow) : arrlen(player_arrow), 0,
@@ -2399,10 +2413,10 @@ static void AM_drawPlayers (void)
             pt.y = FTOM(MTOF(pt.y));
         }
 
+        AM_transformPoint(&pt);
 
         if (automap_rotate)
         {
-            AM_rotatePoint(&pt);
             smoothangle = p->mo->angle;
         }
         else
@@ -2464,10 +2478,7 @@ static void AM_drawThings (void)
                 actualangle = t->angle - mapangle - viewangle + ANG90;
             }
 
-            if (automap_rotate)
-            {
-                AM_rotatePoint(&pt);
-            }
+            AM_transformPoint(&pt);
 
             // [JN] IDDT extended colors:
             // [crispy] draw blood splats and puffs as small squares
@@ -2543,10 +2554,7 @@ static void AM_drawSpectator (void)
                 actualangle = t->angle - mapangle - viewangle + ANG90;
             }
 
-            if (automap_rotate)
-            {
-                AM_rotatePoint(&pt);
-            }
+            AM_transformPoint(&pt);
 
             // [crispy] do not draw an extra triangle for the player
             if (t == plr->mo)
@@ -2587,12 +2595,7 @@ static void AM_drawMarks (void)
             // [crispy] center marks around player
             pt.x = markpoints[i].x;
             pt.y = markpoints[i].y;
-
-            if (automap_rotate)
-            {
-                AM_rotatePoint(&pt);
-            }
-
+            AM_transformPoint(&pt);
             fx = (CXMTOF(pt.x) / vid_resolution) - 1;
             fy = (CYMTOF(pt.y) / vid_resolution) - 2;
             fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
@@ -2693,8 +2696,8 @@ void AM_Drawer (void)
         AM_changeWindowLoc();
     }
 
-    // [crispy] required for AM_rotatePoint()
-    if (automap_rotate)
+    // [crispy/Woof!] required for AM_transformPoint()
+    if (automap_rotate || ADJUST_ASPECT_RATIO)
     {
         mapcenter.x = m_x + m_w / 2;
         mapcenter.y = m_y + m_h / 2;
