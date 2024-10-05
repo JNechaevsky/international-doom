@@ -1050,7 +1050,7 @@ static MenuItem_t ID_Menu_Main[] = {
     { ITT_SETMENU, "DISPLAY OPTIONS",   NULL,                 0, MENU_ID_DISPLAY   },
     { ITT_SETMENU, "SOUND OPTIONS",     NULL,                 0, MENU_ID_SOUND     },
     { ITT_SETMENU, "CONTROL SETTINGS",  NULL,                 0, MENU_ID_CONTROLS  },
-    { ITT_SETMENU, "WIDGET SETTINGS",   NULL,                 0, MENU_ID_WIDGETS   },
+    { ITT_SETMENU, "WIDGETS SETTINGS",  NULL,                 0, MENU_ID_WIDGETS   },
     { ITT_SETMENU, "AUTOMAP SETTINGS",  NULL,                 0, MENU_ID_AUTOMAP   },
     { ITT_EFUNC,   "GAMEPLAY FEATURES", M_Choose_ID_Gameplay, 0, MENU_NONE         },
     { ITT_SETMENU, "LEVEL SELECT",      NULL,                 0, MENU_ID_LEVEL1    },

@@ -295,7 +295,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color);
 void (*AM_drawFline)(fline_t*, int) = AM_drawFline_Vanilla;
 
 // [crispy/Woof!] automap rotate mode and square aspect ratio need these early on
-#define ADJUST_ASPECT_RATIO (vid_aspect_ratio_correct && automap_square)
+#define ADJUST_ASPECT_RATIO (vid_aspect_ratio_correct == 1 && automap_square)
 static void AM_rotate (int64_t *x, int64_t *y, angle_t a);
 static void AM_transformPoint (mpoint_t *pt);
 static mpoint_t mapcenter;
