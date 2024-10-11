@@ -1,0 +1,30 @@
+1 ICON "@top_srcdir@/data/strife.ico"
+
+#include <winuser.h>
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "@top_srcdir@/src/manifest.xml"
+
+1 VERSIONINFO
+PRODUCTVERSION @WINDOWS_RC_VERSION@
+FILEVERSION @WINDOWS_RC_VERSION@
+FILETYPE 1
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "040904E4"
+  {
+   VALUE "FileVersion", "@PACKAGE_VERSION_STRIFE@.0"
+   VALUE "FileDescription", "@PACKAGE_FULLNAME_STRIFE@"
+   VALUE "InternalName", "@PACKAGE_TARNAME_STRIFE@"
+   VALUE "CompanyName", "@PACKAGE_BUGREPORT@"
+   VALUE "LegalCopyright", "@PACKAGE_COPYRIGHT@. Licensed under @PACKAGE_LICENSE@"
+   VALUE "ProductName", "@PACKAGE_NAME@"
+   VALUE "ProductVersion", "@PACKAGE_VERSION_STRIFE@"
+  }
+ }
+ BLOCK "VarFileInfo"
+ {
+  VALUE "Translation", 0x409, 1252
+ }
+}
+

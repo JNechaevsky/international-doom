@@ -1011,4 +1011,14 @@ void V_LoadTintTable (void)
 {
     tinttable = W_CacheLumpName("TINTTAB", PU_STATIC);
 }
+
+// -----------------------------------------------------------------------------
+// V_LoadXlaTable
+// villsa [STRIFE] Load xla table from XLATAB lump.
+// -----------------------------------------------------------------------------
+
+void V_LoadXlaTable(void)
+{
+    xlatab = W_CacheLumpName("XLATAB", PU_STATIC);
+}
 #endif

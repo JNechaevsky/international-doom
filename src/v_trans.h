@@ -155,6 +155,7 @@ extern char **crstr;
 extern byte *blendfunc;
 extern void V_InitTransMaps (void);
 extern void V_LoadTintTable (void);
+extern void V_LoadXlaTable (void);
 #endif
 
 int V_GetPaletteIndex(byte *palette, int r, int g, int b);

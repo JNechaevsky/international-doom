@@ -24,6 +24,11 @@ set(PACKAGE_FULLNAME_HEXEN "International Hexen ${PACKAGE_VERSION_HEXEN}")
 set(PACKAGE_TARNAME_HEXEN "inter-hexen")
 set(PACKAGE_STRING_HEXEN "${PROJECT_NAME} ${PACKAGE_VERSION_HEXEN}")
 
+set(PACKAGE_VERSION_STRIFE "8.0")
+set(PACKAGE_FULLNAME_STRIFE "International Strife ${PACKAGE_VERSION_STRIFE}")
+set(PACKAGE_TARNAME_STRIFE "inter-strife")
+set(PACKAGE_STRING_STRIFE "${PROJECT_NAME} ${PACKAGE_VERSION_STRIFE}")
+
 set(PACKAGE_BUGREPORT "julia.nechaevskaya@live.com")
 
 string(REGEX REPLACE " Doom$" "" PACKAGE_SHORTNAME "${PACKAGE_NAME}")
@@ -141,6 +146,7 @@ configure_file(src/heretic-res.rc.in src/heretic-res.rc)
 configure_file(src/hexen-res.rc.in src/hexen-res.rc)
 configure_file(src/setup-res.rc.in src/setup-res.rc)
 configure_file(src/setup/setup-manifest.xml.in src/setup/setup-manifest.xml)
+configure_file(src/strife-res.rc.in src/strife-res.rc)
 
 foreach(SUBDIR textscreen opl pcsound src)
     add_subdirectory("${SUBDIR}")

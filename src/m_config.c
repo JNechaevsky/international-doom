@@ -281,6 +281,17 @@ static default_t	doom_defaults_list[] =
     // Hexen: Jump
     CONFIG_VARIABLE_KEY(key_jump),
 
+    // Strife:
+    CONFIG_VARIABLE_INT(show_talk),
+    CONFIG_VARIABLE_INT(voice_volume),
+    CONFIG_VARIABLE_KEY(key_useHealth),
+    CONFIG_VARIABLE_KEY(key_invquery),
+    CONFIG_VARIABLE_KEY(key_mission),
+    CONFIG_VARIABLE_KEY(key_invPop),
+    CONFIG_VARIABLE_KEY(key_invKey),
+    CONFIG_VARIABLE_KEY(key_invHome),
+    CONFIG_VARIABLE_KEY(key_invEnd),
+
     // Advanced movement
     CONFIG_VARIABLE_KEY(key_autorun),
     CONFIG_VARIABLE_KEY(key_mouse_look),

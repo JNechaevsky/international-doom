@@ -109,6 +109,25 @@ int key_arti_boots = 0;
 int key_arti_krater = 0;
 int key_arti_incant = 0;
 
+//
+// Strife key controls
+//
+// haleyjd 09/01/10
+//
+
+// Note: Strife also uses key_invleft, key_invright, key_jump, key_lookup, and
+// key_lookdown, but with different default values.
+
+int key_usehealth = 'h';
+int key_invquery  = 'q';
+int key_mission   = 'w';
+int key_invpop    = 'z';
+int key_invkey    = 'k';
+int key_invhome   = KEY_HOME;
+int key_invend    = KEY_END;
+int key_invuse    = KEY_ENTER;
+int key_invdrop   = KEY_BACKSPACE;
+
 // Special modes
 
 int key_spectator = 0;
@@ -212,6 +231,9 @@ int mousebuseartifact = -1;
 
 // Hexen: Jump
 int mousebjump        = -1;
+
+// Strife: Inventory
+int mousebinvuse      = -1; // [crispy]
 
 // Control whether if a mouse button is double clicked,
 // it acts like "use" has been pressed.
@@ -449,6 +471,53 @@ void M_BindHexenControls(void)
     M_BindIntVariable("key_arti_boots",           &key_arti_boots);
     M_BindIntVariable("key_arti_krater",          &key_arti_krater);
     M_BindIntVariable("key_arti_incant",          &key_arti_incant);
+}
+
+void M_BindStrifeControls(void)
+{
+    // [crispy] don't override default controls for Strife
+    key_lookcenter = 0;
+    // key_alt_up = 0;
+    // key_alt_down = 0;
+    // key_alt_strafeleft = 0;
+    // key_alt_straferight = 0;
+
+    // These are shared with all games, but have different defaults:
+    key_message_refresh = '/';
+
+    // These keys are shared with Heretic/Hexen but have different defaults:
+    key_jump     = 'a';
+    key_lookup   = KEY_PGUP;
+    key_lookdown = KEY_PGDN;
+    key_invleft  = KEY_INS;
+    key_invright = KEY_DEL;
+
+    M_BindIntVariable("key_jump",           &key_jump);
+    M_BindIntVariable("key_lookUp",         &key_lookup);
+    M_BindIntVariable("key_lookDown",       &key_lookdown);
+    M_BindIntVariable("key_invLeft",        &key_invleft);
+    M_BindIntVariable("key_invRight",       &key_invright);
+
+    // Custom Strife-only Keys:
+    M_BindIntVariable("key_useHealth",      &key_usehealth);
+    M_BindIntVariable("key_invquery",       &key_invquery);
+    M_BindIntVariable("key_mission",        &key_mission);
+    M_BindIntVariable("key_invPop",         &key_invpop);
+    M_BindIntVariable("key_invKey",         &key_invkey);
+    M_BindIntVariable("key_invHome",        &key_invhome);
+    M_BindIntVariable("key_invEnd",         &key_invend);
+    M_BindIntVariable("key_invUse",         &key_invuse);
+    M_BindIntVariable("key_invDrop",        &key_invdrop);
+
+    // Strife also supports jump on mouse and joystick, and in the exact same
+    // manner as Hexen!
+    M_BindIntVariable("mouseb_jump",        &mousebjump);
+    M_BindIntVariable("joyb_jump",          &joybjump);
+
+    // [crispy]
+    M_BindIntVariable("mouseb_invleft",     &mousebinvleft);
+    M_BindIntVariable("mouseb_invright",    &mousebinvright);
+    M_BindIntVariable("mouseb_invuse",      &mousebinvuse);
 }
 
 void M_BindChatControls (unsigned int num_players)

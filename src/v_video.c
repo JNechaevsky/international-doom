@@ -66,11 +66,18 @@ boolean dp_translucent = false;
 extern pixel_t *pal_color;
 #endif
 
+// villsa [STRIFE] Blending table used for Strife
+byte *xlatab = NULL;
+
 // The screen buffer that the v_video.c code draws to.
 
 static pixel_t *dest_screen = NULL;
 
 int dirtybox[4]; 
+
+// haleyjd 08/28/10: clipping callback function for patches.
+// This is needed for Chocolate Strife, which clips patches to the screen.
+static vpatchclipfunc_t patchclip_callback = NULL;
 
 
 //
@@ -135,6 +142,21 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
         dest += SCREENWIDTH; 
     } 
 } 
+
+//
+// V_SetPatchClipCallback
+//
+// haleyjd 08/28/10: Added for Strife support.
+// By calling this function, you can setup runtime error checking for patch 
+// clipping. Strife never caused errors by drawing patches partway off-screen.
+// Some versions of vanilla DOOM also behaved differently than the default
+// implementation, so this could possibly be extended to those as well for
+// accurate emulation.
+//
+void V_SetPatchClipCallback(vpatchclipfunc_t func)
+{
+    patchclip_callback = func;
+}
 
 //
 // V_DrawPatch
@@ -202,6 +224,14 @@ static const inline pixel_t drawalttinttab (const pixel_t dest, const pixel_t so
 {return tinttable[(dest<<8)+source];}
 #else
 {return I_BlendOverAltTinttab(dest, pal_color[source]);}
+#endif
+
+// [JN] V_DrawXlaPatch (translucent patch, no coloring or color-translation are used)
+static const inline pixel_t drawxlatab (const pixel_t dest, const pixel_t source)
+#ifndef CRISPY_TRUECOLOR
+{return xlatab[dest+(source<<8)];}
+#else
+{return I_BlendOverXlatab(dest, pal_color[source]);}
 #endif
 
 // [crispy] array of function pointers holding the different rendering functions
@@ -296,6 +326,63 @@ void V_DrawPatch(int x, int y, patch_t *patch)
                 dest += SCREENWIDTH;
             }
             column = (column_t *)((byte *)column + column->length + 4);
+        }
+    }
+}
+
+//
+// V_DrawXlaPatch
+//
+// villsa [STRIFE] Masks a column based translucent masked pic to the screen.
+//
+
+void V_DrawXlaPatch(int x, int y, patch_t * patch)
+{
+    int count, col;
+    column_t *column;
+    pixel_t *desttop, *dest;
+    byte *source;
+    int w;
+
+    // [crispy] translucent patch, no coloring or color-translation are used
+    drawpatchpx_t *const drawpatchpx = drawxlatab;
+
+    y -= SHORT(patch->topoffset);
+    x -= SHORT(patch->leftoffset);
+    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+
+/*
+    if(patchclip_callback)
+    {
+        if(!patchclip_callback(patch, x, y))
+            return;
+    }
+*/
+
+    col = 0;
+    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+
+    w = SHORT(patch->width);
+    for(; col < w << FRACBITS; x++, col+=dxi, desttop++)
+    {
+        column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
+
+        // step through the posts in a column
+
+        while(column->topdelta != 0xff)
+        {
+            int srccol = 0;
+            source = (byte *) column + 3;
+            dest = desttop + ((column->topdelta * dy) >> FRACBITS) * SCREENWIDTH;
+            count = (column->length * dy) >> FRACBITS;
+
+            while(count--)
+            {
+                *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
+                srccol += dyi;
+                dest += SCREENWIDTH;
+            }
+            column = (column_t *) ((byte *) column + column->length + 4);
         }
     }
 }
