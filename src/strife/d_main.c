@@ -24,6 +24,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <SDL.h>
+
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
 
 #include "config.h"
 #include "deh_main.h"
@@ -137,19 +145,12 @@ boolean         isdemoversion;
 //boolean         storedemo;
 
 
-int             show_endoom = 1;
-int             show_diskicon = 1;
 int             graphical_startup = 0;
 static boolean  using_text_startup;
 
 // If true, startup has completed and the main game loop has started.
 
 static boolean main_loop_started = false;
-
-// fraggle 06/03/11 [STRIFE]: Unused config variable, preserved
-// for compatibility:
-
-static int comport = 0;
 
 // fraggle 06/03/11 [STRIFE]: Multiplayer nickname?
 char *nickname = NULL;
@@ -467,8 +468,6 @@ void D_BindVariables(void)
     M_BindIntVariable("snd_channels",           &snd_channels);
     M_BindIntVariable("vanilla_savegame_limit", &vanilla_savegame_limit);
     M_BindIntVariable("vanilla_demo_limit",     &vanilla_demo_limit);
-    M_BindIntVariable("show_endoom",            &show_endoom);
-    M_BindIntVariable("show_diskicon",          &show_diskicon);
     M_BindIntVariable("graphical_startup",      &graphical_startup);
 
     M_BindStringVariable("back_flat",           &back_flat);
@@ -489,7 +488,7 @@ void D_BindVariables(void)
     }
 
 	// [JN] Bind ID-specific config variables.
-	ID_BindVariables(doom);
+	ID_BindVariables(strife);
 }
 
 //
@@ -1109,21 +1108,27 @@ void PrintGameVersion(void)
 static void D_Endoom(void)
 {
     byte *endoom;
+    const char *endoom_name;
 
     // Don't show ENDOOM if we have it disabled, or we're running
     // in screensaver or control test mode. Only show it once the
     // game has actually started.
 
-
-    if (!show_endoom || !main_loop_started || screensaver_mode || testcontrols)
+    if (!vid_endoom || !main_loop_started || screensaver_mode || testcontrols)
     {
         return;
     }
 
     // haleyjd 08/27/10: [STRIFE] ENDOOM -> ENDSTRF
-    endoom = W_CacheLumpName(DEH_String("ENDSTRF"), PU_STATIC);
+    // [JN] Extended to show for "PWAD only".
+    endoom_name = DEH_String("ENDSTRF");
+    endoom = W_CacheLumpName(endoom_name, PU_STATIC);
 
-    I_Endoom(endoom);
+    if (vid_endoom == 1
+    || (vid_endoom == 2 && !W_IsIWADLump(lumpinfo[W_GetNumForName(endoom_name)])))
+    {
+        I_Endoom(endoom);
+    }
 }
 
 //
@@ -1504,6 +1509,7 @@ void D_DoomMain (void)
     char            file[256];
     char            demolumpname[9];
 
+    i_error_title = PACKAGE_FULLNAME_STRIFE;
     I_AtExit(D_Endoom, false);
 
     // haleyjd 20110206 [STRIFE]: -nograph parameter
@@ -1536,9 +1542,25 @@ void D_DoomMain (void)
 
     devparm = M_CheckParm ("-devparm");
 
+#ifdef _WIN32
+    // [JN] Print colorized title.
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_RED | BACKGROUND_GREEN
+                           | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE
+                           | FOREGROUND_INTENSITY);
+
+    for (p = 0 ; p < 26 ; p++) printf(" ");
+    printf(PACKAGE_FULLNAME_STRIFE);
+    for (p = 0 ; p < 27 ; p++) printf(" ");
+    printf("\n");
+
+    // [JN] Fallback to standard console colos.
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 
+                            FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+#else
     // print banner
 
     I_PrintBanner(PACKAGE_STRING);
+#endif
 
     //DEH_printf("Z_Init: Init zone memory allocation daemon. \n"); [STRIFE] removed
     Z_Init ();
@@ -1742,6 +1764,9 @@ void D_DoomMain (void)
     D_BindVariables();
     M_LoadDefaults();
 
+    // [JN] Disk icon can be enabled for Strife.
+    diskicon_enabled = true;
+
     // Save configuration at exit.
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
@@ -1873,7 +1898,12 @@ void D_DoomMain (void)
     InitTitleString();
     D_SetGameDescription();
     I_SetWindowTitle(gamedescription);
+    
+    // [JN] Set the default directory where savegames are saved.
     savegamedir = M_GetSaveGameDir("strife1.wad");
+
+    // [JN] Set the default directory where screenshots are saved.
+    M_SetScreenshotDir();
 
     // fraggle 20130405: I_InitTimer is needed here for the netgame
     // startup. Start low-level sound init here too.

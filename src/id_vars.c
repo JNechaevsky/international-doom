@@ -49,6 +49,7 @@ int vid_diskicon = 1;
 int vid_endoom = 0;
 int vid_graphical_startup = 0;
 int vid_banners = 1;
+int vid_exit_screen = 1;
 
 //
 // Display options
@@ -203,7 +204,7 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("vid_diskicon",               &vid_diskicon);
     }
-    if (mission == doom || mission == heretic)
+    if (mission == doom || mission == heretic || mission == strife)
     {
         M_BindIntVariable("vid_endoom",                 &vid_endoom);
     }
@@ -214,6 +215,10 @@ void ID_BindVariables (GameMission_t mission)
     if (mission == hexen)
     {
         M_BindIntVariable("vid_banners",                &vid_banners);
+    }
+    if (mission == strife)
+    {
+        M_BindIntVariable("vid_exit_screen",            &vid_exit_screen);
     }  
 
     //

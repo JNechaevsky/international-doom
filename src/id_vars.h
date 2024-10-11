@@ -35,6 +35,7 @@ extern int vid_diskicon;
 extern int vid_endoom;
 extern int vid_graphical_startup;
 extern int vid_banners;
+extern int vid_exit_screen;
 
 extern int vid_uncapped_fps;
 extern int vid_fpslimit;
