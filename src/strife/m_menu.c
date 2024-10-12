@@ -36,6 +36,7 @@
 #include "i_timer.h"
 #include "i_video.h"
 #include "z_zone.h"
+#include "v_diskicon.h"
 #include "v_trans.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -576,6 +577,14 @@ static void M_ID_RenderingRes (int choice);
 static void M_ID_Widescreen (int choice);
 static void M_ID_UncappedFPS (int choice);
 static void M_ID_LimitFPS (int choice);
+static void M_ID_VSync (int choice);
+static void M_ID_ShowFPS (int choice);
+static void M_ID_PixelScaling (int choice);
+static void M_ID_GfxStartup (int choice);
+static void M_ID_ScreenWipe (int choice);
+static void M_ID_DiskIcon (int choice);
+static void M_ID_ShowExitScreen (int choice);
+static void M_ID_ShowENDSTRF (int choice);
 
 // -----------------------------------------------------------------------------
 
@@ -821,23 +830,25 @@ static void M_Draw_ID_Main (void)
 
 static menuitem_t ID_Menu_Video[]=
 {
-    { M_LFRT, "TRUECOLOR RENDERING",  M_ID_TrueColor,    't' },
-    { M_LFRT, "RENDERING RESOLUTION", M_ID_RenderingRes, 'r' },
-    { M_LFRT, "WIDESCREEN MODE",      M_ID_Widescreen,   'w' },
-    { M_LFRT, "UNCAPPED FRAMERATE",   M_ID_UncappedFPS,  'u' },
-    { M_LFRT, "FRAMERATE LIMIT",      M_ID_LimitFPS,     'f' },
-    // { M_LFRT, "ENABLE VSYNC",         M_ID_VSync,        'e' },
-    // { M_LFRT, "SHOW FPS COUNTER",     M_ID_ShowFPS,      's' },
-    // { M_LFRT, "PIXEL SCALING",        M_ID_PixelScaling, 'p' },
-    // { M_SKIP, "", 0, '\0' },
-    // { M_LFRT, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   's' },
-    // { M_LFRT, "SHOW DISK ICON",       M_ID_DiskIcon,     's' },
-    // { M_LFRT, "SHOW ENDOOM SCREEN",   M_ID_ShowENDOOM,   's' },
+    { M_LFRT, "TRUECOLOR RENDERING",  M_ID_TrueColor,      't' },
+    { M_LFRT, "RENDERING RESOLUTION", M_ID_RenderingRes,   'r' },
+    { M_LFRT, "WIDESCREEN MODE",      M_ID_Widescreen,     'w' },
+    { M_LFRT, "UNCAPPED FRAMERATE",   M_ID_UncappedFPS,    'u' },
+    { M_LFRT, "FRAMERATE LIMIT",      M_ID_LimitFPS,       'f' },
+    { M_LFRT, "ENABLE VSYNC",         M_ID_VSync,          'e' },
+    { M_LFRT, "SHOW FPS COUNTER",     M_ID_ShowFPS,        's' },
+    { M_LFRT, "PIXEL SCALING",        M_ID_PixelScaling,   'p' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "GRAPHICAL STARTUP",    M_ID_GfxStartup,     'g' },
+    { M_LFRT, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,     's' },
+    { M_LFRT, "SHOW DISK ICON",       M_ID_DiskIcon,       's' },
+    { M_LFRT, "SHOW EXIT SCREEN",     M_ID_ShowExitScreen, 's' },
+    { M_LFRT, "SHOW ENDSTRF SCREEN",  M_ID_ShowENDSTRF,    's' },
 };
 
 static menu_t ID_Def_Video =
 {
-    5,
+    14,
     &ID_Def_Main,
     ID_Menu_Video,
     M_Draw_ID_Video,
@@ -904,6 +915,50 @@ static void M_Draw_ID_Video (void)
                  !vid_uncapped_fps ? cr[CR_DARKRED] :
                  M_Item_Glow(4, vid_fpslimit == 0 ? GLOW_RED :
                                 vid_fpslimit >= 500 ? GLOW_YELLOW : GLOW_GREEN));
+
+    // Enable vsync
+    sprintf(str, vid_vsync ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 63, str, 
+                 M_Item_Glow(5, vid_vsync ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Show FPS counter
+    sprintf(str, vid_showfps ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 72, str, 
+                 M_Item_Glow(6, vid_showfps ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Pixel scaling
+    sprintf(str, vid_smooth_scaling ? "SMOOTH" : "SHARP");
+    M_WriteText (M_ItemRightAlign(str), 81, str, 
+                 M_Item_Glow(7, vid_smooth_scaling ? GLOW_GREEN : GLOW_DARKRED));
+
+    M_WriteTextCentered(90, "MISCELLANEOUS", cr[CR_ORANGE]);
+
+    // Graphical startup
+    sprintf(str, vid_graphical_startup ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 99, str, 
+                 M_Item_Glow(9, vid_graphical_startup ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Screen wipe effect
+    sprintf(str, vid_screenwipe ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 108, str, 
+                 M_Item_Glow(10, vid_screenwipe ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Show disk icon
+    sprintf(str, vid_diskicon_st == 1 ? "BOTTOM" :
+                 vid_diskicon_st == 2 ? "TOP" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 117, str, 
+                 M_Item_Glow(11, vid_diskicon_st == 1 ? GLOW_DARKRED : GLOW_GREEN));
+
+    // Screen exit screen
+    sprintf(str, vid_exit_screen ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 126, str, 
+                 M_Item_Glow(12, vid_exit_screen ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Show ENDSTRF screen
+    sprintf(str, vid_endoom == 1 ? "ALWAYS" :
+                 vid_endoom == 2 ? "PWAD ONLY" : "NEVER");
+    M_WriteText (M_ItemRightAlign(str), 135, str, 
+                 M_Item_Glow(13, vid_endoom == 1 ? GLOW_DARKRED : GLOW_GREEN));
 }
 
 #ifdef CRISPY_TRUECOLOR
@@ -937,11 +992,11 @@ static void M_ID_RenderingResHook (void)
     R_ExecuteSetViewSize();
     // [crispy] re-draw bezel
     R_FillBackScreen();
+    // [crispy] re-calculate disk icon coordinates
+    V_EnableLoadingDisk();
     
     // TODO!
     /*
-    // [crispy] re-calculate disk icon coordinates
-    V_EnableLoadingDisk();
     // [JN] re-calculate status bar elements background buffers
     ST_InitElementsBackground();
     // [crispy] re-calculate automap coordinates
@@ -967,11 +1022,11 @@ static void M_ID_WidescreenHook (void)
     R_ExecuteSetViewSize();
     // [crispy] re-draw bezel
     R_FillBackScreen();
+    // [crispy] re-calculate disk icon coordinates
+    V_EnableLoadingDisk();
 
     // TODO!
     /*
-    // [crispy] re-calculate disk icon coordinates
-    V_EnableLoadingDisk();
     // [JN] re-calculate status bar elements background buffers
     ST_InitElementsBackground();
     // [crispy] re-calculate automap coordinates
@@ -1035,6 +1090,58 @@ static void M_ID_LimitFPS (int choice)
         default:
             break;
     }
+}
+
+static void M_ID_VSyncHook (void)
+{
+    I_ToggleVsync();
+}
+
+static void M_ID_VSync (int choice)
+{
+    vid_vsync ^= 1;
+    post_rendering_hook = M_ID_VSyncHook;    
+}
+
+static void M_ID_ShowFPS (int choice)
+{
+    vid_showfps ^= 1;
+}
+
+static void M_ID_PixelScaling (int choice)
+{
+    vid_smooth_scaling ^= 1;
+
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
+}
+
+static void M_ID_GfxStartup (int choice)
+{
+    vid_graphical_startup ^= 1;
+}
+
+static void M_ID_ScreenWipe (int choice)
+{
+    vid_screenwipe ^= 1;
+}
+
+static void M_ID_DiskIcon (int choice)
+{
+    vid_diskicon_st = M_INT_Slider(vid_diskicon_st, 0, 2, choice, false);
+    V_EnableLoadingDisk();
+}
+
+static void M_ID_ShowExitScreen (int choice)
+{
+    vid_exit_screen ^= 1;
+}
+
+static void M_ID_ShowENDSTRF (int choice)
+{
+    vid_endoom = M_INT_Slider(vid_endoom, 0, 2, choice, false);
 }
 
 // =============================================================================

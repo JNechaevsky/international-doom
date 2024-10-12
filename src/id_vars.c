@@ -46,6 +46,8 @@ int vid_screenwipe = 1;
 // [JN] Heretic and Hexen doesn't have screen wipe enabled by default.
 int vid_screenwipe_hr = 0;
 int vid_diskicon = 1;
+// [JN] Strife showing disk icon on top by default.
+int vid_diskicon_st = 2;
 int vid_endoom = 0;
 int vid_graphical_startup = 0;
 int vid_banners = 1;
@@ -204,11 +206,15 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("vid_diskicon",               &vid_diskicon);
     }
+    if (mission == strife)
+    {
+        M_BindIntVariable("vid_diskicon",               &vid_diskicon_st);
+    }
     if (mission == doom || mission == heretic || mission == strife)
     {
         M_BindIntVariable("vid_endoom",                 &vid_endoom);
     }
-    if (mission == heretic || mission == hexen)
+    if (mission == heretic || mission == hexen || mission == strife)
     {
         M_BindIntVariable("vid_graphical_startup",      &vid_graphical_startup);
     }

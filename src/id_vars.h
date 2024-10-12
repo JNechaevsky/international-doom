@@ -32,6 +32,7 @@ extern int vid_resolution;
 extern int vid_widescreen;
 
 extern int vid_diskicon;
+extern int vid_diskicon_st;
 extern int vid_endoom;
 extern int vid_graphical_startup;
 extern int vid_banners;

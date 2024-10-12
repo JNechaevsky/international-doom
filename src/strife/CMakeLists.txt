@@ -26,6 +26,7 @@ set(STRIFE_SOURCES
     hu_lib.c        hu_lib.h
     hu_stuff.c      hu_stuff.h
     info.c          info.h
+                    id_func.h
     m_menu.c        m_menu.h
     m_random.c      m_random.h
     m_saves.c       m_saves.h
