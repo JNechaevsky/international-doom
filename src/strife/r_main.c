@@ -945,13 +945,17 @@ void R_ExecuteSetViewSize (void)
 void R_Init (void)
 {
     R_InitData ();
-    printf (".");
+    if(devparm)
+        printf (".");
+    else
+        D_IntroTick(); // [STRIFE] tick intro
     // viewwidth / viewheight / dp_detail_level are set by the defaults
     R_SetViewSize (dp_screen_size, dp_detail_level);
     R_InitPlanes ();
-    printf (".");
+    if(devparm)
+        printf (".");
+
     R_InitLightTables ();
-    printf (".");
     if(devparm)
         printf (".");
     else

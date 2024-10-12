@@ -145,7 +145,6 @@ boolean         isdemoversion;
 //boolean         storedemo;
 
 
-int             graphical_startup = 0;
 static boolean  using_text_startup;
 
 // If true, startup has completed and the main game loop has started.
@@ -496,7 +495,6 @@ void D_BindVariables(void)
     M_BindIntVariable("snd_channels",           &snd_channels);
     M_BindIntVariable("vanilla_savegame_limit", &vanilla_savegame_limit);
     M_BindIntVariable("vanilla_demo_limit",     &vanilla_demo_limit);
-    M_BindIntVariable("graphical_startup",      &graphical_startup);
 
     M_BindStringVariable("back_flat",           &back_flat);
     M_BindStringVariable("nickname",            &nickname);
@@ -590,7 +588,11 @@ void D_DoomLoop (void)
         // process one or more tics
         TryRunTics (); // will run at least one tic
 
-        S_UpdateSounds (players[consoleplayer].mo);// move positional sounds
+        if (oldgametic < gametic)
+        {
+            S_UpdateSounds (players[consoleplayer].mo);// move positional sounds
+            oldgametic = gametic;
+        }
 
         // Update display, next frame, with current state.
         if (screenvisible)
@@ -629,7 +631,7 @@ void D_PageTicker (void)
 //
 void D_PageDrawer (void)
 {
-    V_DrawPatch (0, 0, W_CacheLumpName(pagename, PU_CACHE));
+    V_DrawPatchFullScreen (W_CacheLumpName(pagename, PU_CACHE), false);
 }
 
 
@@ -786,6 +788,7 @@ void D_StartTitle (void)
 {
     gamestate = GS_DEMOSCREEN;
     gameaction = ga_nothing;
+    automapactive = false; // [crispy]
     demosequence = -2;
     D_AdvanceDemo ();
 }
@@ -1053,7 +1056,7 @@ void PrintDehackedBanners(void)
     }
 }
 
-static struct 
+static const struct
 {
     const char *description;
     const char *cmdline;
@@ -1069,9 +1072,8 @@ static struct
 static void InitGameVersion(void)
 {
     int p;
-    int i;
 
-    // haleyjd: we support emulating either the 1.2 or the 1.31 versions of 
+    // haleyjd: we support emulating either the 1.2 or the 1.31 versions of
     // Strife, which are the most significant. 1.2 is the most mature version
     // that still has the single saveslot restriction, whereas 1.31 is the
     // final revision. The differences between the two are barely worth
@@ -1088,6 +1090,7 @@ static void InitGameVersion(void)
 
     if (p)
     {
+        int i;
         for (i=0; gameversions[i].description != NULL; ++i)
         {
             if (!strcmp(myargv[p+1], gameversions[i].cmdline))
@@ -1097,7 +1100,7 @@ static void InitGameVersion(void)
             }
         }
 
-        if (gameversions[i].description == NULL) 
+        if (gameversions[i].description == NULL)
         {
             printf("Supported game versions:\n");
 
@@ -1329,7 +1332,7 @@ static void D_InitIntroSequence(void)
     byte *textScreen;
     char string[80];
 
-    if (devparm || !graphical_startup || testcontrols)
+    if (devparm || !vid_graphical_startup || testcontrols)
     {
         using_text_startup = false;
         showintro = false;
@@ -1508,7 +1511,9 @@ void D_IntroTick(void)
         // whatever reason, under DMX, playing the same sound multiple times
         // doesn't add up violently like it does under SDL_mixer. This means
         // that without this one-time limitation, the sound is far too loud.
-        if(!didsound)
+        //
+        // [JN] Do not play screaming sound if graphical startup is disabled.
+        if(!didsound && vid_graphical_startup)
         {
             S_StartSound(NULL, sfx_psdtha);
             didsound = true;
@@ -1527,6 +1532,7 @@ static void G_CheckDemoStatusAtExit (void)
 {
     G_CheckDemoStatus();
 }
+
 
 //
 // D_DoomMain
@@ -1792,9 +1798,6 @@ void D_DoomMain (void)
     D_BindVariables();
     M_LoadDefaults();
 
-    // [JN] Disk icon can be enabled for Strife.
-    diskicon_enabled = true;
-
     // Save configuration at exit.
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
@@ -1856,6 +1859,35 @@ void D_DoomMain (void)
 
     // Debug:
 //    W_PrintDirectory();
+
+    // [crispy] add wad files from autoload PWAD directories
+    // [JN] Please do not. No need to create additional directories,
+    // consider using "strife1.wad" for autoloading purposes.
+
+    /*
+    if (!M_ParmExists("-noautoload") && gamemode != shareware)
+    {
+        int i;
+
+        for (i = 0; loadparms[i]; i++)
+        {
+            int p;
+            p = M_CheckParmWithArgs(loadparms[i], 1);
+            if (p)
+            {
+                while (++p != myargc && myargv[p][0] != '-')
+                {
+                    char *autoload_dir;
+                    if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]), false)))
+                    {
+                        W_AutoLoadWADs(autoload_dir);
+                        free(autoload_dir);
+                    }
+                }
+            }
+        }
+    }
+    */
 
     //!
     // @arg <demo>
@@ -1922,6 +1954,35 @@ void D_DoomMain (void)
 
     W_GenerateHashTable();
 
+    // [crispy] process .deh files from PWADs autoload directories
+    // [JN] Please do not. No need to create additional directories,
+    // consider using "strife1.wad" for autoloading purposes.
+
+    /*
+    if (!M_ParmExists("-noautoload") && gamemode != shareware)
+    {
+        int i;
+
+        for (i = 0; loadparms[i]; i++)
+        {
+            int p;
+            p = M_CheckParmWithArgs(loadparms[i], 1);
+            if (p)
+            {
+                while (++p != myargc && myargv[p][0] != '-')
+                {
+                    char *autoload_dir;
+                    if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]), false)))
+                    {
+                        DEH_AutoLoadPatches(autoload_dir);
+                        free(autoload_dir);
+                    }
+                }
+            }
+        }
+    }
+    */
+
     InitGameVersion();
     InitTitleString();
     D_SetGameDescription();
@@ -1948,6 +2009,11 @@ void D_DoomMain (void)
     M_CreateSaveDirs(savegamedir);
 
     I_GraphicsCheckCommandLine();
+
+    // [crispy] Initialize and generate gamma-correction levels and
+    // colormaps/pal_color arrays before introduction sequence.
+    // I_SetGammaTable();
+    R_InitColormaps();
 
     // haleyjd 20110206 [STRIFE] Startup the introduction sequence
     D_InitIntroSequence();
@@ -2121,6 +2187,8 @@ void D_DoomMain (void)
         startloadgame = -1;
     }
 
+// [crispy] disable meaningless warning, we always use "-merge" anyway
+#if 0
     if (W_CheckNumForName("SS_START") >= 0
      || W_CheckNumForName("FF_END") >= 0)
     {
@@ -2129,6 +2197,7 @@ void D_DoomMain (void)
                " floor textures.  You may want to use the '-merge' command\n"
                " line option instead of '-file'.\n");
     }
+#endif
 
     I_PrintStartupBanner(gamedescription);
     PrintDehackedBanners();
@@ -2251,6 +2320,9 @@ void D_DoomMain (void)
     }
     D_IntroTick(); // [STRIFE]
 
+    // [JN] Disk icon can be enabled for Strife.
+    // Enable only after graphical startup sequence.
+    diskicon_enabled = true;
 
     if (gameaction != ga_loadgame )
     {

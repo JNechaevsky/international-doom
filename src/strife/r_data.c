@@ -957,7 +957,13 @@ void R_InitTextures (void)
     for (i=0 ; i<numtextures ; i++, directory++)
     {
 	if (!(i&63))
-	    printf (".");
+    {
+        // [STRIFE]: tick intro if not in devparm
+        if (devparm)
+            printf (".");
+        else
+            D_IntroTick();
+    }
 
 	// [crispy] initialize for the first texture file lump,
 	// skip through empty texture file lumps which do not contain any texture
@@ -1042,7 +1048,12 @@ void R_InitTextures (void)
     // Precalculate whatever possible.	
 
     for (i=0 ; i<numtextures ; i++)
-	R_GenerateLookup (i);
+    {
+        // [STRIFE]: tick intro
+        if (!(i & 63))
+            D_IntroTick();
+        R_GenerateLookup (i);
+    }
     
     // Create translation table for global animation.
     texturetranslation = Z_Malloc ((numtextures+1)*sizeof(*texturetranslation), PU_STATIC, 0);
@@ -1095,8 +1106,14 @@ void R_InitSpriteLumps (void)
 	
     for (i=0 ; i< numspritelumps ; i++)
     {
-	if (!(i&63))
-	    printf (".");
+        if (!(i&63))
+        {
+            // [STRIFE] tick intro if not in devparm
+            if (devparm)
+                printf (".");
+            else
+                D_IntroTick();
+        }
 
 	patch = W_CacheLumpNum (firstspritelump+i, PU_CACHE);
 	spritewidth[i] = SHORT(patch->width)<<FRACBITS;
@@ -1260,17 +1277,22 @@ void R_InitData (void)
     // R_InitBrightmaps() comes next, because it sets R_BrightmapForTexName()
     // to initialize brightmaps depending on gameversion in R_InitTextures().
     R_InitFlats ();
-    printf (".");
+    D_IntroTick (); // [STRIFE] tick intro
+
     R_InitBrightmaps ();
-    printf (".");
+    
     R_InitTextures ();
-    printf (".");
+    D_IntroTick ();
+    
     R_InitSpriteLumps ();
-    printf (".");
-    R_InitColormaps ();
-    printf (".");    
+    D_IntroTick ();
+    
+    // [crispy] Moved to D_DoomMain for color arrays
+    // initialization before introduction sequence.
+    // R_InitColormaps ();
+    // [crispy] Initialize color translation and color string tables.
     R_InitHSVColors ();
-    printf (".");    
+    
 }
 
 
