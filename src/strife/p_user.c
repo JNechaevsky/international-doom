@@ -36,6 +36,8 @@
 #include "s_sound.h"
 #include "p_inter.h"
 
+#include "id_func.h"
+
 
 
 // Index of the special effects (INVUL inverse) map.
@@ -182,6 +184,13 @@ void P_MovePlayer (player_t* player)
     //  if not onground.
     onground = (player->mo->z <= player->mo->floorz);
 
+    // [crispy] fast polling
+    if (player == &players[consoleplayer])
+    {
+        localview.ticangle += localview.ticangleturn << 16;
+        localview.ticangleturn = 0;
+    }
+
     // villsa [STRIFE] allows player to climb over things by jumping
     // haleyjd 20110205: air control thrust should be 256, not cmd->forwardmove
     if(!onground)
@@ -257,6 +266,12 @@ void P_MovePlayer (player_t* player)
         }
     }
 
+    // [crispy] handle mouse look
+    if (cmd->lookdir && singleplayer)
+    {
+        player->pitch += cmd->lookdir;
+        player->pitch = BETWEEN(LOOKDOWNMAX, LOOKUPMAX, player->pitch);
+    }
 }
 
 
@@ -340,6 +355,33 @@ void P_PlayerThink (player_t* player)
 {
     ticcmd_t*       cmd;
     weapontype_t    newweapon;
+
+    // [AM] Assume we can interpolate at the beginning
+    //      of the tic.
+    player->mo->interp = true;
+
+    // [AM] Store starting position for player interpolation.
+    player->mo->oldx = player->mo->x;
+    player->mo->oldy = player->mo->y;
+    player->mo->oldz = player->mo->z;
+    player->mo->oldangle = player->mo->angle;
+    player->oldviewz = player->viewz;
+    player->oldpitch = player->pitch;
+
+    // [crispy] fast polling
+    if (player == &players[consoleplayer])
+    {
+        localview.oldticangle = localview.ticangle;
+    }
+
+    // [crispy] update weapon sound source coordinates
+    // [JN] TODO
+    /*
+    if (player->so != player->mo)
+    {
+        memcpy(player->so, player->mo, sizeof(degenmobj_t));
+    }
+    */
 
     // villsa [STRIFE] unused code (see ST_Responder)
     /*

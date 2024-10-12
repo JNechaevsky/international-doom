@@ -24,6 +24,11 @@
 #include "doomstat.h"
 
 
+// [JN] CRL - now there are two timers:
+// 1) leveltime: used by all mobjs, thinkers and level time.
+//    Not ticking in Freeze mode.
+// 2) realleveltime: used by player, render and interpolation.
+//    Always ticking.
 int leveltime;
 
 //
@@ -157,4 +162,6 @@ void P_Ticker (void)
 
     // for par times
     leveltime++;
+
+    realleveltime++;
 }

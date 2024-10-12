@@ -1050,7 +1050,7 @@ void R_SetupFrame (player_t* player)
 
     // [AM] Interpolate the player camera if the feature is enabled.
     if (vid_uncapped_fps && leveltime > 1 && player->mo->interp == true &&
-        leveltime > oldleveltime && !do_wipe)
+        realleveltime > oldleveltime && !do_wipe)
     {
         const boolean use_localview = CheckLocalView(player);
 
