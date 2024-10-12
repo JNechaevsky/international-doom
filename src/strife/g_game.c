@@ -323,6 +323,15 @@ static int G_NextWeapon(int direction)
     return weapon_order_table[i].weapon_num;
 }
 
+// [crispy] holding down the "Run" key may trigger special behavior,
+// e.g. quick exit, clean screenshots, resurrection from savegames
+boolean speedkeydown (void)
+{
+    return (key_speed < NUMKEYS && gamekeydown[key_speed]) ||
+           (mousebspeed < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed]) ||
+           (joybspeed < MAX_JOY_BUTTONS && joybuttons[joybspeed]);
+}
+
 //
 // G_BuildTiccmd
 // Builds a ticcmd from all of the available inputs
@@ -391,6 +400,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
          || gamekeydown[key_speed] 
          || joybuttons[joybspeed]
          || mousebuttons[mousebspeed];
+    speed ^= speedkeydown();
  
     forward = side = 0;
 

@@ -216,7 +216,18 @@ void D_Display (void)
     boolean                     redrawsbar;
 
     if (nodrawers)
-        return;                    // for comparative timing / profiling
+    {
+        return;  // for comparative timing / profiling
+    }
+
+    // [crispy] post-rendering function pointer to apply config changes
+    // that affect rendering and that are better applied after the current
+    // frame has finished rendering
+    if (post_rendering_hook)
+    {
+        post_rendering_hook();
+        post_rendering_hook = NULL;
+    }
 
     redrawsbar = false;
     
@@ -229,7 +240,8 @@ void D_Display (void)
     }
 
     // save the current screen if about to wipe
-    if (gamestate != wipegamestate)
+    // [JN] Make screen wipe optional, use external config variable.
+    if (gamestate != wipegamestate && vid_screenwipe)
     {
         do_wipe = true; // [crispy]
         wipe = true;
@@ -247,46 +259,53 @@ void D_Display (void)
     // do buffered drawing
     switch (gamestate)
     {
-    case GS_LEVEL:
-        if (!gametic)
+        case GS_LEVEL:
+            if (!gametic)
             break;
-        if (automapactive)
-            AM_Drawer ();
-        if (wipe || (viewheight != SCREENHEIGHT && fullscreen) )
+
+            // draw the view directly
+            R_RenderPlayerView(&players[displayplayer]);
+
+            // [JN] Fail-safe: return earlier if post rendering hook is still active.
+            if (post_rendering_hook)
+            return;
+
+            // see if the border needs to be initially drawn
+            if (oldgamestate != GS_LEVEL)
+            R_FillBackScreen();  // draw the pattern into the back screen
+
+            // see if the border needs to be updated to the screen
+            if (scaledviewwidth != SCREENWIDTH)
+            R_DrawViewBorder();  // erase old menu stuff
+
+            // [JN] Draw automap on top of player view and view border,
+            // and update while playing. This also needed for widgets update.
+            if (automapactive)
+            AM_Drawer();
+
+            if (wipe || (viewheight != SCREENHEIGHT && fullscreen) )
             redrawsbar = true;
-        // haleyjd 08/29/10: [STRIFE] Always redraw sbar if menu is/was active
-        if (menuactivestate || (inhelpscreensstate && !inhelpscreens))
+
+            // haleyjd 08/29/10: [STRIFE] Always redraw sbar if menu is/was active
+            if (menuactivestate || (inhelpscreensstate && !inhelpscreens))
             redrawsbar = true;              // just put away the help screen
-        ST_Drawer (viewheight == SCREENHEIGHT, redrawsbar );
-        fullscreen = viewheight == SCREENHEIGHT;
+        
+            ST_Drawer (viewheight == SCREENHEIGHT, redrawsbar);
+            fullscreen = viewheight == SCREENHEIGHT;
         break;
       
-     // haleyjd 08/23/2010: [STRIFE] No intermission
-     /*
-     case GS_INTERMISSION:
-         WI_Drawer ();
-         break;
-     */
-
-    case GS_FINALE:
-        F_Drawer ();
+        case GS_FINALE:
+            F_Drawer();
         break;
 
-    case GS_DEMOSCREEN:
-        D_PageDrawer ();
+        case GS_DEMOSCREEN:
+            D_PageDrawer();
         break;
     
-    default:
+        default:
         break;
     }
     
-    // draw buffered stuff to screen
-    // I_UpdateNoBlit (); // [JN] TODO - remove?
-
-    // draw the view directly
-    if (gamestate == GS_LEVEL && !automapactive && gametic)
-        R_RenderPlayerView (&players[displayplayer]);
-
     // clean up border stuff
     if (gamestate != oldgamestate && gamestate != GS_LEVEL)
 #ifndef CRISPY_TRUECOLOR
@@ -321,7 +340,6 @@ void D_Display (void)
     if (testcontrols)
     {
         // Box showing current mouse speed
-
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
     }
 

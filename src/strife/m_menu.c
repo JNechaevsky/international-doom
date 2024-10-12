@@ -36,9 +36,11 @@
 #include "i_timer.h"
 #include "i_video.h"
 #include "z_zone.h"
+#include "v_trans.h"
 #include "v_video.h"
 #include "w_wad.h"
 
+#include "p_local.h"
 #include "r_local.h"
 
 
@@ -131,6 +133,10 @@ char			savegamestrings[10][SAVESTRINGSIZE];
 
 char	endstring[160];
 
+// [JN] Small cursor timer for glowing effect.
+static short   cursor_tics = 0;
+static boolean cursor_direction = false;
+
 // haleyjd 09/04/10: [STRIFE] Moved menuitem / menu structures into header
 // because they are needed externally by the dialog engine.
 
@@ -156,9 +162,10 @@ menu_t*	currentMenu;
 // this was the new dword_8632C variable.
 boolean namingCharacter; 
 
-//
+// =============================================================================
 // PROTOTYPES
-//
+// =============================================================================
+
 void M_NewGame(int choice);
 void M_Episode(int choice);
 void M_ChooseSkill(int choice);
@@ -169,6 +176,9 @@ void M_EndGame(int choice);
 void M_ReadThis(int choice);
 void M_ReadThis2(int choice);
 void M_ReadThis3(int choice); // [STRIFE]
+
+static void M_Choose_ID_Main (int choice);
+static menu_t ID_Def_Main;
 
 //void M_ChangeMessages(int choice); [STRIFE]
 void M_ChangeSensitivity(int choice);
@@ -225,13 +235,13 @@ enum
 
 menuitem_t MainMenu[]=
 {
-    {1,"M_NGAME",M_NewGame,'n'},
-    {1,"M_OPTION",M_Options,'o'},
-    {1,"M_LOADG",M_LoadGame,'l'},
-    {1,"M_SAVEG",M_SaveGame,'s'},
+    {M_SWTC,"M_NGAME",M_NewGame,'n'},
+    {M_SWTC,"M_OPTION",M_Choose_ID_Main,'o'},
+    {M_SWTC,"M_LOADG",M_LoadGame,'l'},
+    {M_SWTC,"M_SAVEG",M_SaveGame,'s'},
     // Another hickup with Special edition.
-    {1,"M_RDTHIS",M_ReadThis,'h'}, // haleyjd 08/28/10: 'r' -> 'h'
-    {1,"M_QUITG",M_QuitStrife,'q'}
+    {M_SWTC,"M_RDTHIS",M_ReadThis,'h'}, // haleyjd 08/28/10: 'r' -> 'h'
+    {M_SWTC,"M_QUITG",M_QuitStrife,'q'}
 };
 
 menu_t  MainDef =
@@ -241,7 +251,8 @@ menu_t  MainDef =
     MainMenu,
     M_DrawMainMenu,
     97,45, // haleyjd 08/28/10: [STRIFE] changed y coord
-    0
+    0,
+    false, false, false,
 };
 
 
@@ -293,11 +304,11 @@ enum
 menuitem_t NewGameMenu[]=
 {
     // haleyjd 08/28/10: [STRIFE] changed all shortcut letters
-    {1,"M_JKILL",   M_ChooseSkill, 't'},
-    {1,"M_ROUGH",   M_ChooseSkill, 'r'},
-    {1,"M_HURT",    M_ChooseSkill, 'v'},
-    {1,"M_ULTRA",   M_ChooseSkill, 'e'},
-    {1,"M_NMARE",   M_ChooseSkill, 'b'}
+    {M_SWTC,"M_JKILL",   M_ChooseSkill, 't'},
+    {M_SWTC,"M_ROUGH",   M_ChooseSkill, 'r'},
+    {M_SWTC,"M_HURT",    M_ChooseSkill, 'v'},
+    {M_SWTC,"M_ULTRA",   M_ChooseSkill, 'e'},
+    {M_SWTC,"M_NMARE",   M_ChooseSkill, 'b'}
 };
 
 menu_t  NewDef =
@@ -307,7 +318,8 @@ menu_t  NewDef =
     NewGameMenu,        // menuitem_t ->
     M_DrawNewGame,      // drawing routine ->
     48,63,              // x,y
-    toorough            // lastOn - haleyjd [STRIFE]: default to skill 1
+    toorough,           // lastOn - haleyjd [STRIFE]: default to skill 1
+    false, false, false,
 };
 
 //
@@ -326,10 +338,10 @@ enum
 menuitem_t OptionsMenu[]=
 {
     // haleyjd 08/28/10: [STRIFE] Removed messages, mouse sens., detail.
-    {1,"M_ENDGAM",	M_EndGame,'e'},
-    {2,"M_SCRNSZ",	M_SizeDisplay,'s'},
-    {-1,"",0,'\0'},
-    {1,"M_SVOL",	M_Sound,'s'}
+    {M_SWTC,"M_ENDGAM",	M_EndGame,'e'},
+    {M_LFRT,"M_SCRNSZ",	M_SizeDisplay,'s'},
+    {M_SKIP,"",0,'\0'},
+    {M_SWTC,"M_SVOL",	M_Sound,'s'}
 };
 
 menu_t  OptionsDef =
@@ -339,7 +351,8 @@ menu_t  OptionsDef =
     OptionsMenu,
     M_DrawOptions,
     60,37,
-    0
+    0,
+    false, false, false,
 };
 
 //
@@ -353,7 +366,7 @@ enum
 
 menuitem_t ReadMenu1[] =
 {
-    {1,"",M_ReadThis2,0}
+    {M_SWTC,"",M_ReadThis2,0}
 };
 
 menu_t  ReadDef1 =
@@ -363,7 +376,8 @@ menu_t  ReadDef1 =
     ReadMenu1,
     M_DrawReadThis1,
     280,185,
-    0
+    0,
+    false, false, false,
 };
 
 enum
@@ -374,7 +388,7 @@ enum
 
 menuitem_t ReadMenu2[]=
 {
-    {1,"",M_ReadThis3,0} // haleyjd 08/28/10: [STRIFE] Go to ReadThis3
+    {M_SWTC,"",M_ReadThis3,0} // haleyjd 08/28/10: [STRIFE] Go to ReadThis3
 };
 
 menu_t  ReadDef2 =
@@ -384,7 +398,8 @@ menu_t  ReadDef2 =
     ReadMenu2,
     M_DrawReadThis2,
     250,185, // haleyjd 08/28/10: [STRIFE] changed coords
-    0
+    0,
+    false, false, false,
 };
 
 // haleyjd 08/28/10: Added Read This! menu 3
@@ -396,7 +411,7 @@ enum
 
 menuitem_t ReadMenu3[]=
 {
-    {1,"",M_ClearMenus,0}
+    {M_SWTC,"",M_ClearMenus,0}
 };
 
 menu_t  ReadDef3 =
@@ -406,7 +421,8 @@ menu_t  ReadDef3 =
     ReadMenu3,
     M_DrawReadThis3,
     250, 185,
-    0
+    0,
+    false, false, false,
 };
 
 //
@@ -431,14 +447,14 @@ enum
 // * Moved mouse sensitivity here (who knows why...)
 menuitem_t SoundMenu[]=
 {
-    {2,"M_SFXVOL",M_SfxVol,'s'},
-    {-1,"",0,'\0'},
-    {2,"M_MUSVOL",M_MusicVol,'m'},
-    {-1,"",0,'\0'},
-    {2,"M_VOIVOL",M_VoiceVol,'v'}, 
-    {-1,"",0,'\0'},
-    {2,"M_MSENS",M_ChangeSensitivity,'m'},
-    {-1,"",0,'\0'}
+    {M_LFRT,"M_SFXVOL",M_SfxVol,'s'},
+    {M_SKIP,"",0,'\0'},
+    {M_LFRT,"M_MUSVOL",M_MusicVol,'m'},
+    {M_SKIP,"",0,'\0'},
+    {M_LFRT,"M_VOIVOL",M_VoiceVol,'v'}, 
+    {M_SKIP,"",0,'\0'},
+    {M_LFRT,"M_MSENS",M_ChangeSensitivity,'m'},
+    {M_SKIP,"",0,'\0'}
 };
 
 menu_t  SoundDef =
@@ -448,7 +464,8 @@ menu_t  SoundDef =
     SoundMenu,
     M_DrawSound,
     80,35,       // [STRIFE] changed y coord 64 -> 35
-    0
+    0,
+    false, false, false,
 };
 
 //
@@ -467,12 +484,12 @@ enum
 
 menuitem_t LoadMenu[]=
 {
-    {1,"", M_LoadSelect,'1'},
-    {1,"", M_LoadSelect,'2'},
-    {1,"", M_LoadSelect,'3'},
-    {1,"", M_LoadSelect,'4'},
-    {1,"", M_LoadSelect,'5'},
-    {1,"", M_LoadSelect,'6'}
+    {M_SWTC,"", M_LoadSelect,'1'},
+    {M_SWTC,"", M_LoadSelect,'2'},
+    {M_SWTC,"", M_LoadSelect,'3'},
+    {M_SWTC,"", M_LoadSelect,'4'},
+    {M_SWTC,"", M_LoadSelect,'5'},
+    {M_SWTC,"", M_LoadSelect,'6'}
 };
 
 menu_t  LoadDef =
@@ -482,7 +499,8 @@ menu_t  LoadDef =
     LoadMenu,
     M_DrawLoad,
     80,54,
-    0
+    0,
+    false, false, false,
 };
 
 //
@@ -490,12 +508,12 @@ menu_t  LoadDef =
 //
 menuitem_t SaveMenu[]=
 {
-    {1,"", M_SaveSelect,'1'},
-    {1,"", M_SaveSelect,'2'},
-    {1,"", M_SaveSelect,'3'},
-    {1,"", M_SaveSelect,'4'},
-    {1,"", M_SaveSelect,'5'},
-    {1,"", M_SaveSelect,'6'}
+    {M_SWTC,"", M_SaveSelect,'1'},
+    {M_SWTC,"", M_SaveSelect,'2'},
+    {M_SWTC,"", M_SaveSelect,'3'},
+    {M_SWTC,"", M_SaveSelect,'4'},
+    {M_SWTC,"", M_SaveSelect,'5'},
+    {M_SWTC,"", M_SaveSelect,'6'}
 };
 
 menu_t  SaveDef =
@@ -505,7 +523,8 @@ menu_t  SaveDef =
     SaveMenu,
     M_DrawSave,
     80,54,
-    0
+    0,
+    false, false, false,
 };
 
 void M_DrawNameChar(void);
@@ -523,8 +542,502 @@ menu_t NameCharDef =
     SaveMenu,
     M_DrawNameChar,
     80,54,
-    0
+    0,
+    false, false, false,
 };
+
+
+// =============================================================================
+// [JN] Custom ID menu
+// =============================================================================
+
+#define ID_MENU_TOPOFFSET         (18)
+#define ID_MENU_LEFTOFFSET        (48)
+#define ID_MENU_LEFTOFFSET_SML    (93)
+#define ID_MENU_LEFTOFFSET_MID    (64)
+#define ID_MENU_LEFTOFFSET_BIG    (32)
+#define ID_MENU_LEFTOFFSET_LEVEL  (74)
+
+#define ID_MENU_LINEHEIGHT_SMALL  (9)
+#define ID_MENU_CURSOR_OFFSET     (10)
+
+// Utility function to align menu item names by the right side.
+static int M_ItemRightAlign (const char *text)
+{
+    return ORIGWIDTH - currentMenu->x - M_StringWidth(text);
+}
+
+static void M_Draw_ID_Main (void);
+
+static void M_Choose_ID_Video (int choice);
+static void M_Draw_ID_Video (void);
+static void M_ID_TrueColor (int choice);
+static void M_ID_RenderingRes (int choice);
+static void M_ID_Widescreen (int choice);
+static void M_ID_UncappedFPS (int choice);
+static void M_ID_LimitFPS (int choice);
+
+// -----------------------------------------------------------------------------
+
+static byte *M_Small_Line_Glow (const int tics)
+{
+    return
+        //tics == 5 ? cr[CR_MENU_BRIGHT5] :
+        //tics == 4 ? cr[CR_MENU_BRIGHT4] :
+        tics >= 3 ? cr[CR_MENU_BRIGHT3] :
+        tics == 2 ? cr[CR_MENU_BRIGHT2] :
+        tics == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
+}
+
+static byte *M_Big_Line_Glow (const int tics)
+{
+    return
+        //tics == 5 ? cr[CR_MENU_BRIGHT5] :
+        tics >= 4 ? cr[CR_MENU_BRIGHT4] :
+        tics == 3 ? cr[CR_MENU_BRIGHT3] :
+        tics == 2 ? cr[CR_MENU_BRIGHT2] :
+        tics == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
+}
+
+static void M_Reset_Line_Glow (void)
+{
+    for (int i = 0 ; i < currentMenu->numitems ; i++)
+    {
+        currentMenu->menuitems[i].tics = 0;
+    }
+}
+
+#define GLOW_UNCOLORED  0
+#define GLOW_RED        1
+#define GLOW_DARKRED    2
+#define GLOW_GREEN      3
+#define GLOW_YELLOW     4
+#define GLOW_ORANGE     5
+#define GLOW_LIGHTGRAY  6
+#define GLOW_BLUE       7
+#define GLOW_OLIVE      8
+#define GLOW_DARKGREEN  9
+#define GLOW_GRAY       10
+
+#define ITEMONTICS      currentMenu->menuitems[itemOn].tics
+#define ITEMSETONTICS   currentMenu->menuitems[itemSetOn].tics
+
+static byte *M_Item_Glow (const int itemSetOn, const int color)
+{
+    if (itemOn == itemSetOn)
+    {
+        return
+            color == GLOW_RED ||
+            color == GLOW_DARKRED   ? cr[CR_RED_BRIGHT5]       :
+            color == GLOW_GREEN     ? cr[CR_GREEN_BRIGHT5]     :
+            color == GLOW_YELLOW    ? cr[CR_YELLOW_BRIGHT5]    :
+            color == GLOW_ORANGE    ? cr[CR_ORANGE_BRIGHT5]    :
+            color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY_BRIGHT5] :
+            color == GLOW_BLUE      ? cr[CR_BLUE2_BRIGHT5]     :
+            color == GLOW_OLIVE     ? cr[CR_OLIVE_BRIGHT5]     :
+            color == GLOW_DARKGREEN ? cr[CR_DARKGREEN_BRIGHT5] :
+            color == GLOW_GRAY      ? cr[CR_GRAY_BRIGHT5]      :
+                                      cr[CR_MENU_BRIGHT5]      ; // GLOW_UNCOLORED
+    }
+    else
+    {
+        if (color == GLOW_UNCOLORED)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_MENU_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_MENU_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_MENU_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_MENU_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
+        }
+        if (color == GLOW_RED)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_RED_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_RED_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_RED_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_RED_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_RED_BRIGHT1] : cr[CR_RED];
+        }
+        if (color == GLOW_DARKRED)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_RED_DARK1] :
+                ITEMSETONTICS == 4 ? cr[CR_RED_DARK2] :
+                ITEMSETONTICS == 3 ? cr[CR_RED_DARK3] :
+                ITEMSETONTICS == 2 ? cr[CR_RED_DARK4] :
+                ITEMSETONTICS == 1 ? cr[CR_RED_DARK5] : cr[CR_DARKRED];
+        }
+        if (color == GLOW_GREEN)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
+        }
+        if (color == GLOW_YELLOW)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_YELLOW_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_YELLOW_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_YELLOW_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_YELLOW_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_YELLOW_BRIGHT1] : cr[CR_YELLOW];
+        }
+        if (color == GLOW_ORANGE)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_ORANGE_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_ORANGE_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_ORANGE_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_ORANGE_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_ORANGE_BRIGHT1] : cr[CR_ORANGE];
+        }
+        if (color == GLOW_LIGHTGRAY)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_LIGHTGRAY_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_LIGHTGRAY_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_LIGHTGRAY_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_LIGHTGRAY_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_LIGHTGRAY_BRIGHT1] : cr[CR_LIGHTGRAY];
+        }
+        if (color == GLOW_BLUE)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_BLUE2_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_BLUE2_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_BLUE2_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_BLUE2_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_BLUE2_BRIGHT1] : cr[CR_BLUE2];
+        }
+        if (color == GLOW_OLIVE)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_OLIVE_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_OLIVE_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_OLIVE_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_OLIVE_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_OLIVE_BRIGHT1] : cr[CR_OLIVE];
+        }
+        if (color == GLOW_DARKGREEN)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_DARKGREEN_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_DARKGREEN_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_DARKGREEN_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_DARKGREEN_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_DARKGREEN_BRIGHT1] : cr[CR_DARKGREEN];
+        }
+        if (color == GLOW_GRAY)
+        {
+            return
+                ITEMSETONTICS == 5 ? cr[CR_GRAY_BRIGHT5] :
+                ITEMSETONTICS == 4 ? cr[CR_GRAY_BRIGHT4] :
+                ITEMSETONTICS == 3 ? cr[CR_GRAY_BRIGHT3] :
+                ITEMSETONTICS == 2 ? cr[CR_GRAY_BRIGHT2] :
+                ITEMSETONTICS == 1 ? cr[CR_GRAY_BRIGHT1] : cr[CR_GRAY];
+        }
+    }
+    return NULL;
+}
+
+static byte *M_Cursor_Glow (const int tics)
+{
+    return
+        tics ==  8 || tics ==  7 ? cr[CR_MENU_BRIGHT4] :
+        tics ==  6 || tics ==  5 ? cr[CR_MENU_BRIGHT3] :
+        tics ==  4 || tics ==  3 ? cr[CR_MENU_BRIGHT2] :
+        tics ==  2 || tics ==  1 ? cr[CR_MENU_BRIGHT1] :
+        tics == -1 || tics == -2 ? cr[CR_MENU_DARK1]   :
+        tics == -3 || tics == -4 ? cr[CR_MENU_DARK2]   :
+        tics == -5 || tics == -6 ? cr[CR_MENU_DARK3]   :
+        tics == -7 || tics == -8 ? cr[CR_MENU_DARK4]   : NULL;
+}
+
+static const int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
+{
+    switch (direction)
+    {
+        case 0:
+        val--;
+        if (val < min) 
+            val = capped ? min : max;
+        break;
+
+        case 1:
+        val++;
+        if (val > max)
+            val = capped ? max : min;
+        break;
+    }
+    return val;
+}
+
+// -----------------------------------------------------------------------------
+// Main ID Menu
+// -----------------------------------------------------------------------------
+
+static menuitem_t ID_Menu_Main[]=
+{
+    { M_SWTC, "VIDEO OPTIONS",     M_Choose_ID_Video,    'v' },
+    // { M_SWTC, "DISPLAY OPTIONS",   M_Choose_ID_Display,  'd' },
+    // { M_SWTC, "SOUND OPTIONS",     M_Choose_ID_Sound,    's' },
+    // { M_SWTC, "CONTROL SETTINGS",  M_Choose_ID_Controls, 'c' },
+    // { M_SWTC, "WIDGETS SETTINGS",  M_Choose_ID_Widgets,  'w' },
+    // { M_SWTC, "AUTOMAP SETTINGS",  M_Choose_ID_Automap,  'a' },
+    // { M_SWTC, "GAMEPLAY FEATURES", M_Choose_ID_Gameplay, 'g' },
+    // { M_SWTC, "LEVEL SELECT",      M_Choose_ID_Level,    'l' },
+    // { M_SWTC, "END GAME",          M_EndGame,            'e' },
+    // { M_SWTC, "RESET SETTINGS",    M_Choose_ID_Reset,    'r' },
+};
+
+static menu_t ID_Def_Main =
+{
+    1,
+    &MainDef,
+    ID_Menu_Main,
+    M_Draw_ID_Main,
+    ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
+    0,
+    true, false, false,
+};
+
+static void M_Choose_ID_Main (int choice)
+{
+    M_SetupNextMenu (&ID_Def_Main);
+}
+
+static void M_Draw_ID_Main (void)
+{
+    M_WriteTextCentered(9, "OPTIONS", cr[CR_ORANGE]);
+}
+
+// -----------------------------------------------------------------------------
+// Video options
+// -----------------------------------------------------------------------------
+
+static menuitem_t ID_Menu_Video[]=
+{
+    { M_LFRT, "TRUECOLOR RENDERING",  M_ID_TrueColor,    't' },
+    { M_LFRT, "RENDERING RESOLUTION", M_ID_RenderingRes, 'r' },
+    { M_LFRT, "WIDESCREEN MODE",      M_ID_Widescreen,   'w' },
+    { M_LFRT, "UNCAPPED FRAMERATE",   M_ID_UncappedFPS,  'u' },
+    { M_LFRT, "FRAMERATE LIMIT",      M_ID_LimitFPS,     'f' },
+    // { M_LFRT, "ENABLE VSYNC",         M_ID_VSync,        'e' },
+    // { M_LFRT, "SHOW FPS COUNTER",     M_ID_ShowFPS,      's' },
+    // { M_LFRT, "PIXEL SCALING",        M_ID_PixelScaling, 'p' },
+    // { M_SKIP, "", 0, '\0' },
+    // { M_LFRT, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   's' },
+    // { M_LFRT, "SHOW DISK ICON",       M_ID_DiskIcon,     's' },
+    // { M_LFRT, "SHOW ENDOOM SCREEN",   M_ID_ShowENDOOM,   's' },
+};
+
+static menu_t ID_Def_Video =
+{
+    5,
+    &ID_Def_Main,
+    ID_Menu_Video,
+    M_Draw_ID_Video,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    0,
+    true, false, false,
+};
+
+static void M_Choose_ID_Video (int choice)
+{
+    M_SetupNextMenu (&ID_Def_Video);
+}
+
+static void M_Draw_ID_Video (void)
+{
+    char str[32];
+
+    M_WriteTextCentered(9, "VIDEO OPTIONS", cr[CR_ORANGE]);
+
+#ifndef CRISPY_TRUECOLOR
+    sprintf(str, "N/A");
+    M_WriteText (M_ItemRightAlign(str), 18, str, 
+                 M_Item_Glow(0, GLOW_DARKRED));
+#else
+    sprintf(str, vid_truecolor ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 18, str, 
+                 M_Item_Glow(0, vid_truecolor ? GLOW_GREEN : GLOW_DARKRED));
+#endif
+
+    // Rendering resolution
+    sprintf(str, vid_resolution == 1 ? "1X (200P)"  :
+                 vid_resolution == 2 ? "2X (400P)"  :
+                 vid_resolution == 3 ? "3X (600P)"  :
+                 vid_resolution == 4 ? "4X (800P)"  :
+                 vid_resolution == 5 ? "5X (1000P)" :
+                 vid_resolution == 6 ? "6X (1200P)" :
+                                       "CUSTOM");
+    M_WriteText (M_ItemRightAlign(str), 27, str, 
+                 M_Item_Glow(1, vid_resolution == 1 ? GLOW_DARKRED :
+                                vid_resolution == 2 ||
+                                vid_resolution == 3 ? GLOW_GREEN :
+                                vid_resolution == 4 ||
+                                vid_resolution == 5 ? GLOW_YELLOW :
+                                                      GLOW_ORANGE));
+
+    // Widescreen rendering
+    sprintf(str, vid_widescreen == 1 ? "MATCH SCREEN" :
+                 vid_widescreen == 2 ? "16:10" :
+                 vid_widescreen == 3 ? "16:9" :
+                 vid_widescreen == 4 ? "21:9" :
+                 vid_widescreen == 5 ? "32:9" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 36, str, 
+                 M_Item_Glow(2, vid_widescreen ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Uncapped framerate
+    sprintf(str, vid_uncapped_fps ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 45, str, 
+                 M_Item_Glow(3, vid_uncapped_fps ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Framerate limit
+    sprintf(str, !vid_uncapped_fps ? "35" :
+                 vid_fpslimit ? "%d" : "NONE", vid_fpslimit);
+    M_WriteText (M_ItemRightAlign(str), 54, str, 
+                 !vid_uncapped_fps ? cr[CR_DARKRED] :
+                 M_Item_Glow(4, vid_fpslimit == 0 ? GLOW_RED :
+                                vid_fpslimit >= 500 ? GLOW_YELLOW : GLOW_GREEN));
+}
+
+#ifdef CRISPY_TRUECOLOR
+static void M_ID_TrueColorHook (void)
+{
+    vid_truecolor ^= 1;
+
+    // [crispy] re-calculate amount of colormaps and light tables
+    R_InitColormaps();
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
+    // [crispy] re-calculate fake contrast
+    P_SegLengths(true);
+}
+#endif
+
+static void M_ID_TrueColor (int choice)
+{
+#ifdef CRISPY_TRUECOLOR
+    post_rendering_hook = M_ID_TrueColorHook;
+#endif
+}
+
+static void M_ID_RenderingResHook (void)
+{
+    // [crispy] re-initialize framebuffers, textures and renderer
+    I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    // [crispy] re-calculate framebuffer coordinates
+    R_ExecuteSetViewSize();
+    // [crispy] re-draw bezel
+    R_FillBackScreen();
+    
+    // TODO!
+    /*
+    // [crispy] re-calculate disk icon coordinates
+    V_EnableLoadingDisk();
+    // [JN] re-calculate status bar elements background buffers
+    ST_InitElementsBackground();
+    // [crispy] re-calculate automap coordinates
+    AM_LevelInit(true);
+    if (automapactive)
+    {
+        AM_Start();
+    }
+    */
+}
+
+static void M_ID_RenderingRes (int choice)
+{
+    vid_resolution = M_INT_Slider(vid_resolution, 1, MAXHIRES, choice, false);
+    post_rendering_hook = M_ID_RenderingResHook;
+}
+
+static void M_ID_WidescreenHook (void)
+{
+    // [crispy] re-initialize framebuffers, textures and renderer
+    I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
+    // [crispy] re-calculate framebuffer coordinates
+    R_ExecuteSetViewSize();
+    // [crispy] re-draw bezel
+    R_FillBackScreen();
+
+    // TODO!
+    /*
+    // [crispy] re-calculate disk icon coordinates
+    V_EnableLoadingDisk();
+    // [JN] re-calculate status bar elements background buffers
+    ST_InitElementsBackground();
+    // [crispy] re-calculate automap coordinates
+    AM_LevelInit(true);
+    if (automapactive)
+    {
+        AM_Start();
+    }
+    */
+}
+
+static void M_ID_Widescreen (int choice)
+{
+    vid_widescreen = M_INT_Slider(vid_widescreen, 0, 5, choice, false);
+    post_rendering_hook = M_ID_WidescreenHook;
+}
+
+static void M_ID_UncappedFPS (int choice)
+{
+    vid_uncapped_fps ^= 1;
+    // [JN] Skip weapon bobbing interpolation for next frame.
+    pspr_interp = false;
+}
+
+static void M_ID_LimitFPS (int choice)
+{
+    if (!vid_uncapped_fps)
+    {
+        return;  // Do not allow change value in capped framerate.
+    }
+    
+    switch (choice)
+    {
+        case 0:
+            if (vid_fpslimit)
+            {
+                if (speedkeydown())
+                    vid_fpslimit -= 10;
+                else
+                    vid_fpslimit -= 1;
+            }
+
+            if (vid_fpslimit < TICRATE)
+                vid_fpslimit = 0;
+
+            break;
+        case 1:
+            if (vid_fpslimit < 501)
+            {
+                if (speedkeydown())
+                    vid_fpslimit += 10;
+                else
+                    vid_fpslimit += 1;
+            }
+
+            if (vid_fpslimit < TICRATE)
+                vid_fpslimit = TICRATE;
+            if (vid_fpslimit > 500)
+                vid_fpslimit = 500;
+
+        default:
+            break;
+    }
+}
+
+// =============================================================================
 
 
 //
@@ -574,18 +1087,18 @@ void M_DrawNameChar(void)
 {
     int i;
 
-    M_WriteText(72, 28, DEH_String("Name Your Character"));
+    M_WriteText(72, 28, DEH_String("Name Your Character"), NULL);
 
     for (i = 0;i < load_end; i++)
     {
         M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
-        M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
+        M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], NULL);
     }
 
     if (saveStringEnter)
     {
         i = M_StringWidth(savegamestrings[quickSaveSlot]);
-        M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*quickSaveSlot,"_");
+        M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*quickSaveSlot,"_", NULL);
     }
 }
 
@@ -631,7 +1144,7 @@ void M_DrawLoad(void)
     for (i = 0;i < load_end; i++)
     {
         M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
-        M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
+        M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], NULL);
     }
 }
 
@@ -707,13 +1220,13 @@ void M_DrawSave(void)
     for (i = 0;i < load_end; i++)
     {
         M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
-        M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
+        M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], NULL);
     }
 
     if (saveStringEnter)
     {
         i = M_StringWidth(savegamestrings[quickSaveSlot]);
-        M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*quickSaveSlot,"_");
+        M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*quickSaveSlot,"_", NULL);
     }
 }
 
@@ -1525,7 +2038,8 @@ int
 M_WriteText
 ( int           x,
   int           y,
-  const char*   string) // haleyjd: made const for safety w/dialog engine
+  const char*   string, // haleyjd: made const for safety w/dialog engine
+  byte         *table)
 {
     int	        w;
     const char* ch;
@@ -1536,6 +2050,8 @@ M_WriteText
     ch = string;
     cx = x;
     cy = y;
+
+    dp_translation = table;
 
     while(1)
     {
@@ -1577,8 +2093,82 @@ M_WriteText
         }
     }
 
+    dp_translation = NULL;
+
     // [STRIFE] Return final y coordinate.
     return cy + 12;
+}
+
+// -----------------------------------------------------------------------------
+// M_WriteTextCentered
+// [JN] Write a centered string using the hu_font.
+// -----------------------------------------------------------------------------
+
+void M_WriteTextCentered (const int y, const char *string, byte *table)
+{
+    const char *ch;
+    const int width = M_StringWidth(string);
+    int w, c, cx, cy;
+
+    ch = string;
+    cx = ORIGWIDTH/2-width/2;
+    cy = y;
+
+    dp_translation = table;
+
+    // find width
+    while (ch)
+    {
+        c = *ch++;
+
+        if (!c)
+        {
+            break;
+        }
+
+        c = c - HU_FONTSTART;
+
+        if (c < 0 || c >= HU_FONTSIZE)
+        {
+            continue;
+        }
+
+        w = SHORT (hu_font[c]->width);
+    }
+
+    // draw it
+    cx = ORIGWIDTH/2-width/2;
+    ch = string;
+
+    while (ch)
+    {
+        c = *ch++;
+
+        if (!c)
+        {
+            break;
+        }
+
+        c = toupper(c) - HU_FONTSTART;
+
+        if (c < 0 || c >= HU_FONTSIZE)
+        {
+            cx += 4;
+            continue;
+        }
+
+        w = SHORT (hu_font[c]->width);
+
+        if (cx+w > ORIGWIDTH)
+        {
+            break;
+        }
+        
+        V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
+        cx += w;
+    }
+    
+    dp_translation = NULL;
 }
 
 //
@@ -2255,6 +2845,7 @@ boolean M_Responder (event_t* ev)
         if (currentMenu->prevMenu)
         {
             currentMenu = currentMenu->prevMenu;
+            M_Reset_Line_Glow();
             itemOn = currentMenu->lastOn;
             S_StartSound(NULL, sfx_swtchn);
         }
@@ -2307,6 +2898,7 @@ void M_StartControlPanel (void)
     menuactive = 1;
     menupause = true;
     currentMenu = &MainDef;         // JDC
+    M_Reset_Line_Glow();
     itemOn = currentMenu->lastOn;   // JDC
 }
 
@@ -2362,7 +2954,7 @@ void M_Drawer (void)
             }
 
             x = 160 - M_StringWidth(string) / 2;
-            M_WriteText(x, y, string);
+            M_WriteText(x, y, string, NULL);
             y += SHORT(hu_font[0]->height);
         }
 
@@ -2380,23 +2972,42 @@ void M_Drawer (void)
     y = currentMenu->y;
     max = currentMenu->numitems;
 
-    for (i=0;i<max;i++)
+    if (currentMenu->smallFont)
     {
-        name = DEH_String(currentMenu->menuitems[i].name);
+        // [JN] Draw glowing * symbol.
+        M_WriteText(x - ID_MENU_CURSOR_OFFSET, y + itemOn * ID_MENU_LINEHEIGHT_SMALL, "*",
+                    M_Cursor_Glow(cursor_tics));
 
-        if (name[0])
+        for (i = 0 ; i < max ; i++)
         {
-            V_DrawPatch(x, y, W_CacheLumpName(name, PU_CACHE));
+            M_WriteText (x, y, currentMenu->menuitems[i].name,
+                         M_Small_Line_Glow(currentMenu->menuitems[i].tics));
+            y += ID_MENU_LINEHEIGHT_SMALL;
         }
-        y += LINEHEIGHT;
     }
+    else
+    {
+        // haleyjd 08/27/10: [STRIFE] Adjust to draw spinning Sigil
+        // DRAW SIGIL
+        V_DrawPatch(x + CURSORXOFF, currentMenu->y - 5 + itemOn*LINEHEIGHT,
+                          W_CacheLumpName(DEH_String(cursorName[whichCursor]),
+                                          PU_CACHE));
 
+        for (i=0;i<max;i++)
+        {
+            name = DEH_String(currentMenu->menuitems[i].name);
+
+            if (name[0])
+            {
+                dp_translation = M_Big_Line_Glow(currentMenu->menuitems[i].tics);
+                V_DrawPatch(x, y, W_CacheLumpName(name, PU_CACHE));
+                dp_translation = NULL;
+            }
+            y += LINEHEIGHT;
+        }
+    }
     
-    // haleyjd 08/27/10: [STRIFE] Adjust to draw spinning Sigil
-    // DRAW SIGIL
-    V_DrawPatch(x + CURSORXOFF, currentMenu->y - 5 + itemOn*LINEHEIGHT,
-                      W_CacheLumpName(DEH_String(cursorName[whichCursor]),
-                                      PU_CACHE));
+
 
 }
 
@@ -2423,6 +3034,7 @@ void M_ClearMenus (int choice)
 void M_SetupNextMenu(menu_t *menudef)
 {
     currentMenu = menudef;
+    M_Reset_Line_Glow();
     itemOn = currentMenu->lastOn;
 }
 
@@ -2438,6 +3050,36 @@ void M_Ticker (void)
     {
         whichCursor = (whichCursor + 1) % 8;
         cursorAnimCounter = 5;
+    }
+
+    // [JN] Menu glowing animation:
+    
+    // Brightening
+    if (!cursor_direction && ++cursor_tics == 8)
+    {
+        cursor_direction = true;
+    }
+    // Darkening
+    else
+    if (cursor_direction && --cursor_tics == -8)
+    {
+        cursor_direction = false;
+    }
+
+    // [JN] Menu item fading effect:
+
+    for (int i = 0 ; i < currentMenu->numitems ; i++)
+    {
+        if (itemOn == i)
+        {
+            // Keep menu item bright
+            currentMenu->menuitems[i].tics = 5;
+        }
+        else
+        {
+            // Decrease tics for glowing effect
+            currentMenu->menuitems[i].tics--;
+        }
     }
 }
 

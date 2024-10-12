@@ -352,12 +352,12 @@ static void P_DialogDrawer(void);
 
 static menuitem_t dialogmenuitems[] =
 {
-    { 1, "", P_DialogDoChoice, '1' }, // These items are loaded dynamically
-    { 1, "", P_DialogDoChoice, '2' },
-    { 1, "", P_DialogDoChoice, '3' },
-    { 1, "", P_DialogDoChoice, '4' },
-    { 1, "", P_DialogDoChoice, '5' },
-    { 1, "", P_DialogDoChoice, '6' }  // Item 6 is always the dismissal item
+    { M_SWTC, "", P_DialogDoChoice, '1' }, // These items are loaded dynamically
+    { M_SWTC, "", P_DialogDoChoice, '2' },
+    { M_SWTC, "", P_DialogDoChoice, '3' },
+    { M_SWTC, "", P_DialogDoChoice, '4' },
+    { M_SWTC, "", P_DialogDoChoice, '5' },
+    { M_SWTC, "", P_DialogDoChoice, '6' }  // Item 6 is always the dismissal item
 };
 
 static menu_t dialogmenu =
@@ -1097,12 +1097,12 @@ static void P_DialogDrawer(void)
         }
 
         // draw character name
-        M_WriteText(12, 18, dialogname);
+        M_WriteText(12, 18, dialogname, NULL);
         y = 28;
 
         // show text (optional for dialogs with voices)
         if(dialogshowtext || currentdialog->voice[0] == '\0')
-            y = M_WriteText(20, 28, dialogtext);
+            y = M_WriteText(20, 28, dialogtext, NULL);
 
         height = 20 * dialogmenu.numitems;
 
@@ -1111,7 +1111,7 @@ static void P_DialogDrawer(void)
             finaly = 199 - height; // height it will bump down to if necessary.
 
         // draw divider
-        M_WriteText(42, finaly - 6, DEH_String("______________________________"));
+        M_WriteText(42, finaly - 6, DEH_String("______________________________"), NULL);
 
         dialogmenu.y = finaly + 6;
         y = 0;
@@ -1132,12 +1132,12 @@ static void P_DialogDrawer(void)
                              currentdialog->choices[i].needamounts[0]);
             }
 
-            M_WriteText(dialogmenu.x, dialogmenu.y + 3 + y, choicetext);
+            M_WriteText(dialogmenu.x, dialogmenu.y + 3 + y, choicetext, NULL);
             y += 19;
         }
 
         // draw the final item for dismissing the dialog
-        M_WriteText(dialogmenu.x, 19 * i + dialogmenu.y + 3, dialoglastmsgbuffer);
+        M_WriteText(dialogmenu.x, 19 * i + dialogmenu.y + 3, dialoglastmsgbuffer, NULL);
     }
 }
 

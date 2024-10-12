@@ -33,7 +33,10 @@ typedef struct
     // 0 = no cursor here, 1 = ok, 2 = arrows ok
     short	status;
     
-    char	name[10];
+    // [JN] Menu item timer for glowing effect.
+    short   tics;
+
+    char	name[32];
     
     // choice = menu item #.
     // if status = 2,
@@ -53,10 +56,25 @@ typedef struct menu_s
     short		x;
     short		y;		// x,y of menu
     short		lastOn;		// last item user was on in menu
+    boolean		smallFont;	// [JN] Menu is using small font
+    boolean		ScrollAR;	// [JN] Menu can be scrolled by arrow keys
+    boolean		ScrollPG;	// [JN] Menu can be scrolled by PGUP/PGDN keys
 } menu_t;
+
+// [JN] Macro definitions for first two items of menuitem_t.
+// Trailing zero initializes "tics" field.
+#define M_SKIP -1,0  // Skippable, cursor can't get here.
+#define M_SWTC  1,0  // On/off type or entering function.
+#define M_LFRT  2,0  // Multichoice function.
 
 extern menu_t*	currentMenu;    // villsa [STRIFE] made external
 extern short itemOn;
+
+// [JN] Macro definitions for first two items of menuitem_t.
+// Trailing zero initializes "tics" field.
+#define M_SKIP -1,0  // Skippable, cursor can't get here.
+#define M_SWTC  1,0  // On/off type or entering function.
+#define M_LFRT  2,0  // Multichoice function.
 
 //
 // MENUS
@@ -86,7 +104,9 @@ void M_Init (void);
 void M_StartControlPanel (void);
 
 // haleyjd 09/04/10: Externalized. Draws menu text.
-int M_WriteText(int x, int y, const char *string);
+int M_WriteText(int x, int y, const char *string, byte *table);
+
+extern void M_WriteTextCentered (const int y, const char *string, byte *table);
 
 // haleyjd 09/04/10: [STRIFE] New function.
 void M_DialogDimMsg(int x, int y, char *str, boolean useyfont);

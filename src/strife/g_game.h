@@ -84,6 +84,8 @@ void G_DrawMouseSpeedBox(void);
 boolean G_WriteSaveName(int slot, const char *charname);
 void    G_ReadCurrent(const char *path);
 
-extern int vanilla_savegame_limit;
-extern int vanilla_demo_limit;
+// [crispy] holding down the "Run" key may trigger special behavior
+extern boolean speedkeydown (void);
+
+
 #endif

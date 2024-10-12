@@ -84,6 +84,8 @@ extern lighttable_t***	zlight;
 extern int		extralight;
 extern lighttable_t*	fixedcolormap;
 
+extern void R_InitLightTables (void);
+
 
 // Number of diminishing brightness levels.
 // There a 0-31, i.e. 32 LUT in the COLORMAP lump.
