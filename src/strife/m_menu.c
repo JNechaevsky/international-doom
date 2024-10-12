@@ -1692,7 +1692,7 @@ boolean M_Responder (event_t* ev)
     static  int     lasty = 0;
     static  int     mousex = 0;
     static  int     lastx = 0;
-    int dir;
+    //int dir;
 
     // In testcontrols mode, none of the function keys should do anything
     // - the only key is escape to quit.

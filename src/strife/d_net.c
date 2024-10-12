@@ -91,7 +91,7 @@ static void RunTic(ticcmd_t *cmds, boolean *ingame)
     G_Ticker();
 }
 
-static void NullMenuTicker()
+static void NullMenuTicker(void)
 {
     // no-op.
 }
