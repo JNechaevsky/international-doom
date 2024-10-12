@@ -191,7 +191,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("vid_showfps",                    &vid_showfps);
     M_BindIntVariable("vid_smooth_scaling",             &vid_smooth_scaling);
     // Miscellaneous
-    if (mission == doom)
+    if (mission == doom || mission == strife)
     {
         M_BindIntVariable("vid_screenwipe",             &vid_screenwipe);
     }

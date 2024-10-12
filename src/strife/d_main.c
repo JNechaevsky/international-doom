@@ -155,9 +155,6 @@ static boolean main_loop_started = false;
 // fraggle 06/03/11 [STRIFE]: Multiplayer nickname?
 char *nickname = NULL;
 
-// [crispy] track screen wipe
-boolean screenwipe;
-
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
 
@@ -234,12 +231,15 @@ void D_Display (void)
     // save the current screen if about to wipe
     if (gamestate != wipegamestate)
     {
-        screenwipe = true; // [crispy]
+        do_wipe = true; // [crispy]
         wipe = true;
-        wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+        wipe_StartScreen();
     }
     else
+    {
+        do_wipe = false;
         wipe = false;
+    }
 
     if (gamestate == GS_LEVEL && gametic)
         HU_Erase();
@@ -368,8 +368,7 @@ void D_Display (void)
     }
     
     // wipe update
-    wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
-
+    wipe_EndScreen();
     wipestart = I_GetTime () - 1;
 
     do
@@ -379,18 +378,22 @@ void D_Display (void)
             nowtime = I_GetTime ();
             tics = nowtime - wipestart;
             I_Sleep(1);
+#ifndef CRISPY_TRUECOLOR
+        // [JN] Note: in paletted render tics are counting slower,
+        // since the effect can't be smooth because of palette limitation.
         } while (tics < 3); // haleyjd 08/23/2010: [STRIFE] Changed from == 0 to < 3
+#else
+        } while (tics <= 0);
+#endif
 
         // haleyjd 08/26/10: [STRIFE] Changed to use ColorXForm wipe.
         wipestart = nowtime;
-        done = wipe_ScreenWipe(wipe_ColorXForm
-                               , 0, 0, SCREENWIDTH, SCREENHEIGHT, tics);
-        // I_UpdateNoBlit (); [JN] TODO - remove?
+        done = wipe_ScreenWipe(tics);
         M_Drawer ();                            // menu is drawn even on top of wipes
         I_FinishUpdate ();                      // page flip or blit buffer
     } while (!done);
 
-    screenwipe = false; // [crispy]
+    do_wipe = false; // [crispy]
 }
 
 //

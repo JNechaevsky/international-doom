@@ -16,48 +16,13 @@
 //	Mission start screen wipe/melt, special effects.
 //	
 
+#pragma once
 
-#ifndef __F_WIPE_H__
-#define __F_WIPE_H__
-
-//
-//                       SCREEN WIPE PACKAGE
-//
-
-enum
-{
-    // [STRIFE]: ColorXForm reimplemented as a proper crossfade
-    wipe_ColorXForm,
-    
-    // weird screen melt
-    wipe_Melt,	
-
-    wipe_NUMWIPES
-};
-
-int
-wipe_StartScreen
-( int		x,
-  int		y,
-  int		width,
-  int		height );
+#include "doomtype.h"
 
 
-int
-wipe_EndScreen
-( int		x,
-  int		y,
-  int		width,
-  int		height );
+extern boolean do_wipe;
 
-
-int
-wipe_ScreenWipe
-( int		wipeno,
-  int		x,
-  int		y,
-  int		width,
-  int		height,
-  int		ticks );
-
-#endif
+extern void wipe_StartScreen (void);
+extern void wipe_EndScreen (void);
+extern const int wipe_ScreenWipe (const int ticks);
