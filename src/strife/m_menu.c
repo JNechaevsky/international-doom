@@ -2423,8 +2423,11 @@ boolean M_Responder (event_t* ev)
     static  int     mousewait = 0;
     static  int     mousey = 0;
     static  int     lasty = 0;
+    // [JN] Disable menu left/right controls by mouse movement.
+    /*
     static  int     mousex = 0;
     static  int     lastx = 0;
+    */
     //int dir;
 
     // In testcontrols mode, none of the function keys should do anything
@@ -2543,9 +2546,17 @@ boolean M_Responder (event_t* ev)
     }
     else
     {
-        if (ev->type == ev_mouse && mousewait < I_GetTime())
+        if (ev->type == ev_mouse && mousewait < I_GetTime()
+        && !ev->data2 && !ev->data3) // [JN] Do not consider movement as pressing.
         {
+            // [crispy] mouse_novert disables controlling the menus with the mouse
+            // [JN] Not needed, as menu is fully controllable by mouse wheel and buttons.
+            /*
+            if (!mouse_novert)
+            {
             mousey += ev->data3;
+            }
+            */
             if (mousey < lasty-30)
             {
                 key = key_menu_down;
@@ -2559,6 +2570,8 @@ boolean M_Responder (event_t* ev)
                 mousey = lasty += 30;
             }
 
+            // [JN] Disable menu left/right controls by mouse movement.
+            /*
             mousex += ev->data2;
             if (mousex < lastx-30)
             {
@@ -2572,18 +2585,47 @@ boolean M_Responder (event_t* ev)
                 mousewait = I_GetTime() + 5;
                 mousex = lastx += 30;
             }
+            */
 
             if (ev->data1&1)
             {
-                key = key_menu_forward;
-                mousewait = I_GetTime() + 15;
-                mouse_fire_countdown = 5;   // villsa [STRIFE]
+                if (messageToPrint && messageNeedsInput)
+                {
+                    key = key_menu_confirm;  // [JN] Confirm by left mouse button.
+                }
+                else
+                {
+                    key = key_menu_forward;
+                    mouse_fire_countdown = 5;   // villsa [STRIFE]
+                }
+                mousewait = I_GetTime() + 5;
             }
 
             if (ev->data1&2)
             {
-                key = key_menu_back;
-                mousewait = I_GetTime() + 15;
+                if (messageToPrint && messageNeedsInput)
+                {
+                    key = key_menu_abort;  // [JN] Cancel by right mouse button.
+                }
+                else
+                {
+                    key = key_menu_back;
+                }
+                mousewait = I_GetTime() + 5;
+            }
+
+            // [crispy] scroll menus with mouse wheel
+            // [JN] Hardcoded to always use mouse wheel up/down.
+            if (/*mousebprevweapon >= 0 &&*/ ev->data1 & (1 << 4 /*mousebprevweapon*/))
+            {
+                key = key_menu_down;
+                mousewait = I_GetTime() + 1;
+            }
+            else
+            if (/*mousebnextweapon >= 0 &&*/ ev->data1 & (1 << 3 /*mousebnextweapon*/))
+            {
+                key = key_menu_up;
+                mousewait = I_GetTime() + 1;
             }
         }
         else
