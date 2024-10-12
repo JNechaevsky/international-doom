@@ -104,13 +104,49 @@ boolean			messageNeedsInput;
 
 void    (*messageRoutine)(int response);
 
-char gammamsg[5][26] =
+static char *gammalvls[MAXGAMMA][2] =
 {
-    GAMMALVL0,
-    GAMMALVL1,
-    GAMMALVL2,
-    GAMMALVL3,
-    GAMMALVL4
+    { GAMMALVL_N050,  "-0.50" },
+    { GAMMALVL_N055,  "-0.55" },
+    { GAMMALVL_N060,  "-0.60" },
+    { GAMMALVL_N065,  "-0.65" },
+    { GAMMALVL_N070,  "-0.70" },
+    { GAMMALVL_N075,  "-0.75" },
+    { GAMMALVL_N080,  "-0.80" },
+    { GAMMALVL_N085,  "-0.85" },
+    { GAMMALVL_N090,  "-0.90" },
+    { GAMMALVL_N095,  "-0.95" },
+    { GAMMALVL_OFF,   "OFF"   },
+    { GAMMALVL_010,   "0.1"   },
+    { GAMMALVL_020,   "0.2"   },
+    { GAMMALVL_030,   "0.3"   },
+    { GAMMALVL_040,   "0.4"   },
+    { GAMMALVL_050,   "0.5"   },
+    { GAMMALVL_060,   "0.6"   },
+    { GAMMALVL_070,   "0.7"   },
+    { GAMMALVL_080,   "0.8"   },
+    { GAMMALVL_090,   "0.9"   },
+    { GAMMALVL_100,   "1.0"   },
+    { GAMMALVL_110,   "1.1"   },
+    { GAMMALVL_120,   "1.2"   },
+    { GAMMALVL_130,   "1.3"   },
+    { GAMMALVL_140,   "1.4"   },
+    { GAMMALVL_150,   "1.5"   },
+    { GAMMALVL_160,   "1.6"   },
+    { GAMMALVL_170,   "1.7"   },
+    { GAMMALVL_180,   "1.8"   },
+    { GAMMALVL_190,   "1.9"   },
+    { GAMMALVL_200,   "2.0"   },
+    { GAMMALVL_220,   "2.2"   },
+    { GAMMALVL_240,   "2.4"   },
+    { GAMMALVL_260,   "2.6"   },
+    { GAMMALVL_280,   "2.8"   },
+    { GAMMALVL_300,   "3.0"   },
+    { GAMMALVL_320,   "3.2"   },
+    { GAMMALVL_340,   "3.4"   },
+    { GAMMALVL_360,   "3.6"   },
+    { GAMMALVL_380,   "3.8"   },
+    { GAMMALVL_400,   "4.0"   },
 };
 
 // we are going to be entering a savegame string
@@ -2812,23 +2848,6 @@ boolean M_Responder (event_t* ev)
             M_QuitStrife(0);
             return true;
         }
-        else if (key == key_menu_gamma)    // gamma toggle
-        {
-            vid_gamma++;
-            if (vid_gamma > 4)
-                vid_gamma = 0;
-            players[consoleplayer].message = DEH_String(gammamsg[vid_gamma]);
-#ifndef CRISPY_TRUECOLOR
-            I_SetPalette (W_CacheLumpName (DEH_String("PLAYPAL"),PU_CACHE));
-#else
-            I_SetPalette(0);
-            R_InitColormaps();
-            inhelpscreens = true;
-            R_FillBackScreen();
-            viewactive = false;
-#endif
-            return true;
-        }
         else if(gameversion == exe_strife_1_31 && key == key_spy)
         {
             // haleyjd 20130301: 1.31 moved screenshots to F12.
@@ -2840,6 +2859,23 @@ boolean M_Responder (event_t* ev)
             G_ScreenShot();
             return true;
         }
+    }
+
+    // [JN] Allow to change gamma while active menu.
+    if (key == key_menu_gamma)    // gamma toggle
+    {
+        vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, 1 /*right*/, false);
+        players[consoleplayer].message = DEH_String(gammalvls[vid_gamma][0]);
+#ifndef CRISPY_TRUECOLOR
+        I_SetPalette (W_CacheLumpName (DEH_String("PLAYPAL"),PU_CACHE));
+#else
+        I_SetPalette(0);
+        R_InitColormaps();
+        inhelpscreens = true;
+        R_FillBackScreen();
+        viewactive = false;
+#endif
+        return true;
     }
 
     // Pop-up menu?
