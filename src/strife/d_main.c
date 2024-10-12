@@ -422,16 +422,16 @@ void D_BindVariables(void)
     I_BindJoystickVariables();
     I_BindSoundVariables();
 
-
-    // [JN] TODO !!!
+    // [JN] Bind ID-specific config variables.
     M_BindControls();
+    M_BindStrifeControls(); // haleyjd 09/01/10: [STRIFE]
     
     /*
     M_BindBaseControls();
     M_BindWeaponControls();
     M_BindMapControls();
     M_BindMenuControls();
-    M_BindStrifeControls(); // haleyjd 09/01/10: [STRIFE]
+    
     M_BindChatControls(MAXPLAYERS);
     */
 

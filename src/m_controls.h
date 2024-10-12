@@ -240,4 +240,5 @@ extern int ctrl_noartiskip;
 extern void M_BindControls (void);
 extern void M_BindHereticControls (void);
 extern void M_BindHexenControls (void);
+extern void M_BindStrifeControls (void); // haleyjd 09/01/10: [STRIFE]
 extern void M_BindChatControls (unsigned int num_players);

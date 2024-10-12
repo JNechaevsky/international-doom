@@ -285,6 +285,12 @@ static default_t	doom_defaults_list[] =
     // Strife:
     CONFIG_VARIABLE_INT(show_talk),
     CONFIG_VARIABLE_INT(voice_volume),
+    CONFIG_VARIABLE_KEY(key_invUse),
+    CONFIG_VARIABLE_KEY(key_invDrop),
+    CONFIG_VARIABLE_KEY(key_invLeft),
+    CONFIG_VARIABLE_KEY(key_invRight),
+    CONFIG_VARIABLE_KEY(key_lookUp),
+    CONFIG_VARIABLE_KEY(key_lookDown),    
     CONFIG_VARIABLE_KEY(key_useHealth),
     CONFIG_VARIABLE_KEY(key_invquery),
     CONFIG_VARIABLE_KEY(key_mission),

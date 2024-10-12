@@ -120,7 +120,7 @@ int key_arti_incant = 0;
 
 int key_usehealth = 'h';
 int key_invquery  = 'q';
-int key_mission   = 'w';
+int key_mission   = 'x'; // [JN] Originally it's "w", but we want WADS controls.
 int key_invpop    = 'z';
 int key_invkey    = 'k';
 int key_invhome   = KEY_HOME;
@@ -486,7 +486,8 @@ void M_BindStrifeControls(void)
     key_message_refresh = '/';
 
     // These keys are shared with Heretic/Hexen but have different defaults:
-    key_jump     = 'a';
+    key_jump     = ' ';
+    key_use      = 'e';
     key_lookup   = KEY_PGUP;
     key_lookdown = KEY_PGDN;
     key_invleft  = KEY_INS;
@@ -515,9 +516,9 @@ void M_BindStrifeControls(void)
     M_BindIntVariable("joyb_jump",          &joybjump);
 
     // [crispy]
-    M_BindIntVariable("mouseb_invleft",     &mousebinvleft);
-    M_BindIntVariable("mouseb_invright",    &mousebinvright);
-    M_BindIntVariable("mouseb_invuse",      &mousebinvuse);
+    // M_BindIntVariable("mouseb_invleft",     &mousebinvleft);
+    // M_BindIntVariable("mouseb_invright",    &mousebinvright);
+    // M_BindIntVariable("mouseb_invuse",      &mousebinvuse);
 }
 
 void M_BindChatControls (unsigned int num_players)
