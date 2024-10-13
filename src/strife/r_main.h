@@ -211,6 +211,9 @@ void R_SetViewSize (int blocks, int detail);
 
 void R_ExecuteSetViewSize(void);
 
+extern int viewpitch;
+extern void R_SetupPitch(int pitch, boolean force);
+
 // -----------------------------------------------------------------------------
 // R_BMAPS
 // -----------------------------------------------------------------------------

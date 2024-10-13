@@ -1143,6 +1143,17 @@ void R_InitColormaps (void)
 	byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 	byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
 
+	// [JN] Handle RGB channels separatelly
+	// to support variable saturation and color intensity.
+	byte r_channel, g_channel, b_channel;
+
+	// [JN] Saturation floats, high and low.
+	// If saturation has been modified (< 100), set high and low
+	// values according to saturation level. Sum of r,g,b channels
+	// and floats must be 1.0 to get proper colors.
+	const float a_hi = vid_saturation < 100 ? I_SaturationPercent[vid_saturation] : 0;
+	const float a_lo = vid_saturation < 100 ? (a_hi / 2) : 0;
+
 	// [crispy] Smoothest diminishing lighting.
 	// Compiled in but not enabled TrueColor mode
 	// can't use more than original 32 colormaps.
@@ -1167,19 +1178,34 @@ void R_InitColormaps (void)
 			{
 				const byte k = colormap[i];
 
+				r_channel = 
+					(byte) ((1 - a_hi) * playpal[3 * k + 0]  +
+							(0 + a_lo) * playpal[3 * k + 1]  +
+							(0 + a_lo) * playpal[3 * k + 2]) * vid_r_intensity;
+
+				g_channel = 
+					(byte) ((0 + a_lo) * playpal[3 * k + 0]  +
+							(1 - a_hi) * playpal[3 * k + 1]  +
+							(0 + a_lo) * playpal[3 * k + 2]) * vid_g_intensity;
+
+				b_channel = 
+					(byte) ((0 + a_lo) * playpal[3 * k + 0] +
+							(0 + a_lo) * playpal[3 * k + 1] +
+							(1 - a_hi) * playpal[3 * k + 2] * vid_b_intensity);
+
 				if (i < 224)
 				{
-					r = gammatable[vid_gamma][playpal[3 * k + 0]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
-					g = gammatable[vid_gamma][playpal[3 * k + 1]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
-					b = gammatable[vid_gamma][playpal[3 * k + 2]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+					r = gammatable[vid_gamma][r_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+					g = gammatable[vid_gamma][g_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+					b = gammatable[vid_gamma][b_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
 				}
 				else
 				{
 					// [crispy] Vanilla Strife is using COLORMAP columns 224-255 without fading to black
 					// so they work as brightmaps. To replicate it, lock such indexes on first light level.
-					r = gammatable[vid_gamma][playpal[3 * k + 0]];
-					g = gammatable[vid_gamma][playpal[3 * k + 1]];
-					b = gammatable[vid_gamma][playpal[3 * k + 2]];
+					r = gammatable[vid_gamma][r_channel];
+					g = gammatable[vid_gamma][g_channel];
+					b = gammatable[vid_gamma][b_channel];
 				}
 
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
@@ -1204,9 +1230,24 @@ void R_InitColormaps (void)
 		{
 			for (i = 0; i < 256; i++)
 			{
-				r = gammatable[vid_gamma][playpal[3 * colormap[c * 256 + i] + 0]] & ~3;
-				g = gammatable[vid_gamma][playpal[3 * colormap[c * 256 + i] + 1]] & ~3;
-				b = gammatable[vid_gamma][playpal[3 * colormap[c * 256 + i] + 2]] & ~3;
+				r_channel =
+					(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+
+				g_channel =
+					(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+							(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_g_intensity;
+
+				b_channel =
+					(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
+							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
+							(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_b_intensity;
+
+				r = gammatable[vid_gamma][r_channel] & ~3;
+				g = gammatable[vid_gamma][g_channel] & ~3;
+				b = gammatable[vid_gamma][b_channel] & ~3;
 
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 			}
@@ -1222,9 +1263,24 @@ void R_InitColormaps (void)
 
 	for (i = 0, j = 0; i < 256; i++)
 	{
-		r = gammatable[vid_gamma][playpal[3 * i + 0]];
-		g = gammatable[vid_gamma][playpal[3 * i + 1]];
-		b = gammatable[vid_gamma][playpal[3 * i + 2]];
+		r_channel = 
+			(byte) ((1 - a_hi) * playpal[3 * i + 0]  +
+					(0 + a_lo) * playpal[3 * i + 1]  +
+					(0 + a_lo) * playpal[3 * i + 2]) * vid_r_intensity;
+
+		g_channel = 
+			(byte) ((0 + a_lo) * playpal[3 * i + 0]  +
+					(1 - a_hi) * playpal[3 * i + 1]  +
+					(0 + a_lo) * playpal[3 * i + 2]) * vid_g_intensity;
+
+		b_channel = 
+			(byte) ((0 + a_lo) * playpal[3 * i + 0] +
+					(0 + a_lo) * playpal[3 * i + 1] +
+					(1 - a_hi) * playpal[3 * i + 2] * vid_b_intensity);
+
+		r = gammatable[vid_gamma][r_channel];
+		g = gammatable[vid_gamma][g_channel];
+		b = gammatable[vid_gamma][b_channel];
 
 		pal_color[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 	}

@@ -1009,11 +1009,11 @@ R_PointInSubsector
 // Calculate centery/centeryfrac for player viewpitch
 //
 
-void R_SetupPitch(int pitch)
+void R_SetupPitch(int pitch, boolean force)
 {
     int pitchfrac;
 
-    if (viewpitch != pitch)
+    if (viewpitch != pitch || force)
     {
         viewpitch   = pitch;
         pitchfrac   = (setblocks * (pitch * vid_resolution)) / 10;
@@ -1083,9 +1083,10 @@ void R_SetupFrame (player_t* player)
         pitch = player->pitch;
     }
 
-    R_SetupPitch(pitch);  // villsa [STRIFE]
+    R_SetupPitch(pitch, false);  // villsa [STRIFE]
 
     extralight = player->extralight;
+    extralight += dp_level_brightness;  // [JN] Level Brightness feature.
     
     viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
     viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];

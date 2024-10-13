@@ -622,7 +622,37 @@ static void M_ID_DiskIcon (int choice);
 static void M_ID_ShowExitScreen (int choice);
 static void M_ID_ShowENDSTRF (int choice);
 
+static void M_Choose_ID_Display (int choice);
+static void M_Draw_ID_Display (void);
+static void M_ID_Gamma (int choice);
+static void M_ID_FOV (int choice);
+static void M_ID_MenuShading (int choice);
+static void M_ID_LevelBrightness (int choice);
+static void M_ID_Saturation (int choice);
+static void M_ID_R_Intensity (int choice);
+static void M_ID_G_Intensity (int choice);
+static void M_ID_B_Intensity (int choice);
+
 // -----------------------------------------------------------------------------
+
+// [JN] Delay before shading.
+static int shade_wait;
+
+// [JN] Shade background while in active menu.
+static void M_ShadeBackground (void)
+{
+    if (dp_menu_shading)
+    {
+        for (int y = 0; y < SCREENWIDTH * SCREENHEIGHT; y++)
+        {
+#ifndef CRISPY_TRUECOLOR
+            I_VideoBuffer[y] = colormaps[((dp_menu_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
+#else
+            I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], I_ShadeFactor[dp_menu_shading]);
+#endif
+        }
+    }
+}
 
 static byte *M_Small_Line_Glow (const int tics)
 {
@@ -821,6 +851,32 @@ static const int M_INT_Slider (int val, int min, int max, int direction, boolean
     return val;
 }
 
+static const float M_FLOAT_Slider (float val, float min, float max, float step,
+                                   int direction, boolean capped)
+{
+    char buf[9];
+
+    switch (direction)
+    {
+        case 0:
+        val -= step;
+        if (val < min) 
+            val = capped ? min : max;
+        break;
+
+        case 1:
+        val += step;
+        if (val > max)
+            val = capped ? max : min;
+        break;
+    }
+
+    // [JN] Do a float correction to always get x.xxx000 values:
+    sprintf (buf, "%f", val);
+    val = (float)atof(buf);
+    return val;
+}
+
 // -----------------------------------------------------------------------------
 // Main ID Menu
 // -----------------------------------------------------------------------------
@@ -828,7 +884,7 @@ static const int M_INT_Slider (int val, int min, int max, int direction, boolean
 static menuitem_t ID_Menu_Main[]=
 {
     { M_SWTC, "VIDEO OPTIONS",     M_Choose_ID_Video,    'v' },
-    // { M_SWTC, "DISPLAY OPTIONS",   M_Choose_ID_Display,  'd' },
+    { M_SWTC, "DISPLAY OPTIONS",   M_Choose_ID_Display,  'd' },
     // { M_SWTC, "SOUND OPTIONS",     M_Choose_ID_Sound,    's' },
     // { M_SWTC, "CONTROL SETTINGS",  M_Choose_ID_Controls, 'c' },
     // { M_SWTC, "WIDGETS SETTINGS",  M_Choose_ID_Widgets,  'w' },
@@ -841,7 +897,7 @@ static menuitem_t ID_Menu_Main[]=
 
 static menu_t ID_Def_Main =
 {
-    1,
+    2,
     &MainDef,
     ID_Menu_Main,
     M_Draw_ID_Main,
@@ -1178,6 +1234,193 @@ static void M_ID_ShowExitScreen (int choice)
 static void M_ID_ShowENDSTRF (int choice)
 {
     vid_endoom = M_INT_Slider(vid_endoom, 0, 2, choice, false);
+}
+
+// -----------------------------------------------------------------------------
+// Display options
+// -----------------------------------------------------------------------------
+
+static menuitem_t ID_Menu_Display[]=
+{
+    { M_LFRT, "GAMMA-CORRECTION",        M_ID_Gamma,             'g' },
+    { M_LFRT, "FIELD OF VIEW",           M_ID_FOV,               'f' },
+    { M_LFRT, "MENU BACKGROUND SHADING", M_ID_MenuShading,       'm' },
+    { M_LFRT, "EXTRA LEVEL BRIGHTNESS",  M_ID_LevelBrightness,   'e' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "SATURATION",              M_ID_Saturation,        's' },
+    { M_LFRT, "RED INTENSITY",           M_ID_R_Intensity,       'r' },
+    { M_LFRT, "GREEN INTENSITY",         M_ID_G_Intensity,       'g' },
+    { M_LFRT, "BLUE INTENSITY",          M_ID_B_Intensity,       'b' },
+    // { M_SKIP, "", 0, '\0' },
+    // { M_LFRT, "MESSAGES ENABLED",        M_ChangeMessages,       'm' },
+    // { M_LFRT, "MESSAGES ALIGNMENT",      M_ID_MessagesAlignment, 'm' },
+    // { M_LFRT, "TEXT CASTS SHADOWS",      M_ID_TextShadows,       't' },
+    // { M_LFRT, "LOCAL TIME",              M_ID_LocalTime,         'l' },
+};
+
+static menu_t ID_Def_Display =
+{
+    9,
+    &ID_Def_Main,
+    ID_Menu_Display,
+    M_Draw_ID_Display,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    0,
+    true, false, false,
+};
+
+static void M_Choose_ID_Display (int choice)
+{
+    M_SetupNextMenu (&ID_Def_Display);
+}
+
+static void M_Draw_ID_Display (void)
+{
+    char str[32];
+
+    M_WriteTextCentered(9, "DISPLAY OPTIONS", cr[CR_ORANGE]);
+
+    // Gamma-correction num
+    M_WriteText (M_ItemRightAlign(gammalvls[vid_gamma][1]), 18, gammalvls[vid_gamma][1], 
+                 M_Item_Glow(0, GLOW_LIGHTGRAY));
+
+    // Field of View
+    sprintf(str, "%d", vid_fov);
+    M_WriteText (M_ItemRightAlign(str), 27, str,
+                 M_Item_Glow(1, vid_fov == 135 || vid_fov == 45 ? GLOW_YELLOW :
+                                vid_fov == 90 ? GLOW_DARKRED : GLOW_GREEN));
+
+    // Background shading
+    sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
+    M_WriteText (M_ItemRightAlign(str), 36, str,
+                 M_Item_Glow(2, dp_menu_shading == 12 ? GLOW_YELLOW :
+                                dp_menu_shading  >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+
+    // Extra level brightness
+    sprintf(str, dp_level_brightness ? "%d" : "OFF", dp_level_brightness);
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(3, dp_level_brightness == 8 ? GLOW_YELLOW :
+                                dp_level_brightness >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+
+    M_WriteTextCentered(54, "COLOR SETTINGS", cr[CR_ORANGE]);
+
+    // Saturation
+    M_snprintf(str, 6, "%d%%", vid_saturation);
+    M_WriteText (M_ItemRightAlign(str), 63, str,
+                 M_Item_Glow(5, GLOW_LIGHTGRAY));
+
+    // RED intensity
+    M_snprintf(str, 6, "%3f", vid_r_intensity);
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(6, GLOW_RED));
+
+    // GREEN intensity
+    M_snprintf(str, 6, "%3f", vid_g_intensity);
+    M_WriteText (M_ItemRightAlign(str), 81, str,
+                 M_Item_Glow(7, GLOW_GREEN));
+
+    // BLUE intensity
+    M_snprintf(str, 6, "%3f", vid_b_intensity);
+    M_WriteText (M_ItemRightAlign(str), 90, str,
+                 M_Item_Glow(8, GLOW_BLUE));
+}
+
+static void M_ID_Gamma (int choice)
+{
+    shade_wait = I_GetTime() + TICRATE;
+    vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+#else
+    I_SetPalette(0);
+    R_InitColormaps();
+    inhelpscreens = true;
+    R_FillBackScreen();
+    viewactive = false;
+#endif
+}
+
+static void M_ID_FOV (int choice)
+{
+    vid_fov = M_INT_Slider(vid_fov, 45, 135, choice, true);
+
+    // [crispy] re-calculate the zlight[][] array
+    R_InitLightTables();
+    // [crispy] re-calculate the scalelight[][] array
+    R_ExecuteSetViewSize();
+    // villsa [STRIFE]
+    R_SetupPitch(viewpitch, true);
+}
+
+static void M_ID_MenuShading (int choice)
+{
+    dp_menu_shading = M_INT_Slider(dp_menu_shading, 0, 12, choice, true);
+}
+
+static void M_ID_LevelBrightness (int choice)
+{
+    dp_level_brightness = M_INT_Slider(dp_level_brightness, 0, 8, choice, true);
+}
+
+static void M_ID_Saturation (int choice)
+{
+    shade_wait = I_GetTime() + TICRATE;
+    vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
+    R_InitColormaps();
+    R_FillBackScreen();
+    //AM_Init();
+    inhelpscreens = true;
+#endif
+}
+
+static void M_ID_R_Intensity (int choice)
+{
+    shade_wait = I_GetTime() + TICRATE;
+    vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
+    R_InitColormaps();
+    R_FillBackScreen();
+    //AM_Init();
+    inhelpscreens = true;
+#endif
+}
+
+static void M_ID_G_Intensity (int choice)
+{
+    shade_wait = I_GetTime() + TICRATE;
+    vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
+    R_InitColormaps();
+    R_FillBackScreen();
+    //AM_Init();
+    inhelpscreens = true;
+#endif
+}
+
+static void M_ID_B_Intensity (int choice)
+{
+    shade_wait = I_GetTime() + TICRATE;
+    vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
+
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
+    R_InitColormaps();
+    R_FillBackScreen();
+    //AM_Init();
+    inhelpscreens = true;
+#endif
 }
 
 // =============================================================================
@@ -2592,13 +2835,17 @@ boolean M_Responder (event_t* ev)
                 if (messageToPrint && messageNeedsInput)
                 {
                     key = key_menu_confirm;  // [JN] Confirm by left mouse button.
+                    mousewait = I_GetTime() + 5;
                 }
                 else
                 {
                     key = key_menu_forward;
-                    mouse_fire_countdown = 5;   // villsa [STRIFE]
+                    mousewait = I_GetTime() + 5;
+                    if (menuindialog) // [crispy] fix mouse fire delay
+                    {
+                        mouse_fire_countdown = 5;   // villsa [STRIFE]
+                    }
                 }
-                mousewait = I_GetTime() + 5;
             }
 
             if (ev->data1&2)
@@ -3105,6 +3352,18 @@ void M_Drawer (void)
 
     inhelpscreens = false;
     
+    // [JN] Shade background while active menu.
+    if (menuactive)
+    {
+        // Temporary unshade while changing certain settings.
+        if (shade_wait < I_GetTime())
+        {
+            M_ShadeBackground();
+        }
+        // Always redraw status bar background.
+        inhelpscreens = true;
+    }
+
     // Horiz. & Vertically center string and print it.
     if (messageToPrint)
     {
