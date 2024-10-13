@@ -1299,8 +1299,10 @@ static byte *rawgfx_startbot;
 //
 static void D_IntroBackground(void)
 {
-    if(!showintro)
+    if (!showintro || !vid_graphical_startup)
+    {
         return;
+    }
 
     // Fill the background entirely (wasn't needed in vanilla)
     V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
@@ -1332,7 +1334,7 @@ static void D_InitIntroSequence(void)
     byte *textScreen;
     char string[80];
 
-    if (devparm || !vid_graphical_startup || testcontrols)
+    if (devparm || testcontrols)
     {
         using_text_startup = false;
         showintro = false;
@@ -1429,6 +1431,11 @@ static void D_DrawIntroSequence(void)
     int laserpos;
     int robotpos;
     int i;
+
+    if (!vid_graphical_startup)
+    {
+        return;
+    }
 
     if (showintro)
     {
