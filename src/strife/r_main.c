@@ -1013,7 +1013,7 @@ void R_SetupPitch(int pitch, boolean force)
 {
     int pitchfrac;
 
-    if (viewpitch != pitch || force)
+    if (force || viewpitch != pitch)
     {
         viewpitch   = pitch;
         pitchfrac   = (setblocks * (pitch * vid_resolution)) / 10;
