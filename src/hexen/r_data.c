@@ -742,7 +742,7 @@ void R_InitTrueColormaps(char *current_colormap)
 				b_channel = 
 					(byte) ((0 + a_lo) * playpal[3 * k + 0] +
 							(0 + a_lo) * playpal[3 * k + 1] +
-							(1 - a_hi) * playpal[3 * k + 2] * vid_b_intensity);
+							(1 - a_hi) * playpal[3 * k + 2]) * vid_b_intensity;
 
 				r = gammatable[vid_gamma][r_channel] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
 				g = gammatable[vid_gamma][g_channel] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
@@ -804,7 +804,7 @@ void R_InitTrueColormaps(char *current_colormap)
 		b_channel = 
 			(byte) ((0 + a_lo) * playpal[3 * i + 0] +
 					(0 + a_lo) * playpal[3 * i + 1] +
-					(1 - a_hi) * playpal[3 * i + 2] * vid_b_intensity);
+					(1 - a_hi) * playpal[3 * i + 2]) * vid_b_intensity;
 
 		r = gammatable[vid_gamma][r_channel];
 		g = gammatable[vid_gamma][g_channel];
