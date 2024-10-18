@@ -1679,36 +1679,39 @@ static void SetVideoMode(void)
     if (argbbuffer == NULL)
     {
 #ifdef CRISPY_TRUECOLOR
+        // [PN] Define a structure to hold texture names and their colors
+        typedef struct {
+            SDL_Texture **texture;  // Pointer to the texture variable
+            uint8_t r, g, b;        // RGB values
+        } pane_t;
+
+        // [PN] Array of pane definitions
+        pane_t panes[] = {
+            { &redpane,  0xff, 0x0,  0x0  },  // red
+            { &yelpane,  0xd7, 0xba, 0x45 },  // yellow
+            { &grnpane,  0x0,  0xff, 0x0  },  // green
+            { &grnspane, 0x2c, 0x5c, 0x24 },  // green (Hexen: poison)
+            { &bluepane, 0x0,  0x0,  0xe0 },  // blue (Hexen: ice)
+            { &graypane, 0x82, 0x82, 0x82 },  // gray (Hexen: Wraithverge)
+            { &orngpane, 0x96, 0x6e, 0x0  }   // orange (Hexem: Arc of Death)
+        };
+
         argbbuffer = SDL_CreateRGBSurfaceWithFormat(
                      0, SCREENWIDTH, SCREENHEIGHT, 32, SDL_PIXELFORMAT_ARGB8888);
 
-        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0xff, 0x0, 0x0));
-        redpane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
-        SDL_SetTextureBlendMode(redpane, SDL_BLENDMODE_BLEND);
+        // [PN] Create textures from the defined colors
+        for (int i = 0; i < sizeof(panes) / sizeof(panes[0]); i++)
+        {
+            // [PN] Fill rectangle with color
+            SDL_FillRect(argbbuffer, NULL, I_MapRGB(panes[i].r, panes[i].g, panes[i].b));
+            
+            // [PN] Create texture from surface
+            *(panes[i].texture) = SDL_CreateTextureFromSurface(renderer, argbbuffer);
+            
+            // [PN] Set blend mode
+            SDL_SetTextureBlendMode(*(panes[i].texture), SDL_BLENDMODE_BLEND);
+        }
 
-        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0xd7, 0xba, 0x45));
-        yelpane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
-        SDL_SetTextureBlendMode(yelpane, SDL_BLENDMODE_BLEND);
-
-        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x0, 0xff, 0x0));
-        grnpane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
-        SDL_SetTextureBlendMode(grnpane, SDL_BLENDMODE_BLEND);
-
-        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x2c, 0x5c, 0x24)); // 44, 92, 36
-        grnspane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
-        SDL_SetTextureBlendMode(grnspane, SDL_BLENDMODE_BLEND);
-
-        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x0, 0x0, 0xe0)); // 0, 0, 224
-        bluepane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
-        SDL_SetTextureBlendMode(bluepane, SDL_BLENDMODE_BLEND);
-
-        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x82, 0x82, 0x82)); // 130, 130, 130
-        graypane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
-        SDL_SetTextureBlendMode(graypane, SDL_BLENDMODE_BLEND);
-
-        SDL_FillRect(argbbuffer, NULL, I_MapRGB(0x96, 0x6e, 0x0)); // 150, 110, 0
-        orngpane = SDL_CreateTextureFromSurface(renderer, argbbuffer);
-        SDL_SetTextureBlendMode(orngpane, SDL_BLENDMODE_BLEND);
 #else
 	    // pixels and pitch will be filled with the texture's values
 	    // in I_FinishUpdate()
