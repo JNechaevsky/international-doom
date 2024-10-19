@@ -987,41 +987,32 @@ void ST_doPaletteStuff (void)
 
 // -----------------------------------------------------------------------------
 // ST_doSmoothPaletteStuff
-// [JN] Smooth palette handling.
+// [JN/PN] Smooth palette handling.
+// Handles smooth palette transitions for a better visual effect.
 // -----------------------------------------------------------------------------
 
 #ifdef CRISPY_TRUECOLOR
 static void ST_doSmoothPaletteStuff (void)
 {
-    int palette;
     int red = plyr->damagecount;
     int yel = plyr->bonuscount;
     int grn = plyr->powers[pw_ironfeet] > 4*32 || plyr->powers[pw_ironfeet] & 8;
+    int palette = 0;
 
+    // [PN] Calculate berserk fade value if active
     if (plyr->powers[pw_strength])
     {
-        // [JN] Smoother berserk fading.
         int bzc = (12 << 1) - (plyr->powers[pw_strength] >> 6);
         
         // [JN] Berserk is almost faded out. Handle final fading differently:
         if (bzc > 0 && bzc < 13)
         {
-            if (plyr->powers[pw_ironfeet])
-            {
-                // If have a radiation suit, switch to the green palette immediately.
-                bzc = 0;
-            }
-            else
-            {
-                // Otherwise, perform a smooth and fast final fade.
-                bzc = 780 - plyr->powers[pw_strength];
-            }
+            // [PN] If have a radiation suit, switch to the green palette immediately.
+            bzc = plyr->powers[pw_ironfeet] ? 0 : 780 - plyr->powers[pw_strength];
         }
 
-        if (bzc > red)
-        {
-            red = bzc;
-        }
+        // [PN] Take the maximum of berserk or damage value
+        red = MAX(bzc, red);
     }
 
     if (red)
@@ -1037,10 +1028,6 @@ static void ST_doSmoothPaletteStuff (void)
     else if (grn)
     {
         palette = RADIATIONPAL;
-    }
-    else
-    {
-        palette = 0;
     }
 
     // In Chex Quest, the player never sees red.  Instead, the
