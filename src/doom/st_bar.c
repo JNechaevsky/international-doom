@@ -1052,32 +1052,28 @@ static void ST_doSmoothPaletteStuff (void)
 // -----------------------------------------------------------------------------
 // ST_UpdateFragsCounter
 // [JN] Updated to int type, allowing to show frags of any player.
+// [PN] Calculates total frags for a player, excluding their own.
+//      Limits the count to -99 and 99 if big_values is false.
 // -----------------------------------------------------------------------------
 
 static const int ST_UpdateFragsCounter (const int playernum, const boolean big_values)
 {
     st_fragscount = 0;
 
+    // [PN] Update frag count by adding frags of other players and 
+    // subtracting player's own frags to avoid self-inclusion.
     for (int i = 0 ; i < MAXPLAYERS ; i++)
     {
-        if (i != playernum)
-        {
-            st_fragscount += players[playernum].frags[i];
-        }
-        else
-        {
-            st_fragscount -= players[playernum].frags[i];
-        }
+        st_fragscount += (i != playernum) ? players[playernum].frags[i] : 
+                                           -players[playernum].frags[i];
     }
     
     // [JN] Prevent overflow, ST_DrawBigNumber can only draw three 
-    // digit number, and status bar fits well only two digits number
+    // digit number, and status bar fits well only two digits number.
+    // [PN] Use MAX and MIN macros to limit st_fragscount between -99 and 99.
     if (!big_values)
     {
-        if (st_fragscount > 99)
-            st_fragscount = 99;
-        if (st_fragscount < -99)
-            st_fragscount = -99;
+        st_fragscount = MIN(MAX(st_fragscount, -99), 99);
     }
 
     return st_fragscount;
