@@ -1375,54 +1375,25 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 // ST_UpdateElementsBackground
 // [JN] Use V_CopyRect to draw/update background under elements.
 //      This is notably faster than re-drawing entire background.
+// [PN] Refactored with loop to avoid repetition and make code more concise.
 // -----------------------------------------------------------------------------
 
 static void ST_UpdateElementsBackground (void)
 {
-    // Ammo
-    V_CopyRect(ammo_bg[0], ammo_bg[1], st_backing_screen,
-               ammo_bg[2], ammo_bg[3],
-               ammo_bg[0], ammo_bg[4]);
+    // [PN] Store all background elements in an array for looped processing
+    const int *elements[] = {
+        ammo_bg, hlth_bg, frgs_bg, face_bg, armr_bg,
+        keys_bg, amoc_bg, amom_bg, disk_bg
+    };
 
-    // Health
-    V_CopyRect(hlth_bg[0], hlth_bg[1], st_backing_screen,
-               hlth_bg[2], hlth_bg[3],
-               hlth_bg[0], hlth_bg[4]);
-
-    // ARMS or frags
-    V_CopyRect(frgs_bg[0], frgs_bg[1], st_backing_screen,
-               frgs_bg[2], frgs_bg[3],
-               frgs_bg[0], frgs_bg[4]);
-
-    // Player face
-    V_CopyRect(face_bg[0], face_bg[1], st_backing_screen,
-               face_bg[2], face_bg[3],
-               face_bg[0], face_bg[4]);
-
-    // Armor
-    V_CopyRect(armr_bg[0], armr_bg[1], st_backing_screen,
-               armr_bg[2], armr_bg[3],
-               armr_bg[0], armr_bg[4]);
-
-    // Keys
-    V_CopyRect(keys_bg[0], keys_bg[1], st_backing_screen,
-               keys_bg[2], keys_bg[3],
-               keys_bg[0], keys_bg[4]);
-
-    // Ammo (current)
-    V_CopyRect(amoc_bg[0], amoc_bg[1], st_backing_screen,
-               amoc_bg[2], amoc_bg[3],
-               amoc_bg[0], amoc_bg[4]);
-
-    // Ammo (max)
-    V_CopyRect(amom_bg[0], amom_bg[1], st_backing_screen,
-               amom_bg[2], amom_bg[3],
-               amom_bg[0], amom_bg[4]);
-
-    // Disk icon
-    V_CopyRect(disk_bg[0], disk_bg[1], st_backing_screen,
-               disk_bg[2], disk_bg[3],
-               disk_bg[0], disk_bg[4]);
+    // [PN] Loop through each element and copy its background using V_CopyRect
+    for (int i = 0; i < sizeof(elements)/sizeof(elements[0]); i++)
+    {
+        V_CopyRect(elements[i][0], elements[i][1],
+                   st_backing_screen,
+                   elements[i][2], elements[i][3],
+                   elements[i][0], elements[i][4]);
+    }
 }
 
 // -----------------------------------------------------------------------------
