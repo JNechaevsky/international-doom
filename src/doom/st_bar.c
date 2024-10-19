@@ -1246,6 +1246,8 @@ static byte *ST_WidgetColor (const int i)
 // -----------------------------------------------------------------------------
 // ST_DrawBigNumber
 // [JN] Draws a three digit big red number using STTNUM* graphics.
+// [PN] Supports negative values and ensures proper digit placement.
+//      Capped at 999 for positive numbers and 99 for negative numbers.
 // -----------------------------------------------------------------------------
 
 static void ST_DrawBigNumber (int val, const int x, const int y, byte *table)
@@ -1259,37 +1261,31 @@ static void ST_DrawBigNumber (int val, const int x, const int y, byte *table)
     if (val < 0)
     {
         val = -val;
-        
-        if (-val <= -99)
-        {
-            val = 99;
-        }
+        // [PN] Cap at 99 for negative values
+        val = (val > 99) ? 99 : val;
 
         // [JN] Draw minus symbol with respection of digits placement.
         // However, values below -10 requires some correction in "x" placement.
         V_DrawPatch(xpos + (val <= 9 ? 20 : 5) - 4, y, tallminus);
     }
-    if (val > 999)
-    {
-        val = 999;
-    }
+    
+    // [PN] Cap at 999
+    val = (val > 999) ? 999 : val;
 
+    // [PN] Draw hundreds
     if (val > 99)
-    {
         V_DrawPatch(xpos - 4, y, tallnum[val / 100]);
-    }
 
-    val = val % 100;
+    val = val % 100;  // [PN] Get last two digits
     xpos += 14;
 
+    // [PN] Draw tens
     if (val > 9 || oldval > 99)
-    {
         V_DrawPatch(xpos - 4, y, tallnum[val / 10]);
-    }
 
+    // [PN] Draw ones
     val = val % 10;
     xpos += 14;
-
     V_DrawPatch(xpos - 4, y, tallnum[val]);
     
     dp_translation = NULL;
