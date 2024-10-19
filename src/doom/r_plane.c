@@ -419,7 +419,7 @@ void R_DrawPlanes (void)
         if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
         {
             int texture;
-            angle_t an = viewangle, flip;
+            angle_t an = viewangle, flip = 0;  // [PN] Initialize flip here
             if (pl->picnum & PL_SKYFLAT)
             {
                 const line_t *l = &lines[pl->picnum & ~PL_SKYFLAT];
@@ -433,7 +433,6 @@ void R_DrawPlanes (void)
             {
                 texture = skytexture;
                 dc_texturemid = skytexturemid;
-                flip = 0;
             }
             dc_iscale = pspriteiscale >> detailshift;
             
@@ -448,8 +447,8 @@ void R_DrawPlanes (void)
             // [crispy] stretch short skies
             if (mouse_look && dc_texheight < 200)
             {
-                dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
-                dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+                dc_iscale = (dc_iscale * dc_texheight) / SKYSTRETCH_HEIGHT;  // [PN] Adjust scale
+                dc_texturemid = (dc_texturemid * dc_texheight) / SKYSTRETCH_HEIGHT;  // [PN] Adjust mid
             }
             for (int x = pl->minx ; x <= pl->maxx ; x++)
             {
@@ -488,14 +487,8 @@ void R_DrawPlanes (void)
             }
 
             planeheight = abs(pl->height-viewz);
-            if (light >= LIGHTLEVELS)
-            {
-                light = LIGHTLEVELS-1;
-            }
-            if (light < 0)
-            {
-                light = 0;
-            }
+            light = MAX(light, 0);  // [PN] Ensure light is not less than 0
+            light = MIN(light, LIGHTLEVELS - 1);  // [PN] Limit light to LIGHTLEVELS - 1
             planezlight = zlight[light];
             pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
 
