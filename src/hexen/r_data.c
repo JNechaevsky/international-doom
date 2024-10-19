@@ -729,20 +729,26 @@ void R_InitTrueColormaps(char *current_colormap)
 			{
 				const byte k = colormap[i];
 
+				// [Alaux] Component intensity applied here
+				const byte pal_r = playpal[3 * k + 0] * vid_r_intensity,
+				           pal_g = playpal[3 * k + 1] * vid_g_intensity,
+				           pal_b = playpal[3 * k + 2] * vid_b_intensity;
+
+				// [Alaux] Saturation applied in the following three
 				r_channel = 
-					(byte) ((1 - a_hi) * playpal[3 * k + 0]  +
-							(0 + a_lo) * playpal[3 * k + 1]  +
-							(0 + a_lo) * playpal[3 * k + 2]) * vid_r_intensity;
+					(byte) ((1 - a_hi) * pal_r +
+							(0 + a_lo) * pal_g +
+							(0 + a_lo) * pal_b);
 
 				g_channel = 
-					(byte) ((0 + a_lo) * playpal[3 * k + 0]  +
-							(1 - a_hi) * playpal[3 * k + 1]  +
-							(0 + a_lo) * playpal[3 * k + 2]) * vid_g_intensity;
+					(byte) ((0 + a_lo) * pal_r +
+							(1 - a_hi) * pal_g +
+							(0 + a_lo) * pal_b);
 
 				b_channel = 
-					(byte) ((0 + a_lo) * playpal[3 * k + 0] +
-							(0 + a_lo) * playpal[3 * k + 1] +
-							(1 - a_hi) * playpal[3 * k + 2]) * vid_b_intensity;
+					(byte) ((0 + a_lo) * pal_r +
+							(0 + a_lo) * pal_g +
+							(1 - a_hi) * pal_b);
 
 				r = gammatable[vid_gamma][r_channel] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
 				g = gammatable[vid_gamma][g_channel] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
@@ -758,20 +764,26 @@ void R_InitTrueColormaps(char *current_colormap)
 		{
 			for (i = 0; i < 256; i++)
 			{
+				// [Alaux] Component intensity applied here
+				const byte pal_r = playpal[3 * colormap[c * 256 + i] + 0] * vid_r_intensity,
+				           pal_g = playpal[3 * colormap[c * 256 + i] + 1] * vid_g_intensity,
+				           pal_b = playpal[3 * colormap[c * 256 + i] + 2] * vid_b_intensity;
+
+				// [Alaux] Saturation applied in the following three
 				r_channel =
-					(byte) ((1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 0])  +
-							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
-							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_r_intensity;
+					(byte) ((1 - a_hi) * pal_r +
+							(0 + a_lo) * pal_g +
+							(0 + a_lo) * pal_b);
 	
 				g_channel =
-					(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
-							(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 1])  +
-							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_g_intensity;
+					(byte) ((0 + a_lo) * pal_r +
+							(1 - a_hi) * pal_g +
+							(0 + a_lo) * pal_b);
 	
 				b_channel =
-					(byte) ((0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 0])  +
-							(0 + a_lo) * (playpal[3 * colormap[c * 256 + i] + 1])  +
-							(1 - a_hi) * (playpal[3 * colormap[c * 256 + i] + 2])) * vid_b_intensity;
+					(byte) ((0 + a_lo) * pal_r +
+							(0 + a_lo) * pal_g +
+							(1 - a_hi) * pal_b);
 
 				r = gammatable[vid_gamma][r_channel] & ~3;
 				g = gammatable[vid_gamma][g_channel] & ~3;
@@ -791,20 +803,26 @@ void R_InitTrueColormaps(char *current_colormap)
 
 	for (i = 0, j = 0; i < 256; i++)
 	{
+		// [Alaux] Component intensity applied here
+		const byte pal_r = playpal[3 * i + 0] * vid_r_intensity,
+		           pal_g = playpal[3 * i + 1] * vid_g_intensity,
+		           pal_b = playpal[3 * i + 2] * vid_b_intensity;
+
+		// [Alaux] Saturation applied in the following three
 		r_channel = 
-			(byte) ((1 - a_hi) * playpal[3 * i + 0]  +
-					(0 + a_lo) * playpal[3 * i + 1]  +
-					(0 + a_lo) * playpal[3 * i + 2]) * vid_r_intensity;
+			(byte) ((1 - a_hi) * pal_r +
+					(0 + a_lo) * pal_g +
+					(0 + a_lo) * pal_b);
 
 		g_channel = 
-			(byte) ((0 + a_lo) * playpal[3 * i + 0]  +
-					(1 - a_hi) * playpal[3 * i + 1]  +
-					(0 + a_lo) * playpal[3 * i + 2]) * vid_g_intensity;
+			(byte) ((0 + a_lo) * pal_r +
+					(1 - a_hi) * pal_g +
+					(0 + a_lo) * pal_b);
 
 		b_channel = 
-			(byte) ((0 + a_lo) * playpal[3 * i + 0] +
-					(0 + a_lo) * playpal[3 * i + 1] +
-					(1 - a_hi) * playpal[3 * i + 2]) * vid_b_intensity;
+			(byte) ((0 + a_lo) * pal_r +
+					(0 + a_lo) * pal_g +
+					(1 - a_hi) * pal_b);
 
 		r = gammatable[vid_gamma][r_channel];
 		g = gammatable[vid_gamma][g_channel];
