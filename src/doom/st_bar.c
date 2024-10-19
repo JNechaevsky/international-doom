@@ -1785,70 +1785,43 @@ void ST_Init (void)
 // ST_InitElementsBackground
 // [JN] Preallocate rectangle sizes for status bar buffered drawing 
 //      to avoid some extra multiplying calculations while drawing.
+// [PN] Using a macro instead of a function to avoid function call overhead
+//      and to keep inline performance for this initialization task.
 // -----------------------------------------------------------------------------
+
+#define INIT_ELEMENT(bg, x, y, w, h, b) \
+    bg[0] = (x + WIDESCREENDELTA) * vid_resolution; \
+    bg[1] = y * vid_resolution; \
+    bg[2] = w * vid_resolution; \
+    bg[3] = h * vid_resolution; \
+    bg[4] = b * vid_resolution;
 
 void ST_InitElementsBackground (void)
 {
     // Ammo
-    ammo_bg[0] = WIDESCREENDELTA * vid_resolution;
-    ammo_bg[1] = 2 * vid_resolution;
-    ammo_bg[2] = 45 * vid_resolution;
-    ammo_bg[3] = 20 * vid_resolution;
-    ammo_bg[4] = 170 * vid_resolution;
+    INIT_ELEMENT(ammo_bg, 0, 2, 45, 20, 170);
 
     // Health
-    hlth_bg[0] = (48 + WIDESCREENDELTA) * vid_resolution;
-    hlth_bg[1] = 2 * vid_resolution;
-    hlth_bg[2] = 57 * vid_resolution;
-    hlth_bg[3] = 20 * vid_resolution;
-    hlth_bg[4] = 170 * vid_resolution;
+    INIT_ELEMENT(hlth_bg, 48, 2, 57, 20, 170);
 
     // ARMS or frags
-    frgs_bg[0] = (105 + WIDESCREENDELTA) * vid_resolution;
-    frgs_bg[1] = 2 * vid_resolution;
-    frgs_bg[2] = 37 * vid_resolution;
-    frgs_bg[3] = 20 * vid_resolution;
-    frgs_bg[4] = 170 * vid_resolution;
+    INIT_ELEMENT(frgs_bg, 105, 2, 37, 20, 170);
 
     // Player face background
-    face_bg[0] = (142 + WIDESCREENDELTA) * vid_resolution;
-    face_bg[1] = 0;
-    face_bg[2] = 37 * vid_resolution;
-    face_bg[3] = 32 * vid_resolution;
-    face_bg[4] = 168 * vid_resolution;
+    INIT_ELEMENT(face_bg, 142, 0, 37, 32, 168);
 
     // Armor
-    armr_bg[0] = (179 + WIDESCREENDELTA) * vid_resolution;
-    armr_bg[1] = 2 * vid_resolution;
-    armr_bg[2] = 56 * vid_resolution;
-    armr_bg[3] = 20 * vid_resolution;
-    armr_bg[4] = 170 * vid_resolution;    
+    INIT_ELEMENT(armr_bg, 179, 2, 56, 20, 170);
 
     // Keys
-    keys_bg[0] = (236 + WIDESCREENDELTA) * vid_resolution;
-    keys_bg[1] = 0;
-    keys_bg[2] = 13 * vid_resolution;
-    keys_bg[3] = 32 * vid_resolution;
-    keys_bg[4] = 168 * vid_resolution;
+    INIT_ELEMENT(keys_bg, 236, 0, 13, 32, 168);
 
     // Ammo (current)
-    amoc_bg[0] = (272 + WIDESCREENDELTA) * vid_resolution;
-    amoc_bg[1] = 5 * vid_resolution;
-    amoc_bg[2] = 16 * vid_resolution;
-    amoc_bg[3] = 24 * vid_resolution;
-    amoc_bg[4] = 173 * vid_resolution;
+    INIT_ELEMENT(amoc_bg, 272, 5, 16, 24, 173);
 
     // Ammo (max)
-    amom_bg[0] = (298 + WIDESCREENDELTA) * vid_resolution;
-    amom_bg[1] = 5 * vid_resolution;
-    amom_bg[2] = 16 * vid_resolution;
-    amom_bg[3] = 24 * vid_resolution;
-    amom_bg[4] = 173 * vid_resolution;
+    INIT_ELEMENT(amom_bg, 298, 5, 16, 24, 173);
 
     // Disk icon
-    disk_bg[0] = (304 + WIDESCREENDELTA * 2) * vid_resolution;
-    disk_bg[1] = 17 * vid_resolution;
-    disk_bg[2] = 16 * vid_resolution;
-    disk_bg[3] = 16 * vid_resolution;
-    disk_bg[4] = 185 * vid_resolution;
+    INIT_ELEMENT(disk_bg, 304 + WIDESCREENDELTA, 17, 16, 16, 185);
 }
