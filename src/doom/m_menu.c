@@ -5219,170 +5219,144 @@ M_StartMessage
     return;
 }
 
-//
-// Find string width from hu_font chars
-//
+// -----------------------------------------------------------------------------
+// M_StringWidth
+// [PN] Calculate the total width of a string based on the hu_font characters.
+// Adds spacing for characters not found in the font or outside the valid range.
+// -----------------------------------------------------------------------------
+
 const int M_StringWidth(const char* string)
 {
-    size_t             i;
-    int             w = 0;
-    int             c;
-	
-    for (i = 0;i < strlen(string);i++)
+    int w = 0;
+    int c;
+    const char* ch = string;
+
+    while (*ch)
     {
-	c = toupper(string[i]) - HU_FONTSTART;
-	if (c < 0 || c >= HU_FONTSIZE)
-	    w += 4;
-	else
-	    w += SHORT (hu_font[c]->width);
+        c = toupper(*ch++) - HU_FONTSTART;
+
+        if (c < 0 || c >= HU_FONTSIZE)
+        {
+            // Add default spacing for invalid characters
+            w += 4;
+        }
+        else
+        {
+            // Add character width
+            w += SHORT(hu_font[c]->width);
+        }
     }
-		
+
     return w;
 }
 
+// -----------------------------------------------------------------------------
+// M_StringHeight
+// [PN] Calculate the total height of a string based on the number of lines
+// (accounts for newline characters) and the height of the hu_font characters.
+// -----------------------------------------------------------------------------
 
-
-//
-//      Find string height from hu_font chars
-//
 static int M_StringHeight (const char *string)
 {
-    size_t             i;
-    int             h;
-    int             height = SHORT(hu_font[0]->height);
-	
-    h = height;
-    for (i = 0;i < strlen(string);i++)
-	if (string[i] == '\n')
-	    h += height;
-		
-    return h;
-}
+    const int height = SHORT(hu_font[0]->height);  // Base height of a single line
+    int lines = 1;  // At least one line by default
 
+    // Count the number of newline characters
+    for (const char *ch = string; *ch != '\0'; ++ch)
+    {
+        if (*ch == '\n')
+            ++lines;
+    }
+
+    return height * lines;
+}
 
 // -----------------------------------------------------------------------------
 // M_WriteText
-// Write a string using the hu_font.
+// [PN] Renders a string at the specified coordinates (x, y) using the hu_font.
+// Supports newline characters and applies an optional translation table.
 // -----------------------------------------------------------------------------
 
 void M_WriteText (int x, int y, const char *string, byte *table)
 {
-    const char*	ch;
-    int w, c, cx, cy;
+    int cx = x, cy = y;  // Initialize position
 
-    ch = string;
-    cx = x;
-    cy = y;
+    // Set color translation table
+    dp_translation = table;  
 
-    dp_translation = table;
-
-    while (ch)
+    // Loop through the string
+    for (const char *ch = string; *ch; ++ch)
     {
-        c = *ch++;
+        const int c = toupper(*ch) - HU_FONTSTART;  // Get character index
+        const int w = SHORT(hu_font[c]->width);  // Get character width
 
-        if (!c)
-        {
-            break;
-        }
-
-        if (c == '\n')
+        // Handle new line
+        if (*ch == '\n')
         {
             cx = x;
             cy += 12;
             continue;
         }
 
-        c = toupper(c) - HU_FONTSTART;
-
+        // Skip invalid characters
         if (c < 0 || c >= HU_FONTSIZE)
         {
+            // Move cursor right for spaces or invalid chars
             cx += 4;
             continue;
         }
 
-        w = SHORT (hu_font[c]->width);
-
-        if (cx + w > SCREENWIDTH)
-        {
+        // Stop if text exceeds screen width
+        if (cx + w > SCREENWIDTH)  
             break;
-        }
 
         V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
-        cx+=w;
+        // Move cursor for next character
+        cx += w;
     }
 
+    // Reset color translation table
     dp_translation = NULL;
 }
 
 // -----------------------------------------------------------------------------
 // M_WriteTextCentered
-// [JN] Write a centered string using the hu_font.
+// [PN] Renders a string centered on the screen using the hu_font, 
+// with optional color translation.
 // -----------------------------------------------------------------------------
 
 void M_WriteTextCentered (const int y, const char *string, byte *table)
 {
-    const char *ch;
-    const int width = M_StringWidth(string);
-    int w, c, cx, cy;
+    const int width = M_StringWidth(string);  // Calculate width once
+    int cx = ORIGWIDTH / 2 - width / 2;  // Centered x position
 
-    ch = string;
-    cx = ORIGWIDTH/2-width/2;
-    cy = y;
-
+    // Set color translation table
     dp_translation = table;
 
-    // find width
-    while (ch)
+    // Loop through the string
+    for (const char *ch = string; *ch; ch++)
     {
-        c = *ch++;
+        const int c = toupper(*ch) - HU_FONTSTART;  // Get character index
+        const int w = SHORT(hu_font[c]->width);  // Get character width
 
-        if (!c)
-        {
-            break;
-        }
-
-        c = c - HU_FONTSTART;
-
+        // Skip invalid characters
         if (c < 0 || c >= HU_FONTSIZE)
         {
-            continue;
-        }
-
-        w = SHORT (hu_font[c]->width);
-    }
-
-    // draw it
-    cx = ORIGWIDTH/2-width/2;
-    ch = string;
-
-    while (ch)
-    {
-        c = *ch++;
-
-        if (!c)
-        {
-            break;
-        }
-
-        c = toupper(c) - HU_FONTSTART;
-
-        if (c < 0 || c >= HU_FONTSIZE)
-        {
+            // Move cursor right for spaces or invalid chars
             cx += 4;
             continue;
         }
 
-        w = SHORT (hu_font[c]->width);
-
-        if (cx+w > ORIGWIDTH)
-        {
+        // Stop if text exceeds screen width
+        if (cx + w > ORIGWIDTH)
             break;
-        }
-        
-        V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
+
+        V_DrawShadowedPatchOptional(cx, y, 0, hu_font[c]);
+        // Move cursor for next character
         cx += w;
     }
-    
+
+    // Reset color translation table
     dp_translation = NULL;
 }
 
