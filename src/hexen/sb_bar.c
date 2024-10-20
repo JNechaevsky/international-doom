@@ -1302,13 +1302,14 @@ void SB_PaletteFlash(boolean forceChange)
 
 // -----------------------------------------------------------------------------
 // SB_SmoothPaletteFlash
-// [JN] Smooth palette handling.
+// [JN/PN] Smooth palette handling.
+// Handles smooth palette transitions for a better visual effect.
 // -----------------------------------------------------------------------------
 
 #ifdef CRISPY_TRUECOLOR
 void SB_SmoothPaletteFlash (boolean forceChange)
 {
-    int palette;
+    int palette = 0;
 
     if (forceChange)
     {
@@ -1346,14 +1347,6 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         {                       // Frozen player
             palette = STARTICEPAL;
         }
-        else
-        {
-            palette = 0;
-        }
-    }
-    else
-    {
-        palette = 0;
     }
 
     if (palette != SB_palette || CPlayer->poisoncount || CPlayer->damagecount || CPlayer->bonuscount

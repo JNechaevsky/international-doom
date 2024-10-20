@@ -498,8 +498,8 @@ void R_DrawPlanes (void)
             }
 
             planeheight = abs(pl->height-viewz);
-            light = MAX(light, 0);  // [PN] Ensure light is not less than 0
-            light = MIN(light, LIGHTLEVELS - 1);  // [PN] Limit light to LIGHTLEVELS - 1
+            // [PN] Ensure 'light' is within the range [0, LIGHTLEVELS - 1] inclusively.
+            light = BETWEEN(0, LIGHTLEVELS-1, light);
             planezlight = zlight[light];
             pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
 

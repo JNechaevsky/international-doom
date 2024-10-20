@@ -1227,13 +1227,14 @@ void SB_PaletteFlash(void)
 
 // -----------------------------------------------------------------------------
 // SB_SmoothPaletteFlash
-// [JN] Smooth palette handling.
+// [JN/PN] Smooth palette handling.
+// Handles smooth palette transitions for a better visual effect.
 // -----------------------------------------------------------------------------
 
 #ifdef CRISPY_TRUECOLOR
 void SB_SmoothPaletteFlash (void)
 {
-    int palette;
+    int palette = 0;
 
     CPlayer = &players[displayplayer];
 
@@ -1246,10 +1247,6 @@ void SB_SmoothPaletteFlash (void)
     {
         palette = 9;
         yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, 127);  // 127 pane alpha max
-    }
-    else
-    {
-        palette = 0;
     }
 
     if (palette != sb_palette || CPlayer->damagecount || CPlayer->bonuscount)
