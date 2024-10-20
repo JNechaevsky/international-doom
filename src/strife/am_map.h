@@ -42,6 +42,7 @@ void AM_Drawer (void);
 // if the level is completed while it is up.
 void AM_Stop (void);
 
+extern void AM_LevelInit(boolean reinit);
 
 extern cheatseq_t cheat_amap;
 

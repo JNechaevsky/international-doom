@@ -64,6 +64,7 @@
 
 #include "m_menu.h"
 #include "p_dialog.h"
+#include "am_map.h"
 
 
 void M_QuitStrife(int);
@@ -1086,18 +1087,8 @@ static void M_ID_RenderingResHook (void)
     R_FillBackScreen();
     // [crispy] re-calculate disk icon coordinates
     V_EnableLoadingDisk();
-    
-    // TODO!
-    /*
-    // [JN] re-calculate status bar elements background buffers
-    ST_InitElementsBackground();
     // [crispy] re-calculate automap coordinates
     AM_LevelInit(true);
-    if (automapactive)
-    {
-        AM_Start();
-    }
-    */
 }
 
 static void M_ID_RenderingRes (int choice)
@@ -1116,18 +1107,8 @@ static void M_ID_WidescreenHook (void)
     R_FillBackScreen();
     // [crispy] re-calculate disk icon coordinates
     V_EnableLoadingDisk();
-
-    // TODO!
-    /*
-    // [JN] re-calculate status bar elements background buffers
-    ST_InitElementsBackground();
     // [crispy] re-calculate automap coordinates
     AM_LevelInit(true);
-    if (automapactive)
-    {
-        AM_Start();
-    }
-    */
 }
 
 static void M_ID_Widescreen (int choice)
