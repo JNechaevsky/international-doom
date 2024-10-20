@@ -239,9 +239,20 @@ void R_ClearPlanes (void)
         ceilingclip[i] = -1;
     }
 
-    for (i = 0; i < MAXVISPLANES; i++)  // [JN] new code -- killough
-        for (*freehead = visplanes[i], visplanes[i] = NULL ; *freehead ; )
-            freehead = &(*freehead)->next;
+    // [PN] Optimize loop by avoiding unnecessary assignments and checks.
+    // Only process non-null visplanes and simplify inner loop performance.
+    for (i = 0; i < MAXVISPLANES; i++)
+    {
+        if (visplanes[i] != NULL)
+        {
+            *freehead = visplanes[i];
+            visplanes[i] = NULL;
+            while (*freehead)
+            {
+                freehead = &(*freehead)->next;
+            }
+        }
+    }
 
     lastopening = openings;
 
@@ -454,7 +465,7 @@ void R_DrawPlanes (void)
         if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
         {
             int texture;
-            angle_t an = viewangle, flip;
+            angle_t an = viewangle, flip = 0;  // [PN] Initialize flip here
 
             if (pl->picnum & PL_SKYFLAT)
             {
@@ -469,7 +480,6 @@ void R_DrawPlanes (void)
             {
                 texture = skytexture;
                 dc_texturemid = skytexturemid;
-                flip = 0;
             }
             
             dc_iscale = skyiscale;
@@ -715,14 +725,8 @@ void R_DrawPlanes (void)
             }
 
             planeheight = abs(pl->height-viewz);
-            if (light >= LIGHTLEVELS)
-            {
-                light = LIGHTLEVELS-1;
-            }
-            if (light < 0)
-            {
-                light = 0;
-            }
+            // [PN] Ensure 'light' is within the range [0, LIGHTLEVELS - 1] inclusively.
+            light = BETWEEN(0, LIGHTLEVELS-1, light);
             planezlight = zlight[light];
             pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
 

@@ -620,7 +620,6 @@ void R_InitTextureMapping (void)
 // Only inits the zlight table,
 //  because the scalelight table changes with view size.
 //
-#define DISTMAP		2
 
 void R_InitLightTables (void)
 {
@@ -629,6 +628,8 @@ void R_InitLightTables (void)
     int		level;
     int		startmap; 	
     int		scale;
+    // [PN] Pre-calculate for slight optimization
+    const int fracwidth = (ORIGWIDTH / 2 * FRACUNIT);
     
     if (scalelight)
     {
@@ -709,19 +710,17 @@ void R_InitLightTables (void)
 	scalelight[i] = malloc(MAXLIGHTSCALE * sizeof(**scalelight));
 	zlight[i] = malloc(MAXLIGHTZ * sizeof(**zlight));
 
-	startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+	// [PN] Use bit shifting for faster handling
+	startmap = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
 	for (j=0 ; j<MAXLIGHTZ ; j++)
 	{
-	    scale = FixedDiv ((ORIGWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
-	    scale >>= LIGHTSCALESHIFT;
-	    level = startmap - scale/DISTMAP;
+	    // [PN] Use precalculated fracwidth value
+	    scale = (FixedDiv(fracwidth, (j + 1) << LIGHTZSHIFT)) >> LIGHTSCALESHIFT;
+	    // [PN] Use bit shifting for faster handling
+	    level = startmap - (scale >> 1);
+	    // [PN] Clamp light level values
+	    level = BETWEEN(0, NUMCOLORMAPS - 1, level);
 	    
-	    if (level < 0)
-		level = 0;
-
-	    if (level >= NUMCOLORMAPS)
-		level = NUMCOLORMAPS-1;
-
 	    zlight[i][j] = colormaps + level*256;
 	}
     }
@@ -923,16 +922,14 @@ void R_ExecuteSetViewSize (void)
     for (i=0 ; i< LIGHTLEVELS ; i++)
     {
 
-	startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+	// [PN] Use bit shifting for faster handling
+	startmap = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
 	for (j=0 ; j<MAXLIGHTSCALE ; j++)
 	{
-	    level = startmap - j*NONWIDEWIDTH/(viewwidth_nonwide<<detailshift)/DISTMAP;
-	    
-	    if (level < 0)
-		level = 0;
-
-	    if (level >= NUMCOLORMAPS)
-		level = NUMCOLORMAPS-1;
+	    // [PN] Use bit shifting for faster handling
+	    level = startmap - ((j * NONWIDEWIDTH / (viewwidth_nonwide << detailshift)) >> 1);
+	    // [PN] Clamp light level values
+	    level = BETWEEN(0, NUMCOLORMAPS - 1, level);
 
 	    scalelight[i][j] = colormaps + level*256;
 	}

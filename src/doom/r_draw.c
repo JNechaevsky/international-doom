@@ -846,9 +846,11 @@ void R_InitTranslationTables (void)
 	if (i >= 0x70 && i<= 0x7f)
 	{
 	    // map green ramp to gray, brown, red
-	    translationtables[i] = 0x60 + (i&0xf);
-	    translationtables [i+256] = 0x40 + (i&0xf);
-	    translationtables [i+512] = 0x20 + (i&0xf);
+	    const int offset = i & 0xf;  // [PN] Precalculate value
+
+	    translationtables[i] = 0x60 + offset;
+	    translationtables [i+256] = 0x40 + offset;
+	    translationtables [i+512] = 0x20 + offset;
 	}
 	else
 	{

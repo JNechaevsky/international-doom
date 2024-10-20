@@ -469,19 +469,18 @@ void ID_RightWidgets (void)
         yy += 10;
     }
 
-    // [JN] FPS counter
+    // [JN/PN] FPS counter
     if (vid_showfps)
     {
+        int  fps_x_pos;
         char fps[8];
-        char fps_str[4];
 
         sprintf(fps, "%d", id_fps_value);
-        sprintf(fps_str, "FPS");
+        fps_x_pos = ORIGWIDTH + WIDESCREENDELTA - 11 
+                  - MN_TextAWidth(fps) - MN_TextAWidth("FPS");
 
-        MN_DrTextA(fps, ORIGWIDTH + WIDESCREENDELTA - 11 - MN_TextAWidth(fps) 
-                                  - MN_TextAWidth(fps_str), yy, cr[CR_LIGHTGRAY_DARK1]);
-
-        MN_DrTextA(fps_str, ORIGWIDTH + WIDESCREENDELTA - 7 - MN_TextAWidth(fps_str), yy, cr[CR_LIGHTGRAY_DARK1]);
+        MN_DrTextA(fps, fps_x_pos, yy, cr[CR_LIGHTGRAY_DARK1]);
+        MN_DrTextA("FPS", fps_x_pos + MN_TextAWidth(fps) + 4, yy, cr[CR_LIGHTGRAY_DARK1]); // [PN] 4 for spacing
 
         yy += 10;
     }
@@ -636,19 +635,26 @@ static const byte xhair_dot[] =
 
 static patch_t *ID_CrosshairShape (void)
 {
-    return
-        xhair_draw == 1 ? (patch_t*) &xhair_cross1   :
-        xhair_draw == 2 ? (patch_t*) &xhair_cross2   :
-        xhair_draw == 3 ? (patch_t*) &xhair_x        :
-        xhair_draw == 4 ? (patch_t*) &xhair_circle   :
-        xhair_draw == 5 ? (patch_t*) &xhair_angle    :
-        xhair_draw == 6 ? (patch_t*) &xhair_triangle :
-                          (patch_t*) &xhair_dot;
+    // [PN] Array of crosshair shapes with explicit type casting
+    patch_t *crosshair_shapes[] = {
+        NULL,                        // xhair_draw == 0 (no crosshair)
+        (patch_t*) &xhair_cross1,    // xhair_draw == 1
+        (patch_t*) &xhair_cross2,    // xhair_draw == 2
+        (patch_t*) &xhair_x,         // xhair_draw == 3
+        (patch_t*) &xhair_circle,    // xhair_draw == 4
+        (patch_t*) &xhair_angle,     // xhair_draw == 5
+        (patch_t*) &xhair_triangle,  // xhair_draw == 6
+        (patch_t*) &xhair_dot,       // xhair_draw == 7
+    };
+
+    // [PN] Return the appropriate crosshair shape
+    return crosshair_shapes[xhair_draw];
 }
 
 // -----------------------------------------------------------------------------
 // ID_CrosshairColor
-//  [JN] Coloring routine, depending on "xhair_color" variable.
+//  [JN/PN] Determines crosshair color depending on "xhair_color" variable.
+//  Supports static, health-based, target highlight, and combined modes.
 // -----------------------------------------------------------------------------
 
 static byte *ID_CrosshairColor (int type)
@@ -658,41 +664,27 @@ static byte *ID_CrosshairColor (int type)
     switch (type)
     {
         case 0:
-        {
             // Static/uncolored.
-            return
-                cr[CR_RED];
-            break;
-        }
+            return cr[CR_RED];
+
         case 1:
-        {
-            // Health.
-            // Values are same to status bar coloring (ST_WidgetColor).
-            return
-                player->health >= 67 ? cr[CR_GREEN]  :
-                player->health >= 34 ? cr[CR_YELLOW] :
-                                       cr[CR_RED]    ;
-            break;
-        }
+            // Health-based coloring.
+            // Same logic as status bar coloring (ST_WidgetColor).
+            return player->health >= 67 ? cr[CR_GREEN]  :
+                   player->health >= 34 ? cr[CR_YELLOW] :
+                                          cr[CR_RED];
+
         case 2:
-        {
             // Target highlight.
-            // "linetarget" is gathered via intercept-safe call 
-            // of P_AimLineAttack in G_Ticker.
-            return
-                linetarget ? cr[CR_BLUE2] : cr[CR_RED];
-            break;
-        }
+            // "linetarget" is set by intercept-safe P_AimLineAttack in G_Ticker.
+            return linetarget ? cr[CR_BLUE2] : cr[CR_RED];
+
         case 3:
-        {
             // Target highlight+health.
-            return
-                linetarget           ? cr[CR_BLUE2]  :
-                player->health >= 67 ? cr[CR_GREEN]  :
-                player->health >= 34 ? cr[CR_YELLOW] :
-                                       cr[CR_RED]    ;
-            break;
-        }
+            return linetarget           ? cr[CR_BLUE2]  :
+                   player->health >= 67 ? cr[CR_GREEN]  :
+                   player->health >= 34 ? cr[CR_YELLOW] :
+                                          cr[CR_RED];
     }
 
     return NULL;
@@ -729,8 +721,8 @@ void ID_DemoTimer (const int time)
     const int hours = time / (3600 * TICRATE);
     const int mins = time / (60 * TICRATE) % 60;
     const float secs = (float)(time % (60 * TICRATE)) / TICRATE;
+    const int x = 237 + (hours ? 0 : 20); // [PN] Adjust x based on presence of hours
     char n[16];
-    int x = 237;
 
     if (hours)
     {
@@ -739,7 +731,6 @@ void ID_DemoTimer (const int time)
     else
     {
         M_snprintf(n, sizeof(n), "%02i:%05.02f", mins, secs);
-        x += 20;
     }
 
     MN_DrTextA(n, x + WIDESCREENDELTA, 10, cr[CR_LIGHTGRAY]);
@@ -757,7 +748,7 @@ void ID_DemoBar (void)
     static int white = 0;
     const int i = SCREENWIDTH * defdemotics / deftotaldemotics;
 
-    // [JN] Don't rely on palette indexes,
+    // [JN/PN] Don't rely on palette indexes,
     // try to find nearest colors instead.
     if (!colors_set)
     {
@@ -771,13 +762,8 @@ void ID_DemoBar (void)
         colors_set = true;
     }
 
-#ifndef CRISPY_TRUECOLOR
     V_DrawHorizLine(0, SCREENHEIGHT - 2, i, black); // [crispy] black
     V_DrawHorizLine(0, SCREENHEIGHT - 1, i, white); // [crispy] white
-#else
-    V_DrawHorizLine(0, SCREENHEIGHT - 2, i, black); // [crispy] black
-    V_DrawHorizLine(0, SCREENHEIGHT - 1, i, white); // [crispy] white
-#endif
 }
 
 // =============================================================================
@@ -876,35 +862,32 @@ void CRL_ReportPosition (fixed_t x, fixed_t y, fixed_t z, angle_t angle)
 
 void CRL_ImpulseCamera (fixed_t fwm, fixed_t swm, angle_t at)
 {
+    // [JN/PN] Precalculate values:
+    const fixed_t fwm_val = fwm * 32768;
+    const fixed_t swm_val = swm * 32768;
+
     // Rotate camera first
     CRL_camera_ang += at << FRACBITS;
 
     // Forward movement
     at = CRL_camera_ang >> ANGLETOFINESHIFT;
-    CRL_camera_x += FixedMul(fwm * 32768, finecosine[at]); 
-    CRL_camera_y += FixedMul(fwm * 32768, finesine[at]);
+    CRL_camera_x += FixedMul(fwm_val, finecosine[at]); 
+    CRL_camera_y += FixedMul(fwm_val, finesine[at]);
 
     // Sideways movement
     at = (CRL_camera_ang - ANG90) >> ANGLETOFINESHIFT;
-    CRL_camera_x += FixedMul(swm * 32768, finecosine[at]); 
-    CRL_camera_y += FixedMul(swm * 32768, finesine[at]);
+    CRL_camera_x += FixedMul(swm_val, finecosine[at]); 
+    CRL_camera_y += FixedMul(swm_val, finesine[at]);
 }
 
 // -----------------------------------------------------------------------------
 // CRL_ImpulseCameraVert
-//  [JN] Impulses the camera up/down.
+//  [JN/PN] Impulses the camera up/down.
 //  @param direction: true = up, false = down.
 //  @param intensity: 32 of 64 map unit, depending on player run mode.
 // -----------------------------------------------------------------------------
 
 void CRL_ImpulseCameraVert (boolean direction, fixed_t intensity)
 {
-    if (direction)
-    {
-        CRL_camera_z += FRACUNIT*intensity;
-    }
-    else
-    {
-        CRL_camera_z -= FRACUNIT*intensity;
-    }
+    CRL_camera_z += (direction ? 1 : -1) * FRACUNIT * intensity;
 }

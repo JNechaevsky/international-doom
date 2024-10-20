@@ -987,41 +987,32 @@ void ST_doPaletteStuff (void)
 
 // -----------------------------------------------------------------------------
 // ST_doSmoothPaletteStuff
-// [JN] Smooth palette handling.
+// [JN/PN] Smooth palette handling.
+// Handles smooth palette transitions for a better visual effect.
 // -----------------------------------------------------------------------------
 
 #ifdef CRISPY_TRUECOLOR
 static void ST_doSmoothPaletteStuff (void)
 {
-    int palette;
     int red = plyr->damagecount;
     int yel = plyr->bonuscount;
     int grn = plyr->powers[pw_ironfeet] > 4*32 || plyr->powers[pw_ironfeet] & 8;
+    int palette = 0;
 
+    // [PN] Calculate berserk fade value if active
     if (plyr->powers[pw_strength])
     {
-        // [JN] Smoother berserk fading.
         int bzc = (12 << 1) - (plyr->powers[pw_strength] >> 6);
         
         // [JN] Berserk is almost faded out. Handle final fading differently:
         if (bzc > 0 && bzc < 13)
         {
-            if (plyr->powers[pw_ironfeet])
-            {
-                // If have a radiation suit, switch to the green palette immediately.
-                bzc = 0;
-            }
-            else
-            {
-                // Otherwise, perform a smooth and fast final fade.
-                bzc = 780 - plyr->powers[pw_strength];
-            }
+            // [PN] If have a radiation suit, switch to the green palette immediately.
+            bzc = plyr->powers[pw_ironfeet] ? 0 : 780 - plyr->powers[pw_strength];
         }
 
-        if (bzc > red)
-        {
-            red = bzc;
-        }
+        // [PN] Take the maximum of berserk or damage value
+        red = MAX(bzc, red);
     }
 
     if (red)
@@ -1037,10 +1028,6 @@ static void ST_doSmoothPaletteStuff (void)
     else if (grn)
     {
         palette = RADIATIONPAL;
-    }
-    else
-    {
-        palette = 0;
     }
 
     // In Chex Quest, the player never sees red.  Instead, the
@@ -1065,32 +1052,28 @@ static void ST_doSmoothPaletteStuff (void)
 // -----------------------------------------------------------------------------
 // ST_UpdateFragsCounter
 // [JN] Updated to int type, allowing to show frags of any player.
+// [PN] Calculates total frags for a player, excluding their own.
+//      Limits the count to -99 and 99 if big_values is false.
 // -----------------------------------------------------------------------------
 
 static const int ST_UpdateFragsCounter (const int playernum, const boolean big_values)
 {
     st_fragscount = 0;
 
+    // [PN] Update frag count by adding frags of other players and 
+    // subtracting player's own frags to avoid self-inclusion.
     for (int i = 0 ; i < MAXPLAYERS ; i++)
     {
-        if (i != playernum)
-        {
-            st_fragscount += players[playernum].frags[i];
-        }
-        else
-        {
-            st_fragscount -= players[playernum].frags[i];
-        }
+        st_fragscount += (i != playernum) ? players[playernum].frags[i] : 
+                                           -players[playernum].frags[i];
     }
     
     // [JN] Prevent overflow, ST_DrawBigNumber can only draw three 
-    // digit number, and status bar fits well only two digits number
+    // digit number, and status bar fits well only two digits number.
+    // [PN] Use MAX and MIN macros to limit st_fragscount between -99 and 99.
     if (!big_values)
     {
-        if (st_fragscount > 99)
-            st_fragscount = 99;
-        if (st_fragscount < -99)
-            st_fragscount = -99;
+        st_fragscount = MIN(MAX(st_fragscount, -99), 99);
     }
 
     return st_fragscount;
@@ -1263,6 +1246,8 @@ static byte *ST_WidgetColor (const int i)
 // -----------------------------------------------------------------------------
 // ST_DrawBigNumber
 // [JN] Draws a three digit big red number using STTNUM* graphics.
+// [PN] Supports negative values and ensures proper digit placement.
+//      Capped at 999 for positive numbers and 99 for negative numbers.
 // -----------------------------------------------------------------------------
 
 static void ST_DrawBigNumber (int val, const int x, const int y, byte *table)
@@ -1276,37 +1261,31 @@ static void ST_DrawBigNumber (int val, const int x, const int y, byte *table)
     if (val < 0)
     {
         val = -val;
-        
-        if (-val <= -99)
-        {
-            val = 99;
-        }
+        // [PN] Cap at 99 for negative values
+        val = (val > 99) ? 99 : val;
 
         // [JN] Draw minus symbol with respection of digits placement.
         // However, values below -10 requires some correction in "x" placement.
         V_DrawPatch(xpos + (val <= 9 ? 20 : 5) - 4, y, tallminus);
     }
-    if (val > 999)
-    {
-        val = 999;
-    }
+    
+    // [PN] Cap at 999
+    val = (val > 999) ? 999 : val;
 
+    // [PN] Draw hundreds
     if (val > 99)
-    {
         V_DrawPatch(xpos - 4, y, tallnum[val / 100]);
-    }
 
-    val = val % 100;
+    val = val % 100;  // [PN] Get last two digits
     xpos += 14;
 
+    // [PN] Draw tens
     if (val > 9 || oldval > 99)
-    {
         V_DrawPatch(xpos - 4, y, tallnum[val / 10]);
-    }
 
+    // [PN] Draw ones
     val = val % 10;
     xpos += 14;
-
     V_DrawPatch(xpos - 4, y, tallnum[val]);
     
     dp_translation = NULL;
@@ -1396,54 +1375,25 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 // ST_UpdateElementsBackground
 // [JN] Use V_CopyRect to draw/update background under elements.
 //      This is notably faster than re-drawing entire background.
+// [PN] Refactored with loop to avoid repetition and make code more concise.
 // -----------------------------------------------------------------------------
 
 static void ST_UpdateElementsBackground (void)
 {
-    // Ammo
-    V_CopyRect(ammo_bg[0], ammo_bg[1], st_backing_screen,
-               ammo_bg[2], ammo_bg[3],
-               ammo_bg[0], ammo_bg[4]);
+    // [PN] Store all background elements in an array for looped processing
+    const int *elements[] = {
+        ammo_bg, hlth_bg, frgs_bg, face_bg, armr_bg,
+        keys_bg, amoc_bg, amom_bg, disk_bg
+    };
 
-    // Health
-    V_CopyRect(hlth_bg[0], hlth_bg[1], st_backing_screen,
-               hlth_bg[2], hlth_bg[3],
-               hlth_bg[0], hlth_bg[4]);
-
-    // ARMS or frags
-    V_CopyRect(frgs_bg[0], frgs_bg[1], st_backing_screen,
-               frgs_bg[2], frgs_bg[3],
-               frgs_bg[0], frgs_bg[4]);
-
-    // Player face
-    V_CopyRect(face_bg[0], face_bg[1], st_backing_screen,
-               face_bg[2], face_bg[3],
-               face_bg[0], face_bg[4]);
-
-    // Armor
-    V_CopyRect(armr_bg[0], armr_bg[1], st_backing_screen,
-               armr_bg[2], armr_bg[3],
-               armr_bg[0], armr_bg[4]);
-
-    // Keys
-    V_CopyRect(keys_bg[0], keys_bg[1], st_backing_screen,
-               keys_bg[2], keys_bg[3],
-               keys_bg[0], keys_bg[4]);
-
-    // Ammo (current)
-    V_CopyRect(amoc_bg[0], amoc_bg[1], st_backing_screen,
-               amoc_bg[2], amoc_bg[3],
-               amoc_bg[0], amoc_bg[4]);
-
-    // Ammo (max)
-    V_CopyRect(amom_bg[0], amom_bg[1], st_backing_screen,
-               amom_bg[2], amom_bg[3],
-               amom_bg[0], amom_bg[4]);
-
-    // Disk icon
-    V_CopyRect(disk_bg[0], disk_bg[1], st_backing_screen,
-               disk_bg[2], disk_bg[3],
-               disk_bg[0], disk_bg[4]);
+    // [PN] Loop through each element and copy its background using V_CopyRect
+    for (int i = 0; i < sizeof(elements)/sizeof(elements[0]); i++)
+    {
+        V_CopyRect(elements[i][0], elements[i][1],
+                   st_backing_screen,
+                   elements[i][2], elements[i][3],
+                   elements[i][0], elements[i][4]);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1835,70 +1785,43 @@ void ST_Init (void)
 // ST_InitElementsBackground
 // [JN] Preallocate rectangle sizes for status bar buffered drawing 
 //      to avoid some extra multiplying calculations while drawing.
+// [PN] Using a macro instead of a function to avoid function call overhead
+//      and to keep inline performance for this initialization task.
 // -----------------------------------------------------------------------------
+
+#define INIT_ELEMENT(bg, x, y, w, h, b) \
+    bg[0] = (x + WIDESCREENDELTA) * vid_resolution; \
+    bg[1] = y * vid_resolution; \
+    bg[2] = w * vid_resolution; \
+    bg[3] = h * vid_resolution; \
+    bg[4] = b * vid_resolution;
 
 void ST_InitElementsBackground (void)
 {
     // Ammo
-    ammo_bg[0] = WIDESCREENDELTA * vid_resolution;
-    ammo_bg[1] = 2 * vid_resolution;
-    ammo_bg[2] = 45 * vid_resolution;
-    ammo_bg[3] = 20 * vid_resolution;
-    ammo_bg[4] = 170 * vid_resolution;
+    INIT_ELEMENT(ammo_bg, 0, 2, 45, 20, 170);
 
     // Health
-    hlth_bg[0] = (48 + WIDESCREENDELTA) * vid_resolution;
-    hlth_bg[1] = 2 * vid_resolution;
-    hlth_bg[2] = 57 * vid_resolution;
-    hlth_bg[3] = 20 * vid_resolution;
-    hlth_bg[4] = 170 * vid_resolution;
+    INIT_ELEMENT(hlth_bg, 48, 2, 57, 20, 170);
 
     // ARMS or frags
-    frgs_bg[0] = (105 + WIDESCREENDELTA) * vid_resolution;
-    frgs_bg[1] = 2 * vid_resolution;
-    frgs_bg[2] = 37 * vid_resolution;
-    frgs_bg[3] = 20 * vid_resolution;
-    frgs_bg[4] = 170 * vid_resolution;
+    INIT_ELEMENT(frgs_bg, 105, 2, 37, 20, 170);
 
     // Player face background
-    face_bg[0] = (142 + WIDESCREENDELTA) * vid_resolution;
-    face_bg[1] = 0;
-    face_bg[2] = 37 * vid_resolution;
-    face_bg[3] = 32 * vid_resolution;
-    face_bg[4] = 168 * vid_resolution;
+    INIT_ELEMENT(face_bg, 142, 0, 37, 32, 168);
 
     // Armor
-    armr_bg[0] = (179 + WIDESCREENDELTA) * vid_resolution;
-    armr_bg[1] = 2 * vid_resolution;
-    armr_bg[2] = 56 * vid_resolution;
-    armr_bg[3] = 20 * vid_resolution;
-    armr_bg[4] = 170 * vid_resolution;    
+    INIT_ELEMENT(armr_bg, 179, 2, 56, 20, 170);
 
     // Keys
-    keys_bg[0] = (236 + WIDESCREENDELTA) * vid_resolution;
-    keys_bg[1] = 0;
-    keys_bg[2] = 13 * vid_resolution;
-    keys_bg[3] = 32 * vid_resolution;
-    keys_bg[4] = 168 * vid_resolution;
+    INIT_ELEMENT(keys_bg, 236, 0, 13, 32, 168);
 
     // Ammo (current)
-    amoc_bg[0] = (272 + WIDESCREENDELTA) * vid_resolution;
-    amoc_bg[1] = 5 * vid_resolution;
-    amoc_bg[2] = 16 * vid_resolution;
-    amoc_bg[3] = 24 * vid_resolution;
-    amoc_bg[4] = 173 * vid_resolution;
+    INIT_ELEMENT(amoc_bg, 272, 5, 16, 24, 173);
 
     // Ammo (max)
-    amom_bg[0] = (298 + WIDESCREENDELTA) * vid_resolution;
-    amom_bg[1] = 5 * vid_resolution;
-    amom_bg[2] = 16 * vid_resolution;
-    amom_bg[3] = 24 * vid_resolution;
-    amom_bg[4] = 173 * vid_resolution;
+    INIT_ELEMENT(amom_bg, 298, 5, 16, 24, 173);
 
     // Disk icon
-    disk_bg[0] = (304 + WIDESCREENDELTA * 2) * vid_resolution;
-    disk_bg[1] = 17 * vid_resolution;
-    disk_bg[2] = 16 * vid_resolution;
-    disk_bg[3] = 16 * vid_resolution;
-    disk_bg[4] = 185 * vid_resolution;
+    INIT_ELEMENT(disk_bg, 304 + WIDESCREENDELTA, 17, 16, 16, 185);
 }
