@@ -2456,6 +2456,17 @@ M_WriteText
             continue;
         }
 
+        // [crispy] support multi-colored text
+        if (c == cr_esc)
+        {
+            if (*ch >= '0' && *ch <= '0' + CRMAX - 1)
+            {
+                c = *ch++;
+                dp_translation = cr[(int) (c - '0')];
+                continue;
+            }
+        }
+
         c = toupper(c) - HU_FONTSTART;
         if (c < 0 || c>= HU_FONTSIZE)
         {
@@ -2466,7 +2477,7 @@ M_WriteText
         w = SHORT (hu_font[c]->width);
 
         // haleyjd 09/04/10: [STRIFE] Different linebreak handling
-        if (cx + w > SCREENWIDTH - 20)
+        if (cx + w > ORIGWIDTH - 20)
         {
             cx = x;
             cy += 11;
@@ -2568,7 +2579,7 @@ void M_WriteTextCentered (const int y, const char *string, byte *table)
 //
 void M_DialogDimMsg(int x, int y, char *str, boolean useyfont)
 {
-    int rightbound = (SCREENWIDTH - 20) - x;
+    int rightbound = (ORIGWIDTH - 20) - x;
     patch_t **fontarray;  // ebp
     int linewidth = 0;    // esi
     int i = 0;            // edx
