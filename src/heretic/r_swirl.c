@@ -19,66 +19,59 @@
 
 // [crispy] adapted from smmu/r_ripple.c, by Simon Howard
 
-#include <tables.h>
-
-#include <i_system.h>
-#include <w_wad.h>
-#include <z_zone.h>
-
+#include "tables.h"
+#include "i_system.h"
+#include "w_wad.h"
+#include "z_zone.h"
 #include "doomdef.h"
 
-// swirl factors determine the number of waves per flat width
 
-// 1 cycle per 64 units
-#define swirlfactor (FINEANGLES / 64)
+// swirl factors
+#define SWIRLFACTOR  (FINEANGLES / 64)  // [PN] Defines the number of waves per 64 units.
+#define SWIRLFACTOR2 (FINEANGLES / 32)  // [PN] Defines the number of waves per 32 units.
 
-// 1 cycle per 32 units (2 in 64)
-#define swirlfactor2 (FINEANGLES / 32)
+#define SEQUENCE 256                    // [PN] Number of frames in the distortion sequence.
+#define FLATSIZE (64 * 64)              // [PN] Flat texture size (64x64 pixels).
 
-#define SEQUENCE 256
-#define FLATSIZE (64 * 64)
+#define AMP 2                           // [PN] Amplitude for the primary distortion.
+#define AMP2 2                          // [PN] Amplitude for the secondary distortion.
+#define SPEED 32                        // [PN] Speed of the wave distortion.
 
-static int *offsets = NULL;
-static int *offset;
+static int *offsets = NULL;             // [PN] Array to store offsets for all frames.
+static int *offset;                     // [PN] Current pointer to offsets for a specific frame.
 
-#define AMP 2
-#define AMP2 2
-#define SPEED 32
 
-void R_InitDistortedFlats(void)
+// [PN] Helper function to calculate the offset based on sine wave values.
+static inline int calculate_offset (int x, int y, int i, int factor, int factor2, int amp, int amp2, int speed) 
+{
+    const int sinvalue = (y * factor + i * speed * 5 + 900) & FINEMASK;
+    const int sinvalue2 = (x * factor2 + i * speed * 4 + 300) & FINEMASK;
+    const int result = x + 128 + ((finesine[sinvalue] * amp) >> FRACBITS) 
+                     + ((finesine[sinvalue2] * amp2) >> FRACBITS);
+
+    // [PN] Ensuring the result wraps around within the 64x64 grid.
+    return result & 63;
+}
+
+
+
+void R_InitDistortedFlats (void)
 {
 	if (!offsets)
 	{
-		int i;
-
 		offsets = I_Realloc(offsets, SEQUENCE * FLATSIZE * sizeof(*offsets));
 		offset = offsets;
 
-		for (i = 0; i < SEQUENCE; i++)
+		for (int i = 0; i < SEQUENCE; i++)
 		{
-			int x, y;
-
-			for (x = 0; x < 64; x++)
+			for (int x = 0; x < 64; x++)
 			{
-				for (y = 0; y < 64; y++)
+				for (int y = 0; y < 64; y++)
 				{
-					int x1, y1;
-					int sinvalue, sinvalue2;
-
-					sinvalue = (y * swirlfactor + i * SPEED * 5 + 900) & FINEMASK;
-					sinvalue2 = (x * swirlfactor2 + i * SPEED * 4 + 300) & FINEMASK;
-					x1 = x + 128
-					   + ((finesine[sinvalue] * AMP) >> FRACBITS)
-					   + ((finesine[sinvalue2] * AMP2) >> FRACBITS);
-
-					sinvalue = (x * swirlfactor + i * SPEED * 3 + 700) & FINEMASK;
-					sinvalue2 = (y * swirlfactor2 + i * SPEED * 4 + 1200) & FINEMASK;
-					y1 = y + 128
-					   + ((finesine[sinvalue] * AMP) >> FRACBITS)
-					   + ((finesine[sinvalue2] * AMP2) >> FRACBITS);
-
-					x1 &= 63;
-					y1 &= 63;
+                    // [PN] Calculate X distortion.
+                    const int x1 = calculate_offset(x, y, i, SWIRLFACTOR, SWIRLFACTOR2, AMP, AMP2, SPEED);
+                    // [PN] Calculate Y distortion (swapped x and y).                    
+                    const int y1 = calculate_offset(y, x, i, SWIRLFACTOR, SWIRLFACTOR2, AMP, AMP2, SPEED);
 
 					offset[(y << 6) + x] = (y1 << 6) + x1;
 				}
@@ -89,7 +82,7 @@ void R_InitDistortedFlats(void)
 	}
 }
 
-byte *R_DistortedFlat(int flatnum)
+byte *R_DistortedFlat (int flatnum)
 {
 	static int swirltic = -1;
 	static int swirlflat = -1;
@@ -110,6 +103,7 @@ byte *R_DistortedFlat(int flatnum)
 
 		normalflat = W_CacheLumpNum(flatnum, PU_STATIC);
 
+        // [PN] Loop through each pixel and apply the distortion.
 		for (i = 0; i < FLATSIZE; i++)
 		{
 			distortedflat[i] = normalflat[offset[i]];

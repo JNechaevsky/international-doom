@@ -17,12 +17,10 @@
 //	[crispy] add support for SMMU swirling flats
 //
 
-#ifndef __R_SWIRL__
-#define __R_SWIRL__
+#pragma once
+
 
 #include "doomtype.h"
 
-void R_InitDistortedFlats(void);
-byte *R_DistortedFlat(int flatnum);
-
-#endif
+extern void  R_InitDistortedFlats (void);
+extern byte *R_DistortedFlat (int flatnum);

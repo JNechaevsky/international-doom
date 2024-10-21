@@ -804,7 +804,7 @@ extern int skytexturemid;
 // -----------------------------------------------------------------------------
 
 extern void  R_InitDistortedFlats (void);
-extern char *R_DistortedFlat (int flatnum);
+extern byte *R_DistortedFlat (int flatnum);
 
 // -----------------------------------------------------------------------------
 // R_THINGS
