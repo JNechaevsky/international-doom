@@ -1059,82 +1059,93 @@ R_InitBuffer
  
 
 
-//
+// -----------------------------------------------------------------------------
 // R_FillBackScreen
-// Fills the back screen with a pattern
-//  for variable screen sizes
+// Fills the back screen with a pattern for variable screen sizes.
 // Also draws a beveled edge.
-//
+// [PN] Optimized for readability and reduced code duplication.
+// Pre-cache patches and precompute commonly used values to improve efficiency.
+// -----------------------------------------------------------------------------
+
 void R_FillBackScreen (void) 
 { 
-    byte*	src;
-    pixel_t*	dest;
-    int		x;
-    int		y; 
-    patch_t*	patch;
+    byte *src;
+    pixel_t *dest;
+    patch_t *patch_top;
+    patch_t *patch_bottom;
+    patch_t *patch_left;
+    patch_t *patch_right;
+    patch_t *patch_tl;
+    patch_t *patch_tr;
+    patch_t *patch_bl;
+    patch_t *patch_br;
+    int viewx, viewy;
+    int scaledwidth;
+    int viewheight_res;
 
     // If we are running full screen, there is no need to do any of this,
     // and the background buffer can be freed if it was previously in use.
-
     if (scaledviewwidth == SCREENWIDTH)
     {
-	return;
+        return;
     }
 
     // Allocate the background buffer if necessary
-	
     if (background_buffer == NULL)
     {
         const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
         background_buffer = malloc(size * sizeof(*background_buffer));
     }
 
-    // Draw screen and bezel; this is done to a separate screen buffer.
-
+    // [PN] Use background buffer for drawing
     V_UseBuffer(background_buffer);
     
+    // [PN] Cache the background texture and fill the screen
     src = W_CacheLumpName(DEH_String(gamemode == commercial ? "GRNROCK" : "FLOOR7_2"), PU_CACHE); 
     dest = background_buffer;
-	 
-    // [crispy] use unified flat filling function
-    V_FillFlat(0, SCREENHEIGHT-SBARHEIGHT, 0, SCREENWIDTH, src, dest);
-     
-    patch = W_CacheLumpName(DEH_String("brdr_t"),PU_CACHE);
 
-    for (x=0 ; x<(scaledviewwidth / vid_resolution) ; x+=8)
-	V_DrawPatch((viewwindowx / vid_resolution)+x-WIDESCREENDELTA, (viewwindowy / vid_resolution)-8, patch);
-    patch = W_CacheLumpName(DEH_String("brdr_b"),PU_CACHE);
+    // [PN] Pre-cache patches for border drawing
+    patch_top = W_CacheLumpName(DEH_String("brdr_t"), PU_CACHE);
+    patch_bottom = W_CacheLumpName(DEH_String("brdr_b"), PU_CACHE);
+    patch_left = W_CacheLumpName(DEH_String("brdr_l"), PU_CACHE);
+    patch_right = W_CacheLumpName(DEH_String("brdr_r"), PU_CACHE);
+    patch_tl = W_CacheLumpName(DEH_String("brdr_tl"), PU_CACHE);
+    patch_tr = W_CacheLumpName(DEH_String("brdr_tr"), PU_CACHE);
+    patch_bl = W_CacheLumpName(DEH_String("brdr_bl"), PU_CACHE);
+    patch_br = W_CacheLumpName(DEH_String("brdr_br"), PU_CACHE);
 
-    for (x=0 ; x<(scaledviewwidth / vid_resolution) ; x+=8)
-	V_DrawPatch((viewwindowx / vid_resolution)+x-WIDESCREENDELTA, (viewwindowy / vid_resolution)+(viewheight / vid_resolution), patch);
-    patch = W_CacheLumpName(DEH_String("brdr_l"),PU_CACHE);
+    // [PN] Precompute commonly used values
+    viewx = viewwindowx / vid_resolution;
+    viewy = viewwindowy / vid_resolution;
+    scaledwidth = scaledviewwidth / vid_resolution;
+    viewheight_res = viewheight / vid_resolution;
 
-    for (y=0 ; y<(viewheight / vid_resolution) ; y+=8)
-	V_DrawPatch((viewwindowx / vid_resolution)-8-WIDESCREENDELTA, (viewwindowy / vid_resolution)+y, patch);
-    patch = W_CacheLumpName(DEH_String("brdr_r"),PU_CACHE);
+    // [crispy] Unified flat filling function
+    V_FillFlat(0, SCREENHEIGHT - SBARHEIGHT, 0, SCREENWIDTH, src, dest);
 
-    for (y=0 ; y<(viewheight / vid_resolution) ; y+=8)
-	V_DrawPatch((viewwindowx / vid_resolution)+(scaledviewwidth / vid_resolution)-WIDESCREENDELTA, (viewwindowy / vid_resolution)+y, patch);
+    // [PN] Draw top and bottom borders
+    for (int x = 0; x < scaledwidth; x += 8)
+    {
+        V_DrawPatch(viewx + x - WIDESCREENDELTA, viewy - 8, patch_top);
+        V_DrawPatch(viewx + x - WIDESCREENDELTA, viewy + viewheight_res, patch_bottom);
+    }
 
-    // Draw beveled edge. 
-    V_DrawPatch((viewwindowx / vid_resolution)-8-WIDESCREENDELTA,
-                (viewwindowy / vid_resolution)-8,
-                W_CacheLumpName(DEH_String("brdr_tl"),PU_CACHE));
-    
-    V_DrawPatch((viewwindowx / vid_resolution)+(scaledviewwidth / vid_resolution)-WIDESCREENDELTA,
-                (viewwindowy / vid_resolution)-8,
-                W_CacheLumpName(DEH_String("brdr_tr"),PU_CACHE));
-    
-    V_DrawPatch((viewwindowx / vid_resolution)-8-WIDESCREENDELTA,
-                (viewwindowy / vid_resolution)+(viewheight / vid_resolution),
-                W_CacheLumpName(DEH_String("brdr_bl"),PU_CACHE));
-    
-    V_DrawPatch((viewwindowx / vid_resolution)+(scaledviewwidth / vid_resolution)-WIDESCREENDELTA,
-                (viewwindowy / vid_resolution)+(viewheight / vid_resolution),
-                W_CacheLumpName(DEH_String("brdr_br"),PU_CACHE));
+    // [PN] Draw left and right borders
+    for (int y = 0; y < viewheight_res; y += 8)
+    {
+        V_DrawPatch(viewx - 8 - WIDESCREENDELTA, viewy + y, patch_left);
+        V_DrawPatch(viewx + scaledwidth - WIDESCREENDELTA, viewy + y, patch_right);
+    }
 
+    // [PN] Draw corners
+    V_DrawPatch(viewx - 8 - WIDESCREENDELTA, viewy - 8, patch_tl);
+    V_DrawPatch(viewx + scaledwidth - WIDESCREENDELTA, viewy - 8, patch_tr);
+    V_DrawPatch(viewx - 8 - WIDESCREENDELTA, viewy + viewheight_res, patch_bl);
+    V_DrawPatch(viewx + scaledwidth - WIDESCREENDELTA, viewy + viewheight_res, patch_br);
+
+    // [PN] Restore the previous buffer
     V_RestoreBuffer();
-} 
+}
  
 
 //
