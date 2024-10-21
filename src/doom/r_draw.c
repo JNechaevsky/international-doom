@@ -1016,48 +1016,43 @@ void R_DrawSpanLow (void)
     } while (count--);
 }
 
-//
+// -----------------------------------------------------------------------------
 // R_InitBuffer 
-// Creats lookup tables that avoid
-//  multiplies and other hazzles
-//  for getting the framebuffer address
-//  of a pixel to draw.
-//
-void
-R_InitBuffer
-( int		width,
-  int		height ) 
+// Initializes the buffer for a given view width and height.
+// Handles border offsets and row/column calculations.
+// [PN] Simplified logic and improved readability for better understanding.
+// -----------------------------------------------------------------------------
+
+void R_InitBuffer (int width, int height)
 { 
-    int		i; 
+    int i;
 
-    // Handle resize,
-    //  e.g. smaller view windows
-    //  with border and/or status bar.
-    viewwindowx = (SCREENWIDTH-width) >> 1; 
+    // [PN] Handle resize: calculate horizontal offset (viewwindowx).
+    viewwindowx = (SCREENWIDTH - width) >> 1;
 
-    // Column offset. For windows.
-    for (i=0 ; i<width ; i++) 
-	columnofs[i] = viewwindowx + i;
+    // [PN] Calculate column offsets (columnofs).
+    for (i = 0; i < width; i++) 
+    {
+        columnofs[i] = viewwindowx + i;
+    }
 
-    // Samw with base row offset.
-    if (width == SCREENWIDTH) 
-	viewwindowy = 0; 
-    else 
-	viewwindowy = (SCREENHEIGHT-SBARHEIGHT-height) >> 1; 
+    // [PN] Calculate vertical offset (viewwindowy).
+    // Simplified using ternary operator.
+    viewwindowy = (width == SCREENWIDTH) ? 0 : (SCREENHEIGHT - SBARHEIGHT - height) >> 1;
 
-    // Preclaculate all row offsets.
-    for (i=0 ; i<height ; i++) 
-	ylookup[i] = I_VideoBuffer + (i+viewwindowy)*SCREENWIDTH; 
+    // [PN] Precalculate row offsets (ylookup) for each row.
+    for (i = 0; i < height; i++) 
+    {
+        ylookup[i] = I_VideoBuffer + (i + viewwindowy) * SCREENWIDTH;
+    }
 
+    // [PN] Free the background buffer if it exists.
     if (background_buffer != NULL)
     {
-	    free(background_buffer);
-	    background_buffer = NULL;
+        free(background_buffer);
+        background_buffer = NULL;
     }
-} 
- 
- 
-
+}
 
 // -----------------------------------------------------------------------------
 // R_FillBackScreen
@@ -1146,7 +1141,6 @@ void R_FillBackScreen (void)
     // [PN] Restore the previous buffer
     V_RestoreBuffer();
 }
- 
 
 // -----------------------------------------------------------------------------
 // Copy a screen buffer.
@@ -1208,5 +1202,3 @@ void R_DrawViewBorder (void)
     // [PN] Mark the entire screen for refresh
     V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT - SBARHEIGHT);
 }
- 
- 
