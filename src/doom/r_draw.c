@@ -1168,44 +1168,50 @@ R_VideoErase
     }
 } 
 
-
-//
+// -----------------------------------------------------------------------------
 // R_DrawViewBorder
-// Draws the border around the view
-//  for different size windows?
-//
+// Draws the border around the view for different size windows.
+// [PN] Optimized by precomputing common offsets and reducing repeated calculations.
+// Simplified logic for top, bottom, and side erasing.
+// -----------------------------------------------------------------------------
+
 void R_DrawViewBorder (void) 
 { 
-    int		top;
-    int		side;
-    int		ofs;
-    int		i; 
- 
-    if (scaledviewwidth == SCREENWIDTH || background_buffer == NULL) 
-	return; 
-  
-    top = ((SCREENHEIGHT-SBARHEIGHT)-viewheight)/2; 
-    side = (SCREENWIDTH-scaledviewwidth)/2; 
- 
-    // copy top and one line of left side 
-    R_VideoErase (0, top*SCREENWIDTH+side); 
- 
-    // copy one line of right side and bottom 
-    ofs = (viewheight+top)*SCREENWIDTH-side; 
-    R_VideoErase (ofs, top*SCREENWIDTH+side); 
- 
-    // copy sides using wraparound 
-    ofs = top*SCREENWIDTH + SCREENWIDTH-side; 
-    side <<= 1;
-    
-    for (i=1 ; i<viewheight ; i++) 
-    { 
-	R_VideoErase (ofs, side); 
-	ofs += SCREENWIDTH; 
-    } 
+    int top;
+    int side;
+    int ofs;
+    int top_offset;
+    int bottom_offset;
 
-    // ? 
-    V_MarkRect (0,0,SCREENWIDTH, SCREENHEIGHT-SBARHEIGHT); 
-} 
+    if (scaledviewwidth == SCREENWIDTH || background_buffer == NULL)
+    {
+        return;
+    }
+
+    top = ((SCREENHEIGHT - SBARHEIGHT) - viewheight) / 2;
+    side = (SCREENWIDTH - scaledviewwidth) / 2;
+
+    // [PN] Precompute common offsets
+    top_offset = top * SCREENWIDTH + side;
+    bottom_offset = (viewheight + top) * SCREENWIDTH - side;
+
+    // [PN] Copy top and bottom sections
+    R_VideoErase(0, top_offset);
+    R_VideoErase(bottom_offset, top_offset);
+
+    // [PN] Precompute for sides
+    ofs = top * SCREENWIDTH + SCREENWIDTH - side;
+    side <<= 1;
+
+    // [PN] Copy sides
+    for (int i = 1; i < viewheight; i++) 
+    { 
+        R_VideoErase(ofs, side);
+        ofs += SCREENWIDTH;
+    }
+
+    // [PN] Mark the entire screen for refresh
+    V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT - SBARHEIGHT);
+}
  
  
