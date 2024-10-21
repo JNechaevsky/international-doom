@@ -1064,7 +1064,7 @@ R_InitBuffer
 // Fills the back screen with a pattern for variable screen sizes.
 // Also draws a beveled edge.
 // [PN] Optimized for readability and reduced code duplication.
-// Pre-cache patches and precompute commonly used values to improve efficiency.
+//      Pre-cache patches and precompute commonly used values to improve efficiency.
 // -----------------------------------------------------------------------------
 
 void R_FillBackScreen (void) 
@@ -1148,22 +1148,17 @@ void R_FillBackScreen (void)
 }
  
 
-//
+// -----------------------------------------------------------------------------
 // Copy a screen buffer.
-//
-void
-R_VideoErase
-( unsigned	ofs,
-  int		count ) 
-{ 
-  // LFB copy.
-  // This might not be a good idea if memcpy
-  //  is not optiomal, e.g. byte by byte on
-  //  a 32bit CPU, as GNU GCC/Linux libc did
-  //  at one point.
+// [PN] Changed ofs to size_t for clarity and to represent offset more appropriately.
+// -----------------------------------------------------------------------------
 
+void R_VideoErase (size_t ofs, int count) 
+{ 
+    // [PN] Ensure the background buffer is valid before copying
     if (background_buffer != NULL)
     {
+        // [PN] Copy from background buffer to video buffer
         memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count * sizeof(*I_VideoBuffer));
     }
 } 
@@ -1172,7 +1167,7 @@ R_VideoErase
 // R_DrawViewBorder
 // Draws the border around the view for different size windows.
 // [PN] Optimized by precomputing common offsets and reducing repeated calculations.
-// Simplified logic for top, bottom, and side erasing.
+//      Simplified logic for top, bottom, and side erasing.
 // -----------------------------------------------------------------------------
 
 void R_DrawViewBorder (void) 
