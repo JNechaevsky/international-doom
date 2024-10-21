@@ -84,7 +84,7 @@ byte *R_DistortedFlat(int flatnum)
 {
 	static int swirltic = -1;
 	static int swirlflat = -1;
-	static char distortedflat[FLATSIZE];
+	static byte distortedflat[FLATSIZE];
 
 	if (swirltic != leveltime)
 	{
