@@ -276,182 +276,164 @@ void R_SetFuzzPosDraw (void)
 	fuzzpos = fuzzpos_tic;
 }
 
-//
+// -----------------------------------------------------------------------------
+// R_DrawFuzzColumn
 // Framebuffer postprocessing.
-// Creates a fuzzy image by copying pixels
-//  from adjacent ones to left and right.
-// Used with an all black colormap, this
-//  could create the SHADOW effect,
-//  i.e. spectres and invisible players.
+// Creates a fuzzy image by copying pixels from adjacent ones to left and right.
+// Used with an all black colormap, this could create the SHADOW effect,
+// i.e. spectres and invisible players.
 //
-void R_DrawFuzzColumn (void) 
-{ 
-    int			count; 
-    pixel_t*		dest;
-    boolean		cutoff = false;
+// [PN] Optimized border adjustments by eliminating unnecessary `cutoff` variable.
+//      Simplified fuzz position updating logic and removed redundant operations
+//      for better readability.
+// -----------------------------------------------------------------------------
 
-    // Adjust borders. Low... 
-    if (!dc_yl) 
-	dc_yl = 1;
+void R_DrawFuzzColumn (void)
+{
+    int count;
+    pixel_t* dest;
+    boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
 
-    // .. and high.
-    if (dc_yh == viewheight-1) 
-    {
-	dc_yh = viewheight - 2; 
-	cutoff = true;
-    }
-		 
-    count = dc_yh - dc_yl; 
+    // Adjust borders.
+    if (!dc_yl)
+        dc_yl = 1;
+
+    if (cutoff)
+        dc_yh = viewheight - 2;
+
+    count = dc_yh - dc_yl;
 
     // Zero length.
-    if (count < 0) 
-	return; 
+    if (count < 0)
+        return;
 
-#ifdef RANGECHECK 
-    if (dc_x >= SCREENWIDTH
-	|| dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+#ifdef RANGECHECK
+    if (dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
     {
-	I_Error ("R_DrawFuzzColumn: %i to %i at %i",
-		 dc_yl, dc_yh, dc_x);
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
-    
+
     dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
-    // Looks like an attempt at dithering,
-    //  using the colormap #6 (of 0-31, a bit
-    //  brighter than average).
-    do 
+    // Looks like an attempt at dithering, using the colormap #6
+    // (of 0-31, a bit brighter than average).
+    do
     {
-	// Lookup framebuffer, and retrieve
-	//  a pixel that is either one column
-	//  left or right of the current one.
-	// Add index from colormap to index.
+        const int fuzz_offset = SCREENWIDTH * fuzzoffset[fuzzpos];
+
 #ifndef CRISPY_TRUECOLOR
-	*dest = colormaps[6*256+dest[SCREENWIDTH*fuzzoffset[fuzzpos]]]; 
+        *dest = colormaps[6 * 256 + dest[fuzz_offset]];
 #else
-	*dest = I_BlendDark(dest[SCREENWIDTH*fuzzoffset[fuzzpos]], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
 #endif
 
-	// Clamp table lookup index.
-	if (++fuzzpos == FUZZTABLE) 
-    {
-	    if (vis_improved_fuzz)
-	    {
-	        fuzzpos = realleveltime > oldleveltime ? ID_Random() % 49 : 0;
-	    }
-	    else
-	    {
-	        fuzzpos = 0;
-	    }
-    }
-	
-	dest += SCREENWIDTH;
-    } while (count--); 
+        // Update fuzzpos and clamp if necessary.
+        fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+        if (fuzzpos == 0 && vis_improved_fuzz)
+        {
+            fuzzpos = realleveltime > oldleveltime ? ID_Random() % 49 : 0;
+        }
+
+        dest += SCREENWIDTH;
+    } while (count--);
 
     // [crispy] if the line at the bottom had to be cut off,
     // draw one extra line using only pixels of that line and the one above
     if (cutoff)
     {
+        const int fuzz_offset = SCREENWIDTH * (fuzzoffset[fuzzpos] - FUZZOFF) / 2;
+
 #ifndef CRISPY_TRUECOLOR
-	*dest = colormaps[6*256+dest[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2]];
+        *dest = colormaps[6 * 256 + dest[fuzz_offset]];
 #else
-	*dest = I_BlendDark(dest[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
 #endif
     }
-} 
+}
 
-// low detail mode version
- 
-void R_DrawFuzzColumnLow (void) 
-{ 
-    int			count; 
-    pixel_t*		dest;
-    pixel_t*		dest2;
+// -----------------------------------------------------------------------------
+// R_DrawFuzzColumnLow
+// Draws a vertical slice of pixels in blocky mode (low detail).
+// Creates a fuzzy effect by copying pixels from adjacent ones.
+// [PN] Optimized border adjustments by eliminating unnecessary `cutoff` variable.
+//      Simplified fuzz position updating logic and removed redundant operations
+//      for better readability.
+// -----------------------------------------------------------------------------
+
+void R_DrawFuzzColumnLow (void)
+{
+    int count;
+    pixel_t *dest;
+    pixel_t *dest2;
     int x;
-    boolean		cutoff = false;
+    boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
 
-    // Adjust borders. Low... 
-    if (!dc_yl) 
-	dc_yl = 1;
+    // Adjust borders.
+    if (!dc_yl)
+        dc_yl = 1;
 
-    // .. and high.
-    if (dc_yh == viewheight-1) 
-    {
-	dc_yh = viewheight - 2; 
-	cutoff = true;
-    }
-		 
-    count = dc_yh - dc_yl; 
+    if (cutoff)
+        dc_yh = viewheight - 2;
+
+    count = dc_yh - dc_yl;
 
     // Zero length.
-    if (count < 0) 
-	return; 
+    if (count < 0)
+        return;
 
-    // low detail mode, need to multiply by 2
-    
+    // Low detail mode, need to multiply by 2.
     x = dc_x << 1;
-    
-#ifdef RANGECHECK 
-    if (x >= SCREENWIDTH
-	|| dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+
+#ifdef RANGECHECK
+    if (x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
     {
-	I_Error ("R_DrawFuzzColumn: %i to %i at %i",
-		 dc_yl, dc_yh, dc_x);
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
-    
+
     dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
-    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
 
-    // Looks like an attempt at dithering,
-    //  using the colormap #6 (of 0-31, a bit
-    //  brighter than average).
-    do 
+    // Looks like an attempt at dithering.
+    do
     {
-	// Lookup framebuffer, and retrieve
-	//  a pixel that is either one column
-	//  left or right of the current one.
-	// Add index from colormap to index.
+        const int fuzz_offset = SCREENWIDTH * fuzzoffset[fuzzpos];
+
 #ifndef CRISPY_TRUECOLOR
-	*dest = colormaps[6*256+dest[SCREENWIDTH*fuzzoffset[fuzzpos]]];
-	*dest2 = colormaps[6*256+dest2[SCREENWIDTH*fuzzoffset[fuzzpos]]];
+        *dest = colormaps[6 * 256 + dest[fuzz_offset]];
+        *dest2 = colormaps[6 * 256 + dest2[fuzz_offset]];
 #else
-	*dest = I_BlendDark(dest[SCREENWIDTH*fuzzoffset[fuzzpos]], 0xD3);
-	*dest2 = I_BlendDark(dest2[SCREENWIDTH*fuzzoffset[fuzzpos]], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
+        *dest2 = I_BlendDark(dest2[fuzz_offset], 0xD3);
 #endif
 
-	// Clamp table lookup index.
-	if (++fuzzpos == FUZZTABLE) 
-    {
-	    if (vis_improved_fuzz)
-	    {
-	        fuzzpos = realleveltime > oldleveltime ? ID_Random() % 49 : 0;
-	    }
-	    else
-	    {
-	        fuzzpos = 0;
-	    }
-    }
-	
-	dest += SCREENWIDTH;
-	dest2 += SCREENWIDTH;
+        // Update fuzzpos and clamp if necessary.
+        fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+        if (fuzzpos == 0 && vis_improved_fuzz)
+        {
+            fuzzpos = realleveltime > oldleveltime ? ID_Random() % 49 : 0;
+        }
 
-    } while (count--); 
+        dest += SCREENWIDTH;
+        dest2 += SCREENWIDTH;
+    } while (count--);
 
     // [crispy] if the line at the bottom had to be cut off,
     // draw one extra line using only pixels of that line and the one above
     if (cutoff)
     {
+        const int fuzz_offset = SCREENWIDTH * (fuzzoffset[fuzzpos] - FUZZOFF) / 2;
+
 #ifndef CRISPY_TRUECOLOR
-	*dest = colormaps[6*256+dest[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2]];
-	*dest2 = colormaps[6*256+dest2[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2]];
+        *dest = colormaps[6 * 256 + dest[fuzz_offset]];
+        *dest2 = colormaps[6 * 256 + dest2[fuzz_offset]];
 #else
-	*dest = I_BlendDark(dest[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2], 0xD3);
-	*dest2 = I_BlendDark(dest2[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
+        *dest2 = I_BlendDark(dest2[fuzz_offset], 0xD3);
 #endif
     }
-} 
+}
  
   
   
