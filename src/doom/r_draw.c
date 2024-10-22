@@ -93,6 +93,7 @@ int			dc_texheight; // [crispy] Tutti-Frutti fix
 byte*			dc_source;		
 
 
+// -----------------------------------------------------------------------------
 //
 // A column is a vertical slice/span from a wall texture that,
 //  given the DOOM style restrictions on the view orientation,
@@ -102,156 +103,140 @@ byte*			dc_source;
 // 
 // [crispy] replace R_DrawColumn() with Lee Killough's implementation
 // found in MBF to fix Tutti-Frutti, taken from mbfsrc/R_DRAW.C:99-1979
+//
+// [PN] Optimized handling of non-power-of-2 textures by using modulo operation
+//      instead of iterative loops to normalize 'frac' within bounds.
+//      General cleanup and improved readability of the power-of-2 path.
+// -----------------------------------------------------------------------------
 
-void R_DrawColumn (void) 
-{ 
-    int			count; 
-    pixel_t*		dest;
-    fixed_t		frac;
-    fixed_t		fracstep;	 
-    int			heightmask = dc_texheight - 1;
- 
-    count = dc_yh - dc_yl; 
+void R_DrawColumn (void)
+{
+    int count;
+    pixel_t *dest;
+    fixed_t frac;
+    fixed_t fracstep;
+    int heightmask = dc_texheight - 1;
+
+    count = dc_yh - dc_yl;
 
     // Zero length, column does not exceed a pixel.
-    if (count < 0) 
-	return; 
-				 
-#ifdef RANGECHECK 
-    if (dc_x >= SCREENWIDTH
-	|| dc_yl < 0
-	|| dc_yh >= SCREENHEIGHT) 
-	I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x); 
-#endif 
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if (dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+    {
+        I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif
 
     // Framebuffer destination address.
-    // Use ylookup LUT to avoid multiply with ScreenWidth.
-    // Use columnofs LUT for subwindows? 
     dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
-    // Determine scaling,
-    //  which is the only mapping to be done.
-    fracstep = dc_iscale; 
-    frac = dc_texturemid + (dc_yl-centery)*fracstep; 
+    // Determine scaling.
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    // Inner loop that does the actual texture mapping,
-    //  e.g. a DDA-lile scaling.
-    // This is as fast as it gets.
-
-  // heightmask is the Tutti-Frutti fix -- killough
-  if (dc_texheight & heightmask) // not a power of 2 -- killough
-  {
-    heightmask++;
-    heightmask <<= FRACBITS;
-
-    if (frac < 0)
-	while ((frac += heightmask) < 0);
-    else
-	while (frac >= heightmask)
-	    frac -= heightmask;
-
-    do
+    // Handle non-power of 2 textures (Tutti-Frutti fix).
+    if (dc_texheight & heightmask)
     {
-	// [crispy] brightmaps
-	const byte source = dc_source[frac>>FRACBITS];
-	*dest = dc_colormap[dc_brightmap[source]][source];
+        // Prepare heightmask for non-power of 2 textures.
+        heightmask = (dc_texheight << FRACBITS);
 
-	dest += SCREENWIDTH;
-	if ((frac += fracstep) >= heightmask)
-	    frac -= heightmask;
-    } while (count--);
-  }
-  else // texture height is a power of 2 -- killough
-  {
-    do 
+        // Normalize frac within bounds of heightmask using modulo operation.
+        frac = (frac % heightmask + heightmask) % heightmask;
+
+        // Process each pixel with adjusted frac.
+        do
+        {
+            const byte source = dc_source[frac >> FRACBITS];
+            *dest = dc_colormap[dc_brightmap[source]][source];
+            dest += SCREENWIDTH;
+            frac = (frac + fracstep) % heightmask;
+        } while (count--);
+    }
+    else // For power of 2 textures.
     {
-	// Re-map color indices from wall texture column
-	//  using a lighting/special effects LUT.
-	// [crispy] brightmaps
-	const byte source = dc_source[(frac>>FRACBITS)&heightmask];
-	*dest = dc_colormap[dc_brightmap[source]][source];
-	
-	dest += SCREENWIDTH; 
-	frac += fracstep;
-	
-    } while (count--); 
-  }
-} 
+        // Fast path for textures with height that is a power of 2.
+        do
+        {
+            const byte source = dc_source[(frac >> FRACBITS) & heightmask];
+            *dest = dc_colormap[dc_brightmap[source]][source]; // [crispy] brightmaps
+            dest += SCREENWIDTH;
+            frac += fracstep;
+        } while (count--);
+    }
+}
 
-void R_DrawColumnLow (void) 
-{ 
-    int			count; 
-    pixel_t*		dest;
-    pixel_t*		dest2;
-    fixed_t		frac;
-    fixed_t		fracstep;	 
-    int                 x;
-    int			heightmask = dc_texheight - 1;
- 
-    count = dc_yh - dc_yl; 
+void R_DrawColumnLow (void)
+{
+    int count;
+    pixel_t *dest;
+    pixel_t *dest2;
+    fixed_t frac;
+    fixed_t fracstep;
+    int x;
+    int heightmask = dc_texheight - 1;
+
+    count = dc_yh - dc_yl;
 
     // Zero length.
-    if (count < 0) 
-	return; 
-				 
-#ifdef RANGECHECK 
-    if (dc_x >= SCREENWIDTH
-	|| dc_yl < 0
-	|| dc_yh >= SCREENHEIGHT)
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if (dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
     {
-	
-	I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+        I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
     }
-#endif 
+#endif
+
     // Blocky mode, need to multiply by 2.
     x = dc_x << 1;
-    
+
     dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
     dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
-    
-    fracstep = dc_iscale; 
-    frac = dc_texturemid + (dc_yl-centery)*fracstep;
-    
-  // heightmask is the Tutti-Frutti fix -- killough
-  if (dc_texheight & heightmask) // not a power of 2 -- killough
-  {
-    heightmask++;
-    heightmask <<= FRACBITS;
 
-    if (frac < 0)
-	while ((frac += heightmask) < 0);
-    else
-	while (frac >= heightmask)
-	    frac -= heightmask;
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    do
+    // Handle non-power of 2 textures (Tutti-Frutti fix).
+    if (dc_texheight & heightmask)
     {
-	// [crispy] brightmaps
-	const byte source = dc_source[frac>>FRACBITS];
-	*dest2 = *dest = dc_colormap[dc_brightmap[source]][source];
+        // Prepare heightmask for non-power of 2 textures.
+        heightmask = (dc_texheight << FRACBITS);
 
-	dest += SCREENWIDTH;
-	dest2 += SCREENWIDTH;
+        // Normalize frac within bounds of heightmask using modulo operation.
+        frac = (frac % heightmask + heightmask) % heightmask;
 
-	if ((frac += fracstep) >= heightmask)
-	    frac -= heightmask;
-    } while (count--);
-  }
-  else // texture height is a power of 2 -- killough
-  {
-    do 
+        // Process each pixel with adjusted frac.
+        do
+        {
+            const byte source = dc_source[frac >> FRACBITS];
+            *dest2 = *dest = dc_colormap[dc_brightmap[source]][source]; // [crispy] brightmaps
+
+            dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
+
+            frac = (frac + fracstep) % heightmask;
+
+        } while (count--);
+    }
+    else // For power of 2 textures.
     {
-	// Hack. Does not work corretly.
-	// [crispy] brightmaps
-	const byte source = dc_source[(frac>>FRACBITS)&heightmask];
-	*dest2 = *dest = dc_colormap[dc_brightmap[source]][source];
-	dest += SCREENWIDTH;
-	dest2 += SCREENWIDTH;
+        // Fast path for textures with height that is a power of 2.
+        do
+        {
+            const byte source = dc_source[(frac >> FRACBITS) & heightmask];
+            *dest2 = *dest = dc_colormap[dc_brightmap[source]][source]; // [crispy] brightmaps
 
-	frac += fracstep; 
+            dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
 
-    } while (count--);
-  }
+            frac += fracstep;
+
+        } while (count--);
+    }
 }
 
 
