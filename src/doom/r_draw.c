@@ -892,128 +892,163 @@ fixed_t			ds_ystep;
 byte*			ds_source;	
 
 
-//
-// Draws the actual span.
+// -----------------------------------------------------------------------------
+// R_DrawSpan
+// Draws a horizontal span of pixels.
+// [PN] Uses a different approach depending on whether mirrored levels are enabled.
+//      Precomputes the destination pointer when mirrored levels are off
+//      for better performance.
+// -----------------------------------------------------------------------------
+
 void R_DrawSpan (void) 
 { 
-//  unsigned int position, step;
     pixel_t *dest;
     int count;
     int spot;
     unsigned int xtemp, ytemp;
+    byte source;
 
 #ifdef RANGECHECK
-    if (ds_x2 < ds_x1
-	|| ds_x1<0
-	|| ds_x2>=SCREENWIDTH
-	|| ds_y>SCREENHEIGHT)
+    if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= SCREENWIDTH || ds_y > SCREENHEIGHT)
     {
-	I_Error( "R_DrawSpan: %i to %i at %i",
-		 ds_x1,ds_x2,ds_y);
+        I_Error("R_DrawSpan: %i to %i at %i", ds_x1, ds_x2, ds_y);
     }
-//	dscount++;
 #endif
 
-    // Pack position and step variables into a single 32-bit integer,
-    // with x in the top 16 bits and y in the bottom 16 bits.  For
-    // each 16-bit part, the top 6 bits are the integer part and the
-    // bottom 10 bits are the fractional part of the pixel position.
-
-/*
-    position = ((ds_xfrac << 10) & 0xffff0000)
-             | ((ds_yfrac >> 6)  & 0x0000ffff);
-    step = ((ds_xstep << 10) & 0xffff0000)
-         | ((ds_ystep >> 6)  & 0x0000ffff);
-*/
-
-//  dest = ylookup[ds_y] + columnofs[ds_x1];
-
-    // We do not check for zero spans here?
+    // Calculate the span length.
     count = ds_x2 - ds_x1;
 
-    do
+    // Optimized version for normal (non-flipped) levels.
+    if (!gp_flip_levels)
     {
-	byte source;
-	// Calculate current texture index in u,v.
-        // [crispy] fix flats getting more distorted the closer they are to the right
-        ytemp = (ds_yfrac >> 10) & 0x0fc0;
-        xtemp = (ds_xfrac >> 16) & 0x3f;
-        spot = xtemp | ytemp;
+        // [PN] Precompute the destination pointer for normal levels, without flipping.
+        dest = ylookup[ds_y] + columnofs[ds_x1];
 
-	// Lookup pixel from flat texture tile,
-	//  re-index using light/colormap.
-	source = ds_source[spot];
-	dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
-	*dest = ds_colormap[ds_brightmap[source]][source];
+        do
+        {
+            // [crispy] fix flats getting more distorted the closer they are to the right
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
 
-//      position += step;
-        ds_xfrac += ds_xstep;
-        ds_yfrac += ds_ystep;
+            // Lookup the pixel and apply lighting.
+            source = ds_source[spot];
+            *dest = ds_colormap[ds_brightmap[source]][source];
+            
+            // Move to the next pixel.
+            dest++;  // [PN] Increment destination pointer without recalculating.
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
 
-    } while (count--);
+        } while (count--);
+    }
+    else
+    {
+        // Version for mirrored (flipped) levels.
+        do
+        {
+            // [crispy] fix flats getting more distorted the closer they are to the right
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+
+            // Lookup the pixel and apply lighting.
+            source = ds_source[spot];
+
+            // [PN] Recalculate destination pointer using `flipviewwidth` for flipped levels.
+            dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
+            *dest = ds_colormap[ds_brightmap[source]][source];
+
+            // Move to the next pixel.
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+        } while (count--);
+    }
 }
 
-//
-// Again..
-//
+// -----------------------------------------------------------------------------
+// R_DrawSpanLow
+// Draws a horizontal span of pixels in blocky mode (low resolution).
+// [PN] Uses a different approach depending on whether mirrored levels are enabled.
+//      Precomputes the destination pointer when mirrored levels are off
+//      for better performance.
+// -----------------------------------------------------------------------------
+
 void R_DrawSpanLow (void)
 {
-//  unsigned int position, step;
     unsigned int xtemp, ytemp;
     pixel_t *dest;
     int count;
     int spot;
+    byte source;
 
 #ifdef RANGECHECK
-    if (ds_x2 < ds_x1
-	|| ds_x1<0
-	|| ds_x2>=SCREENWIDTH
-	|| ds_y>SCREENHEIGHT)
+    if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= SCREENWIDTH || ds_y > SCREENHEIGHT)
     {
-	I_Error( "R_DrawSpan: %i to %i at %i",
-		 ds_x1,ds_x2,ds_y);
+        I_Error("R_DrawSpanLow: %i to %i at %i", ds_x1, ds_x2, ds_y);
     }
-//	dscount++; 
 #endif
 
-/*
-    position = ((ds_xfrac << 10) & 0xffff0000)
-             | ((ds_yfrac >> 6)  & 0x0000ffff);
-    step = ((ds_xstep << 10) & 0xffff0000)
-         | ((ds_ystep >> 6)  & 0x0000ffff);
-*/
-
-    count = (ds_x2 - ds_x1);
+    // Calculate the span length.
+    count = ds_x2 - ds_x1;
 
     // Blocky mode, need to multiply by 2.
     ds_x1 <<= 1;
     ds_x2 <<= 1;
 
-//  dest = ylookup[ds_y] + columnofs[ds_x1];
-
-    do
+    // Optimized version for normal (non-flipped) levels in blocky mode.
+    if (!gp_flip_levels)
     {
-	byte source;
-	// Calculate current texture index in u,v.
-        // [crispy] fix flats getting more distorted the closer they are to the right
-        ytemp = (ds_yfrac >> 10) & 0x0fc0;
-        xtemp = (ds_xfrac >> 16) & 0x3f;
-        spot = xtemp | ytemp;
+        // [PN] Precompute the destination pointer for normal levels, without flipping.
+        dest = ylookup[ds_y] + columnofs[ds_x1];
 
-	// Lowres/blocky mode does it twice,
-	//  while scale is adjusted appropriately.
-	source = ds_source[spot];
-	dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
-	*dest = ds_colormap[ds_brightmap[source]][source];
-	dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
-	*dest = ds_colormap[ds_brightmap[source]][source];
+        do
+        {
+            // [crispy] fix flats getting more distorted the closer they are to the right
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
 
-//	position += step;
-	ds_xfrac += ds_xstep;
-	ds_yfrac += ds_ystep;
+            // Lookup the pixel and apply lighting.
+            source = ds_source[spot];
+            *dest = ds_colormap[ds_brightmap[source]][source];  // First pixel.
+            dest++;  // [PN] Move to the next pixel.
+            *dest = ds_colormap[ds_brightmap[source]][source];  // Second pixel.
+            dest++;  // [PN] Move to the next pixel.
 
+            // Update fractional positions.
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
 
-    } while (count--);
+        } while (count--);
+    }
+    else
+    {
+        // Version for mirrored (flipped) levels in blocky mode.
+        do
+        {
+            // [crispy] fix flats getting more distorted the closer they are to the right
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+
+            // Lookup the pixel and apply lighting.
+            source = ds_source[spot];
+
+            // [PN] Recalculate destination pointer using `flipviewwidth` for flipped levels.
+            dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
+            *dest = ds_colormap[ds_brightmap[source]][source];
+
+            dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
+            *dest = ds_colormap[ds_brightmap[source]][source];
+
+            // Update fractional positions.
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+        } while (count--);
+    }
 }
 
 // -----------------------------------------------------------------------------
