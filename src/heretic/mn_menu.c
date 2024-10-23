@@ -4117,7 +4117,7 @@ static MenuItem_t ID_Menu_Misc[] = {
 static Menu_t ID_Def_Misc = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Misc,
-    17, ID_Menu_Misc,
+    2, ID_Menu_Misc,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
