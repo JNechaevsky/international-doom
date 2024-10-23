@@ -144,6 +144,12 @@ extern int compat_pistol_start;
 extern int compat_blockmap_fix;
 extern int compat_vertical_aiming;
 
+// Miscellaneous
+extern int autoload_wad;
+extern int autoload_deh;
+extern int autoload_hhe;
+extern int autoload_seh;
+
 // Mouse look
 extern int mouse_look;
 
