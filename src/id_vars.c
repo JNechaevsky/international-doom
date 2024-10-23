@@ -176,6 +176,8 @@ int compat_vertical_aiming = 0;
 
 int autoload_wad = 1;
 int autoload_deh = 1;
+int autoload_hhe = 1;
+int autoload_seh = 1;
 
 // -----------------------------------------------------------------------------
 // [JN] ID-specific config variables binding functions.
@@ -392,8 +394,16 @@ void ID_BindVariables (GameMission_t mission)
 
     // Miscellaneous
     M_BindIntVariable("autoload_wad",                   &autoload_wad);
-    if (mission == doom || mission == heretic || mission == strife)
+    if (mission == doom)
     {
         M_BindIntVariable("autoload_deh",               &autoload_deh);
+    }
+    if (mission == heretic)
+    {
+        M_BindIntVariable("autoload_hhe",               &autoload_hhe);
+    }
+    if (mission == strife)
+    {
+        M_BindIntVariable("autoload_seh",               &autoload_seh);
     }
 }
