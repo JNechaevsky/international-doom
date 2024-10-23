@@ -96,6 +96,7 @@ typedef enum
     MENU_ID_LEVEL1,
     MENU_ID_LEVEL2,
     MENU_ID_LEVEL3,
+    MENU_ID_MISC,
     MENU_NONE
 } MenuType_t;
 
@@ -663,6 +664,10 @@ static void M_ID_LevelArti_9 (int choice);
 
 static void M_ScrollLevel (int choice);
 
+static void M_Draw_ID_Misc (void);
+static void M_ID_Misc_AutoloadWAD (int choice);
+static void M_ID_Misc_AutoloadHHE (int choice);
+
 static void M_ID_SettingReset (int choice);
 static void M_ID_ApplyReset (void);
 
@@ -1055,13 +1060,14 @@ static MenuItem_t ID_Menu_Main[] = {
     { ITT_EFUNC,   "GAMEPLAY FEATURES", M_Choose_ID_Gameplay, 0, MENU_NONE         },
     { ITT_SETMENU, "LEVEL SELECT",      NULL,                 0, MENU_ID_LEVEL1    },
     { ITT_EFUNC,   "END GAME",          SCEndGame,            0, MENU_NONE         },
+    { ITT_SETMENU, "MISCELLANEOUS",     NULL,                 0, MENU_ID_MISC      },
     { ITT_EFUNC,   "RESET SETTINGS",    M_ID_SettingReset,    0, MENU_NONE         },
 };
 
 static Menu_t ID_Def_Main = {
     ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
     M_Draw_ID_Main,
-    10, ID_Menu_Main,
+    11, ID_Menu_Main,
     0,
     SmallFont, false, false,
     MENU_MAIN
@@ -4099,6 +4105,81 @@ static void M_ScrollLevel (int choice)
     CurrentItPos = 15;
 }
 
+// -----------------------------------------------------------------------------
+// Miscellaneous settings
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Misc[] = {
+    { ITT_LRFUNC, "AUTOLOAD WAD FILES", M_ID_Misc_AutoloadWAD, 0, MENU_NONE },
+    { ITT_LRFUNC, "AUTOLOAD HHE FILES", M_ID_Misc_AutoloadHHE, 0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Misc = {
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Misc,
+    17, ID_Menu_Misc,
+    0,
+    SmallFont, false, true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Misc (void)
+{
+    char str[32];
+
+    MN_DrTextACentered("AUTOLOAD", 10, cr[CR_YELLOW]);
+
+    // Autoload WAD files
+    sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
+                 autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, autoload_wad == 1 ? GLOW_YELLOW :
+                              autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Autoload DEH patches
+    sprintf(str, autoload_hhe == 1 ? "IWAD ONLY" :
+                 autoload_hhe == 2 ? "IWAD AND PWAD" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, autoload_hhe == 1 ? GLOW_YELLOW :
+                              autoload_hhe == 2 ? GLOW_GREEN : GLOW_DARKRED));
+
+    // [PN] Added explanations for autoload variables
+    if (CurrentItPos == 0 || CurrentItPos == 1)
+    {
+        const char *off = "AUTOLOAD IS DISABLED";
+        const char *first_line = "AUTOLOAD AND FOLDER CREATION";
+        const char *second_line1 = "ONLY ALLOWED FOR IWAD FILES";
+        const char *second_line2 = "ALLOWED FOR BOTH IWAD AND PWAD FILES";
+        const int   autoload_option = (CurrentItPos == 0) ? autoload_wad : autoload_hhe;
+
+        switch (autoload_option)
+        {
+            case 1:
+                MN_DrTextACentered(first_line, 130, cr[CR_LIGHTGRAY_DARK1]);
+                MN_DrTextACentered(second_line1, 140, cr[CR_LIGHTGRAY_DARK1]);
+                break;
+
+            case 2:
+                MN_DrTextACentered(first_line, 130, cr[CR_LIGHTGRAY_DARK1]);
+                MN_DrTextACentered(second_line2, 140, cr[CR_LIGHTGRAY_DARK1]);
+                break;
+
+            default:
+                MN_DrTextACentered(off, 130, cr[CR_LIGHTGRAY_DARK1]);
+                break;            
+        }
+    }
+}
+
+static void M_ID_Misc_AutoloadWAD (int choice)
+{
+    autoload_wad = M_INT_Slider(autoload_wad, 0, 2, choice, false);
+}
+
+static void M_ID_Misc_AutoloadHHE (int choice)
+{
+    autoload_hhe = M_INT_Slider(autoload_hhe, 0, 2, choice, false);
+}
 
 
 // -----------------------------------------------------------------------------
@@ -4301,6 +4382,7 @@ static Menu_t *Menus[] = {
     &ID_Def_Level_1,
     &ID_Def_Level_2,
     &ID_Def_Level_3,
+    &ID_Def_Misc,
 };
 
 //---------------------------------------------------------------------------
