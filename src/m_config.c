@@ -575,6 +575,10 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(compat_pistol_start),
     CONFIG_VARIABLE_INT(compat_blockmap_fix),
     CONFIG_VARIABLE_INT(compat_vertical_aiming),
+
+    // Miscellaneous
+    CONFIG_VARIABLE_INT(autoload_wad),
+    CONFIG_VARIABLE_INT(autoload_deh),
 };
 
 static default_collection_t doom_defaults =
