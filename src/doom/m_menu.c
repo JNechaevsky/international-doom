@@ -3235,10 +3235,10 @@ static void M_Draw_ID_Misc (void)
     // [PN] Added explanations for autoload variables
     if (itemOn == 0 || itemOn == 1)
     {
-        const char *off = "AUTOLOADING WILL BE DISABLED";
-        const char *first_line = "AUTOLOADING AND FOLDER CREATION";
-        const char *second_line1 = "WILL ONLY BE ALLOWED FOR IWAD FILES";
-        const char *second_line2 = "WILL BE ALLOWED FOR BOTH IWAD AND PWAD FILES";
+        const char *off = "AUTOLOAD IS DISABLED";
+        const char *first_line = "AUTOLOAD AND FOLDER CREATION";
+        const char *second_line1 = "ONLY ALLOWED FOR IWAD FILES";
+        const char *second_line2 = "ALLOWED FOR BOTH IWAD AND PWAD FILES";
         const int   autoload_option = (itemOn == 0) ? autoload_wad : autoload_deh;
 
         switch (autoload_option)
