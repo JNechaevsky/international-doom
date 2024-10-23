@@ -3231,6 +3231,33 @@ static void M_Draw_ID_Misc (void)
     M_WriteText (M_ItemRightAlign(str), 27, str,
                  M_Item_Glow(1, autoload_deh == 1 ? GLOW_YELLOW :
                                 autoload_deh == 2 ? GLOW_GREEN : GLOW_DARKRED));
+
+    // [PN] Added explanations for autoload variables
+    if (itemOn == 0 || itemOn == 1)
+    {
+        const char *off = "AUTOLOADING WILL BE DISABLED";
+        const char *first_line = "AUTOLOADING AND FOLDER CREATION";
+        const char *second_line1 = "WILL ONLY BE ALLOWED FOR IWAD FILES";
+        const char *second_line2 = "WILL BE ALLOWED FOR BOTH IWAD AND PWAD FILES";
+        const int   autoload_option = (itemOn == 0) ? autoload_wad : autoload_deh;
+
+        switch (autoload_option)
+        {
+            case 1:
+                M_WriteTextCentered(135, first_line, cr[CR_LIGHTGRAY_DARK1]);
+                M_WriteTextCentered(144, second_line1, cr[CR_LIGHTGRAY_DARK1]);
+                break;
+
+            case 2:
+                M_WriteTextCentered(135, first_line, cr[CR_LIGHTGRAY_DARK1]);
+                M_WriteTextCentered(144, second_line2, cr[CR_LIGHTGRAY_DARK1]);
+                break;
+
+            default:
+                M_WriteTextCentered(135, off, cr[CR_LIGHTGRAY_DARK1]);
+                break;            
+        }
+    }
 }
 
 static void M_ID_Misc_AutoloadWAD (int choice)
