@@ -5363,90 +5363,127 @@ static int M_StringHeight (const char *string)
 
 // -----------------------------------------------------------------------------
 // M_WriteText
-// [PN] Renders a string at the specified coordinates (x, y) using the hu_font.
-// Supports newline characters and applies an optional translation table.
+// Write a string using the hu_font.
 // -----------------------------------------------------------------------------
 
 void M_WriteText (int x, int y, const char *string, byte *table)
 {
-    int cx = x, cy = y;  // Initialize position
+    const char*	ch;
+    int w, c, cx, cy;
 
-    // Set color translation table
-    dp_translation = table;  
+    ch = string;
+    cx = x;
+    cy = y;
 
-    // Loop through the string
-    for (const char *ch = string; *ch; ++ch)
+    dp_translation = table;
+
+    while (ch)
     {
-        const int c = toupper(*ch) - HU_FONTSTART;  // Get character index
-        const int w = SHORT(hu_font[c]->width);  // Get character width
+        c = *ch++;
 
-        // Handle new line
-        if (*ch == '\n')
+        if (!c)
+        {
+            break;
+        }
+
+        if (c == '\n')
         {
             cx = x;
             cy += 12;
             continue;
         }
 
-        // Skip invalid characters
+        c = toupper(c) - HU_FONTSTART;
+
         if (c < 0 || c >= HU_FONTSIZE)
         {
-            // Move cursor right for spaces or invalid chars
             cx += 4;
             continue;
         }
 
-        // Stop if text exceeds screen width
-        if (cx + w > SCREENWIDTH)  
+        w = SHORT (hu_font[c]->width);
+
+        if (cx + w > SCREENWIDTH)
+        {
             break;
+        }
 
         V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
-        // Move cursor for next character
-        cx += w;
+        cx+=w;
     }
 
-    // Reset color translation table
     dp_translation = NULL;
 }
 
 // -----------------------------------------------------------------------------
 // M_WriteTextCentered
-// [PN] Renders a string centered on the screen using the hu_font, 
-// with optional color translation.
+// [JN] Write a centered string using the hu_font.
 // -----------------------------------------------------------------------------
 
 void M_WriteTextCentered (const int y, const char *string, byte *table)
 {
-    const int width = M_StringWidth(string);  // Calculate width once
-    int cx = ORIGWIDTH / 2 - width / 2;  // Centered x position
+    const char *ch;
+    const int width = M_StringWidth(string);
+    int w, c, cx, cy;
 
-    // Set color translation table
+    ch = string;
+    cx = ORIGWIDTH/2-width/2;
+    cy = y;
+
     dp_translation = table;
 
-    // Loop through the string
-    for (const char *ch = string; *ch; ch++)
+    // find width
+    while (ch)
     {
-        const int c = toupper(*ch) - HU_FONTSTART;  // Get character index
-        const int w = SHORT(hu_font[c]->width);  // Get character width
+        c = *ch++;
 
-        // Skip invalid characters
+        if (!c)
+        {
+            break;
+        }
+
+        c = c - HU_FONTSTART;
+
         if (c < 0 || c >= HU_FONTSIZE)
         {
-            // Move cursor right for spaces or invalid chars
+            continue;
+        }
+
+        w = SHORT (hu_font[c]->width);
+    }
+
+    // draw it
+    cx = ORIGWIDTH/2-width/2;
+    ch = string;
+
+    while (ch)
+    {
+        c = *ch++;
+
+        if (!c)
+        {
+            break;
+        }
+
+        c = toupper(c) - HU_FONTSTART;
+
+        if (c < 0 || c >= HU_FONTSIZE)
+        {
             cx += 4;
             continue;
         }
 
-        // Stop if text exceeds screen width
-        if (cx + w > ORIGWIDTH)
-            break;
+        w = SHORT (hu_font[c]->width);
 
-        V_DrawShadowedPatchOptional(cx, y, 0, hu_font[c]);
-        // Move cursor for next character
+        if (cx+w > ORIGWIDTH)
+        {
+            break;
+        }
+        
+        V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
         cx += w;
     }
-
-    // Reset color translation table
+    
     dp_translation = NULL;
 }
 
