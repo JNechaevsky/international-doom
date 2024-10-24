@@ -28,7 +28,7 @@
 
 #include "d_main.h"
 #include "deh_main.h"
-
+#include "gusconf.h"
 #include "i_input.h"
 #include "i_joystick.h"
 #include "i_swap.h"
@@ -65,6 +65,8 @@
 #include "m_menu.h"
 #include "p_dialog.h"
 #include "am_map.h"
+
+#include "id_vars.h"
 
 
 void M_QuitStrife(int);
@@ -246,7 +248,7 @@ void M_DrawSave(void);
 
 void M_DrawSaveLoadBorder(int x,int y);
 void M_SetupNextMenu(menu_t *menudef);
-void M_DrawThermo(int x,int y,int thermWidth,int thermDot);
+static void M_DrawThermo(int x,int y,int thermWidth,int thermDot,int itemPos);
 void M_DrawEmptyCell(menu_t *menu,int item);
 void M_DrawSelCell(menu_t *menu,int item);
 int  M_StringWidth(const char *string);
@@ -634,6 +636,15 @@ static void M_ID_R_Intensity (int choice);
 static void M_ID_G_Intensity (int choice);
 static void M_ID_B_Intensity (int choice);
 
+static void M_Choose_ID_Sound (int choice);
+static void M_Draw_ID_Sound (void);
+static void M_ID_SFXSystem (int choice);
+static void M_ID_MusicSystem (int choice);
+static void M_ID_SFXMode (int choice);
+static void M_ID_SFXChannels (int choice);
+static void M_ID_MuteInactive (int choice);
+static void M_ID_PitchShift (int choice);
+
 // -----------------------------------------------------------------------------
 
 // [JN] Delay before shading.
@@ -886,7 +897,7 @@ static menuitem_t ID_Menu_Main[]=
 {
     { M_SWTC, "VIDEO OPTIONS",     M_Choose_ID_Video,    'v' },
     { M_SWTC, "DISPLAY OPTIONS",   M_Choose_ID_Display,  'd' },
-    // { M_SWTC, "SOUND OPTIONS",     M_Choose_ID_Sound,    's' },
+    { M_SWTC, "SOUND OPTIONS",     M_Choose_ID_Sound,    's' },
     // { M_SWTC, "CONTROL SETTINGS",  M_Choose_ID_Controls, 'c' },
     // { M_SWTC, "WIDGETS SETTINGS",  M_Choose_ID_Widgets,  'w' },
     // { M_SWTC, "AUTOMAP SETTINGS",  M_Choose_ID_Automap,  'a' },
@@ -898,7 +909,7 @@ static menuitem_t ID_Menu_Main[]=
 
 static menu_t ID_Def_Main =
 {
-    2,
+    3,
     &MainDef,
     ID_Menu_Main,
     M_Draw_ID_Main,
@@ -1404,6 +1415,254 @@ static void M_ID_B_Intensity (int choice)
 #endif
 }
 
+// -----------------------------------------------------------------------------
+// Sound options
+// -----------------------------------------------------------------------------
+
+static menuitem_t ID_Menu_Sound[]=
+{
+    { M_LFRT, "SFX VOLUME",           M_SfxVol,          's' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "MUSIC VOLUME",         M_MusicVol,        'm' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "SFX PLAYBACK",         M_ID_SFXSystem,    's' },
+    { M_LFRT, "MUSIC PLAYBACK",       M_ID_MusicSystem,  'm' },
+    { M_LFRT, "SOUNDS EFFECTS MODE",  M_ID_SFXMode,      's' },
+    { M_LFRT, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,   'p' },
+    { M_LFRT, "NUMBER OF SFX TO MIX", M_ID_SFXChannels,  'n' },
+    { M_LFRT, "MUTE INACTIVE WINDOW", M_ID_MuteInactive, 'm' },
+};
+
+static menu_t ID_Def_Sound =
+{
+    13,
+    &ID_Def_Main,
+    ID_Menu_Sound,
+    M_Draw_ID_Sound,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    0,
+    true, false, false,
+};
+
+static void M_Choose_ID_Sound (int choice)
+{
+    M_SetupNextMenu (&ID_Def_Sound);
+}
+
+static void M_Draw_ID_Sound (void)
+{
+    char str[16];
+
+    M_WriteTextCentered(9, "VOLUME", cr[CR_ORANGE]);
+
+    M_DrawThermo(46, 25, 16, sfxVolume, 0);
+    sprintf(str,"%d", sfxVolume);
+    M_WriteText (192, 30, str, M_Item_Glow(0, GLOW_UNCOLORED));
+
+    M_DrawThermo(46, 52, 16, musicVolume, 3);
+    sprintf(str,"%d", musicVolume);
+    M_WriteText (192, 57, str, M_Item_Glow(3, GLOW_UNCOLORED));
+
+    M_WriteTextCentered(72, "SOUND SYSTEM", cr[CR_ORANGE]);
+
+    // SFX playback
+    sprintf(str, snd_sfxdevice == 0 ? "DISABLED"    :
+                 snd_sfxdevice == 1 ? "PC SPEAKER"  :
+                 snd_sfxdevice == 3 ? "DIGITAL SFX" :
+                                      "UNKNOWN");
+    M_WriteText (M_ItemRightAlign(str), 81, str,
+                 M_Item_Glow(7, snd_sfxdevice ? GLOW_GREEN : GLOW_RED));
+
+    // Music playback
+    sprintf(str, snd_musicdevice == 0 ? "DISABLED" :
+                (snd_musicdevice == 3 && !strcmp(snd_dmxoption, "")) ? "OPL2 SYNTH" : 
+                (snd_musicdevice == 3 && !strcmp(snd_dmxoption, "-opl3")) ? "OPL3 SYNTH" : 
+                 snd_musicdevice == 5 ? "GUS (EMULATED)" :
+                 snd_musicdevice == 8 ? "NATIVE MIDI" :
+                 snd_musicdevice == 11 ? "FLUIDSYNTH" :
+                                        "UNKNOWN");
+    M_WriteText (M_ItemRightAlign(str), 90, str,
+                 M_Item_Glow(8, snd_musicdevice ? GLOW_GREEN : GLOW_RED));
+
+    // Sound effects mode
+    sprintf(str, snd_monosfx ? "MONO" : "STEREO");
+    M_WriteText (M_ItemRightAlign(str), 99, str,
+                 M_Item_Glow(9, snd_monosfx ? GLOW_RED : GLOW_GREEN));
+
+    // Pitch-shifted sounds
+    sprintf(str, snd_pitchshift ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 108, str,
+                 M_Item_Glow(10, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
+
+    // Number of SFX to mix
+    sprintf(str, "%i", snd_channels);
+    M_WriteText (M_ItemRightAlign(str), 117, str,
+                 M_Item_Glow(11, snd_channels == 8 ? GLOW_DARKRED :
+                                 snd_channels == 1 || snd_channels == 16 ? GLOW_YELLOW : GLOW_GREEN));
+
+    // Pitch-shifted sounds
+    sprintf(str, snd_mute_inactive ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 126, str,
+                 M_Item_Glow(12, snd_mute_inactive ? GLOW_GREEN : GLOW_RED));
+
+    // Inform if FSYNTH/GUS paths anen't set.
+    if (itemOn == 8)
+    {
+        if (snd_musicdevice == 5 && strcmp(gus_patch_path, "") == 0)
+        {
+            M_WriteTextCentered(144, "\"GUS_PATCH_PATH\" VARIABLE IS NOT SET", cr[CR_GRAY]);
+        }
+#ifdef HAVE_FLUIDSYNTH
+        if (snd_musicdevice == 11 && strcmp(fsynth_sf_path, "") == 0)
+        {
+            M_WriteTextCentered(144, "\"FSYNTH_SF_PATH\" VARIABLE IS NOT SET", cr[CR_GRAY]);
+        }
+#endif // HAVE_FLUIDSYNTH
+    }
+}
+
+static void M_ID_SFXSystem (int choice)
+{
+    // [PN] Toggle snd_sfxdevice between 0 and 3.
+    snd_sfxdevice = (snd_sfxdevice == 0) ? 3 : 0;
+    
+    // Shut down current music
+    S_StopMusic();
+
+    // Free all sound channels/usefulness
+    S_ChangeSFXSystem();
+
+    // Shut down sound/music system
+    I_ShutdownSound();
+
+    // Start sound/music system
+    I_InitSound(strife);
+
+    // Re-generate SFX cache
+    I_PrecacheSounds(S_sfx, NUMSFX);
+
+    // Reinitialize sound volume
+    S_SetSfxVolume(sfxVolume * 8);
+
+    // Reinitialize music volume
+    S_SetMusicVolume(musicVolume * 8);
+
+    // Restart current music
+    S_ChangeMusic(current_mus_num, usergame);
+}
+
+static void M_ID_MusicSystem (int choice)
+{
+    switch (choice)
+    {
+        case 0:
+            if (snd_musicdevice == 0)
+            {
+                snd_musicdevice = 5;    // Set to SDL Mixer
+            }
+            else if (snd_musicdevice == 5)
+#ifdef HAVE_FLUIDSYNTH
+            {
+                snd_musicdevice = 11;    // Set to FluidSynth
+            }
+            else if (snd_musicdevice == 11)
+#endif // HAVE_FLUIDSYNTH
+            {
+                snd_musicdevice = 8;    // Set to Native MIDI
+            }
+            else if (snd_musicdevice == 8)
+            {
+                snd_musicdevice = 3;    // Set to OPL3
+                snd_dmxoption = "-opl3";
+            }
+            else if (snd_musicdevice == 3  && !strcmp(snd_dmxoption, "-opl3"))
+            {
+                snd_musicdevice = 3;    // Set to OPL2
+                snd_dmxoption = "";
+            }
+            else if (snd_musicdevice == 3 && !strcmp(snd_dmxoption, ""))
+            {
+                snd_musicdevice = 0;    // Disable
+            }
+            break;
+        case 1:
+            if (snd_musicdevice == 0)
+            {
+                snd_musicdevice  = 3;   // Set to OPL2
+                snd_dmxoption = "";
+            }
+            else if (snd_musicdevice == 3 && !strcmp(snd_dmxoption, ""))
+            {
+                snd_musicdevice  = 3;   // Set to OPL3
+                snd_dmxoption = "-opl3";
+            }
+            else if (snd_musicdevice == 3 && !strcmp(snd_dmxoption, "-opl3"))
+            {
+                snd_musicdevice  = 8;   // Set to Native MIDI
+            }
+            else if (snd_musicdevice == 8)
+#ifdef HAVE_FLUIDSYNTH
+            {
+                snd_musicdevice  = 11;   // Set to FluidSynth
+            }
+            else if (snd_musicdevice == 11)
+#endif // HAVE_FLUIDSYNTH
+            {
+                snd_musicdevice  = 5;   // Set to SDL Mixer
+            }
+            else if (snd_musicdevice == 5)
+            {
+                snd_musicdevice  = 0;   // Disable
+            }
+            break;
+        default:
+            {
+                break;
+            }
+    }
+
+    // Shut down current music
+    S_StopMusic();
+
+    // Shut down music system
+    S_Shutdown();
+    
+    // Start music system
+    I_InitSound(doom);
+
+    // Reinitialize music volume
+    S_SetMusicVolume(musicVolume * 8);
+
+    // Restart current music
+    S_ChangeMusic(current_mus_num, usergame);
+}
+
+static void M_ID_SFXMode (int choice)
+{
+    snd_monosfx ^= 1;
+
+    // Update stereo separation
+    S_UpdateStereoSeparation();
+}
+
+static void M_ID_PitchShift (int choice)
+{
+    snd_pitchshift ^= 1;
+}
+
+static void M_ID_SFXChannels (int choice)
+{
+    snd_channels = M_INT_Slider(snd_channels, 1, 16, choice, true);
+}
+
+static void M_ID_MuteInactive (int choice)
+{
+    snd_mute_inactive ^= 1;
+}
+
 // =============================================================================
 
 
@@ -1815,16 +2074,16 @@ void M_DrawSound(void)
     V_DrawPatch(100, 10, W_CacheLumpName(DEH_String("M_SVOL"), PU_CACHE));
 
     M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(sfx_vol+1),
-                 16,sfxVolume);
+                 16,sfxVolume,0);
 
     M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(music_vol+1),
-                 16,musicVolume);
+                 16,musicVolume,0);
 
     M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(voice_vol+1),
-                 16,voiceVolume);
+                 16,voiceVolume,0);
 
     M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(sfx_mouse+1),
-                 16,mouseSensitivity);
+                 16,mouseSensitivity,0);
 }
 
 void M_Sound(int choice)
@@ -2005,7 +2264,7 @@ void M_DrawOptions(void)
     // haleyjd 08/26/10: [STRIFE] Removed messages, sensitivity, detail.
 
     M_DrawThermo(OptionsDef.x,OptionsDef.y+LINEHEIGHT*(scrnsize+1),
-                 9,screenSize);
+                 9,screenSize,0);
 }
 
 void M_Options(int choice)
@@ -2279,16 +2538,23 @@ void M_SizeDisplay(int choice)
 //
 // haleyjd 08/28/10: [STRIFE] Changes to some patch coordinates.
 //
-void
+static void
 M_DrawThermo
 ( int	x,
   int	y,
   int	thermWidth,
-  int	thermDot )
+  int	thermDot,
+  int	itemPos )
 {
     int         xx;
     int         yy; // [STRIFE] Needs a temp y coordinate variable
     int         i;
+
+    // [JN] Highlight active slider and gem.
+    if (itemPos == itemOn)
+    {
+        dp_translation = cr[CR_MENU_BRIGHT2];
+    }
 
     xx = x;
     yy = y + 6; // [STRIFE] +6 to y coordinate
@@ -2301,9 +2567,17 @@ M_DrawThermo
     }
     V_DrawPatch(xx, yy, W_CacheLumpName(DEH_String("M_THERMR"), PU_CACHE));
 
+    // [crispy] do not crash anymore if value exceeds thermometer range
+    if (thermDot >= thermWidth)
+    {
+        thermDot = thermWidth - 1;
+    }
+
     // [STRIFE] +2 to initial y coordinate
     V_DrawPatch((x + 8) + thermDot * 8, y + 2,
                       W_CacheLumpName(DEH_String("M_THERMO"), PU_CACHE));
+
+    dp_translation = NULL;
 }
 
 

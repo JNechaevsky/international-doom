@@ -87,6 +87,12 @@ void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
 void S_SetVoiceVolume(int volume); // haleyjd 09/11/10: [STRIFE]
 
+extern void S_ChangeSFXSystem (void);
+extern void S_UpdateStereoSeparation (void);
+extern void S_MuteUnmuteSound (boolean mute);
+
+extern int current_mus_num;
+
 extern int disable_voices;
 
 #endif

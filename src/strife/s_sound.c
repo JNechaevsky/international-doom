@@ -58,6 +58,7 @@
 // Stereo separation
 
 #define S_STEREO_SWING (96 * FRACUNIT)
+static int stereo_swing;
 
 #define NORM_PRIORITY 64
 #define NORM_SEP 128
@@ -122,6 +123,18 @@ static int i_voicehandle = -1;
 // haleyjd 09/11/10: [STRIFE] whether to play voices or not
 int disable_voices = 0;
 
+// [JN] Always allocate 8 SFX channels.
+// No memory reallocation will be needed upon changing of channels number.
+
+#define MAX_SND_CHANNELS 16
+
+// [JN] External music number, used for music playback hot-swapping.
+int current_mus_num;
+
+// [JN] jff 3/17/98 to keep track of last IDMUS specified music num
+int idmusnum;
+
+
 //
 // Initializes sound stuff, including volume
 // Sets channels, SFX and music volume,
@@ -133,6 +146,8 @@ void S_Init(int sfxVolume, int musicVolume, int voiceVolume)
 {  
     int i;
 
+    idmusnum = -1; // [JN] jff 3/17/98 insure idmus number is blank
+
     I_SetOPLDriverVer(opl_doom_1_9);
     I_PrecacheSounds(S_sfx, NUMSFX);
 
@@ -143,10 +158,10 @@ void S_Init(int sfxVolume, int musicVolume, int voiceVolume)
     // Allocating the internal channels for mixing
     // (the maximum numer of sounds rendered
     // simultaneously) within zone memory.
-    channels = Z_Malloc(snd_channels*sizeof(channel_t), PU_STATIC, 0);
+    channels = Z_Malloc(MAX_SND_CHANNELS*sizeof(channel_t), PU_STATIC, 0);
 
     // Free all channels for use
-    for (i=0 ; i<snd_channels ; i++)
+    for (i=0 ; i<MAX_SND_CHANNELS ; i++)
     {
         channels[i].sfxinfo = 0;
     }
@@ -161,6 +176,53 @@ void S_Init(int sfxVolume, int musicVolume, int voiceVolume)
     }
 
     I_AtExit(S_Shutdown, true);
+
+    // [crispy] handle stereo separation for mono-sfx and flipped levels
+    S_UpdateStereoSeparation();
+}
+
+// -----------------------------------------------------------------------------
+// S_ChangeSFXSystem
+// [JN] Routine for sfx device hot-swapping.
+// -----------------------------------------------------------------------------
+
+void S_ChangeSFXSystem (void)
+{
+    int i;
+
+    // Free all channels for use
+    for (i = 0 ; i < MAX_SND_CHANNELS ; i++)
+    {
+        channels[i].sfxinfo = 0;
+    }
+
+    // Reinitialize sfx usefulness
+    for (i = 1 ; i < NUMSFX ; i++)
+    {
+        S_sfx[i].lumpnum = S_sfx[i].usefulness = -1;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// S_UpdateStereoSeparation
+// [JN] Defines stereo separtion for mono sfx mode and flipped levels.
+// -----------------------------------------------------------------------------
+
+void S_UpdateStereoSeparation (void)
+{
+	// [crispy] play all sound effects in mono
+	if (snd_monosfx)
+	{
+		stereo_swing = 0;
+	}
+	else if (gp_flip_levels)
+	{
+		stereo_swing = -S_STEREO_SWING;
+	}
+	else
+	{
+		stereo_swing = S_STEREO_SWING;
+	}
 }
 
 void S_Shutdown(void)
@@ -379,7 +441,7 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
     angle >>= ANGLETOFINESHIFT;
 
     // stereo separation
-    *sep = 128 - (FixedMul(S_STEREO_SWING, finesine[angle]) >> FRACBITS);
+    *sep = 128 - (FixedMul(stereo_swing, finesine[angle]) >> FRACBITS);
 
     // volume calculation
     // [STRIFE] Removed gamemap == 8 hack
@@ -777,6 +839,10 @@ void S_ChangeMusic(int musicnum, int looping)
     {
         return;
     }
+
+    // [JN] After inner muscial number has been set, sync it with
+    // external number, used in M_ID_MusicSystem.
+    current_mus_num = musicnum;
 
     // shutdown old music
     S_StopMusic();
