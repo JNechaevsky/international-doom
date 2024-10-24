@@ -1124,9 +1124,11 @@ void R_InitColormaps (void)
 	byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 	byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
 
-	// [JN] Handle RGB channels separatelly
-	// to support variable saturation and color intensity.
-	byte r_channel, g_channel, b_channel;
+	// [PN] Optimized the code by reducing the number of individual variables
+	// (pal_r, pal_g, pal_b, etc.) into arrays for more efficient handling of
+	// RGB channels. This reduces redundancy and improves readability while
+	// keeping the original functionality intact. Applied saturation and intensity 
+	// corrections using unified array operations. Also, thanks Alaux!
 
 	// [JN] Saturation floats, high and low.
 	// If saturation has been modified (< 100), set high and low
@@ -1159,30 +1161,22 @@ void R_InitColormaps (void)
 			{
 				const byte k = colormap[i];
 
-				// [Alaux] Component intensity applied here
-				const byte pal_r = playpal[3 * k + 0] * vid_r_intensity,
-				           pal_g = playpal[3 * k + 1] * vid_g_intensity,
-				           pal_b = playpal[3 * k + 2] * vid_b_intensity;
+				// [PN] Apply intensity and saturation corrections
+				const byte pal[3] = {
+					playpal[3 * k + 0] * vid_r_intensity,
+					playpal[3 * k + 1] * vid_g_intensity,
+					playpal[3 * k + 2] * vid_b_intensity
+				};
 
-				// [Alaux] Saturation applied in the following three
-				r_channel = 
-					(byte) ((1 - a_hi) * pal_r +
-							(0 + a_lo) * pal_g +
-							(0 + a_lo) * pal_b);
+				const byte channels[3] = {
+					(byte)((1 - a_hi) * pal[0] + a_lo * (pal[1] + pal[2])),
+					(byte)((1 - a_hi) * pal[1] + a_lo * (pal[0] + pal[2])),
+					(byte)((1 - a_hi) * pal[2] + a_lo * (pal[0] + pal[1]))
+				};
 
-				g_channel = 
-					(byte) ((0 + a_lo) * pal_r +
-							(1 - a_hi) * pal_g +
-							(0 + a_lo) * pal_b);
-
-				b_channel = 
-					(byte) ((0 + a_lo) * pal_r +
-							(0 + a_lo) * pal_g +
-							(1 - a_hi) * pal_b);
-
-				r = gammatable[vid_gamma][r_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
-				g = gammatable[vid_gamma][g_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
-				b = gammatable[vid_gamma][b_channel] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+				r = gammatable[vid_gamma][channels[0]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+				g = gammatable[vid_gamma][channels[1]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
+				b = gammatable[vid_gamma][channels[2]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
 
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 			}
@@ -1209,30 +1203,22 @@ void R_InitColormaps (void)
 				// to provide better compatibility with mods. This is less nicer,
 				// but barely will be notable, since no light levels are used.
 
-				// [Alaux] Component intensity applied here (32 = INVERSECOLORMAP)
-				const byte pal_r = playpal[3 * colormap[32 * 256 + i] + 0] * vid_r_intensity,
-				           pal_g = playpal[3 * colormap[32 * 256 + i] + 1] * vid_g_intensity,
-				           pal_b = playpal[3 * colormap[32 * 256 + i] + 2] * vid_b_intensity;
+				// [PN] Apply intensity and saturation corrections
+				const byte pal[3] = {
+					playpal[3 * colormap[32 * 256 + i] + 0] * vid_r_intensity,
+					playpal[3 * colormap[32 * 256 + i] + 1] * vid_g_intensity,
+					playpal[3 * colormap[32 * 256 + i] + 2] * vid_b_intensity
+				};
 
-				// [Alaux] Saturation applied in the following three
-				r_channel =
-					(byte) ((1 - a_hi) * pal_r +
-							(0 + a_lo) * pal_g +
-							(0 + a_lo) * pal_b);
+				const byte channels[3] = {
+					(byte)((1 - a_hi) * pal[0] + a_lo * (pal[1] + pal[2])),
+					(byte)((1 - a_hi) * pal[1] + a_lo * (pal[0] + pal[2])),
+					(byte)((1 - a_hi) * pal[2] + a_lo * (pal[0] + pal[1]))
+				};
 
-				g_channel =
-					(byte) ((0 + a_lo) * pal_r +
-							(1 - a_hi) * pal_g +
-							(0 + a_lo) * pal_b);
-
-				b_channel =
-					(byte) ((0 + a_lo) * pal_r +
-							(0 + a_lo) * pal_g +
-							(1 - a_hi) * pal_b);
-
-				r = gammatable[vid_gamma][r_channel] & ~3;
-				g = gammatable[vid_gamma][g_channel] & ~3;
-				b = gammatable[vid_gamma][b_channel] & ~3;
+				r = gammatable[vid_gamma][channels[0]] & ~3;
+				g = gammatable[vid_gamma][channels[1]] & ~3;
+				b = gammatable[vid_gamma][channels[2]] & ~3;
 			}
 
 			colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
@@ -1244,30 +1230,22 @@ void R_InitColormaps (void)
 		{
 			for (i = 0; i < 256; i++)
 			{
-				// [Alaux] Component intensity applied here
-				const byte pal_r = playpal[3 * colormap[c * 256 + i] + 0] * vid_r_intensity,
-				           pal_g = playpal[3 * colormap[c * 256 + i] + 1] * vid_g_intensity,
-				           pal_b = playpal[3 * colormap[c * 256 + i] + 2] * vid_b_intensity;
+				// [PN] Apply intensity and saturation corrections
+				const byte pal[3] = {
+					playpal[3 * colormap[c * 256 + i] + 0] * vid_r_intensity,
+					playpal[3 * colormap[c * 256 + i] + 1] * vid_g_intensity,
+					playpal[3 * colormap[c * 256 + i] + 2] * vid_b_intensity
+				};
 
-				// [Alaux] Saturation applied in the following three
-				r_channel =
-					(byte) ((1 - a_hi) * pal_r +
-							(0 + a_lo) * pal_g +
-							(0 + a_lo) * pal_b);
+				const byte channels[3] = {
+					(byte)((1 - a_hi) * pal[0] + a_lo * (pal[1] + pal[2])),
+					(byte)((1 - a_hi) * pal[1] + a_lo * (pal[0] + pal[2])),
+					(byte)((1 - a_hi) * pal[2] + a_lo * (pal[0] + pal[1]))
+				};
 
-				g_channel =
-					(byte) ((0 + a_lo) * pal_r +
-							(1 - a_hi) * pal_g +
-							(0 + a_lo) * pal_b);
-
-				b_channel =
-					(byte) ((0 + a_lo) * pal_r +
-							(0 + a_lo) * pal_g +
-							(1 - a_hi) * pal_b);
-
-				r = gammatable[vid_gamma][r_channel] & ~3;
-				g = gammatable[vid_gamma][g_channel] & ~3;
-				b = gammatable[vid_gamma][b_channel] & ~3;
+				r = gammatable[vid_gamma][channels[0]] & ~3;
+				g = gammatable[vid_gamma][channels[1]] & ~3;
+				b = gammatable[vid_gamma][channels[2]] & ~3;
 
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 			}
@@ -1283,30 +1261,22 @@ void R_InitColormaps (void)
 
 	for (i = 0, j = 0; i < 256; i++)
 	{
-		// [Alaux] Component intensity applied here
-		const byte pal_r = playpal[3 * i + 0] * vid_r_intensity,
-		           pal_g = playpal[3 * i + 1] * vid_g_intensity,
-		           pal_b = playpal[3 * i + 2] * vid_b_intensity;
+		// [PN] Apply intensity and saturation corrections
+		const byte pal[3] = {
+			playpal[3 * i + 0] * vid_r_intensity,
+			playpal[3 * i + 1] * vid_g_intensity,
+			playpal[3 * i + 2] * vid_b_intensity
+		};
 
-		// [Alaux] Saturation applied in the following three
-		r_channel = 
-			(byte) ((1 - a_hi) * pal_r +
-					(0 + a_lo) * pal_g +
-					(0 + a_lo) * pal_b);
+		const byte channels[3] = {
+            (byte)((1 - a_hi) * pal[0] + a_lo * (pal[1] + pal[2])),
+            (byte)((1 - a_hi) * pal[1] + a_lo * (pal[0] + pal[2])),
+            (byte)((1 - a_hi) * pal[2] + a_lo * (pal[0] + pal[1]))
+		};
 
-		g_channel = 
-			(byte) ((0 + a_lo) * pal_r +
-					(1 - a_hi) * pal_g +
-					(0 + a_lo) * pal_b);
-
-		b_channel = 
-			(byte) ((0 + a_lo) * pal_r +
-					(0 + a_lo) * pal_g +
-					(1 - a_hi) * pal_b);
-
-		r = gammatable[vid_gamma][r_channel];
-		g = gammatable[vid_gamma][g_channel];
-		b = gammatable[vid_gamma][b_channel];
+		r = gammatable[vid_gamma][channels[0]];
+		g = gammatable[vid_gamma][channels[1]];
+		b = gammatable[vid_gamma][channels[2]];
 
 		pal_color[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 	}

@@ -442,7 +442,8 @@ void D_DoomMain(void)
     //
     // Disable auto-loading of .wad files.
     //
-    if (!M_ParmExists("-noautoload") && gamemode != shareware)
+    if (!M_ParmExists("-noautoload") && gamemode != shareware
+    && autoload_wad)  // [JN] Allow autoload per both IWAD and PWAD.
     {
         char *autoload_dir;
         autoload_dir = M_GetAutoloadDir("hexen.wad");
@@ -697,10 +698,6 @@ static void HandleArgs(void)
     }
 
     // [crispy] add wad files from autoload PWAD directories
-    // [JN] Please do not. No need to create additional directories,
-    // consider using "hexen.wad" for autoloading purposes.
-    // But allow autoload for Deathkings of the Dark Citadel (hexdd.wad),
-    // as is it's an official addon, made as PWAD, not IWAD.
 
     if (!M_ParmExists("-noautoload") && gamemode != shareware)
     {
@@ -714,15 +711,26 @@ static void HandleArgs(void)
             {
                 while (++p != myargc && myargv[p][0] != '-')
                 {
+                    char *autoload_dir = NULL;
+
+                    // [PN] Allow autoload per PWAD only.
+                    if (autoload_wad == 2)
+                    {
+                        autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]));
+                    }
+
+                    // [PN] Always allow for Deathkings
                     if (M_StrCaseStr(myargv[p], "hexdd.wad"))
                     {
-                        char *autoload_dir;
-                        if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]))))
-                        {
-                            W_AutoLoadWADs(autoload_dir);
-                            free(autoload_dir);
-                        }
+                        autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]));
                         gamedescription = "Hexen: Deathkings of the Dark Citadel";
+                    }
+
+                    // [PN] Load WADs if autoload_dir was set
+                    if (autoload_dir)
+                    {
+                        W_AutoLoadWADs(autoload_dir);
+                        free(autoload_dir);
                     }
                 }
             }

@@ -598,7 +598,7 @@ extern void R_InitBuffer (int width, int height);
 extern void R_InitTranslationTables (void);
 extern void R_SetFuzzPosDraw (void);
 extern void R_SetFuzzPosTic (void);
-extern void R_VideoErase (unsigned ofs, int count);
+extern void R_VideoErase (size_t ofs, int count);
 
 extern byte *dc_source;
 extern byte *ds_source;		
@@ -804,7 +804,7 @@ extern int skytexturemid;
 // -----------------------------------------------------------------------------
 
 extern void  R_InitDistortedFlats (void);
-extern char *R_DistortedFlat (int flatnum);
+extern byte *R_DistortedFlat (int flatnum);
 
 // -----------------------------------------------------------------------------
 // R_THINGS

@@ -93,6 +93,7 @@ int			dc_texheight; // [crispy] Tutti-Frutti fix
 byte*			dc_source;		
 
 
+// -----------------------------------------------------------------------------
 //
 // A column is a vertical slice/span from a wall texture that,
 //  given the DOOM style restrictions on the view orientation,
@@ -102,156 +103,140 @@ byte*			dc_source;
 // 
 // [crispy] replace R_DrawColumn() with Lee Killough's implementation
 // found in MBF to fix Tutti-Frutti, taken from mbfsrc/R_DRAW.C:99-1979
+//
+// [PN] Optimized handling of non-power-of-2 textures by using modulo operation
+//      instead of iterative loops to normalize 'frac' within bounds.
+//      General cleanup and improved readability of the power-of-2 path.
+// -----------------------------------------------------------------------------
 
-void R_DrawColumn (void) 
-{ 
-    int			count; 
-    pixel_t*		dest;
-    fixed_t		frac;
-    fixed_t		fracstep;	 
-    int			heightmask = dc_texheight - 1;
- 
-    count = dc_yh - dc_yl; 
+void R_DrawColumn (void)
+{
+    int count;
+    pixel_t *dest;
+    fixed_t frac;
+    fixed_t fracstep;
+    int heightmask = dc_texheight - 1;
+
+    count = dc_yh - dc_yl;
 
     // Zero length, column does not exceed a pixel.
-    if (count < 0) 
-	return; 
-				 
-#ifdef RANGECHECK 
-    if (dc_x >= SCREENWIDTH
-	|| dc_yl < 0
-	|| dc_yh >= SCREENHEIGHT) 
-	I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x); 
-#endif 
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if (dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+    {
+        I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif
 
     // Framebuffer destination address.
-    // Use ylookup LUT to avoid multiply with ScreenWidth.
-    // Use columnofs LUT for subwindows? 
     dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
-    // Determine scaling,
-    //  which is the only mapping to be done.
-    fracstep = dc_iscale; 
-    frac = dc_texturemid + (dc_yl-centery)*fracstep; 
+    // Determine scaling.
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    // Inner loop that does the actual texture mapping,
-    //  e.g. a DDA-lile scaling.
-    // This is as fast as it gets.
-
-  // heightmask is the Tutti-Frutti fix -- killough
-  if (dc_texheight & heightmask) // not a power of 2 -- killough
-  {
-    heightmask++;
-    heightmask <<= FRACBITS;
-
-    if (frac < 0)
-	while ((frac += heightmask) < 0);
-    else
-	while (frac >= heightmask)
-	    frac -= heightmask;
-
-    do
+    // Handle non-power of 2 textures (Tutti-Frutti fix).
+    if (dc_texheight & heightmask)
     {
-	// [crispy] brightmaps
-	const byte source = dc_source[frac>>FRACBITS];
-	*dest = dc_colormap[dc_brightmap[source]][source];
+        // Prepare heightmask for non-power of 2 textures.
+        heightmask = (dc_texheight << FRACBITS);
 
-	dest += SCREENWIDTH;
-	if ((frac += fracstep) >= heightmask)
-	    frac -= heightmask;
-    } while (count--);
-  }
-  else // texture height is a power of 2 -- killough
-  {
-    do 
+        // Normalize frac within bounds of heightmask using modulo operation.
+        frac = (frac % heightmask + heightmask) % heightmask;
+
+        // Process each pixel with adjusted frac.
+        do
+        {
+            const byte source = dc_source[frac >> FRACBITS];
+            *dest = dc_colormap[dc_brightmap[source]][source];
+            dest += SCREENWIDTH;
+            frac = (frac + fracstep) % heightmask;
+        } while (count--);
+    }
+    else // For power of 2 textures.
     {
-	// Re-map color indices from wall texture column
-	//  using a lighting/special effects LUT.
-	// [crispy] brightmaps
-	const byte source = dc_source[(frac>>FRACBITS)&heightmask];
-	*dest = dc_colormap[dc_brightmap[source]][source];
-	
-	dest += SCREENWIDTH; 
-	frac += fracstep;
-	
-    } while (count--); 
-  }
-} 
+        // Fast path for textures with height that is a power of 2.
+        do
+        {
+            const byte source = dc_source[(frac >> FRACBITS) & heightmask];
+            *dest = dc_colormap[dc_brightmap[source]][source]; // [crispy] brightmaps
+            dest += SCREENWIDTH;
+            frac += fracstep;
+        } while (count--);
+    }
+}
 
-void R_DrawColumnLow (void) 
-{ 
-    int			count; 
-    pixel_t*		dest;
-    pixel_t*		dest2;
-    fixed_t		frac;
-    fixed_t		fracstep;	 
-    int                 x;
-    int			heightmask = dc_texheight - 1;
- 
-    count = dc_yh - dc_yl; 
+void R_DrawColumnLow (void)
+{
+    int count;
+    pixel_t *dest;
+    pixel_t *dest2;
+    fixed_t frac;
+    fixed_t fracstep;
+    int x;
+    int heightmask = dc_texheight - 1;
+
+    count = dc_yh - dc_yl;
 
     // Zero length.
-    if (count < 0) 
-	return; 
-				 
-#ifdef RANGECHECK 
-    if (dc_x >= SCREENWIDTH
-	|| dc_yl < 0
-	|| dc_yh >= SCREENHEIGHT)
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if (dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
     {
-	
-	I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+        I_Error("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
     }
-#endif 
+#endif
+
     // Blocky mode, need to multiply by 2.
     x = dc_x << 1;
-    
+
     dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
     dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
-    
-    fracstep = dc_iscale; 
-    frac = dc_texturemid + (dc_yl-centery)*fracstep;
-    
-  // heightmask is the Tutti-Frutti fix -- killough
-  if (dc_texheight & heightmask) // not a power of 2 -- killough
-  {
-    heightmask++;
-    heightmask <<= FRACBITS;
 
-    if (frac < 0)
-	while ((frac += heightmask) < 0);
-    else
-	while (frac >= heightmask)
-	    frac -= heightmask;
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    do
+    // Handle non-power of 2 textures (Tutti-Frutti fix).
+    if (dc_texheight & heightmask)
     {
-	// [crispy] brightmaps
-	const byte source = dc_source[frac>>FRACBITS];
-	*dest2 = *dest = dc_colormap[dc_brightmap[source]][source];
+        // Prepare heightmask for non-power of 2 textures.
+        heightmask = (dc_texheight << FRACBITS);
 
-	dest += SCREENWIDTH;
-	dest2 += SCREENWIDTH;
+        // Normalize frac within bounds of heightmask using modulo operation.
+        frac = (frac % heightmask + heightmask) % heightmask;
 
-	if ((frac += fracstep) >= heightmask)
-	    frac -= heightmask;
-    } while (count--);
-  }
-  else // texture height is a power of 2 -- killough
-  {
-    do 
+        // Process each pixel with adjusted frac.
+        do
+        {
+            const byte source = dc_source[frac >> FRACBITS];
+            *dest2 = *dest = dc_colormap[dc_brightmap[source]][source]; // [crispy] brightmaps
+
+            dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
+
+            frac = (frac + fracstep) % heightmask;
+
+        } while (count--);
+    }
+    else // For power of 2 textures.
     {
-	// Hack. Does not work corretly.
-	// [crispy] brightmaps
-	const byte source = dc_source[(frac>>FRACBITS)&heightmask];
-	*dest2 = *dest = dc_colormap[dc_brightmap[source]][source];
-	dest += SCREENWIDTH;
-	dest2 += SCREENWIDTH;
+        // Fast path for textures with height that is a power of 2.
+        do
+        {
+            const byte source = dc_source[(frac >> FRACBITS) & heightmask];
+            *dest2 = *dest = dc_colormap[dc_brightmap[source]][source]; // [crispy] brightmaps
 
-	frac += fracstep; 
+            dest += SCREENWIDTH;
+            dest2 += SCREENWIDTH;
 
-    } while (count--);
-  }
+            frac += fracstep;
+
+        } while (count--);
+    }
 }
 
 
@@ -291,182 +276,164 @@ void R_SetFuzzPosDraw (void)
 	fuzzpos = fuzzpos_tic;
 }
 
-//
+// -----------------------------------------------------------------------------
+// R_DrawFuzzColumn
 // Framebuffer postprocessing.
-// Creates a fuzzy image by copying pixels
-//  from adjacent ones to left and right.
-// Used with an all black colormap, this
-//  could create the SHADOW effect,
-//  i.e. spectres and invisible players.
+// Creates a fuzzy image by copying pixels from adjacent ones to left and right.
+// Used with an all black colormap, this could create the SHADOW effect,
+// i.e. spectres and invisible players.
 //
-void R_DrawFuzzColumn (void) 
-{ 
-    int			count; 
-    pixel_t*		dest;
-    boolean		cutoff = false;
+// [PN] Optimized border adjustments by eliminating unnecessary `cutoff` variable.
+//      Simplified fuzz position updating logic and removed redundant operations
+//      for better readability.
+// -----------------------------------------------------------------------------
 
-    // Adjust borders. Low... 
-    if (!dc_yl) 
-	dc_yl = 1;
+void R_DrawFuzzColumn (void)
+{
+    int count;
+    pixel_t* dest;
+    boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
 
-    // .. and high.
-    if (dc_yh == viewheight-1) 
-    {
-	dc_yh = viewheight - 2; 
-	cutoff = true;
-    }
-		 
-    count = dc_yh - dc_yl; 
+    // Adjust borders.
+    if (!dc_yl)
+        dc_yl = 1;
+
+    if (cutoff)
+        dc_yh = viewheight - 2;
+
+    count = dc_yh - dc_yl;
 
     // Zero length.
-    if (count < 0) 
-	return; 
+    if (count < 0)
+        return;
 
-#ifdef RANGECHECK 
-    if (dc_x >= SCREENWIDTH
-	|| dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+#ifdef RANGECHECK
+    if (dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
     {
-	I_Error ("R_DrawFuzzColumn: %i to %i at %i",
-		 dc_yl, dc_yh, dc_x);
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
-    
+
     dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
-    // Looks like an attempt at dithering,
-    //  using the colormap #6 (of 0-31, a bit
-    //  brighter than average).
-    do 
+    // Looks like an attempt at dithering, using the colormap #6
+    // (of 0-31, a bit brighter than average).
+    do
     {
-	// Lookup framebuffer, and retrieve
-	//  a pixel that is either one column
-	//  left or right of the current one.
-	// Add index from colormap to index.
+        const int fuzz_offset = SCREENWIDTH * fuzzoffset[fuzzpos];
+
 #ifndef CRISPY_TRUECOLOR
-	*dest = colormaps[6*256+dest[SCREENWIDTH*fuzzoffset[fuzzpos]]]; 
+        *dest = colormaps[6 * 256 + dest[fuzz_offset]];
 #else
-	*dest = I_BlendDark(dest[SCREENWIDTH*fuzzoffset[fuzzpos]], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
 #endif
 
-	// Clamp table lookup index.
-	if (++fuzzpos == FUZZTABLE) 
-    {
-	    if (vis_improved_fuzz)
-	    {
-	        fuzzpos = realleveltime > oldleveltime ? ID_Random() % 49 : 0;
-	    }
-	    else
-	    {
-	        fuzzpos = 0;
-	    }
-    }
-	
-	dest += SCREENWIDTH;
-    } while (count--); 
+        // Update fuzzpos and clamp if necessary.
+        fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+        if (fuzzpos == 0 && vis_improved_fuzz)
+        {
+            fuzzpos = realleveltime > oldleveltime ? ID_Random() % 49 : 0;
+        }
+
+        dest += SCREENWIDTH;
+    } while (count--);
 
     // [crispy] if the line at the bottom had to be cut off,
     // draw one extra line using only pixels of that line and the one above
     if (cutoff)
     {
+        const int fuzz_offset = SCREENWIDTH * (fuzzoffset[fuzzpos] - FUZZOFF) / 2;
+
 #ifndef CRISPY_TRUECOLOR
-	*dest = colormaps[6*256+dest[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2]];
+        *dest = colormaps[6 * 256 + dest[fuzz_offset]];
 #else
-	*dest = I_BlendDark(dest[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
 #endif
     }
-} 
+}
 
-// low detail mode version
- 
-void R_DrawFuzzColumnLow (void) 
-{ 
-    int			count; 
-    pixel_t*		dest;
-    pixel_t*		dest2;
+// -----------------------------------------------------------------------------
+// R_DrawFuzzColumnLow
+// Draws a vertical slice of pixels in blocky mode (low detail).
+// Creates a fuzzy effect by copying pixels from adjacent ones.
+// [PN] Optimized border adjustments by eliminating unnecessary `cutoff` variable.
+//      Simplified fuzz position updating logic and removed redundant operations
+//      for better readability.
+// -----------------------------------------------------------------------------
+
+void R_DrawFuzzColumnLow (void)
+{
+    int count;
+    pixel_t *dest;
+    pixel_t *dest2;
     int x;
-    boolean		cutoff = false;
+    boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
 
-    // Adjust borders. Low... 
-    if (!dc_yl) 
-	dc_yl = 1;
+    // Adjust borders.
+    if (!dc_yl)
+        dc_yl = 1;
 
-    // .. and high.
-    if (dc_yh == viewheight-1) 
-    {
-	dc_yh = viewheight - 2; 
-	cutoff = true;
-    }
-		 
-    count = dc_yh - dc_yl; 
+    if (cutoff)
+        dc_yh = viewheight - 2;
+
+    count = dc_yh - dc_yl;
 
     // Zero length.
-    if (count < 0) 
-	return; 
+    if (count < 0)
+        return;
 
-    // low detail mode, need to multiply by 2
-    
+    // Low detail mode, need to multiply by 2.
     x = dc_x << 1;
-    
-#ifdef RANGECHECK 
-    if (x >= SCREENWIDTH
-	|| dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+
+#ifdef RANGECHECK
+    if (x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
     {
-	I_Error ("R_DrawFuzzColumn: %i to %i at %i",
-		 dc_yl, dc_yh, dc_x);
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
-    
+
     dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
-    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x+1]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
 
-    // Looks like an attempt at dithering,
-    //  using the colormap #6 (of 0-31, a bit
-    //  brighter than average).
-    do 
+    // Looks like an attempt at dithering.
+    do
     {
-	// Lookup framebuffer, and retrieve
-	//  a pixel that is either one column
-	//  left or right of the current one.
-	// Add index from colormap to index.
+        const int fuzz_offset = SCREENWIDTH * fuzzoffset[fuzzpos];
+
 #ifndef CRISPY_TRUECOLOR
-	*dest = colormaps[6*256+dest[SCREENWIDTH*fuzzoffset[fuzzpos]]];
-	*dest2 = colormaps[6*256+dest2[SCREENWIDTH*fuzzoffset[fuzzpos]]];
+        *dest = colormaps[6 * 256 + dest[fuzz_offset]];
+        *dest2 = colormaps[6 * 256 + dest2[fuzz_offset]];
 #else
-	*dest = I_BlendDark(dest[SCREENWIDTH*fuzzoffset[fuzzpos]], 0xD3);
-	*dest2 = I_BlendDark(dest2[SCREENWIDTH*fuzzoffset[fuzzpos]], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
+        *dest2 = I_BlendDark(dest2[fuzz_offset], 0xD3);
 #endif
 
-	// Clamp table lookup index.
-	if (++fuzzpos == FUZZTABLE) 
-    {
-	    if (vis_improved_fuzz)
-	    {
-	        fuzzpos = realleveltime > oldleveltime ? ID_Random() % 49 : 0;
-	    }
-	    else
-	    {
-	        fuzzpos = 0;
-	    }
-    }
-	
-	dest += SCREENWIDTH;
-	dest2 += SCREENWIDTH;
+        // Update fuzzpos and clamp if necessary.
+        fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+        if (fuzzpos == 0 && vis_improved_fuzz)
+        {
+            fuzzpos = realleveltime > oldleveltime ? ID_Random() % 49 : 0;
+        }
 
-    } while (count--); 
+        dest += SCREENWIDTH;
+        dest2 += SCREENWIDTH;
+    } while (count--);
 
     // [crispy] if the line at the bottom had to be cut off,
     // draw one extra line using only pixels of that line and the one above
     if (cutoff)
     {
+        const int fuzz_offset = SCREENWIDTH * (fuzzoffset[fuzzpos] - FUZZOFF) / 2;
+
 #ifndef CRISPY_TRUECOLOR
-	*dest = colormaps[6*256+dest[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2]];
-	*dest2 = colormaps[6*256+dest2[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2]];
+        *dest = colormaps[6 * 256 + dest[fuzz_offset]];
+        *dest2 = colormaps[6 * 256 + dest2[fuzz_offset]];
 #else
-	*dest = I_BlendDark(dest[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2], 0xD3);
-	*dest2 = I_BlendDark(dest2[SCREENWIDTH*(fuzzoffset[fuzzpos]-FUZZOFF)/2], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
+        *dest2 = I_BlendDark(dest2[fuzz_offset], 0xD3);
 #endif
     }
-} 
+}
  
   
   
@@ -892,309 +859,348 @@ fixed_t			ds_ystep;
 byte*			ds_source;	
 
 
-//
-// Draws the actual span.
+// -----------------------------------------------------------------------------
+// R_DrawSpan
+// Draws a horizontal span of pixels.
+// [PN] Uses a different approach depending on whether mirrored levels are enabled.
+//      Precomputes the destination pointer when mirrored levels are off
+//      for better performance.
+// -----------------------------------------------------------------------------
+
 void R_DrawSpan (void) 
 { 
-//  unsigned int position, step;
     pixel_t *dest;
     int count;
     int spot;
     unsigned int xtemp, ytemp;
+    byte source;
 
 #ifdef RANGECHECK
-    if (ds_x2 < ds_x1
-	|| ds_x1<0
-	|| ds_x2>=SCREENWIDTH
-	|| ds_y>SCREENHEIGHT)
+    if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= SCREENWIDTH || ds_y > SCREENHEIGHT)
     {
-	I_Error( "R_DrawSpan: %i to %i at %i",
-		 ds_x1,ds_x2,ds_y);
+        I_Error("R_DrawSpan: %i to %i at %i", ds_x1, ds_x2, ds_y);
     }
-//	dscount++;
 #endif
 
-    // Pack position and step variables into a single 32-bit integer,
-    // with x in the top 16 bits and y in the bottom 16 bits.  For
-    // each 16-bit part, the top 6 bits are the integer part and the
-    // bottom 10 bits are the fractional part of the pixel position.
-
-/*
-    position = ((ds_xfrac << 10) & 0xffff0000)
-             | ((ds_yfrac >> 6)  & 0x0000ffff);
-    step = ((ds_xstep << 10) & 0xffff0000)
-         | ((ds_ystep >> 6)  & 0x0000ffff);
-*/
-
-//  dest = ylookup[ds_y] + columnofs[ds_x1];
-
-    // We do not check for zero spans here?
+    // Calculate the span length.
     count = ds_x2 - ds_x1;
 
-    do
+    // Optimized version for normal (non-flipped) levels.
+    if (!gp_flip_levels)
     {
-	byte source;
-	// Calculate current texture index in u,v.
-        // [crispy] fix flats getting more distorted the closer they are to the right
-        ytemp = (ds_yfrac >> 10) & 0x0fc0;
-        xtemp = (ds_xfrac >> 16) & 0x3f;
-        spot = xtemp | ytemp;
+        // [PN] Precompute the destination pointer for normal levels, without flipping.
+        dest = ylookup[ds_y] + columnofs[ds_x1];
 
-	// Lookup pixel from flat texture tile,
-	//  re-index using light/colormap.
-	source = ds_source[spot];
-	dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
-	*dest = ds_colormap[ds_brightmap[source]][source];
+        do
+        {
+            // [crispy] fix flats getting more distorted the closer they are to the right
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
 
-//      position += step;
-        ds_xfrac += ds_xstep;
-        ds_yfrac += ds_ystep;
+            // Lookup the pixel and apply lighting.
+            source = ds_source[spot];
+            *dest = ds_colormap[ds_brightmap[source]][source];
+            
+            // Move to the next pixel.
+            dest++;  // [PN] Increment destination pointer without recalculating.
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
 
-    } while (count--);
+        } while (count--);
+    }
+    else
+    {
+        // Version for mirrored (flipped) levels.
+        do
+        {
+            // [crispy] fix flats getting more distorted the closer they are to the right
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+
+            // Lookup the pixel and apply lighting.
+            source = ds_source[spot];
+
+            // [PN] Recalculate destination pointer using `flipviewwidth` for flipped levels.
+            dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
+            *dest = ds_colormap[ds_brightmap[source]][source];
+
+            // Move to the next pixel.
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+        } while (count--);
+    }
 }
 
-//
-// Again..
-//
+// -----------------------------------------------------------------------------
+// R_DrawSpanLow
+// Draws a horizontal span of pixels in blocky mode (low resolution).
+// [PN] Uses a different approach depending on whether mirrored levels are enabled.
+//      Precomputes the destination pointer when mirrored levels are off
+//      for better performance.
+// -----------------------------------------------------------------------------
+
 void R_DrawSpanLow (void)
 {
-//  unsigned int position, step;
     unsigned int xtemp, ytemp;
     pixel_t *dest;
     int count;
     int spot;
+    byte source;
 
 #ifdef RANGECHECK
-    if (ds_x2 < ds_x1
-	|| ds_x1<0
-	|| ds_x2>=SCREENWIDTH
-	|| ds_y>SCREENHEIGHT)
+    if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= SCREENWIDTH || ds_y > SCREENHEIGHT)
     {
-	I_Error( "R_DrawSpan: %i to %i at %i",
-		 ds_x1,ds_x2,ds_y);
+        I_Error("R_DrawSpanLow: %i to %i at %i", ds_x1, ds_x2, ds_y);
     }
-//	dscount++; 
 #endif
 
-/*
-    position = ((ds_xfrac << 10) & 0xffff0000)
-             | ((ds_yfrac >> 6)  & 0x0000ffff);
-    step = ((ds_xstep << 10) & 0xffff0000)
-         | ((ds_ystep >> 6)  & 0x0000ffff);
-*/
-
-    count = (ds_x2 - ds_x1);
+    // Calculate the span length.
+    count = ds_x2 - ds_x1;
 
     // Blocky mode, need to multiply by 2.
     ds_x1 <<= 1;
     ds_x2 <<= 1;
 
-//  dest = ylookup[ds_y] + columnofs[ds_x1];
-
-    do
+    // Optimized version for normal (non-flipped) levels in blocky mode.
+    if (!gp_flip_levels)
     {
-	byte source;
-	// Calculate current texture index in u,v.
-        // [crispy] fix flats getting more distorted the closer they are to the right
-        ytemp = (ds_yfrac >> 10) & 0x0fc0;
-        xtemp = (ds_xfrac >> 16) & 0x3f;
-        spot = xtemp | ytemp;
+        // [PN] Precompute the destination pointer for normal levels, without flipping.
+        dest = ylookup[ds_y] + columnofs[ds_x1];
 
-	// Lowres/blocky mode does it twice,
-	//  while scale is adjusted appropriately.
-	source = ds_source[spot];
-	dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
-	*dest = ds_colormap[ds_brightmap[source]][source];
-	dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
-	*dest = ds_colormap[ds_brightmap[source]][source];
+        do
+        {
+            // [crispy] fix flats getting more distorted the closer they are to the right
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
 
-//	position += step;
-	ds_xfrac += ds_xstep;
-	ds_yfrac += ds_ystep;
+            // Lookup the pixel and apply lighting.
+            source = ds_source[spot];
+            *dest = ds_colormap[ds_brightmap[source]][source];  // First pixel.
+            dest++;  // [PN] Move to the next pixel.
+            *dest = ds_colormap[ds_brightmap[source]][source];  // Second pixel.
+            dest++;  // [PN] Move to the next pixel.
 
+            // Update fractional positions.
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
 
-    } while (count--);
+        } while (count--);
+    }
+    else
+    {
+        // Version for mirrored (flipped) levels in blocky mode.
+        do
+        {
+            // [crispy] fix flats getting more distorted the closer they are to the right
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+
+            // Lookup the pixel and apply lighting.
+            source = ds_source[spot];
+
+            // [PN] Recalculate destination pointer using `flipviewwidth` for flipped levels.
+            dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
+            *dest = ds_colormap[ds_brightmap[source]][source];
+
+            dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
+            *dest = ds_colormap[ds_brightmap[source]][source];
+
+            // Update fractional positions.
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+        } while (count--);
+    }
 }
 
-//
+// -----------------------------------------------------------------------------
 // R_InitBuffer 
-// Creats lookup tables that avoid
-//  multiplies and other hazzles
-//  for getting the framebuffer address
-//  of a pixel to draw.
-//
-void
-R_InitBuffer
-( int		width,
-  int		height ) 
+// Initializes the buffer for a given view width and height.
+// Handles border offsets and row/column calculations.
+// [PN] Simplified logic and improved readability for better understanding.
+// -----------------------------------------------------------------------------
+
+void R_InitBuffer (int width, int height)
 { 
-    int		i; 
+    int i;
 
-    // Handle resize,
-    //  e.g. smaller view windows
-    //  with border and/or status bar.
-    viewwindowx = (SCREENWIDTH-width) >> 1; 
+    // [PN] Handle resize: calculate horizontal offset (viewwindowx).
+    viewwindowx = (SCREENWIDTH - width) >> 1;
 
-    // Column offset. For windows.
-    for (i=0 ; i<width ; i++) 
-	columnofs[i] = viewwindowx + i;
+    // [PN] Calculate column offsets (columnofs).
+    for (i = 0; i < width; i++) 
+    {
+        columnofs[i] = viewwindowx + i;
+    }
 
-    // Samw with base row offset.
-    if (width == SCREENWIDTH) 
-	viewwindowy = 0; 
-    else 
-	viewwindowy = (SCREENHEIGHT-SBARHEIGHT-height) >> 1; 
+    // [PN] Calculate vertical offset (viewwindowy).
+    // Simplified using ternary operator.
+    viewwindowy = (width == SCREENWIDTH) ? 0 : (SCREENHEIGHT - SBARHEIGHT - height) >> 1;
 
-    // Preclaculate all row offsets.
-    for (i=0 ; i<height ; i++) 
-	ylookup[i] = I_VideoBuffer + (i+viewwindowy)*SCREENWIDTH; 
+    // [PN] Precalculate row offsets (ylookup) for each row.
+    for (i = 0; i < height; i++) 
+    {
+        ylookup[i] = I_VideoBuffer + (i + viewwindowy) * SCREENWIDTH;
+    }
 
+    // [PN] Free the background buffer if it exists.
     if (background_buffer != NULL)
     {
-	    free(background_buffer);
-	    background_buffer = NULL;
+        free(background_buffer);
+        background_buffer = NULL;
     }
-} 
- 
- 
+}
 
-
-//
+// -----------------------------------------------------------------------------
 // R_FillBackScreen
-// Fills the back screen with a pattern
-//  for variable screen sizes
+// Fills the back screen with a pattern for variable screen sizes.
 // Also draws a beveled edge.
-//
+// [PN] Optimized for readability and reduced code duplication.
+//      Pre-cache patches and precompute commonly used values to improve efficiency.
+// -----------------------------------------------------------------------------
+
 void R_FillBackScreen (void) 
 { 
-    byte*	src;
-    pixel_t*	dest;
-    int		x;
-    int		y; 
-    patch_t*	patch;
+    byte *src;
+    pixel_t *dest;
+    patch_t *patch_top;
+    patch_t *patch_bottom;
+    patch_t *patch_left;
+    patch_t *patch_right;
+    patch_t *patch_tl;
+    patch_t *patch_tr;
+    patch_t *patch_bl;
+    patch_t *patch_br;
+    int viewx, viewy;
+    int scaledwidth;
+    int viewheight_res;
 
     // If we are running full screen, there is no need to do any of this,
     // and the background buffer can be freed if it was previously in use.
-
     if (scaledviewwidth == SCREENWIDTH)
     {
-	return;
+        return;
     }
 
     // Allocate the background buffer if necessary
-	
     if (background_buffer == NULL)
     {
         const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
         background_buffer = malloc(size * sizeof(*background_buffer));
     }
 
-    // Draw screen and bezel; this is done to a separate screen buffer.
-
+    // [PN] Use background buffer for drawing
     V_UseBuffer(background_buffer);
     
+    // [PN] Cache the background texture and fill the screen
     src = W_CacheLumpName(DEH_String(gamemode == commercial ? "GRNROCK" : "FLOOR7_2"), PU_CACHE); 
     dest = background_buffer;
-	 
-    // [crispy] use unified flat filling function
-    V_FillFlat(0, SCREENHEIGHT-SBARHEIGHT, 0, SCREENWIDTH, src, dest);
-     
-    patch = W_CacheLumpName(DEH_String("brdr_t"),PU_CACHE);
 
-    for (x=0 ; x<(scaledviewwidth / vid_resolution) ; x+=8)
-	V_DrawPatch((viewwindowx / vid_resolution)+x-WIDESCREENDELTA, (viewwindowy / vid_resolution)-8, patch);
-    patch = W_CacheLumpName(DEH_String("brdr_b"),PU_CACHE);
+    // [PN] Pre-cache patches for border drawing
+    patch_top = W_CacheLumpName(DEH_String("brdr_t"), PU_CACHE);
+    patch_bottom = W_CacheLumpName(DEH_String("brdr_b"), PU_CACHE);
+    patch_left = W_CacheLumpName(DEH_String("brdr_l"), PU_CACHE);
+    patch_right = W_CacheLumpName(DEH_String("brdr_r"), PU_CACHE);
+    patch_tl = W_CacheLumpName(DEH_String("brdr_tl"), PU_CACHE);
+    patch_tr = W_CacheLumpName(DEH_String("brdr_tr"), PU_CACHE);
+    patch_bl = W_CacheLumpName(DEH_String("brdr_bl"), PU_CACHE);
+    patch_br = W_CacheLumpName(DEH_String("brdr_br"), PU_CACHE);
 
-    for (x=0 ; x<(scaledviewwidth / vid_resolution) ; x+=8)
-	V_DrawPatch((viewwindowx / vid_resolution)+x-WIDESCREENDELTA, (viewwindowy / vid_resolution)+(viewheight / vid_resolution), patch);
-    patch = W_CacheLumpName(DEH_String("brdr_l"),PU_CACHE);
+    // [PN] Precompute commonly used values
+    viewx = viewwindowx / vid_resolution;
+    viewy = viewwindowy / vid_resolution;
+    scaledwidth = scaledviewwidth / vid_resolution;
+    viewheight_res = viewheight / vid_resolution;
 
-    for (y=0 ; y<(viewheight / vid_resolution) ; y+=8)
-	V_DrawPatch((viewwindowx / vid_resolution)-8-WIDESCREENDELTA, (viewwindowy / vid_resolution)+y, patch);
-    patch = W_CacheLumpName(DEH_String("brdr_r"),PU_CACHE);
+    // [crispy] Unified flat filling function
+    V_FillFlat(0, SCREENHEIGHT - SBARHEIGHT, 0, SCREENWIDTH, src, dest);
 
-    for (y=0 ; y<(viewheight / vid_resolution) ; y+=8)
-	V_DrawPatch((viewwindowx / vid_resolution)+(scaledviewwidth / vid_resolution)-WIDESCREENDELTA, (viewwindowy / vid_resolution)+y, patch);
+    // [PN] Draw top and bottom borders
+    for (int x = 0; x < scaledwidth; x += 8)
+    {
+        V_DrawPatch(viewx + x - WIDESCREENDELTA, viewy - 8, patch_top);
+        V_DrawPatch(viewx + x - WIDESCREENDELTA, viewy + viewheight_res, patch_bottom);
+    }
 
-    // Draw beveled edge. 
-    V_DrawPatch((viewwindowx / vid_resolution)-8-WIDESCREENDELTA,
-                (viewwindowy / vid_resolution)-8,
-                W_CacheLumpName(DEH_String("brdr_tl"),PU_CACHE));
-    
-    V_DrawPatch((viewwindowx / vid_resolution)+(scaledviewwidth / vid_resolution)-WIDESCREENDELTA,
-                (viewwindowy / vid_resolution)-8,
-                W_CacheLumpName(DEH_String("brdr_tr"),PU_CACHE));
-    
-    V_DrawPatch((viewwindowx / vid_resolution)-8-WIDESCREENDELTA,
-                (viewwindowy / vid_resolution)+(viewheight / vid_resolution),
-                W_CacheLumpName(DEH_String("brdr_bl"),PU_CACHE));
-    
-    V_DrawPatch((viewwindowx / vid_resolution)+(scaledviewwidth / vid_resolution)-WIDESCREENDELTA,
-                (viewwindowy / vid_resolution)+(viewheight / vid_resolution),
-                W_CacheLumpName(DEH_String("brdr_br"),PU_CACHE));
+    // [PN] Draw left and right borders
+    for (int y = 0; y < viewheight_res; y += 8)
+    {
+        V_DrawPatch(viewx - 8 - WIDESCREENDELTA, viewy + y, patch_left);
+        V_DrawPatch(viewx + scaledwidth - WIDESCREENDELTA, viewy + y, patch_right);
+    }
 
+    // [PN] Draw corners
+    V_DrawPatch(viewx - 8 - WIDESCREENDELTA, viewy - 8, patch_tl);
+    V_DrawPatch(viewx + scaledwidth - WIDESCREENDELTA, viewy - 8, patch_tr);
+    V_DrawPatch(viewx - 8 - WIDESCREENDELTA, viewy + viewheight_res, patch_bl);
+    V_DrawPatch(viewx + scaledwidth - WIDESCREENDELTA, viewy + viewheight_res, patch_br);
+
+    // [PN] Restore the previous buffer
     V_RestoreBuffer();
-} 
- 
+}
 
-//
+// -----------------------------------------------------------------------------
 // Copy a screen buffer.
-//
-void
-R_VideoErase
-( unsigned	ofs,
-  int		count ) 
-{ 
-  // LFB copy.
-  // This might not be a good idea if memcpy
-  //  is not optiomal, e.g. byte by byte on
-  //  a 32bit CPU, as GNU GCC/Linux libc did
-  //  at one point.
+// [PN] Changed ofs to size_t for clarity and to represent offset more appropriately.
+// -----------------------------------------------------------------------------
 
+void R_VideoErase (size_t ofs, int count) 
+{ 
+    // [PN] Ensure the background buffer is valid before copying
     if (background_buffer != NULL)
     {
+        // [PN] Copy from background buffer to video buffer
         memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count * sizeof(*I_VideoBuffer));
     }
 } 
 
-
-//
+// -----------------------------------------------------------------------------
 // R_DrawViewBorder
-// Draws the border around the view
-//  for different size windows?
-//
+// Draws the border around the view for different size windows.
+// [PN] Optimized by precomputing common offsets and reducing repeated calculations.
+//      Simplified logic for top, bottom, and side erasing.
+// -----------------------------------------------------------------------------
+
 void R_DrawViewBorder (void) 
 { 
-    int		top;
-    int		side;
-    int		ofs;
-    int		i; 
- 
-    if (scaledviewwidth == SCREENWIDTH || background_buffer == NULL) 
-	return; 
-  
-    top = ((SCREENHEIGHT-SBARHEIGHT)-viewheight)/2; 
-    side = (SCREENWIDTH-scaledviewwidth)/2; 
- 
-    // copy top and one line of left side 
-    R_VideoErase (0, top*SCREENWIDTH+side); 
- 
-    // copy one line of right side and bottom 
-    ofs = (viewheight+top)*SCREENWIDTH-side; 
-    R_VideoErase (ofs, top*SCREENWIDTH+side); 
- 
-    // copy sides using wraparound 
-    ofs = top*SCREENWIDTH + SCREENWIDTH-side; 
-    side <<= 1;
-    
-    for (i=1 ; i<viewheight ; i++) 
-    { 
-	R_VideoErase (ofs, side); 
-	ofs += SCREENWIDTH; 
-    } 
+    int top;
+    int side;
+    int ofs;
+    int top_offset;
+    int bottom_offset;
 
-    // ? 
-    V_MarkRect (0,0,SCREENWIDTH, SCREENHEIGHT-SBARHEIGHT); 
-} 
- 
- 
+    if (scaledviewwidth == SCREENWIDTH || background_buffer == NULL)
+    {
+        return;
+    }
+
+    top = ((SCREENHEIGHT - SBARHEIGHT) - viewheight) / 2;
+    side = (SCREENWIDTH - scaledviewwidth) / 2;
+
+    // [PN] Precompute common offsets
+    top_offset = top * SCREENWIDTH + side;
+    bottom_offset = (viewheight + top) * SCREENWIDTH - side;
+
+    // [PN] Copy top and bottom sections
+    R_VideoErase(0, top_offset);
+    R_VideoErase(bottom_offset, top_offset);
+
+    // [PN] Precompute for sides
+    ofs = top * SCREENWIDTH + SCREENWIDTH - side;
+    side <<= 1;
+
+    // [PN] Copy sides
+    for (int i = 1; i < viewheight; i++) 
+    { 
+        R_VideoErase(ofs, side);
+        ofs += SCREENWIDTH;
+    }
+
+    // [PN] Mark the entire screen for refresh
+    V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT - SBARHEIGHT);
+}

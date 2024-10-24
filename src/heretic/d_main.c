@@ -931,7 +931,7 @@ static void D_Endoom(void)
     }
 }
 
-// static const char *const loadparms[] = {"-file", "-merge", NULL}; // [crispy]
+static const char *const loadparms[] = {"-file", "-merge", NULL}; // [crispy]
 
 //---------------------------------------------------------------------------
 //
@@ -1143,7 +1143,8 @@ void D_DoomMain(void)
     //
     // Disable auto-loading of .wad files.
     //
-    if (!M_ParmExists("-noautoload") && gamemode != shareware)
+    if (!M_ParmExists("-noautoload") && gamemode != shareware
+    && autoload_wad)  // [JN] Allow autoload per both IWAD and PWAD.
     {
         char *autoload_dir;
         autoload_dir = M_GetAutoloadDir("heretic.wad");
@@ -1162,11 +1163,9 @@ void D_DoomMain(void)
     W_ParseCommandLine();
 
     // [crispy] add wad files from autoload PWAD directories
-    // [JN] Please do not. No need to create additional directories,
-    // consider using "heretic.wad" for autoloading purposes.
 
-    /*
-    if (!M_ParmExists("-noautoload") && gamemode != shareware)
+    if (!M_ParmExists("-noautoload") && gamemode != shareware
+    && autoload_wad == 2)  // [JN] Allow autoload per PWAD only.
     {
         int i;
 
@@ -1188,7 +1187,6 @@ void D_DoomMain(void)
             }
         }
     }
-    */
 
     if (W_CheckNumForName("HEHACKED") != -1)
     {
@@ -1255,11 +1253,9 @@ void D_DoomMain(void)
     W_GenerateHashTable();
 
     // [crispy] process .deh files from PWADs autoload directories
-    // [JN] Please do not. No need to create additional directories,
-    // consider using "heretic.wad" for autoloading purposes.
 
-    /*
-    if (!M_ParmExists("-noautoload") && gamemode != shareware)
+    if (!M_ParmExists("-noautoload") && gamemode != shareware
+    && autoload_hhe == 2)  // [JN] Allow autoload per PWAD only.
     {
         int i;
 
@@ -1281,7 +1277,6 @@ void D_DoomMain(void)
             }
         }
     }
-    */
 
     //!
     // @category demo

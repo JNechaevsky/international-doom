@@ -142,6 +142,14 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_STRING(screenshots_path),
 
     //
+    // Autoload-related (Miscellaneous options)
+    //
+    CONFIG_VARIABLE_INT(autoload_wad),
+    CONFIG_VARIABLE_INT(autoload_deh),
+    CONFIG_VARIABLE_INT(autoload_hhe),
+    CONFIG_VARIABLE_INT(autoload_seh),
+
+    //
     // Render
     //
 
