@@ -1114,46 +1114,34 @@ static byte *M_Cursor_Glow (const int tics)
 
 static const int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
 {
-    switch (direction)
-    {
-        case 0:
-        val--;
-        if (val < min) 
-            val = capped ? min : max;
-        break;
+    // [PN] Adjust the slider value based on direction and handle min/max limits
+    val += (direction == 0) ? -1 : 1;
 
-        case 1:
-        val++;
-        if (val > max)
-            val = capped ? max : min;
-        break;
-    }
+    if (val < min)
+        val = capped ? min : max;
+    else
+    if (val > max)
+        val = capped ? max : min;
+
     return val;
 }
 
 static const float M_FLOAT_Slider (float val, float min, float max, float step,
                                    int direction, boolean capped)
 {
-    char buf[9];
+    // [PN] Adjust value based on direction
+    val += (direction == 0) ? -step : step;
 
-    switch (direction)
-    {
-        case 0:
-        val -= step;
-        if (val < min) 
-            val = capped ? min : max;
-        break;
+    // [PN] Handle min/max limits
+    if (val < min)
+        val = capped ? min : max;
+    else
+    if (val > max)
+        val = capped ? max : min;
 
-        case 1:
-        val += step;
-        if (val > max)
-            val = capped ? max : min;
-        break;
-    }
+    // [PN/JN] Do a float correction to get x.xxx000 values
+    val = roundf(val * 1000.0f) / 1000.0f;
 
-    // [JN] Do a float correction to always get x.xxx000 values:
-    sprintf (buf, "%f", val);
-    val = (float)atof(buf);
     return val;
 }
 
@@ -1447,38 +1435,23 @@ static void M_ID_LimitFPS (int choice)
     {
         return;  // Do not allow change value in capped framerate.
     }
-    
-    switch (choice)
+
+    // [PN] Adjust vid_fpslimit based on choice and speedkeydown
+    if (choice == 0 && vid_fpslimit)
     {
-        case 0:
-            if (vid_fpslimit)
-            {
-                if (speedkeydown())
-                    vid_fpslimit -= 10;
-                else
-                    vid_fpslimit -= 1;
-            }
+        vid_fpslimit -= speedkeydown() ? 10 : 1;
 
-            if (vid_fpslimit < TICRATE)
-                vid_fpslimit = 0;
+        if (vid_fpslimit < TICRATE)
+            vid_fpslimit = 0;
+    }
+    else if (choice == 1 && vid_fpslimit < 501)
+    {
+        vid_fpslimit += speedkeydown() ? 10 : 1;
 
-            break;
-        case 1:
-            if (vid_fpslimit < 501)
-            {
-                if (speedkeydown())
-                    vid_fpslimit += 10;
-                else
-                    vid_fpslimit += 1;
-            }
-
-            if (vid_fpslimit < TICRATE)
-                vid_fpslimit = TICRATE;
-            if (vid_fpslimit > 500)
-                vid_fpslimit = 500;
-
-        default:
-            break;
+        if (vid_fpslimit < TICRATE)
+            vid_fpslimit = TICRATE;
+        if (vid_fpslimit > 500)
+            vid_fpslimit = 500;
     }
 }
 
@@ -1861,21 +1834,16 @@ static void M_Draw_ID_Sound (void)
 
 static void M_ID_SFXSystem (int choice)
 {
-    switch (choice)
+    // [PN] Adjust snd_sfxdevice based on choice
+    if (choice == 0)
     {
-        case 0:
-            snd_sfxdevice =
-                snd_sfxdevice == 0 ? 1 :
-                snd_sfxdevice == 1 ? 3 :
-                                     0 ;
-            break;
-        case 1:
-            snd_sfxdevice =
-                snd_sfxdevice == 0 ? 3 :
-                snd_sfxdevice == 3 ? 1 :
-                                     0 ;
-        default:
-            break;
+        snd_sfxdevice = (snd_sfxdevice == 0) ? 1 :
+                        (snd_sfxdevice == 1) ? 3 : 0;
+    }
+    else if (choice == 1)
+    {
+        snd_sfxdevice = (snd_sfxdevice == 0) ? 3 :
+                        (snd_sfxdevice == 3) ? 1 : 0;
     }
 
     // Shut down current music
