@@ -1184,39 +1184,24 @@ void AM_Ticker (void)
     prev_m_x = m_x;
     prev_m_y = m_y;
 
-    // [JN] Animate IDDT monster colors:
-
-    // Inactive:
+    // [JN/PN] Animate IDDT monster colors (inactive and active states):
     if (gametic & 1)
     {
-        // Brightening
-        if (!iddt_reds_direction && ++iddt_reds_inactive == IDDT_REDS_MAX)
+        iddt_reds_inactive += iddt_reds_direction ? -1 : 1;
+
+        if (iddt_reds_inactive == IDDT_REDS_MAX || iddt_reds_inactive == IDDT_REDS_MIN)
         {
-            iddt_reds_direction = true;
-        }
-        // Darkening
-        else
-        if (iddt_reds_direction && --iddt_reds_inactive == IDDT_REDS_MIN)
-        {
-            iddt_reds_direction = false;
+            iddt_reds_direction = !iddt_reds_direction;
         }
     }
 
-    // Active:
-    iddt_reds_active = (172) + ((gametic >> 1) % IDDT_REDS_RANGE);
+    iddt_reds_active = 172 + ((gametic >> 1) % IDDT_REDS_RANGE);
 
-    // [JN] Pulse player arrow in Spectator mode:
-
-    // Brightening
-    if (!arrow_color_direction && ++arrow_color == ARROW_WHITE_MAX)
+    // [JN/PN] Pulse player arrow in Spectator mode:
+    arrow_color += arrow_color_direction ? -1 : 1;
+    if (arrow_color == ARROW_WHITE_MAX || arrow_color == ARROW_WHITE_MIN)
     {
-        arrow_color_direction = true;
-    }
-    // Darkening
-    else
-    if (arrow_color_direction && --arrow_color == ARROW_WHITE_MIN)
-    {
-        arrow_color_direction = false;
+        arrow_color_direction = !arrow_color_direction;
     }
 }
 
