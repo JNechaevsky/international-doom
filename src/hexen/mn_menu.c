@@ -1741,7 +1741,7 @@ static void M_Draw_ID_Controls (void)
     MN_DrTextA(str, 180, 65, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
                                          mouseSensitivity > 9 ? GLOW_GREEN : GLOW_LIGHTGRAY));
 
-    DrawSlider(&ID_Def_Controls, 7, 12, mouse_acceleration * 2, false, 6);
+    DrawSlider(&ID_Def_Controls, 7, 12, (mouse_acceleration * 3) - 3, false, 6);
     sprintf(str,"%.1f", mouse_acceleration);
     MN_DrTextA(str, 196, 95, M_Item_Glow(6, GLOW_LIGHTGRAY));
 
