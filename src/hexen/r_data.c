@@ -884,13 +884,12 @@ void R_InitData(void)
 #endif
     // [crispy] initialize color translation and color string tables
     R_InitHSVColors();
+    // [JN] Initialize and compose translucency tables.
 #ifndef CRISPY_TRUECOLOR
-    // [JN] Load original TINTTAB lump.
     V_LoadTintTable();
-    printf (".");
-    // [JN] Compose extra translucency tables.
     V_InitTransMaps();
-    printf (".");
+#else
+    I_InitTCTransMaps();
 #endif
 }
 

@@ -17,6 +17,7 @@
 //	[crispy] Truecolor rendering
 //
 
+#include <stdlib.h> // malloc
 #include "config.h"
 
 #ifdef CRISPY_TRUECOLOR
@@ -37,6 +38,26 @@ typedef union
     };
 } tcpixel_t;
 
+// [JN] Double pointer used for additive blending.
+// It does not store actual color data but serves as a shortcut
+// to avoid using MIN during rendering.
+static uint8_t **additive_lut = NULL;
+
+void I_InitTCTransMaps (void)
+{
+    additive_lut = (uint8_t **)malloc(256 * sizeof(uint8_t *));
+
+    for (int i = 0; i < 256; ++i)
+    {
+        additive_lut[i] = (uint8_t *)malloc(256 * sizeof(uint8_t));
+
+        for (int j = 0; j < 256; ++j)
+        {
+            additive_lut[i][j] = MIN(i + j, 0xFFU);
+        }
+    }
+}
+
 const uint32_t I_BlendAdd (const uint32_t bg_i, const uint32_t fg_i)
 {
     tcpixel_t bg, fg, ret;
@@ -45,9 +66,9 @@ const uint32_t I_BlendAdd (const uint32_t bg_i, const uint32_t fg_i)
     fg.i = fg_i;
 
     ret.a = 0xFFU;
-    ret.r = MIN(bg.r + fg.r, 0xFFU);
-    ret.g = MIN(bg.g + fg.g, 0xFFU);
-    ret.b = MIN(bg.b + fg.b, 0xFFU);
+    ret.r = additive_lut[bg.r][fg.r];
+    ret.g = additive_lut[bg.g][fg.g];
+    ret.b = additive_lut[bg.b][fg.b];
 
     return ret.i;
 }

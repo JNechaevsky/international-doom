@@ -1089,35 +1089,36 @@ boolean AM_Responder (event_t *ev)
 
 // -----------------------------------------------------------------------------
 // AM_changeWindowScale
-// Automap zooming.
+// Adjusts automap zoom level smoothly based on user input or zoom state.
+// [PN] Optimized by consolidating zoom factor calculations, reducing conditionals,
+// and improving readability in scale adjustments.
 // -----------------------------------------------------------------------------
 
 static void AM_changeWindowScale (void)
 {
     if (vid_uncapped_fps && realleveltime > oldleveltime)
     {
-        float f_paninc_smooth = (float)f_paninc_zoom / (float)FRACUNIT * (float)fractionaltic;
+        float f_paninc_smooth = (float)f_paninc_zoom / FRACUNIT * fractionaltic;
+        const float zoom_factor = 1.0f + f_paninc_smooth / 200.0f;
 
-        if (f_paninc_smooth < 0.01f)
-        {
+        if (f_paninc_smooth < 0.01f) 
             f_paninc_smooth = 0.01f;
-        }
-    
+
         scale_mtof = prev_scale_mtof;
 
         if (curr_mtof_zoommul == m_zoomin)
         {
-            mtof_zoommul = ((int) ((float)FRACUNIT * (1.00f + f_paninc_smooth / 200.0f)));
-            ftom_zoommul = ((int) ((float)FRACUNIT / (1.00f + f_paninc_smooth / 200.0f)));
+            mtof_zoommul = (int)(FRACUNIT * zoom_factor);
+            ftom_zoommul = (int)(FRACUNIT / zoom_factor);
         }
-        if (curr_mtof_zoommul == m_zoomout)
+        else if (curr_mtof_zoommul == m_zoomout)
         {
-            mtof_zoommul = ((int) ((float)FRACUNIT / (1.00f + f_paninc_smooth / 200.0f)));
-            ftom_zoommul = ((int) ((float)FRACUNIT * (1.00f + f_paninc_smooth / 200.0f)));
+            mtof_zoommul = (int)(FRACUNIT / zoom_factor);
+            ftom_zoommul = (int)(FRACUNIT * zoom_factor);
         }
     }
 
-    // Change the scaling multipliers
+    // [PN] Apply scaling adjustments
     scale_mtof = FixedMul(scale_mtof, mtof_zoommul);
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
 
@@ -1129,6 +1130,7 @@ static void AM_changeWindowScale (void)
         mousewheelzoom = false;
     }
 
+    // [PN] Adjust scale boundaries
     if (scale_mtof < min_scale_mtof)
     {
         AM_minOutWindowScale();
@@ -1170,7 +1172,10 @@ static void AM_doFollowPlayer (void)
 
 // -----------------------------------------------------------------------------
 // AM_Ticker
-// Updates on Game Tick.
+// Updates automap states for each game tick, handling zoom, player arrow color
+// pulsation, and IDDT mode animations.
+// [PN] Optimized by reducing redundant conditions and consolidating
+// color animations
 // -----------------------------------------------------------------------------
 
 void AM_Ticker (void)
@@ -1184,39 +1189,24 @@ void AM_Ticker (void)
     prev_m_x = m_x;
     prev_m_y = m_y;
 
-    // [JN] Animate IDDT monster colors:
-
-    // Inactive:
+    // [JN/PN] Animate IDDT monster colors (inactive and active states):
     if (gametic & 1)
     {
-        // Brightening
-        if (!iddt_reds_direction && ++iddt_reds_inactive == IDDT_REDS_MAX)
+        iddt_reds_inactive += iddt_reds_direction ? -1 : 1;
+
+        if (iddt_reds_inactive == IDDT_REDS_MAX || iddt_reds_inactive == IDDT_REDS_MIN)
         {
-            iddt_reds_direction = true;
-        }
-        // Darkening
-        else
-        if (iddt_reds_direction && --iddt_reds_inactive == IDDT_REDS_MIN)
-        {
-            iddt_reds_direction = false;
+            iddt_reds_direction = !iddt_reds_direction;
         }
     }
 
-    // Active:
-    iddt_reds_active = (172) + ((gametic >> 1) % IDDT_REDS_RANGE);
+    iddt_reds_active = 172 + ((gametic >> 1) % IDDT_REDS_RANGE);
 
-    // [JN] Pulse player arrow in Spectator mode:
-
-    // Brightening
-    if (!arrow_color_direction && ++arrow_color == ARROW_WHITE_MAX)
+    // [JN/PN] Pulse player arrow in Spectator mode:
+    arrow_color += arrow_color_direction ? -1 : 1;
+    if (arrow_color == ARROW_WHITE_MAX || arrow_color == ARROW_WHITE_MIN)
     {
-        arrow_color_direction = true;
-    }
-    // Darkening
-    else
-    if (arrow_color_direction && --arrow_color == ARROW_WHITE_MIN)
-    {
-        arrow_color_direction = false;
+        arrow_color_direction = !arrow_color_direction;
     }
 }
 
@@ -1257,81 +1247,33 @@ static void AM_shadeBackground (void)
 // Based on Cohen-Sutherland clipping algorithm but with a slightly
 // faster reject and precalculated slopes.  If the speed is needed,
 // use a hash algorithm to handle  the common cases.
+//
+// [PN] Optimized by consolidating boundary checks, refining clip logic for
+// edge cases, and improving readability in the clipping loop.
 // -----------------------------------------------------------------------------
 
 static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 {
-    enum
-    {
-        LEFT   = 1,
-        RIGHT  = 2,
-        BOTTOM = 4,
-        TOP	   = 8
-    };
+    enum { LEFT = 1, RIGHT = 2, BOTTOM = 4, TOP = 8 };
 
-    int	outcode1 = 0;
-    int	outcode2 = 0;
-    int	outside;
-
-    int      dx;
-    int      dy;
+    int outcode1 = 0, outcode2 = 0, outside;
+    int dx, dy;
     fpoint_t tmp = { 0, 0 };
 
 #define DOOUTCODE(oc, mx, my) \
     (oc) = 0; \
-    if ((my) < 0) (oc) |= TOP; \
-    else if ((my) >= f_h) (oc) |= BOTTOM; \
-    if ((mx) < 0) (oc) |= LEFT; \
-    else if ((mx) >= f_w) (oc) |= RIGHT;
+    if ((my) < f_y) (oc) |= TOP; \
+    else if ((my) >= f_y + f_h) (oc) |= BOTTOM; \
+    if ((mx) < f_x) (oc) |= LEFT; \
+    else if ((mx) >= f_x + f_w) (oc) |= RIGHT;
 
-    // do trivial rejects and outcodes
-    if (ml->a.y > m_y2)
-    {
-        outcode1 = TOP;
-    }
-    else if (ml->a.y < m_y)
-    {
-        outcode1 = BOTTOM;
-    }
+    // [PN] Perform trivial rejects
+    if (ml->a.y < m_y && ml->b.y < m_y) return false;
+    if (ml->a.y > m_y2 && ml->b.y > m_y2) return false;
+    if (ml->a.x < m_x && ml->b.x < m_x) return false;
+    if (ml->a.x > m_x2 && ml->b.x > m_x2) return false;
 
-    if (ml->b.y > m_y2)
-    {
-        outcode2 = TOP;
-    }
-    else if (ml->b.y < m_y)
-    {
-        outcode2 = BOTTOM;
-    }
-
-    if (outcode1 & outcode2)
-    {
-        return false; // trivially outside
-    }
-
-    if (ml->a.x < m_x)
-    {
-        outcode1 |= LEFT;
-    }
-    else if (ml->a.x > m_x2)
-    {
-        outcode1 |= RIGHT;
-    }
-
-    if (ml->b.x < m_x)
-    {
-        outcode2 |= LEFT;
-    }
-    else if (ml->b.x > m_x2)
-    {
-        outcode2 |= RIGHT;
-    }
-
-    if (outcode1 & outcode2)
-    {
-        return false; // trivially outside
-    }
-
-    // transform to frame-buffer coordinates.
+    // [PN] Transform coordinates to frame-buffer
     fl->a.x = CXMTOF(ml->a.x);
     fl->a.y = CYMTOF(ml->a.y);
     fl->b.x = CXMTOF(ml->b.x);
@@ -1340,58 +1282,35 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
     DOOUTCODE(outcode1, fl->a.x, fl->a.y);
     DOOUTCODE(outcode2, fl->b.x, fl->b.y);
 
-    if (outcode1 & outcode2)
-    {
-        return false;
-    }
+    // [PN] Check for full outside overlap
+    if (outcode1 & outcode2) return false;
 
+    // [PN] Clip loop
     while (outcode1 | outcode2)
     {
-        // may be partially inside box
-        // find an outside point
-        if (outcode1)
-        {
-            outside = outcode1;
-        }
-        else
-        {
-            outside = outcode2;
-        }
+        outside = outcode1 ? outcode1 : outcode2;
+        dx = fl->b.x - fl->a.x;
+        dy = fl->b.y - fl->a.y;
 
-        // clip to each side
         if (outside & TOP)
         {
-            dy = fl->a.y - fl->b.y;
-            dx = fl->b.x - fl->a.x;
-            // [JN] 'int64_t' math to avoid overflows on long lines.
-            tmp.x = fl->a.x + (fixed_t)(((int64_t)dx*(fl->a.y-f_y))/dy);
-            tmp.y = 0;
+            tmp.x = fl->a.x + (fixed_t)(((int64_t)dx * (f_y - fl->a.y)) / dy);
+            tmp.y = f_y;
         }
         else if (outside & BOTTOM)
         {
-            dy = fl->a.y - fl->b.y;
-            dx = fl->b.x - fl->a.x;
-            tmp.x = fl->a.x + (fixed_t)(((int64_t)dx*(fl->a.y-(f_y+f_h)))/dy);
-            tmp.y = f_h - 1;
+            tmp.x = fl->a.x + (fixed_t)(((int64_t)dx * (f_y + f_h - 1 - fl->a.y)) / dy);
+            tmp.y = f_y + f_h - 1;
         }
         else if (outside & RIGHT)
         {
-            dy = fl->b.y - fl->a.y;
-            dx = fl->b.x - fl->a.x;
-            tmp.y = fl->a.y + (fixed_t)(((int64_t)dy*(f_x+f_w-1 - fl->a.x))/dx);
-            tmp.x = f_w-1;
+            tmp.y = fl->a.y + (fixed_t)(((int64_t)dy * (f_x + f_w - 1 - fl->a.x)) / dx);
+            tmp.x = f_x + f_w - 1;
         }
         else if (outside & LEFT)
         {
-            dy = fl->b.y - fl->a.y;
-            dx = fl->b.x - fl->a.x;
-            tmp.y = fl->a.y + (fixed_t)(((int64_t)dy*(f_x-fl->a.x))/dx);
-            tmp.x = 0;
-        }
-        else
-        {
-            tmp.x = 0;
-            tmp.y = 0;
+            tmp.y = fl->a.y + (fixed_t)(((int64_t)dy * (f_x - fl->a.x)) / dx);
+            tmp.x = f_x;
         }
 
         if (outside == outcode1)
@@ -1405,10 +1324,7 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
             DOOUTCODE(outcode2, fl->b.x, fl->b.y);
         }
 
-        if (outcode1 & outcode2)
-        {
-            return false; // trivially outside
-        }
+        if (outcode1 & outcode2) return false;
     }
 
     return true;
@@ -1418,234 +1334,172 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 // -----------------------------------------------------------------------------
 // AM_drawFline
 // Classic Bresenham w/ whatever optimizations needed for speed.
+// [PN] Simplified control flow, combined variable assignments, and minimized
+// redundant checks for better performance and code clarity.
 // -----------------------------------------------------------------------------
 
 static void AM_drawFline_Vanilla (fline_t *fl, int color)
 {
-    int x;
-    int y;
-    int dx;
-    int dy;
-    int sx;
-    int sy;
-    int ax;
-    int ay;
     int d;
+    int x = fl->a.x, y = fl->a.y;
+    int dx = fl->b.x - fl->a.x, dy = fl->b.y - fl->a.y;
+    int sx = dx < 0 ? -1 : 1, sy = dy < 0 ? -1 : 1;
+    // [PN] Calculate abs(dx) and abs(dy) in one step
+    int ax = sx * dx * 2, ay = sy * dy * 2;
 
     static int yuck = 0;
 
-    // For debugging only
-    if (fl->a.x < 0 || fl->a.x >= f_w
-    ||  fl->a.y < 0 || fl->a.y >= f_h
-    ||  fl->b.x < 0 || fl->b.x >= f_w
-    ||  fl->b.y < 0 || fl->b.y >= f_h)
+    // [PN] Debug check to exit if out of bounds
+    if (x < 0 || x >= f_w || y < 0 || y >= f_h || fl->b.x < 0 || fl->b.x >= f_w || fl->b.y < 0 || fl->b.y >= f_h)
     {
-        DEH_fprintf(stderr, "yuck %d \n", yuck++);
+        DEH_fprintf(stderr, "yuck %d\n", yuck++);
         return;
     }
 
-#define PUTDOT_RAW(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(cc)
+#define PUTDOT_RAW(xx,yy,cc) fb[(yy) * f_w + flipscreenwidth[(xx)]] = (cc)
 #ifndef CRISPY_TRUECOLOR
 #define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,cc)
 #else
-#define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,(pal_color[(cc)]))
+#define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,pal_color[(cc)])
 #endif
 
-    dx = fl->b.x - fl->a.x;
-    ax = 2 * (dx<0 ? -dx : dx);
-    sx = dx<0 ? -1 : 1;
-
-    dy = fl->b.y - fl->a.y;
-    ay = 2 * (dy<0 ? -dy : dy);
-    sy = dy<0 ? -1 : 1;
-
-    x = fl->a.x;
-    y = fl->a.y;
-
-    if (ax > ay)
+    // [PN] Main loop for Bresenham's line algorithm
+    if (ax > ay) // X-major case
     {
-        d = ay - ax/2;
-
-        while (1)
+        d = ay - ax / 2;
+        while (x != fl->b.x)
         {
-            PUTDOT(x,y,color);
-
-            if (x == fl->b.x)
-            {
-                return;
-            }
-
-            if (d>=0)
-            {
-                y += sy;
-                d -= ax;
-            }
+            PUTDOT(x, y, color);
+            if (d >= 0) { y += sy; d -= ax; }
             x += sx;
             d += ay;
         }
     }
-    else
+    else // Y-major case
     {
-        d = ax - ay/2;
-
-        while (1)
+        d = ax - ay / 2;
+        while (y != fl->b.y)
         {
             PUTDOT(x, y, color);
-
-            if (y == fl->b.y)
-            {
-                return;
-            }
-
-            if (d >= 0)
-            {
-                x += sx;
-                d -= ay;
-            }
+            if (d >= 0) { x += sx; d -= ay; }
             y += sy;
             d += ax;
         }
     }
+
+    PUTDOT(x, y, color); // Final point
 }
 
 // -----------------------------------------------------------------------------
 // AM_drawFline_Smooth
 // [crispy] Adapted from Heretic's DrawWuLine
+// [PN] Optimized for readability and performance by simplifying control flow,
+// reducing redundant calculations, and consolidating variable usage.
 // -----------------------------------------------------------------------------
 
 static void AM_drawFline_Smooth(fline_t* fl, int color)
 {
     int X0 = fl->a.x, Y0 = fl->a.y, X1 = fl->b.x, Y1 = fl->b.y;
     const pixel_t* BaseColor = &color_shades[color * NUMSHADES];
+    unsigned short ErrorAcc = 0, ErrorAdj;
+    unsigned short Weighting, WeightingComplementMask = NUMSHADES - 1;
+    // [PN] Declared IntensityShift with other variables
+    short DeltaX, DeltaY, XDir, IntensityShift = 16 - NUMSHADES_BITS;
 
-    unsigned short IntensityShift, ErrorAdj, ErrorAcc;
-    unsigned short ErrorAccTemp, Weighting, WeightingComplementMask;
-    short DeltaX, DeltaY, Temp, XDir;
-
-    /* Make sure the line runs top to bottom */
+    /* Ensure the line runs top to bottom */
     if (Y0 > Y1)
     {
-        Temp = Y0;
-        Y0 = Y1;
-        Y1 = Temp;
-        Temp = X0;
-        X0 = X1;
-        X1 = Temp;
+        int temp = Y0; Y0 = Y1; Y1 = temp;
+        temp = X0; X0 = X1; X1 = temp;
     }
 
-    /* Draw the initial pixel, which is always exactly intersected by
-       the line and so needs no weighting */
-    /* Always write the raw color value because we've already performed the necessary lookup
-     * into colormap */
+    /* Draw the initial pixel */
     PUTDOT_RAW(X0, Y0, BaseColor[0]);
 
-    if ((DeltaX = X1 - X0) >= 0)
+    DeltaX = X1 - X0;
+    DeltaY = Y1 - Y0;
+    XDir = (DeltaX >= 0) ? 1 : -1;
+    DeltaX = (DeltaX >= 0) ? DeltaX : -DeltaX; // [PN] Make DeltaX positive
+
+    /* Horizontal line */
+    if (DeltaY == 0)
     {
-        XDir = 1;
-    }
-    else
-    {
-        XDir = -1;
-        DeltaX = -DeltaX;       /* make DeltaX positive */
-    }
-    /* Special-case horizontal, vertical, and diagonal lines, which
-       require no weighting because they go right through the center of
-       every pixel */
-    if ((DeltaY = Y1 - Y0) == 0)
-    {
-        /* Horizontal line */
-        while (DeltaX-- != 0)
+        while (DeltaX--)
         {
             X0 += XDir;
             PUTDOT_RAW(X0, Y0, BaseColor[0]);
         }
         return;
     }
+
+    /* Vertical line */
     if (DeltaX == 0)
     {
-        /* Vertical line */
-        do
+        while (DeltaY--)
         {
             Y0++;
             PUTDOT_RAW(X0, Y0, BaseColor[0]);
         }
-        while (--DeltaY != 0);
         return;
     }
-    //diagonal line.
+
+    /* Diagonal line */
     if (DeltaX == DeltaY)
     {
-        do
+        while (DeltaY--)
         {
             X0 += XDir;
             Y0++;
             PUTDOT_RAW(X0, Y0, BaseColor[0]);
         }
-        while (--DeltaY != 0);
         return;
     }
-    /* Line is not horizontal, diagonal, or vertical */
-    ErrorAcc = 0;               /* initialize the line error accumulator to 0 */
-    /* # of bits by which to shift ErrorAcc to get intensity level */
-    IntensityShift = 16 - NUMSHADES_BITS;
-    /* Mask used to flip all bits in an intensity weighting, producing the
-       result (1 - intensity weighting) */
-    WeightingComplementMask = NUMSHADES - 1;
-    /* Is this an X-major or Y-major line? */
+
+    /* Y-major line */
     if (DeltaY > DeltaX)
     {
-        /* Y-major line; calculate 16-bit fixed-point fractional part of a
-           pixel that X advances each time Y advances 1 pixel, truncating the
-           result so that we won't overrun the endpoint along the X axis */
-        ErrorAdj = ((unsigned int) DeltaX << 16) / (unsigned int) DeltaY;
-        /* Draw all pixels other than the first and last */
+        // [PN] Moved ErrorAdj calculation closer to its usage
+        ErrorAdj = ((unsigned int)DeltaX << 16) / (unsigned int)DeltaY;
+
         while (--DeltaY)
         {
-            ErrorAccTemp = ErrorAcc;    /* remember currrent accumulated error */
-            ErrorAcc += ErrorAdj;       /* calculate error for next pixel */
+            // [PN] Added ErrorAccTemp inside the loop
+            unsigned short ErrorAccTemp = ErrorAcc;
+            ErrorAcc += ErrorAdj;
             if (ErrorAcc <= ErrorAccTemp)
             {
-                /* The error accumulator turned over, so advance the X coord */
                 X0 += XDir;
             }
-            Y0++;               /* Y-major, so always advance Y */
-            /* The IntensityBits most significant bits of ErrorAcc give us the
-               intensity weighting for this pixel, and the complement of the
-               weighting for the paired pixel */
+            Y0++;
             Weighting = ErrorAcc >> IntensityShift;
             PUTDOT_RAW(X0, Y0, BaseColor[Weighting]);
-            PUTDOT_RAW(X0 + XDir, Y0, BaseColor[(Weighting ^ WeightingComplementMask)]);
+            PUTDOT_RAW(X0 + XDir, Y0, BaseColor[Weighting ^ WeightingComplementMask]);
         }
-        /* Draw the final pixel, which is always exactly intersected by the line
-           and so needs no weighting */
-        PUTDOT_RAW(X1, Y1, BaseColor[0]);
-        return;
     }
-    /* It's an X-major line; calculate 16-bit fixed-point fractional part of a
-       pixel that Y advances each time X advances 1 pixel, truncating the
-       result to avoid overrunning the endpoint along the X axis */
-    ErrorAdj = ((unsigned int) DeltaY << 16) / (unsigned int) DeltaX;
-    /* Draw all pixels other than the first and last */
-    while (--DeltaX)
+    /* X-major line */
+    else
     {
-        ErrorAccTemp = ErrorAcc;        /* remember currrent accumulated error */
-        ErrorAcc += ErrorAdj;   /* calculate error for next pixel */
-        if (ErrorAcc <= ErrorAccTemp)
-        {
-            /* The error accumulator turned over, so advance the Y coord */
-            Y0++;
-        }
-        X0 += XDir;             /* X-major, so always advance X */
-        /* The IntensityBits most significant bits of ErrorAcc give us the
-           intensity weighting for this pixel, and the complement of the
-           weighting for the paired pixel */
-        Weighting = ErrorAcc >> IntensityShift;
-        PUTDOT_RAW(X0, Y0, BaseColor[Weighting]);
-        PUTDOT_RAW(X0, Y0 + 1, BaseColor[(Weighting ^ WeightingComplementMask)]);
+        // [PN] Moved ErrorAdj calculation closer to its usage
+        ErrorAdj = ((unsigned int)DeltaY << 16) / (unsigned int)DeltaX;
 
+        while (--DeltaX)
+        {
+            // [PN] Added ErrorAccTemp inside the loop
+            unsigned short ErrorAccTemp = ErrorAcc;
+
+            ErrorAcc += ErrorAdj;
+            if (ErrorAcc <= ErrorAccTemp)
+            {
+                Y0++;
+            }
+            X0 += XDir;
+            Weighting = ErrorAcc >> IntensityShift;
+            PUTDOT_RAW(X0, Y0, BaseColor[Weighting]);
+            PUTDOT_RAW(X0, Y0 + 1, BaseColor[Weighting ^ WeightingComplementMask]);
+        }
     }
-    /* Draw the final pixel, which is always exactly intersected by the line
-       and so needs no weighting */
+
+    /* Draw the final pixel */
     PUTDOT_RAW(X1, Y1, BaseColor[0]);
 }
 
@@ -1668,6 +1522,8 @@ static void AM_drawMline (mline_t *ml, int color)
 // -----------------------------------------------------------------------------
 // AM_drawGrid
 // Draws flat (floor/ceiling tile) aligned grid lines.
+// [PN] Optimized by reducing redundant calculations, consolidating boundary 
+// adjustments, and minimizing conditionals in the loop.
 // -----------------------------------------------------------------------------
 
 static void AM_drawGrid (void)
@@ -1676,76 +1532,47 @@ static void AM_drawGrid (void)
     int64_t start, end;
     const fixed_t gridsize = MAPBLOCKUNITS << MAPBITS;
     mline_t ml;
+    // [PN] Precomputed for boundary adjustments
+    int half_w = m_w / 2;
+    int half_h = m_h / 2;
 
-    // Figure out start of vertical gridlines
-    start = m_x;
-    if (automap_rotate)
-    {
-        start -= m_h / 2;
-    }
+    // Determine starting position for vertical lines
+    start = m_x - (automap_rotate ? half_h : 0);
+    start -= (start - (bmaporgx >> FRACTOMAPBITS)) % gridsize;
 
-    if ((start-(bmaporgx>>FRACTOMAPBITS))%gridsize)
-    {
-        start -= ((start-(bmaporgx>>FRACTOMAPBITS))%gridsize);
-    }
+    end = m_x + m_w + (automap_rotate ? half_h : 0);
 
-    end = m_x + m_w;
-
-    if (automap_rotate)
-    {
-        end += m_h / 2;
-    }
-
-    // draw vertical gridlines
-    for (x = start ; x < end ; x += gridsize)
+    // Draw vertical grid lines
+    for (x = start; x < end; x += gridsize)
     {
         ml.a.x = x;
         ml.b.x = x;
-        // [crispy] moved here
-        ml.a.y = m_y;
-        ml.b.y = m_y+m_h;
-        if (automap_rotate || ADJUST_ASPECT_RATIO)
-        {
-            ml.a.y -= m_w / 2;
-            ml.b.y += m_w / 2;
-        }
+        // [PN] Adjust for rotation or aspect
+        ml.a.y = m_y - (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
+        ml.b.y = m_y + m_h + (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
+        
         AM_transformPoint(&ml.a);
         AM_transformPoint(&ml.b);
         AM_drawMline(&ml, doom_104);
     }
 
-    // Figure out start of horizontal gridlines
-    start = m_y;
-    if (automap_rotate || ADJUST_ASPECT_RATIO)
-    {
-        start -= m_w / 2;
-    }
+    // Determine starting position for horizontal lines
+    // [PN] Adjust for rotation or aspect
+    start = m_y - (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
+    start -= (start - (bmaporgy >> FRACTOMAPBITS)) % gridsize;
 
-    if ((start-(bmaporgy>>FRACTOMAPBITS))%gridsize)
-    {
-        start -= ((start-(bmaporgy>>FRACTOMAPBITS))%gridsize);
-    }
+    // [PN] Adjust end for rotation or aspect
+    end = m_y + m_h + (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
 
-    end = m_y + m_h;
-
-    if (automap_rotate || ADJUST_ASPECT_RATIO)
-    {
-        end += m_w / 2;
-    }
-
-    // draw horizontal gridlines
-    for (y = start ; y < end ; y += gridsize)
+    // Draw horizontal grid lines
+    for (y = start; y < end; y += gridsize)
     {
         ml.a.y = y;
         ml.b.y = y;
-        // [crispy] moved here
-        ml.a.x = m_x;
-        ml.b.x = m_x + m_w;
-        if (automap_rotate)
-        {
-            ml.a.x -= m_h / 2;
-            ml.b.x += m_h / 2;
-        }
+        // [PN] Adjust for rotation
+        ml.a.x = m_x - (automap_rotate ? half_h : 0);
+        ml.b.x = m_x + m_w + (automap_rotate ? half_h : 0);
+        
         AM_transformPoint(&ml.a);
         AM_transformPoint(&ml.b);
         AM_drawMline(&ml, doom_104);
@@ -2226,40 +2053,38 @@ static void AM_rotate (int64_t *x, int64_t *y, angle_t a)
 // [crispy] rotate point around map center
 // adapted from prboom-plus/src/am_map.c:898-920
 // [Woof!] Also, scale y coordinate of point for square aspect ratio
+// [PN] Optimized by consolidating rotation calculations and simplifying logic.
 // -----------------------------------------------------------------------------
 
 static void AM_transformPoint(mpoint_t *pt)
 {
     if (automap_rotate)
     {
-        int64_t tmpx;
-        const angle_t actualangle = ((!(!followplayer && automap_overlay)) ?
-                                     ANG90 - viewangle : mapangle) >> ANGLETOFINESHIFT;
+        int64_t tmpx, tmpy;
+        angle_t angle = (followplayer || !automap_overlay ? ANG90 - viewangle : mapangle) >> ANGLETOFINESHIFT;
 
         pt->x -= mapcenter.x;
         pt->y -= mapcenter.y;
 
-        tmpx = (int64_t)FixedMul(pt->x, finecosine[actualangle])
-             - (int64_t)FixedMul(pt->y, finesine[actualangle])
-             + mapcenter.x;
+        tmpx = FixedMul(pt->x, finecosine[angle]) - FixedMul(pt->y, finesine[angle]);
+        tmpy = FixedMul(pt->x, finesine[angle]) + FixedMul(pt->y, finecosine[angle]);
 
-        pt->y = (int64_t)FixedMul(pt->x, finesine[actualangle])
-              + (int64_t)FixedMul(pt->y, finecosine[actualangle])
-              + mapcenter.y;
-
-        pt->x = tmpx;
+        pt->x = tmpx + mapcenter.x;
+        pt->y = tmpy + mapcenter.y;
     }
+
+    // [PN] Adjust y-coordinate for aspect ratio if needed
     if (ADJUST_ASPECT_RATIO)
     {
-        int64_t diff = pt->y - mapcenter.y;
-        diff = 5 * diff / 6;
-        pt->y = mapcenter.y + diff;
+        pt->y = mapcenter.y + (5 * (pt->y - mapcenter.y) / 6);
     }
 }
 
 // -----------------------------------------------------------------------------
 // AM_drawLineCharacter
 // Draws a vector graphic according to numerous parameters.
+// [PN] Optimized by consolidating scaling, rotation, and translation logic
+// for points a and b.
 // -----------------------------------------------------------------------------
 
 static void AM_drawLineCharacter (mline_t *lineguy, int lineguylines,
@@ -2274,79 +2099,67 @@ static void AM_drawLineCharacter (mline_t *lineguy, int lineguylines,
         angle += mapangle;
     }
 
-    for (i = 0 ; i < lineguylines ; i++)
+    for (i = 0; i < lineguylines; i++)
     {
-        l.a.x = lineguy[i].a.x;
-        l.a.y = lineguy[i].a.y;
+        // [PN] Copy and transform both points a and b
+        l.a = lineguy[i].a;
+        l.b = lineguy[i].b;
 
+        // [PN] Apply scaling if specified
         if (scale)
         {
             l.a.x = FixedMul(scale, l.a.x);
             l.a.y = FixedMul(scale, l.a.y);
-        }
-
-        if (angle)
-        {
-            AM_rotate(&l.a.x, &l.a.y, angle);
-        }
-
-        if (ADJUST_ASPECT_RATIO)
-        {
-            l.a.y = 5 * l.a.y / 6;
-        }
-
-        l.a.x += x;
-        l.a.y += y;
-
-        l.b.x = lineguy[i].b.x;
-        l.b.y = lineguy[i].b.y;
-
-        if (scale)
-        {
             l.b.x = FixedMul(scale, l.b.x);
             l.b.y = FixedMul(scale, l.b.y);
         }
 
+        // [PN] Apply rotation if angle is specified
         if (angle)
         {
+            AM_rotate(&l.a.x, &l.a.y, angle);
             AM_rotate(&l.b.x, &l.b.y, angle);
         }
 
+        // [PN] Adjust aspect ratio if needed
         if (ADJUST_ASPECT_RATIO)
         {
+            l.a.y = 5 * l.a.y / 6;
             l.b.y = 5 * l.b.y / 6;
         }
 
+        // [PN] Translate points to final position
+        l.a.x += x;
+        l.a.y += y;
         l.b.x += x;
         l.b.y += y;
 
+        // [PN] Draw the line segment
         AM_drawMline(&l, color);
     }
 }
 
 // -----------------------------------------------------------------------------
 // AM_drawPlayers
-// Draws the player arrow in single player, 
-// or all the player arrows in a netgame.
+// Draws the player arrow in single-player or all player arrows in netgame.
+// [PN] Optimized by consolidating interpolation and transformation logic.
 // -----------------------------------------------------------------------------
-
 
 static void AM_drawPlayers (void)
 {
     int       i;
     int       their_colors[] = { doom_112, doom_96, doom_64, doom_176 };
-    int       their_color = -1;
     int       color;
     mpoint_t  pt;
     player_t *p;
+    angle_t smoothangle;
 
     if (!netgame)
     {
         // [JN] Smooth player arrow rotation.
         // Keep arrow static in Spectator + rotate mode.
-        const angle_t smoothangle = (crl_spectating && automap_rotate) ?
-                                     plr->mo->angle :
-                                     automap_rotate ? plr->mo->angle : viewangle;
+        smoothangle = (crl_spectating && automap_rotate) ? plr->mo->angle : 
+                      automap_rotate ? plr->mo->angle : viewangle;
 
         // [JN] Interpolate player arrow.
         pt.x = viewx >> FRACTOMAPBITS;
@@ -2360,41 +2173,22 @@ static void AM_drawPlayers (void)
         }
 
         AM_transformPoint(&pt);
-
         AM_drawLineCharacter(cheat_player_arrow, iddt_cheating ?
-                             arrlen(cheat_player_arrow) : arrlen(player_arrow), 0,
-                             smoothangle, crl_spectating ? arrow_color : doom_209, pt.x, pt.y);
+                             arrlen(cheat_player_arrow) : arrlen(player_arrow),
+                             0, smoothangle, crl_spectating ? arrow_color : doom_209, pt.x, pt.y);
 
         return;
     }
 
-    for (i = 0 ; i < MAXPLAYERS ; i++)
+    // [PN] Draw arrows for all players in netgame
+    for (i = 0; i < MAXPLAYERS; i++)
     {
-        // [JN] Interpolate other player arrows angle.
-        angle_t smoothangle;
-
-        their_color++;
         p = &players[i];
-
-        if ((deathmatch && !singledemo) && p != plr)
-        {
+        if ((deathmatch && !singledemo && p == plr) || !playeringame[i])
             continue;
-        }
-        if (!playeringame[i])
-        {
-            continue;
-        }
 
-        if (p->powers[pw_invisibility])
-        {
-            color = 246; // *close* to black
-        }
-        else
-        {
-            color = their_colors[their_color];
-        }
+        color = p->powers[pw_invisibility] ? 246 : their_colors[i % 4];
 
-        // [JN] Interpolate other player arrows.
         if (vid_uncapped_fps && realleveltime > oldleveltime)
         {
             pt.x = LerpFixed(p->mo->oldx, p->mo->x) >> FRACTOMAPBITS;
@@ -2414,18 +2208,9 @@ static void AM_drawPlayers (void)
         }
 
         AM_transformPoint(&pt);
+        smoothangle = automap_rotate ? p->mo->angle : LerpAngle(p->mo->oldangle, p->mo->angle);
 
-        if (automap_rotate)
-        {
-            smoothangle = p->mo->angle;
-        }
-        else
-        {
-            smoothangle = LerpAngle(p->mo->oldangle, p->mo->angle);
-        }
-
-        AM_drawLineCharacter(player_arrow, arrlen(player_arrow), 0,
-                             smoothangle, color, pt.x, pt.y);
+        AM_drawLineCharacter(player_arrow, arrlen(player_arrow), 0, smoothangle, color, pt.x, pt.y);
     }
 }
 
@@ -2519,7 +2304,8 @@ static void AM_drawThings (void)
 
 // -----------------------------------------------------------------------------
 // AM_drawSpectator
-// Draws the things on the automap in double IDDT cheat mode.
+// [JN] Draws player as wtite triangle while in spectator mode.
+// [PN] Optimized by consolidating conditions and minimizing redundant checks.
 // -----------------------------------------------------------------------------
 
 static void AM_drawSpectator (void)
@@ -2531,8 +2317,7 @@ static void AM_drawSpectator (void)
 
     for (i = 0 ; i < numsectors ; i++)
     {
-        t = sectors[i].thinglist;
-        while (t)
+        for (t = sectors[i].thinglist; t; t = t->snext)
         {
             // [JN] Interpolate things if possible.
             if (vid_uncapped_fps && realleveltime > oldleveltime)
@@ -2563,9 +2348,6 @@ static void AM_drawSpectator (void)
                                      t->radius >> FRACTOMAPBITS, actualangle,
                                      arrow_color, pt.x, pt.y);
             }
-
-            t = t->snext;
-            continue;
         }
     }
 }
@@ -2573,55 +2355,56 @@ static void AM_drawSpectator (void)
 // -----------------------------------------------------------------------------
 // AM_drawMarks
 // Draw the marked locations on the automap.
+// [PN] Simplified boundary checks, eliminated redundant variables, and
+// minimized conditional nesting for improved readability and performance.
 // -----------------------------------------------------------------------------
 
 #define MARK_W      (5)
 #define MARK_FLIP_1 (1)
-#define MARK_FLIP_2 (9)
 
 static void AM_drawMarks (void)
 {
-    int i, fx, fy;
+    int i, fx, fy, j, d;
     int fx_flip; // [crispy] support for marks drawing in flipped levels
     mpoint_t pt;
 
     // [JN] killough 2/22/98: remove automap mark limit
-    for ( i = 0 ; i < markpointnum ; i++)
+    for (i = 0; i < markpointnum; i++)
     {
-        if (markpoints[i].x != -1)
+        if (markpoints[i].x == -1) 
+            continue;
+
+        // [crispy] center marks around player
+        pt.x = markpoints[i].x;
+        pt.y = markpoints[i].y;
+        AM_transformPoint(&pt);
+        fx = (CXMTOF(pt.x) / vid_resolution) - 1;
+        fy = (CYMTOF(pt.y) / vid_resolution) - 2;
+        fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
+        j = i;
+
+        do
         {
-            int j = i;
+            d = j % 10;
 
-            // [crispy] center marks around player
-            pt.x = markpoints[i].x;
-            pt.y = markpoints[i].y;
-            AM_transformPoint(&pt);
-            fx = (CXMTOF(pt.x) / vid_resolution) - 1;
-            fy = (CYMTOF(pt.y) / vid_resolution) - 2;
-            fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
-
-            do
+            // killough 2/22/98: less spacing for '1'
+            if (d == 1)
             {
-                int d = j % 10;
+                fx += (MARK_FLIP_1);
+            }
 
-                // killough 2/22/98: less spacing for '1'
-                if (d == 1)
-                {
-                    fx += (MARK_FLIP_1);
-                }
+            // [PN] Draw if within boundaries
+            if (fx >= f_x && fx <= (f_w / vid_resolution) - 5
+            &&  fy >= f_y && fy <= (f_h / vid_resolution) - 6)
+            {
+                V_DrawPatch(fx_flip - WIDESCREENDELTA, fy, marknums[d]);
+            }
 
-                if (fx >= f_x && fx <= (f_w / vid_resolution) - 5
-                &&  fy >= f_y && fy <= (f_h / vid_resolution) - 6)
-                {
-                    V_DrawPatch(fx_flip - WIDESCREENDELTA, fy, marknums[d]);
-                }
-
-                // killough 2/22/98: 1 space backwards
-                fx_flip -= MARK_W - (MARK_FLIP_1);
-
-                j /= 10;
-            } while (j > 0);
-        }
+            // killough 2/22/98: 1 space backwards
+            fx_flip -= MARK_W - (MARK_FLIP_1);
+    
+            j /= 10;
+        } while (j > 0);
     }
 }
 
