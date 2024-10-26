@@ -1213,7 +1213,7 @@ void R_InitColormaps (void)
 				byte pal[3];
 				byte channels[3];
 
-				CALC_INTENSITY(pal, playpal, colormap[c * 256 + i]);
+				CALC_INTENSITY(pal, playpal, colormap[32 * 256 + i]);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
 
 				r = gammatable[vid_gamma][channels[0]] & ~3;
