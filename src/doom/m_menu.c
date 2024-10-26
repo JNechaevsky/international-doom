@@ -4873,37 +4873,33 @@ static void M_DrawSound(void)
     M_WriteText (226, 115, str, M_Item_Glow(2, musicVolume ? GLOW_UNCOLORED : GLOW_DARKRED));
 }
 
-static void M_SfxVol(int choice)
+static void M_SfxVol (int choice)
 {
-    switch(choice)
+    if (choice == 0 && sfxVolume > 0)
     {
-      case 0:
-	if (sfxVolume)
-	    sfxVolume--;
-	break;
-      case 1:
-	if (sfxVolume < 15)
-	    sfxVolume++;
-	break;
+        sfxVolume--;
     }
-	
+    else
+    if (choice == 1 && sfxVolume < 15)
+    {
+        sfxVolume++;
+    }
+
     S_SetSfxVolume(sfxVolume * 8);
 }
 
-static void M_MusicVol(int choice)
+static void M_MusicVol (int choice)
 {
-    switch(choice)
+    if (choice == 0 && musicVolume > 0)
     {
-      case 0:
-	if (musicVolume)
-	    musicVolume--;
-	break;
-      case 1:
-	if (musicVolume < 15)
-	    musicVolume++;
-	break;
+        musicVolume--;
     }
-	
+    else
+    if (choice == 1 && musicVolume < 15)
+    {
+        musicVolume++;
+    }
+
     S_SetMusicVolume(musicVolume * 8);
 }
 
@@ -5070,70 +5066,45 @@ static void M_FinishReadThis(int choice)
 //
 // M_QuitDOOM
 //
-static const int quitsounds[8] =
-{
-    sfx_pldeth,
-    sfx_dmpain,
-    sfx_popain,
-    sfx_slop,
-    sfx_telept,
-    sfx_posit1,
-    sfx_posit3,
-    sfx_sgtatk
-};
-
-static const int quitsounds2[8] =
-{
-    sfx_vilact,
-    sfx_getpow,
-    sfx_boscub,
-    sfx_slop,
-    sfx_skeswg,
-    sfx_kntdth,
-    sfx_bspact,
-    sfx_sgtatk
-};
-
-
 
 static void M_QuitResponse(int key)
 {
     if (key != key_menu_confirm && key != key_menu_forward)
-	return;
-
-    // [JN] Play exit sound optionally.
-    if (!netgame && aud_exit_sounds)
     {
-	if (gamemode == commercial)
-	    S_StartSound(NULL,quitsounds2[(gametic>>2)&7]);
-	else
-	    S_StartSound(NULL,quitsounds[(gametic>>2)&7]);
-	I_WaitVBL(105);
-    }
-    I_Quit ();
-}
-
-
-static const char *M_SelectEndMessage(void)
-{
-    const char **endmsg;
-
-    if (logical_gamemission == doom)
-    {
-        // Doom 1
-
-        endmsg = doom1_endmsg;
+        return;
     }
     else
     {
-        // Doom 2
-        
-        endmsg = doom2_endmsg;
+        // [PN] Define quit sounds arrays locally
+        const int quitsounds[8] = {
+            sfx_pldeth, sfx_dmpain, sfx_popain, sfx_slop,
+            sfx_telept, sfx_posit1, sfx_posit3, sfx_sgtatk
+        };
+        const int quitsounds2[8] = {
+            sfx_vilact, sfx_getpow, sfx_boscub, sfx_slop,
+            sfx_skeswg, sfx_kntdth, sfx_bspact, sfx_sgtatk
+        };
+
+        // [JN] Play exit sound optionally.
+        if (!netgame && aud_exit_sounds)
+        {
+            const int *sound_array = (gamemode == commercial) ? quitsounds2 : quitsounds;
+            S_StartSound(NULL, sound_array[(gametic >> 2) & 7]);
+            I_WaitVBL(105);
+        }
+
+        I_Quit ();
     }
+}
+
+static const char *M_SelectEndMessage(void)
+{
+    // [PN] Choose the message array based on the game version
+    const char **endmsg = (logical_gamemission == doom) ?
+                           doom1_endmsg : doom2_endmsg;
 
     return endmsg[gametic % NUM_QUITMESSAGES];
 }
-
 
 static void M_QuitDOOM(int choice)
 {
@@ -5143,24 +5114,14 @@ static void M_QuitDOOM(int choice)
     M_StartMessage(endstring,M_QuitResponse,true);
 }
 
-
-
-
-
 static void M_ChangeDetail(int choice)
 {
     dp_detail_level ^= 1;
 
     R_SetViewSize (dp_screen_size, dp_detail_level);
-
-    if (!dp_detail_level)
-	CT_SetMessage(&players[consoleplayer], DEH_String(DETAILHI), false, NULL);
-    else
-	CT_SetMessage(&players[consoleplayer], DEH_String(DETAILLO), false, NULL);
+    CT_SetMessage(&players[consoleplayer],
+                   DEH_String(dp_detail_level ? DETAILLO : DETAILHI), false, NULL);
 }
-
-
-
 
 static void M_SizeDisplay(int choice)
 {
