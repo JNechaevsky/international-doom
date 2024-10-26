@@ -898,18 +898,18 @@ static menuitem_t ID_Menu_Main[]=
     { M_SWTC, "VIDEO OPTIONS",     M_Choose_ID_Video,    'v' },
     { M_SWTC, "DISPLAY OPTIONS",   M_Choose_ID_Display,  'd' },
     { M_SWTC, "SOUND OPTIONS",     M_Choose_ID_Sound,    's' },
-    // { M_SWTC, "CONTROL SETTINGS",  M_Choose_ID_Controls, 'c' },
-    // { M_SWTC, "WIDGETS SETTINGS",  M_Choose_ID_Widgets,  'w' },
-    // { M_SWTC, "AUTOMAP SETTINGS",  M_Choose_ID_Automap,  'a' },
-    // { M_SWTC, "GAMEPLAY FEATURES", M_Choose_ID_Gameplay, 'g' },
-    // { M_SWTC, "LEVEL SELECT",      M_Choose_ID_Level,    'l' },
-    // { M_SWTC, "END GAME",          M_EndGame,            'e' },
-    // { M_SWTC, "RESET SETTINGS",    M_Choose_ID_Reset,    'r' },
+    { M_SWTC, "CONTROL SETTINGS",  NULL,                 'c' },
+    { M_SWTC, "WIDGETS SETTINGS",  NULL,                 'w' },
+    { M_SWTC, "AUTOMAP SETTINGS",  NULL,                 'a' },
+    { M_SWTC, "GAMEPLAY FEATURES", NULL,                 'g' },
+    { M_SWTC, "END GAME",          M_EndGame,            'e' },
+    { M_SWTC, "MISCELLANEOUS",     NULL,                 'm' },
+    { M_SWTC, "RESET SETTINGS",    NULL,                 'r' },
 };
 
 static menu_t ID_Def_Main =
 {
-    3,
+    10,
     &MainDef,
     ID_Menu_Main,
     M_Draw_ID_Main,
