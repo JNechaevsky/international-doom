@@ -1149,15 +1149,15 @@ void R_FillBackScreen (void)
 // [PN] Changed ofs to size_t for clarity and to represent offset more appropriately.
 // -----------------------------------------------------------------------------
 
-void R_VideoErase (size_t ofs, int count) 
-{ 
+static void R_VideoErase (size_t ofs, int count)
+{
     // [PN] Ensure the background buffer is valid before copying
     if (background_buffer != NULL)
     {
         // [PN] Copy from background buffer to video buffer
         memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count * sizeof(*I_VideoBuffer));
     }
-} 
+}
 
 // -----------------------------------------------------------------------------
 // R_DrawViewBorder

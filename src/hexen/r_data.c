@@ -680,6 +680,21 @@ void R_InitColormaps(void)
 }
 
 #else
+    
+// [PN] Macros to optimize and standardize color calculations in the R_InitColormaps.
+// CALC_INTENSITY calculates the RGB components from playpal based on intensity settings.
+// CALC_SATURATION applies saturation correction using values from CALC_INTENSITY along 
+// with the a_hi and a_lo coefficients. Also, thanks Alaux!
+
+#define CALC_INTENSITY(pal, playpal, index) \
+    { pal[0] = playpal[3 * (index) + 0] * vid_r_intensity; \
+      pal[1] = playpal[3 * (index) + 1] * vid_g_intensity; \
+      pal[2] = playpal[3 * (index) + 2] * vid_b_intensity; }
+
+#define CALC_SATURATION(channels, pal, a_hi, a_lo) \
+    { channels[0] = (byte)((1 - a_hi) * pal[0] + a_lo * (pal[1] + pal[2])); \
+      channels[1] = (byte)((1 - a_hi) * pal[1] + a_lo * (pal[0] + pal[2])); \
+      channels[2] = (byte)((1 - a_hi) * pal[2] + a_lo * (pal[0] + pal[1])); }
 
 // [crispy] Our own function to generate colormaps for normal and foggy levels.
 void R_InitTrueColormaps(char *current_colormap)
@@ -689,10 +704,6 @@ void R_InitTrueColormaps(char *current_colormap)
 
 	byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 	byte *const colormap = W_CacheLumpName(current_colormap, PU_STATIC);
-
-	// [JN] Handle RGB channels separatelly
-	// to support variable saturation and color intensity.
-	byte r_channel, g_channel, b_channel;
 
 	// [JN] Saturation floats, high and low.
 	// If saturation has been modified (< 100), set high and low
@@ -729,30 +740,16 @@ void R_InitTrueColormaps(char *current_colormap)
 			{
 				const byte k = colormap[i];
 
-				// [Alaux] Component intensity applied here
-				const byte pal_r = playpal[3 * k + 0] * vid_r_intensity,
-				           pal_g = playpal[3 * k + 1] * vid_g_intensity,
-				           pal_b = playpal[3 * k + 2] * vid_b_intensity;
+				// [PN] Apply intensity and saturation corrections
+				byte pal[3];
+				byte channels[3];
 
-				// [Alaux] Saturation applied in the following three
-				r_channel = 
-					(byte) ((1 - a_hi) * pal_r +
-							(0 + a_lo) * pal_g +
-							(0 + a_lo) * pal_b);
+				CALC_INTENSITY(pal, playpal, k);
+				CALC_SATURATION(channels, pal, a_hi, a_lo);
 
-				g_channel = 
-					(byte) ((0 + a_lo) * pal_r +
-							(1 - a_hi) * pal_g +
-							(0 + a_lo) * pal_b);
-
-				b_channel = 
-					(byte) ((0 + a_lo) * pal_r +
-							(0 + a_lo) * pal_g +
-							(1 - a_hi) * pal_b);
-
-				r = gammatable[vid_gamma][r_channel] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
-				g = gammatable[vid_gamma][g_channel] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
-				b = gammatable[vid_gamma][b_channel] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
+				r = gammatable[vid_gamma][channels[0]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
+				g = gammatable[vid_gamma][channels[1]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
+				b = gammatable[vid_gamma][channels[2]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
 
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 			}
@@ -764,30 +761,16 @@ void R_InitTrueColormaps(char *current_colormap)
 		{
 			for (i = 0; i < 256; i++)
 			{
-				// [Alaux] Component intensity applied here
-				const byte pal_r = playpal[3 * colormap[c * 256 + i] + 0] * vid_r_intensity,
-				           pal_g = playpal[3 * colormap[c * 256 + i] + 1] * vid_g_intensity,
-				           pal_b = playpal[3 * colormap[c * 256 + i] + 2] * vid_b_intensity;
+				// [PN] Apply intensity and saturation corrections
+				byte pal[3];
+				byte channels[3];
 
-				// [Alaux] Saturation applied in the following three
-				r_channel =
-					(byte) ((1 - a_hi) * pal_r +
-							(0 + a_lo) * pal_g +
-							(0 + a_lo) * pal_b);
-	
-				g_channel =
-					(byte) ((0 + a_lo) * pal_r +
-							(1 - a_hi) * pal_g +
-							(0 + a_lo) * pal_b);
-	
-				b_channel =
-					(byte) ((0 + a_lo) * pal_r +
-							(0 + a_lo) * pal_g +
-							(1 - a_hi) * pal_b);
+				CALC_INTENSITY(pal, playpal, colormap[c * 256 + i]);
+				CALC_SATURATION(channels, pal, a_hi, a_lo);
 
-				r = gammatable[vid_gamma][r_channel] & ~3;
-				g = gammatable[vid_gamma][g_channel] & ~3;
-				b = gammatable[vid_gamma][b_channel] & ~3;
+				r = gammatable[vid_gamma][channels[0]] & ~3;
+				g = gammatable[vid_gamma][channels[1]] & ~3;
+				b = gammatable[vid_gamma][channels[2]] & ~3;
 
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 			}
@@ -803,30 +786,16 @@ void R_InitTrueColormaps(char *current_colormap)
 
 	for (i = 0, j = 0; i < 256; i++)
 	{
-		// [Alaux] Component intensity applied here
-		const byte pal_r = playpal[3 * i + 0] * vid_r_intensity,
-		           pal_g = playpal[3 * i + 1] * vid_g_intensity,
-		           pal_b = playpal[3 * i + 2] * vid_b_intensity;
+		// [PN] Apply intensity and saturation corrections
+		byte pal[3];
+		byte channels[3];
 
-		// [Alaux] Saturation applied in the following three
-		r_channel = 
-			(byte) ((1 - a_hi) * pal_r +
-					(0 + a_lo) * pal_g +
-					(0 + a_lo) * pal_b);
+		CALC_INTENSITY(pal, playpal, i);
+		CALC_SATURATION(channels, pal, a_hi, a_lo);
 
-		g_channel = 
-			(byte) ((0 + a_lo) * pal_r +
-					(1 - a_hi) * pal_g +
-					(0 + a_lo) * pal_b);
-
-		b_channel = 
-			(byte) ((0 + a_lo) * pal_r +
-					(0 + a_lo) * pal_g +
-					(1 - a_hi) * pal_b);
-
-		r = gammatable[vid_gamma][r_channel];
-		g = gammatable[vid_gamma][g_channel];
-		b = gammatable[vid_gamma][b_channel];
+		r = gammatable[vid_gamma][channels[0]];
+		g = gammatable[vid_gamma][channels[1]];
+		b = gammatable[vid_gamma][channels[2]];
 
 		pal_color[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 	}
