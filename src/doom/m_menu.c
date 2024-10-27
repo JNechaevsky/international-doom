@@ -6100,175 +6100,169 @@ boolean M_Responder (event_t* ev)
 	return false;
     }
 
+    //
     // Keys usable within menu
+    //
 
     if (key == key_menu_down)
     {
-        // Move down to next item
-
+        // [PN] Move down to the next available item
         do
-	{
-	    if (itemOn+1 > currentMenu->numitems-1)
-		itemOn = 0;
-	    else itemOn++;
-	    S_StartSound(NULL,sfx_pstop);
-	} while(currentMenu->menuitems[itemOn].status==-1);
+        {
+            itemOn = (itemOn + 1) % currentMenu->numitems;
+        } while (currentMenu->menuitems[itemOn].status == -1);
 
-	return true;
+        S_StartSound(NULL, sfx_pstop);
+        return true;
     }
     else if (key == key_menu_up)
     {
-        // Move back up to previous item
+        // [PN] Move back up to the previous available item
+        do
+        {
+            itemOn = (itemOn == 0) ? currentMenu->numitems - 1 : itemOn - 1;
+        } while (currentMenu->menuitems[itemOn].status == -1);
 
-	do
-	{
-	    if (!itemOn)
-		itemOn = currentMenu->numitems-1;
-	    else itemOn--;
-	    S_StartSound(NULL,sfx_pstop);
-	} while(currentMenu->menuitems[itemOn].status==-1);
-
-	return true;
+        S_StartSound(NULL, sfx_pstop);
+        return true;
     }
     else if (key == key_menu_left)
     {
-	// [JN] Go to previous-left menu by pressing Left Arrow.
-	if (currentMenu->ScrollAR)
-	{
-	    M_ScrollPages(false);
-	}
+        // [JN] Go to previous-left menu by pressing Left Arrow.
+        if (currentMenu->ScrollAR)
+        {
+            M_ScrollPages(false);
+        }
 
         // Slide slider left
-	if (currentMenu->menuitems[itemOn].routine &&
-	    currentMenu->menuitems[itemOn].status == 2)
-	{
-	    S_StartSound(NULL,sfx_stnmov);
-	    currentMenu->menuitems[itemOn].routine(0);
-	}
-	return true;
+        if (currentMenu->menuitems[itemOn].routine
+        &&  currentMenu->menuitems[itemOn].status == 2)
+        {
+            S_StartSound(NULL,sfx_stnmov);
+            currentMenu->menuitems[itemOn].routine(0);
+        }
+        return true;
     }
     else if (key == key_menu_right)
     {
-	// [JN] Go to next-right menu by pressing Right Arrow.
-	if (currentMenu->ScrollAR)
-	{
-	    M_ScrollPages(true);
-	}
+        // [JN] Go to next-right menu by pressing Right Arrow.
+        if (currentMenu->ScrollAR)
+        {
+            M_ScrollPages(true);
+        }
 
         // Slide slider right
-	if (currentMenu->menuitems[itemOn].routine &&
-	    currentMenu->menuitems[itemOn].status == 2)
-	{
-	    S_StartSound(NULL,sfx_stnmov);
-	    currentMenu->menuitems[itemOn].routine(1);
-	}
-	return true;
+        if (currentMenu->menuitems[itemOn].routine
+        &&  currentMenu->menuitems[itemOn].status == 2)
+        {
+            S_StartSound(NULL,sfx_stnmov);
+            currentMenu->menuitems[itemOn].routine(1);
+        }
+        return true;
     }
     else if (key == key_menu_forward)
     {
         // Activate menu item
+        if (currentMenu->menuitems[itemOn].routine
+        &&  currentMenu->menuitems[itemOn].status)
+        {
+            currentMenu->lastOn = itemOn;
 
-	if (currentMenu->menuitems[itemOn].routine &&
-	    currentMenu->menuitems[itemOn].status)
-	{
-	    currentMenu->lastOn = itemOn;
-	    if (currentMenu->menuitems[itemOn].status == 2)
-	    {
-		currentMenu->menuitems[itemOn].routine(1);      // right arrow
-		S_StartSound(NULL,sfx_stnmov);
-	    }
-	    else
-	    {
-		currentMenu->menuitems[itemOn].routine(itemOn);
-		S_StartSound(NULL,sfx_pistol);
-	    }
-	}
-	return true;
+            if (currentMenu->menuitems[itemOn].status == 2)
+            {
+                currentMenu->menuitems[itemOn].routine(1); // right arrow
+                S_StartSound(NULL,sfx_stnmov);
+            }
+            else
+            {
+                currentMenu->menuitems[itemOn].routine(itemOn);
+                S_StartSound(NULL,sfx_pistol);
+            }
+        }
+        return true;
     }
     else if (key == key_menu_activate)
     {
         // Deactivate menu
-
-	currentMenu->lastOn = itemOn;
-	M_ClearMenus ();
-	S_StartSound(NULL,sfx_swtchx);
-	return true;
+        currentMenu->lastOn = itemOn;
+        M_ClearMenus();
+        S_StartSound(NULL,sfx_swtchx);
+        return true;
     }
     else if (key == key_menu_back)
     {
         // Go back to previous menu
+        currentMenu->lastOn = itemOn;
 
-	currentMenu->lastOn = itemOn;
-	if (currentMenu->prevMenu)
-	{
-	    currentMenu = currentMenu->prevMenu;
-	    M_Reset_Line_Glow();
-	    itemOn = currentMenu->lastOn;
-	    S_StartSound(NULL,sfx_swtchn);
-	}
-	// [JN] Close menu if pressed "back" in Doom main or CRL main menu.
-	else
-	if (currentMenu == &MainDef || currentMenu == &ID_Def_Main)
-	{
-	    S_StartSound(NULL,sfx_swtchx);
-	    M_ClearMenus();
-	}
-	return true;
+        if (currentMenu->prevMenu)
+        {
+            currentMenu = currentMenu->prevMenu;
+            M_Reset_Line_Glow();
+            itemOn = currentMenu->lastOn;
+            S_StartSound(NULL,sfx_swtchn);
+        }
+        // [JN] Close menu if pressed "back" in Doom main or ID main menu.
+        else if (currentMenu == &MainDef || currentMenu == &ID_Def_Main)
+        {
+            S_StartSound(NULL,sfx_swtchx);
+            M_ClearMenus();
+        }
+        return true;
     }
-    // [crispy] delete a savegame
     else if (key == key_menu_del)
     {
-	if (currentMenu == &LoadDef || currentMenu == &SaveDef)
-	{
-	    if (LoadMenu[itemOn].status)
-	    {
-		currentMenu->lastOn = itemOn;
-		M_ConfirmDeleteGame();
-		return true;
-	    }
-	    else
-	    {
-		return true;
-	    }
-	}
-    // [JN] ...or clear key bind.
-	else
-	if (currentMenu == &ID_Def_Keybinds_1 || currentMenu == &ID_Def_Keybinds_2
-	||  currentMenu == &ID_Def_Keybinds_3 || currentMenu == &ID_Def_Keybinds_4
-	||  currentMenu == &ID_Def_Keybinds_5 || currentMenu == &ID_Def_Keybinds_6)
-	{
-	    M_ClearBind(itemOn);
-	    return true;
-	}
-    // [JN] ...or clear mouse bind.
-	else
-	if (currentMenu == &ID_Def_MouseBinds)
-	{
-	    M_ClearMouseBind(itemOn);
-	    return true;
-	}
+        // [crispy] delete a savegame
+        if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+        {
+            if (LoadMenu[itemOn].status)
+            {
+                currentMenu->lastOn = itemOn;
+                M_ConfirmDeleteGame();
+                return true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        // [JN] ...or clear key bind.
+        else
+        if (currentMenu == &ID_Def_Keybinds_1 || currentMenu == &ID_Def_Keybinds_2
+        ||  currentMenu == &ID_Def_Keybinds_3 || currentMenu == &ID_Def_Keybinds_4
+        ||  currentMenu == &ID_Def_Keybinds_5 || currentMenu == &ID_Def_Keybinds_6)
+        {
+            M_ClearBind(itemOn);
+            return true;
+        }
+        // [JN] ...or clear mouse bind.
+        else
+        if (currentMenu == &ID_Def_MouseBinds)
+        {
+            M_ClearMouseBind(itemOn);
+            return true;
+        }
     }
-    // [JN] Go to previous-left menu by pressing Page Up key.
     else if (key == KEY_PGUP)
     {
+        // [JN] Go to previous-left menu by pressing Page Up key.
         if (currentMenu->ScrollPG)
         {
             M_ScrollPages(false);
         }
     }
-    // [JN] Go to next-right menu by pressing Page Down key.
     else if (key == KEY_PGDN)
     {
+        // [JN] Go to next-right menu by pressing Page Down key.
         if (currentMenu->ScrollPG)
         {
             M_ScrollPages(true);
         }
     }
     // Jump to menu item based on first letter:
-    // [PN] Combined loops using a cyclic index to traverse the array twice,
-    // avoiding code duplication.
     else if (ch != 0 || IsNullKey(key))
     {
+        // [PN] Combined loops using a cyclic index to traverse the array twice,
+        // avoiding code duplication.
         for (i = itemOn + 1; i < currentMenu->numitems + itemOn + 1; i++)
         {
             const int index = i % currentMenu->numitems;
