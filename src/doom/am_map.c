@@ -1090,35 +1090,34 @@ boolean AM_Responder (event_t *ev)
 // -----------------------------------------------------------------------------
 // AM_changeWindowScale
 // Adjusts automap zoom level smoothly based on user input or zoom state.
-// [PN] Optimized by consolidating zoom factor calculations, reducing conditionals,
-// and improving readability in scale adjustments.
 // -----------------------------------------------------------------------------
 
 static void AM_changeWindowScale (void)
 {
     if (vid_uncapped_fps && realleveltime > oldleveltime)
     {
-        float f_paninc_smooth = (float)f_paninc_zoom / FRACUNIT * fractionaltic;
-        const float zoom_factor = 1.0f + f_paninc_smooth / 200.0f;
+        float f_paninc_smooth = (float)f_paninc_zoom / (float)FRACUNIT * (float)fractionaltic;
 
-        if (f_paninc_smooth < 0.01f) 
+        if (f_paninc_smooth < 0.01f)
+        {
             f_paninc_smooth = 0.01f;
-
+        }
+    
         scale_mtof = prev_scale_mtof;
 
         if (curr_mtof_zoommul == m_zoomin)
         {
-            mtof_zoommul = (int)(FRACUNIT * zoom_factor);
-            ftom_zoommul = (int)(FRACUNIT / zoom_factor);
+            mtof_zoommul = ((int) ((float)FRACUNIT * (1.00f + f_paninc_smooth / 200.0f)));
+            ftom_zoommul = ((int) ((float)FRACUNIT / (1.00f + f_paninc_smooth / 200.0f)));
         }
-        else if (curr_mtof_zoommul == m_zoomout)
+        if (curr_mtof_zoommul == m_zoomout)
         {
-            mtof_zoommul = (int)(FRACUNIT / zoom_factor);
-            ftom_zoommul = (int)(FRACUNIT * zoom_factor);
+            mtof_zoommul = ((int) ((float)FRACUNIT / (1.00f + f_paninc_smooth / 200.0f)));
+            ftom_zoommul = ((int) ((float)FRACUNIT * (1.00f + f_paninc_smooth / 200.0f)));
         }
     }
 
-    // [PN] Apply scaling adjustments
+    // Change the scaling multipliers
     scale_mtof = FixedMul(scale_mtof, mtof_zoommul);
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
 
@@ -1130,7 +1129,6 @@ static void AM_changeWindowScale (void)
         mousewheelzoom = false;
     }
 
-    // [PN] Adjust scale boundaries
     if (scale_mtof < min_scale_mtof)
     {
         AM_minOutWindowScale();
