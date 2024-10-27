@@ -6170,33 +6170,22 @@ boolean MN_Responder(event_t * event)
             }
             return (true);
         }
+        // Jump to menu item based on first letter:
+        // [JN] Allow multiple jumps over menu items with
+        // same first letters. This behavior is same to Doom.
+        // [PN] Combined loops using a cyclic index to traverse
+        // the array twice, avoiding code duplication.
         else if (charTyped != 0)
         {
-            // Jump to menu item based on first letter:
+            for (i = CurrentItPos + 1; i < CurrentMenu->itemCount + CurrentItPos + 1; i++)
+            {
+                const int index = i % CurrentMenu->itemCount;
 
-            // [JN] Allow multiple jumps over menu items with
-            // same first letters. This behavior is same to Doom.
-            for (i = CurrentItPos + 1; i < CurrentMenu->itemCount; i++)
-            {
-                if (CurrentMenu->items[i].text)
+                if (CurrentMenu->items[index].text)
                 {
-                    if (toupper(charTyped)
-                        == toupper(DEH_String(CurrentMenu->items[i].text)[0]))
+                    if (toupper(charTyped) == toupper(DEH_String(CurrentMenu->items[index].text)[0]))
                     {
-                        CurrentItPos = i;
-                        S_StartSound(NULL, sfx_switch);
-                        return (true);
-                    }
-                }
-            }
-            for (i = 0; i <= CurrentItPos; i++)
-            {
-                if (CurrentMenu->items[i].text)
-                {
-                    if (toupper(charTyped)
-                        == toupper(DEH_String(CurrentMenu->items[i].text)[0]))
-                    {
-                        CurrentItPos = i;
+                        CurrentItPos = index;
                         S_StartSound(NULL, sfx_switch);
                         return (true);
                     }

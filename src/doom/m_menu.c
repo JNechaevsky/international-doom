@@ -6264,31 +6264,21 @@ boolean M_Responder (event_t* ev)
             M_ScrollPages(true);
         }
     }
-
-    // Keyboard shortcut?
-    // Vanilla Doom has a weird behavior where it jumps to the scroll bars
-    // when the certain keys are pressed, so emulate this.
-
+    // Jump to menu item based on first letter:
+    // [PN] Combined loops using a cyclic index to traverse the array twice,
+    // avoiding code duplication.
     else if (ch != 0 || IsNullKey(key))
     {
-	for (i = itemOn+1;i < currentMenu->numitems;i++)
+        for (i = itemOn + 1; i < currentMenu->numitems + itemOn + 1; i++)
         {
-	    if (currentMenu->menuitems[i].alphaKey == ch)
-	    {
-		itemOn = i;
-		S_StartSound(NULL,sfx_pstop);
-		return true;
-	    }
-        }
+            const int index = i % currentMenu->numitems;
 
-	for (i = 0;i <= itemOn;i++)
-        {
-	    if (currentMenu->menuitems[i].alphaKey == ch)
-	    {
-		itemOn = i;
-		S_StartSound(NULL,sfx_pstop);
-		return true;
-	    }
+            if (currentMenu->menuitems[index].alphaKey == ch)
+            {
+                itemOn = index;
+                S_StartSound(NULL, sfx_pstop);
+                return true;
+            }
         }
     }
 
