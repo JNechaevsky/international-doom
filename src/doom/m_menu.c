@@ -5123,38 +5123,39 @@ static void M_ChangeDetail(int choice)
                    DEH_String(dp_detail_level ? DETAILLO : DETAILHI), false, NULL);
 }
 
-static void M_SizeDisplay(int choice)
+static void M_SizeDisplay (int choice)
 {
-    switch(choice)
+    // [PN] Simplified logic for adjusting screen size
+    if (choice == 0 && dp_screen_size > 3)
     {
-      case 0:
-	if (dp_screen_size > 3)
-	{
-	    dp_screen_size--;
-	    // [JN] Skip wide status bar in non-wide screen mode.
-	    if (!vid_widescreen)
-	    {
-	        if (dp_screen_size == 15)
-	            dp_screen_size -= 3;
-	        if (dp_screen_size == 13 || dp_screen_size == 12)
-	            dp_screen_size -= 2;
-	    }
-	    R_SetViewSize (dp_screen_size, dp_detail_level);
-	}
-	break;
-      case 1:
-	if (dp_screen_size < 15)
-	{
-	    dp_screen_size++;
-	    // [JN] Skip wide status bar in non-wide screen mode.
-	    if (!vid_widescreen)
-	    {
-	        if (dp_screen_size == 13) dp_screen_size += 2;
-	    }
-	    R_SetViewSize (dp_screen_size, dp_detail_level);
-	}
-	break;
+        dp_screen_size--;
+        // [JN] Skip wide status bar in non-wide screen mode
+        if (!vid_widescreen)
+        {
+            if (dp_screen_size == 15)
+            {
+                dp_screen_size -= 3;
+            }
+            else
+            if (dp_screen_size == 13 || dp_screen_size == 12)
+            {
+                dp_screen_size -= 2;
+            }
+        }
     }
+    else
+    if (choice == 1 && dp_screen_size < 15)
+    {
+        dp_screen_size++;
+        // [JN] Skip wide status bar in non-wide screen mode
+        if (!vid_widescreen && dp_screen_size == 13)
+        {
+            dp_screen_size += 2;
+        }
+    }
+
+    // [PN] Update view size after adjustment
+    R_SetViewSize(dp_screen_size, dp_detail_level);
 }
 
 

@@ -5310,38 +5310,31 @@ static void SCChangeDetail (int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCScreenSize(int option)
+static void SCScreenSize (int option)
 {
-    switch (option)
+    // [PN] Simplified logic for adjusting screen size
+    if (option == LEFT_DIR && dp_screen_size > 3)
     {
-        case LEFT_DIR:
-        if (dp_screen_size > 3)
+        dp_screen_size--;
+        // [JN] Skip wide status bar in non-wide screen mode.
+        if (!vid_widescreen && dp_screen_size == 11)
         {
-            dp_screen_size--;
-            // [JN] Skip wide status bar in non-wide screen mode.
-            if (!vid_widescreen)
-            {
-                if (dp_screen_size == 11)
-                    dp_screen_size  = 10;
-            }
-            R_SetViewSize(dp_screen_size, dp_detail_level);
+            dp_screen_size = 10;
         }
-        break;
-
-        case RIGHT_DIR:
-        if (dp_screen_size < 13)
-        {
-            dp_screen_size++;
-            // [JN] Skip wide status bar in non-wide screen mode.
-            if (!vid_widescreen)
-            {
-                if (dp_screen_size == 11)
-                    dp_screen_size  = 12;
-            }
-            R_SetViewSize(dp_screen_size, dp_detail_level);
-        }
-        break;
     }
+    else
+    if (option == RIGHT_DIR && dp_screen_size < 13)
+    {
+        dp_screen_size++;
+        // [JN] Skip wide status bar in non-wide screen mode.
+        if (!vid_widescreen && dp_screen_size == 11)
+        {
+            dp_screen_size = 12;
+        }
+    }
+
+    // [PN] Update view size after adjustment
+    R_SetViewSize(dp_screen_size, dp_detail_level);
 }
 
 //---------------------------------------------------------------------------
