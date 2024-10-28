@@ -686,10 +686,11 @@ int dscount;                    // just for profiling
 
 void R_DrawSpan(void)
 { 
+    unsigned int xtemp, ytemp;
     pixel_t *dest;
     int count;
     int spot;
-    unsigned int xtemp, ytemp;
+    byte source;
 
 #ifdef RANGECHECK
     if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= SCREENWIDTH || ds_y > SCREENHEIGHT)
@@ -699,7 +700,7 @@ void R_DrawSpan(void)
 #endif
 
     // Calculate the span length.
-    count = ds_x2 - ds_x1;
+    count = ds_x2 - ds_x1 + 1;
 
     // Optimized version for normal (non-flipped) levels.
     if (!gp_flip_levels)
@@ -707,7 +708,51 @@ void R_DrawSpan(void)
         // [PN] Precompute the destination pointer for normal levels, without flipping.
         dest = ylookup[ds_y] + columnofs[ds_x1];
 
-        do
+        // [JN/PN] Loop unrolled by four for performance optimization:
+        while (count >= 4)
+        {
+            // First iteration
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+            source = ds_source[spot];
+            dest[0] = ds_colormap[source];
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+            // Second iteration
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+            source = ds_source[spot];
+            dest[1] = ds_colormap[source];
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+            // Third iteration
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+            source = ds_source[spot];
+            dest[2] = ds_colormap[source];
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+            // Fourth iteration
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+            source = ds_source[spot];
+            dest[3] = ds_colormap[source];
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+            
+            dest += 4;
+            count -= 4;
+        }
+
+        // Render remaining pixels one by one, if any
+        while (count-- > 0)
         {
             // [crispy] fix flats getting more distorted the closer they are to the right
             ytemp = (ds_yfrac >> 10) & 0x0fc0;
@@ -715,14 +760,14 @@ void R_DrawSpan(void)
             spot = xtemp | ytemp;
 
             // Lookup the pixel and apply lighting.
-            *dest = ds_colormap[ds_source[spot]];
+            source = ds_source[spot];
+            *dest = ds_colormap[source];
             
             // Move to the next pixel.
             dest++;  // [PN] Increment destination pointer without recalculating.
             ds_xfrac += ds_xstep;
             ds_yfrac += ds_ystep;
-
-        } while (count--);
+        }
     }
     else
     {
@@ -752,6 +797,7 @@ void R_DrawSpanLow (void)
     pixel_t *dest;
     int count;
     int spot;
+    byte source;
 
 #ifdef RANGECHECK
     if (ds_x2 < ds_x1 || ds_x1 < 0 || ds_x2 >= SCREENWIDTH || ds_y > SCREENHEIGHT)
@@ -761,7 +807,7 @@ void R_DrawSpanLow (void)
 #endif
 
     // Calculate the span length.
-    count = ds_x2 - ds_x1;
+    count = ds_x2 - ds_x1 + 1;
 
     // Blocky mode, need to multiply by 2.
     ds_x1 <<= 1;
@@ -773,24 +819,72 @@ void R_DrawSpanLow (void)
         // [PN] Precompute the destination pointer for normal levels, without flipping.
         dest = ylookup[ds_y] + columnofs[ds_x1];
 
-        do
+        // [JN/PN] Loop unrolled by four for performance optimization:
+        while (count >= 4)
         {
-            // [crispy] fix flats getting more distorted the closer they are to the right
+            // First pair of pixels
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+            source = ds_source[spot];            
+            dest[0] = ds_colormap[source];
+            dest[1] = ds_colormap[source];
+            dest += 2;
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+            // Second pair of pixels
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+            source = ds_source[spot];            
+            dest[0] = ds_colormap[source];
+            dest[1] = ds_colormap[source];
+            dest += 2;
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+            // Third pair of pixels
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+            source = ds_source[spot];            
+            dest[0] = ds_colormap[source];
+            dest[1] = ds_colormap[source];
+            dest += 2;
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+            // Fourth pair of pixels
+            ytemp = (ds_yfrac >> 10) & 0x0fc0;
+            xtemp = (ds_xfrac >> 16) & 0x3f;
+            spot = xtemp | ytemp;
+            source = ds_source[spot];            
+            dest[0] = ds_colormap[source];
+            dest[1] = ds_colormap[source];
+            dest += 2;
+            ds_xfrac += ds_xstep;
+            ds_yfrac += ds_ystep;
+
+            count -= 4;
+        }
+
+        // Render remaining pixels one by one, if any
+        while (count-- > 0)
+        {
             ytemp = (ds_yfrac >> 10) & 0x0fc0;
             xtemp = (ds_xfrac >> 16) & 0x3f;
             spot = xtemp | ytemp;
 
-            // Lookup the pixel and apply lighting.
-            *dest = ds_colormap[ds_source[spot]];  // First pixel.
-            dest++;  // [PN] Move to the next pixel.
-            *dest = ds_colormap[ds_source[spot]];  // Second pixel.
-            dest++;  // [PN] Move to the next pixel.
+            source = ds_source[spot];
+            *dest = ds_colormap[source];  // First pixel
+            dest++;
+            *dest = ds_colormap[source];  // Second pixel
+            dest++;
 
-            // Update fractional positions.
             ds_xfrac += ds_xstep;
             ds_yfrac += ds_ystep;
-
-        } while (count--);
+        }
     }
     else
     {
