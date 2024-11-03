@@ -1007,8 +1007,8 @@ static MenuItem_t ID_Menu_Main[] = {
     { ITT_SETMENU, "WIDGETS SETTINGS",  NULL,                 0, MENU_ID_WIDGETS   },
     { ITT_SETMENU, "AUTOMAP SETTINGS",  NULL,                 0, MENU_ID_AUTOMAP   },
     { ITT_EFUNC,   "GAMEPLAY FEATURES", M_Choose_ID_Gameplay, 0, MENU_NONE         },
+    { ITT_SETMENU, "MISC FEATURES",     NULL,                 0, MENU_ID_MISC      },
     { ITT_EFUNC,   "END GAME",          SCEndGame,            0, MENU_NONE         },
-    { ITT_SETMENU, "MISCELLANEOUS",     NULL,                 0, MENU_ID_MISC      },
     { ITT_EFUNC,   "RESET SETTINGS",    M_ID_SettingReset,    0, MENU_NONE         },
 };
 

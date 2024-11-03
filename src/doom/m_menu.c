@@ -522,6 +522,7 @@ static menu_t SaveDef =
 #define ID_MENU_LEFTOFFSET        (48)
 #define ID_MENU_LEFTOFFSET_SML    (93)
 #define ID_MENU_LEFTOFFSET_MID    (64)
+#define ID_MENU_LEFTOFFSET_MISC   (40)
 #define ID_MENU_LEFTOFFSET_BIG    (32)
 #define ID_MENU_LEFTOFFSET_LEVEL  (74)
 
@@ -698,11 +699,6 @@ static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
 static void M_ID_Automap_Shading (int choice);
 
-static void M_Choose_ID_Misc (int choice);
-static void M_Draw_ID_Misc (void);
-static void M_ID_Misc_AutoloadWAD (int choice);
-static void M_ID_Misc_AutoloadDEH (int choice);
-
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
@@ -747,6 +743,11 @@ static void M_ID_VerticalAiming (int choice);
 
 static void M_ScrollGameplay (int choice);
 static void M_DrawGameplayFooter (char *pagenum);
+
+static void M_Choose_ID_Misc (int choice);
+static void M_Draw_ID_Misc (void);
+static void M_ID_Misc_AutoloadWAD (int choice);
+static void M_ID_Misc_AutoloadDEH (int choice);
 
 static void M_Choose_ID_Level (int choice);
 static void M_Draw_ID_Level_1 (void);
@@ -1179,9 +1180,9 @@ static menuitem_t ID_Menu_Main[]=
     { M_SWTC, "WIDGETS SETTINGS",  M_Choose_ID_Widgets,  'w' },
     { M_SWTC, "AUTOMAP SETTINGS",  M_Choose_ID_Automap,  'a' },
     { M_SWTC, "GAMEPLAY FEATURES", M_Choose_ID_Gameplay, 'g' },
+    { M_SWTC, "MISC FEATURES",     M_Choose_ID_Misc,     'm' },
     { M_SWTC, "LEVEL SELECT",      M_Choose_ID_Level,    'l' },
     { M_SWTC, "END GAME",          M_EndGame,            'e' },
-    { M_SWTC, "MISCELLANEOUS",     M_Choose_ID_Misc,     'm' },
     { M_SWTC, "RESET SETTINGS",    M_Choose_ID_Reset,    'r' },
 };
 
@@ -3155,90 +3156,6 @@ static void M_ID_Automap_Secrets (int choice)
 }
 
 // -----------------------------------------------------------------------------
-// Miscellaneous settings
-// -----------------------------------------------------------------------------
-
-static menuitem_t ID_Menu_Misc[]=
-{
-    { M_LFRT, "AUTOLOAD WAD FILES", M_ID_Misc_AutoloadWAD, 'a' },
-    { M_LFRT, "AUTOLOAD DEH FILES", M_ID_Misc_AutoloadDEH, 'a' },
-};
-
-static menu_t ID_Def_Misc =
-{
-    2,
-    &ID_Def_Main,
-    ID_Menu_Misc,
-    M_Draw_ID_Misc,
-    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
-    0,
-    true, false, false,
-};
-
-static void M_Choose_ID_Misc (int choice)
-{
-    M_SetupNextMenu (&ID_Def_Misc);
-}
-
-static void M_Draw_ID_Misc (void)
-{
-    char str[32];
-
-    M_WriteTextCentered(9, "AUTOLOAD", cr[CR_YELLOW]);
-
-    // Autoload WAD files
-    sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
-                 autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, autoload_wad == 1 ? GLOW_YELLOW :
-                                autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
-
-    // Autoload DEH patches
-    sprintf(str, autoload_deh == 1 ? "IWAD ONLY" :
-                 autoload_deh == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, autoload_deh == 1 ? GLOW_YELLOW :
-                                autoload_deh == 2 ? GLOW_GREEN : GLOW_DARKRED));
-
-    // [PN] Added explanations for autoload variables
-    if (itemOn == 0 || itemOn == 1)
-    {
-        const char *off = "AUTOLOAD IS DISABLED";
-        const char *first_line = "AUTOLOAD AND FOLDER CREATION";
-        const char *second_line1 = "ONLY ALLOWED FOR IWAD FILES";
-        const char *second_line2 = "ALLOWED FOR BOTH IWAD AND PWAD FILES";
-        const int   autoload_option = (itemOn == 0) ? autoload_wad : autoload_deh;
-
-        switch (autoload_option)
-        {
-            case 1:
-                M_WriteTextCentered(135, first_line, cr[CR_LIGHTGRAY_DARK1]);
-                M_WriteTextCentered(144, second_line1, cr[CR_LIGHTGRAY_DARK1]);
-                break;
-
-            case 2:
-                M_WriteTextCentered(135, first_line, cr[CR_LIGHTGRAY_DARK1]);
-                M_WriteTextCentered(144, second_line2, cr[CR_LIGHTGRAY_DARK1]);
-                break;
-
-            default:
-                M_WriteTextCentered(135, off, cr[CR_LIGHTGRAY_DARK1]);
-                break;            
-        }
-    }
-}
-
-static void M_ID_Misc_AutoloadWAD (int choice)
-{
-    autoload_wad = M_INT_Slider(autoload_wad, 0, 2, choice, false);
-}
-
-static void M_ID_Misc_AutoloadDEH (int choice)
-{
-    autoload_deh = M_INT_Slider(autoload_deh, 0, 2, choice, false);
-}
-
-// -----------------------------------------------------------------------------
 // Gameplay features 1
 // -----------------------------------------------------------------------------
 
@@ -3840,6 +3757,90 @@ static void M_DrawGameplayFooter (char *pagenum)
     M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, "/3", NULL));
     M_WriteText(M_ItemRightAlign(str), 144, str,
                 M_Item_Glow(14, GLOW_GRAY));
+}
+
+// -----------------------------------------------------------------------------
+// Miscellaneous features
+// -----------------------------------------------------------------------------
+
+static menuitem_t ID_Menu_Misc[]=
+{
+    { M_LFRT, "AUTOLOAD WAD FILES", M_ID_Misc_AutoloadWAD, 'a' },
+    { M_LFRT, "AUTOLOAD DEH FILES", M_ID_Misc_AutoloadDEH, 'a' },
+};
+
+static menu_t ID_Def_Misc =
+{
+    2,
+    &ID_Def_Main,
+    ID_Menu_Misc,
+    M_Draw_ID_Misc,
+    ID_MENU_LEFTOFFSET_MISC, ID_MENU_TOPOFFSET,
+    0,
+    true, false, false,
+};
+
+static void M_Choose_ID_Misc (int choice)
+{
+    M_SetupNextMenu (&ID_Def_Misc);
+}
+
+static void M_Draw_ID_Misc (void)
+{
+    char str[32];
+
+    M_WriteTextCentered(9, "AUTOLOAD", cr[CR_YELLOW]);
+
+    // Autoload WAD files
+    sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
+                 autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 18, str,
+                 M_Item_Glow(0, autoload_wad == 1 ? GLOW_YELLOW :
+                                autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Autoload DEH patches
+    sprintf(str, autoload_deh == 1 ? "IWAD ONLY" :
+                 autoload_deh == 2 ? "IWAD AND PWAD" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 27, str,
+                 M_Item_Glow(1, autoload_deh == 1 ? GLOW_YELLOW :
+                                autoload_deh == 2 ? GLOW_GREEN : GLOW_DARKRED));
+
+    // [PN] Added explanations for autoload variables
+    if (itemOn == 0 || itemOn == 1)
+    {
+        const char *off = "AUTOLOAD IS DISABLED";
+        const char *first_line = "AUTOLOAD AND FOLDER CREATION";
+        const char *second_line1 = "ONLY ALLOWED FOR IWAD FILES";
+        const char *second_line2 = "ALLOWED FOR BOTH IWAD AND PWAD FILES";
+        const int   autoload_option = (itemOn == 0) ? autoload_wad : autoload_deh;
+
+        switch (autoload_option)
+        {
+            case 1:
+                M_WriteTextCentered(135, first_line, cr[CR_LIGHTGRAY_DARK1]);
+                M_WriteTextCentered(144, second_line1, cr[CR_LIGHTGRAY_DARK1]);
+                break;
+
+            case 2:
+                M_WriteTextCentered(135, first_line, cr[CR_LIGHTGRAY_DARK1]);
+                M_WriteTextCentered(144, second_line2, cr[CR_LIGHTGRAY_DARK1]);
+                break;
+
+            default:
+                M_WriteTextCentered(135, off, cr[CR_LIGHTGRAY_DARK1]);
+                break;            
+        }
+    }
+}
+
+static void M_ID_Misc_AutoloadWAD (int choice)
+{
+    autoload_wad = M_INT_Slider(autoload_wad, 0, 2, choice, false);
+}
+
+static void M_ID_Misc_AutoloadDEH (int choice)
+{
+    autoload_deh = M_INT_Slider(autoload_deh, 0, 2, choice, false);
 }
 
 // -----------------------------------------------------------------------------
