@@ -1647,9 +1647,19 @@ void G_Ticker (void)
         time_t t = time(NULL);
         struct tm *tm = localtime(&t);
 
-        strftime(ID_Local_Time, sizeof(ID_Local_Time),
-                 msg_local_time == 1 ? "%I:%M%p" :    // 12-hour (HH:MM designation)
-                                       "%H:%M", tm);  // 24-hour (HH:MM)
+        if (msg_local_time == 1)
+        {
+            // 12-hour (HH:MM AM/PM)
+            // [PN] Always show AM/PM independently of the system locale
+            snprintf(ID_Local_Time, sizeof(ID_Local_Time), "%02d:%02d %s",
+                    (tm->tm_hour % 12 == 0) ? 12 : tm->tm_hour % 12, tm->tm_min,
+                    (tm->tm_hour >= 12) ? "PM" : "AM");
+        }
+        else
+        {
+            // 24-hour (HH:MM)
+            snprintf(ID_Local_Time, sizeof(ID_Local_Time), "%02d:%02d", tm->tm_hour, tm->tm_min);
+        }
     }
 } 
  
