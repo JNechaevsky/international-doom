@@ -45,6 +45,7 @@ char ID_Level_Time[64];
 char ID_Total_Time[64];
 char ID_Local_Time[64];
 
+// [JN] Enum for widget strings and values.
 enum
 {
     widget_kis_str,
@@ -233,6 +234,67 @@ static byte *ID_WidgetColor (const int i)
     return NULL;
 }
 
+// [JN/PN] Enum for widget type values.
+enum
+{
+    widget_kis_kills,
+    widget_kis_items,
+    widget_kis_secrets,
+} widget_kis_count_t;
+
+// [PN] Function for safe division to prevent division by zero.
+// Returns the percentage or 0 if the total is zero.
+static int safe_percent (int value, int total)
+{
+    return (total == 0) ? 0 : (value * 100) / total;
+}
+
+// [PN/JN] Main function to format KIS counts based on format and widget type.
+static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
+{
+    int value = 0, total = 0;
+    
+    // [PN] Set values for kills, items, or secrets based on widget type
+    switch (i)
+    {
+        case widget_kis_kills:
+            value = IDWidget.kills;
+            total = IDWidget.totalkills;
+            break;
+        
+        case widget_kis_items:
+            value = IDWidget.items;
+            total = IDWidget.totalitems;
+            break;
+        
+        case widget_kis_secrets:
+            value = IDWidget.secrets;
+            total = IDWidget.totalsecrets;
+            break;
+        
+        default:
+            // [PN] Default case for unsupported widget type
+            snprintf(buffer, buffer_size, "N/A");
+            return;
+    }
+
+    // [PN] Format based on widget_kis_format
+    switch (widget_kis_format)
+    {
+        case 1: // Remaining
+            snprintf(buffer, buffer_size, "%d ", total - value);
+            break;
+
+        case 2: // Percent
+            snprintf(buffer, buffer_size, "%d%% ", safe_percent(value, total));
+            break;
+
+        default: // Ratio
+            snprintf(buffer, buffer_size, "%d/%d ", value, total);
+            break;
+    }
+}
+
 // -----------------------------------------------------------------------------
 // ID_LeftWidgets.
 //  [JN] Draw all the widgets and counters.
@@ -257,17 +319,17 @@ void ID_LeftWidgets (void)
 
                 // Kills:
                 MN_DrTextA("K:", 0 - WIDESCREENDELTA, 10, ID_WidgetColor(widget_kis_str));
-                sprintf(str1, "%d/%d", IDWidget.kills, IDWidget.totalkills);
+                ID_WidgetKISCount(str1, sizeof(str1), widget_kis_kills);
                 MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, ID_WidgetColor(widget_kills));
 
                 // Items:
                 MN_DrTextA("I:", 0 - WIDESCREENDELTA, 20, ID_WidgetColor(widget_kis_str));
-                sprintf(str2, "%d/%d", IDWidget.items, IDWidget.totalitems);
+                ID_WidgetKISCount(str2, sizeof(str2), widget_kis_items);
                 MN_DrTextA(str2, 0 - WIDESCREENDELTA + 16, 20, ID_WidgetColor(widget_items));
 
                 // Secret:
                 MN_DrTextA("S:", 0 - WIDESCREENDELTA, 30, ID_WidgetColor(widget_kis_str));
-                sprintf(str3, "%d/%d", IDWidget.secrets, IDWidget.totalsecrets);
+                ID_WidgetKISCount(str3, sizeof(str3), widget_kis_secrets);
                 MN_DrTextA(str3, 0 - WIDESCREENDELTA + 16, 30, ID_WidgetColor(widget_secret));
             }
             else
@@ -455,7 +517,7 @@ void ID_LeftWidgets (void)
                 // Kills:
                 sprintf(str1, "K ");
                 MN_DrTextA(str1, 0 - WIDESCREENDELTA, 146 + yy, ID_WidgetColor(widget_kis_str));
-                sprintf(str2, "%d/%d ", IDWidget.kills, IDWidget.totalkills);
+                ID_WidgetKISCount(str2, sizeof(str2), widget_kis_kills);
                 MN_DrTextA(str2, 0 - WIDESCREENDELTA + MN_TextAWidth(str1), 146 + yy, ID_WidgetColor(widget_kills));
 
                 // Items:
@@ -463,7 +525,7 @@ void ID_LeftWidgets (void)
                 MN_DrTextA(str3, 0 - WIDESCREENDELTA + MN_TextAWidth(str1) + 
                                      MN_TextAWidth(str2), 146 + yy, ID_WidgetColor(widget_kis_str));
 
-                sprintf(str4, "%d/%d ", IDWidget.items, IDWidget.totalitems);
+                ID_WidgetKISCount(str4, sizeof(str4), widget_kis_items);
                 MN_DrTextA(str4, 0 - WIDESCREENDELTA     +
                                      MN_TextAWidth(str1) +
                                      MN_TextAWidth(str2) +
@@ -477,7 +539,7 @@ void ID_LeftWidgets (void)
                                      MN_TextAWidth(str3) +
                                      MN_TextAWidth(str4), 146 + yy, ID_WidgetColor(widget_kis_str));
 
-                sprintf(str6, "%d/%d", IDWidget.secrets, IDWidget.totalsecrets);
+                ID_WidgetKISCount(str6, sizeof(str6), widget_kis_secrets);
                 MN_DrTextA(str6, 0 - WIDESCREENDELTA     +
                                      MN_TextAWidth(str1) +
                                      MN_TextAWidth(str2) + 

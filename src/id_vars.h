@@ -72,6 +72,7 @@ extern int widget_location;
 extern int widget_coords;
 extern int widget_render;
 extern int widget_kis;
+extern int widget_kis_format;
 extern int widget_time;
 extern int widget_totaltime;
 extern int widget_levelname;
