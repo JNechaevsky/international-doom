@@ -2258,7 +2258,9 @@ void AM_LevelNameDrawer (void)
         }
 
         level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
-        MN_DrTextA(DEH_String(level_name), x, y, NULL);
+        MN_DrTextA(DEH_String(level_name), x, y,
+                   // [JN] Woof and DSDA widget color scheme using yellow map name.
+                   widget_scheme > 2 ? cr[CR_YELLOW] : NULL);
     }
 }
 

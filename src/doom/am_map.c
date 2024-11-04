@@ -2443,7 +2443,9 @@ void AM_LevelNameDrawer (void)
     static char str[128];
 
     sprintf(str, "%s", level_name);
-    M_WriteText(0 - WIDESCREENDELTA, 160, str, NULL);
+    M_WriteText(0 - WIDESCREENDELTA, 160, str,
+                // [JN] Woof and DSDA widget color scheme using yellow map name.
+                widget_scheme > 2 ? cr[CR_YELLOW] : NULL);
 }
 
 // -----------------------------------------------------------------------------

@@ -568,6 +568,7 @@ static void M_Bind_M_UseArtifact (int option);
 static void M_Bind_M_Reset (int option);
 
 static void M_Draw_ID_Widgets (void);
+static void M_ID_Widget_Colors (int choice);
 static void M_ID_Widget_Location (int choice);
 static void M_ID_Widget_KIS (int choice);
 static void M_ID_Widget_Coords (int choice);
@@ -2821,6 +2822,7 @@ static void M_Bind_M_Reset (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Widgets[] = {
+    { ITT_LRFUNC, "COLOR SCHEME",     M_ID_Widget_Colors,    0, MENU_NONE },
     { ITT_LRFUNC, "WIDGETS LOCATION", M_ID_Widget_Location,  0, MENU_NONE },
     { ITT_LRFUNC, "KIS STATS",        M_ID_Widget_KIS,       0, MENU_NONE },
     { ITT_LRFUNC, "LEVEL/DM TIMER",   M_ID_Widget_Time,      0, MENU_NONE },
@@ -2834,7 +2836,7 @@ static MenuItem_t ID_Menu_Widgets[] = {
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    8, ID_Menu_Widgets,
+    9, ID_Menu_Widgets,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -2846,52 +2848,65 @@ static void M_Draw_ID_Widgets (void)
 
     MN_DrTextACentered("WIDGETS", 10, cr[CR_YELLOW]);
 
+    // Color scheme
+    sprintf(str, widget_scheme == 1 ? "INTER"  :
+                 widget_scheme == 2 ? "CRISPY" :
+                 widget_scheme == 3 ? "WOOF"   :
+                 widget_scheme == 4 ? "DSDA"   : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, widget_scheme ? GLOW_GREEN : GLOW_DARKRED));
+
     // Widgets location
     sprintf(str, widget_location ? "TOP" : "BOTTOM");
-    MN_DrTextA(str, M_ItemRightAlign(str), 20,
-               M_Item_Glow(0, GLOW_GREEN));
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, GLOW_GREEN));
 
     // K/I/S stats
     sprintf(str, widget_kis == 1 ? "ALWAYS"  :
                  widget_kis == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               M_Item_Glow(1, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
 
     // Level/DM timer
     sprintf(str, widget_time == 1 ? "ALWAYS"  :
                  widget_time == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, widget_time ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, widget_time ? GLOW_GREEN : GLOW_DARKRED));
 
     // Total time
     sprintf(str, widget_totaltime == 1 ? "ALWAYS"  :
                  widget_totaltime == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, widget_totaltime ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, widget_totaltime ? GLOW_GREEN : GLOW_DARKRED));
 
     // Level name
     sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
-    MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               M_Item_Glow(4, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
 
     // Player coords
     sprintf(str, widget_coords == 1 ? "ALWAYS"  :
                  widget_coords == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 70,
-               M_Item_Glow(5, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
 
     // Render counters
     sprintf(str, widget_render ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, widget_render ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, widget_render ? GLOW_GREEN : GLOW_DARKRED));
 
     // Target's health
     sprintf(str, widget_health == 1 ? "TOP" :
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, widget_health ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, widget_health ? GLOW_GREEN : GLOW_DARKRED));
+}
+
+static void M_ID_Widget_Colors (int choice)
+{
+    widget_scheme = M_INT_Slider(widget_scheme, 0, 4, choice, false);
 }
 
 static void M_ID_Widget_Location (int choice)
@@ -4226,6 +4241,7 @@ static void M_ID_ApplyResetHook (void)
     // Widgets and automap
     //
 
+    widget_scheme = 1;
     widget_location = 0;
     widget_kis = 0;
     widget_time = 0;

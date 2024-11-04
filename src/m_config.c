@@ -503,6 +503,7 @@ static default_t	doom_defaults_list[] =
 
     // Widgets
     CONFIG_VARIABLE_INT(widget_enable),
+    CONFIG_VARIABLE_INT(widget_scheme),
     CONFIG_VARIABLE_INT(widget_location),
     CONFIG_VARIABLE_INT(widget_kis),
     CONFIG_VARIABLE_INT(widget_time),

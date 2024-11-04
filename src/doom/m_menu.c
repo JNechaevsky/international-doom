@@ -680,6 +680,7 @@ static void M_Bind_M_Reset (int choice);
 
 static void M_Choose_ID_Widgets (int choice);
 static void M_Draw_ID_Widgets (void);
+static void M_ID_Widget_Colors (int choice);
 static void M_ID_Widget_Location (int choice);
 static void M_ID_Widget_KIS (int choice);
 static void M_ID_Widget_Time (int choice);
@@ -2920,6 +2921,7 @@ static void M_Draw_ID_MouseBinds (void)
 
 static menuitem_t ID_Menu_Widgets[]=
 {
+    { M_LFRT, "COLOR SCHEME",          M_ID_Widget_Colors,    'c' },
     { M_LFRT, "WIDGETS LOCATION",      M_ID_Widget_Location,  'w' },
     { M_LFRT, "KIS STATS/FRAGS",       M_ID_Widget_KIS,       'k' },
     { M_LFRT, "LEVEL/DM TIMER",        M_ID_Widget_Time,      'l' },
@@ -2932,7 +2934,7 @@ static menuitem_t ID_Menu_Widgets[]=
 
 static menu_t ID_Def_Widgets =
 {
-    8,
+    9,
     &ID_Def_Main,
     ID_Menu_Widgets,
     M_Draw_ID_Widgets,
@@ -2952,52 +2954,65 @@ static void M_Draw_ID_Widgets (void)
 
     M_WriteTextCentered(9, "WIDGETS", cr[CR_YELLOW]);
 
+    // Color scheme
+    sprintf(str, widget_scheme == 1 ? "INTER"  :
+                 widget_scheme == 2 ? "CRISPY" :
+                 widget_scheme == 3 ? "WOOF"   :
+                 widget_scheme == 4 ? "DSDA"   : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 18, str,
+                 M_Item_Glow(0, widget_scheme ? GLOW_GREEN : GLOW_DARKRED));
+
     // Widgets location
     sprintf(str, widget_location ? "TOP" : "BOTTOM");
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, GLOW_GREEN));
+    M_WriteText (M_ItemRightAlign(str), 27, str,
+                 M_Item_Glow(1, GLOW_GREEN));
 
     // K/I/S stats
     sprintf(str, widget_kis == 1 ? "ALWAYS"  :
                  widget_kis == 2 ? "AUTOMAP" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 36, str,
+                 M_Item_Glow(2, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
 
     // Level time
     sprintf(str, widget_time == 1 ? "ALWAYS"  :
                  widget_time == 2 ? "AUTOMAP" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, widget_time ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(3, widget_time ? GLOW_GREEN : GLOW_DARKRED));
 
     // Total time
     sprintf(str, widget_totaltime == 1 ? "ALWAYS"  :
                  widget_totaltime == 2 ? "AUTOMAP" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, widget_totaltime ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 54, str,
+                 M_Item_Glow(4, widget_totaltime ? GLOW_GREEN : GLOW_DARKRED));
 
     // Level name
     sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 63, str,
+                 M_Item_Glow(5, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
 
     // Player coords
     sprintf(str, widget_coords == 1 ? "ALWAYS"  :
                  widget_coords == 2 ? "AUTOMAP" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(6, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
 
     // Rendering counters
     sprintf(str, widget_render ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, widget_render ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 81, str,
+                 M_Item_Glow(7, widget_render ? GLOW_GREEN : GLOW_DARKRED));
 
     // Target's health
     sprintf(str, widget_health == 1 ? "TOP" :
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, widget_health ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 90, str,
+                 M_Item_Glow(8, widget_health ? GLOW_GREEN : GLOW_DARKRED));
+}
+
+static void M_ID_Widget_Colors (int choice)
+{
+    widget_scheme = M_INT_Slider(widget_scheme, 0, 4, choice, false);
 }
 
 static void M_ID_Widget_Location (int choice)
@@ -4341,6 +4356,7 @@ static void M_ID_ApplyResetHook (void)
     // Widgets and automap
     //
 
+    widget_scheme = 1;
     widget_location = 0;
     widget_kis = 0;
     widget_time = 0;

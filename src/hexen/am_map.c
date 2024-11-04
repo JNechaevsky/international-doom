@@ -2020,7 +2020,9 @@ void AM_LevelNameDrawer (void)
         y = 144;
     }
 
-    MN_DrTextA(P_GetMapName(gamemap), x, y, NULL);
+    MN_DrTextA(P_GetMapName(gamemap), x, y,
+               // [JN] Woof and DSDA widget color scheme using yellow map name.
+               widget_scheme > 2 ? cr[CR_YELLOW] : NULL);
 }
 
 // -----------------------------------------------------------------------------
