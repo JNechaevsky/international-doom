@@ -1871,14 +1871,14 @@ void G_Ticker(void)
         {
             // 12-hour (HH:MM AM/PM)
             // [PN] Always show AM/PM independently of the system locale
-            snprintf(ID_Local_Time, sizeof(ID_Local_Time), "%02d:%02d %s",
+            snprintf(ID_Local_Time, sizeof(ID_Local_Time), "%d:%02d %s",
                     (tm->tm_hour % 12 == 0) ? 12 : tm->tm_hour % 12, tm->tm_min,
                     (tm->tm_hour >= 12) ? "PM" : "AM");
         }
         else
         {
             // 24-hour (HH:MM)
-            snprintf(ID_Local_Time, sizeof(ID_Local_Time), "%02d:%02d", tm->tm_hour, tm->tm_min);
+            snprintf(ID_Local_Time, sizeof(ID_Local_Time), "%d:%02d", tm->tm_hour, tm->tm_min);
         }
     }
 }
