@@ -705,7 +705,7 @@ void ID_RightWidgets (void)
 
 // -----------------------------------------------------------------------------
 // ID_HealthColor, ID_DrawTargetsHealth
-//  [JN] Indicates and colorizes current target's health.
+//  [JN/PN] Indicates and colorizes current target's health.
 // -----------------------------------------------------------------------------
 
 static byte *ID_HealthColor (const int val1, const int val2)
@@ -721,40 +721,32 @@ void ID_DrawTargetsHealth (void)
 {
     char  str[16];
     const player_t *player = &players[displayplayer];
+    byte *color;
 
     if (player->targetsheathTics <= 0 || !player->targetsheath)
     {
         return;  // No tics or target is dead, nothing to display.
     }
 
-    sprintf(str, "%d/%d", player->targetsheath, player->targetsmaxheath);
+    snprintf(str, sizeof(str), "%d/%d", player->targetsheath, player->targetsmaxheath);
+    color = ID_HealthColor(player->targetsheath, player->targetsmaxheath);
 
-    if (widget_health == 1)  // Top
+    switch (widget_health)
     {
-        M_WriteTextCentered(18, str, ID_HealthColor(player->targetsheath,
-                                                    player->targetsmaxheath));
-    }
-    else
-    if (widget_health == 2)  // Top + name
-    {
-        M_WriteTextCentered(9, player->targetsname, ID_HealthColor(player->targetsheath,
-                                                                   player->targetsmaxheath));
-        M_WriteTextCentered(18, str, ID_HealthColor(player->targetsheath,
-                                                    player->targetsmaxheath));
-    }
-    else
-    if (widget_health == 3)  // Bottom
-    {
-        M_WriteTextCentered(152, str, ID_HealthColor(player->targetsheath,
-                                                     player->targetsmaxheath));
-    }
-    else
-    if (widget_health == 4)  // Bottom + name
-    {
-        M_WriteTextCentered(144, player->targetsname, ID_HealthColor(player->targetsheath,
-                                                                     player->targetsmaxheath));
-        M_WriteTextCentered(152, str, ID_HealthColor(player->targetsheath,
-                                                     player->targetsmaxheath));
+        case 1:  // Top
+            M_WriteTextCentered(18, str, color);
+            break;
+        case 2:  // Top + name
+            M_WriteTextCentered(9, player->targetsname, color);
+            M_WriteTextCentered(18, str, color);
+            break;
+        case 3:  // Bottom
+            M_WriteTextCentered(152, str, color);
+            break;
+        case 4:  // Bottom + name
+            M_WriteTextCentered(144, player->targetsname, color);
+            M_WriteTextCentered(152, str, color);
+            break;
     }
 }
 

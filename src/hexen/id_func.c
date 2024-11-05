@@ -383,7 +383,7 @@ void ID_RightWidgets (void)
 
 // -----------------------------------------------------------------------------
 // ID_HealthColor, ID_DrawTargetsHealth
-//  [JN] Indicates and colorizes current target's health.
+//  [JN/PN] Indicates and colorizes current target's health.
 // -----------------------------------------------------------------------------
 
 static byte *ID_HealthColor (const int val1, const int val2)
@@ -399,40 +399,32 @@ void ID_DrawTargetsHealth (void)
 {
     char str[16];
     player_t *player = &players[displayplayer];
+    byte *color;
 
     if (player->targetsheathTics <= 0 || !player->targetsheath)
     {
         return;  // No tics or target is dead, nothing to display.
     }
 
-    sprintf(str, "%d/%d", player->targetsheath, player->targetsmaxheath);
+    snprintf(str, sizeof(str), "%d/%d", player->targetsheath, player->targetsmaxheath);
+    color = ID_HealthColor(player->targetsheath, player->targetsmaxheath);
 
-    if (widget_health == 1)  // Top
+    switch (widget_health)
     {
-        MN_DrTextACentered(str, 10, ID_HealthColor(player->targetsheath,
-                                                   player->targetsmaxheath));
-    }
-    else
-    if (widget_health == 2)  // Top + name
-    {
-        MN_DrTextACentered(player->targetsname, 10, ID_HealthColor(player->targetsheath,
-                                                                   player->targetsmaxheath));
-        MN_DrTextACentered(str, 20, ID_HealthColor(player->targetsheath,
-                                                   player->targetsmaxheath));
-    }
-    else
-    if (widget_health == 3)  // Bottom
-    {
-        MN_DrTextACentered(str, 145, ID_HealthColor(player->targetsheath,
-                                                    player->targetsmaxheath));
-    }
-    else
-    if (widget_health == 4)  // Bottom + name
-    {
-        MN_DrTextACentered(player->targetsname, 145, ID_HealthColor(player->targetsheath,
-                                                     player->targetsmaxheath));
-        MN_DrTextACentered(str, 135, ID_HealthColor(player->targetsheath,
-                                                    player->targetsmaxheath));
+        case 1:  // Top
+            MN_DrTextACentered(str, 10, color);
+            break;
+        case 2:  // Top + name
+            MN_DrTextACentered(player->targetsname, 10, color);
+            MN_DrTextACentered(str, 20, color);
+            break;
+        case 3:  // Bottom
+            MN_DrTextACentered(str, 145, color);
+            break;
+        case 4:  // Bottom + name
+            MN_DrTextACentered(player->targetsname, 145, color);
+            MN_DrTextACentered(str, 135, color);
+            break;
     }
 }
 

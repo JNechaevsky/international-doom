@@ -2838,7 +2838,7 @@ static MenuItem_t ID_Menu_Widgets[] = {
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    9, ID_Menu_Widgets,
+    10, ID_Menu_Widgets,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
