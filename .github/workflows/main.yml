@@ -1,12 +1,12 @@
-name: Build Win64 Static
+name: MSVC-Win64
 
 on:
   push:
     branches:
-      - static
+      - main
   pull_request:
     branches:
-      - static
+      - main
 
 jobs:
   build:
@@ -40,6 +40,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: inter-doom-dev-win64.zip
+          name: inter-doom-dev-win64
           path: build_vs_64/src/Release/*.exe
           retention-days: 90
