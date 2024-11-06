@@ -4,7 +4,10 @@
   "builtin-baseline": "7fd612ee1c57192d49028ed6a922e5e8bdb257f3",
   "dependencies": [
     "sdl2",
-    "sdl2-mixer",
+    {
+      "name": "sdl2-mixer",
+      "features": [ "libflac", "libmodplug", "mpg123", "opusfile" ]
+    },
     "sdl2-net",
     "libsamplerate",
     "fluidsynth"
