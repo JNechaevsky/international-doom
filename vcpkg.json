@@ -1,13 +1,21 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "international-doom",
+  "version": "1.0",
+  "builtin-baseline": "7fd612ee1c57192d49028ed6a922e5e8bdb257f3",
   "dependencies": [
     "sdl2",
     {
-        "name": "sdl2-mixer",
-        "features": [ "libflac", "libmodplug", "mpg123", "opusfile" ]
+      "name": "sdl2-mixer",
+      "features": [ "libflac", "libmodplug", "mpg123", "opusfile" ]
     },
     "sdl2-net",
     "libsamplerate",
     "fluidsynth"
+  ],
+  "overrides": [
+    {
+      "name": "triplet",
+      "version-string": "x64-windows-static-release"
+    }
   ]
 }

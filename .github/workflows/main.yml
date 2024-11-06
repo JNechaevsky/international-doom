@@ -11,42 +11,35 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
-      - name: Checkout code
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up vcpkg
+      - name: Install vcpkg
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
-          .\vcpkg\vcpkg integrate install
-          .\vcpkg\vcpkg install
 
-      - name: Install Visual Studio Build Tools
+      - name: Install Dependencies with vcpkg
         run: |
-          choco install visualstudio2019buildtools --ignore-checksums
-          choco install visualstudio2019-workload-vctools --ignore-checksums
-
-      - name: Set up MSVC
-        shell: powershell
-        run: |
-          $vsInstallPath = & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-          & "$vsInstallPath\Common7\Tools\VsDevCmd.bat" -host_arch=amd64 -arch=amd64
+          .\vcpkg\vcpkg.exe install --overlay-triplets=cmake/triplets --triplet=x64-windows-static-release
 
       - name: Configure CMake
-        shell: powershell
         run: |
-          $vcpkgRoot = "$pwd\vcpkg"
-          cmake -B build -S . "-DCMAKE_TOOLCHAIN_FILE=$vcpkgRoot\scripts\buildsystems\vcpkg.cmake"
+          cmake -B build_vs_64 -S . -DCMAKE_BUILD_TYPE=Release `
+                -DENABLE_LTO=ON `
+                -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
+                -DVCPKG_TARGET_TRIPLET="x64-windows-static-release" `
+                -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
+                -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+                -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
 
       - name: Build
-        run: |
-          cmake --build build --config Release
+        run: cmake --build build_vs_64 --config Release
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: inter-doom-dev-win64.zip
-          path: build/src/Release/*
+          name: inter-doom-dev-win64
+          path: build_vs_64/src/Release/*.exe
           retention-days: 90
