@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up vcpkg
         run: |
@@ -44,13 +44,8 @@ jobs:
         run: |
           cmake --build build --config Release
 
-      - name: Copy DLLs
-        run: |
-          mkdir build/src/Release/dlls
-          xcopy /Y /E /I %VCPKG_ROOT%\installed\x64-windows\bin\*.dll build/src/Release
-
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: inter-doom-dev-win64.zip
           path: build/src/Release/*
