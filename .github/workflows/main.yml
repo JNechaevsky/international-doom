@@ -22,17 +22,16 @@ jobs:
 
       - name: Install Dependencies with vcpkg
         run: |
-          .\vcpkg\vcpkg.exe install --overlay-triplets=cmake/triplets --triplet=x64-windows-static-release
+          .\vcpkg\vcpkg.exe install sdl2 sdl2-mixer sdl2-net libsamplerate fluidsynth --overlay-triplets=cmake/triplets --triplet=x64-windows-static-release
 
       - name: Configure CMake
         run: |
-          cmake -B build_vs_64 -S . \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DENABLE_LTO=ON \
-                -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" \
-                -DVCPKG_TARGET_TRIPLET="x64-windows-static-release" \
-                -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
-                -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
+          cmake -B build_vs_64 -S . -DCMAKE_BUILD_TYPE=Release `
+                -DENABLE_LTO=ON `
+                -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
+                -DVCPKG_TARGET_TRIPLET="x64-windows-static-release" `
+                -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
+                -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
                 -DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake
 
       - name: Build
