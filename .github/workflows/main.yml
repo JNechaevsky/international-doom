@@ -41,5 +41,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: inter-doom-dev-win64.zip
-          path: build/src/Release/*
+          path: build_vs_64/src/Release/*
           retention-days: 90
