@@ -22,7 +22,7 @@ jobs:
 
       - name: Install Dependencies with vcpkg
         run: |
-          .\vcpkg\vcpkg.exe install sdl2 sdl2-mixer sdl2-net libsamplerate fluidsynth --overlay-triplets=cmake/triplets --triplet=x64-windows-static-release
+          .\vcpkg\vcpkg.exe install --overlay-triplets=cmake/triplets --triplet=x64-windows-static-release
 
       - name: Configure CMake
         run: |
