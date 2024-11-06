@@ -44,9 +44,14 @@ jobs:
         run: |
           cmake --build build --config Release
 
+      - name: Copy DLLs
+        run: |
+          mkdir build/src/Release/dlls
+          xcopy /Y /E /I %VCPKG_ROOT%\installed\x64-windows\bin\*.dll build/src/Release
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: inter-doom-dev-win64.zip
-          path: build/src/Release/*.exe
+          path: build/src/Release/*
           retention-days: 90
