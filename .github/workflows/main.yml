@@ -36,3 +36,10 @@ jobs:
 
       - name: Build
         run: cmake --build build_vs_64 --config Release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: inter-doom-dev-win64.zip
+          path: build/src/Release/*
+          retention-days: 90
