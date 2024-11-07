@@ -32,9 +32,16 @@ jobs:
         run: |
           .\vcpkg\bootstrap-vcpkg.bat
 
+      - name: Remove vcpkg.json for classic mode
+        shell: bash
+        run: |
+          if [ -f "vcpkg.json" ]; then
+            rm "vcpkg.json"
+          fi
+
       - name: Install Dependencies with vcpkg
         run: |
-          .\vcpkg\vcpkg.exe install --overlay-triplets=cmake/triplets --triplet=x64-windows-static-release
+          .\vcpkg\vcpkg.exe install sdl2 sdl2-mixer[libflac,libmodplug,mpg123,opusfile] sdl2-net libsamplerate fluidsynth --triplet x64-windows-static-release --overlay-triplets=cmake/triplets
 
       - name: Configure CMake
         run: |

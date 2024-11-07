@@ -10,11 +10,5 @@
     "sdl2-net",
     "libsamplerate",
     "fluidsynth"
-  ],
-  "overrides": [
-    {
-      "name": "triplet",
-      "version-string": "x64-windows-static-release"
-    }
   ]
 }
