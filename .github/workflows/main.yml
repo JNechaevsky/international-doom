@@ -15,9 +15,21 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Install vcpkg
+      - name: Get latest VCPKG commit
+        shell: bash
         run: |
           git clone https://github.com/microsoft/vcpkg.git
+          cd vcpkg
+          export LATEST_COMMIT=$(git rev-parse HEAD)
+          echo "LATEST_COMMIT=$LATEST_COMMIT" >> $GITHUB_ENV
+
+      - name: Update builtin-baseline in vcpkg.json
+        shell: bash
+        run: |
+          jq --arg commit "$LATEST_COMMIT" '. + {"builtin-baseline": $commit}' vcpkg.json > temp.json && mv temp.json vcpkg.json
+
+      - name: Install vcpkg
+        run: |
           .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Install Dependencies with vcpkg
