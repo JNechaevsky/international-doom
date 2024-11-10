@@ -151,6 +151,7 @@ extern int autoload_wad;
 extern int autoload_deh;
 extern int autoload_hhe;
 extern int autoload_seh;
+extern int menu_esc_key;
 
 // Mouse look
 extern int mouse_look;

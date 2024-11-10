@@ -585,6 +585,8 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(compat_pistol_start),
     CONFIG_VARIABLE_INT(compat_blockmap_fix),
     CONFIG_VARIABLE_INT(compat_vertical_aiming),
+    
+    CONFIG_VARIABLE_INT(menu_esc_key),
 };
 
 static default_collection_t doom_defaults =

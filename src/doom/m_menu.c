@@ -750,6 +750,7 @@ static void M_Choose_ID_Misc (int choice);
 static void M_Draw_ID_Misc (void);
 static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_AutoloadDEH (int choice);
+static void M_ID_Misc_MenuEscKey (int choice);
 
 static void M_Choose_ID_Level (int choice);
 static void M_Draw_ID_Level_1 (void);
@@ -3795,11 +3796,13 @@ static menuitem_t ID_Menu_Misc[]=
 {
     { M_LFRT, "AUTOLOAD WAD FILES", M_ID_Misc_AutoloadWAD, 'a' },
     { M_LFRT, "AUTOLOAD DEH FILES", M_ID_Misc_AutoloadDEH, 'a' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "ESC KEY BEHAVIOUR",  M_ID_Misc_MenuEscKey,  'e' },
 };
 
 static menu_t ID_Def_Misc =
 {
-    2,
+    4,
     &ID_Def_Main,
     ID_Menu_Misc,
     M_Draw_ID_Misc,
@@ -3832,6 +3835,13 @@ static void M_Draw_ID_Misc (void)
     M_WriteText (M_ItemRightAlign(str), 27, str,
                  M_Item_Glow(1, autoload_deh == 1 ? GLOW_YELLOW :
                                 autoload_deh == 2 ? GLOW_GREEN : GLOW_DARKRED));
+
+    M_WriteTextCentered(36, "MENU SETTINGS", cr[CR_YELLOW]);
+
+    // ESC key behaviour
+    sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(3, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
 
     // [PN] Added explanations for autoload variables
     if (itemOn == 0 || itemOn == 1)
@@ -3869,6 +3879,11 @@ static void M_ID_Misc_AutoloadWAD (int choice)
 static void M_ID_Misc_AutoloadDEH (int choice)
 {
     autoload_deh = M_INT_Slider(autoload_deh, 0, 2, choice, false);
+}
+
+static void M_ID_Misc_MenuEscKey (int choice)
+{
+    menu_esc_key ^= 1;
 }
 
 // -----------------------------------------------------------------------------
@@ -6215,14 +6230,32 @@ boolean M_Responder (event_t* ev)
     }
     else if (key == key_menu_activate)
     {
+        // [JN] If ESC key behaviour is set to "go back":
+        if (menu_esc_key)
+        {
+            if (currentMenu == &MainDef || currentMenu == &SoundDef
+            ||  currentMenu == &LoadDef || currentMenu == &SaveDef)
+            {
+                goto id_close_menu;  // [JN] Close menu imideatelly.
+            }
+            else
+            {
+                goto id_prev_menu;   // [JN] Go to previous menu.
+            }
+        }
+        else
+        {
+        id_close_menu:
         // Deactivate menu
         currentMenu->lastOn = itemOn;
         M_ClearMenus();
         S_StartSound(NULL,sfx_swtchx);
+        }
         return true;
     }
     else if (key == key_menu_back)
     {
+        id_prev_menu:
         // Go back to previous menu
         currentMenu->lastOn = itemOn;
 
