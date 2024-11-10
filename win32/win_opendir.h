@@ -23,7 +23,6 @@ SOFTWARE.
 #ifndef WIN_OPENDIR_H
 #define WIN_OPENDIR_H
 
-#include <stdint.h>
 #include <sys/types.h>
 
 #ifndef NAME_MAX
@@ -100,31 +99,11 @@ struct dirent
     char d_name[NAME_MAX];
 };
 
-struct __dir
-{
-    struct dirent *entries;
-    intptr_t fd;
-    long int count;
-    long int index;
-};
-
 int closedir(DIR *dirp);
 
 DIR *opendir(const char *name);
 
-DIR *_wopendir(const wchar_t *name);
-
-DIR *fdopendir(intptr_t fd);
-
 struct dirent *readdir(DIR *dirp);
-
-void seekdir(DIR *dirp, long int offset);
-
-void rewinddir(DIR *dirp);
-
-long int telldir(DIR *dirp);
-
-intptr_t dirfd(DIR *dirp);
 
 #endif /* WIN_OPENDIR_H */
 
