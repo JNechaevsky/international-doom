@@ -750,6 +750,7 @@ static void M_Choose_ID_Misc (int choice);
 static void M_Draw_ID_Misc (void);
 static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_AutoloadDEH (int choice);
+static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
 
 static void M_Choose_ID_Level (int choice);
@@ -940,8 +941,11 @@ static void M_FillBackground (void)
     V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 }
 
-static byte *M_Small_Line_Glow (const int tics)
+static byte *M_Small_Line_Glow (int tics)
 {
+    if (!menu_highlight)
+    return NULL;
+
     return
         tics == 5 ? cr[CR_MENU_BRIGHT5] :
         tics == 4 ? cr[CR_MENU_BRIGHT4] :
@@ -950,8 +954,11 @@ static byte *M_Small_Line_Glow (const int tics)
         tics == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
 }
 
-static byte *M_Big_Line_Glow (const int tics)
+static byte *M_Big_Line_Glow (int tics)
 {
+    if (!menu_highlight)
+    return NULL;
+
     return
         tics == 5 ? cr[CR_MENU_BRIGHT3] :
         tics >= 3 ? cr[CR_MENU_BRIGHT2] :
@@ -981,8 +988,24 @@ static void M_Reset_Line_Glow (void)
 #define ITEMONTICS      currentMenu->menuitems[itemOn].tics
 #define ITEMSETONTICS   currentMenu->menuitems[itemSetOn].tics
 
-static byte *M_Item_Glow (const int itemSetOn, const int color)
+static byte *M_Item_Glow (int itemSetOn, int color)
 {
+    if (!menu_highlight)
+    {
+        return
+            color == GLOW_RED ? cr[CR_RED] :
+            color == GLOW_DARKRED ? cr[CR_DARKRED] :
+            color == GLOW_GREEN ? cr[CR_GREEN] :
+            color == GLOW_YELLOW ? cr[CR_YELLOW] :
+            color == GLOW_ORANGE ? cr[CR_ORANGE] :
+            color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY] :
+            color == GLOW_BLUE ? cr[CR_BLUE2] :
+            color == GLOW_OLIVE ? cr[CR_OLIVE] :
+            color == GLOW_DARKGREEN ? cr[CR_DARKGREEN] :
+            color == GLOW_GRAY ? cr[CR_GRAY] :
+                     NULL; // color == GLOW_UNCOLORED
+    }
+
     if (itemOn == itemSetOn)
     {
         return
@@ -1103,8 +1126,11 @@ static byte *M_Item_Glow (const int itemSetOn, const int color)
     return NULL;
 }
 
-static byte *M_Cursor_Glow (const int tics)
+static byte *M_Cursor_Glow (int tics)
 {
+    if (!menu_highlight)
+    return whichSkull ? NULL : cr[CR_MENU_DARK4];
+
     return
         tics ==  8 || tics ==  7 ? cr[CR_MENU_BRIGHT4] :
         tics ==  6 || tics ==  5 ? cr[CR_MENU_BRIGHT3] :
@@ -1114,6 +1140,33 @@ static byte *M_Cursor_Glow (const int tics)
         tics == -3 || tics == -4 ? cr[CR_MENU_DARK2]   :
         tics == -5 || tics == -6 ? cr[CR_MENU_DARK3]   :
         tics == -7 || tics == -8 ? cr[CR_MENU_DARK4]   : NULL;
+}
+
+enum
+{
+    saveload_border,
+    saveload_text,
+    saveload_cursor,
+};
+
+static byte *M_SaveLoad_Glow (int itemSetOn, int tics, int type)
+{
+    if (!menu_highlight)
+    return NULL;
+
+    switch (type)
+    {
+        case saveload_border:
+            return itemSetOn ? cr[CR_MENU_BRIGHT2] : NULL;
+
+        case saveload_text:
+            return itemSetOn ? cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(tics);
+
+        case saveload_cursor:
+            return cr[CR_MENU_BRIGHT5];
+    }
+
+    return NULL;
 }
 
 static const int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
@@ -3794,15 +3847,16 @@ static void M_DrawGameplayFooter (char *pagenum)
 
 static menuitem_t ID_Menu_Misc[]=
 {
-    { M_LFRT, "AUTOLOAD WAD FILES", M_ID_Misc_AutoloadWAD, 'a' },
-    { M_LFRT, "AUTOLOAD DEH FILES", M_ID_Misc_AutoloadDEH, 'a' },
+    { M_LFRT, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD, 'a' },
+    { M_LFRT, "AUTOLOAD DEH FILES",         M_ID_Misc_AutoloadDEH, 'a' },
     { M_SKIP, "", 0, '\0' },
-    { M_LFRT, "ESC KEY BEHAVIOUR",  M_ID_Misc_MenuEscKey,  'e' },
+    { M_LFRT, "ANIMATION AND HIGHLIGHTING", M_ID_Misc_Hightlight,  'a' },
+    { M_LFRT, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,  'e' },
 };
 
 static menu_t ID_Def_Misc =
 {
-    4,
+    5,
     &ID_Def_Main,
     ID_Menu_Misc,
     M_Draw_ID_Misc,
@@ -3838,10 +3892,15 @@ static void M_Draw_ID_Misc (void)
 
     M_WriteTextCentered(36, "MENU SETTINGS", cr[CR_YELLOW]);
 
+    // Animation and highlighting
+    sprintf(str, menu_highlight ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(3, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 54, str,
+                 M_Item_Glow(4, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
 
     // [PN] Added explanations for autoload variables
     if (itemOn == 0 || itemOn == 1)
@@ -3879,6 +3938,11 @@ static void M_ID_Misc_AutoloadWAD (int choice)
 static void M_ID_Misc_AutoloadDEH (int choice)
 {
     autoload_deh = M_INT_Slider(autoload_deh, 0, 2, choice, false);
+}
+
+static void M_ID_Misc_Hightlight (int choice)
+{
+    menu_highlight ^= 1;
 }
 
 static void M_ID_Misc_MenuEscKey (int choice)
@@ -4605,10 +4669,10 @@ static void M_DrawLoad(void)
     for (i = 0;i < load_end; i++)
     {
 	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
-	dp_translation = i == itemOn ? cr[CR_MENU_BRIGHT2] : NULL;
+	dp_translation = M_SaveLoad_Glow(itemOn == i, 0, saveload_border);
 	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], itemOn == i ?
-	            cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
+	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], 
+	            M_SaveLoad_Glow(itemOn == i, currentMenu->menuitems[i].tics, saveload_text));
     }
 
     M_DrawSaveLoadBottomLine();
@@ -4681,17 +4745,17 @@ static void M_DrawSave(void)
     for (i = 0;i < load_end; i++)
     {
 	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
-	dp_translation = i == itemOn ? cr[CR_MENU_BRIGHT2] : NULL;
+	dp_translation = M_SaveLoad_Glow(itemOn == i, 0, saveload_border);
 	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], itemOn == i ?
-	            cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(currentMenu->menuitems[i].tics));
+	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i],
+	            M_SaveLoad_Glow(itemOn == i, currentMenu->menuitems[i].tics, saveload_text));
     }
 	
     if (saveStringEnter)
     {
 	i = M_StringWidth(savegamestrings[saveSlot]);
 	// [JN] Highlight "_" cursor, line is always active while typing.
-	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", cr[CR_MENU_BRIGHT5]);
+	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", M_SaveLoad_Glow(0, 0, saveload_cursor));
     }
 
     M_DrawSaveLoadBottomLine();

@@ -630,6 +630,7 @@ static void M_DrawGameplayFooter (char *pagenum);
 
 static void M_Draw_ID_Misc (void);
 static void M_ID_Misc_AutoloadWAD (int choice);
+static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
 
 static void M_ID_SettingReset (int choice);
@@ -761,8 +762,11 @@ static void M_FillBackground (void)
     V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 }
 
-static byte *M_Small_Line_Glow (const int tics)
+static byte *M_Small_Line_Glow (int tics)
 {
+    if (!menu_highlight)
+    return cr[CR_MENU_DARK2];
+
     return
         tics == 5 ? cr[CR_MENU_BRIGHT2] :
         tics == 4 ? cr[CR_MENU_BRIGHT1] :
@@ -771,8 +775,11 @@ static byte *M_Small_Line_Glow (const int tics)
                     cr[CR_MENU_DARK2]   ;
 }
 
-static byte *M_Big_Line_Glow (const int tics)
+static byte *M_Big_Line_Glow (int tics)
 {
+    if (!menu_highlight)
+    return NULL;
+
     return
         tics == 5 ? cr[CR_MENU_BRIGHT3] :
         tics >= 3 ? cr[CR_MENU_BRIGHT2] :
@@ -802,8 +809,24 @@ static void M_Reset_Line_Glow (void)
 #define ITEMONTICS      CurrentMenu->items[CurrentItPos].tics
 #define ITEMSETONTICS   CurrentMenu->items[CurrentItPosOn].tics
 
-static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
+static byte *M_Item_Glow (int CurrentItPosOn, int color)
 {
+    if (!menu_highlight)
+    {
+        return
+            color == GLOW_RED ? cr[CR_RED] :
+            color == GLOW_DARKRED ? cr[CR_DARKRED] :
+            color == GLOW_GREEN ? cr[CR_GREEN_HX] :
+            color == GLOW_YELLOW ? cr[CR_YELLOW] :
+            color == GLOW_ORANGE ? cr[CR_ORANGE_HR] :
+            color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY] :
+            color == GLOW_DARKGRAY ? cr[CR_MENU_DARK4] :
+            color == GLOW_BLUE ? cr[CR_BLUE2] :
+            color == GLOW_OLIVE ? cr[CR_OLIVE] :
+            color == GLOW_DARKGREEN ? cr[CR_DARKGREEN] :
+                     NULL; // color == GLOW_UNCOLORED
+    }
+
     if (CurrentItPos == CurrentItPosOn)
     {
         return
@@ -924,8 +947,11 @@ static byte *M_Item_Glow (const int CurrentItPosOn, const int color)
     return NULL;
 }
 
-static byte *M_Cursor_Glow (const int tics)
+static byte *M_Cursor_Glow (int tics)
 {
+    if (!menu_highlight)
+    return MenuTime & 16 ? cr[CR_MENU_DARK1] : cr[CR_MENU_DARK4];
+
     return
         tics ==  8 || tics ==  7 ? cr[CR_MENU_BRIGHT4] :
         tics ==  6 || tics ==  5 ? cr[CR_MENU_BRIGHT3] :
@@ -936,6 +962,34 @@ static byte *M_Cursor_Glow (const int tics)
         tics == -5 || tics == -6 ? cr[CR_MENU_DARK3]   :
         tics == -7 || tics == -8 ? cr[CR_MENU_DARK4]   : NULL;
 }
+
+enum
+{
+    saveload_border,
+    saveload_text,
+    saveload_cursor,
+};
+
+static byte *M_SaveLoad_Glow (int itemSetOn, int tics, int type)
+{
+    if (!menu_highlight)
+    return NULL;
+
+    switch (type)
+    {
+        case saveload_border:
+            return itemSetOn ? cr[CR_MENU_BRIGHT2] : NULL;
+
+        case saveload_text:
+            return itemSetOn ? cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(tics);
+
+        case saveload_cursor:
+            return cr[CR_MENU_BRIGHT2];
+    }
+
+    return NULL;
+}
+
 
 static const int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
 {
@@ -3457,15 +3511,16 @@ static void M_DrawGameplayFooter (char *pagenum)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Misc[] = {
-    { ITT_LRFUNC, "AUTOLOAD WAD FILES", M_ID_Misc_AutoloadWAD, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                 NULL,                  0, MENU_NONE },
-    { ITT_LRFUNC, "ESC KEY BEHAVIOUR",  M_ID_Misc_MenuEscKey,  0, MENU_NONE },
+    { ITT_LRFUNC, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                         NULL,                  0, MENU_NONE },
+    { ITT_LRFUNC, "ANIMATION AND HIGHLIGHTING", M_ID_Misc_Hightlight,  0, MENU_NONE },
+    { ITT_LRFUNC, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,  0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Misc = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Misc,
-    3, ID_Menu_Misc,
+    4, ID_Menu_Misc,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -3486,10 +3541,15 @@ static void M_Draw_ID_Misc (void)
 
     MN_DrTextACentered("MENU SETTINGS", 30, cr[CR_YELLOW]);
 
+    // Animation and highlighting
+    sprintf(str, menu_highlight ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
 
     // [PN] Added explanations for autoload variables
     if (CurrentItPos == 0)
@@ -3521,6 +3581,11 @@ static void M_Draw_ID_Misc (void)
 static void M_ID_Misc_AutoloadWAD (int choice)
 {
     autoload_wad = M_INT_Slider(autoload_wad, 0, 2, choice, false);
+}
+
+static void M_ID_Misc_Hightlight (int choice)
+{
+    menu_highlight ^= 1;
 }
 
 static void M_ID_Misc_MenuEscKey (int choice)
@@ -4398,12 +4463,12 @@ static void DrawFileSlots(Menu_t * menu)
     for (i = 0; i < SAVES_PER_PAGE; i++)
     {
         // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
-        dp_translation = CurrentItPos == i ? cr[CR_MENU_BRIGHT2] : NULL;
+        dp_translation = M_SaveLoad_Glow(CurrentItPos == i, 0, saveload_border);
         V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName("M_FSLOT", PU_CACHE));
         if (SlotStatus[i])
         {
-            MN_DrTextA(SlotText[i], x + 5, y + 5, CurrentItPos == i ?
-                       cr[CR_MENU_BRIGHT2] : M_Small_Line_Glow(CurrentMenu->items[i].tics));
+            MN_DrTextA(SlotText[i], x + 5, y + 5,
+                       M_SaveLoad_Glow(CurrentItPos == i, CurrentMenu->items[i].tics, saveload_text));
         }
         y += ITEM_HEIGHT;
     }

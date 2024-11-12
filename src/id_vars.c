@@ -180,6 +180,7 @@ int autoload_wad = 1;
 int autoload_deh = 1;
 int autoload_hhe = 1;
 int autoload_seh = 1;
+int menu_highlight = 1;
 int menu_esc_key = 0;
 
 // -----------------------------------------------------------------------------
@@ -414,5 +415,6 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("autoload_seh",               &autoload_seh);
     }
+    M_BindIntVariable("menu_highlight",                 &menu_highlight);
     M_BindIntVariable("menu_esc_key",                   &menu_esc_key);
 }
