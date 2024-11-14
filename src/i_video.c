@@ -1686,7 +1686,7 @@ static void SetVideoMode(void)
         } pane_t;
 
         // [PN] Array of pane definitions
-        pane_t panes[] = {
+        static const pane_t panes[] = {
             { &redpane,  0xff, 0x0,  0x0  },  // red
             { &yelpane,  0xd7, 0xba, 0x45 },  // yellow
             { &grnpane,  0x0,  0xff, 0x0  },  // green
