@@ -1174,8 +1174,8 @@ void R_InitColormaps (void)
 			{
 				const byte k = colormap[i];
 				// [PN] Apply intensity and saturation corrections
-				byte pal[3];
-				byte channels[3];
+				static byte pal[3];
+				static byte channels[3];
 
 				CALC_INTENSITY(pal, playpal, k);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
@@ -1210,8 +1210,8 @@ void R_InitColormaps (void)
 				// but barely will be notable, since no light levels are used.
 
 				// [PN] Apply intensity and saturation corrections
-				byte pal[3];
-				byte channels[3];
+				static byte pal[3];
+				static byte channels[3];
 
 				CALC_INTENSITY(pal, playpal, colormap[32 * 256 + i]);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
@@ -1231,8 +1231,8 @@ void R_InitColormaps (void)
 			for (i = 0; i < 256; i++)
 			{
 				// [PN] Apply intensity and saturation corrections
-				byte pal[3];
-				byte channels[3];
+				static byte pal[3];
+				static byte channels[3];
 
 				CALC_INTENSITY(pal, playpal, colormap[c * 256 + i]);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
@@ -1256,8 +1256,8 @@ void R_InitColormaps (void)
 	for (i = 0, j = 0; i < 256; i++)
 	{
 		// [PN] Apply intensity and saturation corrections
-		byte pal[3];
-		byte channels[3];
+		static byte pal[3];
+		static byte channels[3];
 
 		CALC_INTENSITY(pal, playpal, i);
 		CALC_SATURATION(channels, pal, a_hi, a_lo);
