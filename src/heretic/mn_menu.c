@@ -1013,6 +1013,7 @@ static byte *M_Cursor_Glow (int tics)
 enum
 {
     saveload_border,
+    saveload_slider,
     saveload_text,
     saveload_cursor,
 };
@@ -1025,6 +1026,7 @@ static byte *M_SaveLoad_Glow (int itemSetOn, int tics, int type)
     switch (type)
     {
         case saveload_border:
+        case saveload_slider:
             return itemSetOn ? cr[CR_MENU_BRIGHT2] : NULL;
 
         case saveload_text:
@@ -4723,40 +4725,24 @@ void MN_Ticker(void)
     MenuTime++;
 
     // [JN] Don't go any farther with effects while active info screens.
-    
     if (InfoType)
     {
         return;
     }
 
-    // [JN] Menu glowing animation:
-
-    if (!cursor_direction && ++cursor_tics == 8)
+    // [JN] Cursor glowing animation:
+    cursor_tics += cursor_direction ? -1 : 1;
+    if (cursor_tics == 8 || cursor_tics == -8)
     {
-        // Brightening
-        cursor_direction = true;
-    }
-    else
-    if (cursor_direction && --cursor_tics == -8)
-    {
-        // Darkening
-        cursor_direction = false;
+        cursor_direction = !cursor_direction;
     }
 
     // [JN] Menu item fading effect:
-
+    // Keep menu item bright or decrease tics for fading effect.
     for (int i = 0 ; i < CurrentMenu->itemCount ; i++)
     {
-        if (CurrentItPos == i)
-        {
-            // Keep menu item bright
-            CurrentMenu->items[i].tics = 5;
-        }
-        else
-        {
-            // Decrease tics for glowing effect
-            CurrentMenu->items[i].tics--;
-        }
+        CurrentMenu->items[i].tics =
+            (CurrentItPos == i) ? 5 : CurrentMenu->items[i].tics - 1;
     }
 }
 
@@ -4766,7 +4752,7 @@ void MN_Ticker(void)
 //
 //---------------------------------------------------------------------------
 
-char *QuitEndMsg[] = {
+static const char *QuitEndMsg[] = {
     "ARE YOU SURE YOU WANT TO QUIT?",
     "ARE YOU SURE YOU WANT TO END THE GAME?",
     "DO YOU WANT TO QUICKSAVE THE GAME NAMED",
@@ -5487,7 +5473,7 @@ static int G_ReloadLevel (void)
 
 static int G_GotoNextLevel(void)
 {
-    byte heretic_next[6][9] = {
+    static byte heretic_next[6][9] = {
     {12, 13, 14, 15, 16, 19, 18, 21, 17},
     {22, 23, 24, 29, 26, 27, 28, 31, 25},
     {32, 33, 34, 39, 36, 37, 38, 41, 35},
@@ -6519,10 +6505,7 @@ static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean big
     y = menu->y + 2 + (item * (bigspacing ? ITEM_HEIGHT : ID_MENU_LINEHEIGHT_SMALL));
 
     // [JN] Highlight active slider and gem.
-    if (itemPos == CurrentItPos)
-    {
-        dp_translation = cr[CR_MENU_BRIGHT2];
-    }
+    dp_translation = M_SaveLoad_Glow(itemPos == CurrentItPos, 0, saveload_slider);
 
     V_DrawShadowedPatchOptional(x - 32, y, 1, W_CacheLumpName(DEH_String("M_SLDLT"), PU_CACHE));
     for (x2 = x, count = width; count--; x2 += 8)

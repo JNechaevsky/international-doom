@@ -1145,6 +1145,7 @@ static byte *M_Cursor_Glow (int tics)
 enum
 {
     saveload_border,
+    saveload_slider,
     saveload_text,
     saveload_cursor,
 };
@@ -1157,6 +1158,7 @@ static byte *M_SaveLoad_Glow (int itemSetOn, int tics, int type)
     switch (type)
     {
         case saveload_border:
+        case saveload_slider:
             return itemSetOn ? cr[CR_MENU_BRIGHT2] : NULL;
 
         case saveload_text:
@@ -4985,31 +4987,13 @@ static void M_DrawSound(void)
 
 static void M_SfxVol (int choice)
 {
-    if (choice == 0 && sfxVolume > 0)
-    {
-        sfxVolume--;
-    }
-    else
-    if (choice == 1 && sfxVolume < 15)
-    {
-        sfxVolume++;
-    }
-
+    sfxVolume = M_INT_Slider(sfxVolume, 0, 15, choice, true);
     S_SetSfxVolume(sfxVolume * 8);
 }
 
 static void M_MusicVol (int choice)
 {
-    if (choice == 0 && musicVolume > 0)
-    {
-        musicVolume--;
-    }
-    else
-    if (choice == 1 && musicVolume < 15)
-    {
-        musicVolume++;
-    }
-
+    musicVolume = M_INT_Slider(musicVolume, 0, 15, choice, true);
     S_SetMusicVolume(musicVolume * 8);
 }
 
@@ -5186,11 +5170,11 @@ static void M_QuitResponse(int key)
     else
     {
         // [PN] Define quit sounds arrays locally
-        const int quitsounds[8] = {
+        static const int quitsounds[8] = {
             sfx_pldeth, sfx_dmpain, sfx_popain, sfx_slop,
             sfx_telept, sfx_posit1, sfx_posit3, sfx_sgtatk
         };
-        const int quitsounds2[8] = {
+        static const int quitsounds2[8] = {
             sfx_vilact, sfx_getpow, sfx_boscub, sfx_slop,
             sfx_skeswg, sfx_kntdth, sfx_bspact, sfx_sgtatk
         };
@@ -5286,10 +5270,7 @@ M_DrawThermo
     int		i;
 
     // [JN] Highlight active slider and gem.
-    if (itemPos == itemOn)
-    {
-        dp_translation = cr[CR_MENU_BRIGHT2];
-    }
+    dp_translation = M_SaveLoad_Glow(itemPos == itemOn, 0, saveload_slider);
 
     xx = x;
     V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERML"), PU_CACHE));
@@ -5308,7 +5289,6 @@ M_DrawThermo
     }
 
     V_DrawPatch((x + 8) + thermDot * 8, y, W_CacheLumpName(DEH_String("M_THERMO"), PU_CACHE));
-
     dp_translation = NULL;
 }
 
@@ -5317,10 +5297,7 @@ static void M_DrawGammaThermo (int x, int y, int width, int dot, int itemPos)
     int xx = x;
 
     // [JN] Highlight active slider and gem.
-    if (itemPos == itemOn)
-    {
-        dp_translation = cr[CR_MENU_BRIGHT2];
-    }
+    dp_translation = M_SaveLoad_Glow(itemPos == itemOn, 0, saveload_slider);
 
     V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName("M_THERML", PU_CACHE));
     xx += 8;
@@ -5562,7 +5539,7 @@ static int G_ReloadLevel (void)
 
 static int G_GotoNextLevel (void)
 {
-    byte doom_next[6][9] = {
+    static byte doom_next[6][9] = {
     {12, 13, 19, 15, 16, 17, 18, 21, 14},
     {22, 23, 24, 25, 29, 27, 28, 31, 26},
     {32, 33, 34, 35, 36, 39, 38, 41, 37},
@@ -5571,7 +5548,7 @@ static int G_GotoNextLevel (void)
     {62, 63, 69, 65, 66, 67, 68, 11, 64},
     };
 
-    byte doom2_next[33] = {
+    static byte doom2_next[33] = {
      2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
     12, 13, 14, 15, 31, 17, 18, 19, 20, 21,
     22, 23, 24, 25, 26, 27, 28, 29, 30, 1,
@@ -5637,8 +5614,10 @@ static int G_GotoNextLevel (void)
         }
         else
         {
-            epsd = doom_next[gameepisode-1][gamemap-1] / 10;
-            map = doom_next[gameepisode-1][gamemap-1] % 10;
+            const int level = doom_next[gameepisode - 1][gamemap - 1];
+
+            epsd = level / 10;
+            map = level % 10;
         }
 
         G_DeferedInitNew(gameskill, epsd, map);
@@ -6573,38 +6552,23 @@ void M_Ticker (void)
 {
     if (--skullAnimCounter <= 0)
     {
-	whichSkull ^= 1;
-	skullAnimCounter = 8;
+        whichSkull ^= 1;
+        skullAnimCounter = 8;
     }
 
-    // [JN] Menu glowing animation:
-    
-    // Brightening
-    if (!cursor_direction && ++cursor_tics == 8)
+    // [JN] Cursor glowing animation:
+    cursor_tics += cursor_direction ? -1 : 1;
+    if (cursor_tics == 8 || cursor_tics == -8)
     {
-        cursor_direction = true;
-    }
-    // Darkening
-    else
-    if (cursor_direction && --cursor_tics == -8)
-    {
-        cursor_direction = false;
+        cursor_direction = !cursor_direction;
     }
 
     // [JN] Menu item fading effect:
-
+    // Keep menu item bright or decrease tics for fading effect.
     for (int i = 0 ; i < currentMenu->numitems ; i++)
     {
-        if (itemOn == i)
-        {
-            // Keep menu item bright
-            currentMenu->menuitems[i].tics = 5;
-        }
-        else
-        {
-            // Decrease tics for glowing effect
-            currentMenu->menuitems[i].tics--;
-        }
+        currentMenu->menuitems[i].tics =
+            (itemOn == i) ? 5 : currentMenu->menuitems[i].tics - 1;
     }
 }
 
