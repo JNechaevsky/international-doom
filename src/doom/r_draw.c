@@ -294,7 +294,7 @@ void R_DrawFuzzColumn (void)
     pixel_t* dest;
     boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     // [PN] Pointer to the fuzz drawing function
-    uint32_t (*fuzzdrawfunc)(uint32_t, int);
+    const uint32_t (*fuzzdrawfunc)(uint32_t, int);
 
     // Adjust borders.
     if (!dc_yl)
@@ -374,7 +374,7 @@ void R_DrawFuzzColumnLow (void)
     int x;
     boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     // [PN] Pointer to the fuzz drawing function
-    uint32_t (*fuzzdrawfunc)(uint32_t, int);
+    const uint32_t (*fuzzdrawfunc)(uint32_t, int);
 
     // Adjust borders.
     if (!dc_yl)
