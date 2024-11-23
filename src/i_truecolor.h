@@ -32,6 +32,7 @@ extern void I_InitTCTransMaps (void);
 
 const uint32_t I_BlendAdd (const uint32_t bg_i, const uint32_t fg_i);
 const uint32_t I_BlendDark (const uint32_t bg_i, const int d);
+const uint32_t I_BlendDarkGrayscale (const uint32_t bg_i, const int d);
 const uint32_t I_BlendOver (const uint32_t bg_i, const uint32_t fg_i, const int amount);
 
 const uint32_t I_BlendOverTranmap (const uint32_t bg, const uint32_t fg);

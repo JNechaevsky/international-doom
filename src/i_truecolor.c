@@ -87,6 +87,27 @@ const uint32_t I_BlendDark (const uint32_t bg_i, const int d)
     return ret.i;
 }
 
+const uint32_t I_BlendDarkGrayscale (const uint32_t bg_i, const int d)
+{
+    tcpixel_t bg, ret;
+    uint8_t r, g, b, gray;
+
+    bg.i = bg_i;
+
+    r = bg.r;
+    g = bg.g;
+    b = bg.b;
+    // [PN] Do not use Rec. 601 formula here: 
+    // gray = (((r * 299 + g * 587 + b * 114) / 1000) * d) >> 8;
+    // Weights are equalized to balance all color contributions equally.
+    gray = (((r + g + b) / 3) * d) >> 8;
+
+    ret.a = 0xFFU;
+    ret.r = ret.g = ret.b = gray;
+
+    return ret.i;
+}
+
 const uint32_t I_BlendOver (const uint32_t bg_i, const uint32_t fg_i, const int amount)
 {
     tcpixel_t bg, fg, ret;

@@ -293,6 +293,8 @@ void R_DrawFuzzColumn (void)
     int count;
     pixel_t* dest;
     boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
+    // [PN] Pointer to the fuzz drawing function
+    uint32_t (*fuzzdrawfunc)(uint32_t, int);
 
     // Adjust borders.
     if (!dc_yl)
@@ -306,6 +308,9 @@ void R_DrawFuzzColumn (void)
     // Zero length.
     if (count < 0)
         return;
+
+    // [PN] Determine which fuzz drawing function to use
+    fuzzdrawfunc = (vis_improved_fuzz == 3) ? I_BlendDarkGrayscale : I_BlendDark;
 
 #ifdef RANGECHECK
     if (dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
@@ -325,12 +330,12 @@ void R_DrawFuzzColumn (void)
 #ifndef CRISPY_TRUECOLOR
         *dest = colormaps[6 * 256 + dest[fuzz_offset]];
 #else
-        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
+        *dest = fuzzdrawfunc(dest[fuzz_offset], 0xD3);
 #endif
 
         // Update fuzzpos and clamp if necessary.
         fuzzpos = (fuzzpos + 1) % FUZZTABLE;
-        if (fuzzpos == 0 && vis_improved_fuzz)
+        if (fuzzpos == 0 && vis_improved_fuzz == 1)
         {
             fuzzpos = realleveltime > oldleveltime ? ID_Random() % 49 : 0;
         }
@@ -347,7 +352,7 @@ void R_DrawFuzzColumn (void)
 #ifndef CRISPY_TRUECOLOR
         *dest = colormaps[6 * 256 + dest[fuzz_offset]];
 #else
-        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
+        *dest = fuzzdrawfunc(dest[fuzz_offset], 0xD3);
 #endif
     }
 }
@@ -368,6 +373,8 @@ void R_DrawFuzzColumnLow (void)
     pixel_t *dest2;
     int x;
     boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
+    // [PN] Pointer to the fuzz drawing function
+    uint32_t (*fuzzdrawfunc)(uint32_t, int);
 
     // Adjust borders.
     if (!dc_yl)
@@ -384,6 +391,9 @@ void R_DrawFuzzColumnLow (void)
 
     // Low detail mode, need to multiply by 2.
     x = dc_x << 1;
+
+    // [PN] Determine which fuzz drawing function to use
+    fuzzdrawfunc = (vis_improved_fuzz == 3) ? I_BlendDarkGrayscale : I_BlendDark;
 
 #ifdef RANGECHECK
     if (x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
@@ -404,8 +414,8 @@ void R_DrawFuzzColumnLow (void)
         *dest = colormaps[6 * 256 + dest[fuzz_offset]];
         *dest2 = colormaps[6 * 256 + dest2[fuzz_offset]];
 #else
-        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
-        *dest2 = I_BlendDark(dest2[fuzz_offset], 0xD3);
+        *dest = fuzzdrawfunc(dest[fuzz_offset], 0xD3);
+        *dest2 = fuzzdrawfunc(dest2[fuzz_offset], 0xD3);
 #endif
 
         // Update fuzzpos and clamp if necessary.
@@ -429,8 +439,8 @@ void R_DrawFuzzColumnLow (void)
         *dest = colormaps[6 * 256 + dest[fuzz_offset]];
         *dest2 = colormaps[6 * 256 + dest2[fuzz_offset]];
 #else
-        *dest = I_BlendDark(dest[fuzz_offset], 0xD3);
-        *dest2 = I_BlendDark(dest2[fuzz_offset], 0xD3);
+        *dest = fuzzdrawfunc(dest[fuzz_offset], 0xD3);
+        *dest2 = fuzzdrawfunc(dest2[fuzz_offset], 0xD3);
 #endif
     }
 }

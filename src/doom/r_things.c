@@ -717,7 +717,7 @@ static void R_ProjectSprite (mobj_t* thing)
     
     // get light level
     // [JN] Do not zero-out colormap for translucent fuzz.
-    if (thing->flags & MF_SHADOW && vis_improved_fuzz < 2)
+    if (thing->flags & MF_SHADOW && vis_improved_fuzz != 2)
     {
 	// shadow draw
 	vis->colormap[0] = vis->colormap[1] = NULL;
@@ -1042,7 +1042,7 @@ static void R_DrawPSprite (pspdef_t* psp)
 	|| viewplayer->powers[pw_invisibility] & 8)
     {
 	// shadow draw
-	if (vis_improved_fuzz < 2)
+	if (vis_improved_fuzz != 2)
 	{
 	    vis->colormap[0] = vis->colormap[1] = NULL;
 	}
