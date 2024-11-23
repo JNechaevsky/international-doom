@@ -865,6 +865,20 @@ void R_InitColormaps(void)
 	// [crispy] Invulnerability (c == COLORMAPS), generated from COLORMAP lump
 	for (i = 0; i < 256; i++)
 	{
+		if (a11y_invul)
+		{
+		// [JN] A11Y - grayscale invulnerability effect,
+		// independendt from COLORMAP lump.
+		// [PN] Do not use Rec. 601 formula here; weights are
+		// equalized to balance all color contributions equally.
+		const byte gray =
+			(byte)((playpal[3 * i + 0] +
+					playpal[3 * i + 1] +
+					playpal[3 * i + 2]) / 3);
+		r = g = b = gammatable[vid_gamma][gray];
+		}
+		else
+		{
 		// [PN] Apply intensity and saturation corrections
 		static byte pal[3];
 		static byte channels[3];
@@ -875,6 +889,7 @@ void R_InitColormaps(void)
 		r = gammatable[vid_gamma][channels[0]] & ~3;
 		g = gammatable[vid_gamma][channels[1]] & ~3;
 		b = gammatable[vid_gamma][channels[2]] & ~3;
+		}
 
 		colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 	}

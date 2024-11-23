@@ -1187,9 +1187,45 @@ void R_InitColormaps (void)
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 			}
 		}
+	}
+	else
+	{
+		for (c = 0; c < NUMCOLORMAPS; c++)
+		{
+			for (i = 0; i < 256; i++)
+			{
+				// [PN] Apply intensity and saturation corrections
+				static byte pal[3];
+				static byte channels[3];
 
-		// [crispy] Invulnerability (c == COLORMAPS)
-		for (i = 0; i < 256; i++)
+				CALC_INTENSITY(pal, playpal, colormap[c * 256 + i]);
+				CALC_SATURATION(channels, pal, a_hi, a_lo);
+
+				r = gammatable[vid_gamma][channels[0]] & ~3;
+				g = gammatable[vid_gamma][channels[1]] & ~3;
+				b = gammatable[vid_gamma][channels[2]] & ~3;
+
+				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+			}
+		}
+	}
+
+	// [crispy] Invulnerability (c == COLORMAPS)
+	for (i = 0; i < 256; i++)
+	{
+		if (a11y_invul)
+		{
+			// [JN] A11Y - grayscale invulnerability effect,
+			// independendt from COLORMAP lump.
+			// [PN] Do not use Rec. 601 formula here; weights are
+			// equalized to balance all color contributions equally.
+			const byte gray =
+				(byte)((playpal[3 * i + 0] +
+						playpal[3 * i + 1] +
+						playpal[3 * i + 2]) / 3);
+			r = g = b = gammatable[vid_gamma][gray];
+		}
+		else
 		{
 			// [JN] Check if we have a modified COLORMAP lump to decide
 			// how invulnerability effect will be drawn.
@@ -1220,30 +1256,9 @@ void R_InitColormaps (void)
 				g = gammatable[vid_gamma][channels[1]] & ~3;
 				b = gammatable[vid_gamma][channels[2]] & ~3;
 			}
-
-			colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 		}
-	}
-	else
-	{
-		for (c = 0; c <= NUMCOLORMAPS; c++)
-		{
-			for (i = 0; i < 256; i++)
-			{
-				// [PN] Apply intensity and saturation corrections
-				static byte pal[3];
-				static byte channels[3];
 
-				CALC_INTENSITY(pal, playpal, colormap[c * 256 + i]);
-				CALC_SATURATION(channels, pal, a_hi, a_lo);
-
-				r = gammatable[vid_gamma][channels[0]] & ~3;
-				g = gammatable[vid_gamma][channels[1]] & ~3;
-				b = gammatable[vid_gamma][channels[2]] & ~3;
-
-				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
-			}
-		}
+		colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 	}
 
 	W_ReleaseLumpName("COLORMAP");

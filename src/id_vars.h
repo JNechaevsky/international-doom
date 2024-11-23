@@ -147,6 +147,7 @@ extern int compat_blockmap_fix;
 extern int compat_vertical_aiming;
 
 // Miscellaneous
+extern int a11y_invul;
 extern int autoload_wad;
 extern int autoload_deh;
 extern int autoload_hhe;

@@ -748,6 +748,7 @@ static void M_DrawGameplayFooter (char *pagenum);
 
 static void M_Choose_ID_Misc (int choice);
 static void M_Draw_ID_Misc (void);
+static void M_ID_Misc_A11yInvul (int choice);
 static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_AutoloadDEH (int choice);
 static void M_ID_Misc_Hightlight (int choice);
@@ -3849,6 +3850,8 @@ static void M_DrawGameplayFooter (char *pagenum)
 
 static menuitem_t ID_Menu_Misc[]=
 {
+    { M_LFRT, "INVULNERABILITY EFFECT",     M_ID_Misc_A11yInvul,   'i' },
+    { M_SKIP, "", 0, '\0' },
     { M_LFRT, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD, 'a' },
     { M_LFRT, "AUTOLOAD DEH FILES",         M_ID_Misc_AutoloadDEH, 'a' },
     { M_SKIP, "", 0, '\0' },
@@ -3858,7 +3861,7 @@ static menuitem_t ID_Menu_Misc[]=
 
 static menu_t ID_Def_Misc =
 {
-    5,
+    7,
     &ID_Def_Main,
     ID_Menu_Misc,
     M_Draw_ID_Misc,
@@ -3876,42 +3879,49 @@ static void M_Draw_ID_Misc (void)
 {
     char str[32];
 
-    M_WriteTextCentered(9, "AUTOLOAD", cr[CR_YELLOW]);
+    M_WriteTextCentered(9, "ACCESSIBILITY", cr[CR_YELLOW]);
+
+    // Invulnerability effect
+    sprintf(str, a11y_invul ? "GRAYSCALE" : "DEFAULT");
+    M_WriteText (M_ItemRightAlign(str), 18, str,
+                 M_Item_Glow(1, a11y_invul ? GLOW_GREEN : GLOW_DARKRED));
+
+    M_WriteTextCentered(27, "AUTOLOAD", cr[CR_YELLOW]);
 
     // Autoload WAD files
     sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
                  autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, autoload_wad == 1 ? GLOW_YELLOW :
+    M_WriteText (M_ItemRightAlign(str), 36, str,
+                 M_Item_Glow(3, autoload_wad == 1 ? GLOW_YELLOW :
                                 autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
     // Autoload DEH patches
     sprintf(str, autoload_deh == 1 ? "IWAD ONLY" :
                  autoload_deh == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, autoload_deh == 1 ? GLOW_YELLOW :
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(4, autoload_deh == 1 ? GLOW_YELLOW :
                                 autoload_deh == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(36, "MENU SETTINGS", cr[CR_YELLOW]);
+    M_WriteTextCentered(54, "MENU SETTINGS", cr[CR_YELLOW]);
 
     // Animation and highlighting
     sprintf(str, menu_highlight ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 63, str,
+                 M_Item_Glow(6, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(7, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
 
     // [PN] Added explanations for autoload variables
-    if (itemOn == 0 || itemOn == 1)
+    if (itemOn == 2 || itemOn == 3)
     {
         const char *off = "AUTOLOAD IS DISABLED";
         const char *first_line = "AUTOLOAD AND FOLDER CREATION";
         const char *second_line1 = "ONLY ALLOWED FOR IWAD FILES";
         const char *second_line2 = "ALLOWED FOR BOTH IWAD AND PWAD FILES";
-        const int   autoload_option = (itemOn == 0) ? autoload_wad : autoload_deh;
+        const int   autoload_option = (itemOn == 2) ? autoload_wad : autoload_deh;
 
         switch (autoload_option)
         {
@@ -3930,6 +3940,13 @@ static void M_Draw_ID_Misc (void)
                 break;            
         }
     }
+}
+
+static void M_ID_Misc_A11yInvul (int choice)
+{
+    a11y_invul ^= 1;
+    // [JN] Recalculate colormaps to apply the appropriate invulnerability effect.
+    R_InitColormaps();
 }
 
 static void M_ID_Misc_AutoloadWAD (int choice)
