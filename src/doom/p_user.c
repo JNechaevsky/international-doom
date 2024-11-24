@@ -106,6 +106,16 @@ void P_CalcHeight (player_t* player)
     angle = (FINEANGLES/20*realleveltime)&FINEMASK;
     bob = FixedMul ( player->bob/2, finesine[angle]);
 
+    // [PN] A11Y - Movement bobbing.
+    // Compute reduction factor dynamically based on the pattern.
+    if (a11y_move_bob > 0 && a11y_move_bob < 10)
+    {
+        bob -= bob * (1.0 - a11y_move_bob * 0.1);
+    }
+    else if (a11y_move_bob == 0)
+    {
+        bob = 0;
+    }
     
     // move viewheight
     if (player->playerstate == PST_LIVE)

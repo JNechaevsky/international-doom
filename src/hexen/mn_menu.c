@@ -629,6 +629,7 @@ static void M_ScrollGameplay (int choice);
 static void M_DrawGameplayFooter (char *pagenum);
 
 static void M_Draw_ID_Misc (void);
+static void M_ID_Misc_A11yMoveBob (int choice);
 static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
@@ -3513,6 +3514,8 @@ static void M_DrawGameplayFooter (char *pagenum)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Misc[] = {
+    { ITT_LRFUNC, "MOVEMENT BOBBING",           M_ID_Misc_A11yMoveBob, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                         NULL,                  0, MENU_NONE },
     { ITT_LRFUNC, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                         NULL,                  0, MENU_NONE },
     { ITT_LRFUNC, "ANIMATION AND HIGHLIGHTING", M_ID_Misc_Hightlight,  0, MENU_NONE },
@@ -3522,7 +3525,7 @@ static MenuItem_t ID_Menu_Misc[] = {
 static Menu_t ID_Def_Misc = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Misc,
-    4, ID_Menu_Misc,
+    6, ID_Menu_Misc,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -3532,29 +3535,46 @@ static void M_Draw_ID_Misc (void)
 {
     char str[32];
 
-    MN_DrTextACentered("AUTOLOAD", 10, cr[CR_YELLOW]);
+    MN_DrTextACentered("ACCESSIBILITY", 10, cr[CR_YELLOW]);
+
+    // Movement bobbing
+    sprintf(str, a11y_move_bob == 10 ? "DEFAULT" :
+                 a11y_move_bob ==  9 ? "90%%" :
+                 a11y_move_bob ==  8 ? "80%%" :
+                 a11y_move_bob ==  7 ? "70%%" :
+                 a11y_move_bob ==  6 ? "60%%" :
+                 a11y_move_bob ==  5 ? "50%%" :
+                 a11y_move_bob ==  4 ? "40%%" :
+                 a11y_move_bob ==  3 ? "30%%" :
+                 a11y_move_bob ==  2 ? "20%%" :
+                 a11y_move_bob ==  1 ? "10%%" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, a11y_move_bob == 10 ? GLOW_DARKRED :
+                              a11y_move_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
+
+    MN_DrTextACentered("AUTOLOAD", 30, cr[CR_YELLOW]);
 
     // Autoload WAD files
     sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
                  autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 20,
-               M_Item_Glow(0, autoload_wad == 1 ? GLOW_YELLOW :
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(1, autoload_wad == 1 ? GLOW_YELLOW :
                               autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("MENU SETTINGS", 30, cr[CR_YELLOW]);
+    MN_DrTextACentered("MENU SETTINGS", 50, cr[CR_YELLOW]);
 
     // Animation and highlighting
     sprintf(str, menu_highlight ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 40,
-               M_Item_Glow(2, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(3, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(4, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
 
     // [PN] Added explanations for autoload variables
-    if (CurrentItPos == 0)
+    if (CurrentItPos == 2)
     {
         const char *off = "AUTOLOAD IS DISABLED";
         const char *first_line = "AUTOLOAD AND FOLDER CREATION";
@@ -3578,6 +3598,11 @@ static void M_Draw_ID_Misc (void)
                 break;            
         }
     }
+}
+
+static void M_ID_Misc_A11yMoveBob (int choice)
+{
+    a11y_move_bob = M_INT_Slider(a11y_move_bob, 0, 10, choice, true);
 }
 
 static void M_ID_Misc_AutoloadWAD (int choice)
