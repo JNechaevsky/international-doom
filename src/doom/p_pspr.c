@@ -268,7 +268,6 @@ A_WeaponReady
   pspdef_t*	psp )
 {	
     statenum_t	newstate;
-    int		angle;
     
     if (!player) return; // [crispy] let pspr action pointers get called from mobj states
     // get out of attack state
@@ -312,10 +311,17 @@ A_WeaponReady
 	player->attackdown = false;
     
     // bob the weapon based on movement speed
-    angle = (128*realleveltime)&FINEMASK;
-    psp->sx = FRACUNIT + FixedMul (player->bob, finecosine[angle]);
-    angle &= FINEANGLES/2-1;
-    psp->sy = WEAPONTOP + FixedMul (player->bob, finesine[angle]);
+    {
+        const int angle = (128 * realleveltime) & FINEMASK;
+        // [PN] Precompute finecosine and finesine for efficiency
+        const int cos_value = finecosine[angle];
+        const int sin_value = finesine[angle & (FINEANGLES/2 - 1)];
+
+        psp->sx   = FRACUNIT  + FixedMul (player->bob, cos_value);
+        psp->r_sx = FRACUNIT  + FixedMul (player->r_bob, cos_value);  // [JN] A11Y - Weapon bobbing.
+        psp->sy   = WEAPONTOP + FixedMul (player->bob, sin_value);
+        psp->r_sy = WEAPONTOP + FixedMul (player->r_bob, sin_value);  // [JN] A11Y - Weapon bobbing.
+    }
 }
 
 
@@ -379,6 +385,9 @@ A_Lower
     if (!player) return; // [crispy] let pspr action pointers get called from mobj states
     psp->sy += LOWERSPEED;
 
+    // [JN] A11Y - Weapon bobbing.
+    psp->r_sy = psp->sy;
+
     // Is already down.
     if (psp->sy < WEAPONBOTTOM )
 	return;
@@ -420,6 +429,9 @@ A_Raise
 	
     if (!player) return; // [crispy] let pspr action pointers get called from mobj states
     psp->sy -= RAISESPEED;
+
+    // [JN] A11Y - Weapon bobbing.
+    psp->r_sy = psp->sy;
 
     if (psp->sy > WEAPONTOP )
 	return;
@@ -960,6 +972,10 @@ void P_MovePsprites (player_t* player)
     
     player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
     player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
+
+    // [JN] A11Y - Weapon bobbing.
+    player->psprites[ps_flash].r_sx = player->psprites[ps_weapon].r_sx;
+    player->psprites[ps_flash].r_sy = player->psprites[ps_weapon].r_sy;
 }
 
 //

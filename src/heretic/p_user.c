@@ -115,6 +115,22 @@ void P_CalcHeight(player_t * player)
     player->bob >>= 2;
     if (player->bob > MAXBOB)
         player->bob = MAXBOB;
+
+    // [PN] A11Y - Weapon bobbing.
+    // Compute reduction factor dynamically based on the pattern.
+    if (a11y_weapon_bob > 0 && a11y_weapon_bob < 20)
+    {
+        player->r_bob = (int)(player->bob * (a11y_weapon_bob * 0.05));
+    }
+    else if (a11y_weapon_bob == 0)
+    {
+        player->r_bob = 0;
+    }
+    else
+    {
+        player->r_bob = player->bob;
+    }
+
     if (player->mo->flags2 & MF2_FLY && !onground)
     {
         player->bob = FRACUNIT / 2;
@@ -138,9 +154,9 @@ void P_CalcHeight(player_t * player)
 
     // [PN] A11Y - Movement bobbing.
     // Compute reduction factor dynamically based on the pattern.
-    if (a11y_move_bob > 0 && a11y_move_bob < 10)
+    if (a11y_move_bob > 0 && a11y_move_bob < 20)
     {
-        bob -= bob * (1.0 - a11y_move_bob * 0.1);
+        bob = (int)(bob * (a11y_move_bob * 0.05));
     }
     else if (a11y_move_bob == 0)
     {

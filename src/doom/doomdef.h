@@ -664,6 +664,9 @@ typedef struct
     int      tics;
     fixed_t  sx;
     fixed_t  sy;
+    // [JN] A11Y - Weapon bobbing.
+    // Variable used only for rendering to avoid desyncs.
+    fixed_t  r_sx, r_sy;
 } pspdef_t;
 
 

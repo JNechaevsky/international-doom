@@ -627,6 +627,7 @@ static void M_DrawGameplayFooter (char *pagenum);
 static void M_Draw_ID_Misc (void);
 static void M_ID_Misc_A11yInvul (int choice);
 static void M_ID_Misc_A11yMoveBob (int choice);
+static void M_ID_Misc_A11yWeaponBob (int choice);
 static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_AutoloadHHE (int choice);
 static void M_ID_Misc_Hightlight (int choice);
@@ -3613,20 +3614,21 @@ static void M_DrawGameplayFooter (char *pagenum)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Misc[] = {
-    { ITT_LRFUNC, "INVULNERABILITY EFFECT",     M_ID_Misc_A11yInvul,   0, MENU_NONE },
-    { ITT_LRFUNC, "MOVEMENT BOBBING",           M_ID_Misc_A11yMoveBob, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                         NULL,                  0, MENU_NONE },
-    { ITT_LRFUNC, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD, 0, MENU_NONE },
-    { ITT_LRFUNC, "AUTOLOAD HHE FILES",         M_ID_Misc_AutoloadHHE, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                         NULL,                  0, MENU_NONE },
-    { ITT_LRFUNC, "ANIMATION AND HIGHLIGHTING", M_ID_Misc_Hightlight,  0, MENU_NONE },
-    { ITT_LRFUNC, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,  0, MENU_NONE },
+    { ITT_LRFUNC, "INVULNERABILITY EFFECT",     M_ID_Misc_A11yInvul,     0, MENU_NONE },
+    { ITT_LRFUNC, "MOVEMENT BOBBING",           M_ID_Misc_A11yMoveBob,   0, MENU_NONE },
+    { ITT_LRFUNC, "WEAPON BOBBING",             M_ID_Misc_A11yWeaponBob, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                         NULL,                    0, MENU_NONE },
+    { ITT_LRFUNC, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD,   0, MENU_NONE },
+    { ITT_LRFUNC, "AUTOLOAD HHE FILES",         M_ID_Misc_AutoloadHHE,   0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                         NULL,                    0, MENU_NONE },
+    { ITT_LRFUNC, "ANIMATION AND HIGHLIGHTING", M_ID_Misc_Hightlight,    0, MENU_NONE },
+    { ITT_LRFUNC, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,    0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Misc = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Misc,
-    8, ID_Menu_Misc,
+    9, ID_Menu_Misc,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -3635,6 +3637,10 @@ static Menu_t ID_Def_Misc = {
 static void M_Draw_ID_Misc (void)
 {
     char str[32];
+    const char *bobpercent[] = {
+        "OFF","5%","10%","15%","20%","25%","30%","35%","40%","45%","50%",
+        "55%","60%","65%","70%","75%","80%","85%","90%","95%","100%"
+    };
 
     MN_DrTextACentered("ACCESSIBILITY", 10, cr[CR_YELLOW]);
 
@@ -3644,56 +3650,53 @@ static void M_Draw_ID_Misc (void)
                M_Item_Glow(0, a11y_invul ? GLOW_GREEN : GLOW_DARKRED));
 
     // Movement bobbing
-    sprintf(str, a11y_move_bob == 10 ? "DEFAULT" :
-                 a11y_move_bob ==  9 ? "90%%" :
-                 a11y_move_bob ==  8 ? "80%%" :
-                 a11y_move_bob ==  7 ? "70%%" :
-                 a11y_move_bob ==  6 ? "60%%" :
-                 a11y_move_bob ==  5 ? "50%%" :
-                 a11y_move_bob ==  4 ? "40%%" :
-                 a11y_move_bob ==  3 ? "30%%" :
-                 a11y_move_bob ==  2 ? "20%%" :
-                 a11y_move_bob ==  1 ? "10%%" : "OFF");
+    sprintf(str, "%s", bobpercent[a11y_move_bob]);
     MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               M_Item_Glow(1, a11y_move_bob == 10 ? GLOW_DARKRED :
+               M_Item_Glow(1, a11y_move_bob == 20 ? GLOW_DARKRED :
                               a11y_move_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
 
-    MN_DrTextACentered("AUTOLOAD", 40, cr[CR_YELLOW]);
+    // Weapon bobbing
+    sprintf(str, "%s", bobpercent[a11y_weapon_bob]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, a11y_weapon_bob == 20 ? GLOW_DARKRED :
+                              a11y_weapon_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
+
+    MN_DrTextACentered("AUTOLOAD", 50, cr[CR_YELLOW]);
 
     // Autoload WAD files
     sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
                  autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, autoload_wad == 1 ? GLOW_YELLOW :
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, autoload_wad == 1 ? GLOW_YELLOW :
                               autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
     // Autoload DEH patches
     sprintf(str, autoload_hhe == 1 ? "IWAD ONLY" :
                  autoload_hhe == 2 ? "IWAD AND PWAD" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               M_Item_Glow(4, autoload_hhe == 1 ? GLOW_YELLOW :
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, autoload_hhe == 1 ? GLOW_YELLOW :
                               autoload_hhe == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("MENU SETTINGS", 70, cr[CR_YELLOW]);
+    MN_DrTextACentered("MENU SETTINGS", 80, cr[CR_YELLOW]);
 
     // Animation and highlighting
     sprintf(str, menu_highlight ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
 
     // [PN] Added explanations for autoload variables
-    if (CurrentItPos == 3 || CurrentItPos == 4)
+    if (CurrentItPos == 4 || CurrentItPos == 5)
     {
         const char *off = "AUTOLOAD IS DISABLED";
         const char *first_line = "AUTOLOAD AND FOLDER CREATION";
         const char *second_line1 = "ONLY ALLOWED FOR IWAD FILES";
         const char *second_line2 = "ALLOWED FOR BOTH IWAD AND PWAD FILES";
-        const int   autoload_option = (CurrentItPos == 3) ? autoload_wad : autoload_hhe;
+        const int   autoload_option = (CurrentItPos == 4) ? autoload_wad : autoload_hhe;
 
         switch (autoload_option)
         {
@@ -3723,7 +3726,12 @@ static void M_ID_Misc_A11yInvul (int choice)
 
 static void M_ID_Misc_A11yMoveBob (int choice)
 {
-    a11y_move_bob = M_INT_Slider(a11y_move_bob, 0, 10, choice, true);
+    a11y_move_bob = M_INT_Slider(a11y_move_bob, 0, 20, choice, true);
+}
+
+static void M_ID_Misc_A11yWeaponBob (int choice)
+{
+    a11y_weapon_bob = M_INT_Slider(a11y_weapon_bob, 0, 20, choice, true);
 }
 
 static void M_ID_Misc_AutoloadWAD (int choice)

@@ -913,7 +913,7 @@ static inline void R_ApplyWeaponBob (fixed_t *sx, boolean bobx, fixed_t *sy, boo
 
         if (bobx)
         {
-            *sx += FixedMul(viewplayer->bob, finecosine[angle]);
+            *sx += FixedMul(viewplayer->r_bob, finecosine[angle]);
         }
     }
 
@@ -923,7 +923,7 @@ static inline void R_ApplyWeaponBob (fixed_t *sx, boolean bobx, fixed_t *sy, boo
 
         if (boby)
         {
-            *sy += FixedMul(viewplayer->bob, finesine[angle & (FINEANGLES / 2 - 1)]);
+            *sy += FixedMul(viewplayer->r_bob, finesine[angle & (FINEANGLES / 2 - 1)]);
         }
     }
 }
@@ -946,7 +946,7 @@ static void R_DrawPSprite (pspdef_t* psp)
     vissprite_t*	vis;
     vissprite_t		avis;
 
-    fixed_t         psp_sx = psp->sx, psp_sy = psp->sy;    
+    fixed_t         psp_sx = psp->r_sx, psp_sy = psp->r_sy;    
     const int state = viewplayer->psprites[ps_weapon].state - states;       // [crispy]
     const weaponinfo_t *const winfo = &weaponinfo[viewplayer->readyweapon]; // [crispy]
 

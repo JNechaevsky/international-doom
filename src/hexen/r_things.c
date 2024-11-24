@@ -841,7 +841,7 @@ void R_DrawPSprite(pspdef_t * psp)
 //
 // calculate edges of the shape
 //
-    tx = psp->sx - 160 * FRACUNIT;
+    tx = psp->r_sx - 160 * FRACUNIT;
 
     // [crispy] fix sprite offsets for mirrored sprites
     tx -= flip ? 2 * tx - spriteoffset[lump] + spritewidth[lump] : spriteoffset[lump];
@@ -873,7 +873,7 @@ void R_DrawPSprite(pspdef_t * psp)
     vis->floorclip = 0;
     // [crispy] weapons drawn 1 pixel too high when player is idle
     vis->texturemid = (BASEYCENTER << FRACBITS) + FRACUNIT / (1 + vid_resolution)
-        - (psp->sy - spritetopoffset[lump]);
+        - (psp->r_sy - spritetopoffset[lump]);
     if (viewheight == SCREENHEIGHT)
     {
         vis->texturemid -= PSpriteSY[viewplayer->class]

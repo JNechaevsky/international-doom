@@ -236,10 +236,12 @@ void P_SetPsprite(player_t * player, int position, statenum_t stnum)
         if (state->misc1)
         {                       // Set coordinates.
             psp->sx = state->misc1 << FRACBITS;
+            psp->r_sx = psp->sx;  // [JN] A11Y - Weapon bobbing.
         }
         if (state->misc2)
         {
             psp->sy = state->misc2 << FRACBITS;
+            psp->r_sy = psp->sy;  // [JN] A11Y - Weapon bobbing.
         }
         if (state->action)
         {                       // Call action routine.
@@ -491,8 +493,6 @@ void P_DropWeapon(player_t * player)
 
 void A_WeaponReady(mobj_t *obj, player_t *player, pspdef_t *psp)
 {
-    int angle;
-
     // Change player from attack state
     if (player->mo->state >= &states[PStateAttack[player->class]]
         && player->mo->state <= &states[PStateAttackEnd[player->class]])
@@ -524,10 +524,15 @@ void A_WeaponReady(mobj_t *obj, player_t *player, pspdef_t *psp)
     if (!player->morphTics)
     {
         // Bob the weapon based on movement speed.
-        angle = (128 * (crl_freeze ? realleveltime : leveltime)) & FINEMASK;
-        psp->sx = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
-        angle &= FINEANGLES / 2 - 1;
-        psp->sy = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
+        const int angle = (128 * (crl_freeze ? realleveltime : leveltime)) & FINEMASK;
+        // [PN] Precompute finecosine and finesine for efficiency
+        const int cos_value = finecosine[angle];
+        const int sin_value = finesine[angle & (FINEANGLES/2 - 1)];
+
+        psp->sx   = FRACUNIT  + FixedMul (player->bob, cos_value);
+        psp->r_sx = FRACUNIT  + FixedMul (player->r_bob, cos_value);  // [JN] A11Y - Weapon bobbing.
+        psp->sy   = WEAPONTOP + FixedMul (player->bob, sin_value);
+        psp->r_sy = WEAPONTOP + FixedMul (player->r_bob, sin_value);  // [JN] A11Y - Weapon bobbing.
     }
 }
 
@@ -570,6 +575,10 @@ void A_Lower(mobj_t *mobj, player_t *player, pspdef_t *psp)
     {
         psp->sy += LOWERSPEED;
     }
+
+    // [JN] A11Y - Weapon bobbing.
+    psp->r_sy = psp->sy;
+
     if (psp->sy < WEAPONBOTTOM)
     {                           // Not lowered all the way yet
         return;
@@ -597,6 +606,10 @@ void A_Lower(mobj_t *mobj, player_t *player, pspdef_t *psp)
 void A_Raise(mobj_t *mobj, player_t *player, pspdef_t *psp)
 {
     psp->sy -= RAISESPEED;
+
+    // [JN] A11Y - Weapon bobbing.
+    psp->r_sy = psp->sy;
+
     if (psp->sy > WEAPONTOP)
     {                           // Not raised all the way yet
         return;
@@ -2496,4 +2509,8 @@ void P_MovePsprites(player_t * player)
     }
     player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
     player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
+
+    // [JN] A11Y - Weapon bobbing.
+    player->psprites[ps_flash].r_sx = player->psprites[ps_weapon].r_sx;
+    player->psprites[ps_flash].r_sy = player->psprites[ps_weapon].r_sy;
 }

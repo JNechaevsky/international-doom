@@ -149,6 +149,7 @@ extern int compat_vertical_aiming;
 // Miscellaneous
 extern int a11y_invul;
 extern int a11y_move_bob;
+extern int a11y_weapon_bob;
 extern int autoload_wad;
 extern int autoload_deh;
 extern int autoload_hhe;

@@ -328,6 +328,9 @@ typedef struct pspdef_s
     state_t *state;             // a NULL state means not active
     int tics;
     fixed_t sx, sy;
+    // [JN] A11Y - Weapon bobbing.
+    // Variable used only for rendering to avoid desyncs.
+    fixed_t r_sx, r_sy;
 } pspdef_t;
 
 typedef enum
@@ -459,6 +462,9 @@ typedef struct player_s
     fixed_t viewheight;         // base height above floor for viewz
     fixed_t deltaviewheight;    // squat speed
     fixed_t bob;                // bounded/scaled total momentum
+    // [JN] A11Y - Weapon bobbing.
+    // Variable used only for rendering to avoid desyncs.
+    fixed_t r_bob;
 
     int flyheight;
     int lookdir, oldlookdir;

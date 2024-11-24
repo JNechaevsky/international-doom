@@ -92,6 +92,9 @@ typedef struct player_s
     fixed_t         	deltaviewheight;
     // bounded/scaled total momentum.
     fixed_t         	bob;	
+    // [JN] A11Y - Weapon bobbing.
+    // Variable used only for rendering to avoid desyncs.
+    fixed_t         	r_bob;
 
     // This is only used between levels,
     // mo->health is used during levels.
