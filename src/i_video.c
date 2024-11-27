@@ -1143,36 +1143,61 @@ void I_SetPalette (int palette)
 	    }
 	    else
 	    {
-	    pane_alpha = 0x33; // 51 (20%)
+	    // [JN] A11Y - Palette flash effects (for indexes 15 - 20):
+	    // On (51 (20%)), Halved, Quartered, Off (keep barely visible)
+	    static const int grn_alpha_14[] = { 51, 26, 12, 10 };
+
+	    pane_alpha = grn_alpha_14[a11y_pal_flash]; // 51 (20%)
 	    }
 	    break;
 	case 15:
+	    // On (76 (30%)), Halved, Quartered, Off
+	    static const int grn_alpha_15[] = { 76, 38, 19, 11 };
+
 	    curpane = grnspane;
-	    pane_alpha = 0x4c; // 76 (30%)
+	    pane_alpha = grn_alpha_15[a11y_pal_flash];
 	    break;
 	case 16:
+	    // On (102 (40%)), Halved, Quartered, Off
+	    static const int grn_alpha_16[] = { 102, 51, 26, 12 };
+
 	    curpane = grnspane;
-	    pane_alpha = 0x66; // 102 (40%)
+	    pane_alpha = grn_alpha_16[a11y_pal_flash];
 	    break;
 	case 17:
+	    // On (127 (50%)), Halved, Quartered, Off
+	    static const int grn_alpha_17[] = { 127, 64, 32, 13 };
+
 	    curpane = grnspane;
-	    pane_alpha = 0x7f; // 127 (50%)
+	    pane_alpha = grn_alpha_17[a11y_pal_flash];
 	    break;
 	case 18:
+	    // On (153 (60%)), Halved, Quartered, Off
+	    static const int grn_alpha_18[] = { 153, 77, 38, 14 };
+
 	    curpane = grnspane;
-	    pane_alpha = 0x99; // 153 (60%)
+	    pane_alpha = grn_alpha_18[a11y_pal_flash];
 	    break;
 	case 19:
+	    // On (178 (70%)), Halved, Quartered, Off
+	    static const int grn_alpha_19[] = { 178, 89, 45, 15 };
+
 	    curpane = grnspane;
-	    pane_alpha = 0xb2; // 178 (70%)
+	    pane_alpha = grn_alpha_19[a11y_pal_flash];
 	    break;
 	case 20:
+	    // On (204 (80%)), Halved, Quartered, Off
+	    static const int grn_alpha_20[] = { 204, 102, 51, 16 };
+
 	    curpane = grnspane;
-	    pane_alpha = 0xcc; // 204 (80%)
+	    pane_alpha = grn_alpha_20[a11y_pal_flash];
 	    break;
 	case 21:  // STARTICEPAL
+	    // On (128 (50%)), Halved, Quartered, Off
+	    static const int grn_alpha_21[] = { 128, 64, 32, 16 };
+
 	    curpane = bluepane;
-	    pane_alpha = 0x80; // 128 (50%)
+	    pane_alpha = grn_alpha_21[a11y_pal_flash];
 	    break;
 	case 22:  // STARTHOLYPAL
 	    curpane = graypane;
@@ -1182,16 +1207,25 @@ void I_SetPalette (int palette)
 	    }
 	    else
 	    {
-	    pane_alpha = 0x7f; // 127 (50%)
+	    // On (127 (50%)), Halved, Quartered, Off
+	    static const int gray_alpha_22[] = { 127, 64, 32, 0 };
+
+	    pane_alpha = gray_alpha_22[a11y_pal_flash];
 	    }
 	    break;
 	case 23:
+	    // On (106), Halved, Quartered, Off
+	    static const int gray_alpha_23[] = { 106, 53, 27, 0 };
+
 	    curpane = graypane;
-	    pane_alpha = 0x6a; // 106
+	    pane_alpha = gray_alpha_23[a11y_pal_flash];
 	    break;
 	case 24:
+	    // On (52), Halved, Quartered, Off
+	    static const int gray_alpha_24[] = { 52, 26, 13, 0 };
+
 	    curpane = graypane;
-	    pane_alpha = 0x34; // 52
+	    pane_alpha = gray_alpha_24[a11y_pal_flash];
 	    break;
 	case 25:  // STARTSCOURGEPAL
 	    curpane = orngpane;
@@ -1201,16 +1235,25 @@ void I_SetPalette (int palette)
 	    }
 	    else
 	    {
-	    pane_alpha = 0x7f; // 127 (50%)
+	    // On (127), Halved, Quartered, Off
+	    static const int orng_alpha_25[] = { 127, 64, 32, 0 };
+
+	    pane_alpha = orng_alpha_25[a11y_pal_flash];
 	    }
 	    break;
 	case 26:
+	    // On (96), Halved, Quartered, Off
+	    static const int orng_alpha_26[] = { 96, 48, 24, 0 };
+
 	    curpane = orngpane;
-	    pane_alpha = 0x60; // 96
+	    pane_alpha = orng_alpha_26[a11y_pal_flash];
 	    break;
 	case 27:
+	    // On (72), Halved, Quartered, Off
+	    static const int orng_alpha_27[] = { 72, 36, 18, 0 };
+
 	    curpane = orngpane;
-	    pane_alpha = 0x48; // 72
+	    pane_alpha = orng_alpha_27[a11y_pal_flash];
 	    break;
 	default:
 	    I_Error("Unknown palette: %d!\n", palette);

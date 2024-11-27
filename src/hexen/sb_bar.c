@@ -1247,6 +1247,8 @@ void SB_PaletteFlash(boolean forceChange)
         CPlayer = &players[displayplayer];
         if (CPlayer->poisoncount)
         {
+            // [JN] A11Y - Palette flash effects.
+            // Note: this is handled individually per palette in I_SetPalette.
             palette = 0;
             palette = (CPlayer->poisoncount + 7) >> 3;
             if (palette >= NUMPOISONPALS)
@@ -1258,22 +1260,48 @@ void SB_PaletteFlash(boolean forceChange)
         else if (CPlayer->damagecount)
         {
             palette = (CPlayer->damagecount + 7) >> 3;
-            if (palette >= NUMREDPALS)
+
+            // [JN] A11Y - Palette flash effects.
+            // For A11Y, fix missing first pain palette index for smoother effect.
+            // [PN] Simplified pain palette logic and reduced redundancy.
+            switch (a11y_pal_flash)
             {
-                palette = NUMREDPALS - 1;
+                case 1:  // Halved
+                    palette = MIN((palette > 4 ? 4 : palette), NUMREDPALS - 1) + STARTREDPALS - 1;
+                    break;
+                case 2:  // Quartered
+                    palette = MIN((palette > 2 ? 2 : palette), NUMREDPALS - 1) + STARTREDPALS - 1;
+                    break;
+                case 3:  // Off
+                    palette = 0;
+                    break;
+                default: // On
+                    palette = MIN(palette, NUMREDPALS - 1) + STARTREDPALS;
+                    break;
             }
-            palette += STARTREDPALS;
         }
         else if (CPlayer->bonuscount)
         {
             palette = (CPlayer->bonuscount + 7) >> 3;
-            // [JN] Fix missing first bonus palette index
-            // by sudstracting -1 from STARTBONUSPALS, not NUMBONUSPALS.
-            if (palette >= NUMBONUSPALS)
+
+            // [JN] A11Y - Palette flash effects.
+            // Fix missing first bonus palette index
+            // by subtracting -1 from STARTBONUSPALS, not NUMBONUSPALS.
+            // [PN] Simplified bonus palette logic and reduced redundancy.
+            palette = MIN(palette, NUMBONUSPALS) + STARTBONUSPALS - 1;
+
+            switch (a11y_pal_flash)
             {
-                palette = NUMBONUSPALS;
+                case 1:  // Halved
+                    palette = MIN(palette, 10);
+                    break;
+                case 2:  // Quartered
+                    palette = MIN(palette, 9);
+                    break;
+                case 3:  // Off
+                    palette = 0;
+                    break;
             }
-            palette += STARTBONUSPALS - 1;
         }
         else if (CPlayer->mo->flags2 & MF2_ICEDAMAGE)
         {                       // Frozen player
@@ -1320,28 +1348,49 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         CPlayer = &players[displayplayer];
         if (CPlayer->poisoncount)
         {
+            // [JN] A11Y - Palette flash effects:
+            static const int max_grn[] = { 204, 102, 51, 16 }; // On, Halved, Quartered, Off
+
             palette = 14;
-            grn_pane_alpha = MIN(CPlayer->poisoncount * POISONADD, 204); // 204 pane alpha max
+            grn_pane_alpha = MIN(CPlayer->poisoncount * POISONADD, max_grn[a11y_pal_flash]);
         }
         else if (CPlayer->damagecount)
         {
+            // [JN] A11Y - Palette flash effects:
+            static const int max_red[] = { 226, 113, 56, 0 }; // On, Halved, Quartered, Off
+
             palette = 1;
-            red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, 226);   // 226 pane alpha max
+            red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, max_red[a11y_pal_flash]);
         }
         else if (CPlayer->bonuscount)
         {
+            // [JN] A11Y - Palette flash effects:
+            static const int max_yel[] = { 127, 64, 32, 0 }; // On, Halved, Quartered, Off
+
             palette = 9;
-            yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, 127);   // 127 pane alpha max
+            yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, max_yel[a11y_pal_flash]);
         }
         else if (CPlayer->graycount)
         {
+            // [PN/JN] A11Y - Palette flash effects.
+            // Adjust holy pal alpha based on accessibility setting.
+            const int max_gray = (a11y_pal_flash == 3) ? 0 : 
+                                  CPlayer->graycount >> ((a11y_pal_flash == 1) ? 1 :
+                                                         (a11y_pal_flash == 2) ? 2 : 0);
+
             palette = 22;  // STARTHOLYPAL
-            gray_pane_alpha = CPlayer->graycount;  // 127 pane alpha max set in A_CHolyAttack
+            gray_pane_alpha = max_gray;  // 127 pane alpha max set in A_CHolyAttack
         }
         else if (CPlayer->orngcount)
         {
+            // [PN/JN] A11Y - Palette flash effects.
+            // Adjust holy pal alpha based on accessibility setting.
+            const int max_orng = (a11y_pal_flash == 3) ? 0 : 
+                                  CPlayer->orngcount >> ((a11y_pal_flash == 1) ? 1 :
+                                                         (a11y_pal_flash == 2) ? 2 : 0);
+
             palette = 25;  // STARTSCOURGEPAL
-            orng_pane_alpha = CPlayer->orngcount;  // 127 pane alpha max set in A_MStaffAttack
+            orng_pane_alpha = max_orng;  // 127 pane alpha max set in A_MStaffAttack
         }
         else if (CPlayer->mo->flags2 & MF2_ICEDAMAGE)
         {                       // Frozen player

@@ -629,6 +629,7 @@ static void M_ScrollGameplay (int choice);
 static void M_DrawGameplayFooter (char *pagenum);
 
 static void M_Draw_ID_Misc (void);
+static void M_ID_Misc_A11yPalFlash (int choice);
 static void M_ID_Misc_A11yMoveBob (int choice);
 static void M_ID_Misc_A11yWeaponBob (int choice);
 static void M_ID_Misc_AutoloadWAD (int choice);
@@ -3515,6 +3516,7 @@ static void M_DrawGameplayFooter (char *pagenum)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Misc[] = {
+    { ITT_LRFUNC, "PALETTE FLASH EFFECTS",      M_ID_Misc_A11yPalFlash,  0, MENU_NONE },
     { ITT_LRFUNC, "MOVEMENT BOBBING",           M_ID_Misc_A11yMoveBob,   0, MENU_NONE },
     { ITT_LRFUNC, "WEAPON BOBBING",             M_ID_Misc_A11yWeaponBob, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                         NULL,                    0, MENU_NONE },
@@ -3527,7 +3529,7 @@ static MenuItem_t ID_Menu_Misc[] = {
 static Menu_t ID_Def_Misc = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Misc,
-    7, ID_Menu_Misc,
+    8, ID_Menu_Misc,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -3543,41 +3545,50 @@ static void M_Draw_ID_Misc (void)
 
     MN_DrTextACentered("ACCESSIBILITY", 10, cr[CR_YELLOW]);
 
+    // Palette flash effects
+    sprintf(str, a11y_pal_flash == 1 ? "HALVED" :
+                 a11y_pal_flash == 2 ? "QUARTERED" :
+                 a11y_pal_flash == 3 ? "OFF" : "DEFAULT");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, a11y_pal_flash == 1 ? GLOW_YELLOW :
+                              a11y_pal_flash == 2 ? GLOW_ORANGE : 
+                              a11y_pal_flash == 3 ? GLOW_RED : GLOW_DARKRED));
+
     // Movement bobbing
     sprintf(str, "%s", bobpercent[a11y_move_bob]);
-    MN_DrTextA(str, M_ItemRightAlign(str), 20,
-               M_Item_Glow(0, a11y_move_bob == 20 ? GLOW_DARKRED :
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, a11y_move_bob == 20 ? GLOW_DARKRED :
                               a11y_move_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
 
     // Weapon bobbing
     sprintf(str, "%s", bobpercent[a11y_weapon_bob]);
-    MN_DrTextA(str, M_ItemRightAlign(str), 30,
-               M_Item_Glow(1, a11y_weapon_bob == 20 ? GLOW_DARKRED :
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, a11y_weapon_bob == 20 ? GLOW_DARKRED :
                               a11y_weapon_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
 
-    MN_DrTextACentered("AUTOLOAD", 40, cr[CR_YELLOW]);
+    MN_DrTextACentered("AUTOLOAD", 50, cr[CR_YELLOW]);
 
     // Autoload WAD files
     sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
                  autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, autoload_wad == 1 ? GLOW_YELLOW :
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, autoload_wad == 1 ? GLOW_YELLOW :
                               autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("MENU SETTINGS", 60, cr[CR_YELLOW]);
+    MN_DrTextACentered("MENU SETTINGS", 70, cr[CR_YELLOW]);
 
     // Animation and highlighting
     sprintf(str, menu_highlight ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 70,
-               M_Item_Glow(5, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
 
     // [PN] Added explanations for autoload variables
-    if (CurrentItPos == 3)
+    if (CurrentItPos == 4)
     {
         const char *off = "AUTOLOAD IS DISABLED";
         const char *first_line = "AUTOLOAD AND FOLDER CREATION";
@@ -3601,6 +3612,12 @@ static void M_Draw_ID_Misc (void)
                 break;            
         }
     }
+}
+
+static void M_ID_Misc_A11yPalFlash (int choice)
+{
+    a11y_pal_flash = M_INT_Slider(a11y_pal_flash, 0, 3, choice, false);
+    I_SetPalette (SB_palette);
 }
 
 static void M_ID_Misc_A11yMoveBob (int choice)

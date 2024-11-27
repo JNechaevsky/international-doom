@@ -423,10 +423,7 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("a11y_invul",                 &a11y_invul);
     }
-    if (mission == doom)
-    {
-        M_BindIntVariable("a11y_pal_flash",             &a11y_pal_flash);
-    }
+    M_BindIntVariable("a11y_pal_flash",                 &a11y_pal_flash);
     M_BindIntVariable("a11y_move_bob",                  &a11y_move_bob);
     M_BindIntVariable("a11y_weapon_bob",                &a11y_weapon_bob);
     M_BindIntVariable("menu_highlight",                 &menu_highlight);
