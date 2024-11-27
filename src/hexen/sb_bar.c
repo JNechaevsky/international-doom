@@ -1373,7 +1373,7 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         else if (CPlayer->graycount)
         {
             // [PN/JN] A11Y - Palette flash effects.
-            // Adjust holy pal alpha based on accessibility setting.
+            // Adjust gray palette alpha based on accessibility setting.
             const int max_gray = (a11y_pal_flash == 3) ? 0 : 
                                   CPlayer->graycount >> ((a11y_pal_flash == 1) ? 1 :
                                                          (a11y_pal_flash == 2) ? 2 : 0);
@@ -1384,7 +1384,7 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         else if (CPlayer->orngcount)
         {
             // [PN/JN] A11Y - Palette flash effects.
-            // Adjust holy pal alpha based on accessibility setting.
+            // Adjust orange palette alpha based on accessibility setting.
             const int max_orng = (a11y_pal_flash == 3) ? 0 : 
                                   CPlayer->orngcount >> ((a11y_pal_flash == 1) ? 1 :
                                                          (a11y_pal_flash == 2) ? 2 : 0);
