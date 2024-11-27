@@ -1153,7 +1153,7 @@ void I_SetPalette (int palette)
 	    break;
 	// Hexen exclusive color panes and palette indexes
 	// https://doomwiki.org/wiki/PLAYPAL#Hexen
-	case 14: // STARTPOISONPALS + 1
+	case 14:  // STARTPOISONPALS + 1 (13 is shared with other games)
 	case 15:
 	case 16:
 	case 17:
@@ -1170,11 +1170,11 @@ void I_SetPalette (int palette)
 	    pane_alpha = alpha_values[palette - 13][a11y_pal_flash];
 	    }
 	    break;
-	case 21: // STARTICEPAL
+	case 21:  // STARTICEPAL
 	    curpane = bluepane;
 	    pane_alpha = alpha_values[palette - 13][a11y_pal_flash];
 	    break;
-	case 22: // STARTHOLYPAL
+	case 22:  // STARTHOLYPAL
 	    curpane = graypane;
 	    if (vis_smooth_palette)
 	    {
@@ -1190,7 +1190,7 @@ void I_SetPalette (int palette)
 	    curpane = graypane;
 	    pane_alpha = alpha_values[palette - 13][a11y_pal_flash];
 	    break;
-	case 25: // STARTSCOURGEPAL
+	case 25:  // STARTSCOURGEPAL
 	case 26:
 	case 27:
 	    curpane = orngpane;
