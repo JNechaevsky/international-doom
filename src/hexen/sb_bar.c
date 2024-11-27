@@ -1338,6 +1338,15 @@ void SB_PaletteFlash(boolean forceChange)
 void SB_SmoothPaletteFlash (boolean forceChange)
 {
     int palette = 0;
+    // [JN] A11Y - Palette flash effects.
+    // [PN] Maximum alpha values for poison, damage, and bonus effects (in order).
+    // Each row represents an effect type, with 4 intensity levels:
+    // [Full intensity, Half intensity, Quarter intensity, Minimal visibility/Off].
+    static const int max_alpha[3][4] = {
+        { 204, 102, 51, 16 }, // Poison (green)
+        { 226, 113, 56,  0 }, // Damage (red)
+        { 127,  64, 32,  0 }  // Bonus (yellow)
+    };
 
     if (forceChange)
     {
@@ -1348,27 +1357,18 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         CPlayer = &players[displayplayer];
         if (CPlayer->poisoncount)
         {
-            // [JN] A11Y - Palette flash effects:
-            static const int max_grn[] = { 204, 102, 51, 16 }; // On, Halved, Quartered, Off
-
             palette = 14;
-            grn_pane_alpha = MIN(CPlayer->poisoncount * POISONADD, max_grn[a11y_pal_flash]);
+            grn_pane_alpha = MIN(CPlayer->poisoncount * POISONADD, max_alpha[0][a11y_pal_flash]);
         }
         else if (CPlayer->damagecount)
         {
-            // [JN] A11Y - Palette flash effects:
-            static const int max_red[] = { 226, 113, 56, 0 }; // On, Halved, Quartered, Off
-
             palette = 1;
-            red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, max_red[a11y_pal_flash]);
+            red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, max_alpha[1][a11y_pal_flash]);
         }
         else if (CPlayer->bonuscount)
         {
-            // [JN] A11Y - Palette flash effects:
-            static const int max_yel[] = { 127, 64, 32, 0 }; // On, Halved, Quartered, Off
-
             palette = 9;
-            yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, max_yel[a11y_pal_flash]);
+            yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, max_alpha[2][a11y_pal_flash]);
         }
         else if (CPlayer->graycount)
         {

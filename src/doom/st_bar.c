@@ -1020,6 +1020,14 @@ static void ST_doSmoothPaletteStuff (void)
     int yel = plyr->bonuscount;
     int grn = plyr->powers[pw_ironfeet] > 4*32 || plyr->powers[pw_ironfeet] & 8;
     int palette = 0;
+    // [JN] A11Y - Palette flash effects.
+    // [PN] Maximum alpha values for palette flash effects (damage and bonus).
+    // Each row represents an effect type, with 4 intensity levels:
+    // [Full intensity, Half intensity, Quarter intensity, Minimal visibility/Off].
+    static const int max_alpha[2][4] = {
+        { 226, 113, 56, 0 }, // Damage (red)
+        { 127,  64, 32, 0 }  // Bonus (yellow)
+    };
 
     // [PN] Calculate berserk fade value if active
     if (plyr->powers[pw_strength])
@@ -1044,19 +1052,13 @@ static void ST_doSmoothPaletteStuff (void)
 
     if (red)
     {
-        // [JN] A11Y - Palette flash effects:
-        static const int max_red[] = { 226, 113, 56, 0 }; // On, Halved, Quartered, Off
-
         palette = 1;
-        red_pane_alpha = MIN(red * PAINADD, max_red[a11y_pal_flash]);
+        red_pane_alpha = MIN(red * PAINADD, max_alpha[0][a11y_pal_flash]);
     }
     else if (yel)
     {
-        // [JN] A11Y - Palette flash effects:
-        static const int max_yel[] = { 127, 64, 32, 0 }; // On, Halved, Quartered, Off
-
         palette = 9;
-        yel_pane_alpha = MIN(yel * BONUSADD, max_yel[a11y_pal_flash]);
+        yel_pane_alpha = MIN(yel * BONUSADD, max_alpha[1][a11y_pal_flash]);
     }
     else if (grn)
     {

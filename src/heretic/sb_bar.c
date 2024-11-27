@@ -1261,24 +1261,26 @@ void SB_PaletteFlash(void)
 void SB_SmoothPaletteFlash (void)
 {
     int palette = 0;
+    // [JN] A11Y - Palette flash effects.
+    // [PN] Maximum alpha values for palette flash effects (damage and bonus).
+    // Each row represents an effect type, with 4 intensity levels:
+    // [Full intensity, Half intensity, Quarter intensity, Minimal visibility/Off].
+    static const int max_alpha[2][4] = {
+        { 226, 113, 56, 0 }, // Damage (red)
+        { 127,  64, 32, 0 }  // Bonus (yellow)
+    };
 
     CPlayer = &players[displayplayer];
 
     if (CPlayer->damagecount)
     {
-        // [JN] A11Y - Palette flash effects:
-        static const int max_red[] = { 226, 113, 56, 0 }; // On, Halved, Quartered, Off
-
         palette = 1;
-        red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, max_red[a11y_pal_flash]);
+        red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, max_alpha[0][a11y_pal_flash]);
     }
     else if (CPlayer->bonuscount)
     {
-        // [JN] A11Y - Palette flash effects:
-        static const int max_yel[] = { 127, 64, 32, 0 }; // On, Halved, Quartered, Off
-
         palette = 9;
-        yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, max_yel[a11y_pal_flash]);
+        yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, max_alpha[1][a11y_pal_flash]);
     }
 
     if (palette != sb_palette || CPlayer->damagecount || CPlayer->bonuscount)
