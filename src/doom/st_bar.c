@@ -933,25 +933,47 @@ void ST_doPaletteStuff (void)
     {
         palette = (cnt+7)>>3;
 
-        if (palette >= NUMREDPALS)
+        // [JN] A11Y - Palette flash effects.
+        // For A11Y, fix missing first pain palette index for smoother effect.
+        // [PN] Simplified pain palette logic and reduced redundancy.
+        switch (a11y_pal_flash)
         {
-            palette = NUMREDPALS-1;
+            case 1:  // Halved
+                palette = MIN((palette > 4 ? 4 : palette), NUMREDPALS - 1) + STARTREDPALS - 1;
+                break;
+            case 2:  // Quartered
+                palette = MIN((palette > 2 ? 2 : palette), NUMREDPALS - 1) + STARTREDPALS - 1;
+                break;
+            case 3:  // Off
+                palette = 0;
+                break;
+            default: // On
+                palette = MIN(palette, NUMREDPALS - 1) + STARTREDPALS;
+                break;
         }
-
-        palette += STARTREDPALS;
     }
     else if (plyr->bonuscount)
     {
         palette = (plyr->bonuscount+7)>>3;
 
-        // [JN] Fix missing first bonus palette index
-        // by sudstracting -1 from STARTBONUSPALS, not NUMBONUSPALS.
-        if (palette >= NUMBONUSPALS)
-        {
-            palette = NUMBONUSPALS;
-        }
+        // [JN] A11Y - Palette flash effects.
+        // Fix missing first bonus palette index
+        // by subtracting -1 from STARTBONUSPALS, not NUMBONUSPALS.
+        // [PN] Simplified bonus palette logic and reduced redundancy.
+        palette = MIN(palette, NUMBONUSPALS) + STARTBONUSPALS - 1;
 
-        palette += STARTBONUSPALS-1;
+        switch (a11y_pal_flash)
+        {
+            case 1:  // Halved
+                palette = MIN(palette, 10);
+                break;
+            case 2:  // Quartered
+                palette = MIN(palette, 9);
+                break;
+            case 3:  // Off
+                palette = 0;
+                break;
+        }
     }
     else if (plyr->powers[pw_ironfeet] > 4*32 || plyr->powers[pw_ironfeet] & 8)
     {
@@ -1011,19 +1033,30 @@ static void ST_doSmoothPaletteStuff (void)
             bzc = plyr->powers[pw_ironfeet] ? 0 : 780 - plyr->powers[pw_strength];
         }
 
+        // [JN/PN] A11Y - Palette flash effects.
+        // Adjust berserk tics based on accessibility setting.
+        bzc >>= (a11y_pal_flash == 1) ? 1 :
+                (a11y_pal_flash == 2) ? 2 : 0;
+
         // [PN] Take the maximum of berserk or damage value
         red = MAX(bzc, red);
     }
 
     if (red)
     {
+        // [JN] A11Y - Palette flash effects:
+        static const int max_red[] = { 226, 113, 56, 0 }; // On, Halved, Quartered, Off
+
         palette = 1;
-        red_pane_alpha = MIN(red * PAINADD, 226);   // 226 pane alpha max
+        red_pane_alpha = MIN(red * PAINADD, max_red[a11y_pal_flash]);
     }
     else if (yel)
     {
+        // [JN] A11Y - Palette flash effects:
+        static const int max_yel[] = { 127, 64, 32, 0 }; // On, Halved, Quartered, Off
+
         palette = 9;
-        yel_pane_alpha = MIN(yel * BONUSADD, 127);  // 127 pane alpha max
+        yel_pane_alpha = MIN(yel * BONUSADD, max_yel[a11y_pal_flash]);
     }
     else if (grn)
     {

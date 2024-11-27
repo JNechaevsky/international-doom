@@ -749,6 +749,7 @@ static void M_DrawGameplayFooter (char *pagenum);
 static void M_Choose_ID_Misc (int choice);
 static void M_Draw_ID_Misc (void);
 static void M_ID_Misc_A11yInvul (int choice);
+static void M_ID_Misc_A11yPalFlash (int choice);
 static void M_ID_Misc_A11yMoveBob (int choice);
 static void M_ID_Misc_A11yWeaponBob (int choice);
 static void M_ID_Misc_AutoloadWAD (int choice);
@@ -3854,6 +3855,7 @@ static void M_DrawGameplayFooter (char *pagenum)
 static menuitem_t ID_Menu_Misc[]=
 {
     { M_LFRT, "INVULNERABILITY EFFECT",     M_ID_Misc_A11yInvul,     'i' },
+    { M_LFRT, "PALETTE FLASH EFFECTS",      M_ID_Misc_A11yPalFlash,  'p' },
     { M_LFRT, "MOVEMENT BOBBING",           M_ID_Misc_A11yMoveBob,   'm' },
     { M_LFRT, "WEAPON BOBBING",             M_ID_Misc_A11yWeaponBob, 'w' },
     { M_SKIP, "", 0, '\0' },
@@ -3866,7 +3868,7 @@ static menuitem_t ID_Menu_Misc[]=
 
 static menu_t ID_Def_Misc =
 {
-    9,
+    10,
     &ID_Def_Main,
     ID_Menu_Misc,
     M_Draw_ID_Misc,
@@ -3895,54 +3897,63 @@ static void M_Draw_ID_Misc (void)
     M_WriteText (M_ItemRightAlign(str), 18, str,
                  M_Item_Glow(0, a11y_invul ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Palette flash effects
+    sprintf(str, a11y_pal_flash == 1 ? "HALVED" :
+                 a11y_pal_flash == 2 ? "QUARTERED" :
+                 a11y_pal_flash == 3 ? "OFF" : "DEFAULT");
+    M_WriteText (M_ItemRightAlign(str), 27, str,
+                 M_Item_Glow(1, a11y_pal_flash == 1 ? GLOW_YELLOW :
+                                a11y_pal_flash == 2 ? GLOW_ORANGE : 
+                                a11y_pal_flash == 3 ? GLOW_RED : GLOW_DARKRED));
+
     // Movement bobbing
     sprintf(str, "%s", bobpercent[a11y_move_bob]);
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, a11y_move_bob == 20 ? GLOW_DARKRED :
+    M_WriteText (M_ItemRightAlign(str), 36, str,
+                 M_Item_Glow(2, a11y_move_bob == 20 ? GLOW_DARKRED :
                                 a11y_move_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
 
     // Weapon bobbing
     sprintf(str, "%s", bobpercent[a11y_weapon_bob]);
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, a11y_weapon_bob == 20 ? GLOW_DARKRED :
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(3, a11y_weapon_bob == 20 ? GLOW_DARKRED :
                                 a11y_weapon_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
 
-    M_WriteTextCentered(45, "AUTOLOAD", cr[CR_YELLOW]);
+    M_WriteTextCentered(54, "AUTOLOAD", cr[CR_YELLOW]);
 
     // Autoload WAD files
     sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
                  autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, autoload_wad == 1 ? GLOW_YELLOW :
+    M_WriteText (M_ItemRightAlign(str), 63, str,
+                 M_Item_Glow(5, autoload_wad == 1 ? GLOW_YELLOW :
                                 autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
     // Autoload DEH patches
     sprintf(str, autoload_deh == 1 ? "IWAD ONLY" :
                  autoload_deh == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, autoload_deh == 1 ? GLOW_YELLOW :
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(6, autoload_deh == 1 ? GLOW_YELLOW :
                                 autoload_deh == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(72, "MENU SETTINGS", cr[CR_YELLOW]);
+    M_WriteTextCentered(81, "MENU SETTINGS", cr[CR_YELLOW]);
 
     // Animation and highlighting
     sprintf(str, menu_highlight ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 90, str,
+                 M_Item_Glow(8, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 99, str,
+                 M_Item_Glow(9, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
 
     // [PN] Added explanations for autoload variables
-    if (itemOn == 4 || itemOn == 5)
+    if (itemOn == 5 || itemOn == 6)
     {
         const char *off = "AUTOLOAD IS DISABLED";
         const char *first_line = "AUTOLOAD AND FOLDER CREATION";
         const char *second_line1 = "ONLY ALLOWED FOR IWAD FILES";
         const char *second_line2 = "ALLOWED FOR BOTH IWAD AND PWAD FILES";
-        const int   autoload_option = (itemOn == 4) ? autoload_wad : autoload_deh;
+        const int   autoload_option = (itemOn == 5) ? autoload_wad : autoload_deh;
 
         switch (autoload_option)
         {
@@ -3968,6 +3979,12 @@ static void M_ID_Misc_A11yInvul (int choice)
     a11y_invul ^= 1;
     // [JN] Recalculate colormaps to apply the appropriate invulnerability effect.
     R_InitColormaps();
+}
+
+static void M_ID_Misc_A11yPalFlash (int choice)
+{
+    a11y_pal_flash = M_INT_Slider(a11y_pal_flash, 0, 3, choice, false);
+    I_SetPalette (st_palette);
 }
 
 static void M_ID_Misc_A11yMoveBob (int choice)

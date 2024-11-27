@@ -1126,8 +1126,12 @@ void I_SetPalette (int palette)
 	    pane_alpha = 0xff * (palette - 8) / 8;
 	    break;
 	case 13:
+	    // [JN] A11Y - Palette flash effects:
+	    // On (0xff * 125 / 1000), Halved, Quartered, Off (keep barely visible)
+	    static const int grn_alpha[] = { 31, 16, 8, 4 };
+
 	    curpane = grnpane;
-	    pane_alpha = 0xff * 125 / 1000;
+	    pane_alpha = grn_alpha[a11y_pal_flash];
 	    break;
 	// Hexen exclusive color panes and palette indexes
 	// https://doomwiki.org/wiki/PLAYPAL#Hexen
