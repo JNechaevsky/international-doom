@@ -177,6 +177,7 @@ int compat_vertical_aiming = 0;
 //
 
 int a11y_invul = 0;
+int a11y_pal_flash = 0;
 int a11y_move_bob = 20;
 int a11y_weapon_bob = 20;
 int autoload_wad = 1;
@@ -422,6 +423,7 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("a11y_invul",                 &a11y_invul);
     }
+    M_BindIntVariable("a11y_pal_flash",                 &a11y_pal_flash);
     M_BindIntVariable("a11y_move_bob",                  &a11y_move_bob);
     M_BindIntVariable("a11y_weapon_bob",                &a11y_weapon_bob);
     M_BindIntVariable("menu_highlight",                 &menu_highlight);

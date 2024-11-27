@@ -1084,6 +1084,27 @@ int I_GetPaletteIndex(int r, int g, int b)
 #else
 void I_SetPalette (int palette)
 {
+    // [PN] Alpha values for palette flash effects (cases 13-27).
+    // Each row corresponds to a palette case, with 4 intensity levels:
+    // [Full intensity, Half intensity, Quarter intensity, Minimal visibility/Off].
+    static const int alpha_values[15][4] = {
+        {  31,  16,   8,   4 }, // case 13
+        {  51,  26,  12,  10 }, // case 14
+        {  76,  38,  19,  11 }, // case 15
+        { 102,  51,  26,  12 }, // case 16
+        { 127,  64,  32,  13 }, // case 17
+        { 153,  77,  38,  14 }, // case 18
+        { 178,  89,  45,  15 }, // case 19
+        { 204, 102,  51,  16 }, // case 20
+        { 128,  64,  32,  16 }, // case 21
+        { 127,  64,  32,   0 }, // case 22
+        { 106,  53,  27,   0 }, // case 23
+        {  52,  26,  13,   0 }, // case 24
+        { 127,  64,  32,   0 }, // case 25
+        {  96,  48,  24,   0 }, // case 26
+        {  72,  36,  18,   0 }  // case 27
+    };
+
     // [JN] Don't change palette while demo warp.
     if (demowarp)
     {
@@ -1125,13 +1146,20 @@ void I_SetPalette (int palette)
 	    curpane = yelpane;
 	    pane_alpha = 0xff * (palette - 8) / 8;
 	    break;
+	// [PN] A11Y - Palette flash effects for following cases:
 	case 13:
 	    curpane = grnpane;
-	    pane_alpha = 0xff * 125 / 1000;
+	    pane_alpha = alpha_values[palette - 13][a11y_pal_flash];
 	    break;
 	// Hexen exclusive color panes and palette indexes
 	// https://doomwiki.org/wiki/PLAYPAL#Hexen
 	case 14:  // STARTPOISONPALS + 1 (13 is shared with other games)
+	case 15:
+	case 16:
+	case 17:
+	case 18:
+	case 19:
+	case 20:
 	    curpane = grnspane;
 	    if (vis_smooth_palette)
 	    {
@@ -1139,36 +1167,12 @@ void I_SetPalette (int palette)
 	    }
 	    else
 	    {
-	    pane_alpha = 0x33; // 51 (20%)
+	    pane_alpha = alpha_values[palette - 13][a11y_pal_flash];
 	    }
-	    break;
-	case 15:
-	    curpane = grnspane;
-	    pane_alpha = 0x4c; // 76 (30%)
-	    break;
-	case 16:
-	    curpane = grnspane;
-	    pane_alpha = 0x66; // 102 (40%)
-	    break;
-	case 17:
-	    curpane = grnspane;
-	    pane_alpha = 0x7f; // 127 (50%)
-	    break;
-	case 18:
-	    curpane = grnspane;
-	    pane_alpha = 0x99; // 153 (60%)
-	    break;
-	case 19:
-	    curpane = grnspane;
-	    pane_alpha = 0xb2; // 178 (70%)
-	    break;
-	case 20:
-	    curpane = grnspane;
-	    pane_alpha = 0xcc; // 204 (80%)
 	    break;
 	case 21:  // STARTICEPAL
 	    curpane = bluepane;
-	    pane_alpha = 0x80; // 128 (50%)
+	    pane_alpha = alpha_values[palette - 13][a11y_pal_flash];
 	    break;
 	case 22:  // STARTHOLYPAL
 	    curpane = graypane;
@@ -1178,18 +1182,17 @@ void I_SetPalette (int palette)
 	    }
 	    else
 	    {
-	    pane_alpha = 0x7f; // 127 (50%)
+	    pane_alpha = alpha_values[palette - 13][a11y_pal_flash];
 	    }
 	    break;
 	case 23:
-	    curpane = graypane;
-	    pane_alpha = 0x6a; // 106
-	    break;
 	case 24:
 	    curpane = graypane;
-	    pane_alpha = 0x34; // 52
+	    pane_alpha = alpha_values[palette - 13][a11y_pal_flash];
 	    break;
 	case 25:  // STARTSCOURGEPAL
+	case 26:
+	case 27:
 	    curpane = orngpane;
 	    if (vis_smooth_palette)
 	    {
@@ -1197,16 +1200,8 @@ void I_SetPalette (int palette)
 	    }
 	    else
 	    {
-	    pane_alpha = 0x7f; // 127 (50%)
+	    pane_alpha = alpha_values[palette - 13][a11y_pal_flash];
 	    }
-	    break;
-	case 26:
-	    curpane = orngpane;
-	    pane_alpha = 0x60; // 96
-	    break;
-	case 27:
-	    curpane = orngpane;
-	    pane_alpha = 0x48; // 72
 	    break;
 	default:
 	    I_Error("Unknown palette: %d!\n", palette);
