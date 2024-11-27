@@ -1192,22 +1192,48 @@ void SB_PaletteFlash(void)
     if (CPlayer->damagecount)
     {
         palette = (CPlayer->damagecount + 7) >> 3;
-        if (palette >= NUMREDPALS)
+
+        // [JN] A11Y - Palette flash effects.
+        // For A11Y, fix missing first pain palette index for smoother effect.
+        // [PN] Simplified pain palette logic and reduced redundancy.
+        switch (a11y_pal_flash)
         {
-            palette = NUMREDPALS - 1;
+            case 1:  // Halved
+                palette = MIN((palette > 4 ? 4 : palette), NUMREDPALS - 1) + STARTREDPALS - 1;
+                break;
+            case 2:  // Quartered
+                palette = MIN((palette > 2 ? 2 : palette), NUMREDPALS - 1) + STARTREDPALS - 1;
+                break;
+            case 3:  // Off
+                palette = 0;
+                break;
+            default: // On
+                palette = MIN(palette, NUMREDPALS - 1) + STARTREDPALS;
+                break;
         }
-        palette += STARTREDPALS;
     }
     else if (CPlayer->bonuscount)
     {
         palette = (CPlayer->bonuscount + 7) >> 3;
-        // [JN] Fix missing first bonus palette index
-        // by sudstracting -1 from STARTBONUSPALS, not NUMBONUSPALS.
-        if (palette >= NUMBONUSPALS)
+
+        // [JN] A11Y - Palette flash effects.
+        // Fix missing first bonus palette index
+        // by subtracting -1 from STARTBONUSPALS, not NUMBONUSPALS.
+        // [PN] Simplified bonus palette logic and reduced redundancy.
+        palette = MIN(palette, NUMBONUSPALS) + STARTBONUSPALS - 1;
+
+        switch (a11y_pal_flash)
         {
-            palette = NUMBONUSPALS;
+            case 1:  // Halved
+                palette = MIN(palette, 10);
+                break;
+            case 2:  // Quartered
+                palette = MIN(palette, 9);
+                break;
+            case 3:  // Off
+                palette = 0;
+                break;
         }
-        palette += STARTBONUSPALS - 1;
     }
     else
     {
@@ -1240,13 +1266,19 @@ void SB_SmoothPaletteFlash (void)
 
     if (CPlayer->damagecount)
     {
+        // [JN] A11Y - Palette flash effects:
+        static const int max_red[] = { 226, 113, 56, 0 }; // On, Halved, Quartered, Off
+
         palette = 1;
-        red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, 226);   // 226 pane alpha max
+        red_pane_alpha = MIN(CPlayer->damagecount * PAINADD, max_red[a11y_pal_flash]);
     }
     else if (CPlayer->bonuscount)
     {
+        // [JN] A11Y - Palette flash effects:
+        static const int max_yel[] = { 127, 64, 32, 0 }; // On, Halved, Quartered, Off
+
         palette = 9;
-        yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, 127);  // 127 pane alpha max
+        yel_pane_alpha = MIN(CPlayer->bonuscount * BONUSADD, max_yel[a11y_pal_flash]);
     }
 
     if (palette != sb_palette || CPlayer->damagecount || CPlayer->bonuscount)
