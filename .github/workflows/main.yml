@@ -74,9 +74,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake g++ fuse patchelf \
             libsdl2-dev libsdl2-mixer-dev libsdl2-net-dev \
-            libsamplerate0-dev libfluidsynth-dev libx11-dev \
-            libxext-dev libxrender-dev libxrandr-dev libxcb1-dev \
-            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+            libsamplerate0-dev libfluidsynth-dev \
+            libflac-dev libmodplug-dev libmpg123-dev libopusfile-dev \
+            libx11-dev libxext-dev libxrender-dev libxrandr-dev \
+            libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 
       - name: Install linuxdeploy and plugin
         run: |
