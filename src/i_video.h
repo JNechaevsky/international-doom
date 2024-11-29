@@ -117,6 +117,8 @@ void I_InitWindowTitle(void);
 void I_RegisterWindowIcon(const unsigned int *icon, int width, int height);
 void I_InitWindowIcon(void);
 
+extern void I_UpdateExclusiveFullScreen(void);
+
 // Called before processing any tics in a frame (just after displaying a frame).
 // Time consuming syncronous operations are performed here (joystick reading).
 
@@ -140,6 +142,7 @@ extern pixel_t *I_VideoBuffer;
 extern int screen_width;
 extern int screen_height;
 extern int vid_fullscreen;
+extern int vid_fullscreen_exclusive;
 extern int vid_aspect_ratio_correct;
 extern int vid_smooth_scaling;
 extern int vid_integer_scaling;

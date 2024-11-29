@@ -167,6 +167,10 @@ static int vid_max_scaling_buffer_pixels = 16000000;
 
 int vid_fullscreen = true;
 
+// [JN] Exclusive full screen mode.
+
+int vid_fullscreen_exclusive = 0;
+
 // Aspect ratio correction mode
 
 int vid_aspect_ratio_correct = true;
@@ -392,6 +396,7 @@ static void AdjustWindowSize(void)
 static void HandleWindowEvent(SDL_WindowEvent *event)
 {
     int i;
+    int flags = 0;
 
     switch (event->event)
     {
@@ -429,11 +434,25 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             window_focused = true;
+            // [JN] Focus gained in exclusive fullscreen mode.
+            // Set SDL_WINDOW_FULLSCREEN flag to the window.
+            if (vid_fullscreen_exclusive && vid_fullscreen)
+            {
+                flags |= SDL_WINDOW_FULLSCREEN;
+                SDL_SetWindowFullscreen(screen, flags);
+            }
             volume_needs_update = true;
             break;
 
         case SDL_WINDOWEVENT_FOCUS_LOST:
             window_focused = false;
+            // [JN] Focus lost in exclusive fullscreen mode.
+            // Clear SDL_WINDOW_FULLSCREEN flag from the window.
+            if (vid_fullscreen_exclusive && vid_fullscreen)
+            {
+                flags &= ~SDL_WINDOW_FULLSCREEN;
+                SDL_SetWindowFullscreen(screen, flags);
+            }
             volume_needs_update = true;
             break;
 
@@ -502,19 +521,12 @@ static void I_ToggleFullScreen(void)
 {
     unsigned int flags = 0;
 
-    // TODO: Consider implementing vid_fullscreen toggle for SDL_WINDOW_FULLSCREEN
-    // (mode-changing) setup. This is hard because we have to shut down and
-    // restart again.
-    if (vid_fullscreen_width != 0 || vid_fullscreen_height != 0)
-    {
-        return;
-    }
-
     vid_fullscreen = !vid_fullscreen;
 
     if (vid_fullscreen)
     {
-        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        flags |= vid_fullscreen_exclusive ? SDL_WINDOW_FULLSCREEN :
+                                            SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
 
     SDL_SetWindowFullscreen(screen, flags);
@@ -526,6 +538,17 @@ static void I_ToggleFullScreen(void)
         AdjustWindowSize();
         SDL_SetWindowSize(screen, vid_window_width, vid_window_height);
     }
+}
+
+void I_UpdateExclusiveFullScreen(void)
+{
+    unsigned int flags = 0;
+
+    flags |= vid_fullscreen_exclusive ? SDL_WINDOW_FULLSCREEN :
+                                        SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+    SDL_SetWindowFullscreen(screen, flags);
+    SDL_SetWindowSize(screen, vid_window_width, vid_window_height);
 }
 
 void I_GetEvent(void)
@@ -1508,9 +1531,16 @@ static void SetVideoMode(void)
     // [JN] Choose render driver to use.
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, vid_screen_scale_api);
 
+    // [JN] Ensure 'mode.w/h' is initialized before use.
+    if (SDL_GetCurrentDisplayMode(vid_video_display, &mode) != 0)
+    {
+        I_Error("Could not get display mode for video display #%d: %s",
+        vid_video_display, SDL_GetError());
+    }
+
     if (vid_fullscreen)
     {
-        if (vid_fullscreen_width == 0 && vid_fullscreen_height == 0)
+        if (!vid_fullscreen_exclusive)
         {
             // This window_flags means "Never change the screen resolution!
             // Instead, draw to the entire screen by scaling the texture
@@ -1519,8 +1549,10 @@ static void SetVideoMode(void)
         }
         else
         {
-            w = vid_fullscreen_width;
-            h = vid_fullscreen_height;
+            // [JN] Use native resolution for exclusive fullscreen mode. 
+            // Width (w) and height (h) are set from SDL.
+            w = mode.w;
+            h = mode.h;
             window_flags |= SDL_WINDOW_FULLSCREEN;
         }
     }
@@ -1566,12 +1598,6 @@ static void SetVideoMode(void)
     // intermediate texture into the upscaled texture.
     renderer_flags = SDL_RENDERER_TARGETTEXTURE;
 	
-    if (SDL_GetCurrentDisplayMode(vid_video_display, &mode) != 0)
-    {
-        I_Error("Could not get display mode for video display #%d: %s",
-        vid_video_display, SDL_GetError());
-    }
-
     // Turn on vsync if we aren't in a -timedemo
     if ((!singletics && mode.refresh_rate > 0) || demowarp)
     {
@@ -2127,6 +2153,7 @@ void I_BindVideoVariables(void)
     M_BindIntVariable("vid_startup_delay",             &vid_startup_delay);
     M_BindIntVariable("vid_resize_delay",              &vid_resize_delay);
     M_BindIntVariable("vid_fullscreen",                &vid_fullscreen);
+    M_BindIntVariable("vid_fullscreen_exclusive",      &vid_fullscreen_exclusive);
     M_BindIntVariable("vid_video_display",             &vid_video_display);
     M_BindIntVariable("vid_aspect_ratio_correct",      &vid_aspect_ratio_correct);
     M_BindIntVariable("vid_integer_scaling",           &vid_integer_scaling);

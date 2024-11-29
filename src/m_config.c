@@ -158,6 +158,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_STRING(vid_video_driver),
     CONFIG_VARIABLE_STRING(vid_screen_scale_api),
     CONFIG_VARIABLE_INT(vid_fullscreen),
+    CONFIG_VARIABLE_INT(vid_fullscreen_exclusive),
     CONFIG_VARIABLE_INT(vid_window_position_x),
     CONFIG_VARIABLE_INT(vid_window_position_y),
     CONFIG_VARIABLE_INT(vid_video_display),

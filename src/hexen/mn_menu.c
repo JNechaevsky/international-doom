@@ -419,6 +419,7 @@ static void M_Draw_ID_Video (void);
 static void M_ID_TrueColor (int choice);
 static void M_ID_RenderingRes (int choice);
 static void M_ID_Widescreen (int choice);
+static void M_ID_ExclusiveFS (int choice);
 static void M_ID_UncappedFPS (int choice);
 static void M_ID_LimitFPS (int choice);
 static void M_ID_VSync (int choice);
@@ -1095,6 +1096,7 @@ static MenuItem_t ID_Menu_Video[] = {
     { ITT_LRFUNC, "TRUECOLOR RENDERING",  M_ID_TrueColor,    0, MENU_NONE },
     { ITT_LRFUNC, "RENDERING RESOLUTION", M_ID_RenderingRes, 0, MENU_NONE },
     { ITT_LRFUNC, "WIDESCREEN MODE",      M_ID_Widescreen,   0, MENU_NONE },
+    { ITT_LRFUNC, "EXCLUSIVE FULLSCREEN", M_ID_ExclusiveFS,  0, MENU_NONE },
     { ITT_LRFUNC, "UNCAPPED FRAMERATE",   M_ID_UncappedFPS,  0, MENU_NONE },
     { ITT_LRFUNC, "FRAMERATE LIMIT",      M_ID_LimitFPS,     0, MENU_NONE },
     { ITT_LRFUNC, "ENABLE VSYNC",         M_ID_VSync,        0, MENU_NONE },
@@ -1109,7 +1111,7 @@ static MenuItem_t ID_Menu_Video[] = {
 static Menu_t ID_Def_Video = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Video,
-    12, ID_Menu_Video,
+    13, ID_Menu_Video,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -1157,53 +1159,58 @@ static void M_Draw_ID_Video (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 40,
                M_Item_Glow(2, vid_widescreen ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Exclusive fullscreen
+    sprintf(str, vid_fullscreen_exclusive ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 50,
+               M_Item_Glow(3, vid_fullscreen_exclusive ? GLOW_GREEN : GLOW_DARKRED));
+
     // Uncapped framerate
     sprintf(str, vid_uncapped_fps ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 50,
-               M_Item_Glow(3, vid_uncapped_fps ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, vid_uncapped_fps ? GLOW_GREEN : GLOW_DARKRED));
 
     // Framerate limit
     sprintf(str, !vid_uncapped_fps ? "35" :
                  vid_fpslimit ? "%d" : "NONE", vid_fpslimit);
-    MN_DrTextA(str, M_ItemRightAlign(str), 60,
-               M_Item_Glow(4, !vid_uncapped_fps ? GLOW_DARKRED :
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, !vid_uncapped_fps ? GLOW_DARKRED :
                                vid_fpslimit == 0 ? GLOW_RED :
                                vid_fpslimit >= 500 ? GLOW_YELLOW : GLOW_GREEN));
 
     // Enable vsync
     sprintf(str, vid_vsync ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 70,
-               M_Item_Glow(5, vid_vsync ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, vid_vsync ? GLOW_GREEN : GLOW_DARKRED));
 
     // Show FPS counter
     sprintf(str, vid_showfps ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, vid_showfps ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, vid_showfps ? GLOW_GREEN : GLOW_DARKRED));
 
     // Pixel scaling
     sprintf(str, vid_smooth_scaling ? "SMOOTH" : "SHARP");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, vid_smooth_scaling ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, vid_smooth_scaling ? GLOW_GREEN : GLOW_DARKRED));
 
-    MN_DrTextACentered("MISCELLANEOUS", 100, cr[CR_YELLOW]);
+    MN_DrTextACentered("MISCELLANEOUS", 110, cr[CR_YELLOW]);
 
     // Graphical startup
     sprintf(str, vid_graphical_startup == 1 ? "FAST" :
                  vid_graphical_startup == 2 ? "SLOW" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, vid_graphical_startup == 1 ? GLOW_GREEN :
-                              vid_graphical_startup == 2 ? GLOW_YELLOW : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, vid_graphical_startup == 1 ? GLOW_GREEN :
+                               vid_graphical_startup == 2 ? GLOW_YELLOW : GLOW_DARKRED));
 
     // Screen wipe effect
     sprintf(str, vid_screenwipe_hr ? "CROSSFADE" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, vid_screenwipe_hr ? GLOW_GREEN : GLOW_DARKRED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, vid_screenwipe_hr ? GLOW_GREEN : GLOW_DARKRED));
 
     // Show banners
     sprintf(str, vid_banners == 1 ? "SAVE/LOAD/TRAVEL" :
                  vid_banners == 2 ? "TRAVEL ONLY" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 130,
-               M_Item_Glow(11, vid_banners == 1 ? GLOW_GREEN :
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
+               M_Item_Glow(12, vid_banners == 1 ? GLOW_GREEN :
                                vid_banners == 2 ? GLOW_YELLOW : GLOW_DARKRED));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
@@ -1217,7 +1224,7 @@ static void M_Draw_ID_Video (void)
         M_snprintf(height, 8, "%d", (vid_aspect_ratio_correct == 1 ? ORIGHEIGHT_4_3 : ORIGHEIGHT) * vid_resolution);
         resolution = M_StringJoin("CURRENT RESOLUTION: ", width, "X", height, NULL);
 
-        MN_DrTextACentered(resolution, 140, cr[CR_LIGHTGRAY_DARK1]);
+        MN_DrTextACentered(resolution, 150, cr[CR_LIGHTGRAY_DARK1]);
     }
 }
 
@@ -1288,6 +1295,22 @@ static void M_ID_Widescreen (int choice)
 {
     vid_widescreen = M_INT_Slider(vid_widescreen, 0, 5, choice, false);
     post_rendering_hook = M_ID_WidescreenHook;
+}
+
+static void M_ID_ExclusiveFSHook (void)
+{
+    vid_fullscreen_exclusive ^= 1;
+
+    // [JN] Force to update, if running in fullscreen mode.
+    if (vid_fullscreen)
+    {
+        I_UpdateExclusiveFullScreen();
+    }
+}
+
+static void M_ID_ExclusiveFS (int choice)
+{
+    post_rendering_hook = M_ID_ExclusiveFSHook;
 }
 
 static void M_ID_UncappedFPS (int choice)
@@ -3662,6 +3685,7 @@ static void M_ID_ApplyResetHook (void)
 #endif
     vid_resolution = 2;
     vid_widescreen = 0;
+    vid_fullscreen_exclusive = 0;
     vid_uncapped_fps = 0;
     vid_fpslimit = 0;
     vid_vsync = 1;
@@ -3784,6 +3808,10 @@ static void M_ID_ApplyResetHook (void)
     if (automapactive)
     {
         AM_Start();
+    }
+    if (vid_fullscreen)
+    {
+        I_UpdateExclusiveFullScreen();
     }
 
     // Restart audio systems (sort of...)
