@@ -548,7 +548,12 @@ void I_UpdateExclusiveFullScreen(void)
                                         SDL_WINDOW_FULLSCREEN_DESKTOP;
 
     SDL_SetWindowFullscreen(screen, flags);
-    SDL_SetWindowSize(screen, vid_window_width, vid_window_height);
+
+    // [PN] Adjust window size only in non-exclusive fullscreen mode.
+    if (!vid_fullscreen_exclusive)
+    {
+        SDL_SetWindowSize(screen, vid_window_width, vid_window_height);
+    }
 }
 
 void I_GetEvent(void)
