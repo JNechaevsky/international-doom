@@ -192,6 +192,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vid_gamma),
     CONFIG_VARIABLE_INT(vid_fov),
     CONFIG_VARIABLE_INT(vid_saturation),
+    CONFIG_VARIABLE_FLOAT(vid_contrast),
     CONFIG_VARIABLE_FLOAT(vid_r_intensity),
     CONFIG_VARIABLE_FLOAT(vid_g_intensity),
     CONFIG_VARIABLE_FLOAT(vid_b_intensity),

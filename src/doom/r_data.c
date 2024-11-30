@@ -1112,7 +1112,12 @@ void R_InitSpriteLumps (void)
 // [PN] Macros to optimize and standardize color calculations in the R_InitColormaps.
 // CALC_INTENSITY calculates the RGB components from playpal based on intensity settings.
 // CALC_SATURATION applies saturation correction using values from CALC_INTENSITY along 
-// with the a_hi and a_lo coefficients. Also, thanks Alaux!
+// with the a_hi and a_lo coefficients.
+// CALC_CONTRAST adjusts the contrast of the red, green, and blue channels
+// based on the vid_contrast variable. A value of 1.0 preserves the original contrast,
+// while values below 1.0 reduce it, and values above 1.0 enhance it. The calculation
+// ensures that channel values remain within the valid range [0, 255].
+// Also, thanks Alaux!
 
 #define CALC_INTENSITY(pal, playpal, index) \
     { pal[0] = playpal[3 * (index) + 0] * vid_r_intensity; \
@@ -1123,6 +1128,11 @@ void R_InitSpriteLumps (void)
     { channels[0] = (byte)((1 - a_hi) * pal[0] + a_lo * (pal[1] + pal[2])); \
       channels[1] = (byte)((1 - a_hi) * pal[1] + a_lo * (pal[0] + pal[2])); \
       channels[2] = (byte)((1 - a_hi) * pal[2] + a_lo * (pal[0] + pal[1])); }
+
+#define CALC_CONTRAST(channels, contrast) \
+    { channels[0] = (int)BETWEEN(0, 255, (int)(128 + (channels[0] - 128) * contrast)); \
+      channels[1] = (int)BETWEEN(0, 255, (int)(128 + (channels[1] - 128) * contrast)); \
+      channels[2] = (int)BETWEEN(0, 255, (int)(128 + (channels[2] - 128) * contrast)); }
 #endif
 
 
@@ -1179,6 +1189,7 @@ void R_InitColormaps (void)
 
 				CALC_INTENSITY(pal, playpal, k);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
+				CALC_CONTRAST(channels, vid_contrast);
 
 				r = gammatable[vid_gamma][channels[0]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
 				g = gammatable[vid_gamma][channels[1]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
@@ -1200,6 +1211,7 @@ void R_InitColormaps (void)
 
 				CALC_INTENSITY(pal, playpal, colormap[c * 256 + i]);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
+				CALC_CONTRAST(channels, vid_contrast);
 
 				r = gammatable[vid_gamma][channels[0]] & ~3;
 				g = gammatable[vid_gamma][channels[1]] & ~3;
@@ -1251,6 +1263,7 @@ void R_InitColormaps (void)
 
 				CALC_INTENSITY(pal, playpal, colormap[32 * 256 + i]);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
+				CALC_CONTRAST(channels, vid_contrast);
 
 				r = gammatable[vid_gamma][channels[0]] & ~3;
 				g = gammatable[vid_gamma][channels[1]] & ~3;
@@ -1276,6 +1289,7 @@ void R_InitColormaps (void)
 
 		CALC_INTENSITY(pal, playpal, i);
 		CALC_SATURATION(channels, pal, a_hi, a_lo);
+		CALC_CONTRAST(channels, vid_contrast);
 
 		r = gammatable[vid_gamma][channels[0]];
 		g = gammatable[vid_gamma][channels[1]];

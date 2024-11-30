@@ -43,6 +43,7 @@ extern int vid_showfps;
 extern int vid_gamma;
 extern int vid_fov;
 extern int vid_saturation;
+extern float vid_contrast;
 extern float vid_r_intensity;
 extern float vid_g_intensity;
 extern float vid_b_intensity;

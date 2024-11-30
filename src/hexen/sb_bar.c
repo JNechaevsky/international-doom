@@ -1611,32 +1611,51 @@ void DrawMainBar(void)
         V_DrawPatch(77, 164, manaPatch1);
         V_DrawPatch(110, 164, manaPatch2);
         V_DrawPatch(94, 164, manaVialPatch1);
-        for (i = 165; i < 187 - (22 * CPlayer->mana[0]) / MAX_MANA; i++)
+
+        // [PN] Adjusted "black" color to depend on vid_contrast.
+        // Instead of hardcoding 0 (absolute black), the adjusted_black value 
+        // dynamically darkens or lightens based on the current contrast setting. 
+        // This ensures that the color remains visually consistent and adaptable
+        // to user-defined contrast levels, avoiding issues like color distortion 
+        // or overly dark rendering in low-contrast scenarios.
         {
-         for (j = 0; j < vid_resolution; j++)
-          for (k = 0; k < vid_resolution; k++)
-          {
-            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
-                          + ((95 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
-            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
-                          + ((96 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
-            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
-                          + ((97 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
-          }
-        }
-        V_DrawPatch(102, 164, manaVialPatch2);
-        for (i = 165; i < 187 - (22 * CPlayer->mana[1]) / MAX_MANA; i++)
-        {
-         for (j = 0; j < vid_resolution; j++)
-          for (k = 0; k < vid_resolution; k++)
-          {
-            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
-                          + ((103 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
-            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
-                          + ((104 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
-            I_VideoBuffer[SCREENWIDTH * ((i * vid_resolution) + j)
-                          + ((105 + WIDESCREENDELTA) * vid_resolution) + k] = 0;
-          }
+            int adjusted_black = (int)(128 * (1.0 - vid_contrast));
+            if (adjusted_black < 0) adjusted_black = 0;
+            if (adjusted_black > 255) adjusted_black = 255;
+            adjusted_black = (adjusted_black << 16) | (adjusted_black << 8) | adjusted_black;
+
+            for (i = 165; i < 187 - (22 * CPlayer->mana[0]) / MAX_MANA; i++)
+            {
+                for (j = 0; j < vid_resolution; j++)
+                {
+                    const int base_index = SCREENWIDTH * ((i * vid_resolution) + j)
+                                         + ((95 + WIDESCREENDELTA) * vid_resolution);
+
+                    // [PN] Since three consecutive columns are being filled
+                    for (k = 0; k < 3 * vid_resolution; k++)
+                    {
+                        I_VideoBuffer[base_index + k] = adjusted_black;
+                    }
+                }
+            }
+
+            V_DrawPatch(102, 164, manaVialPatch2);
+
+            // [PN] This loop handles the second vertical bar, following the same logic as above.
+            for (i = 165; i < 187 - (22 * CPlayer->mana[1]) / MAX_MANA; i++)
+            {
+                for (j = 0; j < vid_resolution; j++)
+                {
+                    const int base_index = SCREENWIDTH * ((i * vid_resolution) + j)
+                                         + ((103 + WIDESCREENDELTA) * vid_resolution);
+
+                    // [PN] Since three consecutive columns are being filled
+                    for (k = 0; k < 3 * vid_resolution; k++)
+                    {
+                        I_VideoBuffer[base_index + k] = adjusted_black;
+                    }
+                }
+            }
         }
         oldweapon = CPlayer->readyweapon;
     }

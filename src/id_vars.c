@@ -62,6 +62,7 @@ int dp_menu_shading = 0;
 int dp_level_brightness = 0;
 // Color settings
 int vid_saturation = 100;
+float vid_contrast = 1.000000;
 float vid_r_intensity = 1.000000;
 float vid_g_intensity = 1.000000;
 float vid_b_intensity = 1.000000;
@@ -244,6 +245,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("dp_level_brightness",            &dp_level_brightness);
     // Color settings
     M_BindIntVariable("vid_saturation",                 &vid_saturation);
+    M_BindFloatVariable("vid_contrast",                 &vid_contrast);
     M_BindFloatVariable("vid_r_intensity",              &vid_r_intensity);
     M_BindFloatVariable("vid_g_intensity",              &vid_g_intensity);
     M_BindFloatVariable("vid_b_intensity",              &vid_b_intensity);
