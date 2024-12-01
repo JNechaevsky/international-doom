@@ -529,6 +529,13 @@ static void I_ToggleFullScreen(void)
                                             SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
 
+    if (vid_fullscreen_exclusive)
+    {
+        SDL_DisplayMode mode;
+        SDL_GetCurrentDisplayMode(vid_video_display, &mode);
+        SDL_SetWindowSize(screen, mode.w, mode.h);
+    }
+
     SDL_SetWindowFullscreen(screen, flags);
     // [JN] Hack to fix missing window icon after starting in vid_fullscreen mode.
     I_InitWindowIcon();
@@ -547,13 +554,14 @@ void I_UpdateExclusiveFullScreen(void)
     flags |= vid_fullscreen_exclusive ? SDL_WINDOW_FULLSCREEN :
                                         SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-    SDL_SetWindowFullscreen(screen, flags);
-
-    // [PN] Adjust window size only in non-exclusive fullscreen mode.
-    if (!vid_fullscreen_exclusive)
+    if (vid_fullscreen_exclusive)
     {
-        SDL_SetWindowSize(screen, vid_window_width, vid_window_height);
+        SDL_DisplayMode mode;
+        SDL_GetCurrentDisplayMode(vid_video_display, &mode);
+        SDL_SetWindowSize(screen, mode.w, mode.h);
     }
+
+    SDL_SetWindowFullscreen(screen, flags);
 }
 
 void I_GetEvent(void)
