@@ -25,6 +25,9 @@
 #include "i_truecolor.h"
 #include "m_fixed.h"
 
+#include "id_vars.h"
+
+
 const uint32_t (*blendfunc) (const uint32_t fg, const uint32_t bg) = I_BlendOverTranmap;
 
 typedef union
@@ -61,14 +64,21 @@ void I_InitTCTransMaps (void)
 const uint32_t I_BlendAdd (const uint32_t bg_i, const uint32_t fg_i)
 {
     tcpixel_t bg, fg, ret;
+    const int32_t base_level = (int)(128 * (1.0 - vid_contrast)); // [PN] Add a base level for low contrast
 
     bg.i = bg_i;
     fg.i = fg_i;
 
     ret.a = 0xFFU;
+    /*
     ret.r = additive_lut[bg.r][fg.r];
     ret.g = additive_lut[bg.g][fg.g];
     ret.b = additive_lut[bg.b][fg.b];
+    */
+    // [PN] Additive blending with contrast adjustment and base color compensation
+    ret.r = (uint8_t)BETWEEN(0, 255, additive_lut[bg.r][fg.r] * vid_contrast + base_level);
+    ret.g = (uint8_t)BETWEEN(0, 255, additive_lut[bg.g][fg.g] * vid_contrast + base_level);
+    ret.b = (uint8_t)BETWEEN(0, 255, additive_lut[bg.b][fg.b] * vid_contrast + base_level);
 
     return ret.i;
 }

@@ -178,14 +178,18 @@ static const inline pixel_t drawshadow_doom (const pixel_t dest, const pixel_t s
 #ifndef CRISPY_TRUECOLOR
 {return shadowmap[(dest<<8)];}
 #else
-{return I_BlendDark(dest, 0x80);} // [JN] 128 (50%) of 256 full translucency.
+// [JN] 128 (50%) of 256 full translucency,
+// adjust translucency based on contrast.
+{return I_BlendDark(dest, (int)BETWEEN(0, 255 - (32 * vid_contrast), 0x80 / vid_contrast));}
 #endif
 // Heretic & Hexen
 static const inline pixel_t drawshadow_raven (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[(dest<<8)];}
 #else
-{return I_BlendDark(dest, 0xa0);} // [JN] 160 (62.75%) of 256 full translucency.
+// [JN] 160 (62.75%) of 256 full translucency.
+// adjust translucency based on contrast.
+{return I_BlendDark(dest, (int)BETWEEN(0, 255 - (32 * vid_contrast), 0xa0 / vid_contrast));}
 #endif
 
 // [JN] V_DrawTLPatch (translucent patch, no coloring or color-translation are used)

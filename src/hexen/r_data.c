@@ -756,13 +756,18 @@ void R_InitTrueColormaps(char *current_colormap)
 
 				CALC_INTENSITY(pal, playpal, k);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
-				CALC_CONTRAST(channels, vid_contrast);
 
 				r = gammatable[vid_gamma][channels[0]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
 				g = gammatable[vid_gamma][channels[1]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
 				b = gammatable[vid_gamma][channels[2]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
 
-				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+				// [PN] Apply contrast adjustment after interpolation
+				channels[0] = r;
+				channels[1] = g;
+				channels[2] = b;
+				CALC_CONTRAST(channels, vid_contrast);
+
+				colormaps[j++] = 0xff000000 | (channels[0] << 16) | (channels[1] << 8) | channels[2];
 			}
 		}
 	}

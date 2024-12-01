@@ -1756,7 +1756,7 @@ static void M_ID_Saturation (int choice)
 static void M_ID_Contrast (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
-    vid_contrast = M_FLOAT_Slider(vid_contrast, 0.000000f, 2.000000f, 0.025000f, choice, true);
+    vid_contrast = M_FLOAT_Slider(vid_contrast, 0.100000f, 2.000000f, 0.025000f, choice, true);
 
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
