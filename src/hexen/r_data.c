@@ -697,14 +697,16 @@ void R_InitColormaps(void)
       pal[2] = playpal[3 * (index) + 2] * vid_b_intensity; }
 
 #define CALC_SATURATION(channels, pal, a_hi, a_lo) \
-    { channels[0] = (byte)((1 - a_hi) * pal[0] + a_lo * (pal[1] + pal[2])); \
-      channels[1] = (byte)((1 - a_hi) * pal[1] + a_lo * (pal[0] + pal[2])); \
-      channels[2] = (byte)((1 - a_hi) * pal[2] + a_lo * (pal[0] + pal[1])); }
+    { const float one_minus_a_hi = 1.0f - a_hi; \
+      channels[0] = (byte)(one_minus_a_hi * pal[0] + a_lo * (pal[1] + pal[2])); \
+      channels[1] = (byte)(one_minus_a_hi * pal[1] + a_lo * (pal[0] + pal[2])); \
+      channels[2] = (byte)(one_minus_a_hi * pal[2] + a_lo * (pal[0] + pal[1])); }
 
 #define CALC_CONTRAST(channels, contrast) \
-    { channels[0] = (int)BETWEEN(0, 255, (int)(128 + (channels[0] - 128) * contrast)); \
-      channels[1] = (int)BETWEEN(0, 255, (int)(128 + (channels[1] - 128) * contrast)); \
-      channels[2] = (int)BETWEEN(0, 255, (int)(128 + (channels[2] - 128) * contrast)); }
+    { const float contrast_adjustment = 128 * (1.0f - contrast); \
+      channels[0] = (int)BETWEEN(0, 255, (int)(contrast * channels[0] + contrast_adjustment)); \
+      channels[1] = (int)BETWEEN(0, 255, (int)(contrast * channels[1] + contrast_adjustment)); \
+      channels[2] = (int)BETWEEN(0, 255, (int)(contrast * channels[2] + contrast_adjustment)); }
 
 // [crispy] Our own function to generate colormaps for normal and foggy levels.
 void R_InitTrueColormaps(char *current_colormap)
