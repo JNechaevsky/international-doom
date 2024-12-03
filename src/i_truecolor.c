@@ -86,13 +86,21 @@ const uint32_t I_BlendAdd (const uint32_t bg_i, const uint32_t fg_i)
 const uint32_t I_BlendDark (const uint32_t bg_i, const int d)
 {
     tcpixel_t bg, ret;
+    // [PN] Adjusted darkening factor based on contrast
+    const int adjusted_d = (int)(d * vid_contrast);
 
     bg.i = bg_i;
 
     ret.a = 0xFFU;
+    /*
     ret.r = (bg.r * d) >> 8;
     ret.g = (bg.g * d) >> 8;
     ret.b = (bg.b * d) >> 8;
+    */
+    // [PN] Darkening with reduced effect of d at low contrast
+    ret.r = (uint8_t)BETWEEN(0, 255, ((bg.r * adjusted_d) >> 8) + bg.r * (1.0f - vid_contrast));
+    ret.g = (uint8_t)BETWEEN(0, 255, ((bg.g * adjusted_d) >> 8) + bg.g * (1.0f - vid_contrast));
+    ret.b = (uint8_t)BETWEEN(0, 255, ((bg.b * adjusted_d) >> 8) + bg.b * (1.0f - vid_contrast));
 
     return ret.i;
 }
@@ -101,6 +109,8 @@ const uint32_t I_BlendDarkGrayscale (const uint32_t bg_i, const int d)
 {
     tcpixel_t bg, ret;
     uint8_t r, g, b, gray;
+    // [PN] Adjusted darkening factor based on contrast
+    const int adjusted_d = (int)(d * vid_contrast); 
 
     bg.i = bg_i;
 
@@ -110,7 +120,7 @@ const uint32_t I_BlendDarkGrayscale (const uint32_t bg_i, const int d)
     // [PN] Do not use Rec. 601 formula here: 
     // gray = (((r * 299 + g * 587 + b * 114) / 1000) * d) >> 8;
     // Weights are equalized to balance all color contributions equally.
-    gray = (((r + g + b) / 3) * d) >> 8;
+    gray = (uint8_t)BETWEEN(0, 255, (((r + g + b) / 3) * adjusted_d >> 8) + ((r + g + b) / 3) * (1.0f - vid_contrast));
 
     ret.a = 0xFFU;
     ret.r = ret.g = ret.b = gray;
