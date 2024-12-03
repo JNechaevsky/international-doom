@@ -1523,6 +1523,94 @@ void CenterWindow(int *x, int *y, int w, int h)
     *y = bounds.y + SDL_max((bounds.h - h) / 2, 0);
 }
 
+
+#ifdef CRISPY_TRUECOLOR
+// [PN] Apply intensity correction to RGB channels
+#define ADJUST_INTENSITY(r, g, b, r_intensity, g_intensity, b_intensity) \
+    { (r) = (byte)((r) * (r_intensity)); \
+      (g) = (byte)((g) * (g_intensity)); \
+      (b) = (byte)((b) * (b_intensity)); }
+
+// [PN] Apply saturation correction to RGB channels
+#define ADJUST_SATURATION(r, g, b, a_hi, a_lo) \
+    { const float one_minus_a_hi = 1.0f - (a_hi); \
+      const byte new_r = (byte)(one_minus_a_hi * (r) + (a_lo) * ((g) + (b))); \
+      const byte new_g = (byte)(one_minus_a_hi * (g) + (a_lo) * ((r) + (b))); \
+      const byte new_b = (byte)(one_minus_a_hi * (b) + (a_lo) * ((r) + (g))); \
+      (r) = new_r; \
+      (g) = new_g; \
+      (b) = new_b; }
+
+// [PN] Apply contrast adjustment to RGB channels
+#define ADJUST_CONTRAST(r, g, b, contrast) \
+    { const float contrast_adjustment = 128 * (1.0f - (contrast)); \
+      (r) = (byte)BETWEEN(0, 255, (int)((contrast) * (r) + contrast_adjustment)); \
+      (g) = (byte)BETWEEN(0, 255, (int)((contrast) * (g) + contrast_adjustment)); \
+      (b) = (byte)BETWEEN(0, 255, (int)((contrast) * (b) + contrast_adjustment)); }
+
+void I_SetColorPanes (boolean recreate_argbbuffer)
+{
+    // [PN] Define a structure to hold texture names and their colors
+    typedef struct {
+        SDL_Texture **texture;  // Pointer to the texture variable
+        uint8_t r, g, b;        // RGB values
+    } pane_t;
+
+    // [PN] Array of pane definitions
+    static const pane_t panes[] = {
+        { &redpane,  0xff, 0x0,  0x0  },  // red
+        { &yelpane,  0xd7, 0xba, 0x45 },  // yellow
+        { &grnpane,  0x0,  0xff, 0x0  },  // green
+        { &grnspane, 0x2c, 0x5c, 0x24 },  // green (Hexen: poison)
+        { &bluepane, 0x0,  0x0,  0xe0 },  // blue (Hexen: ice)
+        { &graypane, 0x82, 0x82, 0x82 },  // gray (Hexen: Wraithverge)
+        { &orngpane, 0x96, 0x6e, 0x0  }   // orange (Hexen: Arc of Death)
+    };
+
+    // [PN] Precompute saturation values
+    const float a_hi = vid_saturation < 100 ? I_SaturationPercent[vid_saturation] : 0;
+    const float a_lo = vid_saturation < 100 ? (a_hi / 2) : 0;
+
+    // [PN] Safely free and allocate the surface to avoid memory leaks.
+    // [JN] This is have to be done just once, at startup. No need to 
+    // destroy and recreate argbbuffer every time color adjustment happens.
+    if (recreate_argbbuffer)
+    {
+        if (argbbuffer != NULL)
+        {
+            SDL_FreeSurface(argbbuffer);
+            argbbuffer = NULL;
+        }
+
+        argbbuffer = SDL_CreateRGBSurfaceWithFormat(
+                     0, SCREENWIDTH, SCREENHEIGHT, 32, SDL_PIXELFORMAT_ARGB8888);
+    }
+
+    // [PN] Adjust and create textures from the defined colors
+    for (int i = 0; i < sizeof(panes) / sizeof(panes[0]); i++)
+    {
+        // [PN] Extract original RGB values
+        byte r = panes[i].r;
+        byte g = panes[i].g;
+        byte b = panes[i].b;
+
+        // [PN] Apply intensity, saturation and contrast adjustments
+        ADJUST_INTENSITY(r, g, b, vid_r_intensity, vid_g_intensity, vid_b_intensity);
+        ADJUST_SATURATION(r, g, b, a_hi, a_lo);
+        ADJUST_CONTRAST(r, g, b, vid_contrast);
+
+        // [PN] Fill rectangle with modified color
+        SDL_FillRect(argbbuffer, NULL, I_MapRGB(r, g, b));
+
+        // [PN] Create texture from surface
+        *(panes[i].texture) = SDL_CreateTextureFromSurface(renderer, argbbuffer);
+
+        // [PN] Set blend mode
+        SDL_SetTextureBlendMode(*(panes[i].texture), SDL_BLENDMODE_BLEND);
+    }
+}
+#endif
+
 static void SetVideoMode(void)
 {
     int w, h;
@@ -1713,39 +1801,8 @@ static void SetVideoMode(void)
     if (argbbuffer == NULL)
     {
 #ifdef CRISPY_TRUECOLOR
-        // [PN] Define a structure to hold texture names and their colors
-        typedef struct {
-            SDL_Texture **texture;  // Pointer to the texture variable
-            uint8_t r, g, b;        // RGB values
-        } pane_t;
-
-        // [PN] Array of pane definitions
-        static const pane_t panes[] = {
-            { &redpane,  0xff, 0x0,  0x0  },  // red
-            { &yelpane,  0xd7, 0xba, 0x45 },  // yellow
-            { &grnpane,  0x0,  0xff, 0x0  },  // green
-            { &grnspane, 0x2c, 0x5c, 0x24 },  // green (Hexen: poison)
-            { &bluepane, 0x0,  0x0,  0xe0 },  // blue (Hexen: ice)
-            { &graypane, 0x82, 0x82, 0x82 },  // gray (Hexen: Wraithverge)
-            { &orngpane, 0x96, 0x6e, 0x0  }   // orange (Hexem: Arc of Death)
-        };
-
-        argbbuffer = SDL_CreateRGBSurfaceWithFormat(
-                     0, SCREENWIDTH, SCREENHEIGHT, 32, SDL_PIXELFORMAT_ARGB8888);
-
-        // [PN] Create textures from the defined colors
-        for (int i = 0; i < sizeof(panes) / sizeof(panes[0]); i++)
-        {
-            // [PN] Fill rectangle with color
-            SDL_FillRect(argbbuffer, NULL, I_MapRGB(panes[i].r, panes[i].g, panes[i].b));
-            
-            // [PN] Create texture from surface
-            *(panes[i].texture) = SDL_CreateTextureFromSurface(renderer, argbbuffer);
-            
-            // [PN] Set blend mode
-            SDL_SetTextureBlendMode(*(panes[i].texture), SDL_BLENDMODE_BLEND);
-        }
-
+	    // [PN] Allocate argbbuffer and initialize color panes
+	    I_SetColorPanes(true);
 #else
 	    // pixels and pitch will be filled with the texture's values
 	    // in I_FinishUpdate()

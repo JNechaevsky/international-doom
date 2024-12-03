@@ -1738,11 +1738,8 @@ static void M_ID_Gamma (int choice)
 #endif
 }
 
-static void M_ID_Saturation (int choice)
+static void M_ID_SaturationHook (void)
 {
-    shade_wait = I_GetTime() + TICRATE;
-    vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
-
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
 #else
@@ -1750,6 +1747,29 @@ static void M_ID_Saturation (int choice)
     R_FillBackScreen();
     AM_Init();
     st_fullupdate = true;
+    I_SetColorPanes(false);
+    I_SetPalette(st_palette);
+#endif
+}
+
+static void M_ID_Saturation (int choice)
+{
+    shade_wait = I_GetTime() + TICRATE;
+    vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
+    post_rendering_hook = M_ID_SaturationHook;
+}
+
+static void M_ID_ContrastHook (void)
+{
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
+    R_InitColormaps();
+    R_FillBackScreen();
+    AM_Init();
+    st_fullupdate = true;
+    I_SetColorPanes(false);
+    I_SetPalette(st_palette);
 #endif
 }
 
@@ -1757,7 +1777,11 @@ static void M_ID_Contrast (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
     vid_contrast = M_FLOAT_Slider(vid_contrast, 0.100000f, 2.000000f, 0.025000f, choice, true);
+    post_rendering_hook = M_ID_ContrastHook;
+}
 
+static void M_ID_R_IntensityHook (void)
+{
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
 #else
@@ -1765,6 +1789,8 @@ static void M_ID_Contrast (int choice)
     R_FillBackScreen();
     AM_Init();
     st_fullupdate = true;
+    I_SetColorPanes(false);
+    I_SetPalette(st_palette);
 #endif
 }
 
@@ -1772,7 +1798,11 @@ static void M_ID_R_Intensity (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
     vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
+    post_rendering_hook = M_ID_R_IntensityHook;
+}
 
+static void M_ID_G_IntensityHook (void)
+{
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
 #else
@@ -1780,6 +1810,8 @@ static void M_ID_R_Intensity (int choice)
     R_FillBackScreen();
     AM_Init();
     st_fullupdate = true;
+    I_SetColorPanes(false);
+    I_SetPalette(st_palette);
 #endif
 }
 
@@ -1787,7 +1819,11 @@ static void M_ID_G_Intensity (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
     vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
+    post_rendering_hook = M_ID_G_IntensityHook;
+}
 
+static void M_ID_B_IntensityHook (void)
+{
 #ifndef CRISPY_TRUECOLOR
     I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
 #else
@@ -1795,6 +1831,8 @@ static void M_ID_G_Intensity (int choice)
     R_FillBackScreen();
     AM_Init();
     st_fullupdate = true;
+    I_SetColorPanes(false);
+    I_SetPalette(st_palette);
 #endif
 }
 
@@ -1802,15 +1840,7 @@ static void M_ID_B_Intensity (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
     vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
-
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
-#else
-    R_InitColormaps();
-    R_FillBackScreen();
-    AM_Init();
-    st_fullupdate = true;
-#endif
+    post_rendering_hook = M_ID_B_IntensityHook;
 }
 
 static void M_ID_MessagesAlignment (int choice)

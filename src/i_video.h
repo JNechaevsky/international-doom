@@ -45,6 +45,8 @@ extern int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 extern void (*post_rendering_hook) (void); // [crispy]
 void I_GetScreenDimensions (void); // [crispy] re-calculate WIDESCREENDELTA
 extern void I_ToggleVsync (void);
+extern void I_SetColorPanes (boolean recreate_argbbuffer); // [PN] (Re-)initialize color panes
+extern void I_UpdateExclusiveFullScreen(void);
 
 enum
 {
@@ -116,8 +118,6 @@ void I_BindVideoVariables(void);
 void I_InitWindowTitle(void);
 void I_RegisterWindowIcon(const unsigned int *icon, int width, int height);
 void I_InitWindowIcon(void);
-
-extern void I_UpdateExclusiveFullScreen(void);
 
 // Called before processing any tics in a frame (just after displaying a frame).
 // Time consuming syncronous operations are performed here (joystick reading).
