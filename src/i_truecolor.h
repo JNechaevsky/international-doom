@@ -46,6 +46,7 @@ const uint32_t I_BlendOverExtra (const uint32_t bg, const uint32_t fg);
 
 extern const int I_ShadeFactor[];
 extern const float I_SaturationPercent[];
+extern const double colorblind_matrix[][3][3];
 
 #endif
 

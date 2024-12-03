@@ -152,6 +152,7 @@ extern int a11y_invul;
 extern int a11y_pal_flash;
 extern int a11y_move_bob;
 extern int a11y_weapon_bob;
+extern int a11y_colorblind;
 extern int autoload_wad;
 extern int autoload_deh;
 extern int autoload_hhe;

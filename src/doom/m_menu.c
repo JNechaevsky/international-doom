@@ -521,7 +521,6 @@ static menu_t SaveDef =
 #define ID_MENU_LEFTOFFSET        (48)
 #define ID_MENU_LEFTOFFSET_SML    (93)
 #define ID_MENU_LEFTOFFSET_MID    (64)
-#define ID_MENU_LEFTOFFSET_MISC   (40)
 #define ID_MENU_LEFTOFFSET_BIG    (32)
 #define ID_MENU_LEFTOFFSET_LEVEL  (74)
 
@@ -753,6 +752,7 @@ static void M_ID_Misc_A11yInvul (int choice);
 static void M_ID_Misc_A11yPalFlash (int choice);
 static void M_ID_Misc_A11yMoveBob (int choice);
 static void M_ID_Misc_A11yWeaponBob (int choice);
+static void M_ID_Misc_A11yColorblind (int choice);
 static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_AutoloadDEH (int choice);
 static void M_ID_Misc_Hightlight (int choice);
@@ -3926,25 +3926,26 @@ static void M_DrawGameplayFooter (char *pagenum)
 
 static menuitem_t ID_Menu_Misc[]=
 {
-    { M_LFRT, "INVULNERABILITY EFFECT",     M_ID_Misc_A11yInvul,     'i' },
-    { M_LFRT, "PALETTE FLASH EFFECTS",      M_ID_Misc_A11yPalFlash,  'p' },
-    { M_LFRT, "MOVEMENT BOBBING",           M_ID_Misc_A11yMoveBob,   'm' },
-    { M_LFRT, "WEAPON BOBBING",             M_ID_Misc_A11yWeaponBob, 'w' },
+    { M_LFRT, "INVULNERABILITY EFFECT",     M_ID_Misc_A11yInvul,      'i' },
+    { M_LFRT, "PALETTE FLASH EFFECTS",      M_ID_Misc_A11yPalFlash,   'p' },
+    { M_LFRT, "MOVEMENT BOBBING",           M_ID_Misc_A11yMoveBob,    'm' },
+    { M_LFRT, "WEAPON BOBBING",             M_ID_Misc_A11yWeaponBob,  'w' },
+    { M_LFRT, "COLORBLIND FILTER",          M_ID_Misc_A11yColorblind, 'c' },
     { M_SKIP, "", 0, '\0' },
-    { M_LFRT, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD,   'a' },
-    { M_LFRT, "AUTOLOAD DEH FILES",         M_ID_Misc_AutoloadDEH,   'a' },
+    { M_LFRT, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD,    'a' },
+    { M_LFRT, "AUTOLOAD DEH FILES",         M_ID_Misc_AutoloadDEH,    'a' },
     { M_SKIP, "", 0, '\0' },
-    { M_LFRT, "ANIMATION AND HIGHLIGHTING", M_ID_Misc_Hightlight,    'a' },
-    { M_LFRT, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,    'e' },
+    { M_LFRT, "ANIMATION AND HIGHLIGHTING", M_ID_Misc_Hightlight,     'a' },
+    { M_LFRT, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,     'e' },
 };
 
 static menu_t ID_Def_Misc =
 {
-    10,
+    11,
     &ID_Def_Main,
     ID_Menu_Misc,
     M_Draw_ID_Misc,
-    ID_MENU_LEFTOFFSET_MISC, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
     true, false, false,
 };
@@ -3960,6 +3961,10 @@ static void M_Draw_ID_Misc (void)
     const char *bobpercent[] = {
         "OFF","5%","10%","15%","20%","25%","30%","35%","40%","45%","50%",
         "55%","60%","65%","70%","75%","80%","85%","90%","95%","100%"
+    };
+    const char *colorblind_name[] = {
+        "NONE","PROTANOPIA","PROTANOMALY","DEUTERANOPIA","DEUTERANOMALY",
+        "TRITANOPIA","TRITANOMALY","ACHROMATOPSIA","ACHROMATOMALY"
     };
 
     M_WriteTextCentered(9, "ACCESSIBILITY", cr[CR_YELLOW]);
@@ -3990,42 +3995,57 @@ static void M_Draw_ID_Misc (void)
                  M_Item_Glow(3, a11y_weapon_bob == 20 ? GLOW_DARKRED :
                                 a11y_weapon_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
 
-    M_WriteTextCentered(54, "AUTOLOAD", cr[CR_YELLOW]);
+    // Colorblind filter
+    sprintf(str, "%s", colorblind_name[a11y_colorblind]);
+    M_WriteText (M_ItemRightAlign(str), 54, str,
+                 M_Item_Glow(4, a11y_colorblind ? GLOW_GREEN : GLOW_DARKRED));
+
+    M_WriteTextCentered(63, "AUTOLOAD", cr[CR_YELLOW]);
 
     // Autoload WAD files
     sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
                  autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, autoload_wad == 1 ? GLOW_YELLOW :
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(6, autoload_wad == 1 ? GLOW_YELLOW :
                                 autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
     // Autoload DEH patches
     sprintf(str, autoload_deh == 1 ? "IWAD ONLY" :
                  autoload_deh == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, autoload_deh == 1 ? GLOW_YELLOW :
+    M_WriteText (M_ItemRightAlign(str), 81, str,
+                 M_Item_Glow(7, autoload_deh == 1 ? GLOW_YELLOW :
                                 autoload_deh == 2 ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(81, "MENU SETTINGS", cr[CR_YELLOW]);
+    M_WriteTextCentered(90, "MENU SETTINGS", cr[CR_YELLOW]);
 
     // Animation and highlighting
     sprintf(str, menu_highlight ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 99, str,
+                 M_Item_Glow(9, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 107, str,
+                 M_Item_Glow(10, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
 
+    // [PN] Added explanations for colorblind filters
+    if (itemOn == 4)
+    {
+        const char *colorblind_hint[] = {
+            "","RED-BLIND","RED-WEAK","GREEN-BLIND","GREEN-WEAK",
+            "BLUE-BLIND","BLUE-WEAK","MONOCHROMACY","BLUE CONE MONOCHROMACY"
+        };
+
+        M_WriteTextCentered(135, colorblind_hint[a11y_colorblind], cr[CR_LIGHTGRAY_DARK1]);
+    }
     // [PN] Added explanations for autoload variables
-    if (itemOn == 5 || itemOn == 6)
+    if (itemOn == 6 || itemOn == 7)
     {
         const char *off = "AUTOLOAD IS DISABLED";
         const char *first_line = "AUTOLOAD AND FOLDER CREATION";
         const char *second_line1 = "ONLY ALLOWED FOR IWAD FILES";
         const char *second_line2 = "ALLOWED FOR BOTH IWAD AND PWAD FILES";
-        const int   autoload_option = (itemOn == 5) ? autoload_wad : autoload_deh;
+        const int   autoload_option = (itemOn == 6) ? autoload_wad : autoload_deh;
 
         switch (autoload_option)
         {
@@ -4067,6 +4087,26 @@ static void M_ID_Misc_A11yMoveBob (int choice)
 static void M_ID_Misc_A11yWeaponBob (int choice)
 {
     a11y_weapon_bob = M_INT_Slider(a11y_weapon_bob, 0, 20, choice, true);
+}
+
+static void M_ID_Misc_A11yColorblindHook (void)
+{
+#ifndef CRISPY_TRUECOLOR
+    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
+#else
+    R_InitColormaps();
+    R_FillBackScreen();
+    AM_Init();
+    st_fullupdate = true;
+    I_SetColorPanes(false);
+    I_SetPalette(st_palette);
+#endif
+}
+
+static void M_ID_Misc_A11yColorblind (int choice)
+{
+    a11y_colorblind = M_INT_Slider(a11y_colorblind, 0, 8, choice, false);
+    post_rendering_hook = M_ID_Misc_A11yColorblindHook;
 }
 
 static void M_ID_Misc_AutoloadWAD (int choice)

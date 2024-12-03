@@ -1110,13 +1110,25 @@ void R_InitSpriteLumps (void)
 
 #ifdef CRISPY_TRUECOLOR
 // [PN] Macros to optimize and standardize color calculations in the R_InitColormaps.
+//
 // CALC_INTENSITY calculates the RGB components from playpal based on intensity settings.
+//
 // CALC_SATURATION applies saturation correction using values from CALC_INTENSITY along 
 // with the a_hi and a_lo coefficients.
+//
 // CALC_CONTRAST adjusts the contrast of the red, green, and blue channels
 // based on the vid_contrast variable. A value of 1.0 preserves the original contrast,
 // while values below 1.0 reduce it, and values above 1.0 enhance it. The calculation
 // ensures that channel values remain within the valid range [0, 255].
+//
+// CALC_COLORBLIND applies a colorblindness correction to the red, green, 
+// and blue channels based on the provided transformation matrix. The matrix defines
+// how much of each original channel (red, green, blue) contributes to the final values.
+// This process simulates how colors are perceived by individuals with various types 
+// of colorblindness, such as protanopia, deuteranopia, or tritanopia.
+// The calculation ensures that the resulting channel values remain within the valid 
+// range [0, 255], preserving consistency and avoiding overflow or underflow.
+//
 // Also, thanks Alaux!
 
 #define CALC_INTENSITY(pal, playpal, index) \
@@ -1136,6 +1148,14 @@ void R_InitSpriteLumps (void)
       channels[1] = (int)BETWEEN(0, 255, (int)(contrast * channels[1] + contrast_adjustment)); \
       channels[2] = (int)BETWEEN(0, 255, (int)(contrast * channels[2] + contrast_adjustment)); }
 #endif
+
+#define CALC_COLORBLIND(channels, matrix) \
+    { const byte r = channels[0]; \
+      const byte g = channels[1]; \
+      const byte b = channels[2]; \
+      channels[0] = (byte)BETWEEN(0, 255, (int)(matrix[0][0] * r + matrix[0][1] * g + matrix[0][2] * b)); \
+      channels[1] = (byte)BETWEEN(0, 255, (int)(matrix[1][0] * r + matrix[1][1] * g + matrix[1][2] * b)); \
+      channels[2] = (byte)BETWEEN(0, 255, (int)(matrix[2][0] * r + matrix[2][1] * g + matrix[2][2] * b)); }
 
 
 void R_InitColormaps (void)
@@ -1202,6 +1222,9 @@ void R_InitColormaps (void)
 				channels[2] = b;
 				CALC_CONTRAST(channels, vid_contrast);
 
+				// [PN] Apply colorblind filter
+				CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
+
 				colormaps[j++] = 0xff000000 | (channels[0] << 16) | (channels[1] << 8) | channels[2];
 			}
 		}
@@ -1219,6 +1242,7 @@ void R_InitColormaps (void)
 				CALC_INTENSITY(pal, playpal, colormap[c * 256 + i]);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
 				CALC_CONTRAST(channels, vid_contrast);
+				CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
 
 				r = gammatable[vid_gamma][channels[0]] & ~3;
 				g = gammatable[vid_gamma][channels[1]] & ~3;
@@ -1271,6 +1295,7 @@ void R_InitColormaps (void)
 				CALC_INTENSITY(pal, playpal, colormap[32 * 256 + i]);
 				CALC_SATURATION(channels, pal, a_hi, a_lo);
 				CALC_CONTRAST(channels, vid_contrast);
+				CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
 
 				r = gammatable[vid_gamma][channels[0]] & ~3;
 				g = gammatable[vid_gamma][channels[1]] & ~3;
@@ -1297,6 +1322,7 @@ void R_InitColormaps (void)
 		CALC_INTENSITY(pal, playpal, i);
 		CALC_SATURATION(channels, pal, a_hi, a_lo);
 		CALC_CONTRAST(channels, vid_contrast);
+		CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
 
 		r = gammatable[vid_gamma][channels[0]];
 		g = gammatable[vid_gamma][channels[1]];

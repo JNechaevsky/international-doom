@@ -1548,6 +1548,16 @@ void CenterWindow(int *x, int *y, int w, int h)
       (g) = (byte)BETWEEN(0, 255, (int)((contrast) * (g) + contrast_adjustment)); \
       (b) = (byte)BETWEEN(0, 255, (int)((contrast) * (b) + contrast_adjustment)); }
 
+// [PN] Apply colorblind filter to RGB channels
+#define ADJUST_COLORBLIND(r, g, b, matrix) \
+    { const byte orig_r = (r); \
+      const byte orig_g = (g); \
+      const byte orig_b = (b); \
+      (r) = (byte)BETWEEN(0, 255, (int)((matrix)[0][0] * orig_r + (matrix)[0][1] * orig_g + (matrix)[0][2] * orig_b)); \
+      (g) = (byte)BETWEEN(0, 255, (int)((matrix)[1][0] * orig_r + (matrix)[1][1] * orig_g + (matrix)[1][2] * orig_b)); \
+      (b) = (byte)BETWEEN(0, 255, (int)((matrix)[2][0] * orig_r + (matrix)[2][1] * orig_g + (matrix)[2][2] * orig_b)); }
+
+
 void I_SetColorPanes (boolean recreate_argbbuffer)
 {
     // [PN] Define a structure to hold texture names and their colors
@@ -1598,6 +1608,7 @@ void I_SetColorPanes (boolean recreate_argbbuffer)
         ADJUST_INTENSITY(r, g, b, vid_r_intensity, vid_g_intensity, vid_b_intensity);
         ADJUST_SATURATION(r, g, b, a_hi, a_lo);
         ADJUST_CONTRAST(r, g, b, vid_contrast);
+        ADJUST_COLORBLIND(r, g, b, colorblind_matrix[a11y_colorblind]);
 
         // [PN] Fill rectangle with modified color
         SDL_FillRect(argbbuffer, NULL, I_MapRGB(r, g, b));
