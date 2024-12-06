@@ -638,6 +638,10 @@ static void saveg_read_pspdef_t(pspdef_t *str)
 
     // fixed_t sy;
     str->sy = saveg_read32();
+
+    // [JN] A11Y - Weapon bobbing.
+    str->r_sx = str->sx;
+    str->r_sy = str->sy;
 }
 
 static void saveg_write_pspdef_t(pspdef_t *str)

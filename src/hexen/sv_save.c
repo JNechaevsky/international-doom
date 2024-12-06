@@ -313,6 +313,10 @@ static void StreamIn_pspdef_t(pspdef_t *str)
     // fixed_t sx, sy;
     str->sx = SV_ReadLong();
     str->sy = SV_ReadLong();
+
+    // [JN] A11Y - Weapon bobbing.
+    str->r_sx = str->sx;
+    str->r_sy = str->sy;
 }
 
 static void StreamOut_pspdef_t(pspdef_t *str)
