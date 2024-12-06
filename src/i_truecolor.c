@@ -29,21 +29,10 @@
 
 
 
-typedef union
-{
-    uint32_t i;
-    struct {
-        uint8_t b;
-        uint8_t g;
-        uint8_t r;
-        uint8_t a;
-    };
-} tcpixel_t;
-
 // [JN] Double pointer used for additive blending.
 // It does not store actual color data but serves as a shortcut
 // to avoid using MIN during rendering.
-static uint8_t **additive_lut = NULL;
+uint8_t **additive_lut = NULL;
 
 void I_InitTCTransMaps (void)
 {
