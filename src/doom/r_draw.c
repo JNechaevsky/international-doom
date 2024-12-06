@@ -283,8 +283,7 @@ void R_SetFuzzPosDraw (void)
 // Used with an all black colormap, this could create the SHADOW effect,
 // i.e. spectres and invisible players.
 //
-// [PN] Optimized border adjustments by eliminating unnecessary `cutoff` variable.
-//      Simplified fuzz position updating logic and removed redundant operations
+// [PN] Simplified fuzz position updating logic and removed redundant operations
 //      for better readability.
 // -----------------------------------------------------------------------------
 
@@ -293,8 +292,6 @@ void R_DrawFuzzColumn (void)
     int count;
     pixel_t* dest;
     boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
-    // [PN] Pointer to the fuzz drawing function
-    const uint32_t (*fuzzdrawfunc)(uint32_t, int);
 
     // Adjust borders.
     if (!dc_yl)
@@ -308,9 +305,6 @@ void R_DrawFuzzColumn (void)
     // Zero length.
     if (count < 0)
         return;
-
-    // [PN] Determine which fuzz drawing function to use
-    fuzzdrawfunc = (vis_improved_fuzz == 3) ? I_BlendDarkGrayscale : I_BlendDark;
 
 #ifdef RANGECHECK
     if (dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
@@ -330,7 +324,7 @@ void R_DrawFuzzColumn (void)
 #ifndef CRISPY_TRUECOLOR
         *dest = colormaps[6 * 256 + dest[fuzz_offset]];
 #else
-        *dest = fuzzdrawfunc(dest[fuzz_offset], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], FUZZ_ALPHA);
 #endif
 
         // Update fuzzpos and clamp if necessary.
@@ -352,7 +346,7 @@ void R_DrawFuzzColumn (void)
 #ifndef CRISPY_TRUECOLOR
         *dest = colormaps[6 * 256 + dest[fuzz_offset]];
 #else
-        *dest = fuzzdrawfunc(dest[fuzz_offset], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], FUZZ_ALPHA);
 #endif
     }
 }
@@ -361,8 +355,7 @@ void R_DrawFuzzColumn (void)
 // R_DrawFuzzColumnLow
 // Draws a vertical slice of pixels in blocky mode (low detail).
 // Creates a fuzzy effect by copying pixels from adjacent ones.
-// [PN] Optimized border adjustments by eliminating unnecessary `cutoff` variable.
-//      Simplified fuzz position updating logic and removed redundant operations
+// [PN] Simplified fuzz position updating logic and removed redundant operations
 //      for better readability.
 // -----------------------------------------------------------------------------
 
@@ -373,8 +366,6 @@ void R_DrawFuzzColumnLow (void)
     pixel_t *dest2;
     int x;
     boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
-    // [PN] Pointer to the fuzz drawing function
-    const uint32_t (*fuzzdrawfunc)(uint32_t, int);
 
     // Adjust borders.
     if (!dc_yl)
@@ -391,9 +382,6 @@ void R_DrawFuzzColumnLow (void)
 
     // Low detail mode, need to multiply by 2.
     x = dc_x << 1;
-
-    // [PN] Determine which fuzz drawing function to use
-    fuzzdrawfunc = (vis_improved_fuzz == 3) ? I_BlendDarkGrayscale : I_BlendDark;
 
 #ifdef RANGECHECK
     if (x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
@@ -414,8 +402,8 @@ void R_DrawFuzzColumnLow (void)
         *dest = colormaps[6 * 256 + dest[fuzz_offset]];
         *dest2 = colormaps[6 * 256 + dest2[fuzz_offset]];
 #else
-        *dest = fuzzdrawfunc(dest[fuzz_offset], 0xD3);
-        *dest2 = fuzzdrawfunc(dest2[fuzz_offset], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], FUZZ_ALPHA);
+        *dest2 = I_BlendDark(dest2[fuzz_offset], FUZZ_ALPHA);
 #endif
 
         // Update fuzzpos and clamp if necessary.
@@ -439,9 +427,121 @@ void R_DrawFuzzColumnLow (void)
         *dest = colormaps[6 * 256 + dest[fuzz_offset]];
         *dest2 = colormaps[6 * 256 + dest2[fuzz_offset]];
 #else
-        *dest = fuzzdrawfunc(dest[fuzz_offset], 0xD3);
-        *dest2 = fuzzdrawfunc(dest2[fuzz_offset], 0xD3);
+        *dest = I_BlendDark(dest[fuzz_offset], FUZZ_ALPHA);
+        *dest2 = I_BlendDark(dest2[fuzz_offset], FUZZ_ALPHA);
 #endif
+    }
+}
+
+void R_DrawFuzzBWColumn (void)
+{
+    int count;
+    pixel_t *dest;
+    boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
+
+    // Adjust borders.
+    if (!dc_yl)
+        dc_yl = 1;
+
+    if (cutoff)
+        dc_yh = viewheight - 2;
+
+    count = dc_yh - dc_yl;
+
+    // Zero length.
+    if (count < 0)
+        return;
+
+#ifdef RANGECHECK
+    if (dc_x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+    {
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif 
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
+    // Looks like an attempt at dithering, using the colormap #6
+    // (of 0-31, a bit brighter than average).
+    do
+    {
+        const int fuzz_offset = SCREENWIDTH * fuzzoffset[fuzzpos];
+
+        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], FUZZ_ALPHA);
+
+        // Update fuzzpos and clamp if necessary.
+        fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+
+        dest += SCREENWIDTH;
+    } while (count--);
+
+    // [crispy] if the line at the bottom had to be cut off,
+    // draw one extra line using only pixels of that line and the one above
+    if (cutoff)
+    {
+        const int fuzz_offset = SCREENWIDTH * (fuzzoffset[fuzzpos] - FUZZOFF) / 2;
+
+        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], FUZZ_ALPHA);
+    }
+}
+
+void R_DrawFuzzBWColumnLow (void)
+{
+    int count;
+    pixel_t *dest;
+    pixel_t *dest2;
+    int x;
+    boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
+
+    // Adjust borders.
+    if (!dc_yl)
+        dc_yl = 1;
+
+    if (cutoff)
+        dc_yh = viewheight - 2;
+
+    count = dc_yh - dc_yl;
+
+    // Zero length.
+    if (count < 0)
+        return;
+
+    // Low detail mode, need to multiply by 2.
+    x = dc_x << 1;
+
+#ifdef RANGECHECK
+    if (x >= SCREENWIDTH || dc_yl < 0 || dc_yh >= SCREENHEIGHT)
+    {
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif 
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
+
+    // Looks like an attempt at dithering.
+    do
+    {
+        const int fuzz_offset = SCREENWIDTH * fuzzoffset[fuzzpos];
+
+        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], FUZZ_ALPHA);
+        *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], FUZZ_ALPHA);
+
+        // Update fuzzpos and clamp if necessary.
+        fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+
+        dest += SCREENWIDTH;
+        dest2 += SCREENWIDTH;
+    } while (count--);
+
+    // [crispy] if the line at the bottom had to be cut off,
+    // draw one extra line using only pixels of that line and the one above
+    if (cutoff)
+    {
+        const int fuzz_offset = SCREENWIDTH * (fuzzoffset[fuzzpos] - FUZZOFF) / 2;
+
+        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], FUZZ_ALPHA);
+        *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], FUZZ_ALPHA);
     }
 }
  
@@ -593,10 +693,10 @@ void R_DrawTLColumn (void)
         const byte source = dc_source[frac>>FRACBITS];
 #ifndef CRISPY_TRUECOLOR
         // [JN] Draw full bright sprites with different functions, depending on user's choice.
-        *dest = blendfunc[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
+        *dest = tintmap[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
 #else
         const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
-        *dest = blendfunc(*dest, destrgb);
+        *dest = I_BlendOver(*dest, destrgb, TRANMAP_ALPHA);
 #endif
 	dest += SCREENWIDTH;
 	frac += fracstep;
@@ -641,12 +741,12 @@ void R_DrawTLColumnLow (void)
 	const byte source = dc_source[frac>>FRACBITS];    
 #ifndef CRISPY_TRUECOLOR
 	// [JN] Draw full bright sprites with different functions, depending on user's choice.
-	*dest = blendfunc[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
-	*dest2 = blendfunc[(*dest2<<8)+dc_colormap[dc_brightmap[source]][source]];
+	*dest = tintmap[(*dest<<8)+dc_colormap[dc_brightmap[source]][source]];
+	*dest2 = tintmap[(*dest2<<8)+dc_colormap[dc_brightmap[source]][source]];
 #else
 	const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
-	*dest = blendfunc(*dest, destrgb);
-	*dest2 = blendfunc(*dest2, destrgb);
+	*dest = I_BlendOver(*dest, destrgb, TRANMAP_ALPHA);
+	*dest2 = I_BlendOver(*dest2, destrgb, TRANMAP_ALPHA);
 #endif
 	dest += SCREENWIDTH;
 	dest2 += SCREENWIDTH;
@@ -655,11 +755,11 @@ void R_DrawTLColumnLow (void)
 }
 
 // -----------------------------------------------------------------------------
-// R_DrawTLFuzzColumn
+// R_DrawFuzzTLColumn
 // [JN] Translucent fuzz column.
 // -----------------------------------------------------------------------------
 
-void R_DrawTLFuzzColumn (void)
+void R_DrawFuzzTLColumn (void)
 {
     int       count = dc_yh - dc_yl;
     pixel_t  *dest;
@@ -681,7 +781,7 @@ void R_DrawTLFuzzColumn (void)
 #else
         const pixel_t destrgb = dc_colormap[0][dc_source[frac>>FRACBITS]];
 
-       *dest = I_BlendFuzz(*dest, destrgb);
+       *dest = I_BlendOver(*dest, destrgb, FUZZTL_ALPHA);
 #endif
         dest += SCREENWIDTH;
         frac += fracstep;
@@ -693,7 +793,7 @@ void R_DrawTLFuzzColumn (void)
 // [JN] Translucent fuzz column, low-resolution version.
 // -----------------------------------------------------------------------------
 
-void R_DrawTLFuzzColumnLow (void)
+void R_DrawFuzzTLColumnLow (void)
 {
     int       count = dc_yh - dc_yl;
     int       x;
@@ -720,10 +820,82 @@ void R_DrawTLFuzzColumnLow (void)
 #else
         const pixel_t destrgb = dc_colormap[0][dc_source[frac>>FRACBITS]];
 
-       *dest = I_BlendFuzz(*dest, destrgb);
-       *dest2 = I_BlendFuzz(*dest2, destrgb);
+       *dest = I_BlendOver(*dest, destrgb, FUZZTL_ALPHA);
+       *dest2 = I_BlendOver(*dest2, destrgb, FUZZTL_ALPHA);
 #endif
         dest += SCREENWIDTH;
+        dest2 += SCREENWIDTH;
+        frac += fracstep;
+    } while (count--);
+}
+
+// -----------------------------------------------------------------------------
+// R_DrawTLAddColumn
+// [PN] Draw translucent column, additive blending. High detail.
+// Crispy Doom exclusive implementation with optimizations.
+// -----------------------------------------------------------------------------
+
+void R_DrawTLAddColumn (void)
+{
+    int      count;
+    fixed_t  frac, fracstep;
+    pixel_t *dest;
+
+    count = dc_yh - dc_yl;
+
+    if (count < 0)
+        return;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    do
+    {
+        // [crispy] brightmaps
+        const byte source = dc_source[frac >> FRACBITS];
+        const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+
+        *dest = I_BlendAdd(*dest, destrgb);
+
+        dest += SCREENWIDTH;
+        frac += fracstep;
+    } while (count--);
+}
+
+// -----------------------------------------------------------------------------
+// R_DrawTLAddColumnLow
+// [PN] Draw translucent column, additive blending. Low detail.
+// Crispy Doom exclusive implementation with optimizations.
+// -----------------------------------------------------------------------------
+
+void R_DrawTLAddColumnLow (void)
+{
+    int      count, x;
+    fixed_t  frac, fracstep;
+    pixel_t *dest1, *dest2;
+
+    count = dc_yh - dc_yl;
+
+    if (count < 0)
+        return;
+
+    x = dc_x << 1;
+
+    dest1 = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    do
+    {
+        const byte source = dc_source[frac >> FRACBITS];
+        const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+
+        *dest1 = I_BlendAdd(*dest1, destrgb);
+        *dest2 = I_BlendAdd(*dest2, destrgb);
+
+        dest1 += SCREENWIDTH;
         dest2 += SCREENWIDTH;
         frac += fracstep;
     } while (count--);
@@ -756,7 +928,7 @@ void R_DrawTransTLFuzzColumn (void)
 #else
         const pixel_t destrgb = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
 
-       *dest = I_BlendFuzz(*dest, destrgb);
+       *dest = I_BlendOver(*dest, destrgb, FUZZTL_ALPHA);
 #endif
         dest += SCREENWIDTH;
         frac += fracstep;
@@ -795,8 +967,8 @@ void R_DrawTransTLFuzzColumnLow (void)
 #else
         const pixel_t destrgb = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
 
-       *dest = I_BlendFuzz(*dest, destrgb);
-       *dest2 = I_BlendFuzz(*dest2, destrgb);
+       *dest = I_BlendOver(*dest, destrgb, FUZZTL_ALPHA);
+       *dest2 = I_BlendOver(*dest2, destrgb, FUZZTL_ALPHA);
 #endif
         dest += SCREENWIDTH;
         dest2 += SCREENWIDTH;

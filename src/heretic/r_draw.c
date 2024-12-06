@@ -264,7 +264,7 @@ void R_DrawTLColumn(void)
                           dc_colormap[dc_brightmap[source]][source]];
 #else
             const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
-            *dest = blendfunc(*dest, destrgb);
+            *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
 #endif
             dest += SCREENWIDTH;
             if ((frac += fracstep) >= heightmask)
@@ -283,7 +283,7 @@ void R_DrawTLColumn(void)
                           dc_colormap[dc_brightmap[source]][source]];
 #else
             const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
-            *dest = blendfunc(*dest, destrgb);
+            *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
 #endif
 
             dest += SCREENWIDTH;
@@ -344,7 +344,8 @@ void R_DrawTLColumnLow(void)
                           dc_colormap[dc_brightmap[source]][source]];
 #else
             const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
-            *dest2 = *dest = blendfunc(*dest, destrgb);
+            *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
+            *dest2 = I_BlendOver(*dest2, destrgb, TINTTAB_ALPHA);
 #endif
             dest += SCREENWIDTH;
             dest2 += SCREENWIDTH;
@@ -364,7 +365,8 @@ void R_DrawTLColumnLow(void)
                           dc_colormap[dc_brightmap[source]][source]];
 #else
             const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
-            *dest2 = *dest = blendfunc(*dest, destrgb);
+            *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
+            *dest2 = I_BlendOver(*dest2, destrgb, TINTTAB_ALPHA);
 #endif
 
             dest += SCREENWIDTH;
@@ -373,6 +375,78 @@ void R_DrawTLColumnLow(void)
         }
         while (count--);
     }
+}
+
+// -----------------------------------------------------------------------------
+// R_DrawTLAddColumn
+// [PN] Draw translucent column, additive blending. High detail.
+// Crispy Doom exclusive implementation with optimizations.
+// -----------------------------------------------------------------------------
+
+void R_DrawTLAddColumn (void)
+{
+    int      count;
+    fixed_t  frac, fracstep;
+    pixel_t *dest;
+
+    count = dc_yh - dc_yl;
+
+    if (count < 0)
+        return;
+
+    dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    do
+    {
+        // [crispy] brightmaps
+        const byte source = dc_source[frac >> FRACBITS];
+        const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+
+        *dest = I_BlendAdd(*dest, destrgb);
+
+        dest += SCREENWIDTH;
+        frac += fracstep;
+    } while (count--);
+}
+
+// -----------------------------------------------------------------------------
+// R_DrawTLAddColumnLow
+// [PN] Draw translucent column, additive blending. Low detail.
+// Crispy Doom exclusive implementation with optimizations.
+// -----------------------------------------------------------------------------
+
+void R_DrawTLAddColumnLow (void)
+{
+    int      count, x;
+    fixed_t  frac, fracstep;
+    pixel_t *dest1, *dest2;
+
+    count = dc_yh - dc_yl;
+
+    if (count < 0)
+        return;
+
+    x = dc_x << 1;
+
+    dest1 = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
+    fracstep = dc_iscale;
+    frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    do
+    {
+        const byte source = dc_source[frac >> FRACBITS];
+        const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
+
+        *dest1 = I_BlendAdd(*dest1, destrgb);
+        *dest2 = I_BlendAdd(*dest2, destrgb);
+
+        dest1 += SCREENWIDTH;
+        dest2 += SCREENWIDTH;
+        frac += fracstep;
+    } while (count--);
 }
 
 // -----------------------------------------------------------------------------
@@ -487,7 +561,7 @@ void R_DrawTranslatedTLColumn(void)
                           dc_colormap[dc_brightmap[src]][src]];
 #else
         const pixel_t destrgb = dc_colormap[dc_brightmap[src]][src];
-        *dest = blendfunc(*dest, destrgb);
+        *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
 #endif
         dest += SCREENWIDTH;
         frac += fracstep;
@@ -533,7 +607,8 @@ void R_DrawTranslatedTLColumnLow(void)
                           dc_colormap[dc_brightmap[src]][src]];
 #else
         const pixel_t destrgb = dc_colormap[dc_brightmap[src]][src];
-        *dest2 = *dest = blendfunc(*dest, destrgb);
+        *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
+        *dest2 = I_BlendOver(*dest2, destrgb, TINTTAB_ALPHA);
 #endif
         dest += SCREENWIDTH;
         dest2 += SCREENWIDTH;
@@ -588,7 +663,7 @@ void R_DrawExtraTLColumn(void)
             *dest = blendfunc[((*dest) << 8) + dc_colormap[dc_brightmap[source]][source]]; 
 #else 
             const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source]; 
-            *dest = blendfunc(*dest, destrgb); 
+            *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
 #endif 
             dest += SCREENWIDTH; 
             if ((frac += fracstep) >= heightmask) 
@@ -606,7 +681,7 @@ void R_DrawExtraTLColumn(void)
             *dest = blendfunc[((*dest) << 8) + dc_colormap[dc_brightmap[source]][source]]; 
 #else 
             const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source]; 
-            *dest = blendfunc(*dest, destrgb); 
+            *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
 #endif 
  
             dest += SCREENWIDTH; 
@@ -666,7 +741,8 @@ void R_DrawExtraTLColumnLow(void)
             *dest2 = *dest = blendfunc[((*dest) << 8) + dc_colormap[dc_brightmap[source]][source]];
 #else
             const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
-            *dest2 = *dest = blendfunc(*dest, destrgb);
+            *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
+            *dest2 = I_BlendOver(*dest2, destrgb, EXTRATL_ALPHA);
 #endif
             dest += SCREENWIDTH;
             dest2 += SCREENWIDTH;
@@ -685,7 +761,8 @@ void R_DrawExtraTLColumnLow(void)
             *dest2 = *dest = blendfunc[((*dest) << 8) + dc_colormap[dc_brightmap[source]][source]];
 #else
             const pixel_t destrgb = dc_colormap[dc_brightmap[source]][source];
-            *dest2 = *dest = blendfunc(*dest, destrgb);
+            *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
+            *dest2 = I_BlendOver(*dest2, destrgb, EXTRATL_ALPHA);
 #endif
 
             dest += SCREENWIDTH;

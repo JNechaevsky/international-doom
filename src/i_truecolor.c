@@ -28,7 +28,6 @@
 #include "id_vars.h"
 
 
-const uint32_t (*blendfunc) (const uint32_t fg, const uint32_t bg) = I_BlendOverTranmap;
 
 typedef union
 {
@@ -61,24 +60,19 @@ void I_InitTCTransMaps (void)
     }
 }
 
+// [PN] All original human-readable blending functions from Crispy Doom
+/*
 const uint32_t I_BlendAdd (const uint32_t bg_i, const uint32_t fg_i)
 {
     tcpixel_t bg, fg, ret;
-    const int32_t base_level = (int)(128 * (1.0 - vid_contrast)); // [PN] Add a base level for low contrast
 
     bg.i = bg_i;
     fg.i = fg_i;
 
     ret.a = 0xFFU;
-    /*
     ret.r = additive_lut[bg.r][fg.r];
     ret.g = additive_lut[bg.g][fg.g];
     ret.b = additive_lut[bg.b][fg.b];
-    */
-    // [PN] Additive blending with contrast adjustment and base color compensation
-    ret.r = (uint8_t)BETWEEN(0, 255, additive_lut[bg.r][fg.r] * vid_contrast + base_level);
-    ret.g = (uint8_t)BETWEEN(0, 255, additive_lut[bg.g][fg.g] * vid_contrast + base_level);
-    ret.b = (uint8_t)BETWEEN(0, 255, additive_lut[bg.b][fg.b] * vid_contrast + base_level);
 
     return ret.i;
 }
@@ -86,21 +80,13 @@ const uint32_t I_BlendAdd (const uint32_t bg_i, const uint32_t fg_i)
 const uint32_t I_BlendDark (const uint32_t bg_i, const int d)
 {
     tcpixel_t bg, ret;
-    // [PN] Adjusted darkening factor based on contrast
-    const int adjusted_d = (int)(d * vid_contrast);
 
     bg.i = bg_i;
 
     ret.a = 0xFFU;
-    /*
     ret.r = (bg.r * d) >> 8;
     ret.g = (bg.g * d) >> 8;
     ret.b = (bg.b * d) >> 8;
-    */
-    // [PN] Darkening with reduced effect of d at low contrast
-    ret.r = (uint8_t)BETWEEN(0, 255, ((bg.r * adjusted_d) >> 8) + bg.r * (1.0f - vid_contrast));
-    ret.g = (uint8_t)BETWEEN(0, 255, ((bg.g * adjusted_d) >> 8) + bg.g * (1.0f - vid_contrast));
-    ret.b = (uint8_t)BETWEEN(0, 255, ((bg.b * adjusted_d) >> 8) + bg.b * (1.0f - vid_contrast));
 
     return ret.i;
 }
@@ -109,8 +95,6 @@ const uint32_t I_BlendDarkGrayscale (const uint32_t bg_i, const int d)
 {
     tcpixel_t bg, ret;
     uint8_t r, g, b, gray;
-    // [PN] Adjusted darkening factor based on contrast
-    const int adjusted_d = (int)(d * vid_contrast); 
 
     bg.i = bg_i;
 
@@ -120,7 +104,7 @@ const uint32_t I_BlendDarkGrayscale (const uint32_t bg_i, const int d)
     // [PN] Do not use Rec. 601 formula here: 
     // gray = (((r * 299 + g * 587 + b * 114) / 1000) * d) >> 8;
     // Weights are equalized to balance all color contributions equally.
-    gray = (uint8_t)BETWEEN(0, 255, (((r + g + b) / 3) * adjusted_d >> 8) + ((r + g + b) / 3) * (1.0f - vid_contrast));
+    gray = (((r + g + b) / 3) * d) >> 8;
 
     ret.a = 0xFFU;
     ret.r = ret.g = ret.b = gray;
@@ -142,48 +126,7 @@ const uint32_t I_BlendOver (const uint32_t bg_i, const uint32_t fg_i, const int 
 
     return ret.i;
 }
-
-// [crispy] TRANMAP blending emulation, used for Doom
-const uint32_t I_BlendOverTranmap (const uint32_t bg, const uint32_t fg)
-{
-    return I_BlendOver(bg, fg, 0xA8); // 168 (66% opacity)
-}
-
-// [crispy] TINTTAB blending emulation, used for Heretic and Hexen
-const uint32_t I_BlendOverTinttab (const uint32_t bg, const uint32_t fg)
-{
-    return I_BlendOver(bg, fg, 0x60); // 96 (38% opacity)
-}
-
-// [crispy] More opaque ("Alt") TINTTAB blending emulation, used for Hexen's MF_ALTSHADOW drawing
-const uint32_t I_BlendOverAltTinttab (const uint32_t bg, const uint32_t fg)
-{
-    return I_BlendOver(bg, fg, 0x8E); // 142 (56% opacity)
-}
-
-// [crispy] More opaque XLATAB blending emulation, used for Strife
-const uint32_t I_BlendOverXlatab (const uint32_t bg, const uint32_t fg)
-{
-    return I_BlendOver(bg, fg, 0xC0); // 192 (75% opacity)
-}
-
-// [crispy] Less opaque ("Alt") XLATAB blending emulation, used for Strife
-const uint32_t I_BlendOverAltXlatab (const uint32_t bg, const uint32_t fg)
-{
-    return I_BlendOver(bg, fg, 0x40); // 64 (25% opacity)
-}
-
-// [JN] "Translucent" fuzz effect.
-const uint32_t I_BlendFuzz (const uint32_t bg, const uint32_t fg)
-{
-    return I_BlendOver(bg, fg, 0x40); // 64 (25% opacity)
-}
-
-// [JN] "Extra translucency" blending.
-const uint32_t I_BlendOverExtra (const uint32_t bg, const uint32_t fg)
-{
-    return I_BlendOver(bg, fg, 0x98); // 152 (60% opacity)
-}
+*/
 
 // [JN] Shade factor used for menu and automap background shading.
 const int I_ShadeFactor[] =

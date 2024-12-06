@@ -363,7 +363,11 @@ typedef struct vissprite_s
 #ifndef CRISPY_TRUECOLOR
     byte         *blendfunc;
 #else
-    const pixel_t	(*blendfunc)(const pixel_t fg, const pixel_t bg);
+    // [JN] Indicate if vissprite's frame is bright for choosing 
+    // blending option of colfunc:
+    // - tlcolfunc for overlay (unlit) blending.
+    // - tladdcolfunc for additive (lit) blending.
+    int         brightframe;
 #endif
 } vissprite_t;
 
@@ -581,12 +585,16 @@ extern void R_DrawColumn (void);
 extern void R_DrawColumnLow (void);
 extern void R_DrawFuzzColumn (void);
 extern void R_DrawFuzzColumnLow (void);
+extern void R_DrawFuzzTLColumn (void);
+extern void R_DrawFuzzTLColumnLow (void);
+extern void R_DrawFuzzBWColumn (void);
+extern void R_DrawFuzzBWColumnLow (void);
 extern void R_DrawSpan (void);
 extern void R_DrawSpanLow (void);
 extern void R_DrawTLColumn (void);
 extern void R_DrawTLColumnLow (void);
-extern void R_DrawTLFuzzColumn (void);
-extern void R_DrawTLFuzzColumnLow (void);
+extern void R_DrawTLAddColumn (void);
+extern void R_DrawTLAddColumnLow (void);
 extern void R_DrawTranslatedColumn (void);
 extern void R_DrawTranslatedColumnLow (void);
 extern void R_DrawTransTLFuzzColumn (void);
@@ -683,9 +691,11 @@ inline static angle_t LerpAngle(angle_t oangle, angle_t nangle)
 extern void (*colfunc) (void);
 extern void (*basecolfunc) (void);
 extern void (*fuzzcolfunc) (void);
+extern void (*fuzztlcolfunc) (void);
+extern void (*fuzzbwcolfunc) (void);
 extern void (*transcolfunc) (void);
 extern void (*tlcolfunc) (void);
-extern void (*tlfuzzcolfunc) (void);
+extern void (*tladdcolfunc) (void);
 extern void (*transtlfuzzcolfunc) (void);
 extern void (*spanfunc) (void);
 

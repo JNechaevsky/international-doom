@@ -429,7 +429,6 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
         {
             colfunc = R_DrawAltTLColumn;
         }
-        blendfunc = vis->blendfunc;
     }
     else if (vis->mobjflags & MF_TRANSLATION)
     {
@@ -443,8 +442,15 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
     if (vis->mobjflags & MF_EXTRATRANS && vis_translucency)
     {
         // [JN] Extra translucency feature.
-        colfunc = extratlcolfunc;
-        blendfunc = vis->blendfunc;
+        // Set to "Additive" blending if this option is enabled.
+        if (vis->brightframe && vis_translucency == 1)
+        {
+            colfunc = tladdcolfunc;
+        }
+        else
+        {
+            colfunc = extratlcolfunc;
+        }
     }
 
     dc_iscale = abs(vis->xiscale) >> detailshift;
@@ -487,9 +493,6 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
     }
 
     colfunc = basecolfunc;
-#ifdef CRISPY_TRUECOLOR
-    blendfunc = I_BlendOverTinttab;
-#endif
 }
 
 
@@ -731,31 +734,14 @@ void R_ProjectSprite(mobj_t * thing)
     }
 
     vis->brightmap = R_BrightmapForSprite(thing->state - states);
-#ifdef CRISPY_TRUECOLOR
-    // [crispy] not using additive blending (I_BlendAdd) here for full
-    // bright states to preserve look & feel of original Hexen's translucency
-    if (thing->flags & MF_SHADOW)
-    {
-        vis->blendfunc = I_BlendOverTinttab;
-    }
-    else
-    if (thing->flags & MF_ALTSHADOW)
-    {
-        vis->blendfunc = I_BlendOverAltTinttab;
-    }
-#endif
 
     // [JN] Extra translucency. Draw full bright sprites with 
     // different functions, depending on user's choice.
     if (thing->flags & MF_EXTRATRANS)
     {
-        vis->blendfunc = 
-            (LevelUseFullBright && thing->frame & FF_FULLBRIGHT) ? (vis_translucency == 1 ?
-#ifndef CRISPY_TRUECOLOR
-            addmap : tintmap) : tintmap;
-#else
-            I_BlendAdd : I_BlendOverExtra) : I_BlendOverExtra;
-#endif
+        // [JN] If thing's frame is bright, mark it's
+        // vissprite flag for possible additive blending.
+        vis->brightframe = (thing->frame & FF_FULLBRIGHT);
     }
 }
 
@@ -905,24 +891,15 @@ void R_DrawPSprite(pspdef_t * psp)
             if (viewplayer->mo->flags2 & MF2_DONTDRAW)
             {                   // don't draw the psprite
                 vis->mobjflags |= MF_SHADOW;
-#ifdef CRISPY_TRUECOLOR
-                vis->blendfunc = I_BlendOverTinttab;
-#endif
             }
             else if (viewplayer->mo->flags & MF_SHADOW)
             {
                 vis->mobjflags |= MF_ALTSHADOW;
-#ifdef CRISPY_TRUECOLOR
-                vis->blendfunc = I_BlendOverAltTinttab;
-#endif
             }
         }
         else if (viewplayer->powers[pw_invulnerability] & 8)
         {
             vis->mobjflags |= MF_SHADOW;
-#ifdef CRISPY_TRUECOLOR
-            vis->blendfunc = I_BlendOverTinttab;
-#endif
         }
     }
     else if (fixedcolormap)

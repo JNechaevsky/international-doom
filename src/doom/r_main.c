@@ -126,9 +126,11 @@ int BMAPANIMSHIFT;
 void (*colfunc) (void);
 void (*basecolfunc) (void);
 void (*fuzzcolfunc) (void);
+void (*fuzztlcolfunc) (void);
+void (*fuzzbwcolfunc) (void);
 void (*transcolfunc) (void);
 void (*tlcolfunc) (void);
-void (*tlfuzzcolfunc) (void);
+void (*tladdcolfunc) (void);
 void (*transtlfuzzcolfunc) (void);
 void (*spanfunc) (void);
 
@@ -834,9 +836,11 @@ void R_ExecuteSetViewSize (void)
     {
 	colfunc = basecolfunc = R_DrawColumn;
 	fuzzcolfunc = R_DrawFuzzColumn;
+	fuzztlcolfunc = R_DrawFuzzTLColumn;
+	fuzzbwcolfunc = R_DrawFuzzBWColumn;
 	transcolfunc = R_DrawTranslatedColumn;
 	tlcolfunc = R_DrawTLColumn;
-	tlfuzzcolfunc = R_DrawTLFuzzColumn;
+	tladdcolfunc = R_DrawTLAddColumn;
 	transtlfuzzcolfunc = R_DrawTransTLFuzzColumn;
 	spanfunc = R_DrawSpan;
     }
@@ -844,9 +848,11 @@ void R_ExecuteSetViewSize (void)
     {
 	colfunc = basecolfunc = R_DrawColumnLow;
 	fuzzcolfunc = R_DrawFuzzColumnLow;
+	fuzztlcolfunc = R_DrawFuzzTLColumnLow;
+	fuzzbwcolfunc = R_DrawFuzzBWColumnLow;
 	transcolfunc = R_DrawTranslatedColumnLow;
 	tlcolfunc = R_DrawTLColumnLow;
-	tlfuzzcolfunc = R_DrawTLFuzzColumnLow;
+	tladdcolfunc = R_DrawTLAddColumnLow;
 	transtlfuzzcolfunc = R_DrawTransTLFuzzColumnLow;
 	spanfunc = R_DrawSpanLow;
     }

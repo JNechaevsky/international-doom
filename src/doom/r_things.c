@@ -438,7 +438,9 @@ static void R_DrawVisSprite (vissprite_t *vis)
     if (!dc_colormap[0])
     {
 	// NULL colormap = shadow draw
-	colfunc = fuzzcolfunc;
+	// [JN] Which function used to draw fuzz?
+	colfunc = (vis_improved_fuzz == 3) ? fuzzbwcolfunc :  // Grayscale
+	                                     fuzzcolfunc   ;  // Normal or improved
     }
     // [JN] Translucent fuzz.
     else if (vis->mobjflags & MF_SHADOW && vis_improved_fuzz == 2)
@@ -451,7 +453,7 @@ static void R_DrawVisSprite (vissprite_t *vis)
 	    }
 	    else
 	    {
-	        colfunc = tlfuzzcolfunc;
+	        colfunc = fuzztlcolfunc;
 	    }
     }
     else if (vis->mobjflags & MF_TRANSLATION)
@@ -469,8 +471,15 @@ static void R_DrawVisSprite (vissprite_t *vis)
     // [crispy] translucent sprites
     else if (vis_translucency && vis->mobjflags & MF_TRANSLUCENT)
     {
-	    colfunc = tlcolfunc;
-	    blendfunc = vis->blendfunc;
+	    // [JN] Set to "Additive" blending if this option is enabled.
+	    if (vis->brightframe && vis_translucency == 1)
+	    {
+	        colfunc = tladdcolfunc;
+	    }
+	    else
+	    {
+	        colfunc = tlcolfunc;
+	    }
     }
 	
     dc_iscale = abs(vis->xiscale)>>detailshift;
@@ -859,16 +868,11 @@ static void R_ProjectSprite (mobj_t* thing)
     }
 
     // [crispy] translucent sprites
-    // [JN] Draw full bright sprites with different functions, depending on user's choice.
     if (thing->flags & MF_TRANSLUCENT)
     {
-	vis->blendfunc = 
-		(thing->frame & FF_FULLBRIGHT) ? (vis_translucency == 1 ?
-#ifndef CRISPY_TRUECOLOR
-			addmap : tintmap) : tintmap;
-#else
-			I_BlendAdd : I_BlendOverTranmap) : I_BlendOverTranmap;
-#endif
+        // [JN] If thing's frame is bright, mark it's
+        // vissprite flag for possible additive blending.
+        vis->brightframe = (thing->frame & FF_FULLBRIGHT);
     }
 }
 

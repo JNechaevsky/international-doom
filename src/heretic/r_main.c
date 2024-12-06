@@ -116,6 +116,7 @@ int BMAPSHIFTINDEX;
 void (*colfunc) (void);
 void (*basecolfunc) (void);
 void (*tlcolfunc) (void);
+void (*tladdcolfunc) (void);
 void (*transcolfunc) (void);
 void (*transtlcolfunc) (void);
 void (*extratlcolfunc) (void);
@@ -856,6 +857,7 @@ void R_ExecuteSetViewSize(void)
     {
         colfunc = basecolfunc = R_DrawColumn;
         tlcolfunc = R_DrawTLColumn;
+        tladdcolfunc = R_DrawTLAddColumn;
         transcolfunc = R_DrawTranslatedColumn;
         transtlcolfunc = R_DrawTranslatedTLColumn;
         extratlcolfunc = R_DrawExtraTLColumn;
@@ -865,6 +867,7 @@ void R_ExecuteSetViewSize(void)
     {
         colfunc = basecolfunc = R_DrawColumnLow;
         tlcolfunc = R_DrawTLColumnLow;
+        tladdcolfunc = R_DrawTLAddColumnLow;
         transcolfunc = R_DrawTranslatedColumnLow;
         transtlcolfunc = R_DrawTranslatedTLColumnLow;
         extratlcolfunc = R_DrawExtraTLColumnLow;
