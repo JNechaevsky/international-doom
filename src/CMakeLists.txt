@@ -151,7 +151,7 @@ target_link_libraries("${PROGRAM_PREFIX}doom" doom ${EXTRA_LIBS})
 
 if(MSVC)
     set_target_properties("${PROGRAM_PREFIX}doom" PROPERTIES
-                          LINK_FLAGS "/MANIFEST:NO")
+                          LINK_FLAGS "/MANIFEST:NO /LTCG")
 endif()
 
 if(WIN32)
@@ -165,7 +165,7 @@ target_link_libraries("${PROGRAM_PREFIX}heretic" heretic ${EXTRA_LIBS})
 
 if(MSVC)
     set_target_properties("${PROGRAM_PREFIX}heretic" PROPERTIES
-                          LINK_FLAGS "/MANIFEST:NO")
+                          LINK_FLAGS "/MANIFEST:NO /LTCG")
 endif()
 
 if(WIN32)
@@ -179,7 +179,7 @@ target_link_libraries("${PROGRAM_PREFIX}hexen" hexen ${EXTRA_LIBS})
 
 if(MSVC)
     set_target_properties("${PROGRAM_PREFIX}hexen" PROPERTIES
-                          LINK_FLAGS "/MANIFEST:NO")
+                          LINK_FLAGS "/MANIFEST:NO /LTCG")
 endif()
 
 set_target_properties("${PROGRAM_PREFIX}doom" PROPERTIES

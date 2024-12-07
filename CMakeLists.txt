@@ -67,6 +67,12 @@ check_ipo_supported(RESULT HAVE_LTO)
 include(CMakeDependentOption) # Note: replace first ON to OFF to disable.
 cmake_dependent_option(ENABLE_LTO "Use link-time optimization" ON "HAVE_LTO" OFF)
 
+if(ENABLE_LTO)
+    message(STATUS "LTO is ENABLED")
+else()
+    message(STATUS "LTO is DISABLED")
+endif()
+
 # Enable ASan (AddressSanitizer).
 # Note: doesn't work with MinGW, use Clang64 if using MSYS enviroment.
 option(ENABLE_ASAN "Enable ASan" OFF)
