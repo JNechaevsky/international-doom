@@ -1581,7 +1581,7 @@ void WI_Ticker(void)
     {
 	// intermission music
   	if ( gamemode == commercial )
-	  S_ChangeMusic(mus_dm2int, true);
+	  S_ID_Change_D2_IntermissionMusic();
 	// [crispy] Sigil
 	else if (sigil && wbs->epsd == 4 && W_CheckNumForName(DEH_String("D_SIGINT")) != -1)
 	  S_ChangeMusic(mus_sigint, true);
@@ -1589,7 +1589,7 @@ void WI_Ticker(void)
 	else if (sigil2 && wbs->epsd == 5 && W_CheckNumForName(DEH_String("D_SG2INT")) != -1)
 	  S_ChangeMusic(mus_sg2int, true);
 	else
-	  S_ChangeMusic(mus_inter, true); 
+	  S_ID_Change_D1_IntermissionMusic();
     }
 
     WI_checkForAccelerate();

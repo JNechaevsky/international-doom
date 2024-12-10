@@ -134,6 +134,23 @@ musicinfo_t S_music[] =
     MUSIC("read_m"),
     MUSIC("dm2ttl"),
     MUSIC("dm2int"),
+    // [JN] Remastered soundtrack (extras.wad) TNT music names.
+    MUSIC("tnt01"),
+    MUSIC("tnt02"),
+    MUSIC("tnt04"),
+    MUSIC("tnt05"),
+    MUSIC("tnt06"),
+    MUSIC("tnt07"),
+    MUSIC("tnt08"),
+    MUSIC("tnt10"),
+    MUSIC("tnt11"),
+    MUSIC("tnt14"),
+    MUSIC("tnt16"),
+    MUSIC("tnt20"),
+    MUSIC("tnt22"),
+    MUSIC("tnt31"),
+    MUSIC("tntred"),
+    MUSIC("tntttl"),
     MUSIC(NULL),
     MUSIC("musinfo")
 };

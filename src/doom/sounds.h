@@ -135,6 +135,23 @@ typedef enum
     mus_read_m,
     mus_dm2ttl,
     mus_dm2int,
+    // [JN] Remastered soundtrack (extras.wad) TNT music names.
+    mus_tnt01,
+    mus_tnt02,
+    mus_tnt04,
+    mus_tnt05,
+    mus_tnt06,
+    mus_tnt07,
+    mus_tnt08,
+    mus_tnt10,
+    mus_tnt11,
+    mus_tnt14,
+    mus_tnt16,
+    mus_tnt20,
+    mus_tnt22,
+    mus_tnt31,
+    mus_tntred,
+    mus_tntttl,
     NUMMUSIC,
     mus_musinfo
 } musicenum_t;

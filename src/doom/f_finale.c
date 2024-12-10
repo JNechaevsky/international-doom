@@ -139,7 +139,7 @@ void F_StartFinale (void)
     }
     else
     {
-        S_ChangeMusic(mus_read_m, true);
+        S_ID_Change_D2_ReadMusic();
     }
 
     // Find the right screen and set the text and background
@@ -501,6 +501,7 @@ boolean		castattacking;
 void F_StartCast (void)
 {
     wipegamestate = -1;		// force a screen wipe
+    gamestate = GS_THEEND;
     castnum = 0;
     caststate = &states[mobjinfo[castorder[castnum].type].seestate];
     casttics = caststate->tics;
@@ -509,7 +510,7 @@ void F_StartCast (void)
     castframes = 0;
     castonmelee = 0;
     castattacking = false;
-    S_ChangeMusic(mus_evil, true);
+    S_ID_Change_D2_CastMusic();
 }
 
 
@@ -820,6 +821,7 @@ static void F_ArtScreenDrawer(void)
     
     if (gameepisode == 3)
     {
+        gamestate = GS_THEEND;
         F_BunnyScroll();
     }
     else

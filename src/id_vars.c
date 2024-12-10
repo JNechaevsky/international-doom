@@ -79,6 +79,7 @@ int msg_local_time = 0;
 int snd_monosfx = 0;
 int snd_channels = 8;
 int snd_mute_inactive = 0;
+int snd_remaster_ost = 1;
 
 //
 // Control settings
@@ -266,6 +267,10 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("snd_monosfx",                    &snd_monosfx);
     M_BindIntVariable("snd_channels",                   &snd_channels);
     M_BindIntVariable("snd_mute_inactive",              &snd_mute_inactive);
+    if (mission == doom)
+    {
+        M_BindIntVariable("snd_remaster_ost",           &snd_remaster_ost);
+    }
 
     //
     // Control settings

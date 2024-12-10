@@ -117,6 +117,8 @@ boolean sigil = false;
 boolean sigil2 = false;
 // NERVE
 boolean nerve = false;
+// [JN] Remastered soundtrack (extras.wad).
+boolean remaster_ost = false;
 
 // [JN] Check for available SSG from Crispy Doom.
 boolean havessg = false;
@@ -334,6 +336,7 @@ static void D_Display (void)
         break;
 
         case GS_FINALE:
+        case GS_THEEND:
         F_Drawer();
         break;
 
@@ -640,7 +643,7 @@ void D_DoAdvanceDemo (void)
         if (gamemode == commercial)
         {
             pagetic = TICRATE * 11;
-            S_StartMusic(mus_dm2ttl);
+            S_ID_Start_D2_TitleMusic();
         }
         else
         {
@@ -677,7 +680,7 @@ void D_DoAdvanceDemo (void)
         {
             pagetic = TICRATE * 11;
             pagename = DEH_String("TITLEPIC");
-            S_StartMusic(mus_dm2ttl);
+            S_ID_Start_D2_TitleMusic();
         }
         else
         {
@@ -1981,6 +1984,15 @@ void D_DoomMain (void)
                  (W_CheckNumForName("m_epi6") != -1) &&
                  (W_CheckNumForName("e6m1") != -1) &&
                  (W_CheckNumForName("wilv50") != -1);
+    }
+
+    // [JN] Check for remastered soundtrack (extras.wad),
+    // make sure it contains necessary music lumps.
+    {
+        remaster_ost = (W_CheckNumForName("H_INTRO") != -1) &&
+                       (W_CheckNumForName("H_DM2TTL") != -1) &&
+                       (W_CheckNumForName("O_INTRO") != -1) &&
+                       (W_CheckNumForName("O_DM2TTL") != -1);
     }
 
     // Generate the WAD hash table.  Speed things up a bit.

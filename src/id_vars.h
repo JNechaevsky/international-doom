@@ -83,6 +83,7 @@ extern int widget_health;
 extern int snd_monosfx;
 extern int snd_channels;
 extern int snd_mute_inactive;
+extern int snd_remaster_ost;
 
 // Automap
 extern int automap_scheme;

@@ -576,6 +576,7 @@ static void M_ID_SFXMode (int choice);
 static void M_ID_SFXChannels (int choice);
 static void M_ID_MuteInactive (int choice);
 static void M_ID_PitchShift (int choice);
+static void M_ID_RemasterOST (int choice);
 
 static void M_Choose_ID_Controls (int choice);
 static void M_Draw_ID_Controls (void);
@@ -1877,11 +1878,13 @@ static menuitem_t ID_Menu_Sound[]=
     { M_LFRT, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,   'p' },
     { M_LFRT, "NUMBER OF SFX TO MIX", M_ID_SFXChannels,  'n' },
     { M_LFRT, "MUTE INACTIVE WINDOW", M_ID_MuteInactive, 'm' },
+    { M_SKIP, "", 0, '\0' },
+    { M_LFRT, "",                     M_ID_RemasterOST,  'r' }, // PREFFERED SOUNDTRACK
 };
 
 static menu_t ID_Def_Sound =
 {
-    13,
+    15,
     &ID_Def_Main,
     ID_Menu_Sound,
     M_Draw_ID_Sound,
@@ -1951,19 +1954,37 @@ static void M_Draw_ID_Sound (void)
     M_WriteText (M_ItemRightAlign(str), 126, str,
                  M_Item_Glow(12, snd_mute_inactive ? GLOW_GREEN : GLOW_RED));
 
+    M_WriteTextCentered(135, "REMASTERED MUSIC", cr[CR_YELLOW]);
+
+    M_WriteText (ID_MENU_LEFTOFFSET, 144, "PREFERRED SOUNDTRACK",
+                 M_Item_Glow(14, remaster_ost ? GLOW_UNCOLORED : GLOW_DARKRED));
+    // Remastered music
+    sprintf(str, !remaster_ost ? "OFF" :
+                 snd_remaster_ost == 1 ? "REMIX" :
+                 snd_remaster_ost == 2 ? "ORIGINAL" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 144, str,
+                 M_Item_Glow(14, !remaster_ost ? GLOW_DARKRED :
+                                 snd_remaster_ost == 1 ? GLOW_GREEN :
+                                 snd_remaster_ost == 2 ? GLOW_YELLOW : GLOW_RED));
+
     // Inform if FSYNTH/GUS paths anen't set.
     if (itemOn == 8)
     {
         if (snd_musicdevice == 5 && strcmp(gus_patch_path, "") == 0)
         {
-            M_WriteTextCentered(144, "\"GUS_PATCH_PATH\" VARIABLE IS NOT SET", cr[CR_GRAY]);
+            M_WriteTextCentered(153, "\"GUS_PATCH_PATH\" VARIABLE IS NOT SET", cr[CR_GRAY]);
         }
 #ifdef HAVE_FLUIDSYNTH
         if (snd_musicdevice == 11 && strcmp(fsynth_sf_path, "") == 0)
         {
-            M_WriteTextCentered(144, "\"FSYNTH_SF_PATH\" VARIABLE IS NOT SET", cr[CR_GRAY]);
+            M_WriteTextCentered(153, "\"FSYNTH_SF_PATH\" VARIABLE IS NOT SET", cr[CR_GRAY]);
         }
 #endif // HAVE_FLUIDSYNTH
+    }
+    // Inform if remaster soundtrack is not loaded
+    if (itemOn == 14 && !remaster_ost)
+    {
+        M_WriteTextCentered(153, "EXTRAS.WAD FILE NOT LOADED", cr[CR_GRAY]);
     }
 }
 
@@ -2113,6 +2134,19 @@ static void M_ID_SFXChannels (int choice)
 static void M_ID_MuteInactive (int choice)
 {
     snd_mute_inactive ^= 1;
+}
+
+static void M_ID_RemasterOST (int choice)
+{
+    if (!remaster_ost)
+        return;
+
+    snd_remaster_ost = M_INT_Slider(snd_remaster_ost, 0, 2, choice, false);
+
+    // [JN] Forcefully stop current music.
+    S_StopMusic();
+    // [JN] Reinitialize music lump numbers and restart current music.
+    S_Start();
 }
 
 // -----------------------------------------------------------------------------
@@ -4624,6 +4658,7 @@ static void M_ID_ApplyResetHook (void)
     snd_pitchshift = 0;
     snd_channels = 8;
     snd_mute_inactive = 0;
+    snd_remaster_ost = 1;
 
     //
     // Widgets and automap

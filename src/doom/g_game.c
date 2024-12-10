@@ -1609,6 +1609,7 @@ void G_Ticker (void)
 	break; 
 			 
       case GS_FINALE: 
+      case GS_THEEND:
 	F_Ticker (); 
 	break; 
  

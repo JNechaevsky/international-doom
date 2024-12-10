@@ -93,5 +93,15 @@ extern int current_mus_num;
 // [JN] jff 3/17/98 holds last IDMUS number, or -1
 extern int idmusnum;
 
+// [JN] Remastered soundtrack (extras.wad).
+extern void S_ID_Change_D1_IntermissionMusic (void);
+extern void S_ID_Start_D2_TitleMusic (void);
+extern void S_ID_Change_D2_IntermissionMusic (void);
+extern void S_ID_Change_D2_ReadMusic (void);
+extern void S_ID_Change_D2_CastMusic (void);
+extern int  S_ID_Set_D1_RemasteredMusic (void);
+extern int  S_ID_Set_D2_RemasteredMusic (void);
+extern void S_ID_Generate_MusicName (char *namebuf, size_t bufsize, musicinfo_t *music);
+
 #endif
 

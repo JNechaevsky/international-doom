@@ -222,6 +222,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(snd_pitchshift),
     CONFIG_VARIABLE_INT(snd_channels),
     CONFIG_VARIABLE_INT(snd_mute_inactive),
+    CONFIG_VARIABLE_INT(snd_remaster_ost),
 #ifdef HAVE_FLUIDSYNTH
     CONFIG_VARIABLE_INT(fsynth_chorus_active),
     CONFIG_VARIABLE_FLOAT(fsynth_chorus_depth),
