@@ -310,6 +310,12 @@ void S_Start(void)
     else
     if (gamemode == commercial)
     {
+      if (remaster_ost)
+      {
+          mnum = S_ID_Set_D2_RemasteredMusic();
+      }
+      else
+      {
         if (nerve && gamemap <= 9)
         {
             const int nmus[] =
@@ -329,11 +335,9 @@ void S_Start(void)
         }
         else
         {
-            if (remaster_ost)
-            mnum = S_ID_Set_D2_RemasteredMusic();
-            else
             mnum = mus_runnin + gamemap - 1;
         }
+      }
     }
     else
     {
@@ -1053,6 +1057,11 @@ int S_ID_Set_D2_RemasteredMusic (void)
             mus_countd, mus_ddtblu, mus_ampie, mus_the_da, mus_adrian, mus_messag, mus_romero, mus_tense, mus_shawn, mus_openin,
             mus_evil, mus_ultima
         };
+        static const int remaster_nerve[9] =
+        {
+            mus_messag, mus_ddtblu, mus_doom, mus_shawn, mus_in_cit,
+            mus_the_da, mus_in_cit, mus_shawn, mus_ddtblu,
+        };
 
         switch (gamestate)
         {
@@ -1061,7 +1070,14 @@ int S_ID_Set_D2_RemasteredMusic (void)
             case GS_FINALE:        mnum = mus_read_m; break;
             case GS_THEEND:        mnum = mus_evil;   break;
             default:
-                mnum = remaster_d2[gamemap - 1];
+                if (nerve && gamemap <= 9)
+                {
+                    mnum = remaster_nerve[gamemap - 1];
+                }
+                else
+                {
+                    mnum = remaster_d2[gamemap - 1];
+                }
                 break;
         }
     }
