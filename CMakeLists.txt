@@ -68,9 +68,9 @@ include(CMakeDependentOption) # Note: replace first ON to OFF to disable.
 cmake_dependent_option(ENABLE_LTO "Use link-time optimization" ON "HAVE_LTO" OFF)
 
 if(ENABLE_LTO)
-    message(STATUS "LTO is ENABLED")
+    message(STATUS "LTO - enabled")
 else()
-    message(STATUS "LTO is DISABLED")
+    message(STATUS "LTO - disabled")
 endif()
 
 # Enable ASan (AddressSanitizer).
