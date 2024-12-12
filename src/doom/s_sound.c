@@ -1059,8 +1059,16 @@ int S_ID_Set_D2_RemasteredMusic (void)
         };
         static const int remaster_nerve[9] =
         {
+            // Nerve.wad - use same track/lump names for remastered music.
             mus_messag, mus_ddtblu, mus_doom, mus_shawn, mus_in_cit,
             mus_the_da, mus_in_cit, mus_shawn, mus_ddtblu,
+        };
+        static const int original_nerve[9] =
+        {
+            // Nerve.wad - use unique track/lump names for original music,
+            // in case of possible usage of music pack.
+            mus_messag, mus_ddtblu, mus_doom, mus_shawn, mus_in_cit,
+            mus_the_da, mus_in_cit, mus_shawn2, mus_ddtbl2,
         };
 
         switch (gamestate)
@@ -1072,11 +1080,11 @@ int S_ID_Set_D2_RemasteredMusic (void)
             default:
                 if (nerve && gamemap <= 9)
                 {
-                    mnum = remaster_nerve[gamemap - 1];
+                    mnum = snd_remaster_ost ? remaster_nerve[gamemap - 1] : original_nerve[gamemap - 1];
                 }
                 else
                 {
-                    mnum = remaster_d2[gamemap - 1];
+                    mnum = snd_remaster_ost ? remaster_d2[gamemap - 1] : mus_runnin + gamemap - 1;
                 }
                 break;
         }
