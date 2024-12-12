@@ -979,6 +979,8 @@ void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest)
 
 // [crispy] Unified function of flat filling. Used for intermission
 // and finale screens, view border and status bar's wide screen mode.
+// [PN] Optimized by precomputing the y-offset outside the inner loop 
+// to reduce redundant calculations and improve performance.
 void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
                 const byte *src, pixel_t *dest)
 {
@@ -986,18 +988,19 @@ void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
 
     for (y = y_start; y < y_stop; y++)
     {
+        const int y_off = ((y / vid_resolution) & 63) * 64;
         for (x = x_start; x < x_stop; x++)
         {
+            const int idx = y_off + ((x / vid_resolution) & 63);
 #ifndef CRISPY_TRUECOLOR
-            *dest++ = src[(((y / vid_resolution) & 63) * 64)
-                         + ((x / vid_resolution) & 63)];
+            *dest++ = src[idx];
 #else
-            *dest++ = pal_color[src[(((y / vid_resolution) & 63) * 64)
-                                   + ((x / vid_resolution) & 63)]];
+            *dest++ = pal_color[src[idx]];
 #endif
         }
     }
 }
+
 
 //
 // V_Init
