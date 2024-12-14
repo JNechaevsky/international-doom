@@ -848,7 +848,7 @@ void R_InitTrueColormaps(char *current_colormap)
 
 	W_ReleaseLumpName("PLAYPAL");
 
-	// [JN] Recalculate shadow intensity for shadowed patches based on contrast.
+	// [JN] Recalculate shadow alpha value for shadowed patches based on contrast.
 	// 0xA0 (160) represents 62.75% darkening. Ensure the result stays within 0-255.
 	shadow_alpha = (uint8_t)BETWEEN(0, 255 - (32 * vid_contrast), 0xA0 / vid_contrast);
 }

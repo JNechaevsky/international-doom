@@ -117,8 +117,10 @@ const uint32_t I_BlendOver (const uint32_t bg_i, const uint32_t fg_i, const int 
 }
 */
 
-// [JN] Shadow intensity for shadowed patches based on contrast.
+// [JN] Shadow alpha value for shadowed patches, and fuzz
+// alpha value for fuzz effect drawing based on contrast.
 uint8_t shadow_alpha;
+uint8_t fuzz_alpha;
 
 // [JN] Shade factor used for menu and automap background shading.
 const int I_ShadeFactor[] =

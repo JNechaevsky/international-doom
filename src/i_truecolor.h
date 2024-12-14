@@ -40,6 +40,7 @@ typedef union
 
 extern uint8_t **additive_lut;
 extern uint8_t   shadow_alpha;
+extern uint8_t   fuzz_alpha;
 
 extern void I_InitTCTransMaps (void);
 
@@ -53,7 +54,6 @@ extern const double colorblind_matrix[][3][3];
 
 // Doom:
 #define TRANMAP_ALPHA       0xA8  // 168 (66% opacity)
-#define FUZZ_ALPHA          0xD3  // 211 (17% darkening)
 #define FUZZTL_ALPHA        0x40  //  64 (25% opacity)
 
 // Heretic and Hexen:
