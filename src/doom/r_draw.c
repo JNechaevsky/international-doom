@@ -338,6 +338,7 @@ void R_DrawFuzzColumn(void)
     int i;
     const int *fuzzoffsetbase; // [PN] local pointer to fuzzoffset
     int local_fuzzpos = fuzzpos; // [PN] local copy of fuzzpos for potential optimization
+    const int fuzzalpha = fuzz_alpha; // [JN] local copy of fuzz alpha value for potential optimization
 
     // [PN] Adjust borders
     if (!dc_yl)
@@ -368,7 +369,7 @@ void R_DrawFuzzColumn(void)
         {
             int fuzz_offset = SCREENWIDTH * fuzzoffsetbase[local_fuzzpos];
 
-            *dest = I_BlendDark(dest[fuzz_offset], fuzz_alpha);
+            *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
 
             // [PN] Update fuzzpos
             local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
@@ -386,7 +387,7 @@ void R_DrawFuzzColumn(void)
     {
         int fuzz_offset = SCREENWIDTH * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
 
-        *dest = I_BlendDark(dest[fuzz_offset], fuzz_alpha);
+        *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
     }
 
     // [PN] restore fuzzpos
@@ -411,6 +412,7 @@ void R_DrawFuzzColumnLow(void)
     int i;
     const int *fuzzoffsetbase;
     int local_fuzzpos = fuzzpos; // [PN] local copy for optimization
+    const int fuzzalpha = fuzz_alpha; // [JN] local copy for optimization
 
     // [PN] Adjust borders
     if (!dc_yl)
@@ -441,8 +443,8 @@ void R_DrawFuzzColumnLow(void)
         {
             int fuzz_offset = SCREENWIDTH * fuzzoffsetbase[local_fuzzpos];
 
-            *dest = I_BlendDark(dest[fuzz_offset], fuzz_alpha);
-            *dest2 = I_BlendDark(dest2[fuzz_offset], fuzz_alpha);
+            *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
+            *dest2 = I_BlendDark(dest2[fuzz_offset], fuzzalpha);
 
             // [PN] Update fuzzpos
             local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
@@ -461,8 +463,8 @@ void R_DrawFuzzColumnLow(void)
     {
         int fuzz_offset = SCREENWIDTH * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
 
-        *dest = I_BlendDark(dest[fuzz_offset], fuzz_alpha);
-        *dest2 = I_BlendDark(dest2[fuzz_offset], fuzz_alpha);
+        *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
+        *dest2 = I_BlendDark(dest2[fuzz_offset], fuzzalpha);
     }
 
     // [PN] Restore fuzzpos
@@ -574,6 +576,7 @@ void R_DrawFuzzBWColumn(void)
     int i;
     const int *fuzzoffsetbase;
     int local_fuzzpos = fuzzpos; // [PN] local copy of fuzzpos
+    const int fuzzalpha = fuzz_alpha; // [JN] local copy of fuzz alpha value
 
     // [PN] Adjust borders
     if (!dc_yl)
@@ -601,7 +604,7 @@ void R_DrawFuzzBWColumn(void)
         {
             int fuzz_offset = SCREENWIDTH * fuzzoffsetbase[local_fuzzpos];
 
-            *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzz_alpha);
+            *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
 
             // [PN] Update fuzzpos
             local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
@@ -614,7 +617,7 @@ void R_DrawFuzzBWColumn(void)
     if (cutoff)
     {
         int fuzz_offset = SCREENWIDTH * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzz_alpha);
+        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
     }
 
     // [PN] Restore fuzzpos
@@ -635,6 +638,7 @@ void R_DrawFuzzBWColumnLow(void)
     int i;
     const int *fuzzoffsetbase;
     int local_fuzzpos = fuzzpos; // [PN] local copy of fuzzpos
+    const int fuzzalpha = fuzz_alpha; // [JN] local copy of fuzz alpha value
 
     // [PN] Adjust borders
     if (!dc_yl)
@@ -665,8 +669,8 @@ void R_DrawFuzzBWColumnLow(void)
         {
             int fuzz_offset = SCREENWIDTH * fuzzoffsetbase[local_fuzzpos];
 
-            *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzz_alpha);
-            *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzz_alpha);
+            *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
+            *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha);
 
             // [PN] Update fuzzpos
             local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
@@ -681,8 +685,8 @@ void R_DrawFuzzBWColumnLow(void)
     {
         int fuzz_offset = SCREENWIDTH * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
 
-        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzz_alpha);
-        *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzz_alpha);
+        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
+        *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha);
     }
 
     // [PN] Restore fuzzpos
