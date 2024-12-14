@@ -117,6 +117,9 @@ const uint32_t I_BlendOver (const uint32_t bg_i, const uint32_t fg_i, const int 
 }
 */
 
+// [JN] Shadow intensity for shadowed patches based on contrast.
+uint8_t shadow_alpha;
+
 // [JN] Shade factor used for menu and automap background shading.
 const int I_ShadeFactor[] =
 {

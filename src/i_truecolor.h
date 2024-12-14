@@ -39,6 +39,7 @@ typedef union
 } tcpixel_t;
 
 extern uint8_t **additive_lut;
+extern uint8_t   shadow_alpha;
 
 extern void I_InitTCTransMaps (void);
 
