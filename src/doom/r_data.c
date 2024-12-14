@@ -1338,7 +1338,7 @@ void R_InitColormaps (void)
 	// 0x80 (128) represents 50% darkening, 0xD3 (211) represents 17% darkening.
 	// Ensure the result stays within 0-255.
 	shadow_alpha = (uint8_t)BETWEEN(0, 255 - (32 * vid_contrast), 0x80 / vid_contrast);
-	fuzz_alpha = (uint8_t)BETWEEN(0, 255 - (32 * vid_contrast), 0xD3 / vid_contrast);
+	fuzz_alpha = (uint8_t)BETWEEN(0, 255 - (8 * vid_contrast), 0xD3 / vid_contrast);
 #endif
 }
 
