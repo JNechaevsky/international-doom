@@ -3,10 +3,10 @@ name: Build-Static-Win64-and-Linux-AppImage
 on:
   push:
     branches:
-      - linux
+      - main
   pull_request:
     branches:
-      - linux
+      - main
 
 jobs:
   build-windows:
