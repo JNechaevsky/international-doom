@@ -6726,7 +6726,10 @@ void M_Drawer (void)
     }
 
     if (!menuactive)
+    {
+	menu_mouse_allow = false;  // [JN] Disallow cursor if menu is not active.
 	return;
+    }
 
     if (currentMenu->routine)
 	currentMenu->routine();         // call Draw routine
