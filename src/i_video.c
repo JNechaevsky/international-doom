@@ -132,6 +132,12 @@ static boolean initialized = false;
 static boolean nomouse = false;
 int usemouse = 1;
 
+// [JN/PN] Mouse coordinates for menu control.
+
+int menu_mouse_x;
+int menu_mouse_y;
+boolean menu_mouse_allow;
+
 // SDL video driver name
 
 char *vid_video_driver = "";
@@ -283,7 +289,8 @@ static boolean MouseShouldBeGrabbed(void)
     // always grab the mouse when full screen (dont want to 
     // see the mouse pointer)
 
-    if (vid_fullscreen)
+    // [JN] grab mouse if not in menu control by mouse mode
+    if (!menu_mouse_allow)
         return true;
 
     // Don't grab the mouse if mouse input is disabled
@@ -586,6 +593,14 @@ void I_GetEvent(void)
 		I_HandleKeyboardEvent(&sdlevent);
                 break;
 
+            case SDL_MOUSEMOTION:
+                // [PN] Get mouse coordinates for menu control
+                menu_mouse_x = sdlevent.motion.x;
+                menu_mouse_y = (int)(sdlevent.motion.y / 1.2);  // [JN] Aspect ratio correction...
+                // [JN] Mouse movement allows menu control.
+                menu_mouse_allow = true;
+                break;
+
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
             case SDL_MOUSEWHEEL:
@@ -687,7 +702,10 @@ static void UpdateGrab(void)
         // example.
 
         SDL_GetWindowSize(screen, &screen_w, &screen_h);
-        SDL_WarpMouseInWindow(screen, screen_w - 16, screen_h - 16);
+        // SDL_WarpMouseInWindow(screen, screen_w - 16, screen_h - 16);
+        // [JN] TODO - remember cursor position.
+        SDL_WarpMouseInWindow(screen, (int)(screen_w / 1.3), (int)(screen_h / 1.3));
+        
         SDL_GetRelativeMouseState(NULL, NULL);
     }
 

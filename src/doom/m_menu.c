@@ -4976,6 +4976,8 @@ static void M_DrawSave(void)
 	i = M_StringWidth(savegamestrings[saveSlot]);
 	// [JN] Highlight "_" cursor, line is always active while typing.
 	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", M_SaveLoad_Glow(0, 0, saveload_cursor));
+	// [JN] Disable mouse cursor while typing.
+	menu_mouse_allow = false;
     }
 
     M_DrawSaveLoadBottomLine();
@@ -6052,18 +6054,39 @@ boolean M_Responder (event_t* ev)
 		mousewait = I_GetTime() + 5;
 	    }
 
-	    // [crispy] scroll menus with mouse wheel
-	    // [JN] Hardcoded to always use mouse wheel up/down.
+	    // [JN] Handle mouse wheel actions.
 	    if (/*mousebprevweapon >= 0 &&*/ ev->data1 & (1 << 4 /*mousebprevweapon*/))
 	    {
-		key = key_menu_down;
-		mousewait = I_GetTime() + 1;
+            if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+            {
+                // Scroll save/load pages forward
+                M_ScrollPages(1);
+            }
+            else
+            if (currentMenu->menuitems[itemOn].status == 2)
+            {
+                // Scroll menu item forward
+                currentMenu->menuitems[itemOn].routine(0);
+                S_StartSound(NULL,sfx_stnmov);
+            }
+            mousewait = I_GetTime() + 0;
 	    }
 	    else
 	    if (/*mousebnextweapon >= 0 &&*/ ev->data1 & (1 << 3 /*mousebnextweapon*/))
 	    {
-		key = key_menu_up;
-		mousewait = I_GetTime() + 1;
+            if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+            {
+                // Scroll save/load pages backward
+                M_ScrollPages(0);
+            }
+            else
+            if (currentMenu->menuitems[itemOn].status == 2)
+            {
+                // Scroll menu item backward
+                currentMenu->menuitems[itemOn].routine(1);
+                S_StartSound(NULL,sfx_stnmov);
+            }
+            mousewait = I_GetTime() + 0;
 	    }
 	}
 	else
@@ -6402,6 +6425,7 @@ boolean M_Responder (event_t* ev)
         } while (currentMenu->menuitems[itemOn].status == -1);
 
         S_StartSound(NULL, sfx_pstop);
+        menu_mouse_allow = false;  // [JN] Hide mouse cursor.
         return true;
     }
     else if (key == key_menu_up)
@@ -6413,6 +6437,7 @@ boolean M_Responder (event_t* ev)
         } while (currentMenu->menuitems[itemOn].status == -1);
 
         S_StartSound(NULL, sfx_pstop);
+        menu_mouse_allow = false;  // [JN] Hide mouse cursor.
         return true;
     }
     else if (key == key_menu_left)
@@ -6598,9 +6623,33 @@ void M_StartControlPanel (void)
 	return;
     
     menuactive = 1;
+    menu_mouse_allow = true;        // [JN] Show cursor on opening menu.
     currentMenu = &MainDef;         // JDC
     M_Reset_Line_Glow();
     itemOn = currentMenu->lastOn;   // JDC
+}
+
+static void M_ID_MenuMouseControl (void)
+{
+    // [JN] Which line height should be used?
+    const int line_height = currentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : LINEHEIGHT;
+
+    // [JN] If cursor not allowed/hidden, do not proceed with hovering.
+    if (!menu_mouse_allow)
+        return;
+
+    // [PN] Check if the cursor is hovering over a menu item
+    for (int i = 0; i < currentMenu->numitems; i++)
+    {
+        if (menu_mouse_x >= currentMenu->x * vid_resolution + WIDESCREENDELTA
+        &&  menu_mouse_x <= SCREENWIDTH - currentMenu->x * vid_resolution - WIDESCREENDELTA
+        &&  menu_mouse_y >= (currentMenu->y + i * line_height) * vid_resolution
+        &&  menu_mouse_y <= (currentMenu->y + (i + 1) * line_height) * vid_resolution
+        &&  currentMenu->menuitems[i].status != -1)
+        {
+            itemOn = i; // [PN] Highlight the current menu item
+        }
+    }
 }
 
 //
@@ -6719,6 +6768,9 @@ void M_Drawer (void)
             y += LINEHEIGHT;
         }
     }
+
+    // [JN] Call menu control by mouse routine.
+    M_ID_MenuMouseControl();
 }
 
 
@@ -6728,6 +6780,7 @@ void M_Drawer (void)
 static void M_ClearMenus (void)
 {
     menuactive = 0;
+    menu_mouse_allow = false;  // [JN] Hide cursor on closing menu.
 }
 
 
