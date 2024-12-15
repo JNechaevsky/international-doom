@@ -63,8 +63,11 @@ jobs:
           path: build_vs_64/src/Release/*.exe
           retention-days: 90
 
-  build-doom-linux:
+  build-linux:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        game: [doom, heretic, hexen]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -93,14 +96,14 @@ jobs:
       - name: Add desktop file and icon
         run: |
           mkdir -p appdir/usr/share/applications
-          cp data/doom.desktop appdir/usr/share/applications/inter-doom.desktop
+          cp data/${{ matrix.game }}.desktop appdir/usr/share/applications/inter-${{ matrix.game }}.desktop
           mkdir -p appdir/usr/share/icons/hicolor/128x128/apps
-          cp data/doom.png appdir/usr/share/icons/hicolor/128x128/apps/inter-doom.png
+          cp data/${{ matrix.game }}.png appdir/usr/share/icons/hicolor/128x128/apps/inter-${{ matrix.game }}.png
 
       - name: Add executable to AppDir
         run: |
           mkdir -p appdir/usr/bin
-          cp build_linux/src/inter-doom appdir/usr/bin/
+          cp build_linux/src/inter-${{ matrix.game }} appdir/usr/bin/
 
       - name: Package as AppImage
         run: |
@@ -113,114 +116,6 @@ jobs:
       - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
-          name: inter-doom-dev-linux64
-          path: "**/*.AppImage"
-          retention-days: 90
-
-  build-heretic-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake g++ fuse patchelf \
-            libsdl2-dev libsdl2-mixer-dev libsdl2-net-dev \
-            libsamplerate0-dev libfluidsynth-dev \
-            libflac-dev libmodplug-dev libmpg123-dev libopusfile-dev \
-            libx11-dev libxext-dev libxrender-dev libxrandr-dev \
-            libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
-
-      - name: Install linuxdeploy and plugin
-        run: |
-          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage
-          chmod +x linuxdeploy*.AppImage
-
-      - name: Build the project
-        run: |
-          cmake -B build_linux -S . -DCMAKE_BUILD_TYPE=Release
-          cmake --build build_linux --config Release
-
-      - name: Add desktop file and icon
-        run: |
-          mkdir -p appdir/usr/share/applications
-          cp data/heretic.desktop appdir/usr/share/applications/inter-heretic.desktop
-          mkdir -p appdir/usr/share/icons/hicolor/128x128/apps
-          cp data/heretic.png appdir/usr/share/icons/hicolor/128x128/apps/inter-heretic.png
-
-      - name: Add executable to AppDir
-        run: |
-          mkdir -p appdir/usr/bin
-          cp build_linux/src/inter-heretic appdir/usr/bin/
-
-      - name: Package as AppImage
-        run: |
-          ./linuxdeploy-x86_64.AppImage --appdir=appdir --output appimage
-
-      - name: Clean up unnecessary files
-        run: |
-          rm -f linuxdeploy*.AppImage
-
-      - name: Upload AppImage
-        uses: actions/upload-artifact@v4
-        with:
-          name: inter-heretic-dev-linux64
-          path: "**/*.AppImage"
-          retention-days: 90
-
-  build-hexen-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake g++ fuse patchelf \
-            libsdl2-dev libsdl2-mixer-dev libsdl2-net-dev \
-            libsamplerate0-dev libfluidsynth-dev \
-            libflac-dev libmodplug-dev libmpg123-dev libopusfile-dev \
-            libx11-dev libxext-dev libxrender-dev libxrandr-dev \
-            libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
-
-      - name: Install linuxdeploy and plugin
-        run: |
-          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage
-          chmod +x linuxdeploy*.AppImage
-
-      - name: Build the project
-        run: |
-          cmake -B build_linux -S . -DCMAKE_BUILD_TYPE=Release
-          cmake --build build_linux --config Release
-
-      - name: Add desktop file and icon
-        run: |
-          mkdir -p appdir/usr/share/applications
-          cp data/hexen.desktop appdir/usr/share/applications/inter-hexen.desktop
-          mkdir -p appdir/usr/share/icons/hicolor/128x128/apps
-          cp data/hexen.png appdir/usr/share/icons/hicolor/128x128/apps/inter-hexen.png
-
-      - name: Add executable to AppDir
-        run: |
-          mkdir -p appdir/usr/bin
-          cp build_linux/src/inter-hexen appdir/usr/bin/
-
-      - name: Package as AppImage
-        run: |
-          ./linuxdeploy-x86_64.AppImage --appdir=appdir --output appimage
-
-      - name: Clean up unnecessary files
-        run: |
-          rm -f linuxdeploy*.AppImage
-
-      - name: Upload AppImage
-        uses: actions/upload-artifact@v4
-        with:
-          name: inter-hexen-dev-linux64
+          name: inter-${{ matrix.game }}-dev-linux64
           path: "**/*.AppImage"
           retention-days: 90
