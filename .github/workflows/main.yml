@@ -63,7 +63,7 @@ jobs:
           path: build_vs_64/src/Release/*.exe
           retention-days: 90
 
-  build-linux:
+  build-doom-linux:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -114,5 +114,113 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: inter-doom-dev-linux64
+          path: "**/*.AppImage"
+          retention-days: 90
+
+  build-heretic-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ fuse patchelf \
+            libsdl2-dev libsdl2-mixer-dev libsdl2-net-dev \
+            libsamplerate0-dev libfluidsynth-dev \
+            libflac-dev libmodplug-dev libmpg123-dev libopusfile-dev \
+            libx11-dev libxext-dev libxrender-dev libxrandr-dev \
+            libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+
+      - name: Install linuxdeploy and plugin
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage
+          chmod +x linuxdeploy*.AppImage
+
+      - name: Build the project
+        run: |
+          cmake -B build_linux -S . -DCMAKE_BUILD_TYPE=Release
+          cmake --build build_linux --config Release
+
+      - name: Add desktop file and icon
+        run: |
+          mkdir -p appdir/usr/share/applications
+          cp data/heretic.desktop appdir/usr/share/applications/inter-heretic.desktop
+          mkdir -p appdir/usr/share/icons/hicolor/128x128/apps
+          cp data/heretic.png appdir/usr/share/icons/hicolor/128x128/apps/inter-heretic.png
+
+      - name: Add executable to AppDir
+        run: |
+          mkdir -p appdir/usr/bin
+          cp build_linux/src/inter-heretic appdir/usr/bin/
+
+      - name: Package as AppImage
+        run: |
+          ./linuxdeploy-x86_64.AppImage --appdir=appdir --output appimage
+
+      - name: Clean up unnecessary files
+        run: |
+          rm -f linuxdeploy*.AppImage
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: inter-heretic-dev-linux64
+          path: "**/*.AppImage"
+          retention-days: 90
+
+  build-hexen-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ fuse patchelf \
+            libsdl2-dev libsdl2-mixer-dev libsdl2-net-dev \
+            libsamplerate0-dev libfluidsynth-dev \
+            libflac-dev libmodplug-dev libmpg123-dev libopusfile-dev \
+            libx11-dev libxext-dev libxrender-dev libxrandr-dev \
+            libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+
+      - name: Install linuxdeploy and plugin
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage
+          chmod +x linuxdeploy*.AppImage
+
+      - name: Build the project
+        run: |
+          cmake -B build_linux -S . -DCMAKE_BUILD_TYPE=Release
+          cmake --build build_linux --config Release
+
+      - name: Add desktop file and icon
+        run: |
+          mkdir -p appdir/usr/share/applications
+          cp data/hexen.desktop appdir/usr/share/applications/inter-hexen.desktop
+          mkdir -p appdir/usr/share/icons/hicolor/128x128/apps
+          cp data/hexen.png appdir/usr/share/icons/hicolor/128x128/apps/inter-hexen.png
+
+      - name: Add executable to AppDir
+        run: |
+          mkdir -p appdir/usr/bin
+          cp build_linux/src/inter-hexen appdir/usr/bin/
+
+      - name: Package as AppImage
+        run: |
+          ./linuxdeploy-x86_64.AppImage --appdir=appdir --output appimage
+
+      - name: Clean up unnecessary files
+        run: |
+          rm -f linuxdeploy*.AppImage
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: inter-hexen-dev-linux64
           path: "**/*.AppImage"
           retention-days: 90
