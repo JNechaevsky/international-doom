@@ -3,10 +3,10 @@ name: Build-Static-Win64-and-Linux-AppImage
 on:
   push:
     branches:
-      - linux
+      - main
   pull_request:
     branches:
-      - linux
+      - main
 
 jobs:
   build-windows:
@@ -63,7 +63,7 @@ jobs:
           path: build_vs_64/src/Release/*.exe
           retention-days: 90
 
-  build-doom-linux:
+  build-linux:
     runs-on: ubuntu-latest
     strategy:
       matrix:
