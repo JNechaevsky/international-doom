@@ -6641,8 +6641,8 @@ static void M_ID_MenuMouseControl (void)
     // [PN] Check if the cursor is hovering over a menu item
     for (int i = 0; i < currentMenu->numitems; i++)
     {
-        if (menu_mouse_x >= currentMenu->x * vid_resolution + WIDESCREENDELTA
-        &&  menu_mouse_x <= SCREENWIDTH - currentMenu->x * vid_resolution - WIDESCREENDELTA
+        if (menu_mouse_x >= (currentMenu->x + WIDESCREENDELTA) * vid_resolution
+        &&  menu_mouse_x <= (ORIGWIDTH + WIDESCREENDELTA - currentMenu->x) * vid_resolution
         &&  menu_mouse_y >= (currentMenu->y + i * line_height) * vid_resolution
         &&  menu_mouse_y <= (currentMenu->y + (i + 1) * line_height) * vid_resolution
         &&  currentMenu->menuitems[i].status != -1)
