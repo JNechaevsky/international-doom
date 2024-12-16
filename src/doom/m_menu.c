@@ -6046,6 +6046,7 @@ boolean M_Responder (event_t* ev)
 		{
 		key = key_menu_abort;
 		saveStringEnter = 0;
+		M_ReadSaveStrings();  // [JN] Reread save strings after cancelation.
 		}
 		else
 		{
@@ -6057,34 +6058,33 @@ boolean M_Responder (event_t* ev)
 	    // [JN] Handle mouse wheel actions.
 	    if (/*mousebprevweapon >= 0 &&*/ ev->data1 & (1 << 4 /*mousebprevweapon*/))
 	    {
-            if (currentMenu == &LoadDef || currentMenu == &SaveDef)
-            {
-                // Scroll save/load pages forward
-                M_ScrollPages(1);
-            }
-            else
             if (currentMenu->menuitems[itemOn].status == 2)
             {
                 // Scroll menu item forward
                 currentMenu->menuitems[itemOn].routine(0);
                 S_StartSound(NULL,sfx_stnmov);
             }
+            else
+            if (menuactive && currentMenu->ScrollAR && !saveStringEnter)
+            {
+                M_ScrollPages(1);
+            }
             mousewait = I_GetTime() + 0;
 	    }
 	    else
 	    if (/*mousebnextweapon >= 0 &&*/ ev->data1 & (1 << 3 /*mousebnextweapon*/))
 	    {
-            if (currentMenu == &LoadDef || currentMenu == &SaveDef)
-            {
-                // Scroll save/load pages backward
-                M_ScrollPages(0);
-            }
-            else
             if (currentMenu->menuitems[itemOn].status == 2)
             {
                 // Scroll menu item backward
                 currentMenu->menuitems[itemOn].routine(1);
                 S_StartSound(NULL,sfx_stnmov);
+            }
+            else
+            if (menuactive && currentMenu->ScrollAR && !saveStringEnter)
+            {
+                M_ScrollPages(0);
+                
             }
             mousewait = I_GetTime() + 0;
 	    }
