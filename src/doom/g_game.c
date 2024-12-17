@@ -1314,6 +1314,10 @@ boolean G_Responder (event_t* ev)
 	return false;   // always let key up events filter down 
 		 
       case ev_mouse: 
+        // [JN] Supress mouse button press for next tic after closing game menu.
+        // Primary will prevent player from firing a weapon while LMB is held
+        // and mouse is moved after game loading.
+        if (mousewait < I_GetTime())
         SetMouseButtons(ev->data1);
         mousex += ev->data2;
         mousey += ev->data3;

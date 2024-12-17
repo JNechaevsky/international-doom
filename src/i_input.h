@@ -36,6 +36,7 @@ extern int mouse_threshold_y; // [crispy]
 extern int mouse_y_invert; // [crispy]
 extern int mouse_novert; // [crispy]
 extern int SDL_mouseButton; // [JN] Catch mouse button number to provide into mouse binding menu.
+extern int mousewait;
 
 // [crispy]
 double I_AccelerateMouse(int val);
