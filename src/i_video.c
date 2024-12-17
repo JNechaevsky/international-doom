@@ -1718,7 +1718,10 @@ static void SetVideoMode(void)
             SDL_GetError());
         }
 
-        SDL_SetWindowMinimumSize(screen, SCREENWIDTH, actualheight);
+        // [JN] Always enable resolution-independent minimal window size
+        // and do not increase minimal window size with higher resolutions.
+        SDL_SetWindowMinimumSize(screen, SCREENWIDTH / vid_resolution,
+                                         actualheight / vid_resolution);
 
         I_InitWindowTitle();
         I_InitWindowIcon();
