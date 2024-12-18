@@ -5842,6 +5842,7 @@ boolean M_Responder (event_t* ev)
     int             ch;
     int             key;
     int             i;
+    static  int     mousewait = 0;
     static  int     mousey = 0;
     static  int     lasty = 0;
     // [JN] Disable menu left/right controls by mouse movement.

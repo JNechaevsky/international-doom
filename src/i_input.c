@@ -36,10 +36,6 @@
 // [JN] Catch mouse button number to provide into mouse binding menu.
 int SDL_mouseButton;
 
-// [JN] Externalized from game menu, will prevent mouse keypress
-// for next tic after game is loaded by left mouse button.
-int mousewait;
-
 static const int scancode_translate_table[] = SCANCODE_TO_KEYS_ARRAY;
 
 // Lookup table for mapping ASCII characters to their equivalent when
