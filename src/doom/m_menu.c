@@ -6026,6 +6026,11 @@ boolean M_Responder (event_t* ev)
 
 	    if (ev->data1&1)
 	    {
+		if (!menuactive && !usergame)
+		{
+		M_StartControlPanel(); // [JN] If not playing, invoke main menu.
+		}
+		else
 		if (messageToPrint && messageNeedsInput)
 		{
 		key = key_menu_confirm;  // [JN] Confirm by left mouse button.
@@ -6034,11 +6039,16 @@ boolean M_Responder (event_t* ev)
 		{
 		key = key_menu_forward;
 		}
-		mousewait = I_GetTime() + 5;
+		mousewait = I_GetTime() + 1;
 	    }
 			
 	    if (ev->data1&2)
 	    {
+		if (!menuactive && !usergame)
+		{
+		M_StartControlPanel(); // [JN] If not playing, invoke main menu.
+		}
+		else
 		if (messageToPrint && messageNeedsInput)
 		{
 		key = key_menu_abort;  // [JN] Cancel by right mouse button.
@@ -6054,7 +6064,7 @@ boolean M_Responder (event_t* ev)
 		{
 		key = key_menu_back;
 		}
-		mousewait = I_GetTime() + 5;
+		mousewait = I_GetTime() + 1;
 	    }
 
 	    // [JN] Handle mouse wheel actions.
@@ -6625,10 +6635,10 @@ void M_StartControlPanel (void)
 	return;
     
     menuactive = 1;
-    menu_mouse_allow = true;        // [JN] Show cursor on opening menu.
     currentMenu = &MainDef;         // JDC
     M_Reset_Line_Glow();
     itemOn = currentMenu->lastOn;   // JDC
+    menu_mouse_allow = true;        // [JN] Show cursor on opening menu.
 }
 
 static void M_ID_MenuMouseControl (void)
