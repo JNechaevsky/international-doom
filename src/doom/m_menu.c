@@ -1459,6 +1459,8 @@ static void M_ID_RenderingResHook (void)
     {
         AM_Start();
     }
+    // [JN] re-initialize mouse cursor position
+    I_ReInitCursorPosition();
 }
 
 static void M_ID_RenderingRes (int choice)

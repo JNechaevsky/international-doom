@@ -600,7 +600,7 @@ void I_GetEvent(void)
                 {
                     // [PN] Get mouse coordinates for menu control
                     menu_mouse_x = sdlevent.motion.x;
-                    menu_mouse_y = (int)(sdlevent.motion.y / 1.2);  // [JN] Aspect ratio correction...
+                    menu_mouse_y = (int)(sdlevent.motion.y / 1.2); // Aspect ratio correction
                     // [JN] Get mouse coordinates for SDL control
                     SDL_GetMouseState(&menu_mouse_x_sdl, &menu_mouse_y_sdl);
                 }
@@ -639,6 +639,19 @@ void I_GetEvent(void)
                 break;
         }
     }
+}
+
+// [JN] Reinitialize mouse cursor position on changing rendering resoluton
+void I_ReInitCursorPosition (void)
+{
+    SDL_Event sdlevent;
+
+    SDL_PollEvent(&sdlevent);
+    // [PN] Get mouse coordinates for menu control
+    menu_mouse_x = sdlevent.motion.x;
+    menu_mouse_y = (int)(sdlevent.motion.y / 1.2); // Aspect ratio correction
+    // [JN] Get mouse coordinates for SDL control
+    SDL_GetMouseState(&menu_mouse_x_sdl, &menu_mouse_y_sdl);
 }
 
 //
@@ -698,7 +711,7 @@ static void UpdateGrab(void)
     {
         SetShowCursor(true);
 
-        // [JN] Remember cursor position.
+        // [JN] Restore cursor position.
         SDL_WarpMouseInWindow(screen, menu_mouse_x_sdl, menu_mouse_y_sdl);
         
         SDL_GetRelativeMouseState(NULL, NULL);
