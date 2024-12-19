@@ -134,8 +134,10 @@ int usemouse = 1;
 
 // [JN/PN] Mouse coordinates for menu control.
 
-int menu_mouse_x;
-int menu_mouse_y;
+// Used by in-game menu
+int menu_mouse_x, menu_mouse_y;
+// Used by SDL cursor for position saving and resoring
+static int menu_mouse_x_sdl, menu_mouse_y_sdl;
 boolean menu_mouse_allow;
 
 // SDL video driver name
@@ -594,11 +596,14 @@ void I_GetEvent(void)
                 break;
 
             case SDL_MOUSEMOTION:
-                // [PN] Get mouse coordinates for menu control
-                menu_mouse_x = sdlevent.motion.x;
-                menu_mouse_y = (int)(sdlevent.motion.y / 1.2);  // [JN] Aspect ratio correction...
-                // [JN] Mouse movement allows menu control.
-                menu_mouse_allow = true;
+                if (menu_mouse_allow)
+                {
+                    // [PN] Get mouse coordinates for menu control
+                    menu_mouse_x = sdlevent.motion.x;
+                    menu_mouse_y = (int)(sdlevent.motion.y / 1.2);  // [JN] Aspect ratio correction...
+                    // [JN] Get mouse coordinates for SDL control
+                    SDL_GetMouseState(&menu_mouse_x_sdl, &menu_mouse_y_sdl);
+                }
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
@@ -691,20 +696,10 @@ static void UpdateGrab(void)
     }
     else if (!grab && currently_grabbed)
     {
-        int screen_w, screen_h;
-
         SetShowCursor(true);
 
-        // When releasing the mouse from grab, warp the mouse cursor to
-        // the bottom-right of the screen. This is a minimally distracting
-        // place for it to appear - we may only have released the grab
-        // because we're at an end of level intermission screen, for
-        // example.
-
-        SDL_GetWindowSize(screen, &screen_w, &screen_h);
-        // SDL_WarpMouseInWindow(screen, screen_w - 16, screen_h - 16);
-        // [JN] TODO - remember cursor position.
-        SDL_WarpMouseInWindow(screen, (int)(screen_w / 1.3), (int)(screen_h / 1.3));
+        // [JN] Remember cursor position.
+        SDL_WarpMouseInWindow(screen, menu_mouse_x_sdl, menu_mouse_y_sdl);
         
         SDL_GetRelativeMouseState(NULL, NULL);
     }
@@ -1871,6 +1866,15 @@ static void SetVideoMode(void)
     // Initially create the upscaled texture for rendering to screen
 
     CreateUpscaledTexture(true);
+
+    // [JN] Set initial position of mouse cursor.
+    {
+        int screen_w, screen_h;
+
+        SDL_GetWindowSize(screen, &screen_w, &screen_h);
+        menu_mouse_x_sdl = (int)(screen_w / 1.3);
+        menu_mouse_y_sdl = (int)(screen_h / 1.3);
+    }
 }
 
 // [crispy] re-calculate SCREENWIDTH, SCREENHEIGHT, NONWIDEWIDTH and WIDESCREENDELTA
