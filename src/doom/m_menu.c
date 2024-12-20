@@ -4978,7 +4978,7 @@ static void M_DrawSave(void)
 	i = M_StringWidth(savegamestrings[saveSlot]);
 	// [JN] Highlight "_" cursor, line is always active while typing.
 	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", M_SaveLoad_Glow(0, 0, saveload_cursor));
-	// [JN] Disable mouse cursor while typing.
+	// [JN] Forcefully disable mouse cursor while typing.
 	menu_mouse_allow = false;
     }
 
@@ -5971,6 +5971,10 @@ boolean M_Responder (event_t* ev)
     }
     else
     {
+	// [JN] Show mouse cursor by mouse movement.
+	if (ev->data2 || ev->data3)
+	menu_mouse_allow = true;
+
 	if (ev->type == ev_mouse && mousewait < I_GetTime()
 	&& !ev->data2 && !ev->data3) // [JN] Do not consider movement as pressing.
 	{
@@ -6107,6 +6111,8 @@ boolean M_Responder (event_t* ev)
 	    {
 		key = ev->data1;
 		ch = ev->data2;
+		// [JN] Hide mouse cursor by pressing a key.
+		menu_mouse_allow = false;
 	    }
 	}
     }
@@ -6437,7 +6443,6 @@ boolean M_Responder (event_t* ev)
         } while (currentMenu->menuitems[itemOn].status == -1);
 
         S_StartSound(NULL, sfx_pstop);
-        menu_mouse_allow = false;  // [JN] Hide mouse cursor.
         return true;
     }
     else if (key == key_menu_up)
@@ -6449,7 +6454,6 @@ boolean M_Responder (event_t* ev)
         } while (currentMenu->menuitems[itemOn].status == -1);
 
         S_StartSound(NULL, sfx_pstop);
-        menu_mouse_allow = false;  // [JN] Hide mouse cursor.
         return true;
     }
     else if (key == key_menu_left)
