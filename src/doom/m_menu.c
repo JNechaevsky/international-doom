@@ -1459,6 +1459,8 @@ static void M_ID_RenderingResHook (void)
     {
         AM_Start();
     }
+    // [JN] re-initialize mouse cursor position
+    I_ReInitCursorPosition();
 }
 
 static void M_ID_RenderingRes (int choice)
@@ -4976,6 +4978,8 @@ static void M_DrawSave(void)
 	i = M_StringWidth(savegamestrings[saveSlot]);
 	// [JN] Highlight "_" cursor, line is always active while typing.
 	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", M_SaveLoad_Glow(0, 0, saveload_cursor));
+	// [JN] Forcefully hide the mouse cursor while typing.
+	menu_mouse_allow = false;
     }
 
     M_DrawSaveLoadBottomLine();
@@ -5967,6 +5971,10 @@ boolean M_Responder (event_t* ev)
     }
     else
     {
+	// [JN] Shows the mouse cursor when moved.
+	if (ev->data2 || ev->data3)
+	menu_mouse_allow = true;
+
 	if (ev->type == ev_mouse && mousewait < I_GetTime()
 	&& !ev->data2 && !ev->data3) // [JN] Do not consider movement as pressing.
 	{
@@ -6016,12 +6024,17 @@ boolean M_Responder (event_t* ev)
             M_DoMouseBind(btnToBind, SDL_mouseButton);
             btnToBind = 0;
             MouseIsBinding = false;
-            mousewait = I_GetTime() + 15;
+            mousewait = I_GetTime() + 5;
             return true;
         }
 
 	    if (ev->data1&1)
 	    {
+		if (!menuactive && !usergame)
+		{
+		M_StartControlPanel();  // [JN] Open the main menu if the game is not active.
+		}
+		else
 		if (messageToPrint && messageNeedsInput)
 		{
 		key = key_menu_confirm;  // [JN] Confirm by left mouse button.
@@ -6030,11 +6043,16 @@ boolean M_Responder (event_t* ev)
 		{
 		key = key_menu_forward;
 		}
-		mousewait = I_GetTime() + 5;
+		mousewait = I_GetTime() + 1;
 	    }
 			
 	    if (ev->data1&2)
 	    {
+		if (!menuactive && !usergame)
+		{
+		M_StartControlPanel();  // [JN] Open the main menu if the game is not active.
+		}
+		else
 		if (messageToPrint && messageNeedsInput)
 		{
 		key = key_menu_abort;  // [JN] Cancel by right mouse button.
@@ -6044,26 +6062,47 @@ boolean M_Responder (event_t* ev)
 		{
 		key = key_menu_abort;
 		saveStringEnter = 0;
+		M_ReadSaveStrings();  // [JN] Reread save strings after cancelation.
 		}
 		else
 		{
 		key = key_menu_back;
 		}
-		mousewait = I_GetTime() + 5;
+		mousewait = I_GetTime() + 1;
 	    }
 
-	    // [crispy] scroll menus with mouse wheel
-	    // [JN] Hardcoded to always use mouse wheel up/down.
-	    if (/*mousebprevweapon >= 0 &&*/ ev->data1 & (1 << 4 /*mousebprevweapon*/))
+	    // [JN] Scrolls through menu item values or navigates between pages.
+	    if (ev->data1 & (1 << 4))
 	    {
-		key = key_menu_down;
-		mousewait = I_GetTime() + 1;
+            if (currentMenu->menuitems[itemOn].status == 2)
+            {
+                // Scroll menu item backward
+                currentMenu->menuitems[itemOn].routine(0);
+                S_StartSound(NULL,sfx_stnmov);
+            }
+            else
+            if (menuactive && currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
+            {
+                M_ScrollPages(1);
+            }
+            mousewait = I_GetTime();
 	    }
 	    else
-	    if (/*mousebnextweapon >= 0 &&*/ ev->data1 & (1 << 3 /*mousebnextweapon*/))
+	    if (ev->data1 & (1 << 3))
 	    {
-		key = key_menu_up;
-		mousewait = I_GetTime() + 1;
+            if (currentMenu->menuitems[itemOn].status == 2)
+            {
+                // Scroll menu item forward
+                currentMenu->menuitems[itemOn].routine(1);
+                S_StartSound(NULL,sfx_stnmov);
+            }
+            else
+            if (menuactive && currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
+            {
+                M_ScrollPages(0);
+                
+            }
+            mousewait = I_GetTime();
 	    }
 	}
 	else
@@ -6072,6 +6111,8 @@ boolean M_Responder (event_t* ev)
 	    {
 		key = ev->data1;
 		ch = ev->data2;
+		// [JN] Hide mouse cursor by pressing a key.
+		menu_mouse_allow = false;
 	    }
 	}
     }
@@ -6601,6 +6642,34 @@ void M_StartControlPanel (void)
     currentMenu = &MainDef;         // JDC
     M_Reset_Line_Glow();
     itemOn = currentMenu->lastOn;   // JDC
+    menu_mouse_allow = true;        // [JN] Show cursor on opening menu.
+}
+
+static void M_ID_MenuMouseControl (void)
+{
+    if (!menu_mouse_allow || KbdIsBinding || MouseIsBinding)
+    {
+        // [JN] Skip hovering if the cursor is disabled/hidden or a binding is active.
+        return;
+    }
+    else
+    {
+        // [JN] Which line height should be used?
+        const int line_height = currentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : LINEHEIGHT;
+
+        // [PN] Check if the cursor is hovering over a menu item
+        for (int i = 0; i < currentMenu->numitems; i++)
+        {
+            if (menu_mouse_x >= (currentMenu->x + WIDESCREENDELTA) * vid_resolution
+            &&  menu_mouse_x <= (ORIGWIDTH + WIDESCREENDELTA - currentMenu->x) * vid_resolution
+            &&  menu_mouse_y >= (currentMenu->y + i * line_height) * vid_resolution
+            &&  menu_mouse_y <= (currentMenu->y + (i + 1) * line_height) * vid_resolution
+            &&  currentMenu->menuitems[i].status != -1)
+            {
+                itemOn = i; // [PN] Highlight the current menu item
+            }
+        }
+    }
 }
 
 //
@@ -6677,7 +6746,10 @@ void M_Drawer (void)
     }
 
     if (!menuactive)
+    {
+	menu_mouse_allow = false;  // [JN] Disallow cursor if menu is not active.
 	return;
+    }
 
     if (currentMenu->routine)
 	currentMenu->routine();         // call Draw routine
@@ -6719,6 +6791,9 @@ void M_Drawer (void)
             y += LINEHEIGHT;
         }
     }
+
+    // [JN] Call the menu control routine for mouse input.
+    M_ID_MenuMouseControl();
 }
 
 
@@ -6728,6 +6803,7 @@ void M_Drawer (void)
 static void M_ClearMenus (void)
 {
     menuactive = 0;
+    menu_mouse_allow = false;  // [JN] Hide cursor on closing menu.
 }
 
 

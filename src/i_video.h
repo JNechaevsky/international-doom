@@ -167,6 +167,11 @@ extern unsigned int joywait;
 
 extern int usemouse;
 
+extern int menu_mouse_x;
+extern int menu_mouse_y;
+extern boolean menu_mouse_allow;
+extern void I_ReInitCursorPosition (void);
+
 extern boolean endoom_screen_active;
 extern boolean volume_needs_update;
 extern boolean window_focused;
