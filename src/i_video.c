@@ -288,13 +288,6 @@ static boolean MouseShouldBeGrabbed(void)
     if (!window_focused)
         return false;
 
-    // always grab the mouse when full screen (dont want to 
-    // see the mouse pointer)
-
-    // [JN] Grab the mouse if not in menu control mode.
-    if (!menu_mouse_allow)
-        return true;
-
     // Don't grab the mouse if mouse input is disabled
 
     if (!usemouse || nomouse)
