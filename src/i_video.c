@@ -596,7 +596,7 @@ void I_GetEvent(void)
                 break;
 
             case SDL_MOUSEMOTION:
-                if (menu_mouse_allow)
+                if (menu_mouse_allow && window_focused)
                 {
                     // [PN] Get mouse coordinates for menu control
                     menu_mouse_x = sdlevent.motion.x;

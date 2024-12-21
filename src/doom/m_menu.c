@@ -6024,7 +6024,7 @@ boolean M_Responder (event_t* ev)
             M_DoMouseBind(btnToBind, SDL_mouseButton);
             btnToBind = 0;
             MouseIsBinding = false;
-            mousewait = I_GetTime() + 15;
+            mousewait = I_GetTime() + 5;
             return true;
         }
 
@@ -6076,33 +6076,33 @@ boolean M_Responder (event_t* ev)
 	    {
             if (currentMenu->menuitems[itemOn].status == 2)
             {
-                // Scroll menu item forward
+                // Scroll menu item backward
                 currentMenu->menuitems[itemOn].routine(0);
                 S_StartSound(NULL,sfx_stnmov);
             }
             else
-            if (menuactive && currentMenu->ScrollAR && !saveStringEnter)
+            if (menuactive && currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
             {
                 M_ScrollPages(1);
             }
-            mousewait = I_GetTime() + 0;
+            mousewait = I_GetTime();
 	    }
 	    else
 	    if (/*mousebnextweapon >= 0 &&*/ ev->data1 & (1 << 3 /*mousebnextweapon*/))
 	    {
             if (currentMenu->menuitems[itemOn].status == 2)
             {
-                // Scroll menu item backward
+                // Scroll menu item forward
                 currentMenu->menuitems[itemOn].routine(1);
                 S_StartSound(NULL,sfx_stnmov);
             }
             else
-            if (menuactive && currentMenu->ScrollAR && !saveStringEnter)
+            if (menuactive && currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
             {
                 M_ScrollPages(0);
                 
             }
-            mousewait = I_GetTime() + 0;
+            mousewait = I_GetTime();
 	    }
 	}
 	else
@@ -6647,23 +6647,28 @@ void M_StartControlPanel (void)
 
 static void M_ID_MenuMouseControl (void)
 {
-    // [JN] Which line height should be used?
-    const int line_height = currentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : LINEHEIGHT;
-
-    // [JN] If cursor not allowed/hidden, do not proceed with hovering.
-    if (!menu_mouse_allow)
-        return;
-
-    // [PN] Check if the cursor is hovering over a menu item
-    for (int i = 0; i < currentMenu->numitems; i++)
+    if (!menu_mouse_allow || KbdIsBinding || MouseIsBinding)
     {
-        if (menu_mouse_x >= (currentMenu->x + WIDESCREENDELTA) * vid_resolution
-        &&  menu_mouse_x <= (ORIGWIDTH + WIDESCREENDELTA - currentMenu->x) * vid_resolution
-        &&  menu_mouse_y >= (currentMenu->y + i * line_height) * vid_resolution
-        &&  menu_mouse_y <= (currentMenu->y + (i + 1) * line_height) * vid_resolution
-        &&  currentMenu->menuitems[i].status != -1)
+        // [JN] If cursor not allowed/hidden or keyboard/mouse binding is active,
+        // do not proceed with hovering.
+        return;
+    }
+    else
+    {
+        // [JN] Which line height should be used?
+        const int line_height = currentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : LINEHEIGHT;
+
+        // [PN] Check if the cursor is hovering over a menu item
+        for (int i = 0; i < currentMenu->numitems; i++)
         {
-            itemOn = i; // [PN] Highlight the current menu item
+            if (menu_mouse_x >= (currentMenu->x + WIDESCREENDELTA) * vid_resolution
+            &&  menu_mouse_x <= (ORIGWIDTH + WIDESCREENDELTA - currentMenu->x) * vid_resolution
+            &&  menu_mouse_y >= (currentMenu->y + i * line_height) * vid_resolution
+            &&  menu_mouse_y <= (currentMenu->y + (i + 1) * line_height) * vid_resolution
+            &&  currentMenu->menuitems[i].status != -1)
+            {
+                itemOn = i; // [PN] Highlight the current menu item
+            }
         }
     }
 }
