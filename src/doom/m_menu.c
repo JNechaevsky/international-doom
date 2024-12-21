@@ -6072,7 +6072,7 @@ boolean M_Responder (event_t* ev)
 	    }
 
 	    // [JN] Scrolls through menu item values or navigates between pages.
-	    if (ev->data1 & (1 << 4))
+	    if (ev->data1 & (1 << 4) && menuactive)
 	    {
             if (currentMenu->menuitems[itemOn].status == 2)
             {
@@ -6081,14 +6081,14 @@ boolean M_Responder (event_t* ev)
                 S_StartSound(NULL,sfx_stnmov);
             }
             else
-            if (menuactive && currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
+            if (currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
             {
                 M_ScrollPages(1);
             }
             mousewait = I_GetTime();
 	    }
 	    else
-	    if (ev->data1 & (1 << 3))
+	    if (ev->data1 & (1 << 3) && menuactive)
 	    {
             if (currentMenu->menuitems[itemOn].status == 2)
             {
@@ -6097,7 +6097,7 @@ boolean M_Responder (event_t* ev)
                 S_StartSound(NULL,sfx_stnmov);
             }
             else
-            if (menuactive && currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
+            if (currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
             {
                 M_ScrollPages(0);
                 

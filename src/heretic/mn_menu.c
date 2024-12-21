@@ -5889,7 +5889,7 @@ boolean MN_Responder(event_t * event)
             }
 
             // [JN] Scrolls through menu item values or navigates between pages.
-            if (/*mousebprevweapon >= 0 &&*/ event->data1 & (1 << 4/*mousebprevweapon*/))
+            if (event->data1 & (1 << 4) && MenuActive)
             {
                 if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC)
                 {
@@ -5898,14 +5898,14 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, sfx_keyup);
                 }
                 else
-                if (MenuActive && CurrentMenu->ScrollAR && !FileMenuKeySteal && !KbdIsBinding)
+                if (CurrentMenu->ScrollAR && !FileMenuKeySteal && !KbdIsBinding)
                 {
                     M_ScrollPages(1);
                 }
                 mousewait = I_GetTime();
             }
             else
-            if (/*mousebnextweapon >= 0 &&*/ event->data1 & (1 << 3/*mousebnextweapon*/))
+            if (event->data1 & (1 << 3) && MenuActive)
             {
                 if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC)
                 {
@@ -5914,7 +5914,7 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, sfx_keyup);
                 }
                 else
-                if (MenuActive && CurrentMenu->ScrollAR && !FileMenuKeySteal && !KbdIsBinding)
+                if (CurrentMenu->ScrollAR && !FileMenuKeySteal && !KbdIsBinding)
                 {
                     M_ScrollPages(0);
                 }
