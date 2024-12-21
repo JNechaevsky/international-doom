@@ -291,7 +291,7 @@ static boolean MouseShouldBeGrabbed(void)
     // always grab the mouse when full screen (dont want to 
     // see the mouse pointer)
 
-    // [JN] grab mouse if not in menu control by mouse mode
+    // [JN] Grab the mouse if not in menu control mode.
     if (!menu_mouse_allow)
         return true;
 
@@ -1880,7 +1880,7 @@ static void SetVideoMode(void)
 
     CreateUpscaledTexture(true);
 
-    // [JN] Set initial position of mouse cursor.
+    // [JN] Set the initial position of the mouse cursor.
     {
         int screen_w, screen_h;
 

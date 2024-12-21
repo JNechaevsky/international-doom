@@ -1314,9 +1314,9 @@ boolean G_Responder (event_t* ev)
 	return false;   // always let key up events filter down 
 		 
       case ev_mouse: 
-        // [JN] Do not consider movement as pressing.
-        // Primary will prevent player from firing a weapon while LMB is held
-        // and mouse is moved after game loading.
+        // [JN] Do not treat mouse movement as a button press.
+        // Prevents the player from firing a weapon when holding LMB
+        // and moving the mouse after loading the game.
         if (!ev->data2 && !ev->data3)
         SetMouseButtons(ev->data1);
         mousex += ev->data2;

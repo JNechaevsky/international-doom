@@ -4978,7 +4978,7 @@ static void M_DrawSave(void)
 	i = M_StringWidth(savegamestrings[saveSlot]);
 	// [JN] Highlight "_" cursor, line is always active while typing.
 	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", M_SaveLoad_Glow(0, 0, saveload_cursor));
-	// [JN] Forcefully disable mouse cursor while typing.
+	// [JN] Forcefully hide the mouse cursor while typing.
 	menu_mouse_allow = false;
     }
 
@@ -5971,7 +5971,7 @@ boolean M_Responder (event_t* ev)
     }
     else
     {
-	// [JN] Show mouse cursor by mouse movement.
+	// [JN] Shows the mouse cursor when moved.
 	if (ev->data2 || ev->data3)
 	menu_mouse_allow = true;
 
@@ -6032,7 +6032,7 @@ boolean M_Responder (event_t* ev)
 	    {
 		if (!menuactive && !usergame)
 		{
-		M_StartControlPanel(); // [JN] If not playing, invoke main menu.
+		M_StartControlPanel();  // [JN] Open the main menu if the game is not active.
 		}
 		else
 		if (messageToPrint && messageNeedsInput)
@@ -6050,7 +6050,7 @@ boolean M_Responder (event_t* ev)
 	    {
 		if (!menuactive && !usergame)
 		{
-		M_StartControlPanel(); // [JN] If not playing, invoke main menu.
+		M_StartControlPanel();  // [JN] Open the main menu if the game is not active.
 		}
 		else
 		if (messageToPrint && messageNeedsInput)
@@ -6071,8 +6071,8 @@ boolean M_Responder (event_t* ev)
 		mousewait = I_GetTime() + 1;
 	    }
 
-	    // [JN] Handle mouse wheel actions.
-	    if (/*mousebprevweapon >= 0 &&*/ ev->data1 & (1 << 4 /*mousebprevweapon*/))
+	    // [JN] Scrolls through menu item values or navigates between pages.
+	    if (ev->data1 & (1 << 4))
 	    {
             if (currentMenu->menuitems[itemOn].status == 2)
             {
@@ -6088,7 +6088,7 @@ boolean M_Responder (event_t* ev)
             mousewait = I_GetTime();
 	    }
 	    else
-	    if (/*mousebnextweapon >= 0 &&*/ ev->data1 & (1 << 3 /*mousebnextweapon*/))
+	    if (ev->data1 & (1 << 3))
 	    {
             if (currentMenu->menuitems[itemOn].status == 2)
             {
@@ -6649,8 +6649,7 @@ static void M_ID_MenuMouseControl (void)
 {
     if (!menu_mouse_allow || KbdIsBinding || MouseIsBinding)
     {
-        // [JN] If cursor not allowed/hidden or keyboard/mouse binding is active,
-        // do not proceed with hovering.
+        // [JN] Skip hovering if the cursor is disabled/hidden or a binding is active.
         return;
     }
     else
@@ -6793,7 +6792,7 @@ void M_Drawer (void)
         }
     }
 
-    // [JN] Call menu control by mouse routine.
+    // [JN] Call the menu control routine for mouse input.
     M_ID_MenuMouseControl();
 }
 

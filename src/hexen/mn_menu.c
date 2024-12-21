@@ -4261,8 +4261,7 @@ static void M_ID_MenuMouseControl (void)
 {
     if (!menu_mouse_allow || KbdIsBinding || MouseIsBinding)
     {
-        // [JN] If cursor not allowed/hidden or keyboard/mouse binding is active,
-        // do not proceed with hovering.
+        // [JN] Skip hovering if the cursor is disabled/hidden or a binding is active.
         return;
     }
     else
@@ -4424,7 +4423,7 @@ void MN_Drawer(void)
     // [JN] Always refresh statbar while menu is active.
     SB_ForceRedraw();
 
-    // [JN] Call menu control by mouse routine.
+    // [JN] Call the menu control routine for mouse input.
     M_ID_MenuMouseControl();
 }
 
@@ -4671,7 +4670,7 @@ static void DrawFileSlots(Menu_t * menu)
         y += ITEM_HEIGHT;
     }
 
-    // [JN] Forcefully disable mouse cursor while typing.
+    // [JN] Forcefully hide the mouse cursor while typing.
     if (FileMenuKeySteal)
     {
         menu_mouse_allow = false;
@@ -5229,7 +5228,7 @@ boolean MN_Responder(event_t * event)
     }
     else
     {
-        // [JN] Show mouse cursor by mouse movement.
+        // [JN] Shows the mouse cursor when moved.
         if (event->data2 || event->data3)
         menu_mouse_allow = true;
 
@@ -5275,7 +5274,7 @@ boolean MN_Responder(event_t * event)
             {
                 if (!MenuActive && !usergame)
                 {
-                    // [JN] If not playing, invoke main menu.
+                    // [JN] Open the main menu if the game is not active.
                     MN_ActivateMenu();
                 }
                 else
@@ -5289,7 +5288,7 @@ boolean MN_Responder(event_t * event)
             {
                 if (!MenuActive && !usergame)
                 {
-                    // [JN] If not playing, invoke main menu.
+                    // [JN] Open the main menu if the game is not active.
                     MN_ActivateMenu();
                 }
                 else
@@ -5305,8 +5304,8 @@ boolean MN_Responder(event_t * event)
                 mousewait = I_GetTime() + 1;
             }
 
-            // [JN] Scroll menu item values or pages.
-            if (/*mousebprevweapon >= 0 &&*/ event->data1 & (1 << 4/*mousebprevweapon*/))
+            // [JN] Scrolls through menu item values or navigates between pages.
+            if (event->data1 & (1 << 4))
             {
                 if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC)
                 {
@@ -5322,7 +5321,7 @@ boolean MN_Responder(event_t * event)
                 mousewait = I_GetTime();
             }
             else
-            if (/*mousebnextweapon >= 0 &&*/ event->data1 & (1 << 3/*mousebnextweapon*/))
+            if (event->data1 & (1 << 3))
             {
                 if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC)
                 {
