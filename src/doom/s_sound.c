@@ -463,9 +463,12 @@ static int S_GetChannel(mobj_t *origin, sfxinfo_t *sfxinfo)
 // P_ApproxDistanceZ
 // [JN] Gives an estimation of distance using three axises.
 // Adapted from EDGE, converted to fixed point math.
+// [PN] Optimized with bitwise shifts (>> 1) for performance.
+// Precise results can be obtained with sqrt, but it's computationally expensive:
+//   return sqrt(dx * dx + dy * dy + dz * dz);
 // -----------------------------------------------------------------------------
 
-static const int64_t S_ApproxDistanceZ (int64_t dx, int64_t dy, int64_t dz)
+static int64_t S_ApproxDistanceZ (int64_t dx, int64_t dy, int64_t dz)
 {
 	int64_t dxy;
 
@@ -473,9 +476,9 @@ static const int64_t S_ApproxDistanceZ (int64_t dx, int64_t dy, int64_t dz)
 	dy = llabs(dy);
 	dz = llabs(dz);
 
-	dxy = (dy > dx) ? dy + dx/2 : dx + dy/2;
+	dxy = (dy > dx) ? dy + (dx >> 1) : dx + (dy >> 1);
 
-	return (dz > dxy) ? dz + dxy/2 : dxy + dz/2;
+	return (dz > dxy) ? dz + (dxy >> 1) : dxy + (dz >> 1);
 }
 
 //
