@@ -5885,6 +5885,15 @@ boolean MN_Responder(event_t * event)
                 {
                     key = key_menu_back;
                 }
+
+                // [JN] Properly return to active menu.
+                askforquit = false;
+                typeofask = 0;
+                MenuActive = true;
+                if (!netgame && !demoplayback)
+                {
+                    paused = true;
+                }
                 mousewait = I_GetTime() + 1;
             }
 
@@ -6107,6 +6116,7 @@ boolean MN_Responder(event_t * event)
                 MenuActive = true;
                 askforquit = false;
                 typeofask = 0;
+                return true;
             }
             else
             {
