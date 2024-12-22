@@ -5303,12 +5303,15 @@ boolean MN_Responder(event_t * event)
                 }
 
                 // [JN] Properly return to active menu.
-                askforquit = false;
-                typeofask = 0;
-                MenuActive = true;
-                if (!netgame && !demoplayback)
+                if (askforquit)
                 {
-                    paused = true;
+                    askforquit = false;
+                    typeofask = 0;
+                    MenuActive = true;
+                    if (!netgame && !demoplayback)
+                    {
+                        paused = true;
+                    }
                 }
                 mousewait = I_GetTime() + 1;
             }
