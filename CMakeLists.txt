@@ -2,6 +2,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 cmake_minimum_required(VERSION 3.10)
 project("Inter" VERSION 8.1.0 LANGUAGES C)
+set(CMAKE_C_STANDARD 99)
 
 # Autotools variables
 set(top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
@@ -45,7 +46,6 @@ add_compile_options("/wd4013" # Function undefined; assuming extern returning in
                     )
 else()
     add_compile_options("-Wall"
-                        "-Wdeclaration-after-statement"
                         "-Wredundant-decls"
                         "-Wformat-security"
                         # "-Wno-ignored-qualifiers"
