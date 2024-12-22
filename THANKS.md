@@ -65,4 +65,7 @@ Project's author would like to thank everyone for code, technical, informative, 
 
 **And also:**
 
-[LeD] Jake Crusher, Alex, Artyom Andreyev (Allard), autreart, CacoKnight, CthulhuInACan, cubebert, Danfun64, Daniil Petrov, David Carlier, Dmitry D. Chernov aka Black Doomer, Dwars, Gibbon, hfc2x, Invisible Warrior, Kenon, MAJOR93MOREAU, Manuel Alfayate Corchete, Manul12, Maxim Pyanov (MaxLeon), Meerschweinmann, Michael Day, Michael Francis, mtvile666, mykola-ambar, Nemrtvi, NightFright, NormanSeven, Oleg Sudarikov (Kai), Oleg Zik, Orfeus94, Paul Haeberli, Pavel Zegelman (Corak), Peter Porai-Koshits, plums, PVS, RICALHO MILOS, Rick Commandeur (Redneckerz), Roman Fomin, Sabhotep, Sarah Mancuso (esselfortium), Sergey Ivanov (Districh), Shadowman, Scypek2, Tamás Mélykuti (BlooD2oo1), Terry Hearst, theleo_ua, VlaDMiR, Wells Lu, Y-Dr. Now, Zodomaniac
+[LeD] Jake Crusher, Alex, Artyom Andreyev (Allard), autreart, CacoKnight, CthulhuInACan, cubebert, Danfun64, Daniil Petrov, David Carlier, Dmitry D. Chernov aka Black Doomer, Dwars, Gibbon, hfc2x, Invisible Warrior, Kenon, MAJOR93MOREAU, Manuel Alfayate Corchete, Manul12, Maxim Pyanov (MaxLeon), Meerschweinmann, Michael Day, Michael Francis, mtvile666, mykola-ambar, Nemrtvi, NightFright, NormanSeven, Oleg Sudarikov (Kai), Oleg Zik, Orfeus94, Paul Haeberli, Pavel Zegelman (Corak), Peter Porai-Koshits, plums, PVS, RICALHO MILOS, Rick Commandeur (Redneckerz), Roman Fomin, Sabhotep, Sarah Mancuso (esselfortium), SiFi270, Sergey Ivanov (Districh), Shadowman, Scypek2, Tamás Mélykuti (BlooD2oo1), taufan99, Terry Hearst, theleo_ua, Uni, VL2M STUDIO, VlaDMiR, Wells Lu, Y-Dr. Now, Zodomaniac
+
+**Special thanks:**
+* Polina N. (Aura)
