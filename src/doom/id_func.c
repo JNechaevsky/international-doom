@@ -64,6 +64,11 @@ enum
 
 static byte *ID_WidgetColor (const int i)
 {
+    if (!widget_scheme)
+    {
+        return NULL;
+    }
+
     static byte *player_colors[4];
     static int   plyr_indices[] = {widget_plyr1, widget_plyr2, widget_plyr3, widget_plyr4};
 
@@ -71,11 +76,6 @@ static byte *ID_WidgetColor (const int i)
     player_colors[1] = cr[CR_GRAY];
     player_colors[2] = cr[CR_BROWN];
     player_colors[3] = cr[CR_RED];
-
-    if (!widget_scheme)
-    {
-        return NULL;
-    }
 
     switch (widget_scheme)
     {
@@ -719,17 +719,16 @@ static byte *ID_HealthColor (const int val1, const int val2)
 
 void ID_DrawTargetsHealth (void)
 {
-    char  str[16];
     const player_t *player = &players[displayplayer];
-    byte *color;
 
     if (player->targetsheathTics <= 0 || !player->targetsheath)
     {
         return;  // No tics or target is dead, nothing to display.
     }
 
+    char  str[16];
     snprintf(str, sizeof(str), "%d/%d", player->targetsheath, player->targetsmaxheath);
-    color = ID_HealthColor(player->targetsheath, player->targetsmaxheath);
+    byte *color = ID_HealthColor(player->targetsheath, player->targetsmaxheath);
 
     switch (widget_health)
     {
