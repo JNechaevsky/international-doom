@@ -219,21 +219,25 @@ void R_DrawTLColumn (void)
     if (count < 0)
         return;
 
+    // [PN] Destination pointer calculation
     pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
+    // [PN] Setup scaling
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *sourcebase = dc_source; // Local pointer for optimization
-    const byte *brightmap = dc_brightmap; // Local pointer for optimization
-    const pixel_t *colormap0 = dc_colormap[0]; // Local pointer for optimization
-    const pixel_t *colormap1 = dc_colormap[1]; // Local pointer for optimization
+    // [PN] Local pointers to speed up access
+    const byte *const sourcebase = dc_source;
+    const byte *const brightmap = dc_brightmap;
+    const pixel_t *const colormap0 = dc_colormap[0];
+    const pixel_t *const colormap1 = dc_colormap[1];
 
     for (int i = 0; i <= count; i++)
     {
         const unsigned s = sourcebase[frac >> FRACBITS];
         const pixel_t destrgb = (brightmap[s] ? colormap1[s] : colormap0[s]);
 
-        *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
+        *dest = I_BlendOver(*dest, destrgb, TRANMAP_ALPHA);
 
         dest += SCREENWIDTH;
         frac += fracstep;
@@ -253,14 +257,18 @@ void R_DrawAltTLColumn (void)
     if (count < 0)
         return;
 
+    // [PN] Destination pointer calculation
     pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
+    // [PN] Setup scaling
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *sourcebase = dc_source; // Local pointer for optimization
-    const byte *brightmap = dc_brightmap; // Local pointer for optimization
-    const pixel_t *colormap0 = dc_colormap[0]; // Local pointer for optimization
-    const pixel_t *colormap1 = dc_colormap[1]; // Local pointer for optimization
+    // [PN] Local pointers to speed up access
+    const byte *const sourcebase = dc_source;
+    const byte *const brightmap = dc_brightmap;
+    const pixel_t *const colormap0 = dc_colormap[0];
+    const pixel_t *const colormap1 = dc_colormap[1];
 
     for (int i = 0; i <= count; i++)
     {
@@ -282,17 +290,22 @@ void R_DrawAltTLColumn (void)
 void R_DrawTLAddColumn(void)
 {
     const int count = dc_yh - dc_yl;
+
     if (count < 0)
         return;
 
+    // [PN] Destination pointer calculation
     pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
+    // [PN] Setup scaling
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *sourcebase = dc_source; // Local pointer for optimization
-    const byte *brightmap = dc_brightmap; // Local pointer for optimization
-    const pixel_t *colormap0 = dc_colormap[0]; // Local pointer for optimization
-    const pixel_t *colormap1 = dc_colormap[1]; // Local pointer for optimization
+    // [PN] Local pointers to speed up access
+    const byte *const sourcebase = dc_source;
+    const byte *const brightmap = dc_brightmap;
+    const pixel_t *const colormap0 = dc_colormap[0];
+    const pixel_t *const colormap1 = dc_colormap[1];
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -315,20 +328,26 @@ void R_DrawTLAddColumn(void)
 void R_DrawTLAddColumnLow(void)
 {
     const int count = dc_yh - dc_yl;
+
     if (count < 0)
         return;
 
+    // [PN] Blocky mode: double the x coordinate
     const int x = dc_x << 1;
 
+    // [PN] Destination pointer calculation
     pixel_t *dest1 = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
     pixel_t *dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
+
+    // [PN] Setup scaling
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *sourcebase = dc_source; // Local pointer for optimization
-    const byte *brightmap = dc_brightmap; // Local pointer for optimization
-    const pixel_t *colormap0 = dc_colormap[0]; // Local pointer for optimization
-    const pixel_t *colormap1 = dc_colormap[1]; // Local pointer for optimization
+    // [PN] Local pointers to speed up access
+    const byte *const sourcebase = dc_source;
+    const byte *const brightmap = dc_brightmap;
+    const pixel_t *const colormap0 = dc_colormap[0];
+    const pixel_t *const colormap1 = dc_colormap[1];
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -366,15 +385,19 @@ void R_DrawTranslatedColumn(void)
     if (count < 0)
         return;
 
+    // [PN] Destination pointer calculation
     pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
+    // [PN] Setup scaling
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *sourcebase = dc_source; // Local pointer for optimization
-    const byte *brightmap = dc_brightmap; // Local pointer for optimization
-    const byte *translation = dc_translation; // Local pointer for optimization
-    const pixel_t *colormap0 = dc_colormap[0]; // Local pointer for optimization
-    const pixel_t *colormap1 = dc_colormap[1]; // Local pointer for optimization
+    // [PN] Local pointers to speed up access
+    const byte *const sourcebase = dc_source;
+    const byte *const brightmap = dc_brightmap;
+    const byte *const translation = dc_translation;
+    const pixel_t *const colormap0 = dc_colormap[0];
+    const pixel_t *const colormap1 = dc_colormap[1];
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -398,21 +421,24 @@ void R_DrawTranslatedColumn(void)
 
 void R_DrawTranslatedTLColumn(void)
 {
-    int count = dc_yh - dc_yl;
+    const int count = dc_yh - dc_yl;
 
     if (count < 0)
         return;
 
+    // [PN] Destination pointer calculation
     pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
+    // [PN] Setup scaling
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    // [PN] Local pointers for global arrays
-    const byte *sourcebase = dc_source;
-    const byte *brightmap = dc_brightmap;
-    const byte *translation = dc_translation;
-    const pixel_t *colormap0 = dc_colormap[0];
-    const pixel_t *colormap1 = dc_colormap[1];
+    // [PN] Local pointers to speed up access
+    const byte *const sourcebase = dc_source;
+    const byte *const brightmap = dc_brightmap;
+    const byte *const translation = dc_translation;
+    const pixel_t *const colormap0 = dc_colormap[0];
+    const pixel_t *const colormap1 = dc_colormap[1];
 
     for (int i = 0; i <= count; i++)
     {
@@ -472,20 +498,23 @@ void R_DrawTranslatedAltTLColumn (void)
 
 void R_DrawExtraTLColumn(void)
 {
-    int count = dc_yh - dc_yl;
+    const int count = dc_yh - dc_yl;
 
     if (count < 0)
         return;
 
+    // [PN] Destination pointer calculation
     pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+
+    // [PN] Setup scaling
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    // [PN] Local pointers
-    const byte *sourcebase = dc_source;
-    const byte *brightmap = dc_brightmap;
-    const pixel_t *colormap0 = dc_colormap[0];
-    const pixel_t *colormap1 = dc_colormap[1];
+    // [PN] Local pointers to speed up access
+    const byte *const sourcebase = dc_source;
+    const byte *const brightmap = dc_brightmap;
+    const pixel_t *const colormap0 = dc_colormap[0];
+    const pixel_t *const colormap1 = dc_colormap[1];
 
     const int heightmask = dc_texheight - 1;
 
@@ -539,7 +568,7 @@ void R_DrawExtraTLColumn(void)
 
 void R_DrawExtraTLColumnLow(void)
 {
-    int count = dc_yh - dc_yl;
+    const int count = dc_yh - dc_yl;
 
     if (count < 0)
         return;
@@ -547,16 +576,19 @@ void R_DrawExtraTLColumnLow(void)
     // [PN] Blocky mode: multiply x by 2
     const int x = dc_x << 1;
 
+    // [PN] Destination pointer calculation
     pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
     pixel_t *dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
+
+    // [PN] Setup scaling
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    // [PN] Local pointers to global arrays
-    const byte *sourcebase = dc_source;
-    const byte *brightmap = dc_brightmap;
-    const pixel_t *colormap0 = dc_colormap[0];
-    const pixel_t *colormap1 = dc_colormap[1];
+    // [PN] Local pointers for faster access to global arrays
+    const byte *const sourcebase = dc_source;
+    const byte *const brightmap = dc_brightmap;
+    const pixel_t *const colormap0 = dc_colormap[0];
+    const pixel_t *const colormap1 = dc_colormap[1];
 
     const int heightmask = dc_texheight - 1;
 
