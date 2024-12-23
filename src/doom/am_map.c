@@ -1254,9 +1254,7 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 {
     enum { LEFT = 1, RIGHT = 2, BOTTOM = 4, TOP = 8 };
 
-    int outcode1 = 0, outcode2 = 0, outside;
-    int dx, dy;
-    fpoint_t tmp = { 0, 0 };
+    int outcode1 = 0, outcode2 = 0;
 
 #define DOOUTCODE(oc, mx, my) \
     (oc) = 0; \
@@ -1286,9 +1284,10 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
     // [PN] Clip loop
     while (outcode1 | outcode2)
     {
-        outside = outcode1 ? outcode1 : outcode2;
-        dx = fl->b.x - fl->a.x;
-        dy = fl->b.y - fl->a.y;
+        const int outside = outcode1 ? outcode1 : outcode2;
+        const int dx = fl->b.x - fl->a.x;
+        const int dy = fl->b.y - fl->a.y;
+        fpoint_t tmp = { 0, 0 };
 
         if (outside & TOP)
         {
@@ -1338,12 +1337,16 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 
 static void AM_drawFline_Vanilla (fline_t *fl, int color)
 {
-    int d;
-    int x = fl->a.x, y = fl->a.y;
-    int dx = fl->b.x - fl->a.x, dy = fl->b.y - fl->a.y;
-    int sx = dx < 0 ? -1 : 1, sy = dy < 0 ? -1 : 1;
-    // [PN] Calculate abs(dx) and abs(dy) in one step
-    int ax = sx * dx * 2, ay = sy * dy * 2;
+    // [PN] Precompute deltas and steps
+    const int dx = fl->b.x - fl->a.x;
+    const int dy = fl->b.y - fl->a.y;
+    const int sx = dx < 0 ? -1 : 1;
+    const int sy = dy < 0 ? -1 : 1;
+    const int ax = sx * dx * 2;
+    const int ay = sy * dy * 2;
+
+    int x = fl->a.x;
+    int y = fl->a.y;
 
     static int yuck = 0;
 
@@ -1364,22 +1367,28 @@ static void AM_drawFline_Vanilla (fline_t *fl, int color)
     // [PN] Main loop for Bresenham's line algorithm
     if (ax > ay) // X-major case
     {
-        d = ay - ax / 2;
+        int d = ay - ax / 2;
         while (x != fl->b.x)
         {
             PUTDOT(x, y, color);
-            if (d >= 0) { y += sy; d -= ax; }
+            if (d >= 0) {
+                y += sy;
+                d -= ax;
+            }
             x += sx;
             d += ay;
         }
     }
     else // Y-major case
     {
-        d = ax - ay / 2;
+        int d = ax - ay / 2;
         while (y != fl->b.y)
         {
             PUTDOT(x, y, color);
-            if (d >= 0) { x += sx; d -= ay; }
+            if (d >= 0) {
+                x += sx;
+                d -= ay;
+            }
             y += sy;
             d += ax;
         }
@@ -1402,7 +1411,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
     unsigned short ErrorAcc = 0, ErrorAdj;
     unsigned short Weighting, WeightingComplementMask = NUMSHADES - 1;
     // [PN] Declared IntensityShift with other variables
-    short DeltaX, DeltaY, XDir, IntensityShift = 16 - NUMSHADES_BITS;
+    const short IntensityShift = 16 - NUMSHADES_BITS;
 
     /* Ensure the line runs top to bottom */
     if (Y0 > Y1)
@@ -1414,9 +1423,9 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
     /* Draw the initial pixel */
     PUTDOT_RAW(X0, Y0, BaseColor[0]);
 
-    DeltaX = X1 - X0;
-    DeltaY = Y1 - Y0;
-    XDir = (DeltaX >= 0) ? 1 : -1;
+    short DeltaX = X1 - X0;
+    short DeltaY = Y1 - Y0;
+    const int XDir = (DeltaX >= 0) ? 1 : -1;
     DeltaX = (DeltaX >= 0) ? DeltaX : -DeltaX; // [PN] Make DeltaX positive
 
     /* Horizontal line */
@@ -1462,7 +1471,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         while (--DeltaY)
         {
             // [PN] Added ErrorAccTemp inside the loop
-            unsigned short ErrorAccTemp = ErrorAcc;
+            const unsigned short ErrorAccTemp = ErrorAcc;
             ErrorAcc += ErrorAdj;
             if (ErrorAcc <= ErrorAccTemp)
             {
@@ -1483,7 +1492,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         while (--DeltaX)
         {
             // [PN] Added ErrorAccTemp inside the loop
-            unsigned short ErrorAccTemp = ErrorAcc;
+            const unsigned short ErrorAccTemp = ErrorAcc;
 
             ErrorAcc += ErrorAdj;
             if (ErrorAcc <= ErrorAccTemp)
@@ -1526,29 +1535,26 @@ static void AM_drawMline (mline_t *ml, int color)
 
 static void AM_drawGrid (void)
 {
-    int64_t x, y;
-    int64_t start, end;
     const fixed_t gridsize = MAPBLOCKUNITS << MAPBITS;
+    const int half_w = m_w / 2;
+    const int half_h = m_h / 2;
     mline_t ml;
-    // [PN] Precomputed for boundary adjustments
-    int half_w = m_w / 2;
-    int half_h = m_h / 2;
 
     // Determine starting position for vertical lines
-    start = m_x - (automap_rotate ? half_h : 0);
+    int64_t start = m_x - (automap_rotate ? half_h : 0);
     start -= (start - (bmaporgx >> FRACTOMAPBITS)) % gridsize;
 
-    end = m_x + m_w + (automap_rotate ? half_h : 0);
+    const int64_t end = m_x + m_w + (automap_rotate ? half_h : 0);
 
     // Draw vertical grid lines
-    for (x = start; x < end; x += gridsize)
+    for (int64_t x = start; x < end; x += gridsize)
     {
         ml.a.x = x;
         ml.b.x = x;
         // [PN] Adjust for rotation or aspect
         ml.a.y = m_y - (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
         ml.b.y = m_y + m_h + (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
-        
+
         AM_transformPoint(&ml.a);
         AM_transformPoint(&ml.b);
         AM_drawMline(&ml, doom_104);
@@ -1560,17 +1566,17 @@ static void AM_drawGrid (void)
     start -= (start - (bmaporgy >> FRACTOMAPBITS)) % gridsize;
 
     // [PN] Adjust end for rotation or aspect
-    end = m_y + m_h + (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
+    const int64_t end_y = m_y + m_h + (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
 
     // Draw horizontal grid lines
-    for (y = start; y < end; y += gridsize)
+    for (int64_t y = start; y < end_y; y += gridsize)
     {
         ml.a.y = y;
         ml.b.y = y;
         // [PN] Adjust for rotation
         ml.a.x = m_x - (automap_rotate ? half_h : 0);
         ml.b.x = m_x + m_w + (automap_rotate ? half_h : 0);
-        
+
         AM_transformPoint(&ml.a);
         AM_transformPoint(&ml.b);
         AM_drawMline(&ml, doom_104);
@@ -2145,19 +2151,15 @@ static void AM_drawLineCharacter (mline_t *lineguy, int lineguylines,
 
 static void AM_drawPlayers (void)
 {
-    int       i;
-    int       their_colors[] = { doom_112, doom_96, doom_64, doom_176 };
-    int       color;
-    mpoint_t  pt;
-    player_t *p;
-    angle_t smoothangle;
+    const int their_colors[] = { doom_112, doom_96, doom_64, doom_176 };
+    mpoint_t pt;
 
     if (!netgame)
     {
         // [JN] Smooth player arrow rotation.
         // Keep arrow static in Spectator + rotate mode.
-        smoothangle = (crl_spectating && automap_rotate) ? plr->mo->angle : 
-                      automap_rotate ? plr->mo->angle : viewangle;
+        const angle_t smoothangle = (crl_spectating && automap_rotate) ? plr->mo->angle : 
+                                     automap_rotate ? plr->mo->angle : viewangle;
 
         // [JN] Interpolate player arrow.
         pt.x = viewx >> FRACTOMAPBITS;
@@ -2179,13 +2181,13 @@ static void AM_drawPlayers (void)
     }
 
     // [PN] Draw arrows for all players in netgame
-    for (i = 0; i < MAXPLAYERS; i++)
+    for (int i = 0; i < MAXPLAYERS; i++)
     {
-        p = &players[i];
+        player_t *p = &players[i];
         if ((deathmatch && !singledemo && p == plr) || !playeringame[i])
             continue;
 
-        color = p->powers[pw_invisibility] ? 246 : their_colors[i % 4];
+        const int color = p->powers[pw_invisibility] ? 246 : their_colors[i % 4];
 
         if (vid_uncapped_fps && realleveltime > oldleveltime)
         {
@@ -2206,7 +2208,7 @@ static void AM_drawPlayers (void)
         }
 
         AM_transformPoint(&pt);
-        smoothangle = automap_rotate ? p->mo->angle : LerpAngle(p->mo->oldangle, p->mo->angle);
+        const angle_t smoothangle = automap_rotate ? p->mo->angle : LerpAngle(p->mo->oldangle, p->mo->angle);
 
         AM_drawLineCharacter(player_arrow, arrlen(player_arrow), 0, smoothangle, color, pt.x, pt.y);
     }
@@ -2219,21 +2221,17 @@ static void AM_drawPlayers (void)
 
 static void AM_drawThings (void)
 {
-    int       i;
-    mpoint_t  pt;
-    mobj_t   *t;
-    angle_t   actualangle;
-    // RestlessRodent -- Carbon copy from ReMooD
-    int       color = doom_112;
+    const int default_color = doom_112; // RestlessRodent -- Carbon copy from ReMooD
+    mpoint_t pt;
 
-    for (i = 0 ; i < numsectors ; i++)
+    for (int i = 0; i < numsectors; i++)
     {
-        t = sectors[i].thinglist;
+        mobj_t *t = sectors[i].thinglist;
         while (t)
         {
             // [JN] Use actual radius for things drawing.
             const fixed_t actualradius = t->radius >> FRACTOMAPBITS;
-                
+
             // [crispy] do not draw an extra triangle for the player
             if (t == plr->mo)
             {
@@ -2242,6 +2240,7 @@ static void AM_drawThings (void)
             }
 
             // [JN] Interpolate things if possible.
+            angle_t actualangle;
             if (vid_uncapped_fps && realleveltime > oldleveltime)
             {
                 pt.x = LerpFixed(t->oldx, t->x) >> FRACTOMAPBITS;
@@ -2273,6 +2272,7 @@ static void AM_drawThings (void)
             else
             {
                 // [JN] CRL - ReMooD-inspired monsters coloring.
+                int color;
                 if (t->target && t->state && t->state->action.acv != A_Look)
                 {
                     color = iddt_reds_active;
@@ -2289,7 +2289,7 @@ static void AM_drawThings (void)
                                      // Lost Souls and Explosive barrels (does not have a MF_COUNTKILL flag)
                                      t->type == MT_SKULL || t->type == MT_BARREL ? doom_231 :
                                      // Countable items
-                                     t->flags & MF_COUNTITEM ? doom_112 :
+                                     t->flags & MF_COUNTITEM ? default_color :
                                      // Everything else
                                      doom_96,
                                      pt.x, pt.y);
@@ -2308,16 +2308,14 @@ static void AM_drawThings (void)
 
 static void AM_drawSpectator (void)
 {
-    int       i;
-    mpoint_t  pt;
-    mobj_t   *t;
-    angle_t   actualangle;
+    mpoint_t pt;
 
-    for (i = 0 ; i < numsectors ; i++)
+    for (int i = 0; i < numsectors; i++)
     {
-        for (t = sectors[i].thinglist; t; t = t->snext)
+        for (mobj_t *t = sectors[i].thinglist; t; t = t->snext)
         {
             // [JN] Interpolate things if possible.
+            angle_t actualangle;
             if (vid_uncapped_fps && realleveltime > oldleveltime)
             {
                 pt.x = LerpFixed(t->oldx, t->x) >> FRACTOMAPBITS;
@@ -2362,12 +2360,10 @@ static void AM_drawSpectator (void)
 
 static void AM_drawMarks (void)
 {
-    int i, fx, fy, j, d;
-    int fx_flip; // [crispy] support for marks drawing in flipped levels
     mpoint_t pt;
 
     // [JN] killough 2/22/98: remove automap mark limit
-    for (i = 0; i < markpointnum; i++)
+    for (int i = 0; i < markpointnum; i++)
     {
         if (markpoints[i].x == -1) 
             continue;
@@ -2376,14 +2372,14 @@ static void AM_drawMarks (void)
         pt.x = markpoints[i].x;
         pt.y = markpoints[i].y;
         AM_transformPoint(&pt);
-        fx = (CXMTOF(pt.x) / vid_resolution) - 1;
-        fy = (CYMTOF(pt.y) / vid_resolution) - 2;
-        fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
-        j = i;
+        int fx = (CXMTOF(pt.x) / vid_resolution) - 1;
+        int fy = (CYMTOF(pt.y) / vid_resolution) - 2;
+        int fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
+        int j = i;
 
         do
         {
-            d = j % 10;
+            int d = j % 10;
 
             // killough 2/22/98: less spacing for '1'
             if (d == 1)
