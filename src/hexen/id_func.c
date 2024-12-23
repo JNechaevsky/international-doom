@@ -397,17 +397,16 @@ static byte *ID_HealthColor (const int val1, const int val2)
 
 void ID_DrawTargetsHealth (void)
 {
-    char str[16];
-    player_t *player = &players[displayplayer];
-    byte *color;
+    const player_t *player = &players[displayplayer];
 
     if (player->targetsheathTics <= 0 || !player->targetsheath)
     {
         return;  // No tics or target is dead, nothing to display.
     }
 
+    char str[16];
     snprintf(str, sizeof(str), "%d/%d", player->targetsheath, player->targetsmaxheath);
-    color = ID_HealthColor(player->targetsheath, player->targetsmaxheath);
+    byte *color = ID_HealthColor(player->targetsheath, player->targetsmaxheath);
 
     switch (widget_health)
     {
