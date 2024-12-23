@@ -405,7 +405,8 @@ void R_DrawFuzzColumnLow(void)
         *dest2 = I_BlendDark(dest2[fuzz_offset], fuzzalpha);
     }
 
-    fuzzpos = local_fuzzpos; // Restore fuzzpos
+    // [PN] Restore fuzzpos
+    fuzzpos = local_fuzzpos;
 }
 
 
@@ -530,7 +531,8 @@ void R_DrawFuzzBWColumn(void)
         *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
     }
 
-    fuzzpos = local_fuzzpos; // Restore fuzzpos
+    // [PN] Restore fuzzpos
+    fuzzpos = local_fuzzpos;
 }
 
 
@@ -587,7 +589,8 @@ void R_DrawFuzzBWColumnLow(void)
         *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha);
     }
 
-    fuzzpos = local_fuzzpos; // Restore fuzzpos
+    // [PN] Restore fuzzpos
+    fuzzpos = local_fuzzpos;
 }
 
 
