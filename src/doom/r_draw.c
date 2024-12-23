@@ -237,7 +237,6 @@ void R_DrawColumnLow(void)
 }
 
 
-
 //
 // Spectre/Invisibility.
 //
