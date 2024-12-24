@@ -5748,6 +5748,76 @@ static void MN_ReturnToMenu (void)
 //
 //---------------------------------------------------------------------------
 
+static boolean MN_ID_TypeOfAsk (void)
+{
+    switch (typeofask)
+    {
+        case 1:
+            G_CheckDemoStatus();
+            I_Quit();
+            break;
+
+        case 2:
+            players[consoleplayer].messageTics = 0;
+            //set the msg to be cleared
+            players[consoleplayer].message = NULL;
+            paused = false;
+            I_SetPalette(0);
+            D_StartTitle();     // go to intro/demo mode.
+            break;
+
+        case 3:
+            CT_SetMessage(&players[consoleplayer],
+                         "QUICKSAVING....", false, NULL);
+            FileMenuKeySteal = true;
+            SCSaveGame(quicksave - 1);
+            break;
+
+        case 4:
+            CT_SetMessage(&players[consoleplayer],
+                         "QUICKLOADING....", false, NULL);
+            SCLoadGame(quickload - 1);
+            break;
+
+        case 5:
+            SCDeleteGame(CurrentItPos);
+            MN_ReturnToMenu();
+            break;
+
+        case 6: // [JN] Reset keybinds.
+            M_ResetBinds();
+            if (!netgame && !demoplayback)
+            {
+                paused = true;
+            }
+            MN_ReturnToMenu();
+            break;
+
+        case 7: // [JN] Reset mouse binds.
+            M_ResetMouseBinds();
+            if (!netgame && !demoplayback)
+            {
+                paused = true;
+            }
+            MN_ReturnToMenu();
+            break;
+
+        case 8: // [JN] Setting reset.
+            M_ID_ApplyReset();
+            if (!netgame && !demoplayback)
+            {
+                paused = true;
+            }
+            MN_ReturnToMenu();
+        default:
+            break;
+    }
+
+    askforquit = false;
+    typeofask = 0;
+    return true;
+}
+
 boolean MN_Responder(event_t * event)
 {
     int charTyped;
@@ -5865,6 +5935,11 @@ boolean MN_Responder(event_t * event)
                 {
                 key = key_menu_forward;
                 mousewait = I_GetTime() + 1;
+                }
+
+                if (typeofask)
+                {
+                    MN_ID_TypeOfAsk();
                 }
             }
 
@@ -6032,78 +6107,7 @@ boolean MN_Responder(event_t * event)
         // [JN] Allow to exclusevely confirm quit game by pressing F10 again.
         || (key == key_menu_quit && typeofask == 1))
         {
-            switch (typeofask)
-            {
-                case 1:
-                    G_CheckDemoStatus();
-                    I_Quit();
-                    return false;
-
-                case 2:
-                    players[consoleplayer].messageTics = 0;
-                    //set the msg to be cleared
-                    players[consoleplayer].message = NULL;
-                    paused = false;
-#ifndef CRISPY_TRUECOLOR
-                    I_SetPalette(W_CacheLumpName
-                                 ("PLAYPAL", PU_CACHE));
-#else
-                    I_SetPalette(0);
-#endif
-                    D_StartTitle();     // go to intro/demo mode.
-                    break;
-
-                case 3:
-                    CT_SetMessage(&players[consoleplayer],
-                                 "QUICKSAVING....", false, NULL);
-                    FileMenuKeySteal = true;
-                    SCSaveGame(quicksave - 1);
-                    break;
-
-                case 4:
-                    CT_SetMessage(&players[consoleplayer],
-                                 "QUICKLOADING....", false, NULL);
-                    SCLoadGame(quickload - 1);
-                    break;
-
-                case 5:
-                    SCDeleteGame(CurrentItPos);
-                    MN_ReturnToMenu();
-                    break;
-
-                case 6: // [JN] Reset keybinds.
-                    M_ResetBinds();
-                    if (!netgame && !demoplayback)
-                    {
-                        paused = true;
-                    }
-                    MN_ReturnToMenu();
-                    break;
-
-                case 7: // [JN] Reset mouse binds.
-                    M_ResetMouseBinds();
-                    if (!netgame && !demoplayback)
-                    {
-                        paused = true;
-                    }
-                    MN_ReturnToMenu();
-                    break;
-
-                case 8: // [JN] Setting reset.
-                    M_ID_ApplyReset();
-                    if (!netgame && !demoplayback)
-                    {
-                        paused = true;
-                    }
-                    MN_ReturnToMenu();
-                default:
-                    break;
-            }
-
-            askforquit = false;
-            typeofask = 0;
-
-            return true;
+            MN_ID_TypeOfAsk();
         }
         else
         if (key == key_menu_abort || key == KEY_ESCAPE
