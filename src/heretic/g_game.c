@@ -2224,24 +2224,35 @@ static void G_FormatLevelStatTime(char *str, int tics)
 // [crispy] Write level statistics upon exit
 static void G_WriteLevelStat(void)
 {
-    static FILE *fstream = NULL;
+    FILE *fstream;
 
     int i, playerKills = 0, playerItems = 0, playerSecrets = 0;
 
+    char levelString[8];
     char levelTimeString[TIMESTRSIZE];
     char totalTimeString[TIMESTRSIZE];
     char *decimal;
 
+    static boolean firsttime = true;
+
+    if (firsttime)
+    {
+        firsttime = false;
+        fstream = M_fopen("levelstat.txt", "w");
+    }
+    else
+    {
+        fstream = M_fopen("levelstat.txt", "a");
+    }
+
     if (fstream == NULL)
     {
-        fstream = fopen("levelstat.txt", "w");
-
-        if (fstream == NULL)
-        {
-            fprintf(stderr, "G_WriteLevelStat: Unable to open levelstat.txt for writing!\n");
-            return;
-        }
+        fprintf(stderr, "G_WriteLevelStat: Unable to open levelstat.txt for writing!\n");
+        return;
     }
+
+    M_snprintf(levelString, sizeof(levelString), "E%dM%d",
+                gameepisode, gamemap);
 
     G_FormatLevelStatTime(levelTimeString, leveltime);
     G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime);
@@ -2263,10 +2274,12 @@ static void G_WriteLevelStat(void)
         }
     }
 
-    fprintf(fstream, "E%dM%d%s - %s (%s)  K: %d/%d  I: %d/%d  S: %d/%d\n",
-            gameepisode, gamemap, (secretexit ? "s" : ""),
+    fprintf(fstream, "%s%s - %s (%s)  K: %d/%d  I: %d/%d  S: %d/%d\n",
+            levelString, (secretexit ? "s" : ""),
             levelTimeString, totalTimeString, playerKills, totalkills, 
             playerItems, totalitems, playerSecrets, totalsecret);
+
+    fclose(fstream);
 }
 
 void G_DoCompleted(void)
