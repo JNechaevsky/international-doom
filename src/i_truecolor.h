@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 
+/* [PN] Used by blending functions from Crispy Doom
 typedef union
 {
     uint32_t i;
@@ -35,8 +36,9 @@ typedef union
         uint8_t g;
         uint8_t r;
         uint8_t a;
-    };
+    } rgba; // [PN] Name for the structure to comply with C90/C99 standards
 } tcpixel_t;
+*/
 
 extern uint8_t **additive_lut;
 extern uint8_t   shadow_alpha;

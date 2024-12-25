@@ -17,6 +17,7 @@
 //	WAD I/O functions.
 //
 
+#include <stdlib.h> // [PN] free
 #include "config.h"
 
 #ifdef _WIN32

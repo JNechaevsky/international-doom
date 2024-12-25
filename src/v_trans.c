@@ -486,466 +486,464 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
 
     if (cr == CR_DARK)
     {
-        hsv.z *= 0.666;
+        hsv.z *= 0.666f;
     }
     // [JN] Menu glowing effects.
     else if (cr == CR_MENU_BRIGHT5)
     {
-        hsv.z *= 1.5;
+        hsv.z *= 1.5f;
     }
     else if (cr == CR_MENU_BRIGHT4)
     {
-        hsv.z *= 1.4;
+        hsv.z *= 1.4f;
     }
     else if (cr == CR_MENU_BRIGHT3)
     {
-        hsv.z *= 1.3;
+        hsv.z *= 1.3f;
     }
     else if (cr == CR_MENU_BRIGHT2)
     {
-        hsv.z *= 1.2;
+        hsv.z *= 1.2f;
     }
     else if (cr == CR_MENU_BRIGHT1)
     {
-        hsv.z *= 1.1;
+        hsv.z *= 1.1f;
     }
     else if (cr == CR_MENU_DARK1)
     {
-        hsv.z *= 0.9;
+        hsv.z *= 0.9f;
     }
     else if (cr == CR_MENU_DARK2)
     {
-        hsv.z *= 0.8;
+        hsv.z *= 0.8f;
     }
     else if (cr == CR_MENU_DARK3)
     {
-        hsv.z *= 0.7;
+        hsv.z *= 0.7f;
     }    
     else if (cr == CR_MENU_DARK4)
     {
-        hsv.z *= 0.6;
+        hsv.z *= 0.6f;
     }
     else
     {
         // [crispy] hack colors to full saturation
-        hsv.y = 1.0;
+        hsv.y = 1.0f;
 
         if (cr == CR_RED)
         {
-            hsv.x = 0.;
+            hsv.x = 0.f;
         }
         else if (cr == CR_RED_BRIGHT5)
         {
-            hsv.x = 0.;
-            hsv.z *= 1.5;
+            hsv.x = 0.f;
+            hsv.z *= 1.5f;
         }
         else if (cr == CR_RED_BRIGHT4)
         {
-            hsv.x = 0.;
-            hsv.z *= 1.4;
+            hsv.x = 0.f;
+            hsv.z *= 1.4f;
         }
         else if (cr == CR_RED_BRIGHT3)
         {
-            hsv.x = 0.;
-            hsv.z *= 1.3;
+            hsv.x = 0.f;
+            hsv.z *= 1.3f;
         }
         else if (cr == CR_RED_BRIGHT2)
         {
-            hsv.x = 0.;
-            hsv.z *= 1.2;
+            hsv.x = 0.f;
+            hsv.z *= 1.2f;
         }
         else if (cr == CR_RED_BRIGHT1)
         {
-            hsv.x = 0.;
-            hsv.z *= 1.1;
+            hsv.x = 0.f;
+            hsv.z *= 1.1f;
         }
         else if (cr == CR_RED_DARK1)
         {
-            hsv.x = 0.;
-            hsv.z *= 0.900;
+            hsv.x = 0.f;
+            hsv.z *= 0.900f;
         }
         else if (cr == CR_RED_DARK2)
         {
-            hsv.x = 0.;
-            hsv.z *= 0.850;
+            hsv.x = 0.f;
+            hsv.z *= 0.850f;
         }
         else if (cr == CR_RED_DARK3)
         {
-            hsv.x = 0.;
-            hsv.z *= 0.800;
+            hsv.x = 0.f;
+            hsv.z *= 0.800f;
         }
         else if (cr == CR_RED_DARK4)
         {
-            hsv.x = 0.;
-            hsv.z *= 0.750;
+            hsv.x = 0.f;
+            hsv.z *= 0.750f;
         }
         else if (cr == CR_RED_DARK5)
         {
-            hsv.x = 0.;
-            hsv.z *= 0.700;
+            hsv.x = 0.f;
+            hsv.z *= 0.700f;
         }
 
         else if (cr == CR_DARKRED)
         {
-            hsv.x = 0.;
-            hsv.z *= 0.666;
+            hsv.x = 0.f;
+            hsv.z *= 0.666f;
         }
 
         else if (cr == CR_GREEN)
         {
-            hsv.x = (144. * hsv.z + 140. * (1. - hsv.z))/360.;
+            hsv.x = (144.f * hsv.z + 140.f * (1.f - hsv.z))/360.f;
         }
         else if (cr == CR_GREEN_BRIGHT5)
         {
-            hsv.x = 0.3;
-            hsv.z *= 1.5;
+            hsv.x = 0.3f;
+            hsv.z *= 1.5f;
         }
         else if (cr == CR_GREEN_BRIGHT4)
         {
-            hsv.x = 0.3;
-            hsv.z *= 1.4;
+            hsv.x = 0.3f;
+            hsv.z *= 1.4f;
         }
         else if (cr == CR_GREEN_BRIGHT3)
         {
-            hsv.x = 0.3;
-            hsv.z *= 1.3;
+            hsv.x = 0.3f;
+            hsv.z *= 1.3f;
         }
         else if (cr == CR_GREEN_BRIGHT2)
         {
-            hsv.x = 0.3;
-            hsv.z *= 1.2;
+            hsv.x = 0.3f;
+            hsv.z *= 1.2f;
         }
         else if (cr == CR_GREEN_BRIGHT1)
         {
-            hsv.x = 0.3;
-            hsv.z *= 1.1;
+            hsv.x = 0.3f;
+            hsv.z *= 1.1f;
         }
         // [JN] Slightly different for Hexen...
         else if (cr == CR_GREEN_HX)
         {
-            hsv.x = 0.425;
-            hsv.y = 0.75;
-            hsv.z *= 0.8;
+            hsv.x = 0.425f;
+            hsv.y = 0.75f;
+            hsv.z *= 0.8f;
         }
         else if (cr == CR_GREEN_BRIGHT5_HX)
         {
-            hsv.x = 0.425;
-            hsv.y = 0.75;
-            hsv.z *= 1.15;
+            hsv.x = 0.425f;
+            hsv.y = 0.75f;
+            hsv.z *= 1.15f;
         }
         else if (cr == CR_GREEN_BRIGHT4_HX)
         {
-            hsv.x = 0.425;
-            hsv.y = 0.75;
-            hsv.z *= 1.1;
+            hsv.x = 0.425f;
+            hsv.y = 0.75f;
+            hsv.z *= 1.1f;
         }
         else if (cr == CR_GREEN_BRIGHT3_HX)
         {
-            hsv.x = 0.425;
-            hsv.y = 0.75;
-            hsv.z *= 1.0;
+            hsv.x = 0.425f;
+            hsv.y = 0.75f;
+            hsv.z *= 1.0f;
         }
         else if (cr == CR_GREEN_BRIGHT2_HX)
         {
-            hsv.x = 0.425;
-            hsv.y = 0.75;
-            hsv.z *= 0.95;
+            hsv.x = 0.425f;
+            hsv.y = 0.75f;
+            hsv.z *= 0.95f;
         }
         else if (cr == CR_GREEN_BRIGHT1_HX)
         {
-            hsv.x = 0.425;
-            hsv.y = 0.75;
-            hsv.z *= 0.9;
+            hsv.x = 0.425f;
+            hsv.y = 0.75f;
+            hsv.z *= 0.9f;
         }
 
         else if (cr == CR_DARKGREEN)
         {
-            hsv.x = 0.3;
-            hsv.z *= 0.666;
+            hsv.x = 0.3f;
+            hsv.z *= 0.666f;
         }
         else if (cr == CR_DARKGREEN_BRIGHT5)
         {
-            hsv.x = 0.3;
-            hsv.z *= 0.888;
+            hsv.x = 0.3f;
+            hsv.z *= 0.888f;
         }
         else if (cr == CR_DARKGREEN_BRIGHT4)
         {
-            hsv.x = 0.3;
-            hsv.z *= 0.844;
+            hsv.x = 0.3f;
+            hsv.z *= 0.844f;
         }
         else if (cr == CR_DARKGREEN_BRIGHT3)
         {
-            hsv.x = 0.3;
-            hsv.z *= 0.8;
+            hsv.x = 0.3f;
+            hsv.z *= 0.8f;
         }
         else if (cr == CR_DARKGREEN_BRIGHT2)
         {
-            hsv.x = 0.3;
-            hsv.z *= 0.756;
+            hsv.x = 0.3f;
+            hsv.z *= 0.756f;
         }
         else if (cr == CR_DARKGREEN_BRIGHT1)
         {
-            hsv.x = 0.3;
-            hsv.z *= 0.712;
+            hsv.x = 0.3f;
+            hsv.z *= 0.712f;
         }
-
 
         else if (cr == CR_OLIVE)
         {
-            hsv.x = 0.25;
-            hsv.y = 0.5;
-            hsv.z *= 0.5;
+            hsv.x = 0.25f;
+            hsv.y = 0.5f;
+            hsv.z *= 0.5f;
         }
         else if (cr == CR_OLIVE_BRIGHT5)
         {
-            hsv.x = 0.25;
-            hsv.y = 0.5;
-            hsv.z *= 0.65;
+            hsv.x = 0.25f;
+            hsv.y = 0.5f;
+            hsv.z *= 0.65f;
         }
         else if (cr == CR_OLIVE_BRIGHT4)
         {
-            hsv.x = 0.25;
-            hsv.y = 0.5;
-            hsv.z *= 0.625;
+            hsv.x = 0.25f;
+            hsv.y = 0.5f;
+            hsv.z *= 0.625f;
         }
         else if (cr == CR_OLIVE_BRIGHT3)
         {
-            hsv.x = 0.25;
-            hsv.y = 0.5;
-            hsv.z *= 0.6;
+            hsv.x = 0.25f;
+            hsv.y = 0.5f;
+            hsv.z *= 0.6f;
         }
         else if (cr == CR_OLIVE_BRIGHT2)
         {
-            hsv.x = 0.25;
-            hsv.y = 0.5;
-            hsv.z *= 0.575;
+            hsv.x = 0.25f;
+            hsv.y = 0.5f;
+            hsv.z *= 0.575f;
         }
         else if (cr == CR_OLIVE_BRIGHT1)
         {
-            hsv.x = 0.25;
-            hsv.y = 0.5;
-            hsv.z *= 0.55;
+            hsv.x = 0.25f;
+            hsv.y = 0.5f;
+            hsv.z *= 0.55f;
         }
-
 
         else if (cr == CR_BLUE2)
         {
-            hsv.x = 0.65;
-            hsv.z *= 1.2;
+            hsv.x = 0.65f;
+            hsv.z *= 1.2f;
         }
         else if (cr == CR_BLUE2_BRIGHT5)
         {
-            hsv.x = 0.65;
-            hsv.z *= 1.55;
+            hsv.x = 0.65f;
+            hsv.z *= 1.55f;
         }
         else if (cr == CR_BLUE2_BRIGHT4)
         {
-            hsv.x = 0.65;
-            hsv.z *= 1.48;
+            hsv.x = 0.65f;
+            hsv.z *= 1.48f;
         }
         else if (cr == CR_BLUE2_BRIGHT3)
         {
-            hsv.x = 0.65;
-            hsv.z *= 1.41;
+            hsv.x = 0.65f;
+            hsv.z *= 1.41f;
         }
         else if (cr == CR_BLUE2_BRIGHT2)
         {
-            hsv.x = 0.65;
-            hsv.z *= 1.34;
+            hsv.x = 0.65f;
+            hsv.z *= 1.34f;
         }
         else if (cr == CR_BLUE2_BRIGHT1)
         {
-            hsv.x = 0.65;
-            hsv.z *= 1.27;
+            hsv.x = 0.65f;
+            hsv.z *= 1.27f;
         }
 
         else if (cr == CR_YELLOW)
         {
-            hsv.x = (7.0 + 53. * hsv.z)/360.;
-            hsv.y = 1.0 - 0.4 * hsv.z;
-            hsv.z = 0.2 + 0.8 * hsv.z;
+            hsv.x = (7.0f + 53.f * hsv.z)/360.f;
+            hsv.y = 1.0f - 0.4f * hsv.z;
+            hsv.z = 0.2f + 0.8f * hsv.z;
         }
         else if (cr == CR_YELLOW_BRIGHT5)
         {
-            hsv.x = (7.0 + 53. * hsv.z)/360.;
-            hsv.y = 1.0 - 0.4 * hsv.z;
-            hsv.z = 0.2 + 1.05 * hsv.z;
+            hsv.x = (7.0f + 53.f * hsv.z)/360.f;
+            hsv.y = 1.0f - 0.4f * hsv.z;
+            hsv.z = 0.2f + 1.05f * hsv.z;
         }
         else if (cr == CR_YELLOW_BRIGHT4)
         {
-            hsv.x = (7.0 + 53. * hsv.z)/360.;
-            hsv.y = 1.0 - 0.4 * hsv.z;
-            hsv.z = 0.2 + 1.0 * hsv.z;
+            hsv.x = (7.0f + 53.f * hsv.z)/360.f;
+            hsv.y = 1.0f - 0.4f * hsv.z;
+            hsv.z = 0.2f + 1.0f * hsv.z;
         }
         else if (cr == CR_YELLOW_BRIGHT3)
         {
-            hsv.x = (7.0 + 53. * hsv.z)/360.;
-            hsv.y = 1.0 - 0.4 * hsv.z;
-            hsv.z = 0.2 + 0.95 * hsv.z;
+            hsv.x = (7.0f + 53.f * hsv.z)/360.f;
+            hsv.y = 1.0f - 0.4f * hsv.z;
+            hsv.z = 0.2f + 0.95f * hsv.z;
         }
         else if (cr == CR_YELLOW_BRIGHT2)
         {
-            hsv.x = (7.0 + 53. * hsv.z)/360.;
-            hsv.y = 1.0 - 0.4 * hsv.z;
-            hsv.z = 0.2 + 0.90 * hsv.z;
+            hsv.x = (7.0f + 53.f * hsv.z)/360.f;
+            hsv.y = 1.0f - 0.4f * hsv.z;
+            hsv.z = 0.2f + 0.90f * hsv.z;
         }
         else if (cr == CR_YELLOW_BRIGHT1)
         {
-            hsv.x = (7.0 + 53. * hsv.z)/360.;
-            hsv.y = 1.0 - 0.4 * hsv.z;
-            hsv.z = 0.2 + 0.85 * hsv.z;
+            hsv.x = (7.0f + 53.f * hsv.z)/360.f;
+            hsv.y = 1.0f - 0.4f * hsv.z;
+            hsv.z = 0.2f + 0.85f * hsv.z;
         }
 
         else if (cr == CR_ORANGE)
         {
-            hsv.x = 0.075;
-            hsv.z *= 1.15;
+            hsv.x = 0.075f;
+            hsv.z *= 1.15f;
         }
         else if (cr == CR_ORANGE_BRIGHT5)
         {
-            hsv.x = 0.075;
-            hsv.z *= 1.40;
+            hsv.x = 0.075f;
+            hsv.z *= 1.40f;
         }
         else if (cr == CR_ORANGE_BRIGHT4)
         {
-            hsv.x = 0.075;
-            hsv.z *= 1.35;
+            hsv.x = 0.075f;
+            hsv.z *= 1.35f;
         }
         else if (cr == CR_ORANGE_BRIGHT3)
         {
-            hsv.x = 0.075;
-            hsv.z *= 1.30;
+            hsv.x = 0.075f;
+            hsv.z *= 1.30f;
         }
         else if (cr == CR_ORANGE_BRIGHT2)
         {
-            hsv.x = 0.075;
-            hsv.z *= 1.25;
+            hsv.x = 0.075f;
+            hsv.z *= 1.25f;
         }
         else if (cr == CR_ORANGE_BRIGHT1)
         {
-            hsv.x = 0.075;
-            hsv.z *= 1.20;
+            hsv.x = 0.075f;
+            hsv.z *= 1.20f;
         }
 
         else if (cr == CR_ORANGE_HR)
         {
-            hsv.x = 0.0777;
-            hsv.z *= 1.15;
+            hsv.x = 0.0777f;
+            hsv.z *= 1.15f;
         }
         else if (cr == CR_ORANGE_HR_BRIGHT5)
         {
-            hsv.x = 0.0777;
-            hsv.z *= 1.40;
+            hsv.x = 0.0777f;
+            hsv.z *= 1.40f;
         }
         else if (cr == CR_ORANGE_HR_BRIGHT4)
         {
-            hsv.x = 0.0777;
-            hsv.z *= 1.35;
+            hsv.x = 0.0777f;
+            hsv.z *= 1.35f;
         }
         else if (cr == CR_ORANGE_HR_BRIGHT3)
         {
-            hsv.x = 0.0777;
-            hsv.z *= 1.30;
+            hsv.x = 0.0777f;
+            hsv.z *= 1.30f;
         }
         else if (cr == CR_ORANGE_HR_BRIGHT2)
         {
-            hsv.x = 0.0777;
-            hsv.z *= 1.25;
+            hsv.x = 0.0777f;
+            hsv.z *= 1.25f;
         }
         else if (cr == CR_ORANGE_HR_BRIGHT1)
         {
-            hsv.x = 0.0777;
-            hsv.z *= 1.20;
+            hsv.x = 0.0777f;
+            hsv.z *= 1.20f;
         }
 
         else if (cr == CR_WHITE)
         {
-            hsv.y = 0;
+            hsv.y = 0.f;
         }
         else if (cr == CR_GRAY)
         {
-            hsv.y = 0;
-            hsv.z *= 0.5;
+            hsv.y = 0.f;
+            hsv.z *= 0.5f;
         }
         else if (cr == CR_GRAY_BRIGHT5)
         {
-            hsv.y = 0;
-            hsv.z *= 0.75;
+            hsv.y = 0.f;
+            hsv.z *= 0.75f;
         }
         else if (cr == CR_GRAY_BRIGHT4)
         {
-            hsv.y = 0;
-            hsv.z *= 0.70;
+            hsv.y = 0.f;
+            hsv.z *= 0.70f;
         }
         else if (cr == CR_GRAY_BRIGHT3)
         {
-            hsv.y = 0;
-            hsv.z *= 0.65;
+            hsv.y = 0.f;
+            hsv.z *= 0.65f;
         }
         else if (cr == CR_GRAY_BRIGHT2)
         {
-            hsv.y = 0;
-            hsv.z *= 0.60;
+            hsv.y = 0.f;
+            hsv.z *= 0.60f;
         }
         else if (cr == CR_GRAY_BRIGHT1)
         {
-            hsv.y = 0;
-            hsv.z *= 0.55;
+            hsv.y = 0.f;
+            hsv.z *= 0.55f;
         }
 
         else if (cr == CR_LIGHTGRAY)
         {
-            hsv.y = 0;
-            hsv.z *= 0.80;
+            hsv.y = 0.f;
+            hsv.z *= 0.80f;
         }
         else if (cr == CR_LIGHTGRAY_BRIGHT5)
         {
-            hsv.y = 0;
-            hsv.z *= 1.05;
+            hsv.y = 0.f;
+            hsv.z *= 1.05f;
         }
         else if (cr == CR_LIGHTGRAY_BRIGHT4)
         {
-            hsv.y = 0;
-            hsv.z *= 1.0;
+            hsv.y = 0.f;
+            hsv.z *= 1.0f;
         }
         else if (cr == CR_LIGHTGRAY_BRIGHT3)
         {
-            hsv.y = 0;
-            hsv.z *= 0.95;
+            hsv.y = 0.f;
+            hsv.z *= 0.95f;
         }
         else if (cr == CR_LIGHTGRAY_BRIGHT2)
         {
-            hsv.y = 0;
-            hsv.z *= 0.90;
+            hsv.y = 0.f;
+            hsv.z *= 0.90f;
         }
         else if (cr == CR_LIGHTGRAY_BRIGHT1)
         {
-            hsv.y = 0;
-            hsv.z *= 0.85;
+            hsv.y = 0.f;
+            hsv.z *= 0.85f;
         }
         else if (cr == CR_LIGHTGRAY_DARK1)
         {
-            hsv.y = 0;
-            hsv.z *= 0.6;
+            hsv.y = 0.f;
+            hsv.z *= 0.6f;
         }
         else if (cr == CR_BROWN)
         {
-            hsv.x = 0.1;
-            hsv.y = 0.75;
-            hsv.z *= 0.65;
+            hsv.x = 0.1f;
+            hsv.y = 0.75f;
+            hsv.z *= 0.65f;
         }
         else if (cr == CR_FLAME)
         {
-            hsv.x = 0.125;
-            hsv.z *= 1.75;
+            hsv.x = 0.125f;
+            hsv.z *= 1.75f;
         }
     }
 
     hsv_to_rgb(&hsv, &rgb);
 
-    rgb.x *= 255.;
-    rgb.y *= 255.;
-    rgb.z *= 255.;
+    rgb.x *= 255.f;
+    rgb.y *= 255.f;
+    rgb.z *= 255.f;
 
     return V_GetPaletteIndex(playpal, (int) rgb.x, (int) rgb.y, (int) rgb.z);
 }
