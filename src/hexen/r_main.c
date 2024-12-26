@@ -221,7 +221,7 @@ angle_t R_PointToAngleSlope(fixed_t x, fixed_t y,
         {                       // y<0
             y = -y;
             if (x > y)
-                return -tantoangle[SlopeDiv(y, x)];     // octant 8
+                return 0 - tantoangle[SlopeDiv(y, x)];     // octant 8
             else
                 return ANG270 + tantoangle[SlopeDiv(x, y)];     // octant 7
         }

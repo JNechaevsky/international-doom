@@ -297,7 +297,7 @@ static void R_AddLine (seg_t *line)
         {
             return;
         }
-        angle2 = -clipangle;
+        angle2 = 0-clipangle;
     }
 
     // The seg is in the view range,
@@ -412,7 +412,7 @@ static boolean R_CheckBBox (const fixed_t *bspcoord)
     if ((signed)angle2 >= (signed)clipangle) return false; // Both off left edge
     if ((signed)angle1 <= -(signed)clipangle) return false; // Both off right edge
     if ((signed)angle1 >= (signed)clipangle) angle1 = clipangle; // Clip at left edge
-    if ((signed)angle2 <= -(signed)clipangle) angle2 = -clipangle; // Clip at right edge
+    if ((signed)angle2 <= -(signed)clipangle) angle2 = 0-clipangle; // Clip at right edge
 
     // Find the first clippost that touches the 
     // source post (adjacent pixels are touching).

@@ -550,7 +550,7 @@ static void AM_changeWindowLoc (void)
 
     if (automap_rotate)
     {
-        AM_rotate(&incx, &incy, -mapangle);
+        AM_rotate(&incx, &incy, 0 - mapangle);
     }
 
     m_x = prev_m_x + incx;

@@ -263,7 +263,7 @@ R_PointToAngleSlope
 	    if (x>y)
 	    {
 		// octant 8
-		return -tantoangle[slope_div(y,x)];
+		return 0-tantoangle[slope_div(y,x)];
 	    }
 	    else
 	    {
