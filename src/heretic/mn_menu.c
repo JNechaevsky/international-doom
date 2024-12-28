@@ -6518,13 +6518,13 @@ boolean MN_Responder(event_t * event)
         else if (key == key_menu_back)         // Go back to previous menu
         {
             id_prev_menu:
-            S_StartSound(NULL, sfx_switch);
             if (CurrentMenu->prevMenu == MENU_NONE)
             {
                 MN_DeactivateMenu();
             }
             else
             {
+                S_StartSound(NULL, sfx_switch);
                 SetMenu(CurrentMenu->prevMenu);
             }
             return (true);

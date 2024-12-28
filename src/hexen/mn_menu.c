@@ -5979,14 +5979,13 @@ boolean MN_Responder(event_t * event)
         else if (key == key_menu_back)
         {
             id_prev_menu:
-            S_StartSound(NULL, SFX_PICKUP_KEY);
-
             if (CurrentMenu->prevMenu == MENU_NONE)
             {
                 MN_DeactivateMenu();
             }
             else
             {
+                S_StartSound(NULL, SFX_PICKUP_KEY);
                 SetMenu(CurrentMenu->prevMenu);
             }
             return (true);
