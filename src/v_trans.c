@@ -440,28 +440,29 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
 
  
 // [crispy] copied over from i_video.c
+// [PN] Refactored for performance
 int V_GetPaletteIndex(byte *palette, int r, int g, int b)
 {
-    int best, best_diff, diff;
-    int i;
+    int best = 0;
+    int best_diff = INT_MAX;
 
-    best = 0; best_diff = INT_MAX;
-
-    for (i = 0; i < 256; ++i)
+    for (int i = 0; i < 256; i++, palette += 3)
     {
-        diff = (r - palette[3 * i + 0]) * (r - palette[3 * i + 0])
-             + (g - palette[3 * i + 1]) * (g - palette[3 * i + 1])
-             + (b - palette[3 * i + 2]) * (b - palette[3 * i + 2]);
+        // [PN] Explicit cast to int to ensure correct calculation
+        const int dr = (int)r - (int)palette[0];
+        const int dg = (int)g - (int)palette[1];
+        const int db = (int)b - (int)palette[2];
+
+        // [PN] Compute the sum of squared differences (Euclidean distance in RGB space)
+        const int diff = dr * dr + dg * dg + db * db;
 
         if (diff < best_diff)
         {
             best = i;
             best_diff = diff;
-        }
 
-        if (diff == 0)
-        {
-            break;
+            if (diff == 0)
+                break; // [PN] Early exit for exact match
         }
     }
 
