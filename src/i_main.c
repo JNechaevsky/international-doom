@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     }
 #endif
 
-    // compose a proper command line from loose file paths passed as arguments
+    // [FG] compose a proper command line from loose file paths passed as arguments
     // to allow for loading WADs and DEHACKED patches by drag-and-drop
     M_AddLooseFiles();
 

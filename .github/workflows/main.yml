@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - dnd_linux
   pull_request:
     branches:
       - main
-      - dnd_linux
 
 jobs:
   build-windows:

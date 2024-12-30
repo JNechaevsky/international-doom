@@ -309,6 +309,9 @@ void M_FindResponseFile(void)
     }
 }
 
+// [FG] compose a proper command line from loose file paths passed as arguments
+// to allow for loading WADs and DEHACKED patches by drag-and-drop
+
 enum
 {
     FILETYPE_UNKNOWN = 0x0,
