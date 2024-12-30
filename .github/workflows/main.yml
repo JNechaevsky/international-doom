@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - nautilus
   pull_request:
     branches:
       - main
+      - nautilus
 
 jobs:
   build-windows:

@@ -1,6 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=inter-hexen
-Exec=inter-hexen
+Exec=inter-hexen %F
 Icon=inter-hexen
+TryExec=inter-hexen
 Categories=Game;
+MimeType=application/x-doom-wad;

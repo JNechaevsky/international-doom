@@ -1,6 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=inter-doom
-Exec=inter-doom
+Exec=inter-doom %F
 Icon=inter-doom
+TryExec=inter-doom
 Categories=Game;
+MimeType=application/x-doom-wad;
