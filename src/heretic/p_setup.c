@@ -634,7 +634,7 @@ void P_SegLengths(boolean contrast_only)
     // [JN] Make fake contrast optional.
     const int fakecont_val  = vis_fake_contrast ? LIGHTBRIGHT : 0;
     // [JN] Apply smoother fake contrast for smooth diminishing lighting.
-    const int smoothlit_val = vis_fake_contrast && vis_smooth_light ? (LIGHTBRIGHT / 2) : 0;
+    const int smoothlit_val = vis_fake_contrast && vis_smooth_light ? LIGHTBRIGHT : 0;
 
     for (i = 0; i < numsegs; i++)
     {
@@ -661,19 +661,39 @@ void P_SegLengths(boolean contrast_only)
         }
 
         // [crispy] smoother fake contrast
+        // [PN] Use shifted angle for lookup
+        const angle_t angle = li->r_angle >> ANGLETOFINESHIFT;
+        const fixed_t sine_val = abs(finesine[angle]);
+        const fixed_t cosine_val = abs(finecosine[angle]);
+
         if (!dy)
+        {
+            // [PN] Strong horizontal contrast
             li->fakecontrast = -fakecont_val;
+        }
         else
-        if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-            li->fakecontrast = -smoothlit_val;
+        if (sine_val < rightangle)
+        {
+            // [PN] Smooth dimming for near-horizontal
+            li->fakecontrast = -smoothlit_val + (smoothlit_val * sine_val / rightangle);
+        }
         else
         if (!dx)
+        {
+            // [PN] Strong vertical contrast
             li->fakecontrast = fakecont_val;
+        }
         else
-        if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-            li->fakecontrast = smoothlit_val;
+        if (cosine_val < rightangle)
+        {
+            // [PN] Smooth dimming for near-vertical
+            li->fakecontrast = smoothlit_val - (smoothlit_val * cosine_val / rightangle);
+        }
         else
+        {
+            // [PN] Default case
             li->fakecontrast = 0;
+        }
     }
 }
 
