@@ -6138,8 +6138,9 @@ void MN_ActivateMenu(void)
     }
     S_StartSound(NULL, SFX_PLATFORM_STOP);
     slottextloaded = false;     //reload the slot text, when needed
-    // [JN] Show cursor on opening menu.
-    menu_mouse_allow = true;
+    // [JN] Disallow menu items highlighting initially to prevent
+    // cursor jumping. It will be allowed by mouse movement.
+    menu_mouse_allow = false;
 }
 
 //---------------------------------------------------------------------------

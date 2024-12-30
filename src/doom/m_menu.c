@@ -6642,7 +6642,9 @@ void M_StartControlPanel (void)
     currentMenu = &MainDef;         // JDC
     M_Reset_Line_Glow();
     itemOn = currentMenu->lastOn;   // JDC
-    menu_mouse_allow = true;        // [JN] Show cursor on opening menu.
+    // [JN] Disallow menu items highlighting initially to prevent
+    // cursor jumping. It will be allowed by mouse movement.
+    menu_mouse_allow = false;
 }
 
 static void M_ID_MenuMouseControl (void)
