@@ -78,11 +78,11 @@ int main(int argc, char **argv)
         SetConsoleOutputCP(CP_UTF8);
         SetConsoleCP(CP_UTF8);
     }
+#endif
 
     // compose a proper command line from loose file paths passed as arguments
     // to allow for loading WADs and DEHACKED patches by drag-and-drop
     M_AddLooseFiles();
-#endif
 
     M_FindResponseFile();
     M_SetExeDir();
