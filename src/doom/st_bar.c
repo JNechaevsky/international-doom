@@ -1091,7 +1091,7 @@ static void ST_doSmoothPaletteStuff (void)
 //      Limits the count to -99 and 99 if big_values is false.
 // -----------------------------------------------------------------------------
 
-static const int ST_UpdateFragsCounter (const int playernum, const boolean big_values)
+static int ST_UpdateFragsCounter (int playernum, boolean big_values)
 {
     st_fragscount = 0;
 
@@ -1105,10 +1105,10 @@ static const int ST_UpdateFragsCounter (const int playernum, const boolean big_v
     
     // [JN] Prevent overflow, ST_DrawBigNumber can only draw three 
     // digit number, and status bar fits well only two digits number.
-    // [PN] Use MAX and MIN macros to limit st_fragscount between -99 and 99.
+    // Limit the value between -99 and 99.
     if (!big_values)
     {
-        st_fragscount = MIN(MAX(st_fragscount, -99), 99);
+        st_fragscount = BETWEEN(-99, 99, st_fragscount);
     }
 
     return st_fragscount;
@@ -1280,49 +1280,43 @@ static byte *ST_WidgetColor (const int i)
 
 // -----------------------------------------------------------------------------
 // ST_DrawBigNumber
-// [JN] Draws a three digit big red number using STTNUM* graphics.
+// [PN/JN] Draws a three digit big red number using STTNUM* graphics.
 // [PN] Supports negative values and ensures proper digit placement.
 //      Capped at 999 for positive numbers and 99 for negative numbers.
 // -----------------------------------------------------------------------------
 
-static void ST_DrawBigNumber (int val, const int x, const int y, byte *table)
+static void ST_DrawBigNumber (int val, int x, int y, byte *table)
 {
-    int oldval = val;
-    int xpos = x;
-
     dp_translation = table;
 
-    // [JN] Support for negative values.
-    if (val < 0)
-    {
-        val = -val;
-        // [PN] Cap at 99 for negative values
-        val = (val > 99) ? 99 : val;
+    // [PN] Determine the sign and absolute value
+    const boolean negative = (val < 0);
+    int absVal = negative ? -val : val;
 
-        // [JN] Draw minus symbol with respection of digits placement.
-        // However, values below -10 requires some correction in "x" placement.
-        V_DrawPatch(xpos + (val <= 9 ? 20 : 5) - 4, y, tallminus);
-    }
-    
-    // [PN] Cap at 999
-    val = (val > 999) ? 999 : val;
+    // [PN] Apply limits based on the sign
+    absVal = negative ? (absVal > 99 ? 99 : absVal) : (absVal > 999 ? 999 : absVal);
 
-    // [PN] Draw hundreds
-    if (val > 99)
-        V_DrawPatch(xpos - 4, y, tallnum[val / 100]);
+    // [PN] Draw minus symbol for negative values (adjust position based on digit count)
+    if (negative)
+        V_DrawPatch(x + (absVal <= 9 ? 20 : 5) - 4, y, tallminus);
 
-    val = val % 100;  // [PN] Get last two digits
-    xpos += 14;
+    // [PN] Draw hundreds place if applicable
+    if (absVal > 99)
+        V_DrawPatch(x - 4, y, tallnum[absVal / 100]);
 
-    // [PN] Draw tens
-    if (val > 9 || oldval > 99)
-        V_DrawPatch(xpos - 4, y, tallnum[val / 10]);
+    absVal %= 100;
+    x += 14;
 
-    // [PN] Draw ones
-    val = val % 10;
-    xpos += 14;
-    V_DrawPatch(xpos - 4, y, tallnum[val]);
-    
+    // [PN] Draw tens place if applicable or if original value had more than two digits
+    if (absVal > 9 || val >= 100 || val <= -100)
+        V_DrawPatch(x - 4, y, tallnum[absVal / 10]);
+
+    absVal %= 10;
+    x += 14;
+
+    // [PN] Draw ones place
+    V_DrawPatch(x - 4, y, tallnum[absVal]);
+
     dp_translation = NULL;
 }
 
@@ -1340,39 +1334,34 @@ static void ST_DrawPercent (const int x, const int y, byte *table)
 
 // -----------------------------------------------------------------------------
 // ST_DrawSmallNumberY
-// [JN] Draws a three digit yellow number using STYSNUM* graphics.
+// [PN] Draws a three digit yellow number using STYSNUM* graphics.
 // -----------------------------------------------------------------------------
 
 static void ST_DrawSmallNumberY (int val, const int x, const int y)
 {
-    int oldval = val;
-    int xpos = x;
+    // [JN] Limit the value between 0 and 999.
+    val = BETWEEN(0, 999, val);
 
-    if (val < 0)
-    {
-        val = 0;
-    }
-    if (val > 999)
-    {
-        val = 999;
-    }
+    // [PN] Check if we need to draw hundreds
+    const boolean showHundreds = (val > 99);
 
-    if (val > 99)
-    {
-        V_DrawPatch(xpos - 4, y, shortnum_y[val / 100]);
-    }
+    // [PN] Draw hundreds digit if applicable
+    if (showHundreds)
+        V_DrawPatch(x - 4, y, shortnum_y[val / 100]);
 
-    val = val % 100;
-    xpos += 4;
+    // [PN] Move to the next digit and reduce
+    val %= 100;
+    int xpos = x + 4;
 
-    if (val > 9 || oldval > 99)
-    {
+    // [PN] Draw tens digit if the number is > 9 or we drew hundreds
+    if (val > 9 || showHundreds)
         V_DrawPatch(xpos - 4, y, shortnum_y[val / 10]);
-    }
 
-    val = val % 10;
+    // [PN] Move to the last digit
+    val %= 10;
     xpos += 4;
 
+    // [PN] Draw ones digit
     V_DrawPatch(xpos - 4, y, shortnum_y[val]);
 }
 
@@ -1383,14 +1372,8 @@ static void ST_DrawSmallNumberY (int val, const int x, const int y)
 
 static void ST_DrawSmallNumberG (int val, const int x, const int y)
 {
-    if (val < 0)
-    {
-        val = 0;
-    }
-    if (val > 9)
-    {
-        val = 9;
-    }
+    // [JN] Limit the value between 0 and 9.
+    val = BETWEEN(0, 9, val);
 
     V_DrawPatch(x + 4, y, shortnum_g[val]);
 }
@@ -1833,30 +1816,13 @@ void ST_Init (void)
 
 void ST_InitElementsBackground (void)
 {
-    // Ammo
-    INIT_ELEMENT(ammo_bg, 0, 2, 45, 20, 170);
-
-    // Health
-    INIT_ELEMENT(hlth_bg, 48, 2, 57, 20, 170);
-
-    // ARMS or frags
-    INIT_ELEMENT(frgs_bg, 105, 2, 37, 20, 170);
-
-    // Player face background
-    INIT_ELEMENT(face_bg, 142, 0, 37, 32, 168);
-
-    // Armor
-    INIT_ELEMENT(armr_bg, 179, 2, 56, 20, 170);
-
-    // Keys
-    INIT_ELEMENT(keys_bg, 236, 0, 13, 32, 168);
-
-    // Ammo (current)
-    INIT_ELEMENT(amoc_bg, 272, 5, 16, 24, 173);
-
-    // Ammo (max)
-    INIT_ELEMENT(amom_bg, 298, 5, 16, 24, 173);
-
-    // Disk icon
-    INIT_ELEMENT(disk_bg, 304 + WIDESCREENDELTA, 17, 16, 16, 185);
+    INIT_ELEMENT(ammo_bg, 0, 2, 45, 20, 170);   // Ammo
+    INIT_ELEMENT(hlth_bg, 48, 2, 57, 20, 170);  // Health
+    INIT_ELEMENT(frgs_bg, 105, 2, 37, 20, 170); // ARMS or frags
+    INIT_ELEMENT(face_bg, 142, 0, 37, 32, 168); // Player face background
+    INIT_ELEMENT(armr_bg, 179, 2, 56, 20, 170); // Armor
+    INIT_ELEMENT(keys_bg, 236, 0, 13, 32, 168); // Keys
+    INIT_ELEMENT(amoc_bg, 272, 5, 16, 24, 173); // Ammo (current)
+    INIT_ELEMENT(amom_bg, 298, 5, 16, 24, 173); // Ammo (max)
+    INIT_ELEMENT(disk_bg, 304 + WIDESCREENDELTA, 17, 16, 16, 185);  // Disk icon
 }
