@@ -176,7 +176,6 @@ void R_InitPlanes(void)
 void R_MapPlane(int y, int x1, int x2)
 {
     fixed_t distance;
-    unsigned index;
     int dx, dy;
 
 #ifdef RANGECHECK
@@ -233,7 +232,7 @@ void R_MapPlane(int y, int x1, int x2)
     }
     else
     {
-        index = distance >> LIGHTZSHIFT;
+        unsigned int index = distance >> LIGHTZSHIFT;
         if (index >= MAXLIGHTZ)
         {
             index = MAXLIGHTZ - 1;
@@ -681,7 +680,6 @@ void R_DrawPlanes(void)
         }
         else  // regular flat
         {
-            int light = (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT); // [crispy] smooth diminishing lighting
             const boolean swirling = (flattranslation[pl->picnum] == -1);
             const int stop = pl->maxx + 1;
             const int lumpnum = firstflat + (swirling ? pl->picnum : flattranslation[pl->picnum]);
@@ -780,7 +778,7 @@ void R_DrawPlanes(void)
         
             planeheight = abs(pl->height-viewz);
             // [PN] Ensure 'light' is within the range [0, LIGHTLEVELS - 1] inclusively.
-            light = BETWEEN(0, LIGHTLEVELS-1, light);
+            const int light = BETWEEN(0, LIGHTLEVELS-1, (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT));
             planezlight = zlight[light];
             pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
 

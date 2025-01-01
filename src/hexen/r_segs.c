@@ -159,52 +159,34 @@ void R_FixWiggle (sector_t *sector)
     }
 }
 
-/*
-================
-=
-= R_RenderMaskedSegRange
-=
-================
-*/
+// -----------------------------------------------------------------------------
+// R_RenderMaskedSegRange
+// -----------------------------------------------------------------------------
 
-void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2)
+void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 {
-    unsigned index;
-    column_t *col;
-    int lightnum;
-    int texnum;
-
-//
-// calculate light table
-// use different light tables for horizontal / vertical / diagonal
-// OPTIMIZE: get rid of LIGHTSEGSHIFT globally
+    // Calculate light table.
+    // Use different light tables
+    //   for horizontal / vertical / diagonal. Diagonal?
+    // OPTIMIZE: get rid of LIGHTSEGSHIFT globally
     curline = ds->curline;
     frontsector = curline->frontsector;
     backsector = curline->backsector;
-    texnum = texturetranslation[curline->sidedef->midtexture];
+    const int texnum = texturetranslation[curline->sidedef->midtexture];
 
-    lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT); // [crispy] smooth diminishing lighting
-    //if (curline->v1->y == curline->v2->y)
-    //      lightnum--;
-    //else if (curline->v1->x == curline->v2->x)
-    //      lightnum++;
-    //if (lightnum < 0)
-    //      walllights = scalelight[0];
-    if (lightnum >= LIGHTLEVELS)
-        walllights = scalelight[LIGHTLEVELS - 1];
-    else
-        walllights = scalelight[lightnum];
+    // [crispy] smooth diminishing lighting
+    const int lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT)
+                       + (extralight * LIGHTBRIGHT);
+
+	walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
 
     maskedtexturecol = ds->maskedtexturecol;
-
-    rw_scalestep = ds->scalestep;
-    spryscale = ds->scale1 + (x1 - ds->x1) * rw_scalestep;
+    rw_scalestep = ds->scalestep;		
+    spryscale = ds->scale1 + (x1 - ds->x1)*rw_scalestep;
     mfloorclip = ds->sprbottomclip;
     mceilingclip = ds->sprtopclip;
 
-//
-// find positioning
-//
+    // find positioning
     if (curline->linedef->flags & ML_DONTPEGBOTTOM)
     {
         dc_texturemid = frontsector->interpfloorheight > backsector->interpfloorheight
@@ -213,76 +195,67 @@ void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2)
     }
     else
     {
-        dc_texturemid = frontsector->interpceilingheight < backsector->interpceilingheight
+        dc_texturemid =frontsector->interpceilingheight < backsector->interpceilingheight
             ? frontsector->interpceilingheight : backsector->interpceilingheight;
         dc_texturemid = dc_texturemid - viewz;
     }
     dc_texturemid += curline->sidedef->rowoffset;
 
     if (fixedcolormap)
-        dc_colormap[0] = dc_colormap[1] = fixedcolormap;
-//
-// draw the columns
-//
-    for (dc_x = x1; dc_x <= x2; dc_x++)
+    dc_colormap[0] = dc_colormap[1] = fixedcolormap;
+
+    // draw the columns
+    for (dc_x = x1 ; dc_x <= x2 ; dc_x++)
     {
         // calculate lighting
-        if (maskedtexturecol[dc_x] != INT_MAX)  // [crispy] 32-bit integer math
+        if (maskedtexturecol[dc_x] != INT_MAX)  // [JN] 32-bit integer math
         {
             if (!fixedcolormap)
             {
-                index = (spryscale / vid_resolution) >> LIGHTSCALESHIFT;
-                if (index >= MAXLIGHTSCALE)
-                    index = MAXLIGHTSCALE - 1;
+                unsigned const int index = (spryscale / vid_resolution) >> LIGHTSCALESHIFT;
+
                 // [crispy] brightmaps for mid-textures
                 dc_brightmap = texturebrightmap[texnum];
-                dc_colormap[0] = walllights[index];
-                dc_colormap[1] = vis_brightmaps 
-                               && LevelUseFullBright ? colormaps : dc_colormap[0];
+                dc_colormap[0] = walllights[MIN(index, MAXLIGHTSCALE-1)];
+                dc_colormap[1] = vis_brightmaps ? colormaps : dc_colormap[0];
             }
 
-
-	    // [crispy] apply Killough's int64 sprtopscreen overflow fix
-	    // from winmbf/Source/r_segs.c:174-191
-	    // killough 3/2/98:
-	    //
-	    // This calculation used to overflow and cause crashes in Doom:
-	    //
-	    // sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
-	    //
-	    // This code fixes it, by using double-precision intermediate
-	    // arithmetic and by skipping the drawing of 2s normals whose
-	    // mapping to screen coordinates is totally out of range:
-
-	    {
-		int64_t t = ((int64_t) centeryfrac << FRACBITS) -
-		             (int64_t) dc_texturemid * spryscale;
-
-		if (t + (int64_t) textureheight[texnum] * spryscale < 0 ||
-		    t > (int64_t) SCREENHEIGHT << FRACBITS*2)
-		{
-			spryscale += rw_scalestep; // [crispy] MBF had this in the for-loop iterator
-			continue; // skip if the texture is out of screen's range
-		}
-
-		sprtopscreen = (int64_t)(t >> FRACBITS); // [crispy] WiggleFix
-	    }
-
-            dc_iscale = 0xffffffffu / (unsigned) spryscale;
-
+            // [crispy] apply Killough's int64 sprtopscreen overflow fix
+            // from winmbf/Source/r_segs.c:174-191
+            // killough 3/2/98:
             //
+            // This calculation used to overflow and cause crashes in Doom:
+            //
+            // sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
+            //
+            // This code fixes it, by using double-precision intermediate
+            // arithmetic and by skipping the drawing of 2s normals whose
+            // mapping to screen coordinates is totally out of range:
+            {
+                int64_t t = ((int64_t) centeryfrac << FRACBITS)
+                          -  (int64_t) dc_texturemid * spryscale;
+
+                if (t + (int64_t) textureheight[texnum] * spryscale < 0
+                ||  t > (int64_t) SCREENHEIGHT << FRACBITS * 2)
+                {
+                    spryscale += rw_scalestep; // [crispy] MBF had this in the for-loop iterator
+                    continue; // skip if the texture is out of screen's range
+                }
+
+                sprtopscreen = (int64_t)(t >> FRACBITS); // [crispy] WiggleFix
+            }
+
+            dc_iscale = UINT_MAX / (unsigned)spryscale;
+
             // draw the texture
-            //
-            col = (column_t *) ((byte *)
-                                R_GetColumn(texnum,
-                                            maskedtexturecol[dc_x]) - 3);
+            column_t *col = (column_t *)((byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
 
-            R_DrawMaskedColumn(col, -1);
-            maskedtexturecol[dc_x] = INT_MAX;
+            R_DrawMaskedColumn (col, -1);
+            maskedtexturecol[dc_x] = INT_MAX;  // [JN] 32-bit integer math
         }
+
         spryscale += rw_scalestep;
     }
-
 }
 
 // -----------------------------------------------------------------------------
@@ -508,23 +481,14 @@ fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
     return scale;
 }
 
-/*
-=====================
-=
-= R_StoreWallRange
-=
-= A wall segment will be drawn between start and stop pixels (inclusive)
-=
-======================
-*/
+// -----------------------------------------------------------------------------
+// R_StoreWallRange
+// A wall segment will be drawn
+//  between start and stop pixels (inclusive).
+// -----------------------------------------------------------------------------
 
-void R_StoreWallRange(int start, int stop)
+void R_StoreWallRange (int start, int stop)
 {
-    fixed_t vtop;
-    int lightnum;
-    int64_t dx, dy, dx1, dy1, dist; // [crispy] fix long wall wobble
-    const uint32_t len = curline->length;
-
     IDRender.numsegs++;
 
     // [JN] remove MAXDRAWSEGS Vanilla limit
@@ -559,11 +523,12 @@ void R_StoreWallRange(int start, int stop)
     // thank you very much Linguica, e6y and kb1
     // http://www.doomworld.com/vb/post/1340718
     // shift right to avoid possibility of int64 overflow in rw_distance calculation
-    dx = ((int64_t)curline->v2->r_x - curline->v1->r_x) >> 1;
-    dy = ((int64_t)curline->v2->r_y - curline->v1->r_y) >> 1;
-    dx1 = ((int64_t)viewx - curline->v1->r_x) >> 1;
-    dy1 = ((int64_t)viewy - curline->v1->r_y) >> 1;
-    dist = ((dy * dx1 - dx * dy1) / len) << 1;
+    const uint32_t len = curline->length;
+    const int64_t dx = ((int64_t)curline->v2->r_x - curline->v1->r_x) >> 1;
+    const int64_t dy = ((int64_t)curline->v2->r_y - curline->v1->r_y) >> 1;
+    const int64_t dx1 = ((int64_t)viewx - curline->v1->r_x) >> 1;
+    const int64_t dy1 = ((int64_t)viewy - curline->v1->r_y) >> 1;
+    const int64_t dist = ((dy * dx1 - dx * dy1) / len) << 1;
     rw_distance = (fixed_t)BETWEEN(INT_MIN, INT_MAX, dist);
 
     ds_p->x1 = rw_x = start;
@@ -639,8 +604,8 @@ void R_StoreWallRange(int start, int stop)
         markfloor = markceiling = true;
         if (linedef->flags & ML_DONTPEGBOTTOM)
         {
-            vtop = frontsector->interpfloorheight +
-            textureheight[sidedef->midtexture];
+            const fixed_t vtop = frontsector->interpfloorheight
+                               + textureheight[sidedef->midtexture];
             // bottom of texture at bottom
             rw_midtexturemid = vtop - viewz;	
         }
@@ -759,7 +724,8 @@ void R_StoreWallRange(int start, int stop)
             }
             else
             {
-                vtop = backsector->interpceilingheight + textureheight[sidedef->toptexture];
+                const fixed_t vtop = backsector->interpceilingheight
+                                   + textureheight[sidedef->toptexture];
 
                 // bottom of texture
                 rw_toptexturemid = vtop - viewz;	
@@ -808,7 +774,9 @@ void R_StoreWallRange(int start, int stop)
         // OPTIMIZE: get rid of LIGHTSEGSHIFT globally
         if (!fixedcolormap)
         {
-            lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT); // [crispy] smooth diminishing lighting
+            // [crispy] smooth diminishing lighting
+            const int lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT)
+                               + (extralight * LIGHTBRIGHT);
             walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
         }
     }

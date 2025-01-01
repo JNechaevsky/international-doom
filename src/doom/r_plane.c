@@ -133,7 +133,7 @@ R_MapPlane
 //  angle_t	angle;
     fixed_t	distance;
 //  fixed_t	length;
-    unsigned	index;
+//  unsigned	index;
     int dx, dy;
 	
 #ifdef RANGECHECK
@@ -188,7 +188,7 @@ R_MapPlane
 	ds_colormap[0] = ds_colormap[1] = fixedcolormap;
     else
     {
-	index = distance >> LIGHTZSHIFT;
+	unsigned int index = distance >> LIGHTZSHIFT;
 	
 	if (index >= MAXLIGHTZ )
 	    index = MAXLIGHTZ-1;
@@ -476,7 +476,6 @@ void R_DrawPlanes (void)
         }
         else  // regular flat
         {
-            int light = (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);
             const boolean swirling = (flattranslation[pl->picnum] == -1);
             const int stop = pl->maxx + 1;
             const int lumpnum = firstflat + (swirling ? pl->picnum : flattranslation[pl->picnum]);
@@ -499,7 +498,7 @@ void R_DrawPlanes (void)
 
             planeheight = abs(pl->height-viewz);
             // [PN] Ensure 'light' is within the range [0, LIGHTLEVELS - 1] inclusively.
-            light = BETWEEN(0, LIGHTLEVELS-1, light);
+            const int light = BETWEEN(0, LIGHTLEVELS-1, (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT));
             planezlight = zlight[light];
             pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
 
