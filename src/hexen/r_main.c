@@ -191,6 +191,7 @@ int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *line)
 // [crispy] turned into a general R_PointToAngle() flavor
 // called with either slope_div = SlopeDivCrispy() from R_PointToAngleCrispy()
 // or slope_div = SlopeDiv() else
+// [PN] Reformatted for readability and reduced nesting
 /*
 ===============================================================================
 =
@@ -204,49 +205,48 @@ int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *line)
 angle_t R_PointToAngleSlope(fixed_t x, fixed_t y,
             int (*slope_div) (unsigned int num, unsigned int den))
 {
+    // [PN] Shift to local player coordinates
     x -= viewx;
     y -= viewy;
-    if ((!x) && (!y))
+
+    // [PN] If the point matches the player's position
+    if (!x && !y)
         return 0;
+
     if (x >= 0)
-    {                           // x >=0
+    {
         if (y >= 0)
-        {                       // y>= 0
-            if (x > y)
-                return tantoangle[SlopeDiv(y, x)];      // octant 0
-            else
-                return ANG90 - 1 - tantoangle[SlopeDiv(x, y)];  // octant 1
+        {
+            // [PN] First quadrant → octants 0 or 1
+            return (x > y) 
+                 ? tantoangle[slope_div(y, x)]
+                 : (ANG90 - 1 - tantoangle[slope_div(x, y)]);
         }
         else
-        {                       // y<0
-            y = -y;
-            if (x > y)
-                return 0 - tantoangle[SlopeDiv(y, x)];     // octant 8
-            else
-                return ANG270 + tantoangle[SlopeDiv(x, y)];     // octant 7
+        {
+            // [PN] Fourth quadrant → octants 8 or 7
+            return (x > -y) 
+                 ? (0 - tantoangle[slope_div(-y, x)]) 
+                 : (ANG270 + tantoangle[slope_div(x, -y)]);
         }
     }
     else
-    {                           // x<0
-        x = -x;
+    {
         if (y >= 0)
-        {                       // y>= 0
-            if (x > y)
-                return ANG180 - 1 - tantoangle[SlopeDiv(y, x)]; // octant 3
-            else
-                return ANG90 + tantoangle[SlopeDiv(x, y)];      // octant 2
+        {
+            // [PN] Second quadrant → octants 3 or 2
+            return (-x > y)
+                 ? (ANG180 - 1 - tantoangle[slope_div(y, -x)])
+                 : (ANG90 + tantoangle[slope_div(-x, y)]);
         }
         else
-        {                       // y<0
-            y = -y;
-            if (x > y)
-                return ANG180 + tantoangle[SlopeDiv(y, x)];     // octant 4
-            else
-                return ANG270 - 1 - tantoangle[SlopeDiv(x, y)]; // octant 5
+        {
+            // [PN] Third quadrant → octants 4 or 5
+            return (-x > -y)
+                 ? (ANG180 + tantoangle[slope_div(-y, -x)])
+                 : (ANG270 - 1 - tantoangle[slope_div(-x, -y)]);
         }
     }
-
-    return 0;
 }
 
 
