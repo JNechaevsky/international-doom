@@ -176,7 +176,6 @@ void R_InitPlanes(void)
 void R_MapPlane(int y, int x1, int x2)
 {
     fixed_t distance;
-    unsigned index;
     int dx, dy;
 
 #ifdef RANGECHECK
@@ -233,7 +232,7 @@ void R_MapPlane(int y, int x1, int x2)
     }
     else
     {
-        index = distance >> LIGHTZSHIFT;
+        unsigned int index = distance >> LIGHTZSHIFT;
         if (index >= MAXLIGHTZ)
         {
             index = MAXLIGHTZ - 1;
