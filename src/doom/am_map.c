@@ -1333,6 +1333,49 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 }
 #undef DOOUTCODE
 
+
+#define PUTDOT_RAW(xx,yy,cc) fb[(yy) * f_w + flipscreenwidth[(xx)]] = (cc)
+#ifndef CRISPY_TRUECOLOR
+#define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,cc)
+#else
+#define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,pal_color[(cc)])
+#endif
+
+// -----------------------------------------------------------------------------
+// PUTDOT_THICK
+// [PN] Draws a "thick" pixel by filling an area around the target pixel.
+// Takes the current resolution into account to determine the thickness.
+// Includes boundary checks to prevent out-of-bounds access.
+// [JN] With support for "user-defined" (1x...6x) and "auto" thickness.
+// -----------------------------------------------------------------------------
+
+static void PUTDOT_THICK (int x, int y, pixel_t color)
+{
+    const int thickness = automap_thick == 6
+                        ? vid_resolution / 2 // Auto thickness
+                        : automap_thick;     // User-defined thickness
+    const int smooth = automap_smooth;
+
+    for (int dx = -thickness; dx <= thickness; dx++)
+    {
+        for (int dy = -thickness; dy <= thickness; dy++)
+        {
+            const int nx = x + dx;
+            const int ny = y + dy;
+
+            // Coordinate boundary check
+            if (nx >= 0 && nx < f_w
+            &&  ny >= 0 && ny < f_h)
+            {
+                if (smooth)
+                PUTDOT_RAW(nx, ny, color);
+                else
+                PUTDOT(nx, ny, color);
+            }
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // AM_drawFline
 // Classic Bresenham w/ whatever optimizations needed for speed.
@@ -1358,20 +1401,13 @@ static void AM_drawFline_Vanilla (fline_t *fl, int color)
         return;
     }
 
-#define PUTDOT_RAW(xx,yy,cc) fb[(yy) * f_w + flipscreenwidth[(xx)]] = (cc)
-#ifndef CRISPY_TRUECOLOR
-#define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,cc)
-#else
-#define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,pal_color[(cc)])
-#endif
-
     // [PN] Main loop for Bresenham's line algorithm
     if (ax > ay) // X-major case
     {
         d = ay - ax / 2;
         while (x != fl->b.x)
         {
-            PUTDOT(x, y, color);
+            PUTDOT_THICK(x, y, color);
             if (d >= 0) { y += sy; d -= ax; }
             x += sx;
             d += ay;
@@ -1382,14 +1418,14 @@ static void AM_drawFline_Vanilla (fline_t *fl, int color)
         d = ax - ay / 2;
         while (y != fl->b.y)
         {
-            PUTDOT(x, y, color);
+            PUTDOT_THICK(x, y, color);
             if (d >= 0) { x += sx; d -= ay; }
             y += sy;
             d += ax;
         }
     }
 
-    PUTDOT(x, y, color); // Final point
+    PUTDOT_THICK(x, y, color); // Final point
 }
 
 // -----------------------------------------------------------------------------
@@ -1416,7 +1452,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
     }
 
     /* Draw the initial pixel */
-    PUTDOT_RAW(X0, Y0, BaseColor[0]);
+    PUTDOT_THICK(X0, Y0, BaseColor[0]);
 
     DeltaX = X1 - X0;
     DeltaY = Y1 - Y0;
@@ -1429,7 +1465,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         while (DeltaX--)
         {
             X0 += XDir;
-            PUTDOT_RAW(X0, Y0, BaseColor[0]);
+            PUTDOT_THICK(X0, Y0, BaseColor[0]);
         }
         return;
     }
@@ -1440,7 +1476,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         while (DeltaY--)
         {
             Y0++;
-            PUTDOT_RAW(X0, Y0, BaseColor[0]);
+            PUTDOT_THICK(X0, Y0, BaseColor[0]);
         }
         return;
     }
@@ -1452,7 +1488,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         {
             X0 += XDir;
             Y0++;
-            PUTDOT_RAW(X0, Y0, BaseColor[0]);
+            PUTDOT_THICK(X0, Y0, BaseColor[0]);
         }
         return;
     }
@@ -1474,8 +1510,8 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
             }
             Y0++;
             Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT_RAW(X0, Y0, BaseColor[Weighting]);
-            PUTDOT_RAW(X0 + XDir, Y0, BaseColor[Weighting ^ WeightingComplementMask]);
+            PUTDOT_THICK(X0, Y0, BaseColor[Weighting]);
+            PUTDOT_THICK(X0 + XDir, Y0, BaseColor[Weighting ^ WeightingComplementMask]);
         }
     }
     /* X-major line */
@@ -1496,13 +1532,13 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
             }
             X0 += XDir;
             Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT_RAW(X0, Y0, BaseColor[Weighting]);
-            PUTDOT_RAW(X0, Y0 + 1, BaseColor[Weighting ^ WeightingComplementMask]);
+            PUTDOT_THICK(X0, Y0, BaseColor[Weighting]);
+            PUTDOT_THICK(X0, Y0 + 1, BaseColor[Weighting ^ WeightingComplementMask]);
         }
     }
 
     /* Draw the final pixel */
-    PUTDOT_RAW(X1, Y1, BaseColor[0]);
+    PUTDOT_THICK(X1, Y1, BaseColor[0]);
 }
 
 // -----------------------------------------------------------------------------
