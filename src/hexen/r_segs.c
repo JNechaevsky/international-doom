@@ -520,11 +520,6 @@ fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
 
 void R_StoreWallRange(int start, int stop)
 {
-    fixed_t vtop;
-    int lightnum;
-    int64_t dx, dy, dx1, dy1, dist; // [crispy] fix long wall wobble
-    const uint32_t len = curline->length;
-
     IDRender.numsegs++;
 
     // [JN] remove MAXDRAWSEGS Vanilla limit
@@ -559,11 +554,12 @@ void R_StoreWallRange(int start, int stop)
     // thank you very much Linguica, e6y and kb1
     // http://www.doomworld.com/vb/post/1340718
     // shift right to avoid possibility of int64 overflow in rw_distance calculation
-    dx = ((int64_t)curline->v2->r_x - curline->v1->r_x) >> 1;
-    dy = ((int64_t)curline->v2->r_y - curline->v1->r_y) >> 1;
-    dx1 = ((int64_t)viewx - curline->v1->r_x) >> 1;
-    dy1 = ((int64_t)viewy - curline->v1->r_y) >> 1;
-    dist = ((dy * dx1 - dx * dy1) / len) << 1;
+    const uint32_t len = curline->length;
+    const int64_t dx = ((int64_t)curline->v2->r_x - curline->v1->r_x) >> 1;
+    const int64_t dy = ((int64_t)curline->v2->r_y - curline->v1->r_y) >> 1;
+    const int64_t dx1 = ((int64_t)viewx - curline->v1->r_x) >> 1;
+    const int64_t dy1 = ((int64_t)viewy - curline->v1->r_y) >> 1;
+    const int64_t dist = ((dy * dx1 - dx * dy1) / len) << 1;
     rw_distance = (fixed_t)BETWEEN(INT_MIN, INT_MAX, dist);
 
     ds_p->x1 = rw_x = start;
@@ -639,8 +635,8 @@ void R_StoreWallRange(int start, int stop)
         markfloor = markceiling = true;
         if (linedef->flags & ML_DONTPEGBOTTOM)
         {
-            vtop = frontsector->interpfloorheight +
-            textureheight[sidedef->midtexture];
+            const fixed_t vtop = frontsector->interpfloorheight
+                               + textureheight[sidedef->midtexture];
             // bottom of texture at bottom
             rw_midtexturemid = vtop - viewz;	
         }
@@ -759,7 +755,8 @@ void R_StoreWallRange(int start, int stop)
             }
             else
             {
-                vtop = backsector->interpceilingheight + textureheight[sidedef->toptexture];
+                const fixed_t vtop = backsector->interpceilingheight
+                                   + textureheight[sidedef->toptexture];
 
                 // bottom of texture
                 rw_toptexturemid = vtop - viewz;	
@@ -808,7 +805,9 @@ void R_StoreWallRange(int start, int stop)
         // OPTIMIZE: get rid of LIGHTSEGSHIFT globally
         if (!fixedcolormap)
         {
-            lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT); // [crispy] smooth diminishing lighting
+            // [crispy] smooth diminishing lighting
+            const int lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT)
+                               + (extralight * LIGHTBRIGHT);
             walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
         }
     }
