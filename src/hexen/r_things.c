@@ -949,50 +949,35 @@ void R_DrawPSprite(pspdef_t * psp)
     R_DrawVisSprite(vis, vis->x1, vis->x2);
 }
 
-/*
-========================
-=
-= R_DrawPlayerSprites
-=
-========================
-*/
+// -----------------------------------------------------------------------------
+// R_DrawPlayerSprites
+// -----------------------------------------------------------------------------
 
-void R_DrawPlayerSprites(void)
+static void R_DrawPlayerSprites (void)
 {
-    int i, lightnum;
-    pspdef_t *psp;
-
     // RestlessRodent -- Do not draw player gun sprite if spectating
     if (crl_spectating)
-    	return;
+        return;
 
-//
-// get light level
-//
-    lightnum =
-        (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT) +
-        (extralight * LIGHTBRIGHT); // [crispy] smooth diminishing lighting
-    if (lightnum < 0)
-        spritelights = scalelight[0];
-    else if (lightnum >= LIGHTLEVELS)
-        spritelights = scalelight[LIGHTLEVELS - 1];
-    else
-        spritelights = scalelight[lightnum];
-//
-// clip to screen bounds
-//
+    // get light level
+    // [crispy] smooth diminishing lighting
+    const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT)
+                       + (extralight * LIGHTBRIGHT));
+    spritelights = scalelight[lightnum];
+
+    // clip to screen bounds
     mfloorclip = screenheightarray;
     mceilingclip = negonearray;
 
-//
-// add all active psprites
-//
+    // add all active psprites
+    int i;
+    pspdef_t *psp;
     for (i = 0, psp = viewplayer->psprites; i < NUMPSPRITES; i++, psp++)
+    {
         if (psp->state)
             R_DrawPSprite(psp);
-
+    }
 }
-
 
 // -----------------------------------------------------------------------------
 // R_SortVisSprites

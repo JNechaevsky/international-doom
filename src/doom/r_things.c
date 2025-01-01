@@ -876,9 +876,6 @@ static void R_ProjectSprite (mobj_t* thing)
     }
 }
 
-
-
-
 // -----------------------------------------------------------------------------
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
@@ -1111,44 +1108,33 @@ static void R_DrawPSprite (pspdef_t* psp)
     R_DrawVisSprite (vis);
 }
 
-
-
-//
+// -----------------------------------------------------------------------------
 // R_DrawPlayerSprites
-//
+// -----------------------------------------------------------------------------
+
 static void R_DrawPlayerSprites (void)
 {
-    int		i;
-    int		lightnum;
-    pspdef_t*	psp;
-    
-    // Do not draw player gun sprite if spectating
+    // RestlessRodent -- Do not draw player gun sprite if spectating
     if (crl_spectating)
-    	return;
-    
-    // get light level
-    lightnum =
-	(viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT) 
-	+(extralight * LIGHTBRIGHT);
+        return;
 
-    if (lightnum < 0)		
-	spritelights = scalelight[0];
-    else if (lightnum >= LIGHTLEVELS)
-	spritelights = scalelight[LIGHTLEVELS-1];
-    else
-	spritelights = scalelight[lightnum];
-    
+    // get light level
+    // [crispy] smooth diminishing lighting
+    const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT)
+                       + (extralight * LIGHTBRIGHT));
+    spritelights = scalelight[lightnum];
+
     // clip to screen bounds
     mfloorclip = screenheightarray;
     mceilingclip = negonearray;
-    
+
     // add all active psprites
-    for (i=0, psp=viewplayer->psprites;
-	 i<NUMPSPRITES;
-	 i++,psp++)
+    int i;
+    pspdef_t *psp;
+    for (i = 0, psp = viewplayer->psprites; i < NUMPSPRITES; i++, psp++)
     {
-	if (psp->state)
-	    R_DrawPSprite (psp);
+        if (psp->state)
+            R_DrawPSprite(psp);
     }
 }
 
