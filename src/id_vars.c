@@ -105,6 +105,7 @@ int widget_health = 0;
 // Automap
 int automap_scheme = 0;
 int automap_smooth = 0;
+int automap_thick = 0;
 int automap_square = 0;
 int automap_secrets = 0;
 int automap_rotate = 0;
@@ -302,6 +303,7 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("automap_scheme",             &automap_scheme);
         M_BindIntVariable("automap_smooth",             &automap_smooth);
     }
+    M_BindIntVariable("automap_thick",                  &automap_thick);
     M_BindIntVariable("automap_square",                 &automap_square);
     if (mission == doom || mission == heretic)
     {
