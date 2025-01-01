@@ -1074,17 +1074,21 @@ static void AM_drawBackground (void)
 
 static void AM_shadeBackground (void)
 {
-    const int height = dp_screen_size > 10 ?
-                       SCREENHEIGHT : (SCREENHEIGHT - SBARHEIGHT);
+    pixel_t *dest = I_VideoBuffer;
+    const int shade = automap_shading;
+    const int scr = (dp_screen_size > 10)
+                  ? SCREENWIDTH * SCREENHEIGHT
+                  : SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
 
-        for (int y = 0; y < SCREENWIDTH * height ; y++)
-        {
+    for (int i = 0; i < scr; i++)
+    {
 #ifndef CRISPY_TRUECOLOR
-            I_VideoBuffer[y] = colormaps[((automap_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
+        *dest = colormaps[((automap_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
 #else
-            I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], I_ShadeFactor[automap_shading]);
+        *dest = I_BlendDark(*dest, I_ShadeFactor[shade]);
 #endif
-        }
+        ++dest;
+    }
 }
 
 // -----------------------------------------------------------------------------
