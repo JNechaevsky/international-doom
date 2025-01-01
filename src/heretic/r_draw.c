@@ -100,6 +100,7 @@ void R_DrawColumn(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     int heightmask = dc_texheight - 1;
     const int texheightmask = dc_texheight;
@@ -119,7 +120,7 @@ void R_DrawColumn(void)
             const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
 
             *dest = index;
-            dest += SCREENWIDTH;
+            dest += screenwidth;
 
             // [PN] Update frac with modulo to wrap around texture height
             frac = (frac + fracstep) % heightmask;
@@ -135,7 +136,7 @@ void R_DrawColumn(void)
             const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
 
             *dest = index;
-            dest += SCREENWIDTH;
+            dest += screenwidth;
             frac += fracstep;
         }
     }
@@ -171,6 +172,7 @@ void R_DrawColumnLow(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     int heightmask = dc_texheight - 1;
     const int texheightmask = dc_texheight;
@@ -189,8 +191,8 @@ void R_DrawColumnLow(void)
             *dest = index;
             *dest2 = index;
 
-            dest += SCREENWIDTH;
-            dest2 += SCREENWIDTH;
+            dest += screenwidth;
+            dest2 += screenwidth;
             frac = (frac + fracstep) % heightmask;
         }
     }
@@ -204,8 +206,8 @@ void R_DrawColumnLow(void)
             *dest = index;
             *dest2 = index;
 
-            dest += SCREENWIDTH;
-            dest2 += SCREENWIDTH;
+            dest += screenwidth;
+            dest2 += screenwidth;
             frac += fracstep;
         }
     }
@@ -236,6 +238,7 @@ void R_DrawTLColumn (void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     for (int i = 0; i <= count; i++)
     {
@@ -244,7 +247,7 @@ void R_DrawTLColumn (void)
 
         *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
 
-        dest += SCREENWIDTH;
+        dest += screenwidth;
         frac += fracstep;
     }
 }
@@ -277,6 +280,7 @@ void R_DrawTLColumnLow(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     for (int i = 0; i <= count; i++)
     {
@@ -286,8 +290,8 @@ void R_DrawTLColumnLow(void)
         *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
         *dest2 = I_BlendOver(*dest2, destrgb, TINTTAB_ALPHA);
 
-        dest += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest += screenwidth;
+        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -316,6 +320,7 @@ void R_DrawTLAddColumn(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -325,7 +330,7 @@ void R_DrawTLAddColumn(void)
 
         *dest = I_BlendAdd(*dest, destrgb);
 
-        dest += SCREENWIDTH;
+        dest += screenwidth;
         frac += fracstep;
     }
 }
@@ -358,6 +363,7 @@ void R_DrawTLAddColumnLow(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -368,8 +374,8 @@ void R_DrawTLAddColumnLow(void)
         *dest1 = I_BlendAdd(*dest1, destrgb);
         *dest2 = I_BlendAdd(*dest2, destrgb);
 
-        dest1 += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest1 += screenwidth;
+        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -408,6 +414,7 @@ void R_DrawTranslatedColumn(void)
     const byte *const translation = dc_translation;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -417,7 +424,7 @@ void R_DrawTranslatedColumn(void)
         const unsigned index = (brightmap[s] ? colormap1[t] : colormap0[t]);
 
         *dest = index;
-        dest += SCREENWIDTH;
+        dest += screenwidth;
         frac += fracstep;
     }
 }
@@ -446,6 +453,7 @@ void R_DrawTranslatedColumnLow(void)
     const byte *const translation = dc_translation;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -457,8 +465,8 @@ void R_DrawTranslatedColumnLow(void)
         *dest = index;
         *dest2 = index;
 
-        dest += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest += screenwidth;
+        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -490,6 +498,7 @@ void R_DrawTranslatedTLColumn(void)
     const byte *const translation = dc_translation;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     for (int i = 0; i <= count; i++)
     {
@@ -500,7 +509,7 @@ void R_DrawTranslatedTLColumn(void)
         const pixel_t destrgb = (brightmap[t] ? colormap1[t] : colormap0[t]);
         *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
 
-        dest += SCREENWIDTH;
+        dest += screenwidth;
         frac += fracstep;
     }
 }
@@ -529,6 +538,7 @@ void R_DrawTranslatedTLColumnLow(void)
     const byte *const translation = dc_translation;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     for (int i = 0; i <= count; i++)
     {
@@ -539,8 +549,8 @@ void R_DrawTranslatedTLColumnLow(void)
         *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
         *dest2 = I_BlendOver(*dest2, destrgb, TINTTAB_ALPHA);
 
-        dest += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest += screenwidth;
+        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -569,6 +579,7 @@ void R_DrawExtraTLColumn(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int heightmask = dc_texheight - 1;
 
@@ -595,7 +606,7 @@ void R_DrawExtraTLColumn(void)
             const pixel_t destrgb = (brightmap[s] ? colormap1[s] : colormap0[s]);
             *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
 
-            dest += SCREENWIDTH;
+            dest += screenwidth;
             frac += fracstep;
             if (frac >= fullmask)
                 frac -= fullmask;
@@ -610,7 +621,7 @@ void R_DrawExtraTLColumn(void)
             const pixel_t destrgb = (brightmap[s] ? colormap1[s] : colormap0[s]);
             *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
 
-            dest += SCREENWIDTH;
+            dest += screenwidth;
             frac += fracstep;
         }
     }
@@ -639,6 +650,7 @@ void R_DrawExtraTLColumnLow(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int heightmask = dc_texheight - 1;
 
@@ -664,8 +676,8 @@ void R_DrawExtraTLColumnLow(void)
             *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
             *dest2 = I_BlendOver(*dest2, destrgb, EXTRATL_ALPHA);
 
-            dest += SCREENWIDTH;
-            dest2 += SCREENWIDTH;
+            dest += screenwidth;
+            dest2 += screenwidth;
 
             frac += fracstep;
             if (frac >= fullmask)
@@ -682,8 +694,8 @@ void R_DrawExtraTLColumnLow(void)
             *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
             *dest2 = I_BlendOver(*dest2, destrgb, EXTRATL_ALPHA);
 
-            dest += SCREENWIDTH;
-            dest2 += SCREENWIDTH;
+            dest += screenwidth;
+            dest2 += screenwidth;
             frac += fracstep;
         }
     }
@@ -754,6 +766,9 @@ void R_DrawSpan(void)
     const byte *const brightmap = ds_brightmap;
     const pixel_t *const colormap0 = ds_colormap[0];
     const pixel_t *const colormap1 = ds_colormap[1];
+    const fixed_t xstep = ds_xstep;
+    const fixed_t ystep = ds_ystep;
+
 
     if (!gp_flip_levels)
     {
@@ -772,8 +787,8 @@ void R_DrawSpan(void)
                 const byte source = sourcebase[spot];
                 dest[j] = (brightmap[source] ? colormap1[source] : colormap0[source]);
 
-                ds_xfrac += ds_xstep;
-                ds_yfrac += ds_ystep;
+                ds_xfrac += xstep;
+                ds_yfrac += ystep;
             }
 
             dest += 4;
@@ -790,8 +805,8 @@ void R_DrawSpan(void)
             *dest = (brightmap[source] ? colormap1[source] : colormap0[source]);
 
             dest++;
-            ds_xfrac += ds_xstep;
-            ds_yfrac += ds_ystep;
+            ds_xfrac += xstep;
+            ds_yfrac += ystep;
         }
     }
     else
@@ -807,8 +822,8 @@ void R_DrawSpan(void)
             pixel_t *dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
             *dest = (brightmap[source] ? colormap1[source] : colormap0[source]);
 
-            ds_xfrac += ds_xstep;
-            ds_yfrac += ds_ystep;
+            ds_xfrac += xstep;
+            ds_yfrac += ystep;
         }
     }
 }
@@ -836,6 +851,8 @@ void R_DrawSpanLow(void)
     const byte *const brightmap = ds_brightmap;
     const pixel_t *const colormap0 = ds_colormap[0];
     const pixel_t *const colormap1 = ds_colormap[1];
+    const fixed_t xstep = ds_xstep;
+    const fixed_t ystep = ds_ystep;
 
     if (!gp_flip_levels)
     {
@@ -856,8 +873,8 @@ void R_DrawSpanLow(void)
                 dest[1] = (brightmap[source] ? colormap1[source] : colormap0[source]);
                 dest += 2;
 
-                ds_xfrac += ds_xstep;
-                ds_yfrac += ds_ystep;
+                ds_xfrac += xstep;
+                ds_yfrac += ystep;
             }
 
             count -= 4;
@@ -875,8 +892,8 @@ void R_DrawSpanLow(void)
             dest[1] = (brightmap[source] ? colormap1[source] : colormap0[source]);
             dest += 2;
 
-            ds_xfrac += ds_xstep;
-            ds_yfrac += ds_ystep;
+            ds_xfrac += xstep;
+            ds_yfrac += ystep;
         }
     }
     else
@@ -896,8 +913,8 @@ void R_DrawSpanLow(void)
             dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
             *dest = (brightmap[source] ? colormap1[source] : colormap0[source]);
 
-            ds_xfrac += ds_xstep;
-            ds_yfrac += ds_ystep;
+            ds_xfrac += xstep;
+            ds_yfrac += ystep;
         }
     }
 }

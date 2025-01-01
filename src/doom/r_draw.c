@@ -125,6 +125,7 @@ void R_DrawColumn(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     int heightmask = dc_texheight - 1;
     const int texheightmask = dc_texheight;
@@ -144,7 +145,7 @@ void R_DrawColumn(void)
             const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
 
             *dest = index;
-            dest += SCREENWIDTH;
+            dest += screenwidth;
 
             // [PN] Update frac with modulo to wrap around texture height
             frac = (frac + fracstep) % heightmask;
@@ -160,7 +161,7 @@ void R_DrawColumn(void)
             const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
 
             *dest = index;
-            dest += SCREENWIDTH;
+            dest += screenwidth;
             frac += fracstep;
         }
     }
@@ -196,6 +197,7 @@ void R_DrawColumnLow(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     int heightmask = dc_texheight - 1;
     const int texheightmask = dc_texheight;
@@ -214,8 +216,8 @@ void R_DrawColumnLow(void)
             *dest = index;
             *dest2 = index;
 
-            dest += SCREENWIDTH;
-            dest2 += SCREENWIDTH;
+            dest += screenwidth;
+            dest2 += screenwidth;
             frac = (frac + fracstep) % heightmask;
         }
     }
@@ -229,8 +231,8 @@ void R_DrawColumnLow(void)
             *dest = index;
             *dest2 = index;
 
-            dest += SCREENWIDTH;
-            dest2 += SCREENWIDTH;
+            dest += screenwidth;
+            dest2 += screenwidth;
             frac += fracstep;
         }
     }
@@ -307,13 +309,14 @@ void R_DrawFuzzColumn(void)
     const int *const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
     const int fuzzalpha = fuzz_alpha;
+    const int screenwidth = SCREENWIDTH;
 
     // [PN] Use a for loop for clarity and potential optimizations
     {
         const int iterations = count + 1; // [PN] since do/while decrements count after use
         for (int i = 0; i < iterations; i++)
         {
-            const int fuzz_offset = SCREENWIDTH * fuzzoffsetbase[local_fuzzpos];
+            const int fuzz_offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
 
             *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
 
@@ -324,14 +327,14 @@ void R_DrawFuzzColumn(void)
                 local_fuzzpos = (realleveltime > oldleveltime) ? ID_Random() % 49 : 0;
             }
 
-            dest += SCREENWIDTH;
+            dest += screenwidth;
         }
     }
 
     // [PN] handle cutoff line
     if (cutoff)
     {
-        const int fuzz_offset = SCREENWIDTH * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = screenwidth * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
 
         *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
     }
@@ -375,13 +378,14 @@ void R_DrawFuzzColumnLow(void)
     const int *const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
     const int fuzzalpha = fuzz_alpha;
+    const int screenwidth = SCREENWIDTH;
 
     // [PN] Use a for loop for clarity and potential optimizations
     {
         const int iterations = count + 1;
         for (int i = 0; i < iterations; i++)
         {
-            const int fuzz_offset = SCREENWIDTH * fuzzoffsetbase[local_fuzzpos];
+            const int fuzz_offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
 
             *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
             *dest2 = I_BlendDark(dest2[fuzz_offset], fuzzalpha);
@@ -392,14 +396,14 @@ void R_DrawFuzzColumnLow(void)
                 local_fuzzpos = (realleveltime > oldleveltime) ? ID_Random() % 49 : 0;
             }
 
-            dest += SCREENWIDTH;
-            dest2 += SCREENWIDTH;
+            dest += screenwidth;
+            dest2 += screenwidth;
         }
     }
 
     if (cutoff)
     {
-        const int fuzz_offset = SCREENWIDTH * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = screenwidth * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
 
         *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
         *dest2 = I_BlendDark(dest2[fuzz_offset], fuzzalpha);
@@ -432,6 +436,7 @@ void R_DrawFuzzTLColumn(void)
     // [PN] Local pointers to speed up access
     const byte *const sourcebase = dc_source;
     const pixel_t *const colormap0 = dc_colormap[0];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -440,7 +445,7 @@ void R_DrawFuzzTLColumn(void)
         const pixel_t destrgb = colormap0[s];
         *dest = I_BlendOver(*dest, destrgb, FUZZTL_ALPHA);
 
-        dest += SCREENWIDTH;
+        dest += screenwidth;
         frac += fracstep;
     }
 }
@@ -471,6 +476,7 @@ void R_DrawFuzzTLColumnLow(void)
     // [PN] Local pointers to speed up access
     const byte *const sourcebase = dc_source;
     const pixel_t *const colormap0 = dc_colormap[0];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -481,8 +487,8 @@ void R_DrawFuzzTLColumnLow(void)
         *dest = I_BlendOver(*dest, sourcecolor, FUZZTL_ALPHA);
         *dest2 = I_BlendOver(*dest2, sourcecolor, FUZZTL_ALPHA);
 
-        dest += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest += screenwidth;
+        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -513,21 +519,22 @@ void R_DrawFuzzBWColumn(void)
     const int *const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
     const int fuzzalpha = fuzz_alpha;
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
     {
-        const int fuzz_offset = SCREENWIDTH * fuzzoffsetbase[local_fuzzpos];
+        const int fuzz_offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
 
         *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
 
         local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
-        dest += SCREENWIDTH;
+        dest += screenwidth;
     }
 
     if (cutoff)
     {
-        const int fuzz_offset = SCREENWIDTH * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = screenwidth * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
         *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
     }
 
@@ -566,24 +573,25 @@ void R_DrawFuzzBWColumnLow(void)
     const int *const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
     const int fuzzalpha = fuzz_alpha;
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
     {
-        const int fuzz_offset = SCREENWIDTH * fuzzoffsetbase[local_fuzzpos];
+        const int fuzz_offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
 
         *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
         *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha);
 
         local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
 
-        dest += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest += screenwidth;
+        dest2 += screenwidth;
     }
 
     if (cutoff)
     {
-        const int fuzz_offset = SCREENWIDTH * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = screenwidth * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
 
         *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
         *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha);
@@ -617,6 +625,7 @@ void R_DrawTransTLFuzzColumn(void)
     const byte *const sourcebase = dc_source;
     const byte *const translation = dc_translation;
     const pixel_t *const colormap0 = dc_colormap[0];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -627,7 +636,7 @@ void R_DrawTransTLFuzzColumn(void)
 
         *dest = I_BlendOver(*dest, destrgb, FUZZTL_ALPHA);
 
-        dest += SCREENWIDTH;
+        dest += screenwidth;
         frac += fracstep;
     }
 }
@@ -660,6 +669,7 @@ void R_DrawTransTLFuzzColumnLow(void)
     const byte *const sourcebase = dc_source;
     const byte *const translation = dc_translation;
     const pixel_t *const colormap0 = dc_colormap[0];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -670,8 +680,8 @@ void R_DrawTransTLFuzzColumnLow(void)
         *dest = I_BlendOver(*dest, destrgb, FUZZTL_ALPHA);
         *dest2 = I_BlendOver(*dest2, destrgb, FUZZTL_ALPHA);
 
-        dest += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest += screenwidth;
+        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -707,6 +717,7 @@ void R_DrawTranslatedColumn(void)
     const byte *const translation = dc_translation;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -716,7 +727,7 @@ void R_DrawTranslatedColumn(void)
         const unsigned index = (brightmap[s] ? colormap1[t] : colormap0[t]);
 
         *dest = index;
-        dest += SCREENWIDTH;
+        dest += screenwidth;
         frac += fracstep;
     }
 }
@@ -745,6 +756,7 @@ void R_DrawTranslatedColumnLow(void)
     const byte *const translation = dc_translation;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -756,8 +768,8 @@ void R_DrawTranslatedColumnLow(void)
         *dest = index;
         *dest2 = index;
 
-        dest += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest += screenwidth;
+        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -787,6 +799,7 @@ void R_DrawTLColumn (void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     for (int i = 0; i <= count; i++)
     {
@@ -795,7 +808,7 @@ void R_DrawTLColumn (void)
 
         *dest = I_BlendOver(*dest, destrgb, TRANMAP_ALPHA);
 
-        dest += SCREENWIDTH;
+        dest += screenwidth;
         frac += fracstep;
     }
 }
@@ -829,6 +842,7 @@ void R_DrawTLColumnLow(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     for (int i = 0; i <= count; i++)
     {
@@ -838,8 +852,8 @@ void R_DrawTLColumnLow(void)
         *dest = I_BlendOver(*dest, destrgb, TRANMAP_ALPHA);
         *dest2 = I_BlendOver(*dest2, destrgb, TRANMAP_ALPHA);
 
-        dest += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest += screenwidth;
+        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -868,6 +882,7 @@ void R_DrawTLAddColumn(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -877,7 +892,7 @@ void R_DrawTLAddColumn(void)
 
         *dest = I_BlendAdd(*dest, destrgb);
 
-        dest += SCREENWIDTH;
+        dest += screenwidth;
         frac += fracstep;
     }
 }
@@ -910,6 +925,7 @@ void R_DrawTLAddColumnLow(void)
     const byte *const brightmap = dc_brightmap;
     const pixel_t *const colormap0 = dc_colormap[0];
     const pixel_t *const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
@@ -920,8 +936,8 @@ void R_DrawTLAddColumnLow(void)
         *dest1 = I_BlendAdd(*dest1, destrgb);
         *dest2 = I_BlendAdd(*dest2, destrgb);
 
-        dest1 += SCREENWIDTH;
-        dest2 += SCREENWIDTH;
+        dest1 += screenwidth;
+        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -1010,6 +1026,8 @@ void R_DrawSpan(void)
     const byte *const brightmap = ds_brightmap;
     const pixel_t *const colormap0 = ds_colormap[0];
     const pixel_t *const colormap1 = ds_colormap[1];
+    const fixed_t xstep = ds_xstep;
+    const fixed_t ystep = ds_ystep;
 
     if (!gp_flip_levels)
     {
@@ -1028,8 +1046,8 @@ void R_DrawSpan(void)
                 const byte source = sourcebase[spot];
                 dest[j] = (brightmap[source] ? colormap1[source] : colormap0[source]);
 
-                ds_xfrac += ds_xstep;
-                ds_yfrac += ds_ystep;
+                ds_xfrac += xstep;
+                ds_yfrac += ystep;
             }
 
             dest += 4;
@@ -1046,8 +1064,8 @@ void R_DrawSpan(void)
             *dest = (brightmap[source] ? colormap1[source] : colormap0[source]);
 
             dest++;
-            ds_xfrac += ds_xstep;
-            ds_yfrac += ds_ystep;
+            ds_xfrac += xstep;
+            ds_yfrac += ystep;
         }
     }
     else
@@ -1063,8 +1081,8 @@ void R_DrawSpan(void)
             pixel_t *dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
             *dest = (brightmap[source] ? colormap1[source] : colormap0[source]);
 
-            ds_xfrac += ds_xstep;
-            ds_yfrac += ds_ystep;
+            ds_xfrac += xstep;
+            ds_yfrac += ystep;
         }
     }
 }
@@ -1092,6 +1110,8 @@ void R_DrawSpanLow(void)
     const byte *const brightmap = ds_brightmap;
     const pixel_t *const colormap0 = ds_colormap[0];
     const pixel_t *const colormap1 = ds_colormap[1];
+    const fixed_t xstep = ds_xstep;
+    const fixed_t ystep = ds_ystep;
 
     if (!gp_flip_levels)
     {
@@ -1112,8 +1132,8 @@ void R_DrawSpanLow(void)
                 dest[1] = (brightmap[source] ? colormap1[source] : colormap0[source]);
                 dest += 2;
 
-                ds_xfrac += ds_xstep;
-                ds_yfrac += ds_ystep;
+                ds_xfrac += xstep;
+                ds_yfrac += ystep;
             }
 
             count -= 4;
@@ -1131,8 +1151,8 @@ void R_DrawSpanLow(void)
             dest[1] = (brightmap[source] ? colormap1[source] : colormap0[source]);
             dest += 2;
 
-            ds_xfrac += ds_xstep;
-            ds_yfrac += ds_ystep;
+            ds_xfrac += xstep;
+            ds_yfrac += ystep;
         }
     }
     else
@@ -1152,8 +1172,8 @@ void R_DrawSpanLow(void)
             dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
             *dest = (brightmap[source] ? colormap1[source] : colormap0[source]);
 
-            ds_xfrac += ds_xstep;
-            ds_yfrac += ds_ystep;
+            ds_xfrac += xstep;
+            ds_yfrac += ystep;
         }
     }
 }
