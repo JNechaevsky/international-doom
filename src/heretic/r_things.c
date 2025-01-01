@@ -730,27 +730,21 @@ void R_ProjectSprite (mobj_t* thing)
 
 
 
-//
+// -----------------------------------------------------------------------------
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
-//
-void R_AddSprites (sector_t* sec)
+// -----------------------------------------------------------------------------
+
+void R_AddSprites (sector_t *sec)
 {
-    mobj_t*		thing;
-    int			lightnum;
-
-    lightnum = (sec->lightlevel >> LIGHTSEGSHIFT)+(extralight * LIGHTBRIGHT);
-
-    if (lightnum < 0)		
-	spritelights = scalelight[0];
-    else if (lightnum >= LIGHTLEVELS)
-	spritelights = scalelight[LIGHTLEVELS-1];
-    else
-	spritelights = scalelight[lightnum];
+    // [crispy] smooth diminishing lighting
+    const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
+                       + (extralight * LIGHTBRIGHT));
+    spritelights = scalelight[lightnum];
 
     // Handle all things in sector.
-    for (thing = sec->thinglist ; thing ; thing = thing->snext)
-	R_ProjectSprite (thing);
+    for (mobj_t *thing = sec->thinglist ; thing ; thing = thing->snext)
+    R_ProjectSprite (thing);
 }
 
 // -----------------------------------------------------------------------------
