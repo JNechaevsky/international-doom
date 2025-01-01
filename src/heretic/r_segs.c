@@ -175,20 +175,12 @@ void R_FixWiggle (sector_t *sector)
     }
 }
 
-//
+// -----------------------------------------------------------------------------
 // R_RenderMaskedSegRange
-//
-void
-R_RenderMaskedSegRange
-( drawseg_t*	ds,
-  int		x1,
-  int		x2 )
+// -----------------------------------------------------------------------------
+
+void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 {
-    unsigned	index;
-    column_t*	col;
-    int		lightnum;
-    int		texnum;
-    
     // Calculate light table.
     // Use different light tables
     //   for horizontal / vertical / diagonal. Diagonal?
@@ -196,101 +188,91 @@ R_RenderMaskedSegRange
     curline = ds->curline;
     frontsector = curline->frontsector;
     backsector = curline->backsector;
-    texnum = texturetranslation[curline->sidedef->midtexture];
-	
-    lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT);
+    const int texnum = texturetranslation[curline->sidedef->midtexture];
 
-    // [crispy] smoother fake contrast
-    lightnum += curline->fakecontrast;
+    // [crispy] smooth diminishing lighting and smoother fake contrast
+    const int lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT)
+                       + (extralight * LIGHTBRIGHT)
+                       + curline->fakecontrast;
 
-    if (lightnum < 0)		
-	walllights = scalelight[0];
-    else if (lightnum >= LIGHTLEVELS)
-	walllights = scalelight[LIGHTLEVELS-1];
-    else
-	walllights = scalelight[lightnum];
+	walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
 
     maskedtexturecol = ds->maskedtexturecol;
-
     rw_scalestep = ds->scalestep;		
     spryscale = ds->scale1 + (x1 - ds->x1)*rw_scalestep;
     mfloorclip = ds->sprbottomclip;
     mceilingclip = ds->sprtopclip;
-    
+
     // find positioning
     if (curline->linedef->flags & ML_DONTPEGBOTTOM)
     {
-	dc_texturemid = frontsector->interpfloorheight > backsector->interpfloorheight
-	    ? frontsector->interpfloorheight : backsector->interpfloorheight;
-	dc_texturemid = dc_texturemid + textureheight[texnum] - viewz;
+        dc_texturemid = frontsector->interpfloorheight > backsector->interpfloorheight
+            ? frontsector->interpfloorheight : backsector->interpfloorheight;
+        dc_texturemid = dc_texturemid + textureheight[texnum] - viewz;
     }
     else
     {
-	dc_texturemid =frontsector->interpceilingheight<backsector->interpceilingheight
-	    ? frontsector->interpceilingheight : backsector->interpceilingheight;
-	dc_texturemid = dc_texturemid - viewz;
+        dc_texturemid =frontsector->interpceilingheight < backsector->interpceilingheight
+            ? frontsector->interpceilingheight : backsector->interpceilingheight;
+        dc_texturemid = dc_texturemid - viewz;
     }
     dc_texturemid += curline->sidedef->rowoffset;
-			
+
     if (fixedcolormap)
-	dc_colormap[0] = dc_colormap[1] = fixedcolormap;
-    
+    dc_colormap[0] = dc_colormap[1] = fixedcolormap;
+
     // draw the columns
     for (dc_x = x1 ; dc_x <= x2 ; dc_x++)
     {
-	// calculate lighting
-	if (maskedtexturecol[dc_x] != INT_MAX)  // [JN] 32-bit integer math
-	{
-	    if (!fixedcolormap)
-	    {
-		index = (spryscale / vid_resolution) >> LIGHTSCALESHIFT;
+        // calculate lighting
+        if (maskedtexturecol[dc_x] != INT_MAX)  // [JN] 32-bit integer math
+        {
+            if (!fixedcolormap)
+            {
+                unsigned const int index = (spryscale / vid_resolution) >> LIGHTSCALESHIFT;
 
-		if (index >=  MAXLIGHTSCALE )
-		    index = MAXLIGHTSCALE-1;
+                // [crispy] brightmaps for mid-textures
+                dc_brightmap = texturebrightmap[texnum];
+                dc_colormap[0] = walllights[MIN(index, MAXLIGHTSCALE-1)];
+                dc_colormap[1] = vis_brightmaps ? colormaps : dc_colormap[0];
+            }
 
-		// [crispy] brightmaps for mid-textures
-		dc_brightmap = texturebrightmap[texnum];
-		dc_colormap[0] = walllights[index];
-		dc_colormap[1] = vis_brightmaps ? colormaps : dc_colormap[0];
-	    }
-			
-	    // [crispy] apply Killough's int64 sprtopscreen overflow fix
-	    // from winmbf/Source/r_segs.c:174-191
-	    // killough 3/2/98:
-	    //
-	    // This calculation used to overflow and cause crashes in Doom:
-	    //
-	    // sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
-	    //
-	    // This code fixes it, by using double-precision intermediate
-	    // arithmetic and by skipping the drawing of 2s normals whose
-	    // mapping to screen coordinates is totally out of range:
+            // [crispy] apply Killough's int64 sprtopscreen overflow fix
+            // from winmbf/Source/r_segs.c:174-191
+            // killough 3/2/98:
+            //
+            // This calculation used to overflow and cause crashes in Doom:
+            //
+            // sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
+            //
+            // This code fixes it, by using double-precision intermediate
+            // arithmetic and by skipping the drawing of 2s normals whose
+            // mapping to screen coordinates is totally out of range:
+            {
+                int64_t t = ((int64_t) centeryfrac << FRACBITS)
+                          -  (int64_t) dc_texturemid * spryscale;
 
-	    {
-		int64_t t = ((int64_t) centeryfrac << FRACBITS) -
-		             (int64_t) dc_texturemid * spryscale;
+                if (t + (int64_t) textureheight[texnum] * spryscale < 0
+                ||  t > (int64_t) SCREENHEIGHT << FRACBITS * 2)
+                {
+                    spryscale += rw_scalestep; // [crispy] MBF had this in the for-loop iterator
+                    continue; // skip if the texture is out of screen's range
+                }
 
-		if (t + (int64_t) textureheight[texnum] * spryscale < 0 ||
-		    t > (int64_t) SCREENHEIGHT << FRACBITS*2)
-		{
-			spryscale += rw_scalestep; // [crispy] MBF had this in the for-loop iterator
-			continue; // skip if the texture is out of screen's range
-		}
+                sprtopscreen = (int64_t)(t >> FRACBITS); // [crispy] WiggleFix
+            }
 
-		sprtopscreen = (int64_t)(t >> FRACBITS); // [crispy] WiggleFix
-	    }
+            dc_iscale = UINT_MAX / (unsigned)spryscale;
 
-	    dc_iscale = UINT_MAX / (unsigned)spryscale;
-	    
-	    // draw the texture
-	    col = (column_t *)((byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
-			
-        R_DrawMaskedColumn (col, -1);
-	    maskedtexturecol[dc_x] = INT_MAX;  // [JN] 32-bit integer math
-	}
-	spryscale += rw_scalestep;
+            // draw the texture
+            column_t *col = (column_t *)((byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
+
+            R_DrawMaskedColumn (col, -1);
+            maskedtexturecol[dc_x] = INT_MAX;  // [JN] 32-bit integer math
+        }
+
+        spryscale += rw_scalestep;
     }
-	
 }
 
 // -----------------------------------------------------------------------------
@@ -512,15 +494,13 @@ fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
     return scale;
 }
 
-//
+// -----------------------------------------------------------------------------
 // R_StoreWallRange
 // A wall segment will be drawn
 //  between start and stop pixels (inclusive).
-//
-void
-R_StoreWallRange
-( int	start,
-  int	stop)
+// -----------------------------------------------------------------------------
+
+void R_StoreWallRange (int start, int stop)
 {
     IDRender.numsegs++;
 
