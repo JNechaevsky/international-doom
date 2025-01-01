@@ -928,13 +928,18 @@ static void M_ShadeBackground (void)
 {
     if (dp_menu_shading)
     {
-        for (int y = 0; y < SCREENWIDTH * SCREENHEIGHT; y++)
+        pixel_t *dest = I_VideoBuffer;
+        const int shade = dp_menu_shading;
+        const int scr = SCREENWIDTH * SCREENHEIGHT;
+        
+        for (int i = 0; i < scr; i++)
         {
 #ifndef CRISPY_TRUECOLOR
-            I_VideoBuffer[y] = colormaps[((dp_menu_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
+            *dest = colormaps[((dp_menu_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
 #else
-            I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], I_ShadeFactor[dp_menu_shading]);
+            *dest = I_BlendDark(*dest, I_ShadeFactor[shade]);
 #endif
+            ++dest;
         }
     }
 }
