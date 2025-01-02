@@ -22,6 +22,8 @@
 ========================
 */
 
+#include <ctype.h> // toupper, isdigit
+
 #include "doomdef.h"
 #include "deh_str.h"
 #include "p_local.h"

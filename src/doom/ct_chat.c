@@ -16,6 +16,8 @@
 //
 
 
+#include <ctype.h> // toupper
+
 #include "doomstat.h"
 #include "doomkeys.h"
 #include "ct_chat.h"

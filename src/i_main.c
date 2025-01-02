@@ -19,6 +19,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <locale.h> // [crispy] setlocale
 #include <time.h>   // [JN] srand(time(0))
 #include <SDL.h>
