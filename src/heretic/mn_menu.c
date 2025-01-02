@@ -1706,7 +1706,7 @@ static MenuItem_t ID_Menu_Sound[] = {
     { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
     { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
     { ITT_LRFUNC, "MUSIC PLAYBACK",       M_ID_MusicSystem, 0, MENU_NONE },
-    { ITT_LRFUNC, "SOUNDS EFFECTS MODE",  M_ID_SFXMode,     0, MENU_NONE },
+    { ITT_LRFUNC, "SOUND EFFECTS MODE",   M_ID_SFXMode,     0, MENU_NONE },
     { ITT_LRFUNC, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,  0, MENU_NONE },
     { ITT_LRFUNC, "NUMBER OF SFX TO MIX", M_ID_SFXChannels, 0, MENU_NONE },
     { ITT_LRFUNC, "MUTE INACTIVE WINDOW", M_ID_MuteInactive,0, MENU_NONE },

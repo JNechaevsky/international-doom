@@ -1882,12 +1882,12 @@ static menuitem_t ID_Menu_Sound[]=
     { M_SKIP, "", 0, '\0' },
     { M_LFRT, "SFX PLAYBACK",         M_ID_SFXSystem,    's' },
     { M_LFRT, "MUSIC PLAYBACK",       M_ID_MusicSystem,  'm' },
-    { M_LFRT, "SOUNDS EFFECTS MODE",  M_ID_SFXMode,      's' },
+    { M_LFRT, "SOUND EFFECTS MODE",   M_ID_SFXMode,      's' },
     { M_LFRT, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,   'p' },
     { M_LFRT, "NUMBER OF SFX TO MIX", M_ID_SFXChannels,  'n' },
     { M_LFRT, "MUTE INACTIVE WINDOW", M_ID_MuteInactive, 'm' },
     { M_SKIP, "", 0, '\0' },
-    { M_LFRT, "",                     M_ID_RemasterOST,  'r' }, // PREFFERED SOUNDTRACK
+    { M_LFRT, "",                     M_ID_RemasterOST,  'p' }, // PREFFERED SOUNDTRACK
 };
 
 static menu_t ID_Def_Sound =
