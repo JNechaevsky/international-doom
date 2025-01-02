@@ -1324,29 +1324,30 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 // [JN] With support for "user-defined" (1x...6x) and "auto" thickness.
 // -----------------------------------------------------------------------------
 
-static void PUTDOT_THICK(int x, int y, pixel_t color)
+static inline void PUTDOT_THICK(int x, int y, pixel_t color)
 {
+    // Determine the line thickness.
     const int thickness = automap_thick == 6
                         ? vid_resolution / 2  // Auto thickness
                         : automap_thick;      // User-defined thickness
 
     for (int dx = -thickness; dx <= thickness; dx++)
     {
+        const int nx = x + dx;
+
+        // Skip out-of-bound x-coordinates.
+        if (nx < 0 || nx >= f_w)
+            continue;
+
         for (int dy = -thickness; dy <= thickness; dy++)
         {
-            const int nx = x + dx;
             const int ny = y + dy;
 
-            // Boundary check
-            if (nx >= 0 && nx < f_w
-            &&  ny >= 0 && ny < f_h)
-            {
-#ifndef CRISPY_TRUECOLOR
-                fb[ny * f_w + flipscreenwidth[nx]] = color;
-#else
-                fb[ny * f_w + flipscreenwidth[nx]] = pal_color[color];
-#endif
-            }
+            // Skip out-of-bound y-coordinates.
+            if (ny < 0 || ny >= f_h)
+                continue;
+
+            DOT(nx, ny, color);
         }
     }
 }

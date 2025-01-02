@@ -1349,29 +1349,49 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 // [JN] With support for "user-defined" (1x...6x) and "auto" thickness.
 // -----------------------------------------------------------------------------
 
-static void PUTDOT_THICK (int x, int y, pixel_t color)
+static inline void PUTDOT_THICK (int x, int y, pixel_t color)
 {
+    // Cache the global setting for smooth rendering locally to avoid
+    // repeated access during the loop iterations.
+    const int smooth = automap_smooth;
+
+    // If the line thickness feature is disabled, draw the dot directly
+    // without performing any additional boundary checks.
+    if (!automap_thick)
+    {
+        if (smooth)
+            PUTDOT_RAW(x, y, color);
+        else
+            PUTDOT(x, y, color);
+        return;
+    }
+
+    // Determine the line thickness.
     const int thickness = automap_thick == 6
                         ? vid_resolution / 2 // Auto thickness
                         : automap_thick;     // User-defined thickness
-    const int smooth = automap_smooth;
 
     for (int dx = -thickness; dx <= thickness; dx++)
     {
+        const int nx = x + dx;
+
+        // Skip out-of-bound x-coordinates.
+        if (nx < 0 || nx >= f_w)
+            continue;
+
         for (int dy = -thickness; dy <= thickness; dy++)
         {
-            const int nx = x + dx;
             const int ny = y + dy;
 
-            // Coordinate boundary check
-            if (nx >= 0 && nx < f_w
-            &&  ny >= 0 && ny < f_h)
-            {
-                if (smooth)
+            // Skip out-of-bound y-coordinates.
+            if (ny < 0 || ny >= f_h)
+                continue;
+
+            // Draw the pixel with or without smoothing based on the setting.
+            if (smooth)
                 PUTDOT_RAW(nx, ny, color);
-                else
+            else
                 PUTDOT(nx, ny, color);
-            }
         }
     }
 }
