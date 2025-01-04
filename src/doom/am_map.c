@@ -301,8 +301,6 @@ static void AM_transformPoint (mpoint_t *pt);
 static mpoint_t mapcenter;
 static angle_t mapangle;
 
-static void AM_drawCrosshair(boolean force);
-
 // -----------------------------------------------------------------------------
 // AM_Init
 // [JN] Predefine some variables at program startup.
@@ -718,7 +716,6 @@ void AM_LevelInit (boolean reinit)
     if (reinit && f_h_old)
     {
         scale_mtof = scale_mtof * f_h / f_h_old;
-        AM_drawCrosshair(true);
     }
     else
     {
@@ -1385,6 +1382,13 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
 
             // Skip out-of-bound y-coordinates.
             if (ny < 0 || ny >= f_h)
+                continue;
+
+            // Calculate the squared distance from the center.
+            const int distance2 = dx * dx + dy * dy;
+
+            // Skip pixels outside the desired radius.
+            if (distance2 > thickness * thickness)
                 continue;
 
             // Draw the pixel with or without smoothing based on the setting.
@@ -2470,28 +2474,27 @@ static void AM_drawMarks (void)
 // AM_drawCrosshair
 // -----------------------------------------------------------------------------
 
-static void AM_drawCrosshair (boolean force)
+static void AM_drawCrosshair (void)
 {
-    // [crispy] draw an actual crosshair
-    if (!followplayer || force)
+    // [JN] Draw the crosshair as a graphical patch to keep it unaffected by
+    // map line thickness, following the logic of mark drawing. Coloring via
+    // dp_translation is still needed to ensure it won't be affected much
+    // by possible custom PLAYPAL palette and modified color index.
+    //
+    // Patch drawing coordinates are the center of the screen:
+    // x: 159 = (ORIGWIDTH  / 2) - 1
+    // y:  84 = (ORIGHEIGHT / 2) - 16
+
+    static const byte am_xhair[] =
     {
-        static fline_t h, v;
+        3,0,3,0,0,0,0,0,20,0,0,0,26,0,0,0,
+        34,0,0,0,1,1,90,90,90,255,0,3,90,90,90,90,
+        90,255,1,1,90,90,90,255
+    };
 
-        if (!h.a.x || force)
-        {
-            h.a.x = h.b.x = v.a.x = v.b.x = f_x + f_w / 2;
-            h.a.y = h.b.y = v.a.y = v.b.y = f_y + f_h / 2;
-            h.a.x -= 2; h.b.x += 2;
-            v.a.y -= 2; v.b.y += 2;
-        }
-
-        // [JN] Do not draw crosshair while video re-init functions.
-        if (!force)
-        {
-            AM_drawFline(&h, doom_96);
-            AM_drawFline(&v, doom_96);
-        }
-    }
+    dp_translation = cr[CR_LIGHTGRAY];
+    V_DrawPatch(159, 84, (patch_t*)&am_xhair);
+    dp_translation = NULL;
 }
 
 // -----------------------------------------------------------------------------
@@ -2586,7 +2589,7 @@ void AM_Drawer (void)
     // [JN] Do not draw in following mode.
     if (!followplayer)
     {
-        AM_drawCrosshair(false);
+        AM_drawCrosshair();
     }
 
     AM_drawMarks();
