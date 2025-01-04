@@ -124,9 +124,15 @@ find_package(m)
 
 include(CheckSymbolExists)
 include(CheckIncludeFile)
-check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
-check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
-check_include_file("dirent.h" HAVE_DIRENT_H)
+if(WIN32)
+    check_symbol_exists(_stricmp "string.h" HAVE_DECL_STRNCASECMP)
+    check_symbol_exists(_strnicmp "string.h" HAVE_DECL_STRNCASECMP)
+    check_include_file("windows.h" HAVE_DIRENT_H)
+else()
+    check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
+    check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
+    check_include_file("dirent.h" HAVE_DIRENT_H)
+endif()
 
 string(CONCAT WINDOWS_RC_VERSION "${PROJECT_VERSION_MAJOR}, "
     "${PROJECT_VERSION_MINOR}, ${PROJECT_VERSION_PATCH}, 0")
