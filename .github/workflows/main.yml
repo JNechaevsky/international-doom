@@ -47,9 +47,7 @@ jobs:
         run: |
           cmake -B build_vs_64 -S . -DCMAKE_BUILD_TYPE=Release `
                 -DENABLE_LTO=ON `
-                -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
                 -DVCPKG_TARGET_TRIPLET="x64-windows-static-release" `
-                -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
                 -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
                 -DCMAKE_C_FLAGS_RELEASE="/MT /O2 /Ob2 /DNDEBUG /GL /Oy /arch:AVX2" `
                 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake

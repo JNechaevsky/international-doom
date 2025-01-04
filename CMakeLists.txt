@@ -1,6 +1,8 @@
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 cmake_minimum_required(VERSION 3.10)
+cmake_policy(SET CMP0069 NEW)
+cmake_policy(SET CMP0091 NEW)
 project("Inter" VERSION 8.1.0 LANGUAGES C)
 set(CMAKE_C_STANDARD 99)
 
@@ -54,10 +56,6 @@ endif()
 # Enable LTO if available.  Hovewer, CMake does not appear to support
 # LTO properly for MinGW GCC which results in much longer linking time.
 # Consider only enabling it when making a release.
-if(POLICY CMP0069)
-    cmake_policy(SET CMP0069 NEW)
-endif()
-
 include(CheckIPOSupported)
 check_ipo_supported(RESULT HAVE_LTO)
 
@@ -124,15 +122,9 @@ find_package(m)
 
 include(CheckSymbolExists)
 include(CheckIncludeFile)
-if(WIN32)
-    check_symbol_exists(_stricmp "string.h" HAVE_DECL_STRNCASECMP)
-    check_symbol_exists(_strnicmp "string.h" HAVE_DECL_STRNCASECMP)
-    check_include_file("windows.h" HAVE_DIRENT_H)
-else()
-    check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
-    check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
-    check_include_file("dirent.h" HAVE_DIRENT_H)
-endif()
+check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
+check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
+check_include_file("dirent.h" HAVE_DIRENT_H)
 
 string(CONCAT WINDOWS_RC_VERSION "${PROJECT_VERSION_MAJOR}, "
     "${PROJECT_VERSION_MINOR}, ${PROJECT_VERSION_PATCH}, 0")
