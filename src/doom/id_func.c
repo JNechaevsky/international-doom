@@ -1084,4 +1084,4 @@ void CRL_ImpulseCamera (fixed_t fwm, fixed_t swm, angle_t at)
 void CRL_ImpulseCameraVert (boolean direction, fixed_t intensity)
 {
     CRL_camera_z += (direction ? 1 : -1) * FRACUNIT * intensity;
-} 
+}

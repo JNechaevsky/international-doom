@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - cache
   pull_request:
     branches:
       - main
-      - cache
 
 jobs:
   build-windows:
