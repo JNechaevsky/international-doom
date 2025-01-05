@@ -32,11 +32,6 @@ jobs:
           export LATEST_COMMIT=$(git rev-parse HEAD)
           echo "LATEST_COMMIT=$LATEST_COMMIT" >> $GITHUB_ENV
 
-      - name: Update builtin-baseline in vcpkg.json
-        shell: bash
-        run: |
-          jq --arg commit "$LATEST_COMMIT" '. + {"builtin-baseline": $commit}' vcpkg.json > temp.json && mv temp.json vcpkg.json
-
       - name: Install vcpkg
         run: |
           .\vcpkg\bootstrap-vcpkg.bat
@@ -50,7 +45,9 @@ jobs:
 
       - name: Install Dependencies with vcpkg
         run: |
-          .\vcpkg\vcpkg.exe install sdl2 sdl2-mixer[libflac,libmodplug,mpg123,opusfile] sdl2-net libsamplerate fluidsynth --triplet x64-windows-static-release --overlay-triplets=cmake/triplets
+          .\vcpkg\vcpkg.exe install sdl2 sdl2-mixer[libflac,libmodplug,mpg123,opusfile] sdl2-net libsamplerate fluidsynth `
+          --triplet x64-windows-static-release `
+          --overlay-triplets=cmake/triplets
 
       - name: Configure CMake
         run: |
@@ -62,7 +59,7 @@ jobs:
                 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
 
       - name: Build
-        run: cmake --build build_vs_64 --config Release
+        run: cmake --build build_vs_64 --config Release --parallel
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
