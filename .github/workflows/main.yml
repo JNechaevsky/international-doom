@@ -49,7 +49,7 @@ jobs:
                 -DENABLE_LTO=ON `
                 -DVCPKG_TARGET_TRIPLET="x64-windows-static-release" `
                 -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
-                -DCMAKE_C_FLAGS_RELEASE="/MT /O2 /Ob2 /DNDEBUG /GL /Oy /arch:AVX2" `
+                -DCMAKE_C_FLAGS_RELEASE="/MT /O2 /Ob2 /DNDEBUG /GL /Oy" `
                 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
 
       - name: Build
