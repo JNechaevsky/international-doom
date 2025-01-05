@@ -1,6 +1,6 @@
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0069 NEW)
 cmake_policy(SET CMP0091 NEW)
 project("Inter" VERSION 8.1.0 LANGUAGES C)
