@@ -61,6 +61,8 @@ typedef enum
     ITT_EFUNC,
     ITT_LRFUNC,
     ITT_SETMENU,
+    ITT_SLDR1,      // Slider 1st line.
+    ITT_SLDR2,      // Slider 2st line.
     ITT_INERT
 } ItemType_t;
 
@@ -377,11 +379,11 @@ static Menu_t OptionsMenu = {
 
 static MenuItem_t Options2Items[] = {
     { ITT_LRFUNC, "SFX VOLUME",   SCSfxVolume,   0, MENU_NONE },
-    { ITT_EMPTY,  NULL,           NULL,          0, MENU_NONE },
+    { ITT_SLDR1,  NULL,           NULL,          0, MENU_NONE },
     { ITT_LRFUNC, "MUSIC VOLUME", SCMusicVolume, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,           NULL,          0, MENU_NONE },
+    { ITT_SLDR1,  NULL,           NULL,          0, MENU_NONE },
     { ITT_LRFUNC, "SCREEN SIZE",  SCScreenSize,  0, MENU_NONE },
-    { ITT_EMPTY,  NULL,           NULL,          0, MENU_NONE },
+    { ITT_SLDR1,  NULL,           NULL,          0, MENU_NONE },
 };
 
 static Menu_t Options2Menu = {
@@ -1656,11 +1658,11 @@ static void M_ID_LocalTime (int choice)
 
 static MenuItem_t ID_Menu_Sound[] = {
     { ITT_LRFUNC, "SFX VOLUME",           SCSfxVolume,         MENU_NONE },
-    { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
+    { ITT_SLDR1,  NULL,                   NULL,             0, MENU_NONE },
+    { ITT_SLDR2,  NULL,                   NULL,             0, MENU_NONE },
     { ITT_LRFUNC, "MUSIC VOLUME",         SCMusicVolume,       MENU_NONE },
-    { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
+    { ITT_SLDR1,  NULL,                   NULL,             0, MENU_NONE },
+    { ITT_SLDR2,  NULL,                   NULL,             0, MENU_NONE },
     { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
     { ITT_LRFUNC, "MUSIC PLAYBACK",       M_ID_MusicSystem, 0, MENU_NONE },
     { ITT_LRFUNC, "SOUND EFFECTS MODE",   M_ID_SFXMode,     0, MENU_NONE },
@@ -1847,14 +1849,14 @@ static MenuItem_t ID_Menu_Controls[] = {
     { ITT_SETMENU, "MOUSE BINDINGS",          NULL,                       0, MENU_ID_MOUSEBINDS },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_LRFUNC,  "SENSIVITY",               SCMouseSensi,               0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_SLDR1,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_SLDR2,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_LRFUNC,  "ACCELERATION",            M_ID_Controls_Acceleration, 0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_SLDR1,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_SLDR2,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_LRFUNC,  "ACCELERATION THRESHOLD",  M_ID_Controls_Threshold,    0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_SLDR1,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_SLDR2,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_LRFUNC,  "MOUSE LOOK",              M_ID_Controls_MLook,        0, MENU_NONE          },
     { ITT_LRFUNC,  "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,       0, MENU_NONE          },
     { ITT_LRFUNC,  "INVERT VERTICAL AXIS",    M_ID_Controls_InvertY,      0, MENU_NONE          },
@@ -4300,7 +4302,14 @@ static void M_ID_MenuMouseControl (void)
             &&  menu_mouse_y <= (CurrentMenu->y + (i + 1) * line_height) * vid_resolution
             &&  CurrentMenu->items[i].type != ITT_EMPTY)
             {
-                CurrentItPos = i; // [PN] Highlight the current menu item
+                // [PN] Highlight the current menu item
+                CurrentItPos = i;
+
+                // [JN] Move menu cursor higher when hovering slider lines.
+                if (CurrentMenu->items[i].type == ITT_SLDR1)
+                    CurrentItPos -= 1;
+                if (CurrentMenu->items[i].type == ITT_SLDR2)
+                    CurrentItPos -= 2;
             }
         }
     }
@@ -5883,7 +5892,9 @@ boolean MN_Responder(event_t * event)
                     CurrentItPos++;
                 }
             }
-            while (CurrentMenu->items[CurrentItPos].type == ITT_EMPTY);
+            while (CurrentMenu->items[CurrentItPos].type == ITT_EMPTY ||
+                   CurrentMenu->items[CurrentItPos].type == ITT_SLDR1 || // [JN] Skip sliders
+                   CurrentMenu->items[CurrentItPos].type == ITT_SLDR2);
             S_StartSound(NULL, SFX_FIGHTER_HAMMER_HITWALL);
             return (true);
         }
@@ -5900,7 +5911,9 @@ boolean MN_Responder(event_t * event)
                     CurrentItPos--;
                 }
             }
-            while (CurrentMenu->items[CurrentItPos].type == ITT_EMPTY);
+            while (CurrentMenu->items[CurrentItPos].type == ITT_EMPTY ||
+                   CurrentMenu->items[CurrentItPos].type == ITT_SLDR1 || // [JN] Skip sliders
+                   CurrentMenu->items[CurrentItPos].type == ITT_SLDR2);
             S_StartSound(NULL, SFX_FIGHTER_HAMMER_HITWALL);
             return (true);
         }
