@@ -3142,9 +3142,9 @@ static void M_Draw_ID_Automap (void)
     MN_DrTextACentered("AUTOMAP", 10, cr[CR_YELLOW]);
 
     // Line smoothing
-    sprintf(str, automap_smooth ? "ON" : "OFF");
+    sprintf(str, automap_smooth_hr ? "ON" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 20,
-               M_Item_Glow(0, automap_smooth ? GLOW_GREEN : GLOW_DARKRED));
+               M_Item_Glow(0, automap_smooth_hr ? GLOW_GREEN : GLOW_DARKRED));
 
     // Line thickness
     sprintf(str, "%s", thickness[automap_thick]);
@@ -3182,7 +3182,7 @@ static void M_Draw_ID_Automap (void)
 
 static void M_ID_Automap_Smooth (int choice)
 {
-    automap_smooth ^= 1;
+    automap_smooth_hr ^= 1;
 }
 
 static void M_ID_Automap_Thick (int choice)
@@ -4564,7 +4564,7 @@ static void M_ID_ApplyResetHook (void)
     widget_render = 0;
     widget_health = 0;
     // Automap
-    automap_smooth = 1;
+    automap_smooth_hr = 1;
     automap_thick = 0;
     automap_square = 0;
     automap_secrets = 0;

@@ -1367,7 +1367,7 @@ static void AM_drawFline(fline_t * fl, int color)
 {
     int actual_color;
 
-    if (automap_smooth)
+    if (automap_smooth_hr)
     {
         // Use antialiasing if enabled
         switch (color)
@@ -1436,7 +1436,7 @@ static void AM_drawFline(fline_t * fl, int color)
         int d = ay - ax / 2;
         while (1)
         {
-            PUTDOT_THICK(x, y, automap_smooth ? color : actual_color);
+            PUTDOT_THICK(x, y, automap_smooth_hr ? color : actual_color);
             if (x == fl->b.x)
                 return;
             if (d >= 0)
@@ -1453,7 +1453,7 @@ static void AM_drawFline(fline_t * fl, int color)
         int d = ax - ay / 2;
         while (1)
         {
-            PUTDOT_THICK(x, y, automap_smooth ? color : actual_color);
+            PUTDOT_THICK(x, y, automap_smooth_hr ? color : actual_color);
             if (y == fl->b.y)
                 return;
             if (d >= 0)
