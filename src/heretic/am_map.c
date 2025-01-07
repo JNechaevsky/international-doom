@@ -1360,96 +1360,109 @@ static inline void PUTDOT_THICK(int x, int y, pixel_t color)
 // -----------------------------------------------------------------------------
 // AM_drawFline
 // Classic Bresenham w/ whatever optimizations needed for speed.
+// [PN] Refactored to handle both antialiased and non-antialiased line drawing.
 // -----------------------------------------------------------------------------
 
 static void AM_drawFline(fline_t * fl, int color)
 {
-    register int x, y, dx, dy, sx, sy, ax, ay, d;
+    int actual_color;
 
-    switch (color)
+    if (automap_smooth)
     {
-        case WALLCOLORS:    DrawWuLine(fl, &(*antialias)[0][0]);  break;
-        case FDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[1][0]);  break;
-        case CDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[2][0]);  break;
-        // [JN] Apply antialiasing for some extra lines as well:
-        case MLDONTDRAW1:   DrawWuLine(fl, &(*antialias)[3][0]);  break;
-        case MLDONTDRAW2:   DrawWuLine(fl, &(*antialias)[4][0]);  break;
-        case YELLOWKEY:     DrawWuLine(fl, &(*antialias)[5][0]);  break;
-        case GREENKEY:      DrawWuLine(fl, &(*antialias)[6][0]);  break;
-        case BLUEKEY:       DrawWuLine(fl, &(*antialias)[7][0]);  break;
-        case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  break;
-        case FSECRETCOLORS: DrawWuLine(fl, &(*antialias)[9][0]);  break;
-        case EXITS:         DrawWuLine(fl, &(*antialias)[10][0]); break;
-        // IDDT extended colors:
-        case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[11][0]); break;
-        case IDDT_YELLOW:   DrawWuLine(fl, &(*antialias)[12][0]); break;
-        case 150:           DrawWuLine(fl, &(*antialias)[13][0]); break;
-        case 151:           DrawWuLine(fl, &(*antialias)[14][0]); break;
-        case 152:           DrawWuLine(fl, &(*antialias)[15][0]); break;
-        case 153:           DrawWuLine(fl, &(*antialias)[16][0]); break;
-        case 154:           DrawWuLine(fl, &(*antialias)[17][0]); break;
-        case 155:           DrawWuLine(fl, &(*antialias)[18][0]); break;
-        case 156:           DrawWuLine(fl, &(*antialias)[19][0]); break;  // Used for TELEPORTERS as well
-        case 157:           DrawWuLine(fl, &(*antialias)[20][0]); break;
-        case 158:           DrawWuLine(fl, &(*antialias)[21][0]); break;
-        case 159:           DrawWuLine(fl, &(*antialias)[22][0]); break;
-        
-        default:
+        // Use antialiasing if enabled
+        switch (color)
         {
-            // For debugging only
-            if (fl->a.x < 0 || fl->a.x >= f_w
-            ||  fl->a.y < 0 || fl->a.y >= f_h
-            ||  fl->b.x < 0 || fl->b.x >= f_w
-            ||  fl->b.y < 0 || fl->b.y >= f_h)
-            {
+            case WALLCOLORS:    DrawWuLine(fl, &(*antialias)[0][0]);  return;
+            case FDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[1][0]);  return;
+            case CDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[2][0]);  return;
+            // [JN] Apply antialiasing for some extra lines as well:
+            case MLDONTDRAW1:   DrawWuLine(fl, &(*antialias)[3][0]);  return;
+            case MLDONTDRAW2:   DrawWuLine(fl, &(*antialias)[4][0]);  return;
+            case YELLOWKEY:     DrawWuLine(fl, &(*antialias)[5][0]);  return;
+            case GREENKEY:      DrawWuLine(fl, &(*antialias)[6][0]);  return;
+            case BLUEKEY:       DrawWuLine(fl, &(*antialias)[7][0]);  return;
+            case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  return;
+            case FSECRETCOLORS: DrawWuLine(fl, &(*antialias)[9][0]);  return;
+            case EXITS:         DrawWuLine(fl, &(*antialias)[10][0]); return;
+            // IDDT extended colors:
+            case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[11][0]); return;
+            case IDDT_YELLOW:   DrawWuLine(fl, &(*antialias)[12][0]); return;
+            case 150:           DrawWuLine(fl, &(*antialias)[13][0]); return;
+            case 151:           DrawWuLine(fl, &(*antialias)[14][0]); return;
+            case 152:           DrawWuLine(fl, &(*antialias)[15][0]); return;
+            case 153:           DrawWuLine(fl, &(*antialias)[16][0]); return;
+            case 154:           DrawWuLine(fl, &(*antialias)[17][0]); return;
+            case 155:           DrawWuLine(fl, &(*antialias)[18][0]); return;
+            case 156:           DrawWuLine(fl, &(*antialias)[19][0]); return;  // Used for TELEPORTERS as well
+            case 157:           DrawWuLine(fl, &(*antialias)[20][0]); return;
+            case 158:           DrawWuLine(fl, &(*antialias)[21][0]); return;
+            case 159:           DrawWuLine(fl, &(*antialias)[22][0]); return;
+            default: break;
+        }
+    }
+    else
+    {
+        // No antialiasing: map colors
+        switch (color)
+        {
+            case WALLCOLORS:    actual_color = automap_overlay ? 100 : 96;  break;
+            case FDWALLCOLORS:  actual_color = automap_overlay ? 106 : 110; break;
+            case CDWALLCOLORS:  actual_color = 75; break;
+            default: actual_color = color; break;
+        }
+    }
+
+    // Debugging: check bounds
+    if (fl->a.x < 0 || fl->a.x >= f_w || fl->a.y < 0 || fl->a.y >= f_h
+    ||  fl->b.x < 0 || fl->b.x >= f_w || fl->b.y < 0 || fl->b.y >= f_h)
+    {
+        return;
+    }
+
+    // Bresenham's line algorithm
+    const int dx = fl->b.x - fl->a.x;
+    const int ax = 2 * (dx < 0 ? -dx : dx);
+    const int sx = dx < 0 ? -1 : 1;
+
+    const int dy = fl->b.y - fl->a.y;
+    const int ay = 2 * (dy < 0 ? -dy : dy);
+    const int sy = dy < 0 ? -1 : 1;
+
+    int x = fl->a.x;
+    int y = fl->a.y;
+
+    if (ax > ay)
+    {
+        int d = ay - ax / 2;
+        while (1)
+        {
+            PUTDOT_THICK(x, y, automap_smooth ? color : actual_color);
+            if (x == fl->b.x)
                 return;
-            }
-
-            dx = fl->b.x - fl->a.x;
-            ax = 2 * (dx < 0 ? -dx : dx);
-            sx = dx < 0 ? -1 : 1;
-
-            dy = fl->b.y - fl->a.y;
-            ay = 2 * (dy < 0 ? -dy : dy);
-            sy = dy < 0 ? -1 : 1;
-
-            x = fl->a.x;
-            y = fl->a.y;
-
-            if (ax > ay)
+            if (d >= 0)
             {
-                d = ay - ax / 2;
-                while (1)
-                {
-                    PUTDOT_THICK(x, y, color);
-                    if (x == fl->b.x)
-                        return;
-                    if (d >= 0)
-                    {
-                        y += sy;
-                        d -= ax;
-                    }
-                    x += sx;
-                    d += ay;
-                }
+                y += sy;
+                d -= ax;
             }
-            else
+            x += sx;
+            d += ay;
+        }
+    }
+    else
+    {
+        int d = ax - ay / 2;
+        while (1)
+        {
+            PUTDOT_THICK(x, y, automap_smooth ? color : actual_color);
+            if (y == fl->b.y)
+                return;
+            if (d >= 0)
             {
-                d = ax - ay / 2;
-                while (1)
-                {
-                    PUTDOT_THICK(x, y, color);
-                    if (y == fl->b.y)
-                        return;
-                    if (d >= 0)
-                    {
-                        x += sx;
-                        d -= ay;
-                    }
-                    y += sy;
-                    d += ax;
-                }
+                x += sx;
+                d -= ay;
             }
+            y += sy;
+            d += ax;
         }
     }
 }
