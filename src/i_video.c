@@ -138,7 +138,7 @@ int usemouse = 1;
 int menu_mouse_x, menu_mouse_y;
 // Used by SDL cursor for position saving and resoring
 static int menu_mouse_x_sdl, menu_mouse_y_sdl;
-boolean menu_mouse_allow;
+boolean menu_mouse_allow, menu_mouse_allow_click;
 
 // SDL video driver name
 

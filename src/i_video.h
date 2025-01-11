@@ -168,7 +168,7 @@ extern int usemouse;
 
 extern int menu_mouse_x;
 extern int menu_mouse_y;
-extern boolean menu_mouse_allow;
+extern boolean menu_mouse_allow, menu_mouse_allow_click;
 extern void I_ReInitCursorPosition (void);
 
 extern boolean endoom_screen_active;
