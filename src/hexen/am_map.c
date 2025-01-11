@@ -1237,7 +1237,7 @@ static inline void PUTDOT_THICK(int x, int y, pixel_t color)
 
 static void AM_drawFline(fline_t * fl, int color)
 {
-    int actual_color;
+    int actual_color = 0;
 
     if (automap_smooth_hr)
     {
