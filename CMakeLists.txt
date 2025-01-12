@@ -47,8 +47,8 @@ else()
     add_compile_options("-Wall"
                         "-Wredundant-decls"
                         "-Wformat-security"
-                        # "-Wno-ignored-qualifiers"
-                        # "-Wpedantic"
+                        "-Wno-ignored-qualifiers"
+                        "-Wpedantic"
                         # "-Wextra"
                         )
 endif()

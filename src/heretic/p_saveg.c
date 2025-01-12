@@ -752,7 +752,7 @@ static void saveg_write_thinker_t(thinker_t *str)
     SV_WritePtr(str->next);
 
     // think_t function;
-    SV_WritePtr(str->function);
+    SV_WritePtr((const void *)(intptr_t)(str->function));
 }
 
 
@@ -1930,7 +1930,7 @@ void P_UnArchiveSpecials(void)
             case tc_ceiling:
                 ceiling = Z_Malloc(sizeof(*ceiling), PU_LEVEL, NULL);
                 saveg_read_ceiling_t(ceiling);
-                ceiling->sector->specialdata = T_MoveCeiling;  // ???
+                ceiling->sector->specialdata = (void *)(intptr_t)T_MoveCeiling;  // ???
                 ceiling->thinker.function = T_MoveCeiling;
                 P_AddThinker(&ceiling->thinker);
                 P_AddActiveCeiling(ceiling);
@@ -1947,7 +1947,7 @@ void P_UnArchiveSpecials(void)
             case tc_floor:
                 floor = Z_Malloc(sizeof(*floor), PU_LEVEL, NULL);
                 saveg_read_floormove_t(floor);
-                floor->sector->specialdata = T_MoveFloor;
+                floor->sector->specialdata = (void *)(intptr_t)T_MoveFloor;
                 floor->thinker.function = T_MoveFloor;
                 P_AddThinker(&floor->thinker);
                 break;
@@ -1955,7 +1955,7 @@ void P_UnArchiveSpecials(void)
             case tc_plat:
                 plat = Z_Malloc(sizeof(*plat), PU_LEVEL, NULL);
                 saveg_read_plat_t(plat);
-                plat->sector->specialdata = T_PlatRaise;
+                plat->sector->specialdata = (void *)(intptr_t)T_PlatRaise;
                 // In the original Heretic code this was a conditional "fix"
                 // of the thinker function, but the save code (above) decides
                 // whether to save a T_PlatRaise based on thinker function

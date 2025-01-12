@@ -704,7 +704,7 @@ static void StreamIn_thinker_t(thinker_t *str)
 
     // think_t function;
     // Function pointer is discarded:
-    str->function = SV_ReadPtr();
+    str->function = (think_t)(intptr_t)SV_ReadPtr();
     str->function = NULL;
 }
 
@@ -2978,7 +2978,7 @@ static void UnarchiveThinkers(void)
 static void RestoreSSThinker(thinker_t *thinker)
 {
     ssthinker_t *sst = (ssthinker_t *) thinker;
-    sst->sector->specialdata = sst->thinker.function;
+    sst->sector->specialdata = (void *)(intptr_t)sst->thinker.function;
 }
 
 //==========================================================================
@@ -2990,7 +2990,7 @@ static void RestoreSSThinker(thinker_t *thinker)
 static void RestorePlatRaise(thinker_t *thinker)
 {
     plat_t *plat = (plat_t *) thinker;
-    plat->sector->specialdata = T_PlatRaise;
+    plat->sector->specialdata = (void *)(intptr_t)T_PlatRaise;
     P_AddActivePlat(plat);
 }
 
@@ -3003,7 +3003,7 @@ static void RestorePlatRaise(thinker_t *thinker)
 static void RestoreMoveCeiling(thinker_t *thinker)
 {
     ceiling_t *ceiling = (ceiling_t *) thinker;
-    ceiling->sector->specialdata = T_MoveCeiling;
+    ceiling->sector->specialdata = (void *)(intptr_t)T_MoveCeiling;
     P_AddActiveCeiling(ceiling);
 }
 
