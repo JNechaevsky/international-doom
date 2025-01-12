@@ -1055,7 +1055,7 @@ static byte *M_SaveLoad_Glow (int itemSetOn, int tics, int type)
     return NULL;
 }
 
-static const int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
+static int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
 {
     // [PN] Adjust the slider value based on direction and handle min/max limits
     val += (direction == -1) ?  0 :     // [JN] Routine "-1" just reintializes value.
@@ -1070,11 +1070,12 @@ static const int M_INT_Slider (int val, int min, int max, int direction, boolean
     return val;
 }
 
-static const float M_FLOAT_Slider (float val, float min, float max, float step,
-                                   int direction, boolean capped)
+static float M_FLOAT_Slider (float val, float min, float max, float step,
+                             int direction, boolean capped)
 {
     // [PN] Adjust value based on direction
-    val += (direction == 0) ? -step : step;
+    val += (direction == -1) ? 0 :            // [JN] Routine "-1" just reintializes value.
+           (direction ==  0) ? -step : step;  // Otherwise, move either left "0" or right "1".
 
     // [PN] Handle min/max limits
     if (val < min)
