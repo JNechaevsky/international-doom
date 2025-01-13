@@ -95,7 +95,8 @@ jobs:
 
       - name: Build the project
         run: |
-          cmake -B build_linux -S . -DCMAKE_BUILD_TYPE=Release
+          cmake -B build_linux -S . -DCMAKE_BUILD_TYPE=Release -D \
+            CMAKE_C_FLAGS_RELEASE="-O3 -march=x86-64-v2 -mtune=generic -flto -fno-math-errno -fomit-frame-pointer -funroll-loops -DNDEBUG"
           cmake --build build_linux --config Release
 
       - name: Add desktop file and icon
