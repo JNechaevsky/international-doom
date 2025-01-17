@@ -88,7 +88,7 @@ static int vid_window_title_short = 1;
 #ifndef CRISPY_TRUECOLOR
 static SDL_Surface *screenbuffer = NULL;
 #endif
-static SDL_Surface *argbbuffer = NULL;
+SDL_Surface *argbbuffer = NULL;
 static SDL_Texture *texture = NULL;
 static SDL_Texture *texture_upscaled = NULL;
 
@@ -2291,9 +2291,12 @@ void I_BindVideoVariables(void)
     M_BindIntVariable("mouse_grab",                    &mouse_grab);
 }
 
+// [PN] Original human-readable mapping function from Crispy Doom
+/*
 #ifdef CRISPY_TRUECOLOR
 const pixel_t I_MapRGB (const uint8_t r, const uint8_t g, const uint8_t b)
 {
 	return SDL_MapRGB(argbbuffer->format, r, g, b);
 }
 #endif
+*/
