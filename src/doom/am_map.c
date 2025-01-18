@@ -2337,7 +2337,7 @@ static void AM_drawThings (void)
             else
             {
                 // [JN] CRL - ReMooD-inspired monsters coloring.
-                if (t->target && t->state && t->state->action.acv != A_Look)
+                if (t->target && t->state && t->state->action.acv != (actionf_v)A_Look)
                 {
                     color = iddt_reds_active;
                 }
