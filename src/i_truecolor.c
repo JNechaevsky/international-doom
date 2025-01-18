@@ -29,22 +29,20 @@
 
 
 
-// [JN] Double pointer used for additive blending.
-// It does not store actual color data but serves as a shortcut
-// to avoid using MIN during rendering.
-uint8_t **additive_lut = NULL;
+// [PN] Initializes a 256x256 lookup table for additive blending. 
+// The LUT stores precomputed values for clamped sums of two 8-bit values,
+// avoiding recalculations during rendering.
+uint8_t additive_lut[256][256];
 
 void I_InitTCTransMaps (void)
 {
-    additive_lut = (uint8_t **)malloc(256 * sizeof(uint8_t *));
-
-    for (int i = 0; i < 256; ++i)
+    for (int i = 0; i < 256; i++)
     {
-        additive_lut[i] = (uint8_t *)malloc(256 * sizeof(uint8_t));
-
-        for (int j = 0; j < 256; ++j)
+        for (int j = 0; j < 256; j++)
         {
-            additive_lut[i][j] = MIN(i + j, 0xFFU);
+            int sum = i + j;
+            if (sum > 255) sum = 255;
+            additive_lut[i][j] = (uint8_t)sum;
         }
     }
 }
