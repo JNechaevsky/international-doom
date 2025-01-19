@@ -1356,48 +1356,48 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
     // without performing any additional boundary checks.
     if (!automap_thick)
     {
-        if (smooth)
-            PUTDOT_RAW(x, y, color);
-        else
-            PUTDOT(x, y, color);
+        // Choose between smooth and regular drawing.
+        if (smooth) PUTDOT_RAW(x, y, color);
+        else        PUTDOT(x, y, color);
         return;
     }
 
-    // Determine the line thickness.
-    const int thickness = automap_thick == 6
-                        ? vid_resolution / 2 // Auto thickness
-                        : automap_thick;     // User-defined thickness
+    // Determine the line thickness. Auto mode uses half of the resolution.
+    const int thickness = (automap_thick == 6) 
+        ? vid_resolution / 2   // Auto thickness
+        : automap_thick;       // User-defined thickness
 
-    for (int dx = -thickness; dx <= thickness; dx++)
+    // Precalculate drawing boundaries to reduce per-pixel checks.
+    int minx = x - thickness; if (minx < 0)    minx = 0;
+    int maxx = x + thickness; if (maxx >= f_w) maxx = f_w - 1;
+    int miny = y - thickness; if (miny < 0)    miny = 0;
+    int maxy = y + thickness; if (maxy >= f_h) maxy = f_h - 1;
+
+    // Calculate the squared thickness for distance checks.
+    const int thick_sq = thickness * thickness;
+
+    // Use a macro to handle smooth or regular drawing.
+    #define PUT_PIXEL(nx, ny, c) do {         \
+        if (smooth) PUTDOT_RAW(nx, ny, c);    \
+        else        PUTDOT(nx, ny, c);        \
+    } while (0)
+
+    // Iterate over the bounding box and draw pixels within the circle.
+    for (int nx = minx; nx <= maxx; nx++)
     {
-        const int nx = x + dx;
-
-        // Skip out-of-bound x-coordinates.
-        if (nx < 0 || nx >= f_w)
-            continue;
-
-        for (int dy = -thickness; dy <= thickness; dy++)
+        const int dx = nx - x;
+        for (int ny = miny; ny <= maxy; ny++)
         {
-            const int ny = y + dy;
+            const int dy = ny - y;
+            const int dist2 = dx * dx + dy * dy;
 
-            // Skip out-of-bound y-coordinates.
-            if (ny < 0 || ny >= f_h)
-                continue;
-
-            // Calculate the squared distance from the center.
-            const int distance2 = dx * dx + dy * dy;
-
-            // Skip pixels outside the desired radius.
-            if (distance2 > thickness * thickness)
-                continue;
-
-            // Draw the pixel with or without smoothing based on the setting.
-            if (smooth)
-                PUTDOT_RAW(nx, ny, color);
-            else
-                PUTDOT(nx, ny, color);
+            // Draw only if the pixel lies within the desired radius.
+            if (dist2 <= thick_sq)
+                PUT_PIXEL(nx, ny, color);
         }
     }
+    // Clean up the macro definition.
+    #undef PUT_PIXEL
 }
 
 // -----------------------------------------------------------------------------

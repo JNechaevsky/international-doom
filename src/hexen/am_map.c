@@ -1201,30 +1201,28 @@ static inline void PUTDOT_THICK(int x, int y, pixel_t color)
                         ? vid_resolution / 2  // Auto thickness
                         : automap_thick;      // User-defined thickness
 
-    for (int dx = -thickness; dx <= thickness; dx++)
+    // Precompute valid bounding box to reduce per-pixel checks.
+    int minx = x - thickness; if (minx < 0)    minx = 0;
+    int maxx = x + thickness; if (maxx >= f_w) maxx = f_w - 1;
+    int miny = y - thickness; if (miny < 0)    miny = 0;
+    int maxy = y + thickness; if (maxy >= f_h) maxy = f_h - 1;
+
+    // Precompute squared thickness for distance checks.
+    const int thick_sq = thickness * thickness;
+
+    // Fill pixels within the circle defined by 'thickness'.
+    for (int nx = minx; nx <= maxx; nx++)
     {
-        const int nx = x + dx;
-
-        // Skip out-of-bound x-coordinates.
-        if (nx < 0 || nx >= f_w)
-            continue;
-
-        for (int dy = -thickness; dy <= thickness; dy++)
+        const int dx = nx - x;
+        for (int ny = miny; ny <= maxy; ny++)
         {
-            const int ny = y + dy;
+            const int dy = ny - y;
+            const int dist2 = dx * dx + dy * dy;
 
-            // Skip out-of-bound y-coordinates.
-            if (ny < 0 || ny >= f_h)
-                continue;
-
-            // Calculate the squared distance from the center.
-            const int distance2 = dx * dx + dy * dy;
-
-            // Skip pixels outside the desired radius.
-            if (distance2 > thickness * thickness)
-                continue;
-
-            DOT(nx, ny, color);
+            if (dist2 <= thick_sq)
+            {
+                DOT(nx, ny, color);
+            }
         }
     }
 }
