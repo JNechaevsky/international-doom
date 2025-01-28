@@ -1152,7 +1152,7 @@ boolean G_Responder (event_t* ev)
     }
     } 
 	 
-    if (gamestate == GS_FINALE) 
+    if (gamestate == GS_FINALE || gamestate == GS_THEEND) 
     { 
 	if (F_Responder (ev)) 
 	    return true;	// finale ate the event 
