@@ -779,9 +779,6 @@ static void M_FillBackground (void)
 
 static byte *M_Small_Line_Glow (int tics)
 {
-    if (!menu_highlight)
-    return cr[CR_MENU_DARK2];
-
     return
         tics == 5 ? cr[CR_MENU_BRIGHT2] :
         tics == 4 ? cr[CR_MENU_BRIGHT1] :
@@ -792,9 +789,6 @@ static byte *M_Small_Line_Glow (int tics)
 
 static byte *M_Big_Line_Glow (int tics)
 {
-    if (!menu_highlight)
-    return NULL;
-
     return
         tics == 5 ? cr[CR_MENU_BRIGHT3] :
         tics >= 3 ? cr[CR_MENU_BRIGHT2] :
@@ -3635,15 +3629,15 @@ static void M_DrawGameplayFooter (char *pagenum)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Misc[] = {
-    { ITT_LRFUNC, "PALETTE FLASH EFFECTS",      M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
-    { ITT_LRFUNC, "MOVEMENT BOBBING",           M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
-    { ITT_LRFUNC, "WEAPON BOBBING",             M_ID_Misc_A11yWeaponBob,  0, MENU_NONE },
-    { ITT_LRFUNC, "COLORBLIND FILTER",          M_ID_Misc_A11yColorblind, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                         NULL,                     0, MENU_NONE },
-    { ITT_LRFUNC, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD,    0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                         NULL,                     0, MENU_NONE },
-    { ITT_LRFUNC, "ANIMATION AND HIGHLIGHTING", M_ID_Misc_Hightlight,     0, MENU_NONE },
-    { ITT_LRFUNC, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,     0, MENU_NONE },
+    { ITT_LRFUNC, "PALETTE FLASH EFFECTS", M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
+    { ITT_LRFUNC, "MOVEMENT BOBBING",      M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
+    { ITT_LRFUNC, "WEAPON BOBBING",        M_ID_Misc_A11yWeaponBob,  0, MENU_NONE },
+    { ITT_LRFUNC, "COLORBLIND FILTER",     M_ID_Misc_A11yColorblind, 0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                    NULL,                     0, MENU_NONE },
+    { ITT_LRFUNC, "AUTOLOAD WAD FILES",    M_ID_Misc_AutoloadWAD,    0, MENU_NONE },
+    { ITT_EMPTY,  NULL,                    NULL,                     0, MENU_NONE },
+    { ITT_LRFUNC, "HIGHLIGHTING EFFECT",   M_ID_Misc_Hightlight,     0, MENU_NONE },
+    { ITT_LRFUNC, "ESC KEY BEHAVIOUR",     M_ID_Misc_MenuEscKey,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Misc = {
@@ -3706,10 +3700,12 @@ static void M_Draw_ID_Misc (void)
 
     MN_DrTextACentered("MENU SETTINGS", 80, cr[CR_YELLOW]);
 
-    // Animation and highlighting
-    sprintf(str, menu_highlight ? "ON" : "OFF");
+    // Highlighting effect
+    sprintf(str, menu_highlight == 1 ? "ANIMATED" :
+                 menu_highlight == 2 ? "STATIC" : "OFF");
     MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+               M_Item_Glow(7, menu_highlight == 1 ? GLOW_GREEN :
+                              menu_highlight == 2 ? GLOW_YELLOW : GLOW_DARKRED));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
@@ -3796,7 +3792,7 @@ static void M_ID_Misc_AutoloadWAD (int choice)
 
 static void M_ID_Misc_Hightlight (int choice)
 {
-    menu_highlight ^= 1;
+    menu_highlight = M_INT_Slider(menu_highlight, 0, 2, choice, false);
 }
 
 static void M_ID_Misc_MenuEscKey (int choice)
@@ -4295,8 +4291,21 @@ void MN_Ticker(void)
     // Keep menu item bright or decrease tics for fading effect.
     for (int i = 0 ; i < CurrentMenu->itemCount ; i++)
     {
-        CurrentMenu->items[i].tics =
-            (CurrentItPos == i) ? 5 : CurrentMenu->items[i].tics - 1;
+        if (menu_highlight == 1)
+        {
+            CurrentMenu->items[i].tics =
+                (CurrentItPos == i) ? 5 : CurrentMenu->items[i].tics - 1;
+        }
+        else
+        if (menu_highlight == 2)
+        {
+            CurrentMenu->items[i].tics =
+                (CurrentItPos == i) ? 5 : 0;
+        }
+        else
+        {
+            CurrentMenu->items[i].tics = 0;
+        }
     }
 }
 

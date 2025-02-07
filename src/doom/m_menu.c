@@ -957,9 +957,6 @@ static void M_FillBackground (void)
 
 static byte *M_Small_Line_Glow (int tics)
 {
-    if (!menu_highlight)
-    return NULL;
-
     return
         tics == 5 ? cr[CR_MENU_BRIGHT5] :
         tics == 4 ? cr[CR_MENU_BRIGHT4] :
@@ -970,9 +967,6 @@ static byte *M_Small_Line_Glow (int tics)
 
 static byte *M_Big_Line_Glow (int tics)
 {
-    if (!menu_highlight)
-    return NULL;
-
     return
         tics == 5 ? cr[CR_MENU_BRIGHT3] :
         tics >= 3 ? cr[CR_MENU_BRIGHT2] :
@@ -4000,7 +3994,7 @@ static menuitem_t ID_Menu_Misc[]=
     { M_LFRT, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD,    'a' },
     { M_LFRT, "AUTOLOAD DEH FILES",         M_ID_Misc_AutoloadDEH,    'a' },
     { M_SKIP, "", 0, '\0' },
-    { M_LFRT, "ANIMATION AND HIGHLIGHTING", M_ID_Misc_Hightlight,     'a' },
+    { M_LFRT, "HIGHLIGHTING EFFECT",        M_ID_Misc_Hightlight,     'h' },
     { M_LFRT, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,     'e' },
 };
 
@@ -4083,10 +4077,12 @@ static void M_Draw_ID_Misc (void)
 
     M_WriteTextCentered(90, "MENU SETTINGS", cr[CR_YELLOW]);
 
-    // Animation and highlighting
-    sprintf(str, menu_highlight ? "ON" : "OFF");
+    // Highlighting effect
+    sprintf(str, menu_highlight == 1 ? "ANIMATED" :
+                 menu_highlight == 2 ? "STATIC" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, menu_highlight ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(9, menu_highlight == 1 ? GLOW_GREEN :
+                                menu_highlight == 2 ? GLOW_YELLOW : GLOW_DARKRED));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
@@ -4186,7 +4182,7 @@ static void M_ID_Misc_AutoloadDEH (int choice)
 
 static void M_ID_Misc_Hightlight (int choice)
 {
-    menu_highlight ^= 1;
+    menu_highlight = M_INT_Slider(menu_highlight, 0, 2, choice, false);
 }
 
 static void M_ID_Misc_MenuEscKey (int choice)
@@ -6922,8 +6918,21 @@ void M_Ticker (void)
     // Keep menu item bright or decrease tics for fading effect.
     for (int i = 0 ; i < currentMenu->numitems ; i++)
     {
-        currentMenu->menuitems[i].tics =
-            (itemOn == i) ? 5 : currentMenu->menuitems[i].tics - 1;
+        if (menu_highlight == 1)
+        {
+            currentMenu->menuitems[i].tics =
+                (itemOn == i) ? 5 : currentMenu->menuitems[i].tics - 1;
+        }
+        else
+        if (menu_highlight == 2)
+        {
+            currentMenu->menuitems[i].tics =
+                (itemOn == i) ? 5 : 0;
+        }
+        else
+        {
+            currentMenu->menuitems[i].tics = 0;
+        }
     }
 }
 
