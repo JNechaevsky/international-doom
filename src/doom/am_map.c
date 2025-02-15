@@ -2504,9 +2504,12 @@ static void AM_drawCrosshair (void)
 void AM_LevelNameDrawer (void)
 {
     static char str[128];
+    const int left_align = (widget_alignment ==  0) ? -WIDESCREENDELTA :      // left
+                           (widget_alignment ==  1) ? 0                :      // status bar
+                           (dp_screen_size    > 12  ? -WIDESCREENDELTA : 0);  // auto
 
     sprintf(str, "%s", level_name);
-    M_WriteText(0 - WIDESCREENDELTA, 160, str,
+    M_WriteText(left_align, 160, str,
                 // [JN] Woof and DSDA widget color scheme using yellow map name.
                 widget_scheme > 2 ? cr[CR_YELLOW] : NULL);
 }

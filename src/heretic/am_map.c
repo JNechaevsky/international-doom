@@ -2304,7 +2304,9 @@ void AM_LevelNameDrawer (void)
         // [JN] Move widgets slightly down when using a fullscreen status bar.
         if (dp_screen_size > 10 && (!automapactive || automap_overlay))
         {
-            x = -WIDESCREENDELTA;
+            x = (widget_alignment ==  0) ? -WIDESCREENDELTA :     // left
+                (widget_alignment ==  1) ? 20 :                   // status bar
+                (dp_screen_size   >= 12) ? -WIDESCREENDELTA : 0;  // auto
             y = 159;
         }
         else

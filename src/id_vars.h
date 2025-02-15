@@ -70,6 +70,7 @@ extern int crl_freeze;
 extern int widget_enable;
 extern int widget_scheme;
 extern int widget_location;
+extern int widget_alignment;
 extern int widget_coords;
 extern int widget_render;
 extern int widget_kis;

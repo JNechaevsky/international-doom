@@ -156,6 +156,19 @@ static byte *ID_WidgetColor (const int i)
 
 void ID_LeftWidgets (void)
 {
+    int left_align;
+
+    if (dp_screen_size > 10 && (!automapactive || automap_overlay))
+    {
+        left_align = (widget_alignment ==  0) ? -WIDESCREENDELTA :     // left
+                     (widget_alignment ==  1) ? 20 :                   // status bar
+                     (dp_screen_size   >= 12) ? -WIDESCREENDELTA : 0;  // auto
+    }
+    else
+    {
+        left_align = (widget_alignment ==  0) ? -WIDESCREENDELTA : 20;
+    }
+
     //
     // Located on the top
     //
@@ -169,9 +182,9 @@ void ID_LeftWidgets (void)
         {
                 char str1[16];  // kills
 
-                MN_DrTextA("K:", 0 - WIDESCREENDELTA, 10, ID_WidgetColor(widget_kis_str));
+                MN_DrTextA("K:", left_align, 10, ID_WidgetColor(widget_kis_str));
                 sprintf(str1, "%d", IDWidget.kills);
-                MN_DrTextA(str1, 0 - WIDESCREENDELTA + 16, 10, ID_WidgetColor(widget_kills));
+                MN_DrTextA(str1, left_align + 16, 10, ID_WidgetColor(widget_kills));
         }
 
         if (!widget_kis)
@@ -182,8 +195,8 @@ void ID_LeftWidgets (void)
         // Total time. Time gathered in G_Ticker.
         if (widget_totaltime)
         {
-            MN_DrTextA("TIME", 0 - WIDESCREENDELTA, 20 + yy, ID_WidgetColor(widget_time_str));
-            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA, 30 + yy, ID_WidgetColor(widget_time_val));
+            MN_DrTextA("TIME", left_align, 20 + yy, ID_WidgetColor(widget_time_str));
+            MN_DrTextA(ID_Total_Time, left_align, 30 + yy, ID_WidgetColor(widget_time_val));
         }
 
         // Player coords
@@ -192,16 +205,16 @@ void ID_LeftWidgets (void)
         {
             char str[128];
             
-            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 50, ID_WidgetColor(widget_coords_str));
-            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 60, ID_WidgetColor(widget_coords_str));
-            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 70, ID_WidgetColor(widget_coords_str));
+            MN_DrTextA("X:", left_align, 50, ID_WidgetColor(widget_coords_str));
+            MN_DrTextA("Y:", left_align, 60, ID_WidgetColor(widget_coords_str));
+            MN_DrTextA("ANG:", left_align, 70, ID_WidgetColor(widget_coords_str));
 
             sprintf(str, "%d", IDWidget.x);
-            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 50, ID_WidgetColor(widget_coords_val));
+            MN_DrTextA(str, left_align + 16, 50, ID_WidgetColor(widget_coords_val));
             sprintf(str, "%d", IDWidget.y);
-            MN_DrTextA(str, 0 - WIDESCREENDELTA + 16, 60, ID_WidgetColor(widget_coords_val));
+            MN_DrTextA(str, left_align + 16, 60, ID_WidgetColor(widget_coords_val));
             sprintf(str, "%d", IDWidget.ang);
-            MN_DrTextA(str, 0 - WIDESCREENDELTA + 32, 70, ID_WidgetColor(widget_coords_val));
+            MN_DrTextA(str, left_align + 32, 70, ID_WidgetColor(widget_coords_val));
         }
 
         // Render counters
@@ -213,24 +226,24 @@ void ID_LeftWidgets (void)
             char vis[32];
 
             // Sprites
-            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 90, ID_WidgetColor(widget_render_str));
+            MN_DrTextA("SPR:", left_align, 90, ID_WidgetColor(widget_render_str));
             M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 90, ID_WidgetColor(widget_render_val));
+            MN_DrTextA(spr, 32 + left_align, 90, ID_WidgetColor(widget_render_val));
 
             // Segments
-            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 100, ID_WidgetColor(widget_render_str));
+            MN_DrTextA("SEG:", left_align, 100, ID_WidgetColor(widget_render_str));
             M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 100, ID_WidgetColor(widget_render_val));
+            MN_DrTextA(seg, 32 + left_align, 100, ID_WidgetColor(widget_render_val));
 
             // Openings
-            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 110, ID_WidgetColor(widget_render_str));
+            MN_DrTextA("OPN:", left_align, 110, ID_WidgetColor(widget_render_str));
             M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 110, ID_WidgetColor(widget_render_val));
+            MN_DrTextA(opn, 32 + left_align, 110, ID_WidgetColor(widget_render_val));
 
             // Planes
-            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 120, ID_WidgetColor(widget_render_str));
+            MN_DrTextA("PLN:", left_align, 120, ID_WidgetColor(widget_render_str));
             M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 120, ID_WidgetColor(widget_render_val));
+            MN_DrTextA(vis, 32 + left_align, 120, ID_WidgetColor(widget_render_val));
         }
     }
     //
@@ -261,24 +274,24 @@ void ID_LeftWidgets (void)
             const int yy1 = widget_coords ? 0 : 45;
 
             // Sprites
-            MN_DrTextA("SPR:", 0 - WIDESCREENDELTA, 34 + yy1, ID_WidgetColor(widget_render_str));
+            MN_DrTextA("SPR:", left_align, 34 + yy1, ID_WidgetColor(widget_render_str));
             M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            MN_DrTextA(spr, 32 - WIDESCREENDELTA, 34 + yy1, ID_WidgetColor(widget_render_val));
+            MN_DrTextA(spr, 32 + left_align, 34 + yy1, ID_WidgetColor(widget_render_val));
 
             // Segments
-            MN_DrTextA("SEG:", 0 - WIDESCREENDELTA, 44 + yy1, ID_WidgetColor(widget_render_str));
+            MN_DrTextA("SEG:", left_align, 44 + yy1, ID_WidgetColor(widget_render_str));
             M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            MN_DrTextA(seg, 32 - WIDESCREENDELTA, 44 + yy1, ID_WidgetColor(widget_render_val));
+            MN_DrTextA(seg, 32 + left_align, 44 + yy1, ID_WidgetColor(widget_render_val));
 
             // Openings
-            MN_DrTextA("OPN:", 0 - WIDESCREENDELTA, 54 + yy1, ID_WidgetColor(widget_render_str));
+            MN_DrTextA("OPN:", left_align, 54 + yy1, ID_WidgetColor(widget_render_str));
             M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            MN_DrTextA(opn, 32 - WIDESCREENDELTA, 54 + yy1, ID_WidgetColor(widget_render_val));
+            MN_DrTextA(opn, 32 + left_align, 54 + yy1, ID_WidgetColor(widget_render_val));
 
             // Planes
-            MN_DrTextA("PLN:", 0 - WIDESCREENDELTA, 64 + yy1, ID_WidgetColor(widget_render_str));
+            MN_DrTextA("PLN:", left_align, 64 + yy1, ID_WidgetColor(widget_render_str));
             M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            MN_DrTextA(vis, 32 - WIDESCREENDELTA, 64 + yy1, ID_WidgetColor(widget_render_val));
+            MN_DrTextA(vis, 32 + left_align, 64 + yy1, ID_WidgetColor(widget_render_val));
         }
 
         // Player coords
@@ -287,16 +300,16 @@ void ID_LeftWidgets (void)
         {
             char str[128];
 
-            MN_DrTextA("X:", 0 - WIDESCREENDELTA, 84, ID_WidgetColor(widget_coords_str));
-            MN_DrTextA("Y:", 0 - WIDESCREENDELTA, 94, ID_WidgetColor(widget_coords_str));
-            MN_DrTextA("ANG:", 0 - WIDESCREENDELTA, 104, ID_WidgetColor(widget_coords_str));
+            MN_DrTextA("X:", left_align, 84, ID_WidgetColor(widget_coords_str));
+            MN_DrTextA("Y:", left_align, 94, ID_WidgetColor(widget_coords_str));
+            MN_DrTextA("ANG:", left_align, 104, ID_WidgetColor(widget_coords_str));
 
             sprintf(str, "%d", IDWidget.x);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 84, ID_WidgetColor(widget_coords_val));
+            MN_DrTextA(str, 16 + left_align, 84, ID_WidgetColor(widget_coords_val));
             sprintf(str, "%d", IDWidget.y);
-            MN_DrTextA(str, 16 - WIDESCREENDELTA, 94, ID_WidgetColor(widget_coords_val));
+            MN_DrTextA(str, 16 + left_align, 94, ID_WidgetColor(widget_coords_val));
             sprintf(str, "%d", IDWidget.ang);
-            MN_DrTextA(str, 32 - WIDESCREENDELTA, 104, ID_WidgetColor(widget_coords_val));
+            MN_DrTextA(str, 32 + left_align, 104, ID_WidgetColor(widget_coords_val));
         }
 
         if (automapactive)
@@ -315,8 +328,8 @@ void ID_LeftWidgets (void)
             char stra[8];
 
             sprintf(stra, "TIME ");
-            MN_DrTextA(stra, 0 - WIDESCREENDELTA, 134 + yy, ID_WidgetColor(widget_time_str));
-            MN_DrTextA(ID_Total_Time, 0 - WIDESCREENDELTA + MN_TextAWidth(stra), 134 + yy, ID_WidgetColor(widget_time_val));
+            MN_DrTextA(stra, left_align, 134 + yy, ID_WidgetColor(widget_time_str));
+            MN_DrTextA(ID_Total_Time, left_align + MN_TextAWidth(stra), 134 + yy, ID_WidgetColor(widget_time_val));
         }
 
         // Total kills
@@ -326,9 +339,9 @@ void ID_LeftWidgets (void)
             char str1[8], str2[16];  // kills
     
             sprintf(str1, "K ");
-            MN_DrTextA(str1, 0 - WIDESCREENDELTA, 144 + yy, ID_WidgetColor(widget_kis_str));
+            MN_DrTextA(str1, left_align, 144 + yy, ID_WidgetColor(widget_kis_str));
             sprintf(str2, "%d", IDWidget.kills);
-            MN_DrTextA(str2, 0 - WIDESCREENDELTA + MN_TextAWidth(str1), 144 + yy, ID_WidgetColor(widget_kills));
+            MN_DrTextA(str2, left_align + MN_TextAWidth(str1), 144 + yy, ID_WidgetColor(widget_kills));
         }
 
         if (widget_kis)
