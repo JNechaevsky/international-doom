@@ -5420,8 +5420,6 @@ boolean MN_Responder(event_t * event)
         // [JN] Allow menu control by mouse.
         if (event->type == ev_mouse && mousewait < I_GetTime())
         {
-            const int item_type = CurrentMenu->items[CurrentItPos].type;
-
             // [crispy] mouse_novert disables controlling the menus with the mouse
             // [JN] Not needed, as menu is fully controllable by mouse wheel and buttons.
             /*
@@ -5458,7 +5456,7 @@ boolean MN_Responder(event_t * event)
 
             if (event->data1 & 1)
             {
-                if (MenuActive && item_type == ITT_SLDR)
+                if (MenuActive && CurrentMenu->items[CurrentItPos].type == ITT_SLDR)
                 {
                     // [JN] Allow repetitive on sliders to move it while mouse movement.
                     menu_mouse_allow_click = true;      
@@ -5520,10 +5518,12 @@ boolean MN_Responder(event_t * event)
             // [JN] Scrolls through menu item values or navigates between pages.
             if (event->data1 & (1 << 4) && MenuActive)  // Wheel down
             {
-                if (item_type == ITT_LRFUNC1 || item_type == ITT_LRFUNC2 || item_type == ITT_SLDR)
+                if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+                ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2
+                ||  CurrentMenu->items[CurrentItPos].type == ITT_SLDR)
                 {
                     // Scroll menu item backward normally, or forward for ITT_LRFUNC2
-                    CurrentMenu->items[CurrentItPos].func(item_type != ITT_LRFUNC2 ? LEFT_DIR : RIGHT_DIR);
+                    CurrentMenu->items[CurrentItPos].func(CurrentMenu->items[CurrentItPos].type != ITT_LRFUNC2 ? LEFT_DIR : RIGHT_DIR);
                     S_StartSound(NULL, SFX_PICKUP_KEY);
                 }
                 else
@@ -5536,10 +5536,12 @@ boolean MN_Responder(event_t * event)
             else
             if (event->data1 & (1 << 3) && MenuActive)  // Wheel up
             {
-                if (item_type == ITT_LRFUNC1 || item_type == ITT_LRFUNC2 || item_type == ITT_SLDR)
+                if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+                ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2
+                ||  CurrentMenu->items[CurrentItPos].type == ITT_SLDR)
                 {
                     // Scroll menu item forward normally, or backward for ITT_LRFUNC2
-                    CurrentMenu->items[CurrentItPos].func(item_type != ITT_LRFUNC2 ? RIGHT_DIR : LEFT_DIR);
+                    CurrentMenu->items[CurrentItPos].func(CurrentMenu->items[CurrentItPos].type != ITT_LRFUNC2 ? RIGHT_DIR : LEFT_DIR);
                     S_StartSound(NULL, SFX_PICKUP_KEY);
                 }
                 else
