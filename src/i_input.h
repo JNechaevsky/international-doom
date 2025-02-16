@@ -29,6 +29,7 @@
 #define MAX_MOUSE_BUTTONS 8
 
 extern int mouse_sensitivity;
+extern int mouse_sensitivity_y; // [crispy]
 extern float mouse_acceleration;
 extern int mouse_threshold;
 extern float mouse_acceleration_y; // [crispy]

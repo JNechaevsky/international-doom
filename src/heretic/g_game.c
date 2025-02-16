@@ -365,10 +365,10 @@ static double CalcMouseAngle(int mousex)
 
 static double CalcMouseVert(int mousey)
 {
-    if (!mouseSensitivity)
+    if (!mouse_sensitivity_y)
         return 0.0;
 
-    return (I_AccelerateMouseY(mousey) * (mouseSensitivity + 5) * 2 / 10);
+    return (I_AccelerateMouseY(mousey) * (mouse_sensitivity_y + 5) * 2 / 10);
 }
 
 /*

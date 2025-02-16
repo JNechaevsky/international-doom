@@ -592,6 +592,7 @@ static void M_ID_RemasterOST (int choice);
 static void M_Choose_ID_Controls (int choice);
 static void M_Draw_ID_Controls (void);
 static void M_ID_Controls_Sensivity (int choice);
+static void M_ID_Controls_Sensivity_y (int choice);
 static void M_ID_Controls_Acceleration (int choice);
 static void M_ID_Controls_Threshold (int choice);
 static void M_ID_Controls_MLook (int choice);
@@ -2176,15 +2177,14 @@ static menuitem_t ID_Menu_Controls[]=
     { M_SWTC, "KEYBOARD BINDINGS",            M_Choose_ID_Keybinds,       'k' },
     { M_SWTC, "MOUSE BINDINGS",               M_Choose_ID_MouseBinds,     'm' },
     { M_SKIP, "", 0, '\0' },
-    { M_SLDR, "SENSIVITY",                    M_ID_Controls_Sensivity,    's' },
+    { M_SLDR, "HORIZONTAL SENSITIVITY",       M_ID_Controls_Sensivity,    'h' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
-    { M_SLDR, "ACCELERATION",                 M_ID_Controls_Acceleration, 'a' },
+    { M_SLDR, "VERTICAL SENSITIVITY",         M_ID_Controls_Sensivity_y,  'v' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
-    { M_SLDR, "ACCELERATION THRESHOLD",       M_ID_Controls_Threshold,    'a' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
+    { M_MUL1, "ACCELERATION",                 M_ID_Controls_Acceleration, 'a' },
+    { M_MUL1, "ACCELERATION THRESHOLD",       M_ID_Controls_Threshold,    'a' },
     { M_MUL2, "MOUSE LOOK",                   M_ID_Controls_MLook,        'm' },
     { M_MUL2, "VERTICAL MOUSE MOVEMENT",      M_ID_Controls_NoVert,       'v' },
     { M_MUL2, "INVERT VERTICAL AXIS",         M_ID_Controls_InvertY,      'v' },
@@ -2193,7 +2193,7 @@ static menuitem_t ID_Menu_Controls[]=
 
 static menu_t ID_Def_Controls =
 {
-    16,
+    15,
     &ID_Def_Main,
     ID_Menu_Controls,
     M_Draw_ID_Controls,
@@ -2221,35 +2221,45 @@ static void M_Draw_ID_Controls (void)
     M_WriteText (184, 57, str, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
                                               mouseSensitivity > 14 ? GLOW_GREEN : GLOW_UNCOLORED));
 
-    M_DrawThermo(46, 81, 8, (mouse_acceleration * 1.8f) - 2, 6);
-    M_ID_HandleSliderMouseControl(52, 81, 100, &mouse_acceleration, true, 0, 9);
-    sprintf(str,"%.1f", mouse_acceleration);
-    M_WriteText (128, 84, str, M_Item_Glow(6, GLOW_UNCOLORED));
+    M_DrawThermo(46, 81, 15, mouse_sensitivity_y, 6);
+    M_ID_HandleSliderMouseControl(52, 81, 124, &mouse_sensitivity_y, false, 0, 14);
+    sprintf(str,"%d", mouse_sensitivity_y);
+    M_WriteText (184, 84, str, M_Item_Glow(6, mouse_sensitivity_y == 255 ? GLOW_YELLOW :
+                                              mouse_sensitivity_y > 14 ? GLOW_GREEN : GLOW_UNCOLORED));
 
-    M_DrawThermo(46, 108, 15, mouse_threshold / 2.2f, 9);
-    M_ID_HandleSliderMouseControl(52, 108, 124, &mouse_threshold, false, 0, 32);
+    // Acceleration
+    sprintf(str,"%.1f", mouse_acceleration);
+    M_WriteText (M_ItemRightAlign(str), 99, str,
+                 M_Item_Glow(9, mouse_acceleration == 2.0f ? GLOW_UNCOLORED :
+                                mouse_acceleration == 1.0f ? GLOW_DARKRED :
+                                mouse_acceleration  < 2.0f ? GLOW_YELLOW : GLOW_GREEN));
+
+    // Acceleration threshold
     sprintf(str,"%d", mouse_threshold);
-    M_WriteText (184, 111, str, M_Item_Glow(9, GLOW_UNCOLORED));
+    M_WriteText (M_ItemRightAlign(str), 108, str,
+                 M_Item_Glow(10, mouse_threshold == 10 ? GLOW_UNCOLORED :
+                                 mouse_threshold ==  0 ? GLOW_DARKRED :
+                                 mouse_threshold  < 10 ? GLOW_YELLOW : GLOW_GREEN));
 
     // Mouse look
     sprintf(str, mouse_look ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, mouse_look ? GLOW_GREEN : GLOW_RED));
+    M_WriteText (M_ItemRightAlign(str), 117, str,
+                 M_Item_Glow(11, mouse_look ? GLOW_GREEN : GLOW_RED));
 
     // Vertical mouse movement
     sprintf(str, mouse_novert ? "OFF" : "ON");
-    M_WriteText (M_ItemRightAlign(str), 135, str,
-                 M_Item_Glow(13, mouse_novert ? GLOW_RED : GLOW_GREEN));
+    M_WriteText (M_ItemRightAlign(str), 126, str,
+                 M_Item_Glow(12, mouse_novert ? GLOW_RED : GLOW_GREEN));
 
     // Invert vertical axis
     sprintf(str, mouse_y_invert ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 144, str,
-                 M_Item_Glow(14, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
+    M_WriteText (M_ItemRightAlign(str), 135, str,
+                 M_Item_Glow(13, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
 
     // Double click acts as "use"
     sprintf(str, mouse_dclick_use ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 153, str,
-                 M_Item_Glow(15, mouse_dclick_use ? GLOW_GREEN : GLOW_RED));
+    M_WriteText (M_ItemRightAlign(str), 144, str,
+                 M_Item_Glow(14, mouse_dclick_use ? GLOW_GREEN : GLOW_RED));
 
 }
 
@@ -2257,6 +2267,12 @@ static void M_ID_Controls_Sensivity (int choice)
 {
     // [crispy] extended range
     mouseSensitivity = M_INT_Slider(mouseSensitivity, 0, 255, choice, true);
+}
+
+static void M_ID_Controls_Sensivity_y (int choice)
+{
+    // [crispy] extended range
+    mouse_sensitivity_y = M_INT_Slider(mouse_sensitivity_y, 0, 255, choice, true);
 }
 
 static void M_ID_Controls_Acceleration (int choice)

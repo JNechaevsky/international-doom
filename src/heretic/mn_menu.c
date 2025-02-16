@@ -149,6 +149,7 @@ static void SCQuitGame(int option);
 static void SCEpisode(int option);
 static void SCSkill(int option);
 static void SCMouseSensi(int option);
+static void SCMouseSensi_y(int option);
 static void SCSfxVolume(int option);
 static void SCMusicVolume(int option);
 static void SCChangeDetail(int option);
@@ -1892,15 +1893,14 @@ static MenuItem_t ID_Menu_Controls[] = {
     { ITT_EFUNC,   "KEYBOARD BINDINGS",       M_Choose_ID_Keybinds,       0, MENU_NONE          },
     { ITT_SETMENU, "MOUSE BINDINGS",          NULL,                       0, MENU_ID_MOUSEBINDS },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_SLDR,    "SENSIVITY",               SCMouseSensi,               0, MENU_NONE          },
+    { ITT_SLDR,    "HORIZONTAL SENSITIVITY",  SCMouseSensi,               0, MENU_NONE          },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_SLDR,    "ACCELERATION",            M_ID_Controls_Acceleration, 0, MENU_NONE          },
+    { ITT_SLDR,    "VERTICAL SENSITIVITY",    SCMouseSensi_y,             0, MENU_NONE          },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_SLDR,    "ACCELERATION THRESHOLD",  M_ID_Controls_Threshold,    0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
+    { ITT_LRFUNC1, "ACCELERATION",            M_ID_Controls_Acceleration, 0, MENU_NONE          },
+    { ITT_LRFUNC1, "ACCELERATION THRESHOLD",  M_ID_Controls_Threshold,    0, MENU_NONE          },
     { ITT_LRFUNC2,  "MOUSE LOOK",              M_ID_Controls_MLook,        0, MENU_NONE          },
     { ITT_LRFUNC2,  "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,       0, MENU_NONE          },
     { ITT_LRFUNC2,  "INVERT VERTICAL AXIS",    M_ID_Controls_InvertY,      0, MENU_NONE          },
@@ -1911,7 +1911,7 @@ static MenuItem_t ID_Menu_Controls[] = {
 static Menu_t ID_Def_Controls = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Controls,
-    17, ID_Menu_Controls,
+    16, ID_Menu_Controls,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -1933,37 +1933,47 @@ static void M_Draw_ID_Controls (void)
     MN_DrTextA(str, 227, 65, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
                                          mouseSensitivity > 15 ? GLOW_GREEN : GLOW_LIGHTGRAY));
 
-    DrawSlider(&ID_Def_Controls, 7, 7, (mouse_acceleration * 1.8f) - 2, false, 6);
-    M_ID_HandleSliderMouseControl(66, 90, 60, &mouse_acceleration, true, 0, 6);
-    sprintf(str,"%.1f", mouse_acceleration);
-    MN_DrTextA(str, 155, 95, M_Item_Glow(6, GLOW_LIGHTGRAY));
+    DrawSlider(&ID_Def_Controls, 7, 16, mouse_sensitivity_y, false, 6);
+    M_ID_HandleSliderMouseControl(66, 90, 132, &mouse_sensitivity_y, false, 0, 15);
+    sprintf(str,"%d", mouse_sensitivity_y);
+    MN_DrTextA(str, 227, 95, M_Item_Glow(6, mouse_sensitivity_y == 255 ? GLOW_YELLOW :
+                                         mouse_sensitivity_y > 15 ? GLOW_GREEN : GLOW_LIGHTGRAY));
 
-    DrawSlider(&ID_Def_Controls, 10, 15, mouse_threshold / 2.2f, false, 9);
-    M_ID_HandleSliderMouseControl(66, 120, 124, &mouse_threshold, false, 0, 32);
+    // Acceleration
+    sprintf(str,"%.1f", mouse_acceleration);
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, mouse_acceleration == 2.0f ? GLOW_LIGHTGRAY :
+                              mouse_acceleration == 1.0f ? GLOW_DARKRED :
+                              mouse_acceleration  < 2.0f ? GLOW_YELLOW : GLOW_GREEN));
+
+    // Acceleration threshold
     sprintf(str,"%d", mouse_threshold);
-    MN_DrTextA(str, 219, 125, M_Item_Glow(9, GLOW_LIGHTGRAY));
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, mouse_threshold == 10 ? GLOW_LIGHTGRAY :
+                               mouse_threshold ==  0 ? GLOW_DARKRED :
+                               mouse_threshold  < 10 ? GLOW_YELLOW : GLOW_GREEN));
 
     // Mouse look
     sprintf(str, mouse_look ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 140,
-               M_Item_Glow(12, mouse_look ? GLOW_GREEN : GLOW_RED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, mouse_look ? GLOW_GREEN : GLOW_RED));
 
     // Vertical mouse movement
     sprintf(str, mouse_novert ? "OFF" : "ON");
-    MN_DrTextA(str, M_ItemRightAlign(str), 150,
-               M_Item_Glow(13, mouse_novert ? GLOW_RED : GLOW_GREEN));
+    MN_DrTextA(str, M_ItemRightAlign(str), 140,
+               M_Item_Glow(12, mouse_novert ? GLOW_RED : GLOW_GREEN));
 
     // Invert vertical axis
     sprintf(str, mouse_y_invert ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 160,
-               M_Item_Glow(14, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 150,
+               M_Item_Glow(13, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
 
-    MN_DrTextACentered("MISCELLANEOUS", 170, cr[CR_YELLOW]);
+    MN_DrTextACentered("MISCELLANEOUS", 160, cr[CR_YELLOW]);
 
     // Permanent "noartiskip" mode
     sprintf(str, ctrl_noartiskip ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 180,
-               M_Item_Glow(16, ctrl_noartiskip ? GLOW_GREEN : GLOW_RED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 170,
+               M_Item_Glow(15, ctrl_noartiskip ? GLOW_GREEN : GLOW_RED));
 }
 
 static void M_ID_Controls_Acceleration (int option)
@@ -5699,6 +5709,12 @@ static void SCMouseSensi(int option)
 {
     // [crispy] extended range
     mouseSensitivity = M_INT_Slider(mouseSensitivity, 0, 255, option, true);
+}
+
+static void SCMouseSensi_y(int option)
+{
+    // [crispy] extended range
+    mouse_sensitivity_y = M_INT_Slider(mouse_sensitivity_y, 0, 255, option, true);
 }
 
 //---------------------------------------------------------------------------

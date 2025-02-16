@@ -435,6 +435,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_FLOAT(mouse_acceleration),
     CONFIG_VARIABLE_INT(mouse_threshold),
     CONFIG_VARIABLE_INT(mouse_sensitivity),
+    CONFIG_VARIABLE_INT(mouse_sensitivity_y),
     CONFIG_VARIABLE_INT(mouse_look),
     CONFIG_VARIABLE_INT(mouseb_fire),
     CONFIG_VARIABLE_INT(mouseb_forward),
