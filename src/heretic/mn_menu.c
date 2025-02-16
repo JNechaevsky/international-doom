@@ -59,7 +59,8 @@ typedef enum
 {
     ITT_EMPTY,
     ITT_EFUNC,
-    ITT_LRFUNC,
+    ITT_LRFUNC1,    // Multichoice function: increase by wheel up, decrease by wheel down
+    ITT_LRFUNC2,    // Multichoice function: decrease by wheel up, increase by wheel down
     ITT_SETMENU,
     ITT_SLDR,       // Slider line.
     ITT_INERT
@@ -355,7 +356,7 @@ static Menu_t SkillMenu = {
 
 static MenuItem_t OptionsItems[] = {
     {ITT_EFUNC, "END GAME", SCEndGame, 0, MENU_NONE},
-    {ITT_LRFUNC, "MOUSE SENSITIVITY", SCMouseSensi, 0, MENU_NONE},
+    {ITT_LRFUNC1, "MOUSE SENSITIVITY", SCMouseSensi, 0, MENU_NONE},
     {ITT_EMPTY, NULL, NULL, 0, MENU_NONE},
     {ITT_SETMENU, "MORE...", NULL, 0, MENU_OPTIONS2}
 };
@@ -1142,19 +1143,19 @@ static void M_Draw_ID_Main (void)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Video[] = {
-    { ITT_LRFUNC, "TRUECOLOR RENDERING",  M_ID_TrueColor,    0, MENU_NONE },
-    { ITT_LRFUNC, "RENDERING RESOLUTION", M_ID_RenderingRes, 0, MENU_NONE },
-    { ITT_LRFUNC, "WIDESCREEN MODE",      M_ID_Widescreen,   0, MENU_NONE },
-    { ITT_LRFUNC, "EXCLUSIVE FULLSCREEN", M_ID_ExclusiveFS,  0, MENU_NONE },
-    { ITT_LRFUNC, "UNCAPPED FRAMERATE",   M_ID_UncappedFPS,  0, MENU_NONE },
-    { ITT_LRFUNC, "FRAMERATE LIMIT",      M_ID_LimitFPS,     0, MENU_NONE },
-    { ITT_LRFUNC, "ENABLE VSYNC",         M_ID_VSync,        0, MENU_NONE },
-    { ITT_LRFUNC, "SHOW FPS COUNTER",     M_ID_ShowFPS,      0, MENU_NONE },
-    { ITT_LRFUNC, "PIXEL SCALING",        M_ID_PixelScaling, 0, MENU_NONE },
+    { ITT_LRFUNC2, "TRUECOLOR RENDERING",  M_ID_TrueColor,    0, MENU_NONE },
+    { ITT_LRFUNC1, "RENDERING RESOLUTION", M_ID_RenderingRes, 0, MENU_NONE },
+    { ITT_LRFUNC1, "WIDESCREEN MODE",      M_ID_Widescreen,   0, MENU_NONE },
+    { ITT_LRFUNC2, "EXCLUSIVE FULLSCREEN", M_ID_ExclusiveFS,  0, MENU_NONE },
+    { ITT_LRFUNC1, "UNCAPPED FRAMERATE",   M_ID_UncappedFPS,  0, MENU_NONE },
+    { ITT_LRFUNC1, "FRAMERATE LIMIT",      M_ID_LimitFPS,     0, MENU_NONE },
+    { ITT_LRFUNC2, "ENABLE VSYNC",         M_ID_VSync,        0, MENU_NONE },
+    { ITT_LRFUNC2, "SHOW FPS COUNTER",     M_ID_ShowFPS,      0, MENU_NONE },
+    { ITT_LRFUNC2, "PIXEL SCALING",        M_ID_PixelScaling, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                   NULL,              0, MENU_NONE },
-    { ITT_LRFUNC, "GRAPHICAL STARTUP",    M_ID_GfxStartup,   0, MENU_NONE },
-    { ITT_LRFUNC, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   0, MENU_NONE },
-    { ITT_LRFUNC, "SHOW ENDTEXT SCREEN",  M_ID_EndText,      0, MENU_NONE },
+    { ITT_LRFUNC2, "GRAPHICAL STARTUP",    M_ID_GfxStartup,   0, MENU_NONE },
+    { ITT_LRFUNC2, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   0, MENU_NONE },
+    { ITT_LRFUNC2, "SHOW ENDTEXT SCREEN",  M_ID_EndText,      0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Video = {
@@ -1439,20 +1440,20 @@ static void M_ID_EndText (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Display[] = {
-    { ITT_LRFUNC, "FIELD OF VIEW",           M_ID_FOV,             0, MENU_NONE },
-    { ITT_LRFUNC, "MENU BACKGROUND SHADING", M_ID_MenuShading,     0, MENU_NONE },
-    { ITT_LRFUNC, "EXTRA LEVEL BRIGHTNESS",  M_ID_LevelBrightness, 0, MENU_NONE },
+    { ITT_LRFUNC1, "FIELD OF VIEW",           M_ID_FOV,             0, MENU_NONE },
+    { ITT_LRFUNC1, "MENU BACKGROUND SHADING", M_ID_MenuShading,     0, MENU_NONE },
+    { ITT_LRFUNC1, "EXTRA LEVEL BRIGHTNESS",  M_ID_LevelBrightness, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "GAMMA-CORRECTION",        M_ID_Gamma,           0, MENU_NONE },
-    { ITT_LRFUNC, "SATURATION",              M_ID_Saturation,      0, MENU_NONE },
-    { ITT_LRFUNC, "CONTRAST",                M_ID_Contrast,        0, MENU_NONE },
-    { ITT_LRFUNC, "RED INTENSITY",           M_ID_R_Intensity,     0, MENU_NONE },
-    { ITT_LRFUNC, "GREEN INTENSITY",         M_ID_G_Intensity,     0, MENU_NONE },
-    { ITT_LRFUNC, "BLUE INTENSITY",          M_ID_B_Intensity,     0, MENU_NONE },
+    { ITT_LRFUNC1, "GAMMA-CORRECTION",        M_ID_Gamma,           0, MENU_NONE },
+    { ITT_LRFUNC1, "SATURATION",              M_ID_Saturation,      0, MENU_NONE },
+    { ITT_LRFUNC1, "CONTRAST",                M_ID_Contrast,        0, MENU_NONE },
+    { ITT_LRFUNC1, "RED INTENSITY",           M_ID_R_Intensity,     0, MENU_NONE },
+    { ITT_LRFUNC1, "GREEN INTENSITY",         M_ID_G_Intensity,     0, MENU_NONE },
+    { ITT_LRFUNC1, "BLUE INTENSITY",          M_ID_B_Intensity,     0, MENU_NONE },
     { ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "MESSAGES ENABLED",        M_ID_Messages,        0, MENU_NONE },
-    { ITT_LRFUNC, "TEXT CASTS SHADOWS",      M_ID_TextShadows,     0, MENU_NONE },
-    { ITT_LRFUNC, "LOCAL TIME",              M_ID_LocalTime,       0, MENU_NONE },
+    { ITT_LRFUNC2, "MESSAGES ENABLED",        M_ID_Messages,        0, MENU_NONE },
+    { ITT_LRFUNC2, "TEXT CASTS SHADOWS",      M_ID_TextShadows,     0, MENU_NONE },
+    { ITT_LRFUNC2, "LOCAL TIME",              M_ID_LocalTime,       0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Display = {
@@ -1705,11 +1706,11 @@ static MenuItem_t ID_Menu_Sound[] = {
     { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
     { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
     { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
-    { ITT_LRFUNC, "MUSIC PLAYBACK",       M_ID_MusicSystem, 0, MENU_NONE },
-    { ITT_LRFUNC, "SOUND EFFECTS MODE",   M_ID_SFXMode,     0, MENU_NONE },
-    { ITT_LRFUNC, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,  0, MENU_NONE },
-    { ITT_LRFUNC, "NUMBER OF SFX TO MIX", M_ID_SFXChannels, 0, MENU_NONE },
-    { ITT_LRFUNC, "MUTE INACTIVE WINDOW", M_ID_MuteInactive,0, MENU_NONE },
+    { ITT_LRFUNC2, "MUSIC PLAYBACK",       M_ID_MusicSystem, 0, MENU_NONE },
+    { ITT_LRFUNC2, "SOUND EFFECTS MODE",   M_ID_SFXMode,     0, MENU_NONE },
+    { ITT_LRFUNC2, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,  0, MENU_NONE },
+    { ITT_LRFUNC1, "NUMBER OF SFX TO MIX", M_ID_SFXChannels, 0, MENU_NONE },
+    { ITT_LRFUNC2, "MUTE INACTIVE WINDOW", M_ID_MuteInactive,0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Sound = {
@@ -1900,11 +1901,11 @@ static MenuItem_t ID_Menu_Controls[] = {
     { ITT_SLDR,    "ACCELERATION THRESHOLD",  M_ID_Controls_Threshold,    0, MENU_NONE          },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_LRFUNC,  "MOUSE LOOK",              M_ID_Controls_MLook,        0, MENU_NONE          },
-    { ITT_LRFUNC,  "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,       0, MENU_NONE          },
-    { ITT_LRFUNC,  "INVERT VERTICAL AXIS",    M_ID_Controls_InvertY,      0, MENU_NONE          },
+    { ITT_LRFUNC2,  "MOUSE LOOK",              M_ID_Controls_MLook,        0, MENU_NONE          },
+    { ITT_LRFUNC2,  "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,       0, MENU_NONE          },
+    { ITT_LRFUNC2,  "INVERT VERTICAL AXIS",    M_ID_Controls_InvertY,      0, MENU_NONE          },
     { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_LRFUNC,  "PERMANENT \"NOARTISKIP\" MODE", M_ID_Controls_NoArtiSkip, 0, MENU_NONE      },
+    { ITT_LRFUNC2,  "PERMANENT \"NOARTISKIP\" MODE", M_ID_Controls_NoArtiSkip, 0, MENU_NONE      },
 };
 
 static Menu_t ID_Def_Controls = {
@@ -2972,17 +2973,17 @@ static void M_Bind_M_Reset (int option)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Widgets[] = {
-    { ITT_LRFUNC, "COLOR SCHEME",     M_ID_Widget_Colors,     0, MENU_NONE },
-    { ITT_LRFUNC, "PLACEMENT",        M_ID_Widget_Placement,  0, MENU_NONE },
-    { ITT_LRFUNC, "ALIGNMENT",        M_ID_Widget_Alignment,  0, MENU_NONE },
-    { ITT_LRFUNC, "KIS STATS",        M_ID_Widget_KIS,        0, MENU_NONE },
-    { ITT_LRFUNC, "- STATS FORMAT",   M_ID_Widget_KIS_Format, 0, MENU_NONE },
-    { ITT_LRFUNC, "LEVEL/DM TIMER",   M_ID_Widget_Time,       0, MENU_NONE },
-    { ITT_LRFUNC, "TOTAL TIME",       M_ID_Widget_TotalTime,  0, MENU_NONE },
-    { ITT_LRFUNC, "LEVEL NAME",       M_ID_Widget_LevelName,  0, MENU_NONE },
-    { ITT_LRFUNC, "PLAYER COORDS",    M_ID_Widget_Coords,     0, MENU_NONE },
-    { ITT_LRFUNC, "RENDER COUNTERS",  M_ID_Widget_Render,     0, MENU_NONE },
-    { ITT_LRFUNC, "TARGET'S HEALTH",  M_ID_Widget_Health,     0, MENU_NONE },
+    { ITT_LRFUNC2, "COLOR SCHEME",     M_ID_Widget_Colors,     0, MENU_NONE },
+    { ITT_LRFUNC2, "PLACEMENT",        M_ID_Widget_Placement,  0, MENU_NONE },
+    { ITT_LRFUNC2, "ALIGNMENT",        M_ID_Widget_Alignment,  0, MENU_NONE },
+    { ITT_LRFUNC2, "KIS STATS",        M_ID_Widget_KIS,        0, MENU_NONE },
+    { ITT_LRFUNC2, "- STATS FORMAT",   M_ID_Widget_KIS_Format, 0, MENU_NONE },
+    { ITT_LRFUNC2, "LEVEL/DM TIMER",   M_ID_Widget_Time,       0, MENU_NONE },
+    { ITT_LRFUNC2, "TOTAL TIME",       M_ID_Widget_TotalTime,  0, MENU_NONE },
+    { ITT_LRFUNC2, "LEVEL NAME",       M_ID_Widget_LevelName,  0, MENU_NONE },
+    { ITT_LRFUNC2, "PLAYER COORDS",    M_ID_Widget_Coords,     0, MENU_NONE },
+    { ITT_LRFUNC2, "RENDER COUNTERS",  M_ID_Widget_Render,     0, MENU_NONE },
+    { ITT_LRFUNC2, "TARGET'S HEALTH",  M_ID_Widget_Health,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Widgets = {
@@ -3128,13 +3129,13 @@ static void M_ID_Widget_Health (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Automap[] = {
-    { ITT_LRFUNC, "LINE SMOOTHING",        M_ID_Automap_Smooth,  0, MENU_NONE },
-    { ITT_LRFUNC, "LINE THICKNESS",        M_ID_Automap_Thick,   0, MENU_NONE },
-    { ITT_LRFUNC, "SQUARE ASPECT RATIO",   M_ID_Automap_Square,  0, MENU_NONE },
-    { ITT_LRFUNC, "MARK SECRET SECTORS",   M_ID_Automap_Secrets, 0, MENU_NONE },
-    { ITT_LRFUNC, "ROTATE MODE",           M_ID_Automap_Rotate,  0, MENU_NONE },
-    { ITT_LRFUNC, "OVERLAY MODE",          M_ID_Automap_Overlay, 0, MENU_NONE },
-    { ITT_LRFUNC, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading, 0, MENU_NONE },
+    { ITT_LRFUNC2, "LINE SMOOTHING",        M_ID_Automap_Smooth,  0, MENU_NONE },
+    { ITT_LRFUNC1, "LINE THICKNESS",        M_ID_Automap_Thick,   0, MENU_NONE },
+    { ITT_LRFUNC2, "SQUARE ASPECT RATIO",   M_ID_Automap_Square,  0, MENU_NONE },
+    { ITT_LRFUNC2, "MARK SECRET SECTORS",   M_ID_Automap_Secrets, 0, MENU_NONE },
+    { ITT_LRFUNC2, "ROTATE MODE",           M_ID_Automap_Rotate,  0, MENU_NONE },
+    { ITT_LRFUNC2, "OVERLAY MODE",          M_ID_Automap_Overlay, 0, MENU_NONE },
+    { ITT_LRFUNC1, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Automap = {
@@ -3236,19 +3237,19 @@ static void M_ID_Automap_Shading (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_1[] = {
-    { ITT_LRFUNC, "BRIGHTMAPS",                  M_ID_Brightmaps,      0, MENU_NONE },
-    { ITT_LRFUNC, "EXTRA TRANSLUCENCY",          M_ID_Translucency,    0, MENU_NONE },
-    { ITT_LRFUNC, "FAKE CONTRAST",               M_ID_FakeContrast,    0, MENU_NONE },
-    { ITT_LRFUNC, "DIMINISHED LIGHTING",         M_ID_SmoothLighting,  0, MENU_NONE },
-    { ITT_LRFUNC, "PALETTE FADING EFFECT",       M_ID_SmoothPalette,   0, MENU_NONE },
-    { ITT_LRFUNC, "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids, 0, MENU_NONE },
-    { ITT_LRFUNC, "INVULNERABILITY AFFECTS SKY", M_ID_InvulSky,        0, MENU_NONE },
-    { ITT_LRFUNC, "SKY DRAWING MODE",            M_ID_LinearSky,       0, MENU_NONE },
-    { ITT_LRFUNC, "RANDOMLY MIRRORED CORPSES",   M_ID_FlipCorpses,     0, MENU_NONE },
+    { ITT_LRFUNC1, "BRIGHTMAPS",                  M_ID_Brightmaps,      0, MENU_NONE },
+    { ITT_LRFUNC2, "EXTRA TRANSLUCENCY",          M_ID_Translucency,    0, MENU_NONE },
+    { ITT_LRFUNC1, "FAKE CONTRAST",               M_ID_FakeContrast,    0, MENU_NONE },
+    { ITT_LRFUNC1, "DIMINISHED LIGHTING",         M_ID_SmoothLighting,  0, MENU_NONE },
+    { ITT_LRFUNC1, "PALETTE FADING EFFECT",       M_ID_SmoothPalette,   0, MENU_NONE },
+    { ITT_LRFUNC1, "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids, 0, MENU_NONE },
+    { ITT_LRFUNC1, "INVULNERABILITY AFFECTS SKY", M_ID_InvulSky,        0, MENU_NONE },
+    { ITT_LRFUNC1, "SKY DRAWING MODE",            M_ID_LinearSky,       0, MENU_NONE },
+    { ITT_LRFUNC1, "RANDOMLY MIRRORED CORPSES",   M_ID_FlipCorpses,     0, MENU_NONE },
     { ITT_EMPTY,  NULL,                          NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE },
-    { ITT_LRFUNC, "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE },
-    { ITT_LRFUNC, "", /* SCROLLS PAGES */        M_ScrollGameplay,     0, MENU_NONE },
+    { ITT_LRFUNC2, "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE },
+    { ITT_LRFUNC2, "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE },
+    { ITT_LRFUNC2, "", /* SCROLLS PAGES */        M_ScrollGameplay,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Gameplay_1 = {
@@ -3429,19 +3430,19 @@ static void M_ID_CrosshairColor (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_2[] = {
-    { ITT_LRFUNC, "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE       },
-    { ITT_LRFUNC, "SHOW AMMO WIDGET",            M_ID_AmmoWidget,      0, MENU_NONE       },
-    { ITT_LRFUNC, "AMMO WIDGET TRANSLUCENCY",    M_ID_AmmoWidgetTranslucent, 0, MENU_NONE },
-    { ITT_LRFUNC, "AMMO WIDGET COLORING",        M_ID_AmmoWidgetColors,0, MENU_NONE       },
+    { ITT_LRFUNC1, "COLORED ELEMENTS",            M_ID_ColoredSBar,     0, MENU_NONE       },
+    { ITT_LRFUNC2, "SHOW AMMO WIDGET",            M_ID_AmmoWidget,      0, MENU_NONE       },
+    { ITT_LRFUNC1, "AMMO WIDGET TRANSLUCENCY",    M_ID_AmmoWidgetTranslucent, 0, MENU_NONE },
+    { ITT_LRFUNC2, "AMMO WIDGET COLORING",        M_ID_AmmoWidgetColors,0, MENU_NONE       },
     { ITT_EMPTY,  NULL,                          NULL,                 0, MENU_NONE       },
-    { ITT_LRFUNC, "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,        0, MENU_NONE       },
+    { ITT_LRFUNC1, "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,        0, MENU_NONE       },
     { ITT_EMPTY,  NULL,                          NULL,                 0, MENU_NONE       },
-    { ITT_LRFUNC, "CORPSES SLIDING FROM LEDGES", M_ID_Torque,          0, MENU_NONE       },
-    { ITT_LRFUNC, "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE       },
-    { ITT_LRFUNC, "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE       },
+    { ITT_LRFUNC1, "CORPSES SLIDING FROM LEDGES", M_ID_Torque,          0, MENU_NONE       },
+    { ITT_LRFUNC2, "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE       },
+    { ITT_LRFUNC1, "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE       },
     { ITT_EMPTY,  NULL,                          NULL,                 0, MENU_NONE       },
     { ITT_EMPTY,  NULL,                          NULL,                 0, MENU_NONE       },
-    { ITT_LRFUNC, "", /* SCROLLS PAGES */        M_ScrollGameplay,     0, MENU_NONE       },
+    { ITT_LRFUNC2, "", /* SCROLLS PAGES */        M_ScrollGameplay,     0, MENU_NONE       },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
@@ -3560,19 +3561,19 @@ static void M_ID_Breathing (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_3[] = {
-    { ITT_LRFUNC, "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,     0, MENU_NONE },
-    { ITT_LRFUNC, "REPORT REVEALED SECRETS",  M_ID_RevealedSecrets, 0, MENU_NONE },
-    { ITT_LRFUNC, "FLIP LEVELS HORIZONTALLY", M_ID_FlipLevels,      0, MENU_NONE },
-    { ITT_LRFUNC, "ON DEATH ACTION",          M_ID_OnDeathAction,   0, MENU_NONE },
+    { ITT_LRFUNC2, "DEFAULT SKILL LEVEL",      M_ID_DefaulSkill,     0, MENU_NONE },
+    { ITT_LRFUNC2, "REPORT REVEALED SECRETS",  M_ID_RevealedSecrets, 0, MENU_NONE },
+    { ITT_LRFUNC1, "FLIP LEVELS HORIZONTALLY", M_ID_FlipLevels,      0, MENU_NONE },
+    { ITT_LRFUNC2, "ON DEATH ACTION",          M_ID_OnDeathAction,   0, MENU_NONE },
     { ITT_EMPTY,  NULL,                       NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "SHOW DEMO TIMER",          M_ID_DemoTimer,       0, MENU_NONE },
-    { ITT_LRFUNC, "TIMER DIRECTION",          M_ID_TimerDirection,  0, MENU_NONE },
-    { ITT_LRFUNC, "SHOW PROGRESS BAR",        M_ID_ProgressBar,     0, MENU_NONE },
-    { ITT_LRFUNC, "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,   0, MENU_NONE },
+    { ITT_LRFUNC2, "SHOW DEMO TIMER",          M_ID_DemoTimer,       0, MENU_NONE },
+    { ITT_LRFUNC1, "TIMER DIRECTION",          M_ID_TimerDirection,  0, MENU_NONE },
+    { ITT_LRFUNC1, "SHOW PROGRESS BAR",        M_ID_ProgressBar,     0, MENU_NONE },
+    { ITT_LRFUNC1, "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,   0, MENU_NONE },
     { ITT_EMPTY,  NULL,                       NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "WAND START GAME MODE",     M_ID_PistolStart,     0, MENU_NONE },
-    { ITT_LRFUNC, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,     0, MENU_NONE },
-    { ITT_LRFUNC, "", /* SCROLLS PAGES */     M_ScrollGameplay,     0, MENU_NONE },
+    { ITT_LRFUNC1, "WAND START GAME MODE",     M_ID_PistolStart,     0, MENU_NONE },
+    { ITT_LRFUNC1, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,     0, MENU_NONE },
+    { ITT_LRFUNC2, "", /* SCROLLS PAGES */     M_ScrollGameplay,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Gameplay_3 = {
@@ -3741,17 +3742,17 @@ static void M_DrawGameplayFooter (char *pagenum)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Misc[] = {
-    { ITT_LRFUNC, "INVULNERABILITY EFFECT", M_ID_Misc_A11yInvul,      0, MENU_NONE },
-    { ITT_LRFUNC, "PALETTE FLASH EFFECTS",  M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
-    { ITT_LRFUNC, "MOVEMENT BOBBING",       M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
-    { ITT_LRFUNC, "WEAPON BOBBING",         M_ID_Misc_A11yWeaponBob,  0, MENU_NONE },
-    { ITT_LRFUNC, "COLORBLIND FILTER",      M_ID_Misc_A11yColorblind, 0, MENU_NONE },
+    { ITT_LRFUNC1, "INVULNERABILITY EFFECT", M_ID_Misc_A11yInvul,      0, MENU_NONE },
+    { ITT_LRFUNC2, "PALETTE FLASH EFFECTS",  M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
+    { ITT_LRFUNC1, "MOVEMENT BOBBING",       M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
+    { ITT_LRFUNC1, "WEAPON BOBBING",         M_ID_Misc_A11yWeaponBob,  0, MENU_NONE },
+    { ITT_LRFUNC2, "COLORBLIND FILTER",      M_ID_Misc_A11yColorblind, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,                     NULL,                     0, MENU_NONE },
-    { ITT_LRFUNC, "AUTOLOAD WAD FILES",     M_ID_Misc_AutoloadWAD,    0, MENU_NONE },
-    { ITT_LRFUNC, "AUTOLOAD HHE FILES",     M_ID_Misc_AutoloadHHE,    0, MENU_NONE },
+    { ITT_LRFUNC2, "AUTOLOAD WAD FILES",     M_ID_Misc_AutoloadWAD,    0, MENU_NONE },
+    { ITT_LRFUNC2, "AUTOLOAD HHE FILES",     M_ID_Misc_AutoloadHHE,    0, MENU_NONE },
     { ITT_EMPTY,  NULL,                     NULL,                     0, MENU_NONE },
-    { ITT_LRFUNC, "HIGHLIGHTING EFFECT",    M_ID_Misc_Hightlight,     0, MENU_NONE },
-    { ITT_LRFUNC, "ESC KEY BEHAVIOUR",      M_ID_Misc_MenuEscKey,     0, MENU_NONE },
+    { ITT_LRFUNC2, "HIGHLIGHTING EFFECT",    M_ID_Misc_Hightlight,     0, MENU_NONE },
+    { ITT_LRFUNC1, "ESC KEY BEHAVIOUR",      M_ID_Misc_MenuEscKey,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Misc = {
@@ -3944,22 +3945,22 @@ static void M_ID_Misc_MenuEscKey (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_1[] = {
-    { ITT_LRFUNC, "SKILL LEVEL",       M_ID_LevelSkill,      0, MENU_NONE },
-    { ITT_LRFUNC, "EPISODE",           M_ID_LevelEpisode,    0, MENU_NONE },
-    { ITT_LRFUNC, "MAP",               M_ID_LevelMap,        0, MENU_NONE },
+    { ITT_LRFUNC2, "SKILL LEVEL",       M_ID_LevelSkill,      0, MENU_NONE },
+    { ITT_LRFUNC1, "EPISODE",           M_ID_LevelEpisode,    0, MENU_NONE },
+    { ITT_LRFUNC1, "MAP",               M_ID_LevelMap,        0, MENU_NONE },
     { ITT_EMPTY,  NULL,                NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "HEALTH",            M_ID_LevelHealth,     0, MENU_NONE },
-    { ITT_LRFUNC, "ARMOR",             M_ID_LevelArmor,      0, MENU_NONE },
-    { ITT_LRFUNC, "ARMOR TYPE",        M_ID_LevelArmorType,  0, MENU_NONE },
+    { ITT_LRFUNC1, "HEALTH",            M_ID_LevelHealth,     0, MENU_NONE },
+    { ITT_LRFUNC1, "ARMOR",             M_ID_LevelArmor,      0, MENU_NONE },
+    { ITT_LRFUNC1, "ARMOR TYPE",        M_ID_LevelArmorType,  0, MENU_NONE },
     { ITT_EMPTY,  NULL,                NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "GAUNTLETS",         M_ID_LevelGauntlets,  0, MENU_NONE },
-    { ITT_LRFUNC, "ETHEREAL CROSSBOW", M_ID_LevelCrossbow,   0, MENU_NONE },
-    { ITT_LRFUNC, "DRAGON CLAW",       M_ID_LevelDragonClaw, 0, MENU_NONE },
-    { ITT_LRFUNC, "HELLSTAFF",         M_ID_LevelHellStaff,  0, MENU_NONE },
-    { ITT_LRFUNC, "PHOENIX ROD",       M_ID_LevelPhoenixRod, 0, MENU_NONE },
-    { ITT_LRFUNC, "FIREMACE",          M_ID_LevelFireMace,   0, MENU_NONE },
+    { ITT_LRFUNC1, "GAUNTLETS",         M_ID_LevelGauntlets,  0, MENU_NONE },
+    { ITT_LRFUNC1, "ETHEREAL CROSSBOW", M_ID_LevelCrossbow,   0, MENU_NONE },
+    { ITT_LRFUNC1, "DRAGON CLAW",       M_ID_LevelDragonClaw, 0, MENU_NONE },
+    { ITT_LRFUNC1, "HELLSTAFF",         M_ID_LevelHellStaff,  0, MENU_NONE },
+    { ITT_LRFUNC1, "PHOENIX ROD",       M_ID_LevelPhoenixRod, 0, MENU_NONE },
+    { ITT_LRFUNC1, "FIREMACE",          M_ID_LevelFireMace,   0, MENU_NONE },
     { ITT_EMPTY,  NULL,                NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC, "NEXT PAGE",         M_ScrollLevel,        0, MENU_NONE },
+    { ITT_LRFUNC2, "NEXT PAGE",         M_ScrollLevel,        0, MENU_NONE },
     { ITT_EFUNC,  "START GAME",        G_DoSelectiveGame,    0, MENU_NONE },
 };
 
@@ -4153,22 +4154,22 @@ static void M_ID_LevelFireMace (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_2[] = {
-    { ITT_LRFUNC, "BAG OF HOLDING",  M_ID_LevelBag,     0, MENU_NONE },
-    { ITT_LRFUNC, "WAND CRYSTALS",   M_ID_LevelAmmo_0,  0, MENU_NONE },
-    { ITT_LRFUNC, "ETHEREAL ARROWS", M_ID_LevelAmmo_1,  0, MENU_NONE },
-    { ITT_LRFUNC, "CLAW ORBS",       M_ID_LevelAmmo_2,  0, MENU_NONE },
-    { ITT_LRFUNC, "HELLSTAFF RUNES", M_ID_LevelAmmo_3,  0, MENU_NONE },
-    { ITT_LRFUNC, "FLAME ORBS",      M_ID_LevelAmmo_4,  0, MENU_NONE },
-    { ITT_LRFUNC, "MACE SPHERES",    M_ID_LevelAmmo_5,  0, MENU_NONE },
+    { ITT_LRFUNC1, "BAG OF HOLDING",  M_ID_LevelBag,     0, MENU_NONE },
+    { ITT_LRFUNC1, "WAND CRYSTALS",   M_ID_LevelAmmo_0,  0, MENU_NONE },
+    { ITT_LRFUNC1, "ETHEREAL ARROWS", M_ID_LevelAmmo_1,  0, MENU_NONE },
+    { ITT_LRFUNC1, "CLAW ORBS",       M_ID_LevelAmmo_2,  0, MENU_NONE },
+    { ITT_LRFUNC1, "HELLSTAFF RUNES", M_ID_LevelAmmo_3,  0, MENU_NONE },
+    { ITT_LRFUNC1, "FLAME ORBS",      M_ID_LevelAmmo_4,  0, MENU_NONE },
+    { ITT_LRFUNC1, "MACE SPHERES",    M_ID_LevelAmmo_5,  0, MENU_NONE },
     { ITT_EMPTY,  NULL,              NULL,              0, MENU_NONE },
-    { ITT_LRFUNC, "YELLOW KEY",      M_ID_LevelKey_0,   0, MENU_NONE },
-    { ITT_LRFUNC, "GREEN KEY",       M_ID_LevelKey_1,   0, MENU_NONE },
-    { ITT_LRFUNC, "BLUE KEY",        M_ID_LevelKey_2,   0, MENU_NONE },
+    { ITT_LRFUNC1, "YELLOW KEY",      M_ID_LevelKey_0,   0, MENU_NONE },
+    { ITT_LRFUNC1, "GREEN KEY",       M_ID_LevelKey_1,   0, MENU_NONE },
+    { ITT_LRFUNC1, "BLUE KEY",        M_ID_LevelKey_2,   0, MENU_NONE },
     { ITT_EMPTY,  NULL,              NULL,              0, MENU_NONE },
-    { ITT_LRFUNC, "FAST",            M_ID_LevelFast,    0, MENU_NONE },
-    { ITT_LRFUNC, "RESPAWNING",      M_ID_LevelRespawn, 0, MENU_NONE },
+    { ITT_LRFUNC1, "FAST",            M_ID_LevelFast,    0, MENU_NONE },
+    { ITT_LRFUNC1, "RESPAWNING",      M_ID_LevelRespawn, 0, MENU_NONE },
     { ITT_EMPTY,  NULL,              NULL,              0, MENU_NONE },
-    { ITT_LRFUNC, "LAST PAGE",       M_ScrollLevel,     0, MENU_NONE },
+    { ITT_LRFUNC2, "LAST PAGE",       M_ScrollLevel,     0, MENU_NONE },
     { ITT_EFUNC,  "START GAME",      G_DoSelectiveGame, 0, MENU_NONE },
 };
 
@@ -4346,22 +4347,22 @@ static void M_ID_LevelRespawn (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Level_3[] = {
-    { ITT_LRFUNC, "QUARTZ FLASK",          M_ID_LevelArti_0,  0, MENU_NONE },
-    { ITT_LRFUNC, "MYSTIC URN",            M_ID_LevelArti_1,  0, MENU_NONE },
-    { ITT_LRFUNC, "TIME BOMB",             M_ID_LevelArti_2,  0, MENU_NONE },
-    { ITT_LRFUNC, "TOME OF POWER",         M_ID_LevelArti_3,  0, MENU_NONE },
-    { ITT_LRFUNC, "RING OF INVINCIBILITY", M_ID_LevelArti_4,  0, MENU_NONE },
-    { ITT_LRFUNC, "MORPH OVUM",            M_ID_LevelArti_5,  0, MENU_NONE },
-    { ITT_LRFUNC, "CHAOS DEVICE",          M_ID_LevelArti_6,  0, MENU_NONE },
-    { ITT_LRFUNC, "SHADOWSPHERE",          M_ID_LevelArti_7,  0, MENU_NONE },
-    { ITT_LRFUNC, "WINGS OF WRATH",        M_ID_LevelArti_8,  0, MENU_NONE },
-    { ITT_LRFUNC, "TORCH",                 M_ID_LevelArti_9,  0, MENU_NONE },
+    { ITT_LRFUNC1, "QUARTZ FLASK",          M_ID_LevelArti_0,  0, MENU_NONE },
+    { ITT_LRFUNC1, "MYSTIC URN",            M_ID_LevelArti_1,  0, MENU_NONE },
+    { ITT_LRFUNC1, "TIME BOMB",             M_ID_LevelArti_2,  0, MENU_NONE },
+    { ITT_LRFUNC1, "TOME OF POWER",         M_ID_LevelArti_3,  0, MENU_NONE },
+    { ITT_LRFUNC1, "RING OF INVINCIBILITY", M_ID_LevelArti_4,  0, MENU_NONE },
+    { ITT_LRFUNC1, "MORPH OVUM",            M_ID_LevelArti_5,  0, MENU_NONE },
+    { ITT_LRFUNC1, "CHAOS DEVICE",          M_ID_LevelArti_6,  0, MENU_NONE },
+    { ITT_LRFUNC1, "SHADOWSPHERE",          M_ID_LevelArti_7,  0, MENU_NONE },
+    { ITT_LRFUNC1, "WINGS OF WRATH",        M_ID_LevelArti_8,  0, MENU_NONE },
+    { ITT_LRFUNC1, "TORCH",                 M_ID_LevelArti_9,  0, MENU_NONE },
     { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
     { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
     { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
     { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
     { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
-    { ITT_LRFUNC, "FIRST PAGE",            M_ScrollLevel,     0, MENU_NONE },
+    { ITT_LRFUNC2, "FIRST PAGE",            M_ScrollLevel,     0, MENU_NONE },
     { ITT_EFUNC,  "START GAME",            G_DoSelectiveGame, 0, MENU_NONE },
 };
 
@@ -5998,6 +5999,8 @@ boolean MN_Responder(event_t * event)
         // [JN] Allow menu control by mouse.
         if (event->type == ev_mouse && mousewait < I_GetTime())
         {
+            const int item_type = CurrentMenu->items[CurrentItPos].type;
+
             // [crispy] mouse_novert disables controlling the menus with the mouse
             // [JN] Not needed, as menu is fully controllable by mouse wheel and buttons.
             /*
@@ -6034,7 +6037,7 @@ boolean MN_Responder(event_t * event)
 
             if (event->data1 & 1)
             {
-                if (MenuActive && CurrentMenu->items[CurrentItPos].type == ITT_SLDR)
+                if (MenuActive && item_type == ITT_SLDR)
                 {
                     // [JN] Allow repetitive on sliders to move it while mouse movement.
                     menu_mouse_allow_click = true;      
@@ -6094,13 +6097,12 @@ boolean MN_Responder(event_t * event)
             }
 
             // [JN] Scrolls through menu item values or navigates between pages.
-            if (event->data1 & (1 << 4) && MenuActive)
+            if (event->data1 & (1 << 4) && MenuActive)  // Wheel down
             {
-                if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC
-                ||  CurrentMenu->items[CurrentItPos].type == ITT_SLDR)
+                if (item_type == ITT_LRFUNC1 || item_type == ITT_LRFUNC2 || item_type == ITT_SLDR)
                 {
-                    // Scroll menu item backward
-                    CurrentMenu->items[CurrentItPos].func(LEFT_DIR);
+                    // Scroll menu item backward normally, or forward for ITT_LRFUNC2
+                    CurrentMenu->items[CurrentItPos].func(item_type != ITT_LRFUNC2 ? LEFT_DIR : RIGHT_DIR);
                     S_StartSound(NULL, sfx_keyup);
                 }
                 else
@@ -6111,13 +6113,12 @@ boolean MN_Responder(event_t * event)
                 mousewait = I_GetTime();
             }
             else
-            if (event->data1 & (1 << 3) && MenuActive)
+            if (event->data1 & (1 << 3) && MenuActive)  // Wheel up
             {
-                if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC
-                ||  CurrentMenu->items[CurrentItPos].type == ITT_SLDR)
+                if (item_type == ITT_LRFUNC1 || item_type == ITT_LRFUNC2 || item_type == ITT_SLDR)
                 {
-                    // Scroll menu item forward
-                    CurrentMenu->items[CurrentItPos].func(RIGHT_DIR);
+                    // Scroll menu item forward normally, or backward for ITT_LRFUNC2
+                    CurrentMenu->items[CurrentItPos].func(item_type != ITT_LRFUNC2 ? RIGHT_DIR : LEFT_DIR);
                     S_StartSound(NULL, sfx_keyup);
                 }
                 else
@@ -6544,7 +6545,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_left)       // Slider left
         {
-            if ((item->type == ITT_LRFUNC || item->type == ITT_SLDR) && item->func != NULL)
+            if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(LEFT_DIR);
                 S_StartSound(NULL, sfx_keyup);
@@ -6558,7 +6559,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_right)      // Slider right
         {
-            if ((item->type == ITT_LRFUNC || item->type == ITT_SLDR) && item->func != NULL)
+            if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(RIGHT_DIR);
                 S_StartSound(NULL, sfx_keyup);
@@ -6601,7 +6602,7 @@ boolean MN_Responder(event_t * event)
             else if (item->func != NULL)
             {
                 CurrentMenu->oldItPos = CurrentItPos;
-                if (item->type == ITT_LRFUNC)
+                if (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2)
                 {
                     item->func(RIGHT_DIR);
                 }
