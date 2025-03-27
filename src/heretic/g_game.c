@@ -2491,6 +2491,8 @@ void G_DoLoadGame(void)
         I_Error("Bad savegame");
     }
 
+    SV_Close();
+
     // Draw the pattern into the back screen
     R_FillBackScreen();
 
@@ -3416,7 +3418,8 @@ void G_DoSaveGame(void)
     // [plums] write old sector specials (for revealed secrets) at the end
     // to keep save compatibility with previous versions.
     P_ArchiveOldSpecials();
-    SV_Close(filename);
+    SV_WriteSaveGameEOF();
+    SV_Close();
 
     gameaction = ga_nothing;
     savedescription[0] = 0;

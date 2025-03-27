@@ -3518,6 +3518,7 @@ static void SV_Close(void)
     if (SavingFP)
     {
         fclose(SavingFP);
+        SavingFP = NULL;
     }
 }
 

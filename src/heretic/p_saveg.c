@@ -72,6 +72,22 @@ void SV_Open(char *fileName)
 void SV_OpenRead(char *filename)
 {
     SaveGameFP = M_fopen(filename, "rb");
+
+    if (SaveGameFP == NULL)
+    {
+        I_Error("Could not load savegame %s", filename);
+    }
+}
+
+//==========================================================================
+//
+// SV_WriteSaveGameEOF
+//
+//==========================================================================
+
+void SV_WriteSaveGameEOF(void)
+{
+    SV_WriteByte(SAVE_GAME_TERMINATOR);
 }
 
 //==========================================================================
@@ -80,11 +96,13 @@ void SV_OpenRead(char *filename)
 //
 //==========================================================================
 
-void SV_Close(char *fileName)
+void SV_Close(void)
 {
-    SV_WriteByte(SAVE_GAME_TERMINATOR);
-
-    fclose(SaveGameFP);
+    if (SaveGameFP)
+    {
+        fclose(SaveGameFP);
+        SaveGameFP = NULL;
+    }
 }
 
 //==========================================================================
