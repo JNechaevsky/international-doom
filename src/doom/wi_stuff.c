@@ -609,20 +609,20 @@ void WI_drawAnimatedBack(void)
     if (wbs->epsd > 2)
 	return;
 
-    for (i=0 ; i<NUMANIMS[wbs->epsd] ; i++)
-    {
-	a = &anims[wbs->epsd][i];
-
-	if (a->ctr >= 0)
-	    V_DrawPatch(a->loc.x, a->loc.y, a->p[a->ctr]);
-    }
-
     // [crispy] show Fortress of Mystery if it has been completed
     if (wbs->epsd == 1 && wbs->didsecret)
     {
 	a = &anims[wbs->epsd][7];
 
 	V_DrawPatch(a->loc.x, a->loc.y, a->p[a->nanims - 1]);
+    }
+
+    for (i=0 ; i<NUMANIMS[wbs->epsd] ; i++)
+    {
+	a = &anims[wbs->epsd][i];
+
+	if (a->ctr >= 0)
+	    V_DrawPatch(a->loc.x, a->loc.y, a->p[a->ctr]);
     }
 }
 
@@ -1666,7 +1666,10 @@ static void WI_loadUnloadData(load_callback_t callback)
 		    else
 		    {
 			// HACK ALERT!
-			a->p[i] = anims[1][4].p[i];
+			if ( gamemap == 8 )
+ 			a->p[i] = anims[1][6].p[i]; // if map is E2M8, use E2M7 data
+ 			else
+ 			a->p[i] = anims[1][4].p[i]; // E2M5 data (for E2M9)
 		    }
 		}
 	    }
