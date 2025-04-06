@@ -201,7 +201,7 @@ typedef struct menu_s
 static short   cursor_tics = 0;
 static boolean cursor_direction = false;
 
-static short itemOn;            // menu item skull is on
+static short itemOn;            // menu item skull is on (-1 = no selection)
 static short skullAnimCounter;  // skull animation counter
 static short whichSkull;        // which skull to draw
 
@@ -989,6 +989,14 @@ static void M_Reset_Line_Glow (void)
     for (int i = 0 ; i < currentMenu->numitems ; i++)
     {
         currentMenu->menuitems[i].tics = 0;
+    }
+
+    // [JN] If menu is controlled by mouse, reset "last on" position
+    // so this item won't blink upon reentering to the current menu.
+    if (menu_mouse_allow)
+    {
+        currentMenu->lastOn = -1;
+        itemOn = -1;
     }
 }
 
@@ -6525,6 +6533,13 @@ boolean M_Responder (event_t* ev)
     }
     else if (key == key_menu_up)
     {
+        // [JN] Current menu item was hidden while mouse controls,
+        // so move cursor to last one menu item by pressing "up" key.
+        if (itemOn == -1)
+        {
+            itemOn = currentMenu->numitems;
+        }
+
         // [PN] Move back up to the previous available item
         do
         {
@@ -6532,6 +6547,57 @@ boolean M_Responder (event_t* ev)
         } while (currentMenu->menuitems[itemOn].status == STS_SKIP);
 
         S_StartSound(NULL, sfx_pstop);
+        return true;
+    }
+    else if (key == key_menu_activate)
+    {
+        // [JN] If ESC key behaviour is set to "go back":
+        if (menu_esc_key)
+        {
+            if (currentMenu == &MainDef || currentMenu == &SoundDef
+            ||  currentMenu == &LoadDef || currentMenu == &SaveDef)
+            {
+                goto id_close_menu;  // [JN] Close menu imideatelly.
+            }
+            else
+            {
+                goto id_prev_menu;   // [JN] Go to previous menu.
+            }
+        }
+        else
+        {
+            id_close_menu:
+            // Deactivate menu
+            currentMenu->lastOn = itemOn;
+            M_ClearMenus();
+            S_StartSound(NULL, sfx_swtchx);
+        }
+        return true;
+    }
+    else if (key == key_menu_back)
+    {
+        id_prev_menu:
+        // Go back to previous menu
+        currentMenu->lastOn = itemOn;
+
+        if (currentMenu->prevMenu)
+        {
+            currentMenu = currentMenu->prevMenu;
+            M_Reset_Line_Glow();
+            itemOn = currentMenu->lastOn;
+            S_StartSound(NULL, sfx_swtchn);
+        }
+        // [JN] Close menu if pressed "back" in Doom main or ID main menu.
+        else if (currentMenu == &MainDef || currentMenu == &ID_Def_Main)
+        {
+            S_StartSound(NULL, sfx_swtchx);
+            M_ClearMenus();
+        }
+        return true;
+    }
+    else if (itemOn == -1)
+    {
+        // [JN] If no menu item is selected, then do not proceed with routines!
         return true;
     }
     else if (key == key_menu_left)
@@ -6587,52 +6653,6 @@ boolean M_Responder (event_t* ev)
                 currentMenu->menuitems[itemOn].routine(itemOn);
                 S_StartSound(NULL, sfx_pistol);
             }
-        }
-        return true;
-    }
-    else if (key == key_menu_activate)
-    {
-        // [JN] If ESC key behaviour is set to "go back":
-        if (menu_esc_key)
-        {
-            if (currentMenu == &MainDef || currentMenu == &SoundDef
-            ||  currentMenu == &LoadDef || currentMenu == &SaveDef)
-            {
-                goto id_close_menu;  // [JN] Close menu imideatelly.
-            }
-            else
-            {
-                goto id_prev_menu;   // [JN] Go to previous menu.
-            }
-        }
-        else
-        {
-        id_close_menu:
-        // Deactivate menu
-        currentMenu->lastOn = itemOn;
-        M_ClearMenus();
-        S_StartSound(NULL, sfx_swtchx);
-        }
-        return true;
-    }
-    else if (key == key_menu_back)
-    {
-        id_prev_menu:
-        // Go back to previous menu
-        currentMenu->lastOn = itemOn;
-
-        if (currentMenu->prevMenu)
-        {
-            currentMenu = currentMenu->prevMenu;
-            M_Reset_Line_Glow();
-            itemOn = currentMenu->lastOn;
-            S_StartSound(NULL, sfx_swtchn);
-        }
-        // [JN] Close menu if pressed "back" in Doom main or ID main menu.
-        else if (currentMenu == &MainDef || currentMenu == &ID_Def_Main)
-        {
-            S_StartSound(NULL, sfx_swtchx);
-            M_ClearMenus();
         }
         return true;
     }
@@ -6737,6 +6757,9 @@ static void M_ID_MenuMouseControl (void)
     {
         // [JN] Which line height should be used?
         const int line_height = currentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : LINEHEIGHT;
+
+        // [JN] Reset current menu item, it will be set in a cycle below.
+        itemOn = -1;
 
         // [PN] Check if the cursor is hovering over a menu item
         for (int i = 0; i < currentMenu->numitems; i++)
@@ -6880,6 +6903,7 @@ void M_Drawer (void)
     if (currentMenu->smallFont)
     {
         // [JN] Draw glowing * symbol.
+        if (itemOn != -1)
         M_WriteText(x - ID_MENU_CURSOR_OFFSET, y + itemOn * ID_MENU_LINEHEIGHT_SMALL, "*",
                     M_Cursor_Glow(cursor_tics));
 
@@ -6893,6 +6917,7 @@ void M_Drawer (void)
     else
     {
         // DRAW SKULL
+        if (itemOn != -1)
         V_DrawShadowedPatchOptional(x + SKULLXOFF, y - 5 + itemOn * LINEHEIGHT, 0,
                                     W_CacheLumpName(DEH_String(skullName[whichSkull]), PU_CACHE));
 

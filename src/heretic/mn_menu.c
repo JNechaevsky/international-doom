@@ -184,7 +184,7 @@ static int FontABaseLump;
 static int FontBBaseLump;
 static int SkullBaseLump;
 static Menu_t *CurrentMenu;
-static int CurrentItPos;
+static int CurrentItPos;    // -1 = no selection
 static int MenuEpisode;
 static int MenuTime;
 
@@ -851,6 +851,14 @@ static void M_Reset_Line_Glow (void)
     for (int i = 0 ; i < CurrentMenu->itemCount ; i++)
     {
         CurrentMenu->items[i].tics = 0;
+    }
+
+    // [JN] If menu is controlled by mouse, reset "last on" position
+    // so this item won't blink upon reentering to the current menu.
+    if (menu_mouse_allow)
+    {
+        CurrentMenu->oldItPos = -1;
+        CurrentItPos = -1;
     }
 }
 
@@ -5024,6 +5032,9 @@ static void M_ID_MenuMouseControl (void)
         const int line_height = (CurrentMenu->FontType == SmallFont) ?
                                  ID_MENU_LINEHEIGHT_SMALL : ITEM_HEIGHT;
 
+        // [JN] Reset current menu item, it will be set in a cycle below.
+        CurrentItPos = -1;
+
         // [PN] Check if the cursor is hovering over a menu item
         for (int i = 0; i < CurrentMenu->itemCount; i++)
         {
@@ -5197,16 +5208,19 @@ void MN_Drawer(void)
             item++;
         }
         
-        if (CurrentMenu->FontType == SmallFont)
+        if (CurrentItPos != -1)
         {
-            y = CurrentMenu->y + (CurrentItPos * ID_MENU_LINEHEIGHT_SMALL);
-            MN_DrTextA("*", x - ID_MENU_CURSOR_OFFSET, y, M_Cursor_Glow(cursor_tics));
-        }
-        else
-        {
-            y = CurrentMenu->y + (CurrentItPos * ITEM_HEIGHT) + SELECTOR_YOFFSET;
-            selName = DEH_String(MenuTime & 16 ? "M_SLCTR1" : "M_SLCTR2");
-            V_DrawShadowedPatchOptional(x + SELECTOR_XOFFSET, y, 1, W_CacheLumpName(selName, PU_CACHE));
+            if (CurrentMenu->FontType == SmallFont)
+            {
+                y = CurrentMenu->y + (CurrentItPos * ID_MENU_LINEHEIGHT_SMALL);
+                MN_DrTextA("*", x - ID_MENU_CURSOR_OFFSET, y, M_Cursor_Glow(cursor_tics));
+            }
+            else
+            {
+                y = CurrentMenu->y + (CurrentItPos * ITEM_HEIGHT) + SELECTOR_YOFFSET;
+                selName = DEH_String(MenuTime & 16 ? "M_SLCTR1" : "M_SLCTR2");
+                V_DrawShadowedPatchOptional(x + SELECTOR_XOFFSET, y, 1, W_CacheLumpName(selName, PU_CACHE));
+            }
         }
     }
 
@@ -6546,6 +6560,13 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_up)         // Previous menu item
         {
+            // [JN] Current menu item was hidden while mouse controls,
+            // so move cursor to last one menu item by pressing "up" key.
+            if (CurrentItPos == -1)
+            {
+                CurrentItPos = CurrentMenu->itemCount;
+            }
+
             do
             {
                 if (CurrentItPos == 0)
@@ -6560,6 +6581,47 @@ boolean MN_Responder(event_t * event)
             while (CurrentMenu->items[CurrentItPos].type == ITT_EMPTY);
             S_StartSound(NULL, sfx_switch);
             return (true);
+        }
+        else if (key == key_menu_activate)     // Toggle menu
+        {
+            // [JN] If ESC key behaviour is set to "go back":
+            if (menu_esc_key)
+            {
+                if (CurrentMenu == &MainMenu || CurrentMenu == &Options2Menu
+                ||  CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
+                {
+                    goto id_close_menu;  // [JN] Close menu imideatelly.
+                }
+                else
+                {
+                    goto id_prev_menu;   // [JN] Go to previous menu.
+                }
+            }
+            else
+            {
+            id_close_menu:
+            MN_DeactivateMenu();
+            }
+            return (true);
+        }
+        else if (key == key_menu_back)         // Go back to previous menu
+        {
+            id_prev_menu:
+            if (CurrentMenu->prevMenu == MENU_NONE)
+            {
+                MN_DeactivateMenu();
+            }
+            else
+            {
+                S_StartSound(NULL, sfx_switch);
+                SetMenu(CurrentMenu->prevMenu);
+            }
+            return (true);
+        }
+        else if (CurrentItPos == -1)
+        {
+            // [JN] If no menu item is selected, then do not proceed with routines!
+            return true;
         }
         else if (key == key_menu_left)       // Slider left
         {
@@ -6630,42 +6692,6 @@ boolean MN_Responder(event_t * event)
                 }
             }
             S_StartSound(NULL, sfx_dorcls);
-            return (true);
-        }
-        else if (key == key_menu_activate)     // Toggle menu
-        {
-            // [JN] If ESC key behaviour is set to "go back":
-            if (menu_esc_key)
-            {
-                if (CurrentMenu == &MainMenu || CurrentMenu == &Options2Menu
-                ||  CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
-                {
-                    goto id_close_menu;  // [JN] Close menu imideatelly.
-                }
-                else
-                {
-                    goto id_prev_menu;   // [JN] Go to previous menu.
-                }
-            }
-            else
-            {
-            id_close_menu:
-            MN_DeactivateMenu();
-            }
-            return (true);
-        }
-        else if (key == key_menu_back)         // Go back to previous menu
-        {
-            id_prev_menu:
-            if (CurrentMenu->prevMenu == MENU_NONE)
-            {
-                MN_DeactivateMenu();
-            }
-            else
-            {
-                S_StartSound(NULL, sfx_switch);
-                SetMenu(CurrentMenu->prevMenu);
-            }
             return (true);
         }
         // [crispy] delete a savegame
