@@ -284,59 +284,6 @@ angle_t R_PointToAngle2(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
 }
 
 
-fixed_t R_PointToDist(fixed_t x, fixed_t y)
-{
-    int angle;
-    fixed_t dx, dy, temp;
-    fixed_t dist;
-
-    dx = abs(x - viewx);
-    dy = abs(y - viewy);
-
-    if (dy > dx)
-    {
-        temp = dx;
-        dx = dy;
-        dy = temp;
-    }
-
-    angle =
-        (tantoangle[FixedDiv(dy, dx) >> DBITS] + ANG90) >> ANGLETOFINESHIFT;
-
-    dist = FixedDiv(dx, finesine[angle]);       // use as cosine
-
-    return dist;
-}
-
-
-
-/*
-=================
-=
-= R_InitPointToAngle
-=
-=================
-*/
-
-void R_InitPointToAngle(void)
-{
-// now getting from tables.c
-#if 0
-    int i;
-    long t;
-    float f;
-//
-// slope (tangent) to angle lookup
-//
-    for (i = 0; i <= SLOPERANGE; i++)
-    {
-        f = atan((float) i / SLOPERANGE) / (3.141592657 * 2);
-        t = 0xffffffff * f;
-        tantoangle[i] = t;
-    }
-#endif
-}
-
 //=============================================================================
 
 // [crispy] WiggleFix: move R_ScaleFromGlobalAngle function to r_segs.c, above
@@ -417,46 +364,6 @@ angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
     }
 }
 
-/*
-=================
-=
-= R_InitTables
-=
-=================
-*/
-
-void R_InitTables(void)
-{
-// now getting from tables.c
-#if 0
-    int i;
-    float a, fv;
-    int t;
-
-//
-// viewangle tangent table
-//
-    for (i = 0; i < FINEANGLES / 2; i++)
-    {
-        a = (i - FINEANGLES / 4 + 0.5) * PI * 2 / FINEANGLES;
-        fv = FRACUNIT * tan(a);
-        t = fv;
-        finetangent[i] = t;
-    }
-
-//
-// finesine table
-//
-    for (i = 0; i < 5 * FINEANGLES / 4; i++)
-    {
-// OPTIMIZE: mirror...
-        a = (i + 0.5) * PI * 2 / FINEANGLES;
-        t = FRACUNIT * sin(a);
-        finesine[i] = t;
-    }
-#endif
-
-}
 
 // [crispy] in widescreen mode, make sure the same number of horizontal
 // pixels shows the same part of the game scene as in regular rendering mode
@@ -540,6 +447,11 @@ void R_InitTextureMapping(void)
 // scan viewangletox[] to generate xtoviewangleangle[]
 //
 // xtoviewangle will give the smallest view angle that maps to x
+
+    // [JN] Precalculate linearskyangle[] multipler.
+    const int linear_factor = (((SCREENWIDTH << 6) / viewwidth)
+                            * (ANG90 / (NONWIDEWIDTH << 6))) / fovdiff;
+
     for (x = 0; x <= viewwidth; x++)
     {
         i = 0;
@@ -548,8 +460,7 @@ void R_InitTextureMapping(void)
         xtoviewangle[x] = (i << ANGLETOFINESHIFT) - ANG90;
 	    // [crispy] calculate sky angle for drawing horizontally linear skies.
 	    // Taken from GZDoom and refactored for integer math.
-	    linearskyangle[x] = ((viewwidth / 2 - x) * ((NONWIDEWIDTH<<6) / viewwidth)) 
-	                                             * (ANG90 / (NONWIDEWIDTH<<6)) / fovdiff;
+	    linearskyangle[x] = (viewwidth / 2 - x) * linear_factor;
     }
 
 //
@@ -557,8 +468,6 @@ void R_InitTextureMapping(void)
 //
     for (i = 0; i < FINEANGLES / 2; i++)
     {
-        t = FixedMul(finetangent[i], focallength);
-        t = centerx - t;
         if (viewangletox[i] == -1)
             viewangletox[i] = 0;
         else if (viewangletox[i] == viewwidth + 1)
@@ -890,8 +799,6 @@ int detailLevel;
 void R_Init(void)
 {
     R_InitData();
-    R_InitPointToAngle();
-    R_InitTables();
     // viewwidth / viewheight / detailLevel are set by the defaults
     R_SetViewSize(dp_screen_size, detailLevel);
     R_InitPlanes();

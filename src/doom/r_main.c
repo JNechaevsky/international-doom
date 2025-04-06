@@ -337,48 +337,6 @@ R_PointToAngle2
 }
 
 
-fixed_t
-R_PointToDist
-( fixed_t	x,
-  fixed_t	y )
-{
-    int		angle;
-    fixed_t	dx;
-    fixed_t	dy;
-    fixed_t	temp;
-    fixed_t	dist;
-    fixed_t     frac;
-	
-    dx = abs(x - viewx);
-    dy = abs(y - viewy);
-	
-    if (dy>dx)
-    {
-	temp = dx;
-	dx = dy;
-	dy = temp;
-    }
-
-    // Fix crashes in udm1.wad
-
-    if (dx != 0)
-    {
-        frac = FixedDiv(dy, dx);
-    }
-    else
-    {
-	frac = 0;
-    }
-	
-    angle = (tantoangle[frac>>DBITS]+ANG90) >> ANGLETOFINESHIFT;
-
-    // use as cosine
-    dist = FixedDiv (dx, finesine[angle] );	
-	
-    return dist;
-}
-
-
 // [crispy] WiggleFix: move R_ScaleFromGlobalAngle function to r_segs.c,
 // above R_StoreWallRange
 #if 0
@@ -520,6 +478,11 @@ void R_InitTextureMapping (void)
     // Scan viewangletox[] to generate xtoviewangle[]:
     //  xtoviewangle will give the smallest view angle
     //  that maps to x.	
+
+    // [JN] Precalculate linearskyangle[] multipler.
+    const int linear_factor = (((SCREENWIDTH << 6) / viewwidth)
+                            * (ANG90 / (NONWIDEWIDTH << 6))) / fovdiff;
+
     for (x=0;x<=viewwidth;x++)
     {
 	i = 0;
@@ -528,16 +491,12 @@ void R_InitTextureMapping (void)
 	xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
 	// [crispy] calculate sky angle for drawing horizontally linear skies.
 	// Taken from GZDoom and refactored for integer math.
-	linearskyangle[x] = ((viewwidth / 2 - x) * ((SCREENWIDTH<<6) / viewwidth)) 
-	                                         * (ANG90 / (NONWIDEWIDTH<<6)) / fovdiff;
+	linearskyangle[x] = (viewwidth / 2 - x) * linear_factor;
     }
     
     // Take out the fencepost cases from viewangletox.
     for (i=0 ; i<FINEANGLES/2 ; i++)
     {
-	t = FixedMul (finetangent[i], focallength);
-	t = centerx - t;
-	
 	if (viewangletox[i] == -1)
 	    viewangletox[i] = 0;
 	else if (viewangletox[i] == viewwidth+1)
