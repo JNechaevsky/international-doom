@@ -705,9 +705,12 @@ static void M_Choose_ID_Gameplay (int choice)
     SetMenu(Gameplay_Cur);
 }
 
-// Utility function for scrolling pages by arrows / PG keys.
+// [JN/PN] Utility function for scrolling pages by arrows / PG keys.
 static void M_ScrollPages (boolean direction)
 {
+    // "SFX_DOOR_LIGHT_CLOSE" sound will be played only if menu will be changed.
+    int nextMenu = 0;
+
     // Save/Load menu:
     if (CurrentMenu == &LoadMenu || CurrentMenu == &SaveMenu)
     {
@@ -728,22 +731,26 @@ static void M_ScrollPages (boolean direction)
     }
 
     // Keyboard bindings:
-    else if (CurrentMenu == &ID_Def_Keybinds_1) SetMenu(direction ? MENU_ID_KBDBINDS2 : MENU_ID_KBDBINDS8);
-    else if (CurrentMenu == &ID_Def_Keybinds_2) SetMenu(direction ? MENU_ID_KBDBINDS3 : MENU_ID_KBDBINDS1);
-    else if (CurrentMenu == &ID_Def_Keybinds_3) SetMenu(direction ? MENU_ID_KBDBINDS4 : MENU_ID_KBDBINDS2);
-    else if (CurrentMenu == &ID_Def_Keybinds_4) SetMenu(direction ? MENU_ID_KBDBINDS5 : MENU_ID_KBDBINDS3);
-    else if (CurrentMenu == &ID_Def_Keybinds_5) SetMenu(direction ? MENU_ID_KBDBINDS6 : MENU_ID_KBDBINDS4);
-    else if (CurrentMenu == &ID_Def_Keybinds_6) SetMenu(direction ? MENU_ID_KBDBINDS7 : MENU_ID_KBDBINDS5);
-    else if (CurrentMenu == &ID_Def_Keybinds_7) SetMenu(direction ? MENU_ID_KBDBINDS8 : MENU_ID_KBDBINDS6);
-    else if (CurrentMenu == &ID_Def_Keybinds_8) SetMenu(direction ? MENU_ID_KBDBINDS1 : MENU_ID_KBDBINDS7);
+    else if (CurrentMenu == &ID_Def_Keybinds_1) nextMenu = (direction ? MENU_ID_KBDBINDS2 : MENU_ID_KBDBINDS8);
+    else if (CurrentMenu == &ID_Def_Keybinds_2) nextMenu = (direction ? MENU_ID_KBDBINDS3 : MENU_ID_KBDBINDS1);
+    else if (CurrentMenu == &ID_Def_Keybinds_3) nextMenu = (direction ? MENU_ID_KBDBINDS4 : MENU_ID_KBDBINDS2);
+    else if (CurrentMenu == &ID_Def_Keybinds_4) nextMenu = (direction ? MENU_ID_KBDBINDS5 : MENU_ID_KBDBINDS3);
+    else if (CurrentMenu == &ID_Def_Keybinds_5) nextMenu = (direction ? MENU_ID_KBDBINDS6 : MENU_ID_KBDBINDS4);
+    else if (CurrentMenu == &ID_Def_Keybinds_6) nextMenu = (direction ? MENU_ID_KBDBINDS7 : MENU_ID_KBDBINDS5);
+    else if (CurrentMenu == &ID_Def_Keybinds_7) nextMenu = (direction ? MENU_ID_KBDBINDS8 : MENU_ID_KBDBINDS6);
+    else if (CurrentMenu == &ID_Def_Keybinds_8) nextMenu = (direction ? MENU_ID_KBDBINDS1 : MENU_ID_KBDBINDS7);
 
     // Gameplay features:
-    else if (CurrentMenu == &ID_Def_Gameplay_1) SetMenu(direction ? MENU_ID_GAMEPLAY2 : MENU_ID_GAMEPLAY3);
-    else if (CurrentMenu == &ID_Def_Gameplay_2) SetMenu(direction ? MENU_ID_GAMEPLAY3 : MENU_ID_GAMEPLAY1);
-    else if (CurrentMenu == &ID_Def_Gameplay_3) SetMenu(direction ? MENU_ID_GAMEPLAY1 : MENU_ID_GAMEPLAY2);
+    else if (CurrentMenu == &ID_Def_Gameplay_1) nextMenu = (direction ? MENU_ID_GAMEPLAY2 : MENU_ID_GAMEPLAY3);
+    else if (CurrentMenu == &ID_Def_Gameplay_2) nextMenu = (direction ? MENU_ID_GAMEPLAY3 : MENU_ID_GAMEPLAY1);
+    else if (CurrentMenu == &ID_Def_Gameplay_3) nextMenu = (direction ? MENU_ID_GAMEPLAY1 : MENU_ID_GAMEPLAY2);
 
-    // Play sound.
-    S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+    // If a new menu was set up, play the navigation sound.
+    if (nextMenu)
+    {
+        SetMenu(nextMenu);
+        S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -6081,11 +6088,6 @@ boolean MN_Responder(event_t * event)
             }
             return (true);
         }
-        else if (CurrentItPos == -1)
-        {
-            // [JN] If no menu item is selected, then do not proceed with routines!
-            return true;
-        }
         else if (key == key_menu_left)           // Slider left
         {
             if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
@@ -6094,7 +6096,7 @@ boolean MN_Responder(event_t * event)
                 S_StartSound(NULL, SFX_PICKUP_KEY);
             }
             // [JN] Go to previous-left menu by pressing Left Arrow.
-            if (CurrentMenu->ScrollAR)
+            if (CurrentMenu->ScrollAR || CurrentItPos == -1)
             {
                 M_ScrollPages(false);
             }
@@ -6108,7 +6110,7 @@ boolean MN_Responder(event_t * event)
                 S_StartSound(NULL, SFX_PICKUP_KEY);
             }
             // [JN] Go to next-right menu by pressing Right Arrow.
-            if (CurrentMenu->ScrollAR)
+            if (CurrentMenu->ScrollAR || CurrentItPos == -1)
             {
                 M_ScrollPages(true);
             }
@@ -6132,7 +6134,7 @@ boolean MN_Responder(event_t * event)
             }
             return (true);
         }
-        else if (key == key_menu_forward)        // Activate item (enter)
+        else if (key == key_menu_forward && CurrentItPos != -1)        // Activate item (enter)
         {
             if (item->type == ITT_SETMENU)
             {

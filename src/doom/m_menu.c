@@ -881,9 +881,12 @@ static void M_Choose_ID_Gameplay (int choice)
     M_SetupNextMenu(GameplayMenus[Gameplay_Cur]);
 }
 
-// Utility function for scrolling pages by arrows / PG keys.
+// [JN/PN] Utility function for scrolling pages by arrows / PG keys.
 static void M_ScrollPages (boolean direction)
 {
+    // "sfx_pstop" sound will be played only if menu will be changed.
+    menu_t *nextMenu = NULL;
+
     // Remember cursor position.
     currentMenu->lastOn = itemOn;
 
@@ -912,24 +915,28 @@ static void M_ScrollPages (boolean direction)
     }
 
     // Keyboard bindings:
-    else if (currentMenu == &ID_Def_Keybinds_1) M_SetupNextMenu(direction ? &ID_Def_Keybinds_2 : &ID_Def_Keybinds_6);
-    else if (currentMenu == &ID_Def_Keybinds_2) M_SetupNextMenu(direction ? &ID_Def_Keybinds_3 : &ID_Def_Keybinds_1);
-    else if (currentMenu == &ID_Def_Keybinds_3) M_SetupNextMenu(direction ? &ID_Def_Keybinds_4 : &ID_Def_Keybinds_2);
-    else if (currentMenu == &ID_Def_Keybinds_4) M_SetupNextMenu(direction ? &ID_Def_Keybinds_5 : &ID_Def_Keybinds_3);
-    else if (currentMenu == &ID_Def_Keybinds_5) M_SetupNextMenu(direction ? &ID_Def_Keybinds_6 : &ID_Def_Keybinds_4);
-    else if (currentMenu == &ID_Def_Keybinds_6) M_SetupNextMenu(direction ? &ID_Def_Keybinds_1 : &ID_Def_Keybinds_5);
+    else if (currentMenu == &ID_Def_Keybinds_1) nextMenu = (direction ? &ID_Def_Keybinds_2 : &ID_Def_Keybinds_6);
+    else if (currentMenu == &ID_Def_Keybinds_2) nextMenu = (direction ? &ID_Def_Keybinds_3 : &ID_Def_Keybinds_1);
+    else if (currentMenu == &ID_Def_Keybinds_3) nextMenu = (direction ? &ID_Def_Keybinds_4 : &ID_Def_Keybinds_2);
+    else if (currentMenu == &ID_Def_Keybinds_4) nextMenu = (direction ? &ID_Def_Keybinds_5 : &ID_Def_Keybinds_3);
+    else if (currentMenu == &ID_Def_Keybinds_5) nextMenu = (direction ? &ID_Def_Keybinds_6 : &ID_Def_Keybinds_4);
+    else if (currentMenu == &ID_Def_Keybinds_6) nextMenu = (direction ? &ID_Def_Keybinds_1 : &ID_Def_Keybinds_5);
 
     // Gameplay features:
-    else if (currentMenu == &ID_Def_Gameplay_1) M_SetupNextMenu(direction ? &ID_Def_Gameplay_2 : &ID_Def_Gameplay_3);
-    else if (currentMenu == &ID_Def_Gameplay_2) M_SetupNextMenu(direction ? &ID_Def_Gameplay_3 : &ID_Def_Gameplay_1);
-    else if (currentMenu == &ID_Def_Gameplay_3) M_SetupNextMenu(direction ? &ID_Def_Gameplay_1 : &ID_Def_Gameplay_2);
+    else if (currentMenu == &ID_Def_Gameplay_1) nextMenu = (direction ? &ID_Def_Gameplay_2 : &ID_Def_Gameplay_3);
+    else if (currentMenu == &ID_Def_Gameplay_2) nextMenu = (direction ? &ID_Def_Gameplay_3 : &ID_Def_Gameplay_1);
+    else if (currentMenu == &ID_Def_Gameplay_3) nextMenu = (direction ? &ID_Def_Gameplay_1 : &ID_Def_Gameplay_2);
 
     // Level select:
-    else if (currentMenu == &ID_Def_Level_1) M_SetupNextMenu(&ID_Def_Level_2);
-    else if (currentMenu == &ID_Def_Level_2) M_SetupNextMenu(&ID_Def_Level_1);
+    else if (currentMenu == &ID_Def_Level_1) nextMenu = &ID_Def_Level_2;
+    else if (currentMenu == &ID_Def_Level_2) nextMenu = &ID_Def_Level_1;
 
-    // Play sound.
-    S_StartSound(NULL, sfx_pstop);
+    // If a new menu was set up, play the navigation sound.
+    if (nextMenu)
+    {
+        M_SetupNextMenu(nextMenu);
+        S_StartSound(NULL, sfx_pstop);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -6597,17 +6604,13 @@ boolean M_Responder (event_t* ev)
         }
         return true;
     }
-    else if (itemOn == -1)
-    {
-        // [JN] If no menu item is selected, then do not proceed with routines!
-        return true;
-    }
     else if (key == key_menu_left)
     {
         // [JN] Go to previous-left menu by pressing Left Arrow.
-        if (currentMenu->ScrollAR)
+        if (currentMenu->ScrollAR || itemOn == -1)
         {
             M_ScrollPages(false);
+            return true;
         }
 
         // Slide slider left
@@ -6622,9 +6625,10 @@ boolean M_Responder (event_t* ev)
     else if (key == key_menu_right)
     {
         // [JN] Go to next-right menu by pressing Right Arrow.
-        if (currentMenu->ScrollAR)
+        if (currentMenu->ScrollAR || itemOn == -1)
         {
             M_ScrollPages(true);
+            return true;
         }
 
         // Slide slider right
@@ -6636,7 +6640,7 @@ boolean M_Responder (event_t* ev)
         }
         return true;
     }
-    else if (key == key_menu_forward)
+    else if (key == key_menu_forward && itemOn != -1)
     {
         // Activate menu item
         if (currentMenu->menuitems[itemOn].routine
