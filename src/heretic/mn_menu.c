@@ -6127,6 +6127,12 @@ boolean MN_Responder(event_t * event)
             // [JN] Scrolls through menu item values or navigates between pages.
             if (event->data1 & (1 << 4) && MenuActive)  // Wheel down
             {
+                if (CurrentItPos == -1
+                || (CurrentMenu->ScrollAR && !FileMenuKeySteal && !KbdIsBinding))
+                {
+                    M_ScrollPages(1);
+                }
+                else
                 if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
                 ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2
                 ||  CurrentMenu->items[CurrentItPos].type == ITT_SLDR)
@@ -6135,16 +6141,17 @@ boolean MN_Responder(event_t * event)
                     CurrentMenu->items[CurrentItPos].func(CurrentMenu->items[CurrentItPos].type != ITT_LRFUNC2 ? LEFT_DIR : RIGHT_DIR);
                     S_StartSound(NULL, sfx_keyup);
                 }
-                else
-                if (CurrentMenu->ScrollAR && !FileMenuKeySteal && !KbdIsBinding)
-                {
-                    M_ScrollPages(1);
-                }
                 mousewait = I_GetTime();
             }
             else
             if (event->data1 & (1 << 3) && MenuActive)  // Wheel up
             {
+                if (CurrentItPos == -1
+                || (CurrentMenu->ScrollAR && !FileMenuKeySteal && !KbdIsBinding))
+                {
+                    M_ScrollPages(0);
+                }
+                else
                 if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
                 ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2
                 ||  CurrentMenu->items[CurrentItPos].type == ITT_SLDR)
@@ -6152,11 +6159,6 @@ boolean MN_Responder(event_t * event)
                     // Scroll menu item forward normally, or backward for ITT_LRFUNC2
                     CurrentMenu->items[CurrentItPos].func(CurrentMenu->items[CurrentItPos].type != ITT_LRFUNC2 ? RIGHT_DIR : LEFT_DIR);
                     S_StartSound(NULL, sfx_keyup);
-                }
-                else
-                if (CurrentMenu->ScrollAR && !FileMenuKeySteal && !KbdIsBinding)
-                {
-                    M_ScrollPages(0);
                 }
                 mousewait = I_GetTime();
             }

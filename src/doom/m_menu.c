@@ -6163,32 +6163,34 @@ boolean M_Responder (event_t* ev)
             // [JN] Scrolls through menu item values or navigates between pages.
             if (ev->data1 & (1 << 4) && menuactive)  // Wheel down
             {
+                if (itemOn == -1
+                || (currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding))
+                {
+                    M_ScrollPages(1);
+                }
+                else
                 if (item_status > 1)
                 {
                     // Scroll menu item backward normally, or forward for STS_MUL2
                     currentMenu->menuitems[itemOn].routine(item_status != STS_MUL2 ? 0 : 1);
                     S_StartSound(NULL, sfx_stnmov);
                 }
-                else
-                if (currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
-                {
-                    M_ScrollPages(1);
-                }
                 mousewait = I_GetTime();
             }
             else
             if (ev->data1 & (1 << 3) && menuactive)  // Wheel up
             {
+                if (itemOn == -1
+                || (currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding))
+                {
+                    M_ScrollPages(0);
+                }
+                else
                 if (item_status > 1)
                 {
                     // Scroll menu item forward normally, or backward for STS_MUL2
                     currentMenu->menuitems[itemOn].routine(item_status != STS_MUL2 ? 1 : 0);
                     S_StartSound(NULL, sfx_stnmov);
-                }
-                else
-                if (currentMenu->ScrollAR && !saveStringEnter && !KbdIsBinding)
-                {
-                    M_ScrollPages(0);
                 }
                 mousewait = I_GetTime();
             }
