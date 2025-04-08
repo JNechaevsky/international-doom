@@ -696,14 +696,18 @@ byte *ds_source;                // start of a 64*64 tile image
 
 void R_DrawSpan(void)
 {
-    // Calculate the span length.
-    const int count = ds_x2 - ds_x1 + 1;
+    // Calculate the span length
+    int count = ds_x2 - ds_x1 + 1;
 
     // [PN] Local pointers to global arrays
     const byte *sourcebase = ds_source;
-    const pixel_t *colormap = (const pixel_t *)ds_colormap; // Cast to match types
+    const pixel_t *colormap = (const pixel_t *)ds_colormap;
     const fixed_t xstep = ds_xstep;
     const fixed_t ystep = ds_ystep;
+
+    // [PN] Local copies of fractional coordinates
+    fixed_t xfrac = ds_xfrac;
+    fixed_t yfrac = ds_yfrac;
 
     if (!gp_flip_levels)
     {
@@ -711,35 +715,36 @@ void R_DrawSpan(void)
         pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1];
 
         // Process in chunks of four pixels
-        int remaining = count;
-        while (remaining >= 4)
+        for (; count >= 4; count -= 4)
         {
             for (int j = 0; j < 4; ++j)
             {
-                const unsigned int ytemp = (ds_yfrac >> 10) & 0x0fc0;
-                const unsigned int xtemp = (ds_xfrac >> 16) & 0x3f;
+                const unsigned int ytemp = (yfrac >> 10) & 0x0fc0;
+                const unsigned int xtemp = (xfrac >> 16) & 0x3f;
                 const int spot = xtemp | ytemp;
+
                 const byte source = sourcebase[spot];
                 dest[j] = colormap[source];
-                ds_xfrac += xstep;
-                ds_yfrac += ystep;
+
+                xfrac += xstep;
+                yfrac += ystep;
             }
 
             dest += 4;
-            remaining -= 4;
         }
 
         // Render remaining pixels if any
-        for (int i = 0; i < remaining; i++)
+        for (; count > 0; count--)
         {
-            const unsigned int ytemp = (ds_yfrac >> 10) & 0x0fc0;
-            const unsigned int xtemp = (ds_xfrac >> 16) & 0x3f;
+            const unsigned int ytemp = (yfrac >> 10) & 0x0fc0;
+            const unsigned int xtemp = (xfrac >> 16) & 0x3f;
             const int spot = xtemp | ytemp;
+
             const byte source = sourcebase[spot];
             *dest++ = colormap[source];
 
-            ds_xfrac += xstep;
-            ds_yfrac += ystep;
+            xfrac += xstep;
+            yfrac += ystep;
         }
     }
     else
@@ -747,25 +752,29 @@ void R_DrawSpan(void)
         // Flipped levels
         for (int i = 0; i < count; i++)
         {
-            const unsigned int ytemp = (ds_yfrac >> 10) & 0x0fc0;
-            const unsigned int xtemp = (ds_xfrac >> 16) & 0x3f;
+            const unsigned int ytemp = (yfrac >> 10) & 0x0fc0;
+            const unsigned int xtemp = (xfrac >> 16) & 0x3f;
             const int spot = xtemp | ytemp;
             const byte source = sourcebase[spot];
 
             pixel_t *dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
             *dest = colormap[source];
 
-            ds_xfrac += xstep;
-            ds_yfrac += ystep;
+            xfrac += xstep;
+            yfrac += ystep;
         }
     }
+
+    // [PN] Store back updated fractional values
+    ds_xfrac = xfrac;
+    ds_yfrac = yfrac;
 }
 
 
 void R_DrawSpanLow(void)
 {
-    // Calculate the span length.
-    const int count = ds_x2 - ds_x1 + 1;
+    // Calculate the span length
+    int count = ds_x2 - ds_x1 + 1;
 
     // Blocky mode, multiply by 2
     ds_x1 <<= 1;
@@ -777,44 +786,47 @@ void R_DrawSpanLow(void)
     const fixed_t xstep = ds_xstep;
     const fixed_t ystep = ds_ystep;
 
+    // [PN] Local copies of fractional coordinates
+    fixed_t xfrac = ds_xfrac;
+    fixed_t yfrac = ds_yfrac;
+
     if (!gp_flip_levels)
     {
         // [PN] Precompute destination pointer for normal levels
         pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1];
 
         // Process in chunks of four sets of two pixels each
-        int remaining = count;
-        while (remaining >= 4)
+        while (count >= 4)
         {
             for (int j = 0; j < 4; ++j)
             {
-                const unsigned int ytemp = (ds_yfrac >> 10) & 0x0fc0;
-                const unsigned int xtemp = (ds_xfrac >> 16) & 0x3f;
+                const unsigned int ytemp = (yfrac >> 10) & 0x0fc0;
+                const unsigned int xtemp = (xfrac >> 16) & 0x3f;
                 const int spot = xtemp | ytemp;
                 const byte source = sourcebase[spot];
                 dest[0] = colormap[source];
                 dest[1] = colormap[source];
                 dest += 2;
-                ds_xfrac += xstep;
-                ds_yfrac += ystep;
+                xfrac += xstep;
+                yfrac += ystep;
             }
 
-            remaining -= 4;
+            count -= 4;
         }
 
         // Render remaining pixels one by one if any
-        for (int i = 0; i < remaining; i++)
+        while (count-- > 0)
         {
-            const unsigned int ytemp = (ds_yfrac >> 10) & 0x0fc0;
-            const unsigned int xtemp = (ds_xfrac >> 16) & 0x3f;
+            const unsigned int ytemp = (yfrac >> 10) & 0x0fc0;
+            const unsigned int xtemp = (xfrac >> 16) & 0x3f;
             const int spot = xtemp | ytemp;
 
             const byte source = sourcebase[spot];
             *dest++ = colormap[source]; // first pixel
             *dest++ = colormap[source]; // second pixel
 
-            ds_xfrac += xstep;
-            ds_yfrac += ystep;
+            xfrac += xstep;
+            yfrac += ystep;
         }
     }
     else
@@ -822,8 +834,8 @@ void R_DrawSpanLow(void)
         // Flipped levels in blocky mode
         for (int i = 0; i < count; i++)
         {
-            const unsigned int ytemp = (ds_yfrac >> 10) & 0x0fc0;
-            const unsigned int xtemp = (ds_xfrac >> 16) & 0x3f;
+            const unsigned int ytemp = (yfrac >> 10) & 0x0fc0;
+            const unsigned int xtemp = (xfrac >> 16) & 0x3f;
             const int spot = xtemp | ytemp;
 
             const byte source = sourcebase[spot];
@@ -836,10 +848,14 @@ void R_DrawSpanLow(void)
             dest = ylookup[ds_y] + columnofs[flipviewwidth[ds_x1++]];
             *dest = colormap[source];
 
-            ds_xfrac += xstep;
-            ds_yfrac += ystep;
+            xfrac += xstep;
+            yfrac += ystep;
         }
     }
+
+    // [PN] Store back updated fractional values
+    ds_xfrac = xfrac;
+    ds_yfrac = yfrac;
 }
 
 
