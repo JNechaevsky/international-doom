@@ -41,6 +41,7 @@
 
 extern int SCREENWIDTH;
 extern int SCREENHEIGHT;
+extern int SCREENAREA;
 extern int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 extern int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 extern void (*post_rendering_hook) (void); // [crispy]

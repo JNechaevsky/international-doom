@@ -57,6 +57,7 @@ static int vid_startup_delay = 35;
 static int vid_resize_delay = 35;
 
 int SCREENWIDTH, SCREENHEIGHT, SCREENHEIGHT_4_3;
+int SCREENAREA; // [JN] SCREENWIDTH * SCREENHEIGHT
 int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
@@ -1954,6 +1955,7 @@ void I_GetScreenDimensions (void)
 		SCREENWIDTH = MIN(SCREENWIDTH, MAXWIDTH);
 	}
 
+	SCREENAREA = SCREENWIDTH * SCREENHEIGHT;
 	WIDESCREENDELTA = ((SCREENWIDTH - NONWIDEWIDTH) / vid_resolution) / 2;
 }
 
