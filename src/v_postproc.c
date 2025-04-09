@@ -35,47 +35,74 @@ void V_PProc_AnalogRGBDrift(void)
     const int width = SCREENWIDTH;
     const int height = SCREENHEIGHT;
 
-    // Static temp buffer to store the original frame for sampling
+    // Static buffer to store the original frame for safe sampling during modification
     static pixel_t* chromabuf = NULL;
     static size_t chromabuf_size = 0;
 
-    // Resize buffer if needed (e.g., after resolution change)
+    // Reallocate buffer if resolution has changed
     const size_t needed_size = width * height * sizeof(pixel_t);
     if (chromabuf_size != needed_size)
     {
         free(chromabuf);
         chromabuf = malloc(needed_size);
-        if (!chromabuf) return;
+        if (!chromabuf)
+            return;
         chromabuf_size = needed_size;
     }
 
-    // Copy the current frame to buffer for safe reading while modifying original
-    pixel_t* src = (pixel_t*)argbbuffer->pixels;
+    // Copy the current frame into the temporary buffer
+    pixel_t *const src = (pixel_t*)argbbuffer->pixels;
     memcpy(chromabuf, src, needed_size);
 
-    // [JN] Support for resolution-agnostic pixel size.
+    // [JN] Calculate RGB drift offset depending on resolution.
     const int dx = post_rgbdrift + (vid_resolution > 2 ? (vid_resolution - 2) : 0);
 
-    for (int y = 0; y < height; ++y)
+    // Precompute shifted column indices for red (left) and blue (right) channels
+    static int *x_src_r = NULL;
+    static int *x_src_b = NULL;
+    static int allocated_width = 0;
+    static int last_dx = -1;
+    if (allocated_width != width || last_dx != dx)
     {
+        free(x_src_r);
+        free(x_src_b);
+        x_src_r = malloc(sizeof(int) * width);
+        x_src_b = malloc(sizeof(int) * width);
+        if (!x_src_r || !x_src_b)
+        {
+            free(x_src_r);
+            free(x_src_b);
+            x_src_r = x_src_b = NULL;
+            return;
+        }
+        allocated_width = width;
+        last_dx = dx;
         for (int x = 0; x < width; ++x)
         {
-            // Compute safe offsets for red (left) and blue (right) components
-            const int xr = (x - dx >= 0) ? x - dx : 0;
-            const int xb = (x + dx < width) ? x + dx : width - 1;
+            x_src_r[x] = (x - dx >= 0) ? x - dx : 0;
+            x_src_b[x] = (x + dx < width) ? x + dx : width - 1;
+        }
+    }
 
-            // Sample pixels: red shifted left, blue shifted right, green unchanged
-            pixel_t orig = chromabuf[y * width + x];
-            pixel_t red  = chromabuf[y * width + xr];
-            pixel_t blue = chromabuf[y * width + xb];
+    // Use row pointers to avoid repeated multiplications in pixel indexing
+    for (int y = 0; y < height; ++y)
+    {
+        pixel_t *const srcRow = src + y * width;
+        const pixel_t *const chromaRow = chromabuf + y * width;
+        for (int x = 0; x < width; ++x)
+        {
+            // Fetch original pixel and shifted red/blue samples
+            pixel_t orig = chromaRow[x];
+            pixel_t red  = chromaRow[x_src_r[x]];
+            pixel_t blue = chromaRow[x_src_b[x]];
 
-            // Extract RGB components
+            // Extract RGB components from the appropriate pixels
             Uint8 r = (red >> 16) & 0xff;
             Uint8 g = (orig >> 8) & 0xff;
             Uint8 b = blue & 0xff;
 
-            // Compose new pixel with shifted R/B and original G; keep alpha
-            src[y * width + x] = (r << 16) | (g << 8) | b | 0xff000000;
+            // Compose the final pixel with altered red/blue and original green; alpha is fixed
+            srcRow[x] = (r << 16) | (g << 8) | b | 0xff000000;
         }
     }
 }
