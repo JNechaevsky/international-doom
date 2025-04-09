@@ -1098,4 +1098,11 @@ void R_RenderPlayerView (player_t *player)
 
     // Check for new console commands.
     NetUpdate ();
+
+    // [JN] Post-processing effect: Depth Of Field Blur
+    if (post_dofblur)
+    {
+        V_PProc_DepthOfFieldBlur();
+        st_fullupdate = true;
+    }
 }

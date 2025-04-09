@@ -27,7 +27,7 @@
 //  on CPU after the frame is rendered.
 // -----------------------------------------------------------------------------
 
-void V_PProc_AnalogRGBDrift(void)
+void V_PProc_AnalogRGBDrift (void)
 {
     if (!argbbuffer)
         return;
@@ -108,14 +108,22 @@ void V_PProc_AnalogRGBDrift(void)
 }
 
 // -----------------------------------------------------------------------------
+// V_PProc_DepthOfFieldBlur
+//  [PN] Applies a radial depth-of-field blur effect based on distance from
+//  screen center. Pixels near the center remain sharp, while those farther
+//  away are blurred using a variable-size box blur kernel.
+//  The effect simulates camera-like focus, with adaptive radius and strength
+//  depending on current resolution settings. Handles edges by clamping kernel.
 //
+//  Uses a hybrid approach: fast kernel pass for safe central
+//  area, and boundary-aware blur for edges to ensure full-frame coverage.
 // -----------------------------------------------------------------------------
 
 static Uint32 *dof_blur_buffer = NULL;
 static int dof_buffer_w = 0;
 static int dof_buffer_h = 0;
 
-void InitDepthOfFieldBuffer(void)
+static void InitDepthOfFieldBuffer (void)
 {
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
         return;
@@ -137,7 +145,7 @@ void InitDepthOfFieldBuffer(void)
     }
 }
 
-void ApplyDepthOfFieldBlur(void)
+void V_PProc_DepthOfFieldBlur (void)
 {
     InitDepthOfFieldBuffer();
 
@@ -149,51 +157,111 @@ void ApplyDepthOfFieldBlur(void)
     if (width < 3 || height < 3)
         return;
 
-    const int stride = argbbuffer->w;
-    Uint32 *pixels = (Uint32 *)argbbuffer->pixels;
+    const int stride = width;
+    Uint32* pixels = (Uint32*)argbbuffer->pixels;
     memcpy(dof_blur_buffer, pixels, sizeof(Uint32) * width * height);
 
     const int cx = width / 2;
     const int cy = height / 2;
 
-    // Адаптивный радиус DOF
     const int base_threshold = 150;
     const int blur_threshold = base_threshold * vid_resolution;
     const int thresholdSq = blur_threshold * blur_threshold;
 
-    // Адаптивный радиус маски блюра (1 = 3x3, 2 = 5x5, 3 = 7x7)
     const int blur_radius = (vid_resolution <= 2) ? 1 : (vid_resolution <= 4) ? 2 : 3;
     const int blur_size = (2 * blur_radius + 1) * (2 * blur_radius + 1);
 
-    for (int y = blur_radius; y < height - blur_radius; ++y)
+    const int x_start = blur_radius;
+    const int x_end   = width - blur_radius;
+    const int y_start = blur_radius;
+    const int y_end   = height - blur_radius;
+
+    // [PN] Fast path: process safe central zone without boundary checks
+    for (int y = y_start; y < y_end; ++y)
     {
-        for (int x = blur_radius; x < width - blur_radius; ++x)
+        int dy = y - cy;
+        int dy2 = dy * dy;
+        Uint32* destRow = pixels + y * stride;
+
+        for (int x = x_start; x < x_end; ++x)
         {
             int dx = x - cx;
-            int dy = y - cy;
-            if ((dx * dx + dy * dy) <= thresholdSq)
+            if (dx * dx + dy2 <= thresholdSq)
                 continue;
 
-            int r = 0, g = 0, b = 0;
+            int r_sum = 0, g_sum = 0, b_sum = 0;
 
             for (int ky = -blur_radius; ky <= blur_radius; ++ky)
             {
+                Uint32* kernelRow = dof_blur_buffer + (y + ky) * stride;
                 for (int kx = -blur_radius; kx <= blur_radius; ++kx)
                 {
-                    Uint32 c = dof_blur_buffer[(y + ky) * stride + (x + kx)];
-
-                    b +=  c        & 0xFF;
-                    g += (c >> 8)  & 0xFF;
-                    r += (c >> 16) & 0xFF;
+                    Uint32 c = kernelRow[x + kx];
+                    b_sum += c & 0xFF;
+                    g_sum += (c >> 8) & 0xFF;
+                    r_sum += (c >> 16) & 0xFF;
                 }
             }
 
-            r /= blur_size;
-            g /= blur_size;
-            b /= blur_size;
+            int r_avg = r_sum / blur_size;
+            int g_avg = g_sum / blur_size;
+            int b_avg = b_sum / blur_size;
 
-            Uint32 a = pixels[y * stride + x] & 0xFF000000;
-            pixels[y * stride + x] = a | (r << 16) | (g << 8) | b;
+            Uint32 a = destRow[x] & 0xFF000000;
+            destRow[x] = a | (r_avg << 16) | (g_avg << 8) | b_avg;
+        }
+    }
+
+    // [PN] Slow path: process edges with boundary checks
+    for (int y = 0; y < height; ++y)
+    {
+        int dy = y - cy;
+        int dy2 = dy * dy;
+        Uint32* destRow = pixels + y * stride;
+
+        for (int x = 0; x < width; ++x)
+        {
+            // [PN] Skip already-processed central area
+            if (x >= x_start && x < x_end && y >= y_start && y < y_end)
+                continue;
+
+            int dx = x - cx;
+            if (dx * dx + dy2 <= thresholdSq)
+                continue;
+
+            int r_sum = 0, g_sum = 0, b_sum = 0;
+            int count = 0;
+
+            for (int ky = -blur_radius; ky <= blur_radius; ++ky)
+            {
+                int ny = y + ky;
+                if (ny < 0 || ny >= height)
+                    continue;
+
+                Uint32* kernelRow = dof_blur_buffer + ny * stride;
+                for (int kx = -blur_radius; kx <= blur_radius; ++kx)
+                {
+                    int nx = x + kx;
+                    if (nx < 0 || nx >= width)
+                        continue;
+
+                    Uint32 c = kernelRow[nx];
+                    b_sum += c & 0xFF;
+                    g_sum += (c >> 8) & 0xFF;
+                    r_sum += (c >> 16) & 0xFF;
+                    ++count;
+                }
+            }
+
+            if (count == 0)
+                continue;
+
+            int r_avg = r_sum / count;
+            int g_avg = g_sum / count;
+            int b_avg = b_sum / count;
+
+            Uint32 a = destRow[x] & 0xFF000000;
+            destRow[x] = a | (r_avg << 16) | (g_avg << 8) | b_avg;
         }
     }
 }
