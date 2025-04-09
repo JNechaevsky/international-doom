@@ -23,7 +23,7 @@
 #include "id_vars.h"
 
 
-extern void V_ChromaticAberrationEffect(void);
+extern void V_PProc_AnalogRGBDrift(void);
 
 extern void InitDepthOfFieldBuffer(void);
 extern void ApplyDepthOfFieldBlur(void);

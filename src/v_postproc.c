@@ -23,7 +23,7 @@
 //
 // -----------------------------------------------------------------------------
 
-void V_ChromaticAberrationEffect(void)
+void V_PProc_AnalogRGBDrift(void)
 {
     if (!argbbuffer)
         return;
@@ -46,7 +46,7 @@ void V_ChromaticAberrationEffect(void)
     pixel_t* src = (pixel_t*)argbbuffer->pixels;
     memcpy(chromabuf, src, needed_size);
 
-            const int dx = vid_resolution + post_chroma; // fixed shift, or make dynamic based on strength
+            const int dx = vid_resolution + post_rgbdrift; // fixed shift, or make dynamic based on strength
 
     for (int y = 0; y < height; ++y)
     {
