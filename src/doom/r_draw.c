@@ -288,10 +288,6 @@ void R_SetFuzzPosDraw (void)
 
 void R_DrawFuzzColumn(void)
 {
-    // [PN] Adjust borders
-    if (!dc_yl)
-        dc_yl = 1;
-
     const boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
@@ -310,15 +306,22 @@ void R_DrawFuzzColumn(void)
     int local_fuzzpos = fuzzpos;
     const int fuzzalpha = fuzz_alpha;
     const int screenwidth = SCREENWIDTH;
+    const int screenarea = SCREENAREA;
 
     // [PN] Use a for loop for clarity and potential optimizations
     {
         const int iterations = count + 1; // [PN] since do/while decrements count after use
         for (int i = 0; i < iterations; i++)
         {
-            const int fuzz_offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
+            // [PN] Fix: draw top fuzz pixel safely using src pointer instead of skipping line.
+            const pixel_t *src = dest + screenwidth * fuzzoffsetbase[local_fuzzpos];
 
-            *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
+            // [JN] Subtract 1 to inject horizontal randomness into top fuzz line.
+            // Fixes static appearance by sampling offset pixel from next row.
+            if (src < I_VideoBuffer)
+                src = dest + screenwidth - 1;
+            if (src < I_VideoBuffer + screenarea)
+                *dest = I_BlendDark(*src, fuzzalpha);
 
             // [PN] Update fuzzpos
             local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
@@ -354,9 +357,6 @@ void R_DrawFuzzColumn(void)
 
 void R_DrawFuzzColumnLow(void)
 {
-    if (!dc_yl)
-        dc_yl = 1;
-
     boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
@@ -379,16 +379,28 @@ void R_DrawFuzzColumnLow(void)
     int local_fuzzpos = fuzzpos;
     const int fuzzalpha = fuzz_alpha;
     const int screenwidth = SCREENWIDTH;
+    const int screenarea = SCREENAREA;
 
     // [PN] Use a for loop for clarity and potential optimizations
     {
         const int iterations = count + 1;
         for (int i = 0; i < iterations; i++)
         {
-            const int fuzz_offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
+            // [PN] Fix: draw top fuzz pixel safely using src pointer instead of skipping line.
+            const pixel_t *src1 = dest + screenwidth * fuzzoffsetbase[local_fuzzpos];
+            const pixel_t *src2 = dest2 + screenwidth * fuzzoffsetbase[local_fuzzpos];
 
-            *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
-            *dest2 = I_BlendDark(dest2[fuzz_offset], fuzzalpha);
+            // [JN] Subtract 1 to inject horizontal randomness into top fuzz line.
+            // Fixes static appearance by sampling offset pixel from next row.
+            if (src1 < I_VideoBuffer)
+                src1 = dest + screenwidth - 1;
+            if (src2 < I_VideoBuffer)
+                src2 = dest2 + screenwidth - 1;
+            
+            if (src1 < I_VideoBuffer + screenarea)
+                *dest = I_BlendDark(*src1, fuzzalpha);
+            if (src2 < I_VideoBuffer + screenarea)
+                *dest2 = I_BlendDark(*src2, fuzzalpha);
 
             local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
             if (local_fuzzpos == 0 && vis_improved_fuzz)
@@ -500,9 +512,6 @@ void R_DrawFuzzTLColumnLow(void)
 
 void R_DrawFuzzBWColumn(void)
 {
-    if (!dc_yl)
-        dc_yl = 1;
-
     const boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
@@ -520,13 +529,20 @@ void R_DrawFuzzBWColumn(void)
     int local_fuzzpos = fuzzpos;
     const int fuzzalpha = fuzz_alpha;
     const int screenwidth = SCREENWIDTH;
+    const int screenarea = SCREENAREA;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
     {
-        const int fuzz_offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
+        // [PN] Fix: draw top fuzz pixel safely using src pointer instead of skipping line.
+        const pixel_t *src = dest + screenwidth * fuzzoffsetbase[local_fuzzpos];
 
-        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
+        // [JN] Subtract 1 to inject horizontal randomness into top fuzz line.
+        // Fixes static appearance by sampling offset pixel from next row.
+        if (src < I_VideoBuffer)
+            src = dest + screenwidth - 1;
+        if (src < I_VideoBuffer + screenarea)
+            *dest = I_BlendDarkGrayscale(*src, fuzzalpha);
 
         local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
         dest += screenwidth;
@@ -550,9 +566,6 @@ void R_DrawFuzzBWColumn(void)
 
 void R_DrawFuzzBWColumnLow(void)
 {
-    if (!dc_yl)
-        dc_yl = 1;
-
     const boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
@@ -574,14 +587,26 @@ void R_DrawFuzzBWColumnLow(void)
     int local_fuzzpos = fuzzpos;
     const int fuzzalpha = fuzz_alpha;
     const int screenwidth = SCREENWIDTH;
+    const int screenarea = SCREENAREA;
 
     const int iterations = count + 1;
     for (int i = 0; i < iterations; i++)
     {
-        const int fuzz_offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
+        // [PN] Fix: draw top fuzz pixel safely using src pointer instead of skipping line.
+        const pixel_t *src1 = dest + screenwidth * fuzzoffsetbase[local_fuzzpos];
+        const pixel_t *src2 = dest2 + screenwidth * fuzzoffsetbase[local_fuzzpos];
 
-        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
-        *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha);
+        // [JN] Subtract 1 to inject horizontal randomness into top fuzz line.
+        // Fixes static appearance by sampling offset pixel from next row.
+        if (src1 < I_VideoBuffer)
+            src1 = dest + screenwidth - 1;
+        if (src2 < I_VideoBuffer)
+            src2 = dest2 + screenwidth - 1;
+        
+        if (src1 < I_VideoBuffer + screenarea)
+            *dest = I_BlendDarkGrayscale(*src1, fuzzalpha);
+        if (src2 < I_VideoBuffer + screenarea)
+            *dest2 = I_BlendDarkGrayscale(*src2, fuzzalpha);
 
         local_fuzzpos = (local_fuzzpos + 1) % FUZZTABLE;
 
