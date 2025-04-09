@@ -20,7 +20,11 @@
 
 
 // -----------------------------------------------------------------------------
-//
+// V_PProc_AnalogRGBDrift
+//  [PN] Applies analog-style RGB drift effect by offsetting red and blue 
+//  channels horizontally in opposite directions.
+//  Creates a chromatic aberration/glitchy visual by shifting color channels 
+//  on CPU after the frame is rendered.
 // -----------------------------------------------------------------------------
 
 void V_PProc_AnalogRGBDrift(void)
@@ -31,9 +35,11 @@ void V_PProc_AnalogRGBDrift(void)
     const int width = SCREENWIDTH;
     const int height = SCREENHEIGHT;
 
+    // Static temp buffer to store the original frame for sampling
     static pixel_t* chromabuf = NULL;
     static size_t chromabuf_size = 0;
 
+    // Resize buffer if needed (e.g., after resolution change)
     const size_t needed_size = width * height * sizeof(pixel_t);
     if (chromabuf_size != needed_size)
     {
@@ -43,6 +49,7 @@ void V_PProc_AnalogRGBDrift(void)
         chromabuf_size = needed_size;
     }
 
+    // Copy the current frame to buffer for safe reading while modifying original
     pixel_t* src = (pixel_t*)argbbuffer->pixels;
     memcpy(chromabuf, src, needed_size);
 
@@ -52,18 +59,21 @@ void V_PProc_AnalogRGBDrift(void)
     {
         for (int x = 0; x < width; ++x)
         {
-
+            // Compute safe offsets for red (left) and blue (right) components
             const int xr = (x - dx >= 0) ? x - dx : 0;
             const int xb = (x + dx < width) ? x + dx : width - 1;
 
+            // Sample pixels: red shifted left, blue shifted right, green unchanged
             pixel_t orig = chromabuf[y * width + x];
             pixel_t red  = chromabuf[y * width + xr];
             pixel_t blue = chromabuf[y * width + xb];
 
+            // Extract RGB components
             Uint8 r = (red >> 16) & 0xff;
             Uint8 g = (orig >> 8) & 0xff;
             Uint8 b = blue & 0xff;
 
+            // Compose new pixel with shifted R/B and original G; keep alpha
             src[y * width + x] = (r << 16) | (g << 8) | b | 0xff000000;
         }
     }
