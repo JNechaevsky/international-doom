@@ -397,6 +397,13 @@ static void D_Display (void)
     M_Drawer ();   // menu is drawn even on top of everything
     NetUpdate ();  // send out any new accumulation
 
+    // [JN] Post-processing effect: Analog RGB Drift
+    if (post_rgbdrift)
+    {
+        V_PProc_AnalogRGBDrift();
+        st_fullupdate = true;
+    }
+
     // normal update
     if (!wipe)
     {

@@ -52,6 +52,9 @@ extern int vid_screenwipe;
 extern int vid_screenwipe_hr;
 extern int msg_text_shadows;
 
+extern int post_rgbdrift;
+extern int post_dofblur;
+
 // Display
 extern int dp_detail_level;
 extern int dp_menu_shading;

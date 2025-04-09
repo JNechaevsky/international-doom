@@ -49,6 +49,9 @@ int vid_diskicon = 1;
 int vid_endoom = 0;
 int vid_graphical_startup = 0;
 int vid_banners = 1;
+// Post-processing
+int post_rgbdrift = 0;
+int post_dofblur = 0;
 
 //
 // Display options
@@ -238,6 +241,9 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("vid_banners",                &vid_banners);
     }  
+    // Post-processing
+    M_BindIntVariable("post_rgbdrift",                  &post_rgbdrift);
+    M_BindIntVariable("post_dofblur",                   &post_dofblur);
 
     //
     // Display options

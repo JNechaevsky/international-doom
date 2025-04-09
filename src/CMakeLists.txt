@@ -84,6 +84,7 @@ set(GAME_SOURCE_FILES
     memio.c             memio.h
     tables.c            tables.h
     v_diskicon.c        v_diskicon.h
+    v_postproc.c        v_postproc.h
     v_video.c           v_video.h
                         v_patch.h
     v_trans.c           v_trans.h
