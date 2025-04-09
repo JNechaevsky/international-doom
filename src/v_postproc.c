@@ -53,7 +53,8 @@ void V_PProc_AnalogRGBDrift(void)
     pixel_t* src = (pixel_t*)argbbuffer->pixels;
     memcpy(chromabuf, src, needed_size);
 
-            const int dx = vid_resolution + post_rgbdrift; // fixed shift, or make dynamic based on strength
+    // [JN] Support for resolution-agnostic pixel size.
+    const int dx = post_rgbdrift + (vid_resolution > 2 ? (vid_resolution - 2) : 0);
 
     for (int y = 0; y < height; ++y)
     {
