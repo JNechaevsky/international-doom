@@ -366,7 +366,7 @@ static void DrawPic(void)
     }
 #ifdef CRISPY_TRUECOLOR
     // [JN] Apply true color blending on top of patch drawing functions.
-    for (int y = 0; y < SCREENWIDTH * SCREENHEIGHT; y++)
+    for (int y = 0; y < SCREENAREA; y++)
     {
         I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], BlendTic);
     }

@@ -43,7 +43,7 @@ static int fade_counter;
 
 static void wipe_initCrossfade (void)
 {
-    memcpy(wipe_scr, wipe_scr_start, SCREENWIDTH*SCREENHEIGHT*sizeof(*wipe_scr));
+    memcpy(wipe_scr, wipe_scr_start, SCREENAREA*sizeof(*wipe_scr));
     // [JN] Arm fail-safe crossfade counter with...
 #ifndef CRISPY_TRUECOLOR
     // 8 screen screen transitions in paletted render,
@@ -73,7 +73,7 @@ static const int wipe_doCrossfade (const int ticks)
 {
     pixel_t   *cur_screen = wipe_scr;
     pixel_t   *end_screen = wipe_scr_end;
-    const int  pix = SCREENWIDTH*SCREENHEIGHT;
+    const int  pix = SCREENAREA;
     boolean changed = false;
 
     // [crispy] reduce fail-safe crossfade counter tics
@@ -121,7 +121,7 @@ static void wipe_exit (void)
 
 void wipe_StartScreen (void)
 {
-    wipe_scr_start = malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_start));
+    wipe_scr_start = malloc(SCREENAREA * sizeof(*wipe_scr_start));
     I_ReadScreen(wipe_scr_start);
 }
 
@@ -131,7 +131,7 @@ void wipe_StartScreen (void)
 
 void wipe_EndScreen (void)
 {
-    wipe_scr_end = malloc(SCREENWIDTH * SCREENHEIGHT * sizeof(*wipe_scr_end));
+    wipe_scr_end = malloc(SCREENAREA * sizeof(*wipe_scr_end));
     I_ReadScreen(wipe_scr_end);
 }
 

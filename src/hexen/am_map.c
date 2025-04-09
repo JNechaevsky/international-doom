@@ -1075,7 +1075,7 @@ static void AM_shadeBackground (void)
     pixel_t *dest = I_VideoBuffer;
     const int shade = automap_shading;
     const int scr = (dp_screen_size > 10)
-                  ? SCREENWIDTH * SCREENHEIGHT
+                  ? SCREENAREA
                   : SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
 
     for (int i = 0; i < scr; i++)

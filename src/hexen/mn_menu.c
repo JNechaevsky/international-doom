@@ -765,7 +765,7 @@ static void M_ShadeBackground (void)
     {
         pixel_t *dest = I_VideoBuffer;
         const int shade = dp_menu_shading;
-        const int scr = SCREENWIDTH * SCREENHEIGHT;
+        const int scr = SCREENAREA;
         
         for (int i = 0; i < scr; i++)
         {
