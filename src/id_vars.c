@@ -53,6 +53,7 @@ int vid_banners = 1;
 int post_overglow = 0;
 int post_rgbdrift = 0;
 int post_vhsdist = 0;
+int post_vignette = 0;
 int post_motionblur = 0;
 int post_dofblur = 0;
 
@@ -248,6 +249,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("post_overglow",                  &post_overglow);
     M_BindIntVariable("post_rgbdrift",                  &post_rgbdrift);
     M_BindIntVariable("post_vhsdist",                   &post_vhsdist);
+    M_BindIntVariable("post_vignette",                  &post_vignette);
     M_BindIntVariable("post_motionblur",                &post_motionblur);
     M_BindIntVariable("post_dofblur",                   &post_dofblur);
 

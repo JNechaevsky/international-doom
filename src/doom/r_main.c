@@ -1106,10 +1106,17 @@ void R_RenderPlayerView (player_t *player)
         st_fullupdate = true;
     }
 
-    // [JN] Post-processing effect: Depth Of Field Blur
+    // [JN] Post-processing effect: Depth of Field Blur
     if (post_dofblur)
     {
         V_PProc_DepthOfFieldBlur();
+        st_fullupdate = true;
+    }
+
+    // [JN] Post-processing effect: Screen Vignette
+    if (post_vignette)
+    {
+        V_PProc_ScreenVignette();
         st_fullupdate = true;
     }
 }

@@ -26,5 +26,6 @@
 extern void V_PProc_OverbrightGlow (void);
 extern void V_PProc_AnalogRGBDrift (void);
 extern void V_PProc_VHSLineDistortion (void);
+extern void V_PProc_ScreenVignette (void);
 extern void V_PProc_MotionBlur (void);
 extern void V_PProc_DepthOfFieldBlur (void);

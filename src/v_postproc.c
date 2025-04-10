@@ -252,6 +252,69 @@ void V_PProc_VHSLineDistortion (void)
 }
 
 // -----------------------------------------------------------------------------
+// V_PProc_ScreenVignette
+//  [PN] Applies a radial vignette effect that darkens pixels based on distance
+//  from screen center. Intensity is controlled by 'post_vignette' variable,
+//  mapping to predefined attenuation levels.
+//  The effect subtly focuses player's vision toward center, enhancing atmosphere.
+//
+//  Implemented using Q8.8 fixed-point math — no floats used.
+// -----------------------------------------------------------------------------
+
+void V_PProc_ScreenVignette(void)
+{
+    // Validate input buffer and 32-bit pixel format
+    if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
+        return;
+
+    const int width  = argbbuffer->w;
+    const int height = argbbuffer->h;
+    Uint32 *pixels   = (Uint32 *)argbbuffer->pixels;
+
+    const int cx = width / 2;
+    const int cy = height / 2;
+    const int max_dist2 = cx * cx + cy * cy;
+
+    // Attenuation levels by post_vignette (Q8.8 fixed-point)
+    // 0 = OFF, higher = stronger vignette
+    static const int attenuation_table[] = { 0, 80, 146, 200, 255 };
+    int attenuation_max = attenuation_table[post_vignette];
+
+    for (int y = 0; y < height; ++y)
+    {
+        const int dy = y - cy;
+        const int dy2 = dy * dy;
+
+        for (int x = 0; x < width; ++x)
+        {
+            const int dx = x - cx;
+            const int dist2 = dx * dx + dy2;
+
+            // attenuation = distance² scaled to max attenuation
+            int atten = (dist2 * attenuation_max) / max_dist2;
+            if (atten > attenuation_max)
+                atten = attenuation_max;
+
+            // scale = 1.0 - attenuation (in Q8.8)
+            const int scale = 256 - atten;
+
+            const int i = y * width + x;
+            Uint32 px = pixels[i];
+
+            int r = (px >> 16) & 0xFF;
+            int g = (px >> 8) & 0xFF;
+            int b = px & 0xFF;
+
+            r = (r * scale) >> 8;
+            g = (g * scale) >> 8;
+            b = (b * scale) >> 8;
+
+            pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 // V_PProc_MotionBlur
 //  [PN] Applies a motion blur effect by blending the current frame with a 
 //  previously stored frame. This creates a perceptual smearing effect that 
