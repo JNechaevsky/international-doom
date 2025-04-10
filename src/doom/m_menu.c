@@ -549,7 +549,7 @@ static player_t *player;
 static void M_Draw_ID_Main (void);
 
 static void M_Choose_ID_Video (int choice);
-static void M_Draw_ID_Video (void);
+static void M_Draw_ID_Video_1 (void);
 static void M_ID_TrueColor (int choice);
 static void M_ID_RenderingRes (int choice);
 static void M_ID_Widescreen (int choice);
@@ -563,6 +563,15 @@ static void M_ID_PixelScaling (int choice);
 static void M_ID_ScreenWipe (int choice);
 static void M_ID_DiskIcon (int choice);
 static void M_ID_ShowENDOOM (int choice);
+
+static void M_Draw_ID_Video_2 (void);
+static void M_ID_OverbrightGlow (int choice);
+static void M_ID_AnalogRGBDrift (int choice);
+static void M_ID_VHSLineDistortion (int choice);
+static void M_ID_MotionBlur (int choice);
+static void M_ID_DepthOfFieldBlur (int choice);
+
+static void M_ScrollVideo (int choice);
 
 static void M_Choose_ID_Display (int choice);
 static void M_Draw_ID_Display (void);
@@ -1302,10 +1311,10 @@ static void M_Draw_ID_Main (void)
 }
 
 // -----------------------------------------------------------------------------
-// Video options
+// Video options 1
 // -----------------------------------------------------------------------------
 
-static menuitem_t ID_Menu_Video[]=
+static menuitem_t ID_Menu_Video_1[]=
 {
     { M_MUL2, "TRUECOLOR RENDERING",  M_ID_TrueColor,    't' },
     { M_MUL1, "RENDERING RESOLUTION", M_ID_RenderingRes, 'r' },
@@ -1320,14 +1329,17 @@ static menuitem_t ID_Menu_Video[]=
     { M_MUL2, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   's' },
     { M_MUL2, "SHOW DISK ICON",       M_ID_DiskIcon,     's' },
     { M_MUL2, "SHOW ENDOOM SCREEN",   M_ID_ShowENDOOM,   's' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_MUL1, "", /* NEXT PAGE > */   M_ScrollVideo,     'n' },
 };
 
-static menu_t ID_Def_Video =
+static menu_t ID_Def_Video_1 =
 {
-    13,
+    16,
     &ID_Def_Main,
-    ID_Menu_Video,
-    M_Draw_ID_Video,
+    ID_Menu_Video_1,
+    M_Draw_ID_Video_1,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
     true, false, false,
@@ -1335,10 +1347,10 @@ static menu_t ID_Def_Video =
 
 static void M_Choose_ID_Video (int choice)
 {
-    M_SetupNextMenu (&ID_Def_Video);
+    M_SetupNextMenu (&ID_Def_Video_1);
 }
 
-static void M_Draw_ID_Video (void)
+static void M_Draw_ID_Video_1 (void)
 {
     char str[32];
 
@@ -1446,6 +1458,9 @@ static void M_Draw_ID_Video (void)
 
         M_WriteTextCentered(135, resolution, cr[CR_LIGHTGRAY_DARK1]);
     }
+
+    M_WriteText (ID_MENU_LEFTOFFSET, 153, "NEXT PAGE >",
+                 M_Item_Glow(15, GLOW_LIGHTGRAY));
 }
 
 #ifdef CRISPY_TRUECOLOR
@@ -1614,6 +1629,112 @@ static void M_ID_DiskIcon (int choice)
 static void M_ID_ShowENDOOM (int choice)
 {
     vid_endoom = M_INT_Slider(vid_endoom, 0, 2, choice, false);
+}
+
+// -----------------------------------------------------------------------------
+// Video options 2
+// -----------------------------------------------------------------------------
+
+static menuitem_t ID_Menu_Video_2[]=
+{
+    { M_MUL2, "OVERBRIGHT GLOW",     M_ID_OverbrightGlow,    't' },
+    { M_MUL1, "ANALOG RGB DRIFT",    M_ID_AnalogRGBDrift,    'a' },
+    { M_MUL2, "VHS LINE DISTORTION", M_ID_VHSLineDistortion, 'v' },
+    { M_MUL1, "MOTION BLUR",         M_ID_MotionBlur,        'm' },
+    { M_MUL2, "DEPTH OF FIELD BLUR", M_ID_DepthOfFieldBlur,  'd' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_MUL1, "", /* NEXT PAGE > */   M_ScrollVideo,     'n' },
+};
+
+static menu_t ID_Def_Video_2 =
+{
+    16,
+    &ID_Def_Main,
+    ID_Menu_Video_2,
+    M_Draw_ID_Video_2,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    0,
+    true, false, false,
+};
+
+static void M_Draw_ID_Video_2 (void)
+{
+    char str[32];
+
+    M_WriteTextCentered(9, "POST-PROCESSING EFFECTS", cr[CR_YELLOW]);
+
+    // Overbright glow
+    sprintf(str, post_overglow ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 18, str, 
+                 M_Item_Glow(0, post_overglow ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Analog RGB drift
+    sprintf(str, post_rgbdrift == 1 ? "SUBTLE" :
+                 post_rgbdrift == 2 ? "STRONG" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 27, str, 
+                 M_Item_Glow(1, post_rgbdrift ? GLOW_GREEN : GLOW_DARKRED));
+
+    // VHS line distortion
+    sprintf(str, post_vhsdist ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 36, str, 
+                 M_Item_Glow(2, post_vhsdist ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Analog RGB drift
+    sprintf(str, post_motionblur == 1 ? "SOFT"   :
+                 post_motionblur == 2 ? "LIGHT"  : 
+                 post_motionblur == 3 ? "MEDIUM" : 
+                 post_motionblur == 4 ? "HEAVY"  : 
+                 post_motionblur == 5 ? "GHOST"  : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 45, str, 
+                 M_Item_Glow(3, post_motionblur ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Depth if field blur
+    sprintf(str, post_dofblur ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 54, str, 
+                 M_Item_Glow(4, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
+
+    M_WriteText (ID_MENU_LEFTOFFSET, 153, "< PREV PAGE",
+                 M_Item_Glow(15, GLOW_LIGHTGRAY));
+}
+
+static void M_ID_OverbrightGlow (int choice)
+{
+    post_overglow ^= 1;
+}
+
+static void M_ID_AnalogRGBDrift (int choice)
+{
+    post_rgbdrift = M_INT_Slider(post_rgbdrift, 0, 2, choice, false);
+}
+
+static void M_ID_VHSLineDistortion (int choice)
+{
+    post_vhsdist ^= 1;
+}
+
+static void M_ID_MotionBlur (int choice)
+{
+    post_motionblur = M_INT_Slider(post_motionblur, 0, 5, choice, false);
+}
+
+static void M_ID_DepthOfFieldBlur (int choice)
+{
+    post_dofblur ^= 1;
+}
+
+static void M_ScrollVideo (int choice)
+{
+         if (currentMenu == &ID_Def_Video_1) { ID_Def_Video_2.lastOn = 15; M_SetupNextMenu(&ID_Def_Video_2); }
+    else if (currentMenu == &ID_Def_Video_2) { ID_Def_Video_1.lastOn = 15; M_SetupNextMenu(&ID_Def_Video_1); }
 }
 
 // -----------------------------------------------------------------------------
@@ -4702,6 +4823,12 @@ static void M_ID_ApplyResetHook (void)
     vid_screenwipe = 1;
     vid_diskicon = 1;
     vid_endoom = 0;
+    // Post-processing effects
+    post_overglow = 0;
+    post_rgbdrift = 0;
+    post_vhsdist = 0;
+    post_motionblur = 0;
+    post_dofblur = 0;
 
     //
     // Display options
