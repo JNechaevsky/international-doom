@@ -1099,6 +1099,13 @@ void R_RenderPlayerView (player_t *player)
     // Check for new console commands.
     NetUpdate ();
 
+    // [JN] Post-processing effect: Motion Blur
+    if (post_motionblur)
+    {
+        V_PProc_MotionBlur();
+        st_fullupdate = true;
+    }
+
     // [JN] Post-processing effect: Depth Of Field Blur
     if (post_dofblur)
     {

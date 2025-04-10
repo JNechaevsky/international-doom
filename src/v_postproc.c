@@ -168,6 +168,123 @@ void V_PProc_VHSLineDistortion (void)
 }
 
 // -----------------------------------------------------------------------------
+// V_PProc_MotionBlur
+//  [PN] Applies a motion blur effect by blending the current frame with a 
+//  previously stored frame. This creates a perceptual smearing effect that 
+//  enhances the feeling of motion, especially at lower framerates.
+//
+//  The blending strength is dynamically controlled by the post_motionblur 
+//  variable, which adjusts the RGB weighting between the current 
+//  and previous frame (e.g., 9:1 = very subtle, 9:1 = strong trail).
+//
+//  At uncapped framerate, the function uses a minimal ring buffer for frame 
+//  history; at capped framerate (35 FPS), it switches to a simpler single-buffer 
+//  mode for efficiency.
+//
+//  The function responds to resolution changes and preserves internal state 
+//  across frames to maintain smooth and stable rendering effects.
+// -----------------------------------------------------------------------------
+
+
+#define MAX_BLUR_LAG 1
+
+void V_PProc_MotionBlur(void)
+{
+    // Validate input buffer and 32-bit pixel format.
+    if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
+        return;
+
+    const int width  = argbbuffer->w;
+    const int height = argbbuffer->h;
+    Uint32 *pixels   = (Uint32*)argbbuffer->pixels;
+    const size_t size = width * height * sizeof(Uint32);
+    const int total_pixels = width * height;
+
+    // Declare static buffers for previous frame and ring buffer.
+    static Uint32 *prev_frame = NULL;
+    static size_t  prev_size = 0;
+    static Uint32 *frame_ring[MAX_BLUR_LAG + 1] = {0};
+    static int ring_index = 0;
+    static size_t ring_size = 0;
+
+    // [JN] Modulate effect intensity
+    int blend_curr = 0, blend_prev = 0; // initialize
+    switch (post_motionblur)
+    {
+        case 1: blend_curr = 8; blend_prev = 2; break; // Soft
+        case 2: blend_curr = 7; blend_prev = 3; break; // Light
+        case 3: blend_curr = 6; blend_prev = 4; break; // Medium
+        case 4: blend_curr = 5; blend_prev = 5; break; // Heavy
+        case 5: blend_curr = 1; blend_prev = 9; break; // Ghost
+    }
+
+    // Allocate or reallocate memory for the buffers if frame size changed.
+    if (vid_uncapped_fps)
+    {
+        if (ring_size != size)
+        {
+            for (int i = 0; i <= MAX_BLUR_LAG; ++i)
+            {
+                free(frame_ring[i]);
+                frame_ring[i] = malloc(size);
+                if (frame_ring[i])
+                    memset(frame_ring[i], 0, size);
+            }
+            ring_size = size;
+        }
+    }
+    else
+    {
+        if (prev_size != size)
+        {
+            free(prev_frame);
+            prev_frame = malloc(size);
+            if (prev_frame)
+                memset(prev_frame, 0, size);
+            prev_size = size;
+        }
+    }
+
+    // Motion blur blending.
+    if (vid_uncapped_fps)
+    {
+        // Use ring buffer: retrieve previous frame at an index based on delay.
+        const int prev_index = (ring_index + MAX_BLUR_LAG) % (MAX_BLUR_LAG + 1);
+        Uint32 *ring_prev = frame_ring[prev_index];
+        if (!ring_prev)
+            return;
+
+        // Blending loop using pointer arithmetic.
+        for (int i = 0; i < total_pixels; ++i)
+        {
+            Uint32 curr = pixels[i], old = ring_prev[i];
+            int r = (((curr >> 16) & 0xFF) * blend_curr + ((old >> 16) & 0xFF) * blend_prev) / 10;
+            int g = (((curr >> 8)  & 0xFF) * blend_curr + ((old >> 8)  & 0xFF) * blend_prev) / 10;
+            int b = (((curr)       & 0xFF) * blend_curr + ((old)       & 0xFF) * blend_prev) / 10;
+            pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+        }
+        // Advance ring buffer index and save current frame.
+        ring_index = (ring_index + 1) % (MAX_BLUR_LAG + 1);
+        memcpy(frame_ring[ring_index], pixels, size);
+    }
+    else
+    {
+        // Single-buffer mode: blend current frame with prev_frame.
+        if (!prev_frame)
+            return;
+        for (int i = 0; i < total_pixels; ++i)
+        {
+            Uint32 curr = pixels[i], old = prev_frame[i];
+            int r = (((curr >> 16) & 0xFF) * blend_curr + ((old >> 16) & 0xFF) * blend_prev) / 10;
+            int g = (((curr >> 8)  & 0xFF) * blend_curr + ((old >> 8)  & 0xFF) * blend_prev) / 10;
+            int b = (((curr)       & 0xFF) * blend_curr + ((old)       & 0xFF) * blend_prev) / 10;
+            pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+        }
+        memcpy(prev_frame, pixels, size);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // V_PProc_DepthOfFieldBlur
 //  [PN] Applies a radial depth-of-field blur effect based on distance from
 //  screen center. Pixels near the center remain sharp, while those farther

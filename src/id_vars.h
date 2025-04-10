@@ -54,6 +54,7 @@ extern int msg_text_shadows;
 
 extern int post_rgbdrift;
 extern int post_vhsdist;
+extern int post_motionblur;
 extern int post_dofblur;
 
 // Display
