@@ -24,4 +24,5 @@
 
 
 extern void V_PProc_AnalogRGBDrift (void);
+extern void V_PProc_VHSLineDistortion (void);
 extern void V_PProc_DepthOfFieldBlur (void);

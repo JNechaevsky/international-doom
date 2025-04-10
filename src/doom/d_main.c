@@ -404,6 +404,13 @@ static void D_Display (void)
         st_fullupdate = true;
     }
 
+    // [JN] Post-processing effect: VHS Line Distortion
+    if (post_vhsdist)
+    {
+        V_PProc_VHSLineDistortion();
+        st_fullupdate = true;
+    }
+
     // normal update
     if (!wipe)
     {

@@ -108,6 +108,66 @@ void V_PProc_AnalogRGBDrift (void)
 }
 
 // -----------------------------------------------------------------------------
+// V_PProc_VHSLineDistortion
+//  [PN] Applies a VHS-style horizontal line glitch effect.
+//  Random horizontal line segments are shifted left or right across the frame,
+//  mimicking analog tape distortions. This effect is subtle but expressive,
+//  especially at higher resolutions or during gameplay intensity spikes.
+//  It introduces short-lived pixel offsets for 2–4 scanlines at a time,
+//  with randomized amplitude and location each frame.
+// -----------------------------------------------------------------------------
+
+void V_PProc_VHSLineDistortion (void)
+{
+    // Check if argbbuffer exists and is in 32-bit pixel format
+    if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
+        return;
+
+    const int width = argbbuffer->w;
+    const int height = argbbuffer->h;
+    Uint32 *pixels = (Uint32*)argbbuffer->pixels;
+
+    // Determine the number of glitch blocks and block height
+    const int max_blocks = 1;
+    const int block_height = 2 + rand() % 3; // Each glitch block is 2–4 lines high
+    const int glitch_intensity = (vid_resolution > 3 ? 4 : 2) + rand() % 3;
+    const int stride = width;
+
+    for (int i = 0; i < glitch_intensity && i < max_blocks; ++i)
+    {
+        const int y_start = rand() % (height - block_height);
+        // Horizontal shift in the range [-5 .. +5]
+        const int shift_val = (rand() % 11) - 5;
+        // Skip when shift is zero (no change)
+        if (shift_val == 0)
+            continue;
+
+        for (int y = y_start; y < y_start + block_height; ++y)
+        {
+            Uint32* row = pixels + y * stride;
+            if (shift_val > 0)
+            {
+                // For positive shifts, move current row to the right.
+                // memmove handles overlapping memory areas efficiently.
+                memmove(row + shift_val, row, (width - shift_val) * sizeof(Uint32));
+                // Fill the gap on the left with opaque black
+                for (int x = 0; x < shift_val; ++x)
+                    row[x] = 0xFF000000;
+            }
+            else // shift_val < 0
+            {
+                const int shift = -shift_val;
+                // For negative shifts, move current row to the left
+                memmove(row, row + shift, (width - shift) * sizeof(Uint32));
+                // Fill the gap on the right with opaque black
+                for (int x = width - shift; x < width; ++x)
+                    row[x] = 0xFF000000;
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 // V_PProc_DepthOfFieldBlur
 //  [PN] Applies a radial depth-of-field blur effect based on distance from
 //  screen center. Pixels near the center remain sharp, while those farther

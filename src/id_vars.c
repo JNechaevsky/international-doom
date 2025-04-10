@@ -51,6 +51,7 @@ int vid_graphical_startup = 0;
 int vid_banners = 1;
 // Post-processing
 int post_rgbdrift = 0;
+int post_vhsdist = 0;
 int post_dofblur = 0;
 
 //
@@ -243,6 +244,7 @@ void ID_BindVariables (GameMission_t mission)
     }  
     // Post-processing
     M_BindIntVariable("post_rgbdrift",                  &post_rgbdrift);
+    M_BindIntVariable("post_vhsdist",                   &post_vhsdist);
     M_BindIntVariable("post_dofblur",                   &post_dofblur);
 
     //
