@@ -213,7 +213,7 @@ void V_PProc_VHSLineDistortion (void)
 
     // Determine the number of glitch blocks and block height
     const int max_blocks = 1;
-    const int block_height = 2 + rand() % 3; // Each glitch block is 2–4 lines high
+    const int block_height = (4 + rand() % 3) * vid_resolution; // Each block is 4–6 lines per resolution
     const int glitch_intensity = (vid_resolution > 3 ? 4 : 2) + rand() % 3;
     const int stride = width;
 
