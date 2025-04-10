@@ -20,6 +20,90 @@
 
 
 // -----------------------------------------------------------------------------
+// V_PProc_OverbrightGlow
+// [PN] Applies dynamic exposure adjustment based on average frame brightness.
+// Implements "Overbright Glow" — an inverse HDR effect that intensifies 
+// already bright scenes and slightly fades darker ones.
+// -----------------------------------------------------------------------------
+
+void V_PProc_OverbrightGlow (void)
+{
+    // [PN] Validate input buffer and 32-bit format.
+    if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
+        return;
+
+    const int width  = argbbuffer->w;
+    const int height = argbbuffer->h;
+    const int total_pixels = width * height;
+    Uint32 *pixels = (Uint32*)argbbuffer->pixels;
+
+    // -------------------------------------------------------------------------
+    // Step 1: calculate average brightness (0..255)
+    // -------------------------------------------------------------------------
+
+    uint64_t total_brightness = 0;
+    Uint32 *p = pixels;
+    for (int i = 0; i < total_pixels; ++i)
+    {
+        Uint32 px = *p++;
+        Uint8 r = (Uint8)(px >> 16);
+        Uint8 g = (Uint8)(px >> 8);
+        Uint8 b = (Uint8)(px);
+
+        total_brightness += ((int)r * 3 + (int)g * 5 + (int)b * 2) / 10;
+    }
+
+    int avg_brightness = (int)(total_brightness / total_pixels);  // 0..255
+
+    // -------------------------------------------------------------------------
+    // Step 2: calculate target exposure (Q8.8 fixed point)
+    // -------------------------------------------------------------------------
+
+    // target_exposure = 0.25 + (avg_brightness / 255.0) * 2.5;
+    // in Q8.8: 64 + avg_brightness * 640 / 255;
+    int target_exp = 64 + (avg_brightness * 640) / 255;
+
+    const int min_exp = 230;   // ~0.90 (0.9 * 256)
+    const int max_exp = 1024;  //  4.00 (  4 * 256)
+
+    if (target_exp < min_exp) target_exp = min_exp;
+    if (target_exp > max_exp) target_exp = max_exp;
+
+    // -------------------------------------------------------------------------
+    // Step 3: smooth exposure transition
+    // -------------------------------------------------------------------------
+
+    static int exposure = 256;  // initial exposure level (Q8.8 == 1.0)
+    const int adapt_rate = 13;  // how quickly we adapt (~0.05 in Q8.8)
+
+    exposure += ((target_exp - exposure) * adapt_rate) >> 8;
+
+    // -------------------------------------------------------------------------
+    // Step 4: apply exposure to all pixels (r * exposure >> 8)
+    // -------------------------------------------------------------------------
+
+    p = pixels;
+    for (int i = 0; i < total_pixels; ++i)
+    {
+        Uint32 px = *p;
+
+        int r = (Uint8)(px >> 16);
+        int g = (Uint8)(px >> 8);
+        int b = (Uint8)px;
+
+        r = (r * exposure) >> 8;
+        g = (g * exposure) >> 8;
+        b = (b * exposure) >> 8;
+
+        if (r > 255) r = 255;
+        if (g > 255) g = 255;
+        if (b > 255) b = 255;
+
+        *p++ = (0xFFU << 24) | (r << 16) | (g << 8) | b;
+    }
+}
+
+// -----------------------------------------------------------------------------
 // V_PProc_AnalogRGBDrift
 //  [PN] Applies analog-style RGB drift effect by offsetting red and blue 
 //  channels horizontally in opposite directions.

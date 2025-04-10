@@ -52,6 +52,7 @@ extern int vid_screenwipe;
 extern int vid_screenwipe_hr;
 extern int msg_text_shadows;
 
+extern int post_overglow;
 extern int post_rgbdrift;
 extern int post_vhsdist;
 extern int post_motionblur;

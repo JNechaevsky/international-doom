@@ -397,6 +397,13 @@ static void D_Display (void)
     M_Drawer ();   // menu is drawn even on top of everything
     NetUpdate ();  // send out any new accumulation
 
+    // [JN] Post-processing effect: Overbright Glow
+    if (post_overglow)
+    {
+        V_PProc_OverbrightGlow();
+        st_fullupdate = true;
+    }
+
     // [JN] Post-processing effect: Analog RGB Drift
     if (post_rgbdrift)
     {
