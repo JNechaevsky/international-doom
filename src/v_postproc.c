@@ -432,47 +432,27 @@ static void V_PProc_MotionBlur (void)
 
 // -----------------------------------------------------------------------------
 // V_PProc_DepthOfFieldBlur
-//  [PN] Applies a radial depth-of-field blur effect based on distance from
-//  screen center. Pixels near the center remain sharp, while those farther
-//  away are blurred using a variable-size box blur kernel.
-//  The effect simulates camera-like focus, with adaptive radius and strength
-//  depending on current resolution settings. Handles edges by clamping kernel.
+//  [PN] Applies a radial depth-of-field blur effect directly on the framebuffer,
+//  softening only peripheral areas beyond a dynamic focus threshold.
 //
-//  Uses a hybrid approach: fast kernel pass for safe central
-//  area, and boundary-aware blur for edges to ensure full-frame coverage.
+//  The effect simulates shallow camera focus: the center remains sharp,
+//  while edges are softened via a 3x3 box blur. Pixels are blurred only if 
+//  their squared distance from the screen center exceeds a threshold
+//  proportional to the current resolution.
+//
+//  Unlike traditional approaches, this version avoids using a secondary buffer
+//  and performs all processing in-place, greatly reducing memory usage.
+//
+//  The main blur pass unrolls the 3x3 kernel using three row pointers for
+//  optimal cache coherence and CPU efficiency. Edge pixels (left and right
+//  columns) are handled explicitly with boundary checks to eliminate
+//  visible artifacts at screen borders.
 // -----------------------------------------------------------------------------
-
-static Uint32 *dof_blur_buffer = NULL;
-static int dof_buffer_w = 0;
-static int dof_buffer_h = 0;
-
-static void InitDepthOfFieldBuffer (void)
-{
-    if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
-        return;
-
-    int w = argbbuffer->w;
-    int h = argbbuffer->h;
-
-    if (dof_blur_buffer && (w != dof_buffer_w || h != dof_buffer_h))
-    {
-        free(dof_blur_buffer);
-        dof_blur_buffer = NULL;
-    }
-
-    if (!dof_blur_buffer)
-    {
-        dof_blur_buffer = malloc(sizeof(Uint32) * w * h);
-        dof_buffer_w = w;
-        dof_buffer_h = h;
-    }
-}
 
 static void V_PProc_DepthOfFieldBlur (void)
 {
-    InitDepthOfFieldBuffer();
-
-    if (!argbbuffer || !dof_blur_buffer || argbbuffer->format->BytesPerPixel != 4)
+    // Validate input buffer and 32-bit pixel format
+    if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
         return;
 
     const int width  = argbbuffer->w;
@@ -480,111 +460,111 @@ static void V_PProc_DepthOfFieldBlur (void)
     if (width < 3 || height < 3)
         return;
 
-    const int stride = width;
     Uint32* pixels = (Uint32*)argbbuffer->pixels;
-    memcpy(dof_blur_buffer, pixels, sizeof(Uint32) * width * height);
-
     const int cx = width / 2;
     const int cy = height / 2;
 
-    const int base_threshold = 150;
-    const int blur_threshold = base_threshold * vid_resolution;
-    const int thresholdSq = blur_threshold * blur_threshold;
+    // Fixed kernel parameters for 3x3 blur
+    const int blur_size = 9;
+    const int threshold = 150 * vid_resolution;
+    const int thresholdSq = threshold * threshold;
 
-    const int blur_radius = (vid_resolution <= 2) ? 1 : (vid_resolution <= 4) ? 2 : 3;
-    const int blur_size = (2 * blur_radius + 1) * (2 * blur_radius + 1);
-
-    const int x_start = blur_radius;
-    const int x_end   = width - blur_radius;
-    const int y_start = blur_radius;
-    const int y_end   = height - blur_radius;
-
-    // [PN] Fast path: process safe central zone without boundary checks
-    for (int y = y_start; y < y_end; ++y)
+    // Main blur pass: optimized 3x3 box blur using row pointers
+    for (int y = 1; y < height - 1; ++y)
     {
-        int dy = y - cy;
-        int dy2 = dy * dy;
-        Uint32* destRow = pixels + y * stride;
+        const int dy = y - cy;
+        const int dy2 = dy * dy;
 
-        for (int x = x_start; x < x_end; ++x)
+        Uint32* prevRow = pixels + (y - 1) * width;
+        Uint32* curRow  = pixels + y * width;
+        Uint32* nextRow = pixels + (y + 1) * width;
+
+        for (int x = 1; x < width - 1; ++x)
         {
-            int dx = x - cx;
-            if (dx * dx + dy2 <= thresholdSq)
-                continue;
+            const int dx = x - cx;
+            if (dx * dx + dy2 < thresholdSq)
+                continue; // Pixel is in focus – skip blur
 
-            int r_sum = 0, g_sum = 0, b_sum = 0;
+            // Manually unrolled 3x3 accumulation for R, G, B
+            const int r_sum = ((prevRow[x - 1] >> 16) & 0xFF) +
+                              ((prevRow[x]     >> 16) & 0xFF) +
+                              ((prevRow[x + 1] >> 16) & 0xFF) +
+                              ((curRow[x - 1]  >> 16) & 0xFF) +
+                              ((curRow[x]      >> 16) & 0xFF) +
+                              ((curRow[x + 1]  >> 16) & 0xFF) +
+                              ((nextRow[x - 1] >> 16) & 0xFF) +
+                              ((nextRow[x]     >> 16) & 0xFF) +
+                              ((nextRow[x + 1] >> 16) & 0xFF);
 
-            for (int ky = -blur_radius; ky <= blur_radius; ++ky)
-            {
-                Uint32* kernelRow = dof_blur_buffer + (y + ky) * stride;
-                for (int kx = -blur_radius; kx <= blur_radius; ++kx)
-                {
-                    Uint32 c = kernelRow[x + kx];
-                    b_sum += c & 0xFF;
-                    g_sum += (c >> 8) & 0xFF;
-                    r_sum += (c >> 16) & 0xFF;
-                }
-            }
+            const int g_sum = ((prevRow[x - 1] >> 8) & 0xFF) +
+                              ((prevRow[x]     >> 8) & 0xFF) +
+                              ((prevRow[x + 1] >> 8) & 0xFF) +
+                              ((curRow[x - 1]  >> 8) & 0xFF) +
+                              ((curRow[x]      >> 8) & 0xFF) +
+                              ((curRow[x + 1]  >> 8) & 0xFF) +
+                              ((nextRow[x - 1] >> 8) & 0xFF) +
+                              ((nextRow[x]     >> 8) & 0xFF) +
+                              ((nextRow[x + 1] >> 8) & 0xFF);
 
-            int r_avg = r_sum / blur_size;
-            int g_avg = g_sum / blur_size;
-            int b_avg = b_sum / blur_size;
+            const int b_sum = (prevRow[x - 1] & 0xFF) +
+                              (prevRow[x]     & 0xFF) +
+                              (prevRow[x + 1] & 0xFF) +
+                              (curRow[x - 1]  & 0xFF) +
+                              (curRow[x]      & 0xFF) +
+                              (curRow[x + 1]  & 0xFF) +
+                              (nextRow[x - 1] & 0xFF) +
+                              (nextRow[x]     & 0xFF) +
+                              (nextRow[x + 1] & 0xFF);
 
-            Uint32 a = destRow[x] & 0xFF000000;
-            destRow[x] = a | (r_avg << 16) | (g_avg << 8) | b_avg;
+            // Apply averaged color back to pixel
+            curRow[x] = (0xFF << 24) |
+                        ((r_sum / blur_size) << 16) |
+                        ((g_sum / blur_size) << 8) |
+                         (b_sum / blur_size);
         }
     }
 
-    // [PN] Slow path: process edges with boundary checks
-    for (int y = 0; y < height; ++y)
+    // Border correction: handle left (x=0) and right (x=width-1) columns
+    for (int y = 1; y < height - 1; ++y)
     {
-        int dy = y - cy;
-        int dy2 = dy * dy;
-        Uint32* destRow = pixels + y * stride;
-
-        for (int x = 0; x < width; ++x)
+        for (int x = 0; x < width; x += (width - 1))
         {
-            // [PN] Skip already-processed central area
-            if (x >= x_start && x < x_end && y >= y_start && y < y_end)
+            const int dx = x - cx;
+            const int dy = y - cy;
+            if (dx * dx + dy * dy < thresholdSq)
                 continue;
 
-            int dx = x - cx;
-            if (dx * dx + dy2 <= thresholdSq)
-                continue;
+            int r_sum = 0, g_sum = 0, b_sum = 0, count = 0;
 
-            int r_sum = 0, g_sum = 0, b_sum = 0;
-            int count = 0;
-
-            for (int ky = -blur_radius; ky <= blur_radius; ++ky)
+            // Safe 3x3 sampling with boundary checks
+            for (int ky = -1; ky <= 1; ++ky)
             {
-                int ny = y + ky;
+                const int ny = y + ky;
                 if (ny < 0 || ny >= height)
                     continue;
 
-                Uint32* kernelRow = dof_blur_buffer + ny * stride;
-                for (int kx = -blur_radius; kx <= blur_radius; ++kx)
+                Uint32* row = pixels + ny * width;
+                for (int kx = -1; kx <= 1; ++kx)
                 {
-                    int nx = x + kx;
+                    const int nx = x + kx;
                     if (nx < 0 || nx >= width)
                         continue;
 
-                    Uint32 c = kernelRow[nx];
-                    b_sum += c & 0xFF;
-                    g_sum += (c >> 8) & 0xFF;
+                    Uint32 c = row[nx];
                     r_sum += (c >> 16) & 0xFF;
+                    g_sum += (c >> 8)  & 0xFF;
+                    b_sum += c & 0xFF;
                     ++count;
                 }
             }
 
-            if (count == 0)
-                continue;
-
-            int r_avg = r_sum / count;
-            int g_avg = g_sum / count;
-            int b_avg = b_sum / count;
-
-            Uint32 a = destRow[x] & 0xFF000000;
-            destRow[x] = a | (r_avg << 16) | (g_avg << 8) | b_avg;
+            if (count > 0)
+            {
+                pixels[y * width + x] = (0xFF << 24) |
+                                        ((r_sum / count) << 16) |
+                                        ((g_sum / count) << 8) |
+                                         (b_sum / count);
+            }
         }
     }
 }
