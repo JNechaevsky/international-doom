@@ -565,6 +565,7 @@ static void M_ID_DiskIcon (int choice);
 static void M_ID_ShowENDOOM (int choice);
 
 static void M_Draw_ID_Video_2 (void);
+static void M_ID_SuperSmoothing (int choice);
 static void M_ID_OverbrightGlow (int choice);
 static void M_ID_AnalogRGBDrift (int choice);
 static void M_ID_VHSLineDistortion (int choice);
@@ -1638,13 +1639,13 @@ static void M_ID_ShowENDOOM (int choice)
 
 static menuitem_t ID_Menu_Video_2[]=
 {
-    { M_MUL2, "OVERBRIGHT GLOW",     M_ID_OverbrightGlow,    't' },
-    { M_MUL1, "ANALOG RGB DRIFT",    M_ID_AnalogRGBDrift,    'a' },
-    { M_MUL2, "VHS LINE DISTORTION", M_ID_VHSLineDistortion, 'v' },
-    { M_MUL1, "SCREEN VIGNETTE",     M_ID_ScreenVignette,    's' },
-    { M_MUL1, "MOTION BLUR",         M_ID_MotionBlur,        'm' },
-    { M_MUL2, "DEPTH OF FIELD BLUR", M_ID_DepthOfFieldBlur,  'd' },
-    { M_SKIP, "", 0, '\0' },
+    { M_MUL1, "SUPERSAMPLED SMOOTHING", M_ID_SuperSmoothing,    's' },
+    { M_MUL2, "OVERBRIGHT GLOW",        M_ID_OverbrightGlow,    't' },
+    { M_MUL1, "ANALOG RGB DRIFT",       M_ID_AnalogRGBDrift,    'a' },
+    { M_MUL2, "VHS LINE DISTORTION",    M_ID_VHSLineDistortion, 'v' },
+    { M_MUL1, "SCREEN VIGNETTE",        M_ID_ScreenVignette,    's' },
+    { M_MUL1, "MOTION BLUR",            M_ID_MotionBlur,        'm' },
+    { M_MUL2, "DEPTH OF FIELD BLUR",    M_ID_DepthOfFieldBlur,  'd' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
@@ -1673,29 +1674,38 @@ static void M_Draw_ID_Video_2 (void)
 
     M_WriteTextCentered(9, "POST-PROCESSING EFFECTS", cr[CR_YELLOW]);
 
+    const char *sample_factors[] = {
+        "NONE","1x","2x","3x","4x","5x","6x",
+    };
+
+    // Supersampled smoothing
+    sprintf(str, "%s", sample_factors[post_supersample]);
+    M_WriteText (M_ItemRightAlign(str), 18, str,
+                 M_Item_Glow(0, post_supersample ? GLOW_GREEN : GLOW_DARKRED));
+
     // Overbright glow
     sprintf(str, post_overglow ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 18, str, 
-                 M_Item_Glow(0, post_overglow ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 27, str, 
+                 M_Item_Glow(1, post_overglow ? GLOW_GREEN : GLOW_DARKRED));
 
     // Analog RGB drift
     sprintf(str, post_rgbdrift == 1 ? "SUBTLE" :
                  post_rgbdrift == 2 ? "STRONG" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str, 
-                 M_Item_Glow(1, post_rgbdrift ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 36, str, 
+                 M_Item_Glow(2, post_rgbdrift ? GLOW_GREEN : GLOW_DARKRED));
 
     // VHS line distortion
     sprintf(str, post_vhsdist ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 36, str, 
-                 M_Item_Glow(2, post_vhsdist ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 45, str, 
+                 M_Item_Glow(3, post_vhsdist ? GLOW_GREEN : GLOW_DARKRED));
 
     // Screen vignette
     sprintf(str, post_vignette == 1 ? "SUBTLE" :
                  post_vignette == 2 ? "SOFT"   : 
                  post_vignette == 3 ? "STRONG" : 
                  post_vignette == 4 ? "DARK"   : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str, 
-                 M_Item_Glow(3, post_vignette ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 54, str, 
+                 M_Item_Glow(4, post_vignette ? GLOW_GREEN : GLOW_DARKRED));
 
     // Analog RGB drift
     sprintf(str, post_motionblur == 1 ? "SOFT"   :
@@ -1703,16 +1713,21 @@ static void M_Draw_ID_Video_2 (void)
                  post_motionblur == 3 ? "MEDIUM" : 
                  post_motionblur == 4 ? "HEAVY"  : 
                  post_motionblur == 5 ? "GHOST"  : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 54, str, 
-                 M_Item_Glow(4, post_motionblur ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 63, str, 
+                 M_Item_Glow(5, post_motionblur ? GLOW_GREEN : GLOW_DARKRED));
 
     // Depth if field blur
     sprintf(str, post_dofblur ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str, 
-                 M_Item_Glow(5, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 72, str, 
+                 M_Item_Glow(6, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
 
     M_WriteText (ID_MENU_LEFTOFFSET, 153, "< PREV PAGE",
                  M_Item_Glow(15, GLOW_LIGHTGRAY));
+}
+
+static void M_ID_SuperSmoothing (int choice)
+{
+    post_supersample = M_INT_Slider(post_supersample, 0, 6, choice, false);
 }
 
 static void M_ID_OverbrightGlow (int choice)
@@ -4838,6 +4853,7 @@ static void M_ID_ApplyResetHook (void)
     vid_diskicon = 1;
     vid_endoom = 0;
     // Post-processing effects
+    post_supersample = 0;
     post_overglow = 0;
     post_rgbdrift = 0;
     post_vhsdist = 0;

@@ -20,6 +20,114 @@
 
 
 // -----------------------------------------------------------------------------
+// V_PProc_SupersampledSmoothing
+//  [PN] Applies a fast full-screen smoothing effect via supersampled downscale
+//  and upscale. This technique reduces pixel harshness and aliasing effects by
+//  averaging screen regions into a smaller buffer and then scaling them back,
+//  producing soft transitions and visually pleasing results.
+//
+//  Unlike traditional blurring, this method preserves structure and color
+//  boundaries, creating a subtle antialiasing-like effect. The smoothing level
+//  is controlled by `post_supersample`, where higher values produce stronger
+//  smoothing.
+// -----------------------------------------------------------------------------
+
+static Uint32 *blur_small = NULL;
+static int blur_small_w = 0, blur_small_h = 0;
+
+void V_PProc_SupersampledSmoothing(boolean st_background_on)
+{
+    // Ensure framebuffer is valid and in 32-bit mode
+    if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
+        return;
+
+    const int w = argbbuffer->w;
+    // [JN] Exclude status bar area from smoothing if active.
+    const int h = argbbuffer->h - (st_background_on ? 32 * vid_resolution : 0);
+
+    // Scale determines the reduction factor: 2 = half, 4 = quarter, etc.
+    const int scale = post_supersample + 1;
+    const int sw = w / scale;
+    const int sh = h / scale;
+
+    if (sw < 2 || sh < 2)
+        return;
+
+    const size_t size = sizeof(Uint32) * sw * sh;
+
+    // Reallocate working buffer if size changed
+    if (!blur_small || blur_small_w != sw || blur_small_h != sh)
+    {
+        free(blur_small);
+        blur_small = malloc(size);
+        if (!blur_small) return;
+        blur_small_w = sw;
+        blur_small_h = sh;
+    }
+
+    Uint32 *src = (Uint32 *)argbbuffer->pixels;
+    Uint32 *dst = blur_small;
+
+    // -------------------------------------------------------------------------
+    // Step 1: Downscale — average pixels in blocks (scale x scale)
+    // -------------------------------------------------------------------------
+
+    for (int y = 0; y < sh; ++y)
+    {
+        for (int x = 0; x < sw; ++x)
+        {
+            int r = 0, g = 0, b = 0, count = 0;
+
+            for (int ky = 0; ky < scale; ++ky)
+            {
+                const int sy = y * scale + ky;
+                if (sy >= h) continue;
+
+                for (int kx = 0; kx < scale; ++kx)
+                {
+                    const int sx = x * scale + kx;
+                    if (sx >= w) continue;
+
+                    Uint32 c = src[sy * w + sx];
+                    r += (c >> 16) & 0xFF;
+                    g += (c >> 8) & 0xFF;
+                    b += c & 0xFF;
+                    ++count;
+                }
+            }
+
+            if (count > 0)
+            {
+                r /= count;
+                g /= count;
+                b /= count;
+            }
+
+            dst[y * sw + x] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Step 2: Upscale — expand each low-res pixel back into full-resolution
+    // -------------------------------------------------------------------------
+
+    for (int y = 0; y < h; ++y)
+    {
+        int sy = y / scale;
+        if (sy >= sh) sy = sh - 1;
+
+        for (int x = 0; x < w; ++x)
+        {
+            int sx = x / scale;
+            if (sx >= sw) sx = sw - 1;
+
+            src[y * w + x] = dst[sy * sw + sx];
+        }
+    }
+}
+
+
+// -----------------------------------------------------------------------------
 // V_PProc_OverbrightGlow
 // [PN] Applies dynamic exposure adjustment based on average frame brightness.
 // Implements "Overbright Glow" — an inverse HDR effect that intensifies 
@@ -605,7 +713,7 @@ void V_PProc_PlayerView (void)
 {
     pproc_plyrview_effects =
         post_motionblur || post_dofblur || post_vignette;
-    
+
     // Motion Blur
     if (post_motionblur)
         V_PProc_MotionBlur();
