@@ -1308,6 +1308,16 @@ void R_DrawMasked (void)
         if (ds->maskedtexturecol)
             R_RenderMaskedSegRange (ds, ds->x1, ds->x2);
 
+    // [JN] Post-processing effect: Supersampled Smoothing.
+    // Call before PSPrites (player weapons) drawing.
+    if (post_supersample)
+    {
+        const boolean st_background_on = 
+            dp_screen_size <= 10 || (automapactive && !automap_overlay);
+        V_PProc_SupersampledSmoothing(st_background_on);
+    }
+
+
     // draw the psprites on top of everything
     //  but does not draw on side views
     if (!viewangleoffset)

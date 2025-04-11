@@ -1058,4 +1058,10 @@ void R_RenderPlayerView (player_t *player)
 
     // Check for new console commands.
     NetUpdate ();
+
+    // [JN] Apply post-processing effects and forcefully
+    // update status bar if any effect is active.
+    V_PProc_PlayerView();
+    if (V_PProc_EffectsActive())
+        SB_state = -1;
 }

@@ -77,7 +77,8 @@ typedef enum
     MENU_LOAD,
     MENU_SAVE,
     MENU_ID_MAIN,
-    MENU_ID_VIDEO,
+    MENU_ID_VIDEO1,
+    MENU_ID_VIDEO2,
     MENU_ID_DISPLAY,
     MENU_ID_SOUND,
     MENU_ID_CONTROLS,
@@ -413,7 +414,7 @@ static player_t *player;
 
 static void M_Draw_ID_Main (void);
 
-static void M_Draw_ID_Video (void);
+static void M_Draw_ID_Video_1 (void);
 static void M_ID_TrueColor (int choice);
 static void M_ID_RenderingRes (int choice);
 static void M_ID_Widescreen (int choice);
@@ -423,9 +424,18 @@ static void M_ID_LimitFPS (int choice);
 static void M_ID_VSync (int choice);
 static void M_ID_ShowFPS (int choice);
 static void M_ID_PixelScaling (int choice);
+
+static void M_Draw_ID_Video_2 (void);
 static void M_ID_GfxStartup (int choice);
 static void M_ID_ScreenWipe (int choice);
 static void M_ID_EndText (int choice);
+static void M_ID_SuperSmoothing (int choice);
+static void M_ID_OverbrightGlow (int choice);
+static void M_ID_AnalogRGBDrift (int choice);
+static void M_ID_VHSLineDistortion (int choice);
+static void M_ID_ScreenVignette (int choice);
+static void M_ID_MotionBlur (int choice);
+static void M_ID_DepthOfFieldBlur (int choice);
 
 static void M_Draw_ID_Display (void);
 static void M_ID_FOV (int choice);
@@ -1127,7 +1137,7 @@ static char *const DefSkillName[5] =
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Main[] = {
-    { ITT_SETMENU, "VIDEO OPTIONS",     NULL,                 0, MENU_ID_VIDEO     },
+    { ITT_SETMENU, "VIDEO OPTIONS",     NULL,                 0, MENU_ID_VIDEO1    },
     { ITT_SETMENU, "DISPLAY OPTIONS",   NULL,                 0, MENU_ID_DISPLAY   },
     { ITT_SETMENU, "SOUND OPTIONS",     NULL,                 0, MENU_ID_SOUND     },
     { ITT_SETMENU, "CONTROL SETTINGS",  NULL,                 0, MENU_ID_CONTROLS  },
@@ -1155,10 +1165,10 @@ static void M_Draw_ID_Main (void)
 }
 
 // -----------------------------------------------------------------------------
-// Video options
+// Video options 1
 // -----------------------------------------------------------------------------
 
-static MenuItem_t ID_Menu_Video[] = {
+static MenuItem_t ID_Menu_Video_1[] = {
     { ITT_LRFUNC2, "TRUECOLOR RENDERING",  M_ID_TrueColor,    0, MENU_NONE },
     { ITT_LRFUNC1, "RENDERING RESOLUTION", M_ID_RenderingRes, 0, MENU_NONE },
     { ITT_LRFUNC1, "WIDESCREEN MODE",      M_ID_Widescreen,   0, MENU_NONE },
@@ -1168,22 +1178,22 @@ static MenuItem_t ID_Menu_Video[] = {
     { ITT_LRFUNC2, "ENABLE VSYNC",         M_ID_VSync,        0, MENU_NONE },
     { ITT_LRFUNC2, "SHOW FPS COUNTER",     M_ID_ShowFPS,      0, MENU_NONE },
     { ITT_LRFUNC2, "PIXEL SCALING",        M_ID_PixelScaling, 0, MENU_NONE },
-    { ITT_EMPTY,  NULL,                   NULL,              0, MENU_NONE },
-    { ITT_LRFUNC2, "GRAPHICAL STARTUP",    M_ID_GfxStartup,   0, MENU_NONE },
-    { ITT_LRFUNC2, "SCREEN WIPE EFFECT",   M_ID_ScreenWipe,   0, MENU_NONE },
-    { ITT_LRFUNC2, "SHOW ENDTEXT SCREEN",  M_ID_EndText,      0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                   NULL,              0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                   NULL,              0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                   NULL,              0, MENU_NONE },
+    { ITT_SETMENU, "NEXT PAGE",            NULL,              0, MENU_ID_VIDEO2 },
 };
 
-static Menu_t ID_Def_Video = {
+static Menu_t ID_Def_Video_1 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
-    M_Draw_ID_Video,
-    13, ID_Menu_Video,
+    M_Draw_ID_Video_1,
+    13, ID_Menu_Video_1,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
 };
 
-static void M_Draw_ID_Video (void)
+static void M_Draw_ID_Video_1 (void)
 {
     char str[32];
 
@@ -1257,26 +1267,6 @@ static void M_Draw_ID_Video (void)
     sprintf(str, vid_smooth_scaling ? "SMOOTH" : "SHARP");
     MN_DrTextA(str, M_ItemRightAlign(str), 100,
                M_Item_Glow(8, vid_smooth_scaling ? GLOW_GREEN : GLOW_DARKRED));
-
-    MN_DrTextACentered("MISCELLANEOUS", 110, cr[CR_YELLOW]);
-
-    // Graphical startup
-    sprintf(str, vid_graphical_startup == 1 ? "FAST" :
-                 vid_graphical_startup == 2 ? "SLOW" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, vid_graphical_startup == 1 ? GLOW_GREEN :
-                               vid_graphical_startup == 2 ? GLOW_YELLOW : GLOW_DARKRED));
-
-    // Screen wipe effect
-    sprintf(str, vid_screenwipe_hr ? "CROSSFADE" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 130,
-               M_Item_Glow(11, vid_screenwipe_hr ? GLOW_GREEN : GLOW_RED));
-
-    // Show ENDTEXT screen
-    sprintf(str, vid_endoom == 1 ? "ALWAYS" :
-                 vid_endoom == 2 ? "PWAD ONLY" : "NEVER");
-    MN_DrTextA(str, M_ItemRightAlign(str), 140,
-               M_Item_Glow(12, vid_endoom == 1 ? GLOW_RED : GLOW_GREEN));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
     if (CurrentItPos == 1 || CurrentItPos == 2)
@@ -1449,6 +1439,141 @@ static void M_ID_ScreenWipe (int choice)
 static void M_ID_EndText (int option)
 {
     vid_endoom = M_INT_Slider(vid_endoom, 0, 2, option, false);
+}
+
+// -----------------------------------------------------------------------------
+// Video options 2
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Video_2[] = {
+    { ITT_LRFUNC2, "GRAPHICAL STARTUP",      M_ID_GfxStartup,        0, MENU_NONE },
+    { ITT_LRFUNC2, "SCREEN WIPE EFFECT",     M_ID_ScreenWipe,        0, MENU_NONE },
+    { ITT_LRFUNC2, "SHOW ENDTEXT SCREEN",    M_ID_EndText,           0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                     NULL,                   0, MENU_NONE },
+    { ITT_LRFUNC1, "SUPERSAMPLED SMOOTHING", M_ID_SuperSmoothing,    0, MENU_NONE },
+    { ITT_LRFUNC2, "OVERBRIGHT GLOW",        M_ID_OverbrightGlow,    0, MENU_NONE },
+    { ITT_LRFUNC1, "ANALOG RGB DRIFT",       M_ID_AnalogRGBDrift,    0, MENU_NONE },
+    { ITT_LRFUNC2, "VHS LINE DISTORTION",    M_ID_VHSLineDistortion, 0, MENU_NONE },
+    { ITT_LRFUNC1, "SCREEN VIGNETTE",        M_ID_ScreenVignette,    0, MENU_NONE },
+    { ITT_LRFUNC1, "MOTION BLUR",            M_ID_MotionBlur,        0, MENU_NONE },
+    { ITT_LRFUNC2, "DEPTH OF FIELD BLUR",    M_ID_DepthOfFieldBlur,  0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                     NULL,                   0, MENU_NONE },
+    { ITT_SETMENU, "PREV PAGE",              NULL,                   0, MENU_ID_VIDEO1 },
+};
+
+static Menu_t ID_Def_Video_2 = {
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Video_2,
+    13, ID_Menu_Video_2,
+    0,
+    SmallFont, false, false,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Video_2 (void)
+{
+    char str[32];
+    const char *sample_factors[] = { "NONE", "1x", "2x", "3x", "4x", "5x", "6x" };
+
+    MN_DrTextACentered("MISCELLANEOUS", 10, cr[CR_YELLOW]);
+
+    // Graphical startup
+    sprintf(str, vid_graphical_startup == 1 ? "FAST" :
+                 vid_graphical_startup == 2 ? "SLOW" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 20,
+               M_Item_Glow(0, vid_graphical_startup == 1 ? GLOW_GREEN :
+                               vid_graphical_startup == 2 ? GLOW_YELLOW : GLOW_DARKRED));
+
+    // Screen wipe effect
+    sprintf(str, vid_screenwipe_hr ? "CROSSFADE" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 30,
+               M_Item_Glow(1, vid_screenwipe_hr ? GLOW_GREEN : GLOW_RED));
+
+    // Show ENDTEXT screen
+    sprintf(str, vid_endoom == 1 ? "ALWAYS" :
+                 vid_endoom == 2 ? "PWAD ONLY" : "NEVER");
+    MN_DrTextA(str, M_ItemRightAlign(str), 40,
+               M_Item_Glow(2, vid_endoom == 1 ? GLOW_GREEN : GLOW_RED));
+
+    MN_DrTextACentered("POST-PROCESSING EFFECTS", 50, cr[CR_YELLOW]);
+
+    // Supersampled smoothing
+    sprintf(str, "%s", sample_factors[post_supersample]);
+    MN_DrTextA(str, M_ItemRightAlign(str), 60,
+               M_Item_Glow(4, post_supersample ? GLOW_GREEN : GLOW_RED));
+
+    // Overbright glow
+    sprintf(str, post_overglow ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 70,
+               M_Item_Glow(5, post_overglow ? GLOW_GREEN : GLOW_RED));
+
+    // Analog RGB drift
+    sprintf(str, post_rgbdrift == 1 ? "SUBTLE" :
+                 post_rgbdrift == 2 ? "STRONG" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, post_rgbdrift ? GLOW_GREEN : GLOW_RED));
+
+    // VHS line distortion
+    sprintf(str, post_vhsdist ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, post_vhsdist ? GLOW_GREEN : GLOW_RED));
+
+    // Screen vignette
+    sprintf(str, post_vignette == 1 ? "SUBTLE" :
+                 post_vignette == 2 ? "SOFT"   : 
+                 post_vignette == 3 ? "STRONG" : 
+                 post_vignette == 4 ? "DARK"   : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, post_vignette ? GLOW_GREEN : GLOW_RED));
+
+    // Analog RGB drift
+    sprintf(str, post_motionblur == 1 ? "SOFT"   :
+                 post_motionblur == 2 ? "LIGHT"  : 
+                 post_motionblur == 3 ? "MEDIUM" : 
+                 post_motionblur == 4 ? "HEAVY"  : 
+                 post_motionblur == 5 ? "GHOST"  : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, post_motionblur ? GLOW_GREEN : GLOW_RED));
+
+    // Depth if field blur
+    sprintf(str, post_dofblur ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, post_dofblur ? GLOW_GREEN : GLOW_RED));
+}
+
+static void M_ID_SuperSmoothing (int choice)
+{
+    post_supersample = M_INT_Slider(post_supersample, 0, 6, choice, false);
+}
+
+static void M_ID_OverbrightGlow (int choice)
+{
+    post_overglow ^= 1;
+}
+
+static void M_ID_AnalogRGBDrift (int choice)
+{
+    post_rgbdrift = M_INT_Slider(post_rgbdrift, 0, 2, choice, false);
+}
+
+static void M_ID_VHSLineDistortion (int choice)
+{
+    post_vhsdist ^= 1;
+}
+
+static void M_ID_ScreenVignette (int choice)
+{
+    post_vignette = M_INT_Slider(post_vignette, 0, 4, choice, false);
+}
+
+static void M_ID_MotionBlur (int choice)
+{
+    post_motionblur = M_INT_Slider(post_motionblur, 0, 5, choice, false);
+}
+
+static void M_ID_DepthOfFieldBlur (int choice)
+{
+    post_dofblur ^= 1;
 }
 
 // -----------------------------------------------------------------------------
@@ -4559,6 +4684,14 @@ static void M_ID_ApplyResetHook (void)
     vid_graphical_startup = 0;
     vid_screenwipe_hr = 0;
     vid_endoom = 0;
+    // Post-processing effects
+    post_supersample = 0;
+    post_overglow = 0;
+    post_rgbdrift = 0;
+    post_vhsdist = 0;
+    post_vignette = 0;
+    post_motionblur = 0;
+    post_dofblur = 0;
 
     //
     // Display options
@@ -4724,7 +4857,8 @@ static Menu_t *Menus[] = {
     &SaveMenu,
     // [JN] ID menu items
     &ID_Def_Main,
-    &ID_Def_Video,
+    &ID_Def_Video_1,
+    &ID_Def_Video_2,
     &ID_Def_Display,
     &ID_Def_Sound,
     &ID_Def_Controls,
