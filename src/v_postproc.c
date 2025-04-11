@@ -35,7 +35,7 @@
 static Uint32 *blur_small = NULL;
 static int blur_small_w = 0, blur_small_h = 0;
 
-void V_PProc_SupersampledSmoothing(boolean st_background_on)
+void V_PProc_SupersampledSmoothing(boolean st_background_on, int st_height)
 {
     // Ensure framebuffer is valid and in 32-bit mode
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
@@ -43,7 +43,7 @@ void V_PProc_SupersampledSmoothing(boolean st_background_on)
 
     const int w = argbbuffer->w;
     // [JN] Exclude status bar area from smoothing if active.
-    const int h = argbbuffer->h - (st_background_on ? 32 * vid_resolution : 0);
+    const int h = argbbuffer->h - (st_background_on ? st_height : 0);
 
     // Scale determines the reduction factor: 2 = half, 4 = quarter, etc.
     const int scale = post_supersample + 1;

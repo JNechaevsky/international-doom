@@ -22,7 +22,7 @@
 #include "i_video.h"
 #include "id_vars.h"
 
-extern void V_PProc_SupersampledSmoothing (boolean st_background_on);
+extern void V_PProc_SupersampledSmoothing (boolean st_background_on, int st_height);
 
 extern boolean pproc_display_effects;
 extern boolean pproc_plyrview_effects;

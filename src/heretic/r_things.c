@@ -1314,7 +1314,7 @@ void R_DrawMasked (void)
     {
         const boolean st_background_on = 
             dp_screen_size <= 10 || (automapactive && !automap_overlay);
-        V_PProc_SupersampledSmoothing(st_background_on);
+        V_PProc_SupersampledSmoothing(st_background_on, 42 * vid_resolution);
     }
 
 

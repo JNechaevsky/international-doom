@@ -1441,7 +1441,7 @@ void R_DrawMasked (void)
     {
         const boolean st_background_on = 
             dp_screen_size <= 10 || (automapactive && !automap_overlay);
-        V_PProc_SupersampledSmoothing(st_background_on);
+        V_PProc_SupersampledSmoothing(st_background_on, 32 * vid_resolution);
     }
 
     // draw the psprites on top of everything
