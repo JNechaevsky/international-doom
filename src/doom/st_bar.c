@@ -1424,7 +1424,7 @@ void ST_Drawer (boolean force)
     const boolean st_background_on = 
                     dp_screen_size <= 10 || (automapactive && !automap_overlay);
 
-    if (force || post_overglow || post_rgbdrift || post_motionblur || post_dofblur || post_vignette)
+    if (force || pproc_display_effects || pproc_plyrview_effects)
     {
     // [JN] Wide status bar.
     const int wide_x = dp_screen_size > 12 && (!automapactive || automap_overlay) ?

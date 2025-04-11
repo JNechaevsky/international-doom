@@ -26,7 +26,7 @@
 // already bright scenes and slightly fades darker ones.
 // -----------------------------------------------------------------------------
 
-void V_PProc_OverbrightGlow (void)
+static void V_PProc_OverbrightGlow (void)
 {
     // [PN] Validate input buffer and 32-bit format.
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
@@ -111,7 +111,7 @@ void V_PProc_OverbrightGlow (void)
 //  on CPU after the frame is rendered.
 // -----------------------------------------------------------------------------
 
-void V_PProc_AnalogRGBDrift (void)
+static void V_PProc_AnalogRGBDrift (void)
 {
     if (!argbbuffer)
         return;
@@ -201,7 +201,7 @@ void V_PProc_AnalogRGBDrift (void)
 //  with randomized amplitude and location each frame.
 // -----------------------------------------------------------------------------
 
-void V_PProc_VHSLineDistortion (void)
+static void V_PProc_VHSLineDistortion (void)
 {
     // Check if argbbuffer exists and is in 32-bit pixel format
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
@@ -261,7 +261,7 @@ void V_PProc_VHSLineDistortion (void)
 //  Implemented using Q8.8 fixed-point math — no floats used.
 // -----------------------------------------------------------------------------
 
-void V_PProc_ScreenVignette(void)
+static void V_PProc_ScreenVignette (void)
 {
     // Validate input buffer and 32-bit pixel format
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
@@ -332,10 +332,9 @@ void V_PProc_ScreenVignette(void)
 //  across frames to maintain smooth and stable rendering effects.
 // -----------------------------------------------------------------------------
 
-
 #define MAX_BLUR_LAG 1
 
-void V_PProc_MotionBlur(void)
+static void V_PProc_MotionBlur (void)
 {
     // Validate input buffer and 32-bit pixel format.
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
@@ -469,7 +468,7 @@ static void InitDepthOfFieldBuffer (void)
     }
 }
 
-void V_PProc_DepthOfFieldBlur (void)
+static void V_PProc_DepthOfFieldBlur (void)
 {
     InitDepthOfFieldBuffer();
 
@@ -588,4 +587,54 @@ void V_PProc_DepthOfFieldBlur (void)
             destRow[x] = a | (r_avg << 16) | (g_avg << 8) | b_avg;
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+// V_PProc_Display and V_PProc_PlayerView
+//  [JN] Dilute functions that triggers general purpose post-processing effects 
+//  (D_Display) and for player view only (R_RenderPlayerView).
+// -----------------------------------------------------------------------------
+
+boolean pproc_display_effects;
+boolean pproc_plyrview_effects;
+
+boolean V_PProc_EffectsActive (void)
+{
+    return (pproc_display_effects || pproc_plyrview_effects);
+}
+
+void V_PProc_Display (void)
+{
+    pproc_display_effects =
+        post_overglow || post_rgbdrift || post_vhsdist;
+    
+    // Overbright Glow
+    if (post_overglow)
+        V_PProc_OverbrightGlow();
+
+    // Analog RGB Drift
+    if (post_rgbdrift)
+        V_PProc_AnalogRGBDrift();
+
+    // VHS Line Distortion
+    if (post_vhsdist)
+        V_PProc_VHSLineDistortion();
+}
+
+void V_PProc_PlayerView (void)
+{
+    pproc_plyrview_effects =
+        post_motionblur || post_dofblur || post_vignette;
+    
+    // Motion Blur
+    if (post_motionblur)
+        V_PProc_MotionBlur();
+
+    // Depth of Field Blur
+    if (post_dofblur)
+        V_PProc_DepthOfFieldBlur();
+
+    // Screen Vignette
+    if (post_vignette)
+        V_PProc_ScreenVignette();
 }

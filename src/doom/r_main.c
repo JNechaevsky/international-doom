@@ -1099,24 +1099,8 @@ void R_RenderPlayerView (player_t *player)
     // Check for new console commands.
     NetUpdate ();
 
-    // [JN] Post-processing effect: Motion Blur
-    if (post_motionblur)
-    {
-        V_PProc_MotionBlur();
-        st_fullupdate = true;
-    }
-
-    // [JN] Post-processing effect: Depth of Field Blur
-    if (post_dofblur)
-    {
-        V_PProc_DepthOfFieldBlur();
-        st_fullupdate = true;
-    }
-
-    // [JN] Post-processing effect: Screen Vignette
-    if (post_vignette)
-    {
-        V_PProc_ScreenVignette();
-        st_fullupdate = true;
-    }
+    // [JN] Apply post-processing effects and forcefully
+    // update status bar if any effect is active.
+    V_PProc_PlayerView();
+    st_fullupdate = V_PProc_EffectsActive();
 }

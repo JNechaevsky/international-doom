@@ -397,26 +397,10 @@ static void D_Display (void)
     M_Drawer ();   // menu is drawn even on top of everything
     NetUpdate ();  // send out any new accumulation
 
-    // [JN] Post-processing effect: Overbright Glow
-    if (post_overglow)
-    {
-        V_PProc_OverbrightGlow();
-        st_fullupdate = true;
-    }
-
-    // [JN] Post-processing effect: Analog RGB Drift
-    if (post_rgbdrift)
-    {
-        V_PProc_AnalogRGBDrift();
-        st_fullupdate = true;
-    }
-
-    // [JN] Post-processing effect: VHS Line Distortion
-    if (post_vhsdist)
-    {
-        V_PProc_VHSLineDistortion();
-        st_fullupdate = true;
-    }
+    // [JN] Apply post-processing effects and forcefully
+    // update status bar if any effect is active.
+    V_PProc_Display();
+    st_fullupdate = V_PProc_EffectsActive();
 
     // normal update
     if (!wipe)
