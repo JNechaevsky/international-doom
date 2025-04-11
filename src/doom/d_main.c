@@ -400,7 +400,8 @@ static void D_Display (void)
     // [JN] Apply post-processing effects and forcefully
     // update status bar if any effect is active.
     V_PProc_Display();
-    st_fullupdate = V_PProc_EffectsActive();
+    if (V_PProc_EffectsActive())
+        st_fullupdate = true;
 
     // normal update
     if (!wipe)

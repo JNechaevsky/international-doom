@@ -1102,5 +1102,6 @@ void R_RenderPlayerView (player_t *player)
     // [JN] Apply post-processing effects and forcefully
     // update status bar if any effect is active.
     V_PProc_PlayerView();
-    st_fullupdate = V_PProc_EffectsActive();
+    if (V_PProc_EffectsActive())
+        st_fullupdate = true;
 }
