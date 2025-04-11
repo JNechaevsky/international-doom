@@ -1141,6 +1141,12 @@ static void DrawAndBlit(void)
     // Send out any new accumulation
     NetUpdate();
 
+    // [JN] Apply post-processing effects and forcefully
+    // update status bar if any effect is active.
+    V_PProc_Display();
+    if (V_PProc_EffectsActive())
+        SB_state = -1;
+
     // Normal update
     if (!do_wipe)
     {
