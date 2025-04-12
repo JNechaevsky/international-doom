@@ -540,21 +540,10 @@ static void V_PProc_MotionBlur (void)
 
 // -----------------------------------------------------------------------------
 // V_PProc_DepthOfFieldBlur
-//  [PN] Applies a radial depth-of-field blur effect directly on the framebuffer,
-//  softening only peripheral areas beyond a dynamic focus threshold.
-//
-//  The effect simulates shallow camera focus: the center remains sharp,
-//  while edges are softened via a 3x3 box blur. Pixels are blurred only if 
-//  their squared distance from the screen center exceeds a threshold
-//  proportional to the current resolution.
-//
-//  Unlike traditional approaches, this version avoids using a secondary buffer
-//  and performs all processing in-place, greatly reducing memory usage.
-//
-//  The main blur pass unrolls the 3x3 kernel using three row pointers for
-//  optimal cache coherence and CPU efficiency. Edge pixels (left and right
-//  columns) are handled explicitly with boundary checks to eliminate
-//  visible artifacts at screen borders.
+//  [PN] Applies a radial depth-of-field blur based on distance from screen
+//  center. The blur radius dynamically scales with `vid_resolution` to ensure
+//  visibility across resolutions. Central pixels remain sharp, while peripheral
+//  areas are softened with a box blur of size 3x3 to 7x7.
 // -----------------------------------------------------------------------------
 
 static void V_PProc_DepthOfFieldBlur (void)
@@ -565,70 +554,56 @@ static void V_PProc_DepthOfFieldBlur (void)
 
     const int width  = argbbuffer->w;
     const int height = argbbuffer->h;
-    if (width < 3 || height < 3)
+    if (width < 7 || height < 7)
         return;
 
     Uint32* pixels = (Uint32*)argbbuffer->pixels;
     const int cx = width / 2;
     const int cy = height / 2;
 
-    // Fixed kernel parameters for 3x3 blur
-    const int blur_size = 9;
+    // Adaptive blur radius based on resolution
+    const int radius = (vid_resolution <= 2) ? 1 :
+                       (vid_resolution <= 4) ? 2 : 3;
+    const int kernel_size = (2 * radius + 1) * (2 * radius + 1);
+
+    // Threshold for blur application
     const int threshold = 150 * vid_resolution;
     const int thresholdSq = threshold * threshold;
 
-    // Main blur pass: optimized 3x3 box blur using row pointers
-    for (int y = 1; y < height - 1; ++y)
+    // Main blur pass
+    for (int y = radius; y < height - radius; ++y)
     {
         const int dy = y - cy;
         const int dy2 = dy * dy;
 
-        Uint32* prevRow = pixels + (y - 1) * width;
-        Uint32* curRow  = pixels + y * width;
-        Uint32* nextRow = pixels + (y + 1) * width;
-
-        for (int x = 1; x < width - 1; ++x)
+        for (int x = radius; x < width - radius; ++x)
         {
             const int dx = x - cx;
             if (dx * dx + dy2 < thresholdSq)
-                continue; // Pixel is in focus – skip blur
+                continue; // Pixel is in focus – skip
 
-            // Manually unrolled 3x3 accumulation for R, G, B
-            const int r_sum = ((prevRow[x - 1] >> 16) & 0xFF) +
-                              ((prevRow[x]     >> 16) & 0xFF) +
-                              ((prevRow[x + 1] >> 16) & 0xFF) +
-                              ((curRow[x - 1]  >> 16) & 0xFF) +
-                              ((curRow[x]      >> 16) & 0xFF) +
-                              ((curRow[x + 1]  >> 16) & 0xFF) +
-                              ((nextRow[x - 1] >> 16) & 0xFF) +
-                              ((nextRow[x]     >> 16) & 0xFF) +
-                              ((nextRow[x + 1] >> 16) & 0xFF);
+            int r_sum = 0, g_sum = 0, b_sum = 0;
 
-            const int g_sum = ((prevRow[x - 1] >> 8) & 0xFF) +
-                              ((prevRow[x]     >> 8) & 0xFF) +
-                              ((prevRow[x + 1] >> 8) & 0xFF) +
-                              ((curRow[x - 1]  >> 8) & 0xFF) +
-                              ((curRow[x]      >> 8) & 0xFF) +
-                              ((curRow[x + 1]  >> 8) & 0xFF) +
-                              ((nextRow[x - 1] >> 8) & 0xFF) +
-                              ((nextRow[x]     >> 8) & 0xFF) +
-                              ((nextRow[x + 1] >> 8) & 0xFF);
+            for (int ky = -radius; ky <= radius; ++ky)
+            {
+                const Uint32* row = pixels + (y + ky) * width;
+                for (int kx = -radius; kx <= radius; ++kx)
+                {
+                    Uint32 c = row[x + kx];
+                    r_sum += (c >> 16) & 0xFF;
+                    g_sum += (c >> 8)  & 0xFF;
+                    b_sum += c & 0xFF;
+                }
+            }
 
-            const int b_sum = (prevRow[x - 1] & 0xFF) +
-                              (prevRow[x]     & 0xFF) +
-                              (prevRow[x + 1] & 0xFF) +
-                              (curRow[x - 1]  & 0xFF) +
-                              (curRow[x]      & 0xFF) +
-                              (curRow[x + 1]  & 0xFF) +
-                              (nextRow[x - 1] & 0xFF) +
-                              (nextRow[x]     & 0xFF) +
-                              (nextRow[x + 1] & 0xFF);
+            const int r_avg = r_sum / kernel_size;
+            const int g_avg = g_sum / kernel_size;
+            const int b_avg = b_sum / kernel_size;
 
-            // Apply averaged color back to pixel
-            curRow[x] = (0xFF << 24) |
-                        ((r_sum / blur_size) << 16) |
-                        ((g_sum / blur_size) << 8) |
-                         (b_sum / blur_size);
+            pixels[y * width + x] = (0xFF << 24) |
+                                    (r_avg << 16) |
+                                    (g_avg << 8) |
+                                    b_avg;
         }
     }
 
