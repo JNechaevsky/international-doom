@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//  Video post processing effect for software renderer.
+//  Video post processing effects for software renderer.
 //
 
 

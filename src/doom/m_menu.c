@@ -1660,7 +1660,7 @@ static menuitem_t ID_Menu_Video_2[]=
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
-    { M_MUL1, "", /* NEXT PAGE > */   M_ScrollVideo,     'n' },
+    { M_MUL1, "", /* PREV PAGE > */     M_ScrollVideo,          'p' },
 };
 
 static menu_t ID_Def_Video_2 =
@@ -1677,12 +1677,9 @@ static menu_t ID_Def_Video_2 =
 static void M_Draw_ID_Video_2 (void)
 {
     char str[32];
+    const char *sample_factors[] = { "NONE", "1x", "2x", "3x", "4x", "5x", "6x" };
 
     M_WriteTextCentered(9, "POST-PROCESSING EFFECTS", cr[CR_YELLOW]);
-
-    const char *sample_factors[] = {
-        "NONE","1x","2x","3x","4x","5x","6x",
-    };
 
     // Supersampled smoothing
     sprintf(str, "%s", sample_factors[post_supersample]);

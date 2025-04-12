@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//  Video post processing effect for software renderer.
+//  Video post processing effects for software renderer.
 //
 
 #include "v_postproc.h"
@@ -171,8 +171,8 @@ static void V_PProc_OverbrightGlow (void)
     // in Q8.8: 64 + avg_brightness * 640 / 255;
     int target_exp = 64 + (avg_brightness * 640) / 255;
 
-    const int min_exp = 230;   // ~0.90 (0.9 * 256)
-    const int max_exp = 1024;  //  4.00 (  4 * 256)
+    const int min_exp = 256;   // 1.00 (1 * 256)
+    const int max_exp = 1024;  // 4.00 (4 * 256)
 
     if (target_exp < min_exp) target_exp = min_exp;
     if (target_exp > max_exp) target_exp = max_exp;

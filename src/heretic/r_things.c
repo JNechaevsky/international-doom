@@ -1317,7 +1317,6 @@ void R_DrawMasked (void)
         V_PProc_SupersampledSmoothing(st_background_on, 42 * vid_resolution);
     }
 
-
     // draw the psprites on top of everything
     //  but does not draw on side views
     if (!viewangleoffset)
