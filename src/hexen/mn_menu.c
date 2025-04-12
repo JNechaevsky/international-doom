@@ -436,12 +436,14 @@ static void M_ID_GfxStartup (int choice);
 static void M_ID_ScreenWipe (int choice);
 static void M_ID_Banners (int choice);
 static void M_ID_SuperSmoothing (int choice);
- static void M_ID_OverbrightGlow (int choice);
- static void M_ID_AnalogRGBDrift (int choice);
- static void M_ID_VHSLineDistortion (int choice);
- static void M_ID_ScreenVignette (int choice);
- static void M_ID_MotionBlur (int choice);
- static void M_ID_DepthOfFieldBlur (int choice);
+static void M_ID_OverbrightGlow (int choice);
+static void M_ID_AnalogRGBDrift (int choice);
+static void M_ID_VHSLineDistortion (int choice);
+static void M_ID_ScreenVignette (int choice);
+static void M_ID_MotionBlur (int choice);
+static void M_ID_DepthOfFieldBlur (int choice);
+
+static void M_ScrollVideo (int choice);
 
 static void M_Draw_ID_Display (void);
 static void M_ID_FOV (int choice);
@@ -687,6 +689,8 @@ static void    M_DrawBindButton (int itemNum, int yPos, int btnBind);
 static void    M_ResetMouseBinds (void);
 
 // Forward declarations for scrolling and remembering last pages.
+static Menu_t ID_Def_Video_1;
+static Menu_t ID_Def_Video_2;
 static Menu_t ID_Def_Keybinds_1;
 static Menu_t ID_Def_Keybinds_2;
 static Menu_t ID_Def_Keybinds_3;
@@ -739,6 +743,10 @@ static void M_ScrollPages (boolean direction)
         MN_LoadSlotText();
         return;
     }
+
+    // Video options:
+    else if (CurrentMenu == &ID_Def_Video_1) nextMenu = (MENU_ID_VIDEO2);
+    else if (CurrentMenu == &ID_Def_Video_2) nextMenu = (MENU_ID_VIDEO1);
 
     // Keyboard bindings:
     else if (CurrentMenu == &ID_Def_Keybinds_1) nextMenu = (direction ? MENU_ID_KBDBINDS2 : MENU_ID_KBDBINDS8);
@@ -1140,7 +1148,7 @@ static MenuItem_t ID_Menu_Video_1[] = {
     { ITT_EMPTY,   NULL,                   NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                   NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                   NULL,              0, MENU_NONE },
-    { ITT_SETMENU, "NEXT PAGE",            NULL,              0, MENU_ID_VIDEO2 },
+    { ITT_LRFUNC2, "NEXT PAGE",            M_ScrollVideo,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Video_1 = {
@@ -1148,7 +1156,7 @@ static Menu_t ID_Def_Video_1 = {
     M_Draw_ID_Video_1,
     13, ID_Menu_Video_1,
     0,
-    SmallFont, false, false,
+    SmallFont, false, true,
     MENU_ID_MAIN
 };
 
@@ -1238,7 +1246,7 @@ static void M_Draw_ID_Video_1 (void)
         M_snprintf(height, 8, "%d", (ORIGHEIGHT * vid_resolution));
         resolution = M_StringJoin("CURRENT RESOLUTION: ", width, "X", height, NULL);
 
-        MN_DrTextACentered(resolution, 150, cr[CR_LIGHTGRAY_DARK1]);
+        MN_DrTextACentered(resolution, 120, cr[CR_LIGHTGRAY_DARK1]);
     }
 }
 
@@ -1423,7 +1431,7 @@ static Menu_t ID_Def_Video_2 = {
     M_Draw_ID_Video_2,
     13, ID_Menu_Video_2,
     0,
-    SmallFont, false, false,
+    SmallFont, false, true,
     MENU_ID_MAIN
 };
 
@@ -1532,6 +1540,12 @@ static void M_ID_MotionBlur (int choice)
 static void M_ID_DepthOfFieldBlur (int choice)
 {
     post_dofblur ^= 1;
+}
+
+static void M_ScrollVideo (int choice)
+{
+    SetMenu(CurrentMenu == &ID_Def_Video_1 ? MENU_ID_VIDEO2 : MENU_ID_VIDEO1);
+    CurrentItPos = 12;
 }
 
 // -----------------------------------------------------------------------------

@@ -847,6 +847,8 @@ static void    M_DrawBindButton (int itemNum, int yPos, int btn);
 static void    M_ResetMouseBinds (void);
 
 // Forward declarations for scrolling and remembering last pages.
+static menu_t ID_Def_Video_1;
+static menu_t ID_Def_Video_2;
 static menu_t ID_Def_Keybinds_1;
 static menu_t ID_Def_Keybinds_2;
 static menu_t ID_Def_Keybinds_3;
@@ -924,6 +926,10 @@ static void M_ScrollPages (boolean direction)
         M_ReadSaveStrings();
         return;
     }
+
+    // Video options:
+    else if (currentMenu == &ID_Def_Video_1) nextMenu = &ID_Def_Video_2;
+    else if (currentMenu == &ID_Def_Video_2) nextMenu = &ID_Def_Video_1;
 
     // Keyboard bindings:
     else if (currentMenu == &ID_Def_Keybinds_1) nextMenu = (direction ? &ID_Def_Keybinds_2 : &ID_Def_Keybinds_6);
@@ -1344,7 +1350,7 @@ static menu_t ID_Def_Video_1 =
     M_Draw_ID_Video_1,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true, false, false,
+    true, false, true,
 };
 
 static void M_Choose_ID_Video (int choice)
@@ -1665,7 +1671,7 @@ static menu_t ID_Def_Video_2 =
     M_Draw_ID_Video_2,
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     0,
-    true, false, false,
+    true, false, true,
 };
 
 static void M_Draw_ID_Video_2 (void)
