@@ -25,6 +25,7 @@
 #include "doomtype.h"
 #include "i_truecolor.h"
 #include "m_fixed.h"
+#include "v_postproc.h"
 
 
 // Screen width and height.

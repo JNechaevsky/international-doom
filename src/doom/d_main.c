@@ -397,6 +397,12 @@ static void D_Display (void)
     M_Drawer ();   // menu is drawn even on top of everything
     NetUpdate ();  // send out any new accumulation
 
+    // [JN] Apply post-processing effects and forcefully
+    // update status bar if any effect is active.
+    V_PProc_Display();
+    if (V_PProc_EffectsActive())
+        st_fullupdate = true;
+
     // normal update
     if (!wipe)
     {

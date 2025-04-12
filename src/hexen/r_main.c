@@ -22,6 +22,7 @@
 #include "m_random.h"
 #include "h2def.h"
 #include "m_bbox.h"
+#include "p_local.h"
 #include "r_local.h"
 
 #include "id_vars.h"
@@ -98,8 +99,6 @@ void (*tladdcolfunc) (void);
 void (*transcolfunc) (void);
 void (*extratlcolfunc) (void);
 void (*spanfunc) (void);
-
-void SB_ForceRedraw(void); // [crispy] sb_bar.c
 
 /*
 ===================
@@ -1065,4 +1064,10 @@ void R_RenderPlayerView(player_t * player)
     NetUpdate();                // check for new console commands
     R_DrawMasked();
     NetUpdate();                // check for new console commands
+
+    // [JN] Apply post-processing effects and forcefully
+    // update status bar if any effect is active.
+    V_PProc_PlayerView();
+    if (V_PProc_EffectsActive())
+        SB_state = -1;
 }
