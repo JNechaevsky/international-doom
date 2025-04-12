@@ -35,7 +35,7 @@
 static Uint32 *blur_small = NULL;
 static int blur_small_w = 0, blur_small_h = 0;
 
-void V_PProc_SupersampledSmoothing(boolean st_background_on, int st_height)
+void V_PProc_SupersampledSmoothing (boolean st_background_on, int st_height)
 {
     // Ensure framebuffer is valid and in 32-bit mode
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
@@ -53,20 +53,19 @@ void V_PProc_SupersampledSmoothing(boolean st_background_on, int st_height)
     if (sw < 2 || sh < 2)
         return;
 
-    const size_t size = sizeof(Uint32) * sw * sh;
-
     // Reallocate working buffer if size changed
     if (!blur_small || blur_small_w != sw || blur_small_h != sh)
     {
         free(blur_small);
-        blur_small = malloc(size);
+        blur_small = malloc(sizeof(Uint32) * sw * sh);
         if (!blur_small) return;
         blur_small_w = sw;
         blur_small_h = sh;
     }
 
-    Uint32 *src = (Uint32 *)argbbuffer->pixels;
-    Uint32 *dst = blur_small;
+    Uint32 *restrict src = (Uint32 *)argbbuffer->pixels;
+    Uint32 *restrict dst = blur_small;
+    const int scale_squared = scale * scale;
 
     // -------------------------------------------------------------------------
     // Step 1: Downscale — average pixels in blocks (scale x scale)
@@ -74,29 +73,38 @@ void V_PProc_SupersampledSmoothing(boolean st_background_on, int st_height)
 
     for (int y = 0; y < sh; ++y)
     {
+        const int y_scale = y * scale;
         for (int x = 0; x < sw; ++x)
         {
-            int r = 0, g = 0, b = 0, count = 0;
+            const int x_scale = x * scale;
+            int r = 0, g = 0, b = 0;
+            int count = 0;
 
-            for (int ky = 0; ky < scale; ++ky)
+            // Calculate bounds to avoid checking each pixel
+            const int y_end = (y_scale + scale) < h ? y_scale + scale : h;
+            const int x_end = (x_scale + scale) < w ? x_scale + scale : w;
+
+            for (int sy = y_scale; sy < y_end; ++sy)
             {
-                const int sy = y * scale + ky;
-                if (sy >= h) continue;
-
-                for (int kx = 0; kx < scale; ++kx)
+                const int sy_w = sy * w;
+                for (int sx = x_scale; sx < x_end; ++sx)
                 {
-                    const int sx = x * scale + kx;
-                    if (sx >= w) continue;
-
-                    Uint32 c = src[sy * w + sx];
+                    const Uint32 c = src[sy_w + sx];
                     r += (c >> 16) & 0xFF;
                     g += (c >> 8) & 0xFF;
                     b += c & 0xFF;
-                    ++count;
                 }
             }
-
-            if (count > 0)
+            count = (y_end - y_scale) * (x_end - x_scale);
+            
+            // Use multiplication instead of division when possible
+            if (count == scale_squared)
+            {
+                r /= scale_squared;
+                g /= scale_squared;
+                b /= scale_squared;
+            }
+            else if (count > 0)
             {
                 r /= count;
                 g /= count;
@@ -113,19 +121,17 @@ void V_PProc_SupersampledSmoothing(boolean st_background_on, int st_height)
 
     for (int y = 0; y < h; ++y)
     {
-        int sy = y / scale;
-        if (sy >= sh) sy = sh - 1;
-
+        const int sy = (y / scale) < sh ? y / scale : sh - 1;
+        const int sy_sw = sy * sw;
+        const int y_w = y * w;
+        
         for (int x = 0; x < w; ++x)
         {
-            int sx = x / scale;
-            if (sx >= sw) sx = sw - 1;
-
-            src[y * w + x] = dst[sy * sw + sx];
+            const int sx = (x / scale) < sw ? x / scale : sw - 1;
+            src[y_w + x] = dst[sy_sw + sx];
         }
     }
 }
-
 
 // -----------------------------------------------------------------------------
 // V_PProc_OverbrightGlow
@@ -143,25 +149,39 @@ static void V_PProc_OverbrightGlow (void)
     const int width  = argbbuffer->w;
     const int height = argbbuffer->h;
     const int total_pixels = width * height;
-    Uint32 *pixels = (Uint32*)argbbuffer->pixels;
+    Uint32 *restrict pixels = (Uint32*)argbbuffer->pixels;
+    Uint32 *restrict p = pixels;
+    Uint32 *restrict end = p + total_pixels;
 
     // -------------------------------------------------------------------------
     // Step 1: calculate average brightness (0..255)
     // -------------------------------------------------------------------------
 
     uint64_t total_brightness = 0;
-    Uint32 *p = pixels;
-    for (int i = 0; i < total_pixels; ++i)
+    
+    // Process 4 pixels at a time when possible (loop unrolling)
+    int i = total_pixels;
+    while (i >= 4)
+    {
+        Uint32 px0 = p[0], px1 = p[1], px2 = p[2], px3 = p[3];
+        
+        total_brightness += ((px0 >> 16 & 0xFF) * 3 + (px0 >> 8 & 0xFF) * 5 + (px0 & 0xFF) * 2);
+        total_brightness += ((px1 >> 16 & 0xFF) * 3 + (px1 >> 8 & 0xFF) * 5 + (px1 & 0xFF) * 2);
+        total_brightness += ((px2 >> 16 & 0xFF) * 3 + (px2 >> 8 & 0xFF) * 5 + (px2 & 0xFF) * 2);
+        total_brightness += ((px3 >> 16 & 0xFF) * 3 + (px3 >> 8 & 0xFF) * 5 + (px3 & 0xFF) * 2);
+        
+        p += 4;
+        i -= 4;
+    }
+    
+    // Process remaining pixels
+    while (i-- > 0)
     {
         Uint32 px = *p++;
-        Uint8 r = (Uint8)(px >> 16);
-        Uint8 g = (Uint8)(px >> 8);
-        Uint8 b = (Uint8)(px);
-
-        total_brightness += ((int)r * 3 + (int)g * 5 + (int)b * 2) / 10;
+        total_brightness += ((px >> 16 & 0xFF) * 3 + (px >> 8 & 0xFF) * 5 + (px & 0xFF) * 2);
     }
 
-    int avg_brightness = (int)(total_brightness / total_pixels);  // 0..255
+    const int avg_brightness = (int)(total_brightness / (total_pixels * 10));
 
     // -------------------------------------------------------------------------
     // Step 2: calculate target exposure (Q8.8 fixed point)
@@ -170,12 +190,7 @@ static void V_PProc_OverbrightGlow (void)
     // target_exposure = 0.25 + (avg_brightness / 255.0) * 2.5;
     // in Q8.8: 64 + avg_brightness * 640 / 255;
     int target_exp = 64 + (avg_brightness * 640) / 255;
-
-    const int min_exp = 256;   // 1.00 (1 * 256)
-    const int max_exp = 1024;  // 4.00 (4 * 256)
-
-    if (target_exp < min_exp) target_exp = min_exp;
-    if (target_exp > max_exp) target_exp = max_exp;
+    target_exp = target_exp < 256 ? 256 : (target_exp > 1024 ? 1024 : target_exp);
 
     // -------------------------------------------------------------------------
     // Step 3: smooth exposure transition
@@ -187,26 +202,23 @@ static void V_PProc_OverbrightGlow (void)
     exposure += ((target_exp - exposure) * adapt_rate) >> 8;
 
     // -------------------------------------------------------------------------
-    // Step 4: apply exposure to all pixels (r * exposure >> 8)
+    // Step 4: apply exposure to all pixels
     // -------------------------------------------------------------------------
 
     p = pixels;
-    for (int i = 0; i < total_pixels; ++i)
+    
+    while (p < end)
     {
         Uint32 px = *p;
-
-        int r = (Uint8)(px >> 16);
-        int g = (Uint8)(px >> 8);
-        int b = (Uint8)px;
-
-        r = (r * exposure) >> 8;
-        g = (g * exposure) >> 8;
-        b = (b * exposure) >> 8;
-
-        if (r > 255) r = 255;
-        if (g > 255) g = 255;
-        if (b > 255) b = 255;
-
+        int r = (px >> 16 & 0xFF) * exposure >> 8;
+        int g = (px >> 8 & 0xFF) * exposure >> 8;
+        int b = (px & 0xFF) * exposure >> 8;
+        
+        // Branchless clamp
+        r = r > 255 ? 255 : r;
+        g = g > 255 ? 255 : g;
+        b = b > 255 ? 255 : b;
+        
         *p++ = (0xFFU << 24) | (r << 16) | (g << 8) | b;
     }
 }
@@ -226,13 +238,14 @@ static void V_PProc_AnalogRGBDrift (void)
 
     const int width = SCREENWIDTH;
     const int height = SCREENHEIGHT;
+    const int total_pixels = SCREENAREA;
 
     // Static buffer to store the original frame for safe sampling during modification
-    static pixel_t* chromabuf = NULL;
+    static pixel_t *restrict chromabuf = NULL;
     static size_t chromabuf_size = 0;
 
     // Reallocate buffer if resolution has changed
-    const size_t needed_size = width * height * sizeof(pixel_t);
+    const size_t needed_size = total_pixels * sizeof(pixel_t);
     if (chromabuf_size != needed_size)
     {
         free(chromabuf);
@@ -243,17 +256,18 @@ static void V_PProc_AnalogRGBDrift (void)
     }
 
     // Copy the current frame into the temporary buffer
-    pixel_t *const src = (pixel_t*)argbbuffer->pixels;
+    pixel_t *const restrict src = (pixel_t*)argbbuffer->pixels;
     memcpy(chromabuf, src, needed_size);
 
     // [JN] Calculate RGB drift offset depending on resolution.
     const int dx = post_rgbdrift + (vid_resolution > 2 ? (vid_resolution - 2) : 0);
 
     // Precompute shifted column indices for red (left) and blue (right) channels
-    static int *x_src_r = NULL;
-    static int *x_src_b = NULL;
+    static int *restrict x_src_r = NULL;
+    static int *restrict x_src_b = NULL;
     static int allocated_width = 0;
     static int last_dx = -1;
+    
     if (allocated_width != width || last_dx != dx)
     {
         free(x_src_r);
@@ -269,32 +283,58 @@ static void V_PProc_AnalogRGBDrift (void)
         }
         allocated_width = width;
         last_dx = dx;
+        
         for (int x = 0; x < width; ++x)
         {
-            x_src_r[x] = (x - dx >= 0) ? x - dx : 0;
-            x_src_b[x] = (x + dx < width) ? x + dx : width - 1;
+            x_src_r[x] = (x - dx) < 0 ? 0 : x - dx;
+            x_src_b[x] = (x + dx) >= width ? width - 1 : x + dx;
         }
     }
 
     // Use row pointers to avoid repeated multiplications in pixel indexing
     for (int y = 0; y < height; ++y)
     {
-        pixel_t *const srcRow = src + y * width;
-        const pixel_t *const chromaRow = chromabuf + y * width;
-        for (int x = 0; x < width; ++x)
+        pixel_t *const restrict srcRow = src + y * width;
+        const pixel_t *const restrict chromaRow = chromabuf + y * width;
+        
+        int x = 0;
+        for (; x < width - 3; x += 4)
+        {
+            // Pixel 0
+            pixel_t orig0 = chromaRow[x];
+            pixel_t red0  = chromaRow[x_src_r[x]];
+            pixel_t blue0 = chromaRow[x_src_b[x]];
+            srcRow[x] = ((red0 >> 16 & 0xff) << 16) | ((orig0 >> 8 & 0xff) << 8) | (blue0 & 0xff) | 0xff000000;
+
+            // Pixel 1
+            pixel_t orig1 = chromaRow[x+1];
+            pixel_t red1  = chromaRow[x_src_r[x+1]];
+            pixel_t blue1 = chromaRow[x_src_b[x+1]];
+            srcRow[x+1] = ((red1 >> 16 & 0xff) << 16) | ((orig1 >> 8 & 0xff) << 8) | (blue1 & 0xff) | 0xff000000;
+
+            // Pixel 2
+            pixel_t orig2 = chromaRow[x+2];
+            pixel_t red2  = chromaRow[x_src_r[x+2]];
+            pixel_t blue2 = chromaRow[x_src_b[x+2]];
+            srcRow[x+2] = ((red2 >> 16 & 0xff) << 16) | ((orig2 >> 8 & 0xff) << 8) | (blue2 & 0xff) | 0xff000000;
+
+            // Pixel 3
+            pixel_t orig3 = chromaRow[x+3];
+            pixel_t red3  = chromaRow[x_src_r[x+3]];
+            pixel_t blue3 = chromaRow[x_src_b[x+3]];
+            srcRow[x+3] = ((red3 >> 16 & 0xff) << 16) | ((orig3 >> 8 & 0xff) << 8) | (blue3 & 0xff) | 0xff000000;
+        }
+        
+        // Render remaining pixels
+        for (; x < width; ++x)
         {
             // Fetch original pixel and shifted red/blue samples
             pixel_t orig = chromaRow[x];
             pixel_t red  = chromaRow[x_src_r[x]];
             pixel_t blue = chromaRow[x_src_b[x]];
 
-            // Extract RGB components from the appropriate pixels
-            Uint8 r = (red >> 16) & 0xff;
-            Uint8 g = (orig >> 8) & 0xff;
-            Uint8 b = blue & 0xff;
-
             // Compose the final pixel with altered red/blue and original green; alpha is fixed
-            srcRow[x] = (r << 16) | (g << 8) | b | 0xff000000;
+            srcRow[x] = ((red >> 16 & 0xff) << 16) | ((orig >> 8 & 0xff) << 8) | (blue & 0xff) | 0xff000000;
         }
     }
 }
@@ -377,7 +417,7 @@ static void V_PProc_ScreenVignette (void)
 
     const int width  = argbbuffer->w;
     const int height = argbbuffer->h;
-    Uint32 *pixels   = (Uint32 *)argbbuffer->pixels;
+    Uint32 *restrict pixels = (Uint32 *)argbbuffer->pixels;
 
     const int cx = width / 2;
     const int cy = height / 2;
@@ -386,7 +426,7 @@ static void V_PProc_ScreenVignette (void)
     // Attenuation levels by post_vignette (Q8.8 fixed-point)
     // 0 = OFF, higher = stronger vignette
     static const int attenuation_table[] = { 0, 80, 146, 200, 255 };
-    int attenuation_max = attenuation_table[post_vignette];
+    const int attenuation_max = attenuation_table[post_vignette];
 
     for (int y = 0; y < height; ++y)
     {
@@ -399,23 +439,17 @@ static void V_PProc_ScreenVignette (void)
             const int dist2 = dx * dx + dy2;
 
             // attenuation = distance² scaled to max attenuation
-            int atten = (dist2 * attenuation_max) / max_dist2;
-            if (atten > attenuation_max)
-                atten = attenuation_max;
+            const int atten = dist2 >= max_dist2 ? attenuation_max : (dist2 * attenuation_max) / max_dist2;
 
             // scale = 1.0 - attenuation (in Q8.8)
             const int scale = 256 - atten;
 
             const int i = y * width + x;
-            Uint32 px = pixels[i];
+            const Uint32 px = pixels[i];
 
-            int r = (px >> 16) & 0xFF;
-            int g = (px >> 8) & 0xFF;
-            int b = px & 0xFF;
-
-            r = (r * scale) >> 8;
-            g = (g * scale) >> 8;
-            b = (b * scale) >> 8;
+            const int r = ((px >> 16) & 0xFF) * scale >> 8;
+            const int g = ((px >> 8) & 0xFF) * scale >> 8;
+            const int b = (px & 0xFF) * scale >> 8;
 
             pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
         }
@@ -450,26 +484,30 @@ static void V_PProc_MotionBlur (void)
 
     const int width  = argbbuffer->w;
     const int height = argbbuffer->h;
-    Uint32 *pixels   = (Uint32*)argbbuffer->pixels;
-    const size_t size = width * height * sizeof(Uint32);
+    Uint32 *restrict pixels = (Uint32*)argbbuffer->pixels;
+    const size_t size = (size_t)width * height * sizeof(Uint32);
     const int total_pixels = width * height;
 
     // Declare static buffers for previous frame and ring buffer.
     static Uint32 *prev_frame = NULL;
-    static size_t  prev_size = 0;
+    static size_t prev_size = 0;
     static Uint32 *frame_ring[MAX_BLUR_LAG + 1] = {0};
     static int ring_index = 0;
     static size_t ring_size = 0;
 
     // [JN] Modulate effect intensity
-    int blend_curr = 0, blend_prev = 0; // initialize
-    switch (post_motionblur)
+    int blend_curr = 0, blend_prev = 0;
+    static const int blend_table[5][2] = {
+        {8, 2}, // Soft
+        {7, 3}, // Light
+        {6, 4}, // Medium
+        {5, 5}, // Heavy
+        {1, 9}  // Ghost
+    };
+    if (post_motionblur >= 1 && post_motionblur <= 5)
     {
-        case 1: blend_curr = 8; blend_prev = 2; break; // Soft
-        case 2: blend_curr = 7; blend_prev = 3; break; // Light
-        case 3: blend_curr = 6; blend_prev = 4; break; // Medium
-        case 4: blend_curr = 5; blend_prev = 5; break; // Heavy
-        case 5: blend_curr = 1; blend_prev = 9; break; // Ghost
+        blend_curr = blend_table[post_motionblur - 1][0];
+        blend_prev = blend_table[post_motionblur - 1][1];
     }
 
     // Allocate or reallocate memory for the buffers if frame size changed.
@@ -479,8 +517,16 @@ static void V_PProc_MotionBlur (void)
         {
             for (int i = 0; i <= MAX_BLUR_LAG; ++i)
             {
-                free(frame_ring[i]);
-                frame_ring[i] = malloc(size);
+                Uint32 *tmp = realloc(frame_ring[i], size);
+                if (!tmp)
+                {
+                    free(frame_ring[i]);
+                    frame_ring[i] = NULL;
+                }
+                else
+                {
+                    frame_ring[i] = tmp;
+                }
                 if (frame_ring[i])
                     memset(frame_ring[i], 0, size);
             }
@@ -491,8 +537,16 @@ static void V_PProc_MotionBlur (void)
     {
         if (prev_size != size)
         {
-            free(prev_frame);
-            prev_frame = malloc(size);
+            Uint32 *tmp = realloc(prev_frame, size);
+            if (!tmp)
+            {
+                free(prev_frame);
+                prev_frame = NULL;
+            }
+            else
+            {
+                prev_frame = tmp;
+            }
             if (prev_frame)
                 memset(prev_frame, 0, size);
             prev_size = size;
@@ -504,17 +558,18 @@ static void V_PProc_MotionBlur (void)
     {
         // Use ring buffer: retrieve previous frame at an index based on delay.
         const int prev_index = (ring_index + MAX_BLUR_LAG) % (MAX_BLUR_LAG + 1);
-        Uint32 *ring_prev = frame_ring[prev_index];
+        Uint32 *restrict ring_prev = frame_ring[prev_index];
         if (!ring_prev)
             return;
 
         // Blending loop using pointer arithmetic.
         for (int i = 0; i < total_pixels; ++i)
         {
-            Uint32 curr = pixels[i], old = ring_prev[i];
-            int r = (((curr >> 16) & 0xFF) * blend_curr + ((old >> 16) & 0xFF) * blend_prev) / 10;
-            int g = (((curr >> 8)  & 0xFF) * blend_curr + ((old >> 8)  & 0xFF) * blend_prev) / 10;
-            int b = (((curr)       & 0xFF) * blend_curr + ((old)       & 0xFF) * blend_prev) / 10;
+            const Uint32 curr = pixels[i];
+            const Uint32 old  = ring_prev[i];
+            const int r = ((((curr >> 16) & 0xFF) * blend_curr) + (((old >> 16) & 0xFF) * blend_prev)) / 10;
+            const int g = ((((curr >> 8)  & 0xFF) * blend_curr) + (((old >> 8)  & 0xFF) * blend_prev)) / 10;
+            const int b = ((((curr)       & 0xFF) * blend_curr) + (((old)       & 0xFF) * blend_prev)) / 10;
             pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
         }
         // Advance ring buffer index and save current frame.
@@ -528,15 +583,17 @@ static void V_PProc_MotionBlur (void)
             return;
         for (int i = 0; i < total_pixels; ++i)
         {
-            Uint32 curr = pixels[i], old = prev_frame[i];
-            int r = (((curr >> 16) & 0xFF) * blend_curr + ((old >> 16) & 0xFF) * blend_prev) / 10;
-            int g = (((curr >> 8)  & 0xFF) * blend_curr + ((old >> 8)  & 0xFF) * blend_prev) / 10;
-            int b = (((curr)       & 0xFF) * blend_curr + ((old)       & 0xFF) * blend_prev) / 10;
+            const Uint32 curr = pixels[i];
+            const Uint32 old  = prev_frame[i];
+            const int r = ((((curr >> 16) & 0xFF) * blend_curr) + (((old >> 16) & 0xFF) * blend_prev)) / 10;
+            const int g = ((((curr >> 8)  & 0xFF) * blend_curr) + (((old >> 8)  & 0xFF) * blend_prev)) / 10;
+            const int b = ((((curr)       & 0xFF) * blend_curr) + (((old)       & 0xFF) * blend_prev)) / 10;
             pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
         }
         memcpy(prev_frame, pixels, size);
     }
 }
+
 
 // -----------------------------------------------------------------------------
 // V_PProc_DepthOfFieldBlur
@@ -557,14 +614,16 @@ static void V_PProc_DepthOfFieldBlur (void)
     if (width < 7 || height < 7)
         return;
 
-    Uint32* pixels = (Uint32*)argbbuffer->pixels;
+    Uint32 *restrict pixels = (Uint32*)argbbuffer->pixels;
     const int cx = width / 2;
     const int cy = height / 2;
+    const int stride = width;  // Precomputed row stride
 
     // Adaptive blur radius based on resolution
     const int radius = (vid_resolution <= 2) ? 1 :
                        (vid_resolution <= 4) ? 2 : 3;
-    const int kernel_size = (2 * radius + 1) * (2 * radius + 1);
+    const int diameter = 2 * radius + 1;
+    const int kernel_size = diameter * diameter;
 
     // Threshold for blur application
     const int threshold = 150 * vid_resolution;
@@ -575,6 +634,7 @@ static void V_PProc_DepthOfFieldBlur (void)
     {
         const int dy = y - cy;
         const int dy2 = dy * dy;
+        Uint32 *restrict row_center = pixels + y * stride;  // Central row
 
         for (int x = radius; x < width - radius; ++x)
         {
@@ -584,58 +644,85 @@ static void V_PProc_DepthOfFieldBlur (void)
 
             int r_sum = 0, g_sum = 0, b_sum = 0;
 
+            // Precomputed pointers to rows
             for (int ky = -radius; ky <= radius; ++ky)
             {
-                const Uint32* row = pixels + (y + ky) * width;
-                for (int kx = -radius; kx <= radius; ++kx)
+                const Uint32 *restrict row = pixels + (y + ky) * stride;
+                const int x_start = x - radius;
+                
+                // Unrolled inner loop for radii 1-3
+                if (radius == 1)
                 {
-                    Uint32 c = row[x + kx];
-                    r_sum += (c >> 16) & 0xFF;
-                    g_sum += (c >> 8)  & 0xFF;
-                    b_sum += c & 0xFF;
+                    Uint32 c0 = row[x_start];
+                    Uint32 c1 = row[x_start + 1];
+                    Uint32 c2 = row[x_start + 2];
+                    
+                    r_sum += ((c0 >> 16) & 0xFF) + ((c1 >> 16) & 0xFF) + ((c2 >> 16) & 0xFF);
+                    g_sum += ((c0 >> 8) & 0xFF) + ((c1 >> 8) & 0xFF) + ((c2 >> 8) & 0xFF);
+                    b_sum += (c0 & 0xFF) + (c1 & 0xFF) + (c2 & 0xFF);
+                }
+                else if (radius == 2)
+                {
+                    // Similarly for radius 2 (5x5)
+                    for (int kx = -2; kx <= 2; ++kx)
+                    {
+                        Uint32 c = row[x + kx];
+                        r_sum += (c >> 16) & 0xFF;
+                        g_sum += (c >> 8) & 0xFF;
+                        b_sum += c & 0xFF;
+                    }
+                }
+                else // radius == 3
+                {
+                    // Similarly for radius 3 (7x7)
+                    for (int kx = -3; kx <= 3; ++kx)
+                    {
+                        Uint32 c = row[x + kx];
+                        r_sum += (c >> 16) & 0xFF;
+                        g_sum += (c >> 8) & 0xFF;
+                        b_sum += c & 0xFF;
+                    }
                 }
             }
 
+            // Fast division using precomputed kernel_size
             const int r_avg = r_sum / kernel_size;
             const int g_avg = g_sum / kernel_size;
             const int b_avg = b_sum / kernel_size;
 
-            pixels[y * width + x] = (0xFF << 24) |
-                                    (r_avg << 16) |
-                                    (g_avg << 8) |
-                                    b_avg;
+            row_center[x] = (0xFF << 24) | (r_avg << 16) | (g_avg << 8) | b_avg;
         }
     }
 
-    // Border correction: handle left (x=0) and right (x=width-1) columns
+    // Optimized border processing
     for (int y = 1; y < height - 1; ++y)
     {
+        const int dy = y - cy;
+        const int dy2 = dy * dy;
+        Uint32 *restrict row = pixels + y * stride;
+
+        // Processing left and right borders
         for (int x = 0; x < width; x += (width - 1))
         {
             const int dx = x - cx;
-            const int dy = y - cy;
-            if (dx * dx + dy * dy < thresholdSq)
+            if (dx * dx + dy2 < thresholdSq)
                 continue;
 
-            int r_sum = 0, g_sum = 0, b_sum = 0, count = 0;
+            int r_sum = 0, g_sum = 0, b_sum = 0;
+            int count = 0;
 
-            // Safe 3x3 sampling with boundary checks
-            for (int ky = -1; ky <= 1; ++ky)
+            // Explicit handling of 3x3 kernel with boundary checks
+            for (int ky = (y == 0) ? 0 : -1; ky <= (y == height - 1) ? 0 : 1; ++ky)
             {
-                const int ny = y + ky;
-                if (ny < 0 || ny >= height)
-                    continue;
-
-                Uint32* row = pixels + ny * width;
-                for (int kx = -1; kx <= 1; ++kx)
+                const Uint32 *restrict sample_row = pixels + (y + ky) * stride;
+                const int x_start = (x == 0) ? 0 : -1;
+                const int x_end = (x == width - 1) ? 0 : 1;
+                
+                for (int kx = x_start; kx <= x_end; ++kx)
                 {
-                    const int nx = x + kx;
-                    if (nx < 0 || nx >= width)
-                        continue;
-
-                    Uint32 c = row[nx];
+                    Uint32 c = sample_row[x + kx];
                     r_sum += (c >> 16) & 0xFF;
-                    g_sum += (c >> 8)  & 0xFF;
+                    g_sum += (c >> 8) & 0xFF;
                     b_sum += c & 0xFF;
                     ++count;
                 }
@@ -643,10 +730,10 @@ static void V_PProc_DepthOfFieldBlur (void)
 
             if (count > 0)
             {
-                pixels[y * width + x] = (0xFF << 24) |
-                                        ((r_sum / count) << 16) |
-                                        ((g_sum / count) << 8) |
-                                         (b_sum / count);
+                row[x] = (0xFF << 24) | 
+                        ((r_sum / count) << 16) | 
+                        ((g_sum / count) << 8) | 
+                        (b_sum / count);
             }
         }
     }
