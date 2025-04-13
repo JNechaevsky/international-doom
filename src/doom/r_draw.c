@@ -273,13 +273,13 @@ void R_SetFuzzPosDraw (void)
 
 void R_DrawFuzzColumn(void)
 {
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // No pixels to draw
-
     const boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
+
+    const int count = dc_yh - dc_yl;
+    if (count < 0)
+        return; // No pixels to draw
 
     // Precompute destination pointer
     pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
@@ -339,13 +339,13 @@ void R_DrawFuzzColumn(void)
 
 void R_DrawFuzzColumnLow(void)
 {
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // Zero length check
-
     const boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
+
+    const int count = dc_yh - dc_yl;
+    if (count < 0)
+        return; // Zero length check
 
     // Blocky mode: double the x coordinate
     const int x = dc_x << 1;
