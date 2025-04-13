@@ -28,5 +28,5 @@ extern boolean pproc_display_effects;
 extern boolean pproc_plyrview_effects;
 extern boolean V_PProc_EffectsActive (void);
 
-extern void V_PProc_Display (void);
+extern void V_PProc_Display (boolean supress);
 extern void V_PProc_PlayerView (void);

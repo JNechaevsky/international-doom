@@ -135,9 +135,9 @@ void V_PProc_SupersampledSmoothing (boolean st_background_on, int st_height)
 
 // -----------------------------------------------------------------------------
 // V_PProc_OverbrightGlow
-// [PN] Applies dynamic exposure adjustment based on average frame brightness.
-// Implements "Overbright Glow" — an inverse HDR effect that intensifies 
-// already bright scenes and slightly fades darker ones.
+//  [PN] Applies a soft, color-tinted glow to the frame based on the dominant
+//  hue of bright areas. Glow intensity and color adapt over time using
+//  exponential smoothing.
 // -----------------------------------------------------------------------------
 
 static void V_PProc_OverbrightGlow (void)
@@ -146,80 +146,64 @@ static void V_PProc_OverbrightGlow (void)
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
         return;
 
-    const int width  = argbbuffer->w;
-    const int height = argbbuffer->h;
-    const int total_pixels = width * height;
-    Uint32 *restrict pixels = (Uint32*)argbbuffer->pixels;
-    Uint32 *restrict p = pixels;
-    Uint32 *restrict end = p + total_pixels;
+    const int w = argbbuffer->w;
+    const int h = argbbuffer->h;
+    Uint32 *restrict pixels = (Uint32 *)argbbuffer->pixels;
 
-    // -------------------------------------------------------------------------
-    // Step 1: calculate average brightness (0..255)
-    // -------------------------------------------------------------------------
+    static int glow_r = 0, glow_g = 0, glow_b = 0;
 
-    uint64_t total_brightness = 0;
-    
-    // Process 4 pixels at a time when possible (loop unrolling)
-    int i = total_pixels;
-    while (i >= 4)
+    int bright_count = 0;
+    int bright_r = 0, bright_g = 0, bright_b = 0;
+
+    // [PN] Measure number and color of bright pixels
+    for (Uint32 *restrict p = pixels, *end = pixels + (w * h); p < end; ++p)
     {
-        Uint32 px0 = p[0], px1 = p[1], px2 = p[2], px3 = p[3];
-        
-        total_brightness += ((px0 >> 16 & 0xFF) * 3 + (px0 >> 8 & 0xFF) * 5 + (px0 & 0xFF) * 2);
-        total_brightness += ((px1 >> 16 & 0xFF) * 3 + (px1 >> 8 & 0xFF) * 5 + (px1 & 0xFF) * 2);
-        total_brightness += ((px2 >> 16 & 0xFF) * 3 + (px2 >> 8 & 0xFF) * 5 + (px2 & 0xFF) * 2);
-        total_brightness += ((px3 >> 16 & 0xFF) * 3 + (px3 >> 8 & 0xFF) * 5 + (px3 & 0xFF) * 2);
-        
-        p += 4;
-        i -= 4;
-    }
-    
-    // Process remaining pixels
-    while (i-- > 0)
-    {
-        Uint32 px = *p++;
-        total_brightness += ((px >> 16 & 0xFF) * 3 + (px >> 8 & 0xFF) * 5 + (px & 0xFF) * 2);
+        Uint32 c = *p;
+        int r = (c >> 16) & 0xFF;
+        int g = (c >> 8) & 0xFF;
+        int b = c & 0xFF;
+
+        int luma = (r * 54 + g * 183 + b * 18) >> 8;
+
+        if (luma > 1)
+        {
+            bright_count++;
+            bright_r += r;
+            bright_g += g;
+            bright_b += b;
+        }
     }
 
-    const int avg_brightness = (int)(total_brightness / (total_pixels * 10));
+    // [PN] Adapt exposure smoothly
+    const int rate = 13; // how quickly we adapt (~0.05 in Q8.8)
 
-    // -------------------------------------------------------------------------
-    // Step 2: calculate target exposure (Q8.8 fixed point)
-    // -------------------------------------------------------------------------
-
-    // target_exposure = 0.25 + (avg_brightness / 255.0) * 2.5;
-    // in Q8.8: 64 + avg_brightness * 640 / 255;
-    int target_exp = 64 + (avg_brightness * 640) / 255;
-    target_exp = target_exp < 256 ? 256 : (target_exp > 1024 ? 1024 : target_exp);
-
-    // -------------------------------------------------------------------------
-    // Step 3: smooth exposure transition
-    // -------------------------------------------------------------------------
-
-    static int exposure = 256;  // initial exposure level (Q8.8 == 1.0)
-    const int adapt_rate = 13;  // how quickly we adapt (~0.05 in Q8.8)
-
-    exposure += ((target_exp - exposure) * adapt_rate) >> 8;
-
-    // -------------------------------------------------------------------------
-    // Step 4: apply exposure to all pixels
-    // -------------------------------------------------------------------------
-
-    p = pixels;
-    
-    while (p < end)
+    // [PN] Compute average glow color from bright pixels
+    if (bright_count > 0)
     {
-        Uint32 px = *p;
-        int r = (px >> 16 & 0xFF) * exposure >> 8;
-        int g = (px >> 8 & 0xFF) * exposure >> 8;
-        int b = (px & 0xFF) * exposure >> 8;
-        
-        // Branchless clamp
+        glow_r = ((glow_r * (rate - 1)) + (bright_r / bright_count)) / rate;
+        glow_g = ((glow_g * (rate - 1)) + (bright_g / bright_count)) / rate;
+        glow_b = ((glow_b * (rate - 1)) + (bright_b / bright_count)) / rate;
+    }
+
+    // [PN] Apply glow to the screen
+    for (Uint32 *restrict p = pixels, *end = pixels + (w * h); p < end; ++p)
+    {
+        Uint32 c = *p;
+        int r = (c >> 16) & 0xFF;
+        int g = (c >> 8) & 0xFF;
+        int b = c & 0xFF;
+
+        // Multiple blending
+        r += r * glow_r / 255;
+        g += g * glow_g / 255;
+        b += b * glow_b / 255;
+
+        // Branchless clamping
         r = r > 255 ? 255 : r;
         g = g > 255 ? 255 : g;
         b = b > 255 ? 255 : b;
-        
-        *p++ = (0xFFU << 24) | (r << 16) | (g << 8) | b;
+
+        *p = (0xFF << 24) | (r << 16) | (g << 8) | b;
     }
 }
 
@@ -753,13 +737,13 @@ boolean V_PProc_EffectsActive (void)
     return (pproc_display_effects || pproc_plyrview_effects);
 }
 
-void V_PProc_Display (void)
+void V_PProc_Display (boolean supress)
 {
     pproc_display_effects =
         post_overglow || post_rgbdrift || post_vhsdist;
     
     // Overbright Glow
-    if (post_overglow)
+    if (post_overglow && !supress)
         V_PProc_OverbrightGlow();
 
     // Analog RGB Drift
