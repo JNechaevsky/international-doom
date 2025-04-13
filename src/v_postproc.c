@@ -163,15 +163,10 @@ static void V_PProc_OverbrightGlow (void)
         int g = (c >> 8) & 0xFF;
         int b = c & 0xFF;
 
-        int luma = (r * 54 + g * 183 + b * 18) >> 8;
-
-        if (luma > 1)
-        {
-            bright_count++;
-            bright_r += r;
-            bright_g += g;
-            bright_b += b;
-        }
+        bright_count++;
+        bright_r += r;
+        bright_g += g;
+        bright_b += b;
     }
 
     // [PN] Adapt exposure smoothly
@@ -189,14 +184,11 @@ static void V_PProc_OverbrightGlow (void)
     for (Uint32 *restrict p = pixels, *end = pixels + (w * h); p < end; ++p)
     {
         Uint32 c = *p;
-        int r = (c >> 16) & 0xFF;
-        int g = (c >> 8) & 0xFF;
-        int b = c & 0xFF;
 
         // Multiple blending
-        r += r * glow_r / 255;
-        g += g * glow_g / 255;
-        b += b * glow_b / 255;
+        int r = (((c >> 16) & 0xFF) * (256 + glow_r)) >> 8;
+        int g = (((c >> 8) & 0xFF) * (256 + glow_g)) >> 8;
+        int b = ((c & 0xFF) * (256 + glow_b)) >> 8;
 
         // Branchless clamping
         r = r > 255 ? 255 : r;
