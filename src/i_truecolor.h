@@ -102,29 +102,27 @@ extern const double colorblind_matrix[][3][3];
 //   as commented examples in i_truecolor.c file.
 
 #define I_BlendAdd(bg_i, fg_i) ( \
-    ((0xFFU << 24) | \
+    ((0xFF000000U) | \
     (additive_lut[((bg_i) & 0xFF)][((fg_i) & 0xFF)] & 0xFF) | \
     ((additive_lut[(((bg_i) >> 8) & 0xFF)][(((fg_i) >> 8) & 0xFF)] & 0xFF) << 8) | \
     ((additive_lut[(((bg_i) >> 16) & 0xFF)][(((fg_i) >> 16) & 0xFF)] & 0xFF) << 16)) \
 )
 
 #define I_BlendDark(bg_i, d) ( \
-    ((0xFFU << 24) | \
-    (((((bg_i) & 0xFF) * (d)) >> 8) & 0xFF) | \
-    ((((bg_i) >> 8 & 0xFF) * (d)) >> 8 & 0xFF) << 8 | \
-    ((((bg_i) >> 16 & 0xFF) * (d)) >> 8 & 0xFF) << 16) \
+    ((0xFF000000U) | \
+    (((((bg_i) & 0x00FF00FF) * (d)) >> 8) & 0x00FF00FF) | \
+    (((((bg_i) & 0x0000FF00) * (d)) >> 8) & 0x0000FF00)) \
 )
 
 #define I_BlendDarkGrayscale(bg_i, d) ( \
-    ((0xFFU << 24) | \
-    (((( (((((bg_i) >> 16) & 0xFF) + (((bg_i) >> 8) & 0xFF) + ((bg_i) & 0xFF)) / 3) * (d)) >> 8) & 0xFF) * 0x010101U)) \
+    ((0xFF000000U) | \
+    ((((((bg_i & 0xFF) + ((bg_i >> 8) & 0xFF) + ((bg_i >> 16) & 0xFF)) * (d)) >> 8) / 3) & 0xFF) * 0x010101U) \
 )
 
 #define I_BlendOver(bg_i, fg_i, amount) ( \
-    ((0xFFU << 24) | \
-    ((((amount) * ((fg_i) & 0xFF) + ((0xFFU - (amount)) * ((bg_i) & 0xFF))) >> 8) & 0xFF) | \
-    (((((amount) * (((fg_i) >> 8) & 0xFF) + ((0xFFU - (amount)) * (((bg_i) >> 8) & 0xFF))) >> 8) & 0xFF) << 8) | \
-    (((((amount) * (((fg_i) >> 16) & 0xFF) + ((0xFFU - (amount)) * (((bg_i) >> 16) & 0xFF))) >> 8) & 0xFF) << 16)) \
+    (0xFF000000U) | \
+    ((((amount) * ((fg_i) & 0xFF00FF) + ((0xFFU - (amount)) * ((bg_i) & 0xFF00FF))) >> 8) & 0xFF00FF) | \
+    ((((amount) * ((fg_i) & 0x00FF00) + ((0xFFU - (amount)) * ((bg_i) & 0x00FF00))) >> 8) & 0x00FF00) \
 )
 
 #endif
