@@ -39,19 +39,8 @@
 
 static int *offsets = NULL;             // [PN] Array to store offsets for all frames.
 static int *offset;                     // [PN] Current pointer to offsets for a specific frame.
+static int *offset_frames[SEQUENCE];    // [PN] Array of pointers to frame offsets.
 
-
-// [PN] Helper function to calculate the offset based on sine wave values.
-static inline int calculate_offset (int x, int y, int i, int factor, int factor2, int amp, int amp2, int speed) 
-{
-    const int sinvalue = (y * factor + i * speed * 5 + 900) & FINEMASK;
-    const int sinvalue2 = (x * factor2 + i * speed * 4 + 300) & FINEMASK;
-    const int result = x + 128 + ((finesine[sinvalue] * amp) >> FRACBITS) 
-                     + ((finesine[sinvalue2] * amp2) >> FRACBITS);
-
-    // [PN] Ensuring the result wraps around within the 64x64 grid.
-    return result & 63;
-}
 
 void R_InitDistortedFlats (void)
 {
@@ -62,20 +51,31 @@ void R_InitDistortedFlats (void)
 
 		for (int i = 0; i < SEQUENCE; i++)
 		{
+			offset_frames[i] = offsets + i * FLATSIZE;
+
 			for (int x = 0; x < 64; x++)
 			{
 				for (int y = 0; y < 64; y++)
 				{
                     // [PN] Calculate X distortion.
-                    const int x1 = calculate_offset(x, y, i, SWIRLFACTOR, SWIRLFACTOR2, AMP, AMP2, SPEED);
-                    // [PN] Calculate Y distortion (swapped x and y).                    
-                    const int y1 = calculate_offset(y, x, i, SWIRLFACTOR, SWIRLFACTOR2, AMP, AMP2, SPEED);
+                    const int sin1 = (y * SWIRLFACTOR + i * SPEED * 5 + 900) & FINEMASK;
+                    const int sin2 = (x * SWIRLFACTOR2 + i * SPEED * 4 + 300) & FINEMASK;
 
-					offset[(y << 6) + x] = (y1 << 6) + x1;
+                    int x1 = x + 128 + ((finesine[sin1] * AMP) >> FRACBITS)
+                                     + ((finesine[sin2] * AMP2) >> FRACBITS);
+                    x1 &= 63;
+
+                    // [PN] Calculate Y distortion (swapped x and y).                    
+                    const int sin3 = (x * SWIRLFACTOR + i * SPEED * 5 + 900) & FINEMASK;
+                    const int sin4 = (y * SWIRLFACTOR2 + i * SPEED * 4 + 300) & FINEMASK;
+
+                    int y1 = y + 128 + ((finesine[sin3] * AMP) >> FRACBITS)
+                                     + ((finesine[sin4] * AMP2) >> FRACBITS);
+                    y1 &= 63;
+
+					offset_frames[i][(y << 6) + x] = (y1 << 6) + x1;
 				}
 			}
-
-			offset += FLATSIZE;
 		}
 	}
 }
@@ -88,7 +88,7 @@ byte *R_DistortedFlat(int flatnum)
 
 	if (swirltic != leveltime)
 	{
-		offset = offsets + ((leveltime & (SEQUENCE - 1)) * FLATSIZE);
+		offset = offset_frames[leveltime & (SEQUENCE - 1)];
 
 		swirltic = leveltime;
 		swirlflat = -1;
@@ -96,9 +96,7 @@ byte *R_DistortedFlat(int flatnum)
 
 	if (swirlflat != flatnum)
 	{
-		char *normalflat;
-
-		normalflat = W_CacheLumpNum(flatnum, PU_STATIC);
+		const char *normalflat = W_CacheLumpNum(flatnum, PU_STATIC);
 
         // [PN] Loop through each pixel and apply the distortion.
 		for (int i = 0; i < FLATSIZE; i++)
