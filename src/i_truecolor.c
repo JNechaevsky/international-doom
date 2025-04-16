@@ -41,8 +41,7 @@ void I_InitTCTransMaps (void)
         for (int j = 0; j < 256; j++)
         {
             int sum = i + j;
-            if (sum > 255) sum = 255;
-            additive_lut[i][j] = (uint8_t)sum;
+            additive_lut[i][j] = (uint8_t)(sum > 255 ? 255 : sum);
         }
     }
 }
