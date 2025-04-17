@@ -2181,6 +2181,8 @@ void SV_LoadGame(int slot)
         }
     }
 
+    // Set Bestslideline after loading
+    P_InitSlideLine();
 }
 
 //==========================================================================
