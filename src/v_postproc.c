@@ -307,47 +307,63 @@ static void V_PProc_VHSLineDistortion (void)
 
 static void V_PProc_ScreenVignette (void)
 {
-    // Validate input buffer and 32-bit pixel format
+    // [PN] Validate input buffer and 32-bit pixel format
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
         return;
 
-    const int width  = argbbuffer->w;
-    const int height = argbbuffer->h;
-    Uint32 *restrict pixels = (Uint32 *)argbbuffer->pixels;
+    const int  w  = argbbuffer->w;
+    const int  h  = argbbuffer->h;
+    Uint32 *restrict const fb = (Uint32 *)argbbuffer->pixels;
 
-    const int cx = width / 2;
-    const int cy = height / 2;
+    // [PN] Geometry & pre‑computed constants
+    const int cx = w >> 1;                 // centre‑x
+    const int cy = h >> 1;                 // centre‑y
     const int max_dist2 = cx * cx + cy * cy;
 
-    // Attenuation levels by post_vignette (Q8.8 fixed-point)
-    // 0 = OFF, higher = stronger vignette
-    static const int attenuation_table[] = { 0, 80, 146, 200, 255 };
-    const int attenuation_max = attenuation_table[post_vignette];
+    // [PN] 0 = off … 4 = strongest
+    static const int att_tbl[] = { 0, 80, 146, 200, 255 };
+    const int att_max = att_tbl[post_vignette];
+    if (att_max == 0)                      // early‑out if vignette disabled
+        return;
 
-    for (int y = 0; y < height; ++y)
+    // [PN] Main loop — per scan‑line
+    for (int y = 0; y < h; ++y)
     {
-        const int dy = y - cy;
-        const int dy2 = dy * dy;
+        const int dy   = y - cy;
+        const int dy2  = dy * dy;
+        Uint32 *restrict row = fb + (size_t)y * w;
 
-        for (int x = 0; x < width; ++x)
+        /* Incremental x² logic:
+           dist2  = (‑cx)² + dy²  at x = 0
+           inc    = 2·x + 1       derivative of x²
+           After each pixel:
+             dist2 += inc
+             inc   += 2
+         */
+        int x      = 0;
+        int dx     = -cx;
+        int dist2  = dx * dx + dy2;
+        int inc    = (dx << 1) + 1;
+
+        for (; x < w; ++x)
         {
-            const int dx = x - cx;
-            const int dist2 = dx * dx + dy2;
+            // [PN] Attenuation (Q8.8): 0..255
+            const int atten  = (dist2 >= max_dist2)
+                               ? att_max
+                               : (dist2 * att_max) / max_dist2;
+            const int scale  = 256 - atten;          // 1.0 – attenuation
 
-            // attenuation = distance² scaled to max attenuation
-            const int atten = dist2 >= max_dist2 ? attenuation_max : (dist2 * attenuation_max) / max_dist2;
+            // [PN] Apply scale
+            const Uint32 px = row[x];
+            const int r = (((px >> 16) & 0xFF) * scale) >> 8;
+            const int g = (((px >>  8) & 0xFF) * scale) >> 8;
+            const int b = (( px        & 0xFF) * scale) >> 8;
 
-            // scale = 1.0 - attenuation (in Q8.8)
-            const int scale = 256 - atten;
+            row[x] = 0xFF000000 | (r << 16) | (g << 8) | b;
 
-            const int i = y * width + x;
-            const Uint32 px = pixels[i];
-
-            const int r = ((px >> 16) & 0xFF) * scale >> 8;
-            const int g = ((px >> 8) & 0xFF) * scale >> 8;
-            const int b = (px & 0xFF) * scale >> 8;
-
-            pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+            // [PN] Incremental x² update
+            dist2 += inc;
+            inc   += 2;
         }
     }
 }
