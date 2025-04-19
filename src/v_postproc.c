@@ -101,7 +101,9 @@ static void V_PProc_OverbrightGlow (void)
     int bright_count = 0;
     int bright_r = 0, bright_g = 0, bright_b = 0;
 
-    // [PN] Measure number and color of bright pixels
+    const int rate = 13; // how quickly we adapt (~0.05 in Q8.8)
+
+    // [PN] Single loop to calculate brightness and apply glow simultaneously
     for (Uint32 *restrict p = pixels, *end = pixels + (w * h); p < end; ++p)
     {
         Uint32 c = *p;
@@ -109,39 +111,31 @@ static void V_PProc_OverbrightGlow (void)
         int g = (c >> 8) & 0xFF;
         int b = c & 0xFF;
 
-        bright_count++;
+        // [PN] Accumulate values for bright pixel count and average color
         bright_r += r;
         bright_g += g;
         bright_b += b;
+        bright_count++;
+
+        // [PN] Apply glow effect dynamically during the same loop
+        int glow_r_adj = ((256 + glow_r) * r) >> 8;
+        int glow_g_adj = ((256 + glow_g) * g) >> 8;
+        int glow_b_adj = ((256 + glow_b) * b) >> 8;
+
+        // [PN] Branchless clamping (ensuring values don't exceed 255)
+        glow_r_adj = glow_r_adj > 255 ? 255 : glow_r_adj;
+        glow_g_adj = glow_g_adj > 255 ? 255 : glow_g_adj;
+        glow_b_adj = glow_b_adj > 255 ? 255 : glow_b_adj;
+
+        *p = (0xFF << 24) | (glow_r_adj << 16) | (glow_g_adj << 8) | glow_b_adj;
     }
 
-    // [PN] Adapt exposure smoothly
-    const int rate = 13; // how quickly we adapt (~0.05 in Q8.8)
-
-    // [PN] Compute average glow color from bright pixels
+    // [PN] Adapt exposure based on the average brightness of bright pixels
     if (bright_count > 0)
     {
         glow_r = ((glow_r * (rate - 1)) + (bright_r / bright_count)) / rate;
         glow_g = ((glow_g * (rate - 1)) + (bright_g / bright_count)) / rate;
         glow_b = ((glow_b * (rate - 1)) + (bright_b / bright_count)) / rate;
-    }
-
-    // [PN] Apply glow to the screen
-    for (Uint32 *restrict p = pixels, *end = pixels + (w * h); p < end; ++p)
-    {
-        Uint32 c = *p;
-
-        // Multiple blending
-        int r = (((c >> 16) & 0xFF) * (256 + glow_r)) >> 8;
-        int g = (((c >> 8) & 0xFF) * (256 + glow_g)) >> 8;
-        int b = ((c & 0xFF) * (256 + glow_b)) >> 8;
-
-        // Branchless clamping
-        r = r > 255 ? 255 : r;
-        g = g > 255 ? 255 : g;
-        b = b > 255 ? 255 : b;
-
-        *p = (0xFF << 24) | (r << 16) | (g << 8) | b;
     }
 }
 
