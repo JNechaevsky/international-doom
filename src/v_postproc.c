@@ -390,119 +390,104 @@ static void V_PProc_ScreenVignette (void)
 
 static void V_PProc_MotionBlur (void)
 {
-    // Validate input buffer and 32-bit pixel format.
+    // [PN] Validate framebuffer & format
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
         return;
 
-    const int width  = argbbuffer->w;
-    const int height = argbbuffer->h;
-    Uint32 *restrict pixels = (Uint32*)argbbuffer->pixels;
-    const size_t size = (size_t)width * height * sizeof(Uint32);
-    const int total_pixels = width * height;
+    const int  w   = argbbuffer->w;
+    const int  h   = argbbuffer->h;
+    Uint32 *restrict const fb = (Uint32 *)argbbuffer->pixels;
+    const size_t pix_cnt = (size_t)w * h;
+    const size_t buf_sz  = pix_cnt * sizeof(Uint32);
 
-    // Declare static buffers for previous frame and ring buffer.
-    static Uint32 *prev_frame = NULL;
-    static size_t prev_size = 0;
-    static Uint32 *frame_ring[MAX_BLUR_LAG + 1] = {0};
-    static int ring_index = 0;
-    static size_t ring_size = 0;
-
-    // [JN] Modulate effect intensity
-    int blend_curr = 0, blend_prev = 0;
-    static const int blend_table[5][2] = {
-        {8, 2}, // Soft
-        {7, 3}, // Light
-        {6, 4}, // Medium
-        {5, 5}, // Heavy
-        {1, 9}  // Ghost
+    // [PN] Q8.8 weight table (≈curr/10 * 256, prev/10 * 256) ↴
+    static const uint16_t Wtbl[5][2] = {
+        {205,  51}, // Soft  ( 0.8, 0.2 )
+        {179,  77}, // Light ( 0.7, 0.3 )
+        {154, 102}, // Med   ( 0.6, 0.4 )
+        {128, 128}, // Heavy ( 0.5, 0.5 )
+        { 26, 230}  // Ghost ( 0.1, 0.9 )
     };
-    if (post_motionblur >= 1 && post_motionblur <= 5)
-    {
-        blend_curr = blend_table[post_motionblur - 1][0];
-        blend_prev = blend_table[post_motionblur - 1][1];
-    }
 
-    // Allocate or reallocate memory for the buffers if frame size changed.
-    if (vid_uncapped_fps)
+    const uint16_t w_cur  = Wtbl[post_motionblur - 1][0];
+    const uint16_t w_prev = Wtbl[post_motionblur - 1][1];
+
+    // [PN] Buffer management
+    static Uint32 *prev_frame = NULL;              // single‑buffer mode
+    static size_t prev_size   = 0;
+
+    static Uint32 *ring[MAX_BLUR_LAG + 1] = {0};   // uncapped‑FPS ring
+    static size_t ring_size = 0;
+    static int    ring_idx  = 0;
+
+    const int uncapped = vid_uncapped_fps;
+
+    if (uncapped)
     {
-        if (ring_size != size)
+        if (ring_size != buf_sz)
         {
             for (int i = 0; i <= MAX_BLUR_LAG; ++i)
             {
-                Uint32 *tmp = realloc(frame_ring[i], size);
+                Uint32 *tmp = realloc(ring[i], buf_sz);
                 if (!tmp)
                 {
-                    free(frame_ring[i]);
-                    frame_ring[i] = NULL;
+                    free(ring[i]);
+                    ring[i] = NULL;
                 }
                 else
                 {
-                    frame_ring[i] = tmp;
+                    ring[i] = tmp;
+                    memset(tmp, 0, buf_sz);
                 }
-                if (frame_ring[i])
-                    memset(frame_ring[i], 0, size);
             }
-            ring_size = size;
+            ring_size = buf_sz;
         }
+    }
+    else if (prev_size != buf_sz)
+    {
+        Uint32 *tmp = realloc(prev_frame, buf_sz);
+        if (!tmp)
+        {
+            free(prev_frame);
+            prev_frame = NULL;
+        }
+        else
+        {
+            prev_frame = tmp;
+            memset(tmp, 0, buf_sz);
+        }
+        prev_size = buf_sz;
+    }
+
+    // [PN] Choose previous‑frame source
+    Uint32 *restrict const oldF = uncapped
+        ? ring[(ring_idx + MAX_BLUR_LAG) & MAX_BLUR_LAG]
+        : prev_frame;
+
+    if (!oldF) return;   // nothing to blend with yet
+
+    // [PN] Blend loop
+    for (size_t i = 0; i < pix_cnt; ++i)
+    {
+        const Uint32 c = fb[i];
+        const Uint32 o = oldF[i];
+
+        const int r = (((c >> 16 & 0xFF) * w_cur)  + ((o >> 16 & 0xFF) * w_prev)) >> 8;
+        const int g = (((c >>  8 & 0xFF) * w_cur)  + ((o >>  8 & 0xFF) * w_prev)) >> 8;
+        const int b = (((c       & 0xFF) * w_cur)  + ((o       & 0xFF) * w_prev)) >> 8;
+
+        fb[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+    }
+
+    // [PN] Save current frame
+    if (uncapped)
+    {
+        ring_idx = (ring_idx + 1) & MAX_BLUR_LAG;  // mod power‑of‑two
+        memcpy(ring[ring_idx], fb, buf_sz);
     }
     else
     {
-        if (prev_size != size)
-        {
-            Uint32 *tmp = realloc(prev_frame, size);
-            if (!tmp)
-            {
-                free(prev_frame);
-                prev_frame = NULL;
-            }
-            else
-            {
-                prev_frame = tmp;
-            }
-            if (prev_frame)
-                memset(prev_frame, 0, size);
-            prev_size = size;
-        }
-    }
-
-    // Motion blur blending.
-    if (vid_uncapped_fps)
-    {
-        // Use ring buffer: retrieve previous frame at an index based on delay.
-        const int prev_index = (ring_index + MAX_BLUR_LAG) % (MAX_BLUR_LAG + 1);
-        Uint32 *restrict ring_prev = frame_ring[prev_index];
-        if (!ring_prev)
-            return;
-
-        // Blending loop using pointer arithmetic.
-        for (int i = 0; i < total_pixels; ++i)
-        {
-            const Uint32 curr = pixels[i];
-            const Uint32 old  = ring_prev[i];
-            const int r = ((((curr >> 16) & 0xFF) * blend_curr) + (((old >> 16) & 0xFF) * blend_prev)) / 10;
-            const int g = ((((curr >> 8)  & 0xFF) * blend_curr) + (((old >> 8)  & 0xFF) * blend_prev)) / 10;
-            const int b = ((((curr)       & 0xFF) * blend_curr) + (((old)       & 0xFF) * blend_prev)) / 10;
-            pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
-        }
-        // Advance ring buffer index and save current frame.
-        ring_index = (ring_index + 1) % (MAX_BLUR_LAG + 1);
-        memcpy(frame_ring[ring_index], pixels, size);
-    }
-    else
-    {
-        // Single-buffer mode: blend current frame with prev_frame.
-        if (!prev_frame)
-            return;
-        for (int i = 0; i < total_pixels; ++i)
-        {
-            const Uint32 curr = pixels[i];
-            const Uint32 old  = prev_frame[i];
-            const int r = ((((curr >> 16) & 0xFF) * blend_curr) + (((old >> 16) & 0xFF) * blend_prev)) / 10;
-            const int g = ((((curr >> 8)  & 0xFF) * blend_curr) + (((old >> 8)  & 0xFF) * blend_prev)) / 10;
-            const int b = ((((curr)       & 0xFF) * blend_curr) + (((old)       & 0xFF) * blend_prev)) / 10;
-            pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
-        }
-        memcpy(prev_frame, pixels, size);
+        memcpy(prev_frame, fb, buf_sz);
     }
 }
 
