@@ -32,103 +32,49 @@
 //  smoothing.
 // -----------------------------------------------------------------------------
 
-static Uint32 *blur_small = NULL;
-static int blur_small_w = 0, blur_small_h = 0;
-
 void V_PProc_SupersampledSmoothing (boolean st_background_on, int st_height)
 {
-    // Ensure framebuffer is valid and in 32-bit mode
+    // [PN] Ensure framebuffer is valid and in 32-bit mode
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
         return;
 
     const int w = argbbuffer->w;
     // [JN] Exclude status bar area from smoothing if active.
     const int h = argbbuffer->h - (st_background_on ? st_height : 0);
+    Uint32 *restrict pixels = (Uint32*)argbbuffer->pixels;
+    const int block = post_supersample + 1;
 
-    // Scale determines the reduction factor: 2 = half, 4 = quarter, etc.
-    const int scale = post_supersample + 1;
-    const int sw = w / scale;
-    const int sh = h / scale;
-
-    if (sw < 2 || sh < 2)
-        return;
-
-    // Reallocate working buffer if size changed
-    if (!blur_small || blur_small_w != sw || blur_small_h != sh)
+    // [PN] Iterate through the image in blocks
+    for (int by = 0; by < h; by += block)
     {
-        free(blur_small);
-        blur_small = malloc(sizeof(Uint32) * sw * sh);
-        if (!blur_small) return;
-        blur_small_w = sw;
-        blur_small_h = sh;
-    }
-
-    Uint32 *restrict src = (Uint32 *)argbbuffer->pixels;
-    Uint32 *restrict dst = blur_small;
-    const int scale_squared = scale * scale;
-
-    // -------------------------------------------------------------------------
-    // Step 1: Downscale — average pixels in blocks (scale x scale)
-    // -------------------------------------------------------------------------
-
-    for (int y = 0; y < sh; ++y)
-    {
-        const int y_scale = y * scale;
-        for (int x = 0; x < sw; ++x)
+        for (int bx = 0; bx < w; bx += block)
         {
-            const int x_scale = x * scale;
-            int r = 0, g = 0, b = 0;
-            int count = 0;
+            int r = 0, g = 0, b = 0, count = 0;
 
-            // Calculate bounds to avoid checking each pixel
-            const int y_end = (y_scale + scale) < h ? y_scale + scale : h;
-            const int x_end = (x_scale + scale) < w ? x_scale + scale : w;
-
-            for (int sy = y_scale; sy < y_end; ++sy)
+            // [PN] Loop through each pixel in the block to calculate average color
+            for (int y = by; y < by + block && y < h; ++y)
             {
-                const int sy_w = sy * w;
-                for (int sx = x_scale; sx < x_end; ++sx)
+                for (int x = bx; x < bx + block && x < w; ++x)
                 {
-                    const Uint32 c = src[sy_w + sx];
+                    const Uint32 c = pixels[y * w + x];
                     r += (c >> 16) & 0xFF;
                     g += (c >> 8) & 0xFF;
                     b += c & 0xFF;
+                    ++count;
                 }
             }
-            count = (y_end - y_scale) * (x_end - x_scale);
-            
-            // Use multiplication instead of division when possible
-            if (count == scale_squared)
-            {
-                r /= scale_squared;
-                g /= scale_squared;
-                b /= scale_squared;
-            }
-            else if (count > 0)
-            {
-                r /= count;
-                g /= count;
-                b /= count;
-            }
 
-            dst[y * sw + x] = (0xFF << 24) | (r << 16) | (g << 8) | b;
-        }
-    }
+            // [PN] Avoid division by zero; if no pixels, skip processing
+            if (count == 0)
+                continue;
 
-    // -------------------------------------------------------------------------
-    // Step 2: Upscale — expand each low-res pixel back into full-resolution
-    // -------------------------------------------------------------------------
+            // [PN] Calculate the average color for the block
+            const Uint32 avg = (0xFF << 24) | ((r / count) << 16) | ((g / count) << 8) | (b / count);
 
-    for (int y = 0; y < h; ++y)
-    {
-        const int sy = (y / scale) < sh ? y / scale : sh - 1;
-        const int sy_sw = sy * sw;
-        const int y_w = y * w;
-        
-        for (int x = 0; x < w; ++x)
-        {
-            const int sx = (x / scale) < sw ? x / scale : sw - 1;
-            src[y_w + x] = dst[sy_sw + sx];
+            // [PN] Apply the averaged color back to all pixels in the block
+            for (int y = by; y < by + block && y < h; ++y)
+                for (int x = bx; x < bx + block && x < w; ++x)
+                    pixels[y * w + x] = avg;
         }
     }
 }
