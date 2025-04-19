@@ -149,19 +149,20 @@ static void V_PProc_OverbrightGlow (void)
 
 static void V_PProc_AnalogRGBDrift (void)
 {
+    // [PN] Check if the framebuffer is valid.
     if (!argbbuffer)
         return;
 
     const int width = SCREENWIDTH;
     const int height = SCREENHEIGHT;
-    const int total_pixels = SCREENAREA;
+    const size_t total_pixels = SCREENAREA;
+    const size_t needed_size = total_pixels * sizeof(pixel_t);
 
-    // Static buffer to store the original frame for safe sampling during modification
+    // [PN] Static buffer to store the original frame for safe sampling during modification
     static pixel_t *restrict chromabuf = NULL;
     static size_t chromabuf_size = 0;
 
-    // Reallocate buffer if resolution has changed
-    const size_t needed_size = total_pixels * sizeof(pixel_t);
+    // [PN] Reallocate buffer if resolution has changed
     if (chromabuf_size != needed_size)
     {
         free(chromabuf);
@@ -171,86 +172,65 @@ static void V_PProc_AnalogRGBDrift (void)
         chromabuf_size = needed_size;
     }
 
-    // Copy the current frame into the temporary buffer
-    pixel_t *const restrict src = (pixel_t*)argbbuffer->pixels;
+    // [PN] Copy the current frame into the temporary buffer
+    pixel_t *restrict const src = (pixel_t*)argbbuffer->pixels;
     memcpy(chromabuf, src, needed_size);
 
-    // [JN] Calculate RGB drift offset depending on resolution.
-    const int dx = post_rgbdrift + (vid_resolution > 2 ? (vid_resolution - 2) : 0);
+    // [JN] Calculate the RGB drift offset depending on resolution.
+    const int dx = post_rgbdrift + ((vid_resolution > 2) ? (vid_resolution - 2) : 0);
 
-    // Precompute shifted column indices for red (left) and blue (right) channels
+    // [PN] Precompute shifted column indices for red (left) and blue (right) channels
     static int *restrict x_src_r = NULL;
     static int *restrict x_src_b = NULL;
     static int allocated_width = 0;
     static int last_dx = -1;
-    
+
     if (allocated_width != width || last_dx != dx)
     {
         free(x_src_r);
         free(x_src_b);
+
         x_src_r = malloc(sizeof(int) * width);
         x_src_b = malloc(sizeof(int) * width);
         if (!x_src_r || !x_src_b)
         {
-            free(x_src_r);
-            free(x_src_b);
-            x_src_r = x_src_b = NULL;
+            free(x_src_r); x_src_r = NULL;
+            free(x_src_b); x_src_b = NULL;
             return;
         }
-        allocated_width = width;
-        last_dx = dx;
-        
+
+        // [PN] Precompute the column indices for the red and blue channel shifts
         for (int x = 0; x < width; ++x)
         {
-            x_src_r[x] = (x - dx) < 0 ? 0 : x - dx;
-            x_src_b[x] = (x + dx) >= width ? width - 1 : x + dx;
+            x_src_r[x] = (x - dx < 0) ? 0 : x - dx; // Red shifts left
+            x_src_b[x] = (x + dx >= width) ? width - 1 : x + dx; // Blue shifts right
         }
+
+        allocated_width = width;
+        last_dx = dx;
     }
 
-    // Use row pointers to avoid repeated multiplications in pixel indexing
+    // [PN] Loop through each row of pixels
     for (int y = 0; y < height; ++y)
     {
-        pixel_t *const restrict srcRow = src + y * width;
-        const pixel_t *const restrict chromaRow = chromabuf + y * width;
-        
-        int x = 0;
-        for (; x < width - 3; x += 4)
+        pixel_t *restrict const dst = src + y * width;
+        const pixel_t *restrict const row = chromabuf + y * width;
+
+        // [PN] Process each pixel in the row
+        for (int x = 0; x < width; ++x)
         {
-            // Pixel 0
-            pixel_t orig0 = chromaRow[x];
-            pixel_t red0  = chromaRow[x_src_r[x]];
-            pixel_t blue0 = chromaRow[x_src_b[x]];
-            srcRow[x] = ((red0 >> 16 & 0xff) << 16) | ((orig0 >> 8 & 0xff) << 8) | (blue0 & 0xff) | 0xff000000;
+            // [PN] Fetch original pixel and shifted red/blue samples
+            const pixel_t orig = row[x];
+            const pixel_t rsrc = row[x_src_r[x]]; // Shifted red
+            const pixel_t bsrc = row[x_src_b[x]]; // Shifted blue
 
-            // Pixel 1
-            pixel_t orig1 = chromaRow[x+1];
-            pixel_t red1  = chromaRow[x_src_r[x+1]];
-            pixel_t blue1 = chromaRow[x_src_b[x+1]];
-            srcRow[x+1] = ((red1 >> 16 & 0xff) << 16) | ((orig1 >> 8 & 0xff) << 8) | (blue1 & 0xff) | 0xff000000;
+            // [PN] Extract RGB components and apply the shift
+            const int r = (rsrc >> 16) & 0xFF;
+            const int g = (orig >> 8) & 0xFF; // Keep original green
+            const int b = bsrc & 0xFF;
 
-            // Pixel 2
-            pixel_t orig2 = chromaRow[x+2];
-            pixel_t red2  = chromaRow[x_src_r[x+2]];
-            pixel_t blue2 = chromaRow[x_src_b[x+2]];
-            srcRow[x+2] = ((red2 >> 16 & 0xff) << 16) | ((orig2 >> 8 & 0xff) << 8) | (blue2 & 0xff) | 0xff000000;
-
-            // Pixel 3
-            pixel_t orig3 = chromaRow[x+3];
-            pixel_t red3  = chromaRow[x_src_r[x+3]];
-            pixel_t blue3 = chromaRow[x_src_b[x+3]];
-            srcRow[x+3] = ((red3 >> 16 & 0xff) << 16) | ((orig3 >> 8 & 0xff) << 8) | (blue3 & 0xff) | 0xff000000;
-        }
-        
-        // Render remaining pixels
-        for (; x < width; ++x)
-        {
-            // Fetch original pixel and shifted red/blue samples
-            pixel_t orig = chromaRow[x];
-            pixel_t red  = chromaRow[x_src_r[x]];
-            pixel_t blue = chromaRow[x_src_b[x]];
-
-            // Compose the final pixel with altered red/blue and original green; alpha is fixed
-            srcRow[x] = ((red >> 16 & 0xff) << 16) | ((orig >> 8 & 0xff) << 8) | (blue & 0xff) | 0xff000000;
+            // [PN] Compose the final pixel with altered red/blue and original green
+            dst[x] = 0xFF000000 | (r << 16) | (g << 8) | b;
         }
     }
 }
