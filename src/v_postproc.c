@@ -247,50 +247,56 @@ static void V_PProc_AnalogRGBDrift (void)
 
 static void V_PProc_VHSLineDistortion (void)
 {
-    // Check if argbbuffer exists and is in 32-bit pixel format
+    // [PN] Check if argbbuffer exists and is in 32-bit pixel format
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
         return;
 
-    const int width = argbbuffer->w;
+    // [PN] Dimensions and row stride
+    const int width  = argbbuffer->w;
     const int height = argbbuffer->h;
-    Uint32 *pixels = (Uint32*)argbbuffer->pixels;
-
-    // Determine the number of glitch blocks and block height
-    const int max_blocks = 1;
-    const int block_height = (4 + rand() % 3) * vid_resolution; // Each block is 4–6 lines per resolution
-    const int glitch_intensity = (vid_resolution > 3 ? 4 : 2) + rand() % 3;
     const int stride = width;
 
-    for (int i = 0; i < glitch_intensity && i < max_blocks; ++i)
-    {
-        const int y_start = rand() % (height - block_height);
-        // Horizontal shift in the range [-5 .. +5]
-        const int shift_val = (rand() % 11) - 5;
-        // Skip when shift is zero (no change)
-        if (shift_val == 0)
-            continue;
+    // [PN] Framebuffer pointer; restrict allows better compiler optimization
+    Uint32 *restrict pixels = (Uint32 *restrict)argbbuffer->pixels;
 
-        for (int y = y_start; y < y_start + block_height; ++y)
+    // [PN] Block height: 4–6 lines scaled by resolution
+    const int block_height = (4 + rand() % 3) * vid_resolution;
+
+    // [PN] Start line: random, but ensures block fits within frame
+    const int y_start = rand() % (height > block_height ? height - block_height : 1);
+
+    // [PN] Horizontal shift: range [-5..+5]
+    const int shift_val = (rand() % 11) - 5;
+    if (shift_val == 0)
+        return;
+
+    const int abs_shift = (shift_val > 0) ? shift_val : -shift_val;
+    const Uint32 black_pixel = 0xFF000000;
+
+    // [PN] Apply line distortion per row within the selected block
+    for (int y = y_start; y < y_start + block_height; ++y)
+    {
+        Uint32 *restrict row = pixels + y * stride;
+
+        if (shift_val > 0)
         {
-            Uint32* row = pixels + y * stride;
-            if (shift_val > 0)
-            {
-                // For positive shifts, move current row to the right.
-                // memmove handles overlapping memory areas efficiently.
-                memmove(row + shift_val, row, (width - shift_val) * sizeof(Uint32));
-                // Fill the gap on the left with opaque black
-                for (int x = 0; x < shift_val; ++x)
-                    row[x] = 0xFF000000;
-            }
-            else // shift_val < 0
-            {
-                const int shift = -shift_val;
-                // For negative shifts, move current row to the left
-                memmove(row, row + shift, (width - shift) * sizeof(Uint32));
-                // Fill the gap on the right with opaque black
-                for (int x = width - shift; x < width; ++x)
-                    row[x] = 0xFF000000;
-            }
+            // [PN] Right shift — copy pixels rightward
+            for (int x = width - 1; x >= abs_shift; --x)
+                row[x] = row[x - abs_shift];
+
+            // [PN] Fill left edge with black
+            for (int x = 0; x < abs_shift; ++x)
+                row[x] = black_pixel;
+        }
+        else
+        {
+            // [PN] Left shift — copy pixels leftward
+            for (int x = abs_shift; x < width; ++x)
+                row[x - abs_shift] = row[x];
+
+            // [PN] Fill right edge with black
+            for (int x = width - abs_shift; x < width; ++x)
+                row[x] = black_pixel;
         }
     }
 }
