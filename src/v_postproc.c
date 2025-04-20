@@ -523,8 +523,6 @@ static void V_PProc_DepthOfFieldBlur (void)
     const int cy           = height >> 1;
     const int resolution   = vid_resolution;
     const int radius       = (resolution <= 2) ? 1 : (resolution <= 4) ? 2 : 3;
-    const int diameter     = (radius << 1) + 1;
-    const int kernel_size  = diameter * diameter;
     const int thresh       = 150 * resolution;
     const int threshSq     = thresh * thresh;
 
