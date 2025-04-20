@@ -40,7 +40,7 @@ typedef union
 } tcpixel_t;
 */
 
-extern uint8_t   additive_lut[256][256];
+extern uint8_t   additive_lut[511];
 extern uint8_t   shadow_alpha;
 extern uint8_t   fuzz_alpha;
 
@@ -103,9 +103,9 @@ extern const double colorblind_matrix[][3][3];
 
 #define I_BlendAdd(bg_i, fg_i) ( \
     (0xFF000000U) | \
-    (additive_lut[(bg_i) & 0xFF][(fg_i) & 0xFF]) | \
-    (additive_lut[((bg_i) >> 8) & 0xFF][((fg_i) >> 8) & 0xFF] << 8) | \
-    (additive_lut[((bg_i) >> 16) & 0xFF][((fg_i) >> 16) & 0xFF] << 16) \
+    (additive_lut[((bg_i) & 0xFF) + ((fg_i) & 0xFF)]) | \
+    (additive_lut[(((bg_i) >> 8) & 0xFF) + (((fg_i) >> 8) & 0xFF)] << 8) | \
+    (additive_lut[(((bg_i) >> 16) & 0xFF) + (((fg_i) >> 16) & 0xFF)] << 16) \
 )
 
 #define I_BlendDark(bg_i, d) ( \

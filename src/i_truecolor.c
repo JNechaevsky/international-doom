@@ -29,20 +29,16 @@
 
 
 
-// [PN] Initializes a 256x256 lookup table for additive blending. 
-// The LUT stores precomputed values for clamped sums of two 8-bit values,
-// avoiding recalculations during rendering.
-uint8_t additive_lut[256][256];
+// [PN] Initializes a 511-entry 1D saturation LUT for additive blending.
+// The LUT maps all possible sums of two 8-bit color channels (0..255 + 0..255),
+// clamping any result above 255 to 255.
+uint8_t additive_lut[511];
 
 void I_InitTCTransMaps (void)
 {
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < 511; ++i)
     {
-        for (int j = 0; j < 256; j++)
-        {
-            int sum = i + j;
-            additive_lut[i][j] = (uint8_t)(sum > 255 ? 255 : sum);
-        }
+        additive_lut[i] = (uint8_t)(i > 255 ? 255 : i);
     }
 }
 
