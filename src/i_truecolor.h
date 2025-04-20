@@ -51,22 +51,6 @@ extern const float I_SaturationPercent[];
 extern const double colorblind_matrix[][3][3];
 
 
-// [JN] Blending alpha values, representing 
-// transparency levels from paletted rendering.
-
-// Doom:
-#define TRANMAP_ALPHA       0xA8  // 168 (66% opacity)
-#define FUZZTL_ALPHA        0x40  //  64 (25% opacity)
-
-// Heretic and Hexen:
-#define TINTTAB_ALPHA       0x60  //  96 (38% opacity)
-#define TINTTAB_ALPHA_ALT   0x8E  // 142 (56% opacity)
-#define EXTRATL_ALPHA       0x98  // 152 (60% opacity)
-
-// Strife:
-#define XLATAB_ALPHA        0xC0  // 192 (75% opacity)
-#define XLATAB_ALPHA_ALT    0x40  //  64 (25% opacity)
-
 // [PN] Converted functions to macros for optimization:
 //
 // 1. Eliminating function call overhead:
@@ -124,6 +108,83 @@ extern const double colorblind_matrix[][3][3];
     ((((amount) * ((fg_i) & 0xFF00FF) + ((0xFFU - (amount)) * ((bg_i) & 0xFF00FF))) >> 8) & 0xFF00FF) | \
     ((((amount) * ((fg_i) & 0x00FF00) + ((0xFFU - (amount)) * ((bg_i) & 0x00FF00))) >> 8) & 0x00FF00) \
 )
+
+// [PN] Fixed-alpha shift-weighted approximation of alpha blending ("overlay-lite").
+//
+// These macros implement a fast alternative to standard alpha blending
+// using fixed, preselected alpha values (e.g., 25%, 38%, 56%, etc).
+// Unlike I_BlendOver(...), these macros do not take alpha as a parameter.
+// Instead, the alpha value is embedded in the macro as hardcoded constants.
+//
+// Classic alpha blending uses:
+//   result = (fg * alpha + bg * (255 - alpha)) >> 8
+//
+// These macros approximate the effect using simplified integer math:
+//   result ≈ (fg * A + bg * B) >> shift
+//
+// Coefficients A, B and the shift amount are selected to approximate
+// the visual output of real alpha blending while significantly reducing
+// arithmetic complexity.
+//
+// Advantages:
+// - No runtime multiplications by variable alpha
+// - No subtraction of (255 - alpha)
+// - No divisions by 255
+// - Ideal for performance-critical inner loops with few alpha levels
+//
+// Limitations:
+// - Visual result is approximate, not exact
+// - Only suitable for fixed, known alpha values
+//
+// [JN] Blending alpha values representing transparency
+// levels from paletted rendering.
+
+// TRANMAP_ALPHA ≈ 168 (66% opacity): fg * 3 + bg * 1 >> 2
+#define I_BlendOver_168(bg_i, fg_i) ( \
+    (0xFF000000U) | \
+    (((((fg_i) & 0xFF00FF) * 3 + ((bg_i) & 0xFF00FF)) >> 2) & 0xFF00FF) | \
+    (((((fg_i) & 0x00FF00) * 3 + ((bg_i) & 0x00FF00)) >> 2) & 0x00FF00) \
+)
+
+// FUZZTL_ALPHA ≈ 64 (25% opacity): fg * 1 + bg * 3 >> 2
+#define I_BlendOver_64(bg_i, fg_i) ( \
+    (0xFF000000U) | \
+    (((((fg_i) & 0xFF00FF) + ((bg_i) & 0xFF00FF) * 3) >> 2) & 0xFF00FF) | \
+    (((((fg_i) & 0x00FF00) + ((bg_i) & 0x00FF00) * 3) >> 2) & 0x00FF00) \
+)
+
+// TINTTAB_ALPHA ≈ 96 (38% opacity): fg * 1 + bg * 2 >> 2
+#define I_BlendOver_96(bg_i, fg_i) ( \
+    (0xFF000000U) | \
+    (((((fg_i) & 0xFF00FF) + ((bg_i) & 0xFF00FF) * 2) >> 2) & 0xFF00FF) | \
+    (((((fg_i) & 0x00FF00) + ((bg_i) & 0x00FF00) * 2) >> 2) & 0x00FF00) \
+)
+
+// TINTTAB_ALPHA_ALT ≈ 142 (56% opacity): fg * 9 + bg * 7 >> 4
+#define I_BlendOver_142(bg_i, fg_i) ( \
+    (0xFF000000U) | \
+    (((((fg_i) & 0xFF00FF) * 9 + ((bg_i) & 0xFF00FF) * 7) >> 4) & 0xFF00FF) | \
+    (((((fg_i) & 0x00FF00) * 9 + ((bg_i) & 0x00FF00) * 7) >> 4) & 0x00FF00) \
+)
+
+// EXTRATL_ALPHA ≈ 152 (60% opacity): fg * 3 + bg * 2 >> 2
+#define I_BlendOver_152(bg_i, fg_i) ( \
+    (0xFF000000U) | \
+    (((((fg_i) & 0xFF00FF) * 3 + ((bg_i) & 0xFF00FF) * 2) >> 2) & 0xFF00FF) | \
+    (((((fg_i) & 0x00FF00) * 3 + ((bg_i) & 0x00FF00) * 2) >> 2) & 0x00FF00) \
+)
+
+// XLATAB_ALPHA ≈ 192 (75% opacity): fg * 3 + bg * 1 >> 2
+#define I_BlendOver_192(bg_i, fg_i) I_BlendOver_168(bg_i, fg_i)
+
+// [PN] Fastest algorithm for 50% opacity (unused)
+/*
+#define I_BlendOver50(bg_i, fg_i) ( \
+    (0xFF000000U) | \
+    (((((fg_i) & 0xFF00FF) + ((bg_i) & 0xFF00FF)) >> 1) & 0xFF00FF) | \
+    (((((fg_i) & 0x00FF00) + ((bg_i) & 0x00FF00)) >> 1) & 0x00FF00) \
+)
+*/
 
 #endif
 

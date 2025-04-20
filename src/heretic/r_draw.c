@@ -227,7 +227,7 @@ void R_DrawTLColumn(void)
     {
         const unsigned s = sourcebase[frac >> FRACBITS];         // Texture sample
         const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s]; // Conditionally apply colormap
-        *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);      // Blend operation inline
+        *dest = I_BlendOver_96(*dest, destrgb);      // Blend operation inline
 
         // Advance destination pointer and increment texture coordinate
         dest += screenwidth;
@@ -271,8 +271,8 @@ void R_DrawTLColumnLow(void)
         const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s]; // Conditional colormap lookup
 
         // Blend operation inline for both destination pointers
-        *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
-        *dest2 = I_BlendOver(*dest2, destrgb, TINTTAB_ALPHA);
+        *dest = I_BlendOver_96(*dest, destrgb);
+        *dest2 = I_BlendOver_96(*dest2, destrgb);
 
         // Advance destination pointers and increment texture coordinate
         dest += screenwidth;
@@ -490,7 +490,7 @@ void R_DrawTranslatedTLColumn(void)
         const unsigned s = sourcebase[frac >> FRACBITS];          // Texture sample
         const unsigned t = translation[s];                       // Translation lookup
         const pixel_t destrgb = brightmap[t] ? colormap1[t] : colormap0[t]; // Conditional colormap lookup
-        *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);      // Blend operation inline
+        *dest = I_BlendOver_96(*dest, destrgb);      // Blend operation inline
 
         // Advance destination pointer and increment texture coordinate
         dest += screenwidth;
@@ -532,8 +532,8 @@ void R_DrawTranslatedTLColumnLow(void)
         const pixel_t destrgb = brightmap[t] ? colormap1[t] : colormap0[t]; // Conditional colormap lookup
 
         // Perform blending for both destination pointers
-        *dest = I_BlendOver(*dest, destrgb, TINTTAB_ALPHA);
-        *dest2 = I_BlendOver(*dest2, destrgb, TINTTAB_ALPHA);
+        *dest = I_BlendOver_96(*dest, destrgb);
+        *dest2 = I_BlendOver_96(*dest2, destrgb);
 
         // Advance destination pointers and increment texture coordinate
         dest += screenwidth;
@@ -589,7 +589,7 @@ void R_DrawExtraTLColumn(void)
         {
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-            *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
+            *dest = I_BlendOver_152(*dest, destrgb);
 
             dest += screenwidth;
             frac += fracstep;
@@ -604,7 +604,7 @@ void R_DrawExtraTLColumn(void)
         {
             const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask];
             const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-            *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
+            *dest = I_BlendOver_152(*dest, destrgb);
 
             dest += screenwidth;
             frac += fracstep;
@@ -657,8 +657,8 @@ void R_DrawExtraTLColumnLow(void)
         {
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-            *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
-            *dest2 = I_BlendOver(*dest2, destrgb, EXTRATL_ALPHA);
+            *dest = I_BlendOver_152(*dest, destrgb);
+            *dest2 = I_BlendOver_152(*dest2, destrgb);
 
             dest += screenwidth;
             dest2 += screenwidth;
@@ -674,8 +674,8 @@ void R_DrawExtraTLColumnLow(void)
         {
             const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask];
             const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-            *dest = I_BlendOver(*dest, destrgb, EXTRATL_ALPHA);
-            *dest2 = I_BlendOver(*dest2, destrgb, EXTRATL_ALPHA);
+            *dest = I_BlendOver_152(*dest, destrgb);
+            *dest2 = I_BlendOver_152(*dest2, destrgb);
 
             dest += screenwidth;
             dest2 += screenwidth;

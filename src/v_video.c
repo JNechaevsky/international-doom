@@ -162,14 +162,14 @@ static const inline pixel_t drawpatchpx10 (const pixel_t dest, const pixel_t sou
 #ifndef CRISPY_TRUECOLOR
 {return tintmap[(dest<<8)+source];}
 #else
-{return I_BlendOver(dest, pal_color[source], 168);}
+{return I_BlendOver_168(dest, pal_color[source]);}
 #endif
 // (4) color-translated, translucent patch
 static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t source)
 #ifndef CRISPY_TRUECOLOR
 {return tintmap[(dest<<8)+dp_translation[source]];}
 #else
-{return I_BlendOver(dest, pal_color[dp_translation[source]], 168);}
+{return I_BlendOver_168(dest, pal_color[dp_translation[source]]);}
 #endif
 
 // [JN] The shadow of the patch rendering functions:
@@ -193,7 +193,7 @@ static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t sourc
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[dest+(source<<8)];}
 #else
-{return I_BlendOver(dest, pal_color[source], 96);}
+{return I_BlendOver_96(dest, pal_color[source]);}
 #endif
 
 // [JN] V_DrawAltTLPatch (translucent patch, no coloring or color-translation are used)
@@ -201,7 +201,7 @@ static const inline pixel_t drawalttinttab (const pixel_t dest, const pixel_t so
 #ifndef CRISPY_TRUECOLOR
 {return tinttable[(dest<<8)+source];}
 #else
-{return I_BlendOver(dest, pal_color[source], 142);}
+{return I_BlendOver_142(dest, pal_color[source]);}
 #endif
 
 // [crispy] array of function pointers holding the different rendering functions

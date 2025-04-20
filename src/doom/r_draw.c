@@ -431,7 +431,7 @@ void R_DrawFuzzTLColumn(void)
     for (int i = 0; i < iterations; ++i)
     {
         const unsigned s = sourcebase[frac >> FRACBITS]; // Texture sample
-        *dest = I_BlendOver(*dest, colormap0[s], FUZZTL_ALPHA); // Blend operation inline
+        *dest = I_BlendOver_64(*dest, colormap0[s]); // Blend operation inline
 
         dest += screenwidth; // Move to next line
         frac += fracstep;    // Increment texture coordinate
@@ -473,8 +473,8 @@ void R_DrawFuzzTLColumnLow(void)
         const pixel_t sourcecolor = colormap0[s];        // Extract color
 
         // Blend operation inline
-        *dest = I_BlendOver(*dest, sourcecolor, FUZZTL_ALPHA);
-        *dest2 = I_BlendOver(*dest2, sourcecolor, FUZZTL_ALPHA);
+        *dest = I_BlendOver_64(*dest, sourcecolor);
+        *dest2 = I_BlendOver_64(*dest2, sourcecolor);
 
         // Advance destination pointers and texture coordinate
         dest += screenwidth;
@@ -643,7 +643,7 @@ void R_DrawTransTLFuzzColumn(void)
     {
         const unsigned s = sourcebase[frac >> FRACBITS];   // Texture sample
         const unsigned t = translation[s];                // Translation lookup
-        *dest = I_BlendOver(*dest, colormap0[t], FUZZTL_ALPHA); // Blend operation inline
+        *dest = I_BlendOver_64(*dest, colormap0[t]); // Blend operation inline
 
         dest += screenwidth; // Advance destination pointer
         frac += fracstep;    // Increment texture coordinate
@@ -688,8 +688,8 @@ void R_DrawTransTLFuzzColumnLow(void)
         const pixel_t destrgb = colormap0[translation[s]]; // Translation + colormap lookup
 
         // Blend operation inline
-        *dest = I_BlendOver(*dest, destrgb, FUZZTL_ALPHA);
-        *dest2 = I_BlendOver(*dest2, destrgb, FUZZTL_ALPHA);
+        *dest = I_BlendOver_64(*dest, destrgb);
+        *dest2 = I_BlendOver_64(*dest2, destrgb);
 
         // Advance destination pointers and texture coordinate
         dest += screenwidth;
@@ -820,7 +820,7 @@ void R_DrawTLColumn(void)
     {
         const unsigned s = sourcebase[frac >> FRACBITS];         // Texture sample
         const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s]; // Conditionally apply colormap
-        *dest = I_BlendOver(*dest, destrgb, TRANMAP_ALPHA);      // Blend operation inline
+        *dest = I_BlendOver_168(*dest, destrgb);      // Blend operation inline
 
         // Advance destination pointer and increment texture coordinate
         dest += screenwidth;
@@ -866,8 +866,8 @@ void R_DrawTLColumnLow(void)
         const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s]; // Conditional colormap lookup
 
         // Blend operation inline for both destination pointers
-        *dest = I_BlendOver(*dest, destrgb, TRANMAP_ALPHA);
-        *dest2 = I_BlendOver(*dest2, destrgb, TRANMAP_ALPHA);
+        *dest = I_BlendOver_168(*dest, destrgb);
+        *dest2 = I_BlendOver_168(*dest2, destrgb);
 
         // Advance destination pointers and increment texture coordinate
         dest += screenwidth;
