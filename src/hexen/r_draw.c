@@ -193,7 +193,7 @@ void R_DrawColumnLow(void)
 
 // -----------------------------------------------------------------------------
 // R_DrawTLColumn
-// [PN] Draw translucent column, overlay blending. High detail.
+// [PN/JN] Draw translucent column, overlay blending. High detail.
 // -----------------------------------------------------------------------------
 
 void R_DrawTLColumn(void)
@@ -202,30 +202,45 @@ void R_DrawTLColumn(void)
     if (count < 0)
         return; // No pixels to draw
 
-    // Destination pointer calculation
-    pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale;
-    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
     // Local pointers for improved memory access
     const byte *restrict const sourcebase = dc_source;
     const byte *restrict const brightmap = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
+    const int step = 2;
+    int y_end = dc_yh; 
+    int y_start = dc_yl;
 
-    // Aggressively optimized loop for blending pixels
-    for (int i = 0; i <= count; ++i)
+    // Setup scaling
+    const fixed_t fracstep = dc_iscale * step;
+    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
+
+    // Precompute initial destination pointer
+    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
+
+    // Compute one pixel, write it to two vertical lines
+    while (y_start < y_end)
     {
-        const unsigned s = sourcebase[frac >> FRACBITS];         // Texture sample
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s]; // Conditionally apply colormap
-        *dest = I_BlendOver_96(*dest, destrgb);      // Blend operation inline
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        const pixel_t blended = I_BlendOver_96(*dest, destrgb);
 
-        // Advance destination pointer and increment texture coordinate
-        dest += screenwidth;
+        // Write two pixels (current and next line)
+        dest[0] = blended;
+        dest[screenwidth] = blended;
+
+        // Move to next pair
+        dest += screenwidth * step;
         frac += fracstep;
+        y_start += step;
+    }
+
+    // Handle final odd line
+    if (y_start == y_end)
+    {
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        dest[0] = I_BlendOver_96(*dest, brightmap[s] ? colormap1[s] : colormap0[s]);
     }
 }
 
@@ -241,37 +256,52 @@ void R_DrawAltTLColumn(void)
     if (count < 0)
         return; // No pixels to draw
 
-    // Destination pointer calculation
-    pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale;
-    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
     // Local pointers for improved memory access
     const byte *restrict const sourcebase = dc_source;
     const byte *restrict const brightmap = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
+    const int step = 2;
+    int y_end = dc_yh; 
+    int y_start = dc_yl;
 
-    // Aggressively optimized loop for blending pixels
-    for (int i = 0; i <= count; ++i)
+    // Setup scaling
+    const fixed_t fracstep = dc_iscale * step;
+    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
+
+    // Precompute initial destination pointer
+    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
+
+    // Compute one pixel, write it to two vertical lines
+    while (y_start < y_end)
     {
-        const unsigned s = sourcebase[frac >> FRACBITS];  // Texture sample
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s]; // Conditional colormap lookup
-        *dest = I_BlendOver_142(*dest, destrgb);           // Blend operation inline
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        const pixel_t blended = I_BlendOver_142(*dest, destrgb);
 
-        // Advance destination pointer and increment texture coordinate
-        dest += screenwidth;
+        // Write two pixels (current and next line)
+        dest[0] = blended;
+        dest[screenwidth] = blended;
+
+        // Move to next pair
+        dest += screenwidth * step;
         frac += fracstep;
+        y_start += step;
+    }
+
+    // Handle final odd line
+    if (y_start == y_end)
+    {
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        dest[0] = I_BlendOver_142(*dest, brightmap[s] ? colormap1[s] : colormap0[s]);
     }
 }
 
 
 // -----------------------------------------------------------------------------
 // R_DrawTLAddColumn
-// [PN] Draw translucent column, additive blending. High detail.
+// [PN/JN] Draw translucent column, additive blending. High detail.
 // -----------------------------------------------------------------------------
 
 void R_DrawTLAddColumn(void)
@@ -280,36 +310,51 @@ void R_DrawTLAddColumn(void)
     if (count < 0)
         return; // No pixels to draw
 
-    // Destination pointer calculation
-    pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale;
-    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
     // Local pointers for improved memory access
     const byte *restrict const sourcebase = dc_source;
     const byte *restrict const brightmap = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
+    const int step = 2;
+    int y_end = dc_yh; 
+    int y_start = dc_yl;
 
-    // Aggressive optimization: simplified loop structure
-    for (int i = 0; i <= count; ++i)
+    // Setup scaling
+    const fixed_t fracstep = dc_iscale * step;
+    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
+
+    // Precompute initial destination pointer
+    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
+
+    // Compute one pixel, write it to two vertical lines
+    while (y_start < y_end)
     {
-        const unsigned s = sourcebase[frac >> FRACBITS];  // Texture sample
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s]; // Conditional colormap lookup
-        *dest = I_BlendAdd(*dest, destrgb);              // Blend operation inline
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        const pixel_t blended = I_BlendAdd(*dest, destrgb);
 
-        // Advance destination pointer and increment texture coordinate
-        dest += screenwidth;
+        // Write two pixels (current and next line)
+        dest[0] = blended;
+        dest[screenwidth] = blended;
+
+        // Move to next pair
+        dest += screenwidth * step;
         frac += fracstep;
+        y_start += step;
+    }
+
+    // Handle final odd line
+    if (y_start == y_end)
+    {
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        dest[0] = I_BlendAdd(*dest, brightmap[s] ? colormap1[s] : colormap0[s]);
     }
 }
 
 // -----------------------------------------------------------------------------
 // R_DrawTLAddColumn
-// [PN] Draw translucent column, additive blending. Low detail.
+// [PN/JN] Draw translucent column, additive blending. Low detail.
 // -----------------------------------------------------------------------------
 
 void R_DrawTLAddColumnLow(void)
@@ -318,16 +363,8 @@ void R_DrawTLAddColumnLow(void)
     if (count < 0)
         return; // No pixels to draw
 
-    // Blocky mode: double the x coordinate
+    // Low detail: double horizontal resolution
     const int x = dc_x << 1;
-
-    // Destination pointer calculations
-    pixel_t *restrict dest1 = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
-    pixel_t *restrict dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale;
-    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
     // Local pointers for improved memory access
     const byte *restrict const sourcebase = dc_source;
@@ -335,21 +372,48 @@ void R_DrawTLAddColumnLow(void)
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
+    const int step = 2;
+    int y_start = dc_yl;
+    int y_end = dc_yh;
 
-    // Aggressively optimized loop for blending pixels
-    for (int i = 0; i <= count; ++i)
+    // Setup scaling
+    const fixed_t fracstep = dc_iscale * step;
+    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
+
+    // Precompute initial destination pointers
+    pixel_t *restrict dest1 = ylookup[y_start] + columnofs[flipviewwidth[x]];
+    pixel_t *restrict dest2 = ylookup[y_start] + columnofs[flipviewwidth[x + 1]];
+
+    // Process screen in 2×2 pixel blocks (2 lines, 2 columns)
+    while (y_start < y_end)
     {
-        const unsigned s = sourcebase[frac >> FRACBITS];  // Texture sample
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s]; // Conditional colormap lookup
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        
+        // Process two lines for both columns
+        const pixel_t blended = I_BlendAdd(*dest1, destrgb);
+        dest1[0] = blended;
+        dest1[screenwidth] = blended;
+        
+        const pixel_t blended2 = I_BlendAdd(*dest2, destrgb);
+        dest2[0] = blended2;
+        dest2[screenwidth] = blended2;
 
-        // Perform additive blending inline for both destination pointers
-        *dest1 = I_BlendAdd(*dest1, destrgb);
-        *dest2 = I_BlendAdd(*dest2, destrgb);
-
-        // Advance destination pointers and texture coordinate
-        dest1 += screenwidth;
-        dest2 += screenwidth;
+        // Move to next pair of lines
+        dest1 += screenwidth * step;
+        dest2 += screenwidth * step;
         frac += fracstep;
+        y_start += step;
+    }
+
+    // Handle final row if height is odd (draw single line, both columns)
+    if (y_start == y_end)
+    {
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        
+        dest1[0] = I_BlendAdd(*dest1, destrgb);
+        dest2[0] = I_BlendAdd(*dest2, destrgb);
     }
 }
 
@@ -404,7 +468,7 @@ void R_DrawTranslatedColumn(void)
 // -----------------------------------------------------------------------------
 // R_DrawTranslatedTLColumn
 //
-// [PN] Optimized to use local pointers for global arrays, replaced
+// [PN/JN] Optimized to use local pointers for global arrays, replaced
 // do/while with for loops, and simplified arithmetic operations.
 // -----------------------------------------------------------------------------
 
@@ -414,32 +478,44 @@ void R_DrawTranslatedTLColumn(void)
     if (count < 0)
         return; // No pixels to draw
 
-    // Destination pointer calculation
-    pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale;
-    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
-    // Local pointers for global arrays
+    // Local pointers for improved memory access
     const byte *restrict const sourcebase = dc_source;
-    const byte *restrict const brightmap = dc_brightmap;
     const byte *restrict const translation = dc_translation;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
+    const int step = 2;
+    int y_end = dc_yh; 
+    int y_start = dc_yl;
 
-    // Aggressively optimized loop for blending pixels
-    for (int i = 0; i <= count; ++i)
+    // Setup scaling
+    const fixed_t fracstep = dc_iscale * step;
+    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
+
+    // Precompute initial destination pointer
+    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
+
+    // Compute one pixel, write it to two vertical lines
+    while (y_start < y_end)
     {
-        const unsigned s = sourcebase[frac >> FRACBITS];          // Texture sample
-        const unsigned t = translation[s];                       // Translation lookup
-        const pixel_t destrgb = brightmap[t] ? colormap1[t] : colormap0[t]; // Conditional colormap lookup
-        *dest = I_BlendOver_96(*dest, destrgb);      // Blend operation inline
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = colormap0[translation[s]];
+        const pixel_t blended = I_BlendOver_96(*dest, destrgb);
 
-        // Advance destination pointer and increment texture coordinate
-        dest += screenwidth;
+        // Write two pixels (current and next line)
+        dest[0] = blended;
+        dest[screenwidth] = blended;
+
+        // Move to next pair
+        dest += screenwidth * step;
         frac += fracstep;
+        y_start += step;
+    }
+
+    // Handle final odd line
+    if (y_start == y_end)
+    {
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        dest[0] = I_BlendOver_96(*dest, colormap0[translation[s]]);
     }
 }
 
@@ -491,62 +567,45 @@ void R_DrawExtraTLColumn(void)
     if (count < 0)
         return; // No pixels to draw
 
-    // Destination pointer calculation
-    pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale;
-    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
-
     // Local pointers for improved memory access
     const byte *restrict const sourcebase = dc_source;
     const byte *restrict const brightmap = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
+    const int step = 2;
+    int y_end = dc_yh; 
+    int y_start = dc_yl;
 
-    const int heightmask = dc_texheight - 1;
+    // Setup scaling
+    const fixed_t fracstep = dc_iscale * step;
+    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
 
-    // Check if texture height is non-power-of-two
-    if (dc_texheight & heightmask)
+    // Precompute initial destination pointer
+    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
+
+    // Compute one pixel, write it to two vertical lines
+    while (y_start < y_end)
     {
-        // Non-power-of-two path
-        const int fullmask = (heightmask + 1) << FRACBITS;
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        const pixel_t blended = I_BlendOver_142(*dest, destrgb);
 
-        // Normalize frac within bounds
-        if (frac < 0)
-        {
-            frac = (frac % fullmask + fullmask) % fullmask; // Compact normalization
-        }
-        else if (frac >= fullmask)
-        {
-            frac %= fullmask;
-        }
+        // Write two pixels (current and next line)
+        dest[0] = blended;
+        dest[screenwidth] = blended;
 
-        for (int i = 0; i <= count; ++i)
-        {
-            const unsigned s = sourcebase[frac >> FRACBITS];
-            const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-            *dest = I_BlendOver_152(*dest, destrgb);
-
-            dest += screenwidth;
-            frac += fracstep;
-            if (frac >= fullmask)
-                frac -= fullmask;
-        }
+        // Move to next pair
+        dest += screenwidth * step;
+        frac += fracstep;
+        y_start += step;
     }
-    else
-    {
-        // Power-of-two path
-        for (int i = 0; i <= count; ++i)
-        {
-            const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask];
-            const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-            *dest = I_BlendOver_152(*dest, destrgb);
 
-            dest += screenwidth;
-            frac += fracstep;
-        }
+    // Handle final odd line
+    if (y_start == y_end)
+    {
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        dest[0] = I_BlendOver_142(*dest, brightmap[s] ? colormap1[s] : colormap0[s]);
     }
 }
 
@@ -560,16 +619,8 @@ void R_DrawExtraTLColumnLow(void)
     if (count < 0)
         return; // No pixels to draw
 
-    // Blocky mode: double the x coordinate
+    // Low detail: double horizontal resolution
     const int x = dc_x << 1;
-
-    // Destination pointer calculations
-    pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
-    pixel_t *restrict dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale;
-    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
     // Local pointers for improved memory access
     const byte *restrict const sourcebase = dc_source;
@@ -577,51 +628,48 @@ void R_DrawExtraTLColumnLow(void)
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
+    const int step = 2;
+    int y_start = dc_yl;
+    int y_end = dc_yh;
 
-    const int heightmask = dc_texheight - 1;
+    // Setup scaling
+    const fixed_t fracstep = dc_iscale * step;
+    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
 
-    if (dc_texheight & heightmask) // Non-power-of-two height
+    // Precompute initial destination pointers
+    pixel_t *restrict dest1 = ylookup[y_start] + columnofs[flipviewwidth[x]];
+    pixel_t *restrict dest2 = ylookup[y_start] + columnofs[flipviewwidth[x + 1]];
+
+    // Process screen in 2×2 pixel blocks (2 lines, 2 columns)
+    while (y_start < y_end)
     {
-        const int fullmask = (heightmask + 1) << FRACBITS;
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        
+        // Process two lines for both columns
+        const pixel_t blended = I_BlendOver_142(*dest1, destrgb);
+        dest1[0] = blended;
+        dest1[screenwidth] = blended;
+        
+        const pixel_t blended2 = I_BlendOver_142(*dest2, destrgb);
+        dest2[0] = blended2;
+        dest2[screenwidth] = blended2;
 
-        // Normalize frac within bounds
-        if (frac < 0)
-        {
-            frac = (frac % fullmask + fullmask) % fullmask; // Compact normalization
-        }
-        else if (frac >= fullmask)
-        {
-            frac %= fullmask;
-        }
-
-        for (int i = 0; i <= count; ++i)
-        {
-            const unsigned s = sourcebase[frac >> FRACBITS];
-            const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-            *dest = I_BlendOver_152(*dest, destrgb);
-            *dest2 = I_BlendOver_152(*dest2, destrgb);
-
-            dest += screenwidth;
-            dest2 += screenwidth;
-            frac += fracstep;
-
-            if (frac >= fullmask)
-                frac -= fullmask;
-        }
+        // Move to next pair of lines
+        dest1 += screenwidth * step;
+        dest2 += screenwidth * step;
+        frac += fracstep;
+        y_start += step;
     }
-    else // Power-of-two height
-    {
-        for (int i = 0; i <= count; ++i)
-        {
-            const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask];
-            const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-            *dest = I_BlendOver_152(*dest, destrgb);
-            *dest2 = I_BlendOver_152(*dest2, destrgb);
 
-            dest += screenwidth;
-            dest2 += screenwidth;
-            frac += fracstep;
-        }
+    // Handle final row if height is odd (draw single line, both columns)
+    if (y_start == y_end)
+    {
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        
+        dest1[0] = I_BlendOver_142(*dest1, destrgb);
+        dest2[0] = I_BlendOver_142(*dest2, destrgb);
     }
 }
 

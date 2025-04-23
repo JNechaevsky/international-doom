@@ -167,13 +167,6 @@ extern const double colorblind_matrix[][3][3];
     (((((fg_i) & 0x00FF00) * 9 + ((bg_i) & 0x00FF00) * 7) >> 4) & 0x00FF00) \
 )
 
-// EXTRATL_ALPHA ≈ 152 (60% opacity): fg * 3 + bg * 2 >> 2
-#define I_BlendOver_152(bg_i, fg_i) ( \
-    (0xFF000000U) | \
-    (((((fg_i) & 0xFF00FF) * 3 + ((bg_i) & 0xFF00FF) * 2) >> 2) & 0xFF00FF) | \
-    (((((fg_i) & 0x00FF00) * 3 + ((bg_i) & 0x00FF00) * 2) >> 2) & 0x00FF00) \
-)
-
 // XLATAB_ALPHA ≈ 192 (75% opacity): fg * 3 + bg * 1 >> 2
 #define I_BlendOver_192(bg_i, fg_i) I_BlendOver_168(bg_i, fg_i)
 
