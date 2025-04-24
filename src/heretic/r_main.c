@@ -24,6 +24,7 @@
 #include "r_local.h"
 #include "p_local.h"
 #include "tables.h"
+#include "v_video.h"
 #include "sb_bar.h"
 
 #include "id_vars.h"
@@ -1023,6 +1024,15 @@ void R_RenderPlayerView (player_t *player)
     // Start frame
     R_SetupFrame (player);
 
+    // [JN] Fill view buffer with black color to prevent
+    // overbrighting from post-processing effects and 
+    // forcefully update status bar if any effect is active.
+    if (V_PProc_EffectsActive())
+    {
+        V_DrawFilledBox(viewwindowx, viewwindowy, scaledviewwidth, viewheight, 0);
+        SB_state = -1;
+    }
+
     // Clear buffers.
     R_ClearClipSegs ();
     R_ClearDrawSegs ();
@@ -1059,9 +1069,6 @@ void R_RenderPlayerView (player_t *player)
     // Check for new console commands.
     NetUpdate ();
 
-    // [JN] Apply post-processing effects and forcefully
-    // update status bar if any effect is active.
+    // [JN] Apply post-processing effects.
     V_PProc_PlayerView();
-    if (V_PProc_EffectsActive())
-        SB_state = -1;
 }
