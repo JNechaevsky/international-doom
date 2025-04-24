@@ -408,90 +408,86 @@ static void CalcMaxProjectSlope (int fov)
     }
 }
 
-/*
-=================
-=
-= R_InitTextureMapping
-=
-=================
-*/
+// -----------------------------------------------------------------------------
+// R_InitTextureMapping
+// [JN] Replaced slow linear search with binary search, merged loops,
+// precomputed values, and tightened variable scopes - boosting speed
+// while keeping identical behavior.
+// -----------------------------------------------------------------------------
 
-void R_InitTextureMapping(void)
+void R_InitTextureMapping (void)
 {
-    int i;
-    int x;
-    int t;
-    fixed_t focallength;
-    angle_t fov; // [Woof!]
-
-
-//
-// use tangent table to generate viewangletox
-// viewangletox will give the next greatest x after the view angle
-//
-    // calc focallength so FIELDOFVIEW angles covers SCREENWIDTH
-    focallength = FixedDiv (centerxfrac, fovscale);
-
+    // Calc focallength 
+    const fixed_t focallength = FixedDiv(centerxfrac, fovscale);
+    
+    // Calculate FOV
+    angle_t fov;
     if (vid_fov == 90 && centerxfrac == centerxfrac_nonwide)
     {
         fov = FIELDOFVIEW;
     }
     else
     {
-        const double slope = (tan(vid_fov * M_PI / 360.0) *
-                              centerxfrac / centerxfrac_nonwide);
+        const double slope = (tan(vid_fov * M_PI / 360.0)
+                           * centerxfrac / centerxfrac_nonwide);
         fov = atan(slope) * FINEANGLES / M_PI;
     }
 
-    for (i = 0; i < FINEANGLES / 2; i++)
+    // First pass: fill viewangletox
+    const int max_x = viewwidth + 1;
+    const int min_x = -1;
+    const fixed_t centerxfrac_adj = centerxfrac + FRACUNIT - 1;
+    
+    for (int i = 0; i < FINEANGLES/2; i++)
     {
-        if (finetangent[i] > fovscale)
-            t = -1;
-        else if (finetangent[i] < -fovscale)
-            t = viewwidth + 1;
+        const fixed_t tangent = finetangent[i];
+        
+        if (tangent > fovscale)
+        {
+            viewangletox[i] = 0;
+        }
+        else if (tangent < -fovscale)
+        {
+            viewangletox[i] = viewwidth;
+        }
         else
         {
-            t = FixedMul(finetangent[i], focallength);
-            t = (centerxfrac - t + FRACUNIT - 1) >> FRACBITS;
-            if (t < -1)
-                t = -1;
-            else if (t > viewwidth + 1)
-                t = viewwidth + 1;
+            const int t = (centerxfrac_adj - FixedMul(tangent, focallength)) >> FRACBITS;
+            viewangletox[i] = (t < min_x) ? min_x : (t > max_x) ? max_x : t;
         }
-        viewangletox[i] = t;
     }
 
-//
-// scan viewangletox[] to generate xtoviewangleangle[]
-//
-// xtoviewangle will give the smallest view angle that maps to x
-
-    // [JN] Precalculate linearskyangle[] multipler.
+    // Second pass: build xtoviewangle using binary search
     const int linear_factor = (((SCREENWIDTH << 6) / viewwidth)
                             * (ANG90 / (NONWIDEWIDTH << 6))) / fovdiff;
-
-    for (x = 0; x <= viewwidth; x++)
+    const int width_shift = viewwidth / 2;
+    const int fineangles_half = FINEANGLES / 2;
+    
+    for (int x = 0; x <= viewwidth; x++)
     {
-        i = 0;
-        while (viewangletox[i] > x)
-            i++;
-        xtoviewangle[x] = (i << ANGLETOFINESHIFT) - ANG90;
-	    // [crispy] calculate sky angle for drawing horizontally linear skies.
-	    // Taken from GZDoom and refactored for integer math.
-	    linearskyangle[x] = (viewwidth / 2 - x) * linear_factor;
+        int low = 0;
+        int high = fineangles_half - 1;
+        
+        while (low <= high)
+        {
+            const int mid = (low + high) >> 1;
+            if (viewangletox[mid] > x)
+            {
+                low = mid + 1;
+            }
+            else
+            {
+                high = mid - 1;
+            }
+        }
+        
+        xtoviewangle[x] = (low << ANGLETOFINESHIFT) - ANG90;
+        // [crispy] calculate sky angle for drawing horizontally linear skies.
+        // Taken from GZDoom and refactored for integer math.
+        linearskyangle[x] = (width_shift - x) * linear_factor;
     }
-
-//
-// take out the fencepost cases from viewangletox
-//
-    for (i = 0; i < FINEANGLES / 2; i++)
-    {
-        if (viewangletox[i] == -1)
-            viewangletox[i] = 0;
-        else if (viewangletox[i] == viewwidth + 1)
-            viewangletox[i] = viewwidth;
-    }
-
+    
+    // Final adjustments
     clipangle = xtoviewangle[0];
     CalcMaxProjectSlope(fov);
 }
