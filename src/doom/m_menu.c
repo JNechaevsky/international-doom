@@ -567,6 +567,7 @@ static void M_ID_ShowENDOOM (int choice);
 static void M_Draw_ID_Video_2 (void);
 static void M_ID_SuperSmoothing (int choice);
 static void M_ID_OverbrightGlow (int choice);
+static void M_ID_SoftBloom (int choice);
 static void M_ID_AnalogRGBDrift (int choice);
 static void M_ID_VHSLineDistortion (int choice);
 static void M_ID_ScreenVignette (int choice);
@@ -1647,12 +1648,12 @@ static menuitem_t ID_Menu_Video_2[]=
 {
     { M_MUL1, "SUPERSAMPLED SMOOTHING", M_ID_SuperSmoothing,    's' },
     { M_MUL2, "OVERBRIGHT GLOW",        M_ID_OverbrightGlow,    't' },
+    { M_MUL2, "SOFT BLOOM",             M_ID_SoftBloom,         's' },
     { M_MUL1, "ANALOG RGB DRIFT",       M_ID_AnalogRGBDrift,    'a' },
     { M_MUL2, "VHS LINE DISTORTION",    M_ID_VHSLineDistortion, 'v' },
     { M_MUL1, "SCREEN VIGNETTE",        M_ID_ScreenVignette,    's' },
     { M_MUL1, "MOTION BLUR",            M_ID_MotionBlur,        'm' },
     { M_MUL2, "DEPTH OF FIELD BLUR",    M_ID_DepthOfFieldBlur,  'd' },
-    { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
@@ -1691,24 +1692,29 @@ static void M_Draw_ID_Video_2 (void)
     M_WriteText (M_ItemRightAlign(str), 27, str, 
                  M_Item_Glow(1, post_overglow ? GLOW_GREEN : GLOW_DARKRED));
 
+    // Soft bloom
+    sprintf(str, post_bloom ? "ON" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 36, str, 
+                 M_Item_Glow(2, post_bloom ? GLOW_GREEN : GLOW_DARKRED));
+
     // Analog RGB drift
     sprintf(str, post_rgbdrift == 1 ? "SUBTLE" :
                  post_rgbdrift == 2 ? "STRONG" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 36, str, 
-                 M_Item_Glow(2, post_rgbdrift ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 45, str, 
+                 M_Item_Glow(3, post_rgbdrift ? GLOW_GREEN : GLOW_DARKRED));
 
     // VHS line distortion
     sprintf(str, post_vhsdist ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str, 
-                 M_Item_Glow(3, post_vhsdist ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 54, str, 
+                 M_Item_Glow(4, post_vhsdist ? GLOW_GREEN : GLOW_DARKRED));
 
     // Screen vignette
     sprintf(str, post_vignette == 1 ? "SUBTLE" :
                  post_vignette == 2 ? "SOFT"   : 
                  post_vignette == 3 ? "STRONG" : 
                  post_vignette == 4 ? "DARK"   : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 54, str, 
-                 M_Item_Glow(4, post_vignette ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 63, str, 
+                 M_Item_Glow(5, post_vignette ? GLOW_GREEN : GLOW_DARKRED));
 
     // Analog RGB drift
     sprintf(str, post_motionblur == 1 ? "SOFT"   :
@@ -1716,13 +1722,13 @@ static void M_Draw_ID_Video_2 (void)
                  post_motionblur == 3 ? "MEDIUM" : 
                  post_motionblur == 4 ? "HEAVY"  : 
                  post_motionblur == 5 ? "GHOST"  : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str, 
-                 M_Item_Glow(5, post_motionblur ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 72, str, 
+                 M_Item_Glow(6, post_motionblur ? GLOW_GREEN : GLOW_DARKRED));
 
     // Depth if field blur
     sprintf(str, post_dofblur ? "ON" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 72, str, 
-                 M_Item_Glow(6, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(7, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
 
     M_WriteText (ID_MENU_LEFTOFFSET, 153, "< PREV PAGE",
                  M_Item_Glow(15, GLOW_LIGHTGRAY));
@@ -1736,6 +1742,11 @@ static void M_ID_SuperSmoothing (int choice)
 static void M_ID_OverbrightGlow (int choice)
 {
     post_overglow ^= 1;
+}
+
+static void M_ID_SoftBloom (int choice)
+{
+    post_bloom ^= 1;
 }
 
 static void M_ID_AnalogRGBDrift (int choice)
@@ -4858,6 +4869,7 @@ static void M_ID_ApplyResetHook (void)
     // Post-processing effects
     post_supersample = 0;
     post_overglow = 0;
+    post_bloom = 0;
     post_rgbdrift = 0;
     post_vhsdist = 0;
     post_vignette = 0;

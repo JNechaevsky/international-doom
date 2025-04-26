@@ -140,6 +140,173 @@ static void V_PProc_OverbrightGlow (void)
 }
 
 // -----------------------------------------------------------------------------
+// V_PProc_BloomGlow
+//  [PN] Applies an optimized bloom effect with adaptive blur size.
+//  Fixed 4x4 downscale, separable blur, resolution-aware bloom spread.
+// -----------------------------------------------------------------------------
+
+static void V_PProc_BloomGlow(void)
+{
+    if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
+        return;
+
+    const int w = argbbuffer->w;
+    const int h = argbbuffer->h;
+    const int sw = w >> 2; // [PN] downscale factor fixed at 4
+    const int sh = h >> 2;
+    // [PN] Static buffers for bloom source and intermediate blur.
+    // [JN] Allocate big enough to support 32:9 and 6x resolution.
+    static Uint32 bloom_buf[MAXWIDTH * MAXHEIGHT];
+    static Uint32 blur_buf[MAXWIDTH * MAXHEIGHT];
+    const int stride = sw;
+
+    Uint32 *restrict src = (Uint32*)argbbuffer->pixels;
+    Uint32 *restrict bloom = bloom_buf;
+    Uint32 *restrict blur = blur_buf;
+
+    // --- Threshold extraction and downsample ---
+    for (int by = 0; by < sh; ++by)
+    {
+        int y0 = by * 4;
+        for (int bx = 0; bx < sw; ++bx)
+        {
+            int x0 = bx * 4;
+            int sum_r = 0, sum_g = 0, sum_b = 0, count = 0;
+
+            for (int dy = 0; dy < 4; ++dy)
+            {
+                int y = y0 + dy;
+                if (y >= h) break;
+                int row = y * w;
+                for (int dx = 0; dx < 4; ++dx)
+                {
+                    int x = x0 + dx;
+                    if (x >= w) break;
+                    Uint32 c = src[row + x];
+                    int r = (c >> 16) & 0xFF;
+                    int g = (c >> 8) & 0xFF;
+                    int b = c & 0xFF;
+                    int luma = (r * 3 + g * 6 + b) >> 3; // [PN] fast luma estimation
+                    if (luma > 200)
+                    {
+                        sum_r += r;
+                        sum_g += g;
+                        sum_b += b;
+                        ++count;
+                    }
+                }
+            }
+            if (count)
+                bloom[by * stride + bx] = (0xFF << 24) | ((sum_r / count) << 16) | ((sum_g / count) << 8) | (sum_b / count);
+            else
+                bloom[by * stride + bx] = 0;
+        }
+    }
+
+    // --- Separable blur pass ---
+
+    // [PN] Determine blur radius based on resolution
+    const int blur_radius = (vid_resolution >= 3) ? 2 : 1; // 1 -> 3x3, 2 -> 5x5 blur
+
+    // [PN] Horizontal blur
+    for (int y = 0; y < sh; ++y)
+    {
+        const int row = y * stride;
+        for (int x = blur_radius; x < sw - blur_radius; ++x)
+        {
+            int r_sum = 0, g_sum = 0, b_sum = 0, count = 0;
+
+            for (int kx = -blur_radius; kx <= blur_radius; ++kx)
+            {
+                Uint32 c = bloom[row + (x + kx)];
+                r_sum += (c >> 16) & 0xFF;
+                g_sum += (c >> 8) & 0xFF;
+                b_sum += c & 0xFF;
+                ++count;
+            }
+
+            blur[row + x] = (0xFF << 24)
+                          | ((r_sum / count) << 16)
+                          | ((g_sum / count) << 8)
+                          |  (b_sum / count);
+        }
+    }
+
+    // [PN] Vertical blur
+    for (int y = blur_radius; y < sh - blur_radius; ++y)
+    {
+        const int row = y * stride;
+        for (int x = 0; x < sw; ++x)
+        {
+            int r_sum = 0, g_sum = 0, b_sum = 0, count = 0;
+
+            for (int ky = -blur_radius; ky <= blur_radius; ++ky)
+            {
+                int krow = (y + ky) * stride;
+                Uint32 c = blur[krow + x];
+                r_sum += (c >> 16) & 0xFF;
+                g_sum += (c >> 8) & 0xFF;
+                b_sum += c & 0xFF;
+                ++count;
+            }
+
+            bloom[row + x] = (0xFF << 24)
+                           | ((r_sum / count) << 16)
+                           | ((g_sum / count) << 8)
+                           |  (b_sum / count);
+        }
+    }
+
+    // --- Upscale and blend ---
+
+    // [JN] Calculate blending boost depending on rendering resolution.
+    static const int boost_factor[] = { 0, 1, 1, 2, 2, 2, 2 };
+    const int boost = boost_factor[vid_resolution];
+
+    for (int by = 0; by < sh; ++by)
+    {
+        const int y0 = by * 4;
+        for (int bx = 0; bx < sw; ++bx)
+        {
+            Uint32 bloom_px = bloom[by * stride + bx];
+            const int r_b = (bloom_px >> 16) & 0xFF;
+            const int g_b = (bloom_px >> 8) & 0xFF;
+            const int b_b = bloom_px & 0xFF;
+
+            if ((r_b | g_b | b_b) == 0)
+                continue;
+
+            for (int dy = 0; dy < 4; ++dy)
+            {
+                const int y = y0 + dy;
+
+                if (y >= h)
+                    break;
+
+                const int row = y * w;
+                for (int dx = 0; dx < 4; ++dx)
+                {
+                    const int x = bx * 4 + dx;
+
+                    if (x >= w)
+                        break;
+
+                    Uint32 *p = &src[row + x];
+                    Uint32 base = *p;
+                    const int r = (base >> 16) & 0xFF;
+                    const int g = (base >> 8) & 0xFF;
+                    const int b = base & 0xFF;
+                    int r_blend = r + ((r_b * boost) >> 2); if (r_blend > 255) r_blend = 255;
+                    int g_blend = g + ((g_b * boost) >> 2); if (g_blend > 255) g_blend = 255;
+                    int b_blend = b + ((b_b * boost) >> 2); if (b_blend > 255) b_blend = 255;
+                    *p = (0xFF << 24) | (r_blend << 16) | (g_blend << 8) | b_blend;
+                }
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 // V_PProc_AnalogRGBDrift
 //  [PN] Applies analog-style RGB drift effect by offsetting red and blue 
 //  channels horizontally in opposite directions.
@@ -712,7 +879,11 @@ void V_PProc_Display (boolean supress)
 void V_PProc_PlayerView (void)
 {
     pproc_plyrview_effects =
-        post_motionblur || post_dofblur || post_vignette;
+        post_bloom || post_motionblur || post_dofblur || post_vignette;
+
+    // Soft bloom
+    if (post_bloom)
+        V_PProc_BloomGlow();
 
     // Motion Blur
     if (post_motionblur)

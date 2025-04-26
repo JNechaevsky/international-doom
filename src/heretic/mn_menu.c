@@ -431,6 +431,7 @@ static void M_ID_ScreenWipe (int choice);
 static void M_ID_EndText (int choice);
 static void M_ID_SuperSmoothing (int choice);
 static void M_ID_OverbrightGlow (int choice);
+static void M_ID_SoftBloom (int choice);
 static void M_ID_AnalogRGBDrift (int choice);
 static void M_ID_VHSLineDistortion (int choice);
 static void M_ID_ScreenVignette (int choice);
@@ -1460,12 +1461,12 @@ static MenuItem_t ID_Menu_Video_2[] = {
     { ITT_EMPTY,   NULL,                     NULL,                   0, MENU_NONE },
     { ITT_LRFUNC1, "SUPERSAMPLED SMOOTHING", M_ID_SuperSmoothing,    0, MENU_NONE },
     { ITT_LRFUNC2, "OVERBRIGHT GLOW",        M_ID_OverbrightGlow,    0, MENU_NONE },
+    { ITT_LRFUNC2, "SOFT BLOOM",             M_ID_SoftBloom,         0, MENU_NONE },
     { ITT_LRFUNC1, "ANALOG RGB DRIFT",       M_ID_AnalogRGBDrift,    0, MENU_NONE },
     { ITT_LRFUNC2, "VHS LINE DISTORTION",    M_ID_VHSLineDistortion, 0, MENU_NONE },
     { ITT_LRFUNC1, "SCREEN VIGNETTE",        M_ID_ScreenVignette,    0, MENU_NONE },
     { ITT_LRFUNC1, "MOTION BLUR",            M_ID_MotionBlur,        0, MENU_NONE },
     { ITT_LRFUNC2, "DEPTH OF FIELD BLUR",    M_ID_DepthOfFieldBlur,  0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                     NULL,                   0, MENU_NONE },
     { ITT_LRFUNC2, "PREV PAGE",              M_ScrollVideo,          0, MENU_NONE },
 };
 
@@ -1515,24 +1516,29 @@ static void M_Draw_ID_Video_2 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 70,
                M_Item_Glow(5, post_overglow ? GLOW_GREEN : GLOW_RED));
 
+    // Soft bloom
+    sprintf(str, post_bloom ? "ON" : "OFF");
+    MN_DrTextA(str, M_ItemRightAlign(str), 80,
+               M_Item_Glow(6, post_bloom ? GLOW_GREEN : GLOW_RED));
+
     // Analog RGB drift
     sprintf(str, post_rgbdrift == 1 ? "SUBTLE" :
                  post_rgbdrift == 2 ? "STRONG" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 80,
-               M_Item_Glow(6, post_rgbdrift ? GLOW_GREEN : GLOW_RED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 90,
+               M_Item_Glow(7, post_rgbdrift ? GLOW_GREEN : GLOW_RED));
 
     // VHS line distortion
     sprintf(str, post_vhsdist ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 90,
-               M_Item_Glow(7, post_vhsdist ? GLOW_GREEN : GLOW_RED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 100,
+               M_Item_Glow(8, post_vhsdist ? GLOW_GREEN : GLOW_RED));
 
     // Screen vignette
     sprintf(str, post_vignette == 1 ? "SUBTLE" :
                  post_vignette == 2 ? "SOFT"   : 
                  post_vignette == 3 ? "STRONG" : 
                  post_vignette == 4 ? "DARK"   : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 100,
-               M_Item_Glow(8, post_vignette ? GLOW_GREEN : GLOW_RED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 110,
+               M_Item_Glow(9, post_vignette ? GLOW_GREEN : GLOW_RED));
 
     // Analog RGB drift
     sprintf(str, post_motionblur == 1 ? "SOFT"   :
@@ -1540,13 +1546,13 @@ static void M_Draw_ID_Video_2 (void)
                  post_motionblur == 3 ? "MEDIUM" : 
                  post_motionblur == 4 ? "HEAVY"  : 
                  post_motionblur == 5 ? "GHOST"  : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 110,
-               M_Item_Glow(9, post_motionblur ? GLOW_GREEN : GLOW_RED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 120,
+               M_Item_Glow(10, post_motionblur ? GLOW_GREEN : GLOW_RED));
 
     // Depth if field blur
     sprintf(str, post_dofblur ? "ON" : "OFF");
-    MN_DrTextA(str, M_ItemRightAlign(str), 120,
-               M_Item_Glow(10, post_dofblur ? GLOW_GREEN : GLOW_RED));
+    MN_DrTextA(str, M_ItemRightAlign(str), 130,
+               M_Item_Glow(11, post_dofblur ? GLOW_GREEN : GLOW_RED));
 }
 
 static void M_ID_SuperSmoothing (int choice)
@@ -1557,6 +1563,11 @@ static void M_ID_SuperSmoothing (int choice)
 static void M_ID_OverbrightGlow (int choice)
 {
     post_overglow ^= 1;
+}
+
+static void M_ID_SoftBloom (int choice)
+{
+    post_bloom ^= 1;
 }
 
 static void M_ID_AnalogRGBDrift (int choice)
@@ -4701,6 +4712,7 @@ static void M_ID_ApplyResetHook (void)
     // Post-processing effects
     post_supersample = 0;
     post_overglow = 0;
+    post_bloom = 0;
     post_rgbdrift = 0;
     post_vhsdist = 0;
     post_vignette = 0;

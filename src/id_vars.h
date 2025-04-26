@@ -54,6 +54,7 @@ extern int msg_text_shadows;
 
 extern int post_supersample;
 extern int post_overglow;
+extern int post_bloom;
 extern int post_rgbdrift;
 extern int post_vhsdist;
 extern int post_vignette;
