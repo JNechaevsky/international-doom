@@ -191,26 +191,26 @@ static void V_PProc_BloomGlow(void)
     // --- Threshold extraction and downsample ---
     for (int by = 0; by < sh; ++by)
     {
-        int y0 = by * 4;
+        const int y0 = by * 4;
         for (int bx = 0; bx < sw; ++bx)
         {
-            int x0 = bx * 4;
+            const int x0 = bx * 4;
             int sum_r = 0, sum_g = 0, sum_b = 0, count = 0;
 
             for (int dy = 0; dy < 4; ++dy)
             {
-                int y = y0 + dy;
+                const int y = y0 + dy;
                 if (y >= h) break;
-                int row = y * w;
+                const int row = y * w;
                 for (int dx = 0; dx < 4; ++dx)
                 {
-                    int x = x0 + dx;
+                    const int x = x0 + dx;
                     if (x >= w) break;
-                    Uint32 c = src[row + x];
-                    int r = (c >> 16) & 0xFF;
-                    int g = (c >> 8) & 0xFF;
-                    int b = c & 0xFF;
-                    int luma = (r * 3 + g * 6 + b) >> 3; // [PN] fast luma estimation
+                    const Uint32 c = src[row + x];
+                    const int r = (c >> 16) & 0xFF;
+                    const int g = (c >> 8) & 0xFF;
+                    const int b = c & 0xFF;
+                    const int luma = (r * 3 + g * 6 + b) >> 3; // [PN] fast luma estimation
                     if (luma > 200)
                     {
                         sum_r += r;
@@ -242,7 +242,7 @@ static void V_PProc_BloomGlow(void)
 
             for (int kx = -blur_radius; kx <= blur_radius; ++kx)
             {
-                Uint32 c = bloom[row + (x + kx)];
+                const Uint32 c = bloom[row + (x + kx)];
                 r_sum += (c >> 16) & 0xFF;
                 g_sum += (c >> 8) & 0xFF;
                 b_sum += c & 0xFF;
@@ -266,8 +266,8 @@ static void V_PProc_BloomGlow(void)
 
             for (int ky = -blur_radius; ky <= blur_radius; ++ky)
             {
-                int krow = (y + ky) * stride;
-                Uint32 c = blur[krow + x];
+                const int krow = (y + ky) * stride;
+                const Uint32 c = blur[krow + x];
                 r_sum += (c >> 16) & 0xFF;
                 g_sum += (c >> 8) & 0xFF;
                 b_sum += c & 0xFF;
@@ -284,7 +284,7 @@ static void V_PProc_BloomGlow(void)
     // --- Upscale and blend ---
 
     // [JN] Calculate blending boost depending on rendering resolution.
-    static const int boost_factor[] = { 0, 1, 1, 1, 2, 2, 2 };
+    static const int boost_factor[] = { 0, 1, 1, 2, 2, 2, 2 };
     const int boost = boost_factor[vid_resolution];
 
     for (int by = 0; by < sh; ++by)
@@ -292,7 +292,7 @@ static void V_PProc_BloomGlow(void)
         const int y0 = by * 4;
         for (int bx = 0; bx < sw; ++bx)
         {
-            Uint32 bloom_px = bloom[by * stride + bx];
+            const Uint32 bloom_px = bloom[by * stride + bx];
             const int r_b = (bloom_px >> 16) & 0xFF;
             const int g_b = (bloom_px >> 8) & 0xFF;
             const int b_b = bloom_px & 0xFF;
@@ -315,8 +315,8 @@ static void V_PProc_BloomGlow(void)
                     if (x >= w)
                         break;
 
-                    Uint32 *p = &src[row + x];
-                    Uint32 base = *p;
+                    Uint32 *restrict p = &src[row + x];
+                    const Uint32 base = *p;
                     const int r = (base >> 16) & 0xFF;
                     const int g = (base >> 8) & 0xFF;
                     const int b = base & 0xFF;
