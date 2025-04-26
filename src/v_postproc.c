@@ -154,11 +154,35 @@ static void V_PProc_BloomGlow(void)
     const int h = argbbuffer->h;
     const int sw = w >> 2; // [PN] downscale factor fixed at 4
     const int sh = h >> 2;
-    // [PN] Static buffers for bloom source and intermediate blur.
-    // [JN] Allocate big enough to support 32:9 and 6x resolution.
-    static Uint32 bloom_buf[MAXWIDTH * MAXHEIGHT];
-    static Uint32 blur_buf[MAXWIDTH * MAXHEIGHT];
     const int stride = sw;
+    const size_t needed_size = (size_t)(sw * sh) * sizeof(Uint32);
+
+    static Uint32 *bloom_buf = NULL;
+    static Uint32 *blur_buf = NULL;
+    static size_t bloom_buf_size = 0;
+    static size_t blur_buf_size = 0;
+
+    // [PN] Reallocate bloom buffer if needed
+    if (bloom_buf_size != needed_size)
+    {
+        free(bloom_buf);
+        bloom_buf = (Uint32 *)malloc(needed_size);
+        if (!bloom_buf)
+            return;
+        memset(bloom_buf, 0, needed_size);
+        bloom_buf_size = needed_size;
+    }
+
+    // [PN] Reallocate blur buffer if needed
+    if (blur_buf_size != needed_size)
+    {
+        free(blur_buf);
+        blur_buf = (Uint32 *)malloc(needed_size);
+        if (!blur_buf)
+            return;
+        memset(blur_buf, 0, needed_size);
+        blur_buf_size = needed_size;
+    }
 
     Uint32 *restrict src = (Uint32*)argbbuffer->pixels;
     Uint32 *restrict bloom = bloom_buf;
@@ -260,7 +284,7 @@ static void V_PProc_BloomGlow(void)
     // --- Upscale and blend ---
 
     // [JN] Calculate blending boost depending on rendering resolution.
-    static const int boost_factor[] = { 0, 1, 1, 2, 2, 2, 2 };
+    static const int boost_factor[] = { 0, 1, 1, 1, 2, 2, 2 };
     const int boost = boost_factor[vid_resolution];
 
     for (int by = 0; by < sh; ++by)
