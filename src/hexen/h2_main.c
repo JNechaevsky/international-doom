@@ -1143,8 +1143,9 @@ static void DrawAndBlit(void)
 
     // [JN] Apply post-processing effects and forcefully
     // update status bar if any effect is active.
-    // Apply V_PProc_OverbrightGlow only game level states.
-    V_PProc_Display(gamestate != GS_LEVEL);
+    // Apply V_PProc_OverbrightGlow only on game level states,
+    // and not while active non-overlayed automap.
+    V_PProc_Display((gamestate != GS_LEVEL) || (automapactive && !automap_overlay));
     if (V_PProc_EffectsActive())
         SB_state = -1;
 
