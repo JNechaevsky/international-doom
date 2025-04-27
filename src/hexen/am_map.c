@@ -1051,18 +1051,39 @@ void AM_Ticker (void)
 }
 
 // -----------------------------------------------------------------------------
-// AM_clearFB
-// Clear automap frame buffer.
+// AM_drawBackground
+//  [PN] Unified background drawing: smoothly scrolls with map movement when
+//  automap_rotate is off, and freezes the offset when automap_rotate is on
+//  to avoid visual jump of background drawing.
 // -----------------------------------------------------------------------------
 
 static void AM_drawBackground (void)
 {
-    pixel_t *dest = I_VideoBuffer;
+    pixel_t *restrict dest = I_VideoBuffer;
+    const byte *restrict src = maplump;
+    static int bg_xoffs = 0;
+    static int bg_yoffs = 0;
 
-    // [JN] Use static background placement.
-    V_DrawRawTiled(MAPBGROUNDWIDTH * vid_resolution,
-                   MAPBGROUNDHEIGHT / vid_resolution,
-                   SCREENHEIGHT - SBARHEIGHT, maplump, dest);
+    // [PN] Update background offsets only when automap_rotate is disabled
+    if (!automap_rotate)
+    {
+        bg_xoffs = (MTOF(m_x) / 4) % MAPBGROUNDWIDTH;
+        bg_yoffs = (MTOF(m_y) / 4) % MAPBGROUNDHEIGHT;
+        if (bg_xoffs < 0) bg_xoffs += MAPBGROUNDWIDTH;
+        if (bg_yoffs < 0) bg_yoffs += MAPBGROUNDHEIGHT;
+    }
+
+    for (int y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++)
+    {
+        const int ysrc = (y + bg_yoffs) % MAPBGROUNDHEIGHT;
+        const byte *restrict row = src + ysrc * MAPBGROUNDWIDTH;
+
+        for (int x = 0; x < SCREENWIDTH; x++)
+        {
+            const int xsrc = (x + bg_xoffs) % MAPBGROUNDWIDTH;
+            dest[y * SCREENWIDTH + x] = pal_color[row[xsrc]];
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1832,8 +1853,8 @@ static void AM_drawPlayers (void)
         // [JN] Interpolate other player arrows.
         if (vid_uncapped_fps && realleveltime > oldleveltime)
         {
-            pt.x = (p->mo->oldx + FixedMul(p->mo->x - p->mo->oldx, fractionaltic)) >> FRACTOMAPBITS;
-            pt.y = (p->mo->oldy + FixedMul(p->mo->y - p->mo->oldy, fractionaltic)) >> FRACTOMAPBITS;
+            pt.x = LerpFixed(p->mo->oldx, p->mo->x) >> FRACTOMAPBITS;
+            pt.y = LerpFixed(p->mo->oldy, p->mo->y) >> FRACTOMAPBITS;
         }
         else
         {
@@ -2116,7 +2137,7 @@ void AM_Drawer (void)
     }
 
     // [crispy/Woof!] required for AM_transformPoint()
-    if (automap_rotate)
+    if (automap_rotate || ADJUST_ASPECT_RATIO)
     {
         mapcenter.x = m_x + m_w / 2;
         mapcenter.y = m_y + m_h / 2;
