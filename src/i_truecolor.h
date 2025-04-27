@@ -156,8 +156,8 @@ extern const double colorblind_matrix[][3][3];
 // TINTTAB_ALPHA ≈ 96 (38% opacity): fg * 1 + bg * 2 >> 2
 #define I_BlendOver_96(bg_i, fg_i) ( \
     (0xFF000000U) | \
-    (((((fg_i) & 0xFF00FF) + ((bg_i) & 0xFF00FF) * 2) >> 2) & 0xFF00FF) | \
-    (((((fg_i) & 0x00FF00) + ((bg_i) & 0x00FF00) * 2) >> 2) & 0x00FF00) \
+    (((((fg_i) & 0xFF00FF) * 3 + ((bg_i) & 0xFF00FF) * 5) >> 3) & 0xFF00FF) | \
+    (((((fg_i) & 0x00FF00) * 3 + ((bg_i) & 0x00FF00) * 5) >> 3) & 0x00FF00) \
 )
 
 // TINTTAB_ALPHA_ALT ≈ 142 (56% opacity): fg * 9 + bg * 7 >> 4
