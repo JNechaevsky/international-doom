@@ -192,20 +192,20 @@ static void V_PProc_BloomGlow(void)
     for (int by = 0; by < sh; ++by)
     {
         const int y0 = by * 4;
+        const int y_max = (y0 + 4 < h) ? 4 : h - y0;
         for (int bx = 0; bx < sw; ++bx)
         {
             const int x0 = bx * 4;
+            const int x_max = (x0 + 4 < w) ? 4 : w - x0;
             int sum_r = 0, sum_g = 0, sum_b = 0, count = 0;
 
-            for (int dy = 0; dy < 4; ++dy)
+            for (int dy = 0; dy < y_max; ++dy)
             {
                 const int y = y0 + dy;
-                if (y >= h) break;
                 const int row = y * w;
-                for (int dx = 0; dx < 4; ++dx)
+                for (int dx = 0; dx < x_max; ++dx)
                 {
                     const int x = x0 + dx;
-                    if (x >= w) break;
                     const Uint32 c = src[row + x];
                     const int r = (c >> 16) & 0xFF;
                     const int g = (c >> 8) & 0xFF;
@@ -221,7 +221,10 @@ static void V_PProc_BloomGlow(void)
                 }
             }
             if (count)
-                bloom[by * stride + bx] = (0xFF << 24) | ((sum_r / count) << 16) | ((sum_g / count) << 8) | (sum_b / count);
+                bloom[by * stride + bx] = (0xFF << 24)
+                                        | ((sum_r / count) << 16)
+                                        | ((sum_g / count) << 8)
+                                        |  (sum_b / count);
             else
                 bloom[by * stride + bx] = 0;
         }
@@ -232,52 +235,82 @@ static void V_PProc_BloomGlow(void)
     // [PN] Determine blur radius based on resolution
     const int blur_radius = (vid_resolution >= 3) ? 2 : 1; // 1 -> 3x3, 2 -> 5x5 blur
 
+    // [JN] Precomputed reciprocals for Q16 fixed-point.
+    #define RECIP3  21845  // (1/3) * 65536
+    #define RECIP5  13107  // (1/5) * 65536
+    const int count = 2 * blur_radius + 1;
+    const int recip = (count == 3) ? RECIP3 : RECIP5;
+
     // [PN] Horizontal blur
     for (int y = 0; y < sh; ++y)
     {
         const int row = y * stride;
-        for (int x = blur_radius; x < sw - blur_radius; ++x)
-        {
-            int r_sum = 0, g_sum = 0, b_sum = 0, count = 0;
+        int r_sum = 0, g_sum = 0, b_sum = 0;
 
-            for (int kx = -blur_radius; kx <= blur_radius; ++kx)
-            {
-                const Uint32 c = bloom[row + (x + kx)];
-                r_sum += (c >> 16) & 0xFF;
-                g_sum += (c >> 8) & 0xFF;
-                b_sum += c & 0xFF;
-                ++count;
-            }
+        // [JN] Initialize sum for the first window.
+        for (int kx = -blur_radius; kx <= blur_radius; ++kx)
+        {
+            const Uint32 c = bloom[row + (blur_radius + kx)];
+            r_sum += (c >> 16) & 0xFF;
+            g_sum += (c >> 8) & 0xFF;
+            b_sum += c & 0xFF;
+        }
+        blur[row + blur_radius] = (0xFF << 24)
+                                | (((r_sum * recip) >> 16) << 16)
+                                | (((g_sum * recip) >> 16) << 8)
+                                |  ((b_sum * recip) >> 16);
+
+        // [JN] Sliding window for the remaining x.
+        for (int x = blur_radius + 1; x < sw - blur_radius; ++x)
+        {
+            // [JN] Subtract the left pixel, add the right pixel.
+            const Uint32 c_out = bloom[row + (x - blur_radius - 1)];
+            const Uint32 c_in  = bloom[row + (x + blur_radius)];
+            r_sum += ((c_in >> 16) & 0xFF) - ((c_out >> 16) & 0xFF);
+            g_sum += ((c_in >> 8) & 0xFF) - ((c_out >> 8) & 0xFF);
+            b_sum += (c_in & 0xFF) - (c_out & 0xFF);
 
             blur[row + x] = (0xFF << 24)
-                          | ((r_sum / count) << 16)
-                          | ((g_sum / count) << 8)
-                          |  (b_sum / count);
+                          | (((r_sum * recip) >> 16) << 16)
+                          | (((g_sum * recip) >> 16) << 8)
+                          |  ((b_sum * recip) >> 16);
         }
     }
 
     // [PN] Vertical blur
-    for (int y = blur_radius; y < sh - blur_radius; ++y)
+    for (int x = 0; x < sw; ++x)
     {
-        const int row = y * stride;
-        for (int x = 0; x < sw; ++x)
+        int r_sum = 0, g_sum = 0, b_sum = 0;
+
+        // [JN] Initialize sum for the first window along y.
+        for (int ky = -blur_radius; ky <= blur_radius; ++ky)
         {
-            int r_sum = 0, g_sum = 0, b_sum = 0, count = 0;
+            const int krow = (blur_radius + ky) * stride;
+            const Uint32 c = blur[krow + x];
+            r_sum += (c >> 16) & 0xFF;
+            g_sum += (c >> 8) & 0xFF;
+            b_sum += c & 0xFF;
+        }
+        bloom[blur_radius * stride + x] = (0xFF << 24)
+                                        | (((r_sum * recip) >> 16) << 16)
+                                        | (((g_sum * recip) >> 16) << 8)
+                                        |  ((b_sum * recip) >> 16);
 
-            for (int ky = -blur_radius; ky <= blur_radius; ++ky)
-            {
-                const int krow = (y + ky) * stride;
-                const Uint32 c = blur[krow + x];
-                r_sum += (c >> 16) & 0xFF;
-                g_sum += (c >> 8) & 0xFF;
-                b_sum += c & 0xFF;
-                ++count;
-            }
+        // [JN] Sliding window along y.
+        for (int y = blur_radius + 1; y < sh - blur_radius; ++y)
+        {
+            const int row_out = (y - blur_radius - 1) * stride;
+            const int row_in  = (y + blur_radius) * stride;
+            const Uint32 c_out = blur[row_out + x];
+            const Uint32 c_in  = blur[row_in + x];
+            r_sum += ((c_in >> 16) & 0xFF) - ((c_out >> 16) & 0xFF);
+            g_sum += ((c_in >> 8) & 0xFF) - ((c_out >> 8) & 0xFF);
+            b_sum += (c_in & 0xFF) - (c_out & 0xFF);
 
-            bloom[row + x] = (0xFF << 24)
-                           | ((r_sum / count) << 16)
-                           | ((g_sum / count) << 8)
-                           |  (b_sum / count);
+            bloom[y * stride + x] = (0xFF << 24)
+                                  | (((r_sum * recip) >> 16) << 16)
+                                  | (((g_sum * recip) >> 16) << 8)
+                                  |  ((b_sum * recip) >> 16);
         }
     }
 
@@ -290,6 +323,7 @@ static void V_PProc_BloomGlow(void)
     for (int by = 0; by < sh; ++by)
     {
         const int y0 = by * 4;
+        const int y_max = (y0 + 4 < h) ? 4 : h - y0;
         for (int bx = 0; bx < sw; ++bx)
         {
             const Uint32 bloom_px = bloom[by * stride + bx];
@@ -300,21 +334,16 @@ static void V_PProc_BloomGlow(void)
             if ((r_b | g_b | b_b) == 0)
                 continue;
 
-            for (int dy = 0; dy < 4; ++dy)
+            const int x0 = bx * 4;
+            const int x_max = (x0 + 4 < w) ? 4 : w - x0;
+    
+            for (int dy = 0; dy < y_max; ++dy)
             {
                 const int y = y0 + dy;
-
-                if (y >= h)
-                    break;
-
                 const int row = y * w;
-                for (int dx = 0; dx < 4; ++dx)
+                for (int dx = 0; dx < x_max; ++dx)
                 {
-                    const int x = bx * 4 + dx;
-
-                    if (x >= w)
-                        break;
-
+                    const int x = x0 + dx;
                     Uint32 *restrict p = &src[row + x];
                     const Uint32 base = *p;
                     const int r = (base >> 16) & 0xFF;
