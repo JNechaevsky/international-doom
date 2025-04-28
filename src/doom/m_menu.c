@@ -1727,7 +1727,7 @@ static void M_Draw_ID_Video_2 (void)
 
     // Depth if field blur
     sprintf(str, post_dofblur ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str, 
+    M_WriteText (M_ItemRightAlign(str), 81, str, 
                  M_Item_Glow(7, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
 
     M_WriteText (ID_MENU_LEFTOFFSET, 153, "< PREV PAGE",
