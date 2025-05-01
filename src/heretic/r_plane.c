@@ -438,7 +438,6 @@ R_MakeSpans
 // At the end of each frame.
 //
 
-#define SKYTEXTUREMIDSHIFTED 200 // [crispy]
 #define FLATSCROLL(X) \
     ((interpfactor << (X)) - (((63 - ((leveltime >> 1) & 63)) << (X) & 63) * FRACUNIT))
 
@@ -447,7 +446,8 @@ void R_DrawPlanes (void)
     int x;
     int count;
     fixed_t frac, fracstep;
-    int heightmask; // [crispy]
+    int texture, heightmask; // [crispy]
+    static int prev_texture, skyheight; // [crispy]
     static int interpfactor; // [crispy]
 
     // [JN] CRL - openings counter.
@@ -463,7 +463,6 @@ void R_DrawPlanes (void)
         //
         if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
         {
-            int texture;
             angle_t an = viewangle, flip = 0;  // [PN] Initialize flip here
 
             if (pl->picnum & PL_SKYFLAT)
@@ -481,6 +480,12 @@ void R_DrawPlanes (void)
                 dc_texturemid = skytexturemid;
             }
             
+            if (texture != prev_texture)
+            {
+                skyheight = R_GetPatchHeight(texture, 0);
+                prev_texture = texture;
+            }
+
             dc_iscale = skyiscale;
             // [crispy] no brightmaps for sky
             // [JN] Invulnerability affects sky feature.
@@ -521,7 +526,6 @@ void R_DrawPlanes (void)
 
                     fracstep = dc_iscale;
                     frac = dc_texturemid + (dc_yl - centery) * fracstep;
-                    heightmask = SKYTEXTUREMIDSHIFTED - 1; // [crispy]
 
                     //
                     // [JN] High detail.
@@ -531,10 +535,9 @@ void R_DrawPlanes (void)
                     pixel_t *dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
                     // not a power of 2 -- killough
-                    if (SKYTEXTUREMIDSHIFTED & heightmask)
+                    if (skyheight & (skyheight - 1))
                     {
-                        heightmask++;
-                        heightmask <<= FRACBITS;
+                        heightmask = skyheight << FRACBITS;
 
                         if (frac < 0)
                             while ((frac += heightmask) < 0);
@@ -559,6 +562,8 @@ void R_DrawPlanes (void)
                     // texture height is a power of 2 -- killough
                     else
                     {
+                        heightmask = skyheight - 1;
+
                         do
                         {
                             const byte source = dc_source[(frac >> FRACBITS) & heightmask];
@@ -581,10 +586,9 @@ void R_DrawPlanes (void)
                         pixel_t *dest4 = dest2;
 
                         // not a power of 2 -- killough
-                        if (SKYTEXTUREMIDSHIFTED & heightmask)
+                        if (skyheight & (skyheight - 1))
                         {
-                            heightmask++;
-                            heightmask <<= FRACBITS;
+                            heightmask = skyheight << FRACBITS;
                         
                             if (frac < 0)
                                 while ((frac += heightmask) < 0);
@@ -611,6 +615,8 @@ void R_DrawPlanes (void)
                         // texture height is a power of 2 -- killough
                         else
                         {
+                            heightmask = skyheight - 1;
+
                             do 
                             {
                                 // [crispy] brightmaps
