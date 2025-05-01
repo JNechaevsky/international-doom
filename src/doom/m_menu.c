@@ -1438,7 +1438,8 @@ static void M_Draw_ID_Video_1 (void)
     // Screen wipe effect
     sprintf(str, vid_screenwipe == 1 ? "ORIGINAL" :
                  vid_screenwipe == 2 ? "FAST" :
-                 vid_screenwipe == 3 ? "CROSSFADE" : "OFF");
+                 vid_screenwipe == 3 ? "CROSSFADE" :
+                 vid_screenwipe == 4 ? "FIZZLE" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 108, str,
                  M_Item_Glow(10, vid_screenwipe == 1 ? GLOW_DARKRED : GLOW_GREEN));
 
@@ -1626,7 +1627,7 @@ static void M_ID_PixelScaling (int choice)
 
 static void M_ID_ScreenWipe (int choice)
 {
-    vid_screenwipe = M_INT_Slider(vid_screenwipe, 0, 3, choice, false);
+    vid_screenwipe = M_INT_Slider(vid_screenwipe, 0, 4, choice, false);
 }
 
 static void M_ID_DiskIcon (int choice)
