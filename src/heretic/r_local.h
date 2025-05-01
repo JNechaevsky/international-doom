@@ -647,4 +647,14 @@ void R_DrawSpanLow(void);
 void R_InitBuffer(int width, int height);
 void R_InitTranslationTables(void);
 
+// -----------------------------------------------------------------------------
+// R_SWIRL
+// -----------------------------------------------------------------------------
+
+extern void  R_InitDistortedFlats (void);
+extern byte *R_SwirlingFlat (int flatnum);
+extern byte *R_WarpingFlat1 (int flatnum);
+extern byte *R_WarpingFlat2 (int flatnum);
+extern byte *R_WarpingFlat3 (int flatnum);
+
 #endif // __R_LOCAL__

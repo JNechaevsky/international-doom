@@ -476,19 +476,32 @@ void R_DrawPlanes (void)
         }
         else  // regular flat
         {
-            const boolean swirling = (flattranslation[pl->picnum] == -1);
+            const int swirling = (flattranslation[pl->picnum] == -1) ? 1 :
+                                 (flattranslation[pl->picnum] == -2) ? 2 :
+                                 (flattranslation[pl->picnum] == -3) ? 3 :
+                                 (flattranslation[pl->picnum] == -4) ? 4 : 0;
             const int stop = pl->maxx + 1;
             const int lumpnum = firstflat + (swirling ? pl->picnum : flattranslation[pl->picnum]);
 
             // [crispy] add support for SMMU swirling flats
-            ds_source = swirling ? R_DistortedFlat(lumpnum) : W_CacheLumpNum(lumpnum, PU_STATIC);
+            ds_source = swirling == 1 ? R_SwirlingFlat(lumpnum) :
+                        swirling == 2 ? R_WarpingFlat1(lumpnum) :
+                        swirling == 3 ? R_WarpingFlat2(lumpnum) :
+                        swirling == 4 ? R_WarpingFlat3(lumpnum) :
+                                        W_CacheLumpNum(lumpnum, PU_STATIC);
             ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
 
             // [JN] Apply flowing effect to swirling liquids.
-            if (swirling)
+            if (swirling == 1)
             {
                 swirlFlow_x = swirlCoord_x;
                 swirlFlow_y = swirlCoord_y;
+            }
+            else // Less amplitude for sludge and lava (/4).
+            if (swirling > 1)
+            {
+                swirlFlow_x = swirlCoord_x >> 2;
+                swirlFlow_y = swirlCoord_y >> 2;
             }
             else
             {

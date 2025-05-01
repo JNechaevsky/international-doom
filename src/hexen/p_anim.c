@@ -23,7 +23,6 @@
 #include "m_random.h"
 #include "i_system.h"
 #include "p_local.h"
-#include "r_swirl.h"
 #include "s_sound.h"
 
 // MACROS ------------------------------------------------------------------
@@ -131,12 +130,12 @@ void P_AnimateSurfaces(void)
             if (ad->type == ANIM_FLAT)
             {
                 // [JN] Add support for SMMU swirling flats.
-                if (vis_swirling_liquids
-                && (ad->index == x_001
-                ||  ad->index == x_005
-                ||  ad->index == x_009))
+                if (vis_swirling_liquids)
                 {
-                flattranslation[ad->index] = -1;
+                flattranslation[ad->index] =
+                    ad->index == x_001 ? -3 : // Warp 2 (lava)
+                    ad->index == x_009 ? -4 : // Warp 3 (sludge)
+                                         -1 ; // Swirl (water)
                 }
                 else
                 {

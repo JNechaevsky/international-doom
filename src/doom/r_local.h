@@ -813,7 +813,10 @@ extern int skytexturemid;
 // -----------------------------------------------------------------------------
 
 extern void  R_InitDistortedFlats (void);
-extern byte *R_DistortedFlat (int flatnum);
+extern byte *R_SwirlingFlat (int flatnum);
+extern byte *R_WarpingFlat1 (int flatnum);
+extern byte *R_WarpingFlat2 (int flatnum);
+extern byte *R_WarpingFlat3 (int flatnum);
 
 // -----------------------------------------------------------------------------
 // R_THINGS

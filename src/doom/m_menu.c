@@ -3677,7 +3677,7 @@ static void M_Draw_ID_Gameplay_1 (void)
                  M_Item_Glow(6, vis_colored_blood ? GLOW_GREEN : GLOW_DARKRED));
 
     // Liquids animation
-    sprintf(str, vis_swirling_liquids ? "SWIRLING" : "ORIGINAL");
+    sprintf(str, vis_swirling_liquids ? "IMPROVED" : "ORIGINAL");
     M_WriteText (M_ItemRightAlign(str), 81, str,
                  M_Item_Glow(7, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
 

@@ -3435,7 +3435,7 @@ static void M_Draw_ID_Gameplay_1 (void)
 #endif
 
     // Liquids animation
-    sprintf(str, vis_swirling_liquids ? "SWIRLING" : "ORIGINAL");
+    sprintf(str, vis_swirling_liquids ? "IMPROVED" : "ORIGINAL");
     MN_DrTextA(str, M_ItemRightAlign(str), 60,
                M_Item_Glow(4, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
 

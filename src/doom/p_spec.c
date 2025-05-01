@@ -125,16 +125,16 @@ animdef_t		animdefs_vanilla[] =
 // [JN] Same sequences with swirling liquids.
 static animdef_t animdefs_swirling[] =
 {
-    {false,	"NUKAGE3",	"NUKAGE1",	65536},
+    {false,	"NUKAGE3",	"NUKAGE1",	65537},
     {false,	"FWATER4",	"FWATER1",	65536},
     {false,	"SWATER4",	"SWATER1", 	65536},
-    {false,	"LAVA4",	"LAVA1",	65536},
-    {false,	"BLOOD3",	"BLOOD1",	65536},
+    {false,	"LAVA4",	"LAVA1",	65538},
+    {false,	"BLOOD3",	"BLOOD1",	65537},
 
     // DOOM II flat animations.
     {false,	"RROCK08",	"RROCK05",	8},
-    {false,	"SLIME04",	"SLIME01",	65536},
-    {false,	"SLIME08",	"SLIME05",	65536},
+    {false,	"SLIME04",	"SLIME01",	65537},
+    {false,	"SLIME08",	"SLIME05",	65539},
     {false,	"SLIME12",	"SLIME09",	8},
 
     {true,	"BLODGR4",	"BLODGR1",	8},
@@ -1264,7 +1264,11 @@ void P_UpdateSpecials (void)
 		// [crispy] add support for SMMU swirling flats
 		if (anim->speed > 65535 || anim->numpics == 1)
 		{
-		    flattranslation[i] = -1;
+		    flattranslation[i] = 
+		        anim->speed == 65537 ? -2 : // Warp 1
+		        anim->speed == 65538 ? -3 : // Warp 2
+		        anim->speed == 65539 ? -4 : // Warp 3
+		                               -1 ; // Swirl
 		}
 		else
 		flattranslation[i] = pic;

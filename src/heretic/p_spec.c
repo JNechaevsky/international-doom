@@ -30,7 +30,6 @@
 #include "v_video.h"
 #include "i_swap.h" // [crispy] LONG()
 #include "w_wad.h"
-#include "r_swirl.h"
 #include "ct_chat.h"
 #include "v_trans.h"
 
@@ -206,11 +205,11 @@ static animdef_t animdefs_swirling[] = {
     // false = flat
     // true = texture
     {false, "FLTWAWA3", "FLTWAWA1", 65536}, // Water
-    {false, "FLTSLUD3", "FLTSLUD1", 65536}, // Sludge
+    {false, "FLTSLUD3", "FLTSLUD1", 65537}, // Sludge
     {false, "FLTTELE4", "FLTTELE1", 6}, // Teleport
     {false, "FLTFLWW3", "FLTFLWW1", 65536}, // River - West
     {false, "FLTLAVA4", "FLTLAVA1", 8}, // Lava
-    {false, "FLATHUH4", "FLATHUH1", 65536}, // Super Lava
+    {false, "FLATHUH4", "FLATHUH1", 65538}, // Super Lava
     {true, "LAVAFL3", "LAVAFL1", 6},    // Texture: Lavaflow
     {true, "WATRWAL3", "WATRWAL1", 4},  // Texture: Waterfall
     {-1}
@@ -1087,7 +1086,11 @@ void P_UpdateSpecials(void)
                 // [crispy] add support for SMMU swirling flats
                 if (anim->speed > 65535 || anim->numpics == 1)
                 {
-                    flattranslation[i] = -1;
+                    flattranslation[i] = 
+                        anim->speed == 65537 ? -2 : // Warp 1
+                        anim->speed == 65538 ? -3 : // Warp 2
+                        anim->speed == 65539 ? -4 : // Warp 3
+                                               -1 ; // Swirl
                 }
                 else
                 flattranslation[i] = pic;

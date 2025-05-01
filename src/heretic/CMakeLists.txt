@@ -50,7 +50,7 @@ add_library(heretic STATIC
             r_main.c
             r_plane.c
             r_segs.c
-            r_swirl.c           r_swirl.h
+            r_swirl.c
             r_things.c
             sb_bar.c            sb_bar.h
             sounds.c            sounds.h
