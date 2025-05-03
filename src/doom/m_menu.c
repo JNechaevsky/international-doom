@@ -576,7 +576,6 @@ static void M_ID_MotionBlur (int choice);
 static void M_ID_DepthOfFieldBlur (int choice);
 
 static void M_ScrollVideo (int choice);
-static void M_DrawVideoFooter (char *pagenum);
 
 static void M_Choose_ID_Display (int choice);
 static void M_Draw_ID_Display (void);
@@ -773,7 +772,6 @@ static void M_ID_BlockmapFix (int choice);
 static void M_ID_VerticalAiming (int choice);
 
 static void M_ScrollGameplay (int choice);
-static void M_DrawGameplayFooter (char *pagenum);
 
 static void M_Choose_ID_Misc (int choice);
 static void M_Draw_ID_Misc (void);
@@ -1280,6 +1278,18 @@ static char *const DefSkillName[5] =
     "NM"     
 };
 
+static void M_DrawScrollPages (int x, int y, int itemOnGlow, const char *pagenum)
+{
+    char str[32];
+    
+    M_WriteText(x, y, "< SCROLL PAGES >",
+                M_Item_Glow(itemOnGlow, GLOW_LIGHTGRAY));
+
+    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, NULL));
+    M_WriteText(M_ItemRightAlign(str), y, str,
+                M_Item_Glow(itemOnGlow, GLOW_GRAY));
+}
+
 
 // -----------------------------------------------------------------------------
 // Main ID Menu
@@ -1471,8 +1481,8 @@ static void M_Draw_ID_Video_1 (void)
         M_WriteTextCentered(139, resolution, cr[CR_LIGHTGRAY_DARK1]);
     }
 
-    // Footer
-    M_DrawVideoFooter("1");
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET, 153, 15, "1/2");
 }
 
 #ifdef CRISPY_TRUECOLOR
@@ -1742,8 +1752,8 @@ static void M_Draw_ID_Video_2 (void)
     M_WriteText (M_ItemRightAlign(str), 90, str, 
                  M_Item_Glow(8, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Footer
-    M_DrawVideoFooter("2");
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET, 153, 15, "2/2");
 }
 
 static void M_ID_SuperSmoothing (int choice)
@@ -1796,18 +1806,6 @@ static void M_ScrollVideo (int choice)
          if (currentMenu == &ID_Def_Video_1) { M_SetupNextMenu(&ID_Def_Video_2); }
     else if (currentMenu == &ID_Def_Video_2) { M_SetupNextMenu(&ID_Def_Video_1); }
     itemOn = 15;
-}
-
-static void M_DrawVideoFooter (char *pagenum)
-{
-    char str[32];
-    
-    M_WriteText(ID_MENU_LEFTOFFSET, 153, "< SCROLL PAGES >",
-                M_Item_Glow(15, GLOW_LIGHTGRAY));
-
-    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, "/2", NULL));
-    M_WriteText(M_ItemRightAlign(str), 153, str,
-                M_Item_Glow(15, GLOW_GRAY));
 }
 
 // -----------------------------------------------------------------------------
@@ -3746,8 +3744,9 @@ static void M_Draw_ID_Gameplay_1 (void)
     M_WriteText (M_ItemRightAlign(str), 135, str,
                  M_Item_Glow(13, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Footer
-    M_DrawGameplayFooter("1");
+
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 144, 14, "1/3");
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3947,8 +3946,8 @@ static void M_Draw_ID_Gameplay_2 (void)
     M_WriteText (M_ItemRightAlign(str), 135, str,
                  M_Item_Glow(13, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Footer
-    M_DrawGameplayFooter("2");
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 144, 14, "2/3");
 }
 
 static void M_ID_ColoredSTBar (int choice)
@@ -4126,8 +4125,8 @@ static void M_Draw_ID_Gameplay_3 (void)
     M_WriteText (M_ItemRightAlign(str), 126, str,
                  M_Item_Glow(12, compat_vertical_aiming ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Footer
-    M_DrawGameplayFooter("3");
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 144, 14, "3/3");
 }
 
 static void M_ID_DefaulSkill (int choice)
@@ -4212,18 +4211,6 @@ static void M_ScrollGameplay (int choice)
         else if (currentMenu == &ID_Def_Gameplay_3) { M_SetupNextMenu(&ID_Def_Gameplay_2); }
     }
     itemOn = 14;
-}
-
-static void M_DrawGameplayFooter (char *pagenum)
-{
-    char str[32];
-    
-    M_WriteText(ID_MENU_LEFTOFFSET_BIG, 144, "< SCROLL PAGES >",
-                M_Item_Glow(14, GLOW_LIGHTGRAY));
-
-    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, "/3", NULL));
-    M_WriteText(M_ItemRightAlign(str), 144, str,
-                M_Item_Glow(14, GLOW_GRAY));
 }
 
 // -----------------------------------------------------------------------------

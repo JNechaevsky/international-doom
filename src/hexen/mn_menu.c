@@ -446,7 +446,6 @@ static void M_ID_MotionBlur (int choice);
 static void M_ID_DepthOfFieldBlur (int choice);
 
 static void M_ScrollVideo (int choice);
-static void M_DrawVideoFooter (char *pagenum);
 
 static void M_Draw_ID_Display (void);
 static void M_ID_FOV (int choice);
@@ -650,7 +649,6 @@ static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
 
 static void M_ScrollGameplay (int choice);
-static void M_DrawGameplayFooter (char *pagenum);
 
 static void M_Draw_ID_Misc (void);
 static void M_ID_Misc_A11yPalFlash (int choice);
@@ -1103,6 +1101,16 @@ static char *const DefSkillName[5] =
     "HARDEST"
 };
 
+static void M_DrawScrollPages (int x, int y, int itemOnGlow, const char *pagenum)
+{
+    char str[32];
+
+    MN_DrTextA("SCROLL PAGES", x, y, M_Item_Glow(itemOnGlow, GLOW_DARKGRAY));
+
+    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, NULL));
+    MN_DrTextA(str, M_ItemRightAlign(str), y, M_Item_Glow(itemOnGlow, GLOW_DARKGRAY));
+}
+
 // -----------------------------------------------------------------------------
 // Main ID Menu
 // -----------------------------------------------------------------------------
@@ -1253,8 +1261,8 @@ static void M_Draw_ID_Video_1 (void)
         MN_DrTextACentered(resolution, 125, cr[CR_LIGHTGRAY_DARK1]);
     }
 
-    // Footer
-    M_DrawVideoFooter("1");
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET, 150, 13, "1/2");
 }
 
 #ifdef CRISPY_TRUECOLOR
@@ -1528,8 +1536,8 @@ static void M_Draw_ID_Video_2 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 140,
                M_Item_Glow(12, post_dofblur ? GLOW_GREEN : GLOW_RED));
 
-    // Footer
-    M_DrawVideoFooter("2");
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET, 150, 13, "2/2");
 }
 
 static void M_ID_SuperSmoothing (int choice)
@@ -1581,17 +1589,6 @@ static void M_ScrollVideo (int choice)
 {
     SetMenu(CurrentMenu == &ID_Def_Video_1 ? MENU_ID_VIDEO2 : MENU_ID_VIDEO1);
     CurrentItPos = 13;
-}
-
-static void M_DrawVideoFooter (char *pagenum)
-{
-    char str[32];
-
-    MN_DrTextA("SCROLL PAGES", ID_MENU_LEFTOFFSET, 150,
-               M_Item_Glow(13, GLOW_DARKGRAY));
-
-    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, "/2", NULL));
-    MN_DrTextA(str, M_ItemRightAlign(str), 150, M_Item_Glow(13, GLOW_DARKGRAY));
 }
 
 // -----------------------------------------------------------------------------
@@ -3505,8 +3502,8 @@ static void M_Draw_ID_Gameplay_1 (void)
                M_Item_Glow(9, !xhair_draw ? GLOW_DARKRED :
                                xhair_color ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Footer
-    M_DrawGameplayFooter("1");
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "1/3");
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3654,8 +3651,8 @@ static void M_Draw_ID_Gameplay_2 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 90,
                M_Item_Glow(7, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Footer
-    M_DrawGameplayFooter("2");
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "2/3");
 }
 
 static void M_ID_ColoredSBar (int choice)
@@ -3770,8 +3767,8 @@ static void M_Draw_ID_Gameplay_3 (void)
     MN_DrTextA(str, M_ItemRightAlign(str), 100,
                M_Item_Glow(8, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
 
-    // Footer
-    M_DrawGameplayFooter("3");
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "3/3");
 }
 
 static void M_ID_DefaultClass (int choice)
@@ -3835,17 +3832,6 @@ static void M_ScrollGameplay (int choice)
         
     }
     CurrentItPos = 12;
-}
-
-static void M_DrawGameplayFooter (char *pagenum)
-{
-    char str[32];
-
-    MN_DrTextA("SCROLL PAGES", ID_MENU_LEFTOFFSET_BIG, 140,
-               M_Item_Glow(12, GLOW_DARKGRAY));
-
-    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, "/3", NULL));
-    MN_DrTextA(str, M_ItemRightAlign(str), 140, M_Item_Glow(12, GLOW_DARKGRAY));
 }
 
 // -----------------------------------------------------------------------------
