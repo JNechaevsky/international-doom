@@ -571,10 +571,12 @@ static void M_ID_SoftBloom (int choice);
 static void M_ID_AnalogRGBDrift (int choice);
 static void M_ID_VHSLineDistortion (int choice);
 static void M_ID_ScreenVignette (int choice);
+static void M_ID_FilmGrain (int choice);
 static void M_ID_MotionBlur (int choice);
 static void M_ID_DepthOfFieldBlur (int choice);
 
 static void M_ScrollVideo (int choice);
+static void M_DrawVideoFooter (char *pagenum);
 
 static void M_Choose_ID_Display (int choice);
 static void M_Draw_ID_Display (void);
@@ -1466,11 +1468,11 @@ static void M_Draw_ID_Video_1 (void)
         M_snprintf(height, 8, "%d", (ORIGHEIGHT * vid_resolution));
         resolution = M_StringJoin("CURRENT RESOLUTION: ", width, "x", height, NULL);
 
-        M_WriteTextCentered(135, resolution, cr[CR_LIGHTGRAY_DARK1]);
+        M_WriteTextCentered(139, resolution, cr[CR_LIGHTGRAY_DARK1]);
     }
 
-    M_WriteText (ID_MENU_LEFTOFFSET, 153, "NEXT PAGE >",
-                 M_Item_Glow(15, GLOW_LIGHTGRAY));
+    // Footer
+    M_DrawVideoFooter("1");
 }
 
 #ifdef CRISPY_TRUECOLOR
@@ -1653,9 +1655,9 @@ static menuitem_t ID_Menu_Video_2[]=
     { M_MUL1, "ANALOG RGB DRIFT",       M_ID_AnalogRGBDrift,    'a' },
     { M_MUL2, "VHS LINE DISTORTION",    M_ID_VHSLineDistortion, 'v' },
     { M_MUL1, "SCREEN VIGNETTE",        M_ID_ScreenVignette,    's' },
+    { M_MUL1, "FILM GRAIN",             M_ID_FilmGrain,         'f' },
     { M_MUL1, "MOTION BLUR",            M_ID_MotionBlur,        'm' },
     { M_MUL2, "DEPTH OF FIELD BLUR",    M_ID_DepthOfFieldBlur,  'd' },
-    { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
@@ -1717,22 +1719,31 @@ static void M_Draw_ID_Video_2 (void)
     M_WriteText (M_ItemRightAlign(str), 63, str, 
                  M_Item_Glow(5, post_vignette ? GLOW_GREEN : GLOW_DARKRED));
 
-    // Analog RGB drift
-    sprintf(str, post_motionblur == 1 ? "SOFT"   :
-                 post_motionblur == 2 ? "LIGHT"  : 
-                 post_motionblur == 3 ? "MEDIUM" : 
-                 post_motionblur == 4 ? "HEAVY"  : 
-                 post_motionblur == 5 ? "GHOST"  : "OFF");
+    // Film grain
+    sprintf(str, post_filmgrain == 1 ? "SOFT"      :
+                 post_filmgrain == 2 ? "LIGHT"     : 
+                 post_filmgrain == 3 ? "MEDIUM"    : 
+                 post_filmgrain == 4 ? "HEAVY"     : 
+                 post_filmgrain == 5 ? "NIGHTMARE" : "OFF");
     M_WriteText (M_ItemRightAlign(str), 72, str, 
-                 M_Item_Glow(6, post_motionblur ? GLOW_GREEN : GLOW_DARKRED));
+                 M_Item_Glow(6, post_filmgrain ? GLOW_GREEN : GLOW_DARKRED));
+
+    // Motion blur
+    sprintf(str, post_motionblur == 1 ? "SOFT"      :
+                 post_motionblur == 2 ? "LIGHT"     : 
+                 post_motionblur == 3 ? "MEDIUM"    : 
+                 post_motionblur == 4 ? "HEAVY"     : 
+                 post_motionblur == 5 ? "NIGHTMARE" : "OFF");
+    M_WriteText (M_ItemRightAlign(str), 81, str, 
+                 M_Item_Glow(7, post_motionblur ? GLOW_GREEN : GLOW_DARKRED));
 
     // Depth if field blur
     sprintf(str, post_dofblur ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str, 
-                 M_Item_Glow(7, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 90, str, 
+                 M_Item_Glow(8, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteText (ID_MENU_LEFTOFFSET, 153, "< PREV PAGE",
-                 M_Item_Glow(15, GLOW_LIGHTGRAY));
+    // Footer
+    M_DrawVideoFooter("2");
 }
 
 static void M_ID_SuperSmoothing (int choice)
@@ -1765,6 +1776,11 @@ static void M_ID_ScreenVignette (int choice)
     post_vignette = M_INT_Slider(post_vignette, 0, 4, choice, false);
 }
 
+static void M_ID_FilmGrain (int choice)
+{
+    post_filmgrain = M_INT_Slider(post_filmgrain, 0, 5, choice, false);
+}
+
 static void M_ID_MotionBlur (int choice)
 {
     post_motionblur = M_INT_Slider(post_motionblur, 0, 5, choice, false);
@@ -1777,8 +1793,21 @@ static void M_ID_DepthOfFieldBlur (int choice)
 
 static void M_ScrollVideo (int choice)
 {
-         if (currentMenu == &ID_Def_Video_1) { ID_Def_Video_2.lastOn = 15; M_SetupNextMenu(&ID_Def_Video_2); }
-    else if (currentMenu == &ID_Def_Video_2) { ID_Def_Video_1.lastOn = 15; M_SetupNextMenu(&ID_Def_Video_1); }
+         if (currentMenu == &ID_Def_Video_1) { M_SetupNextMenu(&ID_Def_Video_2); }
+    else if (currentMenu == &ID_Def_Video_2) { M_SetupNextMenu(&ID_Def_Video_1); }
+    itemOn = 15;
+}
+
+static void M_DrawVideoFooter (char *pagenum)
+{
+    char str[32];
+    
+    M_WriteText(ID_MENU_LEFTOFFSET, 153, "< SCROLL PAGES >",
+                M_Item_Glow(15, GLOW_LIGHTGRAY));
+
+    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, "/2", NULL));
+    M_WriteText(M_ItemRightAlign(str), 153, str,
+                M_Item_Glow(15, GLOW_GRAY));
 }
 
 // -----------------------------------------------------------------------------
@@ -4874,6 +4903,7 @@ static void M_ID_ApplyResetHook (void)
     post_rgbdrift = 0;
     post_vhsdist = 0;
     post_vignette = 0;
+    post_filmgrain = 0;
     post_motionblur = 0;
     post_dofblur = 0;
 

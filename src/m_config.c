@@ -193,6 +193,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(post_rgbdrift),
     CONFIG_VARIABLE_INT(post_vhsdist),
     CONFIG_VARIABLE_INT(post_vignette),
+    CONFIG_VARIABLE_INT(post_filmgrain),
     CONFIG_VARIABLE_INT(post_motionblur),
     CONFIG_VARIABLE_INT(post_dofblur),
 

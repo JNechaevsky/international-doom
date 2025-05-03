@@ -717,6 +717,86 @@ static void V_PProc_MotionBlur (void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// V_PProc_FilmGrain
+//  [PN] Adds a pseudo-random film grain effect to the screen. Grain pattern is
+//  updated once per game tick using a fast integer-based formula and stored in
+//  a reusable 8-bit buffer.
+// -----------------------------------------------------------------------------
+
+static void V_PProc_FilmGrain (void)
+{
+    // [PN] Early out if buffer is invalid or pixel format isn't 32-bit RGBA
+    if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
+        return;
+
+    static uint8_t *restrict grain_noise_map = NULL; // [PN] Persistent 8-bit noise buffer
+    static size_t grain_noise_map_size = 0;          // [PN] Ensures reallocation on res change
+    static int last_gametic_updated = -1;            // [PN] Only recompute noise once per tic
+
+    const int w = argbbuffer->w;
+    const int h = argbbuffer->h;
+    const size_t npix = (size_t)w * h;
+
+    // [PN] Allocate or resize noise map to match resolution
+    if (grain_noise_map_size != npix)
+    {
+        free(grain_noise_map);
+        grain_noise_map = (uint8_t *)malloc(npix);
+        if (!grain_noise_map)
+        {
+            grain_noise_map_size = 0;
+            return;
+        }
+        grain_noise_map_size = npix;
+        last_gametic_updated = -1; // [PN] Force full refresh
+    }
+
+    extern int gametic;
+    if (gametic != last_gametic_updated)
+    {
+        const unsigned int seed = rand();      // [PN] Per-frame noise basis
+        const int amp = post_filmgrain * 2;    // [PN] Noise amplitude range: [-amp..+amp]
+        const int mix_seed = (rand() % 8) + 1; // [JN] Randomized mixed seed for using below.
+
+        for (size_t i = 0; i < npix; ++i)
+        {
+            // [JN] Fast low-cost pixel shuffler — XORs a mixed index with seed,
+            // then distorts bits via variable right-shift.
+            // Produces grain-like chaos with no patterns or banding.
+            // No multiplications, no rand() per pixel.
+            unsigned int mix = seed ^ (i + (i >> 7) + (i << 3));
+            mix ^= (mix >> mix_seed);
+            
+            const int offset = (int)(mix % (amp * 2 + 1)) - amp;
+            grain_noise_map[i] = (uint8_t)(offset + 128);
+        }
+
+        last_gametic_updated = gametic;
+    }
+
+    Uint32 *restrict const pixels = (Uint32 *restrict)argbbuffer->pixels;
+    const uint8_t *restrict const noise = grain_noise_map;
+
+    // [PN] Apply per-pixel noise offset to RGB channels
+    for (size_t i = 0; i < npix; ++i)
+    {
+        const int offset = (int)noise[i] - 128;
+
+        const Uint32 px = pixels[i];
+        int r = ((px >> 16) & 0xFF) + offset;
+        int g = ((px >>  8) & 0xFF) + offset;
+        int b = ( px        & 0xFF) + offset;
+
+        // [PN] Clamp RGB values to 0..255
+        if (r < 0) r = 0; else if (r > 255) r = 255;
+        if (g < 0) g = 0; else if (g > 255) g = 255;
+        if (b < 0) b = 0; else if (b > 255) b = 255;
+
+        // [PN] Store final pixel with original alpha
+        pixels[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+    }
+}
 
 // -----------------------------------------------------------------------------
 // V_PProc_DepthOfFieldBlur
@@ -932,11 +1012,15 @@ void V_PProc_Display (boolean supress)
 void V_PProc_PlayerView (void)
 {
     pproc_plyrview_effects =
-        post_bloom || post_motionblur || post_dofblur || post_vignette;
+        post_bloom || post_filmgrain || post_motionblur || post_dofblur || post_vignette;
 
     // Soft bloom
     if (post_bloom)
         V_PProc_BloomGlow();
+
+    // Film Grain
+    if (post_filmgrain)
+        V_PProc_FilmGrain();
 
     // Motion Blur
     if (post_motionblur)
