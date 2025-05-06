@@ -1073,6 +1073,11 @@ void G_DoLoadLevel(void)
     memset(&prevcarry, 0, sizeof(prevcarry)); // [crispy]
     memset(&basecmd, 0, sizeof(basecmd)); // [crispy]
     sendpause = sendsave = paused = false;
+    // [PN] Resume music playback after loading a savegame,
+    // in case the game was previously paused. This prevents
+    // the current track from staying silent even though
+    // S_StartSong() skips restarting it.
+    S_ResumeSound();
     memset(mousearray, 0, sizeof(mousearray));
     memset(joyarray, 0, sizeof(joyarray));
 
