@@ -28,6 +28,11 @@
 #define inline __inline
 #endif
 
+// [PN] XP/MSVC fallback for restrict keyword in C99 mode
+#if defined(_MSC_VER) && !defined(__cplusplus)
+#define restrict __restrict
+#endif
+
 // #define macros to provide functions missing in Windows.
 // Outside Windows, we use strings.h for str[n]casecmp.
 
