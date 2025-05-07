@@ -931,25 +931,34 @@ void ID_DrawCrosshair (void)
 // -----------------------------------------------------------------------------
 // ID_DemoTimer
 //  [crispy] Demo Timer widget
+//  [PN/JN] Reduced update frequency to once per gametic from every frame.
 // -----------------------------------------------------------------------------
 
 void ID_DemoTimer (const int time)
 {
-    const int hours = time / (3600 * TICRATE);
-    const int mins = time / (60 * TICRATE) % 60;
-    const float secs = (float)(time % (60 * TICRATE)) / TICRATE;
-    const int x = 237 + (hours ? 0 : 20); // [PN] Adjust x based on presence of hours
-    char n[16];
+    static char n[16];
+    static int  last_update_gametic = -1;
+    static int  hours = 0;
 
-    if (hours)
+    if (last_update_gametic < gametic)
     {
-        M_snprintf(n, sizeof(n), "%02i:%02i:%05.02f", hours, mins, secs);
-    }
-    else
-    {
-        M_snprintf(n, sizeof(n), "%02i:%05.02f", mins, secs);
+        hours = time / (3600 * TICRATE);
+        const int mins = time / (60 * TICRATE) % 60;
+        const float secs = (float)(time % (60 * TICRATE)) / TICRATE;
+
+        if (hours)
+        {
+            M_snprintf(n, sizeof(n), "%02i:%02i:%05.02f", hours, mins, secs);
+        }
+        else
+        {
+            M_snprintf(n, sizeof(n), "%02i:%05.02f", mins, secs);
+        }
+
+        last_update_gametic = gametic;
     }
 
+    const int x = 237 + (hours > 0 ? 0 : 20);
     MN_DrTextA(n, x + WIDESCREENDELTA, 10, cr[CR_LIGHTGRAY]);
 }
 
