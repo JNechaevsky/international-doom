@@ -147,6 +147,7 @@ int xhair_draw = 0;
 int xhair_color = 0;
 
 // Status bar
+int st_fullscreen_layout = 0;
 int st_colored_stbar = 0;
 int st_negative_health = 0;
 int st_blinking_keys = 0;
@@ -372,6 +373,10 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("xhair_color",                    &xhair_color);
     
     // Status bar
+    if (mission == doom)
+    {
+        M_BindIntVariable("st_fullscreen_layout",       &st_fullscreen_layout);
+    }
     M_BindIntVariable("st_colored_stbar",               &st_colored_stbar);
     if (mission == doom)
     {

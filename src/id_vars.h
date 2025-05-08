@@ -123,6 +123,7 @@ extern int vis_flip_corpses;
 extern int xhair_draw;
 extern int xhair_color;
 
+extern int st_fullscreen_layout;
 extern int st_colored_stbar;
 extern int st_negative_health;
 extern int st_blinking_keys;

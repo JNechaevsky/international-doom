@@ -1333,6 +1333,54 @@ static void ST_DrawPercent (const int x, const int y, byte *table)
 }
 
 // -----------------------------------------------------------------------------
+// ST_DrawBigNumberWithPercent
+// [PN] Draws a left-aligned big number with a percent sign using STTNUM* graphics.
+//      Supports negatives, caps values, and auto-appends a % symbol.
+// -----------------------------------------------------------------------------
+
+static void ST_DrawBigNumberWithPercent (int val, int x, int y, byte *table)
+{
+    dp_translation = table;
+
+    const boolean negative = (val < 0);
+    int absVal = negative ? -val : val;
+
+    // [PN] Apply limits
+    absVal = negative ? (absVal > 99 ? 99 : absVal) : (absVal > 999 ? 999 : absVal);
+
+    // [PN] Draw minus sign if needed
+    if (negative)
+    {
+        V_DrawPatch(x, y, tallminus);
+        x += 14;
+    }
+
+    // [PN] Draw digits from highest to lowest, left-aligned
+    if (!negative && absVal > 99)
+    {
+        V_DrawPatch(x, y, tallnum[absVal / 100]);
+        x += 14;
+    }
+
+    if (absVal > 9 || val >= 100 || val <= -100)
+    {
+        V_DrawPatch(x, y, tallnum[(absVal % 100) / 10]);
+        x += 14;
+    }
+
+    V_DrawPatch(x, y, tallnum[absVal % 10]);
+    x += 14;
+
+    // [PN] Append percent symbol
+    if (dp_screen_size != 12 && dp_screen_size != 14)
+    {
+        V_DrawPatch(x, y, tallpercent);
+    }
+
+    dp_translation = NULL;
+}
+
+// -----------------------------------------------------------------------------
 // ST_DrawSmallNumberY
 // [PN] Draws a three digit yellow number using STYSNUM* graphics.
 // -----------------------------------------------------------------------------
@@ -1415,97 +1463,12 @@ static void ST_UpdateElementsBackground (void)
 }
 
 // -----------------------------------------------------------------------------
-// ST_Drawer
-// [JN] Main drawing function, totally rewritten.
+// ST_DrawElementsOriginal
+// [JN] Original status bar elements layout, also known as Crispy HUD.
 // -----------------------------------------------------------------------------
 
-void ST_Drawer (boolean force)
+static void ST_DrawElementsOriginal (int wide_x)
 {
-    const boolean st_background_on = 
-                    dp_screen_size <= 10 || (automapactive && !automap_overlay);
-
-    if (force || pproc_display_effects || pproc_plyrview_effects)
-    {
-    // [JN] Wide status bar.
-    const int wide_x = dp_screen_size > 12 && (!automapactive || automap_overlay) ?
-                       WIDESCREENDELTA : 0;
-
-    plyr = &players[displayplayer];
-
-    // Status bar background.
-    if (st_background_on && st_fullupdate)
-    {
-        V_UseBuffer(st_backing_screen);
-
-        // [crispy] this is our own local copy of R_FillBackScreen() to
-        // fill the entire background of st_backing_screen with the bezel pattern,
-        // so it appears to the left and right of the status bar in widescreen mode
-        {
-            byte *src;
-            pixel_t *dest;
-            const char *name = (gamemode == commercial) ? DEH_String("GRNROCK") : DEH_String("FLOOR7_2");
-
-            src = W_CacheLumpName(name, PU_CACHE);
-            dest = st_backing_screen;
-
-            // [crispy] use unified flat filling function
-            V_FillFlat(SCREENHEIGHT-(ST_HEIGHT*vid_resolution), SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
-
-            // [crispy] preserve bezel bottom edge
-            if (scaledviewwidth == SCREENWIDTH)
-            {
-                int x;
-                patch_t *patch = W_CacheLumpName(DEH_String("brdr_b"), PU_CACHE);
-
-                for (x = 0 ; x < WIDESCREENDELTA ; x += 8)
-                {
-                    V_DrawPatch(x - WIDESCREENDELTA, 0, patch);
-                    V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, patch);
-                }
-            }
-        }
-
-        // [crispy] center unity rerelease wide status bar
-        if (SHORT(sbar->width) > ORIGWIDTH && SHORT(sbar->leftoffset) == 0)
-        {
-            V_DrawPatch((ORIGWIDTH - SHORT(sbar->width)) / 2, 0, sbar);
-        }
-        else
-        {
-            V_DrawPatch(0, 0, sbar);
-        }
-
-        // draw right side of bar if needed (Doom 1.0)
-        if (sbarr)
-        {
-            V_DrawPatch(104 /*- ST_WIDESCREENDELTA*/, 0, sbarr);
-        }
-
-        // ARMS background
-        if (!deathmatch)
-        {
-            V_DrawPatch(104, 0, armsbg);
-        }
-
-        if (netgame)
-        {
-            // Player face background
-            // [JN] killough 3/7/98: make face background change with displayplayer
-            V_DrawPatch(143, 0, faceback[displayplayer]);
-        }
-
-        V_RestoreBuffer();
-
-        V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, ST_HEIGHT * vid_resolution, 0, ST_Y * vid_resolution);
-    }
-
-    st_fullupdate = false;
-
-    if (st_background_on)
-    {
-        ST_UpdateElementsBackground();
-    }
-
     // [crispy] draw berserk pack instead of no ammo if appropriate
     if (dp_screen_size > 10 && (!automapactive || automap_overlay))
     {
@@ -1629,6 +1592,239 @@ void ST_Drawer (boolean force)
     ST_DrawSmallNumberY(plyr->maxammo[1], 306 + wide_x, 179);
     ST_DrawSmallNumberY(plyr->maxammo[3], 306 + wide_x, 185);
     ST_DrawSmallNumberY(plyr->maxammo[2], 306 + wide_x, 191);
+}
+
+// -----------------------------------------------------------------------------
+// ST_DrawElementsRemaster
+// [JN] KEX engine inspired elements layout.
+// -----------------------------------------------------------------------------
+
+static void ST_DrawElementsRemaster (int wide_x)
+{
+    // Player face and background (netgame only)
+    if (dp_screen_size <= 14)
+    {
+        if (netgame)
+        {
+            V_DrawPatch(0 - wide_x, 169, faceback[displayplayer]);
+        }
+
+        V_DrawPatch(0 - wide_x, 168, faces[st_faceindex]);
+    }
+
+    // Health, negative health
+    {
+        const boolean neghealth = st_negative_health && plyr->health <= 0 && !no_sttminus;
+
+        ST_DrawBigNumberWithPercent(neghealth ? plyr->health_negative : plyr->health,
+                                    39 - wide_x, 176, ST_WidgetColor(hudcolor_health));
+    }
+
+    // Armor
+    {
+        const int wide_reduce = (dp_screen_size == 12 || dp_screen_size == 14) ? 14 : 0;
+        const int lump = W_CheckNumForName(DEH_String(plyr->armortype < 2 ? "ARM1A0" : "ARM2A0"));
+        patch_t *patch = W_CacheLumpNum(lump, PU_CACHE);
+
+        V_DrawPatch(115 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) - wide_x - wide_reduce,
+                    183 - SHORT(patch->height) / 2 + SHORT(patch->topoffset), patch);
+        
+        ST_DrawBigNumberWithPercent(plyr->armorpoints, 142 - wide_x - wide_reduce, 176, ST_WidgetColor(hudcolor_armor));
+    }
+
+    // Frags (deathmatch only)
+    if (deathmatch)
+    {
+        st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
+        ST_DrawBigNumber(st_fragscount, 188 + wide_x, 176, ST_WidgetColor(hudcolor_frags));
+    }
+
+    // Ammo amount for current weapon
+    {
+        if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
+        {
+            const int lump = W_CheckNumForName(DEH_String(weaponinfo[plyr->readyweapon].ammo == am_clip  ? "CLIPA0" :
+                                                          weaponinfo[plyr->readyweapon].ammo == am_shell ? "SHELA0" :
+                                                          weaponinfo[plyr->readyweapon].ammo == am_misl  ? "ROCKA0" :
+                                                                                                           "CELLA0"));
+            patch_t *patch = W_CacheLumpNum(lump, PU_CACHE);
+
+            V_DrawPatch(294 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) + wide_x,
+                        184 - SHORT(patch->height) / 2 + SHORT(patch->topoffset), patch);
+
+            ST_DrawBigNumber(plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
+                             245 + wide_x, 176, ST_WidgetColor(hudcolor_ammo));
+        }            
+        // [crispy] draw berserk pack instead of no ammo if appropriate
+        else if (plyr->readyweapon == wp_fist && plyr->powers[pw_strength])
+        {
+            static int lump = -1;
+            patch_t *patch;
+
+            if (lump == -1)
+            {
+                lump = W_CheckNumForName(DEH_String("PSTRA0"));
+
+                if (lump == -1)
+                {
+                    lump = W_CheckNumForName(DEH_String("MEDIA0"));
+                }
+            }
+
+            patch = W_CacheLumpNum(lump, PU_CACHE);
+
+            V_DrawPatch(282 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) + wide_x,
+                        182 - SHORT(patch->height)/2 + SHORT(patch->topoffset), patch);
+        }
+
+        if (dp_screen_size != 12 && dp_screen_size != 14)
+        {
+            // Pistol
+            ST_DrawWeaponNumberFunc(2, 236 + wide_x, 193, plyr->weaponowned[1]);
+            // Shotgun or Super Shotgun
+            ST_DrawWeaponNumberFunc(3, 244 + wide_x, 193, plyr->weaponowned[2] || plyr->weaponowned[8]);
+            // Chaingun
+            ST_DrawWeaponNumberFunc(4, 252 + wide_x, 193, plyr->weaponowned[3]);
+            // Rocket Launcher
+            ST_DrawWeaponNumberFunc(5, 260 + wide_x, 193, plyr->weaponowned[4]);
+            // Plasma Gun
+            ST_DrawWeaponNumberFunc(6, 268 + wide_x, 193, plyr->weaponowned[5]);
+            // BFG9000
+            ST_DrawWeaponNumberFunc(7, 276 + wide_x, 193, plyr->weaponowned[6]);
+        }
+    }
+
+    // [crispy] blinking key or skull in the status bar
+    for (int i = 0, y = 0 ; i < 3 ; i++, y += 10)
+    {
+        if (st_blinking_keys && plyr->tryopen[i])
+        {
+            if (!(plyr->tryopen[i] & (2 * KEYBLINKMASK - 1)))
+            {
+                S_StartSound(NULL, sfx_itemup);
+            }
+            if (plyr->tryopen[i] & KEYBLINKMASK)
+            {
+                V_DrawPatch(308 + wide_x, 171 + y, keys[i + st_keyorskull[i]]);
+            }
+        }
+    }
+
+    // Keys
+    {
+        if (plyr->cards[it_blueskull])
+        V_DrawPatch(308 + wide_x, 171, keys[3]);
+        else if (plyr->cards[it_bluecard])
+        V_DrawPatch(308 + wide_x, 171, keys[0]);
+
+        if (plyr->cards[it_yellowskull])
+        V_DrawPatch(308 + wide_x, 181, keys[4]);
+        else if (plyr->cards[it_yellowcard])
+        V_DrawPatch(308 + wide_x, 181, keys[1]);
+
+        if (plyr->cards[it_redskull])
+        V_DrawPatch(308 + wide_x, 191, keys[5]);
+        else if (plyr->cards[it_redcard])
+        V_DrawPatch(308 + wide_x, 191, keys[2]);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// ST_Drawer
+// [JN] Main drawing function, totally rewritten.
+// -----------------------------------------------------------------------------
+
+void ST_Drawer (boolean force)
+{
+    const boolean st_background_on = 
+                  dp_screen_size <= 10 || (automapactive && !automap_overlay);
+
+    if (force || pproc_display_effects || pproc_plyrview_effects)
+    {
+        // [JN] Wide status bar.
+        const int wide_x = dp_screen_size > 12 && (!automapactive || automap_overlay) ?
+                           WIDESCREENDELTA : 0;
+
+        // [JN] Always show values of chosen player.
+        plyr = &players[displayplayer];
+
+        // Status bar background.
+        if (st_background_on && st_fullupdate)
+        {
+            V_UseBuffer(st_backing_screen);
+
+            // [crispy] this is our own local copy of R_FillBackScreen() to
+            // fill the entire background of st_backing_screen with the bezel pattern,
+            // so it appears to the left and right of the status bar in widescreen mode
+            {
+                pixel_t *dest = st_backing_screen;
+                const char *name = (gamemode == commercial) ? DEH_String("GRNROCK") : DEH_String("FLOOR7_2");
+                const byte *src = W_CacheLumpName(name, PU_CACHE);
+
+                // [crispy] use unified flat filling function
+                V_FillFlat(SCREENHEIGHT - (ST_HEIGHT * vid_resolution), SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
+
+                // [crispy] preserve bezel bottom edge
+                if (scaledviewwidth == SCREENWIDTH)
+                {
+                    patch_t *patch = W_CacheLumpName(DEH_String("brdr_b"), PU_CACHE);
+
+                    for (int x = 0 ; x < WIDESCREENDELTA ; x += 8)
+                    {
+                        V_DrawPatch(x - WIDESCREENDELTA, 0, patch);
+                        V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, patch);
+                    }
+                }
+            }
+
+            // [crispy] center unity rerelease wide status bar
+            if (SHORT(sbar->width) > ORIGWIDTH && SHORT(sbar->leftoffset) == 0)
+            {
+                V_DrawPatch((ORIGWIDTH - SHORT(sbar->width)) / 2, 0, sbar);
+            }
+            else
+            {
+                V_DrawPatch(0, 0, sbar);
+            }
+
+            // draw right side of bar if needed (Doom 1.0)
+            if (sbarr)
+            {
+                V_DrawPatch(104, 0, sbarr);
+            }
+
+            // ARMS background
+            if (!deathmatch)
+            {
+                V_DrawPatch(104, 0, armsbg);
+            }
+
+            // Player face background
+            // [JN] killough 3/7/98: make face background change with displayplayer
+            if (netgame)
+            {
+                V_DrawPatch(143, 0, faceback[displayplayer]);
+            }
+
+            V_RestoreBuffer();
+            V_CopyRect(0, 0, st_backing_screen, SCREENWIDTH, ST_HEIGHT * vid_resolution, 0, ST_Y * vid_resolution);
+        }
+
+        st_fullupdate = false;
+
+        if (st_background_on)
+        {
+            ST_UpdateElementsBackground();
+        }
+
+        if (st_fullscreen_layout && !st_background_on)
+        {
+            ST_DrawElementsRemaster(wide_x);
+        }
+        else
+        {
+            ST_DrawElementsOriginal(wide_x);
+        }
     }
 }
 

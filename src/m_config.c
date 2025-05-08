@@ -560,6 +560,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(xhair_color),
 
     // Status Bar
+    CONFIG_VARIABLE_INT(st_fullscreen_layout),
     CONFIG_VARIABLE_INT(st_colored_stbar),
     CONFIG_VARIABLE_INT(st_negative_health),
     CONFIG_VARIABLE_INT(st_blinking_keys),

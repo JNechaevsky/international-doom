@@ -745,6 +745,7 @@ static void M_ID_Crosshair (int choice);
 static void M_ID_CrosshairColor (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
+static void M_ID_Layout (int choice);
 static void M_ID_ColoredSTBar (int choice);
 static void M_ID_NegativeHealth (int choice);
 static void M_ID_BlinkingKeys (int choice);
@@ -3639,12 +3640,13 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { M_SKIP, "", 0, '\0' },
     { M_MUL2, "SHAPE",                       M_ID_Crosshair,         's' },
     { M_MUL2, "INDICATION",                  M_ID_CrosshairColor,    'i' },
+    { M_SKIP, "", 0, '\0' },
     { M_MUL2, "", /* < SCROLL PAGES >*/      M_ScrollGameplay,       's' },
 };
 
 static menu_t ID_Def_Gameplay_1 =
 {
-    15,
+    16,
     &ID_Def_Main,
     ID_Menu_Gameplay_1,
     M_Draw_ID_Gameplay_1,
@@ -3746,7 +3748,7 @@ static void M_Draw_ID_Gameplay_1 (void)
 
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 144, 14, "1/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "1/3");
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3844,6 +3846,7 @@ static void M_ID_CrosshairColor (int choice)
 
 static menuitem_t ID_Menu_Gameplay_2[]=
 {
+    { M_MUL1, "FULL SCREEN LAYOUT",            M_ID_Layout,            'l' },
     { M_MUL1, "COLORED ELEMENTS",              M_ID_ColoredSTBar,      'c' },
     { M_MUL1, "SHOW NEGATIVE HEALTH",          M_ID_NegativeHealth,    's' },
     { M_MUL1, "BLINK MISSING KEYS",            M_ID_BlinkingKeys,      'b' },
@@ -3863,7 +3866,7 @@ static menuitem_t ID_Menu_Gameplay_2[]=
 
 static menu_t ID_Def_Gameplay_2 =
 {
-    15,
+    16,
     &ID_Def_Main,
     ID_Menu_Gameplay_2,
     M_Draw_ID_Gameplay_2,
@@ -3879,75 +3882,85 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     M_WriteTextCentered(9, "STATUS BAR", cr[CR_YELLOW]);
 
+    // Full screen layout
+    sprintf(str, st_fullscreen_layout ? "REMASTER" : "ORIGINAL");
+    M_WriteText (M_ItemRightAlign(str), 18, str,
+                 M_Item_Glow(0, st_fullscreen_layout ? GLOW_GREEN : GLOW_DARKRED));
+
     // Colored elements
     sprintf(str, st_colored_stbar ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 27, str,
+                 M_Item_Glow(1, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
 
     // Show negative health
     sprintf(str, st_negative_health ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, st_negative_health ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 36, str,
+                 M_Item_Glow(2, st_negative_health ? GLOW_GREEN : GLOW_DARKRED));
 
     // Blink missing keys
     sprintf(str, st_blinking_keys ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, st_blinking_keys ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 45, str,
+                 M_Item_Glow(3, st_blinking_keys ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(45, "AUDIBLE", cr[CR_YELLOW]);
+    M_WriteTextCentered(54, "AUDIBLE", cr[CR_YELLOW]);
 
     // Sfx attenuation axises
     sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 63, str,
+                 M_Item_Glow(5, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
 
     // Play sounds in full length
     sprintf(str, aud_full_sounds ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, aud_full_sounds ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 72, str,
+                 M_Item_Glow(6, aud_full_sounds ? GLOW_GREEN : GLOW_DARKRED));
 
     // Sound of crushed corpse
     sprintf(str, aud_crushed_corpse ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, aud_crushed_corpse ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 81, str,
+                 M_Item_Glow(7, aud_crushed_corpse ? GLOW_GREEN : GLOW_DARKRED));
 
-    M_WriteTextCentered(81, "PHYSICAL", cr[CR_YELLOW]);
+    M_WriteTextCentered(90, "PHYSICAL", cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 99, str,
+                 M_Item_Glow(9, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
 
     // Point-blank SSG tear monsters
     sprintf(str, phys_ssg_tear_monsters ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, phys_ssg_tear_monsters ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 108, str,
+                 M_Item_Glow(10, phys_ssg_tear_monsters ? GLOW_GREEN : GLOW_DARKRED));
 
     // Items are tossed when dropped
     sprintf(str, phys_toss_drop ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, phys_toss_drop ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 117, str,
+                 M_Item_Glow(11, phys_toss_drop ? GLOW_GREEN : GLOW_DARKRED));
 
     // Floating powerups amplitude
     sprintf(str, phys_floating_powerups == 1 ? "LOW" :
                  phys_floating_powerups == 2 ? "MIDDLE" :
                  phys_floating_powerups == 3 ? "HIGH" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(11, phys_floating_powerups ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 126, str,
+                 M_Item_Glow(12, phys_floating_powerups ? GLOW_GREEN : GLOW_DARKRED));
 
     // Weapon attack alignment
     sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
                  phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 135, str,
+                 M_Item_Glow(13, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 135, str,
-                 M_Item_Glow(13, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteText (M_ItemRightAlign(str), 144, str,
+                 M_Item_Glow(14, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 144, 14, "2/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "2/3");
+}
+
+static void M_ID_Layout (int choice)
+{
+    st_fullscreen_layout ^= 1;
 }
 
 static void M_ID_ColoredSTBar (int choice)
@@ -4040,12 +4053,13 @@ static menuitem_t ID_Menu_Gameplay_3[]=
     { M_MUL1, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,       'i' },
     { M_MUL2, "VERTICAL AIMING",          M_ID_VerticalAiming,    'v' },
     { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
     { M_MUL2, "", /* < SCROLL PAGES >*/   M_ScrollGameplay,       's' },
 };
 
 static menu_t ID_Def_Gameplay_3 =
 {
-    15,
+    16,
     &ID_Def_Main,
     ID_Menu_Gameplay_3,
     M_Draw_ID_Gameplay_3,
@@ -4126,7 +4140,7 @@ static void M_Draw_ID_Gameplay_3 (void)
                  M_Item_Glow(12, compat_vertical_aiming ? GLOW_GREEN : GLOW_DARKRED));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 144, 14, "3/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "3/3");
 }
 
 static void M_ID_DefaulSkill (int choice)
@@ -4210,7 +4224,7 @@ static void M_ScrollGameplay (int choice)
         else if (currentMenu == &ID_Def_Gameplay_2) { M_SetupNextMenu(&ID_Def_Gameplay_1); }
         else if (currentMenu == &ID_Def_Gameplay_3) { M_SetupNextMenu(&ID_Def_Gameplay_2); }
     }
-    itemOn = 14;
+    itemOn = 15;
 }
 
 // -----------------------------------------------------------------------------
@@ -4978,6 +4992,7 @@ static void M_ID_ApplyResetHook (void)
     xhair_color = 0;
 
     // Status bar
+    st_fullscreen_layout = 0;
     st_colored_stbar = 0;
     st_negative_health = 0;
     st_blinking_keys = 0;
