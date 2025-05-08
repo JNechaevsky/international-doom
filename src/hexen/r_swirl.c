@@ -155,7 +155,7 @@ void R_InitDistortedFlats (void)
         {
             offset_frames3[i] = offsets3 + i * FLATSIZE;
 
-            const int speed_term = i * SPEED;
+            const int speed_term = i * (SPEED << 1);
 
             for (int x = 0; x < 64; x++)
             {
