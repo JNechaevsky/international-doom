@@ -39,7 +39,9 @@ if(MSVC)
     add_definitions("/D_CRT_SECURE_NO_WARNINGS" "/D_CRT_SECURE_NO_DEPRECATE"
                     "/D_CRT_NONSTDC_NO_DEPRECATE")
 # Disable several warnings for cl.exe.
-add_compile_options("/wd4018" # Signed/unsigned mismatch
+add_compile_options(
+                    "/W3"     # Reasonable warning level
+                    "/wd4018" # Signed/unsigned mismatch
                     "/wd4244" # Conversion from 'type1' to 'type2', possible loss of data
                     "/wd4267" # Conversion from 'size_t' to 'type', possible loss of data
                     )
