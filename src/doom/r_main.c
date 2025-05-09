@@ -690,7 +690,6 @@ R_SetViewSize
 void R_ExecuteSetViewSize (void)
 {
     fixed_t	cosadj;
-    fixed_t	dy;
     int		i;
     int		j;
     int		level;
@@ -797,18 +796,25 @@ void R_ExecuteSetViewSize (void)
 	screenheightarray[i] = viewheight;
     
     // planes
-    for (i=0 ; i<viewheight ; i++)
     {
-	// [crispy] re-generate lookup-table for yslope[] (free look)
-	// whenever "detailshift" or "screenblocks" change
-	// [JN] FOV from DOOM Retro and Nugget Doom
-	const fixed_t num = FixedMul(FixedDiv(FRACUNIT, fovscale), (viewwidth<<detailshift)*FRACUNIT/2);
-	for (j = 0; j < LOOKDIRS; j++)
-	{
-	dy = ((i-(viewheight/2 + ((j-LOOKDIRMIN) * (1 * vid_resolution)) * (dp_screen_size < 11 ? dp_screen_size : 11) / 10))<<FRACBITS)+FRACUNIT/2;
-	dy = abs(dy);
-	yslopes[j][i] = FixedDiv (num, dy);
-	}
+        // [crispy] re-generate lookup-table for yslope[] (free look)
+        // whenever "dp_detail_level" or "dp_screen_size" change
+        // [JN] FOV from DOOM Retro and Nugget Doom
+        // [PN] Optimized: moved invariant calculations out of loops for better performance
+        const fixed_t half_fracunit = FRACUNIT >> 1;
+        const fixed_t half_viewheight = viewheight >> 1;
+        const fixed_t num = FixedMul(FixedDiv(FRACUNIT, fovscale), (viewwidth << detailshift) * half_fracunit);
+        const fixed_t step = (vid_resolution * (dp_screen_size < 11 ? dp_screen_size : 11)) / 10;
+
+        for (i = 0; i < viewheight; i++)
+        {
+            for (j = 0; j < LOOKDIRS; j++)
+            {
+                const fixed_t center_offset = (j - LOOKDIRMIN) * step;
+                const fixed_t dy = abs(((i - (half_viewheight + center_offset)) << FRACBITS) + half_fracunit);
+                yslopes[j][i] = FixedDiv(num, dy);
+            }
+        }
     }
     yslope = yslopes[LOOKDIRMIN];
 	
