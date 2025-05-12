@@ -3883,7 +3883,8 @@ static void M_Draw_ID_Gameplay_2 (void)
     M_WriteTextCentered(9, "STATUS BAR", cr[CR_YELLOW]);
 
     // Full screen layout
-    sprintf(str, st_fullscreen_layout ? "REMASTER" : "ORIGINAL");
+    sprintf(str, st_fullscreen_layout == 1 ? "REMASTER" :
+                 st_fullscreen_layout == 2 ? "DOOM 64"  : "ORIGINAL");
     M_WriteText (M_ItemRightAlign(str), 18, str,
                  M_Item_Glow(0, st_fullscreen_layout ? GLOW_GREEN : GLOW_DARKRED));
 
@@ -3960,7 +3961,7 @@ static void M_Draw_ID_Gameplay_2 (void)
 
 static void M_ID_Layout (int choice)
 {
-    st_fullscreen_layout ^= 1;
+    st_fullscreen_layout = M_INT_Slider(st_fullscreen_layout, 0, 2, choice, false);
 }
 
 static void M_ID_ColoredSTBar (int choice)
@@ -5917,6 +5918,60 @@ void M_WriteText (int x, int y, const char *string, byte *table)
         }
 
         V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
+        cx+=w;
+    }
+
+    dp_translation = NULL;
+}
+
+// -----------------------------------------------------------------------------
+// M_WriteTextNoShadow
+// Write a string using the hu_font, with forcefully disabled shadow.
+// -----------------------------------------------------------------------------
+
+void M_WriteTextNoShadow (int x, int y, const char *string, byte *table)
+{
+    const char*	ch;
+    int w, c, cx, cy;
+
+    ch = string;
+    cx = x;
+    cy = y;
+
+    dp_translation = table;
+
+    while (ch)
+    {
+        c = *ch++;
+
+        if (!c)
+        {
+            break;
+        }
+
+        if (c == '\n')
+        {
+            cx = x;
+            cy += 12;
+            continue;
+        }
+
+        c = toupper(c) - HU_FONTSTART;
+
+        if (c < 0 || c >= HU_FONTSIZE)
+        {
+            cx += 4;
+            continue;
+        }
+
+        w = SHORT (hu_font[c]->width);
+
+        if (cx + w > SCREENWIDTH)
+        {
+            break;
+        }
+
+        V_DrawPatch(cx, cy, hu_font[c]);
         cx+=w;
     }
 

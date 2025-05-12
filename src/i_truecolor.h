@@ -170,14 +170,12 @@ extern const double colorblind_matrix[][3][3];
 // XLATAB_ALPHA ≈ 192 (75% opacity): fg * 3 + bg * 1 >> 2
 #define I_BlendOver_192(bg_i, fg_i) I_BlendOver_168(bg_i, fg_i)
 
-// [PN] Fastest algorithm for 50% opacity (unused)
-/*
-#define I_BlendOver50(bg_i, fg_i) ( \
+// [PN] Fastest algorithm for 50% opacity
+#define I_BlendOver_128(bg_i, fg_i) ( \
     (0xFF000000U) | \
     (((((fg_i) & 0xFF00FF) + ((bg_i) & 0xFF00FF)) >> 1) & 0xFF00FF) | \
     (((((fg_i) & 0x00FF00) + ((bg_i) & 0x00FF00)) >> 1) & 0x00FF00) \
 )
-*/
 
 #endif
 

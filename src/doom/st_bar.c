@@ -1381,6 +1381,62 @@ static void ST_DrawBigNumberWithPercent (int val, int x, int y, byte *table)
 }
 
 // -----------------------------------------------------------------------------
+// ST_DrawBigNumberCentered
+// [PN] Variant of ST_DrawBigNumber with "visual centering" heuristic.
+//      This version offsets narrow numbers to the left so that short values
+//      like "5" or "42" appear visually centered around the given X coordinate.
+//      Used when actual patch widths are not consulted.
+// -----------------------------------------------------------------------------
+
+static void ST_DrawBigNumberCentered(int val, int x, int y, byte *table)
+{
+    dp_translation = table;
+
+    // [PN] Determine the sign and absolute value
+    const boolean negative = (val < 0);
+    int absVal = negative ? -val : val;
+
+    // [PN] Clamp value: max 999 for positive, max 99 for negative
+    absVal = negative ? (absVal > 99 ? 99 : absVal) : (absVal > 999 ? 999 : absVal);
+
+    // [PN] Apply horizontal shift to simulate centering:
+    // 1 digit → shift -16px, 2 digits → shift -8px, 3 digits → no shift
+    int shift = 0;
+    if (absVal < 10)
+        shift = -16;
+    else if (absVal < 100)
+        shift = -8;
+    // [JN] Shift with minus symbol as well.
+    if (negative)
+        shift += 4;
+
+    x += shift;
+
+    // [PN] Draw minus sign, slightly offset to align with digits
+    if (negative && tallminus)
+        V_DrawPatch(x + (absVal <= 9 ? 20 : 5) - 4, y, tallminus);
+
+    // [PN] Draw hundreds digit if applicable
+    if (absVal > 99)
+        V_DrawPatch(x - 4, y, tallnum[absVal / 100]);
+
+    absVal %= 100;
+    x += 14;
+
+    // [PN] Draw tens digit if applicable
+    if (absVal > 9 || val >= 100 || val <= -100)
+        V_DrawPatch(x - 4, y, tallnum[absVal / 10]);
+
+    absVal %= 10;
+    x += 14;
+
+    // [PN] Draw ones digit
+    V_DrawPatch(x - 4, y, tallnum[absVal]);
+
+    dp_translation = NULL;
+}
+
+// -----------------------------------------------------------------------------
 // ST_DrawSmallNumberY
 // [PN] Draws a three digit yellow number using STYSNUM* graphics.
 // -----------------------------------------------------------------------------
@@ -1730,6 +1786,107 @@ static void ST_DrawElementsRemaster (int wide_x)
 }
 
 // -----------------------------------------------------------------------------
+// ST_DrawElementsRemaster
+// [JN] Doom 64 inspired elements layout.
+// -----------------------------------------------------------------------------
+
+static void ST_DrawElementsDoom64 (int wide_x)
+{
+    dp_translucent = (dp_screen_size == 12 || dp_screen_size == 14);
+
+    // Health, negative health
+    {
+        const boolean neghealth = st_negative_health && plyr->health <= 0 && !no_sttminus;
+
+        M_WriteTextNoShadow(44 - wide_x - (M_StringWidth("HEALTH") / 2), 171,
+                            "HEALTH", cr[CR_LIGHTGRAY_DARK1]);
+
+        ST_DrawBigNumberCentered(neghealth ? plyr->health_negative : plyr->health,
+                                 28 - wide_x, 180, ST_WidgetColor(hudcolor_health));
+    }
+
+    // [crispy] blinking key or skull in the status bar
+    for (int i = 0, x = 0 ; i < 3 ; i++, x += 10)
+    {
+        if (st_blinking_keys && plyr->tryopen[i])
+        {
+            if (!(plyr->tryopen[i] & (2 * KEYBLINKMASK - 1)))
+            {
+                S_StartSound(NULL, sfx_itemup);
+            }
+            if (plyr->tryopen[i] & KEYBLINKMASK)
+            {
+                V_DrawPatch(78 + x + wide_x, 184, keys[i + st_keyorskull[i]]);
+            }
+        }
+    }
+
+    // Keys
+    {
+        if (plyr->cards[it_blueskull])
+        V_DrawPatch(78 - wide_x, 184, keys[3]);
+        else if (plyr->cards[it_bluecard])
+        V_DrawPatch(78 - wide_x, 184, keys[0]);
+
+        if (plyr->cards[it_yellowskull])
+        V_DrawPatch(88 - wide_x, 184, keys[4]);
+        else if (plyr->cards[it_yellowcard])
+        V_DrawPatch(88 + wide_x, 184, keys[1]);
+
+        if (plyr->cards[it_redskull])
+        V_DrawPatch(98 - wide_x, 184, keys[5]);
+        else if (plyr->cards[it_redcard])
+        V_DrawPatch(98 - wide_x, 184, keys[2]);
+    }
+
+    // Ammo amount for current weapon
+    {
+        if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
+        {
+            ST_DrawBigNumberCentered(plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
+                             (ORIGWIDTH/2) - 17, 180, ST_WidgetColor(hudcolor_ammo));
+        }            
+    }
+
+    // Frags of Arms
+    if (deathmatch)
+    {
+        M_WriteTextNoShadow(223 - (M_StringWidth("FRAGS") / 2) + wide_x, 171,
+                            "FRAGS", cr[CR_LIGHTGRAY_DARK1]);
+
+        st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
+        ST_DrawBigNumberCentered(st_fragscount, 207 + wide_x, 180,
+                                 ST_WidgetColor(hudcolor_frags));
+    }
+    else
+    {
+        // Pistol
+        ST_DrawWeaponNumberFunc(2, 217 + wide_x, 181, plyr->weaponowned[1]);
+        // Shotgun or Super Shotgun            
+        ST_DrawWeaponNumberFunc(3, 226 + wide_x, 181, plyr->weaponowned[2] || plyr->weaponowned[8]);
+        // Chaingun                            
+        ST_DrawWeaponNumberFunc(4, 235 + wide_x, 181, plyr->weaponowned[3]);
+        // Rocket Launcher                     
+        ST_DrawWeaponNumberFunc(5, 217 + wide_x, 189, plyr->weaponowned[4]);
+        // Plasma Gun                          
+        ST_DrawWeaponNumberFunc(6, 226 + wide_x, 189, plyr->weaponowned[5]);
+        // BFG9000                             
+        ST_DrawWeaponNumberFunc(7, 235 + wide_x, 189, plyr->weaponowned[6]);
+    }
+
+    // Armor
+    {
+        M_WriteTextNoShadow(275 - (M_StringWidth("ARMOR") / 2) + wide_x, 171,
+                            "ARMOR", cr[CR_LIGHTGRAY_DARK1]);
+        
+        ST_DrawBigNumberCentered(plyr->armorpoints, 259 + wide_x, 180,
+                                 ST_WidgetColor(hudcolor_armor));
+    }
+
+    dp_translucent = false;
+}
+
+// -----------------------------------------------------------------------------
 // ST_Drawer
 // [JN] Main drawing function, totally rewritten.
 // -----------------------------------------------------------------------------
@@ -1817,9 +1974,14 @@ void ST_Drawer (boolean force)
             ST_UpdateElementsBackground();
         }
 
-        if (st_fullscreen_layout && !st_background_on)
+        if (!st_background_on)
         {
-            ST_DrawElementsRemaster(wide_x);
+            switch (st_fullscreen_layout)
+            {
+                case 1:   ST_DrawElementsRemaster(wide_x);  break;
+                case 2:   ST_DrawElementsDoom64(wide_x);    break;
+                default:  ST_DrawElementsOriginal(wide_x);  break;
+            }
         }
         else
         {
