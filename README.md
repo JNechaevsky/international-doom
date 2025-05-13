@@ -43,3 +43,4 @@ Note: BOOM/MBF/MBF21 specifications are not supported.
 ### License
 
 International Doom is [Open Source](https://opensource.org/osd) and licensed under the [GNU General Public License v2](https://www.gnu.org/licenses/gpl-2.0.html).
+
