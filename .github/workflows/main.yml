@@ -11,43 +11,41 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-    env:
-      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+      - name: Cache vcpkg installed packages and archive
+        id: cache-vcpkg
+        uses: actions/cache@v4
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          path: |
+            vcpkg/installed
+            vcpkg/buildtrees
+            vcpkg/packages
+            vcpkg/downloads
+            C:\Users\runneradmin\AppData\Local\vcpkg\archives
+          key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-windows-
 
-      - name: Get latest VCPKG commit
+      - name: Ensure vcpkg sources present
         shell: bash
         run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          cd vcpkg
-          export LATEST_COMMIT=$(git rev-parse HEAD)
-          echo "LATEST_COMMIT=$LATEST_COMMIT" >> $GITHUB_ENV
+          if [ ! -f "vcpkg/bootstrap-vcpkg.bat" ]; then
+            rm -rf vcpkg
+            git clone https://github.com/microsoft/vcpkg.git
+          fi
 
-      - name: Install vcpkg
+      - name: Bootstrap vcpkg
         run: |
           .\vcpkg\bootstrap-vcpkg.bat
 
-      - name: Remove vcpkg.json for classic mode
-        shell: bash
-        run: |
-          if [ -f "vcpkg.json" ]; then
-            rm "vcpkg.json"
-          fi
-
       - name: Install Dependencies with vcpkg
         run: |
-          .\vcpkg\vcpkg.exe install sdl2 sdl2-mixer[libflac,libmodplug,mpg123,opusfile] sdl2-net libsamplerate fluidsynth `
-          --triplet x64-windows-static-release `
-          --overlay-triplets=cmake/triplets
+          .\vcpkg\vcpkg.exe install `
+            --triplet x64-windows-static-release `
+            --overlay-triplets=cmake/triplets
 
       - name: Configure CMake
         run: |
