@@ -77,6 +77,7 @@ int W_CheckMultipleLumps (char *name);
 lumpindex_t W_CheckNumForName(const char *name);
 lumpindex_t W_GetNumForName(const char *name);
 lumpindex_t W_CheckNumForNameFromTo(const char *name, int from, int to);
+void W_HashNumForNameFromTo(int from, int to, int size);
 
 int W_LumpLength(lumpindex_t lump);
 void W_ReadLump(lumpindex_t lump, void *dest);

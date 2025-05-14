@@ -707,6 +707,9 @@ void R_InitFlats(void)
     flattranslation = Z_Malloc((numflats + 1) * sizeof(int), PU_STATIC, 0);
     for (i = 0; i < numflats; i++)
         flattranslation[i] = i;
+
+    // [PN] Generate hash table for flats.
+    W_HashNumForNameFromTo(firstflat, lastflat, numflats);
 }
 
 

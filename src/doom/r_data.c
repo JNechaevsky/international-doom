@@ -1069,6 +1069,9 @@ void R_InitFlats (void)
     
     for (i=0 ; i<numflats ; i++)
 	flattranslation[i] = i;
+
+    // [PN] Generate hash table for flats.
+    W_HashNumForNameFromTo (firstflat, lastflat, numflats);
 }
 
 

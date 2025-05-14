@@ -343,11 +343,63 @@ lumpindex_t W_GetNumForName(const char *name)
     return i;
 }
 
+// -----------------------------------------------------------------------------
+// W_HashNumForNameFromTo and W_CheckNumForNameFromTo
+//  [PN/JN] Optimized flat lookup with hash.
+//  Builds a one-time open-addressing hash table for the [from, to] range,
+//  using lump name hash modulo the range size. Collision resolution is linear.
+//  This replaces linear search for flat lumps with near-O(1) lookup.
+// -----------------------------------------------------------------------------
+
+static lumpindex_t *flat_hash = NULL;
+static int hash_size = 0;
+
+void W_HashNumForNameFromTo (int from, int to, int size)
+{
+    // Compute number of entries in the range
+    hash_size = size;
+
+    // Allocate hash table (statically sized to the range)
+    flat_hash = Z_Malloc(sizeof(lumpindex_t) * hash_size, PU_STATIC, NULL);
+
+    // Initialize all entries to -1 (empty)
+    for (int i = 0; i < hash_size; i++)
+        flat_hash[i] = -1;
+
+    // Fill the table with all lump names in the range
+    // Use open addressing for collision resolution
+    for (int i = from; i <= to; i++)
+    {
+        int h = W_LumpNameHash(lumpinfo[i]->name) % hash_size;
+
+        while (flat_hash[h] != -1)
+            h = (h + 1) % hash_size;
+
+        flat_hash[h] = i;
+    }
+}
+
 lumpindex_t W_CheckNumForNameFromTo(const char *name, int from, int to)
 {
-    lumpindex_t i;
+    // Lookup using same hash function
+    int hash = W_LumpNameHash(name) % hash_size;
 
-    for (i = from; i >= to; i--)
+    // Probe the table using open addressing
+    for (int probes = 0; probes < hash_size; probes++)
+    {
+        lumpindex_t i = flat_hash[hash];
+
+        if (i == -1)
+            break;
+
+        if (!strncasecmp(lumpinfo[i]->name, name, 8))
+            return i;
+
+        hash = (hash + 1) % hash_size;
+    }
+    
+    // Fallback: brute-force scan (should never happen)
+    for (int i = from; i >= to; i--)
     {
         if (!strncasecmp(lumpinfo[i]->name, name, 8))
         {
