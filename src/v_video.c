@@ -821,7 +821,11 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
             const byte *restrict source = (const byte *)column + 3;
 
             for (int i = 0, srccol = 0; i < count; i++, srccol += dyi, dest += SCREENWIDTH)
-                *dest = I_BlendOver(*dest, pal_color[source[srccol >> FRACBITS]], alpha);
+            {
+                const byte src = source[srccol >> FRACBITS];
+                const byte src_trans = dp_translation ? dp_translation[src] : src;
+                *dest = I_BlendOver(*dest, pal_color[src_trans], alpha);
+            }
 
             column = (const column_t *)((const byte *)column + column->length + 4);
         }
