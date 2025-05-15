@@ -737,14 +737,13 @@ void R_ExecuteSetViewSize(void)
         const fixed_t half_fracunit = FRACUNIT >> 1;
         const fixed_t half_viewheight = viewheight >> 1;
         const fixed_t num = FixedMul(FixedDiv(FRACUNIT, fovscale), (viewwidth << detailshift) * half_fracunit);
-        const fixed_t step = (vid_resolution * (dp_screen_size < 11 ? dp_screen_size : 11)) / 10;
+        const fixed_t step = (dp_screen_size < 11 ? dp_screen_size : 11);
 
         for (i = 0; i < viewheight; i++)
         {
             for (j = 0; j < LOOKDIRS; j++)
             {
-                const fixed_t center_offset = (j - LOOKDIRMIN) * step;
-                const fixed_t dy = abs(((i - (half_viewheight + center_offset)) << FRACBITS) + half_fracunit);
+                const fixed_t dy = abs((i - (half_viewheight + ((j - LOOKDIRMIN) * vid_resolution) * step / 10)) << FRACBITS) + half_fracunit;
                 yslopes[j][i] = FixedDiv(num, dy);
             }
         }
