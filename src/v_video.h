@@ -65,6 +65,7 @@ void V_DrawPatchFullScreen(patch_t *patch, boolean flipped);
 void V_DrawPatchFlipped(int x, int y, patch_t *patch);
 void V_DrawTLPatch(int x, int y, patch_t *patch);
 void V_DrawAltTLPatch(int x, int y, patch_t *patch);
+void V_DrawFadePatch(int x, int y, const patch_t *restrict patch, int alpha);
 
 // Draw a linear block of pixels into the view buffer.
 
