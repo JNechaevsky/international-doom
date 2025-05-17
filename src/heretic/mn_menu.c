@@ -1016,12 +1016,12 @@ static void M_Draw_ID_Video_1 (void)
                         vid_resolution == 2 ||
                         vid_resolution == 3 ? cr[CR_GREEN] :
                         vid_resolution == 4 ||
-                        vid_resolution == 5 ? cr[CR_YELLOW] : cr[CR_ORANGE],
+                        vid_resolution == 5 ? cr[CR_YELLOW] : cr[CR_ORANGE_HR],
                             vid_resolution == 1 ? cr[CR_RED_BRIGHT5] :
                             vid_resolution == 2 ||
                             vid_resolution == 3 ? cr[CR_GREEN_BRIGHT5] :
                             vid_resolution == 4 ||
-                            vid_resolution == 5 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_ORANGE_BRIGHT5],
+                            vid_resolution == 5 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_ORANGE_HR_BRIGHT5],
                                 LINE_ALPHA(1));
 
     // Widescreen mode
@@ -3763,12 +3763,12 @@ static void M_Draw_ID_Gameplay_3 (void)
                         gp_default_skill == 1 ? cr[CR_DARKGREEN] :
                         gp_default_skill == 2 ? cr[CR_GREEN] :
                         gp_default_skill == 3 ? cr[CR_YELLOW] :
-                        gp_default_skill == 4 ? cr[CR_ORANGE] : cr[CR_RED],
+                        gp_default_skill == 4 ? cr[CR_ORANGE_HR] : cr[CR_RED],
                             gp_default_skill == 0 ? cr[CR_OLIVE_BRIGHT5] :
                             gp_default_skill == 1 ? cr[CR_DARKGREEN_BRIGHT5] :
                             gp_default_skill == 2 ? cr[CR_GREEN_BRIGHT5] :
                             gp_default_skill == 3 ? cr[CR_YELLOW_BRIGHT5] :
-                            gp_default_skill == 4 ? cr[CR_ORANGE_BRIGHT5] : cr[CR_RED_BRIGHT5],    
+                            gp_default_skill == 4 ? cr[CR_ORANGE_HR_BRIGHT5] : cr[CR_RED_BRIGHT5],    
                                 LINE_ALPHA(0));
 
     // Report revealed secrets
@@ -3972,10 +3972,10 @@ static void M_Draw_ID_Misc (void)
                  a11y_pal_flash == 3 ? "OFF" : "DEFAULT");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 30,
                         a11y_pal_flash == 1 ? cr[CR_YELLOW] :
-                        a11y_pal_flash == 2 ? cr[CR_ORANGE] :
+                        a11y_pal_flash == 2 ? cr[CR_ORANGE_HR] :
                         a11y_pal_flash == 2 ? cr[CR_RED] : cr[CR_DARKRED],
                             a11y_pal_flash == 1 ? cr[CR_YELLOW_BRIGHT5] :
-                            a11y_pal_flash == 2 ? cr[CR_ORANGE_BRIGHT5] :
+                            a11y_pal_flash == 2 ? cr[CR_ORANGE_HR_BRIGHT5] :
                             a11y_pal_flash == 2 ? cr[CR_RED_BRIGHT5] : cr[CR_RED_BRIGHT5],
                                 LINE_ALPHA(1));
 
@@ -4195,12 +4195,12 @@ static void M_Draw_ID_Level_1 (void)
                         level_select[0] == 1 ? cr[CR_DARKGREEN] :
                         level_select[0] == 2 ? cr[CR_GREEN] :
                         level_select[0] == 3 ? cr[CR_YELLOW] :
-                        level_select[0] == 4 ? cr[CR_ORANGE] : cr[CR_RED],
+                        level_select[0] == 4 ? cr[CR_ORANGE_HR] : cr[CR_RED],
                             level_select[0] == 0 ? cr[CR_OLIVE_BRIGHT5] :
                             level_select[0] == 1 ? cr[CR_DARKGREEN_BRIGHT5] :
                             level_select[0] == 2 ? cr[CR_GREEN_BRIGHT5] :
                             level_select[0] == 3 ? cr[CR_YELLOW_BRIGHT5] :
-                            level_select[0] == 4 ? cr[CR_ORANGE_BRIGHT5] : cr[CR_RED_BRIGHT5],    
+                            level_select[0] == 4 ? cr[CR_ORANGE_HR_BRIGHT5] : cr[CR_RED_BRIGHT5],    
                                 LINE_ALPHA(0));
 
     // Episode
@@ -5586,7 +5586,10 @@ void MN_Drawer(void)
             if (CurrentMenu->FontType == SmallFont)
             {
                 y = CurrentMenu->y + (CurrentItPos * ID_MENU_LINEHEIGHT_SMALL);
-                MN_DrTextAGlow("*", x - ID_MENU_CURSOR_OFFSET, y, cr[CR_MENU_DARK4], cr[CR_MENU_BRIGHT5], cursor_tics * 17);
+                MN_DrTextAGlow("*", x - ID_MENU_CURSOR_OFFSET, y, cr[CR_MENU_DARK4], cr[CR_MENU_BRIGHT5],
+                                    menu_highlight == 1 ? (cursor_tics * 17)           :  // Animated
+                                    menu_highlight == 0 ? (MenuTime & 16 ?  50 : 150)  :  // Off
+                                                          (MenuTime & 16 ? 100 : 200)) ;  // Static
             }
             else
             {
@@ -5788,7 +5791,7 @@ static void DrawFileSlots(Menu_t * menu)
     for (i = 0; i < SAVES_PER_PAGE; i++)
     {
         // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
-        dp_translation = (CurrentItPos == i) ? cr[CR_MENU_BRIGHT2] : NULL;
+        dp_translation = (CurrentItPos == i && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
         V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE));
         dp_translation = false;
 
@@ -7349,7 +7352,7 @@ static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean big
     y = menu->y + 2 + (item * (bigspacing ? ITEM_HEIGHT : ID_MENU_LINEHEIGHT_SMALL));
 
     // [JN] Highlight active slider and gem.
-    dp_translation = (itemPos == CurrentItPos) ? cr[CR_MENU_BRIGHT2] : NULL;
+    dp_translation = (itemPos == CurrentItPos && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
 
     V_DrawShadowedPatchOptional(x - 32, y, 1, W_CacheLumpName(DEH_String("M_SLDLT"), PU_CACHE));
     for (x2 = x, count = width; count--; x2 += 8)

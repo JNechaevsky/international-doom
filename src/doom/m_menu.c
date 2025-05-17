@@ -5288,8 +5288,7 @@ static void M_DrawLoad(void)
     for (int i = 0;i < load_end; i++)
     {
         // [JN] Highlight selected item (itemOn == i) or apply fading effect.
-        //dp_translation = M_SaveLoad_Glow(itemOn == i, 0, saveload_border);
-        dp_translation = (itemOn == i) ? cr[CR_MENU_BRIGHT2] : NULL;
+        dp_translation = (itemOn == i && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
         M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
         dp_translation = false;
 
@@ -5370,8 +5369,7 @@ static void M_DrawSave(void)
     for (i = 0; i < load_end; i++)
     {
         // [JN] Highlight selected item (itemOn == i) or apply fading effect.
-        //dp_translation = M_SaveLoad_Glow(itemOn == i, 0, saveload_border);
-        dp_translation = (itemOn == i) ? cr[CR_MENU_BRIGHT2] : NULL;
+        dp_translation = (itemOn == i && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
         M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
         dp_translation = false;
 
@@ -5908,7 +5906,7 @@ M_DrawThermo
     int		i;
 
     // [JN] Highlight active slider and gem.
-    dp_translation = (itemPos == itemOn) ? cr[CR_MENU_BRIGHT2] : NULL;
+    dp_translation = (itemPos == itemOn && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
 
     xx = x;
     V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERML"), PU_CACHE));
@@ -7363,7 +7361,10 @@ void M_Drawer (void)
         // [JN] Draw glowing * symbol.
         if (itemOn != -1)
         M_WriteTextGlow(x - ID_MENU_CURSOR_OFFSET, y + itemOn * ID_MENU_LINEHEIGHT_SMALL, "*",
-                            cr[CR_MENU_DARK4], cr[CR_MENU_BRIGHT5], cursor_tics * 17); // (0...15 * 17), full alpha cycle
+                            cr[CR_MENU_DARK4], cr[CR_MENU_BRIGHT5],
+                            menu_highlight == 1 ? (cursor_tics * 17)        :  // Animated
+                            menu_highlight == 0 ? (whichSkull ?  50 : 200)  :  // Off
+                                                  (whichSkull ? 100 : 200)) ;  // Static
 
         for (i = 0 ; i < max ; i++)
         {

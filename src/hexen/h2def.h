@@ -1182,6 +1182,8 @@ void MN_DrTextAYellow(const char *text, int x, int y);
 int MN_TextAWidth(const char *text);
 void MN_DrTextB(const char *text, int x, int y, byte *table);
 int MN_TextBWidth(const char *text);
+void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
+void MN_DrTextBGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
 
 extern int messageson;
 extern boolean MenuActive;
