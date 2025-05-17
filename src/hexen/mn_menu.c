@@ -5739,7 +5739,7 @@ boolean MN_Responder(event_t * event)
 
             // [JN] Handle mouse bindings before going any farther.
             // Catch only button pressing events, i.e. event->data1.
-            if (MouseIsBinding && event->data1)
+            if (MouseIsBinding && event->data1 && !event->data2 && !event->data3)
             {
                 M_CheckMouseBind(SDL_mouseButton);
                 M_DoMouseBind(btnToBind, SDL_mouseButton);
