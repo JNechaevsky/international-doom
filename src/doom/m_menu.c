@@ -830,7 +830,6 @@ static void    M_StartBind (int keynum);
 static void    M_CheckBind (int key);
 static void    M_DoBind (int keynum, int key);
 static void    M_ClearBind (int itemOn);
-static byte   *M_ColorizeBind (int itemSetOn, int key);
 static void    M_ResetBinds (void);
 static void    M_DrawBindKey (int itemNum, int yPos, int key);
 static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
@@ -844,7 +843,6 @@ static void    M_StartMouseBind (int btn);
 static void    M_CheckMouseBind (int btn);
 static void    M_DoMouseBind (int btnnum, int btn);
 static void    M_ClearMouseBind (int itemOn);
-static byte   *M_ColorizeMouseBind (int itemSetOn, int btn);
 static void    M_DrawBindButton (int itemNum, int yPos, int btn);
 static void    M_ResetMouseBinds (void);
 
@@ -992,23 +990,13 @@ static void M_FillBackground (void)
     V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 }
 
-static byte *M_Small_Line_Glow (int tics)
+static int M_Line_Alpha (int tics)
 {
-    return
-        tics == 5 ? cr[CR_MENU_BRIGHT5] :
-        tics == 4 ? cr[CR_MENU_BRIGHT4] :
-        tics == 3 ? cr[CR_MENU_BRIGHT3] :
-        tics == 2 ? cr[CR_MENU_BRIGHT2] :
-        tics == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
+    const int alpha_val[] = { 0, 50, 100, 150, 200, 255 };
+    return alpha_val[tics];
 }
 
-static byte *M_Big_Line_Glow (int tics)
-{
-    return
-        tics == 5 ? cr[CR_MENU_BRIGHT3] :
-        tics >= 3 ? cr[CR_MENU_BRIGHT2] :
-        tics >= 1 ? cr[CR_MENU_BRIGHT1] : NULL;
-}
+#define LINE_ALPHA(i)   M_Line_Alpha(currentMenu->menuitems[(i)].tics)
 
 static void M_Reset_Line_Glow (void)
 {
@@ -1024,204 +1012,6 @@ static void M_Reset_Line_Glow (void)
         currentMenu->lastOn = -1;
         itemOn = -1;
     }
-}
-
-#define GLOW_UNCOLORED  0
-#define GLOW_RED        1
-#define GLOW_DARKRED    2
-#define GLOW_GREEN      3
-#define GLOW_YELLOW     4
-#define GLOW_ORANGE     5
-#define GLOW_LIGHTGRAY  6
-#define GLOW_BLUE       7
-#define GLOW_OLIVE      8
-#define GLOW_DARKGREEN  9
-#define GLOW_GRAY       10
-
-#define ITEMONTICS      currentMenu->menuitems[itemOn].tics
-#define ITEMSETONTICS   currentMenu->menuitems[itemSetOn].tics
-
-static byte *M_Item_Glow (int itemSetOn, int color)
-{
-    if (!menu_highlight)
-    {
-        return
-            color == GLOW_RED ? cr[CR_RED] :
-            color == GLOW_DARKRED ? cr[CR_DARKRED] :
-            color == GLOW_GREEN ? cr[CR_GREEN] :
-            color == GLOW_YELLOW ? cr[CR_YELLOW] :
-            color == GLOW_ORANGE ? cr[CR_ORANGE] :
-            color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY] :
-            color == GLOW_BLUE ? cr[CR_BLUE2] :
-            color == GLOW_OLIVE ? cr[CR_OLIVE] :
-            color == GLOW_DARKGREEN ? cr[CR_DARKGREEN] :
-            color == GLOW_GRAY ? cr[CR_GRAY] :
-                     NULL; // color == GLOW_UNCOLORED
-    }
-
-    if (itemOn == itemSetOn)
-    {
-        return
-            color == GLOW_RED ||
-            color == GLOW_DARKRED   ? cr[CR_RED_BRIGHT5]       :
-            color == GLOW_GREEN     ? cr[CR_GREEN_BRIGHT5]     :
-            color == GLOW_YELLOW    ? cr[CR_YELLOW_BRIGHT5]    :
-            color == GLOW_ORANGE    ? cr[CR_ORANGE_BRIGHT5]    :
-            color == GLOW_LIGHTGRAY ? cr[CR_LIGHTGRAY_BRIGHT5] :
-            color == GLOW_BLUE      ? cr[CR_BLUE2_BRIGHT5]     :
-            color == GLOW_OLIVE     ? cr[CR_OLIVE_BRIGHT5]     :
-            color == GLOW_DARKGREEN ? cr[CR_DARKGREEN_BRIGHT5] :
-            color == GLOW_GRAY      ? cr[CR_GRAY_BRIGHT5]      :
-                                      cr[CR_MENU_BRIGHT5]      ; // GLOW_UNCOLORED
-    }
-    else
-    {
-        if (color == GLOW_UNCOLORED)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_MENU_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_MENU_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_MENU_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_MENU_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_MENU_BRIGHT1] : NULL;
-        }
-        if (color == GLOW_RED)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_RED_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_RED_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_RED_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_RED_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_RED_BRIGHT1] : cr[CR_RED];
-        }
-        if (color == GLOW_DARKRED)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_RED_DARK1] :
-                ITEMSETONTICS == 4 ? cr[CR_RED_DARK2] :
-                ITEMSETONTICS == 3 ? cr[CR_RED_DARK3] :
-                ITEMSETONTICS == 2 ? cr[CR_RED_DARK4] :
-                ITEMSETONTICS == 1 ? cr[CR_RED_DARK5] : cr[CR_DARKRED];
-        }
-        if (color == GLOW_GREEN)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
-        }
-        if (color == GLOW_YELLOW)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_YELLOW_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_YELLOW_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_YELLOW_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_YELLOW_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_YELLOW_BRIGHT1] : cr[CR_YELLOW];
-        }
-        if (color == GLOW_ORANGE)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_ORANGE_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_ORANGE_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_ORANGE_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_ORANGE_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_ORANGE_BRIGHT1] : cr[CR_ORANGE];
-        }
-        if (color == GLOW_LIGHTGRAY)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_LIGHTGRAY_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_LIGHTGRAY_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_LIGHTGRAY_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_LIGHTGRAY_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_LIGHTGRAY_BRIGHT1] : cr[CR_LIGHTGRAY];
-        }
-        if (color == GLOW_BLUE)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_BLUE2_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_BLUE2_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_BLUE2_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_BLUE2_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_BLUE2_BRIGHT1] : cr[CR_BLUE2];
-        }
-        if (color == GLOW_OLIVE)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_OLIVE_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_OLIVE_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_OLIVE_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_OLIVE_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_OLIVE_BRIGHT1] : cr[CR_OLIVE];
-        }
-        if (color == GLOW_DARKGREEN)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_DARKGREEN_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_DARKGREEN_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_DARKGREEN_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_DARKGREEN_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_DARKGREEN_BRIGHT1] : cr[CR_DARKGREEN];
-        }
-        if (color == GLOW_GRAY)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_GRAY_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_GRAY_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_GRAY_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_GRAY_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_GRAY_BRIGHT1] : cr[CR_GRAY];
-        }
-    }
-    return NULL;
-}
-
-static byte *M_Cursor_Glow (int tics)
-{
-    if (!menu_highlight)
-    return whichSkull ? NULL : cr[CR_MENU_DARK4];
-
-    return
-        tics ==  8 || tics ==  7 ? cr[CR_MENU_BRIGHT4] :
-        tics ==  6 || tics ==  5 ? cr[CR_MENU_BRIGHT3] :
-        tics ==  4 || tics ==  3 ? cr[CR_MENU_BRIGHT2] :
-        tics ==  2 || tics ==  1 ? cr[CR_MENU_BRIGHT1] :
-        tics == -1 || tics == -2 ? cr[CR_MENU_DARK1]   :
-        tics == -3 || tics == -4 ? cr[CR_MENU_DARK2]   :
-        tics == -5 || tics == -6 ? cr[CR_MENU_DARK3]   :
-        tics == -7 || tics == -8 ? cr[CR_MENU_DARK4]   : NULL;
-}
-
-enum
-{
-    saveload_border,
-    saveload_slider,
-    saveload_text,
-    saveload_cursor,
-};
-
-static byte *M_SaveLoad_Glow (int itemSetOn, int tics, int type)
-{
-    if (!menu_highlight)
-    return NULL;
-
-    switch (type)
-    {
-        case saveload_border:
-        case saveload_slider:
-            return itemSetOn ? cr[CR_MENU_BRIGHT2] : NULL;
-
-        case saveload_text:
-            return itemSetOn ? cr[CR_MENU_BRIGHT5] : M_Small_Line_Glow(tics);
-
-        case saveload_cursor:
-            return cr[CR_MENU_BRIGHT5];
-    }
-
-    return NULL;
 }
 
 static int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
@@ -1259,36 +1049,20 @@ static float M_FLOAT_Slider (float val, float min, float max, float step,
     return val;
 }
 
-static int DefSkillColor (const int skill)
-{
-    return
-        skill == 0 ? GLOW_OLIVE     :
-        skill == 1 ? GLOW_DARKGREEN :
-        skill == 2 ? GLOW_GREEN     :
-        skill == 3 ? GLOW_YELLOW    :
-        skill == 4 ? GLOW_ORANGE    :
-                     GLOW_RED;
-}
-
-static char *const DefSkillName[5] = 
-{
-    "IMTYTD" ,
-    "HNTR"   ,
-    "HMP"    ,
-    "UV"     ,
-    "NM"     
-};
-
 static void M_DrawScrollPages (int x, int y, int itemOnGlow, const char *pagenum)
 {
     char str[32];
     
-    M_WriteText(x, y, "< SCROLL PAGES >",
-                M_Item_Glow(itemOnGlow, GLOW_LIGHTGRAY));
+    M_WriteTextGlow(x, y, "< SCROLL PAGES >",
+                        cr[CR_LIGHTGRAY],
+                            cr[CR_LIGHTGRAY_BRIGHT5],
+                                LINE_ALPHA(itemOnGlow));
 
     M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, NULL));
-    M_WriteText(M_ItemRightAlign(str), y, str,
-                M_Item_Glow(itemOnGlow, GLOW_GRAY));
+    M_WriteTextGlow(M_ItemRightAlign(str), y, str,
+                        cr[CR_GRAY],
+                            cr[CR_GRAY_BRIGHT5],
+                                LINE_ALPHA(itemOnGlow));
 }
 
 
@@ -1378,15 +1152,12 @@ static void M_Draw_ID_Video_1 (void)
 
     M_WriteTextCentered(9, "VIDEO OPTIONS", cr[CR_YELLOW]);
 
-#ifndef CRISPY_TRUECOLOR
-    sprintf(str, "N/A");
-    M_WriteText (M_ItemRightAlign(str), 18, str, 
-                 M_Item_Glow(0, GLOW_DARKRED));
-#else
+    // TrueColor rendering
     sprintf(str, vid_truecolor ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 18, str, 
-                 M_Item_Glow(0, vid_truecolor ? GLOW_GREEN : GLOW_DARKRED));
-#endif
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        vid_truecolor ? cr[CR_GREEN] : cr[CR_DARKRED], 
+                            vid_truecolor ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(0));
 
     // Rendering resolution
     sprintf(str, vid_resolution == 1 ? "1X (200P)"  :
@@ -1396,13 +1167,19 @@ static void M_Draw_ID_Video_1 (void)
                  vid_resolution == 5 ? "5X (1000P)" :
                  vid_resolution == 6 ? "6X (1200P)" :
                                        "CUSTOM");
-    M_WriteText (M_ItemRightAlign(str), 27, str, 
-                 M_Item_Glow(1, vid_resolution == 1 ? GLOW_DARKRED :
-                                vid_resolution == 2 ||
-                                vid_resolution == 3 ? GLOW_GREEN :
-                                vid_resolution == 4 ||
-                                vid_resolution == 5 ? GLOW_YELLOW :
-                                                      GLOW_ORANGE));
+
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                        vid_resolution == 1 ? cr[CR_DARKRED] :
+                        vid_resolution == 2 ||
+                        vid_resolution == 3 ? cr[CR_GREEN] :
+                        vid_resolution == 4 ||
+                        vid_resolution == 5 ? cr[CR_YELLOW] : cr[CR_ORANGE],
+                            vid_resolution == 1 ? cr[CR_RED_BRIGHT5] :
+                            vid_resolution == 2 ||
+                            vid_resolution == 3 ? cr[CR_GREEN_BRIGHT5] :
+                            vid_resolution == 4 ||
+                            vid_resolution == 5 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_ORANGE_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Widescreen rendering
     sprintf(str, vid_widescreen == 1 ? "MATCH SCREEN" :
@@ -1410,41 +1187,58 @@ static void M_Draw_ID_Video_1 (void)
                  vid_widescreen == 3 ? "16:9" :
                  vid_widescreen == 4 ? "21:9" :
                  vid_widescreen == 5 ? "32:9" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 36, str, 
-                 M_Item_Glow(2, vid_widescreen ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str, 
+                        vid_widescreen ? cr[CR_GREEN] : cr[CR_DARKRED], 
+                            vid_widescreen ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(2));
 
     // Exclusive fullscreen
     sprintf(str, vid_fullscreen_exclusive ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str, 
-                 M_Item_Glow(3, vid_fullscreen_exclusive ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str, 
+                        vid_fullscreen_exclusive ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vid_fullscreen_exclusive ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(3));
 
     // Uncapped framerate
     sprintf(str, vid_uncapped_fps ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 54, str, 
-                 M_Item_Glow(4, vid_uncapped_fps ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
+                        vid_uncapped_fps ? cr[CR_GREEN] : cr[CR_DARKRED], 
+                            vid_uncapped_fps ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(4));
 
     // Framerate limit
     sprintf(str, !vid_uncapped_fps ? "35" :
                  vid_fpslimit ? "%d" : "NONE", vid_fpslimit);
-    M_WriteText (M_ItemRightAlign(str), 63, str, 
-                 !vid_uncapped_fps ? cr[CR_DARKRED] :
-                 M_Item_Glow(5, vid_fpslimit == 0 ? GLOW_RED :
-                                vid_fpslimit >= 500 ? GLOW_YELLOW : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str, 
+                        !vid_uncapped_fps ? cr[CR_DARKRED] :
+                        vid_fpslimit == 0 ? cr[CR_RED] :
+                        vid_fpslimit >= 500 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                            !vid_uncapped_fps ? cr[CR_RED_BRIGHT5] :
+                            vid_fpslimit == 0 ? cr[CR_RED_BRIGHT5] :
+                            vid_fpslimit >= 500 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(5));
 
     // Enable vsync
     sprintf(str, vid_vsync ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str, 
-                 M_Item_Glow(6, vid_vsync ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str, 
+                    vid_vsync ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vid_vsync ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // Show FPS counter
     sprintf(str, vid_showfps ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str, 
-                 M_Item_Glow(7, vid_showfps ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str, 
+                    vid_showfps ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vid_showfps ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
+
 
     // Pixel scaling
     sprintf(str, vid_smooth_scaling ? "SMOOTH" : "SHARP");
-    M_WriteText (M_ItemRightAlign(str), 90, str, 
-                 M_Item_Glow(8, vid_smooth_scaling ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str, 
+                        vid_smooth_scaling ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vid_smooth_scaling ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(8));
 
     M_WriteTextCentered(99, "MISCELLANEOUS", cr[CR_YELLOW]);
 
@@ -1453,20 +1247,26 @@ static void M_Draw_ID_Video_1 (void)
                  vid_screenwipe == 2 ? "FAST" :
                  vid_screenwipe == 3 ? "CROSSFADE" :
                  vid_screenwipe == 4 ? "FIZZLE" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, vid_screenwipe == 1 ? GLOW_DARKRED : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+                        vid_screenwipe == 1 ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            vid_screenwipe == 1 ? cr[CR_RED_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(10));
 
     // Show disk icon
     sprintf(str, vid_diskicon == 1 ? "BOTTOM" :
                  vid_diskicon == 2 ? "TOP" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 117, str, 
-                 M_Item_Glow(11, vid_diskicon == 1 ? GLOW_DARKRED : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+                        vid_diskicon == 1 ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            vid_diskicon == 1 ? cr[CR_RED_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(11));
 
     // Show ENDOOM screen
     sprintf(str, vid_endoom == 1 ? "ALWAYS" :
                  vid_endoom == 2 ? "PWAD ONLY" : "NEVER");
-    M_WriteText (M_ItemRightAlign(str), 126, str, 
-                 M_Item_Glow(12, vid_endoom == 1 ? GLOW_DARKRED : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str, 
+                        vid_endoom == 1 ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            vid_endoom == 1 ? cr[CR_RED_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(12));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
     if (itemOn == 1 || itemOn == 2)
@@ -1692,43 +1492,55 @@ static menu_t ID_Def_Video_2 =
 static void M_Draw_ID_Video_2 (void)
 {
     char str[32];
-    const char *sample_factors[] = { "NONE", "1x", "2x", "3x", "4x", "5x", "6x" };
+    const char *sample_factors[] = { "OFF", "1x", "2x", "3x", "4x", "5x", "6x" };
 
     M_WriteTextCentered(9, "POST-PROCESSING EFFECTS", cr[CR_YELLOW]);
 
     // Supersampled smoothing
     sprintf(str, "%s", sample_factors[post_supersample]);
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, post_supersample ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        post_supersample ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            post_supersample ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(0));
 
     // Overbright glow
     sprintf(str, post_overglow ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str, 
-                 M_Item_Glow(1, post_overglow ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                        post_overglow ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            post_overglow ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Soft bloom
     sprintf(str, post_bloom ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 36, str, 
-                 M_Item_Glow(2, post_bloom ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+                        post_bloom ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            post_bloom ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(2));
 
     // Analog RGB drift
     sprintf(str, post_rgbdrift == 1 ? "SUBTLE" :
                  post_rgbdrift == 2 ? "STRONG" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str, 
-                 M_Item_Glow(3, post_rgbdrift ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str, 
+                        post_rgbdrift ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            post_rgbdrift ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(3));
 
     // VHS line distortion
     sprintf(str, post_vhsdist ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 54, str, 
-                 M_Item_Glow(4, post_vhsdist ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
+                        post_vhsdist ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            post_vhsdist ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(4));
 
     // Screen vignette
     sprintf(str, post_vignette == 1 ? "SUBTLE" :
                  post_vignette == 2 ? "SOFT"   : 
                  post_vignette == 3 ? "STRONG" : 
                  post_vignette == 4 ? "DARK"   : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str, 
-                 M_Item_Glow(5, post_vignette ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str, 
+                        post_vignette ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            post_vignette ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(5));
 
     // Film grain
     sprintf(str, post_filmgrain == 1 ? "SOFT"      :
@@ -1736,8 +1548,10 @@ static void M_Draw_ID_Video_2 (void)
                  post_filmgrain == 3 ? "MEDIUM"    : 
                  post_filmgrain == 4 ? "HEAVY"     : 
                  post_filmgrain == 5 ? "NIGHTMARE" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str, 
-                 M_Item_Glow(6, post_filmgrain ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str, 
+                        post_filmgrain ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            post_filmgrain ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // Motion blur
     sprintf(str, post_motionblur == 1 ? "SOFT"      :
@@ -1745,13 +1559,17 @@ static void M_Draw_ID_Video_2 (void)
                  post_motionblur == 3 ? "MEDIUM"    : 
                  post_motionblur == 4 ? "HEAVY"     : 
                  post_motionblur == 5 ? "NIGHTMARE" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str, 
-                 M_Item_Glow(7, post_motionblur ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+                        post_motionblur ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            post_motionblur ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
 
     // Depth if field blur
     sprintf(str, post_dofblur ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 90, str, 
-                 M_Item_Glow(8, post_dofblur ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str, 
+                        post_dofblur ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            post_dofblur ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(8));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET, 153, 15, "2/2");
@@ -1856,77 +1674,107 @@ static void M_Draw_ID_Display (void)
 
     // Field of View
     sprintf(str, "%d", vid_fov);
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, vid_fov == 135 || vid_fov == 45 ? GLOW_YELLOW :
-                                vid_fov == 90 ? GLOW_DARKRED : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        vid_fov == 135 || vid_fov == 45 ? cr[CR_YELLOW] :
+                        vid_fov == 90 ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            vid_fov == 135 || vid_fov == 45 ? cr[CR_YELLOW_BRIGHT5] :
+                            vid_fov == 90 ? cr[CR_RED_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(0));
 
     // Background shading
     sprintf(str, dp_menu_shading ? "%d" : "OFF", dp_menu_shading);
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, dp_menu_shading == 12 ? GLOW_YELLOW :
-                                dp_menu_shading  >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                        dp_menu_shading == 12 ? cr[CR_YELLOW] :
+                        dp_menu_shading  > 0  ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            dp_menu_shading == 12 ? cr[CR_YELLOW_BRIGHT5] :
+                            dp_menu_shading  > 0  ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Extra level brightness
     sprintf(str, dp_level_brightness ? "%d" : "OFF", dp_level_brightness);
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, dp_level_brightness == 8 ? GLOW_YELLOW :
-                                dp_level_brightness >  0 ? GLOW_GREEN  : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+                        dp_level_brightness == 8 ? cr[CR_YELLOW] :
+                        dp_level_brightness  > 0  ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            dp_level_brightness == 8 ? cr[CR_YELLOW_BRIGHT5] :
+                            dp_level_brightness  > 0  ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(2));
 
     M_WriteTextCentered(45, "COLOR SETTINGS", cr[CR_YELLOW]);
 
     // Gamma-correction
     sprintf(str, "%s", gammalvls[vid_gamma][1]);
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                    M_Item_Glow(4, GLOW_UNCOLORED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
+                        NULL,
+                            cr[CR_MENU_BRIGHT5],
+                                LINE_ALPHA(4));
 
     // Saturation
     M_snprintf(str, 6, "%d%%", vid_saturation);
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, GLOW_LIGHTGRAY));
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+                        cr[CR_LIGHTGRAY],
+                            cr[CR_LIGHTGRAY_BRIGHT5],
+                                LINE_ALPHA(5));
 
     // Contrast
     M_snprintf(str, 6, "%3f", vid_contrast);
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, GLOW_YELLOW));
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                        cr[CR_YELLOW],
+                            cr[CR_YELLOW_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // RED intensity
     M_snprintf(str, 6, "%3f", vid_r_intensity);
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+                        cr[CR_RED],
+                            cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
 
     // GREEN intensity
     M_snprintf(str, 6, "%3f", vid_g_intensity);
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
+                        cr[CR_GREEN],
+                            cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(8));
 
     // BLUE intensity
     M_snprintf(str, 6, "%3f", vid_b_intensity);
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, GLOW_BLUE));
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+                        cr[CR_BLUE2],
+                            cr[CR_BLUE2_BRIGHT5],
+                                LINE_ALPHA(9));
+
 
     M_WriteTextCentered(108, "MESSAGES SETTINGS", cr[CR_YELLOW]);
 
     // Messages enabled
     sprintf(str, msg_show ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(11, msg_show ? GLOW_DARKRED : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+                        msg_show ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            msg_show ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(11));
 
     // Messages alignment
     sprintf(str, msg_alignment == 1 ? "STATUS BAR" :
                  msg_alignment == 2 ? "CENTERED" : "LEFT");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, msg_alignment ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
+                        msg_alignment ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            msg_alignment ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(12));
 
     // Text casts shadows
     sprintf(str, msg_text_shadows ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 135, str, 
-                 M_Item_Glow(13, msg_text_shadows ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+                        msg_text_shadows ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            msg_text_shadows ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(13));
 
     // Local time
     sprintf(str, msg_local_time == 1 ? "12-HOUR FORMAT" :
                  msg_local_time == 2 ? "24-HOUR FORMAT" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 144, str, 
-                 M_Item_Glow(14, msg_local_time ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
+                        msg_local_time ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            msg_local_time ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(14));
 }
 
 static void M_ID_FOV (int choice)
@@ -2132,12 +1980,12 @@ static void M_Draw_ID_Sound (void)
     M_DrawThermo(46, 27, 16, sfxVolume, 0);
     M_ID_HandleSliderMouseControl(52, 27, 132, &sfxVolume, false, 0, 15);
     sprintf(str,"%d", sfxVolume);
-    M_WriteText (192, 30, str, M_Item_Glow(0, GLOW_UNCOLORED));
+    M_WriteTextGlow(192, 30, str, NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(0));
 
     M_DrawThermo(46, 54, 16, musicVolume, 3);
     M_ID_HandleSliderMouseControl(52, 54, 132, &musicVolume, false, 0, 15);
     sprintf(str,"%d", musicVolume);
-    M_WriteText (192, 57, str, M_Item_Glow(3, GLOW_UNCOLORED));
+    M_WriteTextGlow(192, 57, str, NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(3));
 
     M_WriteTextCentered(72, "SOUND SYSTEM", cr[CR_YELLOW]);
 
@@ -2146,8 +1994,10 @@ static void M_Draw_ID_Sound (void)
                  snd_sfxdevice == 1 ? "PC SPEAKER"  :
                  snd_sfxdevice == 3 ? "DIGITAL SFX" :
                                       "UNKNOWN");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, snd_sfxdevice ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+                        snd_sfxdevice ? cr[CR_GREEN] : cr[CR_RED],
+                            snd_sfxdevice ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
 
     // Music playback
     sprintf(str, snd_musicdevice == 0 ? "DISABLED" :
@@ -2157,42 +2007,60 @@ static void M_Draw_ID_Sound (void)
                  snd_musicdevice == 8 ? "NATIVE MIDI" :
                  snd_musicdevice == 11 ? "FLUIDSYNTH" :
                                         "UNKNOWN");
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, snd_musicdevice ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
+                        snd_musicdevice ? cr[CR_GREEN] : cr[CR_RED],
+                            snd_musicdevice ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(8));
 
     // Sound effects mode
     sprintf(str, snd_monosfx ? "MONO" : "STEREO");
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, snd_monosfx ? GLOW_RED : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+                        snd_monosfx ? cr[CR_RED] : cr[CR_GREEN],
+                            snd_monosfx ? cr[CR_RED_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(9));
 
     // Pitch-shifted sounds
     sprintf(str, snd_pitchshift ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, snd_pitchshift ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+                        snd_pitchshift ? cr[CR_GREEN] : cr[CR_RED],
+                            snd_pitchshift ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(10));
 
     // Number of SFX to mix
     sprintf(str, "%i", snd_channels);
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(11, snd_channels == 8 ? GLOW_DARKRED :
-                                 snd_channels == 1 || snd_channels == 16 ? GLOW_YELLOW : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+                        snd_channels == 8 ? cr[CR_DARKRED] :
+                        snd_channels == 1 || snd_channels == 16 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                            snd_channels == 8 ? cr[CR_RED_BRIGHT5] :
+                            snd_channels == 1 || snd_channels == 16 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_GREEN_BRIGHT5],                        
+                                LINE_ALPHA(11));
 
-    // Pitch-shifted sounds
+    // Mute inactive window
     sprintf(str, snd_mute_inactive ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, snd_mute_inactive ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
+                        snd_mute_inactive ? cr[CR_GREEN] : cr[CR_RED],
+                            snd_mute_inactive ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(12));
 
     M_WriteTextCentered(135, "REMASTERED MUSIC", cr[CR_YELLOW]);
 
-    M_WriteText (ID_MENU_LEFTOFFSET, 144, "PREFERRED SOUNDTRACK",
-                 M_Item_Glow(14, remaster_ost ? GLOW_UNCOLORED : GLOW_DARKRED));
+    M_WriteTextGlow(ID_MENU_LEFTOFFSET, 144, "PREFERRED SOUNDTRACK",
+                        remaster_ost ? NULL : cr[CR_DARKRED],
+                            remaster_ost ? cr[CR_MENU_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(14));
+
     // Remastered music
     sprintf(str, !remaster_ost ? "OFF" :
                  snd_remaster_ost == 1 ? "REMIX" :
                  snd_remaster_ost == 2 ? "ORIGINAL" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 144, str,
-                 M_Item_Glow(14, !remaster_ost ? GLOW_DARKRED :
-                                 snd_remaster_ost == 1 ? GLOW_GREEN :
-                                 snd_remaster_ost == 2 ? GLOW_YELLOW : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
+                        !remaster_ost ? cr[CR_DARKRED] :
+                        snd_remaster_ost == 1 ? cr[CR_GREEN] :
+                        snd_remaster_ost == 2 ? cr[CR_YELLOW] : cr[CR_RED],
+                            !remaster_ost ? cr[CR_DARKRED] :
+                            snd_remaster_ost == 1 ? cr[CR_GREEN_BRIGHT5] :
+                            snd_remaster_ost == 2 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_RED_BRIGHT5],                            
+                                LINE_ALPHA(14));
 
     // Inform if FSYNTH/GUS paths anen't set.
     if (itemOn == 8)
@@ -2426,49 +2294,72 @@ static void M_Draw_ID_Controls (void)
     M_DrawThermo(46, 54, 15, mouseSensitivity, 3);
     M_ID_HandleSliderMouseControl(52, 54, 124, &mouseSensitivity, false, 0, 14);
     sprintf(str,"%d", mouseSensitivity);
-    M_WriteText (184, 57, str, M_Item_Glow(3, mouseSensitivity == 255 ? GLOW_YELLOW :
-                                              mouseSensitivity > 14 ? GLOW_GREEN : GLOW_UNCOLORED));
+    M_WriteTextGlow(184, 57, str,
+                        mouseSensitivity == 255 ? cr[CR_YELLOW] :
+                        mouseSensitivity  >  14 ? cr[CR_GREEN] : NULL,
+                            mouseSensitivity == 255 ? cr[CR_YELLOW_BRIGHT5] :
+                            mouseSensitivity  >  14 ? cr[CR_GREEN_BRIGHT5] : cr[CR_MENU_BRIGHT5],
+                                LINE_ALPHA(3));
 
     M_DrawThermo(46, 81, 15, mouse_sensitivity_y, 6);
     M_ID_HandleSliderMouseControl(52, 81, 124, &mouse_sensitivity_y, false, 0, 14);
     sprintf(str,"%d", mouse_sensitivity_y);
-    M_WriteText (184, 84, str, M_Item_Glow(6, mouse_sensitivity_y == 255 ? GLOW_YELLOW :
-                                              mouse_sensitivity_y > 14 ? GLOW_GREEN : GLOW_UNCOLORED));
+    M_WriteTextGlow(184, 84, str,
+                        mouse_sensitivity_y == 255 ? cr[CR_YELLOW] :
+                        mouse_sensitivity_y  >  14 ? cr[CR_GREEN] : NULL,
+                            mouse_sensitivity_y == 255 ? cr[CR_YELLOW_BRIGHT5] :
+                            mouse_sensitivity_y  >  14 ? cr[CR_GREEN_BRIGHT5] : cr[CR_MENU_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // Acceleration
     sprintf(str,"%.1f", mouse_acceleration);
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, mouse_acceleration == 2.0f ? GLOW_UNCOLORED :
-                                mouse_acceleration == 1.0f ? GLOW_DARKRED :
-                                mouse_acceleration  < 2.0f ? GLOW_YELLOW : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+                        mouse_acceleration == 2.0f ? NULL :
+                        mouse_acceleration == 1.0f ? cr[CR_DARKRED] :
+                        mouse_acceleration  < 2.0f ? cr[CR_YELLOW] : cr[CR_GREEN],
+                            mouse_acceleration == 2.0f ? cr[CR_MENU_BRIGHT5] :
+                            mouse_acceleration == 1.0f ? cr[CR_RED_BRIGHT5] :
+                            mouse_acceleration  < 2.0f ? cr[CR_YELLOW_BRIGHT5] : cr[CR_GREEN_BRIGHT5],                        
+                                LINE_ALPHA(9));
 
     // Acceleration threshold
     sprintf(str,"%d", mouse_threshold);
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, mouse_threshold == 10 ? GLOW_UNCOLORED :
-                                 mouse_threshold ==  0 ? GLOW_DARKRED :
-                                 mouse_threshold  < 10 ? GLOW_YELLOW : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+                        mouse_threshold == 10 ? NULL :
+                        mouse_threshold ==  0 ? cr[CR_DARKRED] :
+                        mouse_threshold  < 10 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                            mouse_threshold == 10 ? cr[CR_MENU_BRIGHT5] :
+                            mouse_threshold ==  0 ? cr[CR_RED_BRIGHT5] :
+                            mouse_threshold  < 10 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(10));
 
     // Mouse look
     sprintf(str, mouse_look ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(11, mouse_look ? GLOW_GREEN : GLOW_RED));
-
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+                        mouse_look ? cr[CR_GREEN] : cr[CR_RED],
+                            mouse_look ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(11));
+                 
     // Vertical mouse movement
     sprintf(str, mouse_novert ? "OFF" : "ON");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, mouse_novert ? GLOW_RED : GLOW_GREEN));
-
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
+                        mouse_novert ? cr[CR_RED] : cr[CR_GREEN],
+                            mouse_novert ? cr[CR_RED_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(12));
+    
     // Invert vertical axis
     sprintf(str, mouse_y_invert ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 135, str,
-                 M_Item_Glow(13, mouse_y_invert ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+                        mouse_y_invert ? cr[CR_GREEN] : cr[CR_RED],
+                            mouse_y_invert ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(13));
 
     // Double click acts as "use"
     sprintf(str, mouse_dclick_use ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 144, str,
-                 M_Item_Glow(14, mouse_dclick_use ? GLOW_GREEN : GLOW_RED));
-
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
+                        mouse_dclick_use ? cr[CR_GREEN] : cr[CR_RED],
+                            mouse_dclick_use ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(14));
 }
 
 static void M_ID_Controls_Sensivity (int choice)
@@ -3373,67 +3264,87 @@ static void M_Draw_ID_Widgets (void)
                  widget_scheme == 2 ? "CRISPY" :
                  widget_scheme == 3 ? "WOOF"   :
                  widget_scheme == 4 ? "DSDA"   : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, widget_scheme ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        widget_scheme ? cr[CR_GREEN] : cr[CR_DARKRED], 
+                            widget_scheme ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(0));
 
     // Placement
     sprintf(str, widget_location ? "TOP" : "BOTTOM");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                        cr[CR_GREEN],
+                            cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Alignment
     sprintf(str, widget_alignment == 1 ? "STATUS BAR" :
                  widget_alignment == 2 ? "AUTO" : "LEFT");
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, widget_alignment ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+                        widget_alignment ? cr[CR_GREEN] : cr[CR_DARKRED], 
+                            widget_alignment ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(2));
 
     // K/I/S stats
     sprintf(str, widget_kis == 1 ? "ALWAYS"  :
                  widget_kis == 2 ? "AUTOMAP" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, widget_kis ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
+                        widget_kis ? cr[CR_GREEN] : cr[CR_DARKRED], 
+                            widget_kis ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5], 
+                                LINE_ALPHA(3));
 
     // Stats format
     sprintf(str, widget_kis_format == 1 ? "REMAINING" :
                  widget_kis_format == 2 ? "PERCENT" : "RATIO");
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, widget_kis_format ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
+                        widget_kis_format ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            widget_kis_format ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(4));
 
     // Level time
     sprintf(str, widget_time == 1 ? "ALWAYS"  :
                  widget_time == 2 ? "AUTOMAP" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, widget_time ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+                        widget_time ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            widget_time ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(5));
 
     // Total time
     sprintf(str, widget_totaltime == 1 ? "ALWAYS"  :
                  widget_totaltime == 2 ? "AUTOMAP" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, widget_totaltime ? GLOW_GREEN : GLOW_DARKRED));
-
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                        widget_totaltime ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            widget_totaltime ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(6));
     // Level name
     sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, widget_levelname ? GLOW_GREEN : GLOW_DARKRED));
-
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+                        widget_levelname ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            widget_levelname ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
     // Player coords
     sprintf(str, widget_coords == 1 ? "ALWAYS"  :
                  widget_coords == 2 ? "AUTOMAP" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, widget_coords ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
+                        widget_coords ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            widget_coords ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(8));
 
     // Rendering counters
     sprintf(str, widget_render ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, widget_render ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+                        widget_render ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            widget_render ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(9));
 
     // Target's health
     sprintf(str, widget_health == 1 ? "TOP" :
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, widget_health ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+                        widget_health ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            widget_health ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(10));
 }
 
 static void M_ID_Widget_Colors (int choice)
@@ -3542,46 +3453,64 @@ static void M_Draw_ID_Automap (void)
                  automap_scheme == 2 ? "REMASTER" :
                  automap_scheme == 3 ? "JAGUAR" :
                                        "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, automap_scheme ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        automap_scheme ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_scheme ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(0));
 
     // Line smoothing
     sprintf(str, automap_smooth ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, automap_smooth ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                        automap_smooth ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_smooth ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Line thickness
     sprintf(str, "%s", thickness[automap_thick]);
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, automap_thick ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+                        automap_thick ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_thick ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(2));
 
     // Square aspect ratio
     sprintf(str, automap_square ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, automap_square ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
+                        automap_square ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_square ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(3));
 
     // Mark secret sectors
     sprintf(str, automap_secrets == 1 ? "REVEALED" :
                  automap_secrets == 2 ? "ALWAYS" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, automap_secrets ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
+                        automap_secrets ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_secrets ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(4));
 
     // Rotate mode
     sprintf(str, automap_rotate ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, automap_rotate ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+                        automap_rotate ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_rotate ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(5));
 
     // Overlay mode
     sprintf(str, automap_overlay ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, automap_overlay ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                        automap_overlay ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_overlay ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // Overlay shading level
     sprintf(str,"%d", automap_shading);
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, !automap_overlay ? GLOW_DARKRED :
-                                 automap_shading ==  0 ? GLOW_RED :
-                                 automap_shading == 12 ? GLOW_YELLOW : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+                        !automap_overlay ? cr[CR_DARKRED] :
+                         automap_shading ==  0 ? cr[CR_RED] :
+                         automap_shading == 12 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                            !automap_overlay ? cr[CR_RED_BRIGHT5] :
+                             automap_shading ==  0 ? cr[CR_RED_BRIGHT5] :
+                             automap_shading == 12 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(7));
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3664,67 +3593,83 @@ static void M_Draw_ID_Gameplay_1 (void)
 
     // Brightmaps
     sprintf(str, vis_brightmaps ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, vis_brightmaps ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        vis_brightmaps ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_brightmaps ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(0));
 
     // Translucency
     sprintf(str, vis_translucency == 1 ? "ADDITIVE" :
                  vis_translucency == 2 ? "BLENDING" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, vis_translucency ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                        vis_translucency ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_translucency ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Fake contrast
     sprintf(str, vis_fake_contrast ? "ORIGINAL" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, vis_fake_contrast ? GLOW_DARKRED : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+                        vis_fake_contrast ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            vis_fake_contrast ? cr[CR_RED_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(2));
 
     // Diminished lighting
     sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, vis_smooth_light ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
+                        vis_smooth_light ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_smooth_light ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(3));
 
     // Palette fading effect
-#ifndef CRISPY_TRUECOLOR
-    sprintf(str, "N/A");
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, GLOW_DARKRED));
-#else
     sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, vis_smooth_palette ? GLOW_GREEN : GLOW_DARKRED));
-#endif
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
+                        vis_smooth_palette ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_smooth_palette ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(4));
 
     // Fuzz effect
     sprintf(str, vis_improved_fuzz == 1 ? "IMPROVED" :
                  vis_improved_fuzz == 2 ? "TRANSLUCENT" :
                  vis_improved_fuzz == 3 ? "GRAYSCALE" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, vis_improved_fuzz ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+                        vis_improved_fuzz ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_improved_fuzz ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(5));
 
     // Colored blood and corpses
     sprintf(str, vis_colored_blood ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, vis_colored_blood ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                        vis_colored_blood ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_colored_blood ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // Liquids animation
     sprintf(str, vis_swirling_liquids ? "IMPROVED" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, vis_swirling_liquids ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+                        vis_swirling_liquids ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_swirling_liquids ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
 
     // Invulnerability affects sky
     sprintf(str, vis_invul_sky ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, vis_invul_sky ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
+                        vis_invul_sky ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_invul_sky ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(8));
 
     // Sky drawing mode
     sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, vis_linear_sky ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+                        vis_linear_sky ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_linear_sky ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(9));
 
     // Randomly mirrored corpses
     sprintf(str, vis_flip_corpses ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, vis_flip_corpses ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+                        vis_flip_corpses ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            vis_flip_corpses ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(10));
 
     M_WriteTextCentered(117, "CROSSHAIR", cr[CR_YELLOW]);
 
@@ -3736,16 +3681,19 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_draw == 5 ? "ANGLE" :
                  xhair_draw == 6 ? "TRIANGLE" :
                  xhair_draw == 7 ? "DOT" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, xhair_draw ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
+                        xhair_draw ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            xhair_draw ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(12));
 
     // Crosshair indication
     sprintf(str, xhair_color == 1 ? "HEALTH" :
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
                  xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
-    M_WriteText (M_ItemRightAlign(str), 135, str,
-                 M_Item_Glow(13, xhair_color ? GLOW_GREEN : GLOW_DARKRED));
-
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+                        xhair_color ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            xhair_color ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(13));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "1/3");
@@ -3884,76 +3832,102 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     // Full screen layout
     sprintf(str, st_fullscreen_layout == 1 ? "REMASTER" :
-                 st_fullscreen_layout == 2 ? "DOOM 64"  : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, st_fullscreen_layout ? GLOW_GREEN : GLOW_DARKRED));
+                 st_fullscreen_layout == 2 ? "D64"  : "ORIGINAL");
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        st_fullscreen_layout ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            st_fullscreen_layout ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(0));
 
     // Colored elements
     sprintf(str, st_colored_stbar ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, st_colored_stbar ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                        st_colored_stbar ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            st_colored_stbar ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Show negative health
     sprintf(str, st_negative_health ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, st_negative_health ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+                        st_negative_health ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            st_negative_health ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(2));
 
     // Blink missing keys
     sprintf(str, st_blinking_keys ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, st_blinking_keys ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
+                        st_blinking_keys ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            st_blinking_keys ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(3));
 
     M_WriteTextCentered(54, "AUDIBLE", cr[CR_YELLOW]);
 
     // Sfx attenuation axises
     sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, aud_z_axis_sfx ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+                        aud_z_axis_sfx ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            aud_z_axis_sfx ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(5));
 
     // Play sounds in full length
     sprintf(str, aud_full_sounds ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, aud_full_sounds ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                        aud_full_sounds ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            aud_full_sounds ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // Sound of crushed corpse
     sprintf(str, aud_crushed_corpse ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, aud_crushed_corpse ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+                        aud_crushed_corpse ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            aud_crushed_corpse ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
 
     M_WriteTextCentered(90, "PHYSICAL", cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, phys_torque ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+                        phys_torque ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            phys_torque ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(9));
 
     // Point-blank SSG tear monsters
     sprintf(str, phys_ssg_tear_monsters ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, phys_ssg_tear_monsters ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+                        phys_ssg_tear_monsters ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            phys_ssg_tear_monsters ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(10));
 
     // Items are tossed when dropped
     sprintf(str, phys_toss_drop ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(11, phys_toss_drop ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+                        phys_toss_drop ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            phys_toss_drop ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(11));
 
     // Floating powerups amplitude
     sprintf(str, phys_floating_powerups == 1 ? "LOW" :
                  phys_floating_powerups == 2 ? "MIDDLE" :
                  phys_floating_powerups == 3 ? "HIGH" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, phys_floating_powerups ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
+                        phys_floating_powerups ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            phys_floating_powerups ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(12));
 
     // Weapon attack alignment
     sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
                  phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
-    M_WriteText (M_ItemRightAlign(str), 135, str,
-                 M_Item_Glow(13, phys_weapon_alignment ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+                        phys_weapon_alignment ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            phys_weapon_alignment ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(13));
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 144, str,
-                 M_Item_Glow(14, phys_breathing ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
+                        phys_breathing ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            phys_breathing ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(14));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "2/3");
@@ -4074,29 +4048,47 @@ static void M_Draw_ID_Gameplay_3 (void)
     char str[32];
     Gameplay_Cur = 2;
 
+    const char *const DefSkillName[5] = { "IMTYTD", "HNTR", "HMP", "UV" , "NM" };
+
     M_WriteTextCentered(9, "GAMEPLAY", cr[CR_YELLOW]);
 
     // Default skill level
     DEH_snprintf(str, sizeof(str), "%s", DefSkillName[gp_default_skill]);
-    M_WriteText (M_ItemRightAlign(str), 18, str, 
-                 M_Item_Glow(0, DefSkillColor(gp_default_skill)));
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        gp_default_skill == 0 ? cr[CR_OLIVE] :
+                        gp_default_skill == 1 ? cr[CR_DARKGREEN] :
+                        gp_default_skill == 2 ? cr[CR_GREEN] :
+                        gp_default_skill == 3 ? cr[CR_YELLOW] :
+                        gp_default_skill == 4 ? cr[CR_ORANGE] : cr[CR_RED],
+                            gp_default_skill == 0 ? cr[CR_OLIVE_BRIGHT5] :
+                            gp_default_skill == 1 ? cr[CR_DARKGREEN_BRIGHT5] :
+                            gp_default_skill == 2 ? cr[CR_GREEN_BRIGHT5] :
+                            gp_default_skill == 3 ? cr[CR_YELLOW_BRIGHT5] :
+                            gp_default_skill == 4 ? cr[CR_ORANGE_BRIGHT5] : cr[CR_RED_BRIGHT5],    
+                                LINE_ALPHA(0));
 
     // Report revealed secrets
     sprintf(str, gp_revealed_secrets == 1 ? "TOP" :
                  gp_revealed_secrets == 2 ? "CENTERED" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, gp_revealed_secrets ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                        gp_revealed_secrets ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            gp_revealed_secrets ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Flip levels horizontally
     sprintf(str, gp_flip_levels ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, gp_flip_levels ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+                        gp_flip_levels ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            gp_flip_levels ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(2));
 
     // On death action
     sprintf(str, gp_death_use_action == 1 ? "LAST SAVE" :
                  gp_death_use_action == 2 ? "NOTHING" : "DEFAULT");
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, gp_death_use_action ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
+                        gp_death_use_action ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            gp_death_use_action ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(3));
 
     M_WriteTextCentered(54, "DEMOS", cr[CR_YELLOW]);
 
@@ -4104,41 +4096,55 @@ static void M_Draw_ID_Gameplay_3 (void)
     sprintf(str, demo_timer == 1 ? "PLAYBACK" : 
                  demo_timer == 2 ? "RECORDING" : 
                  demo_timer == 3 ? "ALWAYS" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 63, str,
-                 M_Item_Glow(5, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+                        demo_timer ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            demo_timer ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(5));
 
     // Timer direction
     sprintf(str, demo_timerdir ? "BACKWARD" : "FORWARD");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, demo_timer ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                        demo_timer ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            demo_timer ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // Progress bar
     sprintf(str, demo_bar ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, demo_bar ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+                        demo_bar ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            demo_bar ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
 
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 90, str,
-                 M_Item_Glow(8, demo_internal ? GLOW_DARKRED : GLOW_GREEN));
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
+                        demo_internal ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            demo_internal ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(8));
 
     M_WriteTextCentered(99, "COMPATIBILITY-BREAKING", cr[CR_YELLOW]);
 
     // Pistol start game mode
     sprintf(str, compat_pistol_start ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 108, str,
-                 M_Item_Glow(10, compat_pistol_start ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+                        compat_pistol_start ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            compat_pistol_start ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(10));
 
     // Improved hit detection
     sprintf(str, compat_blockmap_fix ? "ON" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 117, str,
-                 M_Item_Glow(11, compat_blockmap_fix ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+                        compat_blockmap_fix ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            compat_blockmap_fix ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(11));
 
     // Vertical aiming
     sprintf(str, compat_vertical_aiming == 1 ? "DIRECT" :
                  compat_vertical_aiming == 2 ? "BOTH" : "AUTOAIM");
-    M_WriteText (M_ItemRightAlign(str), 126, str,
-                 M_Item_Glow(12, compat_vertical_aiming ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
+                        compat_vertical_aiming ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            compat_vertical_aiming ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(12));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "3/3");
@@ -4279,64 +4285,89 @@ static void M_Draw_ID_Misc (void)
 
     // Invulnerability effect
     sprintf(str, a11y_invul ? "GRAYSCALE" : "DEFAULT");
-    M_WriteText (M_ItemRightAlign(str), 18, str,
-                 M_Item_Glow(0, a11y_invul ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        a11y_invul ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            a11y_invul ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(0));
 
     // Palette flash effects
     sprintf(str, a11y_pal_flash == 1 ? "HALVED" :
                  a11y_pal_flash == 2 ? "QUARTERED" :
                  a11y_pal_flash == 3 ? "OFF" : "DEFAULT");
-    M_WriteText (M_ItemRightAlign(str), 27, str,
-                 M_Item_Glow(1, a11y_pal_flash == 1 ? GLOW_YELLOW :
-                                a11y_pal_flash == 2 ? GLOW_ORANGE : 
-                                a11y_pal_flash == 3 ? GLOW_RED : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                        a11y_pal_flash == 1 ? cr[CR_YELLOW] :
+                        a11y_pal_flash == 2 ? cr[CR_ORANGE] :
+                        a11y_pal_flash == 2 ? cr[CR_RED] : cr[CR_DARKRED],
+                            a11y_pal_flash == 1 ? cr[CR_YELLOW_BRIGHT5] :
+                            a11y_pal_flash == 2 ? cr[CR_ORANGE_BRIGHT5] :
+                            a11y_pal_flash == 2 ? cr[CR_RED_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Movement bobbing
     sprintf(str, "%s", bobpercent[a11y_move_bob]);
-    M_WriteText (M_ItemRightAlign(str), 36, str,
-                 M_Item_Glow(2, a11y_move_bob == 20 ? GLOW_DARKRED :
-                                a11y_move_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+                        a11y_move_bob == 20 ? cr[CR_DARKRED] :
+                        a11y_move_bob ==  0 ? cr[CR_RED] : cr[CR_YELLOW],
+                            a11y_move_bob == 20 ? cr[CR_RED_BRIGHT5] :
+                            a11y_move_bob ==  0 ? cr[CR_RED_BRIGHT5] : cr[CR_YELLOW_BRIGHT5],
+                                LINE_ALPHA(2));
 
     // Weapon bobbing
     sprintf(str, "%s", bobpercent[a11y_weapon_bob]);
-    M_WriteText (M_ItemRightAlign(str), 45, str,
-                 M_Item_Glow(3, a11y_weapon_bob == 20 ? GLOW_DARKRED :
-                                a11y_weapon_bob ==  0 ? GLOW_RED : GLOW_YELLOW));
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
+                        a11y_weapon_bob == 20 ? cr[CR_DARKRED] :
+                        a11y_weapon_bob ==  0 ? cr[CR_RED] : cr[CR_YELLOW],
+                            a11y_weapon_bob == 20 ? cr[CR_RED_BRIGHT5] :
+                            a11y_weapon_bob ==  0 ? cr[CR_RED_BRIGHT5] : cr[CR_YELLOW_BRIGHT5],
+                                LINE_ALPHA(3));
 
     // Colorblind filter
     sprintf(str, "%s", colorblind_name[a11y_colorblind]);
-    M_WriteText (M_ItemRightAlign(str), 54, str,
-                 M_Item_Glow(4, a11y_colorblind ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
+                        a11y_colorblind ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            a11y_colorblind ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(4));
 
     M_WriteTextCentered(63, "AUTOLOAD", cr[CR_YELLOW]);
 
     // Autoload WAD files
     sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
                  autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 72, str,
-                 M_Item_Glow(6, autoload_wad == 1 ? GLOW_YELLOW :
-                                autoload_wad == 2 ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                        autoload_wad == 1 ? cr[CR_YELLOW] :
+                        autoload_wad == 2 ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            autoload_wad == 1 ? cr[CR_YELLOW_BRIGHT5] :
+                            autoload_wad == 2 ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // Autoload DEH patches
     sprintf(str, autoload_deh == 1 ? "IWAD ONLY" :
                  autoload_deh == 2 ? "IWAD AND PWAD" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 81, str,
-                 M_Item_Glow(7, autoload_deh == 1 ? GLOW_YELLOW :
-                                autoload_deh == 2 ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+                        autoload_deh == 1 ? cr[CR_YELLOW] :
+                        autoload_deh == 2 ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            autoload_deh == 1 ? cr[CR_YELLOW_BRIGHT5] :
+                            autoload_deh == 2 ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
 
     M_WriteTextCentered(90, "MENU SETTINGS", cr[CR_YELLOW]);
 
     // Highlighting effect
     sprintf(str, menu_highlight == 1 ? "ANIMATED" :
                  menu_highlight == 2 ? "STATIC" : "OFF");
-    M_WriteText (M_ItemRightAlign(str), 99, str,
-                 M_Item_Glow(9, menu_highlight == 1 ? GLOW_GREEN :
-                                menu_highlight == 2 ? GLOW_YELLOW : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+                        menu_highlight == 1 ? cr[CR_GREEN] :
+                        menu_highlight == 2 ? cr[CR_YELLOW] : cr[CR_DARKRED],
+                            menu_highlight == 1 ? cr[CR_GREEN_BRIGHT5] :
+                            menu_highlight == 2 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(9));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    M_WriteText (M_ItemRightAlign(str), 107, str,
-                 M_Item_Glow(10, menu_esc_key ? GLOW_GREEN : GLOW_DARKRED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 107, str,
+                        menu_esc_key ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            menu_esc_key ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(10));
 
     // [PN] Added explanations for colorblind filters
     if (itemOn == 4)
@@ -4485,6 +4516,7 @@ static void M_Choose_ID_Level (int choice)
 static void M_Draw_ID_Level_1 (void)
 {
     char str[32];
+    const char *const DefSkillName[5] = { "IMTYTD", "HNTR", "HMP", "UV", "NM" };
 
     st_fullupdate = true;
 
@@ -4494,90 +4526,132 @@ static void M_Draw_ID_Level_1 (void)
 
     // Skill level
     sprintf(str, "%s", DefSkillName[level_select[0]]);
-    M_WriteText (M_ItemRightAlign(str), 25, str,
-                 M_Item_Glow(0, DefSkillColor(level_select[0])));
+    M_WriteTextGlow(M_ItemRightAlign(str), 25, str,
+                        level_select[0] == 0 ? cr[CR_OLIVE] :
+                        level_select[0] == 1 ? cr[CR_DARKGREEN] :
+                        level_select[0] == 2 ? cr[CR_GREEN] :
+                        level_select[0] == 3 ? cr[CR_YELLOW] :
+                        level_select[0] == 4 ? cr[CR_ORANGE] : cr[CR_RED],
+                            level_select[0] == 0 ? cr[CR_OLIVE_BRIGHT5] :
+                            level_select[0] == 1 ? cr[CR_DARKGREEN_BRIGHT5] :
+                            level_select[0] == 2 ? cr[CR_GREEN_BRIGHT5] :
+                            level_select[0] == 3 ? cr[CR_YELLOW_BRIGHT5] :
+                            level_select[0] == 4 ? cr[CR_ORANGE_BRIGHT5] : cr[CR_RED_BRIGHT5],    
+                                LINE_ALPHA(0));
 
     // Episode
     sprintf(str, gamemode == shareware ? "1" :
                  gamemode == commercial ? "N/A" : "%d",
                  level_select[1]);
-    M_WriteText (M_ItemRightAlign(str), 34, str,
-                 M_Item_Glow(1, gamemode == shareware || gamemode == commercial ?
-                             GLOW_DARKRED : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 34, str,
+                        gamemode == shareware || gamemode == commercial ? cr[CR_DARKRED] : cr[CR_RED],
+                            gamemode == shareware || gamemode == commercial ? cr[CR_RED_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(1));
 
     // Map
     sprintf(str, "%d", level_select[2]);
-    M_WriteText (M_ItemRightAlign(str), 43, str,
-                 M_Item_Glow(2, GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 43, str,
+                        cr[CR_RED],
+                            cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(2));
 
     M_WriteTextCentered(52, "PLAYER", cr[CR_YELLOW]);
 
     // Health
     sprintf(str, "%d", level_select[3]);
-    M_WriteText (M_ItemRightAlign(str), 61, str,
-                 M_Item_Glow(4, level_select[3] >  100 ? GLOW_BLUE   :
-                                level_select[3] >=  67 ? GLOW_GREEN  : 
-                                level_select[3] >=  34 ? GLOW_YELLOW : 
-                                                         GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 61, str,
+                        level_select[3] >  100 ? cr[CR_BLUE2] :
+                        level_select[3] >=  67 ? cr[CR_GREEN] :
+                        level_select[3] >=  34 ? cr[CR_YELLOW] : cr[CR_RED],
+                            level_select[3] >  100 ? cr[CR_BLUE2_BRIGHT5] :
+                            level_select[3] >=  67 ? cr[CR_GREEN_BRIGHT5] :
+                            level_select[3] >=  34 ? cr[CR_YELLOW_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(4));
 
     // Armor
     sprintf(str, "%d", level_select[4]);
-    M_WriteText (M_ItemRightAlign(str), 70, str,
-                 M_Item_Glow(5, level_select[4] == 0 ? GLOW_RED :
-                                level_select[5] == 1 ? GLOW_GREEN : GLOW_BLUE));
+    M_WriteTextGlow(M_ItemRightAlign(str), 70, str,
+                        level_select[4] == 0 ? cr[CR_RED] :
+                        level_select[5] == 1 ? cr[CR_GREEN] : cr[CR_BLUE2],
+                            level_select[4] == 0 ? cr[CR_RED_BRIGHT5] :
+                            level_select[5] == 1 ? cr[CR_GREEN_BRIGHT5] : cr[CR_BLUE2_BRIGHT5],
+                                LINE_ALPHA(5));
 
     // Armor type
     sprintf(str, "%d", level_select[5]);
-    M_WriteText (M_ItemRightAlign(str), 79, str,
-                 M_Item_Glow(6, level_select[5] == 1 ? GLOW_GREEN : GLOW_BLUE));
+    M_WriteTextGlow(M_ItemRightAlign(str), 79, str,
+                        level_select[5] == 1 ? cr[CR_GREEN] : cr[CR_BLUE2],
+                            level_select[5] == 1 ? cr[CR_GREEN_BRIGHT5] : cr[CR_BLUE2_BRIGHT5],
+                                LINE_ALPHA(6));
 
     M_WriteTextCentered(88, "WEAPONS", cr[CR_YELLOW]);
 
     // Chainsaw
     sprintf(str, level_select[6] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 97, str,
-                 M_Item_Glow(8, level_select[6] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 97, str,
+                        level_select[6] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[6] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(8));
 
     // Shotgun
     sprintf(str, level_select[7] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 106, str,
-                 M_Item_Glow(9, level_select[7] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 106, str,
+                        level_select[7] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[7] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(9));
 
     // Super Shotgun
     sprintf(str, gamemode != commercial ? "N/A" : 
                  level_select[8] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 115, str,
-                 M_Item_Glow(10, gamemode != commercial ? GLOW_DARKRED :
-                                 level_select[8] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 115, str,
+                        gamemode != commercial ? cr[CR_DARKRED] :
+                        level_select[8] ? cr[CR_GREEN] : cr[CR_RED],
+                            gamemode != commercial ? cr[CR_RED_BRIGHT5] :
+                            level_select[8] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],                        
+                                LINE_ALPHA(10));
 
     // Chaingun
     sprintf(str, level_select[9] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 124, str,
-                 M_Item_Glow(11, level_select[9] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 124, str,
+                        level_select[9] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[9] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(11));
 
     // Rocket Launcher
     sprintf(str, level_select[10] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 133, str,
-                 M_Item_Glow(12, level_select[10] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 133, str,
+                        level_select[10] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[10] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(12));
 
     // Plasma Rifle
     sprintf(str, gamemode == shareware ? "N/A" :
                  level_select[11] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 142, str,
-                 M_Item_Glow(13, gamemode == shareware ? GLOW_DARKRED :
-                                 level_select[11] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 142, str,
+                        gamemode == shareware ? cr[CR_DARKRED] :
+                        level_select[11] ? cr[CR_GREEN] : cr[CR_RED],
+                            gamemode == shareware ? cr[CR_RED_BRIGHT5] :
+                            level_select[11] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],                        
+                                LINE_ALPHA(13));
 
     // BFG 9000
     sprintf(str, gamemode == shareware ? "N/A" :
                  level_select[12] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 151, str,
-                 M_Item_Glow(14, gamemode == shareware ? GLOW_DARKRED :
-                                 level_select[12] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 151, str,
+                        gamemode == shareware ? cr[CR_DARKRED] :
+                        level_select[12] ? cr[CR_GREEN] : cr[CR_RED],
+                            gamemode == shareware ? cr[CR_RED_BRIGHT5] :
+                            level_select[12] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],                        
+                                LINE_ALPHA(14));
 
-    M_WriteText (ID_MENU_LEFTOFFSET_LEVEL, 169, "NEXT PAGE >",
-                 M_Item_Glow(16, GLOW_LIGHTGRAY));
-    M_WriteText (ID_MENU_LEFTOFFSET_LEVEL, 178, "START GAME",
-                 M_Item_Glow(17, GLOW_LIGHTGRAY));
+    M_WriteTextGlow(ID_MENU_LEFTOFFSET_LEVEL, 169, "NEXT PAGE >",
+                        cr[CR_LIGHTGRAY],
+                            cr[CR_LIGHTGRAY_BRIGHT5],
+                                LINE_ALPHA(16));
+    M_WriteTextGlow(ID_MENU_LEFTOFFSET_LEVEL, 178, "START GAME",
+                        cr[CR_LIGHTGRAY],
+                            cr[CR_LIGHTGRAY_BRIGHT5],
+                                LINE_ALPHA(17));
 }
 
 static void M_ID_LevelSkill (int choice)
@@ -4707,85 +4781,123 @@ static void M_Draw_ID_Level_2 (void)
 
     // Backpack
     sprintf(str, level_select[13] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 25, str,
-                 M_Item_Glow(0, level_select[13] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 25, str,
+                        level_select[13] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[13] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(0));
 
     // Bullets
     sprintf(str, "%d", level_select[14]);
-    M_WriteText (M_ItemRightAlign(str), 34, str,
-                 M_Item_Glow(1, level_select[14]  < 200 / 4 ? GLOW_RED    :
-                                level_select[14]  < 200 / 2 ? GLOW_YELLOW :
-                                level_select[14] <= 200     ? GLOW_GREEN  : GLOW_BLUE));
+    M_WriteTextGlow(M_ItemRightAlign(str), 34, str,
+                        level_select[14]  < 200 / 4 ? cr[CR_RED] :
+                        level_select[14]  < 200 / 2 ? cr[CR_YELLOW] :
+                        level_select[14] <= 200     ? cr[CR_GREEN] : cr[CR_BLUE2],
+                            level_select[14]  < 200 / 4 ? cr[CR_RED_BRIGHT5] :
+                            level_select[14]  < 200 / 2 ? cr[CR_YELLOW_BRIGHT5] :
+                            level_select[14] <= 200     ? cr[CR_GREEN_BRIGHT5] : cr[CR_BLUE2_BRIGHT5],    
+                                LINE_ALPHA(1));
 
     // Shells
     sprintf(str, "%d", level_select[15]);
-    M_WriteText (M_ItemRightAlign(str), 43, str,
-                 M_Item_Glow(2, level_select[15]  < 50 / 4 ? GLOW_RED    :
-                                level_select[15]  < 50 / 2 ? GLOW_YELLOW :
-                                level_select[15] <= 50     ? GLOW_GREEN  : GLOW_BLUE));
+    M_WriteTextGlow(M_ItemRightAlign(str), 43, str,
+                        level_select[15]  < 50 / 4 ? cr[CR_RED] :
+                        level_select[15]  < 50 / 2 ? cr[CR_YELLOW] :
+                        level_select[15] <= 50     ? cr[CR_GREEN] : cr[CR_BLUE2],
+                            level_select[15]  < 50 / 4 ? cr[CR_RED_BRIGHT5] :
+                            level_select[15]  < 50 / 2 ? cr[CR_YELLOW_BRIGHT5] :
+                            level_select[15] <= 50     ? cr[CR_GREEN_BRIGHT5] : cr[CR_BLUE2_BRIGHT5],
+                                LINE_ALPHA(2));
 
     // Rockets
     sprintf(str, "%d", level_select[16]);
-    M_WriteText (M_ItemRightAlign(str), 52, str,
-                 M_Item_Glow(3, level_select[16]  < 50 / 4 ? GLOW_RED    :
-                                level_select[16]  < 50 / 2 ? GLOW_YELLOW :
-                                level_select[16] <= 50     ? GLOW_GREEN  : GLOW_BLUE));
+    M_WriteTextGlow(M_ItemRightAlign(str), 52, str,
+                        level_select[16]  < 50 / 4 ? cr[CR_RED] :
+                        level_select[16]  < 50 / 2 ? cr[CR_YELLOW] :
+                        level_select[16] <= 50     ? cr[CR_GREEN] : cr[CR_BLUE2],
+                            level_select[16]  < 50 / 4 ? cr[CR_RED_BRIGHT5] :
+                            level_select[16]  < 50 / 2 ? cr[CR_YELLOW_BRIGHT5] :
+                            level_select[16] <= 50     ? cr[CR_GREEN_BRIGHT5] : cr[CR_BLUE2_BRIGHT5],
+                                LINE_ALPHA(3));
 
     // Cells
     sprintf(str, "%d", level_select[17]);
-    M_WriteText (M_ItemRightAlign(str), 61, str,
-                 M_Item_Glow(4, level_select[17]  < 300 / 4 ? GLOW_RED    :
-                                level_select[17]  < 300 / 2 ? GLOW_YELLOW :
-                                level_select[17] <= 300     ? GLOW_GREEN  : GLOW_BLUE));
+    M_WriteTextGlow(M_ItemRightAlign(str), 61, str,
+                        level_select[17]  < 300 / 4 ? cr[CR_RED] :
+                        level_select[17]  < 300 / 2 ? cr[CR_YELLOW] :
+                        level_select[17] <= 300     ? cr[CR_GREEN] : cr[CR_BLUE2],
+                            level_select[17]  < 300 / 4 ? cr[CR_RED_BRIGHT5] :
+                            level_select[17]  < 300 / 2 ? cr[CR_YELLOW_BRIGHT5] :
+                            level_select[17] <= 300     ? cr[CR_GREEN_BRIGHT5] : cr[CR_BLUE2_BRIGHT5],
+                                LINE_ALPHA(4));
 
     M_WriteTextCentered(70, "KEYS", cr[CR_YELLOW]);
 
     // Blue keycard
     sprintf(str, level_select[18] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 79, str,
-                 M_Item_Glow(6, level_select[18] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 79, str,
+                        level_select[18] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[18] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(6));
 
     // Yellow keycard
     sprintf(str, level_select[19] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 88, str,
-                 M_Item_Glow(7, level_select[19] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 88, str,
+                        level_select[19] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[19] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(7));
 
     // Red keycard
     sprintf(str, level_select[20] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 97, str,
-                 M_Item_Glow(8, level_select[20] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 97, str,
+                        level_select[20] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[20] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(8));
 
     // Blue skull key
     sprintf(str, level_select[21] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 106, str,
-                 M_Item_Glow(9, level_select[21] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 106, str,
+                        level_select[21] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[21] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(9));
 
     // Yellow skull key
     sprintf(str, level_select[22] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 115, str,
-                 M_Item_Glow(10, level_select[22] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 115, str,
+                        level_select[22] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[22] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(10));
 
     // Red skull key
     sprintf(str, level_select[23] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 124, str,
-                 M_Item_Glow(11, level_select[23] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 124, str,
+                        level_select[23] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[23] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(11));
 
     M_WriteTextCentered(133, "EXTRA", cr[CR_YELLOW]);
 
     // Fast monsters
     sprintf(str, level_select[24] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 142, str,
-                 M_Item_Glow(13, level_select[24] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 142, str,
+                        level_select[24] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[24] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(13));
 
     // Respawning monsters
     sprintf(str, level_select[25] ? "YES" : "NO");
-    M_WriteText (M_ItemRightAlign(str), 151, str,
-                 M_Item_Glow(14, level_select[25] ? GLOW_GREEN : GLOW_RED));
+    M_WriteTextGlow(M_ItemRightAlign(str), 151, str,
+                        level_select[25] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[25] ? cr[CR_GREEN_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(14));
 
-    M_WriteText (ID_MENU_LEFTOFFSET_LEVEL, 169, "< PREV PAGE",
-                 M_Item_Glow(16, GLOW_LIGHTGRAY));
-    M_WriteText (ID_MENU_LEFTOFFSET_LEVEL, 178, "START GAME",
-                 M_Item_Glow(17, GLOW_LIGHTGRAY));
+    M_WriteTextGlow(ID_MENU_LEFTOFFSET_LEVEL, 169, "NEXT PAGE >",
+                        cr[CR_LIGHTGRAY],
+                            cr[CR_LIGHTGRAY_BRIGHT5],
+                                LINE_ALPHA(16));
+    M_WriteTextGlow(ID_MENU_LEFTOFFSET_LEVEL, 178, "START GAME",
+                        cr[CR_LIGHTGRAY],
+                            cr[CR_LIGHTGRAY_BRIGHT5],
+                                LINE_ALPHA(17));
 }
 
 static void M_ID_LevelBackpack (int choice)
@@ -5171,17 +5283,20 @@ static void M_DrawSaveLoadBottomLine (void)
 //
 static void M_DrawLoad(void)
 {
-    int             i;
-	
     V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_LOADG"), PU_CACHE));
 
-    for (i = 0;i < load_end; i++)
+    for (int i = 0;i < load_end; i++)
     {
-	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
-	dp_translation = M_SaveLoad_Glow(itemOn == i, 0, saveload_border);
-	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i], 
-	            M_SaveLoad_Glow(itemOn == i, currentMenu->menuitems[i].tics, saveload_text));
+        // [JN] Highlight selected item (itemOn == i) or apply fading effect.
+        //dp_translation = M_SaveLoad_Glow(itemOn == i, 0, saveload_border);
+        dp_translation = (itemOn == i) ? cr[CR_MENU_BRIGHT2] : NULL;
+        M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
+        dp_translation = false;
+
+        M_WriteTextGlow(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i],
+                            NULL,
+                                (itemOn == i) ? cr[CR_MENU_BRIGHT5] : NULL, 
+                                    LINE_ALPHA(i));
     }
 
     M_DrawSaveLoadBottomLine();
@@ -5248,23 +5363,29 @@ static void M_LoadGame (int choice)
 //
 static void M_DrawSave(void)
 {
-    int             i;
-	
+    int i;
+
     V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_SAVEG"), PU_CACHE));
-    for (i = 0;i < load_end; i++)
+
+    for (i = 0; i < load_end; i++)
     {
-	// [JN] Highlight selected item (itemOn == i) or apply fading effect.
-	dp_translation = M_SaveLoad_Glow(itemOn == i, 0, saveload_border);
-	M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-	M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i],
-	            M_SaveLoad_Glow(itemOn == i, currentMenu->menuitems[i].tics, saveload_text));
+        // [JN] Highlight selected item (itemOn == i) or apply fading effect.
+        //dp_translation = M_SaveLoad_Glow(itemOn == i, 0, saveload_border);
+        dp_translation = (itemOn == i) ? cr[CR_MENU_BRIGHT2] : NULL;
+        M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
+        dp_translation = false;
+
+        M_WriteTextGlow(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i],
+                            NULL,
+                                (itemOn == i) ? cr[CR_MENU_BRIGHT5] : NULL, 
+                                    LINE_ALPHA(i));
     }
-	
+
     if (saveStringEnter)
     {
 	i = M_StringWidth(savegamestrings[saveSlot]);
 	// [JN] Highlight "_" cursor, line is always active while typing.
-	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", M_SaveLoad_Glow(0, 0, saveload_cursor));
+	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", cr[CR_MENU_BRIGHT5]);
 	// [JN] Forcefully hide the mouse cursor while typing.
 	menu_mouse_allow = false;
     }
@@ -5488,12 +5609,18 @@ static void M_DrawSound(void)
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (sfx_vol + 1), 16, sfxVolume, 0);
     M_ID_HandleSliderMouseControl(86, 80, 132, &sfxVolume, false, 0, 15);
     sprintf(str,"%d", sfxVolume);
-    M_WriteText (226, 83, str, M_Item_Glow(0, sfxVolume ? GLOW_UNCOLORED : GLOW_DARKRED));
+    M_WriteTextGlow(226, 83, str,
+                        sfxVolume ? NULL : cr[CR_DARKRED],
+                            sfxVolume ? cr[CR_MENU_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(0));
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (music_vol + 1), 16, musicVolume, 2);
     M_ID_HandleSliderMouseControl(86, 112, 132, &musicVolume, false, 0, 15);
     sprintf(str,"%d", musicVolume);
-    M_WriteText (226, 115, str, M_Item_Glow(2, musicVolume ? GLOW_UNCOLORED : GLOW_DARKRED));
+    M_WriteTextGlow(226, 115, str,
+                        musicVolume ? NULL : cr[CR_DARKRED],
+                            musicVolume ? cr[CR_MENU_BRIGHT5] : cr[CR_RED_BRIGHT5],
+                                LINE_ALPHA(2));
 }
 
 static void M_SfxVol (int choice)
@@ -5781,7 +5908,7 @@ M_DrawThermo
     int		i;
 
     // [JN] Highlight active slider and gem.
-    dp_translation = M_SaveLoad_Glow(itemPos == itemOn, 0, saveload_slider);
+    dp_translation = (itemPos == itemOn) ? cr[CR_MENU_BRIGHT2] : NULL;
 
     xx = x;
     V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERML"), PU_CACHE));
@@ -6047,6 +6174,68 @@ void M_WriteTextCentered (const int y, const char *string, byte *table)
         cx += w;
     }
     
+    dp_translation = NULL;
+}
+
+// -----------------------------------------------------------------------------
+// M_WriteTextGlow
+// Write a string using the hu_font, with glowing effect.
+// -----------------------------------------------------------------------------
+
+void M_WriteTextGlow (int x, int y, const char *string, byte *table1, byte *table2, int alpha)
+{
+    const char*	ch;
+    int w, c, cx, cy;
+
+    ch = string;
+    cx = x;
+    cy = y;
+
+    while (ch)
+    {
+        c = *ch++;
+
+        if (!c)
+        {
+            break;
+        }
+
+        if (c == '\n')
+        {
+            cx = x;
+            cy += 12;
+            continue;
+        }
+
+        c = toupper(c) - HU_FONTSTART;
+
+        if (c < 0 || c >= HU_FONTSIZE)
+        {
+            cx += 4;
+            continue;
+        }
+
+        w = SHORT (hu_font[c]->width);
+
+        if (cx + w > SCREENWIDTH)
+        {
+            break;
+        }
+
+        // Base patch
+        dp_translation = table1;
+        V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
+
+        // Glowing overlay
+        dp_translation = table2;
+        if (alpha == 255)
+            V_DrawPatch(cx, cy, hu_font[c]);
+        else if (alpha > 0)
+            V_DrawFadePatch(cx, cy, hu_font[c], alpha);
+
+        cx+=w;
+    }
+
     dp_translation = NULL;
 }
 
@@ -7171,13 +7360,12 @@ void M_Drawer (void)
     {
         // [JN] Draw glowing * symbol.
         if (itemOn != -1)
-        M_WriteText(x - ID_MENU_CURSOR_OFFSET, y + itemOn * ID_MENU_LINEHEIGHT_SMALL, "*",
-                    M_Cursor_Glow(cursor_tics));
+        M_WriteTextGlow(x - ID_MENU_CURSOR_OFFSET, y + itemOn * ID_MENU_LINEHEIGHT_SMALL, "*",
+                            cr[CR_MENU_DARK4], cr[CR_MENU_BRIGHT5], cursor_tics * 17); // (0...15 * 17), full alpha cycle
 
         for (i = 0 ; i < max ; i++)
         {
-            M_WriteText (x, y, currentMenu->menuitems[i].name,
-                         M_Small_Line_Glow(currentMenu->menuitems[i].tics));
+            M_WriteTextGlow(x, y, currentMenu->menuitems[i].name, NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(i));
             y += ID_MENU_LINEHEIGHT_SMALL;
         }
     }
@@ -7194,9 +7382,13 @@ void M_Drawer (void)
 
             if (name[0])
             {
-                dp_translation = M_Big_Line_Glow(currentMenu->menuitems[i].tics);
+                // Base patch
                 V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(name, PU_CACHE));
-                dp_translation = NULL;
+
+                // Glowing overlay
+                dp_translation = currentMenu->menuitems[i].tics > 0 ? cr[CR_MENU_BRIGHT5] : NULL;
+                V_DrawFadePatch(x, y, W_CacheLumpName(name, PU_CACHE), LINE_ALPHA(i));
+                dp_translation = NULL;                
             }
             y += LINEHEIGHT;
         }
@@ -7243,7 +7435,7 @@ void M_Ticker (void)
 
     // [JN] Cursor glowing animation:
     cursor_tics += cursor_direction ? -1 : 1;
-    if (cursor_tics == 8 || cursor_tics == -8)
+    if (cursor_tics == 0 || cursor_tics == 15)
     {
         cursor_direction = !cursor_direction;
     }
@@ -7254,8 +7446,8 @@ void M_Ticker (void)
     {
         if (menu_highlight == 1)
         {
-            currentMenu->menuitems[i].tics =
-                (itemOn == i) ? 5 : currentMenu->menuitems[i].tics - 1;
+            currentMenu->menuitems[i].tics = (itemOn == i) ? 5 :
+                (currentMenu->menuitems[i].tics > 0 ? currentMenu->menuitems[i].tics - 1 : 0);
         }
         else
         if (menu_highlight == 2)
@@ -7800,50 +7992,18 @@ static void M_ResetBinds (void)
 }
 
 // -----------------------------------------------------------------------------
-// M_ColorizeBind
-//  [JN] Do key bind coloring.
-// -----------------------------------------------------------------------------
-
-static byte *M_ColorizeBind (int itemSetOn, int key)
-{
-    if (itemOn == itemSetOn && KbdIsBinding)
-    {
-        return cr[CR_YELLOW];
-    }
-    else
-    {
-        if (key == 0)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_RED_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_RED_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_RED_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_RED_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_RED_BRIGHT1] : cr[CR_RED];
-        }
-        else
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
 // M_DrawBindKey
 //  [JN] Do keyboard bind drawing.
 // -----------------------------------------------------------------------------
 
 static void M_DrawBindKey (int itemNum, int yPos, int key)
 {
-    M_WriteText(M_ItemRightAlign(M_NameBind(itemNum, key)),
-                yPos,
-                M_NameBind(itemNum, key),
-                M_ColorizeBind(itemNum, key));
+    M_WriteTextGlow(M_ItemRightAlign(M_NameBind(itemNum, key)), yPos, M_NameBind(itemNum, key),
+                        itemOn == itemNum && KbdIsBinding ? cr[CR_YELLOW] :
+                        key == 0 ? cr[CR_RED] : cr[CR_GREEN],
+                            itemOn == itemNum && KbdIsBinding ? cr[CR_YELLOW_BRIGHT5] :
+                            key == 0 ? cr[CR_RED_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(itemNum));
 }
 
 // -----------------------------------------------------------------------------
@@ -7989,50 +8149,18 @@ static void M_ClearMouseBind (int itemOn)
 }
 
 // -----------------------------------------------------------------------------
-// M_ColorizeMouseBind
-//  [JN] Do mouse bind coloring.
-// -----------------------------------------------------------------------------
-
-static byte *M_ColorizeMouseBind (int itemSetOn, int btn)
-{
-    if (itemOn == itemSetOn && MouseIsBinding)
-    {
-        return cr[CR_YELLOW];
-    }
-    else
-    {
-        if (btn == -1)
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_RED_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_RED_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_RED_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_RED_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_RED_BRIGHT1] : cr[CR_RED];
-        }
-        else
-        {
-            return
-                ITEMSETONTICS == 5 ? cr[CR_GREEN_BRIGHT5] :
-                ITEMSETONTICS == 4 ? cr[CR_GREEN_BRIGHT4] :
-                ITEMSETONTICS == 3 ? cr[CR_GREEN_BRIGHT3] :
-                ITEMSETONTICS == 2 ? cr[CR_GREEN_BRIGHT2] :
-                ITEMSETONTICS == 1 ? cr[CR_GREEN_BRIGHT1] : cr[CR_GREEN];
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
 // M_DrawBindButton
 //  [JN] Do mouse button bind drawing.
 // -----------------------------------------------------------------------------
 
 static void M_DrawBindButton (int itemNum, int yPos, int btn)
 {
-    M_WriteText(M_ItemRightAlign(M_NameMouseBind(itemNum, btn)),
-                yPos,
-                M_NameMouseBind(itemNum, btn),
-                M_ColorizeMouseBind(itemNum, btn));
+    M_WriteTextGlow(M_ItemRightAlign(M_NameMouseBind(itemNum, btn)), yPos, M_NameMouseBind(itemNum, btn),
+                        itemOn == itemNum && MouseIsBinding ? cr[CR_YELLOW] :
+                        btn == - 1 ? cr[CR_RED] : cr[CR_GREEN],
+                            itemOn == itemNum && MouseIsBinding ? cr[CR_YELLOW_BRIGHT5] :
+                            btn == - 1 ? cr[CR_RED_BRIGHT5] : cr[CR_GREEN_BRIGHT5],
+                                LINE_ALPHA(itemNum));
 }
 
 // -----------------------------------------------------------------------------
