@@ -58,6 +58,7 @@ extern void M_ConfirmDeleteGame (void);
 extern void M_WriteText (int x, int y, const char *string, byte *table);
 extern void M_WriteTextNoShadow (int x, int y, const char *string, byte *table);
 extern void M_WriteTextCentered (const int y, const char *string, byte *table);
+extern void M_WriteTextGlow (int x, int y, const char *string, byte *table1, byte *table2, int alpha);
 extern void M_WriteTextCritical (const int y, const char *string1, const char *string2, byte *table);
 extern const int M_StringWidth (const char *string);
 
