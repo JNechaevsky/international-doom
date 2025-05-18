@@ -996,113 +996,90 @@ int R_TextureNumForName(const char *name)
     return i;
 }
 
+// -----------------------------------------------------------------------------
+// R_PrecacheLevel
+//  Preloads all relevant graphics for the level.
+//
+// [PN] Optimized and refactored R_PrecacheLevel:
+// - Uses a single zero-initialized buffer sized for the largest resource type.
+// - Replaces multiple memset/malloc with one calloc and reuses the buffer across all stages.
+// - All loops are forward for better cache efficiency.
+// -----------------------------------------------------------------------------
 
-/*
-=================
-=
-= R_PrecacheLevel
-=
-= Preloads all relevent graphics for the level
-=================
-*/
-
-int flatmemory, texturememory, spritememory;
+#define MAX3(a,b,c) (((a)>(b))?((a)>(c)?(a):(c)):((b)>(c)?(b):(c)))
 
 void R_PrecacheLevel(void)
 {
-    char *flatpresent;
-    char *texturepresent;
-    char *spritepresent;
-    int i, j, k, lump;
-    texture_t *texture;
-    thinker_t *th;
-    spriteframe_t *sf;
-
     if (demoplayback)
         return;
 
-//
-// precache flats
-//      
-    flatpresent = Z_Malloc(numflats, PU_STATIC, NULL);
-    memset(flatpresent, 0, numflats);
-    for (i = 0; i < numsectors; i++)
+    const size_t maxsize = MAX3(numtextures, numflats, numsprites);
+    byte *restrict hitlist = (byte*)calloc(maxsize, 1);
+
+    // Precache flats
+    for (int i = 0; i < numsectors; ++i)
     {
-        flatpresent[sectors[i].floorpic] = 1;
-        flatpresent[sectors[i].ceilingpic] = 1;
+        hitlist[sectors[i].floorpic] = 1;
+        hitlist[sectors[i].ceilingpic] = 1;
     }
-
-    flatmemory = 0;
-    for (i = 0; i < numflats; i++)
-        if (flatpresent[i])
-        {
-            lump = firstflat + i;
-            flatmemory += lumpinfo[lump]->size;
-            W_CacheLumpNum(lump, PU_CACHE);
-        }
-
-    Z_Free(flatpresent);
-
-//
-// precache textures
-//
-    texturepresent = Z_Malloc(numtextures, PU_STATIC, NULL);
-    memset(texturepresent, 0, numtextures);
-
-    for (i = 0; i < numsides; i++)
+    for (int i = 0; i < numflats; ++i)
     {
-        texturepresent[sides[i].toptexture] = 1;
-        texturepresent[sides[i].midtexture] = 1;
-        texturepresent[sides[i].bottomtexture] = 1;
-    }
-
-    texturepresent[Sky1Texture] = 1;
-    texturepresent[Sky2Texture] = 1;
-
-    texturememory = 0;
-    for (i = 0; i < numtextures; i++)
-    {
-        if (!texturepresent[i])
-            continue;
-        texture = textures[i];
-        for (j = 0; j < texture->patchcount; j++)
+        if (hitlist[i])
         {
-            lump = texture->patches[j].patch;
-            texturememory += lumpinfo[lump]->size;
-            W_CacheLumpNum(lump, PU_CACHE);
+            W_CacheLumpNum(firstflat + i, PU_CACHE);
         }
     }
 
-    Z_Free(texturepresent);
+    memset(hitlist, 0, maxsize);
 
-//
-// precache sprites
-//
-    spritepresent = Z_Malloc(numsprites, PU_STATIC, NULL);
-    memset(spritepresent, 0, numsprites);
-
-    for (th = thinkercap.next; th != &thinkercap; th = th->next)
+    // Precache textures
+    for (int i = 0; i < numsides; ++i)
     {
-        if (th->function == P_MobjThinker)
-            spritepresent[((mobj_t *) th)->sprite] = 1;
+        hitlist[sides[i].bottomtexture] = 1;
+        hitlist[sides[i].toptexture] = 1;
+        hitlist[sides[i].midtexture] = 1;
     }
 
-    spritememory = 0;
-    for (i = 0; i < numsprites; i++)
+    hitlist[Sky1Texture] = 1;
+    hitlist[Sky2Texture] = 1;
+
+    for (int i = 0; i < numtextures; ++i)
     {
-        if (!spritepresent[i])
-            continue;
-        for (j = 0; j < sprites[i].numframes; j++)
+        if (hitlist[i])
         {
-            sf = &sprites[i].spriteframes[j];
-            for (k = 0; k < 8; k++)
+            texture_t * const texture = textures[i];
+            for (int j = 0; j < texture->patchcount; ++j)
             {
-                lump = firstspritelump + sf->lump[k];
-                spritememory += lumpinfo[lump]->size;
-                W_CacheLumpNum(lump, PU_CACHE);
+                W_CacheLumpNum(texture->patches[j].patch, PU_CACHE);
             }
         }
     }
 
-    Z_Free(spritepresent);
+    memset(hitlist, 0, maxsize);
+
+    // Precache sprites
+    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        if (th->function == P_MobjThinker)
+        {
+            hitlist[((const mobj_t*)th)->sprite] = 1;
+        }
+    }
+
+    for (int i = 0; i < numsprites; ++i)
+    {
+        if (hitlist[i])
+        {
+            for (int j = 0; j < sprites[i].numframes; ++j)
+            {
+                const short *sflump = sprites[i].spriteframes[j].lump;
+                for (int k = 0; k < 8; ++k)
+                {
+                    W_CacheLumpNum(firstspritelump + sflump[k], PU_CACHE);
+                }
+            }
+        }
+    }
+
+    free(hitlist);
 }

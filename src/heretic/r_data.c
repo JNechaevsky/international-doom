@@ -1190,42 +1190,33 @@ int R_TextureNumForName(const char *name)
     return i;
 }
 
+// -----------------------------------------------------------------------------
+// R_PrecacheLevel
+//  Preloads all relevant graphics for the level.
+//
+// [PN] Optimized and refactored R_PrecacheLevel:
+// - Uses a single zero-initialized buffer sized for the largest resource type.
+// - Replaces multiple memset/malloc with one calloc and reuses the buffer across all stages.
+// - All loops are forward for better cache efficiency.
+// -----------------------------------------------------------------------------
 
-/*
-=================
-=
-= R_PrecacheLevel
-=
-= Totally rewritten by Lee Killough to use less memory,
-= to avoid using alloca(), and to improve performance.
-=================
-*/
+#define MAX3(a,b,c) (((a)>(b))?((a)>(c)?(a):(c)):((b)>(c)?(b):(c)))
 
 void R_PrecacheLevel(void)
 {
-    int i;
-    byte *hitlist;
-
     if (demoplayback)
-    {
         return;
-    }
 
+    const size_t maxsize = MAX3(numtextures, numflats, numsprites);
+    byte *restrict hitlist = (byte*)calloc(maxsize, 1);
+
+    // Precache flats
+    for (int i = 0; i < numsectors; ++i)
     {
-        const size_t size = numflats > numsprites ? numflats : numsprites;
-        hitlist = malloc(numtextures > size ? numtextures : size);
+        hitlist[sectors[i].floorpic] = 1;
+        hitlist[sectors[i].ceilingpic] = 1;
     }
-
-    // Precache flats.
-
-    memset(hitlist, 0, numflats);
-
-    for (i = numsectors ; --i >= 0 ; )
-    {
-        hitlist[sectors[i].floorpic] = hitlist[sectors[i].ceilingpic] = 1;
-    }
-
-    for (i = numflats ; --i >= 0 ; )
+    for (int i = 0; i < numflats; ++i)
     {
         if (hitlist[i])
         {
@@ -1233,69 +1224,52 @@ void R_PrecacheLevel(void)
         }
     }
 
-    // Precache textures.
+    memset(hitlist, 0, maxsize);
 
-    memset(hitlist, 0, numtextures);
-
-    for (i = numsides; --i >= 0;)
+    // Precache textures
+    for (int i = 0; i < numsides; ++i)
     {
-        hitlist[sides[i].bottomtexture] =
-        hitlist[sides[i].toptexture] =
+        hitlist[sides[i].bottomtexture] = 1;
+        hitlist[sides[i].toptexture] = 1;
         hitlist[sides[i].midtexture] = 1;
     }
 
-    // Sky texture is always present.
-    // Note that F_SKY1 is the name used to
-    //  indicate a sky floor/ceiling as a flat,
-    //  while the sky texture is stored like
-    //  a wall texture, with an episode dependend
-    //  name.
-
     hitlist[skytexture] = 1;
 
-    for (i = numtextures ; --i >= 0 ; )
+    for (int i = 0; i < numtextures; ++i)
     {
         if (hitlist[i])
         {
-            texture_t *texture = textures[i];
-            int j = texture->patchcount;
-
-            while (--j >= 0)
+            texture_t * const texture = textures[i];
+            for (int j = 0; j < texture->patchcount; ++j)
             {
                 W_CacheLumpNum(texture->patches[j].patch, PU_CACHE);
             }
         }
     }
 
-    // Precache sprites.
-    memset(hitlist, 0, numsprites);
+    memset(hitlist, 0, maxsize);
 
+    // Precache sprites
+    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
     {
-        thinker_t *th;
-
-        for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
+        if (th->function == P_MobjThinker)
         {
-            if (th->function == P_MobjThinker)
-            {
-                hitlist[((mobj_t *)th)->sprite] = 1;
-            }
+            hitlist[((const mobj_t*)th)->sprite] = 1;
         }
     }
 
-    for (i = numsprites; --i >= 0 ;)
+    for (int i = 0; i < numsprites; ++i)
     {
         if (hitlist[i])
         {
-            int j = sprites[i].numframes;
-
-            while (--j >= 0)
+            for (int j = 0; j < sprites[i].numframes; ++j)
             {
-                short *sflump = sprites[i].spriteframes[j].lump;
-                int k = 7;
-
-                do
-                W_CacheLumpNum(firstspritelump + sflump[k], PU_CACHE);
-                while (--k >= 0);
+                const short *sflump = sprites[i].spriteframes[j].lump;
+                for (int k = 0; k < 8; ++k)
+                {
+                    W_CacheLumpNum(firstspritelump + sflump[k], PU_CACHE);
+                }
             }
         }
     }
