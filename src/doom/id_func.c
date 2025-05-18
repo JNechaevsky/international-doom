@@ -693,8 +693,8 @@ void ID_RightWidgets (void)
         fps_x_pos = ORIGWIDTH + WIDESCREENDELTA - 11 
                   - M_StringWidth(fps) - M_StringWidth("FPS");
 
-        M_WriteText(fps_x_pos, yy, fps, cr[CR_LIGHTGRAY_DARK1]);
-        M_WriteText(fps_x_pos + M_StringWidth(fps) + 4, yy, "FPS", cr[CR_LIGHTGRAY_DARK1]); // [PN] 4 for spacing
+        M_WriteText(fps_x_pos, yy, fps, cr[CR_LIGHTGRAY_DARK]);
+        M_WriteText(fps_x_pos + M_StringWidth(fps) + 4, yy, "FPS", cr[CR_LIGHTGRAY_DARK]); // [PN] 4 for spacing
 
         yy += 9;
     }

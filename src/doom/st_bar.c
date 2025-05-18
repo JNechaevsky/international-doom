@@ -1799,7 +1799,7 @@ static void ST_DrawElementsDoom64 (int wide_x)
         const boolean neghealth = st_negative_health && plyr->health <= 0 && !no_sttminus;
 
         M_WriteTextNoShadow(44 - wide_x - (M_StringWidth("HEALTH") / 2), 171,
-                            "HEALTH", cr[CR_LIGHTGRAY_DARK1]);
+                            "HEALTH", cr[CR_LIGHTGRAY_DARK]);
 
         ST_DrawBigNumberCentered(neghealth ? plyr->health_negative : plyr->health,
                                  28 - wide_x, 180, ST_WidgetColor(hudcolor_health));
@@ -1852,7 +1852,7 @@ static void ST_DrawElementsDoom64 (int wide_x)
     if (deathmatch)
     {
         M_WriteTextNoShadow(223 - (M_StringWidth("FRAGS") / 2) + wide_x, 171,
-                            "FRAGS", cr[CR_LIGHTGRAY_DARK1]);
+                            "FRAGS", cr[CR_LIGHTGRAY_DARK]);
 
         st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
         ST_DrawBigNumberCentered(st_fragscount, 207 + wide_x, 180,
@@ -1877,7 +1877,7 @@ static void ST_DrawElementsDoom64 (int wide_x)
     // Armor
     {
         M_WriteTextNoShadow(275 - (M_StringWidth("ARMOR") / 2) + wide_x, 171,
-                            "ARMOR", cr[CR_LIGHTGRAY_DARK1]);
+                            "ARMOR", cr[CR_LIGHTGRAY_DARK]);
         
         ST_DrawBigNumberCentered(plyr->armorpoints, 259 + wide_x, 180,
                                  ST_WidgetColor(hudcolor_armor));
