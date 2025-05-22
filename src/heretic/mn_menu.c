@@ -606,6 +606,7 @@ static void M_Draw_ID_Automap (void);
 static void M_ID_Automap_Smooth (int choice);
 static void M_ID_Automap_Thick (int choice);
 static void M_ID_Automap_Square (int choice);
+static void M_ID_Automap_ScrollBg (int choice);
 static void M_ID_Automap_Secrets (int choice);
 static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
@@ -3242,13 +3243,14 @@ static void M_ID_Widget_Health (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Automap[] = {
-    { ITT_LRFUNC2, "LINE SMOOTHING",        M_ID_Automap_Smooth,  0, MENU_NONE },
-    { ITT_LRFUNC1, "LINE THICKNESS",        M_ID_Automap_Thick,   0, MENU_NONE },
-    { ITT_LRFUNC2, "SQUARE ASPECT RATIO",   M_ID_Automap_Square,  0, MENU_NONE },
-    { ITT_LRFUNC2, "MARK SECRET SECTORS",   M_ID_Automap_Secrets, 0, MENU_NONE },
-    { ITT_LRFUNC2, "ROTATE MODE",           M_ID_Automap_Rotate,  0, MENU_NONE },
-    { ITT_LRFUNC2, "OVERLAY MODE",          M_ID_Automap_Overlay, 0, MENU_NONE },
-    { ITT_LRFUNC1, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading, 0, MENU_NONE },
+    { ITT_LRFUNC2, "LINE SMOOTHING",        M_ID_Automap_Smooth,   0, MENU_NONE },
+    { ITT_LRFUNC1, "LINE THICKNESS",        M_ID_Automap_Thick,    0, MENU_NONE },
+    { ITT_LRFUNC2, "SQUARE ASPECT RATIO",   M_ID_Automap_Square,   0, MENU_NONE },
+    { ITT_LRFUNC2, "SCROLL BACKGROUND"  ,   M_ID_Automap_ScrollBg, 0, MENU_NONE },
+    { ITT_LRFUNC2, "MARK SECRET SECTORS",   M_ID_Automap_Secrets,  0, MENU_NONE },
+    { ITT_LRFUNC2, "ROTATE MODE",           M_ID_Automap_Rotate,   0, MENU_NONE },
+    { ITT_LRFUNC2, "OVERLAY MODE",          M_ID_Automap_Overlay,  0, MENU_NONE },
+    { ITT_LRFUNC1, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Automap = {
@@ -3289,39 +3291,45 @@ static void M_Draw_ID_Automap (void)
                         automap_square ? cr[CR_GREEN] : cr[CR_DARKRED],
                             automap_square ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(2));
+    // Scroll background
+    sprintf(str, automap_scroll_bg ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+                        automap_scroll_bg ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_scroll_bg ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(3));
 
     // Mark secret sectors
     sprintf(str, automap_secrets == 1 ? "REVEALED" :
                  automap_secrets == 2 ? "ALWAYS" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
                         automap_secrets ? cr[CR_GREEN] : cr[CR_DARKRED],
                             automap_secrets ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(3));
+                                LINE_ALPHA(4));
 
     // Rotate mode
     sprintf(str, automap_rotate ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
                         automap_rotate ? cr[CR_GREEN] : cr[CR_DARKRED],
                             automap_rotate ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(4));
+                                LINE_ALPHA(5));
 
     // Overlay mode
     sprintf(str, automap_overlay ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
                         automap_overlay ? cr[CR_GREEN] : cr[CR_DARKRED],
                             automap_overlay ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(6));
 
     // Overlay shading level
     sprintf(str,"%d", automap_shading);
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
                         !automap_overlay ? cr[CR_DARKRED] :
                          automap_shading ==  0 ? cr[CR_RED] :
                          automap_shading == 12 ? cr[CR_YELLOW] : cr[CR_GREEN],
                             !automap_overlay ? cr[CR_RED_BRIGHT] :
                              automap_shading ==  0 ? cr[CR_RED_BRIGHT] :
                              automap_shading == 12 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(7));
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3337,6 +3345,11 @@ static void M_ID_Automap_Thick (int choice)
 static void M_ID_Automap_Square (int choice)
 {
     automap_square ^= 1;
+}
+
+static void M_ID_Automap_ScrollBg (int choice)
+{
+    automap_scroll_bg ^= 1;
 }
 
 static void M_ID_Automap_Secrets (int choice)
@@ -4893,6 +4906,7 @@ static void M_ID_ApplyResetHook (void)
     automap_smooth_hr = 1;
     automap_thick = 0;
     automap_square = 0;
+    automap_scroll_bg = 1;
     automap_secrets = 0;
     automap_rotate = 0;
     automap_overlay = 0;

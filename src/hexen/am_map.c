@@ -1065,10 +1065,10 @@ static void AM_drawBackground (void)
     static int bg_yoffs = 0;
 
     // [PN] Update background offsets only when automap_rotate is disabled
-    if (!automap_rotate)
+    if (!automap_rotate && automap_scroll_bg)
     {
         bg_xoffs = (MTOF(m_x) / 4) % MAPBGROUNDWIDTH;
-        bg_yoffs = (MTOF(m_y) / 4) % MAPBGROUNDHEIGHT;
+        bg_yoffs = (MTOF(m_y) / 8) % MAPBGROUNDHEIGHT;
         if (bg_xoffs < 0) bg_xoffs += MAPBGROUNDWIDTH;
         if (bg_yoffs < 0) bg_yoffs += MAPBGROUNDHEIGHT;
     }

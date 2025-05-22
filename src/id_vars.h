@@ -102,6 +102,7 @@ extern int automap_smooth;
 extern int automap_smooth_hr;
 extern int automap_thick;
 extern int automap_square;
+extern int automap_scroll_bg;
 extern int automap_secrets;
 extern int automap_rotate;
 extern int automap_overlay;
