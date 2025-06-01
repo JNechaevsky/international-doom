@@ -1225,6 +1225,12 @@ static void SetMouseButtons(unsigned int buttons_mask)
             {
                 next_weapon = 1;
             }
+            else if (i == mousebuse)
+            {
+                // [PN] Mouse wheel "use" workaround: some mouse buttons (e.g. wheel click)
+                // generate only a single tick event. We simulate a short BT_USE press here.
+                basecmd.buttons |= BT_USE;
+            }
             else if (i == mousebinvleft)
             {
                 InventoryMoveLeft();
