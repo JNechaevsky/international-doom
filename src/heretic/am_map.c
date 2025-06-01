@@ -254,7 +254,6 @@ static fixed_t  curr_mtof_zoommul; // [JN] Zooming interpolation.
 
 static int64_t  m_x, m_y;     // LL x,y where the window is on the map (map coords)
 static int64_t  m_x2, m_y2;   // UR x,y where the window is on the map (map coords)
-static fixed_t  prev_m_x, prev_m_y; // [JN] Panning interpolation.
 
 // width/height of window on map (map coords)
 static int64_t  m_w;
@@ -538,8 +537,21 @@ static void AM_changeWindowLoc (void)
 
     if (vid_uncapped_fps && realleveltime > oldleveltime)
     {
-        incx = FixedMul(m_paninc.x, fractionaltic);
-        incy = FixedMul(m_paninc.y, fractionaltic);
+        // [PN] Accumulator for FPS‑independent panning
+        static fixed_t prev_frac = 0;
+
+        // [PN] Accumulate delta between frames using `fractionaltic`,
+        // so pan speed stays consistent regardless of frame rate.
+        // Delta may wrap around after a tic; we correct for that.
+        fixed_t delta = fractionaltic - prev_frac;
+
+        if (delta < 0)
+            delta += FRACUNIT;
+
+        incx = FixedMul(m_paninc.x, delta);
+        incy = FixedMul(m_paninc.y, delta);
+
+        prev_frac = fractionaltic;
     }
     else
     {
@@ -552,8 +564,10 @@ static void AM_changeWindowLoc (void)
         AM_rotate(&incx, &incy, 0 - mapangle);
     }
 
-    m_x = prev_m_x + incx;
-    m_y = prev_m_y + incy;
+    // [PN] Apply frame-scaled pan delta to already-zoomed coordinates.
+    // Keeps direction stable when zooming and panning simultaneously.
+    m_x += incx;
+    m_y += incy;
 
     if (m_x + m_w/2 > max_x)
     {
@@ -1153,8 +1167,6 @@ void AM_Ticker (void)
     }
 
     prev_scale_mtof = scale_mtof;
-    prev_m_x = m_x;
-    prev_m_y = m_y;
 
     // [JN/PN] Animate IDDT monster colors (inactive and active states):
     if (gametic & 1)
