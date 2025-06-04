@@ -35,7 +35,6 @@
 
 #define DEFAULT_ARCHIVEPATH     "o:\\sound\\archive\\"
 
-void S_ShutDown(void);
 
 
 /*
@@ -58,7 +57,7 @@ void S_ShutDown(void);
 static channel_t Channel[MAX_CHANNELS];
 static void *RegisteredSong;      //the current registered song.
 static boolean MusicPaused;
-static int Mus_Song = -1;
+int Mus_Song = -1;
 static byte *Mus_SndPtr;
 static byte *SoundCurve;
 
@@ -67,6 +66,9 @@ int snd_MusicVolume = 10;              // maximum volume for music
 // [JN] Internal sound variables, friendly with muting.
 static int sfxVolume;
 static int musVolume;
+
+// [JN] Enforce music replay while changing music system.
+boolean mus_force_replay = false;
 
 // int AmbChan;
 
@@ -118,15 +120,16 @@ void S_StartSong(int song, boolean loop)
     else
     */
     {
-        if (song == Mus_Song)
+        if (song == Mus_Song && !mus_force_replay)
         {                       // don't replay an old song
-            return;
+            return;             // [JN] Unless music system change.
         }
         if (RegisteredSong)
         {
             I_StopSong();
             I_UnRegisterSong(RegisteredSong);
             RegisteredSong = 0;
+            Mus_Song = -1;
         }
         songLump = P_GetMapSongLump(song);
         if (!songLump)
@@ -205,6 +208,7 @@ void S_StartSongName(const char *songLump, boolean loop)
             I_StopSong();
             I_UnRegisterSong(RegisteredSong);
             RegisteredSong = NULL;
+            Mus_Song = -1;
         }
 
         lumpnum = W_GetNumForName(songLump);
@@ -846,7 +850,12 @@ void S_SetMusicVolume (int volume)
 void S_ShutDown(void)
 {
     I_StopSong();
-    I_UnRegisterSong(RegisteredSong);
+    if (RegisteredSong)
+    {
+        I_UnRegisterSong(RegisteredSong);
+        RegisteredSong = NULL;
+        Mus_Song = -1;
+    }
     I_ShutdownSound();
 }
 

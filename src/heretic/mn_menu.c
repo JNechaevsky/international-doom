@@ -29,7 +29,6 @@
 #include "i_system.h"
 #include "i_swap.h"
 #include "i_timer.h"
-#include "i_sound.h"
 #include "m_controls.h"
 #include "m_misc.h"
 #include "p_local.h"
@@ -43,7 +42,6 @@
 
 #include "id_vars.h"
 #include "id_func.h"
-
 
 // Macros
 
