@@ -37,7 +37,6 @@
 
 
 FILE *save_stream;
-int savegamelength;
 boolean savegame_error;
 
 // Get the filename of a temporary file to write the savegame to.  After

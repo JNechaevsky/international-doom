@@ -120,7 +120,6 @@ int startmap;
 boolean autostart;
 boolean advancedemo;
 FILE *debugfile;
-int UpdateState;
 int maxplayers = MAXPLAYERS;
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
