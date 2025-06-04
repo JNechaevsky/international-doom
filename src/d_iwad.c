@@ -114,7 +114,7 @@ typedef struct
 //
 // With some munging we can find where Doom was installed.
 
-// [AlexMax] From the persepctive of a 64-bit executable, 32-bit registry
+// [AlexMax] From the perspective of a 64-bit executable, 32-bit registry
 // keys are located in a different spot.
 #if _WIN64
 #define SOFTWARE_KEY "Software\\Wow6432Node"
