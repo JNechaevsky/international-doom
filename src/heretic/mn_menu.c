@@ -1834,16 +1834,14 @@ static void M_Draw_ID_Sound (void)
     // Inform that music system is not hot-swappable. :(
     if (CurrentItPos == 7)
     {
-        MN_DrTextACentered("CHANGE WILL REQUIRE RESTART OF THE PROGRAM", 140, cr[CR_GRAY]);
-
         if (snd_musicdevice == 5 && strcmp(gus_patch_path, "") == 0)
         {
-            MN_DrTextACentered("\"GUS[PATCH[PATH\" VARIABLE IS NOT SET", 150, cr[CR_GRAY]);
+            MN_DrTextACentered("\"GUS[PATCH[PATH\" VARIABLE IS NOT SET", 140, cr[CR_GRAY]);
         }
 #ifdef HAVE_FLUIDSYNTH
         if (snd_musicdevice == 11 && strcmp(fsynth_sf_path, "") == 0)
         {
-            MN_DrTextACentered("\"FSYNTH[SF[PATH\" VARIABLE IS NOT SET", 150, cr[CR_GRAY]);
+            MN_DrTextACentered("\"FSYNTH[SF[PATH\" VARIABLE IS NOT SET", 140, cr[CR_GRAY]);
         }
 #endif // HAVE_FLUIDSYNTH
     }
@@ -1918,6 +1916,30 @@ static void M_ID_MusicSystem (int option)
                 break;
             }
     }
+
+    // [PN] Hot-swap music system
+    S_ShutDown();
+    I_InitSound(heretic);
+    I_InitMusic();
+    S_SetMusicVolume();
+
+    // [JN] Enforce music replay while changing music system.
+    mus_force_replay = true;
+
+    if (mus_song != -1)
+    {
+        S_StartSong(mus_song, true);
+    }
+    else if (idmusnum != -1)
+    {
+        S_StartSong(idmusnum, true);
+    }
+    else
+    {
+        S_StartSong((gameepisode - 1) * 9 + gamemap - 1, true);
+    }
+
+    mus_force_replay = false;
 }
 
 static void M_ID_SFXMode (int option)
