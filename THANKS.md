@@ -61,7 +61,7 @@ Project's author would like to thank everyone for code, technical, informative, 
 * Sam Lantinga
 
 **[DOSBox](http://www.dosbox.com/) emulator**
-* The DOSBox Team, SDL2 patch by NY00123
+* The DOSBox Team, SDL3 patch by NY00123
 
 **And also:**
 

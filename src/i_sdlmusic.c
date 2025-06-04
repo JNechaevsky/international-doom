@@ -23,8 +23,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "SDL.h"
-#include "SDL_mixer.h"
+#include <SDL3/SDL.h>
+#include "SDL3/SDL_mixer.h"
 
 #include "config.h"
 #include "doomtype.h"
@@ -124,7 +124,7 @@ void I_InitTimidityConfig(void)
 }
 
 
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
 
 
 #define MAXMIDLENGTH (96 * 1024)
@@ -495,4 +495,4 @@ const music_module_t music_sdl_module =
 };
 
 
-#endif // DISABLE_SDL2MIXER
+#endif // DISABLE_SDL3MIXER

@@ -2,12 +2,12 @@
   "name": "international-doom",
   "version": "1.0",
   "dependencies": [
-    "sdl2",
+    "sdl3",
     {
-      "name": "sdl2-mixer",
+      "name": "sdl3-mixer",
       "features": [ "libflac", "libmodplug", "mpg123", "opusfile" ]
     },
-    "sdl2-net",
+    "sdl3-net",
     "libsamplerate",
     "fluidsynth"
   ]

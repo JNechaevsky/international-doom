@@ -21,7 +21,7 @@
 #ifndef __I_VIDEO__
 #define __I_VIDEO__
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "doomtype.h"
 #include "i_truecolor.h"
 #include "m_fixed.h"

@@ -23,10 +23,10 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "SDL.h"
-#ifndef DISABLE_SDL2MIXER
-#include "SDL_mixer.h"
-#endif  // DISABLE_SDL2MIXER
+#include <SDL3/SDL.h>
+#ifndef DISABLE_SDL3MIXER
+#include "SDL3/SDL_mixer.h"
+#endif  // DISABLE_SDL3MIXER
 
 #include "opl3.h"
 
@@ -36,7 +36,7 @@
 #include "opl_queue.h"
 
 
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
 
 
 #define MAX_SOUND_SLICE_TIME 100 /* ms */
@@ -289,7 +289,7 @@ static unsigned int GetSliceSize(void)
 
 static int OPL_SDL_Init(unsigned int port_base)
 {
-    // Check if SDL_mixer has been opened already
+    // Check if SDL3/SDL_mixer.has been opened already
     // If not, we must initialize it now
 
     if (!SDLIsInitialized())
@@ -518,4 +518,4 @@ opl_driver_t opl_sdl_driver =
 };
 
 
-#endif // DISABLE_SDL2MIXER
+#endif // DISABLE_SDL3MIXER

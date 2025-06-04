@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <locale.h> // [crispy] setlocale
 #include <time.h>   // [JN] srand(time(0))
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN

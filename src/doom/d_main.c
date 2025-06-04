@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN

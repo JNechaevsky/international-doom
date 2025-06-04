@@ -17,7 +17,7 @@
 //
 
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "SDL_joystick.h"
 #include "SDL_gamecontroller.h"
 

@@ -24,8 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "SDL.h"
-#include "SDL_mixer.h"
+#include <SDL3/SDL.h>
+#include "SDL3/SDL_mixer.h"
 
 #ifdef HAVE_LIBSAMPLERATE
 #include <samplerate.h>
@@ -57,7 +57,7 @@ int use_libsamplerate = 1;
 float libsamplerate_scale = 0.65f;
 
 
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
 
 
 #define LOW_PASS_FILTER
@@ -1220,4 +1220,4 @@ const sound_module_t sound_sdl_module =
 };
 
 
-#endif // DISABLE_SDL2MIXER
+#endif // DISABLE_SDL3MIXER

@@ -22,8 +22,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "SDL.h"
-#include "SDL_mixer.h"
+#include <SDL3/SDL.h>
+#include "SDL3/SDL_mixer.h"
 
 #include "i_glob.h"
 
@@ -48,7 +48,7 @@
 char *music_pack_path = "";
 
 
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
 
 
 #define MID_HEADER_MAGIC "MThd"
@@ -1428,7 +1428,7 @@ const music_module_t music_pack_module =
 };
 
 
-#else // DISABLE_SDL2MIXER
+#else // DISABLE_SDL3MIXER
 
 
 static boolean I_NULL_InitMusic(void)
@@ -1506,4 +1506,4 @@ const music_module_t music_pack_module =
 };
 
 
-#endif // DISABLE_SDL2MIXER
+#endif // DISABLE_SDL3MIXER

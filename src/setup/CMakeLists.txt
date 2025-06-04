@@ -6,7 +6,7 @@ add_library(setup STATIC
             execute.c           execute.h)
 
 target_include_directories(setup PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../")
-target_link_libraries(setup textscreen SDL2::SDL2)
-if(ENABLE_SDL2_MIXER)
-    target_link_libraries(setup SDL2_mixer::SDL2_mixer)
+target_link_libraries(setup textscreen SDL3::SDL3)
+if(ENABLE_SDL3_MIXER)
+    target_link_libraries(setup SDL3_mixer::SDL3_mixer)
 endif()

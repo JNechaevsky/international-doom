@@ -18,14 +18,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "SDL.h"
-#include "SDL_mixer.h"
+#include <SDL3/SDL.h>
+#include "SDL3/SDL_mixer.h"
 
 #include "pcsound.h"
 #include "pcsound_internal.h"
 
 
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
 
 
 #define MAX_SOUND_SLICE_TIME 70 /* ms */
@@ -186,7 +186,7 @@ static int PCSound_SDL_Init(pcsound_callback_func callback_func)
 {
     int slicesize;
 
-    // Check if SDL_mixer has been opened already
+    // Check if SDL3/SDL_mixer.has been opened already
     // If not, we must initialize it now
 
     if (!SDLIsInitialized())
@@ -248,4 +248,4 @@ pcsound_driver_t pcsound_sdl_driver =
 };
 
 
-#endif // DISABLE_SDL2MIXER
+#endif // DISABLE_SDL3MIXER

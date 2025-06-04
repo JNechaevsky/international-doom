@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "SDL_mixer.h"
+#include "SDL3/SDL_mixer.h"
 
 #include "config.h"
 #include "doomtype.h"
@@ -71,9 +71,9 @@ static const music_module_t *active_music_module;
 
 static const sound_module_t *sound_modules[] =
 {
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
     &sound_sdl_module,
-#endif // DISABLE_SDL2MIXER
+#endif // DISABLE_SDL3MIXER
     &sound_pcsound_module,
     NULL,
 };
@@ -88,9 +88,9 @@ static const music_module_t *music_modules[] =
 #ifdef HAVE_FLUIDSYNTH
     &music_fl_module,
 #endif // HAVE_FLUIDSYNTH
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
     &music_sdl_module,
-#endif // DISABLE_SDL2MIXER
+#endif // DISABLE_SDL3MIXER
     &music_opl_module,
     NULL,
 };
@@ -174,7 +174,7 @@ static void InitMusicModule(void)
             {
                 music_module = music_modules[i];
 
-            #ifndef DISABLE_SDL2MIXER
+            #ifndef DISABLE_SDL3MIXER
                 // [crispy] Always initialize SDL music module.
                 if (music_module != &music_sdl_module)
                 {
@@ -284,7 +284,7 @@ void I_ShutdownSound(void)
         music_pack_module.Shutdown();
     }
 
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
     music_sdl_module.Shutdown();
 
     if (music_module == &music_sdl_module)
@@ -410,7 +410,7 @@ void I_SetMusicVolume(int volume)
     {
         music_module->SetMusicVolume(volume);
 
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
         // [crispy] always broadcast volume changes to SDL. This also covers
         // the musicpack module.
         if (music_module != &music_sdl_module)
@@ -472,7 +472,7 @@ void *I_RegisterSong(void *data, int len)
 
     if (!IsMid(data, len) && !IsMus(data, len))
     {
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
         active_music_module = &music_sdl_module;
         return active_music_module->RegisterSong(data, len);
 #else

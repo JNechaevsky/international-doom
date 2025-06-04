@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "opl.h"
 #include "opl_internal.h"
@@ -32,9 +32,9 @@
 
 static opl_driver_t *drivers[] =
 {
-#ifndef DISABLE_SDL2MIXER
+#ifndef DISABLE_SDL3MIXER
     &opl_sdl_driver,
-#endif // DISABLE_SDL2MIXER
+#endif // DISABLE_SDL3MIXER
     NULL
 };
 

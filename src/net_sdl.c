@@ -35,10 +35,10 @@
 //
 
 
-#ifndef DISABLE_SDL2NET
+#ifndef DISABLE_SDL3NET
 
 
-#include <SDL_net.h>
+#include <SDL3/SDL_net.h>
 
 #define DEFAULT_PORT 2342
 
@@ -382,7 +382,7 @@ net_module_t net_sdl_module =
 };
 
 
-#else // DISABLE_SDL2NET
+#else // DISABLE_SDL3NET
 
 // no-op implementation
 
@@ -439,4 +439,4 @@ net_module_t net_sdl_module =
 };
 
 
-#endif // DISABLE_SDL2NET
+#endif // DISABLE_SDL3NET
