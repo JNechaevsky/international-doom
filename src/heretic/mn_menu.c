@@ -44,8 +44,6 @@
 #include "id_vars.h"
 #include "id_func.h"
 
-extern int mus_song;
-void S_ShutDown(void);
 
 // Macros
 
@@ -1927,6 +1925,9 @@ static void M_ID_MusicSystem (int option)
     I_InitMusic();
     S_SetMusicVolume();
 
+    // [JN] Enforce music replay while changing music system.
+    mus_force_replay = true;
+
     if (mus_song != -1)
     {
         S_StartSong(mus_song, true);
@@ -1939,6 +1940,8 @@ static void M_ID_MusicSystem (int option)
     {
         S_StartSong((gameepisode - 1) * 9 + gamemap - 1, true);
     }
+
+    mus_force_replay = false;
 }
 
 static void M_ID_SFXMode (int option)

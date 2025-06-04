@@ -41,7 +41,6 @@
 ===============================================================================
 */
 
-void S_ShutDown(void);
 boolean S_StopSoundID(int sound_id, int priority);
 
 static channel_t channel[MAX_CHANNELS];
@@ -54,6 +53,8 @@ byte *soundCurve;
 
 // [JN] jff 3/17/98 to keep track of last IDMUS specified music num
 int idmusnum;
+// [JN] Enforce music replay while changing music system.
+boolean mus_force_replay = false;
 
 int snd_MaxVolume = 10;
 int snd_MusicVolume = 10;
@@ -96,9 +97,9 @@ void S_StartSong(int song, boolean loop)
         return;
     }
 
-    if (song == mus_song)
+    if (song == mus_song && !mus_force_replay)
     {                           // don't replay an old song
-        return;
+        return;                 // [JN] Unless music system change.
     }
 
     if (rs != NULL)
