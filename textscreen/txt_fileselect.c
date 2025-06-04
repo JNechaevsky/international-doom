@@ -167,6 +167,7 @@ char *TXT_SelectFile(const char *window_title, const char **extensions)
 
 #include <windows.h>
 #include <shlobj.h>
+#include <objbase.h>
 
 static BOOL (*MyGetOpenFileName)(LPOPENFILENAME) = NULL;
 static LPITEMIDLIST (*MySHBrowseForFolder)(LPBROWSEINFO) = NULL;
@@ -284,7 +285,8 @@ static char *SelectDirectory(char *window_title)
             result = strdup(selected);
         }
 
-        // TODO: Free pidl
+        // Free memory allocated by SHBrowseForFolder
+        CoTaskMemFree(pidl);
     }
 
     return result;
