@@ -105,6 +105,8 @@ void S_StartSong(int song, boolean loop)
     {
         I_StopSong();
         I_UnRegisterSong(rs);
+        rs = NULL;
+        mus_song = -1;
     }
 
     if (song < mus_e1m1 || song > NUMMUSIC)
@@ -764,7 +766,12 @@ void S_SetMusicVolume(void)
 void S_ShutDown(void)
 {
     I_StopSong();
-    I_UnRegisterSong(rs);
+    if (rs != NULL)
+    {
+        I_UnRegisterSong(rs);
+        rs = NULL;
+        mus_song = -1;
+    }
     I_ShutdownSound();
 }
 

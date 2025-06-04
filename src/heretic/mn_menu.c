@@ -29,6 +29,7 @@
 #include "i_system.h"
 #include "i_swap.h"
 #include "i_timer.h"
+#include "i_sound.h"
 #include "m_controls.h"
 #include "m_misc.h"
 #include "p_local.h"
@@ -42,6 +43,9 @@
 
 #include "id_vars.h"
 #include "id_func.h"
+
+extern int mus_song;
+void S_ShutDown(void);
 
 // Macros
 
@@ -1834,16 +1838,14 @@ static void M_Draw_ID_Sound (void)
     // Inform that music system is not hot-swappable. :(
     if (CurrentItPos == 7)
     {
-        MN_DrTextACentered("CHANGE WILL REQUIRE RESTART OF THE PROGRAM", 140, cr[CR_GRAY]);
-
         if (snd_musicdevice == 5 && strcmp(gus_patch_path, "") == 0)
         {
-            MN_DrTextACentered("\"GUS[PATCH[PATH\" VARIABLE IS NOT SET", 150, cr[CR_GRAY]);
+            MN_DrTextACentered("\"GUS[PATCH[PATH\" VARIABLE IS NOT SET", 140, cr[CR_GRAY]);
         }
 #ifdef HAVE_FLUIDSYNTH
         if (snd_musicdevice == 11 && strcmp(fsynth_sf_path, "") == 0)
         {
-            MN_DrTextACentered("\"FSYNTH[SF[PATH\" VARIABLE IS NOT SET", 150, cr[CR_GRAY]);
+            MN_DrTextACentered("\"FSYNTH[SF[PATH\" VARIABLE IS NOT SET", 140, cr[CR_GRAY]);
         }
 #endif // HAVE_FLUIDSYNTH
     }
@@ -1917,6 +1919,25 @@ static void M_ID_MusicSystem (int option)
             {
                 break;
             }
+    }
+
+    // [PN] Hot-swap music system
+    S_ShutDown();
+    I_InitSound(heretic);
+    I_InitMusic();
+    S_SetMusicVolume();
+
+    if (mus_song != -1)
+    {
+        S_StartSong(mus_song, true);
+    }
+    else if (idmusnum != -1)
+    {
+        S_StartSong(idmusnum, true);
+    }
+    else
+    {
+        S_StartSong((gameepisode - 1) * 9 + gamemap - 1, true);
     }
 }
 
