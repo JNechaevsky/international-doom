@@ -183,11 +183,7 @@ static const char *NameForMap(int map)
 
 void IN_Start(void)
 {
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette(W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE));
-#else
     I_SetPalette(0);
-#endif
     IN_LoadPics();
     IN_InitStats();
     intermission = true;

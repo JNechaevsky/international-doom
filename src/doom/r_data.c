@@ -922,36 +922,6 @@ void R_InitTextures (void)
     textureheight = Z_Malloc (numtextures * sizeof(*textureheight), PU_STATIC, 0);
     texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
 
-/*
-    //	Really complex printing shit...
-    temp1 = W_GetNumForName (DEH_String("S_START"));  // P_???????
-    temp2 = W_GetNumForName (DEH_String("S_END")) - 1;
-    temp3 = ((temp2-temp1+63)/64) + ((numtextures+63)/64);
-
-    // If stdout is a real console, use the classic vanilla "filling
-    // up the box" effect, which uses backspace to "step back" inside
-    // the box.  If stdout is a file, don't draw the box.
-
-    if (I_ConsoleStdout())
-    {
-
-        printf("[");
-#ifndef CRISPY_TRUECOLOR
-        for (i = 0; i < temp3 + 9 + 1; i++) // [crispy] one more for R_InitTintMap()
-#else
-        for (i = 0; i < temp3 + 9; i++)
-#endif
-            printf(" ");
-        printf("]");
-#ifndef CRISPY_TRUECOLOR
-        for (i = 0; i < temp3 + 10 + 1; i++) // [crispy] one more for R_InitTintMap()
-#else
-        for (i = 0; i < temp3 + 10; i++)
-#endif
-            printf("\b");
-    }
-*/
-	
     for (i=0 ; i<numtextures ; i++, directory++)
     {
 	if (!(i&63))
@@ -1111,7 +1081,6 @@ void R_InitSpriteLumps (void)
 // R_InitColormaps
 //
 
-#ifdef CRISPY_TRUECOLOR
 // [PN] Macros to optimize and standardize color calculations in the R_InitColormaps.
 //
 // CALC_INTENSITY calculates the RGB components from playpal based on intensity settings.
@@ -1150,7 +1119,6 @@ void R_InitSpriteLumps (void)
       channels[0] = (int)BETWEEN(0, 255, (int)(contrast * channels[0] + contrast_adjustment)); \
       channels[1] = (int)BETWEEN(0, 255, (int)(contrast * channels[1] + contrast_adjustment)); \
       channels[2] = (int)BETWEEN(0, 255, (int)(contrast * channels[2] + contrast_adjustment)); }
-#endif
 
 #define CALC_COLORBLIND(channels, matrix) \
     { const byte r = channels[0]; \
@@ -1163,15 +1131,6 @@ void R_InitSpriteLumps (void)
 
 void R_InitColormaps (void)
 {
-#ifndef CRISPY_TRUECOLOR
-    int	lump;
-
-    // Load in the light tables, 
-    //  256 byte align tables.
-    lump = W_GetNumForName(DEH_String("COLORMAP"));
-    colormaps = W_CacheLumpNum(lump, PU_STATIC);
-    NUMCOLORMAPS = 32; // [crispy] smooth diminishing lighting
-#else
 	int c, i, j = 0;
 	byte r, g, b;
 
@@ -1342,7 +1301,6 @@ void R_InitColormaps (void)
 	// Ensure the result stays within 0-255.
 	shadow_alpha = (uint8_t)BETWEEN(0, 255 - (32 * vid_contrast), 0x80 / vid_contrast);
 	fuzz_alpha = (uint8_t)BETWEEN(0, 255 - (8 * vid_contrast), 0xD3 / vid_contrast);
-#endif
 }
 
 
@@ -1420,11 +1378,7 @@ void R_InitData (void)
     R_InitHSVColors ();
     printf (".");    
     // [JN] Initialize and compose translucency tables.
-#ifndef CRISPY_TRUECOLOR
-    V_InitTransMaps ();
-#else
     I_InitTCTransMaps ();
-#endif
     printf (".");
 }
 

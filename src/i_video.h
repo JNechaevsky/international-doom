@@ -95,18 +95,21 @@ void I_ShutdownGraphics(void);
 void I_RenderReadPixels (byte **data, int *w, int *h);
 
 // Takes full 8 bit values.
-#ifndef CRISPY_TRUECOLOR
-void I_SetPalette (byte* palette);
-int I_GetPaletteIndex(int r, int g, int b);
-#else
 void I_SetPalette (int palette);
 
 // [PN] We define a macro that manually assembles a 32-bit pixel from separate R/G/B values.
 // It applies the format's shift and loss adjustments, then merges all components (and alpha mask) with bitwise OR.
 // This avoids the overhead of the SDL_MapRGB() function call.
 //
-// Original human-readable mapping function from Crispy Doom is preserved as commented example in i_video.c file.
-// extern inline const pixel_t I_MapRGB (const uint8_t r, const uint8_t g, const uint8_t b);
+// Original human-readable mapping function from Crispy Doom:
+/*
+#ifdef CRISPY_TRUECOLOR
+const pixel_t I_MapRGB (const uint8_t r, const uint8_t g, const uint8_t b)
+{
+	return SDL_MapRGB(argbbuffer->format, r, g, b);
+}
+#endif
+*/
 
 extern SDL_Surface *argbbuffer;
 
@@ -118,7 +121,6 @@ extern SDL_Surface *argbbuffer;
         (argbbuffer->format->Amask) \
     ) \
 )
-#endif
 void I_FinishUpdate (void);
 
 void I_ReadScreen (pixel_t* scr);

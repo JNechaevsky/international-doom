@@ -62,9 +62,7 @@ byte *fuzzmap = NULL;    // Used for translucent fuzz (30%)
 // [JN] Color translation.
 byte *dp_translation = NULL;
 boolean dp_translucent = false;
-#ifdef CRISPY_TRUECOLOR
 extern pixel_t *pal_color;
-#endif
 
 // The screen buffer that the v_video.c code draws to.
 
@@ -145,64 +143,32 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
 // for each possible combination of dp_translation and dp_translucent:
 // (1) normal, opaque patch
 static const inline pixel_t drawpatchpx00 (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return source;}
-#else
 {return pal_color[source];}
-#endif
 // (2) color-translated, opaque patch
 static const inline pixel_t drawpatchpx01 (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return dp_translation[source];}
-#else
 {return pal_color[dp_translation[source]];}
-#endif
 // (3) normal, translucent patch
 static const inline pixel_t drawpatchpx10 (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return tintmap[(dest<<8)+source];}
-#else
 {return I_BlendOver_128(dest, pal_color[source]);}
-#endif
 // (4) color-translated, translucent patch
 static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return tintmap[(dest<<8)+dp_translation[source]];}
-#else
 {return I_BlendOver_128(dest, pal_color[dp_translation[source]]);}
-#endif
 
 // [JN] The shadow of the patch rendering functions:
 // Doom
 static const inline pixel_t drawshadow_doom (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return shadowmap[(dest<<8)];}
-#else
 {return I_BlendDark(dest, shadow_alpha);}
-#endif
 // Heretic & Hexen
 static const inline pixel_t drawshadow_raven (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return tinttable[(dest<<8)];}
-#else
 {return I_BlendDark(dest, shadow_alpha);}
-#endif
 
 // [JN] V_DrawTLPatch (translucent patch, no coloring or color-translation are used)
 static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return tinttable[dest+(source<<8)];}
-#else
 {return I_BlendOver_96(dest, pal_color[source]);}
-#endif
 
 // [JN] V_DrawAltTLPatch (translucent patch, no coloring or color-translation are used)
 static const inline pixel_t drawalttinttab (const pixel_t dest, const pixel_t source)
-#ifndef CRISPY_TRUECOLOR
-{return tinttable[(dest<<8)+source];}
-#else
 {return I_BlendOver_142(dest, pal_color[source]);}
-#endif
 
 // [crispy] array of function pointers holding the different rendering functions
 typedef const pixel_t drawpatchpx_t (const pixel_t dest, const pixel_t source);
@@ -655,11 +621,7 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
                 // [crispy] too high
                 if (top++ >= 0)
                 {
-#ifndef CRISPY_TRUECOLOR
-                    *dest = source[srccol >> FRACBITS];
-#else
                     *dest = pal_color[source[srccol >> FRACBITS]];
-#endif
                 }
                 srccol += dyi;
                 dest += SCREENWIDTH;
@@ -961,11 +923,7 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
     {
         for (j = 0; j < (width * vid_resolution); j++)
         {
-#ifndef CRISPY_TRUECOLOR
-            *(dest + i * SCREENWIDTH + j) = *(src + (i / vid_resolution) * width + (j / vid_resolution));
-#else
             *(dest + i * SCREENWIDTH + j) = pal_color[*(src + (i / vid_resolution) * width + (j / vid_resolution))];
-#endif
         }
     }
 }
@@ -1010,11 +968,7 @@ void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest)
         {
             x = j % width;
             y = i % height;
-#ifndef CRISPY_TRUECOLOR
-            *dest++ = src[width * y + x];
-#else
             *dest++ = pal_color[src[width * y + x]];
-#endif
         }
     }
 }
@@ -1034,11 +988,7 @@ void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
         for (x = x_start; x < x_stop; x++)
         {
             const int idx = y_off + ((x / vid_resolution) & 63);
-#ifndef CRISPY_TRUECOLOR
-            *dest++ = src[idx];
-#else
             *dest++ = pal_color[src[idx]];
-#endif
         }
     }
 }
@@ -1159,15 +1109,9 @@ static void DrawAcceleratingBox(int speed)
     int redline_x;
     int linelen;
 
-#ifndef CRISPY_TRUECOLOR
-    red = I_GetPaletteIndex(0xff, 0x00, 0x00);
-    white = I_GetPaletteIndex(0xff, 0xff, 0xff);
-    yellow = I_GetPaletteIndex(0xff, 0xff, 0x00);
-#else
     red = I_MapRGB(0xff, 0x00, 0x00);
     white = I_MapRGB(0xff, 0xff, 0xff);
     yellow = I_MapRGB(0xff, 0xff, 0x00);
-#endif
 
     // Calculate the position of the red threshold line when calibrating
     // acceleration.  This is 1/3 of the way along the box.
@@ -1225,11 +1169,7 @@ static void DrawNonAcceleratingBox(int speed)
     int white;
     int linelen;
 
-#ifndef CRISPY_TRUECOLOR
-    white = I_GetPaletteIndex(0xff, 0xff, 0xff);
-#else
     white = I_MapRGB(0xff, 0xff, 0xff);
-#endif
 
     if (speed > max_seen_speed)
     {
@@ -1257,15 +1197,9 @@ void V_DrawMouseSpeedBox(int speed)
     // Get palette indices for colors for widget. These depend on the
     // palette of the game being played.
 
-#ifndef CRISPY_TRUECOLOR
-    bgcolor = I_GetPaletteIndex(0x77, 0x77, 0x77);
-    bordercolor = I_GetPaletteIndex(0x55, 0x55, 0x55);
-    black = I_GetPaletteIndex(0x00, 0x00, 0x00);
-#else
     bgcolor = I_MapRGB(0x77, 0x77, 0x77);
     bordercolor = I_MapRGB(0x55, 0x55, 0x55);
     black = I_MapRGB(0x00, 0x00, 0x00);
-#endif
 
     // Calculate box position
 

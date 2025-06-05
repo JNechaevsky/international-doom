@@ -20,11 +20,10 @@
 #ifndef __I_TRUECOLOR__
 #define __I_TRUECOLOR__
 
-#include "config.h"
-
-#ifdef CRISPY_TRUECOLOR
-
 #include <stdint.h>
+
+
+#include "config.h"
 
 
 /* [PN] Used by blending functions from Crispy Doom
@@ -179,4 +178,3 @@ extern const double colorblind_matrix[][3][3];
 
 #endif
 
-#endif

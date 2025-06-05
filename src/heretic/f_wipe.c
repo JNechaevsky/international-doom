@@ -45,29 +45,21 @@ static void wipe_initCrossfade (void)
 {
     memcpy(wipe_scr, wipe_scr_start, SCREENAREA*sizeof(*wipe_scr));
     // [JN] Arm fail-safe crossfade counter with...
-#ifndef CRISPY_TRUECOLOR
-    // 8 screen screen transitions in paletted render,
-    // since effect is not really smooth there.
-    fade_counter = 8;
-#else
     // 32 screen screen transitions in TrueColor render,
     // to keep effect smooth enough.
     fade_counter = 32;
-#endif
 }
 
 // -----------------------------------------------------------------------------
 // wipe_doCrossfade
 // -----------------------------------------------------------------------------
 
-#ifdef CRISPY_TRUECOLOR
 static const uint8_t alpha_table[] = {
       0,   8,  16,  24,  32,  40,  48,  56,
      64,  72,  80,  88,  96, 104, 112, 120,
     128, 136, 144, 152, 160, 168, 176, 184,
     192, 200, 208, 216, 224, 232, 240, 248,
 };
-#endif
 
 static const int wipe_doCrossfade (const int ticks)
 {
@@ -86,11 +78,7 @@ static const int wipe_doCrossfade (const int ticks)
         {
             if (*cur_screen != *end_screen && fade_counter)
             {
-#ifndef CRISPY_TRUECOLOR
-                *cur_screen = shadowmap[(*cur_screen << 8) + *end_screen];
-#else
                 *cur_screen = I_BlendOver(*end_screen, *cur_screen, alpha_table[fade_counter]);
-#endif
                 // [PN] Moved to the end of the condition to ensure
                 // it's set only when an actual pixel change occurs.
                 changed = true;

@@ -1113,11 +1113,7 @@ static void AM_shadeBackground (void)
 
     for (int i = 0; i < scr; i++)
     {
-#ifndef CRISPY_TRUECOLOR
-        *dest = colormaps[((automap_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
-#else
         *dest = I_BlendDark(*dest, I_ShadeFactor[shade]);
-#endif
         ++dest;
     }
 }
@@ -1213,11 +1209,7 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 }
 #undef DOOUTCODE
 
-#ifndef CRISPY_TRUECOLOR
-#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(cc)    //the MACRO!
-#else
-#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(pal_color[cc])
-#endif
+#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(pal_color[cc])    //the MACRO!
 
 // -----------------------------------------------------------------------------
 // PUTDOT_THICK
@@ -1421,11 +1413,7 @@ void PUTDOT (short xx, short yy, byte *cc, byte *cm)
         oldyyshifted = yy * f_w;
     }
 
-#ifndef CRISPY_TRUECOLOR
-    fb[oldyyshifted + flipscreenwidth[xx]] = *cc;
-#else
     fb[oldyyshifted + flipscreenwidth[xx]] = pal_color[*cc];
-#endif
 }
 
 // -----------------------------------------------------------------------------

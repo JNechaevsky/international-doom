@@ -360,15 +360,12 @@ typedef struct vissprite_s
     int         mobjflags;
     // [crispy] color translation table for blood colored by monster class
     byte         *translation;
-#ifndef CRISPY_TRUECOLOR
-    byte         *blendfunc;
-#else
+
     // [JN] Indicate if vissprite's frame is bright for choosing 
     // blending option of colfunc:
     // - tlcolfunc for overlay (unlit) blending.
     // - tladdcolfunc for additive (lit) blending.
     int         brightframe;
-#endif
 } vissprite_t;
 
 //	

@@ -500,9 +500,6 @@ void SB_Ticker(void)
     IDWidget.y = CPlayer->mo->y >> FRACBITS;
     IDWidget.ang = CPlayer->mo->angle / ANG1;
 
-#ifndef CRISPY_TRUECOLOR
-    SB_PaletteFlash(false);
-#else
     if (vis_smooth_palette)
     {
         SB_SmoothPaletteFlash(false);
@@ -511,7 +508,6 @@ void SB_Ticker(void)
     {
         SB_PaletteFlash(false);
     }
-#endif
 }
 
 //==========================================================================
@@ -1234,9 +1230,6 @@ static byte *SB_NumberColor (int i)
 void SB_PaletteFlash(boolean forceChange)
 {
     int palette;
-#ifndef CRISPY_TRUECOLOR
-    byte *pal;
-#endif
 
     if (forceChange)
     {
@@ -1319,12 +1312,7 @@ void SB_PaletteFlash(boolean forceChange)
     if (palette != SB_palette)
     {
         SB_palette = palette;
-#ifndef CRISPY_TRUECOLOR
-        pal = (byte *) W_CacheLumpNum(PlayPalette, PU_CACHE) + palette * 768;
-        I_SetPalette(pal);
-#else
         I_SetPalette(palette);
-#endif
     }
 }
 
@@ -1334,7 +1322,6 @@ void SB_PaletteFlash(boolean forceChange)
 // Handles smooth palette transitions for a better visual effect.
 // -----------------------------------------------------------------------------
 
-#ifdef CRISPY_TRUECOLOR
 void SB_SmoothPaletteFlash (boolean forceChange)
 {
     int palette = 0;
@@ -1405,7 +1392,6 @@ void SB_SmoothPaletteFlash (boolean forceChange)
         I_SetPalette(palette);
     }
 }
-#endif
 
 //==========================================================================
 //

@@ -708,11 +708,7 @@ F_DrawPatchCol
 		
 	while (count--)
 	{
-#ifndef CRISPY_TRUECOLOR
-	    *dest = source[srccol >> FRACBITS];
-#else
 	    *dest = pal_color[source[srccol >> FRACBITS]];
-#endif
 	    srccol += dyi;
 	    dest += SCREENWIDTH;
 	}

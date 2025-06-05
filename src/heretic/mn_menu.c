@@ -837,11 +837,7 @@ static void M_ShadeBackground (void)
         
         for (int i = 0; i < scr; i++)
         {
-#ifndef CRISPY_TRUECOLOR
-            *dest = colormaps[((dp_menu_shading + 3) * 2) * 256 + I_VideoBuffer[y]];
-#else
             *dest = I_BlendDark(*dest, I_ShadeFactor[shade]);
-#endif
             ++dest;
         }
     }
@@ -1102,7 +1098,6 @@ static void M_Draw_ID_Video_1 (void)
     M_DrawScrollPages(ID_MENU_LEFTOFFSET, 150, 13, "1/2");
 }
 
-#ifdef CRISPY_TRUECOLOR
 static void M_ID_TrueColorHook (void)
 {
     vid_truecolor ^= 1;
@@ -1116,13 +1111,10 @@ static void M_ID_TrueColorHook (void)
     // [crispy] re-calculate fake contrast
     P_SegLengths(true);
 }
-#endif
 
 static void M_ID_TrueColor (int option)
 {
-#ifdef CRISPY_TRUECOLOR
     post_rendering_hook = M_ID_TrueColorHook;
-#endif
 }
 
 static void M_ID_RenderingResHook (void)
@@ -1613,27 +1605,19 @@ static void M_ID_Gamma (int choice)
     shade_wait = I_GetTime() + TICRATE;
     vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, choice, true);
 
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-#else
     I_SetPalette(sb_palette);
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
-#endif
 }
 
 static void M_ID_SaturationHook (void)
 {
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
-#else
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
     I_SetColorPanes(false);
     I_SetPalette(sb_palette);
-#endif
 }
 
 static void M_ID_Saturation (int choice)
@@ -1645,15 +1629,11 @@ static void M_ID_Saturation (int choice)
 
 static void M_ID_ContrastHook (void)
 {
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
-#else
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
     I_SetColorPanes(false);
     I_SetPalette(sb_palette);
-#endif
 }
 
 static void M_ID_Contrast (int choice)
@@ -1665,15 +1645,11 @@ static void M_ID_Contrast (int choice)
 
 static void M_ID_R_IntensityHook (void)
 {
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
-#else
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
     I_SetColorPanes(false);
     I_SetPalette(sb_palette);
-#endif
 }
 
 static void M_ID_R_Intensity (int choice)
@@ -1685,15 +1661,11 @@ static void M_ID_R_Intensity (int choice)
 
 static void M_ID_G_IntensityHook (void)
 {
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
-#else
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
     I_SetColorPanes(false);
     I_SetPalette(sb_palette);
-#endif
 }
 
 static void M_ID_G_Intensity (int choice)
@@ -1705,15 +1677,11 @@ static void M_ID_G_Intensity (int choice)
 
 static void M_ID_B_IntensityHook (void)
 {
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + sb_palette * 768);
-#else
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
     I_SetColorPanes(false);
     I_SetPalette(sb_palette);
-#endif
 }
 
 static void M_ID_B_Intensity (int choice)
@@ -3546,10 +3514,8 @@ static void M_ID_SmoothLightingHook (void)
 {
     vis_smooth_light ^= 1;
 
-#ifdef CRISPY_TRUECOLOR
     // [crispy] re-calculate amount of colormaps and light tables
     R_InitColormaps();
-#endif
     // [crispy] re-calculate the zlight[][] array
     R_InitLightTables();
     // [crispy] re-calculate the scalelight[][] array
@@ -3565,11 +3531,7 @@ static void M_ID_SmoothLighting (int choice)
 
 static void M_ID_SmoothPalette (int choice)
 {
-#ifndef CRISPY_TRUECOLOR
-    return;
-#else
     vis_smooth_palette ^= 1;
-#endif
 }
 
 static void M_ID_SwirlingLiquids (int choice)
@@ -4144,15 +4106,11 @@ static void M_ID_Misc_A11yWeaponBob (int choice)
 
 static void M_ID_Misc_A11yColorblindHook (void)
 {
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette ((byte *)W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE) + st_palette * 768);
-#else
     R_InitColormaps();
     R_FillBackScreen();
     SB_ForceRedraw();
     I_SetColorPanes(false);
     I_SetPalette(sb_palette);
-#endif
 }
 
 static void M_ID_Misc_A11yColorblind (int choice)
@@ -4852,9 +4810,7 @@ static void M_ID_ApplyResetHook (void)
     // Video options
     //
 
-#ifdef CRISPY_TRUECOLOR
     vid_truecolor = 0;
-#endif
     vid_resolution = 2;
     vid_widescreen = 0;
     vid_fullscreen_exclusive = 0;
@@ -4993,11 +4949,7 @@ static void M_ID_ApplyResetHook (void)
     P_SegLengths(true);
     P_InitPicAnims();
     I_ToggleVsync();
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-#else
     I_SetPalette(sb_palette);
-#endif
     R_FillBackScreen();
     AM_initOverlayMode();
     AM_LevelInit(true);
@@ -6941,14 +6893,10 @@ boolean MN_Responder(event_t * event)
     {
         vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, 1 /*right*/, false);
         CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false, NULL);
-#ifndef CRISPY_TRUECOLOR
-        I_SetPalette((byte *) W_CacheLumpName("PLAYPAL", PU_CACHE));
-#else
         I_SetPalette(0);
         R_InitColormaps();
         R_FillBackScreen();
         SB_state = -1;
-#endif
         return true;
     }
 
@@ -7318,11 +7266,7 @@ void MN_DrawInfo(void)
 {
     lumpindex_t lumpindex; // [crispy]
 
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-#else
     I_SetPalette(0);
-#endif
 
     // [crispy] Refactor to allow for use of V_DrawFullscreenRawOrPatch
 

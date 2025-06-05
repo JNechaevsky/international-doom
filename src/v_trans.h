@@ -101,11 +101,5 @@ extern char **crstr;
 
 #define cr_esc '~'
 
-#ifndef CRISPY_TRUECOLOR
-extern byte *blendfunc;
-extern void V_InitTransMaps (void);
-extern void V_LoadTintTable (void);
-#endif
-
 int V_GetPaletteIndex(byte *palette, int r, int g, int b);
 byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109);

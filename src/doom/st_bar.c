@@ -91,8 +91,6 @@ static pixel_t *st_backing_screen;
 // main player in game
 static player_t *plyr; 
 
-// lump number for PLAYPAL
-static int lu_palette;
 int st_palette = 0;
 
 // used for evil grin
@@ -912,9 +910,6 @@ static void ST_updateFaceWidget (void)
 void ST_doPaletteStuff (void)
 {
     int palette;
-#ifndef CRISPY_TRUECOLOR
-    byte*	pal;
-#endif
     int bzc;
     int cnt = plyr->damagecount;
 
@@ -998,12 +993,7 @@ void ST_doPaletteStuff (void)
     if (palette != st_palette)
     {
         st_palette = palette;
-#ifndef CRISPY_TRUECOLOR
-	pal = (byte *) W_CacheLumpNum (lu_palette, PU_CACHE)+palette*768;
-	I_SetPalette (pal);
-#else
 	I_SetPalette (palette);
-#endif
     }
 }
 
@@ -1013,7 +1003,6 @@ void ST_doPaletteStuff (void)
 // Handles smooth palette transitions for a better visual effect.
 // -----------------------------------------------------------------------------
 
-#ifdef CRISPY_TRUECOLOR
 static void ST_doSmoothPaletteStuff (void)
 {
     int red = plyr->damagecount;
@@ -1082,7 +1071,6 @@ static void ST_doSmoothPaletteStuff (void)
         I_SetPalette (palette);
     }
 }
-#endif
 
 // -----------------------------------------------------------------------------
 // ST_UpdateFragsCounter
@@ -1169,9 +1157,6 @@ void ST_Ticker (void)
     }
 
     // Do red-/gold-shifts from damage/items
-#ifndef CRISPY_TRUECOLOR
-    ST_doPaletteStuff();
-#else
     if (vis_smooth_palette)
     {
         ST_doSmoothPaletteStuff();
@@ -1180,7 +1165,6 @@ void ST_Ticker (void)
     {
         ST_doPaletteStuff();
     }
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -2110,7 +2094,6 @@ void ST_loadGraphics(void)
 
 void ST_loadData(void)
 {
-    lu_palette = W_GetNumForName (DEH_String("PLAYPAL"));
     ST_loadGraphics();
 }
 
@@ -2132,11 +2115,7 @@ void ST_unloadData(void)
 
 void ST_Start (void)
 {
-#ifndef CRISPY_TRUECOLOR
-    I_SetPalette (W_CacheLumpNum (lu_palette, PU_CACHE));
-#else
     I_SetPalette (0);
-#endif
 
     plyr = &players[displayplayer];
     faceindex = 1; // [crispy] fix status bar face hysteresis across level changes

@@ -272,15 +272,12 @@ typedef struct vissprite_s
     int mobjflags;              // for color translation and shadow draw
     boolean psprite;            // true if psprite
     fixed_t footclip;           // foot clipping
-#ifndef CRISPY_TRUECOLOR
-    byte *blendfunc;
-#else
+
     // [JN] Indicate if vissprite's frame is bright for choosing 
     // blending option of colfunc:
     // - tlcolfunc for overlay (unlit) blending.
     // - tladdcolfunc for additive (lit) blending.
     int brightframe;
-#endif
 } vissprite_t;
 
 
@@ -560,9 +557,7 @@ byte *R_GetColumn(int tex, int col);
 void R_InitData(void);
 void R_PrecacheLevel(void);
 extern void R_InitColormaps (void);
-#ifdef CRISPY_TRUECOLOR
 extern void R_SetUnderwaterPalette(byte *palette);
-#endif
 extern int R_GetPatchHeight(int texture_num, int patch_index);
 
 

@@ -1201,15 +1201,9 @@ void A_MStaffAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     {
         player->damagecount = 0;
         player->bonuscount = 0;
-#ifndef CRISPY_TRUECOLOR
-        I_SetPalette((byte *) W_CacheLumpNum(W_GetNumForName("playpal"),
-                                             PU_CACHE) +
-                     STARTSCOURGEPAL * 768);
-#else
         player->orngcount = 127;  // [JN] 127 pane alpha max
         if (!vis_smooth_palette)  // [JN] Smooth palette.
         I_SetPalette(STARTSCOURGEPAL);
-#endif
     }
 }
 
@@ -1230,13 +1224,8 @@ void A_MStaffPalette(mobj_t *actor, player_t *player, pspdef_t *psp)
         {                       // reset back to original playpal
             pal = 0;
         }
-#ifndef CRISPY_TRUECOLOR
-        I_SetPalette((byte *) W_CacheLumpNum(W_GetNumForName("playpal"),
-                                             PU_CACHE) + pal * 768);
-#else
         if (!vis_smooth_palette)  // [JN] Smooth palette.
         I_SetPalette(pal);
-#endif
     }
 }
 
@@ -1954,14 +1943,9 @@ void A_CHolyAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     {
         player->damagecount = 0;
         player->bonuscount = 0;
-#ifndef CRISPY_TRUECOLOR
-        I_SetPalette((byte *) W_CacheLumpNum(W_GetNumForName("playpal"),
-                                             PU_CACHE) + STARTHOLYPAL * 768);
-#else
         player->graycount = 127;  // [JN] 127 pane alpha max
         if (!vis_smooth_palette)  // [JN] Smooth palette.
         I_SetPalette(STARTHOLYPAL);
-#endif
     }
     S_StartSound(player->mo, SFX_CHOLY_FIRE);
 }
@@ -1983,13 +1967,8 @@ void A_CHolyPalette(mobj_t *actor, player_t *player, pspdef_t *psp)
         {                       // reset back to original playpal
             pal = 0;
         }
-#ifndef CRISPY_TRUECOLOR
-        I_SetPalette((byte *) W_CacheLumpNum(W_GetNumForName("playpal"),
-                                             PU_CACHE) + pal * 768);
-#else
         if (!vis_smooth_palette)  // [JN] Smooth palette.
         I_SetPalette(pal);
-#endif
     }
 }
 

@@ -385,13 +385,7 @@ void D_Display(void)
             nowtime = I_GetTime ();
             tics = nowtime - wipestart;
             I_Sleep(1);
-#ifndef CRISPY_TRUECOLOR
-        // [JN] Note: in paletted render tics are counting slower,
-        // since the effect can't be smooth because of palette limitation.
-        } while (tics < 3);
-#else
         } while (tics <= 0);
-#endif
 
             wipestart = nowtime;
             done = wipe_ScreenWipe(tics);

@@ -433,9 +433,6 @@ void SB_Ticker(void)
     }
 
     // [JN] Do red-/gold-shifts from damage/items.
-#ifndef CRISPY_TRUECOLOR
-    SB_PaletteFlash();
-#else
     if (vis_smooth_palette)
     {
         SB_SmoothPaletteFlash();
@@ -444,7 +441,6 @@ void SB_Ticker(void)
     {
         SB_PaletteFlash();
     }
-#endif
 }
 
 //---------------------------------------------------------------------------
@@ -564,19 +560,12 @@ static void DrSmallNumber(int val, int x, int y)
 static void ShadeLine(int x, int y, int height, int shade)
 {
     pixel_t *dest;
-#ifndef CRISPY_TRUECOLOR
-    byte *shades;
-#endif
 
     x *= vid_resolution;
     y *= vid_resolution;
     height *= vid_resolution;
 
-#ifndef CRISPY_TRUECOLOR
-    shades = colormaps + 9 * 256 + shade * 2 * 256;
-#else
     shade = (int)BETWEEN(0, 255, 0xFF - (((9 + shade * 2) << 8) / 32) * vid_contrast); // [crispy] shade to darkest 32nd COLORMAP row
-#endif
     dest = I_VideoBuffer + y * SCREENWIDTH + x + (WIDESCREENDELTA * vid_resolution);
     while (height--)
     {
@@ -585,19 +574,11 @@ static void ShadeLine(int x, int y, int height, int shade)
         {
             for (int i = 0 ; i < vid_resolution - 1 ; i++)
             {
-#ifndef CRISPY_TRUECOLOR
-                *(dest + i + 1) = *(shades + *dest);
-#else
                 *(dest + i + 1) = I_BlendDark(*dest, shade);
-#endif
             }
         }
 
-#ifndef CRISPY_TRUECOLOR
-        *(dest) = *(shades + *dest);
-#else
         *(dest) = I_BlendDark(*dest, shade);
-#endif
 
         dest += SCREENWIDTH;
     }
@@ -1183,9 +1164,6 @@ static byte *SB_NumberColor (int i)
 void SB_PaletteFlash(void)
 {
     int palette;
-#ifndef CRISPY_TRUECOLOR
-    byte *pal;
-#endif
 
     CPlayer = &players[displayplayer];
 
@@ -1242,12 +1220,7 @@ void SB_PaletteFlash(void)
     if (palette != sb_palette)
     {
         sb_palette = palette;
-#ifndef CRISPY_TRUECOLOR
-        pal = (byte *) W_CacheLumpNum(playpalette, PU_CACHE) + palette * 768;
-        I_SetPalette(pal);
-#else
         I_SetPalette(palette);
-#endif
     }
 }
 
@@ -1257,7 +1230,6 @@ void SB_PaletteFlash(void)
 // Handles smooth palette transitions for a better visual effect.
 // -----------------------------------------------------------------------------
 
-#ifdef CRISPY_TRUECOLOR
 void SB_SmoothPaletteFlash (void)
 {
     int palette = 0;
@@ -1289,7 +1261,6 @@ void SB_SmoothPaletteFlash (void)
         I_SetPalette(palette);
     }
 }
-#endif
 
 //---------------------------------------------------------------------------
 //

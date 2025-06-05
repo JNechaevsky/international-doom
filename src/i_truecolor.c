@@ -18,9 +18,8 @@
 //
 
 #include <stdlib.h> // malloc
-#include "config.h"
 
-#ifdef CRISPY_TRUECOLOR
+#include "config.h"
 
 #include "i_truecolor.h"
 #include "m_fixed.h"
@@ -162,4 +161,3 @@ const double colorblind_matrix[][3][3] = {
     { {0.61800, 0.32000, 0.06200}, {0.16300, 0.77500, 0.06200}, {0.16300, 0.32000, 0.51600} }, // Achromatomaly
 };
 
-#endif

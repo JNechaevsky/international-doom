@@ -549,7 +549,6 @@ void R_InitLightTables (void)
    // [crispy] smooth diminishing lighting
     if (vis_smooth_light)
     {
-#ifdef CRISPY_TRUECOLOR
     if (vid_truecolor)
     {
 	    // [crispy] if in TrueColor mode, use smoothest diminished lighting
@@ -564,7 +563,6 @@ void R_InitLightTables (void)
 	    BMAPANIMSHIFT  =    0 +  3;
     }
     else
-#endif
     {
 	    // [crispy] else, use paletted approach
 	    LIGHTLEVELS =      16 << 1;

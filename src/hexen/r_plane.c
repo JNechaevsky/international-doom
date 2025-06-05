@@ -551,19 +551,11 @@ void R_DrawPlanes(void)
                             {
                                 if (source[frac >> FRACBITS])
                                 {
-#ifndef CRISPY_TRUECOLOR
-                                    *dest = source[frac >> FRACBITS];
-#else
                                     *dest = pal_color[source[frac >> FRACBITS]];
-#endif
                                 }
                                 else
                                 {
-#ifndef CRISPY_TRUECOLOR
-                                    *dest = source2[frac >> FRACBITS];
-#else
                                     *dest = pal_color[source2[frac >> FRACBITS]];
-#endif
                                 }
                                 dest += SCREENWIDTH;
                                 if ((frac += fracstep) >= heightmask)
@@ -581,19 +573,11 @@ void R_DrawPlanes(void)
                             {
                                 if (source[(frac >> FRACBITS) & heightmask])
                                 {
-#ifndef CRISPY_TRUECOLOR
-                                    *dest = source[(frac >> FRACBITS) & heightmask];
-#else
                                     *dest = pal_color[source[(frac >> FRACBITS) & heightmask]];
-#endif
                                 }
                                 else
                                 {
-#ifndef CRISPY_TRUECOLOR
-                                    *dest = source2[(frac >> FRACBITS) & heightmask];
-#else
                                     *dest = pal_color[source2[(frac >> FRACBITS) & heightmask]];
-#endif
                                 }
 
                                 dest += SCREENWIDTH;
@@ -661,11 +645,7 @@ void R_DrawPlanes(void)
 
                             do
                             {
-#ifndef CRISPY_TRUECOLOR
-                                *dest = source[frac >> FRACBITS];
-#else
                                 *dest = pal_color[source[frac >> FRACBITS]];
-#endif
                                 dest += SCREENWIDTH;
 
                                 if ((frac += fracstep) >= heightmask)
@@ -681,11 +661,7 @@ void R_DrawPlanes(void)
 
                             do
                             {
-#ifndef CRISPY_TRUECOLOR
-                                *dest = source[(frac >> FRACBITS) & heightmask];
-#else
                                 *dest = pal_color[source[(frac >> FRACBITS) & heightmask]];
-#endif
                                 dest += SCREENWIDTH;
                                 frac += fracstep;
                             } while (count--);

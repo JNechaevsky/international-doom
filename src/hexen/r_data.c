@@ -664,22 +664,6 @@ void R_InitSpriteLumps(void)
 =================
 */
 
-#ifndef CRISPY_TRUECOLOR
-void R_InitColormaps(void)
-{
-    int lump, length;
-//
-// load in the light tables
-// 256 byte align tables
-//
-    lump = W_GetNumForName("COLORMAP");
-    length = W_LumpLength(lump);
-    colormaps = Z_Malloc(length, PU_STATIC, 0);
-    W_ReadLump(lump, colormaps);
-    NUMCOLORMAPS = 32; // [crispy] smooth diminishing lighting
-}
-
-#else
     
 // [PN] Macros to optimize and standardize color calculations in the R_InitColormaps.
 //
@@ -852,7 +836,6 @@ void R_InitTrueColormaps(char *current_colormap)
 	// 0xA0 (160) represents 62.75% darkening. Ensure the result stays within 0-255.
 	shadow_alpha = (uint8_t)BETWEEN(0, 255 - (32 * vid_contrast), 0xA0 / vid_contrast);
 }
-#endif
 
 // [crispy] initialize color translation and color string tables
 static void R_InitHSVColors(void)
@@ -895,21 +878,12 @@ void R_InitData(void)
     R_InitTextures();
     R_InitFlats();
     R_InitSpriteLumps();
-#ifndef CRISPY_TRUECOLOR
-    R_InitColormaps();
-#else
     // [crispy] Generate initial colormaps[] array from standard COLORMAP.
     R_InitTrueColormaps("COLORMAP");
-#endif
     // [crispy] initialize color translation and color string tables
     R_InitHSVColors();
     // [JN] Initialize and compose translucency tables.
-#ifndef CRISPY_TRUECOLOR
-    V_LoadTintTable();
-    V_InitTransMaps();
-#else
     I_InitTCTransMaps();
-#endif
 }
 
 //=============================================================================

@@ -759,7 +759,6 @@ void R_InitSpriteLumps(void)
 =================
 */
 
-#ifdef CRISPY_TRUECOLOR
 // [PN] Macros to optimize and standardize color calculations in the R_InitColormaps.
 //
 // CALC_INTENSITY calculates the RGB components from playpal based on intensity settings.
@@ -798,7 +797,6 @@ void R_InitSpriteLumps(void)
       channels[0] = (int)BETWEEN(0, 255, (int)(contrast * channels[0] + contrast_adjustment)); \
       channels[1] = (int)BETWEEN(0, 255, (int)(contrast * channels[1] + contrast_adjustment)); \
       channels[2] = (int)BETWEEN(0, 255, (int)(contrast * channels[2] + contrast_adjustment)); }
-#endif
 
 #define CALC_COLORBLIND(channels, matrix) \
     { const byte r = channels[0]; \
@@ -811,18 +809,6 @@ void R_InitSpriteLumps(void)
 
 void R_InitColormaps(void)
 {
-#ifndef CRISPY_TRUECOLOR
-    int lump, length;
-//
-// load in the light tables
-// 256 byte align tables
-//
-    lump = W_GetNumForName(DEH_String("COLORMAP"));
-    length = W_LumpLength(lump);
-    colormaps = Z_Malloc(length, PU_STATIC, 0);
-    W_ReadLump(lump, colormaps);
-    NUMCOLORMAPS = 32; // [crispy] smooth diminishing lighting
-#else
 	int c, i, j = 0;
 	byte r, g, b;
 
@@ -972,7 +958,6 @@ void R_InitColormaps(void)
 	// [JN] Recalculate shadow alpha value for shadowed patches based on contrast.
 	// 0xA0 (160) represents 62.75% darkening. Ensure the result stays within 0-255.
 	shadow_alpha = (uint8_t)BETWEEN(0, 255 - (32 * vid_contrast), 0xA0 / vid_contrast);
-#endif
 }
 
 
@@ -1012,7 +997,6 @@ static void R_InitHSVColors (void)
     W_ReleaseLumpName("PLAYPAL");
 }
 
-#ifdef CRISPY_TRUECOLOR
 // [crispy] Changes palette to given one. Used exclusively in true color rendering
 // for proper drawing of E2END pic in F_DrawUnderwater. Changing palette back to
 // original PLAYPAL for restoring proper colors will be done in R_InitColormaps.
@@ -1045,7 +1029,6 @@ void R_SetUnderwaterPalette(byte *palette)
         pal_color[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
     }
 }
-#endif
 
 
 /*
@@ -1085,13 +1068,7 @@ void R_InitData(void)
     R_InitHSVColors();
     printf (".");
     // [JN] Initialize and compose translucency tables.
-#ifndef CRISPY_TRUECOLOR
-    V_LoadTintTable();
-    printf (".");
-    V_InitTransMaps ();
-#else
     I_InitTCTransMaps ();
-#endif
     printf (".");
 }
 

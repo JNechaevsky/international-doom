@@ -316,15 +316,12 @@ typedef struct vissprite_s
     boolean psprite;            // true if psprite
     int class;                  // player class (used in translation)
     fixed_t floorclip;
-#ifndef CRISPY_TRUECOLOR
-    byte *blendfunc;
-#else
+
     // [JN] Indicate if vissprite's frame is bright for choosing 
     // blending option of colfunc:
     // - tlcolfunc for overlay (unlit) blending.
     // - tladdcolfunc for additive (lit) blending.
     int brightframe;
-#endif
 } vissprite_t;
 
 
@@ -610,9 +607,7 @@ byte *R_GetColumn(int tex, int col);
 void R_InitData(void);
 void R_PrecacheLevel(void);
 
-#ifdef CRISPY_TRUECOLOR
 extern void R_InitTrueColormaps(char *current_colormap);
-#endif
 extern int R_GetPatchHeight(int texture_num, int patch_index);
 
 //
