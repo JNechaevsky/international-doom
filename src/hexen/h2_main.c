@@ -1082,6 +1082,12 @@ static void DrawAndBlit(void)
                 {
                     ID_DrawTargetsHealth();
                 }
+
+                // [PN] Player speed widget.
+                if (widget_speed)
+                {
+                    ID_DrawPlayerSpeed();
+                }
             }
 
             // [JN] Draw crosshair.

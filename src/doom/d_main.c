@@ -307,6 +307,10 @@ static void D_Display (void)
                 // Actual health values are gathered in G_Ticker.
                 if (widget_health)
                 ID_DrawTargetsHealth();
+            
+                // [PN] Player speed widget.
+                if (widget_speed)
+                ID_DrawPlayerSpeed();
             }
 
             // [JN] Draw crosshair.

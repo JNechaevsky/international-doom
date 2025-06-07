@@ -60,6 +60,8 @@ enum
     widget_render_val,
     widget_coords_str,
     widget_coords_val,
+    widget_speed_str,
+    widget_speed_val,
 } widgetcolor_t;
 
 static byte *ID_WidgetColor (const int i)
@@ -78,6 +80,7 @@ static byte *ID_WidgetColor (const int i)
                 case widget_time_str:
                 case widget_render_str:
                 case widget_coords_str:
+                case widget_speed_str:
                     return cr[CR_GRAY];
                 
                 case widget_kills:
@@ -88,6 +91,7 @@ static byte *ID_WidgetColor (const int i)
 
                 case widget_render_val:
                 case widget_coords_val:
+                case widget_speed_val:
                     return cr[CR_GREEN_HX];
             }
         break;
@@ -97,6 +101,7 @@ static byte *ID_WidgetColor (const int i)
             {
                 case widget_kis_str:
                 case widget_time_str:
+                case widget_speed_str:
                     return cr[CR_RED];
                 case widget_render_str:
                     return cr[CR_YELLOW];
@@ -118,6 +123,7 @@ static byte *ID_WidgetColor (const int i)
                 case widget_render_str:
                 case widget_render_val:
                 case widget_coords_str:
+                case widget_speed_str:
                     return cr[CR_GREEN_HX];
             }
         break;
@@ -141,6 +147,7 @@ static byte *ID_WidgetColor (const int i)
                 case widget_time_val:
                 case widget_coords_str:
                 case widget_coords_val:
+                case widget_speed_val:
                     return cr[CR_GREEN_HX];
             }
         break;
@@ -421,6 +428,9 @@ void ID_DrawTargetsHealth (void)
     snprintf(str, sizeof(str), "%d/%d", player->targetsheath, player->targetsmaxheath);
     byte *color = ID_HealthColor(player->targetsheath, player->targetsmaxheath);
 
+    // Move the widget slightly further down when using a fullscreen status bar.
+    const int yy = (dp_screen_size > 10 && (!automapactive || automap_overlay)) ? 13 : 0;
+
     switch (widget_health)
     {
         case 1:  // Top
@@ -431,13 +441,49 @@ void ID_DrawTargetsHealth (void)
             MN_DrTextACentered(str, 20, color);
             break;
         case 3:  // Bottom
-            MN_DrTextACentered(str, 145, color);
+            MN_DrTextACentered(str, 125 + yy, color);
             break;
         case 4:  // Bottom + name
-            MN_DrTextACentered(player->targetsname, 145, color);
-            MN_DrTextACentered(str, 135, color);
+            MN_DrTextACentered(player->targetsname, 125 + yy, color);
+            MN_DrTextACentered(str, 115 + yy, color);
             break;
     }
+}
+
+// -----------------------------------------------------------------------------
+// ID_DrawPlayerSpeed
+//  [PN/JN] Draws player movement speed in map untits per second format.
+//  Based on the implementation by ceski from the Woof source port.
+// -----------------------------------------------------------------------------
+
+void ID_DrawPlayerSpeed (void)
+{
+    static char str[8];
+    static char val[16];
+    static double speed = 0;
+    const player_t *player = &players[displayplayer];
+
+    // Calculating speed only every game tic (not every frame)
+    // is not possible while D_Display is called after S_UpdateSounds in D_DoomLoop.
+    // if (oldgametic < gametic)
+    {
+        const double dx = (double)(player->mo->x - player->mo->oldx) / FRACUNIT;
+        const double dy = (double)(player->mo->y - player->mo->oldy) / FRACUNIT;
+        const double dz = (double)(player->mo->z - player->mo->oldz) / FRACUNIT;
+        speed = sqrt(dx * dx + dy * dy + dz * dz) * TICRATE;
+    }
+
+    M_snprintf(str, sizeof(str), "SPD:");
+    M_snprintf(val, sizeof(val), " %.0f", speed);
+
+    const int x_val = (ORIGWIDTH / 2);
+    const int x_str = x_val - MN_TextAWidth(str);
+
+    // Move the widget slightly further down when using a fullscreen status bar.
+    const int yy = (dp_screen_size > 10 && (!automapactive || automap_overlay)) ? 13 : 0;
+
+    MN_DrTextA(str, x_str, 136 + yy, ID_WidgetColor(widget_speed_str));
+    MN_DrTextA(val, x_val, 136 + yy, ID_WidgetColor(widget_speed_val));
 }
 
 // =============================================================================

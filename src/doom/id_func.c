@@ -60,6 +60,8 @@ enum
     widget_render_val,
     widget_coords_str,
     widget_coords_val,
+    widget_speed_str,
+    widget_speed_val,
 } widgetcolor_t;
 
 static byte *ID_WidgetColor (const int i)
@@ -86,6 +88,7 @@ static byte *ID_WidgetColor (const int i)
                 case widget_time_str:
                 case widget_render_str:
                 case widget_coords_str:
+                case widget_speed_str:
                     return cr[CR_GRAY];
                 
                 case widget_kills:
@@ -109,6 +112,7 @@ static byte *ID_WidgetColor (const int i)
 
                 case widget_render_val:
                 case widget_coords_val:
+                case widget_speed_val:
                     return cr[CR_GREEN];
 
                 default:
@@ -127,6 +131,7 @@ static byte *ID_WidgetColor (const int i)
             {
                 case widget_kis_str:
                 case widget_time_str:
+                case widget_speed_str:
                     return cr[CR_RED];
                 case widget_render_str:
                     return cr[CR_YELLOW];
@@ -170,6 +175,7 @@ static byte *ID_WidgetColor (const int i)
                 case widget_render_str:
                 case widget_render_val:
                 case widget_coords_str:
+                case widget_speed_str:
                     return cr[CR_GREEN];
 
                 default:
@@ -215,6 +221,7 @@ static byte *ID_WidgetColor (const int i)
                 case widget_time_val:
                 case widget_coords_str:
                 case widget_coords_val:
+                case widget_speed_val:
                     return cr[CR_GREEN];
 
                 default:
@@ -730,6 +737,7 @@ void ID_DrawTargetsHealth (void)
         return;  // No tics or target is dead, nothing to display.
     }
 
+    const int yy = widget_speed ? 9 : 0;
     char  str[16];
     snprintf(str, sizeof(str), "%d/%d", player->targetsheath, player->targetsmaxheath);
     byte *color = ID_HealthColor(player->targetsheath, player->targetsmaxheath);
@@ -744,13 +752,45 @@ void ID_DrawTargetsHealth (void)
             M_WriteTextCentered(18, str, color);
             break;
         case 3:  // Bottom
-            M_WriteTextCentered(152, str, color);
+            M_WriteTextCentered(152 - yy, str, color);
             break;
         case 4:  // Bottom + name
-            M_WriteTextCentered(144, player->targetsname, color);
-            M_WriteTextCentered(152, str, color);
+            M_WriteTextCentered(144 - yy, player->targetsname, color);
+            M_WriteTextCentered(152 - yy, str, color);
             break;
     }
+}
+
+// -----------------------------------------------------------------------------
+// ID_DrawPlayerSpeed
+//  [PN/JN] Draws player movement speed in map untits per second format.
+//  Based on the implementation by ceski from the Woof source port.
+// -----------------------------------------------------------------------------
+
+void ID_DrawPlayerSpeed (void)
+{
+    static char str[8];
+    static char val[16];
+    static double speed = 0;
+    const player_t *player = &players[displayplayer];
+
+    // Calculate speed only every game tic, not every frame.
+    if (oldgametic < gametic)
+    {
+        const double dx = (double)(player->mo->x - player->mo->oldx) / FRACUNIT;
+        const double dy = (double)(player->mo->y - player->mo->oldy) / FRACUNIT;
+        const double dz = (double)(player->mo->z - player->mo->oldz) / FRACUNIT;
+        speed = sqrt(dx * dx + dy * dy + dz * dz) * TICRATE;
+    }
+
+    M_snprintf(str, sizeof(str), "SPD:");
+    M_snprintf(val, sizeof(val), " %.0f", speed);
+
+    const int x_val = (ORIGWIDTH / 2);
+    const int x_str = x_val - M_StringWidth(str);
+
+    M_WriteText(x_str, 151, str, ID_WidgetColor(widget_speed_str));
+    M_WriteText(x_val, 151, val, ID_WidgetColor(widget_speed_val));
 }
 
 // =============================================================================

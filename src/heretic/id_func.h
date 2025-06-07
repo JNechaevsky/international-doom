@@ -74,6 +74,7 @@ extern char ID_Local_Time[64];
 extern void ID_LeftWidgets (void);
 extern void ID_RightWidgets (void);
 extern void ID_DrawTargetsHealth (void);
+extern void ID_DrawPlayerSpeed (void);
 
 //
 // Crosshair

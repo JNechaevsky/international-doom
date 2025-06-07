@@ -610,6 +610,7 @@ static void M_ID_Widget_Kills (int option);
 static void M_ID_Widget_TotalTime (int option);
 static void M_ID_Widget_LevelName (int option);
 static void M_ID_Widget_Coords (int option);
+static void M_ID_Widget_Speed (int choice);
 static void M_ID_Widget_Render (int option);
 static void M_ID_Widget_Health (int option);
 
@@ -3050,6 +3051,7 @@ static MenuItem_t ID_Menu_Widgets[] = {
     { ITT_LRFUNC2, "TOTAL TIME",       M_ID_Widget_TotalTime, 0, MENU_NONE },
     { ITT_LRFUNC2, "LEVEL NAME",       M_ID_Widget_LevelName, 0, MENU_NONE },
     { ITT_LRFUNC2, "PLAYER COORDS",    M_ID_Widget_Coords,    0, MENU_NONE },
+    { ITT_LRFUNC2, "PLAYER SPEED",     M_ID_Widget_Speed,     0, MENU_NONE },
     { ITT_LRFUNC2, "RENDER COUNTERS",  M_ID_Widget_Render,    0, MENU_NONE },
     { ITT_LRFUNC2, "TARGET'S HEALTH",  M_ID_Widget_Health,    0, MENU_NONE },
 };
@@ -3057,7 +3059,7 @@ static MenuItem_t ID_Menu_Widgets[] = {
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    9, ID_Menu_Widgets,
+    10, ID_Menu_Widgets,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -3124,22 +3126,29 @@ static void M_Draw_ID_Widgets (void)
                             widget_coords ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(6));
 
+    // Player speed
+    sprintf(str, widget_speed ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
+                        widget_speed ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            widget_speed ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(7));
+
     // Render counters
     sprintf(str, widget_render ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
                         widget_render ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             widget_render ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(8));
 
     // Target's health
     sprintf(str, widget_health == 1 ? "TOP" :
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
                         widget_health ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             widget_health ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
+                                LINE_ALPHA(9));
 }
 
 static void M_ID_Widget_Colors (int choice)
@@ -3175,6 +3184,11 @@ static void M_ID_Widget_LevelName (int choice)
 static void M_ID_Widget_Coords (int choice)
 {
     widget_coords = M_INT_Slider(widget_coords, 0, 2, choice, false);
+}
+
+static void M_ID_Widget_Speed (int choice)
+{
+    widget_speed ^= 1;
 }
 
 static void M_ID_Widget_Render (int choice)
@@ -4056,6 +4070,7 @@ static void M_ID_ApplyResetHook (void)
     widget_totaltime = 0;
     widget_levelname = 0;
     widget_coords = 0;
+    widget_speed = 0;
     widget_render = 0;
     widget_health = 0;
     // Automap

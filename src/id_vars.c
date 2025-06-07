@@ -111,6 +111,7 @@ int widget_time = 0;
 int widget_totaltime = 0;
 int widget_levelname = 0;
 int widget_coords = 0;
+int widget_speed = 0;
 int widget_render = 0;
 int widget_health = 0;
 // Automap
@@ -321,6 +322,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("widget_totaltime",               &widget_totaltime);
     M_BindIntVariable("widget_levelname",               &widget_levelname);
     M_BindIntVariable("widget_coords",                  &widget_coords);
+    M_BindIntVariable("widget_speed",                   &widget_speed);
     M_BindIntVariable("widget_render",                  &widget_render);
     M_BindIntVariable("widget_health",                  &widget_health);
     // Automap
