@@ -727,6 +727,9 @@ PIT_AddLineIntercepts (line_t* ld)
     intercept_p->frac = frac;
     intercept_p->isaline = true;
     intercept_p->d.line = ld;
+    // [JN] Optionally fix intercept overflow blockmap corruption bug.
+    if (!singleplayer || !intercept_overflow_fix)
+    {
     InterceptsOverrun(intercept_p - intercepts, intercept_p);
     // [crispy] intercepts overflow guard
     if (intercept_p - intercepts == MAXINTERCEPTS_ORIGINAL + 1)
@@ -747,6 +750,7 @@ PIT_AddLineIntercepts (line_t* ld)
     if (intercept_p - intercepts >= MAXINTERCEPTS_ALLGHOSTS) // 147
     {
         printf("PIT_AddLineIntercepts: INTERCEPTS overflow, all-ghosts effect!\n");
+    }
     }
     intercept_p++;
 
@@ -814,6 +818,9 @@ static boolean PIT_AddThingIntercepts (mobj_t* thing)
     intercept_p->frac = frac;
     intercept_p->isaline = false;
     intercept_p->d.thing = thing;
+    // [JN] Optionally fix intercept overflow blockmap corruption bug.
+    if (!singleplayer || !intercept_overflow_fix)
+    {
     InterceptsOverrun(intercept_p - intercepts, intercept_p);
     // [crispy] intercepts overflow guard
     if (intercept_p - intercepts == MAXINTERCEPTS_ORIGINAL + 1)
@@ -834,6 +841,7 @@ static boolean PIT_AddThingIntercepts (mobj_t* thing)
     if (intercept_p - intercepts >= MAXINTERCEPTS_ALLGHOSTS) // 147
     {
         printf("PIT_AddThingIntercepts: INTERCEPTS overflow, all-ghosts effect!\n");
+    }
     }
     intercept_p++;
 

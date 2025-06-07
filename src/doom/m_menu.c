@@ -773,6 +773,7 @@ static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
 static void M_ID_BlockmapFix (int choice);
 static void M_ID_VerticalAiming (int choice);
+static void M_ID_InterceptsOverflow (int choice);
 
 static void M_ScrollGameplay (int choice);
 
@@ -4003,7 +4004,7 @@ static menuitem_t ID_Menu_Gameplay_3[]=
     { M_MUL1, "PISTOL START GAME MODE",   M_ID_PistolStart,       'p' },
     { M_MUL1, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,       'i' },
     { M_MUL2, "VERTICAL AIMING",          M_ID_VerticalAiming,    'v' },
-    { M_SKIP, "", 0, '\0' },
+    { M_MUL2, "INTERCEPTS OVERFLOW",      M_ID_InterceptsOverflow,'i' },
     { M_SKIP, "", 0, '\0' },
     { M_MUL2, "", /* < SCROLL PAGES >*/   M_ScrollGameplay,       's' },
 };
@@ -4122,6 +4123,13 @@ static void M_Draw_ID_Gameplay_3 (void)
                             compat_vertical_aiming ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(12));
 
+    // Intercepts overflow
+    sprintf(str, intercept_overflow_fix ? "DISABLED" : "ENABLED");
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+                        intercept_overflow_fix ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            intercept_overflow_fix ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(13));
+
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "3/3");
 }
@@ -4191,6 +4199,11 @@ static void M_ID_BlockmapFix (int choice)
 static void M_ID_VerticalAiming (int choice)
 {
     compat_vertical_aiming = M_INT_Slider(compat_vertical_aiming, 0, 2, choice, false);
+}
+
+static void M_ID_InterceptsOverflow (int choice)
+{
+    intercept_overflow_fix ^= 1;
 }
 
 static void M_ScrollGameplay (int choice)
@@ -5111,6 +5124,7 @@ static void M_ID_ApplyResetHook (void)
     compat_pistol_start = 0;
     compat_blockmap_fix = 0;
     compat_vertical_aiming = 0;
+    intercept_overflow_fix = 0;
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
