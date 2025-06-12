@@ -133,6 +133,9 @@ void P_BringUpWeapon (player_t* player)
     player->pendingweapon = wp_nochange;
     player->psprites[ps_weapon].sy = WEAPONBOTTOM;
 
+    pspdef_t *psp = &player->psprites[ps_weapon];
+    psp->sy2 = psp->oldsy2 = psp->sy;
+
     P_SetPsprite (player, ps_weapon, newstate);
 }
 
