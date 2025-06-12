@@ -841,6 +841,3 @@ extern int64_t sprtopscreen;
 
 extern fixed_t pspritescale;
 extern fixed_t pspriteiscale;
-
-// [crispy] interpolate weapon bobbing
-extern boolean pspr_interp;

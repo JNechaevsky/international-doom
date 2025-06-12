@@ -757,36 +757,6 @@ void R_AddSprites (sector_t *sec)
     R_ProjectSprite (thing);
 }
 
-// -----------------------------------------------------------------------------
-// R_ApplyWeaponBob
-// [crispy] apply bobbing (or centering) to the player's weapon sprite
-// -----------------------------------------------------------------------------
-
-static inline void R_ApplyWeaponBob (fixed_t *sx, boolean bobx, fixed_t *sy, boolean boby)
-{
-    const angle_t angle = (128 * realleveltime) & FINEMASK;
-
-    if (sx)
-    {
-        *sx = FRACUNIT;
-
-        if (bobx)
-        {
-            *sx += FixedMul(viewplayer->r_bob, finecosine[angle]);
-        }
-    }
-
-    if (sy)
-    {
-        *sy = 32 * FRACUNIT; // [crispy] WEAPONTOP
-
-        if (boby)
-        {
-            *sy += FixedMul(viewplayer->r_bob, finesine[angle & (FINEANGLES / 2 - 1)]);
-        }
-    }
-}
-
 //
 // R_DrawPSprite
 //
@@ -803,8 +773,6 @@ static const int PSpriteSY[NUMWEAPONS] = {
     15 * FRACUNIT               // beak
 };
 
-boolean pspr_interp = true; // interpolate weapon bobbing
-
 void R_DrawPSprite (pspdef_t* psp)
 {
     fixed_t		tx;
@@ -816,11 +784,6 @@ void R_DrawPSprite (pspdef_t* psp)
     boolean		flip;
     vissprite_t*	vis;
     vissprite_t		avis;
-
-    fixed_t psp_sx = psp->r_sx, psp_sy = psp->r_sy;                           // [crispy]
-    const int state = viewplayer->psprites[ps_weapon].state - states;         // [crispy]
-    const weaponinfo_t *const winfo1 = &wpnlev1info[viewplayer->readyweapon]; // [crispy]
-    const weaponinfo_t *const winfo2 = &wpnlev2info[viewplayer->readyweapon]; // [crispy]
 
     int tempangle;
 
@@ -841,38 +804,23 @@ void R_DrawPSprite (pspdef_t* psp)
     lump = sprframe->lump[0];
     flip = (boolean)sprframe->flip[0] ^ gp_flip_levels;
 
-    // [JN] Weapon attack alignment. Common bobbing:
-    if (phys_weapon_alignment)
+    fixed_t sx2, sy2;
+    
+    if (vid_uncapped_fps && oldleveltime < realleveltime)
     {
-        // Apply full bobbing to all states, except raising and lowering.
-        if ((state != winfo1->downstate && state != winfo1->upstate)
-        &&  (state != winfo2->downstate && state != winfo2->upstate))
-        {
-            if (phys_weapon_alignment == 2 && viewplayer->attackdown)
-            {
-                // Center weapon while firing.
-                psp_sx = FRACUNIT;
-                psp_sy = 32 * FRACUNIT; // WEAPONTOP
-            }
-            else
-            {
-                R_ApplyWeaponBob(&psp_sx, true, &psp_sy, true);
-            }
-        }
-        else
-        {
-            // Apply x-only bobbing to raising and lowering states.
-            R_ApplyWeaponBob(&psp_sx, true, 0, false);
-        }
-
-        // [crispy] squat down weapon sprite a bit after hitting the ground
-        psp_sy += abs(viewplayer->psp_dy);
+        sx2 = LerpFixed(psp->oldsx2, psp->sx2);
+        sy2 = LerpFixed(psp->oldsy2, psp->sy2);
+    }
+    else
+    {
+        sx2 = psp->sx2;
+        sy2 = psp->sy2;
     }
 
 //
 // calculate edges of the shape
 //
-    tx = psp_sx - 160 * FRACUNIT;
+    tx = sx2 - 160 * FRACUNIT;
 
     // [crispy] fix sprite offsets for mirrored sprites
     tx -= flip ? 2 * tx - spriteoffset[lump] + spritewidth[lump] : spriteoffset[lump];
@@ -903,7 +851,7 @@ void R_DrawPSprite (pspdef_t* psp)
     vis->footclip = 0;
     // [crispy] weapons drawn 1 pixel too high when player is idle
     vis->texturemid =
-        (BASEYCENTER << FRACBITS) + FRACUNIT / (1 + vid_resolution) - (psp_sy -
+        (BASEYCENTER << FRACBITS) + FRACUNIT / (1 + vid_resolution) - (sy2 -
                                                     spritetopoffset[lump]);
     if (viewheight == SCREENHEIGHT)
     {
@@ -952,41 +900,6 @@ void R_DrawPSprite (pspdef_t* psp)
         vis->colormap[1] = colormaps;
     }
     vis->brightmap = R_BrightmapForState(psp->state - states);
-
-    // [crispy] interpolate weapon bobbing
-    if (vid_uncapped_fps)
-    {
-        static int     oldx1, x1_saved;
-        static fixed_t oldtexturemid, texturemid_saved;
-        static int     oldlump = -1;
-        static int     oldgametic = -1;
-
-        if (oldgametic < gametic)
-        {
-            oldx1 = x1_saved;
-            oldtexturemid = texturemid_saved;
-            oldgametic = gametic;
-        }
-
-        x1_saved = vis->x1;
-        texturemid_saved = vis->texturemid;
-
-        if (lump == oldlump && pspr_interp)
-        {
-            int deltax = vis->x2 - vis->x1;
-            vis->x1 = LerpFixed(oldx1, vis->x1);
-            vis->x2 = vis->x1 + deltax;
-            vis->x2 = vis->x2 >= viewwidth ? viewwidth - 1 : vis->x2;
-            vis->texturemid = LerpFixed(oldtexturemid, vis->texturemid);
-        }
-        else
-        {
-            oldx1 = vis->x1;
-            oldtexturemid = vis->texturemid;
-            oldlump = lump;
-            pspr_interp = true;
-        }
-    }
 
     R_DrawVisSprite (vis);
 }

@@ -2390,7 +2390,6 @@ void AM_Drawer (void)
     if (!automap_overlay)
     {
         AM_drawBackground();
-        pspr_interp = false;  // [JN] Supress interpolated weapon bobbing.
     }
 
     if (automap_shading && automap_overlay)

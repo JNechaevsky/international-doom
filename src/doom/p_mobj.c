@@ -1012,9 +1012,6 @@ void P_SpawnPlayer (mapthing_t* mthing)
         p->mo->flags |= MF_NOCLIP;
     }
 
-    // [crispy] interpolate weapon bobbing
-    pspr_interp = false;
-
     // setup gun psprite
     P_SetupPsprites (p);
     

@@ -1136,8 +1136,6 @@ static void M_ID_ExclusiveFS (int choice)
 static void M_ID_UncappedFPS (int choice)
 {
     vid_uncapped_fps ^= 1;
-    // [JN] Skip weapon bobbing interpolation for next frame.
-    pspr_interp = false;
 }
 
 static void M_ID_LimitFPS (int choice)

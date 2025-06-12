@@ -862,8 +862,6 @@ void R_ExecuteSetViewSize (void)
     }
 
     flipviewwidth = flipscreenwidth + (gp_flip_levels ? (SCREENWIDTH - scaledviewwidth) : 0);
-
-    pspr_interp = false; // [crispy] interpolate weapon bobbing
     
     R_FillBackScreen();   // erase old menu stuff
 

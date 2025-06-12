@@ -1376,8 +1376,6 @@ static void M_ID_ExclusiveFS (int choice)
 static void M_ID_UncappedFPS (int choice)
 {
     vid_uncapped_fps ^= 1;
-    // [JN] Skip weapon bobbing interpolation for next frame.
-    pspr_interp = false;
 }
 
 static void M_ID_LimitFPS (int choice)
@@ -3977,7 +3975,6 @@ static void M_ID_FloatingPowerups(int choice)
 static void M_ID_WeaponAlignment (int choice)
 {
     phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice, false);
-    pspr_interp = false;
 }
 
 static void M_ID_Breathing (int choice)

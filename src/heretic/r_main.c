@@ -824,8 +824,6 @@ void R_ExecuteSetViewSize(void)
 
     // [crispy] Redraw status bar, needed for widescreen HUD
     SB_ForceRedraw();
-
-    pspr_interp = false; // [crispy]
 }
 
 
