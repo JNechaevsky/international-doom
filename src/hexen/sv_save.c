@@ -315,8 +315,8 @@ static void StreamIn_pspdef_t(pspdef_t *str)
     str->sy = SV_ReadLong();
 
     // [JN] A11Y - Weapon bobbing.
-    str->oldsx2 = str->sx2 = str->sx;
-    str->oldsy2 = str->sy2 = str->sy;
+    str->sx2 = str->oldsx2 = str->sx;
+    str->sy2 = str->oldsy2 = str->sy;
 }
 
 static void StreamOut_pspdef_t(pspdef_t *str)
