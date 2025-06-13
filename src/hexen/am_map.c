@@ -708,11 +708,7 @@ boolean AM_Responder (event_t *ev)
         if (!automapactive)
         {
             AM_Start ();
-            if (!automap_overlay)
-            {
-                // [JN] Redraw status bar background.
-                SB_state = -1;
-            }
+            SB_state = -1;
         }
         else
         {
@@ -727,11 +723,7 @@ boolean AM_Responder (event_t *ev)
          && gamestate == GS_LEVEL)
         {
             AM_Start ();
-            if (!automap_overlay)
-            {
-                // [JN] Redraw status bar background.
-                SB_state = -1;
-            }
+            SB_state = -1;
             rc = true;
         }
     }

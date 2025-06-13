@@ -493,6 +493,12 @@ void SB_Ticker(void)
         HealthMarker += delta;
     }
 
+    // [JN] Update key and armor icons while active automap.
+    if (automapactive)
+    {
+        SB_state = -1;
+    }
+
     // [JN] Update IDWidget data.
     CPlayer = &players[displayplayer];
     IDWidget.kills = CPlayer->killcount;
@@ -915,7 +921,7 @@ void SB_Drawer(void)
             if (SB_state != 0)
             {
                 // Main interface
-                if (!(automapactive && !automap_overlay))
+                if (!automapactive)
                 {
                     V_DrawPatch(38, 162, PatchSTATBAR);
                 }
@@ -933,7 +939,7 @@ void SB_Drawer(void)
                 oldweapon = -1;
                 oldkeys = -1;
             }
-            if (!(automapactive && !automap_overlay))
+            if (!automapactive)
             {
                 DrawMainBar();
             }
