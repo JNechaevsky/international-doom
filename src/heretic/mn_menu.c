@@ -3258,7 +3258,7 @@ static MenuItem_t ID_Menu_Automap[] = {
 static Menu_t ID_Def_Automap = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Automap,
-    7, ID_Menu_Automap,
+    8, ID_Menu_Automap,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
