@@ -134,6 +134,7 @@ extern int st_ammo_widget_translucent;  // Heretic only
 extern int st_ammo_widget_colors;  // Heretic only
 extern int st_weapon_widget;  // Hexen only
 extern int st_armor_icon;  // Hexen only
+extern int st_armor_value;  // Hexen only
 
 extern int aud_z_axis_sfx;
 extern int aud_full_sounds;

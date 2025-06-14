@@ -571,6 +571,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(st_ammo_widget_colors),
     CONFIG_VARIABLE_INT(st_weapon_widget),
     CONFIG_VARIABLE_INT(st_armor_icon),
+    CONFIG_VARIABLE_INT(st_armor_value),
 
     // Audible
     CONFIG_VARIABLE_INT(aud_z_axis_sfx),

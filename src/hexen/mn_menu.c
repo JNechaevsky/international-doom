@@ -638,6 +638,7 @@ static void M_Draw_ID_Gameplay_2 (void);
 static void M_ID_ColoredSBar (int choice);
 static void M_ID_WeaponWidget (int choice);
 static void M_ID_ArmorIcon (int choice);
+static void M_ID_ArmorValue (int choice);
 static void M_ID_ZAxisSfx (int choice);
 static void M_ID_Torque (int choice);
 static void M_ID_Breathing (int choice);
@@ -3512,12 +3513,12 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC1, "COLORED ELEMENTS",            M_ID_ColoredSBar,  0, MENU_NONE },
     { ITT_LRFUNC2, "4TH WEAPON WIDGET",           M_ID_WeaponWidget, 0, MENU_NONE },
     { ITT_LRFUNC2, "ARMOR ICON",                  M_ID_ArmorIcon,    0, MENU_NONE },
+    { ITT_LRFUNC2, "ARMOR VALUE",                 M_ID_ArmorValue,   0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_LRFUNC1, "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,     0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_LRFUNC1, "CORPSES SLIDING FROM LEDGES", M_ID_Torque,       0, MENU_NONE },
     { ITT_LRFUNC1, "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,    0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
@@ -3562,30 +3563,37 @@ static void M_Draw_ID_Gameplay_2 (void)
                             st_armor_icon ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(2));
 
-    MN_DrTextACentered("AUDIBLE", 50, cr[CR_YELLOW]);
+    // Armor value
+    sprintf(str, st_armor_value ? "PERCENT" : "CLASS");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+                        st_armor_value ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            st_armor_value ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(3));
+
+    MN_DrTextACentered("AUDIBLE", 60, cr[CR_YELLOW]);
 
     // Sfx Attenuation Axises
     sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
                         aud_z_axis_sfx ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             aud_z_axis_sfx ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(4));
+                                LINE_ALPHA(5));
 
-    MN_DrTextACentered("PHYSICAL", 70, cr[CR_YELLOW]);
+    MN_DrTextACentered("PHYSICAL", 80, cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
                         phys_torque ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             phys_torque ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(7));
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
                         phys_breathing ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             phys_breathing ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(8));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "2/3");
@@ -3604,6 +3612,13 @@ static void M_ID_WeaponWidget (int choice)
 static void M_ID_ArmorIcon (int choice)
 {
     st_armor_icon ^= 1;
+}
+
+static void M_ID_ArmorValue (int choice)
+{
+    st_armor_value ^= 1;
+    // [JN] Ensure background is properly redrawn.
+    SB_state = -1;
 }
 
 static void M_ID_ZAxisSfx (int choice)
@@ -4101,6 +4116,7 @@ static void M_ID_ApplyResetHook (void)
     st_colored_stbar = 0;
     st_weapon_widget = 0;
     st_armor_icon = 0;
+    st_armor_value = 0;
 
     // Audible
     aud_z_axis_sfx = 0;

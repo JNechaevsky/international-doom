@@ -88,6 +88,7 @@ enum
 
     CR_BROWN,
     CR_FLAME,
+    CR_PURPLE,
 
     CR_RED2BLUE,
     CR_RED2GREEN,

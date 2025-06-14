@@ -92,6 +92,11 @@ static int SpinDefenseLump;
 static int FontBNumBase;
 static int PlayPalette;
 
+// [JN] Armor values, calculated every tic in SB_Ticker.
+static int ArmorValue;
+static int ArmorClass;
+static int ArmorPercent;
+
 static patch_t *PatchH2BAR;
 static patch_t *PatchH2TOP;
 static patch_t *PatchLFEDGE;
@@ -505,6 +510,21 @@ void SB_Ticker(void)
     IDWidget.x = CPlayer->mo->x >> FRACBITS;
     IDWidget.y = CPlayer->mo->y >> FRACBITS;
     IDWidget.ang = CPlayer->mo->angle / ANG1;
+
+    // [JN] Count armor values.
+    ArmorValue = AutoArmorSave[CPlayer->class]
+               + CPlayer->armorpoints[ARMOR_ARMOR]
+               + CPlayer->armorpoints[ARMOR_SHIELD]
+               + CPlayer->armorpoints[ARMOR_HELMET]
+               + CPlayer->armorpoints[ARMOR_AMULET];
+
+    ArmorClass = FixedDiv(ArmorValue, 5 * FRACUNIT) >> FRACBITS;
+
+    if (st_armor_value)
+    {
+        const int divisor[] = {52428, 45875, 39321};
+        ArmorPercent = ArmorValue / divisor[CPlayer->class];
+    }
 
     if (vis_smooth_palette)
     {
@@ -1112,12 +1132,6 @@ enum
 
 static byte *SB_NumberColor (int i)
 {
-    const int armor = AutoArmorSave[CPlayer->class]
-                    + CPlayer->armorpoints[ARMOR_ARMOR]
-                    + CPlayer->armorpoints[ARMOR_SHIELD]
-                    + CPlayer->armorpoints[ARMOR_HELMET]
-                    + CPlayer->armorpoints[ARMOR_AMULET];
-
     if (!st_colored_stbar)
     {
         return NULL;
@@ -1144,23 +1158,27 @@ static byte *SB_NumberColor (int i)
         // so let's just use some hard-coded values here.
         case hudcolor_armor:
         {
+            // Coloring values for: Fighter, Cleric, Mage.
+            const int ArmorClassPurple[] = {5242880, 4587520, 3932160};
+            const int ArmorClassGreen[]  = {8, 7, 6};
+            const int ArmorClassYellow[] = {3, 2, 1};
+            
             if (CPlayer->cheats & CF_GODMODE || CPlayer->powers[pw_invulnerability])
             {
                 return cr[CR_LIGHTGRAY];
             }
             else
-            if ((FixedDiv(armor, 5 * FRACUNIT) >> FRACBITS)
-            >=  (CPlayer->class == 0 ? 8 :  // Fighted
-                 CPlayer->class == 1 ? 7 :  // Cleric
-                                       6))  // Mage
+            if (st_armor_value && ArmorValue > ArmorClassPurple[CPlayer->class])
+            {
+                return cr[CR_PURPLE];
+            }
+            else
+            if (ArmorClass >= ArmorClassGreen[CPlayer->class])
             {
                 return cr[CR_GREEN_HX];
             }
             else 
-            if ((FixedDiv(armor, 5 * FRACUNIT) >> FRACBITS)
-            >   (CPlayer->class == 0 ? 3 :  // Fighted
-                 CPlayer->class == 1 ? 2 :  // Cleric
-                                       1))  // Mage
+            if (ArmorClass > ArmorClassYellow[CPlayer->class])
             {
                 return cr[CR_YELLOW];
             }
@@ -1652,11 +1670,7 @@ void DrawMainBar(void)
         oldweapon = CPlayer->readyweapon;
     }
     // Armor
-    temp = AutoArmorSave[CPlayer->class]
-        + CPlayer->armorpoints[ARMOR_ARMOR] +
-        CPlayer->armorpoints[ARMOR_SHIELD] +
-        CPlayer->armorpoints[ARMOR_HELMET] +
-        CPlayer->armorpoints[ARMOR_AMULET];
+    temp = ArmorValue;
     // [JN] Need to perform update for colored status bar.
     // TODO - not very optimal, ideally to update once after invul. runs out.
     if (oldarmor != temp || st_colored_stbar)
@@ -1664,7 +1678,14 @@ void DrawMainBar(void)
         oldarmor = temp;
         V_DrawPatch(255, 178, PatchARMCLEAR);
         dp_translation = SB_NumberColor(hudcolor_armor);
-        DrINumber(FixedDiv(temp, 5 * FRACUNIT) >> FRACBITS, 250, 176);
+        if (!st_armor_value)
+        {
+            DrINumber(ArmorClass, 250, 176);
+        }
+        else
+        {
+            DrINumber(ArmorPercent, 254, 176);
+        }
         dp_translation = NULL;
     }
     // Weapon Pieces
@@ -1745,11 +1766,7 @@ void DrawKeyBar(void)
         }
         oldkeys = CPlayer->keys;
     }
-    temp = AutoArmorSave[CPlayer->class]
-        + CPlayer->armorpoints[ARMOR_ARMOR] +
-        CPlayer->armorpoints[ARMOR_SHIELD] +
-        CPlayer->armorpoints[ARMOR_HELMET] +
-        CPlayer->armorpoints[ARMOR_AMULET];
+    temp = ArmorValue;
     if (oldarmor != temp)
     {
         for (i = 0; i < NUMARMOR; i++)
@@ -1908,24 +1925,28 @@ static void DrawFullScreenStuff(void)
     {
         // Armor.
         {
-            const int currentArmor = AutoArmorSave[CPlayer->class]
-                                   + CPlayer->armorpoints[ARMOR_ARMOR]
-                                   + CPlayer->armorpoints[ARMOR_SHIELD]
-                                   + CPlayer->armorpoints[ARMOR_HELMET]
-                                   + CPlayer->armorpoints[ARMOR_AMULET];
+            // Shift digits and icon right for armor percent values above 99.
+            const int xx = (st_armor_value && ArmorPercent > 99) ? 12 : 0;
 
             dp_translation = SB_NumberColor(hudcolor_armor);
-            DrBNumber(FixedDiv(currentArmor, 5 * FRACUNIT) >> FRACBITS, 41 - wide_x, 175);
+            if (!st_armor_value)
+            {
+                DrBNumber(ArmorClass, 41 - wide_x, 175);
+            }
+            else
+            {
+                DrBNumber(ArmorPercent, 41 - wide_x + xx, 175);
+            }
             dp_translation = NULL;
             if (st_armor_icon)
             {
                 // Draw generic armor icon.
-                V_DrawShadowedPatch(81 - wide_x, 176, (patch_t*)id_armor_icon);
+                V_DrawShadowedPatch(81 - wide_x + xx, 176, (patch_t*)id_armor_icon);
             }
             else
             {
                 // Draw class-based icon.
-                V_DrawShadowedPatchNoOffsets(ClassArmorX[class] - wide_x, ClassArmorY[class],
+                V_DrawShadowedPatchNoOffsets(ClassArmorX[class] - wide_x + xx, ClassArmorY[class],
                                     W_CacheLumpName(ClassArmorIcon[class], PU_CACHE));
             }
         }

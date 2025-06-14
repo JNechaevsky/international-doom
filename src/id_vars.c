@@ -158,6 +158,7 @@ int st_ammo_widget_translucent = 0;
 int st_ammo_widget_colors = 0;
 int st_weapon_widget = 0;
 int st_armor_icon = 0;
+int st_armor_value = 0;
 
 // Audible
 int aud_z_axis_sfx = 0;
@@ -401,6 +402,7 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("st_weapon_widget",           &st_weapon_widget);
         M_BindIntVariable("st_armor_icon",              &st_armor_icon);
+        M_BindIntVariable("st_armor_value",             &st_armor_value);
     }        
     
     // Audible

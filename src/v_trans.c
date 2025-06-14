@@ -80,6 +80,7 @@ static byte cr_lightgray_dark[256];
 
 static byte cr_brown[256];
 static byte cr_flame[256];
+static byte cr_purple[256];
 
 static const byte cr_red2blue[256] =
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
@@ -169,6 +170,7 @@ byte *cr[] =
 
     (byte *) &cr_brown,
     (byte *) &cr_flame,
+    (byte *) &cr_purple,
 
     (byte *) &cr_red2blue,
     (byte *) &cr_red2green,
@@ -577,6 +579,10 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
         {
             hsv.x = 0.125f;
             hsv.z *= 1.75f;
+        }
+        else if (cr == CR_PURPLE)
+        {
+            hsv.x = 0.85f;
         }
     }
 
