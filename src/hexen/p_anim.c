@@ -134,8 +134,9 @@ void P_AnimateSurfaces(void)
                 {
                 flattranslation[ad->index] =
                     ad->index == x_001 ? -3 : // Warp 2 (lava)
+                    ad->index == x_005 ? -1 : // Swirl (water)
                     ad->index == x_009 ? -4 : // Warp 3 (sludge)
-                                         -1 ; // Swirl (water)
+                        FrameDefs[ad->currentFrameDef].index; // Just animated flat
                 }
                 else
                 {
