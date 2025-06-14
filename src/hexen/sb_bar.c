@@ -1151,77 +1151,65 @@ static byte *SB_NumberColor (int i)
                 return cr[CR_YELLOW];
             else
                 return cr[CR_RED];
-            break;
         }
+        break;
 
-        // [JN] Well... Hexen armor system is a bit mind blowing,
-        // so let's just use some hard-coded values here.
         case hudcolor_armor:
         {
-            // Coloring values for: Fighter, Cleric, Mage.
-            const int ArmorClassPurple[] = {5242880, 4587520, 3932160};
-            const int ArmorClassGreen[]  = {8, 7, 6};
-            const int ArmorClassYellow[] = {3, 2, 1};
-            
             if (CPlayer->cheats & CF_GODMODE || CPlayer->powers[pw_invulnerability])
-            {
                 return cr[CR_LIGHTGRAY];
-            }
-            else
-            if (st_armor_value && ArmorValue > ArmorClassPurple[CPlayer->class])
+
+            if (st_armor_value)  // Percent
             {
-                return cr[CR_PURPLE];
+                if (ArmorPercent > 100)
+                    return cr[CR_PURPLE];
+                else
+                if (ArmorPercent >= 50)
+                    return cr[CR_GREEN_HX];
+                else
+                if (ArmorPercent >= 25)
+                    return cr[CR_YELLOW];
+                else
+                    return cr[CR_RED];
             }
-            else
-            if (ArmorClass >= ArmorClassGreen[CPlayer->class])
+            else  // Class
             {
-                return cr[CR_GREEN_HX];
+                // Coloring values for: Fighter, Cleric, Mage.
+                const int ArmorClassGreen[]  = {8, 7, 6};
+                const int ArmorClassYellow[] = {3, 2, 1};
+
+                if (ArmorClass >= ArmorClassGreen[CPlayer->class])
+                    return cr[CR_GREEN_HX];
+                else 
+                if (ArmorClass > ArmorClassYellow[CPlayer->class])
+                    return cr[CR_YELLOW];
+                else
+                    return cr[CR_RED];
             }
-            else 
-            if (ArmorClass > ArmorClassYellow[CPlayer->class])
-            {
-                return cr[CR_YELLOW];
-            }
-            else
-            {
-                return cr[CR_RED];
-            }
-            break;
         }
+        break;
         
         case hudcolor_mana_blue:
         {
             if (CPlayer->mana[0] >= MAX_MANA / 2)
-            {
                 return cr[CR_GREEN_HX];
-            }
             else
             if (CPlayer->mana[0] >= MAX_MANA / 4)
-            {
                 return cr[CR_YELLOW];
-            }
             else
-            {
                 return cr[CR_RED];
-            }
         }
         break;
 
         case hudcolor_mana_green:
         {
             if (CPlayer->mana[1] >= MAX_MANA / 2)
-            {
                 return cr[CR_GREEN_HX];
-            }
             else
             if (CPlayer->mana[1] >= MAX_MANA / 4)
-            {
                 return cr[CR_YELLOW];
-            }
             else
-            {
                 return cr[CR_RED];
-            }
         }
         break;
 
