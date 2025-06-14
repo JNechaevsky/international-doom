@@ -454,14 +454,12 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
     {
         // [JN] Extra translucency feature.
         // Set to "Additive" blending if this option is enabled.
-        if (vis->brightframe && vis_translucency == 1)
-        {
-            colfunc = tladdcolfunc;
-        }
-        else
-        {
-            colfunc = extratlcolfunc;
-        }
+        // [PN] Additive blending disabled for foggy levels,
+        // where diminished light map fade to gray, not black,
+        // causing unnatural visual results.
+        colfunc = (vis->brightframe && vis_translucency == 1 && LevelUseFullBright)
+                ? tladdcolfunc     // Additive blending
+                : extratlcolfunc;  // Regular extra translucency
     }
 
     dc_iscale = abs(vis->xiscale) >> detailshift;
