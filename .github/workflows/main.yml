@@ -8,6 +8,9 @@ on:
     branches:
       - main
 
+env:
+  VCPKG_BINARY_SOURCES: "clear;files,C:\\Users\\runneradmin\\AppData\\Local\\vcpkg\\archives,readwrite"
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -16,18 +19,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Cache vcpkg installed packages and archive
-        id: cache-vcpkg
         uses: actions/cache@v4
         with:
-          path: |
-            vcpkg/installed
-            vcpkg/buildtrees
-            vcpkg/packages
-            vcpkg/downloads
-            C:\Users\runneradmin\AppData\Local\vcpkg\archives
+          path: C:\Users\runneradmin\AppData\Local\vcpkg\archives
           key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-windows-
 
       - name: Ensure vcpkg sources present
         shell: bash
@@ -58,6 +53,22 @@ jobs:
 
       - name: Build
         run: cmake --build build_vs_64 --config Release --parallel
+
+      # Delete the old cache on hit to emulate a cache update.
+      - name: Delete old cache
+        continue-on-error: true
+        run: gh cache delete --repo ${{ github.repository }} ${{ env.CACHE_KEY }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CACHE_KEY: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
+
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        env:
+          CACHE_KEY: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
+        with:
+          path: C:\Users\runneradmin\AppData\Local\vcpkg\archives
+          key: ${{ env.CACHE_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
