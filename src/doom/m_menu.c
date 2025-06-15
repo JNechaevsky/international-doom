@@ -136,9 +136,9 @@ static boolean joypadSave = false; // was the save action initiated by joypad?
 // old save description before edit
 static char saveOldString[SAVESTRINGSIZE];  
 
-// [FG] support up to 8 pages of savegames
+// [FG] support up to 16 pages of savegames
 int savepage = 0;
-static const int savepage_max = 7;
+static const int savepage_max = 15;
 
 static char savegamestrings[10][SAVESTRINGSIZE];
 static char endstring[160];
