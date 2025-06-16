@@ -24,26 +24,20 @@ jobs:
           path: C:\Users\runneradmin\AppData\Local\vcpkg\archives
           key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
 
-      - name: Ensure vcpkg sources present
+      - name: Prepare vcpkg
         shell: bash
         run: |
           if [ ! -f "vcpkg/bootstrap-vcpkg.bat" ]; then
             rm -rf vcpkg
             git clone https://github.com/microsoft/vcpkg.git
           fi
+          ./vcpkg/bootstrap-vcpkg.bat
 
-      - name: Bootstrap vcpkg
-        run: |
-          .\vcpkg\bootstrap-vcpkg.bat
-
-      - name: Install Dependencies with vcpkg
+      - name: Install dependencies and configure CMake
         run: |
           .\vcpkg\vcpkg.exe install `
             --triplet x64-windows-static-release `
             --overlay-triplets=cmake/triplets
-
-      - name: Configure CMake
-        run: |
           cmake -B build_vs_64 -S . -DCMAKE_BUILD_TYPE=Release `
                 -DENABLE_LTO=ON `
                 -DVCPKG_TARGET_TRIPLET="x64-windows-static-release" `
