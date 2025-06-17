@@ -595,6 +595,7 @@ static void M_ID_Widget_Placement (int choice);
 static void M_ID_Widget_Alignment (int choice);
 static void M_ID_Widget_KIS (int choice);
 static void M_ID_Widget_KIS_Format (int choice);
+static void M_ID_Widget_KIS_Items (int choice);
 static void M_ID_Widget_Coords (int choice);
 static void M_ID_Widget_Speed (int choice);
 static void M_ID_Widget_Render (int choice);
@@ -3059,6 +3060,7 @@ static MenuItem_t ID_Menu_Widgets[] = {
     { ITT_LRFUNC2, "ALIGNMENT",        M_ID_Widget_Alignment,  0, MENU_NONE },
     { ITT_LRFUNC2, "KIS STATS",        M_ID_Widget_KIS,        0, MENU_NONE },
     { ITT_LRFUNC2, "- STATS FORMAT",   M_ID_Widget_KIS_Format, 0, MENU_NONE },
+    { ITT_LRFUNC2, "- SHOW ITEMS",     M_ID_Widget_KIS_Items,  0, MENU_NONE },
     { ITT_LRFUNC2, "LEVEL/DM TIMER",   M_ID_Widget_Time,       0, MENU_NONE },
     { ITT_LRFUNC2, "TOTAL TIME",       M_ID_Widget_TotalTime,  0, MENU_NONE },
     { ITT_LRFUNC2, "LEVEL NAME",       M_ID_Widget_LevelName,  0, MENU_NONE },
@@ -3071,7 +3073,7 @@ static MenuItem_t ID_Menu_Widgets[] = {
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    12, ID_Menu_Widgets,
+    13, ID_Menu_Widgets,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -3124,60 +3126,67 @@ static void M_Draw_ID_Widgets (void)
                             widget_kis_format ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(4));
 
+    // Show items
+    sprintf(str, widget_kis_items ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
+                        widget_kis_items ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            widget_kis_items ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(5));
+
     // Level/DM timer
     sprintf(str, widget_time == 1 ? "ALWAYS"  :
                  widget_time == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
                         widget_time ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_time ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(6));
 
     // Total time
     sprintf(str, widget_totaltime == 1 ? "ALWAYS"  :
                  widget_totaltime == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
                         widget_totaltime ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_totaltime ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(7));
 
     // Level name
     sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
                         widget_levelname ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_levelname ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(8));
 
     // Player coords
     sprintf(str, widget_coords == 1 ? "ALWAYS"  :
                  widget_coords == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
                         widget_coords ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_coords ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
+                                LINE_ALPHA(9));
 
     // Player speed
     sprintf(str, widget_speed ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
                         widget_speed ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_speed ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(9));
+                                LINE_ALPHA(10));
 
     // Render counters
     sprintf(str, widget_render ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
                         widget_render ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_render ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(10));
+                                LINE_ALPHA(11));
 
     // Target's health
     sprintf(str, widget_health == 1 ? "TOP" :
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 140,
                         widget_health ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_health ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(11));
+                                LINE_ALPHA(12));
 }
 
 static void M_ID_Widget_Colors (int choice)
@@ -3203,6 +3212,11 @@ static void M_ID_Widget_KIS (int choice)
 static void M_ID_Widget_KIS_Format (int choice)
 {
     widget_kis_format = M_INT_Slider(widget_kis_format, 0, 2, choice, false);
+}
+
+static void M_ID_Widget_KIS_Items (int choice)
+{
+    widget_kis_items ^= 1;
 }
 
 static void M_ID_Widget_Time (int choice)
@@ -4885,6 +4899,7 @@ static void M_ID_ApplyResetHook (void)
     widget_alignment = 0;
     widget_kis = 0;
     widget_kis_format = 0;
+    widget_kis_items = 1;
     widget_time = 0;
     widget_totaltime = 0;
     widget_levelname = 0;

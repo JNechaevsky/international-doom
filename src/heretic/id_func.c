@@ -244,9 +244,9 @@ static byte *ID_WidgetColor (const int i)
 // [JN/PN] Enum for widget type values.
 enum
 {
-    widget_kis_kills,
-    widget_kis_items,
-    widget_kis_secrets,
+    widgets_kis_kills,
+    widgets_kis_items,
+    widgets_kis_secrets,
 } widget_kis_count_t;
 
 // [PN] Function for safe division to prevent division by zero.
@@ -264,17 +264,17 @@ static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
     // [PN] Set values for kills, items, or secrets based on widget type
     switch (i)
     {
-        case widget_kis_kills:
+        case widgets_kis_kills:
             value = IDWidget.kills;
             total = IDWidget.totalkills;
             break;
         
-        case widget_kis_items:
+        case widgets_kis_items:
             value = IDWidget.items;
             total = IDWidget.totalitems;
             break;
         
-        case widget_kis_secrets:
+        case widgets_kis_secrets:
             value = IDWidget.secrets;
             total = IDWidget.totalsecrets;
             break;
@@ -333,24 +333,33 @@ void ID_LeftWidgets (void)
         {
             if (!deathmatch)
             {
+                int yy = 0;
                 char str1[16];  // kills
                 char str2[16];  // items
                 char str3[16];  // secret
 
                 // Kills:
                 MN_DrTextA("K:", left_align, 10, ID_WidgetColor(widget_kis_str));
-                ID_WidgetKISCount(str1, sizeof(str1), widget_kis_kills);
+                ID_WidgetKISCount(str1, sizeof(str1), widgets_kis_kills);
                 MN_DrTextA(str1, left_align + 16, 10, ID_WidgetColor(widget_kills));
 
                 // Items:
+                if (widget_kis_items)
+                {
                 MN_DrTextA("I:", left_align, 20, ID_WidgetColor(widget_kis_str));
-                ID_WidgetKISCount(str2, sizeof(str2), widget_kis_items);
+                ID_WidgetKISCount(str2, sizeof(str2), widgets_kis_items);
                 MN_DrTextA(str2, left_align + 16, 20, ID_WidgetColor(widget_items));
+                }
+                else
+                {
+                str2[0] = '\0';
+                yy = 10;
+                }
 
                 // Secret:
-                MN_DrTextA("S:", left_align, 30, ID_WidgetColor(widget_kis_str));
-                ID_WidgetKISCount(str3, sizeof(str3), widget_kis_secrets);
-                MN_DrTextA(str3, left_align + 16, 30, ID_WidgetColor(widget_secret));
+                MN_DrTextA("S:", left_align, 30 - yy, ID_WidgetColor(widget_kis_str));
+                ID_WidgetKISCount(str3, sizeof(str3), widgets_kis_secrets);
+                MN_DrTextA(str3, left_align + 16, 30 - yy, ID_WidgetColor(widget_secret));
             }
             else
             {
@@ -537,19 +546,27 @@ void ID_LeftWidgets (void)
                 // Kills:
                 sprintf(str1, "K ");
                 MN_DrTextA(str1, left_align, 146 + yy, ID_WidgetColor(widget_kis_str));
-                ID_WidgetKISCount(str2, sizeof(str2), widget_kis_kills);
+                ID_WidgetKISCount(str2, sizeof(str2), widgets_kis_kills);
                 MN_DrTextA(str2, left_align + MN_TextAWidth(str1), 146 + yy, ID_WidgetColor(widget_kills));
 
                 // Items:
+                if (widget_kis_items)
+                {
                 sprintf(str3, "I ");
                 MN_DrTextA(str3, left_align + MN_TextAWidth(str1) + 
                                      MN_TextAWidth(str2), 146 + yy, ID_WidgetColor(widget_kis_str));
 
-                ID_WidgetKISCount(str4, sizeof(str4), widget_kis_items);
+                ID_WidgetKISCount(str4, sizeof(str4), widgets_kis_items);
                 MN_DrTextA(str4, left_align    +
                            MN_TextAWidth(str1) +
                            MN_TextAWidth(str2) +
                            MN_TextAWidth(str3), 146 + yy, ID_WidgetColor(widget_items));
+                }
+                else
+                {
+                str3[0] = '\0';
+                str4[0] = '\0';
+                }
 
                 // Secret:
                 sprintf(str5, "S ");
@@ -559,7 +576,7 @@ void ID_LeftWidgets (void)
                            MN_TextAWidth(str3) +
                            MN_TextAWidth(str4), 146 + yy, ID_WidgetColor(widget_kis_str));
 
-                ID_WidgetKISCount(str6, sizeof(str6), widget_kis_secrets);
+                ID_WidgetKISCount(str6, sizeof(str6), widgets_kis_secrets);
                 MN_DrTextA(str6, left_align    +
                            MN_TextAWidth(str1) +
                            MN_TextAWidth(str2) + 
