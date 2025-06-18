@@ -399,9 +399,13 @@ static void D_Display (void)
 
     // [JN] Apply post-processing effects and forcefully
     // update status bar if any effect is active.
-    // Apply V_PProc_OverbrightGlow only on game level states,
-    // and not while active non-overlayed automap.
-    V_PProc_Display((gamestate != GS_LEVEL) || (automapactive && !automap_overlay));
+    // Supress V_PProc_OverbrightGlow ...
+                    // In non game level states
+    V_PProc_Display((gamestate != GS_LEVEL) || 
+                    // While active automap
+                    (automapactive && !automap_overlay) ||
+                    // While invlulenability effect
+                     players[displayplayer].fixedcolormap); 
     if (V_PProc_EffectsActive())
         st_fullupdate = true;
 
