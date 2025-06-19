@@ -289,15 +289,15 @@ static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
     switch (widget_kis_format)
     {
         case 1: // Remaining
-            snprintf(buffer, buffer_size, "%d ", total - value);
+            snprintf(buffer, buffer_size, "%d", total - value);
             break;
 
         case 2: // Percent
-            snprintf(buffer, buffer_size, "%d%% ", safe_percent(value, total));
+            snprintf(buffer, buffer_size, "%d%%", safe_percent(value, total));
             break;
 
         default: // Ratio
-            snprintf(buffer, buffer_size, "%d/%d ", value, total);
+            snprintf(buffer, buffer_size, "%d/%d", value, total);
             break;
     }
 }
@@ -552,7 +552,7 @@ void ID_LeftWidgets (void)
                 // Items:
                 if (widget_kis_items)
                 {
-                sprintf(str3, "I ");
+                sprintf(str3, " I ");
                 MN_DrTextA(str3, left_align + MN_TextAWidth(str1) + 
                                      MN_TextAWidth(str2), 146 + yy, ID_WidgetColor(widget_kis_str));
 
@@ -569,7 +569,7 @@ void ID_LeftWidgets (void)
                 }
 
                 // Secret:
-                sprintf(str5, "S ");
+                sprintf(str5, " S ");
                 MN_DrTextA(str5, left_align    +
                            MN_TextAWidth(str1) +
                            MN_TextAWidth(str2) +
