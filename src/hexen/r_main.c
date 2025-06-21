@@ -964,6 +964,15 @@ void R_SetupFrame(player_t * player)
                            - (intensity << 1)) << FRACBITS;
             y_quake = ((M_Random() % (intensity << 2))
                            - (intensity << 1)) << FRACBITS;
+                           
+            // [JN] A11Y - Maximum quake intensity.
+            // Compute reduction factor dynamically based on the pattern.
+            if (a11y_quake_intensity < 20)
+            {
+                x_quake *= (a11y_quake_intensity * 0.05);
+                y_quake *= (a11y_quake_intensity * 0.05);
+            }
+                           
             quaketime = leveltime;
         }
 

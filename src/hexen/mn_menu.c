@@ -659,6 +659,7 @@ static void M_Draw_ID_Misc (void);
 static void M_ID_Misc_A11yPalFlash (int choice);
 static void M_ID_Misc_A11yMoveBob (int choice);
 static void M_ID_Misc_A11yWeaponBob (int choice);
+static void M_ID_Misc_A11yQuakeInten (int choice);
 static void M_ID_Misc_A11yColorblind (int choice);
 static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_Hightlight (int choice);
@@ -3821,6 +3822,7 @@ static MenuItem_t ID_Menu_Misc[] = {
     { ITT_LRFUNC2, "PALETTE FLASH EFFECTS", M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
     { ITT_LRFUNC1, "MOVEMENT BOBBING",      M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
     { ITT_LRFUNC1, "WEAPON BOBBING",        M_ID_Misc_A11yWeaponBob,  0, MENU_NONE },
+    { ITT_LRFUNC1, "QUAKE INTENSITY",       M_ID_Misc_A11yQuakeInten, 0, MENU_NONE },
     { ITT_LRFUNC2, "COLORBLIND FILTER",     M_ID_Misc_A11yColorblind, 0, MENU_NONE },
     { ITT_EMPTY,   NULL,                    NULL,                     0, MENU_NONE },
     { ITT_LRFUNC2, "AUTOLOAD WAD FILES",    M_ID_Misc_AutoloadWAD,    0, MENU_NONE },
@@ -3832,7 +3834,7 @@ static MenuItem_t ID_Menu_Misc[] = {
 static Menu_t ID_Def_Misc = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Misc,
-    9, ID_Menu_Misc,
+    10, ID_Menu_Misc,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -3883,43 +3885,52 @@ static void M_Draw_ID_Misc (void)
                             a11y_weapon_bob ==  0 ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(2));
 
-    // Colorblind filter
-    sprintf(str, "%s", colorblind_name[a11y_colorblind]);
+    // Quake intensity
+    sprintf(str, "%s", bobpercent[a11y_quake_intensity]);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
-                        a11y_colorblind ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
-                            a11y_colorblind ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                        a11y_quake_intensity == 20 ? cr[CR_DARKRED] :
+                        a11y_quake_intensity ==  0 ? cr[CR_RED] : cr[CR_YELLOW],
+                            a11y_quake_intensity == 20 ? cr[CR_RED_BRIGHT] :
+                            a11y_quake_intensity ==  0 ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(3));
 
-    MN_DrTextACentered("AUTOLOAD", 60, cr[CR_YELLOW]);
+    // Colorblind filter
+    sprintf(str, "%s", colorblind_name[a11y_colorblind]);
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
+                        a11y_colorblind ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            a11y_colorblind ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(4));
+
+    MN_DrTextACentered("AUTOLOAD", 70, cr[CR_YELLOW]);
 
     // Autoload WAD files
     sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
                  autoload_wad == 2 ? "IWAD AND PWAD" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
                         autoload_wad == 1 ? cr[CR_YELLOW] :
                         autoload_wad == 2 ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             autoload_wad == 1 ? cr[CR_YELLOW_BRIGHT] :
                             autoload_wad == 2 ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(6));
 
-    MN_DrTextACentered("MENU SETTINGS", 80, cr[CR_YELLOW]);
+    MN_DrTextACentered("MENU SETTINGS", 90, cr[CR_YELLOW]);
 
     // Highlighting effect
     sprintf(str, menu_highlight == 1 ? "ANIMATED" :
                  menu_highlight == 2 ? "STATIC" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
                         menu_highlight == 1 ? cr[CR_GREEN_HX] :
                         menu_highlight == 2 ? cr[CR_YELLOW] : cr[CR_DARKRED],
                             menu_highlight == 1 ? cr[CR_GREEN_HX_BRIGHT] :
                             menu_highlight == 2 ? cr[CR_YELLOW_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(8));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
                         menu_esc_key ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             menu_esc_key ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
+                                LINE_ALPHA(9));
 
     // [PN] Added explanations for colorblind filters
     if (CurrentItPos == 3)
@@ -3973,6 +3984,11 @@ static void M_ID_Misc_A11yMoveBob (int choice)
 static void M_ID_Misc_A11yWeaponBob (int choice)
 {
     a11y_weapon_bob = M_INT_Slider(a11y_weapon_bob, 0, 20, choice, true);
+}
+
+static void M_ID_Misc_A11yQuakeInten (int choice)
+{
+    a11y_quake_intensity = M_INT_Slider(a11y_quake_intensity, 0, 20, choice, true);
 }
 
 static void M_ID_Misc_A11yColorblindHook (void)
