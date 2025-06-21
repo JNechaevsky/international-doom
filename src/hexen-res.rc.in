@@ -1,4 +1,5 @@
 1 ICON "@top_srcdir@/data/hexen.ico"
+2 ICON "@top_srcdir@/data/hexen-dk.ico"
 
 #include <winuser.h>
 
