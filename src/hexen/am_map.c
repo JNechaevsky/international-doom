@@ -514,7 +514,7 @@ static void AM_changeWindowLoc (void)
 void AM_initOverlayMode (void)
 {
     // [crispy] pointer to antialiased tables for line drawing
-    antialias = automap_overlay ? &antialias_overlay : &antialias_normal;
+    antialias = (automap_overlay || !automap_textured_bg) ? &antialias_overlay : &antialias_normal;
 }
 
 // -----------------------------------------------------------------------------
@@ -880,18 +880,11 @@ boolean AM_Responder (event_t *ev)
         {
             // [JN] Automap overlay mode.
             automap_overlay = !automap_overlay;
-            if (automap_overlay)
-            {
-                CT_SetMessage(plr, ID_AUTOMAPOVERLAY_ON, false, NULL);
-                antialias = &antialias_overlay;
-            }
-            else
-            {
-                CT_SetMessage(plr, ID_AUTOMAPOVERLAY_OFF, false, NULL);
-                antialias = &antialias_normal;
-            }
+            CT_SetMessage(plr, automap_overlay ? ID_AUTOMAPOVERLAY_ON
+                                               : ID_AUTOMAPOVERLAY_OFF, false, NULL);
             // [JN] Redraw status bar to properly hide armor/keys panel.
             SB_state = -1;
+            AM_initOverlayMode();
         }
         else
         {
@@ -1076,6 +1069,8 @@ void AM_Ticker (void)
 
 static void AM_drawBackground (void)
 {
+    if (automap_textured_bg)
+    {
     pixel_t *restrict dest = I_VideoBuffer;
     const byte *restrict src = maplump;
     static int bg_xoffs = 0;
@@ -1100,6 +1095,11 @@ static void AM_drawBackground (void)
             const int xsrc = (x + bg_xoffs) % MAPBGROUNDWIDTH;
             dest[y * SCREENWIDTH + x] = pal_color[row[xsrc]];
         }
+    }
+    }
+    else
+    {
+    memset(I_VideoBuffer, 0, f_w*f_h*sizeof(*I_VideoBuffer));
     }
 }
 
