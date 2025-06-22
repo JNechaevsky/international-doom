@@ -155,6 +155,12 @@ static boolean mousewheelzoom;
 #define IDDT_REDS_MAX   (IDDT_REDS_MIN + IDDT_REDS_RANGE)
 static  int     iddt_reds = IDDT_REDS_MIN;
 static  boolean iddt_reds_direction = false;
+// [JN] Pulse player arrow in Spectator mode.
+#define ARROW_WHITE_RANGE (10)
+#define ARROW_WHITE_MIN   (19)
+#define ARROW_WHITE_MAX   (35)
+static  int     arrow_color = 19;
+static  boolean arrow_color_direction = false;
 
 typedef struct
 {
@@ -1188,6 +1194,13 @@ void AM_Ticker (void)
             }
         }
     }
+
+    // [JN/PN] Pulse player arrow in Spectator mode:
+    arrow_color += arrow_color_direction ? -1 : 1;
+    if (arrow_color == ARROW_WHITE_MAX || arrow_color == ARROW_WHITE_MIN)
+    {
+        arrow_color_direction = !arrow_color_direction;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -2035,7 +2048,7 @@ static void AM_drawPlayers (void)
 
         AM_transformPoint(&pt);
         AM_drawLineCharacter(player_arrow, NUMPLYRLINES, 0, smoothangle,
-                             PL_WHITE, pt.x, pt.y);
+                             crl_spectating ? arrow_color : PL_WHITE, pt.x, pt.y);
         return;
     }
 
@@ -2185,7 +2198,7 @@ static void AM_drawSpectator (void)
             {
                 AM_drawLineCharacter(thintriangle_guy, arrlen(thintriangle_guy),
                                      t->radius >> FRACTOMAPBITS, actualangle,
-                                     35, pt.x, pt.y);
+                                     arrow_color, pt.x, pt.y);
             }
         }
     }
