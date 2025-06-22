@@ -8,12 +8,11 @@ on:
     branches:
       - main
 
-env:
-  VCPKG_BINARY_SOURCES: "clear;files,C:\\Users\\runneradmin\\AppData\\Local\\vcpkg\\archives,readwrite"
-
 jobs:
   build-windows:
     runs-on: windows-latest
+    env:
+      VCPKG_BINARY_SOURCES: "clear;files,C:\\Users\\runneradmin\\AppData\\Local\\vcpkg\\archives,readwrite"
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -80,15 +79,30 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v4
+        with:
+          path: vcpkg_cache
+          key: vcpkg-linux-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-linux-
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake g++ fuse patchelf \
-            libsdl2-dev libsdl2-mixer-dev libsdl2-net-dev \
-            libsamplerate0-dev libfluidsynth-dev \
-            libflac-dev libmodplug-dev libmpg123-dev libopusfile-dev \
-            libx11-dev libxext-dev libxrender-dev libxrandr-dev \
-            libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+          sudo apt-get install -y cmake g++ pkg-config git
+
+      - name: Clone vcpkg
+        run: git clone https://github.com/microsoft/vcpkg.git
+
+      - name: Bootstrap vcpkg
+        run: ./bootstrap-vcpkg.sh
+        working-directory: ./vcpkg
+
+      - name: Install vcpkg dependencies
+        run: ./vcpkg/vcpkg install --binarysource="files,${{ github.workspace }}/vcpkg_cache,readwrite"
+        env:
+          VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg_cache,readwrite
 
       - name: Install linuxdeploy and plugin
         run: |
@@ -98,9 +112,28 @@ jobs:
 
       - name: Build the project
         run: |
-          cmake -B build_linux -S . -DCMAKE_BUILD_TYPE=Release -D \
-            CMAKE_C_FLAGS_RELEASE="-O3 -march=x86-64-v2 -mtune=generic -flto -fno-math-errno -fomit-frame-pointer -funroll-loops -DNDEBUG"
+          cmake -B build_linux -S . -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -D CMAKE_C_FLAGS_RELEASE="-O3 -march=x86-64-v2 -mtune=generic -flto -fno-math-errno -fomit-frame-pointer -funroll-loops -DNDEBUG"
           cmake --build build_linux --config Release
+        env:
+          VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg_cache,readwrite
+
+      # Delete the old cache on hit to emulate a cache update.
+      - name: Delete old cache
+        continue-on-error: true
+        run: gh cache delete --repo ${{ github.repository }} ${{ env.CACHE_KEY }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CACHE_KEY: vcpkg-linux-${{ hashFiles('vcpkg.json') }}
+
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        env:
+          CACHE_KEY: vcpkg-linux-${{ hashFiles('vcpkg.json') }}
+        with:
+          path: vcpkg_cache
+          key: ${{ env.CACHE_KEY }}
 
       - name: Add desktop file and icon
         run: |
