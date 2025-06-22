@@ -982,6 +982,9 @@ void D_DoomMain(void)
     I_PrintBanner(PACKAGE_FULLNAME_HERETIC);
 #endif
 
+    DEH_printf("Z_Init: Init zone memory allocation daemon.\n");
+    Z_Init();
+
     I_AtExit(I_ShutdownGraphics, true);
     i_error_title = PACKAGE_FULLNAME_HERETIC;
 
@@ -1114,8 +1117,8 @@ void D_DoomMain(void)
 
     // Load defaults before initing other systems
     DEH_printf("M_LoadDefaults: Load system defaults.\n");
-    D_BindVariables();
     M_SetConfigFilenames(PROGRAM_PREFIX "heretic.ini");
+    D_BindVariables();
     M_LoadDefaults();
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
@@ -1138,9 +1141,6 @@ void D_DoomMain(void)
         startskill = myargv[p + 1][0] - '1';
         autostart = true;
     }
-
-    DEH_printf("Z_Init: Init zone memory allocation daemon.\n");
-    Z_Init();
 
     DEH_printf("W_Init: Init WADfiles.\n");
 

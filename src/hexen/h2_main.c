@@ -375,6 +375,9 @@ void D_DoomMain(void)
     I_PrintBanner(PACKAGE_FULLNAME_HEXEN);
 #endif
 
+    ST_Message("Z_Init: Init zone memory allocation daemon.\n");
+    Z_Init();
+
     I_AtExit(I_ShutdownGraphics, true);
     i_error_title = PACKAGE_FULLNAME_HEXEN;
 
@@ -402,8 +405,8 @@ void D_DoomMain(void)
 
     // Load defaults before initing other systems
     ST_Message("M_LoadDefaults: Load system defaults.\n");
-    D_BindVariables();
     M_SetConfigFilenames(PROGRAM_PREFIX "hexen.ini");
+    D_BindVariables();
     M_LoadDefaults();
 
     // [JN] Set the default directory where savegames are saved.
@@ -419,9 +422,6 @@ void D_DoomMain(void)
 
     // Now that the savedir is loaded, make sure it exists
     CreateSavePath();
-
-    ST_Message("Z_Init: Init zone memory allocation daemon.\n");
-    Z_Init();
 
     // haleyjd: removed WATCOMC
 
@@ -474,7 +474,7 @@ void D_DoomMain(void)
 
     InitMapMusicInfo();         // Init music fields in mapinfo
 
-    ST_Message("S_InitScript\n");
+    ST_Message("S_InitScript: Registering sound lumps info.\n");
     S_InitScript();
 
     ST_Message("SN_InitSequenceScript: Registering sound sequences.\n");
@@ -497,9 +497,9 @@ void D_DoomMain(void)
     ST_Init();
 
     // Show version message now, so it's visible during R_Init()
-    ST_Message("R_Init: Init Hexen refresh daemon");
+    ST_Message("R_Init: Init Hexen refresh daemon - [");
     R_Init();
-    ST_Message("\n");
+    ST_Message("]\n");
 
     //if (M_CheckParm("-net"))
     //    ST_NetProgress();       // Console player found
