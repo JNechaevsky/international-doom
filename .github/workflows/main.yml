@@ -1,4 +1,12 @@
-name: Build-Static-Win64-and-Linux-AppImage
+# 🌿 We aim to reduce the usage footprint of GitHub Actions by caching dependencies,
+# optimizing build processes, and cleaning up stale artifacts.
+# Efficiency is not just about speed — it's also about responsible use
+# of cloud computing resources and reducing unnecessary energy consumption.
+#
+# — Polina "Aura" N. and Julia Nechaevskaya
+
+
+name: Build-Windows-and-Linux
 
 on:
   push:
