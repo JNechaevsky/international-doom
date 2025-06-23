@@ -80,9 +80,6 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        game: [doom, heretic, hexen]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -143,29 +140,66 @@ jobs:
           path: vcpkg_cache
           key: ${{ env.CACHE_KEY }}
 
-      - name: Add desktop file and icon
+      - name: Prepare AppDir for Doom
         run: |
-          mkdir -p appdir/usr/share/applications
-          cp data/${{ matrix.game }}.desktop appdir/usr/share/applications/inter-${{ matrix.game }}.desktop
-          mkdir -p appdir/usr/share/icons/hicolor/128x128/apps
-          cp data/${{ matrix.game }}.png appdir/usr/share/icons/hicolor/128x128/apps/inter-${{ matrix.game }}.png
+          mkdir -p appdir-doom/usr/bin
+          cp build_linux/src/inter-doom appdir-doom/usr/bin/
+          mkdir -p appdir-doom/usr/share/applications
+          cp data/doom.desktop appdir-doom/usr/share/applications/inter-doom.desktop
+          mkdir -p appdir-doom/usr/share/icons/hicolor/128x128/apps
+          cp data/doom.png appdir-doom/usr/share/icons/hicolor/128x128/apps/inter-doom.png
+      
+      - name: Package Doom as AppImage
+        run: |
+          ./linuxdeploy-x86_64.AppImage --appdir=appdir-doom --output appimage
+      
+      - name: Prepare AppDir for Heretic
+        run: |
+          mkdir -p appdir-heretic/usr/bin
+          cp build_linux/src/inter-heretic appdir-heretic/usr/bin/
+          mkdir -p appdir-heretic/usr/share/applications
+          cp data/heretic.desktop appdir-heretic/usr/share/applications/inter-heretic.desktop
+          mkdir -p appdir-heretic/usr/share/icons/hicolor/128x128/apps
+          cp data/heretic.png appdir-heretic/usr/share/icons/hicolor/128x128/apps/inter-heretic.png
+      
+      - name: Package Heretic as AppImage
+        run: |
+          ./linuxdeploy-x86_64.AppImage --appdir=appdir-heretic --output appimage
 
-      - name: Add executable to AppDir
+      - name: Prepare AppDir for Hexen
         run: |
-          mkdir -p appdir/usr/bin
-          cp build_linux/src/inter-${{ matrix.game }} appdir/usr/bin/
-
-      - name: Package as AppImage
+          mkdir -p appdir-hexen/usr/bin
+          cp build_linux/src/inter-hexen appdir-hexen/usr/bin/
+          mkdir -p appdir-hexen/usr/share/applications
+          cp data/hexen.desktop appdir-hexen/usr/share/applications/inter-hexen.desktop
+          mkdir -p appdir-hexen/usr/share/icons/hicolor/128x128/apps
+          cp data/hexen.png appdir-hexen/usr/share/icons/hicolor/128x128/apps/inter-hexen.png
+      
+      - name: Package Hexen as AppImage
         run: |
-          ./linuxdeploy-x86_64.AppImage --appdir=appdir --output appimage
+          ./linuxdeploy-x86_64.AppImage --appdir=appdir-hexen --output appimage
 
       - name: Clean up unnecessary files
         run: |
           rm -f linuxdeploy*.AppImage
 
-      - name: Upload AppImage
+      - name: Upload Doom AppImage
         uses: actions/upload-artifact@v4
         with:
-          name: inter-${{ matrix.game }}-dev-linux64
-          path: "**/*.AppImage"
+          name: inter-doom-dev-linux64
+          path: inter-doom-x86_64.AppImage
+          retention-days: 90
+      
+      - name: Upload Heretic AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: inter-heretic-dev-linux64
+          path: inter-heretic-x86_64.AppImage
+          retention-days: 90
+
+      - name: Upload Hexen AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: inter-hexen-dev-linux64
+          path: inter-hexen-x86_64.AppImage
           retention-days: 90
