@@ -93,6 +93,8 @@ void F_StartFinale(void)
     FinaleEndCount = 70;
     FinaleLumpNum = W_GetNumForName("FINALE1");
     FontABaseLump = W_GetNumForName("FONTA_S") + 1;
+    // [JN] Force palette reset to clear pain, bonus, and poison effects.
+    I_SetPalette(0);
     InitializeFade(1);
 
 //      S_ChangeMusic(mus_victor, true);
