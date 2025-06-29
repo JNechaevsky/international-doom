@@ -4143,10 +4143,10 @@ static void M_Draw_ID_Gameplay_3 (void)
                                 LINE_ALPHA(13));
 
     // Intercepts overflow
-    sprintf(str, intercept_overflow_fix ? "DISABLED" : "ENABLED");
+    sprintf(str, compat_intercepts ? "DISABLED" : "ENABLED");
     M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
-                        intercept_overflow_fix ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            intercept_overflow_fix ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                        compat_intercepts ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            compat_intercepts ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(14));
 
     // < Scroll pages >
@@ -4228,7 +4228,7 @@ static void M_ID_AutomaticSR50 (int choice)
 
 static void M_ID_InterceptsOverflow (int choice)
 {
-    intercept_overflow_fix ^= 1;
+    compat_intercepts ^= 1;
 }
 
 static void M_ScrollGameplay (int choice)
@@ -5152,7 +5152,7 @@ static void M_ID_ApplyResetHook (void)
     compat_vertical_aiming = 0;
     compat_auto_sr50 = 0;
     G_SetSideMove();
-    intercept_overflow_fix = 0;
+    compat_intercepts = 0;
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);

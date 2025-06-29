@@ -194,7 +194,7 @@ int compat_pistol_start = 0;
 int compat_blockmap_fix = 0;
 int compat_vertical_aiming = 0;
 int compat_auto_sr50 = 0;
-int intercept_overflow_fix = 0;
+int compat_intercepts = 0;
 int compat_no_land_centering = 0;
 
 //
@@ -467,7 +467,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("compat_auto_sr50",               &compat_auto_sr50);
     if (mission == doom)
     {
-        M_BindIntVariable("intercept_overflow_fix",     &intercept_overflow_fix);
+        M_BindIntVariable("compat_intercepts",          &compat_intercepts);
     }
     if (mission == heretic || mission == hexen)
     {

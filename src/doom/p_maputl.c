@@ -728,7 +728,7 @@ PIT_AddLineIntercepts (line_t* ld)
     intercept_p->isaline = true;
     intercept_p->d.line = ld;
     // [JN] Optionally fix intercept overflow blockmap corruption bug.
-    if (!singleplayer || !intercept_overflow_fix)
+    if (!singleplayer || !compat_intercepts)
     {
     InterceptsOverrun(intercept_p - intercepts, intercept_p);
     // [crispy] intercepts overflow guard
@@ -819,7 +819,7 @@ static boolean PIT_AddThingIntercepts (mobj_t* thing)
     intercept_p->isaline = false;
     intercept_p->d.thing = thing;
     // [JN] Optionally fix intercept overflow blockmap corruption bug.
-    if (!singleplayer || !intercept_overflow_fix)
+    if (!singleplayer || !compat_intercepts)
     {
     InterceptsOverrun(intercept_p - intercepts, intercept_p);
     // [crispy] intercepts overflow guard
