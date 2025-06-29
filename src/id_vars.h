@@ -167,6 +167,7 @@ extern int compat_pistol_start;
 extern int compat_blockmap_fix;
 extern int compat_vertical_aiming;
 extern int intercept_overflow_fix;
+extern int compat_no_land_centering;
 
 // Miscellaneous
 extern int a11y_invul;

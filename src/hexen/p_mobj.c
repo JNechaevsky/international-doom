@@ -835,6 +835,8 @@ void P_ZMovement(mobj_t * mo)
                         S_StartSound(mo, SFX_PLAYER_LAND);
                     }
                     // haleyjd: removed externdriver crap
+                    // [JN] Compatibility-breaking: landing doesn't center view
+                    if (!singleplayer || !compat_no_land_centering)
                     mo->player->centering = true;
                 }
             }
@@ -1054,6 +1056,8 @@ static void PlayerLandedOnThing(mobj_t * mo, mobj_t * onmobj)
         S_StartSound(mo, SFX_PLAYER_LAND);
     }
     // haleyjd: removed externdriver crap
+    // [JN] Compatibility-breaking: landing doesn't center view
+    if (!singleplayer || !compat_no_land_centering)
     mo->player->centering = true;
 }
 

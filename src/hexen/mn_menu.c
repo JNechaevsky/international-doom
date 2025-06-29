@@ -652,6 +652,7 @@ static void M_ID_DemoTimer (int choice);
 static void M_ID_TimerDirection (int choice);
 static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
+static void M_ID_NoLandCenter (int choice);
 
 static void M_ScrollGameplay (int choice);
 
@@ -3657,19 +3658,19 @@ static void M_ID_Breathing (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_3[] = {
-    { ITT_LRFUNC2, "DEFAULT PLAYER CLASS",     M_ID_DefaultClass,   0, MENU_NONE },
-    { ITT_LRFUNC2, "DEFAULT SKILL LEVEL",      M_ID_DefaultSkill,   0, MENU_NONE },
-    { ITT_LRFUNC1, "FLIP LEVELS HORIZONTALLY", M_ID_FlipLevels,     0, MENU_NONE },
-    { ITT_LRFUNC2, "ON DEATH ACTION",          M_ID_OnDeathAction,  0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE },
-    { ITT_LRFUNC2, "SHOW DEMO TIMER",          M_ID_DemoTimer,      0, MENU_NONE },
-    { ITT_LRFUNC1, "TIMER DIRECTION",          M_ID_TimerDirection, 0, MENU_NONE },
-    { ITT_LRFUNC1, "SHOW PROGRESS BAR",        M_ID_ProgressBar,    0, MENU_NONE },
-    { ITT_LRFUNC1, "PLAY INTERNAL DEMOS",      M_ID_InternalDemos,  0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                       NULL,                0, MENU_NONE },
-    { ITT_LRFUNC2, "", /* SCROLLS PAGES */     M_ScrollGameplay,    0, MENU_NONE },
+    { ITT_LRFUNC2, "DEFAULT PLAYER CLASS",         M_ID_DefaultClass,   0, MENU_NONE },
+    { ITT_LRFUNC2, "DEFAULT SKILL LEVEL",          M_ID_DefaultSkill,   0, MENU_NONE },
+    { ITT_LRFUNC1, "FLIP LEVELS HORIZONTALLY",     M_ID_FlipLevels,     0, MENU_NONE },
+    { ITT_LRFUNC2, "ON DEATH ACTION",              M_ID_OnDeathAction,  0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
+    { ITT_LRFUNC2, "SHOW DEMO TIMER",              M_ID_DemoTimer,      0, MENU_NONE },
+    { ITT_LRFUNC1, "TIMER DIRECTION",              M_ID_TimerDirection, 0, MENU_NONE },
+    { ITT_LRFUNC1, "SHOW PROGRESS BAR",            M_ID_ProgressBar,    0, MENU_NONE },
+    { ITT_LRFUNC1, "PLAY INTERNAL DEMOS",          M_ID_InternalDemos,  0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
+    { ITT_LRFUNC1, "LANDING DOESN\'T CENTER VIEW", M_ID_NoLandCenter,   0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
+    { ITT_LRFUNC2, "", /* SCROLLS PAGES */         M_ScrollGameplay,    0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Gameplay_3 = {
@@ -3762,6 +3763,15 @@ static void M_Draw_ID_Gameplay_3 (void)
                             demo_internal ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(8));
 
+    MN_DrTextACentered("COMPATIBILITY-BREAKING", 110, cr[CR_YELLOW]);
+
+    // Landing doesn't center view
+    sprintf(str, compat_no_land_centering ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
+                        compat_no_land_centering ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            compat_no_land_centering ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(10));
+
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "3/3");
 }
@@ -3827,6 +3837,11 @@ static void M_ScrollGameplay (int choice)
         
     }
     CurrentItPos = 12;
+}
+
+static void M_ID_NoLandCenter (int choice)
+{
+    compat_no_land_centering ^= 1;
 }
 
 // -----------------------------------------------------------------------------
@@ -4168,6 +4183,9 @@ static void M_ID_ApplyResetHook (void)
     demo_timerdir = 0;
     demo_bar = 0;
     demo_internal = 1;
+
+    // Compatibility-breaking
+    compat_no_land_centering = 0;
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);

@@ -194,6 +194,7 @@ int compat_pistol_start = 0;
 int compat_blockmap_fix = 0;
 int compat_vertical_aiming = 0;
 int intercept_overflow_fix = 0;
+int compat_no_land_centering = 0;
 
 //
 // Miscellaneous
@@ -462,6 +463,10 @@ void ID_BindVariables (GameMission_t mission)
     {
         M_BindIntVariable("compat_vertical_aiming",     &compat_vertical_aiming);
         M_BindIntVariable("intercept_overflow_fix",     &intercept_overflow_fix);
+    }
+    if (mission == heretic || mission == hexen)
+    {
+        M_BindIntVariable("compat_no_land_centering",   &compat_no_land_centering);
     }
 
     // Miscellaneous

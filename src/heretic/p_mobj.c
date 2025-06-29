@@ -604,6 +604,8 @@ void P_ZMovement(mobj_t * mo)
                 mo->player->deltaviewheight = mo->momz >> 3;
                 S_StartSound(mo, sfx_plroof);
                 // haleyjd: removed externdriver crap
+                // [JN] Compatibility-breaking: landing doesn't center view
+                if (!singleplayer || !compat_no_land_centering)
                 mo->player->centering = true;
             }
             mo->momz = 0;
