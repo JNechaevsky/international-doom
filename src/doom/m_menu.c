@@ -6581,7 +6581,7 @@ boolean M_Responder (event_t* ev)
                 else
                 if (!ev->data2 && !ev->data3)   // [JN] Do not consider movement as pressing.
                 {
-                    if (!menuactive && !usergame)
+                    if (!menuactive && !usergame && !demorecording)
                     {
                         M_StartControlPanel();  // [JN] Open the main menu if the game is not active.
                     }
@@ -6601,7 +6601,7 @@ boolean M_Responder (event_t* ev)
             if (ev->data1 & 2
             && !ev->data2 && !ev->data3)    // [JN] Do not consider movement as pressing.
             {
-                if (!menuactive && !usergame)
+                if (!menuactive && !usergame && !demorecording)
                 {
                     M_StartControlPanel();  // [JN] Open the main menu if the game is not active.
                 }

@@ -6572,7 +6572,7 @@ boolean MN_Responder(event_t * event)
                 else
                 if (!event->data2 && !event->data3) // [JN] Do not consider movement as pressing.
                 {
-                if (!MenuActive && !usergame)
+                if (!MenuActive && !usergame && !demorecording)
                 {
                     // [JN] Open the main menu if the game is not active.
                     MN_ActivateMenu();
@@ -6594,7 +6594,7 @@ boolean MN_Responder(event_t * event)
             if (event->data1 & 2
             && !event->data2 && !event->data3) // [JN] Do not consider movement as pressing.
             {
-                if (!MenuActive && !usergame)
+                if (!MenuActive && !usergame && !demorecording)
                 {
                     // [JN] Open the main menu if the game is not active.
                     MN_ActivateMenu();
