@@ -107,6 +107,7 @@ boolean shortticfix;            // calculate lowres turning like doom
 boolean demoplayback;
 boolean demoextend;
 boolean netdemo;
+boolean solonet;                // [JN] Boolean for Auto SR50 check
 byte *demobuffer, *demo_p, *demoend;
 boolean singledemo;             // quit after playing a demo from cmdline
 
@@ -128,12 +129,13 @@ fixed_t forwardmove[NUMCLASSES][2] = {
     {0x18, 0x31}
 };
 
-fixed_t sidemove[NUMCLASSES][2] = {
+fixed_t sidemove_original[NUMCLASSES][2] = {
     {0x1B, 0x3B},
     {0x18, 0x28},
     {0x15, 0x25},
     {0x17, 0x27}
 };
+fixed_t (*sidemove)[2] = sidemove_original;
 
 fixed_t angleturn[3] = { 640, 1280, 320 };      // + slow turn
 
@@ -267,6 +269,24 @@ static double CalcMouseVert(int mousey)
 }
 
 //=============================================================================
+
+// -----------------------------------------------------------------------------
+// G_SetSideMove
+//  [JN] Enable automatic automatic straferunning 50 (SR50).
+// -----------------------------------------------------------------------------
+
+void G_SetSideMove (void)
+{
+    if ((singleplayer || (netgame && solonet)) && compat_auto_sr50)
+    {
+        sidemove = forwardmove;
+    }
+    else
+    {
+        sidemove = sidemove_original;
+    }
+}
+
 /*
 ====================
 =
@@ -2974,6 +2994,7 @@ void G_DoPlayDemo(void)
                         || M_ParmExists("-netdemo"))
     {
         netgame = true;
+        solonet = true;
     }
 
     // Initialize world info, etc.

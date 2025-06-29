@@ -96,6 +96,7 @@ typedef enum
     MENU_ID_GAMEPLAY1,
     MENU_ID_GAMEPLAY2,
     MENU_ID_GAMEPLAY3,
+    MENU_ID_GAMEPLAY4,
     MENU_ID_MISC,
     MENU_ID_LEVEL1,
     MENU_ID_LEVEL2,
@@ -647,8 +648,11 @@ static void M_ID_DemoTimer (int choice);
 static void M_ID_TimerDirection (int choice);
 static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
+
+static void M_Draw_ID_Gameplay_4 (void);
 static void M_ID_PistolStart (int choice);
 static void M_ID_BlockmapFix (int choice);
+static void M_ID_AutomaticSR50 (int choice);
 static void M_ID_NoLandCenter (int choice);
 
 static void M_ScrollGameplay (int choice);
@@ -748,6 +752,7 @@ static Menu_t ID_Def_Keybinds_8;
 static Menu_t ID_Def_Gameplay_1;
 static Menu_t ID_Def_Gameplay_2;
 static Menu_t ID_Def_Gameplay_3;
+static Menu_t ID_Def_Gameplay_4;
 static Menu_t ID_Def_Level_1;
 static Menu_t ID_Def_Level_2;
 static Menu_t ID_Def_Level_3;
@@ -810,7 +815,8 @@ static void M_ScrollPages (boolean direction)
     // Gameplay features:
     else if (CurrentMenu == &ID_Def_Gameplay_1) nextMenu = (direction ? MENU_ID_GAMEPLAY2 : MENU_ID_GAMEPLAY3);
     else if (CurrentMenu == &ID_Def_Gameplay_2) nextMenu = (direction ? MENU_ID_GAMEPLAY3 : MENU_ID_GAMEPLAY1);
-    else if (CurrentMenu == &ID_Def_Gameplay_3) nextMenu = (direction ? MENU_ID_GAMEPLAY1 : MENU_ID_GAMEPLAY2);
+    else if (CurrentMenu == &ID_Def_Gameplay_3) nextMenu = (direction ? MENU_ID_GAMEPLAY4 : MENU_ID_GAMEPLAY2);
+    else if (CurrentMenu == &ID_Def_Gameplay_4) nextMenu = (direction ? MENU_ID_GAMEPLAY1 : MENU_ID_GAMEPLAY3);
 
     // Level select:
     else if (CurrentMenu == &ID_Def_Level_1) nextMenu = (direction ? MENU_ID_LEVEL2 : MENU_ID_LEVEL3);
@@ -3425,7 +3431,6 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE },
     { ITT_LRFUNC2, "SHAPE",                       M_ID_Crosshair,       0, MENU_NONE },
     { ITT_LRFUNC2, "INDICATION",                  M_ID_CrosshairColor,  0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE },
     { ITT_LRFUNC2, "", /* SCROLLS PAGES */        M_ScrollGameplay,     0, MENU_NONE },
 };
 
@@ -3535,7 +3540,7 @@ static void M_Draw_ID_Gameplay_1 (void)
                                 LINE_ALPHA(11));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "1/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "1/4");
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3628,14 +3633,13 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC1, "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE       },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE       },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE       },
-    { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE       },
     { ITT_LRFUNC2, "", /* SCROLLS PAGES */        M_ScrollGameplay,     0, MENU_NONE       },
 };
 
 static Menu_t ID_Def_Gameplay_2 = {
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_2,
-    14, ID_Menu_Gameplay_2,
+    13, ID_Menu_Gameplay_2,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -3717,7 +3721,7 @@ static void M_Draw_ID_Gameplay_2 (void)
                                 LINE_ALPHA(9));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "2/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "2/4");
 }
 
 static void M_ID_ColoredSBar (int choice)
@@ -3775,16 +3779,15 @@ static MenuItem_t ID_Menu_Gameplay_3[] = {
     { ITT_LRFUNC1, "SHOW PROGRESS BAR",            M_ID_ProgressBar,     0, MENU_NONE },
     { ITT_LRFUNC1, "PLAY INTERNAL DEMOS",          M_ID_InternalDemos,   0, MENU_NONE },
     { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC1, "WAND START GAME MODE",         M_ID_PistolStart,     0, MENU_NONE },
-    { ITT_LRFUNC1, "IMPROVED HIT DETECTION",       M_ID_BlockmapFix,     0, MENU_NONE },
-    { ITT_LRFUNC1, "LANDING DOESN\'T CENTER VIEW", M_ID_NoLandCenter,    0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
     { ITT_LRFUNC2, "", /* SCROLLS PAGES */         M_ScrollGameplay,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Gameplay_3 = {
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_3,
-    14, ID_Menu_Gameplay_3,
+    13, ID_Menu_Gameplay_3,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -3869,31 +3872,8 @@ static void M_Draw_ID_Gameplay_3 (void)
                             demo_internal ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(8));
 
-    MN_DrTextACentered("COMPATIBILITY-BREAKING", 110, cr[CR_YELLOW]);
-
-    // Wand start game mode
-    sprintf(str, compat_pistol_start ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
-                        compat_pistol_start ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            compat_pistol_start ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(10));
-
-    // Improved hit detection
-    sprintf(str, compat_blockmap_fix ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
-                        compat_blockmap_fix ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            compat_blockmap_fix ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(11));
-
-    // Landing doesn't center view
-    sprintf(str, compat_no_land_centering ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 140,
-                        compat_no_land_centering ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            compat_no_land_centering ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(12));
-
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "3/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "3/4");
 }
 
 static void M_ID_DefaulSkill (int choice)
@@ -3935,6 +3915,80 @@ static void M_ID_InternalDemos (int choice)
     demo_internal ^= 1;
 }
 
+static void M_ID_TimerDirection (int choice)
+{
+    demo_timerdir ^= 1;
+}
+
+// -----------------------------------------------------------------------------
+// Gameplay features 4
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_Gameplay_4[] = {
+    { ITT_LRFUNC1, "WAND START GAME MODE",         M_ID_PistolStart,     0, MENU_NONE },
+    { ITT_LRFUNC1, "IMPROVED HIT DETECTION",       M_ID_BlockmapFix,     0, MENU_NONE },
+    { ITT_LRFUNC1, "AUTOMATIC STRAFE 50",          M_ID_AutomaticSR50,   0, MENU_NONE },
+    { ITT_LRFUNC1, "LANDING DOESN\'T CENTER VIEW", M_ID_NoLandCenter,    0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
+    { ITT_LRFUNC2, "", /* SCROLLS PAGES */         M_ScrollGameplay,     0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Gameplay_4 = {
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Gameplay_4,
+    13, ID_Menu_Gameplay_4,
+    0,
+    SmallFont, false, true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Gameplay_4 (void)
+{
+    char str[32];
+
+    Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY4;
+
+    MN_DrTextACentered("COMPATIBILITY-BREAKING", 10, cr[CR_YELLOW]);
+
+    // Wand start game mode
+    sprintf(str, compat_pistol_start ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
+                        compat_pistol_start ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            compat_pistol_start ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(0));
+
+    // Improved hit detection
+    sprintf(str, compat_blockmap_fix ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 30,
+                        compat_blockmap_fix ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            compat_blockmap_fix ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(1));
+
+    // Automatic strafe 50
+    sprintf(str, compat_auto_sr50 ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
+                        compat_auto_sr50 ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            compat_auto_sr50 ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(2));
+
+    // Landing doesn't center view
+    sprintf(str, compat_no_land_centering ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+                        compat_no_land_centering ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            compat_no_land_centering ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(3));
+
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "4/4");
+}
+
 static void M_ID_PistolStart (int choice)
 {
     compat_pistol_start ^= 1;
@@ -3950,9 +4004,10 @@ static void M_ID_NoLandCenter (int choice)
     compat_no_land_centering ^= 1;
 }
 
-static void M_ID_TimerDirection (int choice)
+static void M_ID_AutomaticSR50 (int choice)
 {
-    demo_timerdir ^= 1;
+    compat_auto_sr50 ^= 1;
+    G_SetSideMove();
 }
 
 static void M_ScrollGameplay (int choice)
@@ -3961,16 +4016,18 @@ static void M_ScrollGameplay (int choice)
     {
              if (CurrentMenu == &ID_Def_Gameplay_1) { SetMenu(MENU_ID_GAMEPLAY2); }
         else if (CurrentMenu == &ID_Def_Gameplay_2) { SetMenu(MENU_ID_GAMEPLAY3); }
-        else if (CurrentMenu == &ID_Def_Gameplay_3) { SetMenu(MENU_ID_GAMEPLAY1); }
+        else if (CurrentMenu == &ID_Def_Gameplay_3) { SetMenu(MENU_ID_GAMEPLAY4); }
+        else if (CurrentMenu == &ID_Def_Gameplay_4) { SetMenu(MENU_ID_GAMEPLAY1); }
     }
     else
     {           // Scroll left
-             if (CurrentMenu == &ID_Def_Gameplay_1) { SetMenu(MENU_ID_GAMEPLAY3); }
+             if (CurrentMenu == &ID_Def_Gameplay_1) { SetMenu(MENU_ID_GAMEPLAY4); }
         else if (CurrentMenu == &ID_Def_Gameplay_2) { SetMenu(MENU_ID_GAMEPLAY1); }
         else if (CurrentMenu == &ID_Def_Gameplay_3) { SetMenu(MENU_ID_GAMEPLAY2); }
+        else if (CurrentMenu == &ID_Def_Gameplay_4) { SetMenu(MENU_ID_GAMEPLAY3); }
         
     }
-    CurrentItPos = 13;
+    CurrentItPos = 12;
 }
 
 // -----------------------------------------------------------------------------
@@ -4999,6 +5056,8 @@ static void M_ID_ApplyResetHook (void)
     // Compatibility-breaking
     compat_pistol_start = 0;
     compat_blockmap_fix = 0;
+    compat_auto_sr50 = 0;
+    G_SetSideMove();
     compat_no_land_centering = 0;
 
     // Restart graphical systems
@@ -5076,6 +5135,7 @@ static Menu_t *Menus[] = {
     &ID_Def_Gameplay_1,
     &ID_Def_Gameplay_2,
     &ID_Def_Gameplay_3,
+    &ID_Def_Gameplay_4,
     &ID_Def_Misc,
     &ID_Def_Level_1,
     &ID_Def_Level_2,

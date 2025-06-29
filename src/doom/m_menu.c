@@ -774,6 +774,7 @@ static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
 static void M_ID_BlockmapFix (int choice);
 static void M_ID_VerticalAiming (int choice);
+static void M_ID_AutomaticSR50 (int choice);
 static void M_ID_InterceptsOverflow (int choice);
 
 static void M_ScrollGameplay (int choice);
@@ -4015,8 +4016,8 @@ static menuitem_t ID_Menu_Gameplay_3[]=
     { M_MUL1, "PISTOL START GAME MODE",   M_ID_PistolStart,       'p' },
     { M_MUL1, "IMPROVED HIT DETECTION",   M_ID_BlockmapFix,       'i' },
     { M_MUL2, "VERTICAL AIMING",          M_ID_VerticalAiming,    'v' },
+    { M_MUL2, "AUTOMATIC STRAFE 50",      M_ID_AutomaticSR50,     'a' },
     { M_MUL2, "INTERCEPTS OVERFLOW",      M_ID_InterceptsOverflow,'i' },
-    { M_SKIP, "", 0, '\0' },
     { M_MUL2, "", /* < SCROLL PAGES >*/   M_ScrollGameplay,       's' },
 };
 
@@ -4134,12 +4135,19 @@ static void M_Draw_ID_Gameplay_3 (void)
                             compat_vertical_aiming ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(12));
 
+    // Automatic strafe 50
+    sprintf(str, compat_auto_sr50 ? "ON" : "OFF");
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+                        compat_auto_sr50 ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            compat_auto_sr50 ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(13));
+
     // Intercepts overflow
     sprintf(str, intercept_overflow_fix ? "DISABLED" : "ENABLED");
-    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
                         intercept_overflow_fix ? cr[CR_GREEN] : cr[CR_DARKRED],
                             intercept_overflow_fix ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(13));
+                                LINE_ALPHA(14));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "3/3");
@@ -4210,6 +4218,12 @@ static void M_ID_BlockmapFix (int choice)
 static void M_ID_VerticalAiming (int choice)
 {
     compat_vertical_aiming = M_INT_Slider(compat_vertical_aiming, 0, 2, choice, false);
+}
+
+static void M_ID_AutomaticSR50 (int choice)
+{
+    compat_auto_sr50 ^= 1;
+    G_SetSideMove();
 }
 
 static void M_ID_InterceptsOverflow (int choice)
@@ -5136,6 +5150,8 @@ static void M_ID_ApplyResetHook (void)
     compat_pistol_start = 0;
     compat_blockmap_fix = 0;
     compat_vertical_aiming = 0;
+    compat_auto_sr50 = 0;
+    G_SetSideMove();
     intercept_overflow_fix = 0;
 
     // Restart graphical systems

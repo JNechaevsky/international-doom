@@ -132,6 +132,7 @@ boolean lowres_turn;
 boolean shortticfix;            // calculate lowres turning like doom
 boolean demoplayback;
 boolean netdemo;
+boolean solonet;                // [JN] Boolean for Auto SR50 check
 boolean demoextend;
 byte *demobuffer, *demo_p, *demoend;
 boolean singledemo;             // quit after playing a demo from cmdline
@@ -156,7 +157,8 @@ int testcontrols_mousespeed;
 #define MAXPLMOVE       0x32
 
 fixed_t forwardmove[2] = { 0x19, 0x32 };
-fixed_t sidemove[2] = { 0x18, 0x28 };
+fixed_t sidemove_original[2] = { 0x18, 0x28 };
+fixed_t *sidemove = sidemove_original;
 fixed_t angleturn[3] = { 640, 1280, 320 };      // + slow turn
 
 static int *weapon_keys[] =
@@ -369,6 +371,23 @@ static double CalcMouseVert(int mousey)
         return 0.0;
 
     return (I_AccelerateMouseY(mousey) * (mouse_sensitivity_y + 5) * 2 / 10);
+}
+
+// -----------------------------------------------------------------------------
+// G_SetSideMove
+//  [JN] Enable automatic automatic straferunning 50 (SR50).
+// -----------------------------------------------------------------------------
+
+void G_SetSideMove (void)
+{
+    if ((singleplayer || (netgame && solonet)) && compat_auto_sr50)
+    {
+        sidemove = forwardmove;
+    }
+    else
+    {
+        sidemove = sidemove_original;
+    }
 }
 
 /*
@@ -3096,6 +3115,7 @@ void G_DoPlayDemo(void)
                         || M_CheckParm("-netdemo") > 0)
     {
     	netgame = true;
+        solonet = true;
     }
 
     precache = false;           // don't spend a lot of time in loadlevel
@@ -3160,6 +3180,7 @@ void G_TimeDemo(char *name)
                         || M_CheckParm("-netdemo") > 0)
     {
       netgame = true;
+      solonet = true;
     }
 
     G_InitNew(skill, episode, map);

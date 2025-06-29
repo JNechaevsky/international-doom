@@ -652,6 +652,7 @@ static void M_ID_DemoTimer (int choice);
 static void M_ID_TimerDirection (int choice);
 static void M_ID_ProgressBar (int choice);
 static void M_ID_InternalDemos (int choice);
+static void M_ID_AutomaticSR50 (int choice);
 static void M_ID_NoLandCenter (int choice);
 
 static void M_ScrollGameplay (int choice);
@@ -3130,8 +3131,8 @@ static void M_Draw_ID_Widgets (void)
     // Player speed
     sprintf(str, widget_speed ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
-                        widget_speed ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            widget_speed ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                        widget_speed ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            widget_speed ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(7));
 
     // Render counters
@@ -3668,8 +3669,8 @@ static MenuItem_t ID_Menu_Gameplay_3[] = {
     { ITT_LRFUNC1, "SHOW PROGRESS BAR",            M_ID_ProgressBar,    0, MENU_NONE },
     { ITT_LRFUNC1, "PLAY INTERNAL DEMOS",          M_ID_InternalDemos,  0, MENU_NONE },
     { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
+    { ITT_LRFUNC1, "AUTOMATIC STRAFE 50",          M_ID_AutomaticSR50,   0, MENU_NONE },
     { ITT_LRFUNC1, "LANDING DOESN\'T CENTER VIEW", M_ID_NoLandCenter,   0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
     { ITT_LRFUNC2, "", /* SCROLLS PAGES */         M_ScrollGameplay,    0, MENU_NONE },
 };
 
@@ -3765,12 +3766,19 @@ static void M_Draw_ID_Gameplay_3 (void)
 
     MN_DrTextACentered("COMPATIBILITY-BREAKING", 110, cr[CR_YELLOW]);
 
+    // Automatic strafe 50
+    sprintf(str, compat_auto_sr50 ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
+                        compat_auto_sr50 ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            compat_auto_sr50 ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(10));
+
     // Landing doesn't center view
     sprintf(str, compat_no_land_centering ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
                         compat_no_land_centering ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             compat_no_land_centering ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(10));
+                                LINE_ALPHA(11));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "3/3");
@@ -3821,6 +3829,17 @@ static void M_ID_InternalDemos (int choice)
     demo_internal ^= 1;
 }
 
+static void M_ID_AutomaticSR50 (int choice)
+{
+    compat_auto_sr50 ^= 1;
+    G_SetSideMove();
+}
+
+static void M_ID_NoLandCenter (int choice)
+{
+    compat_no_land_centering ^= 1;
+}
+
 static void M_ScrollGameplay (int choice)
 {
     if (choice) // Scroll right
@@ -3837,11 +3856,6 @@ static void M_ScrollGameplay (int choice)
         
     }
     CurrentItPos = 12;
-}
-
-static void M_ID_NoLandCenter (int choice)
-{
-    compat_no_land_centering ^= 1;
 }
 
 // -----------------------------------------------------------------------------
@@ -4185,6 +4199,8 @@ static void M_ID_ApplyResetHook (void)
     demo_internal = 1;
 
     // Compatibility-breaking
+    compat_auto_sr50 = 0;
+    G_SetSideMove();
     compat_no_land_centering = 0;
 
     // Restart graphical systems

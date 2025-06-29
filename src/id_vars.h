@@ -166,6 +166,7 @@ extern int demo_internal;
 extern int compat_pistol_start;
 extern int compat_blockmap_fix;
 extern int compat_vertical_aiming;
+extern int compat_auto_sr50;
 extern int intercept_overflow_fix;
 extern int compat_no_land_centering;
 

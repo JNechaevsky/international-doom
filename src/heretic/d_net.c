@@ -193,6 +193,7 @@ void D_ConnectNetGame(void)
     if (M_CheckParm("-solo-net") > 0)
     {
         netgame = true;
+        solonet = true;
     }
 }
 

@@ -1463,6 +1463,9 @@ void D_DoomMain(void)
         D_DoomLoop();           // Never returns
     }
 
+    // [JN] Check for Automatic SR50 option.
+    G_SetSideMove();
+
     //!
     // @category game
     // @arg <s>

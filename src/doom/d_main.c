@@ -2357,6 +2357,9 @@ void D_DoomMain (void)
 	D_DoomLoop ();  // never returns
     }
 	
+    // [JN] Check for Automatic SR50 option.
+    G_SetSideMove();
+
     if (startloadgame >= 0)
     {
         M_StringCopy(file, P_SaveGameFile(startloadgame), sizeof(file));

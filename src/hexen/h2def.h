@@ -684,6 +684,8 @@ extern boolean deathmatch;      // only if started as net death
 
 extern boolean netgame;         // only true if >1 player
 
+extern boolean solonet;         // [JN] Boolean for Auto SR50 check.
+
 extern boolean cmdfrag;         // true if a CMD_FRAG packet should be sent out every
                                                 // kill
 
@@ -895,6 +897,7 @@ void G_Ticker(void);
 boolean G_Responder(event_t * ev);
 void G_FastResponder(void); // [crispy]
 void G_PrepTiccmd(void); // [crispy]
+void G_SetSideMove(void);
 
 void G_ScreenShot(void);
 

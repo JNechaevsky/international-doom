@@ -29,12 +29,13 @@ extern boolean G_CheckDemoStatus (void);
 extern boolean G_Responder (event_t *ev);
 void G_FastResponder (void); // [crispy]
 void G_PrepTiccmd (void); // [crispy]
+void G_SetSideMove (void);
 
 extern char *demoname;
 extern int   demostarttic; // [crispy] fix revenant internal demo
 
 extern fixed_t forwardmove[2];
-extern fixed_t sidemove[2];
+extern fixed_t *sidemove;
 
 extern int G_VanillaVersionCode(void);
 
