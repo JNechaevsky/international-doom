@@ -635,6 +635,11 @@ int			skyflatnum;
 int			skytexture = -1; // [crispy] initialize
 int			skytexturemid;
 
+// [JN] Minimal support for Doom 1 + Doom 2 multiple skies.
+int skytexture_r1, skytexture_r2, skytexture_r3;
+int skyflatnum_r1, skyflatnum_r2, skyflatnum_r3;
+boolean have_remaster_sky;
+
 void R_InitSkyMap (void)
 {
     int skyheight;
@@ -658,6 +663,34 @@ void R_InitSkyMap (void)
     else
     {
         skytexturemid = ORIGHEIGHT/2*FRACUNIT;
+    }
+
+    // [JN] Doom 1 + Doom 2 have multiple skies on MAP20: Gotcha!
+    // This is done via the SKYDEFS lump, which we do not support.
+    // However, we provide minimal support for this effect in the
+    // new official IWAD.
+
+    static boolean check_remaster_sky = false;
+
+    if (!check_remaster_sky)
+    {
+        if (W_CheckNumForName("F_RSKY1") > 0
+        &&  W_CheckNumForName("F_RSKY2") > 0
+        &&  W_CheckNumForName("F_RSKY3") > 0)
+        {
+            skyflatnum_r1 = R_FlatNumForName("F_RSKY1");
+            skyflatnum_r2 = R_FlatNumForName("F_RSKY2");
+            skyflatnum_r3 = R_FlatNumForName("F_RSKY3");
+            skytexture_r1 = R_TextureNumForName("SKY1");
+            skytexture_r2 = R_TextureNumForName("SKY2");
+            skytexture_r3 = R_TextureNumForName("SKY3");
+            have_remaster_sky = true;
+        }
+        else
+        {
+            have_remaster_sky = false;
+        }
+        check_remaster_sky = true;
     }
 }
 

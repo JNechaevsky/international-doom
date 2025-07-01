@@ -427,7 +427,9 @@ void R_DrawPlanes (void)
     {
         // sky flat
         // [crispy] add support for MBF sky tranfers
-        if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
+        // [JN] Minimal support for Doom 1 + Doom 2 multiple skies.
+        if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT
+        ||  pl->picnum == skyflatnum_r1 || pl->picnum == skyflatnum_r2 || pl->picnum == skyflatnum_r3)
         {
             int texture;
             angle_t an = viewangle, flip = 0;  // [PN] Initialize flip here
@@ -443,6 +445,18 @@ void R_DrawPlanes (void)
             else
             {
                 texture = skytexture;
+
+                // [JN] Check for F_RSKY1/2/3 flats if using D1+D2 IWAD.
+                if (have_remaster_sky)
+                {
+                    if (pl->picnum == skyflatnum_r1)
+                        texture = skytexture_r1;
+                    else if (pl->picnum == skyflatnum_r2)
+                        texture = skytexture_r2;
+                    else if (pl->picnum == skyflatnum_r3)
+                        texture = skytexture_r3;
+                }
+
                 dc_texturemid = skytexturemid;
             }
             dc_iscale = pspriteiscale >> detailshift;

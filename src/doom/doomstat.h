@@ -275,6 +275,10 @@ extern  int             bodyqueslot;
 //  as well as tracking projectiles etc.
 extern int		skyflatnum;
 
+// [JN] Minimal support for Doom 1 + Doom 2 multiple skies.
+extern int skytexture_r1, skytexture_r2, skytexture_r3;
+extern int skyflatnum_r1, skyflatnum_r2, skyflatnum_r3;
+extern boolean have_remaster_sky;
 
 
 // Netgame stuff (buffers and pointers, i.e. indices).
