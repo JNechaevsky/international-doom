@@ -64,6 +64,12 @@ static drawseg_xrange_item_t *drawsegs_xrange;
 static unsigned int drawsegs_xrange_size = 0;
 static int drawsegs_xrange_count = 0;
 
+// [PN] Crossing sprite candidate buffer, built once per frame
+// to reduce performance hits from repeated full thinker scans.
+#define MAXCROSSCANDIDATES 128
+static mobj_t *cross_candidates[MAXCROSSCANDIDATES];
+static int num_cross_candidates;
+
 
 //
 // Sprite rotation 0 is facing the viewer,
@@ -893,22 +899,17 @@ void R_AddSprites (sector_t *sec)
 }
 
 // -----------------------------------------------------------------------------
-// R_AddCrossingSprites
-//  [PN] Responsible for drawing sprites whose bounding boxes cross into the
-//  current subsector but whose centers are not contained within it. This prevents
-//  visual artifacts such as sprite clipping, popping, or vanishing behind BSP
-//  partition lines. It iterates over all active mobjs to check for intersection
-//  with the precomputed subsector bounding box and projects those that should be
-//  visible from this leaf. Called during subsector rendering to supplement
-//  R_AddSprites.
+// R_CheckCrossingSprites
+//  [PN] Builds a temporary list of candidate mobjs whose bounding boxes
+//  might cross into other subsectors during this frame. This avoids
+//  scanning the entire thinker list on every subsector, and improves
+//  performance by limiting checks to a small, relevant subset.
+//  Called once per frame before BSP traversal.
 // -----------------------------------------------------------------------------
 
-void R_AddCrossingSprites (subsector_t *sub)
+void R_CheckCrossingSprites (void)
 {
-    const fixed_t ssx1 = sub->r_bbox[0];
-    const fixed_t ssx2 = sub->r_bbox[1];
-    const fixed_t ssy1 = sub->r_bbox[2];
-    const fixed_t ssy2 = sub->r_bbox[3];
+    num_cross_candidates = 0;
 
     for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
     {
@@ -922,6 +923,35 @@ void R_AddCrossingSprites (subsector_t *sub)
         if (mo->state == &states[S_NULL] || mo->flags & MF_NOSECTOR)
             continue;
 
+        // Skip mobjs with zero radius, which cannot meaningfully overlap subsectors
+        if (mo->radius <= 0)
+            continue;
+
+        // Store this mobj as a crossing sprite candidate, if space allows
+        if (num_cross_candidates < MAXCROSSCANDIDATES)
+            cross_candidates[num_cross_candidates++] = mo;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// R_AddCrossingSprites
+//  [PN] Projects sprites whose bounding boxes overlap the given subsector,
+//  even if their centers are outside of it. Prevents visual artifacts
+//  (clipping, popping, or vanishing) caused by BSP partition lines.
+//  Uses the pre-filtered candidate list built by R_CheckCrossingSprites.
+// -----------------------------------------------------------------------------
+
+void R_AddCrossingSprites (subsector_t *sub)
+{
+    const fixed_t ssx1 = sub->r_bbox[0];
+    const fixed_t ssx2 = sub->r_bbox[1];
+    const fixed_t ssy1 = sub->r_bbox[2];
+    const fixed_t ssy2 = sub->r_bbox[3];
+
+    for (int i = 0; i < num_cross_candidates; i++)
+    {
+        mobj_t *mo = cross_candidates[i];
+
         // Skip mobjs already queued for drawing this frame
         if (mo->r_validcount == validcount)
             continue;
@@ -931,7 +961,7 @@ void R_AddCrossingSprites (subsector_t *sub)
         const fixed_t x2 = mo->x + mo->radius;
         const fixed_t y1 = mo->y - mo->radius;
         const fixed_t y2 = mo->y + mo->radius;
-        
+
         // Skip mobjs whose bounding box does not cross this subsector
         if (x2 < ssx1 || x1 > ssx2 || y2 < ssy1 || y1 > ssy2)
             continue;

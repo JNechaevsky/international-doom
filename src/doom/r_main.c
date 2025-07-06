@@ -1154,6 +1154,9 @@ void R_RenderPlayerView (player_t *player)
     // Check for new console commands.
     NetUpdate ();
 
+    // [PN] Collect possible crossing sprites for this frame
+    R_CheckCrossingSprites();
+
     // [crispy] draw fuzz effect independent of rendering frame rate
     R_SetFuzzPosDraw();
     R_DrawMasked ();
