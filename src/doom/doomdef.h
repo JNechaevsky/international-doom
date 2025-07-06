@@ -577,6 +577,9 @@ typedef struct mobj_s
 
     // If == validcount, already checked.
     int			validcount;
+    // [PN] If == validcount, already projected for this frame (rendering only),
+    // prevents duplicate sprite projection from multiple subsectors.
+    int			r_validcount;
 
     mobjtype_t		type;
     mobjinfo_t*		info;	// &mobjinfo[mobj->type]

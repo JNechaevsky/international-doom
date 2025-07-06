@@ -237,6 +237,8 @@ typedef struct subsector_s
     sector_t *sector;
     int       numlines;
     int       firstline;
+    // [PN] Bounding box for sprite clipping in R_AddCrossingSprites().
+    fixed_t   r_bbox[4];
 } subsector_t;
 
 //
@@ -821,6 +823,7 @@ extern byte *R_WarpingFlat3 (int flatnum);
 
 extern void R_AddPSprites (void);
 extern void R_AddSprites (sector_t *sec);
+extern void R_AddCrossingSprites (subsector_t *sub);
 extern void R_ClearSprites (void);
 extern void R_ClipVisSprite (vissprite_t *vis, int xl, int xh);
 extern void R_DrawMasked (void);

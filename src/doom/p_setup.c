@@ -546,6 +546,40 @@ static void P_LoadSubsectors (int lump)
 }
 
 // -----------------------------------------------------------------------------
+// P_BuildSubsectorBBox
+//  [PN] Precomputes and stores axis-aligned bounding boxes for all subsectors,
+//  so that crossing sprites can be quickly detected and projected during
+//  rendering, avoiding costly per-frame geometric recalculation.
+// -----------------------------------------------------------------------------
+
+static void P_BuildSubsectorBBox (void)
+{
+    for (int i = 0; i < numsubsectors; i++)
+    {
+        subsector_t *sub = &subsectors[i];
+        fixed_t ssx1 = INT_MAX, ssx2 = INT_MIN, ssy1 = INT_MAX, ssy2 = INT_MIN;
+
+        for (int j = 0; j < sub->numlines; ++j)
+        {
+            seg_t *seg = &segs[sub->firstline + j];
+            if (seg->v1->x < ssx1) ssx1 = seg->v1->x;
+            if (seg->v1->x > ssx2) ssx2 = seg->v1->x;
+            if (seg->v1->y < ssy1) ssy1 = seg->v1->y;
+            if (seg->v1->y > ssy2) ssy2 = seg->v1->y;
+            if (seg->v2->x < ssx1) ssx1 = seg->v2->x;
+            if (seg->v2->x > ssx2) ssx2 = seg->v2->x;
+            if (seg->v2->y < ssy1) ssy1 = seg->v2->y;
+            if (seg->v2->y > ssy2) ssy2 = seg->v2->y;
+        }
+
+        sub->r_bbox[0] = ssx1;
+        sub->r_bbox[1] = ssx2;
+        sub->r_bbox[2] = ssy1;
+        sub->r_bbox[3] = ssy2;
+    }
+}
+
+// -----------------------------------------------------------------------------
 // P_LoadSectors
 // -----------------------------------------------------------------------------
 
@@ -1392,6 +1426,7 @@ void P_SetupLevel (int episode, int map)
     // Post-load adjustments
     P_RemoveSlimeTrails();
     P_SegLengths(false);
+    P_BuildSubsectorBBox();
     memset(st_keyorskull, 0, sizeof st_keyorskull);
     bodyqueslot = 0;
     deathmatch_p = deathmatchstarts;

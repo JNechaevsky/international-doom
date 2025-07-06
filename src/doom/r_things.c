@@ -731,6 +731,15 @@ static void R_ProjectSprite (mobj_t* thing)
     
     else
     {
+	// [PN] Set spritelights based on the mobj's owning subsector light level,
+	// to ensure consistent lighting regardless of BSP splits or traversal order.
+	// [crispy] smooth diminishing lighting
+	const int lightnum = 
+		BETWEEN(0, LIGHTLEVELS - 1, (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT)
+    			+ (extralight * LIGHTBRIGHT));
+
+	lighttable_t **spritelights_local = scalelight[lightnum];
+
 	// diminished light
 	index = (xscale / vid_resolution) >> (LIGHTSCALESHIFT - detailshift);
 
@@ -738,7 +747,7 @@ static void R_ProjectSprite (mobj_t* thing)
 	    index = MAXLIGHTSCALE-1;
 
 	// [crispy] brightmaps for select sprites
-	vis->colormap[0] = spritelights[index];
+	vis->colormap[0] = spritelights_local[index];
 
     // [JN] Apply different types half-brights for certain objects.
     //  Not to be confused:
@@ -753,7 +762,7 @@ static void R_ProjectSprite (mobj_t* thing)
         if (thing->sprite == SPR_BON2   // Armor Bonus
         ||  thing->sprite == SPR_BAR1)  // Explosive Barrel
         {
-            vis->colormap[1] = spritelights[BMAPMAXDIMINDEX];
+            vis->colormap[1] = spritelights_local[BMAPMAXDIMINDEX];
         }
         // Demi-brigths:
         else
@@ -766,7 +775,7 @@ static void R_ProjectSprite (mobj_t* thing)
         {
             const int demi_bright = MIN(index*2, BMAPMAXDIMINDEX);
 
-            vis->colormap[0] = spritelights[demi_bright];
+            vis->colormap[0] = spritelights_local[demi_bright];
 
             // Animated brightmaps:
             if (thing->sprite == SPR_CAND   // Candestick
@@ -792,7 +801,7 @@ static void R_ProjectSprite (mobj_t* thing)
         {
             const int hemi_bright = MIN(index*4, BMAPMAXDIMINDEX);
 
-            vis->colormap[0] = spritelights[hemi_bright];
+            vis->colormap[0] = spritelights_local[hemi_bright];
             vis->colormap[1] = &colormaps[(thing->bmap_flick<<BMAPANIMSHIFT)/3*256];
         }
         // Just animated:
@@ -870,14 +879,67 @@ static void R_ProjectSprite (mobj_t* thing)
 
 void R_AddSprites (sector_t *sec)
 {
-    // [crispy] smooth diminishing lighting
-    const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
-                       + (extralight * LIGHTBRIGHT));
-    spritelights = scalelight[lightnum];
-
     // Handle all things in sector.
     for (mobj_t *thing = sec->thinglist ; thing ; thing = thing->snext)
+    {
+    // [PN] Skip things already queued for drawing this frame
+    if (thing->r_validcount == validcount)
+        continue;
+
+    // [PN] Mark as projected for this frame and enqueue in vissprites
+    thing->r_validcount = validcount;
     R_ProjectSprite (thing);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// R_AddCrossingSprites
+//  [PN] Responsible for drawing sprites whose bounding boxes cross into the
+//  current subsector but whose centers are not contained within it. This prevents
+//  visual artifacts such as sprite clipping, popping, or vanishing behind BSP
+//  partition lines. It iterates over all active mobjs to check for intersection
+//  with the precomputed subsector bounding box and projects those that should be
+//  visible from this leaf. Called during subsector rendering to supplement
+//  R_AddSprites.
+// -----------------------------------------------------------------------------
+
+void R_AddCrossingSprites (subsector_t *sub)
+{
+    const fixed_t ssx1 = sub->r_bbox[0];
+    const fixed_t ssx2 = sub->r_bbox[1];
+    const fixed_t ssy1 = sub->r_bbox[2];
+    const fixed_t ssy2 = sub->r_bbox[3];
+
+    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        // Skip non-mobj thinkers
+        if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+            continue;
+
+        mobj_t *mo = (mobj_t *)th;
+
+        // Not supposed to be rendered at all
+        if (mo->state == &states[S_NULL] || mo->flags & MF_NOSECTOR)
+            continue;
+
+        // Skip mobjs already queued for drawing this frame
+        if (mo->r_validcount == validcount)
+            continue;
+
+        // Compute the mobj's bounding box in world coordinates
+        const fixed_t x1 = mo->x - mo->radius;
+        const fixed_t x2 = mo->x + mo->radius;
+        const fixed_t y1 = mo->y - mo->radius;
+        const fixed_t y2 = mo->y + mo->radius;
+        
+        // Skip mobjs whose bounding box does not cross this subsector
+        if (x2 < ssx1 || x1 > ssx2 || y2 < ssy1 || y1 > ssy2)
+            continue;
+
+        // Mark as projected for this frame and enqueue in vissprites
+        mo->r_validcount = validcount;
+        R_ProjectSprite(mo);
+    }
 }
 
 //
