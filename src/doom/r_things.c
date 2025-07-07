@@ -68,7 +68,7 @@ static int drawsegs_xrange_count = 0;
 // to reduce performance hits from repeated full thinker scans.
 #define MAXCROSSCANDIDATES 128
 static mobj_t *cross_candidates[MAXCROSSCANDIDATES];
-static int num_cross_candidates;
+int num_cross_candidates;
 
 
 //

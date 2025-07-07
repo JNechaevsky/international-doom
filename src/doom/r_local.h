@@ -845,3 +845,5 @@ extern int64_t sprtopscreen;
 
 extern fixed_t pspritescale;
 extern fixed_t pspriteiscale;
+
+extern int num_cross_candidates;

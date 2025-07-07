@@ -763,6 +763,9 @@ static void P_LoadThings (int lump)
         }
     }
 
+    // [PN] Clear crossing sprite candidate list on level load
+    num_cross_candidates = 0;
+
     // Release the cached lump
     W_ReleaseLumpNum(lump);
 }
