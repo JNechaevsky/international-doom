@@ -909,7 +909,9 @@ void R_AddSprites (sector_t *sec)
 
 void R_CheckCrossingSprites (void)
 {
-    num_cross_candidates = 0;
+    // Local copies for faster access to global variables in "for" loop
+    int local_num_cross_candidates = 0;
+    mobj_t *local_cross_candidates[MAXCROSSCANDIDATES];
 
     for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
     {
@@ -928,9 +930,13 @@ void R_CheckCrossingSprites (void)
             continue;
 
         // Store this mobj as a crossing sprite candidate, if space allows
-        if (num_cross_candidates < MAXCROSSCANDIDATES)
-            cross_candidates[num_cross_candidates++] = mo;
+        if (local_num_cross_candidates < MAXCROSSCANDIDATES)
+            local_cross_candidates[local_num_cross_candidates++] = mo;
     }
+
+    // Update global variables after leaving "for" loop
+    num_cross_candidates = local_num_cross_candidates;
+    memcpy(cross_candidates, local_cross_candidates, sizeof(mobj_t*) * local_num_cross_candidates);
 }
 
 // -----------------------------------------------------------------------------
@@ -948,9 +954,14 @@ void R_AddCrossingSprites (subsector_t *sub)
     const fixed_t ssy1 = sub->r_bbox[2];
     const fixed_t ssy2 = sub->r_bbox[3];
 
-    for (int i = 0; i < num_cross_candidates; i++)
+    // Local copies for faster access to global variables in "for" loop
+    int local_num_cross_candidates = num_cross_candidates;
+    mobj_t *local_cross_candidates[MAXCROSSCANDIDATES];
+    memcpy(local_cross_candidates, cross_candidates, sizeof(mobj_t*) * local_num_cross_candidates);
+
+    for (int i = 0; i < local_num_cross_candidates; i++)
     {
-        mobj_t *mo = cross_candidates[i];
+        mobj_t *mo = local_cross_candidates[i];
 
         // Skip mobjs already queued for drawing this frame
         if (mo->r_validcount == validcount)
