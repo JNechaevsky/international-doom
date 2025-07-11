@@ -15,18 +15,17 @@
 // GNU General Public License for more details.
 //
 
-
-#include "h2def.h"
-#include "i_system.h"
 #include "m_bbox.h"
+#include "i_system.h"
+#include "h2def.h"
 #include "r_local.h"
-#include "am_map.h"
 
 
-seg_t *curline;
-side_t *sidedef;
-line_t *linedef;
-sector_t *frontsector, *backsector;
+seg_t     *curline;
+side_t    *sidedef;
+line_t    *linedef;
+sector_t  *frontsector;
+sector_t  *backsector;
 
 // [JN] killough: New code which removes 2s linedef limit
 drawseg_t *drawsegs;
@@ -38,8 +37,6 @@ unsigned   maxdrawsegs;
 // indicating whether it's blocked by a solid wall yet or not.
 byte solidcol[MAXWIDTH];
 
-
-void R_StoreWallRange(int start, int stop);
 
 // -----------------------------------------------------------------------------
 // R_ClearDrawSegs
@@ -196,9 +193,11 @@ void R_ClearClipSegs (void)
 }
 
 // -----------------------------------------------------------------------------
+// R_CheckInterpolateSector
 // [AM] Interpolate the passed sector, if prudent.
-void R_CheckInterpolateSector(sector_t* sector)
 // -----------------------------------------------------------------------------
+
+static void R_CheckInterpolateSector (sector_t *sector)
 {
     if (vid_uncapped_fps &&
         // Only if we moved the sector last tic ...
@@ -448,14 +447,10 @@ static void R_Subsector (int num)
 
 #ifdef RANGECHECK
     if (num >= numsubsectors)
-        I_Error("R_Subsector: ss %i with numss = %i", num, numsubsectors);
+	I_Error ("R_Subsector: ss %i with numss = %i", num, numsubsectors);
 #endif
 
     frontsector = sub->sector;
-
-    // [AM] Interpolate sector movement.  Usually only needed
-    //      when you're standing inside the sector.
-    R_CheckInterpolateSector(frontsector);
 
     // [AM] Interpolate sector movement.  Usually only needed
     //      when you're standing inside the sector.

@@ -14,12 +14,10 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// R_bsp.c
 
-#include "doomdef.h"
-#include "i_system.h"
 #include "m_bbox.h"
 #include "i_system.h"
+#include "doomdef.h"
 #include "r_local.h"
 
 #include "id_vars.h"
@@ -197,9 +195,11 @@ void R_ClearClipSegs (void)
 }
 
 // -----------------------------------------------------------------------------
+// R_CheckInterpolateSector
 // [AM] Interpolate the passed sector, if prudent.
-void R_CheckInterpolateSector(sector_t* sector)
 // -----------------------------------------------------------------------------
+
+static void R_CheckInterpolateSector (sector_t *sector)
 {
     if (vid_uncapped_fps &&
         // Only if we moved the sector last tic ...

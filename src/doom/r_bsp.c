@@ -13,14 +13,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// DESCRIPTION:
-//	BSP traversal, handling of LineSegs for rendering.
-//
 
-
-#include <stdlib.h>
 #include "m_bbox.h"
-#include "m_misc.h"
 #include "i_system.h"
 #include "doomstat.h"
 #include "p_local.h"
@@ -199,14 +193,14 @@ void R_ClearClipSegs (void)
 }
 
 // -----------------------------------------------------------------------------
-// R_MaybeInterpolateSector
+// R_CheckInterpolateSector
 // [AM] Interpolate the passed sector, if prudent.
 // -----------------------------------------------------------------------------
 
-static void R_MaybeInterpolateSector(sector_t* sector)
+static void R_CheckInterpolateSector (sector_t *sector)
 {
     if (vid_uncapped_fps &&
-        // Only if we moved the sector last tic.
+        // Only if we moved the sector last tic ...
         sector->oldgametic == gametic - 1 &&
         // ... and it has a thinker associated with it.
         sector->specialdata)
@@ -321,7 +315,7 @@ static void R_AddLine (seg_t *line)
         // [AM] Interpolate sector movement before
         //      running clipping tests.  Frontsector
         //      should already be interpolated.
-        R_MaybeInterpolateSector(backsector);
+        R_CheckInterpolateSector(backsector);
     }
     else
     {
@@ -450,7 +444,7 @@ static void R_Subsector (int num)
     int   count = sub->numlines;
 
 #ifdef RANGECHECK
-    if (num>=numsubsectors)
+    if (num >= numsubsectors)
 	I_Error ("R_Subsector: ss %i with numss = %i", num, numsubsectors);
 #endif
 
@@ -458,22 +452,22 @@ static void R_Subsector (int num)
 
     // [AM] Interpolate sector movement.  Usually only needed
     //      when you're standing inside the sector.
-    R_MaybeInterpolateSector(frontsector);
+    R_CheckInterpolateSector(frontsector);
 
     floorplane = frontsector->interpfloorheight < viewz ?
                  R_FindPlane (frontsector->interpfloorheight,
-                              // [crispy] add support for MBF sky tranfers
-				              frontsector->floorpic == skyflatnum &&
-				              frontsector->sky & PL_SKYFLAT ? frontsector->sky :
+                              // [crispy] add support for MBF sky transfers
+                              frontsector->floorpic == skyflatnum &&
+                              frontsector->sky & PL_SKYFLAT ? frontsector->sky :
                               frontsector->floorpic,
                               frontsector->lightlevel) : NULL;
 
     ceilingplane = frontsector->interpceilingheight > viewz ||
                    frontsector->ceilingpic == skyflatnum ?
                    R_FindPlane (frontsector->interpceilingheight,
-                                // [crispy] add support for MBF sky tranfers
-				                frontsector->ceilingpic == skyflatnum &&
-				                frontsector->sky & PL_SKYFLAT ? frontsector->sky :
+                                // [crispy] add support for MBF sky transfers
+                                frontsector->ceilingpic == skyflatnum &&
+                                frontsector->sky & PL_SKYFLAT ? frontsector->sky :
                                 frontsector->ceilingpic,
                                 frontsector->lightlevel) : NULL;
 
