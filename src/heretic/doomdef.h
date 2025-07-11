@@ -170,6 +170,9 @@ typedef struct mobj_s
     fixed_t momx, momy, momz;   // momentums
 
     int validcount;             // if == validcount, already checked
+    // [PN] If == validcount, already projected for this frame (rendering only),
+    // prevents duplicate sprite projection from multiple subsectors.
+    int r_validcount;
 
     mobjtype_t type;
     mobjinfo_t *info;           // &mobjinfo[mobj->type]
