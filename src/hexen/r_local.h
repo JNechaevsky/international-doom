@@ -238,6 +238,8 @@ typedef struct subsector_s
     short numlines;
     short firstline;
     polyobj_t *poly;
+    // [PN] Bounding box for sprite clipping in R_AddCrossingSprites().
+    fixed_t r_bbox[4];
 } subsector_t;
 
 typedef struct
@@ -626,11 +628,14 @@ extern int64_t sprtopscreen; // [crispy] WiggleFix
 extern fixed_t sprbotscreen;
 
 extern fixed_t pspritescale, pspriteiscale;
+extern int num_cross_candidates;
 
 void R_DrawMaskedColumn(column_t * column, signed int baseclip);
 
 
 void R_AddSprites(sector_t * sec);
+void R_AddCrossingSprites(subsector_t *sub);
+void R_CheckCrossingSprites(void);
 void R_AddPSprites(void);
 void R_DrawSprites(void);
 void R_InitSprites(const char **namelist);

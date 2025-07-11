@@ -483,6 +483,13 @@ static void R_Subsector (int num)
         R_AddSprites (frontsector);
     }
 
+    // [PN] Adds large sprites whose bounding boxes cross this subsector,
+    // to prevent sprite clipping or popping caused by BSP partitioning.
+    // This must be called outside of the sector validcount check,
+    // to ensure crossing sprites are projected even if the subsector itself
+    // is skipped during BSP traversal.
+    R_AddCrossingSprites (sub);
+
     if (sub->poly)
     {                           // Render the polyobj in the subsector first
         polyCount = sub->poly->numsegs;

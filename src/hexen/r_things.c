@@ -22,6 +22,7 @@
 #include "i_system.h"
 #include "i_swap.h"
 #include "r_bmaps.h"
+#include "p_local.h"
 #include "r_local.h"
 #include "v_trans.h" // [crispy] blending functions
 #include "v_video.h" // [JN] translucency tables
@@ -95,6 +96,11 @@ static drawseg_xrange_item_t *drawsegs_xrange;
 static unsigned int drawsegs_xrange_size = 0;
 static int drawsegs_xrange_count = 0;
 
+// [PN] Crossing sprite candidate buffer, built once per frame
+// to reduce performance hits from repeated full thinker scans.
+#define MAXCROSSCANDIDATES 128
+static mobj_t *cross_candidates[MAXCROSSCANDIDATES];
+int num_cross_candidates;
 
 /*
 =================
@@ -715,6 +721,15 @@ void R_ProjectSprite(mobj_t * thing)
         vis->colormap[0] = vis->colormap[1] = colormaps;      // full bright
     else
     {                           // diminished light
+        // [PN] Set spritelights based on the mobj's owning subsector light level,
+        // to ensure consistent lighting regardless of BSP splits or traversal order.
+        // [crispy] smooth diminishing lighting
+        const int lightnum = 
+            BETWEEN(0, LIGHTLEVELS - 1, (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT)
+                    + (extralight * LIGHTBRIGHT));
+
+        lighttable_t **spritelights_local = scalelight[lightnum];
+
         index = (xscale / vid_resolution) >> (LIGHTSCALESHIFT - detailshift);
         if (index >= MAXLIGHTSCALE)
             index = MAXLIGHTSCALE - 1;
@@ -733,13 +748,13 @@ void R_ProjectSprite(mobj_t * thing)
             {
                 bright_index = MAXLIGHTSCALE-1;
             }
-            vis->colormap[0] = spritelights[bright_index];
+            vis->colormap[0] = spritelights_local[bright_index];
         }
         else
         {
-            vis->colormap[0] = spritelights[index];
+            vis->colormap[0] = spritelights_local[index];
         }
-        vis->colormap[1] = LevelUseFullBright ? colormaps : spritelights[index];
+        vis->colormap[1] = LevelUseFullBright ? colormaps : spritelights_local[index];
     }
 
     vis->brightmap = R_BrightmapForSprite(thing->state - states);
@@ -764,16 +779,103 @@ void R_ProjectSprite(mobj_t * thing)
 
 void R_AddSprites (sector_t *sec)
 {
-    // [crispy] smooth diminishing lighting
-    const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
-                       + (extralight * LIGHTBRIGHT));
-    spritelights = scalelight[lightnum];
-
     // Handle all things in sector.
     for (mobj_t *thing = sec->thinglist ; thing ; thing = thing->snext)
+    {
+    // [PN] Skip things already queued for drawing this frame
+    if (thing->r_validcount == validcount)
+        continue;
+
+    // [PN] Mark as projected for this frame and enqueue in vissprites
+    thing->r_validcount = validcount;
     R_ProjectSprite (thing);
+    }
 }
 
+// -----------------------------------------------------------------------------
+// R_CheckCrossingSprites
+//  [PN] Builds a temporary list of candidate mobjs whose bounding boxes
+//  might cross into other subsectors during this frame. This avoids
+//  scanning the entire thinker list on every subsector, and improves
+//  performance by limiting checks to a small, relevant subset.
+//  Called once per frame before BSP traversal.
+// -----------------------------------------------------------------------------
+
+void R_CheckCrossingSprites (void)
+{
+    // Local copies for faster access to global variables in "for" loop
+    int local_num_cross_candidates = 0;
+    mobj_t *local_cross_candidates[MAXCROSSCANDIDATES];
+
+    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        // Skip non-mobj thinkers
+        if (th->function != P_MobjThinker)
+            continue;
+
+        mobj_t *mo = (mobj_t *)th;
+
+        // Not supposed to be rendered at all
+        if (mo->state == &states[S_NULL] || mo->flags & MF_NOSECTOR)
+            continue;
+
+        // Skip mobjs with zero radius, which cannot meaningfully overlap subsectors
+        if (mo->radius <= 0)
+            continue;
+
+        // Store this mobj as a crossing sprite candidate, if space allows
+        if (local_num_cross_candidates < MAXCROSSCANDIDATES)
+            local_cross_candidates[local_num_cross_candidates++] = mo;
+    }
+
+    // Update global variables after leaving "for" loop
+    num_cross_candidates = local_num_cross_candidates;
+    memcpy(cross_candidates, local_cross_candidates, sizeof(mobj_t*) * local_num_cross_candidates);
+}
+
+// -----------------------------------------------------------------------------
+// R_AddCrossingSprites
+//  [PN] Projects sprites whose bounding boxes overlap the given subsector,
+//  even if their centers are outside of it. Prevents visual artifacts
+//  (clipping, popping, or vanishing) caused by BSP partition lines.
+//  Uses the pre-filtered candidate list built by R_CheckCrossingSprites.
+// -----------------------------------------------------------------------------
+
+void R_AddCrossingSprites (subsector_t *sub)
+{
+    const fixed_t ssx1 = sub->r_bbox[0];
+    const fixed_t ssx2 = sub->r_bbox[1];
+    const fixed_t ssy1 = sub->r_bbox[2];
+    const fixed_t ssy2 = sub->r_bbox[3];
+
+    // Local copies for faster access to global variables in "for" loop
+    int local_num_cross_candidates = num_cross_candidates;
+    mobj_t *local_cross_candidates[MAXCROSSCANDIDATES];
+    memcpy(local_cross_candidates, cross_candidates, sizeof(mobj_t*) * local_num_cross_candidates);
+
+    for (int i = 0; i < local_num_cross_candidates; i++)
+    {
+        mobj_t *mo = local_cross_candidates[i];
+
+        // Skip mobjs already queued for drawing this frame
+        if (mo->r_validcount == validcount)
+            continue;
+
+        // Compute the mobj's bounding box in world coordinates
+        const fixed_t x1 = mo->x - mo->radius;
+        const fixed_t x2 = mo->x + mo->radius;
+        const fixed_t y1 = mo->y - mo->radius;
+        const fixed_t y2 = mo->y + mo->radius;
+
+        // Skip mobjs whose bounding box does not cross this subsector
+        if (x2 < ssx1 || x1 > ssx2 || y2 < ssy1 || y1 > ssy2)
+            continue;
+
+        // Mark as projected for this frame and enqueue in vissprites
+        mo->r_validcount = validcount;
+        R_ProjectSprite(mo);
+    }
+}
 
 /*
 ========================

@@ -1099,6 +1099,8 @@ void R_RenderPlayerView(player_t * player)
     NetUpdate();                // check for new console commands
     R_DrawPlanes();
     NetUpdate();                // check for new console commands
+    // [PN] Collect possible crossing sprites for this frame
+    R_CheckCrossingSprites();
     R_DrawMasked();
     NetUpdate();                // check for new console commands
 
