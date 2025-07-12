@@ -464,14 +464,6 @@ extern side_t *sidedef;
 extern line_t *linedef;
 extern sector_t *frontsector, *backsector;
 
-extern int rw_x;
-extern int rw_stopx;
-
-extern boolean segtextured;
-extern boolean markfloor;       // false if the back side is the same plane
-extern boolean markceiling;
-extern boolean skymap;
-
 extern byte solidcol[MAXWIDTH];
 
 extern drawseg_t *drawsegs;
@@ -517,9 +509,6 @@ extern fixed_t swirlCoord_x;
 extern fixed_t swirlCoord_y;
 
 void R_ClearPlanes(void);
-void R_MapPlane(int y, int x1, int x2);
-extern void R_MakeSpans (unsigned int x, unsigned int t1, unsigned int b1, 
-                         unsigned int t2, unsigned int b2);
 void R_DrawPlanes(void);
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,

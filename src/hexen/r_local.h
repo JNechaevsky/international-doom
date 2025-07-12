@@ -32,7 +32,6 @@
 #define MINZ                    (FRACUNIT*4)
 #define	MAXZ                    (FRACUNIT*8192)
 
-#define FIELDOFVIEW             2048    // fineangles in the SCREENWIDTH wide window
 
 //
 // lighting constants
@@ -450,7 +449,6 @@ angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y);
 angle_t R_PointToAngle2(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 fixed_t R_PointToDist(fixed_t x, fixed_t y);
 fixed_t R_ScaleFromGlobalAngle(angle_t visangle);
-angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale);
 subsector_t *R_PointInSubsector(fixed_t x, fixed_t y);
 //void R_AddPointToBox (int x, int y, fixed_t *box);
 extern void R_ExecuteSetViewSize(void);
@@ -487,6 +485,15 @@ inline static angle_t LerpAngle(angle_t oangle, angle_t nangle)
     }
 }
 
+// -----------------------------------------------------------------------------
+// R_BMAPS
+// -----------------------------------------------------------------------------
+
+extern const byte *R_BrightmapForTexName (const char *texname);
+extern const byte *R_BrightmapForSprite (const int state);
+extern const byte *R_BrightmapForState (const int state);
+
+extern const byte **texturebrightmap;
 
 //
 // R_bsp.c
@@ -495,14 +502,6 @@ extern seg_t *curline;
 extern side_t *sidedef;
 extern line_t *linedef;
 extern sector_t *frontsector, *backsector;
-
-extern int rw_x;
-extern int rw_stopx;
-
-extern boolean segtextured;
-extern boolean markfloor;       // false if the back side is the same plane
-extern boolean markceiling;
-extern boolean skymap;
 
 extern byte solidcol[MAXWIDTH];
 
@@ -556,12 +555,8 @@ extern fixed_t distscale[MAXWIDTH];
 extern fixed_t swirlCoord_x;
 extern fixed_t swirlCoord_y;
 
-void R_InitPlanes(void);
 void R_ClearPlanes(void);
-void R_MapPlane(int y, int x1, int x2);
 
-// [crispy] 32-bit integer math
-void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2, unsigned int b2);
 void R_DrawPlanes(void);
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
@@ -690,6 +685,12 @@ void R_DrawSpanLow(void);
 
 void R_InitBuffer(int width, int height);
 void R_InitTranslationTables(void);
+
+// -----------------------------------------------------------------------------
+// PO_MAN
+// -----------------------------------------------------------------------------
+
+extern void PO_InterpolatePolyObjects (void);
 
 // -----------------------------------------------------------------------------
 // R_SWIRL

@@ -21,7 +21,6 @@
 #include "h2def.h"
 #include "i_system.h"
 #include "i_swap.h"
-#include "r_bmaps.h"
 #include "r_local.h"
 #include "v_trans.h" // [crispy] blending functions
 #include "v_video.h" // [JN] translucency tables

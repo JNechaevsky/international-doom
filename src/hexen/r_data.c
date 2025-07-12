@@ -15,17 +15,27 @@
 // GNU General Public License for more details.
 //
 
+
 #include <stdlib.h> // [crispy] calloc()
 
-#include "h2def.h"
 #include "i_system.h"
 #include "i_swap.h"
 #include "m_misc.h"
-#include "r_bmaps.h"
-#include "r_local.h"
-#include "p_local.h"
-#include "v_trans.h" // [crispy] color translation and color string tables
+#include "z_zone.h"
 
+#include "h2def.h"
+
+#include "v_trans.h"
+#include "p_local.h"
+
+
+//
+// Graphics.
+// DOOM graphics for walls and sprites
+// is stored in vertical runs of opaque pixels (posts).
+// A column is composed of zero or more posts,
+// a patch or sprite is composed of zero or more columns.
+// 
 typedef struct
 {
     int originx;                // block origin (allways UL), which has allready
@@ -599,55 +609,47 @@ void R_InitTextures(void)
 }
 
 
-/*
-================
-=
-= R_InitFlats
-=
-=================
-*/
+// -----------------------------------------------------------------------------
+// R_InitFlats
+// -----------------------------------------------------------------------------
 
-void R_InitFlats(void)
+static void R_InitFlats (void)
 {
-    int i;
-
     firstflat = W_GetNumForName("F_START") + 1;
     lastflat = W_GetNumForName("F_END") - 1;
     numflats = lastflat - firstflat + 1;
 
-// translation table for global animation
-    flattranslation = Z_Malloc((numflats + 1) * sizeof(int), PU_STATIC, 0);
-    for (i = 0; i < numflats; i++)
+    // Create translation table for global animation.
+    flattranslation = Z_Malloc((numflats + 1) * sizeof(*flattranslation), PU_STATIC, 0);
+
+    for (int i = 0 ; i < numflats ; i++)
         flattranslation[i] = i;
 }
 
+// -----------------------------------------------------------------------------
+// R_InitSpriteLumps
+// Finds the width and hoffset of all sprites in the wad,
+//  so the sprite does not need to be cached completely
+//  just for having the header info ready during rendering.
+// -----------------------------------------------------------------------------
 
-/*
-================
-=
-= R_InitSpriteLumps
-=
-= Finds the width and hoffset of all sprites in the wad, so the sprite doesn't
-= need to be cached just for the header during rendering
-=================
-*/
-
-void R_InitSpriteLumps(void)
+void R_InitSpriteLumps (void)
 {
-    int i;
     patch_t *patch;
 
     firstspritelump = W_GetNumForName("S_START") + 1;
     lastspritelump = W_GetNumForName("S_END") - 1;
-    numspritelumps = lastspritelump - firstspritelump + 1;
-    spritewidth = Z_Malloc(numspritelumps * sizeof(fixed_t), PU_STATIC, 0);
-    spriteoffset = Z_Malloc(numspritelumps * sizeof(fixed_t), PU_STATIC, 0);
-    spritetopoffset = Z_Malloc(numspritelumps * sizeof(fixed_t), PU_STATIC, 0);
 
-    for (i = 0; i < numspritelumps; i++)
+    numspritelumps = lastspritelump - firstspritelump + 1;
+    spritewidth = Z_Malloc(numspritelumps * sizeof(*spritewidth), PU_STATIC, 0);
+    spriteoffset = Z_Malloc(numspritelumps * sizeof(*spriteoffset), PU_STATIC, 0);
+    spritetopoffset = Z_Malloc(numspritelumps * sizeof(*spritetopoffset), PU_STATIC, 0);
+
+    for (int i = 0 ; i < numspritelumps ; i++)
     {
         if (!(i & 127))
             ST_Progress();
+
         patch = W_CacheLumpNum(firstspritelump + i, PU_CACHE);
         spritewidth[i] = SHORT(patch->width) << FRACBITS;
         spriteoffset[i] = SHORT(patch->leftoffset) << FRACBITS;
@@ -655,16 +657,9 @@ void R_InitSpriteLumps(void)
     }
 }
 
-
-/*
-================
-=
-= R_InitColormaps
-=
-=================
-*/
-
-    
+// -----------------------------------------------------------------------------
+// R_InitColormaps
+//
 // [PN] Macros to optimize and standardize color calculations in the R_InitColormaps.
 //
 // CALC_INTENSITY calculates the RGB components from playpal based on intensity settings.
@@ -686,6 +681,7 @@ void R_InitSpriteLumps(void)
 // range [0, 255], preserving consistency and avoiding overflow or underflow.
 //
 // Also, thanks Alaux!
+// -----------------------------------------------------------------------------
 
 #define CALC_INTENSITY(pal, playpal, index) \
     { pal[0] = playpal[3 * (index) + 0] * vid_r_intensity; \
@@ -837,43 +833,42 @@ void R_InitTrueColormaps(char *current_colormap)
 	shadow_alpha = (uint8_t)BETWEEN(0, 255 - (32 * vid_contrast), 0xA0 / vid_contrast);
 }
 
-// [crispy] initialize color translation and color string tables
-static void R_InitHSVColors(void)
+// -----------------------------------------------------------------------------
+// R_InitHSVColors
+// [crispy] initialize color translation and color strings tables
+// -----------------------------------------------------------------------------
+
+static void R_InitHSVColors (void)
 {
-	byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-	char c[3];
-	int i, j;
+    char c[3];
+    int i, j;
+    byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
-	if (!crstr)
-	    crstr = I_Realloc(NULL, CRMAX * sizeof(*crstr));
+    if (!crstr)
+        crstr = I_Realloc(NULL, CRMAX * sizeof(*crstr));
 
-	// [crispy] CRMAX - 2: don't override the original GREN and BLUE2 Boom tables
-	for (i = 0; i < CRMAX - 2; i++)
-	{
-	    for (j = 0; j < 256; j++)
-	    {
-		cr[i][j] = V_Colorize(playpal, i, j, false);
-	    }
+    // [crispy] CRMAX - 2: don't override the original GREN and BLUE2 Boom tables
+    for (i = 0; i < CRMAX - 2; i++)
+    {
+        for (j = 0; j < 256; j++)
+        {
+            cr[i][j] = V_Colorize(playpal, i, j, false);
+        }
 
-	    M_snprintf(c, sizeof(c), "%c%c", cr_esc, '0' + i);
-	    crstr[i] = M_StringDuplicate(c);
-	}
+        M_snprintf(c, sizeof(c), "%c%c", cr_esc, '0' + i);
+        crstr[i] = M_StringDuplicate(c);
+    }
 
-	W_ReleaseLumpName("PLAYPAL");
+    W_ReleaseLumpName("PLAYPAL");
 }
 
 
-/*
-================
-=
-= R_InitData
-=
-= Locates all the lumps that will be used by all views
-= Must be called after W_Init
-=================
-*/
+// -----------------------------------------------------------------------------
+// R_InitData
+// Locates all the lumps that will be used by all views.
+// -----------------------------------------------------------------------------
 
-void R_InitData(void)
+void R_InitData (void)
 {
     R_InitTextures();
     R_InitFlats();
@@ -886,9 +881,11 @@ void R_InitData(void)
     I_InitTCTransMaps();
 }
 
-//=============================================================================
-
+// -----------------------------------------------------------------------------
+// R_GetPatchHeight
 // [crispy] Used to grab actual height of sky textures
+// -----------------------------------------------------------------------------
+
 int R_GetPatchHeight(int texture_num, int patch_index)
 {
     texpatch_t *texpatch = &textures[texture_num]->patches[patch_index];
@@ -897,19 +894,15 @@ int R_GetPatchHeight(int texture_num, int patch_index)
     return  SHORT(patch->height);
 }
 
-/*
-================
-=
-= R_FlatNumForName
-=
-================
-*/
+// -----------------------------------------------------------------------------
+// R_FlatNumForName
+// Retrieval, get a flat number for a flat name.
+// -----------------------------------------------------------------------------
 
 int R_FlatNumForName(const char *name)
 {
-    int i;
+    int i = W_CheckNumForName(name);
 
-    i = W_CheckNumForName(name);
     if (i == -1)
     {
         // [crispy] make missing flat non-fatal
@@ -919,46 +912,38 @@ int R_FlatNumForName(const char *name)
         // render missing flats as SKY
         return skyflatnum;
     }
+
     return i - firstflat;
 }
 
+// -----------------------------------------------------------------------------
+// R_CheckTextureNumForName
+// Check whether texture is available.
+// Filter out NoTexture indicator.
+// -----------------------------------------------------------------------------
 
-/*
-================
-=
-= R_CheckTextureNumForName
-=
-================
-*/
-
-int R_CheckTextureNumForName(const char *name)
+int R_CheckTextureNumForName (const char *name)
 {
-    int i;
-
-    if (name[0] == '-')         // no texture marker
+    // "NoTexture" marker.
+    if (name[0] == '-')	
         return 0;
 
-    for (i = 0; i < numtextures; i++)
+    for (int i = 0 ; i < numtextures ; i++)
         if (!strncasecmp(textures[i]->name, name, 8))
             return i;
 
     return -1;
 }
 
-
-/*
-================
-=
-= R_TextureNumForName
-=
-================
-*/
+// -----------------------------------------------------------------------------
+// R_TextureNumForName
+// Calls R_CheckTextureNumForName, aborts with error message.
+// -----------------------------------------------------------------------------
 
 int R_TextureNumForName(const char *name)
 {
-    int i;
+    int i = R_CheckTextureNumForName(name);
 
-    i = R_CheckTextureNumForName(name);
     if (i == -1)
     {
         // [crispy] make missing texture non-fatal
@@ -966,7 +951,6 @@ int R_TextureNumForName(const char *name)
         fprintf (stderr, "R_TextureNumForName: %.8s not found\n", name);
         return 0;
     }
-
     return i;
 }
 

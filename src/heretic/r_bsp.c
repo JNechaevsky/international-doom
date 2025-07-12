@@ -266,7 +266,6 @@ static void R_AddLine (seg_t *line)
     }
 
     // Global angle needed by segcalc.
-    rw_angle1 = angle1;
     angle1 -= viewangle;
     angle2 -= viewangle;
 
@@ -446,7 +445,7 @@ static void R_Subsector (int num)
     int   count = sub->numlines;
 
 #ifdef RANGECHECK
-    if (num>=numsubsectors)
+    if (num >= numsubsectors)
 	I_Error ("R_Subsector: ss %i with numss = %i", num, numsubsectors);
 #endif
 

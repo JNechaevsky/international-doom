@@ -1381,7 +1381,7 @@ void D_DoomMain(void)
     tprintf(DEH_String("R_Init: Init Heretic refresh daemon - ["), 1);
     hprintf(DEH_String("Loading graphics"));
     R_Init();
-    tprintf("]\n", 0);
+    tprintf("\n", 0);
 
     tprintf(DEH_String("P_Init: Init Playloop state.\n"), 1);
     hprintf(DEH_String("Init game engine."));

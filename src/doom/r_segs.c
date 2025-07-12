@@ -13,74 +13,59 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// DESCRIPTION:
-//	All the clipping: columns, horizontal spans, sky columns.
-//
 
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "i_system.h"
 #include "doomstat.h"
 #include "p_local.h"
 
-#include "id_vars.h"
 #include "id_func.h"
 
 
-// OPTIMIZE: closed two sided lines as single sided
-
 // True if any of the segs textures might be visible.
-static boolean		segtextured;	
+static boolean segtextured;
 
 // False if the back side is the same plane.
-static boolean		markfloor;	
-static boolean		markceiling;
+static boolean markfloor;
+static boolean markceiling;
 
-static boolean		maskedtexture;
-static int		toptexture;
-static int		bottomtexture;
-static int		midtexture;
+static boolean maskedtexture;
+static int  toptexture;
+static int  bottomtexture;
+static int  midtexture;
 
+// Regular wall
+angle_t         rw_normalangle;
+fixed_t         rw_distance;
+static angle_t  rw_centerangle;
+static fixed_t  rw_x;
+static fixed_t  rw_stopx;
+static fixed_t  rw_offset;
+static fixed_t  rw_scale;
+static fixed_t  rw_scalestep;
+static fixed_t  rw_midtexturemid;
+static fixed_t  rw_toptexturemid;
+static fixed_t  rw_bottomtexturemid;
 
-angle_t		rw_normalangle;
-// angle to line origin
-angle_t		rw_angle1;	
+static fixed_t  worldtop;
+static fixed_t  worldbottom;
+static fixed_t  worldhigh;
+static fixed_t  worldlow;
 
-//
-// regular wall
-//
-static int		rw_x;
-static int		rw_stopx;
-static angle_t		rw_centerangle;
-static fixed_t		rw_offset;
-static fixed_t		rw_scale;
-static fixed_t		rw_scalestep;
-static fixed_t		rw_midtexturemid;
-static fixed_t		rw_toptexturemid;
-static fixed_t		rw_bottomtexturemid;
-fixed_t		rw_distance;
+static int64_t  pixhigh;    // [crispy] WiggleFix
+static int64_t  pixlow;     // [crispy] WiggleFix
+static fixed_t  pixhighstep;
+static fixed_t  pixlowstep;
 
-static int		worldtop;
-static int		worldbottom;
-static int		worldhigh;
-static int		worldlow;
+static int64_t  topfrac;    // [crispy] WiggleFix
+static fixed_t  topstep;
 
-static int64_t		pixhigh; // [crispy] WiggleFix
-static int64_t		pixlow; // [crispy] WiggleFix
-static fixed_t		pixhighstep;
-static fixed_t		pixlowstep;
+static int64_t  bottomfrac; // [crispy] WiggleFix
+static fixed_t  bottomstep;
 
-static int64_t		topfrac; // [crispy] WiggleFix
-static fixed_t		topstep;
+lighttable_t **walllights;
 
-static int64_t		bottomfrac; // [crispy] WiggleFix
-static fixed_t		bottomstep;
-
-
-lighttable_t**	walllights;
-
-int *maskedtexturecol;  // [JN] 32-bit integer math
+int *maskedtexturecol;      // [JN] 32-bit integer math
 
 
 // [crispy] WiggleFix: add this code block near the top of r_segs.c
@@ -124,10 +109,10 @@ int *maskedtexturecol;  // [JN] 32-bit integer math
 //   possibly, creating a noticable performance penalty.
 //
 
-static int	max_rwscale = 64 * FRACUNIT;
-static int	heightbits = 12;
-static int	heightunit = (1 << 12);
-static int	invhgtbits = 4;
+static int  max_rwscale = 64 * FRACUNIT;
+static int  heightbits  = 12;
+static int  heightunit  = (1 << 12);
+static int  invhgtbits  = 4;
 
 static const struct
 {
@@ -146,35 +131,35 @@ static const struct
 
 void R_FixWiggle (sector_t *sector)
 {
-    static int	lastheight = 0;
-    int		height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
+    static int lastheight = 0;
+    int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
 
     // disallow negative heights. using 1 forces cache initialization
     if (height < 1)
-	height = 1;
+        height = 1;
 
     // early out?
     if (height != lastheight)
     {
-	lastheight = height;
+        lastheight = height;
 
-	// initialize, or handle moving sector
-	if (height != sector->cachedheight)
-	{
-	    sector->cachedheight = height;
-	    sector->scaleindex = 0;
-	    height >>= 7;
+        // initialize, or handle moving sector
+        if (height != sector->cachedheight)
+        {
+            sector->cachedheight = height;
+            sector->scaleindex = 0;
+            height >>= 7;
 
-	    // calculate adjustment
-	    while (height >>= 1)
-		sector->scaleindex++;
-	}
+            // calculate adjustment
+            while (height >>= 1)
+                sector->scaleindex++;
+        }
 
-	// fine-tune renderer for this wall
-	max_rwscale = scale_values[sector->scaleindex].clamp;
-	heightbits = scale_values[sector->scaleindex].heightbits;
-	heightunit = (1 << heightbits);
-	invhgtbits = FRACBITS - heightbits;
+        // fine-tune renderer for this wall
+        max_rwscale = scale_values[sector->scaleindex].clamp;
+        heightbits = scale_values[sector->scaleindex].heightbits;
+        heightunit = (1 << heightbits);
+        invhgtbits = FRACBITS - heightbits;
     }
 }
 
@@ -198,10 +183,10 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
                        + (extralight * LIGHTBRIGHT)
                        + curline->fakecontrast;
 
-	walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
+    walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
 
     maskedtexturecol = ds->maskedtexturecol;
-    rw_scalestep = ds->scalestep;		
+    rw_scalestep = ds->scalestep;
     spryscale = ds->scale1 + (x1 - ds->x1)*rw_scalestep;
     mfloorclip = ds->sprbottomclip;
     mceilingclip = ds->sprtopclip;
@@ -210,19 +195,20 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
     if (curline->linedef->flags & ML_DONTPEGBOTTOM)
     {
         dc_texturemid = frontsector->interpfloorheight > backsector->interpfloorheight
-            ? frontsector->interpfloorheight : backsector->interpfloorheight;
+                      ? frontsector->interpfloorheight : backsector->interpfloorheight;
         dc_texturemid = dc_texturemid + textureheight[texnum] - viewz;
     }
     else
     {
-        dc_texturemid =frontsector->interpceilingheight < backsector->interpceilingheight
-            ? frontsector->interpceilingheight : backsector->interpceilingheight;
+        dc_texturemid = frontsector->interpceilingheight < backsector->interpceilingheight
+                      ? frontsector->interpceilingheight : backsector->interpceilingheight;
         dc_texturemid = dc_texturemid - viewz;
     }
+
     dc_texturemid += curline->sidedef->rowoffset;
 
     if (fixedcolormap)
-    dc_colormap[0] = dc_colormap[1] = fixedcolormap;
+        dc_colormap[0] = dc_colormap[1] = fixedcolormap;
 
     // draw the columns
     for (dc_x = x1 ; dc_x <= x2 ; dc_x++)
@@ -282,11 +268,6 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 // R_RenderSegLoop
 // Draws zero, one, or two textures (and possibly a masked texture) for walls.
 // Can draw or mark the starting pixel of floor and ceiling textures.
-//
-// CALLED: CORE LOOPING ROUTINE.
-//
-// [JN] Note: SPARKLEFIX has been taken from DOOM Retro.
-// Many thanks to Brad Harding for his research and fixing this bug!
 // -----------------------------------------------------------------------------
 
 static boolean didsolidcol;  // True if at least one column was marked solid
@@ -471,36 +452,41 @@ void R_RenderSegLoop (void)
             }
         }
 
-    rw_scale += rw_scalestep;
-    topfrac += topstep;
-    bottomfrac += bottomstep;
+        rw_scale += rw_scalestep;
+        topfrac += topstep;
+        bottomfrac += bottomstep;
     }
 }
 
-
+// -----------------------------------------------------------------------------
+// R_ScaleFromGlobalAngle
 // [crispy] WiggleFix: move R_ScaleFromGlobalAngle function to r_segs.c,
 // above R_StoreWallRange
+// -----------------------------------------------------------------------------
+
 fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
 {
-    angle_t	anglea = ANG90 + (visangle - viewangle);
-    angle_t	angleb = ANG90 + (visangle - rw_normalangle);
-    int		den = FixedMul(rw_distance, finesine[anglea >> ANGLETOFINESHIFT]);
-    fixed_t	num = FixedMul(projection, finesine[angleb >> ANGLETOFINESHIFT])<<detailshift;
-    fixed_t 	scale;
+    const angle_t anglea = ANG90 + (visangle - viewangle);
+    const angle_t angleb = ANG90 + (visangle - rw_normalangle);
+    const fixed_t den = FixedMul(rw_distance, finesine[anglea >> ANGLETOFINESHIFT]);
+    const fixed_t num = FixedMul(projection, finesine[angleb >> ANGLETOFINESHIFT]) << detailshift;
+    fixed_t scale;
 
     if (den > (num >> 16))
     {
-	scale = FixedDiv(num, den);
+        scale = FixedDiv(num, den);
 
-	// [kb] When this evaluates True, the scale is clamped,
-	//  and there will be some wiggling.
-	if (scale > max_rwscale)
-	    scale = max_rwscale;
-	else if (scale < 256)
-	    scale = 256;
+        // [kb] When this evaluates True, the scale is clamped,
+        //  and there will be some wiggling.
+        if (scale > max_rwscale)
+            scale = max_rwscale;
+        else if (scale < 256)
+            scale = 256;
     }
     else
-	scale = max_rwscale;
+    {
+        scale = max_rwscale;
+    }
 
     return scale;
 }
@@ -525,8 +511,8 @@ void R_StoreWallRange (int start, int stop)
     }
 
 #ifdef RANGECHECK
-    if (start >=viewwidth || start > stop)
-    I_Error ("Bad R_RenderWallRange: %i to %i", start , stop);
+    if (start >= viewwidth || start > stop)
+        I_Error("Bad R_RenderWallRange: %i to %i", start , stop);
 #endif
 
     sidedef = curline->sidedef;
@@ -542,7 +528,7 @@ void R_StoreWallRange (int start, int stop)
     }
 
     // calculate rw_distance for scale calculation
-    rw_normalangle = curline->r_angle + ANG90;
+    rw_normalangle = curline->r_angle + ANG90; // [crispy] use recalculated angle
 
     // [crispy] fix long wall wobble
     // thank you very much Linguica, Andrey Budko and kb1
@@ -600,10 +586,9 @@ void R_StoreWallRange (int start, int stop)
     R_FixWiggle(frontsector);
 
     // calculate scale at both ends and step
-    ds_p->scale1 = rw_scale = 
-    R_ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
+    ds_p->scale1 = rw_scale = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
 
-    if (stop > start )
+    if (stop > start)
     {
         ds_p->scale2 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
         ds_p->scalestep = rw_scalestep = (ds_p->scale2 - rw_scale) / (stop-start);
@@ -632,13 +617,14 @@ void R_StoreWallRange (int start, int stop)
             const fixed_t vtop = frontsector->interpfloorheight
                                + textureheight[sidedef->midtexture];
             // bottom of texture at bottom
-            rw_midtexturemid = vtop - viewz;	
+            rw_midtexturemid = vtop - viewz;
         }
         else
         {
             // top of texture at top
             rw_midtexturemid = worldtop;
         }
+
         rw_midtexturemid += sidedef->rowoffset;
 
         ds_p->silhouette = SIL_BOTH;
@@ -707,8 +693,8 @@ void R_StoreWallRange (int start, int stop)
         }
 
         if (worldlow != worldbottom 
-            || backsector->floorpic != frontsector->floorpic
-            || backsector->lightlevel != frontsector->lightlevel)
+        ||  backsector->floorpic != frontsector->floorpic
+        ||  backsector->lightlevel != frontsector->lightlevel)
         {
             markfloor = true;
         }
@@ -718,9 +704,9 @@ void R_StoreWallRange (int start, int stop)
             markfloor = false;
         }
 
-        if (worldhigh != worldtop 
-            || backsector->ceilingpic != frontsector->ceilingpic
-            || backsector->lightlevel != frontsector->lightlevel)
+        if (worldhigh != worldtop
+        ||  backsector->ceilingpic != frontsector->ceilingpic
+        ||  backsector->lightlevel != frontsector->lightlevel)
         {
             markceiling = true;
         }
@@ -803,7 +789,7 @@ void R_StoreWallRange (int start, int stop)
                                + (extralight * LIGHTBRIGHT)
                                + curline->fakecontrast;
 
-            walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
+            walllights = scalelight[BETWEEN(0, LIGHTLEVELS - 1, lightnum)];
         }
     }
 
@@ -869,7 +855,7 @@ void R_StoreWallRange (int start, int stop)
         }
     }
 
-    if (markfloor) 
+    if (markfloor)
     {
         if (floorplane)  // [JN] killough 4/11/98: add NULL ptr checks
         // [JN] cph 2003/04/18  - ceilingplane and floorplane might be the same
@@ -895,7 +881,7 @@ void R_StoreWallRange (int start, int stop)
     didsolidcol = false;
     R_RenderSegLoop ();
 
-    // [JN] cph - if a column was made solid by this wall, 
+    // [JN] cph - if a column was made solid by this wall,
     // we _must_ save full clipping info.
     if (backsector && didsolidcol)
     {
@@ -923,7 +909,7 @@ void R_StoreWallRange (int start, int stop)
     {
         memcpy (lastopening, floorclip+start, sizeof(*lastopening)*(rw_stopx-start));
         ds_p->sprbottomclip = lastopening - start;
-        lastopening += rw_stopx - start;	
+        lastopening += rw_stopx - start;
     }
 
     if (maskedtexture && !(ds_p->silhouette&SIL_TOP))
