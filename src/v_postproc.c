@@ -16,6 +16,7 @@
 //  Video post processing effects for software renderer.
 //
 
+#include <stdlib.h>
 #include "v_postproc.h"
 
 
