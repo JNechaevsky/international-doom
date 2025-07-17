@@ -889,9 +889,10 @@ void IN_Drawer(void);
 // Finale (F_finale.c)
 //--------------------
 
-void F_Drawer(void);
-void F_Ticker(void);
-void F_StartFinale(void);
+extern void F_Drawer (void);
+extern void F_Ticker (void);
+extern void F_StartFinale (void);
+extern boolean F_Responder (const event_t *event);
 
 //----------------------
 // STATUS BAR (SB_bar.c)
@@ -905,7 +906,7 @@ extern int inv_ptr;
 extern int playerkeys;
 
 void SB_Init(void);
-boolean SB_Responder(event_t * event);
+extern boolean SB_Responder (const event_t *event);
 void SB_Ticker(void);
 void SB_Drawer(void);
 

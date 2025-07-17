@@ -617,7 +617,7 @@ static void DrawSoundInfo(void)
     char text[32];
     int x;
     int y;
-    int xPos[7] = { 1, 75, 112, 156, 200, 230, 260 };
+    const int xPos[7] = { 1, 75, 112, 156, 200, 230, 260 };
 
     if (leveltime & 16)
     {
@@ -1274,16 +1274,13 @@ void SB_SmoothPaletteFlash (void)
 
 void DrawCommonBar(void)
 {
-    int chainY;
-    int healthPos;
-
     V_DrawPatch(0, 148, PatchLTFCTOP);
     V_DrawPatch(290, 148, PatchRTFCTOP);
 
     if (oldhealth != HealthMarker)
     {
+        int healthPos = HealthMarker;
         oldhealth = HealthMarker;
-        healthPos = HealthMarker;
         if (healthPos < 0)
         {
             healthPos = 0;
@@ -1295,7 +1292,7 @@ void DrawCommonBar(void)
         healthPos = (healthPos * 256) / 100;
         // [JN] Do not refer to CPlayer as map object (mo->) here,
         // otherwise chain will keep wiggling while SB_state = -1.
-        chainY =
+        int chainY =
             (HealthMarker == CPlayer->/*mo->*/health) ? 191 : 191 + ChainWiggle;
         V_DrawPatch(0, 190, PatchCHAINBACK);
         V_DrawPatch(2 + (healthPos % 17), chainY, PatchCHAIN);
@@ -1317,7 +1314,6 @@ void DrawCommonBar(void)
 
 void DrawMainBar(void)
 {
-    int i;
     int temp;
 
     // Ready artifact
@@ -1350,7 +1346,7 @@ void DrawMainBar(void)
     if (deathmatch)
     {
         temp = 0;
-        for (i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < MAXPLAYERS; i++)
         {
             temp += CPlayer->frags[i];
         }
@@ -1608,7 +1604,7 @@ static void DrawFullScreenStuff (void)
 //
 //--------------------------------------------------------------------------
 
-boolean SB_Responder(event_t * event)
+boolean SB_Responder (const event_t *event)
 {
     if (event->type == ev_keydown)
     {
@@ -1862,7 +1858,6 @@ static void CheatArtifact3Func (player_t *player, Cheat_t *cheat)
 {
     char args[2];
     int i;
-    int j;
     int type;
     int count;
 
@@ -1880,7 +1875,7 @@ static void CheatArtifact3Func (player_t *player, Cheat_t *cheat)
             {
                 continue;
             }
-            for (j = 0; j < 16; j++)
+            for (int j = 0; j < 16; j++)
             {
                 P_GiveArtifact(player, i, NULL);
             }

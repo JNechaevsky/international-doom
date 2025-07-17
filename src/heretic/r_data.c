@@ -114,11 +114,11 @@ will have new column_ts generated.
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 //
 
-void R_DrawColumnInCache(column_t * patch, byte * cache, int originy,
-                         int cacheheight, byte * marks)
+static void R_DrawColumnInCache(column_t * patch, byte * cache, int originy,
+                                int cacheheight, byte * marks)
 {
     int count, position;
-    byte *source;
+    const byte *source;
     int top = -1;
 
     while (patch->topdelta != 0xff)
@@ -168,7 +168,7 @@ void R_DrawColumnInCache(column_t * patch, byte * cache, int originy,
 //
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 
-void R_GenerateComposite(int texnum)
+static void R_GenerateComposite (int texnum)
 {
     byte* block;
     texture_t *texture;
@@ -177,7 +177,7 @@ void R_GenerateComposite(int texnum)
     int x, x1, x2;
     int i;
     column_t *patchcol;
-    short *collump;
+    const short *collump;
     unsigned* colofs; // killough 4/9/98: make 32-bit
     byte *marks; // killough 4/9/98: transparency marks
     byte *source; // killough 4/9/98: temporary column
@@ -303,7 +303,7 @@ void R_GenerateComposite(int texnum)
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 //
 
-void R_GenerateLookup(int texnum)
+static void R_GenerateLookup (int texnum)
 {
     texture_t *texture;
     byte *patchcount;           // [texture->width]
@@ -536,7 +536,7 @@ static void GenerateTextureHashTable(void)
 ==================
 */
 
-void R_InitTextures(void)
+static void R_InitTextures (void)
 {
     maptexture_t *mtexture;
     texture_t *texture;
@@ -720,7 +720,7 @@ static void R_InitFlats (void)
 //  just for having the header info ready during rendering.
 // -----------------------------------------------------------------------------
 
-void R_InitSpriteLumps (void)
+static void R_InitSpriteLumps (void)
 {
     patch_t *patch;
 
@@ -800,8 +800,8 @@ void R_InitColormaps (void)
 	int c, i, j = 0;
 	byte r, g, b;
 
-	byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-	byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
+	const byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+	const byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
 
 	// [JN] Saturation floats, high and low.
 	// If saturation has been modified (< 100), set high and low
@@ -983,7 +983,7 @@ static void R_InitHSVColors (void)
 // original PLAYPAL for restoring proper colors will be done in R_InitColormaps.
 // -----------------------------------------------------------------------------
 
-void R_SetUnderwaterPalette (byte *palette)
+void R_SetUnderwaterPalette (const byte *const palette)
 {
     int i, j = 0;
     byte r, g, b;
@@ -1069,7 +1069,7 @@ int R_GetPatchHeight(int texture_num, int patch_index)
 
 int R_FlatNumForName(const char *name)
 {
-    int i = W_CheckNumForNameFromTo (name, lastflat, firstflat);
+    const int i = W_CheckNumForNameFromTo (name, lastflat, firstflat);
 
     if (i == -1)
     {
@@ -1092,15 +1092,12 @@ int R_FlatNumForName(const char *name)
 
 int R_CheckTextureNumForName (const char *name)
 {
-    texture_t *texture;
-    int key;
-
     // "NoTexture" marker.
     if (name[0] == '-')	
         return 0;
 
-    key = W_LumpNameHash(name) % numtextures;
-    texture = textures_hashtable[key]; 
+    const int key = W_LumpNameHash(name) % numtextures;
+    const texture_t *texture = textures_hashtable[key]; 
     
     while (texture != NULL)
     {
@@ -1120,7 +1117,7 @@ int R_CheckTextureNumForName (const char *name)
 
 int R_TextureNumForName(const char *name)
 {
-    int i = R_CheckTextureNumForName(name);
+    const int i = R_CheckTextureNumForName(name);
 
     if (i == -1)
     {

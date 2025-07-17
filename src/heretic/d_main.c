@@ -96,7 +96,6 @@ void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
 void D_PageDrawer(void);
 void D_AdvanceDemo(void);
-boolean F_Responder(event_t * ev);
 
 //---------------------------------------------------------------------------
 //

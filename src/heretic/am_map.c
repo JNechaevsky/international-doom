@@ -613,8 +613,8 @@ void AM_initOverlayMode (void)
 
 void AM_initVariables (void)
 {
-    thinker_t *think;
-    mobj_t *mo;
+    const thinker_t *think;
+    const mobj_t *mo;
 
     automapactive = true;
 
@@ -798,7 +798,7 @@ static void AM_maxOutWindowScale (void)
 // Handle events (user inputs) in automap mode.
 // -----------------------------------------------------------------------------
 
-boolean AM_Responder (event_t *ev)
+boolean AM_Responder (const event_t *ev)
 {
     int         rc;
     static int  bigstate=0;
@@ -2032,8 +2032,8 @@ static void AM_drawPlayers (void)
     {
         // [JN] Smooth player arrow rotation.
         // Keep arrow static in Spectator + rotate mode.
-        angle_t smoothangle = (crl_spectating && automap_rotate) ? plr->mo->angle :
-                              automap_rotate ? plr->mo->angle : viewangle;
+        smoothangle = (crl_spectating && automap_rotate) ? plr->mo->angle :
+                       automap_rotate ? plr->mo->angle : viewangle;
 
         // [JN] Interpolate player arrow.
         pt.x = viewx >> FRACTOMAPBITS;
@@ -2319,7 +2319,6 @@ static void AM_drawCrosshair (void)
 
 void AM_LevelNameDrawer (void)
 {
-    const char *level_name;
     int numepisodes;
 
     if (gamemode == retail)
@@ -2349,7 +2348,7 @@ void AM_LevelNameDrawer (void)
             y = 146;
         }
 
-        level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
+        const char *const level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
         MN_DrTextA(DEH_String(level_name), x, y,
                    // [JN] Woof and DSDA widget color scheme using yellow map name.
                    widget_scheme > 2 ? cr[CR_YELLOW] : NULL);

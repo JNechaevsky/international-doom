@@ -233,15 +233,11 @@ void IN_Stop(void)
 void IN_InitStats(void)
 {
     int i;
-    int j;
-    signed int slaughterfrags;
-    int posnum;
-    int slaughtercount;
-    int playercount;
-    int count;
 
     if (!netgame)
     {
+        int count;
+
         gametype = SINGLE;
         count = leveltime / 35;
         hours = count / 3600;
@@ -286,19 +282,21 @@ void IN_InitStats(void)
     }
     else
     {
+        int posnum = 0;
+        int playercount = 0;
+        int slaughtercount = 0;
+        signed int slaughterfrags = -9999;
+
         gametype = DEATHMATCH;
         slaughterboy = 0;
-        slaughterfrags = -9999;
-        posnum = 0;
-        playercount = 0;
-        slaughtercount = 0;
+
         for (i = 0; i < MAXPLAYERS; i++)
         {
             totalFrags[i] = 0;
             if (playeringame[i])
             {
                 playercount++;
-                for (j = 0; j < MAXPLAYERS; j++)
+                for (int j = 0; j < MAXPLAYERS; j++)
                 {
                     if (playeringame[j])
                     {

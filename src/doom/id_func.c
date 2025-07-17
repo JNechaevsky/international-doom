@@ -899,7 +899,7 @@ static const byte xhair_dot[] =
 static patch_t *ID_CrosshairShape (void)
 {
     // [PN] Array of crosshair shapes with explicit type casting
-    patch_t *crosshair_shapes[] = {
+    patch_t *const crosshair_shapes[] = {
         NULL,                        // xhair_draw == 0 (no crosshair)
         (patch_t*) &xhair_cross1,    // xhair_draw == 1
         (patch_t*) &xhair_cross2,    // xhair_draw == 2

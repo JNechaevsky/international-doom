@@ -29,15 +29,6 @@
 #include "id_func.h"
 
 
-typedef struct
-{
-    int x1, x2;
-
-    int column;
-    int topclip;
-    int bottomclip;
-} maskdraw_t;
-
 /*
 
 Sprite rotation 0 is facing the viewer, rotation 1 is one angle turn CLOCKWISE around the axis.
@@ -102,11 +93,9 @@ static int drawsegs_xrange_count = 0;
 =================
 */
 
-void R_InstallSpriteLump(int lump, unsigned frame, unsigned rotation,
-                         boolean flipped)
+static void R_InstallSpriteLump(int lump, unsigned frame, unsigned rotation,
+                                boolean flipped)
 {
-    int r;
-
     if (frame >= 26 || rotation > 8)
         I_Error("R_InstallSpriteLump: Bad frame characters in lump %i", lump);
 
@@ -125,7 +114,7 @@ void R_InstallSpriteLump(int lump, unsigned frame, unsigned rotation,
                  spritename, 'A' + frame);
 
         sprtemp[frame].rotate = false;
-        for (r = 0; r < 8; r++)
+        for (int r = 0; r < 8; r++)
         {
             sprtemp[frame].lump[r] = lump - firstspritelump;
             sprtemp[frame].flip[r] = (byte) flipped;
@@ -329,7 +318,7 @@ fixed_t spryscale;
 int64_t sprtopscreen; // [crispy] WiggleFix
 fixed_t sprbotscreen;
 
-void R_DrawMaskedColumn(column_t * column, signed int baseclip)
+void R_DrawMaskedColumn (const column_t *column, signed int baseclip)
 {
     int64_t topscreen;    // [crispy] WiggleFix
     int64_t bottomscreen; // [crispy] WiggleFix
@@ -390,13 +379,13 @@ void R_DrawMaskedColumn(column_t * column, signed int baseclip)
 //  mfloorclip and mceilingclip should also be set.
 // -----------------------------------------------------------------------------
 
-void R_DrawVisSprite (vissprite_t *vis)
+static void R_DrawVisSprite (const vissprite_t *const vis)
 {
     int       texturecolumn;
     fixed_t   frac;
     fixed_t   baseclip;
-    patch_t  *patch;
-    column_t *column;
+    const patch_t  *patch;
+    const column_t *column;
 
     patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
 
@@ -488,7 +477,7 @@ void R_DrawVisSprite (vissprite_t *vis)
 // Generates a vissprite for a thing
 //  if it might be visible.
 //
-void R_ProjectSprite (mobj_t* thing)
+static void R_ProjectSprite (const mobj_t *const thing)
 {
     fixed_t		tr_x;
     fixed_t		tr_y;
@@ -538,10 +527,9 @@ void R_ProjectSprite (mobj_t* thing)
         // Don't interpolate during a paused state.
         realleveltime > oldleveltime &&
         // [JN] Don't interpolate things while freeze mode.
-        (!crl_freeze ||
-        // [JN] ... Hovewer, interpolate player while freeze mode,
+        // Hovewer, interpolate player while freeze mode,
         // so their sprite won't get desynced with moving camera.
-        (crl_freeze && thing->type == MT_PLAYER)))
+        (!crl_freeze || thing->type==MT_PLAYER))
     {
         interpx = LerpFixed(thing->oldx, thing->x);
         interpy = LerpFixed(thing->oldy, thing->y);
@@ -745,7 +733,7 @@ void R_ProjectSprite (mobj_t* thing)
 // During BSP traversal, this adds sprites by sector.
 // -----------------------------------------------------------------------------
 
-void R_AddSprites (sector_t *sec)
+void R_AddSprites (const sector_t *const sec)
 {
     // [crispy] smooth diminishing lighting
     const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
@@ -773,7 +761,7 @@ static const int PSpriteSY[NUMWEAPONS] = {
     15 * FRACUNIT               // beak
 };
 
-void R_DrawPSprite (pspdef_t* psp)
+static void R_DrawPSprite (pspdef_t *const psp)
 {
     fixed_t		tx;
     int			x1;
@@ -1026,7 +1014,7 @@ static void R_SortVisSprites (void)
 //
 // R_DrawSprite
 //
-void R_DrawSprite (vissprite_t* spr)
+static void R_DrawSprite (vissprite_t *const spr)
 {
     drawseg_t*		ds;
     int			clipbot[MAXWIDTH];  // [JN] 32-bit integer math
@@ -1201,7 +1189,7 @@ void R_DrawMasked (void)
     IDRender.numsprites = num_vissprite;
     for (i = num_vissprite ; --i>=0 ; )
     {
-        vissprite_t* spr = vissprite_ptrs[i];
+        const vissprite_t *const spr = vissprite_ptrs[i];
 
         if (spr->x2 < centerx)
         {

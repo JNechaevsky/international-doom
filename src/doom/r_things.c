@@ -350,7 +350,7 @@ int *mceilingclip;  // [JN] 32-bit integer math
 fixed_t spryscale;
 int64_t sprtopscreen; // [crispy] WiggleFix
 
-void R_DrawMaskedColumn (column_t *column)
+void R_DrawMaskedColumn (const column_t *column)
 {
     int64_t topscreen;    // [crispy] WiggleFix
     int64_t bottomscreen; // [crispy] WiggleFix
@@ -407,12 +407,12 @@ void R_DrawMaskedColumn (column_t *column)
 //  mfloorclip and mceilingclip should also be set.
 // -----------------------------------------------------------------------------
 
-static void R_DrawVisSprite (vissprite_t *vis)
+static void R_DrawVisSprite (const vissprite_t *const vis)
 {
     int       texturecolumn;
     fixed_t   frac;
-    patch_t  *patch;
-    column_t *column;
+    const patch_t  *patch;
+    const column_t *column;
 
     patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
 
@@ -496,7 +496,7 @@ static void R_DrawVisSprite (vissprite_t *vis)
 // Generates a vissprite for a thing
 //  if it might be visible.
 //
-static void R_ProjectSprite (mobj_t* thing)
+static void R_ProjectSprite (const mobj_t *const thing)
 {
     fixed_t		tr_x;
     fixed_t		tr_y;
@@ -866,7 +866,7 @@ static void R_ProjectSprite (mobj_t* thing)
 // During BSP traversal, this adds sprites by sector.
 // -----------------------------------------------------------------------------
 
-void R_AddSprites (sector_t *sec)
+void R_AddSprites (const sector_t *const sec)
 {
     // [crispy] smooth diminishing lighting
     const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
@@ -882,7 +882,7 @@ void R_AddSprites (sector_t *sec)
 // R_DrawPSprite
 //
 
-static void R_DrawPSprite (pspdef_t* psp)
+static void R_DrawPSprite (pspdef_t *const psp)
 {
     fixed_t		tx;
     int			x1;
@@ -1130,7 +1130,7 @@ static void R_SortVisSprites (void)
 //
 // R_DrawSprite
 //
-static void R_DrawSprite (vissprite_t* spr)
+static void R_DrawSprite (vissprite_t *const spr)
 {
     drawseg_t*		ds;
     int			clipbot[MAXWIDTH];  // [JN] 32-bit integer math

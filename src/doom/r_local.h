@@ -818,11 +818,10 @@ extern byte *R_WarpingFlat3 (int flatnum);
 // -----------------------------------------------------------------------------
 
 extern void R_AddPSprites (void);
-extern void R_AddSprites (sector_t *sec);
+extern void R_AddSprites (const sector_t *const sec);
 extern void R_ClearSprites (void);
-extern void R_ClipVisSprite (vissprite_t *vis, int xl, int xh);
 extern void R_DrawMasked (void);
-extern void R_DrawMaskedColumn (column_t *column);
+extern void R_DrawMaskedColumn (const column_t *column);
 extern void R_DrawSprites (void);
 extern void R_InitSprites (const char **namelist);
 

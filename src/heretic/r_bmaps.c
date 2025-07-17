@@ -275,11 +275,11 @@ const byte *R_BrightmapForTexName (const char *texname)
 
     for (i = 0; i < arrlen(fullbright_walls); i++)
     {
-        const fullbright_t *fullbright = &fullbright_walls[i];
+        const fullbright_t *const fullbright_tex = &fullbright_walls[i];
 
-        if (!strncasecmp(fullbright->texture, texname, 8))
+        if (!strncasecmp(fullbright_tex->texture, texname, 8))
         {
-            return fullbright->colormask;
+            return fullbright_tex->colormask;
         }
     }
 
@@ -317,13 +317,11 @@ const byte *R_BrightmapForSprite (const int state)
             case S_WPHX:
             {
                 return consumables;
-                break;
             }
             // Hell Staff (world)
             case S_WSKL:
             {
                 return hellstaff_world;
-                break;
             }
             // Chandeiler
             case S_CHANDELIER1:
@@ -361,7 +359,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_CLINK_DIE6:
             {
                 return flame;
-                break;
             }
             // Serpent Torch, has stray pixels with 'flame' map
             case S_SERPTORCH1:
@@ -369,7 +366,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_SERPTORCH3:
             {
                 return serptorch;
-                break;
             }
             // Iron Lich (idle and attack states)
             case S_HEAD_LOOK:
@@ -378,7 +374,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_HEAD_ATK2:
             {
                 return iron_lich_1;
-                break;
             }
             // Iron Lich (death states)
             case S_HEAD_DIE1:
@@ -389,7 +384,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_HEAD_DIE6:
             {
                 return iron_lich_2;
-                break;
             }
             // Disciple of D'Sparil (attack, pain and death states)
             case S_WIZARD_ATK1:
@@ -447,7 +441,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_SOR2_DIE9:
             {
                 return energy;
-                break;
             }
 
             // Initially unlit objects:
@@ -478,7 +471,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_VOLCANOTBALLX7:
             {
                 return fullbright;
-                break;
             }
         }
     }
@@ -501,7 +493,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ARTI_TRCH3:
             {
                 return fullbright;
-                break;
             }
         }
     }
@@ -528,7 +519,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_AMP2_3:
             {
                 return flame;
-                break;
             }
         }
     }
@@ -574,7 +564,6 @@ const byte *R_BrightmapForState (const int state)
             case S_GAUNTLETATK1_7:
             {
                 return consumables;
-                break;
             }
             // Gauntlets of the Necromancer (powered)
             case S_GAUNTLETREADY2_1:
@@ -589,7 +578,6 @@ const byte *R_BrightmapForState (const int state)
             case S_GAUNTLETATK2_7:
             {
                 return flame;
-                break;
             }
             // Elven Wand
             case S_GOLDWANDATK1_1:
@@ -602,7 +590,6 @@ const byte *R_BrightmapForState (const int state)
             case S_GOLDWANDATK2_4:
             {
                 return flame;
-                break;
             }
             // Ethereal Crossbow
             case S_CRBOW1:
@@ -643,7 +630,6 @@ const byte *R_BrightmapForState (const int state)
             case S_CRBOWATK2_8:
             {
                 return ethereal;
-                break;
             }
             // Dragon Claw
             case S_BLASTERATK1_1:
@@ -660,7 +646,6 @@ const byte *R_BrightmapForState (const int state)
             case S_BLASTERATK2_6:
             {
                 return energy;
-                break;
             }
             // Hell Staff:
             case S_HORNRODATK1_1:
@@ -677,13 +662,11 @@ const byte *R_BrightmapForState (const int state)
             case S_HORNRODATK2_9:
             {
                 return hellstaff_attack;
-                break;
             }
             // Phoenix Rod (idle)
             case S_PHOENIXREADY:
             {
                 return consumables;
-                break;
             }
             // Phoenix Rod (attack)
             case S_PHOENIXATK1_1:
@@ -697,7 +680,6 @@ const byte *R_BrightmapForState (const int state)
             case S_PHOENIXATK2_4:
             {
                 return fullbright;
-                break;
             }
         }
 	}

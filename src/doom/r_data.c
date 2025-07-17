@@ -1373,7 +1373,7 @@ void R_InitData (void)
 
 int R_FlatNumForName(const char *name)
 {
-    int i = W_CheckNumForNameFromTo (name, lastflat, firstflat);
+    const int i = W_CheckNumForNameFromTo (name, lastflat, firstflat);
 
     if (i == -1)
     {
@@ -1396,15 +1396,12 @@ int R_FlatNumForName(const char *name)
 
 int R_CheckTextureNumForName (const char *name)
 {
-    texture_t *texture;
-    int key;
-
     // "NoTexture" marker.
     if (name[0] == '-')	
         return 0;
 
-    key = W_LumpNameHash(name) % numtextures;
-    texture = textures_hashtable[key]; 
+    const int key = W_LumpNameHash(name) % numtextures;
+    texture_t *texture = textures_hashtable[key]; 
     
     while (texture != NULL)
     {
@@ -1424,7 +1421,7 @@ int R_CheckTextureNumForName (const char *name)
 
 int R_TextureNumForName(const char *name)
 {
-    int i = R_CheckTextureNumForName(name);
+    const int i = R_CheckTextureNumForName(name);
 
     if (i == -1)
     {

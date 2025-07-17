@@ -111,7 +111,7 @@ void F_StartFinale(void)
 
 
 
-boolean F_Responder(event_t * event)
+boolean F_Responder (const event_t *event)
 {
     if (event->type != ev_keydown)
     {
@@ -247,7 +247,7 @@ void F_Ticker(void)
 */
 
 
-void F_TextWrite(void)
+static void F_TextWrite (void)
 {
     byte *src;
     pixel_t *dest;
@@ -306,34 +306,6 @@ void F_TextWrite(void)
 
 }
 
-
-void F_DrawPatchCol(int x, patch_t * patch, int col)
-{
-    column_t *column;
-    byte *source;
-    pixel_t *dest, *desttop;
-    int count;
-
-    column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col]));
-    desttop = I_VideoBuffer + x;
-
-// step through the posts in a column
-
-    while (column->topdelta != 0xff)
-    {
-        source = (byte *) column + 3;
-        dest = desttop + column->topdelta * SCREENWIDTH;
-        count = column->length;
-
-        while (count--)
-        {
-            *dest = *source++;
-            dest += SCREENWIDTH;
-        }
-        column = (column_t *) ((byte *) column + column->length + 4);
-    }
-}
-
 /*
 ==================
 =
@@ -342,7 +314,7 @@ void F_DrawPatchCol(int x, patch_t * patch, int col)
 ==================
 */
 
-void F_DemonScroll(void)
+static void F_DemonScroll (void)
 {
     int i1 = W_GetNumForName(DEH_String("FINAL1"));
     int i2 = W_GetNumForName(DEH_String("FINAL2"));
@@ -350,9 +322,9 @@ void F_DemonScroll(void)
     // [JN] assume that FINAL1 and FINAL2 are in RAW format
     if ((W_LumpLength(i1) == 64000) && (W_LumpLength(i2) == 64000))
     {
-        byte *DemonBuffer = Z_Malloc(W_LumpLength(i1) + W_LumpLength(i2), PU_STATIC, NULL);
-        byte *p1 = W_CacheLumpNum(i1, PU_LEVEL);
-        byte *p2 = W_CacheLumpNum(i2, PU_LEVEL);
+        byte *const DemonBuffer = Z_Malloc(W_LumpLength(i1) + W_LumpLength(i2), PU_STATIC, NULL);
+        const byte *const p1 = W_CacheLumpNum(i1, PU_LEVEL);
+        const byte *const p2 = W_CacheLumpNum(i2, PU_LEVEL);
 
         memcpy(DemonBuffer, p2, W_LumpLength(i2));
         memcpy(DemonBuffer + W_LumpLength(i2), p1, W_LumpLength(i1));
@@ -387,8 +359,8 @@ void F_DemonScroll(void)
     // [crispy] assume that FINAL1 and FINAL2 are in patch format
     else
     {
-        patch_t *patch1 = W_CacheLumpName(DEH_String("FINAL1"), PU_LEVEL);
-        patch_t *patch2 = W_CacheLumpName(DEH_String("FINAL2"), PU_LEVEL);
+        patch_t *const patch1 = W_CacheLumpName(DEH_String("FINAL1"), PU_LEVEL);
+        patch_t *const patch2 = W_CacheLumpName(DEH_String("FINAL2"), PU_LEVEL);
 
         if (finalecount < 70)
         {
@@ -399,8 +371,8 @@ void F_DemonScroll(void)
 
         if (yval < 64000)
         {
-            int x = ((SCREENWIDTH / vid_resolution) - SHORT(patch1->width)) / 2
-                  - WIDESCREENDELTA; // [crispy]
+            const int x = ((SCREENWIDTH / vid_resolution) - SHORT(patch1->width)) / 2
+                        - WIDESCREENDELTA; // [crispy]
 
             // [crispy] pillar boxing
             if (x > -WIDESCREENDELTA)
@@ -436,11 +408,9 @@ void F_DemonScroll(void)
 ==================
 */
 
-void F_DrawUnderwater(void)
+static void F_DrawUnderwater (void)
 {
     static boolean underwawa = false;
-    const char *lumpname;
-    byte *palette;
 
     // The underwater screen has its own palette, which is rather annoying.
     // The palette doesn't correspond to the normal palette. Because of
@@ -454,8 +424,8 @@ void F_DrawUnderwater(void)
             {
                 underwawa = true;
                 V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
-                lumpname = DEH_String("E2PAL");
-                palette = W_CacheLumpName(lumpname, PU_STATIC);
+                const char *lumpname = DEH_String("E2PAL");
+                byte *const palette = W_CacheLumpName(lumpname, PU_STATIC);
                 R_SetUnderwaterPalette(palette);
                 W_ReleaseLumpName(lumpname);
                 V_DrawFullscreenRawOrPatch(W_GetNumForName(DEH_String("E2END")));
@@ -475,68 +445,6 @@ void F_DrawUnderwater(void)
             //D_StartTitle(); // go to intro/demo mode.
     }
 }
-
-
-#if 0
-/*
-==================
-=
-= F_BunnyScroll
-=
-==================
-*/
-
-void F_BunnyScroll(void)
-{
-    int scrolled, x;
-    patch_t *p1, *p2;
-    char name[10];
-    int stage;
-    static int laststage;
-
-    p1 = W_CacheLumpName("PFUB2", PU_LEVEL);
-    p2 = W_CacheLumpName("PFUB1", PU_LEVEL);
-
-    V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT);
-
-    scrolled = 320 - (finalecount - 230) / 2;
-    if (scrolled > 320)
-        scrolled = 320;
-    if (scrolled < 0)
-        scrolled = 0;
-
-    for (x = 0; x < SCREENWIDTH; x++)
-    {
-        if (x + scrolled < 320)
-            F_DrawPatchCol(x, p1, x + scrolled);
-        else
-            F_DrawPatchCol(x, p2, x + scrolled - 320);
-    }
-
-    if (finalecount < 1130)
-        return;
-    if (finalecount < 1180)
-    {
-        V_DrawPatch((SCREENWIDTH - 13 * 8) / 2, (SCREENHEIGHT - 8 * 8) / 2, 0,
-                    W_CacheLumpName("END0", PU_CACHE));
-        laststage = 0;
-        return;
-    }
-
-    stage = (finalecount - 1180) / 5;
-    if (stage > 6)
-        stage = 6;
-    if (stage > laststage)
-    {
-        S_StartSound(NULL, sfx_pistol);
-        laststage = stage;
-    }
-
-    M_snprintf(name, sizeof(name), "END%i", stage);
-    V_DrawPatch((SCREENWIDTH - 13 * 8) / 2, (SCREENHEIGHT - 8 * 8) / 2,
-                W_CacheLumpName(name, PU_CACHE));
-}
-#endif
 
 /*
 =======================

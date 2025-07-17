@@ -405,7 +405,6 @@ angle_t R_PointToAngle(fixed_t x, fixed_t y);
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y);
 angle_t R_PointToAngle2(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 fixed_t R_PointToDist(fixed_t x, fixed_t y);
-fixed_t R_ScaleFromGlobalAngle(angle_t visangle);
 subsector_t *R_PointInSubsector(fixed_t x, fixed_t y);
 void R_AddPointToBox(int x, int y, fixed_t * box);
 void R_ExecuteSetViewSize(void);
@@ -546,7 +545,7 @@ byte *R_GetColumn(int tex, int col);
 void R_InitData(void);
 void R_PrecacheLevel(void);
 extern void R_InitColormaps (void);
-extern void R_SetUnderwaterPalette(byte *palette);
+extern void R_SetUnderwaterPalette (const byte *const palette);
 extern int R_GetPatchHeight(int texture_num, int patch_index);
 
 
@@ -567,16 +566,15 @@ extern fixed_t sprbotscreen;
 
 extern fixed_t pspritescale, pspriteiscale;
 
-void R_DrawMaskedColumn(column_t * column, signed int baseclip);
+extern void R_DrawMaskedColumn (const column_t *column, signed int baseclip);
 
 
-void R_AddSprites(sector_t * sec);
+extern void R_AddSprites(const sector_t *const sec);
 void R_AddPSprites(void);
 void R_DrawSprites(void);
 void R_InitSprites(const char **namelist);
 void R_ClearSprites(void);
 void R_DrawMasked(void);
-void R_ClipVisSprite(vissprite_t * vis, int xl, int xh);
 
 //=============================================================================
 //

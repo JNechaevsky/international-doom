@@ -781,7 +781,7 @@ static inline boolean CheckLocalView(const player_t *player)
 // R_SetupFrame
 // -----------------------------------------------------------------------------
 
-static void R_SetupFrame (player_t *player)
+static void R_SetupFrame (player_t *const player)
 {
     int tempCentery;
     int pitch; // [crispy]

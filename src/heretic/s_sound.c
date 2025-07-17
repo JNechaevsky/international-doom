@@ -41,7 +41,7 @@
 ===============================================================================
 */
 
-boolean S_StopSoundID(int sound_id, int priority);
+static boolean S_StopSoundID(int sound_id, int priority);
 
 static channel_t channel[MAX_CHANNELS];
 
@@ -175,13 +175,9 @@ void S_StartSound(void *_origin, int sound_id)
     int i;
     int priority;
     int sep;
-    int angle;
     int64_t absx;
     int64_t absy;
     int64_t absz;  // [JN] Z-axis sfx distance
-
-    static int sndcount = 0;
-    int chan;
 
     // [JN] Do not play sound while demo-warp.
     if (nodrawers /*|| demowarp*/)
@@ -259,6 +255,9 @@ void S_StartSound(void *_origin, int sound_id)
         }
         if (i >= snd_channels)
         {
+            static int sndcount = 0;
+            int chan;
+
             //look for a lower priority sound to replace.
             sndcount++;
             if (sndcount >= snd_channels)
@@ -314,7 +313,7 @@ void S_StartSound(void *_origin, int sound_id)
     }
     else
     {
-        angle = R_PointToAngle2(listener->x, listener->y,
+        int angle = R_PointToAngle2(listener->x, listener->y,
                                 origin->x, origin->y);
         angle = (angle - viewangle) >> 24;
         if (gp_flip_levels)
@@ -357,7 +356,6 @@ void S_StartSoundAmbient (void *_origin, int sound_id)
     int dist, vol;
     int i;
     int sep;
-    int angle;
     int64_t absx;
     int64_t absy;
     int64_t absz;  // [JN] Z-axis sfx distance
@@ -380,7 +378,7 @@ void S_StartSoundAmbient (void *_origin, int sound_id)
     }
     else
     {
-        angle = R_PointToAngle2(listener->x, listener->y, origin->x, origin->y);
+        int angle = R_PointToAngle2(listener->x, listener->y, origin->x, origin->y);
         angle = (angle - viewangle) >> 24;
         if (gp_flip_levels)
             angle = 255 - angle;
@@ -499,7 +497,7 @@ void S_StartSoundAtVolume(void *_origin, int sound_id, int volume)
     }
 }
 
-boolean S_StopSoundID(int sound_id, int priority)
+static boolean S_StopSoundID(int sound_id, int priority)
 {
     int i;
     int lp;                     //least priority
@@ -548,7 +546,7 @@ boolean S_StopSoundID(int sound_id, int priority)
 
 void S_StopSound(void *_origin)
 {
-    mobj_t *origin = _origin;
+    const mobj_t *const origin = _origin;
     int i;
 
     for (i = 0; i < snd_channels; i++)
@@ -567,17 +565,6 @@ void S_StopSound(void *_origin)
                 AmbChan = -1;
             }
         }
-    }
-}
-
-void S_SoundLink(mobj_t * oldactor, mobj_t * newactor)
-{
-    int i;
-
-    for (i = 0; i < snd_channels; i++)
-    {
-        if (channel[i].mo == oldactor)
-            channel[i].mo = newactor;
     }
 }
 
@@ -710,13 +697,12 @@ void S_Init(void)
 
 void S_GetChannelInfo(SoundInfo_t * s)
 {
-    int i;
     ChanInfo_t *c;
 
     s->channelCount = snd_channels;
     s->musicVolume = snd_MusicVolume;
     s->soundVolume = snd_MaxVolume;
-    for (i = 0; i < snd_channels; i++)
+    for (int i = 0; i < snd_channels; i++)
     {
         c = &s->chan[i];
         c->id = channel[i].sound_id;

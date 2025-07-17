@@ -405,7 +405,6 @@ R_MakeSpans
 
 void R_DrawPlanes (void)
 {
-    int x;
     int count;
     fixed_t frac, fracstep;
     int texture, heightmask; // [crispy]
@@ -461,7 +460,7 @@ void R_DrawPlanes (void)
                 dc_colormap[0] = dc_colormap[1] = colormaps;
             }
             dc_texheight = textureheight[texture]>>FRACBITS;
-            for (x = pl->minx; x <= pl->maxx; x++)
+            for (int x = pl->minx; x <= pl->maxx; x++)
             {
                 dc_yl = pl->top[x];
                 dc_yh = pl->bottom[x];
@@ -539,9 +538,9 @@ void R_DrawPlanes (void)
                     //
                     else
                     {
-                        const int x = dc_x << 1;  // Blocky mode, need to multiply by 2.
-                        pixel_t *dest1 = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
-                        pixel_t *dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
+                        const int dc_x_low = dc_x << 1;  // Blocky mode, need to multiply by 2.
+                        pixel_t *dest1 = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x_low]];
+                        pixel_t *dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x_low + 1]];
                         pixel_t *dest3 = dest1;
                         pixel_t *dest4 = dest2;
 

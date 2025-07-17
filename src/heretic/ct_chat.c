@@ -65,7 +65,7 @@ static byte ChatQueue[QUEUESIZE];
 
 static int FontABaseLump;
 
-char *CT_FromPlrText[MAXPLAYERS] = {
+static const char *CT_FromPlrText[MAXPLAYERS] = {
     "GREEN:  ",
     "YELLOW:  ",
     "RED:  ",
@@ -86,8 +86,8 @@ char *chat_macros[10] =
     "No",
 };
 
-boolean altdown;
-boolean shiftdown;
+static boolean altdown;
+static boolean shiftdown;
 boolean chatmodeon;
 boolean cheated;
 
@@ -149,9 +149,6 @@ static boolean ValidChatChar (char c)
 
 boolean CT_Responder (event_t *ev)
 {
-    int sendto;
-    const char *macro;
-
     if (!netgame)
     {
         return false;
@@ -172,7 +169,7 @@ boolean CT_Responder (event_t *ev)
     }
     if (!chatmodeon)
     {
-        sendto = 0;
+        int sendto = 0;
         if (ev->data1 == key_multi_msg)
         {
             sendto = CT_PLR_ALL;
@@ -214,7 +211,7 @@ boolean CT_Responder (event_t *ev)
                     // macro 0 comes after macro 9
                     ev->data1 = '9' + 1;
                 }
-                macro = chat_macros[ev->data1 - '1'];
+                const char *macro = chat_macros[ev->data1 - '1'];
                 CT_queueChatChar(KEY_ENTER);  //send old message
                 CT_queueChatChar(chat_dest[consoleplayer]);  // chose the dest.
                 while (*macro)
@@ -419,9 +416,7 @@ static void CT_AddChar (int player, char c)
     }
     else
     {
-        patch_t *patch;
-
-        patch = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
+        const patch_t *const patch = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
         msglen[player] += patch->width;
     }
 }
@@ -449,7 +444,7 @@ void CT_BackSpace (int player)
     }
     else
     {
-        patch_t *patch = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
+        const patch_t *const patch = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
         msglen[player] -= patch->width;
     }
 

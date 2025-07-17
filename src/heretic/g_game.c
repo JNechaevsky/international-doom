@@ -1898,8 +1898,8 @@ void G_Ticker(void)
     // Local time
     if (msg_local_time)
     {
-        time_t t = time(NULL);
-        struct tm *tm = localtime(&t);
+        const time_t t = time(NULL);
+        const struct tm *const tm = localtime(&t);
 
         if (msg_local_time == 1)
         {
