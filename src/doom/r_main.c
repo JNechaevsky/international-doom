@@ -203,8 +203,8 @@ int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *line)
 // [PN] Reformatted for readability and reduced nesting
 // -----------------------------------------------------------------------------
 
-angle_t R_PointToAngleSlope (fixed_t x, fixed_t y,
-                             int(*slope_div)(unsigned int num, unsigned int den))
+static angle_t R_PointToAngleSlope (fixed_t x, fixed_t y,
+                                    int(*slope_div)(unsigned int num, unsigned int den))
 {
     // [PN] Shift to local player coordinates
     x -= viewx;
@@ -316,7 +316,7 @@ static void CalcMaxProjectSlope (int fov)
 // while keeping identical behavior.
 // -----------------------------------------------------------------------------
 
-void R_InitTextureMapping (void)
+static void R_InitTextureMapping (void)
 {
     // Calc focallength 
     const fixed_t focallength = FixedDiv(centerxfrac, fovscale);
@@ -402,7 +402,6 @@ void R_InitTextureMapping (void)
 void R_InitLightTables (void)
 {
     int i;
-    int j;
 
     if (scalelight)
     {
@@ -483,12 +482,12 @@ void R_InitLightTables (void)
     {
         scalelight[i] = malloc(MAXLIGHTSCALE * sizeof(**scalelight));
         zlight[i] = malloc(MAXLIGHTZ * sizeof(**zlight));
-        const int startmap = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
+        const int start_map = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
 
-        for (j = 0; j < MAXLIGHTZ; j++)
+        for (int j = 0; j < MAXLIGHTZ; j++)
         {
             const int scale = scale_table[j];
-            int level = startmap - (scale >> 1);
+            int level = start_map - (scale >> 1);
     
             if (level < 0)
                 level = 0;
@@ -670,11 +669,11 @@ void R_ExecuteSetViewSize (void)
     //  for each level / scale combination.
     for (i = 0 ; i < LIGHTLEVELS ; i++)
     {
-        const int startmap = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
+        const int start_map = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
 
         for (j = 0 ; j < MAXLIGHTSCALE ; j++)
         {
-            int level = startmap - scale_table[j];
+            int level = start_map - scale_table[j];
 
             if (level < 0)
                 level = 0;
@@ -782,9 +781,8 @@ static inline boolean CheckLocalView(const player_t *player)
 // R_SetupFrame
 // -----------------------------------------------------------------------------
 
-void R_SetupFrame (player_t *player)
+static void R_SetupFrame (player_t *player)
 {
-    int i;
     int tempCentery;
     int pitch; // [crispy]
     int tableAngle;
@@ -892,7 +890,7 @@ void R_SetupFrame (player_t *player)
 
         walllights = scalelightfixed;
 
-        for (i = 0 ; i < MAXLIGHTSCALE ; i++)
+        for (int i = 0 ; i < MAXLIGHTSCALE ; i++)
             scalelightfixed[i] = fixedcolormap;
     }
     else

@@ -55,10 +55,10 @@ typedef enum
 //#include "f_finale.h"
 
 // Stage of animation:
-finalestage_t finalestage;
+static finalestage_t finalestage;
 
-unsigned int finalecount;
-unsigned int finaleendcount;
+static unsigned int finalecount;
+static unsigned int finaleendcount;
 
 // [JN] Do screen wipe only once after text skipping.
 static boolean finale_wipe_done;
@@ -107,14 +107,14 @@ static textscreen_t textscreens[] =
     { pack_plut, 1, 31, "RROCK19",   P6TEXT},
 };
 
-const char *finaletext;
-const char *finaleflat;
+static const char *finaletext;
+static const char *finaleflat;
 static char *finaletext_rw;
 
-void	F_StartCast (void);
-void	F_CastTicker (void);
-boolean F_CastResponder (event_t *ev);
-void	F_CastDrawer (void);
+static void F_StartCast (void);
+static void F_CastTicker (void);
+static void F_CastDrawer (void);
+static boolean F_CastResponder (const event_t *ev);
 
 //
 // F_StartFinale
@@ -186,7 +186,7 @@ void F_StartFinale (void)
 
 
 
-boolean F_Responder (event_t *event)
+boolean F_Responder (const event_t *event)
 {
     if (finalestage == F_STAGE_CAST)
 	return F_CastResponder (event);
@@ -383,7 +383,7 @@ static inline boolean F_AddLineBreak (char *c)
 
     return false;
 }
-void F_TextWrite (void)
+static void F_TextWrite (void)
 {
     byte*	src;
     pixel_t*	dest;
@@ -499,7 +499,7 @@ boolean		castattacking;
 //
 // F_StartCast
 //
-void F_StartCast (void)
+static void F_StartCast (void)
 {
     wipegamestate = -1;		// force a screen wipe
     gamestate = GS_THEEND;
@@ -518,7 +518,7 @@ void F_StartCast (void)
 //
 // F_CastTicker
 //
-void F_CastTicker (void)
+static void F_CastTicker (void)
 {
     int		st;
     int		sfx;
@@ -625,7 +625,7 @@ void F_CastTicker (void)
 // F_CastResponder
 //
 
-boolean F_CastResponder (event_t* ev)
+static boolean F_CastResponder (const event_t *ev)
 {
     if (ev->type != ev_keydown)
 	return false;
@@ -650,7 +650,7 @@ boolean F_CastResponder (event_t* ev)
 // F_CastDrawer
 //
 
-void F_CastDrawer (void)
+static void F_CastDrawer (void)
 {
     spritedef_t*	sprdef;
     spriteframe_t*	sprframe;
@@ -683,14 +683,14 @@ void F_CastDrawer (void)
 //
 static fixed_t dxi, dy, dyi;
 
-void
+static void
 F_DrawPatchCol
 ( int		x,
   patch_t*	patch,
   int		col )
 {
     column_t*	column;
-    byte*	source;
+    const byte*	source;
     pixel_t*	dest;
     pixel_t*	desttop;
     int		count;
@@ -720,7 +720,7 @@ F_DrawPatchCol
 //
 // F_BunnyScroll
 //
-void F_BunnyScroll (void)
+static void F_BunnyScroll (void)
 {
     signed int  scrolled;
     int		x;

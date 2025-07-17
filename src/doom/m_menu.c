@@ -4311,10 +4311,10 @@ static void M_Draw_ID_Misc (void)
     M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
                         a11y_pal_flash == 1 ? cr[CR_YELLOW] :
                         a11y_pal_flash == 2 ? cr[CR_ORANGE] :
-                        a11y_pal_flash == 2 ? cr[CR_RED] : cr[CR_DARKRED],
+                        a11y_pal_flash == 3 ? cr[CR_RED] : cr[CR_DARKRED],
                             a11y_pal_flash == 1 ? cr[CR_YELLOW_BRIGHT] :
                             a11y_pal_flash == 2 ? cr[CR_ORANGE_BRIGHT] :
-                            a11y_pal_flash == 2 ? cr[CR_RED_BRIGHT] : cr[CR_RED_BRIGHT],
+                            a11y_pal_flash == 3 ? cr[CR_RED_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(1));
 
     // Movement bobbing
@@ -4555,7 +4555,7 @@ static void M_Draw_ID_Level_1 (void)
                  level_select[1]);
     M_WriteTextGlow(M_ItemRightAlign(str), 34, str,
                         gamemode == shareware || gamemode == commercial ? cr[CR_DARKRED] : cr[CR_RED],
-                            gamemode == shareware || gamemode == commercial ? cr[CR_RED_BRIGHT] : cr[CR_RED_BRIGHT],
+                            cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(1));
 
     // Map
@@ -5992,16 +5992,16 @@ const int M_StringWidth(const char* string)
 static int M_StringHeight (const char *string)
 {
     const int height = SHORT(hu_font[0]->height);  // Base height of a single line
-    int lines = 1;  // At least one line by default
+    int m_lines = 1;  // At least one line by default
 
     // Count the number of newline characters
     for (const char *ch = string; *ch != '\0'; ++ch)
     {
         if (*ch == '\n')
-            ++lines;
+            ++m_lines;
     }
 
-    return height * lines;
+    return height * m_lines;
 }
 
 // -----------------------------------------------------------------------------

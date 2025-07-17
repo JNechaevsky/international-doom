@@ -72,7 +72,7 @@ static byte *ID_WidgetColor (const int i)
     }
 
     static byte *player_colors[4];
-    static int   plyr_indices[] = {widget_plyr1, widget_plyr2, widget_plyr3, widget_plyr4};
+    static const int plyr_indices[] = {widget_plyr1, widget_plyr2, widget_plyr3, widget_plyr4};
 
     player_colors[0] = cr[CR_GREEN];
     player_colors[1] = cr[CR_GRAY];

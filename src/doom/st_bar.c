@@ -907,16 +907,15 @@ static void ST_updateFaceWidget (void)
 // ST_doPaletteStuff
 // -----------------------------------------------------------------------------
 
-void ST_doPaletteStuff (void)
+static void ST_doPaletteStuff (void)
 {
     int palette;
-    int bzc;
     int cnt = plyr->damagecount;
 
     if (plyr->powers[pw_strength])
     {
         // slowly fade the berzerk out
-        bzc = 12 - (plyr->powers[pw_strength]>>6);
+        const int bzc = 12 - (plyr->powers[pw_strength]>>6);
 
         if (bzc > cnt)
         {
@@ -2087,12 +2086,12 @@ static void ST_loadCallback(const char *lumpname, patch_t **variable)
     *variable = W_CacheLumpName(lumpname, PU_STATIC);
 }
 
-void ST_loadGraphics(void)
+static void ST_loadGraphics(void)
 {
     ST_loadUnloadGraphics(ST_loadCallback);
 }
 
-void ST_loadData(void)
+static void ST_loadData(void)
 {
     ST_loadGraphics();
 }
@@ -2103,7 +2102,7 @@ static void ST_unloadCallback(const char *lumpname, patch_t **variable)
     *variable = NULL;
 }
 
-void ST_unloadGraphics(void)
+static void ST_unloadGraphics(void)
 {
     ST_loadUnloadGraphics(ST_unloadCallback);
 }

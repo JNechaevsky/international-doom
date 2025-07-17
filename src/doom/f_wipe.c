@@ -55,11 +55,11 @@ static void wipe_shittyColMajorXform (dpixel_t *array)
     const int width = SCREENWIDTH/2;
     dpixel_t *dest = (dpixel_t*) malloc(width*SCREENHEIGHT*sizeof(*dest));
 
-    for (int y = 0 ; y < SCREENHEIGHT ; y++)
+    for (int scr_y = 0 ; scr_y < SCREENHEIGHT ; scr_y++)
     {
-        for (int x = 0 ; x < width ; x++)
+        for (int scr_x = 0 ; scr_x < width ; scr_x++)
         {
-            dest[x*SCREENHEIGHT+y] = array[y*width+x];
+            dest[scr_x*SCREENHEIGHT+scr_y] = array[scr_y*width+scr_x];
         }
     }
 
@@ -165,7 +165,7 @@ static const int wipe_doMelt (int ticks)
     int idx;
     const int width = SCREENWIDTH/2;
 
-    dpixel_t *s;
+    const dpixel_t *s;
     dpixel_t *d;
     boolean	done = true;
 
@@ -264,7 +264,7 @@ static const int wipe_doCrossfade (const int ticks)
 static const int wipe_doFizzle (const int ticks)
 {
     pixel_t *cur_screen = wipe_scr;
-    pixel_t *end_screen = wipe_scr_end;
+    const pixel_t *end_screen = wipe_scr_end;
 
     fade_counter += 8;
 
@@ -272,10 +272,7 @@ static const int wipe_doFizzle (const int ticks)
     {
         if (y[i] <= fade_counter)
         {
-            if (cur_screen[i] != end_screen[i])
-            {
-                cur_screen[i] = end_screen[i];
-            }
+            cur_screen[i] = end_screen[i];
         }
     }
 

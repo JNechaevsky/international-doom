@@ -822,7 +822,7 @@ static void AM_maxOutWindowScale (void)
 // Handle events (user inputs) in automap mode.
 // -----------------------------------------------------------------------------
 
-boolean AM_Responder (event_t *ev)
+boolean AM_Responder (const event_t *ev)
 {
     int         rc;
     static int  bigstate=0;
@@ -1415,16 +1415,16 @@ static void AM_drawFline_Vanilla (fline_t *fl, int color)
 {
     int d;
     int x = fl->a.x, y = fl->a.y;
-    int dx = fl->b.x - fl->a.x, dy = fl->b.y - fl->a.y;
-    int sx = dx < 0 ? -1 : 1, sy = dy < 0 ? -1 : 1;
+    const int dx = fl->b.x - fl->a.x, dy = fl->b.y - fl->a.y;
+    const int sx = dx < 0 ? -1 : 1, sy = dy < 0 ? -1 : 1;
     // [PN] Calculate abs(dx) and abs(dy) in one step
-    int ax = sx * dx * 2, ay = sy * dy * 2;
-
-    static int yuck = 0;
+    const int ax = sx * dx * 2, ay = sy * dy * 2;
 
     // [PN] Debug check to exit if out of bounds
     if (x < 0 || x >= f_w || y < 0 || y >= f_h || fl->b.x < 0 || fl->b.x >= f_w || fl->b.y < 0 || fl->b.y >= f_h)
     {
+        static int yuck = 0;
+
         DEH_fprintf(stderr, "yuck %d\n", yuck++);
         return;
     }

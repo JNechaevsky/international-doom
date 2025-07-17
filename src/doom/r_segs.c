@@ -129,7 +129,7 @@ static const struct
     { 128 * FRACUNIT,  9}
 };
 
-void R_FixWiggle (sector_t *sector)
+static void R_FixWiggle (sector_t *sector)
 {
     static int lastheight = 0;
     int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
@@ -272,7 +272,7 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 
 static boolean didsolidcol;  // True if at least one column was marked solid
 
-void R_RenderSegLoop (void)
+static void R_RenderSegLoop (void)
 {
     fixed_t texturecolumn = 0;  // [JN] Purely to shut up the compiler.
 
@@ -554,9 +554,9 @@ void R_StoreWallRange (int start, int stop)
 
         if (need > maxopenings)
         {
-            drawseg_t *ds;                // jff 8/9/98 needed for fix from ZDoom
-            int *oldopenings = openings;  // dropoff overflow
-            int *oldlast = lastopening;   // dropoff overflow
+            drawseg_t *ds;                      // jff 8/9/98 needed for fix from ZDoom
+            const int *const oldopenings = openings;  // dropoff overflow
+            const int *const oldlast = lastopening;   // dropoff overflow
 
             do
             {

@@ -96,7 +96,6 @@ static const char    *spritename;
 
 static void R_InstallSpriteLump (int lump, unsigned frame, char rot, boolean flipped)
 {
-    int r;
     // [crispy] support 16 sprite rotations
     unsigned rotation = (rot >= 'A') ? rot - 'A' + 10 : (rot >= '0') ? rot - '0' : 17;
 
@@ -127,7 +126,7 @@ static void R_InstallSpriteLump (int lump, unsigned frame, char rot, boolean fli
 		                      "and a rot=0 lump\n", spritename, 'A'+frame);
         }
 
-        for (r = 0 ; r < 8 ; r++)
+        for (int r = 0 ; r < 8 ; r++)
         {
             // [crispy] only if not yet substituted
             if (sprtemp[frame].lump[r] == -1)
@@ -542,10 +541,9 @@ static void R_ProjectSprite (mobj_t* thing)
         // Don't interpolate during a paused state.
         realleveltime > oldleveltime &&
         // [JN] Don't interpolate things while freeze mode.
-        (!crl_freeze ||
-        // [JN] ... Hovewer, interpolate player while freeze mode,
+        // Hovewer, interpolate player while freeze mode,
         // so their sprite won't get desynced with moving camera.
-        (crl_freeze && thing->type == MT_PLAYER)))
+        (!crl_freeze || thing->type==MT_PLAYER))
     {
         interpx = LerpFixed(thing->oldx, thing->x);
         interpy = LerpFixed(thing->oldy, thing->y);
@@ -1307,7 +1305,7 @@ void R_DrawMasked (void)
     IDRender.numsprites = num_vissprite;
     for (i = num_vissprite ; --i>=0 ; )
     {
-        vissprite_t* spr = vissprite_ptrs[i];
+        const vissprite_t *const spr = vissprite_ptrs[i];
 
         if (spr->x2 < centerx)
         {

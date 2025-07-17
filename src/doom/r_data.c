@@ -237,7 +237,7 @@ static boolean R_IsPatchLump (const int lump)
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 //
 
-void
+static void
 R_DrawColumnInCache
 ( column_t*	patch,
   byte*		cache,
@@ -247,7 +247,7 @@ R_DrawColumnInCache
 {
     int		count;
     int		position;
-    byte*	source;
+    const byte*	source;
     int		top = -1;
 
     while (patch->topdelta != 0xff)
@@ -310,7 +310,7 @@ static void R_GenerateComposite (int texnum)
     int			x2;
     int			i;
     column_t*		patchcol;
-    short*		collump;
+    const short*		collump;
     unsigned*		colofs, *colofs2; // killough 4/9/98: make 32-bit
     byte*		marks; // killough 4/9/98: transparency marks
     byte*		source; // killough 4/9/98: temporary column
@@ -450,7 +450,7 @@ static void R_GenerateComposite (int texnum)
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 //
 
-void R_GenerateLookup (int texnum)
+static void R_GenerateLookup (int texnum)
 {
     texture_t*		texture;
     byte*		patchcount;	// patchcount[texture->width]
@@ -723,7 +723,7 @@ static void GenerateTextureHashTable (void)
 //  with the textures from the world map.
 //
 // [crispy] partly rewritten to merge PNAMES and TEXTURE1/2 lumps
-void R_InitTextures (void)
+static void R_InitTextures (void)
 {
     maptexture_t*	mtexture;
     texture_t*		texture;
@@ -1038,7 +1038,7 @@ static void R_InitFlats (void)
 //  just for having the header info ready during rendering.
 // -----------------------------------------------------------------------------
 
-void R_InitSpriteLumps (void)
+static void R_InitSpriteLumps (void)
 {
     patch_t *patch;
 
@@ -1119,8 +1119,8 @@ void R_InitColormaps (void)
 	int c, i, j = 0;
 	byte r, g, b;
 
-	byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-	byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
+	const byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+	const byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
 
 	// [JN] Saturation floats, high and low.
 	// If saturation has been modified (< 100), set high and low

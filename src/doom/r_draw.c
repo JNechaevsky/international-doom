@@ -1444,8 +1444,8 @@ void R_FillBackScreen (void)
     patch_t *patch_br = W_CacheLumpName(DEH_String("brdr_br"), PU_CACHE);
 
     // [PN] Precompute commonly used values
-    const int viewx = viewwindowx / vid_resolution;
-    const int viewy = viewwindowy / vid_resolution;
+    const int view_x = viewwindowx / vid_resolution;
+    const int view_y = viewwindowy / vid_resolution;
     const int scaledwidth = scaledviewwidth / vid_resolution;
     const int viewheight_res = viewheight / vid_resolution;
 
@@ -1455,22 +1455,22 @@ void R_FillBackScreen (void)
     // [PN] Draw top and bottom borders
     for (int x = 0; x < scaledwidth; x += 8)
     {
-        V_DrawPatch(viewx + x - WIDESCREENDELTA, viewy - 8, patch_top);
-        V_DrawPatch(viewx + x - WIDESCREENDELTA, viewy + viewheight_res, patch_bottom);
+        V_DrawPatch(view_x + x - WIDESCREENDELTA, view_y - 8, patch_top);
+        V_DrawPatch(view_x + x - WIDESCREENDELTA, view_y + viewheight_res, patch_bottom);
     }
 
     // [PN] Draw left and right borders
     for (int y = 0; y < viewheight_res; y += 8)
     {
-        V_DrawPatch(viewx - 8 - WIDESCREENDELTA, viewy + y, patch_left);
-        V_DrawPatch(viewx + scaledwidth - WIDESCREENDELTA, viewy + y, patch_right);
+        V_DrawPatch(view_x - 8 - WIDESCREENDELTA, view_y + y, patch_left);
+        V_DrawPatch(view_x + scaledwidth - WIDESCREENDELTA, view_y + y, patch_right);
     }
 
     // [PN] Draw corners
-    V_DrawPatch(viewx - 8 - WIDESCREENDELTA, viewy - 8, patch_tl);
-    V_DrawPatch(viewx + scaledwidth - WIDESCREENDELTA, viewy - 8, patch_tr);
-    V_DrawPatch(viewx - 8 - WIDESCREENDELTA, viewy + viewheight_res, patch_bl);
-    V_DrawPatch(viewx + scaledwidth - WIDESCREENDELTA, viewy + viewheight_res, patch_br);
+    V_DrawPatch(view_x - 8 - WIDESCREENDELTA, view_y - 8, patch_tl);
+    V_DrawPatch(view_x + scaledwidth - WIDESCREENDELTA, view_y - 8, patch_tr);
+    V_DrawPatch(view_x - 8 - WIDESCREENDELTA, view_y + viewheight_res, patch_bl);
+    V_DrawPatch(view_x + scaledwidth - WIDESCREENDELTA, view_y + viewheight_res, patch_br);
 
     // [PN] Restore the previous buffer
     V_RestoreBuffer();

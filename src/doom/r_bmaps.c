@@ -528,17 +528,17 @@ const byte *R_BrightmapForTexName (const char *texname)
 
     for (i = 0; (size_t)i < arrlen(fullbright_walls); i++)
     {
-        const fullbright_t *fullbright = &fullbright_walls[i];
+        const fullbright_t *const fullbright_tex = &fullbright_walls[i];
 
-        if ((gamemission == doom && fullbright->game == DOOM2ONLY)
-        ||  (gamemission != doom && fullbright->game == DOOM1ONLY))
+        if ((gamemission == doom && fullbright_tex->game == DOOM2ONLY)
+        ||  (gamemission != doom && fullbright_tex->game == DOOM1ONLY))
         {
             continue;
         }
 
-        if (!strncasecmp(fullbright->texture, texname, 8))
+        if (!strncasecmp(fullbright_tex->texture, texname, 8))
         {
-            return fullbright->colormask;
+            return fullbright_tex->colormask;
         }
     }
 
@@ -547,11 +547,11 @@ const byte *R_BrightmapForTexName (const char *texname)
     {
         for (i = 0; (size_t)i < arrlen(fullbright_finaldoom); i++)
         {
-            const fullbright_t *fullbright = &fullbright_finaldoom[i];
+            const fullbright_t *const fullbright_tex = &fullbright_finaldoom[i];
 
-            if (!strncasecmp(fullbright->texture, texname, 8))
+            if (!strncasecmp(fullbright_tex->texture, texname, 8))
             {
-                return fullbright->colormask;
+                return fullbright_tex->colormask;
             }
         }
     }
@@ -573,19 +573,16 @@ const byte *R_BrightmapForSprite (const int type)
             case SPR_BON2:
             {
                 return greenonly1;
-                break;
             }
             // Cell Charge
             case SPR_CELL:
             {
                 return greenonly2;
-                break;
             }
             // Barrel
             case SPR_BAR1:
             {
                 return greenonly3;
-                break;
             }
             // Cell Charge Pack
             case SPR_CELP:
@@ -595,7 +592,6 @@ const byte *R_BrightmapForSprite (const int type)
             case SPR_FCAN:
             {
                 return yellowonly;
-                break;
             }
             // BFG9000
             case SPR_BFUG:
@@ -603,7 +599,6 @@ const byte *R_BrightmapForSprite (const int type)
             case SPR_PLAS:
             {
                 return redonly;
-                break;
             }
 
             // Candlestick
@@ -612,7 +607,6 @@ const byte *R_BrightmapForSprite (const int type)
             case SPR_CBRA:
             {
                 return candle;
-                break;
             }
             // Tall Blue Torch
             case SPR_TBLU:
@@ -632,13 +626,11 @@ const byte *R_BrightmapForSprite (const int type)
             case SPR_TLP2:
             {
                 return light_sources;
-                break;
             }
             // Evil Eye
             case SPR_CEYE:
             {
                 return greenonly1;
-                break;
             }
             // Floating Skull Rock
             case SPR_FSKU:
@@ -646,7 +638,6 @@ const byte *R_BrightmapForSprite (const int type)
             case SPR_POL3:
             {
                 return fullbright;
-                break;
             }
         }
     }
@@ -670,7 +661,6 @@ const byte *R_BrightmapForSprite (const int type)
             case SPR_SMRT:
             {
                 return fullbright;
-                break;
             }
         }
     }
@@ -715,7 +705,6 @@ const byte *R_BrightmapForState (const int state)
             case S_BFG4:
             {
                 return redonly;
-                break;
             }
         }
 	}

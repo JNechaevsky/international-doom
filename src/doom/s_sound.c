@@ -246,10 +246,7 @@ void S_Shutdown(void)
 
 static void S_StopChannel(int cnum)
 {
-    int i;
-    channel_t *c;
-
-    c = &channels[cnum];
+    channel_t *const c = &channels[cnum];
 
     if (c->sfxinfo)
     {
@@ -262,7 +259,7 @@ static void S_StopChannel(int cnum)
 
         // check to see if other channels are playing the sound
 
-        for (i=0; i<snd_channels; i++)
+        for (int i=0; i<snd_channels; i++)
         {
             if (cnum != i && c->sfxinfo == channels[i].sfxinfo)
             {
@@ -347,7 +344,7 @@ void S_Start(void)
         }
         else
         {
-        int spmus[]=
+        const int spmus[]=
         {
             // Song - Who? - Where?
 
@@ -386,7 +383,7 @@ void S_Start(void)
     S_ChangeMusic(mnum, true);
 }
 
-void S_StopSound(mobj_t *origin)
+void S_StopSound(const mobj_t *origin)
 {
     int cnum;
 
@@ -588,7 +585,6 @@ void S_StartSound(void *origin_p, int sfx_id)
 {
     sfxinfo_t *sfx;
     mobj_t *origin;
-    int rc;
     int sep;
     int pitch;
     int cnum;
@@ -634,7 +630,7 @@ void S_StartSound(void *origin_p, int sfx_id)
     //  and if not, modify the params
     if (origin && origin != players[displayplayer].mo && origin != players[displayplayer].so) // [crispy] weapon sound source
     {
-        rc = S_AdjustSoundParams(players[displayplayer].mo,
+        const int rc = S_AdjustSoundParams(players[displayplayer].mo,
                                  origin,
                                  &volume,
                                  &sep);
@@ -741,8 +737,8 @@ void S_UpdateSounds(mobj_t *listener)
     int                cnum;
     int                volume;
     int                sep;
-    sfxinfo_t*        sfx;
-    channel_t*        c;
+    const sfxinfo_t   *sfx;
+    const channel_t   *c;
 
     I_UpdateSound();
 

@@ -46,7 +46,7 @@ extern void AM_LevelInit (boolean reinit);
 extern void AM_SetdrawFline (void);
 
 // Called by main loop.
-boolean AM_Responder (event_t* ev);
+boolean AM_Responder (const event_t *ev);
 void AM_initVariables (void);
 
 // Called by main loop.
