@@ -621,17 +621,31 @@ void R_GenerateLookup (int texnum)
 
 // -----------------------------------------------------------------------------
 // R_GetColumn
+// [crispy] wrapping column getter function for any non-power-of-two textures
 // -----------------------------------------------------------------------------
 
 byte *R_GetColumn (int tex, int col)
 {
-    int ofs;
+    const int width = texturewidth[tex];
+    const int mask = texturewidthmask[tex];
 
-    col &= texturewidthmask[tex];
-    ofs = texturecolumnofs2[tex][col];
+    if (mask + 1 == width)
+    {
+        col &= mask;
+    }
+    else
+    {
+        while (col < 0)
+        {
+          col += width;
+        }
+        col %= width;
+    }
 
     if (!texturecomposite2[tex])
-        R_GenerateComposite (tex);
+        R_GenerateComposite(tex);
+
+    const int ofs = texturecolumnofs2[tex][col];
 
     return texturecomposite2[tex] + ofs;
 }
@@ -655,27 +669,6 @@ byte *R_GetColumnMod (int tex, int col)
         R_GenerateComposite (tex);
 
     return texturecomposite[tex] + ofs;
-}
-
-// -----------------------------------------------------------------------------
-// R_GetColumnMod2
-// [FG] wrapping column getter function for non-power-of-two wide sky textures
-// -----------------------------------------------------------------------------
-
-byte *R_GetColumnMod2 (int tex, int col)
-{
-    int ofs;
-
-    while (col < 0)
-        col += texturewidth[tex];
-
-    col %= texturewidth[tex];
-    ofs = texturecolumnofs2[tex][col];
-
-    if (!texturecomposite2[tex])
-        R_GenerateComposite(tex);
-
-    return texturecomposite2[tex] + ofs;
 }
 
 // -----------------------------------------------------------------------------
