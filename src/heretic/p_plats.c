@@ -224,7 +224,7 @@ void P_ActivateInStasis(int tag)
         }
 }
 
-void EV_StopPlat(line_t * line)
+void EV_StopPlat(const line_t *line)
 {
     int j;
 
@@ -250,7 +250,7 @@ void P_AddActivePlat(plat_t * plat)
     I_Error("P_AddActivePlat: no more plats!");
 }
 
-void P_RemoveActivePlat(plat_t * plat)
+void P_RemoveActivePlat(const plat_t *plat)
 {
     int i;
     for (i = 0; i < MAXPLATS; i++)

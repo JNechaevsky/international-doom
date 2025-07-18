@@ -679,7 +679,7 @@ void P_NightmareRespawn(mobj_t * mobj)
     fixed_t x, y, z;
     subsector_t *ss;
     mobj_t *mo;
-    mapthing_t *mthing;
+    const mapthing_t *mthing;
 
     x = mobj->spawnpoint.x << FRACBITS;
     y = mobj->spawnpoint.y << FRACBITS;
@@ -1124,7 +1124,7 @@ void P_RemoveMobj(mobj_t * mobj)
 ============
 */
 
-void P_SpawnPlayer(mapthing_t * mthing)
+void P_SpawnPlayer(const mapthing_t *mthing)
 {
     player_t *p;
     fixed_t x, y, z;
@@ -1458,7 +1458,7 @@ void P_BloodSplatter(fixed_t x, fixed_t y, fixed_t z, mobj_t * originator)
 //
 //---------------------------------------------------------------------------
 
-void P_RipperBlood(mobj_t * mo)
+void P_RipperBlood(const mobj_t *mo)
 {
     mobj_t *th;
     fixed_t x, y, z;

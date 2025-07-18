@@ -120,7 +120,7 @@ void P_PlayerRemoveArtifact(player_t * player, int slot);
 void P_PlayerUseArtifact(player_t * player, artitype_t arti);
 boolean P_UseArtifact(player_t * player, artitype_t arti);
 boolean P_UndoPlayerChicken(player_t * player);
-int P_GetPlayerNum(player_t * player);
+extern int P_GetPlayerNum(const player_t *player);
 
 // ***** P_MOBJ *****
 
@@ -148,9 +148,9 @@ void P_BlasterMobjThinker(thinker_t * thinker);
 void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);
 void P_SpawnPuffSafe(fixed_t x, fixed_t y, fixed_t z, boolean safe);
 void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage);
-void P_SpawnPlayer(mapthing_t * mthing);
+void P_SpawnPlayer(const mapthing_t *mthing);
 void P_BloodSplatter(fixed_t x, fixed_t y, fixed_t z, mobj_t * originator);
-void P_RipperBlood(mobj_t * mo);
+void P_RipperBlood(const mobj_t * mo);
 int P_GetThingFloorType(mobj_t * thing);
 int P_HitFloor(mobj_t * thing);
 boolean P_CheckMissileSpawn(mobj_t * missile);
@@ -163,7 +163,7 @@ mobj_t *P_SPMAngle(mobj_t * source, mobjtype_t type, angle_t angle);
 // ***** P_ENEMY *****
 
 void P_NoiseAlert(mobj_t * target, mobj_t * emmiter);
-void P_ForgetPlayer (player_t *player);
+void P_ForgetPlayer (const player_t *player);
 void P_InitMonsters(void);
 void P_AddBossSpot(fixed_t x, fixed_t y, angle_t angle);
 void P_Massacre(void);
@@ -195,14 +195,14 @@ typedef boolean(*traverser_t) (intercept_t * in);
 
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
 int P_PointOnLineSide(fixed_t x, fixed_t y, line_t * line);
-int P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t * line);
+int P_PointOnDivlineSide(fixed_t x, fixed_t y, const divline_t *line);
 void P_MakeDivline(line_t * li, divline_t * dl);
 fixed_t P_InterceptVector(divline_t * v2, divline_t * v1);
 int P_BoxOnLineSide(fixed_t * tmbox, line_t * ld);
 
 extern fixed_t opentop, openbottom, openrange;
 extern fixed_t lowfloor;
-void P_LineOpening(line_t * linedef);
+void P_LineOpening(const line_t *linedef);
 
 boolean P_BlockLinesIterator(int x, int y, boolean(*func) (line_t *));
 boolean P_BlockThingsIterator(int x, int y, boolean(*func) (mobj_t *));
@@ -235,7 +235,7 @@ void P_SlideMove(mobj_t * mo);
 boolean P_CheckSight(mobj_t * t1, mobj_t * t2);
 void P_UseLines(player_t * player);
 
-boolean P_ChangeSector(sector_t * sector, boolean crunch);
+boolean P_ChangeSector(const sector_t *sector, boolean crunch);
 boolean PIT_ChangeSector(mobj_t * thing);
 
 void P_ApplyTorque (mobj_t *mo);
@@ -271,14 +271,15 @@ extern mobj_t **blocklinks;     // for thing chains
 #define PAINADD  4  // [JN] Pain palette multiplier for smooth fading.
 
 extern int maxammo[NUMAMMO];
-extern int clipammo[NUMAMMO];
+extern const int clipammo[NUMAMMO];
+extern int GetWeaponAmmo[NUMWEAPONS];
 
 void P_SetMessage(player_t * player, const char *message, boolean ultmsg);
 void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher);
 void P_DamageMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source,
                   int damage);
 boolean P_GiveAmmo(player_t * player, ammotype_t ammo, int count);
-boolean P_GiveArtifact(player_t * player, artitype_t arti, mobj_t * mo);
+boolean P_GiveArtifact(player_t * player, artitype_t arti, const mobj_t *mo);
 boolean P_GiveBody(player_t * player, int num);
 boolean P_GivePower(player_t * player, powertype_t power);
 boolean P_ChickenMorphPlayer(player_t * player);

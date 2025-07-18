@@ -119,13 +119,13 @@ boolean P_Teleport(mobj_t * thing, fixed_t x, fixed_t y, angle_t angle)
 //
 //----------------------------------------------------------------------------
 
-boolean EV_Teleport(line_t * line, int side, mobj_t * thing)
+boolean EV_Teleport(const line_t *line, int side, mobj_t * thing)
 {
     int i;
     int tag;
     mobj_t *m;
     thinker_t *thinker;
-    sector_t *sector;
+    const sector_t *sector;
 
     if (thing->flags2 & MF2_NOTELEPORT)
     {

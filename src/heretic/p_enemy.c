@@ -163,7 +163,7 @@ void P_NoiseAlert(mobj_t * target, mobj_t * emmiter)
 // and let sectors forget their soundtarget
 // -----------------------------------------------------------------------------
 
-void P_ForgetPlayer (player_t *player)
+void P_ForgetPlayer (const player_t *player)
 {
     if (player->cheats & CF_NOTARGET)
     {
@@ -966,7 +966,7 @@ void A_ImpExplode(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 //----------------------------------------------------------------------------
 
-void A_BeastPuff(mobj_t *actor, player_t *player, pspdef_t *psp)
+void A_BeastPuff(const mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     if (P_Random() > 64)
     {
@@ -1007,7 +1007,7 @@ void A_ImpMeAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 void A_ImpMsAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    mobj_t *dest;
+    const mobj_t *dest;
     angle_t an;
     int dist;
 
@@ -1364,7 +1364,7 @@ void A_Sor1Chase(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 void A_Srcr1Attack(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    mobj_t *mo;
+    const mobj_t *mo;
     fixed_t momz;
     angle_t angle;
 
@@ -1475,7 +1475,7 @@ void P_DSparilTeleport(mobj_t *actor)
 
 void A_Srcr2Decide(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    static int chance[] = {
+    static const int chance[] = {
         192, 120, 120, 120, 64, 64, 32, 16, 0
     };
 
@@ -1670,7 +1670,7 @@ void A_MinotaurAtk1(mobj_t *actor, player_t *player_, pspdef_t *psp)
 void A_MinotaurDecide(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     angle_t angle;
-    mobj_t *target;
+    const mobj_t *target;
     int dist;
 
     target = actor->target;
@@ -1866,8 +1866,8 @@ void A_HeadAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
     mobj_t *mo;
     mobj_t *target;
     int randAttack;
-    static int atkResolve1[] = { 50, 150 };
-    static int atkResolve2[] = { 150, 200 };
+    static const int atkResolve1[] = { 50, 150 };
+    static const int atkResolve2[] = { 150, 200 };
     int dist;
 
     // Ice ball             (close 20% : far 60%)
@@ -2106,7 +2106,7 @@ void A_WizAtk2(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 void A_WizAtk3(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    mobj_t *mo;
+    const mobj_t *mo;
     angle_t angle;
     fixed_t momz;
 
@@ -2178,7 +2178,7 @@ void A_Scream(mobj_t * actor, player_t *player, pspdef_t *psp)
 //
 //---------------------------------------------------------------------------
 
-void P_DropItem(mobj_t * source, mobjtype_t type, int special, int chance)
+static void P_DropItem(const mobj_t *const source, const mobjtype_t type, int special, int chance)
 {
     mobj_t *mo;
 
@@ -2394,12 +2394,12 @@ void P_Massacre(void)
 //
 //----------------------------------------------------------------------------
 
-void A_BossDeath(mobj_t *actor, player_t *player, pspdef_t *psp)
+void A_BossDeath(const mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    mobj_t *mo;
+    const mobj_t *mo;
     thinker_t *think;
     line_t dummyLine;
-    static mobjtype_t bossType[6] = {
+    static const mobjtype_t bossType[6] = {
         MT_HEAD,
         MT_MINOTAUR,
         MT_SORCERER2,

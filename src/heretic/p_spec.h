@@ -241,8 +241,8 @@ extern plat_t *activeplats[MAXPLATS];
 void T_PlatRaise(thinker_t *thinker);
 int EV_DoPlat(line_t * line, plattype_e type, int amount);
 void P_AddActivePlat(plat_t * plat);
-void P_RemoveActivePlat(plat_t * plat);
-void EV_StopPlat(line_t * line);
+void P_RemoveActivePlat(const plat_t *plat);
+void EV_StopPlat(const line_t *line);
 void P_ActivateInStasis(int tag);
 
 /*
@@ -321,9 +321,9 @@ extern ceiling_t *activeceilings[MAXCEILINGS];
 int EV_DoCeiling(line_t * line, ceiling_e type);
 void T_MoveCeiling(thinker_t *thinker);
 void P_AddActiveCeiling(ceiling_t * c);
-void P_RemoveActiveCeiling(ceiling_t * c);
-int EV_CeilingCrushStop(line_t * line);
-void P_ActivateInStasisCeiling(line_t * line);
+extern void P_RemoveActiveCeiling (const ceiling_t *const c);
+int EV_CeilingCrushStop(const line_t *const line);
+extern void P_ActivateInStasisCeiling (const line_t *const line);
 
 /*
 ===============================================================================
@@ -388,4 +388,4 @@ void T_MoveFloor(thinker_t *thinker);
 */
 
 boolean P_Teleport(mobj_t * thing, fixed_t x, fixed_t y, angle_t angle);
-boolean EV_Teleport(line_t * line, int side, mobj_t * thing);
+boolean EV_Teleport(const line_t *line, int side, mobj_t * thing);

@@ -147,7 +147,7 @@ int P_BoxOnLineSide(fixed_t * tmbox, line_t * ld)
 ==================
 */
 
-int P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t * line)
+int P_PointOnDivlineSide(fixed_t x, fixed_t y, const divline_t *line)
 {
     fixed_t dx, dy;
     fixed_t left, right;
@@ -263,9 +263,9 @@ fixed_t P_InterceptVector(divline_t * v2, divline_t * v1)
 fixed_t opentop, openbottom, openrange;
 fixed_t lowfloor;
 
-void P_LineOpening(line_t * linedef)
+void P_LineOpening(const line_t *linedef)
 {
-    sector_t *front, *back;
+    const sector_t *front, *back;
 
     if (linedef->sidenum[1] == NO_INDEX) // [crispy] extended nodes
     {                           // single sided line
