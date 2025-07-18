@@ -550,9 +550,9 @@ typedef struct
 } acsstore_t;
 
 void P_LoadACScripts(int lump);
-boolean P_StartACS(int number, int map, byte * args, mobj_t * activator,
+extern boolean P_StartACS(int number, int map, const byte *args, mobj_t * activator,
                    line_t * line, int side);
-boolean P_StartLockedACS(line_t * line, byte * args, mobj_t * mo, int side);
+extern boolean P_StartLockedACS(line_t * line, const byte *args, mobj_t * mo, int side);
 boolean P_TerminateACS(int number, int map);
 boolean P_SuspendACS(int number, int map);
 void T_InterpretACS(thinker_t *thinker);

@@ -228,11 +228,9 @@ void S_StartSongName(const char *songLump, boolean loop)
 //
 //==========================================================================
 
-int S_GetSoundID(char *name)
+int S_GetSoundID (const char *name)
 {
-    int i;
-
-    for (i = 0; i < NUMSFX; i++)
+    for (int i = 0; i < NUMSFX; i++)
     {
         if (!strcmp(S_sfx[i].tagname, name))
         {
@@ -527,11 +525,9 @@ boolean S_StopSoundID(int sound_id, int priority)
 //
 //==========================================================================
 
-void S_StopSound(mobj_t * origin)
+void S_StopSound (const mobj_t *origin)
 {
-    int i;
-
-    for (i = 0; i < snd_channels; i++)
+    for (int i = 0; i < snd_channels; i++)
     {
         if (Channel[i].mo == origin)
         {
@@ -565,23 +561,6 @@ void S_StopAllSound(void)
         }
     }
     memset(Channel, 0, snd_channels * sizeof(channel_t));
-}
-
-//==========================================================================
-//
-// S_SoundLink
-//
-//==========================================================================
-
-void S_SoundLink(mobj_t * oldactor, mobj_t * newactor)
-{
-    int i;
-
-    for (i = 0; i < snd_channels; i++)
-    {
-        if (Channel[i].mo == oldactor)
-            Channel[i].mo = newactor;
-    }
 }
 
 //==========================================================================
@@ -791,11 +770,9 @@ void S_GetChannelInfo(SoundInfo_t * s)
 //
 //==========================================================================
 
-boolean S_GetSoundPlayingInfo(mobj_t * mobj, int sound_id)
+boolean S_GetSoundPlayingInfo (const mobj_t *const mobj, int sound_id)
 {
-    int i;
-
-    for (i = 0; i < snd_channels; i++)
+    for (int i = 0; i < snd_channels; i++)
     {
         if (Channel[i].sound_id == sound_id && Channel[i].mo == mobj)
         {

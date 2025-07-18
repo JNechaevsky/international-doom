@@ -28,17 +28,6 @@
 #include "id_func.h"
 
 
-//void R_DrawTranslatedAltTLColumn(void);
-
-typedef struct
-{
-    int x1, x2;
-
-    int column;
-    int topclip;
-    int bottomclip;
-} maskdraw_t;
-
 /*
 
 Sprite rotation 0 is facing the viewer, rotation 1 is one angle turn CLOCKWISE around the axis.
@@ -104,11 +93,9 @@ static int drawsegs_xrange_count = 0;
 =================
 */
 
-void R_InstallSpriteLump(int lump, unsigned frame, unsigned rotation,
-                         boolean flipped)
+static void R_InstallSpriteLump(int lump, unsigned frame, unsigned rotation,
+                                boolean flipped)
 {
-    int r;
-
     if (frame >= 30 || rotation > 8)
         I_Error("R_InstallSpriteLump: Bad frame characters in lump %i", lump);
 
@@ -127,7 +114,7 @@ void R_InstallSpriteLump(int lump, unsigned frame, unsigned rotation,
                  spritename, 'A' + frame);
 
         sprtemp[frame].rotate = false;
-        for (r = 0; r < 8; r++)
+        for (int r = 0; r < 8; r++)
         {
             sprtemp[frame].lump[r] = lump - firstspritelump;
             sprtemp[frame].flip[r] = (byte) flipped;
@@ -345,7 +332,7 @@ fixed_t spryscale;
 int64_t sprtopscreen; // [crispy] WiggleFix
 fixed_t sprbotscreen;
 
-void R_DrawMaskedColumn(column_t * column, signed int baseclip)
+void R_DrawMaskedColumn (const column_t *column, signed int baseclip)
 {
     int64_t topscreen, bottomscreen; // [crispy] WiggleFix
     fixed_t basetexturemid;
@@ -403,7 +390,7 @@ void R_DrawMaskedColumn(column_t * column, signed int baseclip)
 ================
 */
 
-void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
+static void R_DrawVisSprite (const vissprite_t *vis, int x1, int x2)
 {
     column_t *column;
     int texturecolumn;
@@ -515,7 +502,7 @@ void R_DrawVisSprite(vissprite_t * vis, int x1, int x2)
 ===================
 */
 
-void R_ProjectSprite(mobj_t * thing)
+static void R_ProjectSprite (const mobj_t *thing)
 {
     fixed_t trx, try;
     fixed_t gxt, gyt;
@@ -552,13 +539,12 @@ void R_ProjectSprite(mobj_t * thing)
         // Don't interpolate during a paused state.
         realleveltime > oldleveltime &&
         // [JN] Don't interpolate things while freeze mode.
-        (!crl_freeze ||
-        // [JN] ... Hovewer, interpolate player while freeze mode,
+        // Hovewer, interpolate player while freeze mode,
         // so their sprite won't get desynced with moving camera.
-        (crl_freeze
-        && (thing->type == MT_PLAYER_FIGHTER
-        ||  thing->type == MT_PLAYER_CLERIC
-        ||  thing->type == MT_PLAYER_MAGE))))
+        (!crl_freeze
+        || thing->type==MT_PLAYER_FIGHTER 
+        || thing->type == MT_PLAYER_CLERIC
+        || thing->type == MT_PLAYER_MAGE))
     {
         interpx = LerpFixed(thing->oldx, thing->x);
         interpy = LerpFixed(thing->oldy, thing->y);
@@ -761,7 +747,7 @@ void R_ProjectSprite(mobj_t * thing)
 // During BSP traversal, this adds sprites by sector.
 // -----------------------------------------------------------------------------
 
-void R_AddSprites (sector_t *sec)
+void R_AddSprites (const sector_t *sec)
 {
     // [crispy] smooth diminishing lighting
     const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
@@ -790,7 +776,7 @@ int PSpriteSY[NUMCLASSES][NUMWEAPONS] = {
     {10 * FRACUNIT, 10 * FRACUNIT, 10 * FRACUNIT, 10 * FRACUNIT}        // Pig
 };
 
-void R_DrawPSprite(pspdef_t * psp)
+static void R_DrawPSprite (pspdef_t *const psp)
 {
     fixed_t tx;
     int x1, x2;
@@ -1059,7 +1045,7 @@ static void R_SortVisSprites (void)
 ========================
 */
 
-void R_DrawSprite(vissprite_t * spr)
+static void R_DrawSprite (vissprite_t *const spr)
 {
     drawseg_t *ds;
     int clipbot[MAXWIDTH], cliptop[MAXWIDTH];  // [crispy] 32-bit integer math
@@ -1223,7 +1209,7 @@ void R_DrawMasked (void)
     IDRender.numsprites = num_vissprite;
     for (i = num_vissprite ; --i>=0 ; )
     {
-        vissprite_t* spr = vissprite_ptrs[i];
+        const vissprite_t *const spr = vissprite_ptrs[i];
 
         if (spr->x2 < centerx)
         {

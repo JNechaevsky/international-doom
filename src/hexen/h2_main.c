@@ -75,7 +75,6 @@
 
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
-boolean F_Responder(event_t * ev);
 void I_StartupKeyboard(void);
 void I_StartupJoystick(void);
 void I_ShutdownKeyboard(void);

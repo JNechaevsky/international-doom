@@ -107,7 +107,7 @@ void F_StartFinale(void)
 //
 //===========================================================================
 
-boolean F_Responder(event_t * event)
+boolean F_Responder (const event_t *event)
 {
     return false;
 }
@@ -190,7 +190,7 @@ void F_Ticker(void)
 static void TextWrite(void)
 {
     int count;
-    char *ch;
+    const char *ch;
     int c;
     int cx, cy;
     patch_t *w;

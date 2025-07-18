@@ -349,11 +349,11 @@ const byte *R_BrightmapForTexName (const char *texname)
 
     for (i = 0; i < arrlen(fullbright_walls); i++)
     {
-        const fullbright_t *fullbright = &fullbright_walls[i];
+        const fullbright_t *const fullbright_tex = &fullbright_walls[i];
 
-        if (!strncasecmp(fullbright->texture, texname, 8))
+        if (!strncasecmp(fullbright_tex->texture, texname, 8))
         {
-            return fullbright->colormask;
+            return fullbright_tex->colormask;
         }
     }
 
@@ -428,7 +428,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ARTIPUZZSKULL2:
             {
                 return artifacts;
-                break;
             }
             // Chandeiler
             case S_ZCHANDELIER1:
@@ -436,7 +435,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZCHANDELIER3:
             {
                 return flame;
-                break;
             }
             // Fire Bull
             case S_ZFIREBULL1:
@@ -451,7 +449,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZFIREBULL_BIRTH2:
             {
                 return firebull;
-                break;
             }
             // Brazier
             case S_ZBRASSTORCH1:
@@ -469,7 +466,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZBRASSTORCH13:
             {
                 return brazier;
-                break;
             }
             // Fire Skull
             case S_ZFIRETHING1:
@@ -483,7 +479,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZFIRETHING9:
             {
                 return fireskull;
-                break;
             }
             // Twined Torch
             case S_ZTWINEDTORCH_1:
@@ -496,7 +491,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZTWINEDTORCH_8:
             {
                 return twintorch;
-                break;
             }
             // Wall Torch
             case S_ZWALLTORCH1:
@@ -509,7 +503,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZWALLTORCH8:
             {
                 return walltorch;
-                break;
             }
             // Three Candles
             case S_ZCANDLE1:
@@ -523,7 +516,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZBLUE_CANDLE5:
             {
                 return candles;
-                break;
             }
             // Cauldron
             case S_ZCAULDRON1:
@@ -535,7 +527,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZCAULDRON7:
             {
                 return cauldron;
-                break;
             }
             // Wendigo
             case S_ICEGUY_LOOK:
@@ -578,13 +569,11 @@ const byte *R_BrightmapForSprite (const int state)
             case S_KORAX_PAIN2:
             {
                 return surfaces1;
-                break;
             }
             // Glitter bridge
             case S_BBALL2:
             {
                 return fullbright;
-                break;
             }
         }            
     }
@@ -705,7 +694,6 @@ const byte *R_BrightmapForSprite (const int state)
             case S_ZCAULDRON7:
             {
                 return fullbright;
-                break;
             }
         }
     }
@@ -835,7 +823,6 @@ const byte *R_BrightmapForState (const int state)
             case S_MSTAFFATK_7:
             {
                 return surfaces1;
-                break;
             }
             //  Serpent Staff
             case S_CSTAFFATK_1:
@@ -845,7 +832,6 @@ const byte *R_BrightmapForState (const int state)
             case S_CSTAFFATK2_1:
             {
                 return greenonly;
-                break;
             }
             // Frost Shards
             case S_CONEATK1_2: 
@@ -895,7 +881,6 @@ const byte *R_BrightmapForState (const int state)
             case S_MLIGHTNINGATK_11:
             {
                 return blueonly;
-                break;
             }
         }
 	}
@@ -970,7 +955,6 @@ const byte *R_BrightmapForState (const int state)
             case S_MLIGHTNINGATK_11:
             {
                 return fullbright;
-                break;
             }
         }
     }

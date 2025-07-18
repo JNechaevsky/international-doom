@@ -173,16 +173,6 @@ static const char *ClusMsgLumpNames[] = {
 
 static void InitStats(void)
 {
-    int i;
-    int j;
-    int oldCluster;
-    signed int slaughterfrags;
-    int slaughtercount;
-    int playercount;
-    const char *msgLumpName;
-    int msgSize;
-    int msgLump;
-
     // [JN] Disallow double skip until level change has a hub text.
     HubAllowSkip = false;
 
@@ -190,14 +180,14 @@ static void InitStats(void)
     {
         gametype = SINGLE;
         HubCount = 0;
-        oldCluster = P_GetMapCluster(gamemap);
+        const int oldCluster = P_GetMapCluster(gamemap);
         if (oldCluster != P_GetMapCluster(LeaveMap))
         {
             if (oldCluster >= 1 && oldCluster <= 5)
             {
-                msgLumpName = ClusMsgLumpNames[oldCluster - 1];
-                msgLump = W_GetNumForName(msgLumpName);
-                msgSize = W_LumpLength(msgLump);
+                const char *msgLumpName = ClusMsgLumpNames[oldCluster - 1];
+                const int msgLump = W_GetNumForName(msgLumpName);
+                const int msgSize = W_LumpLength(msgLump);
                 if (msgSize >= MAX_INTRMSN_MESSAGE_SIZE)
                 {
                     I_Error("Cluster message too long (%s)", msgLumpName);
@@ -218,16 +208,16 @@ static void InitStats(void)
     {
         gametype = DEATHMATCH;
         slaughterboy = 0;
-        slaughterfrags = -9999;
-        playercount = 0;
-        slaughtercount = 0;
-        for (i = 0; i < maxplayers; i++)
+        int slaughterfrags = -9999;
+        int playercount = 0;
+        int slaughtercount = 0;
+        for (int i = 0; i < maxplayers; i++)
         {
             totalFrags[i] = 0;
             if (playeringame[i])
             {
                 playercount++;
-                for (j = 0; j < maxplayers; j++)
+                for (int j = 0; j < maxplayers; j++)
                 {
                     if (playeringame[j])
                     {
@@ -263,13 +253,11 @@ static void InitStats(void)
 
 static void LoadPics(void)
 {
-    int i;
-
     if (HubCount || gametype == DEATHMATCH)
     {
         patchINTERPIC = W_CacheLumpName("INTERPIC", PU_STATIC);
         FontBLumpBase = W_GetNumForName("FONTB16");
-        for (i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
             FontBNumbers[i] = W_CacheLumpNum(FontBLumpBase + i, PU_STATIC);
         }
@@ -290,15 +278,13 @@ static void LoadPics(void)
 
 static void UnloadPics(void)
 {
-    int i;
-
     if (HubCount || gametype == DEATHMATCH)
     {
         W_ReleaseLumpName("INTERPIC");
 
         patchINTERPIC = W_CacheLumpName("INTERPIC", PU_STATIC);
         FontBLumpBase = W_GetNumForName("FONTB16");
-        for (i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
             W_ReleaseLumpNum(FontBLumpBase + i);
         }

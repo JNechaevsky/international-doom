@@ -355,13 +355,13 @@ boolean P_MorphPlayer(player_t * player);
 
 // ***** AM_MAP *****
 
-boolean AM_Responder(event_t * ev);
+extern boolean AM_Responder (const event_t *ev);
 void AM_Ticker(void);
 void AM_Drawer(void);
 
 // ***** A_ACTION *****
-boolean A_LocalQuake(byte * args, mobj_t * victim);
-void P_SpawnDirt(mobj_t * actor, fixed_t radius);
+extern boolean A_LocalQuake (const byte *const args, const mobj_t *const victim);
+extern void P_SpawnDirt (const mobj_t *const actor, fixed_t radius);
 void A_BridgeRemove(mobj_t * actor);
 void A_UnHideThing(mobj_t *actor, player_t *player, pspdef_t *psp);
 

@@ -443,9 +443,8 @@ R_MakeSpans
 
 void R_DrawPlanes (void)
 {
-    int x;
-    byte *source;
-    byte *source2;
+    const byte *source;
+    const byte *source2;
     pixel_t *dest;
     int count;
     int offset;
@@ -494,7 +493,7 @@ void R_DrawPlanes (void)
                     prev_skyTexture2 = skyTexture2;
                 }
 
-                for (x = pl->minx; x <= pl->maxx; x++)
+                for (int x = pl->minx; x <= pl->maxx; x++)
                 {
                     dc_yl = pl->top[x];
                     dc_yh = pl->bottom[x];
@@ -594,7 +593,7 @@ void R_DrawPlanes (void)
                     prev_skyTexture = skyTexture;
                 }
 
-                for (x = pl->minx; x <= pl->maxx; x++)
+                for (int x = pl->minx; x <= pl->maxx; x++)
                 {
                     dc_yl = pl->top[x];
                     dc_yh = pl->bottom[x];

@@ -1026,7 +1026,7 @@ void SC_OpenFile(const char *name);
 void SC_Close(void);
 boolean SC_GetString(void);
 void SC_MustGetString(void);
-void SC_MustGetStringName(char *name);
+extern void SC_MustGetStringName (const char *name);
 boolean SC_GetNumber(void);
 void SC_MustGetNumber(void);
 void SC_UnGet(void);
@@ -1091,11 +1091,11 @@ typedef enum
 
 void SN_InitSequenceScript(void);
 void SN_StartSequence(mobj_t * mobj, int sequence);
-void SN_StartSequenceName(mobj_t * mobj, char *name);
+extern void SN_StartSequenceName (mobj_t * mobj, const char *name);
 void SN_StopSequence(mobj_t * mobj);
 void SN_UpdateActiveSequences(void);
 void SN_StopAllSequences(void);
-int SN_GetSequenceOffset(int sequence, int *sequencePtr);
+int SN_GetSequenceOffset(int sequence, const int *const sequencePtr);
 void SN_ChangeNodeData(int nodeNum, int seqOffset, int delayTics, int volume,
                        int currentSoundID);
 
@@ -1146,9 +1146,10 @@ extern boolean chatmodeon;
 // Finale (F_finale.c)
 //--------------------
 
-void F_Drawer(void);
-void F_Ticker(void);
-void F_StartFinale(void);
+extern void F_Drawer (void);
+extern void F_Ticker (void);
+extern void F_StartFinale (void);
+extern boolean F_Responder (const event_t *event);
 
 //----------------------
 // STATUS BAR (SB_bar.c)
@@ -1163,7 +1164,7 @@ extern boolean inventory;
 
 void SB_Init(void);
 void SB_SetClassData(void);
-boolean SB_Responder(event_t * event);
+boolean SB_Responder (const event_t *event);
 void SB_Ticker(void);
 void SB_Drawer(void);
 void Draw_TeleportIcon(void);

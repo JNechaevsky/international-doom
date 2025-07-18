@@ -78,9 +78,9 @@ extern boolean mus_force_replay;
 
 void S_Start(void);
 void S_StartSound(mobj_t * origin, int sound_id);
-int S_GetSoundID(char *name);
+int S_GetSoundID (const char *name);
 void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume);
-void S_StopSound(mobj_t * origin);
+extern void S_StopSound (const mobj_t * origin);
 void S_StopAllSound(void);
 void S_PauseSound(void);
 void S_ResumeSound(void);
@@ -90,7 +90,7 @@ void S_StartSongName(const char *songLump, boolean loop);
 void S_Init(void);
 void S_ShutDown(void);
 void S_GetChannelInfo(SoundInfo_t * s);
-boolean S_GetSoundPlayingInfo(mobj_t * mobj, int sound_id);
+extern boolean S_GetSoundPlayingInfo (const mobj_t *const mobj, int sound_id);
 boolean S_StartCustomCDTrack(int tracknum);
 int S_GetCurrentCDTrack(void);
 

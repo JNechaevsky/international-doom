@@ -171,8 +171,8 @@ static void DrawFilesMenu(void);
 static void MN_DrawInfo(void);
 static void DrawLoadMenu(void);
 static void DrawSaveMenu(void);
-static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean bigspacing, int itemPos);
-void MN_LoadSlotText(void);
+static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, boolean bigspacing, int itemPos);
+static void MN_LoadSlotText(void);
 
 static void M_ID_MenuMouseControl (void);
 static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max);
@@ -3905,10 +3905,10 @@ static void M_Draw_ID_Misc (void)
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
                         a11y_pal_flash == 1 ? cr[CR_YELLOW] :
                         a11y_pal_flash == 2 ? cr[CR_ORANGE_HR] :
-                        a11y_pal_flash == 2 ? cr[CR_RED] : cr[CR_DARKRED],
+                        a11y_pal_flash == 3 ? cr[CR_RED] : cr[CR_DARKRED],
                             a11y_pal_flash == 1 ? cr[CR_YELLOW_BRIGHT] :
                             a11y_pal_flash == 2 ? cr[CR_ORANGE_HR_BRIGHT] :
-                            a11y_pal_flash == 2 ? cr[CR_RED_BRIGHT] : cr[CR_RED_BRIGHT],
+                            a11y_pal_flash == 3 ? cr[CR_RED_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(0));
 
     // Movement bobbing
@@ -5080,7 +5080,7 @@ static boolean ReadDescriptionForSlot(int slot, char *description)
 //
 //===========================================================================
 
-void MN_LoadSlotText(void)
+static void MN_LoadSlotText(void)
 {
     char description[HXS_DESCRIPTION_LENGTH];
     int slot;
@@ -6746,7 +6746,7 @@ static void SetMenu(MenuType_t menu)
 //
 //---------------------------------------------------------------------------
 
-static void DrawSlider(Menu_t * menu, int item, int width, int slot, boolean bigspacing, int itemPos)
+static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, boolean bigspacing, int itemPos)
 {
     int x;
     int y;

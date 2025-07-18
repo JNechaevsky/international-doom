@@ -118,7 +118,7 @@ static const byte netnotchTable[] = {
 
 void ST_Init(void)
 {
-    byte *pal;
+    const byte *pal;
     byte *buffer;
     
     using_graphical_startup = false;

@@ -64,7 +64,7 @@ typedef enum
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
-static void VerifySequencePtr(int *base, int *ptr);
+static void VerifySequencePtr (const int *const base, const int *const ptr);
 static int GetSoundOffset(char *name);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
@@ -140,7 +140,7 @@ seqnode_t *SequenceListHead;
 //              isn't exceeding the size of the temporary buffer
 //==========================================================================
 
-static void VerifySequencePtr(int *base, int *ptr)
+static void VerifySequencePtr (const int *const base, const int *const ptr)
 {
     if (ptr - base > SS_TEMPBUFFER_SIZE)
     {
@@ -348,11 +348,9 @@ void SN_StartSequence(mobj_t * mobj, int sequence)
 //
 //==========================================================================
 
-void SN_StartSequenceName(mobj_t * mobj, char *name)
+void SN_StartSequenceName (mobj_t * mobj, const char *name)
 {
-    int i;
-
-    for (i = 0; i < SEQ_NUMSEQ; i++)
+    for (int i = 0; i < SEQ_NUMSEQ; i++)
     {
         if (!strcmp(name, SequenceTranslate[i].name))
         {
@@ -499,7 +497,7 @@ void SN_StopAllSequences(void)
 //
 //==========================================================================
 
-int SN_GetSequenceOffset(int sequence, int *sequencePtr)
+int SN_GetSequenceOffset (int sequence, const int *const sequencePtr)
 {
     return (sequencePtr -
             SequenceData[SequenceTranslate[sequence].scriptNum]);

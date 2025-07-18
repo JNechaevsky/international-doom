@@ -106,7 +106,7 @@ will have new column_ts generated.
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 //
 
-void R_DrawColumnInCache(column_t * patch, byte * cache, int originy,
+static void R_DrawColumnInCache(column_t * patch, byte * cache, int originy,
                          int cacheheight, byte * marks)
 {
     int count, position;
@@ -160,7 +160,7 @@ void R_DrawColumnInCache(column_t * patch, byte * cache, int originy,
 //
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 
-void R_GenerateComposite(int texnum)
+static void R_GenerateComposite(int texnum)
 {
     byte* block;
     texture_t *texture;
@@ -295,7 +295,7 @@ void R_GenerateComposite(int texnum)
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 //
 
-void R_GenerateLookup(int texnum)
+static void R_GenerateLookup(int texnum)
 {
     texture_t *texture;
     byte *patchcount;           // [texture->width]
@@ -479,7 +479,7 @@ byte *R_GetColumn(int tex, int col)
 ==================
 */
 
-void R_InitTextures(void)
+static void R_InitTextures(void)
 {
     maptexture_t *mtexture;
     texture_t *texture;
@@ -633,7 +633,7 @@ static void R_InitFlats (void)
 //  just for having the header info ready during rendering.
 // -----------------------------------------------------------------------------
 
-void R_InitSpriteLumps (void)
+static void R_InitSpriteLumps (void)
 {
     patch_t *patch;
 
@@ -715,8 +715,8 @@ void R_InitTrueColormaps(char *current_colormap)
 	int c, i, j = 0;
 	byte r, g, b;
 
-	byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-	byte *const colormap = W_CacheLumpName(current_colormap, PU_STATIC);
+	const byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+	const byte *const colormap = W_CacheLumpName(current_colormap, PU_STATIC);
 
 	// [JN] Saturation floats, high and low.
 	// If saturation has been modified (< 100), set high and low

@@ -674,7 +674,7 @@ static void AM_maxOutWindowScale (void)
 // Handle events (user inputs) in automap mode.
 // -----------------------------------------------------------------------------
 
-boolean AM_Responder (event_t *ev)
+boolean AM_Responder (const event_t *ev)
 {
     int         rc;
     static int  bigstate=0;
@@ -1809,7 +1809,7 @@ static void AM_drawPlayers (void)
     int i;
     mpoint_t  pt;
     player_t *p;
-    static int their_colors[] = {
+    static const int their_colors[] = {
         AM_PLR1_COLOR,
         AM_PLR2_COLOR,
         AM_PLR3_COLOR,
@@ -1827,8 +1827,8 @@ static void AM_drawPlayers (void)
     {
         // [JN] Smooth player arrow rotation.
         // Keep arrow static in Spectator + rotate mode.
-        angle_t smoothangle = (crl_spectating && automap_rotate) ? plr->mo->angle :
-                              automap_rotate ? plr->mo->angle : viewangle;
+        smoothangle = (crl_spectating && automap_rotate) ? plr->mo->angle :
+                      automap_rotate ? plr->mo->angle : viewangle;
 
         // [JN] Interpolate player arrow.
         pt.x = viewx >> FRACTOMAPBITS;

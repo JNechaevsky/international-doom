@@ -754,7 +754,7 @@ static void DrawSoundInfo(void)
     char text[32];
     int x;
     int y;
-    int xPos[7] = { 1, 75, 112, 156, 200, 230, 260 };
+    const int xPos[7] = { 1, 75, 112, 156, 200, 230, 260 };
 
     if (leveltime & 16)
     {
@@ -2112,7 +2112,7 @@ void Draw_LoadIcon(void)
 //
 //==========================================================================
 
-boolean SB_Responder(event_t * event)
+boolean SB_Responder (const event_t *event)
 {
     if (event->type == ev_keydown)
     {

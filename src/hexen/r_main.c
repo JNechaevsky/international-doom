@@ -457,7 +457,7 @@ void R_InitLightTables (void)
     int *scale_table = malloc(MAXLIGHTZ * sizeof(*scale_table));
     {
         const int fracwidth = (ORIGWIDTH >> 1) * FRACUNIT;
-        for (int j = 0; j < MAXLIGHTZ; ++j)
+        for (j = 0; j < MAXLIGHTZ; ++j)
             scale_table[j] = (FixedDiv(fracwidth, (j + 1) << LIGHTZSHIFT)) >> LIGHTSCALESHIFT;
     }
 
@@ -466,12 +466,12 @@ void R_InitLightTables (void)
     {
         scalelight[i] = malloc(MAXLIGHTSCALE * sizeof(**scalelight));
         zlight[i] = malloc(MAXLIGHTZ * sizeof(**zlight));
-        const int startmap = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
+        const int start_map = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
 
         for (j = 0; j < MAXLIGHTZ; j++)
         {
             const int scale = scale_table[j];
-            int level = startmap - (scale >> 1);
+            int level = start_map - (scale >> 1);
     
             if (level < 0)
                 level = 0;
@@ -647,11 +647,11 @@ void R_ExecuteSetViewSize (void)
     //  for each level / scale combination.
     for (i = 0 ; i < LIGHTLEVELS ; i++)
     {
-        const int startmap = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
+        const int start_map = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
 
         for (j = 0 ; j < MAXLIGHTSCALE ; j++)
         {
-            int level = startmap - scale_table[j];
+            int level = start_map - scale_table[j];
 
             if (level < 0)
                 level = 0;

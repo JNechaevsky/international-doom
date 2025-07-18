@@ -848,7 +848,7 @@ void A_CheckThrowBomb(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 //===========================================================================
 
-boolean A_LocalQuake(byte * args, mobj_t * actor)
+boolean A_LocalQuake (const byte *const args, const mobj_t *const actor)
 {
     mobj_t *focus, *target;
     int lastfound = 0;
@@ -1022,7 +1022,7 @@ void A_CheckTeleRing(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 // Dirt stuff
 
-void P_SpawnDirt(mobj_t * actor, fixed_t radius)
+void P_SpawnDirt (const mobj_t *const actor, fixed_t radius)
 {
     fixed_t x, y, z;
     int dtype = 0;

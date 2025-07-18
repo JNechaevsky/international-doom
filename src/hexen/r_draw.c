@@ -682,7 +682,7 @@ void R_DrawExtraTLColumnLow(void)
 void R_InitTranslationTables(void)
 {
     int i;
-    byte *transLump;
+    const byte *transLump;
     int lumpnum;
 
     // Allocate translation tables

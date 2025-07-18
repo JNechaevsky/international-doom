@@ -278,7 +278,7 @@ void SC_MustGetString(void)
 //
 //==========================================================================
 
-void SC_MustGetStringName(char *name)
+void SC_MustGetStringName (const char *name)
 {
     SC_MustGetString();
     if (SC_Compare(name) == false)

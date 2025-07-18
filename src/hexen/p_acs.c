@@ -60,7 +60,7 @@ typedef PACKED_STRUCT (
 static void StartOpenACS(int number, int infoIndex, int offset);
 static void ScriptFinished(int number);
 static boolean TagBusy(int tag);
-static boolean AddToACSStore(int map, int number, byte * args);
+static boolean AddToACSStore(int map, int number, const byte *args);
 static int GetACSIndex(int number);
 static void Push(int value);
 static int Pop(void);
@@ -576,7 +576,7 @@ void P_CheckACSStore(void)
 
 static char ErrorMsg[128];
 
-boolean P_StartACS(int number, int map, byte * args, mobj_t * activator,
+boolean P_StartACS(int number, int map, const byte *args, mobj_t * activator,
                    line_t * line, int side)
 {
     int i;
@@ -634,7 +634,7 @@ boolean P_StartACS(int number, int map, byte * args, mobj_t * activator,
 //
 //==========================================================================
 
-static boolean AddToACSStore(int map, int number, byte * args)
+static boolean AddToACSStore(int map, int number, const byte *args)
 {
     int i;
     int index;
@@ -674,7 +674,7 @@ static boolean AddToACSStore(int map, int number, byte * args)
 //==========================================================================
 
 
-boolean P_StartLockedACS(line_t * line, byte * args, mobj_t * mo, int side)
+boolean P_StartLockedACS(line_t * line, const byte * args, mobj_t * mo, int side)
 {
     int i;
     int lock;
@@ -1489,9 +1489,9 @@ static void ThingCount(int type, int tid)
 {
     int count;
     int searcher;
-    mobj_t *mobj;
+    const mobj_t *mobj;
     mobjtype_t moType;
-    thinker_t *think;
+    const thinker_t *think;
 
     if (!(type + tid))
     {                           // Nothing to count
