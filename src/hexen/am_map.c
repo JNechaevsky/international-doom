@@ -1360,68 +1360,6 @@ static void AM_drawFline(fline_t * fl, int color)
 }
 
 // -----------------------------------------------------------------------------
-// PUTDOT
-// Wu antialiased line drawer.
-// (X0,Y0),(X1,Y1) = line to draw
-// BaseColor = color # of first color in block used for antialiasing, the
-//          100% intensity version of the drawing color
-// NumLevels = size of color block, with BaseColor+NumLevels-1 being the
-//          0% intensity version of the drawing color
-// IntensityBits = log base 2 of NumLevels; the # of bits used to describe
-//          the intensity of the drawing color. 2**IntensityBits==NumLevels
-// [PN] Simplified:
-// - Combined color adjustment logic for boundaries.
-// - Removed redundant checks for double fading.
-// - Optimized row shifting calculation.
-// - Improved readability while maintaining functionality.
-// -----------------------------------------------------------------------------
-
-void PUTDOT (short xx, short yy, byte *cc, byte *cm)
-{
-    static int oldyy = -1;
-    static int oldyyshifted;
-    byte *oldcc = cc;
-
-    // [PN] Adjust color for boundary fading
-    if (xx < 32)
-    {
-        cc += 7 - (xx >> 2);
-    }
-    else if (xx > (SCREENWIDTH - 32))
-    {
-        cc += 7 - ((SCREENWIDTH - xx) >> 2);
-    }
-
-    if (yy < 32)
-    {
-        cc += 7 - (yy >> 2);
-    }
-    else if (yy > (f_h - 32))
-    {
-        cc += 7 - ((f_h - yy) >> 2);
-    }
-
-    // [PN] Clamp color value to the fade table limits
-    if (cc > cm && cm != NULL)
-    {
-        cc = cm;
-    }
-    else if (cc > oldcc + 6)
-    {
-        cc = oldcc + 6;
-    }
-
-    // [PN] Efficiently update row position if needed
-    if (yy != oldyy)
-    {
-        oldyy = yy;
-        oldyyshifted = yy * f_w;
-    }
-
-    fb[oldyyshifted + flipscreenwidth[xx]] = pal_color[*cc];
-}
-
-// -----------------------------------------------------------------------------
 // DrawWuLine
 // [PN] Optimized and simplified DrawWuLine:
 // - Combined common operations and removed redundant code to reduce duplication.

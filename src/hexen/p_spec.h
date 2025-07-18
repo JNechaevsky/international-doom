@@ -373,11 +373,11 @@ typedef struct
 
 extern ceiling_t *activeceilings[MAXCEILINGS];
 
-int EV_DoCeiling(line_t * line, byte * args, ceiling_e type);
+extern int EV_DoCeiling(line_t * line, const byte *args, ceiling_e type);
 void T_MoveCeiling(thinker_t *thinker);
 void P_AddActiveCeiling(ceiling_t * c);
-void P_RemoveActiveCeiling(ceiling_t * c);
-int EV_CeilingCrushStop(line_t * line, byte * args);
+extern void P_RemoveActiveCeiling(const ceiling_t *c);
+extern int EV_CeilingCrushStop(line_t * line, const byte *args);
 
 /*
 ===============================================================================
@@ -577,8 +577,8 @@ extern acsstore_t ACSStore[MAX_ACS_STORE + 1];  // +1 for termination marker
 
 extern mobjtype_t TranslateThingType[];
 
-boolean EV_ThingProjectile(byte * args, boolean gravity);
-boolean EV_ThingSpawn(byte * args, boolean fog);
+extern boolean EV_ThingProjectile(const byte *args, boolean gravity);
+extern boolean EV_ThingSpawn(const byte *args, boolean fog);
 boolean EV_ThingActivate(int tid);
 boolean EV_ThingDeactivate(int tid);
 boolean EV_ThingRemove(int tid);

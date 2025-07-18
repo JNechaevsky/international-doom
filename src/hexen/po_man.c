@@ -37,13 +37,13 @@
 
 static polyobj_t *GetPolyobj(int polyNum);
 static int GetPolyobjMirror(int poly);
-static void ThrustMobj(mobj_t * mobj, seg_t * seg, polyobj_t * po);
+static void ThrustMobj(mobj_t * mobj, const seg_t *seg, const polyobj_t *po);
 static void UpdateSegBBox(seg_t * seg);
 static void RotatePt(int an, fixed_t * x, fixed_t * y, fixed_t startSpotX,
                      fixed_t startSpotY);
-static void UnLinkPolyobj(polyobj_t * po);
+static void UnLinkPolyobj(const polyobj_t * po);
 static void LinkPolyobj(polyobj_t * po);
-static boolean CheckMobjBlocking(seg_t * seg, polyobj_t * po);
+static boolean CheckMobjBlocking(seg_t *seg, const polyobj_t *po);
 static void InitBlockMap(void);
 static void IterFindPolySegs(int x, int y, seg_t ** segList);
 static void SpawnPolyobj(int index, int tag, boolean crush);
@@ -112,7 +112,7 @@ void T_RotatePoly(thinker_t *thinker)
 //
 //==========================================================================
 
-boolean EV_RotatePoly(line_t * line, byte * args, int direction, boolean
+boolean EV_RotatePoly(line_t * line, const byte *args, int direction, boolean
                       overRide)
 {
     int mirror;
@@ -244,7 +244,7 @@ void T_MovePoly(thinker_t *thinker)
 //
 //==========================================================================
 
-boolean EV_MovePoly(line_t * line, byte * args, boolean timesEight, boolean
+boolean EV_MovePoly(line_t * line, const byte *args, boolean timesEight, boolean
                     overRide)
 {
     int mirror;
@@ -454,7 +454,7 @@ void T_PolyDoor(thinker_t *thinker)
 //
 //==========================================================================
 
-boolean EV_OpenPolyDoor(line_t * line, byte * args, podoortype_t type)
+boolean EV_OpenPolyDoor(line_t * line, const byte *args, podoortype_t type)
 {
     int mirror;
     int polyNum;
@@ -597,12 +597,12 @@ static int GetPolyobjMirror(int poly)
 //
 //==========================================================================
 
-static void ThrustMobj(mobj_t * mobj, seg_t * seg, polyobj_t * po)
+static void ThrustMobj(mobj_t * mobj, const seg_t *seg, const polyobj_t *po)
 {
     int thrustAngle;
     int thrustX;
     int thrustY;
-    polyevent_t *pe;
+    const polyevent_t *pe;
 
     int force;
 
@@ -1130,7 +1130,7 @@ boolean PO_RotatePolyobj(int num, angle_t angle, boolean interp)
 //
 //==========================================================================
 
-static void UnLinkPolyobj(polyobj_t * po)
+static void UnLinkPolyobj(const polyobj_t *po)
 {
     polyblock_t *link;
     int i, j;
@@ -1254,7 +1254,7 @@ static void LinkPolyobj(polyobj_t * po)
 //
 //==========================================================================
 
-static boolean CheckMobjBlocking(seg_t * seg, polyobj_t * po)
+static boolean CheckMobjBlocking(seg_t * seg, const polyobj_t *po)
 {
     mobj_t *mobj;
     int i, j;
@@ -1707,7 +1707,7 @@ void PO_Init(int lump)
 
 boolean PO_Busy(int polyobj)
 {
-    polyobj_t *poly;
+    const polyobj_t *poly;
 
     poly = GetPolyobj(polyobj);
     if (!poly->specialdata)

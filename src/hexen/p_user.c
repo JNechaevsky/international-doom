@@ -260,7 +260,7 @@ void P_MovePlayer(player_t * player)
 {
     int look;
     int fly;
-    ticcmd_t *cmd;
+    const ticcmd_t *cmd;
 
     cmd = &player->cmd;
     player->mo->angle += (cmd->angleturn << 16);
@@ -585,7 +585,7 @@ void P_MorphPlayerThink(player_t * player)
 //
 //----------------------------------------------------------------------------
 
-int P_GetPlayerNum(player_t * player)
+int P_GetPlayerNum(const player_t *player)
 {
     int i;
 
@@ -1411,10 +1411,10 @@ void P_BlastRadius(player_t * player)
 #define HEAL_RADIUS_DIST	255*FRACUNIT
 
 // Do class specific effect for everyone in radius
-boolean P_HealRadius(player_t * player)
+static boolean P_HealRadius(const player_t *player)
 {
     mobj_t *mo;
-    mobj_t *pmo = player->mo;
+    const mobj_t *pmo = player->mo;
     thinker_t *think;
     fixed_t dist;
     int effective = false;

@@ -4759,7 +4759,7 @@ void MN_Drawer(void)
     int i;
     int x;
     int y;
-    MenuItem_t *item;
+    const MenuItem_t *item;
     const char *selName;
 
     if (MenuActive || typeofask)
