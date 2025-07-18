@@ -41,9 +41,9 @@ int		sightcounts[2];
 
 // PTR_SightTraverse() for Doom 1.2 sight calculations
 // taken from prboom-plus/src/p_sight.c:69-102
-boolean PTR_SightTraverse(intercept_t *in)
+static boolean PTR_SightTraverse (intercept_t *in)
 {
-    line_t *li;
+    const line_t *li;
     fixed_t slope;
 
     li = in->d.line;
@@ -81,11 +81,11 @@ boolean PTR_SightTraverse(intercept_t *in)
 // P_DivlineSide
 // Returns side 0 (front), 1 (back), or 2 (on).
 //
-int
+static int
 P_DivlineSide
 ( fixed_t	x,
   fixed_t	y,
-  divline_t*	node )
+  const divline_t *const	node )
 {
     fixed_t	dx;
     fixed_t	dy;
@@ -135,7 +135,7 @@ P_DivlineSide
 // along the first divline.
 // This is only called by the addthings and addlines traversers.
 //
-fixed_t
+static fixed_t
 P_InterceptVector2
 ( divline_t*	v2,
   divline_t*	v1 )
@@ -162,18 +162,18 @@ P_InterceptVector2
 // Returns true
 //  if strace crosses the given subsector successfully.
 //
-boolean P_CrossSubsector (int num)
+static boolean P_CrossSubsector (int num)
 {
     seg_t*		seg;
     line_t*		line;
     int			s1;
     int			s2;
     int			count;
-    subsector_t*	sub;
-    sector_t*		front;
-    sector_t*		back;
-    fixed_t		opentop;
-    fixed_t		openbottom;
+    const subsector_t*	sub;
+    const sector_t*		front;
+    const sector_t*		back;
+    fixed_t		open_top;
+    fixed_t		open_bottom;
     divline_t		divl;
     vertex_t*		v1;
     vertex_t*		v2;
@@ -248,32 +248,32 @@ boolean P_CrossSubsector (int num)
 	// possible occluder
 	// because of ceiling height differences
 	if (front->ceilingheight < back->ceilingheight)
-	    opentop = front->ceilingheight;
+	    open_top = front->ceilingheight;
 	else
-	    opentop = back->ceilingheight;
+	    open_top = back->ceilingheight;
 
 	// because of ceiling height differences
 	if (front->floorheight > back->floorheight)
-	    openbottom = front->floorheight;
+	    open_bottom = front->floorheight;
 	else
-	    openbottom = back->floorheight;
+	    open_bottom = back->floorheight;
 		
 	// quick test for totally closed doors
-	if (openbottom >= opentop)	
+	if (open_bottom >= open_top)	
 	    return false;		// stop
 	
 	frac = P_InterceptVector2 (&strace, &divl);
 		
 	if (front->floorheight != back->floorheight)
 	{
-	    slope = FixedDiv (openbottom - sightzstart , frac);
+	    slope = FixedDiv (open_bottom - sightzstart , frac);
 	    if (slope > bottomslope)
 		bottomslope = slope;
 	}
 		
 	if (front->ceilingheight != back->ceilingheight)
 	{
-	    slope = FixedDiv (opentop - sightzstart , frac);
+	    slope = FixedDiv (open_top - sightzstart , frac);
 	    if (slope < topslope)
 		topslope = slope;
 	}
@@ -292,7 +292,7 @@ boolean P_CrossSubsector (int num)
 // Returns true
 //  if strace crosses the given node successfully.
 //
-boolean P_CrossBSPNode (int bspnum)
+static boolean P_CrossBSPNode (int bspnum)
 {
     node_t*	bsp;
     int		side;

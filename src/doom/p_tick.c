@@ -90,7 +90,7 @@ void P_RemoveThinker (thinker_t* thinker)
 //
 // P_RunThinkers
 //
-void P_RunThinkers (void)
+static void P_RunThinkers (void)
 {
     thinker_t *currentthinker, *nextthinker;
     static int bmap_count_common;

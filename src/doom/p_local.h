@@ -114,11 +114,11 @@ typedef struct
     int        olddirection;
 } ceiling_t;
 
-extern int  EV_CeilingCrushStop(line_t *line);
-extern int  EV_DoCeiling (line_t *line, ceiling_e type);
-extern void P_ActivateInStasisCeiling (line_t *line);
+extern int  EV_CeilingCrushStop(const line_t *const line);
+extern int  EV_DoCeiling (line_t *const line, ceiling_e type);
+extern void P_ActivateInStasisCeiling (const line_t *const line);
 extern void P_AddActiveCeiling (ceiling_t *c);
-extern void P_RemoveActiveCeiling (ceiling_t *c);
+extern void P_RemoveActiveCeiling (const ceiling_t *const c);
 extern void T_MoveCeiling (ceiling_t *ceiling);
 
 extern ceiling_t *activeceilings[MAXCEILINGS];
@@ -386,7 +386,7 @@ extern void T_StrobeFlash (strobe_t *flash);
 #define MAXSPECIALCROSS_ORIGINAL    8
 #define MAXSPECIALCROSS             20
 
-extern boolean P_ChangeSector (sector_t *sector, boolean crunch);
+extern boolean P_ChangeSector (const sector_t *const sector, boolean crunch);
 extern boolean P_CheckPosition (mobj_t *thing, fixed_t x, fixed_t y);
 extern boolean P_CheckSight (mobj_t *t1, mobj_t *t2);
 extern boolean P_TeleportMove (mobj_t *thing, fixed_t x, fixed_t y);
@@ -457,9 +457,9 @@ extern boolean P_PathTraverse (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 extern fixed_t P_AproxDistance (fixed_t dx, fixed_t dy);
 extern fixed_t P_InterceptVector (divline_t* v2, divline_t* v1);
 extern int     P_BoxOnLineSide (fixed_t* tmbox, line_t* ld);
-extern int     P_PointOnDivlineSide (fixed_t x, fixed_t y, divline_t* line);
+extern int     P_PointOnDivlineSide (fixed_t x, fixed_t y, const divline_t *const line);
 extern int     P_PointOnLineSide (fixed_t x, fixed_t y, line_t* line);
-extern void    P_LineOpening (line_t* linedef);
+extern void    P_LineOpening (const line_t *const linedef);
 extern void    P_MakeDivline (line_t* li, divline_t* dl);
 extern void    P_SetThingPosition (mobj_t *thing);
 extern void    P_UnsetThingPosition (mobj_t *thing);
@@ -490,8 +490,8 @@ extern void    P_CheckMissileSpawn (mobj_t *th);
 extern void    P_MobjThinker (mobj_t *mobj);
 extern void    P_RemoveMobj (mobj_t *th);
 extern void    P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, int damage, mobj_t *target);
-extern void    P_SpawnMapThing (mapthing_t *mthing);
-extern void    P_SpawnPlayer (mapthing_t *mthing);
+extern void    P_SpawnMapThing (const mapthing_t *const mthing);
+extern void    P_SpawnPlayer (const mapthing_t *mthing);
 extern void    P_SpawnPlayerMissile (mobj_t *source, mobjtype_t type);
 extern void    P_SpawnPuff (fixed_t x, fixed_t y, fixed_t z);
 extern void    P_SpawnPuffSafe (fixed_t x, fixed_t y, fixed_t z, boolean safe);
@@ -547,10 +547,10 @@ typedef struct
 } plat_t;
 
 extern int  EV_DoPlat (line_t *line, plattype_e type, int amount);
-extern void EV_StopPlat (line_t *line);
+extern void EV_StopPlat (const line_t *const line);
 extern void P_ActivateInStasis (int tag);
 extern void P_AddActivePlat (plat_t *plat);
-extern void P_RemoveActivePlat (plat_t *plat);
+extern void P_RemoveActivePlat (const plat_t *const plat);
 extern void T_PlatRaise (plat_t *plat);
 
 extern plat_t *activeplats[MAXPLATS];
@@ -579,7 +579,7 @@ extern void A_CheckReload (mobj_t *mobj, player_t *player, pspdef_t *psp);
 extern void A_OpenShotgun2 (mobj_t *mobj, player_t *player, pspdef_t *psp);
 extern void A_LoadShotgun2 (mobj_t *mobj, player_t *player, pspdef_t *psp);
 extern void A_CloseShotgun2 (mobj_t *mobj, player_t *player, pspdef_t *psp);
-extern void A_FireCGun (mobj_t *mobj, player_t *player, pspdef_t *psp);
+extern void A_FireCGun (mobj_t *mobj, player_t *player, const pspdef_t *psp);
 extern void A_GunFlash (mobj_t *mobj, player_t *player, pspdef_t *psp);
 extern void A_FireMissile (mobj_t *mobj, player_t *player, pspdef_t *psp);
 extern void A_Saw (mobj_t *mobj, player_t *player, pspdef_t *psp);
@@ -676,11 +676,11 @@ extern fixed_t P_FindLowestCeilingSurrounding (sector_t *sec);
 extern fixed_t P_FindLowestFloorSurrounding (sector_t* sec);
 extern fixed_t P_FindNextHighestFloor (sector_t *sec, int currentheight);
 extern int     P_FindMinSurroundingLight (sector_t *sector, int max);
-extern int     P_FindSectorFromLineTag (line_t *line, int start);
+extern int     P_FindSectorFromLineTag (const line_t *line, int start);
 extern void    P_CrossSpecialLine (int linenum, int side, mobj_t *thing);
 extern void    P_InitPicAnims (void);
 extern void    P_PlayerInSpecialSector (player_t *player);
-extern void    P_ShootSpecialLine (mobj_t *thing, line_t *line);
+extern void    P_ShootSpecialLine (const mobj_t *thing, line_t *line);
 extern void    P_SpawnSpecials (void);
 extern void    P_UpdateSpecials (void);
 extern void    R_InterpolateTextureOffsets (void);
@@ -690,7 +690,7 @@ extern void    P_CrossSpecialLinePtr (line_t *line, int side, mobj_t *thing);
 extern int       twoSided (int sector, int line);
 extern sector_t *getSector (int currentSector, int line, int side);
 extern side_t   *getSide (int currentSector, int line, int side);
-extern sector_t *getNextSector (line_t *line, sector_t *sec);
+extern sector_t *getNextSector (line_t *line, const sector_t *sec);
 extern int       EV_DoDonut (line_t *line);
 
 // End-level timer (-TIMER option)
@@ -744,7 +744,7 @@ extern int       maxbuttons;
 // P_TELEPT
 // -----------------------------------------------------------------------------
 
-extern int EV_Teleport (line_t *line, int side, mobj_t *thing);
+extern int EV_Teleport (const line_t *line, int side, mobj_t *thing);
 
 // -----------------------------------------------------------------------------
 // P_TICK

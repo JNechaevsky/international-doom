@@ -1806,10 +1806,10 @@ void G_PlayerReborn (int player)
 // because something is occupying it 
 //
  
-boolean
+static boolean
 G_CheckSpot
 ( int		playernum,
-  mapthing_t*	mthing ) 
+  const mapthing_t *const	mthing ) 
 { 
     fixed_t		x;
     fixed_t		y; 
@@ -3318,7 +3318,7 @@ static const char *DemoVersionDescription(int version)
 void G_DoPlayDemo (void)
 {
     skill_t skill;
-    int i, lumpnum, episode, map;
+    int lumpnum, episode, map;
     int demoversion;
     boolean olddemo = false;
     int lumplength; // [crispy]
@@ -3409,7 +3409,7 @@ void G_DoPlayDemo (void)
     }
     
         
-    for (i=0 ; i<MAXPLAYERS ; i++) 
+    for (int i=0 ; i<MAXPLAYERS ; i++) 
 	playeringame[i] = *demo_p++; 
 
     if (playeringame[1] || M_CheckParm("-solo-net") > 0
@@ -3443,10 +3443,10 @@ void G_DoPlayDemo (void)
 
     // [crispy] demo progress bar
     {
-	int i, numplayersingame = 0;
+	int numplayersingame = 0;
 	byte *demo_ptr = demo_p;
 
-	for (i = 0; i < MAXPLAYERS; i++)
+	for (int i = 0; i < MAXPLAYERS; i++)
 	{
 	    if (playeringame[i])
 	    {

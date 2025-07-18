@@ -87,38 +87,12 @@ P_SetPsprite
 
 
 //
-// P_CalcSwing
-//	
-fixed_t		swingx;
-fixed_t		swingy;
-
-void P_CalcSwing (player_t*	player)
-{
-    fixed_t	swing;
-    int		angle;
-	
-    // OPTIMIZE: tablify this.
-    // A LUT would allow for different modes,
-    //  and add flexibility.
-
-    swing = player->bob;
-
-    angle = (FINEANGLES/70*realleveltime)&FINEMASK;
-    swingx = FixedMul ( swing, finesine[angle]);
-
-    angle = (FINEANGLES/70*realleveltime+FINEANGLES/2)&FINEMASK;
-    swingy = -FixedMul ( swingx, finesine[angle]);
-}
-
-
-
-//
 // P_BringUpWeapon
 // Starts bringing the pending weapon up
 // from the bottom of the screen.
 // Uses player
 //
-void P_BringUpWeapon (player_t* player)
+static void P_BringUpWeapon (player_t *const player)
 {
     statenum_t	newstate;
 	
@@ -144,7 +118,7 @@ void P_BringUpWeapon (player_t* player)
 // Returns true if there is enough ammo to shoot.
 // If not, selects the next weapon to use.
 //
-boolean P_CheckAmmo (player_t* player)
+static boolean P_CheckAmmo (player_t *const player)
 {
     ammotype_t		ammo;
     int			count;
@@ -229,7 +203,7 @@ boolean P_CheckAmmo (player_t* player)
 //
 // P_FireWeapon.
 //
-void P_FireWeapon (player_t* player)
+static void P_FireWeapon (player_t* player)
 {
     statenum_t	newstate;
 	
@@ -647,7 +621,7 @@ A_FirePlasma
 fixed_t		bulletslope;
 
 
-void P_BulletSlope (mobj_t*	mo)
+static void P_BulletSlope (mobj_t*	mo)
 {
     angle_t	an;
     
@@ -684,7 +658,7 @@ void P_BulletSlope (mobj_t*	mo)
 //
 // P_GunShot
 //
-void
+static void
 P_GunShot
 ( mobj_t*	mo,
   boolean	accurate )
@@ -832,7 +806,7 @@ void
 A_FireCGun
 ( mobj_t*	mobj,
   player_t*	player,
-  pspdef_t*	psp ) 
+  const pspdef_t*	psp ) 
 {
     if (!player) return; // [crispy] let pspr action pointers get called from mobj states
     S_StartSound (player->so, sfx_pistol); // [crispy] weapon sound source

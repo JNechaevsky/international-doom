@@ -91,7 +91,7 @@ static int spechit_max; // [crispy] remove SPECHIT limit
 //
 // PIT_StompThing
 //
-boolean PIT_StompThing (mobj_t* thing)
+static boolean PIT_StompThing (mobj_t *const thing)
 {
     fixed_t	blockdist;
 		
@@ -204,7 +204,7 @@ static void SpechitOverrun(line_t *ld);
 // PIT_CheckLine
 // Adjusts tmfloorz and tmceilingz as lines are contacted
 //
-boolean PIT_CheckLine (line_t* ld)
+static boolean PIT_CheckLine (line_t *const ld)
 {
     if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
 	|| tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
@@ -309,7 +309,7 @@ static char *CRL_GetMobjName (mobjtype_t type)
 //
 // PIT_CheckThing
 //
-boolean PIT_CheckThing (mobj_t* thing)
+static boolean PIT_CheckThing (mobj_t *const thing)
 {
     fixed_t		blockdist;
     boolean		solid;
@@ -727,7 +727,7 @@ void P_ApplyTorque (mobj_t *mo)
 // the z will be set to the lowest value
 // and false will be returned.
 //
-boolean P_ThingHeightClip (mobj_t* thing)
+static boolean P_ThingHeightClip (mobj_t *const thing)
 {
     boolean		onfloor;
 	
@@ -781,7 +781,7 @@ fixed_t		tmymove;
 // Adjusts the xmove / ymove
 // so that the next move will slide along the wall.
 //
-void P_HitSlideLine (line_t* ld)
+static void P_HitSlideLine (line_t *const ld)
 {
     int			side;
 
@@ -833,7 +833,7 @@ void P_HitSlideLine (line_t* ld)
 //
 // PTR_SlideTraverse
 //
-boolean PTR_SlideTraverse (intercept_t* in)
+static boolean PTR_SlideTraverse (intercept_t *const in)
 {
     line_t*	li;
 	
@@ -1012,8 +1012,8 @@ fixed_t		aimslope;
 // PTR_AimTraverse
 // Sets linetaget and aimslope when a target is aimed at.
 //
-boolean
-PTR_AimTraverse (intercept_t* in)
+static boolean
+PTR_AimTraverse (intercept_t *const in)
 {
     line_t*		li;
     mobj_t*		th;
@@ -1125,7 +1125,7 @@ PTR_AimTraverse (intercept_t* in)
 //
 // PTR_ShootTraverse
 //
-boolean PTR_ShootTraverse (intercept_t* in)
+static boolean PTR_ShootTraverse (intercept_t *const in)
 {
     fixed_t		x;
     fixed_t		y;
@@ -1373,7 +1373,7 @@ P_LineAttack
 //
 mobj_t*		usething;
 
-boolean	PTR_UseTraverse (intercept_t* in)
+static boolean	PTR_UseTraverse (intercept_t *const in)
 {
     int		side;
 	
@@ -1672,7 +1672,7 @@ boolean PIT_ChangeSector (mobj_t*	thing)
 //
 boolean
 P_ChangeSector
-( sector_t*	sector,
+( const sector_t *const	sector,
   boolean	crunch )
 {
     int		x;
@@ -1694,7 +1694,7 @@ P_ChangeSector
 // of the spechit array.  This is by Andrey Budko (e6y) and comes from his
 // PrBoom plus port.  A big thanks to Andrey for this.
 
-static void SpechitOverrun(line_t *ld)
+static void SpechitOverrun(line_t *const ld)
 {
     static unsigned int baseaddr = 0;
     unsigned int addr;

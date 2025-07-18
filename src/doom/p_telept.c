@@ -28,7 +28,7 @@
 //
 int
 EV_Teleport
-( line_t*	line,
+( const line_t*	line,
   int		side,
   mobj_t*	thing )
 {
@@ -38,7 +38,7 @@ EV_Teleport
     mobj_t*	fog;
     unsigned	an;
     thinker_t*	thinker;
-    sector_t*	sector;
+    const sector_t*	sector;
     fixed_t	oldx;
     fixed_t	oldy;
     fixed_t	oldz;

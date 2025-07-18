@@ -148,7 +148,7 @@ static void saveg_write32(int value)
     saveg_write8((value >> 24) & 0xff);
 }
 
-int64_t saveg_read64(void)
+static int64_t saveg_read64(void)
 {
     int64_t result;
 
@@ -164,7 +164,7 @@ int64_t saveg_read64(void)
     return result;
 }
 
-void saveg_write64(int64_t value)
+static void saveg_write64(int64_t value)
 {
     saveg_write8(value & 0xff);
     saveg_write8((value >> 8) & 0xff);
@@ -236,7 +236,7 @@ static void saveg_writep(const void *p)
 // mapthing_t
 //
 
-static void saveg_read_mapthing_t(mapthing_t *str)
+static void saveg_read_mapthing_t(mapthing_t *const str)
 {
     // short x;
     str->x = saveg_read16();
@@ -254,7 +254,7 @@ static void saveg_read_mapthing_t(mapthing_t *str)
     str->options = saveg_read16();
 }
 
-static void saveg_write_mapthing_t(mapthing_t *str)
+static void saveg_write_mapthing_t(const mapthing_t *const str)
 {
     // short x;
     saveg_write16(str->x);
@@ -565,7 +565,7 @@ static void saveg_write_mobj_t(mobj_t *str)
 // ticcmd_t
 //
 
-static void saveg_read_ticcmd_t(ticcmd_t *str)
+static void saveg_read_ticcmd_t(ticcmd_t *const str)
 {
 
     // signed char forwardmove;
@@ -587,7 +587,7 @@ static void saveg_read_ticcmd_t(ticcmd_t *str)
     str->buttons = saveg_read8();
 }
 
-static void saveg_write_ticcmd_t(ticcmd_t *str)
+static void saveg_write_ticcmd_t(ticcmd_t *const str)
 {
 
     // signed char forwardmove;
@@ -613,7 +613,7 @@ static void saveg_write_ticcmd_t(ticcmd_t *str)
 // pspdef_t
 //
 
-static void saveg_read_pspdef_t(pspdef_t *str)
+static void saveg_read_pspdef_t(pspdef_t *const str)
 {
     int state;
 
@@ -643,7 +643,7 @@ static void saveg_read_pspdef_t(pspdef_t *str)
     str->sy2 = str->oldsy2 = str->sy;
 }
 
-static void saveg_write_pspdef_t(pspdef_t *str)
+static void saveg_write_pspdef_t(const pspdef_t *const str)
 {
     // state_t* state;
     if (str->state)
@@ -1021,7 +1021,7 @@ static void saveg_write_ceiling_t(ceiling_t *str)
 // vldoor_t
 //
 
-static void saveg_read_vldoor_t(vldoor_t *str)
+static void saveg_read_vldoor_t(vldoor_t *const str)
 {
     int sector;
 
@@ -1051,7 +1051,7 @@ static void saveg_read_vldoor_t(vldoor_t *str)
     str->topcountdown = saveg_read32();
 }
 
-static void saveg_write_vldoor_t(vldoor_t *str)
+static void saveg_write_vldoor_t(vldoor_t *const str)
 {
     // thinker_t thinker;
     saveg_write_thinker_t(&str->thinker);
@@ -1082,7 +1082,7 @@ static void saveg_write_vldoor_t(vldoor_t *str)
 // floormove_t
 //
 
-static void saveg_read_floormove_t(floormove_t *str)
+static void saveg_read_floormove_t(floormove_t *const str)
 {
     int sector;
 
@@ -1115,7 +1115,7 @@ static void saveg_read_floormove_t(floormove_t *str)
     str->speed = saveg_read32();
 }
 
-static void saveg_write_floormove_t(floormove_t *str)
+static void saveg_write_floormove_t(floormove_t *const str)
 {
     // thinker_t thinker;
     saveg_write_thinker_t(&str->thinker);
@@ -1149,7 +1149,7 @@ static void saveg_write_floormove_t(floormove_t *str)
 // plat_t
 //
 
-static void saveg_read_plat_t(plat_t *str)
+static void saveg_read_plat_t(plat_t *const str)
 {
     int sector;
 
@@ -1191,7 +1191,7 @@ static void saveg_read_plat_t(plat_t *str)
     str->type = saveg_read_enum();
 }
 
-static void saveg_write_plat_t(plat_t *str)
+static void saveg_write_plat_t(plat_t *const str)
 {
     // thinker_t thinker;
     saveg_write_thinker_t(&str->thinker);
@@ -1234,7 +1234,7 @@ static void saveg_write_plat_t(plat_t *str)
 // lightflash_t
 //
 
-static void saveg_read_lightflash_t(lightflash_t *str)
+static void saveg_read_lightflash_t(lightflash_t *const str)
 {
     int sector;
 
@@ -1261,7 +1261,7 @@ static void saveg_read_lightflash_t(lightflash_t *str)
     str->mintime = saveg_read32();
 }
 
-static void saveg_write_lightflash_t(lightflash_t *str)
+static void saveg_write_lightflash_t(lightflash_t *const str)
 {
     // thinker_t thinker;
     saveg_write_thinker_t(&str->thinker);
@@ -1289,7 +1289,7 @@ static void saveg_write_lightflash_t(lightflash_t *str)
 // strobe_t
 //
 
-static void saveg_read_strobe_t(strobe_t *str)
+static void saveg_read_strobe_t(strobe_t *const str)
 {
     int sector;
 
@@ -1316,7 +1316,7 @@ static void saveg_read_strobe_t(strobe_t *str)
     str->brighttime = saveg_read32();
 }
 
-static void saveg_write_strobe_t(strobe_t *str)
+static void saveg_write_strobe_t(strobe_t *const str)
 {
     // thinker_t thinker;
     saveg_write_thinker_t(&str->thinker);
@@ -1344,7 +1344,7 @@ static void saveg_write_strobe_t(strobe_t *str)
 // glow_t
 //
 
-static void saveg_read_glow_t(glow_t *str)
+static void saveg_read_glow_t(glow_t *const str)
 {
     int sector;
 
@@ -1365,7 +1365,7 @@ static void saveg_read_glow_t(glow_t *str)
     str->direction = saveg_read32();
 }
 
-static void saveg_write_glow_t(glow_t *str)
+static void saveg_write_glow_t(glow_t *const str)
 {
     // thinker_t thinker;
     saveg_write_thinker_t(&str->thinker);
@@ -1387,7 +1387,7 @@ static void saveg_write_glow_t(glow_t *str)
 // fireflicker_t
 //
 
-static void saveg_read_fireflicker_t(fireflicker_t *str)
+static void saveg_read_fireflicker_t(fireflicker_t *const str)
 {
     // sector_t *sector
     str->sector = &sectors[saveg_read32()];
@@ -1402,7 +1402,7 @@ static void saveg_read_fireflicker_t(fireflicker_t *str)
     str->maxlight = saveg_read32();
 }
 
-static void saveg_write_fireflicker_t(fireflicker_t *str)
+static void saveg_write_fireflicker_t(const fireflicker_t *const str)
 {
     // sector_t *sector
     saveg_write32(str->sector - sectors);
@@ -1421,7 +1421,7 @@ static void saveg_write_fireflicker_t(fireflicker_t *str)
 // button_t
 //
 
-static void saveg_read_button_t(button_t *str)
+static void saveg_read_button_t(button_t *const str)
 {
     int line;
 
@@ -1439,7 +1439,7 @@ static void saveg_read_button_t(button_t *str)
     str->btimer = saveg_read32();
 }
 
-static void saveg_write_button_t(button_t *str)
+static void saveg_write_button_t(const button_t *const str)
 {
     // line_t *line;
     saveg_write32(str->line - lines);
@@ -1607,9 +1607,9 @@ void P_ArchiveWorld (void)
 {
     int			i;
     int			j;
-    sector_t*		sec;
-    line_t*		li;
-    side_t*		si;
+    const sector_t*		sec;
+    const line_t*		li;
+    const side_t*		si;
     
     // do sectors
     for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
@@ -1846,8 +1846,8 @@ enum
 //
 void P_ArchiveSpecials (void)
 {
-    thinker_t*		th;
-    button_t*		button_ptr;
+    const thinker_t*		th;
+    const button_t*		button_ptr;
     int			i;
 	
     // save off the current thinkers
