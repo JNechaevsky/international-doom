@@ -155,7 +155,7 @@ int
 P_PointOnDivlineSide
 ( fixed_t	x,
   fixed_t	y,
-  divline_t*	line )
+  const divline_t *const	line )
 {
     fixed_t	dx;
     fixed_t	dy;
@@ -291,10 +291,10 @@ fixed_t openrange;
 fixed_t	lowfloor;
 
 
-void P_LineOpening (line_t* linedef)
+void P_LineOpening (const line_t *const linedef)
 {
-    sector_t*	front;
-    sector_t*	back;
+    const sector_t*	front;
+    const sector_t*	back;
 	
     if (linedef->sidenum[1] == NO_INDEX) // [crispy] extended nodes
     {
@@ -668,7 +668,7 @@ divline_t 	trace;
 boolean 	earlyout;
 //int		ptflags;
 
-static void InterceptsOverrun(int num_intercepts, intercept_t *intercept);
+static void InterceptsOverrun(int num_intercepts, const intercept_t *const intercept);
 
 
 //
@@ -854,7 +854,7 @@ static boolean PIT_AddThingIntercepts (mobj_t* thing)
 // Returns true if the traverser function returns true
 // for all lines.
 // 
-boolean
+static boolean
 P_TraverseIntercepts
 ( traverser_t	func,
   fixed_t	maxfrac )
@@ -999,7 +999,7 @@ static void InterceptsMemoryOverrun(int location, int value)
 
 // Emulate overruns of the intercepts[] array.
 
-static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
+static void InterceptsOverrun(int num_intercepts, const intercept_t *const intercept)
 {
     int location;
 

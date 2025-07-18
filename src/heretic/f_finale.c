@@ -425,7 +425,7 @@ static void F_DrawUnderwater (void)
                 underwawa = true;
                 V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
                 const char *lumpname = DEH_String("E2PAL");
-                byte *const palette = W_CacheLumpName(lumpname, PU_STATIC);
+                const byte *const palette = W_CacheLumpName(lumpname, PU_STATIC);
                 R_SetUnderwaterPalette(palette);
                 W_ReleaseLumpName(lumpname);
                 V_DrawFullscreenRawOrPatch(W_GetNumForName(DEH_String("E2END")));

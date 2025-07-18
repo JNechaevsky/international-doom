@@ -265,7 +265,7 @@ static void StreamOut_ticcmd_t(ticcmd_t *str)
 // inventory_t
 //
 
-static void StreamIn_inventory_t(inventory_t *str)
+static void StreamIn_inventory_t(inventory_t *const str)
 {
     // int type;
     str->type = SV_ReadLong();
@@ -274,7 +274,7 @@ static void StreamIn_inventory_t(inventory_t *str)
     str->count = SV_ReadLong();
 }
 
-static void StreamOut_inventory_t(inventory_t *str)
+static void StreamOut_inventory_t(const inventory_t *const str)
 {
     // int type;
     SV_WriteLong(str->type);
@@ -319,7 +319,7 @@ static void StreamIn_pspdef_t(pspdef_t *str)
     str->sy2 = str->oldsy2 = str->sy;
 }
 
-static void StreamOut_pspdef_t(pspdef_t *str)
+static void StreamOut_pspdef_t(const pspdef_t *const str)
 {
     // state_t *state;
     // This is a pointer; store the index in the states table,
@@ -2544,7 +2544,7 @@ static void ArchiveWorld(void)
     int j;
     sector_t *sec;
     line_t *li;
-    side_t *si;
+    const side_t *si;
 
     SV_WriteLong(ASEG_WORLD);
     for (i = 0, sec = sectors; i < numsectors; i++, sec++)
@@ -2747,7 +2747,7 @@ static void UnarchiveMobjs(void)
 //
 //==========================================================================
 
-static int GetMobjNum(mobj_t * mobj)
+static int GetMobjNum(mobj_t *const mobj)
 {
     if (mobj == NULL)
     {

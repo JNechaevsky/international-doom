@@ -185,7 +185,7 @@ static statenum_t P_LatestSafeState(statenum_t state)
 //
 // P_ExplodeMissile  
 //
-static void P_ExplodeMissileSafe (mobj_t* mo, boolean safe)
+static void P_ExplodeMissileSafe (mobj_t *const mo, boolean safe)
 {
     mo->momx = mo->momy = mo->momz = 0;
 
@@ -204,7 +204,7 @@ static void P_ExplodeMissileSafe (mobj_t* mo, boolean safe)
 	S_StartSound (mo, mo->info->deathsound);
 }
 
-void P_ExplodeMissile (mobj_t* mo)
+static void P_ExplodeMissile (mobj_t *const mo)
 {
     P_ExplodeMissileSafe(mo, false);
 }
@@ -215,7 +215,7 @@ void P_ExplodeMissile (mobj_t* mo)
 #define STOPSPEED		0x1000
 #define FRICTION		0xe800
 
-void P_XYMovement (mobj_t* mo) 
+static void P_XYMovement (mobj_t *const mo) 
 { 	
     fixed_t 	ptryx;
     fixed_t	ptryy;
@@ -355,7 +355,7 @@ void P_XYMovement (mobj_t* mo)
 //
 // P_ZMovement
 //
-void P_ZMovement (mobj_t* mo)
+static void P_ZMovement (mobj_t *const mo)
 {
     fixed_t	dist;
     fixed_t	delta;
@@ -522,15 +522,15 @@ void P_ZMovement (mobj_t* mo)
 //
 // P_NightmareRespawn
 //
-void
-P_NightmareRespawn (mobj_t* mobj)
+static void
+P_NightmareRespawn (mobj_t *const mobj)
 {
     fixed_t		x;
     fixed_t		y;
     fixed_t		z; 
     subsector_t*	ss; 
     mobj_t*		mo;
-    mapthing_t*		mthing;
+    const mapthing_t*		mthing;
 		
     x = mobj->spawnpoint.x << FRACBITS; 
     y = mobj->spawnpoint.y << FRACBITS; 
@@ -880,7 +880,7 @@ void P_RespawnSpecials (void)
     
     subsector_t*	ss; 
     mobj_t*		mo;
-    mapthing_t*		mthing;
+    const mapthing_t*		mthing;
     
     int			i;
 
@@ -942,7 +942,7 @@ mobj_t *Crispy_PlayerSO (int p)
 // Most of the player structure stays unchanged
 //  between levels.
 //
-void P_SpawnPlayer (mapthing_t* mthing)
+void P_SpawnPlayer (const mapthing_t* mthing)
 {
     player_t*		p;
     fixed_t		x;
@@ -950,8 +950,6 @@ void P_SpawnPlayer (mapthing_t* mthing)
     fixed_t		z;
 
     mobj_t*		mobj;
-
-    int			i;
 
     // [JN] Stop fast forward after entering new level while demo playback.
     if (demo_gotonextlvl)
@@ -1017,7 +1015,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
     
     // give all cards in death match mode
     if (deathmatch)
-	for (i=0 ; i<NUMCARDS ; i++)
+	for (int i=0 ; i<NUMCARDS ; i++)
 	    p->cards[i] = true;
 			
     if (mthing->type-1 == consoleplayer)
@@ -1033,7 +1031,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
 // The fields of the mapthing should
 // already be in host byte order.
 //
-void P_SpawnMapThing (mapthing_t* mthing)
+void P_SpawnMapThing (const mapthing_t *const mthing)
 {
     int			i;
     int			bit;

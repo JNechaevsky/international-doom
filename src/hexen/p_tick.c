@@ -109,7 +109,7 @@ static void RunThinkers(void)
         // [JN] CRL - do not run other than player thinkers in freeze mode.
         if (crl_freeze)
         {
-            mobj_t *mo = (mobj_t *)currentthinker;
+            const mobj_t *const mo = (mobj_t *)currentthinker;
 
             if ((mo->type != MT_PLAYER_FIGHTER
             &&   mo->type != MT_PLAYER_CLERIC

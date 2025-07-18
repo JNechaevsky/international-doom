@@ -104,7 +104,7 @@ void T_MoveCeiling(thinker_t *thinker)
 //              Move a ceiling up/down and all around!
 //
 //==================================================================
-int EV_DoCeiling(line_t * line, byte * arg, ceiling_e type)
+int EV_DoCeiling(line_t * line, const byte *arg, ceiling_e type)
 {
     int secnum, rtn;
     sector_t *sec;
@@ -236,7 +236,7 @@ void P_AddActiveCeiling(ceiling_t * c)
 //              Remove a ceiling's thinker
 //
 //==================================================================
-void P_RemoveActiveCeiling(ceiling_t * c)
+void P_RemoveActiveCeiling(const ceiling_t *c)
 {
     int i;
 
@@ -281,7 +281,7 @@ void P_ActivateInStasisCeiling(line_t * line)
 //
 //==================================================================
 
-int EV_CeilingCrushStop(line_t * line, byte * args)
+int EV_CeilingCrushStop(line_t * line, const byte *args)
 {
     int i;
     int rtn;

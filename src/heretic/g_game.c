@@ -56,8 +56,8 @@
 
 // Functions
 
-void G_ReadDemoTiccmd(ticcmd_t * cmd);
-void G_WriteDemoTiccmd(ticcmd_t * cmd);
+static void G_ReadDemoTiccmd(ticcmd_t *const cmd);
+static void G_WriteDemoTiccmd(ticcmd_t *const cmd);
 void G_PlayerReborn(int player);
 
 void G_DoReborn(int playernum);
@@ -67,7 +67,7 @@ void G_DoNewGame(void);
 void G_DoCompleted(void);
 void G_DoVictory(void);
 void G_DoWorldDone(void);
-void G_DoSaveGame(void);
+static void G_DoSaveGame(void);
 
 void D_PageTicker(void);
 void D_AdvanceDemo(void);
@@ -411,7 +411,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     short mousex_angleturn; // [crispy]
     int forward, side;
     int look, arti;
-    int flyheight;
+    int fly_height;
     ticcmd_t spect;
 
     // haleyjd: removed externdriver crap
@@ -459,7 +459,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     // haleyjd: removed externdriver crap
     
-    forward = side = look = arti = flyheight = 0;
+    forward = side = look = arti = fly_height = 0;
 
 //
 // use two stage accelerative turning on the keyboard and joystick
@@ -674,15 +674,15 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     // Fly up/down/drop keys
     if (gamekeydown[key_flyup])
     {
-        flyheight = 5;          // note that the actual flyheight will be twice this
+        fly_height = 5;          // note that the actual fly_height will be twice this
     }
     if (gamekeydown[key_flydown])
     {
-        flyheight = -5;
+        fly_height = -5;
     }
     if (gamekeydown[key_flycenter])
     {
-        flyheight = TOCENTER;
+        fly_height = TOCENTER;
         // haleyjd: removed externdriver crap
         look = TOCENTER;
     }
@@ -990,11 +990,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         }
         cmd->lookfly = look;
     }
-    if (flyheight < 0)
+    if (fly_height < 0)
     {
-        flyheight += 16;
+        fly_height += 16;
     }
-    cmd->lookfly |= flyheight << 4;
+    cmd->lookfly |= fly_height << 4;
 
 //
 // special buttons
@@ -1216,7 +1216,7 @@ static boolean InventoryMoveLeft(void)
 
 static boolean InventoryMoveRight(void)
 {
-    player_t *plr;
+    const player_t *plr;
 
     plr = &players[consoleplayer];
     inventoryTics = 5 * TICRATE;
@@ -2078,7 +2078,7 @@ void G_PlayerReborn(int player)
 ====================
 */
 
-boolean G_CheckSpot(int playernum, mapthing_t * mthing)
+static boolean G_CheckSpot(int playernum, const mapthing_t *const mthing)
 {
     fixed_t x, y;
     subsector_t *ss;
@@ -2315,7 +2315,7 @@ static void G_WriteLevelStat(void)
 void G_DoCompleted(void)
 {
     int i;
-    static int afterSecret[5] = { 7, 5, 5, 5, 4 };
+    static const int afterSecret[5] = { 7, 5, 5, 5, 4 };
 
     // [crispy] Write level statistics upon exit
     if (M_ParmExists("-levelstat"))
@@ -2786,7 +2786,7 @@ void G_DoSelectiveGame (int choice)
 // [crispy] demo progress bar and timer widget
 int defdemotics = 0, deftotaldemotics;
 
-void G_ReadDemoTiccmd(ticcmd_t * cmd)
+static void G_ReadDemoTiccmd(ticcmd_t *const cmd)
 {
     if (*demo_p == DEMOMARKER)
     {                           // end of demo data stream
@@ -2845,7 +2845,7 @@ static void IncreaseDemoBuffer(void)
     demoend = demobuffer + new_length;
 }
 
-void G_WriteDemoTiccmd(ticcmd_t * cmd)
+static void G_WriteDemoTiccmd(ticcmd_t *const cmd)
 {
     byte *demo_start;
 
@@ -3408,7 +3408,7 @@ void G_SaveGame(int slot, char *description)
 //
 //==========================================================================
 
-void G_DoSaveGame(void)
+static void G_DoSaveGame(void)
 {
     int i;
     char *filename;

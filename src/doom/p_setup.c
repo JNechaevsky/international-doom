@@ -404,7 +404,7 @@ static void P_LoadSegs (int lump)
                 {
                     si->backsector = 0;
                     fprintf(stderr,
-                        "P_LoadSegs: Linedef %d has two-sided flag set, but no second sidedef\n",
+                        "P_LoadSegs: Linedef %u has two-sided flag set, but no second sidedef\n",
                         (unsigned)lineIdx);
                 }
                 else
@@ -964,8 +964,8 @@ static boolean P_LoadBlockMap (int lump)
 static void P_CreateBlockMap(void)
 {
     // Compute map bounds in block units
-    int32_t minX = INT_MAX, minY = INT_MAX;
-    int32_t maxX = INT_MIN, maxY = INT_MIN;
+    fixed_t minX = INT_MAX, minY = INT_MAX;
+    fixed_t maxX = INT_MIN, maxY = INT_MIN;
 
     for (int i = 0; i < numvertexes; ++i)
     {
@@ -1071,7 +1071,7 @@ static void P_CreateBlockMap(void)
 // Finds block bounding boxes for sectors.
 // -----------------------------------------------------------------------------
 
-void P_GroupLines (void)
+static void P_GroupLines (void)
 {
     // Assign a sector for each subsector
     for (int i = 0; i < numsubsectors; ++i)
@@ -1259,16 +1259,14 @@ static void PadRejectArray (byte *restrict array, unsigned int len)
     // If the REJECT lump is larger than header, pad remaining bytes
     if (len > sizeof(rejectpad))
     {
+        fprintf(stderr,
+            "PadRejectArray: REJECT lump too short to pad! (%u > %zu)\n",
+            len, sizeof(rejectpad));
+
         const unsigned int padStart = sizeof(rejectpad);
         const unsigned int padCount = len - padStart;
         const byte padValue = M_CheckParm("-reject_pad_with_ff") ? 0xFF : 0x00;
         memset(array + padStart, padValue, padCount);
-    }
-    else if (len > sizeof(rejectpad))
-    {
-        fprintf(stderr,
-            "PadRejectArray: REJECT lump too short to pad! (%u > %zu)\n",
-            len, sizeof(rejectpad));
     }
 }
 

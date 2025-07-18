@@ -254,7 +254,7 @@ void P_MovePlayer(player_t * player)
 {
     int look;
     int fly;
-    ticcmd_t *cmd;
+    const ticcmd_t *cmd;
 
     cmd = &player->cmd;
     player->mo->angle += (cmd->angleturn << 16);
@@ -557,7 +557,7 @@ void P_ChickenPlayerThink(player_t * player)
 //
 //----------------------------------------------------------------------------
 
-int P_GetPlayerNum(player_t * player)
+int P_GetPlayerNum(const player_t *player)
 {
     int i;
 

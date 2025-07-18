@@ -322,7 +322,7 @@ twoSided
 sector_t*
 getNextSector
 ( line_t*	line,
-  sector_t*	sec )
+  const sector_t*	sec )
 {
     if (!(line->flags & ML_TWOSIDED))
 	return NULL;
@@ -343,7 +343,7 @@ fixed_t	P_FindLowestFloorSurrounding(sector_t* sec)
 {
     int			i;
     line_t*		check;
-    sector_t*		other;
+    const sector_t*		other;
     fixed_t		floor = sec->floorheight;
 	
     for (i=0 ;i < sec->linecount ; i++)
@@ -370,7 +370,7 @@ fixed_t	P_FindHighestFloorSurrounding(sector_t *sec)
 {
     int			i;
     line_t*		check;
-    sector_t*		other;
+    const sector_t*		other;
     fixed_t		floor = -500*FRACUNIT;
 	
     for (i=0 ;i < sec->linecount ; i++)
@@ -408,7 +408,7 @@ P_FindNextHighestFloor
     int         h;
     int         min;
     line_t*     check;
-    sector_t*   other;
+    const sector_t*   other;
     fixed_t     height = currentheight;
     static fixed_t *heightlist = NULL;
     static int heightlist_size = 0;
@@ -478,7 +478,7 @@ P_FindLowestCeilingSurrounding(sector_t* sec)
 {
     int			i;
     line_t*		check;
-    sector_t*		other;
+    const sector_t*		other;
     fixed_t		height = INT_MAX;
 	
     for (i=0 ;i < sec->linecount ; i++)
@@ -503,7 +503,7 @@ fixed_t	P_FindHighestCeilingSurrounding(sector_t* sec)
 {
     int		i;
     line_t*	check;
-    sector_t*	other;
+    const sector_t*	other;
     fixed_t	height = 0;
 	
     for (i=0 ;i < sec->linecount ; i++)
@@ -527,7 +527,7 @@ fixed_t	P_FindHighestCeilingSurrounding(sector_t* sec)
 //
 int
 P_FindSectorFromLineTag
-( line_t*	line,
+( const line_t*	line,
   int		start )
 {
     int	i;
@@ -535,8 +535,8 @@ P_FindSectorFromLineTag
     // [crispy] emit a warning for linedefs without tags
     if (!line->tag)
     {
-        const long linedef = line - lines;
-        fprintf(stderr, "P_FindSectorFromLineTag: Linedef %ld without tag\n", linedef);
+        const long ldef = line - lines;
+        fprintf(stderr, "P_FindSectorFromLineTag: Linedef %ld without tag\n", ldef);
     }
 
     for (i=start+1;i<numsectors;i++)
@@ -560,7 +560,7 @@ P_FindMinSurroundingLight
     int		i;
     int		min;
     line_t*	line;
-    sector_t*	check;
+    const sector_t*	check;
 	
     min = max;
     for (i=0 ; i < sector->linecount ; i++)
@@ -1081,7 +1081,7 @@ P_CrossSpecialLinePtr
 //
 void
 P_ShootSpecialLine
-( mobj_t*	thing,
+( const mobj_t*	thing,
   line_t*	line )
 {
     int		ok;
@@ -1133,7 +1133,7 @@ P_ShootSpecialLine
 void P_PlayerInSpecialSector (player_t* player)
 {
     sector_t*	sector;
-    static sector_t*	error;
+    static const sector_t*	error;
 	
     sector = player->mo->subsector->sector;
 
@@ -1463,7 +1463,7 @@ int EV_DoDonut(line_t*	line)
 {
     sector_t*		s1;
     sector_t*		s2;
-    sector_t*		s3;
+    const sector_t*		s3;
     int			secnum;
     int			rtn;
     int			i;

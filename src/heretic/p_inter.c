@@ -31,7 +31,7 @@
 
 
 
-int WeaponValue[] = {
+static const int WeaponValue[] = {
     1,                          // staff
     3,                          // goldwand
     4,                          // crossbow
@@ -64,7 +64,7 @@ int GetWeaponAmmo[NUMWEAPONS] = {
     0                           // beak
 };
 
-static weapontype_t GetAmmoChange[] = {
+static const weapontype_t GetAmmoChange[] = {
     wp_goldwand,
     wp_crossbow,
     wp_blaster,
@@ -420,12 +420,12 @@ boolean P_GivePower(player_t * player, powertype_t power)
 //
 //---------------------------------------------------------------------------
 
-boolean P_GiveArtifact(player_t * player, artitype_t arti, mobj_t * mo)
+boolean P_GiveArtifact(player_t * player, artitype_t arti, const mobj_t *mo)
 {
     int i;
 
     i = 0;
-    while (player->inventory[i].type != arti && i < player->inventorySlotNum)
+    while (i < player->inventorySlotNum && player->inventory[i].type != arti)
     {
         i++;
     }

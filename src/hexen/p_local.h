@@ -115,7 +115,7 @@ void P_PlayerNextArtifact(player_t *player);
 void P_PlayerRemoveArtifact(player_t * player, int slot);
 void P_PlayerUseArtifact(player_t * player, artitype_t arti);
 boolean P_UseArtifact(player_t * player, artitype_t arti);
-int P_GetPlayerNum(player_t * player);
+int P_GetPlayerNum(const player_t *player);
 void P_TeleportOther(mobj_t * victim);
 void ResetBlasted(mobj_t * mo);
 boolean P_UndoPlayerMorph(player_t *player);
@@ -427,12 +427,12 @@ extern polyblock_t **PolyBlockMap;
 
 void T_PolyDoor(thinker_t *thinker);
 void T_RotatePoly(thinker_t *thinker);
-boolean EV_RotatePoly(line_t * line, byte * args, int direction, boolean
+boolean EV_RotatePoly(line_t * line, const byte *args, int direction, boolean
                       overRide);
 void T_MovePoly(thinker_t *thinker);
-boolean EV_MovePoly(line_t * line, byte * args, boolean timesEight, boolean
+boolean EV_MovePoly(line_t * line, const byte *args, boolean timesEight, boolean
                     overRide);
-boolean EV_OpenPolyDoor(line_t * line, byte * args, podoortype_t type);
+boolean EV_OpenPolyDoor(line_t * line, const byte *args, podoortype_t type);
 
 // [crispy] add interp parameter to allow suppression of interpolation
 boolean PO_MovePolyobj(int num, int x, int y, boolean interp);
