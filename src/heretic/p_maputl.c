@@ -633,7 +633,7 @@ int ptflags;
 ==================
 */
 
-boolean PIT_AddLineIntercepts(line_t * ld)
+static boolean PIT_AddLineIntercepts(line_t * ld)
 {
     int s1, s2;
     fixed_t frac;
@@ -685,7 +685,7 @@ boolean PIT_AddLineIntercepts(line_t * ld)
 ==================
 */
 
-boolean PIT_AddThingIntercepts(mobj_t * thing)
+static boolean PIT_AddThingIntercepts(mobj_t * thing)
 {
     fixed_t x1, y1, x2, y2;
     int s1, s2;
@@ -744,7 +744,7 @@ boolean PIT_AddThingIntercepts(mobj_t * thing)
 ====================
 */
 
-boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
+static boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 {
     int count;
     fixed_t dist;

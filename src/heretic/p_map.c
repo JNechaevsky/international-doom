@@ -87,6 +87,8 @@ the MF_NO? flags while a thing is valid.
 ===============================================================================
 */
 
+static void P_FakeZMovement(mobj_t * mo);
+
 fixed_t tmbbox[4];
 mobj_t *tmthing;
 int tmflags;
@@ -125,7 +127,7 @@ mobj_t *onmobj;                 //generic global onmobj...used for landing on po
 ==================
 */
 
-boolean PIT_StompThing(mobj_t * thing)
+static boolean PIT_StompThing(mobj_t * thing)
 {
     fixed_t blockdist;
 
@@ -257,7 +259,7 @@ static void check_spechit(void)
 ==================
 */
 
-boolean PIT_CheckLine(line_t * ld)
+static boolean PIT_CheckLine(line_t * ld)
 {
     if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
         || tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
@@ -336,7 +338,7 @@ boolean PIT_CheckLine(line_t * ld)
 //
 //---------------------------------------------------------------------------
 
-boolean PIT_CheckThing(mobj_t * thing)
+static boolean PIT_CheckThing(mobj_t * thing)
 {
     fixed_t blockdist;
     boolean solid;
@@ -469,7 +471,7 @@ boolean PIT_CheckThing(mobj_t * thing)
 //
 //---------------------------------------------------------------------------
 
-boolean PIT_CheckOnmobjZ(mobj_t * thing)
+static boolean PIT_CheckOnmobjZ(mobj_t * thing)
 {
     fixed_t blockdist;
 
@@ -702,7 +704,7 @@ mobj_t *P_CheckOnmobj(mobj_t * thing)
 //              Fake the zmovement so that we can check if a move is legal
 //=============================================================================
 
-void P_FakeZMovement(mobj_t * mo)
+static void P_FakeZMovement(mobj_t * mo)
 {
     int dist;
     int delta;
@@ -781,7 +783,7 @@ void P_FakeZMovement(mobj_t * mo)
 //
 //==========================================================================
 
-void CheckMissileImpact(mobj_t * mobj)
+static void CheckMissileImpact(const mobj_t * mobj)
 {
     int i;
 
@@ -1065,7 +1067,7 @@ void P_ApplyTorque (mobj_t *mo)
 ==================
 */
 
-boolean P_ThingHeightClip(mobj_t * thing)
+static boolean P_ThingHeightClip(mobj_t * thing)
 {
     boolean onfloor;
 
@@ -1103,11 +1105,11 @@ Allows the player to slide along any angled walls
 ==============================================================================
 */
 
-fixed_t bestslidefrac, secondslidefrac;
-line_t *bestslideline, *secondslideline;
-mobj_t *slidemo;
+static fixed_t bestslidefrac, secondslidefrac;
+static line_t *bestslideline, *secondslideline;
+static mobj_t *slidemo;
 
-fixed_t tmxmove, tmymove;
+static fixed_t tmxmove, tmymove;
 
 /*
 ==================
@@ -1118,7 +1120,7 @@ fixed_t tmxmove, tmymove;
 ==================
 */
 
-void P_HitSlideLine(line_t * ld)
+static void P_HitSlideLine(line_t * ld)
 {
     int side;
     angle_t lineangle, moveangle, deltaangle;
@@ -1164,7 +1166,7 @@ void P_HitSlideLine(line_t * ld)
 ==============
 */
 
-boolean PTR_SlideTraverse(intercept_t * in)
+static boolean PTR_SlideTraverse(intercept_t * in)
 {
     line_t *li;
 
@@ -1363,9 +1365,9 @@ static char *CRL_GetMobjName (mobjtype_t type)
 ===============================================================================
 */
 
-boolean PTR_AimTraverse(intercept_t * in)
+static boolean PTR_AimTraverse(intercept_t * in)
 {
-    line_t *li;
+    const line_t *li;
     mobj_t *th;
     fixed_t slope, thingtopslope, thingbottomslope;
     fixed_t dist;
@@ -1480,7 +1482,7 @@ boolean PTR_AimTraverse(intercept_t * in)
 ==============================================================================
 */
 
-boolean PTR_ShootTraverse(intercept_t * in)
+static boolean PTR_ShootTraverse(intercept_t * in)
 {
     fixed_t x, y, z;
     fixed_t frac;
@@ -1704,9 +1706,9 @@ void P_LineAttack(mobj_t * t1, angle_t angle, fixed_t distance, fixed_t slope,
 ==============================================================================
 */
 
-mobj_t *usething;
+static mobj_t *usething;
 
-boolean PTR_UseTraverse(intercept_t * in)
+static boolean PTR_UseTraverse(intercept_t * in)
 {
     if (!in->d.line->special)
     {
@@ -1859,8 +1861,8 @@ void P_RadiusAttack(mobj_t * spot, mobj_t * source, int damage)
 ==============================================================================
 */
 
-boolean crushchange;
-boolean nofit;
+static boolean crushchange;
+static boolean nofit;
 
 /*
 ===============

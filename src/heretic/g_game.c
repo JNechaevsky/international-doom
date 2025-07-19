@@ -60,13 +60,13 @@ static void G_ReadDemoTiccmd(ticcmd_t *const cmd);
 static void G_WriteDemoTiccmd(ticcmd_t *const cmd);
 void G_PlayerReborn(int player);
 
-void G_DoReborn(int playernum);
+static void G_DoReborn(int playernum);
 
-void G_DoLoadLevel(void);
-void G_DoNewGame(void);
-void G_DoCompleted(void);
+static void G_DoLoadLevel(void);
+static void G_DoNewGame(void);
+static void G_DoCompleted(void);
 void G_DoVictory(void);
-void G_DoWorldDone(void);
+static void G_DoWorldDone(void);
 static void G_DoSaveGame(void);
 
 void D_PageTicker(void);
@@ -1070,7 +1070,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 ==============
 */
 
-void G_DoLoadLevel(void)
+static void G_DoLoadLevel(void)
 {
     int i;
 
@@ -1930,30 +1930,13 @@ also see P_SpawnPlayer in P_Things
 /*
 ====================
 =
-= G_InitPlayer
-=
-= Called at the start
-= Called by the game initialization functions
-====================
-*/
-
-void G_InitPlayer(int player)
-{
-    // clear everything else to defaults
-    G_PlayerReborn(player);
-}
-
-
-/*
-====================
-=
 = G_PlayerFinishLevel
 =
 = Can when a player completes a level
 ====================
 */
 
-void G_PlayerFinishLevel(int player)
+static void G_PlayerFinishLevel(int player)
 {
     player_t *p;
     int i;
@@ -2158,7 +2141,7 @@ void G_ClearSavename (void)
 ====================
 */
 
-void G_DoReborn(int playernum)
+static void G_DoReborn(int playernum)
 {
     int i;
 
@@ -2312,7 +2295,7 @@ static void G_WriteLevelStat(void)
     fclose(fstream);
 }
 
-void G_DoCompleted(void)
+static void G_DoCompleted(void)
 {
     int i;
     static const int afterSecret[5] = { 7, 5, 5, 5, 4 };
@@ -2396,7 +2379,7 @@ void G_WorldDone(void)
 //
 //============================================================================
 
-void G_DoWorldDone(void)
+static void G_DoWorldDone(void)
 {
     // [JN] jff 3/17/98 allow new level's music to be loaded
     idmusnum = -1;
@@ -2570,7 +2553,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
     }
 }
 
-void G_DoNewGame(void)
+static void G_DoNewGame(void)
 {
     // [JN] Andrey Budko: allow new level's music to be loaded
     idmusnum = -1;

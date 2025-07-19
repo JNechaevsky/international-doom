@@ -239,8 +239,8 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
             // arithmetic and by skipping the drawing of 2s normals whose
             // mapping to screen coordinates is totally out of range:
             {
-                int64_t t = ((int64_t) centeryfrac << FRACBITS)
-                          -  (int64_t) dc_texturemid * spryscale;
+                const int64_t t = ((int64_t) centeryfrac << FRACBITS)
+                                -  (int64_t) dc_texturemid * spryscale;
 
                 if (t + (int64_t) textureheight[texnum] * spryscale < 0
                 ||  t > (int64_t) SCREENHEIGHT << FRACBITS * 2)
@@ -255,7 +255,7 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
             dc_iscale = UINT_MAX / (unsigned)spryscale;
 
             // draw the texture
-            column_t *col = (column_t *)((byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
+            const column_t *const col = (column_t *)((byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
 
             R_DrawMaskedColumn (col, -1);
             maskedtexturecol[dc_x] = INT_MAX;  // [JN] 32-bit integer math
@@ -273,7 +273,7 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 
 static boolean didsolidcol;  // True if at least one column was marked solid
 
-void R_RenderSegLoop (void)
+static void R_RenderSegLoop (void)
 {
     fixed_t texturecolumn = 0;  // [JN] Purely to shut up the compiler.
 

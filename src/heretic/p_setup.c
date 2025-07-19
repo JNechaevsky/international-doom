@@ -38,7 +38,6 @@
 #include "id_func.h"
 
 
-void P_SpawnMapThing(mapthing_t * mthing);
 
 int numvertexes;
 vertex_t *vertexes;
@@ -85,7 +84,7 @@ typedef enum
 
 // [crispy] recalculate seg offsets
 // adapted from prboom-plus/src/p_setup.c:474-482
-fixed_t GetOffset(vertex_t *v1, vertex_t *v2)
+static fixed_t GetOffset(const vertex_t *v1, const vertex_t *v2)
 {
     fixed_t dx, dy;
     fixed_t r;
@@ -99,10 +98,10 @@ fixed_t GetOffset(vertex_t *v1, vertex_t *v2)
 
 // [crispy] support maps with NODES in compressed or uncompressed ZDBSP
 // format or DeePBSP format and/or LINEDEFS and THINGS lumps in Hexen format
-mapformat_t P_CheckMapFormat(int lumpnum)
+static mapformat_t P_CheckMapFormat(int lumpnum)
 {
     mapformat_t format = 0;
-    byte *nodes = NULL;
+    const byte *chk_nodes = NULL;
     int b;
 
     /*
@@ -117,23 +116,23 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 	fprintf(stderr, "Heretic format (");
 
     if (!((b = lumpnum+ML_NODES) < numlumps &&
-        (nodes = W_CacheLumpNum(b, PU_CACHE)) &&
+        (chk_nodes = W_CacheLumpNum(b, PU_CACHE)) &&
         W_LumpLength(b) > 0))
 	fprintf(stderr, "no nodes");
     else
-    if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
+    if (!memcmp(chk_nodes, "xNd4\0\0\0\0", 8))
     {
 	fprintf(stderr, "DeePBSP");
 	format |= MFMT_DEEPBSP;
     }
     else
-    if (!memcmp(nodes, "XNOD", 4))
+    if (!memcmp(chk_nodes, "XNOD", 4))
     {
 	fprintf(stderr, "ZDBSP");
 	format |= MFMT_ZDBSPX;
     }
     else
-    if (!memcmp(nodes, "ZNOD", 4))
+    if (!memcmp(chk_nodes, "ZNOD", 4))
     {
 	fprintf(stderr, "compressed ZDBSP");
 	format |= MFMT_ZDBSPZ;
@@ -143,7 +142,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
     fprintf(stderr, "), ");
 
-    if (nodes)
+    if (chk_nodes)
     {
         W_ReleaseLumpNum(b);
     }
@@ -153,7 +152,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
 // [crispy] support maps with DeePBSP nodes
 // adapted from prboom-plus/src/p_setup.c:633-752
-void P_LoadSegs_DeePBSP(int lump)
+static void P_LoadSegs_DeePBSP(int lump)
 {
     int i;
     mapseg_deepbsp_t *data;
@@ -166,7 +165,7 @@ void P_LoadSegs_DeePBSP(int lump)
     {
         seg_t *li = segs + i;
         mapseg_deepbsp_t *ml = data + i;
-        int side, linedef;
+        int side, line_def;
         line_t *ldef;
         int vn1, vn2;
 
@@ -180,21 +179,21 @@ void P_LoadSegs_DeePBSP(int lump)
         li->angle = (SHORT(ml->angle))<<FRACBITS;
 
     //  li->offset = (SHORT(ml->offset))<<FRACBITS; // [crispy] recalculated below
-        linedef = (unsigned short)SHORT(ml->linedef);
-        ldef = &lines[linedef];
+        line_def = (unsigned short)SHORT(ml->linedef);
+        ldef = &lines[line_def];
         li->linedef = ldef;
         side = SHORT(ml->side);
 
         // e6y: check for wrong indexes
-        if ((unsigned)linedef >= (unsigned)numlines)
+        if ((unsigned)line_def >= (unsigned)numlines)
         {
             I_Error("P_LoadSegs: seg %d references a non-existent linedef %d",
-                i, (unsigned)linedef);
+                i, (unsigned)line_def);
         }
         if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
         {
             I_Error("P_LoadSegs: linedef %d for seg %d references a non-existent sidedef %d",
-                linedef, i, (unsigned)ldef->sidenum[side]);
+                line_def, i, (unsigned)ldef->sidenum[side]);
         }
 
         li->sidedef = &sides[ldef->sidenum[side]];
@@ -213,7 +212,7 @@ void P_LoadSegs_DeePBSP(int lump)
 
 // [crispy] support maps with DeePBSP nodes
 // adapted from prboom-plus/src/p_setup.c:843-863
-void P_LoadSubsectors_DeePBSP(int lump)
+static void P_LoadSubsectors_DeePBSP(int lump)
 {
     mapsubsector_deepbsp_t *data;
     int i;
@@ -237,7 +236,7 @@ void P_LoadSubsectors_DeePBSP(int lump)
 }
 // [crispy] support maps with DeePBSP nodes
 // adapted from prboom-plus/src/p_setup.c:995-1038
-void P_LoadNodes_DeePBSP(int lump)
+static void P_LoadNodes_DeePBSP(int lump)
 {
     const byte *data;
     int i;
@@ -292,7 +291,7 @@ void P_LoadNodes_DeePBSP(int lump)
 // - added support for compressed ZDBSP nodes
 // - added support for flipped levels
 // [MB] 2020-04-30: Fix endianess for ZDoom extended nodes
-void P_LoadNodes_ZDBSP (int lump, boolean compressed)
+static void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 {
     byte *data;
     unsigned int i;
@@ -445,7 +444,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
     for (i = 0; i < numsegs; i++)
     {
         line_t *ldef;
-        unsigned int linedef;
+        unsigned int line_def;
         unsigned char side;
         seg_t *li = segs + i;
         mapseg_zdbsp_t *ml = (mapseg_zdbsp_t *) data + i;
@@ -456,21 +455,21 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
         li->v1 = &vertexes[v1];
         li->v2 = &vertexes[v2];
 
-        linedef = (unsigned short)SHORT(ml->linedef);
-        ldef = &lines[linedef];
+        line_def = (unsigned short)SHORT(ml->linedef);
+        ldef = &lines[line_def];
         li->linedef = ldef;
         side = ml->side;
 
         // e6y: check for wrong indexes
-        if ((unsigned)linedef >= (unsigned)numlines)
+        if ((unsigned)line_def >= (unsigned)numlines)
         {
             I_Error("P_LoadSegs: seg %d references a non-existent linedef %d",
-                i, (unsigned)linedef);
+                i, (unsigned)line_def);
         }
         if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
         {
             I_Error("P_LoadSegs: linedef %d for seg %d references a non-existent sidedef %d",
-                linedef, i, (unsigned)ldef->sidenum[side]);
+                line_def, i, (unsigned)ldef->sidenum[side]);
         }
 
         li->sidedef = &sides[ldef->sidenum[side]];
@@ -538,7 +537,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 =================
 */
 
-void P_LoadVertexes(int lump)
+static void P_LoadVertexes(int lump)
 {
     byte *data;
     int i;
@@ -574,14 +573,14 @@ void P_LoadVertexes(int lump)
 =================
 */
 
-void P_LoadSegs(int lump)
+static void P_LoadSegs(int lump)
 {
     byte *data;
     int i;
     mapseg_t *ml;
     seg_t *li;
     line_t *ldef;
-    int linedef, side;
+    int line_def, side;
 
     numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
     segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
@@ -597,8 +596,8 @@ void P_LoadSegs(int lump)
 
         li->angle = (SHORT(ml->angle)) << 16;
         li->offset = (SHORT(ml->offset)) << 16;
-        linedef = (unsigned short)SHORT(ml->linedef); // [crispy] extended nodes
-        ldef = &lines[linedef];
+        line_def = (unsigned short)SHORT(ml->linedef); // [crispy] extended nodes
+        ldef = &lines[line_def];
         li->linedef = ldef;
         side = SHORT(ml->side);
         li->sidedef = &sides[ldef->sidenum[side]];
@@ -705,7 +704,7 @@ void P_SegLengths(boolean contrast_only)
 =================
 */
 
-void P_LoadSubsectors(int lump)
+static void P_LoadSubsectors(int lump)
 {
     byte *data;
     int i;
@@ -737,7 +736,7 @@ void P_LoadSubsectors(int lump)
 =================
 */
 
-void P_LoadSectors(int lump)
+static void P_LoadSectors(int lump)
 {
     byte *data;
     int i;
@@ -788,7 +787,7 @@ void P_LoadSectors(int lump)
 =================
 */
 
-void P_LoadNodes(int lump)
+static void P_LoadNodes(int lump)
 {
     byte *data;
     int i, j, k;
@@ -844,7 +843,7 @@ void P_LoadNodes(int lump)
 =================
 */
 
-void P_LoadThings(int lump)
+static void P_LoadThings(int lump)
 {
     byte *data;
     int i;
@@ -928,13 +927,14 @@ void P_LoadThings(int lump)
 =================
 */
 
-void P_LoadLineDefs(int lump)
+static void P_LoadLineDefs(int lump)
 {
     byte *data;
     int i;
     maplinedef_t *mld;
     line_t *ld;
-    vertex_t *v1, *v2;
+    const vertex_t *v1;
+    const vertex_t *v2;
 
     numlines = W_LumpLength(lump) / sizeof(maplinedef_t);
     lines = Z_Malloc(numlines * sizeof(line_t), PU_LEVEL, 0);
@@ -1013,7 +1013,7 @@ void P_LoadLineDefs(int lump)
 =================
 */
 
-void P_LoadSideDefs(int lump)
+static void P_LoadSideDefs(int lump)
 {
     byte *data;
     int i;
@@ -1052,7 +1052,7 @@ void P_LoadSideDefs(int lump)
 =================
 */
 
-boolean P_LoadBlockMap(int lump)
+static boolean P_LoadBlockMap(int lump)
 {
     int i, count;
     int lumplen;
@@ -1296,7 +1296,7 @@ static void P_CreateBlockMap (void)
 =================
 */
 
-void P_GroupLines(void)
+static void P_GroupLines(void)
 {
     line_t **linebuffer;
     int i, j, total;

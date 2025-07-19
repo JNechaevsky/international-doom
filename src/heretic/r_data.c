@@ -376,26 +376,26 @@ static void R_GenerateLookup (int texnum)
         for (i = texture->patchcount, patch = texture->patches; --i >= 0;)
         {
             int pat = patch->patch;
-            const patch_t *realpatch = W_CacheLumpNum(pat, PU_CACHE);
-            int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
-            const int *cofs = realpatch->columnofs - x1;
+            const patch_t *real_patch = W_CacheLumpNum(pat, PU_CACHE);
+            int xx, xx_1 = patch++->originx, xx_2 = xx_1 + SHORT(realpatch->width);
+            const int *cofs = realpatch->columnofs - xx_1;
 
-            if (x2 > texture->width)
-                x2 = texture->width;
-            if (x1 < 0)
-                x1 = 0;
+            if (xx_2 > texture->width)
+                xx_2 = texture->width;
+            if (xx_1 < 0)
+                xx_1 = 0;
 
-            for (x = x1; x < x2; x++)
+            for (xx = xx_1; xx < xx_2; xx++)
             {
-                if (patchcount[x] > 1) // Only multipatched columns
+                if (patchcount[xx] > 1) // Only multipatched columns
                 {
                     const column_t *col =
-                        (const column_t *) ((const byte *) realpatch +
-                                            LONG(cofs[x]));
+                        (const column_t *) ((const byte *) real_patch +
+                                            LONG(cofs[xx]));
                     const byte *base = (const byte *) col;
 
                     // count posts
-                    for (; col->topdelta != 0xff; postcount[x]++)
+                    for (; col->topdelta != 0xff; postcount[xx]++)
                     {
                         if ((unsigned) ((const byte *) col - base) <= limit)
                             col = (const column_t *) ((const byte *) col +

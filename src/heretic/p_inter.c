@@ -127,7 +127,7 @@ static boolean GetAmmoChangePL2[NUMWEAPONS][NUMAMMO] =
 //
 //--------------------------------------------------------------------------
 
-boolean P_GiveAmmo(player_t * player, ammotype_t ammo, int count)
+static boolean P_GiveAmmo(player_t * player, ammotype_t ammo, int count)
 {
     int prevAmmo;
     //weapontype_t changeWeapon;
@@ -211,7 +211,7 @@ const char *const WeaponPickupMessages[NUMWEAPONS] =
     NULL // wp_beak
 };
 
-boolean P_GiveWeapon(player_t * player, weapontype_t weapon)
+static boolean P_GiveWeapon(player_t * player, weapontype_t weapon)
 {
     boolean gaveAmmo;
     boolean gaveWeapon;
@@ -292,7 +292,7 @@ boolean P_GiveBody(player_t * player, int num)
 //
 //---------------------------------------------------------------------------
 
-boolean P_GiveArmor(player_t * player, int armortype)
+static boolean P_GiveArmor(player_t * player, int armortype)
 {
     int hits;
 
@@ -312,7 +312,7 @@ boolean P_GiveArmor(player_t * player, int armortype)
 //
 //---------------------------------------------------------------------------
 
-void P_GiveKey(player_t * player, keytype_t key)
+static void P_GiveKey(player_t * player, keytype_t key)
 {
 
     if (player->keys[key])
@@ -464,7 +464,7 @@ boolean P_GiveArtifact(player_t * player, artitype_t arti, const mobj_t *mo)
 //
 //---------------------------------------------------------------------------
 
-void P_SetDormantArtifact(mobj_t * arti)
+static void P_SetDormantArtifact(mobj_t * arti)
 {
     arti->flags &= ~MF_SPECIAL;
     if (deathmatch && (arti->type != MT_ARTIINVULNERABILITY)
@@ -498,7 +498,7 @@ void A_RestoreArtifact(mobj_t * arti, player_t *player, pspdef_t *psp)
 //
 //----------------------------------------------------------------------------
 
-void P_HideSpecialThing(mobj_t * thing)
+static void P_HideSpecialThing(mobj_t * thing)
 {
     thing->flags &= ~MF_SPECIAL;
     thing->flags2 |= MF2_DONTDRAW;
@@ -887,7 +887,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 //
 //---------------------------------------------------------------------------
 
-void P_KillMobj(mobj_t * source, mobj_t * target)
+static void P_KillMobj(mobj_t * source, mobj_t * target)
 {
     target->flags &= ~(MF_SHOOTABLE | MF_FLOAT | MF_SKULLFLY | MF_NOGRAVITY);
     target->flags |= MF_CORPSE | MF_DROPOFF;
@@ -971,7 +971,7 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
 //
 //---------------------------------------------------------------------------
 
-void P_MinotaurSlam(mobj_t * source, mobj_t * target)
+static void P_MinotaurSlam(mobj_t * source, mobj_t * target)
 {
     angle_t angle;
     fixed_t thrust;
@@ -994,7 +994,7 @@ void P_MinotaurSlam(mobj_t * source, mobj_t * target)
 //
 //---------------------------------------------------------------------------
 
-void P_TouchWhirlwind(mobj_t * target)
+static void P_TouchWhirlwind(mobj_t * target)
 {
     int randVal;
 
@@ -1138,7 +1138,7 @@ boolean P_ChickenMorph(mobj_t * actor)
 //
 //---------------------------------------------------------------------------
 
-boolean P_AutoUseChaosDevice(player_t * player)
+static boolean P_AutoUseChaosDevice(player_t * player)
 {
     int i;
 
@@ -1160,7 +1160,7 @@ boolean P_AutoUseChaosDevice(player_t * player)
 //
 //---------------------------------------------------------------------------
 
-void P_AutoUseHealth(player_t * player, int saveHealth)
+static void P_AutoUseHealth(player_t * player, int saveHealth)
 {
     int i;
     int count;

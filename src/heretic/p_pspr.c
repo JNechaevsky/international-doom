@@ -255,7 +255,7 @@ void P_OpenWeapons(void)
 //
 //---------------------------------------------------------------------------
 
-void P_AddMaceSpot(mapthing_t * mthing)
+void P_AddMaceSpot(const mapthing_t * mthing)
 {
     if (MaceSpotCount == MaceSpotCountMax)
     {
@@ -421,7 +421,7 @@ void P_PostChickenWeapon(player_t * player, weapontype_t weapon)
 //
 //---------------------------------------------------------------------------
 
-void P_BringUpWeapon(player_t * player)
+static void P_BringUpWeapon(player_t * player)
 {
     statenum_t new;
 
@@ -459,10 +459,10 @@ void P_BringUpWeapon(player_t * player)
 //
 //---------------------------------------------------------------------------
 
-boolean P_CheckAmmo(player_t * player)
+static boolean P_CheckAmmo(player_t * player)
 {
     ammotype_t ammo;
-    int *ammoUse;
+    const int *ammoUse;
     int count;
 
     ammo = wpnlev1info[player->readyweapon].ammo;
@@ -540,7 +540,7 @@ boolean P_CheckAmmo(player_t * player)
 //
 //---------------------------------------------------------------------------
 
-void P_FireWeapon(player_t * player)
+static void P_FireWeapon(player_t * player)
 {
     weaponinfo_t *wpinfo;
     statenum_t attackState;
@@ -673,7 +673,7 @@ void A_WeaponReady(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 //---------------------------------------------------------------------------
 
-void P_UpdateBeak(player_t * player, pspdef_t * psp)
+void P_UpdateBeak(const player_t * player, pspdef_t * psp)
 {
     psp->sy = WEAPONTOP + (player->chickenPeck << (FRACBITS - 1));
 }
@@ -819,7 +819,7 @@ void A_Raise(mobj_t *actor, player_t *player, pspdef_t *psp)
 ===============
 */
 
-void P_BulletSlope(mobj_t * mo)
+static void P_BulletSlope(mobj_t * mo)
 {
     angle_t an;
 
@@ -1075,7 +1075,7 @@ void A_FireGoldWandPL2(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 //----------------------------------------------------------------------------
 
-void A_FireMacePL1B(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_FireMacePL1B(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *pmo;
     mobj_t *ball;
@@ -1681,7 +1681,7 @@ void A_PhoenixPuff(mobj_t *actor, player_t *player, pspdef_t *psp)
 // The purpose of this object is unknown, as is this function.
 //
 
-void A_RemovedPhoenixFunc(mobj_t *actor, player_t * player, pspdef_t * psp)
+void A_RemovedPhoenixFunc(const mobj_t *actor, const player_t * player, const pspdef_t * psp)
 {
     I_Error("Action function invoked for removed Phoenix action!");
 }
@@ -1864,16 +1864,6 @@ void A_GauntletAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 void A_Light0(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     player->extralight = 0;
-}
-
-void A_Light1(mobj_t *actor, player_t *player, pspdef_t *psp)
-{
-    player->extralight = 1;
-}
-
-void A_Light2(mobj_t *actor, player_t *player, pspdef_t *psp)
-{
-    player->extralight = 2;
 }
 
 //------------------------------------------------------------------------

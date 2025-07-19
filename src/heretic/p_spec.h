@@ -78,7 +78,7 @@ void P_AmbientSound(void);
 
 // when needed
 boolean P_UseSpecialLine(mobj_t * thing, line_t * line);
-void P_ShootSpecialLine(mobj_t * thing, line_t * line);
+void P_ShootSpecialLine(const mobj_t * thing, line_t * line);
 void P_CrossSpecialLine(int linenum, int side, mobj_t * thing);
 
 void P_PlayerInSpecialSector(player_t * player);
@@ -91,14 +91,14 @@ fixed_t P_FindHighestFloorSurrounding(sector_t * sec);
 fixed_t P_FindNextHighestFloor(sector_t * sec, int currentheight);
 fixed_t P_FindLowestCeilingSurrounding(sector_t * sec);
 fixed_t P_FindHighestCeilingSurrounding(sector_t * sec);
-int P_FindSectorFromLineTag(line_t * line, int start);
+int P_FindSectorFromLineTag(const line_t * line, int start);
 int P_FindMinSurroundingLight(sector_t * sector, int max);
-sector_t *getNextSector(line_t * line, sector_t * sec);
+sector_t *getNextSector(line_t * line, const sector_t * sec);
 
 //
 //      SPECIAL
 //
-int EV_DoDonut(line_t * line);
+int EV_DoDonut(const line_t * line);
 
 /*
 ===============================================================================
@@ -147,9 +147,9 @@ void T_LightFlash(thinker_t *thinker);
 void P_SpawnLightFlash(sector_t * sector);
 void T_StrobeFlash(thinker_t *thinker);
 void P_SpawnStrobeFlash(sector_t * sector, int fastOrSlow, int inSync);
-void EV_StartLightStrobing(line_t * line);
-void EV_TurnTagLightsOff(line_t * line);
-void EV_LightTurnOn(line_t * line, int bright);
+void EV_StartLightStrobing(const line_t * line);
+void EV_TurnTagLightsOff(const line_t * line);
+void EV_LightTurnOn(const line_t * line, int bright);
 void T_Glow(thinker_t *thinker);
 void P_SpawnGlowingLight(sector_t * sector);
 
@@ -241,9 +241,7 @@ extern plat_t *activeplats[MAXPLATS];
 void T_PlatRaise(thinker_t *thinker);
 int EV_DoPlat(line_t * line, plattype_e type, int amount);
 void P_AddActivePlat(plat_t * plat);
-void P_RemoveActivePlat(const plat_t *plat);
 void EV_StopPlat(const line_t *line);
-void P_ActivateInStasis(int tag);
 
 /*
 ===============================================================================
@@ -278,7 +276,7 @@ typedef struct
 #define	VDOORWAIT		150
 
 void EV_VerticalDoor(line_t * line, mobj_t * thing);
-int EV_DoDoor(line_t * line, vldoor_e type, fixed_t speed);
+int EV_DoDoor(const line_t * line, vldoor_e type, fixed_t speed);
 void T_VerticalDoor(thinker_t *thinker);
 void P_SpawnDoorCloseIn30(sector_t * sec);
 void P_SpawnDoorRaiseIn5Mins(sector_t * sec, int secnum);
@@ -318,7 +316,7 @@ typedef struct
 
 extern ceiling_t *activeceilings[MAXCEILINGS];
 
-int EV_DoCeiling(line_t * line, ceiling_e type);
+int EV_DoCeiling(const line_t * line, ceiling_e type);
 void T_MoveCeiling(thinker_t *thinker);
 void P_AddActiveCeiling(ceiling_t * c);
 extern void P_RemoveActiveCeiling (const ceiling_t *const c);
@@ -375,7 +373,7 @@ result_e T_MovePlane(sector_t * sector, fixed_t speed,
                      fixed_t dest, boolean crush, int floorOrCeiling,
                      int direction);
 
-int EV_BuildStairs(line_t * line, fixed_t stepDelta);
+int EV_BuildStairs(const line_t * line, fixed_t stepDelta);
 int EV_DoFloor(line_t * line, floor_e floortype);
 void T_MoveFloor(thinker_t *thinker);
 

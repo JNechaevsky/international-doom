@@ -24,6 +24,9 @@
 #include "s_sound.h"
 #include "v_video.h"
 
+static void P_ActivateInStasis(int tag);
+static void P_RemoveActivePlat(const plat_t *plat);
+
 plat_t *activeplats[MAXPLATS];
 
 //==================================================================
@@ -210,7 +213,7 @@ int EV_DoPlat(line_t * line, plattype_e type, int amount)
     return rtn;
 }
 
-void P_ActivateInStasis(int tag)
+static void P_ActivateInStasis(int tag)
 {
     int i;
 
@@ -250,7 +253,7 @@ void P_AddActivePlat(plat_t * plat)
     I_Error("P_AddActivePlat: no more plats!");
 }
 
-void P_RemoveActivePlat(const plat_t *plat)
+static void P_RemoveActivePlat(const plat_t *plat)
 {
     int i;
     for (i = 0; i < MAXPLATS; i++)

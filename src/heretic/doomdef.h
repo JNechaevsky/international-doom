@@ -670,7 +670,7 @@ void D_DoomMain(void);
 void CheckAbortStartup(void);
 void IncThermo(void);
 void InitThermo(int max);
-void tprintf(const char *string, int initflag);
+void tprintf(const char *msg, int initflag);
 // not a globally visible function, just included for source reference
 // calls all startup code
 // parses command line options
@@ -737,7 +737,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map);
 
 extern void G_DoSelectiveGame (int choice);
 
-void G_DeferedPlayDemo(const char *demo);
+void G_DeferedPlayDemo(const char *name);
 void G_DoPlayDemo(void);
 
 extern boolean netdemo;
@@ -757,18 +757,13 @@ void G_SaveGame(int slot, char *description);
 // Support routines for saving games
 char *SV_Filename(int slot);
 void SV_Open(char *fileName);
-void SV_OpenRead(char *fileName);
+void SV_OpenRead(char *filename);
 void SV_WriteSaveGameEOF(void);
 void SV_Close(void);
-void SV_Write(void *buffer, int size);
+void SV_Write(const void *buffer, int size);
 void SV_WriteByte(byte val);
-void SV_WriteWord(unsigned short val);
-void SV_WriteLong(unsigned int val);
-void SV_WriteLongLong(int64_t val);
 void SV_Read(void *buffer, int size);
 byte SV_ReadByte(void);
-uint16_t SV_ReadWord(void);
-uint32_t SV_ReadLong(void);
 
 extern char *savegamedir;
 extern char  savename[256];
@@ -917,17 +912,13 @@ extern boolean MenuActive;
 
 void MN_Init(void);
 void MN_ActivateMenu(void);
-void MN_DeactivateMenu(void);
 boolean MN_Responder(event_t * event);
 void MN_Ticker(void);
 void MN_Drawer(void);
 void MN_DrTextA(const char *text, int x, int y, byte *table);
 int MN_TextAWidth(const char *text);
 void MN_DrTextACentered (const char *text, int y, byte *table);
-void MN_DrTextB(const char *text, int x, int y, byte *table);
 int MN_TextBWidth(const char *text);
-void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
-void MN_DrTextBGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
 
 #include "sounds.h"
 
