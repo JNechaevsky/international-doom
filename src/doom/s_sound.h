@@ -51,19 +51,19 @@ void S_Start(void);
 //  using <sound_id> from sounds.h
 //
 
-void S_StartSound(void *origin, int sound_id);
-void S_StartSoundOnce(void *origin, int sound_id);
+void S_StartSound(void *origin_p, int sfx_id);
+void S_StartSoundOnce(void *origin_p, int sfx_id);
 
 // Stop sound for thing at <origin>
 void S_StopSound(const mobj_t *origin);
 
 
 // Start music using <music_id> from sounds.h
-void S_StartMusic(int music_id);
+void S_StartMusic(int m_id);
 
 // Start music using <music_id> from sounds.h,
 //  and set whether looping
-void S_ChangeMusic(int music_id, int looping);
+void S_ChangeMusic(int musicnum, int looping);
 
 // query if music is playing
 boolean S_MusicPlaying(void);

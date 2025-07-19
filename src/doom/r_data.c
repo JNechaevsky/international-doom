@@ -306,8 +306,8 @@ static void R_GenerateComposite (int texnum)
     texpatch_t*		patch;	
     patch_t*		realpatch;
     int			x;
-    int			x1;
-    int			x2;
+    int			x_1;
+    int			x_2;
     int			i;
     column_t*		patchcol;
     const short*		collump;
@@ -341,18 +341,18 @@ static void R_GenerateComposite (int texnum)
 	 i++, patch++)
     {
 	realpatch = W_CacheLumpNum (patch->patch, PU_CACHE);
-	x1 = patch->originx;
-	x2 = x1 + SHORT(realpatch->width);
+	x_1 = patch->originx;
+	x_2 = x_1 + SHORT(realpatch->width);
 
-	if (x1<0)
+	if (x_1<0)
 	    x = 0;
 	else
-	    x = x1;
+	    x = x_1;
 	
-	if (x2 > texture->width)
-	    x2 = texture->width;
+	if (x_2 > texture->width)
+	    x_2 = texture->width;
 
-	for ( ; x<x2 ; x++)
+	for ( ; x<x_2 ; x++)
 	{
 	    // Column does not have multiple patches?
 	    // [crispy] generate composites for single-patched columns as well
@@ -362,7 +362,7 @@ static void R_GenerateComposite (int texnum)
 	    */
 	    
 	    patchcol = (column_t *)((byte *)realpatch
-				    + LONG(realpatch->columnofs[x-x1]));
+				    + LONG(realpatch->columnofs[x-x_1]));
 	    R_DrawColumnInCache (patchcol,
 				 block + colofs[x],
 				 // [crispy] single-patched columns are normally not composited
@@ -458,8 +458,8 @@ static void R_GenerateLookup (int texnum)
     texpatch_t*		patch;	
     patch_t*		realpatch;
     int			x;
-    int			x1;
-    int			x2;
+    int			x_1;
+    int			x_2;
     int			i;
     short*		collump;
     unsigned*		colofs, *colofs2; // killough 4/9/98: make 32-bit
@@ -491,21 +491,21 @@ static void R_GenerateLookup (int texnum)
 	 i++, patch++)
     {
 	realpatch = W_CacheLumpNum (patch->patch, PU_CACHE);
-	x1 = patch->originx;
-	x2 = x1 + SHORT(realpatch->width);
+	x_1 = patch->originx;
+	x_2 = x_1 + SHORT(realpatch->width);
 
-	if (x1 < 0)
+	if (x_1 < 0)
 	    x = 0;
 	else
-	    x = x1;
+	    x = x_1;
 
-	if (x2 > texture->width)
-	    x2 = texture->width;
-	for ( ; x<x2 ; x++)
+	if (x_2 > texture->width)
+	    x_2 = texture->width;
+	for ( ; x<x_2 ; x++)
 	{
 	    patchcount[x]++;
 	    collump[x] = patch->patch;
-	    colofs[x] = LONG(realpatch->columnofs[x-x1])+3;
+	    colofs[x] = LONG(realpatch->columnofs[x-x_1])+3;
 	}
     }
 	
@@ -530,25 +530,25 @@ static void R_GenerateLookup (int texnum)
 	for (i = texture->patchcount, patch = texture->patches; --i >= 0; )
 	{
 	    int pat = patch->patch;
-	    const patch_t *realpatch = W_CacheLumpNum(pat, PU_CACHE);
-	    int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
-	    const int *cofs = realpatch->columnofs - x1;
+	    const patch_t *real_patch = W_CacheLumpNum(pat, PU_CACHE);
+	    int xx, xx_1 = patch++->originx, xx_2 = xx_1 + SHORT(realpatch->width);
+	    const int *cofs = realpatch->columnofs - xx_1;
 
-	    if (x2 > texture->width)
-		x2 = texture->width;
-	    if (x1 < 0)
-		x1 = 0;
+	    if (xx_2 > texture->width)
+		xx_2 = texture->width;
+	    if (xx_1 < 0)
+		xx_1 = 0;
 
-	    for (x = x1 ; x < x2 ; x++)
+	    for (xx = xx_1 ; xx < xx_2 ; xx++)
 	    {
 		// [crispy] generate composites for all columns
 //		if (patchcount[x] > 1) // Only multipatched columns
 		{
-		    const column_t *col = (const column_t*)((const byte*) realpatch + LONG(cofs[x]));
+		    const column_t *col = (const column_t*)((const byte*) real_patch + LONG(cofs[xx]));
 		    const byte *base = (const byte *) col;
 
 		    // count posts
-		    for ( ; col->topdelta != 0xff; postcount[x]++)
+		    for ( ; col->topdelta != 0xff; postcount[xx]++)
 		    {
 			if ((unsigned)((const byte *) col - base) <= limit)
 			    col = (const column_t *)((const byte *) col + col->length + 4);
@@ -1305,8 +1305,7 @@ static void R_InitHSVColors (void)
         crstr = I_Realloc(NULL, CRMAX * sizeof(*crstr));
 
     // [crispy] check for status bar graphics replacements
-    i = W_CheckNumForName(DEH_String("sttnum0")); // [crispy] Status Bar '0'
-    keepgray = W_CheckMultipleLumps("sttnum0") < 2;
+    keepgray = W_CheckMultipleLumps("sttnum0") < 2; // [crispy] Status Bar '0'
 
     // [crispy] CRMAX - 2: don't override the original GREN and BLUE2 Boom tables
     for (i = 0; i < CRMAX - 2; i++)

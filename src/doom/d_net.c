@@ -109,7 +109,7 @@ static loop_interface_t doom_loop_interface = {
 // Load game settings from the specified structure and
 // set global variables.
 
-static void LoadGameSettings(net_gamesettings_t *settings)
+static void LoadGameSettings(const net_gamesettings_t *settings)
 {
     unsigned int i;
 

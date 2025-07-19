@@ -167,7 +167,7 @@ static void R_FixWiggle (sector_t *const sector)
 // R_RenderMaskedSegRange
 // -----------------------------------------------------------------------------
 
-void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
+void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
 {
     // Calculate light table.
     // Use different light tables
@@ -238,8 +238,8 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
             // arithmetic and by skipping the drawing of 2s normals whose
             // mapping to screen coordinates is totally out of range:
             {
-                int64_t t = ((int64_t) centeryfrac << FRACBITS)
-                          -  (int64_t) dc_texturemid * spryscale;
+                const int64_t t = ((int64_t) centeryfrac << FRACBITS)
+                                -  (int64_t) dc_texturemid * spryscale;
 
                 if (t + (int64_t) textureheight[texnum] * spryscale < 0
                 ||  t > (int64_t) SCREENHEIGHT << FRACBITS * 2)
@@ -254,7 +254,7 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
             dc_iscale = UINT_MAX / (unsigned)spryscale;
 
             // draw the texture
-            column_t *col = (column_t *)((byte *)R_GetColumnMod(texnum,maskedtexturecol[dc_x]) -3);
+            const column_t *const col = (column_t *)((byte *)R_GetColumnMod(texnum,maskedtexturecol[dc_x]) -3);
 
             R_DrawMaskedColumn (col);
             maskedtexturecol[dc_x] = INT_MAX;  // [JN] 32-bit integer math

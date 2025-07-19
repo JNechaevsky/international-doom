@@ -198,7 +198,7 @@ P_TeleportMove
 // MOVEMENT ITERATOR FUNCTIONS
 //
 
-static void SpechitOverrun(line_t *ld);
+static void SpechitOverrun(const line_t *const ld);
 
 //
 // PIT_CheckLine
@@ -1015,7 +1015,7 @@ fixed_t		aimslope;
 static boolean
 PTR_AimTraverse (intercept_t *const in)
 {
-    line_t*		li;
+    const line_t*		li;
     mobj_t*		th;
     fixed_t		slope;
     fixed_t		thingtopslope;
@@ -1416,9 +1416,9 @@ static boolean	PTR_UseTraverse (intercept_t *const in)
 // by Lee Killough
 // -----------------------------------------------------------------------------
 
-static boolean PTR_NoWayTraverse (intercept_t *in)
+static boolean PTR_NoWayTraverse (intercept_t *const in)
 {
-    line_t *ld = in->d.line;                          // This linedef
+    const line_t *const ld = in->d.line;              // This linedef
 
     return ld->special ||                             // Ignore specials
           (ld->flags & ML_TWOSIDED &&                 // [JN] Ignore two-sided...
@@ -1436,7 +1436,7 @@ static boolean PTR_NoWayTraverse (intercept_t *in)
 // i.e. if usable wall segment is really visible and touchable.
 // -----------------------------------------------------------------------------
 
-boolean PTR_NoWayAudible (line_t *line)
+boolean PTR_NoWayAudible (const line_t *const line)
 {
     P_LineOpening(line);
 
@@ -1694,7 +1694,7 @@ P_ChangeSector
 // of the spechit array.  This is by Andrey Budko (e6y) and comes from his
 // PrBoom plus port.  A big thanks to Andrey for this.
 
-static void SpechitOverrun(line_t *const ld)
+static void SpechitOverrun(const line_t *const ld)
 {
     static unsigned int baseaddr = 0;
     unsigned int addr;
