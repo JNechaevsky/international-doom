@@ -177,7 +177,7 @@ void P_ExplodeMissile(mobj_t * mo)
 //
 //----------------------------------------------------------------------------
 
-void P_FloorBounceMissile(mobj_t * mo)
+static void P_FloorBounceMissile(mobj_t * mo)
 {
     if (P_HitFloor(mo) >= FLOOR_LIQUID)
     {
@@ -378,14 +378,14 @@ boolean P_SeekerMissile(mobj_t * actor, angle_t thresh, angle_t turnMax)
 #define FRICTION_LOW		0xf900
 #define FRICTION_FLY		0xeb00
 
-void P_XYMovement(mobj_t * mo)
+static void P_XYMovement(mobj_t * mo)
 {
     fixed_t ptryx, ptryy;
     player_t *player;
     fixed_t xmove, ymove;
     int special;
     angle_t angle;
-    static int windTab[3] = { 2048 * 5, 2048 * 10, 2048 * 25 };
+    static const int windTab[3] = { 2048 * 5, 2048 * 10, 2048 * 25 };
 
     if (!mo->momx && !mo->momy)
     {
@@ -683,7 +683,7 @@ void P_XYMovement(mobj_t * mo)
 
 
 // Move this to p_inter ***
-void P_MonsterFallingDamage(mobj_t * mo)
+static void P_MonsterFallingDamage(mobj_t * mo)
 {
     int damage;
     int mom;
@@ -711,7 +711,7 @@ void P_MonsterFallingDamage(mobj_t * mo)
 ===============
 */
 
-void P_ZMovement(mobj_t * mo)
+static void P_ZMovement(mobj_t * mo)
 {
     int dist;
     int delta;
@@ -1362,7 +1362,7 @@ void P_RemoveMobj(mobj_t * mobj)
 //
 //==========================================================================
 
-void P_SpawnPlayer(mapthing_t * mthing)
+void P_SpawnPlayer(const mapthing_t * mthing)
 {
     player_t *p;
     fixed_t x, y, z;
@@ -1475,7 +1475,7 @@ void P_SpawnMapThing(mapthing_t * mthing)
     unsigned int spawnMask;
     mobj_t *mobj;
     fixed_t x, y, z;
-    static unsigned int classFlags[] = {
+    static const unsigned int classFlags[] = {
         MTF_FIGHTER,
         MTF_CLERIC,
         MTF_MAGE
@@ -1932,7 +1932,7 @@ void P_BloodSplatter2(fixed_t x, fixed_t y, fixed_t z, mobj_t * originator)
 //
 //---------------------------------------------------------------------------
 
-void P_RipperBlood(mobj_t * mo)
+void P_RipperBlood(const mobj_t * mo)
 {
     mobj_t *th;
     fixed_t x, y, z;

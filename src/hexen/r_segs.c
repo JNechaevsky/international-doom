@@ -254,7 +254,7 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
             dc_iscale = UINT_MAX / (unsigned)spryscale;
 
             // draw the texture
-            column_t *col = (column_t *)((byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
+            const column_t *const col = (column_t *)((byte *)R_GetColumn(texnum,maskedtexturecol[dc_x]) -3);
 
             R_DrawMaskedColumn (col, -1);
             maskedtexturecol[dc_x] = INT_MAX;  // [JN] 32-bit integer math

@@ -82,6 +82,7 @@ void P_SpawnMapThing(mapthing_t * mthing);
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
+static boolean P_GetMapFadeTable(int map);
 static int QualifyMap(int map);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
@@ -164,7 +165,7 @@ static int cd_NonLevelTracks[6];        // Non-level specific song cd track numb
 =================
 */
 
-void P_LoadVertexes(int lump)
+static void P_LoadVertexes(int lump)
 {
     byte *data;
     int i;
@@ -200,14 +201,14 @@ void P_LoadVertexes(int lump)
 =================
 */
 
-void P_LoadSegs(int lump)
+static void P_LoadSegs(int lump)
 {
     byte *data;
     int i;
     mapseg_t *ml;
     seg_t *li;
     line_t *ldef;
-    int linedef, side;
+    int line_def, side;
 
     numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
     segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
@@ -223,8 +224,8 @@ void P_LoadSegs(int lump)
 
         li->angle = (SHORT(ml->angle)) << 16;
         li->offset = (SHORT(ml->offset)) << 16;
-        linedef = SHORT(ml->linedef);
-        ldef = &lines[linedef];
+        line_def = SHORT(ml->linedef);
+        ldef = &lines[line_def];
         li->linedef = ldef;
         side = SHORT(ml->side);
         li->sidedef = &sides[ldef->sidenum[side]];
@@ -286,7 +287,7 @@ void P_SegLengths (void)
 =================
 */
 
-void P_LoadSubsectors(int lump)
+static void P_LoadSubsectors(int lump)
 {
     byte *data;
     int i;
@@ -318,7 +319,7 @@ void P_LoadSubsectors(int lump)
 =================
 */
 
-void P_LoadSectors(int lump)
+static void P_LoadSectors(int lump)
 {
     byte *data;
     int i;
@@ -372,7 +373,7 @@ void P_LoadSectors(int lump)
 =================
 */
 
-void P_LoadNodes(int lump)
+static void P_LoadNodes(int lump)
 {
     byte *data;
     int i, j, k;
@@ -407,7 +408,7 @@ void P_LoadNodes(int lump)
 //
 //==========================================================================
 
-void P_LoadThings(int lump)
+static void P_LoadThings(int lump)
 {
     byte *data;
     int i;
@@ -477,13 +478,14 @@ void P_LoadThings(int lump)
 =================
 */
 
-void P_LoadLineDefs(int lump)
+static void P_LoadLineDefs(int lump)
 {
     byte *data;
     int i;
     maplinedef_t *mld;
     line_t *ld;
-    vertex_t *v1, *v2;
+    const vertex_t *v1;
+    const vertex_t *v2;
 
     numlines = W_LumpLength(lump) / sizeof(maplinedef_t);
     lines = Z_Malloc(numlines * sizeof(line_t), PU_LEVEL, 0);
@@ -568,7 +570,7 @@ void P_LoadLineDefs(int lump)
 =================
 */
 
-void P_LoadSideDefs(int lump)
+static void P_LoadSideDefs(int lump)
 {
     byte *data;
     int i;
@@ -603,7 +605,7 @@ void P_LoadSideDefs(int lump)
 =================
 */
 
-void P_LoadBlockMap(int lump)
+static void P_LoadBlockMap(int lump)
 {
     int i, count;
     int lumplen;
@@ -648,7 +650,7 @@ void P_LoadBlockMap(int lump)
 =================
 */
 
-void P_GroupLines(void)
+static void P_GroupLines(void)
 {
     line_t **linebuffer;
     int i, j, total;
@@ -1302,7 +1304,7 @@ boolean P_GetMapLightning(int map)
 //
 //==========================================================================
 
-boolean P_GetMapFadeTable(int map)
+static boolean P_GetMapFadeTable(int map)
 {
     return MapInfo[QualifyMap(map)].fadetable;
 }

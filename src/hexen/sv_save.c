@@ -113,14 +113,14 @@ static void ArchiveAutomap(void);
 static void UnarchiveAutomap(void);
 static void SetMobjArchiveNums(void);
 static void RemoveAllThinkers(void);
-static int GetMobjNum(mobj_t * mobj);
+static int GetMobjNum(const mobj_t *const mobj);
 static void SetMobjPtr(mobj_t **ptr, unsigned int archiveNum);
-static void RestoreSSThinker(thinker_t *sst);
+static void RestoreSSThinker(thinker_t *thinker);
 static void RestorePlatRaise(thinker_t *thinker);
 static void RestoreMoveCeiling(thinker_t *thinker);
 static void AssertSegment(gameArchiveSegment_t segType);
 static void CopySaveSlot(int sourceSlot, int destSlot);
-static void CopyFile(char *sourceName, char *destName);
+static void CopyFile(char *source_name, char *dest_name);
 static boolean ExistingFile(char *name);
 static void SV_OpenRead(char *fileName);
 static void SV_OpenWrite(char *fileName);
@@ -136,7 +136,9 @@ static void SV_WriteByte(byte val);
 static void SV_WriteWord(unsigned short val);
 static void SV_WriteLong(unsigned int val);
 static void SV_WriteLongLong(int64_t val);
-static void SV_WritePtr(void *ptr);
+static void SV_WritePtr(void *val);
+static void SV_SaveMap(boolean savePlayers);
+static void SV_LoadMap(void);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
@@ -2040,7 +2042,7 @@ void SV_SaveGame(int slot, const char *description)
 //
 //==========================================================================
 
-void SV_SaveMap(boolean savePlayers)
+static void SV_SaveMap(boolean savePlayers)
 {
     char fileName[100];
 
@@ -2427,7 +2429,7 @@ boolean SV_RebornSlotAvailable(void)
 //
 //==========================================================================
 
-void SV_LoadMap(void)
+static void SV_LoadMap(void)
 {
     char fileName[100];
 
@@ -2747,7 +2749,7 @@ static void UnarchiveMobjs(void)
 //
 //==========================================================================
 
-static int GetMobjNum(mobj_t *const mobj)
+static int GetMobjNum(const mobj_t *const mobj)
 {
     if (mobj == NULL)
     {

@@ -53,6 +53,7 @@ const char *TextKeyMessages[] = {
     TXT_KEY_CASTLE
 };
 
+static void P_PoisonPlayer(player_t * player, mobj_t * poisoner, int poison);
 static void SetDormantArtifact(mobj_t * arti);
 static void TryPickupArtifact(player_t * player, artitype_t artifactType,
                               mobj_t * artifact);
@@ -68,7 +69,7 @@ static void TryPickupWeaponPiece(player_t * player, pclass_t matchClass,
 //
 //----------------------------------------------------------------------------
 
-void P_HideSpecialThing(mobj_t * thing)
+static void P_HideSpecialThing(mobj_t * thing)
 {
     thing->flags &= ~MF_SPECIAL;
     thing->flags2 |= MF2_DONTDRAW;
@@ -364,7 +365,7 @@ static void TryPickupWeaponPiece(player_t * player, pclass_t matchClass,
         TXT_WRAITHVERGE_PIECE,
         TXT_BLOODSCOURGE_PIECE
     };
-    static int pieceValueTrans[] = {
+    static const int pieceValueTrans[] = {
         0,                      // 0: never
         WPIECE1 | WPIECE2 | WPIECE3,    // WPIECE1 (1)
         WPIECE2 | WPIECE3,      // WPIECE2 (2)
@@ -543,7 +544,7 @@ boolean P_GiveArmor(player_t * player, armortype_t armortype, int amount)
 //
 //---------------------------------------------------------------------------
 
-int P_GiveKey(player_t * player, keytype_t key)
+static int P_GiveKey(player_t * player, keytype_t key)
 {
     if (player->keys & (1 << key))
     {
@@ -732,7 +733,7 @@ boolean P_GiveArtifact(player_t * player, artitype_t arti, mobj_t * mo)
 
     slidePointer = false;
     i = 0;
-    while (player->inventory[i].type != arti && i < player->inventorySlotNum)
+    while (i < player->inventorySlotNum && player->inventory[i].type != arti)
     {
         i++;
     }
@@ -741,8 +742,8 @@ boolean P_GiveArtifact(player_t * player, artitype_t arti, mobj_t * mo)
         if (arti < arti_firstpuzzitem)
         {
             i = 0;
-            while (player->inventory[i].type < arti_firstpuzzitem
-                   && i < player->inventorySlotNum)
+            while (i < player->inventorySlotNum
+                   && player->inventory[i].type < arti_firstpuzzitem)
             {
                 i++;
             }
@@ -1181,12 +1182,12 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 }
 
 // Search thinker list for minotaur
-mobj_t *ActiveMinotaur(player_t * master)
+static mobj_t *ActiveMinotaur(const player_t * master)
 {
     mobj_t *mo;
-    player_t *plr;
+    const player_t *plr;
     thinker_t *think;
-    unsigned int *starttime;
+    const unsigned int *starttime;
 
     for (think = thinkercap.next; think != &thinkercap; think = think->next)
     {
@@ -1218,9 +1219,9 @@ mobj_t *ActiveMinotaur(player_t * master)
 //
 //---------------------------------------------------------------------------
 
-void P_KillMobj(mobj_t * source, mobj_t * target)
+static void P_KillMobj(mobj_t * source, mobj_t * target)
 {
-    byte dummyArgs[3] = {0, 0, 0};
+    const byte dummyArgs[3] = {0, 0, 0};
     mobj_t *master;
 
     target->flags &= ~(MF_SHOOTABLE | MF_FLOAT | MF_SKULLFLY | MF_NOGRAVITY);
@@ -1466,7 +1467,7 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
 //
 //---------------------------------------------------------------------------
 
-void P_MinotaurSlam(mobj_t * source, mobj_t * target)
+static void P_MinotaurSlam(mobj_t * source, mobj_t * target)
 {
     angle_t angle;
     fixed_t thrust;
@@ -1544,7 +1545,7 @@ boolean P_MorphPlayer(player_t * player)
 //
 //---------------------------------------------------------------------------
 
-boolean P_MorphMonster(mobj_t * actor)
+static boolean P_MorphMonster(mobj_t * actor)
 {
     mobj_t *master, *monster, *fog;
     mobjtype_t moType;
@@ -1612,7 +1613,7 @@ boolean P_MorphMonster(mobj_t * actor)
 //
 //---------------------------------------------------------------------------
 
-void P_AutoUseHealth(player_t * player, int saveHealth)
+static void P_AutoUseHealth(player_t * player, int saveHealth)
 {
     int i;
     int count;
@@ -2103,7 +2104,7 @@ void P_FallingDamage(player_t * player)
 //
 //==========================================================================
 
-void P_PoisonPlayer(player_t * player, mobj_t * poisoner, int poison)
+static void P_PoisonPlayer(player_t * player, mobj_t * poisoner, int poison)
 {
     if ((player->cheats & CF_GODMODE) || player->powers[pw_invulnerability])
     {
@@ -2127,7 +2128,7 @@ void P_PoisonDamage(player_t * player, mobj_t * source, int damage,
                     boolean playPainSound)
 {
     mobj_t *target;
-    mobj_t *inflictor;
+    const mobj_t *inflictor;
 
     target = player->mo;
     inflictor = source;

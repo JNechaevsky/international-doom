@@ -49,7 +49,7 @@ void P_UpdateSpecials(void);
 // when needed
 boolean P_ExecuteLineSpecial(int special, byte * args, line_t * line,
                              int side, mobj_t * mo);
-boolean P_ActivateLine(line_t * ld, mobj_t * mo, int side,
+boolean P_ActivateLine(line_t * line, mobj_t * mo, int side,
                        int activationType);
 //boolean P_UseSpecialLine ( mobj_t *thing, line_t *line);
 //void    P_ShootSpecialLine ( mobj_t *thing, line_t *line);
@@ -138,7 +138,7 @@ void T_Phase(thinker_t *thinker);
 void T_Light(thinker_t *thinker);
 void P_SpawnPhasedLight(sector_t * sector, int base, int index);
 void P_SpawnLightSequence(sector_t * sector, int indexStep);
-boolean EV_SpawnLight(line_t * line, byte * arg, lighttype_t type);
+boolean EV_SpawnLight(line_t * line, const byte * arg, lighttype_t type);
 
 #if 0
 typedef struct
@@ -293,10 +293,9 @@ typedef struct
 extern plat_t *activeplats[MAXPLATS];
 
 void T_PlatRaise(thinker_t *thinker);
-int EV_DoPlat(line_t * line, byte * args, plattype_e type, int amount);
+int EV_DoPlat(line_t * line, const byte * args, plattype_e type, int amount);
 void P_AddActivePlat(plat_t * plat);
-void P_RemoveActivePlat(plat_t * plat);
-void EV_StopPlat(line_t * line, byte * args);
+void EV_StopPlat(line_t * line, const byte * args);
 
 /*
 ===============================================================================
@@ -330,7 +329,7 @@ typedef struct
 #define VDOORWAIT 150
 
 boolean EV_VerticalDoor(line_t * line, mobj_t * thing);
-int EV_DoDoor(line_t * line, byte * args, vldoor_e type);
+int EV_DoDoor(line_t * line, const byte * args, vldoor_e type);
 void T_VerticalDoor(thinker_t *thinker);
 //void P_SpawnDoorCloseIn30(sector_t *sec);
 //void P_SpawnDoorRaiseIn5Mins(sector_t *sec, int secnum);
@@ -373,7 +372,7 @@ typedef struct
 
 extern ceiling_t *activeceilings[MAXCEILINGS];
 
-extern int EV_DoCeiling(line_t * line, const byte *args, ceiling_e type);
+extern int EV_DoCeiling(line_t * line, const byte *arg, ceiling_e type);
 void T_MoveCeiling(thinker_t *thinker);
 void P_AddActiveCeiling(ceiling_t * c);
 extern void P_RemoveActiveCeiling(const ceiling_t *c);
@@ -470,13 +469,13 @@ result_e T_MovePlane(sector_t * sector, fixed_t speed,
                      fixed_t dest, int crush, int floorOrCeiling,
                      int direction);
 
-int EV_BuildStairs(line_t * line, byte * args, int direction, stairs_e type);
-int EV_DoFloor(line_t * line, byte * args, floor_e floortype);
+int EV_BuildStairs(line_t * line, const byte * args, int direction, stairs_e stairsType);
+int EV_DoFloor(line_t * line, const byte * args, floor_e floortype);
 void T_MoveFloor(thinker_t *thinker);
 void T_BuildPillar(thinker_t *thinker);
 void T_FloorWaggle(thinker_t *thinker);
-int EV_BuildPillar(line_t * line, byte * args, boolean crush);
-int EV_OpenPillar(line_t * line, byte * args);
+int EV_BuildPillar(line_t * line, const byte * args, boolean crush);
+int EV_OpenPillar(line_t * line, const byte * args);
 int EV_DoFloorAndCeiling(line_t * line, byte * args, boolean raise);
 int EV_FloorCrushStop(line_t * line, byte * args);
 boolean EV_StartFloorWaggle(int tag, int height, int speed, int offset,

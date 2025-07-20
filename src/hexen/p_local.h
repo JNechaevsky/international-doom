@@ -94,8 +94,8 @@ void P_RemoveThinker(thinker_t * thinker);
 
 void P_SetPsprite(player_t * player, int position, statenum_t stnum);
 void P_SetPspriteNF(player_t * player, int position, statenum_t stnum);
-void P_SetupPsprites(player_t * curplayer);
-void P_MovePsprites(player_t * curplayer);
+void P_SetupPsprites(player_t * player);
+void P_MovePsprites(player_t * player);
 void P_DropWeapon(player_t * player);
 void P_ActivateMorphWeapon(player_t * player);
 void P_PostMorphWeapon(player_t * player, weapontype_t weapon);
@@ -115,7 +115,6 @@ void P_PlayerNextArtifact(player_t *player);
 void P_PlayerRemoveArtifact(player_t * player, int slot);
 void P_PlayerUseArtifact(player_t * player, artitype_t arti);
 boolean P_UseArtifact(player_t * player, artitype_t arti);
-int P_GetPlayerNum(const player_t *player);
 void P_TeleportOther(mobj_t * victim);
 void ResetBlasted(mobj_t * mo);
 boolean P_UndoPlayerMorph(player_t *player);
@@ -146,7 +145,7 @@ extern fixed_t FloatBobOffsets[64];
 
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
-void P_RemoveMobj(mobj_t * th);
+void P_RemoveMobj(mobj_t * mobj);
 boolean P_SetMobjState(mobj_t * mobj, statenum_t state);
 boolean P_SetMobjStateNF(mobj_t * mobj, statenum_t state);
 void P_ThrustMobj(mobj_t * mo, angle_t angle, fixed_t move);
@@ -156,10 +155,10 @@ void P_MobjThinker(thinker_t *thinker);
 void P_BlasterMobjThinker(thinker_t *thinker);
 void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);
 void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage);
-void P_SpawnPlayer(mapthing_t * mthing);
+void P_SpawnPlayer(const mapthing_t * mthing);
 void P_BloodSplatter(fixed_t x, fixed_t y, fixed_t z, mobj_t * originator);
 void P_BloodSplatter2(fixed_t x, fixed_t y, fixed_t z, mobj_t * originator);
-void P_RipperBlood(mobj_t * mo);
+void P_RipperBlood(const mobj_t * mo);
 int P_GetThingFloorType(mobj_t * thing);
 int P_HitFloor(mobj_t * thing);
 boolean P_CheckMissileSpawn(mobj_t * missile);
@@ -185,14 +184,13 @@ mobj_t *P_SpawnKoraxMissile(fixed_t x, fixed_t y, fixed_t z,
 // ***** P_ENEMY *****
 
 void P_NoiseAlert(mobj_t * target, mobj_t * emmiter);
-void P_ForgetPlayer (player_t *player);
+void P_ForgetPlayer (const player_t *player);
 int P_Massacre(void);
 boolean A_RaiseMobj(mobj_t * actor);
 boolean A_SinkMobj(mobj_t * actor);
 void A_NoBlocking(mobj_t *actor, player_t *player, pspdef_t *psp);
-boolean P_LookForMonsters(mobj_t * actor);
 void P_InitCreatureCorpseQueue(boolean corpseScan);
-void A_DeQueueCorpse(mobj_t * actor);
+void A_DeQueueCorpse(const mobj_t * actor);
 void A_Explode(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_CHolyAttack3(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_FSwordAttack2(mobj_t *actor, player_t *player, pspdef_t *psp);
@@ -201,18 +199,10 @@ void A_FreezeDeathChunks(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_SorcBallOrbit(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_SorcSpinBalls(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_SpeedBalls(mobj_t *actor, player_t *player, pspdef_t *psp);
-void A_SlowBalls(mobj_t *actor, player_t *player, pspdef_t *psp);
-void A_StopBalls(mobj_t *actor, player_t *player, pspdef_t *psp);
-void A_AccelBalls(mobj_t *actor, player_t *player, pspdef_t *psp);
-void A_DecelBalls(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_SorcBossAttack(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_SpawnFizzle(mobj_t *actor, player_t *player, pspdef_t *psp);
-void A_CastSorcererSpell(mobj_t *actor, player_t *player, pspdef_t *psp);
-void A_SorcUpdateBallAngle(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_BounceCheck(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_SorcFX1Seek(mobj_t *actor, player_t *player, pspdef_t *psp);
-void A_SorcOffense1(mobj_t *actor, player_t *player, pspdef_t *psp);
-void A_SorcOffense2(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_MinotaurLook(mobj_t *actor, player_t *player, pspdef_t *psp);
 
 
@@ -242,7 +232,7 @@ typedef boolean(*traverser_t) (intercept_t * in);
 
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
 int P_PointOnLineSide(fixed_t x, fixed_t y, line_t * line);
-int P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t * line);
+int P_PointOnDivlineSide(fixed_t x, fixed_t y, const divline_t * line);
 void P_MakeDivline(line_t * li, divline_t * dl);
 fixed_t P_InterceptVector(divline_t * v2, divline_t * v1);
 int P_BoxOnLineSide(fixed_t * tmbox, line_t * ld);
@@ -287,7 +277,6 @@ extern fixed_t topslope, bottomslope;   // slopes to top and bottom of target
 boolean P_TestMobjLocation(mobj_t * mobj);
 boolean P_CheckPosition(mobj_t * thing, fixed_t x, fixed_t y);
 mobj_t *P_CheckOnmobj(mobj_t * thing);
-void P_FakeZMovement(mobj_t * mo);
 boolean P_TryMove(mobj_t * thing, fixed_t x, fixed_t y);
 boolean P_TeleportMove(mobj_t * thing, fixed_t x, fixed_t y);
 void P_SlideMove(mobj_t * mo);
@@ -298,7 +287,7 @@ boolean P_UsePuzzleItem(player_t * player, int itemType);
 void PIT_ThrustSpike(mobj_t * actor);
 void P_InitSlideLine(void);
 
-boolean P_ChangeSector(sector_t * sector, int crunch);
+boolean P_ChangeSector(const sector_t * sector, int crunch);
 
 void P_ApplyTorque (mobj_t *mo);
 
@@ -343,7 +332,6 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher);
 void P_DamageMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source,
                   int damage);
 void P_FallingDamage(player_t * player);
-void P_PoisonPlayer(player_t * player, mobj_t * poisoner, int poison);
 void P_PoisonDamage(player_t * player, mobj_t * source, int damage,
                     boolean playPainSound);
 boolean P_GiveMana(player_t * player, manatype_t mana, int count);
@@ -360,7 +348,7 @@ void AM_Ticker(void);
 void AM_Drawer(void);
 
 // ***** A_ACTION *****
-extern boolean A_LocalQuake (const byte *const args, const mobj_t *const victim);
+extern boolean A_LocalQuake (const byte *const args, const mobj_t *const actor);
 extern void P_SpawnDirt (const mobj_t *const actor, fixed_t radius);
 void A_BridgeRemove(mobj_t * actor);
 void A_UnHideThing(mobj_t *actor, player_t *player, pspdef_t *psp);

@@ -281,7 +281,7 @@ void D_CheckNetGame(void)
 //
 //==========================================================================
 
-void NET_SendFrags(player_t * player)
+void NET_SendFrags(const player_t * player)
 {
     // Not sure what this is intended for. Unused?
 }

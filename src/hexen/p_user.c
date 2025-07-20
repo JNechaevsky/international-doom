@@ -111,7 +111,7 @@ void P_Thrust(player_t * player, angle_t angle, fixed_t move)
 ==================
 */
 
-void P_CalcHeight(player_t * player)
+static void P_CalcHeight(player_t * player)
 {
     int angle;
     fixed_t bob;
@@ -256,7 +256,7 @@ void P_CalcHeight(player_t * player)
 =================
 */
 
-void P_MovePlayer(player_t * player)
+static void P_MovePlayer(player_t * player)
 {
     int look;
     int fly;
@@ -394,7 +394,7 @@ void P_MovePlayer(player_t * player)
 //
 //==========================================================================
 
-void P_DeathThink(player_t * player)
+static void P_DeathThink(player_t * player)
 {
     int dir;
     angle_t delta;
@@ -551,7 +551,7 @@ void P_DeathThink(player_t * player)
 //
 //----------------------------------------------------------------------------
 
-void P_MorphPlayerThink(player_t * player)
+static void P_MorphPlayerThink(player_t * player)
 {
     mobj_t *pmo;
 
@@ -585,7 +585,7 @@ void P_MorphPlayerThink(player_t * player)
 //
 //----------------------------------------------------------------------------
 
-int P_GetPlayerNum(const player_t *player)
+static int P_GetPlayerNum(const player_t *player)
 {
     int i;
 
@@ -1120,7 +1120,7 @@ void P_PlayerThink(player_t * player)
 //
 //----------------------------------------------------------------------------
 
-void P_ArtiTele(player_t * player)
+static void P_ArtiTele(player_t * player)
 {
     int i;
     int selections;
@@ -1157,7 +1157,7 @@ void P_ArtiTele(player_t * player)
 //
 //----------------------------------------------------------------------------
 
-void P_ArtiTeleportOther(player_t * player)
+static void P_ArtiTeleportOther(player_t * player)
 {
     mobj_t *mo;
 
@@ -1169,7 +1169,7 @@ void P_ArtiTeleportOther(player_t * player)
 }
 
 
-void P_TeleportToPlayerStarts(mobj_t * victim)
+static void P_TeleportToPlayerStarts(mobj_t * victim)
 {
     int i, selections = 0;
     fixed_t destX, destY;
@@ -1189,7 +1189,7 @@ void P_TeleportToPlayerStarts(mobj_t * victim)
     //S_StartSound(NULL, sfx_wpnup); // Full volume laugh
 }
 
-void P_TeleportToDeathmatchStarts(mobj_t * victim)
+static void P_TeleportToDeathmatchStarts(mobj_t * victim)
 {
     int i, selections;
     fixed_t destX, destY;
@@ -1258,7 +1258,7 @@ void ResetBlasted(mobj_t * mo)
     }
 }
 
-void P_BlastMobj(mobj_t * source, mobj_t * victim, fixed_t strength)
+static void P_BlastMobj(mobj_t * source, mobj_t * victim, fixed_t strength)
 {
     angle_t angle, ang;
     mobj_t *mo;
@@ -1346,7 +1346,7 @@ void P_BlastMobj(mobj_t * source, mobj_t * victim, fixed_t strength)
 
 
 // Blast all mobj things away
-void P_BlastRadius(player_t * player)
+static void P_BlastRadius(player_t * player)
 {
     mobj_t *mo;
     mobj_t *pmo = player->mo;

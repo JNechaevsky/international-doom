@@ -40,6 +40,9 @@
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
+static boolean SC_GetNumber(void);
+static int SC_MatchString(const char **strings);
+static void SC_OpenFile(const char *name);
 static void CheckOpen(void);
 static void OpenScript(const char *name, int type);
 
@@ -112,7 +115,7 @@ void SC_OpenLump(const char *name)
 //
 //==========================================================================
 
-void SC_OpenFile(const char *name)
+static void SC_OpenFile(const char *name)
 {
     OpenScript(name, FILE_ZONE_SCRIPT);
 }
@@ -293,7 +296,7 @@ void SC_MustGetStringName (const char *name)
 //
 //==========================================================================
 
-boolean SC_GetNumber(void)
+static boolean SC_GetNumber(void)
 {
     char *stopper;
 
@@ -389,7 +392,7 @@ boolean SC_Check(void)
 //
 //==========================================================================
 
-int SC_MatchString(const char **strings)
+static int SC_MatchString(const char **strings)
 {
     int i;
 

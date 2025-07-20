@@ -104,8 +104,8 @@ typedef struct
 {
     ItemType_t type;
     const char *text;
-    void (*func) (int option);
-    int option;
+    void (*func) (int choice);
+    int choice;
     MenuType_t menu;
     short tics;  // [JN] Menu item timer for glowing effect.
 } MenuItem_t;
@@ -145,22 +145,22 @@ typedef struct
 
 static void InitFonts(void);
 static void SetMenu(MenuType_t menu);
-static void SCQuitGame(int option);
-static void SCClass(int option);
-static void SCSkill(int option);
-static void SCMouseSensi(int option);
-static void SCMouseSensi_y(int option);
-static void SCSfxVolume(int option);
-static void SCMusicVolume(int option);
-static void SCScreenSize(int option);
-static boolean SCNetCheck(int option);
-static void SCNetCheck2(int option);
-static void SCLoadGame(int option);
-static void SCSaveCheck(int option);
-static void SCSaveGame(int option);
-static void SCMessages(int option);
-static void SCEndGame(int option);
-static void SCInfo(int option);
+static void SCQuitGame(int choice);
+static void SCClass(int choice);
+static void SCSkill(int choice);
+static void SCMouseSensi(int choice);
+static void SCMouseSensi_y(int choice);
+static void SCSfxVolume(int choice);
+static void SCMusicVolume(int choice);
+static void SCScreenSize(int choice);
+static boolean SCNetCheck(int choice);
+static void SCNetCheck2(int choice);
+static void SCLoadGame(int choice);
+static void SCSaveCheck(int choice);
+static void SCSaveGame(int choice);
+static void SCMessages(int choice);
+static void SCEndGame(int choice);
+static void SCInfo(int choice);
 static void DrawMainMenu(void);
 static void DrawClassMenu(void);
 static void DrawSkillMenu(void);
@@ -173,6 +173,8 @@ static void DrawLoadMenu(void);
 static void DrawSaveMenu(void);
 static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, boolean bigspacing, int itemPos);
 static void MN_LoadSlotText(void);
+static void MN_DeactivateMenu(void);
+static void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
 
 static void M_ID_MenuMouseControl (void);
 static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max);
@@ -463,155 +465,155 @@ static void M_ID_TextShadows (int choice);
 static void M_ID_LocalTime (int choice);
 
 static void M_Draw_ID_Sound (void);
-static void M_ID_MusicSystem (int option);
-static void M_ID_SFXMode (int option);
-static void M_ID_PitchShift (int option);
-static void M_ID_SFXChannels (int option);
-static void M_ID_MuteInactive (int option);
+static void M_ID_MusicSystem (int choice);
+static void M_ID_SFXMode (int choice);
+static void M_ID_PitchShift (int choice);
+static void M_ID_SFXChannels (int choice);
+static void M_ID_MuteInactive (int choice);
 
 static void M_Draw_ID_Controls (void);
-static void M_ID_Controls_Acceleration (int option);
-static void M_ID_Controls_Threshold (int option);
-static void M_ID_Controls_MLook (int option);
-static void M_ID_Controls_NoVert (int option);
-static void M_ID_Controls_InvertY (int option);
-static void M_ID_Controls_NoArtiSkip (int option);
+static void M_ID_Controls_Acceleration (int choice);
+static void M_ID_Controls_Threshold (int choice);
+static void M_ID_Controls_MLook (int choice);
+static void M_ID_Controls_NoVert (int choice);
+static void M_ID_Controls_InvertY (int choice);
+static void M_ID_Controls_NoArtiSkip (int choice);
 
 static void M_Draw_ID_Keybinds_1 (void);
-static void M_Bind_MoveForward (int option);
-static void M_Bind_MoveBackward (int option);
-static void M_Bind_TurnLeft (int option);
-static void M_Bind_TurnRight (int option);
-static void M_Bind_StrafeLeft (int option);
-static void M_Bind_StrafeRight (int option);
-static void M_Bind_StrafeOn (int option);
-static void M_Bind_SpeedOn (int option);
-static void M_Bind_Jump (int option);
-static void M_Bind_180Turn (int option);
-static void M_Bind_FireAttack (int option);
-static void M_Bind_Use (int option);
+static void M_Bind_MoveForward (int choice);
+static void M_Bind_MoveBackward (int choice);
+static void M_Bind_TurnLeft (int choice);
+static void M_Bind_TurnRight (int choice);
+static void M_Bind_StrafeLeft (int choice);
+static void M_Bind_StrafeRight (int choice);
+static void M_Bind_StrafeOn (int choice);
+static void M_Bind_SpeedOn (int choice);
+static void M_Bind_Jump (int choice);
+static void M_Bind_180Turn (int choice);
+static void M_Bind_FireAttack (int choice);
+static void M_Bind_Use (int choice);
 
 static void M_Draw_ID_Keybinds_2 (void);
-static void M_Bind_LookUp (int option);
-static void M_Bind_LookDown (int option);
-static void M_Bind_LookCenter (int option);
-static void M_Bind_FlyUp (int option);
-static void M_Bind_FlyDown (int option);
-static void M_Bind_FlyCenter (int option);
-static void M_Bind_InvLeft (int option);
-static void M_Bind_InvRight (int option);
-static void M_Bind_UseArti (int option);
+static void M_Bind_LookUp (int choice);
+static void M_Bind_LookDown (int choice);
+static void M_Bind_LookCenter (int choice);
+static void M_Bind_FlyUp (int choice);
+static void M_Bind_FlyDown (int choice);
+static void M_Bind_FlyCenter (int choice);
+static void M_Bind_InvLeft (int choice);
+static void M_Bind_InvRight (int choice);
+static void M_Bind_UseArti (int choice);
 
 static void M_Draw_ID_Keybinds_3 (void);
-static void M_Bind_AlwaysRun (int option);
-static void M_Bind_MouseLook (int option);
-static void M_Bind_NoVert (int option);
-static void M_Bind_RestartLevel (int option);
-static void M_Bind_NextLevel (int option);
-static void M_Bind_FastForward (int option);
-static void M_Bind_FlipLevels (int option);
+static void M_Bind_AlwaysRun (int choice);
+static void M_Bind_MouseLook (int choice);
+static void M_Bind_NoVert (int choice);
+static void M_Bind_RestartLevel (int choice);
+static void M_Bind_NextLevel (int choice);
+static void M_Bind_FastForward (int choice);
+static void M_Bind_FlipLevels (int choice);
 static void M_Bind_ExtendedHUD (int choice);
-static void M_Bind_SpectatorMode (int option);
-static void M_Bind_FreezeMode (int option);
-static void M_Bind_NotargetMode (int option);
-static void M_Bind_BuddhaMode (int option);
+static void M_Bind_SpectatorMode (int choice);
+static void M_Bind_FreezeMode (int choice);
+static void M_Bind_NotargetMode (int choice);
+static void M_Bind_BuddhaMode (int choice);
 
 static void M_Draw_ID_Keybinds_4 (void);
-static void M_Bind_Weapon1 (int option);
-static void M_Bind_Weapon2 (int option);
-static void M_Bind_Weapon3 (int option);
-static void M_Bind_Weapon4 (int option);
-static void M_Bind_Quartz (int option);
-static void M_Bind_Urn (int option);
-static void M_Bind_Flechette (int option);
-static void M_Bind_Disk (int option);
-static void M_Bind_Icon (int option);
-static void M_Bind_PrevWeapon (int option);
-static void M_Bind_NextWeapon (int option);
+static void M_Bind_Weapon1 (int choice);
+static void M_Bind_Weapon2 (int choice);
+static void M_Bind_Weapon3 (int choice);
+static void M_Bind_Weapon4 (int choice);
+static void M_Bind_Quartz (int choice);
+static void M_Bind_Urn (int choice);
+static void M_Bind_Flechette (int choice);
+static void M_Bind_Disk (int choice);
+static void M_Bind_Icon (int choice);
+static void M_Bind_PrevWeapon (int choice);
+static void M_Bind_NextWeapon (int choice);
 
 static void M_Draw_ID_Keybinds_5 (void);
-static void M_Bind_Porkalator (int option);
-static void M_Bind_Chaos (int option);
-static void M_Bind_Banishment (int option);
-static void M_Bind_Wings (int option);
-static void M_Bind_Servant (int option);
-static void M_Bind_Bracers (int option);
-static void M_Bind_Boots (int option);
-static void M_Bind_Torch (int option);
-static void M_Bind_Krater (int option);
-static void M_Bind_Incant (int option);
-static void M_Bind_AllArti (int option);
+static void M_Bind_Porkalator (int choice);
+static void M_Bind_Chaos (int choice);
+static void M_Bind_Banishment (int choice);
+static void M_Bind_Wings (int choice);
+static void M_Bind_Servant (int choice);
+static void M_Bind_Bracers (int choice);
+static void M_Bind_Boots (int choice);
+static void M_Bind_Torch (int choice);
+static void M_Bind_Krater (int choice);
+static void M_Bind_Incant (int choice);
+static void M_Bind_AllArti (int choice);
 
 
 static void M_Draw_ID_Keybinds_6 (void);
-static void M_Bind_ToggleMap (int option);
-static void M_Bind_ZoomIn (int option);
-static void M_Bind_ZoomOut (int option);
-static void M_Bind_MaxZoom (int option);
-static void M_Bind_FollowMode (int option);
-static void M_Bind_RotateMode (int option);
-static void M_Bind_OverlayMode (int option);
-static void M_Bind_ToggleGrid (int option);
-static void M_Bind_AddMark (int option);
-static void M_Bind_ClearMarks (int option);
+static void M_Bind_ToggleMap (int choice);
+static void M_Bind_ZoomIn (int choice);
+static void M_Bind_ZoomOut (int choice);
+static void M_Bind_MaxZoom (int choice);
+static void M_Bind_FollowMode (int choice);
+static void M_Bind_RotateMode (int choice);
+static void M_Bind_OverlayMode (int choice);
+static void M_Bind_ToggleGrid (int choice);
+static void M_Bind_AddMark (int choice);
+static void M_Bind_ClearMarks (int choice);
 
 static void M_Draw_ID_Keybinds_7 (void);
-static void M_Bind_HelpScreen (int option);
-static void M_Bind_SaveGame (int option);
-static void M_Bind_LoadGame (int option);
-static void M_Bind_SoundVolume (int option);
-static void M_Bind_Suicide (int option);
-static void M_Bind_QuickSave (int option);
-static void M_Bind_EndGame (int option);
-static void M_Bind_ToggleMessages (int option);
-static void M_Bind_QuickLoad (int option);
-static void M_Bind_QuitGame (int option);
-static void M_Bind_ToggleGamma (int option);
-static void M_Bind_MultiplayerSpy (int option);
+static void M_Bind_HelpScreen (int choice);
+static void M_Bind_SaveGame (int choice);
+static void M_Bind_LoadGame (int choice);
+static void M_Bind_SoundVolume (int choice);
+static void M_Bind_Suicide (int choice);
+static void M_Bind_QuickSave (int choice);
+static void M_Bind_EndGame (int choice);
+static void M_Bind_ToggleMessages (int choice);
+static void M_Bind_QuickLoad (int choice);
+static void M_Bind_QuitGame (int choice);
+static void M_Bind_ToggleGamma (int choice);
+static void M_Bind_MultiplayerSpy (int choice);
 
 static void M_Draw_ID_Keybinds_8 (void);
-static void M_Bind_Pause (int option);
-static void M_Bind_SaveScreenshot (int option);
-static void M_Bind_LastMessage (int option);
-static void M_Bind_FinishDemo (int option);
-static void M_Bind_SendMessage (int option);
-static void M_Bind_Reset (int option);
+static void M_Bind_Pause (int choice);
+static void M_Bind_SaveScreenshot (int choice);
+static void M_Bind_LastMessage (int choice);
+static void M_Bind_FinishDemo (int choice);
+static void M_Bind_SendMessage (int choice);
+static void M_Bind_Reset (int choice);
 /*
-static void M_Bind_ToPlayer1 (int option);
-static void M_Bind_ToPlayer2 (int option);
-static void M_Bind_ToPlayer3 (int option);
-static void M_Bind_ToPlayer4 (int option);
+static void M_Bind_ToPlayer1 (int choice);
+static void M_Bind_ToPlayer2 (int choice);
+static void M_Bind_ToPlayer3 (int choice);
+static void M_Bind_ToPlayer4 (int choice);
 */
 
 static void M_Draw_ID_MouseBinds (void);
-static void M_Bind_M_FireAttack (int option);
-static void M_Bind_M_MoveForward (int option);
-static void M_Bind_M_MoveBackward (int option);
-static void M_Bind_M_Use (int option);
-static void M_Bind_M_Jump (int option);
-static void M_Bind_M_SpeedOn (int option);
-static void M_Bind_M_StrafeOn (int option);
-static void M_Bind_M_StrafeLeft (int option);
-static void M_Bind_M_StrafeRight (int option);
-static void M_Bind_M_PrevWeapon (int option);
-static void M_Bind_M_NextWeapon (int option);
-static void M_Bind_M_InventoryLeft (int option);
-static void M_Bind_M_InventoryRight (int option);
-static void M_Bind_M_UseArtifact (int option);
+static void M_Bind_M_FireAttack (int choice);
+static void M_Bind_M_MoveForward (int choice);
+static void M_Bind_M_MoveBackward (int choice);
+static void M_Bind_M_Use (int choice);
+static void M_Bind_M_Jump (int choice);
+static void M_Bind_M_SpeedOn (int choice);
+static void M_Bind_M_StrafeOn (int choice);
+static void M_Bind_M_StrafeLeft (int choice);
+static void M_Bind_M_StrafeRight (int choice);
+static void M_Bind_M_PrevWeapon (int choice);
+static void M_Bind_M_NextWeapon (int choice);
+static void M_Bind_M_InventoryLeft (int choice);
+static void M_Bind_M_InventoryRight (int choice);
+static void M_Bind_M_UseArtifact (int choice);
 
-static void M_Bind_M_Reset (int option);
+static void M_Bind_M_Reset (int choice);
 
 static void M_Draw_ID_Widgets (void);
-static void M_ID_Widget_Colors (int option);
-static void M_ID_Widget_Placement (int option);
+static void M_ID_Widget_Colors (int choice);
+static void M_ID_Widget_Placement (int choice);
 static void M_ID_Widget_Alignment (int choice);
-static void M_ID_Widget_Kills (int option);
-static void M_ID_Widget_TotalTime (int option);
-static void M_ID_Widget_LevelName (int option);
-static void M_ID_Widget_Coords (int option);
+static void M_ID_Widget_Kills (int choice);
+static void M_ID_Widget_TotalTime (int choice);
+static void M_ID_Widget_LevelName (int choice);
+static void M_ID_Widget_Coords (int choice);
 static void M_ID_Widget_Speed (int choice);
-static void M_ID_Widget_Render (int option);
-static void M_ID_Widget_Health (int option);
+static void M_ID_Widget_Render (int choice);
+static void M_ID_Widget_Health (int choice);
 
 static void M_Draw_ID_Automap (void);
 static void M_ID_Automap_Smooth (int choice);
@@ -619,9 +621,9 @@ static void M_ID_Automap_Thick (int choice);
 static void M_ID_Automap_Square (int choice);
 static void M_ID_Automap_TexturedBg (int choice);
 static void M_ID_Automap_ScrollBg (int choice);
-static void M_ID_Automap_Rotate (int option);
-static void M_ID_Automap_Overlay (int option);
-static void M_ID_Automap_Shading (int option);
+static void M_ID_Automap_Rotate (int choice);
+static void M_ID_Automap_Overlay (int choice);
+static void M_ID_Automap_Shading (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
@@ -674,11 +676,11 @@ static void M_ID_ApplyReset (void);
 static boolean KbdIsBinding;
 static int     keyToBind;
 
-static char   *M_NameBind (int itemSetOn, int key);
+static char   *M_NameBind (int CurrentItPosOn, int key);
 static void    M_StartBind (int keynum);
 static void    M_CheckBind (int key);
 static void    M_DoBind (int keynum, int key);
-static void    M_ClearBind (int itemOn);
+static void    M_ClearBind (int CurrentItPos);
 static void    M_ResetBinds (void);
 static void    M_DrawBindKey (int itemNum, int yPos, int keyBind);
 static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
@@ -1066,7 +1068,7 @@ static void M_ID_TrueColorHook (void)
     R_ExecuteSetViewSize();
 }
 
-static void M_ID_TrueColor (int option)
+static void M_ID_TrueColor (int choice)
 {
     post_rendering_hook = M_ID_TrueColorHook;
 }
@@ -1766,9 +1768,9 @@ static void M_Draw_ID_Sound (void)
     }
 }
 
-static void M_ID_MusicSystem (int option)
+static void M_ID_MusicSystem (int choice)
 {
-    switch (option)
+    switch (choice)
     {
         case 0:
             if (snd_musicdevice == 0)
@@ -1857,25 +1859,25 @@ static void M_ID_MusicSystem (int option)
     mus_force_replay = false;
 }
 
-static void M_ID_SFXMode (int option)
+static void M_ID_SFXMode (int choice)
 {
     snd_monosfx ^= 1;
 }
 
-static void M_ID_PitchShift (int option)
+static void M_ID_PitchShift (int choice)
 {
     snd_pitchshift ^= 1;
 }
 
-static void M_ID_SFXChannels (int option)
+static void M_ID_SFXChannels (int choice)
 {
     // [JN] Note: cap minimum channels to 2, not 1.
     // Only one channel produces a strange effect, 
     // as if there were no channels at all.
-    snd_channels = M_INT_Slider(snd_channels, 2, 16, option, true);
+    snd_channels = M_INT_Slider(snd_channels, 2, 16, choice, true);
 }
 
-static void M_ID_MuteInactive (int option)
+static void M_ID_MuteInactive (int choice)
 {
     snd_mute_inactive ^= 1;
 }
@@ -1995,17 +1997,17 @@ static void M_Draw_ID_Controls (void)
                                 LINE_ALPHA(15));
 }
 
-static void M_ID_Controls_Acceleration (int option)
+static void M_ID_Controls_Acceleration (int choice)
 {
-    mouse_acceleration = M_FLOAT_Slider(mouse_acceleration, 1.000000f, 5.000000f, 0.100000f, option, true);
+    mouse_acceleration = M_FLOAT_Slider(mouse_acceleration, 1.000000f, 5.000000f, 0.100000f, choice, true);
 }
 
-static void M_ID_Controls_Threshold (int option)
+static void M_ID_Controls_Threshold (int choice)
 {
-    mouse_threshold = M_INT_Slider(mouse_threshold, 0, 32, option, true);
+    mouse_threshold = M_INT_Slider(mouse_threshold, 0, 32, choice, true);
 }
 
-static void M_ID_Controls_MLook (int option)
+static void M_ID_Controls_MLook (int choice)
 {
     mouse_look ^= 1;
     if (!mouse_look)
@@ -2014,7 +2016,7 @@ static void M_ID_Controls_MLook (int option)
     }
 }
 
-static void M_ID_Controls_NoVert (int option)
+static void M_ID_Controls_NoVert (int choice)
 {
     mouse_novert ^= 1;
 }
@@ -2085,47 +2087,47 @@ static void M_Draw_ID_Keybinds_1 (void)
     M_DrawBindFooter("1", true);
 }
 
-static void M_Bind_MoveForward (int option)
+static void M_Bind_MoveForward (int choice)
 {
     M_StartBind(100);  // key_up
 }
 
-static void M_Bind_MoveBackward (int option)
+static void M_Bind_MoveBackward (int choice)
 {
     M_StartBind(101);  // key_down
 }
 
-static void M_Bind_TurnLeft (int option)
+static void M_Bind_TurnLeft (int choice)
 {
     M_StartBind(102);  // key_left
 }
 
-static void M_Bind_TurnRight (int option)
+static void M_Bind_TurnRight (int choice)
 {
     M_StartBind(103);  // key_right
 }
 
-static void M_Bind_StrafeLeft (int option)
+static void M_Bind_StrafeLeft (int choice)
 {
     M_StartBind(104);  // key_strafeleft
 }
 
-static void M_Bind_StrafeRight (int option)
+static void M_Bind_StrafeRight (int choice)
 {
     M_StartBind(105);  // key_straferight
 }
 
-static void M_Bind_StrafeOn (int option)
+static void M_Bind_StrafeOn (int choice)
 {
     M_StartBind(106);  // key_strafe
 }
 
-static void M_Bind_SpeedOn (int option)
+static void M_Bind_SpeedOn (int choice)
 {
     M_StartBind(107);  // key_speed
 }
 
-static void M_Bind_Jump (int option)
+static void M_Bind_Jump (int choice)
 {
     M_StartBind(108);  // key_jump
 }
@@ -2135,12 +2137,12 @@ static void M_Bind_180Turn (int choice)
     M_StartBind(109);  // key_180turn
 }
 
-static void M_Bind_FireAttack (int option)
+static void M_Bind_FireAttack (int choice)
 {
     M_StartBind(110);  // key_fire
 }
 
-static void M_Bind_Use (int option)
+static void M_Bind_Use (int choice)
 {
     M_StartBind(111);  // key_use
 }
@@ -2199,47 +2201,47 @@ static void M_Draw_ID_Keybinds_2 (void)
     M_DrawBindFooter("2", true);
 }
 
-static void M_Bind_LookUp (int option)
+static void M_Bind_LookUp (int choice)
 {
     M_StartBind(200);  // key_lookup
 }
 
-static void M_Bind_LookDown (int option)
+static void M_Bind_LookDown (int choice)
 {
     M_StartBind(201);  // key_lookdown
 }
 
-static void M_Bind_LookCenter (int option)
+static void M_Bind_LookCenter (int choice)
 {
     M_StartBind(202);  // key_lookcenter
 }
 
-static void M_Bind_FlyUp (int option)
+static void M_Bind_FlyUp (int choice)
 {
     M_StartBind(203);  // key_flyup
 }
 
-static void M_Bind_FlyDown (int option)
+static void M_Bind_FlyDown (int choice)
 {
     M_StartBind(204);  // key_flydown
 }
 
-static void M_Bind_FlyCenter (int option)
+static void M_Bind_FlyCenter (int choice)
 {
     M_StartBind(205);  // key_flycenter
 }
 
-static void M_Bind_InvLeft (int option)
+static void M_Bind_InvLeft (int choice)
 {
     M_StartBind(206);  // key_invleft
 }
 
-static void M_Bind_InvRight (int option)
+static void M_Bind_InvRight (int choice)
 {
     M_StartBind(207);  // key_invright
 }
 
-static void M_Bind_UseArti (int option)
+static void M_Bind_UseArti (int choice)
 {
     M_StartBind(208);  // key_useartifact
 }
@@ -2304,32 +2306,32 @@ static void M_Draw_ID_Keybinds_3 (void)
     M_DrawBindFooter("3", true);
 }
 
-static void M_Bind_AlwaysRun (int option)
+static void M_Bind_AlwaysRun (int choice)
 {
     M_StartBind(300);  // key_autorun
 }
 
-static void M_Bind_MouseLook (int option)
+static void M_Bind_MouseLook (int choice)
 {
     M_StartBind(301);  // key_mouse_look
 }
 
-static void M_Bind_NoVert (int option)
+static void M_Bind_NoVert (int choice)
 {
     M_StartBind(302);  // key_novert
 }
 
-static void M_Bind_RestartLevel (int option)
+static void M_Bind_RestartLevel (int choice)
 {
     M_StartBind(303);  // key_reloadlevel
 }
 
-static void M_Bind_NextLevel (int option)
+static void M_Bind_NextLevel (int choice)
 {
     M_StartBind(304);  // key_nextlevel
 }
 
-static void M_Bind_FastForward (int option)
+static void M_Bind_FastForward (int choice)
 {
     M_StartBind(305);  // key_demospeed
 }
@@ -2344,17 +2346,17 @@ static void M_Bind_ExtendedHUD (int choice)
     M_StartBind(307);  // key_widget_enable
 }
 
-static void M_Bind_SpectatorMode (int option)
+static void M_Bind_SpectatorMode (int choice)
 {
     M_StartBind(308);  // key_spectator
 }
 
-static void M_Bind_FreezeMode (int option)
+static void M_Bind_FreezeMode (int choice)
 {
     M_StartBind(309);  // key_freeze
 }
 
-static void M_Bind_NotargetMode (int option)
+static void M_Bind_NotargetMode (int choice)
 {
     M_StartBind(310);  // key_notarget
 }
@@ -2418,57 +2420,57 @@ static void M_Draw_ID_Keybinds_4 (void)
     M_DrawBindFooter("4", true);
 }
 
-static void M_Bind_Weapon1 (int option)
+static void M_Bind_Weapon1 (int choice)
 {
     M_StartBind(400);  // key_weapon1
 }
 
-static void M_Bind_Weapon2 (int option)
+static void M_Bind_Weapon2 (int choice)
 {
     M_StartBind(401);  // key_weapon2
 }
 
-static void M_Bind_Weapon3 (int option)
+static void M_Bind_Weapon3 (int choice)
 {
     M_StartBind(402);  // key_weapon3
 }
 
-static void M_Bind_Weapon4 (int option)
+static void M_Bind_Weapon4 (int choice)
 {
     M_StartBind(403);  // key_weapon4
 }
 
-static void M_Bind_PrevWeapon (int option)
+static void M_Bind_PrevWeapon (int choice)
 {
     M_StartBind(404);  // key_prevweapon
 }
 
-static void M_Bind_NextWeapon (int option)
+static void M_Bind_NextWeapon (int choice)
 {
     M_StartBind(405);  // key_nextweapon
 }
 
-static void M_Bind_Quartz (int option)
+static void M_Bind_Quartz (int choice)
 {
     M_StartBind(406);  // key_arti_health
 }
 
-static void M_Bind_Urn (int option)
+static void M_Bind_Urn (int choice)
 {
     M_StartBind(407);  // key_arti_urn
 }
 
-static void M_Bind_Flechette (int option)
+static void M_Bind_Flechette (int choice)
 {
     M_StartBind(408);  // key_arti_poisonbag
 }
 
-static void M_Bind_Disk (int option)
+static void M_Bind_Disk (int choice)
 {
     M_StartBind(409);  // key_arti_blastradius
 }
 
-static void M_Bind_Icon (int option)
+static void M_Bind_Icon (int choice)
 {
     M_StartBind(410);  // key_arti_invulnerability
 }
@@ -2523,57 +2525,57 @@ static void M_Draw_ID_Keybinds_5 (void)
     M_DrawBindFooter("5", true);
 }
 
-static void M_Bind_Porkalator (int option)
+static void M_Bind_Porkalator (int choice)
 {
     M_StartBind(500);  // key_arti_egg
 }
 
-static void M_Bind_Chaos (int option)
+static void M_Bind_Chaos (int choice)
 {
     M_StartBind(501);  // key_arti_teleport
 }
 
-static void M_Bind_Banishment (int option)
+static void M_Bind_Banishment (int choice)
 {
     M_StartBind(502);  // key_arti_teleportother
 }
 
-static void M_Bind_Wings (int option)
+static void M_Bind_Wings (int choice)
 {
     M_StartBind(503);  // key_arti_wings
 }
 
-static void M_Bind_Servant (int option)
+static void M_Bind_Servant (int choice)
 {
     M_StartBind(504);  // key_arti_servant
 }
 
-static void M_Bind_Bracers (int option)
+static void M_Bind_Bracers (int choice)
 {
     M_StartBind(505);  // key_arti_bracers
 }
 
-static void M_Bind_Boots (int option)
+static void M_Bind_Boots (int choice)
 {
     M_StartBind(506);  // key_arti_boots
 }
 
-static void M_Bind_Torch (int option)
+static void M_Bind_Torch (int choice)
 {
     M_StartBind(507);  // key_arti_torch
 }
 
-static void M_Bind_Krater (int option)
+static void M_Bind_Krater (int choice)
 {
     M_StartBind(508);  // key_arti_krater
 }
 
-static void M_Bind_Incant (int option)
+static void M_Bind_Incant (int choice)
 {
     M_StartBind(509);  // key_arti_incant
 }
 
-static void M_Bind_AllArti (int option)
+static void M_Bind_AllArti (int choice)
 {
     M_StartBind(510);  // key_arti_all
 }
@@ -2626,52 +2628,52 @@ static void M_Draw_ID_Keybinds_6 (void)
     M_DrawBindFooter("6", true);
 }
 
-static void M_Bind_ToggleMap (int option)
+static void M_Bind_ToggleMap (int choice)
 {
     M_StartBind(600);  // key_map_toggle
 }
 
-static void M_Bind_ZoomIn (int option)
+static void M_Bind_ZoomIn (int choice)
 {
     M_StartBind(601);  // key_map_zoomin
 }
 
-static void M_Bind_ZoomOut (int option)
+static void M_Bind_ZoomOut (int choice)
 {
     M_StartBind(602);  // key_map_zoomout
 }
 
-static void M_Bind_MaxZoom (int option)
+static void M_Bind_MaxZoom (int choice)
 {
     M_StartBind(603);  // key_map_maxzoom
 }
 
-static void M_Bind_FollowMode (int option)
+static void M_Bind_FollowMode (int choice)
 {
     M_StartBind(604);  // key_map_follow
 }
 
-static void M_Bind_RotateMode (int option)
+static void M_Bind_RotateMode (int choice)
 {
     M_StartBind(605);  // key_map_rotate
 }
 
-static void M_Bind_OverlayMode (int option)
+static void M_Bind_OverlayMode (int choice)
 {
     M_StartBind(606);  // key_map_overlay
 }
 
-static void M_Bind_ToggleGrid (int option)
+static void M_Bind_ToggleGrid (int choice)
 {
     M_StartBind(607);  // key_map_grid
 }
 
-static void M_Bind_AddMark (int option)
+static void M_Bind_AddMark (int choice)
 {
     M_StartBind(608);  // key_map_mark
 }
 
-static void M_Bind_ClearMarks (int option)
+static void M_Bind_ClearMarks (int choice)
 {
     M_StartBind(609);  // key_map_clearmark
 }
@@ -2728,63 +2730,63 @@ static void M_Draw_ID_Keybinds_7 (void)
     M_DrawBindFooter("7", true);
 }
 
-static void M_Bind_HelpScreen (int option)
+static void M_Bind_HelpScreen (int choice)
 {
     M_StartBind(700);  // key_menu_help
 }
 
-static void M_Bind_SaveGame (int option)
+static void M_Bind_SaveGame (int choice)
 {
     M_StartBind(701);  // key_menu_save
 }
 
-static void M_Bind_LoadGame (int option)
+static void M_Bind_LoadGame (int choice)
 {
     M_StartBind(702);  // key_menu_load
 }
 
-static void M_Bind_SoundVolume (int option)
+static void M_Bind_SoundVolume (int choice)
 {
     M_StartBind(703);  // key_menu_volume
 }
 
-static void M_Bind_Suicide (int option)
+static void M_Bind_Suicide (int choice)
 {
     // [JN] TODO own key to detail toggling?
     M_StartBind(704);  // key_menu_detail
 }
 
-static void M_Bind_QuickSave (int option)
+static void M_Bind_QuickSave (int choice)
 {
     M_StartBind(705);  // key_menu_qsave
 }
 
-static void M_Bind_EndGame (int option)
+static void M_Bind_EndGame (int choice)
 {
     M_StartBind(706);  // key_menu_endgame
 }
 
-static void M_Bind_ToggleMessages (int option)
+static void M_Bind_ToggleMessages (int choice)
 {
     M_StartBind(707);  // key_menu_messages
 }
 
-static void M_Bind_QuickLoad (int option)
+static void M_Bind_QuickLoad (int choice)
 {
     M_StartBind(708);  // key_menu_qload
 }
 
-static void M_Bind_QuitGame (int option)
+static void M_Bind_QuitGame (int choice)
 {
     M_StartBind(709);  // key_menu_quit
 }
 
-static void M_Bind_ToggleGamma (int option)
+static void M_Bind_ToggleGamma (int choice)
 {
     M_StartBind(710);  // key_menu_gamma
 }
 
-static void M_Bind_MultiplayerSpy (int option)
+static void M_Bind_MultiplayerSpy (int choice)
 {
     M_StartBind(711);  // key_spy
 }
@@ -2852,12 +2854,12 @@ static void M_Draw_ID_Keybinds_8 (void)
     M_DrawBindFooter("8", true);
 }
 
-static void M_Bind_Pause (int option)
+static void M_Bind_Pause (int choice)
 {
     M_StartBind(800);  // key_pause
 }
 
-static void M_Bind_SaveScreenshot (int option)
+static void M_Bind_SaveScreenshot (int choice)
 {
     M_StartBind(801);  // key_menu_screenshot
 }
@@ -2867,39 +2869,39 @@ static void M_Bind_LastMessage (int choice)
     M_StartBind(802);  // key_message_refresh_hr
 }
 
-static void M_Bind_FinishDemo (int option)
+static void M_Bind_FinishDemo (int choice)
 {
     M_StartBind(803);  // key_demo_quit
 }
 
-static void M_Bind_SendMessage (int option)
+static void M_Bind_SendMessage (int choice)
 {
     M_StartBind(804);  // key_multi_msg
 }
 
 /*
-static void M_Bind_ToPlayer1 (int option)
+static void M_Bind_ToPlayer1 (int choice)
 {
     M_StartBind(805);  // key_multi_msgplayer[0]
 }
 
-static void M_Bind_ToPlayer2 (int option)
+static void M_Bind_ToPlayer2 (int choice)
 {
     M_StartBind(806);  // key_multi_msgplayer[1]
 }
 
-static void M_Bind_ToPlayer3 (int option)
+static void M_Bind_ToPlayer3 (int choice)
 {
     M_StartBind(807);  // key_multi_msgplayer[2]
 }
 
-static void M_Bind_ToPlayer4 (int option)
+static void M_Bind_ToPlayer4 (int choice)
 {
     M_StartBind(808);  // key_multi_msgplayer[3]
 }
 */
 
-static void M_Bind_Reset (int option)
+static void M_Bind_Reset (int choice)
 {
     MenuActive = false;
     askforquit = true;
@@ -2964,77 +2966,77 @@ static void M_Draw_ID_MouseBinds (void)
     M_DrawBindFooter(NULL, false);
 }
 
-static void M_Bind_M_FireAttack (int option)
+static void M_Bind_M_FireAttack (int choice)
 {
     M_StartMouseBind(1000);  // mousebfire
 }
 
-static void M_Bind_M_MoveForward (int option)
+static void M_Bind_M_MoveForward (int choice)
 {
     M_StartMouseBind(1001);  // mousebforward
 }
 
-static void M_Bind_M_MoveBackward (int option)
+static void M_Bind_M_MoveBackward (int choice)
 {
     M_StartMouseBind(1002);  // mousebbackward
 }
 
-static void M_Bind_M_Use (int option)
+static void M_Bind_M_Use (int choice)
 {
     M_StartMouseBind(1003);  // mousebuse
 }
 
-static void M_Bind_M_Jump (int option)
+static void M_Bind_M_Jump (int choice)
 {
     M_StartMouseBind(1004);  // mousebjump
 }
 
-static void M_Bind_M_SpeedOn (int option)
+static void M_Bind_M_SpeedOn (int choice)
 {
     M_StartMouseBind(1005);  // mousebspeed
 }
 
-static void M_Bind_M_StrafeOn (int option)
+static void M_Bind_M_StrafeOn (int choice)
 {
     M_StartMouseBind(1006);  // mousebstrafe
 }
 
-static void M_Bind_M_StrafeLeft (int option)
+static void M_Bind_M_StrafeLeft (int choice)
 {
     M_StartMouseBind(1007);  // mousebstrafeleft
 }
 
-static void M_Bind_M_StrafeRight (int option)
+static void M_Bind_M_StrafeRight (int choice)
 {
     M_StartMouseBind(1008);  // mousebstraferight
 }
 
-static void M_Bind_M_PrevWeapon (int option)
+static void M_Bind_M_PrevWeapon (int choice)
 {
     M_StartMouseBind(1009);  // mousebprevweapon
 }
 
-static void M_Bind_M_NextWeapon (int option)
+static void M_Bind_M_NextWeapon (int choice)
 {
     M_StartMouseBind(1010);  // mousebnextweapon
 }
 
-static void M_Bind_M_InventoryLeft (int option)
+static void M_Bind_M_InventoryLeft (int choice)
 {
     M_StartMouseBind(1011);  // mousebinvleft
 }
 
-static void M_Bind_M_InventoryRight (int option)
+static void M_Bind_M_InventoryRight (int choice)
 {
     M_StartMouseBind(1012);  // mousebinvright
 }
 
-static void M_Bind_M_UseArtifact (int option)
+static void M_Bind_M_UseArtifact (int choice)
 {
     M_StartMouseBind(1013);  // mousebuseartifact
 }
 
-static void M_Bind_M_Reset (int option)
+static void M_Bind_M_Reset (int choice)
 {
     MenuActive = false;
     askforquit = true;
@@ -4482,7 +4484,7 @@ int MN_TextAWidth(const char *text)
 //
 //---------------------------------------------------------------------------
 
-void MN_DrTextB(const char *text, int x, int y, byte *table)
+static void MN_DrTextB(const char *text, int x, int y, byte *table)
 {
     char c;
     patch_t *p;
@@ -4516,7 +4518,7 @@ void MN_DrTextB(const char *text, int x, int y, byte *table)
 //
 //---------------------------------------------------------------------------
 
-int MN_TextBWidth(const char *text)
+static int MN_TextBWidth(const char *text)
 {
     char c;
     int width;
@@ -4540,6 +4542,7 @@ int MN_TextBWidth(const char *text)
     return (width);
 }
 
+// -----------------------------------------------------------------------------
 // MN_DrTextAGlow
 // [JN] Write a centered string using the hu_font.
 // -----------------------------------------------------------------------------
@@ -4584,7 +4587,7 @@ void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2,
 // [JN] 
 // -----------------------------------------------------------------------------
 
-void MN_DrTextBGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha)
+static void MN_DrTextBGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha)
 {
     char c;
     patch_t *p;
@@ -4924,7 +4927,7 @@ static void DrawClassMenu(void)
     };
 
     MN_DrTextB("CHOOSE CLASS:", 34, 24, NULL);
-    class = (pclass_t) CurrentMenu->items[CurrentItPos].option;
+    class = (pclass_t) CurrentMenu->items[CurrentItPos].choice;
     if (class < 3)
     {
         V_DrawPatch(174, 8, W_CacheLumpName(boxLumpName[class], PU_CACHE));
@@ -5202,7 +5205,7 @@ static void DrawOptions2Menu(void)
 //
 //---------------------------------------------------------------------------
 
-static void SCQuitGame(int option)
+static void SCQuitGame(int choice)
 {
     MenuActive = false;
     askforquit = true;
@@ -5219,7 +5222,7 @@ static void SCQuitGame(int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCEndGame(int option)
+static void SCEndGame(int choice)
 {
     if (demoplayback)
     {
@@ -5243,7 +5246,7 @@ static void SCEndGame(int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCMessages(int option)
+static void SCMessages(int choice)
 {
     msg_show ^= 1;
     if (msg_show)
@@ -5263,13 +5266,13 @@ static void SCMessages(int option)
 //
 //===========================================================================
 
-static boolean SCNetCheck(int option)
+static boolean SCNetCheck(int choice)
 {
     if (!netgame)
     {
         return true;
     }
-    switch (option)
+    switch (choice)
     {
         case 1:                // new game
             CT_SetMessage(&players[consoleplayer],
@@ -5295,9 +5298,9 @@ static boolean SCNetCheck(int option)
 //
 //===========================================================================
 
-static void SCNetCheck2(int option)
+static void SCNetCheck2(int choice)
 {
-    SCNetCheck(option);
+    SCNetCheck(choice);
     return;
 }
 
@@ -5307,41 +5310,41 @@ static void SCNetCheck2(int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCLoadGame(int option)
+static void SCLoadGame(int choice)
 {
     if (demoplayback)
     {
         // deactivate playback, return control to player
         demoextend = false;
     }
-    if (!SlotStatus[option])
+    if (!SlotStatus[choice])
     {                           // Don't try to load from an empty slot
         return;
     }
-    G_LoadGame(option);
+    G_LoadGame(choice);
     MN_DeactivateMenu();
     if (quickload == -1)
     {
-        quickload = option + 1;
+        quickload = choice + 1;
         CT_ClearMessage(&players[consoleplayer]);
     }
 }
 
 // [crispy]
-static void SCDeleteGame(int option)
+static void SCDeleteGame(int choice)
 {
-    if (!SlotStatus[option])
+    if (!SlotStatus[choice])
     {
         return;
     }
 
     // [JN] If last "On Death" save slot is deleted, reset it.
-    if (option == OnDeathLoadSlot)
+    if (choice == OnDeathLoadSlot)
     {
         OnDeathLoadSlot = -1;
     }
 
-    SV_ClearSaveSlot(option + savepage * 10);
+    SV_ClearSaveSlot(choice + savepage * 10);
     CurrentMenu->oldItPos = CurrentItPos;  // [JN] Do not reset cursor position.
     MN_LoadSlotText();
 }
@@ -5392,7 +5395,7 @@ static const char *const class_str[NUMCLASSES] =
 };
 
 // [JN] Check if Save Game menu should be accessable.
-static void SCSaveCheck(int option)
+static void SCSaveCheck(int choice)
 {
     if (!usergame)
     {
@@ -5405,7 +5408,7 @@ static void SCSaveCheck(int option)
     }
 }
 
-static void SCSaveGame(int option)
+static void SCSaveGame(int choice)
 {
     char *ptr;
 
@@ -5417,16 +5420,16 @@ static void SCSaveGame(int option)
         // We need to activate the text input interface to type the save
         // game name:
         x = SaveMenu.x + 1;
-        y = SaveMenu.y + 1 + option * ITEM_HEIGHT;
+        y = SaveMenu.y + 1 + choice * ITEM_HEIGHT;
         I_StartTextInput(x, y, x + 190, y + ITEM_HEIGHT - 2);
 
-        M_StringCopy(oldSlotText, SlotText[option], sizeof(oldSlotText));
-        ptr = SlotText[option];
+        M_StringCopy(oldSlotText, SlotText[choice], sizeof(oldSlotText));
+        ptr = SlotText[choice];
 
         // [crispy] generate a default save slot name when saving to an empty slot
         if (!strcmp(ptr, "") /* && joypadsave */ || (strlen(oldSlotText) >= 3 && !strncmp(oldSlotText, "HUB", 3)))
         {
-            SetDefaultSaveName(option);
+            SetDefaultSaveName(choice);
           M_snprintf(ptr, sizeof(oldSlotText), "HUB %d.%d, %s",
                      P_GetMapCluster(gamemap), gamemap,
                      class_str[PlayerClass[consoleplayer]]);
@@ -5438,21 +5441,21 @@ static void SCSaveGame(int option)
         }
         *ptr = '[';
         *(ptr + 1) = 0;
-        SlotStatus[option]++;
-        currentSlot = option;
-        slotptr = ptr - SlotText[option];
+        SlotStatus[choice]++;
+        currentSlot = choice;
+        slotptr = ptr - SlotText[choice];
         return;
     }
     else
     {
-        G_SaveGame(option, SlotText[option]);
+        G_SaveGame(choice, SlotText[choice]);
         FileMenuKeySteal = false;
         I_StopTextInput();
         MN_DeactivateMenu();
     }
     if (quicksave == -1)
     {
-        quicksave = option + 1;
+        quicksave = choice + 1;
         CT_ClearMessage(&players[consoleplayer]);
     }
 }
@@ -5463,7 +5466,7 @@ static void SCSaveGame(int option)
 //
 //==========================================================================
 
-static void SCClass(int option)
+static void SCClass(int choice)
 {
     if (netgame)
     {
@@ -5472,7 +5475,7 @@ static void SCClass(int option)
                      true, NULL);
         return;
     }
-    MenuPClass = option;
+    MenuPClass = choice;
     switch (MenuPClass)
     {
         case PCLASS_FIGHTER:
@@ -5517,7 +5520,7 @@ static void SCClass(int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCSkill(int option)
+static void SCSkill(int choice)
 {
     if (demoplayback)
     {
@@ -5533,7 +5536,7 @@ static void SCSkill(int option)
     {
         PlayerClass[consoleplayer] = ID_RealRandom () % 3;
     }
-    G_DeferredNewGame(option);
+    G_DeferredNewGame(choice);
     SB_SetClassData();
     SB_state = -1;
     MN_DeactivateMenu();
@@ -5545,16 +5548,16 @@ static void SCSkill(int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCMouseSensi(int option)
+static void SCMouseSensi(int choice)
 {
     // [crispy] extended range
-    mouseSensitivity = M_INT_Slider(mouseSensitivity, 0, 255, option, true);
+    mouseSensitivity = M_INT_Slider(mouseSensitivity, 0, 255, choice, true);
 }
 
-static void SCMouseSensi_y(int option)
+static void SCMouseSensi_y(int choice)
 {
     // [crispy] extended range
-    mouse_sensitivity_y = M_INT_Slider(mouse_sensitivity_y, 0, 255, option, true);
+    mouse_sensitivity_y = M_INT_Slider(mouse_sensitivity_y, 0, 255, choice, true);
 }
 
 //---------------------------------------------------------------------------
@@ -5563,9 +5566,9 @@ static void SCMouseSensi_y(int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCSfxVolume(int option)
+static void SCSfxVolume(int choice)
 {
-    snd_MaxVolume = M_INT_Slider(snd_MaxVolume, 0, 15, option, true);
+    snd_MaxVolume = M_INT_Slider(snd_MaxVolume, 0, 15, choice, true);
     S_SetSfxVolume(snd_MaxVolume);
 }
 
@@ -5575,9 +5578,9 @@ static void SCSfxVolume(int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCMusicVolume(int option)
+static void SCMusicVolume(int choice)
 {
-    snd_MusicVolume = M_INT_Slider(snd_MusicVolume, 0, 15, option, true);
+    snd_MusicVolume = M_INT_Slider(snd_MusicVolume, 0, 15, choice, true);
     S_SetMusicVolume(snd_MusicVolume);
 }
 
@@ -5587,10 +5590,10 @@ static void SCMusicVolume(int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCScreenSize (int option)
+static void SCScreenSize (int choice)
 {
     // [PN] Simplified logic for adjusting screen size
-    if (option == LEFT_DIR && dp_screen_size > 3)
+    if (choice == LEFT_DIR && dp_screen_size > 3)
     {
         dp_screen_size--;
         // [JN] Skip wide status bar in non-wide screen mode.
@@ -5600,7 +5603,7 @@ static void SCScreenSize (int option)
         }
     }
     else
-    if (option == RIGHT_DIR && dp_screen_size < 13)
+    if (choice == RIGHT_DIR && dp_screen_size < 13)
     {
         dp_screen_size++;
         // [JN] Skip wide status bar in non-wide screen mode.
@@ -5620,7 +5623,7 @@ static void SCScreenSize (int option)
 //
 //---------------------------------------------------------------------------
 
-static void SCInfo(int option)
+static void SCInfo(int choice)
 {
     InfoType = 1;
     S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
@@ -6475,7 +6478,7 @@ boolean MN_Responder(event_t * event)
             {
                 if (item->func != NULL)
                 {
-                    item->func(item->option);
+                    item->func(item->choice);
                 }
                 SetMenu(item->menu);
             }
@@ -6488,7 +6491,7 @@ boolean MN_Responder(event_t * event)
                 }
                 else if (item->type == ITT_EFUNC)
                 {
-                    item->func(item->option);
+                    item->func(item->choice);
                 }
             }
             S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
@@ -6582,7 +6585,7 @@ boolean MN_Responder(event_t * event)
             CurrentMenu->oldItPos = CurrentItPos;
             if (item->type == ITT_EFUNC)
             {
-                item->func(item->option);
+                item->func(item->choice);
                 if (item->menu != MENU_NONE)
                 {
                     SetMenu(item->menu);
@@ -6655,7 +6658,7 @@ void MN_ActivateMenu(void)
 //
 //---------------------------------------------------------------------------
 
-void MN_DeactivateMenu(void)
+static void MN_DeactivateMenu(void)
 {
     if (CurrentMenu != NULL)
     {

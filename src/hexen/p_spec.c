@@ -186,7 +186,7 @@ fixed_t P_FindLowestFloorSurrounding(sector_t * sec)
 {
     int i;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t floor = sec->floorheight;
 
     for (i = 0; i < sec->linecount; i++)
@@ -210,7 +210,7 @@ fixed_t P_FindHighestFloorSurrounding(sector_t * sec)
 {
     int i;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t floor = -500 * FRACUNIT;
 
     for (i = 0; i < sec->linecount; i++)
@@ -236,7 +236,7 @@ fixed_t P_FindNextHighestFloor(sector_t * sec, int currentheight)
     int h;
     int min;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t height = currentheight;
     fixed_t heightlist[20];     // 20 adjoining sectors max!
 
@@ -272,7 +272,7 @@ fixed_t P_FindLowestCeilingSurrounding(sector_t * sec)
 {
     int i;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t height = INT_MAX;
 
     for (i = 0; i < sec->linecount; i++)
@@ -296,7 +296,7 @@ fixed_t P_FindHighestCeilingSurrounding(sector_t * sec)
 {
     int i;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t height = 0;
 
     for (i = 0; i < sec->linecount; i++)
@@ -383,7 +383,7 @@ int     P_FindMinSurroundingLight(sector_t *sector,int max)
 //
 //=========================================================================
 
-boolean EV_SectorSoundChange(byte * args)
+static boolean EV_SectorSoundChange(const byte * args)
 {
     int secNum;
     boolean rtn;
@@ -438,7 +438,7 @@ static boolean CheckedLockedDoor(mobj_t * mo, byte lock)
 //
 //==========================================================================
 
-boolean EV_LineSearchForPuzzleItem(line_t * line, byte * args, mobj_t * mo)
+static boolean EV_LineSearchForPuzzleItem(const line_t * line, byte * args, mobj_t * mo)
 {
     player_t *player;
     int i;
@@ -898,8 +898,8 @@ boolean P_ActivateLine(line_t * line, mobj_t * mo, int side,
 void P_PlayerInSpecialSector(player_t * player)
 {
     sector_t *sector;
-    static sector_t *error; // [crispy] for sectors with unknown special
-    static int pushTab[3] = {
+    static const sector_t *error; // [crispy] for sectors with unknown special
+    static const int pushTab[3] = {
         2048 * 5,
         2048 * 10,
         2048 * 25

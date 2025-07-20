@@ -94,7 +94,8 @@ void P_InitSwitchList(void)
     }
 
     // [crispy] pre-allocate some memory for the buttonlist[] array
-    buttonlist = I_Realloc(NULL, sizeof(*buttonlist) * (maxbuttons = MAXBUTTONS));
+    maxbuttons = MAXBUTTONS;
+    buttonlist = I_Realloc(NULL, sizeof(*buttonlist) * maxbuttons);
     memset(buttonlist, 0, sizeof(*buttonlist) * maxbuttons);
 }
 
@@ -103,7 +104,7 @@ void P_InitSwitchList(void)
 //      Start a button counting down till it turns off.
 //
 //==================================================================
-void P_StartButton(line_t * line, bwhere_e w, int texture, int time)
+static void P_StartButton(line_t * line, bwhere_e w, int texture, int time)
 {
     int i;
 
@@ -131,7 +132,7 @@ void P_StartButton(line_t * line, bwhere_e w, int texture, int time)
         return;
     }
 
-    I_Error("P_StartButton: no button slots left!");
+    // I_Error("P_StartButton: no button slots left!");
 }
 
 //==================================================================

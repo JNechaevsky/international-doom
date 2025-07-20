@@ -192,8 +192,8 @@ int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *line)
 // [PN] Reformatted for readability and reduced nesting
 // -----------------------------------------------------------------------------
 
-angle_t R_PointToAngleSlope (fixed_t x, fixed_t y,
-                             int(*slope_div)(unsigned int num, unsigned int den))
+static angle_t R_PointToAngleSlope (fixed_t x, fixed_t y,
+                                    int(*slope_div)(unsigned int num, unsigned int den))
 {
     // [PN] Shift to local player coordinates
     x -= viewx;
@@ -305,7 +305,7 @@ static void CalcMaxProjectSlope (int fov)
 // while keeping identical behavior.
 // -----------------------------------------------------------------------------
 
-void R_InitTextureMapping (void)
+static void R_InitTextureMapping (void)
 {
     // Calc focallength 
     const fixed_t focallength = FixedDiv(centerxfrac, fovscale);
@@ -747,7 +747,7 @@ static inline boolean CheckLocalView(const player_t *player)
 // R_SetupFrame
 // -----------------------------------------------------------------------------
 
-void R_SetupFrame (player_t *player)
+static void R_SetupFrame (player_t *player)
 {
     int i;
     int tempCentery;
