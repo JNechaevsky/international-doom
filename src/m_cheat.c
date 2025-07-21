@@ -81,7 +81,7 @@ cht_CheckCheat
 
 void
 cht_GetParam
-( cheatseq_t*	cht,
+( const cheatseq_t*	cht,
   char*		buffer )
 {
     memcpy(buffer, cht->parameter_buf, cht->parameter_chars);

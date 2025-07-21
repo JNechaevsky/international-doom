@@ -163,8 +163,8 @@ static void W_Win32_CloseFile(wad_file_t *wad)
 // Read data from the specified position in the file into the 
 // provided buffer.  Returns the number of bytes read.
 
-size_t W_Win32_Read(wad_file_t *wad, unsigned int offset,
-                   void *buffer, size_t buffer_len)
+static size_t W_Win32_Read(wad_file_t *wad, unsigned int offset,
+                           void *buffer, size_t buffer_len)
 {
     win32_wad_file_t *win32_wad;
     DWORD bytes_read;

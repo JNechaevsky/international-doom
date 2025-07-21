@@ -166,7 +166,7 @@ void I_InitPaletteHR(void)
     // ...
 }
 
-void I_SetPaletteHR(const byte *palette)
+static void I_SetPaletteHR(const byte *palette)
 {
     SDL_Rect screen_rect = {0, 0, HR_SCREENWIDTH, HR_SCREENHEIGHT};
     SDL_Color sdlpal[16];

@@ -148,7 +148,7 @@ void DEH_CloseFile(deh_context_t *context)
     Z_Free(context);
 }
 
-int DEH_GetCharFile(deh_context_t *context)
+static int DEH_GetCharFile(deh_context_t *context)
 {
     if (feof(context->stream))
     {
@@ -160,7 +160,7 @@ int DEH_GetCharFile(deh_context_t *context)
     return fgetc(context->stream);
 }
 
-int DEH_GetCharLump(deh_context_t *context)
+static int DEH_GetCharLump(deh_context_t *context)
 {
     int result;
 
@@ -363,7 +363,7 @@ char *DEH_ReadLine(deh_context_t *context, boolean extended)
     return context->readbuffer;
 }
 
-void DEH_Warning(deh_context_t *context, const char *msg, ...)
+void DEH_Warning(const deh_context_t *context, const char *msg, ...)
 {
     va_list args;
 
@@ -391,7 +391,7 @@ void DEH_Error(deh_context_t *context, const char *msg, ...)
     context->had_error = true;
 }
 
-boolean DEH_HadError(deh_context_t *context)
+boolean DEH_HadError(const deh_context_t *context)
 {
     return context->had_error;
 }

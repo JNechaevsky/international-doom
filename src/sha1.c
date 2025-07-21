@@ -54,7 +54,7 @@ void SHA1_Init(sha1_context_t *hd)
 /****************
  * Transform the message X which consists of 16 32-bit-words
  */
-static void Transform(sha1_context_t *hd, byte *data)
+static void Transform(sha1_context_t *hd, const byte *data)
 {
     uint32_t a,b,c,d,e,tm;
     uint32_t x[16];

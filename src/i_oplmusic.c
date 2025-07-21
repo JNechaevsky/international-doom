@@ -412,7 +412,7 @@ static opl_voice_t *GetFreeVoice(void)
 
 // Release a voice back to the freelist.
 
-static void VoiceKeyOff(opl_voice_t *voice);
+static void VoiceKeyOff(const opl_voice_t *voice);
 
 static void ReleaseVoice(int index)
 {
@@ -594,7 +594,7 @@ static void SetVoiceVolume(opl_voice_t *voice, unsigned int volume)
 
 static void SetVoicePan(opl_voice_t *voice, unsigned int pan)
 {
-    genmidi_voice_t *opl_voice;
+    const genmidi_voice_t *opl_voice;
 
     voice->reg_pan = pan;
     opl_voice = &voice->current_instr->voices[voice->current_instr_voice];;
@@ -671,13 +671,13 @@ static void I_OPL_SetMusicVolume(int volume)
     }
 }
 
-static void VoiceKeyOff(opl_voice_t *voice)
+static void VoiceKeyOff(const opl_voice_t *voice)
 {
     OPL_WriteRegister((OPL_REGS_FREQ_2 + voice->index) | voice->array,
                       voice->freq >> 8);
 }
 
-static opl_channel_data_t *TrackChannelForEvent(opl_track_data_t *track,
+static opl_channel_data_t *TrackChannelForEvent(const opl_track_data_t *track,
                                                 midi_event_t *event)
 {
     unsigned int channel_num = event->data.channel.channel;
@@ -701,7 +701,7 @@ static opl_channel_data_t *TrackChannelForEvent(opl_track_data_t *track,
 
 static void KeyOffEvent(opl_track_data_t *track, midi_event_t *event)
 {
-    opl_channel_data_t *channel;
+    const opl_channel_data_t *channel;
     int i;
     unsigned int key;
 
@@ -787,7 +787,7 @@ static void ReplaceExistingVoiceDoom1(void)
     ReleaseVoice(result);
 }
 
-static void ReplaceExistingVoiceDoom2(opl_channel_data_t *channel)
+static void ReplaceExistingVoiceDoom2(const opl_channel_data_t *channel)
 {
     int i;
     int result;
@@ -1170,7 +1170,7 @@ static void SetChannelPan(opl_channel_data_t *channel, unsigned int pan)
 }
 
 // Handler for the MIDI_CONTROLLER_ALL_NOTES_OFF channel event.
-static void AllNotesOff(opl_channel_data_t *channel, unsigned int param)
+static void AllNotesOff(const opl_channel_data_t *channel, unsigned int param)
 {
     int i;
 
@@ -1278,9 +1278,9 @@ static void MetaSetTempo(unsigned int tempo)
 
 // Process a meta event.
 
-static void MetaEvent(opl_track_data_t *track, midi_event_t *event)
+static void MetaEvent(const opl_track_data_t *track, midi_event_t *event)
 {
-    byte *data = event->data.meta.data;
+    const byte *data = event->data.meta.data;
     unsigned int data_len = event->data.meta.length;
 
     switch (event->data.meta.type)
@@ -1614,7 +1614,7 @@ static void I_OPL_UnRegisterSong(void *handle)
     }
 }
 
-static boolean ConvertMus(byte *musdata, int len, char *filename)
+static boolean ConvertMus(byte *musdata, int len, const char *filename)
 {
     MEMFILE *instream;
     MEMFILE *outstream;
@@ -1824,7 +1824,7 @@ static int NumActiveChannels(void)
     return 0;
 }
 
-static int ChannelInUse(opl_channel_data_t *channel)
+static int ChannelInUse(const opl_channel_data_t *channel)
 {
     int i;
 

@@ -835,7 +835,7 @@ static const char *ReadHashPrefix(char *line)
 // Parse a line from substitute music configuration file; returns error
 // message or NULL for no error.
 
-static const char *ParseSubstituteLine(char *musicdir, char *line)
+static const char *ParseSubstituteLine(const char *musicdir, char *line)
 {
     const char *hash_prefix;
     char *filename;
@@ -1026,7 +1026,7 @@ static void LoadSubstituteConfigs(void)
 
 static boolean IsMusicLump(int lumpnum)
 {
-    byte *data;
+    const byte *data;
     boolean result;
 
     if (W_LumpLength(lumpnum) < 4)

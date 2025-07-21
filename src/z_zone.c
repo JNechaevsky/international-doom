@@ -139,7 +139,7 @@ void Z_Init (void)
 
 // Scan the zone heap for pointers within the specified range, and warn about
 // any remaining pointers.
-static void ScanForBlock(void *start, void *end)
+static void ScanForBlock(const void *start, const void *end)
 {
     memblock_t *block;
     void **mem;
@@ -254,7 +254,7 @@ Z_Malloc
   void*		user )
 {
     int		extra;
-    memblock_t*	start;
+    const memblock_t*	start;
     memblock_t* rover;
     memblock_t* newblock;
     memblock_t*	base;

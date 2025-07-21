@@ -71,9 +71,12 @@ int main(int argc, char **argv)
         SetConsoleTitle("Console");
 
         // Head text outputs.
-        freopen("CONIN$", "r",stdin); 
-        freopen("CONOUT$","w",stdout); 
-        freopen("CONOUT$","w",stderr); 
+        if (!freopen("CONIN$", "r", stdin))
+            fprintf(stderr, "Failed to redirect stdin\n");
+        if (!freopen("CONOUT$", "w", stdout))
+            fprintf(stderr, "Failed to redirect stdout\n");
+        if (!freopen("CONOUT$", "w", stderr))
+            fprintf(stderr, "Failed to redirect stderr\n");
 
         // Set a proper codepage.
         SetConsoleOutputCP(CP_UTF8);

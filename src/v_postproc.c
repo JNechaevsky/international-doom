@@ -687,7 +687,7 @@ static void V_PProc_MotionBlur (void)
     }
 
     // [PN] Choose previous‑frame source
-    Uint32 *restrict const oldF = uncapped
+    const uint32_t *restrict const oldF = uncapped
         ? ring[(ring_idx + MAX_BLUR_LAG) & MAX_BLUR_LAG]
         : prev_frame;
 

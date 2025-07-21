@@ -86,7 +86,7 @@ struct deh_mapping_s
 boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping,
                        void *structptr, char *name, int value);
 boolean DEH_SetStringMapping(deh_context_t *context, deh_mapping_t *mapping,
-                             void *structptr, char *name, char *value);
+                             void *structptr, char *name, const char *value);
 void DEH_StructSHA1Sum(sha1_context_t *context, deh_mapping_t *mapping,
                        void *structptr);
 

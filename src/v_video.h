@@ -99,7 +99,7 @@ void V_RestoreBuffer(void);
 // format described in the string passed to the function, eg.
 // "DOOM%02i.pcx"
 
-void V_ScreenShot(char *format);
+void V_ScreenShot(const char *format);
 
 void V_DrawMouseSpeedBox(int speed);
 

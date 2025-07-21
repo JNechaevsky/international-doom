@@ -439,14 +439,14 @@ void I_ResumeSong(void)
 
 // Determine whether memory block is a .mid file
 
-boolean IsMid(byte *mem, int len)
+boolean IsMid(const byte *mem, int len)
 {
     return len > 4 && !memcmp(mem, "MThd", 4);
 }
 
 // Determine whether memory block is a .mus file
 
-boolean IsMus(byte *mem, int len)
+boolean IsMus(const byte *mem, int len)
 {
     return len > 4 && !memcmp(mem, "MUS\x1a", 4);
 }

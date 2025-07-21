@@ -391,7 +391,7 @@ static void AdjustWindowSize(void)
     }
 }
 
-static void HandleWindowEvent(SDL_WindowEvent *event)
+static void HandleWindowEvent(const SDL_WindowEvent *event)
 {
     int i;
     int flags = 0;
@@ -505,7 +505,7 @@ static int HandleWindowResize (void* data, SDL_Event *event)
     return 0;
 }
 
-static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
+static boolean ToggleFullScreenKeyShortcut(const SDL_Keysym *sym)
 {
     Uint16 flags = (KMOD_LALT | KMOD_RALT);
 #if defined(__MACOSX__)
@@ -1379,7 +1379,7 @@ void I_GraphicsCheckCommandLine(void)
 
 void I_CheckIsScreensaver(void)
 {
-    char *env;
+    const char *env;
 
     env = getenv("XSCREENSAVER_WINDOW");
 
@@ -1564,12 +1564,9 @@ static void SetVideoMode(void)
             h = mode.h;
             window_flags |= SDL_WINDOW_FULLSCREEN;
         }
-    }
 
-    // in vid_fullscreen mode, the window "position" still matters, because
-    // we use it to control which display we run vid_fullscreen on.
-    if (vid_fullscreen)
-    {
+        // in vid_fullscreen mode, the window "position" still matters, because
+        // we use it to control which display we run vid_fullscreen on.
         CenterWindow(&x, &y, w, h);
     }
 
@@ -1819,7 +1816,7 @@ void I_ToggleVsync (void)
 void I_InitGraphics(void)
 {
     SDL_Event dummy;
-    char *env;
+    const char *env;
 
     // Pass through the XSCREENSAVER_WINDOW environment variable to 
     // SDL_WINDOWID, to embed the SDL window into the Xscreensaver

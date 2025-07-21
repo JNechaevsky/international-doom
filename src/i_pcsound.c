@@ -104,7 +104,7 @@ static void PCSCallbackFunc(int *duration, int *freq)
     SDL_UnlockMutex(sound_lock);
 }
 
-static boolean CachePCSLump(sfxinfo_t *sfxinfo)
+static boolean CachePCSLump(const sfxinfo_t *sfxinfo)
 {
     int lumplen;
     int headerlen;
@@ -149,7 +149,7 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
 // Heretic source code, where there are remnants of this left over
 // from Doom.
 
-static boolean IsDisabledSound(sfxinfo_t *sfxinfo)
+static boolean IsDisabledSound(const sfxinfo_t *sfxinfo)
 {
     int i;
     const char *disabled_sounds[] = {
@@ -314,7 +314,7 @@ static void I_PCS_UpdateSound(void)
     // no-op.
 }
 
-void I_PCS_UpdateSoundParams(int channel, int vol, int sep)
+static void I_PCS_UpdateSoundParams(int channel, int vol, int sep)
 {
     // no-op.
 }

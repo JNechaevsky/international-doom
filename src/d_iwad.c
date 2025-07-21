@@ -370,7 +370,7 @@ static void CheckUninstallStrings(void)
     for (i=0; i<arrlen(uninstall_values); ++i)
     {
         char *val;
-        char *path;
+        const char *path;
         char *unstr;
 
         val = GetRegistryString(&uninstall_values[i]);
@@ -404,7 +404,7 @@ static void CheckInstallRootPaths(void)
     for (i=0; i<arrlen(root_path_keys); ++i)
     {
         char *install_path;
-        char *subpath;
+        const char *subpath;
         unsigned int j;
 
         install_path = GetRegistryString(&root_path_keys[i]);
@@ -431,7 +431,7 @@ static void CheckInstallRootPaths(void)
 static void CheckSteamEdition(void)
 {
     char *install_path;
-    char *subpath;
+    const char *subpath;
     size_t i;
 
     install_path = GetRegistryString(&steam_install_location);
@@ -764,7 +764,7 @@ static void AddSteamDirs(void)
 
 static void BuildIWADDirList(void)
 {
-    char *env;
+    const char *env;
 
     if (iwad_dirs_built)
     {
@@ -955,7 +955,7 @@ const iwad_t **D_FindAllIWADs(int mask)
 {
     const iwad_t **result;
     int result_len;
-    char *filename;
+    const char *filename;
     int i;
 
     result = malloc(sizeof(iwad_t *) * (arrlen(iwads) + 1));

@@ -102,5 +102,5 @@ extern char **crstr;
 
 #define cr_esc '~'
 
-int V_GetPaletteIndex(byte *palette, int r, int g, int b);
+int V_GetPaletteIndex(const byte *palette, int r, int g, int b);
 byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109);

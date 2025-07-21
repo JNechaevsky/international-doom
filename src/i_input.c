@@ -120,7 +120,7 @@ int mouse_y_invert = 0;
 int runcentering = 1; // [crispy]
 
 // Translates the SDL key to a value of the type found in doomkeys.h
-static int TranslateKey(SDL_Keysym *sym)
+static int TranslateKey(const SDL_Keysym *sym)
 {
     int scancode = sym->scancode;
 
@@ -382,7 +382,7 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
     D_PostEvent(&event);
 }
 
-static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
+static void MapMouseWheelToButtons(const SDL_MouseWheelEvent *wheel)
 {
     // SDL2 distinguishes button events from mouse wheel events.
     // We want to treat the mouse wheel as two buttons, as per
