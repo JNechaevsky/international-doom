@@ -167,7 +167,7 @@ void mem_fclose(MEMFILE *stream)
 	Z_Free(stream);
 }
 
-long mem_ftell(MEMFILE *stream)
+long mem_ftell(const MEMFILE *stream)
 {
 	return stream->position;
 }

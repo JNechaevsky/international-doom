@@ -52,13 +52,13 @@ typedef enum
 //
 // P_NewChaseDir related LUT.
 //
-dirtype_t opposite[] =
+static const dirtype_t opposite[] =
 {
   DI_WEST, DI_SOUTHWEST, DI_SOUTH, DI_SOUTHEAST,
   DI_EAST, DI_NORTHEAST, DI_NORTH, DI_NORTHWEST, DI_NODIR
 };
 
-dirtype_t diags[] =
+static const dirtype_t diags[] =
 {
     DI_NORTHWEST, DI_NORTHEAST, DI_SOUTHWEST, DI_SOUTHEAST
 };
@@ -79,9 +79,9 @@ dirtype_t diags[] =
 // sound blocking lines cut off traversal.
 //
 
-mobj_t*		soundtarget;
+static mobj_t*		soundtarget;
 
-void
+static void
 P_RecursiveSound
 ( sector_t*	sec,
   int		soundblocks )
@@ -155,7 +155,7 @@ P_NoiseAlert
 // and let sectors forget their soundtarget
 // -----------------------------------------------------------------------------
 
-void P_ForgetPlayer (player_t *player)
+void P_ForgetPlayer (const player_t *player)
 {
     if (player->cheats & CF_NOTARGET)
     {
@@ -224,7 +224,7 @@ boolean P_CheckMeleeRange (mobj_t*	actor)
 //
 // P_CheckMissileRange
 //
-boolean P_CheckMissileRange (mobj_t* actor)
+static boolean P_CheckMissileRange (mobj_t* actor)
 {
     fixed_t	dist;
 	
@@ -287,10 +287,10 @@ boolean P_CheckMissileRange (mobj_t* actor)
 // Move in the current direction,
 // returns false if the move is blocked.
 //
-fixed_t	xspeed[8] = {FRACUNIT,47000,0,-47000,-FRACUNIT,-47000,0,47000};
-fixed_t yspeed[8] = {0,47000,FRACUNIT,47000,0,-47000,-FRACUNIT,-47000};
+static const fixed_t	xspeed[8] = {FRACUNIT,47000,0,-47000,-FRACUNIT,-47000,0,47000};
+static const fixed_t yspeed[8] = {0,47000,FRACUNIT,47000,0,-47000,-FRACUNIT,-47000};
 
-boolean P_Move (mobj_t*	actor)
+static boolean P_Move (mobj_t*	actor)
 {
     fixed_t	tryx;
     fixed_t	tryy;
@@ -367,7 +367,7 @@ boolean P_Move (mobj_t*	actor)
 // If a door is in the way,
 // an OpenDoor call is made to start it opening.
 //
-boolean P_TryWalk (mobj_t* actor)
+static boolean P_TryWalk (mobj_t* actor)
 {	
     if (!P_Move (actor))
     {
@@ -381,7 +381,7 @@ boolean P_TryWalk (mobj_t* actor)
 
 
 
-void P_NewChaseDir (mobj_t*	actor)
+static void P_NewChaseDir (mobj_t*	actor)
 {
     fixed_t	deltax;
     fixed_t	deltay;
@@ -516,7 +516,7 @@ void P_NewChaseDir (mobj_t*	actor)
 // If allaround is false, only look 180 degrees in front.
 // Returns true if a player is targeted.
 //
-boolean
+static boolean
 P_LookForPlayers
 ( mobj_t*	actor,
   boolean	allaround )
@@ -588,7 +588,7 @@ P_LookForPlayers
 void A_KeenDie (mobj_t* mo)
 {
     thinker_t*	th;
-    mobj_t*	mo2;
+    const mobj_t*	mo2;
     line_t	junk;
 
     A_Fall (mo);
@@ -1052,7 +1052,7 @@ void A_SkelMissile (mobj_t* actor)
     mo->tracer = actor->target;
 }
 
-int	TRACEANGLE = 0xc000000;
+static const int	TRACEANGLE = 0xc000000;
 
 void A_Tracer (mobj_t* actor)
 {
@@ -1157,12 +1157,12 @@ void A_SkelFist (mobj_t*	actor)
 // PIT_VileCheck
 // Detect a corpse that could be raised.
 //
-mobj_t*		corpsehit;
-mobj_t*		vileobj;
-fixed_t		viletryx;
-fixed_t		viletryy;
+static mobj_t*		corpsehit;
+static mobj_t*		vileobj;
+static fixed_t		viletryx;
+static fixed_t		viletryy;
 
-boolean PIT_VileCheck (mobj_t*	thing)
+static boolean PIT_VileCheck (mobj_t*	thing)
 {
     int		maxdist;
     boolean	check;
@@ -1210,7 +1210,7 @@ void A_VileChase (mobj_t* actor)
     int			bx;
     int			by;
 
-    mobjinfo_t*		info;
+    const mobjinfo_t*		info;
     mobj_t*		temp;
 	
     if (actor->movedir != DI_NODIR)
@@ -1477,7 +1477,7 @@ void A_FatAttack3 (mobj_t*	actor)
 
 void A_SkullAttack (mobj_t* actor)
 {
-    mobj_t*		dest;
+    const mobj_t*		dest;
     angle_t		an;
     int			dist;
 
@@ -1505,7 +1505,7 @@ void A_SkullAttack (mobj_t* actor)
 // A_PainShootSkull
 // Spawn a lost soul and launch it at the target
 //
-void
+static void
 A_PainShootSkull
 ( mobj_t*	actor,
   angle_t	angle )
@@ -1724,10 +1724,10 @@ static boolean CheckBossEnd(mobjtype_t motype)
 // Possibly trigger special effects
 // if on first boss level
 //
-void A_BossDeath (mobj_t* mo)
+void A_BossDeath (const mobj_t* mo)
 {
     thinker_t*	th;
-    mobj_t*	mo2;
+    const mobj_t*	mo2;
     line_t	junk;
     int		i;
 		
@@ -1847,9 +1847,9 @@ void A_BabyMetal (mobj_t* mo)
 
 
 
-mobj_t**		braintargets = NULL;
-int		numbraintargets = 0; // [crispy] initialize
-int		braintargeton = 0;
+static mobj_t**		braintargets = NULL;
+static int		numbraintargets = 0; // [crispy] initialize
+static int		braintargeton = 0;
 static int	maxbraintargets; // [crispy] remove braintargets limit
 
 void A_BrainAwake (mobj_t* mo)
@@ -1908,7 +1908,7 @@ void A_BrainPain (mobj_t*	mo)
 }
 
 
-void A_BrainScream (mobj_t*	mo)
+void A_BrainScream (const mobj_t*	mo)
 {
     int		x;
     int		y;
@@ -1934,7 +1934,7 @@ void A_BrainScream (mobj_t*	mo)
 
 
 
-void A_BrainExplode (mobj_t* mo)
+void A_BrainExplode (const mobj_t* mo)
 {
     int		x;
     int		y;
@@ -1958,7 +1958,7 @@ void A_BrainExplode (mobj_t* mo)
 }
 
 
-void A_BrainDie (mobj_t*	mo)
+void A_BrainDie (const mobj_t*	mo)
 {
     G_ExitLevel ();
 }

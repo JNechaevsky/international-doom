@@ -40,7 +40,7 @@ sector_t* GetSectorAtNullAddress(void);
 mapformat_t P_CheckMapFormat (int lumpnum)
 {
     mapformat_t format = 0;
-    byte *nodes = NULL;
+    const byte *chk_nodes = NULL;
     int b;
 
     if ((b = lumpnum+ML_BLOCKMAP+1) < numlumps &&
@@ -53,23 +53,23 @@ mapformat_t P_CheckMapFormat (int lumpnum)
 	fprintf(stderr, "Doom format (");
 
     if (!((b = lumpnum+ML_NODES) < numlumps &&
-        (nodes = W_CacheLumpNum(b, PU_CACHE)) &&
+        (chk_nodes = W_CacheLumpNum(b, PU_CACHE)) &&
         W_LumpLength(b) > 0))
 	fprintf(stderr, "no nodes");
     else
-    if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
+    if (!memcmp(chk_nodes, "xNd4\0\0\0\0", 8))
     {
 	fprintf(stderr, "DeePBSP");
 	format |= MFMT_DEEPBSP;
     }
     else
-    if (!memcmp(nodes, "XNOD", 4))
+    if (!memcmp(chk_nodes, "XNOD", 4))
     {
 	fprintf(stderr, "ZDBSP");
 	format |= MFMT_ZDBSPX;
     }
     else
-    if (!memcmp(nodes, "ZNOD", 4))
+    if (!memcmp(chk_nodes, "ZNOD", 4))
     {
 	fprintf(stderr, "compressed ZDBSP");
 	format |= MFMT_ZDBSPZ;
@@ -79,7 +79,7 @@ mapformat_t P_CheckMapFormat (int lumpnum)
 
     fprintf(stderr, "), ");
 
-    if (nodes)
+    if (chk_nodes)
 	W_ReleaseLumpNum(b);
 
     return format;
@@ -100,7 +100,7 @@ void P_LoadSegs_DeePBSP (int lump)
     {
 	seg_t *li = segs + i;
 	mapseg_deepbsp_t *ml = data + i;
-	int side, linedef;
+	int side, line_def;
 	line_t *ldef;
 	int vn1, vn2;
 
@@ -114,21 +114,21 @@ void P_LoadSegs_DeePBSP (int lump)
 	li->angle = (SHORT(ml->angle))<<FRACBITS;
 
 //	li->offset = (SHORT(ml->offset))<<FRACBITS; // [crispy] recalculated below
-	linedef = (unsigned short)SHORT(ml->linedef);
-	ldef = &lines[linedef];
+	line_def = (unsigned short)SHORT(ml->linedef);
+	ldef = &lines[line_def];
 	li->linedef = ldef;
 	side = SHORT(ml->side);
 
 	// e6y: check for wrong indexes
-	if ((unsigned)linedef >= (unsigned)numlines)
+	if ((unsigned)line_def >= (unsigned)numlines)
 	{
 		I_Error("P_LoadSegs: seg %d references a non-existent linedef %d",
-			i, (unsigned)linedef);
+			i, (unsigned)line_def);
 	}
 	if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
 	{
 		I_Error("P_LoadSegs: linedef %d for seg %d references a non-existent sidedef %d",
-			linedef, i, (unsigned)ldef->sidenum[side]);
+			line_def, i, (unsigned)ldef->sidenum[side]);
 	}
 
 	li->sidedef = &sides[ldef->sidenum[side]];
@@ -145,7 +145,7 @@ void P_LoadSegs_DeePBSP (int lump)
 		if (li->sidedef->midtexture)
 		{
 		    li->backsector = 0;
-		    fprintf(stderr, "P_LoadSegs: Linedef %d has two-sided flag set, but no second sidedef\n", linedef);
+		    fprintf(stderr, "P_LoadSegs: Linedef %d has two-sided flag set, but no second sidedef\n", line_def);
 		}
 		else
 		    li->backsector = GetSectorAtNullAddress();
@@ -394,7 +394,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
     for (i = 0; i < numsegs; i++)
     {
 	line_t *ldef;
-	unsigned int linedef;
+	unsigned int line_def;
 	unsigned char side;
 	seg_t *li = segs + i;
 	mapseg_zdbsp_t *ml = (mapseg_zdbsp_t *) data + i;
@@ -405,21 +405,21 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 	li->v1 = &vertexes[v1];
 	li->v2 = &vertexes[v2];
 
-	linedef = (unsigned short)SHORT(ml->linedef);
-	ldef = &lines[linedef];
+	line_def = (unsigned short)SHORT(ml->linedef);
+	ldef = &lines[line_def];
 	li->linedef = ldef;
 	side = ml->side;
 
 	// e6y: check for wrong indexes
-	if ((unsigned)linedef >= (unsigned)numlines)
+	if ((unsigned)line_def >= (unsigned)numlines)
 	{
 		I_Error("P_LoadSegs: seg %d references a non-existent linedef %d",
-			i, (unsigned)linedef);
+			i, (unsigned)line_def);
 	}
 	if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
 	{
 		I_Error("P_LoadSegs: linedef %d for seg %d references a non-existent sidedef %d",
-			linedef, i, (unsigned)ldef->sidenum[side]);
+			line_def, i, (unsigned)ldef->sidenum[side]);
 	}
 
 	li->sidedef = &sides[ldef->sidenum[side]];
@@ -438,7 +438,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 		if (li->sidedef->midtexture)
 		{
 		    li->backsector = 0;
-		    fprintf(stderr, "P_LoadSegs: Linedef %u has two-sided flag set, but no second sidedef\n", linedef);
+		    fprintf(stderr, "P_LoadSegs: Linedef %u has two-sided flag set, but no second sidedef\n", line_def);
 		}
 		else
 		    li->backsector = GetSectorAtNullAddress();
@@ -531,7 +531,8 @@ void P_LoadLineDefs_Hexen (int lump)
     int i;
     maplinedef_hexen_t *mld;
     line_t *ld;
-    vertex_t *v1, *v2;
+    const vertex_t *v1;
+    const vertex_t *v2;
     int warn; // [crispy] warn about unknown linedef types
 
     numlines = W_LumpLength(lump) / sizeof(maplinedef_hexen_t);

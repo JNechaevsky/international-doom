@@ -154,7 +154,7 @@ static void InitSpriteList(void)
     num_sprite_frames = 0;
 }
 
-static boolean ValidSpriteLumpName(char *name)
+static boolean ValidSpriteLumpName(const char *name)
 {
     if (name[0] == '\0' || name[1] == '\0'
      || name[2] == '\0' || name[3] == '\0')
@@ -233,7 +233,7 @@ static sprite_frame_t *FindSpriteFrame(char *name, int frame)
 
 static boolean SpriteLumpNeeded(lumpinfo_t *lump)
 {
-    sprite_frame_t *sprite;
+    const sprite_frame_t *sprite;
     int angle_num;
     int i;
 

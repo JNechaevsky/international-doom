@@ -94,7 +94,7 @@ boolean advancedemo;
 
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
-void D_PageDrawer(void);
+static void D_PageDrawer(void);
 void D_AdvanceDemo(void);
 
 //---------------------------------------------------------------------------
@@ -167,7 +167,7 @@ static void ID_DrawMessageCentered (void)
 //
 //---------------------------------------------------------------------------
 
-void D_Display(void)
+static void D_Display(void)
 {
     int      nowtime;
     int      tics;
@@ -409,7 +409,7 @@ void D_Display(void)
 // Called to determine whether to grab the mouse pointer
 //
 
-boolean D_GrabMouseCallback(void)
+static boolean D_GrabMouseCallback(void)
 {
     // [JN] CRL - always grab mouse in spectator mode.
     // It's supposed to be controlled by hand, even while pause.
@@ -517,7 +517,7 @@ void D_PageTicker(void)
 ================
 */
 
-void D_PageDrawer(void)
+static void D_PageDrawer(void)
 {
     V_DrawFullscreenRawOrPatch(W_GetNumForName(pagename));
     if (demosequence == 1)
@@ -625,7 +625,7 @@ void D_StartTitle(void)
 ==============
 */
 
-void D_CheckRecordFrom(void)
+static void D_CheckRecordFrom(void)
 {
     int p;
     char *filename;
@@ -669,7 +669,7 @@ void D_CheckRecordFrom(void)
 char *iwadfile;
 
 
-void wadprintf(void)
+static void wadprintf(void)
 {
     if (debugmode)
     {
@@ -677,9 +677,9 @@ void wadprintf(void)
     }
 }
 
-boolean D_AddFile(char *file)
+static boolean D_AddFile(char *file)
 {
-    wad_file_t *handle;
+    const wad_file_t *handle;
 
     printf("  adding %s\n", file);
 
@@ -707,7 +707,7 @@ char smsg[80];                  // status bar line
 
 static int startup_line = STARTUP_WINDOW_Y;
 
-void hprintf(const char *string)
+static void hprintf(const char *string)
 {
     if (using_graphical_startup)
     {
@@ -726,7 +726,7 @@ void hprintf(const char *string)
         puts(string);
 }
 
-void drawstatus(void)
+static void drawstatus(void)
 {
     int i;
 
@@ -749,7 +749,7 @@ static void status(const char *string)
     }
 }
 
-void DrawThermo(void)
+static void DrawThermo(void)
 {
     static int last_progress = -1;
     int progress;
@@ -790,10 +790,10 @@ void DrawThermo(void)
     }
 }
 
-void initStartup(void)
+static void initStartup(void)
 {
     byte *textScreen;
-    byte *loading;
+    const byte *loading;
 
     if (!vid_graphical_startup || debugmode || testcontrols)
     {
@@ -842,7 +842,7 @@ void tprintf(const char *msg, int initflag)
 }
 
 // haleyjd: moved up, removed WATCOMC code
-void CleanExit(void)
+static void CleanExit(void)
 {
     DEH_printf("Exited from HERETIC.\n");
     exit(1);
@@ -877,7 +877,7 @@ void InitThermo(int max)
 // Add configuration file variable bindings.
 //
 
-void D_BindVariables(void)
+static void D_BindVariables(void)
 {
     int i;
 
@@ -1187,14 +1187,14 @@ void D_DoomMain(void)
 
         for (i = 0; loadparms[i]; i++)
         {
-            int p;
-            p = M_CheckParmWithArgs(loadparms[i], 1);
-            if (p)
+            int prm;
+            prm = M_CheckParmWithArgs(loadparms[i], 1);
+            if (prm)
             {
-                while (++p != myargc && myargv[p][0] != '-')
+                while (++prm != myargc && myargv[prm][0] != '-')
                 {
                     char *autoload_dir;
-                    if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]))))
+                    if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[prm]))))
                     {
                         W_AutoLoadWADs(autoload_dir);
                         free(autoload_dir);
@@ -1277,14 +1277,14 @@ void D_DoomMain(void)
 
         for (i = 0; loadparms[i]; i++)
         {
-            int p;
-            p = M_CheckParmWithArgs(loadparms[i], 1);
-            if (p)
+            int prm;
+            prm = M_CheckParmWithArgs(loadparms[i], 1);
+            if (prm)
             {
-                while (++p != myargc && myargv[p][0] != '-')
+                while (++prm != myargc && myargv[prm][0] != '-')
                 {
                     char *autoload_dir;
-                    if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]))))
+                    if ((autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[prm]))))
                     {
                         DEH_AutoLoadPatches(autoload_dir);
                         free(autoload_dir);

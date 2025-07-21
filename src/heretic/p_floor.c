@@ -388,7 +388,7 @@ int EV_DoFloor(line_t * line, floor_e floortype)
 //      BUILD A STAIRCASE!
 //
 //==================================================================
-int EV_BuildStairs(line_t * line, fixed_t stepDelta)
+int EV_BuildStairs(const line_t * line, fixed_t stepDelta)
 {
     int secnum;
     int height;

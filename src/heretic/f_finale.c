@@ -163,9 +163,11 @@ void F_Ticker(void)
             }
 
             // [JN] Double-skip by pressing "attack" button.
+            const boolean old_attackdown = players[consoleplayer].attackdown;
+
             if (players[consoleplayer].cmd.buttons & BT_ATTACK && !MenuActive && !finalestage)
             {
-                if (!players[consoleplayer].attackdown)
+                if (!old_attackdown)
                 {
                     if (finalecount >= finaleendcount)
                     {
@@ -173,7 +175,6 @@ void F_Ticker(void)
                     }
 
                     finalecount += finaleendcount;
-                    players[consoleplayer].attackdown = true;
                 }
                 players[consoleplayer].attackdown = true;
             }
@@ -183,9 +184,11 @@ void F_Ticker(void)
             }
 
             // [JN] Double-skip by pressing "use" button.
+            const boolean old_usedown = players[consoleplayer].usedown;
+
             if (players[consoleplayer].cmd.buttons & BT_USE && !MenuActive && !finalestage)
             {
-                if (!players[consoleplayer].usedown)
+                if (!old_usedown)
                 {
                     if (finalecount >= finaleendcount)
                     {
@@ -193,7 +196,6 @@ void F_Ticker(void)
                     }
     
                     finalecount += finaleendcount;
-                    players[consoleplayer].usedown = true;
                 }
                 players[consoleplayer].usedown = true;
             }

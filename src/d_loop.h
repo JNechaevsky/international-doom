@@ -89,7 +89,7 @@ boolean D_NonVanillaRecord(boolean conditional, const char *feature);
 boolean D_NonVanillaPlayback(boolean conditional, int lumpnum,
                              const char *feature);
 
-void D_ReceiveTic(ticcmd_t *ticcmds, boolean *playeringame);
+void D_ReceiveTic(const ticcmd_t *ticcmds, const boolean *players_mask);
 
 
 extern fixed_t offsetms;

@@ -110,7 +110,7 @@ void T_MoveCeiling(thinker_t *thinker)
 //              Move a ceiling up/down and all around!
 //
 //==================================================================
-int EV_DoCeiling(line_t * line, ceiling_e type)
+int EV_DoCeiling(const line_t * line, ceiling_e type)
 {
     int secnum, rtn;
     sector_t *sec;

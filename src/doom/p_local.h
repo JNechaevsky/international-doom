@@ -77,7 +77,7 @@ extern void A_Turn (mobj_t *mo);
 extern void A_Face (mobj_t *mo);
 extern void A_Scratch (mobj_t *mo);
 extern void A_PlaySound (mobj_t *mo);
-extern void A_RandomJump (mobj_t *mo, player_t *player, pspdef_t *psp);
+extern void A_RandomJump (mobj_t *mo, player_t *player, const pspdef_t *psp);
 extern void A_LineEffect (mobj_t *mo);
 
 // -----------------------------------------------------------------------------
@@ -115,7 +115,7 @@ typedef struct
 } ceiling_t;
 
 extern int  EV_CeilingCrushStop(const line_t *const line);
-extern int  EV_DoCeiling (line_t *const line, ceiling_e type);
+extern int  EV_DoCeiling (const line_t *const line, ceiling_e type);
 extern void P_ActivateInStasisCeiling (const line_t *const line);
 extern void P_AddActiveCeiling (ceiling_t *c);
 extern void P_RemoveActiveCeiling (const ceiling_t *const c);
@@ -158,8 +158,8 @@ typedef struct
     int        topcountdown;
 } vldoor_t;
 
-extern int  EV_DoDoor (line_t *line, vldoor_e type);
-extern int  EV_DoLockedDoor (line_t *line, vldoor_e type, mobj_t *thing);
+extern int  EV_DoDoor (const line_t *line, vldoor_e type);
+extern int  EV_DoLockedDoor (const line_t *line, vldoor_e type, mobj_t *thing);
 extern void EV_VerticalDoor (line_t *line, mobj_t *thing);
 extern void P_SpawnDoorCloseIn30 (sector_t *sec);
 extern void P_SpawnDoorRaiseIn5Mins (sector_t *sec);
@@ -170,12 +170,12 @@ extern void T_VerticalDoor (vldoor_t *door);
 // -----------------------------------------------------------------------------
 
 extern void A_BabyMetal (mobj_t *mo);
-extern void A_BossDeath (mobj_t *mo);
+extern void A_BossDeath (const mobj_t *mo);
 extern void A_BrainAwake (mobj_t *mo);
-extern void A_BrainDie (mobj_t *mo);
-extern void A_BrainExplode (mobj_t *mo);
+extern void A_BrainDie (const mobj_t *mo);
+extern void A_BrainExplode (const mobj_t *mo);
 extern void A_BrainPain (mobj_t *mo);
-extern void A_BrainScream (mobj_t *mo);
+extern void A_BrainScream (const mobj_t *mo);
 extern void A_BrainSpit (mobj_t *mo);
 extern void A_BruisAttack (mobj_t *actor);
 extern void A_BspiAttack (mobj_t *actor);
@@ -218,7 +218,7 @@ extern void A_VileChase (mobj_t *actor);
 extern void A_VileStart (mobj_t *actor);
 extern void A_VileTarget (mobj_t *actor);
 extern void A_XScream (mobj_t *actor);
-extern void P_ForgetPlayer (player_t *player);
+extern void P_ForgetPlayer (const player_t *player);
 extern void P_NoiseAlert (mobj_t *target, mobj_t *emmiter);
 
 extern boolean P_CheckMeleeRange (mobj_t *actor);
@@ -289,7 +289,7 @@ typedef enum
     pastdest
 } result_e;
 
-extern int  EV_BuildStairs (line_t *line, stair_e type);
+extern int  EV_BuildStairs (const line_t *const line, stair_e type);
 extern int  EV_DoFloor (line_t *line, floor_e floortype);
 extern void T_MoveFloor (floormove_t *floor);
 
@@ -359,9 +359,9 @@ typedef struct
     int        direction;
 } glow_t;
 
-extern void EV_LightTurnOn (line_t *line, int bright);
-extern void EV_StartLightStrobing (line_t *line);
-extern void EV_TurnTagLightsOff (line_t *line);
+extern void EV_LightTurnOn (const line_t *line, int bright);
+extern void EV_StartLightStrobing (const line_t *const line);
+extern void EV_TurnTagLightsOff (const line_t *const line);
 extern void P_SpawnFireFlicker (sector_t *sector);
 extern void P_SpawnGlowingLight (sector_t *sector);
 extern void P_SpawnLightFlash (sector_t *sector);
@@ -393,7 +393,7 @@ extern boolean P_TeleportMove (mobj_t *thing, fixed_t x, fixed_t y);
 extern boolean P_TryMove (mobj_t *thing, fixed_t x, fixed_t y);
 extern boolean PIT_ChangeSector (mobj_t *thing);
 extern boolean PIT_RadiusAttack (mobj_t *thing);
-extern boolean PTR_NoWayAudible (line_t *line);
+extern boolean PTR_NoWayAudible (const line_t *const line);
 extern fixed_t P_AimLineAttack (mobj_t *t1, angle_t angle, fixed_t distance, boolean safe);
 extern void    P_ApplyTorque(mobj_t *mo);
 extern void    P_LineAttack (mobj_t *t1, angle_t angle, fixed_t distance, fixed_t slope, int damage);
@@ -485,10 +485,10 @@ extern boolean P_SetMobjState (mobj_t *mobj, statenum_t state);
 extern mobj_t *Crispy_PlayerSO (int p); // [crispy] weapon sound sources
 extern mobj_t *P_SpawnMissile (mobj_t *source, mobj_t *dest, mobjtype_t type);
 extern mobj_t *P_SpawnMobj (fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
-extern mobj_t *P_SubstNullMobj (mobj_t *th);
+extern mobj_t *P_SubstNullMobj (mobj_t *mobj);
 extern void    P_CheckMissileSpawn (mobj_t *th);
 extern void    P_MobjThinker (mobj_t *mobj);
-extern void    P_RemoveMobj (mobj_t *th);
+extern void    P_RemoveMobj (mobj_t *mobj);
 extern void    P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, int damage, mobj_t *target);
 extern void    P_SpawnMapThing (const mapthing_t *const mthing);
 extern void    P_SpawnPlayer (const mapthing_t *mthing);
@@ -560,8 +560,8 @@ extern plat_t *activeplats[MAXPLATS];
 // -----------------------------------------------------------------------------
 
 extern void P_SetPsprite (player_t *player, int position, statenum_t stnum);
-extern void P_SetupPsprites (player_t *curplayer);
-extern void P_MovePsprites (player_t *curplayer);
+extern void P_SetupPsprites (player_t *player);
+extern void P_MovePsprites (player_t *player);
 extern void P_DropWeapon (player_t *player);
 
 extern void A_Light0 (mobj_t *mobj, player_t *player, pspdef_t *psp);

@@ -545,7 +545,7 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     column_t *column; 
     pixel_t *desttop;
     pixel_t *dest;
-    byte *source; 
+    const byte *source; 
     int w; 
  
     y -= SHORT(patch->topoffset); 
@@ -958,6 +958,7 @@ void V_DrawFullscreenRawOrPatch(lumpindex_t index)
 
 // [JN] Draws tiled raw screen of any given size, with support for any rendering.
 // Used for automap background drawing in Heretic/Hexen games.
+/*
 void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest)
 {
     int x, y;
@@ -972,6 +973,7 @@ void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest)
         }
     }
 }
+*/
 
 // [crispy] Unified function of flat filling. Used for intermission
 // and finale screens, view border and status bar's wide screen mode.
@@ -1035,7 +1037,7 @@ void V_RestoreBuffer(void)
 // WritePNGfile
 //
 
-void WritePNGfile (char *filename)
+static void WritePNGfile (const char *filename)
 {
     byte *data;
     int width, height;
@@ -1065,11 +1067,11 @@ void WritePNGfile (char *filename)
 // V_ScreenShot
 //
 
-void V_ScreenShot(char *format)
+void V_ScreenShot(const char *format)
 {
     int i;
     char lbmname[16]; // haleyjd 20110213: BUG FIX - 12 is too small!
-    char *file;
+    const char *file;
     
     // find a file name to save it to
 

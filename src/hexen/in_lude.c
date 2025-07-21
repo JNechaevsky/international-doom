@@ -329,9 +329,11 @@ void IN_Ticker(void)
             }
 
             // [JN] Double skip by pressing "attack" button.
+            const boolean old_attackdown = players[consoleplayer].attackdown;
+
             if (players[consoleplayer].cmd.buttons & BT_ATTACK && !MenuActive)
             {
-                if (!players[consoleplayer].attackdown)
+                if (!old_attackdown)
                 {
                     if (intertime >= HubTextCount)
                     {
@@ -339,7 +341,6 @@ void IN_Ticker(void)
                     }
 
                     intertime += HubTextCount;
-                    players[consoleplayer].attackdown = true;
                 }
                 players[consoleplayer].attackdown = true;
             }
@@ -348,9 +349,11 @@ void IN_Ticker(void)
                 players[consoleplayer].attackdown = false;
             }
             // [JN] Double skip by pressing "use" button.
+            const boolean old_usedown = players[consoleplayer].usedown;
+
             if (players[consoleplayer].cmd.buttons & BT_USE && !MenuActive)
             {
-                if (!players[consoleplayer].usedown)
+                if (!old_usedown)
                 {
                     if (intertime >= HubTextCount)
                     {
@@ -358,7 +361,6 @@ void IN_Ticker(void)
                     }
     
                     intertime += HubTextCount;
-                    players[consoleplayer].usedown = true;
                 }
                 players[consoleplayer].usedown = true;
             }
@@ -645,7 +647,7 @@ static void DrNumberBold(int val, int x, int y, int wrapThresh)
 static void DrawHubText(void)
 {
     int count;
-    char *ch;
+    const char *ch;
     int c;
     int cx, cy;
     patch_t *w;

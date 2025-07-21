@@ -639,7 +639,7 @@ typedef struct player_s
 #define ORIGSBARHEIGHT          39 // [crispy]
 #define	SBARHEIGHT	(ORIGSBARHEIGHT * vid_resolution)      // status bar height at bottom of screen
 
-void NET_SendFrags(player_t * player);
+void NET_SendFrags(const player_t * player);
 
 /*
 ===============================================================================
@@ -858,7 +858,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map);
 
 void G_DeferredNewGame(skill_t skill);
 
-void G_DeferedPlayDemo(const char *demo);
+void G_DeferedPlayDemo(const char *name);
 
 void G_LoadGame(int slot);
 // can be called by the startup code or M_Responder
@@ -932,10 +932,8 @@ extern char *SavePath;
 extern int OnDeathLoadSlot;
 
 void SV_SaveGame(int slot, const char *description);
-void SV_SaveMap(boolean savePlayers);
 void SV_LoadGame(int slot);
 void SV_MapTeleport(int map, int position);
-void SV_LoadMap(void);
 void SV_InitBaseSlot(void);
 void SV_UpdateRebornSlot(void);
 void SV_ClearRebornSlot(void);
@@ -972,7 +970,6 @@ fixed_t P_GetMapSky1ScrollDelta(int map);
 fixed_t P_GetMapSky2ScrollDelta(int map);
 boolean P_GetMapDoubleSky(int map);
 boolean P_GetMapLightning(int map);
-boolean P_GetMapFadeTable(int map);
 char *P_GetMapSongLump(int map);
 void P_PutMapSongLump(int map, char *lumpName);
 int P_GetCDStartTrack(void);
@@ -1022,17 +1019,14 @@ int M_DrawText(int x, int y, boolean direct, char *string);
 
 void SC_Open(const char *name);
 void SC_OpenLump(const char *name);
-void SC_OpenFile(const char *name);
 void SC_Close(void);
 boolean SC_GetString(void);
 void SC_MustGetString(void);
 extern void SC_MustGetStringName (const char *name);
-boolean SC_GetNumber(void);
 void SC_MustGetNumber(void);
 void SC_UnGet(void);
 //boolean SC_Check(void);
 boolean SC_Compare(const char *text);
-int SC_MatchString(const char **strings);
 int SC_MustMatchString(const char **strings);
 void SC_ScriptError(const char *message);
 
@@ -1177,7 +1171,6 @@ void Draw_LoadIcon(void);
 
 void MN_Init(void);
 void MN_ActivateMenu(void);
-void MN_DeactivateMenu(void);
 boolean MN_Responder(event_t * event);
 void MN_Ticker(void);
 void MN_Drawer(void);
@@ -1185,10 +1178,6 @@ void MN_DrTextA(const char *text, int x, int y, byte *table);
 void MN_DrTextACentered (const char *text, int y, byte *table);
 void MN_DrTextAYellow(const char *text, int x, int y);
 int MN_TextAWidth(const char *text);
-void MN_DrTextB(const char *text, int x, int y, byte *table);
-int MN_TextBWidth(const char *text);
-void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
-void MN_DrTextBGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
 
 extern int messageson;
 extern boolean MenuActive;

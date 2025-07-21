@@ -450,7 +450,7 @@ inline static angle_t LerpAngle(angle_t oangle, angle_t nangle)
 extern void R_InitBrightmaps (void);
 
 extern const byte  *R_BrightmapForTexName (const char *texname);
-extern const byte  *R_BrightmapForSprite (const int type);
+extern const byte  *R_BrightmapForSprite (const int state);
 extern const byte  *R_BrightmapForFlatNum (const int num);
 extern const byte  *R_BrightmapForState (const int state);
 extern const byte **texturebrightmap;

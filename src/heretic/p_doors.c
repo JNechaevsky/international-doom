@@ -146,7 +146,7 @@ void T_VerticalDoor(thinker_t *thinker)
 //
 //----------------------------------------------------------------------------
 
-int EV_DoDoor(line_t * line, vldoor_e type, fixed_t speed)
+int EV_DoDoor(const line_t * line, vldoor_e type, fixed_t speed)
 {
     int secnum;
     int retcode;

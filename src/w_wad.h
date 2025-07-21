@@ -82,14 +82,14 @@ void W_HashNumForNameFromTo(int from, int to, int size);
 int W_LumpLength(lumpindex_t lump);
 void W_ReadLump(lumpindex_t lump, void *dest);
 
-void *W_CacheLumpNum(lumpindex_t lump, int tag);
+void *W_CacheLumpNum(lumpindex_t lumpnum, int tag);
 void *W_CacheLumpName(const char *name, int tag);
 
 void W_GenerateHashTable(void);
 
 extern unsigned int W_LumpNameHash(const char *s);
 
-void W_ReleaseLumpNum(lumpindex_t lump);
+void W_ReleaseLumpNum(lumpindex_t lumpnum);
 void W_ReleaseLumpName(const char *name);
 
 const char *W_WadNameForLump(const lumpinfo_t *lump);

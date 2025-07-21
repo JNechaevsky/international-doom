@@ -400,7 +400,7 @@ int twoSided(int sector, int line)
 //      Return sector_t * of sector next to current. NULL if not two-sided line
 //
 //==================================================================
-sector_t *getNextSector(line_t * line, sector_t * sec)
+sector_t *getNextSector(line_t * line, const sector_t * sec)
 {
     if (!(line->flags & ML_TWOSIDED))
         return NULL;
@@ -420,7 +420,7 @@ fixed_t P_FindLowestFloorSurrounding(sector_t * sec)
 {
     int i;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t floor = sec->floorheight;
 
     for (i = 0; i < sec->linecount; i++)
@@ -444,7 +444,7 @@ fixed_t P_FindHighestFloorSurrounding(sector_t * sec)
 {
     int i;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t floor = -500 * FRACUNIT;
 
     for (i = 0; i < sec->linecount; i++)
@@ -470,7 +470,7 @@ fixed_t P_FindNextHighestFloor(sector_t * sec, int currentheight)
     int h;
     fixed_t min;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t height = currentheight;
 
     min = INT_MAX;
@@ -517,7 +517,7 @@ fixed_t P_FindLowestCeilingSurrounding(sector_t * sec)
 {
     int i;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t height = INT_MAX;
 
     for (i = 0; i < sec->linecount; i++)
@@ -541,7 +541,7 @@ fixed_t P_FindHighestCeilingSurrounding(sector_t * sec)
 {
     int i;
     line_t *check;
-    sector_t *other;
+    const sector_t *other;
     fixed_t height = 0;
 
     for (i = 0; i < sec->linecount; i++)
@@ -561,7 +561,7 @@ fixed_t P_FindHighestCeilingSurrounding(sector_t * sec)
 //      RETURN NEXT SECTOR # THAT LINE TAG REFERS TO
 //
 //==================================================================
-int P_FindSectorFromLineTag(line_t * line, int start)
+int P_FindSectorFromLineTag(const line_t * line, int start)
 {
     int i;
 
@@ -581,7 +581,7 @@ int P_FindMinSurroundingLight(sector_t * sector, int max)
     int i;
     int min;
     line_t *line;
-    sector_t *check;
+    const sector_t *check;
 
     min = max;
     for (i = 0; i < sector->linecount; i++)
@@ -869,7 +869,7 @@ void P_CrossSpecialLine(int linenum, int side, mobj_t * thing)
 //
 //----------------------------------------------------------------------------
 
-void P_ShootSpecialLine(mobj_t * thing, line_t * line)
+void P_ShootSpecialLine(const mobj_t * thing, line_t * line)
 {
     if (!thing->player)
     {                           // Check if trigger allowed by non-player mobj
@@ -910,7 +910,7 @@ void P_ShootSpecialLine(mobj_t * thing, line_t * line)
 void P_PlayerInSpecialSector(player_t * player)
 {
     sector_t *sector;
-    static sector_t *error; // [crispy] for sectors with unknown special
+    static const sector_t *error; // [crispy] for sectors with unknown special
     static int pushTab[5] = {
         2048 * 5,
         2048 * 10,
@@ -1190,11 +1190,11 @@ void R_InterpolateTextureOffsets(void)
 //      Special Stuff that can't be categorized
 //
 //============================================================
-int EV_DoDonut(line_t * line)
+int EV_DoDonut(const line_t * line)
 {
     sector_t *s1;
     sector_t *s2;
-    sector_t *s3;
+    const sector_t *s3;
     int secnum;
     int rtn;
     int i;

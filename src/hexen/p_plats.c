@@ -21,6 +21,9 @@
 #include "i_system.h"
 #include "p_local.h"
 
+
+static void P_RemoveActivePlat(const plat_t * plat);
+
 plat_t *activeplats[MAXPLATS];
 
 //==================================================================
@@ -102,7 +105,7 @@ void T_PlatRaise(thinker_t *thinker)
 //      "amount" is only used for SOME platforms.
 //
 //==================================================================
-int EV_DoPlat(line_t * line, byte * args, plattype_e type, int amount)
+int EV_DoPlat(line_t * line, const byte * args, plattype_e type, int amount)
 {
     plat_t *plat;
     int secnum;
@@ -214,7 +217,7 @@ void P_ActivateInStasis(int tag)
 }
 #endif
 
-void EV_StopPlat(line_t * line, byte * args)
+void EV_StopPlat(line_t * line, const byte * args)
 {
     int i;
 
@@ -262,7 +265,7 @@ void P_AddActivePlat(plat_t * plat)
     I_Error("P_AddActivePlat: no more plats!");
 }
 
-void P_RemoveActivePlat(plat_t * plat)
+static void P_RemoveActivePlat(const plat_t * plat)
 {
     int i;
     for (i = 0; i < MAXPLATS; i++)

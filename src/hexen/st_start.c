@@ -45,9 +45,9 @@
 #define ST_NETNOTCH_HEIGHT		16
 #define ST_MAX_NETNOTCHES		8
 
-byte *ST_LoadScreen(void);
-void ST_UpdateNotches(int notchPosition);
-void ST_UpdateNetNotches(int notchPosition);
+static byte *ST_LoadScreen(void);
+static void ST_UpdateNotches(int notchPosition);
+static void ST_UpdateNetNotches(int notchPosition);
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 static const byte *bitmap = NULL;
@@ -167,10 +167,10 @@ void ST_Done(void)
 //
 //==========================================================================
 
-void ST_UpdateNotches(int notchPosition)
+static void ST_UpdateNotches(int notchPosition)
 {
-    int x = ST_PROGRESS_X + notchPosition * ST_NOTCH_WIDTH;
-    int y = ST_PROGRESS_Y;
+    const int x = ST_PROGRESS_X + notchPosition * ST_NOTCH_WIDTH;
+    const int y = ST_PROGRESS_Y;
     I_SlamBlockHR(x, y, ST_NOTCH_WIDTH, ST_NOTCH_HEIGHT, notchTable);
 }
 
@@ -181,10 +181,10 @@ void ST_UpdateNotches(int notchPosition)
 //
 //==========================================================================
 
-void ST_UpdateNetNotches(int notchPosition)
+static void ST_UpdateNetNotches(int notchPosition)
 {
-    int x = ST_NETPROGRESS_X + notchPosition * ST_NETNOTCH_WIDTH;
-    int y = ST_NETPROGRESS_Y;
+    const int x = ST_NETPROGRESS_X + notchPosition * ST_NETNOTCH_WIDTH;
+    const int y = ST_NETPROGRESS_Y;
     I_SlamBlockHR(x, y, ST_NETNOTCH_WIDTH, ST_NETNOTCH_HEIGHT, netnotchTable);
 }
 
@@ -279,20 +279,6 @@ void ST_Message(const char *message, ...)
     va_end(argptr);
 }
 
-//==========================================================================
-//
-// ST_RealMessage - gives user message
-//
-//==========================================================================
-
-void ST_RealMessage(const char *message, ...)
-{
-    va_list argptr;
-
-    va_start(argptr, message);
-    vprintf(message, argptr);
-    va_end(argptr);
-}
 
 
 
@@ -303,7 +289,7 @@ void ST_RealMessage(const char *message, ...)
 //==========================================================================
 
 
-byte *ST_LoadScreen(void)
+static byte *ST_LoadScreen(void)
 {
     int length, lump;
     byte *buffer;

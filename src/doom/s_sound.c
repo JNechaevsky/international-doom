@@ -908,11 +908,6 @@ void S_ChangeMusic(int musicnum, int looping)
     mus_playing = music;
 }
 
-boolean S_MusicPlaying(void)
-{
-    return I_MusicIsPlaying();
-}
-
 void S_StopMusic(void)
 {
     if (mus_playing)

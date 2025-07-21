@@ -889,7 +889,7 @@ static unsigned int prng_value_index = 0;
 
 // Initialize Pseudo-RNG using the specified 128-bit key.
 
-void PRNG_Start(prng_seed_t key)
+void PRNG_Start(const prng_seed_t key)
 {
     AES_SetKey(&prng_context, key, sizeof(prng_seed_t));
     prng_value_index = 4;

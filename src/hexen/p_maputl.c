@@ -141,7 +141,7 @@ int P_BoxOnLineSide(fixed_t * tmbox, line_t * ld)
 ==================
 */
 
-int P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t * line)
+int P_PointOnDivlineSide(fixed_t x, fixed_t y, const divline_t * line)
 {
     fixed_t dx, dy;
     fixed_t left, right;
@@ -259,7 +259,8 @@ fixed_t lowfloor;
 
 void P_LineOpening(line_t * linedef)
 {
-    sector_t *front, *back;
+    const sector_t *front;
+    const sector_t *back;
 
     if (linedef->sidenum[1] == -1)
     {                           // single sided line
@@ -530,8 +531,7 @@ void check_intercept (void)
 }
 
 divline_t trace;
-boolean earlyout;
-int ptflags;
+static boolean earlyout;
 
 /*
 ==================
@@ -545,7 +545,7 @@ int ptflags;
 ==================
 */
 
-boolean PIT_AddLineIntercepts(line_t * ld)
+static boolean PIT_AddLineIntercepts(line_t * ld)
 {
     int s1, s2;
     fixed_t frac;
@@ -597,7 +597,7 @@ boolean PIT_AddLineIntercepts(line_t * ld)
 ==================
 */
 
-boolean PIT_AddThingIntercepts(mobj_t * thing)
+static boolean PIT_AddThingIntercepts(mobj_t * thing)
 {
     fixed_t x1, y1, x2, y2;
     int s1, s2;
@@ -656,7 +656,7 @@ boolean PIT_AddThingIntercepts(mobj_t * thing)
 ====================
 */
 
-boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
+static boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 {
     int count;
     fixed_t dist;

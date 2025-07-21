@@ -38,7 +38,7 @@ static int eventtail;
 // D_PostEvent
 // Called by the I/O functions when input is detected
 //
-void D_PostEvent (event_t* ev)
+void D_PostEvent (const event_t* ev)
 {
     events[eventhead] = *ev;
     eventhead = (eventhead + 1) % MAXEVENTS;

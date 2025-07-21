@@ -28,10 +28,10 @@ extern int idmusnum;
 extern boolean mus_force_replay;
 
 void S_Start(void);
-void S_StartSound(void *origin, int sound_id);
+void S_StartSound(void *_origin, int sound_id);
 void S_StartSoundAmbient (void *_origin, int sound_id);
-void S_StartSoundAtVolume(void *origin, int sound_id, int volume);
-void S_StopSound(void *origin);
+void S_StartSoundAtVolume(void *_origin, int sound_id, int volume);
+void S_StopSound(void *_origin);
 void S_PauseSound(void);
 void S_ResumeSound(void);
 void S_UpdateSounds(mobj_t * listener);

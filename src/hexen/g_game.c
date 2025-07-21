@@ -48,8 +48,8 @@
 
 // Functions
 
-void G_ReadDemoTiccmd(ticcmd_t * cmd);
-void G_WriteDemoTiccmd(ticcmd_t * cmd);
+static void G_ReadDemoTiccmd(ticcmd_t * cmd);
+static void G_WriteDemoTiccmd(ticcmd_t * cmd);
 
 void G_DoReborn(int playernum);
 
@@ -2654,7 +2654,7 @@ void G_InitNew(skill_t skill, int episode, int map)
 // [crispy] demo progress bar and timer widget
 int defdemotics = 0, deftotaldemotics;
 
-void G_ReadDemoTiccmd(ticcmd_t * cmd)
+static void G_ReadDemoTiccmd(ticcmd_t * cmd)
 {
     if (*demo_p == DEMOMARKER)
     {                           // end of demo data stream
@@ -2713,7 +2713,7 @@ static void IncreaseDemoBuffer(void)
     demoend = demobuffer + new_length;
 }
 
-void G_WriteDemoTiccmd(ticcmd_t * cmd)
+static void G_WriteDemoTiccmd(ticcmd_t * cmd)
 {
     byte *demo_start;
 

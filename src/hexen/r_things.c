@@ -392,7 +392,7 @@ void R_DrawMaskedColumn (const column_t *column, signed int baseclip)
 
 static void R_DrawVisSprite (const vissprite_t *vis, int x1, int x2)
 {
-    column_t *column;
+    const column_t *column;
     int texturecolumn;
     fixed_t frac;
     patch_t *patch;

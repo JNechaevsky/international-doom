@@ -212,7 +212,7 @@ typedef struct vect {
     float z;
 } vect;
 
-static void hsv_to_rgb (vect *hsv, vect *rgb)
+static void hsv_to_rgb (const vect *hsv, vect *rgb)
 {
     float h, s, v;
 
@@ -277,7 +277,7 @@ static void hsv_to_rgb (vect *hsv, vect *rgb)
     }
 }
 
-static void rgb_to_hsv(vect *rgb, vect *hsv)
+static void rgb_to_hsv(const vect *rgb, vect *hsv)
 {
     float h, s, v;
     float cmax, cmin;
@@ -343,7 +343,7 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
  
 // [crispy] copied over from i_video.c
 // [PN] Refactored for performance
-int V_GetPaletteIndex(byte *palette, int r, int g, int b)
+int V_GetPaletteIndex(const byte *palette, int r, int g, int b)
 {
     int best = 0;
     int best_diff = INT_MAX;

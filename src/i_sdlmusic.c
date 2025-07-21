@@ -53,7 +53,7 @@ static char *temp_timidity_cfg = NULL;
 // is needed to inject a "dir" command so that the patches are read
 // relative to the actual config file.
 
-static boolean WriteWrapperTimidityConfig(char *write_path)
+static boolean WriteWrapperTimidityConfig(const char *write_path)
 {
     char *path;
     FILE *fstream;

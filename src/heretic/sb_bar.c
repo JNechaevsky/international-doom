@@ -48,6 +48,8 @@ typedef struct Cheat_s
 // Private Functions
 
 static void DrawSoundInfo(void);
+static void SB_PaletteFlash(void);
+static void SB_SmoothPaletteFlash(void);
 static void ShadeLine(int x, int y, int height, int shade);
 static void ShadeChain(void);
 static void DrINumber(signed int val, int x, int y);
@@ -1165,7 +1167,7 @@ static byte *SB_NumberColor (int i)
 
 // sets the new palette based upon current values of player->damagecount
 // and player->bonuscount
-void SB_PaletteFlash(void)
+static void SB_PaletteFlash(void)
 {
     int palette;
 
@@ -1234,7 +1236,7 @@ void SB_PaletteFlash(void)
 // Handles smooth palette transitions for a better visual effect.
 // -----------------------------------------------------------------------------
 
-void SB_SmoothPaletteFlash (void)
+static void SB_SmoothPaletteFlash (void)
 {
     int palette = 0;
     // [JN] A11Y - Palette flash effects.

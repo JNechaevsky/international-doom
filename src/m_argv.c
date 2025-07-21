@@ -168,7 +168,7 @@ static void LoadResponseFile(int argv_index, const char *filename)
 
         if (infile[k] == '\"')
         {
-            char *argstart;
+            const char *argstart;
             // Skip the first character(")
             ++k;
 
@@ -201,7 +201,7 @@ static void LoadResponseFile(int argv_index, const char *filename)
         }
         else
         {
-            char *argstart;
+            const char *argstart;
             // Read in the next argument until a space is reached
 
             argstart = &infile[k];

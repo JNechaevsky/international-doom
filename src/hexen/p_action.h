@@ -42,7 +42,7 @@ void A_TeloSpawnD(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_CheckTeleRing(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_FogSpawn(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_FogMove(mobj_t *actor, player_t *player, pspdef_t *psp);
-void A_Quake(mobj_t *actor, player_t *player, pspdef_t *psp);
+void A_Quake(mobj_t *actor, player_t *player_param, pspdef_t *psp);
 void A_ContMobjSound(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_Scream(mobj_t *actor, player_t *player, pspdef_t *psp);
 void A_PoisonBagInit(mobj_t *actor, player_t *player, pspdef_t *psp);

@@ -111,7 +111,7 @@ void SV_Close(void)
 //
 //==========================================================================
 
-void SV_Write(void *buffer, int size)
+void SV_Write(const void *buffer, int size)
 {
     fwrite(buffer, size, 1, SaveGameFP);
 }
@@ -121,25 +121,25 @@ void SV_WriteByte(byte val)
     SV_Write(&val, sizeof(byte));
 }
 
-void SV_WriteWord(unsigned short val)
+static void SV_WriteWord(unsigned short val)
 {
     val = SHORT(val);
     SV_Write(&val, sizeof(unsigned short));
 }
 
-void SV_WriteLong(unsigned int val)
+static void SV_WriteLong(unsigned int val)
 {
     val = LONG(val);
     SV_Write(&val, sizeof(int));
 }
 
-void SV_WriteLongLong(int64_t val)
+static void SV_WriteLongLong(int64_t val)
 {
     val = (int64_t)(val);
     SV_Write(&val, sizeof(int64_t));
 }
 
-void SV_WritePtr(const void *ptr)
+static void SV_WritePtr(const void *ptr)
 {
     long val = (long)(intptr_t) ptr;
 
@@ -169,21 +169,21 @@ byte SV_ReadByte(void)
     return result;
 }
 
-uint16_t SV_ReadWord(void)
+static uint16_t SV_ReadWord(void)
 {
     uint16_t result;
     SV_Read(&result, sizeof(unsigned short));
     return SHORT(result);
 }
 
-uint32_t SV_ReadLong(void)
+static uint32_t SV_ReadLong(void)
 {
     uint32_t result;
     SV_Read(&result, sizeof(int));
     return LONG(result);
 }
 
-int64_t SV_ReadLongLong(void)
+static int64_t SV_ReadLongLong(void)
 {
     int64_t result;
     SV_Read(&result, sizeof(int64_t));
@@ -261,7 +261,7 @@ static void saveg_read_inventory_t(inventory_t *str)
     str->count = SV_ReadLong();
 }
 
-static void saveg_write_inventory_t(inventory_t *str)
+static void saveg_write_inventory_t(const inventory_t *str)
 {
     // int type;
     SV_WriteLong(str->type);
@@ -301,7 +301,7 @@ static void saveg_read_state_ptr(state_t **state)
     }
 }
 
-static void saveg_write_state_ptr(state_t *state)
+static void saveg_write_state_ptr(const state_t *state)
 {
     int statenum;
 
@@ -357,7 +357,7 @@ static void saveg_read_pspdef_t(pspdef_t *str)
     str->sy2 = str->oldsy2 = str->sy;
 }
 
-static void saveg_write_pspdef_t(pspdef_t *str)
+static void saveg_write_pspdef_t(const pspdef_t *str)
 {
     // state_t *state;
     saveg_write_state_ptr(str->state);
@@ -729,7 +729,7 @@ static void saveg_read_mapthing_t(mapthing_t *str)
     str->options = SV_ReadWord();
 }
 
-static void saveg_write_mapthing_t(mapthing_t *str)
+static void saveg_write_mapthing_t(const mapthing_t *str)
 {
     // short x, y;
     SV_WriteWord(str->x);
@@ -763,7 +763,7 @@ static void saveg_read_thinker_t(thinker_t *str)
     str->function = NULL;
 }
 
-static void saveg_write_thinker_t(thinker_t *str)
+static void saveg_write_thinker_t(const thinker_t *str)
 {
     // struct thinker_s *prev, *next;
     SV_WritePtr(str->prev);
@@ -788,7 +788,7 @@ static void saveg_read_specialval_t(specialval_t *str)
     str->i = SV_ReadLong();
 }
 
-static void saveg_write_specialval_t(specialval_t *str)
+static void saveg_write_specialval_t(const specialval_t *str)
 {
     // int i;
     SV_WriteLong(str->i);
@@ -1633,7 +1633,7 @@ void P_ArchiveWorld(void)
     int i, j;
     sector_t *sec;
     line_t *li;
-    side_t *si;
+    const side_t *si;
 
     // Sectors
     for (i = 0, sec = sectors; i < numsectors; i++, sec++)

@@ -45,7 +45,7 @@
 // in POSIX.1.  Other than Linux, the d_type field is available mainly
 // only on BSD systems.  The remaining fields are available on many, but
 // not all systems.
-static boolean IsDirectory(char *dir, struct dirent *de)
+static boolean IsDirectory(const char *dir, struct dirent *de)
 {
 #if defined(_DIRENT_HAVE_D_TYPE)
     if (de->d_type != DT_UNKNOWN && de->d_type != DT_LNK)
@@ -226,7 +226,7 @@ static boolean MatchesGlob(const char *name, const char *glob, int flags)
     return *name == '\0';
 }
 
-static boolean MatchesAnyGlob(const char *name, glob_t *glob)
+static boolean MatchesAnyGlob(const char *name, const glob_t *glob)
 {
     int i;
 
@@ -360,11 +360,11 @@ glob_t *I_StartGlob(const char *directory, const char *glob, int flags)
     return NULL;
 }
 
-void I_EndGlob(glob_t *glob)
+void I_EndGlob(const glob_t *glob)
 {
 }
 
-const char *I_NextGlob(glob_t *glob)
+const char *I_NextGlob(const glob_t *glob)
 {
     return "";
 }

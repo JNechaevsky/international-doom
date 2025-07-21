@@ -244,17 +244,6 @@ static int      crl_camzspeed;
 // [crispy] store last cmd to track joins
 static ticcmd_t* last_cmd = NULL;
  
-int G_CmdChecksum (ticcmd_t* cmd) 
-{ 
-    size_t		i;
-    int		sum = 0; 
-	 
-    for (i=0 ; i< sizeof(*cmd)/4 - 1 ; i++) 
-	sum += ((int *)cmd)[i]; 
-		 
-    return sum; 
-} 
-
 static boolean WeaponSelectable(weapontype_t weapon)
 {
     // Can't select the super shotgun in Doom 1.
@@ -1700,24 +1689,13 @@ void G_Ticker (void)
 // also see P_SpawnPlayer in P_Things
 //
 
-//
-// G_InitPlayer 
-// Called at the start.
-// Called by the game initialization functions.
-//
-void G_InitPlayer (int player) 
-{
-    // clear everything else to defaults
-    G_PlayerReborn (player); 
-}
- 
  
 
 //
 // G_PlayerFinishLevel
 // Can when a player completes a level.
 //
-void G_PlayerFinishLevel (int player) 
+static void G_PlayerFinishLevel (int player) 
 { 
     player_t*	p; 
 	 

@@ -355,7 +355,7 @@ void P_PostMorphWeapon(player_t * player, weapontype_t weapon)
 //
 //---------------------------------------------------------------------------
 
-void P_BringUpWeapon(player_t * player)
+static void P_BringUpWeapon(player_t * player)
 {
     statenum_t new;
 
@@ -390,7 +390,7 @@ void P_BringUpWeapon(player_t * player)
 //
 //---------------------------------------------------------------------------
 
-boolean P_CheckMana(player_t * player)
+static boolean P_CheckMana(player_t * player)
 {
     manatype_t mana;
     int count;
@@ -447,7 +447,7 @@ boolean P_CheckMana(player_t * player)
 //
 //---------------------------------------------------------------------------
 
-void P_FireWeapon(player_t * player)
+static void P_FireWeapon(player_t * player)
 {
     statenum_t attackState;
 
@@ -513,7 +513,7 @@ static inline void P_ApplyBobbing (int *sx, int *sy, boolean bob_y, fixed_t bob)
 //
 //---------------------------------------------------------------------------
 
-void A_WeaponReady(mobj_t *obj, player_t *player, pspdef_t *psp)
+void A_WeaponReady(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     // Change player from attack state
     if (player->mo->state >= &states[PStateAttack[player->class]]
@@ -558,7 +558,7 @@ void A_WeaponReady(mobj_t *obj, player_t *player, pspdef_t *psp)
 //
 //---------------------------------------------------------------------------
 
-void A_ReFire(mobj_t *mobj, player_t *player, pspdef_t *psp)
+void A_ReFire(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     if ((player->cmd.buttons & BT_ATTACK)
         && player->pendingweapon == WP_NOCHANGE && player->health)
@@ -579,7 +579,7 @@ void A_ReFire(mobj_t *mobj, player_t *player, pspdef_t *psp)
 //
 //---------------------------------------------------------------------------
 
-void A_Lower(mobj_t *mobj, player_t *player, pspdef_t *psp)
+void A_Lower(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     if (player->morphTics)
     {
@@ -614,7 +614,7 @@ void A_Lower(mobj_t *mobj, player_t *player, pspdef_t *psp)
 //
 //---------------------------------------------------------------------------
 
-void A_Raise(mobj_t *mobj, player_t *player, pspdef_t *psp)
+void A_Raise(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     psp->sy -= RAISESPEED;
 
@@ -687,7 +687,7 @@ void P_BulletSlope (mobj_t *mo)
 
 #define MAX_ANGADJUST (5*ANG1)
 
-void AdjustPlayerAngle(mobj_t * pmo)
+static void AdjustPlayerAngle(mobj_t * pmo)
 {
     angle_t angle;
     int difference;
@@ -710,7 +710,7 @@ void AdjustPlayerAngle(mobj_t * pmo)
 //
 //============================================================================
 
-void A_SnoutAttack(mobj_t *mobj, player_t *player, pspdef_t *psp)
+void A_SnoutAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     angle_t angle;
     int damage;
@@ -743,7 +743,7 @@ void A_SnoutAttack(mobj_t *mobj, player_t *player, pspdef_t *psp)
 
 #define HAMMER_RANGE	(MELEERANGE+MELEERANGE/2)
 
-void A_FHammerAttack(mobj_t *mobj, player_t *player, pspdef_t *psp)
+void A_FHammerAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     angle_t angle;
     mobj_t *pmo = player->mo;
@@ -812,7 +812,7 @@ void A_FHammerAttack(mobj_t *mobj, player_t *player, pspdef_t *psp)
 //
 //============================================================================
 
-void A_FHammerThrow(mobj_t *mobj, player_t * player, pspdef_t * psp)
+void A_FHammerThrow(mobj_t *actor, player_t * player, pspdef_t * psp)
 {
     mobj_t *mo;
 
@@ -834,7 +834,7 @@ void A_FHammerThrow(mobj_t *mobj, player_t * player, pspdef_t * psp)
 //
 //============================================================================
 
-void A_FSwordAttack(mobj_t *mobj, player_t *player, pspdef_t *psp)
+void A_FSwordAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *pmo;
 
@@ -1072,7 +1072,7 @@ void A_LightningZap(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 //============================================================================
 
-void A_MLightningAttack2(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_MLightningAttack2(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *fmo, *cmo;
 
@@ -1113,7 +1113,7 @@ void A_MLightningAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 void A_ZapMimic(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    mobj_t *mo;
+    const mobj_t *mo;
 
     mo = actor->special2.m;
     if (mo)
@@ -1173,7 +1173,7 @@ void A_LightningRemove(mobj_t *actor, player_t *player, pspdef_t *psp)
 // MStaffSpawn
 //
 //============================================================================
-void MStaffSpawn(mobj_t * pmo, angle_t angle)
+static void MStaffSpawn(mobj_t * pmo, angle_t angle)
 {
     mobj_t *mo;
 
@@ -1293,7 +1293,7 @@ void A_MStaffTrack(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 //============================================================================
 
-void MStaffSpawn2(mobj_t * actor, angle_t angle)
+static void MStaffSpawn2(mobj_t * actor, angle_t angle)
 {
     mobj_t *mo;
 
@@ -2211,7 +2211,7 @@ static void CHolyTailRemove(mobj_t * actor)
 
 void A_CHolyTail(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    mobj_t *parent;
+    const mobj_t *parent;
 
     parent = actor->special2.m;
 

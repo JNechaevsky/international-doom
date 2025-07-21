@@ -128,7 +128,7 @@ boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping,
 //
 
 boolean DEH_SetStringMapping(deh_context_t *context, deh_mapping_t *mapping,
-                             void *structptr, char *name, char *value)
+                             void *structptr, char *name, const char *value)
 {
     deh_mapping_entry_t *entry;
     void *location;

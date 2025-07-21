@@ -109,7 +109,7 @@ void T_Light(thinker_t *thinker)
 //
 //============================================================================
 
-boolean EV_SpawnLight(line_t * line, byte * arg, lighttype_t type)
+boolean EV_SpawnLight(line_t * line, const byte * arg, lighttype_t type)
 {
     light_t *light;
     sector_t *sec;

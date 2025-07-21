@@ -50,7 +50,7 @@ static memblock_t *allocated_blocks[PU_NUM_TAGS];
 
 static int test_malloced = 0;
 
-void *test_malloc(size_t size)
+static void *test_malloc(size_t size)
 {
     int *result;
 
@@ -68,7 +68,7 @@ void *test_malloc(size_t size)
     return result + 1;
 }
 
-void test_free(void *data)
+static void test_free(void *data)
 {
     int *i;
 
@@ -418,7 +418,7 @@ void Z_FileDumpHeap(FILE *f)
 void Z_CheckHeap (void)
 {
     memblock_t *block;
-    memblock_t *prev;
+    const memblock_t *prev;
     int i;
 
     // Check all chains

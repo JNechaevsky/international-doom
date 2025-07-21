@@ -139,7 +139,7 @@ void T_VerticalDoor(thinker_t *thinker)
 //
 //----------------------------------------------------------------------------
 
-int EV_DoDoor(line_t * line, byte * args, vldoor_e type)
+int EV_DoDoor(line_t * line, const byte * args, vldoor_e type)
 {
     int secnum;
     int retcode;

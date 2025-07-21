@@ -26,6 +26,13 @@
 // Macros
 // Types
 // Private Data
+static void A_AccelBalls(mobj_t *actor, player_t *player, pspdef_t *psp);
+static void A_CastSorcererSpell(mobj_t *actor, player_t *player, pspdef_t *psp);
+static void A_DecelBalls(mobj_t *actor, player_t *player, pspdef_t *psp);
+static void A_SlowBalls(mobj_t *actor, player_t *player, pspdef_t *psp);
+static void A_SorcOffense1(mobj_t *actor, player_t *player, pspdef_t *psp);
+static void A_SorcOffense2(mobj_t *actor, player_t *player, pspdef_t *psp);
+static void A_SorcUpdateBallAngle(mobj_t *actor, player_t *player, pspdef_t *psp);
 // External Data
 
 
@@ -37,7 +44,7 @@
 
 mobj_t *soundtarget;
 
-void P_RecursiveSound(sector_t * sec, int soundblocks)
+static void P_RecursiveSound(sector_t * sec, int soundblocks)
 {
     int i;
     line_t *check;
@@ -114,7 +121,7 @@ void P_NoiseAlert(mobj_t * target, mobj_t * emmiter)
 // and let sectors forget their soundtarget
 // -----------------------------------------------------------------------------
 
-void P_ForgetPlayer (player_t *player)
+void P_ForgetPlayer (const player_t *player)
 {
     if (player->cheats & CF_NOTARGET)
     {
@@ -150,7 +157,7 @@ void P_ForgetPlayer (player_t *player)
 //
 //----------------------------------------------------------------------------
 
-boolean P_CheckMeleeRange(mobj_t * actor)
+static boolean P_CheckMeleeRange(mobj_t * actor)
 {
     mobj_t *mo;
     fixed_t dist;
@@ -186,7 +193,7 @@ boolean P_CheckMeleeRange(mobj_t * actor)
 //
 //----------------------------------------------------------------------------
 
-boolean P_CheckMeleeRange2(mobj_t * actor)
+static boolean P_CheckMeleeRange2(mobj_t * actor)
 {
     mobj_t *mo;
     fixed_t dist;
@@ -222,7 +229,7 @@ boolean P_CheckMeleeRange2(mobj_t * actor)
 //
 //----------------------------------------------------------------------------
 
-boolean P_CheckMissileRange(mobj_t * actor)
+static boolean P_CheckMissileRange(mobj_t * actor)
 {
     fixed_t dist;
 
@@ -266,13 +273,13 @@ boolean P_CheckMissileRange(mobj_t * actor)
 ================
 */
 
-fixed_t xspeed[8] =
+static const fixed_t xspeed[8] =
     { FRACUNIT, 47000, 0, -47000, -FRACUNIT, -47000, 0, 47000 };
-fixed_t yspeed[8] =
+static const fixed_t yspeed[8] =
     { 0, 47000, FRACUNIT, 47000, 0, -47000, -FRACUNIT, -47000 };
 
 
-boolean P_Move(mobj_t * actor)
+static boolean P_Move(mobj_t * actor)
 {
     fixed_t tryx, tryy;
     line_t *ld;
@@ -350,7 +357,7 @@ boolean P_Move(mobj_t * actor)
 //
 //----------------------------------------------------------------------------
 
-boolean P_TryWalk(mobj_t * actor)
+static boolean P_TryWalk(mobj_t * actor)
 {
     if (!P_Move(actor))
     {
@@ -368,15 +375,15 @@ boolean P_TryWalk(mobj_t * actor)
 ================
 */
 
-dirtype_t opposite[] =
+static const dirtype_t opposite[] =
     { DI_WEST, DI_SOUTHWEST, DI_SOUTH, DI_SOUTHEAST, DI_EAST, DI_NORTHEAST,
     DI_NORTH, DI_NORTHWEST, DI_NODIR
 };
 
-dirtype_t diags[] =
+static const dirtype_t diags[] =
     { DI_NORTHWEST, DI_NORTHEAST, DI_SOUTHWEST, DI_SOUTHEAST };
 
-void P_NewChaseDir(mobj_t * actor)
+static void P_NewChaseDir(mobj_t * actor)
 {
     fixed_t deltax, deltay;
     dirtype_t d[3];
@@ -500,7 +507,7 @@ void P_NewChaseDir(mobj_t * actor)
 #define MONS_LOOK_RANGE (16*64*FRACUNIT)
 #define MONS_LOOK_LIMIT 64
 
-boolean P_LookForMonsters(mobj_t * actor)
+static boolean P_LookForMonsters(mobj_t * actor)
 {
     int count;
     mobj_t *mo;
@@ -564,7 +571,7 @@ boolean P_LookForMonsters(mobj_t * actor)
 ================
 */
 
-boolean P_LookForPlayers(mobj_t * actor, boolean allaround)
+static boolean P_LookForPlayers(mobj_t * actor, boolean allaround)
 {
     int c;
     int stop;
@@ -899,7 +906,7 @@ void A_Pain(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 //============================================================================
 
-void A_SetInvulnerable(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_SetInvulnerable(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     actor->flags2 |= MF2_INVULNERABLE;
 }
@@ -956,7 +963,7 @@ void A_UnSetReflective(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 //----------------------------------------------------------------------------
 
-boolean P_UpdateMorphedMonster(mobj_t * actor, int tics)
+static boolean P_UpdateMorphedMonster(mobj_t * actor, int tics)
 {
     mobj_t *fog;
     fixed_t x;
@@ -1088,7 +1095,7 @@ void A_PigPain(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 
 
-void FaceMovementDirection(mobj_t * actor)
+static void FaceMovementDirection(mobj_t * actor)
 {
     switch (actor->movedir)
     {
@@ -1389,7 +1396,7 @@ void A_MinotaurAtk1(mobj_t *actor, player_t *player, pspdef_t *psp)
 void A_MinotaurDecide(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     angle_t angle;
-    mobj_t *target = actor->target;
+    const mobj_t *target = actor->target;
     int dist;
 
     if (!target)
@@ -1460,7 +1467,7 @@ void A_MinotaurCharge(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 void A_MinotaurAtk2(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    mobj_t *mo;
+    const mobj_t *mo;
     angle_t angle;
     fixed_t momz;
 
@@ -1936,7 +1943,7 @@ void A_QueueCorpse(mobj_t *actor, player_t *player, pspdef_t *psp)
 }
 
 // Remove a mobj from the queue (for resurrection)
-void A_DeQueueCorpse(mobj_t *actor)
+void A_DeQueueCorpse(const mobj_t *actor)
 {
     int slot;
 
@@ -2884,7 +2891,7 @@ static void DragonSeek(mobj_t * actor, angle_t thresh, angle_t turnMax)
     int bestArg;
     angle_t bestAngle;
     angle_t angleToSpot, angleToTarget;
-    mobj_t *mo;
+    const mobj_t *mo;
 
     target = actor->special1.m;
     if (target == NULL)
@@ -3462,7 +3469,7 @@ void A_WraithMelee(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 void A_WraithMissile(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    mobj_t *mo;
+    const mobj_t *mo;
 
     mo = P_SpawnMissile(actor, actor->target, MT_WRAITHFX1);
     if (mo)
@@ -3528,7 +3535,7 @@ void A_WraithFX3(mobj_t *actor, player_t *player, pspdef_t *psp)
 }
 
 // Spawn an FX4 during movement
-void A_WraithFX4(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_WraithFX4(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *mo;
     int chance = P_Random();
@@ -3639,7 +3646,7 @@ void A_DropMace(mobj_t *actor, player_t *player, pspdef_t *psp)
 // special2                     whether strafing or not
 //============================================================================
 
-void A_FiredSpawnRock(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_FiredSpawnRock(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *mo;
     int x, y, z;
@@ -3693,7 +3700,7 @@ void A_FiredRocks(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 void A_FiredAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-    mobj_t *mo;
+    const mobj_t *mo;
     mo = P_SpawnMissile(actor, actor->target, MT_FIREDEMON_FX6);
     if (mo)
         S_StartSound(actor, SFX_FIRED_ATTACK);
@@ -4183,7 +4190,7 @@ void A_SpeedBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 // Set balls to slow mode - actor is sorcerer
 //
-void A_SlowBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_SlowBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     actor->args[3] = SORC_DECELERATE;   // slow mode
     actor->args[2] = SORCBALL_INITIAL_SPEED;    // target speed
@@ -4194,7 +4201,7 @@ void A_SlowBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 // Instant stop when rotation gets to ball in special2
 //              actor is sorcerer
 //
-void A_StopBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_StopBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     int chance = P_Random();
     actor->args[3] = SORC_STOPPING;     // stopping mode
@@ -4221,7 +4228,7 @@ void A_StopBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 // Increase ball orbit speed - actor is ball
 //
-void A_AccelBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_AccelBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *sorc = actor->target;
 
@@ -4242,7 +4249,7 @@ void A_AccelBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 
 // Decrease ball orbit speed - actor is ball
-void A_DecelBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_DecelBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *sorc = actor->target;
 
@@ -4258,7 +4265,7 @@ void A_DecelBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 
 // Update angle if first ball - actor is ball
-void A_SorcUpdateBallAngle(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_SorcUpdateBallAngle(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     if (actor->type == MT_SORCBALL1)
     {
@@ -4268,7 +4275,7 @@ void A_SorcUpdateBallAngle(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 
 // actor is ball
-void A_CastSorcererSpell(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_CastSorcererSpell(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *mo;
     int spell = actor->type;
@@ -4339,7 +4346,7 @@ void A_SpawnReinforcements(mobj_t *actor)
 */
 
 // actor is ball
-void A_SorcOffense1(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_SorcOffense1(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *mo;
     angle_t ang1, ang2;
@@ -4367,13 +4374,13 @@ void A_SorcOffense1(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 
 // Actor is ball
-void A_SorcOffense2(mobj_t *actor, player_t *player, pspdef_t *psp)
+static void A_SorcOffense2(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     angle_t ang1;
     mobj_t *mo;
     int delta, index;
     mobj_t *parent = actor->target;
-    mobj_t *dest = parent->target;
+    const mobj_t *dest = parent->target;
     int dist;
 
     index = actor->args[4] << 5;
@@ -4980,13 +4987,13 @@ void A_FreezeDeathChunks(mobj_t *actor, player_t *player, pspdef_t *psp)
 #define KORAX_COMMAND_HEIGHT	(120*FRACUNIT)
 #define KORAX_COMMAND_OFFSET	(27*FRACUNIT)
 
-void KoraxFire1(mobj_t * actor, int type);
-void KoraxFire2(mobj_t * actor, int type);
-void KoraxFire3(mobj_t * actor, int type);
-void KoraxFire4(mobj_t * actor, int type);
-void KoraxFire5(mobj_t * actor, int type);
-void KoraxFire6(mobj_t * actor, int type);
-void KSpiritInit(mobj_t * spirit, mobj_t * korax);
+static void KoraxFire1(mobj_t * actor, int type);
+static void KoraxFire2(mobj_t * actor, int type);
+static void KoraxFire3(mobj_t * actor, int type);
+static void KoraxFire4(mobj_t * actor, int type);
+static void KoraxFire5(mobj_t * actor, int type);
+static void KoraxFire6(mobj_t * actor, int type);
+static void KSpiritInit(mobj_t * spirit, mobj_t * korax);
 
 #define KORAX_TID					(245)
 #define KORAX_FIRST_TELEPORT_TID	(248)
@@ -4996,7 +5003,7 @@ void A_KoraxChase(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     mobj_t *spot;
     int lastfound;
-    byte args[3] = {0, 0, 0};
+    const byte args[3] = {0, 0, 0};
 
     if ((!actor->special2.i) &&
         (actor->health <= (actor->info->spawnhealth / 2)))
@@ -5090,7 +5097,7 @@ void A_KoraxBonePop(mobj_t *actor, player_t *player, pspdef_t *psp)
     P_StartACS(255, 0, args, actor, NULL, 0);   // Death script
 }
 
-void KSpiritInit(mobj_t * spirit, mobj_t * korax)
+static void KSpiritInit(mobj_t * spirit, mobj_t * korax)
 {
     int i;
     mobj_t *tail, *next;
@@ -5250,7 +5257,7 @@ void A_KoraxCommand(mobj_t *actor, player_t *player, pspdef_t *psp)
 
 
 // Arm 1 projectile
-void KoraxFire1(mobj_t * actor, int type)
+static void KoraxFire1(mobj_t * actor, int type)
 {
     angle_t ang;
     fixed_t x, y, z;
@@ -5264,7 +5271,7 @@ void KoraxFire1(mobj_t * actor, int type)
 
 
 // Arm 2 projectile
-void KoraxFire2(mobj_t * actor, int type)
+static void KoraxFire2(mobj_t * actor, int type)
 {
     angle_t ang;
     fixed_t x, y, z;
@@ -5277,7 +5284,7 @@ void KoraxFire2(mobj_t * actor, int type)
 }
 
 // Arm 3 projectile
-void KoraxFire3(mobj_t * actor, int type)
+static void KoraxFire3(mobj_t * actor, int type)
 {
     angle_t ang;
     fixed_t x, y, z;
@@ -5290,7 +5297,7 @@ void KoraxFire3(mobj_t * actor, int type)
 }
 
 // Arm 4 projectile
-void KoraxFire4(mobj_t * actor, int type)
+static void KoraxFire4(mobj_t * actor, int type)
 {
     angle_t ang;
     fixed_t x, y, z;
@@ -5303,7 +5310,7 @@ void KoraxFire4(mobj_t * actor, int type)
 }
 
 // Arm 5 projectile
-void KoraxFire5(mobj_t * actor, int type)
+static void KoraxFire5(mobj_t * actor, int type)
 {
     angle_t ang;
     fixed_t x, y, z;
@@ -5316,7 +5323,7 @@ void KoraxFire5(mobj_t * actor, int type)
 }
 
 // Arm 6 projectile
-void KoraxFire6(mobj_t * actor, int type)
+static void KoraxFire6(mobj_t * actor, int type)
 {
     angle_t ang;
     fixed_t x, y, z;
@@ -5329,7 +5336,7 @@ void KoraxFire6(mobj_t * actor, int type)
 }
 
 
-void A_KSpiritWeave(mobj_t *actor)
+static void A_KSpiritWeave(mobj_t *actor)
 {
     fixed_t newX, newY;
     int weaveXY, weaveZ;
@@ -5352,7 +5359,7 @@ void A_KSpiritWeave(mobj_t *actor)
     actor->special2.i = weaveZ + (weaveXY << 16);
 }
 
-void A_KSpiritSeeker(mobj_t * actor, angle_t thresh, angle_t turnMax)
+static void A_KSpiritSeeker(mobj_t * actor, angle_t thresh, angle_t turnMax)
 {
     int dir;
     int dist;

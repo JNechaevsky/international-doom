@@ -31,10 +31,10 @@ This uses specialized forms of the maputils routines for optimized performance
 ==============================================================================
 */
 
-fixed_t sightzstart;            // eye z of looker
+static fixed_t sightzstart;            // eye z of looker
 fixed_t topslope, bottomslope;  // slopes to top and bottom of target
 
-int sightcounts[3];
+static int sightcounts[3];
 
 /*
 ==============
@@ -44,9 +44,9 @@ int sightcounts[3];
 ==============
 */
 
-boolean PTR_SightTraverse(intercept_t * in)
+static boolean PTR_SightTraverse(intercept_t * in)
 {
-    line_t *li;
+    const line_t *li;
     fixed_t slope;
 
     li = in->d.line;
@@ -89,7 +89,7 @@ boolean PTR_SightTraverse(intercept_t * in)
 ===================
 */
 
-boolean P_SightBlockLinesIterator(int x, int y)
+static boolean P_SightBlockLinesIterator(int x, int y)
 {
     int offset;
     int32_t *list;
@@ -146,7 +146,7 @@ boolean P_SightBlockLinesIterator(int x, int y)
 ====================
 */
 
-boolean P_SightTraverseIntercepts(void)
+static boolean P_SightTraverseIntercepts(void)
 {
     int count;
     fixed_t dist;
@@ -198,7 +198,7 @@ boolean P_SightTraverseIntercepts(void)
 ==================
 */
 
-boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
+static boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
 {
     fixed_t xt1, yt1, xt2, yt2;
     fixed_t xstep, ystep;

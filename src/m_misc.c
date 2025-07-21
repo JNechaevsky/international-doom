@@ -257,7 +257,8 @@ char *M_getenv(const char *name)
 {
 #ifdef _WIN32
     int i;
-    wchar_t *wenv = NULL, *wname = NULL;
+    const wchar_t *wenv = NULL;
+    wchar_t *wname = NULL;
     char *env = NULL;
 
     for (i = 0; i < num_vars; ++i)

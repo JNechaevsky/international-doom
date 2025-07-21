@@ -31,7 +31,6 @@
 
 
 void G_PlayerReborn(int player);
-void P_SpawnMapThing(mapthing_t * mthing);
 
 mobjtype_t PuffType;
 mobj_t *MissileMobj;
@@ -172,7 +171,7 @@ static void P_ExplodeMissileSafe(mobj_t * mo, boolean safe)
     }
 }
 
-void P_ExplodeMissile(mobj_t * mo)
+static void P_ExplodeMissile(mobj_t * mo)
 {
     P_ExplodeMissileSafe(mo, false);
 }
@@ -183,7 +182,7 @@ void P_ExplodeMissile(mobj_t * mo)
 //
 //----------------------------------------------------------------------------
 
-void P_FloorBounceMissile(mobj_t * mo)
+static void P_FloorBounceMissile(mobj_t * mo)
 {
     mo->momz = -mo->momz;
     P_SetMobjState(mo, mobjinfo[mo->type].deathstate);
@@ -217,7 +216,7 @@ void P_ThrustMobj(mobj_t * mo, angle_t angle, fixed_t move)
 //
 //----------------------------------------------------------------------------
 
-int P_FaceMobj(mobj_t * source, mobj_t * target, angle_t * delta)
+static int P_FaceMobj(mobj_t * source, mobj_t * target, angle_t * delta)
 {
     angle_t diff;
     angle_t angle1;
@@ -327,7 +326,7 @@ boolean P_SeekerMissile(mobj_t * actor, angle_t thresh, angle_t turnMax)
 #define FRICTION_LOW            0xf900
 #define FRICTION_FLY            0xeb00
 
-void P_XYMovement(mobj_t * mo)
+static void P_XYMovement(mobj_t * mo)
 {
     fixed_t ptryx, ptryy;
     player_t *player;
@@ -533,7 +532,7 @@ void P_XYMovement(mobj_t * mo)
 ===============
 */
 
-void P_ZMovement(mobj_t * mo)
+static void P_ZMovement(mobj_t * mo)
 {
     int dist;
     int delta;
@@ -674,7 +673,7 @@ void P_ZMovement(mobj_t * mo)
 ================
 */
 
-void P_NightmareRespawn(mobj_t * mobj)
+static void P_NightmareRespawn(mobj_t * mobj)
 {
     fixed_t x, y, z;
     subsector_t *ss;
@@ -1201,7 +1200,7 @@ void P_SpawnPlayer(const mapthing_t *mthing)
 //
 //----------------------------------------------------------------------------
 
-void P_SpawnMapThing(mapthing_t * mthing)
+void P_SpawnMapThing(const mapthing_t * mthing)
 {
     int i;
     int bit;

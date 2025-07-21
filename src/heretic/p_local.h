@@ -102,15 +102,15 @@ void P_RemoveThinker(thinker_t * thinker);
 
 void P_OpenWeapons(void);
 void P_CloseWeapons(void);
-void P_AddMaceSpot(mapthing_t * mthing);
+void P_AddMaceSpot(const mapthing_t * mthing);
 void P_RepositionMace(mobj_t * mo);
 void P_SetPsprite(player_t * player, int position, statenum_t stnum);
-void P_SetupPsprites(player_t * curplayer);
-void P_MovePsprites(player_t * curplayer);
+void P_SetupPsprites(player_t * player);
+void P_MovePsprites(player_t * player);
 void P_DropWeapon(player_t * player);
 void P_ActivateBeak(player_t * player);
 void P_PostChickenWeapon(player_t * player, weapontype_t weapon);
-void P_UpdateBeak(player_t * player, pspdef_t * psp);
+void P_UpdateBeak(const player_t * player, pspdef_t * psp);
 
 // ***** P_USER *****
 
@@ -136,15 +136,16 @@ extern int P_GetPlayerNum(const player_t *player);
 extern mobjtype_t PuffType;
 extern mobj_t *MissileMobj;
 
+
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
-void P_RemoveMobj(mobj_t * th);
+void P_RemoveMobj(mobj_t * mobj);
 boolean P_SetMobjState(mobj_t * mobj, statenum_t state);
 boolean P_SetMobjStateNF(mobj_t * mobj, statenum_t state);
 void P_ThrustMobj(mobj_t * mo, angle_t angle, fixed_t move);
-int P_FaceMobj(mobj_t * source, mobj_t * target, angle_t * delta);
 boolean P_SeekerMissile(mobj_t * actor, angle_t thresh, angle_t turnMax);
 void P_MobjThinker(thinker_t * thinker);
 void P_BlasterMobjThinker(thinker_t * thinker);
+void P_SpawnMapThing(const mapthing_t * mthing);
 void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);
 void P_SpawnPuffSafe(fixed_t x, fixed_t y, fixed_t z, boolean safe);
 void P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage);
@@ -228,7 +229,6 @@ extern line_t *ceilingline;
 boolean P_TestMobjLocation(mobj_t * mobj);
 boolean P_CheckPosition(mobj_t * thing, fixed_t x, fixed_t y);
 mobj_t *P_CheckOnmobj(mobj_t * thing);
-void P_FakeZMovement(mobj_t * mo);
 boolean P_TryMove(mobj_t * thing, fixed_t x, fixed_t y);
 boolean P_TeleportMove(mobj_t * thing, fixed_t x, fixed_t y);
 void P_SlideMove(mobj_t * mo);
@@ -278,7 +278,6 @@ void P_SetMessage(player_t * player, const char *message, boolean ultmsg);
 void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher);
 void P_DamageMobj(mobj_t * target, mobj_t * inflictor, mobj_t * source,
                   int damage);
-boolean P_GiveAmmo(player_t * player, ammotype_t ammo, int count);
 boolean P_GiveArtifact(player_t * player, artitype_t arti, const mobj_t *mo);
 boolean P_GiveBody(player_t * player, int num);
 boolean P_GivePower(player_t * player, powertype_t power);
@@ -295,8 +294,6 @@ void AM_Drawer(void);
 extern int SB_state;
 extern int ArtifactFlash;
 extern void SB_ForceRedraw (void);
-void SB_PaletteFlash(void);
-void SB_SmoothPaletteFlash(void);
 
 // ***** P_SAVEG *****
 
