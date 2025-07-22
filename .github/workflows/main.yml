@@ -76,7 +76,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: inter-doom-dev-win64
+          name: inter-doom-win64
           path: build_vs_64/src/Release/*.exe
           retention-days: 90
 
@@ -125,7 +125,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: inter-doom-dev-win32
+          name: inter-doom-win32
           path: upload/*
           retention-days: 90
 
@@ -231,23 +231,14 @@ jobs:
         run: |
           rm -f linuxdeploy*.AppImage
 
-      - name: Upload Doom AppImage
-        uses: actions/upload-artifact@v4
-        with:
-          name: inter-doom-dev-linux64
-          path: inter-doom-x86_64.AppImage
-          retention-days: 90
+      - name: Bundle AppImages
+        run: |
+          mkdir bundled_appimages
+          cp inter-*-x86_64.AppImage bundled_appimages/
       
-      - name: Upload Heretic AppImage
+      - name: Upload all AppImages bundle
         uses: actions/upload-artifact@v4
         with:
-          name: inter-heretic-dev-linux64
-          path: inter-heretic-x86_64.AppImage
-          retention-days: 90
-
-      - name: Upload Hexen AppImage
-        uses: actions/upload-artifact@v4
-        with:
-          name: inter-hexen-dev-linux64
-          path: inter-hexen-x86_64.AppImage
+          name: inter-doom-linux64
+          path: bundled_appimages/*
           retention-days: 90
