@@ -109,8 +109,9 @@ jobs:
             -DSDL2_MIXER_DIR="win32/SDL2_mixer-2.8.1" ^
             -DSDL2_NET_DIR="win32/SDL2_net-2.2.0" ^
             -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=Off ^
-            -DSAMPLERATE_DIR="win32/libsamplerate-0.2.2-win32 ^
-            -DFluidSynth_DIR="win32/fluidsynth-2.4.2-winXP-x86" 
+            -DSAMPLERATE_DIR="win32/libsamplerate-0.2.2-win32" ^
+            -DFluidSynth_INCLUDE_DIR="win32/fluidsynth-2.4.2-winXP-x86/include" ^
+            -DFluidSynth_LIBRARIES="win32/fluidsynth-2.4.2-winXP-x86/lib/fluidsynth.lib"
 
       - name: Build
         run: cmake --build build_vs_32 --config Release --parallel
@@ -119,7 +120,7 @@ jobs:
         run: |
           mkdir upload
           copy build_vs_32/src/Release/*.exe upload
-          copy win32/dlls-vc-win-32/*.dll upload
+          copy win32/dlls-vc-win32/*.dll upload
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
