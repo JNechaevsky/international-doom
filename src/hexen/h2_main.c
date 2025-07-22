@@ -1220,7 +1220,6 @@ static void DrawMessage(void)
     }
 }
 
-int right_widget_w, right_widget_h; // [crispy]
 //==========================================================================
 //
 // H2_PageTicker

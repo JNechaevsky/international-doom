@@ -17,6 +17,7 @@
 //
 
 #include <stdlib.h>
+#include "d_loop.h"
 #include "v_postproc.h"
 
 
@@ -753,7 +754,6 @@ static void V_PProc_FilmGrain (void)
         last_gametic_updated = -1; // [PN] Force full refresh
     }
 
-    extern int gametic;
     if (gametic != last_gametic_updated)
     {
         const unsigned int seed = rand();      // [PN] Per-frame noise basis

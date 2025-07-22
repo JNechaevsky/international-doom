@@ -62,11 +62,12 @@ byte *fuzzmap = NULL;    // Used for translucent fuzz (30%)
 // [JN] Color translation.
 byte *dp_translation = NULL;
 boolean dp_translucent = false;
-extern pixel_t *pal_color;
 
 // The screen buffer that the v_video.c code draws to.
-
 static pixel_t *dest_screen = NULL;
+
+// [crispy] array holding palette colors for true color mode
+pixel_t *pal_color;
 
 int dirtybox[4]; 
 

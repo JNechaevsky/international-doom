@@ -37,8 +37,6 @@
 #define CENTERY			(SCREENHEIGHT/2)
 
 
-extern int dirtybox[4];
-
 extern byte *tinttable;
 extern byte *tintmap;
 extern byte *addmap;
@@ -47,6 +45,9 @@ extern byte *fuzzmap;
 extern byte *dp_translation;
 extern boolean dp_translucent;
 
+extern pixel_t *pal_color;
+
+extern int dirtybox[4];
 
 // Allocates buffer screens, call before R_Init.
 void V_Init (void);

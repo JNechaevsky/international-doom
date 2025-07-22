@@ -899,8 +899,6 @@ static void RefreshBackground(void)
                    SBARHEIGHT, 0, (ORIGHEIGHT - ORIGSBARHEIGHT) * vid_resolution);
 }
 
-extern int right_widget_w; // [crispy]
-
 void SB_Drawer(void)
 {
     // Sound info debug stuff
@@ -1067,7 +1065,6 @@ static void DrawAnimatedIcons(void)
     if (CPlayer->powers[pw_invulnerability])
     {
         int spindefense_x = 260 + WIDESCREENDELTA; // [crispy]
-        spindefense_x -= right_widget_w; // [crispy]
 
         // [JN] Shift chess icon left if fps counter,
         // local time or demo timer is active.
@@ -1093,7 +1090,6 @@ static void DrawAnimatedIcons(void)
     if (CPlayer->powers[pw_minotaur])
     {
         int spinminotaur_x = 300 + WIDESCREENDELTA; // [crispy]
-        spinminotaur_x -= right_widget_w; // [crispy]
 
         // [JN] Shift minotaur icon left if fps counter,
         // local time or demo timer is active.

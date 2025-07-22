@@ -27,6 +27,7 @@
 #include "doomdef.h"
 
 #include "v_trans.h"
+#include "v_video.h"
 #include "p_local.h"
 #include "r_local.h"
 
@@ -87,7 +88,6 @@ fixed_t *spriteoffset;
 fixed_t *spritetopoffset;
 
 lighttable_t *colormaps;
-lighttable_t *pal_color; // [crispy] array holding palette colors for true color mode
 
 
 /*
