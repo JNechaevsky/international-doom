@@ -110,8 +110,7 @@ jobs:
             -DSDL2_NET_DIR="win32/SDL2_net-2.2.0" ^
             -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=Off ^
             -DSAMPLERATE_DIR="win32/libsamplerate-0.2.2-win32" ^
-            -DFluidSynth_INCLUDE_DIR="win32/fluidsynth-2.4.2-winXP-x86/include" ^
-            -DFluidSynth_LIBRARIES="win32/fluidsynth-2.4.2-winXP-x86/lib/fluidsynth.lib"
+            -DCMAKE_PREFIX_PATH="win32/fluidsynth-2.4.2-winXP-x86"
 
       - name: Build
         run: cmake --build build_vs_32 --config Release --parallel
