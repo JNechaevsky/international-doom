@@ -289,16 +289,24 @@ static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
     switch (widget_kis_format)
     {
         case 1: // Remaining
-            snprintf(buffer, buffer_size, "%d", total - value);
+        {
+            // [JN] Prevent negative values.
+            const int total_value = (total - value > 0) ? (total - value) : 0;
+            snprintf(buffer, buffer_size, "%d", total_value);
             break;
+        }
 
         case 2: // Percent
+        {
             snprintf(buffer, buffer_size, "%d%%", safe_percent(value, total));
             break;
+        }
 
         default: // Ratio
+        {
             snprintf(buffer, buffer_size, "%d/%d", value, total);
             break;
+        }
     }
 }
 
