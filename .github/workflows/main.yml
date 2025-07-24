@@ -136,7 +136,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Restore vcpkg binary cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-linux-${{ hashFiles('vcpkg.json') }}
