@@ -212,130 +212,99 @@ typedef struct vect {
     float z;
 } vect;
 
-static void hsv_to_rgb (const vect *hsv, vect *rgb)
-{
-    float h, s, v;
+// -----------------------------------------------------------------------------
+// rgb_to_hsv
+//  Converts HSV color to RGB. Assumes hsv and rgb are distinct.
+//  [PN] Refactored for performance.
+// -----------------------------------------------------------------------------
 
-    h = hsv->x;
-    s = hsv->y;
-    v = hsv->z;
-    h *= 360.0;
+static inline void hsv_to_rgb(const vect *restrict hsv,
+                              vect *restrict rgb)
+{
+    const float h_in = hsv->x * 360.0f;
+    const float s    = hsv->y;
+    const float v    = hsv->z;
+
     if (s < CTOLERANCE)
     {
-        rgb->x = v;
-        rgb->y = v;
-        rgb->z = v;
+        // [PN] Near-zero saturation: return grayscale (R = G = B = V)
+        rgb->x = rgb->y = rgb->z = v;
+        return;
     }
-    else
-    {
-        int i;
-        float f, p, q, t;
 
-        if (h >= 360.0)
-        {
-            h -= 360.0;
-        }
-        h /= 60.0;
-        i = floor(h);
-        f = h - i;
-        p = v*(1.0-s);
-        q = v*(1.0-(s*f));
-        t = v*(1.0-(s*(1.0-f)));
-        switch (i)
-        {
-            case 0:
-                rgb->x = v;
-                rgb->y = t;
-                rgb->z = p;
-            break;
-            case 1:
-                rgb->x = q;
-                rgb->y = v;
-                rgb->z = p;
-            break;
-            case 2:
-                rgb->x = p;
-                rgb->y = v;
-                rgb->z = t;
-            break;
-            case 3:
-                rgb->x = p;
-                rgb->y = q;
-                rgb->z = v;
-            break;
-            case 4:
-                rgb->x = t;
-                rgb->y = p;
-                rgb->z = v;
-            break;
-            case 5:
-                rgb->x = v;
-                rgb->y = p;
-                rgb->z = q;
-            break;
-        }
+    float h = (h_in >= 360.0f) ? h_in - 360.0f : h_in;
+    h /= 60.0f;
+
+    const int   i = (int)h; // [PN] Integer part determines hue sector (0–5)
+    const float f = h - i;  // [PN] Fractional part used for interpolation
+    const float p = v * (1.0f - s);
+    const float q = v * (1.0f - s * f);
+    const float t = v * (1.0f - s * (1.0f - f));
+
+    switch (i)
+    {
+        case 0:  rgb->x = v; rgb->y = t; rgb->z = p; break;
+        case 1:  rgb->x = q; rgb->y = v; rgb->z = p; break;
+        case 2:  rgb->x = p; rgb->y = v; rgb->z = t; break;
+        case 3:  rgb->x = p; rgb->y = q; rgb->z = v; break;
+        case 4:  rgb->x = t; rgb->y = p; rgb->z = v; break;
+        default: rgb->x = v; rgb->y = p; rgb->z = q; break;
     }
 }
 
-static void rgb_to_hsv(const vect *rgb, vect *hsv)
-{
-    float h, s, v;
-    float cmax, cmin;
-    float r, g, b;
+// -----------------------------------------------------------------------------
+// rgb_to_hsv
+//  Converts RGB color to HSV. Assumes rgb and hsv are distinct.
+//  [PN] Refactored for performance.
+// -----------------------------------------------------------------------------
 
-    r = rgb->x;
-    g = rgb->y;
-    b = rgb->z;
-    /* find the cmax and cmin of r g b */
-    cmax = r;
-    cmin = r;
-    cmax = (g > cmax ? g : cmax);
-    cmin = (g < cmin ? g : cmin);
-    cmax = (b > cmax ? b : cmax);
-    cmin = (b < cmin ? b : cmin);
-    v = cmax;           /* value */
-    
+static inline void rgb_to_hsv(const vect *restrict rgb,
+                              vect *restrict hsv)
+{
+    const float r = rgb->x;
+    const float g = rgb->y;
+    const float b = rgb->z;
+
+    const float cmax = (r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b);
+    const float cmin = (r < g) ? ((r < b) ? r : b) : ((g < b) ? g : b);
+    const float v    = cmax;
+    const float d    = cmax - cmin;
+    float s, h;
+
     if (cmax > CTOLERANCE)
     {
-        s = (cmax - cmin) / cmax;
+        s = d / cmax;
     }
     else
     {
-        s = 0.0;
-        h = 0.0;
+        s = 0.0f;
+        h = 0.0f;
     }
+
     if (s < CTOLERANCE)
     {
-        h = 0.0;
+        // [PN] Achromatic case — hue is undefined, default to 0
+        h = 0.0f;
     }
     else
     {
-        float cdelta;
-        float rc, gc, bc;
+        const float rc = (cmax - r) / d;
+        const float gc = (cmax - g) / d;
+        const float bc = (cmax - b) / d;
 
-        cdelta = cmax-cmin;
-        rc = (cmax - r) / cdelta;
-        gc = (cmax - g) / cdelta;
-        bc = (cmax - b) / cdelta;
         if (r == cmax)
-        {
             h = bc - gc;
-        }
         else if (g == cmax)
-        {
-            h = 2.0 + rc - bc;
-        }
+            h = 2.0f + rc - bc;
         else
-        {
-            h = 4.0 + gc - rc;
-        }
-        h = h * 60.0;
-        if (h < 0.0)
-        {
-            h += 360.0;
-        }
+            h = 4.0f + gc - rc;
+
+        h *= 60.0f;
+        if (h < 0.0f)
+            h += 360.0f;
     }
-    hsv->x = h / 360.0;
+
+    hsv->x = h / 360.0f;
     hsv->y = s;
     hsv->z = v;
 }
