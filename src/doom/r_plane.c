@@ -453,7 +453,7 @@ void R_DrawPlanes (void)
         // [crispy] add support for MBF sky transfers
         // [JN] Minimal support for Doom 1 + Doom 2 multiple skies.
         if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT
-        ||  pl->picnum == skyflatnum_r1 || pl->picnum == skyflatnum_r2 || pl->picnum == skyflatnum_r3)
+        || (have_remaster_sky && (pl->picnum == skyflatnum_r1 || pl->picnum == skyflatnum_r2 || pl->picnum == skyflatnum_r3)))
         {
             int texture;
             angle_t an = viewangle, flip = 0;  // [PN] Initialize flip here
