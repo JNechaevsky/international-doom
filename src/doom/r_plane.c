@@ -445,6 +445,9 @@ void R_DrawPlanes (void)
     // [JN] CRL - openings counter.
     IDRender.numopenings = lastopening - openings;
 
+    // [JN] Local boolean for faster access to arrays below.
+    const boolean have_remaster_sky_local = have_remaster_sky;
+
     for (int i = 0 ; i < MAXVISPLANES ; i++)
     for (visplane_t *pl = visplanes[i] ; pl ; pl = pl->next, IDRender.numplanes++)
     if (pl->minx <= pl->maxx)
@@ -453,7 +456,7 @@ void R_DrawPlanes (void)
         // [crispy] add support for MBF sky transfers
         // [JN] Minimal support for Doom 1 + Doom 2 multiple skies.
         if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT
-        || (have_remaster_sky && (pl->picnum == skyflatnum_r1 || pl->picnum == skyflatnum_r2 || pl->picnum == skyflatnum_r3)))
+        || (have_remaster_sky_local && (pl->picnum == skyflatnum_r1 || pl->picnum == skyflatnum_r2 || pl->picnum == skyflatnum_r3)))
         {
             int texture;
             angle_t an = viewangle, flip = 0;  // [PN] Initialize flip here
@@ -472,7 +475,7 @@ void R_DrawPlanes (void)
                 texture = skytexture;
 
                 // [JN] Check for F_RSKY1/2/3 flats if using D1+D2 IWAD.
-                if (have_remaster_sky)
+                if (have_remaster_sky_local)
                 {
                     if (pl->picnum == skyflatnum_r1)
                         texture = skytexture_r1;
