@@ -898,6 +898,13 @@ void SB_Drawer(void)
             spinfly_x += 70;
         }
 
+        // [PN] Align flight icon along with common widgets
+        if (widget_alignment == 1
+        || (widget_alignment == 2 && dp_screen_size < 12))
+        {
+            spinfly_x += WIDESCREENDELTA;
+        }
+
         if (CPlayer->powers[pw_flight] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_flight] & 16))
         {
@@ -950,6 +957,13 @@ void SB_Drawer(void)
         || (demorecording && (demo_timer == 2 || demo_timer == 3)))
         {
             spinbook_x -= 70;
+        }
+
+        // [PN] Align book icon along with common widgets
+        if (widget_alignment == 1
+        || (widget_alignment == 2 && dp_screen_size < 12))
+        {
+            spinbook_x -= WIDESCREENDELTA;
         }
 
         if (CPlayer->powers[pw_weaponlevel2] > BLINKTHRESHOLD

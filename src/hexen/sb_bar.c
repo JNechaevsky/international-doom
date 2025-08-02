@@ -999,6 +999,13 @@ static void DrawAnimatedIcons(void)
             spinfly_x += 70;
         }
 
+        // [PN] Align flight icon along with common widgets
+        if (widget_alignment == 1
+        || (widget_alignment == 2 && dp_screen_size < 12))
+        {
+            spinfly_x += WIDESCREENDELTA;
+        }
+
         if (CPlayer->powers[pw_flight] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_flight] & 16))
         {
@@ -1051,6 +1058,13 @@ static void DrawAnimatedIcons(void)
             spinspeed_x += 70;
         }
 
+        // [PN] Align boots icon along with common widgets
+        if (widget_alignment == 1
+        || (widget_alignment == 2 && dp_screen_size < 12))
+        {
+            spinspeed_x += WIDESCREENDELTA;
+        }
+
         if (CPlayer->powers[pw_speed] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_speed] & 16))
         {
@@ -1076,6 +1090,13 @@ static void DrawAnimatedIcons(void)
             spindefense_x -= 70;
         }
 
+        // [PN] Align defensive power icon along with common widgets
+        if (widget_alignment == 1
+        || (widget_alignment == 2 && dp_screen_size < 12))
+        {
+            spindefense_x -= WIDESCREENDELTA;
+        }
+
         if (CPlayer->powers[pw_invulnerability] > BLINKTHRESHOLD
             || !(CPlayer->powers[pw_invulnerability] & 16))
         {
@@ -1099,6 +1120,13 @@ static void DrawAnimatedIcons(void)
         || (demorecording && (demo_timer == 2 || demo_timer == 3)))
         {
             spinminotaur_x -= 70;
+        }
+
+        // [PN] Align defensive power icon along with common widgets
+        if (widget_alignment == 1
+        || (widget_alignment == 2 && dp_screen_size < 12))
+        {
+            spinminotaur_x -= WIDESCREENDELTA;
         }
 
         if (CPlayer->powers[pw_minotaur] > BLINKTHRESHOLD
