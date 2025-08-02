@@ -82,6 +82,26 @@ typedef enum
     MFMT_ZDBSPZ  = 0x004
 } mapformat_t;
 
+// -----------------------------------------------------------------------------
+// GetSectorAtNullAddress
+// -----------------------------------------------------------------------------
+
+static sector_t *GetSectorAtNullAddress (void)
+{
+    static boolean null_sector_is_initialized = false;
+    static sector_t null_sector;
+
+    if (!null_sector_is_initialized)
+    {
+        memset(&null_sector, 0, sizeof(null_sector));
+        I_GetMemoryValue(0, &null_sector.floorheight, 4);
+        I_GetMemoryValue(4, &null_sector.ceilingheight, 4);
+        null_sector_is_initialized = true;
+    }
+
+    return &null_sector;
+}
+
 // [crispy] recalculate seg offsets
 // adapted from prboom-plus/src/p_setup.c:474-482
 static fixed_t GetOffset(const vertex_t *v1, const vertex_t *v2)
@@ -605,9 +625,31 @@ static void P_LoadSegs(int lump)
         // [crispy] recalculate
         li->offset = GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
         if (ldef->flags & ML_TWOSIDED)
-            li->backsector = sides[ldef->sidenum[side ^ 1]].sector;
+        {
+            const int side_num = ldef->sidenum[side ^ 1];
+
+            if (side_num < 0 || side_num >= numsides)
+            {
+                // [crispy] linedef has two-sided flag set, but no valid second sidedef;
+                // but since it has a midtexture, it is supposed to be rendered just
+                // like a regular one-sided linedef
+                if (li->sidedef->midtexture)
+                {
+                    li->backsector = 0;
+                    fprintf(stderr, "P_LoadSegs: Linedef %d has two-sided flag set, but no second sidedef\n", line_def);
+                }
+                else
+                li->backsector = GetSectorAtNullAddress();
+            }
+            else
+            {
+                li->backsector = sides[side_num].sector;
+            }
+        }
         else
+        {
             li->backsector = 0;
+        }
     }
 
     W_ReleaseLumpNum(lump);
