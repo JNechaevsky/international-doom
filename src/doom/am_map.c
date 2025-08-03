@@ -998,10 +998,12 @@ boolean AM_Responder (const event_t *ev)
                 dx = (int)incx;
                 dy = (int)incy;
             }
-        
-            // Accumulate pan deltas (scaled to resolution) for processing each frame
-            mouse_pan_x += ((dx >> 2) * vid_resolution);
-            mouse_pan_y += ((dy >> 2) * vid_resolution);
+
+            // Accumulate mouse movement into pan buffer,
+            // scaled by resolution and sensitivity.
+            // The >> 5 keeps movement smooth across wide FPS ranges and DPI setups.
+            mouse_pan_x += (dx * vid_resolution * mouseSensitivity) >> 5;
+            mouse_pan_y += (dy * vid_resolution * mouse_sensitivity_y) >> 5;
 
             rc = true;
         }
