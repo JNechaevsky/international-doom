@@ -107,10 +107,10 @@ extern int automap_square;
 extern int automap_textured_bg;
 extern int automap_scroll_bg;
 extern int automap_secrets;
-extern int automap_mouse_pan;
 extern int automap_rotate;
 extern int automap_overlay;
 extern int automap_shading;
+extern int automap_mouse_pan;
 
 // Gameplay features
 extern int vis_brightmaps;
