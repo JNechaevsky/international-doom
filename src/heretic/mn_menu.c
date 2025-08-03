@@ -615,10 +615,10 @@ static void M_ID_Automap_Square (int choice);
 static void M_ID_Automap_TexturedBg (int choice);
 static void M_ID_Automap_ScrollBg (int choice);
 static void M_ID_Automap_Secrets (int choice);
-static void M_ID_Automap_Pan (int choice);
 static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
 static void M_ID_Automap_Shading (int choice);
+static void M_ID_Automap_Pan (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);

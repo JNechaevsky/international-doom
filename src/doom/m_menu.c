@@ -729,10 +729,10 @@ static void M_ID_Automap_Smooth (int choice);
 static void M_ID_Automap_Thick (int choice);
 static void M_ID_Automap_Square (int choice);
 static void M_ID_Automap_Secrets (int choice);
-static void M_ID_Automap_Pan (int choice);
 static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
 static void M_ID_Automap_Shading (int choice);
+static void M_ID_Automap_Pan (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
@@ -3542,6 +3542,11 @@ static void M_ID_Automap_Square (int choice)
     automap_square ^= 1;
 }
 
+static void M_ID_Automap_Secrets (int choice)
+{
+    automap_secrets = M_INT_Slider(automap_secrets, 0, 2, choice, false);
+}
+
 static void M_ID_Automap_Rotate (int choice)
 {
     automap_rotate ^= 1;
@@ -3560,11 +3565,6 @@ static void M_ID_Automap_Shading (int choice)
 static void M_ID_Automap_Pan (int choice)
 {
     automap_mouse_pan ^= 1;
-}
-
-static void M_ID_Automap_Secrets (int choice)
-{
-    automap_secrets = M_INT_Slider(automap_secrets, 0, 2, choice, false);
 }
 
 // -----------------------------------------------------------------------------

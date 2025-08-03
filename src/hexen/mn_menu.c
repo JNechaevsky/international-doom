@@ -553,6 +553,7 @@ static void M_Bind_MaxZoom (int choice);
 static void M_Bind_FollowMode (int choice);
 static void M_Bind_RotateMode (int choice);
 static void M_Bind_OverlayMode (int choice);
+static void M_Bind_PanMode (int choice);
 static void M_Bind_ToggleGrid (int choice);
 static void M_Bind_AddMark (int choice);
 static void M_Bind_ClearMarks (int choice);
@@ -624,6 +625,7 @@ static void M_ID_Automap_ScrollBg (int choice);
 static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
 static void M_ID_Automap_Shading (int choice);
+static void M_ID_Automap_Pan (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
@@ -2585,22 +2587,23 @@ static void M_Bind_AllArti (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Keybinds_6[] = {
-    { ITT_EFUNC, "TOGGLE MAP",       M_Bind_ToggleMap,   0, MENU_NONE },
-    { ITT_EFUNC, "ZOOM IN",          M_Bind_ZoomIn,      0, MENU_NONE },
-    { ITT_EFUNC, "ZOOM OUT",         M_Bind_ZoomOut,     0, MENU_NONE },
-    { ITT_EFUNC, "MAXIMUM ZOOM OUT", M_Bind_MaxZoom,     0, MENU_NONE },
-    { ITT_EFUNC, "FOLLOW MODE",      M_Bind_FollowMode,  0, MENU_NONE },
-    { ITT_EFUNC, "ROTATE MODE",      M_Bind_RotateMode,  0, MENU_NONE },
-    { ITT_EFUNC, "OVERLAY MODE",     M_Bind_OverlayMode, 0, MENU_NONE },
-    { ITT_EFUNC, "TOGGLE GRID",      M_Bind_ToggleGrid,  0, MENU_NONE },
-    { ITT_EFUNC, "MARK LOCATION",    M_Bind_AddMark,     0, MENU_NONE },
-    { ITT_EFUNC, "CLEAR ALL MARKS",  M_Bind_ClearMarks,  0, MENU_NONE },
+    { ITT_EFUNC, "TOGGLE MAP",         M_Bind_ToggleMap,   0, MENU_NONE },
+    { ITT_EFUNC, "ZOOM IN",            M_Bind_ZoomIn,      0, MENU_NONE },
+    { ITT_EFUNC, "ZOOM OUT",           M_Bind_ZoomOut,     0, MENU_NONE },
+    { ITT_EFUNC, "MAXIMUM ZOOM OUT",   M_Bind_MaxZoom,     0, MENU_NONE },
+    { ITT_EFUNC, "FOLLOW MODE",        M_Bind_FollowMode,  0, MENU_NONE },
+    { ITT_EFUNC, "ROTATE MODE",        M_Bind_RotateMode,  0, MENU_NONE },
+    { ITT_EFUNC, "OVERLAY MODE",       M_Bind_OverlayMode, 0, MENU_NONE },
+    { ITT_EFUNC, "MOUSE PANNING MODE", M_Bind_PanMode,     0, MENU_NONE },
+    { ITT_EFUNC, "TOGGLE GRID",        M_Bind_ToggleGrid,  0, MENU_NONE },
+    { ITT_EFUNC, "MARK LOCATION",      M_Bind_AddMark,     0, MENU_NONE },
+    { ITT_EFUNC, "CLEAR ALL MARKS",    M_Bind_ClearMarks,  0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Keybinds_6 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_6,
-    10, ID_Menu_Keybinds_6,
+    11, ID_Menu_Keybinds_6,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -2621,9 +2624,10 @@ static void M_Draw_ID_Keybinds_6 (void)
     M_DrawBindKey(4, 60, key_map_follow);
     M_DrawBindKey(5, 70, key_map_rotate);
     M_DrawBindKey(6, 80, key_map_overlay);
-    M_DrawBindKey(7, 90, key_map_grid);
-    M_DrawBindKey(8, 100, key_map_mark);
-    M_DrawBindKey(9, 110, key_map_clearmark);
+    M_DrawBindKey(7, 90, key_map_mousepan);
+    M_DrawBindKey(8, 100, key_map_grid);
+    M_DrawBindKey(9, 110, key_map_mark);
+    M_DrawBindKey(10, 120, key_map_clearmark);
 
     M_DrawBindFooter("6", true);
 }
@@ -2663,19 +2667,24 @@ static void M_Bind_OverlayMode (int choice)
     M_StartBind(606);  // key_map_overlay
 }
 
+static void M_Bind_PanMode (int choice)
+{
+    M_StartBind(607);  // key_map_mousepan
+}
+
 static void M_Bind_ToggleGrid (int choice)
 {
-    M_StartBind(607);  // key_map_grid
+    M_StartBind(608);  // key_map_grid
 }
 
 static void M_Bind_AddMark (int choice)
 {
-    M_StartBind(608);  // key_map_mark
+    M_StartBind(609);  // key_map_mark
 }
 
 static void M_Bind_ClearMarks (int choice)
 {
-    M_StartBind(609);  // key_map_clearmark
+    M_StartBind(610);  // key_map_clearmark
 }
 
 // -----------------------------------------------------------------------------
@@ -3214,16 +3223,17 @@ static MenuItem_t ID_Menu_Automap[] = {
     { ITT_LRFUNC1, "LINE THICKNESS",        M_ID_Automap_Thick,    0, MENU_NONE },
     { ITT_LRFUNC2, "SQUARE ASPECT RATIO",   M_ID_Automap_Square,   0, MENU_NONE },
     { ITT_LRFUNC2, "BACKGROUND STYLE",      M_ID_Automap_TexturedBg, 0, MENU_NONE },
-    { ITT_LRFUNC2, "SCROLL BACKGROUND"  ,   M_ID_Automap_ScrollBg, 0, MENU_NONE },
+    { ITT_LRFUNC2, "SCROLL BACKGROUND",     M_ID_Automap_ScrollBg, 0, MENU_NONE },
     { ITT_LRFUNC2, "ROTATE MODE",           M_ID_Automap_Rotate,   0, MENU_NONE },
     { ITT_LRFUNC2, "OVERLAY MODE",          M_ID_Automap_Overlay,  0, MENU_NONE },
     { ITT_LRFUNC1, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  0, MENU_NONE },
+    { ITT_LRFUNC2, "MOUSE PANNING MODE",    M_ID_Automap_Pan,      0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Automap = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Automap,
-    8, ID_Menu_Automap,
+    9, ID_Menu_Automap,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -3297,6 +3307,13 @@ static void M_Draw_ID_Automap (void)
                              automap_shading ==  0 ? cr[CR_RED_BRIGHT] :
                              automap_shading == 12 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_HX_BRIGHT],
                                 LINE_ALPHA(7));
+
+    // Mouse panning mode
+    sprintf(str, automap_mouse_pan ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
+                        !automap_mouse_pan ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            !automap_mouse_pan ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(8));
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3341,6 +3358,11 @@ static void M_ID_Automap_Overlay (int choice)
 static void M_ID_Automap_Shading (int choice)
 {
     automap_shading = M_INT_Slider(automap_shading, 0, 12, choice, true);
+}
+
+static void M_ID_Automap_Pan (int choice)
+{
+    automap_mouse_pan ^= 1;
 }
 
 // -----------------------------------------------------------------------------
@@ -4157,6 +4179,7 @@ static void M_ID_ApplyResetHook (void)
     automap_rotate = 0;
     automap_overlay = 0;
     automap_shading = 0;
+    automap_mouse_pan = 0;
 
     //
     // Gameplay features
@@ -6915,6 +6938,7 @@ static void M_CheckBind (int key)
         if (key_map_follow == key)     key_map_follow     = 0;
         if (key_map_rotate == key)     key_map_rotate     = 0;
         if (key_map_overlay == key)    key_map_overlay    = 0;
+        if (key_map_mousepan == key)   key_map_mousepan   = 0;
         if (key_map_grid == key)       key_map_grid       = 0;
         if (key_map_mark == key)       key_map_mark       = 0;
         if (key_map_clearmark == key)  key_map_clearmark  = 0;
@@ -7035,9 +7059,10 @@ static void M_DoBind (int keynum, int key)
         case 604:  key_map_follow = key;        break;
         case 605:  key_map_rotate = key;        break;
         case 606:  key_map_overlay = key;       break;
-        case 607:  key_map_grid = key;          break;
-        case 608:  key_map_mark = key;          break;
-        case 609:  key_map_clearmark = key;     break;
+        case 607:  key_map_mousepan = key;      break;
+        case 608:  key_map_grid = key;          break;
+        case 609:  key_map_mark = key;          break;
+        case 610:  key_map_clearmark = key;     break;
         }
 
         // Page 7
@@ -7179,9 +7204,10 @@ static void M_ClearBind (int CurrentItPos)
             case 4:   key_map_follow = 0;       break;
             case 5:   key_map_rotate = 0;       break;
             case 6:   key_map_overlay = 0;      break;
-            case 7:   key_map_grid = 0;         break;
-            case 8:   key_map_mark = 0;         break;
-            case 9:   key_map_clearmark = 0;    break;
+            case 7:   key_map_mousepan = 0;     break;
+            case 8:   key_map_grid = 0;         break;
+            case 9:   key_map_mark = 0;         break;
+            case 10:  key_map_clearmark = 0;    break;
         }
     }
     if (CurrentMenu == &ID_Def_Keybinds_7)
@@ -7300,6 +7326,7 @@ static void M_ResetBinds (void)
     key_map_follow = 'f';
     key_map_rotate = 'r';
     key_map_overlay = 'o';
+    key_map_overlay = 0;
     key_map_grid = 'g';
     key_map_mark = 'm';
     key_map_clearmark = 'c';

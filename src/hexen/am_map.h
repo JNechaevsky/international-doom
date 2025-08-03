@@ -92,6 +92,7 @@ typedef struct
 
 
 
+extern int followplayer;
 extern int mapsco_cheating;
 
 extern mpoint_t *markpoints; 
