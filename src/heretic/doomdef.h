@@ -60,6 +60,7 @@
 #include "d_ticcmd.h"
 
 #include "d_loop.h"
+#include "i_input.h"  // mouse_sensitivity_y
 
 #define	SAVEGAMENAME "hticsav"
 

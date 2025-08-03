@@ -24,6 +24,7 @@ typedef struct
     int64_t x,y;
 } mpoint_t;
 
+extern int followplayer;
 extern int ravmap_cheating;
 
 extern mpoint_t *markpoints; 
