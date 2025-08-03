@@ -1132,6 +1132,14 @@ boolean AM_Responder (const event_t *ev)
                 st_fullupdate = true;
             }
         }
+        else if (key == key_map_mousepan)
+        {
+            // [PN] Mouse panning mode.
+            automap_mouse_pan = !automap_mouse_pan;
+            CT_SetMessage(plr, DEH_String(automap_mouse_pan ?
+                          ID_AUTOMAPMOUSEPAN_ON : ID_AUTOMAPMOUSEPAN_OFF), false, NULL);
+
+        }
         else
         {
             rc = false;

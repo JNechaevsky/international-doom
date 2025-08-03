@@ -138,6 +138,7 @@ int key_map_maxzoom   = '0';
 int key_map_follow    = 'f';
 int key_map_rotate    = 'r';
 int key_map_overlay   = 'o';
+int key_map_mousepan  = 0;
 int key_map_grid      = 'g';
 int key_map_mark      = 'm';
 int key_map_clearmark = 'c';
