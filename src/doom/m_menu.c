@@ -3415,7 +3415,7 @@ static menuitem_t ID_Menu_Automap[]=
     { M_MUL1, "LINE THICKNESS",        M_ID_Automap_Thick,    'l' },
     { M_MUL2, "SQUARE ASPECT RATIO",   M_ID_Automap_Square,   's' },
     { M_MUL2, "MARK SECRET SECTORS",   M_ID_Automap_Secrets,  'm' },
-    { M_MUL2, "PAN BY MOUSE",          M_ID_Automap_Pan,      'p' },
+    { M_MUL2, "MOUSE PANNING MODE",    M_ID_Automap_Pan,      'm' },
     { M_MUL2, "ROTATE MODE",           M_ID_Automap_Rotate,   'r' },
     { M_MUL2, "OVERLAY MODE",          M_ID_Automap_Overlay,  'o' },
     { M_MUL1, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  'o' },
@@ -3485,7 +3485,7 @@ static void M_Draw_ID_Automap (void)
                             automap_secrets ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(4));
 
-    // Pan by mouse
+    // Mouse panning mode
     sprintf(str, automap_mouse_pan ? "ON" : "OFF");
     M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
                         automap_mouse_pan ? cr[CR_GREEN] : cr[CR_DARKRED],

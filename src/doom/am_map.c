@@ -631,11 +631,11 @@ static void AM_changeWindowLoc (void)
 }
 
 // -----------------------------------------------------------------------------
-// AM_MousePaning
+// AM_MousePanning
 //  [PN] Moves the map window by using the mouse.
 // -----------------------------------------------------------------------------
 
-static void AM_MousePaning (void)
+static void AM_MousePanning (void)
 {
     int64_t step_x, step_y;
 
@@ -1000,8 +1000,8 @@ boolean AM_Responder (const event_t *ev)
             }
         
             // Accumulate pan deltas (scaled to resolution) for processing each frame
-            mouse_pan_x += (dx * vid_resolution);
-            mouse_pan_y += (dy * vid_resolution);
+            mouse_pan_x += ((dx >> 2) * vid_resolution);
+            mouse_pan_y += ((dy >> 2) * vid_resolution);
 
             rc = true;
         }
@@ -2640,7 +2640,7 @@ void AM_Drawer (void)
     }
 
     // Change X and Y location.
-    // [JN] Moved from AM_Ticker for paning interpolation.
+    // [JN] Moved from AM_Ticker for panning interpolation.
     if (m_paninc.x || m_paninc.y)
     {
         AM_changeWindowLoc();
@@ -2649,7 +2649,7 @@ void AM_Drawer (void)
     // [PN] Moves the map window by using the mouse.
     if (mouse_pan_x != 0 || mouse_pan_y != 0)
     {
-        AM_MousePaning();
+        AM_MousePanning();
     }
 
     // [crispy/Woof!] required for AM_transformPoint()
