@@ -138,6 +138,7 @@ int key_map_maxzoom   = '0';
 int key_map_follow    = 'f';
 int key_map_rotate    = 'r';
 int key_map_overlay   = 'o';
+int key_map_mousepan  = 0;
 int key_map_grid      = 'g';
 int key_map_mark      = 'm';
 int key_map_clearmark = 'c';
@@ -311,6 +312,7 @@ void M_BindControls (void)
     M_BindIntVariable("key_map_follow",         &key_map_follow);
     M_BindIntVariable("key_map_rotate",         &key_map_rotate);
     M_BindIntVariable("key_map_overlay",        &key_map_overlay);
+    M_BindIntVariable("key_map_mousepan",       &key_map_mousepan);
     M_BindIntVariable("key_map_grid",           &key_map_grid);
     M_BindIntVariable("key_map_mark",           &key_map_mark);
     M_BindIntVariable("key_map_clearmark",      &key_map_clearmark);

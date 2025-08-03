@@ -37,6 +37,7 @@
 #include "d_mode.h"
 
 #include "net_defs.h"
+#include "i_input.h"  // mouse_sensitivity_y
 
 
 

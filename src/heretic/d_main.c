@@ -194,9 +194,15 @@ static void D_Display(void)
 
     if (vid_uncapped_fps)
     {
-        I_StartDisplay();
-        G_FastResponder();
-        G_PrepTiccmd();
+        I_UpdateFracTic();
+
+        // [JN] Prevent player rotation while automap panning by mouse.
+        if (!automapactive || !automap_mouse_pan || followplayer)
+        {
+            I_StartDisplay();
+            G_FastResponder();
+            G_PrepTiccmd();
+        }
     }
 
     // Change the view size if needed

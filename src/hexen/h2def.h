@@ -50,6 +50,7 @@
 
 #include "d_loop.h"
 #include "net_defs.h"
+#include "i_input.h"  // mouse_sensitivity_y
 
 #define HEXEN_VERSION 110
 #define HEXEN_VERSION_TEXT "v1.1"

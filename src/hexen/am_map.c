@@ -267,7 +267,10 @@ static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
 static byte (*antialias)[NUMALIAS][NUMLEVELS]; // [crispy]
 static byte *maplump;           // pointer to the raw data for the automap background.
 
-static int followplayer = 1; // specifies whether to follow the player around
+int followplayer = 1; // specifies whether to follow the player around
+// [PN] Accumulated automap pan delta from mouse movement
+static int mouse_pan_x = 0;
+static int mouse_pan_y = 0;
 
 boolean automapactive = false;
 static boolean stopped = true;
@@ -508,6 +511,56 @@ static void AM_changeWindowLoc (void)
 }
 
 // -----------------------------------------------------------------------------
+// AM_MousePanning
+//  [PN] Moves the map window by using the mouse.
+// -----------------------------------------------------------------------------
+
+static void AM_MousePanning (void)
+{
+    static fixed_t prev_frac = 0;
+
+    // Compute frame delta
+    fixed_t delta = (vid_uncapped_fps && realleveltime > oldleveltime)
+                  ? (fractionaltic - prev_frac + FRACUNIT) & (FRACUNIT - 1)
+                  : FRACUNIT;
+
+    prev_frac = fractionaltic;
+
+    // Interpolated movement step
+    int64_t step_x = FixedMul(mouse_pan_x, delta);
+    int64_t step_y = FixedMul(mouse_pan_y, delta);
+
+    // Save original unrotated values
+    const int64_t original_x = step_x;
+    const int64_t original_y = step_y;
+
+    if (!(step_x | step_y))
+        return;
+
+    const int32_t center_x = m_x + (m_w >> 1) + FTOM(step_x);
+    const int32_t center_y = m_y + (m_h >> 1) + FTOM(step_y);
+
+    // Clamp to map bounds
+    if (center_x > max_x) step_x -= MTOF(center_x - max_x);
+    else if (center_x < min_x) step_x += MTOF(min_x - center_x);
+
+    if (center_y > max_y) step_y -= MTOF(center_y - max_y);
+    else if (center_y < min_y) step_y += MTOF(min_y - center_y);
+
+    // Apply pan
+    m_x += FTOM(step_x);
+    m_y += FTOM(step_y);
+
+    // Remove applied portion from accumulator
+    mouse_pan_x -= original_x;
+    mouse_pan_y -= original_y;
+
+    // Update extents
+    m_x2 = m_x + m_w;
+    m_y2 = m_y + m_h;
+}
+
+// -----------------------------------------------------------------------------
 // AM_initOverlayMode
 // -----------------------------------------------------------------------------
 
@@ -735,7 +788,7 @@ boolean AM_Responder (const event_t *ev)
     }
     // [crispy] zoom Automap with the mouse wheel
     // [JN] Mouse wheel "buttons" hardcoded.
-    else if (ev->type == ev_mouse && !MenuActive)
+    else if (ev->type == ev_mouse && !MenuActive && !askforquit)
     {
         if (/*mousebmapzoomout >= 0 &&*/ ev->data1 & (1 << 4 /*mousebmapzoomout*/))
         {
@@ -752,6 +805,34 @@ boolean AM_Responder (const event_t *ev)
             ftom_zoommul = m_zoomout_mouse;
             curr_mtof_zoommul = mtof_zoommul;
             mousewheelzoom = true;
+            rc = true;
+        }
+        else // [PN] Move the map window by using the mouse
+        if (!followplayer && automap_mouse_pan && (ev->data2 || ev->data3))
+        {
+            int dx = ev->data2;
+            int dy = ev->data3;
+
+            // Invert horizontal movement if the level is flipped
+            if (gp_flip_levels)
+                dx = -dx;
+
+            // Rotate pan direction if automap is in rotate mode
+            if (automap_rotate)
+            {
+                int64_t incx = dx;
+                int64_t incy = dy;
+                AM_rotate(&incx, &incy, 0 - mapangle);
+                dx = (int)incx;
+                dy = (int)incy;
+            }
+
+            // Accumulate mouse movement into pan buffer,
+            // scaled by resolution and sensitivity.
+            // The >> 5 keeps movement smooth across wide FPS ranges and DPI setups.
+            mouse_pan_x += (dx * vid_resolution * mouseSensitivity) >> 5;
+            mouse_pan_y += (dy * vid_resolution * mouse_sensitivity_y) >> 5;
+
             rc = true;
         }
     }
@@ -885,6 +966,14 @@ boolean AM_Responder (const event_t *ev)
             // [JN] Redraw status bar to properly hide armor/keys panel.
             SB_state = -1;
             AM_initOverlayMode();
+        }
+        else if (key == key_map_mousepan)
+        {
+            // [PN] Mouse panning mode.
+            automap_mouse_pan = !automap_mouse_pan;
+            CT_SetMessage(plr, automap_mouse_pan ?
+                          ID_AUTOMAPMOUSEPAN_ON : ID_AUTOMAPMOUSEPAN_OFF, false, NULL);
+
         }
         else
         {
@@ -2073,10 +2162,16 @@ void AM_Drawer (void)
     }
 
     // Change X and Y location.
-    // [JN] Moved from AM_Ticker for paning interpolation.
+    // [JN] Moved from AM_Ticker for panning interpolation.
     if (m_paninc.x || m_paninc.y)
     {
         AM_changeWindowLoc();
+    }
+
+    // [PN] Moves the map window by using the mouse.
+    if (mouse_pan_x != 0 || mouse_pan_y != 0)
+    {
+        AM_MousePanning();
     }
 
     // [crispy/Woof!] required for AM_transformPoint()

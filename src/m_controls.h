@@ -127,6 +127,7 @@ extern int key_map_maxzoom;
 extern int key_map_follow;
 extern int key_map_rotate;
 extern int key_map_overlay;
+extern int key_map_mousepan;
 extern int key_map_grid;
 extern int key_map_mark;
 extern int key_map_clearmark;
