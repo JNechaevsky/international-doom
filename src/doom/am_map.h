@@ -32,6 +32,7 @@ typedef struct
 extern mpoint_t *markpoints;
 extern int markpointnum, markpointnum_max;
 
+extern int followplayer;
 extern int iddt_cheating;
 
 // Used by ST StatusBar stuff.
