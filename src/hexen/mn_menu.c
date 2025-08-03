@@ -3311,8 +3311,8 @@ static void M_Draw_ID_Automap (void)
     // Mouse panning mode
     sprintf(str, automap_mouse_pan ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
-                        !automap_mouse_pan ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
-                            !automap_mouse_pan ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                        automap_mouse_pan ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            automap_mouse_pan ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(8));
 }
 
