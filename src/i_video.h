@@ -150,6 +150,7 @@ void I_StartFrame (void);
 
 void I_StartTic (void);
 
+void I_UpdateFracTic (void); // [crispy]
 void I_StartDisplay (void); // [crispy]
 
 

@@ -1334,12 +1334,8 @@ boolean G_Responder (event_t* ev)
         // and moving the mouse after loading the game.
         if (!ev->data2 && !ev->data3)
         SetMouseButtons(ev->data1);
-        // [JN] Prevent player rotation while automap paning by mouse.
-        if (!(automapactive && automap_mouse_pan && !followplayer))
-        {
         mousex += ev->data2;
         mousey += ev->data3;
-        }
 	return true;    // eat events 
  
       case ev_joystick: 
@@ -1360,8 +1356,6 @@ boolean G_Responder (event_t* ev)
 void G_FastResponder (void)
 {
     if (newfastmouse)
-    // [JN] Prevent player rotation while automap paning by mouse.
-    if (!(automapactive && automap_mouse_pan && !followplayer))
     {
         mousex += fastmouse.data2;
         mousey += fastmouse.data3;
