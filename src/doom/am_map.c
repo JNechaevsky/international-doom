@@ -637,64 +637,47 @@ static void AM_changeWindowLoc (void)
 
 static void AM_MousePanning (void)
 {
-    int64_t step_x, step_y;
+    static fixed_t prev_frac = 0;
 
-    if (vid_uncapped_fps && realleveltime > oldleveltime)
-    {
-        // Accumulator for FPS‑independent panning.
-        static fixed_t prev_frac = 0;
+    // Compute frame delta
+    fixed_t delta = (vid_uncapped_fps && realleveltime > oldleveltime)
+                  ? (fractionaltic - prev_frac + FRACUNIT) & (FRACUNIT - 1)
+                  : FRACUNIT;
 
-        // Accumulate delta between frames using `fractionaltic`,
-        // so pan speed stays consistent regardless of frame rate.
-        // Delta may wrap around after a tic; we correct for that.
-        fixed_t delta = fractionaltic - prev_frac;
+    prev_frac = fractionaltic;
 
-        if (delta < 0)
-            delta += FRACUNIT;
+    // Interpolated movement step
+    int64_t step_x = FixedMul(mouse_pan_x, delta);
+    int64_t step_y = FixedMul(mouse_pan_y, delta);
 
-        step_x = FixedMul(mouse_pan_x, delta);
-        step_y = FixedMul(mouse_pan_y, delta);
+    // Save original unrotated values
+    const int64_t original_x = step_x;
+    const int64_t original_y = step_y;
 
-        prev_frac = fractionaltic;
-    }
-    else
-    {
-        step_x = mouse_pan_x;
-        step_y = mouse_pan_y;
-    }
+    if (!(step_x | step_y))
+        return;
 
-    if (step_x || step_y)
-    {
-        // Predict new center after movement
-        const int32_t new_center_x = m_x + m_w / 2 + FTOM(step_x);
-        const int32_t new_center_y = m_y + m_h / 2 + FTOM(step_y);
-        const int64_t original_step_x = step_x;
-        const int64_t original_step_y = step_y;
-    
-        // Clamp horizontal movement to map bounds
-        if (new_center_x > max_x)
-            step_x -= MTOF(new_center_x - max_x);
-        else if (new_center_x < min_x)
-            step_x += MTOF(min_x - new_center_x);
-    
-        // Clamp vertical movement to map bounds
-        if (new_center_y > max_y)
-            step_y -= MTOF(new_center_y - max_y);
-        else if (new_center_y < min_y)
-            step_y += MTOF(min_y - new_center_y);
-    
-        // Apply clamped movement
-        m_x += FTOM(step_x);
-        m_y += FTOM(step_y);
+    const int32_t center_x = m_x + (m_w >> 1) + FTOM(step_x);
+    const int32_t center_y = m_y + (m_h >> 1) + FTOM(step_y);
 
-        // Adjust accumulated pan deltas by the amount actually used
-        mouse_pan_x -= original_step_x;
-        mouse_pan_y -= original_step_y;
+    // Clamp to map bounds
+    if (center_x > max_x) step_x -= MTOF(center_x - max_x);
+    else if (center_x < min_x) step_x += MTOF(min_x - center_x);
 
-        // Update map window extents
-        m_x2 = m_x + m_w;
-        m_y2 = m_y + m_h;
-    }
+    if (center_y > max_y) step_y -= MTOF(center_y - max_y);
+    else if (center_y < min_y) step_y += MTOF(min_y - center_y);
+
+    // Apply pan
+    m_x += FTOM(step_x);
+    m_y += FTOM(step_y);
+
+    // Remove applied portion from accumulator
+    mouse_pan_x -= original_x;
+    mouse_pan_y -= original_y;
+
+    // Update extents
+    m_x2 = m_x + m_w;
+    m_y2 = m_y + m_h;
 }
 
 
