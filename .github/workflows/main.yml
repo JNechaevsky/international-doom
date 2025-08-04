@@ -82,7 +82,7 @@ jobs:
 
   windows_32bit:
     name: Windows (32-bit)
-    runs-on: windows-2022
+    runs-on: windows-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
