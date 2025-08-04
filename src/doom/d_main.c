@@ -1973,7 +1973,8 @@ void D_DoomMain (void)
         while (++p != myargc && myargv[p][0] != '-')
         {
             // SIGIL compat. Just replace window title.
-            if (M_StrCaseStr(myargv[p], "SIGIL_COMPAT_v1_21.wad")
+            if (M_StrCaseStr(myargv[p], "SIGIL_COMPAT_v1_23.wad")
+            ||  M_StrCaseStr(myargv[p], "SIGIL_COMPAT_v1_21.wad")
             ||  M_StrCaseStr(myargv[p], "SIGIL_COMPAT_v1_2.wad")
             ||  M_StrCaseStr(myargv[p], "SIGIL_COMPAT.wad"))
             {
