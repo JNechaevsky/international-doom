@@ -442,70 +442,52 @@ static void AM_findMinMaxBoundaries (void)
 
 // -----------------------------------------------------------------------------
 // AM_changeWindowLoc
-// Moves the map window by the global variables m_paninc.x, m_paninc.y
+//  [PN] Moves the map window by the global variables m_paninc.x, m_paninc.y
 // -----------------------------------------------------------------------------
 
 static void AM_changeWindowLoc (void)
 {
-    int64_t incx, incy;
+    static fixed_t prev_frac = 0;
 
     if (m_paninc.x || m_paninc.y)
-    {
         followplayer = 0;
-    }
 
-    if (vid_uncapped_fps && realleveltime > oldleveltime)
-    {
-        // [PN] Accumulator for FPS‑independent panning
-        static fixed_t prev_frac = 0;
+    // Compute frame delta
+    const fixed_t delta = (vid_uncapped_fps && realleveltime > oldleveltime)
+                        ? (fractionaltic - prev_frac + FRACUNIT) & (FRACUNIT - 1)
+                        : FRACUNIT;
 
-        // [PN] Accumulate delta between frames using `fractionaltic`,
-        // so pan speed stays consistent regardless of frame rate.
-        // Delta may wrap around after a tic; we correct for that.
-        fixed_t delta = fractionaltic - prev_frac;
+    prev_frac = fractionaltic;
 
-        if (delta < 0)
-            delta += FRACUNIT;
+    // Compute movement delta scaled by frame fraction
+    const int64_t incx = FixedMul(m_paninc.x, delta);
+    const int64_t incy = FixedMul(m_paninc.y, delta);
 
-        incx = FixedMul(m_paninc.x, delta);
-        incy = FixedMul(m_paninc.y, delta);
+    int64_t dx = incx;
+    int64_t dy = incy;
 
-        prev_frac = fractionaltic;
-    }
-    else
-    {
-        incx = m_paninc.x;
-        incy = m_paninc.y;
-    }
-
+    // Rotate movement vector if automap is rotated
     if (automap_rotate)
-    {
-        AM_rotate(&incx, &incy, 0 - mapangle);
-    }
+        AM_rotate(&dx, &dy, 0-mapangle);
 
-    // [PN] Apply frame-scaled pan delta to already-zoomed coordinates.
-    // Keeps direction stable when zooming and panning simultaneously.
-    m_x += incx;
-    m_y += incy;
+    // Apply panning movement
+    m_x += dx;
+    m_y += dy;
 
-    if (m_x + m_w/2 > max_x)
-    {
-        m_x = max_x - m_w/2;
-    }
-    else if (m_x + m_w/2 < min_x)
-    {
-        m_x = min_x - m_w/2;
-    }
+    const int32_t half_w = m_w >> 1;
+    const int32_t half_h = m_h >> 1;
 
-    if (m_y + m_h/2 > max_y)
-    {
-        m_y = max_y - m_h/2;
-    }
-    else if (m_y + m_h/2 < min_y)
-    {
-        m_y = min_y - m_h/2;
-    }
+    const int32_t center_x = m_x + half_w;
+    const int32_t center_y = m_y + half_h;
 
+    // Clamp to map bounds
+    if (center_x > max_x) m_x = max_x - half_w;
+    else if (center_x < min_x) m_x = min_x - half_w;
+
+    if (center_y > max_y) m_y = max_y - half_h;
+    else if (center_y < min_y) m_y = min_y - half_h;
+
+    // Update extents
     m_x2 = m_x + m_w;
     m_y2 = m_y + m_h;
 }
