@@ -513,14 +513,20 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
 void V_DrawPatchFullScreen(patch_t *patch, boolean flipped)
 {
     const int x = DivRoundClosest((ORIGWIDTH - SHORT(patch->width)), 2);
+    static int black = -1;
 
     patch->leftoffset = 0;
     patch->topoffset = 0;
 
+    if (black == -1)
+    {
+        black = I_MapRGB(0x00, 0x00, 0x00);
+    }
+
     // [crispy] fill pillarboxes in widescreen mode
     if (SCREENWIDTH != NONWIDEWIDTH)
     {
-        V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
+        V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, black);
     }
 
     if (flipped)
@@ -826,6 +832,68 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     } 
 } 
 
+// [crispy] scaled version of V_DrawBlock()
+void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
+{
+    pixel_t *dest;
+    int i, j;
+
+    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+
+    const int rx = x * vid_resolution;
+    const int ry = y * vid_resolution;
+    const int rw = width * vid_resolution;
+    const int rh = height * vid_resolution;
+
+    int dx0 = rx;
+    int dy0 = ry;
+    int dx1 = rx + rw;
+    int dy1 = ry + rh;
+
+    // Clipping
+    if (dx0 < 0)
+    {
+        dx0 = 0;
+    }
+    if (dy0 < 0)
+    {
+        dy0 = 0;
+    }
+    if (dx1 > SCREENWIDTH)
+    {
+        dx1 = SCREENWIDTH;
+    }
+    if (dy1 > SCREENHEIGHT)
+    {
+        dy1 = SCREENHEIGHT;
+    }
+
+    const int dw = dx1 - dx0;
+    const int dh = dy1 - dy0;
+
+    if (dw <= 0 || dh <= 0)
+    {
+        return;
+    }
+
+    const int xoff = dx0 - rx;
+    const int yoff = dy0 - ry;
+
+    dest = dest_screen + dy0 * SCREENWIDTH + dx0;
+
+    for (i = 0; i < dh; ++i)
+    {
+        const int src_y = (i + yoff) / vid_resolution;
+        const byte *src_row = src + src_y * width;
+
+        for (j = 0; j < dw; ++j)
+        {
+            const int src_x = (j + xoff) / vid_resolution;
+            dest[i * SCREENWIDTH + j] = pal_color[src_row[src_x]];
+        }
+    }
+}
+
 void V_DrawFilledBox(int x, int y, int w, int h, int c)
 {
     pixel_t *buf, *buf1;
@@ -884,54 +952,21 @@ void V_DrawBox(int x, int y, int w, int h, int c)
     V_DrawVertLine(x, y, h, c);
     V_DrawVertLine(x+w-1, y, h, c);
 }
-
-//
-// Draw a "raw" screen (lump containing raw data to blit directly
-// to the screen)
-//
-
-void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
+ 
+static void V_DrawRawScreen(byte *raw, int size)
 {
-    pixel_t *dest;
-    int i, j;
+    int width = size / ORIGHEIGHT;
+    int x = ((SCREENWIDTH / vid_resolution) - width) / 2 - WIDESCREENDELTA;
 
-    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
-
-    // [crispy] Fill pillarboxes in widescreen mode. Needs to be two separate
-    // pillars to allow for Heretic finale vertical scrolling.
-    // [JN] Add +1 to deltas to fix possible rounding errors in non-power-of-two
-    // rendering resolutions.
+    // [crispy] pillar boxing
     if (SCREENWIDTH != NONWIDEWIDTH)
     {
-        V_DrawFilledBox(0, 0, (WIDESCREENDELTA + 1) * vid_resolution, SCREENHEIGHT, 0);
-        V_DrawFilledBox(SCREENWIDTH - ((WIDESCREENDELTA + 1) * vid_resolution), 0,
-                        (WIDESCREENDELTA + 1) * vid_resolution, SCREENHEIGHT, 0);
+        V_DrawFilledBox(0, 0, WIDESCREENDELTA * vid_resolution, SCREENHEIGHT, 0);
+        V_DrawFilledBox(SCREENWIDTH - (WIDESCREENDELTA * vid_resolution), 0,
+                        WIDESCREENDELTA * vid_resolution, SCREENHEIGHT, 0);
     }
 
-#ifdef RANGECHECK
-    if (x < 0
-     || x + width > SCREENWIDTH
-     || y < 0
-     || y + height > SCREENWIDTH)
-    {
-        I_Error ("Bad V_DrawScaledBlock");
-    }
-#endif
-
-    dest = dest_screen + (y * vid_resolution) * SCREENWIDTH + (x * vid_resolution);
-
-    for (i = 0; i < (height * vid_resolution); i++)
-    {
-        for (j = 0; j < (width * vid_resolution); j++)
-        {
-            *(dest + i * SCREENWIDTH + j) = pal_color[*(src + (i / vid_resolution) * width + (j / vid_resolution))];
-        }
-    }
-}
- 
-void V_DrawRawScreen(byte *raw)
-{
-    V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, raw);
+    V_DrawScaledBlock(x, 0, width, ORIGHEIGHT, raw);
 }
 
 // [crispy] For Heretic and Hexen widescreen support of replacement TITLE,
@@ -943,13 +978,15 @@ void V_DrawFullscreenRawOrPatch(lumpindex_t index)
 
     patch = W_CacheLumpNum(index, PU_CACHE);
 
-    if (W_LumpLength(index) == ORIGWIDTH * ORIGHEIGHT)
-    {
-        V_DrawRawScreen((byte*)patch);
-    }
-    else if ((SHORT(patch->height) == 200) && (SHORT(patch->width) >= 320))
+    int size = W_LumpLength(index);
+
+    if (V_IsPatchLump(index))
     {
         V_DrawPatchFullScreen(patch, false);
+    }
+    else if (size % 200 == 0)
+    {
+        V_DrawRawScreen((byte*)patch, size);
     }
     else
     {
@@ -1223,5 +1260,66 @@ void V_DrawMouseSpeedBox(int speed)
     {
         DrawNonAcceleratingBox(speed);
     }
+}
+
+// [FG] check if the lump can be a Doom patch
+// taken from PrBoom+ prboom2/src/r_patch.c:L350-L390
+
+boolean V_IsPatchLump(const int lump)
+{
+    int size;
+    int width, height;
+    const patch_t *patch;
+    boolean result;
+
+    if (lump < 0)
+        return false;
+
+    size = W_LumpLength(lump);
+
+    // Minimum length of a valid Doom patch
+    if (size < 13)
+    {
+        return false;
+    }
+
+    patch = (const patch_t *) W_CacheLumpNum(lump, PU_CACHE);
+
+    // [FG] detect patches in PNG format early
+    if (!memcmp(patch, "\211PNG\r\n\032\n", 8))
+    {
+        return false;
+    }
+
+    width = SHORT(patch->width);
+    height = SHORT(patch->height);
+
+    result = (height > 0 && height <= 16384 && width > 0 && width <= 16384 &&
+              width < size / 4);
+
+    if (result)
+    {
+        // The dimensions seem like they might be valid for a patch, so
+        // check the column directory for extra security. All columns
+        // must begin after the column directory, and none of them must
+        // point past the end of the patch.
+        int x;
+
+        for (x = 0; x < width; x++)
+        {
+            unsigned int ofs = LONG(patch->columnofs[x]);
+
+            // Need one byte for an empty column
+            // (but there's patches that don't know that!)
+            if (ofs < (unsigned int) width * 4 + 8 ||
+                ofs >= (unsigned int) size)
+            {
+                result = false;
+                break;
+            }
+        }
+    }
+
+    return result;
 }
 

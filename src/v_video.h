@@ -71,6 +71,7 @@ void V_DrawFadePatch(int x, int y, const patch_t *restrict patch, int alpha);
 // Draw a linear block of pixels into the view buffer.
 
 void V_DrawBlock(int x, int y, int width, int height, pixel_t *src);
+void V_DrawScaledBlock(int x, int y, int width, int height, byte *src);
 
 void V_MarkRect(int x, int y, int width, int height);
 
@@ -78,11 +79,6 @@ void V_DrawFilledBox(int x, int y, int w, int h, int c);
 void V_DrawHorizLine(int x, int y, int w, int c);
 void V_DrawVertLine(int x, int y, int h, int c);
 void V_DrawBox(int x, int y, int w, int h, int c);
-void V_DrawScaledBlock(int x, int y, int width, int height, byte *src);
-
-// Draw a raw screen lump
-
-void V_DrawRawScreen(byte *raw);
 
 // Temporarily switch to using a different buffer to draw graphics, etc.
 
@@ -103,6 +99,8 @@ void V_RestoreBuffer(void);
 void V_ScreenShot(const char *format);
 
 void V_DrawMouseSpeedBox(int speed);
+
+boolean V_IsPatchLump(const int lump);
 
 #endif
 
