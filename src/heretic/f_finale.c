@@ -318,87 +318,87 @@ static void F_TextWrite (void)
 
 static void F_DemonScroll (void)
 {
-    int i1 = W_GetNumForName(DEH_String("FINAL1"));
-    int i2 = W_GetNumForName(DEH_String("FINAL2"));
+    const lumpindex_t i1 = W_GetNumForName(DEH_String("FINAL1"));
+    const lumpindex_t i2 = W_GetNumForName(DEH_String("FINAL2"));
+    const byte *const p1 = W_CacheLumpNum(i1, PU_LEVEL);
+    const byte *const p2 = W_CacheLumpNum(i2, PU_LEVEL);
+    static int black = -1;
 
-    // [JN] assume that FINAL1 and FINAL2 are in RAW format
-    if ((W_LumpLength(i1) == 64000) && (W_LumpLength(i2) == 64000))
+    if (black == -1)
     {
-        byte *const DemonBuffer = Z_Malloc(W_LumpLength(i1) + W_LumpLength(i2), PU_STATIC, NULL);
-        const byte *const p1 = W_CacheLumpNum(i1, PU_LEVEL);
-        const byte *const p2 = W_CacheLumpNum(i2, PU_LEVEL);
-
-        memcpy(DemonBuffer, p2, W_LumpLength(i2));
-        memcpy(DemonBuffer + W_LumpLength(i2), p1, W_LumpLength(i1));
-
-        // [rfomin] show first screen for a while
-        if (finalecount < 70)
-        {
-            V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, DemonBuffer + 64000);
-            nextscroll = finalecount;
-            yval = 0;
-            return;
-        }
-
-        if (yval < 64000)
-        {
-            // [rfomin] scroll up one line at a time until only the top screen shows
-            V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, DemonBuffer + 64000 - yval);
-    
-            if (finalecount >= nextscroll)
-            {
-                yval += ORIGWIDTH; // [rfomin] move up one line
-                nextscroll = finalecount + 3; // [rfomin] don't scroll too fast
-            }
-        }
-        else
-        {
-            // [rfomin] finished scrolling
-            V_DrawScaledBlock(0, 0, ORIGWIDTH, ORIGHEIGHT, DemonBuffer);
-        }
-        Z_Free(DemonBuffer);
+        black = I_MapRGB(0x00, 0x00, 0x00);
     }
-    // [crispy] assume that FINAL1 and FINAL2 are in patch format
-    else
+
+    V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, black);
+
+    if (finalecount < 70)
     {
-        patch_t *const patch1 = W_CacheLumpName(DEH_String("FINAL1"), PU_LEVEL);
-        patch_t *const patch2 = W_CacheLumpName(DEH_String("FINAL2"), PU_LEVEL);
+        V_DrawFullscreenRawOrPatch(i1);
+        nextscroll = finalecount;
+        return;
+    }
 
-        if (finalecount < 70)
-        {
-            V_DrawPatchFullScreen(patch1, false);
-            nextscroll = finalecount;
-            return;
-        }
+    const int is_patch = (V_IsPatchLump(i1) && V_IsPatchLump(i2));
+    const int totalsz  = is_patch ? (ORIGWIDTH * ORIGHEIGHT) : W_LumpLength(i1);
 
-        if (yval < 64000)
+    if (yval < totalsz)
+    {
+        if (is_patch)
         {
+            patch_t *const patch1 = (patch_t *)p1;
+            patch_t *const patch2 = (patch_t *)p2;
             const int x = ((SCREENWIDTH / vid_resolution) - SHORT(patch1->width)) / 2
-                        - WIDESCREENDELTA; // [crispy]
+                        - WIDESCREENDELTA;
 
             // [crispy] pillar boxing
             if (x > -WIDESCREENDELTA)
             {
-                V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
+                V_DrawFilledBox(0, 0, WIDESCREENDELTA + x, SCREENHEIGHT, 0);
+                V_DrawFilledBox(SCREENWIDTH - WIDESCREENDELTA - x, 0,
+                                WIDESCREENDELTA + x, SCREENHEIGHT, 0);
             }
 
             V_DrawPatch(x, y - 200, patch2);
             V_DrawPatch(x, 0 + y, patch1);
 
+            // [PN] Frame freeze: redraw every tick; advance only when time comes.
             // [rfomin] don't scroll too fast
-            // [JN] and do not use "return" here to keep screen buffer active
             if (finalecount >= nextscroll)
             {
                 y++;
-                yval += ORIGWIDTH;
+                yval += ORIGWIDTH; // [PN] Step for patch lumps (320x200): advance by ORIGWIDTH (320).
                 nextscroll = finalecount + 3;
             }
         }
-        else
+        else // [crispy] assume RAW format
         {
-            // else, we'll just sit here and wait, for now
-            V_DrawPatchFullScreen(patch2, false);
+            const int width = W_LumpLength(i1) / ORIGHEIGHT; // 200px tall RAW -> row width
+            const int x = ((SCREENWIDTH / vid_resolution) - width) / 2
+                        - WIDESCREENDELTA;
+
+            // [crispy] pillar boxing
+            if (SCREENWIDTH != NONWIDEWIDTH)
+            {
+                V_DrawFilledBox(0, 0, WIDESCREENDELTA * vid_resolution, SCREENHEIGHT, 0);
+                V_DrawFilledBox(SCREENWIDTH - (WIDESCREENDELTA * vid_resolution), 0,
+                                WIDESCREENDELTA * vid_resolution, SCREENHEIGHT, 0);
+            }
+
+            V_DrawScaledBlock(x, y - 200, width, ORIGHEIGHT, (byte *)p2);
+            V_DrawScaledBlock(x, 0 + y, width, ORIGHEIGHT, (byte *)p1);
+
+            // [PN] Frame freeze: redraw every tick; advance only when time comes.
+            if (finalecount >= nextscroll)
+            {
+                y++;
+                yval += width; // [PN] Step for RAW: advance by the row width (320/560/…).
+                nextscroll = finalecount + 3;
+            }
         }
+    }
+    else
+    {                           //else, we'll just sit here and wait, for now
+        V_DrawFullscreenRawOrPatch(i2);
     }
 }
 
