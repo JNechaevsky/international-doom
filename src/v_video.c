@@ -957,13 +957,17 @@ static void V_DrawRawScreen(byte *raw, int size)
 {
     int width = size / ORIGHEIGHT;
     int x = ((SCREENWIDTH / vid_resolution) - width) / 2 - WIDESCREENDELTA;
+    static int black = -1;
+
+    if (black == -1)
+    {
+        black = I_MapRGB(0x00, 0x00, 0x00);
+    }
 
     // [crispy] pillar boxing
     if (SCREENWIDTH != NONWIDEWIDTH)
     {
-        V_DrawFilledBox(0, 0, WIDESCREENDELTA * vid_resolution, SCREENHEIGHT, 0);
-        V_DrawFilledBox(SCREENWIDTH - (WIDESCREENDELTA * vid_resolution), 0,
-                        WIDESCREENDELTA * vid_resolution, SCREENHEIGHT, 0);
+        V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, black);
     }
 
     V_DrawScaledBlock(x, 0, width, ORIGHEIGHT, raw);

@@ -322,6 +322,14 @@ static void F_DemonScroll (void)
     const lumpindex_t i2 = W_GetNumForName(DEH_String("FINAL2"));
     const byte *const p1 = W_CacheLumpNum(i1, PU_LEVEL);
     const byte *const p2 = W_CacheLumpNum(i2, PU_LEVEL);
+    static int black = -1;
+
+    if (black == -1)
+    {
+        black = I_MapRGB(0x00, 0x00, 0x00);
+    }
+
+    V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, black);
 
     if (finalecount < 70)
     {
