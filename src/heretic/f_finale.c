@@ -318,37 +318,29 @@ static void F_TextWrite (void)
 
 static void F_DemonScroll (void)
 {
-    byte *p1, *p2;
-    static int yval = 0;
-    static int nextscroll = 0;
-    lumpindex_t i1, i2; // [crispy]
-    int x; // [crispy]
-    patch_t *patch1, *patch2; // [crispy]
-    static int y = 0; // [crispy]
+    const lumpindex_t i1 = W_GetNumForName(DEH_String("FINAL1"));
+    const lumpindex_t i2 = W_GetNumForName(DEH_String("FINAL2"));
+    const byte *const p1 = W_CacheLumpNum(i1, PU_LEVEL);
+    const byte *const p2 = W_CacheLumpNum(i2, PU_LEVEL);
 
-    if (finalecount < nextscroll)
-    {
-        return;
-    }
-    i1 = W_GetNumForName(DEH_String("FINAL1"));
-    i2 = W_GetNumForName(DEH_String("FINAL2"));
-    p1 = W_CacheLumpNum(i1, PU_LEVEL);
-    p2 = W_CacheLumpNum(i2, PU_LEVEL);
     if (finalecount < 70)
     {
         V_DrawFullscreenRawOrPatch(i1);
         nextscroll = finalecount;
         return;
     }
-    if (yval < 64000)
-    {
-        if (V_IsPatchLump(i1) && V_IsPatchLump(i2))
-        {
-            patch1 = (patch_t *)p1;
-            patch2 = (patch_t *)p2;
 
-            x = ((SCREENWIDTH / vid_resolution) - SHORT(patch1->width)) / 2
-                - WIDESCREENDELTA;
+    const int is_patch = (V_IsPatchLump(i1) && V_IsPatchLump(i2));
+    const int totalsz  = is_patch ? (ORIGWIDTH * ORIGHEIGHT) : W_LumpLength(i1);
+
+    if (yval < totalsz)
+    {
+        if (is_patch)
+        {
+            patch_t *const patch1 = (patch_t *)p1;
+            patch_t *const patch2 = (patch_t *)p2;
+            const int x = ((SCREENWIDTH / vid_resolution) - SHORT(patch1->width)) / 2
+                        - WIDESCREENDELTA;
 
             // [crispy] pillar boxing
             if (x > -WIDESCREENDELTA)
@@ -360,30 +352,41 @@ static void F_DemonScroll (void)
 
             V_DrawPatch(x, y - 200, patch2);
             V_DrawPatch(x, 0 + y, patch1);
-            y++;
+
+            // [PN] Frame freeze: redraw every tick; advance only when time comes.
+            // [rfomin] don't scroll too fast
+            if (finalecount >= nextscroll)
+            {
+                y++;
+                yval += ORIGWIDTH; // [PN] Step for patch lumps (320x200): advance by ORIGWIDTH (320).
+                nextscroll = finalecount + 3;
+            }
         }
         else // [crispy] assume RAW format
         {
-            int width = W_LumpLength(i1) / ORIGHEIGHT;
-            int x = ((SCREENWIDTH / vid_resolution) - width) / 2
-                    - WIDESCREENDELTA;
+            const int width = W_LumpLength(i1) / ORIGHEIGHT; // 200px tall RAW -> row width
+            const int x = ((SCREENWIDTH / vid_resolution) - width) / 2
+                        - WIDESCREENDELTA;
 
             // [crispy] pillar boxing
             if (SCREENWIDTH != NONWIDEWIDTH)
             {
-                V_DrawFilledBox(0, 0, WIDESCREENDELTA * vid_resolution,
-                                SCREENHEIGHT, 0);
-                V_DrawFilledBox(
-                    SCREENWIDTH - (WIDESCREENDELTA * vid_resolution), 0,
-                    WIDESCREENDELTA * vid_resolution, SCREENHEIGHT, 0);
+                V_DrawFilledBox(0, 0, WIDESCREENDELTA * vid_resolution, SCREENHEIGHT, 0);
+                V_DrawFilledBox(SCREENWIDTH - (WIDESCREENDELTA * vid_resolution), 0,
+                                WIDESCREENDELTA * vid_resolution, SCREENHEIGHT, 0);
             }
 
-            V_DrawScaledBlock(x, y - 200, width, ORIGHEIGHT, p2);
-            V_DrawScaledBlock(x, 0 + y, width, ORIGHEIGHT, p1);
-            y++;
+            V_DrawScaledBlock(x, y - 200, width, ORIGHEIGHT, (byte *)p2);
+            V_DrawScaledBlock(x, 0 + y, width, ORIGHEIGHT, (byte *)p1);
+
+            // [PN] Frame freeze: redraw every tick; advance only when time comes.
+            if (finalecount >= nextscroll)
+            {
+                y++;
+                yval += width; // [PN] Step for RAW: advance by the row width (320/560/…).
+                nextscroll = finalecount + 3;
+            }
         }
-        yval += ORIGWIDTH;
-        nextscroll = finalecount + 3;
     }
     else
     {                           //else, we'll just sit here and wait, for now
