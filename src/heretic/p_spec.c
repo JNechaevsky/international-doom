@@ -197,6 +197,21 @@ animdef_t animdefs_vanilla[] = {
     {false, "FLATHUH4", "FLATHUH1", 8}, // Super Lava
     {true, "LAVAFL3", "LAVAFL1", 6},    // Texture: Lavaflow
     {true, "WATRWAL3", "WATRWAL1", 4},  // Texture: Waterfall
+    // [JN] Support animated textures from H+H IWAD.
+    {false, "FLTFLWS3", "FLTFLWS1", 9}, // River - South
+    {false, "FLTLAVF3", "FLTLAVF1", 6}, // River Lava - West
+    {false, "FLTLAVS3", "FLTLAVS1", 6}, // River Lava - South
+    {false, "FLTBLOD3", "FLTBLOD1", 8}, // Blood
+    {true, "BLUEGLO4", "BLUEGLO1", 6},
+    {true, "CANDLES3", "CANDLES1", 6},
+    {true, "CISTDRN3", "CISTDRN1", 8},
+    {true, "CISTERN3", "CISTERN1", 8},
+    {true, "IRONLMP4", "IRONLMP1", 8},
+    {true, "LAMPLAV4", "LAMPLAV1", 8},
+    {true, "SEWPIP3", "SEWPIP1", 4},
+    {true, "WLLBLOD3", "WLLBLOD1", 6},
+    {true, "WLLMURK3", "WLLMURK1", 6},
+    {true, "WLLSLUD3", "WLLSLUD1", 6},
     {-1}
 };
 
@@ -212,6 +227,21 @@ static animdef_t animdefs_swirling[] = {
     {false, "FLATHUH4", "FLATHUH1", 65538}, // Super Lava
     {true, "LAVAFL3", "LAVAFL1", 6},    // Texture: Lavaflow
     {true, "WATRWAL3", "WATRWAL1", 4},  // Texture: Waterfall
+    // [JN] Support animated textures from H+H IWAD.
+    {false, "FLTFLWS3", "FLTFLWS1", 65536}, // River - South
+    {false, "FLTLAVF3", "FLTLAVF1", 65538}, // River Lava - West
+    {false, "FLTLAVS3", "FLTLAVS1", 65538}, // River Lava - South
+    {false, "FLTBLOD3", "FLTBLOD1", 65537}, // Blood
+    {true, "BLUEGLO4", "BLUEGLO1", 6},
+    {true, "CANDLES3", "CANDLES1", 6},
+    {true, "CISTDRN3", "CISTDRN1", 8},
+    {true, "CISTERN3", "CISTERN1", 8},
+    {true, "IRONLMP4", "IRONLMP1", 8},
+    {true, "LAMPLAV4", "LAMPLAV1", 8},
+    {true, "SEWPIP3", "SEWPIP1", 4},
+    {true, "WLLBLOD3", "WLLBLOD1", 6},
+    {true, "WLLMURK3", "WLLMURK1", 6},
+    {true, "WLLSLUD3", "WLLSLUD1", 6},
     {-1}
 };
 
