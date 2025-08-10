@@ -110,6 +110,10 @@ static fixed_t dSlideY[MAXPLAYERS];
 
 static const char *KillersText[] = { "K", "I", "L", "L", "E", "R", "S" };
 
+// [JN] Support for E4-5 intermissions from H+H IWAD.
+static boolean RemasterAssets = false;
+static int AvailableEpisodes = 4;
+static patch_t *patchMAPE5_M9;
 
 typedef struct
 {
@@ -117,7 +121,7 @@ typedef struct
     int y;
 } yahpt_t;
 
-static yahpt_t YAHspot[3][9] = {
+static yahpt_t YAHspot[3+2][9] = {
     {
      {172, 78},
      {86, 90},
@@ -151,6 +155,29 @@ static yahpt_t YAHspot[3][9] = {
      {247, 57},
      {107, 80}
      }
+     // [JN] H+H: patch placements for episode 4 and 5.
+    ,{
+     {279, 150},
+     {235, 161},
+     {183, 154},
+     {123, 150},
+     {143, 115},
+     {180, 73},
+     {126, 52},
+     {78, 52},
+     {103, 123}
+     },
+    {
+     {45, 62},
+     {117, 74},
+     {144, 129},
+     {203, 132},
+     {224, 79},
+     {279, 94},
+     {285, 148},
+     {317, 129},
+     {178, 94}
+    }
 };
 
 static const char *NameForMap(int map)
@@ -183,6 +210,23 @@ static const char *NameForMap(int map)
 
 void IN_Start(void)
 {
+    // [JN] If we have an H+H IWAD loaded, we can use its intermission
+    // assets and change the behavior of episodes 4 and 5. However, this
+    // can only be done in single-player mode to prevent demo and network
+    // game desynchronization. The check cannot be performed only once,
+    // since conditions may change during a single game session — for
+    // example, watching a demo and then starting a single-player game.
+    if (singleplayer && W_CheckNumForName("MAPE4") > 0 && W_CheckNumForName("MAPE5") > 0)
+    {
+        RemasterAssets = true;
+        AvailableEpisodes = 6;
+    }
+    else
+    {
+        RemasterAssets = false;
+        AvailableEpisodes = 4;
+    }
+
     I_SetPalette(0);
     IN_LoadPics();
     IN_InitStats();
@@ -343,6 +387,19 @@ static void IN_LoadUnloadPics(void (*callback)(const char *lumpname,
         case 3:
             callback(DEH_String("MAPE3"), 0, &patchINTERPIC);
             break;
+        case 4:
+            if (RemasterAssets)
+            {
+            callback(DEH_String("MAPE4"), 0, &patchINTERPIC);
+            }
+            break;
+        case 5:
+            if (RemasterAssets)
+            {
+            callback(DEH_String("MAPE5"), 0, &patchINTERPIC);
+            callback(DEH_String("MAPE5_M9"), 0, &patchMAPE5_M9);
+            }
+            break;
         default:
             break;
     }
@@ -443,7 +500,7 @@ void IN_Ticker(void)
             return;
         }
 
-        if (gameepisode > 3 && interstate >= 1)
+        if (gameepisode > 3 && interstate >= 1 && !RemasterAssets)
         {                       // Extended Wad levels:  skip directly to the next level
             interstate = 3;
         }
@@ -451,7 +508,7 @@ void IN_Ticker(void)
         {
             case 0:
                 oldintertime = intertime + 300;
-                if (gameepisode > 3)
+                if (gameepisode > 3 && !RemasterAssets)
                 {
                     oldintertime = intertime + 1200;
                 }
@@ -484,7 +541,7 @@ void IN_Ticker(void)
             G_WorldDone();
             return;
         }
-        else if (interstate < 2 && gameepisode < 4)
+        else if (interstate < 2 && gameepisode < AvailableEpisodes)
         {
             interstate = 2;
             skipintermission = false;
@@ -583,21 +640,21 @@ void IN_Drawer(void)
             }
             break;
         case 1:                // leaving old level
-            if (gameepisode < 4)
+            if (gameepisode < AvailableEpisodes)
             {
                 V_DrawPatchFullScreen(patchINTERPIC, false);
                 IN_DrawOldLevel();
             }
             break;
         case 2:                // going to the next level
-            if (gameepisode < 4)
+            if (gameepisode < AvailableEpisodes)
             {
                 V_DrawPatchFullScreen(patchINTERPIC, false);
                 IN_DrawYAH();
             }
             break;
         case 3:                // waiting before going to the next level
-            if (gameepisode < 4)
+            if (gameepisode < AvailableEpisodes)
             {
                 V_DrawPatchFullScreen(patchINTERPIC, false);
             }
@@ -657,6 +714,13 @@ void IN_DrawOldLevel(void)
     x = 160 - MN_TextAWidth(DEH_String("FINISHED")) / 2;
     MN_DrTextA(DEH_String("FINISHED"), x, 25, NULL);
 
+    // [JN] H+H: draw special Skein of D'Sparil patch.
+    // The player has completed the secret level.
+    if (RemasterAssets && gameepisode == 5 && players[consoleplayer].didsecret)
+    {
+        V_DrawPatch(0, 0, patchMAPE5_M9);
+    }
+
     if (prevmap == 9)
     {
         for (i = 0; i < gamemap - 1; i++)
@@ -707,6 +771,13 @@ void IN_DrawYAH(void)
     MN_DrTextA(DEH_String("NOW ENTERING:"), x, 10, NULL);
     x = 160 - MN_TextBWidth(level_name) / 2;
     IN_DrTextB(level_name, x, 20);
+
+    // [JN] H+H: draw special Skein of D'Sparil patch.
+    // The player is entering the secret level or has completed it previously.
+    if (RemasterAssets && gameepisode == 5 && (gamemap == 9 || players[consoleplayer].didsecret))
+    {
+        V_DrawPatch(0, 0, patchMAPE5_M9);
+    }
 
     if (prevmap == 9)
     {
@@ -806,7 +877,7 @@ void IN_DrawSingleStats(void)
     }
 
     // [crispy] ignore "now entering" if it's the final intermission
-    if (gamemode != retail || gameepisode <= 3 || finalintermission)
+    if (gamemode != retail || gameepisode <= 3 || finalintermission || RemasterAssets)
     {
         IN_DrTextB(DEH_String("TIME"), 85, 150);
         IN_DrawTime(155, 150, hours, minutes, seconds);
