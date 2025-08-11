@@ -197,21 +197,21 @@ animdef_t animdefs_vanilla[] = {
     {false, "FLATHUH4", "FLATHUH1", 8}, // Super Lava
     {true, "LAVAFL3", "LAVAFL1", 6},    // Texture: Lavaflow
     {true, "WATRWAL3", "WATRWAL1", 4},  // Texture: Waterfall
-    // [JN] Support animated textures from H+H IWAD.
+    // [JN] Support animated textures and flats from H+H IWAD.
     {false, "FLTFLWS3", "FLTFLWS1", 9}, // River - South
     {false, "FLTLAVF3", "FLTLAVF1", 6}, // River Lava - West
     {false, "FLTLAVS3", "FLTLAVS1", 6}, // River Lava - South
     {false, "FLTBLOD3", "FLTBLOD1", 8}, // Blood
-    {true, "BLUEGLO4", "BLUEGLO1", 6},
-    {true, "CANDLES3", "CANDLES1", 6},
-    {true, "CISTDRN3", "CISTDRN1", 8},
-    {true, "CISTERN3", "CISTERN1", 8},
-    {true, "IRONLMP4", "IRONLMP1", 8},
-    {true, "LAMPLAV4", "LAMPLAV1", 8},
-    {true, "SEWPIP3", "SEWPIP1", 4},
-    {true, "WLLBLOD3", "WLLBLOD1", 6},
-    {true, "WLLMURK3", "WLLMURK1", 6},
-    {true, "WLLSLUD3", "WLLSLUD1", 6},
+    {true, "BLUEGLO4", "BLUEGLO1", 6},  // Texture: Blue Glowing Gem
+    {true, "CANDLES3", "CANDLES1", 6},  // Texture: Candles
+    {true, "CISTDRN3", "CISTDRN1", 8},  // Texture: Cistern Drain
+    {true, "CISTERN3", "CISTERN1", 8},  // Texture: Cistern
+    {true, "IRONLMP4", "IRONLMP1", 8},  // Texture: Iron Lava Lamp
+    {true, "LAMPLAV4", "LAMPLAV1", 8},  // Texture: Double Lava Lamp
+    {true, "SEWPIP3", "SEWPIP1", 4},    // Texture: Sewer Pipe
+    {true, "WLLBLOD3", "WLLBLOD1", 6},  // Texture: Bloodfall
+    {true, "WLLMURK3", "WLLMURK1", 6},  // Texture: Murkyfall
+    {true, "WLLSLUD3", "WLLSLUD1", 6},  // Texture: Sludgefall
     {-1}
 };
 
@@ -221,27 +221,27 @@ static animdef_t animdefs_swirling[] = {
     // true = texture
     {false, "FLTWAWA3", "FLTWAWA1", 65536}, // Water
     {false, "FLTSLUD3", "FLTSLUD1", 65537}, // Sludge
-    {false, "FLTTELE4", "FLTTELE1", 6}, // Teleport
+    {false, "FLTTELE4", "FLTTELE1", 6},     // Teleport
     {false, "FLTFLWW3", "FLTFLWW1", 65536}, // River - West
-    {false, "FLTLAVA4", "FLTLAVA1", 8}, // Lava
+    {false, "FLTLAVA4", "FLTLAVA1", 8},     // Lava
     {false, "FLATHUH4", "FLATHUH1", 65538}, // Super Lava
-    {true, "LAVAFL3", "LAVAFL1", 6},    // Texture: Lavaflow
-    {true, "WATRWAL3", "WATRWAL1", 4},  // Texture: Waterfall
-    // [JN] Support animated textures from H+H IWAD.
+    {true, "LAVAFL3", "LAVAFL1", 6},        // Texture: Lavaflow
+    {true, "WATRWAL3", "WATRWAL1", 4},      // Texture: Waterfall
+    // [JN] Support animated textures and flats from H+H IWAD.
     {false, "FLTFLWS3", "FLTFLWS1", 65536}, // River - South
     {false, "FLTLAVF3", "FLTLAVF1", 65538}, // River Lava - West
     {false, "FLTLAVS3", "FLTLAVS1", 65538}, // River Lava - South
     {false, "FLTBLOD3", "FLTBLOD1", 65537}, // Blood
-    {true, "BLUEGLO4", "BLUEGLO1", 6},
-    {true, "CANDLES3", "CANDLES1", 6},
-    {true, "CISTDRN3", "CISTDRN1", 8},
-    {true, "CISTERN3", "CISTERN1", 8},
-    {true, "IRONLMP4", "IRONLMP1", 8},
-    {true, "LAMPLAV4", "LAMPLAV1", 8},
-    {true, "SEWPIP3", "SEWPIP1", 4},
-    {true, "WLLBLOD3", "WLLBLOD1", 6},
-    {true, "WLLMURK3", "WLLMURK1", 6},
-    {true, "WLLSLUD3", "WLLSLUD1", 6},
+    {true, "BLUEGLO4", "BLUEGLO1", 6},      // Texture: Blue Glowing Gem
+    {true, "CANDLES3", "CANDLES1", 6},      // Texture: Candles
+    {true, "CISTDRN3", "CISTDRN1", 8},      // Texture: Cistern Drain
+    {true, "CISTERN3", "CISTERN1", 8},      // Texture: Cistern
+    {true, "IRONLMP4", "IRONLMP1", 8},      // Texture: Iron Lava Lamp
+    {true, "LAMPLAV4", "LAMPLAV1", 8},      // Texture: Double Lava Lamp
+    {true, "SEWPIP3", "SEWPIP1", 4},        // Texture: Sewer Pipe
+    {true, "WLLBLOD3", "WLLBLOD1", 6},      // Texture: Bloodfall
+    {true, "WLLMURK3", "WLLMURK1", 6},      // Texture: Murkyfall
+    {true, "WLLSLUD3", "WLLSLUD1", 6},      // Texture: Sludgefall
     {-1}
 };
 
@@ -262,7 +262,7 @@ struct
     { "FLTLAVA1", FLOOR_LAVA },
     { "FLATHUH1", FLOOR_LAVA },
     { "FLTSLUD1", FLOOR_SLUDGE },
-    // [JN] Support terrain types for H+H IWAD.
+    // [JN] Support terrain types from H+H IWAD.
     { "FLTFLWS1", FLOOR_WATER },
     { "FLTLAVF1", FLOOR_LAVA },
     { "FLTLAVS1", FLOOR_LAVA },
