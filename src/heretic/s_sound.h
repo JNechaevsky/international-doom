@@ -41,6 +41,7 @@ void S_GetChannelInfo(SoundInfo_t * s);
 void S_SetMaxVolume(void);
 void S_SetMusicVolume(void);
 void S_ShutDown(void);
+void S_StopMusic (void);
 
 extern void S_MuteUnmuteSound (boolean mute);
 

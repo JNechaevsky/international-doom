@@ -288,5 +288,6 @@ typedef enum
 
 extern sfxinfo_t S_sfx[];
 extern musicinfo_t S_music[][2];
+extern musicinfo_t S_music_Remaster[][2];
 
 #endif

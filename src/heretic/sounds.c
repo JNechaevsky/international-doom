@@ -88,6 +88,67 @@ musicinfo_t S_music[][2] = {
     {MUSIC("MUS_CPTD"), {NULL}}
 };
 
+ // [JN] Support Remastered/Original sound track from H+H rerelease.
+musicinfo_t S_music_Remaster[][2] = {
+    {MUSIC("H_DARK"),   MUSIC("O_DARK")},   // 1-1
+    {MUSIC("H_FRED"),   MUSIC("O_FRED")},   // 1-2
+    {MUSIC("H_DED"),    MUSIC("O_DED")},    // 1-3
+    {MUSIC("H_ELF"),    MUSIC("O_ELF")},    // 1-4
+    {MUSIC("H_MAREK"),  MUSIC("O_MAREK")},  // 1-5
+    {MUSIC("H_MIST"),   MUSIC("O_MIST")},   // 1-6
+    {MUSIC("H_MOLE"),   MUSIC("O_MOLE")},   // 1-7
+    {MUSIC("H_JOHN"),   MUSIC("O_JOHN")},   // 1-8
+    {MUSIC("H_ATCOTY"), MUSIC("O_ATCOTY")}, // 1-9
+
+    {MUSIC("H_ACACIA"), MUSIC("O_ACACIA")}, // 2-1
+    {MUSIC("H_ATLAS"),  MUSIC("O_ATLAS")},  // 2-2
+    {MUSIC("H_BLUROC"), MUSIC("O_BLUROC")}, // 2-3
+    {MUSIC("H_BUILD"),  MUSIC("O_BUILD")},  // 2-4
+    {MUSIC("H_ELF"),    MUSIC("O_ELF")},    // 2-5
+    {MUSIC("H_ONYX"),   MUSIC("O_ONYX")},   // 2-6
+    {MUSIC("H_WAIT"),   MUSIC("O_WAIT")},   // 2-7
+    {MUSIC("H_ARPO"),   MUSIC("O_ARPO")},   // 2-8
+    {MUSIC("H_OLKIN"),  MUSIC("O_OLKIN")},  // 2-9
+
+    {MUSIC("H_DARK"),   MUSIC("O_DARK")},   // 3-1
+    {MUSIC("H_DRIVE"),  MUSIC("O_DRIVE")},  // 3-2
+    {MUSIC("H_WATCH"),  MUSIC("O_WATCH")},  // 3-3
+    {MUSIC("H_MIST"),   MUSIC("O_MIST")},   // 3-4
+    {MUSIC("H_DED"),    MUSIC("O_DED")},    // 3-5
+    {MUSIC("H_FRED"),   MUSIC("O_FRED")},   // 3-6
+    {MUSIC("H_MAREK"),  MUSIC("O_MAREK")},  // 3-7
+    {MUSIC("H_ATCOTY"), MUSIC("O_ATCOTY")}, // 3-8
+    {MUSIC("H_ONYX"),   MUSIC("O_ONYX")},   // 3-9
+
+    {MUSIC("H_MIST"),   MUSIC("O_MIST")},   // 4-1
+    {MUSIC("H_FRED"),   MUSIC("O_FRED")},   // 4-2
+    {MUSIC("H_DED"),    MUSIC("O_DED")},    // 4-3
+    {MUSIC("H_ELF"),    MUSIC("O_ELF")},    // 4-4
+    {MUSIC("H_MAREK"),  MUSIC("O_MAREK")},  // 4-5
+    {MUSIC("H_DARK"),   MUSIC("O_DARK")},   // 4-6
+    {MUSIC("H_MOLE"),   MUSIC("O_MOLE")},   // 4-7
+    {MUSIC("H_JOHN"),   MUSIC("O_JOHN")},   // 4-8
+    {MUSIC("H_ATCOTY"), MUSIC("O_ATCOTY")}, // 4-9
+
+    {MUSIC("H_ACACIA"), MUSIC("O_ACACIA")}, // 5-1
+    {MUSIC("H_ATLAS"),  MUSIC("O_ATLAS")},  // 5-2
+    {MUSIC("H_BLUROC"), MUSIC("O_BLUROC")}, // 5-3
+    {MUSIC("H_BUILD"),  MUSIC("O_BUILD")},  // 5-4
+    {MUSIC("H_ELF"),    MUSIC("O_ELF")},    // 5-5
+    {MUSIC("H_ONYX"),   MUSIC("O_ONYX")},   // 5-6
+    {MUSIC("H_WAIT"),   MUSIC("O_WAIT")},   // 5-7
+    {MUSIC("H_ARPO"),   MUSIC("O_ARPO")},   // 5-8
+    {MUSIC("H_OLKIN"),  MUSIC("O_OLKIN")},  // 5-9
+
+    {MUSIC("H_DRIVE"),  MUSIC("O_DRIVE")},  // 6-1
+    {MUSIC("H_WATCH"),  MUSIC("O_WATCH")},  // 6-2
+    {MUSIC("H_MIST"),   MUSIC("O_MIST")},   // 6-3
+
+    {MUSIC("H_OPEN"),   MUSIC("O_OPEN")},   // MUS_TITL
+    {MUSIC("H_INTER"),  MUSIC("O_INTER")},  // MUS_INTR
+    {MUSIC("H_DEMO"),   MUSIC("O_DEMO")}    // MUS_CPTD
+};
+
 // Sound info
 
     /* Macro for original heretic sfxinfo_t 

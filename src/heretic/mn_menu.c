@@ -466,6 +466,7 @@ static void M_ID_SFXMode (int choice);
 static void M_ID_PitchShift (int choice);
 static void M_ID_SFXChannels (int choice);
 static void M_ID_MuteInactive (int choice);
+static void M_ID_RemasterOST (int choice);
 
 static void M_Draw_ID_Controls (void);
 static void M_ID_Controls_Acceleration (int choice);
@@ -1739,12 +1740,14 @@ static MenuItem_t ID_Menu_Sound[] = {
     { ITT_LRFUNC2, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,  0, MENU_NONE },
     { ITT_LRFUNC1, "NUMBER OF SFX TO MIX", M_ID_SFXChannels, 0, MENU_NONE },
     { ITT_LRFUNC2, "MUTE INACTIVE WINDOW", M_ID_MuteInactive,0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                   NULL,             0, MENU_NONE },
+    { ITT_LRFUNC2, "PREFFERED SOUNDTRACK", M_ID_RemasterOST, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Sound = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Sound,
-    12, ID_Menu_Sound,
+    14, ID_Menu_Sound,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -1811,19 +1814,34 @@ static void M_Draw_ID_Sound (void)
                             snd_mute_inactive ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(11));
 
-    // Inform that music system is not hot-swappable. :(
+    MN_DrTextACentered("REMASTERED MUSIC", 140, cr[CR_YELLOW]);
+
+    // Remastered music
+    sprintf(str, snd_remaster_ost == 1 ? "REMIX" :
+                 snd_remaster_ost == 2 ? "ORIGINAL" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 150,
+                        remaster_ost_h && snd_remaster_ost == 1 ? cr[CR_GREEN] :
+                        remaster_ost_o && snd_remaster_ost == 2 ? cr[CR_YELLOW] : cr[CR_RED],
+                            remaster_ost_h && snd_remaster_ost == 1 ? cr[CR_GREEN_BRIGHT] :
+                            remaster_ost_o && snd_remaster_ost == 2 ? cr[CR_YELLOW_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(13));
+
+    // Inform that something is missing.
     if (CurrentItPos == 7)
     {
         if (snd_musicdevice == 5 && strcmp(gus_patch_path, "") == 0)
-        {
-            MN_DrTextACentered("\"GUS[PATCH[PATH\" VARIABLE IS NOT SET", 140, cr[CR_GRAY]);
-        }
+            MN_DrTextACentered("\"GUS[PATCH[PATH\" VARIABLE IS NOT SET", 170, cr[CR_RED_BRIGHT]);
 #ifdef HAVE_FLUIDSYNTH
         if (snd_musicdevice == 11 && strcmp(fsynth_sf_path, "") == 0)
-        {
-            MN_DrTextACentered("\"FSYNTH[SF[PATH\" VARIABLE IS NOT SET", 140, cr[CR_GRAY]);
-        }
+            MN_DrTextACentered("\"FSYNTH[SF[PATH\" VARIABLE IS NOT SET", 170, cr[CR_RED_BRIGHT]);
 #endif // HAVE_FLUIDSYNTH
+    }
+    if (CurrentItPos == 13)
+    {
+        if (!remaster_ost_h && snd_remaster_ost == 1)
+            MN_DrTextACentered("HERETIC[MUS[REMIX.WAD FILE NOT LOADED", 170, cr[CR_ORANGE_BRIGHT]);
+        if (!remaster_ost_o && snd_remaster_ost == 2)
+            MN_DrTextACentered("HERETIC[MUS[ORIG.WAD FILE NOT LOADED", 170, cr[CR_ORANGE_BRIGHT]);
     }
 }
 
@@ -1943,6 +1961,30 @@ static void M_ID_SFXChannels (int choice)
 static void M_ID_MuteInactive (int choice)
 {
     snd_mute_inactive ^= 1;
+}
+
+static void M_ID_RemasterOST (int choice)
+{
+    snd_remaster_ost = M_INT_Slider(snd_remaster_ost, 0, 2, choice, false);
+
+    S_StopMusic();
+    
+    if (gamestate == GS_DEMOSCREEN)
+    {
+        S_StartSong(mus_titl, false);
+    }
+    else if (gamestate == GS_INTERMISSION)
+    {
+        S_StartSong(mus_intr, true);
+    }
+    else if (gamestate == GS_FINALE)
+    {
+        S_StartSong(mus_cptd, true);
+    }
+    else
+    {
+        S_StartSong((gameepisode - 1) * 9 + gamemap - 1, true);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -5003,6 +5045,7 @@ static void M_ID_ApplyResetHook (void)
     snd_pitchshift = 1;
     snd_channels = 8;
     snd_mute_inactive = 0;
+    snd_remaster_ost = 1;
 
     //
     // Widgets and automap
