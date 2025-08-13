@@ -3503,7 +3503,7 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
 static Menu_t ID_Def_Gameplay_1 = {
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_1,
-    14, ID_Menu_Gameplay_1,
+    13, ID_Menu_Gameplay_1,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
