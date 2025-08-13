@@ -541,6 +541,7 @@ extern int   *texturecompositesize;
 extern byte **texturecomposite;
 
 byte *R_GetColumn(int tex, int col);
+byte *R_GetColumnMod (int tex, int col);
 void R_InitData(void);
 void R_PrecacheLevel(void);
 extern void R_InitColormaps (void);
