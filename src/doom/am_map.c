@@ -1415,9 +1415,11 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 
 // -----------------------------------------------------------------------------
 // PUTDOT_THICK
-// [PN] Draws a "thick" pixel by filling an area around the target pixel.
-// Takes the current resolution into account to determine the thickness.
-// Includes boundary checks to prevent out-of-bounds access.
+// [PN] Draws a resolution-aware thick pixel (filled disc) at (x, y).
+// - Thickness: user-defined (1x..6x) or auto (scales with resolution).
+// - Bounds safety: clamps the drawing bbox to [0..f_w-1] × [0..f_h-1].
+// - Hot-path optimizations: cached fb pointer and width, dx^2 hoisted out of
+//   inner loop, per-column flip index, pointer walking per row.
 // [JN] With support for "user-defined" (1x...6x) and "auto" thickness.
 // -----------------------------------------------------------------------------
 
@@ -1427,52 +1429,70 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
     // repeated access during the loop iterations.
     const int smooth = automap_smooth;
 
-    // If the line thickness feature is disabled, draw the dot directly
-    // without performing any additional boundary checks.
+    // Thin point fast path
     if (!automap_thick)
     {
-        // Choose between smooth and regular drawing.
         if (smooth) PUTDOT_RAW(x, y, color);
         else        PUTDOT(x, y, color);
         return;
     }
 
-    // Determine the line thickness. Auto mode uses half of the resolution.
-    const int thickness = (automap_thick == 6) 
-        ? vid_resolution / 2   // Auto thickness
-        : automap_thick;       // User-defined thickness
+    // Thickness: 6 == auto (depends on resolution)
+    const int thickness = (automap_thick == 6) ? (vid_resolution >> 1) : automap_thick;
 
-    // Precalculate drawing boundaries to reduce per-pixel checks.
-    int minx = x - thickness; if (minx < 0)    minx = 0;
-    int maxx = x + thickness; if (maxx >= f_w) maxx = f_w - 1;
-    int miny = y - thickness; if (miny < 0)    miny = 0;
-    int maxy = y + thickness; if (maxy >= f_h) maxy = f_h - 1;
+    // Clamp bbox once
+    const int fwm1 = f_w - 1, fhm1 = f_h - 1;
+    int minx = x - thickness; if (minx < 0)   minx = 0;
+    int maxx = x + thickness; if (maxx > fwm1) maxx = fwm1;
+    int miny = y - thickness; if (miny < 0)   miny = 0;
+    int maxy = y + thickness; if (maxy > fhm1) maxy = fhm1;
 
-    // Calculate the squared thickness for distance checks.
     const int thick_sq = thickness * thickness;
 
-    // Use a macro to handle smooth or regular drawing.
-    #define PUT_PIXEL(nx, ny, c) do {         \
-        if (smooth) PUTDOT_RAW(nx, ny, c);    \
-        else        PUTDOT(nx, ny, c);        \
-    } while (0)
+    // Cache fb pointer and width
+    pixel_t *restrict fbuf = fb;
+    const int fw = f_w;
 
-    // Iterate over the bounding box and draw pixels within the circle.
-    for (int nx = minx; nx <= maxx; nx++)
+    if (smooth)
     {
-        const int dx = nx - x;
-        for (int ny = miny; ny <= maxy; ny++)
+        // Truecolor/"raw color" path
+        for (int nx = minx; nx <= maxx; ++nx)
         {
-            const int dy = ny - y;
-            const int dist2 = dx * dx + dy * dy;
+            const int dx  = nx - x;
+            const int dx2 = dx * dx;
 
-            // Draw only if the pixel lies within the desired radius.
-            if (dist2 <= thick_sq)
-                PUT_PIXEL(nx, ny, color);
+            const int flipx = flipscreenwidth[nx];
+            pixel_t *pix = fbuf + miny * fw + flipx;
+
+            for (int ny = miny; ny <= maxy; ++ny, pix += fw)
+            {
+                const int dy = ny - y;
+                if (dx2 + dy * dy > thick_sq) continue;
+                *pix = color;
+            }
         }
     }
-    // Clean up the macro definition.
-    #undef PUT_PIXEL
+    else
+    {
+        // Paletted path: map index → pixel once
+        const pixel_t fg = pal_color[(int)color];
+
+        for (int nx = minx; nx <= maxx; ++nx)
+        {
+            const int dx  = nx - x;
+            const int dx2 = dx * dx;
+
+            const int flipx = flipscreenwidth[nx];
+            pixel_t *pix = fbuf + miny * fw + flipx;
+
+            for (int ny = miny; ny <= maxy; ++ny, pix += fw)
+            {
+                const int dy = ny - y;
+                if (dx2 + dy * dy > thick_sq) continue;
+                *pix = fg;
+            }
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------

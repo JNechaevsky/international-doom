@@ -1285,44 +1285,89 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 }
 #undef DOOUTCODE
 
-#define DOT(xx,yy,cc) fb[(yy)*f_w+(flipscreenwidth[xx])]=(pal_color[cc])    //the MACRO!
-
 // -----------------------------------------------------------------------------
 // PUTDOT_THICK
-// [PN] Draws a "thick" pixel by filling an area around the target pixel.
-// Takes the current resolution into account to determine the thickness.
-// Includes boundary checks to prevent out-of-bounds access.
+// [PN] Draws a resolution-aware “thick” pixel (filled disc) at (x, y).
+// - Thickness: user-defined (1x..6x) or auto (scales with resolution).
+// - Edge fade: 0..6 steps based on proximity to screen borders.
+//   In truecolor, applies alpha blending over the background (I_BlendOver with
+//   preselected alpha levels). Integer math only — no floats.
+// - Bounds safety: clamps the drawing bbox to [0..f_w-1] × [0..f_h-1].
+// - Hot-path optimizations: cached frame buffer pointer and line color;
+//   precomputed fw / (f_w-1) / (f_h-1); per-column flip index;
+//   pointer walking per row; dx^2 hoisted out of the inner loop;
+//   small LUT for fade→alpha.
 // [JN] With support for "user-defined" (1x...6x) and "auto" thickness.
 // -----------------------------------------------------------------------------
 
-static inline void PUTDOT_THICK(int x, int y, pixel_t color)
+static inline void PUTDOT_THICK(int x, int y, byte *cc)
 {
-    // Determine the line thickness.
-    const int thickness = automap_thick == 6
-                        ? vid_resolution / 2  // Auto thickness
-                        : automap_thick;      // User-defined thickness
+    // Thickness (auto==6 → depends on resolution)
+    const int thickness = (automap_thick == 6) ? (vid_resolution >> 1) : automap_thick;
 
-    // Precompute valid bounding box to reduce per-pixel checks.
-    int minx = x - thickness; if (minx < 0)    minx = 0;
-    int maxx = x + thickness; if (maxx >= f_w) maxx = f_w - 1;
-    int miny = y - thickness; if (miny < 0)    miny = 0;
-    int maxy = y + thickness; if (maxy >= f_h) maxy = f_h - 1;
+    // Clamp bbox once
+    const int fwm1 = f_w - 1;
+    const int fhm1 = f_h - 1;
 
-    // Precompute squared thickness for distance checks.
+    // Precompute valid bounding box to reduce per-pixel checks
+    int minx = x - thickness; if (minx < 0)   minx = 0;
+    int maxx = x + thickness; if (maxx > fwm1) maxx = fwm1;
+    int miny = y - thickness; if (miny < 0)   miny = 0;
+    int maxy = y + thickness; if (maxy > fhm1) maxy = fhm1;
+
     const int thick_sq = thickness * thickness;
 
-    // Fill pixels within the circle defined by 'thickness'.
-    for (int nx = minx; nx <= maxx; nx++)
-    {
-        const int dx = nx - x;
-        for (int ny = miny; ny <= maxy; ny++)
-        {
-            const int dy = ny - y;
-            const int dist2 = dx * dx + dy * dy;
+    // Cache frequently used
+    uint32_t *restrict fbuf = (uint32_t *)fb;
+    const int fw = f_w;
+    const uint32_t fg = (uint32_t)pal_color[(int)*cc];
 
-            if (dist2 <= thick_sq)
+    // Fade→alpha lookup (0..6)
+    static const unsigned char aLUT[7] = { 255, 220, 180, 160, 120, 80, 40 };
+
+    for (int nx = minx; nx <= maxx; ++nx)
+    {
+        const int dx  = nx - x;
+        const int dx2 = dx * dx;
+
+        // fade_x for this column
+        int fade_x = 0;
+        if (nx < 32) fade_x = (32 - nx) >> 2;
+        else if (nx > fwm1 - 32)
+        {
+            const int d = fwm1 - nx;
+            if (d < 32) fade_x = (32 - d) >> 2;
+        }
+
+        const int flipx = flipscreenwidth[nx];
+        uint32_t *pix = fbuf + miny * fw + flipx;
+
+        for (int ny = miny; ny <= maxy; ++ny, pix += fw)
+        {
+            const int dy  = ny - y;
+            const int d2  = dx2 + dy * dy;
+            if (d2 > thick_sq) continue;
+
+            // fade_y for this row
+            int fade_y = 0;
+            if (ny < 32) fade_y = (32 - ny) >> 2;
+            else if (ny > fhm1 - 32)
             {
-                DOT(nx, ny, color);
+                const int d = fhm1 - ny;
+                if (d < 32) fade_y = (32 - d) >> 2;
+            }
+
+            int fade = fade_x + fade_y;
+            if (fade > 6) fade = 6;
+
+            unsigned char a = aLUT[fade];
+            if (a == 255)
+            {
+                *pix = fg;                       // fast path: no blend
+            }
+            else
+            {
+                *pix = I_BlendOver(*pix, fg, a); // alpha blend with bg
             }
         }
     }
@@ -1394,12 +1439,15 @@ static void AM_drawFline(fline_t * fl, int color)
     int x = fl->a.x;
     int y = fl->a.y;
 
+    // Base for PUTDOT_THICK
+    byte base = (byte)(automap_smooth_hr ? color : actual_color);
+
     if (ax > ay)
     {
         int d = ay - ax / 2;
         while (1)
         {
-            PUTDOT_THICK(x, y, automap_smooth_hr ? color : actual_color);
+            PUTDOT_THICK(x, y, &base);
             if (x == fl->b.x)
                 return;
             if (d >= 0)
@@ -1416,7 +1464,7 @@ static void AM_drawFline(fline_t * fl, int color)
         int d = ax - ay / 2;
         while (1)
         {
-            PUTDOT_THICK(x, y, automap_smooth_hr ? color : actual_color);
+            PUTDOT_THICK(x, y, &base);
             if (y == fl->b.y)
                 return;
             if (d >= 0)
@@ -1454,7 +1502,7 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
 
     /* Draw the initial pixel, which is always exactly intersected by
        the line and so needs no weighting */
-    PUTDOT_THICK(X0, Y0, BaseColor[0]);
+    PUTDOT_THICK(X0, Y0, &BaseColor[0]);
 
     DeltaX = X1 - X0;
     DeltaY = Y1 - Y0;
@@ -1470,7 +1518,7 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
         while (DeltaX--)
         {
             X0 += XDir;
-            PUTDOT_THICK(X0, Y0, BaseColor[0]);
+            PUTDOT_THICK(X0, Y0, &BaseColor[0]);
         }
         return;
     }
@@ -1480,7 +1528,7 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
         while (DeltaY--)
         {
             Y0++;
-            PUTDOT_THICK(X0, Y0, BaseColor[0]);
+            PUTDOT_THICK(X0, Y0, &BaseColor[0]);
         }
         return;
     }
@@ -1491,7 +1539,7 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
         {
             X0 += XDir;
             Y0++;
-            PUTDOT_THICK(X0, Y0, BaseColor[0]);
+            PUTDOT_THICK(X0, Y0, &BaseColor[0]);
         }
         return;
     }
@@ -1515,8 +1563,8 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
             }
             Y0++;
             Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT_THICK(X0, Y0, BaseColor[Weighting]);
-            PUTDOT_THICK(X0 + XDir, Y0, BaseColor[Weighting ^ WeightingComplementMask]);
+            PUTDOT_THICK(X0, Y0, &BaseColor[Weighting]);
+            PUTDOT_THICK(X0 + XDir, Y0, &BaseColor[Weighting ^ WeightingComplementMask]);
         }
     }
     else
@@ -1533,13 +1581,13 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
             }
             X0 += XDir;
             Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT_THICK(X0, Y0, BaseColor[Weighting]);
-            PUTDOT_THICK(X0, Y0 + 1, BaseColor[Weighting ^ WeightingComplementMask]);
+            PUTDOT_THICK(X0, Y0, &BaseColor[Weighting]);
+            PUTDOT_THICK(X0, Y0 + 1, &BaseColor[Weighting ^ WeightingComplementMask]);
         }
     }
 
     /* Draw the final pixel */
-    PUTDOT_THICK(X1, Y1, BaseColor[0]);
+    PUTDOT_THICK(X1, Y1, &BaseColor[0]);
 }
 
 // -----------------------------------------------------------------------------
