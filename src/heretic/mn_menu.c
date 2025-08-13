@@ -132,7 +132,7 @@ typedef struct
     int x;
     int y;
     void (*drawFunc) (void);
-    int itemCount;
+    int itemCount;      // [PN] Automatic count via ITEMCOUNT() macro below
     MenuItem_t *items;
     int oldItPos;
     int FontType;       // [JN] 0 = no font, 1 = small font, 2 = big font
@@ -140,6 +140,8 @@ typedef struct
     boolean ScrollPG;   // [JN] Menu can be scrolled by PGUP/PGDN keys
     MenuType_t prevMenu;
 } Menu_t;
+
+#define ITEMCOUNT(items) (sizeof(items) / sizeof((items)[0]))
 
 // Private Functions
 
@@ -266,7 +268,7 @@ static MenuItem_t MainItems[] = {
 static Menu_t MainMenu = {
     110, 56,
     DrawMainMenu,
-    5, MainItems,
+    ITEMCOUNT(MainItems), MainItems,
     0,
     BigFont, false, false,
     MENU_NONE
@@ -297,7 +299,7 @@ static MenuItem_t FilesItems[] = {
 static Menu_t FilesMenu = {
     110, 60,
     DrawFilesMenu,
-    2, FilesItems,
+    ITEMCOUNT(FilesItems), FilesItems,
     0,
     BigFont, false, false,
     MENU_MAIN
@@ -355,7 +357,7 @@ static MenuItem_t SkillItems[] = {
 static Menu_t SkillMenu = {
     38, 30,
     DrawSkillMenu,
-    5, SkillItems,
+    ITEMCOUNT(SkillItems), SkillItems,
     2,
     BigFont, false, false,
     MENU_EPISODE
@@ -371,7 +373,7 @@ static MenuItem_t OptionsItems[] = {
 static Menu_t OptionsMenu = {
     88, 30,
     DrawOptionsMenu,
-    4, OptionsItems,
+    ITEMCOUNT(OptionsItems), OptionsItems,
     0,
     BigFont, false, false,
     MENU_ID_MAIN
@@ -389,7 +391,7 @@ static MenuItem_t Options2Items[] = {
 static Menu_t Options2Menu = {
     72, 20,
     DrawOptions2Menu,
-    6, Options2Items,
+    ITEMCOUNT(Options2Items), Options2Items,
     0,
     BigFont, false, false,
     MENU_ID_MAIN
@@ -961,7 +963,7 @@ static MenuItem_t ID_Menu_Main[] = {
 static Menu_t ID_Def_Main = {
     ID_MENU_LEFTOFFSET_SML, ID_MENU_TOPOFFSET,
     M_Draw_ID_Main,
-    11, ID_Menu_Main,
+    ITEMCOUNT(ID_Menu_Main), ID_Menu_Main,
     0,
     SmallFont, false, false,
     MENU_MAIN
@@ -996,7 +998,7 @@ static MenuItem_t ID_Menu_Video_1[] = {
 static Menu_t ID_Def_Video_1 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Video_1,
-    14, ID_Menu_Video_1,
+    ITEMCOUNT(ID_Menu_Video_1), ID_Menu_Video_1,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -1289,7 +1291,7 @@ static MenuItem_t ID_Menu_Video_2[] = {
 static Menu_t ID_Def_Video_2 = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Video_2,
-    14, ID_Menu_Video_2,
+    ITEMCOUNT(ID_Menu_Video_2), ID_Menu_Video_2,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -1485,7 +1487,7 @@ static MenuItem_t ID_Menu_Display[] = {
 static Menu_t ID_Def_Display = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Display,
-    14, ID_Menu_Display,
+    ITEMCOUNT(ID_Menu_Display), ID_Menu_Display,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -1747,7 +1749,7 @@ static MenuItem_t ID_Menu_Sound[] = {
 static Menu_t ID_Def_Sound = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Sound,
-    14, ID_Menu_Sound,
+    ITEMCOUNT(ID_Menu_Sound), ID_Menu_Sound,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -2013,7 +2015,7 @@ static MenuItem_t ID_Menu_Controls[] = {
 static Menu_t ID_Def_Controls = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Controls,
-    16, ID_Menu_Controls,
+    ITEMCOUNT(ID_Menu_Controls), ID_Menu_Controls,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -2158,7 +2160,7 @@ static MenuItem_t ID_Menu_Keybinds_1[] = {
 static Menu_t ID_Def_Keybinds_1 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_1,
-    12, ID_Menu_Keybinds_1,
+    ITEMCOUNT(ID_Menu_Keybinds_1), ID_Menu_Keybinds_1,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -2266,7 +2268,7 @@ static MenuItem_t ID_Menu_Keybinds_2[] = {
 static Menu_t ID_Def_Keybinds_2 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_2,
-    11, ID_Menu_Keybinds_2,
+    ITEMCOUNT(ID_Menu_Keybinds_2), ID_Menu_Keybinds_2,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -2368,7 +2370,7 @@ static MenuItem_t ID_Menu_Keybinds_3[] = {
 static Menu_t ID_Def_Keybinds_3 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_3,
-    14, ID_Menu_Keybinds_3,
+    ITEMCOUNT(ID_Menu_Keybinds_3), ID_Menu_Keybinds_3,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -2484,7 +2486,7 @@ static MenuItem_t ID_Menu_Keybinds_4[] = {
 static Menu_t ID_Def_Keybinds_4 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_4,
-    10, ID_Menu_Keybinds_4,
+    ITEMCOUNT(ID_Menu_Keybinds_4), ID_Menu_Keybinds_4,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -2582,7 +2584,7 @@ static MenuItem_t ID_Menu_Keybinds_5[] = {
 static Menu_t ID_Def_Keybinds_5 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_5,
-    10, ID_Menu_Keybinds_5,
+    ITEMCOUNT(ID_Menu_Keybinds_5), ID_Menu_Keybinds_5,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -2681,7 +2683,7 @@ static MenuItem_t ID_Menu_Keybinds_6[] = {
 static Menu_t ID_Def_Keybinds_6 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_6,
-    11, ID_Menu_Keybinds_6,
+    ITEMCOUNT(ID_Menu_Keybinds_6), ID_Menu_Keybinds_6,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -2787,7 +2789,7 @@ static MenuItem_t ID_Menu_Keybinds_7[] = {
 static Menu_t ID_Def_Keybinds_7 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_7,
-    12, ID_Menu_Keybinds_7,
+    ITEMCOUNT(ID_Menu_Keybinds_7), ID_Menu_Keybinds_7,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -2899,7 +2901,7 @@ static MenuItem_t ID_Menu_Keybinds_8[] = {
 static Menu_t ID_Def_Keybinds_8 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Keybinds_8,
-    12, ID_Menu_Keybinds_8,
+    ITEMCOUNT(ID_Menu_Keybinds_8), ID_Menu_Keybinds_8,
     0,
     SmallFont, true, true,
     MENU_ID_CONTROLS
@@ -3008,7 +3010,7 @@ static MenuItem_t ID_Menu_MouseBinds[] = {
 static Menu_t ID_Def_MouseBinds = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_MouseBinds,
-    15, ID_Menu_MouseBinds,
+    ITEMCOUNT(ID_Menu_MouseBinds), ID_Menu_MouseBinds,
     0,
     SmallFont, false, false,
     MENU_ID_CONTROLS
@@ -3134,7 +3136,7 @@ static MenuItem_t ID_Menu_Widgets[] = {
 static Menu_t ID_Def_Widgets = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Widgets,
-    13, ID_Menu_Widgets,
+    ITEMCOUNT(ID_Menu_Widgets), ID_Menu_Widgets,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -3335,7 +3337,7 @@ static MenuItem_t ID_Menu_Automap[] = {
 static Menu_t ID_Def_Automap = {
     ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Automap,
-    10, ID_Menu_Automap,
+    ITEMCOUNT(ID_Menu_Automap), ID_Menu_Automap,
     0,
     SmallFont, false, false,
     MENU_ID_MAIN
@@ -3503,7 +3505,7 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
 static Menu_t ID_Def_Gameplay_1 = {
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_1,
-    13, ID_Menu_Gameplay_1,
+    ITEMCOUNT(ID_Menu_Gameplay_1), ID_Menu_Gameplay_1,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -3705,7 +3707,7 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
 static Menu_t ID_Def_Gameplay_2 = {
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_2,
-    13, ID_Menu_Gameplay_2,
+    ITEMCOUNT(ID_Menu_Gameplay_2), ID_Menu_Gameplay_2,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -3853,7 +3855,7 @@ static MenuItem_t ID_Menu_Gameplay_3[] = {
 static Menu_t ID_Def_Gameplay_3 = {
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_3,
-    13, ID_Menu_Gameplay_3,
+    ITEMCOUNT(ID_Menu_Gameplay_3), ID_Menu_Gameplay_3,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -4009,7 +4011,7 @@ static MenuItem_t ID_Menu_Gameplay_4[] = {
 static Menu_t ID_Def_Gameplay_4 = {
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Gameplay_4,
-    13, ID_Menu_Gameplay_4,
+    ITEMCOUNT(ID_Menu_Gameplay_4), ID_Menu_Gameplay_4,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -4117,7 +4119,7 @@ static MenuItem_t ID_Menu_Misc[] = {
 static Menu_t ID_Def_Misc = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
     M_Draw_ID_Misc,
-    11, ID_Menu_Misc,
+    ITEMCOUNT(ID_Menu_Misc), ID_Menu_Misc,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -4347,7 +4349,7 @@ static MenuItem_t ID_Menu_Level_1[] = {
 static Menu_t ID_Def_Level_1 = {
     ID_MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_1,
-    17, ID_Menu_Level_1,
+    ITEMCOUNT(ID_Menu_Level_1), ID_Menu_Level_1,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -4594,7 +4596,7 @@ static MenuItem_t ID_Menu_Level_2[] = {
 static Menu_t ID_Def_Level_2 = {
     ID_MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_2,
-    17, ID_Menu_Level_2,
+    ITEMCOUNT(ID_Menu_Level_2), ID_Menu_Level_2,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
@@ -4819,7 +4821,7 @@ static MenuItem_t ID_Menu_Level_3[] = {
 static Menu_t ID_Def_Level_3 = {
     ID_MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_3,
-    17, ID_Menu_Level_3,
+    ITEMCOUNT(ID_Menu_Level_3), ID_Menu_Level_3,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN

@@ -169,7 +169,7 @@ typedef struct
 
 typedef struct menu_s
 {
-    short		numitems;	// # of menu items
+    short		numitems;	// # of menu items ([PN] Automatic count via ITEMCOUNT() macro below)
     struct menu_s*	prevMenu;	// previous menu
     menuitem_t*		menuitems;	// menu items
     void		(*routine)(void);	// draw routine
@@ -180,6 +180,8 @@ typedef struct menu_s
     boolean		ScrollAR;	// [JN] Menu can be scrolled by arrow keys
     boolean		ScrollPG;	// [JN] Menu can be scrolled by PGUP/PGDN keys
 } menu_t;
+
+#define ITEMCOUNT(items) (sizeof(items) / sizeof((items)[0]))
 
 // [JN] For currentMenu->menuitems[itemOn].statuses:
 #define STS_SKIP -1
@@ -289,7 +291,7 @@ static menuitem_t MainMenu[]=
 
 static menu_t MainDef =
 {
-    main_end,
+    ITEMCOUNT(MainMenu),
     NULL,
     MainMenu,
     M_DrawMainMenu,
@@ -369,7 +371,7 @@ static menuitem_t NewGameMenu[]=
 
 static menu_t NewDef =
 {
-    newg_end,       // # of menu items
+    ITEMCOUNT(NewGameMenu),       // # of menu items
     &EpiDef,        // previous menu
     NewGameMenu,    // menuitem_t ->
     M_DrawNewGame,  // drawing routine ->
@@ -395,7 +397,7 @@ static menuitem_t ReadMenu1[] =
 
 static menu_t ReadDef1 =
 {
-    read1_end,
+    ITEMCOUNT(ReadMenu1),
     &MainDef,
     ReadMenu1,
     M_DrawReadThis1,
@@ -404,12 +406,6 @@ static menu_t ReadDef1 =
     false, false, false,
 };
 
-enum
-{
-    rdthsempty2,
-    read2_end
-} read_e2;
-
 static menuitem_t ReadMenu2[]=
 {
     { M_SWTC, "",  M_FinishReadThis,  0 }
@@ -417,7 +413,7 @@ static menuitem_t ReadMenu2[]=
 
 static menu_t ReadDef2 =
 {
-    read2_end,
+    ITEMCOUNT(ReadMenu2),
     &ReadDef1,
     ReadMenu2,
     M_DrawReadThis2,
@@ -449,7 +445,7 @@ static menuitem_t SoundMenu[]=
 
 static menu_t SoundDef =
 {
-    sound_end,
+    ITEMCOUNT(SoundMenu),
     &ID_Def_Main,
     SoundMenu,
     M_DrawSound,
@@ -489,7 +485,7 @@ static menuitem_t LoadMenu[]=
 
 static menu_t LoadDef =
 {
-    load_end,
+    ITEMCOUNT(LoadMenu),
     &MainDef,
     LoadMenu,
     M_DrawLoad,
@@ -516,7 +512,7 @@ static menuitem_t SaveMenu[]=
 
 static menu_t SaveDef =
 {
-    load_end,
+    ITEMCOUNT(SaveMenu),
     &MainDef,
     SaveMenu,
     M_DrawSave,
@@ -1089,7 +1085,7 @@ static menuitem_t ID_Menu_Main[]=
 
 static menu_t ID_Def_Main =
 {
-    11,
+    ITEMCOUNT(ID_Menu_Main),
     &MainDef,
     ID_Menu_Main,
     M_Draw_ID_Main,
@@ -1134,7 +1130,7 @@ static menuitem_t ID_Menu_Video_1[]=
 
 static menu_t ID_Def_Video_1 =
 {
-    16,
+    ITEMCOUNT(ID_Menu_Video_1),
     &ID_Def_Main,
     ID_Menu_Video_1,
     M_Draw_ID_Video_1,
@@ -1476,7 +1472,7 @@ static menuitem_t ID_Menu_Video_2[]=
 
 static menu_t ID_Def_Video_2 =
 {
-    16,
+    ITEMCOUNT(ID_Menu_Video_2),
     &ID_Def_Main,
     ID_Menu_Video_2,
     M_Draw_ID_Video_2,
@@ -1648,7 +1644,7 @@ static menuitem_t ID_Menu_Display[]=
 
 static menu_t ID_Def_Display =
 {
-    15,
+    ITEMCOUNT(ID_Menu_Display),
     &ID_Def_Main,
     ID_Menu_Display,
     M_Draw_ID_Display,
@@ -1929,7 +1925,7 @@ static menuitem_t ID_Menu_Sound[]=
 
 static menu_t ID_Def_Sound =
 {
-    15,
+    ITEMCOUNT(ID_Menu_Sound),
     &ID_Def_Main,
     ID_Menu_Sound,
     M_Draw_ID_Sound,
@@ -2241,7 +2237,7 @@ static menuitem_t ID_Menu_Controls[]=
 
 static menu_t ID_Def_Controls =
 {
-    15,
+    ITEMCOUNT(ID_Menu_Controls),
     &ID_Def_Main,
     ID_Menu_Controls,
     M_Draw_ID_Controls,
@@ -2403,7 +2399,7 @@ static menuitem_t ID_Menu_Keybinds_1[]=
 
 static menu_t ID_Def_Keybinds_1 =
 {
-    12,
+    ITEMCOUNT(ID_Menu_Keybinds_1),
     &ID_Def_Controls,
     ID_Menu_Keybinds_1,
     M_Draw_ID_Keybinds_1,
@@ -2518,7 +2514,7 @@ static menuitem_t ID_Menu_Keybinds_2[]=
 
 static menu_t ID_Def_Keybinds_2 =
 {
-    14,
+    ITEMCOUNT(ID_Menu_Keybinds_2),
     &ID_Def_Controls,
     ID_Menu_Keybinds_2,
     M_Draw_ID_Keybinds_2,
@@ -2638,7 +2634,7 @@ static menuitem_t ID_Menu_Keybinds_3[]=
 
 static menu_t ID_Def_Keybinds_3 =
 {
-    10,
+    ITEMCOUNT(ID_Menu_Keybinds_3),
     &ID_Def_Controls,
     ID_Menu_Keybinds_3,
     M_Draw_ID_Keybinds_3,
@@ -2741,7 +2737,7 @@ static menuitem_t ID_Menu_Keybinds_4[]=
 
 static menu_t ID_Def_Keybinds_4 =
 {
-    11,
+    ITEMCOUNT(ID_Menu_Keybinds_4),
     &ID_Def_Controls,
     ID_Menu_Keybinds_4,
     M_Draw_ID_Keybinds_4,
@@ -2851,7 +2847,7 @@ static menuitem_t ID_Menu_Keybinds_5[]=
 
 static menu_t ID_Def_Keybinds_5 =
 {
-    12,
+    ITEMCOUNT(ID_Menu_Keybinds_5),
     &ID_Def_Controls,
     ID_Menu_Keybinds_5,
     M_Draw_ID_Keybinds_5,
@@ -2966,7 +2962,7 @@ static menuitem_t ID_Menu_Keybinds_6[]=
 
 static menu_t ID_Def_Keybinds_6 =
 {
-    12,
+    ITEMCOUNT(ID_Menu_Keybinds_6),
     &ID_Def_Controls,
     ID_Menu_Keybinds_6,
     M_Draw_ID_Keybinds_6,
@@ -3089,7 +3085,7 @@ static menuitem_t ID_Menu_MouseBinds[]=
 
 static menu_t ID_Def_MouseBinds =
 {
-    12,
+    ITEMCOUNT(ID_Menu_MouseBinds),
     &ID_Def_Controls,
     ID_Menu_MouseBinds,
     M_Draw_ID_MouseBinds,
@@ -3220,7 +3216,7 @@ static menuitem_t ID_Menu_Widgets[]=
 
 static menu_t ID_Def_Widgets =
 {
-    13,
+    ITEMCOUNT(ID_Menu_Widgets),
     &ID_Def_Main,
     ID_Menu_Widgets,
     M_Draw_ID_Widgets,
@@ -3431,7 +3427,7 @@ static menuitem_t ID_Menu_Automap[]=
 
 static menu_t ID_Def_Automap =
 {
-    9,
+    ITEMCOUNT(ID_Menu_Automap),
     &ID_Def_Main,
     ID_Menu_Automap,
     M_Draw_ID_Automap,
@@ -3593,7 +3589,7 @@ static menuitem_t ID_Menu_Gameplay_1[]=
 
 static menu_t ID_Def_Gameplay_1 =
 {
-    16,
+    ITEMCOUNT(ID_Menu_Gameplay_1),
     &ID_Def_Main,
     ID_Menu_Gameplay_1,
     M_Draw_ID_Gameplay_1,
@@ -3826,7 +3822,7 @@ static menuitem_t ID_Menu_Gameplay_2[]=
 
 static menu_t ID_Def_Gameplay_2 =
 {
-    16,
+    ITEMCOUNT(ID_Menu_Gameplay_2),
     &ID_Def_Main,
     ID_Menu_Gameplay_2,
     M_Draw_ID_Gameplay_2,
@@ -4045,7 +4041,7 @@ static menuitem_t ID_Menu_Gameplay_3[]=
 
 static menu_t ID_Def_Gameplay_3 =
 {
-    16,
+    ITEMCOUNT(ID_Menu_Gameplay_3),
     &ID_Def_Main,
     ID_Menu_Gameplay_3,
     M_Draw_ID_Gameplay_3,
@@ -4291,7 +4287,7 @@ static menuitem_t ID_Menu_Misc[]=
 
 static menu_t ID_Def_Misc =
 {
-    11,
+    ITEMCOUNT(ID_Menu_Misc),
     &ID_Def_Main,
     ID_Menu_Misc,
     M_Draw_ID_Misc,
@@ -4531,7 +4527,7 @@ static menuitem_t ID_Menu_Level_1[]=
 
 static menu_t ID_Def_Level_1 =
 {
-    18,
+    ITEMCOUNT(ID_Menu_Level_1),
     &ID_Def_Main,
     ID_Menu_Level_1,
     M_Draw_ID_Level_1,
@@ -4792,7 +4788,7 @@ static menuitem_t ID_Menu_Level_2[]=
 
 static menu_t ID_Def_Level_2 =
 {
-    18,
+    ITEMCOUNT(ID_Menu_Level_2),
     &ID_Def_Main,
     ID_Menu_Level_2,
     M_Draw_ID_Level_2,
