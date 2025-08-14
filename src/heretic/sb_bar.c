@@ -988,8 +988,11 @@ void SB_Drawer(void)
                        (widget_alignment ==  1) ? 0 :                   // status bar
                        (dp_screen_size   >= 12) ? WIDESCREENDELTA : 0;  // auto
         // [JN] Move widgets slightly down when using a fullscreen status bar.
-        const int yy = dp_screen_size > 10
-                        && (!automapactive || automap_overlay) ? 13 : 0;
+        int yy = dp_screen_size > 10
+                  && (!automapactive || automap_overlay) ? 13 : 0;
+        // [JN] Even slightly higher, if the H+H status bar is used.
+        if (st_fullscreen_layout == 1 && dp_screen_size > 10)
+            yy -= 14;
 
         // Brief
         if (st_ammo_widget == 1)
