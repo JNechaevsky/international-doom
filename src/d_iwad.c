@@ -260,6 +260,14 @@ static registry_value_t root_path_keys[] =
         SOFTWARE_KEY "\\GOG.com\\Games\\1983497091",
         "PATH",
     },
+
+    // [crispy] Heretic + Hexen (not Chocolate Doom compatible)
+
+    {
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\1776058590",
+        "PATH"
+    },
 };
 
 // Subdirectories of the above install path, where IWADs are installed.
@@ -273,6 +281,8 @@ static char *root_path_subdirs[] =
     "Plutonia",
     "TNT",
     "base\\wads",
+    "dos\\base\\heretic",
+    "dos\\base\\hexen",
 };
 
 // Location where Steam is installed
@@ -305,6 +315,14 @@ static char *steam_install_subdirs[] =
     "steamapps\\common\\Doom 2\\rerelease\\DOOM II_Data\\StreamingAssets",
     "steamapps\\common\\Ultimate Doom\\rerelease",
     "steamapps\\common\\Ultimate Doom\\rerelease\\DOOM_Data\\StreamingAssets",
+
+    // [crispy] Heretic + Hexen (not Chocolate Doom compatible):
+
+    "steamapps\\common\\Heretic + Hexen",
+    "steamapps\\common\\Heretic + Hexen\\base\\heretic",
+    "steamapps\\common\\Heretic + Hexen\\base\\hexen",
+    "steamapps\\common\\Heretic + Hexen\\dos\\base\\heretic",
+    "steamapps\\common\\Heretic + Hexen\\dos\\base\\hexen",
 
     // From Strife: Veteran Edition:
 
@@ -752,6 +770,11 @@ static void AddSteamDirs(void)
     AddIWADPath(steampath, "/Heretic Shadow of the Serpent Riders/base");
     AddIWADPath(steampath, "/Hexen/base");
     AddIWADPath(steampath, "/Hexen Deathkings of the Dark Citadel/base");
+    AddIWADPath(steampath, "/Heretic + Hexen");
+    AddIWADPath(steampath, "/Heretic + Hexen/base/heretic");
+    AddIWADPath(steampath, "/Heretic + Hexen/base/hexen");
+    AddIWADPath(steampath, "/Heretic + Hexen/dos/base/heretic");
+    AddIWADPath(steampath, "/Heretic + Hexen/dos/base/hexen");
     AddIWADPath(steampath, "/Strife");
     free(steampath);
 }
