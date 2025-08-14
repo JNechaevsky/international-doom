@@ -58,6 +58,7 @@ static void DrawCommonBar(void);
 static void DrawMainBar(void);
 static void DrawInventoryBar(void);
 static void DrawFullScreenStuff(void);
+static void DrawFullScreenStuffRemaster(void);
 static boolean HandleCheats(byte key);
 
 // Public Data
@@ -827,7 +828,10 @@ void SB_Drawer(void)
     CPlayer = &players[displayplayer];
     if (viewheight == SCREENHEIGHT && (!automapactive || automap_overlay))
     {
-        DrawFullScreenStuff();
+        if (st_fullscreen_layout == 1)
+            DrawFullScreenStuffRemaster();
+        else
+            DrawFullScreenStuff();
         SB_state = -1;
     }
     else
@@ -1611,6 +1615,168 @@ static void DrawFullScreenStuff (void)
 
         // Draw appropriate ammo picture.
         V_DrawShadowedPatch(297 + wide_x, 177, W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]), PU_CACHE));
+    }
+}
+
+// -----------------------------------------------------------------------------
+// DrawFullScreenStuff
+// [JN] KEX engine inspired elements layout.
+// -----------------------------------------------------------------------------
+
+static void DrawFullScreenStuffRemaster (void)
+{
+    const char *patch;
+    const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
+
+    // Health.
+    dp_translation = SB_NumberColor(hudcolor_health);
+    DrBNumber(CPlayer->health, 2 - wide_x, 172);
+    dp_translation = NULL;
+    // Draw health vial.
+    V_DrawShadowedPatchNoOffsets(43 - wide_x, 173, W_CacheLumpName(DEH_String("PTN1A0"), PU_CACHE));
+
+    // Armor.
+    if (CPlayer->armorpoints > 0)
+    {
+        dp_translation = SB_NumberColor(hudcolor_armor);
+        DrBNumber(CPlayer->armorpoints, 55 - wide_x, 172);
+        dp_translation = NULL;
+
+        // [JN] Draw an appropriate picture of a shield.
+        // Slightly different placements needed for better placement.
+        if (CPlayer->armortype == 1)
+        {
+            V_DrawShadowedPatchNoOffsets(93 - wide_x, 171, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
+        }
+        else
+        {
+            V_DrawShadowedPatchNoOffsets(93 - wide_x, 169, W_CacheLumpName(DEH_String("SHD2A0"), PU_CACHE));
+        }
+    }
+
+    // Frags.
+    if (deathmatch)
+    {
+        int temp = 0;
+
+        for (int i = 0 ; i < MAXPLAYERS ; i++)
+        {
+            if (playeringame[i])
+            {
+                temp += CPlayer->frags[i];
+            }
+        }
+
+        dp_translation = SB_NumberColor(hudcolor_frags);
+        DrINumber(temp, 180 + wide_x, 176);
+        dp_translation = NULL;
+    }
+
+    // Draw amount of current weapon ammo. Don't draw for staff and gauntlets.
+    if (CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
+    {
+        dp_translation = SB_NumberColor(hudcolor_ammo);
+        DrBNumber(CPlayer->ammo[wpnlev1info[CPlayer->readyweapon].ammo], 224 + wide_x, 172);
+        dp_translation = NULL;
+
+        // Draw appropriate ammo picture.
+        V_DrawShadowedPatch(261 + wide_x, 173, W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]), PU_CACHE));
+    }
+
+    // Keys. The H+H re-release includes new, smaller key icons that
+    // were not present in the original IWAD. We’ll add a check for
+    // the required lumps to determine which patches to use.
+    {
+        static int lump_yellow = -1, lump_green = -1, lump_blue = -1;
+        static int y_x = -1, g_x = -1, b_x = -1, y_y = -1;
+        patch_t *patch_yellow, *patch_green, *patch_blue;
+
+        if (lump_yellow == -1 && lump_green == -1 && lump_blue == -1)
+        {
+            lump_yellow = W_CheckNumForName(DEH_String("YKEYICO2"));
+            lump_green  = W_CheckNumForName(DEH_String("GKEYICO2"));
+            lump_blue   = W_CheckNumForName(DEH_String("BKEYICO2"));
+            y_x = 287;
+            g_x = 297;
+            b_x = 307;
+            y_y = 159;
+
+            if (lump_yellow == -1 && lump_green == -1 && lump_blue == -1)
+            {
+                lump_yellow = W_CheckNumForName(DEH_String("YKEYICON"));
+                lump_green  = W_CheckNumForName(DEH_String("GKEYICON"));
+                lump_blue   = W_CheckNumForName(DEH_String("BKEYICON"));
+                y_x = 286;
+                g_x = 296;
+                b_x = 306;
+                y_y = 158;
+            }
+        }
+
+        patch_yellow = W_CacheLumpNum(lump_yellow, PU_CACHE);
+        patch_green  = W_CacheLumpNum(lump_green, PU_CACHE);
+        patch_blue   = W_CacheLumpNum(lump_blue, PU_CACHE);
+
+        if (CPlayer->keys[key_yellow])
+        {
+            V_DrawPatch(y_x + wide_x, y_y, patch_yellow);
+        }
+        if (CPlayer->keys[key_green])
+        {
+            V_DrawPatch(g_x + wide_x, y_y, patch_green);
+        }
+        if (CPlayer->keys[key_blue])
+        {
+            V_DrawPatch(b_x + wide_x, y_y, patch_blue);
+        }
+    }
+
+    // Ready artifact.
+    V_DrawAltTLPatch(286 + wide_x, 166, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+    patch = DEH_String(patcharti[CPlayer->readyArtifact]);
+    if (CPlayer->readyArtifact > 0)
+    {
+        V_DrawShadowedPatch(286 + wide_x, 166, W_CacheLumpName(patch, PU_CACHE));
+        
+        // [PN] Find the slot of the currently readied artifact
+        int ready_count = 0;
+        for (int i = 0; i < CPlayer->inventorySlotNum; i++)
+        {
+            if (CPlayer->inventory[i].type == CPlayer->readyArtifact)
+            {
+                ready_count = CPlayer->inventory[i].count;
+                break;
+            }
+        }
+        DrSmallNumber(ready_count, 305 + wide_x, 188);
+    }
+
+    if (inventory)
+    {
+        int x = inv_ptr - curpos;
+
+        for (int i = 0 ; i < 7 ; i++)
+        {
+            V_DrawAltTLPatch(47 + i * 31, 165, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+
+            if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
+            {
+                patch = DEH_String(patcharti[CPlayer->inventory[x + i].type]);
+                V_DrawPatch(47 + i * 31, 165, W_CacheLumpName(patch, PU_CACHE));
+                DrSmallNumber(CPlayer->inventory[x + i].count, 66 + i * 31, 187);
+            }
+        }
+
+        V_DrawPatch(47 + curpos * 31, 194, PatchSELECTBOX);
+
+        if (x != 0)
+        {
+            V_DrawPatch(35, 164, !(leveltime & 4) ? PatchINVLFGEM1 : PatchINVLFGEM2);
+        }
+        if (CPlayer->inventorySlotNum - x > 7)
+        {
+            V_DrawPatch(266, 164, !(leveltime & 4) ? PatchINVRTGEM1 : PatchINVRTGEM2);
+        }
     }
 }
 

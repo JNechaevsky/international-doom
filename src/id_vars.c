@@ -391,7 +391,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("xhair_color",                    &xhair_color);
     
     // Status bar
-    if (mission == doom)
+    if (mission == doom || mission == heretic)
     {
         M_BindIntVariable("st_fullscreen_layout",       &st_fullscreen_layout);
     }
