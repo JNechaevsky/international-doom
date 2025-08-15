@@ -1521,7 +1521,9 @@ static void DrawFullScreenStuff (void)
 
             // [JN] Draw an appropriate picture of a shield.
             // Slightly different placements needed for better placement.
-            if (CPlayer->armortype == 1)
+            // The Heretic shareware version lacks the SHD2A0 lump,
+            // so fall back to SHLDA0 if SHD2A0 is unavailable.
+            if (CPlayer->armortype == 1 || gamemode == shareware)
             {
                 V_DrawShadowedPatchNoOffsets(91 - wide_x, 174, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
             }
@@ -1647,7 +1649,9 @@ static void DrawFullScreenStuffRemaster (void)
 
         // [JN] Draw an appropriate picture of a shield.
         // Slightly different placements needed for better placement.
-        if (CPlayer->armortype == 1)
+        // The Heretic shareware version lacks the SHD2A0 lump,
+        // so fall back to SHLDA0 if SHD2A0 is unavailable.
+        if (CPlayer->armortype == 1 || gamemode == shareware)
         {
             V_DrawShadowedPatchNoOffsets(93 - wide_x, 171, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
         }
