@@ -97,9 +97,12 @@ void D_CheckNetGame(void);
 static void D_PageDrawer(void);
 void D_AdvanceDemo(void);
 
+// [JN] Enhanced maps (heretic_ex.wad):
+boolean heretic_ex = false;
+
 // [JN] Remastered soundtracks:
 boolean remaster_ost_h = false; // Remix (heretic_mus_remix.wad)
-boolean remaster_ost_o = false; // Original
+boolean remaster_ost_o = false; // Original (heretic_mus_orig.wad)
 
 //---------------------------------------------------------------------------
 //
@@ -1273,6 +1276,20 @@ void D_DoomMain(void)
         }
 
         printf("Playing demo %s.\n", file);
+    }
+
+    // [JN] Check for enhanced maps (heretic_ex.wad)
+    {
+        const lumpindex_t wadinfo_lump = W_GetNumForName(DEH_String("WADINFO"));
+
+        heretic_ex = ((W_CheckNumForName("WADINFO") != -1) &&
+                      (W_LumpLength(wadinfo_lump) == 67) && // size is 67 bytes
+                      (W_CheckNumForName("E1M1") != -1) &&
+                      (W_CheckNumForName("E2M1") != -1) &&
+                      (W_CheckNumForName("E3M1") != -1) &&
+                      (W_CheckNumForName("E4M1") != -1) &&
+                      (W_CheckNumForName("E5M1") != -1) &&
+                      (W_CheckNumForName("E6M1") != -1));
     }
 
     // [JN] Check for remastered soundtracks (heretic_mus_orig.wad and

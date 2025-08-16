@@ -654,6 +654,7 @@ extern int testcontrols_mousespeed;
 extern int graphical_startup;
 extern int show_endoom;
 
+extern boolean heretic_ex;
 extern boolean remaster_ost_h;
 extern boolean remaster_ost_o;
 

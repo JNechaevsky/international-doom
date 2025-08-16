@@ -2408,6 +2408,13 @@ void A_BossDeath(const mobj_t *actor, player_t *player, pspdef_t *psp)
         -1
     };
 
+    // [JN] Handle special case for Enhanced maps UMAPINFO.
+    // E2M4: The Ice Grotto (bossaction = Ironlich, 102, 666)
+    if (heretic_ex && gameepisode == 2 && gamemap == 4)
+    {
+        goto bossaction;
+    }
+
     if (gamemap != 8)
     {                           // Not a boss level
         return;
@@ -2433,6 +2440,7 @@ void A_BossDeath(const mobj_t *actor, player_t *player, pspdef_t *psp)
     {                           // Kill any remaining monsters
         P_Massacre();
     }
+    bossaction:
     dummyLine.tag = 666;
     EV_DoFloor(&dummyLine, lowerFloor);
 }
