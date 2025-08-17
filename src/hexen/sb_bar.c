@@ -498,6 +498,12 @@ void SB_Ticker(void)
         HealthMarker += delta;
     }
 
+    // [JN] Play artifact flash animation independently of framerate.
+    if (ArtifactFlash)
+    {
+        ArtifactFlash--;
+    }
+
     // [JN] Update key and armor icons while active automap.
     if (automapactive)
     {
@@ -1485,7 +1491,7 @@ void DrawMainBar(void)
         V_DrawPatch(144, 160, PatchARTICLEAR);
         V_DrawPatch(148, 164, W_CacheLumpNum(W_GetNumForName("useartia")
                                              + ArtifactFlash - 1, PU_CACHE));
-        ArtifactFlash--;
+        // ArtifactFlash--;     // [JN] Moved to SB_Ticker.
         oldarti = -1;           // so that the correct artifact fills in after the flash
     }
     else if (oldarti != CPlayer->readyArtifact
@@ -1985,10 +1991,20 @@ static void DrawFullScreenStuff(void)
         if (CPlayer->readyArtifact > 0)
         {
             V_DrawTLPatch(232 + wide_x, 170, W_CacheLumpName("ARTIBOX", PU_CACHE));
-            V_DrawPatch(230 + wide_x, 169, W_CacheLumpName(patcharti[CPlayer->readyArtifact], PU_CACHE));
-            if (CPlayer->inventory[inv_ptr].count > 1)
+
+            if (ArtifactFlash)
             {
-                DrSmallNumber(CPlayer->inventory[inv_ptr].count, 248 + wide_x, 192);
+                const int temp = W_GetNumForName("USEARTIA") + ArtifactFlash - 1;
+                V_DrawPatch(232 + wide_x, 170, W_CacheLumpNum(temp, PU_CACHE));
+                oldarti = -1;  // so that the correct artifact fills in after the flash
+            }
+            else
+            {
+                V_DrawPatch(230 + wide_x, 169, W_CacheLumpName(patcharti[CPlayer->readyArtifact], PU_CACHE));
+                if (CPlayer->inventory[inv_ptr].count > 1)
+                {
+                    DrSmallNumber(CPlayer->inventory[inv_ptr].count, 248 + wide_x, 192);
+                }
             }
         }
     }

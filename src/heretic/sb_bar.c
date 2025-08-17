@@ -400,6 +400,12 @@ void SB_Ticker(void)
         HealthMarker += delta;
     }
 
+    // [JN] Play artifact flash animation independently of framerate.
+    if (ArtifactFlash)
+    {
+        ArtifactFlash--;
+    }
+
     // [JN] Update IDWidget data.
     CPlayer = &players[displayplayer];
     IDWidget.kills = CPlayer->killcount;
@@ -1347,10 +1353,10 @@ void DrawMainBar(void)
         temp = W_GetNumForName(DEH_String("useartia")) + ArtifactFlash - 1;
 
         V_DrawPatch(182, 161, W_CacheLumpNum(temp, PU_CACHE));
-        ArtifactFlash--;
+        // ArtifactFlash--;     // [JN] Moved to SB_Ticker.
         oldarti = -1;           // so that the correct artifact fills in after the flash
     }
-    else if (oldarti != CPlayer->readyArtifact
+    else if (oldarti != CPlayer->readyArtifact 
              || oldartiCount != CPlayer->inventory[inv_ptr].count)
     {
         V_DrawPatch(180, 161, PatchBLACKSQ);
@@ -1560,11 +1566,20 @@ static void DrawFullScreenStuff (void)
                         || CPlayer->keys[key_green]
                         || CPlayer->keys[key_blue] ? 0 : 16;
 
-            patch = DEH_String(patcharti[CPlayer->readyArtifact]);
-
             V_DrawAltTLPatch(211 + xx + wide_x, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
-            V_DrawShadowedPatch(211 + xx + wide_x, 170, W_CacheLumpName(patch, PU_CACHE));
-            DrSmallNumber(CPlayer->inventory[inv_ptr].count, 232 + xx + wide_x, 192);
+
+            if (ArtifactFlash)
+            {
+                const int temp = W_GetNumForName(DEH_String("USEARTIA")) + ArtifactFlash - 1;
+                V_DrawPatch(213 + xx + wide_x, 170, W_CacheLumpNum(temp, PU_CACHE));
+                oldarti = -1;  // so that the correct artifact fills in after the flash
+            }
+            else
+            {
+                patch = DEH_String(patcharti[CPlayer->readyArtifact]);
+                V_DrawShadowedPatch(211 + xx + wide_x, 170, W_CacheLumpName(patch, PU_CACHE));
+                DrSmallNumber(CPlayer->inventory[inv_ptr].count, 232 + xx + wide_x, 192);
+            }
         }
 
         // Keys.
@@ -1743,19 +1758,28 @@ static void DrawFullScreenStuffRemaster (void)
     patch = DEH_String(patcharti[CPlayer->readyArtifact]);
     if (CPlayer->readyArtifact > 0)
     {
-        V_DrawShadowedPatch(286 + wide_x, 166, W_CacheLumpName(patch, PU_CACHE));
-        
-        // [PN] Find the slot of the currently readied artifact
-        int ready_count = 0;
-        for (int i = 0; i < CPlayer->inventorySlotNum; i++)
+        if (ArtifactFlash)
         {
-            if (CPlayer->inventory[i].type == CPlayer->readyArtifact)
-            {
-                ready_count = CPlayer->inventory[i].count;
-                break;
-            }
+            const int temp = W_GetNumForName(DEH_String("USEARTIA")) + ArtifactFlash - 1;
+            V_DrawPatch(288 + wide_x, 166, W_CacheLumpNum(temp, PU_CACHE));
+            oldarti = -1;  // so that the correct artifact fills in after the flash
         }
-        DrSmallNumber(ready_count, 305 + wide_x, 188);
+        else
+        {
+            V_DrawShadowedPatch(286 + wide_x, 166, W_CacheLumpName(patch, PU_CACHE));
+
+            // [PN] Find the slot of the currently readied artifact
+            int ready_count = 0;
+            for (int i = 0; i < CPlayer->inventorySlotNum; i++)
+            {
+                if (CPlayer->inventory[i].type == CPlayer->readyArtifact)
+                {
+                    ready_count = CPlayer->inventory[i].count;
+                    break;
+                }
+            }
+            DrSmallNumber(ready_count, 305 + wide_x, 188);
+        }
     }
 
     if (inventory)
