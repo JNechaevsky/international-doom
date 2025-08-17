@@ -309,4 +309,14 @@ sfxinfo_t S_sfx[] = {
     SOUND("amb9",    1,   1),
     SOUND("amb10",   1,   1),
     SOUND("amb11",   1,   0)
+
+    //
+    // [JN] H+H Sounds:
+    //
+
+   ,SOUND("mum2sit",  32,  2),
+    SOUND("mum2pai",  32,  2),
+    SOUND("mum2dth",  80,  2),
+    SOUND("mum2atk",  32,  2),
+    SOUND("maghit",   32,  2),
 };

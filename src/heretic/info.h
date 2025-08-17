@@ -148,6 +148,12 @@ typedef enum
     SPR_AMP2,
     SPR_AMB1,
     SPR_AMB2,
+    //
+    // [JN] H+H Sprites
+    //
+    SPR_MUM2,
+    SPR_PSKL,
+
     NUMSPRITES
 } spritenum_t;
 
@@ -1361,6 +1367,36 @@ typedef enum
     S_AMB2_3,
     S_SND_WIND,
     S_SND_WATERFALL,
+    //
+    // [JN] H+H States
+    //
+    S_MUMMY2_LOOK1,
+    S_MUMMY2_LOOK2,
+    S_MUMMY2_WALK1,
+    S_MUMMY2_WALK2,
+    S_MUMMY2_WALK3,
+    S_MUMMY2_WALK4,
+    S_MUMMY2_ATK1,
+    S_MUMMY2_ATK2,
+    S_MUMMY2_ATK3,
+    S_MUMMY2_PAIN1,
+    S_MUMMY2_PAIN2,
+    S_MUMMY2_DIE1,
+    S_MUMMY2_DIE2,
+    S_MUMMY2_DIE3,
+    S_MUMMY2_DIE4,
+    S_MUMMY2_DIE5,
+    S_MUMMY2_DIE6,
+    S_MUMMY2_DIE7,
+    S_MUMMY2_FX_S1,
+    S_MUMMY2_FX_S2,
+    S_MUMMY2_FX_S3,
+    S_MUMMY2_FX_S4,
+    S_MUMMY2_FX_D1,
+    S_MUMMY2_FX_D2,
+    S_MUMMY2_FX_D3,
+    S_MUMMY2_FX_D4,
+
     NUMSTATES
 } statenum_t;
 
@@ -1548,6 +1584,12 @@ typedef enum
     MT_AMBLSRHEFTY,
     MT_SOUNDWIND,
     MT_SOUNDWATERFALL,
+    //
+    // [JN] H+H Things
+    //
+    MT_DRAUGR,
+    MT_DRAUGR_FX,
+    
     NUMMOBJTYPES
 } mobjtype_t;
 

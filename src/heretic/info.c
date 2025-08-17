@@ -31,6 +31,8 @@ const char *sprnames[] = {
     "WZRD","FX11","FX10","KNIG","SPAX","RAXE","SRCR","FX14","SOR2","SDTH",
     "FX16","MNTR","FX12","FX13","AKYY","BKYY","CKYY","AMG2","AMM1","AMM2",
     "AMC1","AMC2","AMS1","AMS2","AMP1","AMP2","AMB1","AMB2", 
+    // [JN] H+H Sprites
+    "MUM2","PSKL",
     NULL
 };
 
@@ -1246,6 +1248,40 @@ state_t states[NUMSTATES] = {
     {SPR_AMB2, 2, 4, NULL, S_AMB2_1, 0, 0},     // S_AMB2_3
     {SPR_AMG1, 0, 100, A_ESound, S_SND_WIND, 0, 0},     // S_SND_WIND
     {SPR_AMG1, 0, 85, A_ESound, S_SND_WATERFALL, 0, 0}  // S_SND_WATERFALL
+
+    //
+    // [JN] H+H States
+    //
+
+    // Draugr
+   ,{SPR_MUM2, 0,      10, A_Look,         S_MUMMY2_LOOK2, 0, 0}, // S_MUMMY2_LOOK1     | A
+    {SPR_MUM2, 1,      10, A_Look,         S_MUMMY2_LOOK1, 0, 0}, // S_MUMMY2_LOOK2     | B
+    {SPR_MUM2, 0,       4, A_Chase,        S_MUMMY2_WALK2, 0, 0}, // S_MUMMY2_WALK1     | A
+    {SPR_MUM2, 1,       4, A_Chase,        S_MUMMY2_WALK3, 0, 0}, // S_MUMMY2_WALK2     | B
+    {SPR_MUM2, 2,       4, A_Chase,        S_MUMMY2_WALK4, 0, 0}, // S_MUMMY2_WALK3     | C
+    {SPR_MUM2, 3,       4, A_Chase,        S_MUMMY2_WALK1, 0, 0}, // S_MUMMY2_WALK4     | D
+    {SPR_MUM2, 32772,   5, A_FaceTarget,   S_MUMMY2_ATK2,  0, 0}, // S_MUMMY2_ATK1      | E!
+    {SPR_MUM2, 32773,   5, A_FaceTarget,   S_MUMMY2_ATK3,  0, 0}, // S_MUMMY2_ATK2      | F!
+    {SPR_MUM2, 32774,   5, A_DraugrAttack, S_MUMMY2_WALK1, 0, 0}, // S_MUMMY2_ATK3      | F!
+    {SPR_MUM2, 4,       2, NULL,           S_MUMMY2_PAIN2, 0, 0}, // S_MUMMY2_PAIN1     | E
+    {SPR_MUM2, 4,       2, A_Pain,         S_MUMMY2_WALK1, 0, 0}, // S_MUMMY2_PAIN2     | E
+    {SPR_MUM2, 7,       6, NULL,           S_MUMMY2_DIE2,  0, 0}, // S_MUMMY2_DIE1      | H
+    {SPR_MUM2, 8,       6, A_Scream,       S_MUMMY2_DIE3,  0, 0}, // S_MUMMY2_DIE2      | I
+    {SPR_MUM2, 9,       6, NULL,           S_MUMMY2_DIE4,  0, 0}, // S_MUMMY2_DIE3      | J
+    {SPR_MUM2, 10,      6, NULL,           S_MUMMY2_DIE5,  0, 0}, // S_MUMMY2_DIE4      | K
+    {SPR_MUM2, 11,      6, A_NoBlocking,   S_MUMMY2_DIE6,  0, 0}, // S_MUMMY2_DIE5      | L
+    {SPR_MUM2, 12,      6, NULL,           S_MUMMY2_DIE7,  0, 0}, // S_MUMMY2_DIE6      | M
+    {SPR_MUM2, 13,     -1, NULL,           S_NULL,         0, 0}, // S_MUMMY2_DIE7      | N
+    // Draugr FX
+    {SPR_PSKL, 32768,   5, NULL,           S_MUMMY2_FX_S2,   0, 0}, // S_MUMMY2_FX_S1   | A!
+    {SPR_PSKL, 32769,   5, NULL,           S_MUMMY2_FX_S3,   0, 0}, // S_MUMMY2_FX_S2   | B!
+    {SPR_PSKL, 32770,   5, NULL,           S_MUMMY2_FX_S4,   0, 0}, // S_MUMMY2_FX_S3   | C!
+    {SPR_PSKL, 32769,   5, NULL,           S_MUMMY2_FX_S1,   0, 0}, // S_MUMMY2_FX_S4   | D!
+    {SPR_PSKL, 32771,   5, NULL,           S_MUMMY2_FX_D2,   0, 0}, // S_MUMMY2_FX_D1   | D!
+    {SPR_PSKL, 32772,   5, NULL,           S_MUMMY2_FX_D3,   0, 0}, // S_MUMMY2_FX_D2   | E!
+    {SPR_PSKL, 32773,   5, NULL,           S_MUMMY2_FX_D4,   0, 0}, // S_MUMMY2_FX_D3   | F!
+    {SPR_PSKL, 32774,   5, NULL,           S_NULL,           0, 0}, // S_MUMMY2_FX_D4   | G!
+
 };
 
 
@@ -5648,4 +5684,64 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      MF_NOBLOCKMAP | MF_NOSECTOR,       // flags
      0                          // flags2
      }
+
+    //
+    // [JN] H+H Things
+    //
+
+    // Draugr
+   ,{                           // MT_DRAUGR
+        3101,                   // doomednum
+        S_MUMMY2_LOOK1,         // spawnstate
+        60,                     // spawnhealth
+        S_MUMMY2_WALK1,         // seestate
+        sfx_mum2sit,            // seesound
+        12,                     // reactiontime
+        sfx_mumat1,             // attacksound
+        S_MUMMY2_PAIN1,         // painstate
+        192,                    // painchance
+        sfx_mum2pai,            // painsound
+        0,                      // meleestate
+        S_MUMMY2_ATK1,          // missilestate
+        S_NULL,                 // crashstate
+        S_MUMMY2_DIE1,          // deathstate
+        S_NULL,                 // xdeathstate
+        sfx_mum2dth,            // deathsound
+        10,                     // speed
+        16 * FRACUNIT,          // radius
+        62 * FRACUNIT,          // height
+        100,                    // mass
+        0,                      // damage
+        sfx_mum2sit,            // activesound
+        MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLIPPABLE,    // flags
+        MF2_FOOTCLIP | MF2_PASSMOBJ // flags2
+    },
+    // Draugr missile
+    {                           // MT_DRAUGR_FX
+        -1,                     // doomednum
+        S_MUMMY2_FX_S1,         // spawnstate
+        1000,                   // spawnhealth
+        S_NULL,                 // seestate
+        sfx_mum2atk,            // seesound
+        8,                      // reactiontime
+        sfx_None,               // attacksound
+        S_NULL,                 // painstate
+        0,                      // painchance
+        sfx_None,               // painsound
+        S_NULL,                 // meleestate
+        S_NULL,                 // missilestate
+        S_NULL,                 // crashstate
+        S_MUMMY2_FX_D1,         // deathstate
+        S_NULL,                 // xdeathstate
+        sfx_maghit,             // deathsound
+        14 * FRACUNIT,          // speed
+        8 * FRACUNIT,           // radius
+        14 * FRACUNIT,          // height
+        100,                    // mass
+        2,                      // damage
+        sfx_None,               // activesound
+        MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
+        MF2_NOTELEPORT          // flags2
+    },
+
 };

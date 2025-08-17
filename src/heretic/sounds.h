@@ -283,6 +283,17 @@ typedef enum
     sfx_amb9,
     sfx_amb10,
     sfx_amb11,
+    
+    //
+    // [JN] H+H Sounds:
+    //
+
+    sfx_mum2sit,
+    sfx_mum2pai,
+    sfx_mum2dth,
+    sfx_mum2atk,
+    sfx_maghit,
+    
     NUMSFX
 } sfxenum_t;
 

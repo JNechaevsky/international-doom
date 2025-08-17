@@ -2774,3 +2774,18 @@ void A_UnHideThing(mobj_t * actor, player_t *player, pspdef_t *psp)
     //P_SetThingPosition(actor);
     actor->flags2 &= ~MF2_DONTDRAW;
 }
+
+// -----------------------------------------------------------------------------
+// A_DraugrAttack
+//  [JN] H+H Draugr missile attack.
+// -----------------------------------------------------------------------------
+
+void A_DraugrAttack (mobj_t *actor, player_t *player, pspdef_t *psp)
+{
+    if (!actor->target)
+    {
+        return;
+    }
+    S_StartSound(actor, actor->info->attacksound);
+    P_SpawnMissile(actor, actor->target, MT_DRAUGR_FX);
+}
