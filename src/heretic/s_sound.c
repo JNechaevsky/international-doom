@@ -238,7 +238,7 @@ void S_StartSound(void *_origin, int sound_id)
     }
     for (i = 0; i < snd_channels; i++)
     {
-        if (origin->player)
+        if (origin != listener && origin->player)
         {
             i = snd_channels;
             break;              // let the player have more than one sound.

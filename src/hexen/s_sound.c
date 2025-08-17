@@ -251,6 +251,7 @@ void S_StartSound(mobj_t * origin, int sound_id)
     S_StartSoundAtVolume(origin, sound_id, 127);
 }
 
+
 static mobj_t *GetSoundListener(void)
 {
     static degenmobj_t dummy_listener;
@@ -351,7 +352,7 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
     #endif
     for (i = 0; i < snd_channels; i++)
     {
-        if (origin->player)
+        if (origin != listener && origin->player)
         {
             i = snd_channels;
             break;              // let the player have more than one sound.
