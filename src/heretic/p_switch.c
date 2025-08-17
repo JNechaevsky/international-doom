@@ -505,6 +505,30 @@ boolean P_UseSpecialLine(mobj_t * thing, line_t * line)
             if (EV_DoFloor(line, turboLower))
                 P_ChangeSwitchTexture(line, 1);
             break;
+
+        //
+        // [JN] H+H Specials:
+        //
+
+        case 159:
+            if (EV_DoFloor(line, hh_159))
+                P_ChangeSwitchTexture(line, 0);
+            break;
+
+        case 161:               
+            if (EV_DoFloor(line, hh_161))
+                P_ChangeSwitchTexture(line, 0);
+            break;
+
+        case 164:
+            if (EV_DoCeiling(line, fastCrushAndRaise))
+                P_ChangeSwitchTexture(line, 0);
+            break;
+
+        case 24722:
+            if (EV_DoFloor(line, hh_24722))
+                P_ChangeSwitchTexture(line, 0);
+            break;
     }
 
     return true;

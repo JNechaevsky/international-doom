@@ -214,6 +214,8 @@ typedef enum
     downWaitUpStay,
     raiseAndChange,
     raiseToNearestAndChange
+   ,// [JN] H+H Specials:
+    hh_24640,
 } plattype_e;
 
 typedef struct
@@ -345,6 +347,12 @@ typedef enum
     raiseFloorCrush,
     donutRaise,
     raiseBuildStep              // One step of a staircase
+   ,// [JN] H+H Specials:
+    hh_159,
+    hh_161,
+    hh_24722,
+    hh_24832,
+    hh_28064,
 } floor_e;
 
 typedef struct

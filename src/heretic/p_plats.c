@@ -52,7 +52,8 @@ void T_PlatRaise(thinker_t *thinker)
                 S_StartSound(&plat->sector->soundorg, sfx_stnmov);
             }
             if (plat->type == raiseAndChange
-                || plat->type == raiseToNearestAndChange)
+                || plat->type == raiseToNearestAndChange
+                || plat->type == hh_24640)
             {
                 if (!(leveltime & 7))
                 {
@@ -206,6 +207,19 @@ int EV_DoPlat(line_t * line, plattype_e type, int amount)
                 plat->wait = 35 * PLATWAIT;
                 plat->status = P_Random() & 1;
                 S_StartSound(&sec->soundorg, sfx_pstart);
+                break;
+
+            //
+            // [JN] H+H Specials:
+            //
+
+            case hh_24640:
+                plat->speed = PLATSPEED;
+                plat->high = P_FindNextHighestFloor(sec, sec->floorheight);
+                plat->wait = 0;
+                plat->status = up;
+                sec->special = 0;
+                S_StartSound(&sec->soundorg, sfx_stnmov);
                 break;
         }
         P_AddActivePlat(plat);

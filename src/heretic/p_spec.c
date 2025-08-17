@@ -664,6 +664,7 @@ void P_CrossSpecialLine(int linenum, int side, mobj_t * thing)
         {
             case 39:           // Trigger_TELEPORT
             case 97:           // Retrigger_TELEPORT
+            case 125:          // [JN] H+H: Retrigger_TELEPORT (MONSTER ONLY)
             case 4:            // Trigger_Raise_Door
                 //case 10:      // PLAT DOWN-WAIT-UP-STAY TRIGGER
                 //case 88:      // PLAT DOWN-WAIT-UP-STAY RETRIGGER
@@ -891,6 +892,32 @@ void P_CrossSpecialLine(int linenum, int side, mobj_t * thing)
             break;
         case 98:               // Lower Floor (TURBO)
             EV_DoFloor(line, turboLower);
+            break;
+
+        //
+        // [JN] H+H Specials:
+        //
+
+        case 125:
+        if (!thing->player) {
+            EV_Teleport( line, side, thing );
+            line->special = 0;
+            }
+            break;
+
+        case 24640:
+            EV_DoPlat(line, hh_24640, 0);
+            line->special = 0;
+            break;
+
+        case 24832:
+            EV_DoFloor(line, hh_24832);
+            line->special = 0;
+            break;
+
+        case 28064:
+            EV_DoFloor(line, hh_28064);
+            line->special = 0;
             break;
     }
 }

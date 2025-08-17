@@ -211,6 +211,10 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
     if (fixedcolormap)
         dc_colormap[0] = dc_colormap[1] = fixedcolormap;
 
+    // [JN] H+H: Translucent middle texture
+    if (curline->linedef->special == 260)
+        colfunc = tlcolfunc;
+
     // draw the columns
     for (dc_x = x1 ; dc_x <= x2 ; dc_x++)
     {
@@ -263,6 +267,8 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
 
         spryscale += rw_scalestep;
     }
+    
+    colfunc = basecolfunc;  // [JN] Reset column drawing function
 }
 
 // -----------------------------------------------------------------------------

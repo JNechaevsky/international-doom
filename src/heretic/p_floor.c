@@ -225,6 +225,8 @@ void T_MoveFloor(thinker_t *thinker)
             switch (floor->type)
             {
                 case lowerAndChange:
+                case hh_159:
+                case hh_28064:
                     floor->sector->special = floor->newspecial;
                     floor->sector->floorpic = floor->texture;
                 default:
@@ -376,6 +378,53 @@ int EV_DoFloor(line_t * line, floor_e floortype)
                             break;
                         }
                     }
+                break;
+
+            //
+            // [JN] H+H Specials:
+            //
+
+            case hh_159:
+            floor->direction = -1;
+            floor->sector = sec;
+            floor->speed = FLOORSPEED;
+            floor->floordestheight = P_FindLowestFloorSurrounding(sec);
+            floor->texture = sec->floorpic;
+            floor->newspecial = 0; 
+            floor->texture = R_FlatNumForName("FLTWAWA1");
+                break;
+
+            case hh_161:
+                floor->direction = 1;
+                floor->sector = sec;
+                floor->speed = FLOORSPEED;
+                floor->floordestheight = (24 * FRACUNIT) + floor->sector->floorheight;
+                break;
+
+            case hh_24722:
+                floor->direction = -1;
+                floor->sector = sec;
+                floor->speed = FLOORSPEED << 2;
+                floor->floordestheight = P_FindLowestFloorSurrounding(sec);
+                break;
+
+            case hh_24832:
+                floor->direction = -1;
+                floor->sector = sec;
+                floor->speed = FLOORSPEED;
+                floor->floordestheight += (16 * FRACUNIT) + P_FindLowestFloorSurrounding(sec);
+                break;
+
+            case hh_28064:
+                floor->direction = -1;
+                floor->sector = sec;
+                floor->speed = FLOORSPEED;
+                floor->floordestheight = (-336 * FRACUNIT);
+                floor->texture = sec->floorpic;
+                floor->newspecial = 0;
+                floor->texture = R_FlatNumForName("FLTWAWA1");
+                break;
+
             default:
                 break;
         }
