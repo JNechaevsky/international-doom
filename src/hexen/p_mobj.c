@@ -32,7 +32,7 @@
 
 // MACROS ------------------------------------------------------------------
 
-#define MAX_TID_COUNT 200
+#define MAX_TID_COUNT 256
 
 // TYPES -------------------------------------------------------------------
 
@@ -1614,6 +1614,7 @@ void P_SpawnMapThing(mapthing_t * mthing)
         // [crispy] ignore unknown map things
         printf("P_SpawnMapThing: Unknown type %i at (%i, %i)\n",
                 mthing->type, mthing->x, mthing->y);
+        return ;
     }
 
     // Don't spawn keys and players in deathmatch
