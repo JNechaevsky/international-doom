@@ -1840,6 +1840,9 @@ void D_DoomMain (void)
     if (!M_ParmExists("-noautoload") && gamemode != shareware
     && autoload_wad)  // [JN] Allow autoload per both IWAD and PWAD.
     {
+        // [JN] Autoload remastered soundtracks if found in IWAD folders.
+        D_AddFile(D_TryFindWADByName("extras.wad"));
+
         char *autoload_dir;
 
         // common auto-loaded files for all Doom flavors
@@ -2112,6 +2115,8 @@ void D_DoomMain (void)
 		    I_Error(DEH_String("\nThis is not the registered version."));
     }
 
+    // [crispy] disable meaningless warning, we always use "-merge" anyway
+    /*
     if (W_CheckNumForName("SS_START") >= 0
      || W_CheckNumForName("FF_END") >= 0)
     {
@@ -2120,6 +2125,7 @@ void D_DoomMain (void)
                " floor textures.  You may want to use the '-merge' command\n"
                " line option instead of '-file'.\n");
     }
+    */
 
     I_PrintStartupBanner(gamedescription);
     PrintDehackedBanners();

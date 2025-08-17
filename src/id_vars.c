@@ -89,7 +89,7 @@ int msg_local_time = 0;
 int snd_monosfx = 0;
 int snd_channels = 8;
 int snd_mute_inactive = 0;
-int snd_remaster_ost = 1;
+int snd_remaster_ost = 0;
 
 //
 // Control settings

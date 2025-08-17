@@ -5061,7 +5061,7 @@ static void M_ID_ApplyResetHook (void)
     snd_pitchshift = 1;
     snd_channels = 8;
     snd_mute_inactive = 0;
-    snd_remaster_ost = 1;
+    snd_remaster_ost = 0;
 
     //
     // Widgets and automap
