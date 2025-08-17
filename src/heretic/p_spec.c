@@ -905,6 +905,11 @@ void P_CrossSpecialLine(int linenum, int side, mobj_t * thing)
             }
             break;
 
+        case 24720:
+            EV_DoFloor(line, hh_24720);
+            line->special = 0;
+            break;
+
         case 24640:
             EV_DoPlat(line, hh_24640, 0);
             line->special = 0;

@@ -401,6 +401,7 @@ int EV_DoFloor(line_t * line, floor_e floortype)
                 floor->floordestheight = (24 * FRACUNIT) + floor->sector->floorheight;
                 break;
 
+            case hh_24720:
             case hh_24722:
                 floor->direction = -1;
                 floor->sector = sec;

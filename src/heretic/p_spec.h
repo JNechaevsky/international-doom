@@ -350,6 +350,7 @@ typedef enum
    ,// [JN] H+H Specials:
     hh_159,
     hh_161,
+    hh_24720,
     hh_24722,
     hh_24832,
     hh_28064,
