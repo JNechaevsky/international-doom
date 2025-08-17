@@ -1175,6 +1175,10 @@ void D_DoomMain(void)
     if (!M_ParmExists("-noautoload") && gamemode != shareware
     && autoload_wad)  // [JN] Allow autoload per both IWAD and PWAD.
     {
+        // [JN] Autoload remastered soundtracks if found in IWAD folders.
+        D_AddFile(D_TryFindWADByName("heretic_mus_remix.wad"));
+        D_AddFile(D_TryFindWADByName("heretic_mus_orig.wad"));
+
         char *autoload_dir;
         autoload_dir = M_GetAutoloadDir("heretic.wad");
         if (autoload_dir != NULL)
