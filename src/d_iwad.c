@@ -576,12 +576,7 @@ static char *CheckDirectoryHasIWAD(const char *dir, const char *iwadname)
     free(probe);
     probe = M_FileCaseExists(filename);
     free(filename);
-    if (probe != NULL)
-    {
-        return probe;
-    }
-
-    return NULL;
+    return probe;
 }
 
 // Search a directory to try to find an IWAD
@@ -878,14 +873,13 @@ char *D_FindWADByName(const char *name)
         // Construct a string for the full path
 
         path = M_StringJoin(iwad_dirs[i], DIR_SEPARATOR_S, name, NULL);
-
         probe = M_FileCaseExists(path);
+        free(path);
+
         if (probe != NULL)
         {
             return probe;
         }
-
-        free(path);
     }
 
     // File not found
