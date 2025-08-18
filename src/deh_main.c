@@ -465,20 +465,21 @@ int DEH_LoadFile(const char *filename)
 // Load all dehacked patches from the given directory.
 void DEH_AutoLoadPatches(const char *path)
 {
-    const char *filename;
+    char *filename;
     glob_t *glob;
 
     glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
                             "*.deh", "*.bex", "*.hhe", "*.seh", NULL); // [crispy] *.bex
     for (;;)
     {
-        filename = I_NextGlob(glob);
+        filename = (char *)I_NextGlob(glob);
         if (filename == NULL)
         {
             break;
         }
         printf("  [autoload]");
         DEH_LoadFile(filename);
+        free(filename);
     }
 
     I_EndGlob(glob);

@@ -495,7 +495,7 @@ int M_ReadFile(const char *name, byte **buffer)
 // Returns the path to a temporary file of the given name, stored
 // inside the system temporary directory.
 //
-// The returned value must be freed with Z_Free after use.
+// The returned value must be freed by the caller after use.
 
 char *M_TempFile(const char *s)
 {
@@ -714,6 +714,7 @@ char *M_StringDuplicate(const char *orig)
 
 //
 // String replace function.
+// allocates new string that must be freed by the caller
 //
 
 char *M_StringReplace(const char *haystack, const char *needle,
