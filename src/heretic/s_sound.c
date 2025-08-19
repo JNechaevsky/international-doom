@@ -45,6 +45,8 @@ static boolean S_StopSoundID(int sound_id, int priority);
 
 static channel_t channel[MAX_CHANNELS];
 
+static degenmobj_t dummy_listener;
+
 static void *rs;          // Handle for the registered song
 int mus_song = -1;
 int mus_lumpnum;
@@ -149,8 +151,6 @@ void S_StartSong(int song, boolean loop)
 
 static mobj_t *GetSoundListener(void)
 {
-    static degenmobj_t dummy_listener;
-
     // If we are at the title screen, the console player doesn't have an
     // object yet, so return a pointer to a static dummy listener instead.
 
@@ -238,7 +238,7 @@ void S_StartSound(void *_origin, int sound_id)
     }
     for (i = 0; i < snd_channels; i++)
     {
-        if (origin != listener && origin->player)
+        if (origin != (mobj_t *)&dummy_listener && origin->player)
         {
             i = snd_channels;
             break;              // let the player have more than one sound.
