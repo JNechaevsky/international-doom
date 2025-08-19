@@ -2775,9 +2775,14 @@ void A_UnHideThing(mobj_t * actor, player_t *player, pspdef_t *psp)
     actor->flags2 &= ~MF2_DONTDRAW;
 }
 
+// =============================================================================
+//
+// H+H Monsters AI
+//
+// =============================================================================
+
 // -----------------------------------------------------------------------------
-// A_DraugrAttack
-//  [JN] H+H Draugr missile attack.
+// Draugr
 // -----------------------------------------------------------------------------
 
 void A_DraugrAttack (mobj_t *actor, player_t *player, pspdef_t *psp)
@@ -2789,3 +2794,82 @@ void A_DraugrAttack (mobj_t *actor, player_t *player, pspdef_t *psp)
     S_StartSound(actor, actor->info->attacksound);
     P_SpawnMissile(actor, actor->target, MT_DRAUGR_FX);
 }
+
+// -----------------------------------------------------------------------------
+// Chaos Serpent
+// -----------------------------------------------------------------------------
+
+void A_SerpentMelee (mobj_t *actor, player_t *player, pspdef_t *psp)
+{
+    if (P_CheckMeleeRange(actor))
+    {
+        P_DamageMobj(actor->target, actor, actor, HITDICE(2));
+    }
+}
+
+void A_SerpentJump (mobj_t *actor, player_t *player, pspdef_t *psp)
+{
+    if (P_Random() & 1)
+    {
+        P_SetMobjState(actor, S_DEMN_CHASE1);
+    }
+    else
+    {
+        A_FaceTarget(actor, player, psp);
+    }
+}
+
+// [PN] Compute aim (angle + momz) to target like P_SpawnMissile does.
+static inline void P_ComputeAim(const mobj_t *source, const mobj_t *dest,
+                                mobjtype_t type, angle_t *out_angle, fixed_t *out_momz)
+{
+    angle_t an = R_PointToAngle2(source->x, source->y, dest->x, dest->y);
+    if (dest->flags & MF_SHADOW)
+    {
+        an += P_SubRandom() << 21;  // same jitter as missile spawn
+    }
+
+    int dist = P_AproxDistance(dest->x - source->x, dest->y - source->y);
+    dist = dist / mobjinfo[type].speed;
+    if (dist < 1) dist = 1;
+
+    *out_angle = an;
+    *out_momz  = (dest->z - source->z) / dist; // same formula as in P_SpawnMissile
+}
+
+void A_SerpentAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
+{
+    mobj_t *target = actor->target;
+    if (!target) return;
+
+    angle_t base;
+    fixed_t momz;
+    P_ComputeAim(actor, target, MT_SRCRFX1, &base, &momz);
+
+    const angle_t off = ANG1_X * 6; // your spread
+
+    switch (P_Random() & 3)
+    {
+        case 0: // ↖️⬆️↗️ (тройной залп)
+            P_SpawnMissileAngle(actor, MT_SRCRFX1, base - off, momz);
+            P_SpawnMissileAngle(actor, MT_SRCRFX1, base,       momz);
+            P_SpawnMissileAngle(actor, MT_SRCRFX1, base + off, momz);
+            break;
+
+        case 1: // ⬆️↗️
+            P_SpawnMissileAngle(actor, MT_SRCRFX1, base,       momz);
+            P_SpawnMissileAngle(actor, MT_SRCRFX1, base + off, momz);
+            break;
+
+        case 2: // ↖️⬆️
+            P_SpawnMissileAngle(actor, MT_SRCRFX1, base - off, momz);
+            P_SpawnMissileAngle(actor, MT_SRCRFX1, base,       momz);
+            break;
+
+        case 3: // ↖️↗️ (только диагонали, без центрального)
+            P_SpawnMissileAngle(actor, MT_SRCRFX1, base - off, momz);
+            P_SpawnMissileAngle(actor, MT_SRCRFX1, base + off, momz);
+            break;
+    }
+}
+

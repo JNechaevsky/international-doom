@@ -149,6 +149,10 @@ void A_MntrFloorFire(struct mobj_s *actor, struct player_s *player, struct pspde
 void A_ESound(struct mobj_s *actor, struct player_s *player, struct pspdef_s *psp);
 
 void A_DraugrAttack(struct mobj_s *actor, struct player_s *player, struct pspdef_s *psp);
+void A_SerpentMelee (struct mobj_s *actor, struct player_s *player, struct pspdef_s *psp);
+void A_SerpentJump (struct mobj_s *actor, struct player_s *player, struct pspdef_s *psp);
+void A_SerpentAttack (struct mobj_s *actor, struct player_s *player, struct pspdef_s *psp);
+
 
 #endif /* #ifndef HERETIC_P_ACTION_H */
 

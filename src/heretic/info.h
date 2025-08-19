@@ -153,6 +153,7 @@ typedef enum
     //
     SPR_MUM2,
     SPR_PSKL,
+    SPR_DEMN,
 
     NUMSPRITES
 } spritenum_t;
@@ -1397,6 +1398,36 @@ typedef enum
     S_MUMMY2_FX_D3,
     S_MUMMY2_FX_D4,
 
+    S_DEMN_LOOK1,
+    S_DEMN_LOOK2,
+    S_DEMN_CHASE1,
+    S_DEMN_CHASE2,
+    S_DEMN_CHASE3,
+    S_DEMN_CHASE4,
+    S_DEMN_ATK1_1,
+    S_DEMN_ATK1_2,
+    S_DEMN_ATK1_3,
+    S_DEMN_ATK2_1,
+    S_DEMN_ATK2_2,
+    S_DEMN_ATK2_3,
+    S_DEMN_ATK2_4,
+    S_DEMN_ATK2_5,
+    S_DEMN_ATK2_6,
+    S_DEMN_ATK2_7,
+    S_DEMN_ATK2_8,
+    S_DEMN_ATK2_9,
+    S_DEMN_PAIN1,
+    S_DEMN_PAIN2,
+    S_DEMN_DEATH1,
+    S_DEMN_DEATH2,
+    S_DEMN_DEATH3,
+    S_DEMN_DEATH4,
+    S_DEMN_DEATH5,
+    S_DEMN_DEATH6,
+    S_DEMN_DEATH7,
+    S_DEMN_DEATH8,
+    S_DEMN_DEATH9,
+
     NUMSTATES
 } statenum_t;
 
@@ -1589,6 +1620,7 @@ typedef enum
     //
     MT_DRAUGR,
     MT_DRAUGR_FX,
+    MT_SERPENT,
     
     NUMMOBJTYPES
 } mobjtype_t;

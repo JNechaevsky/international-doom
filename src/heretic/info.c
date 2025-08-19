@@ -32,7 +32,7 @@ const char *sprnames[] = {
     "FX16","MNTR","FX12","FX13","AKYY","BKYY","CKYY","AMG2","AMM1","AMM2",
     "AMC1","AMC2","AMS1","AMS2","AMP1","AMP2","AMB1","AMB2", 
     // [JN] H+H Sprites
-    "MUM2","PSKL",
+    "MUM2","PSKL","DEMN",
     NULL
 };
 
@@ -1281,7 +1281,38 @@ state_t states[NUMSTATES] = {
     {SPR_PSKL, 32772,   5, NULL,           S_MUMMY2_FX_D3,   0, 0}, // S_MUMMY2_FX_D2   | E!
     {SPR_PSKL, 32773,   5, NULL,           S_MUMMY2_FX_D4,   0, 0}, // S_MUMMY2_FX_D3   | F!
     {SPR_PSKL, 32774,   5, NULL,           S_NULL,           0, 0}, // S_MUMMY2_FX_D4   | G!
-
+    // Chaos Serpent
+    {SPR_DEMN, 0,      10, A_Look,         S_DEMN_LOOK2,     0, 0}, // S_DEMN_LOOK1
+    {SPR_DEMN, 0,      10, A_Look,         S_DEMN_LOOK1,     0, 0}, // S_DEMN_LOOK2
+    {SPR_DEMN, 0,      4,  A_Chase,        S_DEMN_CHASE2,    0, 0}, // S_DEMN_CHASE1
+    {SPR_DEMN, 1,      4,  A_Chase,        S_DEMN_CHASE3,    0, 0}, // S_DEMN_CHASE2
+    {SPR_DEMN, 2,      4,  A_Chase,        S_DEMN_CHASE4,    0, 0}, // S_DEMN_CHASE3
+    {SPR_DEMN, 3,      4,  A_Chase,        S_DEMN_CHASE1,    0, 0}, // S_DEMN_CHASE4
+    
+    {SPR_DEMN, 4,      6,  A_FaceTarget,   S_DEMN_ATK1_2,    0, 0}, // S_DEMN_ATK1_1
+    {SPR_DEMN, 5,      8,  A_SerpentMelee, S_DEMN_ATK1_3,    0, 0}, // S_DEMN_ATK1_2
+    {SPR_DEMN, 6,      6,  A_FaceTarget,   S_DEMN_ATK1_3,    0, 0}, // S_DEMN_ATK1_3
+    {SPR_DEMN, 4,      5,  A_SerpentJump,  S_DEMN_ATK2_2,    0, 0}, // S_DEMN_ATK2_1
+    {SPR_DEMN, 5,      6,  A_SerpentAttack,S_DEMN_ATK2_3,    0, 0}, // S_DEMN_ATK2_2
+    {SPR_DEMN, 6,      5,  A_FaceTarget,   S_DEMN_ATK2_4,    0, 0}, // S_DEMN_ATK2_3
+    {SPR_DEMN, 4,      5,  A_SerpentJump,  S_DEMN_ATK2_5,    0, 0}, // S_DEMN_ATK2_4
+    {SPR_DEMN, 5,      6,  A_SerpentAttack,S_DEMN_ATK2_6,    0, 0}, // S_DEMN_ATK2_5
+    {SPR_DEMN, 6,      8,  A_FaceTarget,   S_DEMN_ATK2_7,    0, 0}, // S_DEMN_ATK2_6
+    {SPR_DEMN, 4,      5,  A_SerpentJump,  S_DEMN_ATK2_8,    0, 0}, // S_DEMN_ATK2_7
+    {SPR_DEMN, 5,      8,  A_SerpentAttack,S_DEMN_ATK2_9,    0, 0}, // S_DEMN_ATK2_8
+    {SPR_DEMN, 6,      8,  A_FaceTarget,   S_DEMN_CHASE1,    0, 0}, // S_DEMN_ATK2_9
+    
+    {SPR_DEMN, 4,      4,  NULL,           S_DEMN_PAIN2,     0, 0}, // S_DEMN_PAIN1
+    {SPR_DEMN, 4,      4,  A_Pain,         S_DEMN_CHASE1,    0, 0}, // S_DEMN_PAIN2
+    {SPR_DEMN, 7,      6,  NULL,           S_DEMN_DEATH2,    0, 0}, // S_DEMN_DEATH1
+    {SPR_DEMN, 8,      6,  NULL,           S_DEMN_DEATH3,    0, 0}, // S_DEMN_DEATH2
+    {SPR_DEMN, 9,      6,  A_Scream,       S_DEMN_DEATH4,    0, 0}, // S_DEMN_DEATH3
+    {SPR_DEMN, 10,     6,  A_NoBlocking,   S_DEMN_DEATH5,    0, 0}, // S_DEMN_DEATH4
+    {SPR_DEMN, 11,     6,  NULL,           S_DEMN_DEATH6,    0, 0}, // S_DEMN_DEATH5
+    {SPR_DEMN, 12,     6,  NULL,           S_DEMN_DEATH7,    0, 0}, // S_DEMN_DEATH6
+    {SPR_DEMN, 13,     6,  NULL,           S_DEMN_DEATH8,    0, 0}, // S_DEMN_DEATH7
+    {SPR_DEMN, 14,     6,  NULL,           S_DEMN_DEATH9,    0, 0}, // S_DEMN_DEATH8
+    {SPR_DEMN, 15,    -1,  NULL,           S_NULL,           0, 0}, // S_DEMN_DEATH9
 };
 
 
@@ -5743,5 +5774,31 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
         MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,    // flags
         MF2_NOTELEPORT          // flags2
     },
-
+    // Chaos Serpent
+    {                           // MT_SERPENT
+        3103,                   // doomednum
+        S_DEMN_LOOK1,           // spawnstate
+        750,                    // spawnhealth
+        S_DEMN_CHASE1,          // seestate
+        sfx_sbtact,             // seesound
+        8,                      // reactiontime
+        sfx_bitey,              // attacksound
+        S_DEMN_PAIN1,           // painstate
+        40,                     // painchance
+        sfx_sbtpai,             // painsound
+        S_DEMN_ATK1_1,          // meleestate
+        S_DEMN_ATK2_1,          // missilestate
+        S_NULL,                 // crashstate
+        S_DEMN_DEATH1,          // deathstate
+        0,                      // xdeathstate
+        sfx_sbtdth,             // deathsound
+        13,                     // speed
+        32 * FRACUNIT,          // radius
+        64 * FRACUNIT,          // height
+        500,                    // mass
+        0,                      // damage
+        sfx_sbtact,             // activesound
+        MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLIPPABLE,    // flags
+        MF2_FOOTCLIP | MF2_PASSMOBJ  // flags2
+    },
 };

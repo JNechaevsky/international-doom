@@ -1666,6 +1666,14 @@ mobj_t *P_SpawnMissileAngle(mobj_t * source, mobjtype_t type,
     {
         S_StartSound(mo, mo->info->seesound);
     }
+
+    if (source->type == MT_SERPENT)
+    {
+        mo->info->speed = 15 * FRACUNIT;
+        mo->info->damage = 8;
+        mo->info->deathsound = sfx_sbthit;
+    }
+
     mo->target = source;        // Originator
     mo->angle = angle;
     angle >>= ANGLETOFINESHIFT;

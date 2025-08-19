@@ -294,6 +294,9 @@ typedef enum
     sfx_mum2atk,
     sfx_maghit,
     
+    sfx_bitey,
+    sfx_sbthit,
+    
     NUMSFX
 } sfxenum_t;
 

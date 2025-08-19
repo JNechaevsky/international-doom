@@ -319,4 +319,8 @@ sfxinfo_t S_sfx[] = {
     SOUND("mum2dth",  80,  2),
     SOUND("mum2atk",  32,  2),
     SOUND("maghit",   32,  2),
+    
+    SOUND("bitey",    32,  2),
+    SOUND("sbthit",   32,  2),
+    
 };
