@@ -2844,31 +2844,34 @@ void A_SerpentAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 
     angle_t base;
     fixed_t momz;
-    P_ComputeAim(actor, target, MT_SRCRFX1, &base, &momz);
+    P_ComputeAim(actor, target, MT_SERPENT_FX, &base, &momz);
+    S_StartSound(actor, sfx_sbtatk);
 
-    const angle_t off = ANG1_X * 6; // your spread
+    const angle_t off1 = ANG1_X * 3; // your spread
+    const angle_t off2 = ANG1_X * 6; // your spread
+    const angle_t off3 = ANG1_X * 7; // your spread
 
     switch (P_Random() & 3)
     {
         case 0: // ↖️⬆️↗️ (тройной залп)
-            P_SpawnMissileAngle(actor, MT_SRCRFX1, base - off, momz);
-            P_SpawnMissileAngle(actor, MT_SRCRFX1, base,       momz);
-            P_SpawnMissileAngle(actor, MT_SRCRFX1, base + off, momz);
+            P_SpawnMissileAngle(actor, MT_SERPENT_FX, base - off1, momz);
+            P_SpawnMissileAngle(actor, MT_SERPENT_FX, base,       momz);
+            P_SpawnMissileAngle(actor, MT_SERPENT_FX, base + off1, momz);
             break;
 
         case 1: // ⬆️↗️
-            P_SpawnMissileAngle(actor, MT_SRCRFX1, base,       momz);
-            P_SpawnMissileAngle(actor, MT_SRCRFX1, base + off, momz);
+            P_SpawnMissileAngle(actor, MT_SERPENT_FX, base,       momz);
+            P_SpawnMissileAngle(actor, MT_SERPENT_FX, base + off3, momz);
             break;
 
         case 2: // ↖️⬆️
-            P_SpawnMissileAngle(actor, MT_SRCRFX1, base - off, momz);
-            P_SpawnMissileAngle(actor, MT_SRCRFX1, base,       momz);
+            P_SpawnMissileAngle(actor, MT_SERPENT_FX, base - off3, momz);
+            P_SpawnMissileAngle(actor, MT_SERPENT_FX, base,       momz);
             break;
 
         case 3: // ↖️↗️ (только диагонали, без центрального)
-            P_SpawnMissileAngle(actor, MT_SRCRFX1, base - off, momz);
-            P_SpawnMissileAngle(actor, MT_SRCRFX1, base + off, momz);
+            P_SpawnMissileAngle(actor, MT_SERPENT_FX, base - off2, momz);
+            P_SpawnMissileAngle(actor, MT_SERPENT_FX, base + off2, momz);
             break;
     }
 }

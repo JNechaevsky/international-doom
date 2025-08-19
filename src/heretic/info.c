@@ -1291,7 +1291,8 @@ state_t states[NUMSTATES] = {
     
     {SPR_DEMN, 4,      6,  A_FaceTarget,   S_DEMN_ATK1_2,    0, 0}, // S_DEMN_ATK1_1
     {SPR_DEMN, 5,      8,  A_SerpentMelee, S_DEMN_ATK1_3,    0, 0}, // S_DEMN_ATK1_2
-    {SPR_DEMN, 6,      6,  A_FaceTarget,   S_DEMN_ATK1_3,    0, 0}, // S_DEMN_ATK1_3
+    {SPR_DEMN, 6,      6,  A_FaceTarget,   S_DEMN_CHASE1,    0, 0}, // S_DEMN_ATK1_3
+
     {SPR_DEMN, 4,      5,  A_SerpentJump,  S_DEMN_ATK2_2,    0, 0}, // S_DEMN_ATK2_1
     {SPR_DEMN, 5,      6,  A_SerpentAttack,S_DEMN_ATK2_3,    0, 0}, // S_DEMN_ATK2_2
     {SPR_DEMN, 6,      5,  A_FaceTarget,   S_DEMN_ATK2_4,    0, 0}, // S_DEMN_ATK2_3
@@ -5801,4 +5802,32 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
         MF_SOLID | MF_SHOOTABLE | MF_COUNTKILL | MF_FLIPPABLE,    // flags
         MF2_FOOTCLIP | MF2_PASSMOBJ  // flags2
     },
+    // Chaos Serpent missile
+    {                            // MT_SERPENT_FX
+        -1,                      // doomednum
+        S_SRCRFX1_1,             // spawnstate
+        1000,                    // spawnhealth
+        S_NULL,                  // seestate
+        0,                       // seesound
+        8,                       // reactiontime
+        sfx_None,                // attacksound
+        S_NULL,                  // painstate
+        0,                       // painchance
+        sfx_None,                // painsound
+        S_NULL,                  // meleestate
+        S_NULL,                  // missilestate
+        S_NULL,                  // crashstate
+        S_SRCRFXI1_1,            // deathstate
+        S_NULL,                  // xdeathstate
+        sfx_phohit,              // deathsound
+        15 * FRACUNIT,           // speed
+        10 * FRACUNIT,           // radius
+        10 * FRACUNIT,           // height
+        100,                     // mass
+        8,                       // damage
+        sfx_None,                // activesound
+        MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY | MF_EXTRATRANS,    // flags
+        MF2_NOTELEPORT | MF2_FIREDAMAGE    // flags2
+    },
+
 };

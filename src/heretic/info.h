@@ -1621,6 +1621,7 @@ typedef enum
     MT_DRAUGR,
     MT_DRAUGR_FX,
     MT_SERPENT,
+    MT_SERPENT_FX,
     
     NUMMOBJTYPES
 } mobjtype_t;

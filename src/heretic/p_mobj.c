@@ -1653,6 +1653,9 @@ mobj_t *P_SpawnMissileAngle(mobj_t * source, mobjtype_t type,
         case MT_SRCRFX1:       // Sorcerer Demon fireball
             z = source->z + 48 * FRACUNIT;
             break;
+        case MT_SERPENT_FX:    // [JN] H+H: Chaos Serpent missile 
+            z = source->z + 56 * FRACUNIT; // high enough to hit player
+            break;
         default:
             z = source->z + 32 * FRACUNIT;
             break;
@@ -1666,14 +1669,6 @@ mobj_t *P_SpawnMissileAngle(mobj_t * source, mobjtype_t type,
     {
         S_StartSound(mo, mo->info->seesound);
     }
-
-    if (source->type == MT_SERPENT)
-    {
-        mo->info->speed = 15 * FRACUNIT;
-        mo->info->damage = 8;
-        mo->info->deathsound = sfx_sbthit;
-    }
-
     mo->target = source;        // Originator
     mo->angle = angle;
     angle >>= ANGLETOFINESHIFT;
