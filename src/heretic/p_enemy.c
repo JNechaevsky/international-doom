@@ -2414,6 +2414,11 @@ void A_BossDeath(const mobj_t *actor, player_t *player, pspdef_t *psp)
     {
         goto bossaction;
     }
+    // [JN] H+H: Faith Renewed
+    if (heretic_fr && gameepisode == 1 && gamemap == 8)
+    {
+        goto bossaction;
+    }
 
     if (gamemap != 8)
     {                           // Not a boss level

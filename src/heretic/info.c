@@ -1288,11 +1288,9 @@ state_t states[NUMSTATES] = {
     {SPR_DEMN, 1,      4,  A_Chase,        S_DEMN_CHASE3,    0, 0}, // S_DEMN_CHASE2
     {SPR_DEMN, 2,      4,  A_Chase,        S_DEMN_CHASE4,    0, 0}, // S_DEMN_CHASE3
     {SPR_DEMN, 3,      4,  A_Chase,        S_DEMN_CHASE1,    0, 0}, // S_DEMN_CHASE4
-    
     {SPR_DEMN, 4,      6,  A_FaceTarget,   S_DEMN_ATK1_2,    0, 0}, // S_DEMN_ATK1_1
     {SPR_DEMN, 5,      8,  A_SerpentMelee, S_DEMN_ATK1_3,    0, 0}, // S_DEMN_ATK1_2
     {SPR_DEMN, 6,      6,  A_FaceTarget,   S_DEMN_CHASE1,    0, 0}, // S_DEMN_ATK1_3
-
     {SPR_DEMN, 4,      5,  A_SerpentJump,  S_DEMN_ATK2_2,    0, 0}, // S_DEMN_ATK2_1
     {SPR_DEMN, 5,      6,  A_SerpentAttack,S_DEMN_ATK2_3,    0, 0}, // S_DEMN_ATK2_2
     {SPR_DEMN, 6,      5,  A_FaceTarget,   S_DEMN_ATK2_4,    0, 0}, // S_DEMN_ATK2_3
@@ -1302,7 +1300,6 @@ state_t states[NUMSTATES] = {
     {SPR_DEMN, 4,      5,  A_SerpentJump,  S_DEMN_ATK2_8,    0, 0}, // S_DEMN_ATK2_7
     {SPR_DEMN, 5,      8,  A_SerpentAttack,S_DEMN_ATK2_9,    0, 0}, // S_DEMN_ATK2_8
     {SPR_DEMN, 6,      8,  A_FaceTarget,   S_DEMN_CHASE1,    0, 0}, // S_DEMN_ATK2_9
-    
     {SPR_DEMN, 4,      4,  NULL,           S_DEMN_PAIN2,     0, 0}, // S_DEMN_PAIN1
     {SPR_DEMN, 4,      4,  A_Pain,         S_DEMN_CHASE1,    0, 0}, // S_DEMN_PAIN2
     {SPR_DEMN, 7,      6,  NULL,           S_DEMN_DEATH2,    0, 0}, // S_DEMN_DEATH1

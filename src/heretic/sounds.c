@@ -149,6 +149,18 @@ musicinfo_t S_music_Remaster[][2] = {
     {MUSIC("H_DEMO"),   MUSIC("O_DEMO")}    // MUS_CPTD
 };
 
+musicinfo_t S_music_FR[][3] = {
+    {MUSIC("MUS_E2M2"), MUSIC("H_ATLAS"),  MUSIC("O_ATLAS")},  // 1-1
+    {MUSIC("MUS_E1M2"), MUSIC("H_FRED"),   MUSIC("O_FRED")},   // 1-2
+    {MUSIC("MUS_E1M6"), MUSIC("H_MIST"),   MUSIC("O_MIST")},   // 1-3
+    {MUSIC("MUS_E2M4"), MUSIC("H_BUILD"),  MUSIC("O_BUILD")},  // 1-4
+    {MUSIC("MUS_E1M3"), MUSIC("H_DED"),    MUSIC("O_DED")},    // 1-5
+    {MUSIC("MUS_E2M1"), MUSIC("H_ACACIA"), MUSIC("O_ACACIA")}, // 1-6
+    {MUSIC("MUS_E2M8"), MUSIC("H_ARPO"),   MUSIC("O_ARPO")},   // 1-7
+    {MUSIC("MUS_E1M9"), MUSIC("H_ATCOTY"), MUSIC("O_ATCOTY")}, // 1-8
+    {MUSIC("MUS_E1M8"), MUSIC("H_JOHN"),   MUSIC("O_JOHN")},   // 1-9
+};
+
 // Sound info
 
     /* Macro for original heretic sfxinfo_t 

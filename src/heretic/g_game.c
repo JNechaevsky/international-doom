@@ -2642,6 +2642,10 @@ void G_InitNew(skill_t skill, int episode, int map)
     {
         skytexture = R_TextureNumForName(ep6Sky);
     }
+    else if (heretic_fr && episode == 1)
+    {
+        skytexture = R_TextureNumForName(gamemap == 9 ? "ALLBLACK" : "SKY6");
+    }
     else
     {
         skytexture = R_TextureNumForName(DEH_String(skyLumpNames[RemasterSky][episode - 1]));

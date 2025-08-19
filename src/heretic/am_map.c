@@ -94,6 +94,16 @@ const char *LevelNames[] = {
     "E6M1:  ",
     "E6M2:  ",
     "E6M3:  ",
+    // [JN] H+H: Faith Renewed
+    "E1M1:  THE PLAZA",
+    "E1M2:  STAITH TOWN",
+    "E1M3:  CRIMSON PALACE",
+    "E1M4:  WATERGATE",
+    "E1M5:  CORRECTIONAL TEMPLE",
+    "E1M6:  FOUNDRY",
+    "E1M7:  EYE OF D'SPARIL",
+    "E1M8:  THE GRAND CHAPEL",
+    "E1M9:  POCKET PLANE",
 };
 
 // [crispy] simplify (automap framebuffer)
@@ -2405,7 +2415,9 @@ void AM_LevelNameDrawer (void)
             y = 146;
         }
 
-        const char *const level_name = LevelNames[(gameepisode - 1) * 9 + gamemap - 1];
+        const char *const level_name = LevelNames[((heretic_fr && gameepisode == 1) ? 48 :
+                                                  (gameepisode - 1) * 9) + (gamemap - 1)];
+
         MN_DrTextA(DEH_String(level_name), x, y,
                    // [JN] Woof and DSDA widget color scheme using yellow map name.
                    widget_scheme > 2 ? cr[CR_YELLOW] : NULL);

@@ -97,12 +97,15 @@ void D_CheckNetGame(void);
 static void D_PageDrawer(void);
 void D_AdvanceDemo(void);
 
-// [JN] Enhanced maps (heretic_ex.wad):
-boolean heretic_ex = false;
-
 // [JN] Remastered soundtracks:
 boolean remaster_ost_h = false; // Remix (heretic_mus_remix.wad)
 boolean remaster_ost_o = false; // Original (heretic_mus_orig.wad)
+
+// [JN] Enhanced maps (heretic_ex.wad):
+boolean heretic_ex = false;
+
+// [JN] Faith Renewed (heretic_fr.wad):
+boolean heretic_fr = false;
 
 //---------------------------------------------------------------------------
 //
@@ -1282,6 +1285,16 @@ void D_DoomMain(void)
         printf("Playing demo %s.\n", file);
     }
 
+    // [JN] Check for remastered soundtracks (heretic_mus_orig.wad and
+    // heretic_mus_remix.wad), make sure it contains necessary music lumps.
+    {
+        remaster_ost_h = (W_CheckNumForName("H_OPEN") != -1) &&
+                         (W_CheckNumForName("H_INTER") != -1);
+
+        remaster_ost_o = (W_CheckNumForName("O_OPEN") != -1) &&
+                         (W_CheckNumForName("O_INTER") != -1);        
+    }
+
     // [JN] Check for enhanced maps (heretic_ex.wad)
     {
         const lumpindex_t wadinfo_lump = W_GetNumForName(DEH_String("WADINFO"));
@@ -1296,14 +1309,12 @@ void D_DoomMain(void)
                       (W_CheckNumForName("E6M1") != -1));
     }
 
-    // [JN] Check for remastered soundtracks (heretic_mus_orig.wad and
-    // heretic_mus_remix.wad), make sure it contains necessary music lumps.
+    // [JN] Check for Faith Renewed (heretic_ex.wad)
     {
-        remaster_ost_h = (W_CheckNumForName("H_OPEN") != -1) &&
-                         (W_CheckNumForName("H_INTER") != -1);
-
-        remaster_ost_o = (W_CheckNumForName("O_OPEN") != -1) &&
-                         (W_CheckNumForName("O_INTER") != -1);        
+        heretic_fr = ((W_CheckNumForName("WADINFO") != -1) &&
+                      (W_CheckNumForName("MAPX1") != -1) &&
+                      (W_CheckNumForName("MAPX1_M6") != -1) &&
+                      (W_CheckNumForName("MAPX1_M9") != -1));
     }
 
     // Generate the WAD hash table.  Speed things up a bit.

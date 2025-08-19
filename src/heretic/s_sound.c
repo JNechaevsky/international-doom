@@ -117,30 +117,37 @@ void S_StartSong(int song, boolean loop)
         return;
     }
 
-    // [JN] Support Remastered/Original sound track from H+H rerelease.
-    if (snd_remaster_ost)
-    {
-    const char *name =
-        (remaster_ost_h && snd_remaster_ost == 1) ? S_music_Remaster[song][0].name : // Remix
-        (remaster_ost_o && snd_remaster_ost == 2) ? S_music_Remaster[song][1].name : // Original
-        ((S_music[song][1].name && W_CheckNumForName(S_music[song][1].name) > 0)     // Dedicated or off
-            ? S_music[song][1].name
-            : S_music[song][0].name);
-    
-    mus_lumpnum = W_GetNumForName(name);
-    }
-    else
-    {
     // [crispy] support dedicated music tracks for each map
-    if (S_music[song][1].name && W_CheckNumForName(S_music[song][1].name) > 0)
+    // [PN/JN] Support Remastered/Original and Faith Renewed sound track from H+H rerelease.
+    const char *name;
+
+    if (heretic_fr && gameepisode == 1 && gamestate == GS_LEVEL)
     {
-        mus_lumpnum = (W_GetNumForName(S_music[song][1].name));
+        // Faith Renewed
+        name = S_music_FR[song][snd_remaster_ost].name;
+    }
+    else if (snd_remaster_ost && remaster_ost_h && snd_remaster_ost == 1)
+    {
+        // Remix
+        name = S_music_Remaster[song][0].name;
+    }
+    else if (snd_remaster_ost && remaster_ost_o && snd_remaster_ost == 2)
+    {
+        // Original
+        name = S_music_Remaster[song][1].name;
+    }
+    else if (S_music[song][1].name && W_CheckNumForName(S_music[song][1].name) > 0)
+    {
+        // Dedicated
+        name = S_music[song][1].name;
     }
     else
     {
-        mus_lumpnum = (W_GetNumForName(S_music[song][0].name));
+        // Default
+        name = S_music[song][0].name;
     }
-    }
+
+    mus_lumpnum = W_GetNumForName(name);
     
     mus_sndptr = W_CacheLumpNum(mus_lumpnum, PU_MUSIC);
     mus_len = W_LumpLength(mus_lumpnum);

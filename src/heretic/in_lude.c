@@ -121,7 +121,7 @@ typedef struct
     int y;
 } yahpt_t;
 
-static yahpt_t YAHspot[3+2][9] = {
+static yahpt_t YAHspot[3+3][9] = {
     {
      {172, 78},
      {86, 90},
@@ -177,12 +177,25 @@ static yahpt_t YAHspot[3+2][9] = {
      {285, 148},
      {317, 129},
      {178, 94}
+    },
+    // [JN] H+H: Faith Renewed
+    {
+     {194, 85},
+     {248, 128},
+     {138, 138},
+     {138, 101},
+     {77, 118},
+     {42, 82},
+     {94, 85},
+     {96, 49},
+     {171, 42}
     }
 };
 
 static const char *NameForMap(int map)
 {
-    const char *name = LevelNames[(gameepisode - 1) * 9 + map - 1];
+    const char *name = LevelNames[((heretic_fr && gameepisode == 1) ? 48 :
+                                  (gameepisode - 1) * 9) + (map - 1)];
     int skip = 0;
     name = DEH_String(name);
 
@@ -379,7 +392,7 @@ static void IN_LoadUnloadPics(void (*callback)(const char *lumpname,
     switch (gameepisode)
     {
         case 1:
-            callback(DEH_String("MAPE1"), 0, &patchINTERPIC);
+            callback(DEH_String(heretic_fr ? "MAPX1" : "MAPE1"), 0, &patchINTERPIC);
             break;
         case 2:
             callback(DEH_String("MAPE2"), 0, &patchINTERPIC);
@@ -721,35 +734,38 @@ void IN_DrawOldLevel(void)
         V_DrawPatch(0, 0, patchMAPE5_M9);
     }
 
+    const int episode = (heretic_fr && gameepisode == 1) 
+                      ? 5 : (gameepisode - 1);
+
     if (prevmap == 9)
     {
         for (i = 0; i < gamemap - 1; i++)
         {
-            V_DrawPatch(YAHspot[gameepisode - 1][i].x,
-                        YAHspot[gameepisode - 1][i].y, patchBEENTHERE);
+            V_DrawPatch(YAHspot[episode][i].x,
+                        YAHspot[episode][i].y, patchBEENTHERE);
         }
         if (!(intertime & 16))
         {
-            V_DrawPatch(YAHspot[gameepisode - 1][8].x,
-                        YAHspot[gameepisode - 1][8].y, patchBEENTHERE);
+            V_DrawPatch(YAHspot[episode][8].x,
+                        YAHspot[episode][8].y, patchBEENTHERE);
         }
     }
     else
     {
         for (i = 0; i < prevmap - 1; i++)
         {
-            V_DrawPatch(YAHspot[gameepisode - 1][i].x,
-                        YAHspot[gameepisode - 1][i].y, patchBEENTHERE);
+            V_DrawPatch(YAHspot[episode][i].x,
+                        YAHspot[episode][i].y, patchBEENTHERE);
         }
         if (players[consoleplayer].didsecret)
         {
-            V_DrawPatch(YAHspot[gameepisode - 1][8].x,
-                        YAHspot[gameepisode - 1][8].y, patchBEENTHERE);
+            V_DrawPatch(YAHspot[episode][8].x,
+                        YAHspot[episode][8].y, patchBEENTHERE);
         }
         if (!(intertime & 16))
         {
-            V_DrawPatch(YAHspot[gameepisode - 1][prevmap - 1].x,
-                        YAHspot[gameepisode - 1][prevmap - 1].y,
+            V_DrawPatch(YAHspot[episode][prevmap - 1].x,
+                        YAHspot[episode][prevmap - 1].y,
                         patchBEENTHERE);
         }
     }
@@ -779,24 +795,27 @@ void IN_DrawYAH(void)
         V_DrawPatch(0, 0, patchMAPE5_M9);
     }
 
+    const int episode = (heretic_fr && gameepisode == 1) 
+                      ? 5 : (gameepisode - 1);
+
     if (prevmap == 9)
     {
         prevmap = gamemap - 1;
     }
     for (i = 0; i < prevmap; i++)
     {
-        V_DrawPatch(YAHspot[gameepisode - 1][i].x,
-                    YAHspot[gameepisode - 1][i].y, patchBEENTHERE);
+        V_DrawPatch(YAHspot[episode][i].x,
+                    YAHspot[episode][i].y, patchBEENTHERE);
     }
     if (players[consoleplayer].didsecret)
     {
-        V_DrawPatch(YAHspot[gameepisode - 1][8].x,
-                    YAHspot[gameepisode - 1][8].y, patchBEENTHERE);
+        V_DrawPatch(YAHspot[episode][8].x,
+                    YAHspot[episode][8].y, patchBEENTHERE);
     }
     if (!(intertime & 16) || interstate == 3)
     {                           // draw the destination 'X'
-        V_DrawPatch(YAHspot[gameepisode - 1][gamemap - 1].x,
-                    YAHspot[gameepisode - 1][gamemap - 1].y, patchGOINGTHERE);
+        V_DrawPatch(YAHspot[episode][gamemap - 1].x,
+                    YAHspot[episode][gamemap - 1].y, patchGOINGTHERE);
     }
 }
 
