@@ -881,7 +881,7 @@ static void M_DrawScrollPages (int x, int y, int itemOnGlow, const char *pagenum
                             cr[CR_MENU_DARK1],
                                 LINE_ALPHA(itemOnGlow));
 
-    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, NULL));
+    M_snprintf(str, 32, "PAGE %s", pagenum);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), y,
                         cr[CR_MENU_DARK4],
                             cr[CR_MENU_DARK1],
@@ -1047,13 +1047,14 @@ static void M_Draw_ID_Video_1 (void)
     {
         char  width[8];
         char  height[8];
-        const char *resolution;
+        char *resolution;
 
         M_snprintf(width, 8, "%d", (ORIGWIDTH + (WIDESCREENDELTA*2)) * vid_resolution);
         M_snprintf(height, 8, "%d", (ORIGHEIGHT * vid_resolution));
         resolution = M_StringJoin("CURRENT RESOLUTION: ", width, "X", height, NULL);
 
         MN_DrTextACentered(resolution, 125, cr[CR_LIGHTGRAY_DARK]);
+        free(resolution);
     }
 
     // < Scroll pages >
@@ -7410,31 +7411,23 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
 //  [JN] Draw mouse button number as printable string.
 // -----------------------------------------------------------------------------
 
+static char *mouse_button_names[MAX_MOUSE_BUTTONS] = {
+		"LEFT BUTTON",
+		"RIGHT BUTTON",
+		"MIDDLE BUTTON",
+		"WHEEL UP",
+		"WHEEL DOWN",
+		"BUTTON #6",
+		"BUTTON #7",
+		"BUTTON #8"
+};
+
 static char *M_NameMouseBind (int CurrentItPosOn, int btn)
 {
-    if (CurrentItPos == CurrentItPosOn && MouseIsBinding)
-    {
-        return "?";  // Means binding now
-    }
-    else
-    {
-        char  num[8]; 
-        char *other_button;
-
-        M_snprintf(num, 8, "%d", btn + 1);
-        other_button = M_StringJoin("BUTTON #", num, NULL);
-
-        switch (btn)
-        {
-            case -1:  return  "---";            break;  // Means empty
-            case  0:  return  "LEFT BUTTON";    break;
-            case  1:  return  "RIGHT BUTTON";   break;
-            case  2:  return  "MIDDLE BUTTON";  break;
-            case  3:  return  "WHEEL UP";       break;
-            case  4:  return  "WHEEL DOWN";     break;
-            default:  return  other_button;     break;
-        }
-    }
+	if (CurrentItPos == CurrentItPosOn && MouseIsBinding) return "?";  // Means binding now
+	if(btn == -1) return "---"; // Means empty
+	if(btn < MAX_MOUSE_BUTTONS) return mouse_button_names[btn];
+	return "UNKNOWN";
 }
 
 // -----------------------------------------------------------------------------

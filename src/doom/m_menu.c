@@ -1056,7 +1056,7 @@ static void M_DrawScrollPages (int x, int y, int itemOnGlow, const char *pagenum
                             cr[CR_LIGHTGRAY_BRIGHT],
                                 LINE_ALPHA(itemOnGlow));
 
-    M_snprintf(str, 32, "%s", M_StringJoin("PAGE ", pagenum, NULL));
+    M_snprintf(str, 32, "PAGE %s", pagenum);
     M_WriteTextGlow(M_ItemRightAlign(str), y, str,
                         cr[CR_GRAY],
                             cr[CR_GRAY_BRIGHT],
@@ -1271,13 +1271,14 @@ static void M_Draw_ID_Video_1 (void)
     {
         char  width[8];
         char  height[8];
-        const char *resolution;
+        char *resolution;
 
         M_snprintf(width, 8, "%d", (ORIGWIDTH + (WIDESCREENDELTA*2)) * vid_resolution);
         M_snprintf(height, 8, "%d", (ORIGHEIGHT * vid_resolution));
         resolution = M_StringJoin("CURRENT RESOLUTION: ", width, "x", height, NULL);
 
         M_WriteTextCentered(139, resolution, cr[CR_LIGHTGRAY_DARK]);
+        free(resolution);
     }
 
     // < Scroll pages >

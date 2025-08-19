@@ -67,6 +67,8 @@ int snd_MusicVolume = 10;              // maximum volume for music
 static int sfxVolume;
 static int musVolume;
 
+static degenmobj_t dummy_listener;
+
 // [JN] Enforce music replay while changing music system.
 boolean mus_force_replay = false;
 
@@ -251,11 +253,8 @@ void S_StartSound(mobj_t * origin, int sound_id)
     S_StartSoundAtVolume(origin, sound_id, 127);
 }
 
-
 static mobj_t *GetSoundListener(void)
 {
-    static degenmobj_t dummy_listener;
-
     // If we are at the title screen, the console player doesn't have an
     // object yet, so return a pointer to a static dummy listener instead.
 
@@ -352,7 +351,7 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
     #endif
     for (i = 0; i < snd_channels; i++)
     {
-        if (origin != listener && origin->player)
+        if (origin != (mobj_t *)&dummy_listener && origin->player)
         {
             i = snd_channels;
             break;              // let the player have more than one sound.
