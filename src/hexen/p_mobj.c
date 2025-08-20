@@ -32,7 +32,7 @@
 
 // MACROS ------------------------------------------------------------------
 
-#define MAX_TID_COUNT 256
+#define MAX_TID_COUNT 256 * 8 // [PN] Increase TID limit
 
 // TYPES -------------------------------------------------------------------
 
@@ -78,55 +78,10 @@ fixed_t FloatBobOffsets[64] = {
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
-static int     *TIDList    = NULL;
-static mobj_t **TIDMobj    = NULL;
-static int      TIDCapacity = 0; // [PN] Number of VALID slots (excluding the terminator)
-
+static int TIDList[MAX_TID_COUNT + 1];  // +1 for termination marker
+static mobj_t *TIDMobj[MAX_TID_COUNT];
 
 // CODE --------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// TIDList_EnsureCapacity
-//  [PN] Ensures the TID list has enough capacity for 'needed_slots'.
-//  If the current limit is reached, the buffers are reallocated
-//  with doubled size. Keeps existing data and preserves the
-//  termination marker in TIDList.
-// -----------------------------------------------------------------------------
-
-static void TIDList_EnsureCapacity (int needed_slots)
-{
-    if (TIDCapacity >= needed_slots)
-        return;
-
-    int newcap = TIDCapacity ? TIDCapacity : MAX_TID_COUNT;
-    while (newcap < needed_slots)
-        newcap *= 2;
-
-    // +1 slot for the termination marker in TIDList
-    int     *newList = Z_Malloc(sizeof(*newList) * (newcap + 1), PU_LEVEL, NULL);
-    mobj_t **newMobj = Z_Malloc(sizeof(*newMobj) *  newcap,      PU_LEVEL, NULL);
-
-    if (TIDCapacity > 0)
-    {
-        // Сopy old data including the termination marker
-        memcpy(newList, TIDList, sizeof(*newList) * (TIDCapacity + 1));
-        memcpy(newMobj, TIDMobj, sizeof(*newMobj) *  TIDCapacity);
-    }
-    else
-    {
-        // Initial setup
-        newList[0] = 0;
-    }
-
-    // Old buffers in PU_LEVEL would be freed automatically on level change,
-    // but we free them here explicitly for cleanliness.
-    if (TIDList)  Z_Free(TIDList);
-    if (TIDMobj)  Z_Free(TIDMobj);
-
-    TIDList     = newList;
-    TIDMobj     = newMobj;
-    TIDCapacity = newcap;
-}
 
 //==========================================================================
 //
@@ -1766,8 +1721,6 @@ void P_CreateTIDList(void)
     mobj_t *mobj;
     thinker_t *t;
 
-    // [PN] Ensure initial capacity and reset the list
-    TIDList_EnsureCapacity(1);
     i = 0;
     for (t = thinkercap.next; t != &thinkercap; t = t->next)
     {                           // Search all current thinkers
@@ -1778,7 +1731,11 @@ void P_CreateTIDList(void)
         mobj = (mobj_t *) t;
         if (mobj->tid != 0)
         {                       // Add to list
-            TIDList_EnsureCapacity(i + 1);
+            if (i == MAX_TID_COUNT)
+            {
+                I_Error("P_CreateTIDList: MAX_TID_COUNT (%d) exceeded.",
+                        MAX_TID_COUNT);
+            }
             TIDList[i] = mobj->tid;
             TIDMobj[i++] = mobj;
         }
@@ -1798,13 +1755,6 @@ void P_InsertMobjIntoTIDList(mobj_t * mobj, int tid)
     int i;
     int index;
 
-    // [PN] For very early calls before P_CreateTIDList
-    if (!TIDList)
-    {
-        TIDList_EnsureCapacity(1);
-        TIDList[0] = 0;
-    }
-
     index = -1;
     for (i = 0; TIDList[i] != 0; i++)
     {
@@ -1816,8 +1766,11 @@ void P_InsertMobjIntoTIDList(mobj_t * mobj, int tid)
     }
     if (index == -1)
     {                           // Append required
-        // [PN] Need space for a new element + the terminator
-        TIDList_EnsureCapacity(i + 1);
+        if (i == MAX_TID_COUNT)
+        {
+            I_Error("P_InsertMobjIntoTIDList: MAX_TID_COUNT (%d)"
+                    "exceeded.", MAX_TID_COUNT);
+        }
         index = i;
         TIDList[index + 1] = 0;
     }
@@ -1835,13 +1788,6 @@ void P_InsertMobjIntoTIDList(mobj_t * mobj, int tid)
 void P_RemoveMobjFromTIDList(mobj_t * mobj)
 {
     int i;
-
-    // [PN] Guard against calls before the TID list is initialized
-    if (!TIDList)
-    {
-        mobj->tid = 0;
-        return;
-    }
 
     for (i = 0; TIDList[i] != 0; i++)
     {
@@ -1865,13 +1811,6 @@ void P_RemoveMobjFromTIDList(mobj_t * mobj)
 mobj_t *P_FindMobjFromTID(int tid, int *searchPosition)
 {
     int i;
-
-    // [PN] Guard against calls before the TID list is initialized
-    if (!TIDList)
-    {
-        *searchPosition = -1;
-        return NULL;
-    }
 
     for (i = *searchPosition + 1; TIDList[i] != 0; i++)
     {
