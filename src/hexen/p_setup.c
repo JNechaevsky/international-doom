@@ -219,12 +219,12 @@ static void P_LoadSegs(int lump)
     li = segs;
     for (i = 0; i < numsegs; i++, li++, ml++)
     {
-        li->v1 = &vertexes[SHORT(ml->v1)];
-        li->v2 = &vertexes[SHORT(ml->v2)];
+        li->v1 = &vertexes[(unsigned short)SHORT(ml->v1)]; // [crispy] extended nodes
+        li->v2 = &vertexes[(unsigned short)SHORT(ml->v2)]; // [crispy] extended nodes
 
         li->angle = (SHORT(ml->angle)) << 16;
         li->offset = (SHORT(ml->offset)) << 16;
-        line_def = SHORT(ml->linedef);
+        line_def = (unsigned short)SHORT(ml->linedef); // [crispy] extended nodes
         ldef = &lines[line_def];
         li->linedef = ldef;
         side = SHORT(ml->side);
@@ -303,8 +303,8 @@ static void P_LoadSubsectors(int lump)
     ss = subsectors;
     for (i = 0; i < numsubsectors; i++, ss++, ms++)
     {
-        ss->numlines = SHORT(ms->numsegs);
-        ss->firstline = SHORT(ms->firstseg);
+        ss->numlines = (unsigned short)SHORT(ms->numsegs); // [crispy] extended nodes
+        ss->firstline = (unsigned short)SHORT(ms->firstseg); // [crispy] extended nodes
     }
 
     W_ReleaseLumpNum(lump);
@@ -394,7 +394,21 @@ static void P_LoadNodes(int lump)
         no->dy = SHORT(mn->dy) << FRACBITS;
         for (j = 0; j < 2; j++)
         {
-            no->children[j] = SHORT(mn->children[j]);
+            no->children[j] = (unsigned short)SHORT(mn->children[j]); // [crispy] extended nodes
+            
+            // [crispy] support for extended nodes
+            if (no->children[j] == NO_INDEX)
+            no->children[j] = -1;
+            else
+            if (no->children[j] & NF_SUBSECTOR_VANILLA)
+            {
+            no->children[j] &= ~NF_SUBSECTOR_VANILLA;
+            
+            if (no->children[j] >= numsubsectors)
+                no->children[j] = 0;
+            
+            no->children[j] |= NF_SUBSECTOR;
+            }
             for (k = 0; k < 4; k++)
                 no->bbox[j][k] = SHORT(mn->bbox[j][k]) << FRACBITS;
         }
@@ -496,7 +510,7 @@ static void P_LoadLineDefs(int lump)
     ld = lines;
     for (i = 0; i < numlines; i++, mld++, ld++)
     {
-        ld->flags = SHORT(mld->flags);
+        ld->flags = (unsigned short)SHORT(mld->flags); // [crispy] extended nodes
 
         // Old line special info ...
         //ld->special = SHORT(mld->special);
@@ -510,8 +524,8 @@ static void P_LoadLineDefs(int lump)
         ld->arg4 = mld->arg4;
         ld->arg5 = mld->arg5;
 
-        v1 = ld->v1 = &vertexes[SHORT(mld->v1)];
-        v2 = ld->v2 = &vertexes[SHORT(mld->v2)];
+        v1 = ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)]; // [crispy] extended nodes
+        v2 = ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)]; // [crispy] extended nodes
         ld->dx = v2->x - v1->x;
         ld->dy = v2->y - v1->y;
         if (!ld->dx)
@@ -548,11 +562,11 @@ static void P_LoadLineDefs(int lump)
         }
         ld->sidenum[0] = SHORT(mld->sidenum[0]);
         ld->sidenum[1] = SHORT(mld->sidenum[1]);
-        if (ld->sidenum[0] != -1)
+        if (ld->sidenum[0] != NO_INDEX) // [crispy] extended nodes
             ld->frontsector = sides[ld->sidenum[0]].sector;
         else
             ld->frontsector = 0;
-        if (ld->sidenum[1] != -1)
+        if (ld->sidenum[1] != NO_INDEX) // [crispy] extended nodes
             ld->backsector = sides[ld->sidenum[1]].sector;
         else
             ld->backsector = 0;
@@ -674,8 +688,11 @@ static void P_GroupLines(void)
     total = 0;
     for (i = 0; i < numlines; i++, li++)
     {
-        total++;
-        li->frontsector->linecount++;
+        if (li->frontsector)  // [JN] H+H: Fix possible line miscounting.
+        {
+            li->frontsector->linecount++;
+            total++;
+        }
         if (li->backsector && li->backsector != li->frontsector)
         {
             li->backsector->linecount++;

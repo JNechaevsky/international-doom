@@ -262,7 +262,7 @@ void P_LineOpening(line_t * linedef)
     const sector_t *front;
     const sector_t *back;
 
-    if (linedef->sidenum[1] == -1)
+    if (linedef->sidenum[1] == NO_INDEX) // [crispy] extended nodes
     {                           // single sided line
         openrange = 0;
         return;
