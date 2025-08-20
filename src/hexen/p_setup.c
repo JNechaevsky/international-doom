@@ -30,6 +30,10 @@
 #include "s_sound.h"
 #include "p_local.h"
 
+// [crispy] support maps with compressed ZDBSP nodes
+// [JN] Support via MINIZ library, thanks Leonid Murin (Dasperal).
+#include "miniz.h"
+
 // MACROS ------------------------------------------------------------------
 
 #define MAPINFO_SCRIPT_NAME "MAPINFO"
@@ -107,8 +111,8 @@ int numlines;
 line_t *lines;
 int numsides;
 side_t *sides;
-short *blockmaplump;            // offsets in blockmap are from here
-short *blockmap;
+int32_t *blockmaplump;            // offsets in blockmap are from here
+int32_t *blockmap;
 int bmapwidth, bmapheight;      // in mapblocks
 fixed_t bmaporgx, bmaporgy;     // origin of block map
 mobj_t **blocklinks;            // for thing chains
@@ -155,7 +159,458 @@ static int MapCmdIDs[] = {
 
 static int cd_NonLevelTracks[6];        // Non-level specific song cd track numbers 
 
+typedef enum
+{
+    MFMT_DOOMBSP = 0x000,
+    MFMT_DEEPBSP = 0x001,
+    MFMT_ZDBSPX  = 0x002,
+    MFMT_ZDBSPZ  = 0x004,
+    MFMT_HEXEN   = 0x100,
+} mapformat_t;
+
 // CODE --------------------------------------------------------------------
+
+// [crispy] recalculate seg offsets
+// adapted from prboom-plus/src/p_setup.c:474-482
+static fixed_t GetOffset(const vertex_t *v1, const vertex_t *v2)
+{
+    fixed_t dx, dy;
+    fixed_t r;
+
+    dx = (v1->x - v2->x)>>FRACBITS;
+    dy = (v1->y - v2->y)>>FRACBITS;
+    r = (fixed_t)(sqrt(dx*dx + dy*dy))<<FRACBITS;
+
+    return r;
+}
+
+// [crispy] support maps with NODES in compressed or uncompressed ZDBSP
+// format or DeePBSP format and/or LINEDEFS and THINGS lumps in Hexen format
+static mapformat_t P_CheckMapFormat(int lumpnum)
+{
+    mapformat_t format = 0;
+    const byte *chk_nodes = NULL;
+    int b;
+
+    if ((b = lumpnum+ML_BLOCKMAP+1) < numlumps &&
+        !strncasecmp(lumpinfo[b]->name, "BEHAVIOR", 8))
+    {
+	fprintf(stderr, "Hexen format (");
+	format |= MFMT_HEXEN;
+    }
+    else
+	fprintf(stderr, "Doom format (");
+
+    if (!((b = lumpnum+ML_NODES) < numlumps &&
+        (chk_nodes = W_CacheLumpNum(b, PU_CACHE)) &&
+        W_LumpLength(b) > 0))
+	fprintf(stderr, "no nodes");
+    else
+    if (!memcmp(chk_nodes, "xNd4\0\0\0\0", 8))
+    {
+	fprintf(stderr, "DeePBSP");
+	format |= MFMT_DEEPBSP;
+    }
+    else
+    if (!memcmp(chk_nodes, "XNOD", 4))
+    {
+	fprintf(stderr, "ZDBSP");
+	format |= MFMT_ZDBSPX;
+    }
+    else
+    if (!memcmp(chk_nodes, "ZNOD", 4))
+    {
+	fprintf(stderr, "compressed ZDBSP");
+	format |= MFMT_ZDBSPZ;
+    }
+    else
+	fprintf(stderr, "BSP");
+
+    fprintf(stderr, "), ");
+
+    if (chk_nodes)
+    {
+        W_ReleaseLumpNum(b);
+    }
+
+    return format;
+}
+
+// [crispy] support maps with DeePBSP nodes
+// adapted from prboom-plus/src/p_setup.c:633-752
+static void P_LoadSegs_DeePBSP(int lump)
+{
+    int i;
+    mapseg_deepbsp_t *data;
+
+    numsegs = W_LumpLength(lump) / sizeof(mapseg_deepbsp_t);
+    segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
+    data = (mapseg_deepbsp_t *)W_CacheLumpNum(lump, PU_STATIC);
+
+    for (i = 0; i < numsegs; i++)
+    {
+        seg_t *li = segs + i;
+        mapseg_deepbsp_t *ml = data + i;
+        int side, line_def;
+        line_t *ldef;
+        int vn1, vn2;
+
+        // [MB] 2020-04-30: Fix endianess for DeePBSDP V4 nodes
+        vn1 = LONG(ml->v1);
+        vn2 = LONG(ml->v2);
+
+        li->v1 = &vertexes[vn1];
+        li->v2 = &vertexes[vn2];
+
+        li->angle = (SHORT(ml->angle))<<FRACBITS;
+
+    //  li->offset = (SHORT(ml->offset))<<FRACBITS; // [crispy] recalculated below
+        line_def = (unsigned short)SHORT(ml->linedef);
+        ldef = &lines[line_def];
+        li->linedef = ldef;
+        side = SHORT(ml->side);
+
+        // e6y: check for wrong indexes
+        if ((unsigned)line_def >= (unsigned)numlines)
+        {
+            I_Error("P_LoadSegs: seg %d references a non-existent linedef %d",
+                i, (unsigned)line_def);
+        }
+        if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
+        {
+            I_Error("P_LoadSegs: linedef %d for seg %d references a non-existent sidedef %d",
+                line_def, i, (unsigned)ldef->sidenum[side]);
+        }
+
+        li->sidedef = &sides[ldef->sidenum[side]];
+        li->frontsector = sides[ldef->sidenum[side]].sector;
+        // [crispy] recalculate
+        li->offset = GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
+
+        if (ldef->flags & ML_TWOSIDED)
+            li->backsector = sides[ldef->sidenum[side ^ 1]].sector;
+        else
+            li->backsector = 0;
+    }
+
+    W_ReleaseLumpNum(lump);
+}
+
+// [crispy] support maps with DeePBSP nodes
+// adapted from prboom-plus/src/p_setup.c:843-863
+static void P_LoadSubsectors_DeePBSP(int lump)
+{
+    mapsubsector_deepbsp_t *data;
+    int i;
+
+    numsubsectors = W_LumpLength(lump) / sizeof(mapsubsector_deepbsp_t);
+    subsectors = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
+    data = (mapsubsector_deepbsp_t *)W_CacheLumpNum(lump, PU_STATIC);
+
+    // [crispy] fail on missing subsectors
+    if (!data || !numsubsectors)
+        I_Error("P_LoadSubsectors: No subsectors in map!");
+
+    for (i = 0; i < numsubsectors; i++)
+    {
+        // [MB] 2020-04-30: Fix endianess for DeePBSDP V4 nodes
+        subsectors[i].numlines = (unsigned short)SHORT(data[i].numsegs);
+        subsectors[i].firstline = LONG(data[i].firstseg);
+    }
+
+    W_ReleaseLumpNum(lump);
+}
+// [crispy] support maps with DeePBSP nodes
+// adapted from prboom-plus/src/p_setup.c:995-1038
+static void P_LoadNodes_DeePBSP(int lump)
+{
+    const byte *data;
+    int i;
+
+    numnodes = (W_LumpLength (lump) - 8) / sizeof(mapnode_deepbsp_t);
+    nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
+    data = W_CacheLumpNum (lump, PU_STATIC);
+
+    // [crispy] warn about missing nodes
+    if (!data || !numnodes)
+    {
+        if (numsubsectors == 1)
+            fprintf(stderr, "P_LoadNodes: No nodes in map, but only one subsector.\n");
+        else
+            I_Error("P_LoadNodes: No nodes in map!");
+    }
+
+    // skip header
+    data += 8;
+
+    for (i = 0; i < numnodes; i++)
+    {
+        node_t *no = nodes + i;
+        const mapnode_deepbsp_t *mn = (const mapnode_deepbsp_t *) data + i;
+        int j;
+
+        no->x = SHORT(mn->x)<<FRACBITS;
+        no->y = SHORT(mn->y)<<FRACBITS;
+        no->dx = SHORT(mn->dx)<<FRACBITS;
+        no->dy = SHORT(mn->dy)<<FRACBITS;
+
+        for (j = 0; j < 2; j++)
+        {
+            int k;
+            // [MB] 2020-04-30: Fix endianess for DeePBSDP V4 nodes
+            no->children[j] = LONG(mn->children[j]);
+
+            for (k = 0; k < 4; k++)
+                no->bbox[j][k] = SHORT(mn->bbox[j][k])<<FRACBITS;
+        }
+    }
+
+  W_ReleaseLumpNum(lump);
+}
+
+// [crispy] support maps with compressed or uncompressed ZDBSP nodes
+// adapted from prboom-plus/src/p_setup.c:1040-1331
+// heavily modified, condensed and simplyfied
+// - removed most paranoid checks, brought in line with Vanilla P_LoadNodes()
+// - removed const type punning pointers
+// - inlined P_LoadZSegs()
+// - added support for compressed ZDBSP nodes
+// - added support for flipped levels
+// [MB] 2020-04-30: Fix endianess for ZDoom extended nodes
+static void P_LoadNodes_ZDBSP (int lump, boolean compressed)
+{
+    byte *data;
+    unsigned int i;
+    byte *output;
+
+    unsigned int orgVerts, newVerts;
+    unsigned int numSubs, currSeg;
+    unsigned int numSegs;
+    unsigned int numNodes;
+    vertex_t *newvertarray = NULL;
+
+    data = W_CacheLumpNum(lump, PU_LEVEL);
+
+    // 0. Uncompress nodes lump (or simply skip header)
+
+    if (compressed)
+    {
+        const int len =  W_LumpLength(lump);
+        int outlen, err;
+        z_stream *zstream;
+
+        // first estimate for compression rate:
+        // output buffer size == 2.5 * input size
+        outlen = 2.5 * len;
+        output = Z_Malloc(outlen, PU_STATIC, 0);
+
+        // initialize stream state for decompression
+        zstream = malloc(sizeof(*zstream));
+        memset(zstream, 0, sizeof(*zstream));
+        zstream->next_in = data + 4;
+        zstream->avail_in = len - 4;
+        zstream->next_out = output;
+        zstream->avail_out = outlen;
+
+        if (inflateInit(zstream) != Z_OK)
+            I_Error("P_LoadNodes: Error during ZDBSP nodes decompression initialization!");
+
+        // resize if output buffer runs full
+        while ((err = inflate(zstream, Z_SYNC_FLUSH)) == Z_OK)
+        {
+            int outlen_old = outlen;
+            outlen = 2 * outlen_old;
+            output = I_Realloc(output, outlen);
+            zstream->next_out = output + outlen_old;
+            zstream->avail_out = outlen - outlen_old;
+        }
+
+        if (err != Z_STREAM_END)
+            I_Error("P_LoadNodes: Error during ZDBSP nodes decompression!");
+
+        fprintf(stderr, "P_LoadNodes: ZDBSP nodes compression ratio %.3f\n",
+                (float)zstream->total_out/zstream->total_in);
+
+        data = output;
+
+        if (inflateEnd(zstream) != Z_OK)
+            I_Error("P_LoadNodes: Error during ZDBSP nodes decompression shut-down!");
+
+        // release the original data lump
+        W_ReleaseLumpNum(lump);
+        free(zstream);
+    }
+    else
+    {
+        // skip header
+        data += 4;
+	// [JN] Shut up compiler warning.
+	output = 0;
+    }
+
+    // 1. Load new vertices added during node building
+
+    orgVerts = LONG(*((unsigned int*)data));
+    data += sizeof(orgVerts);
+
+    newVerts = LONG(*((unsigned int*)data));
+    data += sizeof(newVerts);
+
+    if (orgVerts + newVerts == (unsigned int)numvertexes)
+    {
+        newvertarray = vertexes;
+    }
+    else
+    {
+        newvertarray = Z_Malloc((orgVerts + newVerts) * sizeof(vertex_t), PU_LEVEL, 0);
+        memcpy(newvertarray, vertexes, orgVerts * sizeof(vertex_t));
+        memset(newvertarray + orgVerts, 0, newVerts * sizeof(vertex_t));
+    }
+
+    for (i = 0; i < newVerts; i++)
+    {
+        newvertarray[i + orgVerts].r_x =
+        newvertarray[i + orgVerts].x = LONG(*((unsigned int*)data));
+        data += sizeof(newvertarray[0].x);
+
+        newvertarray[i + orgVerts].r_y =
+        newvertarray[i + orgVerts].y = LONG(*((unsigned int*)data));
+        data += sizeof(newvertarray[0].y);
+    }
+
+    if (vertexes != newvertarray)
+    {
+        for (i = 0; i < (unsigned int)numlines; i++)
+        {
+            lines[i].v1 = lines[i].v1 - vertexes + newvertarray;
+            lines[i].v2 = lines[i].v2 - vertexes + newvertarray;
+        }
+
+        Z_Free(vertexes);
+        vertexes = newvertarray;
+        numvertexes = orgVerts + newVerts;
+    }
+
+    // 2. Load subsectors
+
+    numSubs = LONG(*((unsigned int*)data));
+    data += sizeof(numSubs);
+
+    if (numSubs < 1)
+        I_Error("P_LoadNodes: No subsectors in map!");
+
+    numsubsectors = numSubs;
+    subsectors = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
+
+    for (i = currSeg = 0; i < numsubsectors; i++)
+    {
+        mapsubsector_zdbsp_t *mseg = (mapsubsector_zdbsp_t*) data + i;
+
+        subsectors[i].firstline = currSeg;
+        subsectors[i].numlines = LONG(mseg->numsegs);
+        subsectors[i].poly = NULL;
+        currSeg += LONG(mseg->numsegs);
+    }
+
+    data += numsubsectors * sizeof(mapsubsector_zdbsp_t);
+
+    // 3. Load segs
+
+    numSegs = LONG(*((unsigned int*)data));
+    data += sizeof(numSegs);
+
+    // The number of stored segs should match the number of segs used by subsectors
+    if (numSegs != currSeg)
+    {
+        I_Error("P_LoadNodes: Incorrect number of segs in ZDBSP nodes!");
+    }
+
+    numsegs = numSegs;
+    segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
+
+    for (i = 0; i < numsegs; i++)
+    {
+        line_t *ldef;
+        unsigned int line_def;
+        unsigned char side;
+        seg_t *li = segs + i;
+        mapseg_zdbsp_t *ml = (mapseg_zdbsp_t *) data + i;
+        unsigned int v1, v2;
+
+        v1 = LONG(ml->v1);
+        v2 = LONG(ml->v2);
+        li->v1 = &vertexes[v1];
+        li->v2 = &vertexes[v2];
+
+        line_def = (unsigned short)SHORT(ml->linedef);
+        ldef = &lines[line_def];
+        li->linedef = ldef;
+        side = ml->side;
+
+        // e6y: check for wrong indexes
+        if ((unsigned)line_def >= (unsigned)numlines)
+        {
+            I_Error("P_LoadSegs: seg %d references a non-existent linedef %d",
+                i, (unsigned)line_def);
+        }
+        if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
+        {
+            I_Error("P_LoadSegs: linedef %d for seg %d references a non-existent sidedef %d",
+                line_def, i, (unsigned)ldef->sidenum[side]);
+        }
+
+        li->sidedef = &sides[ldef->sidenum[side]];
+        li->frontsector = sides[ldef->sidenum[side]].sector;
+
+        // seg angle and offset are not included
+        li->angle = R_PointToAngle2(segs[i].v1->x, segs[i].v1->y, segs[i].v2->x, segs[i].v2->y);
+        li->offset = GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
+
+        if (ldef->flags & ML_TWOSIDED)
+            li->backsector = sides[ldef->sidenum[side ^ 1]].sector;
+        else
+            li->backsector = 0;
+    }
+
+    data += numsegs * sizeof(mapseg_zdbsp_t);
+
+    // 4. Load nodes
+
+    numNodes = LONG(*((unsigned int*)data));
+    data += sizeof(numNodes);
+
+    numnodes = numNodes;
+    nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
+
+    for (i = 0; i < numnodes; i++)
+    {
+        int j, k;
+        node_t *no = nodes + i;
+        mapnode_zdbsp_t *mn = (mapnode_zdbsp_t *) data + i;
+
+        no->x = SHORT(mn->x)<<FRACBITS;
+        no->y = SHORT(mn->y)<<FRACBITS;
+        no->dx = SHORT(mn->dx)<<FRACBITS;
+        no->dy = SHORT(mn->dy)<<FRACBITS;
+
+        for (j = 0; j < 2; j++)
+        {
+            no->children[j] = LONG(mn->children[j]);
+
+            for (k = 0; k < 4; k++)
+                no->bbox[j][k] = SHORT(mn->bbox[j][k])<<FRACBITS;
+        }
+    }
+
+    if (compressed)
+    {
+        Z_Free(output);
+    }
+    else
+    {
+        W_ReleaseLumpNum(lump);
+    }
+}
 
 /*
 =================
@@ -619,23 +1074,42 @@ static void P_LoadSideDefs(int lump)
 =================
 */
 
-static void P_LoadBlockMap(int lump)
+static boolean P_LoadBlockMap(int lump)
 {
     int i, count;
     int lumplen;
+    short *wadblockmaplump;
 
-    lumplen = W_LumpLength(lump);
+    // [crispy] (re-)create BLOCKMAP if necessary
+    if (M_CheckParm("-blockmap") ||
+        lump >= numlumps ||
+        (lumplen = W_LumpLength(lump)) < 8 ||
+        (count = lumplen / 2) >= 0x10000)
+    {
+	return false;
+    }
 
-    blockmaplump = Z_Malloc(lumplen, PU_LEVEL, NULL);
-    W_ReadLump(lump, blockmaplump);
+    // [crispy] remove BLOCKMAP limit
+    wadblockmaplump = Z_Malloc(lumplen, PU_LEVEL, NULL);
+    W_ReadLump(lump, wadblockmaplump);
+    blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, NULL);
     blockmap = blockmaplump + 4;
+
+    blockmaplump[0] = SHORT(wadblockmaplump[0]);
+    blockmaplump[1] = SHORT(wadblockmaplump[1]);
+    blockmaplump[2] = (int32_t)(SHORT(wadblockmaplump[2])) & 0xffff;
+    blockmaplump[3] = (int32_t)(SHORT(wadblockmaplump[3])) & 0xffff;
 
     // Swap all short integers to native byte ordering:
 
-    count = lumplen / 2;
+    // count = lumplen / 2; // [crispy] moved up
+    for (i = 4; i < count; i++)
+    {
+        short t = SHORT(wadblockmaplump[i]);
+        blockmaplump[i] = (t == -1) ? -1l : (int32_t) t & 0xffff;
+    }
 
-    for (i = 0; i < count; i++)
-        blockmaplump[i] = SHORT(blockmaplump[i]);
+    Z_Free(wadblockmaplump);
 
     bmaporgx = blockmaplump[0] << FRACBITS;
     bmaporgy = blockmaplump[1] << FRACBITS;
@@ -647,9 +1121,186 @@ static void P_LoadBlockMap(int lump)
     count = sizeof(*blocklinks) * bmapwidth * bmapheight;
     blocklinks = Z_Malloc(count, PU_LEVEL, 0);
     memset(blocklinks, 0, count);
+
+    return true;
 }
 
+// -----------------------------------------------------------------------------
+// P_CreateBlockMap
+// [crispy] taken from mbfsrc/P_SETUP.C:547-707, slightly adapted
+// -----------------------------------------------------------------------------
 
+static void P_CreateBlockMap (void)
+{
+    int i;
+    fixed_t minx = INT_MAX, miny = INT_MAX, maxx = INT_MIN, maxy = INT_MIN;
+
+    // First find limits of map
+
+    for (i=0; i<numvertexes; i++)
+    {
+        if (vertexes[i].x >> FRACBITS < minx)
+        {
+            minx = vertexes[i].x >> FRACBITS;
+        }
+        else if (vertexes[i].x >> FRACBITS > maxx)
+        {
+            maxx = vertexes[i].x >> FRACBITS;
+        }
+        if (vertexes[i].y >> FRACBITS < miny)
+        {
+            miny = vertexes[i].y >> FRACBITS;
+        }
+        else if (vertexes[i].y >> FRACBITS > maxy)
+        {
+            maxy = vertexes[i].y >> FRACBITS;
+        }
+    }
+
+    // Save blockmap parameters
+
+    bmaporgx = minx << FRACBITS;
+    bmaporgy = miny << FRACBITS;
+    bmapwidth  = ((maxx-minx) >> MAPBTOFRAC) + 1;
+    bmapheight = ((maxy-miny) >> MAPBTOFRAC) + 1;
+
+    // Compute blockmap, which is stored as a 2d array of variable-sized lists.
+    //
+    // Pseudocode:
+    //
+    // For each linedef:
+    //
+    //   Map the starting and ending vertices to blocks.
+    //
+    //   Starting in the starting vertex's block, do:
+    //
+    //     Add linedef to current block's list, dynamically resizing it.
+    //
+    //     If current block is the same as the ending vertex's block, exit loop.
+    //
+    //     Move to an adjacent block by moving towards the ending block in
+    //     either the x or y direction, to the block which contains the linedef.
+
+    {
+        typedef struct { int n, nalloc, *list; } bmap_t;  // blocklist structure
+        unsigned tot = bmapwidth * bmapheight;            // size of blockmap
+        bmap_t *bmap = calloc(sizeof *bmap, tot);         // array of blocklists
+        int x, y, adx, ady, bend;
+
+        for (i=0; i < numlines; i++)
+        {
+            int dx, dy, diff, b;
+
+            // starting coordinates
+            x = (lines[i].v1->x >> FRACBITS) - minx;
+            y = (lines[i].v1->y >> FRACBITS) - miny;
+
+            // x-y deltas
+            adx = lines[i].dx >> FRACBITS, dx = adx < 0 ? -1 : 1;
+            ady = lines[i].dy >> FRACBITS, dy = ady < 0 ? -1 : 1;
+
+            // difference in preferring to move across y (>0) instead of x (<0)
+            diff = !adx ? 1 : !ady ? -1 :
+            (((x >> MAPBTOFRAC) << MAPBTOFRAC) +
+            (dx > 0 ? MAPBLOCKUNITS-1 : 0) - x) * (ady = abs(ady)) * dx -
+            (((y >> MAPBTOFRAC) << MAPBTOFRAC) +
+            (dy > 0 ? MAPBLOCKUNITS-1 : 0) - y) * (adx = abs(adx)) * dy;
+
+            // starting block, and pointer to its blocklist structure
+            b = (y >> MAPBTOFRAC)*bmapwidth + (x >> MAPBTOFRAC);
+
+            // ending block
+            bend = (((lines[i].v2->y >> FRACBITS) - miny) >> MAPBTOFRAC)
+                 * bmapwidth + (((lines[i].v2->x >> FRACBITS) - minx) >> MAPBTOFRAC);
+
+            // delta for pointer when moving across y
+            dy *= bmapwidth;
+
+            // deltas for diff inside the loop
+            adx <<= MAPBTOFRAC;
+            ady <<= MAPBTOFRAC;
+
+            // Now we simply iterate block-by-block until we reach the end block.
+            while ((unsigned) b < tot)    // failsafe -- should ALWAYS be true
+            {
+                // Increase size of allocated list if necessary
+                if (bmap[b].n >= bmap[b].nalloc)
+                    bmap[b].list = I_Realloc(bmap[b].list,
+                   (bmap[b].nalloc = bmap[b].nalloc ?
+                    bmap[b].nalloc*2 : 8)*sizeof*bmap->list);
+
+                // Add linedef to end of list
+                bmap[b].list[bmap[b].n++] = i;
+
+                // If we have reached the last block, exit
+                if (b == bend)
+                {
+                    break;
+                }
+
+                // Move in either the x or y direction to the next block
+                if (diff < 0)
+                {
+                    diff += ady, b += dx;
+                }
+                else
+                {
+                    diff -= adx, b += dy;
+                }
+            }
+        }
+
+        // Compute the total size of the blockmap.
+        //
+        // Compression of empty blocks is performed by reserving two offset words
+        // at tot and tot+1.
+        //
+        // 4 words, unused if this routine is called, are reserved at the start.
+
+        {
+            int count = tot+6;  // we need at least 1 word per block, plus reserved's
+        
+            for (unsigned int t = 0; t < tot; t++)
+                if (bmap[t].n)
+                    count += bmap[t].n + 2; // 1 header word + 1 trailer word + blocklist
+        
+            // Allocate blockmap lump with computed count
+            blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
+        }
+
+        // Now compress the blockmap.
+        {
+            int ndx = tot += 4;         // Advance index to start of linedef lists
+            bmap_t *bp = bmap;          // Start of uncompressed blockmap
+
+            blockmaplump[ndx++] = 0;    // Store an empty blockmap list at start
+            blockmaplump[ndx++] = -1;   // (Used for compression)
+
+            for (unsigned int t = 4; t < tot; t++, bp++)
+                if (bp->n)                                      // Non-empty blocklist
+                {
+                    blockmaplump[blockmaplump[t] = ndx++] = 0;  // Store index & header
+                    do
+                    blockmaplump[ndx++] = bp->list[--bp->n];    // Copy linedef list
+                    while (bp->n);
+                    blockmaplump[ndx++] = -1;                   // Store trailer
+                    free(bp->list);                             // Free linedef list
+                }
+                else            // Empty blocklist: point to reserved empty blocklist
+                blockmaplump[t] = tot;
+        
+            free(bmap);    // Free uncompressed blockmap
+        }
+    }
+
+    // [crispy] copied over from P_LoadBlockMap()
+    {
+        int count = sizeof(*blocklinks) * bmapwidth * bmapheight;
+        blocklinks = Z_Malloc(count, PU_LEVEL, 0);
+        memset(blocklinks, 0, count);
+        blockmap = blockmaplump+4;
+    }
+}
 
 
 /*
@@ -880,6 +1531,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     char lumpname[9];
     int lumpnum;
     mobj_t *mobj;
+    boolean	crispy_validblockmap;
+    mapformat_t crispy_mapformat;
     // [JN] CRL - indicate level loading time in console.
     const int starttime = I_GetTimeMS();
 
@@ -919,6 +1572,9 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     M_snprintf(lumpname, sizeof(lumpname), "MAP%02d", map);
     lumpnum = W_GetNumForName(lumpname);
 
+    // [crispy] check and log map and nodes format
+    crispy_mapformat = P_CheckMapFormat(lumpnum);
+
     maplumpinfo = lumpinfo[lumpnum];
 
     // [JN] Indicate the map we are loading.
@@ -928,14 +1584,35 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     // Begin processing map lumps
     // Note: most of this ordering is important
     //
-    P_LoadBlockMap(lumpnum + ML_BLOCKMAP);
+    crispy_validblockmap = P_LoadBlockMap (lumpnum+ML_BLOCKMAP); // [crispy] (re-)create BLOCKMAP if necessary
     P_LoadVertexes(lumpnum + ML_VERTEXES);
     P_LoadSectors(lumpnum + ML_SECTORS);
     P_LoadSideDefs(lumpnum + ML_SIDEDEFS);
     P_LoadLineDefs(lumpnum + ML_LINEDEFS);
+
+    // [crispy] (re-)create BLOCKMAP if necessary
+    if (!crispy_validblockmap)
+    {
+        P_CreateBlockMap();
+    }
+
+    if (crispy_mapformat & (MFMT_ZDBSPX | MFMT_ZDBSPZ))
+    {
+        P_LoadNodes_ZDBSP(lumpnum + ML_NODES, crispy_mapformat & MFMT_ZDBSPZ);
+    }
+    else if (crispy_mapformat & MFMT_DEEPBSP)
+    {
+        P_LoadSubsectors_DeePBSP(lumpnum + ML_SSECTORS);
+        P_LoadNodes_DeePBSP(lumpnum + ML_NODES);
+        P_LoadSegs_DeePBSP(lumpnum + ML_SEGS);
+    }
+    else
+    {
     P_LoadSubsectors(lumpnum + ML_SSECTORS);
     P_LoadNodes(lumpnum + ML_NODES);
     P_LoadSegs(lumpnum + ML_SEGS);
+    }
+
     rejectmatrix = W_CacheLumpNum(lumpnum + ML_REJECT, PU_LEVEL);
     P_GroupLines();
 

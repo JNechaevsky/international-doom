@@ -59,7 +59,7 @@ add_library(hexen STATIC
                                 xddefs.h)
 
 target_include_directories(hexen PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../")
-target_link_libraries(hexen SDL2::SDL2)
+target_link_libraries(hexen SDL2::SDL2 miniz::miniz)
 if(ENABLE_SDL2_MIXER)
     target_link_libraries(hexen SDL2_mixer::SDL2_mixer)
 endif()
