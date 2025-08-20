@@ -1284,10 +1284,7 @@ void D_DoomMain(void)
 
     // [JN] Check for enhanced maps (heretic_ex.wad)
     {
-        const lumpindex_t wadinfo_lump = W_GetNumForName(DEH_String("WADINFO"));
-
         heretic_ex = ((W_CheckNumForName("WADINFO") != -1) &&
-                      (W_LumpLength(wadinfo_lump) == 67) && // size is 67 bytes
                       (W_CheckNumForName("E1M1") != -1) &&
                       (W_CheckNumForName("E2M1") != -1) &&
                       (W_CheckNumForName("E3M1") != -1) &&
