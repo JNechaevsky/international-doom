@@ -118,6 +118,8 @@ fixed_t bmaporgx, bmaporgy;     // origin of block map
 mobj_t **blocklinks;            // for thing chains
 byte *rejectmatrix;             // for fast sight rejection
 
+static int  totallines;
+
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static mapInfo_t MapInfo[99];
@@ -1337,6 +1339,7 @@ static void P_GroupLines(void)
 // count number of lines in each sector
     li = lines;
     total = 0;
+    totallines = 0;
     for (i = 0; i < numlines; i++, li++)
     {
         if (li->frontsector)  // [JN] H+H: Fix possible line miscounting.
@@ -1350,6 +1353,7 @@ static void P_GroupLines(void)
             total++;
         }
     }
+    totallines = total;
 
 // build line tables for each sector
     linebuffer = Z_Malloc(total * sizeof(line_t *), PU_LEVEL, 0);
@@ -1516,6 +1520,76 @@ void P_RestoreSectorBrightness (void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// PadRejectArray
+// Pad the REJECT lump with extra data when the lump is too small,
+// to simulate a REJECT buffer overflow in Vanilla Doom.
+// -----------------------------------------------------------------------------
+
+static void PadRejectArray (byte *restrict array, unsigned int len)
+{
+    // Compute padded size: totallines*4 rounded up to multiple of 4, plus header
+    const unsigned int paddedSize = ((totallines * 4 + 3) & ~3U) + 24;
+
+    // Header values for REJECT array
+    const unsigned int rejectpad[4] = {
+        paddedSize,     // Size
+        0,              // Part of z_zone block header
+        50,             // PU_LEVEL
+        0x1d4a11        // DOOM_CONST_ZONEID
+    };
+
+    // Copy header into array (little-endian)
+    const unsigned int maxBytes = len < sizeof(rejectpad) ? len : sizeof(rejectpad);
+    for (unsigned int i = 0; i < maxBytes; ++i)
+    {
+        const unsigned int wordIndex = i / 4;
+        const unsigned int byteShift = (i % 4) * 8;
+        array[i] = (byte)((rejectpad[wordIndex] >> byteShift) & 0xFF);
+    }
+
+    // If the REJECT lump is larger than header, pad remaining bytes
+    if (len > sizeof(rejectpad))
+    {
+        fprintf(stderr,
+            "PadRejectArray: REJECT lump too short to pad! (%u > %zu)\n",
+            len, sizeof(rejectpad));
+
+        const unsigned int padStart = sizeof(rejectpad);
+        const unsigned int padCount = len - padStart;
+        const byte padValue = M_CheckParm("-reject_pad_with_ff") ? 0xFF : 0x00;
+        memset(array + padStart, padValue, padCount);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// P_LoadReject
+// -----------------------------------------------------------------------------
+
+static void P_LoadReject (int lumpnum)
+{
+    // Calculate expected REJECT lump size: one bit per sector-to-sector pair
+    const int expectedSize = (numsectors * numsectors + 7) / 8;
+
+    // Get actual lump length
+    const int actualSize = W_LumpLength(lumpnum);
+
+    if (actualSize >= expectedSize)
+    {
+        // Lump is large enough: load directly
+        rejectmatrix = W_CacheLumpNum(lumpnum, PU_LEVEL);
+    }
+    else
+    {
+        // Allocate correct-sized buffer and read partial data
+        rejectmatrix = Z_Malloc((size_t)expectedSize, PU_LEVEL, &rejectmatrix);
+        W_ReadLump(lumpnum, rejectmatrix);
+
+        // Pad remaining bytes with header-derived values
+        PadRejectArray(rejectmatrix + actualSize, (unsigned)expectedSize - (unsigned)actualSize);
+    }
+}
+
 /*
 =================
 =
@@ -1613,7 +1687,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     P_LoadSegs(lumpnum + ML_SEGS);
     }
 
-    rejectmatrix = W_CacheLumpNum(lumpnum + ML_REJECT, PU_LEVEL);
+    P_LoadReject(lumpnum + ML_REJECT);
     P_GroupLines();
 
     // [crispy] remove slime trails
