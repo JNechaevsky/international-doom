@@ -97,6 +97,7 @@ int S_GetCurrentCDTrack(void);
 extern void S_SetSfxVolume (int volume);
 extern void S_SetMusicVolume (int volume);
 
+extern void S_StopMusic (void);
 extern void S_MuteUnmuteSound (boolean mute);
 
 #endif

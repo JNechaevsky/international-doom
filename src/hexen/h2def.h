@@ -769,6 +769,8 @@ extern int vanilla_demo_limit;
 
 extern boolean usearti;
 
+extern boolean remaster_ost_r;
+extern boolean remaster_ost_o;
 
 /*
 ===============================================================================

@@ -69,6 +69,8 @@ static int musVolume;
 
 static degenmobj_t dummy_listener;
 
+// [PN] Which lump is currently "held" for music.
+static int Mus_LumpNum = -1;
 // [JN] Enforce music replay while changing music system.
 boolean mus_force_replay = false;
 
@@ -86,6 +88,95 @@ void S_Start(void)
     S_StartSong(gamemap, true);
 }
 
+// -----------------------------------------------------------------------------
+// S_RemasterSong 
+//  [PN] Returns the remastered version of a music lump if available,
+//  otherwise falls back to the vanilla music lump.
+// -----------------------------------------------------------------------------
+
+typedef struct {
+    const char *src;   // Initial lump (vanilla)
+    const char *r;     // Remastered R_*
+    const char *o;     // Original O_*
+} ost_remap_t;
+
+static const ost_remap_t remaster_ost_remap[] = {
+	{ "Winnowr", "R_WINNOW", "O_WINNOW" },
+	{ "Jachr",   "R_JACH",   "O_JACH"   },
+	{ "Simonr",  "R_SIMON",  "O_SIMON"  },
+	{ "Wutzitr", "R_WUTZIT", "O_WUTZIT" },
+	{ "Falconr", "R_FALCON", "O_FALCON" },
+	{ "Levelr",  "R_LEVEL",  "O_LEVEL"  },
+	{ "Chartr",  "O_CHART",  "O_CHART"  },
+	{ "Swampr",  "R_SWAMP",  "O_SWAMP"  },
+	{ "Deepr",   "R_DEEP",   "O_DEEP"   },
+	{ "Fubasr",  "R_FUBAS",  "O_FUBAS"  },
+	{ "Grover",  "R_GROVE",  "O_GROVE"  },
+	{ "Fortr",   "R_FORT",   "O_FORT"   },
+	{ "Foojar",  "R_FOOJA",  "O_FOOJA"  },
+	{ "Sixater", "R_SIXATE", "O_SIXATE" },
+	{ "Wobabyr", "R_WOBABY", "O_WOBABY" },
+	{ "Cryptr",  "R_CRYPT",  "O_CRYPT"  },
+	{ "Fantar",  "R_FANTA",  "O_FANTA"  },
+	{ "Blechr",  "R_BLECH",  "O_BLECH"  },
+	{ "Voidr",   "R_VOID",   "O_VOID"   },
+	{ "Chap_1r", "R_CHAP_1", "O_CHAP_1" },
+	{ "Chap_2r", "O_CHAP_2", "O_CHAP_2" },
+	{ "Chap_3r", "R_CHAP_3", "O_CHAP_3" },
+	{ "Chap_4r", "R_CHAP_4", "O_CHAP_4" },
+	{ "Chippyr", "R_CHIPPY", "O_CHIPPY" },
+	{ "Percr",   "R_PERC",   "O_PERC"   },
+	{ "Secretr", "R_SECRET", "O_SECRET" },
+	{ "Bonesr",  "R_BONES",  "O_BONES"  },
+	{ "Octor",   "R_OCTO",   "O_OCTO"   },
+	{ "Rithmr",  "R_RITHM",  "O_RITHM"  },
+	{ "Stalkr",  "R_STALK",  "O_STALK"  },
+	{ "Borkr",   "R_BORK",   "O_BORK"   },
+	{ "Crucibr", "R_CRUCIB", "O_CRUCIB" },
+	{ "hexen",   "R_HEXEN",  "O_HEXEN"  },
+	{ "hub",     "R_HUB",    "O_HUB"    },
+	{ "hall",    "R_HALL",   "O_HALL"   },
+	{ "orb",     "R_ORB",    "O_ORB"    },
+	{ "chess",   "R_CHESS",  "O_CHESS"  },
+};
+
+#define ARRAY_LEN(a) (sizeof(a)/sizeof((a)[0]))
+
+static const char *S_RemasterSong (const char *songLump)
+{
+    // Find a mapping entry by original name (case-insensitive).
+    const ost_remap_t *music = NULL;
+    for (size_t i = 0; i < ARRAY_LEN(remaster_ost_remap); ++i)
+    {
+        if (strcasecmp(songLump, remaster_ost_remap[i].src) == 0)
+        {
+            music = &remaster_ost_remap[i];
+            break;
+        }
+    }
+
+    if (!music)
+    {
+        return songLump; // No mapping found — keep the original lump
+    }
+
+    // Select the variant according to settings and availability,
+    // also making sure that the target lump actually exists.
+    if (snd_remaster_ost == 1 && remaster_ost_r)
+    {
+        if (W_CheckNumForName(music->r) >= 0)
+            return music->r;
+    }
+    else if (snd_remaster_ost == 2 && remaster_ost_o)
+    {
+        if (W_CheckNumForName(music->o) >= 0)
+            return music->o;
+    }
+
+    // Fallback to the original if no remaster is available
+    return songLump;
+}
+
 //==========================================================================
 //
 // S_StartSong
@@ -94,7 +185,7 @@ void S_Start(void)
 
 void S_StartSong(int song, boolean loop)
 {
-    char *songLump;
+    const char *songLump;
     int lumpnum;
     int length;
 
@@ -132,6 +223,13 @@ void S_StartSong(int song, boolean loop)
             I_UnRegisterSong(RegisteredSong);
             RegisteredSong = 0;
             Mus_Song = -1;
+
+            // [PN] Release the previous music lump, if any
+            if (Mus_LumpNum != -1)
+            {
+                W_ReleaseLumpNum(Mus_LumpNum);
+                Mus_LumpNum = -1;
+            }
         }
         songLump = P_GetMapSongLump(song);
         if (!songLump)
@@ -139,15 +237,20 @@ void S_StartSong(int song, boolean loop)
             return;
         }
 
+        // [PN] Resolve to R_/O_ remaster, or fallback to original.
+        songLump = S_RemasterSong(songLump);
+
         lumpnum = W_GetNumForName(songLump);
-        Mus_SndPtr = W_CacheLumpNum(lumpnum, PU_STATIC);
+        Mus_SndPtr = W_CacheLumpNum(lumpnum, PU_MUSIC);
         length = W_LumpLength(lumpnum);
 
         RegisteredSong = I_RegisterSong(Mus_SndPtr, length);
         I_PlaySong(RegisteredSong, loop);
         Mus_Song = song;
 
-        W_ReleaseLumpNum(lumpnum);
+        // [PN] Do not release now
+        // W_ReleaseLumpNum(lumpnum);
+        Mus_LumpNum = lumpnum;
     }
 }
 
@@ -211,7 +314,17 @@ void S_StartSongName(const char *songLump, boolean loop)
             I_UnRegisterSong(RegisteredSong);
             RegisteredSong = NULL;
             Mus_Song = -1;
+
+            // [PN] Release the previously held music lump.
+            if (Mus_LumpNum != -1)
+            {
+                W_ReleaseLumpNum(Mus_LumpNum);
+                Mus_LumpNum = -1;
+            }
         }
+
+        // [PN] Resolve to R_/O_ remaster, or fallback to original.
+        songLump = S_RemasterSong(songLump);
 
         lumpnum = W_GetNumForName(songLump);
         Mus_SndPtr = W_CacheLumpNum(lumpnum, PU_MUSIC);
@@ -219,8 +332,11 @@ void S_StartSongName(const char *songLump, boolean loop)
 
         RegisteredSong = I_RegisterSong(Mus_SndPtr, length);
         I_PlaySong(RegisteredSong, loop);
-        W_ReleaseLumpNum(lumpnum);
-        Mus_Song = -1;
+
+        // [PN] Do not release now
+        // W_ReleaseLumpNum(lumpnum);
+        // Mus_Song = -1;
+        Mus_LumpNum = lumpnum;
     }
 }
 
@@ -833,6 +949,12 @@ void S_ShutDown(void)
         RegisteredSong = NULL;
         Mus_Song = -1;
     }
+    // [PN] Release the previously held music lump.
+    if (Mus_LumpNum != -1)
+    {
+        W_ReleaseLumpNum(Mus_LumpNum);
+        Mus_LumpNum = -1;
+    }
     I_ShutdownSound();
 }
 
@@ -901,6 +1023,22 @@ void S_InitScript(void)
         {
             M_StringCopy(S_sfx[i].name, "default", sizeof(S_sfx[i].name));
         }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// S_StopMusic
+//  [JN] Stop current music without shutting down sound system.
+// -----------------------------------------------------------------------------
+
+void S_StopMusic (void)
+{
+    I_StopSong();
+    if (RegisteredSong != NULL)
+    {
+        I_UnRegisterSong(RegisteredSong);
+        RegisteredSong = NULL;
+        Mus_Song = -1;
     }
 }
 

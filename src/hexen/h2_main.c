@@ -124,6 +124,10 @@ int maxplayers = MAXPLAYERS;
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t wipegamestate = GS_DEMOSCREEN;
 
+// [JN] Remastered soundtracks:
+boolean remaster_ost_r = false; // Remix (hexen_mus_remix.wad)
+boolean remaster_ost_o = false; // Original (hexen_mus_orig.wad)
+
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static int WarpMap;
@@ -448,6 +452,10 @@ void D_DoomMain(void)
     if (!M_ParmExists("-noautoload") && gamemode != shareware
     && autoload_wad)  // [JN] Allow autoload per both IWAD and PWAD.
     {
+        // [JN] Autoload remastered soundtracks if found in IWAD folders.
+        D_AddFile(D_TryFindWADByName("hexen_mus_remix.wad"));
+        D_AddFile(D_TryFindWADByName("hexen_mus_orig.wad"));
+
         char *autoload_dir;
         autoload_dir = M_GetAutoloadDir("hexen.wad");
         if (autoload_dir != NULL)
@@ -459,6 +467,18 @@ void D_DoomMain(void)
     }
 
     HandleArgs();
+
+    // [JN] Check for remastered soundtracks (hexen_mus_remix.wad and
+    // hexen_mus_orig.wad), make sure it contains necessary music lumps.
+    {
+        remaster_ost_r = (W_CheckNumForName("R_BLANK")  != -1) &&
+                         (W_CheckNumForName("R_BLECH")  != -1) &&
+                         (W_CheckNumForName("R_WUTZIT") != -1);
+
+        remaster_ost_o = (W_CheckNumForName("O_BLANK")  != -1) &&
+                         (W_CheckNumForName("O_BLECH")  != -1) &&
+                         (W_CheckNumForName("O_WUTZIT") != -1);        
+    }
 
     // Generate the WAD hash table.  Speed things up a bit.
     W_GenerateHashTable();

@@ -302,10 +302,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("snd_monosfx",                    &snd_monosfx);
     M_BindIntVariable("snd_channels",                   &snd_channels);
     M_BindIntVariable("snd_mute_inactive",              &snd_mute_inactive);
-    if (mission == doom || mission == heretic)
-    {
-        M_BindIntVariable("snd_remaster_ost",           &snd_remaster_ost);
-    }
+    M_BindIntVariable("snd_remaster_ost",               &snd_remaster_ost);
 
     //
     // Control settings
