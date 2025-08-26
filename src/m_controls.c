@@ -170,6 +170,7 @@ int key_message_refresh = KEY_ENTER;
 // [JN] Heretic using ENTER for afrtifacts activation.
 int key_message_refresh_hr = 0;
 int key_demo_quit       = 'q';
+int key_switch_ost      = 0;
 
 // Multiplayer
 
@@ -351,6 +352,7 @@ void M_BindControls (void)
     }
 #endif
     M_BindIntVariable("key_demo_quit",          &key_demo_quit);
+    M_BindIntVariable("key_switch_ost",         &key_switch_ost);
 
     // Special menu keys, not available for rebinding
 

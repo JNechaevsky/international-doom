@@ -101,7 +101,7 @@ void D_AdvanceDemo(void);
 boolean heretic_ex = false;
 
 // [JN] Remastered soundtracks:
-boolean remaster_ost_h = false; // Remix (heretic_mus_remix.wad)
+boolean remaster_ost_r = false; // Remix (heretic_mus_remix.wad)
 boolean remaster_ost_o = false; // Original (heretic_mus_orig.wad)
 
 //---------------------------------------------------------------------------
@@ -1296,7 +1296,7 @@ void D_DoomMain(void)
     // [JN] Check for remastered soundtracks (heretic_mus_orig.wad and
     // heretic_mus_remix.wad), make sure it contains necessary music lumps.
     {
-        remaster_ost_h = (W_CheckNumForName("H_OPEN") != -1) &&
+        remaster_ost_r = (W_CheckNumForName("H_OPEN") != -1) &&
                          (W_CheckNumForName("H_INTER") != -1);
 
         remaster_ost_o = (W_CheckNumForName("O_OPEN") != -1) &&

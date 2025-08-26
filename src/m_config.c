@@ -395,6 +395,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_menu_screenshot),
     CONFIG_VARIABLE_KEY(key_message_refresh),
     CONFIG_VARIABLE_KEY(key_demo_quit),
+    CONFIG_VARIABLE_KEY(key_switch_ost),
 
     // Multiplayer
     CONFIG_VARIABLE_KEY(key_multi_msg),

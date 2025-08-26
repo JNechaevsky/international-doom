@@ -125,7 +125,7 @@ void S_StartSong(int song, boolean loop)
 
     // [JN] Support Remastered/Original sound track from H+H rerelease.
     const char *name =
-        (snd_remaster_ost == 1 && remaster_ost_h) ? S_music_Remaster[song][0].name :
+        (snd_remaster_ost == 1 && remaster_ost_r) ? S_music_Remaster[song][0].name :
         (snd_remaster_ost == 2 && remaster_ost_o) ? S_music_Remaster[song][1].name :
                                                     fallback;
 

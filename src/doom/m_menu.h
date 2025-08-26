@@ -65,4 +65,6 @@ extern const int M_StringWidth (const char *string);
 // [FG] support up to 8 pages of savegames
 extern int savepage;
 
+extern void M_ID_RemasterOST (int choice);
+
 #endif    

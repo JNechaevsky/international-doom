@@ -655,7 +655,7 @@ extern int graphical_startup;
 extern int show_endoom;
 
 extern boolean heretic_ex;
-extern boolean remaster_ost_h;
+extern boolean remaster_ost_r;
 extern boolean remaster_ost_o;
 
 /*
@@ -924,6 +924,7 @@ void MN_DrTextA(const char *text, int x, int y, byte *table);
 int MN_TextAWidth(const char *text);
 void MN_DrTextACentered (const char *text, int y, byte *table);
 int MN_TextBWidth(const char *text);
+extern void M_ID_RemasterOST (int choice);
 
 #include "sounds.h"
 

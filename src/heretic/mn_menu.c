@@ -468,7 +468,6 @@ static void M_ID_SFXMode (int choice);
 static void M_ID_PitchShift (int choice);
 static void M_ID_SFXChannels (int choice);
 static void M_ID_MuteInactive (int choice);
-static void M_ID_RemasterOST (int choice);
 
 static void M_Draw_ID_Controls (void);
 static void M_ID_Controls_Acceleration (int choice);
@@ -572,6 +571,7 @@ static void M_Bind_Pause (int choice);
 static void M_Bind_SaveScreenshot (int choice);
 static void M_Bind_LastMessage (int choice);
 static void M_Bind_FinishDemo (int choice);
+static void M_Bind_SwitchOST (int choice);
 static void M_Bind_SendMessage (int choice);
 static void M_Bind_ToPlayer1 (int choice);
 static void M_Bind_ToPlayer2 (int choice);
@@ -1820,12 +1820,13 @@ static void M_Draw_ID_Sound (void)
     MN_DrTextACentered("REMASTERED MUSIC", 140, cr[CR_YELLOW]);
 
     // Remastered music
-    sprintf(str, snd_remaster_ost == 1 ? "REMIX" :
+    sprintf(str, (!remaster_ost_r && !remaster_ost_o) ? "N/A" :
+                 snd_remaster_ost == 1 ? "REMIX" :
                  snd_remaster_ost == 2 ? "ORIGINAL" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 150,
-                        remaster_ost_h && snd_remaster_ost == 1 ? cr[CR_GREEN] :
+                        remaster_ost_r && snd_remaster_ost == 1 ? cr[CR_GREEN] :
                         remaster_ost_o && snd_remaster_ost == 2 ? cr[CR_YELLOW] : cr[CR_RED],
-                            remaster_ost_h && snd_remaster_ost == 1 ? cr[CR_GREEN_BRIGHT] :
+                            remaster_ost_r && snd_remaster_ost == 1 ? cr[CR_GREEN_BRIGHT] :
                             remaster_ost_o && snd_remaster_ost == 2 ? cr[CR_YELLOW_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(13));
 
@@ -1841,10 +1842,11 @@ static void M_Draw_ID_Sound (void)
     }
     if (CurrentItPos == 13)
     {
-        if (!remaster_ost_h && snd_remaster_ost == 1)
-            MN_DrTextACentered("HERETIC[MUS[REMIX.WAD FILE NOT LOADED", 170, cr[CR_ORANGE_BRIGHT]);
-        if (!remaster_ost_o && snd_remaster_ost == 2)
-            MN_DrTextACentered("HERETIC[MUS[ORIG.WAD FILE NOT LOADED", 170, cr[CR_ORANGE_BRIGHT]);
+        if (!remaster_ost_r && !remaster_ost_o)
+        {
+            MN_DrTextACentered(ID_OST_NA_1, 170, cr[CR_ORANGE_BRIGHT]);
+            MN_DrTextACentered(ID_OST_NA_2, 180, cr[CR_ORANGE_BRIGHT]);
+        }
     }
 }
 
@@ -1966,9 +1968,31 @@ static void M_ID_MuteInactive (int choice)
     snd_mute_inactive ^= 1;
 }
 
-static void M_ID_RemasterOST (int choice)
+void M_ID_RemasterOST (int choice)
 {
-    snd_remaster_ost = M_INT_Slider(snd_remaster_ost, 0, 2, choice, false);
+    if (!remaster_ost_r && !remaster_ost_o)
+        return;
+
+    switch (choice)
+    {
+        case 0:
+            if (snd_remaster_ost == 0 && remaster_ost_o)
+                snd_remaster_ost = 2;
+            else if ((snd_remaster_ost == 0) || (snd_remaster_ost == 2 && remaster_ost_r))
+                snd_remaster_ost = 1;
+            else
+                snd_remaster_ost = 0;
+            break;
+
+        case 1:
+            if (snd_remaster_ost == 0 && remaster_ost_r)
+                snd_remaster_ost = 1;
+            else if ((snd_remaster_ost == 0) || (snd_remaster_ost == 1 && remaster_ost_o))
+                snd_remaster_ost = 2;
+            else
+                snd_remaster_ost = 0;
+            break;
+    }
 
     S_StopMusic();
     
@@ -2889,6 +2913,7 @@ static MenuItem_t ID_Menu_Keybinds_8[] = {
     {ITT_EFUNC, "SAVE A SCREENSHOT",     M_Bind_SaveScreenshot, 0, MENU_NONE},
     {ITT_EFUNC, "DISPLAY LAST MESSAGE",  M_Bind_LastMessage,    0, MENU_NONE},
     {ITT_EFUNC, "FINISH DEMO RECORDING", M_Bind_FinishDemo,     0, MENU_NONE},
+    {ITT_EFUNC, "SWITCH SOUNDTRACK",     M_Bind_SwitchOST,      0, MENU_NONE},
     {ITT_EMPTY, NULL,                    NULL,                  0, MENU_NONE},
     {ITT_EFUNC, "SEND MESSAGE",          M_Bind_SendMessage,    0, MENU_NONE},
     {ITT_EFUNC, "- TO PLAYER 1",         M_Bind_ToPlayer1,      0, MENU_NONE},
@@ -2920,14 +2945,15 @@ static void M_Draw_ID_Keybinds_8 (void)
     M_DrawBindKey(1, 30, key_menu_screenshot);
     M_DrawBindKey(2, 40, key_message_refresh_hr);
     M_DrawBindKey(3, 50, key_demo_quit);
+    M_DrawBindKey(4, 60, key_switch_ost);
 
-    MN_DrTextACentered("MULTIPLAYER", 60, cr[CR_YELLOW]);
+    MN_DrTextACentered("MULTIPLAYER", 70, cr[CR_YELLOW]);
 
-    M_DrawBindKey(5, 70, key_multi_msg);
-    M_DrawBindKey(6, 80, key_multi_msgplayer[0]);
-    M_DrawBindKey(7, 90, key_multi_msgplayer[1]);
-    M_DrawBindKey(8, 100, key_multi_msgplayer[2]);
-    M_DrawBindKey(9, 110, key_multi_msgplayer[3]);
+    M_DrawBindKey(6, 80, key_multi_msg);
+    M_DrawBindKey(7, 90, key_multi_msgplayer[0]);
+    M_DrawBindKey(8, 100, key_multi_msgplayer[1]);
+    M_DrawBindKey(9, 110, key_multi_msgplayer[2]);
+    M_DrawBindKey(10, 120, key_multi_msgplayer[3]);
 
     MN_DrTextACentered("RESET", 120, cr[CR_YELLOW]);
 
@@ -2954,29 +2980,34 @@ static void M_Bind_FinishDemo (int choice)
     M_StartBind(803);  // key_demo_quit
 }
 
+static void M_Bind_SwitchOST (int choice)
+{
+    M_StartBind(804);  // key_switch_ost
+}
+
 static void M_Bind_SendMessage (int choice)
 {
-    M_StartBind(804);  // key_multi_msg
+    M_StartBind(806);  // key_multi_msg
 }
 
 static void M_Bind_ToPlayer1 (int choice)
 {
-    M_StartBind(805);  // key_multi_msgplayer[0]
+    M_StartBind(807);  // key_multi_msgplayer[0]
 }
 
 static void M_Bind_ToPlayer2 (int choice)
 {
-    M_StartBind(806);  // key_multi_msgplayer[1]
+    M_StartBind(808);  // key_multi_msgplayer[1]
 }
 
 static void M_Bind_ToPlayer3 (int choice)
 {
-    M_StartBind(807);  // key_multi_msgplayer[2]
+    M_StartBind(809);  // key_multi_msgplayer[2]
 }
 
 static void M_Bind_ToPlayer4 (int choice)
 {
-    M_StartBind(808);  // key_multi_msgplayer[3]
+    M_StartBind(810);  // key_multi_msgplayer[3]
 }
 
 static void M_Bind_Reset (int choice)
@@ -7715,6 +7746,7 @@ static void M_CheckBind (int key)
     if (key_menu_screenshot == key)    key_menu_screenshot    = 0;
     if (key_message_refresh_hr == key) key_message_refresh_hr = 0;
     if (key_demo_quit == key)          key_demo_quit          = 0;
+    if (key_switch_ost == key)         key_switch_ost         = 0;
     if (key_multi_msg == key)          key_multi_msg          = 0;
     // Do not override Send To binds in other pages.
     if (CurrentMenu == &ID_Def_Keybinds_8)
@@ -7833,13 +7865,14 @@ static void M_DoBind (int keynum, int key)
         case 801:  key_menu_screenshot = key;    break;
         case 802:  key_message_refresh_hr = key; break;
         case 803:  key_demo_quit = key;          break;
-        case 804:  key_multi_msg = key;          break;
+        case 804:  key_switch_ost = key;         break;
+        case 805:  key_multi_msg = key;          break;
         if (CurrentMenu == &ID_Def_Keybinds_8)
         {
-        case 805:  key_multi_msgplayer[0] = key; break;
-        case 806:  key_multi_msgplayer[1] = key; break;
-        case 807:  key_multi_msgplayer[2] = key; break;
-        case 808:  key_multi_msgplayer[3] = key; break;
+        case 806:  key_multi_msgplayer[0] = key; break;
+        case 807:  key_multi_msgplayer[1] = key; break;
+        case 808:  key_multi_msgplayer[2] = key; break;
+        case 809:  key_multi_msgplayer[3] = key; break;
         }
     }
 }
@@ -7981,12 +8014,13 @@ static void M_ClearBind (int CurrentItPos)
             case 1:   key_menu_screenshot = 0;    break;
             case 2:   key_message_refresh_hr = 0; break;
             case 3:   key_demo_quit = 0;          break;
+            case 4:   key_switch_ost = 0;         break;
             // Multiplayer title
-            case 5:   key_multi_msg = 0;          break;
-            case 6:   key_multi_msgplayer[0] = 0; break;
-            case 7:   key_multi_msgplayer[1] = 0; break;
-            case 8:   key_multi_msgplayer[2] = 0; break;
-            case 9:   key_multi_msgplayer[3] = 0; break;
+            case 6:   key_multi_msg = 0;          break;
+            case 7:   key_multi_msgplayer[0] = 0; break;
+            case 8:   key_multi_msgplayer[1] = 0; break;
+            case 9:   key_multi_msgplayer[2] = 0; break;
+            case 10:  key_multi_msgplayer[3] = 0; break;
         }
     }
 }
@@ -8092,6 +8126,7 @@ static void M_ResetBinds (void)
     key_menu_screenshot = KEY_PRTSCR;
     key_message_refresh_hr = 0;
     key_demo_quit = 'q';
+    key_switch_ost = 0;
     key_multi_msg = 't';
     key_multi_msgplayer[0] = 'g';
     key_multi_msgplayer[1] = 'i';

@@ -1321,6 +1321,23 @@ boolean G_Responder (event_t* ev)
                       ID_BUDDHA_ON : ID_BUDDHA_OFF, false, NULL);
     }
 
+    // [JN] Switch preferred soundtrack.
+    if (ev->data1 == key_switch_ost)
+    {
+        if (remaster_ost)
+        {
+            M_ID_RemasterOST(1);
+            CT_SetMessage(&players[consoleplayer],
+                          snd_remaster_ost == 1 ? ID_OST_REMIX :
+                          snd_remaster_ost == 2 ? ID_OST_ORIGINAL : ID_OST_OFF,
+                          false, NULL);
+        }
+        else
+        {
+            CT_SetMessage(&players[consoleplayer], ID_OST_NA, false, NULL);
+        }
+    }   
+
 	return true;    // eat key down events 
  
       case ev_keyup: 

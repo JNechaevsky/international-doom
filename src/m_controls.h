@@ -158,6 +158,7 @@ extern int key_menu_screenshot;
 extern int key_message_refresh;
 extern int key_message_refresh_hr;
 extern int key_demo_quit;
+extern int key_switch_ost;
 
 // Multiplayer
 
