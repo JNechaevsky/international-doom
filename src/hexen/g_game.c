@@ -1538,6 +1538,18 @@ boolean G_Responder(event_t * ev)
                 CT_SetMessage(player, player->cheats & CF_BUDDHA ?
                             ID_BUDDHA_ON : ID_BUDDHA_OFF, false, NULL);
             }
+            // [JN] Switch preferred soundtrack.
+            if (ev->data1 == key_switch_ost)
+            {
+                if (remaster_ost_r || remaster_ost_o)
+                {
+                    M_ID_RemasterOST(1);
+                    CT_SetMessage(&players[consoleplayer],
+                                  snd_remaster_ost == 1 ? ID_OST_REMIX :
+                                  snd_remaster_ost == 2 ? ID_OST_ORIGINAL : ID_OST_OFF,
+                                  false, NULL);
+                }
+            }
             return (true);      // eat key down events
 
         case ev_keyup:

@@ -1181,6 +1181,7 @@ void MN_DrTextA(const char *text, int x, int y, byte *table);
 void MN_DrTextACentered (const char *text, int y, byte *table);
 void MN_DrTextAYellow(const char *text, int x, int y);
 int MN_TextAWidth(const char *text);
+extern void M_ID_RemasterOST (int choice);
 
 extern int messageson;
 extern boolean MenuActive;
