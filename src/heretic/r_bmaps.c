@@ -268,6 +268,9 @@ static const fullbright_t fullbright_walls[] = {
     {"SW2ON",    surfaces},
     {"SW2OFF",   surfaces},
     // [JN] H+H IWAD textures
+    {"CANDLES1", serptorch},
+    {"CANDLES2", serptorch},
+    {"CANDLES3", serptorch},
     {"DOOREXI3", surfaces},
     {"DOOREXI4", surfaces},
     {"METLSIG1", surfaces},
