@@ -661,7 +661,6 @@ static void M_Draw_ID_Gameplay_4 (void);
 static void M_ID_PistolStart (int choice);
 static void M_ID_BlockmapFix (int choice);
 static void M_ID_AutomaticSR50 (int choice);
-static void M_ID_NoLandCenter (int choice);
 
 static void M_ScrollGameplay (int choice);
 
@@ -4041,7 +4040,7 @@ static MenuItem_t ID_Menu_Gameplay_4[] = {
     { ITT_LRFUNC1, "WAND START GAME MODE",         M_ID_PistolStart,     0, MENU_NONE },
     { ITT_LRFUNC1, "IMPROVED HIT DETECTION",       M_ID_BlockmapFix,     0, MENU_NONE },
     { ITT_LRFUNC1, "AUTOMATIC STRAFE 50",          M_ID_AutomaticSR50,   0, MENU_NONE },
-    { ITT_LRFUNC1, "LANDING DOESN\'T CENTER VIEW", M_ID_NoLandCenter,    0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
     { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
     { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
     { ITT_EMPTY,   NULL,                           NULL,                 0, MENU_NONE },
@@ -4091,13 +4090,6 @@ static void M_Draw_ID_Gameplay_4 (void)
                             compat_auto_sr50 ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(2));
 
-    // Landing doesn't center view
-    sprintf(str, compat_no_land_centering ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
-                        compat_no_land_centering ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            compat_no_land_centering ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(3));
-
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "4/4");
 }
@@ -4110,11 +4102,6 @@ static void M_ID_PistolStart (int choice)
 static void M_ID_BlockmapFix (int choice)
 {
     compat_blockmap_fix ^= 1;
-}
-
-static void M_ID_NoLandCenter (int choice)
-{
-    compat_no_land_centering ^= 1;
 }
 
 static void M_ID_AutomaticSR50 (int choice)
@@ -5174,7 +5161,6 @@ static void M_ID_ApplyResetHook (void)
     compat_blockmap_fix = 0;
     compat_auto_sr50 = 0;
     G_SetSideMove();
-    compat_no_land_centering = 0;
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);

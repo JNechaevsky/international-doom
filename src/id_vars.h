@@ -169,7 +169,6 @@ extern int compat_blockmap_fix;
 extern int compat_vertical_aiming;
 extern int compat_auto_sr50;
 extern int compat_intercepts;
-extern int compat_no_land_centering;
 
 // Miscellaneous
 extern int a11y_invul;

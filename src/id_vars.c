@@ -196,7 +196,6 @@ int compat_blockmap_fix = 0;
 int compat_vertical_aiming = 0;
 int compat_auto_sr50 = 0;
 int compat_intercepts = 0;
-int compat_no_land_centering = 0;
 
 //
 // Miscellaneous
@@ -467,10 +466,6 @@ void ID_BindVariables (GameMission_t mission)
     if (mission == doom)
     {
         M_BindIntVariable("compat_intercepts",          &compat_intercepts);
-    }
-    if (mission == heretic || mission == hexen)
-    {
-        M_BindIntVariable("compat_no_land_centering",   &compat_no_land_centering);
     }
 
     // Miscellaneous

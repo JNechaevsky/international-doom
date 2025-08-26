@@ -611,7 +611,6 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(compat_vertical_aiming),
     CONFIG_VARIABLE_INT(compat_auto_sr50),
     CONFIG_VARIABLE_INT(compat_intercepts),
-    CONFIG_VARIABLE_INT(compat_no_land_centering),
 
     CONFIG_VARIABLE_INT(a11y_invul),
     CONFIG_VARIABLE_INT(a11y_pal_flash),
