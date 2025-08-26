@@ -2019,7 +2019,7 @@ static void M_Draw_ID_Sound (void)
                                 LINE_ALPHA(14));
 
     // Remastered music
-    sprintf(str, !remaster_ost ? "OFF" :
+    sprintf(str, !remaster_ost ? "N/A" :
                  snd_remaster_ost == 1 ? "REMIX" :
                  snd_remaster_ost == 2 ? "ORIGINAL" : "OFF");
     M_WriteTextGlow(M_ItemRightAlign(str), 144, str,

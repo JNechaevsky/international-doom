@@ -1820,12 +1820,13 @@ static void M_Draw_ID_Sound (void)
     MN_DrTextACentered("REMASTERED MUSIC", 140, cr[CR_YELLOW]);
 
     // Remastered music
-    sprintf(str, snd_remaster_ost == 1 ? "REMIX" :
+    sprintf(str, (!remaster_ost_r && !remaster_ost_o) ? "N/A" :
+                 snd_remaster_ost == 1 ? "REMIX" :
                  snd_remaster_ost == 2 ? "ORIGINAL" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 150,
-                        remaster_ost_h && snd_remaster_ost == 1 ? cr[CR_GREEN] :
+                        remaster_ost_r && snd_remaster_ost == 1 ? cr[CR_GREEN] :
                         remaster_ost_o && snd_remaster_ost == 2 ? cr[CR_YELLOW] : cr[CR_RED],
-                            remaster_ost_h && snd_remaster_ost == 1 ? cr[CR_GREEN_BRIGHT] :
+                            remaster_ost_r && snd_remaster_ost == 1 ? cr[CR_GREEN_BRIGHT] :
                             remaster_ost_o && snd_remaster_ost == 2 ? cr[CR_YELLOW_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(13));
 
@@ -1841,7 +1842,7 @@ static void M_Draw_ID_Sound (void)
     }
     if (CurrentItPos == 13)
     {
-        if (!remaster_ost_h && !remaster_ost_o)
+        if (!remaster_ost_r && !remaster_ost_o)
         {
             MN_DrTextACentered(ID_OST_NA_1, 170, cr[CR_ORANGE_BRIGHT]);
             MN_DrTextACentered(ID_OST_NA_2, 180, cr[CR_ORANGE_BRIGHT]);
@@ -1969,7 +1970,7 @@ static void M_ID_MuteInactive (int choice)
 
 void M_ID_RemasterOST (int choice)
 {
-    if (!remaster_ost_h && !remaster_ost_o)
+    if (!remaster_ost_r && !remaster_ost_o)
         return;
 
     switch (choice)
@@ -1977,14 +1978,14 @@ void M_ID_RemasterOST (int choice)
         case 0:
             if (snd_remaster_ost == 0 && remaster_ost_o)
                 snd_remaster_ost = 2;
-            else if ((snd_remaster_ost == 0) || (snd_remaster_ost == 2 && remaster_ost_h))
+            else if ((snd_remaster_ost == 0) || (snd_remaster_ost == 2 && remaster_ost_r))
                 snd_remaster_ost = 1;
             else
                 snd_remaster_ost = 0;
             break;
 
         case 1:
-            if (snd_remaster_ost == 0 && remaster_ost_h)
+            if (snd_remaster_ost == 0 && remaster_ost_r)
                 snd_remaster_ost = 1;
             else if ((snd_remaster_ost == 0) || (snd_remaster_ost == 1 && remaster_ost_o))
                 snd_remaster_ost = 2;

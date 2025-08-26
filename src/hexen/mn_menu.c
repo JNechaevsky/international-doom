@@ -1763,7 +1763,8 @@ static void M_Draw_ID_Sound (void)
     MN_DrTextACentered("REMASTERED MUSIC", 140, cr[CR_YELLOW]);
 
     // Remastered music
-    sprintf(str, snd_remaster_ost == 1 ? "REMIX" :
+    sprintf(str, (!remaster_ost_r && !remaster_ost_o) ? "N/A" :
+                 snd_remaster_ost == 1 ? "REMIX" :
                  snd_remaster_ost == 2 ? "ORIGINAL" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 150,
                         remaster_ost_r && snd_remaster_ost == 1 ? cr[CR_GREEN_HX] :

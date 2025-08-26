@@ -1549,6 +1549,10 @@ boolean G_Responder(event_t * ev)
                                   snd_remaster_ost == 2 ? ID_OST_ORIGINAL : ID_OST_OFF,
                                   false, NULL);
                 }
+                else // (!remaster_ost_r && !remaster_ost_o)
+                {
+                    CT_SetMessage(&players[consoleplayer], ID_OST_NA, false, NULL);
+                }
             }
             return (true);      // eat key down events
 
