@@ -1841,10 +1841,11 @@ static void M_Draw_ID_Sound (void)
     }
     if (CurrentItPos == 13)
     {
-        if (!remaster_ost_h && snd_remaster_ost == 1)
-            MN_DrTextACentered(ID_OST_H_NA, 170, cr[CR_ORANGE_BRIGHT]);
-        if (!remaster_ost_o && snd_remaster_ost == 2)
-            MN_DrTextACentered(ID_OST_O_NA, 170, cr[CR_ORANGE_BRIGHT]);
+        if (!remaster_ost_h && !remaster_ost_o)
+        {
+            MN_DrTextACentered(ID_OST_NA_1, 170, cr[CR_ORANGE_BRIGHT]);
+            MN_DrTextACentered(ID_OST_NA_2, 180, cr[CR_ORANGE_BRIGHT]);
+        }
     }
 }
 
