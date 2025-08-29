@@ -2,6 +2,8 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2015-2024 Fabian Greffrath
+// Copyright(C) 2025 Polina "Aura" N.
+// Copyright(C) 2025 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,14 +25,26 @@
 
 #include "i_truecolor.h"
 #include "m_fixed.h"
+#include "v_video.h"
+#include "z_zone.h"
 
 #include "id_vars.h"
 
 
+// =============================================================================
+//
+//                       Blending initialization functions
+//
+// =============================================================================
 
+// -----------------------------------------------------------------------------
+// TrueColor blending. 
+//
 // [PN] Initializes a 511-entry 1D saturation LUT for additive blending.
 // The LUT maps all possible sums of two 8-bit color channels (0..255 + 0..255),
 // clamping any result above 255 to 255.
+// -----------------------------------------------------------------------------
+
 uint8_t additive_lut[511];
 
 void I_InitTCTransMaps (void)
@@ -40,6 +54,229 @@ void I_InitTCTransMaps (void)
         additive_lut[i] = (uint8_t)(i > 255 ? 255 : i);
     }
 }
+
+// -----------------------------------------------------------------------------
+// Paletted blending. 
+// 
+// [PN] In the TrueColor renderer, all blending operations (translucency,
+// additive, etc.) are performed in 32-bit RGBA space. However, for
+// compatibility with the classic 8-bit Doom palette and its colormaps,
+// the results must be "palettized" back into PLAYPAL indices.
+//
+// This module implements that by building precomputed lookup tables:
+// - A gamma-aware 3D RGB→PAL LUT (rgb_to_pal) that maps quantized
+//   truecolor values back to the closest palette entry. The LUT is
+//   rebuilt when gamma/brightness changes, but rendering itself uses
+//   only fast O(1) lookups.
+// - A per-channel additive LUT (addchan_lut) of size 256×256, which
+//   computes bg + (fg * alpha >> 8), clamped to 255, so additive
+//   blending reduces to three array lookups.
+// 
+// In practice: 
+//   1. Foreground and background pixels are blended in linear RGB.
+//   2. The resulting RGB is quantized and converted to a palette index
+//      via rgb_to_pal.
+//   3. That index is written through pal_color[], ensuring the output
+//      respects both PLAYPAL and the current gamma correction.
+// 
+// This allows Doom’s original 8-bit translucent style to be reproduced
+// within the TrueColor renderer: visual results remain close to the
+// classic tables, but all blending math runs fast and consistently.
+// -----------------------------------------------------------------------------
+
+// Overlay blending
+byte *playpal_trans; // PLAYPAL copy for 8 bit blending
+byte *rgb_to_pal;    // [PN/JN] квантованный RGB -> индекс PLAYPAL
+static uint8_t  pal_r[256], pal_g[256], pal_b[256]; // from pal_color (gamma-applied)
+static uint8_t  diffR[PAL_STEPS][256];
+static uint8_t  diffG[PAL_STEPS][256];
+static uint8_t  diffB[PAL_STEPS][256];
+static uint8_t  step_val[PAL_STEPS];                // квантованные 0..255
+
+// Additive blending
+// Канальный LUT для add’а: out = f(bg, fg, alpha, darkmul). 256*256 байт
+byte *addchan_lut;
+
+// -----------------------------------------------------------------------------
+// [PN] I_InitPALTransMaps
+//
+// Initializes and builds precomputed lookup tables used for translucency
+// and additive blending.
+//
+// This function constructs:
+//  1) A gamma-aware 3D RGB->palette LUT (rgb_to_pal), used to map blended
+//     truecolor values back to the closest palette index. This is rebuilt
+//     on startup and when gamma correction change.
+//
+//  2) A per-channel additive blending LUT (addchan_lut) of size 256×256,
+//     which computes bg + (fg * alpha >> 8), clamped to 255. This allows
+//     fast additive blending in the render loop with a single lookup instead
+//     of per-pixel math.
+// -----------------------------------------------------------------------------
+
+void I_InitPALTransMaps(void)
+{
+    // Init overlay blending (RGB->Palette LUT)
+    static boolean pal_init = false;
+    if (!pal_init)
+    {
+        const byte *src = W_CacheLumpName("PLAYPAL", PU_STATIC);
+
+        playpal_trans = Z_Malloc(256 * 3, PU_STATIC, 0);
+        memcpy(playpal_trans, src, 256 * 3);
+        W_ReleaseLumpName("PLAYPAL");
+        pal_init = true;
+    }
+
+    if (!rgb_to_pal)
+        rgb_to_pal = Z_Malloc(PAL_LUT_SIZE, PU_STATIC, 0);
+
+    // Prepare quantized step values and per-channel difference tables
+    static boolean step_vals_init = false;
+    if (!step_vals_init)
+    {
+        for (int q = 0; q < PAL_STEPS; ++q)
+            step_val[q] = (uint8_t)((q * 255) / (PAL_STEPS - 1));
+        step_vals_init = true;
+    }
+
+    // Extract RGB components from gamma-corrected pal_color
+    for (int i = 0; i < 256; ++i)
+    {
+        const pixel_t pc = pal_color[i];
+        pal_r[i] = (uint8_t)((pc >> 16) & 0xFF);
+        pal_g[i] = (uint8_t)((pc >>  8) & 0xFF);
+        pal_b[i] = (uint8_t)( pc        & 0xFF);
+    }
+    
+    // Build diffR/diffG/diffB tables for PAL_STEPS
+    for (int qr = 0; qr < PAL_STEPS; ++qr)
+    {
+        const int Rq = step_val[qr];
+        for (int i = 0; i < 256; ++i)
+        {
+            const int d = Rq - pal_r[i];
+            diffR[qr][i] = (uint8_t)(d < 0 ? -d : d);
+        }
+    }
+    for (int qg = 0; qg < PAL_STEPS; ++qg)
+    {
+        const int Gq = step_val[qg];
+        for (int i = 0; i < 256; ++i)
+        {
+            const int d = Gq - pal_g[i];
+            diffG[qg][i] = (uint8_t)(d < 0 ? -d : d);
+        }
+    }
+    for (int qb = 0; qb < PAL_STEPS; ++qb)
+    {
+        const int Bq = step_val[qb];
+        for (int i = 0; i < 256; ++i)
+        {
+            const int d = Bq - pal_b[i];
+            diffB[qb][i] = (uint8_t)(d < 0 ? -d : d);
+        }
+    }
+
+    // Temporary buffer for pre-summing R+G diffs per palette index
+    uint16_t sumRG[256];
+
+    // Main 3D loop over quantized RGB space
+    const int shift1 = PAL_BITS;
+    const int shift2 = 2 * PAL_BITS;
+
+    for (int qr = 0; qr < PAL_STEPS; ++qr)
+    {
+        const uint8_t *restrict dR = diffR[qr];
+    
+        for (int qg = 0; qg < PAL_STEPS; ++qg)
+        {
+            const uint8_t *restrict dG = diffG[qg];
+    
+            // Предсумма R+G
+            uint16_t *restrict sum_ptr = sumRG;
+            const uint8_t *restrict dR_ptr = dR;
+            const uint8_t *restrict dG_ptr = dG;
+            for (int i = 0; i < 256; ++i)
+                *sum_ptr++ = (uint16_t)(*dR_ptr++) + (uint16_t)(*dG_ptr++);
+    
+            const int base = (qr << shift2) | (qg << shift1);
+    
+            // Стартуем с предыдущего лучшего — сильный прогрев best_diff
+            int prev_best = 0;
+    
+            for (int qb = 0; qb < PAL_STEPS; ++qb)
+            {
+                const uint8_t *restrict dB = diffB[qb];
+    
+                // Инициализируем кандидатом из предыдущего qb
+                int best = prev_best;
+                uint16_t best_diff = (uint16_t)(sumRG[best] + dB[best]);
+    
+                // Развёртка на 4
+                const uint16_t *restrict sr = sumRG;
+                const uint8_t  *restrict db = dB;
+    
+                for (int i = 0; i < 256; i += 4)
+                {
+                    uint16_t d0 = (uint16_t)(sr[0] + db[0]);
+                    if (d0 < best_diff) { best = i + 0; best_diff = d0; if (!d0) goto got_best; }
+    
+                    uint16_t d1 = (uint16_t)(sr[1] + db[1]);
+                    if (d1 < best_diff) { best = i + 1; best_diff = d1; if (!d1) goto got_best; }
+    
+                    uint16_t d2 = (uint16_t)(sr[2] + db[2]);
+                    if (d2 < best_diff) { best = i + 2; best_diff = d2; if (!d2) goto got_best; }
+    
+                    uint16_t d3 = (uint16_t)(sr[3] + db[3]);
+                    if (d3 < best_diff) { best = i + 3; best_diff = d3; if (!d3) goto got_best; }
+    
+                    sr += 4; db += 4;
+                }
+    
+            got_best:
+                rgb_to_pal[base + qb] = (byte)best;
+                prev_best = best; // локальная «инерция» по оси B
+            }
+        }
+    }
+
+    // Init additive blending LUT
+    static boolean additive_lut_ready = false;
+    if (!additive_lut_ready)
+    {
+        addchan_lut = Z_Malloc(256 * 256, PU_STATIC, 0);
+
+        // Foreground contribution factor (0..256)
+        const int a = 192; // ~75% foreground
+        uint8_t fgA[256];
+
+        for (int fg = 0; fg < 256; ++fg)
+        {
+            fgA[fg] = (uint8_t)((fg * a) >> 8);
+        }
+
+        byte *lut_ptr = addchan_lut;
+
+        for (int bg = 0; bg < 256; ++bg)
+        {
+            for (int fg = 0; fg < 256; ++fg)
+            {
+                int sum = bg + fgA[fg];
+                *lut_ptr++ = (byte)(sum > 255 ? 255 : sum);
+            }
+        }
+    
+        additive_lut_ready = true;
+    }
+}
+
+
+// =============================================================================
+//
+//                              Blending functions
+//
+// =============================================================================
 
 // [PN] All original human-readable blending functions from Crispy Doom
 /*

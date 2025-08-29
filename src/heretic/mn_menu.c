@@ -1622,6 +1622,7 @@ static void M_ID_Gamma (int choice)
 
     I_SetPalette(sb_palette);
     R_InitColormaps();
+    I_InitPALTransMaps();
     R_FillBackScreen();
     SB_ForceRedraw();
 }
@@ -7119,6 +7120,7 @@ boolean MN_Responder(event_t * event)
         CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false, NULL);
         I_SetPalette(0);
         R_InitColormaps();
+        I_InitPALTransMaps();
         R_FillBackScreen();
         SB_state = -1;
         return true;

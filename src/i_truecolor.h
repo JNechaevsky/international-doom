@@ -2,6 +2,8 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2015-2024 Fabian Greffrath
+// Copyright(C) 2025 Polina "Aura" N.
+// Copyright(C) 2025 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,6 +23,7 @@
 #define __I_TRUECOLOR__
 
 #include <stdint.h>
+#include "doomtype.h"
 
 
 #include "config.h"
@@ -48,6 +51,35 @@ extern void I_InitTCTransMaps (void);
 extern const int I_ShadeFactor[];
 extern const float I_SaturationPercent[];
 extern const double colorblind_matrix[][3][3];
+
+
+// 
+
+#ifndef PAL_BITS
+#define PAL_BITS 5   // 5: 32x32x32 (~32 KB). Можно 6 (64^3 ~256 KB) для точности.
+#endif
+
+#define PAL_STEPS      (1 << PAL_BITS)
+#define PAL_LUT_SIZE   (1 << (3 * PAL_BITS))  // 2^(3*PAL_BITS)
+
+extern byte *rgb_to_pal;
+
+static inline byte RGB8_TO_PAL_FAST(int r, int g, int b)
+{
+    const int qr = r >> (8 - PAL_BITS);
+    const int qg = g >> (8 - PAL_BITS);
+    const int qb = b >> (8 - PAL_BITS);
+    const int idx = (qr << (2 * PAL_BITS)) | (qg << PAL_BITS) | qb;
+    return rgb_to_pal[idx];
+}
+
+extern void I_InitPALTransMaps (void);
+extern byte *playpal_trans;
+
+// Additive
+extern byte *addchan_lut;
+
+
 
 
 // [PN] Converted functions to macros for optimization:
