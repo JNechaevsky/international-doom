@@ -854,8 +854,12 @@ void P_MobjThinker(thinker_t *thinker)
                 }
                 if (mobj->player && (onmo->player || onmo->type == MT_POD))
                 {
-                    mobj->momx = onmo->momx;
-                    mobj->momy = onmo->momy;
+                    // [JN] Walking on Gasbags on H+H doesn't reset momentum.
+                    if (onmo->type == MT_POD && !heretic_ex)
+                    {
+                        mobj->momx = onmo->momx;
+                        mobj->momy = onmo->momy;
+                    }
                     if (onmo->z < onmo->floorz)
                     {
                         mobj->z += onmo->floorz - onmo->z;
