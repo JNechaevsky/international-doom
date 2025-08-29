@@ -64,7 +64,7 @@ extern const double colorblind_matrix[][3][3];
 
 extern byte *rgb_to_pal;
 
-static inline byte RGB8_TO_PAL_FAST(int r, int g, int b)
+static inline byte RGB_TO_PAL(int r, int g, int b)
 {
     const int qr = r >> (8 - PAL_BITS);
     const int qg = g >> (8 - PAL_BITS);
