@@ -1797,6 +1797,7 @@ static void M_ID_Gamma (int choice)
 
     I_SetPalette (st_palette);
     R_InitColormaps();
+    I_InitPALTransMaps();
     R_FillBackScreen();
     st_fullupdate = true;
 }
@@ -6987,6 +6988,7 @@ boolean M_Responder (event_t* ev)
         {
             I_SetPalette(st_palette);
             R_InitColormaps();
+            I_InitPALTransMaps();
             R_FillBackScreen();
             st_fullupdate = true;
         }

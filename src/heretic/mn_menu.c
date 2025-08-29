@@ -1622,6 +1622,7 @@ static void M_ID_Gamma (int choice)
 
     I_SetPalette(sb_palette);
     R_InitColormaps();
+    I_InitPALTransMaps();
     R_FillBackScreen();
     SB_ForceRedraw();
 }
@@ -4232,10 +4233,10 @@ static void M_Draw_ID_Misc (void)
     sprintf(str, autoload_hhe == 1 ? "IWAD ONLY" :
                  autoload_hhe == 2 ? "IWAD AND PWAD" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
-                        autoload_deh == 1 ? cr[CR_YELLOW] :
-                        autoload_deh == 2 ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            autoload_deh == 1 ? cr[CR_YELLOW_BRIGHT] :
-                            autoload_deh == 2 ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                        autoload_hhe == 1 ? cr[CR_YELLOW] :
+                        autoload_hhe == 2 ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            autoload_hhe == 1 ? cr[CR_YELLOW_BRIGHT] :
+                            autoload_hhe == 2 ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(7));
 
     MN_DrTextACentered("MENU SETTINGS", 100, cr[CR_YELLOW]);
@@ -7119,6 +7120,7 @@ boolean MN_Responder(event_t * event)
         CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false, NULL);
         I_SetPalette(0);
         R_InitColormaps();
+        I_InitPALTransMaps();
         R_FillBackScreen();
         SB_state = -1;
         return true;

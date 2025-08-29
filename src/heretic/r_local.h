@@ -605,6 +605,14 @@ void R_DrawTranslatedTLColumn(void);
 void R_DrawTranslatedTLColumnLow(void);
 void R_DrawExtraTLColumn(void);
 void R_DrawExtraTLColumnLow(void);
+extern void R_DrawTLColumn_8 (void);
+extern void R_DrawTLColumnLow_8 (void);
+extern void R_DrawTLAddColumn_8 (void);
+extern void R_DrawTLAddColumnLow_8 (void);
+extern void R_DrawTranslatedTLColumn_8 (void);
+extern void R_DrawTranslatedTLColumnLow_8 (void);
+extern void R_DrawExtraTLColumn_8 (void);
+extern void R_DrawExtraTLColumnLow_8 (void);
 
 extern int ds_y;
 extern int ds_x1;

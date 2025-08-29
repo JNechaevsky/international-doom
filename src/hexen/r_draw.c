@@ -298,6 +298,65 @@ void R_DrawAltTLColumn(void)
     }
 }
 
+void R_DrawAltTLColumnLow(void)
+{
+    const int count = dc_yh - dc_yl;
+    if (count < 0)
+        return; // No pixels to draw
+
+    // Low detail: double horizontal resolution
+    const int x = dc_x << 1;
+
+    // Local pointers for improved memory access
+    const byte *restrict const sourcebase = dc_source;
+    const byte *restrict const brightmap = dc_brightmap;
+    const pixel_t *restrict const colormap0 = dc_colormap[0];
+    const pixel_t *restrict const colormap1 = dc_colormap[1];
+    const int screenwidth = SCREENWIDTH;
+    const int step = 2;
+    int y_start = dc_yl;
+    int y_end = dc_yh;
+
+    // Setup scaling
+    const fixed_t fracstep = dc_iscale * step;
+    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
+
+    // Precompute initial destination pointers
+    pixel_t *restrict dest1 = ylookup[y_start] + columnofs[flipviewwidth[x]];
+    pixel_t *restrict dest2 = ylookup[y_start] + columnofs[flipviewwidth[x + 1]];
+
+    // Process screen in 2×2 pixel blocks (2 lines, 2 columns)
+    while (y_start < y_end)
+    {
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        
+        // Process two lines for both columns
+        const pixel_t blended = I_BlendOver_142(*dest1, destrgb);
+        dest1[0] = blended;
+        dest1[screenwidth] = blended;
+        
+        const pixel_t blended2 = I_BlendOver_142(*dest2, destrgb);
+        dest2[0] = blended2;
+        dest2[screenwidth] = blended2;
+
+        // Move to next pair of lines
+        dest1 += screenwidth * step;
+        dest2 += screenwidth * step;
+        frac += fracstep;
+        y_start += step;
+    }
+
+    // Handle final row if height is odd (draw single line, both columns)
+    if (y_start == y_end)
+    {
+        const unsigned s = sourcebase[frac >> FRACBITS];
+        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
+        
+        dest1[0] = I_BlendOver_96(*dest1, destrgb);
+        dest2[0] = I_BlendOver_96(*dest2, destrgb);
+    }
+}
 
 // -----------------------------------------------------------------------------
 // R_DrawTLAddColumn

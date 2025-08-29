@@ -1320,6 +1320,7 @@ void R_InitData (void)
     printf (".");
     // [JN] Initialize and compose translucency tables.
     I_InitTCTransMaps ();
+    I_InitPALTransMaps ();
     printf (".");
 }
 

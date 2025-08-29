@@ -424,7 +424,7 @@ static void R_DrawVisSprite (const vissprite_t *vis, int x1, int x2)
         }
         else
         {
-            colfunc = R_DrawAltTLColumn;
+            colfunc = alttlcolfunc;
         }
     }
     else if (vis->mobjflags & MF_TRANSLATION)

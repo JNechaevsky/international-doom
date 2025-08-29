@@ -108,6 +108,7 @@ int LIGHTZSHIFT;
 void (*colfunc) (void);
 void (*basecolfunc) (void);
 void (*tlcolfunc) (void);
+void (*alttlcolfunc) (void);
 void (*tladdcolfunc) (void);
 void (*transcolfunc) (void);
 void (*extratlcolfunc) (void);
@@ -579,19 +580,41 @@ void R_ExecuteSetViewSize (void)
     if (!detailshift)
     {
         colfunc = basecolfunc = R_DrawColumn;
-        tlcolfunc = R_DrawTLColumn;
-        tladdcolfunc = R_DrawTLAddColumn;
+        if (vid_truecolor)
+        {
+            tlcolfunc = R_DrawTLColumn;
+            alttlcolfunc = R_DrawAltTLColumn;
+            tladdcolfunc = R_DrawTLAddColumn;
+            extratlcolfunc = R_DrawExtraTLColumn;
+        }
+        else
+        {
+            tlcolfunc = R_DrawTLColumn_8;
+            alttlcolfunc = R_DrawAltTLColumn_8;
+            tladdcolfunc = R_DrawTLAddColumn_8;
+            extratlcolfunc = R_DrawExtraTLColumn_8;
+        }
         transcolfunc = R_DrawTranslatedColumn;
-        extratlcolfunc = R_DrawExtraTLColumn;
         spanfunc = R_DrawSpan;
     }
     else
     {
         colfunc = basecolfunc = R_DrawColumnLow;
-        tlcolfunc = R_DrawTLColumn;
-        tladdcolfunc = R_DrawTLAddColumnLow;
+        if (vid_truecolor)
+        {
+            tlcolfunc = R_DrawTLColumn;
+            alttlcolfunc = R_DrawAltTLColumnLow;
+            tladdcolfunc = R_DrawTLAddColumnLow;
+            extratlcolfunc = R_DrawExtraTLColumnLow;
+        }
+        else
+        {
+            tlcolfunc = R_DrawTLColumn_8;
+            alttlcolfunc = R_DrawAltTLColumnLow_8;
+            tladdcolfunc = R_DrawTLAddColumnLow_8;
+            extratlcolfunc = R_DrawExtraTLColumnLow_8;
+        }
         transcolfunc = R_DrawTranslatedColumn;
-        extratlcolfunc = R_DrawExtraTLColumnLow;
         spanfunc = R_DrawSpanLow;
     }
 

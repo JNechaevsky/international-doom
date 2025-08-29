@@ -1566,6 +1566,7 @@ static void M_ID_Gamma (int choice)
 
     I_SetPalette(SB_palette);
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+    I_InitPALTransMaps();
     R_FillBackScreen();
     SB_ForceRedraw();
 }
@@ -6418,6 +6419,7 @@ boolean MN_Responder(event_t * event)
         CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false, NULL);
         SB_PaletteFlash(true);  // force change
         R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
+        I_InitPALTransMaps();
         R_FillBackScreen();
         SB_state = -1;
         return true;

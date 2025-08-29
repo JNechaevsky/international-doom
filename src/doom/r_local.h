@@ -593,6 +593,12 @@ extern void R_DrawTranslatedColumn (void);
 extern void R_DrawTranslatedColumnLow (void);
 extern void R_DrawTransTLFuzzColumn (void);
 extern void R_DrawTransTLFuzzColumnLow (void);
+extern void R_DrawTLColumn_8 (void);
+extern void R_DrawTLColumnLow_8 (void);
+extern void R_DrawTLAddColumn_8 (void);
+extern void R_DrawTLAddColumnLow_8 (void);
+extern void R_DrawTransTLFuzzColumn_8 (void);
+extern void R_DrawTransTLFuzzColumnLow_8(void);
 
 extern void R_DrawViewBorder (void);
 extern void R_FillBackScreen (void);
@@ -623,6 +629,9 @@ extern fixed_t ds_ystep;
 
 extern lighttable_t *dc_colormap[2];
 extern lighttable_t *ds_colormap[2];
+
+extern pixel_t *ylookup[MAXHEIGHT];
+extern int columnofs[MAXWIDTH];
 
 extern const byte *dc_brightmap;
 extern const byte *ds_brightmap;
