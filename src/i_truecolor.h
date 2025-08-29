@@ -45,25 +45,12 @@ typedef union
 extern uint8_t   additive_lut[511];
 extern uint8_t   shadow_alpha;
 extern uint8_t   fuzz_alpha;
-
 extern void I_InitTCTransMaps (void);
 
-extern const int I_ShadeFactor[];
-extern const float I_SaturationPercent[];
-extern const double colorblind_matrix[][3][3];
-
-
-// 
-
-#ifndef PAL_BITS
-#define PAL_BITS 5   // 5: 32x32x32 (~32 KB). Можно 6 (64^3 ~256 KB) для точности.
-#endif
-
-#define PAL_STEPS      (1 << PAL_BITS)
-#define PAL_LUT_SIZE   (1 << (3 * PAL_BITS))  // 2^(3*PAL_BITS)
-
+#define PAL_BITS 5   // 5: 32x32x32 (~32 KB). Сan use 6 (64^3 ~256 KB) for higher accuracy.
+#define PAL_STEPS    (1 << PAL_BITS)
+#define PAL_LUT_SIZE (1 << (3 * PAL_BITS)) // 2^(3*PAL_BITS)
 extern byte *rgb_to_pal;
-
 static inline byte RGB_TO_PAL(int r, int g, int b)
 {
     const int qr = r >> (8 - PAL_BITS);
@@ -72,14 +59,13 @@ static inline byte RGB_TO_PAL(int r, int g, int b)
     const int idx = (qr << (2 * PAL_BITS)) | (qg << PAL_BITS) | qb;
     return rgb_to_pal[idx];
 }
-
-extern void I_InitPALTransMaps (void);
 extern byte *playpal_trans;
-
-// Additive
 extern byte *addchan_lut;
+extern void I_InitPALTransMaps (void);
 
-
+extern const int I_ShadeFactor[];
+extern const float I_SaturationPercent[];
+extern const double colorblind_matrix[][3][3];
 
 
 // [PN] Converted functions to macros for optimization:

@@ -193,7 +193,7 @@ void I_InitPALTransMaps(void)
         {
             const uint8_t *restrict dG = diffG[qg];
     
-            // Предсумма R+G
+            // Pre-sum R+G
             uint16_t *restrict sum_ptr = sumRG;
             const uint8_t *restrict dR_ptr = dR;
             const uint8_t *restrict dG_ptr = dG;
@@ -202,18 +202,18 @@ void I_InitPALTransMaps(void)
     
             const int base = (qr << shift2) | (qg << shift1);
     
-            // Стартуем с предыдущего лучшего — сильный прогрев best_diff
+            // Start from previous best - strong warm-up for best_diff
             int prev_best = 0;
     
             for (int qb = 0; qb < PAL_STEPS; ++qb)
             {
                 const uint8_t *restrict dB = diffB[qb];
     
-                // Инициализируем кандидатом из предыдущего qb
+                // Initialize candidate from previous qb
                 int best = prev_best;
                 uint16_t best_diff = (uint16_t)(sumRG[best] + dB[best]);
     
-                // Развёртка на 4
+                // Loop unrolled by 4
                 const uint16_t *restrict sr = sumRG;
                 const uint8_t  *restrict db = dB;
     
@@ -236,7 +236,7 @@ void I_InitPALTransMaps(void)
     
             got_best:
                 rgb_to_pal[base + qb] = (byte)best;
-                prev_best = best; // локальная «инерция» по оси B
+                prev_best = best; // Local "inertia" along the B axis
             }
         }
     }

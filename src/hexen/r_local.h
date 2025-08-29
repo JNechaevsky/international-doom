@@ -437,6 +437,7 @@ extern int detailshift;         // 0 = high, 1 = low
 extern void (*colfunc) (void);
 extern void (*basecolfunc) (void);
 extern void (*tlcolfunc) (void);
+extern void (*alttlcolfunc) (void);
 extern void (*tladdcolfunc) (void);
 extern void (*extratlcolfunc) (void);
 extern void (*spanfunc) (void);
@@ -664,9 +665,18 @@ void R_DrawTranslatedColumn(void);
 void R_DrawTranslatedTLColumn(void);
 void R_DrawTranslatedColumnLow(void);
 void R_DrawAltTLColumn(void);
+void R_DrawAltTLColumnLow(void);
 //void  R_DrawTranslatedAltTLColumn(void);
 void R_DrawExtraTLColumn(void);
 void R_DrawExtraTLColumnLow(void);
+extern void R_DrawTLColumn_8 (void);
+extern void R_DrawTLColumnLow_8 (void);
+extern void R_DrawAltTLColumn_8 (void);
+extern void R_DrawAltTLColumnLow_8 (void);
+extern void R_DrawExtraTLColumn_8 (void);
+extern void R_DrawExtraTLColumnLow_8 (void);
+extern void R_DrawTLAddColumn_8 (void);
+extern void R_DrawTLAddColumnLow_8 (void);
 
 extern int ds_y;
 extern int ds_x1;

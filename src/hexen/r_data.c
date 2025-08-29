@@ -1143,6 +1143,7 @@ void R_InitData (void)
     R_InitHSVColors();
     // [JN] Initialize and compose translucency tables.
     I_InitTCTransMaps();
+    I_InitPALTransMaps();
 }
 
 // -----------------------------------------------------------------------------
