@@ -599,9 +599,18 @@ void R_ExecuteSetViewSize (void)
         fuzztlcolfunc = R_DrawFuzzTLColumn;
         fuzzbwcolfunc = R_DrawFuzzBWColumn;
         transcolfunc = R_DrawTranslatedColumn;
-        tlcolfunc = R_DrawTLColumn;
-        tladdcolfunc = R_DrawTLAddColumn;
-        transtlfuzzcolfunc = R_DrawTransTLFuzzColumn;
+        if (vid_truecolor)
+        {
+            tlcolfunc = R_DrawTLColumn;
+            tladdcolfunc = R_DrawTLAddColumn;
+            transtlfuzzcolfunc = R_DrawTransTLFuzzColumn;
+        }
+        else
+        {
+            tlcolfunc = R_DrawTLColumn_8;
+            tladdcolfunc = R_DrawTLAddColumn_8;
+            transtlfuzzcolfunc = R_DrawTransTLFuzzColumn_8;
+        }
         spanfunc = R_DrawSpan;
     }
     else
@@ -611,9 +620,18 @@ void R_ExecuteSetViewSize (void)
         fuzztlcolfunc = R_DrawFuzzTLColumnLow;
         fuzzbwcolfunc = R_DrawFuzzBWColumnLow;
         transcolfunc = R_DrawTranslatedColumnLow;
-        tlcolfunc = R_DrawTLColumnLow;
-        tladdcolfunc = R_DrawTLAddColumnLow;
-        transtlfuzzcolfunc = R_DrawTransTLFuzzColumnLow;
+        if (vid_truecolor)
+        {
+            tlcolfunc = R_DrawTLColumnLow;
+            tladdcolfunc = R_DrawTLAddColumnLow;
+            transtlfuzzcolfunc = R_DrawTransTLFuzzColumnLow;
+        }
+        else
+        {
+            tlcolfunc = R_DrawTLColumnLow_8;
+            tladdcolfunc = R_DrawTLAddColumnLow_8;
+            transtlfuzzcolfunc = R_DrawTransTLFuzzColumnLow_8;
+        }
         spanfunc = R_DrawSpanLow;
     }
 
