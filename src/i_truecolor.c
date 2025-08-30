@@ -20,6 +20,7 @@
 //
 
 #include <stdlib.h> // malloc
+#include <string.h> // memcpy
 
 #include "config.h"
 
