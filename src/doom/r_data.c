@@ -1075,6 +1075,15 @@ void R_InitColormaps (void)
 	const float a_hi = vid_saturation < 100 ? I_SaturationPercent[vid_saturation] : 0;
 	const float a_lo = vid_saturation < 100 ? (a_hi / 2) : 0;
 
+	// [JN] Allocate colormaps[] array once with max size (256 + 1) to avoid
+	// repeated reallocation during subsequent function calls.
+	static boolean colormaps_allocated = false;
+	if (!colormaps_allocated)
+	{
+		colormaps = (lighttable_t*) Z_Malloc((256 + 1) * 256 * sizeof(lighttable_t), PU_STATIC, 0);
+		colormaps_allocated = true;
+	}
+
 	// [crispy] Smoothest diminishing lighting.
 	// Compiled in but not enabled TrueColor mode
 	// can't use more than original 32 colormaps.
@@ -1086,8 +1095,6 @@ void R_InitColormaps (void)
 	{
 		NUMCOLORMAPS = 32;
 	}
-
-	colormaps = I_Realloc(colormaps, (NUMCOLORMAPS + 1) * 256 * sizeof(lighttable_t));
 
 	if (vid_truecolor)
 	{
