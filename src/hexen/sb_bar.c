@@ -59,6 +59,7 @@ static void DrawInventoryBar(void);
 static void DrawKeyBar(void);
 static void DrawWeaponPieces(void);
 static void DrawFullScreenStuff(void);
+static void DrawFullScreenStuffRemaster(void);
 static void DrawAnimatedIcons(void);
 static boolean HandleCheats(byte key);
 static boolean CheatAddKey(Cheat_t * cheat, byte key, boolean * eat);
@@ -916,7 +917,10 @@ void SB_Drawer(void)
     if (viewheight == SCREENHEIGHT
         && !(automapactive && !automap_overlay))
     {
-        DrawFullScreenStuff();
+        if (st_fullscreen_layout == 1)
+            DrawFullScreenStuffRemaster();
+        else
+            DrawFullScreenStuff();
         SB_state = -1;
     }
     else
@@ -1922,6 +1926,40 @@ static const char *PiecesGfx[][3] = {
 };
 
 // -----------------------------------------------------------------------------
+// DrawAssembledWeapon
+// [JN] Assembled fourth weapon widget, used in fullscreen status bar.
+// -----------------------------------------------------------------------------
+
+static void DrawAssembledWeapon (int yy)
+{
+    const int class = PlayerClass[displayplayer];
+    patch_t *patch1 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][0]), PU_CACHE);
+    patch_t *patch2 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][1]), PU_CACHE);
+    patch_t *patch3 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][2]), PU_CACHE);
+
+    dp_translucent = (st_weapon_widget == 2);
+
+    if (CPlayer->pieces & WPIECE1)
+    {
+        // God-awful hack to shift BloodScrouge's upper piece
+        // one pixel left for better placement.
+        const int xx = (class == PCLASS_MAGE ? 1 : 0);
+
+        V_DrawPatch(PiecesX[class] + WIDESCREENDELTA - xx, PiecesY[class][0] - yy, patch1);
+    }
+    if (CPlayer->pieces & WPIECE2)
+    {
+        V_DrawPatch(PiecesX[class] + WIDESCREENDELTA, PiecesY[class][1] - yy, patch2);
+    }
+    if (CPlayer->pieces & WPIECE3)
+    {
+        V_DrawPatch(PiecesX[class] + WIDESCREENDELTA, PiecesY[class][2] - yy, patch3);
+    }
+
+    dp_translucent = false;
+}
+
+// -----------------------------------------------------------------------------
 // DrawFullScreenStuff
 // [JN] Upgraded to draw extra elements.
 // -----------------------------------------------------------------------------
@@ -2077,30 +2115,151 @@ static void DrawFullScreenStuff(void)
     // [JN] Assembled weapon widget.
     if (st_weapon_widget)
     {
-        patch_t *patch1 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][0]), PU_CACHE);
-        patch_t *patch2 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][1]), PU_CACHE);
-        patch_t *patch3 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][2]), PU_CACHE);
+        DrawAssembledWeapon(0);
+    }
+}
 
-        dp_translucent = (st_weapon_widget == 2);
+// -----------------------------------------------------------------------------
+// DrawFullScreenStuff
+// [JN] KEX engine inspired elements layout.
+// -----------------------------------------------------------------------------
 
-        if (CPlayer->pieces & WPIECE1)
+static void DrawFullScreenStuffRemaster (void)
+{
+    const char *patch;
+    const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
+    const int class = PlayerClass[displayplayer];
+
+    // Health
+    dp_translation = SB_NumberColor(hudcolor_health);
+    DrBNumber(CPlayer->health, 5 - wide_x, 172);
+    dp_translation = NULL;
+    // Health vial
+    V_DrawShadowedPatchNoOffsets(48 - wide_x, 173, W_CacheLumpName("PTN1A0", PU_CACHE));
+
+    // Armor
+    // Shift digits and icon right for armor percent values above 99.
+    const int xx = (st_armor_value && ArmorPercent > 99) ? 12 : 0;
+    dp_translation = SB_NumberColor(hudcolor_armor);
+    if (!st_armor_value)
+    {
+        DrBNumber(ArmorClass, 54 - wide_x, 172);
+    }
+    else
+    {
+        DrBNumber(ArmorPercent, 54 - wide_x + xx, 172);
+    }
+    dp_translation = NULL;
+    if (st_armor_icon)
+    {
+        // Draw generic armor icon.
+        V_DrawShadowedPatch(81+16 - wide_x + xx, 176 - 3, (patch_t*)id_armor_icon);
+    }
+    else
+    {
+        // Draw class-based icon.
+        V_DrawShadowedPatchNoOffsets(ClassArmorX[class] + 16 - wide_x + xx, ClassArmorY[class] - 3,
+                            W_CacheLumpName(ClassArmorIcon[class], PU_CACHE));
+    }
+
+    // Amount of current mana.
+    dp_translation = SB_NumberColor(hudcolor_mana_blue);
+    DrINumber(CPlayer->mana[0] >= 0 ? CPlayer->mana[0] : 0, 240 + wide_x, 167);
+    dp_translation = NULL;
+
+    dp_translation = SB_NumberColor(hudcolor_mana_green);
+    DrINumber(CPlayer->mana[1] >= 0 ? CPlayer->mana[1] : 0, 240 + wide_x, 182); 
+    dp_translation = NULL;
+
+    if (CPlayer->readyweapon == WP_FIRST)
+    {
+        V_DrawShadowedPatch(268 + wide_x, 166, PatchMANADIM1);
+        V_DrawShadowedPatch(268 + wide_x, 181, PatchMANADIM2);
+    }
+    else if (CPlayer->readyweapon == WP_SECOND)
+    {
+        V_DrawShadowedPatch(268 + wide_x, 166, PatchMANABRIGHT1);
+        V_DrawShadowedPatch(268 + wide_x, 181, PatchMANADIM2);
+    }
+    else if (CPlayer->readyweapon == WP_THIRD)
+    {
+        V_DrawShadowedPatch(268 + wide_x, 166, PatchMANADIM1);
+        V_DrawShadowedPatch(268 + wide_x, 181, PatchMANABRIGHT2);
+    }
+    else
+    {
+        V_DrawShadowedPatch(268 + wide_x, 166, PatchMANABRIGHT1);
+        V_DrawShadowedPatch(268 + wide_x, 181, PatchMANABRIGHT2);
+    }
+
+    // Ready artifact
+    V_DrawTLPatch(286 + wide_x, 166, W_CacheLumpName("ARTIBOX", PU_CACHE));
+    patch = patcharti[CPlayer->readyArtifact];
+    if (CPlayer->readyArtifact > 0)
+    {
+        if (ArtifactFlash)
         {
-            // God-awful hack to shift BloodScrouge's upper piece
-            // one pixel left for better placement.
-            const int xx = (class == PCLASS_MAGE ? 1 : 0);
-
-            V_DrawPatch(PiecesX[class] + WIDESCREENDELTA - xx, PiecesY[class][0], patch1);
+            const int temp = W_GetNumForName("USEARTIA") + ArtifactFlash - 1;
+            V_DrawPatch(285 + wide_x, 166, W_CacheLumpNum(temp, PU_CACHE));
+            oldarti = -1;  // so that the correct artifact fills in after the flash
         }
-        if (CPlayer->pieces & WPIECE2)
+        else
         {
-            V_DrawPatch(PiecesX[class] + WIDESCREENDELTA, PiecesY[class][1], patch2);
+            V_DrawShadowedPatch(283 + wide_x, 166, W_CacheLumpName(patch, PU_CACHE));
+
+            // [PN] Find the slot of the currently readied artifact
+            int ready_count = 0;
+            for (int i = 0; i < CPlayer->inventorySlotNum; i++)
+            {
+                if (CPlayer->inventory[i].type == CPlayer->readyArtifact)
+                {
+                    ready_count = CPlayer->inventory[i].count;
+                    break;
+                }
+            }
+            DrSmallNumber(ready_count, 302 + wide_x, 188);
         }
-        if (CPlayer->pieces & WPIECE3)
+    }
+
+    if (inventory)
+    {
+        int x = inv_ptr - curpos;
+
+        for (int i = 0 ; i < 7 ; i++)
         {
-            V_DrawPatch(PiecesX[class] + WIDESCREENDELTA, PiecesY[class][2], patch3);
+            V_DrawTLPatch(50 + i * 31, 166, W_CacheLumpName("ARTIBOX", PU_CACHE));
+            if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
+            {
+                V_DrawPatch(49 + i * 31, 165,
+                            W_CacheLumpName(patcharti
+                                            [CPlayer->inventory[x + i].type],
+                                            PU_CACHE));
+                if (CPlayer->inventory[x + i].count > 1)
+                {
+                    DrSmallNumber(CPlayer->inventory[x + i].count,
+                                  66 + i * 31, 186);
+                }
+            }
         }
 
-        dp_translucent = false;
+        V_DrawPatch(50 + curpos * 31, 165, PatchSELECTBOX);
+
+        if (x != 0)
+        {
+            V_DrawPatch(40, 165, !(leveltime & 4) ? PatchINVLFGEM1 :
+                        PatchINVLFGEM2);
+        }
+        if (CPlayer->inventorySlotNum - x > 7)
+        {
+            V_DrawPatch(268, 165, !(leveltime & 4) ?
+                        PatchINVRTGEM1 : PatchINVRTGEM2);
+        }
+    }
+
+    // Assembled weapon widget.
+    if (st_weapon_widget)
+    {
+        DrawAssembledWeapon(5);
     }
 }
 

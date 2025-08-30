@@ -642,6 +642,7 @@ static void M_ID_Crosshair (int choice);
 static void M_ID_CrosshairColor (int choice);
 
 static void M_Draw_ID_Gameplay_2 (void);
+static void M_ID_Layout (int choice);
 static void M_ID_ColoredSBar (int choice);
 static void M_ID_WeaponWidget (int choice);
 static void M_ID_ArmorIcon (int choice);
@@ -3632,6 +3633,7 @@ static void M_ID_CrosshairColor (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Gameplay_2[] = {
+    { ITT_LRFUNC1, "FULL SCREEN LAYOUT",          M_ID_Layout,       0, MENU_NONE },
     { ITT_LRFUNC1, "COLORED ELEMENTS",            M_ID_ColoredSBar,  0, MENU_NONE },
     { ITT_LRFUNC2, "4TH WEAPON WIDGET",           M_ID_WeaponWidget, 0, MENU_NONE },
     { ITT_LRFUNC2, "ARMOR ICON",                  M_ID_ArmorIcon,    0, MENU_NONE },
@@ -3663,62 +3665,74 @@ static void M_Draw_ID_Gameplay_2 (void)
 
     MN_DrTextACentered("STATUS BAR", 10, cr[CR_YELLOW]);
 
+    // Full screen layout
+    sprintf(str, st_fullscreen_layout == 1 ? "REMASTER" : "ORIGINAL");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
+                        st_fullscreen_layout ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            st_fullscreen_layout ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(0));
+
     // Colored elements
     sprintf(str, st_colored_stbar ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 30,
                         st_colored_stbar ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             st_colored_stbar ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(0));
+                                LINE_ALPHA(1));
 
     // Fourth weapon widget
     sprintf(str, st_weapon_widget == 1 ? "SOLID" :
                  st_weapon_widget == 2 ? "TRANSLUCENT" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 30,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
                         st_weapon_widget ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             st_weapon_widget ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(1));
+                                LINE_ALPHA(2));
 
     // Armor icon
     sprintf(str, st_armor_icon ? "GENERIC" : "CLASS-BASED");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
                         st_armor_icon ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             st_armor_icon ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(2));
+                                LINE_ALPHA(3));
 
     // Armor value
     sprintf(str, st_armor_value ? "PERCENT" : "CLASS");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
                         st_armor_value ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             st_armor_value ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(3));
+                                LINE_ALPHA(4));
 
-    MN_DrTextACentered("AUDIBLE", 60, cr[CR_YELLOW]);
+    MN_DrTextACentered("AUDIBLE", 70, cr[CR_YELLOW]);
 
     // Sfx Attenuation Axises
     sprintf(str, aud_z_axis_sfx ? "X/Y/Z" : "X/Y");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
                         aud_z_axis_sfx ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             aud_z_axis_sfx ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(6));
 
-    MN_DrTextACentered("PHYSICAL", 80, cr[CR_YELLOW]);
+    MN_DrTextACentered("PHYSICAL", 90, cr[CR_YELLOW]);
 
     // Corpses sliding from ledges
     sprintf(str, phys_torque ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
                         phys_torque ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             phys_torque ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(8));
 
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
                         phys_breathing ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             phys_breathing ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
+                                LINE_ALPHA(9));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "2/3");
+}
+
+static void M_ID_Layout (int choice)
+{
+    st_fullscreen_layout ^= 1;
 }
 
 static void M_ID_ColoredSBar (int choice)
@@ -4268,6 +4282,7 @@ static void M_ID_ApplyResetHook (void)
     xhair_color = 0;
 
     // Status bar
+    st_fullscreen_layout = 0;
     st_colored_stbar = 0;
     st_weapon_widget = 0;
     st_armor_icon = 0;
