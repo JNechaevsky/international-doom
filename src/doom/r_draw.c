@@ -267,12 +267,17 @@ void R_SetFuzzPosDraw (void)
 // Used with an all black colormap, this could create the SHADOW effect,
 // i.e. spectres and invisible players.
 //
-// [PN] Optimized to use local pointers for global arrays, replaced
-// do/while with for loops, and simplified arithmetic operations.
+// [PN] Adopted Woof!-style blocky rendering so fuzz “pixels” scale with
+// vid_resolution (draw only from block-leading columns; fill block-wide
+// rectangles; clamp width at viewport edge). Preserves original cutoff strip.
+// [PN] Micro-optimizations: hoisted constants (pitch, bounds, alpha), reduced
+// inner-branching (single top clamp + in-bounds check), compact fuzzpos wrap
+// with optional jitter, hot pointers kept in registers.
 // -----------------------------------------------------------------------------
 
 void R_DrawFuzzColumn(void)
 {
+    // Bottom-row cutoff
     const boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
@@ -287,43 +292,118 @@ void R_DrawFuzzColumn(void)
     // Local pointers to improve memory access
     const int *restrict const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
-    const int fuzzalpha = fuzz_alpha;
+    const int pitch = SCREENWIDTH;
+    const int top_delta = pitch - 1;
     const pixel_t *restrict const vbuf_start = I_VideoBuffer;
     const pixel_t *restrict const vbuf_end = I_VideoBuffer + SCREENAREA;
-    const int screenwidth = SCREENWIDTH;
+    const int fuzzwrap = FUZZTABLE;
+    const int fuzzalpha = fuzz_alpha;
+    const int block = (vid_resolution > 1) ? vid_resolution : 1;
 
-    // Aggressive optimization: inline fuzz offset calculations
-    const int iterations = count + 1;
-    for (int i = 0; i < iterations; ++i)
+    // Precompute "improved fuzz" flag once; behavior identical to original
+    const boolean improved_fuzz =
+        (vis_improved_fuzz == 1) && (realleveltime > oldleveltime);
+
+    // --- Blocky mode for hi-res ---
+    if (block > 1)
     {
-        const int offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
+        // Draw only from leading column of each block
+        if (dc_x % block)
+            return;
+
+        // Horizontal block width, clamped by viewport boundary
+        const int x_in_view = flipviewwidth[dc_x];
+        int fuzzblockwidth = scaledviewwidth - x_in_view;
+        if (fuzzblockwidth > block) fuzzblockwidth = block;
+        if (fuzzblockwidth <= 0) return;
+
+        // Lines to align with vertical block grid
+        int lines = block - (dc_yl % block);
+        int remaining = count + 1;
+
+        while (remaining > 0)
+        {
+            int write_lines = lines;
+            if (write_lines > remaining) write_lines = remaining;
+
+            // Sample source (one row up/down per fuzzoffset)
+            const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+            const pixel_t *restrict src = dest + off;
+
+            // Clamp against top, then in-bounds guard
+            if (src < vbuf_start) src = dest + top_delta;
+            if (src < vbuf_end)
+            {
+                const pixel_t blended = I_BlendDark(*src, fuzzalpha);
+
+                // Fill rectangle: write_lines × fuzzblockwidth
+                pixel_t *row = dest;
+                for (int ly = 0; ly < write_lines; ++ly)
+                {
+                    for (int j = 0; j < fuzzblockwidth; ++j)
+                        row[j] = blended;
+                    row += pitch;
+                }
+            }
+
+            // Advance vertically
+            remaining -= write_lines;
+            dest += pitch * write_lines;
+
+            // Update fuzz position (compact wrap & optional jitter)
+            if (++local_fuzzpos == fuzzwrap)
+            {
+                local_fuzzpos = 0;
+                if (improved_fuzz)
+                    local_fuzzpos = ID_Random() % 49;
+            }
+
+            lines = block;
+        }
+
+        // Bottom cutoff: one extra strip
+        if (cutoff)
+        {
+            const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+            const pixel_t blended = I_BlendDark(dest[fuzz_off], fuzzalpha);
+            for (int j = 0; j < fuzzblockwidth; ++j)
+                dest[j] = blended;
+        }
+
+        fuzzpos = local_fuzzpos;
+        return;
+    }
+
+    // --- Classic path for vid_resolution == 1 ---
+    int iterations = count + 1;
+    while (iterations--)
+    {
+        const int offset = pitch * fuzzoffsetbase[local_fuzzpos];
         const pixel_t *restrict src = dest + offset;
 
-        // Ensure randomness by injecting horizontal shifts safely
-        src = (src < vbuf_start) ? dest + screenwidth - 1 : src;
-
+        // Top clamp + in-bounds guard
+        if (src < vbuf_start) src = dest + top_delta;
         if (src < vbuf_end)
             *dest = I_BlendDark(*src, fuzzalpha);
 
-        // Update fuzzpos aggressively, avoiding modulo
-        if (++local_fuzzpos == FUZZTABLE)
+        // Update fuzz position (compact wrap & optional jitter)
+        if (++local_fuzzpos == fuzzwrap)
         {
             local_fuzzpos = 0;
-            if (vis_improved_fuzz == 1 && realleveltime > oldleveltime)
+            if (improved_fuzz)
                 local_fuzzpos = ID_Random() % 49;
         }
 
-        dest += screenwidth;
+        dest += pitch;
     }
 
-    // Handle cutoff line aggressively
+    // Bottom cutoff
     if (cutoff)
     {
-        const int fuzz_offset = screenwidth * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
         *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
     }
 
-    // Restore fuzzpos
     fuzzpos = local_fuzzpos;
 }
 
@@ -333,73 +413,171 @@ void R_DrawFuzzColumn(void)
 // Draws a vertical slice of pixels in blocky mode (low detail).
 // Creates a fuzzy effect by copying pixels from adjacent ones.
 //
-// [PN] Optimized to use local pointers for global arrays, replaced
-// do/while with for loops, and simplified arithmetic operations.
+// [PN] Adopted Woof!-style blocky rendering with robust anchoring for odd
+// vid_resolution (3×, 5×): treat the call as leader if x%block==0 OR
+// (x+1)%block==0 and anchor drawing to that physical column. Fill block-wide
+// rectangles and clamp to viewport; preserve cutoff strip.
+// [PN] Micro-optimizations: hoisted constants, fewer per-iteration branches,
+// compact fuzzpos wrap with optional jitter, and hot pointers in registers.
 // -----------------------------------------------------------------------------
 
 void R_DrawFuzzColumnLow(void)
 {
+    // Bottom-row cutoff (as in original)
     const boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
 
     const int count = dc_yh - dc_yl;
     if (count < 0)
-        return; // Zero length check
+        return; // Zero-length check
 
-    // Blocky mode: double the x coordinate
+    // Low-detail doubles the X coordinate (two physical columns per logical x)
     const int x = dc_x << 1;
 
-    // Destination pointer calculations
-    pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    // Destination pointers for classic path / bookkeeping
+    pixel_t *restrict dest  = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
     pixel_t *restrict dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
 
-    // Local pointers to improve memory access
+    // Hoisted constants and caches
     const int *restrict const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
-    const int fuzzalpha = fuzz_alpha;
-    const int screenwidth = SCREENWIDTH;
+
+    const int pitch = SCREENWIDTH;
+    const int top_delta = pitch - 1;
     const pixel_t *restrict const vbuf_start = I_VideoBuffer;
-    const pixel_t *restrict const vbuf_end = I_VideoBuffer + SCREENAREA;
+    const pixel_t *restrict const vbuf_end   = I_VideoBuffer + SCREENAREA;
+    const int fuzzwrap = FUZZTABLE;
+    const int fuzzalpha = fuzz_alpha;
+    const int block = (vid_resolution > 1) ? vid_resolution : 1;
 
-    // Aggressive optimization: calculate fuzz offsets directly in the loop
-    const int iterations = count + 1;
-    for (int i = 0; i < iterations; ++i)
+    // Precompute "improved fuzz" once
+    const boolean improved_fuzz =
+        (vis_improved_fuzz == 1) && (realleveltime > oldleveltime);
+
+    // --- Blocky mode for hi-res: draw rectangles aligned to the grid ---
+    if (block > 1)
     {
-        const int offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
-        const pixel_t *restrict src1 = dest + offset;
-        const pixel_t *restrict src2 = dest2 + offset;
+        // Choose block anchor among the two physical columns (x or x+1)
+        int anchorShift = -1;
+        if ((x % block) == 0)
+            anchorShift = 0;
+        else if (((x + 1) % block) == 0)
+            anchorShift = 1;
 
-        // Inject randomness safely, avoiding out-of-bounds accesses
-        src1 = (src1 < vbuf_start) ? dest + screenwidth - 1 : src1;
-        src2 = (src2 < vbuf_start) ? dest2 + screenwidth - 1 : src2;
+        if (anchorShift < 0)
+            return;
+
+        const int x_anchor = x + anchorShift;
+
+        // Draw pointer starts at the anchored column
+        pixel_t *restrict draw =
+            ylookup[dc_yl] + columnofs[flipviewwidth[x_anchor]];
+
+        // Horizontal block width, clamped to the right edge of the viewport
+        const int x_in_view = flipviewwidth[x_anchor];
+        int fuzzblockwidth = scaledviewwidth - x_in_view;
+        if (fuzzblockwidth > block) fuzzblockwidth = block;
+        if (fuzzblockwidth <= 0) return;
+
+        // Lines to align with vertical block grid
+        int lines = block - (dc_yl % block);
+        int remaining = count + 1;
+
+        while (remaining > 0)
+        {
+            int write_lines = lines;
+            if (write_lines > remaining) write_lines = remaining;
+
+            // Sample source (one row up/down per fuzzoffset)
+            const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+            const pixel_t *restrict src = draw + off;
+
+            // Top clamp + in-bounds guard
+            if (src < vbuf_start) src = draw + top_delta;
+            if (src < vbuf_end)
+            {
+                const pixel_t blended = I_BlendDark(*src, fuzzalpha);
+
+                // Fill rectangle: write_lines × fuzzblockwidth (anchored)
+                pixel_t *row = draw;
+                for (int ly = 0; ly < write_lines; ++ly)
+                {
+                    for (int j = 0; j < fuzzblockwidth; ++j)
+                        row[j] = blended;
+                    row += pitch;
+                }
+            }
+
+            // Advance vertically; keep dest/dest2 in step for classic cutoff data
+            remaining -= write_lines;
+            draw  += pitch * write_lines;
+            dest  += pitch * write_lines;
+            dest2 += pitch * write_lines;
+
+            // Update fuzzpos (compact wrap & optional jitter)
+            if (++local_fuzzpos == fuzzwrap)
+            {
+                local_fuzzpos = 0;
+                if (improved_fuzz)
+                    local_fuzzpos = ID_Random() % 49;
+            }
+
+            lines = block;
+        }
+
+        // Bottom cutoff: one extra strip at the anchor
+        if (cutoff)
+        {
+            const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+            const pixel_t blended = I_BlendDark(draw[fuzz_off], fuzzalpha);
+            for (int j = 0; j < fuzzblockwidth; ++j)
+                draw[j] = blended;
+        }
+
+        fuzzpos = local_fuzzpos;
+        return;
+    }
+
+    // --- Classic path for vid_resolution == 1 (two physical columns) ---
+    int iterations = count + 1;
+    while (iterations--)
+    {
+        const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+
+        const pixel_t *restrict src1 = dest  + off;
+        const pixel_t *restrict src2 = dest2 + off;
+
+        // Top clamp + in-bounds guard
+        if (src1 < vbuf_start) src1 = dest  + top_delta;
+        if (src2 < vbuf_start) src2 = dest2 + top_delta;
 
         if (src1 < vbuf_end)
             *dest = I_BlendDark(*src1, fuzzalpha);
         if (src2 < vbuf_end)
             *dest2 = I_BlendDark(*src2, fuzzalpha);
 
-        // Update fuzz position aggressively
-        if (++local_fuzzpos == FUZZTABLE)
+        // Update fuzzpos (compact wrap & optional jitter)
+        if (++local_fuzzpos == fuzzwrap)
         {
             local_fuzzpos = 0;
-            if (vis_improved_fuzz && realleveltime > oldleveltime)
+            if (improved_fuzz)
                 local_fuzzpos = ID_Random() % 49;
         }
 
-        dest += screenwidth;
-        dest2 += screenwidth;
+        dest  += pitch;
+        dest2 += pitch;
     }
 
-    // Aggressive handling of cutoff line
+    // Bottom cutoff (classic)
     if (cutoff)
     {
-        const int fuzz_offset = screenwidth * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-        *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
+        const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        *dest  = I_BlendDark(dest [fuzz_offset], fuzzalpha);
         *dest2 = I_BlendDark(dest2[fuzz_offset], fuzzalpha);
     }
 
-    // Restore fuzz position
+    // Persist fuzz position
     fuzzpos = local_fuzzpos;
 }
 
@@ -524,11 +702,17 @@ void R_DrawFuzzTLColumnLow(void)
 
 // -----------------------------------------------------------------------------
 // R_DrawFuzzBWColumn
-// [PN] Draw grayscale fuzz columnn. High detail.
+// Grayscale variant of the spectre fuzz (uses I_BlendDarkGrayscale), high detail.
+//
+// [PN] Adopted Woof!-style blocky rendering so grayscale fuzz scales with
+// vid_resolution (leader-column draws, block-wide fill, viewport clamp).
+// [PN] Micro-optimizations: hoisted constants (pitch, bounds), single top clamp
+// + in-bounds guard, compact fuzzpos wrap, fewer array index recalculations.
 // -----------------------------------------------------------------------------
 
 void R_DrawFuzzBWColumn(void)
 {
+    // Bottom-row cutoff (as in original)
     const boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
@@ -537,45 +721,115 @@ void R_DrawFuzzBWColumn(void)
     if (count < 0)
         return; // No pixels to draw
 
-    // Precompute destination pointer
-    pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
+    // Base destination
+    pixel_t *restrict dest =
+        ylookup[dc_yl] + columnofs[flipviewwidth[dc_x]];
 
-    // Local pointers for improved memory access
+    // Hoisted constants / caches
     const int *restrict const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
-    const int fuzzalpha = fuzz_alpha;
-    const int screenwidth = SCREENWIDTH;
+
+    const int pitch = SCREENWIDTH;
+    const int top_delta = pitch - 1;
     const pixel_t *restrict const vbuf_start = I_VideoBuffer;
-    const pixel_t *restrict const vbuf_end = I_VideoBuffer + SCREENAREA;
+    const pixel_t *restrict const vbuf_end   = I_VideoBuffer + SCREENAREA;
+    const int fuzzwrap = FUZZTABLE;
+    const int fuzzalpha = fuzz_alpha;
+    const int block = (vid_resolution > 1) ? vid_resolution : 1;
 
-    // Aggressive optimization: reduce overhead in loop
-    const int iterations = count + 1;
-    for (int i = 0; i < iterations; ++i)
+    // --- Blocky mode for hi-res: rectangles aligned to the block grid ---
+    if (block > 1)
     {
-        const int offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
-        const pixel_t *restrict src = dest + offset;
+        // Draw only from the leading column of each block
+        if ((dc_x % block) != 0)
+            return;
 
-        // Safely inject horizontal randomness
-        src = (src < vbuf_start) ? dest + screenwidth - 1 : src;
+        // Horizontal block width, clamped to the right edge of the viewport
+        const int x_in_view = flipviewwidth[dc_x];
+        int fuzzblockwidth = scaledviewwidth - x_in_view;
+        if (fuzzblockwidth > block) fuzzblockwidth = block;
+        if (fuzzblockwidth <= 0) return;
 
+        // Lines to align with vertical block grid
+        int lines = block - (dc_yl % block);
+        int remaining = count + 1;
+
+        while (remaining > 0)
+        {
+            int write_lines = lines;
+            if (write_lines > remaining) write_lines = remaining;
+
+            // Source sample (one row up/down per fuzzoffset)
+            const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+            const pixel_t *restrict src = dest + off;
+
+            // Top clamp + in-bounds guard
+            if (src < vbuf_start) src = dest + top_delta;
+            if (src < vbuf_end)
+            {
+                const pixel_t blended = I_BlendDarkGrayscale(*src, fuzzalpha);
+
+                // Fill rectangle: write_lines × fuzzblockwidth
+                pixel_t *row = dest;
+                for (int ly = 0; ly < write_lines; ++ly)
+                {
+                    for (int j = 0; j < fuzzblockwidth; ++j)
+                        row[j] = blended;
+                    row += pitch;
+                }
+            }
+
+            // Advance vertically
+            remaining -= write_lines;
+            dest += pitch * write_lines;
+
+            // Update fuzz position (compact wrap)
+            if (++local_fuzzpos == fuzzwrap)
+                local_fuzzpos = 0;
+
+            lines = block;
+        }
+
+        // Bottom cutoff: one extra horizontal strip
+        if (cutoff)
+        {
+            const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+            const pixel_t blended = I_BlendDarkGrayscale(dest[fuzz_off], fuzzalpha);
+            for (int j = 0; j < fuzzblockwidth; ++j)
+                dest[j] = blended;
+        }
+
+        fuzzpos = local_fuzzpos;
+        return;
+    }
+
+    // --- Classic path for vid_resolution == 1 ---
+    int iterations = count + 1;
+    while (iterations--)
+    {
+        const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+        const pixel_t *restrict src = dest + off;
+
+        // Top clamp + in-bounds guard
+        if (src < vbuf_start) src = dest + top_delta;
         if (src < vbuf_end)
             *dest = I_BlendDarkGrayscale(*src, fuzzalpha);
 
-        // Update fuzz position aggressively
-        if (++local_fuzzpos == FUZZTABLE)
+        // Update fuzz position (compact wrap)
+        if (++local_fuzzpos == fuzzwrap)
             local_fuzzpos = 0;
 
-        dest += screenwidth; // Advance destination pointer
+        dest += pitch;
     }
 
-    // Handle cutoff line
+    // Bottom cutoff
     if (cutoff)
     {
-        const int fuzz_offset = screenwidth * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
         *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
     }
 
-    // Restore fuzz position
+    // Persist fuzz position
     fuzzpos = local_fuzzpos;
 }
 
@@ -583,11 +837,18 @@ void R_DrawFuzzBWColumn(void)
 
 // -----------------------------------------------------------------------------
 // R_DrawFuzzBWColumnLow
-// [PN] Draw grayscale fuzz columnn. Low detail.
+// Grayscale fuzz in low detail (two physical columns per logical x).
+//
+// [PN] Adopted Woof!-style blocky rendering with odd-scale–safe anchoring:
+// leader if x%block==0 or (x+1)%block==0; draw from anchored column; clamp
+// block width; preserve cutoff strip.
+// [PN] Micro-optimizations: constants hoisted, reduced inner-loop branching,
+// compact fuzzpos wrap, and hot pointers kept in registers.
 // -----------------------------------------------------------------------------
 
 void R_DrawFuzzBWColumnLow(void)
 {
+    // Bottom-row cutoff (as in original)
     const boolean cutoff = (dc_yh == viewheight - 1); // [crispy]
     if (cutoff)
         dc_yh = viewheight - 2;
@@ -596,52 +857,137 @@ void R_DrawFuzzBWColumnLow(void)
     if (count < 0)
         return; // No pixels to draw
 
-    // Blocky mode: double the x coordinate
+    // Low-detail doubles X: two physical columns per logical x
     const int x = dc_x << 1;
 
-    // Destination pointer calculations
-    pixel_t *restrict dest = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
+    // Dest pointers for classic path / bookkeeping
+    pixel_t *restrict dest  = ylookup[dc_yl] + columnofs[flipviewwidth[x]];
     pixel_t *restrict dest2 = ylookup[dc_yl] + columnofs[flipviewwidth[x + 1]];
 
-    // Local pointers for improved memory access
+    // Hoisted constants / caches
     const int *restrict const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
-    const int fuzzalpha = fuzz_alpha;
-    const int screenwidth = SCREENWIDTH;
+
+    const int pitch = SCREENWIDTH;
+    const int top_delta = pitch - 1;
     const pixel_t *restrict const vbuf_start = I_VideoBuffer;
-    const pixel_t *restrict const vbuf_end = I_VideoBuffer + SCREENAREA;
+    const pixel_t *restrict const vbuf_end   = I_VideoBuffer + SCREENAREA;
+    const int fuzzwrap = FUZZTABLE;
+    const int fuzzalpha = fuzz_alpha;
+    const int block = (vid_resolution > 1) ? vid_resolution : 1;
 
-    // Loop for blending pixels with aggressive optimizations
-    const int iterations = count + 1;
-    for (int i = 0; i < iterations; ++i)
+    // --- Blocky mode for hi-res: rectangles aligned to the block grid ---
+    if (block > 1)
     {
-        const int offset = screenwidth * fuzzoffsetbase[local_fuzzpos];
-        const pixel_t *restrict src1 = dest + offset;
-        const pixel_t *restrict src2 = dest2 + offset;
+        // Pick the block anchor among the two physical columns (x or x+1)
+        int anchorShift = -1;
+        if ((x % block) == 0)
+            anchorShift = 0;
+        else if (((x + 1) % block) == 0)
+            anchorShift = 1;
 
-        // Safely inject horizontal randomness
-        src1 = (src1 < vbuf_start) ? dest + screenwidth - 1 : src1;
-        src2 = (src2 < vbuf_start) ? dest2 + screenwidth - 1 : src2;
+        if (anchorShift < 0)
+            return;
+
+        const int x_anchor = x + anchorShift;
+
+        // Draw pointer starts at the anchored column
+        pixel_t *restrict draw =
+            ylookup[dc_yl] + columnofs[flipviewwidth[x_anchor]];
+
+        // Horizontal block width, clamped to the right edge of the viewport
+        const int x_in_view = flipviewwidth[x_anchor];
+        int fuzzblockwidth = scaledviewwidth - x_in_view;
+        if (fuzzblockwidth > block) fuzzblockwidth = block;
+        if (fuzzblockwidth <= 0) return;
+
+        // Lines to align with the vertical block grid
+        int lines = block - (dc_yl % block);
+        int remaining = count + 1;
+
+        while (remaining > 0)
+        {
+            int write_lines = lines;
+            if (write_lines > remaining) write_lines = remaining;
+
+            // Source sample (one row up/down per fuzzoffset)
+            const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+            const pixel_t *restrict src = draw + off;
+
+            // Top clamp + in-bounds guard
+            if (src < vbuf_start) src = draw + top_delta;
+            if (src < vbuf_end)
+            {
+                const pixel_t blended = I_BlendDarkGrayscale(*src, fuzzalpha);
+
+                // Fill rectangle: write_lines × fuzzblockwidth (anchored)
+                pixel_t *row = draw;
+                for (int ly = 0; ly < write_lines; ++ly)
+                {
+                    for (int j = 0; j < fuzzblockwidth; ++j)
+                        row[j] = blended;
+                    row += pitch;
+                }
+            }
+
+            // Advance vertically; keep dest/dest2 in step for cutoff bookkeeping
+            remaining -= write_lines;
+            draw  += pitch * write_lines;
+            dest  += pitch * write_lines;
+            dest2 += pitch * write_lines;
+
+            // Update fuzz position (compact wrap)
+            if (++local_fuzzpos == fuzzwrap)
+                local_fuzzpos = 0;
+
+            lines = block;
+        }
+
+        // Bottom cutoff: one extra strip at the anchor
+        if (cutoff)
+        {
+            const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+            const pixel_t blended = I_BlendDarkGrayscale(draw[fuzz_off], fuzzalpha);
+            for (int j = 0; j < fuzzblockwidth; ++j)
+                draw[j] = blended;
+        }
+
+        // Persist fuzz position and exit
+        fuzzpos = local_fuzzpos;
+        return;
+    }
+
+    // --- Classic path for vid_resolution == 1 (two physical columns) ---
+    int iterations = count + 1;
+    while (iterations--)
+    {
+        const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+
+        const pixel_t *restrict src1 = dest  + off;
+        const pixel_t *restrict src2 = dest2 + off;
+
+        // Top clamp + in-bounds guard
+        if (src1 < vbuf_start) src1 = dest  + top_delta;
+        if (src2 < vbuf_start) src2 = dest2 + top_delta;
 
         if (src1 < vbuf_end)
             *dest = I_BlendDarkGrayscale(*src1, fuzzalpha);
         if (src2 < vbuf_end)
             *dest2 = I_BlendDarkGrayscale(*src2, fuzzalpha);
 
-        // Update fuzz position efficiently
-        if (++local_fuzzpos == FUZZTABLE)
+        // Update fuzz position (compact wrap)
+        if (++local_fuzzpos == fuzzwrap)
             local_fuzzpos = 0;
 
-        dest += screenwidth;
-        dest2 += screenwidth;
+        dest  += pitch;
+        dest2 += pitch;
     }
 
-    // Handle cutoff line
+    // Bottom cutoff
     if (cutoff)
     {
-        const int fuzz_offset = screenwidth * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-
-        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
+        const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        *dest  = I_BlendDarkGrayscale(dest [fuzz_offset], fuzzalpha);
         *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha);
     }
 
