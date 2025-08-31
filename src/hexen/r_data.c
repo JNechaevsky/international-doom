@@ -1010,44 +1010,82 @@ void R_InitTrueColormaps(char *current_colormap)
 		NUMCOLORMAPS = 32;
 	}
 
-	if (vid_truecolor)
-	{
-		// [crispy] If level is allowed to use full bright mode, fade colormaps to 
-		// black (0) color. Otherwise, fade to gray (147) to emulate FOGMAP table.
-		const int fade_color = LevelUseFullBright ? 0 : 147;
-
-		for (c = 0; c < NUMCOLORMAPS; c++)
-		{
-			const float scale = 1. * c / NUMCOLORMAPS;
-
-			for (i = 0; i < 256; i++)
-			{
-				const byte k = colormap[i];
-
-				// [PN] Apply intensity and saturation corrections
-				static byte pal[3];
-				static byte channels[3];
-
-				CALC_INTENSITY(pal, playpal, k);
-				CALC_SATURATION(channels, pal, a_hi, a_lo);
-
-				r = gammatable[vid_gamma][channels[0]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
-				g = gammatable[vid_gamma][channels[1]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
-				b = gammatable[vid_gamma][channels[2]] * (1. - scale) + gammatable[vid_gamma][fade_color] * scale;
-
-				// [PN] Apply contrast adjustment after interpolation
-				channels[0] = r;
-				channels[1] = g;
-				channels[2] = b;
-				CALC_CONTRAST(channels, vid_contrast);
-
-				// [PN] Apply colorblind filter
-				CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
-
-				colormaps[j++] = 0xff000000 | (channels[0] << 16) | (channels[1] << 8) | channels[2];
-			}
-		}
-	}
+    if (vid_truecolor)
+    {
+        // [crispy] If level is allowed to use full bright mode, fade colormaps to 
+        // black (0) color. Otherwise, fade to gray (147) to emulate FOGMAP table.
+        const int fade_color = LevelUseFullBright ? 0 : 147;
+    
+        // [PN] Precompute gamma-corrected base RGB for all 256 palette entries.
+        // Effectively: PLAYPAL -> intensity/saturation -> gamma, once per index.
+        const byte *const restrict gtab = gammatable[vid_gamma];
+        const int fade_r = gtab[playpal[3 * fade_color + 0]];
+        const int fade_g = gtab[playpal[3 * fade_color + 1]];
+        const int fade_b = gtab[playpal[3 * fade_color + 2]];
+        const float one_minus_a_hi = 1.0f - a_hi;
+    
+        // base_gamma[i][0..2] are gamma-corrected channels for index "i_base"
+        byte base_gamma[256][3];
+    
+        for (int i = 0; i < 256; ++i)
+        {
+            // Keep semantics: use COLORMAP[0] mapping as base index
+            const byte k = colormap[i];
+    
+            // Intensity
+            float pr = playpal[3 * k + 0] * vid_r_intensity;
+            float pg = playpal[3 * k + 1] * vid_g_intensity;
+            float pb = playpal[3 * k + 2] * vid_b_intensity;
+    
+            // Saturation (branch-free)
+            float r = one_minus_a_hi * pr + a_lo * (pg + pb);
+            float g = one_minus_a_hi * pg + a_lo * (pr + pb);
+            float b = one_minus_a_hi * pb + a_lo * (pr + pg);
+    
+            // Gamma to bytes (reuse later for every light level)
+            base_gamma[i][0] = gtab[(byte)r];
+            base_gamma[i][1] = gtab[(byte)g];
+            base_gamma[i][2] = gtab[(byte)b];
+        }
+    
+        // Contrast and colorblind are applied after light interpolation
+        const double cMul = (double)vid_contrast;
+        const double cAdj = 128.0 * (1.0 - (double)vid_contrast);
+        const double (*cbm)[3] = colorblind_matrix[a11y_colorblind];
+    
+        for (int c = 0; c < NUMCOLORMAPS; ++c)
+        {
+            const double scale = (double)c / (double)NUMCOLORMAPS;
+            const double k0    = 1.0 - scale;
+            const double kF    = scale;  // fade factor
+    
+            lighttable_t *const restrict row = &colormaps[c * 256];
+    
+            for (int i = 0; i < 256; ++i)
+            {
+                // 1) Light fade in gamma space and fade_color
+                double R = (double)base_gamma[i][0] * k0 + fade_r * kF;
+                double G = (double)base_gamma[i][1] * k0 + fade_g * kF;
+                double B = (double)base_gamma[i][2] * k0 + fade_b * kF;
+    
+                // 2) Contrast (affine)
+                R = cMul * R + cAdj;
+                G = cMul * G + cAdj;
+                B = cMul * B + cAdj;
+    
+                // 3) Colorblind transform (matrix is double)
+                double r2 = cbm[0][0]*R + cbm[0][1]*G + cbm[0][2]*B;
+                double g2 = cbm[1][0]*R + cbm[1][1]*G + cbm[1][2]*B;
+                double b2 = cbm[2][0]*R + cbm[2][1]*G + cbm[2][2]*B;
+    
+                const byte r8 = (byte)BETWEEN(0, 255, (int)r2);
+                const byte g8 = (byte)BETWEEN(0, 255, (int)g2);
+                const byte b8 = (byte)BETWEEN(0, 255, (int)b2);
+    
+                row[i] = 0xff000000 | (r8 << 16) | (g8 << 8) | b8;
+            }
+        }
+    }
 	else
 	{
 		for (c = 0; c < NUMCOLORMAPS; c++)

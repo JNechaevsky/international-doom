@@ -1096,40 +1096,76 @@ void R_InitColormaps (void)
 		NUMCOLORMAPS = 32;
 	}
 
-	if (vid_truecolor)
-	{
-		for (c = 0; c < NUMCOLORMAPS; c++)
-		{
-			const float scale = 1. * c / NUMCOLORMAPS;
-
-			for (i = 0; i < 256; i++)
-			{
-				const byte k = colormap[i];
-
-				// [PN] Apply intensity and saturation corrections
-				static byte pal[3];
-				static byte channels[3];
-
-				CALC_INTENSITY(pal, playpal, k);
-				CALC_SATURATION(channels, pal, a_hi, a_lo);
-
-				r = gammatable[vid_gamma][channels[0]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
-				g = gammatable[vid_gamma][channels[1]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
-				b = gammatable[vid_gamma][channels[2]] * (1. - scale) + gammatable[vid_gamma][0] * scale;
-
-				// [PN] Apply contrast adjustment after interpolation
-				channels[0] = r;
-				channels[1] = g;
-				channels[2] = b;
-				CALC_CONTRAST(channels, vid_contrast);
-
-				// [PN] Apply colorblind filter
-				CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
-
-				colormaps[j++] = 0xff000000 | (channels[0] << 16) | (channels[1] << 8) | channels[2];
-			}
-		}
-	}
+    if (vid_truecolor)
+    {
+        // [PN] Precompute gamma-corrected base RGB for all 256 palette entries.
+        // Effectively: PLAYPAL -> intensity/saturation -> gamma, once per index.
+        const byte *const restrict gtab = gammatable[vid_gamma];
+        const int   black_gamma = gtab[0];
+        const float one_minus_a_hi = 1.0f - a_hi;
+    
+        // base_gamma[i][0..2] are gamma-corrected channels for index "i_base"
+        byte base_gamma[256][3];
+    
+        for (int i = 0; i < 256; ++i)
+        {
+            // Keep semantics: use COLORMAP[0] mapping as base index
+            const byte k = colormap[i];
+    
+            // Intensity
+            float pr = playpal[3 * k + 0] * vid_r_intensity;
+            float pg = playpal[3 * k + 1] * vid_g_intensity;
+            float pb = playpal[3 * k + 2] * vid_b_intensity;
+    
+            // Saturation
+            float r = one_minus_a_hi * pr + a_lo * (pg + pb);
+            float g = one_minus_a_hi * pg + a_lo * (pr + pb);
+            float b = one_minus_a_hi * pb + a_lo * (pr + pg);
+    
+            // Gamma to bytes (reuse later for every light level)
+            base_gamma[i][0] = gtab[(byte)r];
+            base_gamma[i][1] = gtab[(byte)g];
+            base_gamma[i][2] = gtab[(byte)b];
+        }
+    
+        // Contrast and colorblind are applied after light interpolation
+        const double cMul = (double)vid_contrast;
+        const double cAdj = 128.0 * (1.0 - (double)vid_contrast);
+        const double (*cbm)[3] = colorblind_matrix[a11y_colorblind];
+    
+        for (int c = 0; c < NUMCOLORMAPS; ++c)
+        {
+            const double scale = (double)c / (double)NUMCOLORMAPS;
+            const double k0    = 1.0 - scale;
+            const double kB    = (double)black_gamma * scale;
+    
+            lighttable_t *const restrict row = &colormaps[c * 256];
+    
+            for (int i = 0; i < 256; ++i)
+            {
+                // 1) Light fade in gamma space
+                double R = (double)base_gamma[i][0] * k0 + kB;
+                double G = (double)base_gamma[i][1] * k0 + kB;
+                double B = (double)base_gamma[i][2] * k0 + kB;
+    
+                // 2) Contrast (affine)
+                R = cMul * R + cAdj;
+                G = cMul * G + cAdj;
+                B = cMul * B + cAdj;
+    
+                // 3) Colorblind transform (matrix is double)
+                double r2 = cbm[0][0]*R + cbm[0][1]*G + cbm[0][2]*B;
+                double g2 = cbm[1][0]*R + cbm[1][1]*G + cbm[1][2]*B;
+                double b2 = cbm[2][0]*R + cbm[2][1]*G + cbm[2][2]*B;
+    
+                const byte r8 = (byte)BETWEEN(0, 255, (int)r2);
+                const byte g8 = (byte)BETWEEN(0, 255, (int)g2);
+                const byte b8 = (byte)BETWEEN(0, 255, (int)b2);
+    
+                row[i] = 0xff000000 | (r8 << 16) | (g8 << 8) | b8;
+            }
+        }
+    }
 	else
 	{
 		for (c = 0; c < NUMCOLORMAPS; c++)
@@ -1155,57 +1191,65 @@ void R_InitColormaps (void)
 	}
 
 	// [crispy] Invulnerability (c == COLORMAPS)
-	for (i = 0; i < 256; i++)
-	{
-		if (a11y_invul)
-		{
-			// [JN] A11Y - grayscale invulnerability effect,
-			// independendt from COLORMAP lump.
-			// [PN] Do not use Rec. 601 formula here; weights are
-			// equalized to balance all color contributions equally.
-			const byte gray =
-				(byte)((playpal[3 * i + 0] +
-						playpal[3 * i + 1] +
-						playpal[3 * i + 2]) / 3);
-			r = g = b = gammatable[vid_gamma][gray];
-		}
-		else
-		{
-			// [JN] Check if we have a modified COLORMAP lump to decide
-			// how invulnerability effect will be drawn.
-
-			if (original_colormap)
-			{
-				// [JN] We don't. Generate it for better colors in TrueColor mode.
-				const byte gray = 0xff -
-					(byte) (0.299 * playpal[3 * i + 0] +
-							0.587 * playpal[3 * i + 1] +
-							0.114 * playpal[3 * i + 2]);
-				r = g = b = gammatable[vid_gamma][gray];
-			}
-			else
-			{
-				// [JN] We do. Fallback to 256 tablified colors from modified lump
-				// to provide better compatibility with mods. This is less nicer,
-				// but barely will be notable, since no light levels are used.
-
-				// [PN] Apply intensity and saturation corrections
-				static byte pal[3];
-				static byte channels[3];
-
-				CALC_INTENSITY(pal, playpal, colormap[32 * 256 + i]);
-				CALC_SATURATION(channels, pal, a_hi, a_lo);
-				CALC_CONTRAST(channels, vid_contrast);
-				CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
-
-				r = gammatable[vid_gamma][channels[0]] & ~3;
-				g = gammatable[vid_gamma][channels[1]] & ~3;
-				b = gammatable[vid_gamma][channels[2]] & ~3;
-			}
-		}
-
-		colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
-	}
+    {
+        lighttable_t *const restrict invrow = &colormaps[NUMCOLORMAPS * 256];
+    
+        for (i = 0; i < 256; i++)
+        {
+            // [PN] Choose source RGB (pre-gamma), then apply intensity/saturation/etc.
+            byte src_r, src_g, src_b;
+    
+            if (a11y_invul)
+            {
+                // [PN] Equal-weight grayscale (independent from COLORMAP)
+                const byte gray = (byte)((playpal[3 * i + 0]
+                                        + playpal[3 * i + 1]
+                                        + playpal[3 * i + 2]) / 3);
+                src_r = src_g = src_b = gray;
+            }
+            else if (original_colormap)
+            {
+                // [PN] No modified COLORMAP: synthesize inverted luma grayscale for better TC colors
+                const byte gray = 
+                    (byte)(0xff - (byte)(0.299 * playpal[3 * i + 0]
+                                       + 0.587 * playpal[3 * i + 1]
+                                       + 0.114 * playpal[3 * i + 2]));
+                src_r = src_g = src_b = gray;
+            }
+            else
+            {
+                // [PN] Have modified COLORMAP: take invul mapping index and fetch from PLAYPAL
+                const byte idx = colormap[32 * 256 + i];
+                src_r = playpal[3 * idx + 0];
+                src_g = playpal[3 * idx + 1];
+                src_b = playpal[3 * idx + 2];
+            }
+    
+            // [PN] Apply intensity and saturation via the same math as CALC_* macros
+            // (manually feed "pal" with our src_* values)
+            byte pal[3], channels[3];
+    
+            pal[0] = (byte)(src_r * vid_r_intensity);
+            pal[1] = (byte)(src_g * vid_g_intensity);
+            pal[2] = (byte)(src_b * vid_b_intensity);
+    
+            CALC_SATURATION(channels, pal, a_hi, a_lo);
+            CALC_CONTRAST(channels, vid_contrast);
+            CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
+    
+            // [PN] Gamma (match behavior: no 2-bit rounding in truecolor, keep it in 8-bit)
+            byte r = gammatable[vid_gamma][channels[0]];
+            byte g = gammatable[vid_gamma][channels[1]];
+            byte b = gammatable[vid_gamma][channels[2]];
+    
+            if (!vid_truecolor)
+            {
+                r &= ~3; g &= ~3; b &= ~3;
+            }
+    
+            invrow[i] = 0xff000000 | (r << 16) | (g << 8) | b;
+        }
+    }
 
 	W_ReleaseLumpName("COLORMAP");
 
