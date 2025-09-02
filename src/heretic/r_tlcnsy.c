@@ -59,8 +59,8 @@ void R_DrawTLColumn (void)
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t bg = *dest;
             const pixel_t fg = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended = truecolor_blend ? I_BlendOver_168(bg, fg)
-                                                    : I_BlendOver_168_8(bg, fg);
+            const pixel_t blended = truecolor_blend ? I_BlendOver_96(bg, fg)
+                                                    : I_BlendOver_96_8(bg, fg);
 
             // Write two pixels (current and next line)
             dest[0] = blended;
@@ -78,8 +78,8 @@ void R_DrawTLColumn (void)
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t bg = *dest;
             const pixel_t fg = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended = truecolor_blend ? I_BlendOver_168(bg, fg)
-                                                    : I_BlendOver_168_8(bg, fg);
+            const pixel_t blended = truecolor_blend ? I_BlendOver_96(bg, fg)
+                                                    : I_BlendOver_96_8(bg, fg);
 
             dest[0] = blended;
         }
@@ -93,8 +93,8 @@ void R_DrawTLColumn (void)
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t bg = *dest;
             const pixel_t fg = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended = truecolor_blend ? I_BlendOver_168(bg, fg)
-                                                    : I_BlendOver_168_8(bg, fg);
+            const pixel_t blended = truecolor_blend ? I_BlendOver_96(bg, fg)
+                                                    : I_BlendOver_96_8(bg, fg);
 
             *dest = blended;
             dest += screenwidth;
@@ -142,10 +142,10 @@ void R_DrawTLColumnLow (void)
             const pixel_t bg1 = *dest1;
             const pixel_t bg2 = *dest2;
             const pixel_t fg  = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended1 = truecolor_blend ? I_BlendOver_168(bg1, fg) :
-                                                       I_BlendOver_168_8(bg1, fg);
-            const pixel_t blended2 = truecolor_blend ? I_BlendOver_168(bg2, fg) :
-                                                       I_BlendOver_168_8(bg2, fg);
+            const pixel_t blended1 = truecolor_blend ? I_BlendOver_96(bg1, fg) :
+                                                       I_BlendOver_96_8(bg1, fg);
+            const pixel_t blended2 = truecolor_blend ? I_BlendOver_96(bg2, fg) :
+                                                       I_BlendOver_96_8(bg2, fg);
             // Process two lines for both columns
             dest1[0] = blended1;
             dest1[screenwidth] = blended1;
@@ -166,10 +166,10 @@ void R_DrawTLColumnLow (void)
             const pixel_t bg1 = *dest1;
             const pixel_t bg2 = *dest2;
             const pixel_t fg  = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended1 = truecolor_blend ? I_BlendOver_168(bg1, fg)
-                                                     : I_BlendOver_168_8(bg1, fg);
-            const pixel_t blended2 = truecolor_blend ? I_BlendOver_168(bg2, fg)
-                                                     : I_BlendOver_168_8(bg2, fg);
+            const pixel_t blended1 = truecolor_blend ? I_BlendOver_96(bg1, fg)
+                                                     : I_BlendOver_96_8(bg1, fg);
+            const pixel_t blended2 = truecolor_blend ? I_BlendOver_96(bg2, fg)
+                                                     : I_BlendOver_96_8(bg2, fg);
 
             dest1[0] = blended1;
             dest2[0] = blended2;
@@ -185,10 +185,10 @@ void R_DrawTLColumnLow (void)
             const pixel_t bg1 = *dest1;
             const pixel_t bg2 = *dest2;
             const pixel_t fg  = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended1 = truecolor_blend ? I_BlendOver_168(bg1, fg)
-                                                     : I_BlendOver_168_8(bg1, fg);
-            const pixel_t blended2 = truecolor_blend ? I_BlendOver_168(bg2, fg)
-                                                     : I_BlendOver_168_8(bg2, fg);
+            const pixel_t blended1 = truecolor_blend ? I_BlendOver_96(bg1, fg)
+                                                     : I_BlendOver_96_8(bg1, fg);
+            const pixel_t blended2 = truecolor_blend ? I_BlendOver_96(bg2, fg)
+                                                     : I_BlendOver_96_8(bg2, fg);
 
             *dest1 = blended1;
             *dest2 = blended2;
@@ -380,11 +380,11 @@ void R_DrawTLAddColumnLow (void)
 }
 
 // -----------------------------------------------------------------------------
-// R_DrawFuzzTLColumn
-// [PN/JN] Draw translucent column for fuzz effect, overlay blending.
+// R_DrawTranslatedTLColumn
+// [PN/JN] Color translucent, translucent column.
 // -----------------------------------------------------------------------------
 
-void R_DrawFuzzTLColumn (void)
+void R_DrawTranslatedTLColumn (void)
 {
     const int count = dc_yh - dc_yl;
     if (count < 0)
@@ -392,9 +392,8 @@ void R_DrawFuzzTLColumn (void)
 
     // Local pointers for improved memory access
     const byte *restrict const sourcebase   = dc_source;
-    const byte *restrict const brightmap    = dc_brightmap;
+    const byte *restrict const translation  = dc_translation;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
@@ -416,9 +415,9 @@ void R_DrawFuzzTLColumn (void)
         {
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t bg = *dest;
-            const pixel_t fg = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended = truecolor_blend ? I_BlendOver_64(bg, fg)
-                                                    : I_BlendOver_64_8(bg, fg);
+            const pixel_t fg = colormap0[translation[s]];
+            const pixel_t blended = truecolor_blend ? I_BlendOver_96(bg, fg)
+                                                    : I_BlendOver_96_8(bg, fg);
 
             // Write two pixels (current and next line)
             dest[0] = blended;
@@ -435,9 +434,9 @@ void R_DrawFuzzTLColumn (void)
         {
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t bg = *dest;
-            const pixel_t fg = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended = truecolor_blend ? I_BlendOver_64(bg, fg)
-                                                    : I_BlendOver_64_8(bg, fg);
+            const pixel_t fg = colormap0[translation[s]];
+            const pixel_t blended = truecolor_blend ? I_BlendOver_96(bg, fg)
+                                                    : I_BlendOver_96_8(bg, fg);
 
             dest[0] = blended;
         }
@@ -450,9 +449,9 @@ void R_DrawFuzzTLColumn (void)
         {
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t bg = *dest;
-            const pixel_t fg = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended = truecolor_blend ? I_BlendOver_64(bg, fg)
-                                                    : I_BlendOver_64_8(bg, fg);
+            const pixel_t fg = colormap0[translation[s]];
+            const pixel_t blended = truecolor_blend ? I_BlendOver_96(bg, fg)
+                                                    : I_BlendOver_96_8(bg, fg);
 
             *dest = blended;
             dest += screenwidth;
@@ -462,7 +461,7 @@ void R_DrawFuzzTLColumn (void)
     }
 }
 
-void R_DrawFuzzTLColumnLow (void)
+void R_DrawTranslatedTLColumnLow (void)
 {
     const int count = dc_yh - dc_yl;
     if (count < 0)
@@ -473,9 +472,8 @@ void R_DrawFuzzTLColumnLow (void)
 
     // Local pointers for improved memory access
     const byte *restrict const sourcebase   = dc_source;
-    const byte *restrict const brightmap    = dc_brightmap;
+    const byte *restrict const translation  = dc_translation;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
@@ -499,11 +497,11 @@ void R_DrawFuzzTLColumnLow (void)
             const unsigned s  = sourcebase[frac >> FRACBITS];
             const pixel_t bg1 = *dest1;
             const pixel_t bg2 = *dest2;
-            const pixel_t fg  = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended1 = truecolor_blend ? I_BlendOver_64(bg1, fg) :
-                                                       I_BlendOver_64_8(bg1, fg);
-            const pixel_t blended2 = truecolor_blend ? I_BlendOver_64(bg2, fg) :
-                                                       I_BlendOver_64_8(bg2, fg);
+            const pixel_t fg  = colormap0[translation[s]];
+            const pixel_t blended1 = truecolor_blend ? I_BlendOver_96(bg1, fg) :
+                                                       I_BlendOver_96_8(bg1, fg);
+            const pixel_t blended2 = truecolor_blend ? I_BlendOver_96(bg2, fg) :
+                                                       I_BlendOver_96_8(bg2, fg);
             // Process two lines for both columns
             dest1[0] = blended1;
             dest1[screenwidth] = blended1;
@@ -523,11 +521,11 @@ void R_DrawFuzzTLColumnLow (void)
             const unsigned s  = sourcebase[frac >> FRACBITS];
             const pixel_t bg1 = *dest1;
             const pixel_t bg2 = *dest2;
-            const pixel_t fg  = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended1 = truecolor_blend ? I_BlendOver_64(bg1, fg)
-                                                     : I_BlendOver_64_8(bg1, fg);
-            const pixel_t blended2 = truecolor_blend ? I_BlendOver_64(bg2, fg)
-                                                     : I_BlendOver_64_8(bg2, fg);
+            const pixel_t fg  = colormap0[translation[s]];
+            const pixel_t blended1 = truecolor_blend ? I_BlendOver_96(bg1, fg)
+                                                     : I_BlendOver_96_8(bg1, fg);
+            const pixel_t blended2 = truecolor_blend ? I_BlendOver_96(bg2, fg)
+                                                     : I_BlendOver_96_8(bg2, fg);
 
             dest1[0] = blended1;
             dest2[0] = blended2;
@@ -542,11 +540,11 @@ void R_DrawFuzzTLColumnLow (void)
             const unsigned s  = sourcebase[frac >> FRACBITS];
             const pixel_t bg1 = *dest1;
             const pixel_t bg2 = *dest2;
-            const pixel_t fg  = brightmap[s] ? colormap1[s] : colormap0[s];
-            const pixel_t blended1 = truecolor_blend ? I_BlendOver_64(bg1, fg)
-                                                     : I_BlendOver_64_8(bg1, fg);
-            const pixel_t blended2 = truecolor_blend ? I_BlendOver_64(bg2, fg)
-                                                     : I_BlendOver_64_8(bg2, fg);
+            const pixel_t fg  = colormap0[translation[s]];
+            const pixel_t blended1 = truecolor_blend ? I_BlendOver_96(bg1, fg)
+                                                     : I_BlendOver_96_8(bg1, fg);
+            const pixel_t blended2 = truecolor_blend ? I_BlendOver_96(bg2, fg)
+                                                     : I_BlendOver_96_8(bg2, fg);
 
             *dest1 = blended1;
             *dest2 = blended2;
@@ -559,11 +557,11 @@ void R_DrawFuzzTLColumnLow (void)
 }
 
 // -----------------------------------------------------------------------------
-// R_DrawFuzzTLTransColumn
-// [PN/JN] Translucent, translated fuzz column.
+// R_DrawTLColumn
+// [PN/JN] Extra translucent column, overlay blending.
 // -----------------------------------------------------------------------------
 
-void R_DrawFuzzTLTransColumn (void)
+void R_DrawExtraTLColumn (void)
 {
     const int count = dc_yh - dc_yl;
     if (count < 0)
@@ -571,8 +569,9 @@ void R_DrawFuzzTLTransColumn (void)
 
     // Local pointers for improved memory access
     const byte *restrict const sourcebase   = dc_source;
-    const byte *restrict const translation  = dc_translation;
+    const byte *restrict const brightmap    = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
+    const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
@@ -594,9 +593,9 @@ void R_DrawFuzzTLTransColumn (void)
         {
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t bg = *dest;
-            const pixel_t fg = colormap0[translation[s]];
-            const pixel_t blended = truecolor_blend ? I_BlendOver_64(bg, fg)
-                                                    : I_BlendOver_64_8(bg, fg);
+            const pixel_t fg = brightmap[s] ? colormap1[s] : colormap0[s];
+            const pixel_t blended = truecolor_blend ? I_BlendOver_142(bg, fg)
+                                                    : I_BlendOver_142_8(bg, fg);
 
             // Write two pixels (current and next line)
             dest[0] = blended;
@@ -613,9 +612,9 @@ void R_DrawFuzzTLTransColumn (void)
         {
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t bg = *dest;
-            const pixel_t fg = colormap0[translation[s]];
-            const pixel_t blended = truecolor_blend ? I_BlendOver_64(bg, fg)
-                                                    : I_BlendOver_64_8(bg, fg);
+            const pixel_t fg = brightmap[s] ? colormap1[s] : colormap0[s];
+            const pixel_t blended = truecolor_blend ? I_BlendOver_142(bg, fg)
+                                                    : I_BlendOver_142_8(bg, fg);
 
             dest[0] = blended;
         }
@@ -628,9 +627,9 @@ void R_DrawFuzzTLTransColumn (void)
         {
             const unsigned s = sourcebase[frac >> FRACBITS];
             const pixel_t bg = *dest;
-            const pixel_t fg = colormap0[translation[s]];
-            const pixel_t blended = truecolor_blend ? I_BlendOver_64(bg, fg)
-                                                    : I_BlendOver_64_8(bg, fg);
+            const pixel_t fg = brightmap[s] ? colormap1[s] : colormap0[s];
+            const pixel_t blended = truecolor_blend ? I_BlendOver_142(bg, fg)
+                                                    : I_BlendOver_142_8(bg, fg);
 
             *dest = blended;
             dest += screenwidth;
@@ -640,7 +639,7 @@ void R_DrawFuzzTLTransColumn (void)
     }
 }
 
-void R_DrawFuzzTLTransColumnLow (void)
+void R_DrawExtraTLColumnLow (void)
 {
     const int count = dc_yh - dc_yl;
     if (count < 0)
@@ -651,8 +650,9 @@ void R_DrawFuzzTLTransColumnLow (void)
 
     // Local pointers for improved memory access
     const byte *restrict const sourcebase   = dc_source;
-    const byte *restrict const translation  = dc_translation;
+    const byte *restrict const brightmap    = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
+    const pixel_t *restrict const colormap1 = dc_colormap[1];
     const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
@@ -676,11 +676,11 @@ void R_DrawFuzzTLTransColumnLow (void)
             const unsigned s  = sourcebase[frac >> FRACBITS];
             const pixel_t bg1 = *dest1;
             const pixel_t bg2 = *dest2;
-            const pixel_t fg  = colormap0[translation[s]];
-            const pixel_t blended1 = truecolor_blend ? I_BlendOver_64(bg1, fg) :
-                                                       I_BlendOver_64_8(bg1, fg);
-            const pixel_t blended2 = truecolor_blend ? I_BlendOver_64(bg2, fg) :
-                                                       I_BlendOver_64_8(bg2, fg);
+            const pixel_t fg  = brightmap[s] ? colormap1[s] : colormap0[s];
+            const pixel_t blended1 = truecolor_blend ? I_BlendOver_142(bg1, fg) :
+                                                       I_BlendOver_142_8(bg1, fg);
+            const pixel_t blended2 = truecolor_blend ? I_BlendOver_142(bg2, fg) :
+                                                       I_BlendOver_142_8(bg2, fg);
             // Process two lines for both columns
             dest1[0] = blended1;
             dest1[screenwidth] = blended1;
@@ -700,11 +700,11 @@ void R_DrawFuzzTLTransColumnLow (void)
             const unsigned s  = sourcebase[frac >> FRACBITS];
             const pixel_t bg1 = *dest1;
             const pixel_t bg2 = *dest2;
-            const pixel_t fg  = colormap0[translation[s]];
-            const pixel_t blended1 = truecolor_blend ? I_BlendOver_64(bg1, fg)
-                                                     : I_BlendOver_64_8(bg1, fg);
-            const pixel_t blended2 = truecolor_blend ? I_BlendOver_64(bg2, fg)
-                                                     : I_BlendOver_64_8(bg2, fg);
+            const pixel_t fg  = brightmap[s] ? colormap1[s] : colormap0[s];
+            const pixel_t blended1 = truecolor_blend ? I_BlendOver_142(bg1, fg)
+                                                     : I_BlendOver_142_8(bg1, fg);
+            const pixel_t blended2 = truecolor_blend ? I_BlendOver_142(bg2, fg)
+                                                     : I_BlendOver_142_8(bg2, fg);
 
             dest1[0] = blended1;
             dest2[0] = blended2;
@@ -719,11 +719,11 @@ void R_DrawFuzzTLTransColumnLow (void)
             const unsigned s  = sourcebase[frac >> FRACBITS];
             const pixel_t bg1 = *dest1;
             const pixel_t bg2 = *dest2;
-            const pixel_t fg  = colormap0[translation[s]];
-            const pixel_t blended1 = truecolor_blend ? I_BlendOver_64(bg1, fg)
-                                                     : I_BlendOver_64_8(bg1, fg);
-            const pixel_t blended2 = truecolor_blend ? I_BlendOver_64(bg2, fg)
-                                                     : I_BlendOver_64_8(bg2, fg);
+            const pixel_t fg  = brightmap[s] ? colormap1[s] : colormap0[s];
+            const pixel_t blended1 = truecolor_blend ? I_BlendOver_142(bg1, fg)
+                                                     : I_BlendOver_142_8(bg1, fg);
+            const pixel_t blended2 = truecolor_blend ? I_BlendOver_142(bg2, fg)
+                                                     : I_BlendOver_142_8(bg2, fg);
 
             *dest1 = blended1;
             *dest2 = blended2;
