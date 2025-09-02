@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 #include "doomtype.h"
+#include "v_video.h" // pal_color[]
 
 
 #include "config.h"
@@ -193,6 +194,128 @@ extern const double colorblind_matrix[][3][3];
     (((((fg_i) & 0xFF00FF) + ((bg_i) & 0xFF00FF)) >> 1) & 0xFF00FF) | \
     (((((fg_i) & 0x00FF00) + ((bg_i) & 0x00FF00)) >> 1) & 0x00FF00) \
 )
+
+//
+// [PN] Inline helper functions for overlay and additive translucency.
+//
+
+// [PN] Fast approximation (3/4 instead of 168/256).
+static inline pixel_t I_BlendOver_168_8 (uint32_t bg, uint32_t fg)
+{
+    // Mix R|B together (mask 0x00FF00FF) and G separately (mask 0x0000FF00)
+    // Approximate weights: fg = 3/4, bg = 1/4 -> (3*fg + bg) >> 2
+    const uint32_t rb = (((fg & 0x00FF00FFu) * 3u + (bg & 0x00FF00FFu)) >> 2) & 0x00FF00FFu;
+    const uint32_t g8 = (((fg & 0x0000FF00u) * 3u + (bg & 0x0000FF00u)) >> 2) & 0x0000FF00u;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
+
+// [PN] Fast approximation (1/4 instead of exact 64/256).
+static inline pixel_t I_BlendOver_64_8 (uint32_t bg, uint32_t fg)
+{
+    // Pack R|B together and G separately (masks preserved)
+    const uint32_t bgRB = bg & 0x00FF00FFu;
+    const uint32_t fgRB = fg & 0x00FF00FFu;
+    const uint32_t bgG  = bg & 0x0000FF00u;
+    const uint32_t fgG  = fg & 0x0000FF00u;
+
+    // Approximate weights: fg = 1/4, bg = 3/4  ->  (fg + 3*bg) >> 2
+    // Use (x<<1)+x for *3 to avoid a general multiply (micro-optimization).
+    const uint32_t rb = ((((bgRB << 1) + bgRB) + fgRB) >> 2) & 0x00FF00FFu;
+    const uint32_t g8 = ((((bgG  << 1) + bgG ) + fgG ) >> 2) & 0x0000FF00u;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
+
+
+// [PN] Additive via LUT (exact a=192/256), packed-index fast path.
+// Forms (bg<<8 | fg) per channel without extracting scalars.
+static inline pixel_t I_BlendAdd_8(uint32_t bg, uint32_t fg)
+{
+    const uint8_t *const lut = addchan_lut;
+
+    // Indices: high byte = bg_chan, low byte = fg_chan
+    const uint32_t idxR = ((bg & 0x00FF0000u) >> 8) | ((fg & 0x00FF0000u) >> 16);
+    const uint32_t idxG =  (bg & 0x0000FF00u)       | ((fg & 0x0000FF00u) >> 8);
+    const uint32_t idxB = ((bg & 0x000000FFu) << 8) |  (fg & 0x000000FFu);
+
+    // Fast per-channel LUT (exact weight baked in), then palette map
+    const int r = lut[idxR];
+    const int g = lut[idxG];
+    const int b = lut[idxB];
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL(r, g, b) ];
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// TODO - remove remainings:
+
+
+static inline pixel_t TLBlendAdd (pixel_t bg, pixel_t fg)
+{
+    // Extract channels
+    const int bg_r = (bg >> 16) & 0xFF;
+    const int bg_g = (bg >> 8)  & 0xFF;
+    const int bg_b =  bg        & 0xFF;
+
+    const int fg_r = (fg >> 16) & 0xFF;
+    const int fg_g = (fg >> 8)  & 0xFF;
+    const int fg_b =  fg        & 0xFF;
+
+    // Fast additive blending via LUT per channel
+    const int r = addchan_lut[(bg_r << 8) | fg_r];
+    const int g = addchan_lut[(bg_g << 8) | fg_g];
+    const int b = addchan_lut[(bg_b << 8) | fg_b];
+
+    // Map to palette (gamma-aware)
+    return pal_color[ RGB_TO_PAL(r, g, b) ];
+}
+
+
+
+
+
+
+
+static inline pixel_t TLBlendOver (pixel_t bg, pixel_t fg, int a)
+{
+    const int ia = 256 - a; // 0..256
+
+    // Mix R|B together and G separately (using masks)
+    const uint32_t bgRB = bg & 0x00FF00FFu;
+    const uint32_t fgRB = fg & 0x00FF00FFu;
+    const uint32_t bgG  = bg & 0x0000FF00u;
+    const uint32_t fgG  = fg & 0x0000FF00u;
+
+    const uint32_t rb = (((fgRB * a) + (bgRB * ia)) >> 8) & 0x00FF00FFu;
+    const uint32_t g8 = (((fgG  * a) + (bgG  * ia)) >> 8) & 0x0000FF00u;
+
+    const int r = (rb >> 16) & 0xFF;
+    const int g = (g8 >> 8)  & 0xFF;
+    const int b =  rb        & 0xFF;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL(r, g, b) ];
+}
+
+
 
 #endif
 

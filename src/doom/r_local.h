@@ -579,26 +579,12 @@ extern void R_DrawColumn (void);
 extern void R_DrawColumnLow (void);
 extern void R_DrawFuzzColumn (void);
 extern void R_DrawFuzzColumnLow (void);
-extern void R_DrawFuzzTLColumn (void);
-extern void R_DrawFuzzTLColumnLow (void);
 extern void R_DrawFuzzBWColumn (void);
 extern void R_DrawFuzzBWColumnLow (void);
 extern void R_DrawSpan (void);
 extern void R_DrawSpanLow (void);
-extern void R_DrawTLColumn (void);
-extern void R_DrawTLColumnLow (void);
-extern void R_DrawTLAddColumn (void);
-extern void R_DrawTLAddColumnLow (void);
 extern void R_DrawTranslatedColumn (void);
 extern void R_DrawTranslatedColumnLow (void);
-extern void R_DrawTransTLFuzzColumn (void);
-extern void R_DrawTransTLFuzzColumnLow (void);
-extern void R_DrawTLColumn_8 (void);
-extern void R_DrawTLColumnLow_8 (void);
-extern void R_DrawTLAddColumn_8 (void);
-extern void R_DrawTLAddColumnLow_8 (void);
-extern void R_DrawTransTLFuzzColumn_8 (void);
-extern void R_DrawTransTLFuzzColumnLow_8(void);
 
 extern void R_DrawViewBorder (void);
 extern void R_FillBackScreen (void);
@@ -846,3 +832,16 @@ extern int64_t sprtopscreen;
 
 extern fixed_t pspritescale;
 extern fixed_t pspriteiscale;
+
+// -----------------------------------------------------------------------------
+// R_TLCNSY
+// -----------------------------------------------------------------------------
+
+extern void R_DrawTLColumn (void);
+extern void R_DrawTLColumnLow (void);
+extern void R_DrawTLAddColumn (void);
+extern void R_DrawTLAddColumnLow (void);
+extern void R_DrawFuzzTLColumn (void);
+extern void R_DrawFuzzTLColumnLow (void);
+extern void R_DrawFuzzTLTransColumn (void);
+extern void R_DrawFuzzTLTransColumnLow (void);

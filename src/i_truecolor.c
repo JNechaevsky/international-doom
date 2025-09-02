@@ -345,6 +345,49 @@ const uint32_t I_BlendOver (const uint32_t bg_i, const uint32_t fg_i, const int 
 
     return ret.i;
 }
+
+// [PN] All original human-readable blending functions for paletted translucensy
+
+const pixel_t TLBlendOver (pixel_t fg, pixel_t bg, int a)
+{
+    const int ia = 256 - a; // 0..256
+
+    // Mix R|B together and G separately (using masks)
+    const uint32_t fgRB = fg & 0x00FF00FFu;
+    const uint32_t bgRB = bg & 0x00FF00FFu;
+    const uint32_t fgG  = fg & 0x0000FF00u;
+    const uint32_t bgG  = bg & 0x0000FF00u;
+
+    const uint32_t rb = (((fgRB * a) + (bgRB * ia)) >> 8) & 0x00FF00FFu;
+    const uint32_t g8 = (((fgG  * a) + (bgG  * ia)) >> 8) & 0x0000FF00u;
+
+    const int r = (rb >> 16) & 0xFF;
+    const int g = (g8 >> 8)  & 0xFF;
+    const int b =  rb        & 0xFF;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL(r, g, b) ];
+}
+
+const pixel_t TLBlendAdd (pixel_t fg, pixel_t bg)
+{
+    // Extract channels
+    const int fg_r = (fg >> 16) & 0xFF;
+    const int fg_g = (fg >> 8)  & 0xFF;
+    const int fg_b =  fg        & 0xFF;
+
+    const int bg_r = (bg >> 16) & 0xFF;
+    const int bg_g = (bg >> 8)  & 0xFF;
+    const int bg_b =  bg        & 0xFF;
+
+    // Fast additive blending via LUT per channel
+    const int r = addchan_lut[(bg_r << 8) | fg_r];
+    const int g = addchan_lut[(bg_g << 8) | fg_g];
+    const int b = addchan_lut[(bg_b << 8) | fg_b];
+
+    // Map to palette (gamma-aware)
+    return pal_color[ RGB_TO_PAL(r, g, b) ];
+}
 */
 
 // [JN] Shadow alpha value for shadowed patches, and fuzz
