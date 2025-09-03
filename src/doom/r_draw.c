@@ -630,6 +630,7 @@ void R_DrawFuzzBWColumn(void)
     const int fuzzwrap = FUZZTABLE;
     const int fuzzalpha = fuzz_alpha;
     const int block = (vid_resolution > 1) ? vid_resolution : 1;
+    const int truecolor_blend = vid_truecolor;
 
     // --- Blocky mode for hi-res: rectangles aligned to the block grid ---
     if (block > 1)
@@ -661,7 +662,8 @@ void R_DrawFuzzBWColumn(void)
             if (src < vbuf_start) src = dest + top_delta;
             if (src < vbuf_end)
             {
-                const pixel_t blended = I_BlendDarkGrayscale(*src, fuzzalpha);
+                const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale(*src, fuzzalpha) :
+                                                          I_BlendDarkGrayscale_8(*src, fuzzalpha);
 
                 // Fill rectangle: write_lines × fuzzblockwidth
                 pixel_t *row = dest;
@@ -688,7 +690,8 @@ void R_DrawFuzzBWColumn(void)
         if (cutoff)
         {
             const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-            const pixel_t blended = I_BlendDarkGrayscale(dest[fuzz_off], fuzzalpha);
+            const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale(dest[fuzz_off], fuzzalpha) :
+                                                      I_BlendDarkGrayscale_8(dest[fuzz_off], fuzzalpha);
             for (int j = 0; j < fuzzblockwidth; ++j)
                 dest[j] = blended;
         }
@@ -707,7 +710,8 @@ void R_DrawFuzzBWColumn(void)
         // Top clamp + in-bounds guard
         if (src < vbuf_start) src = dest + top_delta;
         if (src < vbuf_end)
-            *dest = I_BlendDarkGrayscale(*src, fuzzalpha);
+            *dest = truecolor_blend ? I_BlendDarkGrayscale(*src, fuzzalpha) :
+                                      I_BlendDarkGrayscale_8(*src, fuzzalpha);
 
         // Update fuzz position (compact wrap)
         if (++local_fuzzpos == fuzzwrap)
@@ -720,7 +724,8 @@ void R_DrawFuzzBWColumn(void)
     if (cutoff)
     {
         const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
+        *dest = truecolor_blend ? I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha) :
+                                  I_BlendDarkGrayscale_8(dest[fuzz_offset], fuzzalpha);
     }
 
     // Persist fuzz position
@@ -769,6 +774,7 @@ void R_DrawFuzzBWColumnLow(void)
     const int fuzzwrap = FUZZTABLE;
     const int fuzzalpha = fuzz_alpha;
     const int block = (vid_resolution > 1) ? vid_resolution : 1;
+    const int truecolor_blend = vid_truecolor;
 
     // --- Blocky mode for hi-res: rectangles aligned to the block grid ---
     if (block > 1)
@@ -812,7 +818,8 @@ void R_DrawFuzzBWColumnLow(void)
             if (src < vbuf_start) src = draw + top_delta;
             if (src < vbuf_end)
             {
-                const pixel_t blended = I_BlendDarkGrayscale(*src, fuzzalpha);
+                const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale(*src, fuzzalpha) :
+                                                          I_BlendDarkGrayscale_8(*src, fuzzalpha);
 
                 // Fill rectangle: write_lines × fuzzblockwidth (anchored)
                 pixel_t *row = draw;
@@ -841,7 +848,8 @@ void R_DrawFuzzBWColumnLow(void)
         if (cutoff)
         {
             const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-            const pixel_t blended = I_BlendDarkGrayscale(draw[fuzz_off], fuzzalpha);
+            const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale(draw[fuzz_off], fuzzalpha) :
+                                                      I_BlendDarkGrayscale_8(draw[fuzz_off], fuzzalpha);
             for (int j = 0; j < fuzzblockwidth; ++j)
                 draw[j] = blended;
         }
@@ -865,9 +873,11 @@ void R_DrawFuzzBWColumnLow(void)
         if (src2 < vbuf_start) src2 = dest2 + top_delta;
 
         if (src1 < vbuf_end)
-            *dest = I_BlendDarkGrayscale(*src1, fuzzalpha);
+            *dest = truecolor_blend ? I_BlendDarkGrayscale(*src1, fuzzalpha) :
+                                      I_BlendDarkGrayscale_8(*src1, fuzzalpha);
         if (src2 < vbuf_end)
-            *dest2 = I_BlendDarkGrayscale(*src2, fuzzalpha);
+            *dest2 = truecolor_blend ? I_BlendDarkGrayscale(*src2, fuzzalpha) :
+                                       I_BlendDarkGrayscale_8(*src2, fuzzalpha);
 
         // Update fuzz position (compact wrap)
         if (++local_fuzzpos == fuzzwrap)
@@ -881,8 +891,10 @@ void R_DrawFuzzBWColumnLow(void)
     if (cutoff)
     {
         const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-        *dest  = I_BlendDarkGrayscale(dest [fuzz_offset], fuzzalpha);
-        *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha);
+        *dest  = truecolor_blend ? I_BlendDarkGrayscale(dest [fuzz_offset], fuzzalpha) :
+                                   I_BlendDarkGrayscale_8(dest [fuzz_offset], fuzzalpha);
+        *dest2 = truecolor_blend ? I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha) :
+                                   I_BlendDarkGrayscale_8(dest [fuzz_offset], fuzzalpha);
     }
 
     // Restore fuzz position

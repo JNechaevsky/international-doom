@@ -268,3 +268,22 @@ static inline pixel_t I_BlendDark_8 (uint32_t bg, int d)
     // Map into the palette through the 3D LUT
     return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
 }
+
+// [PN] Paletted grayscale darken (exact-ish, still cheap).
+// Classic luma with integer weights: 77/150/29 (sum 256).
+// Fold 'd' into weights: Wr=(77*d)>>8, Wg=(150*d)>>8, Wb=(29*d)>>8.
+// => y = (Wr*R + Wg*G + Wb*B) >> 8
+static inline pixel_t I_BlendDarkGrayscale_8 (uint32_t bg, int d)
+{
+    const uint32_t r = (bg >> 16) & 0xFFu;
+    const uint32_t g = (bg >>  8) & 0xFFu;
+    const uint32_t b =  bg        & 0xFFu;
+
+    const uint32_t Wr = (77u  * (uint32_t)d) >> 8;   // 0.299 * d
+    const uint32_t Wg = (150u * (uint32_t)d) >> 8;   // 0.587 * d
+    const uint32_t Wb = (29u  * (uint32_t)d) >> 8;   // 0.114 * d
+
+    const uint32_t y = (Wr*r + Wg*g + Wb*b) >> 8;
+
+    return pal_color[ RGB_TO_PAL(y, y, y) ];
+}
