@@ -1187,10 +1187,15 @@ static void AM_shadeBackground (void)
                   ? SCREENAREA
                   : SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
 
-    for (int i = 0; i < scr; i++)
+    if (vid_truecolor)
     {
-        *dest = I_BlendDark(*dest, I_ShadeFactor[shade]);
-        ++dest;
+        for (int i = 0; i < scr; i++, dest++)
+            *dest = I_BlendDark_32(*dest, I_ShadeFactor[shade]);
+    }
+    else
+    {
+        for (int i = 0; i < scr; i++, dest++)
+            *dest = I_BlendDark_8(*dest, I_ShadeFactor[shade]);
     }
 }
 
@@ -1367,7 +1372,7 @@ static inline void PUTDOT_THICK(int x, int y, byte *cc)
             }
             else
             {
-                *pix = I_BlendOver(*pix, fg, a); // alpha blend with bg
+                *pix = I_BlendOver_32(*pix, fg, a); // alpha blend with bg
             }
         }
     }

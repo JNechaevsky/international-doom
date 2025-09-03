@@ -150,32 +150,32 @@ static const inline pixel_t drawpatchpx01 (const pixel_t dest, const pixel_t sou
 {return pal_color[dp_translation[source]];}
 // (3) normal, translucent patch
 static const inline pixel_t drawpatchpx10 (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendOver_128(dest, pal_color[source]) :
-                        I_BlendOver_128_8(dest, pal_color[source]);}
+{return vid_truecolor ? I_BlendOver128_32(dest, pal_color[source]) :
+                        I_BlendOver128_8(dest, pal_color[source]);}
 // (4) color-translated, translucent patch
 static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendOver_128(dest, pal_color[dp_translation[source]]) :
-                        I_BlendOver_128_8(dest, pal_color[dp_translation[source]]);}
+{return vid_truecolor ? I_BlendOver128_32(dest, pal_color[dp_translation[source]]) :
+                        I_BlendOver128_8(dest, pal_color[dp_translation[source]]);}
 
 // [JN] The shadow of the patch rendering functions:
 // Doom
 static const inline pixel_t drawshadow_doom (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendDark(dest, shadow_alpha) :
+{return vid_truecolor ? I_BlendDark_32(dest, shadow_alpha) :
                         I_BlendDark_8(dest, shadow_alpha);}
 // Heretic & Hexen
 static const inline pixel_t drawshadow_raven (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendDark(dest, shadow_alpha) :
+{return vid_truecolor ? I_BlendDark_32(dest, shadow_alpha) :
                         I_BlendDark_8(dest, shadow_alpha);}
 
 // [JN] V_DrawTLPatch (translucent patch, no coloring or color-translation are used)
 static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendOver_96(dest, pal_color[source]) :
-                        I_BlendOver_96_8(dest, pal_color[source]);}
+{return vid_truecolor ? I_BlendOver96_32(dest, pal_color[source]) :
+                        I_BlendOver96_8(dest, pal_color[source]);}
 
 // [JN] V_DrawAltTLPatch (translucent patch, no coloring or color-translation are used)
 static const inline pixel_t drawalttinttab (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendOver_142(dest, pal_color[source]) :
-                        I_BlendOver_142_8(dest, pal_color[source]);}
+{return vid_truecolor ? I_BlendOver142_32(dest, pal_color[source]) :
+                        I_BlendOver142_8(dest, pal_color[source]);}
 
 // [crispy] array of function pointers holding the different rendering functions
 typedef const pixel_t drawpatchpx_t (const pixel_t dest, const pixel_t source);
@@ -799,7 +799,7 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
             {
                 const byte src = source[srccol >> FRACBITS];
                 const byte src_trans = dp_translation ? dp_translation[src] : src;
-                *dest = I_BlendOver(*dest, pal_color[src_trans], alpha);
+                *dest = I_BlendOver_32(*dest, pal_color[src_trans], alpha);
             }
 
             column = (const column_t *)((const byte *)column + column->length + 4);

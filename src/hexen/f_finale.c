@@ -313,9 +313,15 @@ static void DrawPic(void)
         }
     }
     // [JN] Apply true color blending on top of patch drawing functions.
-    for (int y = 0; y < SCREENAREA; y++)
+    if (vid_truecolor)
     {
-        I_VideoBuffer[y] = I_BlendDark(I_VideoBuffer[y], BlendTic);
+        for (int y = 0; y < SCREENAREA; y++)
+            I_VideoBuffer[y] = I_BlendDark_32(I_VideoBuffer[y], BlendTic);
+    }
+    else
+    {
+        for (int y = 0; y < SCREENAREA; y++)
+            I_VideoBuffer[y] = I_BlendDark_8(I_VideoBuffer[y], BlendTic);
     }
 }
 

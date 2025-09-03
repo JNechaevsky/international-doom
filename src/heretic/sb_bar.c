@@ -576,21 +576,37 @@ static void ShadeLine(int x, int y, int height, int shade)
 
     shade = (int)BETWEEN(0, 255, 0xFF - (((9 + shade * 2) << 8) / 32) * vid_contrast); // [crispy] shade to darkest 32nd COLORMAP row
     dest = I_VideoBuffer + y * SCREENWIDTH + x + (WIDESCREENDELTA * vid_resolution);
-    while (height--)
+    
+    if (vid_truecolor)
     {
-        // [JN] Need to draw extra lines for higher resolutions.
-        if (vid_resolution > 1)
+        while (height--)
         {
-            for (int i = 0 ; i < vid_resolution - 1 ; i++)
+            // [JN] Need to draw extra lines for higher resolutions.
+            if (vid_resolution > 1)
             {
-                *(dest + i + 1) = I_BlendDark(*dest, shade);
+                for (int i = 0 ; i < vid_resolution - 1 ; i++)
+                    *(dest + i + 1) = I_BlendDark_32(*dest, shade);
             }
+            *dest = I_BlendDark_32(*dest, shade);
+            dest += SCREENWIDTH;
         }
-
-        *(dest) = I_BlendDark(*dest, shade);
-
-        dest += SCREENWIDTH;
     }
+    else
+    {
+        while (height--)
+        {
+            // [JN] Need to draw extra lines for higher resolutions.
+            if (vid_resolution > 1)
+            {
+                for (int i = 0 ; i < vid_resolution - 1 ; i++)
+                    *(dest + i + 1) = I_BlendDark_8(*dest, shade);
+            }
+            *dest = I_BlendDark_8(*dest, shade);
+            dest += SCREENWIDTH;
+        }
+    }
+
+
 }
 
 //---------------------------------------------------------------------------

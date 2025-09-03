@@ -74,17 +74,31 @@ static const int wipe_doCrossfade (const int ticks)
         // [JN] Keep solid background to prevent blending with empty space.
         V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_start);
 
-        for (int i = 0; i < pix; i++)  // [PN] Modified index to standard loop
+        if (vid_truecolor)
         {
-            if (*cur_screen != *end_screen && fade_counter)
+            for (int i = 0; i < pix; i++)  // [PN] Modified index to standard loop
             {
-                *cur_screen = I_BlendOver(*end_screen, *cur_screen, alpha_table[fade_counter]);
-                // [PN] Moved to the end of the condition to ensure
-                // it's set only when an actual pixel change occurs.
-                changed = true;
+                if (*cur_screen != *end_screen && fade_counter)
+                {
+                    *cur_screen = I_BlendOver_32(*end_screen, *cur_screen, alpha_table[fade_counter]);
+                    changed = true;
+                }
+                ++cur_screen;
+                ++end_screen;
             }
-            ++cur_screen;
-            ++end_screen;
+        }
+        else
+        {
+            for (int i = 0; i < pix; i++)  // [PN] Modified index to standard loop
+            {
+                if (*cur_screen != *end_screen && fade_counter)
+                {
+                    *cur_screen = I_BlendOver_8(*end_screen, *cur_screen, alpha_table[fade_counter]);
+                    changed = true;
+                }
+                ++cur_screen;
+                ++end_screen;
+            }
         }
     }
 

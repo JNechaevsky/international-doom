@@ -450,4 +450,134 @@ const pixel_t TLBlendAdd (pixel_t bg, pixel_t fg)
     // Map to palette (gamma-aware)
     return pal_color[ RGB_TO_PAL(r, g, b) ];
 }
+
+// [PN] Fast approximation (3/4 instead of 168/256).
+static inline pixel_t I_BlendOver_168_8 (uint32_t bg, uint32_t fg)
+{
+    // Mix R|B together (mask 0x00FF00FF) and G separately (mask 0x0000FF00)
+    // Approximate weights: fg = 3/4, bg = 1/4 -> (3*fg + bg) >> 2
+    const uint32_t rb = (((fg & 0x00FF00FFu) * 3u + (bg & 0x00FF00FFu)) >> 2) & 0x00FF00FFu;
+    const uint32_t g8 = (((fg & 0x0000FF00u) * 3u + (bg & 0x0000FF00u)) >> 2) & 0x0000FF00u;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
+
+// [PN] Fast approximation (1/4 instead of exact 64/256).
+static inline pixel_t I_BlendOver_64_8 (uint32_t bg, uint32_t fg)
+{
+    // Pack R|B together (0x00FF00FF) and G separately (0x0000FF00)
+    const uint32_t bgRB = bg & 0x00FF00FFu;
+    const uint32_t fgRB = fg & 0x00FF00FFu;
+    const uint32_t bgG  = bg & 0x0000FF00u;
+    const uint32_t fgG  = fg & 0x0000FF00u;
+
+    // Approximate weights: fg = 1/4, bg = 3/4  ->  (fg + 3*bg) >> 2
+    // Use (x<<1)+x for *3 to avoid a general multiply (micro-optimization).
+    const uint32_t rb = ((((bgRB << 1) + bgRB) + fgRB) >> 2) & 0x00FF00FFu;
+    const uint32_t g8 = ((((bgG  << 1) + bgG ) + fgG ) >> 2) & 0x0000FF00u;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
+
+
+// [PN] Fast path for a = 96 (fg = 3/8, bg = 5/8). Exact weights via shifts/adds,
+// no general multiplies. Packs R|B and G separately; minimal temporaries.
+static inline pixel_t I_BlendOver_96_8 (uint32_t bg, uint32_t fg)
+{
+    // Pack R|B together (0x00FF00FF) and G separately (0x0000FF00)
+    const uint32_t bgRB = bg & 0x00FF00FFu;
+    const uint32_t fgRB = fg & 0x00FF00FFu;
+    const uint32_t bgG  = bg & 0x0000FF00u;
+    const uint32_t fgG  = fg & 0x0000FF00u;
+
+    // Exact: (3*fg + 5*bg) >> 3   because 96/256 = 3/8 and 160/256 = 5/8.
+    // Use (x<<1)+x for *3 and (x<<2)+x for *5.
+    const uint32_t rb = ((((fgRB << 1) + fgRB) + ((bgRB << 2) + bgRB)) >> 3) & 0x00FF00FFu;
+    const uint32_t g8 = ((((fgG  << 1) + fgG ) + ((bgG  << 2) + bgG )) >> 3) & 0x0000FF00u;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
+
+// [PN] Fast approximation for a=142 (fg ≈ 9/16, bg ≈ 7/16).
+static inline pixel_t I_BlendOver_142_8 (uint32_t bg, uint32_t fg)
+{
+    // Pack R|B together (0x00FF00FF) and G separately (0x0000FF00)
+    const uint32_t bgRB = bg & 0x00FF00FFu;
+    const uint32_t fgRB = fg & 0x00FF00FFu;
+    const uint32_t bgG  = bg & 0x0000FF00u;
+    const uint32_t fgG  = fg & 0x0000FF00u;
+
+    // Approx: (9*fg + 7*bg) >> 4
+    // 9*x = (x<<3) + x;   7*x = (x<<2) + (x<<1) + x
+    const uint32_t rb = ((((fgRB << 3) + fgRB) + ((bgRB << 2) + (bgRB << 1) + bgRB)) >> 4) & 0x00FF00FFu;
+    const uint32_t g8 = ((((fgG  << 3) + fgG ) + ((bgG  << 2) + (bgG  << 1) + bgG )) >> 4) & 0x0000FF00u;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
+
+// [PN] Paletted 50% over (fg/bg average). Cheapest possible:
+// per-channel average with packed RB and separate G; no multiplications.
+static inline pixel_t I_BlendOver_128_8 (uint32_t bg, uint32_t fg)
+{
+    // Average R|B together and G separately; carries are fine (>>1), then mask lanes.
+    const uint32_t rb = (((fg & 0x00FF00FFu) + (bg & 0x00FF00FFu)) >> 1) & 0x00FF00FFu;
+    const uint32_t g8 = (((fg & 0x0000FF00u) + (bg & 0x0000FF00u)) >> 1) & 0x0000FF00u;
+
+    // Map into 8-bit palette via 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
+
+// [PN] Additive via LUT (exact a=192/256), packed-index fast path.
+// Forms (bg<<8 | fg) per channel without extracting scalars.
+static inline pixel_t I_BlendAdd_8 (uint32_t bg, uint32_t fg)
+{
+    const uint8_t *const lut = additive_lut_8;
+
+    // Indices: high byte = bg_chan, low byte = fg_chan
+    const uint32_t idxR = ((bg & 0x00FF0000u) >> 8) | ((fg & 0x00FF0000u) >> 16);
+    const uint32_t idxG =  (bg & 0x0000FF00u)       | ((fg & 0x0000FF00u) >> 8);
+    const uint32_t idxB = ((bg & 0x000000FFu) << 8) |  (fg & 0x000000FFu);
+
+    // Fast per-channel LUT (exact weight baked in), then palette map
+    const int r = lut[idxR];
+    const int g = lut[idxG];
+    const int b = lut[idxB];
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL(r, g, b) ];
+}
+
+// [PN] Paletted darken: multiply RGB by factor d (0..255) and map via RGB->PAL LUT.
+static inline pixel_t I_BlendDark_8 (uint32_t bg, int d)
+{
+    // Scale packed R|B together and G separately
+    const uint32_t rb = (((bg & 0x00FF00FFu) * (uint32_t)d) >> 8) & 0x00FF00FFu;
+    const uint32_t g8 = (((bg & 0x0000FF00u) * (uint32_t)d) >> 8) & 0x0000FF00u;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
+
+// [PN] Paletted grayscale darken (exact-ish, still cheap).
+// Classic luma with integer weights: 77/150/29 (sum 256).
+// Fold 'd' into weights: Wr=(77*d)>>8, Wg=(150*d)>>8, Wb=(29*d)>>8.
+// => y = (Wr*R + Wg*G + Wb*B) >> 8
+static inline pixel_t I_BlendDarkGrayscale_8 (uint32_t bg, int d)
+{
+    const uint32_t r = (bg >> 16) & 0xFFu;
+    const uint32_t g = (bg >>  8) & 0xFFu;
+    const uint32_t b =  bg        & 0xFFu;
+
+    const uint32_t Wr = (77u  * (uint32_t)d) >> 8;   // 0.299 * d
+    const uint32_t Wg = (150u * (uint32_t)d) >> 8;   // 0.587 * d
+    const uint32_t Wb = (29u  * (uint32_t)d) >> 8;   // 0.114 * d
+
+    const uint32_t y = (Wr*r + Wg*g + Wb*b) >> 8;
+
+    return pal_color[ RGB_TO_PAL(y, y, y) ];
+}
 */
