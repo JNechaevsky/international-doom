@@ -19,13 +19,11 @@
 //	[crispy] Truecolor rendering
 //
 
-#ifndef __I_TRUECOLOR__
-#define __I_TRUECOLOR__
+#pragma once
 
 #include <stdint.h>
 #include "doomtype.h"
 #include "v_video.h" // pal_color[]
-
 
 #include "config.h"
 
@@ -43,7 +41,7 @@ typedef union
 } tcpixel_t;
 */
 
-extern uint8_t   additive_lut[511];
+extern uint8_t   additive_lut_32[511];
 extern uint8_t   shadow_alpha;
 extern uint8_t   fuzz_alpha;
 extern void I_InitTCTransMaps (void);
@@ -61,7 +59,7 @@ static inline byte RGB_TO_PAL(int r, int g, int b)
     return rgb_to_pal[idx];
 }
 extern byte *playpal_trans;
-extern byte *addchan_lut;
+extern byte *additive_lut_8;
 extern void I_InitPALTransMaps (void);
 
 extern const int I_ShadeFactor[];
@@ -105,9 +103,9 @@ extern const double colorblind_matrix[][3][3];
 
 #define I_BlendAdd(bg_i, fg_i) ( \
     (0xFF000000U) | \
-    (additive_lut[((bg_i) & 0xFF) + ((fg_i) & 0xFF)]) | \
-    (additive_lut[(((bg_i) & 0xFF00) + ((fg_i) & 0xFF00)) >> 8] << 8) | \
-    (additive_lut[(((bg_i) & 0xFF0000) + ((fg_i) & 0xFF0000)) >> 16] << 16) \
+    (additive_lut_32[((bg_i) & 0xFF) + ((fg_i) & 0xFF)]) | \
+    (additive_lut_32[(((bg_i) & 0xFF00) + ((fg_i) & 0xFF00)) >> 8] << 8) | \
+    (additive_lut_32[(((bg_i) & 0xFF0000) + ((fg_i) & 0xFF0000)) >> 16] << 16) \
 )
 
 #define I_BlendDark(bg_i, d) ( \
@@ -127,65 +125,39 @@ extern const double colorblind_matrix[][3][3];
     ((((amount) * ((fg_i) & 0x00FF00) + ((0xFFU - (amount)) * ((bg_i) & 0x00FF00))) >> 8) & 0x00FF00) \
 )
 
-// [PN] Fixed-alpha shift-weighted approximation of alpha blending ("overlay-lite").
-//
-// These macros implement a fast alternative to standard alpha blending
-// using fixed, preselected alpha values (e.g., 25%, 38%, 56%, etc).
-// Unlike I_BlendOver(...), these macros do not take alpha as a parameter.
-// Instead, the alpha value is embedded in the macro as hardcoded constants.
-//
-// Classic alpha blending uses:
-//   result = (fg * alpha + bg * (255 - alpha)) >> 8
-//
-// These macros approximate the effect using simplified integer math:
-//   result ≈ (fg * A + bg * B) >> shift
-//
-// Coefficients A, B and the shift amount are selected to approximate
-// the visual output of real alpha blending while significantly reducing
-// arithmetic complexity.
-//
-// Advantages:
-// - No runtime multiplications by variable alpha
-// - No subtraction of (255 - alpha)
-// - No divisions by 255
-// - Ideal for performance-critical inner loops with few alpha levels
-//
-// Limitations:
-// - Visual result is approximate, not exact
-// - Only suitable for fixed, known alpha values
-//
-// [JN] Blending alpha values representing transparency
-// levels from paletted rendering.
+// -----------------------------------------------------------------------------
+// TrueColor blending helper functions for overlay and additive translucency
+// -----------------------------------------------------------------------------
 
-// TRANMAP_ALPHA ≈ 168 (66% opacity): fg * 3 + bg * 1 >> 2
+// [PN] TRANMAP_ALPHA ≈ 168 (66% opacity): fg * 3 + bg * 1 >> 2
 #define I_BlendOver_168(bg_i, fg_i) ( \
     (0xFF000000U) | \
     (((((fg_i) & 0xFF00FF) * 3 + ((bg_i) & 0xFF00FF)) >> 2) & 0xFF00FF) | \
     (((((fg_i) & 0x00FF00) * 3 + ((bg_i) & 0x00FF00)) >> 2) & 0x00FF00) \
 )
 
-// FUZZTL_ALPHA ≈ 64 (25% opacity): fg * 1 + bg * 3 >> 2
+// [PN] FUZZTL_ALPHA ≈ 64 (25% opacity): fg * 1 + bg * 3 >> 2
 #define I_BlendOver_64(bg_i, fg_i) ( \
     (0xFF000000U) | \
     (((((fg_i) & 0xFF00FF) + ((bg_i) & 0xFF00FF) * 3) >> 2) & 0xFF00FF) | \
     (((((fg_i) & 0x00FF00) + ((bg_i) & 0x00FF00) * 3) >> 2) & 0x00FF00) \
 )
 
-// TINTTAB_ALPHA ≈ 96 (38% opacity): fg * 1 + bg * 2 >> 2
+// [PN] TINTTAB_ALPHA ≈ 96 (38% opacity): fg * 1 + bg * 2 >> 2
 #define I_BlendOver_96(bg_i, fg_i) ( \
     (0xFF000000U) | \
     (((((fg_i) & 0xFF00FF) * 3 + ((bg_i) & 0xFF00FF) * 5) >> 3) & 0xFF00FF) | \
     (((((fg_i) & 0x00FF00) * 3 + ((bg_i) & 0x00FF00) * 5) >> 3) & 0x00FF00) \
 )
 
-// TINTTAB_ALPHA_ALT ≈ 142 (56% opacity): fg * 9 + bg * 7 >> 4
+// [PN] TINTTAB_ALPHA_ALT ≈ 142 (56% opacity): fg * 9 + bg * 7 >> 4
 #define I_BlendOver_142(bg_i, fg_i) ( \
     (0xFF000000U) | \
     (((((fg_i) & 0xFF00FF) * 9 + ((bg_i) & 0xFF00FF) * 7) >> 4) & 0xFF00FF) | \
     (((((fg_i) & 0x00FF00) * 9 + ((bg_i) & 0x00FF00) * 7) >> 4) & 0x00FF00) \
 )
 
-// XLATAB_ALPHA ≈ 192 (75% opacity): fg * 3 + bg * 1 >> 2
+// [PN] XLATAB_ALPHA ≈ 192 (75% opacity): fg * 3 + bg * 1 >> 2
 #define I_BlendOver_192(bg_i, fg_i) I_BlendOver_168(bg_i, fg_i)
 
 // [PN] Fastest algorithm for 50% opacity
@@ -195,9 +167,9 @@ extern const double colorblind_matrix[][3][3];
     (((((fg_i) & 0x00FF00) + ((bg_i) & 0x00FF00)) >> 1) & 0x00FF00) \
 )
 
-//
-// [PN] Inline helper functions for overlay and additive translucency.
-//
+// -----------------------------------------------------------------------------
+// Paletted blending helper functions for overlay and additive translucency
+// -----------------------------------------------------------------------------
 
 // [PN] Fast approximation (3/4 instead of 168/256).
 static inline pixel_t I_BlendOver_168_8 (uint32_t bg, uint32_t fg)
@@ -266,12 +238,11 @@ static inline pixel_t I_BlendOver_142_8 (uint32_t bg, uint32_t fg)
     return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
 }
 
-
 // [PN] Additive via LUT (exact a=192/256), packed-index fast path.
 // Forms (bg<<8 | fg) per channel without extracting scalars.
 static inline pixel_t I_BlendAdd_8 (uint32_t bg, uint32_t fg)
 {
-    const uint8_t *const lut = addchan_lut;
+    const uint8_t *const lut = additive_lut_8;
 
     // Indices: high byte = bg_chan, low byte = fg_chan
     const uint32_t idxR = ((bg & 0x00FF0000u) >> 8) | ((fg & 0x00FF0000u) >> 16);
@@ -286,73 +257,3 @@ static inline pixel_t I_BlendAdd_8 (uint32_t bg, uint32_t fg)
     // Map into the palette through the 3D LUT
     return pal_color[ RGB_TO_PAL(r, g, b) ];
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// TODO - remove remainings:
-
-
-static inline pixel_t TLBlendAdd (pixel_t bg, pixel_t fg)
-{
-    // Extract channels
-    const int bg_r = (bg >> 16) & 0xFF;
-    const int bg_g = (bg >> 8)  & 0xFF;
-    const int bg_b =  bg        & 0xFF;
-
-    const int fg_r = (fg >> 16) & 0xFF;
-    const int fg_g = (fg >> 8)  & 0xFF;
-    const int fg_b =  fg        & 0xFF;
-
-    // Fast additive blending via LUT per channel
-    const int r = addchan_lut[(bg_r << 8) | fg_r];
-    const int g = addchan_lut[(bg_g << 8) | fg_g];
-    const int b = addchan_lut[(bg_b << 8) | fg_b];
-
-    // Map to palette (gamma-aware)
-    return pal_color[ RGB_TO_PAL(r, g, b) ];
-}
-
-
-
-
-
-
-
-static inline pixel_t TLBlendOver (pixel_t bg, pixel_t fg, int a)
-{
-    const int ia = 256 - a; // 0..256
-
-    // Mix R|B together and G separately (using masks)
-    const uint32_t bgRB = bg & 0x00FF00FFu;
-    const uint32_t fgRB = fg & 0x00FF00FFu;
-    const uint32_t bgG  = bg & 0x0000FF00u;
-    const uint32_t fgG  = fg & 0x0000FF00u;
-
-    const uint32_t rb = (((fgRB * a) + (bgRB * ia)) >> 8) & 0x00FF00FFu;
-    const uint32_t g8 = (((fgG  * a) + (bgG  * ia)) >> 8) & 0x0000FF00u;
-
-    const int r = (rb >> 16) & 0xFF;
-    const int g = (g8 >> 8)  & 0xFF;
-    const int b =  rb        & 0xFF;
-
-    // Map into the palette through the 3D LUT
-    return pal_color[ RGB_TO_PAL(r, g, b) ];
-}
-
-
-
-#endif
-

@@ -21,9 +21,7 @@
 
 #include <stdlib.h> // malloc
 #include <string.h> // memcpy
-
 #include "config.h"
-
 #include "i_truecolor.h"
 #include "m_fixed.h"
 #include "v_video.h"
@@ -46,13 +44,13 @@
 // clamping any result above 255 to 255.
 // -----------------------------------------------------------------------------
 
-uint8_t additive_lut[511];
+uint8_t additive_lut_32[511];
 
 void I_InitTCTransMaps (void)
 {
     for (int i = 0; i < 511; ++i)
     {
-        additive_lut[i] = (uint8_t)(i > 255 ? 255 : i);
+        additive_lut_32[i] = (uint8_t)(i > 255 ? 255 : i);
     }
 }
 
@@ -69,7 +67,7 @@ void I_InitTCTransMaps (void)
 //   truecolor values back to the closest palette entry. The LUT is
 //   rebuilt when gamma/brightness changes, but rendering itself uses
 //   only fast O(1) lookups.
-// - A per-channel additive LUT (addchan_lut) of size 256×256, which
+// - A per-channel additive LUT (additive_lut_8) of size 256×256, which
 //   computes bg + (fg * alpha >> 8), clamped to 255, so additive
 //   blending reduces to three array lookups.
 // 
@@ -86,17 +84,11 @@ void I_InitTCTransMaps (void)
 // -----------------------------------------------------------------------------
 
 // Overlay blending
-byte *playpal_trans; // PLAYPAL copy for 8 bit blending
-byte *rgb_to_pal;    // [PN/JN] квантованный RGB -> индекс PLAYPAL
-static uint8_t  pal_r[256], pal_g[256], pal_b[256]; // from pal_color (gamma-applied)
-static uint8_t  diffR[PAL_STEPS][256];
-static uint8_t  diffG[PAL_STEPS][256];
-static uint8_t  diffB[PAL_STEPS][256];
-static uint8_t  step_val[PAL_STEPS];                // квантованные 0..255
+byte *playpal_trans;  // PLAYPAL copy for 8 bit blending
+byte *rgb_to_pal;     // [PN/JN] quantized RGB -> indexed PLAYPAL
 
 // Additive blending
-// Канальный LUT для add’а: out = f(bg, fg, alpha, darkmul). 256*256 байт
-byte *addchan_lut;
+byte *additive_lut_8; // [PN/JN] channaled LUT
 
 // -----------------------------------------------------------------------------
 // [PN] I_InitPALTransMaps
@@ -109,7 +101,7 @@ byte *addchan_lut;
 //     truecolor values back to the closest palette index. This is rebuilt
 //     on startup and when gamma correction change.
 //
-//  2) A per-channel additive blending LUT (addchan_lut) of size 256×256,
+//  2) A per-channel additive blending LUT (additive_lut_8) of size 256×256,
 //     which computes bg + (fg * alpha >> 8), clamped to 255. This allows
 //     fast additive blending in the render loop with a single lookup instead
 //     of per-pixel math.
@@ -117,6 +109,12 @@ byte *addchan_lut;
 
 void I_InitPALTransMaps(void)
 {
+    static uint8_t pal_r[256], pal_g[256], pal_b[256]; // from pal_color (gamma-applied)
+    static uint8_t diffR[PAL_STEPS][256];
+    static uint8_t diffG[PAL_STEPS][256];
+    static uint8_t diffB[PAL_STEPS][256];
+    static uint8_t step_val[PAL_STEPS];                // quantized 0..255
+
     // Init overlay blending (RGB->Palette LUT)
     static boolean pal_init = false;
     if (!pal_init)
@@ -246,7 +244,7 @@ void I_InitPALTransMaps(void)
     static boolean additive_lut_ready = false;
     if (!additive_lut_ready)
     {
-        addchan_lut = Z_Malloc(256 * 256, PU_STATIC, 0);
+        additive_lut_8 = Z_Malloc(256 * 256, PU_STATIC, 0);
 
         // Foreground contribution factor (0..256)
         const int a = 192; // ~75% foreground
@@ -257,7 +255,7 @@ void I_InitPALTransMaps(void)
             fgA[fg] = (uint8_t)((fg * a) >> 8);
         }
 
-        byte *lut_ptr = addchan_lut;
+        byte *lut_ptr = additive_lut_8;
 
         for (int bg = 0; bg < 256; ++bg)
         {
@@ -273,13 +271,76 @@ void I_InitPALTransMaps(void)
 }
 
 
+// [JN] Shadow alpha value for shadowed patches, and fuzz
+// alpha value for fuzz effect drawing based on contrast.
+uint8_t shadow_alpha;
+uint8_t fuzz_alpha;
+
+// [JN] Shade factor used for menu and automap background shading.
+const int I_ShadeFactor[] =
+{
+    240, 224, 208, 192, 176, 160, 144, 112, 96, 80, 64, 48, 32
+};
+
+// [JN] Saturation percent array.
+// 0.66 = 0% saturation, 0.0 = 100% saturation.
+const float I_SaturationPercent[100] =
+{
+    0.660000f, 0.653400f, 0.646800f, 0.640200f, 0.633600f,
+    0.627000f, 0.620400f, 0.613800f, 0.607200f, 0.600600f,
+    0.594000f, 0.587400f, 0.580800f, 0.574200f, 0.567600f,
+    0.561000f, 0.554400f, 0.547800f, 0.541200f, 0.534600f,
+    0.528000f, 0.521400f, 0.514800f, 0.508200f, 0.501600f,
+    0.495000f, 0.488400f, 0.481800f, 0.475200f, 0.468600f,
+    0.462000f, 0.455400f, 0.448800f, 0.442200f, 0.435600f,
+    0.429000f, 0.422400f, 0.415800f, 0.409200f, 0.402600f,
+    0.396000f, 0.389400f, 0.382800f, 0.376200f, 0.369600f,
+    0.363000f, 0.356400f, 0.349800f, 0.343200f, 0.336600f,
+    0.330000f, 0.323400f, 0.316800f, 0.310200f, 0.303600f,
+    0.297000f, 0.290400f, 0.283800f, 0.277200f, 0.270600f,
+    0.264000f, 0.257400f, 0.250800f, 0.244200f, 0.237600f,
+    0.231000f, 0.224400f, 0.217800f, 0.211200f, 0.204600f,
+    0.198000f, 0.191400f, 0.184800f, 0.178200f, 0.171600f,
+    0.165000f, 0.158400f, 0.151800f, 0.145200f, 0.138600f,
+    0.132000f, 0.125400f, 0.118800f, 0.112200f, 0.105600f,
+    0.099000f, 0.092400f, 0.085800f, 0.079200f, 0.072600f,
+    0.066000f, 0.059400f, 0.052800f, 0.046200f, 0.039600f,
+    0.033000f, 0.026400f, 0.019800f, 0.013200f, 0
+};
+
+
 // =============================================================================
 //
-//                              Blending functions
+//                                 Colorblind
 //
 // =============================================================================
 
-// [PN] All original human-readable blending functions from Crispy Doom
+// [JN] Color matrices to emulate colorblind modes.
+// Original source: http://web.archive.org/web/20081014161121/http://www.colorjack.com/labs/colormatrix/
+// Converted from 100.000 ... 0 range to 1.00000 ... 0 to support Doom palette format.
+const double colorblind_matrix[][3][3] = {
+    { {1.00000, 0.00000, 0.00000}, {0.00000, 1.00000, 0.00000}, {0.00000, 0.00000, 1.00000} }, // No colorblind
+    { {0.56667, 0.43333, 0.00000}, {0.55833, 0.44167, 0.00000}, {0.00000, 0.24167, 0.75833} }, // Protanopia
+    { {0.81667, 0.18333, 0.00000}, {0.33333, 0.66667, 0.00000}, {0.00000, 0.12500, 0.87500} }, // Protanomaly
+    { {0.62500, 0.37500, 0.00000}, {0.70000, 0.30000, 0.00000}, {0.00000, 0.30000, 0.70000} }, // Deuteranopia
+    { {0.80000, 0.20000, 0.00000}, {0.25833, 0.74167, 0.00000}, {0.00000, 0.14167, 0.85833} }, // Deuteranomaly
+    { {0.95000, 0.05000, 0.00000}, {0.00000, 0.43333, 0.56667}, {0.00000, 0.47500, 0.52500} }, // Tritanopia
+    { {0.96667, 0.03333, 0.00000}, {0.00000, 0.73333, 0.26667}, {0.00000, 0.18333, 0.81667} }, // Tritanomaly
+    { {0.29900, 0.58700, 0.11400}, {0.29900, 0.58700, 0.11400}, {0.29900, 0.58700, 0.11400} }, // Achromatopsia
+    { {0.61800, 0.32000, 0.06200}, {0.16300, 0.77500, 0.06200}, {0.16300, 0.32000, 0.51600} }, // Achromatomaly
+};
+
+
+// =============================================================================
+//
+//     All original human-readable blending functions from Crispy and Inter
+//
+// =============================================================================
+
+//
+// TrueColor functions:
+//
+
 /*
 const uint32_t I_BlendAdd (const uint32_t bg_i, const uint32_t fg_i)
 {
@@ -346,17 +407,19 @@ const uint32_t I_BlendOver (const uint32_t bg_i, const uint32_t fg_i, const int 
     return ret.i;
 }
 
-// [PN] All original human-readable blending functions for paletted translucensy
+//
+// Paletted functions:
+//
 
-const pixel_t TLBlendOver (pixel_t fg, pixel_t bg, int a)
+const pixel_t I_BlendOver_8 (pixel_t bg, pixel_t fg, int a)
 {
     const int ia = 256 - a; // 0..256
 
     // Mix R|B together and G separately (using masks)
-    const uint32_t fgRB = fg & 0x00FF00FFu;
     const uint32_t bgRB = bg & 0x00FF00FFu;
-    const uint32_t fgG  = fg & 0x0000FF00u;
+    const uint32_t fgRB = fg & 0x00FF00FFu;
     const uint32_t bgG  = bg & 0x0000FF00u;
+    const uint32_t fgG  = fg & 0x0000FF00u;
 
     const uint32_t rb = (((fgRB * a) + (bgRB * ia)) >> 8) & 0x00FF00FFu;
     const uint32_t g8 = (((fgG  * a) + (bgG  * ia)) >> 8) & 0x0000FF00u;
@@ -369,76 +432,22 @@ const pixel_t TLBlendOver (pixel_t fg, pixel_t bg, int a)
     return pal_color[ RGB_TO_PAL(r, g, b) ];
 }
 
-const pixel_t TLBlendAdd (pixel_t fg, pixel_t bg)
+const pixel_t TLBlendAdd (pixel_t bg, pixel_t fg)
 {
     // Extract channels
+    const int bg_r = (bg >> 16) & 0xFF;
+    const int bg_g = (bg >> 8)  & 0xFF;
+    const int bg_b =  bg        & 0xFF;
     const int fg_r = (fg >> 16) & 0xFF;
     const int fg_g = (fg >> 8)  & 0xFF;
     const int fg_b =  fg        & 0xFF;
 
-    const int bg_r = (bg >> 16) & 0xFF;
-    const int bg_g = (bg >> 8)  & 0xFF;
-    const int bg_b =  bg        & 0xFF;
-
     // Fast additive blending via LUT per channel
-    const int r = addchan_lut[(bg_r << 8) | fg_r];
-    const int g = addchan_lut[(bg_g << 8) | fg_g];
-    const int b = addchan_lut[(bg_b << 8) | fg_b];
+    const int r = additive_lut_8[(bg_r << 8) | fg_r];
+    const int g = additive_lut_8[(bg_g << 8) | fg_g];
+    const int b = additive_lut_8[(bg_b << 8) | fg_b];
 
     // Map to palette (gamma-aware)
     return pal_color[ RGB_TO_PAL(r, g, b) ];
 }
 */
-
-// [JN] Shadow alpha value for shadowed patches, and fuzz
-// alpha value for fuzz effect drawing based on contrast.
-uint8_t shadow_alpha;
-uint8_t fuzz_alpha;
-
-// [JN] Shade factor used for menu and automap background shading.
-const int I_ShadeFactor[] =
-{
-    240, 224, 208, 192, 176, 160, 144, 112, 96, 80, 64, 48, 32
-};
-
-// [JN] Saturation percent array.
-// 0.66 = 0% saturation, 0.0 = 100% saturation.
-const float I_SaturationPercent[100] =
-{
-    0.660000f, 0.653400f, 0.646800f, 0.640200f, 0.633600f,
-    0.627000f, 0.620400f, 0.613800f, 0.607200f, 0.600600f,
-    0.594000f, 0.587400f, 0.580800f, 0.574200f, 0.567600f,
-    0.561000f, 0.554400f, 0.547800f, 0.541200f, 0.534600f,
-    0.528000f, 0.521400f, 0.514800f, 0.508200f, 0.501600f,
-    0.495000f, 0.488400f, 0.481800f, 0.475200f, 0.468600f,
-    0.462000f, 0.455400f, 0.448800f, 0.442200f, 0.435600f,
-    0.429000f, 0.422400f, 0.415800f, 0.409200f, 0.402600f,
-    0.396000f, 0.389400f, 0.382800f, 0.376200f, 0.369600f,
-    0.363000f, 0.356400f, 0.349800f, 0.343200f, 0.336600f,
-    0.330000f, 0.323400f, 0.316800f, 0.310200f, 0.303600f,
-    0.297000f, 0.290400f, 0.283800f, 0.277200f, 0.270600f,
-    0.264000f, 0.257400f, 0.250800f, 0.244200f, 0.237600f,
-    0.231000f, 0.224400f, 0.217800f, 0.211200f, 0.204600f,
-    0.198000f, 0.191400f, 0.184800f, 0.178200f, 0.171600f,
-    0.165000f, 0.158400f, 0.151800f, 0.145200f, 0.138600f,
-    0.132000f, 0.125400f, 0.118800f, 0.112200f, 0.105600f,
-    0.099000f, 0.092400f, 0.085800f, 0.079200f, 0.072600f,
-    0.066000f, 0.059400f, 0.052800f, 0.046200f, 0.039600f,
-    0.033000f, 0.026400f, 0.019800f, 0.013200f, 0
-};
-
-// [JN] Color matrices to emulate colorblind modes.
-// Original source: http://web.archive.org/web/20081014161121/http://www.colorjack.com/labs/colormatrix/
-// Converted from 100.000 ... 0 range to 1.00000 ... 0 to support Doom palette format.
-const double colorblind_matrix[][3][3] = {
-    { {1.00000, 0.00000, 0.00000}, {0.00000, 1.00000, 0.00000}, {0.00000, 0.00000, 1.00000} }, // No colorblind
-    { {0.56667, 0.43333, 0.00000}, {0.55833, 0.44167, 0.00000}, {0.00000, 0.24167, 0.75833} }, // Protanopia
-    { {0.81667, 0.18333, 0.00000}, {0.33333, 0.66667, 0.00000}, {0.00000, 0.12500, 0.87500} }, // Protanomaly
-    { {0.62500, 0.37500, 0.00000}, {0.70000, 0.30000, 0.00000}, {0.00000, 0.30000, 0.70000} }, // Deuteranopia
-    { {0.80000, 0.20000, 0.00000}, {0.25833, 0.74167, 0.00000}, {0.00000, 0.14167, 0.85833} }, // Deuteranomaly
-    { {0.95000, 0.05000, 0.00000}, {0.00000, 0.43333, 0.56667}, {0.00000, 0.47500, 0.52500} }, // Tritanopia
-    { {0.96667, 0.03333, 0.00000}, {0.00000, 0.73333, 0.26667}, {0.00000, 0.18333, 0.81667} }, // Tritanomaly
-    { {0.29900, 0.58700, 0.11400}, {0.29900, 0.58700, 0.11400}, {0.29900, 0.58700, 0.11400} }, // Achromatopsia
-    { {0.61800, 0.32000, 0.06200}, {0.16300, 0.77500, 0.06200}, {0.16300, 0.32000, 0.51600} }, // Achromatomaly
-};
-
