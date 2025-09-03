@@ -439,6 +439,7 @@ extern void (*basecolfunc) (void);
 extern void (*tlcolfunc) (void);
 extern void (*alttlcolfunc) (void);
 extern void (*tladdcolfunc) (void);
+extern void (*transtlcolfunc) (void);
 extern void (*extratlcolfunc) (void);
 extern void (*spanfunc) (void);
 
@@ -657,26 +658,9 @@ extern const byte *dc_brightmap;
 
 void R_DrawColumn(void);
 void R_DrawColumnLow(void);
-void R_DrawTLColumn(void);
-void R_DrawTLColumnLow(void);
-void R_DrawTLAddColumn (void);
-void R_DrawTLAddColumnLow (void);
 void R_DrawTranslatedColumn(void);
-void R_DrawTranslatedTLColumn(void);
 void R_DrawTranslatedColumnLow(void);
-void R_DrawAltTLColumn(void);
-void R_DrawAltTLColumnLow(void);
 //void  R_DrawTranslatedAltTLColumn(void);
-void R_DrawExtraTLColumn(void);
-void R_DrawExtraTLColumnLow(void);
-extern void R_DrawTLColumn_8 (void);
-extern void R_DrawTLColumnLow_8 (void);
-extern void R_DrawAltTLColumn_8 (void);
-extern void R_DrawAltTLColumnLow_8 (void);
-extern void R_DrawExtraTLColumn_8 (void);
-extern void R_DrawExtraTLColumnLow_8 (void);
-extern void R_DrawTLAddColumn_8 (void);
-extern void R_DrawTLAddColumnLow_8 (void);
 
 extern int ds_y;
 extern int ds_x1;
@@ -712,5 +696,20 @@ extern byte *R_SwirlingFlat (int flatnum);
 extern byte *R_WarpingFlat1 (int flatnum);
 extern byte *R_WarpingFlat2 (int flatnum);
 extern byte *R_WarpingFlat3 (int flatnum);
+
+// -----------------------------------------------------------------------------
+// R_TLCNSY
+// -----------------------------------------------------------------------------
+
+extern void R_DrawTLColumn (void);
+extern void R_DrawTLColumnLow (void);
+extern void R_DrawAltTLColumn (void);
+extern void R_DrawAltTLColumnLow (void);
+extern void R_DrawTLAddColumn (void);
+extern void R_DrawTLAddColumnLow (void);
+extern void R_DrawTranslatedTLColumn (void);
+extern void R_DrawTranslatedTLColumnLow (void);
+extern void R_DrawExtraTLColumn (void);
+extern void R_DrawExtraTLColumnLow (void);
 
 #endif // __R_LOCAL__
