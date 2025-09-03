@@ -238,6 +238,18 @@ static inline pixel_t I_BlendOver_142_8 (uint32_t bg, uint32_t fg)
     return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
 }
 
+// [PN] Paletted 50% over (fg/bg average). Cheapest possible:
+// per-channel average with packed RB and separate G; no multiplications.
+static inline pixel_t I_BlendOver_128_8 (uint32_t bg, uint32_t fg)
+{
+    // Average R|B together and G separately; carries are fine (>>1), then mask lanes.
+    const uint32_t rb = (((fg & 0x00FF00FFu) + (bg & 0x00FF00FFu)) >> 1) & 0x00FF00FFu;
+    const uint32_t g8 = (((fg & 0x0000FF00u) + (bg & 0x0000FF00u)) >> 1) & 0x0000FF00u;
+
+    // Map into 8-bit palette via 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
+
 // [PN] Additive via LUT (exact a=192/256), packed-index fast path.
 // Forms (bg<<8 | fg) per channel without extracting scalars.
 static inline pixel_t I_BlendAdd_8 (uint32_t bg, uint32_t fg)

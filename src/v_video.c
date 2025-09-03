@@ -150,26 +150,32 @@ static const inline pixel_t drawpatchpx01 (const pixel_t dest, const pixel_t sou
 {return pal_color[dp_translation[source]];}
 // (3) normal, translucent patch
 static const inline pixel_t drawpatchpx10 (const pixel_t dest, const pixel_t source)
-{return I_BlendOver_128(dest, pal_color[source]);}
+{return vid_truecolor ? I_BlendOver_128(dest, pal_color[source]) :
+                        I_BlendOver_128_8(dest, pal_color[source]);}
 // (4) color-translated, translucent patch
 static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t source)
-{return I_BlendOver_128(dest, pal_color[dp_translation[source]]);}
+{return vid_truecolor ? I_BlendOver_128(dest, pal_color[dp_translation[source]]) :
+                        I_BlendOver_128_8(dest, pal_color[dp_translation[source]]);}
 
 // [JN] The shadow of the patch rendering functions:
 // Doom
 static const inline pixel_t drawshadow_doom (const pixel_t dest, const pixel_t source)
-{return I_BlendDark(dest, shadow_alpha);}
+{return vid_truecolor ? I_BlendDark(dest, shadow_alpha) :
+                        I_BlendDark_8(dest, shadow_alpha);}
 // Heretic & Hexen
 static const inline pixel_t drawshadow_raven (const pixel_t dest, const pixel_t source)
-{return I_BlendDark(dest, shadow_alpha);}
+{return vid_truecolor ? I_BlendDark(dest, shadow_alpha) :
+                        I_BlendDark_8(dest, shadow_alpha);}
 
 // [JN] V_DrawTLPatch (translucent patch, no coloring or color-translation are used)
 static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t source)
-{return I_BlendOver_96(dest, pal_color[source]);}
+{return vid_truecolor ? I_BlendOver_96(dest, pal_color[source]) :
+                        I_BlendOver_96_8(dest, pal_color[source]);}
 
 // [JN] V_DrawAltTLPatch (translucent patch, no coloring or color-translation are used)
 static const inline pixel_t drawalttinttab (const pixel_t dest, const pixel_t source)
-{return I_BlendOver_142(dest, pal_color[source]);}
+{return vid_truecolor ? I_BlendOver_142(dest, pal_color[source]) :
+                        I_BlendOver_142_8(dest, pal_color[source]);}
 
 // [crispy] array of function pointers holding the different rendering functions
 typedef const pixel_t drawpatchpx_t (const pixel_t dest, const pixel_t source);
