@@ -299,6 +299,7 @@ void R_DrawFuzzColumn(void)
     const int fuzzwrap = FUZZTABLE;
     const int fuzzalpha = fuzz_alpha;
     const int block = (vid_resolution > 1) ? vid_resolution : 1;
+    const int truecolor_blend = vid_truecolor;
 
     // Precompute "improved fuzz" flag once; behavior identical to original
     const boolean improved_fuzz =
@@ -334,7 +335,8 @@ void R_DrawFuzzColumn(void)
             if (src < vbuf_start) src = dest + top_delta;
             if (src < vbuf_end)
             {
-                const pixel_t blended = I_BlendDark(*src, fuzzalpha);
+                const pixel_t blended = truecolor_blend ? I_BlendDark_32(*src, fuzzalpha) :
+                                                          I_BlendDark_8(*src, fuzzalpha);
 
                 // Fill rectangle: write_lines × fuzzblockwidth
                 pixel_t *row = dest;
@@ -365,7 +367,8 @@ void R_DrawFuzzColumn(void)
         if (cutoff)
         {
             const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-            const pixel_t blended = I_BlendDark(dest[fuzz_off], fuzzalpha);
+            const pixel_t blended = truecolor_blend ? I_BlendDark_32(dest[fuzz_off], fuzzalpha) :
+                                                      I_BlendDark_8(dest[fuzz_off], fuzzalpha);
             for (int j = 0; j < fuzzblockwidth; ++j)
                 dest[j] = blended;
         }
@@ -384,7 +387,8 @@ void R_DrawFuzzColumn(void)
         // Top clamp + in-bounds guard
         if (src < vbuf_start) src = dest + top_delta;
         if (src < vbuf_end)
-            *dest = I_BlendDark(*src, fuzzalpha);
+            *dest = truecolor_blend ? I_BlendDark_32(*src, fuzzalpha) :
+                                      I_BlendDark_8(*src, fuzzalpha);
 
         // Update fuzz position (compact wrap & optional jitter)
         if (++local_fuzzpos == fuzzwrap)
@@ -401,7 +405,8 @@ void R_DrawFuzzColumn(void)
     if (cutoff)
     {
         const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-        *dest = I_BlendDark(dest[fuzz_offset], fuzzalpha);
+        *dest = truecolor_blend ? I_BlendDark_32(dest[fuzz_offset], fuzzalpha) :
+                                  I_BlendDark_8(dest[fuzz_offset], fuzzalpha);
     }
 
     fuzzpos = local_fuzzpos;
@@ -450,6 +455,7 @@ void R_DrawFuzzColumnLow(void)
     const int fuzzwrap = FUZZTABLE;
     const int fuzzalpha = fuzz_alpha;
     const int block = (vid_resolution > 1) ? vid_resolution : 1;
+    const int truecolor_blend = vid_truecolor;
 
     // Precompute "improved fuzz" once
     const boolean improved_fuzz =
@@ -497,7 +503,8 @@ void R_DrawFuzzColumnLow(void)
             if (src < vbuf_start) src = draw + top_delta;
             if (src < vbuf_end)
             {
-                const pixel_t blended = I_BlendDark(*src, fuzzalpha);
+                const pixel_t blended = truecolor_blend ? I_BlendDark_32(*src, fuzzalpha) :
+                                                          I_BlendDark_8(*src, fuzzalpha);
 
                 // Fill rectangle: write_lines × fuzzblockwidth (anchored)
                 pixel_t *row = draw;
@@ -530,7 +537,8 @@ void R_DrawFuzzColumnLow(void)
         if (cutoff)
         {
             const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-            const pixel_t blended = I_BlendDark(draw[fuzz_off], fuzzalpha);
+            const pixel_t blended = truecolor_blend ? I_BlendDark_32(draw[fuzz_off], fuzzalpha) :
+                                                      I_BlendDark_8(draw[fuzz_off], fuzzalpha);
             for (int j = 0; j < fuzzblockwidth; ++j)
                 draw[j] = blended;
         }
@@ -553,9 +561,11 @@ void R_DrawFuzzColumnLow(void)
         if (src2 < vbuf_start) src2 = dest2 + top_delta;
 
         if (src1 < vbuf_end)
-            *dest = I_BlendDark(*src1, fuzzalpha);
+            *dest = truecolor_blend ? I_BlendDark_32(*src1, fuzzalpha) :
+                                      I_BlendDark_8(*src1, fuzzalpha);
         if (src2 < vbuf_end)
-            *dest2 = I_BlendDark(*src2, fuzzalpha);
+            *dest2 = truecolor_blend ? I_BlendDark_32(*src2, fuzzalpha) :
+                                       I_BlendDark_8(*src2, fuzzalpha);
 
         // Update fuzzpos (compact wrap & optional jitter)
         if (++local_fuzzpos == fuzzwrap)
@@ -573,130 +583,14 @@ void R_DrawFuzzColumnLow(void)
     if (cutoff)
     {
         const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-        *dest  = I_BlendDark(dest [fuzz_offset], fuzzalpha);
-        *dest2 = I_BlendDark(dest2[fuzz_offset], fuzzalpha);
+        *dest  = truecolor_blend ? I_BlendDark_32(dest [fuzz_offset], fuzzalpha) :
+                                   I_BlendDark_8(dest [fuzz_offset], fuzzalpha);
+        *dest2 = truecolor_blend ? I_BlendDark_32(dest2[fuzz_offset], fuzzalpha) :
+                                   I_BlendDark_8(dest2[fuzz_offset], fuzzalpha);
     }
 
     // Persist fuzz position
     fuzzpos = local_fuzzpos;
-}
-
-// -----------------------------------------------------------------------------
-// R_DrawFuzzTLColumn
-// [PN/JN] Draw translucent column for fuzz effect, overlay blending. High detail.
-// -----------------------------------------------------------------------------
-
-void R_DrawFuzzTLColumn(void)
-{
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // No pixels to draw
-
-    // Local pointers for improved memory access
-    const byte *restrict const sourcebase = dc_source;
-    const byte *restrict const brightmap = dc_brightmap;
-    const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
-    const int step = 2;
-    int y_end = dc_yh; 
-    int y_start = dc_yl;
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale * step;
-    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
-
-    // Precompute initial destination pointer
-    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
-
-    // Compute one pixel, write it to two vertical lines
-    while (y_start < y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-        const pixel_t blended = I_BlendOver_64(*dest, destrgb);
-
-        // Write two pixels (current and next line)
-        dest[0] = blended;
-        dest[screenwidth] = blended;
-
-        // Move to next pair
-        dest += screenwidth * step;
-        frac += fracstep;
-        y_start += step;
-    }
-
-    // Handle final odd line
-    if (y_start == y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        dest[0] = I_BlendOver_64(*dest, brightmap[s] ? colormap1[s] : colormap0[s]);
-    }
-}
-
-// -----------------------------------------------------------------------------
-// R_DrawFuzzTLColumnLow
-// [PN/JN] Draw translucent column for fuzz effect, overlay blending. Low detail.
-// -----------------------------------------------------------------------------
-
-void R_DrawFuzzTLColumnLow(void)
-{
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // No pixels to draw
-
-    // Low detail: double horizontal resolution
-    const int x = dc_x << 1;
-
-    // Local pointers for improved memory access
-    const byte *restrict const sourcebase = dc_source;
-    const byte *restrict const brightmap = dc_brightmap;
-    const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
-    const int step = 2;
-    int y_start = dc_yl;
-    int y_end = dc_yh;
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale * step;
-    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
-
-    // Precompute initial destination pointers
-    pixel_t *restrict dest1 = ylookup[y_start] + columnofs[flipviewwidth[x]];
-    pixel_t *restrict dest2 = ylookup[y_start] + columnofs[flipviewwidth[x + 1]];
-
-    // Process screen in 2×2 pixel blocks (2 lines, 2 columns)
-    while (y_start < y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-        
-        // Process two lines for both columns
-        const pixel_t blended = I_BlendOver_64(*dest1, destrgb);
-        dest1[0] = blended;
-        dest1[screenwidth] = blended;
-        
-        const pixel_t blended2 = I_BlendOver_64(*dest2, destrgb);
-        dest2[0] = blended2;
-        dest2[screenwidth] = blended2;
-
-        // Move to next pair of lines
-        dest1 += screenwidth * step;
-        dest2 += screenwidth * step;
-        frac += fracstep;
-        y_start += step;
-    }
-
-    // Handle final row if height is odd (draw single line, both columns)
-    if (y_start == y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-        
-        dest1[0] = I_BlendOver_64(*dest1, destrgb);
-        dest2[0] = I_BlendOver_64(*dest2, destrgb);
-    }
 }
 
 
@@ -736,6 +630,7 @@ void R_DrawFuzzBWColumn(void)
     const int fuzzwrap = FUZZTABLE;
     const int fuzzalpha = fuzz_alpha;
     const int block = (vid_resolution > 1) ? vid_resolution : 1;
+    const int truecolor_blend = vid_truecolor;
 
     // --- Blocky mode for hi-res: rectangles aligned to the block grid ---
     if (block > 1)
@@ -767,7 +662,8 @@ void R_DrawFuzzBWColumn(void)
             if (src < vbuf_start) src = dest + top_delta;
             if (src < vbuf_end)
             {
-                const pixel_t blended = I_BlendDarkGrayscale(*src, fuzzalpha);
+                const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale_32(*src, fuzzalpha) :
+                                                          I_BlendDarkGrayscale_8(*src, fuzzalpha);
 
                 // Fill rectangle: write_lines × fuzzblockwidth
                 pixel_t *row = dest;
@@ -794,7 +690,8 @@ void R_DrawFuzzBWColumn(void)
         if (cutoff)
         {
             const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-            const pixel_t blended = I_BlendDarkGrayscale(dest[fuzz_off], fuzzalpha);
+            const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale_32(dest[fuzz_off], fuzzalpha) :
+                                                      I_BlendDarkGrayscale_8(dest[fuzz_off], fuzzalpha);
             for (int j = 0; j < fuzzblockwidth; ++j)
                 dest[j] = blended;
         }
@@ -813,7 +710,8 @@ void R_DrawFuzzBWColumn(void)
         // Top clamp + in-bounds guard
         if (src < vbuf_start) src = dest + top_delta;
         if (src < vbuf_end)
-            *dest = I_BlendDarkGrayscale(*src, fuzzalpha);
+            *dest = truecolor_blend ? I_BlendDarkGrayscale_32(*src, fuzzalpha) :
+                                      I_BlendDarkGrayscale_8(*src, fuzzalpha);
 
         // Update fuzz position (compact wrap)
         if (++local_fuzzpos == fuzzwrap)
@@ -826,7 +724,8 @@ void R_DrawFuzzBWColumn(void)
     if (cutoff)
     {
         const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-        *dest = I_BlendDarkGrayscale(dest[fuzz_offset], fuzzalpha);
+        *dest = truecolor_blend ? I_BlendDarkGrayscale_32(dest[fuzz_offset], fuzzalpha) :
+                                  I_BlendDarkGrayscale_8(dest[fuzz_offset], fuzzalpha);
     }
 
     // Persist fuzz position
@@ -875,6 +774,7 @@ void R_DrawFuzzBWColumnLow(void)
     const int fuzzwrap = FUZZTABLE;
     const int fuzzalpha = fuzz_alpha;
     const int block = (vid_resolution > 1) ? vid_resolution : 1;
+    const int truecolor_blend = vid_truecolor;
 
     // --- Blocky mode for hi-res: rectangles aligned to the block grid ---
     if (block > 1)
@@ -918,7 +818,8 @@ void R_DrawFuzzBWColumnLow(void)
             if (src < vbuf_start) src = draw + top_delta;
             if (src < vbuf_end)
             {
-                const pixel_t blended = I_BlendDarkGrayscale(*src, fuzzalpha);
+                const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale_32(*src, fuzzalpha) :
+                                                          I_BlendDarkGrayscale_8(*src, fuzzalpha);
 
                 // Fill rectangle: write_lines × fuzzblockwidth (anchored)
                 pixel_t *row = draw;
@@ -947,7 +848,8 @@ void R_DrawFuzzBWColumnLow(void)
         if (cutoff)
         {
             const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-            const pixel_t blended = I_BlendDarkGrayscale(draw[fuzz_off], fuzzalpha);
+            const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale_32(draw[fuzz_off], fuzzalpha) :
+                                                      I_BlendDarkGrayscale_8(draw[fuzz_off], fuzzalpha);
             for (int j = 0; j < fuzzblockwidth; ++j)
                 draw[j] = blended;
         }
@@ -971,9 +873,11 @@ void R_DrawFuzzBWColumnLow(void)
         if (src2 < vbuf_start) src2 = dest2 + top_delta;
 
         if (src1 < vbuf_end)
-            *dest = I_BlendDarkGrayscale(*src1, fuzzalpha);
+            *dest = truecolor_blend ? I_BlendDarkGrayscale_32(*src1, fuzzalpha) :
+                                      I_BlendDarkGrayscale_8(*src1, fuzzalpha);
         if (src2 < vbuf_end)
-            *dest2 = I_BlendDarkGrayscale(*src2, fuzzalpha);
+            *dest2 = truecolor_blend ? I_BlendDarkGrayscale_32(*src2, fuzzalpha) :
+                                       I_BlendDarkGrayscale_8(*src2, fuzzalpha);
 
         // Update fuzz position (compact wrap)
         if (++local_fuzzpos == fuzzwrap)
@@ -987,132 +891,14 @@ void R_DrawFuzzBWColumnLow(void)
     if (cutoff)
     {
         const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
-        *dest  = I_BlendDarkGrayscale(dest [fuzz_offset], fuzzalpha);
-        *dest2 = I_BlendDarkGrayscale(dest2[fuzz_offset], fuzzalpha);
+        *dest  = truecolor_blend ? I_BlendDarkGrayscale_32(dest [fuzz_offset], fuzzalpha) :
+                                   I_BlendDarkGrayscale_8(dest [fuzz_offset], fuzzalpha);
+        *dest2 = truecolor_blend ? I_BlendDarkGrayscale_32(dest2[fuzz_offset], fuzzalpha) :
+                                   I_BlendDarkGrayscale_8(dest [fuzz_offset], fuzzalpha);
     }
 
     // Restore fuzz position
     fuzzpos = local_fuzzpos;
-}
-
-
-
-// -----------------------------------------------------------------------------
-// R_DrawTransTLFuzzColumn
-// [PN/JN] Translucent, translated fuzz column.
-// -----------------------------------------------------------------------------
-
-void R_DrawTransTLFuzzColumn(void)
-{
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // No pixels to draw
-
-    // Local pointers for improved memory access
-    const byte *restrict const sourcebase = dc_source;
-    const byte *restrict const translation = dc_translation;
-    const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const int screenwidth = SCREENWIDTH;
-    const int step = 2;
-    int y_end = dc_yh; 
-    int y_start = dc_yl;
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale * step;
-    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
-
-    // Precompute initial destination pointer
-    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
-
-    // Compute one pixel, write it to two vertical lines
-    while (y_start < y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = colormap0[translation[s]];
-        const pixel_t blended = I_BlendOver_64(*dest, destrgb);
-
-        // Write two pixels (current and next line)
-        dest[0] = blended;
-        dest[screenwidth] = blended;
-
-        // Move to next pair
-        dest += screenwidth * step;
-        frac += fracstep;
-        y_start += step;
-    }
-
-    // Handle final odd line
-    if (y_start == y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        dest[0] = I_BlendOver_64(*dest, colormap0[translation[s]]);
-    }
-}
-
-
-
-// -----------------------------------------------------------------------------
-// R_DrawTransTLFuzzColumnLow
-// [PN/JN] Translucent, translated fuzz column, low-resolution version.
-// -----------------------------------------------------------------------------
-
-void R_DrawTransTLFuzzColumnLow(void)
-{
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // No pixels to draw
-
-    // Low detail: double horizontal resolution
-    const int x = dc_x << 1;
-
-    // Local pointers for improved memory access
-    const byte *restrict const sourcebase = dc_source;
-    const byte *restrict const translation = dc_translation;
-    const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const int screenwidth = SCREENWIDTH;
-    const int step = 2;
-    int y_start = dc_yl;
-    int y_end = dc_yh;
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale * step;
-    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
-
-    // Precompute initial destination pointers
-    pixel_t *restrict dest1 = ylookup[y_start] + columnofs[flipviewwidth[x]];
-    pixel_t *restrict dest2 = ylookup[y_start] + columnofs[flipviewwidth[x + 1]];
-
-    // Process screen in 2×2 pixel blocks (2 lines, 2 columns)
-    while (y_start < y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = colormap0[translation[s]];
-        
-        // Process two lines for both columns
-        const pixel_t blended1 = I_BlendOver_64(*dest1, destrgb);
-        const pixel_t blended2 = I_BlendOver_64(*dest2, destrgb);
-
-        dest1[0] = blended1;
-        dest1[screenwidth] = blended1;
-        dest2[0] = blended2;
-        dest2[screenwidth] = blended2;
-
-        // Move to next pair of lines
-        dest1 += screenwidth * step;
-        dest2 += screenwidth * step;
-        frac += fracstep;
-        y_start += step;
-    }
-
-    // Handle final row if height is odd (draw single line, both columns)
-    if (y_start == y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = colormap0[translation[s]];
-
-        dest1[0] = I_BlendOver_64(*dest1, destrgb);
-        dest2[0] = I_BlendOver_64(*dest2, destrgb);
-    }
 }
 
 
@@ -1204,250 +990,6 @@ void R_DrawTranslatedColumnLow(void)
         frac += fracstep;
     }
 }
-
-
-
-// -----------------------------------------------------------------------------
-// R_DrawTLColumn
-// [PN/JN] Draw translucent column, overlay blending. High detail.
-// -----------------------------------------------------------------------------
-
-void R_DrawTLColumn(void)
-{
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // No pixels to draw
-
-    // Local pointers for improved memory access
-    const byte *restrict const sourcebase = dc_source;
-    const byte *restrict const brightmap = dc_brightmap;
-    const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
-    const int step = 2;
-    int y_end = dc_yh; 
-    int y_start = dc_yl;
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale * step;
-    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
-
-    // Precompute initial destination pointer
-    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
-
-    // Compute one pixel, write it to two vertical lines
-    while (y_start < y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-        const pixel_t blended = I_BlendOver_168(*dest, destrgb);
-
-        // Write two pixels (current and next line)
-        dest[0] = blended;
-        dest[screenwidth] = blended;
-
-        // Move to next pair
-        dest += screenwidth * step;
-        frac += fracstep;
-        y_start += step;
-    }
-
-    // Handle final odd line
-    if (y_start == y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        dest[0] = I_BlendOver_168(*dest, brightmap[s] ? colormap1[s] : colormap0[s]);
-    }
-}
-
-
-
-// -----------------------------------------------------------------------------
-// R_DrawTLColumn
-// [PN/JN] Draw translucent column, overlay blending. Low detail.
-// -----------------------------------------------------------------------------
-
-void R_DrawTLColumnLow(void)
-{
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // No pixels to draw
-
-    // Low detail: double horizontal resolution
-    const int x = dc_x << 1;
-
-    // Local pointers for improved memory access
-    const byte *restrict const sourcebase = dc_source;
-    const byte *restrict const brightmap = dc_brightmap;
-    const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
-    const int step = 2;
-    int y_start = dc_yl;
-    int y_end = dc_yh;
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale * step;
-    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
-
-    // Precompute initial destination pointers
-    pixel_t *restrict dest1 = ylookup[y_start] + columnofs[flipviewwidth[x]];
-    pixel_t *restrict dest2 = ylookup[y_start] + columnofs[flipviewwidth[x + 1]];
-
-    // Process screen in 2×2 pixel blocks (2 lines, 2 columns)
-    while (y_start < y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-        
-        // Process two lines for both columns
-        const pixel_t blended = I_BlendOver_168(*dest1, destrgb);
-        dest1[0] = blended;
-        dest1[screenwidth] = blended;
-        
-        const pixel_t blended2 = I_BlendOver_168(*dest2, destrgb);
-        dest2[0] = blended2;
-        dest2[screenwidth] = blended2;
-
-        // Move to next pair of lines
-        dest1 += screenwidth * step;
-        dest2 += screenwidth * step;
-        frac += fracstep;
-        y_start += step;
-    }
-
-    // Handle final row if height is odd (draw single line, both columns)
-    if (y_start == y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-        
-        dest1[0] = I_BlendOver_168(*dest1, destrgb);
-        dest2[0] = I_BlendOver_168(*dest2, destrgb);
-    }
-}
-
-
-// -----------------------------------------------------------------------------
-// R_DrawTLAddColumn
-// [PN/JN] Draw translucent column, additive blending. High detail.
-// -----------------------------------------------------------------------------
-
-void R_DrawTLAddColumn(void)
-{
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // No pixels to draw
-
-    // Local pointers for improved memory access
-    const byte *restrict const sourcebase = dc_source;
-    const byte *restrict const brightmap = dc_brightmap;
-    const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
-    const int step = 2;
-    int y_end = dc_yh; 
-    int y_start = dc_yl;
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale * step;
-    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
-
-    // Precompute initial destination pointer
-    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
-
-    // Compute one pixel, write it to two vertical lines
-    while (y_start < y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-        const pixel_t blended = I_BlendAdd(*dest, destrgb);
-
-        // Write two pixels (current and next line)
-        dest[0] = blended;
-        dest[screenwidth] = blended;
-
-        // Move to next pair
-        dest += screenwidth * step;
-        frac += fracstep;
-        y_start += step;
-    }
-
-    // Handle final odd line
-    if (y_start == y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        dest[0] = I_BlendAdd(*dest, brightmap[s] ? colormap1[s] : colormap0[s]);
-    }
-}
-
-
-// -----------------------------------------------------------------------------
-// R_DrawTLAddColumn
-// [PN/JN] Draw translucent column, additive blending. Low detail.
-// -----------------------------------------------------------------------------
-
-void R_DrawTLAddColumnLow(void)
-{
-    const int count = dc_yh - dc_yl;
-    if (count < 0)
-        return; // No pixels to draw
-
-    // Low detail: double horizontal resolution
-    const int x = dc_x << 1;
-
-    // Local pointers for improved memory access
-    const byte *restrict const sourcebase = dc_source;
-    const byte *restrict const brightmap = dc_brightmap;
-    const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
-    const int step = 2;
-    int y_start = dc_yl;
-    int y_end = dc_yh;
-
-    // Setup scaling
-    const fixed_t fracstep = dc_iscale * step;
-    fixed_t frac = dc_texturemid + (y_start - centery) * dc_iscale;
-
-    // Precompute initial destination pointers
-    pixel_t *restrict dest1 = ylookup[y_start] + columnofs[flipviewwidth[x]];
-    pixel_t *restrict dest2 = ylookup[y_start] + columnofs[flipviewwidth[x + 1]];
-
-    // Process screen in 2×2 pixel blocks (2 lines, 2 columns)
-    while (y_start < y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-        
-        // Process two lines for both columns
-        const pixel_t blended = I_BlendAdd(*dest1, destrgb);
-        dest1[0] = blended;
-        dest1[screenwidth] = blended;
-        
-        const pixel_t blended2 = I_BlendAdd(*dest2, destrgb);
-        dest2[0] = blended2;
-        dest2[screenwidth] = blended2;
-
-        // Move to next pair of lines
-        dest1 += screenwidth * step;
-        dest2 += screenwidth * step;
-        frac += fracstep;
-        y_start += step;
-    }
-
-    // Handle final row if height is odd (draw single line, both columns)
-    if (y_start == y_end)
-    {
-        const unsigned s = sourcebase[frac >> FRACBITS];
-        const pixel_t destrgb = brightmap[s] ? colormap1[s] : colormap0[s];
-        
-        dest1[0] = I_BlendAdd(*dest1, destrgb);
-        dest2[0] = I_BlendAdd(*dest2, destrgb);
-    }
-}
-
-
 
 
 //

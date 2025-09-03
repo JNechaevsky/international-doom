@@ -21,9 +21,7 @@
 
 #include <stdlib.h> // malloc
 #include <string.h> // memcpy
-
 #include "config.h"
-
 #include "i_truecolor.h"
 #include "m_fixed.h"
 #include "v_video.h"
@@ -46,13 +44,13 @@
 // clamping any result above 255 to 255.
 // -----------------------------------------------------------------------------
 
-uint8_t additive_lut[511];
+uint8_t additive_lut_32[511];
 
 void I_InitTCTransMaps (void)
 {
     for (int i = 0; i < 511; ++i)
     {
-        additive_lut[i] = (uint8_t)(i > 255 ? 255 : i);
+        additive_lut_32[i] = (uint8_t)(i > 255 ? 255 : i);
     }
 }
 
@@ -69,7 +67,7 @@ void I_InitTCTransMaps (void)
 //   truecolor values back to the closest palette entry. The LUT is
 //   rebuilt when gamma/brightness changes, but rendering itself uses
 //   only fast O(1) lookups.
-// - A per-channel additive LUT (addchan_lut) of size 256×256, which
+// - A per-channel additive LUT (additive_lut_8) of size 256×256, which
 //   computes bg + (fg * alpha >> 8), clamped to 255, so additive
 //   blending reduces to three array lookups.
 // 
@@ -86,17 +84,11 @@ void I_InitTCTransMaps (void)
 // -----------------------------------------------------------------------------
 
 // Overlay blending
-byte *playpal_trans; // PLAYPAL copy for 8 bit blending
-byte *rgb_to_pal;    // [PN/JN] квантованный RGB -> индекс PLAYPAL
-static uint8_t  pal_r[256], pal_g[256], pal_b[256]; // from pal_color (gamma-applied)
-static uint8_t  diffR[PAL_STEPS][256];
-static uint8_t  diffG[PAL_STEPS][256];
-static uint8_t  diffB[PAL_STEPS][256];
-static uint8_t  step_val[PAL_STEPS];                // квантованные 0..255
+byte *playpal_trans;  // PLAYPAL copy for 8 bit blending
+byte *rgb_to_pal;     // [PN/JN] quantized RGB -> indexed PLAYPAL
 
 // Additive blending
-// Канальный LUT для add’а: out = f(bg, fg, alpha, darkmul). 256*256 байт
-byte *addchan_lut;
+byte *additive_lut_8; // [PN/JN] channaled LUT
 
 // -----------------------------------------------------------------------------
 // [PN] I_InitPALTransMaps
@@ -109,7 +101,7 @@ byte *addchan_lut;
 //     truecolor values back to the closest palette index. This is rebuilt
 //     on startup and when gamma correction change.
 //
-//  2) A per-channel additive blending LUT (addchan_lut) of size 256×256,
+//  2) A per-channel additive blending LUT (additive_lut_8) of size 256×256,
 //     which computes bg + (fg * alpha >> 8), clamped to 255. This allows
 //     fast additive blending in the render loop with a single lookup instead
 //     of per-pixel math.
@@ -117,6 +109,12 @@ byte *addchan_lut;
 
 void I_InitPALTransMaps(void)
 {
+    static uint8_t pal_r[256], pal_g[256], pal_b[256]; // from pal_color (gamma-applied)
+    static uint8_t diffR[PAL_STEPS][256];
+    static uint8_t diffG[PAL_STEPS][256];
+    static uint8_t diffB[PAL_STEPS][256];
+    static uint8_t step_val[PAL_STEPS];                // quantized 0..255
+
     // Init overlay blending (RGB->Palette LUT)
     static boolean pal_init = false;
     if (!pal_init)
@@ -246,7 +244,7 @@ void I_InitPALTransMaps(void)
     static boolean additive_lut_ready = false;
     if (!additive_lut_ready)
     {
-        addchan_lut = Z_Malloc(256 * 256, PU_STATIC, 0);
+        additive_lut_8 = Z_Malloc(256 * 256, PU_STATIC, 0);
 
         // Foreground contribution factor (0..256)
         const int a = 192; // ~75% foreground
@@ -257,7 +255,7 @@ void I_InitPALTransMaps(void)
             fgA[fg] = (uint8_t)((fg * a) >> 8);
         }
 
-        byte *lut_ptr = addchan_lut;
+        byte *lut_ptr = additive_lut_8;
 
         for (int bg = 0; bg < 256; ++bg)
         {
@@ -272,80 +270,6 @@ void I_InitPALTransMaps(void)
     }
 }
 
-
-// =============================================================================
-//
-//                              Blending functions
-//
-// =============================================================================
-
-// [PN] All original human-readable blending functions from Crispy Doom
-/*
-const uint32_t I_BlendAdd (const uint32_t bg_i, const uint32_t fg_i)
-{
-    tcpixel_t bg, fg, ret;
-
-    bg.i = bg_i;
-    fg.i = fg_i;
-
-    ret.a = 0xFFU;
-    ret.r = additive_lut[bg.r][fg.r];
-    ret.g = additive_lut[bg.g][fg.g];
-    ret.b = additive_lut[bg.b][fg.b];
-
-    return ret.i;
-}
-
-const uint32_t I_BlendDark (const uint32_t bg_i, const int d)
-{
-    tcpixel_t bg, ret;
-
-    bg.i = bg_i;
-
-    ret.a = 0xFFU;
-    ret.r = (bg.r * d) >> 8;
-    ret.g = (bg.g * d) >> 8;
-    ret.b = (bg.b * d) >> 8;
-
-    return ret.i;
-}
-
-const uint32_t I_BlendDarkGrayscale (const uint32_t bg_i, const int d)
-{
-    tcpixel_t bg, ret;
-    uint8_t r, g, b, gray;
-
-    bg.i = bg_i;
-
-    r = bg.r;
-    g = bg.g;
-    b = bg.b;
-    // [PN] Do not use Rec. 601 formula here: 
-    // gray = (((r * 299 + g * 587 + b * 114) / 1000) * d) >> 8;
-    // Weights are equalized to balance all color contributions equally.
-    gray = (((r + g + b) / 3) * d) >> 8;
-
-    ret.a = 0xFFU;
-    ret.r = ret.g = ret.b = gray;
-
-    return ret.i;
-}
-
-const uint32_t I_BlendOver (const uint32_t bg_i, const uint32_t fg_i, const int amount)
-{
-    tcpixel_t bg, fg, ret;
-
-    bg.i = bg_i;
-    fg.i = fg_i;
-
-    ret.a = 0xFFU;
-    ret.r = (amount * fg.r + (0XFFU - amount) * bg.r) >> 8;
-    ret.g = (amount * fg.g + (0XFFU - amount) * bg.g) >> 8;
-    ret.b = (amount * fg.b + (0XFFU - amount) * bg.b) >> 8;
-
-    return ret.i;
-}
-*/
 
 // [JN] Shadow alpha value for shadowed patches, and fuzz
 // alpha value for fuzz effect drawing based on contrast.
@@ -384,6 +308,13 @@ const float I_SaturationPercent[100] =
     0.033000f, 0.026400f, 0.019800f, 0.013200f, 0
 };
 
+
+// =============================================================================
+//
+//                                 Colorblind
+//
+// =============================================================================
+
 // [JN] Color matrices to emulate colorblind modes.
 // Original source: http://web.archive.org/web/20081014161121/http://www.colorjack.com/labs/colormatrix/
 // Converted from 100.000 ... 0 range to 1.00000 ... 0 to support Doom palette format.
@@ -398,4 +329,3 @@ const double colorblind_matrix[][3][3] = {
     { {0.29900, 0.58700, 0.11400}, {0.29900, 0.58700, 0.11400}, {0.29900, 0.58700, 0.11400} }, // Achromatopsia
     { {0.61800, 0.32000, 0.06200}, {0.16300, 0.77500, 0.06200}, {0.16300, 0.32000, 0.51600} }, // Achromatomaly
 };
-

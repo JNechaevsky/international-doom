@@ -42,13 +42,13 @@ add_library(hexen STATIC
             r_bsp.c
             r_data.c
             r_draw.c
-            r_draw_8.c
                                 r_local.h
             r_main.c
             r_plane.c
             r_segs.c
             r_swirl.c
             r_things.c
+            r_tlcnsy.c
             s_sound.c           s_sound.h
             sb_bar.c
             sc_man.c

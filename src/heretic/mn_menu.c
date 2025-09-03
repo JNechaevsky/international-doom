@@ -852,10 +852,15 @@ static void M_ShadeBackground (void)
         const int shade = dp_menu_shading;
         const int scr = SCREENAREA;
         
-        for (int i = 0; i < scr; i++)
+        if (vid_truecolor)
         {
-            *dest = I_BlendDark(*dest, I_ShadeFactor[shade]);
-            ++dest;
+            for (int i = 0; i < scr; i++, dest++)
+                *dest = I_BlendDark_32(*dest, I_ShadeFactor[shade]);
+        }
+        else
+        {
+            for (int i = 0; i < scr; i++, dest++)
+                *dest = I_BlendDark_8(*dest, I_ShadeFactor[shade]);
         }
     }
 }
