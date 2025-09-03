@@ -257,3 +257,14 @@ static inline pixel_t I_BlendAdd_8 (uint32_t bg, uint32_t fg)
     // Map into the palette through the 3D LUT
     return pal_color[ RGB_TO_PAL(r, g, b) ];
 }
+
+// [PN] Paletted darken: multiply RGB by factor d (0..255) and map via RGB->PAL LUT.
+static inline pixel_t I_BlendDark_8 (uint32_t bg, int d)
+{
+    // Scale packed R|B together and G separately
+    const uint32_t rb = (((bg & 0x00FF00FFu) * (uint32_t)d) >> 8) & 0x00FF00FFu;
+    const uint32_t g8 = (((bg & 0x0000FF00u) * (uint32_t)d) >> 8) & 0x0000FF00u;
+
+    // Map into the palette through the 3D LUT
+    return pal_color[ RGB_TO_PAL((rb >> 16) & 0xFFu, (g8 >> 8) & 0xFFu, rb & 0xFFu) ];
+}
