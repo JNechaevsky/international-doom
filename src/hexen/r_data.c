@@ -1016,12 +1016,12 @@ void R_InitTrueColormaps(char *current_colormap)
         // black (0) color. Otherwise, fade to gray (147) to emulate FOGMAP table.
         const int fade_color = LevelUseFullBright ? 0 : 147;
     
-        // [PN] Precompute gamma-corrected base RGB for all 256 palette entries.
-        // Effectively: PLAYPAL -> intensity/saturation -> gamma, once per index.
+        // [PN] Precompute gamma-corrected base RGB for fade target.
+        // Use neutral gray (147,147,147) directly instead of sampling PLAYPAL.
         const byte *const restrict gtab = gammatable[vid_gamma];
-        const int fade_r = gtab[playpal[3 * fade_color + 0]];
-        const int fade_g = gtab[playpal[3 * fade_color + 1]];
-        const int fade_b = gtab[playpal[3 * fade_color + 2]];
+        const int fade_r = gtab[fade_color];
+        const int fade_g = gtab[fade_color];
+        const int fade_b = gtab[fade_color];
         const float one_minus_a_hi = 1.0f - a_hi;
     
         // base_gamma[i][0..2] are gamma-corrected channels for index "i_base"
