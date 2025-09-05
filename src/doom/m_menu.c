@@ -626,6 +626,7 @@ static void M_Draw_ID_Keybinds_2 (void);
 static void M_Bind_AlwaysRun (int choice);
 static void M_Bind_MouseLook (int choice);
 static void M_Bind_NoVert (int choice);
+static void M_Bind_PrevLevel (int choice);
 static void M_Bind_RestartLevel (int choice);
 static void M_Bind_NextLevel (int choice);
 static void M_Bind_FastForward (int choice);
@@ -2507,6 +2508,7 @@ static menuitem_t ID_Menu_Keybinds_2[]=
     { M_SWTC, "MOUSE LOOK",              M_Bind_MouseLook,      'm' },
     { M_SWTC, "VERTICAL MOUSE MOVEMENT", M_Bind_NoVert,         'v' },
     { M_SKIP, "", 0, '\0'},
+    { M_SWTC, "GO TO PREVIOUS LEVEL",    M_Bind_PrevLevel,      'g' },
     { M_SWTC, "RESTART LEVEL/DEMO",      M_Bind_RestartLevel,   'g' },
     { M_SWTC, "GO TO NEXT LEVEL",        M_Bind_NextLevel,      'd' },
     { M_SWTC, "DEMO FAST-FORWARD",       M_Bind_FastForward,    'd' },
@@ -2545,49 +2547,54 @@ static void M_Bind_NoVert (int choice)
     M_StartBind(202);  // key_novert
 }
 
+static void M_Bind_PrevLevel (int choice)
+{
+    M_StartBind(203);  // key_prevlevel
+}
+
 static void M_Bind_RestartLevel (int choice)
 {
-    M_StartBind(203);  // key_reloadlevel
+    M_StartBind(204);  // key_reloadlevel
 }
 
 static void M_Bind_NextLevel (int choice)
 {
-    M_StartBind(204);  // key_nextlevel
+    M_StartBind(205);  // key_nextlevel
 }
 
 static void M_Bind_FastForward (int choice)
 {
-    M_StartBind(205);  // key_demospeed
+    M_StartBind(206);  // key_demospeed
 }
 
 static void M_Bind_FlipLevels (int choice)
 {
-    M_StartBind(206);  // key_flip_levels
+    M_StartBind(207);  // key_flip_levels
 }
 
 static void M_Bind_ExtendedHUD (int choice)
 {
-    M_StartBind(207);  // key_widget_enable
+    M_StartBind(208);  // key_widget_enable
 }
 
 static void M_Bind_SpectatorMode (int choice)
 {
-    M_StartBind(208);  // key_spectator
+    M_StartBind(209);  // key_spectator
 }
 
 static void M_Bind_FreezeMode (int choice)
 {
-    M_StartBind(209);  // key_freeze
+    M_StartBind(210);  // key_freeze
 }
 
 static void M_Bind_NotargetMode (int choice)
 {
-    M_StartBind(210);  // key_notarget
+    M_StartBind(211);  // key_notarget
 }
 
 static void M_Bind_BuddhaMode (int choice)
 {
-    M_StartBind(211);  // key_buddha
+    M_StartBind(212);  // key_buddha
 }
 
 static void M_Draw_ID_Keybinds_2 (void)
@@ -2605,18 +2612,19 @@ static void M_Draw_ID_Keybinds_2 (void)
 
     M_WriteTextCentered(45, "SPECIAL KEYS", cr[CR_YELLOW]);
 
-    M_DrawBindKey(4, 54, key_reloadlevel);
-    M_DrawBindKey(5, 63, key_nextlevel);
-    M_DrawBindKey(6, 72, key_demospeed);
-    M_DrawBindKey(7, 81, key_flip_levels);
-    M_DrawBindKey(8, 90, key_widget_enable);
+    M_DrawBindKey(4, 54, key_prevlevel);
+    M_DrawBindKey(5, 63, key_reloadlevel);
+    M_DrawBindKey(6, 72, key_nextlevel);
+    M_DrawBindKey(7, 81, key_demospeed);
+    M_DrawBindKey(8, 90, key_flip_levels);
+    M_DrawBindKey(9, 99, key_widget_enable);
 
-    M_WriteTextCentered(99, "SPECIAL MODES", cr[CR_YELLOW]);
+    M_WriteTextCentered(108, "SPECIAL MODES", cr[CR_YELLOW]);
 
-    M_DrawBindKey(10, 108, key_spectator);
-    M_DrawBindKey(11, 117, key_freeze);
-    M_DrawBindKey(12, 126, key_notarget);
-    M_DrawBindKey(13, 135, key_buddha);
+    M_DrawBindKey(11, 117, key_spectator);
+    M_DrawBindKey(12, 126, key_freeze);
+    M_DrawBindKey(13, 135, key_notarget);
+    M_DrawBindKey(14, 144, key_buddha);
 
     M_DrawBindFooter("2", true);
 }
@@ -6312,24 +6320,126 @@ static int G_ReloadLevel (void)
     return result;
 }
 
-static int G_GotoNextLevel (void)
-{
-    static byte doom_next[6][9] = {
+static byte doom_next[6][9] = {
     {12, 13, 19, 15, 16, 17, 18, 21, 14},
     {22, 23, 24, 25, 29, 27, 28, 31, 26},
     {32, 33, 34, 35, 36, 39, 38, 41, 37},
     {42, 49, 44, 45, 46, 47, 48, 51, 43},
     {52, 53, 54, 55, 56, 59, 58, 11, 57},
     {62, 63, 69, 65, 66, 67, 68, 11, 64},
-    };
+};
 
-    static byte doom2_next[33] = {
+static byte doom2_next[33] = {
      2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
     12, 13, 14, 15, 31, 17, 18, 19, 20, 21,
     22, 23, 24, 25, 26, 27, 28, 29, 30, 1,
     32, 16, 3
-    };
+};
 
+// -----------------------------------------------------------------------------
+// G_GotoPrevLevel
+//  [PN] Mirror of G_GotoNextLevel: warp to the level that would have led here.
+//  Works for both Doom 1 (episode-based) and Doom II (map-based).
+//  Keeps the same adjustments for shareware/registered/Sigil/Chex/Hacx.
+// -----------------------------------------------------------------------------
+static int G_GotoPrevLevel (void)
+{
+    int changed = false;
+
+    if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
+    {
+        // Commercial (Doom II / Final Doom / HACX) uses a flat MAP01..MAP32 layout.
+        if (gamemode == commercial)
+        {
+            // Apply the same runtime tweaks as in G_GotoNextLevel.
+            if (W_CheckNumForName("map31") < 0)
+            {
+                doom2_next[14] = 16;   // MAP15 secret → MAP16 if MAP31 missing
+            }
+            if (gamemission == pack_hacx)
+            {
+                doom2_next[30] = 16;   // HACX MAP31 forced → MAP16
+                doom2_next[20] = 1;    // HACX MAP21 forced → MAP01
+            }
+
+            // Find the index i such that doom2_next[i] == current map.
+            // That i+1 is the map we came from.
+            int prev = gamemap;
+            for (int i = 0; i < 33; ++i)
+            {
+                if (doom2_next[i] == gamemap)
+                {
+                    prev = i + 1;      // tables are 0-based, maps are 1-based
+                    break;
+                }
+            }
+
+            G_DeferedInitNew(gameskill, gameepisode, prev);
+        }
+        else
+        {
+            // Non-commercial (Doom 1 style with episodes)
+            if (gamemode == shareware)
+            {
+                doom_next[0][7] = 11;  // E1M8 secret → E1M1 in shareware
+            }
+            if (gamemode == registered)
+            {
+                doom_next[2][7] = 11;  // E3M8 secret → E1M1 in registered
+            }
+
+            // Handle Sigil episode presence/absence.
+            if (!sigil && !sigil2)
+            {
+                doom_next[3][7] = 11;  // no Sigil → E4M8 secret → E1M1
+            }
+            else if (!sigil && sigil2)
+            {
+                doom_next[3][7] = 61;  // Sigil2 only → E4M8 secret → E6M1
+            }
+            else if (sigil && !sigil2)
+            {
+                doom_next[4][7] = 11;  // Sigil only → E5M8 secret → E1M1
+            }
+
+            // Chex Quest adjustments.
+            if (gameversion == exe_chex)
+            {
+                doom_next[0][2] = 14;  // E1M3 → E1M4
+                doom_next[0][4] = 11;  // E1M5 → E1M1
+            }
+
+            // Encode current map as E*10+M (e.g. E2M3 → 23).
+            const int cur  = gameepisode * 10 + gamemap;
+            int       prev = cur;
+
+            // Search doom_next[e][m] == cur, then (e,m) is the predecessor.
+            for (int e = 0; e < 6; ++e)
+            {
+                for (int m = 0; m < 9; ++m)
+                {
+                    if (doom_next[e][m] == cur)
+                    {
+                        prev = (e + 1) * 10 + (m + 1);
+                        e = 6;          // break both loops
+                        break;
+                    }
+                }
+            }
+
+            const int prev_ep  = prev / 10;
+            const int prev_map = prev % 10;
+            G_DeferedInitNew(gameskill, prev_ep, prev_map);
+        }
+
+        changed = true;
+    }
+
+    return changed;
+}
+
+static int G_GotoNextLevel (void)
+{
     int changed = false;
 
     if (gamemode == commercial)
@@ -6947,6 +7057,12 @@ boolean M_Responder (event_t* ev)
         {
             S_StartSound(NULL, sfx_swtchn);
             M_QuitDOOM(0);
+            return true;
+        }
+        // [PN] Go to previous level.
+        else if ((singleplayer) && key != 0 && key == key_prevlevel)
+        {
+            if (G_GotoPrevLevel())
             return true;
         }
         // [crispy] those two can be considered as shortcuts for the IDCLEV cheat
@@ -7696,6 +7812,7 @@ static void M_CheckBind (int key)
     if (key_autorun == key)          key_autorun          = 0;
     if (key_mouse_look == key)       key_mouse_look       = 0;
     if (key_novert == key)           key_novert           = 0;
+    if (key_prevlevel == key)        key_prevlevel        = 0;
     if (key_reloadlevel == key)      key_reloadlevel      = 0;
     if (key_nextlevel == key)        key_nextlevel        = 0;
     if (key_demospeed == key)        key_demospeed        = 0;
@@ -7788,15 +7905,16 @@ static void M_DoBind (int keynum, int key)
         case 200:  key_autorun = key;           break;
         case 201:  key_mouse_look = key;        break;
         case 202:  key_novert = key;            break;
-        case 203:  key_reloadlevel = key;       break;
-        case 204:  key_nextlevel = key;         break;
-        case 205:  key_demospeed = key;         break;
-        case 206:  key_flip_levels = key;       break;
-        case 207:  key_widget_enable = key;     break;
-        case 208:  key_spectator = key;         break;
-        case 209:  key_freeze = key;            break;
-        case 210:  key_notarget = key;          break;
-        case 211:  key_buddha = key;            break;
+        case 203:  key_prevlevel = key;         break;
+        case 204:  key_reloadlevel = key;       break;
+        case 205:  key_nextlevel = key;         break;
+        case 206:  key_demospeed = key;         break;
+        case 207:  key_flip_levels = key;       break;
+        case 208:  key_widget_enable = key;     break;
+        case 209:  key_spectator = key;         break;
+        case 210:  key_freeze = key;            break;
+        case 211:  key_notarget = key;          break;
+        case 212:  key_buddha = key;            break;
         // Page 3  
         case 300:  key_weapon1 = key;           break;
         case 301:  key_weapon2 = key;           break;
@@ -7880,16 +7998,17 @@ static void M_ClearBind (int itemOn)
             case 1:   key_mouse_look = 0;       break;
             case 2:   key_novert = 0;           break;
             // Special keys title
-            case 4:   key_reloadlevel = 0;      break;
-            case 5:   key_nextlevel = 0;        break;
-            case 6:   key_demospeed = 0;        break;
-            case 7:   key_flip_levels = 0;      break;
-            case 8:   key_widget_enable = 0;    break;
+            case 4:   key_prevlevel = 0;        break;
+            case 5:   key_reloadlevel = 0;      break;
+            case 6:   key_nextlevel = 0;        break;
+            case 7:   key_demospeed = 0;        break;
+            case 8:   key_flip_levels = 0;      break;
+            case 9:   key_widget_enable = 0;    break;
             // Special modes title
-            case 10:  key_spectator = 0;        break;
-            case 11:  key_freeze = 0;           break;
-            case 12:  key_notarget = 0;         break;
-            case 13:  key_buddha = 0;           break;
+            case 11:  key_spectator = 0;        break;
+            case 12:  key_freeze = 0;           break;
+            case 13:  key_notarget = 0;         break;
+            case 14:  key_buddha = 0;           break;
         }
     }
     if (currentMenu == &ID_Def_Keybinds_3)
@@ -7985,6 +8104,7 @@ static void M_ResetBinds (void)
     key_autorun = KEY_CAPSLOCK;
     key_mouse_look = 0;
     key_novert = 0;
+    key_prevlevel = 0;
     key_reloadlevel = 0;
     key_nextlevel = 0;
     key_demospeed = 0;

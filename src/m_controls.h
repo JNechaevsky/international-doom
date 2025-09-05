@@ -48,6 +48,7 @@ extern int key_novert;
 
 // Special keys
 
+extern int key_prevlevel;   // [PN]
 extern int key_nextlevel;   // [crispy]
 extern int key_reloadlevel; // [crispy]
 extern int key_demospeed;   // [crispy]

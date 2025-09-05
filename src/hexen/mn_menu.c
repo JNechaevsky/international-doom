@@ -41,6 +41,7 @@
 #include "ct_chat.h"
 
 #include "id_vars.h"
+#include "id_func.h"
 
 
 // MACROS ------------------------------------------------------------------
@@ -510,6 +511,7 @@ static void M_Draw_ID_Keybinds_3 (void);
 static void M_Bind_AlwaysRun (int choice);
 static void M_Bind_MouseLook (int choice);
 static void M_Bind_NoVert (int choice);
+static void M_Bind_PrevLevel (int choice);
 static void M_Bind_RestartLevel (int choice);
 static void M_Bind_NextLevel (int choice);
 static void M_Bind_FastForward (int choice);
@@ -2336,6 +2338,7 @@ static MenuItem_t ID_Menu_Keybinds_3[] = {
     { ITT_EFUNC, "MOUSE LOOK",              M_Bind_MouseLook,     0, MENU_NONE },
     { ITT_EFUNC, "VERTICAL MOUSE MOVEMENT", M_Bind_NoVert,        0, MENU_NONE },
     { ITT_EMPTY, NULL,                      NULL,                 0, MENU_NONE },
+    { ITT_EFUNC, "GO TO PREVIOUS LEVEL",    M_Bind_PrevLevel,     0, MENU_NONE },
     { ITT_EFUNC, "RESTART LEVEL/DEMO",      M_Bind_RestartLevel,  0, MENU_NONE },
     { ITT_EFUNC, "GO TO NEXT LEVEL",        M_Bind_NextLevel,     0, MENU_NONE },
     { ITT_EFUNC, "DEMO FAST-FORWARD",       M_Bind_FastForward,   0, MENU_NONE },
@@ -2371,18 +2374,19 @@ static void M_Draw_ID_Keybinds_3 (void)
 
     MN_DrTextACentered("SPECIAL KEYS", 50, cr[CR_YELLOW]);
 
-    M_DrawBindKey(4, 60, key_reloadlevel);
-    M_DrawBindKey(5, 70, key_nextlevel);
-    M_DrawBindKey(6, 80, key_demospeed);
-    M_DrawBindKey(7, 90, key_flip_levels);
-    M_DrawBindKey(8, 100, key_widget_enable);
+    M_DrawBindKey(4, 60, key_prevlevel);
+    M_DrawBindKey(5, 60, key_reloadlevel);
+    M_DrawBindKey(6, 70, key_nextlevel);
+    M_DrawBindKey(7, 80, key_demospeed);
+    M_DrawBindKey(8, 90, key_flip_levels);
+    M_DrawBindKey(9, 100, key_widget_enable);
 
     MN_DrTextACentered("SPECIAL MODES", 110, cr[CR_YELLOW]);
 
-    M_DrawBindKey(10, 120, key_spectator);
-    M_DrawBindKey(11, 130, key_freeze);
-    M_DrawBindKey(12, 140, key_notarget);
-    M_DrawBindKey(13, 150, key_buddha);
+    M_DrawBindKey(11, 120, key_spectator);
+    M_DrawBindKey(12, 130, key_freeze);
+    M_DrawBindKey(13, 140, key_notarget);
+    M_DrawBindKey(14, 150, key_buddha);
 
     M_DrawBindFooter("3", true);
 }
@@ -2402,49 +2406,54 @@ static void M_Bind_NoVert (int choice)
     M_StartBind(302);  // key_novert
 }
 
+static void M_Bind_PrevLevel (int choice)
+{
+    M_StartBind(303);  // key_prevlevel
+}
+
 static void M_Bind_RestartLevel (int choice)
 {
-    M_StartBind(303);  // key_reloadlevel
+    M_StartBind(304);  // key_reloadlevel
 }
 
 static void M_Bind_NextLevel (int choice)
 {
-    M_StartBind(304);  // key_nextlevel
+    M_StartBind(305);  // key_nextlevel
 }
 
 static void M_Bind_FastForward (int choice)
 {
-    M_StartBind(305);  // key_demospeed
+    M_StartBind(306);  // key_demospeed
 }
 
 static void M_Bind_FlipLevels (int choice)
 {
-    M_StartBind(306);  // key_flip_levels
+    M_StartBind(307);  // key_flip_levels
 }
 
 static void M_Bind_ExtendedHUD (int choice)
 {
-    M_StartBind(307);  // key_widget_enable
+    M_StartBind(308);  // key_widget_enable
 }
 
 static void M_Bind_SpectatorMode (int choice)
 {
-    M_StartBind(308);  // key_spectator
+    M_StartBind(309);  // key_spectator
 }
 
 static void M_Bind_FreezeMode (int choice)
 {
-    M_StartBind(309);  // key_freeze
+    M_StartBind(310);  // key_freeze
 }
 
 static void M_Bind_NotargetMode (int choice)
 {
-    M_StartBind(310);  // key_notarget
+    M_StartBind(311);  // key_notarget
 }
 
 static void M_Bind_BuddhaMode (int choice)
 {
-    M_StartBind(311);  // key_buddha
+    M_StartBind(312);  // key_buddha
 }
 
 // -----------------------------------------------------------------------------
@@ -6370,6 +6379,68 @@ boolean MN_Responder(event_t * event)
             CT_SetMessage(&players[consoleplayer], TXT_CHEATWARP, false, NULL);
             return true;
         }
+        // [PN] Go to previous level.
+        else if ((singleplayer) && key != 0 && key == key_prevlevel)
+        {
+            // Go to the *previous* level based on MAPINFO chain
+            // Hexen's MAPINFO stores "NEXT" as a *warp* number (not a raw map index).
+            // So to find the "previous" level, we:
+            //   1) read the current map's warp number,
+            //   2) scan all maps for one whose NEXT points to our current warp,
+            //   3) take that map's warp number and translate it back to a real map index,
+            //   4) hop there via G_Completed(...), same as for the "next level" key.
+            //
+            // Added special-cases:
+            //  - If we're currently on gamemap 1 and user pressed prev, explicitly
+            //    jump to map 1 (no-op / deterministic behavior).
+            //  - If we find a predecessor whose warp is 1, jump to real map 1.
+        
+            // - Special-case A: if currently on map 1, just go to map 1
+            if (gamemap == 1)
+            {
+                // Explicitly go to MAP01. This is effectively a no-op but makes
+                // behaviour deterministic.
+                G_Completed(1, 0);
+                return true;
+            }
+
+            // (1) Current map warp number.
+            const int curWarp = P_GetMapWarpTrans(gamemap);
+        
+            // (2) Find a map whose NEXT points to curWarp.
+            int prevWarp = -1;
+            for (int i = 1; i < 99; ++i)  // same bound P_TranslateMap uses
+            {
+                if (P_GetMapNextMap(i) == curWarp)
+                {
+                    // Found a predecessor; remember its *warp* and stop.
+                    prevWarp = P_GetMapWarpTrans(i);
+                    break;
+                }
+            }
+        
+            // - Special-case B: if predecessor warp is 1, go explicitly to map 1
+            if (prevWarp == 1)
+            {
+                G_Completed(1, 0);
+                return true;
+            }
+        
+            if (prevWarp > 0)
+            {
+                // (3) Translate predecessor warp -> real map index,
+                // (4) and go there using the same mechanism as "next level".
+                IN_SuppressNextHubText(); // prevent hub text on the target
+                G_Completed(P_TranslateMap(prevWarp), 0);
+                return true;
+            }
+            else
+            {
+                // No predecessor in MAPINFO chain: restart the game.
+                G_DoNewGame();
+                return true;
+            }
+        }
         // [crispy] these two can be considered as shortcuts for the IDCLEV cheat
         // and should be treated as such, i.e. add "if (!netgame)"
         // [JN] Hovewer, allow while multiplayer demos.
@@ -6424,6 +6495,8 @@ boolean MN_Responder(event_t * event)
                 }
                 else
                 {
+                    // [PN] Skip hub text.
+                    IN_SuppressNextHubText();
                     // [JN] Proceed to next map.
                     G_Completed(P_TranslateMap(P_GetMapNextMap(gamemap)), 0);
                     return true;
@@ -6980,6 +7053,7 @@ static void M_CheckBind (int key)
     if (key_autorun == key)          key_autorun          = 0;
     if (key_mouse_look == key)       key_mouse_look       = 0;
     if (key_novert == key)           key_novert           = 0;
+    if (key_prevlevel == key)        key_prevlevel        = 0;
     if (key_reloadlevel == key)      key_reloadlevel      = 0;
     if (key_nextlevel == key)        key_nextlevel        = 0;
     if (key_demospeed == key)        key_demospeed        = 0;
@@ -7103,15 +7177,16 @@ static void M_DoBind (int keynum, int key)
         case 300:  key_autorun = key;           break;
         case 301:  key_mouse_look = key;        break;
         case 302:  key_novert = key;            break;
-        case 303:  key_reloadlevel = key;       break;
-        case 304:  key_nextlevel = key;         break;
-        case 305:  key_demospeed = key;         break;
-        case 306:  key_flip_levels = key;       break;
-        case 307:  key_widget_enable = key;     break;
-        case 308:  key_spectator = key;         break;
-        case 309:  key_freeze = key;            break;
-        case 310:  key_notarget = key;          break;
-        case 311:  key_buddha = key;            break;
+        case 303:  key_prevlevel = key;         break;
+        case 304:  key_reloadlevel = key;       break;
+        case 305:  key_nextlevel = key;         break;
+        case 306:  key_demospeed = key;         break;
+        case 307:  key_flip_levels = key;       break;
+        case 308:  key_widget_enable = key;     break;
+        case 309:  key_spectator = key;         break;
+        case 310:  key_freeze = key;            break;
+        case 311:  key_notarget = key;          break;
+        case 312:  key_buddha = key;            break;
 
         // Page 4
         case 400:  key_weapon1 = key;           break;
@@ -7237,16 +7312,17 @@ static void M_ClearBind (int CurrentItPos)
             case 1:   key_mouse_look = 0;       break;
             case 2:   key_novert = 0;           break;
             // Special keys title
-            case 4:   key_reloadlevel = 0;      break;
-            case 5:   key_nextlevel = 0;        break;
-            case 6:   key_demospeed = 0;        break;
-            case 7:   key_flip_levels = 0;      break;
-            case 8:   key_widget_enable = 0;    break;
+            case 4:   key_prevlevel = 0;        break;
+            case 5:   key_reloadlevel = 0;      break;
+            case 6:   key_nextlevel = 0;        break;
+            case 7:   key_demospeed = 0;        break;
+            case 8:   key_flip_levels = 0;      break;
+            case 9:   key_widget_enable = 0;    break;
             // Special modes title
-            case 10:  key_spectator = 0;        break;
-            case 11:  key_freeze = 0;           break;
-            case 12:  key_notarget = 0;         break;
-            case 13:  key_buddha = 0;           break;
+            case 11:  key_spectator = 0;        break;
+            case 12:  key_freeze = 0;           break;
+            case 13:  key_notarget = 0;         break;
+            case 14:  key_buddha = 0;           break;
         }
     }
     if (CurrentMenu == &ID_Def_Keybinds_4)
@@ -7374,6 +7450,7 @@ static void M_ResetBinds (void)
     key_autorun = KEY_CAPSLOCK;
     key_mouse_look = 0;
     key_novert = 0;
+    key_prevlevel = 0;
     key_reloadlevel = 0;
     key_nextlevel = 0;
     key_demospeed = 0;

@@ -307,6 +307,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_novert),
 
     // Special keys
+    CONFIG_VARIABLE_KEY(key_prevlevel),
     CONFIG_VARIABLE_KEY(key_reloadlevel),
     CONFIG_VARIABLE_KEY(key_nextlevel),
     CONFIG_VARIABLE_KEY(key_demospeed),

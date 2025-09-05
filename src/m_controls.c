@@ -59,6 +59,7 @@ int key_novert     = 0;
 
 // Special keys
 
+int key_prevlevel   = 0; // [PN]
 int key_reloadlevel = 0; // [crispy]
 int key_nextlevel   = 0; // [crispy]
 int key_demospeed   = 0; // [crispy]
@@ -278,6 +279,7 @@ void M_BindControls (void)
 
     // Special keys
 
+    M_BindIntVariable("key_prevlevel",       &key_prevlevel);   // [PN]
     M_BindIntVariable("key_reloadlevel",     &key_reloadlevel); // [crispy]
     M_BindIntVariable("key_nextlevel",       &key_nextlevel);   // [crispy]
     M_BindIntVariable("key_demospeed",       &key_demospeed);   // [crispy]
