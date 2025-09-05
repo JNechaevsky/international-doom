@@ -6338,11 +6338,11 @@ static byte doom2_next[33] = {
 
 // -----------------------------------------------------------------------------
 // G_GotoPrevLevel
-// Mirror of G_GotoNextLevel: warp to the level that would have led here.
-// Works for both Doom 1 (episode-based) and Doom II (map-based).
-// Keeps the same adjustments for shareware/registered/Sigil/Chex/Hacx.
+//  [PN] Mirror of G_GotoNextLevel: warp to the level that would have led here.
+//  Works for both Doom 1 (episode-based) and Doom II (map-based).
+//  Keeps the same adjustments for shareware/registered/Sigil/Chex/Hacx.
 // -----------------------------------------------------------------------------
-static int G_GotoPrevLevel(void)
+static int G_GotoPrevLevel (void)
 {
     int changed = false;
 
@@ -6410,8 +6410,8 @@ static int G_GotoPrevLevel(void)
             }
 
             // Encode current map as E*10+M (e.g. E2M3 → 23).
-            int cur  = gameepisode * 10 + gamemap;
-            int prev = cur;
+            const int cur  = gameepisode * 10 + gamemap;
+            int       prev = cur;
 
             // Search doom_next[e][m] == cur, then (e,m) is the predecessor.
             for (int e = 0; e < 6; ++e)
@@ -6427,8 +6427,8 @@ static int G_GotoPrevLevel(void)
                 }
             }
 
-            int prev_ep  = prev / 10;
-            int prev_map = prev % 10;
+            const int prev_ep  = prev / 10;
+            const int prev_map = prev % 10;
             G_DeferedInitNew(gameskill, prev_ep, prev_map);
         }
 

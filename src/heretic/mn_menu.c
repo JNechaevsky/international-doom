@@ -6464,11 +6464,11 @@ static byte heretic_next[6][9] = {
 
 // -----------------------------------------------------------------------------
 // G_GotoPrevLevel
-// Mirror of G_GotoNextLevel: warp to the level that would have led here.
-// Keeps the same episode/secret flow and the same shareware/registered guards.
-// IMPORTANT: E6M4–E6M9 are intentionally excluded (they map to E1M1 forward).
+//  [PN] Mirror of G_GotoNextLevel: warp to the level that would have led here.
+//  Keeps the same episode/secret flow and the same shareware/registered guards.
+//  IMPORTANT: E6M4–E6M9 are intentionally excluded (they map to E1M1 forward).
 // -----------------------------------------------------------------------------
-static int G_GotoPrevLevel(void)
+static int G_GotoPrevLevel (void)
 {
     int changed = false;
 
