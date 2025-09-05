@@ -1126,6 +1126,7 @@ extern char ClusterMessage[MAX_INTRMSN_MESSAGE_SIZE];
 void IN_Start(void);
 void IN_Ticker(void);
 void IN_Drawer(void);
+extern void IN_SuppressNextHubText(void);
 
 //----------------------
 // Chat mode (CT_chat.c)
