@@ -99,6 +99,16 @@ static int HubTextCount;
 
 // CODE --------------------------------------------------------------------
 
+// [PN] File-local flag: suppress showing the next hub/cluster message.
+// We expose a tiny setter so other modules can request a one-time suppression.
+static boolean SuppressNextHubText = false;
+
+void IN_SuppressNextHubText(void)
+{
+    SuppressNextHubText = true;
+}
+
+
 //========================================================================
 //
 // IN_Start
@@ -175,6 +185,17 @@ static void InitStats(void)
 {
     // [JN] Disallow double skip until level change has a hub text.
     HubAllowSkip = false;
+
+    // [PN] If another module requested to suppress hub text for the next level change,
+    // honor it once and clear the flag. This prevents wrong ClusterMessage text
+    // from being shown when we programmatically jump to previous level.
+    if (SuppressNextHubText)
+    {
+        SuppressNextHubText = false;
+        HubCount = 0;
+        HubText = NULL;
+        return;
+    }
 
     if (!deathmatch)
     {
