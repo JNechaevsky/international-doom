@@ -74,6 +74,7 @@ typedef enum
     DEFAULT_STRING,
     DEFAULT_FLOAT,
     DEFAULT_KEY,
+    DEFAULT_COMMENT,   // [PN] synthetic entry: emits a comment line on save
 } default_type_t;
 
 typedef struct
@@ -127,6 +128,10 @@ typedef struct
     CONFIG_VARIABLE_GENERIC(name, DEFAULT_FLOAT)
 #define CONFIG_VARIABLE_STRING(name) \
     CONFIG_VARIABLE_GENERIC(name, DEFAULT_STRING)
+// [PN] Emits a comment (or blank line) to the config file when saving.
+// Use: CONFIG_VARIABLE_COMMENT("Section title") or CONFIG_VARIABLE_COMMENT("")
+#define CONFIG_VARIABLE_COMMENT(text) \
+    { (text), {NULL}, DEFAULT_COMMENT, 0, 0, true }
 
 //! @begin_config_file default
 
@@ -136,23 +141,29 @@ static default_t	doom_defaults_list[] =
     // Autoload
     //
 
+    CONFIG_VARIABLE_COMMENT("Autoload"),
     CONFIG_VARIABLE_STRING(autoload_path),
     CONFIG_VARIABLE_STRING(music_pack_path),
     CONFIG_VARIABLE_STRING(savegames_path),
     CONFIG_VARIABLE_STRING(screenshots_path),
+    CONFIG_VARIABLE_COMMENT(""),
 
     //
     // Autoload-related (Miscellaneous options)
     //
+
+    CONFIG_VARIABLE_COMMENT("Autoload-related"),
     CONFIG_VARIABLE_INT(autoload_wad),
     CONFIG_VARIABLE_INT(autoload_deh),
     CONFIG_VARIABLE_INT(autoload_hhe),
     CONFIG_VARIABLE_INT(autoload_seh),
+    CONFIG_VARIABLE_COMMENT(""),
 
     //
     // Render
     //
 
+    CONFIG_VARIABLE_COMMENT("Renderer"),
     CONFIG_VARIABLE_INT(vid_startup_delay),
     CONFIG_VARIABLE_INT(vid_resize_delay),
     CONFIG_VARIABLE_STRING(vid_video_driver),
@@ -172,8 +183,10 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vid_window_title_short),
     CONFIG_VARIABLE_INT(vid_force_software_renderer),
     CONFIG_VARIABLE_INT(vid_max_scaling_buffer_pixels),
+    CONFIG_VARIABLE_COMMENT(""),
 
     // Video options
+    CONFIG_VARIABLE_COMMENT("Video options"),
     CONFIG_VARIABLE_INT(vid_truecolor),
     CONFIG_VARIABLE_INT(vid_resolution),
     CONFIG_VARIABLE_INT(vid_widescreen),
@@ -187,6 +200,10 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vid_endoom),
     CONFIG_VARIABLE_INT(vid_graphical_startup),    
     CONFIG_VARIABLE_INT(vid_banners),
+    CONFIG_VARIABLE_COMMENT(""),
+    
+    // Post-processing
+    CONFIG_VARIABLE_COMMENT("Post-processing"),
     CONFIG_VARIABLE_INT(post_supersample),
     CONFIG_VARIABLE_INT(post_overglow),
     CONFIG_VARIABLE_INT(post_bloom),
@@ -196,8 +213,10 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(post_filmgrain),
     CONFIG_VARIABLE_INT(post_motionblur),
     CONFIG_VARIABLE_INT(post_dofblur),
+    CONFIG_VARIABLE_COMMENT(""),
 
     // Display options
+    CONFIG_VARIABLE_COMMENT("Display options"),
     CONFIG_VARIABLE_INT(vid_gamma),
     CONFIG_VARIABLE_INT(vid_fov),
     CONFIG_VARIABLE_INT(vid_saturation),
@@ -209,17 +228,21 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(dp_detail_level),
     CONFIG_VARIABLE_INT(dp_menu_shading),
     CONFIG_VARIABLE_INT(dp_level_brightness),
+    CONFIG_VARIABLE_COMMENT(""),
 
     // Messages
+    CONFIG_VARIABLE_COMMENT("Messages"),
     CONFIG_VARIABLE_INT(msg_show),
     CONFIG_VARIABLE_INT(msg_alignment),
     CONFIG_VARIABLE_INT(msg_text_shadows),
     CONFIG_VARIABLE_INT(msg_local_time),
+    CONFIG_VARIABLE_COMMENT(""),
 
     //
     // Sound and Music
     //
 
+    CONFIG_VARIABLE_COMMENT("Sound and Music"),
     CONFIG_VARIABLE_INT(sfx_volume),
     CONFIG_VARIABLE_INT(music_volume),
     CONFIG_VARIABLE_INT(snd_sfxdevice),
@@ -257,18 +280,19 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(winmm_reset_type),
     CONFIG_VARIABLE_INT(winmm_reset_delay),
 #endif
-
     CONFIG_VARIABLE_INT(use_libsamplerate),
     CONFIG_VARIABLE_FLOAT(libsamplerate_scale),
     CONFIG_VARIABLE_INT(snd_samplerate),
     CONFIG_VARIABLE_INT(snd_cachesize),
     CONFIG_VARIABLE_INT(snd_maxslicetime_ms),
+    CONFIG_VARIABLE_COMMENT(""),
 
     //
     // Keyboard controls
     //
 
     // Movement
+    CONFIG_VARIABLE_COMMENT("Keyboard controls"),
     CONFIG_VARIABLE_KEY(key_up),
     CONFIG_VARIABLE_KEY(key_down),
     CONFIG_VARIABLE_KEY(key_left),
@@ -434,11 +458,13 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEY(key_menu_decscreen),
     CONFIG_VARIABLE_KEY(key_menu_del),
     CONFIG_VARIABLE_INT(vanilla_keyboard_mapping),
+    CONFIG_VARIABLE_COMMENT(""),
 
     //
     // Mouse controls
     //
 
+    CONFIG_VARIABLE_COMMENT("Mouse controls"),
     CONFIG_VARIABLE_INT(mouse_enable),
     CONFIG_VARIABLE_INT(mouse_grab),
     CONFIG_VARIABLE_INT(mouse_novert),
@@ -468,11 +494,13 @@ static default_t	doom_defaults_list[] =
 
     // Heretic: permanent "noartiskip" mode
     CONFIG_VARIABLE_INT(ctrl_noartiskip),
+    CONFIG_VARIABLE_COMMENT(""),
 
     //
     // Joystick controls
     //
 
+    CONFIG_VARIABLE_COMMENT("Joystick controls"),
     CONFIG_VARIABLE_INT(use_joystick),
     CONFIG_VARIABLE_INT(use_gamepad),
     CONFIG_VARIABLE_INT(gamepad_type),
@@ -516,8 +544,10 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(joyb_nextweapon),
     CONFIG_VARIABLE_INT(joyb_menu_activate),
     CONFIG_VARIABLE_INT(joyb_toggle_automap),
+    CONFIG_VARIABLE_COMMENT(""),
 
     // Widgets
+    CONFIG_VARIABLE_COMMENT("Widgets"),
     CONFIG_VARIABLE_INT(widget_enable),
     CONFIG_VARIABLE_INT(widget_scheme),
     CONFIG_VARIABLE_INT(widget_location),
@@ -532,8 +562,10 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(widget_speed),
     CONFIG_VARIABLE_INT(widget_render),
     CONFIG_VARIABLE_INT(widget_health),
+    CONFIG_VARIABLE_COMMENT(""),
 
     // Automap
+    CONFIG_VARIABLE_COMMENT("Automap"),
     CONFIG_VARIABLE_INT(automap_scheme),
     CONFIG_VARIABLE_INT(automap_smooth),
     CONFIG_VARIABLE_INT(automap_thick),
@@ -545,12 +577,14 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(automap_overlay),
     CONFIG_VARIABLE_INT(automap_shading),
     CONFIG_VARIABLE_INT(automap_mouse_pan),
+    CONFIG_VARIABLE_COMMENT(""),
 
     //
     // Gameplay Features
     //
 
     // Visual
+    CONFIG_VARIABLE_COMMENT("Gameplay Features"),
     CONFIG_VARIABLE_INT(vis_brightmaps),
     CONFIG_VARIABLE_INT(vis_translucency),
     CONFIG_VARIABLE_INT(vis_fake_contrast),
@@ -694,6 +728,23 @@ static void SaveDefaultCollection(default_collection_t *collection)
     {
         int chars_written;
 
+        // [PN] Write comment entries as-is and skip normal formatting.
+        if (defaults[i].type == DEFAULT_COMMENT)
+        {
+            const char *c = defaults[i].name ? defaults[i].name : "";
+            if (c[0] == '\0')
+            {
+                // blank separator line
+                fprintf(f, "\n");
+            }
+            else
+            {
+                // section/comment line
+                fprintf(f, "# %s\n", c);
+            }
+            continue;
+        }
+
         // Ignore unbound variables
 
         if (!defaults[i].bound)
@@ -772,6 +823,10 @@ static void SaveDefaultCollection(default_collection_t *collection)
 
             case DEFAULT_STRING:
 	        fprintf(f,"\"%s\"", *defaults[i].location.s);
+                break;
+
+            case DEFAULT_COMMENT:
+                // [PN] Already emitted above; keep this case to silence -Wswitch.
                 break;
         }
 
@@ -868,6 +923,10 @@ static void SetVariable(default_t *def, const char *value)
             *def->location.f = (float) atof(str);
             free(str);
         }
+            break;
+
+        case DEFAULT_COMMENT:
+            // [PN] Comment entries are not real variables; nothing to set.
             break;
     }
 }
