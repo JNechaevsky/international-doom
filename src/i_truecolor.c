@@ -97,9 +97,15 @@ byte *additive_lut_8; // [PN/JN] channaled LUT
 // and additive blending.
 //
 // This function constructs:
-//  1) A gamma-aware 3D RGB->palette LUT (rgb_to_pal), used to map blended
-//     truecolor values back to the closest palette index. This is rebuilt
-//     on startup and when gamma correction change.
+//  1) A gamma-aware 3D RGB->palette LUT (rgb_to_pal). Each quantized RGB
+//     cell (PAL_STEPS³) is mapped to the nearest palette index by L1
+//     (Manhattan) distance in gamma-corrected space.
+//     - Per-channel diff tables (diffR/G/B) are built once.
+//     - For each quantized (R,G), we precompute sumRG[i] = |Rq-Ri|+|Gq-Gi|.
+//     - Palette indices are bucket-sorted by sumRG for fast ascending order.
+//     - For each Bq, the search is pruned using a lower bound
+//       (sumRG[idx] + min(|Bq-Bi|)) and warm-started from the previous best.
+//       This reduces comparisons by ~50% compared to the naive O(256) scan.
 //
 //  2) A per-channel additive blending LUT (additive_lut_8) of size 256×256,
 //     which computes bg + (fg * alpha >> 8), clamped to 255. This allows
@@ -109,13 +115,15 @@ byte *additive_lut_8; // [PN/JN] channaled LUT
 
 void I_InitPALTransMaps(void)
 {
+    // Static caches
     static uint8_t pal_r[256], pal_g[256], pal_b[256]; // from pal_color (gamma-applied)
     static uint8_t diffR[PAL_STEPS][256];
     static uint8_t diffG[PAL_STEPS][256];
     static uint8_t diffB[PAL_STEPS][256];
     static uint8_t step_val[PAL_STEPS];                // quantized 0..255
+    static uint8_t dB_min[PAL_STEPS];                  // min |Bq - pal_b[i]| per qb
 
-    // Init overlay blending (RGB->Palette LUT)
+    // Init overlay blending (one-time)
     static boolean pal_init = false;
     if (!pal_init)
     {
@@ -130,7 +138,7 @@ void I_InitPALTransMaps(void)
     if (!rgb_to_pal)
         rgb_to_pal = Z_Malloc(PAL_LUT_SIZE, PU_STATIC, 0);
 
-    // Prepare quantized step values and per-channel difference tables
+    // Prepare quantized step values (one-time)
     static boolean step_vals_init = false;
     if (!step_vals_init)
     {
@@ -147,8 +155,9 @@ void I_InitPALTransMaps(void)
         pal_g[i] = (uint8_t)((pc >>  8) & 0xFF);
         pal_b[i] = (uint8_t)( pc        & 0xFF);
     }
-    
-    // Build diffR/diffG/diffB tables for PAL_STEPS
+
+    // Build per-channel |quant - pal| tables (O(PAL_STEPS * 256))
+    // Branchless abs would also work, but with uint8_t the compiler already optimizes it well.
     for (int qr = 0; qr < PAL_STEPS; ++qr)
     {
         const int Rq = step_val[qr];
@@ -170,15 +179,22 @@ void I_InitPALTransMaps(void)
     for (int qb = 0; qb < PAL_STEPS; ++qb)
     {
         const int Bq = step_val[qb];
+        uint8_t minv = 255;
         for (int i = 0; i < 256; ++i)
         {
             const int d = Bq - pal_b[i];
-            diffB[qb][i] = (uint8_t)(d < 0 ? -d : d);
+            const uint8_t v = (uint8_t)(d < 0 ? -d : d);
+            diffB[qb][i] = v;
+            if (v < minv)
+                minv = v;
         }
+        dB_min[qb] = minv; // Precomputed lower bound for pruning
     }
 
-    // Temporary buffer for pre-summing R+G diffs per palette index
-    uint16_t sumRG[256];
+    // Temporary buffers reused per (qr,qg)
+    uint16_t sumRG[256];        // pre-summed R+G differences per palette index
+    uint8_t  order[256];        // palette indices sorted by sumRG ascending
+    uint16_t buckets[511];      // histogram 0..510 for bucket-sort
 
     // Main 3D loop over quantized RGB space
     const int shift1 = PAL_BITS;
@@ -187,60 +203,82 @@ void I_InitPALTransMaps(void)
     for (int qr = 0; qr < PAL_STEPS; ++qr)
     {
         const uint8_t *restrict dR = diffR[qr];
-    
+
         for (int qg = 0; qg < PAL_STEPS; ++qg)
         {
             const uint8_t *restrict dG = diffG[qg];
-    
-            // Pre-sum R+G
-            uint16_t *restrict sum_ptr = sumRG;
-            const uint8_t *restrict dR_ptr = dR;
-            const uint8_t *restrict dG_ptr = dG;
+
+            // 1) sumRG[i] = dR[i] + dG[i]
             for (int i = 0; i < 256; ++i)
-                *sum_ptr++ = (uint16_t)(*dR_ptr++) + (uint16_t)(*dG_ptr++);
-    
+                sumRG[i] = (uint16_t)dR[i] + (uint16_t)dG[i];
+
+            // 2) bucket-sort indices by sumRG (0..510) — O(256 + 511)
+            //    initialize buckets with zeros
+            for (int v = 0; v <= 510; ++v)
+                buckets[v] = 0;
+
+            for (int i = 0; i < 256; ++i)
+                ++buckets[sumRG[i]];
+
+            // prefix sums -> starting offsets
+            uint16_t acc = 0;
+            for (int v = 0; v <= 510; ++v)
+            {
+                const uint16_t cnt = buckets[v];
+                buckets[v] = acc;
+                acc = (uint16_t)(acc + cnt);
+            }
+
+            // build order[] array
+            for (int i = 0; i < 256; ++i)
+            {
+                const uint16_t v = sumRG[i];
+                order[buckets[v]++] = (uint8_t)i;
+            }
+
             const int base = (qr << shift2) | (qg << shift1);
-    
-            // Start from previous best - strong warm-up for best_diff
+
+            // 3) Along B axis — fast search with early cutoff
             int prev_best = 0;
-    
+
             for (int qb = 0; qb < PAL_STEPS; ++qb)
             {
-                const uint8_t *restrict dB = diffB[qb];
-    
-                // Initialize candidate from previous qb
-                int best = prev_best;
+                const uint8_t *restrict dB     = diffB[qb];
+                const uint16_t dBmin           = (uint16_t)dB_min[qb];
+
+                // initial candidate comes from previous qb (warm start)
+                int      best      = prev_best;
                 uint16_t best_diff = (uint16_t)(sumRG[best] + dB[best]);
-    
-                // Loop unrolled by 4
-                const uint16_t *restrict sr = sumRG;
-                const uint8_t  *restrict db = dB;
-    
-                for (int i = 0; i < 256; i += 4)
+
+                // lower bound for subsequent candidates:
+                // if sumRG[idx] + dBmin >= best_diff, no further improvement
+                // process indices in ascending sumRG order
+                for (int k = 0; k < 256; ++k)
                 {
-                    uint16_t d0 = (uint16_t)(sr[0] + db[0]);
-                    if (d0 < best_diff) { best = i + 0; best_diff = d0; if (!d0) goto got_best; }
-    
-                    uint16_t d1 = (uint16_t)(sr[1] + db[1]);
-                    if (d1 < best_diff) { best = i + 1; best_diff = d1; if (!d1) goto got_best; }
-    
-                    uint16_t d2 = (uint16_t)(sr[2] + db[2]);
-                    if (d2 < best_diff) { best = i + 2; best_diff = d2; if (!d2) goto got_best; }
-    
-                    uint16_t d3 = (uint16_t)(sr[3] + db[3]);
-                    if (d3 < best_diff) { best = i + 3; best_diff = d3; if (!d3) goto got_best; }
-    
-                    sr += 4; db += 4;
+                    const uint8_t idx = order[k];
+                    const uint16_t s  = sumRG[idx];
+
+                    if ((uint16_t)(s + dBmin) >= best_diff)
+                        break;
+
+                    // compute exact distance only for the "head" of the list
+                    const uint16_t cand = (uint16_t)(s + dB[idx]);
+                    if (cand < best_diff)
+                    {
+                        best_diff = cand;
+                        best      = idx;
+                        if (!cand) // perfect match (distance == 0)
+                            break;
+                    }
                 }
-    
-            got_best:
+
                 rgb_to_pal[base + qb] = (byte)best;
-                prev_best = best; // Local "inertia" along the B axis
+                prev_best = best; // inertia along B axis (reuse last best)
             }
         }
     }
 
-    // Init additive blending LUT
+    // Init additive blending LUT (one-time)
     static boolean additive_lut_ready = false;
     if (!additive_lut_ready)
     {
