@@ -592,6 +592,8 @@ static void P_LoadSectors (int lump)
         dst[i].interpceilingheight = dst[i].ceilingheight;
         // [crispy] inhibit sector interpolation during the 0th gametic
         dst[i].oldgametic          = -1;
+        // [PN] Initialize Z-axis sound origin with the middle of the sector height
+        dst[i].soundorg.z          = (dst[i].floorheight + dst[i].ceilingheight) >> 1;
     }
 
     // Release the cached lump
@@ -814,10 +816,6 @@ static void P_LoadLineDefs (int lump)
         ld->bbox[BOXBOTTOM] = MIN(ld->v1->y, ld->v2->y);
         ld->bbox[BOXTOP]    = MAX(ld->v1->y, ld->v2->y);
 
-        // Sound origin: midpoint
-        ld->soundorg.x = (ld->bbox[BOXLEFT] + ld->bbox[BOXRIGHT]) >> 1;
-        ld->soundorg.y = (ld->bbox[BOXBOTTOM] + ld->bbox[BOXTOP]) >> 1;
-
         // Side numbers
         ld->sidenum[0] = SHORT(ml->sidenum[0]);
         ld->sidenum[1] = SHORT(ml->sidenum[1]);
@@ -830,6 +828,12 @@ static void P_LoadLineDefs (int lump)
         }
         ld->frontsector = (ld->sidenum[0] != NO_INDEX) ? sides[ld->sidenum[0]].sector : NULL;
         ld->backsector  = (ld->sidenum[1] != NO_INDEX) ? sides[ld->sidenum[1]].sector : NULL;
+
+        // Sound origin: midpoint
+        ld->soundorg.x = (ld->bbox[BOXLEFT] + ld->bbox[BOXRIGHT]) >> 1;
+        ld->soundorg.y = (ld->bbox[BOXBOTTOM] + ld->bbox[BOXTOP]) >> 1;
+        ld->soundorg.z = ld->frontsector ? ((ld->frontsector->floorheight
+                       + ld->frontsector->ceilingheight) >> 1) : 0;
     }
 
     // Post-warnings

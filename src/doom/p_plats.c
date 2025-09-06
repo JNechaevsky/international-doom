@@ -39,6 +39,9 @@ void T_PlatRaise(plat_t* plat)
 {
     result_e	res;
 	
+    // [JN] Z-axis sfx distance: sound invoked from the floor.
+    plat->sector->soundorg.z = plat->sector->floorheight;
+    
     switch(plat->status)
     {
       case up:

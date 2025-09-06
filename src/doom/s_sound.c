@@ -499,9 +499,9 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
 
     // calculate the distance to sound origin
     //  and clip it if necessary
-    adx = abs(listener->x - source->x);
-    ady = abs(listener->y - source->y);
-    adz = abs(listener->z - source->z);
+    adx = llabs((int64_t)listener->x - (int64_t)source->x);
+    ady = llabs((int64_t)listener->y - (int64_t)source->y);
+    adz = llabs((int64_t)listener->z - (int64_t)source->z);
 
     if (aud_z_axis_sfx)
     {

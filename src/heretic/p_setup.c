@@ -815,6 +815,8 @@ static void P_LoadSectors(int lump)
         ss->interpceilingheight = ss->ceilingheight;
         // [crispy] inhibit sector interpolation during the 0th gametic
         ss->oldgametic = -1;
+        // [PN] Initialize Z-axis sound origin with the middle of the sector height
+        ss->soundorg.z = (ss->floorheight + ss->ceilingheight) >> 1;
     }
 
     W_ReleaseLumpNum(lump);
@@ -1027,10 +1029,6 @@ static void P_LoadLineDefs(int lump)
             ld->bbox[BOXTOP] = v1->y;
         }
 
-        // [crispy] calculate sound origin of line to be its midpoint
-        ld->soundorg.x = ld->bbox[BOXLEFT] / 2 + ld->bbox[BOXRIGHT] / 2;
-        ld->soundorg.y = ld->bbox[BOXTOP] / 2 + ld->bbox[BOXBOTTOM] / 2;
-
         ld->sidenum[0] = SHORT(mld->sidenum[0]);
         ld->sidenum[1] = SHORT(mld->sidenum[1]);
         if (ld->sidenum[0] != NO_INDEX) // [crispy] extended nodes
@@ -1041,6 +1039,12 @@ static void P_LoadLineDefs(int lump)
             ld->backsector = sides[ld->sidenum[1]].sector;
         else
             ld->backsector = 0;
+
+        // [crispy] calculate sound origin of line to be its midpoint
+        ld->soundorg.x = ld->bbox[BOXLEFT] / 2 + ld->bbox[BOXRIGHT] / 2;
+        ld->soundorg.y = ld->bbox[BOXTOP] / 2 + ld->bbox[BOXBOTTOM] / 2;
+        ld->soundorg.z = ld->frontsector ? ((ld->frontsector->floorheight
+                       + ld->frontsector->ceilingheight) >> 1) : 0;
     }
 
     W_ReleaseLumpNum(lump);
