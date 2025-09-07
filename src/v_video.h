@@ -2,6 +2,7 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2016-2025 Julia Nechaevskaya
+// Copyright(C) 2025 Polina "Aura" N.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,87 +21,39 @@
 //
 
 
-#ifndef __V_VIDEO__
-#define __V_VIDEO__
+#pragma once
 
-#include "doomtype.h"
-
-// Needed because we are refering to patches.
 #include "v_patch.h"
-
 #include "w_wad.h" // [crispy] for lumpindex_t
 
-//
-// VIDEO
-//
 
-#define CENTERY			(SCREENHEIGHT/2)
-
-
-extern byte *tinttable;
-extern byte *tintmap;
-extern byte *addmap;
-extern byte *shadowmap;
-extern byte *fuzzmap;
-extern byte *dp_translation;
 extern boolean dp_translucent;
-
+extern boolean V_IsPatchLump(const int lump);
+extern byte *dp_translation;
 extern pixel_t *pal_color;
 
-extern int dirtybox[4];
-
-// Allocates buffer screens, call before R_Init.
-void V_Init (void);
-
-// Draw a block from the specified source screen to the screen.
-
-void V_CopyRect(int srcx, int srcy, pixel_t *source,
-                int width, int height,
-                int destx, int desty);
-
-void V_DrawPatch(int x, int y, patch_t *patch);
-void V_DrawShadowedPatch(int x, int y, patch_t *patch);
-void V_DrawShadowedPatchNoOffsets(int x, int y, patch_t *patch);
-void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch);
-void V_DrawPatchFullScreen(patch_t *patch, boolean flipped);
-void V_DrawPatchFlipped(int x, int y, patch_t *patch);
-void V_DrawTLPatch(int x, int y, patch_t *patch);
-void V_DrawAltTLPatch(int x, int y, patch_t *patch);
-void V_DrawFadePatch(int x, int y, const patch_t *restrict patch, int alpha);
-
-// Draw a linear block of pixels into the view buffer.
-
-void V_DrawBlock(int x, int y, int width, int height, pixel_t *src);
-void V_DrawScaledBlock(int x, int y, int width, int height, byte *src);
-
-void V_MarkRect(int x, int y, int width, int height);
-
-void V_DrawFilledBox(int x, int y, int w, int h, int c);
-void V_DrawHorizLine(int x, int y, int w, int c);
-void V_DrawVertLine(int x, int y, int h, int c);
-void V_DrawBox(int x, int y, int w, int h, int c);
-
-// Temporarily switch to using a different buffer to draw graphics, etc.
-
-void V_DrawFullscreenRawOrPatch(lumpindex_t index); // [crispy]
-void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest);
-void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
-                const byte *src, pixel_t *dest);    // [crispy]
-void V_UseBuffer(pixel_t *buffer);
-
-// Return to using the normal screen buffer to draw graphics.
-
-void V_RestoreBuffer(void);
-
-// Save a screenshot of the current screen to a file, named in the 
-// format described in the string passed to the function, eg.
-// "DOOM%02i.pcx"
-
-void V_ScreenShot(const char *format);
-
-void V_DrawMouseSpeedBox(int speed);
-
-boolean V_IsPatchLump(const int lump);
-
-#endif
-
+extern void V_MarkRect(int x, int y, int width, int height);
+extern void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height, int destx, int desty);
+extern void V_DrawPatch(int x, int y, patch_t *patch);
+extern void V_DrawShadowedPatch(int x, int y, patch_t *patch);
+extern void V_DrawShadowedPatchNoOffsets(int x, int y, patch_t *patch);
+extern void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch);
+extern void V_DrawPatchFullScreen(patch_t *patch, boolean flipped);
+extern void V_DrawPatchFlipped(int x, int y, patch_t *patch);
+extern void V_DrawTLPatch(int x, int y, patch_t *patch);
+extern void V_DrawAltTLPatch(int x, int y, patch_t *patch);
+extern void V_DrawFadePatch(int x, int y, const patch_t *restrict patch, int alpha);
+extern void V_DrawBlock(int x, int y, int width, int height, pixel_t *src);
+extern void V_DrawScaledBlock(int x, int y, int width, int height, byte *src);
+extern void V_DrawFilledBox(int x, int y, int w, int h, int c);
+extern void V_DrawHorizLine(int x, int y, int w, int c);
+extern void V_DrawVertLine(int x, int y, int h, int c);
+extern void V_DrawBox(int x, int y, int w, int h, int c);
+extern void V_DrawFullscreenRawOrPatch(lumpindex_t index); // [crispy]
+// extern void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest);
+extern void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop, const byte *src, pixel_t *dest);    // [crispy]
+extern void V_Init (void);
+extern void V_UseBuffer(pixel_t *buffer);
+extern void V_RestoreBuffer(void);
+extern void V_ScreenShot(const char *format);
+extern void V_DrawMouseSpeedBox(int speed);

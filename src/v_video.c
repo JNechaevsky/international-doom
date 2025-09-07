@@ -3,6 +3,7 @@
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2016-2025 Julia Nechaevskaya
+// Copyright(C) 2025 Polina "Aura" N.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -14,11 +15,6 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// DESCRIPTION:
-//	Gamma correction LUT stuff.
-//	Functions to draw patches (by post) directly to screen.
-//	Functions to blit a block to the screen.
-//
 
 #include <stdio.h>
 #include <string.h>
@@ -28,18 +24,14 @@
 #define MINIZ_NO_ZLIB_APIS
 #include "miniz.h"
 
-#include "i_system.h"
 #include "doomtype.h"
-#include "deh_str.h"
 #include "i_input.h"
 #include "i_swap.h"
+#include "i_system.h"
 #include "i_video.h"
 #include "m_bbox.h"
 #include "m_config.h"
 #include "m_misc.h"
-#include "v_trans.h"
-#include "v_video.h"
-#include "w_wad.h"
 #include "z_zone.h"
 
 #include "id_vars.h"
@@ -49,142 +41,140 @@
 // is common code. Fix this.
 #define RANGECHECK
 
-// Blending table used for fuzzpatch, etc.
-// Only used in Heretic/Hexen
-byte *tinttable = NULL;
-
-// [JN] Blending tables for different translucency effects:
-byte *tintmap = NULL;    // Used for sprites (75%)
-byte *addmap = NULL;     // Used for sprites (additive blending)
-byte *shadowmap = NULL;  // Used for shadowed texts (50%)
-byte *fuzzmap = NULL;    // Used for translucent fuzz (30%)
 
 // [JN] Color translation.
 byte *dp_translation = NULL;
 boolean dp_translucent = false;
 
-// The screen buffer that the v_video.c code draws to.
-static pixel_t *dest_screen = NULL;
-
 // [crispy] array holding palette colors for true color mode
 pixel_t *pal_color;
 
-int dirtybox[4]; 
+// The screen buffer that the v_video.c code draws to.
+static pixel_t *dest_screen = NULL;
+
+// [crispy] resolution-agnostic patch drawing
+static fixed_t dx, dxi, dy, dyi;
 
 
-//
-// V_MarkRect 
-// 
+// -----------------------------------------------------------------------------
+// V_MarkRect
+// -----------------------------------------------------------------------------
 
 void V_MarkRect(int x, int y, int width, int height) 
-{ 
-    // If we are temporarily using an alternate screen, do not 
+{
+    static int dirtybox[4];
+
+    // If we are temporarily using an alternate screen, do not
     // affect the update box.
 
     if (dest_screen == I_VideoBuffer)
     {
-        M_AddToBox (dirtybox, x, y); 
-        M_AddToBox (dirtybox, x + width-1, y + height-1); 
+        M_AddToBox (dirtybox, x, y);
+        M_AddToBox (dirtybox, x + width-1, y + height-1);
     }
-} 
+}
 
-//
-// V_CopyRect 
-// 
+// -----------------------------------------------------------------------------
+// V_CopyRect
+// -----------------------------------------------------------------------------
 
 void V_CopyRect(int srcx, int srcy, pixel_t *source,
                 int width, int height,
                 int destx, int desty)
-{ 
-    pixel_t *src;
-    pixel_t *dest;
- 
-#ifdef RANGECHECK 
-    if (srcx < 0
-     || srcx + width > SCREENWIDTH
-     || srcy < 0
-     || srcy + height > SCREENHEIGHT 
-     || destx < 0
-     || destx /* + width */ > SCREENWIDTH
-     || desty < 0
-     || desty /* + height */ > SCREENHEIGHT)
+{
+    // ---- Hot globals cached locally ----
+    const int     sw   = SCREENWIDTH;
+    const int     sh   = SCREENHEIGHT;
+    pixel_t      *dst0 = dest_screen;
+
+#ifdef RANGECHECK
+    if (srcx  < 0 || srcx + width  > sw ||
+        srcy  < 0 || srcy + height > sh ||
+        destx < 0 || destx         > sw ||
+        desty < 0 || desty         > sh)
     {
-        // [JN] Note: should be I_Error, but use return instead
-        // until status bar background buffer gets rewritten values.
-        // I_Error ("Bad V_CopyRect");
+        // keep original semantics: early return instead of I_Error
         return;
     }
-#endif 
+#endif
 
-    // [crispy] prevent framebuffer overflow
-    if (destx + width > SCREENWIDTH)
-	width = SCREENWIDTH - destx;
-    if (desty + height > SCREENHEIGHT)
-	height = SCREENHEIGHT - desty;
+    // Prevent framebuffer overflow (crispy semantics)
+    if (destx + width  > sw) width  = sw - destx;
+    if (desty + height > sh) height = sh - desty;
 
-    V_MarkRect(destx, desty, width, height); 
- 
-    src = source + SCREENWIDTH * srcy + srcx; 
-    dest = dest_screen + SCREENWIDTH * desty + destx; 
+    if (width <= 0 || height <= 0)
+        return;
 
-    for ( ; height>0 ; height--) 
-    { 
-        memcpy(dest, src, width * sizeof(*dest));
-        src += SCREENWIDTH; 
-        dest += SCREENWIDTH; 
-    } 
+    V_MarkRect(destx, desty, width, height);
+
+    pixel_t *src_row  = source + srcy * sw + srcx;
+    pixel_t *dest_row = dst0   + desty * sw + destx;
+
+    const size_t row_bytes = (size_t)width * sizeof(*dest_row);
+
+    // Fast path: full-width blit starting at x==0 → one big transfer
+    if (srcx == 0 && destx == 0 && width == sw)
+    {
+        pixel_t *srcp = source + srcy * sw;
+        pixel_t *dstp = dst0   + desty * sw;
+
+        if (dstp == srcp)
+            return; // exact same region
+
+        if (source == dst0)
+        {
+            // Same buffer: memmove handles overlap (top/bottom)
+            memmove(dstp, srcp, (size_t)height * (size_t)sw * sizeof(*dstp));
+        }
+        else
+        {
+            memcpy(dstp, srcp, (size_t)height * (size_t)sw * sizeof(*dstp));
+        }
+        return;
+    }
+
+    // General path: copy row-by-row.
+    // If copying within the same screen buffer and dest is below src, go bottom-up
+    // to avoid clobbering yet-to-be-copied rows. Use memmove per row to be safe
+    // for horizontal overlap in the same buffer.
+    const int same_buffer = (source == dst0);
+
+    if (same_buffer && desty > srcy)
+    {
+        // Bottom-up
+        src_row  += (height - 1) * sw;
+        dest_row += (height - 1) * sw;
+
+        for (int r = 0; r < height; ++r)
+        {
+            memmove(dest_row, src_row, row_bytes);
+            src_row  -= sw;
+            dest_row -= sw;
+        }
+    }
+    else
+    {
+        // Top-down
+        for (int r = 0; r < height; ++r)
+        {
+            if (same_buffer)
+                memmove(dest_row, src_row, row_bytes);
+            else
+                memcpy (dest_row, src_row, row_bytes);
+
+            src_row  += sw;
+            dest_row += sw;
+        }
+    }
 } 
 
-//
+// -----------------------------------------------------------------------------
 // V_DrawPatch
-// Masks a column based masked pic to the screen. 
-//
-
-// [crispy] four different rendering functions
-// for each possible combination of dp_translation and dp_translucent:
-// (1) normal, opaque patch
-static const inline pixel_t drawpatchpx00 (const pixel_t dest, const pixel_t source)
-{return pal_color[source];}
-// (2) color-translated, opaque patch
-static const inline pixel_t drawpatchpx01 (const pixel_t dest, const pixel_t source)
-{return pal_color[dp_translation[source]];}
-// (3) normal, translucent patch
-static const inline pixel_t drawpatchpx10 (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendOver128_32(dest, pal_color[source]) :
-                        I_BlendOver128_8(dest, pal_color[source]);}
-// (4) color-translated, translucent patch
-static const inline pixel_t drawpatchpx11 (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendOver128_32(dest, pal_color[dp_translation[source]]) :
-                        I_BlendOver128_8(dest, pal_color[dp_translation[source]]);}
-
-// [JN] The shadow of the patch rendering functions:
-// Doom
-static const inline pixel_t drawshadow_doom (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendDark_32(dest, shadow_alpha) :
-                        I_BlendDark_8(dest, shadow_alpha);}
-// Heretic & Hexen
-static const inline pixel_t drawshadow_raven (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendDark_32(dest, shadow_alpha) :
-                        I_BlendDark_8(dest, shadow_alpha);}
-
-// [JN] V_DrawTLPatch (translucent patch, no coloring or color-translation are used)
-static const inline pixel_t drawtinttab (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendOver96_32(dest, pal_color[source]) :
-                        I_BlendOver96_8(dest, pal_color[source]);}
-
-// [JN] V_DrawAltTLPatch (translucent patch, no coloring or color-translation are used)
-static const inline pixel_t drawalttinttab (const pixel_t dest, const pixel_t source)
-{return vid_truecolor ? I_BlendOver142_32(dest, pal_color[source]) :
-                        I_BlendOver142_8(dest, pal_color[source]);}
-
-// [crispy] array of function pointers holding the different rendering functions
-typedef const pixel_t drawpatchpx_t (const pixel_t dest, const pixel_t source);
-static drawpatchpx_t *const drawpatchpx_a[2][2] = {{drawpatchpx11, drawpatchpx10}, {drawpatchpx01, drawpatchpx00}};
-
-static fixed_t dx, dxi, dy, dyi;
+// Masks a column based masked pic to the screen.
+// -----------------------------------------------------------------------------
 
 void V_DrawPatch(int x, int y, patch_t *patch)
-{ 
+{
     int count;
     int col;
     column_t *column;
@@ -193,91 +183,163 @@ void V_DrawPatch(int x, int y, patch_t *patch)
     byte *source;
     int w;
 
-    // [crispy] four different rendering functions
-    drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
+    // ---- Hot globals cached locally (helps register allocation) ----
+    const int      sw       = SCREENWIDTH;
+    const int      sh       = SCREENHEIGHT;
+    const int      ws_delta = WIDESCREENDELTA;
+    pixel_t *restrict dst_screen = dest_screen;
+    const pixel_t *restrict pal  = pal_color;
+    const boolean  use_tc  = vid_truecolor;
 
+    const fixed_t ldx  = dx;
+    const fixed_t ldy  = dy;
+    const fixed_t ldxi = dxi;
+    const fixed_t ldyi = dyi;
+
+    // Fast-path flags/pointers (constant for the whole call).
+    const boolean use_trans = dp_translucent;
+    const byte *restrict xlat = dp_translation;
+
+    // Position patch (Crispy-Doom style offsets + widescreen).
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
-    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+    x += ws_delta; // horizontal widescreen offset
 
+    // Mark dirty rectangle (original semantics).
     V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
 
+    // Left clipping in fixed-point column space.
     col = 0;
     if (x < 0)
     {
-	col += dxi * ((-x * dx) >> FRACBITS);
-	x = 0;
+        col += ldxi * ((-x * ldx) >> FRACBITS);
+        x = 0;
     }
 
-    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+    // Compute top pointer of the first column on the destination buffer.
+    desttop = dst_screen
+            + ((y * ldy) >> FRACBITS) * sw
+            + ((x * ldx) >> FRACBITS);
 
     w = SHORT(patch->width);
 
-    // convert x to screen position
-    x = (x * dx) >> FRACBITS;
+    // Convert x to screen-space pixels once; inner loop just ++x.
+    x = (x * ldx) >> FRACBITS;
 
-    for ( ; col<w << FRACBITS ; x++, col+=dxi, desttop++)
+    // Iterate columns in fixed-point (scaled drawing).
+    for (; col < (w << FRACBITS); x++, col += ldxi, desttop++)
     {
         int topdelta = -1;
 
-        // [crispy] too far right / width
-        if (x >= SCREENWIDTH)
-        {
+        // Right clipping: nothing more to draw on this scanline.
+        if (x >= sw)
             break;
-        }
 
+        // Column pointer from patch data.
         column = (column_t *)((byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
 
-        // step through the posts in a column
+        // Step through the posts in a column.
         while (column->topdelta != 0xff)
         {
-            int top, srccol = 0;
-            // [crispy] support for DeePsea tall patches
+            int top;
+            int srccol = 0;
+
+            // DeePsea tall-patch support (accumulating topdelta).
             if (column->topdelta <= topdelta)
-            {
                 topdelta += column->topdelta;
-            }
             else
-            {
                 topdelta = column->topdelta;
-            }
-            top = ((y + topdelta) * dy) >> FRACBITS;
+
+            // Compute starting y and pointers for this post.
+            top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
-            dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
-            count = (column->length * dy) >> FRACBITS;
+            dest   = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            count  = (column->length * ldy) >> FRACBITS;
 
-            // [crispy] too low / height
-            if (top + count > SCREENHEIGHT)
-            {
-                count = SCREENHEIGHT - top;
-            }
+            // Bottom clip against screen height.
+            if (top + count > sh)
+                count = sh - top;
 
-            // [crispy] nothing left to draw?
+            // If entirely below the screen, stop scanning this column early.
             if (count < 1)
-            {
                 break;
+
+            // Top clip once (remove per-pixel "if (top++ >= 0)").
+            if (top < 0)
+            {
+                const int skip = -top;
+                if (skip >= count)
+                {
+                    // Whole post is above the screen; advance to next post.
+                    column = (column_t *)((byte *)column + column->length + 4);
+                    continue;
+                }
+                dest   += skip * sw;
+                srccol += ldyi * skip;
+                count  -= skip;
+                // top is effectively 0 now
             }
 
-            while (count--)
+            // Hot loop: four specialized paths (opaque/translated/translucent).
+            if (!use_trans)            // Opaque
             {
-                // [crispy] too high
-                if (top++ >= 0)
+                if (!xlat)             // Opaque, no translation
                 {
-                    *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
+                    while (count--)
+                    {
+                        *dest = pal[source[srccol >> FRACBITS]];
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
                 }
-                srccol += dyi;
-                dest += SCREENWIDTH;
+                else                    // Opaque, translated
+                {
+                    while (count--)
+                    {
+                        *dest = pal[xlat[source[srccol >> FRACBITS]]];
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
+                }
             }
+            else                        // Translucent (50% over dest)
+            {
+                if (!xlat)              // Translucent, no translation
+                {
+                    while (count--)
+                    {
+                        const byte s = source[srccol >> FRACBITS];
+                        const pixel_t fg = pal[s];
+                        *dest = use_tc ? I_BlendOver128_32(*dest, fg)
+                                       : I_BlendOver128_8 (*dest, fg);
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
+                }
+                else                    // Translucent, translated
+                {
+                    while (count--)
+                    {
+                        const byte s = xlat[source[srccol >> FRACBITS]];
+                        const pixel_t fg = pal[s];
+                        *dest = use_tc ? I_BlendOver128_32(*dest, fg)
+                                       : I_BlendOver128_8 (*dest, fg);
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
+                }
+            }
+
+            // Next post in this column.
             column = (column_t *)((byte *)column + column->length + 4);
         }
     }
 }
 
-//
+// -----------------------------------------------------------------------------
 // V_DrawShadowedPatch
-//
-// Masks a column based masked pic to the screen.
-//
+//  Masks a column based masked pic to the screen.
+// -----------------------------------------------------------------------------
 
 void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 {
@@ -289,107 +351,200 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     byte *source;
     int w;
 
-    // [JN] Patch itself: opaque, can be colored.
-    drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
-    // [crispy] shadow, no coloring or color-translation are used
-    drawpatchpx_t *const drawpatchpx2 = drawshadow_raven;
+    // ---- Hot globals cached locally (helps register allocation) ----
+    const int      sw       = SCREENWIDTH;
+    const int      sh       = SCREENHEIGHT;
+    const int      ws_delta = WIDESCREENDELTA;
+    pixel_t *restrict dst_screen = dest_screen;
+    const pixel_t *restrict pal  = pal_color;
+    const boolean  use_tc  = vid_truecolor;
+    const int      vres    = vid_resolution; // used by shadow clamp
 
+    const fixed_t ldx  = dx;
+    const fixed_t ldy  = dy;
+    const fixed_t ldxi = dxi;
+    const fixed_t ldyi = dyi;
+
+    // Patch flags/pointers (constant for the whole call).
+    const boolean use_trans = dp_translucent;
+    const byte *restrict xlat = dp_translation;
+
+    // Position patch (Crispy-style offsets + widescreen).
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
-    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+    x += ws_delta; // horizontal widescreen offset
 
+    // Mark dirty rectangle (original semantics).
     V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
 
+    // Left clipping in fixed-point column space.
     col = 0;
     if (x < 0)
     {
-	col += dxi * ((-x * dx) >> FRACBITS);
-	x = 0;
+        col += ldxi * ((-x * ldx) >> FRACBITS);
+        x = 0;
     }
 
-    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
-    desttop2 = dest_screen + (((y + 2) * dy) >> FRACBITS) * SCREENWIDTH + (((x + 2) * dx) >> FRACBITS);
+    // Compute top pointers of the first column on the destination buffer.
+    desttop  = dst_screen + ((y * ldy) >> FRACBITS) * sw + ((x * ldx) >> FRACBITS);
+    // Shadow is offset by (+2, +2)
+    desttop2 = dst_screen + (((y + 2) * ldy) >> FRACBITS) * sw + (((x + 2) * ldx) >> FRACBITS);
 
     w = SHORT(patch->width);
 
-    // convert x to screen position
-    x = (x * dx) >> FRACBITS;
+    // Convert x to screen-space pixels once; inner loop just ++x.
+    x = (x * ldx) >> FRACBITS;
 
-    for ( ; col<w << FRACBITS ; x++, col+=dxi, desttop++, desttop2++)
+    // Precompute the bottom limit for the shadow (accounts for +2*vres shift).
+    const int sh_limit_shadow = sh - (2 * vres);
+
+    // Iterate columns in fixed-point (scaled drawing).
+    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop++, desttop2++)
     {
         int topdelta = -1;
 
-        // [crispy] too far right / width
-        if (x >= SCREENWIDTH)
-        {
+        // Right clipping: nothing more to draw on this scanline.
+        if (x >= sw)
             break;
-        }
 
+        // Column pointer from patch data.
         column = (column_t *)((byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
 
-        // step through the posts in a column
+        // Step through the posts in a column.
         while (column->topdelta != 0xff)
         {
-            int top, top2, srccol = 0;
-            // [crispy] support for DeePsea tall patches
+            int top;
+            int srccol = 0;
+
+            // DeePsea tall-patch support (accumulating topdelta).
             if (column->topdelta <= topdelta)
-            {
                 topdelta += column->topdelta;
-            }
             else
-            {
                 topdelta = column->topdelta;
-            }
-            top = ((y + topdelta) * dy) >> FRACBITS;
-            top2 = top;
+
+            // Compute starting y and pointers for this post.
+            top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
-            dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
-            dest2 = desttop2 + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
-            count2 = count = (column->length * dy) >> FRACBITS;
 
-            if (top + count2 > (SCREENHEIGHT - (2 * vid_resolution)))
-            {
-                count2 = (SCREENHEIGHT - (2 * vid_resolution)) - top;
-            }
-            // [crispy] too low / height
-            if (top + count > SCREENHEIGHT)
-            {
-                count = SCREENHEIGHT - top;
-            }
+            dest   = desttop  + ((topdelta * ldy) >> FRACBITS) * sw;
+            dest2  = desttop2 + ((topdelta * ldy) >> FRACBITS) * sw;
 
-            // [crispy] nothing left to draw?
+            count  = (column->length * ldy) >> FRACBITS;
+            count2 = count;
+
+            // Bottom clip against screen height for shadow and patch.
+            if (top + count2 > sh_limit_shadow)
+                count2 = sh_limit_shadow - top;
+            if (top + count > sh)
+                count = sh - top;
+
+            // Nothing left to draw for this post?
             if (count < 1 || count2 < 1)
             {
-                break;
+                column = (column_t *)((byte *)column + column->length + 4);
+                continue;
             }
 
-            while (count2--)
+            // Top clip once for both shadow and patch (removes per-pixel 'top>=0').
+            if (top < 0)
             {
-                if (top2++ >= 0)
+                const int skip = -top;
+
+                if (skip >= count || skip >= count2)
                 {
-                    *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
+                    // Entire post above the screen in either stream; skip post.
+                    column = (column_t *)((byte *)column + column->length + 4);
+                    continue;
                 }
-                dest2 += SCREENWIDTH;
+
+                dest   += skip * sw;
+                dest2  += skip * sw;
+                srccol += ldyi * skip;
+
+                count  -= skip;
+                count2 -= skip;
+
+                // top is effectively 0 now
             }
-            while (count--)
+
+            // --- Draw shadow first (special routine), no per-pixel top checks ---
+            // Source index is not needed for darkening; we blend a constant alpha.
             {
-                // [crispy] too high
-                if (top++ >= 0)
+                int n = count2;
+                if (use_tc)
                 {
-                    *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
+                    while (n--) { *dest2 = I_BlendDark_32(*dest2, shadow_alpha); dest2 += sw; }
                 }
-                srccol += dyi;
-                dest += SCREENWIDTH;
+                else
+                {
+                    while (n--) { *dest2 = I_BlendDark_8 (*dest2, shadow_alpha); dest2 += sw; }
+                }
             }
+
+            // --- Draw the actual patch (four specialized fast paths) ---
+            if (!use_trans)            // Opaque
+            {
+                if (!xlat)             // Opaque, no translation
+                {
+                    int n = count;
+                    while (n--)
+                    {
+                        *dest = pal[source[srccol >> FRACBITS]];
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
+                }
+                else                    // Opaque, translated
+                {
+                    int n = count;
+                    while (n--)
+                    {
+                        *dest = pal[xlat[source[srccol >> FRACBITS]]];
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
+                }
+            }
+            else                        // Translucent over destination
+            {
+                if (!xlat)              // Translucent, no translation
+                {
+                    int n = count;
+                    while (n--)
+                    {
+                        const byte s = source[srccol >> FRACBITS];
+                        const pixel_t fg = pal[s];
+                        *dest = use_tc ? I_BlendOver128_32(*dest, fg)
+                                       : I_BlendOver128_8 (*dest, fg);
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
+                }
+                else                    // Translucent, translated
+                {
+                    int n = count;
+                    while (n--)
+                    {
+                        const byte s = xlat[source[srccol >> FRACBITS]];
+                        const pixel_t fg = pal[s];
+                        *dest = use_tc ? I_BlendOver128_32(*dest, fg)
+                                       : I_BlendOver128_8 (*dest, fg);
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
+                }
+            }
+
+            // Next post in this column.
             column = (column_t *)((byte *)column + column->length + 4);
         }
     }
 }
 
-//
+// -----------------------------------------------------------------------------
 // V_DrawShadowedPatchNoOffsets
-// [JN] Zero-out predefined sprite offsets to use only function-defined ones.
-//
+//  Zero-out predefined sprite offsets to use only function-defined ones.
+// -----------------------------------------------------------------------------
 
 void V_DrawShadowedPatchNoOffsets(int x, int y, patch_t *patch)
 {
@@ -398,12 +553,12 @@ void V_DrawShadowedPatchNoOffsets(int x, int y, patch_t *patch)
     V_DrawShadowedPatch(x, y, patch);
 }
 
-//
+// -----------------------------------------------------------------------------
 // V_DrawShadowedOptional
-// [JN] Draws patch with shadow if "Text casts shadows" feature is enabled.
-//  dest  - main patch, drawed second on top of shadow.
-//  dest2 - shadow, drawed first below main patch.
-//
+//  Draws patch with shadow if "Text casts shadows" feature is enabled.
+//   dest  - main patch, drawed second on top of shadow.
+//   dest2 - shadow, drawed first below main patch.
+// -----------------------------------------------------------------------------
 
 void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
 {
@@ -414,107 +569,204 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
     pixel_t *dest2;
     int w;
 
-    // [JN] Simplify math for shadow placement.
-    const int shadow_shift = (SCREENWIDTH + 1) * vid_resolution;
-    // [crispy] four different rendering functions
-    drawpatchpx_t *const drawpatchpx = drawpatchpx_a[!dp_translucent][!dp_translation];
+    // ---- Hot globals cached locally (helps register allocation) ----
+    const int      sw       = SCREENWIDTH;
+    const int      sh       = SCREENHEIGHT;
+    const int      ws_delta = WIDESCREENDELTA;
+    pixel_t *restrict dst_screen = dest_screen;
+    const pixel_t *restrict pal  = pal_color;
+    const boolean  use_tc  = vid_truecolor;
+    const int      vres    = vid_resolution;
+    const boolean  do_shadow = msg_text_shadows;
 
-    // [JN] Shadow, blending depending on game type:
-    drawpatchpx_t *const drawpatchpx2 = shadow_type == 0 ? drawshadow_doom : drawshadow_raven;
+    const fixed_t ldx  = dx;
+    const fixed_t ldy  = dy;
+    const fixed_t ldxi = dxi;
+    const fixed_t ldyi = dyi;
 
+    // Patch flags/pointers (constant for the whole call).
+    const boolean use_trans = dp_translucent;
+    const byte *restrict xlat = dp_translation;
+
+    // Shadow blend function (picked once, inlined).
+    const int sa = shadow_alpha; (void)shadow_type; // keep param; alpha is the same
+
+    // Shadow placement helper (keep original semantics).
+    const int shadow_shift = (sw + 1) * vres;
+
+    // Position patch (Crispy-style offsets + widescreen).
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
-    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+    x += ws_delta; // horizontal widescreen offset
 
+    // Mark dirty rectangle (original semantics).
     V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
 
+    // Left clipping in fixed-point column space.
     col = 0;
     if (x < 0)
     {
-	col += dxi * ((-x * dx) >> FRACBITS);
-	x = 0;
+        col += ldxi * ((-x * ldx) >> FRACBITS);
+        x = 0;
     }
 
-    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+    // Compute top pointer of the first column on the destination buffer.
+    desttop = dst_screen + ((y * ldy) >> FRACBITS) * sw + ((x * ldx) >> FRACBITS);
 
     w = SHORT(patch->width);
 
-    // convert x to screen position
-    x = (x * dx) >> FRACBITS;
+    // Convert x to screen-space pixels once; inner loop just ++x.
+    x = (x * ldx) >> FRACBITS;
 
-    for ( ; col<w << FRACBITS ; x++, col+=dxi, desttop++)
+    // Shadow bottom limit (accounts for vertical shift by vres).
+    const int sh_limit_shadow = sh - (1 * vres);
+
+    // Iterate columns in fixed-point (scaled drawing).
+    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop++)
     {
         int topdelta = -1;
 
-        // [crispy] too far right / width
-        if (x >= SCREENWIDTH)
-        {
+        // Right clipping: nothing more to draw on this scanline.
+        if (x >= sw)
             break;
-        }
 
+        // Column pointer from patch data.
         column = (column_t *)((byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
 
-        // step through the posts in a column
+        // Step through the posts in a column.
         while (column->topdelta != 0xff)
         {
-            int top, top2, srccol = 0;
-            // [crispy] support for DeePsea tall patches
+            int top;
+            int srccol = 0;
+
+            // DeePsea tall-patch support (accumulating topdelta).
             if (column->topdelta <= topdelta)
-            {
                 topdelta += column->topdelta;
-            }
             else
-            {
                 topdelta = column->topdelta;
-            }
-            top = ((y + topdelta) * dy) >> FRACBITS;
-            top2 = top;
+
+            // Starting y and pointers for this post.
+            top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
-            dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
+
+            dest  = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
             dest2 = dest + shadow_shift;
-            count2 = count = (column->length * dy) >> FRACBITS;
 
-            if (top + count2 > (SCREENHEIGHT - (1 * vid_resolution)))
-            {
-                count2 = (SCREENHEIGHT - (1 * vid_resolution)) - top;
-            }
-            // [crispy] too low / height
-            if (top + count > SCREENHEIGHT)
-            {
-                count = SCREENHEIGHT - top;
-            }
+            count  = (column->length * ldy) >> FRACBITS;
+            count2 = count;
 
-            // [crispy] nothing left to draw?
+            // Bottom clip: shadow vs main patch have different limits.
+            if (top + count2 > sh_limit_shadow)
+                count2 = sh_limit_shadow - top;
+            if (top + count > sh)
+                count = sh - top;
+
+            // Nothing left for this post? Skip to the next post.
             if (count < 1 || count2 < 1)
             {
-                break;
+                column = (column_t *)((byte *)column + column->length + 4);
+                continue;
             }
 
-            if (msg_text_shadows)
+            // Top clip once (removes per-pixel 'if (top++>=0)' branches).
+            if (top < 0)
             {
-                while (count2--)
+                const int skip = -top;
+
+                if (skip >= count || skip >= count2)
                 {
-                    if (top2++ >= 0)
+                    // Whole post is above the screen; advance to next post.
+                    column = (column_t *)((byte *)column + column->length + 4);
+                    continue;
+                }
+
+                dest   += skip * sw;
+                dest2  += skip * sw;
+                srccol += ldyi * skip;
+                count  -= skip;
+                count2 -= skip;
+                // top is effectively 0 now
+            }
+
+            // --- Draw shadow first (optional), no per-pixel top checks ---
+            if (do_shadow)
+            {
+                // Note: previously used drawshadow_*; now inlined dark blend.
+                // Source index was not used for darkening; we blend a constant alpha.
+                int n = count2;
+                if (use_tc)
+                {
+                    while (n--) { *dest2 = I_BlendDark_32(*dest2, sa); dest2 += sw; }
+                }
+                else
+                {
+                    while (n--) { *dest2 = I_BlendDark_8 (*dest2, sa); dest2 += sw; }
+                }
+            }
+
+            // --- Draw the actual patch (four specialized fast paths) ---
+            if (!use_trans)            // Opaque
+            {
+                if (!xlat)             // Opaque, no translation
+                {
+                    int n = count;
+                    while (n--)
                     {
-                        *dest2 = drawpatchpx2(*dest2, source[srccol >> FRACBITS]);
+                        *dest = pal[source[srccol >> FRACBITS]];
+                        srccol += ldyi;
+                        dest   += sw;
                     }
-                    dest2 += SCREENWIDTH;
                 }
-            }
-            while (count--)
-            {
-                // [crispy] too high
-                if (top++ >= 0)
+                else                    // Opaque, translated
                 {
-                    *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
+                    int n = count;
+                    while (n--)
+                    {
+                        *dest = pal[xlat[source[srccol >> FRACBITS]]];
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
                 }
-                srccol += dyi;
-                dest += SCREENWIDTH;
             }
+            else                        // Translucent over destination
+            {
+                if (!xlat)              // Translucent, no translation
+                {
+                    int n = count;
+                    while (n--)
+                    {
+                        const byte s = source[srccol >> FRACBITS];
+                        const pixel_t fg = pal[s];
+                        *dest = use_tc ? I_BlendOver128_32(*dest, fg)
+                                       : I_BlendOver128_8 (*dest, fg);
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
+                }
+                else                    // Translucent, translated
+                {
+                    int n = count;
+                    while (n--)
+                    {
+                        const byte s = xlat[source[srccol >> FRACBITS]];
+                        const pixel_t fg = pal[s];
+                        *dest = use_tc ? I_BlendOver128_32(*dest, fg)
+                                       : I_BlendOver128_8 (*dest, fg);
+                        srccol += ldyi;
+                        dest   += sw;
+                    }
+                }
+            }
+
+            // Next post in this column.
             column = (column_t *)((byte *)column + column->length + 4);
         }
     }
 }
+
+// -----------------------------------------------------------------------------
+// V_DrawPatchFullScreen
+// -----------------------------------------------------------------------------
 
 void V_DrawPatchFullScreen(patch_t *patch, boolean flipped)
 {
@@ -545,110 +797,136 @@ void V_DrawPatchFullScreen(patch_t *patch, boolean flipped)
     }
 }
 
-//
+// -----------------------------------------------------------------------------
 // V_DrawPatchFlipped
-// Masks a column based masked pic to the screen.
-// Flips horizontally, e.g. to mirror face.
-//
+//  Masks a column based masked pic to the screen.
+//  Flips horizontally, e.g. to mirror face.
+// -----------------------------------------------------------------------------
 
 void V_DrawPatchFlipped(int x, int y, patch_t *patch)
 {
     int count;
-    int col; 
-    column_t *column; 
+    int col;
+    column_t *column;
     pixel_t *desttop;
     pixel_t *dest;
-    const byte *source; 
-    int w; 
- 
-    y -= SHORT(patch->topoffset); 
-    x -= SHORT(patch->leftoffset); 
-    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+    byte *source;
+    int w;
 
-    V_MarkRect (x, y, SHORT(patch->width), SHORT(patch->height));
+    // ---- Hot globals cached locally (helps register allocation) ----
+    const int      sw       = SCREENWIDTH;
+    const int      sh       = SCREENHEIGHT;
+    const int      ws_delta = WIDESCREENDELTA;
+    pixel_t *restrict dst_screen = dest_screen;
+    const pixel_t *restrict pal  = pal_color;
 
+    const fixed_t ldx  = dx;
+    const fixed_t ldy  = dy;
+    const fixed_t ldxi = dxi;
+    const fixed_t ldyi = dyi;
+
+    // Position patch (Crispy-style offsets + widescreen).
+    y -= SHORT(patch->topoffset);
+    x -= SHORT(patch->leftoffset);
+    x += ws_delta; // horizontal widescreen offset
+
+    // Mark dirty rectangle (original semantics).
+    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+
+    // Left clipping in fixed-point column space.
     col = 0;
     if (x < 0)
     {
-	col += dxi * ((-x * dx) >> FRACBITS);
-	x = 0;
+        col += ldxi * ((-x * ldx) >> FRACBITS);
+        x = 0;
     }
 
-    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+    // Compute top pointer of the first column on the destination buffer.
+    desttop = dst_screen
+            + ((y * ldy) >> FRACBITS) * sw
+            + ((x * ldx) >> FRACBITS);
 
     w = SHORT(patch->width);
 
-    // convert x to screen position
-    x = (x * dx) >> FRACBITS;
+    // Convert x to screen-space pixels once; inner loop just ++x.
+    x = (x * ldx) >> FRACBITS;
 
-    for ( ; col<w << FRACBITS ; x++, col+=dxi, desttop++)
+    // Iterate columns in fixed-point (scaled drawing), mirrored horizontally.
+    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop++)
     {
         int topdelta = -1;
 
-        // [crispy] too far left
-        if (x < 0)
-        {
-            continue;
-        }
-
-        // [crispy] too far right / width
-        if (x >= SCREENWIDTH)
-        {
+        // Right clipping: nothing more to draw on this scanline.
+        if (x >= sw)
             break;
-        }
 
-        column = (column_t *)((byte *)patch + LONG(patch->columnofs[w-1-(col >> FRACBITS)]));
+        // Column pointer from patch data, mirrored: w-1-(col>>FRACBITS)
+        column = (column_t *)((byte *)patch + LONG(patch->columnofs[w - 1 - (col >> FRACBITS)]));
 
-        // step through the posts in a column
-        while (column->topdelta != 0xff )
+        // Step through the posts in a column.
+        while (column->topdelta != 0xff)
         {
-            int top, srccol = 0;
-            // [crispy] support for DeePsea tall patches
+            int top;
+            int srccol = 0;
+
+            // DeePsea tall-patch support (accumulating topdelta).
             if (column->topdelta <= topdelta)
-            {
                 topdelta += column->topdelta;
-            }
             else
-            {
                 topdelta = column->topdelta;
-            }
-            top = ((y + topdelta) * dy) >> FRACBITS;
+
+            // Compute starting y and pointers for this post.
+            top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
-            dest = desttop + ((topdelta * dy) >> FRACBITS)*SCREENWIDTH;
-            count = (column->length * dy) >> FRACBITS;
+            dest   = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            count  = (column->length * ldy) >> FRACBITS;
 
-            // [crispy] too low / height
-            if (top + count > SCREENHEIGHT)
-            {
-                count = SCREENHEIGHT - top;
-            }
+            // Bottom clip against screen height.
+            if (top + count > sh)
+                count = sh - top;
 
-            // [crispy] nothing left to draw?
+            // If entirely below the screen, stop scanning this column early.
             if (count < 1)
-            {
                 break;
+
+            // Top clip once (remove per-pixel "if (top++ >= 0)").
+            if (top < 0)
+            {
+                const int skip = -top;
+                if (skip >= count)
+                {
+                    // Whole post is above the screen; advance to next post.
+                    column = (column_t *)((byte *)column + column->length + 4);
+                    continue;
+                }
+                dest   += skip * sw;
+                srccol += ldyi * skip;
+                count  -= skip;
+                // top is effectively 0 now
             }
 
-            while (count--)
+            // Hot loop: opaque draw, no translation/translucency by design.
             {
-                // [crispy] too high
-                if (top++ >= 0)
+                int n = count;
+                while (n--)
                 {
-                    *dest = pal_color[source[srccol >> FRACBITS]];
+                    *dest = pal[source[srccol >> FRACBITS]];
+                    srccol += ldyi;
+                    dest   += sw;
                 }
-                srccol += dyi;
-                dest += SCREENWIDTH;
             }
+
+            // Next post in this column.
             column = (column_t *)((byte *)column + column->length + 4);
         }
     }
+
 }
 
-//
+// -----------------------------------------------------------------------------
 // V_DrawTLPatch
-//
-// Masks a column based translucent masked pic to the screen.
-//
+//  Masks a column based translucent masked pic to the screen.
+// -----------------------------------------------------------------------------
 
 void V_DrawTLPatch(int x, int y, patch_t * patch)
 {
@@ -658,58 +936,139 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
     byte *source;
     int w;
 
-    // [crispy] translucent patch, no coloring or color-translation are used
-    drawpatchpx_t *const drawpatchpx = drawtinttab;
+    // ---- Hot globals cached locally (helps register allocation) ----
+    const int      sw       = SCREENWIDTH;
+    const int      sh       = SCREENHEIGHT;
+    const int      ws_delta = WIDESCREENDELTA;
+    pixel_t *restrict dst_screen = dest_screen;
+    const pixel_t *restrict pal  = pal_color;
+    const boolean  use_tc  = vid_truecolor;
+    const int      vres    = vid_resolution;
 
+    const fixed_t ldx  = dx;
+    const fixed_t ldy  = dy;
+    const fixed_t ldxi = dxi;
+    const fixed_t ldyi = dyi;
+
+    // Always translucent, no translation/coloring here.
+
+    // Position patch (Crispy-style offsets + widescreen).
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
-    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+    x += ws_delta; // horizontal widescreen offset
 
+    // Strict in-bounds guard (kept from original).
     if (x < 0
-     || x + SHORT(patch->width) > (SCREENWIDTH / vid_resolution)
+     || x + SHORT(patch->width)  > (sw / vres)
      || y < 0
-     || y + SHORT(patch->height) > (SCREENHEIGHT / vid_resolution))
+     || y + SHORT(patch->height) > (sh / vres))
     {
-        // [JN] Note: should be I_Error, but use return instead.
-        // Render may still try to draw patch before undating 
-        // SCREENWIDTH/HEIGHT values upon resolution toggling.
-        // I_Error("Bad V_DrawTLPatch");
+        // Note: intentional early return (see original comment about resolution toggling).
         return;
     }
 
+    // Mark dirty rectangle (original semantics).
+    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+
+    // Left clipping in fixed-point column space (still do it for scaled operations).
     col = 0;
-    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+    if (x < 0)
+    {
+        col += ldxi * ((-x * ldx) >> FRACBITS);
+        x = 0;
+    }
+
+    // Compute top pointer of the first column on the destination buffer.
+    desttop = dst_screen
+            + ((y * ldy) >> FRACBITS) * sw
+            + ((x * ldx) >> FRACBITS);
 
     w = SHORT(patch->width);
-    for (; col < w << FRACBITS; x++, col+=dxi, desttop++)
+
+    // Convert x to screen-space pixels once; inner loop just ++x.
+    x = (x * ldx) >> FRACBITS;
+
+    // Iterate columns in fixed-point (scaled drawing).
+    for (; col < (w << FRACBITS); x++, col += ldxi, desttop++)
     {
-        column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
+        int topdelta = -1;
 
-        // step through the posts in a column
+        // Right clipping (safety; guard above should already ensure in-bounds).
+        if (x >= sw)
+            break;
 
+        // Column pointer from patch data.
+        column = (column_t *)((byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
+
+        // Step through the posts in a column.
         while (column->topdelta != 0xff)
         {
+            int top;
             int srccol = 0;
-            source = (byte *) column + 3;
-            dest = desttop + ((column->topdelta * dy) >> FRACBITS) * SCREENWIDTH;
-            count = (column->length * dy) >> FRACBITS;
 
-            while (count--)
+            // DeePsea tall-patch support (accumulating topdelta).
+            if (column->topdelta <= topdelta)
+                topdelta += column->topdelta;
+            else
+                topdelta = column->topdelta;
+
+            // Starting y and pointers for this post.
+            top    = ((y + topdelta) * ldy) >> FRACBITS;
+            source = (byte *)column + 3;
+            dest   = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            count  = (column->length * ldy) >> FRACBITS;
+
+            // Bottom clip against screen height.
+            if (top + count > sh)
+                count = sh - top;
+
+            // Nothing left to draw for this post?
+            if (count < 1)
             {
-                *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
-                srccol += dyi;
-                dest += SCREENWIDTH;
+                column = (column_t *)((byte *)column + column->length + 4);
+                continue;
             }
-            column = (column_t *) ((byte *) column + column->length + 4);
+
+            // Top clip once (remove per-pixel "if (top++ >= 0)").
+            if (top < 0)
+            {
+                const int skip = -top;
+                if (skip >= count)
+                {
+                    // Whole post is above the screen; advance to next post.
+                    column = (column_t *)((byte *)column + column->length + 4);
+                    continue;
+                }
+                dest   += skip * sw;
+                srccol += ldyi * skip;
+                count  -= skip;
+                // top is effectively 0 now
+            }
+
+            // Hot loop: translucent over destination (no translation).
+            {
+                int n = count;
+                while (n--)
+                {
+                    const byte s = source[srccol >> FRACBITS];
+                    const pixel_t fg = pal[s];
+                    *dest = use_tc ? I_BlendOver128_32(*dest, fg)
+                                   : I_BlendOver128_8 (*dest, fg);
+                    srccol += ldyi;
+                    dest   += sw;
+                }
+            }
+
+            // Next post in this column.
+            column = (column_t *)((byte *)column + column->length + 4);
         }
     }
 }
 
-//
+// -----------------------------------------------------------------------------
 // V_DrawAltTLPatch
-//
-// Masks a column based translucent masked pic to the screen.
-//
+//  Masks a column based translucent masked pic to the screen.
+// -----------------------------------------------------------------------------
 
 void V_DrawAltTLPatch(int x, int y, patch_t * patch)
 {
@@ -719,87 +1078,242 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
     byte *source;
     int w;
 
-    // [crispy] translucent patch, no coloring or color-translation are used
-    drawpatchpx_t *const drawpatchpx = drawalttinttab;
+    // ---- Hot globals cached locally (helps register allocation) ----
+    const int      sw       = SCREENWIDTH;
+    const int      sh       = SCREENHEIGHT;
+    const int      ws_delta = WIDESCREENDELTA;
+    pixel_t *restrict dst_screen = dest_screen;
+    const pixel_t *restrict pal  = pal_color;
+    const boolean  use_tc  = vid_truecolor;
+    const int      vres    = vid_resolution;
 
+    const fixed_t ldx  = dx;
+    const fixed_t ldy  = dy;
+    const fixed_t ldxi = dxi;
+    const fixed_t ldyi = dyi;
+
+    // Position patch (Crispy-style offsets + widescreen).
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
-    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+    x += ws_delta; // horizontal widescreen offset
 
+    // Strict in-bounds guard (kept from original intent).
     if (x < 0
-     || x + SHORT(patch->width) > (SCREENWIDTH / vid_resolution)
+     || x + SHORT(patch->width)  > (sw / vres)
      || y < 0
-     || y + SHORT(patch->height) > (SCREENHEIGHT / vid_resolution))
+     || y + SHORT(patch->height) > (sh / vres))
     {
-        // [JN] Note: should be I_Error, but use return instead.
-        // Render may still try to draw patch before undating 
-        // SCREENWIDTH/HEIGHT values upon resolution toggling.
-        // I_Error("Bad V_DrawAltTLPatch");
+        // Render may try to draw before SCREENWIDTH/HEIGHT are updated after a res toggle.
+        return;
     }
 
+    // Mark dirty rectangle (original semantics).
+    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+
+    // Left clipping in fixed-point column space (scaled drawing).
     col = 0;
-    desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+    if (x < 0)
+    {
+        col += ldxi * ((-x * ldx) >> FRACBITS);
+        x = 0;
+    }
+
+    // Compute top pointer of the first column on the destination buffer.
+    desttop = dst_screen
+            + ((y * ldy) >> FRACBITS) * sw
+            + ((x * ldx) >> FRACBITS);
 
     w = SHORT(patch->width);
-    for (; col < w << FRACBITS; x++, col+=dxi, desttop++)
+
+    // Convert x to screen-space pixels once; inner loop just ++x.
+    x = (x * ldx) >> FRACBITS;
+
+    // Iterate columns in fixed-point (scaled drawing).
+    for (; col < (w << FRACBITS); x++, col += ldxi, desttop++)
     {
-        column = (column_t *) ((byte *) patch + LONG(patch->columnofs[col >> FRACBITS]));
+        int topdelta = -1;
 
-        // step through the posts in a column
+        // Right clipping (safety).
+        if (x >= sw)
+            break;
 
+        // Column pointer from patch data.
+        column = (column_t *)((byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
+
+        // Step through the posts in a column.
         while (column->topdelta != 0xff)
         {
+            int top;
             int srccol = 0;
-            source = (byte *) column + 3;
-            dest = desttop + ((column->topdelta * dy) >> FRACBITS) * SCREENWIDTH;
-            count = (column->length * dy) >> FRACBITS;
 
-            while (count--)
+            // DeePsea tall-patch support (accumulating topdelta).
+            if (column->topdelta <= topdelta)
+                topdelta += column->topdelta;
+            else
+                topdelta = column->topdelta;
+
+            // Starting y and pointers for this post.
+            top    = ((y + topdelta) * ldy) >> FRACBITS;
+            source = (byte *)column + 3;
+            dest   = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            count  = (column->length * ldy) >> FRACBITS;
+
+            // Bottom clip against screen height.
+            if (top + count > sh)
+                count = sh - top;
+
+            // Nothing left to draw for this post?
+            if (count < 1)
             {
-                *dest = drawpatchpx(*dest, source[srccol >> FRACBITS]);
-                srccol += dyi;
-                dest += SCREENWIDTH;
+                column = (column_t *)((byte *)column + column->length + 4);
+                continue;
             }
-            column = (column_t *) ((byte *) column + column->length + 4);
+
+            // Top clip once (remove per-pixel "if (top++ >= 0)").
+            if (top < 0)
+            {
+                const int skip = -top;
+                if (skip >= count)
+                {
+                    // Whole post is above the screen; advance to next post.
+                    column = (column_t *)((byte *)column + column->length + 4);
+                    continue;
+                }
+                dest   += skip * sw;
+                srccol += ldyi * skip;
+                count  -= skip;
+                // top is effectively 0 now
+            }
+
+            // Hot loop: alternate translucency over destination (no translation).
+            {
+                int n = count;
+                while (n--)
+                {
+                    const byte s = source[srccol >> FRACBITS];
+                    const pixel_t fg = pal[s];
+                    // Alternate translucency curve (lighter weight than 50%).
+                    *dest = use_tc ? I_BlendOver64_32(*dest, fg)
+                                   : I_BlendOver64_8 (*dest, fg);
+                    srccol += ldyi;
+                    dest   += sw;
+                }
+            }
+
+            // Next post in this column.
+            column = (column_t *)((byte *)column + column->length + 4);
         }
     }
 }
 
 // -----------------------------------------------------------------------------
 // V_DrawFadePatch
-// [JN/PN] Draws translucent patch with given alpha value. For TrueColor only.
+//  Draws translucent patch with given alpha value. For TrueColor only.
 // -----------------------------------------------------------------------------
 
 void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
 {
-    x += WIDESCREENDELTA - SHORT(patch->leftoffset);
+    // ---- Hot globals cached locally ----
+    const int      sw        = SCREENWIDTH;
+    const int      sh        = SCREENHEIGHT;
+    const int      vres      = vid_resolution;
+    const int      ws_delta  = WIDESCREENDELTA;
+    pixel_t *restrict dst    = dest_screen;
+    const pixel_t *restrict pal = pal_color;
+    const fixed_t  ldx  = dx;
+    const fixed_t  ldy  = dy;
+    const fixed_t  ldxi = dxi;
+    const fixed_t  ldyi = dyi;
+
+    // Quick rejects / normalization for alpha
+    if (alpha <= 0)
+        return;
+    if (alpha > 255)
+        alpha = 255;
+
+    // Position (Crispy offsets + widescreen)
+    x += ws_delta - SHORT(patch->leftoffset);
     y -= SHORT(patch->topoffset);
-    
+
     const int pw = SHORT(patch->width);
     const int ph = SHORT(patch->height);
-    const int sw = SCREENWIDTH / vid_resolution;
-    const int sh = SCREENHEIGHT / vid_resolution;
+    const int vw = sw / vres;
+    const int vh = sh / vres;
 
-    if (x < 0 || x + pw > sw || y < 0 || y + ph > sh)
+    // Strict in-bounds guard (as in original)
+    if (x < 0 || x + pw > vw || y < 0 || y + ph > vh)
         return;
 
-    pixel_t *restrict desttop = dest_screen + ((y * dy) >> FRACBITS) * SCREENWIDTH + ((x * dx) >> FRACBITS);
+    // Precompute column start on destination
+    pixel_t *restrict desttop =
+        dst + ((y * ldy) >> FRACBITS) * sw + ((x * ldx) >> FRACBITS);
 
-    for (int col = 0; col < (pw << FRACBITS); col += dxi, desttop++)
+    // Build a 256-entry LUT of truecolor pixels once per call, accounting for translation.
+    // This removes per-pixel translation branches and extra indirections.
+    pixel_t src_lut[256];
+    if (dp_translation)
     {
-        const column_t *column = (const column_t *)((const byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
+        const byte *restrict xlat = dp_translation;
+        for (int i = 0; i < 256; ++i)
+            src_lut[i] = pal[xlat[i]];
+    }
+    else
+    {
+        for (int i = 0; i < 256; ++i)
+            src_lut[i] = pal[i];
+    }
+
+    // Fast path if alpha == 255: plain opaque copy of translated pal color.
+    if (alpha == 255)
+    {
+        for (int col = 0; col < (pw << FRACBITS); col += ldxi, desttop++)
+        {
+            const column_t *restrict column =
+                (const column_t *)((const byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
+
+            while (column->topdelta != 0xff)
+            {
+                const int count = (column->length * ldy) >> FRACBITS;
+                pixel_t *restrict dest =
+                    desttop + ((column->topdelta * ldy) >> FRACBITS) * sw;
+                const byte *restrict source = (const byte *)column + 3;
+
+                // No need for top/bottom clipping here because of strict in-bounds guard above.
+                int n = count, srccol = 0;
+                while (n--)
+                {
+                    const byte s = source[srccol >> FRACBITS];
+                    *dest = src_lut[s];
+                    srccol += ldyi;
+                    dest   += sw;
+                }
+
+                column = (const column_t *)((const byte *)column + column->length + 4);
+            }
+        }
+        return;
+    }
+
+    // General path: alpha-blend over destination (TrueColor).
+    for (int col = 0; col < (pw << FRACBITS); col += ldxi, desttop++)
+    {
+        const column_t *restrict column =
+            (const column_t *)((const byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
 
         while (column->topdelta != 0xff)
         {
-            const int count = (column->length * dy) >> FRACBITS;
-            pixel_t *restrict dest = desttop + ((column->topdelta * dy) >> FRACBITS) * SCREENWIDTH;
+            const int count = (column->length * ldy) >> FRACBITS;
+            pixel_t *restrict dest =
+                desttop + ((column->topdelta * ldy) >> FRACBITS) * sw;
             const byte *restrict source = (const byte *)column + 3;
 
-            for (int i = 0, srccol = 0; i < count; i++, srccol += dyi, dest += SCREENWIDTH)
+            int n = count, srccol = 0;
+            while (n--)
             {
-                const byte src = source[srccol >> FRACBITS];
-                const byte src_trans = dp_translation ? dp_translation[src] : src;
-                *dest = I_BlendOver_32(*dest, pal_color[src_trans], alpha);
+                const byte s = source[srccol >> FRACBITS];
+                *dest = I_BlendOver_32(*dest, src_lut[s], alpha);
+                srccol += ldyi;
+                dest   += sw;
             }
 
             column = (const column_t *)((const byte *)column + column->length + 4);
@@ -807,116 +1321,196 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
     }
 }
 
-//
+// -----------------------------------------------------------------------------
 // V_DrawBlock
-// Draw a linear block of pixels into the view buffer.
-//
+//  Draw a linear block of pixels into the view buffer.
+// -----------------------------------------------------------------------------
 
 void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
 { 
-    pixel_t *dest;
- 
-#ifdef RANGECHECK 
-    if (x < 0
-     || x + width >SCREENWIDTH
-     || y < 0
-     || y + height > SCREENHEIGHT)
+    // ---- Hot globals cached locally (helps register allocation) ----
+    const int      sw   = SCREENWIDTH;
+    const int      sh   = SCREENHEIGHT;
+    const int      vres = vid_resolution;
+    pixel_t *restrict dst_screen_local = dest_screen;
+
+#ifdef RANGECHECK
+    if (x < 0 || x + width > sw || y < 0 || y + height > sh)
     {
-	I_Error ("Bad V_DrawBlock");
+        I_Error("Bad V_DrawBlock");
     }
-#endif 
- 
-    V_MarkRect (x, y, width, height); 
- 
-    dest = dest_screen + (y * vid_resolution) * SCREENWIDTH + x;
+#endif
 
-    while (height--) 
-    { 
-	memcpy (dest, src, width * sizeof(*dest));
-	src += width; 
-	dest += SCREENWIDTH; 
-    } 
-} 
+    // Trivial reject
+    if (width <= 0 || height <= 0 || src == NULL)
+        return;
 
-// [crispy] scaled version of V_DrawBlock()
-void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
-{
-    pixel_t *dest;
-    int i, j;
+    V_MarkRect(x, y, width, height);
 
-    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+    // Compute destination start once. Note: y is scaled by vid_resolution.
+    pixel_t *restrict dest = dst_screen_local + (y * vres) * sw + x;
 
-    const int rx = x * vid_resolution;
-    const int ry = y * vid_resolution;
-    const int rw = width * vid_resolution;
-    const int rh = height * vid_resolution;
-
-    int dx0 = rx;
-    int dy0 = ry;
-    int dx1 = rx + rw;
-    int dy1 = ry + rh;
-
-    // Clipping
-    if (dx0 < 0)
+    // Fast path: full-width blit starting at x==0 → one big memcpy
+    if (x == 0 && width == sw)
     {
-        dx0 = 0;
-    }
-    if (dy0 < 0)
-    {
-        dy0 = 0;
-    }
-    if (dx1 > SCREENWIDTH)
-    {
-        dx1 = SCREENWIDTH;
-    }
-    if (dy1 > SCREENHEIGHT)
-    {
-        dy1 = SCREENHEIGHT;
-    }
-
-    const int dw = dx1 - dx0;
-    const int dh = dy1 - dy0;
-
-    if (dw <= 0 || dh <= 0)
-    {
+        const size_t bytes = (size_t)height * (size_t)sw * sizeof(*dest);
+        memcpy(dest, src, bytes);
         return;
     }
 
-    const int xoff = dx0 - rx;
-    const int yoff = dy0 - ry;
+    // General path: row-by-row memcpy with screen stride
+    pixel_t *restrict s = src;
+    const size_t row_bytes = (size_t)width * sizeof(*dest);
 
-    dest = dest_screen + dy0 * SCREENWIDTH + dx0;
-
-    for (i = 0; i < dh; ++i)
+    for (int h = 0; h < height; ++h)
     {
-        const int src_y = (i + yoff) / vid_resolution;
-        const byte *src_row = src + src_y * width;
+        memcpy(dest, s, row_bytes);
+        s    += width;   // advance source by the block width
+        dest += sw;      // advance dest by full screen stride
+    }
+} 
 
-        for (j = 0; j < dw; ++j)
+// -----------------------------------------------------------------------------
+// V_DrawScaledBlock
+//  [crispy] scaled version of V_DrawBlock()
+// -----------------------------------------------------------------------------
+
+void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
+{
+    // ---- Hot globals cached locally (helps register allocation) ----
+    const int      sw       = SCREENWIDTH;
+    const int      sh       = SCREENHEIGHT;
+    const int      vres     = vid_resolution;
+    const int      ws_delta = WIDESCREENDELTA;
+    pixel_t *restrict dst   = dest_screen;
+    const pixel_t *restrict pal = pal_color;
+
+    // Widescreen horizontal offset
+    x += ws_delta;
+
+    // Destination rect in screen pixels
+    const int rx = x * vres;
+    const int ry = y * vres;
+    const int rw = width  * vres;
+    const int rh = height * vres;
+
+    // Clip to screen
+    int dx0 = rx < 0 ? 0 : rx;
+    int dy0 = ry < 0 ? 0 : ry;
+    int dx1 = rx + rw; if (dx1 > sw) dx1 = sw;
+    int dy1 = ry + rh; if (dy1 > sh) dy1 = sh;
+
+    const int dw = dx1 - dx0;
+    const int dh = dy1 - dy0;
+    if (dw <= 0 || dh <= 0)
+        return;
+
+    // Offsets of the clipped block relative to the un-clipped scaled origin
+    const int xoff = dx0 - rx;  // 0..vres-1
+    const int yoff = dy0 - ry;  // 0..vres-1
+
+    // Starting destination pointer
+    pixel_t *restrict dest_row = dst + dy0 * sw + dx0;
+
+    // Vertical mapping without per-row division:
+    // src_y starts at floor(yoff / vres), hy = yoff % vres; each row increments hy,
+    // and when hy == vres we reset to 0 and increment src_y.
+    int src_y = (vres > 1) ? (yoff / vres) : yoff;     // safe for vres==1
+    int hy    = (vres > 1) ? (yoff % vres) : 0;
+
+    for (int i = 0; i < dh; ++i)
+    {
+        const byte *restrict src_row = src + src_y * width;
+
+        // Horizontal mapping without per-pixel division:
+        // src_x starts at floor(xoff / vres), hx = xoff % vres; each pixel increments hx,
+        // and when hx == vres we reset to 0 and increment src_x.
+        int src_x = (vres > 1) ? (xoff / vres) : xoff;
+        int hx    = (vres > 1) ? (xoff % vres) : 0;
+
+        pixel_t *restrict d = dest_row;
+
+        // Inner loop: nearest-neighbor scale using accumulators (no divisions)
+        for (int j = 0; j < dw; ++j)
         {
-            const int src_x = (j + xoff) / vid_resolution;
-            dest[i * SCREENWIDTH + j] = pal_color[src_row[src_x]];
+            d[j] = pal[src_row[src_x]];
+
+            // advance horizontal accumulator
+            if (++hx == vres)
+            {
+                hx = 0;
+                ++src_x;
+                // (src_x will never exceed width-1 due to outer clipping)
+            }
+        }
+
+        // advance destination one screen row
+        dest_row += sw;
+
+        // advance vertical accumulator
+        if (++hy == vres)
+        {
+            hy = 0;
+            ++src_y;
+            // (src_y will never exceed height-1 due to outer clipping)
         }
     }
 }
 
+// -----------------------------------------------------------------------------
+// V_DrawFilledBox
+// -----------------------------------------------------------------------------
+
 void V_DrawFilledBox(int x, int y, int w, int h, int c)
 {
-    pixel_t *buf, *buf1;
-    int x1, y1;
+    // ---- Hot globals cached locally ----
+    const int      sw = SCREENWIDTH;
+    const int      sh = SCREENHEIGHT;
+    pixel_t *restrict screen = I_VideoBuffer;
 
-    buf = I_VideoBuffer + SCREENWIDTH * y + x;
-
-    for (y1 = 0; y1 < h; ++y1)
+#ifdef RANGECHECK
+    if (x < 0 || x + w > sw || y < 0 || y + h > sh)
     {
-        buf1 = buf;
+        I_Error("Bad V_DrawFilledBox");
+    }
+#endif
 
-        for (x1 = 0; x1 < w; ++x1)
+    if (w <= 0 || h <= 0)
+        return;
+
+    V_MarkRect(x, y, w, h);
+
+    pixel_t *restrict row0 = screen + y * sw + x;
+    const pixel_t color = (pixel_t)c;
+
+    // Fill the first row (unrolled)
+    {
+        pixel_t *d = row0;
+        int n = w;
+
+        while (n >= 8)
         {
-            *buf1++ = c;
+            d[0] = color; d[1] = color; d[2] = color; d[3] = color;
+            d[4] = color; d[5] = color; d[6] = color; d[7] = color;
+            d += 8; n -= 8;
         }
+        while (n--)
+            *d++ = color;
+    }
 
-        buf += SCREENWIDTH;
+    if (h == 1)
+        return;
+
+    // Copy the filled row to the remaining rows using memcpy
+    {
+        const size_t row_bytes = (size_t)w * sizeof(*row0);
+        pixel_t *restrict dst = row0 + sw;
+
+        for (int y1 = 1; y1 < h; ++y1)
+        {
+            memcpy(dst, row0, row_bytes);
+            dst += sw;
+        }
     }
 }
 
@@ -1023,30 +1617,64 @@ void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest)
 }
 */
 
-// [crispy] Unified function of flat filling. Used for intermission
-// and finale screens, view border and status bar's wide screen mode.
-// [PN] Optimized by precomputing the y-offset outside the inner loop 
-// to reduce redundant calculations and improve performance.
+// -----------------------------------------------------------------------------
+// V_FillFlat
+//  [crispy] Unified function of flat filling. Used for intermission
+//  and finale screens, view border and status bar's wide screen mode.
+//  [PN] Avoid per-pixel divisions by using accumulators; cache hot globals.
+// -----------------------------------------------------------------------------
+
 void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
                 const byte *src, pixel_t *dest)
 {
-    int x, y;
+    // ---- Hot globals cached locally ----
+    const int      vres = vid_resolution;
+    const pixel_t *restrict pal = pal_color;
 
-    for (y = y_start; y < y_stop; y++)
+    const int dw = x_stop - x_start;
+    const int dh = y_stop - y_start;
+    if (dw <= 0 || dh <= 0)
+        return;
+
+    pixel_t *restrict d = dest;
+
+    // Initial source Y index and accumulator (no per-row division)
+    int src_y = (vres > 1) ? ((y_start / vres) & 63) : (y_start & 63);
+    int hy    = (vres > 1) ?  (y_start % vres)       : 0;
+
+    for (int i = 0; i < dh; ++i)
     {
-        const int y_off = ((y / vid_resolution) & 63) * 64;
-        for (x = x_start; x < x_stop; x++)
+        const int row_base = (src_y << 6);            // src_y * 64
+        const byte *restrict row = src + row_base;
+
+        // Initial source X index and accumulator for this row
+        int src_x = (vres > 1) ? ((x_start / vres) & 63) : (x_start & 63);
+        int hx    = (vres > 1) ?  (x_start % vres)       : 0;
+
+        // Inner loop: no divisions; wrap indices with &63
+        for (int j = 0; j < dw; ++j)
         {
-            const int idx = y_off + ((x / vid_resolution) & 63);
-            *dest++ = pal_color[src[idx]];
+            *d++ = pal[row[src_x]];
+
+            if (++hx == vres)
+            {
+                hx = 0;
+                src_x = (src_x + 1) & 63;
+            }
+        }
+
+        if (++hy == vres)
+        {
+            hy = 0;
+            src_y = (src_y + 1) & 63;
         }
     }
 }
 
-
 //
 // V_Init
 // 
+
 void V_Init (void) 
 { 
     // [crispy] initialize resolution-agnostic patch drawing
@@ -1057,9 +1685,6 @@ void V_Init (void)
         dy = (SCREENHEIGHT << FRACBITS) / ORIGHEIGHT;
         dyi = (ORIGHEIGHT << FRACBITS) / SCREENHEIGHT + 1; // [JN] +1 for multiple resolutions
     }
-    // no-op!
-    // There used to be separate screens that could be drawn to; these are
-    // now handled in the upper layers.
 }
 
 // Set the buffer that the code draws to.
@@ -1334,4 +1959,3 @@ boolean V_IsPatchLump(const int lump)
 
     return result;
 }
-
