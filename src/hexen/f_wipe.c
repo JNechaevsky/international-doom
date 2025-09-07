@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "z_zone.h"
+#include "i_system.h" // I_Realloc
 #include "i_video.h"
 #include "v_trans.h" // [crispy] blending functions
 #include "v_video.h"
@@ -40,6 +41,24 @@ static pixel_t *wipe_scr;
 // [crispy] Additional fail-safe counter for performing crossfade effect.
 static int fade_counter;
 
+
+// -----------------------------------------------------------------------------
+// wipe_EnsureBuffers
+//  [PN] Lazy allocation / resize of wipe buffers.
+// -----------------------------------------------------------------------------
+
+static void wipe_EnsureBuffers (void)
+{
+    static size_t wipe_capacity = 0;
+    const size_t need_area = (size_t)SCREENAREA;
+
+    if (need_area > wipe_capacity)
+    {
+        wipe_scr_start = (pixel_t *)I_Realloc(wipe_scr_start, need_area * sizeof(*wipe_scr_start));
+        wipe_scr_end   = (pixel_t *)I_Realloc(wipe_scr_end, need_area * sizeof(*wipe_scr_end));
+        wipe_capacity  = need_area;
+    }
+}
 
 // -----------------------------------------------------------------------------
 // wipe_initCrossfade
@@ -110,24 +129,12 @@ static const int wipe_doCrossfade (const int ticks)
 }
 
 // -----------------------------------------------------------------------------
-// wipe_exitMelt
-// -----------------------------------------------------------------------------
-
-static void wipe_exit (void)
-{
-    // [JN] Blit final screen.
-    V_DrawBlock(0, 0, SCREENWIDTH, SCREENHEIGHT, wipe_scr_end);
-    free(wipe_scr_start);
-    free(wipe_scr_end);
-}
-
-// -----------------------------------------------------------------------------
 // wipe_StartScreen
 // -----------------------------------------------------------------------------
 
 void wipe_StartScreen (void)
 {
-    wipe_scr_start = malloc(SCREENAREA * sizeof(*wipe_scr_start));
+    wipe_EnsureBuffers();
     I_ReadScreen(wipe_scr_start);
 }
 
@@ -137,7 +144,7 @@ void wipe_StartScreen (void)
 
 void wipe_EndScreen (void)
 {
-    wipe_scr_end = malloc(SCREENAREA * sizeof(*wipe_scr_end));
+    wipe_EnsureBuffers();
     I_ReadScreen(wipe_scr_end);
 }
 
@@ -162,7 +169,6 @@ const int wipe_ScreenWipe (const int ticks)
     if ((*wipe_doCrossfade)(ticks))
     {
         go = false;
-        wipe_exit();
     }
 
     return !go;
