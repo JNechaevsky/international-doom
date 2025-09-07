@@ -105,7 +105,7 @@ jobs:
             -T v141_xp ^
             -A Win32 ^
             -DCMAKE_BUILD_TYPE="Release" ^
-            -DSDL2_DIR="win32/SDL2-2.32.8" ^
+            -DSDL2_DIR="win32/SDL2-2.32.10" ^
             -DSDL2_MIXER_DIR="win32/SDL2_mixer-2.8.1" ^
             -DSDL2_NET_DIR="win32/SDL2_net-2.2.0" ^
             -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=Off ^
