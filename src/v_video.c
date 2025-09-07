@@ -1494,7 +1494,7 @@ void V_DrawFilledBox(int x, int y, int w, int h, int c)
             d[4] = color; d[5] = color; d[6] = color; d[7] = color;
             d += 8; n -= 8;
         }
-        while (n--)
+        for (; n > 0; n--) // Tail loop, safe & warning-free
             *d++ = color;
     }
 
