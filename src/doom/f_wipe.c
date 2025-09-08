@@ -68,28 +68,6 @@ static void wipe_EnsureBuffers (void)
 }
 
 // -----------------------------------------------------------------------------
-// wipe_shittyColMajorXform
-// -----------------------------------------------------------------------------
-
-static void wipe_shittyColMajorXform (dpixel_t *array)
-{
-    const int width = SCREENWIDTH/2;
-    dpixel_t *dest = (dpixel_t*) malloc(width*SCREENHEIGHT*sizeof(*dest));
-
-    for (int scr_y = 0 ; scr_y < SCREENHEIGHT ; scr_y++)
-    {
-        for (int scr_x = 0 ; scr_x < width ; scr_x++)
-        {
-            dest[scr_x*SCREENHEIGHT+scr_y] = array[scr_y*width+scr_x];
-        }
-    }
-
-    memcpy(array, dest, width*SCREENHEIGHT*sizeof(*dest));
-
-    free(dest);
-}
-
-// -----------------------------------------------------------------------------
 // wipe_initMelt
 // -----------------------------------------------------------------------------
 
@@ -97,11 +75,6 @@ static void wipe_initMelt (void)
 {
     // copy start screen to main screen
     memcpy(wipe_scr, wipe_scr_start, SCREENAREA*sizeof(*wipe_scr));
-
-    // makes this wipe faster (in theory)
-    // to have stuff in column-major format
-    wipe_shittyColMajorXform((dpixel_t*)wipe_scr_start);
-    wipe_shittyColMajorXform((dpixel_t*)wipe_scr_end);
 
     // setup initial column positions
     // (y<0 => not ready to scroll yet)
@@ -181,11 +154,7 @@ static const int wipe_doMelt (int ticks)
 {
     int j;
     int dy;
-    int idx;
     const int width = SCREENWIDTH/2;
-
-    const dpixel_t *s;
-    dpixel_t *d;
     boolean	done = true;
 
     while (ticks--)
@@ -206,25 +175,27 @@ static const int wipe_doMelt (int ticks)
                     dy = SCREENHEIGHT - y[i];
                 }
 
-                s = &((dpixel_t *)wipe_scr_end)[i*SCREENHEIGHT+y[i]];
-                d = &((dpixel_t *)wipe_scr)[y[i]*width+i];
-                idx = 0;
-
-                for (j = dy ; j ; j--)
+                // [PN] Row-major: copy the falling part from end-screen column (i)
+                // source starts at row y[i], destination at the same row
+                const dpixel_t *s1 = &((dpixel_t *)wipe_scr_end)[ y[i] * width + i ];
+                dpixel_t       *d1 = &((dpixel_t *)wipe_scr    )[ y[i] * width + i ];
+                for (j = dy; j; --j)
                 {
-                    d[idx] = *(s++);
-                    idx += width;
+                    *d1 = *s1;
+                    d1 += width;  // next row
+                    s1 += width;  // next row
                 }
 
                 y[i] += dy;
-                s = &((dpixel_t *)wipe_scr_start)[i*SCREENHEIGHT];
-                d = &((dpixel_t *)wipe_scr)[y[i]*width+i];
-                idx = 0;
-
-                for (j=SCREENHEIGHT-y[i];j;j--)
+                
+                // [PN] Row-major: fill the area above with start-screen column (i)
+                const dpixel_t *s2 = &((dpixel_t *)wipe_scr_start)[i]; // row 0
+                dpixel_t       *d2 = &((dpixel_t *)wipe_scr      )[y[i] * width + i ];
+                for (j = SCREENHEIGHT - y[i]; j; --j)
                 {
-                    d[idx] = *(s++);
-                    idx += width;
+                    *d2 = *s2;
+                    d2 += width;  // next row
+                    s2 += width;  // next row
                 }
 
                 done = false;
