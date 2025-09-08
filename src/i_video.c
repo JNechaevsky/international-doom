@@ -562,6 +562,61 @@ void I_UpdateExclusiveFullScreen(void)
     SDL_SetWindowFullscreen(screen, flags);
 }
 
+// -----------------------------------------------------------------------------
+// I_WindowToGameCursorPosition
+//
+//  [PN] Converts raw window pixel coordinates (as returned by SDL events or
+//  SDL_GetMouseState) into "game-space" coordinates (SCREENWIDTH x SCREENHEIGHT).
+//
+//  This is used only when vid_aspect_ratio_correct == 0 (free-resize mode).
+//  In this mode the game framebuffer is stretched arbitrarily to the window,
+//  so the mapping is a simple proportional scale: [0..win_w) -> [0..SCREENWIDTH),
+//  [0..win_h) -> [0..SCREENHEIGHT).
+// -----------------------------------------------------------------------------
+
+static void I_WindowToGameCursorPosition(int win_x, int win_y, int *game_x, int *game_y)
+{
+    int w, h;
+    SDL_GetWindowSize(screen, &w, &h);
+    if (w <= 0 || h <= 0)
+    {
+        *game_x = 0;
+        *game_y = 0;
+        return;
+    }
+
+    int gx = win_x * SCREENWIDTH / w;
+    int gy = win_y * SCREENHEIGHT / h;
+
+    if (gx < 0) gx = 0;
+    if (gx >= SCREENWIDTH)  gx = SCREENWIDTH  - 1;
+    if (gy < 0) gy = 0;
+    if (gy >= SCREENHEIGHT) gy = SCREENHEIGHT - 1;
+
+    *game_x = gx;
+    *game_y = gy;
+}
+
+// [JN] Reinitialize mouse cursor position on changing rendering resoluton
+void I_ReInitCursorPosition (void)
+{
+    int wx, wy;
+    SDL_GetMouseState(&wx, &wy);
+
+    if (vid_aspect_ratio_correct == 0)
+    {
+        I_WindowToGameCursorPosition(wx, wy, &menu_mouse_x, &menu_mouse_y);
+    }
+    else
+    {
+        const float div_factor = (vid_aspect_ratio_correct == 1) ? 1.2f : 1.0f;
+        menu_mouse_x = wx;
+        menu_mouse_y = (int)(wy / div_factor);
+    }
+
+    SDL_GetMouseState(&menu_mouse_x_sdl, &menu_mouse_y_sdl);
+}
+
 void I_GetEvent(void)
 {
     SDL_Event sdlevent;
@@ -588,8 +643,18 @@ void I_GetEvent(void)
                 if (menu_mouse_allow && window_focused)
                 {
                     // [PN] Get mouse coordinates for menu control
-                    menu_mouse_x = sdlevent.motion.x;
-                    menu_mouse_y = (int)(sdlevent.motion.y / 1.2); // Aspect ratio correction
+                    if (vid_aspect_ratio_correct == 0)
+                    {
+                        // [PN] Free resize: map window coords → game coords
+                        I_WindowToGameCursorPosition(sdlevent.motion.x, sdlevent.motion.y,
+                                                     &menu_mouse_x, &menu_mouse_y);
+                    }
+                    else
+                    {
+                        const float div_factor = (vid_aspect_ratio_correct == 1) ? 1.2f : 1.0f;
+                        menu_mouse_x = sdlevent.motion.x;
+                        menu_mouse_y = (int)(sdlevent.motion.y / div_factor);
+                    }
                     // [JN] Get mouse coordinates for SDL control
                     SDL_GetMouseState(&menu_mouse_x_sdl, &menu_mouse_y_sdl);
                 }
@@ -628,19 +693,6 @@ void I_GetEvent(void)
                 break;
         }
     }
-}
-
-// [JN] Reinitialize mouse cursor position on changing rendering resoluton
-void I_ReInitCursorPosition (void)
-{
-    SDL_Event sdlevent;
-
-    SDL_PollEvent(&sdlevent);
-    // [PN] Get mouse coordinates for menu control
-    menu_mouse_x = sdlevent.motion.x;
-    menu_mouse_y = (int)(sdlevent.motion.y / 1.2); // Aspect ratio correction
-    // [JN] Get mouse coordinates for SDL control
-    SDL_GetMouseState(&menu_mouse_x_sdl, &menu_mouse_y_sdl);
 }
 
 //
