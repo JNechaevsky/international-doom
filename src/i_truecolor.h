@@ -117,9 +117,15 @@ extern const double colorblind_matrix[][3][3];
 
 #define I_BlendDark_8(bg, amount) ( \
     pal_color[ RGB_TO_PAL( \
-        /* R */ (((((bg) & 0x00FF0000u) >> 16) * ((uint32_t)(amount) + ((amount) >> 4)) + 0x80) >> 8) & 0xFFu, \
-        /* G */ (((((bg) & 0x0000FF00u) >>  8) * ((uint32_t)(amount) + ((amount) >> 4)) + 0x80) >> 8) & 0xFFu, \
-        /* B */ ((( (bg) & 0x000000FFu)        * ((uint32_t)(amount) + ((amount) >> 4)) + 0x80) >> 8) & 0xFFu  \
+        /* R */ ((((((bg) >> 16) & 0xFF) * (amount) + 255) >> 8) +         \
+               !!(((((bg) >> 16) & 0xFF) * (amount) + 255) >> 8) -         \
+                ((((((bg) >> 16) & 0xFF) * (amount) + 255) >> 8) == 255)), \
+        /* G */ ((((((bg) >>  8) & 0xFF) * (amount) + 255) >> 8) +         \
+               !!(((((bg) >>  8) & 0xFF) * (amount) + 255) >> 8) -         \
+                ((((((bg) >>  8) & 0xFF) * (amount) + 255) >> 8) == 255)), \
+        /* B */  (((((bg)        & 0xFF) * (amount) + 255) >> 8)  +        \
+               !!(((((bg)        & 0xFF) * (amount) + 255) >> 8)) -        \
+                ((((((bg)        & 0xFF) * (amount) + 255) >> 8)) == 255)) \
     ) ] \
 )
 
