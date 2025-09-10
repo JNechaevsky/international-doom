@@ -445,6 +445,11 @@ extern fixed_t *spritetopoffset;
 
 extern lighttable_t *colormaps;
 
+extern byte     *colormaps_idx;
+extern uint32_t *argb2pal_keys;
+extern byte     *argb2pal_vals;
+extern int       argb2pal_mask;
+
 extern int viewwidth;
 extern int scaledviewwidth;
 extern int viewheight;
