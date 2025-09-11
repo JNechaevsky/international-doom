@@ -157,6 +157,13 @@ fixed_t*	spritetopoffset;
 
 lighttable_t	*colormaps;
 
+// [PN] Reverse map: ARGB color -> PLAYPAL index (post-light index for colormaps[])
+uint32_t *argb2pal_keys = NULL;
+byte     *argb2pal_vals = NULL;
+int       argb2pal_mask = 0; // size-1 (power of two)
+// [PN] Raw COLORMAP indices (vanilla 0..31 light levels × 256)
+byte     *colormaps_idx;
+
 
 //
 // MAPTEXTURE_T CACHING
@@ -1274,6 +1281,72 @@ void R_InitColormaps (void)
 		b = gammatable[vid_gamma][channels[2]];
 
 		pal_color[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
+	}
+
+	// [PN] Keep raw COLORMAP indices and build ARGB->index map for vanilla fuzz
+	if (!vid_truecolor)
+	{
+		// 1) Ensure colormaps_idx fits current NUMCOLORMAPS (32 or 256)
+		static int colormaps_idx_size = 0;               // bytes currently allocated
+		const int need_idx = NUMCOLORMAPS << 8;          // NUMCOLORMAPS * 256
+		if (colormaps_idx_size != need_idx)
+		{
+			if (colormaps_idx) Z_Free(colormaps_idx);
+			colormaps_idx      = (byte*) Z_Malloc(need_idx, PU_STATIC, 0);
+			colormaps_idx_size = need_idx;
+		}
+		memcpy(colormaps_idx, colormap, (size_t)need_idx);
+
+		// 2) Rebuild ARGB->index hash (capacity = next pow2 >= ((need_idx + 256) * 2))
+		int need = need_idx + 256;                       // all lighted entries + base palette
+		int cap  = 1; while (cap < (need << 1)) cap <<= 1;
+
+		int cur_cap = argb2pal_keys ? (argb2pal_mask + 1) : 0;
+		if (cur_cap != cap)
+		{
+			if (argb2pal_keys) { Z_Free(argb2pal_keys); argb2pal_keys = NULL; }
+			if (argb2pal_vals) { Z_Free(argb2pal_vals); argb2pal_vals = NULL; }
+			argb2pal_keys = (uint32_t*) Z_Malloc((size_t)cap * sizeof(uint32_t), PU_STATIC, 0);
+			argb2pal_vals = (byte*)     Z_Malloc((size_t)cap * sizeof(byte),     PU_STATIC, 0);
+			argb2pal_mask = cap - 1;
+		}
+		// Clear keys only; empty slot is defined by key==0
+		memset(argb2pal_keys, 0, (size_t)(argb2pal_mask + 1) * sizeof(uint32_t));
+
+		// Hoist frequently used values once
+		const int       mask = argb2pal_mask;
+		uint32_t *const keys = argb2pal_keys;
+		byte     *const vals = argb2pal_vals;
+
+		// 3a) Insert all lighted colors: key = colormaps[i] (ARGB), val = colormaps_idx[i] (index)
+		for (int i = 0; i < need_idx; ++i)
+		{
+			const uint32_t key = colormaps[i];
+			const byte     val = colormaps_idx[i];
+			int h = (int)((key * 2654435761u) & (uint32_t)mask); // Knuth multiplicative hash
+			uint32_t k;
+
+			while ((k = keys[h]) && k != key)
+				h = (h + 1) & mask;
+
+			keys[h] = key;
+			vals[h] = val;
+		}
+
+		// 3b) Insert base PLAYPAL: key = pal_color[i] (ARGB), val = i (index)
+		for (int i = 0; i < 256; ++i)
+		{
+			const uint32_t key = pal_color[i];
+			const byte     val = (byte)i;
+			int h = (int)((key * 2654435761u) & (uint32_t)mask);
+			uint32_t k;
+
+			while ((k = keys[h]) && k != key)
+				h = (h + 1) & mask;
+
+			keys[h] = key;
+			vals[h] = val;
+		}
 	}
 
 	W_ReleaseLumpName("PLAYPAL");

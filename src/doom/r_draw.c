@@ -261,6 +261,39 @@ void R_SetFuzzPosDraw (void)
 }
 
 // -----------------------------------------------------------------------------
+// I_BlendFuzz_8
+//
+// [PN] Hash lookup: We use the Knuth multiplicative hash to find the slot
+// in our argb2pal_keys/vals table. That table was built earlier from all
+// colormap rows + PLAYPAL.
+//
+// Resolve index: If the ARGB value was found, we recover its original
+// palette index (idx).
+//
+// Vanilla fuzz logic: We remap that index through COLORMAP row #6
+// (colormaps_idx[(6<<8)+idx]), exactly like DOS Doom did for fuzz.
+// 
+// Convert back to ARGB: Using pal_color[idx2] we return the final ARGB color
+// to be drawn.
+// -----------------------------------------------------------------------------
+
+static inline pixel_t I_BlendFuzz_8(uint32_t argb)
+{
+    // Inline variant: resolve palette index directly from ARGB using
+    // our linear-probing hash table, then apply COLORMAP[6][].
+    int i = (argb * 2654435761u) & argb2pal_mask;    // Knuth multiplicative hash
+    uint32_t key;
+    
+    while ((key = argb2pal_keys[i]) && key != argb)
+        i = (i + 1) & argb2pal_mask;
+    
+    const byte idx  = key ? argb2pal_vals[i] : 0;    // fallback = 0 if not found
+    const byte idx2 = colormaps_idx[(6 << 8) + idx]; // vanilla fuzz (COLORMAP row 6)
+
+    return pal_color[idx2];                          // final ARGB color
+}
+
+// -----------------------------------------------------------------------------
 // R_DrawFuzzColumn
 // Framebuffer postprocessing.
 // Creates a fuzzy image by copying pixels from adjacent ones to left and right.
@@ -336,7 +369,7 @@ void R_DrawFuzzColumn(void)
             if (src < vbuf_end)
             {
                 const pixel_t blended = truecolor_blend ? I_BlendDark_32(*src, fuzzalpha) :
-                                                          I_BlendDark_8(*src, fuzzalpha);
+                                                          I_BlendFuzz_8(*src);
 
                 // Fill rectangle: write_lines × fuzzblockwidth
                 pixel_t *row = dest;
@@ -368,7 +401,7 @@ void R_DrawFuzzColumn(void)
         {
             const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
             const pixel_t blended = truecolor_blend ? I_BlendDark_32(dest[fuzz_off], fuzzalpha) :
-                                                      I_BlendDark_8(dest[fuzz_off], fuzzalpha);
+                                                      I_BlendFuzz_8(dest[fuzz_off]);
             for (int j = 0; j < fuzzblockwidth; ++j)
                 dest[j] = blended;
         }
@@ -388,7 +421,7 @@ void R_DrawFuzzColumn(void)
         if (src < vbuf_start) src = dest + top_delta;
         if (src < vbuf_end)
             *dest = truecolor_blend ? I_BlendDark_32(*src, fuzzalpha) :
-                                      I_BlendDark_8(*src, fuzzalpha);
+                                      I_BlendFuzz_8(*src);
 
         // Update fuzz position (compact wrap & optional jitter)
         if (++local_fuzzpos == fuzzwrap)
@@ -406,7 +439,7 @@ void R_DrawFuzzColumn(void)
     {
         const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
         *dest = truecolor_blend ? I_BlendDark_32(dest[fuzz_offset], fuzzalpha) :
-                                  I_BlendDark_8(dest[fuzz_offset], fuzzalpha);
+                                  I_BlendFuzz_8(dest[fuzz_offset]);
     }
 
     fuzzpos = local_fuzzpos;
@@ -504,7 +537,7 @@ void R_DrawFuzzColumnLow(void)
             if (src < vbuf_end)
             {
                 const pixel_t blended = truecolor_blend ? I_BlendDark_32(*src, fuzzalpha) :
-                                                          I_BlendDark_8(*src, fuzzalpha);
+                                                          I_BlendFuzz_8(*src);
 
                 // Fill rectangle: write_lines × fuzzblockwidth (anchored)
                 pixel_t *row = draw;
@@ -538,7 +571,7 @@ void R_DrawFuzzColumnLow(void)
         {
             const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
             const pixel_t blended = truecolor_blend ? I_BlendDark_32(draw[fuzz_off], fuzzalpha) :
-                                                      I_BlendDark_8(draw[fuzz_off], fuzzalpha);
+                                                      I_BlendFuzz_8(draw[fuzz_off]);
             for (int j = 0; j < fuzzblockwidth; ++j)
                 draw[j] = blended;
         }
@@ -562,10 +595,10 @@ void R_DrawFuzzColumnLow(void)
 
         if (src1 < vbuf_end)
             *dest = truecolor_blend ? I_BlendDark_32(*src1, fuzzalpha) :
-                                      I_BlendDark_8(*src1, fuzzalpha);
+                                      I_BlendFuzz_8(*src1);
         if (src2 < vbuf_end)
             *dest2 = truecolor_blend ? I_BlendDark_32(*src2, fuzzalpha) :
-                                       I_BlendDark_8(*src2, fuzzalpha);
+                                       I_BlendFuzz_8(*src2);
 
         // Update fuzzpos (compact wrap & optional jitter)
         if (++local_fuzzpos == fuzzwrap)
@@ -584,9 +617,9 @@ void R_DrawFuzzColumnLow(void)
     {
         const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
         *dest  = truecolor_blend ? I_BlendDark_32(dest [fuzz_offset], fuzzalpha) :
-                                   I_BlendDark_8(dest [fuzz_offset], fuzzalpha);
+                                   I_BlendFuzz_8(dest [fuzz_offset]);
         *dest2 = truecolor_blend ? I_BlendDark_32(dest2[fuzz_offset], fuzzalpha) :
-                                   I_BlendDark_8(dest2[fuzz_offset], fuzzalpha);
+                                   I_BlendFuzz_8(dest2[fuzz_offset]);
     }
 
     // Persist fuzz position
