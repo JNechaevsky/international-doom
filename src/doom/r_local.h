@@ -571,9 +571,6 @@ extern void  R_InitColormaps (void);
 extern void  R_InitData (void);
 extern void  R_PrecacheLevel (void);
 
-extern int   *texturecompositesize;
-extern byte **texturecomposite;
-
 extern int    numflats;
 
 // -----------------------------------------------------------------------------

@@ -762,44 +762,47 @@ static void status(const char *string)
     }
 }
 
-static void DrawThermo(void)
-{
-    static int last_progress = -1;
-    int progress;
-    int i;
+// -----------------------------------------------------------------------------
+// drawTXTStartup
+//  [PN] Simplified thermo drawing routine.
+//  The progress bar now fills up to 51 characters
+//  independently, without relying on thermCurrent/thermMax.
+//  This guarantees a smooth full draw on every startup.
+// -----------------------------------------------------------------------------
 
+static void drawTXTStartup(void)
+{
     if (!using_graphical_startup)
     {
         return;
     }
 
-    // No progress? Don't update the screen.
-
-    progress = (50 * thermCurrent) / thermMax + 2;
-
-    if (last_progress == progress)
+    for (int progress = 1; progress <= 51; progress++)
     {
-        return;
-    }
+        if (progress == 5)
+            hprintf(DEH_String("Loading graphics"));
+        if (progress == 35)
+            hprintf(DEH_String("Init game engine."));
+        if (progress == 40)
+            hprintf(DEH_String("Checking network game status."));
 
-    last_progress = progress;
+        TXT_GotoXY(THERM_X, THERM_Y);
 
-    TXT_GotoXY(THERM_X, THERM_Y);
+        TXT_FGColor(TXT_COLOR_BRIGHT_GREEN);
+        TXT_BGColor(TXT_COLOR_GREEN, 0);
 
-    TXT_FGColor(TXT_COLOR_BRIGHT_GREEN);
-    TXT_BGColor(TXT_COLOR_GREEN, 0);
+        for (int i = 0; i < progress; i++)
+        {
+            TXT_PutChar(0xdb);
+        }
 
-    for (i = 0; i < progress; i++)
-    {
-        TXT_PutChar(0xdb);
-    }
+        TXT_UpdateScreen();
 
-    TXT_UpdateScreen();
-    
-    // [JN] Emulate slower startup.
-    if (vid_graphical_startup == 2)
-    {
-        I_Sleep(50);
+        // [JN] Эмуляция «медленной» загрузки.
+        if (vid_graphical_startup == 2)
+        {
+            I_Sleep(50);
+        }
     }
 }
 
@@ -871,19 +874,6 @@ void CheckAbortStartup(void)
         if(TXT_GetChar() == 27)
             CleanExit();
     }
-}
-
-void IncThermo(void)
-{
-    thermCurrent++;
-    DrawThermo();
-    CheckAbortStartup();
-}
-
-void InitThermo(int max)
-{
-    thermMax = max;
-    thermCurrent = 0;
 }
 
 //
@@ -1410,41 +1400,36 @@ void D_DoomMain(void)
     }
     wadprintf();                // print the added wadfiles
 
+    // [PN] Once status lines colleted from above, draw text startup.
+    drawTXTStartup();
+
     tprintf(DEH_String("MN_Init: Init menu system.\n"), 1);
     MN_Init();
 
     CT_Init();
 
     tprintf(DEH_String("R_Init: Init Heretic refresh daemon - ["), 1);
-    hprintf(DEH_String("Loading graphics"));
     R_Init();
     tprintf("\n", 0);
 
     tprintf(DEH_String("P_Init: Init Playloop state.\n"), 1);
-    hprintf(DEH_String("Init game engine."));
     P_Init();
-    IncThermo();
 
     tprintf(DEH_String("I_Init: Setting up machine state.\n"), 1);
     I_CheckIsScreensaver();
     I_InitJoystick();
-    IncThermo();
 
     tprintf(DEH_String("S_Init: Setting up sound.\n"), 1);
     S_Init();
-    //IO_StartupTimer();
     S_Start();
 
     tprintf(DEH_String("D_CheckNetGame: Checking network game status.\n"), 1);
-    hprintf(DEH_String("Checking network game status."));
     D_CheckNetGame();
-    IncThermo();
 
     // haleyjd: removed WATCOMC
 
     tprintf(DEH_String("SB_Init: Loading patches.\n"), 1);
     SB_Init();
-    IncThermo();
 
     tprintf(DEH_String("AM_Init: Loading automap data.\n"), 1);
     AM_Init();

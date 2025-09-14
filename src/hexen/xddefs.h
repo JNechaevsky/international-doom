@@ -224,30 +224,5 @@ typedef PACKED_STRUCT (
 #define MTF_GCOOP		512
 #define MTF_GDEATHMATCH	1024
 
-//--------------------------------------------------------------------------
-//
-// Texture definition
-//
-//--------------------------------------------------------------------------
-
-typedef PACKED_STRUCT (
-{
-    short originx;
-    short originy;
-    short patch;
-    short stepdir;
-    short colormap;
-}) mappatch_t;
-
-typedef PACKED_STRUCT (
-{
-    char name[8];
-    boolean masked;
-    short width;
-    short height;
-    int obsolete;
-    short patchcount;
-    mappatch_t patches[1];
-}) maptexture_t;
 
 #endif // __XDDEFS__

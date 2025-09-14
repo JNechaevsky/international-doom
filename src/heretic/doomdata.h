@@ -197,60 +197,6 @@ typedef PACKED_STRUCT (
 #define	MTF_HARD		4
 #define	MTF_AMBUSH		8
 
-/*
-===============================================================================
-
-						texture definition
-
-===============================================================================
-*/
-
-typedef PACKED_STRUCT (
-{
-    short originx;
-    short originy;
-    short patch;
-    short stepdir;
-    short colormap;
-}) mappatch_t;
-
-typedef PACKED_STRUCT (
-{
-    char name[8];
-    boolean masked;
-    short width;
-    short height;
-    int obsolete;
-    short patchcount;
-    mappatch_t patches[1];
-}) maptexture_t;
-
-
-/*
-===============================================================================
-
-							graphics
-
-===============================================================================
-*/
-
-// a pic is an unmasked block of pixels
-typedef struct
-{
-    byte width, height;
-    byte data;
-} pic_t;
-
-
-
-
-/*
-===============================================================================
-
-							status
-
-===============================================================================
-*/
 
 
 
