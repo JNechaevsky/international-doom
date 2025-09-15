@@ -1274,13 +1274,13 @@ void D_DoomMain(void)
 
     // [JN] Check for enhanced maps (heretic_ex.wad)
     {
-        heretic_ex = ((W_CheckNumForName("WADINFO") != -1) &&
-                      (W_CheckNumForName("E1M1") != -1) &&
-                      (W_CheckNumForName("E2M1") != -1) &&
-                      (W_CheckNumForName("E3M1") != -1) &&
-                      (W_CheckNumForName("E4M1") != -1) &&
-                      (W_CheckNumForName("E5M1") != -1) &&
-                      (W_CheckNumForName("E6M1") != -1));
+        heretic_ex = ((W_CheckMultipleLumps("WADINFO") > -1) &&
+                      (W_CheckMultipleLumps("E1M1") > 1) &&
+                      (W_CheckMultipleLumps("E2M1") > 1) &&
+                      (W_CheckMultipleLumps("E3M1") > 1) &&
+                      (W_CheckMultipleLumps("E4M1") > 1) &&
+                      (W_CheckMultipleLumps("E5M1") > 1) &&
+                      (W_CheckMultipleLumps("E6M1") > 1));
     }
 
     // [JN] Check for remastered soundtracks (heretic_mus_orig.wad and
