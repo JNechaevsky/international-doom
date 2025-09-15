@@ -1274,7 +1274,7 @@ void D_DoomMain(void)
 
     // [JN] Check for enhanced maps (heretic_ex.wad)
     {
-        heretic_ex = ((W_CheckMultipleLumps("WADINFO") > -1) &&
+        heretic_ex = ((W_CheckMultipleLumps("WADINFO") > 1) &&
                       (W_CheckMultipleLumps("E1M1") > 1) &&
                       (W_CheckMultipleLumps("E2M1") > 1) &&
                       (W_CheckMultipleLumps("E3M1") > 1) &&
