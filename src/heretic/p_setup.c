@@ -3,6 +3,7 @@
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2015-2018 Fabian Greffrath
+// Copyright(C) 2025 Polina "Aura" N.
 // Copyright(C) 2016-2025 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
@@ -38,39 +39,75 @@
 #include "id_func.h"
 
 
+//
+// MAP related lookup tables.
+// Store VERTEXES, LINEDEFS, SIDEDEFS, etc.
+//
 
-int numvertexes;
-vertex_t *vertexes;
+int         numvertexes;
+vertex_t   *vertexes;
 
-int numsegs;
-seg_t *segs;
+int         numsegs;
+seg_t      *segs;
 
-int numsectors;
-sector_t *sectors;
+int         numsectors;
+sector_t   *sectors;
 
-int numsubsectors;
+int          numsubsectors;
 subsector_t *subsectors;
 
-int numnodes;
-node_t *nodes;
+int         numnodes;
+node_t     *nodes;
 
-int numlines;
-line_t *lines;
+int         numlines;
+line_t     *lines;
 
-int numsides;
-side_t *sides;
+int         numsides;
+side_t     *sides;
 
-int32_t *blockmap;	            // offsets in blockmap are from here // [crispy] BLOCKMAP limit
-int32_t *blockmaplump;          // [crispy] BLOCKMAP limit
-int bmapwidth, bmapheight;      // in mapblocks
-fixed_t bmaporgx, bmaporgy;     // origin of block map
-mobj_t **blocklinks;            // for thing chains
+static int  totallines;
 
-byte *rejectmatrix;             // for fast sight rejection
+//
+// BLOCKMAP
+// Created from axis-aligned bounding box
+// of the map, a rectangular array of
+// blocks of size ... Used to speed up
+// collision detection by spatial subdivision in 2D.
+//
 
-mapthing_t deathmatchstarts[10], *deathmatch_p;
-mapthing_t playerstarts[MAXPLAYERS];
-boolean playerstartsingame[MAXPLAYERS];
+// Blockmap size
+int        bmapwidth;
+int        bmapheight;     // size in mapblocks
+
+int32_t   *blockmap;       // [crispy] int for larger maps BLOCKMAP limit
+int32_t   *blockmaplump;   // [crispy] offsets in blockmap are from here
+
+// Blockmap origin
+fixed_t    bmaporgx;
+fixed_t    bmaporgy;
+
+// Thing chains per block
+mobj_t   **blocklinks;
+
+// REJECT
+// For fast sight rejection.
+// Speeds up enemy AI by skipping detailed
+//  LineOf Sight calculation.
+// Without special effect, this could be
+//  used as a PVS lookup as well.
+//
+
+byte *rejectmatrix;
+
+
+// Maintain single and multi player starting spots.
+#define MAX_DEATHMATCH_STARTS	10
+
+mapthing_t  deathmatchstarts[MAX_DEATHMATCH_STARTS];
+mapthing_t *deathmatch_p;
+mapthing_t  playerstarts[MAXPLAYERS];
+boolean     playerstartsingame[MAXPLAYERS];
+
 
 // -----------------------------------------------------------------------------
 
@@ -79,7 +116,8 @@ typedef enum
     MFMT_DOOMBSP = 0x000,
     MFMT_DEEPBSP = 0x001,
     MFMT_ZDBSPX  = 0x002,
-    MFMT_ZDBSPZ  = 0x004
+    MFMT_ZDBSPZ  = 0x004,
+    MFMT_HEXEN   = 0x100,
 } mapformat_t;
 
 // -----------------------------------------------------------------------------
@@ -102,18 +140,23 @@ static sector_t *GetSectorAtNullAddress (void)
     return &null_sector;
 }
 
+// -----------------------------------------------------------------------------
+// GetOffset
 // [crispy] recalculate seg offsets
 // adapted from prboom-plus/src/p_setup.c:474-482
-static fixed_t GetOffset(const vertex_t *v1, const vertex_t *v2)
+// -----------------------------------------------------------------------------
+
+static fixed_t GetOffset (const vertex_t *restrict v1, const vertex_t *restrict v2)
 {
-    fixed_t dx, dy;
-    fixed_t r;
+    // Compute delta in map units
+    const int32_t dx = (v1->x - v2->x) >> FRACBITS;
+    const int32_t dy = (v1->y - v2->y) >> FRACBITS;
 
-    dx = (v1->x - v2->x)>>FRACBITS;
-    dy = (v1->y - v2->y)>>FRACBITS;
-    r = (fixed_t)(sqrt(dx*dx + dy*dy))<<FRACBITS;
+    // Euclidean distance in map units
+    const double dist = sqrt((double)dx * dx + (double)dy * dy);
 
-    return r;
+    // Convert back to fixed-point
+    return (fixed_t)(dist * FRACUNIT);
 }
 
 // [crispy] support maps with NODES in compressed or uncompressed ZDBSP
@@ -124,7 +167,6 @@ static mapformat_t P_CheckMapFormat(int lumpnum)
     const byte *chk_nodes = NULL;
     int b;
 
-    /*
     if ((b = lumpnum+ML_BLOCKMAP+1) < numlumps &&
         !strncasecmp(lumpinfo[b]->name, "BEHAVIOR", 8))
     {
@@ -132,7 +174,6 @@ static mapformat_t P_CheckMapFormat(int lumpnum)
 	format |= MFMT_HEXEN;
     }
     else
-    */
 	fprintf(stderr, "Heretic format (");
 
     if (!((b = lumpnum+ML_NODES) < numlumps &&
@@ -545,373 +586,542 @@ static void P_LoadNodes_ZDBSP (int lump, boolean compressed)
     }
 }
 
-
-// -----------------------------------------------------------------------------
-
-
-/*
-=================
-=
-= P_LoadVertexes
-=
-=================
-*/
-
-static void P_LoadVertexes(int lump)
+// [crispy] allow loading of Hexen-format maps
+// adapted from chocolate-doom/src/hexen/p_setup.c:348-400
+static void P_LoadThings_Hexen (int lump)
 {
     byte *data;
     int i;
-    mapvertex_t *ml;
-    vertex_t *li;
+    mapthing_t spawnthing;
+    mapthing_hexen_t *mt;
+    int numthings;
 
-    numvertexes = W_LumpLength(lump) / sizeof(mapvertex_t);
-    vertexes = Z_Malloc(numvertexes * sizeof(vertex_t), PU_LEVEL, 0);
     data = W_CacheLumpNum(lump, PU_STATIC);
+    numthings = W_LumpLength(lump) / sizeof(mapthing_hexen_t);
 
-    ml = (mapvertex_t *) data;
-    li = vertexes;
-    for (i = 0; i < numvertexes; i++, li++, ml++)
+    mt = (mapthing_hexen_t *) data;
+    for (i = 0; i < numthings; i++, mt++)
     {
-        li->x = SHORT(ml->x) << FRACBITS;
-        li->y = SHORT(ml->y) << FRACBITS;
+//	spawnthing.tid = SHORT(mt->tid);
+	spawnthing.x = SHORT(mt->x);
+	spawnthing.y = SHORT(mt->y);
+//	spawnthing.height = SHORT(mt->height);
+	spawnthing.angle = SHORT(mt->angle);
+	spawnthing.type = SHORT(mt->type);
+	spawnthing.options = SHORT(mt->options);
 
-        // [crispy] initialize pseudovertexes with actual vertex coordinates
-        li->r_x = li->x;
-        li->r_y = li->y;
-        li->moved = false;
+//	spawnthing.special = mt->special;
+//	spawnthing.arg1 = mt->arg1;
+//	spawnthing.arg2 = mt->arg2;
+//	spawnthing.arg3 = mt->arg3;
+//	spawnthing.arg4 = mt->arg4;
+//	spawnthing.arg5 = mt->arg5;
+
+	P_SpawnMapThing(&spawnthing);
     }
 
     W_ReleaseLumpNum(lump);
 }
 
-
-/*
-=================
-=
-= P_LoadSegs
-=
-=================
-*/
-
-static void P_LoadSegs(int lump)
+// [crispy] allow loading of Hexen-format maps
+// adapted from chocolate-doom/src/hexen/p_setup.c:410-490
+static void P_LoadLineDefs_Hexen (int lump)
 {
     byte *data;
     int i;
-    mapseg_t *ml;
-    seg_t *li;
-    line_t *ldef;
-    int line_def, side;
+    maplinedef_hexen_t *mld;
+    line_t *ld;
+    const vertex_t *v1;
+    const vertex_t *v2;
+    int warn; // [crispy] warn about unknown linedef types
 
-    numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
-    segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
-    memset(segs, 0, numsegs * sizeof(seg_t));
+    numlines = W_LumpLength(lump) / sizeof(maplinedef_hexen_t);
+    lines = Z_Malloc(numlines * sizeof(line_t), PU_LEVEL, 0);
+    memset(lines, 0, numlines * sizeof(line_t));
     data = W_CacheLumpNum(lump, PU_STATIC);
 
-    ml = (mapseg_t *) data;
-    li = segs;
-    for (i = 0; i < numsegs; i++, li++, ml++)
+    mld = (maplinedef_hexen_t *) data;
+    ld = lines;
+    warn = 0; // [crispy] warn about unknown linedef types
+    for (i = 0; i < numlines; i++, mld++, ld++)
     {
-        li->v1 = &vertexes[(unsigned short)SHORT(ml->v1)]; // [crispy] extended nodes
-        li->v2 = &vertexes[(unsigned short)SHORT(ml->v2)]; // [crispy] extended nodes
+	ld->flags = (unsigned short)SHORT(mld->flags);
 
-        li->angle = (SHORT(ml->angle)) << 16;
-        li->offset = (SHORT(ml->offset)) << 16;
-        line_def = (unsigned short)SHORT(ml->linedef); // [crispy] extended nodes
-        ldef = &lines[line_def];
-        li->linedef = ldef;
-        side = SHORT(ml->side);
-        li->sidedef = &sides[ldef->sidenum[side]];
-        li->frontsector = sides[ldef->sidenum[side]].sector;
-        // [crispy] recalculate
-        li->offset = GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
+	ld->special = mld->special;
+//	ld->arg1 = mld->arg1;
+//	ld->arg2 = mld->arg2;
+//	ld->arg3 = mld->arg3;
+//	ld->arg4 = mld->arg4;
+//	ld->arg5 = mld->arg5;
+
+	// [crispy] warn about unknown linedef types
+	if ((unsigned short) ld->special > 141)
+	{
+	    fprintf(stderr, "P_LoadLineDefs: Unknown special %d at line %d\n", ld->special, i);
+	    warn++;
+	}
+
+	v1 = ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)];
+	v2 = ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
+
+	ld->dx = v2->x - v1->x;
+	ld->dy = v2->y - v1->y;
+	if (!ld->dx)
+	    ld->slopetype = ST_VERTICAL;
+	else if (!ld->dy)
+	    ld->slopetype = ST_HORIZONTAL;
+	else
+	{
+	    if (FixedDiv(ld->dy, ld->dx) > 0)
+		ld->slopetype = ST_POSITIVE;
+	    else
+		ld->slopetype = ST_NEGATIVE;
+	}
+
+	if (v1->x < v2->x)
+	{
+	    ld->bbox[BOXLEFT] = v1->x;
+	    ld->bbox[BOXRIGHT] = v2->x;
+	}
+	else
+	{
+	    ld->bbox[BOXLEFT] = v2->x;
+	    ld->bbox[BOXRIGHT] = v1->x;
+	}
+	if (v1->y < v2->y)
+	{
+	    ld->bbox[BOXBOTTOM] = v1->y;
+	    ld->bbox[BOXTOP] = v2->y;
+	}
+	else
+	{
+	    ld->bbox[BOXBOTTOM] = v2->y;
+	    ld->bbox[BOXTOP] = v1->y;
+	}
+
+	// [crispy] calculate sound origin of line to be its midpoint
+	ld->soundorg.x = ld->bbox[BOXLEFT] / 2 + ld->bbox[BOXRIGHT] / 2;
+	ld->soundorg.y = ld->bbox[BOXTOP] / 2 + ld->bbox[BOXBOTTOM] / 2;
+
+	ld->sidenum[0] = SHORT(mld->sidenum[0]);
+	ld->sidenum[1] = SHORT(mld->sidenum[1]);
+
+	// [crispy] substitute dummy sidedef for missing right side
+	if (ld->sidenum[0] == NO_INDEX)
+	{
+	    ld->sidenum[0] = 0;
+	    fprintf(stderr, "P_LoadLineDefs: linedef %d without first sidedef!\n", i);
+	}
+
+	if (ld->sidenum[0] != NO_INDEX)
+	    ld->frontsector = sides[ld->sidenum[0]].sector;
+	else
+	    ld->frontsector = 0;
+	if (ld->sidenum[1] != NO_INDEX)
+	    ld->backsector = sides[ld->sidenum[1]].sector;
+	else
+	    ld->backsector = 0;
+    }
+
+    // [crispy] warn about unknown linedef types
+    if (warn)
+    {
+	fprintf(stderr, "P_LoadLineDefs: Found %d line%s with unknown linedef type.\n"
+	                "THIS MAP MAY NOT WORK AS EXPECTED!\n", warn, (warn > 1) ? "s" : "");
+    }
+
+    W_ReleaseLumpNum(lump);
+}
+
+// -----------------------------------------------------------------------------
+// P_LoadVertexes
+// -----------------------------------------------------------------------------
+
+static void P_LoadVertexes (int lump)
+{
+    // Determine number of vertices
+    const int lumpSize = W_LumpLength(lump);
+    const int count = lumpSize / sizeof(mapvertex_t);
+    numvertexes = count;
+
+    // Allocate zone memory for vertices
+    vertex_t *const verts = Z_Malloc((size_t)count * sizeof(*verts), PU_LEVEL, 0);
+    vertexes = verts;
+
+    // Load raw vertex data into cache
+    const byte *const dataV = W_CacheLumpNum(lump, PU_STATIC);
+    const mapvertex_t *restrict srcV = (const mapvertex_t *)dataV;
+
+    // Copy and convert vertex coordinates to fixed-point
+    for (int i = 0; i < count; ++i)
+    {
+        const fixed_t x = SHORT(srcV[i].x) << FRACBITS;
+        const fixed_t y = SHORT(srcV[i].y) << FRACBITS;
+
+        verts[i].x = x;
+        verts[i].y = y;
+
+        // [crispy] initialize vertex coordinates *only* used in rendering
+        verts[i].r_x = x;
+        verts[i].r_y = y;
+        verts[i].moved = false;
+    }
+
+    // Release the cached lump
+    W_ReleaseLumpNum(lump);
+}
+
+// -----------------------------------------------------------------------------
+// P_LoadSegs
+// -----------------------------------------------------------------------------
+
+static void P_LoadSegs (int lump)
+{
+    // Determine number of segments
+    const int lumpSize = W_LumpLength(lump);
+    const int count = lumpSize / sizeof(mapseg_t);
+    numsegs = count;
+
+    // Allocate and zero-initialize segment array
+    seg_t *const dst = Z_Malloc((size_t)count * sizeof(*dst), PU_LEVEL, 0);
+    memset(dst, 0, (size_t)count * sizeof(*dst));
+    segs = dst;
+
+    // Load raw segment data into cache
+    const byte *const dataS = W_CacheLumpNum(lump, PU_STATIC);
+    const mapseg_t *restrict srcS = (const mapseg_t *)dataS;
+
+    // Process each segment
+    for (int i = 0; i < count; ++i)
+    {
+        const mapseg_t *const ms = &srcS[i];
+        seg_t *const si = &dst[i];
+
+        // Vertex references (extended nodes)
+        const unsigned short v1i = SHORT(ms->v1);
+        const unsigned short v2i = SHORT(ms->v2);
+        si->v1 = &vertexes[v1i];
+        si->v2 = &vertexes[v2i];
+
+        // Angle
+        si->angle = SHORT(ms->angle) << FRACBITS;
+
+        // Linedef
+        const unsigned short lineIdx = (unsigned short)SHORT(ms->linedef);
+        if ((unsigned)lineIdx >= (unsigned)numlines)
+            I_Error("P_LoadSegs: seg %d references a non-existent linedef %d", i, (unsigned)lineIdx);
+        line_t *const ldef = &lines[lineIdx];
+        si->linedef = ldef;
+
+        // Side index
+        const int side = SHORT(ms->side);
+        const int sideNum = ldef->sidenum[side];
+        if ((unsigned)sideNum >= (unsigned)numsides)
+            I_Error("P_LoadSegs: linedef %d for seg %d references a non-existent sidedef %d", (unsigned)lineIdx, i, sideNum);
+
+        si->sidedef = &sides[sideNum];
+        si->frontsector = sides[sideNum].sector;
+
+        // Recalculate offset
+        si->offset = GetOffset(si->v1, side ? ldef->v2 : ldef->v1);
+
+        // Backsector logic for two-sided lines
         if (ldef->flags & ML_TWOSIDED)
         {
-            const int side_num = ldef->sidenum[side ^ 1];
-
-            if (side_num < 0 || side_num >= numsides)
+            const int otherSide = ldef->sidenum[side ^ 1];
+            if ((unsigned)otherSide >= (unsigned)numsides)
             {
-                // [crispy] linedef has two-sided flag set, but no valid second sidedef;
-                // but since it has a midtexture, it is supposed to be rendered just
-                // like a regular one-sided linedef
-                if (li->sidedef->midtexture)
+                if (si->sidedef->midtexture)
                 {
-                    li->backsector = 0;
-                    fprintf(stderr, "P_LoadSegs: Linedef %d has two-sided flag set, but no second sidedef\n", line_def);
+                    si->backsector = 0;
+                    fprintf(stderr,
+                        "P_LoadSegs: Linedef %u has two-sided flag set, but no second sidedef\n",
+                        (unsigned)lineIdx);
                 }
                 else
-                li->backsector = GetSectorAtNullAddress();
+                {
+                    si->backsector = GetSectorAtNullAddress();
+                }
             }
             else
             {
-                li->backsector = sides[side_num].sector;
+                si->backsector = sides[otherSide].sector;
             }
         }
         else
         {
-            li->backsector = 0;
+            si->backsector = 0;
         }
     }
 
+    // Release the cached lump
     W_ReleaseLumpNum(lump);
 }
+
 
 // [crispy] fix long wall wobble
 
 static angle_t anglediff(angle_t a, angle_t b)
 {
-    if (b > a)
-        return anglediff(b, a);
+	if (b > a)
+		return anglediff(b, a);
 
-    if (a - b < ANG180)
-        return a - b;
-    else // [crispy] wrap around
-        return b - a;
+	if (a - b < ANG180)
+		return a - b;
+	else // [crispy] wrap around
+		return b - a;
 }
 
-void P_SegLengths(boolean contrast_only)
+// -----------------------------------------------------------------------------
+// P_SegLengths
+// -----------------------------------------------------------------------------
+
+void P_SegLengths (boolean contrast_only)
 {
-    int i;
+    const int count = numsegs;
     const int rightangle = abs(finesine[(ANG60/2) >> ANGLETOFINESHIFT]);
     // [JN] Make fake contrast optional.
     const int fakecont_val  = vis_fake_contrast ? LIGHTBRIGHT : 0;
     // [JN] Apply smoother fake contrast for smooth diminishing lighting.
-    const int smoothlit_val = vis_fake_contrast && vis_smooth_light ? LIGHTBRIGHT : 0;
+    const int smoothlit_val = (vis_fake_contrast && vis_smooth_light) ? LIGHTBRIGHT : 0;
 
-    for (i = 0; i < numsegs; i++)
+    seg_t *const segArray = segs;
+
+    for (int i = 0; i < count; ++i)
     {
-        seg_t *const li = &segs[i];
-        int64_t dx, dy;
-
-        dx = li->v2->r_x - li->v1->r_x;
-        dy = li->v2->r_y - li->v1->r_y;
+        seg_t *const s = &segArray[i];
+        const int64_t dx = s->v2->r_x - s->v1->r_x;
+        const int64_t dy = s->v2->r_y - s->v1->r_y;
 
         if (!contrast_only)
         {
-            li->length = (uint32_t)(sqrt((double)dx * dx + (double)dy * dy) / 2);
+            const double dist = sqrt((double)dx * dx + (double)dy * dy);
+            s->length = (uint32_t)(dist * 0.5);
 
             // [crispy] re-calculate angle used for rendering
-            viewx = li->v1->r_x;
-            viewy = li->v1->r_y;
-            li->r_angle = R_PointToAngleCrispy(li->v2->r_x, li->v2->r_y);
-            // [crispy] more than just a little adjustment?
-            // back to the original angle then
-            if (anglediff(li->r_angle, li->angle) > ANG60/2)
-            {
-                li->r_angle = li->angle;
-            }
+            viewx = s->v1->r_x;
+            viewy = s->v1->r_y;
+            const angle_t newAngle = R_PointToAngleCrispy(s->v2->r_x, s->v2->r_y);
+            s->r_angle = (anglediff(newAngle, s->angle) > ANG60/2) ? s->angle : newAngle;
         }
 
         // [crispy] smoother fake contrast
         // [PN] Use shifted angle for lookup
-        const angle_t angle = li->r_angle >> ANGLETOFINESHIFT;
-        const fixed_t sine_val = abs(finesine[angle]);
-        const fixed_t cosine_val = abs(finecosine[angle]);
+        const angle_t shifted = s->r_angle >> ANGLETOFINESHIFT;
+        const fixed_t sine_val = abs(finesine[shifted]);
+        const fixed_t cosine_val = abs(finecosine[shifted]);
+        int fc;
 
-        if (!dy)
+        if (dy == 0)
         {
             // [PN] Strong horizontal contrast
-            li->fakecontrast = -fakecont_val;
+            fc = -fakecont_val;
         }
-        else
-        if (sine_val < rightangle)
+        else if (sine_val < rightangle)
         {
             // [PN] Smooth dimming for near-horizontal
-            li->fakecontrast = -smoothlit_val + (smoothlit_val * sine_val / rightangle);
+            fc = -smoothlit_val + (smoothlit_val * sine_val / rightangle);
         }
-        else
-        if (!dx)
+        else if (dx == 0)
         {
             // [PN] Strong vertical contrast
-            li->fakecontrast = fakecont_val;
+            fc = fakecont_val;
         }
-        else
-        if (cosine_val < rightangle)
+        else if (cosine_val < rightangle)
         {
             // [PN] Smooth dimming for near-vertical
-            li->fakecontrast = smoothlit_val - (smoothlit_val * cosine_val / rightangle);
+            fc = smoothlit_val - (smoothlit_val * cosine_val / rightangle);
         }
         else
         {
             // [PN] Default case
-            li->fakecontrast = 0;
+            fc = 0;
         }
+        s->fakecontrast = fc;
     }
 }
 
-/*
-=================
-=
-= P_LoadSubsectors
-=
-=================
-*/
+// -----------------------------------------------------------------------------
+// P_LoadSubsectors
+// -----------------------------------------------------------------------------
 
-static void P_LoadSubsectors(int lump)
+static void P_LoadSubsectors (int lump)
 {
-    byte *data;
-    int i;
-    mapsubsector_t *ms;
-    subsector_t *ss;
+    // Determine number of subsectors
+    const int lumpSize = W_LumpLength(lump);
+    const int count = lumpSize / sizeof(mapsubsector_t);
+    numsubsectors = count;
 
-    numsubsectors = W_LumpLength(lump) / sizeof(mapsubsector_t);
-    subsectors = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
-    data = W_CacheLumpNum(lump, PU_STATIC);
+    // Allocate zone memory for subsectors
+    subsector_t *const dst = Z_Malloc((size_t)count * sizeof(*dst), PU_LEVEL, 0);
+    subsectors = dst;
 
-    ms = (mapsubsector_t *) data;
-    memset(subsectors, 0, numsubsectors * sizeof(subsector_t));
-    ss = subsectors;
-    for (i = 0; i < numsubsectors; i++, ss++, ms++)
+    // Load raw subsector data into cache
+    const byte *const data = W_CacheLumpNum(lump, PU_STATIC);
+    if (!data || count == 0)
+        I_Error("P_LoadSubsectors: No subsectors in map! (lump %d)", lump);
+    const mapsubsector_t *restrict src = (const mapsubsector_t *)data;
+
+    // Zero-initialize destination array
+    memset(dst, 0, (size_t)count * sizeof(*dst));
+
+    // Copy fields
+    for (int i = 0; i < count; ++i)
     {
-        ss->numlines = (unsigned short)SHORT(ms->numsegs); // [crispy] extended nodes
-        ss->firstline = (unsigned short)SHORT(ms->firstseg); // [crispy] extended nodes
+        dst[i].numlines  = (unsigned short)SHORT(src[i].numsegs);   // [crispy] extended nodes
+        dst[i].firstline = (unsigned short)SHORT(src[i].firstseg);  // [crispy] extended nodes
     }
 
+    // Release the cached lump
     W_ReleaseLumpNum(lump);
 }
 
+// -----------------------------------------------------------------------------
+// P_LoadSectors
+// -----------------------------------------------------------------------------
 
-/*
-=================
-=
-= P_LoadSectors
-=
-=================
-*/
-
-static void P_LoadSectors(int lump)
+static void P_LoadSectors (int lump)
 {
-    byte *data;
-    int i;
-    mapsector_t *ms;
-    sector_t *ss;
+    // Validate lump index
+    if ((unsigned)lump >= (unsigned)numlumps)
+        I_Error("P_LoadSectors: No sectors in map! (lump %d)", lump);
 
-    numsectors = W_LumpLength(lump) / sizeof(mapsector_t);
-    sectors = Z_Malloc(numsectors * sizeof(sector_t), PU_LEVEL, 0);
-    memset(sectors, 0, numsectors * sizeof(sector_t));
-    data = W_CacheLumpNum(lump, PU_STATIC);
+    // Determine number of sectors
+    const int lumpSize = W_LumpLength(lump);
+    const int count = lumpSize / sizeof(mapsector_t);
+    numsectors = count;
 
-    ms = (mapsector_t *) data;
-    ss = sectors;
-    for (i = 0; i < numsectors; i++, ss++, ms++)
+    // Allocate and zero-initialize sector array
+    sector_t *const dst = Z_Malloc((size_t)count * sizeof(*dst), PU_LEVEL, 0);
+    memset(dst, 0, (size_t)count * sizeof(*dst));
+    sectors = dst;
+
+    // Load raw sector data into cache
+    const byte *const data = W_CacheLumpNum(lump, PU_STATIC);
+    if (!data || count == 0)
+        I_Error("P_LoadSectors: No sectors in map! (lump %d)", lump);
+    const mapsector_t *restrict src = (const mapsector_t *)data;
+
+    // Copy fields
+    for (int i = 0; i < count; ++i)
     {
-        ss->floorheight = SHORT(ms->floorheight) << FRACBITS;
-        ss->ceilingheight = SHORT(ms->ceilingheight) << FRACBITS;
-        ss->floorpic = R_FlatNumForName(ms->floorpic);
-        ss->ceilingpic = R_FlatNumForName(ms->ceilingpic);
-        ss->lightlevel = SHORT(ms->lightlevel);
-        ss->special = SHORT(ms->special);
-        ss->tag = SHORT(ms->tag);
-        ss->thinglist = NULL;
+        dst[i].floorheight         = SHORT(src[i].floorheight) << FRACBITS;
+        dst[i].ceilingheight       = SHORT(src[i].ceilingheight) << FRACBITS;
+        dst[i].floorpic            = R_FlatNumForName(src[i].floorpic);
+        dst[i].ceilingpic          = R_FlatNumForName(src[i].ceilingpic);
+        dst[i].lightlevel          = SHORT(src[i].lightlevel);
+        dst[i].special             = SHORT(src[i].special);
+        dst[i].tag                 = SHORT(src[i].tag);
+        dst[i].thinglist           = NULL;
+        dst[i].cachedheight        = 0; // [crispy] WiggleFix: [kb] for R_FixWiggle()
 
-        // [crispy] WiggleFix: [kb] for R_FixWiggle()
-        ss->cachedheight = 0;
-
-        // [AM] Sector interpolation.  Even if we're
-        //      not running uncapped, the renderer still
-        //      uses this data.
-        ss->oldfloorheight = ss->floorheight;
-        ss->interpfloorheight = ss->floorheight;
-        ss->oldceilingheight = ss->ceilingheight;
-        ss->interpceilingheight = ss->ceilingheight;
+        // [AM] Sector interpolation. Even if we're
+        // not running uncapped, the renderer still uses this data.
+        dst[i].oldfloorheight      = dst[i].floorheight;
+        dst[i].interpfloorheight   = dst[i].floorheight;
+        dst[i].oldceilingheight    = dst[i].ceilingheight;
+        dst[i].interpceilingheight = dst[i].ceilingheight;
         // [crispy] inhibit sector interpolation during the 0th gametic
-        ss->oldgametic = -1;
+        dst[i].oldgametic          = -1;
         // [PN] Initialize Z-axis sound origin with the middle of the sector height
-        ss->soundorg.z = (ss->floorheight + ss->ceilingheight) >> 1;
+        dst[i].soundorg.z          = (dst[i].floorheight + dst[i].ceilingheight) >> 1;
     }
 
+    // Release the cached lump
     W_ReleaseLumpNum(lump);
 }
 
+// -----------------------------------------------------------------------------
+// P_LoadNodes
+// -----------------------------------------------------------------------------
 
-/*
-=================
-=
-= P_LoadNodes
-=
-=================
-*/
-
-static void P_LoadNodes(int lump)
+static void P_LoadNodes (int lump)
 {
-    byte *data;
-    int i, j, k;
-    mapnode_t *mn;
-    node_t *no;
+    // Determine number of nodes
+    const int lumpSize = W_LumpLength(lump);
+    const int count = lumpSize / sizeof(mapnode_t);
+    numnodes = count;
 
-    numnodes = W_LumpLength(lump) / sizeof(mapnode_t);
-    nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
-    data = W_CacheLumpNum(lump, PU_STATIC);
+    // Allocate memory for nodes
+    node_t *const dst = Z_Malloc((size_t)count * sizeof(*dst), PU_LEVEL, 0);
+    nodes = dst;
 
-    mn = (mapnode_t *) data;
-    no = nodes;
-    for (i = 0; i < numnodes; i++, no++, mn++)
+    // Load raw node data into cache
+    const byte *const data = W_CacheLumpNum(lump, PU_STATIC);
+    if (!data || count == 0)
     {
-        no->x = SHORT(mn->x) << FRACBITS;
-        no->y = SHORT(mn->y) << FRACBITS;
-        no->dx = SHORT(mn->dx) << FRACBITS;
-        no->dy = SHORT(mn->dy) << FRACBITS;
-        for (j = 0; j < 2; j++)
+        if (numsubsectors == 1)
+            fprintf(stderr, "P_LoadNodes: No nodes in map, but only one subsector.\n");
+        else
+            I_Error("P_LoadNodes: No nodes in map!");
+    }
+    const mapnode_t *restrict src = (const mapnode_t *)data;
+
+    // Copy fields
+    for (int i = 0; i < count; ++i)
+    {
+        dst[i].x  = SHORT(src[i].x)  << FRACBITS;
+        dst[i].y  = SHORT(src[i].y)  << FRACBITS;
+        dst[i].dx = SHORT(src[i].dx) << FRACBITS;
+        dst[i].dy = SHORT(src[i].dy) << FRACBITS;
+
+        for (int j = 0; j < 2; ++j)
         {
-            no->children[j] = (unsigned short)SHORT(mn->children[j]); // [crispy] extended nodes
+            int child = (unsigned short)SHORT(src[i].children[j]); // [crispy] extended nodes
 
-            // [crispy] add support for extended nodes
-            // from prboom-plus/src/p_setup.c:937-957
-            if (no->children[j] == NO_INDEX)
-                no->children[j] = -1;
-            else
-            if (no->children[j] & NF_SUBSECTOR_VANILLA)
+            if (child == NO_INDEX)
             {
-                no->children[j] &= ~NF_SUBSECTOR_VANILLA;
-
-                if (no->children[j] >= numsubsectors)
-                    no->children[j] = 0;
-
-                no->children[j] |= NF_SUBSECTOR;
+                child = -1;
+            }
+            else if (child & NF_SUBSECTOR_VANILLA)
+            {
+                child &= ~NF_SUBSECTOR_VANILLA;
+                if (child >= numsubsectors)
+                    child = 0;
+                child |= NF_SUBSECTOR;
             }
 
-            for (k = 0; k < 4; k++)
-                no->bbox[j][k] = SHORT(mn->bbox[j][k]) << FRACBITS;
+            dst[i].children[j] = child;
+
+            // Bounding box
+            for (int k = 0; k < 4; ++k)
+            {
+                dst[i].bbox[j][k] = SHORT(src[i].bbox[j][k]) << FRACBITS;
+            }
         }
     }
 
+    // Release the cached lump
     W_ReleaseLumpNum(lump);
 }
 
+// -----------------------------------------------------------------------------
+// P_LoadThings
+// -----------------------------------------------------------------------------
 
-
-/*
-=================
-=
-= P_LoadThings
-=
-=================
-*/
-
-static void P_LoadThings(int lump)
+static void P_LoadThings (int lump)
 {
-    byte *data;
-    int i;
-    mapthing_t spawnthing;
-    mapthing_t *mt;
-    int numthings;
     // [JN] Initialize counters for playstate limits.
     int boss_count = 0, ambs_count = 0, mace_count = 0;
 
-    data = W_CacheLumpNum(lump, PU_STATIC);
-    numthings = W_LumpLength(lump) / sizeof(mapthing_t);
+    // Load raw things data into cache
+    const byte *const data = W_CacheLumpNum(lump, PU_STATIC);
+    if (!data)
+        I_Error("P_LoadThings: Failed to load lump %d", lump);
 
-    mt = (mapthing_t *) data;
-    for (i = 0; i < numthings; i++, mt++)
+    // Determine number of things
+    const int count = W_LumpLength(lump) / sizeof(mapthing_t);
+    const mapthing_t *restrict src = (const mapthing_t *)data;
+
+    mapthing_t spawnthing;
+
+    // Iterate and spawn
+    for (int i = 0; i < count; ++i)
     {
-        spawnthing.x = SHORT(mt->x);
-        spawnthing.y = SHORT(mt->y);
-        spawnthing.angle = SHORT(mt->angle);
-        spawnthing.type = SHORT(mt->type);
-        spawnthing.options = SHORT(mt->options);
-        P_SpawnMapThing(&spawnthing);
+        const mapthing_t *mt = &src[i];
 
         // [JN] Print console warnings when playstate limits has been reached.
-        switch (spawnthing.type)
+        switch (SHORT(mt->type))
         {
             // D'Sparil teleport location
             case 56:
@@ -943,665 +1153,634 @@ static void P_LoadThings(int lump)
                 }
             break;
         }
+
+        // Prepare spawnthing
+        spawnthing.x       = SHORT(mt->x);
+        spawnthing.y       = SHORT(mt->y);
+        spawnthing.angle   = SHORT(mt->angle);
+        spawnthing.type    = SHORT(mt->type);
+        spawnthing.options = SHORT(mt->options);
+
+        P_SpawnMapThing(&spawnthing);
     }
 
+    // Validate player starts
     if (!deathmatch)
     {
-        for (i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < MAXPLAYERS; ++i)
         {
             if (playeringame[i] && !playerstartsingame[i])
-            {
                 I_Error("P_LoadThings: Player %d start missing (vanilla crashes here)", i + 1);
-            }
+
             playerstartsingame[i] = false;
         }
     }
 
+    // Release the cached lump
     W_ReleaseLumpNum(lump);
 }
 
+// -----------------------------------------------------------------------------
+// P_LoadLineDefs
+// Also counts secret lines for intermissions.
+// -----------------------------------------------------------------------------
 
-
-/*
-=================
-=
-= P_LoadLineDefs
-=
-= Also counts secret lines for intermissions
-=================
-*/
-
-static void P_LoadLineDefs(int lump)
+static void P_LoadLineDefs (int lump)
 {
-    byte *data;
-    int i;
-    maplinedef_t *mld;
-    line_t *ld;
-    const vertex_t *v1;
-    const vertex_t *v2;
+    // Determine number of lines
+    const int lumpSize = W_LumpLength(lump);
+    const int count = lumpSize / sizeof(maplinedef_t);
+    numlines = count;
 
-    numlines = W_LumpLength(lump) / sizeof(maplinedef_t);
-    lines = Z_Malloc(numlines * sizeof(line_t), PU_LEVEL, 0);
-    memset(lines, 0, numlines * sizeof(line_t));
-    data = W_CacheLumpNum(lump, PU_STATIC);
+    // Allocate and zero-initialize line array
+    line_t *const dst = Z_Malloc((size_t)count * sizeof(*dst), PU_LEVEL, 0);
+    memset(dst, 0, (size_t)count * sizeof(*dst));
+    lines = dst;
 
-    mld = (maplinedef_t *) data;
-    ld = lines;
-    for (i = 0; i < numlines; i++, mld++, ld++)
+    // Load raw linedef data into cache
+    const byte *const data = W_CacheLumpNum(lump, PU_STATIC);
+    if (!data)
+        I_Error("P_LoadLineDefs: Failed to load lump %d", lump);
+    const maplinedef_t *restrict src = (const maplinedef_t *)data;
+
+    for (int i = 0; i < count; ++i)
     {
-        ld->flags = (unsigned short)SHORT(mld->flags); // [crispy] extended nodes
-        ld->special = SHORT(mld->special);
-        ld->tag = SHORT(mld->tag);
-        v1 = ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)]; // [crispy] extended nodes
-        v2 = ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)]; // [crispy] extended nodes
-        ld->dx = v2->x - v1->x;
-        ld->dy = v2->y - v1->y;
+        line_t *const ld = &dst[i];
+        const maplinedef_t *const ml = &src[i];
+
+        // Flags and special
+        ld->flags = (unsigned short)SHORT(ml->flags);
+        ld->special = SHORT(ml->special);
+
+        // Tag
+        ld->tag = SHORT(ml->tag);
+
+        // Vertices
+        const unsigned short v1idx = (unsigned short)SHORT(ml->v1);
+        const unsigned short v2idx = (unsigned short)SHORT(ml->v2);
+        ld->v1 = &vertexes[v1idx];
+        ld->v2 = &vertexes[v2idx];
+        ld->dx = ld->v2->x - ld->v1->x;
+        ld->dy = ld->v2->y - ld->v1->y;
+
+        // Slope type
         if (!ld->dx)
             ld->slopetype = ST_VERTICAL;
         else if (!ld->dy)
             ld->slopetype = ST_HORIZONTAL;
         else
-        {
-            if (FixedDiv(ld->dy, ld->dx) > 0)
-                ld->slopetype = ST_POSITIVE;
-            else
-                ld->slopetype = ST_NEGATIVE;
-        }
+            ld->slopetype = (FixedDiv(ld->dy, ld->dx) > 0) ? ST_POSITIVE : ST_NEGATIVE;
 
-        if (v1->x < v2->x)
-        {
-            ld->bbox[BOXLEFT] = v1->x;
-            ld->bbox[BOXRIGHT] = v2->x;
-        }
-        else
-        {
-            ld->bbox[BOXLEFT] = v2->x;
-            ld->bbox[BOXRIGHT] = v1->x;
-        }
-        if (v1->y < v2->y)
-        {
-            ld->bbox[BOXBOTTOM] = v1->y;
-            ld->bbox[BOXTOP] = v2->y;
-        }
-        else
-        {
-            ld->bbox[BOXBOTTOM] = v2->y;
-            ld->bbox[BOXTOP] = v1->y;
-        }
+        // Bounding box
+        ld->bbox[BOXLEFT]   = MIN(ld->v1->x, ld->v2->x);
+        ld->bbox[BOXRIGHT]  = MAX(ld->v1->x, ld->v2->x);
+        ld->bbox[BOXBOTTOM] = MIN(ld->v1->y, ld->v2->y);
+        ld->bbox[BOXTOP]    = MAX(ld->v1->y, ld->v2->y);
 
-        ld->sidenum[0] = SHORT(mld->sidenum[0]);
-        ld->sidenum[1] = SHORT(mld->sidenum[1]);
-        if (ld->sidenum[0] != NO_INDEX) // [crispy] extended nodes
-            ld->frontsector = sides[ld->sidenum[0]].sector;
-        else
-            ld->frontsector = 0;
-        if (ld->sidenum[1] != NO_INDEX) // [crispy] extended nodes
-            ld->backsector = sides[ld->sidenum[1]].sector;
-        else
-            ld->backsector = 0;
+        // Side numbers
+        ld->sidenum[0] = SHORT(ml->sidenum[0]);
+        ld->sidenum[1] = SHORT(ml->sidenum[1]);
 
-        // [crispy] calculate sound origin of line to be its midpoint
-        ld->soundorg.x = ld->bbox[BOXLEFT] / 2 + ld->bbox[BOXRIGHT] / 2;
-        ld->soundorg.y = ld->bbox[BOXTOP] / 2 + ld->bbox[BOXBOTTOM] / 2;
+        // Frontsector/backsector
+        if (ld->sidenum[0] == NO_INDEX)
+        {
+            ld->sidenum[0] = 0;
+            fprintf(stderr, "P_LoadLineDefs: linedef %d without first sidedef!\n", i);
+        }
+        ld->frontsector = (ld->sidenum[0] != NO_INDEX) ? sides[ld->sidenum[0]].sector : NULL;
+        ld->backsector  = (ld->sidenum[1] != NO_INDEX) ? sides[ld->sidenum[1]].sector : NULL;
+
+        // Sound origin: midpoint
+        ld->soundorg.x = (ld->bbox[BOXLEFT] + ld->bbox[BOXRIGHT]) >> 1;
+        ld->soundorg.y = (ld->bbox[BOXBOTTOM] + ld->bbox[BOXTOP]) >> 1;
         ld->soundorg.z = ld->frontsector ? ((ld->frontsector->floorheight
                        + ld->frontsector->ceilingheight) >> 1) : 0;
     }
 
+    // Release the cached lump
     W_ReleaseLumpNum(lump);
 }
 
+// -----------------------------------------------------------------------------
+// P_LoadSideDefs
+// -----------------------------------------------------------------------------
 
-/*
-=================
-=
-= P_LoadSideDefs
-=
-=================
-*/
-
-static void P_LoadSideDefs(int lump)
+static void P_LoadSideDefs (int lump)
 {
-    byte *data;
-    int i;
-    mapsidedef_t *msd;
-    side_t *sd;
+    // Determine number of sidedefs
+    const int lumpSize = W_LumpLength(lump);
+    const int count = lumpSize / sizeof(mapsidedef_t);
+    numsides = count;
 
-    numsides = W_LumpLength(lump) / sizeof(mapsidedef_t);
-    sides = Z_Malloc(numsides * sizeof(side_t), PU_LEVEL, 0);
-    memset(sides, 0, numsides * sizeof(side_t));
-    data = W_CacheLumpNum(lump, PU_STATIC);
+    // Allocate and zero-initialize sidedef array
+    side_t *const dst = Z_Malloc((size_t)count * sizeof(*dst), PU_LEVEL, 0);
+    memset(dst, 0, (size_t)count * sizeof(*dst));
+    sides = dst;
 
-    msd = (mapsidedef_t *) data;
-    sd = sides;
-    for (i = 0; i < numsides; i++, msd++, sd++)
+    // Load raw sidedef data into cache
+    const byte *const data = W_CacheLumpNum(lump, PU_STATIC);
+    if (!data)
+        I_Error("P_LoadSideDefs: Failed to load lump %d", lump);
+    const mapsidedef_t *restrict src = (const mapsidedef_t *)data;
+
+    // Copy fields
+    for (int i = 0; i < count; ++i)
     {
-        sd->textureoffset = SHORT(msd->textureoffset) << FRACBITS;
-        sd->rowoffset = SHORT(msd->rowoffset) << FRACBITS;
-        sd->toptexture = R_TextureNumForName(msd->toptexture);
-        sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-        sd->midtexture = R_TextureNumForName(msd->midtexture);
-        sd->sector = &sectors[SHORT(msd->sector)];
+        side_t *const sd = &dst[i];
+        const mapsidedef_t *const ms = &src[i];
+
+        sd->textureoffset    = SHORT(ms->textureoffset) << FRACBITS;
+        sd->rowoffset        = SHORT(ms->rowoffset)    << FRACBITS;
+        sd->toptexture       = R_TextureNumForName(ms->toptexture);
+        sd->bottomtexture    = R_TextureNumForName(ms->bottomtexture);
+        sd->midtexture       = R_TextureNumForName(ms->midtexture);
+        
+        // Sector reference (extended nodes)
+        const unsigned short secIdx = (unsigned short)SHORT(ms->sector);
+        sd->sector = &sectors[secIdx];
+
         // [crispy] smooth texture scrolling
         sd->basetextureoffset = sd->textureoffset;
     }
 
+    // Release the cached lump
     W_ReleaseLumpNum(lump);
 }
 
+// -----------------------------------------------------------------------------
+// P_LoadBlockMap
+// -----------------------------------------------------------------------------
 
-
-/*
-=================
-=
-= P_LoadBlockMap
-=
-=================
-*/
-
-static boolean P_LoadBlockMap(int lump)
+static boolean P_LoadBlockMap (int lump)
 {
-    int i, count;
-    int lumplen;
-    short *wadblockmaplump;
+    // Early exit conditions
+    const int numlumps_u = numlumps;
+    const int lumplen = W_LumpLength(lump);
+    const int count = lumplen / sizeof(short);
 
-    // [crispy] (re-)create BLOCKMAP if necessary
-    if (M_CheckParm("-blockmap") ||
-        lump >= numlumps ||
-        (lumplen = W_LumpLength(lump)) < 8 ||
-        (count = lumplen / 2) >= 0x10000)
+    if (M_CheckParm("-blockmap")
+    || (unsigned)lump >= (unsigned)numlumps_u
+    || lumplen < 8
+    || count >= 0x10000)
     {
-	return false;
+        return false;
     }
 
-    // [crispy] remove BLOCKMAP limit
-    wadblockmaplump = Z_Malloc(lumplen, PU_LEVEL, NULL);
-    W_ReadLump(lump, wadblockmaplump);
-    blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, NULL);
+    // Load raw blockmap lump
+    short *const raw = Z_Malloc((size_t)lumplen, PU_LEVEL, NULL);
+    W_ReadLump(lump, raw);
+
+    // Allocate blockmaplump and setup pointer
+    blockmaplump = Z_Malloc((size_t)count * sizeof(*blockmaplump), PU_LEVEL, NULL);
     blockmap = blockmaplump + 4;
 
-    blockmaplump[0] = SHORT(wadblockmaplump[0]);
-    blockmaplump[1] = SHORT(wadblockmaplump[1]);
-    blockmaplump[2] = (int32_t)(SHORT(wadblockmaplump[2])) & 0xffff;
-    blockmaplump[3] = (int32_t)(SHORT(wadblockmaplump[3])) & 0xffff;
+    // Header entries
+    blockmaplump[0] = SHORT(raw[0]);
+    blockmaplump[1] = SHORT(raw[1]);
+    blockmaplump[2] = (int32_t)(SHORT(raw[2])) & 0xffff;
+    blockmaplump[3] = (int32_t)(SHORT(raw[3])) & 0xffff;
 
-    // Swap all short integers to native byte ordering:
-
-    // count = lumplen / 2; // [crispy] moved up
-    for (i=4; i<count; i++)
+    // Swap all short integers to native ordering
+    for (int idx = 4; idx < count; ++idx)
     {
-        short t = SHORT(wadblockmaplump[i]);
-        blockmaplump[i] = (t == -1) ? -1l : (int32_t) t & 0xffff;
+        const short val = SHORT(raw[idx]);
+        blockmaplump[idx] = (val == -1) ? -1l : (int32_t)val & 0xffff;
     }
 
-    Z_Free(wadblockmaplump);
+    // Free the temporary lump
+    Z_Free(raw);
 
-    bmaporgx = blockmaplump[0] << FRACBITS;
-    bmaporgy = blockmaplump[1] << FRACBITS;
-    bmapwidth = blockmaplump[2];
+    // Read header values into globals
+    bmaporgx   = blockmaplump[0] << FRACBITS;
+    bmaporgy   = blockmaplump[1] << FRACBITS;
+    bmapwidth  = blockmaplump[2];
     bmapheight = blockmaplump[3];
 
-// clear out mobj chains
-    count = sizeof(*blocklinks) * bmapwidth * bmapheight;
-    blocklinks = Z_Malloc(count, PU_LEVEL, 0);
-    memset(blocklinks, 0, count);
+    // Allocate and clear blocklinks
+    const size_t linkCount = (size_t)bmapwidth * (size_t)bmapheight;
+    const size_t linkSize  = linkCount * sizeof(*blocklinks);
+    blocklinks = Z_Malloc(linkSize, PU_LEVEL, 0);
+    memset(blocklinks, 0, linkSize);
 
     return true;
 }
 
-
 // -----------------------------------------------------------------------------
 // P_CreateBlockMap
-// [crispy] taken from mbfsrc/P_SETUP.C:547-707, slightly adapted
+// [PN] This function was fully refactored for clarity and efficiency.
+//  The original logic is preserved, including the traversal algorithm,
+//  compression layout, and handling of special cases. Local variables
+//  are declared closer to usage; shifts and absolutes are computed once,
+//  not repeatedly. Memory allocations for block lists are done up front
+//  using calloc, with dynamic growth using a doubling strategy. Loops
+//  are rewritten in structured form for better readability and control.
+//  The blockmap is built and compressed exactly as before, but the code
+//  is now more maintainable, less error-prone, and slightly faster overall.
 // -----------------------------------------------------------------------------
 
-static void P_CreateBlockMap (void)
+static void P_CreateBlockMap(void)
 {
-    int i;
-    fixed_t minx = INT_MAX, miny = INT_MAX, maxx = INT_MIN, maxy = INT_MIN;
+    // Compute map bounds in block units
+    fixed_t minX = INT_MAX, minY = INT_MAX;
+    fixed_t maxX = INT_MIN, maxY = INT_MIN;
 
-    // First find limits of map
-
-    for (i=0; i<numvertexes; i++)
+    for (int i = 0; i < numvertexes; ++i)
     {
-        if (vertexes[i].x >> FRACBITS < minx)
-        {
-            minx = vertexes[i].x >> FRACBITS;
-        }
-        else if (vertexes[i].x >> FRACBITS > maxx)
-        {
-            maxx = vertexes[i].x >> FRACBITS;
-        }
-        if (vertexes[i].y >> FRACBITS < miny)
-        {
-            miny = vertexes[i].y >> FRACBITS;
-        }
-        else if (vertexes[i].y >> FRACBITS > maxy)
-        {
-            maxy = vertexes[i].y >> FRACBITS;
-        }
+        const int32_t x = vertexes[i].x >> FRACBITS;
+        const int32_t y = vertexes[i].y >> FRACBITS;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
     }
 
-    // Save blockmap parameters
+    // Save blockmap origin and dimensions
+    bmaporgx   = minX << FRACBITS;
+    bmaporgy   = minY << FRACBITS;
+    bmapwidth  = ((maxX - minX) >> MAPBTOFRAC) + 1;
+    bmapheight = ((maxY - minY) >> MAPBTOFRAC) + 1;
 
-    bmaporgx = minx << FRACBITS;
-    bmaporgy = miny << FRACBITS;
-    bmapwidth  = ((maxx-minx) >> MAPBTOFRAC) + 1;
-    bmapheight = ((maxy-miny) >> MAPBTOFRAC) + 1;
+    // Build temporary block lists
+    typedef struct { int count, alloc; int *restrict items; } BlockList;
+    const unsigned totalBlocks = (unsigned)bmapwidth * (unsigned)bmapheight;
+    BlockList *const restrict blocks = calloc(totalBlocks, sizeof *blocks);
 
-    // Compute blockmap, which is stored as a 2d array of variable-sized lists.
-    //
-    // Pseudocode:
-    //
-    // For each linedef:
-    //
-    //   Map the starting and ending vertices to blocks.
-    //
-    //   Starting in the starting vertex's block, do:
-    //
-    //     Add linedef to current block's list, dynamically resizing it.
-    //
-    //     If current block is the same as the ending vertex's block, exit loop.
-    //
-    //     Move to an adjacent block by moving towards the ending block in
-    //     either the x or y direction, to the block which contains the linedef.
-
+    for (int lineIdx = 0; lineIdx < numlines; ++lineIdx)
     {
-        typedef struct { int n, nalloc, *list; } bmap_t;  // blocklist structure
-        unsigned tot = bmapwidth * bmapheight;            // size of blockmap
-        bmap_t *bmap = calloc(sizeof *bmap, tot);         // array of blocklists
-        int x, y, adx, ady, bend;
+        const line_t *restrict ln = &lines[lineIdx];
+        // Map endpoints to blocks
+        int x0 = (ln->v1->x >> FRACBITS) - minX;
+        int y0 = (ln->v1->y >> FRACBITS) - minY;
+        int x1 = (ln->v2->x >> FRACBITS) - minX;
+        int y1 = (ln->v2->y >> FRACBITS) - minY;
+        int dx = (ln->dx >> FRACBITS) < 0 ? -1 : 1;
+        int dy = (ln->dy >> FRACBITS) < 0 ? -1 : 1;
+        int adx = abs(ln->dx >> FRACBITS);
+        int ady = abs(ln->dy >> FRACBITS);
 
-        for (i=0; i < numlines; i++)
+        // Bresenham-like traversal
+        int diff = !adx ? 1 : !ady ? -1
+            : (((x0 >> MAPBTOFRAC)<<MAPBTOFRAC) + ((dx>0)?MAPBLOCKUNITS-1:0) - x0) * ady * dx
+            - (((y0 >> MAPBTOFRAC)<<MAPBTOFRAC) + ((dy>0)?MAPBLOCKUNITS-1:0) - y0) * adx * dy;
+        unsigned idx = (unsigned)((y0 >> MAPBTOFRAC) * bmapwidth + (x0 >> MAPBTOFRAC));
+        unsigned endIdx = (unsigned)((y1 >> MAPBTOFRAC) * bmapwidth + (x1 >> MAPBTOFRAC));
+        const int stepYBlock = dy * bmapwidth;
+        adx <<= MAPBTOFRAC; ady <<= MAPBTOFRAC;
+
+        while (idx < totalBlocks)
         {
-            int dx, dy, diff, b;
-
-            // starting coordinates
-            x = (lines[i].v1->x >> FRACBITS) - minx;
-            y = (lines[i].v1->y >> FRACBITS) - miny;
-
-            // x-y deltas
-            adx = lines[i].dx >> FRACBITS, dx = adx < 0 ? -1 : 1;
-            ady = lines[i].dy >> FRACBITS, dy = ady < 0 ? -1 : 1;
-
-            // difference in preferring to move across y (>0) instead of x (<0)
-            diff = !adx ? 1 : !ady ? -1 :
-            (((x >> MAPBTOFRAC) << MAPBTOFRAC) +
-            (dx > 0 ? MAPBLOCKUNITS-1 : 0) - x) * (ady = abs(ady)) * dx -
-            (((y >> MAPBTOFRAC) << MAPBTOFRAC) +
-            (dy > 0 ? MAPBLOCKUNITS-1 : 0) - y) * (adx = abs(adx)) * dy;
-
-            // starting block, and pointer to its blocklist structure
-            b = (y >> MAPBTOFRAC)*bmapwidth + (x >> MAPBTOFRAC);
-
-            // ending block
-            bend = (((lines[i].v2->y >> FRACBITS) - miny) >> MAPBTOFRAC)
-                 * bmapwidth + (((lines[i].v2->x >> FRACBITS) - minx) >> MAPBTOFRAC);
-
-            // delta for pointer when moving across y
-            dy *= bmapwidth;
-
-            // deltas for diff inside the loop
-            adx <<= MAPBTOFRAC;
-            ady <<= MAPBTOFRAC;
-
-            // Now we simply iterate block-by-block until we reach the end block.
-            while ((unsigned) b < tot)    // failsafe -- should ALWAYS be true
+            BlockList *restrict bl = &blocks[idx];
+            if (bl->count >= bl->alloc)
             {
-                // Increase size of allocated list if necessary
-                if (bmap[b].n >= bmap[b].nalloc)
-                    bmap[b].list = I_Realloc(bmap[b].list,
-                   (bmap[b].nalloc = bmap[b].nalloc ?
-                    bmap[b].nalloc*2 : 8)*sizeof*bmap->list);
-
-                // Add linedef to end of list
-                bmap[b].list[bmap[b].n++] = i;
-
-                // If we have reached the last block, exit
-                if (b == bend)
-                {
-                    break;
-                }
-
-                // Move in either the x or y direction to the next block
-                if (diff < 0)
-                {
-                    diff += ady, b += dx;
-                }
-                else
-                {
-                    diff -= adx, b += dy;
-                }
+                int newAlloc = bl->alloc ? bl->alloc * 2 : 8;
+                bl->items = I_Realloc(bl->items, newAlloc * sizeof *bl->items);
+                bl->alloc = newAlloc;
             }
-        }
-
-        // Compute the total size of the blockmap.
-        //
-        // Compression of empty blocks is performed by reserving two offset words
-        // at tot and tot+1.
-        //
-        // 4 words, unused if this routine is called, are reserved at the start.
-
-        {
-            int count = tot+6;  // we need at least 1 word per block, plus reserved's
-        
-            for (unsigned int t = 0; t < tot; t++)
-                if (bmap[t].n)
-                    count += bmap[t].n + 2; // 1 header word + 1 trailer word + blocklist
-        
-            // Allocate blockmap lump with computed count
-            blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
-        }
-
-        // Now compress the blockmap.
-        {
-            int ndx = tot += 4;         // Advance index to start of linedef lists
-            bmap_t *bp = bmap;          // Start of uncompressed blockmap
-
-            blockmaplump[ndx++] = 0;    // Store an empty blockmap list at start
-            blockmaplump[ndx++] = -1;   // (Used for compression)
-
-            for (unsigned int t = 4; t < tot; t++, bp++)
-                if (bp->n)                                      // Non-empty blocklist
-                {
-                    blockmaplump[blockmaplump[t] = ndx++] = 0;  // Store index & header
-                    do
-                    blockmaplump[ndx++] = bp->list[--bp->n];    // Copy linedef list
-                    while (bp->n);
-                    blockmaplump[ndx++] = -1;                   // Store trailer
-                    free(bp->list);                             // Free linedef list
-                }
-                else            // Empty blocklist: point to reserved empty blocklist
-                blockmaplump[t] = tot;
-        
-            free(bmap);    // Free uncompressed blockmap
+            bl->items[bl->count++] = lineIdx;
+            if (idx == endIdx)
+                break;
+            if (diff < 0) { diff += ady; idx += dx; }
+            else         { diff -= adx; idx += stepYBlock; }
         }
     }
 
-    // [crispy] copied over from P_LoadBlockMap()
+    // Compute total size for compressed blockmap
+    unsigned lumpSize = totalBlocks + 6;
+    for (unsigned b = 0; b < totalBlocks; ++b)
+        if (blocks[b].count)
+            lumpSize += blocks[b].count + 2;
+
+    // Allocate blockmap lump
+    blockmaplump = Z_Malloc((size_t)lumpSize * sizeof *blockmaplump, PU_LEVEL, 0);
+    unsigned pos = totalBlocks + 4;
+    blockmaplump[pos++] = 0;
+    blockmaplump[pos++] = -1;
+
+    // Compress into blockmaplump
+    for (unsigned b = 4; b < totalBlocks + 4; ++b)
     {
-        int count = sizeof(*blocklinks) * bmapwidth * bmapheight;
-        blocklinks = Z_Malloc(count, PU_LEVEL, 0);
-        memset(blocklinks, 0, count);
-        blockmap = blockmaplump+4;
+        BlockList *restrict bl = &blocks[b - 4];
+        if (bl->count)
+        {
+            blockmaplump[blockmaplump[b] = pos++] = 0;
+            while (bl->count)
+                blockmaplump[pos++] = bl->items[--bl->count];
+            blockmaplump[pos++] = -1;
+            free(bl->items);
+        }
+        else
+        {
+            blockmaplump[b] = totalBlocks + 4;
+        }
     }
+    free(blocks);
+
+    // Finalize global blockmap pointer and links
+    blockmap = blockmaplump + 4;
+    const size_t linksCount = (size_t)bmapwidth * bmapheight;
+    blocklinks = Z_Malloc(linksCount * sizeof *blocklinks, PU_LEVEL, 0);
+    memset(blocklinks, 0, linksCount * sizeof *blocklinks);
 }
 
+// -----------------------------------------------------------------------------
+// P_GroupLines
+// Builds sector line lists and subsector sector numbers.
+// Finds block bounding boxes for sectors.
+// -----------------------------------------------------------------------------
 
-
-/*
-=================
-=
-= P_GroupLines
-=
-= Builds sector line lists and subsector sector numbers
-= Finds block bounding boxes for sectors
-=
-= [JN] Updated old Doom 1.2 code with actual code,
-=      speeds up loading of complex levels a lot.
-=
-=================
-*/
-
-static void P_GroupLines(void)
+static void P_GroupLines (void)
 {
-    line_t **linebuffer;
-    int i, j, total;
-    line_t *li;
-    sector_t *sector;
-    seg_t *seg;
-    fixed_t bbox[4];
-    int block;
-
-// look up sector number for each subsector
-// [JN] Fix infinite loop if subsector is not a part of any sector.
-// Written by figgi, adapted from Pr-Boom+.
-    for (i = 0; i < numsubsectors; i++)
+    // Assign a sector for each subsector
+    for (int i = 0; i < numsubsectors; ++i)
     {
-        seg = &segs[subsectors[i].firstline];
-        subsectors[i].sector = NULL;
-        
-        for (j = 0; j < subsectors[i].numlines; j++)
+        subsector_t *const ss = &subsectors[i];
+        const seg_t *const segList = &segs[ss->firstline];
+        ss->sector = NULL;
+
+        for (int j = 0; j < ss->numlines; ++j)
         {
-            if(seg->sidedef)
+            const seg_t *const s = &segList[j];
+            if (s->sidedef)
             {
-                subsectors[i].sector = seg->sidedef->sector;
+                ss->sector = s->sidedef->sector;
                 break;
             }
-            seg++;
         }
-        if (subsectors[i].sector == NULL)
-        {
-            I_Error("P_GroupLines: Subsector %d is not a part of any sector!\n", i);
-        }
+        if (!ss->sector)
+            I_Error("P_GroupLines: Subsector %d is not part of any sector!", i);
     }
 
-// count number of lines in each sector
-    li = lines;
-    total = 0;
-    for (i = 0; i < numlines; i++, li++)
+    // Count total lines and initialize linecount per sector
+    totallines = 0;
+    for (int i = 0; i < numlines; ++i)
     {
-        total++;
-        li->frontsector->linecount++;
-        if (li->backsector && li->backsector != li->frontsector)
+        line_t *const ln = &lines[i];
+        ++totallines;
+        ln->frontsector->linecount++;
+        if (ln->backsector && ln->backsector != ln->frontsector)
         {
-            li->backsector->linecount++;
-            total++;
+            ln->backsector->linecount++;
+            ++totallines;
         }
     }
 
-// build line tables for each sector    
-    linebuffer = Z_Malloc(total * sizeof(line_t *), PU_LEVEL, 0);
-    for (i = 0; i < numsectors; ++i)
+    // Allocate line pointer buffer
+    line_t **linebuffer = Z_Malloc((size_t)totallines * sizeof(*linebuffer), PU_LEVEL, 0);
+
+    // Distribute buffer to sectors and reset their linecount
+    for (int i = 0; i < numsectors; ++i)
     {
-        // assign the line buffer for this sector
-        sectors[i].lines = linebuffer;
-        linebuffer += sectors[i].linecount;
-
-        // reset linecount to zero so in the next stage we can count 
-        // lines into the list
-        sectors[i].linecount = 0;
+        sector_t *const sec = &sectors[i];
+        sec->lines = linebuffer;
+        linebuffer += sec->linecount;
+        sec->linecount = 0;
     }
 
-// assign lines to sectors
-    for (i = 0; i < numlines; ++i)
-    { 
-        li = &lines[i];
-
-        if (li->frontsector != NULL)
-        {
-            sector = li->frontsector;
-
-            sector->lines[sector->linecount] = li;
-            ++sector->linecount;
-        }
-
-        if (li->backsector != NULL && li->frontsector != li->backsector)
-        {
-            sector = li->backsector;
-
-            sector->lines[sector->linecount] = li;
-            ++sector->linecount;
-        }
-    }
-    
-// generate bounding boxes for sectors
-    sector = sectors;
-    for (i = 0; i < numsectors; i++, sector++)
+    // Assign each line to its sectors
+    for (int i = 0; i < numlines; ++i)
     {
+        line_t *const ln = &lines[i];
+        sector_t *const fs = ln->frontsector;
+        fs->lines[fs->linecount++] = ln;
+
+        sector_t *const bs = ln->backsector;
+        if (bs && bs != fs)
+            bs->lines[bs->linecount++] = ln;
+    }
+
+    // Generate bounding boxes and blockboxes for each sector
+    for (int i = 0; i < numsectors; ++i)
+    {
+        sector_t *const sec = &sectors[i];
+        fixed_t bbox[4];
         M_ClearBox(bbox);
-        for (j = 0; j < sector->linecount; j++)
-        {
-            li = sector->lines[j];
 
-            M_AddToBox (bbox, li->v1->x, li->v1->y);
-            M_AddToBox (bbox, li->v2->x, li->v2->y);
+        for (int j = 0; j < sec->linecount; ++j)
+        {
+            const line_t *const ln = sec->lines[j];
+            M_AddToBox(bbox, ln->v1->x, ln->v1->y);
+            M_AddToBox(bbox, ln->v2->x, ln->v2->y);
         }
 
-        // set the degenmobj_t to the middle of the bounding box
-        // Andrey Budko: fix sound origin for large levels
-        sector->soundorg.x = bbox[BOXRIGHT] / 2 + bbox[BOXLEFT] / 2;
-        sector->soundorg.y = bbox[BOXTOP] / 2 + bbox[BOXBOTTOM] / 2;
+        // Sound origin in middle of bbox
+        sec->soundorg.x = (bbox[BOXLEFT] + bbox[BOXRIGHT]) >> 1;
+        sec->soundorg.y = (bbox[BOXBOTTOM] + bbox[BOXTOP]) >> 1;
 
-        // adjust bounding box to map blocks
-        block = (bbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
-        block = block >= bmapheight ? bmapheight - 1 : block;
-        sector->blockbox[BOXTOP] = block;
+        // Compute blockbox clamped to map
+        const int top = (bbox[BOXTOP] - bmaporgy + MAXRADIUS) >> MAPBLOCKSHIFT;
+        sec->blockbox[BOXTOP] = (top >= bmapheight) ? bmapheight - 1 : top;
 
-        block = (bbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
-        block = block < 0 ? 0 : block;
-        sector->blockbox[BOXBOTTOM] = block;
+        const int bottom = (bbox[BOXBOTTOM] - bmaporgy - MAXRADIUS) >> MAPBLOCKSHIFT;
+        sec->blockbox[BOXBOTTOM] = (bottom < 0) ? 0 : bottom;
 
-        block = (bbox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
-        block = block >= bmapwidth ? bmapwidth - 1 : block;
-        sector->blockbox[BOXRIGHT] = block;
+        const int right = (bbox[BOXRIGHT] - bmaporgx + MAXRADIUS) >> MAPBLOCKSHIFT;
+        sec->blockbox[BOXRIGHT] = (right >= bmapwidth) ? bmapwidth - 1 : right;
 
-        block = (bbox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
-        block = block < 0 ? 0 : block;
-        sector->blockbox[BOXLEFT] = block;
+        const int left = (bbox[BOXLEFT] - bmaporgx - MAXRADIUS) >> MAPBLOCKSHIFT;
+        sec->blockbox[BOXLEFT] = (left < 0) ? 0 : left;
     }
-
 }
 
-//=============================================================================
-
+// -----------------------------------------------------------------------------
+// P_RemoveSlimeTrails
 // [crispy] remove slime trails
 // mostly taken from Lee Killough's implementation in mbfsrc/P_SETUP.C:849-924,
 // with the exception that not the actual vertex coordinates are modified,
 // but separate coordinates that are *only* used in rendering,
 // i.e. r_bsp.c:R_AddLine()
+// -----------------------------------------------------------------------------
 
-static void P_RemoveSlimeTrails(void)
+static void P_RemoveSlimeTrails (void)
 {
-    int i;
+    const int count = numsegs;
+    seg_t *const segArray = segs;
 
-    for (i = 0; i < numsegs; i++)
+    for (int i = 0; i < count; ++i)
     {
-	const line_t *l = segs[i].linedef;
-	vertex_t *v = segs[i].v1;
+        const seg_t *const seg = &segArray[i];
+        const line_t *const l = seg->linedef;
 
-	// [crispy] ignore exactly vertical or horizontal linedefs
-	if (l->dx && l->dy)
-	{
-	    do
-	    {
-		// [crispy] vertex wasn't already moved
-		if (!v->moved)
-		{
-		    v->moved = true;
-		    // [crispy] ignore endpoints of linedefs
-		    if (v != l->v1 && v != l->v2)
-		    {
-			// [crispy] move the vertex towards the linedef
-			// by projecting it using the law of cosines
-			int64_t dx2 = (l->dx >> FRACBITS) * (l->dx >> FRACBITS);
-			int64_t dy2 = (l->dy >> FRACBITS) * (l->dy >> FRACBITS);
-			int64_t dxy = (l->dx >> FRACBITS) * (l->dy >> FRACBITS);
-			int64_t s = dx2 + dy2;
+        // [crispy] ignore exactly vertical or horizontal linedefs
+        if (l->dx == 0 || l->dy == 0)
+            continue;
 
-			// [crispy] MBF actually overrides v->x and v->y here
-			v->r_x = (fixed_t)((dx2 * v->x + dy2 * l->v1->x + dxy * (v->y - l->v1->y)) / s);
-			v->r_y = (fixed_t)((dy2 * v->y + dx2 * l->v1->y + dxy * (v->x - l->v1->x)) / s);
+        // Precompute fractional deltas
+        const int32_t dxf = l->dx >> FRACBITS;
+        const int32_t dyf = l->dy >> FRACBITS;
+        const int64_t dx2 = (int64_t)dxf * dxf;
+        const int64_t dy2 = (int64_t)dyf * dyf;
+        const int64_t dxy = (int64_t)dxf * dyf;
+        const int64_t s = dx2 + dy2;
 
-			// [crispy] wait a minute... moved more than 8 map units?
-			// maybe that's a linguortal then, back to the original coordinates
-			if (abs(v->r_x - v->x) > 8*FRACUNIT || abs(v->r_y - v->y) > 8*FRACUNIT)
-			{
-			    v->r_x = v->x;
-			    v->r_y = v->y;
-			}
-		    }
-		}
-	    // [crispy] if v doesn't point to the second vertex of the seg already, point it there
-	    } while ((v != segs[i].v2) && (v = segs[i].v2));
-	}
+        // Process both vertices of the segment
+        vertex_t *const verts[2] = { seg->v1, seg->v2 };
+        for (int vIdx = 0; vIdx < 2; ++vIdx)
+        {
+            vertex_t *const v = verts[vIdx];
+
+            // [crispy] vertex wasn't already moved
+            if (v->moved)
+                continue;
+
+            v->moved = true;
+
+            // [crispy] ignore endpoints of linedefs
+            if (v == l->v1 || v == l->v2)
+                continue;
+
+            // [crispy] move the vertex towards the linedef by projecting
+            const fixed_t origX = v->x;
+            const fixed_t origY = v->y;
+
+            v->r_x = (fixed_t)((dx2 * origX + dy2 * l->v1->x + dxy * (origY - l->v1->y)) / s);
+            v->r_y = (fixed_t)((dy2 * origY + dx2 * l->v1->y + dxy * (origX - l->v1->x)) / s);
+
+            // [crispy] moved more than 8 map units? revert
+            if (abs(v->r_x - origX) > 8 * FRACUNIT || abs(v->r_y - origY) > 8 * FRACUNIT)
+            {
+                v->r_x = origX;
+                v->r_y = origY;
+            }
+        }
     }
 }
 
-lumpinfo_t *maplumpinfo;
+// -----------------------------------------------------------------------------
+// PadRejectArray
+// Pad the REJECT lump with extra data when the lump is too small,
+// to simulate a REJECT buffer overflow in Vanilla Doom.
+// -----------------------------------------------------------------------------
 
-/*
-=================
-=
-= P_SetupLevel
-=
-=================
-*/
-
-void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
+static void PadRejectArray (byte *restrict array, unsigned int len)
 {
-    int i;
-    int parm;
-    char lumpname[9];
-    int lumpnum;
-    mobj_t *mobj;
-    boolean	crispy_validblockmap;
-    mapformat_t crispy_mapformat;
-    // [JN] CRL - indicate level loading time in console.
+    // Compute padded size: totallines*4 rounded up to multiple of 4, plus header
+    const unsigned int paddedSize = ((totallines * 4 + 3) & ~3U) + 24;
+
+    // Header values for REJECT array
+    const unsigned int rejectpad[4] = {
+        paddedSize,     // Size
+        0,              // Part of z_zone block header
+        50,             // PU_LEVEL
+        0x1d4a11        // DOOM_CONST_ZONEID
+    };
+
+    // Copy header into array (little-endian)
+    const unsigned int maxBytes = len < sizeof(rejectpad) ? len : sizeof(rejectpad);
+    for (unsigned int i = 0; i < maxBytes; ++i)
+    {
+        const unsigned int wordIndex = i / 4;
+        const unsigned int byteShift = (i % 4) * 8;
+        array[i] = (byte)((rejectpad[wordIndex] >> byteShift) & 0xFF);
+    }
+
+    // If the REJECT lump is larger than header, pad remaining bytes
+    if (len > sizeof(rejectpad))
+    {
+        fprintf(stderr,
+            "PadRejectArray: REJECT lump too short to pad! (%u > %zu)\n",
+            len, sizeof(rejectpad));
+
+        const unsigned int padStart = sizeof(rejectpad);
+        const unsigned int padCount = len - padStart;
+        const byte padValue = M_CheckParm("-reject_pad_with_ff") ? 0xFF : 0x00;
+        memset(array + padStart, padValue, padCount);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// P_LoadReject
+// -----------------------------------------------------------------------------
+
+static void P_LoadReject (int lumpnum)
+{
+    // Calculate expected REJECT lump size: one bit per sector-to-sector pair
+    const int expectedSize = (numsectors * numsectors + 7) / 8;
+
+    // Get actual lump length
+    const int actualSize = W_LumpLength(lumpnum);
+
+    if (actualSize >= expectedSize)
+    {
+        // Lump is large enough: load directly
+        rejectmatrix = W_CacheLumpNum(lumpnum, PU_LEVEL);
+    }
+    else
+    {
+        // Allocate correct-sized buffer and read partial data
+        rejectmatrix = Z_Malloc((size_t)expectedSize, PU_LEVEL, &rejectmatrix);
+        W_ReadLump(lumpnum, rejectmatrix);
+
+        // Pad remaining bytes with header-derived values
+        PadRejectArray(rejectmatrix + actualSize, (unsigned)expectedSize - (unsigned)actualSize);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// P_SetupLevel
+// -----------------------------------------------------------------------------
+
+void P_SetupLevel (int episode, int map, int playermask, skill_t skill)
+{
+    // Indicate level loading start time
     const int starttime = I_GetTimeMS();
 
+    // Reset level stats
     totalkills = totalitems = totalsecret = 0;
-    for (i = 0; i < MAXPLAYERS; i++)
+    for (int i = 0; i < MAXPLAYERS; ++i)
     {
-        players[i].killcount = players[i].secretcount
-            = players[i].itemcount = 0;
+        players[i].killcount      = 0;
+        players[i].secretcount    = 0;
+        players[i].itemcount      = 0;
     }
-    players[consoleplayer].viewz = 1;   // will be set by player think
 
-    // [crispy] stop demo warp mode now
+    // Initial view height
+    players[consoleplayer].viewz = 1;
+
+    // Stop demo warp if active
     if (demowarp == map)
     {
         demowarp = 0;
-        nodrawers = false;
-        singletics = false;
+        nodrawers = singletics = false;
     }
 
-    S_Start();                  // make sure all sounds are stopped before Z_FreeTags
-
+    // Prepare memory and thinkers
+    S_Start();
     Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
-
     P_InitThinkers();
+    W_Reload();
 
-//
-// look for a regular (development) map first
-//
-    lumpname[0] = 'E';
-    lumpname[1] = '0' + episode;
-    lumpname[2] = 'M';
-    lumpname[3] = '0' + map;
-    lumpname[4] = 0;
-    leveltime = 0;
-    realleveltime = 0;
-    oldleveltime = 0;  // [crispy] Track if game is running
+    // Determine lump name
+    char lumpname[9];
+    snprintf(lumpname, sizeof lumpname, "E%dM%d", episode, map);
 
-    // [JN] Indicate the map we are loading.
+    const int lumpnum = W_GetNumForName(lumpname);
+
+    // Reset timers
+    leveltime = realleveltime = oldleveltime = 0;
+
+    // Log loading
     printf("P_SetupLevel: E%dM%d, ", gameepisode, gamemap);
 
-    lumpnum = W_GetNumForName(lumpname);
-
-    // [crispy] check and log map and nodes format
-    crispy_mapformat = P_CheckMapFormat(lumpnum);
-
-    maplumpinfo = lumpinfo[lumpnum];
-
-// note: most of this ordering is important     
-    crispy_validblockmap = P_LoadBlockMap (lumpnum+ML_BLOCKMAP); // [crispy] (re-)create BLOCKMAP if necessary
+    // Load map format and data
+    mapformat_t fmt    = P_CheckMapFormat(lumpnum);
+    boolean validBMap  = P_LoadBlockMap(lumpnum + ML_BLOCKMAP);
     P_LoadVertexes(lumpnum + ML_VERTEXES);
     P_LoadSectors(lumpnum + ML_SECTORS);
     P_LoadSideDefs(lumpnum + ML_SIDEDEFS);
 
-    P_LoadLineDefs(lumpnum + ML_LINEDEFS);
+    if (fmt & MFMT_HEXEN)
+        P_LoadLineDefs_Hexen(lumpnum + ML_LINEDEFS);
+    else
+        P_LoadLineDefs(lumpnum + ML_LINEDEFS);
 
-    // [crispy] (re-)create BLOCKMAP if necessary
-    if (!crispy_validblockmap)
-    {
+    if (!validBMap)
         P_CreateBlockMap();
-    }
 
-    if (crispy_mapformat & (MFMT_ZDBSPX | MFMT_ZDBSPZ))
+    if (fmt & (MFMT_ZDBSPX | MFMT_ZDBSPZ))
     {
-        P_LoadNodes_ZDBSP(lumpnum + ML_NODES, crispy_mapformat & MFMT_ZDBSPZ);
+        P_LoadNodes_ZDBSP(lumpnum + ML_NODES, fmt & MFMT_ZDBSPZ);
     }
-    else if (crispy_mapformat & MFMT_DEEPBSP)
+    else if (fmt & MFMT_DEEPBSP)
     {
         P_LoadSubsectors_DeePBSP(lumpnum + ML_SSECTORS);
         P_LoadNodes_DeePBSP(lumpnum + ML_NODES);
@@ -1609,40 +1788,44 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     }
     else
     {
-    P_LoadSubsectors(lumpnum + ML_SSECTORS);
-    P_LoadNodes(lumpnum + ML_NODES);
-    P_LoadSegs(lumpnum + ML_SEGS);
+        P_LoadSubsectors(lumpnum + ML_SSECTORS);
+        P_LoadNodes(lumpnum + ML_NODES);
+        P_LoadSegs(lumpnum + ML_SEGS);
     }
 
-    rejectmatrix = W_CacheLumpNum(lumpnum + ML_REJECT, PU_LEVEL);
     P_GroupLines();
+    P_LoadReject(lumpnum + ML_REJECT);
 
-    // [crispy] remove slime trails
+    // Post-load adjustments
     P_RemoveSlimeTrails();
-
-    // [crispy] fix long wall wobble
     P_SegLengths(false);
 
     bodyqueslot = 0;
     deathmatch_p = deathmatchstarts;
+
     P_InitAmbientSound();
     P_InitMonsters();
     P_OpenWeapons();
-    P_LoadThings(lumpnum + ML_THINGS);
+    if (fmt & MFMT_HEXEN)
+    {
+        P_LoadThings_Hexen(lumpnum + ML_THINGS);
+    }
+    else
+    {
+        P_LoadThings(lumpnum + ML_THINGS);
+    }
     P_CloseWeapons();
 
-//
-// if deathmatch, randomly spawn the active players
-//
+    // If deathmatch, randomly spawn the active players
     TimerGame = 0;
     if (deathmatch)
     {
-        for (i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < MAXPLAYERS; i++)
         {
             if (playeringame[i])
             {                   // must give a player spot before deathmatchspawn
-                mobj = P_SpawnMobj(playerstarts[i].x << 16,
-                                   playerstarts[i].y << 16, 0, MT_PLAYER);
+                mobj_t *mobj = P_SpawnMobj(playerstarts[i].x << 16,
+                               playerstarts[i].y << 16, 0, MT_PLAYER);
                 players[i].mo = mobj;
                 G_DeathMatchSpawnPlayer(i);
                 P_RemoveMobj(mobj);
@@ -1657,43 +1840,31 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
         // For multiplayer games: exit each level after n minutes.
         //
 
-        parm = M_CheckParmWithArgs("-timer", 1);
+        const int parm = M_CheckParmWithArgs("-timer", 1);
         if (parm)
         {
             TimerGame = atoi(myargv[parm + 1]) * 35 * 60;
         }
     }
 
-// set up world state
+    // Clear respawn queue and spawn specials
     P_SpawnSpecials();
 
-// build subsector connect matrix
-//      P_ConnectSubsectors ();
-
-// preload graphics
+    // Preload graphics and finalize
     if (precache)
         R_PrecacheLevel();
 
-    // [JN] Force to disable spectator mode.
     crl_spectating = 0;
 
-    // [JN] Print amount of level loading time.
+    // Log load time
     printf("loaded in %d ms.\n", I_GetTimeMS() - starttime);
-
-//printf ("free memory: 0x%x\n", Z_FreeMemory());
-
 }
 
+// -----------------------------------------------------------------------------
+// P_Init
+// -----------------------------------------------------------------------------
 
-/*
-=================
-=
-= P_Init
-=
-=================
-*/
-
-void P_Init(void)
+void P_Init (void)
 {
     P_InitSwitchList();
     P_InitPicAnims();

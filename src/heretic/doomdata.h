@@ -71,6 +71,22 @@ typedef PACKED_STRUCT (
     unsigned short sidenum[2]; // [crispy] extended nodes
 }) maplinedef_t;
 
+// [crispy] allow loading of Hexen-format maps
+// taken from chocolate-doom/src/hexen/xddefs.h:63-75
+typedef PACKED_STRUCT (
+{
+    short v1;
+    short v2;
+    short flags;
+    byte special;
+    byte arg1;
+    byte arg2;
+    byte arg3;
+    byte arg4;
+    byte arg5;
+    short sidenum[2];
+}) maplinedef_hexen_t;
+
 #define	ML_BLOCKING			1
 #define	ML_BLOCKMONSTERS	2
 #define	ML_TWOSIDED			4       // backside will not be present at all
@@ -191,6 +207,25 @@ typedef PACKED_STRUCT (
     short type;
     short options;
 }) mapthing_t;
+
+// [crispy] allow loading of Hexen-format maps
+// taken from chocolate-doom/src/hexen/xddefs.h:134-149
+typedef PACKED_STRUCT (
+{
+    short tid;
+    short x;
+    short y;
+    short height;
+    short angle;
+    short type;
+    short options;
+    byte special;
+    byte arg1;
+    byte arg2;
+    byte arg3;
+    byte arg4;
+    byte arg5;
+}) mapthing_hexen_t;
 
 #define	MTF_EASY		1
 #define	MTF_NORMAL		2
