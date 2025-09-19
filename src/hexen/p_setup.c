@@ -729,7 +729,7 @@ void P_SegLengths (void)
         li->r_angle = R_PointToAngleCrispy(li->v2->r_x, li->v2->r_y);
         // [crispy] more than just a little adjustment?
         // back to the original angle then
-        if (anglediff(li->r_angle, li->angle) > ANG60/2)
+        if (anglediff(li->r_angle, li->angle) > ANG30)
         {
             li->r_angle = li->angle;
         }

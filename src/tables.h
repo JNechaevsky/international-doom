@@ -70,6 +70,7 @@ extern const byte gammatable[MAXGAMMA][256];
 
 #define ANG1            (ANG45 / 45)
 #define ANG60           (ANG180 / 3)
+#define ANG30           (ANG60 / 2)
 
 // Heretic code uses this definition as though it represents one 
 // degree, but it is not!  This is actually ~1.40 degrees.

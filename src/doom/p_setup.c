@@ -448,7 +448,7 @@ static angle_t anglediff(angle_t a, angle_t b)
 void P_SegLengths (boolean contrast_only)
 {
     const int count = numsegs;
-    const int rightangle = abs(finesine[(ANG60/2) >> ANGLETOFINESHIFT]);
+    const int rightangle = abs(finesine[ANG30 >> ANGLETOFINESHIFT]);
     // [JN] Make fake contrast optional.
     const int fakecont_val  = vis_fake_contrast ? LIGHTBRIGHT : 0;
     // [JN] Apply smoother fake contrast for smooth diminishing lighting.
@@ -471,7 +471,7 @@ void P_SegLengths (boolean contrast_only)
             viewx = s->v1->r_x;
             viewy = s->v1->r_y;
             const angle_t newAngle = R_PointToAngleCrispy(s->v2->r_x, s->v2->r_y);
-            s->r_angle = (anglediff(newAngle, s->angle) > ANG60/2) ? s->angle : newAngle;
+            s->r_angle = (anglediff(newAngle, s->angle) > ANG30) ? s->angle : newAngle;
         }
 
         // [crispy] smoother fake contrast
