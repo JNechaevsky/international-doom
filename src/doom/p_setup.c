@@ -780,7 +780,7 @@ static void P_LoadLineDefs (int lump)
                 case 1: case 26: case 27: case 28:
                 case 31: case 32: case 33: case 34:
                 case 48: case 85: case 11: case 51:
-                case 52: case 117: case 118: case 271:
+                case 52: case 117: case 118: case 124: case 271:
                 case 272:
                     break;
                 default:
