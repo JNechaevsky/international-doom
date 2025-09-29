@@ -47,6 +47,7 @@
 #include "m_argv.h"
 #include "m_config.h"
 #include "m_controls.h"
+#include "m_random.h"
 #include "net_client.h"
 #include "p_local.h"
 #include "v_video.h"
@@ -411,6 +412,9 @@ void D_DoomMain(void)
     M_SetConfigFilenames(PROGRAM_PREFIX "hexen.ini");
     D_BindVariables();
     M_LoadDefaults();
+
+    // [JN] Initialize random LUTs.
+    M_InitRandom(hexen);
 
     // [JN] Set the default directory where savegames are saved.
     SavePath = M_GetSaveGameDir("hexen.wad");

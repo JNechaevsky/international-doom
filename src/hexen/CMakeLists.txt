@@ -12,7 +12,6 @@ add_library(hexen STATIC
             id_func.c           id_func.h
             info.c              info.h
             in_lude.c
-            m_random.c          m_random.h
             mn_menu.c
             p_acs.c
                                 p_action.h

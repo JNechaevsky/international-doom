@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h> // [crispy] setlocale
-#include <time.h>   // [JN] srand(time(0))
 #include <SDL.h>
 
 #ifdef _WIN32
@@ -90,9 +89,6 @@ int main(int argc, char **argv)
 
     M_FindResponseFile();
     M_SetExeDir();
-
-    // [JN] Use current time as a seed for own random generator.
-    id_rand_seed = (uint32_t)time(NULL);
 
     // start doom
 

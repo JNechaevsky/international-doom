@@ -1545,7 +1545,7 @@ void G_Ticker (void)
 		if (players[i].mo) 
 		    consistancy[i][buf] = players[i].mo->x; 
 		else 
-		    consistancy[i][buf] = rndindex; 
+		    consistancy[i][buf] = m_rndindex; 
 	    } 
 	}
     }

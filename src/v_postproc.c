@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include "d_loop.h"
+#include "m_random.h"
 #include "v_postproc.h"
 
 
@@ -482,13 +483,13 @@ static void V_PProc_VHSLineDistortion (void)
     Uint32 *restrict pixels = (Uint32 *restrict)argbbuffer->pixels;
 
     // [PN] Block height: 4–6 lines scaled by resolution
-    const int block_height = (4 + rand() % 3) * vid_resolution;
+    const int block_height = (4 + ID_RealRandom() % 3) * vid_resolution;
 
     // [PN] Start line: random, but ensures block fits within frame
-    const int y_start = rand() % (height > block_height ? height - block_height : 1);
+    const int y_start = ID_RealRandom() % (height > block_height ? height - block_height : 1);
 
     // [PN] Horizontal shift: range [-5..+5]
-    const int shift_val = (rand() % 11) - 5;
+    const int shift_val = (ID_RealRandom() % 11) - 5;
     if (shift_val == 0)
         return;
 
@@ -756,9 +757,9 @@ static void V_PProc_FilmGrain (void)
 
     if (gametic != last_gametic_updated)
     {
-        const unsigned int seed = rand();      // [PN] Per-frame noise basis
-        const int amp = post_filmgrain * 2;    // [PN] Noise amplitude range: [-amp..+amp]
-        const int mix_seed = (rand() % 8) + 1; // [JN] Randomized mixed seed for using below.
+        const unsigned int seed = ID_RealRandom();      // [PN] Per-frame noise basis
+        const int amp = post_filmgrain * 2;             // [PN] Noise amplitude range: [-amp..+amp]
+        const int mix_seed = (ID_RealRandom() % 8) + 1; // [JN] Randomized mixed seed for using below.
 
         for (size_t i = 0; i < npix; ++i)
         {
