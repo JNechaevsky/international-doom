@@ -91,8 +91,8 @@ int main(int argc, char **argv)
     M_FindResponseFile();
     M_SetExeDir();
 
-    // [JN] Use current time as seed for random generator.
-    srand(time(0));
+    // [JN] Use current time as a seed for own random generator.
+    id_rand_seed = (uint32_t)time(NULL);
 
     // start doom
 

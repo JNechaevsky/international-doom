@@ -40,6 +40,11 @@
 #include "m_misc.h"
 #include "z_zone.h"
 
+// [PN] Our private random seed value.
+// Initialized once at startup (e.g. in main()) and used only by ID_RealRandom().
+uint32_t id_rand_seed = 1;
+
+
 #ifdef _WIN32
 static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
 {

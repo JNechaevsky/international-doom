@@ -15,7 +15,7 @@
 // GNU General Public License for more details.
 //
 
-#include <stdlib.h>  // [JN] rand()
+#include "m_misc.h"  // [PN] id_rand_seed
 
 // HEADER FILES ------------------------------------------------------------
 
@@ -94,7 +94,17 @@ int ID_SubRandom (void)
     return r - ID_Random();
 }
 
+// -----------------------------------------------------------------------------
+// ID_RealRandom
+//  [PN] Lightweight local random number generator.
+//  A private, self-contained linear congruential generator.
+//  Mirrors the algorithm historically used in many C runtimes,
+//  but keeps the state locally and avoids thread-local storage
+//  or other runtime overhead. Faster than the standard rand() in tight loops.
+//  Returns [0...32767]. May return [0...255] as well by using >> 23 shift.
+// -----------------------------------------------------------------------------
+
 int ID_RealRandom (void)
 {
-    return rand();
+    return (id_rand_seed = id_rand_seed * 214013u + 2531011u) >> 17;
 }
