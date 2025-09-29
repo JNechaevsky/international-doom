@@ -847,7 +847,7 @@ P_KillMobj
                     + target->height * 3 / 2 - 3 * FRACUNIT, item);
     mo->momx = (target->momx >> 1) + (ID_Random() << 8);
     mo->momy = (target->momy >> 1) + (ID_Random() << 8);
-    mo->momz = 2 * FRACUNIT + (M_Random() << 9);
+    mo->momz = 2 * FRACUNIT + (ID_Random() << 9);
     }
     else
     {

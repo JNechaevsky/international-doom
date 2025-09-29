@@ -69,8 +69,9 @@ static const unsigned char rndtable_hexen[256] = {
 // Pointer to LUT
 static const uint8_t *rndtable;
 
-int        rndindex  = 0;
-static int prndindex = 0;
+int        m_rndindex  = 0;
+static int p_rndindex  = 0;
+static int id_rndindex = 0;
 
 // [PN] Our private random seed value.
 // Initialized once at M_InitRandom() and used only by ID_RealRandom().
@@ -104,8 +105,8 @@ void M_InitRandom (GameMission_t mission)
 
 int M_Random (void)
 {
-    rndindex = (rndindex + 1) & 0xff;
-    return rndtable[rndindex];
+    m_rndindex = (m_rndindex + 1) & 0xff;
+    return rndtable[m_rndindex];
 }
 
 // -----------------------------------------------------------------------------
@@ -115,8 +116,8 @@ int M_Random (void)
 
 int P_Random (void)
 {
-    prndindex = (prndindex + 1) & 0xff;
-    return rndtable[prndindex];
+    p_rndindex = (p_rndindex + 1) & 0xff;
+    return rndtable[p_rndindex];
 }
 
 // -----------------------------------------------------------------------------
@@ -126,7 +127,7 @@ int P_Random (void)
 
 void M_ClearRandom (void)
 {
-    rndindex = prndindex = 0;
+    m_rndindex = p_rndindex = id_rndindex = 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -147,13 +148,13 @@ int P_SubRandom (void)
 
 int ID_Random (void)
 {
-    rndindex = (rndindex+1)&0xff;
-    return rndtable[rndindex];
+    id_rndindex = (id_rndindex + 1) & 0xff;
+    return rndtable[id_rndindex];
 }
 
 int ID_SubRandom (void)
 {
-    int r = ID_Random();
+    const int r = ID_Random();
     return r - ID_Random();
 }
 

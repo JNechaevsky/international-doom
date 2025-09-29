@@ -34,4 +34,4 @@ extern int  P_SubRandom (void);
 extern void M_ClearRandom (void);
 extern void M_InitRandom (GameMission_t mission);
 
-extern int  rndindex;
+extern int  m_rndindex;
