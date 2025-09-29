@@ -52,6 +52,7 @@
 #include "m_controls.h"
 #include "m_misc.h"
 #include "m_menu.h"
+#include "m_random.h"
 #include "p_local.h"
 #include "i_endoom.h"
 #include "i_input.h"
@@ -1723,6 +1724,9 @@ void D_DoomMain (void)
     M_SetConfigFilenames(PROGRAM_PREFIX "doom.ini");
     D_BindVariables();
     M_LoadDefaults();
+
+    // [JN] Initialize random LUTs.
+    M_InitRandom(doom);
 
     // [JN] Disk icon can be enabled for Doom.
     diskicon_enabled = true;

@@ -1,6 +1,8 @@
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
+// Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2024-2025 Polina "Aura" N.
 // Copyright(C) 2016-2025 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
@@ -13,34 +15,23 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// DESCRIPTION:
-//
-//    
+
+#pragma once
 
 
-#ifndef __M_RANDOM__
-#define __M_RANDOM__
+#include "d_mode.h"  // GameMission_t
 
 
-#include "doomtype.h"
+// Most damage defined using HITDICE. Used in Heretic and Hexen.
+#define HITDICE(a) ((1+(P_Random()&7))*a)
 
+extern int  ID_Random (void);
+extern int  ID_RealRandom (void);
+extern int  ID_SubRandom (void);
+extern int  M_Random (void);
+extern int  P_Random (void);
+extern int  P_SubRandom (void);
+extern void M_ClearRandom (void);
+extern void M_InitRandom (GameMission_t mission);
 
-// Returns a number from 0 to 255,
-// from a lookup table.
-int M_Random (void);
-
-// As M_Random, but used only by the play simulation.
-int P_Random (void);
-
-// Fix randoms for demos.
-void M_ClearRandom (void);
-
-// Defined version of P_Random() - P_Random()
-int P_SubRandom (void);
-
-// [JN] Own random functions
-extern int ID_Random (void);
-extern int ID_SubRandom (void);
-extern int ID_RealRandom (void);
-
-#endif
+extern int  rndindex;

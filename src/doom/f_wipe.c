@@ -125,7 +125,7 @@ static void wipe_initFizzle (void)
     {
         for (int xx = 0; xx < SCREENWIDTH; xx += scale)
         {
-            const uint8_t burn_value = rand() % 256;
+            const uint8_t burn_value = ID_RealRandom() % 256;
 
             for (int dy = 0; dy < scale; ++dy)
             {

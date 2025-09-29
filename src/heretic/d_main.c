@@ -52,6 +52,7 @@
 #include "m_config.h"
 #include "m_controls.h"
 #include "m_misc.h"
+#include "m_random.h"
 #include "p_local.h"
 #include "s_sound.h"
 #include "w_main.h"
@@ -1122,6 +1123,9 @@ void D_DoomMain(void)
     M_SetConfigFilenames(PROGRAM_PREFIX "heretic.ini");
     D_BindVariables();
     M_LoadDefaults();
+
+    // [JN] Initialize random LUTs.
+    M_InitRandom(heretic);
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
