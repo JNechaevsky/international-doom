@@ -540,11 +540,25 @@ static boolean S_StopSoundID(int sound_id, int priority)
         {
             I_StopSound(channel[lp].handle);
         }
-        if (S_sfx[channel[i].sound_id].usefulness > 0)
+
+        // [PN] SAFE: use lp, not i, and sanity-check sound id
         {
-            S_sfx[channel[i].sound_id].usefulness--;
+            const int sid = channel[lp].sound_id;
+            if (sid >= 0 && sid < NUMSFX && S_sfx[sid].usefulness > 0)
+            {
+                S_sfx[sid].usefulness--;
+            }
         }
+
+        // [PN] Clear channel state
+        channel[lp].handle = 0;
         channel[lp].mo = NULL;
+        channel[lp].sound_id = 0;
+        channel[lp].priority = 0;
+        if (AmbChan == lp)
+        {
+            AmbChan = -1;
+        }
     }
     return (true);
 }
