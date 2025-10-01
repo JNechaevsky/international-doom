@@ -6653,8 +6653,6 @@ boolean M_Responder (event_t* ev)
     }
     else
     {
-        const int item_status = currentMenu->menuitems[itemOn].status;
-
         // [JN] Shows the mouse cursor when moved.
         if (ev->data2 || ev->data3)
         {
@@ -6716,7 +6714,14 @@ boolean M_Responder (event_t* ev)
 
             if (ev->data1 & 1)
             {
-                if (menuactive && item_status == STS_SLDR)
+                // [JN] ASAN: do not proceed with menu routine
+                // for -1 position, just open up a game menu.
+                if (itemOn == -1)
+                {
+                    return false;
+                }
+
+                if (menuactive && currentMenu->menuitems[itemOn].status == STS_SLDR)
                 {
                     // [JN] Allow repetitive on sliders to move it while mouse movement.
                     menu_mouse_allow_click = true;
@@ -6776,10 +6781,10 @@ boolean M_Responder (event_t* ev)
                     M_ScrollPages(1);
                 }
                 else
-                if (item_status > 1)
+                if (currentMenu->menuitems[itemOn].status > 1)
                 {
                     // Scroll menu item backward normally, or forward for STS_MUL2
-                    currentMenu->menuitems[itemOn].routine(item_status != STS_MUL2 ? 0 : 1);
+                    currentMenu->menuitems[itemOn].routine(currentMenu->menuitems[itemOn].status != STS_MUL2 ? 0 : 1);
                     S_StartSound(NULL, sfx_stnmov);
                 }
                 mousewait = I_GetTime();
@@ -6793,10 +6798,10 @@ boolean M_Responder (event_t* ev)
                     M_ScrollPages(0);
                 }
                 else
-                if (item_status > 1)
+                if (currentMenu->menuitems[itemOn].status > 1)
                 {
                     // Scroll menu item forward normally, or backward for STS_MUL2
-                    currentMenu->menuitems[itemOn].routine(item_status != STS_MUL2 ? 1 : 0);
+                    currentMenu->menuitems[itemOn].routine(currentMenu->menuitems[itemOn].status != STS_MUL2 ? 1 : 0);
                     S_StartSound(NULL, sfx_stnmov);
                 }
                 mousewait = I_GetTime();

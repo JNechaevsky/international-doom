@@ -5286,6 +5286,9 @@ void MN_Init(void)
     // [JN] Apply default first page of Keybinds and Gameplay menus.
     Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS1;
     Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY1;
+    
+    // [JN] Initialize cursor position with hidden, will be set on menu opening.
+    CurrentItPos = -1;
 }
 
 //---------------------------------------------------------------------------
@@ -5903,7 +5906,7 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
     MN_DrTextA(pagestr, ORIGWIDTH / 2 - MN_TextAWidth(pagestr) / 2, y, cr[CR_MENU_DARK4]);
 
     // [JN] Print "modified" (or created initially) time of savegame file.
-    if (SlotStatus[CurrentItPos] && !FileMenuKeySteal)
+    if (CurrentItPos != -1 && SlotStatus[CurrentItPos] && !FileMenuKeySteal)
     {
         struct stat filestat;
         char filedate[32];
@@ -6732,6 +6735,13 @@ boolean MN_Responder(event_t * event)
 
             if (event->data1 & 1)
             {
+                // [JN] ASAN: do not proceed with menu routine
+                // for -1 position, just open up a game menu.
+                if (CurrentItPos == -1)
+                {
+                    return false;
+                }
+                
                 if (MenuActive && CurrentMenu->items[CurrentItPos].type == ITT_SLDR)
                 {
                     // [JN] Allow repetitive on sliders to move it while mouse movement.
