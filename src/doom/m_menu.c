@@ -5306,7 +5306,7 @@ static void M_DrawSaveLoadBottomLine (void)
     M_WriteTextCentered(151, pagestr, cr[CR_MENU_DARK1]);
 
     // [JN] Print "modified" (or created initially) time of savegame file.
-    if (LoadMenu[itemOn].status)
+    if (itemOn != -1 && LoadMenu[itemOn].status)
     {
         struct stat filestat;
         char filedate[32];
