@@ -416,22 +416,22 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_spy, key_spy2),
 
     // Shortcut keys
-    CONFIG_VARIABLE_KEY(key_pause),
-    CONFIG_VARIABLE_KEY(key_menu_screenshot),
-    CONFIG_VARIABLE_KEY(key_message_refresh),
-    CONFIG_VARIABLE_KEY(key_demo_quit),
-    CONFIG_VARIABLE_KEY(key_switch_ost),
+    CONFIG_VARIABLE_KEYBIND(key_pause, key_pause2),
+    CONFIG_VARIABLE_KEYBIND(key_menu_screenshot, key_menu_screenshot2),
+    CONFIG_VARIABLE_KEYBIND(key_message_refresh, key_message_refresh2),
+    CONFIG_VARIABLE_KEYBIND(key_demo_quit, key_demo_quit2),
+    CONFIG_VARIABLE_KEYBIND(key_switch_ost, key_switch_ost2),
 
     // Multiplayer
-    CONFIG_VARIABLE_KEY(key_multi_msg),
-    CONFIG_VARIABLE_KEY(key_multi_msgplayer1),
-    CONFIG_VARIABLE_KEY(key_multi_msgplayer2),
-    CONFIG_VARIABLE_KEY(key_multi_msgplayer3),
-    CONFIG_VARIABLE_KEY(key_multi_msgplayer4),
-    CONFIG_VARIABLE_KEY(key_multi_msgplayer5),
-    CONFIG_VARIABLE_KEY(key_multi_msgplayer6),
-    CONFIG_VARIABLE_KEY(key_multi_msgplayer7),
-    CONFIG_VARIABLE_KEY(key_multi_msgplayer8),
+    CONFIG_VARIABLE_KEYBIND(key_multi_msg, key_multi_msg2),
+    CONFIG_VARIABLE_KEYBIND(key_multi_msgplayer1, key_multi_msgplayer1_2),
+    CONFIG_VARIABLE_KEYBIND(key_multi_msgplayer2, key_multi_msgplayer2_2),
+    CONFIG_VARIABLE_KEYBIND(key_multi_msgplayer3, key_multi_msgplayer3_2),
+    CONFIG_VARIABLE_KEYBIND(key_multi_msgplayer4, key_multi_msgplayer4_2),
+    CONFIG_VARIABLE_KEYBIND(key_multi_msgplayer5, key_multi_msgplayer5_2),
+    CONFIG_VARIABLE_KEYBIND(key_multi_msgplayer6, key_multi_msgplayer6_2),
+    CONFIG_VARIABLE_KEYBIND(key_multi_msgplayer7, key_multi_msgplayer7_2),
+    CONFIG_VARIABLE_KEYBIND(key_multi_msgplayer8, key_multi_msgplayer8_2),
 
     // Special menu keys, not available for rebinding
     CONFIG_VARIABLE_KEY(key_menu_activate),

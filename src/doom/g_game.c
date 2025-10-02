@@ -699,7 +699,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 
     next_weapon = 0;
 
-    if (gamekeydown[key_message_refresh])
+    if (gamekeydown[key_message_refresh] || gamekeydown[key_message_refresh2])
     {
         players[consoleplayer].messageTics = MESSAGETICS;
     }
@@ -1096,7 +1096,7 @@ boolean G_Responder (event_t* ev)
     if (gameaction == ga_nothing && 
         (demoplayback || gamestate == GS_INTERMISSION))
     {
-        if (ev->type == ev_keydown && ev->data1 == key_pause)
+        if (ev->type == ev_keydown && (ev->data1 == key_pause || ev->data1 == key_pause2))
         {
             if (paused ^= 2)
                 S_PauseSound();
@@ -1210,7 +1210,7 @@ boolean G_Responder (event_t* ev)
     switch (ev->type) 
     { 
       case ev_keydown: 
-	if (ev->data1 == key_pause) 
+	if (ev->data1 == key_pause || ev->data1 == key_pause2) 
 	{ 
 	    sendpause = true; 
 	}
@@ -1334,7 +1334,7 @@ boolean G_Responder (event_t* ev)
     }
 
     // [JN] Switch preferred soundtrack.
-    if (ev->data1 == key_switch_ost)
+    if (ev->data1 == key_switch_ost || ev->data1 == key_switch_ost2)
     {
         if (remaster_ost)
         {
@@ -3025,12 +3025,12 @@ void G_ReadDemoTiccmd (ticcmd_t* cmd)
     // [crispy] if demo playback is quit by pressing 'q',
     // stay in the game, hand over controls to the player and
     // continue recording the demo under a different name
-    if (gamekeydown[key_demo_quit] && singledemo && !netgame)
+    if ((gamekeydown[key_demo_quit] || gamekeydown[key_demo_quit2]) && singledemo && !netgame)
     {
 	byte *actualbuffer = demobuffer;
 	char *actualname = M_StringDuplicate(defdemoname);
 
-	gamekeydown[key_demo_quit] = false;
+	gamekeydown[key_demo_quit] = gamekeydown[key_demo_quit2] = false;
 
 	// [crispy] find a new name for the continued demo
 	G_RecordDemo(actualname);
@@ -3101,7 +3101,7 @@ void G_WriteDemoTiccmd (ticcmd_t* cmd)
 { 
     byte *demo_start;
 
-    if (gamekeydown[key_demo_quit])           // press q to end demo recording 
+    if (gamekeydown[key_demo_quit] || gamekeydown[key_demo_quit2])           // press q to end demo recording 
 	G_CheckDemoStatus (); 
 
     demo_start = demo_p;

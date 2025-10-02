@@ -188,7 +188,7 @@ boolean CT_Responder (event_t *ev)
             CT_PLR_GREEN, CT_PLR_INDIGO, CT_PLR_BROWN, CT_PLR_RED
         };
 
-        if (ev->data1 == key_multi_msg)
+        if (ev->data1 == key_multi_msg || ev->data1 == key_multi_msg2)
         {
             sendto = CT_PLR_ALL;
         }
@@ -197,7 +197,7 @@ boolean CT_Responder (event_t *ev)
             sendto = 0;
             for (int i = 0; i < 4; i++)
             {
-                if (ev->data1 == key_multi_msgplayer[i])
+                if (ev->data1 == key_multi_msgplayer[i] || ev->data1 == key_multi_msgplayer2[i])
                 {
                     sendto = key_to_player[i];
                     break;

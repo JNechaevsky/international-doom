@@ -459,15 +459,15 @@ static void D_BindVariables(void)
     M_BindControls();
     M_BindChatControls(MAXPLAYERS);
 
-    key_multi_msgplayer[0] = HUSTR_KEYGREEN;
-    key_multi_msgplayer[1] = HUSTR_KEYINDIGO;
-    key_multi_msgplayer[2] = HUSTR_KEYBROWN;
-    key_multi_msgplayer[3] = HUSTR_KEYRED;
+    key_multi_msgplayer[0] = HUSTR_KEYGREEN;  key_multi_msgplayer2[0] = 0;
+    key_multi_msgplayer[1] = HUSTR_KEYINDIGO; key_multi_msgplayer2[1] = 0;
+    key_multi_msgplayer[2] = HUSTR_KEYBROWN;  key_multi_msgplayer2[2] = 0;
+    key_multi_msgplayer[3] = HUSTR_KEYRED;    key_multi_msgplayer2[3] = 0;
 
     NET_BindVariables();
 
     // [JN] Game-dependent variables:
-    M_BindIntVariable("key_message_refresh",    &key_message_refresh);
+    M_BindIntVariableKeybind("key_message_refresh", &key_message_refresh, "key_message_refresh2", &key_message_refresh2);
     M_BindIntVariable("sfx_volume",             &sfxVolume);
     M_BindIntVariable("music_volume",           &musicVolume);
     

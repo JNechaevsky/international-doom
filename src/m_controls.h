@@ -155,17 +155,17 @@ extern int key_spy, key_spy2;
 
 // Shortcut keys
 
-extern int key_pause;
-extern int key_menu_screenshot;
-extern int key_message_refresh;
+extern int key_pause, key_pause2;
+extern int key_menu_screenshot, key_menu_screenshot2;
+extern int key_message_refresh, key_message_refresh2;
 extern int key_message_refresh_hr;
-extern int key_demo_quit;
-extern int key_switch_ost;
+extern int key_demo_quit, key_demo_quit2;
+extern int key_switch_ost, key_switch_ost2;
 
 // Multiplayer
 
-extern int key_multi_msg;
-extern int key_multi_msgplayer[8];
+extern int key_multi_msg, key_multi_msg2;
+extern int key_multi_msgplayer[8], key_multi_msgplayer2[8];
 
 // Special menu keys, not available for rebinding
 

@@ -166,18 +166,17 @@ int key_spy           = KEY_F12; int key_spy2           = 0;
 
 // Shortcut keys
 
-int key_pause           = KEY_PAUSE;
-int key_menu_screenshot = KEY_PRTSCR;
-int key_message_refresh = KEY_ENTER;
-// [JN] Heretic using ENTER for afrtifacts activation.
-int key_message_refresh_hr = 0;
-int key_demo_quit       = 'q';
-int key_switch_ost      = 0;
+int key_pause           = KEY_PAUSE;  int key_pause2           = 0;
+int key_menu_screenshot = KEY_PRTSCR; int key_menu_screenshot2 = 0;
+int key_message_refresh = KEY_ENTER;  int key_message_refresh2 = 0;
+int key_message_refresh_hr = 0; // [JN] Heretic using ENTER for afrtifacts activation.
+int key_demo_quit       = 'q';        int key_demo_quit2       = 0;
+int key_switch_ost      = 0;          int key_switch_ost2      = 0;
 
 // Multiplayer
 
-int key_multi_msg = 't';
-int key_multi_msgplayer[8];
+int key_multi_msg = 't';    int key_multi_msg2 = 0;
+int key_multi_msgplayer[8]; int key_multi_msgplayer2[8];
 
 // Special menu keys, not available for rebinding
 
@@ -342,8 +341,8 @@ void M_BindControls (void)
 
     // Shortcut keys
 
-    M_BindIntVariable("key_pause",              &key_pause);
-    M_BindIntVariable("key_menu_screenshot",    &key_menu_screenshot);
+    M_BindIntVariableKeybind("key_pause",           &key_pause,           "key_pause2",           &key_pause2);
+    M_BindIntVariableKeybind("key_menu_screenshot", &key_menu_screenshot, "key_menu_screenshot2", &key_menu_screenshot2);
 #ifdef _WIN32
     // [JN] Pressing PrintScreen on Windows 11 opens the Snipping Tool.
     // Re-register PrintScreen key pressing for port needs to avoid this.
@@ -354,8 +353,8 @@ void M_BindControls (void)
         RegisterHotKey(NULL, 2, 0, VK_SNAPSHOT);
     }
 #endif
-    M_BindIntVariable("key_demo_quit",          &key_demo_quit);
-    M_BindIntVariable("key_switch_ost",         &key_switch_ost);
+    M_BindIntVariableKeybind("key_demo_quit",  &key_demo_quit,  "key_demo_quit2",  &key_demo_quit2);
+    M_BindIntVariableKeybind("key_switch_ost", &key_switch_ost, "key_switch_ost2", &key_switch_ost2);
 
     // Special menu keys, not available for rebinding
 
@@ -463,7 +462,7 @@ void M_BindChatControls (unsigned int num_players)
     char name[32];  // haleyjd: 20 not large enough - Thank you, come again!
     unsigned int i; // haleyjd: signedness conflict
 
-    M_BindIntVariable("key_multi_msg",     &key_multi_msg);
+    M_BindIntVariableKeybind("key_multi_msg", &key_multi_msg, "key_multi_msg2", &key_multi_msg2);
 
     for (i = 0 ; i < num_players ; ++i)
     {
