@@ -1132,6 +1132,14 @@ void M_BindStringVariable(const char *name, char **location)
     variable->bound = true;
 }
 
+// [JN] Consolidated shortcut-function for normal and alt binding.
+
+void M_BindIntVariableKeybind(const char *name1, int *location1, const char *name2, int *location2)
+{
+    M_BindIntVariable(name1, location1);
+    M_BindIntVariable(name2, location2);
+}
+
 // Set the value of a particular variable; an API function for other
 // parts of the program to assign values to config variables by name.
 

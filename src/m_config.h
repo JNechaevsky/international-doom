@@ -31,6 +31,7 @@ void M_SetMusicPackDir(void);
 void M_BindIntVariable(const char *name, int *location);
 void M_BindFloatVariable(const char *name, float *location);
 void M_BindStringVariable(const char *name, char **location);
+void M_BindIntVariableKeybind(const char *name1, int *location1, const char *name2, int *location2);
 boolean M_SetVariable(const char *name, const char *value);
 int M_GetIntVariable(const char *name);
 const char *M_GetStringVariable(const char *name);
