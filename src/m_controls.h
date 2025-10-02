@@ -25,7 +25,7 @@
 
 // Movement
 
-extern int key_up;
+extern int key_up, key_up2;
 extern int key_down;
 extern int key_right;
 extern int key_left;

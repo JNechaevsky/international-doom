@@ -37,6 +37,7 @@
 // Movement
 
 int key_up          = 'w';
+int key_up2         = 0;
 int key_down        = 's'; 
 int key_right       = KEY_RIGHTARROW;
 int key_left        = KEY_LEFTARROW;

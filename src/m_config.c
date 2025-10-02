@@ -294,6 +294,7 @@ static default_t	doom_defaults_list[] =
     // Movement
     CONFIG_VARIABLE_COMMENT("Keyboard controls"),
     CONFIG_VARIABLE_KEY(key_up),
+    CONFIG_VARIABLE_KEY(key_up2),
     CONFIG_VARIABLE_KEY(key_down),
     CONFIG_VARIABLE_KEY(key_left),
     CONFIG_VARIABLE_KEY(key_right),

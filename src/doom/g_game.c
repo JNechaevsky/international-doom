@@ -587,7 +587,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         }
     } 
  
-    if (gamekeydown[key_up]) 
+    if (gamekeydown[key_up] || gamekeydown[key_up2]) 
     {
 	// fprintf(stderr, "up\n");
 	forward += forwardmove[speed]; 

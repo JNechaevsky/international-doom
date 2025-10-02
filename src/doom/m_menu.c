@@ -830,12 +830,14 @@ static boolean KbdIsBinding;
 static int     keyToBind;
 
 static char   *M_NameBind (int itemSetOn, int key);
+static char   *M_NameBind2 (int itemSetOn, int key1, int key2);
 static void    M_StartBind (int keynum);
 static void    M_CheckBind (int key);
 static void    M_DoBind (int keynum, int key);
 static void    M_ClearBind (int itemOn);
 static void    M_ResetBinds (void);
 static void    M_DrawBindKey (int itemNum, int yPos, int key);
+static void    M_DrawBindKey2 (int itemNum, int yPos, int key1, int key2);
 static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
 
 // Mouse binding prototypes
@@ -2480,7 +2482,7 @@ static void M_Draw_ID_Keybinds_1 (void)
 
     M_WriteTextCentered(9, "MOVEMENT", cr[CR_YELLOW]);
 
-    M_DrawBindKey(0, 18, key_up);
+    M_DrawBindKey2(0, 18, key_up, key_up2);
     M_DrawBindKey(1, 27, key_down);
     M_DrawBindKey(2, 36, key_left);
     M_DrawBindKey(3, 45, key_right);
@@ -7782,6 +7784,31 @@ static char *M_NameBind (int itemSetOn, int key)
     return "---";  // Means empty
 }
 
+static char *M_NameBind2 (int itemSetOn, int key1, int key2)
+{
+    static char buf[32];
+
+    if (itemOn == itemSetOn && KbdIsBinding)
+        return "?";
+
+    // оба пусты
+    if (key1 == 0 && key2 == 0)
+        return "---";
+
+    // только один
+    if (key2 == 0)
+        return M_NameBind(itemSetOn, key1);
+    if (key1 == 0)
+        return M_NameBind(itemSetOn, key2);
+
+    // оба заданы: "<A> or <B>"
+    const char *a = M_NameBind(itemSetOn, key1);
+    const char *b = M_NameBind(itemSetOn, key2);
+    M_snprintf(buf, sizeof(buf), "%s or %s", a, b);
+    return buf;
+}
+
+
 // -----------------------------------------------------------------------------
 // M_StartBind
 //  [JN] Indicate that key binding is started (KbdIsBinding), and
@@ -7803,6 +7830,7 @@ static void M_CheckBind (int key)
 {
     // Page 1
     if (key_up == key)               key_up               = 0;
+	if (key_up2 == key)              key_up2              = 0;
     if (key_down == key)             key_down             = 0;
     if (key_left == key)             key_left             = 0;
     if (key_right == key)            key_right            = 0;
@@ -7895,7 +7923,7 @@ static void M_DoBind (int keynum, int key)
     switch (keynum)
     {
         // Page 1
-        case 100:  key_up = key;                break;
+        case 100:  if (!key_up) key_up = key; else key_up2 = key; break;
         case 101:  key_down = key;              break;
         case 102:  key_left = key;              break;
         case 103:  key_right = key;             break;
@@ -7981,7 +8009,7 @@ static void M_ClearBind (int itemOn)
     {
         switch (itemOn)
         {
-            case 0:   key_up = 0;               break;
+            case 0:   key_up = key_up2 = 0;               break;
             case 1:   key_down = 0;             break;
             case 2:   key_left = 0;             break;
             case 3:   key_right = 0;            break;
@@ -8094,7 +8122,7 @@ static void M_ClearBind (int itemOn)
 static void M_ResetBinds (void)
 {
     // Page 1
-    key_up = 'w';
+    key_up = 'w'; key_up2 = 0;
     key_down = 's';
     key_left = KEY_LEFTARROW;
     key_right = KEY_RIGHTARROW;
@@ -8182,6 +8210,18 @@ static void M_DrawBindKey (int itemNum, int yPos, int key)
                             key == 0 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(itemNum));
 }
+
+static void M_DrawBindKey2 (int itemNum, int yPos, int key1, int key2)
+{
+    const boolean empty = (key1 == 0 && key2 == 0);
+    char *text = M_NameBind2(itemNum, key1, key2);
+
+    M_WriteTextGlow(M_ItemRightAlign(text), yPos, text,
+        itemOn == itemNum && KbdIsBinding ? cr[CR_YELLOW] : (empty ? cr[CR_RED] : cr[CR_GREEN]),
+        itemOn == itemNum && KbdIsBinding ? cr[CR_YELLOW_BRIGHT] : (empty ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT]),
+        LINE_ALPHA(itemNum));
+}
+
 
 // -----------------------------------------------------------------------------
 // M_DrawBindFooter
