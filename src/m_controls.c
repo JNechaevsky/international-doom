@@ -36,29 +36,20 @@
 
 // Movement
 
-int key_up           = 'w';
-int key_up2          = 0;
-int key_down         = 's';
-int key_down2        = 0;
-int key_right        = KEY_RIGHTARROW;
-int key_right2       = 0;
-int key_left         = KEY_LEFTARROW;
-int key_left2        = 0;
-int key_strafeleft   = 'a';
-int key_strafeleft2  = 0;
-int key_straferight  = 'd';
-int key_straferight2 = 0;
-int key_speed        = KEY_RSHIFT; 
-int key_speed2       = 0;
-int key_strafe       = KEY_RALT;
-int key_strafe2      = 0;
-int key_180turn      = 0; // [crispy]
-int key_180turn2     = 0; // [crispy]
+int key_up          = 'w';            int key_up2          = 0;
+int key_down        = 's';            int key_down2        = 0;
+int key_right       = KEY_RIGHTARROW; int key_right2       = 0;
+int key_left        = KEY_LEFTARROW;  int key_left2        = 0;
+int key_strafeleft  = 'a';            int key_strafeleft2  = 0;
+int key_straferight = 'd';            int key_straferight2 = 0;
+int key_speed       = KEY_RSHIFT;     int key_speed2       = 0;
+int key_strafe      = KEY_RALT;       int key_strafe2      = 0;
+int key_180turn     = 0;              int key_180turn2     = 0; // [crispy]
 
 // Action
 
-int key_fire = KEY_RCTRL;
-int key_use  = ' ';
+int key_fire = KEY_RCTRL; int key_fire2 = 0;
+int key_use  = ' ';       int key_use2  = 0;
 
 // Advanced movement
 
@@ -287,7 +278,9 @@ void M_BindControls (void)
     // Action
 
     M_BindIntVariable("key_fire",               &key_fire);
+    M_BindIntVariable("key_fire2",              &key_fire2);
     M_BindIntVariable("key_use",                &key_use);
+    M_BindIntVariable("key_use2",               &key_use2);
 
     // Advanced movement
 

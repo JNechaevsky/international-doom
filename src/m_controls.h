@@ -37,8 +37,8 @@ extern int key_180turn, key_180turn2;
 
 // Action
 
-extern int key_fire;
-extern int key_use;
+extern int key_fire, key_fire2;
+extern int key_use, key_use2;
 
 // Advanced movement
 

@@ -314,7 +314,9 @@ static default_t	doom_defaults_list[] =
 
     // Action
     CONFIG_VARIABLE_KEY(key_fire),
+    CONFIG_VARIABLE_KEY(key_fire2),
     CONFIG_VARIABLE_KEY(key_use),
+    CONFIG_VARIABLE_KEY(key_use2),
 
     // Heretic: View
     CONFIG_VARIABLE_KEY(key_lookup),

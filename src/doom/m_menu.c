@@ -2494,8 +2494,8 @@ static void M_Draw_ID_Keybinds_1 (void)
 
     M_WriteTextCentered(99, "ACTION", cr[CR_YELLOW]);
 
-    M_DrawBindKey(10, 108, key_fire);
-    M_DrawBindKey(11, 117, key_use);
+    M_DrawBindKey2(10, 108, key_fire, key_fire2);
+    M_DrawBindKey2(11, 117, key_use, key_use2);
 
     M_DrawBindFooter("1", true);
 }
@@ -7861,20 +7861,32 @@ static void M_StartBind (int keynum)
 //  [JN] Check if pressed key is already binded, clear previous bind if found.
 // -----------------------------------------------------------------------------
 
+// [PN] To keep the key-unbind logic compact and readable, we define two simple helper macros...
+// (TODO - make global, since used in Hexen)
+#define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
+// 1) Checks a pair of single key slots (a and b) and clears them if they match k.
+#define UNSET2_IF_MATCH(k, a, b)   do { if ((a) == (k)) (a) = 0; if ((b) == (k)) (b) = 0; } while (0)
+// 2) loops through two parallel arrays of key slots (primary & alternate) and clears any elements matching k.
+#define UNSET_ARR2_IF_MATCH(k, arr1, arr2) \
+    do { for (size_t __i = 0; __i < ARRAY_LEN(arr1); ++__i) \
+         { if ((arr1)[__i] == (k)) (arr1)[__i] = 0;   \
+           if ((arr2)[__i] == (k)) (arr2)[__i] = 0; } \
+       } while (0)
+
 static void M_CheckBind (int key)
 {
     // Page 1
-    if (key_up == key) key_up = 0;                   if (key_up2 == key) key_up2 = 0;
-    if (key_down == key) key_down = 0;               if (key_down2 == key) key_down2 = 0;
-    if (key_left == key) key_left = 0;               if (key_left2 == key) key_left2 = 0;
-    if (key_right == key) key_right = 0;             if (key_right2 == key) key_right2 = 0;
-    if (key_strafeleft == key) key_strafeleft = 0;   if (key_strafeleft2 == key) key_strafeleft2 = 0;
-    if (key_straferight == key) key_straferight = 0; if (key_straferight2 == key) key_straferight2 = 0;
-    if (key_speed == key) key_speed = 0;             if (key_speed2 == key) key_speed2 = 0;
-    if (key_strafe == key) key_strafe = 0;           if (key_strafe2 == key) key_strafe2 = 0;
-    if (key_180turn == key) key_180turn = 0;         if (key_180turn2 == key) key_180turn2 = 0;
-    if (key_fire == key) key_fire = 0;
-    if (key_use == key) key_use = 0;
+    UNSET2_IF_MATCH(key, key_up,          key_up2);
+    UNSET2_IF_MATCH(key, key_down,        key_down2);
+    UNSET2_IF_MATCH(key, key_left,        key_left2);
+    UNSET2_IF_MATCH(key, key_right,       key_right2);
+    UNSET2_IF_MATCH(key, key_strafeleft,  key_strafeleft2);
+    UNSET2_IF_MATCH(key, key_straferight, key_straferight2);
+    UNSET2_IF_MATCH(key, key_speed,       key_speed2);
+    UNSET2_IF_MATCH(key, key_strafe,      key_strafe2);
+    UNSET2_IF_MATCH(key, key_180turn,     key_180turn2);
+    UNSET2_IF_MATCH(key, key_fire,        key_fire2);
+    UNSET2_IF_MATCH(key, key_use,         key_use2);
     // Page 2
     if (key_autorun == key)          key_autorun          = 0;
     if (key_mouse_look == key)       key_mouse_look       = 0;
@@ -7966,8 +7978,8 @@ static void M_DoBind (int keynum, int key)
         case 106: M_DoBindAction(&key_speed,       &key_speed2,       key); break;
         case 107: M_DoBindAction(&key_strafe,      &key_strafe2,      key); break;
         case 108: M_DoBindAction(&key_180turn,     &key_180turn2,     key); break;
-        case 109:  key_fire = key;              break;
-        case 110:  key_use = key;               break;
+        case 109: M_DoBindAction(&key_fire,        &key_fire2,        key); break;
+        case 110: M_DoBindAction(&key_use,         &key_use2,         key); break;
         // Page 2  
         case 200:  key_autorun = key;           break;
         case 201:  key_mouse_look = key;        break;
