@@ -7788,30 +7788,30 @@ static char *M_NameBind2 (int itemSetOn, int key1, int key2)
 {
     static char buf[32];
 
+    // Binding right now
     if (itemOn == itemSetOn && KbdIsBinding)
         return "?";
 
-    // оба пусты
+    // Both empty
     if (key1 == 0 && key2 == 0)
         return "---";
 
-    // только один
+    // Only one bind
     if (key2 == 0)
         return M_NameBind(itemSetOn, key1);
     if (key1 == 0)
         return M_NameBind(itemSetOn, key2);
 
-    // оба заданы: "<A> or <B>"
+    // Both binds
     const char *a = M_NameBind(itemSetOn, key1);
     const char *b = M_NameBind(itemSetOn, key2);
     M_snprintf(buf, sizeof(buf), "%s or %s", a, b);
     return buf;
 }
 
-// В m_menu.c (рядом с остальными статическими утилитами)
 static void M_CompactBind(int *slot1, int *slot2)
 {
-    // Если первый пуст, а второй нет — сдвинем, чтобы красивее рисовалось "W" (а не "— or W")
+    // If first is empty and second is binded, shift names to avoid "- or KEY".
     if (*slot1 == 0 && *slot2 != 0)
     {
         *slot1 = *slot2;
@@ -7822,6 +7822,7 @@ static void M_CompactBind(int *slot1, int *slot2)
 static void M_DoBindAction(int *slot1, int *slot2, int key)
 {
     // 1) Тоггл: повторная попытка бинда той же клавиши снимает её
+    // 1) Toggle: first try of same key clears bind
     if (*slot1 == key)
     {
         *slot1 = 0;
@@ -7834,10 +7835,10 @@ static void M_DoBindAction(int *slot1, int *slot2, int key)
         return;
     }
 
-    // 2) Антидубли глобально: прежде чем класть — вычистим её из других действий (оба слота)
+    // 2) Global: before asign, clear from other binds (both slots)
     M_CheckBind(key);
 
-    // 3) Обычное назначение: в первый свободный; если оба заняты — перезаписываем второй
+    // 3) Standard asignment: first to empty; if both asigned, rewrite to second
     if (*slot1 == 0)      *slot1 = key;
     else if (*slot2 == 0) *slot2 = key;
     else                  *slot2 = key;
@@ -8065,8 +8066,8 @@ static void M_ClearBind (int itemOn)
             case 7:   key_strafe = key_strafe2 = 0;           break;
             case 8:   key_180turn = key_180turn2 = 0;         break;
             // Action title
-            case 10:  key_fire = 0;             break;
-            case 11:  key_use = 0;              break;
+            case 10:  key_fire = key_fire2 = 0;               break;
+            case 11:  key_use = key_use2 = 0;                 break;
         }
     }
     if (currentMenu == &ID_Def_Keybinds_2)
