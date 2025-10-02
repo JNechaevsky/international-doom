@@ -6948,7 +6948,7 @@ boolean M_Responder (event_t* ev)
         }
         else
         {
-            M_CheckBind(key);
+            //M_CheckBind(key); // [PN] Не нужно, проверка осуществляется в других хелперах
             M_DoBind(keyToBind, key);
             keyToBind = 0;
             KbdIsBinding = false;
@@ -7808,6 +7808,41 @@ static char *M_NameBind2 (int itemSetOn, int key1, int key2)
     return buf;
 }
 
+// В m_menu.c (рядом с остальными статическими утилитами)
+static void M_CompactBind(int *slot1, int *slot2)
+{
+    // Если первый пуст, а второй нет — сдвинем, чтобы красивее рисовалось "W" (а не "— or W")
+    if (*slot1 == 0 && *slot2 != 0)
+    {
+        *slot1 = *slot2;
+        *slot2 = 0;
+    }
+}
+
+static void M_DoBindAction(int *slot1, int *slot2, int key)
+{
+    // 1) Тоггл: повторная попытка бинда той же клавиши снимает её
+    if (*slot1 == key)
+    {
+        *slot1 = 0;
+        M_CompactBind(slot1, slot2);
+        return;
+    }
+    if (*slot2 == key)
+    {
+        *slot2 = 0;
+        return;
+    }
+
+    // 2) Антидубли глобально: прежде чем класть — вычистим её из других действий (оба слота)
+    M_CheckBind(key);
+
+    // 3) Обычное назначение: в первый свободный; если оба заняты — перезаписываем второй
+    if (*slot1 == 0)      *slot1 = key;
+    else if (*slot2 == 0) *slot2 = key;
+    else                  *slot2 = key;
+}
+
 
 // -----------------------------------------------------------------------------
 // M_StartBind
@@ -7922,15 +7957,15 @@ static void M_DoBind (int keynum, int key)
     switch (keynum)
     {
         // Page 1
-        case 100:  if (!key_up) key_up = key;                   else key_up2 = key;          break;
-        case 101:  if (!key_down) key_down = key;               else key_down2 = key;        break;
-        case 102:  if (!key_left) key_left = key;               else key_left2 = key;        break;
-        case 103:  if (!key_right) key_right = key;             else key_right2 = key;       break;
-        case 104:  if (!key_strafeleft) key_strafeleft = key;   else key_strafeleft2 = key;  break;
-        case 105:  if (!key_straferight) key_straferight = key; else key_straferight2 = key; break;
-        case 106:  if (!key_speed) key_speed = key;             else key_speed2 = key;       break;
-        case 107:  if (!key_strafe) key_strafe = key;           else key_strafe2 = key;      break;
-        case 108:  if (!key_180turn) key_180turn = key;         else key_180turn2 = key;     break;
+        case 100: M_DoBindAction(&key_up,          &key_up2,          key); break;
+        case 101: M_DoBindAction(&key_down,        &key_down2,        key); break;
+        case 102: M_DoBindAction(&key_left,        &key_left2,        key); break;
+        case 103: M_DoBindAction(&key_right,       &key_right2,       key); break;
+        case 104: M_DoBindAction(&key_strafeleft,  &key_strafeleft2,  key); break;
+        case 105: M_DoBindAction(&key_straferight, &key_straferight2, key); break;
+        case 106: M_DoBindAction(&key_speed,       &key_speed2,       key); break;
+        case 107: M_DoBindAction(&key_strafe,      &key_strafe2,      key); break;
+        case 108: M_DoBindAction(&key_180turn,     &key_180turn2,     key); break;
         case 109:  key_fire = key;              break;
         case 110:  key_use = key;               break;
         // Page 2  
