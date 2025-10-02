@@ -164,6 +164,17 @@ static int *weapon_keys[] = {
     &key_weapon8
 };
 
+static int *weapon_keys_2[] = {
+    &key_weapon1_2,
+    &key_weapon2_2,
+    &key_weapon3_2,
+    &key_weapon4_2,
+    &key_weapon5_2,
+    &key_weapon6_2,
+    &key_weapon7_2,
+    &key_weapon8_2
+};
+
 // Set to -1 or +1 to switch to the previous or next weapon.
 
 static int next_weapon = 0;
@@ -486,7 +497,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     }
 
     // [crispy] toggle "always run"
-    if (gamekeydown[key_autorun])
+    if (gamekeydown[key_autorun] || gamekeydown[key_autorun2])
     {
         static int joybspeed_old = 2;
 
@@ -505,11 +516,11 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 
         S_StartSound(NULL, sfx_swtchn);
 
-        gamekeydown[key_autorun] = false;
+        gamekeydown[key_autorun] = gamekeydown[key_autorun2] = false;
     }
 
     // [JN] Toggle mouse look.
-    if (gamekeydown[key_mouse_look])
+    if (gamekeydown[key_mouse_look] || gamekeydown[key_mouse_look2])
     {
         mouse_look ^= 1;
         if (!mouse_look)
@@ -520,17 +531,17 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         CT_SetMessage(&players[consoleplayer], mouse_look ?
                        ID_MLOOK_ON : ID_MLOOK_OFF, false, NULL);
         S_StartSound(NULL, sfx_swtchn);
-        gamekeydown[key_mouse_look] = false;
+        gamekeydown[key_mouse_look] = gamekeydown[key_mouse_look2] = false;
     }
 
     // [JN] Toggle vertical mouse movement.
-    if (gamekeydown[key_novert])
+    if (gamekeydown[key_novert] || gamekeydown[key_novert2])
     {
         mouse_novert ^= 1;
         CT_SetMessage(&players[consoleplayer], mouse_novert ?
                       ID_NOVERT_ON : ID_NOVERT_OFF, false, NULL);
         S_StartSound(NULL, sfx_swtchn);
-        gamekeydown[key_novert] = false;
+        gamekeydown[key_novert] = gamekeydown[key_novert2] = false;
     }
 
     // let movement keys cancel each other out
@@ -674,9 +685,10 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 
         for (i=0; (size_t)i<arrlen(weapon_keys); ++i)
         {
-            int key = *weapon_keys[i];
+            const int key = *weapon_keys[i];
+            const int key2 = *weapon_keys_2[i];
 
-            if (gamekeydown[key])
+            if (gamekeydown[key] || gamekeydown[key2])
             {
                 cmd->buttons |= BT_CHANGE;
                 cmd->buttons |= i<<BT_WEAPONSHIFT;
@@ -1095,7 +1107,7 @@ boolean G_Responder (event_t* ev)
     }
 
     // [crispy] demo fast-forward
-    if (ev->type == ev_keydown && ev->data1 == key_demospeed && 
+    if (ev->type == ev_keydown && (ev->data1 == key_demospeed || ev->data1 == key_demospeed2) && 
         (demoplayback || gamestate == GS_DEMOSCREEN))
     {
         singletics = !singletics;
@@ -1104,7 +1116,7 @@ boolean G_Responder (event_t* ev)
  
     // allow spy mode changes even during the demo
     if (gamestate == GS_LEVEL && ev->type == ev_keydown 
-     && ev->data1 == key_spy && (singledemo || !deathmatch) )
+     && (ev->data1 == key_spy || ev->data1 == key_spy2) && (singledemo || !deathmatch) )
     {
 	// spy mode 
 	do 
@@ -1186,11 +1198,11 @@ boolean G_Responder (event_t* ev)
     // If the next/previous weapon keys are pressed, set the next_weapon
     // variable to change weapons when the next ticcmd is generated.
 
-    if (ev->type == ev_keydown && ev->data1 == key_prevweapon)
+    if (ev->type == ev_keydown && (ev->data1 == key_prevweapon || ev->data1 == key_prevweapon2))
     {
         next_weapon = -1;
     }
-    else if (ev->type == ev_keydown && ev->data1 == key_nextweapon)
+    else if (ev->type == ev_keydown && (ev->data1 == key_nextweapon || ev->data1 == key_nextweapon2))
     {
         next_weapon = 1;
     }
@@ -1208,7 +1220,7 @@ boolean G_Responder (event_t* ev)
         }
 
     // [JN] Flip level horizontally.
-    if (ev->data1 == key_flip_levels)
+    if (ev->data1 == key_flip_levels || ev->data1 == key_flip_levels2)
     {
         gp_flip_levels ^= 1;
         // Redraw game screen
@@ -1220,7 +1232,7 @@ boolean G_Responder (event_t* ev)
     }   
 
     // [JN] CRL - Toggle extended HUD.
-    if (ev->data1 == key_widget_enable)
+    if (ev->data1 == key_widget_enable || ev->data1 == key_widget_enable2)
     {
         widget_enable ^= 1;
         CT_SetMessage(&players[consoleplayer], widget_enable ?

@@ -44,12 +44,31 @@ int key_strafeleft  = 'a';            int key_strafeleft2  = 0;
 int key_straferight = 'd';            int key_straferight2 = 0;
 int key_speed       = KEY_RSHIFT;     int key_speed2       = 0;
 int key_strafe      = KEY_RALT;       int key_strafe2      = 0;
+int key_jump = '/'; // Hexen
 int key_180turn     = 0;              int key_180turn2     = 0; // [crispy]
 
 // Action
 
 int key_fire = KEY_RCTRL; int key_fire2 = 0;
 int key_use  = ' ';       int key_use2  = 0;
+
+// View
+
+int key_lookup = KEY_PGDN;
+int key_lookdown = KEY_DEL;
+int key_lookcenter = KEY_END;
+
+// Flying
+
+int key_flyup = KEY_PGUP;
+int key_flydown = KEY_INS;
+int key_flycenter = KEY_HOME;
+
+// Inventory
+
+int key_invleft = '[';
+int key_invright = ']';
+int key_useartifact = KEY_ENTER;
 
 // Advanced movement
 
@@ -59,43 +78,45 @@ int key_novert     = 0;            int key_novert2     = 0;
 
 // Special keys
 
-int key_prevlevel   = 0; // [PN]
-int key_reloadlevel = 0; // [crispy]
-int key_nextlevel   = 0; // [crispy]
-int key_demospeed   = 0; // [crispy]
-int key_flip_levels = 0; // [crispy]
-int key_widget_enable = 0;
+int key_prevlevel     = 0; int key_prevlevel2     = 0; // [PN]
+int key_reloadlevel   = 0; int key_reloadlevel2   = 0; // [crispy]
+int key_nextlevel     = 0; int key_nextlevel2     = 0; // [crispy]
+int key_demospeed     = 0; int key_demospeed2     = 0; // [crispy]
+int key_flip_levels   = 0; int key_flip_levels2   = 0; // [crispy]
+int key_widget_enable = 0; int key_widget_enable2 = 0;
 
-// Heretic keyboard controls
- 
-int key_flyup = KEY_PGUP;
-int key_flydown = KEY_INS;
-int key_flycenter = KEY_HOME;
+// Special modes
 
-int key_lookup = KEY_PGDN;
-int key_lookdown = KEY_DEL;
-int key_lookcenter = KEY_END;
+int key_spectator = 0; int key_spectator2 = 0;
+int key_freeze    = 0; int key_freeze2    = 0;
+int key_notarget  = 0; int key_notarget2  = 0;
+int key_buddha    = 0; int key_buddha2    = 0;
 
-int key_invleft = '[';
-int key_invright = ']';
-int key_useartifact = KEY_ENTER;
+// Weapons
 
-int key_arti_quartz = 0;
-int key_arti_urn = 0;
-int key_arti_bomb = 0;
-int key_arti_tome = 127;
-int key_arti_ring = 0;
-int key_arti_chaosdevice = 0;
-int key_arti_shadowsphere = 0;
-int key_arti_wings = 0;
-int key_arti_torch = 0;
-int key_arti_morph = 0;
+int key_weapon1    = '1'; int key_weapon1_2   = 0;
+int key_weapon2    = '2'; int key_weapon2_2   = 0;
+int key_weapon3    = '3'; int key_weapon3_2   = 0;
+int key_weapon4    = '4'; int key_weapon4_2   = 0;
+int key_weapon5    = '5'; int key_weapon5_2   = 0;
+int key_weapon6    = '6'; int key_weapon6_2   = 0;
+int key_weapon7    = '7'; int key_weapon7_2   = 0;
+int key_weapon8    = '8'; int key_weapon8_2   = 0;
+int key_prevweapon = 0;   int key_prevweapon2 = 0;
+int key_nextweapon = 0;   int key_nextweapon2 = 0;
 
-// Hexen keyboard controls
+// Artifacts
 
-int key_jump = '/';
-
-int key_arti_all             = KEY_BACKSPACE;
+int key_arti_quartz          = 0;
+int key_arti_urn             = 0;
+int key_arti_bomb            = 0;
+int key_arti_tome            = 127;
+int key_arti_ring            = 0;
+int key_arti_chaosdevice     = 0;
+int key_arti_shadowsphere    = 0;
+int key_arti_wings           = 0;
+int key_arti_torch           = 0;
+int key_arti_morph           = 0;
 int key_arti_health          = '\\';
 int key_arti_poisonbag       = '0';
 int key_arti_blastradius     = '9';
@@ -103,46 +124,26 @@ int key_arti_teleport        = '8';
 int key_arti_teleportother   = '7';
 int key_arti_egg             = '6';
 int key_arti_invulnerability = '5';
-// Extra artifacts
-int key_arti_servant = 0;
-int key_arti_bracers = 0;
-int key_arti_boots = 0;
-int key_arti_krater = 0;
-int key_arti_incant = 0;
-
-// Special modes
-
-int key_spectator = 0;
-int key_freeze    = 0;
-int key_notarget  = 0;
-int key_buddha    = 0;
-
-// Weapons
-
-int key_weapon1    = '1';
-int key_weapon2    = '2';
-int key_weapon3    = '3';
-int key_weapon4    = '4';
-int key_weapon5    = '5';
-int key_weapon6    = '6';
-int key_weapon7    = '7';
-int key_weapon8    = '8';
-int key_prevweapon = 0;
-int key_nextweapon = 0;
+int key_arti_servant         = 0;
+int key_arti_bracers         = 0;
+int key_arti_boots           = 0;
+int key_arti_krater          = 0;
+int key_arti_incant          = 0;
+int key_arti_all             = KEY_BACKSPACE;
 
 // Automap
 
-int key_map_toggle    = KEY_TAB;
-int key_map_zoomin    = '=';
-int key_map_zoomout   = '-';
-int key_map_maxzoom   = '0';
-int key_map_follow    = 'f';
-int key_map_rotate    = 'r';
-int key_map_overlay   = 'o';
-int key_map_mousepan  = 0;
-int key_map_grid      = 'g';
-int key_map_mark      = 'm';
-int key_map_clearmark = 'c';
+int key_map_toggle    = KEY_TAB; int key_map_toggle2    = 0;
+int key_map_zoomin    = '=';     int key_map_zoomin2    = '+';
+int key_map_zoomout   = '-';     int key_map_zoomout2   = 0;
+int key_map_maxzoom   = '0';     int key_map_maxzoom2   = 0;
+int key_map_follow    = 'f';     int key_map_follow2    = 0;
+int key_map_rotate    = 'r';     int key_map_rotate2    = 0;
+int key_map_overlay   = 'o';     int key_map_overlay2   = 0;
+int key_map_mousepan  = 0;       int key_map_mousepan2  = 0;
+int key_map_grid      = 'g';     int key_map_grid2      = 0;
+int key_map_mark      = 'm';     int key_map_mark2      = 0;
+int key_map_clearmark = 'c';     int key_map_clearmark2 = 0;
 int key_map_north     = KEY_UPARROW;
 int key_map_south     = KEY_DOWNARROW;
 int key_map_east      = KEY_RIGHTARROW;
@@ -150,18 +151,18 @@ int key_map_west      = KEY_LEFTARROW;
 
 // Function keys
 
-int key_menu_help     = KEY_F1;
-int key_menu_save     = KEY_F2;
-int key_menu_load     = KEY_F3;
-int key_menu_volume   = KEY_F4;
-int key_menu_detail   = KEY_F5;
-int key_menu_qsave    = KEY_F6;
-int key_menu_endgame  = KEY_F7;
-int key_menu_messages = KEY_F8;
-int key_menu_qload    = KEY_F9;
-int key_menu_quit     = KEY_F10;
-int key_menu_gamma    = KEY_F11;
-int key_spy           = KEY_F12;
+int key_menu_help     = KEY_F1;  int key_menu_help2     = 0;
+int key_menu_save     = KEY_F2;  int key_menu_save2     = 0;
+int key_menu_load     = KEY_F3;  int key_menu_load2     = 0;
+int key_menu_volume   = KEY_F4;  int key_menu_volume2   = 0;
+int key_menu_detail   = KEY_F5;  int key_menu_detail2   = 0;
+int key_menu_qsave    = KEY_F6;  int key_menu_qsave2    = 0;
+int key_menu_endgame  = KEY_F7;  int key_menu_endgame2  = 0;
+int key_menu_messages = KEY_F8;  int key_menu_messages2 = 0;
+int key_menu_qload    = KEY_F9;  int key_menu_qload2    = 0;
+int key_menu_quit     = KEY_F10; int key_menu_quit2     = 0;
+int key_menu_gamma    = KEY_F11; int key_menu_gamma2    = 0;
+int key_spy           = KEY_F12; int key_spy2           = 0;
 
 // Shortcut keys
 
@@ -268,78 +269,76 @@ void M_BindControls (void)
 
     // Action
 
-    M_BindIntVariable("key_fire",               &key_fire);
-    M_BindIntVariable("key_fire2",              &key_fire2);
-    M_BindIntVariable("key_use",                &key_use);
-    M_BindIntVariable("key_use2",               &key_use2);
+    M_BindIntVariableKeybind("key_fire", &key_fire, "key_fire2", &key_fire2);
+    M_BindIntVariableKeybind("key_use",  &key_use,  "key_use2",  &key_use2);
 
     // Advanced movement
 
-    M_BindIntVariable("key_autorun",         &key_autorun); // [crispy]
-    M_BindIntVariable("key_mouse_look",      &key_mouse_look);
-    M_BindIntVariable("key_novert",          &key_novert);
+    M_BindIntVariableKeybind("key_autorun",    &key_autorun,    "key_autorun2",    &key_autorun2); // [crispy]
+    M_BindIntVariableKeybind("key_mouse_look", &key_mouse_look, "key_mouse_look2", &key_mouse_look2);
+    M_BindIntVariableKeybind("key_novert",     &key_novert,     "key_novert2",     &key_novert2);
 
     // Special keys
 
-    M_BindIntVariable("key_prevlevel",       &key_prevlevel);   // [PN]
-    M_BindIntVariable("key_reloadlevel",     &key_reloadlevel); // [crispy]
-    M_BindIntVariable("key_nextlevel",       &key_nextlevel);   // [crispy]
-    M_BindIntVariable("key_demospeed",       &key_demospeed);   // [crispy]
-    M_BindIntVariable("key_flip_levels",     &key_flip_levels); // [crispy]
-    M_BindIntVariable("key_widget_enable",   &key_widget_enable);
+    M_BindIntVariableKeybind("key_prevlevel",     &key_prevlevel,     "key_prevlevel2",     &key_prevlevel2);   // [PN]
+    M_BindIntVariableKeybind("key_reloadlevel",   &key_reloadlevel,   "key_reloadlevel2",   &key_reloadlevel2); // [crispy]
+    M_BindIntVariableKeybind("key_nextlevel",     &key_nextlevel,     "key_nextlevel2",     &key_nextlevel2);   // [crispy]
+    M_BindIntVariableKeybind("key_demospeed",     &key_demospeed,     "key_demospeed2",     &key_demospeed2);   // [crispy]
+    M_BindIntVariableKeybind("key_flip_levels",   &key_flip_levels,   "key_flip_levels2",   &key_flip_levels2); // [crispy]
+    M_BindIntVariableKeybind("key_widget_enable", &key_widget_enable, "key_widget_enable2", &key_widget_enable2);
 
-    // RestlessRodent -- CRL (Special modes)
+    // Special modes
 
-    M_BindIntVariable("key_spectator",       &key_spectator);
-    M_BindIntVariable("key_freeze",          &key_freeze);
-    M_BindIntVariable("key_notarget",        &key_notarget);
-    M_BindIntVariable("key_buddha",          &key_buddha);
+    M_BindIntVariableKeybind("key_spectator", &key_spectator, "key_spectator2", &key_spectator2); // RestlessRodent -- CRL 
+    M_BindIntVariableKeybind("key_freeze",    &key_freeze,    "key_freeze2",    &key_freeze2);
+    M_BindIntVariableKeybind("key_notarget",  &key_notarget,  "key_notarget2",  &key_notarget2);
+    M_BindIntVariableKeybind("key_buddha",    &key_buddha,    "key_buddha2",     &key_buddha2);
 
     // Weapons
 
-    M_BindIntVariable("key_weapon1",            &key_weapon1);
-    M_BindIntVariable("key_weapon2",            &key_weapon2);
-    M_BindIntVariable("key_weapon3",            &key_weapon3);
-    M_BindIntVariable("key_weapon4",            &key_weapon4);
-    M_BindIntVariable("key_weapon5",            &key_weapon5);
-    M_BindIntVariable("key_weapon6",            &key_weapon6);
-    M_BindIntVariable("key_weapon7",            &key_weapon7);
-    M_BindIntVariable("key_weapon8",            &key_weapon8);
-    M_BindIntVariable("key_prevweapon",         &key_prevweapon);
-    M_BindIntVariable("key_nextweapon",         &key_nextweapon);
+    M_BindIntVariableKeybind("key_weapon1",    &key_weapon1,    "key_weapon1_2",   &key_weapon1_2);
+    M_BindIntVariableKeybind("key_weapon2",    &key_weapon2,    "key_weapon2_2",   &key_weapon2_2);
+    M_BindIntVariableKeybind("key_weapon3",    &key_weapon3,    "key_weapon3_2",   &key_weapon3_2);
+    M_BindIntVariableKeybind("key_weapon4",    &key_weapon4,    "key_weapon4_2",   &key_weapon4_2);
+    M_BindIntVariableKeybind("key_weapon5",    &key_weapon5,    "key_weapon5_2",   &key_weapon5_2);
+    M_BindIntVariableKeybind("key_weapon6",    &key_weapon6,    "key_weapon6_2",   &key_weapon6_2);
+    M_BindIntVariableKeybind("key_weapon7",    &key_weapon7,    "key_weapon7_2",   &key_weapon7_2);
+    M_BindIntVariableKeybind("key_weapon8",    &key_weapon8,    "key_weapon8_2",   &key_weapon8_2);
+    M_BindIntVariableKeybind("key_prevweapon", &key_prevweapon, "key_prevweapon2", &key_prevweapon);
+    M_BindIntVariableKeybind("key_nextweapon", &key_nextweapon, "key_nextweapon2", &key_nextweapon2);
 
     // Automap
 
-    M_BindIntVariable("key_map_toggle",         &key_map_toggle);
-    M_BindIntVariable("key_map_zoomin",         &key_map_zoomin);
-    M_BindIntVariable("key_map_zoomout",        &key_map_zoomout);
-    M_BindIntVariable("key_map_maxzoom",        &key_map_maxzoom);
-    M_BindIntVariable("key_map_follow",         &key_map_follow);
-    M_BindIntVariable("key_map_rotate",         &key_map_rotate);
-    M_BindIntVariable("key_map_overlay",        &key_map_overlay);
-    M_BindIntVariable("key_map_mousepan",       &key_map_mousepan);
-    M_BindIntVariable("key_map_grid",           &key_map_grid);
-    M_BindIntVariable("key_map_mark",           &key_map_mark);
-    M_BindIntVariable("key_map_clearmark",      &key_map_clearmark);
-    M_BindIntVariable("key_map_north",          &key_map_north);
-    M_BindIntVariable("key_map_south",          &key_map_south);
-    M_BindIntVariable("key_map_east",           &key_map_east);
-    M_BindIntVariable("key_map_west",           &key_map_west);
+    M_BindIntVariableKeybind("key_map_toggle",    &key_map_toggle,    "key_map_toggle2",    &key_map_toggle2);
+    M_BindIntVariableKeybind("key_map_zoomin",    &key_map_zoomin,    "key_map_zoomin2",    &key_map_zoomin2);
+    M_BindIntVariableKeybind("key_map_zoomout",   &key_map_zoomout,   "key_map_zoomout2",   &key_map_zoomout2);
+    M_BindIntVariableKeybind("key_map_maxzoom",   &key_map_maxzoom,   "key_map_maxzoom2",   &key_map_maxzoom2);
+    M_BindIntVariableKeybind("key_map_follow",    &key_map_follow,    "key_map_follow2",    &key_map_follow2);
+    M_BindIntVariableKeybind("key_map_rotate",    &key_map_rotate,    "key_map_rotate2",    &key_map_rotate2);
+    M_BindIntVariableKeybind("key_map_overlay",   &key_map_overlay,   "key_map_overlay2",   &key_map_overlay2);
+    M_BindIntVariableKeybind("key_map_mousepan",  &key_map_mousepan,  "key_map_mousepan2",  &key_map_mousepan2);
+    M_BindIntVariableKeybind("key_map_grid",      &key_map_grid,      "key_map_grid2",      &key_map_grid2);
+    M_BindIntVariableKeybind("key_map_mark",      &key_map_mark,      "key_map_mark2",      &key_map_mark2);
+    M_BindIntVariableKeybind("key_map_clearmark", &key_map_clearmark, "key_map_clearmark2", &key_map_clearmark2);
+    M_BindIntVariable("key_map_north", &key_map_north);
+    M_BindIntVariable("key_map_south", &key_map_south);
+    M_BindIntVariable("key_map_east",  &key_map_east);
+    M_BindIntVariable("key_map_west",  &key_map_west);
 
     // Function keys
 
-    M_BindIntVariable("key_menu_help",          &key_menu_help);
-    M_BindIntVariable("key_menu_save",          &key_menu_save);
-    M_BindIntVariable("key_menu_load",          &key_menu_load);
-    M_BindIntVariable("key_menu_volume",        &key_menu_volume);
-    M_BindIntVariable("key_menu_detail",        &key_menu_detail);
-    M_BindIntVariable("key_menu_qsave",         &key_menu_qsave);
-    M_BindIntVariable("key_menu_endgame",       &key_menu_endgame);
-    M_BindIntVariable("key_menu_messages",      &key_menu_messages);
-    M_BindIntVariable("key_menu_qload",         &key_menu_qload);
-    M_BindIntVariable("key_menu_quit",          &key_menu_quit);
-    M_BindIntVariable("key_menu_gamma",         &key_menu_gamma);
-    M_BindIntVariable("key_spy",                &key_spy);
+    M_BindIntVariableKeybind("key_menu_help",     &key_menu_help,     "key_menu_help2",     &key_menu_help2);
+    M_BindIntVariableKeybind("key_menu_save",     &key_menu_save,     "key_menu_save2",     &key_menu_save2);
+    M_BindIntVariableKeybind("key_menu_load",     &key_menu_load,     "key_menu_load2",     &key_menu_load2);
+    M_BindIntVariableKeybind("key_menu_volume",   &key_menu_volume,   "key_menu_volume2",   &key_menu_volume2);
+    M_BindIntVariableKeybind("key_menu_detail",   &key_menu_detail,   "key_menu_detail2",   &key_menu_detail2);
+    M_BindIntVariableKeybind("key_menu_qsave",    &key_menu_qsave,    "key_menu_qsave2",    &key_menu_qsave2);
+    M_BindIntVariableKeybind("key_menu_endgame",  &key_menu_endgame,  "key_menu_endgame2",  &key_menu_endgame2);
+    M_BindIntVariableKeybind("key_menu_messages", &key_menu_messages, "key_menu_messages2", &key_menu_messages2);
+    M_BindIntVariableKeybind("key_menu_qload",    &key_menu_qload,    "key_menu_qload2",    &key_menu_qload2);
+    M_BindIntVariableKeybind("key_menu_quit",     &key_menu_quit,     "key_menu_quit2",     &key_menu_quit2);
+    M_BindIntVariableKeybind("key_menu_gamma",    &key_menu_gamma,    "key_menu_gamma2",    &key_menu_gamma2);
+    M_BindIntVariableKeybind("key_spy",           &key_spy,           "key_spy2",           &key_spy2);
 
     // Shortcut keys
 

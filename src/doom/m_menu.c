@@ -2608,25 +2608,26 @@ static void M_Draw_ID_Keybinds_2 (void)
 
     M_WriteTextCentered(9, "ADVANCED MOVEMENT", cr[CR_YELLOW]);
 
-    M_DrawBindKey(0, 18, key_autorun);
-    M_DrawBindKey(1, 27, key_mouse_look);
-    M_DrawBindKey(2, 36, key_novert);
+    M_DrawBindKey2(0, 18, key_autorun, key_autorun2);
+    M_DrawBindKey2(1, 27, key_mouse_look, key_mouse_look2);
+    M_DrawBindKey2(2, 36, key_novert, key_novert2);
+
 
     M_WriteTextCentered(45, "SPECIAL KEYS", cr[CR_YELLOW]);
 
-    M_DrawBindKey(4, 54, key_prevlevel);
-    M_DrawBindKey(5, 63, key_reloadlevel);
-    M_DrawBindKey(6, 72, key_nextlevel);
-    M_DrawBindKey(7, 81, key_demospeed);
-    M_DrawBindKey(8, 90, key_flip_levels);
-    M_DrawBindKey(9, 99, key_widget_enable);
+    M_DrawBindKey2(4, 54, key_prevlevel, key_prevlevel2);
+    M_DrawBindKey2(5, 63, key_reloadlevel, key_reloadlevel2);
+    M_DrawBindKey2(6, 72, key_nextlevel, key_nextlevel2);
+    M_DrawBindKey2(7, 81, key_demospeed, key_demospeed2);
+    M_DrawBindKey2(8, 90, key_flip_levels, key_flip_levels2);
+    M_DrawBindKey2(9, 99, key_widget_enable, key_widget_enable2);
 
     M_WriteTextCentered(108, "SPECIAL MODES", cr[CR_YELLOW]);
 
-    M_DrawBindKey(11, 117, key_spectator);
-    M_DrawBindKey(12, 126, key_freeze);
-    M_DrawBindKey(13, 135, key_notarget);
-    M_DrawBindKey(14, 144, key_buddha);
+    M_DrawBindKey2(11, 117, key_spectator, key_spectator2);
+    M_DrawBindKey2(12, 126, key_freeze, key_freeze2);
+    M_DrawBindKey2(13, 135, key_notarget, key_notarget2);
+    M_DrawBindKey2(14, 144, key_buddha, key_buddha2);
 
     M_DrawBindFooter("2", true);
 }
@@ -2719,17 +2720,17 @@ static void M_Draw_ID_Keybinds_3 (void)
 
     M_WriteTextCentered(9, "WEAPONS", cr[CR_YELLOW]);
 
-    M_DrawBindKey(0, 18, key_weapon1);
-    M_DrawBindKey(1, 27, key_weapon2);
-    M_DrawBindKey(2, 36, key_weapon3);
-    M_DrawBindKey(3, 45, key_weapon4);
-    M_DrawBindKey(4, 54, key_weapon5);
-    M_DrawBindKey(5, 63, key_weapon6);
-    M_DrawBindKey(6, 72, key_weapon7);
-    M_DrawBindKey(7, 81, key_weapon8);
-    M_DrawBindKey(8, 90, key_prevweapon);
-    M_DrawBindKey(9, 99, key_nextweapon);
-
+    M_DrawBindKey2(0, 18, key_weapon1, key_weapon1_2);
+    M_DrawBindKey2(1, 27, key_weapon2, key_weapon2_2);
+    M_DrawBindKey2(2, 36, key_weapon3, key_weapon3_2);
+    M_DrawBindKey2(3, 45, key_weapon4, key_weapon4_2);
+    M_DrawBindKey2(4, 54, key_weapon5, key_weapon5_2);
+    M_DrawBindKey2(5, 63, key_weapon6, key_weapon6_2);
+    M_DrawBindKey2(6, 72, key_weapon7, key_weapon7_2);
+    M_DrawBindKey2(7, 81, key_weapon8, key_weapon8_2);
+    M_DrawBindKey2(8, 90, key_prevweapon, key_prevweapon2);
+    M_DrawBindKey2(9, 99, key_nextweapon, key_nextweapon2);
+    
     M_DrawBindFooter("3", true);
 }
 
@@ -2827,17 +2828,17 @@ static void M_Draw_ID_Keybinds_4 (void)
 
     M_WriteTextCentered(9, "AUTOMAP", cr[CR_YELLOW]);
 
-    M_DrawBindKey(0, 18, key_map_toggle);
-    M_DrawBindKey(1, 27, key_map_zoomin);
-    M_DrawBindKey(2, 36, key_map_zoomout);
-    M_DrawBindKey(3, 45, key_map_maxzoom);
-    M_DrawBindKey(4, 54, key_map_follow);
-    M_DrawBindKey(5, 63, key_map_rotate);
-    M_DrawBindKey(6, 72, key_map_overlay);
-    M_DrawBindKey(7, 81, key_map_mousepan);
-    M_DrawBindKey(8, 90, key_map_grid);
-    M_DrawBindKey(9, 99, key_map_mark);
-    M_DrawBindKey(10, 108, key_map_clearmark);
+    M_DrawBindKey2(0, 18, key_map_toggle, key_map_toggle2);
+    M_DrawBindKey2(1, 27, key_map_zoomin, key_map_zoomin2);
+    M_DrawBindKey2(2, 36, key_map_zoomout, key_map_zoomout2);
+    M_DrawBindKey2(3, 45, key_map_maxzoom, key_map_maxzoom2);
+    M_DrawBindKey2(4, 54, key_map_follow, key_map_follow2);
+    M_DrawBindKey2(5, 63, key_map_rotate, key_map_rotate2);
+    M_DrawBindKey2(6, 72, key_map_overlay, key_map_overlay2);
+    M_DrawBindKey2(7, 81, key_map_mousepan, key_map_mousepan2);
+    M_DrawBindKey2(8, 90, key_map_grid, key_map_grid2);
+    M_DrawBindKey2(9, 99, key_map_mark, key_map_mark2);
+    M_DrawBindKey2(10, 108, key_map_clearmark, key_map_clearmark2);
 
     M_DrawBindFooter("4", true);
 }
@@ -2941,18 +2942,18 @@ static void M_Draw_ID_Keybinds_5 (void)
 
     M_WriteTextCentered(9, "FUNCTION KEYS", cr[CR_YELLOW]);
 
-    M_DrawBindKey(0, 18, key_menu_help);
-    M_DrawBindKey(1, 27, key_menu_save);
-    M_DrawBindKey(2, 36, key_menu_load);
-    M_DrawBindKey(3, 45, key_menu_volume);
-    M_DrawBindKey(4, 54, key_menu_detail);
-    M_DrawBindKey(5, 63, key_menu_qsave);
-    M_DrawBindKey(6, 72, key_menu_endgame);
-    M_DrawBindKey(7, 81, key_menu_messages);
-    M_DrawBindKey(8, 90, key_menu_qload);
-    M_DrawBindKey(9, 99, key_menu_quit);
-    M_DrawBindKey(10, 108, key_menu_gamma);
-    M_DrawBindKey(11, 117, key_spy);
+    M_DrawBindKey2(0, 18, key_menu_help, key_menu_help2);
+    M_DrawBindKey2(1, 27, key_menu_save, key_menu_save2);
+    M_DrawBindKey2(2, 36, key_menu_load, key_menu_load2);
+    M_DrawBindKey2(3, 45, key_menu_volume, key_menu_volume2);
+    M_DrawBindKey2(4, 54, key_menu_detail, key_menu_detail2);
+    M_DrawBindKey2(5, 63, key_menu_qsave, key_menu_qsave2);
+    M_DrawBindKey2(6, 72, key_menu_endgame, key_menu_endgame2);
+    M_DrawBindKey2(7, 81, key_menu_messages, key_menu_messages2);
+    M_DrawBindKey2(8, 90, key_menu_qload, key_menu_qload2);
+    M_DrawBindKey2(9, 99, key_menu_quit, key_menu_quit2);
+    M_DrawBindKey2(10, 108, key_menu_gamma, key_menu_gamma2);
+    M_DrawBindKey2(11, 117, key_spy, key_spy2);
 
     M_DrawBindFooter("5", true);
 }
@@ -6968,7 +6969,7 @@ boolean M_Responder (event_t* ev)
         }
     }
 
-    if ((devparm && key == key_menu_help)
+    if ((devparm && (key == key_menu_help || key == key_menu_help2))
     || (key != 0 && key == key_menu_screenshot))
     {
         S_StartSound(NULL, sfx_tink);       // [JN] Add audible feedback
@@ -6995,7 +6996,7 @@ boolean M_Responder (event_t* ev)
             S_StartSound(NULL, sfx_stnmov);
             return true;
         }
-        else if (key == key_menu_help)     // Help key
+        else if (key == key_menu_help || key == key_menu_help2)     // Help key
         {
             M_StartControlPanel ();
 
@@ -7008,21 +7009,21 @@ boolean M_Responder (event_t* ev)
             S_StartSound(NULL, sfx_swtchn);
             return true;
         }
-        else if (key == key_menu_save)     // Save
+        else if (key == key_menu_save || key == key_menu_save2)     // Save
         {
             M_StartControlPanel();
             S_StartSound(NULL, sfx_swtchn);
             M_SaveGame(0);
             return true;
         }
-        else if (key == key_menu_load)     // Load
+        else if (key == key_menu_load || key == key_menu_load2)     // Load
         {
             M_StartControlPanel();
             S_StartSound(NULL, sfx_swtchn);
             M_LoadGame(0);
             return true;
         }
-        else if (key == key_menu_volume)   // Sound Volume
+        else if (key == key_menu_volume || key == key_menu_volume2)   // Sound Volume
         {
             M_StartControlPanel();
             currentMenu = &SoundDef;
@@ -7030,44 +7031,44 @@ boolean M_Responder (event_t* ev)
             S_StartSound(NULL, sfx_swtchn);
             return true;
         }
-        else if (key == key_menu_detail)   // Detail toggle
+        else if (key == key_menu_detail || key == key_menu_detail2)   // Detail toggle
         {
             M_ChangeDetail(0);
             S_StartSound(NULL, sfx_swtchn);
             return true;
         }
-        else if (key == key_menu_qsave)    // Quicksave
+        else if (key == key_menu_qsave || key == key_menu_qsave2)    // Quicksave
         {
             S_StartSound(NULL, sfx_swtchn);
             M_QuickSave();
             return true;
         }
-        else if (key == key_menu_endgame)  // End game
+        else if (key == key_menu_endgame || key == key_menu_endgame2)  // End game
         {
             S_StartSound(NULL, sfx_swtchn);
             M_EndGame(0);
             return true;
         }
-        else if (key == key_menu_messages) // Toggle messages
+        else if (key == key_menu_messages || key == key_menu_messages2) // Toggle messages
         {
             M_ChangeMessages(0);
             S_StartSound(NULL, sfx_swtchn);
             return true;
         }
-        else if (key == key_menu_qload)    // Quickload
+        else if (key == key_menu_qload || key == key_menu_qload2)    // Quickload
         {
             S_StartSound(NULL, sfx_swtchn);
             M_QuickLoad();
             return true;
         }
-        else if (key == key_menu_quit)     // Quit DOOM
+        else if (key == key_menu_quit || key == key_menu_quit2)     // Quit DOOM
         {
             S_StartSound(NULL, sfx_swtchn);
             M_QuitDOOM(0);
             return true;
         }
         // [PN] Go to previous level.
-        else if ((singleplayer) && key != 0 && key == key_prevlevel)
+        else if ((singleplayer) && key != 0 && (key == key_prevlevel || key == key_prevlevel2))
         {
             if (G_GotoPrevLevel())
             return true;
@@ -7075,7 +7076,7 @@ boolean M_Responder (event_t* ev)
         // [crispy] those two can be considered as shortcuts for the IDCLEV cheat
         // and should be treated as such, i.e. add "if (!netgame)"
         // [JN] Hovewer, allow while multiplayer demos.
-        else if ((!netgame || netdemo) && key != 0 && key == key_reloadlevel)
+        else if ((!netgame || netdemo) && key != 0 && (key == key_reloadlevel || key == key_reloadlevel2))
         {
             if (demoplayback)
             {
@@ -7093,7 +7094,7 @@ boolean M_Responder (event_t* ev)
             if (G_ReloadLevel())
             return true;
         }
-        else if ((!netgame || netdemo) && key != 0 && key == key_nextlevel)
+        else if ((!netgame || netdemo) && key != 0 && (key == key_nextlevel || key == key_nextlevel2))
         {
             if (demoplayback)
             {
@@ -7109,7 +7110,7 @@ boolean M_Responder (event_t* ev)
     }
 
     // [JN] Allow to change gamma while active menu.
-    if (key == key_menu_gamma)    // gamma toggle
+    if (key == key_menu_gamma || key == key_menu_gamma2)    // gamma toggle
     {
         vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, 1 /*right*/, false);
         CT_SetMessage(&players[consoleplayer], DEH_String(gammalvls[vid_gamma][0]), false, NULL);
@@ -7888,60 +7889,64 @@ static void M_CheckBind (int key)
     UNSET2_IF_MATCH(key, key_180turn,     key_180turn2);
     UNSET2_IF_MATCH(key, key_fire,        key_fire2);
     UNSET2_IF_MATCH(key, key_use,         key_use2);
+
     // Page 2
-    if (key_autorun == key)          key_autorun          = 0;
-    if (key_mouse_look == key)       key_mouse_look       = 0;
-    if (key_novert == key)           key_novert           = 0;
-    if (key_prevlevel == key)        key_prevlevel        = 0;
-    if (key_reloadlevel == key)      key_reloadlevel      = 0;
-    if (key_nextlevel == key)        key_nextlevel        = 0;
-    if (key_demospeed == key)        key_demospeed        = 0;
-    if (key_flip_levels == key)      key_flip_levels      = 0;
-    if (key_widget_enable == key)    key_widget_enable    = 0;
-    if (key_spectator == key)        key_spectator        = 0;
-    if (key_freeze == key)           key_freeze           = 0;
-    if (key_notarget == key)         key_notarget         = 0;
-    if (key_buddha == key)           key_buddha           = 0;
+    UNSET2_IF_MATCH(key, key_autorun,       key_autorun2);
+    UNSET2_IF_MATCH(key, key_mouse_look,    key_mouse_look2);
+    UNSET2_IF_MATCH(key, key_novert,        key_novert2);
+    UNSET2_IF_MATCH(key, key_prevlevel,     key_prevlevel2);
+    UNSET2_IF_MATCH(key, key_reloadlevel,   key_reloadlevel2);
+    UNSET2_IF_MATCH(key, key_nextlevel,     key_nextlevel2);
+    UNSET2_IF_MATCH(key, key_demospeed,     key_demospeed2);
+    UNSET2_IF_MATCH(key, key_flip_levels,   key_flip_levels2);
+    UNSET2_IF_MATCH(key, key_widget_enable, key_widget_enable2);
+    UNSET2_IF_MATCH(key, key_spectator,     key_spectator2);
+    UNSET2_IF_MATCH(key, key_freeze,        key_freeze2);
+    UNSET2_IF_MATCH(key, key_notarget,      key_notarget2);
+    UNSET2_IF_MATCH(key, key_buddha,        key_buddha2);
+    
     // Page 3
-    if (key_weapon1 == key)          key_weapon1          = 0;
-    if (key_weapon2 == key)          key_weapon2          = 0;
-    if (key_weapon3 == key)          key_weapon3          = 0;
-    if (key_weapon4 == key)          key_weapon4          = 0;
-    if (key_weapon5 == key)          key_weapon5          = 0;
-    if (key_weapon6 == key)          key_weapon6          = 0;
-    if (key_weapon7 == key)          key_weapon7          = 0;
-    if (key_weapon8 == key)          key_weapon8          = 0;
-    if (key_prevweapon == key)       key_prevweapon       = 0;
-    if (key_nextweapon == key)       key_nextweapon       = 0;
+    UNSET2_IF_MATCH(key, key_weapon1,    key_weapon1_2);
+    UNSET2_IF_MATCH(key, key_weapon2,    key_weapon2_2);
+    UNSET2_IF_MATCH(key, key_weapon3,    key_weapon3_2);
+    UNSET2_IF_MATCH(key, key_weapon4,    key_weapon4_2);
+    UNSET2_IF_MATCH(key, key_weapon5,    key_weapon5_2);
+    UNSET2_IF_MATCH(key, key_weapon6,    key_weapon6_2);
+    UNSET2_IF_MATCH(key, key_weapon7,    key_weapon7_2);
+    UNSET2_IF_MATCH(key, key_weapon8,    key_weapon8_2);
+    UNSET2_IF_MATCH(key, key_prevweapon, key_prevweapon2);
+    UNSET2_IF_MATCH(key, key_nextweapon, key_nextweapon2);
+    
     // Page 4
-    if (key_map_toggle == key)       key_map_toggle       = 0;
+    UNSET2_IF_MATCH(key, key_map_toggle, key_map_toggle2);
     // Do not override Automap binds in other pages.
     if (currentMenu == &ID_Def_Keybinds_4)
     {
-        if (key_map_zoomin == key)     key_map_zoomin     = 0;
-        if (key_map_zoomout == key)    key_map_zoomout    = 0;
-        if (key_map_maxzoom == key)    key_map_maxzoom    = 0;
-        if (key_map_follow == key)     key_map_follow     = 0;
-        if (key_map_rotate == key)     key_map_rotate     = 0;
-        if (key_map_overlay == key)    key_map_overlay    = 0;
-        if (key_map_mousepan == key)   key_map_mousepan   = 0;
-        if (key_map_grid == key)       key_map_grid       = 0;
-        if (key_map_mark == key)       key_map_mark       = 0;
-        if (key_map_clearmark == key)  key_map_clearmark  = 0;
+        UNSET2_IF_MATCH(key, key_map_zoomin,    key_map_zoomin2);
+        UNSET2_IF_MATCH(key, key_map_zoomout,   key_map_zoomout2);
+        UNSET2_IF_MATCH(key, key_map_maxzoom,   key_map_maxzoom2);
+        UNSET2_IF_MATCH(key, key_map_follow,    key_map_follow2);
+        UNSET2_IF_MATCH(key, key_map_rotate,    key_map_rotate2);
+        UNSET2_IF_MATCH(key, key_map_overlay,   key_map_overlay2);
+        UNSET2_IF_MATCH(key, key_map_mousepan,  key_map_mousepan2);
+        UNSET2_IF_MATCH(key, key_map_grid,      key_map_grid2);
+        UNSET2_IF_MATCH(key, key_map_mark,      key_map_mark2);
+        UNSET2_IF_MATCH(key, key_map_clearmark, key_map_clearmark2);
     }
     // Page 5
-    if (key_menu_help == key)        key_menu_help        = 0;
-    if (key_menu_save == key)        key_menu_save        = 0;
-    if (key_menu_load == key)        key_menu_load        = 0;
-    if (key_menu_volume == key)      key_menu_volume      = 0;
-    if (key_menu_detail == key)      key_menu_detail      = 0;
-    if (key_menu_qsave == key)       key_menu_qsave       = 0;
-    if (key_menu_endgame == key)     key_menu_endgame     = 0;
-    if (key_menu_messages == key)    key_menu_messages    = 0;
-    if (key_menu_qload == key)       key_menu_qload       = 0;
-    if (key_menu_quit == key)        key_menu_quit        = 0;
-    if (key_menu_gamma == key)       key_menu_gamma       = 0;
-    if (key_spy == key)              key_spy              = 0;
+    UNSET2_IF_MATCH(key, key_menu_help,     key_menu_help2);
+    UNSET2_IF_MATCH(key, key_menu_save,     key_menu_save2);
+    UNSET2_IF_MATCH(key, key_menu_load,     key_menu_load2);
+    UNSET2_IF_MATCH(key, key_menu_volume,   key_menu_volume2);
+    UNSET2_IF_MATCH(key, key_menu_detail,   key_menu_detail2);
+    UNSET2_IF_MATCH(key, key_menu_qsave,    key_menu_qsave2);
+    UNSET2_IF_MATCH(key, key_menu_endgame,  key_menu_endgame2);
+    UNSET2_IF_MATCH(key, key_menu_messages, key_menu_messages2);
+    UNSET2_IF_MATCH(key, key_menu_qload,    key_menu_qload2);
+    UNSET2_IF_MATCH(key, key_menu_quit,     key_menu_quit2);
+    UNSET2_IF_MATCH(key, key_menu_gamma,    key_menu_gamma2);
+    UNSET2_IF_MATCH(key, key_spy,           key_spy2);
+
     // Page 6
     if (key_pause == key)            key_pause            = 0;
     if (key_menu_screenshot == key)  key_menu_screenshot  = 0;
@@ -7981,57 +7986,62 @@ static void M_DoBind (int keynum, int key)
         case 108: M_DoBindAction(&key_180turn,     &key_180turn2,     key); break;
         case 109: M_DoBindAction(&key_fire,        &key_fire2,        key); break;
         case 110: M_DoBindAction(&key_use,         &key_use2,         key); break;
-        // Page 2  
-        case 200:  key_autorun = key;           break;
-        case 201:  key_mouse_look = key;        break;
-        case 202:  key_novert = key;            break;
-        case 203:  key_prevlevel = key;         break;
-        case 204:  key_reloadlevel = key;       break;
-        case 205:  key_nextlevel = key;         break;
-        case 206:  key_demospeed = key;         break;
-        case 207:  key_flip_levels = key;       break;
-        case 208:  key_widget_enable = key;     break;
-        case 209:  key_spectator = key;         break;
-        case 210:  key_freeze = key;            break;
-        case 211:  key_notarget = key;          break;
-        case 212:  key_buddha = key;            break;
-        // Page 3  
-        case 300:  key_weapon1 = key;           break;
-        case 301:  key_weapon2 = key;           break;
-        case 302:  key_weapon3 = key;           break;
-        case 303:  key_weapon4 = key;           break;
-        case 304:  key_weapon5 = key;           break;
-        case 305:  key_weapon6 = key;           break;
-        case 306:  key_weapon7 = key;           break;
-        case 307:  key_weapon8 = key;           break;
-        case 308:  key_prevweapon = key;        break;
-        case 309:  key_nextweapon = key;        break;
-        // Page 4  
-        case 400:  key_map_toggle = key;        break;
-        case 401:  key_map_zoomin = key;        break;
-        case 402:  key_map_zoomout = key;       break;
-        case 403:  key_map_maxzoom = key;       break;
-        case 404:  key_map_follow = key;        break;
-        case 405:  key_map_rotate = key;        break;
-        case 406:  key_map_overlay = key;       break;
-        case 407:  key_map_mousepan = key;      break;
-        case 408:  key_map_grid = key;          break;
-        case 409:  key_map_mark = key;          break;
-        case 410:  key_map_clearmark = key;     break;
-        // Page 5  
-        case 500:  key_menu_help = key;         break;
-        case 501:  key_menu_save = key;         break;
-        case 502:  key_menu_load = key;         break;
-        case 503:  key_menu_volume = key;       break;
-        case 504:  key_menu_detail = key;       break;
-        case 505:  key_menu_qsave = key;        break;
-        case 506:  key_menu_endgame = key;      break;
-        case 507:  key_menu_messages = key;     break;
-        case 508:  key_menu_qload = key;        break;
-        case 509:  key_menu_quit = key;         break;
-        case 510:  key_menu_gamma = key;        break;
-        case 511:  key_spy = key;               break;
-        // Page 6  
+
+        // Page 2
+        case 200: M_DoBindAction(&key_autorun,       &key_autorun2,       key); break;
+        case 201: M_DoBindAction(&key_mouse_look,    &key_mouse_look2,    key); break;
+        case 202: M_DoBindAction(&key_novert,        &key_novert2,        key); break;
+        case 203: M_DoBindAction(&key_prevlevel,     &key_prevlevel2,     key); break;
+        case 204: M_DoBindAction(&key_reloadlevel,   &key_reloadlevel2,   key); break;
+        case 205: M_DoBindAction(&key_nextlevel,     &key_nextlevel2,     key); break;
+        case 206: M_DoBindAction(&key_demospeed,     &key_demospeed2,     key); break;
+        case 207: M_DoBindAction(&key_flip_levels,   &key_flip_levels2,   key); break;
+        case 208: M_DoBindAction(&key_widget_enable, &key_widget_enable2, key); break;
+        case 209: M_DoBindAction(&key_spectator,     &key_spectator2,     key); break;
+        case 210: M_DoBindAction(&key_freeze,        &key_freeze2,        key); break;
+        case 211: M_DoBindAction(&key_notarget,      &key_notarget2,      key); break;
+        case 212: M_DoBindAction(&key_buddha,        &key_buddha2,        key); break;
+
+        // Page 3
+        case 300: M_DoBindAction(&key_weapon1,    &key_weapon1_2,   key); break;
+        case 301: M_DoBindAction(&key_weapon2,    &key_weapon2_2,   key); break;
+        case 302: M_DoBindAction(&key_weapon3,    &key_weapon3_2,   key); break;
+        case 303: M_DoBindAction(&key_weapon4,    &key_weapon4_2,   key); break;
+        case 304: M_DoBindAction(&key_weapon5,    &key_weapon5_2,   key); break;
+        case 305: M_DoBindAction(&key_weapon6,    &key_weapon6_2,   key); break;
+        case 306: M_DoBindAction(&key_weapon7,    &key_weapon7_2,   key); break;
+        case 307: M_DoBindAction(&key_weapon8,    &key_weapon8_2,   key); break;
+        case 308: M_DoBindAction(&key_prevweapon, &key_prevweapon2, key); break;
+        case 309: M_DoBindAction(&key_nextweapon, &key_nextweapon2, key); break;
+
+        // Page 4
+        case 400: M_DoBindAction(&key_map_toggle,    &key_map_toggle2,    key); break;
+        case 401: M_DoBindAction(&key_map_zoomin,    &key_map_zoomin2,    key); break;
+        case 402: M_DoBindAction(&key_map_zoomout,   &key_map_zoomout2,   key); break;
+        case 403: M_DoBindAction(&key_map_maxzoom,   &key_map_maxzoom2,   key); break;
+        case 404: M_DoBindAction(&key_map_follow,    &key_map_follow2,    key); break;
+        case 405: M_DoBindAction(&key_map_rotate,    &key_map_rotate2,    key); break;
+        case 406: M_DoBindAction(&key_map_overlay,   &key_map_overlay2,   key); break;
+        case 407: M_DoBindAction(&key_map_mousepan,  &key_map_mousepan2,  key); break;
+        case 408: M_DoBindAction(&key_map_grid,      &key_map_grid2,      key); break;
+        case 409: M_DoBindAction(&key_map_mark,      &key_map_mark2,      key); break;
+        case 410: M_DoBindAction(&key_map_clearmark, &key_map_clearmark2, key); break;
+
+        // Page 5
+        case 500: M_DoBindAction(&key_menu_help,     &key_menu_help2,     key); break;
+        case 501: M_DoBindAction(&key_menu_save,     &key_menu_save2,     key); break;
+        case 502: M_DoBindAction(&key_menu_load,     &key_menu_load2,     key); break;
+        case 503: M_DoBindAction(&key_menu_volume,   &key_menu_volume2,   key); break;
+        case 504: M_DoBindAction(&key_menu_detail,   &key_menu_detail2,   key); break;
+        case 505: M_DoBindAction(&key_menu_qsave,    &key_menu_qsave2,    key); break;
+        case 506: M_DoBindAction(&key_menu_endgame,  &key_menu_endgame2,  key); break;
+        case 507: M_DoBindAction(&key_menu_messages, &key_menu_messages2, key); break;
+        case 508: M_DoBindAction(&key_menu_qload,    &key_menu_qload2,    key); break;
+        case 509: M_DoBindAction(&key_menu_quit,     &key_menu_quit2,     key); break;
+        case 510: M_DoBindAction(&key_menu_gamma,    &key_menu_gamma2,    key); break;
+        case 511: M_DoBindAction(&key_spy,           &key_spy2,           key); break;
+
+        // Page 6
         case 600:  key_pause = key;             break;
         case 601:  key_menu_screenshot = key;   break;
         case 602:  key_message_refresh = key;   break;
@@ -8074,72 +8084,72 @@ static void M_ClearBind (int itemOn)
     {
         switch (itemOn)
         {
-            case 0:   key_autorun = 0;          break;
-            case 1:   key_mouse_look = 0;       break;
-            case 2:   key_novert = 0;           break;
+            case 0:   key_autorun = key_autorun2 = 0;         break;
+            case 1:   key_mouse_look = key_mouse_look2 = 0;   break;
+            case 2:   key_novert = key_novert2 = 0;           break;
             // Special keys title
-            case 4:   key_prevlevel = 0;        break;
-            case 5:   key_reloadlevel = 0;      break;
-            case 6:   key_nextlevel = 0;        break;
-            case 7:   key_demospeed = 0;        break;
-            case 8:   key_flip_levels = 0;      break;
-            case 9:   key_widget_enable = 0;    break;
+            case 4:   key_prevlevel = key_prevlevel2 = 0;         break;
+            case 5:   key_reloadlevel = key_reloadlevel2 = 0;     break;
+            case 6:   key_nextlevel = key_nextlevel2 = 0;         break;
+            case 7:   key_demospeed = key_demospeed2 = 0;         break;
+            case 8:   key_flip_levels = key_flip_levels2 = 0;     break;
+            case 9:   key_widget_enable = key_widget_enable2 = 0; break;
             // Special modes title
-            case 11:  key_spectator = 0;        break;
-            case 12:  key_freeze = 0;           break;
-            case 13:  key_notarget = 0;         break;
-            case 14:  key_buddha = 0;           break;
+            case 11:  key_spectator = key_spectator2 = 0; break;
+            case 12:  key_freeze = key_freeze2 = 0;       break;
+            case 13:  key_notarget = key_notarget2 = 0;   break;
+            case 14:  key_buddha = key_buddha2 = 0;       break;
         }
     }
     if (currentMenu == &ID_Def_Keybinds_3)
     {
         switch (itemOn)
         {
-            case 0:   key_weapon1 = 0;          break;
-            case 1:   key_weapon2 = 0;          break;
-            case 2:   key_weapon3 = 0;          break;
-            case 3:   key_weapon4 = 0;          break;
-            case 4:   key_weapon5 = 0;          break;
-            case 5:   key_weapon6 = 0;          break;
-            case 6:   key_weapon7 = 0;          break;
-            case 7:   key_weapon8 = 0;          break;
-            case 8:   key_prevweapon = 0;       break;
-            case 9:   key_nextweapon = 0;       break;
+            case 0:  key_weapon1 = key_weapon1_2 = 0;       break;
+            case 1:  key_weapon2 = key_weapon2_2 = 0;       break;
+            case 2:  key_weapon3 = key_weapon3_2 = 0;       break;
+            case 3:  key_weapon4 = key_weapon4_2 = 0;       break;
+            case 4:  key_weapon5 = key_weapon5_2 = 0;       break;
+            case 5:  key_weapon6 = key_weapon6_2 = 0;       break;
+            case 6:  key_weapon7 = key_weapon7_2 = 0;       break;
+            case 7:  key_weapon8 = key_weapon8_2 = 0;       break;
+            case 8:  key_prevweapon = key_prevweapon2 = 0;  break;
+            case 9:  key_nextweapon = key_nextweapon2 = 0;  break;
         }
     }
     if (currentMenu == &ID_Def_Keybinds_4)
     {
         switch (itemOn)
         {
-            case 0:   key_map_toggle = 0;       break;
-            case 1:   key_map_zoomin = 0;       break;
-            case 2:   key_map_zoomout = 0;      break;
-            case 3:   key_map_maxzoom = 0;      break;
-            case 4:   key_map_follow = 0;       break;
-            case 5:   key_map_rotate = 0;       break;
-            case 6:   key_map_overlay = 0;      break;
-            case 7:   key_map_mousepan = 0;     break;
-            case 8:   key_map_grid = 0;         break;
-            case 9:   key_map_mark = 0;         break;
-            case 10:  key_map_clearmark = 0;    break;
+            case 0:   key_map_toggle = key_map_toggle2 = 0;       break;
+            case 1:   key_map_zoomin = key_map_zoomin2 = 0;       break;
+            case 2:   key_map_zoomout = key_map_zoomout2 = 0;     break;
+            case 3:   key_map_maxzoom = key_map_maxzoom2 = 0;     break;
+            case 4:   key_map_follow = key_map_follow2 = 0;       break;
+            case 5:   key_map_rotate = key_map_rotate2 = 0;       break;
+            case 6:   key_map_overlay = key_map_overlay2 = 0;     break;
+            case 7:   key_map_mousepan = key_map_mousepan2 = 0;   break;
+            case 8:   key_map_grid = key_map_grid2 = 0;           break;
+            case 9:   key_map_mark = key_map_mark2 = 0;           break;
+            case 10:  key_map_clearmark = key_map_clearmark2 = 0; break;
         }
     }
     if (currentMenu == &ID_Def_Keybinds_5)
     {
         switch (itemOn)
         {
-            case 0:   key_menu_help = 0;        break;
-            case 1:   key_menu_save = 0;        break;
-            case 2:   key_menu_load = 0;        break;
-            case 3:   key_menu_volume = 0;      break;
-            case 4:   key_menu_detail = 0;      break;
-            case 5:   key_menu_qsave = 0;       break;
-            case 6:   key_menu_endgame = 0;     break;
-            case 7:   key_menu_messages = 0;    break;
-            case 8:   key_menu_qload = 0;       break;
-            case 9:   key_menu_quit = 0;        break;
-            case 10:  key_menu_gamma = 0;       break;
-            case 11:  key_spy = 0;              break;
+            case 0:   key_menu_help = key_menu_help2 = 0;         break;
+            case 1:   key_menu_save = key_menu_save2 = 0;         break;
+            case 2:   key_menu_load = key_menu_load2 = 0;         break;
+            case 3:   key_menu_volume = key_menu_volume2 = 0;     break;
+            case 4:   key_menu_detail = key_menu_detail2 = 0;     break;
+            case 5:   key_menu_qsave = key_menu_qsave2 = 0;       break;
+            case 6:   key_menu_endgame = key_menu_endgame2 = 0;   break;
+            case 7:   key_menu_messages = key_menu_messages2 = 0; break;
+            case 8:   key_menu_qload = key_menu_qload2 = 0;       break;
+            case 9:   key_menu_quit = key_menu_quit2 = 0;         break;
+            case 10:  key_menu_gamma = key_menu_gamma2 = 0;       break;
+            case 11:  key_spy = key_spy2 = 0;                     break;
         }
     }
     if (currentMenu == &ID_Def_Keybinds_6)
@@ -8181,55 +8191,55 @@ static void M_ResetBinds (void)
     key_fire = KEY_RCTRL;
     key_use = ' ';
     // Page 2
-    key_autorun = KEY_CAPSLOCK;
-    key_mouse_look = 0;
-    key_novert = 0;
-    key_prevlevel = 0;
-    key_reloadlevel = 0;
-    key_nextlevel = 0;
-    key_demospeed = 0;
-    key_flip_levels = 0;
-    key_widget_enable = 0;
+    key_autorun = KEY_CAPSLOCK; key_autorun2 = 0;
+    key_mouse_look = 0; key_mouse_look2 = 0;
+    key_novert = 0; key_novert2 = 0;
+    key_prevlevel = 0; key_prevlevel = 0;
+    key_reloadlevel = 0; key_reloadlevel2 = 0;
+    key_nextlevel = 0; key_nextlevel2 = 0;
+    key_demospeed = 0; key_demospeed2 = 0;
+    key_flip_levels = 0; key_flip_levels2 = 0;
+    key_widget_enable = 0; key_widget_enable2 = 0;
     key_spectator = 0;
     key_freeze = 0;
     key_notarget = 0;
     key_buddha = 0;
     // Page 3
-    key_weapon1 = '1';
-    key_weapon2 = '2';
-    key_weapon3 = '3';
-    key_weapon4 = '4';
-    key_weapon5 = '5';
-    key_weapon6 = '6';
-    key_weapon7 = '7';
-    key_weapon8 = '8';
-    key_prevweapon = 0;
-    key_nextweapon = 0;
+    key_weapon1 = '1'; key_weapon1_2 = 0;
+    key_weapon2 = '2'; key_weapon2_2 = 0;
+    key_weapon3 = '3'; key_weapon3_2 = 0;
+    key_weapon4 = '4'; key_weapon4_2 = 0;
+    key_weapon5 = '5'; key_weapon5_2 = 0;
+    key_weapon6 = '6'; key_weapon6_2 = 0;
+    key_weapon7 = '7'; key_weapon7_2 = 0;
+    key_weapon8 = '8'; key_weapon8_2 = 0;
+    key_prevweapon = 0; key_prevweapon2 = 0;
+    key_nextweapon = 0; key_nextweapon2 = 0;
     // Page 4
-    key_map_toggle = KEY_TAB;
-    key_map_zoomin = '=';
-    key_map_zoomout = '-';
-    key_map_maxzoom = '0';
-    key_map_follow = 'f';
-    key_map_rotate = 'r';
-    key_map_overlay = 'o';
-    key_map_mousepan = 0;
-    key_map_grid = 'g';
-    key_map_mark = 'm';
-    key_map_clearmark = 'c';
+    key_map_toggle = KEY_TAB; key_map_toggle2 = 0;
+    key_map_zoomin = '='; key_map_zoomin2 = '+';
+    key_map_zoomout = '-'; key_map_zoomout2 = 0;
+    key_map_maxzoom = '0'; key_map_maxzoom2 = 0;
+    key_map_follow = 'f';  key_map_follow2 = 0;
+    key_map_rotate = 'r';  key_map_rotate2 = 0;
+    key_map_overlay = 'o'; key_map_overlay2 = 0;
+    key_map_mousepan = 0; key_map_mousepan2 = 0;
+    key_map_grid = 'g'; key_map_grid2 = 0;
+    key_map_mark = 'm'; key_map_mark2 = 0;
+    key_map_clearmark = 'c'; key_map_clearmark2 = 0;
     // Page 5
-    key_menu_help = KEY_F1;
-    key_menu_save = KEY_F2;
-    key_menu_load = KEY_F3;
-    key_menu_volume = KEY_F4;
-    key_menu_detail = KEY_F5;
-    key_menu_qsave = KEY_F6;
-    key_menu_endgame = KEY_F7;
-    key_menu_messages = KEY_F8;
-    key_menu_qload = KEY_F9;
-    key_menu_quit = KEY_F10;
-    key_menu_gamma = KEY_F11;
-    key_spy = KEY_F12;
+    key_menu_help = KEY_F1; key_menu_help2 = 0;
+    key_menu_save = KEY_F2; key_menu_save2 = 0;
+    key_menu_load = KEY_F3; key_menu_load2 = 0;
+    key_menu_volume = KEY_F4; key_menu_volume2 = 0;
+    key_menu_detail = KEY_F5; key_menu_detail2 = 0;
+    key_menu_qsave = KEY_F6; key_menu_qsave2 = 0;
+    key_menu_endgame = KEY_F7; key_menu_endgame2 = 0;
+    key_menu_messages = KEY_F8; key_menu_messages2 = 0;
+    key_menu_qload = KEY_F9; key_menu_qload2 = 0;
+    key_menu_quit = KEY_F10; key_menu_quit2 = 0;
+    key_menu_gamma = KEY_F11; key_menu_gamma2 = 0;
+    key_spy = KEY_F12; key_spy2 = 0;
     // Page 6
     key_pause = KEY_PAUSE;
     key_menu_screenshot = KEY_PRTSCR;

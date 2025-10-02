@@ -33,6 +33,7 @@ extern int key_strafeleft, key_strafeleft2;
 extern int key_straferight, key_straferight2;
 extern int key_speed, key_speed2;
 extern int key_strafe, key_strafe2;
+extern int key_jump; // Hexen
 extern int key_180turn, key_180turn2;
 
 // Action
@@ -40,58 +41,60 @@ extern int key_180turn, key_180turn2;
 extern int key_fire, key_fire2;
 extern int key_use, key_use2;
 
-// Advanced movement
+// View
 
-extern int key_autorun;
-extern int key_mouse_look; // [crispy]
-extern int key_novert;
+extern int key_lookup;
+extern int key_lookdown;
+extern int key_lookcenter;
 
-// Special keys
-
-extern int key_prevlevel;   // [PN]
-extern int key_nextlevel;   // [crispy]
-extern int key_reloadlevel; // [crispy]
-extern int key_demospeed;   // [crispy]
-extern int key_flip_levels; // [crispy]
-extern int key_widget_enable;
-
-// Heretic
+// Flying
 
 extern int key_flyup;
 extern int key_flydown;
 extern int key_flycenter;
-extern int key_lookup;
-extern int key_lookdown;
-extern int key_lookcenter;
+
+// Inventory
+
 extern int key_invleft;
 extern int key_invright;
 extern int key_useartifact;
 
-// Hexen
+// Advanced movement
 
-extern int key_jump;
+extern int key_autorun, key_autorun2;
+extern int key_mouse_look, key_mouse_look2; // [crispy]
+extern int key_novert, key_novert2;
 
-// RestlessRodent -- CRL (Special modes)
+// Special keys
 
-extern int key_spectator;
-extern int key_freeze;
-extern int key_notarget;
-extern int key_buddha;
+extern int key_prevlevel, key_prevlevel2;         // [PN]
+extern int key_nextlevel, key_nextlevel2;         // [crispy]
+extern int key_reloadlevel, key_reloadlevel2;     // [crispy]
+extern int key_demospeed, key_demospeed2;         // [crispy]
+extern int key_flip_levels, key_flip_levels2;     // [crispy]
+extern int key_widget_enable, key_widget_enable2;
+
+// Special modes
+
+extern int key_spectator, key_spectator2; // RestlessRodent -- CRL
+extern int key_freeze, key_freeze2;
+extern int key_notarget, key_notarget2;
+extern int key_buddha, key_buddha2;
 
 // Weapons
 
-extern int key_weapon1;
-extern int key_weapon2;
-extern int key_weapon3;
-extern int key_weapon4;
-extern int key_weapon5;
-extern int key_weapon6;
-extern int key_weapon7;
-extern int key_weapon8;
-extern int key_prevweapon;
-extern int key_nextweapon;
+extern int key_weapon1, key_weapon1_2;
+extern int key_weapon2, key_weapon2_2;
+extern int key_weapon3, key_weapon3_2;
+extern int key_weapon4, key_weapon4_2;
+extern int key_weapon5, key_weapon5_2;
+extern int key_weapon6, key_weapon6_2;
+extern int key_weapon7, key_weapon7_2;
+extern int key_weapon8, key_weapon8_2;
+extern int key_prevweapon, key_prevweapon2;
+extern int key_nextweapon, key_nextweapon2;
 
-// Inventory
+// Artifacts
 
 extern int key_arti_quartz;
 extern int key_arti_urn;
@@ -103,8 +106,6 @@ extern int key_arti_shadowsphere;
 extern int key_arti_wings;
 extern int key_arti_torch;
 extern int key_arti_morph;
-
-extern int key_arti_all;
 extern int key_arti_health;
 extern int key_arti_poisonbag;
 extern int key_arti_blastradius;
@@ -112,26 +113,26 @@ extern int key_arti_teleport;
 extern int key_arti_teleportother;
 extern int key_arti_egg;
 extern int key_arti_invulnerability;
-// Extra artifacts
 extern int key_arti_servant;
 extern int key_arti_bracers;
 extern int key_arti_boots;
 extern int key_arti_krater;
 extern int key_arti_incant;
+extern int key_arti_all;
 
 // Automap
 
-extern int key_map_toggle;
-extern int key_map_zoomin;
-extern int key_map_zoomout;
-extern int key_map_maxzoom;
-extern int key_map_follow;
-extern int key_map_rotate;
-extern int key_map_overlay;
-extern int key_map_mousepan;
-extern int key_map_grid;
-extern int key_map_mark;
-extern int key_map_clearmark;
+extern int key_map_toggle, key_map_toggle2;
+extern int key_map_zoomin, key_map_zoomin2;
+extern int key_map_zoomout, key_map_zoomout2;
+extern int key_map_maxzoom, key_map_maxzoom2;
+extern int key_map_follow, key_map_follow2;
+extern int key_map_rotate, key_map_rotate2;
+extern int key_map_overlay, key_map_overlay2;
+extern int key_map_mousepan, key_map_mousepan2;
+extern int key_map_grid, key_map_grid2;
+extern int key_map_mark, key_map_mark2;
+extern int key_map_clearmark, key_map_clearmark2;
 extern int key_map_north;
 extern int key_map_south;
 extern int key_map_east;
@@ -139,18 +140,18 @@ extern int key_map_west;
 
 // Function keys
 
-extern int key_menu_help;
-extern int key_menu_save;
-extern int key_menu_load;
-extern int key_menu_volume;
-extern int key_menu_detail;
-extern int key_menu_qsave;
-extern int key_menu_endgame;
-extern int key_menu_messages;
-extern int key_menu_qload;
-extern int key_menu_quit;
-extern int key_menu_gamma;
-extern int key_spy;
+extern int key_menu_help, key_menu_help2;
+extern int key_menu_save, key_menu_save2;
+extern int key_menu_load, key_menu_load2;
+extern int key_menu_volume, key_menu_volume2;
+extern int key_menu_detail, key_menu_detail2;
+extern int key_menu_qsave, key_menu_qsave2;
+extern int key_menu_endgame, key_menu_endgame2;
+extern int key_menu_messages, key_menu_messages2;
+extern int key_menu_qload, key_menu_qload2;
+extern int key_menu_quit, key_menu_quit2;
+extern int key_menu_gamma, key_menu_gamma2;
+extern int key_spy, key_spy2;
 
 // Shortcut keys
 
