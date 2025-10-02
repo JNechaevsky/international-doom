@@ -132,6 +132,11 @@ typedef struct
 // Use: CONFIG_VARIABLE_COMMENT("Section title") or CONFIG_VARIABLE_COMMENT("")
 #define CONFIG_VARIABLE_COMMENT(text) \
     { (text), {NULL}, DEFAULT_COMMENT, 0, 0, true }
+// [JN] Consolidated shortcut-macros for normal and alt binding.
+#define CONFIG_VARIABLE_KEYBIND(name1, name2) \
+    CONFIG_VARIABLE_GENERIC(name1, DEFAULT_KEY), \
+    CONFIG_VARIABLE_GENERIC(name2, DEFAULT_KEY)
+
 
 //! @begin_config_file default
 
@@ -293,30 +298,19 @@ static default_t	doom_defaults_list[] =
 
     // Movement
     CONFIG_VARIABLE_COMMENT("Keyboard controls"),
-    CONFIG_VARIABLE_KEY(key_up),
-    CONFIG_VARIABLE_KEY(key_up2),
-    CONFIG_VARIABLE_KEY(key_down),
-    CONFIG_VARIABLE_KEY(key_down2),
-    CONFIG_VARIABLE_KEY(key_left),
-    CONFIG_VARIABLE_KEY(key_left2),
-    CONFIG_VARIABLE_KEY(key_right),
-    CONFIG_VARIABLE_KEY(key_right2),
-    CONFIG_VARIABLE_KEY(key_strafeleft),
-    CONFIG_VARIABLE_KEY(key_strafeleft2),
-    CONFIG_VARIABLE_KEY(key_straferight),
-    CONFIG_VARIABLE_KEY(key_straferight2),
-    CONFIG_VARIABLE_KEY(key_speed),
-    CONFIG_VARIABLE_KEY(key_speed2),
-    CONFIG_VARIABLE_KEY(key_strafe),
-    CONFIG_VARIABLE_KEY(key_strafe2),
-    CONFIG_VARIABLE_KEY(key_180turn),
-    CONFIG_VARIABLE_KEY(key_180turn2),
+    CONFIG_VARIABLE_KEYBIND(key_up, key_up2),
+    CONFIG_VARIABLE_KEYBIND(key_down, key_down2),
+    CONFIG_VARIABLE_KEYBIND(key_left, key_left2),
+    CONFIG_VARIABLE_KEYBIND(key_right, key_right2),
+    CONFIG_VARIABLE_KEYBIND(key_strafeleft, key_strafeleft2),
+    CONFIG_VARIABLE_KEYBIND(key_straferight, key_straferight2),
+    CONFIG_VARIABLE_KEYBIND(key_speed, key_speed2),
+    CONFIG_VARIABLE_KEYBIND(key_strafe, key_strafe2),
+    CONFIG_VARIABLE_KEYBIND(key_180turn, key_180turn2),
 
     // Action
-    CONFIG_VARIABLE_KEY(key_fire),
-    CONFIG_VARIABLE_KEY(key_fire2),
-    CONFIG_VARIABLE_KEY(key_use),
-    CONFIG_VARIABLE_KEY(key_use2),
+    CONFIG_VARIABLE_KEYBIND(key_fire, key_fire2),
+    CONFIG_VARIABLE_KEYBIND(key_use, key_use2),
 
     // Heretic: View
     CONFIG_VARIABLE_KEY(key_lookup),
