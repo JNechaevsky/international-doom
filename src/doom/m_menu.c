@@ -2483,14 +2483,14 @@ static void M_Draw_ID_Keybinds_1 (void)
     M_WriteTextCentered(9, "MOVEMENT", cr[CR_YELLOW]);
 
     M_DrawBindKey2(0, 18, key_up, key_up2);
-    M_DrawBindKey(1, 27, key_down);
-    M_DrawBindKey(2, 36, key_left);
-    M_DrawBindKey(3, 45, key_right);
-    M_DrawBindKey(4, 54, key_strafeleft);
-    M_DrawBindKey(5, 63, key_straferight);
-    M_DrawBindKey(6, 72, key_speed);
-    M_DrawBindKey(7, 81, key_strafe);
-    M_DrawBindKey(8, 90, key_180turn);
+    M_DrawBindKey2(1, 27, key_down, key_down2);
+    M_DrawBindKey2(2, 36, key_left, key_left2);
+    M_DrawBindKey2(3, 45, key_right, key_right2);
+    M_DrawBindKey2(4, 54, key_strafeleft, key_strafeleft2);
+    M_DrawBindKey2(5, 63, key_straferight, key_straferight2);
+    M_DrawBindKey2(6, 72, key_speed, key_speed2);
+    M_DrawBindKey2(7, 81, key_strafe, key_strafe2);
+    M_DrawBindKey2(8, 90, key_180turn, key_180turn2);
 
     M_WriteTextCentered(99, "ACTION", cr[CR_YELLOW]);
 
@@ -7829,18 +7829,17 @@ static void M_StartBind (int keynum)
 static void M_CheckBind (int key)
 {
     // Page 1
-    if (key_up == key)               key_up               = 0;
-	if (key_up2 == key)              key_up2              = 0;
-    if (key_down == key)             key_down             = 0;
-    if (key_left == key)             key_left             = 0;
-    if (key_right == key)            key_right            = 0;
-    if (key_strafeleft == key)       key_strafeleft       = 0;
-    if (key_straferight == key)      key_straferight      = 0;
-    if (key_speed == key)            key_speed            = 0;
-    if (key_strafe == key)           key_strafe           = 0;
-    if (key_180turn == key)          key_180turn          = 0;
-    if (key_fire == key)             key_fire             = 0;
-    if (key_use == key)              key_use              = 0;
+    if (key_up == key) key_up = 0;                   if (key_up2 == key) key_up2 = 0;
+    if (key_down == key) key_down = 0;               if (key_down2 == key) key_down2 = 0;
+    if (key_left == key) key_left = 0;               if (key_left2 == key) key_left2 = 0;
+    if (key_right == key) key_right = 0;             if (key_right2 == key) key_right2 = 0;
+    if (key_strafeleft == key) key_strafeleft = 0;   if (key_strafeleft2 == key) key_strafeleft2 = 0;
+    if (key_straferight == key) key_straferight = 0; if (key_straferight2 == key) key_straferight2 = 0;
+    if (key_speed == key) key_speed = 0;             if (key_speed2 == key) key_speed2 = 0;
+    if (key_strafe == key) key_strafe = 0;           if (key_strafe2 == key) key_strafe2 = 0;
+    if (key_180turn == key) key_180turn = 0;         if (key_180turn2 == key) key_180turn2 = 0;
+    if (key_fire == key) key_fire = 0;
+    if (key_use == key) key_use = 0;
     // Page 2
     if (key_autorun == key)          key_autorun          = 0;
     if (key_mouse_look == key)       key_mouse_look       = 0;
@@ -7923,15 +7922,15 @@ static void M_DoBind (int keynum, int key)
     switch (keynum)
     {
         // Page 1
-        case 100:  if (!key_up) key_up = key; else key_up2 = key; break;
-        case 101:  key_down = key;              break;
-        case 102:  key_left = key;              break;
-        case 103:  key_right = key;             break;
-        case 104:  key_strafeleft = key;        break;
-        case 105:  key_straferight = key;       break;
-        case 106:  key_speed = key;             break;
-        case 107:  key_strafe = key;            break;
-        case 108:  key_180turn = key;           break;
+        case 100:  if (!key_up) key_up = key;                   else key_up2 = key;          break;
+        case 101:  if (!key_down) key_down = key;               else key_down2 = key;        break;
+        case 102:  if (!key_left) key_left = key;               else key_left2 = key;        break;
+        case 103:  if (!key_right) key_right = key;             else key_right2 = key;       break;
+        case 104:  if (!key_strafeleft) key_strafeleft = key;   else key_strafeleft2 = key;  break;
+        case 105:  if (!key_straferight) key_straferight = key; else key_straferight2 = key; break;
+        case 106:  if (!key_speed) key_speed = key;             else key_speed2 = key;       break;
+        case 107:  if (!key_strafe) key_strafe = key;           else key_strafe2 = key;      break;
+        case 108:  if (!key_180turn) key_180turn = key;         else key_180turn2 = key;     break;
         case 109:  key_fire = key;              break;
         case 110:  key_use = key;               break;
         // Page 2  
@@ -8009,15 +8008,15 @@ static void M_ClearBind (int itemOn)
     {
         switch (itemOn)
         {
-            case 0:   key_up = key_up2 = 0;               break;
-            case 1:   key_down = 0;             break;
-            case 2:   key_left = 0;             break;
-            case 3:   key_right = 0;            break;
-            case 4:   key_strafeleft = 0;       break;
-            case 5:   key_straferight = 0;      break;
-            case 6:   key_speed = 0;            break;
-            case 7:   key_strafe = 0;           break;
-            case 8:   key_180turn = 0;          break;
+            case 0:   key_up = key_up2 = 0;                   break;
+            case 1:   key_down = key_down2 = 0;               break;
+            case 2:   key_left = key_left2 = 0;               break;
+            case 3:   key_right = key_right2 = 0;             break;
+            case 4:   key_strafeleft = key_strafeleft2 = 0;   break;
+            case 5:   key_straferight = key_straferight2 = 0; break;
+            case 6:   key_speed = key_speed2 = 0;             break;
+            case 7:   key_strafe = key_strafe2 = 0;           break;
+            case 8:   key_180turn = key_180turn2 = 0;         break;
             // Action title
             case 10:  key_fire = 0;             break;
             case 11:  key_use = 0;              break;
@@ -8123,14 +8122,14 @@ static void M_ResetBinds (void)
 {
     // Page 1
     key_up = 'w'; key_up2 = 0;
-    key_down = 's';
-    key_left = KEY_LEFTARROW;
-    key_right = KEY_RIGHTARROW;
-    key_strafeleft = 'a';
-    key_straferight = 'd';
-    key_speed = KEY_RSHIFT;
-    key_strafe = KEY_RALT;
-    key_180turn = 0;
+    key_down = 's'; key_down2 = 0;
+    key_left = KEY_LEFTARROW; key_left2 = 0;
+    key_right = KEY_RIGHTARROW; key_right2 = 0;
+    key_strafeleft = 'a'; key_strafeleft2 = 0;
+    key_straferight = 'd'; key_straferight = 0;
+    key_speed = KEY_RSHIFT; key_speed2 = 0;
+    key_strafe = KEY_RALT; key_strafe2 = 0;
+    key_180turn = 0; key_180turn2 = 0;
     key_fire = KEY_RCTRL;
     key_use = ' ';
     // Page 2

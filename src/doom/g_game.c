@@ -320,7 +320,7 @@ static int G_NextWeapon(int direction)
 // e.g. quick exit, clean screenshots, resurrection from savegames
 boolean speedkeydown (void)
 {
-    return (key_speed < NUMKEYS && gamekeydown[key_speed]) ||
+    return (key_speed < NUMKEYS && gamekeydown[key_speed]) || (key_speed2 < NUMKEYS && gamekeydown[key_speed2]) ||
            (mousebspeed < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed]) ||
            (joybspeed < MAX_JOY_BUTTONS && joybuttons[joybspeed]);
 }
@@ -448,7 +448,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
  	if (crl_spectating && !sendsave && !sendpause)
  		cmd = &spect;
  	
-    strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe] 
+    strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2] || mousebuttons[mousebstrafe] 
 	|| joybuttons[joybstrafe]; 
 
     // fraggle: support the old "joyb_speed = 31" hack which
@@ -456,7 +456,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 
     // [crispy] when "always run" is active,
     // pressing the "run" key will result in walking
-    speed = (key_speed >= NUMKEYS
+    speed = (key_speed >= NUMKEYS || key_speed2 >= NUMKEYS
          || joybspeed >= MAX_JOY_BUTTONS);
     speed ^= speedkeydown();
     crl_camzspeed = speed;
@@ -467,8 +467,8 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     // on the keyboard and joystick
     if (joyxmove < 0
 	|| joyxmove > 0  
-	|| gamekeydown[key_right]
-	|| gamekeydown[key_left]) 
+	|| gamekeydown[key_right] || gamekeydown[key_right2]
+	|| gamekeydown[key_left] || gamekeydown[key_left2]) 
 	turnheld += ticdup; 
     else 
 	turnheld = 0; 
@@ -479,10 +479,10 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 	tspeed = speed;
     
     // [crispy] add quick 180° reverse
-    if (gamekeydown[key_180turn])
+    if (gamekeydown[key_180turn] || gamekeydown[key_180turn2])
     {
         angle += ANG180 >> FRACBITS;
-        gamekeydown[key_180turn] = false;
+        gamekeydown[key_180turn] = gamekeydown[key_180turn2] = false;
     }
 
     // [crispy] toggle "always run"
@@ -538,12 +538,12 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     { 
         if (!cmd->angleturn)
         {
-            if (gamekeydown[key_right])
+            if (gamekeydown[key_right] || gamekeydown[key_right2])
             {
                 // fprintf(stderr, "strafe right\n");
                 side += sidemove[speed];
             }
-            if (gamekeydown[key_left])
+            if (gamekeydown[key_left] || gamekeydown[key_left2])
             {
                 //	fprintf(stderr, "strafe left\n");
                 side -= sidemove[speed];
@@ -566,9 +566,9 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     } 
     else 
     { 
-	if (gamekeydown[key_right])
+	if (gamekeydown[key_right] || gamekeydown[key_right2])
 	    angle -= angleturn[tspeed];
-	if (gamekeydown[key_left])
+	if (gamekeydown[key_left] || gamekeydown[key_left2])
 	    angle += angleturn[tspeed];
         if (use_analog && joyxmove)
         {
@@ -592,7 +592,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 	// fprintf(stderr, "up\n");
 	forward += forwardmove[speed]; 
     }
-    if (gamekeydown[key_down]) 
+    if (gamekeydown[key_down] || gamekeydown[key_down2]) 
     {
 	// fprintf(stderr, "down\n");
 	forward -= forwardmove[speed]; 
@@ -613,14 +613,14 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
             forward -= forwardmove[speed];
     }
 
-    if (gamekeydown[key_strafeleft]
+    if (gamekeydown[key_strafeleft] || gamekeydown[key_strafeleft2]
      || joybuttons[joybstrafeleft]
      || mousebuttons[mousebstrafeleft])
     {
         side -= sidemove[speed];
     }
 
-    if (gamekeydown[key_straferight]
+    if (gamekeydown[key_straferight] || gamekeydown[key_straferight2]
      || joybuttons[joybstraferight]
      || mousebuttons[mousebstraferight])
     {
@@ -1384,7 +1384,7 @@ void G_FastResponder (void)
 // [crispy]
 void G_PrepTiccmd (void)
 {
-    const boolean strafe = gamekeydown[key_strafe] ||
+    const boolean strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2] ||
         mousebuttons[mousebstrafe] || joybuttons[joybstrafe];
 
     // [JN] Deny camera rotation/looking while active menu in multiplayer.

@@ -26,14 +26,14 @@
 // Movement
 
 extern int key_up, key_up2;
-extern int key_down;
-extern int key_right;
-extern int key_left;
-extern int key_strafeleft;
-extern int key_straferight;
-extern int key_speed;
-extern int key_strafe;
-extern int key_180turn;
+extern int key_down, key_down2;
+extern int key_right, key_right2;
+extern int key_left, key_left2;
+extern int key_strafeleft, key_strafeleft2;
+extern int key_straferight, key_straferight2;
+extern int key_speed, key_speed2;
+extern int key_strafe, key_strafe2;
+extern int key_180turn, key_180turn2;
 
 // Action
 

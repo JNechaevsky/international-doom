@@ -36,16 +36,24 @@
 
 // Movement
 
-int key_up          = 'w';
-int key_up2         = 0;
-int key_down        = 's'; 
-int key_right       = KEY_RIGHTARROW;
-int key_left        = KEY_LEFTARROW;
-int key_strafeleft  = 'a';
-int key_straferight = 'd';
-int key_speed       = KEY_RSHIFT; 
-int key_strafe      = KEY_RALT;
-int key_180turn     = 0; // [crispy]
+int key_up           = 'w';
+int key_up2          = 0;
+int key_down         = 's';
+int key_down2        = 0;
+int key_right        = KEY_RIGHTARROW;
+int key_right2       = 0;
+int key_left         = KEY_LEFTARROW;
+int key_left2        = 0;
+int key_strafeleft   = 'a';
+int key_strafeleft2  = 0;
+int key_straferight  = 'd';
+int key_straferight2 = 0;
+int key_speed        = KEY_RSHIFT; 
+int key_speed2       = 0;
+int key_strafe       = KEY_RALT;
+int key_strafe2      = 0;
+int key_180turn      = 0; // [crispy]
+int key_180turn2     = 0; // [crispy]
 
 // Action
 
@@ -258,14 +266,23 @@ void M_BindControls (void)
     // Movement
 
     M_BindIntVariable("key_up",                 &key_up);
+    M_BindIntVariable("key_up2",                &key_up2);
     M_BindIntVariable("key_down",               &key_down);
+    M_BindIntVariable("key_down2",              &key_down2);
     M_BindIntVariable("key_right",              &key_right);
+    M_BindIntVariable("key_right2",             &key_right2);
     M_BindIntVariable("key_left",               &key_left);
+    M_BindIntVariable("key_left2",              &key_left2);
     M_BindIntVariable("key_strafeleft",         &key_strafeleft);
+    M_BindIntVariable("key_strafeleft2",        &key_strafeleft2);
     M_BindIntVariable("key_straferight",        &key_straferight);
+    M_BindIntVariable("key_straferight2",       &key_straferight2);
     M_BindIntVariable("key_speed",              &key_speed);
+    M_BindIntVariable("key_speed2",             &key_speed2);
     M_BindIntVariable("key_strafe",             &key_strafe);
+    M_BindIntVariable("key_strafe2",            &key_strafe2);
     M_BindIntVariable("key_180turn",            &key_180turn);
+    M_BindIntVariable("key_180turn2",           &key_180turn2);
 
     // Action
 
