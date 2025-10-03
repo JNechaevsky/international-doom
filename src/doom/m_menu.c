@@ -829,7 +829,7 @@ static void M_Choose_ID_Reset (int choice);
 static boolean KbdIsBinding;
 static int     keyToBind;
 
-static char   *M_NameBind (int itemSetOn, int key1, int key2);
+static char   *M_NameBind (int itemSetOn, int key1, int key2, int type);
 static void    M_StartBind (int keynum);
 static void    M_CheckBind (int key);
 static void    M_DoBind (int keynum, int key);
@@ -842,7 +842,6 @@ static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
 static boolean MouseIsBinding;
 static int     btnToBind;
 
-static char   *M_NameMouseBind (int itemSetOn, int btn1, int btn2);
 static void    M_StartMouseBind (int btn);
 static void    M_CheckMouseBind (int btn);
 static void    M_DoMouseBind (int btnnum, int btn);
@@ -7807,30 +7806,33 @@ static char *M_MakeBindName (int itemSetOn, int key, int type)
     return "---";  // Means empty
 }
 
-static char *M_NameBind (int itemSetOn, int key1, int key2)
+static char *M_NameBind (int itemSetOn, int key1, int key2, int type)
 {
     static char buf[32];
+    const int empty_val = (type == keyboard ? 0 : -1);
 
     // Binding right now
-    if (itemOn == itemSetOn && KbdIsBinding)
+    if (itemOn == itemSetOn && (KbdIsBinding || MouseIsBinding))
         return "?";
 
     // Both empty
-    if (key1 == 0 && key2 == 0)
+    if (key1 == empty_val && key2 == empty_val)
         return "---";
 
     // Only one bind
-    if (key2 == 0)
-        return M_MakeBindName(itemSetOn, key1, keyboard);
-    if (key1 == 0)
-        return M_MakeBindName(itemSetOn, key2, keyboard);
+    if (key2 == empty_val)
+        return M_MakeBindName(itemSetOn, key1, type);
+    if (key1 == empty_val)
+        return M_MakeBindName(itemSetOn, key2, type);
 
     // Both binds
-    const char *a = M_MakeBindName(itemSetOn, key1, keyboard);
-    const char *b = M_MakeBindName(itemSetOn, key2, keyboard);
+    const char *a = M_MakeBindName(itemSetOn, key1, type);
+    const char *b = M_MakeBindName(itemSetOn, key2, type);
     M_snprintf(buf, sizeof(buf), "%s OR %s", a, b);
     return buf;
 }
+
+// -----------------------------------------------------------------------------
 
 static void M_DoBindAction (int *slot1, int *slot2, int key)
 {
@@ -8276,7 +8278,7 @@ static void M_ResetBinds (void)
 static void M_DrawBindKey (int itemNum, int yPos, int key1, int key2)
 {
     const boolean empty = (key1 == 0 && key2 == 0);
-    char *text = M_NameBind(itemNum, key1, key2);
+    char *text = M_NameBind(itemNum, key1, key2, keyboard);
 
     M_WriteTextGlow(M_ItemRightAlign(text), yPos, text,
         itemOn == itemNum && KbdIsBinding ? cr[CR_YELLOW] : (empty ? cr[CR_RED] : cr[CR_GREEN]),
@@ -8314,30 +8316,6 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
 //
 // =============================================================================
 
-static char *M_NameMouseBind (int itemSetOn, int btn1, int btn2)
-{
-    static char buf[32];
-
-    // Binding right now
-    if (itemOn == itemSetOn && MouseIsBinding)
-        return "?";
-
-    // Both empty
-    if (btn1 == -1 && btn2 == -1)
-        return "---";
-
-    // Only one bind
-    if (btn2 == -1)
-        return M_MakeBindName(itemSetOn, btn1, mouse);
-    if (btn1 == -1)
-        return M_MakeBindName(itemSetOn, btn2, mouse);
-
-    // Both binds
-    const char *a = M_MakeBindName(itemSetOn, btn1, mouse);
-    const char *b = M_MakeBindName(itemSetOn, btn2, mouse);
-    M_snprintf(buf, sizeof(buf), "%s OR %s", a, b);
-    return buf;
-}
 
 // -----------------------------------------------------------------------------
 // M_StartMouseBind
@@ -8474,7 +8452,7 @@ static void M_ClearMouseBind (int itemOn)
 static void M_DrawBindButton (int itemNum, int yPos, int btn1, int btn2)
 {
     const boolean empty = (btn1 == -1 && btn2 == -1);
-    char *text = M_NameMouseBind(itemNum, btn1, btn2);
+    char *text = M_NameBind(itemNum, btn1, btn2, mouse);
 
     M_WriteTextGlow(M_ItemRightAlign(text), yPos, text,
         itemOn == itemNum && MouseIsBinding ? cr[CR_YELLOW] : (empty ? cr[CR_RED] : cr[CR_GREEN]),
