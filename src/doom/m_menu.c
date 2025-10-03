@@ -842,8 +842,7 @@ static void    M_DrawBindFooter (char *pagenum, boolean drawPages);
 static boolean MouseIsBinding;
 static int     btnToBind;
 
-static char   *M_NameMouseBind (int itemSetOn, int btn);
-static char   *M_NameMouseBind2 (int itemSetOn, int btn1, int btn2);
+static char   *M_NameMouseBind (int itemSetOn, int btn1, int btn2);
 static void    M_StartMouseBind (int btn);
 static void    M_CheckMouseBind (int btn);
 static void    M_DoMouseBind (int btnnum, int btn);
@@ -7760,24 +7759,48 @@ void M_ConfirmDeleteGame (void)
 //  [PN/JN] Convert Doom key number into printable string.
 // -----------------------------------------------------------------------------
 
+enum
+{
+    keyboard,
+    mouse,
+};
+
 static struct {
     int key;
     char *name;
 } key_names[] = KEY_NAMES_ARRAY;
 
-static char *M_MakeBindName (int itemSetOn, int key)
+static char *M_MakeBindName (int itemSetOn, int key, int type)
 {
-    if (itemOn == itemSetOn && KbdIsBinding)
+    if (itemOn == itemSetOn && (KbdIsBinding || MouseIsBinding))
     {
         return "?";  // Means binding now
     }
     else
     {
-        for (int i = 0; (size_t)i < arrlen(key_names); ++i)
+        if (type == keyboard)
         {
-            if (key_names[i].key == key)
+            for (int i = 0; (size_t)i < arrlen(key_names); ++i)
+                if (key_names[i].key == key)
+                    return key_names[i].name;
+        }
+        else
+        {
+            char  num[8]; 
+            char *other_button;
+
+            M_snprintf(num, 8, "%d", key + 1);
+            other_button = M_StringJoin("BTN", num, NULL);
+
+            switch (key)
             {
-                return key_names[i].name;
+                case -1:  return  "---";         break;  // Means empty
+                case  0:  return  "LEFT";        break;
+                case  1:  return  "RIGHT";       break;
+                case  2:  return  "MIDDLE";      break;
+                case  3:  return  "WHLUP";       break;
+                case  4:  return  "WHLDN";       break;
+                default:  return  other_button;  break;
             }
         }
     }
@@ -7798,13 +7821,13 @@ static char *M_NameBind (int itemSetOn, int key1, int key2)
 
     // Only one bind
     if (key2 == 0)
-        return M_MakeBindName(itemSetOn, key1);
+        return M_MakeBindName(itemSetOn, key1, keyboard);
     if (key1 == 0)
-        return M_MakeBindName(itemSetOn, key2);
+        return M_MakeBindName(itemSetOn, key2, keyboard);
 
     // Both binds
-    const char *a = M_MakeBindName(itemSetOn, key1);
-    const char *b = M_MakeBindName(itemSetOn, key2);
+    const char *a = M_MakeBindName(itemSetOn, key1, keyboard);
+    const char *b = M_MakeBindName(itemSetOn, key2, keyboard);
     M_snprintf(buf, sizeof(buf), "%s OR %s", a, b);
     return buf;
 }
@@ -8291,40 +8314,7 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
 //
 // =============================================================================
 
-
-// -----------------------------------------------------------------------------
-// M_NameBind
-//  [JN] Draw mouse button number as printable string.
-// -----------------------------------------------------------------------------
-
-static char *M_NameMouseBind (int itemSetOn, int btn)
-{
-    if (itemOn == itemSetOn && MouseIsBinding)
-    {
-        return "?";  // Means binding now
-    }
-    else
-    {
-        char  num[8]; 
-        char *other_button;
-
-        M_snprintf(num, 8, "%d", btn + 1);
-        other_button = M_StringJoin("BTN", num, NULL);
-
-        switch (btn)
-        {
-            case -1:  return  "---";         break;  // Means empty
-            case  0:  return  "LEFT";        break;
-            case  1:  return  "RIGHT";       break;
-            case  2:  return  "MIDDLE";      break;
-            case  3:  return  "WHLUP";       break;
-            case  4:  return  "WHLDN";       break;
-            default:  return  other_button;  break;
-        }
-    }
-}
-
-static char *M_NameMouseBind2 (int itemSetOn, int btn1, int btn2)
+static char *M_NameMouseBind (int itemSetOn, int btn1, int btn2)
 {
     static char buf[32];
 
@@ -8338,13 +8328,13 @@ static char *M_NameMouseBind2 (int itemSetOn, int btn1, int btn2)
 
     // Only one bind
     if (btn2 == -1)
-        return M_NameMouseBind(itemSetOn, btn1);
+        return M_MakeBindName(itemSetOn, btn1, mouse);
     if (btn1 == -1)
-        return M_NameMouseBind(itemSetOn, btn2);
+        return M_MakeBindName(itemSetOn, btn2, mouse);
 
     // Both binds
-    const char *a = M_NameMouseBind(itemSetOn, btn1);
-    const char *b = M_NameMouseBind(itemSetOn, btn2);
+    const char *a = M_MakeBindName(itemSetOn, btn1, mouse);
+    const char *b = M_MakeBindName(itemSetOn, btn2, mouse);
     M_snprintf(buf, sizeof(buf), "%s OR %s", a, b);
     return buf;
 }
@@ -8484,7 +8474,7 @@ static void M_ClearMouseBind (int itemOn)
 static void M_DrawBindButton (int itemNum, int yPos, int btn1, int btn2)
 {
     const boolean empty = (btn1 == -1 && btn2 == -1);
-    char *text = M_NameMouseBind2(itemNum, btn1, btn2);
+    char *text = M_NameMouseBind(itemNum, btn1, btn2);
 
     M_WriteTextGlow(M_ItemRightAlign(text), yPos, text,
         itemOn == itemNum && MouseIsBinding ? cr[CR_YELLOW] : (empty ? cr[CR_RED] : cr[CR_GREEN]),
