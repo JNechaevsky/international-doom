@@ -843,11 +843,14 @@ static boolean MouseIsBinding;
 static int     btnToBind;
 
 static char   *M_NameMouseBind (int itemSetOn, int btn);
+static char   *M_NameMouseBind2 (int itemSetOn, int btn1, int btn2);
+static void    M_CompactMouseBind (int *slot1, int *slot2);
 static void    M_StartMouseBind (int btn);
 static void    M_CheckMouseBind (int btn);
 static void    M_DoMouseBind (int btnnum, int btn);
 static void    M_ClearMouseBind (int itemOn);
 static void    M_DrawBindButton (int itemNum, int yPos, int btn);
+static void    M_DrawBindButton2 (int itemNum, int yPos, int btn1, int btn2);
 static void    M_ResetMouseBinds (void);
 
 // Forward declarations for scrolling and remembering last pages.
@@ -3200,7 +3203,7 @@ static void M_Draw_ID_MouseBinds (void)
 
     M_WriteTextCentered(9, "MOUSE BINDINGS", cr[CR_YELLOW]);
 
-    M_DrawBindButton(0, 18, mousebfire);
+    M_DrawBindButton2(0, 18, mousebfire, mousebfire2);
     M_DrawBindButton(1, 27, mousebforward);
     M_DrawBindButton(2, 36, mousebbackward);
     M_DrawBindButton(3, 45, mousebuse);
@@ -6705,7 +6708,7 @@ boolean M_Responder (event_t* ev)
             // Catch only button pressing events, i.e. ev->data1.
             if (MouseIsBinding && ev->data1 && !ev->data2 && !ev->data3)
             {
-                M_CheckMouseBind(SDL_mouseButton);
+                // M_CheckMouseBind(SDL_mouseButton);
                 M_DoMouseBind(btnToBind, SDL_mouseButton);
                 btnToBind = 0;
                 MouseIsBinding = false;
@@ -8296,6 +8299,16 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
 //  [JN] Draw mouse button number as printable string.
 // -----------------------------------------------------------------------------
 
+static void M_CompactMouseBind (int *slot1, int *slot2)
+{
+    // Как и у клавы: если первый пуст (=-1), а второй заполнен - сдвигаем
+    if (*slot1 == -1 && *slot2 != -1)
+    {
+        *slot1 = *slot2;
+        *slot2 = -1;
+    }
+}
+
 
 static char *M_NameMouseBind (int itemSetOn, int btn)
 {
@@ -8324,6 +8337,22 @@ static char *M_NameMouseBind (int itemSetOn, int btn)
     }
 }
 
+static char *M_NameMouseBind2 (int itemSetOn, int btn1, int btn2)
+{
+    if (itemOn == itemSetOn && MouseIsBinding)
+        return "?";
+
+    if (btn1 == -1 && btn2 == -1)
+        return "---";
+
+    if (btn2 == -1)
+        return M_NameMouseBind(itemSetOn, btn1);
+
+    // Оба заполнены: "<A> or <B>"
+    return M_StringJoin(M_NameMouseBind(itemSetOn, btn1), " or ",
+                        M_NameMouseBind(itemSetOn, btn2), NULL);
+}
+
 // -----------------------------------------------------------------------------
 // M_StartMouseBind
 //  [JN] Indicate that mouse button binding is started (MouseIsBinding), and
@@ -8344,6 +8373,7 @@ static void M_StartMouseBind (int btn)
 static void M_CheckMouseBind (int btn)
 {
     if (mousebfire == btn)        mousebfire        = -1;
+    if (mousebfire2 == btn)       mousebfire2       = -1;
     if (mousebforward == btn)     mousebforward     = -1;
     if (mousebbackward == btn)    mousebbackward    = -1;
     if (mousebuse == btn)         mousebuse         = -1;
@@ -8365,7 +8395,22 @@ static void M_DoMouseBind (int btnnum, int btn)
 {
     switch (btnnum)
     {
-        case 1000:  mousebfire = btn;         break;
+        // FIRE/ATTACK: двойной бинд
+        case 1000:
+        {
+            // 1) Toggle: клик той же кнопкой снимает её
+            if (mousebfire == btn)  { mousebfire = -1;  M_CompactMouseBind(&mousebfire, &mousebfire2); break; }
+            if (mousebfire2 == btn) { mousebfire2 = -1; break; }
+
+            // 2) Глобально убрать эту кнопку из других действий
+            M_CheckMouseBind(btn);
+
+            // 3) Стандартное присваивание: первый пустой → в первый, иначе во второй, иначе перезаписать второй
+            if (mousebfire == -1)       mousebfire  = btn;
+            else if (mousebfire2 == -1) mousebfire2 = btn;
+            else                        mousebfire2 = btn;
+            break;
+        }
         case 1001:  mousebforward = btn;      break;
         case 1002:  mousebbackward = btn;     break;
         case 1003:  mousebuse = btn;          break;
@@ -8389,7 +8434,7 @@ static void M_ClearMouseBind (int itemOn)
 {
     switch (itemOn)
     {
-        case 0:  mousebfire = -1;         break;
+        case 0:  mousebfire = mousebfire2 = -1;         break;
         case 1:  mousebforward = -1;      break;
         case 2:  mousebbackward = -1;     break;
         case 3:  mousebuse = -1;          break;
@@ -8417,6 +8462,18 @@ static void M_DrawBindButton (int itemNum, int yPos, int btn)
                                 LINE_ALPHA(itemNum));
 }
 
+static void M_DrawBindButton2 (int itemNum, int yPos, int btn1, int btn2)
+{
+    const boolean empty = (btn1 == -1 && btn2 == -1);
+    char *text = M_NameMouseBind2(itemNum, btn1, btn2);
+
+    M_WriteTextGlow(M_ItemRightAlign(text), yPos, text,
+        itemOn == itemNum && MouseIsBinding ? cr[CR_YELLOW] : (empty ? cr[CR_RED] : cr[CR_GREEN]),
+        itemOn == itemNum && MouseIsBinding ? cr[CR_YELLOW_BRIGHT] : (empty ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT]),
+        LINE_ALPHA(itemNum));
+}
+
+
 // -----------------------------------------------------------------------------
 // M_ResetBinds
 //  [JN] Reset all mouse binding to it's defaults.
@@ -8424,7 +8481,7 @@ static void M_DrawBindButton (int itemNum, int yPos, int btn)
 
 static void M_ResetMouseBinds (void)
 {
-    mousebfire = 0;
+    mousebfire = 0; mousebfire2 = -1;
     mousebforward = 2;
     mousebbackward = -1;
     mousebuse = -1;

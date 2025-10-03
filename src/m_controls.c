@@ -197,7 +197,7 @@ int key_menu_del       = KEY_DEL; // [crispy]
 // Mouse controls
 //
 
-int mousebfire        = 0;
+int mousebfire        = 0; int mousebfire2        = -1;
 int mousebforward     = 2;
 int mousebbackward    = -1;
 int mousebuse         = -1;
@@ -374,7 +374,7 @@ void M_BindControls (void)
     // Mouse controls
     //
 
-    M_BindIntVariable("mouseb_fire",            &mousebfire);
+    M_BindIntVariableKeybind("mouseb_fire", &mousebfire, "mouseb_fire2", &mousebfire2);
     M_BindIntVariable("mouseb_forward",         &mousebforward);
     M_BindIntVariable("mouseb_backward",        &mousebbackward);
     M_BindIntVariable("mouseb_use",             &mousebuse);
