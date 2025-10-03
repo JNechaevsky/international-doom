@@ -844,7 +844,6 @@ static int     btnToBind;
 
 static char   *M_NameMouseBind (int itemSetOn, int btn);
 static char   *M_NameMouseBind2 (int itemSetOn, int btn1, int btn2);
-static void    M_CompactMouseBind (int *slot1, int *slot2);
 static void    M_StartMouseBind (int btn);
 static void    M_CheckMouseBind (int btn);
 static void    M_DoMouseBind (int btnnum, int btn);
@@ -7807,7 +7806,7 @@ static char *M_NameBind (int itemSetOn, int key1, int key2)
     // Both binds
     const char *a = M_MakeBindName(itemSetOn, key1);
     const char *b = M_MakeBindName(itemSetOn, key2);
-    M_snprintf(buf, sizeof(buf), "%s or %s", a, b);
+    M_snprintf(buf, sizeof(buf), "%s OR %s", a, b);
     return buf;
 }
 
@@ -8299,17 +8298,6 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
 //  [JN] Draw mouse button number as printable string.
 // -----------------------------------------------------------------------------
 
-static void M_CompactMouseBind (int *slot1, int *slot2)
-{
-    // Как и у клавы: если первый пуст (=-1), а второй заполнен - сдвигаем
-    if (*slot1 == -1 && *slot2 != -1)
-    {
-        *slot1 = *slot2;
-        *slot2 = -1;
-    }
-}
-
-
 static char *M_NameMouseBind (int itemSetOn, int btn)
 {
     if (itemOn == itemSetOn && MouseIsBinding)
@@ -8322,35 +8310,42 @@ static char *M_NameMouseBind (int itemSetOn, int btn)
         char *other_button;
 
         M_snprintf(num, 8, "%d", btn + 1);
-        other_button = M_StringJoin("BUTTON #", num, NULL);
+        other_button = M_StringJoin("BTN", num, NULL);
 
         switch (btn)
         {
-            case -1:  return  "---";            break;  // Means empty
-            case  0:  return  "LEFT BUTTON";    break;
-            case  1:  return  "RIGHT BUTTON";   break;
-            case  2:  return  "MIDDLE BUTTON";  break;
-            case  3:  return  "WHEEL UP";       break;
-            case  4:  return  "WHEEL DOWN";     break;
-            default:  return  other_button;     break;
+            case -1:  return  "---";         break;  // Means empty
+            case  0:  return  "LEFT";        break;
+            case  1:  return  "RIGHT";       break;
+            case  2:  return  "MIDDLE";      break;
+            case  3:  return  "WHEEL UP";    break;
+            case  4:  return  "WHEEL DOWN";  break;
+            default:  return  other_button;  break;
         }
     }
 }
 
 static char *M_NameMouseBind2 (int itemSetOn, int btn1, int btn2)
 {
+    static char buf[32];
+
+    // Binding right now
     if (itemOn == itemSetOn && MouseIsBinding)
         return "?";
 
+    // Both empty
     if (btn1 == -1 && btn2 == -1)
         return "---";
 
+    // Only one bind
     if (btn2 == -1)
         return M_NameMouseBind(itemSetOn, btn1);
 
-    // Оба заполнены: "<A> or <B>"
-    return M_StringJoin(M_NameMouseBind(itemSetOn, btn1), " or ",
-                        M_NameMouseBind(itemSetOn, btn2), NULL);
+    // Both binds
+    const char *a = M_NameMouseBind(itemSetOn, btn1);
+    const char *b = M_NameMouseBind(itemSetOn, btn2);
+    M_snprintf(buf, sizeof(buf), "%s OR %s", a, b);
+    return buf;
 }
 
 // -----------------------------------------------------------------------------
@@ -8370,10 +8365,12 @@ static void M_StartMouseBind (int btn)
 //  [JN] Check if pressed button is already binded, clear previous bind if found.
 // -----------------------------------------------------------------------------
 
+// Checks a pair of single key slots (a and b) and clears them if they match k.
+#define UNSET_IF_MATCH_MOUSE(k, a, b)  do { if ((a) == (k)) (a) = -1; if ((b) == (k)) (b) = -1; } while (0)
+
 static void M_CheckMouseBind (int btn)
 {
-    if (mousebfire == btn)        mousebfire        = -1;
-    if (mousebfire2 == btn)       mousebfire2       = -1;
+    UNSET_IF_MATCH(btn, mousebfire,          mousebfire2);
     if (mousebforward == btn)     mousebforward     = -1;
     if (mousebbackward == btn)    mousebbackward    = -1;
     if (mousebuse == btn)         mousebuse         = -1;
@@ -8391,26 +8388,58 @@ static void M_CheckMouseBind (int btn)
 //  of pressed button (btn) to real mouse bind.
 // -----------------------------------------------------------------------------
 
+// [PN] Assign/toggle helper for mouse actions with two slots.
+// Empty slot is -1. Toggle: rebinding the same button removes it.
+// Dedup: clears this button from other actions via M_CheckMouseBind().
+static void M_DoMouseBindAction (int *slot1, int *slot2, int btn)
+{
+    if (btn == -1)
+    {
+        return;
+    }
+
+    // Toggle: remove if re-bound
+    if (*slot1 == btn)
+    {
+        *slot1 = -1;
+        // compact: move alt -> primary to avoid "--- or BTN"
+        if (*slot2 != -1)
+        {
+            *slot1 = *slot2;
+            *slot2 = -1;
+        }
+        return;
+    }
+    if (*slot2 == btn)
+    {
+        *slot2 = -1;
+        return;
+    }
+
+    // Global de-dup (both slots in other actions)
+    M_CheckMouseBind(btn);
+
+    // Assign: first empty; if none — overwrite alt
+    if (*slot1 == -1)
+    {
+        *slot1 = btn;
+    }
+    else if (*slot2 == -1)
+    {
+        *slot2 = btn;
+    }
+    else
+    {
+        *slot2 = btn;
+    }
+}
+
 static void M_DoMouseBind (int btnnum, int btn)
 {
     switch (btnnum)
     {
         // FIRE/ATTACK: двойной бинд
-        case 1000:
-        {
-            // 1) Toggle: клик той же кнопкой снимает её
-            if (mousebfire == btn)  { mousebfire = -1;  M_CompactMouseBind(&mousebfire, &mousebfire2); break; }
-            if (mousebfire2 == btn) { mousebfire2 = -1; break; }
-
-            // 2) Глобально убрать эту кнопку из других действий
-            M_CheckMouseBind(btn);
-
-            // 3) Стандартное присваивание: первый пустой → в первый, иначе во второй, иначе перезаписать второй
-            if (mousebfire == -1)       mousebfire  = btn;
-            else if (mousebfire2 == -1) mousebfire2 = btn;
-            else                        mousebfire2 = btn;
-            break;
-        }
+        case 1000: M_DoMouseBindAction(&mousebfire, &mousebfire2, btn); break;
         case 1001:  mousebforward = btn;      break;
         case 1002:  mousebbackward = btn;     break;
         case 1003:  mousebuse = btn;          break;
