@@ -829,8 +829,7 @@ static void M_Choose_ID_Reset (int choice);
 static boolean KbdIsBinding;
 static int     keyToBind;
 
-static char   *M_NameBind (int itemSetOn, int key);
-static char   *M_NameBind2 (int itemSetOn, int key1, int key2);
+static char   *M_NameBind (int itemSetOn, int key1, int key2);
 static void    M_StartBind (int keynum);
 static void    M_CheckBind (int key);
 static void    M_DoBind (int keynum, int key);
@@ -7756,8 +7755,8 @@ void M_ConfirmDeleteGame (void)
 
 
 // -----------------------------------------------------------------------------
-// M_NameBind
-//  [JN] Convert Doom key number into printable string.
+// M_MakeBindName / M_NameBind
+//  [PN/JN] Convert Doom key number into printable string.
 // -----------------------------------------------------------------------------
 
 static struct {
@@ -7765,7 +7764,7 @@ static struct {
     char *name;
 } key_names[] = KEY_NAMES_ARRAY;
 
-static char *M_NameBind (int itemSetOn, int key)
+static char *M_MakeBindName (int itemSetOn, int key)
 {
     if (itemOn == itemSetOn && KbdIsBinding)
     {
@@ -7784,7 +7783,7 @@ static char *M_NameBind (int itemSetOn, int key)
     return "---";  // Means empty
 }
 
-static char *M_NameBind2 (int itemSetOn, int key1, int key2)
+static char *M_NameBind (int itemSetOn, int key1, int key2)
 {
     static char buf[32];
 
@@ -7798,52 +7797,52 @@ static char *M_NameBind2 (int itemSetOn, int key1, int key2)
 
     // Only one bind
     if (key2 == 0)
-        return M_NameBind(itemSetOn, key1);
+        return M_MakeBindName(itemSetOn, key1);
     if (key1 == 0)
-        return M_NameBind(itemSetOn, key2);
+        return M_MakeBindName(itemSetOn, key2);
 
     // Both binds
-    const char *a = M_NameBind(itemSetOn, key1);
-    const char *b = M_NameBind(itemSetOn, key2);
+    const char *a = M_MakeBindName(itemSetOn, key1);
+    const char *b = M_MakeBindName(itemSetOn, key2);
     M_snprintf(buf, sizeof(buf), "%s or %s", a, b);
     return buf;
 }
 
-static void M_CompactBind(int *slot1, int *slot2)
+static void M_DoBindAction (int *slot1, int *slot2, int key)
 {
-    // If first is empty and second is binded, shift names to avoid "- or KEY".
-    if (*slot1 == 0 && *slot2 != 0)
+    // [PN] 0) Ignore "empty" keys just in case
+    if (key == 0)
     {
-        *slot1 = *slot2;
-        *slot2 = 0;
+        return;
     }
-}
 
-static void M_DoBindAction(int *slot1, int *slot2, int key)
-{
-    // 1) Тоггл: повторная попытка бинда той же клавиши снимает её
-    // 1) Toggle: first try of same key clears bind
+    // [PN] 1) Toggle: re-binding the same key removes it
     if (*slot1 == key)
     {
+        // clear primary slot and compact in-place: move alt -> primary
         *slot1 = 0;
-        M_CompactBind(slot1, slot2);
+        if (*slot2 != 0)
+        {
+            *slot1 = *slot2;
+            *slot2 = 0;
+        }
         return;
     }
     if (*slot2 == key)
     {
+        // clear only the alt slot
         *slot2 = 0;
         return;
     }
 
-    // 2) Global: before asign, clear from other binds (both slots)
+    // [PN] 2) Global de-dup: remove this key from all other actions (both slots)
     M_CheckBind(key);
 
-    // 3) Standard asignment: first to empty; if both asigned, rewrite to second
+    // [PN] 3) Assign: to first empty; if both occupied, overwrite alt
     if (*slot1 == 0)      *slot1 = key;
     else if (*slot2 == 0) *slot2 = key;
     else                  *slot2 = key;
 }
-
 
 // -----------------------------------------------------------------------------
 // M_StartBind
@@ -7860,106 +7859,99 @@ static void M_StartBind (int keynum)
 // -----------------------------------------------------------------------------
 // M_CheckBind
 //  [JN] Check if pressed key is already binded, clear previous bind if found.
+//  [PN] To keep the key-unbind logic compact, we define simple macro.
 // -----------------------------------------------------------------------------
 
-// [PN] To keep the key-unbind logic compact and readable, we define two simple helper macros...
-// (TODO - make global, since used in Hexen)
-#define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
-// 1) Checks a pair of single key slots (a and b) and clears them if they match k.
-#define UNSET2_IF_MATCH(k, a, b)   do { if ((a) == (k)) (a) = 0; if ((b) == (k)) (b) = 0; } while (0)
-// 2) loops through two parallel arrays of key slots (primary & alternate) and clears any elements matching k.
-#define UNSET_ARR2_IF_MATCH(k, arr1, arr2) \
-    do { for (size_t __i = 0; __i < ARRAY_LEN(arr1); ++__i) \
-         { if ((arr1)[__i] == (k)) (arr1)[__i] = 0;   \
-           if ((arr2)[__i] == (k)) (arr2)[__i] = 0; } \
-       } while (0)
+// Checks a pair of single key slots (a and b) and clears them if they match k.
+#define UNSET_IF_MATCH(k, a, b)  do { if ((a) == (k)) (a) = 0; if ((b) == (k)) (b) = 0; } while (0)
 
 static void M_CheckBind (int key)
 {
     // Page 1
-    UNSET2_IF_MATCH(key, key_up,          key_up2);
-    UNSET2_IF_MATCH(key, key_down,        key_down2);
-    UNSET2_IF_MATCH(key, key_left,        key_left2);
-    UNSET2_IF_MATCH(key, key_right,       key_right2);
-    UNSET2_IF_MATCH(key, key_strafeleft,  key_strafeleft2);
-    UNSET2_IF_MATCH(key, key_straferight, key_straferight2);
-    UNSET2_IF_MATCH(key, key_speed,       key_speed2);
-    UNSET2_IF_MATCH(key, key_strafe,      key_strafe2);
-    UNSET2_IF_MATCH(key, key_180turn,     key_180turn2);
-    UNSET2_IF_MATCH(key, key_fire,        key_fire2);
-    UNSET2_IF_MATCH(key, key_use,         key_use2);
+    UNSET_IF_MATCH(key, key_up,          key_up2);
+    UNSET_IF_MATCH(key, key_down,        key_down2);
+    UNSET_IF_MATCH(key, key_left,        key_left2);
+    UNSET_IF_MATCH(key, key_right,       key_right2);
+    UNSET_IF_MATCH(key, key_strafeleft,  key_strafeleft2);
+    UNSET_IF_MATCH(key, key_straferight, key_straferight2);
+    UNSET_IF_MATCH(key, key_speed,       key_speed2);
+    UNSET_IF_MATCH(key, key_strafe,      key_strafe2);
+    UNSET_IF_MATCH(key, key_180turn,     key_180turn2);
+    UNSET_IF_MATCH(key, key_fire,        key_fire2);
+    UNSET_IF_MATCH(key, key_use,         key_use2);
 
     // Page 2
-    UNSET2_IF_MATCH(key, key_autorun,       key_autorun2);
-    UNSET2_IF_MATCH(key, key_mouse_look,    key_mouse_look2);
-    UNSET2_IF_MATCH(key, key_novert,        key_novert2);
-    UNSET2_IF_MATCH(key, key_prevlevel,     key_prevlevel2);
-    UNSET2_IF_MATCH(key, key_reloadlevel,   key_reloadlevel2);
-    UNSET2_IF_MATCH(key, key_nextlevel,     key_nextlevel2);
-    UNSET2_IF_MATCH(key, key_demospeed,     key_demospeed2);
-    UNSET2_IF_MATCH(key, key_flip_levels,   key_flip_levels2);
-    UNSET2_IF_MATCH(key, key_widget_enable, key_widget_enable2);
-    UNSET2_IF_MATCH(key, key_spectator,     key_spectator2);
-    UNSET2_IF_MATCH(key, key_freeze,        key_freeze2);
-    UNSET2_IF_MATCH(key, key_notarget,      key_notarget2);
-    UNSET2_IF_MATCH(key, key_buddha,        key_buddha2);
-    
+    UNSET_IF_MATCH(key, key_autorun,       key_autorun2);
+    UNSET_IF_MATCH(key, key_mouse_look,    key_mouse_look2);
+    UNSET_IF_MATCH(key, key_novert,        key_novert2);
+    UNSET_IF_MATCH(key, key_prevlevel,     key_prevlevel2);
+    UNSET_IF_MATCH(key, key_reloadlevel,   key_reloadlevel2);
+    UNSET_IF_MATCH(key, key_nextlevel,     key_nextlevel2);
+    UNSET_IF_MATCH(key, key_demospeed,     key_demospeed2);
+    UNSET_IF_MATCH(key, key_flip_levels,   key_flip_levels2);
+    UNSET_IF_MATCH(key, key_widget_enable, key_widget_enable2);
+    UNSET_IF_MATCH(key, key_spectator,     key_spectator2);
+    UNSET_IF_MATCH(key, key_freeze,        key_freeze2);
+    UNSET_IF_MATCH(key, key_notarget,      key_notarget2);
+    UNSET_IF_MATCH(key, key_buddha,        key_buddha2);
+
     // Page 3
-    UNSET2_IF_MATCH(key, key_weapon1,    key_weapon1_2);
-    UNSET2_IF_MATCH(key, key_weapon2,    key_weapon2_2);
-    UNSET2_IF_MATCH(key, key_weapon3,    key_weapon3_2);
-    UNSET2_IF_MATCH(key, key_weapon4,    key_weapon4_2);
-    UNSET2_IF_MATCH(key, key_weapon5,    key_weapon5_2);
-    UNSET2_IF_MATCH(key, key_weapon6,    key_weapon6_2);
-    UNSET2_IF_MATCH(key, key_weapon7,    key_weapon7_2);
-    UNSET2_IF_MATCH(key, key_weapon8,    key_weapon8_2);
-    UNSET2_IF_MATCH(key, key_prevweapon, key_prevweapon2);
-    UNSET2_IF_MATCH(key, key_nextweapon, key_nextweapon2);
-    
+    UNSET_IF_MATCH(key, key_weapon1,    key_weapon1_2);
+    UNSET_IF_MATCH(key, key_weapon2,    key_weapon2_2);
+    UNSET_IF_MATCH(key, key_weapon3,    key_weapon3_2);
+    UNSET_IF_MATCH(key, key_weapon4,    key_weapon4_2);
+    UNSET_IF_MATCH(key, key_weapon5,    key_weapon5_2);
+    UNSET_IF_MATCH(key, key_weapon6,    key_weapon6_2);
+    UNSET_IF_MATCH(key, key_weapon7,    key_weapon7_2);
+    UNSET_IF_MATCH(key, key_weapon8,    key_weapon8_2);
+    UNSET_IF_MATCH(key, key_prevweapon, key_prevweapon2);
+    UNSET_IF_MATCH(key, key_nextweapon, key_nextweapon2);
+
     // Page 4
-    UNSET2_IF_MATCH(key, key_map_toggle, key_map_toggle2);
+    UNSET_IF_MATCH(key, key_map_toggle, key_map_toggle2);
     // Do not override Automap binds in other pages.
     if (currentMenu == &ID_Def_Keybinds_4)
     {
-        UNSET2_IF_MATCH(key, key_map_zoomin,    key_map_zoomin2);
-        UNSET2_IF_MATCH(key, key_map_zoomout,   key_map_zoomout2);
-        UNSET2_IF_MATCH(key, key_map_maxzoom,   key_map_maxzoom2);
-        UNSET2_IF_MATCH(key, key_map_follow,    key_map_follow2);
-        UNSET2_IF_MATCH(key, key_map_rotate,    key_map_rotate2);
-        UNSET2_IF_MATCH(key, key_map_overlay,   key_map_overlay2);
-        UNSET2_IF_MATCH(key, key_map_mousepan,  key_map_mousepan2);
-        UNSET2_IF_MATCH(key, key_map_grid,      key_map_grid2);
-        UNSET2_IF_MATCH(key, key_map_mark,      key_map_mark2);
-        UNSET2_IF_MATCH(key, key_map_clearmark, key_map_clearmark2);
+        UNSET_IF_MATCH(key, key_map_zoomin,    key_map_zoomin2);
+        UNSET_IF_MATCH(key, key_map_zoomout,   key_map_zoomout2);
+        UNSET_IF_MATCH(key, key_map_maxzoom,   key_map_maxzoom2);
+        UNSET_IF_MATCH(key, key_map_follow,    key_map_follow2);
+        UNSET_IF_MATCH(key, key_map_rotate,    key_map_rotate2);
+        UNSET_IF_MATCH(key, key_map_overlay,   key_map_overlay2);
+        UNSET_IF_MATCH(key, key_map_mousepan,  key_map_mousepan2);
+        UNSET_IF_MATCH(key, key_map_grid,      key_map_grid2);
+        UNSET_IF_MATCH(key, key_map_mark,      key_map_mark2);
+        UNSET_IF_MATCH(key, key_map_clearmark, key_map_clearmark2);
     }
+
     // Page 5
-    UNSET2_IF_MATCH(key, key_menu_help,     key_menu_help2);
-    UNSET2_IF_MATCH(key, key_menu_save,     key_menu_save2);
-    UNSET2_IF_MATCH(key, key_menu_load,     key_menu_load2);
-    UNSET2_IF_MATCH(key, key_menu_volume,   key_menu_volume2);
-    UNSET2_IF_MATCH(key, key_menu_detail,   key_menu_detail2);
-    UNSET2_IF_MATCH(key, key_menu_qsave,    key_menu_qsave2);
-    UNSET2_IF_MATCH(key, key_menu_endgame,  key_menu_endgame2);
-    UNSET2_IF_MATCH(key, key_menu_messages, key_menu_messages2);
-    UNSET2_IF_MATCH(key, key_menu_qload,    key_menu_qload2);
-    UNSET2_IF_MATCH(key, key_menu_quit,     key_menu_quit2);
-    UNSET2_IF_MATCH(key, key_menu_gamma,    key_menu_gamma2);
-    UNSET2_IF_MATCH(key, key_spy,           key_spy2);
+    UNSET_IF_MATCH(key, key_menu_help,     key_menu_help2);
+    UNSET_IF_MATCH(key, key_menu_save,     key_menu_save2);
+    UNSET_IF_MATCH(key, key_menu_load,     key_menu_load2);
+    UNSET_IF_MATCH(key, key_menu_volume,   key_menu_volume2);
+    UNSET_IF_MATCH(key, key_menu_detail,   key_menu_detail2);
+    UNSET_IF_MATCH(key, key_menu_qsave,    key_menu_qsave2);
+    UNSET_IF_MATCH(key, key_menu_endgame,  key_menu_endgame2);
+    UNSET_IF_MATCH(key, key_menu_messages, key_menu_messages2);
+    UNSET_IF_MATCH(key, key_menu_qload,    key_menu_qload2);
+    UNSET_IF_MATCH(key, key_menu_quit,     key_menu_quit2);
+    UNSET_IF_MATCH(key, key_menu_gamma,    key_menu_gamma2);
+    UNSET_IF_MATCH(key, key_spy,           key_spy2);
 
     // Page 6
-    UNSET2_IF_MATCH(key, key_pause,           key_pause2);
-    UNSET2_IF_MATCH(key, key_menu_screenshot, key_menu_screenshot2);
-    UNSET2_IF_MATCH(key, key_message_refresh, key_message_refresh2);
-    UNSET2_IF_MATCH(key, key_demo_quit,       key_demo_quit2);
-    UNSET2_IF_MATCH(key, key_switch_ost,      key_switch_ost2);
-    UNSET2_IF_MATCH(key, key_multi_msg,       key_multi_msg2);
+    UNSET_IF_MATCH(key, key_pause,           key_pause2);
+    UNSET_IF_MATCH(key, key_menu_screenshot, key_menu_screenshot2);
+    UNSET_IF_MATCH(key, key_message_refresh, key_message_refresh2);
+    UNSET_IF_MATCH(key, key_demo_quit,       key_demo_quit2);
+    UNSET_IF_MATCH(key, key_switch_ost,      key_switch_ost2);
+    UNSET_IF_MATCH(key, key_multi_msg,       key_multi_msg2);
     // Do not override Send To binds in other pages.
     if (currentMenu == &ID_Def_Keybinds_6)
     {
-        UNSET2_IF_MATCH(key, key_multi_msgplayer[0], key_multi_msgplayer[0]);
-        UNSET2_IF_MATCH(key, key_multi_msgplayer[1], key_multi_msgplayer[1]);
-        UNSET2_IF_MATCH(key, key_multi_msgplayer[2], key_multi_msgplayer[2]);
-        UNSET2_IF_MATCH(key, key_multi_msgplayer[3], key_multi_msgplayer[3]);
+        UNSET_IF_MATCH(key, key_multi_msgplayer[0], key_multi_msgplayer[0]);
+        UNSET_IF_MATCH(key, key_multi_msgplayer[1], key_multi_msgplayer[1]);
+        UNSET_IF_MATCH(key, key_multi_msgplayer[2], key_multi_msgplayer[2]);
+        UNSET_IF_MATCH(key, key_multi_msgplayer[3], key_multi_msgplayer[3]);
     }
 }
 
@@ -8199,10 +8191,10 @@ static void M_ResetBinds (void)
     key_demospeed = 0; key_demospeed2 = 0;
     key_flip_levels = 0; key_flip_levels2 = 0;
     key_widget_enable = 0; key_widget_enable2 = 0;
-    key_spectator = 0;
-    key_freeze = 0;
-    key_notarget = 0;
-    key_buddha = 0;
+    key_spectator = 0; key_spectator2 = 0;
+    key_freeze = 0; key_freeze2 = 0;
+    key_notarget = 0; key_notarget2 = 0;
+    key_buddha = 0; key_buddha2 = 0;
     // Page 3
     key_weapon1 = '1'; key_weapon1_2 = 0;
     key_weapon2 = '2'; key_weapon2_2 = 0;
@@ -8254,13 +8246,13 @@ static void M_ResetBinds (void)
 
 // -----------------------------------------------------------------------------
 // M_DrawBindKey
-//  [PN/JN] Do dobue keyboard bind drawing.
+//  [PN/JN] Do double keyboard bind drawing.
 // -----------------------------------------------------------------------------
 
 static void M_DrawBindKey (int itemNum, int yPos, int key1, int key2)
 {
     const boolean empty = (key1 == 0 && key2 == 0);
-    char *text = M_NameBind2(itemNum, key1, key2);
+    char *text = M_NameBind(itemNum, key1, key2);
 
     M_WriteTextGlow(M_ItemRightAlign(text), yPos, text,
         itemOn == itemNum && KbdIsBinding ? cr[CR_YELLOW] : (empty ? cr[CR_RED] : cr[CR_GREEN]),

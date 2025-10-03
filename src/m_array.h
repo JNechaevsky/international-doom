@@ -103,3 +103,7 @@ inline static void *M_ArrayGrow(void *v, size_t esize, int n)
 
     return p->buffer;
 }
+
+// [PN] ARRAY_LEN(a) — returns the number of elements in a static array
+// (safe at compile time; works only for real arrays, not pointers).
+#define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))

@@ -20,6 +20,7 @@
 #include "i_sound.h"
 #include "i_system.h"
 #include "i_timer.h"
+#include "m_array.h"
 #include "m_argv.h"
 #include "m_misc.h"
 #include "r_local.h"
@@ -139,8 +140,6 @@ static const ost_remap_t remaster_ost_remap[] = {
 	{ "orb",     "R_ORB",    "O_ORB"    },
 	{ "chess",   "R_CHESS",  "O_CHESS"  },
 };
-
-#define ARRAY_LEN(a) (sizeof(a)/sizeof((a)[0]))
 
 static const char *S_RemasterSong (const char *songLump)
 {
