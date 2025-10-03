@@ -2409,7 +2409,7 @@ static menu_t ID_Def_Keybinds_1 =
     &ID_Def_Controls,
     ID_Menu_Keybinds_1,
     M_Draw_ID_Keybinds_1,
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
     true, true, true,
 };
@@ -2525,7 +2525,7 @@ static menu_t ID_Def_Keybinds_2 =
     &ID_Def_Controls,
     ID_Menu_Keybinds_2,
     M_Draw_ID_Keybinds_2,
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
     true, true, true,
 };
@@ -2652,7 +2652,7 @@ static menu_t ID_Def_Keybinds_3 =
     &ID_Def_Controls,
     ID_Menu_Keybinds_3,
     M_Draw_ID_Keybinds_3,
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
     true, true, true,
 };
@@ -2755,7 +2755,7 @@ static menu_t ID_Def_Keybinds_4 =
     &ID_Def_Controls,
     ID_Menu_Keybinds_4,
     M_Draw_ID_Keybinds_4,
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
     true, true, true,
 };
@@ -2865,7 +2865,7 @@ static menu_t ID_Def_Keybinds_5 =
     &ID_Def_Controls,
     ID_Menu_Keybinds_5,
     M_Draw_ID_Keybinds_5,
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
     true, true, true,
 };
@@ -2981,7 +2981,7 @@ static menu_t ID_Def_Keybinds_6 =
     &ID_Def_Controls,
     ID_Menu_Keybinds_6,
     M_Draw_ID_Keybinds_6,
-    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
     true, true, true,
 };
@@ -7751,15 +7751,10 @@ void M_ConfirmDeleteGame (void)
 //
 // =============================================================================
 
-enum
-{
+enum {
     keyboard,
     mouse,
 };
-
-// Checks a pair of single key slots (a and b) and clears them if they match k.
-#define UNSET_IF_MATCH(k, a, b)  do { if ((a) == (k)) (a) = 0; if ((b) == (k)) (b) = 0; } while (0)
-#define UNSET_IF_MATCH_MOUSE(k, a, b)  do { if ((a) == (k)) (a) = -1; if ((b) == (k)) (b) = -1; } while (0)
 
 static struct {
     int key;
@@ -7881,7 +7876,7 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
         M_WriteTextCentered(171, string, cr[CR_MENU_DARK1]);
         M_WriteText(ID_MENU_LEFTOFFSET, 180, "< PGUP", cr[CR_MENU_DARK3]);
         M_WriteTextCentered(180, M_StringJoin("PAGE ", pagenum, "/6", NULL), cr[CR_MENU_DARK2]);
-        M_WriteText(M_ItemRightAlign("PGDN >"), 180, "PGDN >", cr[CR_MENU_DARK3]);
+        M_WriteText(ORIGWIDTH - ID_MENU_LEFTOFFSET - M_StringWidth("PGDN >"), 180, "PGDN >", cr[CR_MENU_DARK3]);
     }
     else
     {
@@ -7899,7 +7894,7 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
 
 // -----------------------------------------------------------------------------
 // M_StartBind
-//  [JN] Indicate that key binding is started (KbdIsBinding), and
+//  Indicate that key binding is started (KbdIsBinding), and
 //  pass internal number (keyToBind) for binding a new key.
 // -----------------------------------------------------------------------------
 
@@ -7911,12 +7906,15 @@ static void M_StartBind (int keynum)
 
 // -----------------------------------------------------------------------------
 // M_CheckBind
-//  [JN] Check if pressed key is already binded, clear previous bind if found.
-//  [PN] To keep the key-unbind logic compact, we define simple macro.
+//  Check if pressed key is already binded, clear previous bind if found.
+//  To keep the key-unbind logic compact, we define simple macro.
 // -----------------------------------------------------------------------------
 
 static void M_CheckBind (int key)
 {
+// Checks a pair of single key slots (a and b) and clears them if they match k.
+#define UNSET_IF_MATCH(k, a, b)  do { if ((a) == (k)) (a) = 0; if ((b) == (k)) (b) = 0; } while (0)
+
     // Page 1
     UNSET_IF_MATCH(key, key_up,          key_up2);
     UNSET_IF_MATCH(key, key_down,        key_down2);
@@ -8003,11 +8001,13 @@ static void M_CheckBind (int key)
         UNSET_IF_MATCH(key, key_multi_msgplayer[2], key_multi_msgplayer2[2]);
         UNSET_IF_MATCH(key, key_multi_msgplayer[3], key_multi_msgplayer2[3]);
     }
+    
+#undef UNSET_IF_MATCH
 }
 
 // -----------------------------------------------------------------------------
 // M_DoBind
-//  [JN] By catching internal bind number (keynum), do actual binding
+//  By catching internal bind number (keynum), do actual binding
 //  of pressed key (key) to real keybind.
 // -----------------------------------------------------------------------------
 
@@ -8219,7 +8219,7 @@ static void M_ResetBinds (void)
     key_autorun = KEY_CAPSLOCK; key_autorun2 = 0;
     key_mouse_look = 0;         key_mouse_look2 = 0;
     key_novert = 0;             key_novert2 = 0;
-    key_prevlevel = 0;          key_prevlevel = 0;
+    key_prevlevel = 0;          key_prevlevel2 = 0;
     key_reloadlevel = 0;        key_reloadlevel2 = 0;
     key_nextlevel = 0;          key_nextlevel2 = 0;
     key_demospeed = 0;          key_demospeed2 = 0;
@@ -8320,16 +8320,21 @@ static void M_StartMouseBind (int btn)
 
 static void M_CheckMouseBind (int btn)
 {
-    UNSET_IF_MATCH_MOUSE(btn, mousebfire,        mousebfire2);
-    UNSET_IF_MATCH_MOUSE(btn, mousebforward,     mousebforward2);
-    UNSET_IF_MATCH_MOUSE(btn, mousebbackward,    mousebbackward2);
-    UNSET_IF_MATCH_MOUSE(btn, mousebuse,         mousebuse2);
-    UNSET_IF_MATCH_MOUSE(btn, mousebspeed,       mousebspeed2);
-    UNSET_IF_MATCH_MOUSE(btn, mousebstrafe,      mousebstrafe2);
-    UNSET_IF_MATCH_MOUSE(btn, mousebstrafeleft,  mousebstrafeleft2);
-    UNSET_IF_MATCH_MOUSE(btn, mousebstraferight, mousebstraferight2);
-    UNSET_IF_MATCH_MOUSE(btn, mousebprevweapon,  mousebprevweapon2);
-    UNSET_IF_MATCH_MOUSE(btn, mousebnextweapon,  mousebnextweapon2);
+// Checks a pair of single key slots (a and b) and clears them if they match k.
+#define UNSET_IF_MATCH(k, a, b)  do { if ((a) == (k)) (a) = -1; if ((b) == (k)) (b) = -1; } while (0)
+
+    UNSET_IF_MATCH(btn, mousebfire,        mousebfire2);
+    UNSET_IF_MATCH(btn, mousebforward,     mousebforward2);
+    UNSET_IF_MATCH(btn, mousebbackward,    mousebbackward2);
+    UNSET_IF_MATCH(btn, mousebuse,         mousebuse2);
+    UNSET_IF_MATCH(btn, mousebspeed,       mousebspeed2);
+    UNSET_IF_MATCH(btn, mousebstrafe,      mousebstrafe2);
+    UNSET_IF_MATCH(btn, mousebstrafeleft,  mousebstrafeleft2);
+    UNSET_IF_MATCH(btn, mousebstraferight, mousebstraferight2);
+    UNSET_IF_MATCH(btn, mousebprevweapon,  mousebprevweapon2);
+    UNSET_IF_MATCH(btn, mousebnextweapon,  mousebnextweapon2);
+
+#undef UNSET_IF_MATCH
 }
 
 // -----------------------------------------------------------------------------
