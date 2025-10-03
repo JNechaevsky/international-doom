@@ -7746,15 +7746,10 @@ void M_ConfirmDeleteGame (void)
 
 // =============================================================================
 //
-//                        [JN] Keyboard binding routines.
-//                    Drawing, coloring, checking and binding.
+//                 [JN/PN] Keyboard and mouse binding routines.
+//                   Drawing, coloring, checking and binding.
 //
 // =============================================================================
-
-
-// -----------------------------------------------------------------------------
-// Utilities
-// -----------------------------------------------------------------------------
 
 enum
 {
@@ -7782,16 +7777,18 @@ static char *M_MakeBindName (int itemSetOn, int key, int type)
         if (type == keyboard)
         {
             for (int i = 0; (size_t)i < arrlen(key_names); ++i)
+            {
                 if (key_names[i].key == key)
                     return key_names[i].name;
+            }
+            return "---";  // Means empty
         }
         else
         {
             char  num[8]; 
-            char *other_button;
 
             M_snprintf(num, 8, "%d", key + 1);
-            other_button = M_StringJoin("BTN", num, NULL);
+            char *other_button = M_StringJoin("BTN", num, NULL);
 
             switch (key)
             {
@@ -7805,7 +7802,6 @@ static char *M_MakeBindName (int itemSetOn, int key, int type)
             }
         }
     }
-    return "---";  // Means empty
 }
 
 static char *M_NameBind (int itemSetOn, int key1, int key2, int type)
@@ -7822,10 +7818,8 @@ static char *M_NameBind (int itemSetOn, int key1, int key2, int type)
         return "---";
 
     // Only one bind
-    if (key2 == empty_val)
-        return M_MakeBindName(itemSetOn, key1, type);
-    if (key1 == empty_val)
-        return M_MakeBindName(itemSetOn, key2, type);
+    if (key2 == empty_val) return M_MakeBindName(itemSetOn, key1, type);
+    if (key1 == empty_val) return M_MakeBindName(itemSetOn, key2, type);
 
     // Both binds
     const char *a = M_MakeBindName(itemSetOn, key1, type);
@@ -7864,16 +7858,43 @@ static void M_DoBindAction (int *slot1, int *slot2, int key, int type)
     }
 
     // [PN] 2) Global de-dup: remove this key from all other actions (both slots)
-    if (type == keyboard)
-        M_CheckBind(key);
-    else
-        M_CheckMouseBind(key);
+    if (type == keyboard) M_CheckBind(key);
+    else                  M_CheckMouseBind(key);
 
     // [PN] 3) Assign: to first empty; if both occupied, overwrite alt
     if (*slot1 == empty_val)      *slot1 = key;
     else if (*slot2 == empty_val) *slot2 = key;
     else                          *slot2 = key;
 }
+
+// -----------------------------------------------------------------------------
+// M_DrawBindFooter
+//  Draw footer in key binding pages with numeration.
+// -----------------------------------------------------------------------------
+
+static void M_DrawBindFooter (char *pagenum, boolean drawPages)
+{
+    const char *string = "PRESS ENTER TO BIND, DEL TO CLEAR";
+
+    if (drawPages)
+    {
+        M_WriteTextCentered(171, string, cr[CR_MENU_DARK1]);
+        M_WriteText(ID_MENU_LEFTOFFSET, 180, "< PGUP", cr[CR_MENU_DARK3]);
+        M_WriteTextCentered(180, M_StringJoin("PAGE ", pagenum, "/6", NULL), cr[CR_MENU_DARK2]);
+        M_WriteText(M_ItemRightAlign("PGDN >"), 180, "PGDN >", cr[CR_MENU_DARK3]);
+    }
+    else
+    {
+        M_WriteTextCentered(180, string, cr[CR_MENU_DARK1]);
+    }
+}
+
+
+// =============================================================================
+//
+//                            Keyboard binding routines
+//
+// =============================================================================
 
 
 // -----------------------------------------------------------------------------
@@ -7893,7 +7914,6 @@ static void M_StartBind (int keynum)
 //  [JN] Check if pressed key is already binded, clear previous bind if found.
 //  [PN] To keep the key-unbind logic compact, we define simple macro.
 // -----------------------------------------------------------------------------
-
 
 static void M_CheckBind (int key)
 {
@@ -7978,10 +7998,10 @@ static void M_CheckBind (int key)
     // Do not override Send To binds in other pages.
     if (currentMenu == &ID_Def_Keybinds_6)
     {
-        UNSET_IF_MATCH(key, key_multi_msgplayer[0], key_multi_msgplayer[0]);
-        UNSET_IF_MATCH(key, key_multi_msgplayer[1], key_multi_msgplayer[1]);
-        UNSET_IF_MATCH(key, key_multi_msgplayer[2], key_multi_msgplayer[2]);
-        UNSET_IF_MATCH(key, key_multi_msgplayer[3], key_multi_msgplayer[3]);
+        UNSET_IF_MATCH(key, key_multi_msgplayer[0], key_multi_msgplayer2[0]);
+        UNSET_IF_MATCH(key, key_multi_msgplayer[1], key_multi_msgplayer2[1]);
+        UNSET_IF_MATCH(key, key_multi_msgplayer[2], key_multi_msgplayer2[2]);
+        UNSET_IF_MATCH(key, key_multi_msgplayer[3], key_multi_msgplayer2[3]);
     }
 }
 
@@ -8078,205 +8098,189 @@ static void M_DoBind (int keynum, int key)
 
 // -----------------------------------------------------------------------------
 // M_ClearBind
-//  [JN] Clear key bind on the line where cursor is placed (itemOn).
+//  Clear key bind on the line where cursor is placed (itemOn).
 // -----------------------------------------------------------------------------
 
 static void M_ClearBind (int itemOn)
 {
-    if (currentMenu == &ID_Def_Keybinds_1)
+    typedef struct {
+        const menu_t *menu;   // which menu this entry belongs to
+        int item;             // index of the menu item
+        int *key1;            // pointer to the primary key
+        int *key2;            // pointer to the alternative key
+    } KeyBindEntry_t;
+
+    static KeyBindEntry_t keybinds[] = {
+        { &ID_Def_Keybinds_1, 0,  &key_up,          &key_up2 },
+        { &ID_Def_Keybinds_1, 1,  &key_down,        &key_down2 },
+        { &ID_Def_Keybinds_1, 2,  &key_left,        &key_left2 },
+        { &ID_Def_Keybinds_1, 3,  &key_right,       &key_right2 },
+        { &ID_Def_Keybinds_1, 4,  &key_strafeleft,  &key_strafeleft2 },
+        { &ID_Def_Keybinds_1, 5,  &key_straferight, &key_straferight2 },
+        { &ID_Def_Keybinds_1, 6,  &key_speed,       &key_speed2 },
+        { &ID_Def_Keybinds_1, 7,  &key_strafe,      &key_strafe2 },
+        { &ID_Def_Keybinds_1, 8,  &key_180turn,     &key_180turn2 },
+        { &ID_Def_Keybinds_1, 10, &key_fire,        &key_fire2 },
+        { &ID_Def_Keybinds_1, 11, &key_use,         &key_use2 },
+    
+        { &ID_Def_Keybinds_2, 0,  &key_autorun,       &key_autorun2 },
+        { &ID_Def_Keybinds_2, 1,  &key_mouse_look,    &key_mouse_look2 },
+        { &ID_Def_Keybinds_2, 2,  &key_novert,        &key_novert2 },
+        { &ID_Def_Keybinds_2, 4,  &key_prevlevel,     &key_prevlevel2 },
+        { &ID_Def_Keybinds_2, 5,  &key_reloadlevel,   &key_reloadlevel2 },
+        { &ID_Def_Keybinds_2, 6,  &key_nextlevel,     &key_nextlevel2 },
+        { &ID_Def_Keybinds_2, 7,  &key_demospeed,     &key_demospeed2 },
+        { &ID_Def_Keybinds_2, 8,  &key_flip_levels,   &key_flip_levels2 },
+        { &ID_Def_Keybinds_2, 9,  &key_widget_enable, &key_widget_enable2 },
+        { &ID_Def_Keybinds_2, 11, &key_spectator,     &key_spectator2 },
+        { &ID_Def_Keybinds_2, 12, &key_freeze,        &key_freeze2 },
+        { &ID_Def_Keybinds_2, 13, &key_notarget,      &key_notarget2 },
+        { &ID_Def_Keybinds_2, 14, &key_buddha,        &key_buddha2 },
+    
+        { &ID_Def_Keybinds_3, 0, &key_weapon1,    &key_weapon1_2 },
+        { &ID_Def_Keybinds_3, 1, &key_weapon2,    &key_weapon2_2 },
+        { &ID_Def_Keybinds_3, 2, &key_weapon3,    &key_weapon3_2 },
+        { &ID_Def_Keybinds_3, 3, &key_weapon4,    &key_weapon4_2 },
+        { &ID_Def_Keybinds_3, 4, &key_weapon5,    &key_weapon5_2 },
+        { &ID_Def_Keybinds_3, 5, &key_weapon6,    &key_weapon6_2 },
+        { &ID_Def_Keybinds_3, 6, &key_weapon7,    &key_weapon7_2 },
+        { &ID_Def_Keybinds_3, 7, &key_weapon8,    &key_weapon8_2 },
+        { &ID_Def_Keybinds_3, 8, &key_prevweapon, &key_prevweapon2 },
+        { &ID_Def_Keybinds_3, 9, &key_nextweapon, &key_nextweapon2 },
+    
+        { &ID_Def_Keybinds_4, 0,  &key_map_toggle,    &key_map_toggle2 },
+        { &ID_Def_Keybinds_4, 1,  &key_map_zoomin,    &key_map_zoomin2 },
+        { &ID_Def_Keybinds_4, 2,  &key_map_zoomout,   &key_map_zoomout2 },
+        { &ID_Def_Keybinds_4, 3,  &key_map_maxzoom,   &key_map_maxzoom2 },
+        { &ID_Def_Keybinds_4, 4,  &key_map_follow,    &key_map_follow2 },
+        { &ID_Def_Keybinds_4, 5,  &key_map_rotate,    &key_map_rotate2 },
+        { &ID_Def_Keybinds_4, 6,  &key_map_overlay,   &key_map_overlay2 },
+        { &ID_Def_Keybinds_4, 7,  &key_map_mousepan,  &key_map_mousepan2 },
+        { &ID_Def_Keybinds_4, 8,  &key_map_grid,      &key_map_grid2 },
+        { &ID_Def_Keybinds_4, 9,  &key_map_mark,      &key_map_mark2 },
+        { &ID_Def_Keybinds_4, 10, &key_map_clearmark, &key_map_clearmark2 },
+    
+        { &ID_Def_Keybinds_5, 0,  &key_menu_help,     &key_menu_help2 },
+        { &ID_Def_Keybinds_5, 1,  &key_menu_save,     &key_menu_save2 },
+        { &ID_Def_Keybinds_5, 2,  &key_menu_load,     &key_menu_load2 },
+        { &ID_Def_Keybinds_5, 3,  &key_menu_volume,   &key_menu_volume2 },
+        { &ID_Def_Keybinds_5, 4,  &key_menu_detail,   &key_menu_detail2 },
+        { &ID_Def_Keybinds_5, 5,  &key_menu_qsave,    &key_menu_qsave2 },
+        { &ID_Def_Keybinds_5, 6,  &key_menu_endgame,  &key_menu_endgame2 },
+        { &ID_Def_Keybinds_5, 7,  &key_menu_messages, &key_menu_messages2 },
+        { &ID_Def_Keybinds_5, 8,  &key_menu_qload,    &key_menu_qload2 },
+        { &ID_Def_Keybinds_5, 9,  &key_menu_quit,     &key_menu_quit2 },
+        { &ID_Def_Keybinds_5, 10, &key_menu_gamma,    &key_menu_gamma2 },
+        { &ID_Def_Keybinds_5, 11, &key_spy,           &key_spy2 },
+    
+        { &ID_Def_Keybinds_6, 0,  &key_pause,           &key_pause2 },
+        { &ID_Def_Keybinds_6, 1,  &key_menu_screenshot, &key_menu_screenshot2 },
+        { &ID_Def_Keybinds_6, 2,  &key_message_refresh, &key_message_refresh2 },
+        { &ID_Def_Keybinds_6, 3,  &key_demo_quit,       &key_demo_quit2 },
+        { &ID_Def_Keybinds_6, 4,  &key_switch_ost,      &key_switch_ost2 },
+        { &ID_Def_Keybinds_6, 6,  &key_multi_msg,          &key_multi_msg2 },
+        { &ID_Def_Keybinds_6, 7,  &key_multi_msgplayer[0], &key_multi_msgplayer2[0] },
+        { &ID_Def_Keybinds_6, 8,  &key_multi_msgplayer[1], &key_multi_msgplayer2[1] },
+        { &ID_Def_Keybinds_6, 9,  &key_multi_msgplayer[2], &key_multi_msgplayer2[2] },
+        { &ID_Def_Keybinds_6, 10, &key_multi_msgplayer[3], &key_multi_msgplayer2[3] },
+    };
+
+    for (size_t i = 0; i < sizeof(keybinds)/sizeof(keybinds[0]); i++)
     {
-        switch (itemOn)
+        if (keybinds[i].menu == currentMenu && keybinds[i].item == itemOn)
         {
-            case 0:   key_up = key_up2 = 0;                   break;
-            case 1:   key_down = key_down2 = 0;               break;
-            case 2:   key_left = key_left2 = 0;               break;
-            case 3:   key_right = key_right2 = 0;             break;
-            case 4:   key_strafeleft = key_strafeleft2 = 0;   break;
-            case 5:   key_straferight = key_straferight2 = 0; break;
-            case 6:   key_speed = key_speed2 = 0;             break;
-            case 7:   key_strafe = key_strafe2 = 0;           break;
-            case 8:   key_180turn = key_180turn2 = 0;         break;
-            // Action title
-            case 10:  key_fire = key_fire2 = 0;               break;
-            case 11:  key_use = key_use2 = 0;                 break;
-        }
-    }
-    if (currentMenu == &ID_Def_Keybinds_2)
-    {
-        switch (itemOn)
-        {
-            case 0:   key_autorun = key_autorun2 = 0;         break;
-            case 1:   key_mouse_look = key_mouse_look2 = 0;   break;
-            case 2:   key_novert = key_novert2 = 0;           break;
-            // Special keys title
-            case 4:   key_prevlevel = key_prevlevel2 = 0;         break;
-            case 5:   key_reloadlevel = key_reloadlevel2 = 0;     break;
-            case 6:   key_nextlevel = key_nextlevel2 = 0;         break;
-            case 7:   key_demospeed = key_demospeed2 = 0;         break;
-            case 8:   key_flip_levels = key_flip_levels2 = 0;     break;
-            case 9:   key_widget_enable = key_widget_enable2 = 0; break;
-            // Special modes title
-            case 11:  key_spectator = key_spectator2 = 0; break;
-            case 12:  key_freeze = key_freeze2 = 0;       break;
-            case 13:  key_notarget = key_notarget2 = 0;   break;
-            case 14:  key_buddha = key_buddha2 = 0;       break;
-        }
-    }
-    if (currentMenu == &ID_Def_Keybinds_3)
-    {
-        switch (itemOn)
-        {
-            case 0:  key_weapon1 = key_weapon1_2 = 0;       break;
-            case 1:  key_weapon2 = key_weapon2_2 = 0;       break;
-            case 2:  key_weapon3 = key_weapon3_2 = 0;       break;
-            case 3:  key_weapon4 = key_weapon4_2 = 0;       break;
-            case 4:  key_weapon5 = key_weapon5_2 = 0;       break;
-            case 5:  key_weapon6 = key_weapon6_2 = 0;       break;
-            case 6:  key_weapon7 = key_weapon7_2 = 0;       break;
-            case 7:  key_weapon8 = key_weapon8_2 = 0;       break;
-            case 8:  key_prevweapon = key_prevweapon2 = 0;  break;
-            case 9:  key_nextweapon = key_nextweapon2 = 0;  break;
-        }
-    }
-    if (currentMenu == &ID_Def_Keybinds_4)
-    {
-        switch (itemOn)
-        {
-            case 0:   key_map_toggle = key_map_toggle2 = 0;       break;
-            case 1:   key_map_zoomin = key_map_zoomin2 = 0;       break;
-            case 2:   key_map_zoomout = key_map_zoomout2 = 0;     break;
-            case 3:   key_map_maxzoom = key_map_maxzoom2 = 0;     break;
-            case 4:   key_map_follow = key_map_follow2 = 0;       break;
-            case 5:   key_map_rotate = key_map_rotate2 = 0;       break;
-            case 6:   key_map_overlay = key_map_overlay2 = 0;     break;
-            case 7:   key_map_mousepan = key_map_mousepan2 = 0;   break;
-            case 8:   key_map_grid = key_map_grid2 = 0;           break;
-            case 9:   key_map_mark = key_map_mark2 = 0;           break;
-            case 10:  key_map_clearmark = key_map_clearmark2 = 0; break;
-        }
-    }
-    if (currentMenu == &ID_Def_Keybinds_5)
-    {
-        switch (itemOn)
-        {
-            case 0:   key_menu_help = key_menu_help2 = 0;         break;
-            case 1:   key_menu_save = key_menu_save2 = 0;         break;
-            case 2:   key_menu_load = key_menu_load2 = 0;         break;
-            case 3:   key_menu_volume = key_menu_volume2 = 0;     break;
-            case 4:   key_menu_detail = key_menu_detail2 = 0;     break;
-            case 5:   key_menu_qsave = key_menu_qsave2 = 0;       break;
-            case 6:   key_menu_endgame = key_menu_endgame2 = 0;   break;
-            case 7:   key_menu_messages = key_menu_messages2 = 0; break;
-            case 8:   key_menu_qload = key_menu_qload2 = 0;       break;
-            case 9:   key_menu_quit = key_menu_quit2 = 0;         break;
-            case 10:  key_menu_gamma = key_menu_gamma2 = 0;       break;
-            case 11:  key_spy = key_spy2 = 0;                     break;
-        }
-    }
-    if (currentMenu == &ID_Def_Keybinds_6)
-    {
-        switch (itemOn)
-        {
-            case 0:   key_pause = key_pause2 = 0;                     break;
-            case 1:   key_menu_screenshot = key_menu_screenshot2 = 0; break;
-            case 2:   key_message_refresh = key_message_refresh2 = 0; break;
-            case 3:   key_demo_quit = key_demo_quit2 = 0;             break;
-            case 4:   key_switch_ost = key_switch_ost2 = 0;           break;
-            // Multiplayer title
-            case 6:   key_multi_msg = key_multi_msg2 = 0;                   break;
-            case 7:   key_multi_msgplayer[0] = key_multi_msgplayer2[0] = 0; break;
-            case 8:   key_multi_msgplayer[1] = key_multi_msgplayer2[1] = 0; break;
-            case 9:   key_multi_msgplayer[2] = key_multi_msgplayer2[2] = 0; break;
-            case 10:  key_multi_msgplayer[3] = key_multi_msgplayer2[3] = 0; break;
+            *keybinds[i].key1 = 0;
+            *keybinds[i].key2 = 0;
+            return;
         }
     }
 }
 
 // -----------------------------------------------------------------------------
 // M_ResetBinds
-//  [JN] Reset all keyboard binding to it's defaults.
+//  Reset all keyboard binding to it's defaults.
 // -----------------------------------------------------------------------------
 
 static void M_ResetBinds (void)
 {
     // Page 1
-    key_up = 'w'; key_up2 = 0;
-    key_down = 's'; key_down2 = 0;
-    key_left = KEY_LEFTARROW; key_left2 = 0;
+    key_up = 'w';               key_up2 = 0;
+    key_down = 's';             key_down2 = 0;
+    key_left = KEY_LEFTARROW;   key_left2 = 0;
     key_right = KEY_RIGHTARROW; key_right2 = 0;
-    key_strafeleft = 'a'; key_strafeleft2 = 0;
-    key_straferight = 'd'; key_straferight = 0;
-    key_speed = KEY_RSHIFT; key_speed2 = 0;
-    key_strafe = KEY_RALT; key_strafe2 = 0;
-    key_180turn = 0; key_180turn2 = 0;
-    key_fire = KEY_RCTRL;
-    key_use = ' ';
+    key_strafeleft = 'a';       key_strafeleft2 = 0;
+    key_straferight = 'd';      key_straferight2 = 0;
+    key_speed = KEY_RSHIFT;     key_speed2 = 0;
+    key_strafe = KEY_RALT;      key_strafe2 = 0;
+    key_180turn = 0;            key_180turn2 = 0;
+    key_fire = KEY_RCTRL;       key_fire2 = 0;
+    key_use = ' ';              key_use2 = 0;
     // Page 2
     key_autorun = KEY_CAPSLOCK; key_autorun2 = 0;
-    key_mouse_look = 0; key_mouse_look2 = 0;
-    key_novert = 0; key_novert2 = 0;
-    key_prevlevel = 0; key_prevlevel = 0;
-    key_reloadlevel = 0; key_reloadlevel2 = 0;
-    key_nextlevel = 0; key_nextlevel2 = 0;
-    key_demospeed = 0; key_demospeed2 = 0;
-    key_flip_levels = 0; key_flip_levels2 = 0;
-    key_widget_enable = 0; key_widget_enable2 = 0;
-    key_spectator = 0; key_spectator2 = 0;
-    key_freeze = 0; key_freeze2 = 0;
-    key_notarget = 0; key_notarget2 = 0;
-    key_buddha = 0; key_buddha2 = 0;
+    key_mouse_look = 0;         key_mouse_look2 = 0;
+    key_novert = 0;             key_novert2 = 0;
+    key_prevlevel = 0;          key_prevlevel = 0;
+    key_reloadlevel = 0;        key_reloadlevel2 = 0;
+    key_nextlevel = 0;          key_nextlevel2 = 0;
+    key_demospeed = 0;          key_demospeed2 = 0;
+    key_flip_levels = 0;        key_flip_levels2 = 0;
+    key_widget_enable = 0;      key_widget_enable2 = 0;
+    key_spectator = 0;          key_spectator2 = 0;
+    key_freeze = 0;             key_freeze2 = 0;
+    key_notarget = 0;           key_notarget2 = 0;
+    key_buddha = 0;             key_buddha2 = 0;
     // Page 3
-    key_weapon1 = '1'; key_weapon1_2 = 0;
-    key_weapon2 = '2'; key_weapon2_2 = 0;
-    key_weapon3 = '3'; key_weapon3_2 = 0;
-    key_weapon4 = '4'; key_weapon4_2 = 0;
-    key_weapon5 = '5'; key_weapon5_2 = 0;
-    key_weapon6 = '6'; key_weapon6_2 = 0;
-    key_weapon7 = '7'; key_weapon7_2 = 0;
-    key_weapon8 = '8'; key_weapon8_2 = 0;
+    key_weapon1 = '1';  key_weapon1_2 = 0;
+    key_weapon2 = '2';  key_weapon2_2 = 0;
+    key_weapon3 = '3';  key_weapon3_2 = 0;
+    key_weapon4 = '4';  key_weapon4_2 = 0;
+    key_weapon5 = '5';  key_weapon5_2 = 0;
+    key_weapon6 = '6';  key_weapon6_2 = 0;
+    key_weapon7 = '7';  key_weapon7_2 = 0;
+    key_weapon8 = '8';  key_weapon8_2 = 0;
     key_prevweapon = 0; key_prevweapon2 = 0;
     key_nextweapon = 0; key_nextweapon2 = 0;
     // Page 4
     key_map_toggle = KEY_TAB; key_map_toggle2 = 0;
-    key_map_zoomin = '='; key_map_zoomin2 = '+';
-    key_map_zoomout = '-'; key_map_zoomout2 = 0;
-    key_map_maxzoom = '0'; key_map_maxzoom2 = 0;
-    key_map_follow = 'f';  key_map_follow2 = 0;
-    key_map_rotate = 'r';  key_map_rotate2 = 0;
-    key_map_overlay = 'o'; key_map_overlay2 = 0;
-    key_map_mousepan = 0; key_map_mousepan2 = 0;
-    key_map_grid = 'g'; key_map_grid2 = 0;
-    key_map_mark = 'm'; key_map_mark2 = 0;
-    key_map_clearmark = 'c'; key_map_clearmark2 = 0;
+    key_map_zoomin = '=';     key_map_zoomin2 = '+';
+    key_map_zoomout = '-';    key_map_zoomout2 = 0;
+    key_map_maxzoom = '0';    key_map_maxzoom2 = 0;
+    key_map_follow = 'f';     key_map_follow2 = 0;
+    key_map_rotate = 'r';     key_map_rotate2 = 0;
+    key_map_overlay = 'o';    key_map_overlay2 = 0;
+    key_map_mousepan = 0;     key_map_mousepan2 = 0;
+    key_map_grid = 'g';       key_map_grid2 = 0;
+    key_map_mark = 'm';       key_map_mark2 = 0;
+    key_map_clearmark = 'c';  key_map_clearmark2 = 0;
     // Page 5
-    key_menu_help = KEY_F1; key_menu_help2 = 0;
-    key_menu_save = KEY_F2; key_menu_save2 = 0;
-    key_menu_load = KEY_F3; key_menu_load2 = 0;
-    key_menu_volume = KEY_F4; key_menu_volume2 = 0;
-    key_menu_detail = KEY_F5; key_menu_detail2 = 0;
-    key_menu_qsave = KEY_F6; key_menu_qsave2 = 0;
-    key_menu_endgame = KEY_F7; key_menu_endgame2 = 0;
+    key_menu_help = KEY_F1;     key_menu_help2 = 0;
+    key_menu_save = KEY_F2;     key_menu_save2 = 0;
+    key_menu_load = KEY_F3;     key_menu_load2 = 0;
+    key_menu_volume = KEY_F4;   key_menu_volume2 = 0;
+    key_menu_detail = KEY_F5;   key_menu_detail2 = 0;
+    key_menu_qsave = KEY_F6;    key_menu_qsave2 = 0;
+    key_menu_endgame = KEY_F7;  key_menu_endgame2 = 0;
     key_menu_messages = KEY_F8; key_menu_messages2 = 0;
-    key_menu_qload = KEY_F9; key_menu_qload2 = 0;
-    key_menu_quit = KEY_F10; key_menu_quit2 = 0;
-    key_menu_gamma = KEY_F11; key_menu_gamma2 = 0;
-    key_spy = KEY_F12; key_spy2 = 0;
+    key_menu_qload = KEY_F9;    key_menu_qload2 = 0;
+    key_menu_quit = KEY_F10;    key_menu_quit2 = 0;
+    key_menu_gamma = KEY_F11;   key_menu_gamma2 = 0;
+    key_spy = KEY_F12;          key_spy2 = 0;
     // Page 6
-    key_pause = KEY_PAUSE; key_pause2 = 0;
-    key_menu_screenshot = KEY_PRTSCR; key_menu_screenshot = 0;
-    key_message_refresh = KEY_ENTER; key_message_refresh = 0;
-    key_demo_quit = 'q'; key_demo_quit = 0;
-    key_switch_ost = 0; key_switch_ost = 0;
-    key_multi_msg = 't'; key_multi_msg = 0;
-    key_multi_msgplayer[0] = 'g'; key_multi_msgplayer2[0] = 0;
-    key_multi_msgplayer[1] = 'i'; key_multi_msgplayer2[1] = 0;
-    key_multi_msgplayer[2] = 'b'; key_multi_msgplayer2[2] = 0;
-    key_multi_msgplayer[3] = 'r'; key_multi_msgplayer2[3] = 0;
+    key_pause = KEY_PAUSE;            key_pause2 = 0;
+    key_menu_screenshot = KEY_PRTSCR; key_menu_screenshot2 = 0;
+    key_message_refresh = KEY_ENTER;  key_message_refresh2 = 0;
+    key_demo_quit = 'q';              key_demo_quit2 = 0;
+    key_switch_ost = 0;               key_switch_ost2 = 0;
+    key_multi_msg = 't';              key_multi_msg2 = 0;
+    key_multi_msgplayer[0] = 'g';     key_multi_msgplayer2[0] = 0;
+    key_multi_msgplayer[1] = 'i';     key_multi_msgplayer2[1] = 0;
+    key_multi_msgplayer[2] = 'b';     key_multi_msgplayer2[2] = 0;
+    key_multi_msgplayer[3] = 'r';     key_multi_msgplayer2[3] = 0;
 }
 
 // -----------------------------------------------------------------------------
 // M_DrawBindKey
-//  [PN/JN] Do double keyboard bind drawing.
+//  Do double keyboard bind drawing.
 // -----------------------------------------------------------------------------
 
 static void M_DrawBindKey (int itemNum, int yPos, int key1, int key2)
@@ -8290,41 +8294,17 @@ static void M_DrawBindKey (int itemNum, int yPos, int key1, int key2)
         LINE_ALPHA(itemNum));
 }
 
-// -----------------------------------------------------------------------------
-// M_DrawBindFooter
-//  [JN] Draw footer in key binding pages with numeration.
-// -----------------------------------------------------------------------------
-
-static void M_DrawBindFooter (char *pagenum, boolean drawPages)
-{
-    const char *string = "PRESS ENTER TO BIND, DEL TO CLEAR";
-
-    if (drawPages)
-    {
-        M_WriteTextCentered(171, string, cr[CR_MENU_DARK1]);
-        M_WriteText(ID_MENU_LEFTOFFSET, 180, "< PGUP", cr[CR_MENU_DARK3]);
-        M_WriteTextCentered(180, M_StringJoin("PAGE ", pagenum, "/6", NULL), cr[CR_MENU_DARK2]);
-        M_WriteText(M_ItemRightAlign("PGDN >"), 180, "PGDN >", cr[CR_MENU_DARK3]);
-    }
-    else
-    {
-        M_WriteTextCentered(180, string, cr[CR_MENU_DARK1]);
-    }
-}
-
-
 // =============================================================================
 //
-//                          [JN] Mouse binding routines.
-//                    Drawing, coloring, checking and binding.
+//                            Mouse binding routines
 //
 // =============================================================================
 
 
 // -----------------------------------------------------------------------------
 // M_StartMouseBind
-//  [JN] Indicate that mouse button binding is started (MouseIsBinding), and
-//  pass internal number (btnToBind) for binding a new button.
+//  Indicate that mouse button binding is started (MouseIsBinding),
+//  and pass internal number (btnToBind) for binding a new button.
 // -----------------------------------------------------------------------------
 
 static void M_StartMouseBind (int btn)
@@ -8335,7 +8315,7 @@ static void M_StartMouseBind (int btn)
 
 // -----------------------------------------------------------------------------
 // M_CheckMouseBind
-//  [JN] Check if pressed button is already binded, clear previous bind if found.
+//  Check if pressed button is already binded, clear previous bind if found.
 // -----------------------------------------------------------------------------
 
 static void M_CheckMouseBind (int btn)
@@ -8354,7 +8334,7 @@ static void M_CheckMouseBind (int btn)
 
 // -----------------------------------------------------------------------------
 // M_DoMouseBind
-//  [JN] By catching internal bind number (btnnum), do actual binding
+//  By catching internal bind number (btnnum), do actual binding
 //  of pressed button (btn) to real mouse bind.
 // -----------------------------------------------------------------------------
 
@@ -8378,29 +8358,29 @@ static void M_DoMouseBind (int btnnum, int btn)
 
 // -----------------------------------------------------------------------------
 // M_ClearMouseBind
-//  [JN] Clear mouse bind on the line where cursor is placed (itemOn).
+//  Clear mouse bind on the line where cursor is placed (itemOn).
 // -----------------------------------------------------------------------------
 
 static void M_ClearMouseBind (int itemOn)
 {
     switch (itemOn)
     {
-        case 0:  mousebfire = mousebfire2 = -1;                break;
-        case 1:  mousebforward = mousebforward2 = -1;          break;
-        case 2:  mousebbackward = mousebbackward2 = -1;        break;
-        case 3:  mousebuse = mousebuse2 = -1;                  break;
-        case 4:  mousebspeed = mousebspeed2 = -1;              break;
-        case 5:  mousebstrafe = mousebstrafe2 = -1;            break;
-        case 6:  mousebstrafeleft = mousebstrafeleft2 = -1;    break;
+        case 0:  mousebfire        = mousebfire2        = -1;  break;
+        case 1:  mousebforward     = mousebforward2     = -1;  break;
+        case 2:  mousebbackward    = mousebbackward2    = -1;  break;
+        case 3:  mousebuse         = mousebuse2         = -1;  break;
+        case 4:  mousebspeed       = mousebspeed2       = -1;  break;
+        case 5:  mousebstrafe      = mousebstrafe2      = -1;  break;
+        case 6:  mousebstrafeleft  = mousebstrafeleft2  = -1;  break;
         case 7:  mousebstraferight = mousebstraferight2 = -1;  break;
-        case 8:  mousebprevweapon = mousebprevweapon2 = -1;    break;
-        case 9:  mousebnextweapon = mousebnextweapon2 = -1;    break;
+        case 8:  mousebprevweapon  = mousebprevweapon2  = -1;  break;
+        case 9:  mousebnextweapon  = mousebnextweapon2  = -1;  break;
     }
 }
 
 // -----------------------------------------------------------------------------
 // M_DrawBindButton
-//  [JN] Do mouse button bind drawing.
+//  Do mouse button bind drawing.
 // -----------------------------------------------------------------------------
 
 static void M_DrawBindButton (int itemNum, int yPos, int btn1, int btn2)
@@ -8414,22 +8394,21 @@ static void M_DrawBindButton (int itemNum, int yPos, int btn1, int btn2)
         LINE_ALPHA(itemNum));
 }
 
-
 // -----------------------------------------------------------------------------
 // M_ResetBinds
-//  [JN] Reset all mouse binding to it's defaults.
+//  Reset all mouse binding to it's defaults.
 // -----------------------------------------------------------------------------
 
 static void M_ResetMouseBinds (void)
 {
-    mousebfire = 0; mousebfire2 = -1;
-    mousebforward = 2; mousebforward2 = -1;
-    mousebbackward = -1; mousebbackward2 = -1;
-    mousebuse = -1; mousebuse2 = -1;
-    mousebspeed = -1; mousebspeed2 = -1;
-    mousebstrafe = 1; mousebstrafe2 = -1;
-    mousebstrafeleft = -1; mousebstrafeleft2 = -1;
+    mousebfire = 0;         mousebfire2 = -1;
+    mousebforward = 2;      mousebforward2 = -1;
+    mousebbackward = -1;    mousebbackward2 = -1;
+    mousebuse = -1;         mousebuse2 = -1;
+    mousebspeed = -1;       mousebspeed2 = -1;
+    mousebstrafe = 1;       mousebstrafe2 = -1;
+    mousebstrafeleft = -1;  mousebstrafeleft2 = -1;
     mousebstraferight = -1; mousebstraferight2 = -1;
-    mousebprevweapon = 4; mousebprevweapon2 = -1;
-    mousebnextweapon = 3; mousebnextweapon2 = -1;
+    mousebprevweapon = 4;   mousebprevweapon2 = -1;
+    mousebnextweapon = 3;   mousebnextweapon2 = -1;
 }
