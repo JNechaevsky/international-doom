@@ -829,7 +829,6 @@ static void M_Choose_ID_Reset (int choice);
 static boolean KbdIsBinding;
 static int     keyToBind;
 
-static char   *M_NameBind (int itemSetOn, int key1, int key2, int type);
 static void    M_StartBind (int keynum);
 static void    M_CheckBind (int key);
 static void    M_DoBind (int keynum, int key);
@@ -7754,8 +7753,7 @@ void M_ConfirmDeleteGame (void)
 
 
 // -----------------------------------------------------------------------------
-// M_MakeBindName / M_NameBind
-//  [PN/JN] Convert Doom key number into printable string.
+// Utilities
 // -----------------------------------------------------------------------------
 
 enum
@@ -7763,6 +7761,10 @@ enum
     keyboard,
     mouse,
 };
+
+// Checks a pair of single key slots (a and b) and clears them if they match k.
+#define UNSET_IF_MATCH(k, a, b)  do { if ((a) == (k)) (a) = 0; if ((b) == (k)) (b) = 0; } while (0)
+#define UNSET_IF_MATCH_MOUSE(k, a, b)  do { if ((a) == (k)) (a) = -1; if ((b) == (k)) (b) = -1; } while (0)
 
 static struct {
     int key;
@@ -7832,12 +7834,12 @@ static char *M_NameBind (int itemSetOn, int key1, int key2, int type)
     return buf;
 }
 
-// -----------------------------------------------------------------------------
-
-static void M_DoBindAction (int *slot1, int *slot2, int key)
+static void M_DoBindAction (int *slot1, int *slot2, int key, int type)
 {
+    const int empty_val = (type == keyboard ? 0 : -1);
+
     // [PN] 0) Ignore "empty" keys just in case
-    if (key == 0)
+    if (key == empty_val)
     {
         return;
     }
@@ -7846,29 +7848,33 @@ static void M_DoBindAction (int *slot1, int *slot2, int key)
     if (*slot1 == key)
     {
         // clear primary slot and compact in-place: move alt -> primary
-        *slot1 = 0;
-        if (*slot2 != 0)
+        *slot1 = empty_val;
+        if (*slot2 != empty_val)
         {
             *slot1 = *slot2;
-            *slot2 = 0;
+            *slot2 = empty_val;
         }
         return;
     }
     if (*slot2 == key)
     {
         // clear only the alt slot
-        *slot2 = 0;
+        *slot2 = empty_val;
         return;
     }
 
     // [PN] 2) Global de-dup: remove this key from all other actions (both slots)
-    M_CheckBind(key);
+    if (type == keyboard)
+        M_CheckBind(key);
+    else
+        M_CheckMouseBind(key);
 
     // [PN] 3) Assign: to first empty; if both occupied, overwrite alt
-    if (*slot1 == 0)      *slot1 = key;
-    else if (*slot2 == 0) *slot2 = key;
-    else                  *slot2 = key;
+    if (*slot1 == empty_val)      *slot1 = key;
+    else if (*slot2 == empty_val) *slot2 = key;
+    else                          *slot2 = key;
 }
+
 
 // -----------------------------------------------------------------------------
 // M_StartBind
@@ -7888,8 +7894,6 @@ static void M_StartBind (int keynum)
 //  [PN] To keep the key-unbind logic compact, we define simple macro.
 // -----------------------------------------------------------------------------
 
-// Checks a pair of single key slots (a and b) and clears them if they match k.
-#define UNSET_IF_MATCH(k, a, b)  do { if ((a) == (k)) (a) = 0; if ((b) == (k)) (b) = 0; } while (0)
 
 static void M_CheckBind (int key)
 {
@@ -7992,83 +7996,83 @@ static void M_DoBind (int keynum, int key)
     switch (keynum)
     {
         // Page 1
-        case 100: M_DoBindAction(&key_up,          &key_up2,          key); break;
-        case 101: M_DoBindAction(&key_down,        &key_down2,        key); break;
-        case 102: M_DoBindAction(&key_left,        &key_left2,        key); break;
-        case 103: M_DoBindAction(&key_right,       &key_right2,       key); break;
-        case 104: M_DoBindAction(&key_strafeleft,  &key_strafeleft2,  key); break;
-        case 105: M_DoBindAction(&key_straferight, &key_straferight2, key); break;
-        case 106: M_DoBindAction(&key_speed,       &key_speed2,       key); break;
-        case 107: M_DoBindAction(&key_strafe,      &key_strafe2,      key); break;
-        case 108: M_DoBindAction(&key_180turn,     &key_180turn2,     key); break;
-        case 109: M_DoBindAction(&key_fire,        &key_fire2,        key); break;
-        case 110: M_DoBindAction(&key_use,         &key_use2,         key); break;
+        case 100: M_DoBindAction(&key_up,          &key_up2,          key, keyboard); break;
+        case 101: M_DoBindAction(&key_down,        &key_down2,        key, keyboard); break;
+        case 102: M_DoBindAction(&key_left,        &key_left2,        key, keyboard); break;
+        case 103: M_DoBindAction(&key_right,       &key_right2,       key, keyboard); break;
+        case 104: M_DoBindAction(&key_strafeleft,  &key_strafeleft2,  key, keyboard); break;
+        case 105: M_DoBindAction(&key_straferight, &key_straferight2, key, keyboard); break;
+        case 106: M_DoBindAction(&key_speed,       &key_speed2,       key, keyboard); break;
+        case 107: M_DoBindAction(&key_strafe,      &key_strafe2,      key, keyboard); break;
+        case 108: M_DoBindAction(&key_180turn,     &key_180turn2,     key, keyboard); break;
+        case 109: M_DoBindAction(&key_fire,        &key_fire2,        key, keyboard); break;
+        case 110: M_DoBindAction(&key_use,         &key_use2,         key, keyboard); break;
 
         // Page 2
-        case 200: M_DoBindAction(&key_autorun,       &key_autorun2,       key); break;
-        case 201: M_DoBindAction(&key_mouse_look,    &key_mouse_look2,    key); break;
-        case 202: M_DoBindAction(&key_novert,        &key_novert2,        key); break;
-        case 203: M_DoBindAction(&key_prevlevel,     &key_prevlevel2,     key); break;
-        case 204: M_DoBindAction(&key_reloadlevel,   &key_reloadlevel2,   key); break;
-        case 205: M_DoBindAction(&key_nextlevel,     &key_nextlevel2,     key); break;
-        case 206: M_DoBindAction(&key_demospeed,     &key_demospeed2,     key); break;
-        case 207: M_DoBindAction(&key_flip_levels,   &key_flip_levels2,   key); break;
-        case 208: M_DoBindAction(&key_widget_enable, &key_widget_enable2, key); break;
-        case 209: M_DoBindAction(&key_spectator,     &key_spectator2,     key); break;
-        case 210: M_DoBindAction(&key_freeze,        &key_freeze2,        key); break;
-        case 211: M_DoBindAction(&key_notarget,      &key_notarget2,      key); break;
-        case 212: M_DoBindAction(&key_buddha,        &key_buddha2,        key); break;
+        case 200: M_DoBindAction(&key_autorun,       &key_autorun2,       key, keyboard); break;
+        case 201: M_DoBindAction(&key_mouse_look,    &key_mouse_look2,    key, keyboard); break;
+        case 202: M_DoBindAction(&key_novert,        &key_novert2,        key, keyboard); break;
+        case 203: M_DoBindAction(&key_prevlevel,     &key_prevlevel2,     key, keyboard); break;
+        case 204: M_DoBindAction(&key_reloadlevel,   &key_reloadlevel2,   key, keyboard); break;
+        case 205: M_DoBindAction(&key_nextlevel,     &key_nextlevel2,     key, keyboard); break;
+        case 206: M_DoBindAction(&key_demospeed,     &key_demospeed2,     key, keyboard); break;
+        case 207: M_DoBindAction(&key_flip_levels,   &key_flip_levels2,   key, keyboard); break;
+        case 208: M_DoBindAction(&key_widget_enable, &key_widget_enable2, key, keyboard); break;
+        case 209: M_DoBindAction(&key_spectator,     &key_spectator2,     key, keyboard); break;
+        case 210: M_DoBindAction(&key_freeze,        &key_freeze2,        key, keyboard); break;
+        case 211: M_DoBindAction(&key_notarget,      &key_notarget2,      key, keyboard); break;
+        case 212: M_DoBindAction(&key_buddha,        &key_buddha2,        key, keyboard); break;
 
         // Page 3
-        case 300: M_DoBindAction(&key_weapon1,    &key_weapon1_2,   key); break;
-        case 301: M_DoBindAction(&key_weapon2,    &key_weapon2_2,   key); break;
-        case 302: M_DoBindAction(&key_weapon3,    &key_weapon3_2,   key); break;
-        case 303: M_DoBindAction(&key_weapon4,    &key_weapon4_2,   key); break;
-        case 304: M_DoBindAction(&key_weapon5,    &key_weapon5_2,   key); break;
-        case 305: M_DoBindAction(&key_weapon6,    &key_weapon6_2,   key); break;
-        case 306: M_DoBindAction(&key_weapon7,    &key_weapon7_2,   key); break;
-        case 307: M_DoBindAction(&key_weapon8,    &key_weapon8_2,   key); break;
-        case 308: M_DoBindAction(&key_prevweapon, &key_prevweapon2, key); break;
-        case 309: M_DoBindAction(&key_nextweapon, &key_nextweapon2, key); break;
+        case 300: M_DoBindAction(&key_weapon1,    &key_weapon1_2,   key, keyboard); break;
+        case 301: M_DoBindAction(&key_weapon2,    &key_weapon2_2,   key, keyboard); break;
+        case 302: M_DoBindAction(&key_weapon3,    &key_weapon3_2,   key, keyboard); break;
+        case 303: M_DoBindAction(&key_weapon4,    &key_weapon4_2,   key, keyboard); break;
+        case 304: M_DoBindAction(&key_weapon5,    &key_weapon5_2,   key, keyboard); break;
+        case 305: M_DoBindAction(&key_weapon6,    &key_weapon6_2,   key, keyboard); break;
+        case 306: M_DoBindAction(&key_weapon7,    &key_weapon7_2,   key, keyboard); break;
+        case 307: M_DoBindAction(&key_weapon8,    &key_weapon8_2,   key, keyboard); break;
+        case 308: M_DoBindAction(&key_prevweapon, &key_prevweapon2, key, keyboard); break;
+        case 309: M_DoBindAction(&key_nextweapon, &key_nextweapon2, key, keyboard); break;
 
         // Page 4
-        case 400: M_DoBindAction(&key_map_toggle,    &key_map_toggle2,    key); break;
-        case 401: M_DoBindAction(&key_map_zoomin,    &key_map_zoomin2,    key); break;
-        case 402: M_DoBindAction(&key_map_zoomout,   &key_map_zoomout2,   key); break;
-        case 403: M_DoBindAction(&key_map_maxzoom,   &key_map_maxzoom2,   key); break;
-        case 404: M_DoBindAction(&key_map_follow,    &key_map_follow2,    key); break;
-        case 405: M_DoBindAction(&key_map_rotate,    &key_map_rotate2,    key); break;
-        case 406: M_DoBindAction(&key_map_overlay,   &key_map_overlay2,   key); break;
-        case 407: M_DoBindAction(&key_map_mousepan,  &key_map_mousepan2,  key); break;
-        case 408: M_DoBindAction(&key_map_grid,      &key_map_grid2,      key); break;
-        case 409: M_DoBindAction(&key_map_mark,      &key_map_mark2,      key); break;
-        case 410: M_DoBindAction(&key_map_clearmark, &key_map_clearmark2, key); break;
+        case 400: M_DoBindAction(&key_map_toggle,    &key_map_toggle2,    key, keyboard); break;
+        case 401: M_DoBindAction(&key_map_zoomin,    &key_map_zoomin2,    key, keyboard); break;
+        case 402: M_DoBindAction(&key_map_zoomout,   &key_map_zoomout2,   key, keyboard); break;
+        case 403: M_DoBindAction(&key_map_maxzoom,   &key_map_maxzoom2,   key, keyboard); break;
+        case 404: M_DoBindAction(&key_map_follow,    &key_map_follow2,    key, keyboard); break;
+        case 405: M_DoBindAction(&key_map_rotate,    &key_map_rotate2,    key, keyboard); break;
+        case 406: M_DoBindAction(&key_map_overlay,   &key_map_overlay2,   key, keyboard); break;
+        case 407: M_DoBindAction(&key_map_mousepan,  &key_map_mousepan2,  key, keyboard); break;
+        case 408: M_DoBindAction(&key_map_grid,      &key_map_grid2,      key, keyboard); break;
+        case 409: M_DoBindAction(&key_map_mark,      &key_map_mark2,      key, keyboard); break;
+        case 410: M_DoBindAction(&key_map_clearmark, &key_map_clearmark2, key, keyboard); break;
 
         // Page 5
-        case 500: M_DoBindAction(&key_menu_help,     &key_menu_help2,     key); break;
-        case 501: M_DoBindAction(&key_menu_save,     &key_menu_save2,     key); break;
-        case 502: M_DoBindAction(&key_menu_load,     &key_menu_load2,     key); break;
-        case 503: M_DoBindAction(&key_menu_volume,   &key_menu_volume2,   key); break;
-        case 504: M_DoBindAction(&key_menu_detail,   &key_menu_detail2,   key); break;
-        case 505: M_DoBindAction(&key_menu_qsave,    &key_menu_qsave2,    key); break;
-        case 506: M_DoBindAction(&key_menu_endgame,  &key_menu_endgame2,  key); break;
-        case 507: M_DoBindAction(&key_menu_messages, &key_menu_messages2, key); break;
-        case 508: M_DoBindAction(&key_menu_qload,    &key_menu_qload2,    key); break;
-        case 509: M_DoBindAction(&key_menu_quit,     &key_menu_quit2,     key); break;
-        case 510: M_DoBindAction(&key_menu_gamma,    &key_menu_gamma2,    key); break;
-        case 511: M_DoBindAction(&key_spy,           &key_spy2,           key); break;
+        case 500: M_DoBindAction(&key_menu_help,     &key_menu_help2,     key, keyboard); break;
+        case 501: M_DoBindAction(&key_menu_save,     &key_menu_save2,     key, keyboard); break;
+        case 502: M_DoBindAction(&key_menu_load,     &key_menu_load2,     key, keyboard); break;
+        case 503: M_DoBindAction(&key_menu_volume,   &key_menu_volume2,   key, keyboard); break;
+        case 504: M_DoBindAction(&key_menu_detail,   &key_menu_detail2,   key, keyboard); break;
+        case 505: M_DoBindAction(&key_menu_qsave,    &key_menu_qsave2,    key, keyboard); break;
+        case 506: M_DoBindAction(&key_menu_endgame,  &key_menu_endgame2,  key, keyboard); break;
+        case 507: M_DoBindAction(&key_menu_messages, &key_menu_messages2, key, keyboard); break;
+        case 508: M_DoBindAction(&key_menu_qload,    &key_menu_qload2,    key, keyboard); break;
+        case 509: M_DoBindAction(&key_menu_quit,     &key_menu_quit2,     key, keyboard); break;
+        case 510: M_DoBindAction(&key_menu_gamma,    &key_menu_gamma2,    key, keyboard); break;
+        case 511: M_DoBindAction(&key_spy,           &key_spy2,           key, keyboard); break;
 
         // Page 6
-        case 600: M_DoBindAction(&key_pause,              &key_pause2,              key); break;
-        case 601: M_DoBindAction(&key_menu_screenshot,    &key_menu_screenshot2,    key); break;
-        case 602: M_DoBindAction(&key_message_refresh,    &key_message_refresh2,    key); break;
-        case 603: M_DoBindAction(&key_demo_quit,          &key_demo_quit2,          key); break;
-        case 604: M_DoBindAction(&key_switch_ost,         &key_switch_ost2,         key); break;
-        case 605: M_DoBindAction(&key_multi_msg,          &key_multi_msg2,          key); break;
-        case 606: M_DoBindAction(&key_multi_msgplayer[0], &key_multi_msgplayer2[0], key); break;
-        case 607: M_DoBindAction(&key_multi_msgplayer[1], &key_multi_msgplayer2[1], key); break;
-        case 608: M_DoBindAction(&key_multi_msgplayer[2], &key_multi_msgplayer2[2], key); break;
-        case 609: M_DoBindAction(&key_multi_msgplayer[3], &key_multi_msgplayer2[3], key); break;
+        case 600: M_DoBindAction(&key_pause,              &key_pause2,              key, keyboard); break;
+        case 601: M_DoBindAction(&key_menu_screenshot,    &key_menu_screenshot2,    key, keyboard); break;
+        case 602: M_DoBindAction(&key_message_refresh,    &key_message_refresh2,    key, keyboard); break;
+        case 603: M_DoBindAction(&key_demo_quit,          &key_demo_quit2,          key, keyboard); break;
+        case 604: M_DoBindAction(&key_switch_ost,         &key_switch_ost2,         key, keyboard); break;
+        case 605: M_DoBindAction(&key_multi_msg,          &key_multi_msg2,          key, keyboard); break;
+        case 606: M_DoBindAction(&key_multi_msgplayer[0], &key_multi_msgplayer2[0], key, keyboard); break;
+        case 607: M_DoBindAction(&key_multi_msgplayer[1], &key_multi_msgplayer2[1], key, keyboard); break;
+        case 608: M_DoBindAction(&key_multi_msgplayer[2], &key_multi_msgplayer2[2], key, keyboard); break;
+        case 609: M_DoBindAction(&key_multi_msgplayer[3], &key_multi_msgplayer2[3], key, keyboard); break;
     }
 }
 
@@ -8334,9 +8338,6 @@ static void M_StartMouseBind (int btn)
 //  [JN] Check if pressed button is already binded, clear previous bind if found.
 // -----------------------------------------------------------------------------
 
-// Checks a pair of single key slots (a and b) and clears them if they match k.
-#define UNSET_IF_MATCH_MOUSE(k, a, b)  do { if ((a) == (k)) (a) = -1; if ((b) == (k)) (b) = -1; } while (0)
-
 static void M_CheckMouseBind (int btn)
 {
     UNSET_IF_MATCH_MOUSE(btn, mousebfire,        mousebfire2);
@@ -8357,66 +8358,20 @@ static void M_CheckMouseBind (int btn)
 //  of pressed button (btn) to real mouse bind.
 // -----------------------------------------------------------------------------
 
-// [PN] Assign/toggle helper for mouse actions with two slots.
-// Empty slot is -1. Toggle: rebinding the same button removes it.
-// Dedup: clears this button from other actions via M_CheckMouseBind().
-static void M_DoMouseBindAction (int *slot1, int *slot2, int btn)
-{
-    if (btn == -1)
-    {
-        return;
-    }
-
-    // Toggle: remove if re-bound
-    if (*slot1 == btn)
-    {
-        *slot1 = -1;
-        // compact: move alt -> primary to avoid "--- or BTN"
-        if (*slot2 != -1)
-        {
-            *slot1 = *slot2;
-            *slot2 = -1;
-        }
-        return;
-    }
-    if (*slot2 == btn)
-    {
-        *slot2 = -1;
-        return;
-    }
-
-    // Global de-dup (both slots in other actions)
-    M_CheckMouseBind(btn);
-
-    // Assign: first empty; if none — overwrite alt
-    if (*slot1 == -1)
-    {
-        *slot1 = btn;
-    }
-    else if (*slot2 == -1)
-    {
-        *slot2 = btn;
-    }
-    else
-    {
-        *slot2 = btn;
-    }
-}
-
 static void M_DoMouseBind (int btnnum, int btn)
 {
     switch (btnnum)
     {
-        case 1000:  M_DoMouseBindAction(&mousebfire,        &mousebfire2,        btn);  break;
-        case 1001:  M_DoMouseBindAction(&mousebforward,     &mousebforward2,     btn);  break;
-        case 1002:  M_DoMouseBindAction(&mousebbackward,    &mousebbackward2,    btn);  break;
-        case 1003:  M_DoMouseBindAction(&mousebuse,         &mousebuse2,         btn);  break;
-        case 1004:  M_DoMouseBindAction(&mousebspeed,       &mousebspeed2,       btn);  break;
-        case 1005:  M_DoMouseBindAction(&mousebstrafe,      &mousebstrafe2,      btn);  break;
-        case 1006:  M_DoMouseBindAction(&mousebstrafeleft,  &mousebstrafeleft2,  btn);  break;
-        case 1007:  M_DoMouseBindAction(&mousebstraferight, &mousebstraferight2, btn);  break;
-        case 1008:  M_DoMouseBindAction(&mousebprevweapon,  &mousebprevweapon2,  btn);  break;
-        case 1009:  M_DoMouseBindAction(&mousebnextweapon,  &mousebnextweapon2,  btn);  break;
+        case 1000:  M_DoBindAction(&mousebfire,        &mousebfire2,        btn, mouse);  break;
+        case 1001:  M_DoBindAction(&mousebforward,     &mousebforward2,     btn, mouse);  break;
+        case 1002:  M_DoBindAction(&mousebbackward,    &mousebbackward2,    btn, mouse);  break;
+        case 1003:  M_DoBindAction(&mousebuse,         &mousebuse2,         btn, mouse);  break;
+        case 1004:  M_DoBindAction(&mousebspeed,       &mousebspeed2,       btn, mouse);  break;
+        case 1005:  M_DoBindAction(&mousebstrafe,      &mousebstrafe2,      btn, mouse);  break;
+        case 1006:  M_DoBindAction(&mousebstrafeleft,  &mousebstrafeleft2,  btn, mouse);  break;
+        case 1007:  M_DoBindAction(&mousebstraferight, &mousebstraferight2, btn, mouse);  break;
+        case 1008:  M_DoBindAction(&mousebprevweapon,  &mousebprevweapon2,  btn, mouse);  break;
+        case 1009:  M_DoBindAction(&mousebnextweapon,  &mousebnextweapon2,  btn, mouse);  break;
         default:    break;
     }
 }
@@ -8425,7 +8380,6 @@ static void M_DoMouseBind (int btnnum, int btn)
 // M_ClearMouseBind
 //  [JN] Clear mouse bind on the line where cursor is placed (itemOn).
 // -----------------------------------------------------------------------------
-
 
 static void M_ClearMouseBind (int itemOn)
 {
