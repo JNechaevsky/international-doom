@@ -332,7 +332,7 @@ static int G_NextWeapon(int direction)
 boolean speedkeydown (void)
 {
     return (key_speed < NUMKEYS && gamekeydown[key_speed]) || (key_speed2 < NUMKEYS && gamekeydown[key_speed2]) ||
-           (mousebspeed < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed]) ||
+           (mousebspeed < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed]) || (mousebspeed2 < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed2]) ||
            (joybspeed < MAX_JOY_BUTTONS && joybuttons[joybspeed]);
 }
 
@@ -459,7 +459,8 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
  	if (crl_spectating && !sendsave && !sendpause)
  		cmd = &spect;
  	
-    strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2] || mousebuttons[mousebstrafe] 
+    strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2]
+	|| mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2]
 	|| joybuttons[joybstrafe]; 
 
     // fraggle: support the old "joyb_speed = 31" hack which
@@ -625,15 +626,15 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     }
 
     if (gamekeydown[key_strafeleft] || gamekeydown[key_strafeleft2]
-     || joybuttons[joybstrafeleft]
-     || mousebuttons[mousebstrafeleft])
+     || mousebuttons[mousebstrafeleft] || mousebuttons[mousebstrafeleft2]
+     || joybuttons[joybstrafeleft])
     {
         side -= sidemove[speed];
     }
 
     if (gamekeydown[key_straferight] || gamekeydown[key_straferight2]
-     || joybuttons[joybstraferight]
-     || mousebuttons[mousebstraferight])
+     || mousebuttons[mousebstraferight] || mousebuttons[mousebstraferight2]
+     || joybuttons[joybstraferight])
     {
         side += sidemove[speed]; 
     }
@@ -663,7 +664,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
  
     if (gamekeydown[key_use] || gamekeydown[key_use2]
      || joybuttons[joybuse]
-     || mousebuttons[mousebuse])
+     || mousebuttons[mousebuse] || mousebuttons[mousebuse2])
     { 
 	cmd->buttons |= BT_USE;
 	// clear double clicks if hit use button 
@@ -706,44 +707,49 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     }
 
     // mouse
-    if (mousebuttons[mousebforward]) 
+    if (mousebuttons[mousebforward] || mousebuttons[mousebforward2]) 
     {
 	forward += forwardmove[speed];
     }
-    if (mousebuttons[mousebbackward])
+    if (mousebuttons[mousebbackward] || mousebuttons[mousebbackward2])
     {
         forward -= forwardmove[speed];
     }
 
     if (mouse_dclick_use)
     {
-        // forward double click
-        if (mousebuttons[mousebforward] != dclickstate && dclicktime > 1 ) 
-        { 
-            dclickstate = mousebuttons[mousebforward]; 
-            if (dclickstate) 
-                dclicks++; 
-            if (dclicks == 2) 
-            { 
-                cmd->buttons |= BT_USE; 
-                dclicks = 0; 
-            } 
-            else 
-                dclicktime = 0; 
-        } 
-        else 
-        { 
-            dclicktime += ticdup; 
-            if (dclicktime > 20) 
-            { 
-                dclicks = 0; 
-                dclickstate = 0; 
-            } 
+        // forward double click (combined)
+        if ((mousebuttons[mousebforward] != dclickstate || mousebuttons[mousebforward2] != dclickstate) && dclicktime > 1)
+        {
+            if (mousebuttons[mousebforward] != dclickstate)
+                dclickstate = mousebuttons[mousebforward];
+            else
+                dclickstate = mousebuttons[mousebforward2];
+
+            if (dclickstate)
+                dclicks++;
+
+            if (dclicks == 2)
+            {
+                cmd->buttons |= BT_USE;
+                dclicks = 0;
+            }
+            else
+                dclicktime = 0;
+        }
+        else
+        {
+            dclicktime += ticdup;
+            if (dclicktime > 20)
+            {
+                dclicks = 0;
+                dclickstate = 0;
+            }
         }
         
         // strafe double click
         bstrafe =
-            mousebuttons[mousebstrafe] 
+            mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2]
             || joybuttons[joybstrafe]; 
         if (bstrafe != dclickstate2 && dclicktime2 > 1 ) 
         { 
@@ -1064,17 +1070,17 @@ static void SetMouseButtons(unsigned int buttons_mask)
             }
             else
             {
-                if (i == mousebprevweapon)
+                if (i == mousebprevweapon || i == mousebprevweapon2)
                 {
                     next_weapon = -1;
                 }
                 else
-                if (i == mousebnextweapon)
+                if (i == mousebnextweapon || i == mousebnextweapon2)
                 {
                     next_weapon = 1;
                 }
                 else
-                if (i == mousebuse)
+                if (i == mousebuse || i == mousebuse2)
                 {
                     // [PN] Mouse wheel "use" workaround: some mouse buttons (e.g. wheel click)
                     // generate only a single tick event. We simulate a short BT_USE press here.
@@ -1398,7 +1404,7 @@ void G_FastResponder (void)
 void G_PrepTiccmd (void)
 {
     const boolean strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2] ||
-        mousebuttons[mousebstrafe] || joybuttons[joybstrafe];
+        mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2] || joybuttons[joybstrafe];
 
     // [JN] Deny camera rotation/looking while active menu in multiplayer.
     if (netgame && menuactive)

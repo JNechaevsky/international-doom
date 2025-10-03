@@ -483,23 +483,25 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(mouse_sensitivity_y),
     CONFIG_VARIABLE_INT(mouse_look),
     CONFIG_VARIABLE_MOUSEBIND(mouseb_fire, mouseb_fire2),
-    CONFIG_VARIABLE_INT(mouseb_forward),
-    CONFIG_VARIABLE_INT(mouseb_speed),
-    CONFIG_VARIABLE_INT(mouseb_strafe),
-    CONFIG_VARIABLE_INT(mouseb_use),
-    CONFIG_VARIABLE_INT(mouseb_strafeleft),
-    CONFIG_VARIABLE_INT(mouseb_straferight),
-    CONFIG_VARIABLE_INT(mouseb_backward),
-    CONFIG_VARIABLE_INT(mouseb_prevweapon),
-    CONFIG_VARIABLE_INT(mouseb_nextweapon),
-    CONFIG_VARIABLE_INT(mouseb_jump),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_forward, mouseb_forward2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_speed, mouseb_speed2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_strafe, mouseb_strafe2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_use, mouseb_use2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_strafeleft, mouseb_strafeleft2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_straferight, mouseb_straferight2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_backward, mouseb_backward2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_prevweapon, mouseb_prevweapon2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_nextweapon, mouseb_nextweapon2),
 
-    // Heretic: Inventory
-    CONFIG_VARIABLE_INT(mouseb_invleft),
-    CONFIG_VARIABLE_INT(mouseb_invright),
-    CONFIG_VARIABLE_INT(mouseb_useartifact),
+    // Heretic & Hexen: Inventory
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_invleft, mouseb_invleft2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_invright, mouseb_invright2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_useartifact, mouseb_useartifact2),
 
-    // Heretic: permanent "noartiskip" mode
+    // Hexen: Jump
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_jump, mouseb_jump2),    
+
+    // Heretic & Hexen: permanent "noartiskip" mode
     CONFIG_VARIABLE_INT(ctrl_noartiskip),
     CONFIG_VARIABLE_COMMENT(""),
 

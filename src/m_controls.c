@@ -197,24 +197,24 @@ int key_menu_del       = KEY_DEL; // [crispy]
 // Mouse controls
 //
 
-int mousebfire        = 0; int mousebfire2        = -1;
-int mousebforward     = 2;
-int mousebbackward    = -1;
-int mousebuse         = -1;
-int mousebspeed       = -1;
-int mousebstrafe      = 1;
-int mousebstrafeleft  = -1;
-int mousebstraferight = -1;
-int mousebprevweapon  = 4;
-int mousebnextweapon  = 3;
+int mousebfire        = 0;  int mousebfire2        = -1;
+int mousebforward     = 2;  int mousebforward2     = -1;
+int mousebbackward    = -1; int mousebbackward2    = -1;
+int mousebuse         = -1; int mousebuse2         = -1;
+int mousebspeed       = -1; int mousebspeed2       = -1;
+int mousebstrafe      = 1;  int mousebstrafe2      = -1;
+int mousebstrafeleft  = -1; int mousebstrafeleft2  = -1;
+int mousebstraferight = -1; int mousebstraferight2 = -1;
+int mousebprevweapon  = 4;  int mousebprevweapon2  = -1;
+int mousebnextweapon  = 3;  int mousebnextweapon2  = -1;
 
 // Heretic & Hexen: Inventory
-int mousebinvleft     = -1;
-int mousebinvright    = -1;
-int mousebuseartifact = -1;
+int mousebinvleft     = -1; int mousebinvleft2     = -1;
+int mousebinvright    = -1; int mousebinvright2    = -1;
+int mousebuseartifact = -1; int mousebuseartifact2 = -1;
 
 // Hexen: Jump
-int mousebjump        = -1;
+int mousebjump        = -1; int mousebjump2        = -1;
 
 // Control whether if a mouse button is double clicked,
 // it acts like "use" has been pressed.
@@ -374,18 +374,17 @@ void M_BindControls (void)
     // Mouse controls
     //
 
-    M_BindIntVariableKeybind("mouseb_fire", &mousebfire, "mouseb_fire2", &mousebfire2);
-    M_BindIntVariable("mouseb_forward",         &mousebforward);
-    M_BindIntVariable("mouseb_backward",        &mousebbackward);
-    M_BindIntVariable("mouseb_use",             &mousebuse);
-    M_BindIntVariable("mouseb_speed",           &mousebspeed);
-    M_BindIntVariable("mouseb_strafe",          &mousebstrafe);
-    M_BindIntVariable("mouseb_strafeleft",      &mousebstrafeleft);
-    M_BindIntVariable("mouseb_straferight",     &mousebstraferight);
-    M_BindIntVariable("mouseb_prevweapon",      &mousebprevweapon);
-    M_BindIntVariable("mouseb_nextweapon",      &mousebnextweapon);
-
-    M_BindIntVariable("mouse_dclick_use",       &mouse_dclick_use);
+    M_BindIntVariableKeybind("mouseb_fire",        &mousebfire,        "mouseb_fire2",        &mousebfire2);
+    M_BindIntVariableKeybind("mouseb_forward",     &mousebforward,     "mouseb_forward2",     &mousebforward2);
+    M_BindIntVariableKeybind("mouseb_backward",    &mousebbackward,    "mouseb_backward2",    &mousebbackward2);
+    M_BindIntVariableKeybind("mouseb_use",         &mousebuse,         "mouseb_use2",         &mousebuse2);
+    M_BindIntVariableKeybind("mouseb_speed",       &mousebspeed,       "mouseb_speed2",       &mousebspeed2);
+    M_BindIntVariableKeybind("mouseb_strafe",      &mousebstrafe,      "mouseb_strafe2",      &mousebstrafe2);
+    M_BindIntVariableKeybind("mouseb_strafeleft",  &mousebstrafeleft,  "mouseb_strafeleft2",  &mousebstrafeleft2);
+    M_BindIntVariableKeybind("mouseb_straferight", &mousebstraferight, "mouseb_straferight2", &mousebstraferight2);
+    M_BindIntVariableKeybind("mouseb_prevweapon",  &mousebprevweapon,  "mouseb_prevweapon2",  &mousebprevweapon2);
+    M_BindIntVariableKeybind("mouseb_nextweapon",  &mousebnextweapon,  "mouseb_nextweapon2",  &mousebnextweapon2);
+    M_BindIntVariable("mouse_dclick_use", &mouse_dclick_use);
 
     //
     // Joystick controls
@@ -428,9 +427,9 @@ void M_BindHereticControls (void)
     M_BindIntVariable("key_arti_torch",         &key_arti_torch);
     M_BindIntVariable("key_arti_morph",         &key_arti_morph);
 
-    M_BindIntVariable("mouseb_invleft",     &mousebinvleft);
-    M_BindIntVariable("mouseb_invright",    &mousebinvright);
-    M_BindIntVariable("mouseb_useartifact", &mousebuseartifact);
+    M_BindIntVariableKeybind("mouseb_invleft",     &mousebinvleft,     "mouseb_invleft2",     &mousebinvleft2);
+    M_BindIntVariableKeybind("mouseb_invright",    &mousebinvright,    "mouseb_invright2",    &mousebinvright2);
+    M_BindIntVariableKeybind("mouseb_useartifact", &mousebuseartifact, "mouseb_useartifact2", &mousebuseartifact2);
 
     M_BindIntVariable("ctrl_noartiskip",        &ctrl_noartiskip);
 }
@@ -438,7 +437,7 @@ void M_BindHereticControls (void)
 void M_BindHexenControls(void)
 {
     M_BindIntVariable("key_jump",           &key_jump);
-    M_BindIntVariable("mouseb_jump",        &mousebjump);
+    M_BindIntVariableKeybind("mouseb_jump", &mousebjump, "mouseb_jump2", &mousebjump2);
     M_BindIntVariable("joyb_jump",          &joybjump);
 
     M_BindIntVariable("key_arti_all",             &key_arti_all);
