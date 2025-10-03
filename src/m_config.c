@@ -136,6 +136,10 @@ typedef struct
 #define CONFIG_VARIABLE_KEYBIND(name1, name2) \
     CONFIG_VARIABLE_GENERIC(name1, DEFAULT_KEY), \
     CONFIG_VARIABLE_GENERIC(name2, DEFAULT_KEY)
+// [PN] Consolidated shortcut-macros for normal and alt mouse binding.
+#define CONFIG_VARIABLE_MOUSEBIND(name1, name2) \
+    CONFIG_VARIABLE_GENERIC(name1, DEFAULT_INT), \
+    CONFIG_VARIABLE_GENERIC(name2, DEFAULT_INT)
 
 
 //! @begin_config_file default
@@ -478,7 +482,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(mouse_sensitivity),
     CONFIG_VARIABLE_INT(mouse_sensitivity_y),
     CONFIG_VARIABLE_INT(mouse_look),
-    CONFIG_VARIABLE_KEYBIND(mouseb_fire, mouseb_fire2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_fire, mouseb_fire2),
     CONFIG_VARIABLE_INT(mouseb_forward),
     CONFIG_VARIABLE_INT(mouseb_speed),
     CONFIG_VARIABLE_INT(mouseb_strafe),
