@@ -888,7 +888,7 @@ boolean AM_Responder (const event_t *ev)
 
     if (!automapactive)
     {
-        if (ev->type == ev_keydown && key == key_map_toggle
+        if (ev->type == ev_keydown && (key == key_map_toggle || key == key_map_toggle2)
          && gamestate == GS_LEVEL)
         {
             AM_Start ();
@@ -1000,24 +1000,24 @@ boolean AM_Responder (const event_t *ev)
                 rc = false;
             }
         }
-        else if (key == key_map_zoomout)  // zoom out
+        else if (key == key_map_zoomout || key == key_map_zoomout2)  // zoom out
         {
             mtof_zoommul = m_zoomout;
             ftom_zoommul = m_zoomin;
             curr_mtof_zoommul = mtof_zoommul;
         }
-        else if (key == key_map_zoomin)   // zoom in
+        else if (key == key_map_zoomin || key == key_map_zoomin2)   // zoom in
         {
             mtof_zoommul = m_zoomin;
             ftom_zoommul = m_zoomout;
             curr_mtof_zoommul = mtof_zoommul;
         }
-        else if (key == key_map_toggle)   // toggle map (tab)
+        else if (key == key_map_toggle || key == key_map_toggle2)   // toggle map (tab)
         {
             bigstate = 0;
             AM_Stop ();
         }
-        else if (key == key_map_maxzoom)
+        else if (key == key_map_maxzoom || key == key_map_maxzoom2)
         {
             bigstate = !bigstate;
 
@@ -1031,28 +1031,28 @@ boolean AM_Responder (const event_t *ev)
                 AM_restoreScaleAndLoc();
             }
         }
-        else if (key == key_map_follow)
+        else if (key == key_map_follow || key == key_map_follow2)
         {
             followplayer = !followplayer;
 
             CT_SetMessage(plr, DEH_String(followplayer ?
                           AMSTR_FOLLOWON : AMSTR_FOLLOWOFF), false, NULL);
         }
-        else if (key == key_map_grid)
+        else if (key == key_map_grid || key == key_map_grid2)
         {
             grid = !grid;
 
             CT_SetMessage(plr, DEH_String(grid ?
                           AMSTR_GRIDON : AMSTR_GRIDOFF), false, NULL);
         }
-        else if (key == key_map_mark)
+        else if (key == key_map_mark || key == key_map_mark2)
         {
             M_snprintf(buffer, sizeof(buffer), "%s %d",
                        DEH_String(AMSTR_MARKEDSPOT), markpointnum);
             CT_SetMessage(plr, buffer, false, NULL);
             AM_addMark();
         }
-        else if (key == key_map_clearmark && markpointnum > 0)
+        else if ((key == key_map_clearmark || key == key_map_clearmark2) && markpointnum > 0)
         {
             // [JN] Clear all mark by holding "run" button and pressing "clear mark".
             if (speedkeydown())
@@ -1068,14 +1068,14 @@ boolean AM_Responder (const event_t *ev)
                 CT_SetMessage(plr, buffer, false, NULL);
             }
         }
-        else if (key == key_map_rotate)
+        else if (key == key_map_rotate || key == key_map_rotate2)
         {
             // [JN] Automap rotate mode.
             automap_rotate = !automap_rotate;
             CT_SetMessage(plr, DEH_String(automap_rotate ?
                           ID_AUTOMAPROTATE_ON : ID_AUTOMAPROTATE_OFF), false, NULL);
         }
-        else if (key == key_map_overlay)
+        else if (key == key_map_overlay || key == key_map_overlay2)
         {
             // [JN] Automap overlay mode.
             automap_overlay = !automap_overlay;
@@ -1085,7 +1085,7 @@ boolean AM_Responder (const event_t *ev)
             SB_state = -1;
             AM_initOverlayMode();
         }
-        else if (key == key_map_mousepan)
+        else if (key == key_map_mousepan || key == key_map_mousepan2)
         {
             // [PN] Mouse panning mode.
             automap_mouse_pan = !automap_mouse_pan;
@@ -1130,7 +1130,7 @@ boolean AM_Responder (const event_t *ev)
                 m_paninc.y = 0;
             }
         }
-        else if (key == key_map_zoomout || key == key_map_zoomin)
+        else if (key == key_map_zoomout || key == key_map_zoomin || key == key_map_zoomout2 || key == key_map_zoomin2)
         {
             mtof_zoommul = FRACUNIT;
             ftom_zoommul = FRACUNIT;

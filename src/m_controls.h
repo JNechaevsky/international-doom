@@ -33,7 +33,7 @@ extern int key_strafeleft, key_strafeleft2;
 extern int key_straferight, key_straferight2;
 extern int key_speed, key_speed2;
 extern int key_strafe, key_strafe2;
-extern int key_jump; // Hexen
+extern int key_jump, key_jump2; // Hexen
 extern int key_180turn, key_180turn2;
 
 // Action
@@ -43,21 +43,21 @@ extern int key_use, key_use2;
 
 // View
 
-extern int key_lookup;
-extern int key_lookdown;
-extern int key_lookcenter;
+extern int key_lookup, key_lookup2;
+extern int key_lookdown, key_lookdown2;
+extern int key_lookcenter, key_lookcenter2;
 
 // Flying
 
-extern int key_flyup;
-extern int key_flydown;
-extern int key_flycenter;
+extern int key_flyup, key_flyup2;
+extern int key_flydown, key_flydown2;
+extern int key_flycenter, key_flycenter2;
 
 // Inventory
 
-extern int key_invleft;
-extern int key_invright;
-extern int key_useartifact;
+extern int key_invleft, key_invleft2;
+extern int key_invright, key_invright2;
+extern int key_useartifact, key_useartifact2;
 
 // Advanced movement
 
@@ -96,29 +96,29 @@ extern int key_nextweapon, key_nextweapon2;
 
 // Artifacts
 
-extern int key_arti_quartz;
-extern int key_arti_urn;
-extern int key_arti_bomb;
-extern int key_arti_tome;
-extern int key_arti_ring;
-extern int key_arti_chaosdevice;
-extern int key_arti_shadowsphere;
-extern int key_arti_wings;
-extern int key_arti_torch;
-extern int key_arti_morph;
-extern int key_arti_health;
-extern int key_arti_poisonbag;
-extern int key_arti_blastradius;
-extern int key_arti_teleport;
-extern int key_arti_teleportother;
-extern int key_arti_egg;
-extern int key_arti_invulnerability;
-extern int key_arti_servant;
-extern int key_arti_bracers;
-extern int key_arti_boots;
-extern int key_arti_krater;
-extern int key_arti_incant;
-extern int key_arti_all;
+extern int key_arti_quartz, key_arti_quartz2;
+extern int key_arti_urn, key_arti_urn2;
+extern int key_arti_bomb, key_arti_bomb2;
+extern int key_arti_tome, key_arti_tome2;
+extern int key_arti_ring, key_arti_ring2;
+extern int key_arti_chaosdevice, key_arti_chaosdevice2;
+extern int key_arti_shadowsphere, key_arti_shadowsphere2;
+extern int key_arti_wings, key_arti_wings2;
+extern int key_arti_torch, key_arti_torch2;
+extern int key_arti_morph, key_arti_morph2;
+extern int key_arti_health, key_arti_health2;
+extern int key_arti_poisonbag, key_arti_poisonbag2;
+extern int key_arti_blastradius, key_arti_blastradius2;
+extern int key_arti_teleport, key_arti_teleport2;
+extern int key_arti_teleportother, key_arti_teleportother2;
+extern int key_arti_egg, key_arti_egg2;
+extern int key_arti_invulnerability, key_arti_invulnerability2;
+extern int key_arti_servant, key_arti_servant2;
+extern int key_arti_bracers, key_arti_bracers2;
+extern int key_arti_boots, key_arti_boots2;
+extern int key_arti_krater, key_arti_krater2;
+extern int key_arti_incant, key_arti_incant2;
+extern int key_arti_all, key_arti_all2;
 
 // Automap
 
@@ -158,7 +158,7 @@ extern int key_spy, key_spy2;
 extern int key_pause, key_pause2;
 extern int key_menu_screenshot, key_menu_screenshot2;
 extern int key_message_refresh, key_message_refresh2;
-extern int key_message_refresh_hr;
+extern int key_message_refresh_hr, key_message_refresh_hr2;
 extern int key_demo_quit, key_demo_quit2;
 extern int key_switch_ost, key_switch_ost2;
 

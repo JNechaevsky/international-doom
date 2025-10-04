@@ -310,7 +310,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_straferight, key_straferight2),
     CONFIG_VARIABLE_KEYBIND(key_speed, key_speed2),
     CONFIG_VARIABLE_KEYBIND(key_strafe, key_strafe2),
-    CONFIG_VARIABLE_KEY(key_jump), // Hexen
+    CONFIG_VARIABLE_KEYBIND(key_jump, key_jump2), // Hexen
     CONFIG_VARIABLE_KEYBIND(key_180turn, key_180turn2),
 
     // Action
@@ -318,19 +318,19 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_use, key_use2),
 
     // View
-    CONFIG_VARIABLE_KEY(key_lookup),
-    CONFIG_VARIABLE_KEY(key_lookdown),
-    CONFIG_VARIABLE_KEY(key_lookcenter),
+    CONFIG_VARIABLE_KEYBIND(key_lookup, key_lookup2),
+    CONFIG_VARIABLE_KEYBIND(key_lookdown, key_lookdown2),
+    CONFIG_VARIABLE_KEYBIND(key_lookcenter, key_lookcenter2),
 
     // Flying
-    CONFIG_VARIABLE_KEY(key_flyup),
-    CONFIG_VARIABLE_KEY(key_flydown),
-    CONFIG_VARIABLE_KEY(key_flycenter),
+    CONFIG_VARIABLE_KEYBIND(key_flyup, key_flyup2),
+    CONFIG_VARIABLE_KEYBIND(key_flydown, key_flydown2),
+    CONFIG_VARIABLE_KEYBIND(key_flycenter, key_flycenter2),
 
     // Inventory
-    CONFIG_VARIABLE_KEY(key_invleft),
-    CONFIG_VARIABLE_KEY(key_invright),
-    CONFIG_VARIABLE_KEY(key_useartifact),
+    CONFIG_VARIABLE_KEYBIND(key_invleft, key_invleft2),
+    CONFIG_VARIABLE_KEYBIND(key_invright, key_invright2),
+    CONFIG_VARIABLE_KEYBIND(key_useartifact, key_useartifact2),
 
     // Advanced movement
     CONFIG_VARIABLE_KEYBIND(key_autorun, key_autorun2),
@@ -364,29 +364,29 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_nextweapon, key_nextweapon2),
 
     // Artifacts
-    CONFIG_VARIABLE_KEY(key_arti_quartz),
-    CONFIG_VARIABLE_KEY(key_arti_urn),
-    CONFIG_VARIABLE_KEY(key_arti_bomb),
-    CONFIG_VARIABLE_KEY(key_arti_tome),
-    CONFIG_VARIABLE_KEY(key_arti_ring),
-    CONFIG_VARIABLE_KEY(key_arti_chaosdevice),
-    CONFIG_VARIABLE_KEY(key_arti_shadowsphere),
-    CONFIG_VARIABLE_KEY(key_arti_wings),
-    CONFIG_VARIABLE_KEY(key_arti_torch),
-    CONFIG_VARIABLE_KEY(key_arti_morph),
-    CONFIG_VARIABLE_KEY(key_arti_health),
-    CONFIG_VARIABLE_KEY(key_arti_poisonbag),
-    CONFIG_VARIABLE_KEY(key_arti_blastradius),
-    CONFIG_VARIABLE_KEY(key_arti_teleport),
-    CONFIG_VARIABLE_KEY(key_arti_teleportother),
-    CONFIG_VARIABLE_KEY(key_arti_egg),
-    CONFIG_VARIABLE_KEY(key_arti_invulnerability),
-    CONFIG_VARIABLE_KEY(key_arti_servant),
-    CONFIG_VARIABLE_KEY(key_arti_bracers),
-    CONFIG_VARIABLE_KEY(key_arti_boots),
-    CONFIG_VARIABLE_KEY(key_arti_krater),
-    CONFIG_VARIABLE_KEY(key_arti_incant),
-    CONFIG_VARIABLE_KEY(key_arti_all),
+    CONFIG_VARIABLE_KEYBIND(key_arti_quartz, key_arti_quartz2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_urn, key_arti_urn2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_bomb, key_arti_bomb2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_tome, key_arti_tome2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_ring, key_arti_ring2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_chaosdevice, key_arti_chaosdevice2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_shadowsphere, key_arti_shadowsphere2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_wings, key_arti_wings2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_torch, key_arti_torch2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_morph, key_arti_morph2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_health, key_arti_health2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_poisonbag, key_arti_poisonbag2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_blastradius, key_arti_blastradius2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_teleport, key_arti_teleport2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_teleportother, key_arti_teleportother2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_egg, key_arti_egg2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_invulnerability, key_arti_invulnerability2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_servant, key_arti_servant2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_bracers, key_arti_bracers2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_boots, key_arti_boots2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_krater, key_arti_krater2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_incant, key_arti_incant2),
+    CONFIG_VARIABLE_KEYBIND(key_arti_all, key_arti_all2),
 
     // Automap
     CONFIG_VARIABLE_KEYBIND(key_map_toggle, key_map_toggle2),
@@ -423,6 +423,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_pause, key_pause2),
     CONFIG_VARIABLE_KEYBIND(key_menu_screenshot, key_menu_screenshot2),
     CONFIG_VARIABLE_KEYBIND(key_message_refresh, key_message_refresh2),
+    CONFIG_VARIABLE_KEYBIND(key_message_refresh_hr, key_message_refresh_hr2),
     CONFIG_VARIABLE_KEYBIND(key_demo_quit, key_demo_quit2),
     CONFIG_VARIABLE_KEYBIND(key_switch_ost, key_switch_ost2),
 

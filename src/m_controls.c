@@ -44,7 +44,7 @@ int key_strafeleft  = 'a';            int key_strafeleft2  = 0;
 int key_straferight = 'd';            int key_straferight2 = 0;
 int key_speed       = KEY_RSHIFT;     int key_speed2       = 0;
 int key_strafe      = KEY_RALT;       int key_strafe2      = 0;
-int key_jump = '/'; // Hexen
+int key_jump        = '/';            int key_jump2        = 0; // Hexen
 int key_180turn     = 0;              int key_180turn2     = 0; // [crispy]
 
 // Action
@@ -54,21 +54,21 @@ int key_use  = ' ';       int key_use2  = 0;
 
 // View
 
-int key_lookup = KEY_PGDN;
-int key_lookdown = KEY_DEL;
-int key_lookcenter = KEY_END;
+int key_lookup     = KEY_PGDN; int key_lookup2     = 0;
+int key_lookdown   = KEY_DEL;  int key_lookdown2   = 0;
+int key_lookcenter = KEY_END;  int key_lookcenter2 = 0;
 
 // Flying
 
-int key_flyup = KEY_PGUP;
-int key_flydown = KEY_INS;
-int key_flycenter = KEY_HOME;
+int key_flyup     = KEY_PGUP; int key_flyup2     = 0;
+int key_flydown   = KEY_INS;  int key_flydown2   = 0;
+int key_flycenter = KEY_HOME; int key_flycenter2 = 0;
 
 // Inventory
 
-int key_invleft = '[';
-int key_invright = ']';
-int key_useartifact = KEY_ENTER;
+int key_invleft     = '[';       int key_invleft2     = 0;
+int key_invright    = ']';       int key_invright2    = 0;
+int key_useartifact = KEY_ENTER; int key_useartifact2 = 0;
 
 // Advanced movement
 
@@ -107,29 +107,29 @@ int key_nextweapon = 0;   int key_nextweapon2 = 0;
 
 // Artifacts
 
-int key_arti_quartz          = 0;
-int key_arti_urn             = 0;
-int key_arti_bomb            = 0;
-int key_arti_tome            = 127;
-int key_arti_ring            = 0;
-int key_arti_chaosdevice     = 0;
-int key_arti_shadowsphere    = 0;
-int key_arti_wings           = 0;
-int key_arti_torch           = 0;
-int key_arti_morph           = 0;
-int key_arti_health          = '\\';
-int key_arti_poisonbag       = '0';
-int key_arti_blastradius     = '9';
-int key_arti_teleport        = '8';
-int key_arti_teleportother   = '7';
-int key_arti_egg             = '6';
-int key_arti_invulnerability = '5';
-int key_arti_servant         = 0;
-int key_arti_bracers         = 0;
-int key_arti_boots           = 0;
-int key_arti_krater          = 0;
-int key_arti_incant          = 0;
-int key_arti_all             = KEY_BACKSPACE;
+int key_arti_quartz          = 0;    int key_arti_quartz2          = 0;
+int key_arti_urn             = 0;    int key_arti_urn2             = 0;
+int key_arti_bomb            = 0;    int key_arti_bomb2            = 0;
+int key_arti_tome            = 127;  int key_arti_tome2            = 0;
+int key_arti_ring            = 0;    int key_arti_ring2            = 0;
+int key_arti_chaosdevice     = 0;    int key_arti_chaosdevice2     = 0;
+int key_arti_shadowsphere    = 0;    int key_arti_shadowsphere2    = 0;
+int key_arti_wings           = 0;    int key_arti_wings2           = 0;
+int key_arti_torch           = 0;    int key_arti_torch2           = 0;
+int key_arti_morph           = 0;    int key_arti_morph2           = 0;
+int key_arti_health          = '\\'; int key_arti_health2          = 0;
+int key_arti_poisonbag       = '0';  int key_arti_poisonbag2       = 0;
+int key_arti_blastradius     = '9';  int key_arti_blastradius2     = 0;
+int key_arti_teleport        = '8';  int key_arti_teleport2        = 0;
+int key_arti_teleportother   = '7';  int key_arti_teleportother2   = 0;
+int key_arti_egg             = '6';  int key_arti_egg2             = 0;
+int key_arti_invulnerability = '5';  int key_arti_invulnerability2 = 0;
+int key_arti_servant         = 0;    int key_arti_servant2         = 0;    
+int key_arti_bracers         = 0;    int key_arti_bracers2         = 0;    
+int key_arti_boots           = 0;    int key_arti_boots2           = 0;    
+int key_arti_krater          = 0;    int key_arti_krater2          = 0;    
+int key_arti_incant          = 0;    int key_arti_incant2          = 0;
+int key_arti_all             = KEY_BACKSPACE; int key_arti_all2    = 0;
 
 // Automap
 
@@ -166,12 +166,12 @@ int key_spy           = KEY_F12; int key_spy2           = 0;
 
 // Shortcut keys
 
-int key_pause           = KEY_PAUSE;  int key_pause2           = 0;
-int key_menu_screenshot = KEY_PRTSCR; int key_menu_screenshot2 = 0;
-int key_message_refresh = KEY_ENTER;  int key_message_refresh2 = 0;
-int key_message_refresh_hr = 0; // [JN] Heretic using ENTER for afrtifacts activation.
-int key_demo_quit       = 'q';        int key_demo_quit2       = 0;
-int key_switch_ost      = 0;          int key_switch_ost2      = 0;
+int key_pause              = KEY_PAUSE;  int key_pause2              = 0;
+int key_menu_screenshot    = KEY_PRTSCR; int key_menu_screenshot2    = 0;
+int key_message_refresh    = KEY_ENTER;  int key_message_refresh2    = 0;
+int key_message_refresh_hr = 0;          int key_message_refresh_hr2 = 0; // [JN] Heretic using ENTER for afrtifacts activation.
+int key_demo_quit          = 'q';        int key_demo_quit2          = 0;
+int key_switch_ost         = 0;          int key_switch_ost2         = 0;
 
 // Multiplayer
 
@@ -404,28 +404,28 @@ void M_BindControls (void)
 
 void M_BindHereticControls (void)
 {
-    M_BindIntVariable("key_lookup",         &key_lookup);
-    M_BindIntVariable("key_lookdown",       &key_lookdown);
-    M_BindIntVariable("key_lookcenter",     &key_lookcenter);
+    M_BindIntVariableKeybind("key_lookup",     &key_lookup,     "key_lookup2",     &key_lookup2);
+    M_BindIntVariableKeybind("key_lookdown",   &key_lookdown,   "key_lookdown2",   &key_lookdown2);
+    M_BindIntVariableKeybind("key_lookcenter", &key_lookcenter, "key_lookcenter2", &key_lookcenter2);
 
-    M_BindIntVariable("key_flyup",          &key_flyup);
-    M_BindIntVariable("key_flydown",        &key_flydown);
-    M_BindIntVariable("key_flycenter",      &key_flycenter);
+    M_BindIntVariableKeybind("key_flyup",     &key_flyup,     "key_flyup2",     &key_flyup2);
+    M_BindIntVariableKeybind("key_flydown",   &key_flydown,   "key_flydown2",   &key_flydown2);
+    M_BindIntVariableKeybind("key_flycenter", &key_flycenter, "key_flycenter2", &key_flycenter2);
 
-    M_BindIntVariable("key_invleft",        &key_invleft);
-    M_BindIntVariable("key_invright",       &key_invright);
-    M_BindIntVariable("key_useartifact",    &key_useartifact);
+    M_BindIntVariableKeybind("key_invleft",     &key_invleft,     "key_invleft2",     &key_invleft2);
+    M_BindIntVariableKeybind("key_invright",    &key_invright,    "key_invright2",    &key_invright2);
+    M_BindIntVariableKeybind("key_useartifact", &key_useartifact, "key_useartifact2", &key_useartifact2);
 
-    M_BindIntVariable("key_arti_quartz",        &key_arti_quartz);
-    M_BindIntVariable("key_arti_urn",           &key_arti_urn);
-    M_BindIntVariable("key_arti_bomb",          &key_arti_bomb);
-    M_BindIntVariable("key_arti_tome",          &key_arti_tome);
-    M_BindIntVariable("key_arti_ring",          &key_arti_ring);
-    M_BindIntVariable("key_arti_chaosdevice",   &key_arti_chaosdevice);
-    M_BindIntVariable("key_arti_shadowsphere",  &key_arti_shadowsphere);
-    M_BindIntVariable("key_arti_wings",         &key_arti_wings);
-    M_BindIntVariable("key_arti_torch",         &key_arti_torch);
-    M_BindIntVariable("key_arti_morph",         &key_arti_morph);
+    M_BindIntVariableKeybind("key_arti_quartz",       &key_arti_quartz,       "key_arti_quartz2",       &key_arti_quartz2);
+    M_BindIntVariableKeybind("key_arti_urn",          &key_arti_urn,          "key_arti_urn2",          &key_arti_urn2);
+    M_BindIntVariableKeybind("key_arti_bomb",         &key_arti_bomb,         "key_arti_bomb2",         &key_arti_bomb2);
+    M_BindIntVariableKeybind("key_arti_tome",         &key_arti_tome,         "key_arti_tome2",         &key_arti_tome2);
+    M_BindIntVariableKeybind("key_arti_ring",         &key_arti_ring,         "key_arti_ring2",         &key_arti_ring2);
+    M_BindIntVariableKeybind("key_arti_chaosdevice",  &key_arti_chaosdevice,  "key_arti_chaosdevice2",  &key_arti_chaosdevice2);
+    M_BindIntVariableKeybind("key_arti_shadowsphere", &key_arti_shadowsphere, "key_arti_shadowsphere2", &key_arti_shadowsphere2);
+    M_BindIntVariableKeybind("key_arti_wings",        &key_arti_wings,        "key_arti_wings2",        &key_arti_wings2);
+    M_BindIntVariableKeybind("key_arti_torch",        &key_arti_torch,        "key_arti_torch2",        &key_arti_torch2);
+    M_BindIntVariableKeybind("key_arti_morph",        &key_arti_morph,        "key_arti_morph2",        &key_arti_morph2);
 
     M_BindIntVariableKeybind("mouseb_invleft",     &mousebinvleft,     "mouseb_invleft2",     &mousebinvleft2);
     M_BindIntVariableKeybind("mouseb_invright",    &mousebinvright,    "mouseb_invright2",    &mousebinvright2);
@@ -436,24 +436,25 @@ void M_BindHereticControls (void)
 
 void M_BindHexenControls(void)
 {
-    M_BindIntVariable("key_jump",           &key_jump);
+    M_BindIntVariableKeybind("key_jump",    &key_jump,   "key_jump2",    &key_jump2);
     M_BindIntVariableKeybind("mouseb_jump", &mousebjump, "mouseb_jump2", &mousebjump2);
     M_BindIntVariable("joyb_jump",          &joybjump);
 
-    M_BindIntVariable("key_arti_all",             &key_arti_all);
-    M_BindIntVariable("key_arti_health",          &key_arti_health);
-    M_BindIntVariable("key_arti_poisonbag",       &key_arti_poisonbag);
-    M_BindIntVariable("key_arti_blastradius",     &key_arti_blastradius);
-    M_BindIntVariable("key_arti_teleport",        &key_arti_teleport);
-    M_BindIntVariable("key_arti_teleportother",   &key_arti_teleportother);
-    M_BindIntVariable("key_arti_egg",             &key_arti_egg);
-    M_BindIntVariable("key_arti_invulnerability", &key_arti_invulnerability);
+    M_BindIntVariableKeybind("key_arti_all",             &key_arti_all,             "key_arti_all2",             &key_arti_all2);
+    M_BindIntVariableKeybind("key_arti_health",          &key_arti_health,          "key_arti_health2",          &key_arti_health2);
+    M_BindIntVariableKeybind("key_arti_poisonbag",       &key_arti_poisonbag,       "key_arti_poisonbag2",       &key_arti_poisonbag2);
+    M_BindIntVariableKeybind("key_arti_blastradius",     &key_arti_blastradius,     "key_arti_blastradius2",     &key_arti_blastradius2);
+    M_BindIntVariableKeybind("key_arti_teleport",        &key_arti_teleport,        "key_arti_teleport2",        &key_arti_teleport2);
+    M_BindIntVariableKeybind("key_arti_teleportother",   &key_arti_teleportother,   "key_arti_teleportother2",   &key_arti_teleportother2);
+    M_BindIntVariableKeybind("key_arti_egg",             &key_arti_egg,             "key_arti_egg2",             &key_arti_egg2);
+    M_BindIntVariableKeybind("key_arti_invulnerability", &key_arti_invulnerability, "key_arti_invulnerability2", &key_arti_invulnerability2);
+
     // Extra artifacts
-    M_BindIntVariable("key_arti_servant",         &key_arti_servant);
-    M_BindIntVariable("key_arti_bracers",         &key_arti_bracers);
-    M_BindIntVariable("key_arti_boots",           &key_arti_boots);
-    M_BindIntVariable("key_arti_krater",          &key_arti_krater);
-    M_BindIntVariable("key_arti_incant",          &key_arti_incant);
+    M_BindIntVariableKeybind("key_arti_servant", &key_arti_servant, "key_arti_servant2", &key_arti_servant2);
+    M_BindIntVariableKeybind("key_arti_bracers", &key_arti_bracers, "key_arti_bracers2", &key_arti_bracers2);
+    M_BindIntVariableKeybind("key_arti_boots",   &key_arti_boots,   "key_arti_boots2",   &key_arti_boots2);
+    M_BindIntVariableKeybind("key_arti_krater",  &key_arti_krater,  "key_arti_krater2",  &key_arti_krater2);
+    M_BindIntVariableKeybind("key_arti_incant",  &key_arti_incant,  "key_arti_incant2",  &key_arti_incant2);
 }
 
 void M_BindChatControls (unsigned int num_players)
