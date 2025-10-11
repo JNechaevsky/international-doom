@@ -102,6 +102,8 @@ void P_PostMorphWeapon(player_t * player, weapontype_t weapon);
 
 // ***** P_USER *****
 
+#define MLOOKUNIT 8 // [crispy] for mouselook
+#define MLOOKUNITLOWRES 16 // [crispy] for mouselook when recording
 
 extern int ArmorMax[NUMCLASSES];
 extern int PStateNormal[NUMCLASSES];

@@ -1090,6 +1090,10 @@ angle_t CRL_camera_ang;
 fixed_t CRL_camera_oldx, CRL_camera_oldy, CRL_camera_oldz;
 angle_t CRL_camera_oldang;
 
+// [PN] Spectator mouse look in MLOOKUNIT units.
+fixed_t CRL_camera_lookdir;
+fixed_t CRL_camera_oldlookdir;
+
 // -----------------------------------------------------------------------------
 // CRL_GetCameraPos
 //  Returns the camera position.
@@ -1118,6 +1122,24 @@ void CRL_ReportPosition (fixed_t x, fixed_t y, fixed_t z, angle_t angle)
 	CRL_camera_oldy = y;
 	CRL_camera_oldz = z;
 	CRL_camera_oldang = angle;
+}
+
+// -----------------------------------------------------------------------------
+// [PN/JN] Spectator mouse look.
+//  Clamp to the same range as player lookdir.
+// -----------------------------------------------------------------------------
+
+#define CLAMPLOOKDIR(x) BETWEEN(-LOOKDIRMIN * MLOOKUNIT, LOOKDIRMAX * MLOOKUNIT, (x))
+
+void CRL_ReportLookdir (fixed_t lookdir)
+{
+    CRL_camera_oldlookdir = CRL_camera_lookdir;
+    CRL_camera_lookdir = CLAMPLOOKDIR(lookdir);
+}
+
+void CRL_LimitLookdir (fixed_t delta)
+{
+    CRL_camera_lookdir = CLAMPLOOKDIR(CRL_camera_lookdir + delta);
 }
 
 // -----------------------------------------------------------------------------

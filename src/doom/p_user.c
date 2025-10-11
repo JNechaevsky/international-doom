@@ -441,6 +441,16 @@ void P_PlayerThink (player_t* player)
         }
     }
 
+    // [PN] Handle Spectator mouse look:
+    if (crl_spectating)
+    {
+        CRL_ReportLookdir(CRL_camera_lookdir);
+    }
+    else
+    {
+        CRL_camera_lookdir = player->lookdir;
+    }
+
     if (player->playerstate == PST_DEAD)
     {
 	P_DeathThink (player);
