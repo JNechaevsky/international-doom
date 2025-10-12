@@ -40,9 +40,6 @@
 
 #define AM_STARTKEY	9
 
-#define MLOOKUNIT 8 // [crispy] for mouselook
-#define MLOOKUNITLOWRES 16 // [crispy] for mouselook when recording
-
 // External functions
 
 
@@ -329,6 +326,14 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         // [JN] CRL - reset basecmd.angleturn for exact
         // position of jumping to the camera position.
         basecmd.angleturn = 0;
+        // [PN] Spectator mouse look.
+        if (!MenuActive && mousey && mouse_look)
+        {
+            const double vert = CalcMouseVert(mousey);
+            const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
+            CRL_LimitLookdir(delta);
+            mousey = 0;
+        }
     }
 
 //      cmd->consistancy =
@@ -422,6 +427,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         if (!mouse_look)
         {
             look = TOCENTER;
+            // [PN] Reset spectator lookdir as well.
+            CRL_ReportLookdir(TOCENTER);
         }
         CT_SetMessage(&players[consoleplayer], mouse_look ?
                       ID_MLOOK_ON : ID_MLOOK_OFF, false, NULL);
@@ -1038,7 +1045,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
 
     // RestlessRodent -- If spectating, send the movement commands instead
-    if (crl_spectating && !MenuActive)
+    if (crl_spectating && !MenuActive && !askforquit)
     	CRL_ImpulseCamera(cmd->forwardmove, cmd->sidemove, cmd->angleturn); 
 }
 
@@ -1223,7 +1230,7 @@ static void SetMouseButtons(unsigned int buttons_mask)
         if (!mousebuttons[i] && button_on)
         {
             // [JN] CRL - move spectator camera up/down.
-            if (crl_spectating && !MenuActive)
+            if (crl_spectating && !MenuActive && !askforquit)
             {
                 if (i == 4)  // Hardcoded mouse wheel down
                 {
@@ -1625,8 +1632,11 @@ void G_PrepTiccmd (void)
     if (mousey && mouse_look && !crl_spectating)
     {
         const double vert = CalcMouseVert(mousey);
-        basecmd.lookdir += mouse_y_invert ?
-                            CarryPitch(-vert): CarryPitch(vert);
+        const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
+        // [PN] Spectator mouse look
+        if (!crl_spectating)
+            basecmd.lookdir += delta;
+        CRL_LimitLookdir(delta);
         mousey = 0;
     }
 }

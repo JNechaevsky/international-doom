@@ -437,6 +437,14 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         // [JN] CRL - reset basecmd.angleturn for exact
         // position of jumping to the camera position.
         basecmd.angleturn = 0;
+        // [PN] Spectator mouse look.
+        if (!menuactive && mousey && mouse_look)
+        {
+            const double vert = CalcMouseVert(mousey);
+            const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
+            CRL_LimitLookdir(delta);
+            mousey = 0;
+        }
     }
 
 	// needed for net games
@@ -521,6 +529,8 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         if (!mouse_look)
         {
             cmd->lookdir = players[consoleplayer].lookdir = 0;
+            // [PN] Reset spectator lookdir as well.
+            CRL_ReportLookdir(0);
         }
         R_InitSkyMap();
         CT_SetMessage(&players[consoleplayer], mouse_look ?
@@ -770,7 +780,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     }
 
     // [crispy] mouse look
-    if (mouse_look)
+    if (mouse_look && !crl_spectating)
     {
         const double vert = CalcMouseVert(mousey);
         cmd->lookdir += mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
@@ -1417,11 +1427,14 @@ void G_PrepTiccmd (void)
         mousex = 0;
     }
 
-    if (mousey && mouse_look && !crl_spectating)
+    if (mousey && mouse_look)
     {
         const double vert = CalcMouseVert(mousey);
-        basecmd.lookdir += mouse_y_invert ?
-                            CarryPitch(-vert): CarryPitch(vert);
+        const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
+        // [PN] Spectator mouse look
+        if (!crl_spectating)
+            basecmd.lookdir += delta;
+        CRL_LimitLookdir(delta);
         mousey = 0;
     }
 }

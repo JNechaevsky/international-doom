@@ -803,6 +803,7 @@ static void R_SetupFrame (player_t *const player)
             viewy = LerpFixed(CRL_camera_oldy, by);
             viewz = LerpFixed(CRL_camera_oldz, bz);
             viewangle = LerpAngle(CRL_camera_oldang, ba);
+            pitch = LerpFixed(CRL_camera_oldlookdir, CRL_camera_lookdir) / MLOOKUNIT;
         }
         else
         {
@@ -810,8 +811,8 @@ static void R_SetupFrame (player_t *const player)
             viewy = by;
             viewz = bz;
             viewangle = ba;
+            pitch = CRL_camera_lookdir / MLOOKUNIT;
         }
-        pitch = 0;
     }
     else
     {
@@ -862,6 +863,8 @@ static void R_SetupFrame (player_t *const player)
 
     // RestlessRodent -- Just report it
     CRL_ReportPosition(viewx, viewy, viewz, viewangle);
+    // [PN] Keep spectator pitch history in sync with position history.
+    CRL_ReportLookdir(CRL_camera_lookdir);
     
     if (pitch > LOOKDIRMAX)
         pitch = LOOKDIRMAX;

@@ -32,6 +32,7 @@
 #include "z_zone.h"
 
 #include "id_vars.h"
+#include "id_func.h"
 
 /*
 ===============================================================================
@@ -46,6 +47,7 @@ static boolean S_StopSoundID(int sound_id, int priority);
 static channel_t channel[MAX_CHANNELS];
 
 static degenmobj_t dummy_listener;
+static degenmobj_t camera_listener; // [PN] Listener for spectator mode
 
 static void *rs;          // Handle for the registered song
 int mus_song = -1;
@@ -139,6 +141,15 @@ void S_StartSong(int song, boolean loop)
 
 static mobj_t *GetSoundListener(void)
 {
+    // [PN] While spectating, the camera is the audio listener.
+    if (crl_spectating)
+    {
+        camera_listener.x = CRL_camera_x;
+        camera_listener.y = CRL_camera_y;
+        camera_listener.z = CRL_camera_z;
+        return (mobj_t *) &camera_listener;
+    }
+
     // If we are at the title screen, the console player doesn't have an
     // object yet, so return a pointer to a static dummy listener instead.
 
@@ -184,6 +195,9 @@ void S_StartSound(void *_origin, int sound_id)
     int64_t absy;
     int64_t absz;  // [JN] Z-axis sfx distance
 
+    // [JN] Listener for spectator mode.
+    int64_t listener_x, listener_y, listener_z;
+
     // [JN] Do not play sound while demo-warp.
     if (nodrawers /*|| demowarp*/)
     {
@@ -199,12 +213,25 @@ void S_StartSound(void *_origin, int sound_id)
         origin = listener;
     }
 
+    if (!crl_spectating)
+    {
+        listener_x = listener->x;
+        listener_y = listener->y;
+        listener_z = listener->z;
+    }
+    else
+    {
+        listener_x = CRL_camera_x;
+        listener_y = CRL_camera_y;
+        listener_z = CRL_camera_z;
+    }
+
 // calculate the distance before other stuff so that we can throw out
 // sounds that are beyond the hearing range.
-    absx = llabs(origin->x - listener->x);
-    absy = llabs(origin->y - listener->y);
+    absx = llabs(origin->x - listener_x);
+    absy = llabs(origin->y - listener_y);
     absz = aud_z_axis_sfx ?
-           llabs(origin->z - listener->z) : 0;
+           llabs(origin->z - listener_z) : 0;
     dist = S_ApproxDistanceZ(absx, absy, absz);
     dist >>= FRACBITS;
 //  dist = P_AproxDistance(origin->x-viewx, origin->y-viewy)>>FRACBITS;
@@ -318,7 +345,7 @@ void S_StartSound(void *_origin, int sound_id)
     }
     else
     {
-        int angle = R_PointToAngle2(listener->x, listener->y,
+        int angle = R_PointToAngle2(listener_x, listener_y,
                                 origin->x, origin->y);
         angle = (angle - viewangle) >> 24;
         if (gp_flip_levels)
@@ -642,8 +669,22 @@ void S_UpdateSounds(mobj_t * listener)
         }
         else
         {
-            absx = llabs(channel[i].mo->x - listener->x);
-            absy = llabs(channel[i].mo->y - listener->y);
+            // [JN] Listener for spectator mode.
+            int64_t listener_x, listener_y;
+
+            if (!crl_spectating)
+            {
+                listener_x = listener->x;
+                listener_y = listener->y;
+            }
+            else
+            {
+                listener_x = CRL_camera_x;
+                listener_y = CRL_camera_y;
+            }
+
+            absx = llabs(channel[i].mo->x - listener_x);
+            absy = llabs(channel[i].mo->y - listener_y);
             // [JN] Z-axis sfx distance.
             absz = aud_z_axis_sfx ? 
                    llabs(channel[i].mo->z - listener->z) : 0;
@@ -670,7 +711,7 @@ void S_UpdateSounds(mobj_t * listener)
             }
             else
             {
-                angle = R_PointToAngle2(listener->x, listener->y,
+                angle = R_PointToAngle2(listener_x, listener_y,
                                         channel[i].mo->x, channel[i].mo->y);
                 angle = (angle - viewangle) >> 24;
                 if (gp_flip_levels)

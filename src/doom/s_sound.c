@@ -494,14 +494,34 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
     int64_t        adz; // [JN] Z-axis sfx distance
     angle_t        angle;
 
+    int64_t        listener_x;
+    int64_t        listener_y;
+    int64_t        listener_z;
+    angle_t        listener_ang;
+
     // [crispy] proper sound clipping in Doom 2 MAP08 and The Ultimate Doom E4M8 / Sigil E5M8
     const boolean doom1map8 = (gamemap == 8 && ((gamemode != commercial && gameepisode < 4)));
 
+    if (!crl_spectating)
+    {
+        listener_x   = listener->x;
+        listener_y   = listener->y;
+        listener_z   = listener->z;
+        listener_ang = listener->angle;
+    }
+    else
+    {
+        listener_x   = CRL_camera_x;
+        listener_y   = CRL_camera_y;
+        listener_z   = CRL_camera_z;
+        listener_ang = CRL_camera_ang;
+    }
+
     // calculate the distance to sound origin
     //  and clip it if necessary
-    adx = llabs((int64_t)listener->x - (int64_t)source->x);
-    ady = llabs((int64_t)listener->y - (int64_t)source->y);
-    adz = llabs((int64_t)listener->z - (int64_t)source->z);
+    adx = llabs(listener_x - (int64_t)source->x);
+    ady = llabs(listener_y - (int64_t)source->y);
+    adz = llabs(listener_z - (int64_t)source->z);
 
     if (aud_z_axis_sfx)
     {
@@ -520,18 +540,18 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
     }
 
     // angle of source to listener
-    angle = R_PointToAngle2(listener->x,
-                            listener->y,
+    angle = R_PointToAngle2(listener_x,
+                            listener_y,
                             source->x,
                             source->y);
 
-    if (angle > listener->angle)
+    if (angle > listener_ang)
     {
-        angle = angle - listener->angle;
+        angle = angle - listener_ang;
     }
     else
     {
-        angle = angle + (0xffffffff - listener->angle);
+        angle = angle + (0xffffffff - listener_ang);
     }
 
     angle >>= ANGLETOFINESHIFT;
