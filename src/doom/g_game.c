@@ -422,29 +422,26 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     int		forward;
     int		side;
     ticcmd_t spect;
+    int spect_angle = 0; // [PN] Spectator camera-only, do not copy to cmd
+
+    // [crispy] For fast polling.
+    G_PrepTiccmd();
 
     if (!crl_spectating)
     {
-        // [crispy] For fast polling.
-        G_PrepTiccmd();
         memcpy(cmd, &basecmd, sizeof(*cmd));
         memset(&basecmd, 0, sizeof(ticcmd_t));
     }
     else
     {
-        // [JN] CRL - can't interpolate spectator.
+        // [PN] spect_angle is used for the spectator camera only.
+        // Do not copy it into cmd to avoid rotating the actual player
+        // or desynchronizing demo/network state.
         memset(cmd, 0, sizeof(ticcmd_t));
+        spect_angle = basecmd.angleturn;
         // [JN] CRL - reset basecmd.angleturn for exact
         // position of jumping to the camera position.
         basecmd.angleturn = 0;
-        // [PN] Spectator mouse look.
-        if (!menuactive && mousey && mouse_look)
-        {
-            const double vert = CalcMouseVert(mousey);
-            const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
-            CRL_LimitLookdir(delta);
-            mousey = 0;
-        }
     }
 
 	// needed for net games
@@ -795,10 +792,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 	side += mousex*2;
     else 
     {
-        if (!crl_spectating)
         cmd->angleturn += CarryMouseSide(mousex);
-        else
-        angle -= mousex*0x8;
     }
 
     mousex_angleturn = cmd->angleturn;
@@ -898,9 +892,9 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
                             desired_angleturn - cmd->angleturn;
     }
     
-    // If spectating, send the movement commands instead
+    // RestlessRodent -- If spectating, send the movement commands instead
     if (crl_spectating && !menuactive)
-    	CRL_ImpulseCamera(cmd->forwardmove, cmd->sidemove, cmd->angleturn); 
+    	CRL_ImpulseCamera(cmd->forwardmove, cmd->sidemove, spect_angle); 
 } 
  
 
@@ -1427,7 +1421,7 @@ void G_PrepTiccmd (void)
         mousex = 0;
     }
 
-    if (mousey && mouse_look)
+    if (!menuactive && mousey && mouse_look)
     {
         const double vert = CalcMouseVert(mousey);
         const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);

@@ -416,31 +416,28 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     int look, arti;
     int fly_height;
     ticcmd_t spect;
+    int spect_angle = 0; // [PN] Spectator camera-only, do not copy to cmd
 
     // haleyjd: removed externdriver crap
 
+    // [crispy] For fast polling.
+    G_PrepTiccmd();
+
     if (!crl_spectating)
     {
-        // [crispy] For fast polling.
-        G_PrepTiccmd();
         memcpy(cmd, &basecmd, sizeof(*cmd));
         memset(&basecmd, 0, sizeof(ticcmd_t));
     }
     else
     {
-        // [JN] CRL - can't interpolate spectator.
+        // [PN] spect_angle is used for the spectator camera only.
+        // Do not copy it into cmd to avoid rotating the actual player
+        // or desynchronizing demo/network state.
         memset(cmd, 0, sizeof(ticcmd_t));
+        spect_angle = basecmd.angleturn;
         // [JN] CRL - reset basecmd.angleturn for exact
         // position of jumping to the camera position.
         basecmd.angleturn = 0;
-        // [PN] Spectator mouse look.
-        if (!MenuActive && !askforquit && mousey && mouse_look)
-        {
-            const double vert = CalcMouseVert(mousey);
-            const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
-            CRL_LimitLookdir(delta);
-            mousey = 0;
-        }
     }
     //cmd->consistancy =
     //      consistancy[consoleplayer][(maketic*ticdup)%BACKUPTICS];
@@ -921,10 +918,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
     else
     {
-        if (!crl_spectating)
         cmd->angleturn += CarryMouseSide(mousex);
-        else
-        angle -= mousex*0x8;
     }
 
     // No mouse movement in previous frame?
@@ -1082,7 +1076,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     // RestlessRodent -- If spectating, send the movement commands instead
     if (crl_spectating && !MenuActive && !askforquit)
-    	CRL_ImpulseCamera(cmd->forwardmove, cmd->sidemove, cmd->angleturn); 
+    	CRL_ImpulseCamera(cmd->forwardmove, cmd->sidemove, spect_angle); 
 }
 
 
