@@ -1304,29 +1304,29 @@ static void SetMouseButtons(unsigned int buttons_mask)
             }
             else
             {
-                if (i == (mousebprevweapon || mousebprevweapon2))
+                if (i == mousebprevweapon || i == mousebprevweapon2)
                 {
                     next_weapon = -1;
                 }
-                else if (i == (mousebnextweapon || mousebnextweapon))
+                else if (i == mousebnextweapon || i == mousebnextweapon2)
                 {
                     next_weapon = 1;
                 }
-                else if (i == (mousebuse || mousebuse2))
+                else if (i == mousebuse || i == mousebuse2)
                 {
                     // [PN] Mouse wheel "use" workaround: some mouse buttons (e.g. wheel click)
                     // generate only a single tick event. We simulate a short BT_USE press here.
                     basecmd.buttons |= BT_USE;
                 }
-                else if (i == (mousebinvleft || mousebinvleft2))
+                else if (i == mousebinvleft || i == mousebinvleft2)
                 {
                     InventoryMoveLeft();
                 }
-                else if (i == (mousebinvright || mousebinvright2))
+                else if (i == mousebinvright || i == mousebinvright2)
                 {
                     InventoryMoveRight();
                 }
-                else if (i == (mousebuseartifact || mousebuseartifact2))
+                else if (i == mousebuseartifact || i == mousebuseartifact2)
                 {
                     if (!inventory)
                     {

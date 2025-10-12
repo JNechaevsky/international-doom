@@ -8413,7 +8413,7 @@ static void M_DrawBindButton (int itemNum, int yPos, int btn1, int btn2)
 
 static void M_ResetMouseBinds (void)
 {
-    mousebfire        =  0; mousebfire         = -1;
+    mousebfire        =  0; mousebfire2        = -1;
     mousebforward     =  2; mousebforward2     = -1;
     mousebspeed       = -1; mousebspeed2       = -1;
     mousebstrafe      =  1; mousebstrafe2      = -1;
