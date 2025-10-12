@@ -327,7 +327,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         // position of jumping to the camera position.
         basecmd.angleturn = 0;
         // [PN] Spectator mouse look.
-        if (!MenuActive && mousey && mouse_look)
+        if (!MenuActive && !askforquit && mousey && mouse_look)
         {
             const double vert = CalcMouseVert(mousey);
             const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
@@ -1629,7 +1629,7 @@ void G_PrepTiccmd (void)
         mousex = 0;
     }
 
-    if (mousey && mouse_look && !crl_spectating)
+    if (!MenuActive && !askforquit && mousey && mouse_look)
     {
         const double vert = CalcMouseVert(mousey);
         const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
