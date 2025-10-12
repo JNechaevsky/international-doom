@@ -200,7 +200,7 @@ P_GiveWeapon
 	CT_SetMessage(player, DEH_String(WeaponPickupMessages[weapon]), false, NULL);
 
 	if (player == &players[displayplayer])
-	    S_StartSound (NULL, sfx_wpnup);
+	    S_StartSound (crl_spectating ? player : NULL, sfx_wpnup);
 	return false;
     }
 	
@@ -707,7 +707,7 @@ P_TouchSpecialThing
 	player->bonuscount = 4 * TICRATE;
 
     if (player == &players[displayplayer])
-	S_StartSound (NULL, sound);
+	S_StartSound (crl_spectating ? player : NULL, sound);
 }
 
 

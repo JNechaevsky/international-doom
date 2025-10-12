@@ -1461,6 +1461,8 @@ boolean G_Responder(event_t * ev)
                 crl_spectating ^= 1;
                 CT_SetMessage(&players[consoleplayer], crl_spectating ?
                              ID_SPECTATOR_ON : ID_SPECTATOR_OFF, false, NULL);
+                if (crl_spectating)
+                    I_SetPalette(0);
             }  
             // [JN] CRL - Toggle freeze mode.
             if (ev->data1 == key_freeze)

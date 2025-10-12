@@ -468,8 +468,8 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
 
     // calculate the distance before other stuff so that we can throw out
     // sounds that are beyond the hearing range.
-    absx = abs(origin->x - listener_x);
-    absy = abs(origin->y - listener_y);
+    absx = llabs(origin->x - listener_x);
+    absy = llabs(origin->y - listener_y);
     absz = aud_z_axis_sfx ?
            llabs(origin->z - listener_z) : 0;
     dist = S_ApproxDistanceZ(absx, absy, absz);

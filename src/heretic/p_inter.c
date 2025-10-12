@@ -232,7 +232,7 @@ static boolean P_GiveWeapon(player_t * player, weapontype_t weapon)
 
         if (player == &players[consoleplayer])
         {
-            S_StartSound(NULL, sfx_wpnup);
+            S_StartSound(crl_spectating ? player : NULL, sfx_wpnup);
         }
         return (false);
     }
@@ -877,7 +877,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
     }
     if (player == &players[consoleplayer])
     {
-        S_StartSound(NULL, sound);
+        S_StartSound(crl_spectating ? player : NULL, sound);
     }
 }
 

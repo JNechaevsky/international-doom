@@ -232,7 +232,7 @@ static void TryPickupWeapon(player_t * player, pclass_t weaponClass,
     }
     if (player == &players[consoleplayer])
     {
-        S_StartSound(NULL, SFX_PICKUP_WEAPON);
+        S_StartSound(crl_spectating ? (mobj_t*)player : NULL, SFX_PICKUP_WEAPON);
     }
 }
 
@@ -451,14 +451,14 @@ static void TryPickupWeaponPiece(player_t * player, pclass_t matchClass,
     {
         CT_SetMessage(player, fourthWeaponText[matchClass], false, NULL);
         // Play the build-sound full volume for all players
-        S_StartSound(NULL, SFX_WEAPON_BUILD);
+        S_StartSound(crl_spectating ? (mobj_t*)player : NULL, SFX_WEAPON_BUILD);
     }
     else
     {
         CT_SetMessage(player, weaponPieceText[matchClass], false, NULL);
         if (player == &players[consoleplayer])
         {
-            S_StartSound(NULL, SFX_PICKUP_WEAPON);
+            S_StartSound(crl_spectating ? (mobj_t*)player : NULL, SFX_PICKUP_WEAPON);
         }
     }
 }
@@ -707,7 +707,7 @@ static void TryPickupArtifact(player_t * player, artitype_t artifactType,
         }
         else
         {                       // Puzzle item
-            S_StartSound(NULL, SFX_PICKUP_ITEM);
+            S_StartSound(crl_spectating ? (mobj_t*)player : NULL, SFX_PICKUP_ITEM);
             CT_SetMessage(player, artifactMessages[artifactType], true, NULL);
             if (!netgame || deathmatch)
             {                   // Remove puzzle items if not cooperative netplay
@@ -964,7 +964,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
             player->bonuscount += BONUSADD;
             if (player == &players[consoleplayer])
             {
-                S_StartSound(NULL, sound);
+                S_StartSound(crl_spectating ? (mobj_t*)player : NULL, sound);
             }
             return;
 
@@ -1177,7 +1177,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
     player->bonuscount += BONUSADD;
     if (player == &players[consoleplayer])
     {
-        S_StartSound(NULL, sound);
+        S_StartSound(crl_spectating ? (mobj_t*)player : NULL, sound);
     }
 }
 

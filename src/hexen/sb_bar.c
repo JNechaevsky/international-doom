@@ -560,13 +560,12 @@ void SB_Ticker(void)
         ArmorPercent = ArmorValue / divisor[CPlayer->class];
     }
 
-    if (vis_smooth_palette)
+    if (!crl_spectating)
     {
-        SB_SmoothPaletteFlash(false);
-    }
-    else
-    {
-        SB_PaletteFlash(false);
+        if (vis_smooth_palette)
+            SB_SmoothPaletteFlash(false);
+        else
+            SB_PaletteFlash(false);
     }
 }
 

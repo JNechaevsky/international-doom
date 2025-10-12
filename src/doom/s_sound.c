@@ -648,22 +648,31 @@ void S_StartSound(void *origin_p, int sfx_id)
 
     // Check to see if it is audible,
     //  and if not, modify the params
-    if (origin && origin != players[displayplayer].mo && origin != players[displayplayer].so) // [crispy] weapon sound source
+    // [PN] In spectating mode we DO NOT treat displayplayer sounds as local:
+    // everything should be positioned in world at the real player's coords.
+    if (origin)
     {
-        const int rc = S_AdjustSoundParams(players[displayplayer].mo,
-                                 origin,
-                                 &volume,
-                                 &sep);
+        const boolean force_local = (!crl_spectating)
+            && (origin == players[displayplayer].mo || origin == players[displayplayer].so); // [crispy] weapon sound source
 
-        if (origin->x == players[displayplayer].mo->x
-         && origin->y == players[displayplayer].mo->y)
+        if (!force_local)
+        {
+            const int rc = S_AdjustSoundParams(players[displayplayer].mo, origin, &volume, &sep);
+            // Only center-separate when NOT spectating.
+            if (!crl_spectating
+            &&  origin->x == players[displayplayer].mo->x
+            &&  origin->y == players[displayplayer].mo->y)
+            {
+                sep = NORM_SEP;
+            }
+            if (!rc)
+            {
+                return;
+            }
+        }
+        else
         {
             sep = NORM_SEP;
-        }
-
-        if (!rc)
-        {
-            return;
         }
     }
     else
@@ -791,20 +800,24 @@ void S_UpdateSounds(mobj_t *listener)
 
                 // check non-local sounds for distance clipping
                 //  or modify their params
-                if (c->origin && listener != c->origin && c->origin != players[displayplayer].so) // [crispy] weapon sound source
+                // [PN] In spectating mode the displayplayer's own sounds are NOT local.
+                if (c->origin)
                 {
-                    audible = S_AdjustSoundParams(listener,
-                                                  c->origin,
-                                                  &volume,
-                                                  &sep);
+                    boolean treat_local = (!crl_spectating)
+                        && ((listener == c->origin) || (c->origin == players[displayplayer].so)); // [crispy] weapon sound source
 
-                    if (!audible)
+                    if (!treat_local)
                     {
-                        S_StopChannel(cnum);
-                    }
-                    else
-                    {
-                        I_UpdateSoundParams(c->handle, volume, sep);
+                        audible = S_AdjustSoundParams(listener, c->origin, &volume, &sep);
+
+                        if (!audible)
+                        {
+                            S_StopChannel(cnum);
+                        }
+                        else
+                        {
+                            I_UpdateSoundParams(c->handle, volume, sep);
+                        }
                     }
                 }
             }

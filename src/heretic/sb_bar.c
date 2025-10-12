@@ -442,13 +442,12 @@ void SB_Ticker(void)
     }
 
     // [JN] Do red-/gold-shifts from damage/items.
-    if (vis_smooth_palette)
+    if (!crl_spectating)
     {
-        SB_SmoothPaletteFlash();
-    }
-    else
-    {
-        SB_PaletteFlash();
+        if (vis_smooth_palette)
+            SB_SmoothPaletteFlash();
+        else
+            SB_PaletteFlash();
     }
 }
 
