@@ -1045,7 +1045,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
 
     // RestlessRodent -- If spectating, send the movement commands instead
-    if (crl_spectating && !MenuActive)
+    if (crl_spectating && !MenuActive && !askforquit)
     	CRL_ImpulseCamera(cmd->forwardmove, cmd->sidemove, cmd->angleturn); 
 }
 
@@ -1230,7 +1230,7 @@ static void SetMouseButtons(unsigned int buttons_mask)
         if (!mousebuttons[i] && button_on)
         {
             // [JN] CRL - move spectator camera up/down.
-            if (crl_spectating && !MenuActive)
+            if (crl_spectating && !MenuActive && !askforquit)
             {
                 if (i == 4)  // Hardcoded mouse wheel down
                 {
