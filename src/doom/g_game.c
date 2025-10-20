@@ -816,7 +816,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         else
         {
         const short old_angleturn = cmd->angleturn;
-        cmd->angleturn = CarryAngle(localview.rawangle + angle);
+        cmd->angleturn = spect_angle = CarryAngle(localview.rawangle + angle);
         localview.ticangleturn = gp_flip_levels ?
             (old_angleturn - cmd->angleturn) :
             (cmd->angleturn - old_angleturn);
