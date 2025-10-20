@@ -660,7 +660,7 @@ static void M_Bind_OverlayMode (int choice);
 static void M_Bind_PanMode (int choice);
 static void M_Bind_ToggleGrid (int choice);
 static void M_Bind_AddMark (int choice);
-static void M_Bind_ClearMarks (int choice);
+static void M_Bind_ClearMark (int choice);
 
 static void M_Draw_ID_Keybinds_5 (void);
 static void M_Bind_HelpScreen (int choice);
@@ -2746,7 +2746,7 @@ static menuitem_t ID_Menu_Keybinds_4[]=
     { M_SWTC, "MOUSE PANNING MODE", M_Bind_PanMode,     'm' },
     { M_SWTC, "TOGGLE GRID",        M_Bind_ToggleGrid,  't' },
     { M_SWTC, "MARK LOCATION",      M_Bind_AddMark,     'm' },
-    { M_SWTC, "CLEAR ALL MARKS",    M_Bind_ClearMarks,  'c' },
+    { M_SWTC, "CLEAR LAST MARK",    M_Bind_ClearMark,   'c' },
 };
 
 static menu_t ID_Def_Keybinds_4 =
@@ -2810,7 +2810,7 @@ static void M_Bind_AddMark (int choice)
     M_StartBind(409);  // key_map_mark
 }
 
-static void M_Bind_ClearMarks (int choice)
+static void M_Bind_ClearMark (int choice)
 {
     M_StartBind(410);  // key_map_clearmark
 }

@@ -136,12 +136,16 @@ fixed_t (*sidemove)[2] = sidemove_original;
 
 fixed_t angleturn[3] = { 640, 1280, 320 };      // + slow turn
 
-static int *weapon_keys[] =
-{
-    &key_weapon1,
-    &key_weapon2,
-    &key_weapon3,
-    &key_weapon4,
+typedef struct {
+    int *primary;
+    int *secondary;
+} weapon_keys_pair_t;
+
+static weapon_keys_pair_t weapon_keys[] = {
+    { &key_weapon1, &key_weapon1_2 },
+    { &key_weapon2, &key_weapon2_2 },
+    { &key_weapon3, &key_weapon3_2 },
+    { &key_weapon4, &key_weapon4_2 }
 };
 
 static int next_weapon = 0;
@@ -203,8 +207,10 @@ boolean usearti = true;
 
 boolean speedkeydown (void)
 {
-    return (key_speed < NUMKEYS && gamekeydown[key_speed]) ||
+    return ((key_speed < NUMKEYS && gamekeydown[key_speed])) ||
+           (key_speed2 < NUMKEYS && gamekeydown[key_speed2]) ||
            (mousebspeed < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed]) ||
+           (mousebspeed2 < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed2]) ||
            (joybspeed < MAX_JOY_BUTTONS && joybuttons[joybspeed]);
 }
 
@@ -351,13 +357,13 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
 //printf ("cons: %i\n",cmd->consistancy);
 
-    strafe = gamekeydown[key_strafe]
-          || mousebuttons[mousebstrafe]
+    strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2]
+          || mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2]
           || joybuttons[joybstrafe];
 
     // Allow joybspeed hack.
 
-    speed = (key_speed >= NUMKEYS
+    speed = (key_speed >= NUMKEYS || key_speed2 >= NUMKEYS
         || joybspeed >= MAX_JOY_BUTTONS);
     speed ^= speedkeydown();
     crl_camzspeed = speed;
@@ -370,7 +376,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 // use two stage accelerative turning on the keyboard and joystick
 //
     if (joyxmove < 0 || joyxmove > 0
-        || gamekeydown[key_right] || gamekeydown[key_left])
+        || gamekeydown[key_right] || gamekeydown[key_right2]
+        || gamekeydown[key_left]  || gamekeydown[key_left2])
         turnheld += ticdup;
     else
         turnheld = 0;
@@ -379,7 +386,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     else
         tspeed = speed;
 
-    if (gamekeydown[key_lookdown] || gamekeydown[key_lookup])
+    if (gamekeydown[key_lookdown] || gamekeydown[key_lookdown2]
+    ||  gamekeydown[key_lookup]   || gamekeydown[key_lookup2])
     {
         lookheld += ticdup;
     }
@@ -397,7 +405,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
 
     // [crispy] toggle "always run"
-    if (gamekeydown[key_autorun])
+    if (gamekeydown[key_autorun] || gamekeydown[key_autorun2])
     {
         static int joybspeed_old = 2;
 
@@ -414,11 +422,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         CT_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
                       ID_AUTORUN_ON : ID_AUTORUN_OFF, false, NULL);
         S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
-        gamekeydown[key_autorun] = false;
+        gamekeydown[key_autorun] = gamekeydown[key_autorun2] = false;
     }
 
     // [JN] Toggle mouse look.
-    if (gamekeydown[key_mouse_look])
+    if (gamekeydown[key_mouse_look] || gamekeydown[key_mouse_look2])
     {
         mouse_look ^= 1;
         if (!mouse_look)
@@ -430,24 +438,24 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         CT_SetMessage(&players[consoleplayer], mouse_look ?
                       ID_MLOOK_ON : ID_MLOOK_OFF, false, NULL);
         S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
-        gamekeydown[key_mouse_look] = false;
+        gamekeydown[key_mouse_look] = gamekeydown[key_mouse_look2] = false;
     }
 
     // [JN] Toggle vertical mouse movement.
-    if (gamekeydown[key_novert])
+    if (gamekeydown[key_novert] || gamekeydown[key_novert2])
     {
         mouse_novert ^= 1;
         CT_SetMessage(&players[consoleplayer], mouse_novert ?
                       ID_NOVERT_ON : ID_NOVERT_OFF, false, NULL);
         S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
-        gamekeydown[key_novert] = false;
+        gamekeydown[key_novert] = gamekeydown[key_novert2] = false;
     }
 
     // [crispy] add quick 180° reverse
-    if (gamekeydown[key_180turn])
+    if (gamekeydown[key_180turn] || gamekeydown[key_180turn2])
     {
         angle += ANG180 >> FRACBITS;
-        gamekeydown[key_180turn] = false;
+        gamekeydown[key_180turn] = gamekeydown[key_180turn2] = false;
     }
 //
 // let movement keys cancel each other out
@@ -456,11 +464,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     {
         if (!cmd->angleturn)
         {
-            if (gamekeydown[key_right])
+            if (gamekeydown[key_right] || gamekeydown[key_right2])
             {
                 side += sidemove[pClass][speed];
             }
-            if (gamekeydown[key_left])
+            if (gamekeydown[key_left] || gamekeydown[key_left2])
             {
                 side -= sidemove[pClass][speed];
             }
@@ -486,9 +494,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
     else
     {
-        if (gamekeydown[key_right])
+        if (gamekeydown[key_right] || gamekeydown[key_right2])
             angle -= angleturn[tspeed];
-        if (gamekeydown[key_left])
+        if (gamekeydown[key_left] || gamekeydown[key_left2])
             angle += angleturn[tspeed];
         if (use_analog && joyxmove)
         {
@@ -507,11 +515,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         }
     }
 
-    if (gamekeydown[key_up])
+    if (gamekeydown[key_up] || gamekeydown[key_up2])
     {
         forward += forwardmove[pClass][speed];
     }
-    if (gamekeydown[key_down])
+    if (gamekeydown[key_down] || gamekeydown[key_down2])
     {
         forward -= forwardmove[pClass][speed];
     }
@@ -533,12 +541,14 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             forward -= forwardmove[pClass][speed];
         }
     }
-    if (gamekeydown[key_straferight] || mousebuttons[mousebstraferight]
+    if (gamekeydown[key_straferight] || gamekeydown[key_straferight2]
+     || mousebuttons[mousebstraferight] || mousebuttons[mousebstraferight2]
      || joybuttons[joybstraferight])
     {
         side += sidemove[pClass][speed];
     }
-    if (gamekeydown[key_strafeleft] || mousebuttons[mousebstrafeleft]
+    if (gamekeydown[key_strafeleft] || gamekeydown[key_strafeleft2]
+     || mousebuttons[mousebstrafeleft] || mousebuttons[mousebstrafeleft2]
      || joybuttons[joybstrafeleft])
     {
         side -= sidemove[pClass][speed];
@@ -560,11 +570,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
 
     // Look up/down/center keys
-    if (gamekeydown[key_lookup])
+    if (gamekeydown[key_lookup] || gamekeydown[key_lookup2])
     {
         look = lspeed;
     }
-    if (gamekeydown[key_lookdown])
+    if (gamekeydown[key_lookdown] || gamekeydown[key_lookdown2])
     {
         look = -lspeed;
     }
@@ -588,7 +598,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         }
     }
     // haleyjd: removed externdriver crap
-    if (gamekeydown[key_lookcenter])
+    if (gamekeydown[key_lookcenter] || gamekeydown[key_lookcenter2])
     {
         look = TOCENTER;
     }
@@ -596,29 +606,30 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     // haleyjd: removed externdriver crap
 
     // Fly up/down/drop keys
-    if (gamekeydown[key_flyup])
+    if (gamekeydown[key_flyup] || gamekeydown[key_flyup2])
     {
         fly_height = 5;          // note that the actual fly_height will be twice this
     }
-    if (gamekeydown[key_flydown])
+    if (gamekeydown[key_flydown] || gamekeydown[key_flydown2])
     {
         fly_height = -5;
     }
-    if (gamekeydown[key_flycenter])
+    if (gamekeydown[key_flycenter] || gamekeydown[key_flycenter2])
     {
         fly_height = TOCENTER;
         // haleyjd: removed externdriver crap
         look = TOCENTER;
     }
     // Use artifact key
-    if (gamekeydown[key_useartifact] || mousebuttons[mousebuseartifact])
+    if (gamekeydown[key_useartifact] || gamekeydown[key_useartifact2]
+    ||  mousebuttons[mousebuseartifact] || mousebuttons[mousebuseartifact2])
     {
-        if (gamekeydown[key_speed] && artiskip)
+        if ((gamekeydown[key_speed] || gamekeydown[key_speed2]) && artiskip)
         {
             if (players[consoleplayer].inventory[inv_ptr].type != arti_none)
             {                   // Skip an artifact
-                gamekeydown[key_useartifact] = false;
-                mousebuttons[mousebuseartifact] = false;
+                gamekeydown[key_useartifact] = gamekeydown[key_useartifact2] = false;
+                mousebuttons[mousebuseartifact] = mousebuttons[mousebuseartifact2] = false;
                 P_PlayerNextArtifact(&players[consoleplayer]);
             }
         }
@@ -641,7 +652,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             }
         }
     }
-    if (gamekeydown[key_jump] || mousebuttons[mousebjump])
+    if (gamekeydown[key_jump] || gamekeydown[key_jump2] || mousebuttons[mousebjump] || mousebuttons[mousebjump2])
     {
         cmd->arti |= AFLAG_JUMP;
     }
@@ -652,93 +663,88 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
 
     // Artifact hot keys
-    if (gamekeydown[key_arti_all] && !cmd->arti)
+    if ((gamekeydown[key_arti_all] || gamekeydown[key_arti_all2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_all] = false;     // Use one of each artifact
+        gamekeydown[key_arti_all] = gamekeydown[key_arti_all2] = false;     // Use one of each artifact
         cmd->arti = NUMARTIFACTS;
     }
-    else if (gamekeydown[key_arti_health] && !cmd->arti
+    else if ((gamekeydown[key_arti_health] || gamekeydown[key_arti_health2]) && !cmd->arti
              && (players[consoleplayer].mo->health < MAXHEALTH))
     {
-        gamekeydown[key_arti_health] = false;
+        gamekeydown[key_arti_health] = gamekeydown[key_arti_health2] = false;
         cmd->arti = arti_health;
     }
-    else if (gamekeydown[key_arti_poisonbag] && !cmd->arti)
+    else if ((gamekeydown[key_arti_poisonbag] || gamekeydown[key_arti_poisonbag2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_poisonbag] = false;
+        gamekeydown[key_arti_poisonbag] = gamekeydown[key_arti_poisonbag2] = false;
         cmd->arti = arti_poisonbag;
     }
-    else if (gamekeydown[key_arti_blastradius] && !cmd->arti)
+    else if ((gamekeydown[key_arti_blastradius] || gamekeydown[key_arti_blastradius2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_blastradius] = false;
+        gamekeydown[key_arti_blastradius] = gamekeydown[key_arti_blastradius2] = false;
         cmd->arti = arti_blastradius;
     }
-    else if (gamekeydown[key_arti_teleport] && !cmd->arti)
+    else if ((gamekeydown[key_arti_teleport] || gamekeydown[key_arti_teleport2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_teleport] = false;
+        gamekeydown[key_arti_teleport] = gamekeydown[key_arti_teleport2] = false;
         cmd->arti = arti_teleport;
     }
-    else if (gamekeydown[key_arti_teleportother] && !cmd->arti)
+    else if ((gamekeydown[key_arti_teleportother] || gamekeydown[key_arti_teleportother2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_teleportother] = false;
+        gamekeydown[key_arti_teleportother] = gamekeydown[key_arti_teleportother2] = false;
         cmd->arti = arti_teleportother;
     }
-    else if (gamekeydown[key_arti_egg] && !cmd->arti)
+    else if ((gamekeydown[key_arti_egg] || gamekeydown[key_arti_egg2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_egg] = false;
+        gamekeydown[key_arti_egg] = gamekeydown[key_arti_egg2] = false;
         cmd->arti = arti_egg;
     }
-    else if (gamekeydown[key_arti_invulnerability] && !cmd->arti
+    else if ((gamekeydown[key_arti_invulnerability] || gamekeydown[key_arti_invulnerability2]) && !cmd->arti
              && !players[consoleplayer].powers[pw_invulnerability])
     {
-        gamekeydown[key_arti_invulnerability] = false;
+        gamekeydown[key_arti_invulnerability] = gamekeydown[key_arti_invulnerability2] = false;
         cmd->arti = arti_invulnerability;
     }
     // [JN] Add dedicated binds for all artifacts.
-    else if (gamekeydown[key_arti_urn] && !cmd->arti
+    else if ((gamekeydown[key_arti_urn] || gamekeydown[key_arti_urn2]) && !cmd->arti
              && (players[consoleplayer].mo->health < MAXHEALTH))
     {
-        gamekeydown[key_arti_urn] = false;
+        gamekeydown[key_arti_urn] = gamekeydown[key_arti_urn2] = false;
         cmd->arti = arti_superhealth;
     }
-    else if (gamekeydown[key_arti_wings] && !cmd->arti)
+    else if ((gamekeydown[key_arti_wings] || gamekeydown[key_arti_wings2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_wings] = false;
+        gamekeydown[key_arti_wings] = gamekeydown[key_arti_wings2] = false;
         cmd->arti = arti_fly;
     }
-    else if (gamekeydown[key_arti_servant] && !cmd->arti)
+    else if ((gamekeydown[key_arti_servant] || gamekeydown[key_arti_servant2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_servant] = false;
+        gamekeydown[key_arti_servant] = gamekeydown[key_arti_servant2] = false;
         cmd->arti = arti_summon;
     }
-    else if (gamekeydown[key_arti_bracers] && !cmd->arti)
+    else if ((gamekeydown[key_arti_bracers] || gamekeydown[key_arti_bracers2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_bracers] = false;
+        gamekeydown[key_arti_bracers] = gamekeydown[key_arti_bracers2] = false;
         cmd->arti = arti_boostarmor;
     }
-    else if (gamekeydown[key_arti_boots] && !cmd->arti)
+    else if ((gamekeydown[key_arti_boots] || gamekeydown[key_arti_boots2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_boots] = false;
+        gamekeydown[key_arti_boots] = gamekeydown[key_arti_boots2] = false;
         cmd->arti = arti_speed;
     }
-    else if (gamekeydown[key_arti_torch] && !cmd->arti)
+    else if ((gamekeydown[key_arti_torch] || gamekeydown[key_arti_torch2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_torch] = false;
+        gamekeydown[key_arti_torch] = gamekeydown[key_arti_torch2] = false;
         cmd->arti = arti_torch;
     }
-    else if (gamekeydown[key_arti_krater] && !cmd->arti)
+    else if ((gamekeydown[key_arti_krater] || gamekeydown[key_arti_krater2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_krater] = false;
+        gamekeydown[key_arti_krater] = gamekeydown[key_arti_krater2] = false;
         cmd->arti = arti_boostmana;
     }
-    else if (gamekeydown[key_arti_incant] && !cmd->arti)
+    else if ((gamekeydown[key_arti_incant] || gamekeydown[key_arti_incant2]) && !cmd->arti)
     {
-        gamekeydown[key_arti_incant] = false;
-        cmd->arti = arti_healingradius;
-    }
-    else if (gamekeydown[key_arti_incant] && !cmd->arti)
-    {
-        gamekeydown[key_arti_incant] = false;
+        gamekeydown[key_arti_incant] = gamekeydown[key_arti_incant2] = false;
         cmd->arti = arti_healingradius;
     }
 
@@ -747,11 +753,14 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 //
     cmd->chatchar = CT_dequeueChatChar();
 
-    if (gamekeydown[key_fire] || mousebuttons[mousebfire]
+    if (gamekeydown[key_fire] || gamekeydown[key_fire2]
+        || mousebuttons[mousebfire] || mousebuttons[mousebfire2]
         || joybuttons[joybfire])
         cmd->buttons |= BT_ATTACK;
 
-    if (gamekeydown[key_use] || joybuttons[joybuse] || mousebuttons[mousebuse])
+    if (gamekeydown[key_use] || gamekeydown[key_use2] 
+    || mousebuttons[mousebuse] || mousebuttons[mousebuse2]
+    || joybuttons[joybuse])
     {
         cmd->buttons |= BT_USE;
         dclicks = 0;            // clear double clicks if hit use button
@@ -784,11 +793,12 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
     else
     {
-        for (i=0; i<arrlen(weapon_keys); ++i)
+        for (i=0; (size_t)i<arrlen(weapon_keys); ++i)
         {
-            int key = *weapon_keys[i];
+            const int key  = *weapon_keys[i].primary;
+            const int key2 = *weapon_keys[i].secondary;
 
-            if (gamekeydown[key])
+            if (gamekeydown[key] || gamekeydown[key2])
             {
                 cmd->buttons |= BT_CHANGE; 
                 cmd->buttons |= i<<BT_WEAPONSHIFT; 
@@ -799,14 +809,20 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     next_weapon = 0;
 
+    // [JN] Show last message.
+    if (gamekeydown[key_message_refresh_hr] || gamekeydown[key_message_refresh_hr2])
+    {
+        players[consoleplayer].messageTics = MESSAGETICS;
+    }
+
 //
 // mouse
 //
-    if (mousebuttons[mousebforward])
+    if (mousebuttons[mousebforward] || mousebuttons[mousebforward2])
     {
         forward += forwardmove[pClass][speed];
     }
-    if (mousebuttons[mousebbackward])
+    if (mousebuttons[mousebbackward] || mousebuttons[mousebbackward2])
     {
         forward -= forwardmove[pClass][speed];
     }
@@ -815,14 +831,19 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     if (mouse_dclick_use)
     {
-        //
-        // forward double click
-        //
-        if (mousebuttons[mousebforward] != dclickstate && dclicktime > 1)
+	    //
+	    // forward double click (combined)
+	    //
+        if ((mousebuttons[mousebforward] != dclickstate || mousebuttons[mousebforward2] != dclickstate) && dclicktime > 1)
         {
-            dclickstate = mousebuttons[mousebforward];
+            if (mousebuttons[mousebforward] != dclickstate)
+                dclickstate = mousebuttons[mousebforward];
+            else
+                dclickstate = mousebuttons[mousebforward2];
+        
             if (dclickstate)
                 dclicks++;
+        
             if (dclicks == 2)
             {
                 cmd->buttons |= BT_USE;
@@ -844,7 +865,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
         //
         // strafe double click
         //
-        bstrafe = mousebuttons[mousebstrafe] || joybuttons[joybstrafe];
+        bstrafe = mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2] || joybuttons[joybstrafe];
         if (bstrafe != dclickstate2 && dclicktime2 > 1)
         {
             dclickstate2 = bstrafe;
@@ -1238,29 +1259,29 @@ static void SetMouseButtons(unsigned int buttons_mask)
             }
             else
             {
-            if (i == mousebprevweapon)
+            if (i == mousebprevweapon || i == mousebprevweapon2)
             {
                 next_weapon = -1;
             }
-            else if (i == mousebnextweapon)
+            else if (i == mousebnextweapon || i == mousebnextweapon2)
             {
                 next_weapon = 1;
             }
-            else if (i == mousebuse)
+            else if (i == mousebuse || i == mousebuse2)
             {
                 // [PN] Mouse wheel "use" workaround: some mouse buttons (e.g. wheel click)
                 // generate only a single tick event. We simulate a short BT_USE press here.
                 basecmd.buttons |= BT_USE;
             }
-            else if (i == mousebinvleft)
+            else if (i == mousebinvleft || i == mousebinvleft2)
             {
                 InventoryMoveLeft();
             }
-            else if (i == mousebinvright)
+            else if (i == mousebinvright || i == mousebinvright2)
             {
                 InventoryMoveRight();
             }
-            else if (i == mousebuseartifact)
+            else if (i == mousebuseartifact || i == mousebuseartifact2)
             {
                 if (!inventory)
                 {
@@ -1295,7 +1316,7 @@ boolean G_Responder(event_t * ev)
     if (gameaction == ga_nothing && 
         (demoplayback || gamestate == GS_INTERMISSION))
     {
-        if (ev->type == ev_keydown && ev->data1 == key_pause)
+        if (ev->type == ev_keydown && (ev->data1 == key_pause || ev->data1 == key_pause2))
         {
             if (paused ^= 2)
                 S_PauseSound();
@@ -1306,14 +1327,14 @@ boolean G_Responder(event_t * ev)
     }
 
     // [crispy] demo fast-forward
-    if (ev->type == ev_keydown && ev->data1 == key_demospeed
+    if (ev->type == ev_keydown && (ev->data1 == key_demospeed || ev->data1 == key_demospeed2)
     && (demoplayback || gamestate == GS_DEMOSCREEN))
     {
         singletics = !singletics;
         return (true);
     }
 
-    if (ev->type == ev_keyup && ev->data1 == key_useartifact)
+    if (ev->type == ev_keyup && (ev->data1 == key_useartifact || ev->data1 == key_useartifact2))
     {                           // flag to denote that it's okay to use an artifact
         if (!inventory)
         {
@@ -1324,7 +1345,7 @@ boolean G_Responder(event_t * ev)
 
     // Check for spy mode player cycle
     if (gamestate == GS_LEVEL && ev->type == ev_keydown
-        && ev->data1 == key_spy && !deathmatch)
+        && (ev->data1 == key_spy || ev->data1 == key_spy2) && !deathmatch)
     {                           // Cycle the display player
         do
         {
@@ -1399,11 +1420,11 @@ boolean G_Responder(event_t * ev)
         testcontrols_mousespeed = abs(ev->data2);
     }
 
-    if (ev->type == ev_keydown && ev->data1 == key_prevweapon)
+    if (ev->type == ev_keydown && (ev->data1 == key_prevweapon || ev->data1 == key_prevweapon2))
     {
         next_weapon = -1;
     }
-    else if (ev->type == ev_keydown && ev->data1 == key_nextweapon)
+    else if (ev->type == ev_keydown && (ev->data1 == key_nextweapon || ev->data1 == key_nextweapon2))
     {
         next_weapon = 1;
     }
@@ -1411,7 +1432,7 @@ boolean G_Responder(event_t * ev)
     switch (ev->type)
     {
         case ev_keydown:
-            if (ev->data1 == key_invleft)
+            if (ev->data1 == key_invleft || ev->data1 == key_invleft2)
             {
                 if (InventoryMoveLeft())
                 {
@@ -1419,7 +1440,7 @@ boolean G_Responder(event_t * ev)
                 }
                 break;
             }
-            if (ev->data1 == key_invright)
+            if (ev->data1 == key_invright || ev->data1 == key_invright2)
             {
                 if (InventoryMoveRight())
                 {
@@ -1427,7 +1448,7 @@ boolean G_Responder(event_t * ev)
                 }
                 break;
             }
-            if (ev->data1 == key_pause && !MenuActive)
+            if ((ev->data1 == key_pause || ev->data1 == key_pause2) && !MenuActive)
             {
                 sendpause = true;
                 return (true);
@@ -1437,7 +1458,7 @@ boolean G_Responder(event_t * ev)
                 gamekeydown[ev->data1] = true;
             }
             // [JN] Flip level horizontally.
-            if (ev->data1 == key_flip_levels)
+            if (ev->data1 == key_flip_levels || ev->data1 == key_flip_levels2)
             {
                 gp_flip_levels ^= 1;
                 // Redraw game screen
@@ -1446,7 +1467,7 @@ boolean G_Responder(event_t * ev)
                 S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
             }
             // [JN] CRL - Toggle extended HUD.
-            if (ev->data1 == key_widget_enable)
+            if (ev->data1 == key_widget_enable || ev->data1 == key_widget_enable2)
             {
                 widget_enable ^= 1;
                 CT_SetMessage(&players[consoleplayer], widget_enable ?
@@ -1456,7 +1477,7 @@ boolean G_Responder(event_t * ev)
                 SB_state = -1;
             }
             // [JN] CRL - Toggle spectator mode.
-            if (ev->data1 == key_spectator)
+            if (ev->data1 == key_spectator || ev->data1 == key_spectator2)
             {
                 crl_spectating ^= 1;
                 CT_SetMessage(&players[consoleplayer], crl_spectating ?
@@ -1465,7 +1486,7 @@ boolean G_Responder(event_t * ev)
                     I_SetPalette(0);
             }  
             // [JN] CRL - Toggle freeze mode.
-            if (ev->data1 == key_freeze)
+            if (ev->data1 == key_freeze || ev->data1 == key_freeze2)
             {
                 // Allow freeze only in single player game, otherwise desyncs may occur.
                 if (demorecording)
@@ -1489,7 +1510,7 @@ boolean G_Responder(event_t * ev)
                              ID_FREEZE_ON : ID_FREEZE_OFF, false, NULL);
             }
             // [JN] CRL - Toggle notarget mode.
-            if (ev->data1 == key_notarget)
+            if (ev->data1 == key_notarget || ev->data1 == key_notarget2)
             {
                 player_t *player = &players[consoleplayer];
 
@@ -1517,7 +1538,7 @@ boolean G_Responder(event_t * ev)
                             ID_NOTARGET_ON : ID_NOTARGET_OFF, false, NULL);
             }
             // [JN] Woof - Toggle Buddha mode.
-            if (ev->data1 == key_buddha)
+            if (ev->data1 == key_buddha || ev->data1 == key_buddha2)
             {
                 player_t *player = &players[consoleplayer];
 
@@ -1542,7 +1563,7 @@ boolean G_Responder(event_t * ev)
                             ID_BUDDHA_ON : ID_BUDDHA_OFF, false, NULL);
             }
             // [JN] Switch preferred soundtrack.
-            if (ev->data1 == key_switch_ost)
+            if (ev->data1 == key_switch_ost || ev->data1 == key_switch_ost2)
             {
                 if (remaster_ost_r || remaster_ost_o)
                 {
@@ -1605,8 +1626,8 @@ void G_FastResponder (void)
 // [crispy]
 void G_PrepTiccmd (void)
 {
-    const boolean strafe = gamekeydown[key_strafe] ||
-        mousebuttons[mousebstrafe] || joybuttons[joybstrafe];
+    const boolean strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2] ||
+        mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2] || joybuttons[joybstrafe];
 
     // [JN] Deny camera rotation/looking while active menu in multiplayer.
     if (netgame && (MenuActive || askforquit))
@@ -2739,7 +2760,7 @@ static void G_WriteDemoTiccmd(ticcmd_t * cmd)
 {
     byte *demo_start;
 
-    if (gamekeydown[key_demo_quit]) // press to end demo recording
+    if (gamekeydown[key_demo_quit] || gamekeydown[key_demo_quit2]) // press to end demo recording
         G_CheckDemoStatus();
 
     demo_start = demo_p;

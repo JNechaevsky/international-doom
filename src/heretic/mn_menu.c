@@ -550,7 +550,7 @@ static void M_Bind_OverlayMode (int choice);
 static void M_Bind_PanMode (int choice);
 static void M_Bind_ToggleGrid (int choice);
 static void M_Bind_AddMark (int choice);
-static void M_Bind_ClearMarks (int choice);
+static void M_Bind_ClearMark (int choice);
 
 static void M_Draw_ID_Keybinds_7 (void);
 static void M_Bind_HelpScreen (int choice);
@@ -2706,7 +2706,7 @@ static MenuItem_t ID_Menu_Keybinds_6[] = {
     { ITT_EFUNC, "MOUSE PANNING MODE", M_Bind_PanMode,     0, MENU_NONE },
     { ITT_EFUNC, "TOGGLE GRID",        M_Bind_ToggleGrid,  0, MENU_NONE },
     { ITT_EFUNC, "MARK LOCATION",      M_Bind_AddMark,     0, MENU_NONE },
-    { ITT_EFUNC, "CLEAR ALL MARKS",    M_Bind_ClearMarks,  0, MENU_NONE },
+    { ITT_EFUNC, "CLEAR LAST MARK",    M_Bind_ClearMark,   0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Keybinds_6 = {
@@ -2791,7 +2791,7 @@ static void M_Bind_AddMark (int choice)
     M_StartBind(609);  // key_map_mark
 }
 
-static void M_Bind_ClearMarks (int choice)
+static void M_Bind_ClearMark (int choice)
 {
     M_StartBind(610);  // key_map_clearmark
 }
@@ -2959,7 +2959,7 @@ static void M_Draw_ID_Keybinds_8 (void)
     M_DrawBindKey(9, 110, key_multi_msgplayer[2], key_multi_msgplayer2[2]);
     M_DrawBindKey(10, 120, key_multi_msgplayer[3], key_multi_msgplayer2[3]);
 
-    MN_DrTextACentered("RESET", 120, cr[CR_YELLOW]);
+    MN_DrTextACentered("RESET", 130, cr[CR_YELLOW]);
 
     M_DrawBindFooter("8", true);
 }
@@ -8038,11 +8038,11 @@ static void M_DoBind (int keynum, int key)
         case 802: M_DoBindAction(&key_message_refresh_hr, &key_message_refresh_hr2, key, keyboard); break;
         case 803: M_DoBindAction(&key_demo_quit,          &key_demo_quit2,          key, keyboard); break;
         case 804: M_DoBindAction(&key_switch_ost,         &key_switch_ost2,         key, keyboard); break;
-        case 805: M_DoBindAction(&key_multi_msg,          &key_multi_msg2,          key, keyboard); break;
-        case 806: M_DoBindAction(&key_multi_msgplayer[0], &key_multi_msgplayer2[0], key, keyboard); break;
-        case 807: M_DoBindAction(&key_multi_msgplayer[1], &key_multi_msgplayer2[1], key, keyboard); break;
-        case 808: M_DoBindAction(&key_multi_msgplayer[2], &key_multi_msgplayer2[2], key, keyboard); break;
-        case 809: M_DoBindAction(&key_multi_msgplayer[3], &key_multi_msgplayer2[3], key, keyboard); break;
+        case 806: M_DoBindAction(&key_multi_msg,          &key_multi_msg2,          key, keyboard); break;
+        case 807: M_DoBindAction(&key_multi_msgplayer[0], &key_multi_msgplayer2[0], key, keyboard); break;
+        case 808: M_DoBindAction(&key_multi_msgplayer[1], &key_multi_msgplayer2[1], key, keyboard); break;
+        case 809: M_DoBindAction(&key_multi_msgplayer[2], &key_multi_msgplayer2[2], key, keyboard); break;
+        case 810: M_DoBindAction(&key_multi_msgplayer[3], &key_multi_msgplayer2[3], key, keyboard); break;
     }
 }
 

@@ -158,39 +158,39 @@ boolean CT_Responder (event_t *ev)
     {
         int sendto = 0;
 
-        if (ev->data1 == key_multi_msg)
+        if (ev->data1 == key_multi_msg || ev->data1 == key_multi_msg2)
         {
             sendto = CT_PLR_ALL;
         }
-        else if (ev->data1 == key_multi_msgplayer[0])
+        else if (ev->data1 == key_multi_msgplayer[0] || ev->data1 == key_multi_msgplayer2[0])
         {
             sendto = CT_PLR_BLUE;
         }
-        else if (ev->data1 == key_multi_msgplayer[1])
+        else if (ev->data1 == key_multi_msgplayer[1] || ev->data1 == key_multi_msgplayer2[1])
         {
             sendto = CT_PLR_RED;
         }
-        else if (ev->data1 == key_multi_msgplayer[2])
+        else if (ev->data1 == key_multi_msgplayer[2] || ev->data1 == key_multi_msgplayer2[2])
         {
             sendto = CT_PLR_YELLOW;
         }
-        else if (ev->data1 == key_multi_msgplayer[3])
+        else if (ev->data1 == key_multi_msgplayer[3] || ev->data1 == key_multi_msgplayer2[3])
         {
             sendto = CT_PLR_GREEN;
         }
-        else if (ev->data1 == key_multi_msgplayer[4])
+        else if (ev->data1 == key_multi_msgplayer[4] || ev->data1 == key_multi_msgplayer2[4])
         {
             sendto = CT_PLR_PLAYER5;
         }
-        else if (ev->data1 == key_multi_msgplayer[5])
+        else if (ev->data1 == key_multi_msgplayer[5] || ev->data1 == key_multi_msgplayer2[5])
         {
             sendto = CT_PLR_PLAYER6;
         }
-        else if (ev->data1 == key_multi_msgplayer[6])
+        else if (ev->data1 == key_multi_msgplayer[6] || ev->data1 == key_multi_msgplayer2[6])
         {
             sendto = CT_PLR_PLAYER7;
         }
-        else if (ev->data1 == key_multi_msgplayer[7])
+        else if (ev->data1 == key_multi_msgplayer[7] || ev->data1 == key_multi_msgplayer2[7])
         {
             sendto = CT_PLR_PLAYER8;
         }

@@ -702,14 +702,14 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     // Use artifact key
     if (gamekeydown[key_useartifact] || gamekeydown[key_useartifact2]
-    || mousebuttons[mousebuseartifact])
+    || mousebuttons[mousebuseartifact] || mousebuttons[mousebuseartifact2])
     {
         if ((gamekeydown[key_speed] || gamekeydown[key_speed2]) && !ctrl_noartiskip)
         {
             if (players[consoleplayer].inventory[inv_ptr].type != arti_none)
             {
                 gamekeydown[key_useartifact] = gamekeydown[key_useartifact2] = false;
-                mousebuttons[mousebuseartifact] = false;
+                mousebuttons[mousebuseartifact] = mousebuttons[mousebuseartifact2] = false;
                 cmd->arti = 0xff;       // skip artifact code
             }
         }

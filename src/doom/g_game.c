@@ -1248,7 +1248,7 @@ boolean G_Responder (event_t* ev)
     }
 
     // [JN] CRL - Toggle spectator mode.
-    if (ev->data1 == key_spectator)
+    if (ev->data1 == key_spectator || ev->data1 == key_spectator2)
     {
         // Disallow spectator mode in live multiplayer game due to its cheat nature.
         if (netgame && !demoplayback)
@@ -1264,7 +1264,7 @@ boolean G_Responder (event_t* ev)
     }        
 
     // [JN] CRL - Toggle freeze mode.
-    if (ev->data1 == key_freeze)
+    if (ev->data1 == key_freeze || ev->data1 == key_freeze2)
     {
         // Allow freeze only in single player game, otherwise desyncs may occur.
         if (demorecording)
@@ -1288,7 +1288,7 @@ boolean G_Responder (event_t* ev)
     }    
 
     // [JN] CRL - Toggle notarget mode.
-    if (ev->data1 == key_notarget)
+    if (ev->data1 == key_notarget || ev->data1 == key_notarget2)
     {
         player_t *player = &players[consoleplayer];
 
@@ -1315,7 +1315,7 @@ boolean G_Responder (event_t* ev)
     }
 
     // [JN] Woof - Toggle Buddha mode.
-    if (ev->data1 == key_buddha)
+    if (ev->data1 == key_buddha || ev->data1 == key_buddha2)
     {
         player_t *player = &players[consoleplayer];
 
