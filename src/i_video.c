@@ -564,37 +564,48 @@ void I_UpdateExclusiveFullScreen(void)
 
 // -----------------------------------------------------------------------------
 // I_WindowToGameCursorPosition
-//
-//  [PN] Converts raw window pixel coordinates (as returned by SDL events or
-//  SDL_GetMouseState) into "game-space" coordinates (SCREENWIDTH x SCREENHEIGHT).
-//
-//  This is used only when vid_aspect_ratio_correct == 0 (free-resize mode).
-//  In this mode the game framebuffer is stretched arbitrarily to the window,
-//  so the mapping is a simple proportional scale: [0..win_w) -> [0..SCREENWIDTH),
-//  [0..win_h) -> [0..SCREENHEIGHT).
+//  [PN] Converts window-space cursor coordinates (obtained from SDL_GetMouseState)
+//  into normalized in-game coordinates (SCREENWIDTH x SCREENHEIGHT), taking
+//  into account the actual renderer output size and any letterboxing or
+//  pillarboxing caused by aspect ratio correction.
 // -----------------------------------------------------------------------------
 
 static void I_WindowToGameCursorPosition(int win_x, int win_y, int *game_x, int *game_y)
 {
-    int w, h;
-    SDL_GetWindowSize(screen, &w, &h);
-    if (w <= 0 || h <= 0)
+    int out_w, out_h;
+    SDL_GetRendererOutputSize(renderer, &out_w, &out_h);
+
+    SDL_Rect dst = {0, 0, out_w, out_h};
+
+    // Apply letterboxing/pillarboxing if aspect ratio correction is active
+    if (vid_aspect_ratio_correct)
     {
-        *game_x = 0;
-        *game_y = 0;
-        return;
+        if (out_w * actualheight > out_h * SCREENWIDTH)
+        {
+            int tempw = out_w;
+            dst.w = out_h * SCREENWIDTH / actualheight;
+            dst.x = (tempw - dst.w) / 2;
+        }
+        else if (out_h * SCREENWIDTH > out_w * actualheight)
+        {
+            int temph = out_h;
+            dst.h = out_w * actualheight / SCREENWIDTH;
+            dst.y = (temph - dst.h) / 2;
+        }
     }
 
-    int gx = win_x * SCREENWIDTH / w;
-    int gy = win_y * SCREENHEIGHT / h;
+    // Clamp cursor to the visible render area
+    if (win_x < dst.x) win_x = dst.x;
+    if (win_x >= dst.x + dst.w) win_x = dst.x + dst.w - 1;
+    if (win_y < dst.y) win_y = dst.y;
+    if (win_y >= dst.y + dst.h) win_y = dst.y + dst.h - 1;
 
-    if (gx < 0) gx = 0;
-    if (gx >= SCREENWIDTH)  gx = SCREENWIDTH  - 1;
-    if (gy < 0) gy = 0;
-    if (gy >= SCREENHEIGHT) gy = SCREENHEIGHT - 1;
+    const int relx = win_x - dst.x;
+    const int rely = win_y - dst.y;
 
-    *game_x = gx;
-    *game_y = gy;
+    // Convert to game-space coordinates
+    *game_x = relx * SCREENWIDTH  / dst.w;
+    *game_y = rely * SCREENHEIGHT / dst.h;
 }
 
 // [JN] Reinitialize mouse cursor position on changing rendering resoluton
@@ -602,17 +613,7 @@ void I_ReInitCursorPosition (void)
 {
     int wx, wy;
     SDL_GetMouseState(&wx, &wy);
-
-    if (vid_aspect_ratio_correct == 0)
-    {
-        I_WindowToGameCursorPosition(wx, wy, &menu_mouse_x, &menu_mouse_y);
-    }
-    else
-    {
-        const float div_factor = (vid_aspect_ratio_correct == 1) ? 1.2f : 1.0f;
-        menu_mouse_x = wx;
-        menu_mouse_y = (int)(wy / div_factor);
-    }
+    I_WindowToGameCursorPosition(wx, wy, &menu_mouse_x, &menu_mouse_y);
 
     SDL_GetMouseState(&menu_mouse_x_sdl, &menu_mouse_y_sdl);
 }
