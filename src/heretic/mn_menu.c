@@ -404,8 +404,8 @@ static Menu_t Options2Menu = {
 #define ID_MENU_TOPOFFSET         (20)
 #define ID_MENU_LEFTOFFSET        (48)
 #define ID_MENU_LEFTOFFSET_SML    (90)
+#define ID_MENU_LEFTOFFSET_MID    (64)
 #define ID_MENU_LEFTOFFSET_BIG    (32)
-#define ID_MENU_LEFTOFFSET_LEVEL  (74)
 #define ID_MENU_CTRLSOFFSET       (44)
 
 #define ID_MENU_LINEHEIGHT_SMALL  (10)
@@ -4378,12 +4378,12 @@ static MenuItem_t ID_Menu_Level_1[] = {
     { ITT_LRFUNC1, "PHOENIX ROD",       M_ID_LevelPhoenixRod, 0, MENU_NONE },
     { ITT_LRFUNC1, "FIREMACE",          M_ID_LevelFireMace,   0, MENU_NONE },
     { ITT_EMPTY,   NULL,                NULL,                 0, MENU_NONE },
-    { ITT_LRFUNC2, "NEXT PAGE",         M_ScrollLevel,        0, MENU_NONE },
+    { ITT_LRFUNC2, "", /* SCROLL PGS */ M_ScrollLevel,        0, MENU_NONE },
     { ITT_EFUNC,   "START GAME",        G_DoSelectiveGame,    0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Level_1 = {
-    ID_MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_MID, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_1,
     ITEMCOUNT(ID_Menu_Level_1), ID_Menu_Level_1,
     0,
@@ -4509,12 +4509,8 @@ static void M_Draw_ID_Level_1 (void)
                             level_select[11] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],                        
                                 LINE_ALPHA(13));
 
-    // Footer
-    sprintf(str, "PAGE 1/3");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 170,
-                        cr[CR_LIGHTGRAY],
-                            cr[CR_LIGHTGRAY_BRIGHT],
-                                LINE_ALPHA(15));
+    // < Scroll pages >
+    M_DrawScrollPages(CurrentMenu->x, 170, 15, "1/3");
 }
 
 static void M_ID_LevelSkill (int choice)
@@ -4625,12 +4621,12 @@ static MenuItem_t ID_Menu_Level_2[] = {
     { ITT_LRFUNC1, "FAST",            M_ID_LevelFast,    0, MENU_NONE },
     { ITT_LRFUNC1, "RESPAWNING",      M_ID_LevelRespawn, 0, MENU_NONE },
     { ITT_EMPTY,   NULL,              NULL,              0, MENU_NONE },
-    { ITT_LRFUNC2, "LAST PAGE",       M_ScrollLevel,     0, MENU_NONE },
+    { ITT_LRFUNC2, "",/* SCROLL PGS */M_ScrollLevel,     0, MENU_NONE },
     { ITT_EFUNC,   "START GAME",      G_DoSelectiveGame, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Level_2 = {
-    ID_MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_MID, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_2,
     ITEMCOUNT(ID_Menu_Level_2), ID_Menu_Level_2,
     0,
@@ -4746,12 +4742,8 @@ static void M_Draw_ID_Level_2 (void)
                             level_select[23] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(13));
 
-    // Footer
-    sprintf(str, "PAGE 2/3");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 170,
-                        cr[CR_LIGHTGRAY],
-                            cr[CR_LIGHTGRAY_BRIGHT],
-                                LINE_ALPHA(15));
+    // < Scroll pages >
+    M_DrawScrollPages(CurrentMenu->x, 170, 15, "2/3");
 }
 
 static void M_ID_LevelBag (int choice)
@@ -4850,12 +4842,12 @@ static MenuItem_t ID_Menu_Level_3[] = {
     { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
     { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
     { ITT_EMPTY,  NULL,                    NULL,              0, MENU_NONE },
-    { ITT_LRFUNC2, "FIRST PAGE",            M_ScrollLevel,     0, MENU_NONE },
+    { ITT_LRFUNC2, "", /* SCROLL PGS */    M_ScrollLevel,     0, MENU_NONE },
     { ITT_EFUNC,  "START GAME",            G_DoSelectiveGame, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Level_3 = {
-    ID_MENU_LEFTOFFSET_LEVEL, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_MID, ID_MENU_TOPOFFSET,
     M_Draw_ID_Level_3,
     ITEMCOUNT(ID_Menu_Level_3), ID_Menu_Level_3,
     0,
@@ -4941,12 +4933,8 @@ static void M_Draw_ID_Level_3 (void)
                             level_select[33] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(9));
 
-    // Footer
-    sprintf(str, "PAGE 3/3");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 170,
-                        cr[CR_LIGHTGRAY],
-                            cr[CR_LIGHTGRAY_BRIGHT],
-                                LINE_ALPHA(15));
+    // < Scroll pages >
+    M_DrawScrollPages(CurrentMenu->x, 170, 15, "3/3");
 }
 
 static void M_ID_LevelArti_0 (int choice)

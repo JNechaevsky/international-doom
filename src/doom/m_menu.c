@@ -530,7 +530,6 @@ static menu_t SaveDef =
 #define ID_MENU_LEFTOFFSET_SML    (93)
 #define ID_MENU_LEFTOFFSET_MID    (64)
 #define ID_MENU_LEFTOFFSET_BIG    (32)
-#define ID_MENU_LEFTOFFSET_LEVEL  (74)
 
 #define ID_MENU_LINEHEIGHT_SMALL  (9)
 #define ID_MENU_CURSOR_OFFSET     (10)
@@ -4541,7 +4540,7 @@ static menuitem_t ID_Menu_Level_1[]=
     { M_MUL1, "PLASMA RIFLE",       M_ID_LevelPlasmagun, 'p' },
     { M_MUL1, "BFG 9000",           M_ID_LevelBFG9000,   'b' },
     { M_SKIP, "", 0, '\0' },  // WEAPONS
-    { M_MUL1, "", /* NEXT PAGE > */ M_ScrollLevel,       'n' },
+    { M_MUL1, "", /* SCROLL PGS  */ M_ScrollLevel,       'n' },
     { M_SWTC, "", /* START GAME  */ G_DoSelectiveGame,   's' }
 };
 
@@ -4552,7 +4551,7 @@ static menu_t ID_Def_Level_1 =
     &ID_Def_Main,
     ID_Menu_Level_1,
     M_Draw_ID_Level_1,
-    ID_MENU_LEFTOFFSET_LEVEL, 25,
+    ID_MENU_LEFTOFFSET_MID, 25,
     0,
     true, false, true,
 };
@@ -4693,11 +4692,9 @@ static void M_Draw_ID_Level_1 (void)
                             level_select[12] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],                        
                                 LINE_ALPHA(14));
 
-    M_WriteTextGlow(ID_MENU_LEFTOFFSET_LEVEL, 169, "NEXT PAGE >",
-                        cr[CR_LIGHTGRAY],
-                            cr[CR_LIGHTGRAY_BRIGHT],
-                                LINE_ALPHA(16));
-    M_WriteTextGlow(ID_MENU_LEFTOFFSET_LEVEL, 178, "START GAME",
+    M_DrawScrollPages(currentMenu->x, 169, 16, "1/2");
+    
+    M_WriteTextGlow(currentMenu->x, 178, "START GAME",
                         cr[CR_LIGHTGRAY],
                             cr[CR_LIGHTGRAY_BRIGHT],
                                 LINE_ALPHA(17));
@@ -4802,7 +4799,7 @@ static menuitem_t ID_Menu_Level_2[]=
     { M_MUL1, "FAST MONSTERS",       M_ID_LevelFastMonsters,  'f' },
     { M_MUL1, "RESPAWNING MONSTERS", M_ID_LevelRespMonsters,  'r' },
     { M_SKIP, "", 0, '\0' },  // WEAPONS
-    { M_MUL1, "", /* < PREV PAGE */  M_ScrollLevel,           'p' },
+    { M_MUL1, "", /* SCROLL PGS  */  M_ScrollLevel,           'p' },
     { M_SWTC, "", /* START GAME  */  G_DoSelectiveGame,       's' }
 };
 
@@ -4813,7 +4810,7 @@ static menu_t ID_Def_Level_2 =
     &ID_Def_Main,
     ID_Menu_Level_2,
     M_Draw_ID_Level_2,
-    ID_MENU_LEFTOFFSET_LEVEL, 25,
+    ID_MENU_LEFTOFFSET_MID, 25,
     0,
     true, false, true,
 };
@@ -4939,11 +4936,9 @@ static void M_Draw_ID_Level_2 (void)
                             level_select[25] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(14));
 
-    M_WriteTextGlow(ID_MENU_LEFTOFFSET_LEVEL, 169, "NEXT PAGE >",
-                        cr[CR_LIGHTGRAY],
-                            cr[CR_LIGHTGRAY_BRIGHT],
-                                LINE_ALPHA(16));
-    M_WriteTextGlow(ID_MENU_LEFTOFFSET_LEVEL, 178, "START GAME",
+    M_DrawScrollPages(currentMenu->x, 169, 16, "2/2");
+    
+    M_WriteTextGlow(currentMenu->x, 178, "START GAME",
                         cr[CR_LIGHTGRAY],
                             cr[CR_LIGHTGRAY_BRIGHT],
                                 LINE_ALPHA(17));
