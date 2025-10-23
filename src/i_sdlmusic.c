@@ -148,6 +148,8 @@ static void RemoveTimidityConfig(void)
     {
         M_remove(temp_timidity_cfg);
         free(temp_timidity_cfg);
+        // [PN] Prevent accidental double-free by nullifying the pointer
+        temp_timidity_cfg = NULL;
     }
 }
 
