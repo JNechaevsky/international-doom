@@ -5,7 +5,7 @@
     "sdl2",
     {
       "name": "sdl2-mixer",
-      "features": [ "libflac", "libmodplug", "mpg123", "opusfile" ]
+      "features": [ "libflac", "libmodplug", "mpg123", "opusfile", "timidity" ]
     },
     "sdl2-net",
     "libsamplerate",
