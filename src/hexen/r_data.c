@@ -813,23 +813,7 @@ void R_InitTextures (void)
         memcpy(texture->name, mtexture->name, sizeof(texture->name));
 
         texture->width      = SHORT(mtexture->width);
-        // [PN/JN] Copy texture name from the WAD definition and check if it matches
-        // any of the known sky texture names (SKY1–SKY6). If it is a sky,
-        // set the texture height to match the first patch's height; otherwise
-        // use the height value from the WAD definition.
-        if (R_IsTextureName(texture->name, "SKY1")
-        ||  R_IsTextureName(texture->name, "SKY2")
-        ||  R_IsTextureName(texture->name, "SKY3")
-        ||  R_IsTextureName(texture->name, "SKY4")
-        ||  R_IsTextureName(texture->name, "SKY5")
-        ||  R_IsTextureName(texture->name, "SKY6"))
-        {
-            texture->height = R_GetPatchHeight(i, 0);
-        }
-        else
-        {
-            texture->height = SHORT(mtexture->height);
-        }
+        texture->height     = SHORT(mtexture->height);
         texture->patchcount = SHORT(mtexture->patchcount);
 
         const mappatch_t *mpatch = &mtexture->patches[0];
@@ -861,8 +845,24 @@ void R_InitTextures (void)
 
                 // [crispy] make non-fatal
                 fprintf(stderr, "R_InitTextures: Missing patch in texture %s\n", texturename);
-                patch->patch = W_CheckNumForName("WIPCNT"); // [crispy] dummy patch
+                patch->patch = W_CheckNumForName("FONTB05"); // [crispy] dummy patch
             }
+        }
+
+        // [PN/JN] Copy texture name from the WAD definition and check if it matches
+        // any of the known sky texture names. If it is a sky,
+        // set the texture height to match the first patch's height; otherwise
+        // use the height value from the WAD definition.
+        if (R_IsTextureName(texture->name, "SKY1")
+        ||  R_IsTextureName(texture->name, "SKY2")
+        ||  R_IsTextureName(texture->name, "SKY2A")
+        ||  R_IsTextureName(texture->name, "SKY3")
+        ||  R_IsTextureName(texture->name, "SKYWALL")
+        ||  R_IsTextureName(texture->name, "SKYWALL2")
+        ||  R_IsTextureName(texture->name, "SKYFOG")
+        ||  R_IsTextureName(texture->name, "SKYFOG2"))
+        {
+            texture->height = R_GetPatchHeight(i, 0);
         }
 
         texturecolumnlump[i] = Z_Malloc(texture->width * sizeof(**texturecolumnlump), PU_STATIC, 0);
