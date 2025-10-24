@@ -700,7 +700,7 @@ void TryRunTics (void)
     // [JN] CRL - Keep uncapped framerate while paused and Spectator mode.
     extern boolean paused;
     #define return_early (vid_uncapped_fps && counts == 0 && \
-                         ((paused && crl_spectating) || realleveltime > oldleveltime) && \
+                         ((paused && crl_spectating) || realleveltime >= oldleveltime) && \
                          screenvisible)
 
     // get real tics
