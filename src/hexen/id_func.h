@@ -57,6 +57,7 @@ extern char ID_Local_Time[64];
 // Render Counters and Widgets
 //
 
+extern void ID_FormatWidgetTime (char *buf, size_t bufsize, int ticks, int mode);
 extern void ID_LeftWidgets (void);
 extern void ID_RightWidgets (void);
 extern void ID_DrawTargetsHealth (void);

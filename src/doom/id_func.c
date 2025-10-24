@@ -317,6 +317,31 @@ static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
     }
 }
 
+// [JN] Format time string for the level/total time widget.
+void ID_FormatWidgetTime (char *buf, size_t bufsize, int ticks, int mode)
+{
+    const int hours   = ticks / (3600 * TICRATE);
+    const int mins    = (ticks / (60 * TICRATE)) % 60;
+    const int sec     = (ticks / TICRATE) % 60;
+    const int csec    = ((ticks % TICRATE) * 100 + TICRATE / 2) / TICRATE;
+    const int show_cs = (mode == 3 || mode == 4);
+
+    if (hours)
+    {
+        if (show_cs)
+            M_snprintf(buf, bufsize, "%02i:%02i:%02i.%02i", hours, mins, sec, csec);
+        else
+            M_snprintf(buf, bufsize, "%02i:%02i:%02i", hours, mins, sec);
+    }
+    else
+    {
+        if (show_cs)
+            M_snprintf(buf, bufsize, "%02i:%02i.%02i", mins, sec, csec);
+        else
+            M_snprintf(buf, bufsize, "%02i:%02i", mins, sec);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // ID_LeftWidgets.
 //  [JN] Draw all the widgets and counters.
@@ -406,16 +431,16 @@ void ID_LeftWidgets (void)
         }
 
         // Level / DeathMatch timer. Time gathered in G_Ticker.
-        if (widget_time == 1
-        || (widget_time == 2 && automapactive))
+        if ( widget_time == 1 || widget_time == 3
+        || ((widget_time == 2 || widget_time == 4) && automapactive))
         {
             M_WriteText(left_align, 45, "TIME", ID_WidgetColor(widget_time_str));
             M_WriteText(left_align, 54, ID_Level_Time, ID_WidgetColor(widget_time_val));
         }
 
         // Total time. Time gathered in G_Ticker.
-        if (widget_totaltime == 1
-        || (widget_totaltime == 2 && automapactive))
+        if ( widget_totaltime == 1 || widget_totaltime == 3
+        || ((widget_totaltime == 2 || widget_totaltime == 4) && automapactive))
         {
             M_WriteText(left_align, 63, "TOTAL", ID_WidgetColor(widget_time_str));
             M_WriteText(left_align, 72, ID_Total_Time, ID_WidgetColor(widget_time_val));
@@ -668,8 +693,8 @@ void ID_LeftWidgets (void)
         }
 
         // Total time. Time gathered in G_Ticker.
-        if (widget_totaltime == 1
-        || (widget_totaltime == 2 && automapactive))
+        if ( widget_totaltime == 1 || widget_totaltime == 3
+        || ((widget_totaltime == 2 || widget_totaltime == 4) && automapactive))
         {
             char stra[8];
 
@@ -684,8 +709,8 @@ void ID_LeftWidgets (void)
         }
 
         // Level / DeathMatch timer. Time gathered in G_Ticker.
-        if (widget_time == 1
-        || (widget_time == 2 && automapactive))
+        if ( widget_time == 1 || widget_time == 3
+        || ((widget_time == 2 || widget_time == 4) && automapactive))
         {
             char stra[8];
 

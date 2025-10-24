@@ -1687,18 +1687,14 @@ void G_Ticker (void)
     // Level / DeathMatch timer
     if (widget_time)
     {
-        const int time = (deathmatch && levelTimer ? levelTimeCount : leveltime) / TICRATE;
-    
-        M_snprintf(ID_Level_Time, sizeof(ID_Level_Time),
-                   "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
+        const int time = (deathmatch && levelTimer ? levelTimeCount : leveltime);
+        ID_FormatWidgetTime(ID_Level_Time, sizeof(ID_Level_Time), time, widget_time);
     }
     // Total time
     if (widget_totaltime)
     {
-        const int totaltime = (totalleveltimes / TICRATE) + (leveltime / TICRATE);
-
-        M_snprintf(ID_Total_Time, sizeof(ID_Total_Time),
-                   "%02d:%02d:%02d", totaltime/3600, (totaltime%3600)/60, totaltime%60);
+        const int totaltime = totalleveltimes + leveltime;
+        ID_FormatWidgetTime(ID_Total_Time, sizeof(ID_Total_Time), totaltime, widget_totaltime);
     }
     // Local time
     if (msg_local_time)

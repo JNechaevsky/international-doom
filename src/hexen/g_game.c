@@ -1899,11 +1899,7 @@ void G_Ticker(void)
     if (widget_totaltime)
     {
         const int worldTimer = players[consoleplayer].worldTimer;
-        const int hours = worldTimer / (3600 * TICRATE);
-        const int mins = worldTimer / (60 * TICRATE) % 60;
-        const int secs = (worldTimer % (60 * TICRATE)) / TICRATE;
-
-        M_snprintf(ID_Total_Time, sizeof(ID_Total_Time), "%02i:%02i:%02i", hours, mins, secs);
+        ID_FormatWidgetTime(ID_Total_Time, sizeof(ID_Total_Time), worldTimer, widget_totaltime);
     }
     // Local time
     if (msg_local_time)

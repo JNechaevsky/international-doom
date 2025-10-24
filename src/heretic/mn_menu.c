@@ -3233,16 +3233,20 @@ static void M_Draw_ID_Widgets (void)
                                 LINE_ALPHA(5));
 
     // Level/DM timer
-    sprintf(str, widget_time == 1 ? "ALWAYS"  :
-                 widget_time == 2 ? "AUTOMAP" : "OFF");
+    sprintf(str, widget_time == 1 ? "ALWAYS / NO CS"  :
+                 widget_time == 2 ? "AUTOMAP / NO CS" :
+                 widget_time == 3 ? "ALWAYS / CS"     :
+                 widget_time == 4 ? "AUTOMAP / CS"    : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
                         widget_time ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_time ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(6));
 
     // Total time
-    sprintf(str, widget_totaltime == 1 ? "ALWAYS"  :
-                 widget_totaltime == 2 ? "AUTOMAP" : "OFF");
+    sprintf(str, widget_totaltime == 1 ? "ALWAYS / NO CS"  :
+                 widget_totaltime == 2 ? "AUTOMAP / NO CS" :
+                 widget_totaltime == 3 ? "ALWAYS / CS"     :
+                 widget_totaltime == 4 ? "AUTOMAP / CS"    : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
                         widget_totaltime ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_totaltime ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
@@ -3320,12 +3324,12 @@ static void M_ID_Widget_KIS_Items (int choice)
 
 static void M_ID_Widget_Time (int choice)
 {
-    widget_time = M_INT_Slider(widget_time, 0, 2, choice, false);
+    widget_time = M_INT_Slider(widget_time, 0, 4, choice, false);
 }
 
 static void M_ID_Widget_TotalTime (int choice)
 {
-    widget_totaltime = M_INT_Slider(widget_totaltime, 0, 2, choice, false);
+    widget_totaltime = M_INT_Slider(widget_totaltime, 0, 4, choice, false);
 }
 
 static void M_ID_Widget_LevelName (int choice)

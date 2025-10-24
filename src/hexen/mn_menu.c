@@ -3212,10 +3212,11 @@ static void M_Draw_ID_Widgets (void)
                                 LINE_ALPHA(3));
 
     // Total time
-    sprintf(str, widget_totaltime ? "ALWAYS" : "AUTOMAP");
+    sprintf(str, widget_totaltime == 1 ? "ALWAYS / NO CS" :
+                 widget_totaltime == 2 ? "ALWAYS / CS"    : "AUTOMAP");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
-                        widget_time ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
-                            widget_time ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                        widget_totaltime ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            widget_totaltime ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(4));
 
     // Level name
@@ -3280,7 +3281,7 @@ static void M_ID_Widget_Kills (int choice)
 
 static void M_ID_Widget_TotalTime (int choice)
 {
-    widget_totaltime ^= 1;
+    widget_totaltime = M_INT_Slider(widget_totaltime, 0, 2, choice, false);
 }
 
 static void M_ID_Widget_LevelName (int choice)

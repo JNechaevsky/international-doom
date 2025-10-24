@@ -156,6 +156,31 @@ static byte *ID_WidgetColor (const int i)
     return NULL;
 }
 
+// [JN] Format time string for the level/total time widget.
+void ID_FormatWidgetTime (char *buf, size_t bufsize, int ticks, int mode)
+{
+    const int hours   = ticks / (3600 * TICRATE);
+    const int mins    = (ticks / (60 * TICRATE)) % 60;
+    const int sec     = (ticks / TICRATE) % 60;
+    const int csec    = ((ticks % TICRATE) * 100 + TICRATE / 2) / TICRATE;
+    const int show_cs = (mode == 2);
+
+    if (hours)
+    {
+        if (show_cs)
+            M_snprintf(buf, bufsize, "%02i:%02i:%02i.%02i", hours, mins, sec, csec);
+        else
+            M_snprintf(buf, bufsize, "%02i:%02i:%02i", hours, mins, sec);
+    }
+    else
+    {
+        if (show_cs)
+            M_snprintf(buf, bufsize, "%02i:%02i.%02i", mins, sec, csec);
+        else
+            M_snprintf(buf, bufsize, "%02i:%02i", mins, sec);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // ID_LeftWidgets.
 //  [JN] Draw all the widgets and counters.
