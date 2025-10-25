@@ -698,7 +698,7 @@ void TryRunTics (void)
     // [AM] If we've uncapped the framerate and there are no tics
     //      to run, return early instead of waiting around.
     #define return_early (vid_uncapped_fps && counts == 0 && \
-                         realleveltime >= oldleveltime && \
+                         gametic && \
                          screenvisible)
 
     // get real tics
