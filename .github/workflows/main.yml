@@ -15,6 +15,12 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    - cron: "0 3 * * *"  # Nightly build at 03:00 UTC
+
+permissions:
+  contents: write
+  actions: read
 
 env:
   VCPKG_BINARY_SOURCES: "clear;files,${{ github.workspace }}/vcpkg_cache,readwrite"
@@ -211,3 +217,60 @@ jobs:
           name: inter-doom-linux64
           path: bundled_appimages/*
           retention-days: 90
+
+  release_nightly:
+    name: Create Nightly Release
+    runs-on: ubuntu-latest
+    needs: [windows_64bit, windows_32bit, linux_64bit]
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Download Windows 64-bit artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: inter-doom-win64
+          path: ./artifacts/win64
+
+      - name: Download Windows 32-bit artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: inter-doom-win32
+          path: ./artifacts/win32
+
+      - name: Download Linux 64-bit artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: inter-doom-linux64
+          path: ./artifacts/linux64
+
+      - name: Create or update nightly release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: Nightly Release
+          body: Nightly build artifacts
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows 64-bit artifact to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/win64/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows 32-bit artifact to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/win32/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Linux 64-bit artifact to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/linux64/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
