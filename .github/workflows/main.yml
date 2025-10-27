@@ -242,35 +242,18 @@ jobs:
           name: inter-doom-linux64
           path: ./artifacts/linux64
 
-      - name: Create or update nightly release
-        id: create_release
+      - name: Create/Update Nightly release with artifacts
+        if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: nightly
           name: Nightly Release
           body: Nightly build artifacts
-          draft: false
           prerelease: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Windows 64-bit artifact to release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./artifacts/win64/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Windows 32-bit artifact to release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./artifacts/win32/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Linux 64-bit artifact to release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./artifacts/linux64/*
+          draft: false
+          files: |
+            ./artifacts/win64/**
+            ./artifacts/win32/**
+            ./artifacts/linux64/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
