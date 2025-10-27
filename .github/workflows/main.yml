@@ -248,7 +248,6 @@ jobs:
         with:
           tag_name: nightly
           name: Nightly Release
-          body: Nightly build artifacts
           prerelease: true
           draft: false
           files: |
