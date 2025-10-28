@@ -242,6 +242,18 @@ jobs:
           name: inter-doom-linux64
           path: ./artifacts/linux64
 
+      - name: Archive Windows 64-bit artifacts
+        run: |
+          zip -j -r ./artifacts/inter-doom-win64.zip ./artifacts/win64/*
+
+      - name: Archive Windows 32-bit artifacts
+        run: |
+          zip -j -r ./artifacts/inter-doom-win32.zip ./artifacts/win32/*
+
+      - name: Archive Linux 64-bit artifacts
+        run: |
+          zip -j -r ./artifacts/inter-doom-linux64.zip ./artifacts/linux64/*
+
       - name: Create/Update Nightly release with artifacts
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
@@ -251,8 +263,8 @@ jobs:
           prerelease: true
           draft: false
           files: |
-            ./artifacts/win64/**
-            ./artifacts/win32/**
-            ./artifacts/linux64/**
+            ./artifacts/inter-doom-win64.zip
+            ./artifacts/inter-doom-win32.zip
+            ./artifacts/inter-doom-linux64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
