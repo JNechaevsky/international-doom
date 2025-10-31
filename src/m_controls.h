@@ -150,6 +150,7 @@ extern int key_menu_endgame, key_menu_endgame2;
 extern int key_menu_messages, key_menu_messages2;
 extern int key_menu_qload, key_menu_qload2;
 extern int key_menu_quit, key_menu_quit2;
+extern int key_menu_gammad, key_menu_gammad2;
 extern int key_menu_gamma, key_menu_gamma2;
 extern int key_spy, key_spy2;
 

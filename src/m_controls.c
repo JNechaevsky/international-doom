@@ -161,6 +161,7 @@ int key_menu_endgame  = KEY_F7;  int key_menu_endgame2  = 0;
 int key_menu_messages = KEY_F8;  int key_menu_messages2 = 0;
 int key_menu_qload    = KEY_F9;  int key_menu_qload2    = 0;
 int key_menu_quit     = KEY_F10; int key_menu_quit2     = 0;
+int key_menu_gammad   = 0;       int key_menu_gammad2   = 0;
 int key_menu_gamma    = KEY_F11; int key_menu_gamma2    = 0;
 int key_spy           = KEY_F12; int key_spy2           = 0;
 
@@ -336,6 +337,7 @@ void M_BindControls (void)
     M_BindIntVariableKeybind("key_menu_messages", &key_menu_messages, "key_menu_messages2", &key_menu_messages2);
     M_BindIntVariableKeybind("key_menu_qload",    &key_menu_qload,    "key_menu_qload2",    &key_menu_qload2);
     M_BindIntVariableKeybind("key_menu_quit",     &key_menu_quit,     "key_menu_quit2",     &key_menu_quit2);
+    M_BindIntVariableKeybind("key_menu_gammad",   &key_menu_gammad,   "key_menu_gammad2",   &key_menu_gammad2);
     M_BindIntVariableKeybind("key_menu_gamma",    &key_menu_gamma,    "key_menu_gamma2",    &key_menu_gamma2);
     M_BindIntVariableKeybind("key_spy",           &key_spy,           "key_spy2",           &key_spy2);
 

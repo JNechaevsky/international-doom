@@ -672,7 +672,8 @@ static void M_Bind_EndGame (int choice);
 static void M_Bind_ToggleMessages (int choice);
 static void M_Bind_QuickLoad (int choice);
 static void M_Bind_QuitGame (int choice);
-static void M_Bind_ToggleGamma (int choice);
+static void M_Bind_DecreaseGamma (int choice);
+static void M_Bind_IncreaseGamma (int choice);
 static void M_Bind_MultiplayerSpy (int choice);
 
 static void M_Draw_ID_Keybinds_6 (void);
@@ -2854,7 +2855,8 @@ static menuitem_t ID_Menu_Keybinds_5[]=
     { M_SWTC, "TOGGLE MESSAGES", M_Bind_ToggleMessages, 't' },
     { M_SWTC, "QUICK LOAD",      M_Bind_QuickLoad,      'q' },
     { M_SWTC, "QUIT GAME",       M_Bind_QuitGame,       'q' },
-    { M_SWTC, "TOGGLE GAMMA",    M_Bind_ToggleGamma,    't' },
+    { M_SWTC, "DECREASE GAMMA",  M_Bind_DecreaseGamma,  'd' },
+    { M_SWTC, "INCREASE GAMMA",  M_Bind_IncreaseGamma,  'i' },
     { M_SWTC, "MULTIPLAYER SPY", M_Bind_MultiplayerSpy, 'm' },
 };
 
@@ -2919,14 +2921,19 @@ static void M_Bind_QuitGame (int choice)
     M_StartBind(509);  // key_menu_quit
 }
 
-static void M_Bind_ToggleGamma (int choice)
+static void M_Bind_DecreaseGamma (int choice)
 {
-    M_StartBind(510);  // key_menu_gamma
+    M_StartBind(510);  // key_menu_gammad
+}
+
+static void M_Bind_IncreaseGamma (int choice)
+{
+    M_StartBind(511);  // key_menu_gamma
 }
 
 static void M_Bind_MultiplayerSpy (int choice)
 {
-    M_StartBind(511);  // key_spy
+    M_StartBind(512);  // key_spy
 }
 static void M_Draw_ID_Keybinds_5 (void)
 {
@@ -2947,8 +2954,9 @@ static void M_Draw_ID_Keybinds_5 (void)
     M_DrawBindKey(7, 81, key_menu_messages, key_menu_messages2);
     M_DrawBindKey(8, 90, key_menu_qload, key_menu_qload2);
     M_DrawBindKey(9, 99, key_menu_quit, key_menu_quit2);
-    M_DrawBindKey(10, 108, key_menu_gamma, key_menu_gamma2);
-    M_DrawBindKey(11, 117, key_spy, key_spy2);
+    M_DrawBindKey(10, 108, key_menu_gammad, key_menu_gammad2);
+    M_DrawBindKey(11, 117, key_menu_gamma, key_menu_gamma2);
+    M_DrawBindKey(12, 126, key_spy, key_spy2);
 
     M_DrawBindFooter("5", true);
 }
@@ -7103,17 +7111,19 @@ boolean M_Responder (event_t* ev)
     }
 
     // [JN] Allow to change gamma while active menu.
-    if (key == key_menu_gamma || key == key_menu_gamma2)    // gamma toggle
+    if (key == key_menu_gammad || key == key_menu_gammad2
+    ||  key == key_menu_gamma  || key == key_menu_gamma2)
     {
-        vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, 1 /*right*/, false);
+        const int dir = (key == key_menu_gamma || key == key_menu_gamma2) ? 1 /*right*/ : 0 /*left*/;
+
+        vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA - 1, dir, false);
         CT_SetMessage(&players[consoleplayer], DEH_String(gammalvls[vid_gamma][0]), false, NULL);
-        {
-            I_SetPalette(st_palette);
-            R_InitColormaps();
-            I_InitPALTransMaps();
-            R_FillBackScreen();
-            st_fullupdate = true;
-        }
+        I_SetPalette(st_palette);
+        R_InitColormaps();
+        I_InitPALTransMaps();
+        R_FillBackScreen();
+        st_fullupdate = true;
+
         return true;
     }
 
@@ -7980,6 +7990,7 @@ static void M_CheckBind (int key)
     UNSET_IF_MATCH(key, key_menu_messages, key_menu_messages2);
     UNSET_IF_MATCH(key, key_menu_qload,    key_menu_qload2);
     UNSET_IF_MATCH(key, key_menu_quit,     key_menu_quit2);
+    UNSET_IF_MATCH(key, key_menu_gammad,   key_menu_gammad2);
     UNSET_IF_MATCH(key, key_menu_gamma,    key_menu_gamma2);
     UNSET_IF_MATCH(key, key_spy,           key_spy2);
 
@@ -8076,8 +8087,9 @@ static void M_DoBind (int keynum, int key)
         case 507: M_DoBindAction(&key_menu_messages, &key_menu_messages2, key, keyboard); break;
         case 508: M_DoBindAction(&key_menu_qload,    &key_menu_qload2,    key, keyboard); break;
         case 509: M_DoBindAction(&key_menu_quit,     &key_menu_quit2,     key, keyboard); break;
-        case 510: M_DoBindAction(&key_menu_gamma,    &key_menu_gamma2,    key, keyboard); break;
-        case 511: M_DoBindAction(&key_spy,           &key_spy2,           key, keyboard); break;
+        case 510: M_DoBindAction(&key_menu_gammad,   &key_menu_gammad2,   key, keyboard); break;
+        case 511: M_DoBindAction(&key_menu_gamma,    &key_menu_gamma2,    key, keyboard); break;
+        case 512: M_DoBindAction(&key_spy,           &key_spy2,           key, keyboard); break;
 
         // Page 6
         case 600: M_DoBindAction(&key_pause,              &key_pause2,              key, keyboard); break;
@@ -8167,8 +8179,9 @@ static void M_ClearBind (int itemOn)
         { &ID_Def_Keybinds_5, 7,  &key_menu_messages, &key_menu_messages2 },
         { &ID_Def_Keybinds_5, 8,  &key_menu_qload,    &key_menu_qload2 },
         { &ID_Def_Keybinds_5, 9,  &key_menu_quit,     &key_menu_quit2 },
-        { &ID_Def_Keybinds_5, 10, &key_menu_gamma,    &key_menu_gamma2 },
-        { &ID_Def_Keybinds_5, 11, &key_spy,           &key_spy2 },
+        { &ID_Def_Keybinds_5, 10, &key_menu_gammad,   &key_menu_gammad2 },
+        { &ID_Def_Keybinds_5, 11, &key_menu_gamma,    &key_menu_gamma2 },
+        { &ID_Def_Keybinds_5, 12, &key_spy,           &key_spy2 },
     
         { &ID_Def_Keybinds_6, 0,  &key_pause,           &key_pause2 },
         { &ID_Def_Keybinds_6, 1,  &key_menu_screenshot, &key_menu_screenshot2 },
@@ -8260,6 +8273,7 @@ static void M_ResetBinds (void)
     key_menu_messages = KEY_F8;  key_menu_messages2 = 0;
     key_menu_qload    = KEY_F9;  key_menu_qload2    = 0;
     key_menu_quit     = KEY_F10; key_menu_quit2     = 0;
+    key_menu_gammad   = 0;       key_menu_gammad2   = 0;
     key_menu_gamma    = KEY_F11; key_menu_gamma2    = 0;
     key_spy           = KEY_F12; key_spy2           = 0;
     // Page 6

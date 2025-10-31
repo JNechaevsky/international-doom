@@ -573,7 +573,8 @@ static void M_Bind_EndGame (int choice);
 static void M_Bind_ToggleMessages (int choice);
 static void M_Bind_QuickLoad (int choice);
 static void M_Bind_QuitGame (int choice);
-static void M_Bind_ToggleGamma (int choice);
+static void M_Bind_DecreaseGamma (int choice);
+static void M_Bind_IncreaseGamma (int choice);
 static void M_Bind_MultiplayerSpy (int choice);
 
 static void M_Draw_ID_Keybinds_8 (void);
@@ -2789,7 +2790,8 @@ static MenuItem_t ID_Menu_Keybinds_7[] = {
     {ITT_EFUNC, "TOGGLE MESSAGES", M_Bind_ToggleMessages, 0, MENU_NONE},
     {ITT_EFUNC, "QUICK LOAD",      M_Bind_QuickLoad,      0, MENU_NONE},
     {ITT_EFUNC, "QUIT GAME",       M_Bind_QuitGame,       0, MENU_NONE},
-    {ITT_EFUNC, "TOGGLE GAMMA",    M_Bind_ToggleGamma,    0, MENU_NONE},
+    {ITT_EFUNC, "DECREASE GAMMA",  M_Bind_DecreaseGamma,  0, MENU_NONE},
+    {ITT_EFUNC, "INCREASE GAMMA",  M_Bind_IncreaseGamma,  0, MENU_NONE},
     {ITT_EFUNC, "MULTIPLAYER SPY", M_Bind_MultiplayerSpy, 0, MENU_NONE}
 };
 
@@ -2820,8 +2822,9 @@ static void M_Draw_ID_Keybinds_7 (void)
     M_DrawBindKey(7, 90, key_menu_messages, key_menu_messages2);
     M_DrawBindKey(8, 100, key_menu_qload, key_menu_qload2);
     M_DrawBindKey(9, 110, key_menu_quit, key_menu_quit2);
-    M_DrawBindKey(10, 120, key_menu_gamma, key_menu_gamma2);
-    M_DrawBindKey(11, 130, key_spy, key_spy2);
+    M_DrawBindKey(10, 120, key_menu_gammad, key_menu_gammad2);
+    M_DrawBindKey(11, 130, key_menu_gamma, key_menu_gamma2);
+    M_DrawBindKey(12, 140, key_spy, key_spy2);
 
     M_DrawBindFooter("7", true);
 }
@@ -2877,14 +2880,19 @@ static void M_Bind_QuitGame (int choice)
     M_StartBind(709);  // key_menu_quit
 }
 
-static void M_Bind_ToggleGamma (int choice)
+static void M_Bind_DecreaseGamma (int choice)
 {
-    M_StartBind(710);  // key_menu_gamma
+    M_StartBind(710);  // key_menu_gammad
+}
+
+static void M_Bind_IncreaseGamma (int choice)
+{
+    M_StartBind(711);  // key_menu_gamma
 }
 
 static void M_Bind_MultiplayerSpy (int choice)
 {
-    M_StartBind(711);  // key_spy
+    M_StartBind(712);  // key_spy
 }
 
 // -----------------------------------------------------------------------------
@@ -6373,6 +6381,11 @@ boolean MN_Responder(event_t * event)
             }
             return true;
         }
+        // [JN] In the original released source, the game
+        // also checks for // "DevMaps == false" in the first condition.
+        // It’s supposed to be enabled with the "-devmaps" command-line parameter,
+        // and the F12 key should no longer be hardcoded.
+        /*
         else if (key == KEY_F12)                 // F12 (???)
         {
             // F12 - reload current map (devmaps mode)
@@ -6393,6 +6406,7 @@ boolean MN_Responder(event_t * event)
             CT_SetMessage(&players[consoleplayer], TXT_CHEATWARP, false, NULL);
             return true;
         }
+        */
         // [PN] Go to previous level.
         else if ((singleplayer) && key != 0 && (key == key_prevlevel || key == key_prevlevel2))
         {
@@ -6520,9 +6534,12 @@ boolean MN_Responder(event_t * event)
     }
 
     // [JN] Allow to change gamma while active menu.
-    if (key == key_menu_gamma || key == key_menu_gamma2)          // F11 (gamma correction)
+    if (key == key_menu_gammad || key == key_menu_gammad2
+    ||  key == key_menu_gamma  || key == key_menu_gamma2)         // F11 (gamma correction)
     {
-        vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, 1 /*right*/, false);
+        const int dir = (key == key_menu_gamma || key == key_menu_gamma2) ? 1 /*right*/ : 0 /*left*/;
+
+        vid_gamma = M_INT_Slider(vid_gamma, 0, MAXGAMMA-1, dir, false);
         CT_SetMessage(&players[consoleplayer], gammalvls[vid_gamma][0], false, NULL);
         SB_PaletteFlash(true);  // force change
         R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
@@ -7248,6 +7265,7 @@ static void M_CheckBind (int key)
     UNSET_IF_MATCH(key, key_menu_messages, key_menu_messages2);
     UNSET_IF_MATCH(key, key_menu_qload, key_menu_qload2);
     UNSET_IF_MATCH(key, key_menu_quit, key_menu_quit2);
+    UNSET_IF_MATCH(key, key_menu_gammad, key_menu_gammad2);
     UNSET_IF_MATCH(key, key_menu_gamma, key_menu_gamma2);
     UNSET_IF_MATCH(key, key_spy, key_spy2);
     
@@ -7370,8 +7388,9 @@ static void M_DoBind (int keynum, int key)
         case 707: M_DoBindAction(&key_menu_messages, &key_menu_messages2, key, keyboard); break;
         case 708: M_DoBindAction(&key_menu_qload,    &key_menu_qload2,    key, keyboard); break;
         case 709: M_DoBindAction(&key_menu_quit,     &key_menu_quit2,     key, keyboard); break;
-        case 710: M_DoBindAction(&key_menu_gamma,    &key_menu_gamma2,    key, keyboard); break;
-        case 711: M_DoBindAction(&key_spy,           &key_spy2,           key, keyboard); break;
+        case 710: M_DoBindAction(&key_menu_gammad,   &key_menu_gammad2,   key, keyboard); break;
+        case 711: M_DoBindAction(&key_menu_gamma,    &key_menu_gamma2,    key, keyboard); break;
+        case 712: M_DoBindAction(&key_spy,           &key_spy2,           key, keyboard); break;
 
         // Page 8
         case 800: M_DoBindAction(&key_pause,              &key_pause2,              key, keyboard); break;
@@ -7485,8 +7504,9 @@ static void M_ClearBind (int CurrentItPos)
         { &ID_Def_Keybinds_7, 7,  &key_menu_messages, &key_menu_messages2 },
         { &ID_Def_Keybinds_7, 8,  &key_menu_qload,    &key_menu_qload2 },
         { &ID_Def_Keybinds_7, 9,  &key_menu_quit,     &key_menu_quit2 },
-        { &ID_Def_Keybinds_7, 10, &key_menu_gamma,    &key_menu_gamma2 },
-        { &ID_Def_Keybinds_7, 11, &key_spy,           &key_spy2 },
+        { &ID_Def_Keybinds_7, 10, &key_menu_gammad,   &key_menu_gammad2 },
+        { &ID_Def_Keybinds_7, 11, &key_menu_gamma,    &key_menu_gamma2 },
+        { &ID_Def_Keybinds_7, 12, &key_spy,           &key_spy2 },
 
         { &ID_Def_Keybinds_8, 0,  &key_pause,              &key_pause2 },
         { &ID_Def_Keybinds_8, 1,  &key_menu_screenshot,    &key_menu_screenshot2 },
@@ -7608,6 +7628,7 @@ static void M_ResetBinds (void)
     key_menu_messages = KEY_F8;  key_menu_messages2 = 0;
     key_menu_qload    = KEY_F9;  key_menu_qload2    = 0;
     key_menu_quit     = KEY_F10; key_menu_quit2     = 0;
+    key_menu_gammad   = 0;       key_menu_gammad2   = 0;
     key_menu_gamma    = KEY_F11; key_menu_gamma2    = 0;
     key_spy           = KEY_F12; key_spy2           = 0;
 

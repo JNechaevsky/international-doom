@@ -416,6 +416,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_menu_messages, key_menu_messages2),
     CONFIG_VARIABLE_KEYBIND(key_menu_qload, key_menu_qload2),
     CONFIG_VARIABLE_KEYBIND(key_menu_quit, key_menu_quit2),
+    CONFIG_VARIABLE_KEYBIND(key_menu_gammad, key_menu_gammad2),
     CONFIG_VARIABLE_KEYBIND(key_menu_gamma, key_menu_gamma2),
     CONFIG_VARIABLE_KEYBIND(key_spy, key_spy2),
 
