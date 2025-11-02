@@ -820,7 +820,7 @@ static void M_ScrollPages (boolean direction)
     else if (CurrentMenu == &ID_Def_Keybinds_8) nextMenu = (direction ? MENU_ID_KBDBINDS1 : MENU_ID_KBDBINDS7);
 
     // Gameplay features:
-    else if (CurrentMenu == &ID_Def_Gameplay_1) nextMenu = (direction ? MENU_ID_GAMEPLAY2 : MENU_ID_GAMEPLAY3);
+    else if (CurrentMenu == &ID_Def_Gameplay_1) nextMenu = (direction ? MENU_ID_GAMEPLAY2 : MENU_ID_GAMEPLAY4);
     else if (CurrentMenu == &ID_Def_Gameplay_2) nextMenu = (direction ? MENU_ID_GAMEPLAY3 : MENU_ID_GAMEPLAY1);
     else if (CurrentMenu == &ID_Def_Gameplay_3) nextMenu = (direction ? MENU_ID_GAMEPLAY4 : MENU_ID_GAMEPLAY2);
     else if (CurrentMenu == &ID_Def_Gameplay_4) nextMenu = (direction ? MENU_ID_GAMEPLAY1 : MENU_ID_GAMEPLAY3);
