@@ -676,6 +676,7 @@ static void M_ID_Misc_A11yColorblind (int choice);
 static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
+static void M_ID_Misc_MenuCapFps (int choice);
 
 static void M_ID_SettingReset (int choice);
 static void M_ID_ApplyReset (void);
@@ -3990,16 +3991,17 @@ static void M_ScrollGameplay (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Misc[] = {
-    { ITT_LRFUNC2, "PALETTE FLASH EFFECTS", M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
-    { ITT_LRFUNC1, "MOVEMENT BOBBING",      M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
-    { ITT_LRFUNC1, "WEAPON BOBBING",        M_ID_Misc_A11yWeaponBob,  0, MENU_NONE },
-    { ITT_LRFUNC1, "QUAKE INTENSITY",       M_ID_Misc_A11yQuakeInten, 0, MENU_NONE },
-    { ITT_LRFUNC2, "COLORBLIND FILTER",     M_ID_Misc_A11yColorblind, 0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                    NULL,                     0, MENU_NONE },
-    { ITT_LRFUNC2, "AUTOLOAD WAD FILES",    M_ID_Misc_AutoloadWAD,    0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                    NULL,                     0, MENU_NONE },
-    { ITT_LRFUNC2, "HIGHLIGHTING EFFECT",   M_ID_Misc_Hightlight,     0, MENU_NONE },
-    { ITT_LRFUNC1, "ESC KEY BEHAVIOUR",     M_ID_Misc_MenuEscKey,     0, MENU_NONE },
+    { ITT_LRFUNC2, "PALETTE FLASH EFFECTS",     M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
+    { ITT_LRFUNC1, "MOVEMENT BOBBING",          M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
+    { ITT_LRFUNC1, "WEAPON BOBBING",            M_ID_Misc_A11yWeaponBob,  0, MENU_NONE },
+    { ITT_LRFUNC1, "QUAKE INTENSITY",           M_ID_Misc_A11yQuakeInten, 0, MENU_NONE },
+    { ITT_LRFUNC2, "COLORBLIND FILTER",         M_ID_Misc_A11yColorblind, 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                        NULL,                     0, MENU_NONE },
+    { ITT_LRFUNC2, "AUTOLOAD WAD FILES",        M_ID_Misc_AutoloadWAD,    0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                        NULL,                     0, MENU_NONE },
+    { ITT_LRFUNC2, "HIGHLIGHTING EFFECT",       M_ID_Misc_Hightlight,     0, MENU_NONE },
+    { ITT_LRFUNC1, "ESC KEY BEHAVIOUR",         M_ID_Misc_MenuEscKey,     0, MENU_NONE },
+    { ITT_LRFUNC1, "CAP FRAMERATE IN THE MENU", M_ID_Misc_MenuCapFps,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Misc = {
@@ -4103,8 +4105,15 @@ static void M_Draw_ID_Misc (void)
                             menu_esc_key ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(9));
 
+    // Cap framerate in the menu
+    sprintf(str, menu_cap_fps ? "ON" : "OFF" );
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
+                        menu_cap_fps ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            menu_cap_fps ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(10));
+
     // [PN] Added explanations for colorblind filters
-    if (CurrentItPos == 3)
+    if (CurrentItPos == 4)
     {
         const char *colorblind_hint[] = {
             "","RED-BLIND","RED-WEAK","GREEN-BLIND","GREEN-WEAK",
@@ -4115,7 +4124,7 @@ static void M_Draw_ID_Misc (void)
     }
 
     // [PN] Added explanations for autoload variables
-    if (CurrentItPos == 5)
+    if (CurrentItPos == 6)
     {
         const char *off = "AUTOLOAD IS DISABLED";
         const char *first_line = "AUTOLOAD AND FOLDER CREATION";
@@ -4192,6 +4201,10 @@ static void M_ID_Misc_MenuEscKey (int choice)
     menu_esc_key ^= 1;
 }
 
+static void M_ID_Misc_MenuCapFps (int choice)
+{
+    menu_cap_fps ^= 1;
+}
 
 // -----------------------------------------------------------------------------
 // Reset settings

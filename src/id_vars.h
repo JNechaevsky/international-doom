@@ -183,6 +183,7 @@ extern int autoload_hhe;
 extern int autoload_seh;
 extern int menu_highlight;
 extern int menu_esc_key;
+extern int menu_cap_fps;
 
 // Mouse look
 extern int mouse_look;

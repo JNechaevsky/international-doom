@@ -666,6 +666,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(a11y_colorblind),
     CONFIG_VARIABLE_INT(menu_highlight),
     CONFIG_VARIABLE_INT(menu_esc_key),
+    CONFIG_VARIABLE_INT(menu_cap_fps),
 };
 
 static default_collection_t doom_defaults =

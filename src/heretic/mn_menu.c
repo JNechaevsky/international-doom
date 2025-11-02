@@ -675,6 +675,7 @@ static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_AutoloadHHE (int choice);
 static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
+static void M_ID_Misc_MenuCapFps (int choice);
 
 static void M_Draw_ID_Level_1 (void);
 static void M_ID_LevelSkill (int choice);
@@ -4151,17 +4152,18 @@ static void M_ScrollGameplay (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Misc[] = {
-    { ITT_LRFUNC1, "INVULNERABILITY EFFECT", M_ID_Misc_A11yInvul,      0, MENU_NONE },
-    { ITT_LRFUNC2, "PALETTE FLASH EFFECTS",  M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
-    { ITT_LRFUNC1, "MOVEMENT BOBBING",       M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
-    { ITT_LRFUNC1, "WEAPON BOBBING",         M_ID_Misc_A11yWeaponBob,  0, MENU_NONE },
-    { ITT_LRFUNC2, "COLORBLIND FILTER",      M_ID_Misc_A11yColorblind, 0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                     NULL,                     0, MENU_NONE },
-    { ITT_LRFUNC2, "AUTOLOAD WAD FILES",     M_ID_Misc_AutoloadWAD,    0, MENU_NONE },
-    { ITT_LRFUNC2, "AUTOLOAD HHE FILES",     M_ID_Misc_AutoloadHHE,    0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                     NULL,                     0, MENU_NONE },
-    { ITT_LRFUNC2, "HIGHLIGHTING EFFECT",    M_ID_Misc_Hightlight,     0, MENU_NONE },
-    { ITT_LRFUNC1, "ESC KEY BEHAVIOUR",      M_ID_Misc_MenuEscKey,     0, MENU_NONE },
+    { ITT_LRFUNC1, "INVULNERABILITY EFFECT",    M_ID_Misc_A11yInvul,      0, MENU_NONE },
+    { ITT_LRFUNC2, "PALETTE FLASH EFFECTS",     M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
+    { ITT_LRFUNC1, "MOVEMENT BOBBING",          M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
+    { ITT_LRFUNC1, "WEAPON BOBBING",            M_ID_Misc_A11yWeaponBob,  0, MENU_NONE },
+    { ITT_LRFUNC2, "COLORBLIND FILTER",         M_ID_Misc_A11yColorblind, 0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                        NULL,                     0, MENU_NONE },
+    { ITT_LRFUNC2, "AUTOLOAD WAD FILES",        M_ID_Misc_AutoloadWAD,    0, MENU_NONE },
+    { ITT_LRFUNC2, "AUTOLOAD HHE FILES",        M_ID_Misc_AutoloadHHE,    0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                        NULL,                     0, MENU_NONE },
+    { ITT_LRFUNC2, "HIGHLIGHTING EFFECT",       M_ID_Misc_Hightlight,     0, MENU_NONE },
+    { ITT_LRFUNC1, "ESC KEY BEHAVIOUR",         M_ID_Misc_MenuEscKey,     0, MENU_NONE },
+    { ITT_LRFUNC1, "CAP FRAMERATE IN THE MENU", M_ID_Misc_MenuCapFps,     0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Misc = {
@@ -4273,6 +4275,13 @@ static void M_Draw_ID_Misc (void)
                             menu_esc_key ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(10));
 
+    // Cap framerate in the menu
+    sprintf(str, menu_cap_fps ? "ON" : "OFF" );
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
+                        menu_cap_fps ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            menu_cap_fps ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(11));
+
     // [PN] Added explanations for colorblind filters
     if (CurrentItPos == 4)
     {
@@ -4281,7 +4290,7 @@ static void M_Draw_ID_Misc (void)
             "BLUE-BLIND","BLUE-WEAK","MONOCHROMACY","BLUE CONE MONOCHROMACY"
         };
 
-        MN_DrTextACentered(colorblind_hint[a11y_colorblind], 130, cr[CR_LIGHTGRAY_DARK]);
+        MN_DrTextACentered(colorblind_hint[a11y_colorblind], 140, cr[CR_LIGHTGRAY_DARK]);
     }
 
     // [PN] Added explanations for autoload variables
@@ -4296,17 +4305,17 @@ static void M_Draw_ID_Misc (void)
         switch (autoload_option)
         {
             case 1:
-                MN_DrTextACentered(first_line, 130, cr[CR_LIGHTGRAY_DARK]);
-                MN_DrTextACentered(second_line1, 140, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(first_line, 140, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(second_line1, 150, cr[CR_LIGHTGRAY_DARK]);
                 break;
 
             case 2:
-                MN_DrTextACentered(first_line, 130, cr[CR_LIGHTGRAY_DARK]);
-                MN_DrTextACentered(second_line2, 140, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(first_line, 140, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(second_line2, 150, cr[CR_LIGHTGRAY_DARK]);
                 break;
 
             default:
-                MN_DrTextACentered(off, 130, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(off, 140, cr[CR_LIGHTGRAY_DARK]);
                 break;            
         }
     }
@@ -4368,6 +4377,11 @@ static void M_ID_Misc_Hightlight (int choice)
 static void M_ID_Misc_MenuEscKey (int choice)
 {
     menu_esc_key ^= 1;
+}
+
+static void M_ID_Misc_MenuCapFps (int choice)
+{
+    menu_cap_fps ^= 1;
 }
 
 // -----------------------------------------------------------------------------

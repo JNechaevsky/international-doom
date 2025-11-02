@@ -789,6 +789,7 @@ static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_AutoloadDEH (int choice);
 static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
+static void M_ID_Misc_MenuCapFps (int choice);
 
 static void M_Choose_ID_Level (int choice);
 static void M_Draw_ID_Level_1 (void);
@@ -4315,6 +4316,7 @@ static menuitem_t ID_Menu_Misc[]=
     { M_SKIP, "", 0, '\0' },
     { M_MUL2, "HIGHLIGHTING EFFECT",        M_ID_Misc_Hightlight,     'h' },
     { M_MUL1, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,     'e' },
+    { M_MUL1, "CAP FRAMERATE IN THE MENU",  M_ID_Misc_MenuCapFps,     'c' },
 };
 
 static menu_t ID_Def_Misc =
@@ -4433,6 +4435,13 @@ static void M_Draw_ID_Misc (void)
                             menu_esc_key ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(10));
 
+    // Cap framerate in the menu
+    sprintf(str, menu_cap_fps ? "ON" : "OFF" );
+    M_WriteTextGlow(M_ItemRightAlign(str), 116, str,
+                        menu_cap_fps ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            menu_cap_fps ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(11));
+
     // [PN] Added explanations for colorblind filters
     if (itemOn == 4)
     {
@@ -4528,6 +4537,11 @@ static void M_ID_Misc_Hightlight (int choice)
 static void M_ID_Misc_MenuEscKey (int choice)
 {
     menu_esc_key ^= 1;
+}
+
+static void M_ID_Misc_MenuCapFps (int choice)
+{
+    menu_cap_fps ^= 1;
 }
 
 // -----------------------------------------------------------------------------

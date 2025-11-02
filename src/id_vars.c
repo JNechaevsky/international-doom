@@ -213,6 +213,7 @@ int autoload_hhe = 1;
 int autoload_seh = 1;
 int menu_highlight = 1;
 int menu_esc_key = 0;
+int menu_cap_fps = 0;
 
 // -----------------------------------------------------------------------------
 // [JN] ID-specific config variables binding functions.
@@ -493,4 +494,5 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("a11y_colorblind",                &a11y_colorblind);
     M_BindIntVariable("menu_highlight",                 &menu_highlight);
     M_BindIntVariable("menu_esc_key",                   &menu_esc_key);
+    M_BindIntVariable("menu_cap_fps",                   &menu_cap_fps);
 }
