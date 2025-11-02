@@ -630,7 +630,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
 	{
 	// [crispy] support 16 sprite rotations
 	// [PN] If the level is horizontally mirrored, invert left/right
-	const angle_t rel = gp_flip_levels ? -(ang - interpangle) : (ang - interpangle);
+	const angle_t rel = gp_flip_levels ? 0-(ang - interpangle) : (ang - interpangle);
 
 	if (sprframe->rotate == 2)
 	{

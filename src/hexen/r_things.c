@@ -601,7 +601,7 @@ static void R_ProjectSprite (const mobj_t *thing)
     {                           // choose a different rotation based on player view
         ang = R_PointToAngle(interpx, interpy);
         // [PN] If the level is horizontally mirrored, invert left/right
-        const angle_t rel = gp_flip_levels ? -(ang - interpangle) : (ang - interpangle);
+        const angle_t rel = gp_flip_levels ? 0-(ang - interpangle) : (ang - interpangle);
         rot = (rel + (unsigned) (ANG45 / 2) * 9) >> 29;
         lump = sprframe->lump[rot];
         flip = (boolean) sprframe->flip[rot];
