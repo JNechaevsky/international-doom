@@ -585,7 +585,9 @@ static void R_ProjectSprite (const mobj_t *const thing)
     {
 	// choose a different rotation based on player view
 	ang = R_PointToAngle(interpx, interpy);
-	rot = (ang - interpangle + (unsigned) (ANG45 / 2) * 9) >> 29;
+	// [PN] If the level is horizontally mirrored, invert left/right
+	const angle_t rel = gp_flip_levels ? -(ang - interpangle) : (ang - interpangle);
+	rot = (rel + (unsigned) (ANG45 / 2) * 9) >> 29;
 	lump = sprframe->lump[rot];
 	flip = (boolean)sprframe->flip[rot];
     }
@@ -595,6 +597,9 @@ static void R_ProjectSprite (const mobj_t *const thing)
 	lump = sprframe->lump[0];
 	flip = (boolean)sprframe->flip[0];
     }
+
+    // [PN] Compensate level mirroring for world sprites
+    flip ^= (boolean)gp_flip_levels;
 
     // [crispy] randomly flip corpse, blood and death animation sprites
     if (vis_flip_corpses
@@ -790,7 +795,7 @@ static void R_DrawPSprite (pspdef_t *const psp)
     sprframe = &sprdef->spriteframes[ psp->state->frame & FF_FRAMEMASK ];
 
     lump = sprframe->lump[0];
-    flip = (boolean)sprframe->flip[0] ^ gp_flip_levels;
+    flip = (boolean)sprframe->flip[0] ^ (boolean)gp_flip_levels;
 
     fixed_t sx2, sy2;
     
