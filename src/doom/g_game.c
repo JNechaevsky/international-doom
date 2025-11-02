@@ -864,6 +864,8 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 	mousex_angleturn = -mousex_angleturn;
 	cmd->angleturn = -cmd->angleturn;
 	cmd->sidemove = -cmd->sidemove;
+	if (crl_spectating)
+		spect_angle = -spect_angle;
     }
 
     // low-res turning
