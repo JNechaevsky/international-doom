@@ -84,7 +84,7 @@ jobs:
         with:
           name: inter-doom-win64
           path: build_vs_64/src/Release/*.exe
-          retention-days: 90
+          retention-days: 3
 
   windows_32bit:
     name: Windows (32-bit)
@@ -132,7 +132,7 @@ jobs:
         with:
           name: inter-doom-win32
           path: upload/*
-          retention-days: 90
+          retention-days: 3
 
   linux_64bit:
     name: Linux AppImage (64-bit)
@@ -216,7 +216,7 @@ jobs:
         with:
           name: inter-doom-linux64
           path: bundled_appimages/*
-          retention-days: 90
+          retention-days: 3
 
   release_nightly:
     name: Create Nightly Release
