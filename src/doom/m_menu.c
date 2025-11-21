@@ -3608,7 +3608,7 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { M_MUL1, "DIMINISHED LIGHTING",         M_ID_SmoothLighting,    'd' },
     { M_MUL1, "PALETTE FADING EFFECT",       M_ID_SmoothPalette,     'p' },
     { M_MUL2, "FUZZ EFFECT",                 M_ID_ImprovedFuzz,      'f' },
-    { M_MUL1, "COLORED BLOOD AND CORPSES",   M_ID_ColoredBlood,      'c' },
+    { M_MUL1, "COLORED BLOOD",               M_ID_ColoredBlood,      'c' },
     { M_MUL1, "LIQUIDS ANIMATION",           M_ID_SwirlingLiquids,   'l' },
     { M_MUL1, "INVULNERABILITY AFFECTS SKY", M_ID_InvulSky,          'i' },
     { M_MUL1, "SKY DRAWING MODE",            M_ID_LinearSky,         's' },
@@ -3684,7 +3684,8 @@ static void M_Draw_ID_Gameplay_1 (void)
                                 LINE_ALPHA(5));
 
     // Colored blood and corpses
-    sprintf(str, vis_colored_blood ? "ON" : "OFF");
+    sprintf(str, vis_colored_blood == 1 ? "GREEN/BLUE ONLY" :
+                 vis_colored_blood == 2 ? "ALL" : "OFF");
     M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
                         vis_colored_blood ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_colored_blood ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
@@ -3794,7 +3795,7 @@ static void M_ID_ImprovedFuzz (int choice)
 
 static void M_ID_ColoredBlood (int choice)
 {
-    vis_colored_blood ^= 1;
+    vis_colored_blood = M_INT_Slider(vis_colored_blood, 0, 2, choice, false);
 }
 
 static void M_ID_SwirlingLiquids (int choice)
