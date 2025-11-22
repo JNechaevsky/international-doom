@@ -1145,10 +1145,6 @@ void P_SpawnMapThing (const mapthing_t *const mthing)
         }
     }
 
-    // [crispy] Lost Souls bleed Puffs
-    if (vis_colored_blood == 2 && i == MT_SKULL)
-	mobj->flags |= MF_NOBLOOD;
-
     // [crispy] blinking key or skull in the status bar
     if (mobj->sprite == SPR_BSKU)
 	st_keyorskull[it_bluecard] = 3;

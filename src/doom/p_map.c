@@ -1277,7 +1277,8 @@ static boolean PTR_ShootTraverse (intercept_t *const in)
 
     // Spawn bullet puffs or blod spots,
     // depending on target type.
-    if (in->d.thing->flags & MF_NOBLOOD)
+    // [JN] Lost Souls bleed Puffs
+    if (in->d.thing->flags & MF_NOBLOOD || (vis_colored_blood == 2 && in->d.thing->type == MT_SKULL))
 	P_SpawnPuff (x,y,z);
     else
 	P_SpawnBlood (x,y,z, la_damage, th); // [crispy] pass thing type
@@ -1652,8 +1653,10 @@ boolean PIT_ChangeSector (mobj_t*	thing)
 	// spray blood in a random direction
 	mo = P_SpawnMobj (thing->x,
 			  thing->y,
+			  thing->z + thing->height/2,
 			  // [crispy] no blood, no.. well.. blood
-			  thing->z + thing->height/2, (thing->flags & MF_NOBLOOD) ? MT_PUFF : MT_BLOOD);
+			  // [JN] Lost Souls bleed Puffs
+			  (thing->flags & MF_NOBLOOD || (vis_colored_blood == 2 && thing->type == MT_SKULL)) ? MT_PUFF : MT_BLOOD);
 	
 	mo->momx = P_SubRandom() << 12;
 	mo->momy = P_SubRandom() << 12;
