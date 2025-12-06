@@ -642,6 +642,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(gp_default_class),
     CONFIG_VARIABLE_INT(gp_default_skill),
     CONFIG_VARIABLE_INT(gp_revealed_secrets),
+    CONFIG_VARIABLE_STRING(gp_revealed_secrets_msg),
     CONFIG_VARIABLE_INT(gp_flip_levels),
     CONFIG_VARIABLE_INT(gp_death_use_action),
 

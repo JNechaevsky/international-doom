@@ -153,6 +153,7 @@ extern int phys_weapon_alignment;
 extern int gp_default_class;
 extern int gp_default_skill;
 extern int gp_revealed_secrets;
+extern char *gp_revealed_secrets_msg;
 extern int phys_breathing;
 extern int gp_flip_levels;
 extern int gp_death_use_action;

@@ -1186,12 +1186,12 @@ void P_PlayerInSpecialSector (player_t* player)
 
         if (gp_revealed_secrets == 1)  // [JN] Top
         {
-            CT_SetMessage(player, DEH_String(ID_SECRET_FOUND),true, cr[CR_YELLOW]);
+            CT_SetMessage(player, gp_revealed_secrets_msg, true, cr[CR_YELLOW]);
         }
         else
         if (gp_revealed_secrets == 2)  // [JN] Centered
         {
-            CT_SetMessageCentered(player, DEH_String(ID_SECRET_FOUND), cr[CR_YELLOW]);
+            CT_SetMessageCentered(player, gp_revealed_secrets_msg, cr[CR_YELLOW]);
         }
 
 	    if (sfx_id != -1)

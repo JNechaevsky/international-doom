@@ -1028,7 +1028,7 @@ void P_PlayerInSpecialSector(player_t * player)
             // [JN] "A secret is revelaed!" message.
             if (gp_revealed_secrets)
             {
-                CT_SetMessageCentered(player, DEH_String(ID_SECRET_FOUND));
+                CT_SetMessageCentered(player, gp_revealed_secrets_msg);
                 S_StartSound(NULL, sfx_chat);
             }
             sector->oldspecial = sector->special;

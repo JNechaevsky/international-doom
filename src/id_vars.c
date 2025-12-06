@@ -181,6 +181,7 @@ int phys_breathing = 0;
 int gp_default_class = 0;
 int gp_default_skill = 2;
 int gp_revealed_secrets = 0;
+char *gp_revealed_secrets_msg = "A secret is revealed!";
 int gp_flip_levels = 0;
 int gp_death_use_action = 0;
 
@@ -440,6 +441,7 @@ void ID_BindVariables (GameMission_t mission)
     if (mission == doom || mission == heretic)
     {
         M_BindIntVariable("gp_revealed_secrets",        &gp_revealed_secrets);
+        M_BindStringVariable("gp_revealed_secrets_msg", &gp_revealed_secrets_msg);
     }
     M_BindIntVariable("gp_flip_levels",                 &gp_flip_levels);
     M_BindIntVariable("gp_death_use_action",            &gp_death_use_action);
