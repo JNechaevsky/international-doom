@@ -18,7 +18,7 @@
 #include "m_bbox.h"
 #include "i_system.h"
 #include "doomdef.h"
-#include "r_local.h"
+#include "p_local.h"
 
 #include "id_vars.h"
 
@@ -373,6 +373,16 @@ static boolean R_CheckBBox (const fixed_t *bspcoord)
     int        boxpos;
     const int *check;
 
+    // [PN] Expand bounding boxes by MAXRADIUS to keep wide sprites from
+    // disappearing when their centers are just behind a solid wall.
+    fixed_t expanded[4];
+    expanded[BOXLEFT]   = bspcoord[BOXLEFT]   - MAXRADIUS;
+    expanded[BOXRIGHT]  = bspcoord[BOXRIGHT]  + MAXRADIUS;
+    expanded[BOXTOP]    = bspcoord[BOXTOP]    + MAXRADIUS;
+    expanded[BOXBOTTOM] = bspcoord[BOXBOTTOM] - MAXRADIUS;
+    // [PN] Use expanded bbox without touching the original code below.
+    #define bspcoord expanded
+
     // Find the corners of the box that define the edges from current viewpoint.
     boxpos = (viewx <= bspcoord[BOXLEFT] ? 0 : viewx < bspcoord[BOXRIGHT ] ? 1 : 2) +
              (viewy >= bspcoord[BOXTOP ] ? 0 : viewy > bspcoord[BOXBOTTOM] ? 4 : 8);
@@ -386,6 +396,9 @@ static boolean R_CheckBBox (const fixed_t *bspcoord)
 
     angle1 = R_PointToAngleCrispy (bspcoord[check[0]], bspcoord[check[1]]) - viewangle;
     angle2 = R_PointToAngleCrispy (bspcoord[check[2]], bspcoord[check[3]]) - viewangle;
+
+    // [PN] Restore original bspcoord symbol outside this block.
+    #undef bspcoord
 
     // [JN] cph - replaced old code, which was unclear and badly commented
     // Much more efficient code now
