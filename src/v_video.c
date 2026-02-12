@@ -2,7 +2,8 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2016-2025 Julia Nechaevskaya
+// Copyright(C) 2016-2026 Julia Nechaevskaya
+// Copyright(C) 2024-2026 Polina "Aura" N.
 // Copyright(C) 2025 Polina "Aura" N.
 //
 // This program is free software; you can redistribute it and/or
