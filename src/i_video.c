@@ -1229,9 +1229,13 @@ void I_InitWindowTitle(void)
 
 void I_RegisterWindowIcon(const unsigned int *icon, int width, int height)
 {
+// [PN] On Windows, let the system itself set the application icon.
+// This fixes incorrect icon display in Task Manager.
+#ifndef _WIN32
     icon_data = icon;
     icon_w = width;
     icon_h = height;
+#endif
 }
 
 // Set the application icon
