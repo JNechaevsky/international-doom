@@ -818,7 +818,7 @@ extern void R_AddPSprites (void);
 extern void R_AddSprites (const sector_t *const sec);
 extern void R_ClearSprites (void);
 extern void R_DrawMasked (void);
-extern void R_DrawMaskedColumn (const column_t *column);
+extern void R_DrawMaskedColumn (const column_t *const column);
 extern void R_DrawSprites (void);
 extern void R_InitSprites (const char **namelist);
 

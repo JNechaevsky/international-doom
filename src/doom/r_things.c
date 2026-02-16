@@ -351,53 +351,73 @@ int *mceilingclip;  // [JN] 32-bit integer math
 fixed_t spryscale;
 int64_t sprtopscreen; // [crispy] WiggleFix
 
-void R_DrawMaskedColumn (const column_t *column)
+void R_DrawMaskedColumn (const column_t *const column)
 {
     int64_t topscreen;    // [crispy] WiggleFix
     int64_t bottomscreen; // [crispy] WiggleFix
     fixed_t basetexturemid;
     int     top = -1;
 
+    // [PN] Cache global variables to reduce memory access latency
+    const int floor_clip = mfloorclip[dc_x];
+    const int ceiling_clip = mceilingclip[dc_x];
+    const byte *cur_column = (const byte *)column;
+    const fixed_t l_scale = spryscale;
+    const int64_t l_sprtopscreen = sprtopscreen;
+
     basetexturemid = dc_texturemid;
     dc_texheight = 0;  // [crispy] Tutti-Frutti fix
 
-    for ( ; column->topdelta != 0xff ; ) 
+    for (;;)
     {
-        // [crispy] support for DeePsea tall patches
-        if (column->topdelta <= top)
+        const column_t *col = (const column_t *)cur_column;
+
+        if (col->topdelta == 0xff)
         {
-            top += column->topdelta;
+            break;
+        }
+
+        // [crispy] support for DeePsea tall patches
+        if (col->topdelta <= top)
+        {
+            top += col->topdelta;
         }
         else
         {
-            top = column->topdelta;
+            top = col->topdelta;
         }
 
-        // calculate unclipped screen coordinates for post
-        topscreen = sprtopscreen + spryscale*top;
-        bottomscreen = topscreen + spryscale*column->length;
+        // [PN] Calculate screen coordinates using cached scale
+        int64_t scale_top = (int64_t)l_scale * top;
+        topscreen = l_sprtopscreen + scale_top;
+        bottomscreen = topscreen + (int64_t)l_scale * col->length;
 
-        dc_yl = (int)((topscreen+FRACUNIT-1)>>FRACBITS); // [crispy] WiggleFix
-        dc_yh = (int)((bottomscreen-1)>>FRACBITS); // [crispy] WiggleFix
+        int yl = (int)((topscreen + FRACUNIT - 1) >> FRACBITS); // [crispy] WiggleFix
+        int yh = (int)((bottomscreen - 1) >> FRACBITS); // [crispy] WiggleFix
 
-        if (dc_yh >= mfloorclip[dc_x])
+        // [PN] Use cached clip values for faster comparison
+        if (yh >= floor_clip)
         {
-            dc_yh = mfloorclip[dc_x] - 1;
+            yh = floor_clip - 1;
         }
-        if (dc_yl <= mceilingclip[dc_x])
+        if (yl <= ceiling_clip)
         {
-            dc_yl = mceilingclip[dc_x] + 1;
+            yl = ceiling_clip + 1;
         }
 
-        if (dc_yl <= dc_yh)
+        if (yl <= yh)
         {
-            dc_source = (byte *)column + 3;
-            dc_texturemid = basetexturemid - (top<<FRACBITS);
-    
+            dc_yl = yl;
+            dc_yh = yh;
+            dc_source = (byte *)col + 3;
+            dc_texturemid = basetexturemid - (top << FRACBITS);
+
             // Drawn by either R_DrawColumn or (SHADOW) R_DrawFuzzColumn.
-            colfunc ();	
+            colfunc();
         }
-        column = (column_t *)(  (byte *)column + column->length + 4);
+
+        // [PN] Advance pointer using byte arithmetic
+        cur_column = cur_column + col->length + 4;
     }
 
     dc_texturemid = basetexturemid;
