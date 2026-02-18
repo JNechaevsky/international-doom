@@ -409,6 +409,45 @@ void R_DrawMaskedColumn (const column_t *column, signed int baseclip)
     dc_texturemid = basetexturemid;
 }
 
+// -----------------------------------------------------------------------------
+// R_SpriteColumnColormap
+//  [PN] Selects a lighting colormap for a single sprite screen column based
+//  on the sector lightlevel at the world position that this column "hits".
+// -----------------------------------------------------------------------------
+
+inline static lighttable_t *const R_SpriteColumnColormap(const vissprite_t *const vis,
+                                                         const int x,
+                                                         lighttable_t *const fallback)
+{
+    const mobj_t *const thing = vis->thing;
+
+    if (thing == NULL || fallback == NULL || fixedcolormap || (thing->frame & FF_FULLBRIGHT))
+        return fallback;
+
+    const fixed_t xscale = vis->scale >> detailshift;
+
+    if (xscale <= 0)
+        return fallback;
+
+    const fixed_t invxscale = FixedDiv(FRACUNIT, xscale);
+    const fixed_t tz = FixedMul(projection, invxscale);
+    const fixed_t tx = FixedMul((x << FRACBITS) - centerxfrac, invxscale);
+    
+    const fixed_t worldx = viewx + FixedMul(tz, viewcos) + FixedMul(tx, viewsin);
+    const fixed_t worldy = viewy + FixedMul(tz, viewsin) - FixedMul(tx, viewcos);
+
+    const sector_t *const sec = R_PointInSubsector(worldx, worldy)->sector;
+    const int lightnum = BETWEEN(0, LIGHTLEVELS - 1,
+                                 (sec->lightlevel >> LIGHTSEGSHIFT)
+                                 + (extralight * LIGHTBRIGHT));
+
+    int index = (xscale / vid_resolution) >> (LIGHTSCALESHIFT - detailshift);
+
+    if (index >= MAXLIGHTSCALE)
+        index  = MAXLIGHTSCALE - 1;
+
+    return scalelight[lightnum][index];
+}
 
 /*
 ================
@@ -504,8 +543,14 @@ static void R_DrawVisSprite (const vissprite_t *vis, int x1, int x2)
         baseclip = -1;
     }
 
+    // [PN] Per-column lighting
+    const boolean allow_vis_sprite_light = vis_sprite_light;
+
     for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
     {
+        if (allow_vis_sprite_light)
+            dc_colormap[0] = R_SpriteColumnColormap(vis, dc_x, vis->colormap[0]);
+
         texturecolumn = frac >> FRACBITS;
 #ifdef RANGECHECK
         if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
@@ -678,6 +723,7 @@ static void R_ProjectSprite (const mobj_t *thing)
 // store information in a vissprite
 //
     vis = R_NewVisSprite();
+    vis->thing = thing; // [PN] Point this mobj to per column lighting
     vis->mobjflags = thing->flags;
     vis->psprite = false;
     vis->scale = xscale << detailshift;
@@ -882,6 +928,7 @@ static void R_DrawPSprite (pspdef_t *const psp)
 // store information in a vissprite
 //
     vis = &avis;
+    vis->thing = NULL; // [PN] No per column lighting for psprite
     vis->mobjflags = 0;
     vis->class = 0;
     vis->psprite = true;

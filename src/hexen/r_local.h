@@ -319,6 +319,9 @@ typedef struct vissprite_s
     int class;                  // player class (used in translation)
     fixed_t floorclip;
 
+    // [PN] Source mobj for per-column sprite lighting.
+    const mobj_t *thing;
+
     // [JN] Indicate if vissprite's frame is bright for choosing 
     // blending option of colfunc:
     // - tlcolfunc for overlay (unlit) blending.

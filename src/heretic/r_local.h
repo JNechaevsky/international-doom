@@ -274,6 +274,9 @@ typedef struct vissprite_s
     boolean psprite;            // true if psprite
     fixed_t footclip;           // foot clipping
 
+    // [PN] Source mobj for per-column sprite lighting.
+    const mobj_t *thing;
+
     // [JN] Indicate if vissprite's frame is bright for choosing 
     // blending option of colfunc:
     // - tlcolfunc for overlay (unlit) blending.

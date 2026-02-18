@@ -362,6 +362,9 @@ typedef struct vissprite_s
     // [crispy] color translation table for blood colored by monster class
     byte         *translation;
 
+    // [PN] Source mobj for per-column sprite lighting.
+    const mobj_t *thing;
+
     // [JN] Indicate if vissprite's frame is bright for choosing 
     // blending option of colfunc:
     // - tlcolfunc for overlay (unlit) blending.

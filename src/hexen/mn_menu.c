@@ -638,6 +638,7 @@ static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
 static void M_ID_SmoothLighting (int choice);
+static void M_ID_SpriteLighting (int choice);
 static void M_ID_SmoothPalette (int choice);
 static void M_ID_SwirlingLiquids (int choice);
 static void M_ID_LinearSky (int choice);
@@ -3478,6 +3479,7 @@ static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_LRFUNC1, "BRIGHTMAPS",                M_ID_Brightmaps,      0, MENU_NONE },
     { ITT_LRFUNC2, "EXTRA TRANSLUCENCY",        M_ID_Translucency,    0, MENU_NONE },
     { ITT_LRFUNC1, "DIMINISHED LIGHTING",       M_ID_SmoothLighting,  0, MENU_NONE },
+    { ITT_LRFUNC1, "SPRITE LIGHTING",           M_ID_SpriteLighting,  0, MENU_NONE },
     { ITT_LRFUNC1, "PALETTE FADING EFFECT",     M_ID_SmoothPalette,   0, MENU_NONE },
     { ITT_LRFUNC1, "LIQUIDS ANIMATION",         M_ID_SwirlingLiquids, 0, MENU_NONE },
     { ITT_LRFUNC1, "SKY DRAWING MODE",          M_ID_LinearSky,       0, MENU_NONE },
@@ -3528,35 +3530,42 @@ static void M_Draw_ID_Gameplay_1 (void)
                             vis_smooth_light ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(2));
 
+    // Sprite lighting
+    sprintf(str, vis_sprite_light ? "PER-COLUMN" : "ORIGINAL");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+                        vis_sprite_light ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            vis_sprite_light ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(3));
+
     // Palette fading effect
     sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
                         vis_smooth_palette ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             vis_smooth_palette ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(3));
+                                LINE_ALPHA(4));
 
     // Liquids animation
     sprintf(str, vis_swirling_liquids ? "IMPROVED" : "ORIGINAL");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
                         vis_swirling_liquids ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             vis_swirling_liquids ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(4));
+                                LINE_ALPHA(5));
 
     // Sky drawing mode
     sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
                         vis_linear_sky ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             vis_linear_sky ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(6));
 
     // Randomly mirrored corpses
     sprintf(str, vis_flip_corpses ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
                         vis_flip_corpses ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             vis_flip_corpses ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(7));
 
-    MN_DrTextACentered("CROSSHAIR", 90, cr[CR_YELLOW]);
+    MN_DrTextACentered("CROSSHAIR", 100, cr[CR_YELLOW]);
 
     // Crosshair shape
     sprintf(str, xhair_draw == 1 ? "CROSS 1" :
@@ -3566,22 +3575,22 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_draw == 5 ? "ANGLE" :
                  xhair_draw == 6 ? "TRIANGLE" :
                  xhair_draw == 7 ? "DOT" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
                         xhair_draw ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             xhair_draw ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
+                                LINE_ALPHA(9));
 
     // Crosshair indication
     sprintf(str, xhair_color == 1 ? "HEALTH" :
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
                  xhair_color == 3 ? "TGT HIGHLIGHT+HEALTH" : "STATIC");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
                         xhair_color ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             xhair_color ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(9));
+                                LINE_ALPHA(10));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "1/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "1/3");
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3611,6 +3620,11 @@ static void M_ID_SmoothLightingHook (void)
 static void M_ID_SmoothLighting (int choice)
 {
     post_rendering_hook = M_ID_SmoothLightingHook;
+}
+
+static void M_ID_SpriteLighting (int choice)
+{
+    vis_sprite_light ^= 1;
 }
 
 static void M_ID_SmoothPalette (int choice)
@@ -3667,6 +3681,7 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_LRFUNC1, "CORPSES SLIDING FROM LEDGES", M_ID_Torque,       0, MENU_NONE },
     { ITT_LRFUNC1, "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,    0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_LRFUNC2, "", /* SCROLLS PAGES */        M_ScrollGameplay,  0, MENU_NONE },
@@ -3750,7 +3765,7 @@ static void M_Draw_ID_Gameplay_2 (void)
                                 LINE_ALPHA(9));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "2/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "2/3");
 }
 
 static void M_ID_Layout (int choice)
@@ -3811,6 +3826,7 @@ static MenuItem_t ID_Menu_Gameplay_3[] = {
     { ITT_LRFUNC1, "PLAY INTERNAL DEMOS",          M_ID_InternalDemos,  0, MENU_NONE },
     { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
     { ITT_LRFUNC1, "AUTOMATIC STRAFE 50",          M_ID_AutomaticSR50,  0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
     { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
     { ITT_LRFUNC2, "", /* SCROLLS PAGES */         M_ScrollGameplay,    0, MENU_NONE },
 };
@@ -3915,7 +3931,7 @@ static void M_Draw_ID_Gameplay_3 (void)
                                 LINE_ALPHA(10));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "3/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "3/3");
 }
 
 static void M_ID_DefaultClass (int choice)
@@ -3984,7 +4000,7 @@ static void M_ScrollGameplay (int choice)
         else if (CurrentMenu == &ID_Def_Gameplay_3) { SetMenu(MENU_ID_GAMEPLAY2); }
         
     }
-    CurrentItPos = 12;
+    CurrentItPos = 13;
 }
 
 // -----------------------------------------------------------------------------
@@ -4307,6 +4323,7 @@ static void M_ID_ApplyResetHook (void)
     vis_brightmaps = 0;
     vis_translucency = 0;
     vis_smooth_light = 0;
+    vis_sprite_light = 0;
     vis_smooth_palette = 0;
     vis_swirling_liquids = 0;
     vis_linear_sky = 0;

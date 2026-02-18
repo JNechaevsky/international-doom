@@ -601,6 +601,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vis_translucency),
     CONFIG_VARIABLE_INT(vis_fake_contrast),
     CONFIG_VARIABLE_INT(vis_smooth_light),
+    CONFIG_VARIABLE_INT(vis_sprite_light),
     CONFIG_VARIABLE_INT(vis_smooth_palette),
     CONFIG_VARIABLE_INT(vis_improved_fuzz),
     CONFIG_VARIABLE_INT(vis_colored_blood),
