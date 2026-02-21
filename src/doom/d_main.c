@@ -156,6 +156,9 @@ void D_ProcessEvents (void)
 // [JN] Draws message on the screen.
 // -----------------------------------------------------------------------------
 
+// [JN] Message fading speed depending on msg_fade variable.
+static const int fade_speed[] = {0, TICRATE, TICRATE * 0.75f, TICRATE * 0.50f};
+
 static void ID_DrawMessage (void)
 {
     player_t *player = &players[displayplayer];
@@ -165,22 +168,36 @@ static void ID_DrawMessage (void)
         return;  // No message
     }
 
-    // Draw message, where?
-    if (msg_alignment == 0)
+    // [PN] Calculate alpha for fade effect
+    int alpha = 255;
+    if (msg_fade && player->messageTics < fade_speed[msg_fade])
     {
-        // Left
-        M_WriteText(0 - WIDESCREENDELTA, 0, player->message, player->messageColor);
+        alpha = (player->messageTics * 255) / TICRATE;
     }
-    else
-    if (msg_alignment == 1)
+
+    // [PN] Draw based on alignment
+    switch (msg_alignment)
     {
-        // Status bar
-        M_WriteText(0, 0, player->message, player->messageColor);
-    }
-    else
-    {
-        // Centered
-        M_WriteTextCentered(0, player->message, player->messageColor);
+        case 0:  // Left
+            if (msg_fade)
+                M_WriteTextFade(-WIDESCREENDELTA, 0, player->message, player->messageColor, alpha);
+            else
+                M_WriteText(-WIDESCREENDELTA, 0, player->message, player->messageColor);
+            break;
+
+        case 1:  // Status bar
+            if (msg_fade)
+                M_WriteTextFade(0, 0, player->message, player->messageColor, alpha);
+            else
+                M_WriteText(0, 0, player->message, player->messageColor);
+            break;
+
+        default:  // Centered
+            if (msg_fade)
+                M_WriteTextCenteredFade(0, player->message, player->messageColor, alpha);
+            else
+                M_WriteTextCentered(0, player->message, player->messageColor);
+            break;
     }
 }
 
@@ -198,8 +215,22 @@ static void ID_DrawMessageCentered (void)
         return;  // No message
     }
 
+    // [PN] Calculate alpha for fade effect
+    int alpha = 255;
+    if (msg_fade && player->messageTics < fade_speed[msg_fade])
+    {
+        alpha = (player->messageTics * 255) / TICRATE;
+    }
+
     // Always centered
-    M_WriteTextCentered(63, player->messageCentered, player->messageCenteredColor);
+    if (msg_fade)
+    {
+        M_WriteTextCenteredFade(63, player->messageCentered, player->messageCenteredColor, alpha);
+    }
+    else
+    {
+        M_WriteTextCentered(63, player->messageCentered, player->messageCenteredColor);
+    }
 }
 
 // -----------------------------------------------------------------------------

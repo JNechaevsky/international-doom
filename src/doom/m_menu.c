@@ -587,6 +587,7 @@ static void M_ID_G_Intensity (int choice);
 static void M_ID_B_Intensity (int choice);
 static void M_ID_MessagesAlignment (int choice);
 static void M_ID_TextShadows (int choice);
+static void M_ID_TextFade (int choice);
 static void M_ID_LocalTime (int choice);
 
 static void M_Choose_ID_Sound (int choice);
@@ -1647,6 +1648,7 @@ static menuitem_t ID_Menu_Display[]=
     { M_MUL2, "MESSAGES ENABLED",        M_ChangeMessages,       'm' },
     { M_MUL2, "MESSAGES ALIGNMENT",      M_ID_MessagesAlignment, 'm' },
     { M_MUL2, "TEXT CASTS SHADOWS",      M_ID_TextShadows,       't' },
+    { M_MUL1, "FADING EFFECT",           M_ID_TextFade,          'f' },
     { M_MUL2, "LOCAL TIME",              M_ID_LocalTime,         'l' },
 };
 
@@ -1669,6 +1671,7 @@ static void M_Choose_ID_Display (int choice)
 static void M_Draw_ID_Display (void)
 {
     char str[32];
+    const char *fade_speed[] = { "OFF", "SLOW", "NORMAL", "FAST" };
 
     M_WriteTextCentered(9, "DISPLAY OPTIONS", cr[CR_YELLOW]);
 
@@ -1768,13 +1771,24 @@ static void M_Draw_ID_Display (void)
                             msg_text_shadows ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], 
                                 LINE_ALPHA(13));
 
+    // Fading effect
+    sprintf(str, "%s", fade_speed[msg_fade]);
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
+                        msg_fade == 1 ? cr[CR_GREEN]  :
+                        msg_fade == 2 ? cr[CR_YELLOW] :
+                        msg_fade == 3 ? cr[CR_ORANGE] : cr[CR_DARKRED],
+                            msg_fade == 1 ? cr[CR_GREEN_BRIGHT]  :
+                            msg_fade == 2 ? cr[CR_YELLOW_BRIGHT] :
+                            msg_fade == 3 ? cr[CR_ORANGE_BRIGHT] : cr[CR_RED_BRIGHT], 
+                                LINE_ALPHA(14));
+
     // Local time
     sprintf(str, msg_local_time == 1 ? "12-HOUR FORMAT" :
                  msg_local_time == 2 ? "24-HOUR FORMAT" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 153, str,
                         msg_local_time ? cr[CR_GREEN] : cr[CR_DARKRED],
                             msg_local_time ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], 
-                                LINE_ALPHA(14));
+                                LINE_ALPHA(15));
 }
 
 static void M_ID_FOV (int choice)
@@ -1902,6 +1916,11 @@ static void M_ID_MessagesAlignment (int choice)
 static void M_ID_TextShadows (int choice)
 {
     msg_text_shadows ^= 1;
+}
+
+static void M_ID_TextFade (int choice)
+{
+    msg_fade = M_INT_Slider(msg_fade, 0, 3, choice, false);
 }
 
 static void M_ID_LocalTime (int choice)
@@ -5124,6 +5143,7 @@ static void M_ID_ApplyResetHook (void)
     msg_show = 1;
     msg_alignment = 0;
     msg_text_shadows = 0;
+    msg_fade = 0;
     msg_local_time = 0;
 
     //
@@ -6136,6 +6156,73 @@ void M_WriteText (int x, int y, const char *string, byte *table)
 }
 
 // -----------------------------------------------------------------------------
+// M_WriteTextFade
+//  [PN] Write a string using hu_font with custom alpha fade.
+// -----------------------------------------------------------------------------
+
+void M_WriteTextFade (int x, int y, const char *string, byte *table, int alpha)
+{
+    const char* ch;
+    int w, c, cx, cy;
+
+    if (alpha <= 0)
+    {
+        return;
+    }
+
+    ch = string;
+    cx = x;
+    cy = y;
+
+    dp_translation = table;
+
+    while (ch)
+    {
+        c = *ch++;
+
+        if (!c)
+        {
+            break;
+        }
+
+        if (c == '\n')
+        {
+            cx = x;
+            cy += 12;
+            continue;
+        }
+
+        c = toupper(c) - HU_FONTSTART;
+
+        if (c < 0 || c >= HU_FONTSIZE)
+        {
+            cx += 4;
+            continue;
+        }
+
+        w = SHORT (hu_font[c]->width);
+
+        if (cx + w > SCREENWIDTH)
+        {
+            break;
+        }
+
+        if (alpha >= 255)
+        {
+            V_DrawShadowedPatchOptional(cx, cy, 0, hu_font[c]);
+        }
+        else
+        {
+            V_DrawFadeShadowedPatchOptional(cx, cy, 0, hu_font[c], alpha);
+        }
+
+        cx += w;
+    }
+
+    dp_translation = NULL;
+}
+
+// -----------------------------------------------------------------------------
 // M_WriteTextNoShadow
 // Write a string using the hu_font, with forcefully disabled shadow.
 // -----------------------------------------------------------------------------
@@ -6259,6 +6346,19 @@ void M_WriteTextCentered (const int y, const char *string, byte *table)
     }
     
     dp_translation = NULL;
+}
+
+// -----------------------------------------------------------------------------
+// M_WriteTextCenteredFade
+// [PN] Write a centered string using the hu_font with custom alpha fade.
+// -----------------------------------------------------------------------------
+
+
+void M_WriteTextCenteredFade (const int y, const char *string, byte *table, int alpha)
+{
+    const int width = M_StringWidth(string);
+
+    M_WriteTextFade(ORIGWIDTH / 2 - width / 2, y, string, table, alpha);
 }
 
 // -----------------------------------------------------------------------------
