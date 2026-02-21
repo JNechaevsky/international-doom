@@ -925,6 +925,175 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
 }
 
 // -----------------------------------------------------------------------------
+// V_DrawFadeShadowedPatchOptional
+//  [PN] Draw patch and optional shadow with explicit alpha fade (0..255).
+// -----------------------------------------------------------------------------
+
+void V_DrawFadeShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch, int alpha)
+{
+    int count, count2, col;
+    column_t *column;
+    pixel_t *desttop, *dest;
+    byte *source;
+    pixel_t *dest2;
+    int w;
+
+    const int      sw       = SCREENWIDTH;
+    const int      sh       = SCREENHEIGHT;
+    const int      ws_delta = WIDESCREENDELTA;
+    pixel_t *restrict dst_screen = dest_screen;
+    const pixel_t *restrict pal  = pal_color;
+    const boolean  use_tc  = vid_truecolor;
+    const int      vres    = vid_resolution;
+    const boolean  do_shadow = msg_text_shadows;
+
+    const fixed_t ldx  = dx;
+    const fixed_t ldy  = dy;
+    const fixed_t ldxi = dxi;
+    const fixed_t ldyi = dyi;
+
+    const byte *restrict xlat = dp_translation;
+
+    if (alpha <= 0)
+    {
+        return;
+    }
+
+    if (alpha >= 255)
+    {
+        V_DrawShadowedPatchOptional(x, y, shadow_type, patch);
+        return;
+    }
+
+    // For I_BlendDark: lower amount means darker shadow.
+    // Therefore, to fade shadow out with text alpha we must move amount towards 255
+    // as alpha goes to 0 (instead of towards 0).
+    const int sa = 255 - (((255 - shadow_alpha) * alpha) / 255); (void)shadow_type;
+
+    const int shadow_shift = (sw + 1) * vres;
+
+    y -= SHORT(patch->topoffset);
+    x -= SHORT(patch->leftoffset);
+    x += ws_delta;
+
+    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+
+    col = 0;
+    if (x < 0)
+    {
+        col += ldxi * ((-x * ldx) >> FRACBITS);
+        x = 0;
+    }
+
+    desttop = dst_screen + ((y * ldy) >> FRACBITS) * sw + ((x * ldx) >> FRACBITS);
+
+    w = SHORT(patch->width);
+    x = (x * ldx) >> FRACBITS;
+
+    const int sh_limit_shadow = sh - (1 * vres);
+
+    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop++)
+    {
+        int topdelta = -1;
+
+        if (x >= sw)
+            break;
+
+        column = (column_t *)((byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
+
+        while (column->topdelta != 0xff)
+        {
+            int top;
+            int srccol = 0;
+
+            if (column->topdelta <= topdelta)
+                topdelta += column->topdelta;
+            else
+                topdelta = column->topdelta;
+
+            top    = ((y + topdelta) * ldy) >> FRACBITS;
+            source = (byte *)column + 3;
+
+            dest  = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            dest2 = dest + shadow_shift;
+
+            count  = (column->length * ldy) >> FRACBITS;
+            count2 = count;
+
+            if (top + count2 > sh_limit_shadow)
+                count2 = sh_limit_shadow - top;
+            if (top + count > sh)
+                count = sh - top;
+
+            if (count < 1 || count2 < 1)
+            {
+                column = (column_t *)((byte *)column + column->length + 4);
+                continue;
+            }
+
+            if (top < 0)
+            {
+                const int skip = -top;
+
+                if (skip >= count || skip >= count2)
+                {
+                    column = (column_t *)((byte *)column + column->length + 4);
+                    continue;
+                }
+
+                dest   += skip * sw;
+                dest2  += skip * sw;
+                srccol += ldyi * skip;
+                count  -= skip;
+                count2 -= skip;
+            }
+
+            if (do_shadow && sa > 0)
+            {
+                int n = count2;
+                if (use_tc)
+                {
+                    while (n--) { *dest2 = I_BlendDark_32(*dest2, sa); dest2 += sw; }
+                }
+                else
+                {
+                    while (n--) { *dest2 = I_BlendDark_8(*dest2, sa); dest2 += sw; }
+                }
+            }
+
+            if (!xlat)
+            {
+                int n = count;
+                while (n--)
+                {
+                    const byte s = source[srccol >> FRACBITS];
+                    const pixel_t fg = pal[s];
+                    *dest = use_tc ? I_BlendOver_32(*dest, fg, alpha)
+                                   : I_BlendOver_8(*dest, fg, alpha);
+                    srccol += ldyi;
+                    dest   += sw;
+                }
+            }
+            else
+            {
+                int n = count;
+                while (n--)
+                {
+                    const byte s = xlat[source[srccol >> FRACBITS]];
+                    const pixel_t fg = pal[s];
+                    *dest = use_tc ? I_BlendOver_32(*dest, fg, alpha)
+                                   : I_BlendOver_8(*dest, fg, alpha);
+                    srccol += ldyi;
+                    dest   += sw;
+                }
+            }
+
+            column = (column_t *)((byte *)column + column->length + 4);
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 // V_DrawTLPatch
 //  Masks a column based translucent masked pic to the screen.
 // -----------------------------------------------------------------------------

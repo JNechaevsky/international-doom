@@ -39,6 +39,7 @@ extern void V_DrawPatch(int x, int y, patch_t *patch);
 extern void V_DrawShadowedPatch(int x, int y, patch_t *patch);
 extern void V_DrawShadowedPatchNoOffsets(int x, int y, patch_t *patch);
 extern void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch);
+extern void V_DrawFadeShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch, int alpha);
 extern void V_DrawPatchFullScreen(patch_t *patch, boolean flipped);
 extern void V_DrawPatchFlipped(int x, int y, patch_t *patch);
 extern void V_DrawTLPatch(int x, int y, patch_t *patch);

@@ -52,6 +52,7 @@ extern int dp_screen_size;
 extern int vid_screenwipe;
 extern int vid_screenwipe_hr;
 extern int msg_text_shadows;
+extern int msg_fade;
 
 extern int post_supersample;
 extern int post_overglow;
