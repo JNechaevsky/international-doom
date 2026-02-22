@@ -81,6 +81,7 @@ float vid_b_intensity = 1.000000;
 int msg_show = 1;
 int msg_alignment = 0;
 int msg_text_shadows = 0;
+int msg_fade = 0;
 int msg_local_time = 0;
 
 //
@@ -296,6 +297,7 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("msg_alignment",              &msg_alignment);
     }
     M_BindIntVariable("msg_text_shadows",               &msg_text_shadows);
+    M_BindIntVariable("msg_fade",                       &msg_fade);
     M_BindIntVariable("msg_local_time",                 &msg_local_time);    
 
     //

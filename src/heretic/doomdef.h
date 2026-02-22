@@ -922,8 +922,10 @@ boolean MN_Responder(event_t * event);
 void MN_Ticker(void);
 void MN_Drawer(void);
 void MN_DrTextA(const char *text, int x, int y, byte *table);
+void MN_DrTextAFade(const char *text, int x, int y, byte *table, int alpha);
 int MN_TextAWidth(const char *text);
 void MN_DrTextACentered (const char *text, int y, byte *table);
+void MN_DrTextACenteredFade(const char *text, int y, byte *table, int alpha);
 int MN_TextBWidth(const char *text);
 extern void M_ID_RemasterOST (int choice);
 

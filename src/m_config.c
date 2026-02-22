@@ -245,6 +245,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(msg_show),
     CONFIG_VARIABLE_INT(msg_alignment),
     CONFIG_VARIABLE_INT(msg_text_shadows),
+    CONFIG_VARIABLE_INT(msg_fade),
     CONFIG_VARIABLE_INT(msg_local_time),
     CONFIG_VARIABLE_COMMENT(""),
 

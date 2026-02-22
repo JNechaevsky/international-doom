@@ -1226,30 +1226,55 @@ static void DrawAndBlit(void)
     }
 }
 
-//==========================================================================
-//
-// DrawMessage
-//
-//==========================================================================
+// -----------------------------------------------------------------------------
+// PROC DrawMessage
+// [PN/JN] Draws message on the screen.
+// -----------------------------------------------------------------------------
+
+// [JN] Message fading speed depending on msg_fade variable.
+static const int fade_speed[] = {0, TICRATE, TICRATE * 0.75f, TICRATE * 0.50f};
 
 static void DrawMessage(void)
 {
-    player_t *player;
+    player_t *player = &players[displayplayer];
 
-    player = &players[displayplayer];
+    // [PN] Early exit if no message
     if (player->messageTics <= 0)
-    {                           // No message
+    {
         return;
     }
-    if (player->yellowMessage)
+
+    // [PN] Pre-calculate centered X position
+    const int x = 160 - (MN_TextAWidth(player->message) >> 1);
+
+    if (msg_fade)
     {
-        MN_DrTextAYellow(player->message,
-                         160 - MN_TextAWidth(player->message) / 2, 1);
+        // [PN] Calculate alpha only when fade is active
+        int alpha = 255;
+        if (player->messageTics < fade_speed[msg_fade])
+        {
+            alpha = (player->messageTics * 255) / TICRATE;
+        }
+
+        if (player->yellowMessage)
+        {
+            MN_DrTextAYellowFade(player->message, x, 1, alpha);
+        }
+        else
+        {
+            MN_DrTextAFade(player->message, x, 1, NULL, alpha);
+        }
     }
     else
     {
-        MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2,
-                   1, NULL);
+        if (player->yellowMessage)
+        {
+            MN_DrTextAYellow(player->message, x, 1);
+        }
+        else
+        {
+            MN_DrTextA(player->message, x, 1, NULL);
+        }
     }
 }
 
