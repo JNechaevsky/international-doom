@@ -6162,13 +6162,13 @@ void M_WriteText (int x, int y, const char *string, byte *table)
 
 void M_WriteTextFade (int x, int y, const char *string, byte *table, int alpha)
 {
-    const char* ch;
-    int w, c, cx, cy;
-
     if (alpha <= 0)
     {
         return;
     }
+
+    const char* ch;
+    int w, c, cx, cy;
 
     ch = string;
     cx = x;
@@ -6213,7 +6213,7 @@ void M_WriteTextFade (int x, int y, const char *string, byte *table, int alpha)
         }
         else
         {
-            V_DrawFadeShadowedPatchOptional(cx, cy, 0, hu_font[c], alpha);
+            V_DrawShadowedPatchOptionalFade(cx, cy, 0, hu_font[c], alpha);
         }
 
         cx += w;
@@ -6352,7 +6352,6 @@ void M_WriteTextCentered (const int y, const char *string, byte *table)
 // M_WriteTextCenteredFade
 // [PN] Write a centered string using the hu_font with custom alpha fade.
 // -----------------------------------------------------------------------------
-
 
 void M_WriteTextCenteredFade (const int y, const char *string, byte *table, int alpha)
 {

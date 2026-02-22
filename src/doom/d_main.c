@@ -217,9 +217,9 @@ static void ID_DrawMessageCentered (void)
 
     // [PN] Calculate alpha for fade effect
     int alpha = 255;
-    if (msg_fade && player->messageTics < fade_speed[msg_fade])
+    if (msg_fade && player->messageCenteredTics < fade_speed[msg_fade])
     {
-        alpha = (player->messageTics * 255) / TICRATE;
+        alpha = (player->messageCenteredTics * 255) / TICRATE;
     }
 
     // Always centered
