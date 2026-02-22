@@ -1232,6 +1232,9 @@ static void DrawAndBlit(void)
 //
 //==========================================================================
 
+// [JN] Message fading speed depending on msg_fade variable.
+static const int fade_speed[] = {0, TICRATE, TICRATE * 0.75f, TICRATE * 0.50f};
+
 static void DrawMessage(void)
 {
     player_t *player;
@@ -1241,15 +1244,35 @@ static void DrawMessage(void)
     {                           // No message
         return;
     }
-    if (player->yellowMessage)
+
+    // [PN] Calculate alpha for fade effect
+    int alpha = 255;
+    if (msg_fade && player->messageTics < fade_speed[msg_fade])
     {
-        MN_DrTextAYellow(player->message,
-                         160 - MN_TextAWidth(player->message) / 2, 1);
+        alpha = (player->messageTics * 255) / TICRATE;
+    }
+
+    if (msg_fade)
+    {
+        if (player->yellowMessage)
+        {
+            MN_DrTextAYellowFade(player->message, 160 - MN_TextAWidth(player->message) / 2, 1, alpha);
+        }
+        else
+        {
+            MN_DrTextAFade(player->message, 160 - MN_TextAWidth(player->message) / 2, 1, NULL, alpha);
+        }
     }
     else
     {
-        MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2,
-                   1, NULL);
+        if (player->yellowMessage)
+        {
+            MN_DrTextAYellow(player->message, 160 - MN_TextAWidth(player->message) / 2, 1);
+        }
+        else
+        {
+            MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, 1, NULL);
+        }
     }
 }
 
