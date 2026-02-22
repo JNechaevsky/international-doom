@@ -138,6 +138,9 @@ void D_ProcessEvents(void)
 //
 //---------------------------------------------------------------------------
 
+// [JN] Message fading speed depending on msg_fade variable.
+static const int fade_speed[] = {0, TICRATE, TICRATE * 0.75f, TICRATE * 0.50f};
+
 static void DrawMessage (void)
 {
     player_t *player = &players[displayplayer];
@@ -146,7 +149,24 @@ static void DrawMessage (void)
     {                           // No message
         return;
     }
-    MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, 1, player->messageColor);
+
+    // [PN] Calculate alpha for fade effect
+    int alpha = 255;
+    if (msg_fade && player->messageTics < fade_speed[msg_fade])
+    {
+        alpha = (player->messageTics * 255) / TICRATE;
+    }
+
+    if (msg_fade)
+    {
+        MN_DrTextAFade(player->message, 160 - MN_TextAWidth(player->message) / 2, 1,
+                       player->messageColor, alpha);
+    }
+    else
+    {
+        MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, 1,
+                   player->messageColor);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -163,9 +183,24 @@ static void ID_DrawMessageCentered (void)
         return;  // No message
     }
 
+    // [PN] Calculate alpha for fade effect
+    int alpha = 255;
+    if (msg_fade && player->messageCenteredTics < fade_speed[msg_fade])
+    {
+        alpha = (player->messageCenteredTics * 255) / TICRATE;
+    }
+
     // Always centered and colored yellow.
-    MN_DrTextACentered(player->messageCentered,
-                       gp_revealed_secrets == 1 ? 10 : 60, cr[CR_YELLOW]);
+    if (msg_fade)
+    {
+        MN_DrTextACenteredFade(player->messageCentered,
+                               gp_revealed_secrets == 1 ? 10 : 60, cr[CR_YELLOW], alpha);
+    }
+    else
+    {
+        MN_DrTextACentered(player->messageCentered,
+                           gp_revealed_secrets == 1 ? 10 : 60, cr[CR_YELLOW]);
+    }
 }
 
 //---------------------------------------------------------------------------

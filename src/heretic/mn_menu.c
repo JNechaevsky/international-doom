@@ -461,6 +461,7 @@ static void M_ID_G_Intensity (int choice);
 static void M_ID_B_Intensity (int choice);
 static void M_ID_Messages (int choice);
 static void M_ID_TextShadows (int choice);
+static void M_ID_TextFade (int choice);
 static void M_ID_LocalTime (int choice);
 
 static void M_Draw_ID_Sound (void);
@@ -1489,6 +1490,7 @@ static MenuItem_t ID_Menu_Display[] = {
     { ITT_EMPTY,  NULL,                      NULL,                 0, MENU_NONE },
     { ITT_LRFUNC2, "MESSAGES ENABLED",        M_ID_Messages,        0, MENU_NONE },
     { ITT_LRFUNC2, "TEXT CASTS SHADOWS",      M_ID_TextShadows,     0, MENU_NONE },
+    { ITT_LRFUNC1, "FADING EFFECT",           M_ID_TextFade,        0, MENU_NONE },
     { ITT_LRFUNC2, "LOCAL TIME",              M_ID_LocalTime,       0, MENU_NONE },
 };
 
@@ -1504,6 +1506,7 @@ static Menu_t ID_Def_Display = {
 static void M_Draw_ID_Display (void)
 {
     char str[32];
+    const char *fade_speed[] = { "OFF", "SLOW", "NORMAL", "FAST" };
 
     MN_DrTextACentered("DISPLAY OPTIONS", 10, cr[CR_YELLOW]);
 
@@ -1594,13 +1597,24 @@ static void M_Draw_ID_Display (void)
                             msg_text_shadows ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], 
                                 LINE_ALPHA(12));
 
+    // Fading effect
+    sprintf(str, "%s", fade_speed[msg_fade]);
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 150,
+                        msg_fade == 1 ? cr[CR_GREEN]  :
+                        msg_fade == 2 ? cr[CR_YELLOW] :
+                        msg_fade == 3 ? cr[CR_ORANGE] : cr[CR_DARKRED],
+                            msg_fade == 1 ? cr[CR_GREEN_BRIGHT]  :
+                            msg_fade == 2 ? cr[CR_YELLOW_BRIGHT] :
+                            msg_fade == 3 ? cr[CR_ORANGE_BRIGHT] : cr[CR_RED_BRIGHT], 
+                                LINE_ALPHA(13));
+
     // Local time
     sprintf(str, msg_local_time == 1 ? "12-HOUR FORMAT" :
                  msg_local_time == 2 ? "24-HOUR FORMAT" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 150,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 160,
                         msg_local_time ? cr[CR_GREEN] : cr[CR_DARKRED],
                             msg_local_time ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], 
-                                LINE_ALPHA(13));
+                                LINE_ALPHA(14));
 }
 
 static void M_ID_FOV (int choice)
@@ -1726,6 +1740,11 @@ static void M_ID_Messages (int choice)
 static void M_ID_TextShadows (int choice)
 {
     msg_text_shadows ^= 1;
+}
+
+static void M_ID_TextFade (int choice)
+{
+    msg_fade = M_INT_Slider(msg_fade, 0, 3, choice, false);
 }
 
 static void M_ID_LocalTime (int choice)
@@ -5103,6 +5122,7 @@ static void M_ID_ApplyResetHook (void)
     // Messages Settings
     msg_show = 1;
     msg_text_shadows = 0;
+    msg_fade = 0;
     msg_local_time = 0;
 
     //
@@ -5388,6 +5408,49 @@ void MN_DrTextA (const char *text, int x, int y, byte *table)
     dp_translation = NULL;
 }
 
+// -----------------------------------------------------------------------------
+// MN_DrTextAFade
+//  [PN] Write a string using FontA with custom alpha fade.
+// -----------------------------------------------------------------------------
+
+void MN_DrTextAFade (const char *text, int x, int y, byte *table, int alpha)
+{
+    if (alpha <= 0)
+    {
+        return;
+    }
+
+    char c;
+    patch_t *p;
+
+    dp_translation = table;
+
+    while ((c = *text++) != 0)
+    {
+        c = MN_CheckValidChar(c, small_font); // [crispy] check for valid characters
+
+        if (c < 33)
+        {
+            x += 5;
+        }
+        else
+        {
+            p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
+            if (alpha >= 255)
+            {
+                V_DrawShadowedPatchOptional(x, y, 1, p);
+            }
+            else
+            {
+                V_DrawShadowedPatchOptionalFade(x, y, 1, p, alpha);
+            }                
+            x += SHORT(p->width) - 1;
+        }
+    }
+
+    dp_translation = NULL;
+}
+
 //---------------------------------------------------------------------------
 //
 // FUNC MN_TextAWidth
@@ -5447,6 +5510,18 @@ void MN_DrTextACentered (const char *text, int y, byte *table)
     }
 
     dp_translation = NULL;
+}
+
+// -----------------------------------------------------------------------------
+// MN_DrTextACenteredFade
+// [PN] Write a centered string using the FontA with custom alpha fade.
+// -----------------------------------------------------------------------------
+
+void MN_DrTextACenteredFade (const char *string, const int y, byte *table, int alpha)
+{
+    const int width = MN_TextAWidth(string);
+
+    MN_DrTextAFade(string, 160 - width / 2, y, table, alpha);
 }
 
 //---------------------------------------------------------------------------
