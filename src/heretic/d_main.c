@@ -132,11 +132,10 @@ void D_ProcessEvents(void)
     }
 }
 
-//---------------------------------------------------------------------------
-//
+// -----------------------------------------------------------------------------
 // PROC DrawMessage
-//
-//---------------------------------------------------------------------------
+// [PN/JN] Draws message on the screen.
+// -----------------------------------------------------------------------------
 
 // [JN] Message fading speed depending on msg_fade variable.
 static const int fade_speed[] = {0, TICRATE, TICRATE * 0.75f, TICRATE * 0.50f};
@@ -144,62 +143,63 @@ static const int fade_speed[] = {0, TICRATE, TICRATE * 0.75f, TICRATE * 0.50f};
 static void DrawMessage (void)
 {
     player_t *player = &players[displayplayer];
-    
+
+    // [PN] Early exit if no message
     if (player->messageTics <= 0 || !player->message)
-    {                           // No message
+    {
         return;
     }
 
-    // [PN] Calculate alpha for fade effect
-    int alpha = 255;
-    if (msg_fade && player->messageTics < fade_speed[msg_fade])
-    {
-        alpha = (player->messageTics * 255) / TICRATE;
-    }
+    // [PN] Pre-calculate centered X position
+    const int x = 160 - (MN_TextAWidth(player->message) >> 1);
 
     if (msg_fade)
     {
-        MN_DrTextAFade(player->message, 160 - MN_TextAWidth(player->message) / 2, 1,
-                       player->messageColor, alpha);
+        // [PN] Calculate alpha only when fade is active
+        int alpha = 255;
+        if (player->messageTics < fade_speed[msg_fade])
+        {
+            alpha = (player->messageTics * 255) / TICRATE;
+        }
+        MN_DrTextAFade(player->message, x, 1, player->messageColor, alpha);
     }
     else
     {
-        MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, 1,
-                   player->messageColor);
+        MN_DrTextA(player->message, x, 1, player->messageColor);
     }
 }
 
 // -----------------------------------------------------------------------------
 // ID_DrawMessageCentered
-// [JN] Draws message on the screen.
+// [PN/JN] Draws message on the screen.
 // -----------------------------------------------------------------------------
 
 static void ID_DrawMessageCentered (void)
 {
     player_t *player = &players[displayplayer];
 
+    // [PN] Early exit if no message
     if (player->messageCenteredTics <= 0 || !player->messageCentered)
     {
-        return;  // No message
+        return;
     }
 
-    // [PN] Calculate alpha for fade effect
-    int alpha = 255;
-    if (msg_fade && player->messageCenteredTics < fade_speed[msg_fade])
-    {
-        alpha = (player->messageCenteredTics * 255) / TICRATE;
-    }
+    // [PN] Pre-calculate Y position based on revealed secrets
+    const int y = (gp_revealed_secrets == 1) ? 10 : 60;
 
-    // Always centered and colored yellow.
     if (msg_fade)
     {
-        MN_DrTextACenteredFade(player->messageCentered,
-                               gp_revealed_secrets == 1 ? 10 : 60, cr[CR_YELLOW], alpha);
+        // [PN] Calculate alpha only when fade is active
+        int alpha = 255;
+        if (player->messageCenteredTics < fade_speed[msg_fade])
+        {
+            alpha = (player->messageCenteredTics * 255) / TICRATE;
+        }
+        MN_DrTextACenteredFade(player->messageCentered, y, cr[CR_YELLOW], alpha);
     }
     else
     {
-        MN_DrTextACentered(player->messageCentered,
-                           gp_revealed_secrets == 1 ? 10 : 60, cr[CR_YELLOW]);
+        MN_DrTextACentered(player->messageCentered, y, cr[CR_YELLOW]);
     }
 }
 

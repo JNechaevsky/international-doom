@@ -153,7 +153,7 @@ void D_ProcessEvents (void)
 
 // -----------------------------------------------------------------------------
 // ID_DrawMessage
-// [JN] Draws message on the screen.
+// [PN/JN] Draws message on the screen.
 // -----------------------------------------------------------------------------
 
 // [JN] Message fading speed depending on msg_fade variable.
@@ -163,68 +163,72 @@ static void ID_DrawMessage (void)
 {
     player_t *player = &players[displayplayer];
 
+    // [PN] Early exit if no message
     if (player->messageTics <= 0 || !player->message)
     {
-        return;  // No message
+        return;
     }
 
-    // [PN] Calculate alpha for fade effect
-    int alpha = 255;
-    if (msg_fade && player->messageTics < fade_speed[msg_fade])
+    // [PN] Pre-calculate position based on alignment
+    const int x = (msg_alignment == 0) ? -WIDESCREENDELTA : 0;
+    const int centered = (msg_alignment == 2);
+
+    if (msg_fade)
     {
-        alpha = (player->messageTics * 255) / TICRATE;
+        // [PN] Calculate alpha only when fade is active
+        int alpha = 255;
+        if (player->messageTics < fade_speed[msg_fade])
+        {
+            alpha = (player->messageTics * 255) / TICRATE;
+        }
+
+        // [PN] Draw with fade effect
+        if (centered)
+        {
+            M_WriteTextCenteredFade(0, player->message, player->messageColor, alpha);
+        }
+        else
+        {
+            M_WriteTextFade(x, 0, player->message, player->messageColor, alpha);
+        }
     }
-
-    // [PN] Draw based on alignment
-    switch (msg_alignment)
+    else
     {
-        case 0:  // Left
-            if (msg_fade)
-                M_WriteTextFade(-WIDESCREENDELTA, 0, player->message, player->messageColor, alpha);
-            else
-                M_WriteText(-WIDESCREENDELTA, 0, player->message, player->messageColor);
-            break;
-
-        case 1:  // Status bar
-            if (msg_fade)
-                M_WriteTextFade(0, 0, player->message, player->messageColor, alpha);
-            else
-                M_WriteText(0, 0, player->message, player->messageColor);
-            break;
-
-        default:  // Centered
-            if (msg_fade)
-                M_WriteTextCenteredFade(0, player->message, player->messageColor, alpha);
-            else
-                M_WriteTextCentered(0, player->message, player->messageColor);
-            break;
+        // [PN] Draw without fade
+        if (centered)
+        {
+            M_WriteTextCentered(0, player->message, player->messageColor);
+        }
+        else
+        {
+            M_WriteText(x, 0, player->message, player->messageColor);
+        }
     }
 }
 
 // -----------------------------------------------------------------------------
 // ID_DrawMessage
-// [JN] Draws message on the screen.
+// [PN/JN] Draws message on the screen.
 // -----------------------------------------------------------------------------
 
 static void ID_DrawMessageCentered (void)
 {
     player_t *player = &players[displayplayer];
 
+    // [PN] Early exit if no message
     if (player->messageCenteredTics <= 0 || !player->messageCentered)
     {
-        return;  // No message
+        return;
     }
 
-    // [PN] Calculate alpha for fade effect
-    int alpha = 255;
-    if (msg_fade && player->messageCenteredTics < fade_speed[msg_fade])
-    {
-        alpha = (player->messageCenteredTics * 255) / TICRATE;
-    }
-
-    // Always centered
     if (msg_fade)
     {
+        // [PN] Calculate alpha only when fade is active
+        int alpha = 255;
+        if (player->messageCenteredTics < fade_speed[msg_fade])
+        {
+            alpha = (player->messageCenteredTics * 255) / TICRATE;
+        }
         M_WriteTextCenteredFade(63, player->messageCentered, player->messageCenteredColor, alpha);
     }
     else
