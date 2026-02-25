@@ -318,34 +318,30 @@ static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
     }
 }
 
-// [JN] Format time string for the level/total time widget.
+// [JN/PN] Format time string for the level/total time widget.
 void ID_FormatWidgetTime (char *buf, size_t bufsize, int ticks, int mode)
 {
     const int hours   = ticks / (3600 * TICRATE);
     const int mins    = (ticks / (60 * TICRATE)) % 60;
     const int sec     = (ticks / TICRATE) % 60;
-    const int csec    = ((ticks % TICRATE) * 100 + TICRATE / 2) / TICRATE;
+    const int csec    = (((ticks % TICRATE) * 100 + TICRATE) >> 1) / TICRATE;
     const int show_cs = (mode == 3 || mode == 4);
 
     if (hours)
     {
-        if (show_cs)
-            M_snprintf(buf, bufsize, "%02i:%02i:%02i.%02i", hours, mins, sec, csec);
-        else
-            M_snprintf(buf, bufsize, "%02i:%02i:%02i", hours, mins, sec);
+        const char *const fmt = show_cs ? "%02i:%02i:%02i.%02i" : "%02i:%02i:%02i";
+        M_snprintf(buf, bufsize, fmt, hours, mins, sec, show_cs ? csec : 0);
     }
     else
     {
-        if (show_cs)
-            M_snprintf(buf, bufsize, "%02i:%02i.%02i", mins, sec, csec);
-        else
-            M_snprintf(buf, bufsize, "%02i:%02i", mins, sec);
+        const char *const fmt = show_cs ? "%02i:%02i.%02i" : "%02i:%02i";
+        M_snprintf(buf, bufsize, fmt, mins, sec, show_cs ? csec : 0);
     }
 }
 
 // -----------------------------------------------------------------------------
 // ID_LeftWidgets.
-//  [JN] Draw all the widgets and counters.
+//  [JN/PN] Draw all the widgets and counters.
 // -----------------------------------------------------------------------------
 
 void ID_LeftWidgets (void)
@@ -365,133 +361,101 @@ void ID_LeftWidgets (void)
         {
             if (!deathmatch)
             {
-                int yy = 0;
-                char str1[16];  // kills
-                char str2[16];  // items
-                char str3[16];  // secret
+                const int yy = widget_kis_items ? 0 : 9;  // shift secret up if items hidden
 
                 // Kills:
                 M_WriteText(left_align, 9, "K:", ID_WidgetColor(widget_kis_str));
-                ID_WidgetKISCount(str1, sizeof(str1), widgets_kis_kills);
-                M_WriteText(left_align + 16, 9, str1, ID_WidgetColor(widget_kills));
+                char buf1[16];
+                ID_WidgetKISCount(buf1, sizeof(buf1), widgets_kis_kills);
+                M_WriteText(left_align + 16, 9, buf1, ID_WidgetColor(widget_kills));
 
                 // Items:
                 if (widget_kis_items)
                 {
-                M_WriteText(left_align, 18, "I:", ID_WidgetColor(widget_kis_str));
-                ID_WidgetKISCount(str2, sizeof(str2), widgets_kis_items);
-                M_WriteText(left_align + 16, 18, str2, ID_WidgetColor(widget_items));
-                }
-                else
-                {
-                str2[0] = '\0';
-                yy = 9;
+                    M_WriteText(left_align, 18, "I:", ID_WidgetColor(widget_kis_str));
+                    char buf2[16];
+                    ID_WidgetKISCount(buf2, sizeof(buf2), widgets_kis_items);
+                    M_WriteText(left_align + 16, 18, buf2, ID_WidgetColor(widget_items));
                 }
 
                 // Secret:
                 M_WriteText(left_align, 27 - yy, "S:", ID_WidgetColor(widget_kis_str));
-                ID_WidgetKISCount(str3, sizeof(str3), widgets_kis_secrets);
-                M_WriteText(left_align + 16, 27 - yy, str3, ID_WidgetColor(widget_secret));
+                char buf3[16];
+                ID_WidgetKISCount(buf3, sizeof(buf3), widgets_kis_secrets);
+                M_WriteText(left_align + 16, 27 - yy, buf3, ID_WidgetColor(widget_secret));
             }
             else
             {
-                char str1[16] = {0};  // Green
-                char str2[16] = {0};  // Indigo
-                char str3[16] = {0};  // Brown
-                char str4[16] = {0};  // Red
+                // Deathmatch frags for up to 4 players
+                const char *const labels[] = {"G:", "I:", "B:", "R:"};
+                const int y_pos[] = {9, 18, 27, 36};
+                const int *const frags[] = {&IDWidget.frags_g, &IDWidget.frags_i,
+                                            &IDWidget.frags_b, &IDWidget.frags_r};
+                const int colors[] = {widget_plyr1, widget_plyr2, widget_plyr3, widget_plyr4};
 
-                // Green
-                if (playeringame[0])
+                for (int i = 0; i < 4; i++)
                 {
-                    M_WriteText(left_align, 9, "G:", ID_WidgetColor(widget_plyr1));
-                    sprintf(str1, "%d", IDWidget.frags_g);
-                    M_WriteText(left_align + 16, 9, str1, ID_WidgetColor(widget_plyr1));
-                }
-                // Indigo
-                if (playeringame[1])
-                {
-                    M_WriteText(left_align, 18, "I:", ID_WidgetColor(widget_plyr2));
-                    sprintf(str2, "%d", IDWidget.frags_i);
-                    M_WriteText(left_align + 16, 18, str2, ID_WidgetColor(widget_plyr2));
-                }
-                // Brown
-                if (playeringame[2])
-                {
-                    M_WriteText(left_align, 27, "B:", ID_WidgetColor(widget_plyr3));
-                    sprintf(str3, "%d", IDWidget.frags_b);
-                    M_WriteText(left_align + 16, 27, str3, ID_WidgetColor(widget_plyr3));
-                }
-                // Red
-                if (playeringame[3])
-                {
-                    M_WriteText(left_align, 36, "B:", ID_WidgetColor(widget_plyr4));
-                    sprintf(str4, "%d", IDWidget.frags_r);
-                    M_WriteText(left_align + 16, 36, str4, ID_WidgetColor(widget_plyr4));
+                    if (!playeringame[i]) continue;
+                    M_WriteText(left_align, y_pos[i], labels[i],
+                                ID_WidgetColor(colors[i]));
+                    char buf[16];
+                    sprintf(buf, "%d", *frags[i]);
+                    M_WriteText(left_align + 16, y_pos[i], buf, ID_WidgetColor(colors[i]));
                 }
             }
         }
 
-        // Level / DeathMatch timer. Time gathered in G_Ticker.
-        if ( widget_time == 1 || widget_time == 3
-        || ((widget_time == 2 || widget_time == 4) && automapactive))
+        // Level / DeathMatch timer and Total time. Time gathered in G_Ticker.
+        struct { int cond; const char *label; const char *value; int y_label; int y_val; } times[] = {
+            {widget_time,      "TIME",  ID_Level_Time,  45, 54},
+            {widget_totaltime, "TOTAL", ID_Total_Time,  63, 72}
+        };
+        for (int i = 0; i < 2; i++)
         {
-            M_WriteText(left_align, 45, "TIME", ID_WidgetColor(widget_time_str));
-            M_WriteText(left_align, 54, ID_Level_Time, ID_WidgetColor(widget_time_val));
-        }
-
-        // Total time. Time gathered in G_Ticker.
-        if ( widget_totaltime == 1 || widget_totaltime == 3
-        || ((widget_totaltime == 2 || widget_totaltime == 4) && automapactive))
-        {
-            M_WriteText(left_align, 63, "TOTAL", ID_WidgetColor(widget_time_str));
-            M_WriteText(left_align, 72, ID_Total_Time, ID_WidgetColor(widget_time_val));
+            const int c = times[i].cond;
+            if (c == 1 || c == 3 || ((c == 2 || c == 4) && automapactive))
+            {
+                M_WriteText(left_align, times[i].y_label, times[i].label, ID_WidgetColor(widget_time_str));
+                M_WriteText(left_align, times[i].y_val, times[i].value, ID_WidgetColor(widget_time_val));
+            }
         }
 
         // Player coords
         if (widget_coords == 1
         || (widget_coords == 2 && automapactive))
         {
-            char str[128];
-
-            M_WriteText(left_align, 90, "X:", ID_WidgetColor(widget_coords_str));
-            M_WriteText(left_align, 99, "Y:", ID_WidgetColor(widget_coords_str));
-            M_WriteText(left_align, 108, "ANG:", ID_WidgetColor(widget_coords_str));
-
-            sprintf(str, "%d", IDWidget.x);
-            M_WriteText(left_align + 16, 90, str, ID_WidgetColor(widget_coords_val));
-            sprintf(str, "%d", IDWidget.y);
-            M_WriteText(left_align + 16, 99, str, ID_WidgetColor(widget_coords_val));
-            sprintf(str, "%d", IDWidget.ang);
-            M_WriteText(left_align + 32, 108, str, ID_WidgetColor(widget_coords_val));
+            struct { const char *label; int y; int offset; int *value; } coords[] = {
+                {"X:", 90, 16, &IDWidget.x},
+                {"Y:", 99, 16, &IDWidget.y},
+                {"ANG:", 108, 32, &IDWidget.ang}
+            };
+            for (int i = 0; i < 3; i++)
+            {
+                M_WriteText(left_align, coords[i].y, coords[i].label,
+                            ID_WidgetColor(widget_coords_str));
+                char buf[32];
+                sprintf(buf, "%d", *coords[i].value);
+                M_WriteText(left_align + coords[i].offset, coords[i].y, buf, ID_WidgetColor(widget_coords_val));
+            }
         }
 
         // Render counters
         if (widget_render)
         {
-            char spr[32];
-            char seg[32];
-            char opn[64];
-            char vis[32];
-
-            // Sprites
-            M_WriteText(left_align, 124, "SPR:", ID_WidgetColor(widget_render_str));
-            M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            M_WriteText(32 + left_align, 124, spr, ID_WidgetColor(widget_render_val));
-
-            // Segments (256 max)
-            M_WriteText(left_align, 133, "SEG:", ID_WidgetColor(widget_render_str));
-            M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            M_WriteText(32 + left_align, 133, seg, ID_WidgetColor(widget_render_val));
-
-            // Openings
-            M_WriteText(left_align, 142, "OPN:", ID_WidgetColor(widget_render_str));
-            M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            M_WriteText(32 + left_align, 142, opn, ID_WidgetColor(widget_render_val));
-
-            // Planes
-            M_WriteText(left_align, 151, "PLN:", ID_WidgetColor(widget_render_str));
-            M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            M_WriteText(32 + left_align, 151, vis, ID_WidgetColor(widget_render_val));
+            struct { const char *label; int y; int value; } counters[] = {
+                {"SPR:", 124, IDRender.numsprites},
+                {"SEG:", 133, IDRender.numsegs},
+                {"OPN:", 142, IDRender.numopenings},
+                {"PLN:", 151, IDRender.numplanes}
+            };
+            for (int i = 0; i < 4; i++)
+            {
+                M_WriteText(left_align, counters[i].y, counters[i].label,
+                            ID_WidgetColor(widget_render_str));
+                char buf[32];
+                M_snprintf(buf, sizeof(buf), "%d", counters[i].value);
+                M_WriteText(left_align + 32, counters[i].y, buf, ID_WidgetColor(widget_render_val));
+            }
         }
     }
     //
@@ -510,49 +474,40 @@ void ID_LeftWidgets (void)
         // Render counters
         if (widget_render)
         {
-            char spr[32];
-            char seg[32];
-            char opn[64];
-            char vis[32];
-            const int yy1 = widget_coords ? 0 : 34;
+            const int base_y = 54 + (widget_coords ? 0 : 34);
+            struct { const char *label; int value; } counters[] = {
+                {"SPR:", IDRender.numsprites},
+                {"SEG:", IDRender.numsegs},
+                {"OPN:", IDRender.numopenings},
+                {"PLN:", IDRender.numplanes}
+            };
 
-            // Sprites
-            M_WriteText(left_align, 54 + yy1, "SPR:", ID_WidgetColor(widget_render_str));
-            M_snprintf(spr, 16, "%d", IDRender.numsprites);
-            M_WriteText(32 + left_align, 54 + yy1, spr, ID_WidgetColor(widget_render_val));
-
-            // Segments (256 max)
-            M_WriteText(left_align, 63 + yy1, "SEG:", ID_WidgetColor(widget_render_str));
-            M_snprintf(seg, 16, "%d", IDRender.numsegs);
-            M_WriteText(32 + left_align, 63 + yy1, seg, ID_WidgetColor(widget_render_val));
-
-            // Openings
-            M_WriteText(left_align, 72 + yy1, "OPN:", ID_WidgetColor(widget_render_str));
-            M_snprintf(opn, 16, "%d", IDRender.numopenings);
-            M_WriteText(32 + left_align, 72 + yy1, opn, ID_WidgetColor(widget_render_val));
-
-            // Planes
-            M_WriteText(left_align, 81 + yy1, "PLN:", ID_WidgetColor(widget_render_str));
-            M_snprintf(vis, 32, "%d", IDRender.numplanes);
-            M_WriteText(32 + left_align, 81 + yy1, vis, ID_WidgetColor(widget_render_val));
+            for (int i = 0; i < 4; i++)
+            {
+                const int y = base_y + 9 * i;
+                M_WriteText(left_align, y, counters[i].label, ID_WidgetColor(widget_render_str));
+                char buf[32];
+                M_snprintf(buf, sizeof(buf), "%d", counters[i].value);
+                M_WriteText(left_align + 32, y, buf, ID_WidgetColor(widget_render_val));
+            }
         }
 
         // Player coords
         if (widget_coords == 1
         || (widget_coords == 2 && automapactive))
         {
-            char str[128];
-
-            M_WriteText(left_align, 97, "X:", ID_WidgetColor(widget_coords_str));
-            M_WriteText(left_align, 106, "Y:", ID_WidgetColor(widget_coords_str));
-            M_WriteText(left_align, 115, "ANG:", ID_WidgetColor(widget_coords_str));
-
-            sprintf(str, "%d", IDWidget.x);
-            M_WriteText(16 + left_align, 97, str, ID_WidgetColor(widget_coords_val));
-            sprintf(str, "%d", IDWidget.y);
-            M_WriteText(16 + left_align, 106, str, ID_WidgetColor(widget_coords_val));
-            sprintf(str, "%d", IDWidget.ang);
-            M_WriteText(32 + left_align, 115, str, ID_WidgetColor(widget_coords_val));
+            struct { const char *label; int y; int val_x_offset; int *value; } coords[] = {
+                {"X:", 97, 16, &IDWidget.x},
+                {"Y:", 106, 16, &IDWidget.y},
+                {"ANG:", 115, 32, &IDWidget.ang}
+            };
+            for (int i = 0; i < 3; i++)
+            {
+                M_WriteText(left_align, coords[i].y, coords[i].label, ID_WidgetColor(widget_coords_str));
+                char buf[32];
+                sprintf(buf, "%d", *coords[i].value);
+                M_WriteText(left_align + coords[i].val_x_offset, coords[i].y, buf, ID_WidgetColor(widget_coords_val));
+            }
         }
 
         if (automapactive)
@@ -566,124 +521,41 @@ void ID_LeftWidgets (void)
         {
             if (!deathmatch)
             {
-                char str1[8], str2[16];  // kills
-                char str3[8], str4[16];  // items
-                char str5[8], str6[16];  // secret
-        
-                // Kills:
-                sprintf(str1, "K ");
-                M_WriteText(left_align, 160 + yy, str1, ID_WidgetColor(widget_kis_str));
-                ID_WidgetKISCount(str2, sizeof(str2), widgets_kis_kills);
-                M_WriteText(left_align + M_StringWidth(str1), 160 + yy, str2, ID_WidgetColor(widget_kills));
-        
-                // Items:
-                if (widget_kis_items)
+                const char *labels[] = {"K ", " I ", " S "};
+                const int active[] = {1, widget_kis_items, 1};  // kills, items (optional), secrets
+                const int params[] = {widgets_kis_kills, widgets_kis_items, widgets_kis_secrets};
+                const int colors[] = {widget_kills, widget_items, widget_secret};
+                int x = left_align;
+            
+                for (int i = 0; i < 3; i++)
                 {
-                sprintf(str3, " I ");
-                M_WriteText(left_align + M_StringWidth(str1) +
-                            M_StringWidth(str2), 160 + yy, str3, ID_WidgetColor(widget_kis_str));
-                
-                ID_WidgetKISCount(str4, sizeof(str4), widgets_kis_items);
-                M_WriteText(left_align + M_StringWidth(str1) +
-                            M_StringWidth(str2) +
-                            M_StringWidth(str3), 160 + yy, str4, ID_WidgetColor(widget_items));
+                    if (!active[i]) continue;
+                    M_WriteText(x, 160 + yy, labels[i], ID_WidgetColor(widget_kis_str));
+                    x += M_StringWidth(labels[i]);
+            
+                    char buf[16];
+                    ID_WidgetKISCount(buf, sizeof(buf), params[i]);
+                    M_WriteText(x, 160 + yy, buf, ID_WidgetColor(colors[i]));
+                    x += M_StringWidth(buf);
                 }
-                else
-                {
-                str3[0] = '\0';
-                str4[0] = '\0';
-                }
-        
-                // Secret:
-                sprintf(str5, " S ");
-                M_WriteText(left_align + M_StringWidth(str1) +
-                            M_StringWidth(str2) +
-                            M_StringWidth(str3) +
-                            M_StringWidth(str4), 160 + yy, str5, ID_WidgetColor(widget_kis_str));
-        
-                ID_WidgetKISCount(str6, sizeof(str6), widgets_kis_secrets);
-                M_WriteText(left_align + M_StringWidth(str1) +
-                            M_StringWidth(str2) + 
-                            M_StringWidth(str3) +
-                            M_StringWidth(str4) +
-                            M_StringWidth(str5), 160 + yy, str6, ID_WidgetColor(widget_secret));
             }
             else
             {
-                char str1[8] = {0}, str2[16] = {0};  // Green
-                char str3[8] = {0}, str4[16] = {0};  // Indigo
-                char str5[8] = {0}, str6[16] = {0};  // Brown
-                char str7[8] = {0}, str8[16] = {0};  // Red
-
-                // Green
-                if (playeringame[0])
+                const char *labels[] = {"G ", "I ", "B ", "R "};
+                const int *frags[] = {&IDWidget.frags_g, &IDWidget.frags_i, &IDWidget.frags_b, &IDWidget.frags_r};
+                const int colors[] = {widget_plyr1, widget_plyr2, widget_plyr3, widget_plyr4};
+                int x = left_align;
+            
+                for (int i = 0; i < 4; i++)
                 {
-                    sprintf(str1, "G ");
-                    M_WriteText(left_align, 160 + yy, str1, ID_WidgetColor(widget_plyr1));
-
-                    sprintf(str2, "%d ", IDWidget.frags_g);
-                    M_WriteText(left_align +
-                                M_StringWidth(str1), 160 + yy, str2, ID_WidgetColor(widget_plyr1));
-                }
-                // Indigo
-                if (playeringame[1])
-                {
-                    sprintf(str3, "I ");
-                    M_WriteText(left_align +
-                                M_StringWidth(str1) +
-                                M_StringWidth(str2),
-                                160 + yy, str3, ID_WidgetColor(widget_plyr2));
-
-                    sprintf(str4, "%d ", IDWidget.frags_i);
-                    M_WriteText(left_align +
-                                M_StringWidth(str1) +
-                                M_StringWidth(str2) +
-                                M_StringWidth(str3),
-                                160 + yy, str4, ID_WidgetColor(widget_plyr2));
-                }
-                // Brown
-                if (playeringame[2])
-                {
-                    sprintf(str5, "B ");
-                    M_WriteText(left_align +
-                                M_StringWidth(str1) +
-                                M_StringWidth(str2) +
-                                M_StringWidth(str3) +
-                                M_StringWidth(str4),
-                                160 + yy, str5, ID_WidgetColor(widget_plyr3));
-
-                    sprintf(str6, "%d ", IDWidget.frags_b);
-                    M_WriteText(left_align +
-                                M_StringWidth(str1) +
-                                M_StringWidth(str2) +
-                                M_StringWidth(str3) +
-                                M_StringWidth(str4) +
-                                M_StringWidth(str5),
-                                160 + yy, str6, ID_WidgetColor(widget_plyr3));
-                }
-                // Red
-                if (playeringame[3])
-                {
-                    sprintf(str7, "R ");
-                    M_WriteText(left_align +
-                                M_StringWidth(str1) +
-                                M_StringWidth(str2) +
-                                M_StringWidth(str3) +
-                                M_StringWidth(str4) +
-                                M_StringWidth(str5) +
-                                M_StringWidth(str6),
-                                160 + yy, str7, ID_WidgetColor(widget_plyr4));
-
-                    sprintf(str8, "%d ", IDWidget.frags_r);
-                    M_WriteText(left_align +
-                                M_StringWidth(str1) +
-                                M_StringWidth(str2) +
-                                M_StringWidth(str3) +
-                                M_StringWidth(str4) +
-                                M_StringWidth(str5) +
-                                M_StringWidth(str6) +
-                                M_StringWidth(str7),
-                                160 + yy, str8, ID_WidgetColor(widget_plyr4));
+                    if (!playeringame[i]) continue;
+                    M_WriteText(x, 160 + yy, labels[i], ID_WidgetColor(colors[i]));
+                    x += M_StringWidth(labels[i]);
+            
+                    char buf[16];
+                    sprintf(buf, "%d ", *frags[i]);
+                    M_WriteText(x, 160 + yy, buf, ID_WidgetColor(colors[i]));
+                    x += M_StringWidth(buf);
                 }
             }
         }
@@ -693,31 +565,21 @@ void ID_LeftWidgets (void)
             yy -= 9;
         }
 
-        // Total time. Time gathered in G_Ticker.
-        if ( widget_totaltime == 1 || widget_totaltime == 3
-        || ((widget_totaltime == 2 || widget_totaltime == 4) && automapactive))
+        // Level / DeathMatch and Total time. Time gathered in G_Ticker.
+        struct { int cond; const char *label; const char *value; } times[] = {
+            {widget_totaltime, "TOTAL ", ID_Total_Time},
+            {widget_time,      "TIME ",  ID_Level_Time}
+        };
+        for (int i = 0; i < 2; i++)
         {
-            char stra[8];
-
-            sprintf(stra, "TOTAL ");
-            M_WriteText(left_align, 160 + yy, stra, ID_WidgetColor(widget_time_str));
-            M_WriteText(left_align + M_StringWidth(stra), 160 + yy, ID_Total_Time, ID_WidgetColor(widget_time_val));
-        }
-
-        if (widget_totaltime)
-        {
-            yy -= 9;
-        }
-
-        // Level / DeathMatch timer. Time gathered in G_Ticker.
-        if ( widget_time == 1 || widget_time == 3
-        || ((widget_time == 2 || widget_time == 4) && automapactive))
-        {
-            char stra[8];
-
-            sprintf(stra, "TIME ");
-            M_WriteText(left_align, 160 + yy, stra, ID_WidgetColor(widget_time_str));
-            M_WriteText(left_align + M_StringWidth(stra), 160 + yy, ID_Level_Time, ID_WidgetColor(widget_time_val));
+            const int c = times[i].cond;
+            if (c == 1 || c == 3 || ((c == 2 || c == 4) && automapactive))
+            {
+                M_WriteText(left_align, 160 + yy, times[i].label, ID_WidgetColor(widget_time_str));
+                M_WriteText(left_align + M_StringWidth(times[i].label), 160 + yy, 
+                            times[i].value, ID_WidgetColor(widget_time_val));
+            }
+            if (c) yy -= 9;
         }
     }
 }
