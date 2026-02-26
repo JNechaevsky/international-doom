@@ -1326,7 +1326,7 @@ void R_InitBuffer (int width, int height)
     // [PN] Free the background buffer if it exists.
     if (background_buffer != NULL)
     {
-        free(background_buffer);
+        Z_Free(background_buffer);
         background_buffer = NULL;
     }
 }
@@ -1352,7 +1352,7 @@ void R_FillBackScreen (void)
     if (background_buffer == NULL)
     {
         const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
-        background_buffer = malloc(size * sizeof(*background_buffer));
+        background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, 0);
     }
 
     // [PN] Use background buffer for drawing

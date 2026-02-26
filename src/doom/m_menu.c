@@ -5989,9 +5989,15 @@ static void M_SizeDisplay (int choice)
             dp_screen_size += 2;
         }
     }
+    else
+    {
+        // [JN] No size change, no need to do anything
+        return;
+    }
 
-    // [PN] Update view size after adjustment
+    // [PN] Update view size after adjustment and play sound
     R_SetViewSize(dp_screen_size, dp_detail_level);
+    S_StartSound(NULL, sfx_stnmov);
 }
 
 
@@ -7115,7 +7121,6 @@ boolean M_Responder (event_t* ev)
             if (automapactive)
                 return false;
             M_SizeDisplay(0);
-            S_StartSound(NULL, sfx_stnmov);
             return true;
         }
         else if (key == key_menu_incscreen) // Screen size up
@@ -7123,7 +7128,6 @@ boolean M_Responder (event_t* ev)
             if (automapactive)
                 return false;
             M_SizeDisplay(1);
-            S_StartSound(NULL, sfx_stnmov);
             return true;
         }
         else if (key == key_menu_help || key == key_menu_help2)     // Help key

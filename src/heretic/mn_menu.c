@@ -6510,9 +6510,15 @@ static void SCScreenSize (int option)
             dp_screen_size = 12;
         }
     }
+    else
+    {
+        // [JN] No size change, no need to do anything.
+        return;
+    }
 
-    // [PN] Update view size after adjustment
+    // [PN] Update view size after adjustment and play sound.
     R_SetViewSize(dp_screen_size, dp_detail_level);
+    S_StartSound(NULL, sfx_keyup);
 }
 
 //---------------------------------------------------------------------------
@@ -7077,7 +7083,6 @@ boolean MN_Responder(event_t * event)
                 return (false);
             }
             SCScreenSize(LEFT_DIR);
-            S_StartSound(NULL, sfx_keyup);
             return (true);
         }
         else if (key == key_menu_incscreen)
@@ -7087,7 +7092,6 @@ boolean MN_Responder(event_t * event)
                 return (false);
             }
             SCScreenSize(RIGHT_DIR);
-            S_StartSound(NULL, sfx_keyup);
             return (true);
         }
         else if (key == key_menu_help || key == key_menu_help2)           // F1
