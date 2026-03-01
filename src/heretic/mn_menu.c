@@ -5787,6 +5787,14 @@ static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value,
     ||  CurrentMenu->items[CurrentItPos].type != ITT_SLDR)
         return;
 
+    // [JN] Save old value for sound trigger
+    float old_float_value;
+    int old_int_value;
+    if (is_float)
+        old_float_value = *((float *)value);
+    else
+        old_int_value = *((int *)value);
+
     // [PN] Calculate and update slider value
     const float normalized = (float)(menu_mouse_x - adj_x + 5) / adj_width;
     const float newValue = min + normalized * (max - min);
@@ -5799,8 +5807,10 @@ static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value,
     CurrentMenu->items[CurrentItPos].func(-1);
     menu_mouse_allow_click = false;
 
-    // Play sound
-    S_StartSound(NULL, sfx_keyup);
+    // Play sound only if value was really changed
+    if ((is_float && old_float_value != newValue)
+    || (!is_float && old_int_value   != (int)newValue))
+        S_StartSound(NULL, sfx_keyup);
 }
 
 //---------------------------------------------------------------------------
