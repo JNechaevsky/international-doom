@@ -63,6 +63,15 @@ static const uint16_t divisors[] = {
      213,  207,  201,  195,  190,  184,  179,
 };
 
+static inline int ClampPCSoundVolume(int volume)
+{
+    if (volume < 0)
+        return 0;
+    if (volume > 127)
+        return 127;
+    return volume;
+}
+
 static void PCSCallbackFunc(int *duration, int *freq)
 {
     unsigned int tone;
@@ -199,6 +208,9 @@ static int I_PCS_StartSound(sfxinfo_t *sfxinfo,
 
     result = CachePCSLump(sfxinfo);
 
+    // [PN] Take sound volume into accont
+    PCSound_SetVolume(ClampPCSoundVolume(vol));
+
     if (result)
     {
         current_sound_handle = channel;
@@ -290,6 +302,10 @@ static boolean I_PCS_InitSound(GameMission_t mission)
 
     PCSound_SetSampleRate(snd_samplerate);
 
+    // [PN] Initialize PC speaker volume
+
+    PCSound_SetVolume(127);
+
     // Initialize the PC speaker subsystem.
 
     pcs_initialized = PCSound_Init(PCSCallbackFunc);
@@ -317,7 +333,17 @@ static void I_PCS_UpdateSound(void)
 
 static void I_PCS_UpdateSoundParams(int channel, int vol, int sep)
 {
-    // no-op.
+    // [PN] Set channel volume.
+
+    if (!pcs_initialized)
+    {
+        return;
+    }
+
+    if (channel == current_sound_handle)
+    {
+        PCSound_SetVolume(ClampPCSoundVolume(vol));
+    }
 }
 
 static const snddevice_t sound_pcsound_devices[] =

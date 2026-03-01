@@ -107,3 +107,14 @@ void PCSound_Shutdown(void)
     pcsound_driver = NULL;
 }
 
+// -----------------------------------------------------------------------------
+// PCSound_SetVolume
+//  [PN] Set output volume when emulating a PC speaker. Valid range is 0..127.
+// -----------------------------------------------------------------------------
+
+int pcsound_volume = 127;
+
+void PCSound_SetVolume(int volume)
+{
+    pcsound_volume = volume;
+}

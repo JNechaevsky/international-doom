@@ -115,11 +115,11 @@ static void PCSound_Mix_Callback(int chan, void *stream, int len, void *udata)
 
             if ((frac % 2) == 0) 
             {
-                this_value = SQUARE_WAVE_AMP;
+                this_value = (SQUARE_WAVE_AMP * pcsound_volume) / 127;
             }
             else
             {
-                this_value = -SQUARE_WAVE_AMP;
+                this_value = (-SQUARE_WAVE_AMP * pcsound_volume) / 127;
             }
 
             ++phase_offset;
