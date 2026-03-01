@@ -47,7 +47,7 @@
 #include "s_sound.h"
 #include "doomstat.h"
 #include "sounds.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "p_local.h"
 #include "ct_chat.h"
 #include "v_diskicon.h"

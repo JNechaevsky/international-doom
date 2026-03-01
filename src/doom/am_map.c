@@ -31,7 +31,7 @@
 #include "v_video.h"
 #include "doomstat.h"
 #include "dstrings.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "am_map.h"
 #include "ct_chat.h"
 #include "g_game.h"

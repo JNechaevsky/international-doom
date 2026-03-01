@@ -37,7 +37,7 @@
 #include "m_argv.h"
 #include "m_controls.h"
 #include "m_misc.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "m_random.h"
 #include "i_joystick.h"
 #include "i_system.h"

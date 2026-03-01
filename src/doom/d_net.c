@@ -23,7 +23,7 @@
 
 #include "d_main.h"
 #include "m_argv.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "m_misc.h"
 #include "i_system.h"
 #include "i_timer.h"

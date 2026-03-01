@@ -23,7 +23,7 @@
 #include "v_trans.h"
 #include "v_video.h"
 #include "doomstat.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "m_misc.h"
 #include "p_local.h"
 

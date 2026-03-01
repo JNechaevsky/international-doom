@@ -52,7 +52,7 @@
 #include "m_config.h"
 #include "m_controls.h"
 #include "m_misc.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "m_random.h"
 #include "p_local.h"
 #include "i_endoom.h"

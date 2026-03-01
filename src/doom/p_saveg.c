@@ -32,7 +32,7 @@
 #include "am_map.h"
 #include "s_sound.h"
 #include "m_random.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 
 #include "id_vars.h"
 
