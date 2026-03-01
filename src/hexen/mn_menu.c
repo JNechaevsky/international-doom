@@ -851,6 +851,10 @@ static void M_Reset_Line_Glow (void)
 
 static int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
 {
+    static int old_val;
+
+    old_val = val;
+
     // [PN] Adjust the slider value based on direction and handle min/max limits
     val += (direction == -1) ?  0 :     // [JN] Routine "-1" just reintializes value.
            (direction ==  0) ? -1 : 1;  // Otherwise, move either left "0" or right "1".
@@ -861,12 +865,20 @@ static int M_INT_Slider (int val, int min, int max, int direction, boolean cappe
     if (val > max)
         val = capped ? max : min;
 
+    // [JN] Play sound only if value was really changed
+    if (old_val != val)
+        S_StartSound(NULL, SFX_PICKUP_KEY);
+
     return val;
 }
 
 static float M_FLOAT_Slider (float val, float min, float max, float step,
                              int direction, boolean capped)
 {
+    static float old_val;
+
+    old_val = val;
+
     // [PN] Adjust value based on direction
     val += (direction == -1) ? 0 :            // [JN] Routine "-1" just reintializes value.
            (direction ==  0) ? -step : step;  // Otherwise, move either left "0" or right "1".
@@ -880,6 +892,10 @@ static float M_FLOAT_Slider (float val, float min, float max, float step,
 
     // [PN/JN] Do a float correction to get x.xxx000 values
     val = roundf(val * 1000.0f) / 1000.0f;
+
+    // [JN] Play sound only if value was really changed
+    if (old_val != val)
+        S_StartSound(NULL, SFX_PICKUP_KEY);
 
     return val;
 }
@@ -6784,7 +6800,6 @@ boolean MN_Responder(event_t * event)
             if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(LEFT_DIR);
-                S_StartSound(NULL, SFX_PICKUP_KEY);
             }
             // [JN] Go to previous-left menu by pressing Left Arrow.
             if (CurrentMenu->ScrollAR || CurrentItPos == -1)
@@ -6798,7 +6813,6 @@ boolean MN_Responder(event_t * event)
             if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(RIGHT_DIR);
-                S_StartSound(NULL, SFX_PICKUP_KEY);
             }
             // [JN] Go to next-right menu by pressing Right Arrow.
             if (CurrentMenu->ScrollAR || CurrentItPos == -1)
