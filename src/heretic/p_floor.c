@@ -414,7 +414,7 @@ int EV_DoFloor(line_t * line, floor_e floortype)
                 floor->direction = -1;
                 floor->sector = sec;
                 floor->speed = FLOORSPEED;
-                floor->floordestheight += (16 * FRACUNIT) + P_FindLowestFloorSurrounding(sec);
+                floor->floordestheight = floor->sector->floorheight - (16 * FRACUNIT);
                 break;
 
             case hh_28064:
