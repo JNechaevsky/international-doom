@@ -902,9 +902,7 @@ static void M_Reset_Line_Glow (void)
 
 static int M_INT_Slider (int val, int min, int max, int direction, boolean capped)
 {
-    static int old_val;
-
-    old_val = val;
+    const int old_val = val;
 
     // [PN] Adjust the slider value based on direction and handle min/max limits
     val += (direction == -1) ?  0 :     // [JN] Routine "-1" just reintializes value.
@@ -926,9 +924,7 @@ static int M_INT_Slider (int val, int min, int max, int direction, boolean cappe
 static float M_FLOAT_Slider (float val, float min, float max, float step,
                              int direction, boolean capped)
 {
-    static float old_val;
-
-    old_val = val;
+    const float old_val = val;
 
     // [PN] Adjust value based on direction
     val += (direction == -1) ? 0 :            // [JN] Routine "-1" just reintializes value.
@@ -946,7 +942,7 @@ static float M_FLOAT_Slider (float val, float min, float max, float step,
 
     // [JN] Play sound only if value was really changed
     if (old_val != val)
-        S_StartSound(NULL, sfx_stnmov);
+        S_StartSound(NULL, sfx_keyup);
 
     return val;
 }
@@ -6577,6 +6573,13 @@ static void SCScreenSize (int option)
         {
             dp_screen_size = 12;
         }
+    }
+    else
+    if (option == -1)
+    {
+        // Handled by mouse, just update the screen.
+        R_SetViewSize(dp_screen_size, dp_detail_level);
+        return;
     }
     else
     {
