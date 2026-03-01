@@ -180,8 +180,8 @@ static void MN_LoadSlotText(void);
 static void MN_DeactivateMenu(void);
 static void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
 
-static void M_ID_MenuMouseControl (void);
-static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max);
+inline static void M_ID_MenuMouseControl (void);
+inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
@@ -4921,6 +4921,9 @@ void MN_Ticker(void)
         return;
     }
 
+    // [JN] Call the menu control routine for mouse input.
+    M_ID_MenuMouseControl();
+
     // [JN] Cursor glowing animation:
     cursor_tics += cursor_direction ? -1 : 1;
     if (cursor_tics == 0 || cursor_tics == 15)
@@ -4950,81 +4953,123 @@ void MN_Ticker(void)
     }
 }
 
-static void M_ID_MenuMouseControl (void)
+// -----------------------------------------------------------------------------
+// M_ID_MenuMouseControl
+//  [PN/JN] Set menu cursor position under the mouse cursor.
+// -----------------------------------------------------------------------------
+
+inline static void M_ID_MenuMouseControl (void)
 {
+    // Skip if mouse control disabled or any binding is active
     if (!menu_mouse_allow || KbdIsBinding || MouseIsBinding)
+        return;
+
+    // Precompute scaled horizontal boundaries for the entire menu
+    const int left = (CurrentMenu->x + WIDESCREENDELTA) * vid_resolution;
+    const int right = (ORIGWIDTH + WIDESCREENDELTA - CurrentMenu->x) * vid_resolution;
+
+    // Determine line height based on font type
+    const int line_height = (CurrentMenu->FontType == SmallFont) ?
+                             ID_MENU_LINEHEIGHT_SMALL : ITEM_HEIGHT;
+    const int scaled_line_height = line_height * vid_resolution;
+    const int base_y = CurrentMenu->y * vid_resolution;
+
+    // Quick reject: mouse outside horizontal bounds or above menu
+    if (menu_mouse_x < left || menu_mouse_x > right || menu_mouse_y < base_y)
     {
-        // [JN] Skip hovering if the cursor is disabled/hidden or a binding is active.
+        CurrentItPos = -1;
         return;
     }
-    else
+
+    // Approximate bottom boundary – if mouse is far below, reject early
+    const int max_bottom_estimate = base_y + CurrentMenu->itemCount * scaled_line_height;
+    if (menu_mouse_y > max_bottom_estimate)
     {
-        // [JN] Which line height should be used?
-        const int line_height = (CurrentMenu->FontType == SmallFont) ?
-                                 ID_MENU_LINEHEIGHT_SMALL : ITEM_HEIGHT;
-
-        // [JN] Reset current menu item, it will be set in a cycle below.
         CurrentItPos = -1;
+        return;
+    }
 
-        // [PN] Check if the cursor is hovering over a menu item
-        for (int i = 0; i < CurrentMenu->itemCount; i++)
+    // Reset selection; will be set if cursor is over an item
+    CurrentItPos = -1;
+
+    // Scan menu items from top to bottom
+    for (int i = 0; i < CurrentMenu->itemCount; ++i)
+    {
+        // Skip empty items (ITT_EMPTY)
+        if (CurrentMenu->items[i].type == ITT_EMPTY)
+            continue;
+
+        // Sliders occupy three lines, normal items one line
+        const int lines = (CurrentMenu->items[i].type == ITT_SLDR) ? 3 : 1;
+        const int top = base_y + i * scaled_line_height;
+        const int bottom = top + lines * scaled_line_height;
+
+        // If mouse is above current item, further items are even lower - stop scan
+        if (menu_mouse_y < top)
+            break;
+
+        // Check vertical overlap
+        if (menu_mouse_y <= bottom)
         {
-            // [JN] Slider takes three lines.
-            const int line_item = CurrentMenu->items[i].type == ITT_SLDR ? 3 : 1;
-
-            if (menu_mouse_x >= (CurrentMenu->x + WIDESCREENDELTA) * vid_resolution
-            &&  menu_mouse_x <= (ORIGWIDTH + WIDESCREENDELTA - CurrentMenu->x) * vid_resolution
-            &&  menu_mouse_y >= (CurrentMenu->y + i * line_height) * vid_resolution
-            &&  menu_mouse_y <= (CurrentMenu->y + (i + line_item) * line_height) * vid_resolution
-            &&  CurrentMenu->items[i].type != ITT_EMPTY)
-            {
-                // [PN] Highlight the current menu item
-                CurrentItPos = i;
-            }
+            CurrentItPos = i;
+            break; // Found the topmost item under cursor
         }
     }
 }
 
-static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max)
+// -----------------------------------------------------------------------------
+// M_ID_MenuMouseControl
+//  [PN/JN] Set menu cursor position under the mouse cursor.
+// -----------------------------------------------------------------------------
+
+inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max)
 {
+    // Ignore if mouse clicks are not allowed (prevents multiple adjustments)
     if (!menu_mouse_allow_click)
         return;
-    
-    // [JN/PN] Adjust slider boundaries
+
+    // Adjust slider boundaries to account for screen resolution and widescreen offset
     const int adj_x = (x + WIDESCREENDELTA) * vid_resolution;
     const int adj_y = y * vid_resolution;
     const int adj_width = width * vid_resolution;
     const int adj_height = ITEM_HEIGHT * vid_resolution;
 
-    // [PN] Check cursor position and item status
+    // Verify mouse is within slider boundaries and current item is actually a slider
+    const MenuItem_t *const item = &CurrentMenu->items[CurrentItPos];
     if (menu_mouse_x < adj_x || menu_mouse_x > adj_x + adj_width
     ||  menu_mouse_y < adj_y || menu_mouse_y > adj_y + adj_height
-    ||  CurrentMenu->items[CurrentItPos].type != ITT_SLDR)
+    ||  item->type != ITT_SLDR)
         return;
 
-    // [JN] Save old value for sound trigger
-    float old_float_value;
-    int old_int_value;
-    if (is_float)
-        old_float_value = *((float *)value);
-    else
-        old_int_value = *((int *)value);
+    // Calculate normalized cursor position (0.0 to 1.0) within slider
+    // Adding +5 provides a small deadzone for better precision at edges
+    const float normalized = (float)(menu_mouse_x - adj_x + 5) / (float)adj_width;
+    const float range = max - min;
+    boolean value_changed = false;
 
-    // [PN] Calculate and update slider value
-    const float normalized = (float)(menu_mouse_x - adj_x + 5) / adj_width;
-    const float newValue = min + normalized * (max - min);
+    // Update the actual value based on cursor position and data type
     if (is_float)
-        *((float *)value) = newValue;
+    {
+        float *v = (float *)value;
+        const float old_value = *v;
+        *v = min + normalized * range;
+        value_changed = (old_value != *v);
+    }
     else
-        *((int *)value) = (int)newValue;
+    {
+        int *v = (int *)value;
+        const int old_value = *v;
+        *v = (int)(min + normalized * range);
+        value_changed = (old_value != *v);
+    }
 
-    // [JN/PN] Call related routine and reset mouse click allowance
-    CurrentMenu->items[CurrentItPos].func(-1);
+    // Execute the item's routine to handle any side effects
+    // and prevent multiple clicks from processing in the same frame
+    item->func(-1);
     menu_mouse_allow_click = false;
 
-    // Play sound only if value was really changed
-    if ((is_float && old_float_value != newValue)
-    || (!is_float && old_int_value   != (int)newValue))
+    // Provide audio feedback only if the value actually changed
+    if (value_changed)
         S_StartSound(NULL, SFX_PICKUP_KEY);
 }
 
@@ -5034,7 +5079,7 @@ static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value,
 //
 //---------------------------------------------------------------------------
 
-static const char *QuitEndMsg[] = {
+static const char *const QuitEndMsg[] = {
     "ARE YOU SURE YOU WANT TO QUIT?",
     "ARE YOU SURE YOU WANT TO END THE GAME?",
     "DO YOU WANT TO QUICKSAVE THE GAME NAMED",
@@ -5172,9 +5217,6 @@ void MN_Drawer(void)
 
     // [JN] Always refresh statbar while menu is active.
     SB_ForceRedraw();
-
-    // [JN] Call the menu control routine for mouse input.
-    M_ID_MenuMouseControl();
 }
 
 //---------------------------------------------------------------------------
