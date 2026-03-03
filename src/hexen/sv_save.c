@@ -1994,7 +1994,13 @@ void SV_SaveGame(int slot, const char *description)
     SV_OpenWrite(fileName);
 
     // Write game save description
-    SV_Write(description, HXS_DESCRIPTION_LENGTH);
+    char descriptionText[HXS_DESCRIPTION_LENGTH];
+    // [PN] ASAN: Fill fixed-size field with zeros so unused tail bytes are deterministic...
+    memset(descriptionText, 0, HXS_DESCRIPTION_LENGTH);
+    // ... copy at most HXS_DESCRIPTION_LENGTH - 1 chars and always NUL-terminate
+    M_StringCopy(descriptionText, description, HXS_DESCRIPTION_LENGTH);
+    // ... write exactly HXS_DESCRIPTION_LENGTH bytes from a bounded local buffer.
+    SV_Write(descriptionText, HXS_DESCRIPTION_LENGTH);
 
     // Write version info
     memset(versionText, 0, HXS_VERSION_TEXT_LENGTH);
