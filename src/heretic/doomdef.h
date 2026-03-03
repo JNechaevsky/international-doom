@@ -904,10 +904,10 @@ extern int curpos;
 extern int inv_ptr;
 extern int playerkeys;
 
-void SB_Init(void);
-extern boolean SB_Responder (const event_t *event);
-void SB_Ticker(void);
-void SB_Drawer(void);
+extern void SB_Init(void);
+extern void SB_Ticker(void);
+extern void SB_Drawer(void);
+extern boolean SB_Responder(const event_t *const event);
 
 //-----------------
 // MENU (MN_menu.c)

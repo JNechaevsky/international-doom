@@ -39,7 +39,6 @@
 #include "v_video.h"
 #include "am_map.h"
 #include "ct_chat.h"
-#include "sb_bar.h"
 
 #include "id_vars.h"
 #include "id_func.h"

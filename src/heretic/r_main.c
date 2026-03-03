@@ -22,7 +22,6 @@
 #include "doomdef.h"
 #include "p_local.h"
 #include "v_video.h"
-#include "sb_bar.h"
 
 #include "id_vars.h"
 #include "id_func.h"
