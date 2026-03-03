@@ -439,8 +439,11 @@ static void F_DrawUnderwater (void)
                     I_InitPALTransMaps();
                 }
                 W_ReleaseLumpName(lumpname);
-                V_DrawFullscreenRawOrPatch(W_GetNumForName(DEH_String("E2END")));
             }
+            // [PN] Redraw every frame: after crossfade, the wipe buffer can
+            // still contain faint remnants of finale text if we don't refresh
+            // the underwater background continuously.
+            V_DrawFullscreenRawOrPatch(W_GetNumForName(DEH_String("E2END")));
             paused = false;
             MenuActive = false;
             askforquit = false;
