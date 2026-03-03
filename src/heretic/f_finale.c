@@ -22,6 +22,7 @@
 #include "doomdef.h"
 #include "deh_str.h"
 #include "i_swap.h"
+#include "i_truecolor.h"
 #include "i_video.h"
 #include "s_sound.h"
 #include "v_video.h"
@@ -430,6 +431,13 @@ static void F_DrawUnderwater (void)
                 const char *lumpname = DEH_String("E2PAL");
                 const byte *const palette = W_CacheLumpName(lumpname, PU_STATIC);
                 R_SetUnderwaterPalette(palette);
+                // [PN] In paletted mode, re-build RGB -> palette translation
+                // for E2PAL, otherwise crossfade blending may quantize colors
+                // against stale PLAYPAL mappings.
+                if (!vid_truecolor)
+                {
+                    I_InitPALTransMaps();
+                }
                 W_ReleaseLumpName(lumpname);
                 V_DrawFullscreenRawOrPatch(W_GetNumForName(DEH_String("E2END")));
             }
@@ -442,6 +450,12 @@ static void F_DrawUnderwater (void)
             if (underwawa)
             {
                 R_InitColormaps();
+                // [PN] Restore RGB -> palette translation for PLAYPAL after
+                // leaving the underwater finale screen in paletted mode.
+                if (!vid_truecolor)
+                {
+                    I_InitPALTransMaps();
+                }
                 underwawa = false;
             }
             V_DrawFullscreenRawOrPatch(W_GetNumForName(DEH_String("TITLE")));
