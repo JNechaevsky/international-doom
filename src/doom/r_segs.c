@@ -352,7 +352,8 @@ static void R_RenderSegLoop (void)
         if (segtextured)
         {
             // calculate texture offset
-            const angle_t angle = (rw_centerangle + xtoviewangle[rw_x]) >> ANGLETOFINESHIFT;
+            const angle_t angle = ((rw_centerangle + xtoviewangle[rw_x]) >> ANGLETOFINESHIFT)
+                                & FINEANGLES_TAN; // [PN] ASAN: Keep angle in finetangent array
             texturecolumn = rw_offset - FixedMul(finetangent[angle], rw_distance);
             texturecolumn >>= FRACBITS;
 
