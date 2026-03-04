@@ -134,7 +134,7 @@ void (*spanfunc) (void);
 // [JN] killough 5/2/98: reformatted
 // -----------------------------------------------------------------------------
 
-int R_PointOnSide (fixed_t x, fixed_t y, const node_t *node)
+int R_PointOnSide (fixed_t x, fixed_t y, const node_t *const node)
 {
     if (!node->dx)
     {
@@ -163,7 +163,7 @@ int R_PointOnSide (fixed_t x, fixed_t y, const node_t *node)
 // [PN] killough 5/2/98: reformatted
 // -----------------------------------------------------------------------------
 
-int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *line)
+int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *const line)
 {
     const fixed_t lx = line->v1->x;
     const fixed_t ly = line->v1->y;
@@ -944,7 +944,7 @@ void R_RenderPlayerView (player_t *player)
     // [crispy] smooth texture scrolling
     if (!crl_freeze)
     {
-        R_InterpolateTextureOffsets();
+        R_InterpolateTextureOffsets(); // [crispy] Smooth texture scrolling
     }
 
     // The head node is the last node output.

@@ -277,7 +277,7 @@ void R_ClearPlanes (void)
 // New function, by Lee Killough
 // -----------------------------------------------------------------------------
 
-static visplane_t *new_visplane (unsigned const int hash)
+static visplane_t *const new_visplane (unsigned const int hash)
 {
     visplane_t *check = freetail;
 
@@ -300,7 +300,7 @@ static visplane_t *new_visplane (unsigned const int hash)
 // R_FindPlane
 // -----------------------------------------------------------------------------
 
-visplane_t *R_FindPlane (fixed_t height, int picnum, int lightlevel)
+visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel)
 {
     visplane_t *check;
     unsigned int hash;
@@ -348,7 +348,7 @@ visplane_t *R_FindPlane (fixed_t height, int picnum, int lightlevel)
 // R_DupPlane
 // -----------------------------------------------------------------------------
 
-visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
+visplane_t *const R_DupPlane(const visplane_t *const pl, int start, int stop)
 {
     visplane_t *new_pl = new_visplane(visplane_hash(pl->picnum, pl->lightlevel, pl->height));
 
@@ -367,7 +367,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 // R_CheckPlane
 // -----------------------------------------------------------------------------
 
-visplane_t *R_CheckPlane (visplane_t *pl, int start, int stop)
+visplane_t *const R_CheckPlane (visplane_t *const pl, int start, int stop)
 {
     int intrl, intrh, unionl, unionh, x;
 

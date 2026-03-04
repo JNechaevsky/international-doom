@@ -125,7 +125,7 @@ void (*spanfunc) (void);
 // [JN] killough 5/2/98: reformatted
 // -----------------------------------------------------------------------------
 
-int R_PointOnSide (fixed_t x, fixed_t y, const node_t *node)
+int R_PointOnSide (fixed_t x, fixed_t y, const node_t *const node)
 {
     if (!node->dx)
     {
@@ -154,7 +154,7 @@ int R_PointOnSide (fixed_t x, fixed_t y, const node_t *node)
 // [PN] killough 5/2/98: reformatted
 // -----------------------------------------------------------------------------
 
-int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *line)
+int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *const line)
 {
     const fixed_t lx = line->v1->x;
     const fixed_t ly = line->v1->y;
@@ -394,7 +394,6 @@ static void R_InitTextureMapping (void)
 void R_InitLightTables (void)
 {
     int i;
-    int j;
 
     if (scalelight)
     {
@@ -460,7 +459,7 @@ void R_InitLightTables (void)
     int *scale_table = malloc(MAXLIGHTZ * sizeof(*scale_table));
     {
         const int fracwidth = (ORIGWIDTH >> 1) * FRACUNIT;
-        for (j = 0; j < MAXLIGHTZ; ++j)
+        for (int j = 0; j < MAXLIGHTZ; ++j)
             scale_table[j] = (FixedDiv(fracwidth, (j + 1) << LIGHTZSHIFT)) >> LIGHTSCALESHIFT;
     }
 
@@ -471,7 +470,7 @@ void R_InitLightTables (void)
         zlight[i] = malloc(MAXLIGHTZ * sizeof(**zlight));
         const int start_map = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
 
-        for (j = 0; j < MAXLIGHTZ; j++)
+        for (int j = 0; j < MAXLIGHTZ; j++)
         {
             const int scale = scale_table[j];
             int level = start_map - (scale >> 1);
@@ -754,9 +753,8 @@ static inline boolean CheckLocalView(const player_t *player)
 // R_SetupFrame
 // -----------------------------------------------------------------------------
 
-static void R_SetupFrame (player_t *player)
+static void R_SetupFrame (player_t *const player)
 {
-    int i;
     int tempCentery;
     int pitch; // [crispy]
     int tableAngle;
@@ -909,7 +907,7 @@ static void R_SetupFrame (player_t *player)
 
         walllights = scalelightfixed;
 
-        for (i = 0 ; i < MAXLIGHTSCALE ; i++)
+        for (int i = 0 ; i < MAXLIGHTSCALE ; i++)
             scalelightfixed[i] = fixedcolormap;
     }
     else

@@ -124,7 +124,7 @@ void (*spanfunc) (void);
 // [JN] killough 5/2/98: reformatted
 // -----------------------------------------------------------------------------
 
-int R_PointOnSide (fixed_t x, fixed_t y, const node_t *node)
+int R_PointOnSide (fixed_t x, fixed_t y, const node_t *const node)
 {
     if (!node->dx)
     {
@@ -153,7 +153,7 @@ int R_PointOnSide (fixed_t x, fixed_t y, const node_t *node)
 // [PN] killough 5/2/98: reformatted
 // -----------------------------------------------------------------------------
 
-int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *line)
+int R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *const line)
 {
     const fixed_t lx = line->v1->x;
     const fixed_t ly = line->v1->y;
@@ -393,7 +393,6 @@ static void R_InitTextureMapping (void)
 void R_InitLightTables (void)
 {
     int i;
-    int j;
 
     if (scalelight)
     {
@@ -462,7 +461,7 @@ void R_InitLightTables (void)
     int *scale_table = malloc(MAXLIGHTZ * sizeof(*scale_table));
     {
         const int fracwidth = (ORIGWIDTH >> 1) * FRACUNIT;
-        for (j = 0; j < MAXLIGHTZ; ++j)
+        for (int j = 0; j < MAXLIGHTZ; ++j)
             scale_table[j] = (FixedDiv(fracwidth, (j + 1) << LIGHTZSHIFT)) >> LIGHTSCALESHIFT;
     }
 
@@ -473,7 +472,7 @@ void R_InitLightTables (void)
         zlight[i] = malloc(MAXLIGHTZ * sizeof(**zlight));
         const int start_map = ((LIGHTLEVELS - LIGHTBRIGHT - i) << 1) * NUMCOLORMAPS / LIGHTLEVELS;
 
-        for (j = 0; j < MAXLIGHTZ; j++)
+        for (int j = 0; j < MAXLIGHTZ; j++)
         {
             const int scale = scale_table[j];
             int level = start_map - (scale >> 1);
@@ -923,7 +922,7 @@ void R_RenderPlayerView (player_t *player)
     // [crispy] smooth texture scrolling
     if (!crl_freeze)
     {
-        R_InterpolateTextureOffsets();
+        R_InterpolateTextureOffsets(); // [crispy] Smooth texture scrolling
     }
 
     // The head node is the last node output.

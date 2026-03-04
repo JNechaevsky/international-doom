@@ -15,7 +15,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// R_draw.c
+
 
 #include <stdlib.h>
 #include "doomdef.h"
@@ -29,41 +29,41 @@
 #include "id_vars.h"
 
 
-/*
+//
+// All drawing to the view buffer is accomplished in this file.  The other refresh
+// files only know about cordinates, not the architecture of the frame buffer.
+//
 
-All drawing to the view buffer is accomplished in this file.  The other refresh
-files only know about ccordinates, not the architecture of the frame buffer.
+int viewwidth;
+int scaledviewwidth;
+int viewheight;
+int viewwindowx;
+int viewwindowy;
 
-*/
-
-byte *viewimage;
-int viewwidth, scaledviewwidth, viewheight, viewwindowx, viewwindowy;
+int      columnofs[MAXWIDTH]; 
 pixel_t *ylookup[MAXHEIGHT];
-int columnofs[MAXWIDTH];
-byte translations[3][256];      // color tables for different players
 
 // Backing buffer containing the bezel drawn around the screen and 
 // surrounding background.
+
 static pixel_t *background_buffer = NULL;
 
-/*
-==================
-=
-= R_DrawColumn
-=
-= Source is the top of the column to scale
-=
-==================
-*/
+//
+// R_DrawColumn
+// Source is the top of the column to scale.
+//
 
-lighttable_t *dc_colormap[2];   // [crispy] brightmaps
+lighttable_t *dc_colormap[2]; // [crispy] brightmaps
 int dc_x;
 int dc_yl;
 int dc_yh;
+int dc_texheight; // [crispy] Tutti-Frutti fix
+
 fixed_t dc_iscale;
 fixed_t dc_texturemid;
-int dc_texheight;
-byte *dc_source;                // first pixel in a column (possibly virtual)
+const byte *dc_source; // first pixel in a column (possibly virtual)
+const byte *dc_translation;
+byte *translationtables;
 
 // -----------------------------------------------------------------------------
 // R_DrawColumn
@@ -208,9 +208,6 @@ void R_DrawColumnLow(void)
 // do/while with for loops, and simplified arithmetic operations.
 // -----------------------------------------------------------------------------
 
-byte *dc_translation;
-byte *translationtables;
-
 void R_DrawTranslatedColumn(void)
 {
     const int count = dc_yh - dc_yl;
@@ -288,22 +285,21 @@ void R_DrawTranslatedColumnLow(void)
     }
 }
 
-
-//--------------------------------------------------------------------------
 //
-// PROC R_InitTranslationTables
+// R_InitTranslationTables
+// Creates the translation tables to map
+//  the green color ramp to yellow, red, blue.
+// Assumes a given structure of the PLAYPAL.
+// Could be read from a lump instead.
 //
-//--------------------------------------------------------------------------
 
-void R_InitTranslationTables(void)
+void R_InitTranslationTables (void)
 {
-    int i;
-
     // Allocate translation tables
     translationtables = Z_Malloc(256 * 3, PU_STATIC, 0);
 
     // Fill out the translation tables
-    for (i = 0; i < 256; i++)
+    for (int i = 0; i < 256; i++)
     {
         // [PN] Default case: all tables point to the original value
         translationtables[i] = i;
@@ -322,6 +318,34 @@ void R_InitTranslationTables(void)
     }
 }
 
+
+//
+// R_DrawSpan 
+// With DOOM style restrictions on view orientation,
+//  the floors and ceilings consist of horizontal slices
+//  or spans with constant z depth.
+// However, rotation around the world z axis is possible,
+//  thus this mapping, while simpler and faster than
+//  perspective correct texture mapping, has to traverse
+//  the texture at an angle in all but a few cases.
+// In consequence, flats are not stored by column (like walls),
+//  and the inner loop has to step in texture space u and v.
+//
+
+int ds_y;
+int ds_x1;
+int ds_x2;
+
+lighttable_t *ds_colormap[2];   // [crispy] brightmaps
+const byte *ds_brightmap;       // [crispy] brightmaps
+fixed_t ds_xfrac;
+fixed_t ds_yfrac;
+fixed_t ds_xstep;
+fixed_t ds_ystep;
+
+// start of a 64*64 tile image
+const byte *ds_source;
+
 // -----------------------------------------------------------------------------
 // R_DrawSpan
 // Draws a horizontal span of pixels.
@@ -332,18 +356,6 @@ void R_InitTranslationTables(void)
 // allow better compiler optimizations, reducing overhead from repeated global lookups.
 // The loop unrolling by four is retained for performance reasons.
 // -----------------------------------------------------------------------------
-
-int ds_y;
-int ds_x1;
-int ds_x2;
-lighttable_t *ds_colormap[2];   // [crispy] brightmaps
-fixed_t ds_xfrac;
-fixed_t ds_yfrac;
-fixed_t ds_xstep;
-fixed_t ds_ystep;
-byte *ds_source;                // start of a 64*64 tile image
-const byte *ds_brightmap;       // [crispy] brightmaps
-
 
 void R_DrawSpan(void)
 {
@@ -474,12 +486,10 @@ void R_DrawSpanLow(void)
                 const unsigned ytemp = (yfrac >> 10) & 0x0FC0;
                 const unsigned xtemp = (xfrac >> 16) & 0x3F;
                 const int spot = xtemp | ytemp;
-
                 const byte source = sourcebase[spot];
                 dest[0] = brightmap[source] ? colormap1[source] : colormap0[source];
                 dest[1] = brightmap[source] ? colormap1[source] : colormap0[source];
                 dest += 2;
-
                 xfrac += xstep;
                 yfrac += ystep;
             }
@@ -640,15 +650,15 @@ void R_FillBackScreen (void)
 // [PN] Changed ofs to size_t for clarity and to represent offset more appropriately.
 // -----------------------------------------------------------------------------
 
-static void R_VideoErase (unsigned ofs, int count)
-{ 
+static void R_VideoErase (size_t ofs, int count)
+{
     // [PN] Ensure the background buffer is valid before copying
     if (background_buffer != NULL)
     {
         // [PN] Copy from background buffer to video buffer
         memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count * sizeof(*I_VideoBuffer));
     }
-} 
+}
 
 // -----------------------------------------------------------------------------
 // R_DrawViewBorder
@@ -657,10 +667,12 @@ static void R_VideoErase (unsigned ofs, int count)
 //      Simplified logic for top, bottom, and side erasing.
 // -----------------------------------------------------------------------------
 
-void R_DrawViewBorder(void)
+void R_DrawViewBorder (void)
 {
     if (scaledviewwidth == SCREENWIDTH || background_buffer == NULL)
+    {
         return;
+    }
 
     // [PN] Adjust for precision issues on lower screen sizes
     const int yy2 = (dp_screen_size < 6) ? 3 : 0;
@@ -692,4 +704,3 @@ void R_DrawViewBorder(void)
     // [PN] Mark the screen for refresh
     V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT - SBARHEIGHT);
 }
-

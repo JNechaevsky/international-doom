@@ -151,7 +151,7 @@ static const struct
     { 128 * FRACUNIT,  9}
 };
 
-static void R_FixWiggle (sector_t *sector)
+static void R_FixWiggle (sector_t *const sector)
 {
     static int lastheight = 0;
     int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
@@ -189,7 +189,7 @@ static void R_FixWiggle (sector_t *sector)
 // R_RenderMaskedSegRange
 // -----------------------------------------------------------------------------
 
-void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
+void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
 {
     // Calculate light table.
     // Use different light tables
@@ -259,8 +259,8 @@ void R_RenderMaskedSegRange (drawseg_t *ds, int x1, int x2)
             // arithmetic and by skipping the drawing of 2s normals whose
             // mapping to screen coordinates is totally out of range:
             {
-                int64_t t = ((int64_t) centeryfrac << FRACBITS)
-                          -  (int64_t) dc_texturemid * spryscale;
+                const int64_t t = ((int64_t) centeryfrac << FRACBITS)
+                                -  (int64_t) dc_texturemid * spryscale;
 
                 if (t + (int64_t) textureheight[texnum] * spryscale < 0
                 ||  t > (int64_t) SCREENHEIGHT << FRACBITS * 2)

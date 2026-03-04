@@ -599,10 +599,10 @@ extern void R_InitTranslationTables (void);
 extern void R_SetFuzzPosDraw (void);
 extern void R_SetFuzzPosTic (void);
 
-extern byte *dc_source;
-extern byte *ds_source;		
+extern const byte *dc_source;
+extern const byte *ds_source;		
+extern const byte *dc_translation;
 extern byte *translationtables;
-extern byte *dc_translation;
 
 extern int dc_x;
 extern int dc_yl;
@@ -644,9 +644,8 @@ extern angle_t R_PointToAngle (fixed_t x, fixed_t y);
 extern angle_t R_PointToAngle2 (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 extern angle_t R_PointToAngleCrispy (fixed_t x, fixed_t y);
 extern fixed_t R_PointToDist (fixed_t x, fixed_t y);
-extern fixed_t R_ScaleFromGlobalAngle (angle_t visangle);
-extern int     R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *line);
-extern int     R_PointOnSide (fixed_t x, fixed_t y, const node_t *node);
+extern int     R_PointOnSegSide (fixed_t x, fixed_t y, const seg_t *const line);
+extern int     R_PointOnSide (fixed_t x, fixed_t y, const node_t *const node);
 extern subsector_t *R_PointInSubsector (fixed_t x, fixed_t y);
 extern void    R_AddPointToBox (int x, int y, fixed_t *box);
 
@@ -774,9 +773,9 @@ extern fixed_t distscale[MAXWIDTH];
 extern fixed_t swirlCoord_x;
 extern fixed_t swirlCoord_y;
 
-extern visplane_t *R_FindPlane (fixed_t height, int picnum, int lightlevel);
-extern visplane_t *R_CheckPlane (visplane_t *pl, int start, int stop);
-extern visplane_t *R_DupPlane (const visplane_t *pl, int start, int stop);
+extern visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel);
+extern visplane_t *const R_CheckPlane (visplane_t *const pl, int start, int stop);
+extern visplane_t *const R_DupPlane (const visplane_t *const pl, int start, int stop);
 
 // -----------------------------------------------------------------------------
 // R_SEGS

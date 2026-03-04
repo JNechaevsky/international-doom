@@ -513,7 +513,7 @@ static void R_RenderSegLoop (void)
 // above R_StoreWallRange
 // -----------------------------------------------------------------------------
 
-fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
+static fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
 {
     const angle_t anglea = ANG90 + (visangle - viewangle);
     const angle_t angleb = ANG90 + (visangle - rw_normalangle);
@@ -603,7 +603,7 @@ void R_StoreWallRange (int start, int stop)
 
         if (need > maxopenings)
         {
-            drawseg_t *ds;                      // jff 8/9/98 needed for fix from ZDoom
+            drawseg_t *ds;                // jff 8/9/98 needed for fix from ZDoom
             const int *const oldopenings = openings;  // dropoff overflow
             const int *const oldlast = lastopening;   // dropoff overflow
 

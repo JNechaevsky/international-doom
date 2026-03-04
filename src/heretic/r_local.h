@@ -403,8 +403,8 @@ extern void (*spanfunc) (void);
 // [crispy] smooth texture scrolling
 extern void R_InterpolateTextureOffsets (void);
 
-int R_PointOnSide(fixed_t x, fixed_t y, const node_t *node);
-int R_PointOnSegSide(fixed_t x, fixed_t y, const seg_t *line);
+int R_PointOnSide(fixed_t x, fixed_t y, const node_t *const node);
+int R_PointOnSegSide(fixed_t x, fixed_t y, const seg_t *const line);
 angle_t R_PointToAngle(fixed_t x, fixed_t y);
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y);
 angle_t R_PointToAngle2(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
@@ -489,7 +489,7 @@ extern angle_t rw_angle1;           // angle to line origin
 extern lighttable_t **walllights;
 
 
-void R_RenderMaskedSegRange(drawseg_t * ds, int x1, int x2);
+void R_RenderMaskedSegRange(const drawseg_t *const ds, int x1, int x2);
 extern void R_StoreWallRange (int start, int stop);
 
 
@@ -514,10 +514,9 @@ extern fixed_t swirlCoord_y;
 void R_ClearPlanes(void);
 void R_DrawPlanes(void);
 
-visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
-                        int special);
-visplane_t *R_CheckPlane(visplane_t * pl, int start, int stop);
-extern visplane_t *R_DupPlane (const visplane_t *pl, int start, int stop);
+extern visplane_t *const R_FindPlane(fixed_t height, int picnum, int lightlevel, int special);
+extern visplane_t *const R_CheckPlane(visplane_t *const pl, int start, int stop);
+extern visplane_t *const R_DupPlane (const visplane_t *const pl, int start, int stop);
 
 
 //
@@ -590,7 +589,7 @@ extern int dc_yh;
 extern fixed_t dc_iscale;
 extern fixed_t dc_texturemid;
 extern int dc_texheight;
-extern byte *dc_source;         // first pixel in a column
+extern const byte *dc_source;         // first pixel in a column
 extern pixel_t *ylookup[MAXHEIGHT];
 extern int columnofs[MAXWIDTH];
 
@@ -607,10 +606,10 @@ extern fixed_t ds_xfrac;
 extern fixed_t ds_yfrac;
 extern fixed_t ds_xstep;
 extern fixed_t ds_ystep;
-extern byte *ds_source;         // start of a 64*64 tile image
+extern const byte *ds_source;         // start of a 64*64 tile image
 
 extern byte *translationtables;
-extern byte *dc_translation;
+extern const byte *dc_translation;
 
 extern const byte *dc_brightmap;
 extern const byte *ds_brightmap;
