@@ -494,7 +494,7 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
     #endif
     for (i = 0; i < snd_channels; i++)
     {
-        if (origin != (mobj_t *)&dummy_listener && origin->player)
+        if (origin != (mobj_t *)&dummy_listener && origin != (mobj_t *) &camera_listener && origin->player)
         {
             i = snd_channels;
             break;              // let the player have more than one sound.
