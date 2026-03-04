@@ -612,10 +612,13 @@ void R_FillBackScreen (void)
     // [crispy] Unified flat filling function
     V_FillFlat(0, SCREENHEIGHT - SBARHEIGHT, 0, SCREENWIDTH, src, background_buffer);
 
-    // [PN] Calculate patch positions
-    const int view_x = viewwindowx / vid_resolution;
+    // [PN] Calculate patch positions.
+    // Align horizontal view edges robustly on high renderer scales (3x+):
+    // use ceiling division for the left edge (prevents left-side seam) and
+    // floor division for the right edge (prevents right-side seam).
+    const int view_x = (viewwindowx + vid_resolution - 1) / vid_resolution;
     const int view_y = viewwindowy / vid_resolution;
-    const int view_w = scaledviewwidth / vid_resolution;
+    const int view_w = ((viewwindowx + scaledviewwidth) / vid_resolution) - view_x;
     const int view_h = viewheight / vid_resolution;
     const int delta = WIDESCREENDELTA;
 
