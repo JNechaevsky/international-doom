@@ -55,10 +55,13 @@ lighttable_t *dc_colormap[2]; // [crispy] brightmaps
 int dc_x;
 int dc_yl;
 int dc_yh;
+int dc_texheight; // [crispy] Tutti-Frutti fix
+
 fixed_t dc_iscale;
 fixed_t dc_texturemid;
-int dc_texheight; // [crispy]
-byte *dc_source;                // first pixel in a column (possibly virtual)
+const byte *dc_source; // first pixel in a column (possibly virtual)
+const byte *dc_translation;
+byte *translationtables;
 
 // -----------------------------------------------------------------------------
 // R_DrawColumn
@@ -203,9 +206,6 @@ void R_DrawColumnLow(void)
 // do/while with for loops, and simplified arithmetic operations.
 // -----------------------------------------------------------------------------
 
-byte *dc_translation;
-byte *translationtables;
-
 void R_DrawTranslatedColumn(void)
 {
     const int count = dc_yh - dc_yl;
@@ -344,6 +344,30 @@ void R_InitTranslationTables(void)
     }
 }
 
+//
+// R_DrawSpan 
+// With DOOM style restrictions on view orientation,
+//  the floors and ceilings consist of horizontal slices
+//  or spans with constant z depth.
+// However, rotation around the world z axis is possible,
+//  thus this mapping, while simpler and faster than
+//  perspective correct texture mapping, has to traverse
+//  the texture at an angle in all but a few cases.
+// In consequence, flats are not stored by column (like walls),
+//  and the inner loop has to step in texture space u and v.
+//
+
+int ds_y;
+int ds_x1;
+int ds_x2;
+lighttable_t *ds_colormap;
+fixed_t ds_xfrac;
+fixed_t ds_yfrac;
+fixed_t ds_xstep;
+fixed_t ds_ystep;
+
+const byte *ds_source; // start of a 64*64 tile image
+
 // -----------------------------------------------------------------------------
 // R_DrawSpan
 // Draws a horizontal span of pixels.
@@ -354,16 +378,6 @@ void R_InitTranslationTables(void)
 // allow better compiler optimizations, reducing overhead from repeated global lookups.
 // The loop unrolling by four is retained for performance reasons.
 // -----------------------------------------------------------------------------
-
-int ds_y;
-int ds_x1;
-int ds_x2;
-lighttable_t *ds_colormap;
-fixed_t ds_xfrac;
-fixed_t ds_yfrac;
-fixed_t ds_xstep;
-fixed_t ds_ystep;
-byte *ds_source;                // start of a 64*64 tile image
 
 void R_DrawSpan(void)
 {

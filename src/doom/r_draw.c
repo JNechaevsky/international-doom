@@ -1044,7 +1044,6 @@ void R_InitTranslationTables (void)
     }
 }
 
-
 //
 // R_DrawSpan 
 // With DOOM style restrictions on view orientation,
@@ -1070,8 +1069,7 @@ fixed_t ds_yfrac;
 fixed_t ds_xstep;
 fixed_t ds_ystep;
 
-// start of a 64*64 tile image
-const byte *ds_source;
+const byte *ds_source; // start of a 64*64 tile image
 
 // -----------------------------------------------------------------------------
 // R_DrawSpan

@@ -318,7 +318,6 @@ void R_InitTranslationTables (void)
     }
 }
 
-
 //
 // R_DrawSpan 
 // With DOOM style restrictions on view orientation,
@@ -338,13 +337,13 @@ int ds_x2;
 
 lighttable_t *ds_colormap[2];   // [crispy] brightmaps
 const byte *ds_brightmap;       // [crispy] brightmaps
+
 fixed_t ds_xfrac;
 fixed_t ds_yfrac;
 fixed_t ds_xstep;
 fixed_t ds_ystep;
 
-// start of a 64*64 tile image
-const byte *ds_source;
+const byte *ds_source; // start of a 64*64 tile image
 
 // -----------------------------------------------------------------------------
 // R_DrawSpan
