@@ -134,12 +134,10 @@ char *vid_video_driver = "";
 // https://wiki.libsdl.org/SDL2/SDL_HINT_RENDER_DRIVER
 
 #ifdef _WIN64
-// On 64-bit Windows, set Direct3D 11 by default for better performance.
-// Keep default (Direct3D 9) on 32-bit builds for possible compatibility.
+// On 64-bit Windows, use Direct3D 11 by default for better performance.
+// On 32-bit Windows, keep the default (Direct3D 9), and on other systems
+// let the OS choose scaler for better compatibility.
 char *vid_screen_scaler_api = "direct3d11";
-#else
-// On other OSes let SDL decide what is better for compatibility.
-char *vid_screen_scaler_api = "";
 #endif
 
 // [JN] Window X and Y position to save and restore.
@@ -1579,8 +1577,10 @@ static void SetVideoMode(void)
     // retina displays, especially when using small window sizes.
     window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
+#ifdef _WIN64
     // [JN] Choose render driver to use.
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, vid_screen_scaler_api);
+#endif
 
     // [JN] Ensure 'mode.w/h' is initialized before use.
     if (SDL_GetCurrentDisplayMode(vid_video_display, &mode) != 0)
@@ -2130,7 +2130,9 @@ void I_BindVideoVariables(void)
     M_BindIntVariable("vid_window_width",              &vid_window_width);
     M_BindIntVariable("vid_window_height",             &vid_window_height);
     M_BindStringVariable("vid_video_driver",           &vid_video_driver);
+#ifdef _WIN64
     M_BindStringVariable("vid_screen_scaler_api",      &vid_screen_scaler_api);
+#endif
     M_BindIntVariable("vid_window_position_x",         &vid_window_position_x);
     M_BindIntVariable("vid_window_position_y",         &vid_window_position_y);
     M_BindIntVariable("mouse_enable",                  &usemouse);

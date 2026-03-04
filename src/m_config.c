@@ -177,7 +177,9 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(vid_startup_delay),
     CONFIG_VARIABLE_INT(vid_resize_delay),
     CONFIG_VARIABLE_STRING(vid_video_driver),
+#ifdef _WIN64
     CONFIG_VARIABLE_STRING(vid_screen_scaler_api),
+#endif
     CONFIG_VARIABLE_INT(vid_fullscreen),
     CONFIG_VARIABLE_INT(vid_fullscreen_exclusive),
     CONFIG_VARIABLE_INT(vid_window_position_x),
