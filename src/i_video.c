@@ -133,8 +133,9 @@ char *vid_video_driver = "";
 // [JN] Allow to choose render driver to use.
 // https://wiki.libsdl.org/SDL2/SDL_HINT_RENDER_DRIVER
 
-#ifdef _WIN32
-// On Windows, set Direct3D 11 by default for better performance.
+#ifdef _WIN64
+// On 64-bit Windows, set Direct3D 11 by default for better performance.
+// Keep default (Direct3D 9) on 32-bit builds for possible compatibility.
 char *vid_screen_scaler_api = "direct3d11";
 #else
 // On other OSes let SDL decide what is better for compatibility.
