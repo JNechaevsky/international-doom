@@ -333,7 +333,7 @@ fixed_t spryscale;
 int64_t sprtopscreen; // [crispy] WiggleFix
 fixed_t sprbotscreen;
 
-void R_DrawMaskedColumn (const column_t *column, signed int baseclip)
+void R_DrawMaskedColumn (const column_t *const column, signed int baseclip)
 {
     int64_t topscreen;    // [crispy] WiggleFix
     int64_t bottomscreen; // [crispy] WiggleFix

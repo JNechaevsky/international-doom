@@ -5528,7 +5528,7 @@ void MN_DrTextACentered (const char *text, int y, byte *table)
 // [PN] Write a centered string using the FontA with custom alpha fade.
 // -----------------------------------------------------------------------------
 
-void MN_DrTextACenteredFade (const char *string, const int y, byte *table, int alpha)
+void MN_DrTextACenteredFade (const char *string, int y, byte *table, int alpha)
 {
     const int width = MN_TextAWidth(string);
 
