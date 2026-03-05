@@ -1095,6 +1095,19 @@ static void P_LoadNodes (int lump)
 // P_LoadThings
 // -----------------------------------------------------------------------------
 
+// [JN] Apply H+H compatibility fixes to spawn coordinates
+static void P_ApplyHHThingsCompatibility(mapthing_t *const spawnthing, int episode, int map)
+{
+	// E3M4: Ophidian (id 212) gets stuck on the ceiling of a moving platform
+	// because the KEX engine handles it differently (in a Boom-like way).
+	// Move it left from a platform.
+    if (episode == 3 && map == 4
+	&&  spawnthing->x == -960 && spawnthing->y == 3520 && spawnthing->type == 92 /*MT_SNAKE*/)
+    {
+        spawnthing->x = -976;
+    }
+}
+
 static void P_LoadThings (int lump)
 {
     // [JN] Initialize counters for playstate limits.
@@ -1156,6 +1169,10 @@ static void P_LoadThings (int lump)
         spawnthing.angle   = SHORT(mt->angle);
         spawnthing.type    = SHORT(mt->type);
         spawnthing.options = SHORT(mt->options);
+
+		// [JN] Apply H+H compatibility
+		if (heretic_ex)
+			P_ApplyHHThingsCompatibility(&spawnthing, gameepisode, gamemap);
 
         P_SpawnMapThing(&spawnthing);
     }
