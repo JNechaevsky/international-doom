@@ -6183,7 +6183,7 @@ static void DrawFileSlots(Menu_t * menu)
         // [JN] Highlight selected item (CurrentItPos == i) or apply fading effect.
         dp_translation = (CurrentItPos == i && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
         V_DrawShadowedPatchOptional(x, y, 1, W_CacheLumpName(DEH_String("M_FSLOT"), PU_CACHE));
-        dp_translation = false;
+        dp_translation = NULL;
 
         if (SlotStatus[i])
         {

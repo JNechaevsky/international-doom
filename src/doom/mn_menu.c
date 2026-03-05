@@ -5408,7 +5408,7 @@ static void M_DrawLoad(void)
         // [JN] Highlight selected item (itemOn == i) or apply fading effect.
         dp_translation = (itemOn == i && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
         M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-        dp_translation = false;
+        dp_translation = NULL;
 
         M_WriteTextGlow(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i],
                             NULL,
@@ -5489,7 +5489,7 @@ static void M_DrawSave(void)
         // [JN] Highlight selected item (itemOn == i) or apply fading effect.
         dp_translation = (itemOn == i && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
         M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
-        dp_translation = false;
+        dp_translation = NULL;
 
         M_WriteTextGlow(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i],
                             NULL,
