@@ -350,7 +350,7 @@ void R_DrawMaskedColumn (const column_t *const column)
 
     for (;;)
     {
-        const column_t *col = (const column_t *)cur_column;
+        const column_t *const col = (const column_t *)cur_column;
 
         if (col->topdelta == 0xff)
         {

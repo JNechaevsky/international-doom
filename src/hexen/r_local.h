@@ -627,7 +627,7 @@ extern fixed_t pspritescale, pspriteiscale;
 extern void R_DrawMaskedColumn (const column_t *const column, signed int baseclip);
 
 
-extern void R_AddSprites (const sector_t *sec);
+extern void R_AddSprites (const sector_t *const sec);
 void R_AddPSprites(void);
 void R_DrawSprites(void);
 void R_InitSprites(const char **namelist);
