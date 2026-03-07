@@ -14,28 +14,20 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// DESCRIPTION:
-//	Refresh of things, i.e. objects represented by sprites.
-//
 
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "doomstat.h"
 #include "deh_main.h"
-#include "doomdef.h"
 #include "i_swap.h"
 #include "i_system.h"
-#include "z_zone.h"
-#include "w_wad.h"
-#include "p_local.h"
 #include "r_local.h"
-#include "doomstat.h"
-
 #include "v_trans.h" // [crispy] colored blood sprites
+#include "z_zone.h"
 #include "v_video.h" // [JN] translucency tables
 
-#include "id_vars.h"
 #include "id_func.h"
 
 
@@ -43,6 +35,22 @@
 #define MAXZ				(FRACUNIT*8192)
 #define BASEYCENTER			(ORIGHEIGHT/2)
 
+
+fixed_t pspritescale;
+fixed_t pspriteiscale;
+
+static lighttable_t **spritelights;
+
+// constant arrays used for psprite clipping and initializing clipping
+int negonearray[MAXWIDTH];       // [crispy] 32-bit integer math
+int screenheightarray[MAXWIDTH]; // [crispy] 32-bit integer math
+
+// variables used to look up and range check thing_t sprites patches
+spritedef_t *sprites;
+int    numsprites;
+static spriteframe_t sprtemp[29];
+static int            maxframe;
+static const char    *spritename;
 
 static size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs; // killough
 static vissprite_t *vissprites, **vissprite_ptrs;                     // killough
@@ -61,33 +69,9 @@ typedef struct drawsegs_xrange_s
 
 #define DS_RANGES_COUNT 3
 static drawsegs_xrange_t drawsegs_xranges[DS_RANGES_COUNT];
-static drawseg_xrange_item_t *drawsegs_xrange;
+static const drawseg_xrange_item_t *drawsegs_xrange;
 static unsigned int drawsegs_xrange_size = 0;
 static int drawsegs_xrange_count = 0;
-
-
-//
-// Sprite rotation 0 is facing the viewer,
-//  rotation 1 is one angle turn CLOCKWISE around the axis.
-// This is not the same as the angle,
-//  which increases counter clockwise (protractor).
-// There was a lot of stuff grabbed wrong, so I changed it...
-//
-fixed_t pspritescale;
-fixed_t pspriteiscale;
-
-static lighttable_t **spritelights;
-
-// constant arrays used for psprite clipping and initializing clipping
-int negonearray[MAXWIDTH];        // [JN] 32-bit integer math
-int screenheightarray[MAXWIDTH];  // [JN] 32-bit integer math
-
-// variables used to look up and range check thing_t sprites patches
-spritedef_t *sprites;
-int          numsprites;
-static spriteframe_t  sprtemp[29];
-static int            maxframe;
-static const char    *spritename;
 
 
 // -----------------------------------------------------------------------------
@@ -106,9 +90,7 @@ static void R_InstallSpriteLump (int lump, unsigned frame, char rot, boolean fli
     }
 
     if ((int)frame > maxframe)
-    {
         maxframe = frame;
-    }
 
     if (rotation == 0)
     {
@@ -189,8 +171,8 @@ static void R_InstallSpriteLump (int lump, unsigned frame, char rot, boolean fli
 // -----------------------------------------------------------------------------
 
 static void R_InitSpriteDefs (const char **namelist)
-{ 
-    // Count how many sprite names were provided
+{
+    // Count how many sprite names are provided
     for (numsprites = 0; namelist[numsprites]; numsprites++) {}
 
     if (!numsprites)
@@ -223,7 +205,6 @@ static void R_InitSpriteDefs (const char **namelist)
             // Parse first frame/rotation pair
             frame    = lname[4] - 'A';
             rotation = lname[5];
-
             patched = modifiedgame ? W_GetNumForName(lname) : l;
             R_InstallSpriteLump(patched, frame, rotation, false);
 
@@ -322,18 +303,17 @@ void R_ClearSprites (void)
 // R_NewVisSprite
 // -----------------------------------------------------------------------------
 
-static vissprite_t *R_NewVisSprite (void)
+static vissprite_t *const R_NewVisSprite (void)
 {
     if (num_vissprite >= num_vissprite_alloc)   // [JN] killough
     {
-        
         size_t num_vissprite_alloc_prev = num_vissprite_alloc;
         num_vissprite_alloc = num_vissprite_alloc ? num_vissprite_alloc*2 : 128;
         vissprites = I_Realloc(vissprites,num_vissprite_alloc*sizeof(*vissprites));
 
         // [JN] Andrey Budko: set all fields to zero
         memset(vissprites + num_vissprite_alloc_prev, 0,
-        (num_vissprite_alloc - num_vissprite_alloc_prev)*sizeof(*vissprites));
+            (num_vissprite_alloc - num_vissprite_alloc_prev)*sizeof(*vissprites));
     }
 
     return vissprites + num_vissprite++;
@@ -345,8 +325,8 @@ static vissprite_t *R_NewVisSprite (void)
 // Masked means: partly transparent, i.e. stored in posts/runs of opaque pixels.
 // -----------------------------------------------------------------------------
 
-int *mfloorclip;    // [JN] 32-bit integer math
-int *mceilingclip;  // [JN] 32-bit integer math
+int *mfloorclip;    // [crispy] 32-bit integer math
+int *mceilingclip;  // [crispy] 32-bit integer math
 
 fixed_t spryscale;
 int64_t sprtopscreen; // [crispy] WiggleFix
@@ -470,7 +450,7 @@ inline static lighttable_t *const R_SpriteColumnColormap(const vissprite_t *cons
 
 static void R_DrawVisSprite (const vissprite_t *const vis)
 {
-    const patch_t *restrict patch = W_CacheLumpNum(vis->patch + firstspritelump, PU_CACHE);
+    const patch_t *const patch = W_CacheLumpNum(vis->patch + firstspritelump, PU_CACHE);
 
     // [crispy] brightmaps for select sprites
     dc_colormap[0] = vis->colormap[0];
@@ -561,17 +541,16 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
 
 static void R_ProjectSprite (const mobj_t *const thing)
 {
-    fixed_t interpx;
-    fixed_t interpy;
-    fixed_t interpz;
+	// interpolate position
+    fixed_t interpx, interpy, interpz;
     angle_t interpangle;
 
     // [AM] Interpolate between current and last position,
     //      if prudent.
     if (vid_uncapped_fps
-        && thing->interp == true
-        && realleveltime > oldleveltime
-        && (!crl_freeze || thing->type == MT_PLAYER))
+    && thing->interp == true
+    && realleveltime > oldleveltime
+    && (!crl_freeze || thing->type == MT_PLAYER))
     {
         interpx = LerpFixed(thing->oldx, thing->x);
         interpy = LerpFixed(thing->oldy, thing->y);
@@ -629,13 +608,10 @@ static void R_ProjectSprite (const mobj_t *const thing)
     // decide which patch to use for sprite relative to player
 #ifdef RANGECHECK
     if ((unsigned int)thing->sprite >= (unsigned int)numsprites)
-    {
-        I_Error("R_ProjectSprite: invalid sprite number %i ",
-                thing->sprite);
-    }
+        I_Error("R_ProjectSprite: invalid sprite number %i", thing->sprite);
 #endif
 
-    const spritedef_t *restrict sprdef = &sprites[thing->sprite];
+    const spritedef_t *const restrict sprdef = &sprites[thing->sprite];
 
     // [crispy] the TNT1 sprite is not supposed to be rendered anyway
     if (!sprdef->numframes && thing->sprite == SPR_TNT1)
@@ -643,13 +619,11 @@ static void R_ProjectSprite (const mobj_t *const thing)
 
 #ifdef RANGECHECK
     if ((thing->frame & FF_FRAMEMASK) >= sprdef->numframes)
-    {
-        I_Error("R_ProjectSprite: invalid sprite frame %i : %i ",
+        I_Error("R_ProjectSprite: invalid sprite frame %i : %i",
                 thing->sprite, thing->frame);
-    }
 #endif
 
-    const spriteframe_t *restrict sprframe = 
+    const spriteframe_t *const restrict sprframe =
         &sprdef->spriteframes[thing->frame & FF_FRAMEMASK];
 
     int lump;
@@ -657,6 +631,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
 
     if (sprframe->rotate)
     {
+        // choose a different rotation based on player view
         const angle_t ang = R_PointToAngle(interpx, interpy);
 
         // [crispy] now made non-fatal
@@ -665,7 +640,8 @@ static void R_ProjectSprite (const mobj_t *const thing)
 
         // [crispy] support 16 sprite rotations
         // [PN] If the level is horizontally mirrored, invert left/right
-        const angle_t rel = gp_flip_levels ? 0 - (ang - interpangle) : (ang - interpangle);
+        const angle_t rel = gp_flip_levels ? 0 - (ang - interpangle)
+                                           : (ang - interpangle);
         unsigned rot;
 
         if (sprframe->rotate == 2)
@@ -728,8 +704,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
     }
 
     // store information in a vissprite
-    vissprite_t *restrict vis = R_NewVisSprite();
-    const fixed_t iscale = FixedDiv(FRACUNIT, xscale);
+    vissprite_t *const restrict vis = R_NewVisSprite();
 
     vis->translation = NULL; // [crispy] no color translation
     vis->thing = thing; // [PN] Point this mobj to per column lighting
@@ -742,6 +717,8 @@ static void R_ProjectSprite (const mobj_t *const thing)
     vis->texturemid = gzt - viewz;
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth - 1 : x2;
+
+    const fixed_t iscale = FixedDiv(FRACUNIT, xscale);
 
     if (flip)
     {
@@ -781,6 +758,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
     }
     else
     {
+        // diminished light
         int index = (xscale / vid_resolution) >> (LIGHTSCALESHIFT - detailshift);
 
         if (index >= MAXLIGHTSCALE)
@@ -969,7 +947,7 @@ static void R_DrawPSprite (const pspdef_t *const psp)
     }
 
     // calculate edges of the shape
-    fixed_t tx = sx2 - (ORIGWIDTH / 2) * FRACUNIT;
+    fixed_t tx = sx2 - 160 * FRACUNIT;
 
     // [crispy] fix sprite offsets for mirrored sprites
     tx -= flip ? 2 * tx - spriteoffset[lump] + spritewidth[lump]
@@ -1025,7 +1003,7 @@ static void R_DrawPSprite (const pspdef_t *const psp)
     vis->patch = lump;
 
     if (viewplayer->powers[pw_invisibility] > 4 * 32
-        || viewplayer->powers[pw_invisibility] & 8)
+    ||  viewplayer->powers[pw_invisibility] & 8)
     {
         // shadow draw
         if (vis_improved_fuzz != 2)
@@ -1190,8 +1168,8 @@ static void R_SortVisSprites (void)
 
 static void R_DrawSprite (const vissprite_t *const spr)
 {
-    int clipbot[MAXWIDTH];  // [JN] 32-bit integer math
-    int cliptop[MAXWIDTH];  // [JN] 32-bit integer math
+    int clipbot[MAXWIDTH]; // [crispy] 32-bit integer math
+    int cliptop[MAXWIDTH]; // [crispy] 32-bit integer math
 
     for (int x = spr->x1; x <= spr->x2; x++)
     {
