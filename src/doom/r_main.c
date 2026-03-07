@@ -319,9 +319,6 @@ static void CalcMaxProjectSlope (int fov)
 
 static void R_InitTextureMapping (void)
 {
-    // Calc focallength 
-    const fixed_t focallength = FixedDiv(centerxfrac, fovscale);
-    
     // Calculate FOV
     angle_t fov;
     if (vid_fov == 90 && centerxfrac == centerxfrac_nonwide)
@@ -339,6 +336,8 @@ static void R_InitTextureMapping (void)
     const int max_x = viewwidth + 1;
     const int min_x = -1;
     const fixed_t centerxfrac_adj = centerxfrac + FRACUNIT - 1;
+    // [PN] Set focallength (projection is calculated in R_ExecuteSetViewSize)
+    const fixed_t focallength = projection;
     
     for (int i = 0; i < FINEANGLES/2; i++)
     {
