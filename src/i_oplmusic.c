@@ -1615,70 +1615,57 @@ static void I_OPL_UnRegisterSong(void *handle)
     }
 }
 
-static boolean ConvertMus(byte *musdata, int len, const char *filename)
+static midi_file_t *LoadMus(byte *musdata, int len)
 {
     MEMFILE *instream;
     MEMFILE *outstream;
     void *outbuf;
     size_t outbuf_len;
-    int result;
+    midi_file_t *midi = NULL;
+    int mus2mid_result;
 
     instream = mem_fopen_read(musdata, len);
     outstream = mem_fopen_write();
 
-    result = mus2mid(instream, outstream);
+    mus2mid_result = mus2mid(instream, outstream);
 
-    if (result == 0)
+    if (mus2mid_result == 0)
     {
         mem_get_buf(outstream, &outbuf, &outbuf_len);
-
-        M_WriteFile(filename, outbuf, outbuf_len);
+        midi = MIDI_LoadFileFromData(outbuf, outbuf_len);
     }
 
     mem_fclose(instream);
     mem_fclose(outstream);
 
-    return result;
+    return midi;
 }
 
 static void *I_OPL_RegisterSong(void *data, int len)
 {
     midi_file_t *result;
-    char *filename;
 
     if (!music_initialized)
     {
         return NULL;
     }
 
-    // MUS files begin with "MUS"
-    // Reject anything which doesnt have this signature
-
-    filename = M_TempFile("doom.mid");
-
     // [crispy] remove MID file size limit
     if (IsMid(data, len) /* && len < MAXMIDLENGTH */)
     {
-        M_WriteFile(filename, data, len);
+        result = MIDI_LoadFileFromData(data, len);
     }
     else
     {
         // Assume a MUS file and try to convert
 
-        ConvertMus(data, len, filename);
+        result = LoadMus(data, len);
     }
-
-    result = MIDI_LoadFile(filename);
 
     if (result == NULL)
     {
         fprintf(stderr, "I_OPL_RegisterSong: Failed to load MID.\n");
     }
-
-    // remove file now
-
-    M_remove(filename);
-    free(filename);
 
     return result;
 }

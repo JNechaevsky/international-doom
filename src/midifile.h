@@ -20,6 +20,8 @@
 #ifndef MIDIFILE_H
 #define MIDIFILE_H
 
+#include <stddef.h>
+
 typedef struct midi_file_s midi_file_t;
 typedef struct midi_track_iter_s midi_track_iter_t;
 
@@ -189,6 +191,11 @@ typedef struct
 // Load a MIDI file.
 
 midi_file_t *MIDI_LoadFile(const char *filename);
+
+// Load a MIDI file from an in-memory buffer.
+// The input buffer is read during this call only.
+
+midi_file_t *MIDI_LoadFileFromData(const void *data, size_t data_len);
 
 // Free a MIDI file.
 
