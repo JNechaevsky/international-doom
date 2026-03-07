@@ -24,14 +24,10 @@
 
 #define ANGLETOSKYSHIFT         22      // sky map is 256*128*4 maps
 
-#define BASEYCENTER                     100
-
 #define PI                                      3.141592657
 
 #define CENTERY                         (SCREENHEIGHT/2)
 
-#define MINZ                    (FRACUNIT*4)
-#define	MAXZ                    (FRACUNIT*8192)
 
 
 //
@@ -625,14 +621,13 @@ extern int *mfloorclip;  // [crispy] 32-bit integer math
 extern int *mceilingclip;  // [crispy] 32-bit integer math
 extern fixed_t spryscale;
 extern int64_t sprtopscreen; // [crispy] WiggleFix
-extern fixed_t sprbotscreen;
 
 extern fixed_t pspritescale, pspriteiscale;
 
 extern void R_DrawMaskedColumn (const column_t *const column, signed int baseclip);
 
 
-extern void R_AddSprites (const sector_t *sec);
+extern void R_AddSprites (const sector_t *const sec);
 void R_AddPSprites(void);
 void R_DrawSprites(void);
 void R_InitSprites(const char **namelist);

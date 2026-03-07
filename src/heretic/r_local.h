@@ -26,14 +26,10 @@
 #define PL_SKYFLAT (0x80000000)
 #define	ANGLETOSKYSHIFT		22      // sky map is 256*128*4 maps
 
-#define	BASEYCENTER			100
-
 #define	PI					3.141592657
 
 #define	CENTERY				(SCREENHEIGHT/2)
 
-#define	MINZ			(FRACUNIT*4)
-#define	MAXZ			(FRACUNIT*8192)
 
 //
 // lighting constants
@@ -562,7 +558,6 @@ extern int *mfloorclip;   // [crispy] 32-bit integer math
 extern int *mceilingclip; // [crispy] 32-bit integer math
 extern fixed_t spryscale;
 extern int64_t sprtopscreen; // [crispy] WiggleFix
-extern fixed_t sprbotscreen;
 
 extern fixed_t pspritescale, pspriteiscale;
 
