@@ -1198,6 +1198,20 @@ static void P_LoadThings (int lump)
 // Also counts secret lines for intermissions.
 // -----------------------------------------------------------------------------
 
+// [JN] Apply H+H compatibility fixes to linedef actions
+static void P_ApplyHHLinedefsCompatibility(line_t *const ld, int episode, int map)
+{
+    // E5M7: Access to the secret area in the alcove behind the blue key uses
+    // linedef special 102 (S1 Floor Lower to Highest Floor). This does not
+    // work in the vanilla engine, so replace it with special 23
+    // (S1 Floor Lower to Lowest Floor), which works correctly.
+    if (episode == 5 && map == 7
+	&&  ld->special == 102 && ld->tag == 14)
+    {
+        ld->special = 23;
+    }
+}
+
 static void P_LoadLineDefs (int lump)
 {
     // Determine number of lines
@@ -1268,6 +1282,10 @@ static void P_LoadLineDefs (int lump)
         ld->soundorg.y = (ld->bbox[BOXBOTTOM] + ld->bbox[BOXTOP]) >> 1;
         ld->soundorg.z = ld->frontsector ? ((ld->frontsector->floorheight
                        + ld->frontsector->ceilingheight) >> 1) : 0;
+
+		// [JN] Apply H+H compatibility
+		if (heretic_ex)
+            P_ApplyHHLinedefsCompatibility(ld, gameepisode, gamemap);
     }
 
     // Release the cached lump
