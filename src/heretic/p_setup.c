@@ -1095,19 +1095,6 @@ static void P_LoadNodes (int lump)
 // P_LoadThings
 // -----------------------------------------------------------------------------
 
-// [JN] Apply H+H compatibility fixes to spawn coordinates
-static void P_ApplyHHThingsCompatibility(mapthing_t *const spawnthing, int episode, int map)
-{
-	// E3M4: Ophidian (id 212) gets stuck on the ceiling of a moving platform
-	// because the KEX engine handles it differently (in a Boom-like way).
-	// Move it left from a platform.
-    if (episode == 3 && map == 4
-	&&  spawnthing->x == -960 && spawnthing->y == 3520 && spawnthing->type == 92 /*MT_SNAKE*/)
-    {
-        spawnthing->x = -976;
-    }
-}
-
 static void P_LoadThings (int lump)
 {
     // [JN] Initialize counters for playstate limits.
@@ -1121,6 +1108,9 @@ static void P_LoadThings (int lump)
     // Determine number of things
     const int count = W_LumpLength(lump) / sizeof(mapthing_t);
     const mapthing_t *restrict src = (const mapthing_t *)data;
+
+    // [PN/JN] H+H compatibility
+    const boolean hh_compat_e3m4 = heretic_ex && gameepisode == 3 && gamemap == 4;
 
     mapthing_t spawnthing;
 
@@ -1170,9 +1160,13 @@ static void P_LoadThings (int lump)
         spawnthing.type    = SHORT(mt->type);
         spawnthing.options = SHORT(mt->options);
 
-		// [JN] Apply H+H compatibility
-		if (heretic_ex)
-			P_ApplyHHThingsCompatibility(&spawnthing, gameepisode, gamemap);
+        // E3M4: Ophidian (id 212) gets stuck on the ceiling of a moving platform
+        // because the KEX engine handles it differently (in a Boom-like way).
+        // Move it to the left, off the platform.
+        if (hh_compat_e3m4 && spawnthing.x == -960 && spawnthing.y == 3520 && spawnthing.type == 92 /* MT_SNAKE */)
+        {
+            spawnthing.x = -976;
+        }
 
         P_SpawnMapThing(&spawnthing);
     }
@@ -1198,20 +1192,6 @@ static void P_LoadThings (int lump)
 // Also counts secret lines for intermissions.
 // -----------------------------------------------------------------------------
 
-// [JN] Apply H+H compatibility fixes to linedef actions
-static void P_ApplyHHLinedefsCompatibility(line_t *const ld, int episode, int map)
-{
-    // E5M7: Access to the secret area in the alcove behind the blue key uses
-    // linedef special 102 (S1 Floor Lower to Highest Floor). This does not
-    // work in the vanilla engine, so replace it with special 23
-    // (S1 Floor Lower to Lowest Floor), which works correctly.
-    if (episode == 5 && map == 7
-	&&  ld->special == 102 && ld->tag == 14)
-    {
-        ld->special = 23;
-    }
-}
-
 static void P_LoadLineDefs (int lump)
 {
     // Determine number of lines
@@ -1229,6 +1209,9 @@ static void P_LoadLineDefs (int lump)
     if (!data)
         I_Error("P_LoadLineDefs: Failed to load lump %d", lump);
     const maplinedef_t *restrict src = (const maplinedef_t *)data;
+
+    // [PN/JN] H+H compatibility
+    const boolean hh_compat_e5m7 = heretic_ex && gameepisode == 5 && gamemap == 7;
 
     for (int i = 0; i < count; ++i)
     {
@@ -1283,9 +1266,14 @@ static void P_LoadLineDefs (int lump)
         ld->soundorg.z = ld->frontsector ? ((ld->frontsector->floorheight
                        + ld->frontsector->ceilingheight) >> 1) : 0;
 
-		// [JN] Apply H+H compatibility
-		if (heretic_ex)
-            P_ApplyHHLinedefsCompatibility(ld, gameepisode, gamemap);
+        // E5M7: Access to the secret area in the alcove behind the blue key uses
+        // linedef special 102 (S1 Floor Lower to Highest Floor). This does not
+        // work in the vanilla engine, so replace it with special 23
+        // (S1 Floor Lower to Lowest Floor), which works correctly.
+        if (hh_compat_e5m7 && ld->special == 102 && ld->tag == 14)
+        {
+            ld->special = 23;
+        }
     }
 
     // Release the cached lump
