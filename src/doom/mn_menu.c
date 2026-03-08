@@ -7535,6 +7535,7 @@ static void M_ID_MenuMouseControl (void)
 
     // Determine line height based on font size
     const int line_height = currentMenu->smallFont ? ID_MENU_LINEHEIGHT_SMALL : LINEHEIGHT;
+    const int slider_height = currentMenu->smallFont ? 3 : 2;
     const int scaled_line_height = line_height * vid_resolution;
     const int base_y = currentMenu->y * vid_resolution;
 
@@ -7564,7 +7565,7 @@ static void M_ID_MenuMouseControl (void)
             continue;
 
         // Sliders occupy three lines, normal items one line
-        const int lines = (currentMenu->menuitems[i].status == STS_SLDR) ? 3 : 1;
+        const int lines = (currentMenu->menuitems[i].status == STS_SLDR) ? slider_height : 1;
         const int top = base_y + i * scaled_line_height;
         const int bottom = top + lines * scaled_line_height;
 
