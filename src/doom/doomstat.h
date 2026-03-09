@@ -175,6 +175,7 @@ extern  int	displayplayer;
 extern  int	totalkills;
 extern	int	totalitems;
 extern	int	totalsecret;
+extern	int	totalkilled;     // [JN] Kills counter for KIS widget with DSDA rules.
 
 // Timer, for scores.
 extern  int	levelstarttic;	// gametic at level start

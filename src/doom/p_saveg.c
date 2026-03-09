@@ -425,9 +425,6 @@ static void saveg_read_mobj_t(mobj_t *str)
     // struct mobj_s* tracer;
     str->tracer = saveg_readp();
 
-    // boolean resurrected;
-    str->resurrected = saveg_read32();
-
     // [crispy] new mobj_t fields used for interpolation
     str->interp = 0;
     str->oldx = 0;
@@ -556,9 +553,6 @@ static void saveg_write_mobj_t(mobj_t *str)
     // [crispy] instead of the actual pointer, store the
     // corresponding index in the mobj->tracers field
     saveg_writep((void *)(uintptr_t) P_ThinkerToIndex((thinker_t *) str->tracer));
-
-    // boolean resurrected;
-    saveg_write32(str->resurrected);
 }
 
 
@@ -763,9 +757,7 @@ static void saveg_read_player_t(player_t *str)
 
     // int killcount;
     str->killcount = saveg_read32();
-
-    // [JN] Ressurected monsters counter.
-    str->extrakillcount = saveg_read32();
+    totalkilled = saveg_read32();
 
     // int itemcount;
     str->itemcount = saveg_read32();
@@ -900,9 +892,7 @@ static void saveg_write_player_t(player_t *str)
 
     // int killcount;
     saveg_write32(str->killcount);
-
-    // [JN] Ressurected monsters counter.
-    saveg_write32(str->extrakillcount);
+    saveg_write32(totalkilled);
 
     // int itemcount;
     saveg_write32(str->itemcount);

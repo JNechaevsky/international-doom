@@ -487,7 +487,7 @@ void SB_Ticker(void)
     }
 
     // [JN] Update IDWidget data.
-    IDWidget.kills = CPlayer->killcount;
+    IDWidget.kills = totalkilled;
     IDWidget.totalkills = totalkills;
     IDWidget.items = CPlayer->itemcount;
     IDWidget.totalitems = totalitems;

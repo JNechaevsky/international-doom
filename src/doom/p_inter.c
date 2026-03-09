@@ -734,35 +734,22 @@ P_KillMobj
 
     if (source && source->player)
     {
-        // [JN] Ressurected monsters counter.
-        if (target->resurrected == true)
-        {
-            source->player->extrakillcount++;
-        }
-        // count for intermission
-        else if (target->flags & MF_COUNTKILL)
-        {
-            source->player->killcount++;	
-        }
+	// count for intermission
+	if (target->flags & MF_COUNTKILL)
+	{
+	    source->player->killcount++;	
+        totalkilled++;
+	}
 
-        if (target->player)
-        {
-            source->player->frags[target->player-players]++;
-        }
+	if (target->player)
+	    source->player->frags[target->player-players]++;
     }
-    else if (!netgame/* && (target->flags & MF_COUNTKILL)*/)
+    else if (!netgame && (target->flags & MF_COUNTKILL) )
     {
-        // count all monster deaths,
-        // even those caused by other monsters
-        // [JN] ... but still count ressurected monsters separatelly.
-        if (target->resurrected == true)
-        {
-            players[0].extrakillcount++;
-        }
-        else if (target->flags & MF_COUNTKILL)
-        {
-            players[0].killcount++;	
-        }
+	// count all monster deaths,
+	// even those caused by other monsters
+	players[0].killcount++;
+	totalkilled++;
     }
     
     if (target->player)
