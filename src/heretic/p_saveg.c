@@ -2097,27 +2097,3 @@ void P_UnArchiveOldSpecials (void)
                            0 : SV_ReadWord();
     }
 }
-
-void P_ArchiveGameplaySettings (void)
-{
-    SV_WriteByte(fastparm ? 1 : 0);
-    SV_WriteByte(respawnparm ? 1 : 0);
-    SV_WriteByte(coop_spawns ? 1 : 0);
-}
-
-void P_UnArchiveGameplaySettings (void)
-{
-    int marker;
-
-    // [PN] Backward-compatible read: old saves may not have this trailing block.
-    marker = SV_ReadByte();
-    if (marker == SAVE_GAME_TERMINATOR)
-    {
-        fseek(SaveGameFP, -1, SEEK_CUR);
-        return;
-    }
-
-    fastparm = (marker != 0);
-    respawnparm = (SV_ReadByte() != 0);
-    coop_spawns = (SV_ReadByte() != 0);
-}

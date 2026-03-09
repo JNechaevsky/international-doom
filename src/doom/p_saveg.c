@@ -2290,30 +2290,7 @@ void P_ArchiveGameplaySettings (void)
 
 void P_UnArchiveGameplaySettings (void)
 {
-    int value;
-
-    // [PN] Backward-compatible read: old saves may not have this trailing block.
-    value = fgetc(save_stream);
-    if (value == EOF)
-    {
-        clearerr(save_stream);
-        return;
-    }
-    fastparm = (value != 0);
-
-    value = fgetc(save_stream);
-    if (value == EOF)
-    {
-        clearerr(save_stream);
-        return;
-    }
-    respawnparm = (value != 0);
-
-    value = fgetc(save_stream);
-    if (value == EOF)
-    {
-        clearerr(save_stream);
-        return;
-    }
-    coop_spawns = (value != 0);
+    fastparm = saveg_read8() != 0;
+    respawnparm = saveg_read8() != 0;
+    coop_spawns = saveg_read8() != 0;
 }

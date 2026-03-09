@@ -2544,6 +2544,9 @@ void G_DoLoadGame (void)
         return;
     }
 
+    // [PN] Restore gameplay settings.
+    P_UnArchiveGameplaySettings();
+
     savedleveltime = leveltime;
     
     // load a base level 
@@ -2568,8 +2571,6 @@ void G_DoLoadGame (void)
     P_UnArchiveAutomap ();
     // [plums] Restore old sector specials.
     P_UnArchiveOldSpecials ();
-    P_UnArchiveGameplaySettings ();
-    G_ApplyGameplaySettings(gameskill);
 
     fclose(save_stream);
     
@@ -2641,6 +2642,9 @@ void G_DoSaveGame (void)
 
     P_WriteSaveGameHeader(savedescription);
 
+    // [PN] Archive gameplay settings.
+    P_ArchiveGameplaySettings ();
+
     P_ArchivePlayers ();
     P_ArchiveWorld ();
     P_ArchiveThinkers ();
@@ -2657,7 +2661,6 @@ void G_DoSaveGame (void)
     // [plums] write old sector specials (for revealed secrets) at the end
     // to keep save compatibility with previous versions
     P_ArchiveOldSpecials ();
-    P_ArchiveGameplaySettings ();
 
     // Finish up, close the savegame file.
 

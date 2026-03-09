@@ -2525,8 +2525,10 @@ void G_DoLoadGame(void)
     P_UnArchiveAutomap();
     // [plums] restore old sector specials.
     P_UnArchiveOldSpecials();
-    P_UnArchiveGameplaySettings();
-    G_ApplyGameplaySettings(gameskill);
+    // [PN] Restore gameplay settings.
+    fastparm = (SV_ReadByte() != 0);
+    respawnparm = (SV_ReadByte() != 0);
+    coop_spawns = (SV_ReadByte() != 0);
 
     // [crispy] point to active artifact after load
     for (i = 0; i < p->inventorySlotNum; i++)
@@ -3474,7 +3476,10 @@ static void G_DoSaveGame(void)
     // [plums] write old sector specials (for revealed secrets) at the end
     // to keep save compatibility with previous versions.
     P_ArchiveOldSpecials();
-    P_ArchiveGameplaySettings();
+    // [PN] Archive gameplay settings.
+    SV_WriteByte(fastparm ? 1 : 0);
+    SV_WriteByte(respawnparm ? 1 : 0);
+    SV_WriteByte(coop_spawns ? 1 : 0);
     SV_WriteSaveGameEOF();
     SV_Close();
 
