@@ -655,6 +655,7 @@ static void M_ID_ArmorIcon (int choice);
 static void M_ID_ArmorValue (int choice);
 static void M_ID_ZAxisSfx (int choice);
 static void M_ID_Torque (int choice);
+static void M_ID_WeaponAlignment (int choice);
 static void M_ID_Breathing (int choice);
 
 static void M_Draw_ID_Gameplay_3 (void);
@@ -3711,8 +3712,8 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC1, "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,     0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_LRFUNC1, "CORPSES SLIDING FROM LEDGES", M_ID_Torque,       0, MENU_NONE },
+    { ITT_LRFUNC2, "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE },
     { ITT_LRFUNC1, "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,    0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_LRFUNC2, "", /* SCROLLS PAGES */        M_ScrollGameplay,  0, MENU_NONE },
@@ -3788,12 +3789,20 @@ static void M_Draw_ID_Gameplay_2 (void)
                             phys_torque ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(8));
 
+    // Weapon attack alignment
+    sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
+                 phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
+                        phys_weapon_alignment ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            phys_weapon_alignment ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(9));
+
     // Imitate player's breathing
     sprintf(str, phys_breathing ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
                         phys_breathing ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             phys_breathing ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(9));
+                                LINE_ALPHA(10));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "2/3");
@@ -3834,6 +3843,11 @@ static void M_ID_ZAxisSfx (int choice)
 static void M_ID_Torque (int choice)
 {
     phys_torque ^= 1;
+}
+
+static void M_ID_WeaponAlignment (int choice)
+{
+    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice, false);
 }
 
 static void M_ID_Breathing (int choice)
@@ -4377,6 +4391,7 @@ static void M_ID_ApplyResetHook (void)
 
     // Physical
     phys_torque = 0;
+    phys_weapon_alignment = 0;
     phys_breathing = 0;
 
     // Gameplay

@@ -2512,11 +2512,73 @@ void P_MovePsprites(player_t * player)
     {
         const int state = player->psprites[ps_weapon].state - states;       // [crispy]
         const weaponinfo_t *const winfo = &WeaponInfo[player->readyweapon][player->class];
+        // [PN] True for weapon lift/lower transitions where vertical animation must stay intact.
+        boolean weaponTransitionState = (state == winfo->downstate
+                                      || state == winfo->upstate
+                                      || psp->state->action == A_Lower
+                                      || psp->state->action == A_Raise
+                                      || player->pendingweapon != WP_NOCHANGE);
+        // [PN] True only for active non-transition states where bobbing is allowed.
+        boolean movingState;
+        boolean bobbed_x = false;
+        boolean bobbed_y = false;
 
-        // Apply full bobbing only for ready states.
-        if ((state == winfo->readystate && state != S_CSTAFFREADY) && !player->attackdown)
+        // [PN] Some Hexen weapons use extra transitional frames before A_Lower/A_Raise.
+        // Treat near-future raise/lower states as non-moving to preserve lift/drop animation.
+        if (!weaponTransitionState)
         {
+            statenum_t nextstate = psp->state->nextstate;
+
+            for (int depth = 0; depth < 2 && nextstate; ++depth)
+            {
+                const state_t *const next = &states[nextstate];
+
+                if (next->action == A_Lower || next->action == A_Raise)
+                {
+                    weaponTransitionState = true;
+                    break;
+                }
+
+                nextstate = next->nextstate;
+            }
+        }
+
+        movingState = !weaponTransitionState && state != S_CSTAFFREADY;
+
+        if (phys_weapon_alignment)
+        {
+            if (phys_weapon_alignment == 2 && player->attackdown && movingState)
+            {
+                // [PN] Center weapon while firing.
+                psp->sx2 = FRACUNIT;
+                psp->sy2 = WEAPONTOP;
+                bobbed_x = true;
+                bobbed_y = true;
+            }
+            else
+            {
+                // [PN] Apply X-only bobbing based on movingState.
+                P_ApplyBobbing(&psp->sx2, &psp->sy2, movingState, player->r_bob);
+                bobbed_x = true;
+                bobbed_y = movingState;
+            }
+        }
+        else if ((state == winfo->readystate && state != S_CSTAFFREADY) && !player->attackdown)
+        {
+            // [PN] Apply full bobbing only for ready states.
             P_ApplyBobbing(&psp->sx2, &psp->sy2, true, player->r_bob);
+            bobbed_x = true;
+            bobbed_y = true;
+        }
+
+        // [PN] Keep bobbing and state-defined offsets together instead of overriding one another.
+        if (bobbed_x && psp->state->misc1)
+        {
+            psp->sx2 += (psp->state->misc1 << FRACBITS) - FRACUNIT;
+        }
+        if (bobbed_y && psp->state->misc2)
+        {
+            psp->sy2 += (psp->state->misc2 << FRACBITS) - WEAPONTOP;
         }
     }
 
