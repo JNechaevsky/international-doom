@@ -3334,7 +3334,8 @@ static void M_Draw_ID_Widgets (void)
 
     // Stats format
     sprintf(str, widget_kis_format == 1 ? "REMAINING" :
-                 widget_kis_format == 2 ? "PERCENT" : "RATIO");
+                 widget_kis_format == 2 ? "PERCENT" : 
+                 widget_kis_format == 3 ? "COUNT" : "RATIO");
     M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
                         widget_kis_format ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_kis_format ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
@@ -3427,7 +3428,7 @@ static void M_ID_Widget_KIS (int choice)
 
 static void M_ID_Widget_KIS_Format (int choice)
 {
-    widget_kis_format = M_INT_Slider(widget_kis_format, 0, 2, choice, false);
+    widget_kis_format = M_INT_Slider(widget_kis_format, 0, 3, choice, false);
 }
 
 static void M_ID_Widget_KIS_Items (int choice)

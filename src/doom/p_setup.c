@@ -1316,6 +1316,7 @@ void P_SetupLevel (int episode, int map)
         players[i].secretcount    = 0;
         players[i].itemcount      = 0;
     }
+    totalkilled = 0;
 
     // Initial view height
     players[consoleplayer].viewz = 1;

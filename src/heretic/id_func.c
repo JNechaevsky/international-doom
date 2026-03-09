@@ -302,6 +302,12 @@ static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
             break;
         }
 
+        case 3: // Count
+        {
+            snprintf(buffer, buffer_size, "%d", value);
+            break;
+        }
+
         default: // Ratio
         {
             snprintf(buffer, buffer_size, "%d/%d", value, total);
