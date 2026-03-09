@@ -170,6 +170,9 @@ static weapon_keys_pair_t weapon_keys[] = {
     { &key_weapon8, &key_weapon8_2 }
 };
 
+// [crispy] make sure "fast" parameters are really only applied once
+static boolean fast_applied;
+
 // Set to -1 or +1 to switch to the previous or next weapon.
 
 static int next_weapon = 0;
@@ -1445,6 +1448,43 @@ static void G_ReadGameParms (void)
     fastparm = M_CheckParm ("-fast");
     nomonsters = M_CheckParm ("-nomonsters");
 }
+
+// [PN] Keep runtime monster behavior in sync with gameplay parameter flags.
+static void G_ApplyGameplaySettings(skill_t skill)
+{
+    int i;
+
+    respawnmonsters = (skill == sk_nightmare || respawnparm);
+
+    if ((fastparm || skill == sk_nightmare) && !fast_applied)
+    {
+        for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; i++)
+        {
+            // [crispy] Fix infinite loop caused by Demon speed bug
+            if (states[i].tics > 1)
+            {
+                states[i].tics >>= 1;
+            }
+        }
+
+        mobjinfo[MT_BRUISERSHOT].speed = 20 * FRACUNIT;
+        mobjinfo[MT_HEADSHOT].speed = 20 * FRACUNIT;
+        mobjinfo[MT_TROOPSHOT].speed = 20 * FRACUNIT;
+        fast_applied = true;
+    }
+    else if (!(fastparm || skill == sk_nightmare) && fast_applied)
+    {
+        for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; i++)
+        {
+            states[i].tics <<= 1;
+        }
+
+        mobjinfo[MT_BRUISERSHOT].speed = 15 * FRACUNIT;
+        mobjinfo[MT_HEADSHOT].speed = 10 * FRACUNIT;
+        mobjinfo[MT_TROOPSHOT].speed = 10 * FRACUNIT;
+        fast_applied = false;
+    }
+}
  
 //
 // G_Ticker
@@ -2528,6 +2568,8 @@ void G_DoLoadGame (void)
     P_UnArchiveAutomap ();
     // [plums] Restore old sector specials.
     P_UnArchiveOldSpecials ();
+    P_UnArchiveGameplaySettings ();
+    G_ApplyGameplaySettings(gameskill);
 
     fclose(save_stream);
     
@@ -2615,6 +2657,7 @@ void G_DoSaveGame (void)
     // [plums] write old sector specials (for revealed secrets) at the end
     // to keep save compatibility with previous versions
     P_ArchiveOldSpecials ();
+    P_ArchiveGameplaySettings ();
 
     // Finish up, close the savegame file.
 
@@ -2696,6 +2739,7 @@ void G_DoNewGame (void)
     fastparm = false;
     nomonsters = false;
     */
+    coop_spawns = false;
     consoleplayer = 0;
     G_InitNew (d_skill, d_episode, d_map); 
     gameaction = ga_nothing; 
@@ -2708,10 +2752,7 @@ void G_DoNewGame (void)
 
 void G_DoSelectiveGame (int choice)
 {
-    int i;
     player_t *plr = &players[consoleplayer];
-    // [crispy] make sure "fast" parameters are really only applied once
-    static boolean fast_applied;
 
     idmusnum = -1;  // [JN] Andrey Budko: allow new level's music to be loaded
     demoplayback = false;
@@ -2729,39 +2770,14 @@ void G_DoSelectiveGame (int choice)
     // Close "Level select" menu
     menuactive = 0;
 
+    // [PN] Must be set before G_InitNew(), because level loading/spawn happens there.
+    fastparm = level_select[24];
+    respawnparm = level_select[25];
+    coop_spawns = level_select[26];
+
     G_InitNew (level_select[0],
                gamemode == shareware || gamemode == commercial ? 1 : level_select[1],
                level_select[2]); 
-
-    // Do not modify respawnparm parameter
-    respawnmonsters = level_select[25];
-
-    // Do not modify fastparm parameter
-    // [crispy] make sure "fast" parameters are really only applied once
-    if ((level_select[24] || gameskill == sk_nightmare) && !fast_applied)
-    {
-        for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
-        // [crispy] Fix infinite loop caused by Demon speed bug
-        if (states[i].tics > 1)
-        {
-            states[i].tics >>= 1;
-        }
-
-        mobjinfo[MT_BRUISERSHOT].speed = 20*FRACUNIT;
-        mobjinfo[MT_HEADSHOT].speed = 20*FRACUNIT;
-        mobjinfo[MT_TROOPSHOT].speed = 20*FRACUNIT;
-
-        fast_applied = true;
-    }
-    else if (!level_select[24] && gameskill != sk_nightmare && fast_applied)
-    {
-        for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
-        states[i].tics <<= 1;
-        mobjinfo[MT_BRUISERSHOT].speed = 15*FRACUNIT;
-        mobjinfo[MT_HEADSHOT].speed = 10*FRACUNIT;
-        mobjinfo[MT_TROOPSHOT].speed = 10*FRACUNIT;
-        fast_applied = false;
-    }
 
     // Health
     plr->health = level_select[3];
@@ -2818,8 +2834,6 @@ G_InitNew
 {
     const char *skytexturename;
     int             i;
-    // [crispy] make sure "fast" parameters are really only applied once
-    static boolean fast_applied;
 
     if (paused)
     {
@@ -2901,34 +2915,7 @@ G_InitNew
         mobjinfo[MT_SPIDER].spawnhealth = (episode == 6) ? 9000 : 3000;
     }
 
-    if (skill == sk_nightmare || respawnparm )
-	respawnmonsters = true;
-    else
-	respawnmonsters = false;
-
-    // [crispy] make sure "fast" parameters are really only applied once
-    if ((fastparm || skill == sk_nightmare) && !fast_applied)
-    {
-	for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
-	    // [crispy] Fix infinite loop caused by Demon speed bug
-	    if (states[i].tics > 1)
-	    {
-	    states[i].tics >>= 1;
-	    }
-	mobjinfo[MT_BRUISERSHOT].speed = 20*FRACUNIT;
-	mobjinfo[MT_HEADSHOT].speed = 20*FRACUNIT;
-	mobjinfo[MT_TROOPSHOT].speed = 20*FRACUNIT;
-	fast_applied = true;
-    }
-    else if (!fastparm && skill != sk_nightmare && fast_applied)
-    {
-	for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
-	    states[i].tics <<= 1;
-	mobjinfo[MT_BRUISERSHOT].speed = 15*FRACUNIT;
-	mobjinfo[MT_HEADSHOT].speed = 10*FRACUNIT;
-	mobjinfo[MT_TROOPSHOT].speed = 10*FRACUNIT;
-	fast_applied = false;
-    }
+    G_ApplyGameplaySettings(skill);
 
     // force players to be initialized upon first level load
     for (i=0 ; i<MAXPLAYERS ; i++)

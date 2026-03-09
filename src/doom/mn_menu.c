@@ -824,6 +824,7 @@ static void M_ID_LevelYellowSkull (int choice);
 static void M_ID_LevelRedSkull (int choice);
 static void M_ID_LevelFastMonsters (int choice);
 static void M_ID_LevelRespMonsters (int choice);
+static void M_ID_LevelCoopSpawn (int choice);
 
 static void M_ScrollLevel (int choice);
 
@@ -4611,7 +4612,8 @@ static menuitem_t ID_Menu_Level_1[]=
     { M_MUL1, "ROCKET LAUNCHER",    M_ID_LevelRLauncher, 'r' },
     { M_MUL1, "PLASMA RIFLE",       M_ID_LevelPlasmagun, 'p' },
     { M_MUL1, "BFG 9000",           M_ID_LevelBFG9000,   'b' },
-    { M_SKIP, "", 0, '\0' },  // WEAPONS
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
     { M_MUL1, "", /* SCROLL PGS  */ M_ScrollLevel,       'n' },
     { M_SWTC, "", /* START GAME  */ G_DoSelectiveGame,   's' }
 };
@@ -4623,7 +4625,7 @@ static menu_t ID_Def_Level_1 =
     &ID_Def_Main,
     ID_Menu_Level_1,
     M_Draw_ID_Level_1,
-    ID_MENU_LEFTOFFSET_MID, 25,
+    ID_MENU_LEFTOFFSET_MID, ID_MENU_TOPOFFSET,
     0,
     true, false, true,
 };
@@ -4642,11 +4644,11 @@ static void M_Draw_ID_Level_1 (void)
 
     M_FillBackground();
     
-    M_WriteTextCentered(16, "LEVEL SELECT", cr[CR_YELLOW]);
+    M_WriteTextCentered(9, "LEVEL SELECT", cr[CR_YELLOW]);
 
     // Skill level
     sprintf(str, "%s", DefSkillName[level_select[0]]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 25, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
                         level_select[0] == 0 ? cr[CR_OLIVE] :
                         level_select[0] == 1 ? cr[CR_DARKGREEN] :
                         level_select[0] == 2 ? cr[CR_GREEN] :
@@ -4663,23 +4665,23 @@ static void M_Draw_ID_Level_1 (void)
     sprintf(str, gamemode == shareware ? "1" :
                  gamemode == commercial ? "N/A" : "%d",
                  level_select[1]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 34, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
                         gamemode == shareware || gamemode == commercial ? cr[CR_DARKRED] : cr[CR_RED],
                             cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(1));
 
     // Map
     sprintf(str, "%d", level_select[2]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 43, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
                         cr[CR_RED],
                             cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(2));
 
-    M_WriteTextCentered(52, "PLAYER", cr[CR_YELLOW]);
+    M_WriteTextCentered(45, "PLAYER", cr[CR_YELLOW]);
 
     // Health
     sprintf(str, "%d", level_select[3]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 61, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
                         level_select[3] >  100 ? cr[CR_BLUE2] :
                         level_select[3] >=  67 ? cr[CR_GREEN] :
                         level_select[3] >=  34 ? cr[CR_YELLOW] : cr[CR_RED],
@@ -4690,7 +4692,7 @@ static void M_Draw_ID_Level_1 (void)
 
     // Armor
     sprintf(str, "%d", level_select[4]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 70, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
                         level_select[4] == 0 ? cr[CR_RED] :
                         level_select[5] == 1 ? cr[CR_GREEN] : cr[CR_BLUE2],
                             level_select[4] == 0 ? cr[CR_RED_BRIGHT] :
@@ -4699,23 +4701,23 @@ static void M_Draw_ID_Level_1 (void)
 
     // Armor type
     sprintf(str, "%d", level_select[5]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 79, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
                         level_select[5] == 1 ? cr[CR_GREEN] : cr[CR_BLUE2],
                             level_select[5] == 1 ? cr[CR_GREEN_BRIGHT] : cr[CR_BLUE2_BRIGHT],
                                 LINE_ALPHA(6));
 
-    M_WriteTextCentered(88, "WEAPONS", cr[CR_YELLOW]);
+    M_WriteTextCentered(81, "WEAPONS", cr[CR_YELLOW]);
 
     // Chainsaw
     sprintf(str, level_select[6] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 97, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
                         level_select[6] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[6] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(8));
 
     // Shotgun
     sprintf(str, level_select[7] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 106, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
                         level_select[7] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[7] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(9));
@@ -4723,7 +4725,7 @@ static void M_Draw_ID_Level_1 (void)
     // Super Shotgun
     sprintf(str, gamemode != commercial ? "N/A" : 
                  level_select[8] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 115, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
                         gamemode != commercial ? cr[CR_DARKRED] :
                         level_select[8] ? cr[CR_GREEN] : cr[CR_RED],
                             gamemode != commercial ? cr[CR_RED_BRIGHT] :
@@ -4732,14 +4734,14 @@ static void M_Draw_ID_Level_1 (void)
 
     // Chaingun
     sprintf(str, level_select[9] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 124, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
                         level_select[9] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[9] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(11));
 
     // Rocket Launcher
     sprintf(str, level_select[10] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 133, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
                         level_select[10] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[10] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(12));
@@ -4747,7 +4749,7 @@ static void M_Draw_ID_Level_1 (void)
     // Plasma Rifle
     sprintf(str, gamemode == shareware ? "N/A" :
                  level_select[11] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 142, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
                         gamemode == shareware ? cr[CR_DARKRED] :
                         level_select[11] ? cr[CR_GREEN] : cr[CR_RED],
                             gamemode == shareware ? cr[CR_RED_BRIGHT] :
@@ -4757,19 +4759,19 @@ static void M_Draw_ID_Level_1 (void)
     // BFG 9000
     sprintf(str, gamemode == shareware ? "N/A" :
                  level_select[12] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 151, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
                         gamemode == shareware ? cr[CR_DARKRED] :
                         level_select[12] ? cr[CR_GREEN] : cr[CR_RED],
                             gamemode == shareware ? cr[CR_RED_BRIGHT] :
                             level_select[12] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],                        
                                 LINE_ALPHA(14));
 
-    M_DrawScrollPages(currentMenu->x, 169, 16, "1/2");
+    M_DrawScrollPages(currentMenu->x, 171, 17, "1/2");
     
-    M_WriteTextGlow(currentMenu->x, 178, "START GAME",
+    M_WriteTextGlow(currentMenu->x, 180, "START GAME",
                         cr[CR_LIGHTGRAY],
                             cr[CR_LIGHTGRAY_BRIGHT],
-                                LINE_ALPHA(17));
+                                LINE_ALPHA(18));
 }
 
 static void M_ID_LevelSkill (int choice)
@@ -4870,7 +4872,8 @@ static menuitem_t ID_Menu_Level_2[]=
     { M_SKIP, "", 0, '\0' },  // EXTRA
     { M_MUL1, "FAST MONSTERS",       M_ID_LevelFastMonsters,  'f' },
     { M_MUL1, "RESPAWNING MONSTERS", M_ID_LevelRespMonsters,  'r' },
-    { M_SKIP, "", 0, '\0' },  // WEAPONS
+    { M_MUL1, "CO-OP SPAWNS",        M_ID_LevelCoopSpawn,     'c' },
+    { M_SKIP, "", 0, '\0' },
     { M_MUL1, "", /* SCROLL PGS  */  M_ScrollLevel,           'p' },
     { M_SWTC, "", /* START GAME  */  G_DoSelectiveGame,       's' }
 };
@@ -4882,7 +4885,7 @@ static menu_t ID_Def_Level_2 =
     &ID_Def_Main,
     ID_Menu_Level_2,
     M_Draw_ID_Level_2,
-    ID_MENU_LEFTOFFSET_MID, 25,
+    ID_MENU_LEFTOFFSET_MID, ID_MENU_TOPOFFSET,
     0,
     true, false, true,
 };
@@ -4895,18 +4898,18 @@ static void M_Draw_ID_Level_2 (void)
 
     M_FillBackground();
     
-    M_WriteTextCentered(16, "AMMO", cr[CR_YELLOW]);
+    M_WriteTextCentered(9, "AMMO", cr[CR_YELLOW]);
 
     // Backpack
     sprintf(str, level_select[13] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 25, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
                         level_select[13] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[13] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(0));
 
     // Bullets
     sprintf(str, "%d", level_select[14]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 34, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
                         level_select[14]  < 200 / 4 ? cr[CR_RED] :
                         level_select[14]  < 200 / 2 ? cr[CR_YELLOW] :
                         level_select[14] <= 200     ? cr[CR_GREEN] : cr[CR_BLUE2],
@@ -4917,7 +4920,7 @@ static void M_Draw_ID_Level_2 (void)
 
     // Shells
     sprintf(str, "%d", level_select[15]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 43, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
                         level_select[15]  < 50 / 4 ? cr[CR_RED] :
                         level_select[15]  < 50 / 2 ? cr[CR_YELLOW] :
                         level_select[15] <= 50     ? cr[CR_GREEN] : cr[CR_BLUE2],
@@ -4928,7 +4931,7 @@ static void M_Draw_ID_Level_2 (void)
 
     // Rockets
     sprintf(str, "%d", level_select[16]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 52, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
                         level_select[16]  < 50 / 4 ? cr[CR_RED] :
                         level_select[16]  < 50 / 2 ? cr[CR_YELLOW] :
                         level_select[16] <= 50     ? cr[CR_GREEN] : cr[CR_BLUE2],
@@ -4939,7 +4942,7 @@ static void M_Draw_ID_Level_2 (void)
 
     // Cells
     sprintf(str, "%d", level_select[17]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 61, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
                         level_select[17]  < 300 / 4 ? cr[CR_RED] :
                         level_select[17]  < 300 / 2 ? cr[CR_YELLOW] :
                         level_select[17] <= 300     ? cr[CR_GREEN] : cr[CR_BLUE2],
@@ -4948,72 +4951,79 @@ static void M_Draw_ID_Level_2 (void)
                             level_select[17] <= 300     ? cr[CR_GREEN_BRIGHT] : cr[CR_BLUE2_BRIGHT],
                                 LINE_ALPHA(4));
 
-    M_WriteTextCentered(70, "KEYS", cr[CR_YELLOW]);
+    M_WriteTextCentered(63, "KEYS", cr[CR_YELLOW]);
 
     // Blue keycard
     sprintf(str, level_select[18] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 79, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
                         level_select[18] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[18] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(6));
 
     // Yellow keycard
     sprintf(str, level_select[19] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 88, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
                         level_select[19] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[19] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(7));
 
     // Red keycard
     sprintf(str, level_select[20] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 97, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
                         level_select[20] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[20] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(8));
 
     // Blue skull key
     sprintf(str, level_select[21] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 106, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
                         level_select[21] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[21] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(9));
 
     // Yellow skull key
     sprintf(str, level_select[22] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 115, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
                         level_select[22] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[22] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(10));
 
     // Red skull key
     sprintf(str, level_select[23] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 124, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
                         level_select[23] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[23] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(11));
 
-    M_WriteTextCentered(133, "EXTRA", cr[CR_YELLOW]);
+    M_WriteTextCentered(126, "EXTRA", cr[CR_YELLOW]);
 
     // Fast monsters
     sprintf(str, level_select[24] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 142, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
                         level_select[24] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[24] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(13));
 
     // Respawning monsters
     sprintf(str, level_select[25] ? "YES" : "NO");
-    M_WriteTextGlow(M_ItemRightAlign(str), 151, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
                         level_select[25] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[25] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(14));
 
-    M_DrawScrollPages(currentMenu->x, 169, 16, "2/2");
+    // Co-op spawns
+    sprintf(str, level_select[26] ? "YES" : "NO");
+    M_WriteTextGlow(M_ItemRightAlign(str), 153, str,
+                        level_select[26] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[26] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(15));
+
+    M_DrawScrollPages(currentMenu->x, 171, 17, "2/2");
     
-    M_WriteTextGlow(currentMenu->x, 178, "START GAME",
+    M_WriteTextGlow(currentMenu->x, 180, "START GAME",
                         cr[CR_LIGHTGRAY],
                             cr[CR_LIGHTGRAY_BRIGHT],
-                                LINE_ALPHA(17));
+                                LINE_ALPHA(18));
 }
 
 static void M_ID_LevelBackpack (int choice)
@@ -5095,10 +5105,17 @@ static void M_ID_LevelRespMonsters (int choice)
     level_select[25] ^= 1;
 }
 
+static void M_ID_LevelCoopSpawn (int choice)
+{
+    level_select[26] ^= 1;
+    
+    printf ("\n level_select[26] = %d", level_select[26]);
+}
+
 static void M_ScrollLevel (int choice)
 {
-         if (currentMenu == &ID_Def_Level_1) { ID_Def_Level_2.lastOn = 16; M_SetupNextMenu(&ID_Def_Level_2); }
-    else if (currentMenu == &ID_Def_Level_2) { ID_Def_Level_1.lastOn = 16; M_SetupNextMenu(&ID_Def_Level_1); }
+         if (currentMenu == &ID_Def_Level_1) { ID_Def_Level_2.lastOn = 17; M_SetupNextMenu(&ID_Def_Level_2); }
+    else if (currentMenu == &ID_Def_Level_2) { ID_Def_Level_1.lastOn = 17; M_SetupNextMenu(&ID_Def_Level_1); }
 }
 
 // -----------------------------------------------------------------------------
@@ -5866,6 +5883,7 @@ static void M_EndGameResponse(int key)
     players[consoleplayer].message = NULL;
     players[consoleplayer].messageCenteredTics = 1;
     players[consoleplayer].messageCentered = NULL;
+    coop_spawns = false;
     st_palette = 0;
     D_StartTitle ();
 }

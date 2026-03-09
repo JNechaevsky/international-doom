@@ -66,6 +66,7 @@ static void G_DoCompleted(void);
 void G_DoVictory(void);
 static void G_DoWorldDone(void);
 static void G_DoSaveGame(void);
+static void G_ApplyGameplaySettings(skill_t skill);
 
 void D_PageTicker(void);
 void D_AdvanceDemo(void);
@@ -2524,6 +2525,8 @@ void G_DoLoadGame(void)
     P_UnArchiveAutomap();
     // [plums] restore old sector specials.
     P_UnArchiveOldSpecials();
+    P_UnArchiveGameplaySettings();
+    G_ApplyGameplaySettings(gameskill);
 
     // [crispy] point to active artifact after load
     for (i = 0; i < p->inventorySlotNum; i++)
@@ -2595,14 +2598,31 @@ static void G_DoNewGame(void)
 {
     // [JN] Andrey Budko: allow new level's music to be loaded
     idmusnum = -1;
+    coop_spawns = false;
     G_InitNew(d_skill, d_episode, d_map);
     gameaction = ga_nothing;
+}
+
+// [PN] Keep runtime monster behavior in sync with gameplay parameter flags.
+static void G_ApplyGameplaySettings(skill_t skill)
+{
+    int i;
+    int speed;
+
+    respawnmonsters = respawnparm;
+
+    // [PN] Set monster missile speeds.
+    speed = (fastparm || skill == sk_nightmare) ? 1 : 0;
+    for (i = 0; MonsterMissileInfo[i].type != -1; i++)
+    {
+        mobjinfo[MonsterMissileInfo[i].type].speed
+            = MonsterMissileInfo[i].speed[speed] << FRACBITS;
+    }
 }
 
 void G_InitNew(skill_t skill, int episode, int map)
 {
     int i;
-    int speed;
     // [JN] Support for sky textures from H+H IWAD.
     static const char *skyLumpNames[2][5] = {
         { "SKY1", "SKY2", "SKY3", "SKY1", "SKY3" },
@@ -2631,21 +2651,7 @@ void G_InitNew(skill_t skill, int episode, int map)
     if (map > 9)
         map = 9;
     M_ClearRandom();
-    if (respawnparm)
-    {
-        respawnmonsters = true;
-    }
-    else
-    {
-        respawnmonsters = false;
-    }
-    // Set monster missile speeds
-    speed = skill == sk_nightmare;
-    for (i = 0; MonsterMissileInfo[i].type != -1; i++)
-    {
-        mobjinfo[MonsterMissileInfo[i].type].speed
-            = MonsterMissileInfo[i].speed[speed] << FRACBITS;
-    }
+    G_ApplyGameplaySettings(skill);
     // Force players to be initialized upon first level load
     for (i = 0; i < MAXPLAYERS; i++)
     {
@@ -2707,7 +2713,6 @@ void G_InitNew(skill_t skill, int episode, int map)
 void G_DoSelectiveGame (int choice)
 {
     int i;
-    int speed;
     player_t *plr = &players[consoleplayer];
     // [JN] Andrey Budko: allow new level's music to be loaded
     idmusnum = -1;
@@ -2727,20 +2732,14 @@ void G_DoSelectiveGame (int choice)
     // Close "Level select" menu
     MenuActive = false;
 
+    // [PN] Must be set before G_InitNew(), because level loading happens there.
+    fastparm = level_select[22];
+    respawnparm = level_select[23];
+    coop_spawns = level_select[34];
+
     G_InitNew (level_select[0],
                gamemode == shareware ? 1 : level_select[1],
                level_select[2]); 
-
-    // Fast monsters
-    speed = level_select[22] ? 1 : 0;
-    for (i = 0; MonsterMissileInfo[i].type != -1; i++)
-    {
-        mobjinfo[MonsterMissileInfo[i].type].speed
-               = MonsterMissileInfo[i].speed[speed] << FRACBITS;
-    }
-
-    // Respawning monsters
-    respawnmonsters = level_select[23];
 
     // Health
     plr->health = level_select[3];
@@ -3475,6 +3474,7 @@ static void G_DoSaveGame(void)
     // [plums] write old sector specials (for revealed secrets) at the end
     // to keep save compatibility with previous versions.
     P_ArchiveOldSpecials();
+    P_ArchiveGameplaySettings();
     SV_WriteSaveGameEOF();
     SV_Close();
 

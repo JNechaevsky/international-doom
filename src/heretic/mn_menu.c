@@ -706,6 +706,7 @@ static void M_ID_LevelKey_1 (int choice);
 static void M_ID_LevelKey_2 (int choice);
 static void M_ID_LevelFast (int choice);
 static void M_ID_LevelRespawn (int choice);
+static void M_ID_LevelCoopSpawn (int choice);
 
 static void M_Draw_ID_Level_3 (void);
 static void M_ID_LevelArti_0 (int choice);
@@ -4692,9 +4693,9 @@ static MenuItem_t ID_Menu_Level_2[] = {
     { ITT_LRFUNC1, "GREEN KEY",       M_ID_LevelKey_1,   0, MENU_NONE },
     { ITT_LRFUNC1, "BLUE KEY",        M_ID_LevelKey_2,   0, MENU_NONE },
     { ITT_EMPTY,   NULL,              NULL,              0, MENU_NONE },
-    { ITT_LRFUNC1, "FAST",            M_ID_LevelFast,    0, MENU_NONE },
-    { ITT_LRFUNC1, "RESPAWNING",      M_ID_LevelRespawn, 0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,              0, MENU_NONE },
+    { ITT_LRFUNC1, "FAST MONSTERS",   M_ID_LevelFast,    0, MENU_NONE },
+    { ITT_LRFUNC1, "RESPAWNING MONSTERS", M_ID_LevelRespawn, 0, MENU_NONE },
+    { ITT_LRFUNC1, "CO-OP SPAWNS",    M_ID_LevelCoopSpawn, 0, MENU_NONE },
     { ITT_LRFUNC2, "",/* SCROLL PGS */M_ScrollLevel,     0, MENU_NONE },
     { ITT_EFUNC,   "START GAME",      G_DoSelectiveGame, 0, MENU_NONE },
 };
@@ -4800,7 +4801,7 @@ static void M_Draw_ID_Level_2 (void)
                             level_select[21] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(10));
 
-    MN_DrTextACentered("MONSTERS", 130, cr[CR_YELLOW]);
+    MN_DrTextACentered("EXTRA", 130, cr[CR_YELLOW]);
 
     // Fast monsters
     sprintf(str, level_select[22] ? "YES" : "NO");
@@ -4815,6 +4816,13 @@ static void M_Draw_ID_Level_2 (void)
                         level_select[23] ? cr[CR_GREEN] : cr[CR_RED],
                             level_select[23] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(13));
+
+    // Co-op spawns
+    sprintf(str, level_select[34] ? "YES" : "NO");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 160,
+                        level_select[34] ? cr[CR_GREEN] : cr[CR_RED],
+                            level_select[34] ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(14));
 
     // < Scroll pages >
     M_DrawScrollPages(CurrentMenu->x, 170, 15, "2/3");
@@ -4894,6 +4902,11 @@ static void M_ID_LevelFast (int choice)
 static void M_ID_LevelRespawn (int choice)
 {
     level_select[23] ^= 1;
+}
+
+static void M_ID_LevelCoopSpawn (int choice)
+{
+    level_select[34] ^= 1;
 }
 
 // -----------------------------------------------------------------------------
@@ -6744,6 +6757,7 @@ static boolean MN_ID_TypeOfAsk (void)
             //set the msg to be cleared
             players[consoleplayer].message = NULL;
             paused = false;
+            coop_spawns = false;
             I_SetPalette(0);
             D_StartTitle();     // go to intro/demo mode.
             break;

@@ -75,6 +75,7 @@ GameMode_t gamemode = indetermined;
 const char *gamedescription = "unknown";
 
 boolean nomonsters;             // checkparm of -nomonsters
+boolean fastparm;               // checkparm of -fast
 boolean respawnparm;            // checkparm of -respawn
 boolean debugmode;              // checkparm of -debug
 boolean ravpic;                 // checkparm of -ravpic
@@ -1037,6 +1038,8 @@ void D_DoomMain(void)
     //
 
     nomonsters = M_ParmExists("-nomonsters");
+
+    fastparm = M_ParmExists("-fast");
 
     //!
     // @category game

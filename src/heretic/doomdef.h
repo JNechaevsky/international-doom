@@ -567,6 +567,8 @@ extern boolean ExtendedWAD;     // true if main WAD is the extended version
 
 extern boolean nomonsters;      // checkparm of -nomonsters
 
+extern boolean fastparm;        // checkparm of -fast
+
 extern boolean respawnparm;     // checkparm of -respawn
 
 extern boolean usergame;        // ok to save / end game
@@ -837,6 +839,8 @@ void P_ArchiveAutomap(void);
 void P_UnArchiveAutomap(void);
 void P_ArchiveOldSpecials(void);
 void P_UnArchiveOldSpecials(void);
+void P_ArchiveGameplaySettings(void);
+void P_UnArchiveGameplaySettings(void);
 // load / save game routines
 
 

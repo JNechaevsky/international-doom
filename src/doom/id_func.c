@@ -962,6 +962,7 @@ int level_select[] = {
     0,    // 23 - Red skull key
     0,    // 24 - Fast monsters
     0,    // 25 - Respawning monsters
+    0,    // 26 - Co-op spawn
 };
 
 // =============================================================================

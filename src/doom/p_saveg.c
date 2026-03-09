@@ -2272,3 +2272,48 @@ void P_UnArchiveOldSpecials (void)
             sec->oldspecial = 0;
     }
 }
+
+// -----------------------------------------------------------------------------
+// P_ArchiveGameplaySettings
+// -----------------------------------------------------------------------------
+
+void P_ArchiveGameplaySettings (void)
+{
+    saveg_write8(fastparm ? 1 : 0);
+    saveg_write8(respawnparm ? 1 : 0);
+    saveg_write8(coop_spawns ? 1 : 0);
+}
+
+// -----------------------------------------------------------------------------
+// P_UnArchiveGameplaySettings
+// -----------------------------------------------------------------------------
+
+void P_UnArchiveGameplaySettings (void)
+{
+    int value;
+
+    // [PN] Backward-compatible read: old saves may not have this trailing block.
+    value = fgetc(save_stream);
+    if (value == EOF)
+    {
+        clearerr(save_stream);
+        return;
+    }
+    fastparm = (value != 0);
+
+    value = fgetc(save_stream);
+    if (value == EOF)
+    {
+        clearerr(save_stream);
+        return;
+    }
+    respawnparm = (value != 0);
+
+    value = fgetc(save_stream);
+    if (value == EOF)
+    {
+        clearerr(save_stream);
+        return;
+    }
+    coop_spawns = (value != 0);
+}
