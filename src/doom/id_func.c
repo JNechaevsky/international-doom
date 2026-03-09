@@ -258,14 +258,13 @@ static int safe_percent (int value, int total)
 // [PN/JN] Main function to format KIS counts based on format and widget type.
 static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
 {
-    int value = 0, extra_value = 0, total = 0;
+    int value = 0, total = 0;
     
     // [PN] Set values for kills, items, or secrets based on widget type
     switch (i)
     {
         case widgets_kis_kills:
             value = IDWidget.kills;
-            extra_value = IDWidget.extrakills;
             total = IDWidget.totalkills;
             break;
         
@@ -290,29 +289,20 @@ static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
     {
         case 1: // Remaining
         {
-            // [JN] Prevent negative values.
-            const int total_value = (total - value > 0) ? (total - value) : 0;
+            const int total_value = total - value;
             snprintf(buffer, buffer_size, "%d", total_value);
             break;
         }
 
         case 2: // Percent
         {
-            snprintf(buffer, buffer_size, "%d%%", 
-                     safe_percent(value, total) + safe_percent(extra_value, total));
+            snprintf(buffer, buffer_size, "%d%%", safe_percent(value, total));
             break;
         }
 
         default: // Ratio
         {
-            if (extra_value > 0)
-            {
-                snprintf(buffer, buffer_size, "%d+%d/%d", value, extra_value, total);
-            }
-            else
-            {
-                snprintf(buffer, buffer_size, "%d/%d", value, total);
-            }
+            snprintf(buffer, buffer_size, "%d/%d", value, total);
             break;
         }
     }
