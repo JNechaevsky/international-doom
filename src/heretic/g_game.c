@@ -119,6 +119,7 @@ int consoleplayer;              // player taking events and displaying
 int displayplayer;              // view being displayed
 int levelstarttic;              // gametic at level start
 int totalkills, totalitems, totalsecret;        // for intermission
+int totalkilled;                 // [JN] Kills counter for KIS widget with DSDA rules.
 int totaltimes, totalleveltimes; // [crispy] CPhipps - total time for all completed levels
 
 boolean finalintermission; // [crispy] track intermission at end of episode

@@ -899,6 +899,7 @@ static void P_KillMobj(mobj_t * source, mobj_t * target)
         if (target->flags & MF_COUNTKILL)
         {                       // Count for intermission
             source->player->killcount++;
+            totalkilled++;
         }
         if (target->player)
         {                       // Frag stuff
@@ -923,6 +924,7 @@ static void P_KillMobj(mobj_t * source, mobj_t * target)
     else if (!netgame && (target->flags & MF_COUNTKILL))
     {                           // Count all monster deaths
         players[0].killcount++;
+        totalkilled++;
     }
     if (target->player)
     {

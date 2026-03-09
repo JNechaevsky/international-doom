@@ -291,8 +291,7 @@ static void ID_WidgetKISCount (char *buffer, size_t buffer_size, const int i)
     {
         case 1: // Remaining
         {
-            // [JN] Prevent negative values.
-            const int total_value = (total - value > 0) ? (total - value) : 0;
+            const int total_value = total - value;
             snprintf(buffer, buffer_size, "%d", total_value);
             break;
         }
