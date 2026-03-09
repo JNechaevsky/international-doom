@@ -1116,7 +1116,6 @@ void ST_Ticker (void)
 
     // [JN] Update CRL_Widgets_t data.
     IDWidget.kills = plyr->killcount;
-    IDWidget.extrakills = plyr->extrakillcount;
     IDWidget.totalkills = totalkills;
     IDWidget.items = plyr->itemcount;
     IDWidget.totalitems = totalitems;

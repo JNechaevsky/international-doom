@@ -1313,7 +1313,6 @@ void P_SetupLevel (int episode, int map)
     for (int i = 0; i < MAXPLAYERS; ++i)
     {
         players[i].killcount      = 0;
-        players[i].extrakillcount = 0;
         players[i].secretcount    = 0;
         players[i].itemcount      = 0;
     }

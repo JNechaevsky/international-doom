@@ -757,8 +757,6 @@ P_SpawnMobjSafe
     mobj->height = info->height;
     mobj->flags = info->flags;
     mobj->health = info->spawnhealth;
-    // [JN] Resurrected monsters counter (not resurrected at spawn).
-    mobj->resurrected = false;
     // [JN] Initialize animated brightmaps;
     mobj->bmap_flick = 0;
     mobj->bmap_glow = 0;

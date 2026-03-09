@@ -1815,13 +1815,11 @@ void G_PlayerReborn (int player)
     int		i; 
     int		frags[MAXPLAYERS]; 
     int		killcount;
-    int		extrakillcount;
     int		itemcount;
     int		secretcount; 
 	 
     memcpy (frags,players[player].frags,sizeof(frags)); 
     killcount = players[player].killcount; 
-    extrakillcount = players[player].extrakillcount; 
     itemcount = players[player].itemcount; 
     secretcount = players[player].secretcount; 
 	 
@@ -1830,7 +1828,6 @@ void G_PlayerReborn (int player)
  
     memcpy (players[player].frags, frags, sizeof(players[player].frags)); 
     players[player].killcount = killcount; 
-    players[player].extrakillcount = extrakillcount;
     players[player].itemcount = itemcount; 
     players[player].secretcount = secretcount; 
  
@@ -2417,8 +2414,7 @@ void G_DoCompleted (void)
     for (i=0 ; i<MAXPLAYERS ; i++) 
     { 
 	wminfo.plyr[i].in = playeringame[i]; 
-	// [JN] Count both common and ressurected monsters. 
-	wminfo.plyr[i].skills = players[i].killcount + players[i].extrakillcount;
+	wminfo.plyr[i].skills = players[i].killcount;
 	wminfo.plyr[i].sitems = players[i].itemcount; 
 	wminfo.plyr[i].ssecret = players[i].secretcount; 
 	wminfo.plyr[i].stime = leveltime; 

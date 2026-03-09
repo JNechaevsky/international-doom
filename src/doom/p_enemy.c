@@ -1252,8 +1252,6 @@ void A_VileChase (mobj_t* actor)
 		    corpsehit->flags = info->flags;
 		    corpsehit->health = info->spawnhealth;
 		    corpsehit->target = NULL;
-		    // [JN] Set "resurrected" flag for extra kills counter.
-		    corpsehit->resurrected = true;
 
 		    // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 		    if (corpsehit->height == 0 && corpsehit->radius == 0)
