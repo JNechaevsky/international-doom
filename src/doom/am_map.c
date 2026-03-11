@@ -2554,6 +2554,7 @@ static void AM_drawMarks (void)
 {
     int i, fx, fy, j, d;
     int fx_flip; // [crispy] support for marks drawing in flipped levels
+    int mapx;
     mpoint_t pt;
 
     // [JN] killough 2/22/98: remove automap mark limit
@@ -2566,9 +2567,18 @@ static void AM_drawMarks (void)
         pt.x = markpoints[i].x;
         pt.y = markpoints[i].y;
         AM_transformPoint(&pt);
-        fx = (CXMTOF(pt.x) / vid_resolution) - 1;
+        mapx = CXMTOF(pt.x);
+
+        // [PN] ASAN: Avoid out-of-bounds access in flipscreenwidth[]
+        // when a mark is completely outside the automap view.
+        if ((unsigned int) mapx >= (unsigned int) f_w)
+        {
+            continue;
+        }
+
+        fx = (mapx / vid_resolution) - 1;
         fy = (CYMTOF(pt.y) / vid_resolution) - 2;
-        fx_flip = (flipscreenwidth[CXMTOF(pt.x)] / vid_resolution) - 1;
+        fx_flip = (flipscreenwidth[mapx] / vid_resolution) - 1;
         j = i;
 
         do
