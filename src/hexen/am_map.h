@@ -110,6 +110,7 @@ extern void AM_initVariables (void);
 extern void AM_LevelInit (boolean reinit);
 extern fixed_t AM_UnArchiveScaleMtof (void);
 extern void AM_ArchiveScaleMtof (fixed_t scale);
+extern angle_t mapangle;
 extern void AM_LevelNameDrawer (void);
 extern void AM_Start (void);
 extern void AM_Stop (void);

@@ -23,7 +23,8 @@
 
 #include "d_event.h"
 #include "m_cheat.h"
-#include "m_fixed.h"
+#include "m_fixed.h" // fixed_t
+#include "tables.h"  // angle_t
 
 
 typedef struct
@@ -51,6 +52,7 @@ extern void AM_LevelInit (boolean reinit);
 
 extern fixed_t AM_UnArchiveScaleMtof (void);
 extern void AM_ArchiveScaleMtof (fixed_t scale);
+extern angle_t mapangle;
 
 extern void AM_SetdrawFline (void);
 

@@ -281,7 +281,7 @@ static boolean stopped = true;
 static void AM_rotate (int64_t *x, int64_t *y, angle_t a);
 static void AM_transformPoint (mpoint_t *pt);
 static mpoint_t mapcenter;
-static angle_t mapangle;
+angle_t mapangle;
 
 static void DrawWuLine(fline_t *fl, byte *BaseColor);
 void AM_DrawDeathmatchStats(void);

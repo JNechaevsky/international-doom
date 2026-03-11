@@ -302,7 +302,7 @@ void (*AM_drawFline)(fline_t*, int) = AM_drawFline_Vanilla;
 static void AM_rotate (int64_t *x, int64_t *y, angle_t a);
 static void AM_transformPoint (mpoint_t *pt);
 static mpoint_t mapcenter;
-static angle_t mapangle;
+angle_t mapangle;
 
 // -----------------------------------------------------------------------------
 // AM_Init
