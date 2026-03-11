@@ -307,7 +307,7 @@ void NET_CL_LaunchGame(void)
     NET_Conn_NewReliable(&client_connection, NET_PACKET_TYPE_LAUNCH);
 }
 
-void NET_CL_StartGame(net_gamesettings_t *settings)
+void NET_CL_StartGame(net_gamesettings_t *net_settings)
 {
     net_packet_t *packet;
 
@@ -320,7 +320,7 @@ void NET_CL_StartGame(net_gamesettings_t *settings)
     packet = NET_Conn_NewReliable(&client_connection, 
                                   NET_PACKET_TYPE_GAMESTART);
 
-    NET_WriteSettings(packet, settings);
+    NET_WriteSettings(packet, net_settings);
 }
 
 static void NET_CL_SendGameDataACK(void)

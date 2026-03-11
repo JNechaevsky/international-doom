@@ -446,7 +446,7 @@ int EV_BuildStairs(const line_t * line, fixed_t stepDelta)
     int i;
     int newsecnum;
     int texture;
-    int ok;
+    int build_ok;
     int rtn;
     sector_t *sec, *tsec;
     floormove_t *floor;
@@ -485,7 +485,7 @@ int EV_BuildStairs(const line_t * line, fixed_t stepDelta)
         //
         do
         {
-            ok = 0;
+            build_ok = 0;
             for (i = 0; i < sec->linecount; i++)
             {
                 if (!((sec->lines[i])->flags & ML_TWOSIDED))
@@ -515,11 +515,11 @@ int EV_BuildStairs(const line_t * line, fixed_t stepDelta)
                 floor->sector = sec;
                 floor->speed = FLOORSPEED;
                 floor->floordestheight = height;
-                ok = 1;
+                build_ok = 1;
                 break;
             }
         }
-        while (ok);
+        while (build_ok);
     }
     return (rtn);
 }

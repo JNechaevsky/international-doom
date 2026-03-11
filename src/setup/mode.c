@@ -155,7 +155,7 @@ static void OpenGameSelectDialog(GameSelectCallback callback)
 {
     mission_config_t *mission = NULL;
     txt_window_t *window;
-    const iwad_t **iwads;
+    const iwad_t **iWads;
     int num_games;
     int i;
 
@@ -171,9 +171,9 @@ static void OpenGameSelectDialog(GameSelectCallback callback)
         // Do we have any IWADs for this game installed?
         // If so, add a button.
 
-        iwads = D_FindAllIWADs(mission_configs[i].mask);
+        iWads = D_FindAllIWADs(mission_configs[i].mask);
 
-        if (iwads[0] != NULL)
+        if (iWads[0] != NULL)
         {
             mission = &mission_configs[i];
             TXT_AddWidget(window, TXT_NewButton2(mission_configs[i].label,
@@ -182,7 +182,7 @@ static void OpenGameSelectDialog(GameSelectCallback callback)
             ++num_games;
         }
 
-        free((void *)iwads);
+        free((void *)iWads);
     }
 
     TXT_AddWidget(window, TXT_NewStrut(0, 1));

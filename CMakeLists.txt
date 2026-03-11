@@ -51,6 +51,7 @@ else()
                         "-Wformat-security"
                         "-Wno-ignored-qualifiers"
                         "-Wpedantic"
+                        "-Wshadow"
                         # "-Wextra"
                         )
 endif()

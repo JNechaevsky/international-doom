@@ -99,12 +99,12 @@ static void R_ClipWallSegment (int first, const int last, const boolean solid)
 // R_RecalcLineFlags
 // -----------------------------------------------------------------------------
 
-static void R_RecalcLineFlags (line_t *linedef)
+static void R_RecalcLineFlags (line_t *line_def)
 {
-    linedef->r_validcount = gametic;
+    line_def->r_validcount = gametic;
 
     // First decide if the line is closed, normal, or invisible */
-    if (!(linedef->flags & ML_TWOSIDED)
+    if (!(line_def->flags & ML_TWOSIDED)
     || backsector->interpceilingheight <= frontsector->interpfloorheight
     || backsector->interpfloorheight >= frontsector->interpceilingheight
     ||
@@ -121,7 +121,7 @@ static void R_RecalcLineFlags (line_t *linedef)
     // properly render skies (consider door "open" if both ceilings are sky):
     && (backsector->ceilingpic !=skyflatnum || frontsector->ceilingpic!=skyflatnum)))
     {
-        linedef->r_flags = RF_CLOSED;
+        line_def->r_flags = RF_CLOSED;
     }
     else
     {
@@ -137,12 +137,12 @@ static void R_RecalcLineFlags (line_t *linedef)
         || backsector->floorpic != frontsector->floorpic
         || backsector->lightlevel != frontsector->lightlevel)
         {
-            linedef->r_flags = 0;
+            line_def->r_flags = 0;
             return;
         }
         else
         {
-            linedef->r_flags = RF_IGNORE;
+            line_def->r_flags = RF_IGNORE;
         }
     }
 
@@ -153,7 +153,7 @@ static void R_RecalcLineFlags (line_t *linedef)
     }
 
     // Now decide on texture tiling
-    if (linedef->flags & ML_TWOSIDED)
+    if (line_def->flags & ML_TWOSIDED)
     {
         int c;
 
@@ -161,14 +161,14 @@ static void R_RecalcLineFlags (line_t *linedef)
         if ((c = frontsector->interpceilingheight - backsector->interpceilingheight) > 0
         && (textureheight[texturetranslation[curline->sidedef->toptexture]] > c))
         {
-            linedef->r_flags |= RF_TOP_TILE;
+            line_def->r_flags |= RF_TOP_TILE;
         }
 
         // Does bottom texture need tiling
         if ((c = frontsector->interpfloorheight - backsector->interpfloorheight) > 0
         && (textureheight[texturetranslation[curline->sidedef->bottomtexture]] > c))
         {
-            linedef->r_flags |= RF_BOT_TILE;
+            line_def->r_flags |= RF_BOT_TILE;
         }
     }
     else
@@ -179,7 +179,7 @@ static void R_RecalcLineFlags (line_t *linedef)
         if ((c = frontsector->interpceilingheight - frontsector->interpfloorheight) > 0
         && (textureheight[texturetranslation[curline->sidedef->midtexture]] > c))
         {
-            linedef->r_flags |= RF_MID_TILE;
+            line_def->r_flags |= RF_MID_TILE;
         }
     }
 }

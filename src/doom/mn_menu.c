@@ -7584,16 +7584,16 @@ static void M_ID_MenuMouseControl (void)
             continue;
 
         // Sliders occupy three lines, normal items one line
-        const int lines = (currentMenu->menuitems[i].status == STS_SLDR) ? slider_height : 1;
-        const int top = base_y + i * scaled_line_height;
-        const int bottom = top + lines * scaled_line_height;
+        const int mn_lines = (currentMenu->menuitems[i].status == STS_SLDR) ? slider_height : 1;
+        const int mn_top = base_y + i * scaled_line_height;
+        const int mn_bottom = mn_top + mn_lines * scaled_line_height;
 
         // If mouse is above current item, further items are even lower - stop scan
-        if (menu_mouse_y < top)
+        if (menu_mouse_y < mn_top)
             break;
 
         // Check vertical overlap
-        if (menu_mouse_y <= bottom)
+        if (menu_mouse_y <= mn_bottom)
         {
             itemOn = i;
             break; // Found the topmost item under cursor (items don't overlap vertically)
@@ -8337,7 +8337,7 @@ static void M_DoBind (int keynum, int key)
 //  Clear key bind on the line where cursor is placed (itemOn).
 // -----------------------------------------------------------------------------
 
-static void M_ClearBind (int itemOn)
+static void M_ClearBind (int item_On)
 {
     typedef struct {
         const menu_t *menu;   // which menu this entry belongs to
@@ -8424,7 +8424,7 @@ static void M_ClearBind (int itemOn)
 
     for (size_t i = 0; i < sizeof(keybinds)/sizeof(keybinds[0]); i++)
     {
-        if (keybinds[i].menu == currentMenu && keybinds[i].item == itemOn)
+        if (keybinds[i].menu == currentMenu && keybinds[i].item == item_On)
         {
             *keybinds[i].key1 = 0;
             *keybinds[i].key2 = 0;
@@ -8605,9 +8605,9 @@ static void M_DoMouseBind (int btnnum, int btn)
 //  Clear mouse bind on the line where cursor is placed (itemOn).
 // -----------------------------------------------------------------------------
 
-static void M_ClearMouseBind (int itemOn)
+static void M_ClearMouseBind (int item_On)
 {
-    switch (itemOn)
+    switch (item_On)
     {
         case 0:  mousebfire        = mousebfire2        = -1;  break;
         case 1:  mousebforward     = mousebforward2     = -1;  break;

@@ -341,12 +341,12 @@ int V_GetPaletteIndex(const byte *palette, int r, int g, int b)
     return best;
 }
 
-byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
+byte V_Colorize (byte *playpal, int clr, byte source, boolean keepgray109)
 {
     vect rgb, hsv;
 
     // [crispy] preserve gray drop shadow in IWAD status bar numbers
-    if (cr == CR_NONE || (keepgray109 && source == 109))
+    if (clr == CR_NONE || (keepgray109 && source == 109))
     {
         return source;
     }
@@ -358,39 +358,39 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
     rgb_to_hsv(&rgb, &hsv);
 
     // [JN] Menu glowing effects.
-    if (cr == CR_MENU_BRIGHT5)
+    if (clr == CR_MENU_BRIGHT5)
     {
         hsv.z *= 1.5f;
     }
-    else if (cr == CR_MENU_BRIGHT4)
+    else if (clr == CR_MENU_BRIGHT4)
     {
         hsv.z *= 1.4f;
     }
-    else if (cr == CR_MENU_BRIGHT3)
+    else if (clr == CR_MENU_BRIGHT3)
     {
         hsv.z *= 1.3f;
     }
-    else if (cr == CR_MENU_BRIGHT2)
+    else if (clr == CR_MENU_BRIGHT2)
     {
         hsv.z *= 1.2f;
     }
-    else if (cr == CR_MENU_BRIGHT1)
+    else if (clr == CR_MENU_BRIGHT1)
     {
         hsv.z *= 1.1f;
     }
-    else if (cr == CR_MENU_DARK1)
+    else if (clr == CR_MENU_DARK1)
     {
         hsv.z *= 0.9f;
     }
-    else if (cr == CR_MENU_DARK2)
+    else if (clr == CR_MENU_DARK2)
     {
         hsv.z *= 0.8f;
     }
-    else if (cr == CR_MENU_DARK3)
+    else if (clr == CR_MENU_DARK3)
     {
         hsv.z *= 0.7f;
     }    
-    else if (cr == CR_MENU_DARK4)
+    else if (clr == CR_MENU_DARK4)
     {
         hsv.z *= 0.6f;
     }
@@ -399,158 +399,158 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
         // [crispy] hack colors to full saturation
         hsv.y = 1.0f;
 
-        if (cr == CR_RED)
+        if (clr == CR_RED)
         {
             hsv.x = 0.f;
         }
-        else if (cr == CR_RED_BRIGHT)
+        else if (clr == CR_RED_BRIGHT)
         {
             hsv.x = 0.f;
             hsv.z *= 1.5f;
         }
 
-        else if (cr == CR_DARKRED)
+        else if (clr == CR_DARKRED)
         {
             hsv.x = 0.f;
             hsv.z *= 0.666f;
         }
 
-        else if (cr == CR_GREEN)
+        else if (clr == CR_GREEN)
         {
             hsv.x = (144.f * hsv.z + 140.f * (1.f - hsv.z))/360.f;
         }
-        else if (cr == CR_GREEN_BRIGHT)
+        else if (clr == CR_GREEN_BRIGHT)
         {
             hsv.x = 0.3f;
             hsv.z *= 1.5f;
         }
 
         // [JN] Slightly different for Hexen...
-        else if (cr == CR_GREEN_HX)
+        else if (clr == CR_GREEN_HX)
         {
             hsv.x = 0.425f;
             hsv.y = 0.75f;
             hsv.z *= 0.8f;
         }
-        else if (cr == CR_GREEN_HX_BRIGHT)
+        else if (clr == CR_GREEN_HX_BRIGHT)
         {
             hsv.x = 0.425f;
             hsv.y = 0.75f;
             hsv.z *= 1.15f;
         }
 
-        else if (cr == CR_DARKGREEN)
+        else if (clr == CR_DARKGREEN)
         {
             hsv.x = 0.3f;
             hsv.z *= 0.666f;
         }
-        else if (cr == CR_DARKGREEN_BRIGHT)
+        else if (clr == CR_DARKGREEN_BRIGHT)
         {
             hsv.x = 0.3f;
             hsv.z *= 0.888f;
         }
 
-        else if (cr == CR_OLIVE)
+        else if (clr == CR_OLIVE)
         {
             hsv.x = 0.25f;
             hsv.y = 0.5f;
             hsv.z *= 0.5f;
         }
-        else if (cr == CR_OLIVE_BRIGHT)
+        else if (clr == CR_OLIVE_BRIGHT)
         {
             hsv.x = 0.25f;
             hsv.y = 0.5f;
             hsv.z *= 0.65f;
         }
 
-        else if (cr == CR_BLUE2)
+        else if (clr == CR_BLUE2)
         {
             hsv.x = 0.65f;
             hsv.z *= 1.2f;
         }
-        else if (cr == CR_BLUE2_BRIGHT)
+        else if (clr == CR_BLUE2_BRIGHT)
         {
             hsv.x = 0.65f;
             hsv.z *= 1.55f;
         }
 
-        else if (cr == CR_YELLOW)
+        else if (clr == CR_YELLOW)
         {
             hsv.x = (7.0f + 53.f * hsv.z)/360.f;
             hsv.y = 1.0f - 0.4f * hsv.z;
             hsv.z = 0.2f + 0.8f * hsv.z;
         }
-        else if (cr == CR_YELLOW_BRIGHT)
+        else if (clr == CR_YELLOW_BRIGHT)
         {
             hsv.x = (7.0f + 53.f * hsv.z)/360.f;
             hsv.y = 1.0f - 0.4f * hsv.z;
             hsv.z = 0.2f + 1.05f * hsv.z;
         }
 
-        else if (cr == CR_ORANGE)
+        else if (clr == CR_ORANGE)
         {
             hsv.x = 0.075f;
             hsv.z *= 1.15f;
         }
-        else if (cr == CR_ORANGE_BRIGHT)
+        else if (clr == CR_ORANGE_BRIGHT)
         {
             hsv.x = 0.075f;
             hsv.z *= 1.40f;
         }
 
-        else if (cr == CR_ORANGE_HR)
+        else if (clr == CR_ORANGE_HR)
         {
             hsv.x = 0.0777f;
             hsv.z *= 1.15f;
         }
-        else if (cr == CR_ORANGE_HR_BRIGHT)
+        else if (clr == CR_ORANGE_HR_BRIGHT)
         {
             hsv.x = 0.0777f;
             hsv.z *= 1.40f;
         }
 
-        else if (cr == CR_WHITE)
+        else if (clr == CR_WHITE)
         {
             hsv.y = 0.f;
         }
-        else if (cr == CR_GRAY)
+        else if (clr == CR_GRAY)
         {
             hsv.y = 0.f;
             hsv.z *= 0.5f;
         }
-        else if (cr == CR_GRAY_BRIGHT)
+        else if (clr == CR_GRAY_BRIGHT)
         {
             hsv.y = 0.f;
             hsv.z *= 0.75f;
         }
 
-        else if (cr == CR_LIGHTGRAY)
+        else if (clr == CR_LIGHTGRAY)
         {
             hsv.y = 0.f;
             hsv.z *= 0.80f;
         }
-        else if (cr == CR_LIGHTGRAY_BRIGHT)
+        else if (clr == CR_LIGHTGRAY_BRIGHT)
         {
             hsv.y = 0.f;
             hsv.z *= 1.05f;
         }
-        else if (cr == CR_LIGHTGRAY_DARK)
+        else if (clr == CR_LIGHTGRAY_DARK)
         {
             hsv.y = 0.f;
             hsv.z *= 0.6f;
         }
-        else if (cr == CR_BROWN)
+        else if (clr == CR_BROWN)
         {
             hsv.x = 0.1f;
             hsv.y = 0.75f;
             hsv.z *= 0.65f;
         }
-        else if (cr == CR_FLAME)
+        else if (clr == CR_FLAME)
         {
             hsv.x = 0.125f;
             hsv.z *= 1.75f;
         }
-        else if (cr == CR_PURPLE)
+        else if (clr == CR_PURPLE)
         {
             hsv.x = 0.85f;
         }

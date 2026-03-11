@@ -348,12 +348,12 @@ void R_DrawFuzzColumn(void)
         if (fuzzblockwidth <= 0) return;
 
         // Lines to align with vertical block grid
-        int lines = block - (dc_yl % block);
+        int grid_lines = block - (dc_yl % block);
         int remaining = count + 1;
 
         while (remaining > 0)
         {
-            int write_lines = lines;
+            int write_lines = grid_lines;
             if (write_lines > remaining) write_lines = remaining;
 
             // Sample source (one row up/down per fuzzoffset)
@@ -388,7 +388,7 @@ void R_DrawFuzzColumn(void)
                     local_fuzzpos = ID_Random() % 49;
             }
 
-            lines = block;
+            grid_lines = block;
         }
 
         // Bottom cutoff: one extra strip
@@ -513,12 +513,12 @@ void R_DrawFuzzColumnLow(void)
         if (fuzzblockwidth <= 0) return;
 
         // Lines to align with vertical block grid
-        int lines = block - (dc_yl % block);
+        int grid_lines = block - (dc_yl % block);
         int remaining = count + 1;
 
         while (remaining > 0)
         {
-            int write_lines = lines;
+            int write_lines = grid_lines;
             if (write_lines > remaining) write_lines = remaining;
 
             // Sample source (one row up/down per fuzzoffset)
@@ -555,7 +555,7 @@ void R_DrawFuzzColumnLow(void)
                     local_fuzzpos = ID_Random() % 49;
             }
 
-            lines = block;
+            grid_lines = block;
         }
 
         // Bottom cutoff: one extra strip at the anchor
@@ -666,12 +666,12 @@ void R_DrawFuzzBWColumn(void)
         if (fuzzblockwidth <= 0) return;
 
         // Lines to align with vertical block grid
-        int lines = block - (dc_yl % block);
+        int grid_lines = block - (dc_yl % block);
         int remaining = count + 1;
 
         while (remaining > 0)
         {
-            int write_lines = lines;
+            int write_lines = grid_lines;
             if (write_lines > remaining) write_lines = remaining;
 
             // Source sample (one row up/down per fuzzoffset)
@@ -703,7 +703,7 @@ void R_DrawFuzzBWColumn(void)
             if (++local_fuzzpos == fuzzwrap)
                 local_fuzzpos = 0;
 
-            lines = block;
+            grid_lines = block;
         }
 
         // Bottom cutoff: one extra horizontal strip
@@ -822,12 +822,12 @@ void R_DrawFuzzBWColumnLow(void)
         if (fuzzblockwidth <= 0) return;
 
         // Lines to align with the vertical block grid
-        int lines = block - (dc_yl % block);
+        int grid_lines = block - (dc_yl % block);
         int remaining = count + 1;
 
         while (remaining > 0)
         {
-            int write_lines = lines;
+            int write_lines = grid_lines;
             if (write_lines > remaining) write_lines = remaining;
 
             // Source sample (one row up/down per fuzzoffset)
@@ -861,7 +861,7 @@ void R_DrawFuzzBWColumnLow(void)
             if (++local_fuzzpos == fuzzwrap)
                 local_fuzzpos = 0;
 
-            lines = block;
+            grid_lines = block;
         }
 
         // Bottom cutoff: one extra strip at the anchor

@@ -864,7 +864,7 @@ boolean AM_Responder (const event_t *ev)
     int         rc;
     static int  bigstate=0;
     static char buffer[20];
-    static int  joywait = 0;
+    static int  joy_wait = 0;
     int         key;
 
     key = ev->data1;
@@ -892,9 +892,9 @@ boolean AM_Responder (const event_t *ev)
     rc = false;
 
     if (ev->type == ev_joystick && joybautomap >= 0
-    && (ev->data1 & (1 << joybautomap)) != 0 && joywait < I_GetTime())
+    && (ev->data1 & (1 << joybautomap)) != 0 && joy_wait < I_GetTime())
     {
-        joywait = I_GetTime() + 5;
+        joy_wait = I_GetTime() + 5;
 
         if (!automapactive)
         {
