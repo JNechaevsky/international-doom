@@ -216,11 +216,11 @@ boolean speedkeydown (void)
 }
 
 // [crispy] for carrying rounding error
-static int CarryError(double value, const double *prevcarry, double *carry)
+static int CarryError(double value, const double *prev_carry, double *cur_carry)
 {
-    const double desired = value + *prevcarry;
+    const double desired = value + *prev_carry;
     const int actual = lround(desired);
-    *carry = desired - actual;
+    *cur_carry = desired - actual;
 
     return actual;
 }
@@ -256,20 +256,20 @@ static int CarryMouseSide(double side)
     return actual;
 }
 
-static double CalcMouseAngle(int mousex)
+static double CalcMouseAngle(int mouse_x)
 {
     if (!mouseSensitivity)
         return 0.0;
 
-    return (I_AccelerateMouse(mousex) * (mouseSensitivity + 5) * 8 / 10);
+    return (I_AccelerateMouse(mouse_x) * (mouseSensitivity + 5) * 8 / 10);
 }
 
-static double CalcMouseVert(int mousey)
+static double CalcMouseVert(int mouse_y)
 {
     if (!mouse_sensitivity_y)
         return 0.0;
 
-    return (I_AccelerateMouseY(mousey) * (mouse_sensitivity_y + 5) * 2 / 10);
+    return (I_AccelerateMouseY(mouse_y) * (mouse_sensitivity_y + 5) * 2 / 10);
 }
 
 //=============================================================================

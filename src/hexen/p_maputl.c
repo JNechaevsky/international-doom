@@ -258,19 +258,19 @@ fixed_t P_InterceptVector(divline_t * v2, divline_t * v1)
 fixed_t opentop, openbottom, openrange;
 fixed_t lowfloor;
 
-void P_LineOpening(line_t * linedef)
+void P_LineOpening(line_t * line_def)
 {
     const sector_t *front;
     const sector_t *back;
 
-    if (linedef->sidenum[1] == NO_INDEX) // [crispy] extended nodes
+    if (line_def->sidenum[1] == NO_INDEX) // [crispy] extended nodes
     {                           // single sided line
         openrange = 0;
         return;
     }
 
-    front = linedef->frontsector;
-    back = linedef->backsector;
+    front = line_def->frontsector;
+    back = line_def->backsector;
 
     if (front->ceilingheight < back->ceilingheight)
         opentop = front->ceilingheight;

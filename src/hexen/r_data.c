@@ -1015,9 +1015,6 @@ static void R_InitSpriteLumps (void)
 // [crispy] Our own function to generate colormaps for normal and foggy levels.
 void R_InitTrueColormaps(char *current_colormap)
 {
-	int c, i, j = 0;
-	byte r, g, b;
-
 	const byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 	const byte *const colormap = W_CacheLumpName(current_colormap, PU_STATIC);
 
@@ -1127,9 +1124,11 @@ void R_InitTrueColormaps(char *current_colormap)
     }
 	else
 	{
-		for (c = 0; c < NUMCOLORMAPS; c++)
+        int j = 0;
+
+		for (int c = 0; c < NUMCOLORMAPS; c++)
 		{
-			for (i = 0; i < 256; i++)
+			for (int i = 0; i < 256; i++)
 			{
 				// [PN] Apply intensity and saturation corrections
 				static byte pal[3];
@@ -1140,9 +1139,9 @@ void R_InitTrueColormaps(char *current_colormap)
 				CALC_CONTRAST(channels, vid_contrast);
 				CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
 
-				r = gammatable[vid_gamma][channels[0]] & ~3;
-				g = gammatable[vid_gamma][channels[1]] & ~3;
-				b = gammatable[vid_gamma][channels[2]] & ~3;
+				const byte r = gammatable[vid_gamma][channels[0]] & ~3;
+				const byte g = gammatable[vid_gamma][channels[1]] & ~3;
+				const byte b = gammatable[vid_gamma][channels[2]] & ~3;
 
 				colormaps[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 			}
@@ -1156,7 +1155,7 @@ void R_InitTrueColormaps(char *current_colormap)
 		pal_color = (pixel_t*) Z_Malloc(256 * sizeof(pixel_t), PU_STATIC, 0);
 	}
 
-	for (i = 0, j = 0; i < 256; i++)
+	for (int i = 0, j = 0; i < 256; i++)
 	{
 		// [PN] Apply intensity and saturation corrections
 		static byte pal[3];
@@ -1167,9 +1166,9 @@ void R_InitTrueColormaps(char *current_colormap)
 		CALC_CONTRAST(channels, vid_contrast);
 		CALC_COLORBLIND(channels, colorblind_matrix[a11y_colorblind]);
 
-		r = gammatable[vid_gamma][channels[0]];
-		g = gammatable[vid_gamma][channels[1]];
-		b = gammatable[vid_gamma][channels[2]];
+		byte r = gammatable[vid_gamma][channels[0]];
+		byte g = gammatable[vid_gamma][channels[1]];
+		byte b = gammatable[vid_gamma][channels[2]];
 
 		pal_color[j++] = 0xff000000 | (r << 16) | (g << 8) | b;
 	}

@@ -738,24 +738,24 @@ static void HandleArgs(void)
 
         for (i = 0; loadparms[i]; i++)
         {
-            int p;
-            p = M_CheckParmWithArgs(loadparms[i], 1);
-            if (p)
+            int prm;
+            prm = M_CheckParmWithArgs(loadparms[i], 1);
+            if (prm)
             {
-                while (++p != myargc && myargv[p][0] != '-')
+                while (++prm != myargc && myargv[prm][0] != '-')
                 {
                     char *autoload_dir = NULL;
 
                     // [PN] Allow autoload per PWAD only.
                     if (autoload_wad == 2)
                     {
-                        autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]));
+                        autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[prm]));
                     }
 
                     // [PN] Always allow for Deathkings
-                    if (M_StrCaseStr(myargv[p], "hexdd.wad"))
+                    if (M_StrCaseStr(myargv[prm], "hexdd.wad"))
                     {
-                        autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[p]));
+                        autoload_dir = M_GetAutoloadDir(M_BaseName(myargv[prm]));
                         gamedescription = "Hexen: Deathkings of the Dark Citadel";
                     }
 
