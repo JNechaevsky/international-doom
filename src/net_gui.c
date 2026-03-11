@@ -251,18 +251,18 @@ static void PrintSHA1Digest(const char *s, const byte *digest)
     printf("\n");
 }
 
-static void CloseWindow(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(window))
+static void CloseWindow(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(net_window))
 {
-    TXT_CAST_ARG(txt_window_t, window);
+    TXT_CAST_ARG(txt_window_t, net_window);
 
-    TXT_CloseWindow(window);
+    TXT_CloseWindow(net_window);
 }
 
 static void CheckSHA1Sums(void)
 {
     boolean correct_wad, correct_deh;
     boolean same_freedoom;
-    txt_window_t *window;
+    txt_window_t *net_window;
     txt_window_action_t *cont_button;
 
     if (!net_client_received_wait_data || had_warning)
@@ -305,14 +305,14 @@ static void CheckSHA1Sums(void)
         PrintSHA1Digest("Server", net_client_wait_data.deh_sha1sum);
     }
 
-    window = TXT_NewWindow("WARNING!");
+    net_window = TXT_NewWindow("WARNING!");
 
     cont_button = TXT_NewWindowAction(KEY_ENTER, "Continue");
-    TXT_SignalConnect(cont_button, "pressed", CloseWindow, window);
+    TXT_SignalConnect(cont_button, "pressed", CloseWindow, net_window);
 
-    TXT_SetWindowAction(window, TXT_HORIZ_LEFT, NULL);
-    TXT_SetWindowAction(window, TXT_HORIZ_CENTER, cont_button);
-    TXT_SetWindowAction(window, TXT_HORIZ_RIGHT, NULL);
+    TXT_SetWindowAction(net_window, TXT_HORIZ_LEFT, NULL);
+    TXT_SetWindowAction(net_window, TXT_HORIZ_CENTER, cont_button);
+    TXT_SetWindowAction(net_window, TXT_HORIZ_RIGHT, NULL);
 
     if (!same_freedoom)
     {
@@ -322,14 +322,14 @@ static void CheckSHA1Sums(void)
 
         if (net_local_is_freedoom)
         {
-            TXT_AddWidget(window, TXT_NewLabel
+            TXT_AddWidget(net_window, TXT_NewLabel
             ("You are using the Freedoom IWAD to play with players\n"
              "using an official Doom IWAD.  Make sure that you are\n"
              "playing the same levels as other players.\n"));
         }
         else
         {
-            TXT_AddWidget(window, TXT_NewLabel
+            TXT_AddWidget(net_window, TXT_NewLabel
             ("You are using an official IWAD to play with players\n"
              "using the Freedoom IWAD.  Make sure that you are\n"
              "playing the same levels as other players.\n"));
@@ -337,7 +337,7 @@ static void CheckSHA1Sums(void)
     }
     else if (!correct_wad)
     {
-        TXT_AddWidget(window, TXT_NewLabel
+        TXT_AddWidget(net_window, TXT_NewLabel
             ("Your WAD directory does not match other players in the game.\n"
              "Check that you have loaded the exact same WAD files as other\n"
              "players.\n"));
@@ -345,13 +345,13 @@ static void CheckSHA1Sums(void)
 
     if (!correct_deh)
     {
-        TXT_AddWidget(window, TXT_NewLabel
+        TXT_AddWidget(net_window, TXT_NewLabel
             ("Your dehacked signature does not match other players in the\n"
              "game.  Check that you have loaded the same dehacked patches\n"
              "as other players.\n"));
     }
 
-    TXT_AddWidget(window, TXT_NewLabel
+    TXT_AddWidget(net_window, TXT_NewLabel
             ("If you continue, this may cause your game to desync."));
 
     had_warning = true;
