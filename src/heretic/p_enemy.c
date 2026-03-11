@@ -1423,6 +1423,8 @@ void A_SorcererRise(mobj_t *actor, player_t *player, pspdef_t *psp)
     P_SetMobjState(mo, S_SOR2_RISE1);
     mo->angle = actor->angle;
     mo->target = actor->target;
+    // [JN] Decrease KIS kills counter, dismounted D'Sparil also should be counted.
+    totalkilled--;
 }
 
 //----------------------------------------------------------------------------
@@ -1567,6 +1569,8 @@ void A_GenWizard(mobj_t *actor, player_t *player, pspdef_t *psp)
     actor->flags &= ~MF_MISSILE;
     fog = P_SpawnMobj(actor->x, actor->y, actor->z, MT_TFOG);
     S_StartSound(fog, sfx_telept);
+    // [JN] Decrease KIS kills counter, spawned wizards also should be counted.
+    totalkilled--;
 }
 
 //----------------------------------------------------------------------------
