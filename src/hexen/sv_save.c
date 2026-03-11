@@ -3108,18 +3108,23 @@ static void UnarchiveMisc(void)
 
 static void ArchiveAutomap (void)
 {
-    SV_WriteLong(markpointnum);
+    SV_WriteWord(automapactive);
+    SV_WriteLong(am_followplayer);
+    SV_WriteLongLong(m_x);
+    SV_WriteLongLong(m_y);
+    SV_WriteLong(AM_UnArchiveScaleMtof());
 
+    SV_WriteLong(markpointnum);
     if (markpointnum)
     {
-        int i;
-
-        for (i = 0; i < markpointnum; ++i)
+        for (int i = 0; i < markpointnum; ++i)
         {
             SV_WriteLongLong(markpoints[i].x);
             SV_WriteLongLong(markpoints[i].y);
         }
     }
+
+    SV_WriteLong(am_grid);
 }
 
 /*
@@ -3132,20 +3137,29 @@ static void ArchiveAutomap (void)
 
 static void UnarchiveAutomap (void)
 {
-    int i;
+    automapactive = SV_ReadWord();
+    if (automapactive) 
+        AM_Start();
+
+    am_followplayer = SV_ReadLong();
+    m_x = SV_ReadLongLong();
+    m_y = SV_ReadLongLong();
+    AM_ArchiveScaleMtof(SV_ReadLong());
 
     markpointnum = SV_ReadLong();
     markpointnum_max = markpointnum;
-
     markpoints = I_Realloc(markpoints, sizeof(*markpoints) * markpointnum_max);
-    if(markpointnum_max == 0)
+    if (markpointnum_max == 0)
+    {
         markpoints = NULL;
-
-    for(i = 0; i < markpointnum; ++i)
+    }
+    for (int i = 0; i < markpointnum; ++i)
     {
         markpoints[i].x = SV_ReadLongLong();
         markpoints[i].y = SV_ReadLongLong();
     }
+
+    am_grid = SV_ReadLong();
 }
 
 //==========================================================================

@@ -19,14 +19,19 @@
 
 #pragma once
 
+#include "m_fixed.h"
+
 
 typedef struct
 {
     int64_t x,y;
 } mpoint_t;
 
-extern int followplayer;
+extern int64_t m_x, m_y;
+
+extern int am_followplayer;
 extern int ravmap_cheating;
+extern int am_grid;
 
 extern mpoint_t *markpoints; 
 extern int markpointnum;
@@ -40,6 +45,8 @@ extern void AM_Init (void);
 extern void AM_initOverlayMode (void);
 extern void AM_initVariables (void);
 extern void AM_LevelInit (boolean reinit);
+extern fixed_t AM_UnArchiveScaleMtof (void);
+extern void AM_ArchiveScaleMtof (fixed_t scale);
 extern void AM_LevelNameDrawer (void);
 extern void AM_Start (void);
 extern void AM_Stop (void);

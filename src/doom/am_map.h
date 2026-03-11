@@ -23,6 +23,7 @@
 
 #include "d_event.h"
 #include "m_cheat.h"
+#include "m_fixed.h"
 
 
 typedef struct
@@ -30,11 +31,14 @@ typedef struct
     int64_t x,y;
 } mpoint_t;
 
+extern int64_t m_x, m_y;
+
 extern mpoint_t *markpoints;
 extern int markpointnum, markpointnum_max;
 
-extern int followplayer;
+extern int am_followplayer;
 extern int iddt_cheating;
+extern int am_grid;
 
 // Used by ST StatusBar stuff.
 #define AM_MSGHEADER (('a'<<24)+('m'<<16))
@@ -44,6 +48,9 @@ extern int iddt_cheating;
 
 extern void AM_Init (void);
 extern void AM_LevelInit (boolean reinit);
+
+extern fixed_t AM_UnArchiveScaleMtof (void);
+extern void AM_ArchiveScaleMtof (fixed_t scale);
 
 extern void AM_SetdrawFline (void);
 

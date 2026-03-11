@@ -224,7 +224,7 @@ static mline_t thintriangle_guy[] = {
 boolean automapactive = false;
 
 int iddt_cheating = 0;
-static boolean grid = false;
+int am_grid = 0;
 
 // location of window on screen
 static int  f_x;
@@ -241,7 +241,7 @@ static fixed_t  mtof_zoommul; // how far the window zooms in each tic (map coord
 static fixed_t  ftom_zoommul; // how far the window zooms in each tic (fb coords)
 static fixed_t  curr_mtof_zoommul; // [JN] Zooming interpolation.
 
-static int64_t  m_x, m_y;     // LL x,y where the window is on the map (map coords)
+int64_t  m_x, m_y;            // LL x,y where the window is on the map (map coords)
 static int64_t  m_x2, m_y2;   // UR x,y where the window is on the map (map coords)
 
 // width/height of window on map (map coords)
@@ -279,7 +279,7 @@ mpoint_t *markpoints = NULL;     // where the points are
 int       markpointnum = 0;      // next point to be assigned (also number of points now)
 int       markpointnum_max = 0;  // killough 2/22/98
 
-int followplayer = 1; // specifies whether to follow the player around
+int am_followplayer = 1; // specifies whether to follow the player around
 // [PN] Accumulated automap pan delta from mouse movement
 static int mouse_pan_x = 0;
 static int mouse_pan_y = 0;
@@ -467,7 +467,7 @@ static void AM_restoreScaleAndLoc (void)
     m_w = old_m_w;
     m_h = old_m_h;
 
-    if (!followplayer)
+    if (!am_followplayer)
     {
         m_x = old_m_x;
         m_y = old_m_y;
@@ -487,6 +487,31 @@ static void AM_restoreScaleAndLoc (void)
 }
 
 // -----------------------------------------------------------------------------
+// AM_(Un)ArchiveScaleMtof
+//  [PN] Saves/Restores zooming level for saved games.
+// -----------------------------------------------------------------------------
+
+void AM_ArchiveScaleMtof (fixed_t scale)
+{
+    scale_mtof = scale;
+    scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+
+    // If automap is opened, recalculate map extents from restored scale.
+    if (automapactive)
+    {
+        m_w = FTOM(f_w);
+        m_h = FTOM(f_h);
+        m_x2 = m_x + m_w;
+        m_y2 = m_y + m_h;
+    }
+}
+
+fixed_t AM_UnArchiveScaleMtof (void)
+{
+    return scale_mtof;
+}
+
+// -----------------------------------------------------------------------------
 // AM_addMark
 // Adds a marker at the current location.
 // -----------------------------------------------------------------------------
@@ -502,7 +527,7 @@ static void AM_addMark (void)
     }
 
     // [crispy] keep the map static in overlay mode if not following the player
-    if (!followplayer)
+    if (!am_followplayer)
     {
         markpoints[markpointnum].x = m_x + m_w/2;
         markpoints[markpointnum].y = m_y + m_h/2;
@@ -571,7 +596,7 @@ static void AM_changeWindowLoc (void)
     static fixed_t prev_frac = 0;
 
     if (m_paninc.x || m_paninc.y)
-        followplayer = 0;
+        am_followplayer = 0;
 
     // Compute frame delta
     const fixed_t delta = (vid_uncapped_fps && realleveltime > oldleveltime)
@@ -945,7 +970,7 @@ boolean AM_Responder (const event_t *ev)
             rc = true;
         }
         else // [PN] Move the map window by using the mouse
-        if (!followplayer && automap_mouse_pan && (ev->data2 || ev->data3))
+        if (!am_followplayer && automap_mouse_pan && (ev->data2 || ev->data3))
         {
             int dx = ev->data2;
             int dy = ev->data3;
@@ -980,7 +1005,7 @@ boolean AM_Responder (const event_t *ev)
 
         if (key == key_map_east)          // pan right
         {
-            if (!followplayer)
+            if (!am_followplayer)
             {
                 m_paninc.x = gp_flip_levels ?
                              -FTOM(f_paninc * vid_resolution) : FTOM(f_paninc * vid_resolution);
@@ -992,7 +1017,7 @@ boolean AM_Responder (const event_t *ev)
         }
         else if (key == key_map_west)     // pan left
         {
-            if (!followplayer)
+            if (!am_followplayer)
             {
                 m_paninc.x = gp_flip_levels ?
                              FTOM(f_paninc * vid_resolution) : -FTOM(f_paninc * vid_resolution);
@@ -1004,7 +1029,7 @@ boolean AM_Responder (const event_t *ev)
         }
         else if (key == key_map_north)    // pan up
         {
-            if (!followplayer)
+            if (!am_followplayer)
             {
                 m_paninc.y = FTOM(f_paninc * vid_resolution);
             }
@@ -1015,7 +1040,7 @@ boolean AM_Responder (const event_t *ev)
         }
         else if (key == key_map_south)    // pan down
         {
-            if (!followplayer)
+            if (!am_followplayer)
             {
                 m_paninc.y = -FTOM(f_paninc * vid_resolution);
             }
@@ -1057,16 +1082,16 @@ boolean AM_Responder (const event_t *ev)
         }
         else if (key == key_map_follow || key == key_map_follow2)
         {
-            followplayer = !followplayer;
+            am_followplayer = !am_followplayer;
 
-            CT_SetMessage(plr, DEH_String(followplayer ?
+            CT_SetMessage(plr, DEH_String(am_followplayer ?
                           AMSTR_FOLLOWON : AMSTR_FOLLOWOFF), false, NULL);
         }
         else if (key == key_map_grid || key == key_map_grid2)
         {
-            grid = !grid;
+            am_grid = !am_grid;
 
-            CT_SetMessage(plr, DEH_String(grid ?
+            CT_SetMessage(plr, DEH_String(am_grid ?
                           AMSTR_GRIDON : AMSTR_GRIDOFF), false, NULL);
         }
         else if (key == key_map_mark || key == key_map_mark2)
@@ -1134,28 +1159,28 @@ boolean AM_Responder (const event_t *ev)
 
         if (key == key_map_east)
         {
-            if (!followplayer)
+            if (!am_followplayer)
             {
                 m_paninc.x = 0;
             }
         }
         else if (key == key_map_west)
         {
-            if (!followplayer)
+            if (!am_followplayer)
             {
                 m_paninc.x = 0;
             }
         }
         else if (key == key_map_north)
         {
-            if (!followplayer)
+            if (!am_followplayer)
             {
                 m_paninc.y = 0;
             }
         }
         else if (key == key_map_south)
         {
-            if (!followplayer)
+            if (!am_followplayer)
             {
                 m_paninc.y = 0;
             }
@@ -2224,7 +2249,7 @@ static void AM_transformPoint(mpoint_t *pt)
     if (automap_rotate)
     {
         int64_t tmpx, tmpy;
-        angle_t angle = (followplayer || !automap_overlay ? ANG90 - viewangle : mapangle) >> ANGLETOFINESHIFT;
+        angle_t angle = (am_followplayer || !automap_overlay ? ANG90 - viewangle : mapangle) >> ANGLETOFINESHIFT;
 
         pt->x -= mapcenter.x;
         pt->y -= mapcenter.y;
@@ -2627,7 +2652,7 @@ void AM_Drawer (void)
     }
     
     // [JN] Moved from AM_Ticker for drawing interpolation.
-    if (followplayer)
+    if (am_followplayer)
     {
         AM_doFollowPlayer();
     }
@@ -2659,7 +2684,7 @@ void AM_Drawer (void)
         mapcenter.y = m_y + m_h / 2;
         // [crispy] keep the map static in overlay mode
         // if not following the player
-        if (!(!followplayer && automap_overlay))
+        if (!(!am_followplayer && automap_overlay))
         {
             mapangle = ANG90 - plr->mo->angle;
         }
@@ -2675,7 +2700,7 @@ void AM_Drawer (void)
         AM_shadeBackground();
     }
 
-    if (grid)
+    if (am_grid)
     {
         AM_drawGrid();
     }
@@ -2696,7 +2721,7 @@ void AM_Drawer (void)
     }
 
     // [JN] Do not draw in following mode.
-    if (!followplayer)
+    if (!am_followplayer)
     {
         AM_drawCrosshair();
     }

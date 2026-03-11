@@ -2195,8 +2195,13 @@ void P_RestoreTargets (void)
 
 void P_ArchiveAutomap (void)
 {
+    saveg_write8(automapactive);
+    saveg_write32(am_followplayer);
+    saveg_write64(m_x);
+    saveg_write64(m_y);
+    saveg_write32(AM_UnArchiveScaleMtof());
+    
     saveg_write32(markpointnum);
-
     if (markpointnum)
     {
         for (int i = 0; i < markpointnum; ++i)
@@ -2205,6 +2210,8 @@ void P_ArchiveAutomap (void)
             saveg_write64(markpoints[i].y);
         }
     }
+
+    saveg_write32(am_grid);
 }
 
 // -----------------------------------------------------------------------------
@@ -2213,20 +2220,29 @@ void P_ArchiveAutomap (void)
 
 void P_UnArchiveAutomap (void)
 {
+    automapactive = saveg_read8();
+    if (automapactive) 
+        AM_Start();
+
+    am_followplayer = saveg_read32();
+    m_x = saveg_read64();
+    m_y = saveg_read64();
+    AM_ArchiveScaleMtof(saveg_read32());
+
     markpointnum = saveg_read32();
     markpointnum_max = markpointnum;
-
     markpoints = I_Realloc(markpoints, sizeof(*markpoints) * markpointnum_max);
     if (markpointnum_max == 0)
     {
         markpoints = NULL;
     }
-
     for (int i = 0; i < markpointnum; ++i)
     {
         markpoints[i].x = saveg_read64();
         markpoints[i].y = saveg_read64();
     }
+
+    am_grid = saveg_read32();
 }
 
 // -----------------------------------------------------------------------------

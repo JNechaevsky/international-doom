@@ -2024,8 +2024,13 @@ void P_UnArchiveSpecials(void)
 
 void P_ArchiveAutomap (void)
 {
-    SV_WriteLong(markpointnum);
+    SV_WriteWord(automapactive);
+    SV_WriteLong(am_followplayer);
+    SV_WriteLongLong(m_x);
+    SV_WriteLongLong(m_y);
+    SV_WriteLong(AM_UnArchiveScaleMtof());
 
+    SV_WriteLong(markpointnum);
     if (markpointnum)
     {
         for (int i = 0; i < markpointnum; ++i)
@@ -2034,6 +2039,8 @@ void P_ArchiveAutomap (void)
             SV_WriteLongLong(markpoints[i].y);
         }
     }
+
+    SV_WriteLong(am_grid);
 }
 
 // -----------------------------------------------------------------------------
@@ -2042,20 +2049,29 @@ void P_ArchiveAutomap (void)
 
 void P_UnArchiveAutomap (void)
 {
+    automapactive = SV_ReadWord();
+    if (automapactive) 
+        AM_Start();
+
+    am_followplayer = SV_ReadLong();
+    m_x = SV_ReadLongLong();
+    m_y = SV_ReadLongLong();
+    AM_ArchiveScaleMtof(SV_ReadLong());
+
     markpointnum = SV_ReadLong();
     markpointnum_max = markpointnum;
-
     markpoints = I_Realloc(markpoints, sizeof(*markpoints) * markpointnum_max);
     if (markpointnum_max == 0)
     {
         markpoints = NULL;
     }
-
     for (int i = 0; i < markpointnum; ++i)
     {
         markpoints[i].x = SV_ReadLongLong();
         markpoints[i].y = SV_ReadLongLong();
     }
+
+    am_grid = SV_ReadLong();
 }
 
 // -----------------------------------------------------------------------------
