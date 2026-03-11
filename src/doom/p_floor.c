@@ -458,7 +458,7 @@ EV_BuildStairs
     int			i;
     int			newsecnum;
     int			texture;
-    int			ok;
+    int			build_ok;
     int			rtn;
     
     sector_t*		sec;
@@ -515,7 +515,7 @@ EV_BuildStairs
 	// 2.	Other side is the next sector to raise
 	do
 	{
-	    ok = 0;
+	    build_ok = 0;
 	    for (i = 0;i < sec->linecount;i++)
 	    {
 		if ( !((sec->lines[i])->flags & ML_TWOSIDED) )
@@ -556,10 +556,10 @@ EV_BuildStairs
 		// Uninitialized crush field will not be equal to 0 or 1 (true)
 		// with high probability. So, initialize it with any other value
 		floor->crush = STAIRS_UNINITIALIZED_CRUSH_FIELD_VALUE;
-		ok = 1;
+		build_ok = 1;
 		break;
 	    }
-	} while(ok);
+	} while(build_ok);
     }
     return rtn;
 }

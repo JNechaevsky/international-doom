@@ -183,7 +183,7 @@ static void R_DrawColumnInCache
     byte           *restrict mark  = marks;
 
     // Hot locals, declared near use
-    int top = -1;
+    int cliptop = -1;
 
     // Single-pass, clamp with start/end to reduce branches
     while (col->topdelta != 0xff)
@@ -191,17 +191,17 @@ static void R_DrawColumnInCache
         const int topdelta = col->topdelta;
 
         // [crispy] support for DeePsea tall patches
-        if (topdelta <= top)
+        if (topdelta <= cliptop)
         {
-            top += topdelta;
+            cliptop += topdelta;
         }
         else
         {
-            top = topdelta;
+            cliptop = topdelta;
         }
 
         const int count = col->length;
-        const int start = originy + top;
+        const int start = originy + cliptop;
         const int end   = start + count;
 
         // Clip once; compute copy window [dst_start, dst_end)

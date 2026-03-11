@@ -7585,15 +7585,15 @@ static void M_ID_MenuMouseControl (void)
 
         // Sliders occupy three lines, normal items one line
         const int mn_lines = (currentMenu->menuitems[i].status == STS_SLDR) ? slider_height : 1;
-        const int top = base_y + i * scaled_line_height;
-        const int bottom = top + mn_lines * scaled_line_height;
+        const int mn_top = base_y + i * scaled_line_height;
+        const int mn_bottom = mn_top + mn_lines * scaled_line_height;
 
         // If mouse is above current item, further items are even lower - stop scan
-        if (menu_mouse_y < top)
+        if (menu_mouse_y < mn_top)
             break;
 
         // Check vertical overlap
-        if (menu_mouse_y <= bottom)
+        if (menu_mouse_y <= mn_bottom)
         {
             itemOn = i;
             break; // Found the topmost item under cursor (items don't overlap vertically)

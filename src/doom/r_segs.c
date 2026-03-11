@@ -304,48 +304,48 @@ static void R_RenderSegLoop (void)
         int yh = (int)(bottomfrac >> heightbits);  // [crispy] WiggleFix
 
         // no space above wall?
-        int bottom, top = ceilingclip[rw_x]+1;
+        int r_bottom, r_top = ceilingclip[rw_x]+1;
       
-        if (yl < top)
+        if (yl < r_top)
         {
-            yl = top;
+            yl = r_top;
         }
 
         if (markceiling)
         {
-            bottom = yl-1;
+            r_bottom = yl-1;
 
-            if (bottom >= floorclip[rw_x])
+            if (r_bottom >= floorclip[rw_x])
             {
-                bottom = floorclip[rw_x]-1;
+                r_bottom = floorclip[rw_x]-1;
             }
-            if (top <= bottom)
+            if (r_top <= r_bottom)
             {
-                ceilingplane->top[rw_x] = top;
-                ceilingplane->bottom[rw_x] = bottom;
+                ceilingplane->top[rw_x] = r_top;
+                ceilingplane->bottom[rw_x] = r_bottom;
             }
 
-            ceilingclip[rw_x] = bottom;
+            ceilingclip[rw_x] = r_bottom;
         }
 
-        bottom = floorclip[rw_x]-1;
+        r_bottom = floorclip[rw_x]-1;
 
-        if (yh > bottom)
+        if (yh > r_bottom)
         {
-            yh = bottom;
+            yh = r_bottom;
         }
 
         if (markfloor)
         {
-            top = yh < ceilingclip[rw_x] ? ceilingclip[rw_x] : yh;
+            r_top = yh < ceilingclip[rw_x] ? ceilingclip[rw_x] : yh;
 
-            if (++top <= bottom)
+            if (++r_top <= r_bottom)
             {
-                floorplane->top[rw_x] = top;
-                floorplane->bottom[rw_x] = bottom;
+                floorplane->top[rw_x] = r_top;
+                floorplane->bottom[rw_x] = r_bottom;
             }
 
-            floorclip[rw_x] = top;
+            floorclip[rw_x] = r_top;
         }
         
         // texturecolumn and lighting are independent of wall tiers
