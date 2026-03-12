@@ -26,6 +26,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "doomstat.h"
+#include "r_local.h"
 
 
 // swirl factors

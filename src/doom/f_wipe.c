@@ -27,6 +27,7 @@
 #include "i_video.h"
 #include "v_trans.h" // [crispy] blending functions
 #include "v_video.h"
+#include "f_wipe.h"
 #include "m_random.h"
 
 #include "id_vars.h"
