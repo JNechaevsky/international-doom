@@ -95,10 +95,7 @@ gamestate_t wipegamestate = GS_DEMOSCREEN;
 
 boolean advancedemo;
 
-void D_ConnectNetGame(void);
-void D_CheckNetGame(void);
 static void D_PageDrawer(void);
-void D_AdvanceDemo(void);
 
 // [JN] Enhanced maps (heretic_ex.wad):
 boolean heretic_ex = false;

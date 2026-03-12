@@ -68,9 +68,6 @@ static void G_DoWorldDone(void);
 static void G_DoSaveGame(void);
 static void G_ApplyGameplaySettings(skill_t skill);
 
-void D_PageTicker(void);
-void D_AdvanceDemo(void);
-
 struct
 {
     int type;   // mobjtype_t

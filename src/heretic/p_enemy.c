@@ -23,6 +23,7 @@
 #include "i_system.h"
 #include "i_timer.h"
 #include "m_random.h"
+#include "p_action.h"
 #include "p_local.h"
 #include "s_sound.h"
 #include "v_video.h"
@@ -967,7 +968,7 @@ void A_ImpExplode(mobj_t *actor, player_t *player, pspdef_t *psp)
 //
 //----------------------------------------------------------------------------
 
-void A_BeastPuff(const mobj_t *actor, player_t *player, pspdef_t *psp)
+void A_BeastPuff(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     if (P_Random() > 64)
     {
@@ -2399,7 +2400,7 @@ void P_Massacre(void)
 //
 //----------------------------------------------------------------------------
 
-void A_BossDeath(const mobj_t *actor, player_t *player, pspdef_t *psp)
+void A_BossDeath(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     const mobj_t *mo;
     thinker_t *think;

@@ -592,7 +592,7 @@ static inline int R_IsTextureName (const char wadname[8], const char *s)
 //  [crispy] partly rewritten to merge PNAMES and TEXTURE1/2 lumps.
 //------------------------------------------------------------------------------
 
-void R_InitTextures (void)
+static void R_InitTextures (void)
 {
     // Working pointers
     texture_t *texture;

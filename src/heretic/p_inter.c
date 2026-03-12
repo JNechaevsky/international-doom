@@ -23,6 +23,7 @@
 #include "i_system.h"
 #include "i_timer.h"
 #include "m_random.h"
+#include "p_action.h"
 #include "p_local.h"
 #include "s_sound.h"
 #include "am_map.h"
@@ -1088,7 +1089,7 @@ boolean P_ChickenMorphPlayer(player_t * player)
 //
 //---------------------------------------------------------------------------
 
-boolean P_ChickenMorph(mobj_t * actor)
+static boolean P_ChickenMorph(mobj_t * actor)
 {
     mobj_t *fog;
     mobj_t *chicken;

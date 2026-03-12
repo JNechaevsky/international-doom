@@ -21,6 +21,7 @@
 #include "doomdef.h"
 #include "i_system.h"
 #include "m_random.h"
+#include "p_action.h"
 #include "p_local.h"
 #include "s_sound.h"
 
@@ -1682,7 +1683,7 @@ void A_PhoenixPuff(mobj_t *actor, player_t *player, pspdef_t *psp)
 // The purpose of this object is unknown, as is this function.
 //
 
-void A_RemovedPhoenixFunc(const mobj_t *actor, const player_t * player, const pspdef_t * psp)
+void A_RemovedPhoenixFunc(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
     I_Error("Action function invoked for removed Phoenix action!");
 }
