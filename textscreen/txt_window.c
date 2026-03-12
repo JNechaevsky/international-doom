@@ -262,7 +262,7 @@ static void CalcActionAreaSize(txt_window_t *window,
 
 // Sets size and position of all widgets in a window
 
-void TXT_LayoutWindow(txt_window_t *window)
+static void TXT_LayoutWindow(txt_window_t *window)
 {
     txt_widget_t *widgets = (txt_widget_t *) window;
     unsigned int widgets_w;
@@ -522,14 +522,14 @@ void TXT_SetWindowHelpURL(txt_window_t *window, const char *help_url)
 
 #ifdef _WIN32
 
-void TXT_OpenURL(const char *url)
+static void TXT_OpenURL(const char *url)
 {
     ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
 }
 
 #else
 
-void TXT_OpenURL(const char *url)
+static void TXT_OpenURL(const char *url)
 {
     char *cmd;
     size_t cmd_len;

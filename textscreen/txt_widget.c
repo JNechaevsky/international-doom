@@ -34,7 +34,7 @@ struct txt_callback_table_s
     int num_callbacks;
 };
 
-txt_callback_table_t *TXT_NewCallbackTable(void)
+static txt_callback_table_t *TXT_NewCallbackTable(void)
 {
     txt_callback_table_t *table;
 
@@ -46,12 +46,12 @@ txt_callback_table_t *TXT_NewCallbackTable(void)
     return table;
 }
 
-void TXT_RefCallbackTable(txt_callback_table_t *table)
+static void TXT_RefCallbackTable(txt_callback_table_t *table)
 {
     ++table->refcount;
 }
 
-void TXT_UnrefCallbackTable(txt_callback_table_t *table)
+static void TXT_UnrefCallbackTable(txt_callback_table_t *table)
 {
     int i;
 

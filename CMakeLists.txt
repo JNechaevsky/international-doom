@@ -53,6 +53,9 @@ else()
                         "-Wpedantic"
                         "-Wshadow"
                         "-Wundef"
+                        "-Wpointer-arith"
+                        "-Wstrict-prototypes"
+                        "-Wmissing-prototypes"
                         # "-Wextra"
                         )
 endif()

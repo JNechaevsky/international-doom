@@ -95,7 +95,7 @@ void TXT_DrawDesktopBackground(const char *title)
     TXT_DrawString(title);
 }
 
-void TXT_DrawShadow(int x, int y, int w, int h)
+static void TXT_DrawShadow(int x, int y, int w, int h)
 {
     unsigned char *screendata;
     unsigned char *p;

@@ -312,6 +312,7 @@ void TXT_ExitMainLoop(void)
     main_loop_running = 0;
 }
 
+/*
 void TXT_DrawASCIITable(void)
 {
     unsigned char *screendata;
@@ -342,6 +343,7 @@ void TXT_DrawASCIITable(void)
 
     TXT_UpdateScreen();
 }
+*/
 
 void TXT_SetPeriodicCallback(TxtIdleCallback callback,
                              void *user_data,
