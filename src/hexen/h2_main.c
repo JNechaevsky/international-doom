@@ -75,12 +75,9 @@
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
-void D_ConnectNetGame(void);
-void D_CheckNetGame(void);
 void I_StartupKeyboard(void);
 void I_StartupJoystick(void);
 void I_ShutdownKeyboard(void);
-void S_InitScript(void);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
 
@@ -155,7 +152,7 @@ static const char * const chat_macro_defaults[10] =
 };
 
 
-void D_BindVariables(void)
+static void D_BindVariables(void)
 {
     int i;
 
@@ -283,7 +280,7 @@ static void D_AddFile(char *filename)
 
 // Find out what version of Hexen is playing.
 
-void D_IdentifyVersion(void)
+static void D_IdentifyVersion(void)
 {
     // The Hexen Shareware, ne 4 Level Demo Version, is missing the SKY1 lump
     // and uses the SKY2 lump instead. Let's use this fact and the missing
@@ -321,7 +318,7 @@ void D_IdentifyVersion(void)
 
 // Set the gamedescription string.
 
-void D_SetGameDescription(void)
+static void D_SetGameDescription(void)
 {
 /*
     NB: The 4 Level Demo Version actually prints a four-lined banner
@@ -350,7 +347,6 @@ static const char *const loadparms[] = {"-file", "-merge", NULL}; // [crispy]
 // H2_Main
 //
 //==========================================================================
-void InitMapMusicInfo(void);
 
 void D_DoomMain(void)
 {

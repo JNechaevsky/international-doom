@@ -39,7 +39,6 @@
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
-void G_PlayerReborn(int player);
 void P_MarkAsLeaving(mobj_t * corpse);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------

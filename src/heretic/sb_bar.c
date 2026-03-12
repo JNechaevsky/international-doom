@@ -670,7 +670,7 @@ static byte *const SB_NumberColor (int i)
 //
 //---------------------------------------------------------------------------
 
-void DrawCommonBar(void)
+static void DrawCommonBar(void)
 {
     V_DrawPatch(0, 148, PatchLTFCTOP);
     V_DrawPatch(290, 148, PatchRTFCTOP);
@@ -731,7 +731,7 @@ static const char ammopic[][10] = {
     {"INAMLOB"}
 };
 
-void DrawMainBar(void)
+static void DrawMainBar(void)
 {
     int temp;
 
@@ -850,7 +850,7 @@ void DrawMainBar(void)
 //
 //---------------------------------------------------------------------------
 
-void DrawInventoryBar(void)
+static void DrawInventoryBar(void)
 {
     const char *patch;
     int i;

@@ -1944,7 +1944,7 @@ also see P_SpawnPlayer in P_Things
 //
 //==========================================================================
 
-void G_PlayerExitMap(int playerNumber)
+static void G_PlayerExitMap(int playerNumber)
 {
     int i;
     player_t *player;

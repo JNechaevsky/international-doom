@@ -21,6 +21,8 @@
 //
 
 #include "h2def.h"
+#include "r_local.h"
+
 
 // [crispy] brightmap data
 
