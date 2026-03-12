@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "doomtype.h"
+#include "i_endoom.h"
 #include "i_video.h"
 
 #include "txt_main.h"

@@ -618,7 +618,7 @@ void I_ReInitCursorPosition (void)
     SDL_GetMouseState(&menu_mouse_x_sdl, &menu_mouse_y_sdl);
 }
 
-void I_GetEvent(void)
+static void I_GetEvent(void)
 {
     SDL_Event sdlevent;
 

@@ -88,7 +88,7 @@ static boolean query_loop_running = false;
 static boolean printed_header = false;
 static int last_query_time = 0;
 
-static char *securedemo_start_message = NULL;
+// static char *securedemo_start_message = NULL;
 
 // Resolve the master server address.
 
@@ -581,7 +581,7 @@ static void NET_Query_QueryLoop(net_query_callback_t callback, void *user_data)
     }
 }
 
-void NET_Query_Init(void)
+static void NET_Query_Init(void)
 {
     if (query_context == NULL)
     {
@@ -884,6 +884,7 @@ net_addr_t *NET_FindLANServer(void)
 // Block until a packet of the given type is received from the given
 // address.
 
+/*
 static net_packet_t *BlockForPacket(net_addr_t *addr, unsigned int packet_type,
                                     unsigned int timeout_ms)
 {
@@ -919,9 +920,11 @@ static net_packet_t *BlockForPacket(net_addr_t *addr, unsigned int packet_type,
 
     return NULL;
 }
+*/
 
 // Query master server for secure demo start seed value.
 
+/*
 boolean NET_StartSecureDemo(prng_seed_t seed)
 {
     net_packet_t *request, *response;
@@ -966,9 +969,11 @@ boolean NET_StartSecureDemo(prng_seed_t seed)
 
     return result;
 }
+*/
 
 // Query master server for secure demo end signature.
 
+/*
 char *NET_EndSecureDemo(sha1_digest_t demo_hash)
 {
     net_packet_t *request, *response;
@@ -1004,4 +1009,5 @@ char *NET_EndSecureDemo(sha1_digest_t demo_hash)
 
     return signature;
 }
+*/
 

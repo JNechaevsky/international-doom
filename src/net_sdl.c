@@ -306,7 +306,7 @@ static boolean NET_SDL_RecvPacket(net_addr_t **addr, net_packet_t **packet)
     return true;
 }
 
-void NET_SDL_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
+static void NET_SDL_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
 {
     IPaddress *ip;
     uint32_t host;
@@ -332,7 +332,7 @@ void NET_SDL_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
     }
 }
 
-net_addr_t *NET_SDL_ResolveAddress(const char *address)
+static net_addr_t *NET_SDL_ResolveAddress(const char *address)
 {
     IPaddress ip;
     char *addr_hostname;

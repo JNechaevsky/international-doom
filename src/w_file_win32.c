@@ -74,7 +74,7 @@ static void MapFile(win32_wad_file_t *wad, const char *filename)
     }
 }
 
-unsigned int GetFileLength(HANDLE handle)
+static unsigned int GetFileLength(HANDLE handle)
 {
     DWORD result;
 

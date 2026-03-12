@@ -30,6 +30,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "gusconf.h"
 #include "m_misc.h"
 #include "w_wad.h"
 #include "z_zone.h"

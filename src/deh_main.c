@@ -55,7 +55,7 @@ boolean deh_apply_cheats = true;
 
 static char **deh_filenames;
 
-void AddDEHFileName(const char *filename)
+static void AddDEHFileName(const char *filename)
 {
     static int i;
 
@@ -218,9 +218,6 @@ boolean DEH_ParseAssignment(char *line, char **variable_name, char **value)
     
     return true;
 }
-
-extern void DEH_SaveLineStart (deh_context_t *context);
-extern void DEH_RestoreLineStart (deh_context_t *context);
 
 static boolean CheckSignatures(deh_context_t *context)
 {

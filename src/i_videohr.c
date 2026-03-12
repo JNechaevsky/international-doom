@@ -22,6 +22,7 @@
 #include "doomtype.h"
 #include "i_timer.h"
 #include "i_video.h"
+#include "i_videohr.h"
 
 // Palette fade-in takes two seconds
 

@@ -75,6 +75,7 @@ static boolean scan_on_free;
 //
 // Z_ClearZone
 //
+/*
 void Z_ClearZone (memzone_t* zone)
 {
     memblock_t*		block;
@@ -95,6 +96,7 @@ void Z_ClearZone (memzone_t* zone)
 
     block->size = zone->size - sizeof(memzone_t);
 }
+*/
 
 
 

@@ -28,6 +28,7 @@
 #include "m_argv.h"
 
 #include "net_common.h"
+#include "net_dedicated.h"
 #include "net_sdl.h"
 #include "net_server.h"
 
