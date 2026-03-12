@@ -24,7 +24,7 @@
 #include "id_vars.h"
 
 
-void MainMenu(void)
+static void MainMenu(void)
 {
     txt_window_t *window;
 

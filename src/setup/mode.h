@@ -21,6 +21,7 @@
 typedef void (*GameSelectCallback)(void);
 extern GameMission_t gamemission;
 
+void D_DoomMain(void);
 void SetupMission(GameSelectCallback callback);
 void InitBindings(void);
 const char *GetExecutableName(void);
