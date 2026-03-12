@@ -36,6 +36,7 @@ void D_ProcessEvents (void);
 // BASE LEVEL
 //
 extern void D_DoomLoop (void);
+extern void D_DoomMain (void);
 extern void D_ConnectNetGame (void);
 extern void D_CheckNetGame (void);
 extern void D_PageTicker (void);

@@ -89,6 +89,7 @@ void S_UpdateSounds(mobj_t * listener);
 void S_StartSong(int song, boolean loop);
 void S_StartSongName(const char *songLump, boolean loop);
 void S_Init(void);
+void S_InitScript(void);
 void S_ShutDown(void);
 void S_GetChannelInfo(SoundInfo_t * s);
 extern boolean S_GetSoundPlayingInfo (const mobj_t *const mobj, int sound_id);

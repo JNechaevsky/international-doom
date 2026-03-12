@@ -21,6 +21,7 @@
 #include "doomtype.h"
 #include "doomkeys.h"
 #include "m_config.h"
+#include "m_controls.h"
 #include "m_misc.h"
 
 #ifdef _WIN32

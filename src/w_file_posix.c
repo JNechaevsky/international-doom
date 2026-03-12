@@ -72,7 +72,7 @@ static void MapFile(posix_wad_file_t *wad, const char *filename)
     }
 }
 
-unsigned int GetFileLength(int handle)
+static unsigned int GetFileLength(int handle)
 {
     return lseek(handle, 0, SEEK_END);
 }

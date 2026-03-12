@@ -38,6 +38,7 @@
 #include "dstrings.h"
 #include "sounds.h"
 #include "doomstat.h"
+#include "f_finale.h"
 #include "r_local.h"
 #include "m_misc.h" // [crispy] M_StringDuplicate()
 

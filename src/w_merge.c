@@ -724,6 +724,7 @@ void W_NWTDashMerge(const char *filename)
 }
 
 // [crispy] dump merged WAD data into a new IWAD file
+/*
 int W_MergeDump (const char *file)
 {
     FILE *fp = NULL;
@@ -785,3 +786,4 @@ int W_MergeDump (const char *file)
 
     return (i);
 }
+*/

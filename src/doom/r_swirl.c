@@ -2,8 +2,8 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 2000, 2005-2014 Simon Howard
 // Copyright(C) 2019 Fabian Greffrath
-// Copyright(C) 2025 Polina "Aura" N.
-// Copyright(C) 2025 Julia Nechaevskaya
+// Copyright(C) 2025-2026 Julia Nechaevskaya
+// Copyright(C) 2025-2026 Polina "Aura" N.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "doomstat.h"
+#include "r_local.h"
 
 
 // swirl factors

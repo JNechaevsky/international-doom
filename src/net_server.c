@@ -1421,7 +1421,7 @@ static void NET_SV_ParseResendRequest(net_packet_t *packet, net_client_t *client
 
 // Send a response back to the client
 
-void NET_SV_SendQueryResponse(net_addr_t *addr)
+static void NET_SV_SendQueryResponse(net_addr_t *addr)
 {
     net_packet_t *reply;
     net_querydata_t querydata;
@@ -1735,7 +1735,7 @@ static void NET_SV_PumpSendQueue(net_client_t *client)
 // If we don't receive any game data in a while, trigger a resend
 // request for the next tic we're expecting.
 
-void NET_SV_CheckDeadlock(net_client_t *client)
+static void NET_SV_CheckDeadlock(net_client_t *client)
 {
     int nowtime;
     int i;

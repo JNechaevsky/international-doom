@@ -26,6 +26,8 @@ deh_context_t *DEH_OpenFile(const char *filename);
 deh_context_t *DEH_OpenLump(int lumpnum);
 void DEH_CloseFile(deh_context_t *context);
 int DEH_GetChar(deh_context_t *context);
+void DEH_SaveLineStart (deh_context_t *context);
+void DEH_RestoreLineStart (deh_context_t *context);
 char *DEH_ReadLine(deh_context_t *context, boolean extended);
 void DEH_Error(deh_context_t *context, const char *msg, ...) PRINTF_ATTR(2, 3);
 void DEH_Warning(const deh_context_t *context, const char *msg, ...) PRINTF_ATTR(2, 3);

@@ -910,6 +910,8 @@ void G_DoPlayDemo(void);
 extern boolean demo_gotonextlvl;
 void G_DemoGoToNextLevel (boolean start);
 
+extern void G_PlayerReborn(int player);
+
 // [crispy] holding down the "Run" key may trigger special behavior
 extern boolean speedkeydown (void);
 
@@ -1140,6 +1142,19 @@ void CT_Ticker(void);
 char CT_dequeueChatChar(void);
 
 extern boolean chatmodeon;
+
+// -----------------------------------------------------------------------------
+// D_MAIN
+// -----------------------------------------------------------------------------
+
+extern void D_DoomMain(void);
+
+// -----------------------------------------------------------------------------
+// D_NET
+// -----------------------------------------------------------------------------
+
+extern void D_ConnectNetGame(void);
+extern void D_CheckNetGame(void);
 
 //--------------------
 // Finale (F_finale.c)

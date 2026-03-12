@@ -1129,7 +1129,7 @@ static boolean SDLIsInitialized(void)
 
 #if !USE_SDL_MIXER_LOOPING
 // Callback function that is invoked to track current track position.
-void TrackPositionCallback(int chan, void *stream, int len, void *udata)
+static void TrackPositionCallback(int chan, void *stream, int len, void *udata)
 {
     // Position is doubled up twice: for 16-bit samples and for stereo.
     current_track_pos += len / 4;

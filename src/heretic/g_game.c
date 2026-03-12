@@ -56,20 +56,13 @@
 
 static void G_ReadDemoTiccmd(ticcmd_t *const cmd);
 static void G_WriteDemoTiccmd(ticcmd_t *const cmd);
-void G_PlayerReborn(int player);
-
 static void G_DoReborn(int playernum);
-
 static void G_DoLoadLevel(void);
 static void G_DoNewGame(void);
 static void G_DoCompleted(void);
-void G_DoVictory(void);
 static void G_DoWorldDone(void);
 static void G_DoSaveGame(void);
 static void G_ApplyGameplaySettings(skill_t skill);
-
-void D_PageTicker(void);
-void D_AdvanceDemo(void);
 
 struct
 {

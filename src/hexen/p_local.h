@@ -79,6 +79,7 @@ typedef enum
 
 #define BASETHRESHOLD 100       // follow a player exlusively for 3 seconds
 
+
 // ***** P_TICK *****
 
 extern thinker_t thinkercap;    // both the head and tail of the thinker list
@@ -306,6 +307,7 @@ void P_RadiusAttack(mobj_t * spot, mobj_t * source, int damage, int distance,
 
 // ***** P_SETUP *****
 
+extern void InitMapMusicInfo(void);
 extern void P_SegLengths (void);
 extern void P_RestoreSectorBrightness (void);
 

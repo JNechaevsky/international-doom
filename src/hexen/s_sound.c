@@ -487,10 +487,12 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
     priority *= (PRIORITY_MAX_ADJUST - (dist / DIST_ADJUST));
     #if 0
     // TODO
+    /*
     if (!S_StopSoundID(sound_id, priority))
     {
         return;                 // other sounds have greater priority
     }
+    */
     #endif
     for (i = 0; i < snd_channels; i++)
     {
@@ -615,6 +617,7 @@ void S_StartSoundAtVolume(mobj_t * origin, int sound_id, int volume)
 //
 //==========================================================================
 
+/*
 boolean S_StopSoundID(int sound_id, int priority)
 {
     int i;
@@ -661,6 +664,7 @@ boolean S_StopSoundID(int sound_id, int priority)
     }
     return (true);
 }
+*/
 
 //==========================================================================
 //

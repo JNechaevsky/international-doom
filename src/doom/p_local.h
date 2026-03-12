@@ -646,6 +646,9 @@ extern void P_SegLengths (boolean contrast_only);
 extern void P_SetupLevel (int episode, int map);
 extern void P_Init (void);
 
+extern sector_t *GetSectorAtNullAddress (void);
+extern fixed_t   GetOffset (const vertex_t *restrict v1, const vertex_t *restrict v2);
+
 extern byte     *rejectmatrix;  // for fast sight rejection
 extern int32_t  *blockmaplump;  // offsets in blockmap are from here
 extern int32_t  *blockmap;

@@ -810,8 +810,24 @@ void G_SetSideMove(void);
 
 void G_ScreenShot(void);
 
+void G_PlayerReborn(int player);
+
 // [crispy] holding down the "Run" key may trigger special behavior
 extern boolean speedkeydown (void);
+
+// -----------------------------------------------------------------------------
+// D_MAIN
+// -----------------------------------------------------------------------------
+
+extern void D_AdvanceDemo(void);
+extern void D_PageTicker(void);
+
+// -----------------------------------------------------------------------------
+// D_NET
+// -----------------------------------------------------------------------------
+
+extern void D_ConnectNetGame(void);
+extern void D_CheckNetGame(void);
 
 //-----
 //PLAY

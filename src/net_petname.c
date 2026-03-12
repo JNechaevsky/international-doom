@@ -19,8 +19,9 @@
 #include <time.h>
 #include "doomtype.h"
 #include "m_misc.h"
+#include "net_petname.h"
 
-static const char * const adjectives [] = {
+static const char *const adjectives [] = {
     "Grumpy",
     "Ecstatic",
     "Surly",
@@ -64,7 +65,7 @@ static const char * const adjectives [] = {
     "Baby",
 };
 
-static const char * const nouns[] = {
+static const char *const nouns[] = {
     "Frad",
     // Doom
     "Cacodemon",

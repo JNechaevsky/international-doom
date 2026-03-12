@@ -836,7 +836,7 @@ void TXT_GetKeyDescription(int key, char *buf, size_t buf_len)
 // Searches the desktop screen buffer to determine whether there are any
 // blinking characters.
 
-int TXT_ScreenHasBlinkingChars(void)
+static int TXT_ScreenHasBlinkingChars(void)
 {
     int x, y;
     unsigned char *p;
