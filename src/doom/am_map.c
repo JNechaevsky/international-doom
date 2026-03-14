@@ -263,6 +263,11 @@ int am_followplayer = 1; // specifies whether to follow the player around
 // [PN] Accumulated automap pan delta from mouse movement
 static int mouse_pan_x = 0;
 static int mouse_pan_y = 0;
+// [PN] Keep sub-pixel remainder to avoid frame-rate dependent jitter.
+static int64_t m_paninc_frac_x = 0;
+static int64_t m_paninc_frac_y = 0;
+static int64_t mouse_pan_frac_x = 0;
+static int64_t mouse_pan_frac_y = 0;
 
 static boolean stopped = true;
 
@@ -531,9 +536,19 @@ static void AM_changeWindowLoc (void)
 
     prev_frac = fractionaltic;
 
-    // Compute movement delta scaled by frame fraction
-    const int64_t incx = FixedMul(m_paninc.x, delta);
-    const int64_t incy = FixedMul(m_paninc.y, delta);
+    // Compute movement delta with remainder carry for high-FPS stability.
+    int64_t incx_acc = m_paninc.x * delta + m_paninc_frac_x;
+    int64_t incy_acc = m_paninc.y * delta + m_paninc_frac_y;
+    int64_t incx = incx_acc / FRACUNIT;
+    int64_t incy = incy_acc / FRACUNIT;
+
+    m_paninc_frac_x = incx_acc - incx * FRACUNIT;
+    m_paninc_frac_y = incy_acc - incy * FRACUNIT;
+
+    if (m_paninc.x == 0)
+        m_paninc_frac_x = 0;
+    if (m_paninc.y == 0)
+        m_paninc_frac_y = 0;
 
     int64_t dx = incx;
     int64_t dy = incy;
@@ -580,9 +595,15 @@ static void AM_MousePanning (void)
 
     prev_frac = fractionaltic;
 
-    // Interpolated movement step
-    int64_t step_x = FixedMul(mouse_pan_x, delta);
-    int64_t step_y = FixedMul(mouse_pan_y, delta);
+    // Interpolated movement step with remainder carry, so very small frame
+    // deltas at high FPS don't collapse to zero and cause jitter.
+    int64_t step_x_acc = (int64_t) mouse_pan_x * delta + mouse_pan_frac_x;
+    int64_t step_y_acc = (int64_t) mouse_pan_y * delta + mouse_pan_frac_y;
+    int64_t step_x = step_x_acc / FRACUNIT;
+    int64_t step_y = step_y_acc / FRACUNIT;
+
+    mouse_pan_frac_x = step_x_acc - step_x * FRACUNIT;
+    mouse_pan_frac_y = step_y_acc - step_y * FRACUNIT;
 
     // Save original unrotated values
     const int64_t original_x = step_x;
@@ -609,6 +630,12 @@ static void AM_MousePanning (void)
     mouse_pan_x -= original_x;
     mouse_pan_y -= original_y;
 
+    // Drop residual sub-pixel carry once axis movement is fully consumed.
+    if (mouse_pan_x == 0)
+        mouse_pan_frac_x = 0;
+    if (mouse_pan_y == 0)
+        mouse_pan_frac_y = 0;
+
     // Update extents
     m_x2 = m_x + m_w;
     m_y2 = m_y + m_h;
@@ -623,9 +650,12 @@ void AM_initVariables (void)
     automapactive = true;
 
     m_paninc.x = m_paninc.y = 0;
+    m_paninc_frac_x = m_paninc_frac_y = 0;
     ftom_zoommul = FRACUNIT;
     mtof_zoommul = FRACUNIT;
     mousewheelzoom = false; // [crispy]
+    mouse_pan_x = mouse_pan_y = 0;
+    mouse_pan_frac_x = mouse_pan_frac_y = 0;
 
     m_w = FTOM(f_w);
     m_h = FTOM(f_h);
