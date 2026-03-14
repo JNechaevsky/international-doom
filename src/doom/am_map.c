@@ -41,54 +41,17 @@
 #include "id_vars.h"
 
 
-//
-// [JN] Make wall colors palette-independent.
-//
+// [PN] Store all automap colors by classic PLAYPAL index.
+// Values are remapped to the active palette in AM_Init.
+static int automap_colors[256];
 
-// Common colors / original color scheme:
-static int doom_0;
-static int doom_64;
-static int doom_96;
-static int doom_99;
-static int doom_104;
-static int doom_112;
-static int doom_165;
-static int doom_176;
-static int doom_184;
-static int doom_206;
-static int doom_209;
-static int doom_231;
-
-// BOOM color scheme:
-static int boom_23;
-static int boom_55;
-static int boom_88;
-static int boom_119;
-static int boom_175;
-static int boom_204;
-static int boom_208;
-static int boom_215;
-
-// Remaster color scheme:
-static int remaster_72;
-static int remaster_81;
-static int remaster_120;
-static int remaster_160;
-static int remaster_200;
-
-// Jaguar color scheme:
-static int jaguar_32;
-static int jaguar_75;
-static int jaguar_120;
-static int jaguar_163;
-static int jaguar_176;
-static int jaguar_200;
-static int jaguar_228;
-static int jaguar_254;
-
-static int exitcolors;
-static int secretwallcolors;
-static int foundsecretwallcolors;
+static inline int AM_GetAutomapColor(const unsigned char *playpal,
+                                     int fallback_index,
+                                     int r, int g, int b)
+{
+    return original_playpal ? fallback_index
+                            : V_GetPaletteIndex(playpal, r, g, b);
+}
 
 static boolean blinking_line;
 
@@ -346,102 +309,44 @@ void AM_Init (void)
         }
     }
 
-    // [JN] Make wall colors palette-independent.
-    if (original_playpal)
+    // [PN] Initialize automap color lookup table.
+    for (int i = 0; i < 256; ++i)
     {
-        // Common colors / original color scheme
-        doom_0   = 0;
-        doom_64  = 64;
-        doom_96  = 96;
-        doom_99  = 99;
-        doom_104 = 104;
-        doom_112 = 112;
-        doom_165 = 165;
-        doom_176 = 176;
-        doom_184 = 184;
-        doom_206 = 206;
-        doom_209 = 209;
-        doom_231 = 231;
-
-        // BOOM color scheme
-        boom_23  = 23;
-        boom_55  = 55;
-        boom_88  = 88;
-        boom_119 = 119;
-        boom_175 = 175;
-        boom_204 = 204;
-        boom_208 = 208;
-        boom_215 = 215;
-
-        // Remaster color scheme
-        remaster_72  = 72;
-        remaster_81  = 81;
-        remaster_120 = 120;
-        remaster_160 = 160;
-        remaster_200 = 200;
-
-        // Jaguar color scheme
-        jaguar_32 = 32;
-        jaguar_75 = 75;
-        jaguar_120 = 120;
-        jaguar_163 = 163;
-        jaguar_176 = 176;
-        jaguar_200 = 200;
-        jaguar_228 = 228;
-        jaguar_254 = 254;
-
-        exitcolors = 195;
-        secretwallcolors = 252;
-        foundsecretwallcolors = 112;
+        automap_colors[i] = i;
     }
-    else
-    {
-        // Common colors / original color scheme
-        doom_0   = V_GetPaletteIndex(playpal,   1,   1,   1);
-        doom_64  = V_GetPaletteIndex(playpal, 191, 123,  75);
-        doom_96  = V_GetPaletteIndex(playpal, 131, 131, 131);
-        doom_99  = V_GetPaletteIndex(playpal, 111, 111, 111);
-        doom_104 = V_GetPaletteIndex(playpal,  79,  79,  79);
-        doom_112 = V_GetPaletteIndex(playpal, 119, 255, 111);
-        doom_165 = V_GetPaletteIndex(playpal, 155,  91,  19);
-        doom_176 = V_GetPaletteIndex(playpal, 255,   1,   1);
-        doom_184 = V_GetPaletteIndex(playpal, 155,   1,   1);
-        doom_206 = V_GetPaletteIndex(playpal,   1,   1, 107);
-        doom_209 = V_GetPaletteIndex(playpal, 255, 235, 219);
-        doom_231 = V_GetPaletteIndex(playpal, 255, 255,   1);
 
-        // BOOM color scheme
-        boom_23  = V_GetPaletteIndex(playpal, 211, 115, 115);
-        boom_55  = V_GetPaletteIndex(playpal, 255, 187, 147);
-        boom_88  = V_GetPaletteIndex(playpal, 183, 183, 183);
-        
-        boom_119 = V_GetPaletteIndex(playpal,  67, 147,  55);
-        boom_175 = V_GetPaletteIndex(playpal, 255,  31,  31);
-        boom_204 = V_GetPaletteIndex(playpal,   1,   1, 155);
-        boom_208 = V_GetPaletteIndex(playpal, 255, 255, 255);
-        boom_215 = V_GetPaletteIndex(playpal, 255, 127,  27);
-
-        // Remaster color scheme
-        remaster_72  = V_GetPaletteIndex(playpal, 119,  79,  43);
-        remaster_81  = V_GetPaletteIndex(playpal, 231, 231, 231);
-        remaster_120 = V_GetPaletteIndex(playpal,  63, 131,  47);
-        remaster_160 = V_GetPaletteIndex(playpal, 255, 255, 115);
-        remaster_200 = V_GetPaletteIndex(playpal,   1,   1, 255);
-
-        // Jaguar color scheme
-        jaguar_32  = V_GetPaletteIndex(playpal, 155,  51,  51);
-        jaguar_75  = V_GetPaletteIndex(playpal,  83,  63,  31);
-        jaguar_120 = V_GetPaletteIndex(playpal,  63, 131,  47);
-        jaguar_163 = V_GetPaletteIndex(playpal, 195, 155,  47);
-        jaguar_176 = V_GetPaletteIndex(playpal, 255,   0,   0);
-        jaguar_200 = V_GetPaletteIndex(playpal,   0,   0, 255);
-        jaguar_228 = V_GetPaletteIndex(playpal, 255, 255, 107);
-        jaguar_254 = V_GetPaletteIndex(playpal, 111,   1, 107);
-
-        exitcolors = V_GetPaletteIndex(playpal, 143, 143, 255);
-        secretwallcolors = V_GetPaletteIndex(playpal, 255, 1, 255);
-        foundsecretwallcolors = V_GetPaletteIndex(playpal, 119, 255, 111);
-    }
+    automap_colors[0]   = AM_GetAutomapColor(playpal,   0,   1,   1,   1);
+    automap_colors[23]  = AM_GetAutomapColor(playpal,  23, 211, 115, 115);
+    automap_colors[32]  = AM_GetAutomapColor(playpal,  32, 155,  51,  51);
+    automap_colors[55]  = AM_GetAutomapColor(playpal,  55, 255, 187, 147);
+    automap_colors[64]  = AM_GetAutomapColor(playpal,  64, 191, 123,  75);
+    automap_colors[72]  = AM_GetAutomapColor(playpal,  72, 119,  79,  43);
+    automap_colors[75]  = AM_GetAutomapColor(playpal,  75,  83,  63,  31);
+    automap_colors[81]  = AM_GetAutomapColor(playpal,  81, 231, 231, 231);
+    automap_colors[88]  = AM_GetAutomapColor(playpal,  88, 183, 183, 183);
+    automap_colors[96]  = AM_GetAutomapColor(playpal,  96, 131, 131, 131);
+    automap_colors[99]  = AM_GetAutomapColor(playpal,  99, 111, 111, 111);
+    automap_colors[104] = AM_GetAutomapColor(playpal, 104,  79,  79,  79);
+    automap_colors[112] = AM_GetAutomapColor(playpal, 112, 119, 255, 111);
+    automap_colors[119] = AM_GetAutomapColor(playpal, 119,  67, 147,  55);
+    automap_colors[120] = AM_GetAutomapColor(playpal, 120,  63, 131,  47);
+    automap_colors[160] = AM_GetAutomapColor(playpal, 160, 255, 255, 115);
+    automap_colors[163] = AM_GetAutomapColor(playpal, 163, 195, 155,  47);
+    automap_colors[165] = AM_GetAutomapColor(playpal, 165, 155,  91,  19);
+    automap_colors[175] = AM_GetAutomapColor(playpal, 175, 255,  31,  31);
+    automap_colors[176] = AM_GetAutomapColor(playpal, 176, 255,   1,   1);
+    automap_colors[184] = AM_GetAutomapColor(playpal, 184, 155,   1,   1);
+    automap_colors[195] = AM_GetAutomapColor(playpal, 195, 143, 143, 255);
+    automap_colors[200] = AM_GetAutomapColor(playpal, 200,   1,   1, 255);
+    automap_colors[204] = AM_GetAutomapColor(playpal, 204,   1,   1, 155);
+    automap_colors[206] = AM_GetAutomapColor(playpal, 206,   1,   1, 107);
+    automap_colors[208] = AM_GetAutomapColor(playpal, 208, 255, 255, 255);
+    automap_colors[209] = AM_GetAutomapColor(playpal, 209, 255, 235, 219);
+    automap_colors[215] = AM_GetAutomapColor(playpal, 215, 255, 127,  27);
+    automap_colors[228] = AM_GetAutomapColor(playpal, 228, 255, 255, 107);
+    automap_colors[231] = AM_GetAutomapColor(playpal, 231, 255, 255,   1);
+    automap_colors[252] = AM_GetAutomapColor(playpal, 252, 255,   1, 255);
+    automap_colors[254] = AM_GetAutomapColor(playpal, 254, 111,   1, 107);
 
     W_ReleaseLumpName("PLAYPAL");
 }
@@ -1345,7 +1250,7 @@ void AM_Ticker (void)
 
 static void AM_clearFB (void)
 {
-    memset(I_VideoBuffer, doom_0, f_w*f_h*sizeof(*I_VideoBuffer));
+    memset(I_VideoBuffer, automap_colors[0], f_w*f_h*sizeof(*I_VideoBuffer));
 }
 
 // -----------------------------------------------------------------------------
@@ -1765,7 +1670,7 @@ static void AM_drawGrid (void)
         
         AM_transformPoint(&ml.a);
         AM_transformPoint(&ml.b);
-        AM_drawMline(&ml, doom_104);
+        AM_drawMline(&ml, automap_colors[104]);
     }
 
     // Determine starting position for horizontal lines
@@ -1787,7 +1692,7 @@ static void AM_drawGrid (void)
         
         AM_transformPoint(&ml.a);
         AM_transformPoint(&ml.b);
-        AM_drawMline(&ml, doom_104);
+        AM_drawMline(&ml, automap_colors[104]);
     }
 }
 
@@ -1830,16 +1735,16 @@ static void AM_drawWalls (void)
                             // [JN] Highlight secret sectors
                             if (automap_secrets > 1 && lines[i].frontsector->special == 9)
                             {
-                                array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
+                                array_push(lines_1S, ((am_line_t){l, automap_colors[252]}));
                             }
                             // [plums] show revealed secrets
                             else if (automap_secrets && lines[i].frontsector->oldspecial == 9)
                             {
-                                array_push(lines_1S, ((am_line_t){l, foundsecretwallcolors}));
+                                array_push(lines_1S, ((am_line_t){l, automap_colors[112]}));
                             }
                             else
                             {
-                                array_push(lines_1S, ((am_line_t){l, boom_23}));
+                                array_push(lines_1S, ((am_line_t){l, automap_colors[23]}));
                             }
                         }
                         else
@@ -1848,47 +1753,47 @@ static void AM_drawWalls (void)
                             if (lines[i].special == 39  || lines[i].special == 97
                             ||  lines[i].special == 125 || lines[i].special == 126)
                             {
-                                AM_drawMline(&l, boom_119);
+                                AM_drawMline(&l, automap_colors[119]);
                             }
                             // Secret door
                             else if (lines[i].flags & ML_SECRET)
                             {
-                                AM_drawMline(&l, boom_23);      // wall color
+                                AM_drawMline(&l, automap_colors[23]);      // wall color
                             }
                             // [JN] Highlight secret sectors
                             else if (automap_secrets > 1
                             && (lines[i].frontsector->special == 9
                             ||  lines[i].backsector->special == 9))
                             {
-                                AM_drawMline(&l, secretwallcolors);
+                                AM_drawMline(&l, automap_colors[252]);
                             }
                             // [plums] show revealed secrets
                             else if (automap_secrets
                             && (lines[i].frontsector->oldspecial == 9
                             ||  lines[i].backsector->oldspecial == 9))
                             {
-                                AM_drawMline(&l, foundsecretwallcolors);
+                                AM_drawMline(&l, automap_colors[112]);
                             }
                             // BLUE locked doors
                             else
                             if (lines[i].special == 26 || lines[i].special == 32
                             ||  lines[i].special == 99 || lines[i].special == 133)
                             {
-                                AM_drawMline(&l, boom_204);
+                                AM_drawMline(&l, automap_colors[204]);
                             }
                             // RED locked doors
                             else
                             if (lines[i].special == 28  || lines[i].special == 33
                             ||  lines[i].special == 134 || lines[i].special == 135)
                             {
-                                AM_drawMline(&l, boom_175);
+                                AM_drawMline(&l, automap_colors[175]);
                             }
                             // YELLOW locked doors
                             else
                             if (lines[i].special == 27  || lines[i].special == 34
                             ||  lines[i].special == 136 || lines[i].special == 137)
                             {
-                                AM_drawMline(&l, doom_231);
+                                AM_drawMline(&l, automap_colors[231]);
                             }
                             // non-secret closed door
                             else
@@ -1896,31 +1801,31 @@ static void AM_drawWalls (void)
                             ((lines[i].backsector->floorheight == lines[i].backsector->ceilingheight) ||
                             (lines[i].frontsector->floorheight == lines[i].frontsector->ceilingheight)))
                             {
-                                AM_drawMline(&l, boom_208);      // non-secret closed door
+                                AM_drawMline(&l, automap_colors[208]);      // non-secret closed door
                             } //jff 1/6/98 show secret sector 2S lines
                             // floor level change
                             else
                             if (lines[i].backsector->floorheight != lines[i].frontsector->floorheight)
                             {
-                                AM_drawMline(&l, boom_55);
+                                AM_drawMline(&l, automap_colors[55]);
                             }
                             // ceiling level change
                             else
                             if (lines[i].backsector->ceilingheight != lines[i].frontsector->ceilingheight)
                             {
-                                AM_drawMline(&l, boom_215);
+                                AM_drawMline(&l, automap_colors[215]);
                             }
                             //2S lines that appear only in IDDT
                             else if (iddt_cheating)
                             {
-                                AM_drawMline(&l, boom_88);
+                                AM_drawMline(&l, automap_colors[88]);
                             }
                         }
                         // [JN] Exit (can be one-sided or two-sided)
                         if (lines[i].special == 11 || lines[i].special == 51
                         ||  lines[i].special == 52 || lines[i].special == 124)
                         {
-                            array_push(lines_1S, ((am_line_t){l, exitcolors}));
+                            array_push(lines_1S, ((am_line_t){l, automap_colors[195]}));
                         }
                     }
                     // computermap visible lines
@@ -1933,7 +1838,7 @@ static void AM_drawWalls (void)
                             || lines[i].backsector->floorheight != lines[i].frontsector->floorheight
                             || lines[i].backsector->ceilingheight != lines[i].frontsector->ceilingheight)
                             {
-                                AM_drawMline(&l, doom_104);
+                                AM_drawMline(&l, automap_colors[104]);
                             }
                         }
                     }
@@ -1951,16 +1856,16 @@ static void AM_drawWalls (void)
                             // [JN] Highlight secret sectors
                             if (automap_secrets > 1 && lines[i].frontsector->special == 9)
                             {    
-                                array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
+                                array_push(lines_1S, ((am_line_t){l, automap_colors[252]}));
                             }
                             // [plums] show revealed secrets
                             else if (automap_secrets && lines[i].frontsector->oldspecial == 9)
                             {
-                                array_push(lines_1S, ((am_line_t){l, foundsecretwallcolors}));
+                                array_push(lines_1S, ((am_line_t){l, automap_colors[112]}));
                             }
                             else
                             {
-                                array_push(lines_1S, ((am_line_t){l, doom_184}));
+                                array_push(lines_1S, ((am_line_t){l, automap_colors[184]}));
                             }
                         }
                         else
@@ -1968,84 +1873,84 @@ static void AM_drawWalls (void)
                             // [JN] Secret door
                             if (lines[i].flags & ML_SECRET)
                             {
-                                AM_drawMline(&l, doom_184);
+                                AM_drawMline(&l, automap_colors[184]);
                             }
                             // [JN] Highlight secret sectors
                             else if (automap_secrets > 1
                             && (lines[i].frontsector->special == 9
                             ||  lines[i].backsector->special == 9))
                             {
-                                AM_drawMline(&l, secretwallcolors);
+                                AM_drawMline(&l, automap_colors[252]);
                             }
                             // [plums] show revealed secrets
                             else if (automap_secrets
                             && (lines[i].frontsector->oldspecial == 9
                             ||  lines[i].backsector->oldspecial == 9))
                             {
-                                AM_drawMline(&l, foundsecretwallcolors);
+                                AM_drawMline(&l, automap_colors[112]);
                             }
                             // [JN] Various Doors
                             else
                             if (lines[i].special == 1   || lines[i].special == 31
                             ||  lines[i].special == 117 || lines[i].special == 118)
                             {
-                                AM_drawMline(&l, remaster_81);
+                                AM_drawMline(&l, automap_colors[81]);
                             }
                             // [JN] Various teleporters
                             else
                             if (lines[i].special == 39  || lines[i].special == 97
                             ||  lines[i].special == 125 || lines[i].special == 126)
                             {
-                                AM_drawMline(&l, remaster_120);
+                                AM_drawMline(&l, automap_colors[120]);
                             }
                             // [JN] BLUE locked doors
                             else
                             if (lines[i].special == 26 || lines[i].special == 32
                             ||  lines[i].special == 99 || lines[i].special == 133)
                             {
-                                AM_drawMline(&l, remaster_200);
+                                AM_drawMline(&l, automap_colors[200]);
                             }
                             // [JN] RED locked doors
                             else
                             if (lines[i].special == 28  || lines[i].special == 33
                             ||  lines[i].special == 134 || lines[i].special == 135)
                             {
-                                AM_drawMline(&l, doom_176);
+                                AM_drawMline(&l, automap_colors[176]);
                             }
                             // [JN] YELLOW locked doors
                             else
                             if (lines[i].special == 27  || lines[i].special == 34
                             ||  lines[i].special == 136 || lines[i].special == 137)
                             {
-                                AM_drawMline(&l, remaster_160);
+                                AM_drawMline(&l, automap_colors[160]);
                             }
                             // [JN] Floor level change
                             else if (lines[i].backsector->floorheight != lines[i].frontsector->floorheight) 
                             {
-                                AM_drawMline(&l, remaster_72);
+                                AM_drawMline(&l, automap_colors[72]);
                             }
                             // [JN] Ceiling level change
                             else if (lines[i].backsector->ceilingheight != lines[i].frontsector->ceilingheight) 
                             {
-                                AM_drawMline(&l, doom_64);
+                                AM_drawMline(&l, automap_colors[64]);
                             }
                             // [JN] IDDT visible lines
                             else if (iddt_cheating)
                             {
-                                AM_drawMline(&l, doom_96);
+                                AM_drawMline(&l, automap_colors[96]);
                             }
                         }
                         // [JN] Exit (can be one-sided or two-sided)
                         if (lines[i].special == 11 || lines[i].special == 51
                         ||  lines[i].special == 52 || lines[i].special == 124)
                         {
-                            array_push(lines_1S, ((am_line_t){l, exitcolors}));
+                            array_push(lines_1S, ((am_line_t){l, automap_colors[195]}));
                         }
                     }
                     // [JN] Computermap visible lines
                     else if (plr->powers[pw_allmap])
                     {
-                        if (!(lines[i].flags & ML_DONTDRAW)) AM_drawMline(&l, doom_104);
+                        if (!(lines[i].flags & ML_DONTDRAW)) AM_drawMline(&l, automap_colors[104]);
                     }
                 }
                 break;
@@ -2060,16 +1965,16 @@ static void AM_drawWalls (void)
                             // [JN] Highlight secret sectors
                             if (automap_secrets > 1 && lines[i].frontsector->special == 9)
                             {
-                                array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
+                                array_push(lines_1S, ((am_line_t){l, automap_colors[252]}));
                             }
                             // [plums] show revealed secrets
                             else if (automap_secrets && lines[i].frontsector->oldspecial == 9)
                             {
-                                array_push(lines_1S, ((am_line_t){l, foundsecretwallcolors}));
+                                array_push(lines_1S, ((am_line_t){l, automap_colors[112]}));
                             }
                             else
                             {
-                                array_push(lines_1S, ((am_line_t){l, jaguar_32}));
+                                array_push(lines_1S, ((am_line_t){l, automap_colors[32]}));
                             }
                         }
                         else
@@ -2077,12 +1982,12 @@ static void AM_drawWalls (void)
                             // Teleport line
                             if (lines[i].special == 39 || lines[i].special == 97)
                             {
-                                AM_drawMline(&l, jaguar_120);
+                                AM_drawMline(&l, automap_colors[120]);
                             }
                             // Secret door
                             else if (lines[i].flags & ML_SECRET)
                             {
-                                AM_drawMline(&l, jaguar_32);
+                                AM_drawMline(&l, automap_colors[32]);
                             }
 
                             // [JN] RED Key-locked doors
@@ -2090,67 +1995,67 @@ static void AM_drawWalls (void)
                             if (lines[i].special == 28  || lines[i].special == 33
                             ||  lines[i].special == 134 || lines[i].special == 135)
                             {
-                                AM_drawMline(&l, jaguar_176);
+                                AM_drawMline(&l, automap_colors[176]);
                             }
                             // [JN] BLUE Key-locked doors
                             else
                             if (lines[i].special == 26  || lines[i].special == 32
                             ||  lines[i].special == 99  || lines[i].special == 133)
                             {
-                                AM_drawMline(&l, jaguar_200);
+                                AM_drawMline(&l, automap_colors[200]);
                             }
                             // [JN] YELLOW Key-locked doors
                             else
                             if (lines[i].special == 27  || lines[i].special == 34
                             ||  lines[i].special == 136 || lines[i].special == 137)
                             {
-                                AM_drawMline(&l, jaguar_228);
+                                AM_drawMline(&l, automap_colors[228]);
                             }
                             // [JN] Highlight secret sectors
                             else if (automap_secrets > 1
                             && (lines[i].frontsector->special == 9
                             ||  lines[i].backsector->special == 9))
                             {
-                                AM_drawMline(&l, secretwallcolors);
+                                AM_drawMline(&l, automap_colors[252]);
                             }
                             // [plums] show revealed secrets
                             else if (automap_secrets
                             && (lines[i].frontsector->oldspecial == 9
                             ||  lines[i].backsector->oldspecial == 9))
                             {
-                                AM_drawMline(&l, foundsecretwallcolors);
+                                AM_drawMline(&l, automap_colors[112]);
                             }
                             // Any special linedef
                             else if (lines[i].special)
                             {
-                                AM_drawMline(&l, jaguar_254);
+                                AM_drawMline(&l, automap_colors[254]);
                             }
                             // Floor level change
                             else if (lines[i].backsector->floorheight != lines[i].frontsector->floorheight)
                             {
-                                AM_drawMline(&l, jaguar_163);
+                                AM_drawMline(&l, automap_colors[163]);
                             }
                             // Ceiling level change
                             else if (lines[i].backsector->ceilingheight != lines[i].frontsector->ceilingheight)
                             {
-                                AM_drawMline(&l, jaguar_75);
+                                AM_drawMline(&l, automap_colors[75]);
                             }
                             // Hidden gray walls
                             else if (iddt_cheating)
                             {
-                                AM_drawMline(&l, doom_96);
+                                AM_drawMline(&l, automap_colors[96]);
                             }
                         }
                         // [JN] Exit (can be one-sided or two-sided)
                         if (lines[i].special == 11 || lines[i].special == 51
                         ||  lines[i].special == 52 || lines[i].special == 124)
                         {
-                            array_push(lines_1S, ((am_line_t){l, exitcolors}));
+                            array_push(lines_1S, ((am_line_t){l, automap_colors[195]}));
                         }
                     }
                     else if (plr->powers[pw_allmap])
                     {
-                        if (!(lines[i].flags & ML_DONTDRAW)) AM_drawMline(&l, doom_99);
+                        if (!(lines[i].flags & ML_DONTDRAW)) AM_drawMline(&l, automap_colors[99]);
                     }
                 }
                 break;
@@ -2163,29 +2068,29 @@ static void AM_drawWalls (void)
                         // [JN] Mark secret sectors.
                         if (automap_secrets > 1 && lines[i].frontsector->special == 9)
                         {
-                            array_push(lines_1S, ((am_line_t){l, secretwallcolors}));
+                            array_push(lines_1S, ((am_line_t){l, automap_colors[252]}));
                         }
                         // [plums] show revealed secrets
                         else if (automap_secrets && lines[i].frontsector->oldspecial == 9)
                         {
-                            array_push(lines_1S, ((am_line_t){l, foundsecretwallcolors}));
+                            array_push(lines_1S, ((am_line_t){l, automap_colors[112]}));
                         }
                         else
                         {
-                            array_push(lines_1S, ((am_line_t){l, doom_176}));
+                            array_push(lines_1S, ((am_line_t){l, automap_colors[176]}));
                         }
                     }
                     else
                     {
                         if (lines[i].special == 39)
                         { // teleporters
-                            AM_drawMline(&l, doom_184);
+                            AM_drawMline(&l, automap_colors[184]);
                         }
                         else
                         if (lines[i].flags & ML_SECRET) // secret door
                         {
                             // [JN] Note: this means "don't map as two sided".
-                            AM_drawMline(&l, doom_176);
+                            AM_drawMline(&l, automap_colors[176]);
                         }
                         // [JN] Mark secret sectors.
                         else
@@ -2193,31 +2098,31 @@ static void AM_drawWalls (void)
                         && (lines[i].frontsector->special == 9
                         ||  lines[i].backsector->special == 9))
                         {
-                            AM_drawMline(&l, secretwallcolors);
+                            AM_drawMline(&l, automap_colors[252]);
                         }
                         // [plums] show revealed secrets
                         else if (automap_secrets
                         && (lines[i].frontsector->oldspecial == 9
                         ||  lines[i].backsector->oldspecial == 9))
                         {
-                            AM_drawMline(&l, foundsecretwallcolors);
+                            AM_drawMline(&l, automap_colors[112]);
                         }
                         else
                         if (lines[i].backsector->floorheight
 			            !=  lines[i].frontsector->floorheight)
                         {
-                            AM_drawMline(&l, doom_64); // floor level change
+                            AM_drawMline(&l, automap_colors[64]); // floor level change
                         }
                         else
                         if (lines[i].backsector->ceilingheight
                         !=  lines[i].frontsector->ceilingheight)
                         {
-                            AM_drawMline(&l, doom_231); // ceiling level change
+                            AM_drawMline(&l, automap_colors[231]); // ceiling level change
                         }
                         else
                         if (iddt_cheating)
                         {
-                            AM_drawMline(&l, doom_96);
+                            AM_drawMline(&l, automap_colors[96]);
                         }
                     }
                 }
@@ -2231,21 +2136,21 @@ static void AM_drawWalls (void)
                 if (lines[i].special == 26 || lines[i].special == 32
                 ||  lines[i].special == 99 || lines[i].special == 133)
                 {
-                    AM_drawMline(&l, blinking_line ? doom_206 : remaster_200);
+                    AM_drawMline(&l, blinking_line ? automap_colors[206] : automap_colors[200]);
                 }
                 // [JN] RED locked doors
                 else
                 if (lines[i].special == 28  || lines[i].special == 33
                 ||  lines[i].special == 134 || lines[i].special == 135)
                 {
-                    AM_drawMline(&l, blinking_line ? doom_184 : doom_176);
+                    AM_drawMline(&l, blinking_line ? automap_colors[184] : automap_colors[176]);
                 }
                 // [JN] YELLOW locked doors
                 else
                 if (lines[i].special == 27  || lines[i].special == 34
                 ||  lines[i].special == 136 || lines[i].special == 137)
                 {
-                    AM_drawMline(&l, blinking_line ? doom_165 : remaster_160);
+                    AM_drawMline(&l, blinking_line ? automap_colors[165] : automap_colors[160]);
                 }
             }
         }
@@ -2253,7 +2158,7 @@ static void AM_drawWalls (void)
         {
             if (!(lines[i].flags & ML_DONTDRAW))
             {
-                AM_drawMline(&l, doom_99);
+                AM_drawMline(&l, automap_colors[99]);
             }
         }
     }
@@ -2385,7 +2290,7 @@ static void AM_drawLineCharacter (mline_t *lineguy, int lineguylines,
 static void AM_drawPlayers (void)
 {
     int       i;
-    int       their_colors[] = { doom_112, doom_96, doom_64, doom_176 };
+    int       their_colors[] = { automap_colors[112], automap_colors[96], automap_colors[64], automap_colors[176] };
     int       color;
     mpoint_t  pt;
     player_t *p;
@@ -2412,7 +2317,7 @@ static void AM_drawPlayers (void)
         AM_transformPoint(&pt);
         AM_drawLineCharacter(cheat_player_arrow, iddt_cheating ?
                              arrlen(cheat_player_arrow) : arrlen(player_arrow),
-                             0, smoothangle, crl_spectating ? arrow_color : doom_209, pt.x, pt.y);
+                             0, smoothangle, crl_spectating ? arrow_color : automap_colors[209], pt.x, pt.y);
 
         return;
     }
@@ -2463,7 +2368,7 @@ static void AM_drawThings (void)
     mobj_t   *t;
     angle_t   actualangle;
     // RestlessRodent -- Carbon copy from ReMooD
-    int       color = doom_112;
+    int       color = automap_colors[112];
 
     for (i = 0 ; i < numsectors ; i++)
     {
@@ -2507,7 +2412,7 @@ static void AM_drawThings (void)
             if (t->type == MT_BLOOD || t->type == MT_PUFF)
             {
                 AM_drawLineCharacter(thintriangle_guy, arrlen(thintriangle_guy),
-                                     actualradius >> 2, actualangle, doom_96, pt.x, pt.y);
+                                     actualradius >> 2, actualangle, automap_colors[96], pt.x, pt.y);
             }
             else
             if (t->type == MT_MISC4 || t->type == MT_MISC9)
@@ -2515,7 +2420,7 @@ static void AM_drawThings (void)
                 // [JN] Blue keycard or skull key
                 AM_drawLineCharacter(keysquare, arrlen(keysquare), 
                                      actualradius, actualangle,
-                                     blinking_line ? doom_206 : remaster_200,
+                                     blinking_line ? automap_colors[206] : automap_colors[200],
                                      pt.x, pt.y);
             }
             else
@@ -2524,7 +2429,7 @@ static void AM_drawThings (void)
                 // [JN] Yellow keycard or skull key
                 AM_drawLineCharacter(keysquare, arrlen(keysquare), 
                                      actualradius, actualangle,
-                                     blinking_line ? doom_165 : remaster_160,
+                                     blinking_line ? automap_colors[165] : automap_colors[160],
                                      pt.x, pt.y);
             }
             else
@@ -2533,7 +2438,7 @@ static void AM_drawThings (void)
                 // [JN] Red keycard or skull key
                 AM_drawLineCharacter(keysquare, arrlen(keysquare), 
                                      actualradius, actualangle,
-                                     blinking_line ? doom_184 : doom_176,
+                                     blinking_line ? automap_colors[184] : automap_colors[176],
                                      pt.x, pt.y);
             }
             else
@@ -2551,13 +2456,13 @@ static void AM_drawThings (void)
                 AM_drawLineCharacter(thintriangle_guy, arrlen(thintriangle_guy), 
                                      actualradius, actualangle, 
                                      // Monsters
-                                     t->flags & MF_COUNTKILL ? (t->health > 0 ? color : doom_96) :
+                                     t->flags & MF_COUNTKILL ? (t->health > 0 ? color : automap_colors[96]) :
                                      // Lost Souls and Explosive barrels (does not have a MF_COUNTKILL flag)
-                                     t->type == MT_SKULL || t->type == MT_BARREL ? doom_231 :
+                                     t->type == MT_SKULL || t->type == MT_BARREL ? automap_colors[231] :
                                      // Countable items
-                                     t->flags & MF_COUNTITEM ? doom_112 :
+                                     t->flags & MF_COUNTITEM ? automap_colors[112] :
                                      // Everything else
-                                     doom_96,
+                                     automap_colors[96],
                                      pt.x, pt.y);
             }
 
