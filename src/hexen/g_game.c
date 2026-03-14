@@ -1319,7 +1319,9 @@ boolean G_Responder(event_t * ev)
     if (gameaction == ga_nothing && 
         (demoplayback || gamestate == GS_INTERMISSION))
     {
-        if (ev->type == ev_keydown && (ev->data1 == key_pause || ev->data1 == key_pause2))
+        if (ev->type == ev_keydown
+        && (ev->data1 == key_pause || ev->data1 == key_pause2)
+        && !askforquit)
         {
             if (paused ^= 2)
                 S_PauseSound();
@@ -1451,7 +1453,8 @@ boolean G_Responder(event_t * ev)
                 }
                 break;
             }
-            if ((ev->data1 == key_pause || ev->data1 == key_pause2) && !MenuActive)
+            if ((ev->data1 == key_pause || ev->data1 == key_pause2)
+            && !MenuActive && !askforquit)
             {
                 sendpause = true;
                 return (true);

@@ -207,6 +207,7 @@ static int slotptr;
 static int currentSlot;
 static int quicksave;
 static int quickload;
+static boolean MenuWasPaused;
 
 // [JN] Show custom titles while performing quick save/load.
 static boolean quicksaveTitle = false;
@@ -6317,6 +6318,7 @@ static void SCNetCheck2(int option)
 
 static void SCQuitGame(int option)
 {
+    MenuWasPaused = paused;
     MenuActive = false;
     askforquit = true;
     typeofask = 1;              //quit game
@@ -6340,6 +6342,7 @@ static void SCEndGame(int option)
     }
     if (SCNetCheck(3))
     {
+        MenuWasPaused = paused;
         MenuActive = false;
         askforquit = true;
         typeofask = 2;              //endgame
@@ -7063,7 +7066,7 @@ boolean MN_Responder(event_t * event)
         }
         if (!InfoType)
         {
-            paused = false;
+            paused = MenuWasPaused;
             MN_DeactivateMenu();
             SB_state = -1;      //refresh the statbar
         }
@@ -7151,7 +7154,7 @@ boolean MN_Responder(event_t * event)
                 players[consoleplayer].messageTics = 1;  //set the msg to be cleared
                 askforquit = false;
                 typeofask = 0;
-                paused = false;
+                paused = MenuWasPaused;
                 return true;
             }
         }
@@ -7181,6 +7184,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_help || key == key_menu_help2)           // F1
         {
+            MenuWasPaused = paused;
             SCInfo(0);      // start up info screens
             MenuActive = true;
             return (true);
@@ -7189,6 +7193,7 @@ boolean MN_Responder(event_t * event)
         {
             if (gamestate == GS_LEVEL && !demoplayback)
             {
+                MenuWasPaused = paused;
                 MenuActive = true;
                 FileMenuKeySteal = false;
                 MenuTime = 0;
@@ -7208,6 +7213,7 @@ boolean MN_Responder(event_t * event)
         {
             if (SCNetCheck(2))
             {
+                MenuWasPaused = paused;
                 MenuActive = true;
                 FileMenuKeySteal = false;
                 MenuTime = 0;
@@ -7225,6 +7231,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_volume || key == key_menu_volume2)         // F4 (volume)
         {
+            MenuWasPaused = paused;
             MenuActive = true;
             FileMenuKeySteal = false;
             MenuTime = 0;
@@ -7250,6 +7257,7 @@ boolean MN_Responder(event_t * event)
             {
                 if (!quicksave || quicksave == -1)
                 {
+                    MenuWasPaused = paused;
                     MenuActive = true;
                     FileMenuKeySteal = false;
                     MenuTime = 0;
@@ -7298,6 +7306,7 @@ boolean MN_Responder(event_t * event)
             {
                 if (!quickload || quickload == -1)
                 {
+                    MenuWasPaused = paused;
                     MenuActive = true;
                     FileMenuKeySteal = false;
                     MenuTime = 0;
@@ -7695,9 +7704,13 @@ void MN_ActivateMenu(void)
     {
         return;
     }
-    if (paused)
+
+    // [PN] Preserve pause state from before opening menu.
+    // Do not overwrite while returning from confirmation prompts.
+    // This behavior is same to Doom.
+    if (!askforquit)
     {
-        S_ResumeSound();
+        MenuWasPaused = paused;
     }
     MenuActive = true;
     FileMenuKeySteal = false;
@@ -7736,9 +7749,9 @@ static void MN_DeactivateMenu(void)
     {
         I_StopTextInput();
     }
-    if (!netgame)
+    if (!netgame && !demoplayback)
     {
-        paused = false;
+        paused = MenuWasPaused;
     }
     // [JN] Do not play closing menu sound on quick save/loading actions.
     // Quick save playing it separatelly, quick load doesn't need it at all.
