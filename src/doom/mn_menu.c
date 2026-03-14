@@ -728,6 +728,7 @@ static void M_ID_Automap_Smooth (int choice);
 static void M_ID_Automap_Thick (int choice);
 static void M_ID_Automap_Square (int choice);
 static void M_ID_Automap_Secrets (int choice);
+static void M_ID_Automap_Blink (int choice);
 static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
 static void M_ID_Automap_Shading (int choice);
@@ -3487,6 +3488,7 @@ static menuitem_t ID_Menu_Automap[]=
     { M_MUL1, "LINE THICKNESS",        M_ID_Automap_Thick,    'l' },
     { M_MUL2, "SQUARE ASPECT RATIO",   M_ID_Automap_Square,   's' },
     { M_MUL2, "MARK SECRET SECTORS",   M_ID_Automap_Secrets,  'm' },
+    { M_MUL2, "BLINKING LOCKED DOORS", M_ID_Automap_Blink,    'b' },
     { M_MUL2, "ROTATE MODE",           M_ID_Automap_Rotate,   'r' },
     { M_MUL2, "OVERLAY MODE",          M_ID_Automap_Overlay,  'o' },
     { M_MUL1, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  'o' },
@@ -3557,37 +3559,44 @@ static void M_Draw_ID_Automap (void)
                             automap_secrets ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(4));
 
+    // Blinking locked doors
+    sprintf(str, automap_blink ? "ON" : "OFF");
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+                        automap_blink ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_blink ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(5));
+
     // Rotate mode
     sprintf(str, automap_rotate ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
                         automap_rotate ? cr[CR_GREEN] : cr[CR_DARKRED],
                             automap_rotate ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(6));
 
     // Overlay mode
     sprintf(str, automap_overlay ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
                         automap_overlay ? cr[CR_GREEN] : cr[CR_DARKRED],
                             automap_overlay ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(7));
 
     // Overlay shading level
     sprintf(str,"%d", automap_shading);
-    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
                         !automap_overlay ? cr[CR_DARKRED] :
                          automap_shading ==  0 ? cr[CR_RED] :
                          automap_shading == 12 ? cr[CR_YELLOW] : cr[CR_GREEN],
                             !automap_overlay ? cr[CR_RED_BRIGHT] :
                              automap_shading ==  0 ? cr[CR_RED_BRIGHT] :
                              automap_shading == 12 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(8));
 
     // Mouse panning mode
     sprintf(str, automap_mouse_pan ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
                         automap_mouse_pan ? cr[CR_GREEN] : cr[CR_DARKRED],
                             automap_mouse_pan ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
+                                LINE_ALPHA(9));
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3609,6 +3618,11 @@ static void M_ID_Automap_Square (int choice)
 static void M_ID_Automap_Secrets (int choice)
 {
     automap_secrets = M_INT_Slider(automap_secrets, 0, 2, choice, false);
+}
+
+static void M_ID_Automap_Blink (int choice)
+{
+    automap_blink ^= 1;
 }
 
 static void M_ID_Automap_Rotate (int choice)
@@ -5214,6 +5228,7 @@ static void M_ID_ApplyResetHook (void)
     automap_thick = 0;
     automap_square = 0;
     automap_secrets = 0;
+    automap_blink = 0;
     automap_rotate = 0;
     automap_overlay = 0;
     automap_shading = 0;

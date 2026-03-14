@@ -1,5 +1,6 @@
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
+// Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2016-2026 Julia Nechaevskaya
 // Copyright(C) 2024-2026 Polina "Aura" N.
@@ -51,8 +52,10 @@ static int doom_96;
 static int doom_99;
 static int doom_104;
 static int doom_112;
+static int doom_165;
 static int doom_176;
 static int doom_184;
+static int doom_206;
 static int doom_209;
 static int doom_231;
 
@@ -86,6 +89,8 @@ static int jaguar_254;
 static int exitcolors;
 static int secretwallcolors;
 static int foundsecretwallcolors;
+
+static boolean blinking_line;
 
 // drawing stuff
 #define AM_NUMMARKPOINTS 10
@@ -218,6 +223,18 @@ static mline_t thintriangle_guy[] = {
     { { (fixed_t)(R    ), (fixed_t)(0    ) }, { (fixed_t)(-.5*R), (fixed_t)(.7*R ) } },
     { { (fixed_t)(-.5*R), (fixed_t)(.7*R ) }, { (fixed_t)(-.5*R), (fixed_t)(-.7*R) } }
 };
+
+// [JN] Key icon from Heretic
+static mline_t keysquare[] = {
+    { {  0,     0   }, {  R/4,   -R/2 } },
+    { {  R/4,  -R/2 }, {  R/2,   -R/2 } },
+    { {  R/2,  -R/2 }, {  R/2,    R/2 } },
+    { {  R/2,   R/2 }, {  R/4,    R/2 } },
+    { {  R/4,   R/2 }, {  0,      0   } }, // handle part type thing
+    { {  0,     0   }, { -R,      0   } }, // stem
+    { { -R,     0   }, { -R,     -R/2 } }, // end lockpick part
+    { { -3*R/4, 0   }, { -3*R/4, -R/4 } }
+};
 #undef R
 
 
@@ -339,8 +356,10 @@ void AM_Init (void)
         doom_99  = 99;
         doom_104 = 104;
         doom_112 = 112;
+        doom_165 = 165;
         doom_176 = 176;
         doom_184 = 184;
+        doom_206 = 206;
         doom_209 = 209;
         doom_231 = 231;
 
@@ -384,8 +403,10 @@ void AM_Init (void)
         doom_99  = V_GetPaletteIndex(playpal, 111, 111, 111);
         doom_104 = V_GetPaletteIndex(playpal,  79,  79,  79);
         doom_112 = V_GetPaletteIndex(playpal, 119, 255, 111);
+        doom_165 = V_GetPaletteIndex(playpal, 155,  91,  19);
         doom_176 = V_GetPaletteIndex(playpal, 255,   1,   1);
         doom_184 = V_GetPaletteIndex(playpal, 155,   1,   1);
+        doom_206 = V_GetPaletteIndex(playpal,   1,   1, 107);
         doom_209 = V_GetPaletteIndex(playpal, 255, 235, 219);
         doom_231 = V_GetPaletteIndex(playpal, 255, 255,   1);
 
@@ -1312,6 +1333,9 @@ void AM_Ticker (void)
     {
         arrow_color_direction = !arrow_color_direction;
     }
+
+    // [JN] Framerate independendt ticker for blinking lines.
+    blinking_line = (automap_blink && (gametic % 20) < 10);
 }
 
 // -----------------------------------------------------------------------------
@@ -2199,6 +2223,31 @@ static void AM_drawWalls (void)
                 }
                 break;
             }
+
+            // [JN] Blinking locked doors
+            if (automap_blink)
+            {
+                // [JN] BLUE locked doors
+                if (lines[i].special == 26 || lines[i].special == 32
+                ||  lines[i].special == 99 || lines[i].special == 133)
+                {
+                    AM_drawMline(&l, blinking_line ? doom_206 : remaster_200);
+                }
+                // [JN] RED locked doors
+                else
+                if (lines[i].special == 28  || lines[i].special == 33
+                ||  lines[i].special == 134 || lines[i].special == 135)
+                {
+                    AM_drawMline(&l, blinking_line ? doom_184 : doom_176);
+                }
+                // [JN] YELLOW locked doors
+                else
+                if (lines[i].special == 27  || lines[i].special == 34
+                ||  lines[i].special == 136 || lines[i].special == 137)
+                {
+                    AM_drawMline(&l, blinking_line ? doom_165 : remaster_160);
+                }
+            }
         }
         else if (plr->powers[pw_allmap])
         {
@@ -2459,6 +2508,33 @@ static void AM_drawThings (void)
             {
                 AM_drawLineCharacter(thintriangle_guy, arrlen(thintriangle_guy),
                                      actualradius >> 2, actualangle, doom_96, pt.x, pt.y);
+            }
+            else
+            if (t->type == MT_MISC4 || t->type == MT_MISC9)
+            {
+                // [JN] Blue keycard or skull key
+                AM_drawLineCharacter(keysquare, arrlen(keysquare), 
+                                     actualradius, actualangle,
+                                     blinking_line ? doom_206 : remaster_200,
+                                     pt.x, pt.y);
+            }
+            else
+            if (t->type == MT_MISC6 || t->type == MT_MISC7)
+            {
+                // [JN] Yellow keycard or skull key
+                AM_drawLineCharacter(keysquare, arrlen(keysquare), 
+                                     actualradius, actualangle,
+                                     blinking_line ? doom_165 : remaster_160,
+                                     pt.x, pt.y);
+            }
+            else
+            if (t->type == MT_MISC5 || t->type == MT_MISC8)
+            {
+                // [JN] Red keycard or skull key
+                AM_drawLineCharacter(keysquare, arrlen(keysquare), 
+                                     actualradius, actualangle,
+                                     blinking_line ? doom_184 : doom_176,
+                                     pt.x, pt.y);
             }
             else
             {

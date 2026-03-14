@@ -127,6 +127,7 @@ int automap_square = 0;
 int automap_textured_bg = 1;
 int automap_scroll_bg = 1;
 int automap_secrets = 0;
+int automap_blink = 0;
 int automap_rotate = 0;
 int automap_overlay = 0;
 int automap_shading = 0;
@@ -356,6 +357,10 @@ void ID_BindVariables (GameMission_t mission)
     if (mission == doom || mission == heretic)
     {
         M_BindIntVariable("automap_secrets",            &automap_secrets);
+    }
+    if (mission == doom)
+    {
+        M_BindIntVariable("automap_blink",              &automap_blink);
     }
     M_BindIntVariable("automap_rotate",                 &automap_rotate);
     M_BindIntVariable("automap_overlay",                &automap_overlay);
