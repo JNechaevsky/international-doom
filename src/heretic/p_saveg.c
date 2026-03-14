@@ -2058,7 +2058,7 @@ void P_UnArchiveAutomap (void)
     m_x = SV_ReadLongLong();
     m_y = SV_ReadLongLong();
     AM_ArchiveScaleMtof(SV_ReadLong());
-    mapangle = SV_ReadLongLong();
+    mapangle = SV_ReadLong();
 
     markpointnum = SV_ReadLong();
     markpointnum_max = markpointnum;
