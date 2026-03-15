@@ -287,6 +287,10 @@ static fixed_t scale_mtof = (fixed_t)INITSCALEMTOF;
 static fixed_t prev_scale_mtof = (fixed_t)INITSCALEMTOF; // [JN] Panning interpolation.
 // used by FTOM to scale from frame-buffer-to-map coords (=1/scale_mtof)
 static fixed_t scale_ftom;
+// [PN] Keep save-restored zoom until AM_Start has initialized level bounds. Fixes:
+// https://doomwiki.org/wiki/Automap_scale_preserved_after_warps_in_Heretic_and_Hexen
+static fixed_t loaded_scale_mtof;
+static boolean loaded_scale_mtof_pending;
 
 static player_t *plr; // the player represented by an arrow
 
@@ -469,10 +473,33 @@ static void AM_restoreScaleAndLoc (void)
 //  [PN] Saves/Restores zooming level for saved games.
 // -----------------------------------------------------------------------------
 
+static void AM_RestoreLoadedScaleMtof (void)
+{
+    if (!loaded_scale_mtof_pending)
+    {
+        return;
+    }
+
+    scale_mtof = loaded_scale_mtof;
+
+    if (scale_mtof < min_scale_mtof)
+    {
+        scale_mtof = min_scale_mtof;
+    }
+    else if (scale_mtof > max_scale_mtof)
+    {
+        scale_mtof = max_scale_mtof;
+    }
+
+    scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+}
+
 void AM_ArchiveScaleMtof (fixed_t scale)
 {
     scale_mtof = scale;
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+    loaded_scale_mtof = scale;
+    loaded_scale_mtof_pending = true;
 
     // If automap is opened, recalculate map extents from restored scale.
     if (automapactive)
@@ -859,6 +886,8 @@ void AM_Start (void)
         lastlevel = gamemap;
         lastepisode = gameepisode;
     }
+    AM_RestoreLoadedScaleMtof();
+    loaded_scale_mtof_pending = false;
 
     AM_initVariables();
 }
@@ -2804,6 +2833,7 @@ void AM_MiniDrawer (void)
      || scale_ftom == 0 || scale_mtof == 0)
     {
         AM_LevelInit(false);
+        AM_RestoreLoadedScaleMtof();
         mini_lastlevel = gamemap;
         mini_lastepisode = gameepisode;
     }
