@@ -7189,6 +7189,8 @@ void MN_ActivateMenu(void)
 
 static void MN_DeactivateMenu(void)
 {
+    const boolean wasMenuActive = MenuActive;
+
     if (CurrentMenu != NULL)
     {
         M_Reset_Line_Glow();
@@ -7199,7 +7201,7 @@ static void MN_DeactivateMenu(void)
     {
         I_StopTextInput();
     }
-    if (!netgame && !demoplayback)
+    if (wasMenuActive && !netgame && !demoplayback)
     {
         paused = MenuWasPaused;
     }
