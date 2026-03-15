@@ -1681,14 +1681,17 @@ static void AM_drawGrid (void)
     const fixed_t gridsize = MAPBLOCKUNITS << MAPBITS;
     mline_t ml;
     // [PN] Precomputed for boundary adjustments
-    int half_w = m_w / 2;
-    int half_h = m_h / 2;
+    const int half_w = m_w / 2;
+    const int half_h = m_h / 2;
+    const boolean rotate_or_aspect = automap_rotate || ADJUST_ASPECT_RATIO;
+    const int x_pad = automap_rotate ? half_h : 0;
+    const int y_pad = rotate_or_aspect ? half_w : 0;
 
     // Determine starting position for vertical lines
-    start = m_x - (automap_rotate ? half_h : 0);
+    start = m_x - x_pad;
     start -= (start - (bmaporgx >> FRACTOMAPBITS)) % gridsize;
 
-    end = m_x + m_w + (automap_rotate ? half_h : 0);
+    end = m_x + m_w + x_pad;
 
     // Draw vertical grid lines
     for (x = start; x < end; x += gridsize)
@@ -1696,8 +1699,8 @@ static void AM_drawGrid (void)
         ml.a.x = x;
         ml.b.x = x;
         // [PN] Adjust for rotation or aspect
-        ml.a.y = m_y - (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
-        ml.b.y = m_y + m_h + (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
+        ml.a.y = m_y - y_pad;
+        ml.b.y = m_y + m_h + y_pad;
         
         AM_transformPoint(&ml.a);
         AM_transformPoint(&ml.b);
@@ -1706,11 +1709,11 @@ static void AM_drawGrid (void)
 
     // Determine starting position for horizontal lines
     // [PN] Adjust for rotation or aspect
-    start = m_y - (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
+    start = m_y - y_pad;
     start -= (start - (bmaporgy >> FRACTOMAPBITS)) % gridsize;
 
     // [PN] Adjust end for rotation or aspect
-    end = m_y + m_h + (automap_rotate || ADJUST_ASPECT_RATIO ? half_w : 0);
+    end = m_y + m_h + y_pad;
 
     // Draw horizontal grid lines
     for (y = start; y < end; y += gridsize)
@@ -1718,8 +1721,8 @@ static void AM_drawGrid (void)
         ml.a.y = y;
         ml.b.y = y;
         // [PN] Adjust for rotation
-        ml.a.x = m_x - (automap_rotate ? half_h : 0);
-        ml.b.x = m_x + m_w + (automap_rotate ? half_h : 0);
+        ml.a.x = m_x - x_pad;
+        ml.b.x = m_x + m_w + x_pad;
         
         AM_transformPoint(&ml.a);
         AM_transformPoint(&ml.b);
@@ -2133,6 +2136,8 @@ static void AM_drawMarks (void)
     int fx_flip; // [crispy] support for marks drawing in flipped levels
     int mapx;
     mpoint_t pt;
+    const int f_w_res = f_w / vid_resolution;
+    const int f_h_res = f_h / vid_resolution;
 
     // [JN] killough 2/22/98: remove automap mark limit
     for ( i = 0 ; i < markpointnum ; i++)
@@ -2168,8 +2173,8 @@ static void AM_drawMarks (void)
                 fx += (MARK_FLIP_1);
             }
 
-            if (fx >= f_x && fx <= (f_w / vid_resolution) - 5
-            &&  fy >= f_y && fy <= (f_h / vid_resolution) - 6)
+            if (fx >= f_x && fx <= f_w_res - 5
+            &&  fy >= f_y && fy <= f_h_res - 6)
             {
                 dp_translation = cr[CR_RED];
                 V_DrawPatch(fx_flip - WIDESCREENDELTA, fy, marknums[d]);
