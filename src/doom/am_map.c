@@ -54,6 +54,7 @@ static inline int AM_GetAutomapColor(const unsigned char *playpal,
 }
 
 static boolean blinking_line;
+static boolean drawing_minimap;
 
 // drawing stuff
 #define AM_NUMMARKPOINTS 10
@@ -1399,12 +1400,14 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 
 static inline void PUTDOT_THICK (int x, int y, pixel_t color)
 {
+    const int thick_setting = drawing_minimap ? automap_mini_thick : automap_thick;
+
     // Cache the global setting for smooth rendering locally to avoid
     // repeated access during the loop iterations.
     const int smooth = automap_smooth;
 
     // Thin point fast path
-    if (!automap_thick)
+    if (!thick_setting)
     {
         if (smooth) PUTDOT_RAW(x, y, color);
         else        PUTDOT(x, y, color);
@@ -1412,7 +1415,7 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
     }
 
     // Thickness: 6 == auto (depends on resolution)
-    const int thickness = (automap_thick == 6) ? (vid_resolution >> 1) : automap_thick;
+    const int thickness = (thick_setting == 6) ? (vid_resolution >> 1) : thick_setting;
 
     // Clamp bbox once
     const int fwm1 = f_w - 1, fhm1 = f_h - 1;
@@ -1479,13 +1482,15 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
 
 static inline void PUTDOT_THICK_BLEND (int x, int y, pixel_t fg, unsigned char alpha)
 {
+    const int thick_setting = drawing_minimap ? automap_mini_thick : automap_thick;
+
     if (alpha == 0)
     {
         return;
     }
 
     // Thin point fast path
-    if (!automap_thick)
+    if (!thick_setting)
     {
         if ((unsigned int) x >= (unsigned int) f_w
         ||  (unsigned int) y >= (unsigned int) f_h)
@@ -1506,7 +1511,7 @@ static inline void PUTDOT_THICK_BLEND (int x, int y, pixel_t fg, unsigned char a
     }
 
     // Thickness: 6 == auto (depends on resolution)
-    const int thickness = (automap_thick == 6) ? (vid_resolution >> 1) : automap_thick;
+    const int thickness = (thick_setting == 6) ? (vid_resolution >> 1) : thick_setting;
 
     // Clamp bbox once
     const int fwm1 = f_w - 1, fhm1 = f_h - 1;
@@ -2894,6 +2899,7 @@ void AM_MiniDrawer (void)
     mpoint_t saved_mapcenter;
     angle_t saved_mapangle;
     int saved_automap_overlay;
+    boolean saved_drawing_minimap;
     const boolean freeze_mini_angle = (!am_followplayer && automap_rotate);
 
     if (mini_w <= 0 || mini_h <= 0)
@@ -2943,6 +2949,7 @@ void AM_MiniDrawer (void)
     saved_mapcenter = mapcenter;
     saved_mapangle = mapangle;
     saved_automap_overlay = automap_overlay;
+    saved_drawing_minimap = drawing_minimap;
 
     // [PN] Freeze mini-map rotation angle while follow mode is disabled.
     if (freeze_mini_angle)
@@ -2986,6 +2993,8 @@ void AM_MiniDrawer (void)
         }
     }
 
+    drawing_minimap = true;
+
     // [PN] Use normal automap discovery logic (no forced IDDT reveal).
     if (am_grid)
     {
@@ -3001,6 +3010,7 @@ void AM_MiniDrawer (void)
     }
 
     AM_drawMarks();
+    drawing_minimap = saved_drawing_minimap;
 
     f_x = saved_f_x;
     f_y = saved_f_y;

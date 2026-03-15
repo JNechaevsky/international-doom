@@ -381,6 +381,7 @@ static mpoint_t mapcenter;
 angle_t mapangle;
 static boolean mini_use_static_mapangle = false;
 static boolean mini_disable_edge_fade = false;
+static boolean drawing_minimap = false;
 
 static void DrawWuLine(fline_t* fl, byte BaseColor);
 
@@ -1501,8 +1502,10 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 
 static inline void PUTDOT_THICK(int x, int y, byte *cc)
 {
+    const int thick_setting = drawing_minimap ? automap_mini_thick : automap_thick;
+
     // Thickness (auto==6 → depends on resolution)
-    const int thickness = (automap_thick == 6) ? (vid_resolution >> 1) : automap_thick;
+    const int thickness = (thick_setting == 6) ? (vid_resolution >> 1) : thick_setting;
 
     // Clamp bbox once
     const int fwm1 = f_w - 1;
@@ -1591,6 +1594,8 @@ static inline void PUTDOT_THICK(int x, int y, byte *cc)
 
 static inline void PUTDOT_THICK_BLEND(int x, int y, byte color, pixel_t fg, unsigned char alpha)
 {
+    const int thick_setting = drawing_minimap ? automap_mini_thick : automap_thick;
+
     if (alpha == 0)
     {
         return;
@@ -1615,7 +1620,7 @@ static inline void PUTDOT_THICK_BLEND(int x, int y, byte color, pixel_t fg, unsi
     }
 
     // Thickness (auto==6 -> depends on resolution)
-    const int thickness = (automap_thick == 6) ? (vid_resolution >> 1) : automap_thick;
+    const int thickness = (thick_setting == 6) ? (vid_resolution >> 1) : thick_setting;
 
     // Clamp bbox once
     const int fwm1 = f_w - 1;
@@ -2763,6 +2768,7 @@ void AM_MiniDrawer (void)
     byte (*saved_antialias)[NUMALIAS][NUMLEVELS];
     boolean saved_mini_use_static_mapangle;
     boolean saved_mini_disable_edge_fade;
+    boolean saved_drawing_minimap;
     const boolean freeze_mini_angle = (!am_followplayer && automap_rotate);
 
     if (mini_w <= 0 || mini_h <= 0)
@@ -2812,12 +2818,14 @@ void AM_MiniDrawer (void)
     saved_antialias = antialias;
     saved_mini_use_static_mapangle = mini_use_static_mapangle;
     saved_mini_disable_edge_fade = mini_disable_edge_fade;
+    saved_drawing_minimap = drawing_minimap;
 
     // [PN] Mini-map lines are always rendered using overlay-style colors.
     automap_overlay = 1;
     antialias = &antialias_overlay;
     mini_use_static_mapangle = freeze_mini_angle;
     mini_disable_edge_fade = true;
+    drawing_minimap = true;
 
     f_x = mini_x;
     f_y = mini_y;
@@ -2869,6 +2877,7 @@ void AM_MiniDrawer (void)
     }
 
     AM_drawMarks();
+    drawing_minimap = saved_drawing_minimap;
 
     f_x = saved_f_x;
     f_y = saved_f_y;

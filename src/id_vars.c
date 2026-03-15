@@ -134,6 +134,7 @@ int automap_shading = 0;
 int automap_mouse_pan = 0;
 int automap_mini = 0;
 int automap_mini_size = 4;
+int automap_mini_thick = 0;
 int automap_mini_shading = 7;
 
 //
@@ -371,6 +372,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("automap_mouse_pan",              &automap_mouse_pan);
     M_BindIntVariable("automap_mini",                   &automap_mini);
     M_BindIntVariable("automap_mini_size",              &automap_mini_size);
+    M_BindIntVariable("automap_mini_thick",             &automap_mini_thick);
     M_BindIntVariable("automap_mini_shading",           &automap_mini_shading);
 
     //

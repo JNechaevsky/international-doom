@@ -637,6 +637,7 @@ static void M_ID_Automap_Shading (int choice);
 static void M_ID_Automap_Pan (int choice);
 static void M_ID_Automap_MiniShow (int choice);
 static void M_ID_Automap_MiniSize (int choice);
+static void M_ID_Automap_MiniThick (int choice);
 static void M_ID_Automap_MiniShading (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
@@ -3371,9 +3372,10 @@ static MenuItem_t ID_Menu_Automap[] = {
     { ITT_LRFUNC1, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  0, MENU_NONE },
     { ITT_LRFUNC2, "MOUSE PANNING MODE",    M_ID_Automap_Pan,      0, MENU_NONE },
     { ITT_EMPTY,   NULL,                    NULL,                  0, MENU_NONE },
-    { ITT_LRFUNC2, "SHOW MINIMAP",             M_ID_Automap_MiniShow,    0, MENU_NONE },
-    { ITT_LRFUNC1, "MINIMAP SIZE",             M_ID_Automap_MiniSize,    0, MENU_NONE },
-    { ITT_LRFUNC1, "BACKGROUND SHADING LEVEL", M_ID_Automap_MiniShading, 0, MENU_NONE },
+    { ITT_LRFUNC2, "SHOW MINIMAP",          M_ID_Automap_MiniShow,    0, MENU_NONE },
+    { ITT_LRFUNC1, "MINIMAP SIZE",          M_ID_Automap_MiniSize,    0, MENU_NONE },
+    { ITT_LRFUNC1, "LINE THICKNESS",        M_ID_Automap_MiniThick,   0, MENU_NONE },
+    { ITT_LRFUNC1, "SHADING LEVEL",         M_ID_Automap_MiniShading, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Automap = {
@@ -3482,16 +3484,25 @@ static void M_Draw_ID_Automap (void)
                              (automap_mini_size == 1 || automap_mini_size == 7) ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_HX_BRIGHT],
                                 LINE_ALPHA(11));
 
-    // Background shading level
-    sprintf(str,"%d", automap_mini_shading);
+    // Line thickness
+    sprintf(str, "%s", thickness[automap_mini_thick]);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 140,
+                       !automap_mini ? cr[CR_DARKRED] :
+                        automap_mini_thick ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                           !automap_mini ? cr[CR_RED_BRIGHT] :
+                            automap_mini_thick ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(12));
+
+    // Shading level
+    sprintf(str,"%d", automap_mini_shading);
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 150,
                         !automap_mini ? cr[CR_DARKRED] :
                          automap_mini_shading ==  0 ? cr[CR_RED] :
                          (automap_mini_shading == 1 || automap_mini_shading == 13)  ? cr[CR_YELLOW] : cr[CR_GREEN_HX],
                             !automap_mini ? cr[CR_RED_BRIGHT] :
                              automap_mini_shading ==  0 ? cr[CR_RED_BRIGHT] :
                              (automap_mini_shading == 1 || automap_mini_shading == 13)  ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_HX_BRIGHT],
-                                LINE_ALPHA(12));
+                                LINE_ALPHA(13));
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3551,6 +3562,11 @@ static void M_ID_Automap_MiniShow (int choice)
 static void M_ID_Automap_MiniSize (int choice)
 {
     automap_mini_size = M_INT_Slider(automap_mini_size, 1, 7, choice, true);
+}
+
+static void M_ID_Automap_MiniThick (int choice)
+{
+    automap_mini_thick = M_INT_Slider(automap_mini_thick, 0, 6, choice, false);
 }
 
 static void M_ID_Automap_MiniShading (int choice)
@@ -4417,6 +4433,7 @@ static void M_ID_ApplyResetHook (void)
     automap_mouse_pan = 0;
     automap_mini = 0;
     automap_mini_size = 4;
+    automap_mini_thick = 0;
     automap_mini_shading = 7;
 
     //
