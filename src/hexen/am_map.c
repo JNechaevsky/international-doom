@@ -1731,6 +1731,7 @@ static void AM_drawGrid (void)
 // AM_drawWalls
 // Determines visible lines, draws them. 
 // This is LineDef based, not LineSeg based.
+// [PN] Refactored by using a local linedef alias to reduce repeated dereferences.
 // -----------------------------------------------------------------------------
 
 static void AM_drawWalls (void)
@@ -1739,49 +1740,50 @@ static void AM_drawWalls (void)
 
     for (int i = 0 ; i < numlines ; i++)
     {
-        l.a.x = lines[i].v1->x >> FRACTOMAPBITS;
-        l.a.y = lines[i].v1->y >> FRACTOMAPBITS;
-        l.b.x = lines[i].v2->x >> FRACTOMAPBITS;
-        l.b.y = lines[i].v2->y >> FRACTOMAPBITS;
+        line_t *line = &lines[i];
+        l.a.x = line->v1->x >> FRACTOMAPBITS;
+        l.a.y = line->v1->y >> FRACTOMAPBITS;
+        l.b.x = line->v2->x >> FRACTOMAPBITS;
+        l.b.y = line->v2->y >> FRACTOMAPBITS;
         AM_transformPoint(&l.a);
         AM_transformPoint(&l.b);
 
-        if (mapsco_cheating || (lines[i].flags & ML_MAPPED))
+        if (mapsco_cheating || (line->flags & ML_MAPPED))
         {
-            if ((lines[i].flags & LINE_NEVERSEE) && !mapsco_cheating)
+            if ((line->flags & LINE_NEVERSEE) && !mapsco_cheating)
                 continue;
-            if (!lines[i].backsector)
+            if (!line->backsector)
             {
                 array_push(lines_1S, ((am_line_t){l, WALLCOLORS}));
             }
             else
             {
-                if (lines[i].flags & ML_SECRET) // secret door
+                if (line->flags & ML_SECRET) // secret door
                 {
                     if (mapsco_cheating)
                         AM_drawMline(&l, 0);
                     else
                         AM_drawMline(&l, WALLCOLORS);
                 }
-                else if (lines[i].special == 13 || lines[i].special == 83)
+                else if (line->special == 13 || line->special == 83)
                 {               // Locked door line -- all locked doors are greed
                     AM_drawMline(&l, GREENKEY);
                 }
-                else if (lines[i].special == 70 || lines[i].special == 71)
+                else if (line->special == 70 || line->special == 71)
                 {               // intra-level teleports are blue
                     AM_drawMline(&l, BLUEKEY);
                 }
-                else if (lines[i].special == 74 || lines[i].special == 75)
+                else if (line->special == 74 || line->special == 75)
                 {               // inter-level teleport/game-winning exit -- both are red
                     AM_drawMline(&l, BLOODRED);
                 }
-                else if (lines[i].backsector->floorheight
-                         != lines[i].frontsector->floorheight)
+                else if (line->backsector->floorheight
+                         != line->frontsector->floorheight)
                 {
                     AM_drawMline(&l, FDWALLCOLORS);  // floor level change
                 }
-                else if (lines[i].backsector->ceilingheight
-                         != lines[i].frontsector->ceilingheight)
+                else if (line->backsector->ceilingheight
+                         != line->frontsector->ceilingheight)
                 {
                     AM_drawMline(&l, CDWALLCOLORS);  // ceiling level change
                 }
@@ -1793,7 +1795,7 @@ static void AM_drawWalls (void)
         }
         else if (plr->powers[pw_allmap])
         {
-            if (!(lines[i].flags & LINE_NEVERSEE))
+            if (!(line->flags & LINE_NEVERSEE))
                 AM_drawMline(&l, GRAYS + 3);
         }
     }

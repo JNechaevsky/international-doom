@@ -1876,12 +1876,13 @@ static void AM_drawGrid (void)
 // AM_drawWalls
 // Determines visible lines, draws them. 
 // This is LineDef based, not LineSeg based.
+// [PN] Refactored by using a local linedef alias to reduce repeated dereferences.
 // -----------------------------------------------------------------------------
 
-#define LINESECRETSECTOR_1S automap_secrets > 1 && lines[i].frontsector->special == 9
-#define LINESECRETSECTOR_2S automap_secrets > 1 && (lines[i].frontsector->special == 9 || lines[i].backsector->special == 9)
-#define LINEFOUNDSECRETSECTOR_1S automap_secrets && lines[i].frontsector->oldspecial == 9
-#define LINEFOUNDSECRETSECTOR_2S automap_secrets && (lines[i].frontsector->oldspecial == 9 || lines[i].backsector->oldspecial == 9)
+#define LINESECRETSECTOR_1S automap_secrets > 1 && line->frontsector->special == 9
+#define LINESECRETSECTOR_2S automap_secrets > 1 && (line->frontsector->special == 9 || line->backsector->special == 9)
+#define LINEFOUNDSECRETSECTOR_1S automap_secrets && line->frontsector->oldspecial == 9
+#define LINEFOUNDSECRETSECTOR_2S automap_secrets && (line->frontsector->oldspecial == 9 || line->backsector->oldspecial == 9)
 
 static void AM_drawWalls (void)
 {
@@ -1889,21 +1890,22 @@ static void AM_drawWalls (void)
 
     for (int i = 0 ; i < numlines ; i++)
     {
-        l.a.x = lines[i].v1->x >> FRACTOMAPBITS;
-        l.a.y = lines[i].v1->y >> FRACTOMAPBITS;
-        l.b.x = lines[i].v2->x >> FRACTOMAPBITS;
-        l.b.y = lines[i].v2->y >> FRACTOMAPBITS;
+        line_t *line = &lines[i];
+        l.a.x = line->v1->x >> FRACTOMAPBITS;
+        l.a.y = line->v1->y >> FRACTOMAPBITS;
+        l.b.x = line->v2->x >> FRACTOMAPBITS;
+        l.b.y = line->v2->y >> FRACTOMAPBITS;
         AM_transformPoint(&l.a);
         AM_transformPoint(&l.b);
 
-        if (ravmap_cheating || (lines[i].flags & ML_MAPPED))
+        if (ravmap_cheating || (line->flags & ML_MAPPED))
         {
-            if ((lines[i].flags & ML_DONTDRAW) && !ravmap_cheating)
+            if ((line->flags & ML_DONTDRAW) && !ravmap_cheating)
                 continue;
-            if (!lines[i].backsector)
+            if (!line->backsector)
             {
                 // [JN] Colorize 1-sided exits with azure.
-                if (lines[i].special == 11 || lines[i].special == 51)
+                if (line->special == 11 || line->special == 51)
                 {
                     array_push(lines_1S, ((am_line_t){l, EXITS}));
                 }
@@ -1925,7 +1927,7 @@ static void AM_drawWalls (void)
             }
             else
             {
-                if (lines[i].flags & ML_SECRET)    // secret door
+                if (line->flags & ML_SECRET)    // secret door
                 {
                      // [plums] secret sectors still get colored when option is on
                     if (LINESECRETSECTOR_2S)
@@ -1943,10 +1945,10 @@ static void AM_drawWalls (void)
                 {
                 // [plums] check only colored door types, to not interfere
                 // with secret sector marking of types 28-31.
-                if ((lines[i].special > 25 && lines[i].special < 29)
-                ||  (lines[i].special > 31 && lines[i].special < 35))
+                if ((line->special > 25 && line->special < 29)
+                ||  (line->special > 31 && line->special < 35))
                 {
-                    switch (lines[i].special)
+                    switch (line->special)
                     {
                         case 26:
                         case 32:
@@ -1966,16 +1968,16 @@ static void AM_drawWalls (void)
                 }
                 // [JN] Colorize teleporters with red.
                 else
-                if (lines[i].special == 39
-                ||  lines[i].special == 97)
+                if (line->special == 39
+                ||  line->special == 97)
                 {
                     AM_drawMline(&l, TELEPORTERS);
                 }
                 // [JN] Colorize 2-sided exits with azure.
                 // Switches can still be 2-sided.
                 else
-                if (lines[i].special == 52 || lines[i].special == 105
-                ||  lines[i].special == 11 || lines[i].special == 51)
+                if (line->special == 52 || line->special == 105
+                ||  line->special == 11 || line->special == 51)
                 {
                     AM_drawMline(&l, EXITS);
                 }
@@ -1988,13 +1990,13 @@ static void AM_drawWalls (void)
                 {
                     AM_drawMline(&l, FSECRETCOLORS);
                 }
-                else if (lines[i].backsector->floorheight
-                         != lines[i].frontsector->floorheight)
+                else if (line->backsector->floorheight
+                         != line->frontsector->floorheight)
                 {
                     AM_drawMline(&l, FDWALLCOLORS);  // floor level change
                 }
-                else if (lines[i].backsector->ceilingheight
-                         != lines[i].frontsector->ceilingheight)
+                else if (line->backsector->ceilingheight
+                         != line->frontsector->ceilingheight)
                 {
                     AM_drawMline(&l, CDWALLCOLORS);  // ceiling level change
                 }
@@ -2007,7 +2009,7 @@ static void AM_drawWalls (void)
         }
         else if (plr->powers[pw_allmap])
         {
-            if (!(lines[i].flags & ML_DONTDRAW))
+            if (!(line->flags & ML_DONTDRAW))
             {
                 AM_drawMline(&l, MLDONTDRAW2);
             }
