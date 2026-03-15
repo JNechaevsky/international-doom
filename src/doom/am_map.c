@@ -2789,7 +2789,8 @@ void AM_MiniDrawer (void)
 
     // [PN] Initial mini-map background: dark 72x60 box at top-right.
     // Keep it lower when FPS counter is visible.
-    const int shade = 4;
+    const int shade = automap_mini_shading;
+    const int truecolor_blend = vid_truecolor;
     const int mini_size_h = 72 * vid_resolution;
     const int mini_size_v = 60 * vid_resolution;
     const int mini_margin = (vid_showfps == 1 ? 18 : 9) * vid_resolution;
@@ -2812,22 +2813,18 @@ void AM_MiniDrawer (void)
     // [PN] Keep blinking automap lines animated while only mini-map is shown.
     blinking_line = (automap_blink && (gametic % 20) < 10);
 
-    for (int y = 0; y < mini_h; ++y)
+    // [JN] Draw background. 0 is no background, 13 is solid black.
+    if (shade > 0)
     {
-        pixel_t *dest = I_VideoBuffer + (mini_y + y) * SCREENWIDTH + mini_x;
+        for (int y = 0; y < mini_h; ++y)
+        {
+            pixel_t *const dest = I_VideoBuffer + (mini_y + y) * SCREENWIDTH + mini_x;
 
-        if (vid_truecolor)
-        {
             for (int x = 0; x < mini_w; ++x)
             {
-                dest[x] = I_BlendDark_32(dest[x], I_ShadeFactor[shade]);
-            }
-        }
-        else
-        {
-            for (int x = 0; x < mini_w; ++x)
-            {
-                dest[x] = I_BlendDark_8(dest[x], I_ShadeFactor[shade]);
+                dest[x] = shade == 13 ? 0 :
+                    truecolor_blend ? I_BlendDark_32(dest[x], I_ShadeFactor[shade]) :
+                                      I_BlendDark_8(dest[x], I_ShadeFactor[shade]);
             }
         }
     }
