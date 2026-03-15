@@ -394,6 +394,7 @@ static default_t	doom_defaults_list[] =
 
     // Automap
     CONFIG_VARIABLE_KEYBIND(key_map_toggle, key_map_toggle2),
+    CONFIG_VARIABLE_KEYBIND(key_map_mini, key_map_mini2),
     CONFIG_VARIABLE_KEYBIND(key_map_zoomin, key_map_zoomin2),
     CONFIG_VARIABLE_KEYBIND(key_map_zoomout, key_map_zoomout2),
     CONFIG_VARIABLE_KEYBIND(key_map_maxzoom, key_map_maxzoom2),

@@ -124,6 +124,7 @@ extern int key_arti_all, key_arti_all2;
 // Automap
 
 extern int key_map_toggle, key_map_toggle2;
+extern int key_map_mini, key_map_mini2;
 extern int key_map_zoomin, key_map_zoomin2;
 extern int key_map_zoomout, key_map_zoomout2;
 extern int key_map_maxzoom, key_map_maxzoom2;

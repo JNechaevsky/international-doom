@@ -136,6 +136,7 @@ int key_arti_all             = KEY_BACKSPACE; int key_arti_all2    = 0;
 // Automap
 
 int key_map_toggle    = KEY_TAB; int key_map_toggle2    = 0;
+int key_map_mini      = 0;       int key_map_mini2      = 0;
 int key_map_zoomin    = '=';     int key_map_zoomin2    = '+';
 int key_map_zoomout   = '-';     int key_map_zoomout2   = 0;
 int key_map_maxzoom   = '0';     int key_map_maxzoom2   = 0;
@@ -312,6 +313,7 @@ void M_BindControls (void)
     // Automap
 
     M_BindIntVariableKeybind("key_map_toggle",    &key_map_toggle,    "key_map_toggle2",    &key_map_toggle2);
+    M_BindIntVariableKeybind("key_map_mini",      &key_map_mini,      "key_map_mini2",      &key_map_mini2);
     M_BindIntVariableKeybind("key_map_zoomin",    &key_map_zoomin,    "key_map_zoomin2",    &key_map_zoomin2);
     M_BindIntVariableKeybind("key_map_zoomout",   &key_map_zoomout,   "key_map_zoomout2",   &key_map_zoomout2);
     M_BindIntVariableKeybind("key_map_maxzoom",   &key_map_maxzoom,   "key_map_maxzoom2",   &key_map_maxzoom2);

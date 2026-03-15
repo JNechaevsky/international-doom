@@ -826,6 +826,12 @@ boolean AM_Responder (const event_t *ev)
             SB_state = -1;
             rc = true;
         }
+        if (ev->type == ev_keydown && (ev->data1 == key_map_mini || ev->data1 == key_map_mini2)
+         && gamestate == GS_LEVEL)
+        {
+            automap_mini ^= 1;
+            rc = true;
+        }
     }
     // [crispy] zoom Automap with the mouse wheel
     // [JN] Mouse wheel "buttons" hardcoded.
