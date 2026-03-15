@@ -406,8 +406,6 @@ static void F_TextWrite (void)
     // [crispy] use unified flat filling function
     V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 	
-    V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
-    
     // draw some of the text onto the screen
     cx = 10;
     cy = 10;
@@ -771,8 +769,6 @@ static void F_BunnyScroll (void)
         p2offset = ORIGWIDTH + p1offset;
     }
 
-    V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
-	
     scrolled = (ORIGWIDTH - ((signed int) finalecount-230)/2);
     if (scrolled > ORIGWIDTH)
 	scrolled = ORIGWIDTH;

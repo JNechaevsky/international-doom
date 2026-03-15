@@ -2774,8 +2774,6 @@ void AM_Drawer (void)
     {
         AM_LevelNameDrawer();
     }
-
-    V_MarkRect(f_x, f_y, f_w, f_h);
 }
 
 // -----------------------------------------------------------------------------
@@ -2941,6 +2939,4 @@ void AM_MiniDrawer (void)
     mapcenter = saved_mapcenter;
     mapangle = saved_mapangle;
     automap_overlay = saved_automap_overlay;
-
-    V_MarkRect(mini_x, mini_y, mini_w, mini_h);
 }

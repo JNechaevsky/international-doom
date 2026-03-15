@@ -58,24 +58,6 @@ static fixed_t dx, dxi, dy, dyi;
 
 
 // -----------------------------------------------------------------------------
-// V_MarkRect
-// -----------------------------------------------------------------------------
-
-void V_MarkRect(int x, int y, int width, int height) 
-{
-    static int dirtybox[4];
-
-    // If we are temporarily using an alternate screen, do not
-    // affect the update box.
-
-    if (dest_screen == I_VideoBuffer)
-    {
-        M_AddToBox (dirtybox, x, y);
-        M_AddToBox (dirtybox, x + width-1, y + height-1);
-    }
-}
-
-// -----------------------------------------------------------------------------
 // V_CopyRect
 // -----------------------------------------------------------------------------
 
@@ -105,8 +87,6 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
 
     if (width <= 0 || height <= 0)
         return;
-
-    V_MarkRect(destx, desty, width, height);
 
     pixel_t *src_row  = source + srcy * sw + srcx;
     pixel_t *dest_row = dst0   + desty * sw + destx;
@@ -205,9 +185,6 @@ void V_DrawPatch(int x, int y, patch_t *patch)
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
     x += ws_delta; // horizontal widescreen offset
-
-    // Mark dirty rectangle (original semantics).
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
 
     // Left clipping in fixed-point column space.
     col = 0;
@@ -374,9 +351,6 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
     x += ws_delta; // horizontal widescreen offset
-
-    // Mark dirty rectangle (original semantics).
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
 
     // Left clipping in fixed-point column space.
     col = 0;
@@ -600,9 +574,6 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
     x -= SHORT(patch->leftoffset);
     x += ws_delta; // horizontal widescreen offset
 
-    // Mark dirty rectangle (original semantics).
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
-
     // Left clipping in fixed-point column space.
     col = 0;
     if (x < 0)
@@ -817,8 +788,6 @@ void V_DrawShadowedPatchOptionalFade(int x, int y, int shadow_type, patch_t *pat
     x -= SHORT(patch->leftoffset); 
     x += ws_delta; 
  
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height)); 
- 
     col = 0; 
     if (x < 0) 
     { 
@@ -1000,9 +969,6 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     x -= SHORT(patch->leftoffset);
     x += ws_delta; // horizontal widescreen offset
 
-    // Mark dirty rectangle (original semantics).
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
-
     // Left clipping in fixed-point column space.
     col = 0;
     if (x < 0)
@@ -1136,9 +1102,6 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
         // Note: intentional early return (see original comment about resolution toggling).
         return;
     }
-
-    // Mark dirty rectangle (original semantics).
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
 
     // Left clipping in fixed-point column space (still do it for scaled operations).
     col = 0;
@@ -1276,9 +1239,6 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
         // Render may try to draw before SCREENWIDTH/HEIGHT are updated after a res toggle.
         return;
     }
-
-    // Mark dirty rectangle (original semantics).
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
 
     // Left clipping in fixed-point column space (scaled drawing).
     col = 0;
@@ -1515,8 +1475,6 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     if (width <= 0 || height <= 0 || src == NULL)
         return;
 
-    V_MarkRect(x, y, width, height);
-
     // Compute destination start once. Note: y is scaled by vid_resolution.
     pixel_t *restrict dest = dst_screen_local + (y * vres) * sw + x;
 
@@ -1647,8 +1605,6 @@ void V_DrawFilledBox(int x, int y, int w, int h, int c)
 
     if (w <= 0 || h <= 0)
         return;
-
-    V_MarkRect(x, y, w, h);
 
     pixel_t *restrict row0 = screen + y * sw + x;
     const pixel_t color = (pixel_t)c;

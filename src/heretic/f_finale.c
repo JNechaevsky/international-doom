@@ -270,7 +270,6 @@ static void F_TextWrite (void)
     // [crispy] use unified flat filling function
     V_FillFlat(0, SCREENHEIGHT, 0, SCREENWIDTH, src, dest);
 
-//      V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
 
 //
 // draw some of the text onto the screen

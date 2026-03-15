@@ -2591,6 +2591,4 @@ void AM_MiniDrawer (void)
     antialias = saved_antialias;
     mini_use_static_mapangle = saved_mini_use_static_mapangle;
     mini_disable_edge_fade = saved_mini_disable_edge_fade;
-
-    V_MarkRect(mini_x, mini_y, mini_w, mini_h);
 }

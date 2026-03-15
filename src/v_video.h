@@ -33,7 +33,6 @@ extern boolean V_IsPatchLump(const int lump);
 extern byte *dp_translation;
 extern pixel_t *pal_color;
 
-extern void V_MarkRect(int x, int y, int width, int height);
 extern void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height, int destx, int desty);
 extern void V_DrawPatch(int x, int y, patch_t *patch);
 extern void V_DrawShadowedPatch(int x, int y, patch_t *patch);

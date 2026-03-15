@@ -1427,7 +1427,4 @@ void R_DrawViewBorder (void)
         R_VideoErase(ofs, doubled_side);
         ofs += SCREENWIDTH;
     }
-
-    // [PN] Mark the entire screen for refresh
-    V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT - SBARHEIGHT);
 }
