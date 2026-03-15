@@ -78,5 +78,7 @@ void AM_clearMarks (void);
 
 extern cheatseq_t cheat_amap;
 
+extern void AM_MiniDrawer (void);
+
 
 #endif
