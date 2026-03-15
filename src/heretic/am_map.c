@@ -2616,16 +2616,15 @@ void AM_Drawer (void)
 
 // -----------------------------------------------------------------------------
 // AM_MiniDrawer
+//  [PN] Draws the mini-automap inside a darkened HUD panel, with proper
+//  clipping/scaling and automap-consistent behavior: discovered lines, grid,
+//  things, marks, blinking doors, plus follow/rotation state.
 // -----------------------------------------------------------------------------
 
 void AM_MiniDrawer (void)
 {
     static int mini_lastlevel = -1;
     static int mini_lastepisode = -1;
-
-    // [PN] Initial mini-map background: dark 72x60 box at top-right.
-    // Keep it lower when FPS counter is visible.
-    const int shade = automap_mini_shading;
 
     // [JN] Variable mini-map sizes (size is set by the automap_mini_size variable):
     static const int mini_size_presets[][2] = {
@@ -2640,11 +2639,17 @@ void AM_MiniDrawer (void)
     const int mini_size_h = mini_size_presets[automap_mini_size - 1][0] * vid_resolution;
     const int mini_size_v = mini_size_presets[automap_mini_size - 1][1] * vid_resolution;
 
-    const int mini_margin = (vid_showfps == 1 ? 18 : 9) * vid_resolution;
+    // [PN] HUD-aware top margin.
+    const boolean show_demo_timer =
+        (demoplayback && (demo_timer == 1 || demo_timer == 3)) ||
+        (demorecording && (demo_timer == 2 || demo_timer == 3));
+    const int mini_margin = (10 + (vid_showfps ? 10 : 0) + (show_demo_timer ? 10 : 0)) * vid_resolution;
+
     const int mini_x = MAX(0, SCREENWIDTH - mini_size_h);
     const int mini_y = mini_margin;
     const int mini_w = MIN(mini_size_h, SCREENWIDTH - mini_x);
     const int mini_h = MIN(mini_size_v, SCREENHEIGHT - mini_y);
+    const int shade = automap_mini_shading;
     const int truecolor_blend = vid_truecolor;
     int saved_f_x, saved_f_y, saved_f_w, saved_f_h;
     int64_t saved_m_x, saved_m_y, saved_m_x2, saved_m_y2, saved_m_w, saved_m_h;
