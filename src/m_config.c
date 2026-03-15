@@ -593,6 +593,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(automap_overlay),
     CONFIG_VARIABLE_INT(automap_shading),
     CONFIG_VARIABLE_INT(automap_mouse_pan),
+    CONFIG_VARIABLE_INT(automap_mini),
     CONFIG_VARIABLE_COMMENT(""),
 
     //
