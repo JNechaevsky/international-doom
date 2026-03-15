@@ -1069,6 +1069,12 @@ static void DrawAndBlit(void)
                 AM_Drawer();
             }
 
+            // [PN] Optionally draw minimap.
+            if (!automapactive && automap_mini)
+            {
+                AM_MiniDrawer();
+            }
+
             // [JN] Allow to draw level name separately from automap.
             if (automapactive || (widget_levelname && widget_enable && dp_screen_size < 13))
             {
