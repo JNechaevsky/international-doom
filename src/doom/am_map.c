@@ -2389,29 +2389,28 @@ static void AM_drawPlayers (void)
 // -----------------------------------------------------------------------------
 // AM_drawThings
 // Draws the things on the automap in double IDDT cheat mode.
+// [PN] Refactored by consolidating iteration and color selection.
 // -----------------------------------------------------------------------------
 
 static void AM_drawThings (void)
 {
-    int       i;
-    mpoint_t  pt;
-    mobj_t   *t;
-    angle_t   actualangle;
-    // RestlessRodent -- Carbon copy from ReMooD
-    int       color = automap_colors[112];
+    mpoint_t pt;
+    angle_t  actualangle;
 
-    for (i = 0 ; i < numsectors ; i++)
+    for (int i = 0 ; i < numsectors ; i++)
     {
-        t = sectors[i].thinglist;
-        while (t)
+        for (mobj_t *t = sectors[i].thinglist; t; t = t->snext)
         {
             // [JN] Use actual radius for things drawing.
             const fixed_t actualradius = t->radius >> FRACTOMAPBITS;
-                
+            mline_t      *shape = thintriangle_guy;
+            int           shape_lines = arrlen(thintriangle_guy);
+            fixed_t       scale = actualradius;
+            int           color;
+
             // [crispy] do not draw an extra triangle for the player
             if (t == plr->mo)
             {
-                t = t->snext;
                 continue;
             }
 
@@ -2437,66 +2436,66 @@ static void AM_drawThings (void)
 
             AM_transformPoint(&pt);
 
+            // RestlessRodent -- Carbon copy from ReMooD
+            // [JN] CRL - ReMooD-inspired monsters coloring.
+            if (t->target && t->state && t->state->action.acv != (actionf_v)A_Look)
+            {
+                color = iddt_reds_active;
+            }
+            else
+            {
+                color = iddt_reds_inactive;
+            }
+
+            color =
+                // Monsters
+                t->flags & MF_COUNTKILL ? (t->health > 0 ? color : automap_colors[96]) :
+                // Lost Souls and Explosive barrels (does not have a MF_COUNTKILL flag)
+                t->type == MT_SKULL || t->type == MT_BARREL ? automap_colors[231] :
+                // Countable items
+                t->flags & MF_COUNTITEM ? automap_colors[112] :
+                // Everything else
+                automap_colors[96];
+
             // [JN] IDDT extended colors:
             // [crispy] draw blood splats and puffs as small squares
-            if (t->type == MT_BLOOD || t->type == MT_PUFF)
+            switch (t->type)
             {
-                AM_drawLineCharacter(thintriangle_guy, arrlen(thintriangle_guy),
-                                     actualradius >> 2, actualangle, automap_colors[96], pt.x, pt.y);
-            }
-            else
-            if (t->type == MT_MISC4 || t->type == MT_MISC9)
-            {
-                // [JN] Blue keycard or skull key
-                AM_drawLineCharacter(keysquare, arrlen(keysquare), 
-                                     actualradius, actualangle,
-                                     blinking_line ? automap_colors[206] : automap_colors[200],
-                                     pt.x, pt.y);
-            }
-            else
-            if (t->type == MT_MISC6 || t->type == MT_MISC7)
-            {
-                // [JN] Yellow keycard or skull key
-                AM_drawLineCharacter(keysquare, arrlen(keysquare), 
-                                     actualradius, actualangle,
-                                     blinking_line ? automap_colors[165] : automap_colors[160],
-                                     pt.x, pt.y);
-            }
-            else
-            if (t->type == MT_MISC5 || t->type == MT_MISC8)
-            {
-                // [JN] Red keycard or skull key
-                AM_drawLineCharacter(keysquare, arrlen(keysquare), 
-                                     actualradius, actualangle,
-                                     blinking_line ? automap_colors[184] : automap_colors[176],
-                                     pt.x, pt.y);
-            }
-            else
-            {
-                // [JN] CRL - ReMooD-inspired monsters coloring.
-                if (t->target && t->state && t->state->action.acv != (actionf_v)A_Look)
-                {
-                    color = iddt_reds_active;
-                }
-                else
-                {
-                    color = iddt_reds_inactive;
-                }
+                case MT_BLOOD:
+                case MT_PUFF:
+                    scale = actualradius >> 2;
+                    color = automap_colors[96];
+                    break;
 
-                AM_drawLineCharacter(thintriangle_guy, arrlen(thintriangle_guy), 
-                                     actualradius, actualangle, 
-                                     // Monsters
-                                     t->flags & MF_COUNTKILL ? (t->health > 0 ? color : automap_colors[96]) :
-                                     // Lost Souls and Explosive barrels (does not have a MF_COUNTKILL flag)
-                                     t->type == MT_SKULL || t->type == MT_BARREL ? automap_colors[231] :
-                                     // Countable items
-                                     t->flags & MF_COUNTITEM ? automap_colors[112] :
-                                     // Everything else
-                                     automap_colors[96],
-                                     pt.x, pt.y);
+                case MT_MISC4:
+                case MT_MISC9:
+                    // [JN] Blue keycard or skull key
+                    shape = keysquare;
+                    shape_lines = arrlen(keysquare);
+                    color = blinking_line ? automap_colors[206] : automap_colors[200];
+                    break;
+
+                case MT_MISC6:
+                case MT_MISC7:
+                    // [JN] Yellow keycard or skull key
+                    shape = keysquare;
+                    shape_lines = arrlen(keysquare);
+                    color = blinking_line ? automap_colors[165] : automap_colors[160];
+                    break;
+
+                case MT_MISC5:
+                case MT_MISC8:
+                    // [JN] Red keycard or skull key
+                    shape = keysquare;
+                    shape_lines = arrlen(keysquare);
+                    color = blinking_line ? automap_colors[184] : automap_colors[176];
+                    break;
+
+                default:
+                    break;
             }
 
-            t = t->snext;
+            AM_drawLineCharacter(shape, shape_lines, scale, actualangle, color, pt.x, pt.y);
         }
     }
 }

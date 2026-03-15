@@ -2003,27 +2003,25 @@ static void AM_drawPlayers (void)
 // -----------------------------------------------------------------------------
 // AM_drawThings
 // Draws the things on the automap in double IDDT cheat mode.
+// [PN] Refactored by consolidating iteration and color selection.
 // -----------------------------------------------------------------------------
 
 static void AM_drawThings(void)
 {
-    int i;
     mpoint_t  pt;
-    mobj_t *t;
     angle_t   actualangle;
 
-    for (i = 0 ; i < numsectors ; i++)
+    for (int i = 0 ; i < numsectors ; i++)
     {
-        t = sectors[i].thinglist;
-        while (t)
+        for (mobj_t *t = sectors[i].thinglist; t; t = t->snext)
         {
             // [JN] Use actual radius for things drawing.
             const fixed_t actualradius = t->radius >> FRACTOMAPBITS;
-                
+            int color;
+                 
             // [crispy] do not draw an extra triangle for the player
             if (t == plr->mo)
             {
-                t = t->snext;
                 continue;
             }
 
@@ -2049,20 +2047,22 @@ static void AM_drawThings(void)
 
             AM_transformPoint(&pt);
 
+            color =
+                // Monsters
+                // [JN] CRL - ReMooD-inspired monsters coloring.
+                t->flags & MF_COUNTKILL ? (t->health > 0 ? iddt_reds : 15) :
+                // Countable items:
+                t->type == MT_MANA1 ? BLUEKEY :  // Blue mana
+                t->type == MT_MANA2 ? GREENKEY : // Green mana
+                t->type == MT_MANA3 ? 177 :      // Combined mana
+                t->flags & MF_SPECIAL ? 213 :    // The rest of pickups
+                // Everything else
+                IDDT_GRAY;
+
             AM_drawLineCharacter(thintriangle_guy, NUMTHINTRIANGLEGUYLINES,
                                  actualradius, actualangle,
-                                 // Monsters
-                                 // [JN] CRL - ReMooD-inspired monsters coloring.
-                                 t->flags & MF_COUNTKILL ? (t->health > 0 ? iddt_reds : 15) :
-                                 // Countable items:
-                                 t->type == MT_MANA1 ? BLUEKEY :  // Blue mana
-                                 t->type == MT_MANA2 ? GREENKEY : // Green mana
-                                 t->type == MT_MANA3 ? 177 :      // Combined mana
-                                 t->flags & MF_SPECIAL ? 213 :    // The rest of pickups
-                                 // Everything else
-                                 IDDT_GRAY,
+                                 color,
                                  pt.x, pt.y);
-            t = t->snext;
         }
     }
 }
