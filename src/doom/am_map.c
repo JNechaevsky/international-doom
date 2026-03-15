@@ -2207,16 +2207,14 @@ static void AM_drawWalls (void)
 
 static void AM_rotate (int64_t *x, int64_t *y, angle_t a)
 {
-    int64_t tmpx;
+    const angle_t fineangle = a >> ANGLETOFINESHIFT;
+    const fixed_t sin = finesine[fineangle];
+    const fixed_t cos = finecosine[fineangle];
+    const int64_t oldx = *x;
+    const int64_t oldy = *y;
+    const int64_t tmpx = FixedMul(oldx, cos) - FixedMul(oldy, sin);
 
-    a >>= ANGLETOFINESHIFT;
-
-    tmpx = FixedMul(*x, finecosine[a])
-         - FixedMul(*y, finesine[a]);
-
-    *y = FixedMul(*x, finesine[a])
-       + FixedMul(*y, finecosine[a]);
-
+    *y = FixedMul(oldx, sin) + FixedMul(oldy, cos);
     *x = tmpx;
 }
 
