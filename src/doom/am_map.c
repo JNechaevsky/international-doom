@@ -1400,7 +1400,7 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 #undef DOOUTCODE
 
 
-#define PUTDOT_RAW(xx,yy,cc) fb[(yy) * f_w + flipscreenwidth[(xx)]] = (cc)
+#define PUTDOT_RAW(xx,yy,cc) fb[((yy) + f_y) * SCREENWIDTH + flipscreenwidth[(xx) + f_x]] = (cc)
 #define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,pal_color[(cc)])
 
 // -----------------------------------------------------------------------------
@@ -1439,9 +1439,11 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
 
     const int thick_sq = thickness * thickness;
 
-    // Cache fb pointer and width
+    // Cache fb pointer and real screen stride
     pixel_t *restrict fbuf = fb;
-    const int fw = f_w;
+    const int stride = SCREENWIDTH;
+    const int fx = f_x;
+    const int fy = f_y;
 
     if (smooth)
     {
@@ -1451,10 +1453,10 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
             const int dx  = nx - x;
             const int dx2 = dx * dx;
 
-            const int flipx = flipscreenwidth[nx];
-            pixel_t *pix = fbuf + miny * fw + flipx;
+            const int flipx = flipscreenwidth[fx + nx];
+            pixel_t *pix = fbuf + (fy + miny) * stride + flipx;
 
-            for (int ny = miny; ny <= maxy; ++ny, pix += fw)
+            for (int ny = miny; ny <= maxy; ++ny, pix += stride)
             {
                 const int dy = ny - y;
                 if (dx2 + dy * dy > thick_sq) continue;
@@ -1472,10 +1474,10 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
             const int dx  = nx - x;
             const int dx2 = dx * dx;
 
-            const int flipx = flipscreenwidth[nx];
-            pixel_t *pix = fbuf + miny * fw + flipx;
+            const int flipx = flipscreenwidth[fx + nx];
+            pixel_t *pix = fbuf + (fy + miny) * stride + flipx;
 
-            for (int ny = miny; ny <= maxy; ++ny, pix += fw)
+            for (int ny = miny; ny <= maxy; ++ny, pix += stride)
             {
                 const int dy = ny - y;
                 if (dx2 + dy * dy > thick_sq) continue;
@@ -1501,8 +1503,11 @@ static void AM_drawFline_Vanilla (fline_t *fl, int color)
     // [PN] Calculate abs(dx) and abs(dy) in one step
     const int ax = sx * dx * 2, ay = sy * dy * 2;
 
-    // [PN] Debug check to exit if out of bounds
-    if (x < 0 || x >= f_w || y < 0 || y >= f_h || fl->b.x < 0 || fl->b.x >= f_w || fl->b.y < 0 || fl->b.y >= f_h)
+    // [PN] Guard against out-of-bounds endpoints.
+    if ((unsigned int) x >= (unsigned int) f_w
+    ||  (unsigned int) y >= (unsigned int) f_h
+    ||  (unsigned int) fl->b.x >= (unsigned int) f_w
+    ||  (unsigned int) fl->b.y >= (unsigned int) f_h)
     {
         static int yuck = 0;
 
@@ -1661,6 +1666,15 @@ static void AM_drawMline (mline_t *ml, int color)
 
     if (AM_clipMline(ml, &fl))
     {
+        // [PN] Draw routine expects local viewport coordinates.
+        if (f_x || f_y)
+        {
+            fl.a.x -= f_x;
+            fl.a.y -= f_y;
+            fl.b.x -= f_x;
+            fl.b.y -= f_y;
+        }
+
         // draws it on frame buffer using fb coords
         AM_drawFline(&fl, color);
     }
@@ -2569,6 +2583,8 @@ static void AM_drawMarks (void)
     int fx_flip; // [crispy] support for marks drawing in flipped levels
     int mapx;
     mpoint_t pt;
+    const int f_x_res = f_x / vid_resolution;
+    const int f_y_res = f_y / vid_resolution;
     const int f_w_res = f_w / vid_resolution;
     const int f_h_res = f_h / vid_resolution;
 
@@ -2586,7 +2602,7 @@ static void AM_drawMarks (void)
 
         // [PN] ASAN: Avoid out-of-bounds access in flipscreenwidth[]
         // when a mark is completely outside the automap view.
-        if ((unsigned int) mapx >= (unsigned int) f_w)
+        if ((unsigned int) (mapx - f_x) >= (unsigned int) f_w)
         {
             continue;
         }
@@ -2607,8 +2623,8 @@ static void AM_drawMarks (void)
             }
 
             // [PN] Draw if within boundaries
-            if (fx >= f_x && fx <= f_w_res - 5
-            &&  fy >= f_y && fy <= f_h_res - 6)
+            if (fx >= f_x_res && fx <= f_x_res + f_w_res - 5
+            &&  fy >= f_y_res && fy <= f_y_res + f_h_res - 6)
             {
                 V_DrawPatch(fx_flip - WIDESCREENDELTA, fy, marknums[d]);
             }
@@ -2760,4 +2776,171 @@ void AM_Drawer (void)
     }
 
     V_MarkRect(f_x, f_y, f_w, f_h);
+}
+
+// -----------------------------------------------------------------------------
+// AM_MiniDrawer
+//  [PN] Draws the mini-automap inside a darkened HUD panel, with proper
+//  clipping/scaling and automap-consistent behavior: discovered lines, grid,
+//  things, marks, blinking doors, plus follow/rotation state.
+// -----------------------------------------------------------------------------
+
+void AM_MiniDrawer (void)
+{
+    static int mini_lastlevel = -1;
+    static int mini_lastepisode = -1;
+
+    // [JN] Variable mini-map sizes (size is set by the automap_mini_size variable):
+    static const int mini_size_presets[][2] = {
+        {48, 36},  // 1 - smallest
+        {56, 44},  // 2 - smaller
+        {64, 52},  // 3 - small
+        {72, 60},  // 4 - medium
+        {80, 68},  // 5 - big
+        {88, 76},  // 6 - bigger
+        {96, 84},  // 7 - biggest
+    };
+    const int mini_size_h = mini_size_presets[automap_mini_size - 1][0] * vid_resolution;
+    const int mini_size_v = mini_size_presets[automap_mini_size - 1][1] * vid_resolution;
+
+    // [PN] HUD-aware top margin.
+    const boolean show_demo_timer =
+        (demoplayback && (demo_timer == 1 || demo_timer == 3)) ||
+        (demorecording && (demo_timer == 2 || demo_timer == 3));
+    const int mini_margin = (9 + (vid_showfps ? 9 : 0) + (show_demo_timer ? 9 : 0)) * vid_resolution;
+    
+    const int mini_x = MAX(0, SCREENWIDTH - mini_size_h);
+    const int mini_y = mini_margin;
+    const int mini_w = MIN(mini_size_h, SCREENWIDTH - mini_x);
+    const int mini_h = MIN(mini_size_v, SCREENHEIGHT - mini_y);
+    const int shade = automap_mini_shading;
+    const int truecolor_blend = vid_truecolor;
+    int saved_f_x, saved_f_y, saved_f_w, saved_f_h;
+    int64_t saved_m_x, saved_m_y, saved_m_x2, saved_m_y2, saved_m_w, saved_m_h;
+    mpoint_t saved_mapcenter;
+    angle_t saved_mapangle;
+    int saved_automap_overlay;
+    const boolean freeze_mini_angle = (!am_followplayer && automap_rotate);
+
+    if (mini_w <= 0 || mini_h <= 0)
+    {
+        return;
+    }
+
+    // [PN] Keep blinking automap lines animated while only mini-map is shown.
+    blinking_line = (automap_blink && (gametic % 20) < 10);
+
+    // [JN] Draw background. 0 is no background, 13 is solid black.
+    if (shade > 0)
+    {
+        for (int y = 0; y < mini_h; ++y)
+        {
+            pixel_t *const dest = I_VideoBuffer + (mini_y + y) * SCREENWIDTH + mini_x;
+
+            for (int x = 0; x < mini_w; ++x)
+            {
+                dest[x] = shade == 13 ? 0 :
+                    truecolor_blend ? I_BlendDark_32(dest[x], I_ShadeFactor[shade]) :
+                                      I_BlendDark_8(dest[x], I_ShadeFactor[shade]);
+            }
+        }
+    }
+
+    // [PN] Ensure per-level automap state is initialized even when loading
+    // directly from a save (scale_ftom can already be restored there).
+    if (mini_lastlevel != gamemap || mini_lastepisode != gameepisode
+     || scale_ftom == 0 || scale_mtof == 0)
+    {
+        AM_LevelInit(false);
+        mini_lastlevel = gamemap;
+        mini_lastepisode = gameepisode;
+    }
+
+    saved_f_x = f_x;
+    saved_f_y = f_y;
+    saved_f_w = f_w;
+    saved_f_h = f_h;
+    saved_m_x = m_x;
+    saved_m_y = m_y;
+    saved_m_x2 = m_x2;
+    saved_m_y2 = m_y2;
+    saved_m_w = m_w;
+    saved_m_h = m_h;
+    saved_mapcenter = mapcenter;
+    saved_mapangle = mapangle;
+    saved_automap_overlay = automap_overlay;
+
+    // [PN] Freeze mini-map rotation angle while follow mode is disabled.
+    if (freeze_mini_angle)
+    {
+        automap_overlay = 1;
+    }
+
+    f_x = mini_x;
+    f_y = mini_y;
+    f_w = mini_w;
+    f_h = mini_h;
+    plr = &players[displayplayer];
+
+    m_w = FTOM(f_w);
+    m_h = FTOM(f_h);
+
+    if (am_followplayer)
+    {
+        m_x = (viewx >> FRACTOMAPBITS) - m_w / 2;
+        m_y = (viewy >> FRACTOMAPBITS) - m_h / 2;
+    }
+    else
+    {
+        // [PN] Keep mini-map centered on the last manual automap position.
+        const int64_t center_x = saved_m_x + saved_m_w / 2;
+        const int64_t center_y = saved_m_y + saved_m_h / 2;
+        m_x = center_x - m_w / 2;
+        m_y = center_y - m_h / 2;
+    }
+
+    m_x2 = m_x + m_w;
+    m_y2 = m_y + m_h;
+
+    if (automap_rotate || ADJUST_ASPECT_RATIO)
+    {
+        mapcenter.x = m_x + m_w / 2;
+        mapcenter.y = m_y + m_h / 2;
+        if (automap_rotate && !freeze_mini_angle)
+        {
+            mapangle = ANG90 - plr->mo->angle;
+        }
+    }
+
+    // [PN] Use normal automap discovery logic (no forced IDDT reveal).
+    if (am_grid)
+    {
+        AM_drawGrid();
+    }
+
+    AM_drawWalls();
+    AM_drawPlayers();
+
+    if (iddt_cheating == 2)
+    {
+        AM_drawThings();
+    }
+
+    AM_drawMarks();
+
+    f_x = saved_f_x;
+    f_y = saved_f_y;
+    f_w = saved_f_w;
+    f_h = saved_f_h;
+    m_x = saved_m_x;
+    m_y = saved_m_y;
+    m_x2 = saved_m_x2;
+    m_y2 = saved_m_y2;
+    m_w = saved_m_w;
+    m_h = saved_m_h;
+    mapcenter = saved_mapcenter;
+    mapangle = saved_mapangle;
+    automap_overlay = saved_automap_overlay;
+
+    V_MarkRect(mini_x, mini_y, mini_w, mini_h);
 }

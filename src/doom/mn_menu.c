@@ -733,6 +733,9 @@ static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
 static void M_ID_Automap_Shading (int choice);
 static void M_ID_Automap_Pan (int choice);
+static void M_ID_Automap_MiniShow (int choice);
+static void M_ID_Automap_MiniSize (int choice);
+static void M_ID_Automap_MiniShading (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
@@ -3493,6 +3496,10 @@ static menuitem_t ID_Menu_Automap[]=
     { M_MUL2, "OVERLAY MODE",          M_ID_Automap_Overlay,  'o' },
     { M_MUL1, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  'o' },
     { M_MUL2, "MOUSE PANNING MODE",    M_ID_Automap_Pan,      'm' },
+    { M_SKIP, "", 0, '\0' },
+    { M_MUL2, "SHOW MINIMAP",             M_ID_Automap_MiniShow,    's' },
+    { M_MUL1, "MINIMAP SIZE",             M_ID_Automap_MiniSize,    'm' },
+    { M_MUL1, "BACKGROUND SHADING LEVEL", M_ID_Automap_MiniShading, 'b' },
 };
 
 static menu_t ID_Def_Automap =
@@ -3516,6 +3523,9 @@ static void M_Draw_ID_Automap (void)
     char str[32];
     const char *thickness[] = {
         "DEFAULT","2X","3X","4X","5X","6X","AUTO"
+    };
+    const char *size[] = {
+        "UNKNOWN","SMALLEST","SMALLER","SMALL","MEDIUM","BIG","BIGGER","BIGGEST"
     };
 
     M_WriteTextCentered(9, "AUTOMAP", cr[CR_YELLOW]);
@@ -3597,6 +3607,35 @@ static void M_Draw_ID_Automap (void)
                         automap_mouse_pan ? cr[CR_GREEN] : cr[CR_DARKRED],
                             automap_mouse_pan ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(9));
+
+    M_WriteTextCentered(108, "MINIMAP", cr[CR_YELLOW]);
+
+    // Show minimap
+    sprintf(str, automap_mini ? "ON" : "OFF");
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+                        automap_mini ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            automap_mini ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(11));
+
+    // Minimap size
+    sprintf(str,"%s", size[automap_mini_size]);
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
+                        !automap_mini ? cr[CR_DARKRED] :
+                         (automap_mini_size == 1 || automap_mini_size == 7) ? cr[CR_YELLOW] : cr[CR_GREEN],
+                            !automap_mini ? cr[CR_RED_BRIGHT] :
+                             (automap_mini_size == 1 || automap_mini_size == 7) ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(12));
+
+    // Background shading level
+    sprintf(str,"%d", automap_mini_shading);
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+                        !automap_mini ? cr[CR_DARKRED] :
+                         automap_mini_shading == 0 ? cr[CR_RED] :
+                         (automap_mini_shading == 1 || automap_mini_shading == 13) ? cr[CR_YELLOW] : cr[CR_GREEN],
+                            !automap_mini ? cr[CR_RED_BRIGHT] :
+                             automap_mini_shading == 0 ? cr[CR_RED_BRIGHT] :
+                             (automap_mini_shading == 1 || automap_mini_shading == 13) ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(13));
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3643,6 +3682,21 @@ static void M_ID_Automap_Shading (int choice)
 static void M_ID_Automap_Pan (int choice)
 {
     automap_mouse_pan ^= 1;
+}
+
+static void M_ID_Automap_MiniShow (int choice)
+{
+    automap_mini ^= 1;
+}
+
+static void M_ID_Automap_MiniSize (int choice)
+{
+    automap_mini_size = M_INT_Slider(automap_mini_size, 1, 7, choice, true);
+}
+
+static void M_ID_Automap_MiniShading (int choice)
+{
+    automap_mini_shading = M_INT_Slider(automap_mini_shading, 0, 13, choice, true);
 }
 
 // -----------------------------------------------------------------------------
@@ -5233,6 +5287,9 @@ static void M_ID_ApplyResetHook (void)
     automap_overlay = 0;
     automap_shading = 0;
     automap_mouse_pan = 0;
+    automap_mini = 0;
+    automap_mini_size = 4;
+    automap_mini_shading = 7;
 
     //
     // Gameplay features

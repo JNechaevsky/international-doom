@@ -635,6 +635,9 @@ static void M_ID_Automap_Rotate (int choice);
 static void M_ID_Automap_Overlay (int choice);
 static void M_ID_Automap_Shading (int choice);
 static void M_ID_Automap_Pan (int choice);
+static void M_ID_Automap_MiniShow (int choice);
+static void M_ID_Automap_MiniSize (int choice);
+static void M_ID_Automap_MiniShading (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
@@ -3367,6 +3370,10 @@ static MenuItem_t ID_Menu_Automap[] = {
     { ITT_LRFUNC2, "OVERLAY MODE",          M_ID_Automap_Overlay,  0, MENU_NONE },
     { ITT_LRFUNC1, "OVERLAY SHADING LEVEL", M_ID_Automap_Shading,  0, MENU_NONE },
     { ITT_LRFUNC2, "MOUSE PANNING MODE",    M_ID_Automap_Pan,      0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                    NULL,                  0, MENU_NONE },
+    { ITT_LRFUNC2, "SHOW MINIMAP",             M_ID_Automap_MiniShow,    0, MENU_NONE },
+    { ITT_LRFUNC1, "MINIMAP SIZE",             M_ID_Automap_MiniSize,    0, MENU_NONE },
+    { ITT_LRFUNC1, "BACKGROUND SHADING LEVEL", M_ID_Automap_MiniShading, 0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Automap = {
@@ -3383,6 +3390,9 @@ static void M_Draw_ID_Automap (void)
     char str[32];
     const char *thickness[] = {
         "DEFAULT","2X","3X","4X","5X","6X","AUTO"
+    };
+    const char *size[] = {
+        "UNKNOWN","SMALLEST","SMALLER","SMALL","MEDIUM","BIG","BIGGER","BIGGEST"
     };
 
     MN_DrTextACentered("AUTOMAP", 10, cr[CR_YELLOW]);
@@ -3453,6 +3463,35 @@ static void M_Draw_ID_Automap (void)
                         automap_mouse_pan ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             automap_mouse_pan ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(8));
+
+    MN_DrTextACentered("MINIMAP", 110, cr[CR_YELLOW]);
+
+    // Show minimap
+    sprintf(str, automap_mini ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
+                        automap_mini ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            automap_mini ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(10));
+
+    // Minimap size
+    sprintf(str,"%s", size[automap_mini_size]);
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
+                        !automap_mini ? cr[CR_DARKRED] :
+                         (automap_mini_size == 1 || automap_mini_size == 7) ? cr[CR_YELLOW] : cr[CR_GREEN_HX],
+                            !automap_mini ? cr[CR_RED_BRIGHT] :
+                             (automap_mini_size == 1 || automap_mini_size == 7) ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_HX_BRIGHT],
+                                LINE_ALPHA(11));
+
+    // Background shading level
+    sprintf(str,"%d", automap_mini_shading);
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 140,
+                        !automap_mini ? cr[CR_DARKRED] :
+                         automap_mini_shading ==  0 ? cr[CR_RED] :
+                         (automap_mini_shading == 1 || automap_mini_shading == 13)  ? cr[CR_YELLOW] : cr[CR_GREEN_HX],
+                            !automap_mini ? cr[CR_RED_BRIGHT] :
+                             automap_mini_shading ==  0 ? cr[CR_RED_BRIGHT] :
+                             (automap_mini_shading == 1 || automap_mini_shading == 13)  ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_HX_BRIGHT],
+                                LINE_ALPHA(12));
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3502,6 +3541,21 @@ static void M_ID_Automap_Shading (int choice)
 static void M_ID_Automap_Pan (int choice)
 {
     automap_mouse_pan ^= 1;
+}
+
+static void M_ID_Automap_MiniShow (int choice)
+{
+    automap_mini ^= 1;
+}
+
+static void M_ID_Automap_MiniSize (int choice)
+{
+    automap_mini_size = M_INT_Slider(automap_mini_size, 1, 7, choice, true);
+}
+
+static void M_ID_Automap_MiniShading (int choice)
+{
+    automap_mini_shading = M_INT_Slider(automap_mini_shading, 0, 13, choice, true);
 }
 
 // -----------------------------------------------------------------------------
@@ -4361,6 +4415,9 @@ static void M_ID_ApplyResetHook (void)
     automap_overlay = 0;
     automap_shading = 0;
     automap_mouse_pan = 0;
+    automap_mini = 0;
+    automap_mini_size = 4;
+    automap_mini_shading = 7;
 
     //
     // Gameplay features
