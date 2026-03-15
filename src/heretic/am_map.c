@@ -382,7 +382,7 @@ angle_t mapangle;
 static boolean mini_use_static_mapangle = false;
 static boolean mini_disable_edge_fade = false;
 
-static void DrawWuLine(fline_t* fl, byte *BaseColor);
+static void DrawWuLine(fline_t* fl, byte BaseColor);
 
 
 // -----------------------------------------------------------------------------
@@ -1584,6 +1584,106 @@ static inline void PUTDOT_THICK(int x, int y, byte *cc)
 }
 
 // -----------------------------------------------------------------------------
+// PUTDOT_THICK_BLEND
+// [PN] Draws a thick automap point like PUTDOT_THICK, but applies additional
+// Wu alpha over the base line color while preserving edge fade behavior.
+// -----------------------------------------------------------------------------
+
+static inline void PUTDOT_THICK_BLEND(int x, int y, byte color, pixel_t fg, unsigned char alpha)
+{
+    if (alpha == 0)
+    {
+        return;
+    }
+
+    // Preserve original fast/visual path for fully opaque points.
+    if (alpha == 255)
+    {
+        PUTDOT_THICK(x, y, &color);
+        return;
+    }
+
+    // [PN] On bright textured automap background, make AA fade a bit stronger.
+    unsigned int wu_alpha = alpha;
+    if (!automap_overlay && automap_textured_bg)
+    {
+        wu_alpha = (wu_alpha * 200 + 127) >> 8;
+        if (wu_alpha == 0)
+        {
+            return;
+        }
+    }
+
+    // Thickness (auto==6 -> depends on resolution)
+    const int thickness = (automap_thick == 6) ? (vid_resolution >> 1) : automap_thick;
+
+    // Clamp bbox once
+    const int fwm1 = f_w - 1;
+    const int fhm1 = f_h - 1;
+    int minx = x - thickness; if (minx < 0)    minx = 0;
+    int maxx = x + thickness; if (maxx > fwm1) maxx = fwm1;
+    int miny = y - thickness; if (miny < 0)    miny = 0;
+    int maxy = y + thickness; if (maxy > fhm1) maxy = fhm1;
+
+    const int thick_sq = thickness * thickness;
+
+    uint32_t *restrict fbuf = (uint32_t *)fb;
+    const int stride = SCREENWIDTH;
+    const int fx = f_x;
+    const int fy = f_y;
+
+    // Edge-fade alpha lookup (0..6)
+    static const unsigned char aLUT[7] = { 255, 220, 180, 160, 120, 80, 40 };
+
+    for (int nx = minx; nx <= maxx; ++nx)
+    {
+        const int dx  = nx - x;
+        const int dx2 = dx * dx;
+
+        int fade_x = 0;
+        if (!mini_disable_edge_fade)
+        {
+            if (nx < 32) fade_x = (32 - nx) >> 2;
+            else if (nx > fwm1 - 32)
+            {
+                const int d = fwm1 - nx;
+                if (d < 32) fade_x = (32 - d) >> 2;
+            }
+        }
+
+        const int flipx = flipscreenwidth[fx + nx];
+        uint32_t *pix = fbuf + (fy + miny) * stride + flipx;
+
+        for (int ny = miny; ny <= maxy; ++ny, pix += stride)
+        {
+            const int dy = ny - y;
+            if (dx2 + dy * dy > thick_sq) continue;
+
+            unsigned int a = wu_alpha;
+
+            if (!mini_disable_edge_fade)
+            {
+                int fade_y = 0;
+                if (ny < 32) fade_y = (32 - ny) >> 2;
+                else if (ny > fhm1 - 32)
+                {
+                    const int d = fhm1 - ny;
+                    if (d < 32) fade_y = (32 - d) >> 2;
+                }
+
+                int fade = fade_x + fade_y;
+                if (fade > 6) fade = 6;
+
+                // Compose Wu alpha with edge-fade alpha.
+                a = ((unsigned int)aLUT[fade] * wu_alpha + 255) >> 8;
+            }
+
+            *pix = (a == 255) ? fg : I_BlendOver_32(*pix, fg, (unsigned char)a);
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 // AM_drawFline
 // Classic Bresenham w/ whatever optimizations needed for speed.
 // [PN] Refactored to handle both antialiased and non-antialiased line drawing.
@@ -1598,31 +1698,31 @@ static void AM_drawFline(fline_t * fl, int color)
         // Use antialiasing if enabled
         switch (color)
         {
-            case WALLCOLORS:    DrawWuLine(fl, &(*antialias)[0][0]);  return;
-            case FDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[1][0]);  return;
-            case CDWALLCOLORS:  DrawWuLine(fl, &(*antialias)[2][0]);  return;
+            case WALLCOLORS:    DrawWuLine(fl, (*antialias)[0][0]);  return;
+            case FDWALLCOLORS:  DrawWuLine(fl, (*antialias)[1][0]);  return;
+            case CDWALLCOLORS:  DrawWuLine(fl, (*antialias)[2][0]);  return;
             // [JN] Apply antialiasing for some extra lines as well:
-            case MLDONTDRAW1:   DrawWuLine(fl, &(*antialias)[3][0]);  return;
-            case MLDONTDRAW2:   DrawWuLine(fl, &(*antialias)[4][0]);  return;
-            case YELLOWKEY:     DrawWuLine(fl, &(*antialias)[5][0]);  return;
-            case GREENKEY:      DrawWuLine(fl, &(*antialias)[6][0]);  return;
-            case BLUEKEY:       DrawWuLine(fl, &(*antialias)[7][0]);  return;
-            case SECRETCOLORS:  DrawWuLine(fl, &(*antialias)[8][0]);  return;
-            case FSECRETCOLORS: DrawWuLine(fl, &(*antialias)[9][0]);  return;
-            case EXITS:         DrawWuLine(fl, &(*antialias)[10][0]); return;
+            case MLDONTDRAW1:   DrawWuLine(fl, (*antialias)[3][0]);  return;
+            case MLDONTDRAW2:   DrawWuLine(fl, (*antialias)[4][0]);  return;
+            case YELLOWKEY:     DrawWuLine(fl, (*antialias)[5][0]);  return;
+            case GREENKEY:      DrawWuLine(fl, (*antialias)[6][0]);  return;
+            case BLUEKEY:       DrawWuLine(fl, (*antialias)[7][0]);  return;
+            case SECRETCOLORS:  DrawWuLine(fl, (*antialias)[8][0]);  return;
+            case FSECRETCOLORS: DrawWuLine(fl, (*antialias)[9][0]);  return;
+            case EXITS:         DrawWuLine(fl, (*antialias)[10][0]); return;
             // IDDT extended colors:
-            case IDDT_GREEN:    DrawWuLine(fl, &(*antialias)[11][0]); return;
-            case IDDT_YELLOW:   DrawWuLine(fl, &(*antialias)[12][0]); return;
-            case 150:           DrawWuLine(fl, &(*antialias)[13][0]); return;
-            case 151:           DrawWuLine(fl, &(*antialias)[14][0]); return;
-            case 152:           DrawWuLine(fl, &(*antialias)[15][0]); return;
-            case 153:           DrawWuLine(fl, &(*antialias)[16][0]); return;
-            case 154:           DrawWuLine(fl, &(*antialias)[17][0]); return;
-            case 155:           DrawWuLine(fl, &(*antialias)[18][0]); return;
-            case 156:           DrawWuLine(fl, &(*antialias)[19][0]); return;  // Used for TELEPORTERS as well
-            case 157:           DrawWuLine(fl, &(*antialias)[20][0]); return;
-            case 158:           DrawWuLine(fl, &(*antialias)[21][0]); return;
-            case 159:           DrawWuLine(fl, &(*antialias)[22][0]); return;
+            case IDDT_GREEN:    DrawWuLine(fl, (*antialias)[11][0]); return;
+            case IDDT_YELLOW:   DrawWuLine(fl, (*antialias)[12][0]); return;
+            case 150:           DrawWuLine(fl, (*antialias)[13][0]); return;
+            case 151:           DrawWuLine(fl, (*antialias)[14][0]); return;
+            case 152:           DrawWuLine(fl, (*antialias)[15][0]); return;
+            case 153:           DrawWuLine(fl, (*antialias)[16][0]); return;
+            case 154:           DrawWuLine(fl, (*antialias)[17][0]); return;
+            case 155:           DrawWuLine(fl, (*antialias)[18][0]); return;
+            case 156:           DrawWuLine(fl, (*antialias)[19][0]); return;  // Used for TELEPORTERS as well
+            case 157:           DrawWuLine(fl, (*antialias)[20][0]); return;
+            case 158:           DrawWuLine(fl, (*antialias)[21][0]); return;
+            case 159:           DrawWuLine(fl, (*antialias)[22][0]); return;
             default: break;
         }
     }
@@ -1704,12 +1804,16 @@ static void AM_drawFline(fline_t * fl, int color)
 // - Maintained the original functionality while making the code more compact.
 // -----------------------------------------------------------------------------
 
-static void DrawWuLine (fline_t *fl, byte *BaseColor)
+static void DrawWuLine (fline_t *fl, byte BaseColor)
 {
     int X0 = fl->a.x, Y0 = fl->a.y, X1 = fl->b.x, Y1 = fl->b.y;
     unsigned short IntensityShift, ErrorAdj, ErrorAcc;
     unsigned short ErrorAccTemp, Weighting, WeightingComplementMask;
     short DeltaX, DeltaY, Temp, XDir;
+    const pixel_t fg = pal_color[(int) BaseColor];
+    static const unsigned char aa_alpha[NUMLEVELS] = {
+        255, 240, 224, 208, 192, 176, 160, 144
+    };
 
     /* Make sure the line runs top to bottom */
     if (Y0 > Y1)
@@ -1720,7 +1824,7 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
 
     /* Draw the initial pixel, which is always exactly intersected by
        the line and so needs no weighting */
-    PUTDOT_THICK(X0, Y0, &BaseColor[0]);
+    PUTDOT_THICK(X0, Y0, &BaseColor);
 
     DeltaX = X1 - X0;
     DeltaY = Y1 - Y0;
@@ -1736,7 +1840,7 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
         while (DeltaX--)
         {
             X0 += XDir;
-            PUTDOT_THICK(X0, Y0, &BaseColor[0]);
+            PUTDOT_THICK(X0, Y0, &BaseColor);
         }
         return;
     }
@@ -1746,7 +1850,7 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
         while (DeltaY--)
         {
             Y0++;
-            PUTDOT_THICK(X0, Y0, &BaseColor[0]);
+            PUTDOT_THICK(X0, Y0, &BaseColor);
         }
         return;
     }
@@ -1757,7 +1861,7 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
         {
             X0 += XDir;
             Y0++;
-            PUTDOT_THICK(X0, Y0, &BaseColor[0]);
+            PUTDOT_THICK(X0, Y0, &BaseColor);
         }
         return;
     }
@@ -1781,8 +1885,8 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
             }
             Y0++;
             Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT_THICK(X0, Y0, &BaseColor[Weighting]);
-            PUTDOT_THICK(X0 + XDir, Y0, &BaseColor[Weighting ^ WeightingComplementMask]);
+            PUTDOT_THICK_BLEND(X0, Y0, BaseColor, fg, aa_alpha[Weighting]);
+            PUTDOT_THICK_BLEND(X0 + XDir, Y0, BaseColor, fg, aa_alpha[Weighting ^ WeightingComplementMask]);
         }
     }
     else
@@ -1799,13 +1903,13 @@ static void DrawWuLine (fline_t *fl, byte *BaseColor)
             }
             X0 += XDir;
             Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT_THICK(X0, Y0, &BaseColor[Weighting]);
-            PUTDOT_THICK(X0, Y0 + 1, &BaseColor[Weighting ^ WeightingComplementMask]);
+            PUTDOT_THICK_BLEND(X0, Y0, BaseColor, fg, aa_alpha[Weighting]);
+            PUTDOT_THICK_BLEND(X0, Y0 + 1, BaseColor, fg, aa_alpha[Weighting ^ WeightingComplementMask]);
         }
     }
 
     /* Draw the final pixel */
-    PUTDOT_THICK(X1, Y1, &BaseColor[0]);
+    PUTDOT_THICK(X1, Y1, &BaseColor);
 }
 
 // -----------------------------------------------------------------------------

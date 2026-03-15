@@ -272,9 +272,9 @@ static int64_t mouse_pan_frac_y = 0;
 static boolean stopped = true;
 
 // [crispy] Antialiased lines from Heretic with more colors
+// [PN] Wu weights now alpha-blend the base line color (I_BlendOver_32).
 #define NUMSHADES 8
 #define NUMSHADES_BITS 3 // log2(NUMSHADES)
-static pixel_t color_shades[NUMSHADES * 256];
 
 // Forward declare for AM_LevelInit
 static void AM_drawFline_Vanilla(fline_t* fl, int color);
@@ -296,23 +296,7 @@ angle_t mapangle;
 
 void AM_Init (void)
 {
-    // [crispy] Precalculate color lookup tables for antialiased line drawing using COLORMAP
-    unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-
-    for (int color = 0; color < 256; ++color)
-    {
-#define REINDEX(I) (color + I * 256)
-        // Pick a range of shades for a steep gradient to keep lines thin
-        const int shade_index[NUMSHADES] =
-        {
-            REINDEX(0), REINDEX(1), REINDEX(2), REINDEX(3), REINDEX(7), REINDEX(15), REINDEX(23), REINDEX(31),
-        };
-#undef REINDEX
-        for (int shade = 0; shade < NUMSHADES; ++shade)
-        {
-            color_shades[color * NUMSHADES + shade] = colormaps[shade_index[shade]];
-        }
-    }
+    unsigned const char *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
     // [PN] Initialize automap color lookup table.
     for (int i = 0; i < 256; ++i)
@@ -1488,6 +1472,95 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
 }
 
 // -----------------------------------------------------------------------------
+// PUTDOT_THICK_BLEND
+// [PN] Draws a thick automap point like PUTDOT_THICK, but alpha-blends
+// the base line color over background (used by smooth/Wu lines).
+// -----------------------------------------------------------------------------
+
+static inline void PUTDOT_THICK_BLEND (int x, int y, pixel_t fg, unsigned char alpha)
+{
+    if (alpha == 0)
+    {
+        return;
+    }
+
+    // Thin point fast path
+    if (!automap_thick)
+    {
+        if ((unsigned int) x >= (unsigned int) f_w
+        ||  (unsigned int) y >= (unsigned int) f_h)
+        {
+            return;
+        }
+
+        pixel_t *const pix = &fb[(y + f_y) * SCREENWIDTH + flipscreenwidth[x + f_x]];
+        if (alpha == 255)
+        {
+            *pix = fg;
+        }
+        else
+        {
+            *pix = I_BlendOver_32(*pix, fg, alpha);
+        }
+        return;
+    }
+
+    // Thickness: 6 == auto (depends on resolution)
+    const int thickness = (automap_thick == 6) ? (vid_resolution >> 1) : automap_thick;
+
+    // Clamp bbox once
+    const int fwm1 = f_w - 1, fhm1 = f_h - 1;
+    int minx = x - thickness; if (minx < 0)    minx = 0;
+    int maxx = x + thickness; if (maxx > fwm1) maxx = fwm1;
+    int miny = y - thickness; if (miny < 0)    miny = 0;
+    int maxy = y + thickness; if (maxy > fhm1) maxy = fhm1;
+
+    const int thick_sq = thickness * thickness;
+
+    pixel_t *restrict fbuf = fb;
+    const int stride = SCREENWIDTH;
+    const int fx = f_x;
+    const int fy = f_y;
+
+    if (alpha == 255)
+    {
+        for (int nx = minx; nx <= maxx; ++nx)
+        {
+            const int dx  = nx - x;
+            const int dx2 = dx * dx;
+
+            const int flipx = flipscreenwidth[fx + nx];
+            pixel_t *pix = fbuf + (fy + miny) * stride + flipx;
+
+            for (int ny = miny; ny <= maxy; ++ny, pix += stride)
+            {
+                const int dy = ny - y;
+                if (dx2 + dy * dy > thick_sq) continue;
+                *pix = fg;
+            }
+        }
+    }
+    else
+    {
+        for (int nx = minx; nx <= maxx; ++nx)
+        {
+            const int dx  = nx - x;
+            const int dx2 = dx * dx;
+
+            const int flipx = flipscreenwidth[fx + nx];
+            pixel_t *pix = fbuf + (fy + miny) * stride + flipx;
+
+            for (int ny = miny; ny <= maxy; ++ny, pix += stride)
+            {
+                const int dy = ny - y;
+                if (dx2 + dy * dy > thick_sq) continue;
+                *pix = I_BlendOver_32(*pix, fg, alpha);
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 // AM_drawFline
 // Classic Bresenham w/ whatever optimizations needed for speed.
 // [PN] Simplified control flow, combined variable assignments, and minimized
@@ -1552,7 +1625,10 @@ static void AM_drawFline_Vanilla (fline_t *fl, int color)
 static void AM_drawFline_Smooth(fline_t* fl, int color)
 {
     int X0 = fl->a.x, Y0 = fl->a.y, X1 = fl->b.x, Y1 = fl->b.y;
-    const pixel_t* BaseColor = &color_shades[color * NUMSHADES];
+    const pixel_t BaseColor = pal_color[(unsigned char) color];
+    static const unsigned char aa_alpha[NUMSHADES] = {
+        255, 240, 224, 208, 192, 176, 160, 144
+    };
     unsigned short ErrorAcc = 0, ErrorAdj;
     unsigned short Weighting, WeightingComplementMask = NUMSHADES - 1;
     // [PN] Declared IntensityShift with other variables
@@ -1566,7 +1642,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
     }
 
     /* Draw the initial pixel */
-    PUTDOT_THICK(X0, Y0, BaseColor[0]);
+    PUTDOT_THICK_BLEND(X0, Y0, BaseColor, 255);
 
     DeltaX = X1 - X0;
     DeltaY = Y1 - Y0;
@@ -1579,7 +1655,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         while (DeltaX--)
         {
             X0 += XDir;
-            PUTDOT_THICK(X0, Y0, BaseColor[0]);
+            PUTDOT_THICK_BLEND(X0, Y0, BaseColor, 255);
         }
         return;
     }
@@ -1590,7 +1666,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         while (DeltaY--)
         {
             Y0++;
-            PUTDOT_THICK(X0, Y0, BaseColor[0]);
+            PUTDOT_THICK_BLEND(X0, Y0, BaseColor, 255);
         }
         return;
     }
@@ -1602,7 +1678,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         {
             X0 += XDir;
             Y0++;
-            PUTDOT_THICK(X0, Y0, BaseColor[0]);
+            PUTDOT_THICK_BLEND(X0, Y0, BaseColor, 255);
         }
         return;
     }
@@ -1624,8 +1700,8 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
             }
             Y0++;
             Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT_THICK(X0, Y0, BaseColor[Weighting]);
-            PUTDOT_THICK(X0 + XDir, Y0, BaseColor[Weighting ^ WeightingComplementMask]);
+            PUTDOT_THICK_BLEND(X0, Y0, BaseColor, aa_alpha[Weighting]);
+            PUTDOT_THICK_BLEND(X0 + XDir, Y0, BaseColor, aa_alpha[Weighting ^ WeightingComplementMask]);
         }
     }
     /* X-major line */
@@ -1646,13 +1722,13 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
             }
             X0 += XDir;
             Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT_THICK(X0, Y0, BaseColor[Weighting]);
-            PUTDOT_THICK(X0, Y0 + 1, BaseColor[Weighting ^ WeightingComplementMask]);
+            PUTDOT_THICK_BLEND(X0, Y0, BaseColor, aa_alpha[Weighting]);
+            PUTDOT_THICK_BLEND(X0, Y0 + 1, BaseColor, aa_alpha[Weighting ^ WeightingComplementMask]);
         }
     }
 
     /* Draw the final pixel */
-    PUTDOT_THICK(X1, Y1, BaseColor[0]);
+    PUTDOT_THICK_BLEND(X1, Y1, BaseColor, 255);
 }
 
 // -----------------------------------------------------------------------------
