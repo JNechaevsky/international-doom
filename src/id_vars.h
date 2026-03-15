@@ -115,6 +115,7 @@ extern int automap_overlay;
 extern int automap_shading;
 extern int automap_mouse_pan;
 extern int automap_mini;
+extern int automap_mini_size;
 extern int automap_mini_shading;
 
 // Gameplay features

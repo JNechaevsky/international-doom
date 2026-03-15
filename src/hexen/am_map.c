@@ -2435,14 +2435,26 @@ void AM_MiniDrawer (void)
     // [PN] Initial mini-map background: dark 72x60 box at top-right.
     // Keep it lower when FPS counter is visible.
     const int shade = automap_mini_shading;
-    const int truecolor_blend = vid_truecolor;
-    const int mini_size_h = 72 * vid_resolution;
-    const int mini_size_v = 60 * vid_resolution;
+
+    // [JN] Variable mini-map sizes (size is set by the automap_mini_size variable):
+    static const int mini_size_presets[][2] = {
+        {48, 36},  // 1 - smallest
+        {56, 44},  // 2 - smaller
+        {64, 52},  // 3 - small
+        {72, 60},  // 4 - medium
+        {80, 68},  // 5 - big
+        {88, 76},  // 6 - bigger
+        {96, 84},  // 7 - biggest
+    };
+    const int mini_size_h = mini_size_presets[automap_mini_size - 1][0] * vid_resolution;
+    const int mini_size_v = mini_size_presets[automap_mini_size - 1][1] * vid_resolution;
+
     const int mini_margin = (vid_showfps == 1 ? 18 : 9) * vid_resolution;
-    const int mini_x = MAX(0, SCREENWIDTH - mini_size_h /*- mini_margin*/);
+    const int mini_x = MAX(0, SCREENWIDTH - mini_size_h);
     const int mini_y = mini_margin;
     const int mini_w = MIN(mini_size_h, SCREENWIDTH - mini_x);
     const int mini_h = MIN(mini_size_v, SCREENHEIGHT - mini_y);
+    const int truecolor_blend = vid_truecolor;
     int saved_f_x, saved_f_y, saved_f_w, saved_f_h;
     int64_t saved_m_x, saved_m_y, saved_m_x2, saved_m_y2, saved_m_w, saved_m_h;
     mpoint_t saved_mapcenter;
