@@ -515,6 +515,14 @@ void D_DoomMain(void)
     S_Init();
     S_Start();
 
+    // [PN] Initialize the main game window before startup graphics so Hexen
+    // can render the loading screen in the same window.
+    I_SetWindowTitle(gamedescription);
+    I_GraphicsCheckCommandLine();
+    I_SetGrabMouseCallback(D_GrabMouseCallback);
+    I_RegisterWindowIcon(hexen_data, hexen_w, hexen_h);
+    I_InitGraphics();
+
     ST_Message("ST_Init: Init startup screen.\n");
     ST_Init();
 
@@ -903,11 +911,6 @@ void H2_GameLoop(void)
         M_snprintf(filename, sizeof(filename), "debug%i.txt", consoleplayer);
         debugfile = M_fopen(filename, "w");
     }
-    I_SetWindowTitle(gamedescription);
-    I_GraphicsCheckCommandLine();
-    I_SetGrabMouseCallback(D_GrabMouseCallback);
-    I_RegisterWindowIcon(hexen_data, hexen_w, hexen_h);
-    I_InitGraphics();
 
     while (1)
     {

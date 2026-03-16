@@ -34,34 +34,125 @@
 static SDL_Window *hr_screen = NULL;
 static SDL_Surface *hr_surface = NULL;
 static const char *window_title = "";
+static boolean use_main_window = false;
+
+// -----------------------------------------------------------------------------
+// I_PresentHRToMainWindow
+//  [PN] Copy the temporary 640x480 startup surface into the main game buffer.
+//  Converts 16-color indexed pixels to the active render format and keeps
+//  the original 4:3 startup aspect ratio with black bars when needed.
+// -----------------------------------------------------------------------------
+
+static void I_PresentHRToMainWindow(void)
+{
+    const SDL_Color *colors;
+    const pixel_t black = I_MapRGB(0, 0, 0);
+    int target_w;
+    int target_h;
+    int offset_x;
+    int offset_y;
+    int x, y;
+
+    if (!use_main_window || hr_surface == NULL || I_VideoBuffer == NULL
+     || argbbuffer == NULL || hr_surface->format == NULL
+     || hr_surface->format->palette == NULL)
+    {
+        return;
+    }
+
+    colors = hr_surface->format->palette->colors;
+
+    // Keep the original 4:3 startup aspect ratio, adding bars if needed.
+    target_w = SCREENHEIGHT * HR_SCREENWIDTH / HR_SCREENHEIGHT;
+    target_h = SCREENHEIGHT;
+
+    if (target_w > SCREENWIDTH)
+    {
+        target_w = SCREENWIDTH;
+        target_h = SCREENWIDTH * HR_SCREENHEIGHT / HR_SCREENWIDTH;
+    }
+
+    offset_x = (SCREENWIDTH - target_w) / 2;
+    offset_y = (SCREENHEIGHT - target_h) / 2;
+
+    for (y = 0; y < SCREENAREA; ++y)
+    {
+        I_VideoBuffer[y] = black;
+    }
+
+    for (y = 0; y < target_h; ++y)
+    {
+        const int src_y = y * HR_SCREENHEIGHT / target_h;
+        const byte *src_row =
+            ((const byte *) hr_surface->pixels) + src_y * hr_surface->pitch;
+        pixel_t *dst_row =
+            I_VideoBuffer + (y + offset_y) * SCREENWIDTH + offset_x;
+
+        for (x = 0; x < target_w; ++x)
+        {
+            const int src_x = x * HR_SCREENWIDTH / target_w;
+            const SDL_Color *c = &colors[src_row[src_x]];
+            dst_row[x] = I_MapRGB(c->r, c->g, c->b);
+        }
+    }
+
+    I_FinishUpdate();
+}
 
 boolean I_SetVideoModeHR(void)
 {
     int x, y;
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (hr_surface != NULL)
     {
-        return false;
+        I_UnsetVideoModeHR();
     }
 
-    // [JN] Use different window centering function.
-    CenterWindow(&x, &y, HR_SCREENWIDTH, HR_SCREENHEIGHT);
+    hr_screen = (SDL_Window *) I_GetSDLWindow();
+    use_main_window = (hr_screen != NULL);
 
-    // Create screen surface at the native desktop pixel depth (bpp=0),
-    // as we cannot trust true 8-bit to reliably work nowadays.
-    hr_screen = SDL_CreateWindow(window_title, x, y,
-        HR_SCREENWIDTH, HR_SCREENHEIGHT,
-        0);
-
-    if (hr_screen == NULL)
+    if (!use_main_window)
     {
-        SDL_QuitSubSystem(SDL_INIT_VIDEO);
-        return false;
+        if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        {
+            return false;
+        }
+
+        // [JN] Use different window centering function.
+        CenterWindow(&x, &y, HR_SCREENWIDTH, HR_SCREENHEIGHT);
+
+        // Create screen surface at the native desktop pixel depth (bpp=0),
+        // as we cannot trust true 8-bit to reliably work nowadays.
+        hr_screen = SDL_CreateWindow(window_title, x, y,
+            HR_SCREENWIDTH, HR_SCREENHEIGHT,
+            0);
+
+        if (hr_screen == NULL)
+        {
+            SDL_QuitSubSystem(SDL_INIT_VIDEO);
+            return false;
+        }
+    }
+    else if (window_title != NULL && *window_title != '\0')
+    {
+        SDL_SetWindowTitle(hr_screen, window_title);
     }
 
     // We do all actual drawing into an intermediate surface.
     hr_surface = SDL_CreateRGBSurface(0, HR_SCREENWIDTH, HR_SCREENHEIGHT,
                                       8, 0, 0, 0, 0);
+
+    if (hr_surface == NULL)
+    {
+        if (!use_main_window)
+        {
+            SDL_QuitSubSystem(SDL_INIT_VIDEO);
+        }
+
+        hr_screen = NULL;
+        use_main_window = false;
+        return false;
+    }
 
     return true;
 }
@@ -69,17 +160,28 @@ boolean I_SetVideoModeHR(void)
 void I_SetWindowTitleHR(const char *title)
 {
     window_title = title;
+
+    if (hr_screen != NULL)
+    {
+        SDL_SetWindowTitle(hr_screen, window_title);
+    }
 }
 
 void I_UnsetVideoModeHR(void)
 {
-    if (hr_screen != NULL)
+    if (hr_surface != NULL)
     {
-        SDL_QuitSubSystem(SDL_INIT_VIDEO);
-        hr_screen = NULL;
         SDL_FreeSurface(hr_surface);
         hr_surface = NULL;
     }
+
+    if (!use_main_window && hr_screen != NULL)
+    {
+        SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    }
+
+    hr_screen = NULL;
+    use_main_window = false;
 }
 
 void I_ClearScreenHR(void)
@@ -147,6 +249,12 @@ void I_SlamBlockHR(int x, int y, int w, int h, const byte *src)
 
     SDL_UnlockSurface(hr_surface);
 
+    if (use_main_window)
+    {
+        I_PresentHRToMainWindow();
+        return;
+    }
+
     // Update the region we drew.
     blit_rect.x = x;
     blit_rect.y = y;
@@ -182,6 +290,13 @@ static void I_SetPaletteHR(const byte *palette)
 
     // After setting colors, update the screen.
     SDL_SetPaletteColors(hr_surface->format->palette, sdlpal, 0, 16);
+
+    if (use_main_window)
+    {
+        I_PresentHRToMainWindow();
+        return;
+    }
+
     SDL_BlitSurface(hr_surface, &screen_rect,
                     SDL_GetWindowSurface(hr_screen), &screen_rect);
     SDL_UpdateWindowSurfaceRects(hr_screen, &screen_rect, 1);
@@ -213,7 +328,11 @@ void I_FadeToPaletteHR(const byte *palette)
         }
 
         I_SetPaletteHR(tmppal);
-        SDL_UpdateWindowSurface(hr_screen);
+
+        if (!use_main_window)
+        {
+            SDL_UpdateWindowSurface(hr_screen);
+        }
 
         // Sleep a bit
 

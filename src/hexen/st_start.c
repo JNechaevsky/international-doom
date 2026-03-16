@@ -132,7 +132,6 @@ void ST_Init(void)
         if (I_SetVideoModeHR())
         {
             using_graphical_startup = true;
-            I_InitWindowIcon();
 
             S_StartSongName("orb", true);
 
@@ -158,6 +157,12 @@ void ST_Done(void)
     {
         I_ClearScreenHR();
         I_UnsetVideoModeHR();
+
+        // [PN] Restore normal game title after temporary startup title.
+        if (I_GetSDLWindow() != NULL)
+        {
+            I_InitWindowTitle();
+        }
     }
 }
 

@@ -940,6 +940,9 @@ static void R_InitFlats (void)
 
 static void R_InitSpriteLumps (void)
 {
+    const int startup_notches = 32;  // [PN] Keep in sync with ST_MAX_NOTCHES in st_start.c.
+    int progress_notches = 0;
+
     firstspritelump = W_GetNumForName("S_START") + 1;
     lastspritelump = W_GetNumForName("S_END") - 1;
 
@@ -950,8 +953,14 @@ static void R_InitSpriteLumps (void)
 
     for (int i = 0; i < numspritelumps; i++)
     {
-        if (!(i & 127))
+        // [PN] Fill full line of notches on graphical startup screen.
+        const int target_notches = ((i + 1) * startup_notches) / numspritelumps;
+
+        while (progress_notches < target_notches)
+        {
             ST_Progress();
+            ++progress_notches;
+        }
 
         patch_t *patch = W_CacheLumpNum(firstspritelump + i, PU_CACHE);
         spritewidth[i] = SHORT(patch->width) << FRACBITS;
