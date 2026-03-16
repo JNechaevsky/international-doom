@@ -61,6 +61,42 @@ static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
 static fluid_player_t *player = NULL;
 
+
+// -----------------------------------------------------------------------------
+// I_FL_SetDefaultSoundfontPath
+//  [PN] If fsynth_sf_path is empty on 64-bit Windows, derive an absolute
+//  default path from WINDIR and point it to System32\Drivers\gm.dls.
+//
+//  Requires FluidSynth version 2.5.0 and higher, for 32-bit we using
+//  an old version 2.4.2 which is fully compatible with Windows XP.
+// -----------------------------------------------------------------------------
+
+static void I_FL_SetDefaultSoundfontPath(void)
+{
+#ifdef _WIN64
+    if (fsynth_sf_path != NULL && strlen(fsynth_sf_path) > 0)
+    {
+        return;
+    }
+
+    const char *windir = M_getenv("WINDIR");
+
+    if (windir == NULL || windir[0] == '\0')
+    {
+        return;
+    }
+
+    if (M_StringEndsWith(windir, "\\") || M_StringEndsWith(windir, "/"))
+    {
+        fsynth_sf_path = M_StringJoin(windir, "System32\\Drivers\\gm.dls", NULL);
+    }
+    else
+    {
+        fsynth_sf_path = M_StringJoin(windir, "\\System32\\Drivers\\gm.dls", NULL);
+    }
+#endif
+}
+
 static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
 {
     int result;
@@ -77,6 +113,8 @@ static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
 static boolean I_FL_InitMusic(void)
 {
     int sf_id;
+
+    I_FL_SetDefaultSoundfontPath();
 
     if (strlen(fsynth_sf_path) == 0)
     {
