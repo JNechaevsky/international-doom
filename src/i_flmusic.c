@@ -67,13 +67,14 @@ static fluid_player_t *player = NULL;
 //  [PN] If fsynth_sf_path is empty on 64-bit Windows, derive an absolute
 //  default path from WINDIR and point it to System32\Drivers\gm.dls.
 //
-//  Requires FluidSynth version 2.5.0 and higher, for 32-bit we using
-//  an old version 2.4.2 which is fully compatible with Windows XP.
+//  Enabled only for FluidSynth 2.5.0+ (64-bit); 32-bit builds use 2.4.2.
 // -----------------------------------------------------------------------------
 
 static void I_FL_SetDefaultSoundfontPath(void)
 {
-#ifdef _WIN64
+#if defined(_WIN64) &&                                                    \
+    (FLUIDSYNTH_VERSION_MAJOR > 2 ||                                      \
+     (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR >= 5))
     if (fsynth_sf_path != NULL && strlen(fsynth_sf_path) > 0)
     {
         return;
