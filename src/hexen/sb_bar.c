@@ -1490,8 +1490,23 @@ void DrawCommonBar(void)
         {
             healthPos = 100;
         }
-        V_DrawPatch(28 + (((healthPos * 196) / 100) % 9), 193, PatchCHAIN);
-        V_DrawPatch(7 + ((healthPos * 11) / 5), 193, PatchLIFEGEM);
+
+        // [PN] Keep chain phase locked to life gem movement to prevent drift.
+        // CHAIN/CHAIN2 use an 8-pixel cycle; CHAIN3 (mage) has a 15-pixel cycle.
+        // Bias values keep the full-health anchor aligned with the old position.
+        static const int chainPeriod[NUMCLASSES] = { 8, 8, 15 };
+        static const int chainBias[NUMCLASSES] = { 3, 3, 12 };
+        const int gemOffset = (healthPos * 11) / 5;
+        int pClass = PlayerClass[displayplayer];
+
+        if (pClass < PCLASS_FIGHTER || pClass >= NUMCLASSES)
+        {
+            pClass = PCLASS_FIGHTER;
+        }
+
+        int chainOffset = (gemOffset + chainBias[pClass]) % chainPeriod[pClass];
+        V_DrawPatch(28 + chainOffset, 193, PatchCHAIN);
+        V_DrawPatch(7 + gemOffset, 193, PatchLIFEGEM);
         V_DrawPatch(0, 193, PatchLFEDGE);
         V_DrawPatch(277, 193, PatchRTEDGE);
 //              ShadeChain();
