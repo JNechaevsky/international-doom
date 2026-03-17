@@ -127,6 +127,21 @@ static void D_AppendAdditionalCommandLine(const char *params)
 #define IDC_IWAD_LAUNCHER_EDIT   2002
 #define IDC_IWAD_LAUNCHER_PLAY   2003
 #define IDC_IWAD_LAUNCHER_EXIT   2004
+#define IWAD_LAUNCHER_OLDPROC    "InterLauncherOldProc"
+#define IWAD_LAUNCHER_BTN_OLDPROC "InterLauncherBtnOldProc"
+#define IWAD_LAUNCHER_BTN_HOVER   "InterLauncherBtnHover"
+#define IWAD_WINDOW_CLIENT_W     240
+#define IWAD_WINDOW_CLIENT_H     300
+#define IWAD_BUTTON_IDEAL_W      120
+#define IWAD_BUTTON_H            30
+#define IWAD_COLOR_WINDOW_BG     RGB(43, 43, 43)
+#define IWAD_COLOR_CONTROL_BG    RGB(30, 30, 30)
+#define IWAD_COLOR_LIST_SEL_BG   RGB(0, 90, 165)
+#define IWAD_COLOR_BUTTON_BG     RGB(58, 58, 58)
+#define IWAD_COLOR_BUTTON_HOVER  RGB(78, 78, 78)
+#define IWAD_COLOR_BUTTON_DOWN   RGB(98, 98, 98)
+#define IWAD_COLOR_BUTTON_BORDER RGB(96, 96, 96)
+#define IWAD_COLOR_TEXT          RGB(235, 235, 235)
 
 typedef struct
 {
@@ -139,9 +154,281 @@ typedef struct
     int dpi;
     int selected_iwad;
     char *additional_params;
+    HBRUSH window_brush;
+    HBRUSH control_brush;
+    HBRUSH list_sel_brush;
+    HBRUSH button_brush;
+    HBRUSH button_hover_brush;
+    HBRUSH button_down_brush;
+    HBRUSH button_border_brush;
     boolean play_pressed;
     boolean done;
 } iwad_launcher_t;
+
+typedef HRESULT (WINAPI *dwm_set_window_attribute_t)(HWND, DWORD,
+                                                      LPCVOID, DWORD);
+
+static int ScaleByDPI(int value, int dpi);
+
+static void DestroyLauncherBrush(HBRUSH *brush)
+{
+    if (*brush != NULL)
+    {
+        DeleteObject(*brush);
+        *brush = NULL;
+    }
+}
+
+static void CleanupLauncherTheme(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL)
+    {
+        return;
+    }
+
+    DestroyLauncherBrush(&launcher->window_brush);
+    DestroyLauncherBrush(&launcher->control_brush);
+    DestroyLauncherBrush(&launcher->list_sel_brush);
+    DestroyLauncherBrush(&launcher->button_brush);
+    DestroyLauncherBrush(&launcher->button_hover_brush);
+    DestroyLauncherBrush(&launcher->button_down_brush);
+    DestroyLauncherBrush(&launcher->button_border_brush);
+}
+
+static void TryEnableDarkTitleBar(HWND hwnd)
+{
+    HMODULE dwmapi = LoadLibraryA("dwmapi.dll");
+    if (dwmapi == NULL)
+    {
+        return;
+    }
+
+    dwm_set_window_attribute_t set_window_attribute =
+        (dwm_set_window_attribute_t) GetProcAddress(dwmapi,
+                                                    "DwmSetWindowAttribute");
+
+    if (set_window_attribute != NULL)
+    {
+        BOOL enabled = TRUE;
+
+        // Windows 10 1809
+        set_window_attribute(hwnd, 19, &enabled, sizeof(enabled));
+        // Windows 10 1903+
+        set_window_attribute(hwnd, 20, &enabled, sizeof(enabled));
+    }
+
+    FreeLibrary(dwmapi);
+}
+
+static void DrawLauncherButton(const DRAWITEMSTRUCT *dis,
+                               const iwad_launcher_t *launcher)
+{
+    RECT rc = dis->rcItem;
+    HBRUSH bg_brush = launcher->button_brush;
+    HBRUSH border_brush = launcher->button_border_brush;
+
+    if (bg_brush == NULL)
+    {
+        bg_brush = (HBRUSH) GetStockObject(GRAY_BRUSH);
+    }
+    if (border_brush == NULL)
+    {
+        border_brush = (HBRUSH) GetStockObject(WHITE_BRUSH);
+    }
+
+    if (dis->itemState & ODS_SELECTED)
+    {
+        if (launcher->button_down_brush != NULL)
+        {
+            bg_brush = launcher->button_down_brush;
+        }
+    }
+    else if (dis->itemState & ODS_DISABLED)
+    {
+        if (launcher->control_brush != NULL)
+        {
+            bg_brush = launcher->control_brush;
+        }
+    }
+    else if (GetPropA(dis->hwndItem, IWAD_LAUNCHER_BTN_HOVER) != NULL)
+    {
+        if (launcher->button_hover_brush != NULL)
+        {
+            bg_brush = launcher->button_hover_brush;
+        }
+    }
+
+    FillRect(dis->hDC, &rc, bg_brush);
+    FrameRect(dis->hDC, &rc, border_brush);
+
+    SetBkMode(dis->hDC, TRANSPARENT);
+    SetTextColor(dis->hDC, IWAD_COLOR_TEXT);
+
+    char caption[32];
+    GetWindowTextA(dis->hwndItem, caption, sizeof(caption));
+    DrawTextA(dis->hDC, caption, -1, &rc,
+              DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+}
+
+static void DrawLauncherListItem(const DRAWITEMSTRUCT *dis,
+                                 const iwad_launcher_t *launcher)
+{
+    RECT rc = dis->rcItem;
+    HBRUSH bg_brush = launcher->control_brush;
+
+    if (dis->itemState & ODS_SELECTED)
+    {
+        if (launcher->list_sel_brush != NULL)
+        {
+            bg_brush = launcher->list_sel_brush;
+        }
+    }
+
+    if (bg_brush == NULL)
+    {
+        bg_brush = (HBRUSH) GetStockObject(BLACK_BRUSH);
+    }
+
+    FillRect(dis->hDC, &rc, bg_brush);
+
+    if (dis->itemID != (UINT) -1)
+    {
+        LRESULT text_len = SendMessageA(dis->hwndItem, LB_GETTEXTLEN,
+                                        (WPARAM) dis->itemID, 0);
+        if (text_len != LB_ERR)
+        {
+            char *text = malloc((size_t) text_len + 1);
+            if (text != NULL)
+            {
+                SendMessageA(dis->hwndItem, LB_GETTEXT,
+                             (WPARAM) dis->itemID, (LPARAM) text);
+                SetBkMode(dis->hDC, TRANSPARENT);
+                SetTextColor(dis->hDC, IWAD_COLOR_TEXT);
+
+                RECT text_rc = rc;
+                text_rc.left += ScaleByDPI(4, launcher->dpi);
+                DrawTextA(dis->hDC, text, -1, &text_rc,
+                          DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+                free(text);
+            }
+        }
+    }
+
+}
+
+static LRESULT CALLBACK LauncherButtonHoverProc(HWND hwnd, UINT msg,
+                                                WPARAM wparam, LPARAM lparam)
+{
+    WNDPROC old_proc = (WNDPROC) GetPropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC);
+    if (old_proc == NULL)
+    {
+        return DefWindowProcA(hwnd, msg, wparam, lparam);
+    }
+
+    if (msg == WM_MOUSEMOVE && GetPropA(hwnd, IWAD_LAUNCHER_BTN_HOVER) == NULL)
+    {
+        TRACKMOUSEEVENT tme;
+        memset(&tme, 0, sizeof(tme));
+        tme.cbSize = sizeof(tme);
+        tme.dwFlags = TME_LEAVE;
+        tme.hwndTrack = hwnd;
+        TrackMouseEvent(&tme);
+
+        SetPropA(hwnd, IWAD_LAUNCHER_BTN_HOVER, (HANDLE) (INT_PTR) 1);
+        InvalidateRect(hwnd, NULL, TRUE);
+    }
+    else if (msg == WM_MOUSELEAVE && GetPropA(hwnd, IWAD_LAUNCHER_BTN_HOVER) != NULL)
+    {
+        RemovePropA(hwnd, IWAD_LAUNCHER_BTN_HOVER);
+        InvalidateRect(hwnd, NULL, TRUE);
+    }
+
+    if (msg == WM_NCDESTROY)
+    {
+        RemovePropA(hwnd, IWAD_LAUNCHER_BTN_HOVER);
+        RemovePropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC);
+        return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
+    }
+
+    return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
+}
+
+static void InstallButtonHover(HWND hwnd)
+{
+    WNDPROC old_proc =
+        (WNDPROC) SetWindowLongPtr(hwnd, GWLP_WNDPROC,
+                                   (LONG_PTR) LauncherButtonHoverProc);
+
+    if (old_proc != NULL)
+    {
+        SetPropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC, (HANDLE) old_proc);
+    }
+}
+
+static void DrawFixedControlBorder(HWND hwnd)
+{
+    HDC dc = GetWindowDC(hwnd);
+    if (dc == NULL)
+    {
+        return;
+    }
+
+    RECT rc;
+    GetWindowRect(hwnd, &rc);
+    OffsetRect(&rc, -rc.left, -rc.top);
+
+    HBRUSH border_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_BORDER);
+    if (border_brush != NULL)
+    {
+        FrameRect(dc, &rc, border_brush);
+        DeleteObject(border_brush);
+    }
+
+    ReleaseDC(hwnd, dc);
+}
+
+static LRESULT CALLBACK LauncherControlBorderProc(HWND hwnd, UINT msg,
+                                                  WPARAM wparam, LPARAM lparam)
+{
+    WNDPROC old_proc = (WNDPROC) GetPropA(hwnd, IWAD_LAUNCHER_OLDPROC);
+    if (old_proc == NULL)
+    {
+        return DefWindowProcA(hwnd, msg, wparam, lparam);
+    }
+
+    if (msg == WM_NCDESTROY)
+    {
+        RemovePropA(hwnd, IWAD_LAUNCHER_OLDPROC);
+        return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
+    }
+
+    LRESULT result = CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
+
+    if (msg == WM_NCPAINT
+     || msg == WM_PAINT
+     || msg == WM_SETFOCUS
+     || msg == WM_KILLFOCUS
+     || msg == WM_ENABLE)
+    {
+        DrawFixedControlBorder(hwnd);
+    }
+
+    return result;
+}
+
+static void InstallFixedControlBorder(HWND hwnd)
+{
+    WNDPROC old_proc =
+        (WNDPROC) SetWindowLongPtr(hwnd, GWLP_WNDPROC,
+                                   (LONG_PTR) LauncherControlBorderProc);
+
+    if (old_proc != NULL)
+    {
+        SetPropA(hwnd, IWAD_LAUNCHER_OLDPROC, (HANDLE) old_proc);
+        DrawFixedControlBorder(hwnd);
+    }
+}
 
 static int ScaleByDPI(int value, int dpi)
 {
@@ -199,8 +486,8 @@ static void LayoutIWADLauncher(iwad_launcher_t *launcher)
     int gap = ScaleByDPI(8, launcher->dpi);
     int label_h = ScaleByDPI(20, launcher->dpi);
     int edit_h = ScaleByDPI(18, launcher->dpi);
-    int ideal_btn_w = ScaleByDPI(120, launcher->dpi);
-    int btn_h = ScaleByDPI(30, launcher->dpi);
+    int ideal_btn_w = ScaleByDPI(IWAD_BUTTON_IDEAL_W, launcher->dpi);
+    int btn_h = ScaleByDPI(IWAD_BUTTON_H, launcher->dpi);
 
     int width = rc.right - rc.left;
     int height = rc.bottom - rc.top;
@@ -326,9 +613,11 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                                                      WS_CHILD | WS_VISIBLE,
                                                      0, 0, 0, 0, hwnd, NULL, NULL, NULL);
 
-            launcher->iwad_list = CreateWindowExA(WS_EX_CLIENTEDGE, "LISTBOX", "",
+            launcher->iwad_list = CreateWindowExA(0, "LISTBOX", "",
                                                   WS_CHILD | WS_VISIBLE | WS_VSCROLL
-                                                | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT,
+                                                | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT
+                                                | LBS_HASSTRINGS | LBS_OWNERDRAWFIXED
+                                                | WS_BORDER,
                                                   0, 0, 0, 0,
                                                   hwnd,
                                                   (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_LIST,
@@ -352,31 +641,120 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 EnableWindow(launcher->iwad_list, FALSE);
             }
 
-            launcher->params_label = CreateWindowExA(0, "STATIC", "Additional parameters:",
+            launcher->params_label = CreateWindowExA(0, "STATIC", "Command line parameters:",
                                                      WS_CHILD | WS_VISIBLE,
                                                      0, 0, 0, 0, hwnd, NULL, NULL, NULL);
 
-            launcher->params_edit = CreateWindowExA(WS_EX_CLIENTEDGE, "EDIT", "",
+            launcher->params_edit = CreateWindowExA(0, "EDIT", "",
                                                     WS_CHILD | WS_VISIBLE | WS_TABSTOP
-                                                  | ES_LEFT | ES_AUTOHSCROLL,
+                                                  | ES_LEFT | ES_AUTOHSCROLL
+                                                  | WS_BORDER,
                                                     0, 0, 0, 0,
                                                     hwnd,
                                                     (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_EDIT,
                                                     NULL, NULL);
 
-            CreateWindowExA(0, "BUTTON", "Play",
-                            WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_DEFPUSHBUTTON,
-                            0, 0, 0, 0, hwnd,
-                            (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_PLAY, NULL, NULL);
+            InstallFixedControlBorder(launcher->iwad_list);
+            InstallFixedControlBorder(launcher->params_edit);
 
-            CreateWindowExA(0, "BUTTON", "Exit",
-                            WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON,
-                            0, 0, 0, 0, hwnd,
-                            (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_EXIT, NULL, NULL);
+            HWND play_btn = CreateWindowExA(0, "BUTTON", "Play",
+                                            WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                          | BS_OWNERDRAW,
+                                            0, 0, 0, 0, hwnd,
+                                            (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_PLAY,
+                                            NULL, NULL);
+
+            HWND exit_btn = CreateWindowExA(0, "BUTTON", "Exit",
+                                            WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                          | BS_OWNERDRAW,
+                                            0, 0, 0, 0, hwnd,
+                                            (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_EXIT,
+                                            NULL, NULL);
+
+            if (play_btn != NULL)
+            {
+                InstallButtonHover(play_btn);
+            }
+
+            if (exit_btn != NULL)
+            {
+                InstallButtonHover(exit_btn);
+            }
 
             LayoutIWADLauncher(launcher);
             return 0;
         }
+
+        case WM_ERASEBKGND:
+            if (launcher != NULL && launcher->window_brush != NULL)
+            {
+                RECT rc;
+                GetClientRect(hwnd, &rc);
+                FillRect((HDC) wparam, &rc, launcher->window_brush);
+                return 1;
+            }
+            break;
+
+        case WM_CTLCOLORSTATIC:
+            if (launcher != NULL && launcher->window_brush != NULL)
+            {
+                HDC dc = (HDC) wparam;
+                SetTextColor(dc, IWAD_COLOR_TEXT);
+                SetBkColor(dc, IWAD_COLOR_WINDOW_BG);
+                return (LRESULT) launcher->window_brush;
+            }
+            break;
+
+        case WM_MEASUREITEM:
+            {
+                MEASUREITEMSTRUCT *mis = (MEASUREITEMSTRUCT *) lparam;
+                if (mis != NULL && mis->CtlID == IDC_IWAD_LAUNCHER_LIST)
+                {
+                    int dpi = (launcher != NULL) ? launcher->dpi : GetSystemDPI();
+                    mis->itemHeight = (UINT) ScaleByDPI(18, dpi);
+                    return TRUE;
+                }
+            }
+            return FALSE;
+
+        case WM_CTLCOLOREDIT:
+        case WM_CTLCOLORLISTBOX:
+            if (launcher != NULL && launcher->control_brush != NULL)
+            {
+                HDC dc = (HDC) wparam;
+                SetTextColor(dc, IWAD_COLOR_TEXT);
+                SetBkColor(dc, IWAD_COLOR_CONTROL_BG);
+                return (LRESULT) launcher->control_brush;
+            }
+            break;
+
+        case WM_DRAWITEM:
+            if (launcher == NULL)
+            {
+                return FALSE;
+            }
+
+            {
+                DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *) lparam;
+                if (dis == NULL)
+                {
+                    return FALSE;
+                }
+
+                if (dis->CtlID == IDC_IWAD_LAUNCHER_PLAY
+                 || dis->CtlID == IDC_IWAD_LAUNCHER_EXIT)
+                {
+                    DrawLauncherButton(dis, launcher);
+                    return TRUE;
+                }
+
+                if (dis->CtlID == IDC_IWAD_LAUNCHER_LIST)
+                {
+                    DrawLauncherListItem(dis, launcher);
+                    return TRUE;
+                }
+            }
+            return FALSE;
 
         case WM_SIZE:
             if (launcher != NULL)
@@ -429,6 +807,13 @@ static boolean RunIWADLauncherDialog(int mask)
     launcher.dpi = GetSystemDPI();
     launcher.selected_iwad = 0;
     launcher.additional_params = M_StringDuplicate("");
+    launcher.window_brush = CreateSolidBrush(IWAD_COLOR_WINDOW_BG);
+    launcher.control_brush = CreateSolidBrush(IWAD_COLOR_CONTROL_BG);
+    launcher.list_sel_brush = CreateSolidBrush(IWAD_COLOR_LIST_SEL_BG);
+    launcher.button_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_BG);
+    launcher.button_hover_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_HOVER);
+    launcher.button_down_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_DOWN);
+    launcher.button_border_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_BORDER);
     launcher.play_pressed = false;
     launcher.done = false;
 
@@ -453,11 +838,12 @@ static boolean RunIWADLauncherDialog(int mask)
         wc.hIcon = icon;
         wc.hIconSm = icon;
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.hbrBackground = (HBRUSH) (COLOR_BTNFACE + 1);
+        wc.hbrBackground = NULL;
         wc.lpszClassName = IWAD_LAUNCHER_CLASS_NAME;
 
         if (!RegisterClassExA(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
         {
+            CleanupLauncherTheme(&launcher);
             free(launcher.additional_params);
             free((void *) launcher.iwads);
             return true;
@@ -466,8 +852,8 @@ static boolean RunIWADLauncherDialog(int mask)
         class_registered = true;
     }
 
-    int client_w = ScaleByDPI(240, launcher.dpi);
-    int client_h = ScaleByDPI(240, launcher.dpi);
+    int client_w = ScaleByDPI(IWAD_WINDOW_CLIENT_W, launcher.dpi);
+    int client_h = ScaleByDPI(IWAD_WINDOW_CLIENT_H, launcher.dpi);
     DWORD style = WS_OVERLAPPEDWINDOW
                 & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_THICKFRAME);
     DWORD exstyle = 0;
@@ -518,6 +904,7 @@ static boolean RunIWADLauncherDialog(int mask)
 
     if (hwnd == NULL)
     {
+        CleanupLauncherTheme(&launcher);
         free(launcher.additional_params);
         free((void *) launcher.iwads);
         return true;
@@ -526,6 +913,7 @@ static boolean RunIWADLauncherDialog(int mask)
     SetWindowTextA(hwnd, resolved_title);
     SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM) icon);
     SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM) icon);
+    TryEnableDarkTitleBar(hwnd);
 
     ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);
@@ -548,6 +936,18 @@ static boolean RunIWADLauncherDialog(int mask)
             continue;
         }
 
+        if ((msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN)
+         && msg.wParam == VK_RETURN
+         && GetAncestor(msg.hwnd, GA_ROOT) == hwnd)
+        {
+            HWND focused = GetFocus();
+            if (focused == launcher.iwad_list || focused == launcher.params_edit)
+            {
+                FinishIWADLauncher(&launcher, true);
+                continue;
+            }
+        }
+
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
@@ -563,6 +963,7 @@ static boolean RunIWADLauncherDialog(int mask)
         D_AppendAdditionalCommandLine(launcher.additional_params);
     }
 
+    CleanupLauncherTheme(&launcher);
     free(launcher.additional_params);
     free((void *) launcher.iwads);
 
