@@ -2744,6 +2744,51 @@ static void CheatClassFunc2 (player_t *player, Cheat_t *cheat)
         player->armorpoints[i] = 0;
     }
     PlayerClass[consoleplayer] = class;
+
+    // [PN] Keep world sprite and mobj sounds in sync with the new class.
+    mobj_t *mo;
+    mobjtype_t moType;
+    if (player->playerstate == PST_LIVE && player->mo)
+    {
+        mo = player->mo;
+
+        switch (class)
+        {
+            case PCLASS_FIGHTER:
+                moType = MT_PLAYER_FIGHTER;
+                break;
+            case PCLASS_CLERIC:
+                moType = MT_PLAYER_CLERIC;
+                break;
+            default: // PCLASS_MAGE (validated above)
+                moType = MT_PLAYER_MAGE;
+                break;
+        }
+
+        mo->type = moType;
+        mo->info = &mobjinfo[moType];
+
+        // [PN] Re-apply player color translation using the same rules as P_SpawnPlayer.
+        mo->flags &= ~MF_TRANSLATION;
+        if (class == PCLASS_FIGHTER)
+        {
+            if (consoleplayer == 0)
+            {
+                mo->flags |= 2 << MF_TRANSSHIFT;
+            }
+            else if (consoleplayer != 2)
+            {
+                mo->flags |= consoleplayer << MF_TRANSSHIFT;
+            }
+        }
+        else if (consoleplayer)
+        {
+            mo->flags |= consoleplayer << MF_TRANSSHIFT;
+        }
+
+        P_SetMobjState(mo, PStateNormal[class]);
+    }
+
     P_PostMorphWeapon(player, WP_FIRST);
     SB_SetClassData();
     SB_state = -1;
