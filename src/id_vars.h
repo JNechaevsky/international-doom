@@ -29,6 +29,8 @@
 
 // Startup launcher
 extern int show_startup_launcher;
+extern int launcher_position_x;
+extern int launcher_position_y;
 
 // System and video
 extern int vid_truecolor;

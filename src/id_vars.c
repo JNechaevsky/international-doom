@@ -35,6 +35,8 @@ int crl_freeze = 0;
 //
 
 int show_startup_launcher = 1;
+int launcher_position_x = 0;
+int launcher_position_y = 0;
 
 //
 // Video options
@@ -241,6 +243,8 @@ void ID_BindVariables (GameMission_t mission)
     //
 
     M_BindIntVariable("show_startup_launcher",          &show_startup_launcher);
+    M_BindIntVariable("launcher_position_x",            &launcher_position_x);
+    M_BindIntVariable("launcher_position_y",            &launcher_position_y);
 
     //
     // Video options

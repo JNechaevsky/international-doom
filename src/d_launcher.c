@@ -22,6 +22,7 @@
 
 #include "d_launcher.h"
 #include "d_iwad.h"
+#include "id_vars.h"
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_misc.h"
@@ -1024,6 +1025,18 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             }
             return 0;
 
+        case WM_MOVE:
+            if (launcher != NULL && !IsIconic(hwnd))
+            {
+                RECT window_rect;
+                if (GetWindowRect(hwnd, &window_rect))
+                {
+                    launcher_position_x = window_rect.left;
+                    launcher_position_y = window_rect.top;
+                }
+            }
+            return 0;
+
         case WM_COMMAND:
             if (launcher == NULL)
             {
@@ -1163,10 +1176,35 @@ static boolean RunIWADLauncherDialog(int mask)
     {
         win_h = screen_h - ScaleByDPI(16, launcher.dpi);
     }
-    int pos_x = ((work_rect.right > work_rect.left) ? work_rect.left : 0)
-              + (screen_w - win_w) / 2;
-    int pos_y = ((work_rect.bottom > work_rect.top) ? work_rect.top : 0)
-              + (screen_h - win_h) / 2;
+    int work_left = (work_rect.right > work_rect.left) ? work_rect.left : 0;
+    int work_top = (work_rect.bottom > work_rect.top) ? work_rect.top : 0;
+    int work_right = work_left + screen_w;
+    int work_bottom = work_top + screen_h;
+    int pos_x = work_left + (screen_w - win_w) / 2;
+    int pos_y = work_top + (screen_h - win_h) / 2;
+
+    if (launcher_position_x != 0 || launcher_position_y != 0)
+    {
+        pos_x = launcher_position_x;
+        pos_y = launcher_position_y;
+
+        if (pos_x < work_left)
+        {
+            pos_x = work_left;
+        }
+        if (pos_y < work_top)
+        {
+            pos_y = work_top;
+        }
+        if (pos_x + win_w > work_right)
+        {
+            pos_x = work_right - win_w;
+        }
+        if (pos_y + win_h > work_bottom)
+        {
+            pos_y = work_bottom - win_h;
+        }
+    }
 
     HWND hwnd = CreateWindowExA(exstyle,
                                 IWAD_LAUNCHER_CLASS_NAME,
