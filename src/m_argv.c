@@ -33,6 +33,7 @@
 
 int		myargc;
 char**		myargv;
+static boolean loose_files_added = false;
 
 
 
@@ -459,6 +460,8 @@ void M_AddLooseFiles(void)
     char **newargv;
     argument_t *arguments;
 
+    loose_files_added = false;
+
     if (myargc < 2)
     {
         return;
@@ -554,6 +557,12 @@ void M_AddLooseFiles(void)
 
     free(myargv);
     myargv = newargv;
+    loose_files_added = (types != 0);
+}
+
+boolean M_HasLooseFiles(void)
+{
+    return loose_files_added;
 }
 
 // Return the name of the executable used to start the program:

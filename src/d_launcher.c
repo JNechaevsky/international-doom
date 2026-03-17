@@ -121,6 +121,166 @@ static void D_AppendAdditionalCommandLine(const char *params)
     }
 }
 
+static boolean LauncherArgNeedsQuotes(const char *arg)
+{
+    const unsigned char *p = (const unsigned char *) arg;
+
+    while (*p != '\0')
+    {
+        if (isspace(*p) || *p == '"')
+        {
+            return true;
+        }
+
+        ++p;
+    }
+
+    return false;
+}
+
+static void NormalizePathForCompare(char *path)
+{
+    size_t len = strlen(path);
+
+    for (size_t i = 0; i < len; ++i)
+    {
+        if (path[i] == '/')
+        {
+            path[i] = '\\';
+        }
+    }
+
+    while (len > 0 && (path[len - 1] == '\\' || path[len - 1] == '/'))
+    {
+        // Keep "C:\" roots intact.
+        if (len == 3 && path[1] == ':')
+        {
+            break;
+        }
+
+        path[--len] = '\0';
+    }
+}
+
+static boolean IsPathInDirectory(const char *path, const char *dir)
+{
+    char *path_dir = M_DirName(path);
+    char *dir_copy = M_StringDuplicate(dir);
+    boolean result = false;
+
+    if (path_dir == NULL || dir_copy == NULL)
+    {
+        free(path_dir);
+        free(dir_copy);
+        return false;
+    }
+
+    NormalizePathForCompare(path_dir);
+    NormalizePathForCompare(dir_copy);
+    result = !strcasecmp(path_dir, dir_copy);
+
+    free(path_dir);
+    free(dir_copy);
+
+    return result;
+}
+
+static void AppendText(char **buffer, size_t *length, size_t *capacity,
+                       const char *text)
+{
+    size_t add = strlen(text);
+    size_t needed = *length + add + 1;
+
+    if (needed > *capacity)
+    {
+        size_t new_capacity = *capacity;
+
+        while (needed > new_capacity)
+        {
+            new_capacity *= 2;
+        }
+
+        char *new_buffer = realloc(*buffer, new_capacity);
+        if (new_buffer == NULL)
+        {
+            I_Error("Failed to allocate memory for launcher parameters.");
+        }
+
+        *buffer = new_buffer;
+        *capacity = new_capacity;
+    }
+
+    memcpy(*buffer + *length, text, add);
+    *length += add;
+    (*buffer)[*length] = '\0';
+}
+
+static char *BuildLauncherParamsFromLooseFiles(void)
+{
+    size_t capacity = 64;
+    size_t length = 0;
+    char *result = malloc(capacity);
+    char *exe_dir = M_DirName(myargv[0]);
+
+    if (result == NULL)
+    {
+        I_Error("Failed to allocate memory for launcher parameters.");
+    }
+
+    if (exe_dir != NULL)
+    {
+        NormalizePathForCompare(exe_dir);
+    }
+
+    result[0] = '\0';
+
+    for (int i = 1; i < myargc; ++i)
+    {
+        const char *arg = myargv[i];
+        const char *display_arg = arg;
+
+        if (!strcasecmp(arg, "-merge"))
+        {
+            display_arg = "-file";
+        }
+        else if (arg[0] != '-' && exe_dir != NULL && IsPathInDirectory(arg, exe_dir))
+        {
+            display_arg = M_BaseName(arg);
+        }
+
+        if (length > 0)
+        {
+            AppendText(&result, &length, &capacity, " ");
+        }
+
+        if (LauncherArgNeedsQuotes(display_arg))
+        {
+            AppendText(&result, &length, &capacity, "\"");
+            AppendText(&result, &length, &capacity, display_arg);
+            AppendText(&result, &length, &capacity, "\"");
+        }
+        else
+        {
+            AppendText(&result, &length, &capacity, display_arg);
+        }
+    }
+
+    free(exe_dir);
+
+    return result;
+}
+
+static void ClearCommandLineExceptExecutable(void)
+{
+    for (int i = 1; i < myargc; ++i)
+    {
+        free(myargv[i]);
+        myargv[i] = NULL;
+    }
+
+    myargc = 1;
+}
+
 #define IWAD_LAUNCHER_CLASS_NAME "InterIwadLauncherWindow"
 #define IWAD_LAUNCHER_PROMPT     "Select IWAD file to run:"
 #define IDC_IWAD_LAUNCHER_LIST   2001
@@ -731,7 +891,8 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                                                      WS_CHILD | WS_VISIBLE,
                                                      0, 0, 0, 0, hwnd, NULL, NULL, NULL);
 
-            launcher->params_edit = CreateWindowExA(0, "EDIT", "",
+            launcher->params_edit = CreateWindowExA(0, "EDIT",
+                                                    launcher->additional_params,
                                                     WS_CHILD | WS_VISIBLE | WS_TABSTOP
                                                   | ES_LEFT | ES_AUTOHSCROLL
                                                   | WS_BORDER,
@@ -907,6 +1068,14 @@ static boolean RunIWADLauncherDialog(int mask)
     launcher.dpi = GetSystemDPI();
     launcher.selected_iwad = 0;
     launcher.additional_params = M_StringDuplicate("");
+
+    if (M_HasLooseFiles())
+    {
+        free(launcher.additional_params);
+        launcher.additional_params = BuildLauncherParamsFromLooseFiles();
+        ClearCommandLineExceptExecutable();
+    }
+
     launcher.ui_font = CreateLauncherUIFont(launcher.dpi, &launcher.owns_ui_font);
     launcher.list_item_height = MeasureFontHeight(launcher.ui_font)
                               + ScaleByDPI(4, launcher.dpi);
