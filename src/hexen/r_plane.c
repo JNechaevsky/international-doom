@@ -442,6 +442,10 @@ R_MakeSpans
 #define SKYTEXTUREMIDSHIFTED 200
 #define FLATSCROLL(X) \
     ((interpfactor << (X)) - (((63 - ((leveltime >> 1) & 63)) << (X) & 63) * FRACUNIT))
+// [PN] Keep signed math for MAPINFO negative sky scroll speeds; cast to angle_t
+// only at the end to map onto the engine's 32-bit angle ring.
+#define SKYOFFSET2ANGLE(X) \
+    ((angle_t)((int64_t)(X) * (1 << (ANGLETOSKYSHIFT - FRACBITS))))
 
 void R_DrawPlanes (void)
 {
@@ -458,7 +462,18 @@ void R_DrawPlanes (void)
     static int interpfactor; // [crispy]
     int heightmask; // [crispy]
     static int prev_skyTexture, prev_skyTexture2, skyheight; // [crispy]
-    int smoothDelta1 = 0, smoothDelta2 = 0; // [JN] Smooth sky scrolling.
+    angle_t smoothDelta1 = 0, smoothDelta2 = 0; // [JN] Smooth sky scrolling.
+    // [PN] Sky offsets are now interpolated with fractionaltic * Sky*ScrollDelta
+    // to smooth intra-tic motion in uncapped mode while preserving map scroll speed.
+    fixed_t skyOffset1 = Sky1ColumnOffset;
+    fixed_t skyOffset2 = Sky2ColumnOffset;
+
+    // [JN] Interpolate sky scrolling for uncapped framerate.
+    if (vid_uncapped_fps && realleveltime > oldleveltime && !crl_freeze)
+    {
+        skyOffset1 += FixedMul(fractionaltic, Sky1ScrollDelta);
+        skyOffset2 += FixedMul(fractionaltic, Sky2ScrollDelta);
+    }
 
     IDRender.numopenings = lastopening - openings;
 
@@ -477,13 +492,15 @@ void R_DrawPlanes (void)
                 {
                     offset = 0;
                     offset2 = 0;
-                    smoothDelta1 = Sky1ColumnOffset << 6;
-                    smoothDelta2 = Sky2ColumnOffset << 6;
+                    smoothDelta1 = SKYOFFSET2ANGLE(skyOffset1);
+                    smoothDelta2 = SKYOFFSET2ANGLE(skyOffset2);
                 }
                 else
                 {
-                    offset = Sky1ColumnOffset >> 16;
-                    offset2 = Sky2ColumnOffset >> 16;
+                    offset = Sky1ColumnOffset >> FRACBITS;
+                    offset2 = Sky2ColumnOffset >> FRACBITS;
+                    smoothDelta1 = 0;
+                    smoothDelta2 = 0;
                 }
                 
                 if (skyTexture != prev_skyTexture ||
@@ -572,7 +589,16 @@ void R_DrawPlanes (void)
             {                   // Render single layer
                 if (pl->special == 200)
                 {               // Use sky 2
-                    offset = Sky2ColumnOffset >> 16;
+                    if (vid_uncapped_fps)
+                    {
+                        offset = 0;
+                        smoothDelta1 = SKYOFFSET2ANGLE(skyOffset2);
+                    }
+                    else
+                    {
+                        offset = Sky2ColumnOffset >> FRACBITS;
+                        smoothDelta1 = 0;
+                    }
                     skyTexture = texturetranslation[Sky2Texture];
                 }
                 else
@@ -580,11 +606,12 @@ void R_DrawPlanes (void)
                     if (vid_uncapped_fps)
                     {
                         offset = 0;
-                        smoothDelta1 = Sky1ColumnOffset << 6;
+                        smoothDelta1 = SKYOFFSET2ANGLE(skyOffset1);
                     }
                     else
                     {
-                        offset = Sky1ColumnOffset >> 16;
+                        offset = Sky1ColumnOffset >> FRACBITS;
+                        smoothDelta1 = 0;
                     }
                     skyTexture = texturetranslation[Sky1Texture];
                 }
