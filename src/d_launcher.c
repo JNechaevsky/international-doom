@@ -802,16 +802,14 @@ static void FinishIWADLauncher(iwad_launcher_t *launcher, boolean play_pressed)
     launcher->play_pressed = play_pressed;
     launcher->done = true;
 
+    LRESULT sel = SendMessageA(launcher->iwad_list, LB_GETCURSEL, 0, 0);
+    if (sel != LB_ERR)
+    {
+        launcher->selected_iwad = (int) sel;
+    }
+
     if (play_pressed)
     {
-        LRESULT sel;
-
-        sel = SendMessageA(launcher->iwad_list, LB_GETCURSEL, 0, 0);
-        if (sel != LB_ERR)
-        {
-            launcher->selected_iwad = (int) sel;
-        }
-
         int length = GetWindowTextLengthA(launcher->params_edit);
         free(launcher->additional_params);
         launcher->additional_params = malloc((size_t) length + 1);
@@ -872,14 +870,29 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
 
             if (launcher->iwads[0] != NULL)
             {
+                int default_iwad = 0;
+
+                if (launcher_default_iwad != NULL && launcher_default_iwad[0] != '\0')
+                {
+                    for (int i = 0; launcher->iwads[i] != NULL; ++i)
+                    {
+                        if (!strcasecmp(launcher->iwads[i]->name, launcher_default_iwad))
+                        {
+                            default_iwad = i;
+                            break;
+                        }
+                    }
+                }
+
                 for (int i = 0; launcher->iwads[i] != NULL; ++i)
                 {
                     char *label = BuildIWADDisplayName(launcher->iwads[i]);
                     SendMessageA(launcher->iwad_list, LB_ADDSTRING, 0, (LPARAM) label);
                     free(label);
                 }
-                SendMessageA(launcher->iwad_list, LB_SETCURSEL, 0, 0);
-                launcher->selected_iwad = 0;
+
+                SendMessageA(launcher->iwad_list, LB_SETCURSEL, (WPARAM) default_iwad, 0);
+                launcher->selected_iwad = default_iwad;
             }
             else
             {
@@ -1262,6 +1275,11 @@ static boolean RunIWADLauncherDialog(int mask)
 
         TranslateMessage(&msg);
         DispatchMessage(&msg);
+    }
+
+    if (launcher.iwads[launcher.selected_iwad] != NULL)
+    {
+        launcher_default_iwad = (char *) launcher.iwads[launcher.selected_iwad]->name;
     }
 
     if (launcher.play_pressed)

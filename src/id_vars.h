@@ -31,6 +31,7 @@
 extern int show_startup_launcher;
 extern int launcher_position_x;
 extern int launcher_position_y;
+extern char *launcher_default_iwad;
 
 // System and video
 extern int vid_truecolor;
