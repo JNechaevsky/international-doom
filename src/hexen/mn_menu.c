@@ -6802,9 +6802,19 @@ boolean MN_Responder(event_t * event)
                 // [JN] Unlike Doom and Heretic, full reload of game level can
                 // make progress impossible by taking out puzzle items and etc.
                 // Thus, do "reborn" action with same logic as with suicide:
-                // use the reborn code if the save slot is available,
-                // or start a new game if there's no reborn info.
-                players[consoleplayer].playerstate = PST_REBORN;
+                // use the reborn code if the save slot is available.
+                //
+                // [PN] If there is no reborn slot (for example, game started
+                // with -warp and no save exists yet), explicitly re-init
+                // the current map instead of falling back to MAP01.
+                if (SV_RebornSlotAvailable())
+                {
+                    players[consoleplayer].playerstate = PST_REBORN;
+                }
+                else
+                {
+                    G_DeferedInitNew(gameskill, gameepisode, gamemap);
+                }
                 return true;
             }
         }
