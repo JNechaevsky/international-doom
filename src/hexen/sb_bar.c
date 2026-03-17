@@ -1827,14 +1827,14 @@ void DrawKeyBar(void)
             if (CPlayer->armorpoints[i] <=
                 (ArmorIncrement[CPlayer->class][i] >> 2))
             {
-                V_DrawTLPatch(150 + 31 * i, 164,
+                V_DrawAltTLPatch(150 + 31 * i, 164,
                               W_CacheLumpNum(W_GetNumForName("armslot1") +
                                              i, PU_CACHE));
             }
             else if (CPlayer->armorpoints[i] <=
                      (ArmorIncrement[CPlayer->class][i] >> 1))
             {
-                V_DrawAltTLPatch(150 + 31 * i, 164,
+                V_DrawTLPatch(150 + 31 * i, 164,
                                  W_CacheLumpNum(W_GetNumForName("armslot1")
                                                 + i, PU_CACHE));
             }
