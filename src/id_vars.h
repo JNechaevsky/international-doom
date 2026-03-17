@@ -27,6 +27,9 @@
 // [JN] ID-specific config variables.
 // -----------------------------------------------------------------------------
 
+// Startup launcher
+extern int show_startup_launcher;
+
 // System and video
 extern int vid_truecolor;
 extern int vid_resolution;

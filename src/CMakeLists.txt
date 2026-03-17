@@ -38,6 +38,7 @@ set(GAME_SOURCE_FILES
                         doomkeys.h
                         doomtype.h
     d_iwad.c            d_iwad.h
+    d_launcher.c        d_launcher.h
     d_loop.c            d_loop.h
     d_mode.c            d_mode.h
                         d_ticcmd.h

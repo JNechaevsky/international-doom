@@ -40,6 +40,7 @@
 #include "doomstat.h"
 #include "dstrings.h"
 #include "d_iwad.h"
+#include "d_launcher.h"
 #include "z_zone.h"
 #include "w_main.h"
 #include "w_wad.h"
@@ -1773,6 +1774,12 @@ void D_DoomMain (void)
 
     // Save configuration at exit.
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
+
+    // [PN] Show startup launcher.
+    if (show_startup_launcher && !D_MaybeShowIWADLauncher(IWAD_MASK_DOOM))
+    {
+        I_Quit();
+    }
 
     // Find main IWAD file and load it.
     iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);

@@ -35,12 +35,12 @@
 
 static const iwad_t iwads[] =
 {
+    { "doom1.wad",    doom,      shareware,  "Doom Shareware" },
+    { "doom.wad",     doom,      retail,     "Doom" },
     { "doom2.wad",    doom2,     commercial, "Doom II" },
+    { "doom2f.wad",   doom2,     commercial, "Doom II: L'Enfer sur Terre" },
     { "plutonia.wad", pack_plut, commercial, "Final Doom: Plutonia Experiment" },
     { "tnt.wad",      pack_tnt,  commercial, "Final Doom: TNT: Evilution" },
-    { "doom.wad",     doom,      retail,     "Doom" },
-    { "doom1.wad",    doom,      shareware,  "Doom Shareware" },
-    { "doom2f.wad",   doom2,     commercial, "Doom II: L'Enfer sur Terre" },
     { "chex.wad",     pack_chex, retail,     "Chex Quest" },
     { "hacx.wad",     pack_hacx, commercial, "Hacx" },
     { "freedoom2.wad", doom2,    commercial, "Freedoom: Phase 2" },
@@ -48,11 +48,13 @@ static const iwad_t iwads[] =
     { "freedm.wad",   doom2,     commercial, "FreeDM" },
     { "rekkrsa.wad",  doom,      retail,     "REKKR" }, // [crispy] REKKR
     { "rekkrsl.wad",  doom,      retail,     "REKKR: Sunken Land" }, // [crispy] REKKR: Sunken Land (Steam retail)
+
     { "heretic.wad",  heretic,   retail,     "Heretic" },
     { "heretic1.wad", heretic,   shareware,  "Heretic Shareware" },
+
     { "hexen.wad",    hexen,     commercial, "Hexen" },
     //{ "strife0.wad",  strife,    commercial, "Strife" }, // haleyjd: STRIFE-FIXME
-    { "strife1.wad",  strife,    commercial, "Strife" },
+    //{ "strife1.wad",  strife,    commercial, "Strife" },
 };
 
 boolean D_IsIWADName(const char *name)

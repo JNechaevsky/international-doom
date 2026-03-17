@@ -31,6 +31,12 @@ int crl_freeze = 0;
 // -----------------------------------------------------------------------------
 
 //
+// Startup launcher
+//
+
+int show_startup_launcher = 1;
+
+//
 // Video options
 //
 
@@ -230,6 +236,12 @@ int menu_cap_fps = 0;
 
 void ID_BindVariables (GameMission_t mission)
 {
+    //
+    // Startup launcher
+    //
+
+    M_BindIntVariable("show_startup_launcher",          &show_startup_launcher);
+
     //
     // Video options
     //
