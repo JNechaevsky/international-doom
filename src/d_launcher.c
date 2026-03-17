@@ -130,8 +130,8 @@ static void D_AppendAdditionalCommandLine(const char *params)
 #define IWAD_LAUNCHER_OLDPROC    "InterLauncherOldProc"
 #define IWAD_LAUNCHER_BTN_OLDPROC "InterLauncherBtnOldProc"
 #define IWAD_LAUNCHER_BTN_HOVER   "InterLauncherBtnHover"
-#define IWAD_WINDOW_CLIENT_W     240
-#define IWAD_WINDOW_CLIENT_H     300
+#define IWAD_WINDOW_CLIENT_W     280
+#define IWAD_WINDOW_CLIENT_H     360
 #define IWAD_BUTTON_IDEAL_W      120
 #define IWAD_BUTTON_H            30
 #define IWAD_COLOR_WINDOW_BG     RGB(43, 43, 43)
@@ -154,6 +154,9 @@ typedef struct
     int dpi;
     int selected_iwad;
     char *additional_params;
+    HFONT ui_font;
+    boolean owns_ui_font;
+    int list_item_height;
     HBRUSH window_brush;
     HBRUSH control_brush;
     HBRUSH list_sel_brush;
@@ -169,6 +172,89 @@ typedef HRESULT (WINAPI *dwm_set_window_attribute_t)(HWND, DWORD,
                                                       LPCVOID, DWORD);
 
 static int ScaleByDPI(int value, int dpi);
+
+static void CleanupLauncherFont(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL)
+    {
+        return;
+    }
+
+    if (launcher->owns_ui_font && launcher->ui_font != NULL)
+    {
+        DeleteObject(launcher->ui_font);
+    }
+
+    launcher->ui_font = NULL;
+    launcher->owns_ui_font = false;
+}
+
+static HFONT CreateLauncherUIFont(int dpi, boolean *owns_font)
+{
+    NONCLIENTMETRICSA ncm;
+    HFONT font = NULL;
+
+    memset(&ncm, 0, sizeof(ncm));
+    ncm.cbSize = sizeof(ncm);
+
+    if (!SystemParametersInfoA(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0))
+    {
+        // XP-compatible fallback for headers with iPaddedBorderWidth.
+        ncm.cbSize = sizeof(ncm) - sizeof(int);
+        SystemParametersInfoA(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+    }
+
+    font = CreateFontIndirectA(&ncm.lfMessageFont);
+    if (font != NULL)
+    {
+        *owns_font = true;
+        return font;
+    }
+
+    // Last resort: scaled GUI font with standard UI face.
+    font = CreateFontA(-MulDiv(9, dpi, 72), 0, 0, 0, FW_NORMAL, FALSE, FALSE,
+                       FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                       CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                       DEFAULT_PITCH | FF_DONTCARE, "Segoe UI");
+    if (font != NULL)
+    {
+        *owns_font = true;
+        return font;
+    }
+
+    *owns_font = false;
+    return (HFONT) GetStockObject(DEFAULT_GUI_FONT);
+}
+
+static int MeasureFontHeight(HFONT font)
+{
+    int height = 16;
+    HDC dc = GetDC(NULL);
+
+    if (dc != NULL)
+    {
+        HFONT old_font = (HFONT) SelectObject(dc, font);
+        TEXTMETRICA tm;
+
+        if (GetTextMetricsA(dc, &tm))
+        {
+            height = tm.tmHeight + tm.tmExternalLeading;
+        }
+
+        SelectObject(dc, old_font);
+        ReleaseDC(NULL, dc);
+    }
+
+    return height;
+}
+
+static void ApplyFontToControl(HWND control, HFONT font)
+{
+    if (control != NULL && font != NULL)
+    {
+        SendMessageA(control, WM_SETFONT, (WPARAM) font, TRUE);
+    }
+}
 
 static void DestroyLauncherBrush(HBRUSH *brush)
 {
@@ -485,7 +571,7 @@ static void LayoutIWADLauncher(iwad_launcher_t *launcher)
     int margin = ScaleByDPI(16, launcher->dpi);
     int gap = ScaleByDPI(8, launcher->dpi);
     int label_h = ScaleByDPI(20, launcher->dpi);
-    int edit_h = ScaleByDPI(18, launcher->dpi);
+    int edit_h = ScaleByDPI(20, launcher->dpi);
     int ideal_btn_w = ScaleByDPI(IWAD_BUTTON_IDEAL_W, launcher->dpi);
     int btn_h = ScaleByDPI(IWAD_BUTTON_H, launcher->dpi);
 
@@ -681,6 +767,13 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 InstallButtonHover(exit_btn);
             }
 
+            ApplyFontToControl(launcher->prompt_label, launcher->ui_font);
+            ApplyFontToControl(launcher->iwad_list, launcher->ui_font);
+            ApplyFontToControl(launcher->params_label, launcher->ui_font);
+            ApplyFontToControl(launcher->params_edit, launcher->ui_font);
+            ApplyFontToControl(play_btn, launcher->ui_font);
+            ApplyFontToControl(exit_btn, launcher->ui_font);
+
             LayoutIWADLauncher(launcher);
             return 0;
         }
@@ -711,7 +804,14 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 if (mis != NULL && mis->CtlID == IDC_IWAD_LAUNCHER_LIST)
                 {
                     int dpi = (launcher != NULL) ? launcher->dpi : GetSystemDPI();
-                    mis->itemHeight = (UINT) ScaleByDPI(18, dpi);
+                    int height = ScaleByDPI(18, dpi);
+
+                    if (launcher != NULL && launcher->list_item_height > height)
+                    {
+                        height = launcher->list_item_height;
+                    }
+
+                    mis->itemHeight = (UINT) height;
                     return TRUE;
                 }
             }
@@ -807,6 +907,9 @@ static boolean RunIWADLauncherDialog(int mask)
     launcher.dpi = GetSystemDPI();
     launcher.selected_iwad = 0;
     launcher.additional_params = M_StringDuplicate("");
+    launcher.ui_font = CreateLauncherUIFont(launcher.dpi, &launcher.owns_ui_font);
+    launcher.list_item_height = MeasureFontHeight(launcher.ui_font)
+                              + ScaleByDPI(4, launcher.dpi);
     launcher.window_brush = CreateSolidBrush(IWAD_COLOR_WINDOW_BG);
     launcher.control_brush = CreateSolidBrush(IWAD_COLOR_CONTROL_BG);
     launcher.list_sel_brush = CreateSolidBrush(IWAD_COLOR_LIST_SEL_BG);
@@ -843,6 +946,7 @@ static boolean RunIWADLauncherDialog(int mask)
 
         if (!RegisterClassExA(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
         {
+            CleanupLauncherFont(&launcher);
             CleanupLauncherTheme(&launcher);
             free(launcher.additional_params);
             free((void *) launcher.iwads);
@@ -904,6 +1008,7 @@ static boolean RunIWADLauncherDialog(int mask)
 
     if (hwnd == NULL)
     {
+        CleanupLauncherFont(&launcher);
         CleanupLauncherTheme(&launcher);
         free(launcher.additional_params);
         free((void *) launcher.iwads);
@@ -963,6 +1068,7 @@ static boolean RunIWADLauncherDialog(int mask)
         D_AppendAdditionalCommandLine(launcher.additional_params);
     }
 
+    CleanupLauncherFont(&launcher);
     CleanupLauncherTheme(&launcher);
     free(launcher.additional_params);
     free((void *) launcher.iwads);
