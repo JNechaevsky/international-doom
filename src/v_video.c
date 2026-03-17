@@ -1839,26 +1839,51 @@ void V_RestoreBuffer(void)
 static void WritePNGfile (const char *filename)
 {
     byte *data;
+    byte *rgb_data = NULL;
     int width, height;
     size_t png_data_size = 0;
+    void *pPNG_data = NULL;
+    size_t pixel_count;
 
     I_RenderReadPixels(&data, &width, &height);
     {
-        void *pPNG_data = tdefl_write_image_to_png_file_in_memory(data, width, height, 4, &png_data_size);
+        pixel_count = (size_t) width * (size_t) height;
+        rgb_data = malloc(pixel_count * 3);
 
+        // [PN] Prefer RGB output: screenshots should not carry transparency.
+        if (rgb_data)
+        {
+            for (size_t i = 0; i < pixel_count; ++i)
+            {
+                const size_t src = i * 4;
+                const size_t dst = i * 3;
+                rgb_data[dst + 0] = data[src + 0];
+                rgb_data[dst + 1] = data[src + 1];
+                rgb_data[dst + 2] = data[src + 2];
+            }
+
+            pPNG_data = tdefl_write_image_to_png_file_in_memory(rgb_data, width, height, 3, &png_data_size);
+        }
+
+        // [PN] Fallback to RGBA if RGB conversion buffer cannot be allocated.
         if (!pPNG_data)
         {
-            return;
+            pPNG_data = tdefl_write_image_to_png_file_in_memory(data, width, height, 4, &png_data_size);
         }
-        else
+
+        if (pPNG_data)
         {
             FILE *handle = M_fopen(filename, "wb");
-            fwrite(pPNG_data, 1, png_data_size, handle);
-            fclose(handle);
+
+            if (handle != NULL)
+            {
+                fwrite(pPNG_data, 1, png_data_size, handle);
+                fclose(handle);
+            }
             mz_free(pPNG_data);
         }
     }
-
+    free(rgb_data);
     free(data);
 }
 
