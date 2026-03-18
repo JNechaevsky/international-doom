@@ -43,6 +43,7 @@ int M_CheckParmWithArgs(const char *check, int num_args);
 
 void M_FindResponseFile(void);
 void M_AddLooseFiles(void);
+boolean M_HasLooseFiles(void);
 
 // Parameter has been specified?
 

@@ -40,6 +40,7 @@
 #include "doomstat.h"
 #include "dstrings.h"
 #include "d_iwad.h"
+#include "d_launcher.h"
 #include "z_zone.h"
 #include "w_main.h"
 #include "w_wad.h"
@@ -1539,7 +1540,6 @@ void D_DoomMain (void)
     int p;
     char file[256];
     char demolumpname[9];
-    const int starttime = SDL_GetTicks();
 
     // [crispy] unconditionally initialize DEH tables
     DEH_Init();
@@ -1773,6 +1773,12 @@ void D_DoomMain (void)
 
     // Save configuration at exit.
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
+
+    // [PN] Show startup launcher.
+    if (show_startup_launcher && !D_MaybeShowIWADLauncher(IWAD_MASK_DOOM))
+    {
+        I_Quit();
+    }
 
     // Find main IWAD file and load it.
     iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
@@ -2364,9 +2370,6 @@ void D_DoomMain (void)
 
     // [JN] Predefine some automap variables at program startup.
     AM_Init ();
-
-    // [JN] Show startup process time.
-    printf("Startup process took %d ms.\n", SDL_GetTicks() - starttime);
 
     // If Doom II without a MAP01 lump, this is a store demo.
     // Moved this here so that MAP01 isn't constantly looked up

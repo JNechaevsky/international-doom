@@ -40,6 +40,7 @@
 #include "doomkeys.h"
 #include "deh_main.h"
 #include "d_iwad.h"
+#include "d_launcher.h"
 #include "f_wipe.h"
 #include "i_endoom.h"
 #include "i_input.h"
@@ -1005,7 +1006,6 @@ void D_DoomMain(void)
     int p;
     char file[256];
     char demolumpname[9];
-    const int starttime = SDL_GetTicks();
 
 #ifdef _WIN32
     // [JN] Print colorized title.
@@ -1188,6 +1188,12 @@ void D_DoomMain(void)
     {
         startskill = myargv[p + 1][0] - '1';
         autostart = true;
+    }
+
+    // [PN] Show startup launcher.
+    if (show_startup_launcher && !D_MaybeShowIWADLauncher(IWAD_MASK_HERETIC))
+    {
+        I_Quit();
     }
 
     DEH_printf("W_Init: Init WADfiles.\n");
@@ -1575,9 +1581,6 @@ void D_DoomMain(void)
     }
 
     finishStartup();
-
-    // [JN] Show startup process time.
-    printf("Startup process took %d ms.\n", SDL_GetTicks() - starttime);
 
     D_DoomLoop();               // Never returns
 }

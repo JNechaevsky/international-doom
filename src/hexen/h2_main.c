@@ -37,6 +37,7 @@
 #include "h2def.h"
 #include "ct_chat.h"
 #include "d_iwad.h"
+#include "d_launcher.h"
 #include "d_mode.h"
 #include "f_wipe.h"
 #include "m_misc.h"
@@ -352,7 +353,6 @@ void D_DoomMain(void)
 {
     GameMission_t gamemission;
     int p;
-    const int starttime = SDL_GetTicks();
 
     I_AtExit(D_HexenQuitMessage, false);
     startepisode = 1;
@@ -430,6 +430,12 @@ void D_DoomMain(void)
     CreateSavePath();
 
     // haleyjd: removed WATCOMC
+
+    // [PN] Show startup launcher.
+    if (show_startup_launcher && !D_MaybeShowIWADLauncher(IWAD_MASK_HEXEN))
+    {
+        I_Quit();
+    }
 
     ST_Message("W_Init: Init WADfiles.\n");
 
@@ -622,9 +628,6 @@ void D_DoomMain(void)
             H2_StartTitle();
         }
     }
-
-    // [JN] Show startup process time.
-    printf("Startup process took %d ms.\n", SDL_GetTicks() - starttime);
 
     H2_GameLoop();              // Never returns
 }

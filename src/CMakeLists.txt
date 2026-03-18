@@ -38,6 +38,7 @@ set(GAME_SOURCE_FILES
                         doomkeys.h
                         doomtype.h
     d_iwad.c            d_iwad.h
+    d_launcher.c        d_launcher.h
     d_loop.c            d_loop.h
     d_mode.c            d_mode.h
                         d_ticcmd.h
@@ -139,7 +140,7 @@ if(FluidSynth_FOUND)
     list(APPEND EXTRA_LIBS FluidSynth::libfluidsynth)
 endif()
 if(WIN32)
-	list(APPEND EXTRA_LIBS winmm shlwapi)
+	list(APPEND EXTRA_LIBS winmm shlwapi comctl32)
 endif()
 
 if(WIN32)

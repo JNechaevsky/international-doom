@@ -41,15 +41,24 @@ typedef struct
     const char *description;
 } iwad_t;
 
+typedef struct
+{
+    const iwad_t *iwad;
+    char *path;
+    const char *source_tag;
+    boolean is_pwad;
+} iwad_search_result_t;
+
 boolean D_IsIWADName(const char *name);
 char *D_FindWADByName(const char *name);
 char *D_TryFindWADByName(const char *filename);
 char *D_FindIWAD(int mask, GameMission_t *mission);
 const iwad_t **D_FindAllIWADs(int mask);
+iwad_search_result_t *D_FindAllIWADSearchResults(int mask);
+void D_FreeIWADSearchResults(iwad_search_result_t *results);
 const char *D_SaveGameIWADName(GameMission_t gamemission, GameVariant_t gamevariant);
 const char *D_SuggestIWADName(GameMission_t mission, GameMode_t mode);
 const char *D_SuggestGameName(GameMission_t mission, GameMode_t mode);
 void D_CheckCorrectIWAD(GameMission_t mission);
 
 #endif
-

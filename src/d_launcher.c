@@ -1,0 +1,3277 @@
+//
+// Copyright(C) 2026 Julia Nechaevskaya
+// Copyright(C) 2026 Polina "Aura" N.
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// DESCRIPTION:
+//     IWAD launcher dialog.
+//
+
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+
+#include "d_launcher.h"
+#include "d_iwad.h"
+#include "id_vars.h"
+#include "i_system.h"
+#include "i_video.h"
+#include "m_argv.h"
+#include "m_config.h"
+#include "m_misc.h"
+
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <commctrl.h>
+#include <shellapi.h>
+
+#define IWAD_LAUNCHER_CLASS_NAME "InterIwadLauncherWindow"
+#define IWAD_LAUNCHER_PROMPT     "Select IWAD file to run:"
+#define IWAD_LAUNCHER_SETTINGS_PROMPT "Options"
+#define IDC_IWAD_LAUNCHER_LIST   2001
+#define IDC_IWAD_LAUNCHER_EDIT   2002
+#define IDC_IWAD_LAUNCHER_PLAY   2003
+#define IDC_IWAD_LAUNCHER_EXIT   2004
+#define IDC_IWAD_LAUNCHER_TOGGLE 2005
+#define IDC_IWAD_LAUNCHER_CLEAR  2006
+#define IDC_IWAD_SETTINGS_VIDEO_LABEL      2101
+#define IDC_IWAD_SETTINGS_FULLSCREEN       2102
+#define IDC_IWAD_SETTINGS_SOFTWARE_RENDER  2103
+#define IDC_IWAD_SETTINGS_AUTOLOAD_LABEL   2104
+#define IDC_IWAD_SETTINGS_AUTOLOAD_WAD     2105
+#define IDC_IWAD_SETTINGS_AUTOLOAD_DEH     2106
+#define IDC_IWAD_SETTINGS_LAUNCHER_LABEL   2107
+#define IDC_IWAD_SETTINGS_SHOW_STARTUP     2108
+#define IWAD_LAUNCHER_OLDPROC    "InterLauncherOldProc"
+#define IWAD_LAUNCHER_BTN_OLDPROC "InterLauncherBtnOldProc"
+#define IWAD_LAUNCHER_BTN_HOVER   "InterLauncherBtnHover"
+#define IWAD_TOOLTIP_TIMER_ID    3001
+#define IWAD_TOOLTIP_SHOW_DELAY_MS 350
+#define IWAD_LAUNCHER_TOGGLE_GLYPH_SETTINGS L"\xE713"
+#define IWAD_LAUNCHER_TOGGLE_GLYPH_BACK     L"\xE72B"
+#define IWAD_LAUNCHER_CLEAR_GLYPH           L"\xE711"
+#define IWAD_LAUNCHER_TOGGLE_SETTINGS "S"
+#define IWAD_LAUNCHER_TOGGLE_BACK     "<"
+#define IWAD_LAUNCHER_PLAY_CAPTION    "Play"
+#define IWAD_LAUNCHER_CLEAR_CAPTION   "X"
+#define IWAD_WINDOW_CLIENT_W     340
+#define IWAD_WINDOW_CLIENT_H     480
+#define IWAD_BUTTON_IDEAL_W      120
+#define IWAD_BUTTON_H            30
+#define IWAD_COLOR_WINDOW_BG     RGB(43, 43, 43)
+#define IWAD_COLOR_CONTROL_BG    RGB(30, 30, 30)
+#define IWAD_COLOR_LIST_SEL_BG   RGB(0, 90, 165)
+#define IWAD_COLOR_BUTTON_BG     RGB(58, 58, 58)
+#define IWAD_COLOR_BUTTON_HOVER  RGB(78, 78, 78)
+#define IWAD_COLOR_BUTTON_DOWN   RGB(98, 98, 98)
+#define IWAD_COLOR_BUTTON_BORDER RGB(96, 96, 96)
+#define IWAD_COLOR_TEXT          RGB(235, 235, 235)
+#define IWAD_COLOR_CHECK_BG      RGB(42, 42, 42)
+#define IWAD_COLOR_CHECK_HOVER   RGB(58, 58, 58)
+#define IWAD_COLOR_CHECK_BORDER  RGB(122, 122, 122)
+#define IWAD_COLOR_CHECK_ACCENT  RGB(0, 122, 204)
+#define IWAD_COLOR_CHECK_ACCENT_HOVER RGB(20, 142, 224)
+#define IWAD_HERETIC_LIST_SEL_BG      RGB(28, 122, 56)
+#define IWAD_HERETIC_CHECK_ACCENT     RGB(26, 148, 64)
+#define IWAD_HERETIC_CHECK_ACCENT_HOVER RGB(40, 170, 76)
+#define IWAD_HEXEN_LIST_SEL_BG        RGB(138, 38, 38)
+#define IWAD_HEXEN_CHECK_ACCENT       RGB(192, 52, 52)
+#define IWAD_HEXEN_CHECK_ACCENT_HOVER RGB(216, 72, 72)
+
+typedef enum
+{
+    LAUNCHER_VIEW_IWAD = 0,
+    LAUNCHER_VIEW_SETTINGS = 1
+} launcher_view_mode_t;
+
+typedef struct
+{
+    HWND window;
+    HWND prompt_label;
+    HWND toggle_button;
+    HWND iwad_list;
+    HWND params_label;
+    HWND params_edit;
+    HWND clear_button;
+    HWND clear_tooltip;
+    HWND iwad_tooltip;
+    char *iwad_tooltip_text;
+    int iwad_tooltip_item;
+    boolean iwad_tooltip_active;
+    int iwad_tooltip_pending_item;
+    DWORD iwad_tooltip_pending_since;
+    HWND settings_video_label;
+    HWND settings_fullscreen;
+    HWND settings_software_renderer;
+    HWND settings_autoload_label;
+    HWND settings_autoload_wad;
+    HWND settings_autoload_deh;
+    HWND settings_launcher_label;
+    HWND settings_show_startup;
+    int settings_fullscreen_checked;
+    int settings_software_renderer_checked;
+    int settings_autoload_wad_checked;
+    int settings_autoload_deh_checked;
+    int settings_show_startup_checked;
+    int initial_fullscreen_checkbox;
+    int initial_software_renderer_checkbox;
+    int initial_autoload_wad_checkbox;
+    int initial_autoload_deh_checkbox;
+    int initial_show_startup_checkbox;
+    iwad_search_result_t *iwads;
+    int dpi;
+    int selected_iwad;
+    char *additional_params;
+    HFONT ui_font;
+    boolean owns_ui_font;
+    HFONT toggle_icon_font;
+    boolean owns_toggle_icon_font;
+    boolean toggle_use_icon_font;
+    HFONT clear_icon_font;
+    boolean owns_clear_icon_font;
+    int list_item_height;
+    HBRUSH window_brush;
+    HBRUSH control_brush;
+    HBRUSH list_sel_brush;
+    HBRUSH button_brush;
+    HBRUSH button_hover_brush;
+    HBRUSH button_down_brush;
+    HBRUSH button_border_brush;
+    COLORREF color_window_bg;
+    COLORREF color_control_bg;
+    COLORREF color_list_sel_bg;
+    COLORREF color_button_bg;
+    COLORREF color_button_hover;
+    COLORREF color_button_down;
+    COLORREF color_button_border;
+    COLORREF color_text;
+    COLORREF color_check_bg;
+    COLORREF color_check_hover;
+    COLORREF color_check_border;
+    COLORREF color_check_accent;
+    COLORREF color_check_accent_hover;
+    launcher_view_mode_t view_mode;
+    boolean play_pressed;
+    boolean done;
+} iwad_launcher_t;
+
+typedef HRESULT (WINAPI *dwm_set_window_attribute_t)(HWND, DWORD,
+                                                      LPCVOID, DWORD);
+typedef HRESULT (WINAPI *set_window_theme_t)(HWND, LPCWSTR, LPCWSTR);
+
+static int ScaleByDPI(int value, int dpi);
+static int GetIWADItemAtPoint(HWND listbox, POINT pt);
+static const char *BuildIWADListTooltipText(iwad_launcher_t *launcher, int item);
+static void UpdateIWADTooltipFromCursor(iwad_launcher_t *launcher);
+static void AppendLauncherParamSeparator(char **buffer, size_t *length, size_t *capacity);
+static void AppendLauncherDisplayArg(char **buffer, size_t *length, size_t *capacity,
+                                     const char *arg);
+
+// -----------------------------------------------------------------------------
+// D_AppendCommandLineArgument
+//  [PN] Append one token to process argv when launching from startup dialog.
+// -----------------------------------------------------------------------------
+
+static void D_AppendCommandLineArgument(const char *arg)
+{
+    char **newargv = realloc(myargv, (myargc + 1) * sizeof(*newargv));
+    if (newargv == NULL)
+    {
+        I_Error("Failed to allocate memory for command-line arguments.");
+    }
+
+    myargv = newargv;
+    myargv[myargc] = M_StringDuplicate(arg);
+    ++myargc;
+}
+
+// -----------------------------------------------------------------------------
+// D_AppendAdditionalCommandLine
+//  [PN] Parse text parameters and append resulting args to process argv.
+// -----------------------------------------------------------------------------
+
+static void D_AppendAdditionalCommandLine(const char *params)
+{
+    if (params == NULL)
+    {
+        return;
+    }
+
+    const char *p = params;
+
+    while (*p != '\0')
+    {
+        const char *start;
+        const char *end;
+        char quote = '\0';
+        char *arg;
+        size_t len;
+
+        while (*p != '\0' && isspace((unsigned char) *p))
+        {
+            ++p;
+        }
+
+        if (*p == '\0')
+        {
+            break;
+        }
+
+        if (*p == '"' || *p == '\'')
+        {
+            quote = *p;
+            ++p;
+            start = p;
+
+            while (*p != '\0' && *p != quote)
+            {
+                ++p;
+            }
+
+            end = p;
+
+            if (*p == quote)
+            {
+                ++p;
+            }
+        }
+        else
+        {
+            start = p;
+
+            while (*p != '\0' && !isspace((unsigned char) *p))
+            {
+                ++p;
+            }
+
+            end = p;
+        }
+
+        len = end - start;
+
+        if (len == 0)
+        {
+            continue;
+        }
+
+        arg = malloc(len + 1);
+        if (arg == NULL)
+        {
+            I_Error("Failed to allocate memory for command-line arguments.");
+        }
+
+        memcpy(arg, start, len);
+        arg[len] = '\0';
+
+        D_AppendCommandLineArgument(arg);
+        free(arg);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// LauncherArgNeedsQuotes
+//  [PN] Check whether an argument needs quotes when shown in the launcher.
+// -----------------------------------------------------------------------------
+
+static boolean LauncherArgNeedsQuotes(const char *arg)
+{
+    const unsigned char *p = (const unsigned char *) arg;
+
+    while (*p != '\0')
+    {
+        if (isspace(*p) || *p == '"')
+        {
+            return true;
+        }
+
+        ++p;
+    }
+
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+// NormalizePathForCompare
+//  [PN] Normalize separators and trailing slashes for stable path comparison.
+// -----------------------------------------------------------------------------
+
+static void NormalizePathForCompare(char *path)
+{
+    size_t len = strlen(path);
+
+    for (size_t i = 0; i < len; ++i)
+    {
+        if (path[i] == '/')
+        {
+            path[i] = '\\';
+        }
+    }
+
+    while (len > 0 && (path[len - 1] == '\\' || path[len - 1] == '/'))
+    {
+        // Keep "C:\" roots intact.
+        if (len == 3 && path[1] == ':')
+        {
+            break;
+        }
+
+        path[--len] = '\0';
+    }
+}
+
+// -----------------------------------------------------------------------------
+// GetLauncherExecutableDir
+//  [PN] Resolve executable directory using WinAPI absolute module path.
+// -----------------------------------------------------------------------------
+
+static char *GetLauncherExecutableDir(void)
+{
+    char module_path[MAX_PATH];
+    DWORD path_len = GetModuleFileNameA(NULL, module_path,
+                                        (DWORD) (sizeof(module_path) / sizeof(module_path[0])));
+
+    if (path_len > 0 && path_len < sizeof(module_path))
+    {
+        char *exe_dir = M_DirName(module_path);
+        if (exe_dir != NULL)
+        {
+            NormalizePathForCompare(exe_dir);
+        }
+        return exe_dir;
+    }
+
+    if (myargc > 0 && myargv[0] != NULL)
+    {
+        char *exe_dir = M_DirName(myargv[0]);
+        if (exe_dir != NULL)
+        {
+            NormalizePathForCompare(exe_dir);
+        }
+        return exe_dir;
+    }
+
+    return NULL;
+}
+
+// -----------------------------------------------------------------------------
+// IsPathInDirectory
+//  [PN] Compare parent directory of a file path against a target directory.
+// -----------------------------------------------------------------------------
+
+static boolean IsPathInDirectory(const char *path, const char *dir)
+{
+    char *path_dir = M_DirName(path);
+    char *dir_copy = M_StringDuplicate(dir);
+    boolean result = false;
+
+    if (path_dir == NULL || dir_copy == NULL)
+    {
+        free(path_dir);
+        free(dir_copy);
+        return false;
+    }
+
+    NormalizePathForCompare(path_dir);
+    NormalizePathForCompare(dir_copy);
+    result = !strcasecmp(path_dir, dir_copy);
+
+    free(path_dir);
+    free(dir_copy);
+
+    return result;
+}
+
+// -----------------------------------------------------------------------------
+// AppendText
+//  [PN] Append text to a growable string buffer.
+// -----------------------------------------------------------------------------
+
+static void AppendText(char **buffer, size_t *length, size_t *capacity,
+                       const char *text)
+{
+    size_t add = strlen(text);
+    size_t needed = *length + add + 1;
+
+    if (needed > *capacity)
+    {
+        size_t new_capacity = *capacity;
+
+        while (needed > new_capacity)
+        {
+            new_capacity *= 2;
+        }
+
+        char *new_buffer = realloc(*buffer, new_capacity);
+        if (new_buffer == NULL)
+        {
+            I_Error("Failed to allocate memory for launcher parameters.");
+        }
+
+        *buffer = new_buffer;
+        *capacity = new_capacity;
+    }
+
+    memcpy(*buffer + *length, text, add);
+    *length += add;
+    (*buffer)[*length] = '\0';
+}
+
+// -----------------------------------------------------------------------------
+// BuildLauncherParamsFromLooseFiles
+//  [PN] Build initial launcher parameters from loose-file drag-n-drop args.
+// -----------------------------------------------------------------------------
+
+static char *BuildLauncherParamsFromLooseFiles(void)
+{
+    size_t capacity = 64;
+    size_t length = 0;
+    char *result = malloc(capacity);
+    char *exe_dir = GetLauncherExecutableDir();
+
+    if (result == NULL)
+    {
+        I_Error("Failed to allocate memory for launcher parameters.");
+    }
+
+    result[0] = '\0';
+
+    for (int i = 1; i < myargc; ++i)
+    {
+        const char *arg = myargv[i];
+        const char *display_arg = arg;
+
+        if (!strcasecmp(arg, "-merge"))
+        {
+            display_arg = "-file";
+        }
+        else if (arg[0] != '-' && exe_dir != NULL && IsPathInDirectory(arg, exe_dir))
+        {
+            display_arg = M_BaseName(arg);
+        }
+
+        AppendLauncherParamSeparator(&result, &length, &capacity);
+        AppendLauncherDisplayArg(&result, &length, &capacity, display_arg);
+    }
+
+    free(exe_dir);
+
+    return result;
+}
+
+// -----------------------------------------------------------------------------
+// AppendLauncherParamSeparator
+//  [PN] Append one separating space unless parameter buffer already ends in space.
+// -----------------------------------------------------------------------------
+
+static void AppendLauncherParamSeparator(char **buffer, size_t *length, size_t *capacity)
+{
+    if (*length == 0)
+    {
+        return;
+    }
+
+    if (!isspace((unsigned char) (*buffer)[*length - 1]))
+    {
+        AppendText(buffer, length, capacity, " ");
+    }
+}
+
+// -----------------------------------------------------------------------------
+// AppendLauncherDisplayArg
+//  [PN] Append one argument to launcher text, quoting when path contains spaces.
+// -----------------------------------------------------------------------------
+
+static void AppendLauncherDisplayArg(char **buffer, size_t *length, size_t *capacity,
+                                     const char *arg)
+{
+    if (LauncherArgNeedsQuotes(arg))
+    {
+        AppendText(buffer, length, capacity, "\"");
+        AppendText(buffer, length, capacity, arg);
+        AppendText(buffer, length, capacity, "\"");
+    }
+    else
+    {
+        AppendText(buffer, length, capacity, arg);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// LauncherParamsHasSwitch
+//  [PN] Check whether launcher text already contains a standalone switch token.
+// -----------------------------------------------------------------------------
+
+static boolean LauncherParamsHasSwitch(const char *params, const char *name)
+{
+    if (params == NULL || name == NULL || name[0] == '\0')
+    {
+        return false;
+    }
+
+    size_t name_len = strlen(name);
+    const char *p = params;
+
+    while (*p != '\0')
+    {
+        while (*p != '\0' && isspace((unsigned char) *p))
+        {
+            ++p;
+        }
+
+        if (*p == '\0')
+        {
+            break;
+        }
+
+        const char *start;
+        const char *end;
+        if (*p == '"' || *p == '\'')
+        {
+            char quote = *p++;
+            start = p;
+            while (*p != '\0' && *p != quote)
+            {
+                ++p;
+            }
+            end = p;
+            if (*p == quote)
+            {
+                ++p;
+            }
+        }
+        else
+        {
+            start = p;
+            while (*p != '\0' && !isspace((unsigned char) *p))
+            {
+                ++p;
+            }
+            end = p;
+        }
+
+        size_t token_len = (size_t) (end - start);
+        if (token_len == name_len && !strncasecmp(start, name, token_len))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+typedef enum
+{
+    DROP_SWITCH_NONE = 0,
+    DROP_SWITCH_FILE,
+    DROP_SWITCH_DEH,
+    DROP_SWITCH_PLAYDEMO,
+    DROP_SWITCH_CONFIG
+} drop_switch_t;
+
+// -----------------------------------------------------------------------------
+// HasFileExtension
+//  [PN] Case-insensitive extension matcher for dropped files.
+// -----------------------------------------------------------------------------
+
+static boolean HasFileExtension(const char *path, const char *extension)
+{
+    if (path == NULL || extension == NULL)
+    {
+        return false;
+    }
+
+    const char *dot = strrchr(path, '.');
+    return dot != NULL && !strcasecmp(dot, extension);
+}
+
+// -----------------------------------------------------------------------------
+// DropSwitchForPath
+//  [PN] Map dropped file extension to command-line switch kind.
+// -----------------------------------------------------------------------------
+
+static drop_switch_t DropSwitchForPath(const char *path)
+{
+    if (HasFileExtension(path, ".wad"))
+    {
+        return DROP_SWITCH_FILE;
+    }
+    if (HasFileExtension(path, ".deh"))
+    {
+        return DROP_SWITCH_DEH;
+    }
+    if (HasFileExtension(path, ".lmp"))
+    {
+        return DROP_SWITCH_PLAYDEMO;
+    }
+    if (HasFileExtension(path, ".ini"))
+    {
+        return DROP_SWITCH_CONFIG;
+    }
+
+    return DROP_SWITCH_NONE;
+}
+
+// -----------------------------------------------------------------------------
+// DropSwitchArg
+//  [PN] Convert drop switch kind to actual command-line switch string.
+// -----------------------------------------------------------------------------
+
+static const char *DropSwitchArg(drop_switch_t drop_switch)
+{
+    switch (drop_switch)
+    {
+        case DROP_SWITCH_FILE:
+            return "-file";
+        case DROP_SWITCH_DEH:
+            return "-deh";
+        case DROP_SWITCH_PLAYDEMO:
+            return "-playdemo";
+        case DROP_SWITCH_CONFIG:
+            return "-config";
+        default:
+            return NULL;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// DropSwitchPresenceFlagPtr
+//  [PN] Return pointer to per-switch "already added" flag.
+// -----------------------------------------------------------------------------
+
+static boolean *DropSwitchPresenceFlagPtr(drop_switch_t drop_switch,
+                                          boolean *has_file_switch,
+                                          boolean *has_deh_switch,
+                                          boolean *has_playdemo_switch,
+                                          boolean *has_config_switch)
+{
+    switch (drop_switch)
+    {
+        case DROP_SWITCH_FILE:
+            return has_file_switch;
+        case DROP_SWITCH_DEH:
+            return has_deh_switch;
+        case DROP_SWITCH_PLAYDEMO:
+            return has_playdemo_switch;
+        case DROP_SWITCH_CONFIG:
+            return has_config_switch;
+        default:
+            return NULL;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// DropDisplayArgForPath
+//  [PN] Use basename for files from exe dir; otherwise keep full path.
+// -----------------------------------------------------------------------------
+
+static const char *DropDisplayArgForPath(const char *path, const char *exe_dir)
+{
+    if (path == NULL)
+    {
+        return "";
+    }
+
+    if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
+    {
+        return M_BaseName(path);
+    }
+
+    return path;
+}
+
+// -----------------------------------------------------------------------------
+// AppendDroppedArgWithSwitch
+//  [PN] Append dropped file arg and lazily prepend its switch token once.
+// -----------------------------------------------------------------------------
+
+static boolean AppendDroppedArgWithSwitch(char **params, size_t *length, size_t *capacity,
+                                          const char *switch_arg,
+                                          boolean *switch_present,
+                                          const char *display_arg)
+{
+    if (switch_arg == NULL || switch_present == NULL
+     || display_arg == NULL || display_arg[0] == '\0')
+    {
+        return false;
+    }
+
+    if (!(*switch_present))
+    {
+        AppendLauncherParamSeparator(params, length, capacity);
+        AppendText(params, length, capacity, switch_arg);
+        *switch_present = true;
+    }
+
+    AppendLauncherParamSeparator(params, length, capacity);
+    AppendLauncherDisplayArg(params, length, capacity, display_arg);
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// AddDroppedFilesToLauncher
+//  [PN] Append dropped WAD/DEH/LMP/INI files and required switches once each.
+// -----------------------------------------------------------------------------
+
+static void AddDroppedFilesToLauncher(iwad_launcher_t *launcher, HDROP drop)
+{
+    if (launcher == NULL || launcher->params_edit == NULL)
+    {
+        return;
+    }
+
+    UINT num_files = DragQueryFileA(drop, 0xFFFFFFFF, NULL, 0);
+    if (num_files == 0)
+    {
+        return;
+    }
+
+    int text_len = GetWindowTextLengthA(launcher->params_edit);
+    size_t capacity = (size_t) text_len + 64;
+    size_t length = (size_t) text_len;
+    char *params = malloc(capacity);
+    if (params == NULL)
+    {
+        I_Error("Failed to allocate memory for launcher parameters.");
+    }
+
+    GetWindowTextA(launcher->params_edit, params, text_len + 1);
+
+    boolean has_file_switch = LauncherParamsHasSwitch(params, "-file")
+                           || LauncherParamsHasSwitch(params, "-merge");
+    boolean has_deh_switch = LauncherParamsHasSwitch(params, "-deh");
+    boolean has_playdemo_switch = LauncherParamsHasSwitch(params, "-playdemo");
+    boolean has_config_switch = LauncherParamsHasSwitch(params, "-config");
+    boolean added_files = false;
+    char *exe_dir = GetLauncherExecutableDir();
+
+    for (UINT i = 0; i < num_files; ++i)
+    {
+        UINT file_len = DragQueryFileA(drop, i, NULL, 0);
+        char *path = malloc((size_t) file_len + 1);
+        if (path == NULL)
+        {
+            I_Error("Failed to allocate memory for dropped file path.");
+        }
+
+        DragQueryFileA(drop, i, path, file_len + 1);
+
+        drop_switch_t drop_switch = DropSwitchForPath(path);
+        boolean *switch_present = DropSwitchPresenceFlagPtr(drop_switch,
+                                                            &has_file_switch,
+                                                            &has_deh_switch,
+                                                            &has_playdemo_switch,
+                                                            &has_config_switch);
+
+        if (switch_present != NULL)
+        {
+            const char *switch_arg = DropSwitchArg(drop_switch);
+            const char *display_arg = DropDisplayArgForPath(path, exe_dir);
+
+            if (AppendDroppedArgWithSwitch(&params, &length, &capacity,
+                                           switch_arg, switch_present, display_arg))
+            {
+                added_files = true;
+            }
+        }
+
+        free(path);
+    }
+
+    if (added_files)
+    {
+        SetWindowTextA(launcher->params_edit, params);
+    }
+
+    free(exe_dir);
+    free(params);
+}
+
+// -----------------------------------------------------------------------------
+// ClearCommandLineExceptExecutable
+//  [PN] Remove loose-file args so selected launcher options are authoritative.
+// -----------------------------------------------------------------------------
+
+static void ClearCommandLineExceptExecutable(void)
+{
+    for (int i = 1; i < myargc; ++i)
+    {
+        free(myargv[i]);
+        myargv[i] = NULL;
+    }
+
+    myargc = 1;
+}
+
+// -----------------------------------------------------------------------------
+// CleanupLauncherFont
+//  [PN] Destroy launcher fonts owned by the dialog and reset related flags.
+// -----------------------------------------------------------------------------
+
+static void CleanupLauncherFont(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL)
+    {
+        return;
+    }
+
+    if (launcher->owns_ui_font && launcher->ui_font != NULL)
+    {
+        DeleteObject(launcher->ui_font);
+    }
+
+    launcher->ui_font = NULL;
+    launcher->owns_ui_font = false;
+
+    if (launcher->owns_toggle_icon_font && launcher->toggle_icon_font != NULL)
+    {
+        DeleteObject(launcher->toggle_icon_font);
+    }
+
+    launcher->toggle_icon_font = NULL;
+    launcher->owns_toggle_icon_font = false;
+    launcher->toggle_use_icon_font = false;
+
+    if (launcher->owns_clear_icon_font && launcher->clear_icon_font != NULL)
+    {
+        DeleteObject(launcher->clear_icon_font);
+    }
+
+    launcher->clear_icon_font = NULL;
+    launcher->owns_clear_icon_font = false;
+}
+
+// -----------------------------------------------------------------------------
+// CreateLauncherUIFont
+//  [PN] Create default UI font from system metrics with compatibility fallback.
+// -----------------------------------------------------------------------------
+
+static HFONT CreateLauncherUIFont(int dpi, boolean *owns_font)
+{
+    NONCLIENTMETRICSA ncm;
+    HFONT font = NULL;
+
+    memset(&ncm, 0, sizeof(ncm));
+    ncm.cbSize = sizeof(ncm);
+
+    if (!SystemParametersInfoA(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0))
+    {
+        // XP-compatible fallback for headers with iPaddedBorderWidth.
+        ncm.cbSize = sizeof(ncm) - sizeof(int);
+        SystemParametersInfoA(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+    }
+
+    font = CreateFontIndirectA(&ncm.lfMessageFont);
+    if (font != NULL)
+    {
+        *owns_font = true;
+        return font;
+    }
+
+    // Last resort: scaled GUI font with standard UI face.
+    font = CreateFontA(-MulDiv(9, dpi, 72), 0, 0, 0, FW_NORMAL, FALSE, FALSE,
+                       FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                       CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                       DEFAULT_PITCH | FF_DONTCARE, "Segoe UI");
+    if (font != NULL)
+    {
+        *owns_font = true;
+        return font;
+    }
+
+    *owns_font = false;
+    return (HFONT) GetStockObject(DEFAULT_GUI_FONT);
+}
+
+// -----------------------------------------------------------------------------
+// MeasureFontHeight
+//  [PN] Measure text height of current UI font for list item sizing.
+// -----------------------------------------------------------------------------
+
+static int MeasureFontHeight(HFONT font)
+{
+    int height = 16;
+    HDC dc = GetDC(NULL);
+
+    if (dc != NULL)
+    {
+        HFONT old_font = (HFONT) SelectObject(dc, font);
+        TEXTMETRICA tm;
+
+        if (GetTextMetricsA(dc, &tm))
+        {
+            height = tm.tmHeight + tm.tmExternalLeading;
+        }
+
+        SelectObject(dc, old_font);
+        ReleaseDC(NULL, dc);
+    }
+
+    return height;
+}
+
+// -----------------------------------------------------------------------------
+// CreateLauncherToggleIconFont
+//  [PN] Create the icon font used for launcher view-toggle glyphs.
+// -----------------------------------------------------------------------------
+
+static HFONT CreateLauncherToggleIconFont(int dpi, boolean *owns_font)
+{
+    HFONT font = CreateFontW(-MulDiv(10, dpi, 72), 0, 0, 0, FW_NORMAL, FALSE,
+                             FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                             CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                             DEFAULT_PITCH | FF_DONTCARE, L"Segoe MDL2 Assets");
+
+    if (font != NULL)
+    {
+        *owns_font = true;
+        return font;
+    }
+
+    *owns_font = false;
+    return NULL;
+}
+
+// -----------------------------------------------------------------------------
+// CreateLauncherClearIconFont
+//  [PN] Create a smaller icon font for the command-line clear button glyph.
+// -----------------------------------------------------------------------------
+
+static HFONT CreateLauncherClearIconFont(int dpi, boolean *owns_font)
+{
+    HFONT font = CreateFontW(-MulDiv(8, dpi, 72), 0, 0, 0, FW_NORMAL, FALSE,
+                             FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                             CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                             DEFAULT_PITCH | FF_DONTCARE, L"Segoe MDL2 Assets");
+
+    if (font != NULL)
+    {
+        *owns_font = true;
+        return font;
+    }
+
+    *owns_font = false;
+    return NULL;
+}
+
+// -----------------------------------------------------------------------------
+// FontFaceEqualsW
+//  [PN] Verify that created font resolves to the expected face name.
+// -----------------------------------------------------------------------------
+
+static boolean FontFaceEqualsW(HFONT font, const wchar_t *expected_face)
+{
+    boolean matched = false;
+    HDC dc = GetDC(NULL);
+
+    if (dc == NULL || font == NULL || expected_face == NULL)
+    {
+        if (dc != NULL)
+        {
+            ReleaseDC(NULL, dc);
+        }
+        return false;
+    }
+
+    HFONT old_font = (HFONT) SelectObject(dc, font);
+    wchar_t face[LF_FACESIZE];
+
+    face[0] = L'\0';
+
+    if (GetTextFaceW(dc, LF_FACESIZE, face) > 0)
+    {
+        matched = _wcsicmp(face, expected_face) == 0;
+    }
+
+    SelectObject(dc, old_font);
+    ReleaseDC(NULL, dc);
+
+    return matched;
+}
+
+// -----------------------------------------------------------------------------
+// ApplyFontToControl
+//  [PN] Apply selected launcher font to one HWND control.
+// -----------------------------------------------------------------------------
+
+static void ApplyFontToControl(HWND control, HFONT font)
+{
+    if (control != NULL && font != NULL)
+    {
+        SendMessageA(control, WM_SETFONT, (WPARAM) font, TRUE);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// ApplyFontToControlGroup
+//  [PN] Apply one font to each control in a flat HWND array.
+// -----------------------------------------------------------------------------
+
+static void ApplyFontToControlGroup(const HWND *controls, size_t count, HFONT font)
+{
+    for (size_t i = 0; i < count; ++i)
+    {
+        ApplyFontToControl(controls[i], font);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// CreateButtonTooltip
+//  [PN] Attach a standard tooltip with static text to a button control.
+// -----------------------------------------------------------------------------
+
+static HWND CreateButtonTooltip(HWND parent, HWND button, const char *text)
+{
+    if (parent == NULL || button == NULL || text == NULL || text[0] == '\0')
+    {
+        return NULL;
+    }
+
+    HWND tooltip = CreateWindowExA(WS_EX_TOPMOST, TOOLTIPS_CLASSA, NULL,
+                                   WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX,
+                                   CW_USEDEFAULT, CW_USEDEFAULT,
+                                   CW_USEDEFAULT, CW_USEDEFAULT,
+                                   parent, NULL, GetModuleHandle(NULL), NULL);
+
+    if (tooltip == NULL)
+    {
+        return NULL;
+    }
+
+    TOOLINFOA ti;
+    memset(&ti, 0, sizeof(ti));
+    ti.cbSize = sizeof(ti);
+    ti.uFlags = TTF_SUBCLASS | TTF_IDISHWND;
+    ti.hwnd = parent;
+    ti.uId = (UINT_PTR) button;
+    ti.lpszText = (LPSTR) text;
+
+    SendMessageA(tooltip, TTM_ADDTOOL, 0, (LPARAM) &ti);
+
+    return tooltip;
+}
+
+// -----------------------------------------------------------------------------
+// CreateIWADListTooltip
+//  [PN] Attach a dynamic tooltip to IWAD list rows for full file details.
+// -----------------------------------------------------------------------------
+
+static HWND CreateIWADListTooltip(HWND parent, HWND listbox, int dpi)
+{
+    if (parent == NULL || listbox == NULL)
+    {
+        return NULL;
+    }
+
+    HWND tooltip = CreateWindowExA(WS_EX_TOPMOST, TOOLTIPS_CLASSA, NULL,
+                                   WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX,
+                                   CW_USEDEFAULT, CW_USEDEFAULT,
+                                   CW_USEDEFAULT, CW_USEDEFAULT,
+                                   parent, NULL, GetModuleHandle(NULL), NULL);
+
+    if (tooltip == NULL)
+    {
+        return NULL;
+    }
+
+    TOOLINFOA ti;
+    memset(&ti, 0, sizeof(ti));
+    ti.cbSize = sizeof(ti);
+    ti.uFlags = TTF_IDISHWND | TTF_TRACK | TTF_ABSOLUTE;
+    ti.hwnd = parent;
+    ti.uId = (UINT_PTR) listbox;
+    ti.lpszText = "";
+
+    SendMessageA(tooltip, TTM_ADDTOOL, 0, (LPARAM) &ti);
+    SendMessageA(tooltip, TTM_SETMAXTIPWIDTH, 0, (LPARAM) ScaleByDPI(520, dpi));
+
+    return tooltip;
+}
+
+// -----------------------------------------------------------------------------
+// FillIWADTooltipToolInfo
+//  [PN] Fill TOOLINFO for IWAD list tooltip track activation/update calls.
+// -----------------------------------------------------------------------------
+
+static void FillIWADTooltipToolInfo(const iwad_launcher_t *launcher, TOOLINFOA *ti)
+{
+    if (launcher == NULL || ti == NULL)
+    {
+        return;
+    }
+
+    memset(ti, 0, sizeof(*ti));
+    ti->cbSize = sizeof(*ti);
+    ti->uFlags = TTF_IDISHWND | TTF_TRACK | TTF_ABSOLUTE;
+    ti->hwnd = launcher->window;
+    ti->uId = (UINT_PTR) launcher->iwad_list;
+    ti->lpszText =
+        (LPSTR) (launcher->iwad_tooltip_text != NULL ? launcher->iwad_tooltip_text : "");
+}
+
+// -----------------------------------------------------------------------------
+// UpdateIWADTooltipText
+//  [PN] Push new text into IWAD list tooltip after hovered row changed.
+// -----------------------------------------------------------------------------
+
+static void UpdateIWADTooltipText(iwad_launcher_t *launcher, int item)
+{
+    if (launcher == NULL || launcher->iwad_tooltip == NULL)
+    {
+        return;
+    }
+
+    BuildIWADListTooltipText(launcher, item);
+
+    TOOLINFOA ti;
+    FillIWADTooltipToolInfo(launcher, &ti);
+    SendMessageA(launcher->iwad_tooltip, TTM_UPDATETIPTEXTA, 0, (LPARAM) &ti);
+}
+
+// -----------------------------------------------------------------------------
+// UpdateIWADTooltipFromCursor
+//  [PN] Keep IWAD hover tooltip synced with cursor position and hovered row.
+// -----------------------------------------------------------------------------
+
+static void UpdateIWADTooltipFromCursor(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL || launcher->iwad_tooltip == NULL || launcher->iwad_list == NULL)
+    {
+        return;
+    }
+
+    TOOLINFOA ti;
+    FillIWADTooltipToolInfo(launcher, &ti);
+
+    if (launcher->view_mode != LAUNCHER_VIEW_IWAD || !IsWindowVisible(launcher->iwad_list))
+    {
+        if (launcher->iwad_tooltip_active)
+        {
+            SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+            launcher->iwad_tooltip_active = false;
+        }
+        launcher->iwad_tooltip_item = -1;
+        launcher->iwad_tooltip_pending_item = -1;
+        launcher->iwad_tooltip_pending_since = 0;
+        return;
+    }
+
+    POINT pt_screen;
+    RECT list_rect;
+    if (!GetCursorPos(&pt_screen) || !GetWindowRect(launcher->iwad_list, &list_rect)
+     || !PtInRect(&list_rect, pt_screen))
+    {
+        if (launcher->iwad_tooltip_active)
+        {
+            SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+            launcher->iwad_tooltip_active = false;
+        }
+        launcher->iwad_tooltip_item = -1;
+        launcher->iwad_tooltip_pending_item = -1;
+        launcher->iwad_tooltip_pending_since = 0;
+        return;
+    }
+
+    POINT pt_client = pt_screen;
+    ScreenToClient(launcher->iwad_list, &pt_client);
+    int item = GetIWADItemAtPoint(launcher->iwad_list, pt_client);
+
+    if (item < 0)
+    {
+        if (launcher->iwad_tooltip_active)
+        {
+            SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+            launcher->iwad_tooltip_active = false;
+        }
+        launcher->iwad_tooltip_item = -1;
+        launcher->iwad_tooltip_pending_item = -1;
+        launcher->iwad_tooltip_pending_since = 0;
+        return;
+    }
+
+    if (item == launcher->iwad_tooltip_item && launcher->iwad_tooltip_active)
+    {
+        return;
+    }
+
+    DWORD now = GetTickCount();
+
+    if (item != launcher->iwad_tooltip_pending_item)
+    {
+        launcher->iwad_tooltip_pending_item = item;
+        launcher->iwad_tooltip_pending_since = now;
+
+        if (launcher->iwad_tooltip_active)
+        {
+            SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+            launcher->iwad_tooltip_active = false;
+        }
+
+        launcher->iwad_tooltip_item = -1;
+        return;
+    }
+
+    if ((DWORD) (now - launcher->iwad_tooltip_pending_since) < IWAD_TOOLTIP_SHOW_DELAY_MS)
+    {
+        return;
+    }
+
+    launcher->iwad_tooltip_item = item;
+    UpdateIWADTooltipText(launcher, item);
+
+    SendMessageA(launcher->iwad_tooltip, TTM_TRACKPOSITION, 0,
+                 MAKELPARAM(pt_screen.x + ScaleByDPI(12, launcher->dpi),
+                            pt_screen.y + ScaleByDPI(20, launcher->dpi)));
+
+    SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, TRUE, (LPARAM) &ti);
+    launcher->iwad_tooltip_active = true;
+}
+
+// -----------------------------------------------------------------------------
+// DestroyLauncherBrush
+//  [PN] Delete one launcher brush handle and clear stored pointer.
+// -----------------------------------------------------------------------------
+
+static void DestroyLauncherBrush(HBRUSH *brush)
+{
+    if (*brush != NULL)
+    {
+        DeleteObject(*brush);
+        *brush = NULL;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// CleanupLauncherTheme
+//  [PN] Release all theme brushes allocated for launcher dark palette.
+// -----------------------------------------------------------------------------
+
+static void CleanupLauncherTheme(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL)
+    {
+        return;
+    }
+
+    DestroyLauncherBrush(&launcher->window_brush);
+    DestroyLauncherBrush(&launcher->control_brush);
+    DestroyLauncherBrush(&launcher->list_sel_brush);
+    DestroyLauncherBrush(&launcher->button_brush);
+    DestroyLauncherBrush(&launcher->button_hover_brush);
+    DestroyLauncherBrush(&launcher->button_down_brush);
+    DestroyLauncherBrush(&launcher->button_border_brush);
+}
+
+// -----------------------------------------------------------------------------
+// TryEnableDarkTitleBar
+//  [PN] Try enabling dark title bar on supported Windows versions.
+// -----------------------------------------------------------------------------
+
+static void TryEnableDarkTitleBar(HWND hwnd)
+{
+    HMODULE dwmapi = LoadLibraryA("dwmapi.dll");
+    if (dwmapi == NULL)
+    {
+        return;
+    }
+
+    dwm_set_window_attribute_t set_window_attribute =
+        (dwm_set_window_attribute_t) GetProcAddress(dwmapi,
+                                                    "DwmSetWindowAttribute");
+
+    if (set_window_attribute != NULL)
+    {
+        BOOL enabled = TRUE;
+
+        // Windows 10 1809
+        set_window_attribute(hwnd, 19, &enabled, sizeof(enabled));
+        // Windows 10 1903+
+        set_window_attribute(hwnd, 20, &enabled, sizeof(enabled));
+    }
+
+    FreeLibrary(dwmapi);
+}
+
+// -----------------------------------------------------------------------------
+// TryApplyDarkControlTheme
+//  [PN] Request dark control theme (not guaranteed on every Windows build).
+// -----------------------------------------------------------------------------
+
+static void TryApplyDarkControlTheme(HWND hwnd)
+{
+    HMODULE uxtheme = LoadLibraryA("uxtheme.dll");
+    if (uxtheme == NULL)
+    {
+        return;
+    }
+
+    set_window_theme_t set_window_theme =
+        (set_window_theme_t) GetProcAddress(uxtheme, "SetWindowTheme");
+
+    if (set_window_theme != NULL)
+    {
+        HRESULT hr = set_window_theme(hwnd, L"DarkMode_Explorer", NULL);
+
+        if (FAILED(hr))
+        {
+            set_window_theme(hwnd, L"Explorer", NULL);
+        }
+    }
+
+    FreeLibrary(uxtheme);
+}
+
+// -----------------------------------------------------------------------------
+// DrawLauncherButton
+//  [PN] Draw owner-drawn launcher button with themed hover and press states.
+// -----------------------------------------------------------------------------
+
+static void DrawLauncherButton(const DRAWITEMSTRUCT *dis,
+                               const iwad_launcher_t *launcher)
+{
+    RECT rc = dis->rcItem;
+    HBRUSH bg_brush = launcher->button_brush;
+    HBRUSH border_brush = launcher->button_border_brush;
+
+    if (bg_brush == NULL)
+    {
+        bg_brush = (HBRUSH) GetStockObject(GRAY_BRUSH);
+    }
+    if (border_brush == NULL)
+    {
+        border_brush = (HBRUSH) GetStockObject(WHITE_BRUSH);
+    }
+
+    if (dis->itemState & ODS_SELECTED)
+    {
+        if (launcher->button_down_brush != NULL)
+        {
+            bg_brush = launcher->button_down_brush;
+        }
+    }
+    else if (dis->itemState & ODS_DISABLED)
+    {
+        if (launcher->control_brush != NULL)
+        {
+            bg_brush = launcher->control_brush;
+        }
+    }
+    else if (GetPropA(dis->hwndItem, IWAD_LAUNCHER_BTN_HOVER) != NULL)
+    {
+        if (launcher->button_hover_brush != NULL)
+        {
+            bg_brush = launcher->button_hover_brush;
+        }
+    }
+
+    FillRect(dis->hDC, &rc, bg_brush);
+    FrameRect(dis->hDC, &rc, border_brush);
+
+    SetBkMode(dis->hDC, TRANSPARENT);
+    SetTextColor(dis->hDC, launcher->color_text);
+
+    if (dis->CtlID == IDC_IWAD_LAUNCHER_TOGGLE
+     && launcher->toggle_use_icon_font
+     && launcher->toggle_icon_font != NULL)
+    {
+        const wchar_t *glyph =
+            launcher->view_mode == LAUNCHER_VIEW_SETTINGS
+            ? IWAD_LAUNCHER_TOGGLE_GLYPH_BACK
+            : IWAD_LAUNCHER_TOGGLE_GLYPH_SETTINGS;
+
+        HFONT old_font = (HFONT) SelectObject(dis->hDC, launcher->toggle_icon_font);
+        DrawTextW(dis->hDC, glyph, -1, &rc,
+                  DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        SelectObject(dis->hDC, old_font);
+    }
+    else if (dis->CtlID == IDC_IWAD_LAUNCHER_CLEAR
+          && launcher->toggle_use_icon_font
+          && launcher->clear_icon_font != NULL)
+    {
+        HFONT old_font = (HFONT) SelectObject(dis->hDC, launcher->clear_icon_font);
+        DrawTextW(dis->hDC, IWAD_LAUNCHER_CLEAR_GLYPH, -1, &rc,
+                  DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        SelectObject(dis->hDC, old_font);
+    }
+    else
+    {
+        char caption[32];
+        GetWindowTextA(dis->hwndItem, caption, sizeof(caption));
+        DrawTextA(dis->hDC, caption, -1, &rc,
+                  DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    }
+
+}
+
+// -----------------------------------------------------------------------------
+// DrawLauncherListItem
+//  [PN] Draw one IWAD row with custom dark background and clipped caption.
+// -----------------------------------------------------------------------------
+
+static void DrawLauncherListItem(const DRAWITEMSTRUCT *dis,
+                                 const iwad_launcher_t *launcher)
+{
+    RECT rc = dis->rcItem;
+    HBRUSH bg_brush = launcher->control_brush;
+
+    if (dis->itemState & ODS_SELECTED)
+    {
+        if (launcher->list_sel_brush != NULL)
+        {
+            bg_brush = launcher->list_sel_brush;
+        }
+    }
+
+    if (bg_brush == NULL)
+    {
+        bg_brush = (HBRUSH) GetStockObject(BLACK_BRUSH);
+    }
+
+    FillRect(dis->hDC, &rc, bg_brush);
+
+    if (dis->itemID != (UINT) -1)
+    {
+        LRESULT text_len = SendMessageA(dis->hwndItem, LB_GETTEXTLEN,
+                                        (WPARAM) dis->itemID, 0);
+        if (text_len != LB_ERR)
+        {
+            char *text = malloc((size_t) text_len + 1);
+            if (text != NULL)
+            {
+                SendMessageA(dis->hwndItem, LB_GETTEXT,
+                             (WPARAM) dis->itemID, (LPARAM) text);
+                SetBkMode(dis->hDC, TRANSPARENT);
+                SetTextColor(dis->hDC, launcher->color_text);
+
+                RECT text_rc = rc;
+                text_rc.left += ScaleByDPI(4, launcher->dpi);
+                DrawTextA(dis->hDC, text, -1, &text_rc,
+                          DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+                free(text);
+            }
+        }
+    }
+
+}
+
+// -----------------------------------------------------------------------------
+// IsSettingsCheckboxId
+//  [PN] Return true if control id belongs to settings-page checkboxes.
+// -----------------------------------------------------------------------------
+
+static boolean IsSettingsCheckboxId(int id)
+{
+    return id == IDC_IWAD_SETTINGS_FULLSCREEN
+        || id == IDC_IWAD_SETTINGS_SOFTWARE_RENDER
+        || id == IDC_IWAD_SETTINGS_AUTOLOAD_WAD
+        || id == IDC_IWAD_SETTINGS_AUTOLOAD_DEH
+        || id == IDC_IWAD_SETTINGS_SHOW_STARTUP;
+}
+
+// -----------------------------------------------------------------------------
+// SettingsCheckboxValuePtrFromId
+//  [PN] Map settings checkbox id to corresponding checked-state field pointer.
+// -----------------------------------------------------------------------------
+
+static int *SettingsCheckboxValuePtrFromId(iwad_launcher_t *launcher, int id)
+{
+    switch (id)
+    {
+        case IDC_IWAD_SETTINGS_FULLSCREEN:
+            return &launcher->settings_fullscreen_checked;
+        case IDC_IWAD_SETTINGS_SOFTWARE_RENDER:
+            return &launcher->settings_software_renderer_checked;
+        case IDC_IWAD_SETTINGS_AUTOLOAD_WAD:
+            return &launcher->settings_autoload_wad_checked;
+        case IDC_IWAD_SETTINGS_AUTOLOAD_DEH:
+            return &launcher->settings_autoload_deh_checked;
+        case IDC_IWAD_SETTINGS_SHOW_STARTUP:
+            return &launcher->settings_show_startup_checked;
+        default:
+            return NULL;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// DrawLauncherSettingsCheckbox
+//  [PN] Draw owner-drawn settings checkbox with launcher dark theme colors.
+// -----------------------------------------------------------------------------
+
+static void DrawLauncherSettingsCheckbox(const DRAWITEMSTRUCT *dis,
+                                         const iwad_launcher_t *launcher)
+{
+    RECT rc = dis->rcItem;
+    HBRUSH bg_brush = launcher->window_brush;
+
+    if (bg_brush == NULL)
+    {
+        bg_brush = (HBRUSH) GetStockObject(BLACK_BRUSH);
+    }
+
+    FillRect(dis->hDC, &rc, bg_brush);
+
+    int box_size = ScaleByDPI(14, launcher->dpi);
+    int text_gap = ScaleByDPI(8, launcher->dpi);
+    int box_left = rc.left;
+    int box_top = rc.top + ((rc.bottom - rc.top) - box_size) / 2;
+
+    RECT box_rc = { box_left, box_top, box_left + box_size, box_top + box_size };
+    RECT text_rc = rc;
+    text_rc.left = box_rc.right + text_gap;
+
+    boolean checked = false;
+    boolean hovered = GetPropA(dis->hwndItem, IWAD_LAUNCHER_BTN_HOVER) != NULL;
+    int *checked_ptr = SettingsCheckboxValuePtrFromId((iwad_launcher_t *) launcher,
+                                                      GetDlgCtrlID(dis->hwndItem));
+    if (checked_ptr != NULL)
+    {
+        checked = *checked_ptr ? true : false;
+    }
+
+    COLORREF box_fill = launcher->color_check_bg;
+    if (hovered)
+    {
+        box_fill = launcher->color_check_hover;
+    }
+    if (checked)
+    {
+        box_fill = hovered ? launcher->color_check_accent_hover
+                           : launcher->color_check_accent;
+    }
+
+    HBRUSH box_brush = CreateSolidBrush(box_fill);
+    HBRUSH border_brush = CreateSolidBrush(launcher->color_check_border);
+    if (box_brush != NULL)
+    {
+        FillRect(dis->hDC, &box_rc, box_brush);
+        DeleteObject(box_brush);
+    }
+    if (border_brush != NULL)
+    {
+        FrameRect(dis->hDC, &box_rc, border_brush);
+        DeleteObject(border_brush);
+    }
+
+    if (checked)
+    {
+        HPEN pen = CreatePen(PS_SOLID, ScaleByDPI(2, launcher->dpi), launcher->color_text);
+        if (pen != NULL)
+        {
+            HPEN old_pen = (HPEN) SelectObject(dis->hDC, pen);
+            int x1 = box_rc.left + ScaleByDPI(3, launcher->dpi);
+            int y1 = box_rc.top + ScaleByDPI(7, launcher->dpi);
+            int x2 = box_rc.left + ScaleByDPI(6, launcher->dpi);
+            int y2 = box_rc.top + ScaleByDPI(10, launcher->dpi);
+            int x3 = box_rc.left + ScaleByDPI(11, launcher->dpi);
+            int y3 = box_rc.top + ScaleByDPI(4, launcher->dpi);
+
+            MoveToEx(dis->hDC, x1, y1, NULL);
+            LineTo(dis->hDC, x2, y2);
+            LineTo(dis->hDC, x3, y3);
+
+            SelectObject(dis->hDC, old_pen);
+            DeleteObject(pen);
+        }
+    }
+
+    SetBkMode(dis->hDC, TRANSPARENT);
+    SetTextColor(dis->hDC, launcher->color_text);
+
+    char caption[128];
+    GetWindowTextA(dis->hwndItem, caption, sizeof(caption));
+    DrawTextA(dis->hDC, caption, -1, &text_rc,
+              DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+}
+
+// -----------------------------------------------------------------------------
+// LauncherButtonHoverProc
+//  [PN] Subclass proc that tracks hover state for owner-drawn buttons.
+// -----------------------------------------------------------------------------
+
+static LRESULT CALLBACK LauncherButtonHoverProc(HWND hwnd, UINT msg,
+                                                WPARAM wparam, LPARAM lparam)
+{
+    WNDPROC old_proc = (WNDPROC) GetPropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC);
+    if (old_proc == NULL)
+    {
+        return DefWindowProcA(hwnd, msg, wparam, lparam);
+    }
+
+    if (msg == WM_MOUSEMOVE && GetPropA(hwnd, IWAD_LAUNCHER_BTN_HOVER) == NULL)
+    {
+        TRACKMOUSEEVENT tme;
+        memset(&tme, 0, sizeof(tme));
+        tme.cbSize = sizeof(tme);
+        tme.dwFlags = TME_LEAVE;
+        tme.hwndTrack = hwnd;
+        TrackMouseEvent(&tme);
+
+        SetPropA(hwnd, IWAD_LAUNCHER_BTN_HOVER, (HANDLE) (INT_PTR) 1);
+        InvalidateRect(hwnd, NULL, TRUE);
+    }
+    else if (msg == WM_MOUSELEAVE && GetPropA(hwnd, IWAD_LAUNCHER_BTN_HOVER) != NULL)
+    {
+        RemovePropA(hwnd, IWAD_LAUNCHER_BTN_HOVER);
+        InvalidateRect(hwnd, NULL, TRUE);
+    }
+
+    if (msg == WM_NCDESTROY)
+    {
+        RemovePropA(hwnd, IWAD_LAUNCHER_BTN_HOVER);
+        RemovePropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC);
+        return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
+    }
+
+    return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
+}
+
+// -----------------------------------------------------------------------------
+// InstallButtonHover
+//  [PN] Install button hover subclass and store original proc pointer.
+// -----------------------------------------------------------------------------
+
+static void InstallButtonHover(HWND hwnd)
+{
+    WNDPROC old_proc =
+        (WNDPROC) SetWindowLongPtr(hwnd, GWLP_WNDPROC,
+                                   (LONG_PTR) LauncherButtonHoverProc);
+
+    if (old_proc != NULL)
+    {
+        SetPropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC, (HANDLE) old_proc);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// InstallHoverForControlGroup
+//  [PN] Install hover-tracking proc for each control in a flat HWND array.
+// -----------------------------------------------------------------------------
+
+static void InstallHoverForControlGroup(const HWND *controls, size_t count)
+{
+    for (size_t i = 0; i < count; ++i)
+    {
+        if (controls[i] != NULL)
+        {
+            InstallButtonHover(controls[i]);
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// DrawFixedControlBorder
+//  [PN] Draw fixed border color around non-client area of list/edit controls.
+// -----------------------------------------------------------------------------
+
+static void DrawFixedControlBorder(HWND hwnd)
+{
+    HDC dc = GetWindowDC(hwnd);
+    if (dc == NULL)
+    {
+        return;
+    }
+
+    RECT rc;
+    GetWindowRect(hwnd, &rc);
+    OffsetRect(&rc, -rc.left, -rc.top);
+
+    HBRUSH border_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_BORDER);
+    if (border_brush != NULL)
+    {
+        FrameRect(dc, &rc, border_brush);
+        DeleteObject(border_brush);
+    }
+
+    ReleaseDC(hwnd, dc);
+}
+
+// -----------------------------------------------------------------------------
+// LauncherControlBorderProc
+//  [PN] Keep fixed control border visible during paint/focus message flow.
+// -----------------------------------------------------------------------------
+
+static LRESULT CALLBACK LauncherControlBorderProc(HWND hwnd, UINT msg,
+                                                  WPARAM wparam, LPARAM lparam)
+{
+    WNDPROC old_proc = (WNDPROC) GetPropA(hwnd, IWAD_LAUNCHER_OLDPROC);
+    if (old_proc == NULL)
+    {
+        return DefWindowProcA(hwnd, msg, wparam, lparam);
+    }
+
+    if (msg == WM_NCDESTROY)
+    {
+        if (GetDlgCtrlID(hwnd) == IDC_IWAD_LAUNCHER_LIST)
+        {
+            iwad_launcher_t *launcher =
+                (iwad_launcher_t *) GetWindowLongPtr(GetParent(hwnd), GWLP_USERDATA);
+            if (launcher != NULL)
+            {
+                launcher->iwad_tooltip_item = -1;
+            }
+        }
+
+        RemovePropA(hwnd, IWAD_LAUNCHER_OLDPROC);
+        return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
+    }
+
+    LRESULT result = CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
+
+    if (msg == WM_NCPAINT
+     || msg == WM_PAINT
+     || msg == WM_SETFOCUS
+     || msg == WM_KILLFOCUS
+     || msg == WM_ENABLE)
+    {
+        DrawFixedControlBorder(hwnd);
+    }
+
+    return result;
+}
+
+// -----------------------------------------------------------------------------
+// InstallFixedControlBorder
+//  [PN] Subclass edit/list control and paint fixed border immediately.
+// -----------------------------------------------------------------------------
+
+static void InstallFixedControlBorder(HWND hwnd)
+{
+    WNDPROC old_proc =
+        (WNDPROC) SetWindowLongPtr(hwnd, GWLP_WNDPROC,
+                                   (LONG_PTR) LauncherControlBorderProc);
+
+    if (old_proc != NULL)
+    {
+        SetPropA(hwnd, IWAD_LAUNCHER_OLDPROC, (HANDLE) old_proc);
+        DrawFixedControlBorder(hwnd);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// ForceRedrawIWADList
+//  [PN] Force full list redraw after resize to avoid stale ellipsis artifacts.
+// -----------------------------------------------------------------------------
+
+static void ForceRedrawIWADList(HWND listbox)
+{
+    if (listbox == NULL)
+    {
+        return;
+    }
+
+    RedrawWindow(listbox, NULL, NULL,
+                 RDW_INVALIDATE | RDW_ERASE | RDW_UPDATENOW | RDW_NOCHILDREN);
+}
+
+// -----------------------------------------------------------------------------
+// ScaleByDPI
+//  [PN] Scale logical pixels from 96-DPI basis to current monitor DPI.
+// -----------------------------------------------------------------------------
+
+static int ScaleByDPI(int value, int dpi)
+{
+    return MulDiv(value, dpi, 96);
+}
+
+// -----------------------------------------------------------------------------
+// GetSystemDPI
+//  [PN] Query desktop DPI and fall back to 96 if query is unavailable.
+// -----------------------------------------------------------------------------
+
+static int GetSystemDPI(void)
+{
+    int dpi = 96;
+    HDC dc = GetDC(NULL);
+
+    if (dc != NULL)
+    {
+        dpi = GetDeviceCaps(dc, LOGPIXELSY);
+        ReleaseDC(NULL, dc);
+    }
+
+    if (dpi <= 0)
+    {
+        dpi = 96;
+    }
+
+    return dpi;
+}
+
+// -----------------------------------------------------------------------------
+// DefaultWindowTitleForMask
+//  [PN] Provide fallback launcher window title based on selected game mask.
+// -----------------------------------------------------------------------------
+
+static const char *DefaultWindowTitleForMask(int mask)
+{
+    if (mask == IWAD_MASK_DOOM)
+    {
+        return "International Doom";
+    }
+    else if (mask == IWAD_MASK_HERETIC)
+    {
+        return "International Heretic";
+    }
+    else if (mask == IWAD_MASK_HEXEN)
+    {
+        return "International Hexen";
+    }
+
+    return "Game";
+}
+
+// -----------------------------------------------------------------------------
+// ConfigureLauncherThemeForMask
+//  [PN] Set launcher color palette for game family selected by IWAD mask.
+// -----------------------------------------------------------------------------
+
+static void ConfigureLauncherThemeForMask(iwad_launcher_t *launcher, int mask)
+{
+    launcher->color_window_bg = IWAD_COLOR_WINDOW_BG;
+    launcher->color_control_bg = IWAD_COLOR_CONTROL_BG;
+    launcher->color_list_sel_bg = IWAD_COLOR_LIST_SEL_BG;
+    launcher->color_button_bg = IWAD_COLOR_BUTTON_BG;
+    launcher->color_button_hover = IWAD_COLOR_BUTTON_HOVER;
+    launcher->color_button_down = IWAD_COLOR_BUTTON_DOWN;
+    launcher->color_button_border = IWAD_COLOR_BUTTON_BORDER;
+    launcher->color_text = IWAD_COLOR_TEXT;
+    launcher->color_check_bg = IWAD_COLOR_CHECK_BG;
+    launcher->color_check_hover = IWAD_COLOR_CHECK_HOVER;
+    launcher->color_check_border = IWAD_COLOR_CHECK_BORDER;
+    launcher->color_check_accent = IWAD_COLOR_CHECK_ACCENT;
+    launcher->color_check_accent_hover = IWAD_COLOR_CHECK_ACCENT_HOVER;
+
+    if (mask == IWAD_MASK_HERETIC)
+    {
+        launcher->color_list_sel_bg = IWAD_HERETIC_LIST_SEL_BG;
+        launcher->color_check_accent = IWAD_HERETIC_CHECK_ACCENT;
+        launcher->color_check_accent_hover = IWAD_HERETIC_CHECK_ACCENT_HOVER;
+    }
+    else if (mask == IWAD_MASK_HEXEN)
+    {
+        launcher->color_list_sel_bg = IWAD_HEXEN_LIST_SEL_BG;
+        launcher->color_check_accent = IWAD_HEXEN_CHECK_ACCENT;
+        launcher->color_check_accent_hover = IWAD_HEXEN_CHECK_ACCENT_HOVER;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// SetControlVisibility
+//  [PN] Show or hide a launcher control by mode.
+// -----------------------------------------------------------------------------
+
+static void SetControlVisibility(HWND control, boolean visible)
+{
+    if (control != NULL)
+    {
+        ShowWindow(control, visible ? SW_SHOW : SW_HIDE);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// SetControlGroupVisibility
+//  [PN] Show or hide each control in a flat HWND array.
+// -----------------------------------------------------------------------------
+
+static void SetControlGroupVisibility(const HWND *controls, size_t count,
+                                      boolean visible)
+{
+    for (size_t i = 0; i < count; ++i)
+    {
+        SetControlVisibility(controls[i], visible);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// GetLauncherMinimumClientSize
+//  [PN] Compute minimum client size that keeps controls from overlapping.
+// -----------------------------------------------------------------------------
+
+static void GetLauncherMinimumClientSize(int dpi, int *min_w, int *min_h)
+{
+    int margin = ScaleByDPI(16, dpi);
+    int gap = ScaleByDPI(8, dpi);
+    int section_gap = ScaleByDPI(10, dpi);
+    int check_gap = ScaleByDPI(4, dpi);
+    int label_h = ScaleByDPI(20, dpi);
+    int check_h = ScaleByDPI(20, dpi);
+    int edit_h = ScaleByDPI(20, dpi);
+    int top_btn_w = ScaleByDPI(38, dpi);
+    int top_btn_h = ScaleByDPI(24, dpi);
+    int btn_h = ScaleByDPI(IWAD_BUTTON_H, dpi);
+    int top_row_h = (top_btn_h > label_h) ? top_btn_h : label_h;
+    int params_row_h = top_row_h;
+    int min_list_h = ScaleByDPI(40, dpi);
+
+    int settings_content_h =
+          (label_h + check_gap + check_h + check_gap + check_h + section_gap)
+        + (label_h + check_gap + check_h + check_gap + check_h + section_gap)
+        + (label_h + check_gap + check_h);
+
+    int min_client_h_iwad = margin + top_row_h + gap + min_list_h + gap
+                          + params_row_h + gap + edit_h + gap + btn_h + margin;
+    int min_client_h_settings = margin + top_row_h + gap + settings_content_h + gap
+                              + btn_h + margin;
+
+    int min_content_w_buttons = (ScaleByDPI(80, dpi) * 2) + gap;
+    int min_content_w_header = top_btn_w + gap + ScaleByDPI(144, dpi);
+    int min_content_w = (min_content_w_buttons > min_content_w_header)
+                      ? min_content_w_buttons
+                      : min_content_w_header;
+    int min_client_w = margin * 2 + min_content_w;
+
+    *min_w = min_client_w;
+    *min_h = (min_client_h_iwad > min_client_h_settings)
+           ? min_client_h_iwad
+           : min_client_h_settings;
+}
+
+// -----------------------------------------------------------------------------
+// LayoutIWADLauncher
+//  [PN] Layout launcher controls for current mode and client rect size.
+// -----------------------------------------------------------------------------
+
+static void LayoutIWADLauncher(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL || launcher->window == NULL)
+    {
+        return;
+    }
+
+    RECT rc;
+    GetClientRect(launcher->window, &rc);
+
+    int margin = ScaleByDPI(16, launcher->dpi);
+    int gap = ScaleByDPI(8, launcher->dpi);
+    int section_gap = ScaleByDPI(10, launcher->dpi);
+    int check_gap = ScaleByDPI(4, launcher->dpi);
+    int label_h = ScaleByDPI(20, launcher->dpi);
+    int check_h = ScaleByDPI(20, launcher->dpi);
+    int edit_h = ScaleByDPI(20, launcher->dpi);
+    int top_btn_w = ScaleByDPI(38, launcher->dpi);
+    int top_btn_h = ScaleByDPI(24, launcher->dpi);
+    int ideal_btn_w = ScaleByDPI(IWAD_BUTTON_IDEAL_W, launcher->dpi);
+    int btn_h = ScaleByDPI(IWAD_BUTTON_H, launcher->dpi);
+
+    int width = rc.right - rc.left;
+    int height = rc.bottom - rc.top;
+
+    int x = margin;
+    int y = margin;
+
+    width = width - margin * 2;
+    if (width < ScaleByDPI(50, launcher->dpi))
+    {
+        width = ScaleByDPI(50, launcher->dpi);
+    }
+
+    int btn_w = (width - gap) / 2;
+    if (btn_w > ideal_btn_w)
+    {
+        btn_w = ideal_btn_w;
+    }
+
+    if (top_btn_w > width / 2)
+    {
+        top_btn_w = width / 2;
+    }
+
+    int prompt_w = width - top_btn_w - gap;
+    if (prompt_w < ScaleByDPI(40, launcher->dpi))
+    {
+        prompt_w = ScaleByDPI(40, launcher->dpi);
+    }
+
+    int top_row_h = (top_btn_h > label_h) ? top_btn_h : label_h;
+    int prompt_y = y + (top_row_h - label_h) / 2;
+    int toggle_y = y + (top_row_h - top_btn_h) / 2;
+
+    MoveWindow(launcher->prompt_label, x, prompt_y, prompt_w, label_h, TRUE);
+    MoveWindow(launcher->toggle_button, x + width - top_btn_w, toggle_y,
+               top_btn_w, top_btn_h, TRUE);
+    y += top_row_h + gap;
+
+    if (launcher->view_mode == LAUNCHER_VIEW_IWAD)
+    {
+        int params_row_h = (top_btn_h > label_h) ? top_btn_h : label_h;
+        int bottom_reserved = margin + btn_h + gap + edit_h + gap + params_row_h + gap;
+        int list_available = height - y - bottom_reserved;
+        if (list_available < ScaleByDPI(40, launcher->dpi))
+        {
+            list_available = ScaleByDPI(40, launcher->dpi);
+        }
+        int list_h = list_available;
+
+        MoveWindow(launcher->iwad_list, x, y, width, list_h, TRUE);
+        y += list_h + gap;
+
+        int params_label_w = width - top_btn_w - gap;
+        if (params_label_w < ScaleByDPI(40, launcher->dpi))
+        {
+            params_label_w = ScaleByDPI(40, launcher->dpi);
+        }
+
+        int params_label_y = y + (params_row_h - label_h) / 2;
+        int clear_btn_y = y + (params_row_h - top_btn_h) / 2;
+
+        MoveWindow(launcher->params_label, x, params_label_y, params_label_w, label_h, TRUE);
+        MoveWindow(launcher->clear_button, x + width - top_btn_w, clear_btn_y,
+                   top_btn_w, top_btn_h, TRUE);
+        y += params_row_h + gap;
+
+        MoveWindow(launcher->params_edit, x, y, width, edit_h, TRUE);
+    }
+    else
+    {
+        MoveWindow(launcher->settings_video_label, x, y, width, label_h, TRUE);
+        y += label_h + check_gap;
+
+        MoveWindow(launcher->settings_fullscreen, x, y, width, check_h, TRUE);
+        y += check_h + check_gap;
+        MoveWindow(launcher->settings_software_renderer, x, y, width, check_h, TRUE);
+        y += check_h + section_gap;
+
+        MoveWindow(launcher->settings_autoload_label, x, y, width, label_h, TRUE);
+        y += label_h + check_gap;
+
+        MoveWindow(launcher->settings_autoload_wad, x, y, width, check_h, TRUE);
+        y += check_h + check_gap;
+        MoveWindow(launcher->settings_autoload_deh, x, y, width, check_h, TRUE);
+        y += check_h + section_gap;
+
+        MoveWindow(launcher->settings_launcher_label, x, y, width, label_h, TRUE);
+        y += label_h + check_gap;
+
+        MoveWindow(launcher->settings_show_startup, x, y, width, check_h, TRUE);
+    }
+
+    int btn_y = height - margin - btn_h;
+
+    MoveWindow(GetDlgItem(launcher->window, IDC_IWAD_LAUNCHER_PLAY),
+               x, btn_y, btn_w, btn_h, TRUE);
+    MoveWindow(GetDlgItem(launcher->window, IDC_IWAD_LAUNCHER_EXIT),
+               x + width - btn_w, btn_y, btn_w, btn_h, TRUE);
+}
+
+// -----------------------------------------------------------------------------
+// ApplyLauncherView
+//  [PN] Apply IWAD/settings view state and refresh visible controls.
+// -----------------------------------------------------------------------------
+
+static void ApplyLauncherView(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL || launcher->window == NULL)
+    {
+        return;
+    }
+
+    boolean settings_view = launcher->view_mode == LAUNCHER_VIEW_SETTINGS;
+    HWND play_btn = GetDlgItem(launcher->window, IDC_IWAD_LAUNCHER_PLAY);
+
+    SetWindowTextA(launcher->prompt_label,
+                   settings_view ? IWAD_LAUNCHER_SETTINGS_PROMPT
+                                 : IWAD_LAUNCHER_PROMPT);
+    if (launcher->toggle_use_icon_font)
+    {
+        SetWindowTextA(launcher->toggle_button, "");
+    }
+    else
+    {
+        SetWindowTextA(launcher->toggle_button,
+                       settings_view ? IWAD_LAUNCHER_TOGGLE_BACK
+                                     : IWAD_LAUNCHER_TOGGLE_SETTINGS);
+    }
+    SetWindowTextA(play_btn, IWAD_LAUNCHER_PLAY_CAPTION);
+
+    const HWND iwad_controls[] =
+    {
+        launcher->iwad_list,
+        launcher->params_label,
+        launcher->params_edit,
+        launcher->clear_button,
+    };
+
+    const HWND settings_controls[] =
+    {
+        launcher->settings_video_label,
+        launcher->settings_fullscreen,
+        launcher->settings_software_renderer,
+        launcher->settings_autoload_label,
+        launcher->settings_autoload_wad,
+        launcher->settings_autoload_deh,
+        launcher->settings_launcher_label,
+        launcher->settings_show_startup,
+    };
+
+    SetControlGroupVisibility(iwad_controls,
+                              sizeof(iwad_controls) / sizeof(iwad_controls[0]),
+                              !settings_view);
+    SetControlGroupVisibility(settings_controls,
+                              sizeof(settings_controls) / sizeof(settings_controls[0]),
+                              settings_view);
+
+    if (settings_view)
+    {
+        TOOLINFOA ti;
+        FillIWADTooltipToolInfo(launcher, &ti);
+        SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+        launcher->iwad_tooltip_item = -1;
+        launcher->iwad_tooltip_active = false;
+        launcher->iwad_tooltip_pending_item = -1;
+        launcher->iwad_tooltip_pending_since = 0;
+    }
+
+    LayoutIWADLauncher(launcher);
+    InvalidateRect(launcher->window, NULL, TRUE);
+}
+
+// -----------------------------------------------------------------------------
+// BuildIWADDisplayName
+//  [PN] Build the visible list label for one IWAD search result.
+// -----------------------------------------------------------------------------
+
+static char *BuildIWADDisplayName(const iwad_search_result_t *result)
+{
+    const iwad_t *iwad = result->iwad;
+    if (result->source_tag != NULL && result->source_tag[0] != '\0')
+    {
+        return M_StringJoin(iwad->description, " (", result->source_tag, ")", NULL);
+    }
+
+    return M_StringDuplicate(iwad->description);
+}
+
+// -----------------------------------------------------------------------------
+// SaveDefaultIWADValue
+//  [PN] Persist default IWAD selection as a config string value.
+// -----------------------------------------------------------------------------
+
+static void SaveDefaultIWADValue(const char *value)
+{
+    if (value == NULL || value[0] == '\0')
+    {
+        return;
+    }
+
+    if (launcher_default_iwad != NULL && !strcasecmp(launcher_default_iwad, value))
+    {
+        return;
+    }
+
+    if (launcher_default_iwad != NULL
+     && (strchr(launcher_default_iwad, '\\') != NULL
+      || strchr(launcher_default_iwad, '/') != NULL))
+    {
+        free(launcher_default_iwad);
+    }
+
+    launcher_default_iwad = M_StringDuplicate(value);
+}
+
+// -----------------------------------------------------------------------------
+// SaveLauncherCommandLineValue
+//  [PN] Persist launcher command-line edit text as a config string value.
+// -----------------------------------------------------------------------------
+
+static void SaveLauncherCommandLineValue(const char *value)
+{
+    if (value == NULL)
+    {
+        value = "";
+    }
+
+    if (launcher_command_line != NULL && !strcmp(launcher_command_line, value))
+    {
+        return;
+    }
+
+    if (launcher_command_line != NULL && launcher_command_line[0] != '\0')
+    {
+        free(launcher_command_line);
+    }
+
+    launcher_command_line = M_StringDuplicate(value);
+}
+
+// -----------------------------------------------------------------------------
+// SyncLauncherSettingsToUI
+//  [PN] Populate launcher settings checkboxes from config variables.
+// -----------------------------------------------------------------------------
+
+static void SyncLauncherSettingsToUI(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL)
+    {
+        return;
+    }
+
+    launcher->settings_fullscreen_checked = vid_fullscreen == 1 ? 1 : 0;
+    launcher->settings_software_renderer_checked =
+        vid_force_software_renderer == 1 ? 1 : 0;
+    launcher->settings_autoload_wad_checked = autoload_wad == 1 ? 1 : 0;
+    launcher->settings_autoload_deh_checked = autoload_deh == 1 ? 1 : 0;
+    launcher->settings_show_startup_checked = show_startup_launcher == 1 ? 1 : 0;
+
+    launcher->initial_fullscreen_checkbox = launcher->settings_fullscreen_checked;
+    launcher->initial_software_renderer_checkbox =
+        launcher->settings_software_renderer_checked;
+    launcher->initial_autoload_wad_checkbox = launcher->settings_autoload_wad_checked;
+    launcher->initial_autoload_deh_checkbox = launcher->settings_autoload_deh_checked;
+    launcher->initial_show_startup_checkbox = launcher->settings_show_startup_checked;
+}
+
+// -----------------------------------------------------------------------------
+// ApplyLauncherSettingsFromUI
+//  [PN] Apply launcher settings checkbox states back to config variables.
+// -----------------------------------------------------------------------------
+
+static void ApplyLauncherSettingsFromUI(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL)
+    {
+        return;
+    }
+
+    int fullscreen_value = launcher->settings_fullscreen_checked;
+    int software_renderer_value = launcher->settings_software_renderer_checked;
+    int autoload_wad_value = launcher->settings_autoload_wad_checked;
+    int autoload_deh_value = launcher->settings_autoload_deh_checked;
+    int show_startup_value = launcher->settings_show_startup_checked;
+
+    if (fullscreen_value != launcher->initial_fullscreen_checkbox)
+    {
+        vid_fullscreen = fullscreen_value;
+    }
+
+    if (software_renderer_value != launcher->initial_software_renderer_checkbox)
+    {
+        vid_force_software_renderer = software_renderer_value;
+    }
+
+    if (autoload_wad_value != launcher->initial_autoload_wad_checkbox)
+    {
+        autoload_wad = autoload_wad_value;
+    }
+
+    if (autoload_deh_value != launcher->initial_autoload_deh_checkbox)
+    {
+        autoload_deh = autoload_deh_value;
+    }
+
+    if (show_startup_value != launcher->initial_show_startup_checkbox)
+    {
+        show_startup_launcher = show_startup_value;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// GetIWADItemAtPoint
+//  [PN] Return hovered IWAD row index or -1 when pointer is outside rows.
+// -----------------------------------------------------------------------------
+
+static int GetIWADItemAtPoint(HWND listbox, POINT pt)
+{
+    LRESULT item_from_point;
+    int item;
+    RECT item_rect;
+
+    if (listbox == NULL)
+    {
+        return -1;
+    }
+
+    item_from_point = SendMessageA(listbox, LB_ITEMFROMPOINT, 0,
+                                   MAKELPARAM(pt.x, pt.y));
+    item = (int) LOWORD(item_from_point);
+
+    if (HIWORD(item_from_point) != 0)
+    {
+        return -1;
+    }
+
+    // LB_ITEMFROMPOINT returns nearest item; verify point is inside its rect.
+    if (SendMessageA(listbox, LB_GETITEMRECT, (WPARAM) item,
+                     (LPARAM) &item_rect) == LB_ERR)
+    {
+        return -1;
+    }
+
+    return PtInRect(&item_rect, pt) ? item : -1;
+}
+
+// -----------------------------------------------------------------------------
+// IsDoubleClickOnIWADItem
+//  [PN] Confirm listbox double-click is on real item, not empty list space.
+// -----------------------------------------------------------------------------
+
+static boolean IsDoubleClickOnIWADItem(HWND listbox)
+{
+    DWORD msg_pos = GetMessagePos();
+    POINT pt;
+
+    if (listbox == NULL)
+    {
+        return false;
+    }
+
+    pt.x = (short) LOWORD(msg_pos);
+    pt.y = (short) HIWORD(msg_pos);
+
+    if (!ScreenToClient(listbox, &pt))
+    {
+        return false;
+    }
+
+    return GetIWADItemAtPoint(listbox, pt) >= 0;
+}
+
+// -----------------------------------------------------------------------------
+// BuildIWADListTooltipText
+//  [PN] Build hover popup text with full WAD name and absolute path.
+// -----------------------------------------------------------------------------
+
+static const char *BuildIWADListTooltipText(iwad_launcher_t *launcher, int item)
+{
+    if (launcher == NULL || item < 0 || launcher->iwads[item].iwad == NULL)
+    {
+        return "";
+    }
+
+    const char *path = launcher->iwads[item].path;
+    if (path == NULL || path[0] == '\0')
+    {
+        return "";
+    }
+
+    const char *file_name = M_BaseName(path);
+    const char *resolved_name = file_name;
+
+    if (resolved_name == NULL || resolved_name[0] == '\0')
+    {
+        resolved_name = launcher->iwads[item].iwad->name;
+    }
+
+    if (resolved_name == NULL || resolved_name[0] == '\0')
+    {
+        resolved_name = path;
+    }
+
+    free(launcher->iwad_tooltip_text);
+    launcher->iwad_tooltip_text = M_StringJoin("WAD: ", resolved_name,
+                                               "\nPath: ", path, NULL);
+
+    if (launcher->iwad_tooltip_text == NULL)
+    {
+        return "";
+    }
+
+    return launcher->iwad_tooltip_text;
+}
+
+// -----------------------------------------------------------------------------
+// FinishIWADLauncher
+//  [PN] Capture launcher selections and close window with play/exit result.
+// -----------------------------------------------------------------------------
+
+static void FinishIWADLauncher(iwad_launcher_t *launcher, boolean play_pressed)
+{
+    launcher->play_pressed = play_pressed;
+    launcher->done = true;
+
+    ApplyLauncherSettingsFromUI(launcher);
+
+    LRESULT sel = SendMessageA(launcher->iwad_list, LB_GETCURSEL, 0, 0);
+    if (sel != LB_ERR)
+    {
+        launcher->selected_iwad = (int) sel;
+    }
+
+    if (launcher->params_edit != NULL)
+    {
+        int length = GetWindowTextLengthA(launcher->params_edit);
+        free(launcher->additional_params);
+        launcher->additional_params = malloc((size_t) length + 1);
+
+        if (launcher->additional_params == NULL)
+        {
+            I_Error("Failed to allocate memory for launcher parameters.");
+        }
+
+        GetWindowTextA(launcher->params_edit, launcher->additional_params,
+                       length + 1);
+    }
+
+    if (launcher->window != NULL)
+    {
+        DestroyWindow(launcher->window);
+        launcher->window = NULL;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// IWADLauncherWndProc
+//  [PN] Handle launcher window messages, UI events and control commands.
+// -----------------------------------------------------------------------------
+
+static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
+                                            WPARAM wparam, LPARAM lparam)
+{
+    iwad_launcher_t *launcher = (iwad_launcher_t *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
+    switch (msg)
+    {
+        case WM_NCCREATE:
+        {
+            CREATESTRUCTA *cs = (CREATESTRUCTA *) lparam;
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) cs->lpCreateParams);
+            return TRUE;
+        }
+
+        case WM_CREATE:
+        {
+            launcher = (iwad_launcher_t *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if (launcher == NULL)
+            {
+                return -1;
+            }
+
+            launcher->window = hwnd;
+            DragAcceptFiles(hwnd, TRUE);
+            launcher->iwad_tooltip_item = -1;
+            launcher->iwad_tooltip_active = false;
+            launcher->iwad_tooltip_pending_item = -1;
+            launcher->iwad_tooltip_pending_since = 0;
+
+            launcher->prompt_label = CreateWindowExA(0, "STATIC", IWAD_LAUNCHER_PROMPT,
+                                                     WS_CHILD | WS_VISIBLE,
+                                                     0, 0, 0, 0, hwnd, NULL, NULL, NULL);
+
+            launcher->toggle_button = CreateWindowExA(0, "BUTTON",
+                                                      IWAD_LAUNCHER_TOGGLE_SETTINGS,
+                                                      WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                    | BS_OWNERDRAW,
+                                                      0, 0, 0, 0, hwnd,
+                                                      (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_TOGGLE,
+                                                      NULL, NULL);
+
+            launcher->iwad_list = CreateWindowExA(0, "LISTBOX", "",
+                                                  WS_CHILD | WS_VISIBLE | WS_VSCROLL
+                                                | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT
+                                                | LBS_HASSTRINGS | LBS_OWNERDRAWFIXED
+                                                | WS_BORDER,
+                                                  0, 0, 0, 0,
+                                                  hwnd,
+                                                  (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_LIST,
+                                                  NULL, NULL);
+
+            TryApplyDarkControlTheme(launcher->iwad_list);
+
+            if (launcher->iwads[0].iwad != NULL)
+            {
+                int default_iwad = 0;
+                boolean matched = false;
+
+                if (launcher_default_iwad != NULL && launcher_default_iwad[0] != '\0')
+                {
+                    for (int i = 0; launcher->iwads[i].iwad != NULL; ++i)
+                    {
+                        if (!strcasecmp(launcher->iwads[i].path, launcher_default_iwad))
+                        {
+                            default_iwad = i;
+                            matched = true;
+                            break;
+                        }
+                    }
+
+                    // Backward compatibility with older configs that store only name.
+                    if (!matched)
+                    {
+                        for (int i = 0; launcher->iwads[i].iwad != NULL; ++i)
+                        {
+                            if (!strcasecmp(launcher->iwads[i].iwad->name,
+                                            launcher_default_iwad))
+                            {
+                                default_iwad = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                for (int i = 0; launcher->iwads[i].iwad != NULL; ++i)
+                {
+                    char *label = BuildIWADDisplayName(&launcher->iwads[i]);
+                    SendMessageA(launcher->iwad_list, LB_ADDSTRING, 0, (LPARAM) label);
+                    free(label);
+                }
+
+                SendMessageA(launcher->iwad_list, LB_SETCURSEL, (WPARAM) default_iwad, 0);
+                launcher->selected_iwad = default_iwad;
+            }
+            else
+            {
+                SendMessageA(launcher->iwad_list, LB_ADDSTRING, 0,
+                             (LPARAM) "No compatible IWADs were found.");
+                EnableWindow(launcher->iwad_list, FALSE);
+            }
+
+            launcher->params_label = CreateWindowExA(0, "STATIC", "Command line parameters:",
+                                                     WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP,
+                                                     0, 0, 0, 0, hwnd, NULL, NULL, NULL);
+
+            launcher->params_edit = CreateWindowExA(0, "EDIT",
+                                                    launcher->additional_params,
+                                                    WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                  | ES_LEFT | ES_AUTOHSCROLL
+                                                  | WS_BORDER,
+                                                    0, 0, 0, 0,
+                                                    hwnd,
+                                                    (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_EDIT,
+                                                    NULL, NULL);
+
+            launcher->clear_button = CreateWindowExA(0, "BUTTON",
+                                                     IWAD_LAUNCHER_CLEAR_CAPTION,
+                                                     WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                   | BS_OWNERDRAW,
+                                                     0, 0, 0, 0, hwnd,
+                                                     (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_CLEAR,
+                                                     NULL, NULL);
+
+            launcher->settings_video_label = CreateWindowExA(0, "STATIC", "Video",
+                                                             WS_CHILD | WS_VISIBLE,
+                                                             0, 0, 0, 0, hwnd,
+                                                             (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_VIDEO_LABEL,
+                                                             NULL, NULL);
+
+            launcher->settings_fullscreen = CreateWindowExA(0, "BUTTON",
+                                                            "Fullscreen mode",
+                                                            WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                          | BS_OWNERDRAW,
+                                                            0, 0, 0, 0, hwnd,
+                                                            (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_FULLSCREEN,
+                                                            NULL, NULL);
+
+            launcher->settings_software_renderer = CreateWindowExA(0, "BUTTON",
+                                                                   "Force software renderer",
+                                                                   WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                                 | BS_OWNERDRAW,
+                                                                   0, 0, 0, 0, hwnd,
+                                                                   (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_SOFTWARE_RENDER,
+                                                                   NULL, NULL);
+
+            launcher->settings_autoload_label = CreateWindowExA(0, "STATIC", "Autoload",
+                                                                WS_CHILD | WS_VISIBLE,
+                                                                0, 0, 0, 0, hwnd,
+                                                                (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_AUTOLOAD_LABEL,
+                                                                NULL, NULL);
+
+            launcher->settings_autoload_wad = CreateWindowExA(0, "BUTTON",
+                                                              "Autoload WAD files",
+                                                              WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                            | BS_OWNERDRAW,
+                                                              0, 0, 0, 0, hwnd,
+                                                              (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_AUTOLOAD_WAD,
+                                                              NULL, NULL);
+
+            launcher->settings_autoload_deh = CreateWindowExA(0, "BUTTON",
+                                                              "Autoload DEH files",
+                                                              WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                            | BS_OWNERDRAW,
+                                                              0, 0, 0, 0, hwnd,
+                                                              (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_AUTOLOAD_DEH,
+                                                              NULL, NULL);
+
+            launcher->settings_launcher_label = CreateWindowExA(0, "STATIC", "Launcher",
+                                                                WS_CHILD | WS_VISIBLE,
+                                                                0, 0, 0, 0, hwnd,
+                                                                (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_LAUNCHER_LABEL,
+                                                                NULL, NULL);
+
+            launcher->settings_show_startup = CreateWindowExA(0, "BUTTON",
+                                                              "Show launcher at startup",
+                                                              WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                            | BS_OWNERDRAW,
+                                                              0, 0, 0, 0, hwnd,
+                                                              (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_SHOW_STARTUP,
+                                                              NULL, NULL);
+
+            InstallFixedControlBorder(launcher->iwad_list);
+            InstallFixedControlBorder(launcher->params_edit);
+
+            HWND play_btn = CreateWindowExA(0, "BUTTON", IWAD_LAUNCHER_PLAY_CAPTION,
+                                            WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                          | BS_OWNERDRAW,
+                                            0, 0, 0, 0, hwnd,
+                                            (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_PLAY,
+                                            NULL, NULL);
+
+            HWND exit_btn = CreateWindowExA(0, "BUTTON", "Exit",
+                                            WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                          | BS_OWNERDRAW,
+                                            0, 0, 0, 0, hwnd,
+                                            (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_EXIT,
+                                            NULL, NULL);
+
+            if (play_btn != NULL)
+            {
+                InstallButtonHover(play_btn);
+            }
+
+            {
+                const HWND hover_controls[] =
+                {
+                    launcher->toggle_button,
+                    launcher->clear_button,
+                    launcher->settings_fullscreen,
+                    launcher->settings_software_renderer,
+                    launcher->settings_autoload_wad,
+                    launcher->settings_autoload_deh,
+                    launcher->settings_show_startup,
+                };
+
+                InstallHoverForControlGroup(hover_controls,
+                    sizeof(hover_controls) / sizeof(hover_controls[0]));
+            }
+
+            launcher->clear_tooltip = CreateButtonTooltip(hwnd,
+                                                          launcher->clear_button,
+                                                          "Clear command line parameters");
+            launcher->iwad_tooltip = CreateIWADListTooltip(hwnd,
+                                                           launcher->iwad_list,
+                                                           launcher->dpi);
+            SetTimer(hwnd, IWAD_TOOLTIP_TIMER_ID, 40, NULL);
+
+            if (exit_btn != NULL)
+            {
+                InstallButtonHover(exit_btn);
+            }
+
+            {
+                const HWND all_font_controls[] =
+                {
+                    launcher->prompt_label,
+                    launcher->toggle_button,
+                    launcher->iwad_list,
+                    launcher->params_label,
+                    launcher->params_edit,
+                    launcher->clear_button,
+                    launcher->settings_video_label,
+                    launcher->settings_fullscreen,
+                    launcher->settings_software_renderer,
+                    launcher->settings_autoload_label,
+                    launcher->settings_autoload_wad,
+                    launcher->settings_autoload_deh,
+                    launcher->settings_launcher_label,
+                    launcher->settings_show_startup,
+                    play_btn,
+                    exit_btn,
+                };
+
+                ApplyFontToControlGroup(all_font_controls,
+                    sizeof(all_font_controls) / sizeof(all_font_controls[0]),
+                    launcher->ui_font);
+            }
+
+            SyncLauncherSettingsToUI(launcher);
+            launcher->view_mode = LAUNCHER_VIEW_IWAD;
+            ApplyLauncherView(launcher);
+            return 0;
+        }
+
+        case WM_ERASEBKGND:
+            if (launcher != NULL && launcher->window_brush != NULL)
+            {
+                RECT rc;
+                GetClientRect(hwnd, &rc);
+                FillRect((HDC) wparam, &rc, launcher->window_brush);
+                return 1;
+            }
+            break;
+
+        case WM_CTLCOLORSTATIC:
+            if (launcher != NULL && launcher->window_brush != NULL)
+            {
+                HDC dc = (HDC) wparam;
+                SetTextColor(dc, launcher->color_text);
+                SetBkColor(dc, launcher->color_window_bg);
+                return (LRESULT) launcher->window_brush;
+            }
+            break;
+
+        case WM_CTLCOLORBTN:
+            if (launcher != NULL && launcher->window_brush != NULL)
+            {
+                HDC dc = (HDC) wparam;
+                SetTextColor(dc, launcher->color_text);
+                SetBkColor(dc, launcher->color_window_bg);
+                SetBkMode(dc, TRANSPARENT);
+                return (LRESULT) launcher->window_brush;
+            }
+            break;
+
+        case WM_MEASUREITEM:
+            {
+                MEASUREITEMSTRUCT *mis = (MEASUREITEMSTRUCT *) lparam;
+                if (mis != NULL && mis->CtlID == IDC_IWAD_LAUNCHER_LIST)
+                {
+                    int dpi = (launcher != NULL) ? launcher->dpi : GetSystemDPI();
+                    int height = ScaleByDPI(18, dpi);
+
+                    if (launcher != NULL && launcher->list_item_height > height)
+                    {
+                        height = launcher->list_item_height;
+                    }
+
+                    mis->itemHeight = (UINT) height;
+                    return TRUE;
+                }
+            }
+            return FALSE;
+
+        case WM_CTLCOLOREDIT:
+        case WM_CTLCOLORLISTBOX:
+            if (launcher != NULL && launcher->control_brush != NULL)
+            {
+                HDC dc = (HDC) wparam;
+                SetTextColor(dc, launcher->color_text);
+                SetBkColor(dc, launcher->color_control_bg);
+                return (LRESULT) launcher->control_brush;
+            }
+            break;
+
+        case WM_DRAWITEM:
+            if (launcher == NULL)
+            {
+                return FALSE;
+            }
+
+            {
+                DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *) lparam;
+                if (dis == NULL)
+                {
+                    return FALSE;
+                }
+
+                if (dis->CtlID == IDC_IWAD_LAUNCHER_PLAY
+                 || dis->CtlID == IDC_IWAD_LAUNCHER_TOGGLE
+                 || dis->CtlID == IDC_IWAD_LAUNCHER_CLEAR
+                 || dis->CtlID == IDC_IWAD_LAUNCHER_EXIT)
+                {
+                    DrawLauncherButton(dis, launcher);
+                    return TRUE;
+                }
+
+                if (IsSettingsCheckboxId(dis->CtlID))
+                {
+                    DrawLauncherSettingsCheckbox(dis, launcher);
+                    return TRUE;
+                }
+
+                if (dis->CtlID == IDC_IWAD_LAUNCHER_LIST)
+                {
+                    DrawLauncherListItem(dis, launcher);
+                    return TRUE;
+                }
+            }
+            return FALSE;
+
+        case WM_SIZE:
+            if (launcher != NULL)
+            {
+                LayoutIWADLauncher(launcher);
+                ForceRedrawIWADList(launcher->iwad_list);
+
+                if (!IsIconic(hwnd))
+                {
+                    RECT window_rect;
+                    if (GetWindowRect(hwnd, &window_rect))
+                    {
+                        launcher_width_x = window_rect.right - window_rect.left;
+                        launcher_width_y = window_rect.bottom - window_rect.top;
+                    }
+                }
+            }
+            return 0;
+
+        case WM_GETMINMAXINFO:
+            {
+                MINMAXINFO *mmi = (MINMAXINFO *) lparam;
+                int dpi = launcher != NULL ? launcher->dpi : GetSystemDPI();
+                int min_client_w = 0;
+                int min_client_h = 0;
+                RECT min_rect;
+                DWORD wnd_style;
+                DWORD wnd_exstyle;
+
+                GetLauncherMinimumClientSize(dpi, &min_client_w, &min_client_h);
+
+                min_rect.left = 0;
+                min_rect.top = 0;
+                min_rect.right = min_client_w;
+                min_rect.bottom = min_client_h;
+
+                wnd_style = (DWORD) GetWindowLongPtr(hwnd, GWL_STYLE);
+                wnd_exstyle = (DWORD) GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+                AdjustWindowRectEx(&min_rect, wnd_style, FALSE, wnd_exstyle);
+
+                mmi->ptMinTrackSize.x = min_rect.right - min_rect.left;
+                mmi->ptMinTrackSize.y = min_rect.bottom - min_rect.top;
+                return 0;
+            }
+
+        case WM_MOVE:
+            if (launcher != NULL && !IsIconic(hwnd))
+            {
+                RECT window_rect;
+                if (GetWindowRect(hwnd, &window_rect))
+                {
+                    launcher_position_x = window_rect.left;
+                    launcher_position_y = window_rect.top;
+                }
+            }
+            return 0;
+
+        case WM_COMMAND:
+            if (launcher == NULL)
+            {
+                return 0;
+            }
+
+            switch (LOWORD(wparam))
+            {
+                case IDC_IWAD_LAUNCHER_PLAY:
+                    FinishIWADLauncher(launcher, true);
+                    return 0;
+
+                case IDC_IWAD_LAUNCHER_EXIT:
+                    FinishIWADLauncher(launcher, false);
+                    return 0;
+
+                case IDC_IWAD_LAUNCHER_TOGGLE:
+                    launcher->view_mode =
+                        (launcher->view_mode == LAUNCHER_VIEW_IWAD)
+                        ? LAUNCHER_VIEW_SETTINGS
+                        : LAUNCHER_VIEW_IWAD;
+                    ApplyLauncherView(launcher);
+                    return 0;
+
+                case IDC_IWAD_LAUNCHER_CLEAR:
+                    if (launcher->params_edit != NULL)
+                    {
+                        SetWindowTextA(launcher->params_edit, "");
+                    }
+                    return 0;
+
+                case IDC_IWAD_SETTINGS_FULLSCREEN:
+                case IDC_IWAD_SETTINGS_SOFTWARE_RENDER:
+                case IDC_IWAD_SETTINGS_AUTOLOAD_WAD:
+                case IDC_IWAD_SETTINGS_AUTOLOAD_DEH:
+                case IDC_IWAD_SETTINGS_SHOW_STARTUP:
+                    if (HIWORD(wparam) == BN_CLICKED)
+                    {
+                        HWND checkbox = (HWND) lparam;
+                        int *value = SettingsCheckboxValuePtrFromId(launcher,
+                                                                    LOWORD(wparam));
+
+                        if (value != NULL)
+                        {
+                            *value = *value ? 0 : 1;
+                        }
+
+                        InvalidateRect(checkbox, NULL, TRUE);
+                    }
+                    return 0;
+
+                case IDC_IWAD_LAUNCHER_LIST:
+                    if (launcher->view_mode == LAUNCHER_VIEW_IWAD
+                     && HIWORD(wparam) == LBN_DBLCLK)
+                    {
+                        if (IsDoubleClickOnIWADItem(launcher->iwad_list))
+                        {
+                            FinishIWADLauncher(launcher, true);
+                        }
+                    }
+                    return 0;
+            }
+            break;
+
+        case WM_NOTIFY:
+            break;
+
+        case WM_TIMER:
+            if (launcher != NULL && wparam == IWAD_TOOLTIP_TIMER_ID)
+            {
+                UpdateIWADTooltipFromCursor(launcher);
+                return 0;
+            }
+            break;
+
+        case WM_DROPFILES:
+            {
+                HDROP drop = (HDROP) wparam;
+                if (launcher != NULL)
+                {
+                    AddDroppedFilesToLauncher(launcher, drop);
+                }
+                DragFinish(drop);
+                return 0;
+            }
+
+        case WM_CLOSE:
+            if (launcher != NULL)
+            {
+                FinishIWADLauncher(launcher, false);
+            }
+            return 0;
+
+        case WM_DESTROY:
+            if (launcher != NULL && launcher->clear_tooltip != NULL)
+            {
+                DestroyWindow(launcher->clear_tooltip);
+                launcher->clear_tooltip = NULL;
+            }
+            DragAcceptFiles(hwnd, FALSE);
+            KillTimer(hwnd, IWAD_TOOLTIP_TIMER_ID);
+            if (launcher != NULL && launcher->iwad_tooltip != NULL)
+            {
+                DestroyWindow(launcher->iwad_tooltip);
+                launcher->iwad_tooltip = NULL;
+            }
+            if (launcher != NULL && launcher->iwad_tooltip_text != NULL)
+            {
+                free(launcher->iwad_tooltip_text);
+                launcher->iwad_tooltip_text = NULL;
+            }
+            if (launcher != NULL)
+            {
+                launcher->iwad_tooltip_item = -1;
+                launcher->iwad_tooltip_active = false;
+                launcher->iwad_tooltip_pending_item = -1;
+                launcher->iwad_tooltip_pending_since = 0;
+            }
+            return 0;
+    }
+
+    return DefWindowProcA(hwnd, msg, wparam, lparam);
+}
+
+// -----------------------------------------------------------------------------
+// RunIWADLauncherDialog
+//  [PN] Run startup launcher loop and append chosen IWAD/pwad args.
+// -----------------------------------------------------------------------------
+
+static boolean RunIWADLauncherDialog(int mask)
+{
+    static boolean class_registered = false;
+    iwad_launcher_t launcher = { 0 };
+    INITCOMMONCONTROLSEX icc;
+
+    memset(&icc, 0, sizeof(icc));
+    icc.dwSize = sizeof(icc);
+    icc.dwICC = ICC_WIN95_CLASSES;
+    InitCommonControlsEx(&icc);
+
+    launcher.iwads = D_FindAllIWADSearchResults(mask);
+    launcher.dpi = GetSystemDPI();
+    launcher.selected_iwad = 0;
+    launcher.iwad_tooltip_item = -1;
+    launcher.iwad_tooltip_active = false;
+    launcher.iwad_tooltip_pending_item = -1;
+    launcher.iwad_tooltip_pending_since = 0;
+    launcher.additional_params =
+        M_StringDuplicate(launcher_command_line != NULL ? launcher_command_line : "");
+
+    if (M_HasLooseFiles())
+    {
+        free(launcher.additional_params);
+        launcher.additional_params = BuildLauncherParamsFromLooseFiles();
+        ClearCommandLineExceptExecutable();
+    }
+
+    launcher.ui_font = CreateLauncherUIFont(launcher.dpi, &launcher.owns_ui_font);
+    launcher.toggle_icon_font = CreateLauncherToggleIconFont(launcher.dpi,
+                                            &launcher.owns_toggle_icon_font);
+    launcher.clear_icon_font = CreateLauncherClearIconFont(launcher.dpi,
+                                            &launcher.owns_clear_icon_font);
+    launcher.toggle_use_icon_font =
+        FontFaceEqualsW(launcher.toggle_icon_font, L"Segoe MDL2 Assets");
+    launcher.list_item_height = MeasureFontHeight(launcher.ui_font)
+                              + ScaleByDPI(4, launcher.dpi);
+    ConfigureLauncherThemeForMask(&launcher, mask);
+    launcher.window_brush = CreateSolidBrush(launcher.color_window_bg);
+    launcher.control_brush = CreateSolidBrush(launcher.color_control_bg);
+    launcher.list_sel_brush = CreateSolidBrush(launcher.color_list_sel_bg);
+    launcher.button_brush = CreateSolidBrush(launcher.color_button_bg);
+    launcher.button_hover_brush = CreateSolidBrush(launcher.color_button_hover);
+    launcher.button_down_brush = CreateSolidBrush(launcher.color_button_down);
+    launcher.button_border_brush = CreateSolidBrush(launcher.color_button_border);
+    launcher.play_pressed = false;
+    launcher.done = false;
+
+    const char *resolved_title = DefaultWindowTitleForMask(mask);
+    HINSTANCE inst = GetModuleHandle(NULL);
+    HICON icon = (HICON) LoadImageA(inst, MAKEINTRESOURCEA(1), IMAGE_ICON,
+                                    0, 0, LR_DEFAULTSIZE);
+
+    if (icon == NULL)
+    {
+        icon = LoadIcon(NULL, IDI_APPLICATION);
+    }
+
+    if (!class_registered)
+    {
+        WNDCLASSEXA wc;
+        memset(&wc, 0, sizeof(wc));
+        wc.cbSize = sizeof(wc);
+        wc.style = CS_DBLCLKS;
+        wc.lpfnWndProc = IWADLauncherWndProc;
+        wc.hInstance = inst;
+        wc.hIcon = icon;
+        wc.hIconSm = icon;
+        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wc.hbrBackground = NULL;
+        wc.lpszClassName = IWAD_LAUNCHER_CLASS_NAME;
+
+        if (!RegisterClassExA(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+        {
+            CleanupLauncherFont(&launcher);
+            CleanupLauncherTheme(&launcher);
+            free(launcher.additional_params);
+            D_FreeIWADSearchResults(launcher.iwads);
+            return true;
+        }
+
+        class_registered = true;
+    }
+
+    int client_w = ScaleByDPI(IWAD_WINDOW_CLIENT_W, launcher.dpi);
+    int client_h = ScaleByDPI(IWAD_WINDOW_CLIENT_H, launcher.dpi);
+    DWORD style = WS_OVERLAPPEDWINDOW
+                & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
+    DWORD exstyle = 0;
+
+    RECT win_rect;
+    win_rect.left = 0;
+    win_rect.top = 0;
+    win_rect.right = client_w;
+    win_rect.bottom = client_h;
+    AdjustWindowRectEx(&win_rect, style, FALSE, exstyle);
+    int win_w = win_rect.right - win_rect.left;
+    int win_h = win_rect.bottom - win_rect.top;
+
+    {
+        int min_client_w = 0;
+        int min_client_h = 0;
+        RECT min_rect;
+        GetLauncherMinimumClientSize(launcher.dpi, &min_client_w, &min_client_h);
+        min_rect.left = 0;
+        min_rect.top = 0;
+        min_rect.right = min_client_w;
+        min_rect.bottom = min_client_h;
+        AdjustWindowRectEx(&min_rect, style, FALSE, exstyle);
+
+        int min_win_w = min_rect.right - min_rect.left;
+        int min_win_h = min_rect.bottom - min_rect.top;
+
+        if (launcher_width_x > 0)
+        {
+            win_w = launcher_width_x;
+        }
+        if (launcher_width_y > 0)
+        {
+            win_h = launcher_width_y;
+        }
+
+        if (win_w < min_win_w)
+        {
+            win_w = min_win_w;
+        }
+        if (win_h < min_win_h)
+        {
+            win_h = min_win_h;
+        }
+    }
+
+    RECT work_rect;
+    work_rect.left = 0;
+    work_rect.top = 0;
+    work_rect.right = 0;
+    work_rect.bottom = 0;
+    SystemParametersInfoA(SPI_GETWORKAREA, 0, &work_rect, 0);
+    int screen_w = GetSystemMetrics(SM_CXSCREEN);
+    int screen_h = GetSystemMetrics(SM_CYSCREEN);
+
+    if (work_rect.right > work_rect.left && work_rect.bottom > work_rect.top)
+    {
+        screen_w = work_rect.right - work_rect.left;
+        screen_h = work_rect.bottom - work_rect.top;
+    }
+
+    if (win_w > screen_w - ScaleByDPI(16, launcher.dpi))
+    {
+        win_w = screen_w - ScaleByDPI(16, launcher.dpi);
+    }
+    if (win_h > screen_h - ScaleByDPI(16, launcher.dpi))
+    {
+        win_h = screen_h - ScaleByDPI(16, launcher.dpi);
+    }
+    int work_left = (work_rect.right > work_rect.left) ? work_rect.left : 0;
+    int work_top = (work_rect.bottom > work_rect.top) ? work_rect.top : 0;
+    int work_right = work_left + screen_w;
+    int work_bottom = work_top + screen_h;
+    int pos_x = work_left + (screen_w - win_w) / 2;
+    int pos_y = work_top + (screen_h - win_h) / 2;
+
+    if (launcher_position_x != 0 || launcher_position_y != 0)
+    {
+        pos_x = launcher_position_x;
+        pos_y = launcher_position_y;
+
+        if (pos_x < work_left)
+        {
+            pos_x = work_left;
+        }
+        if (pos_y < work_top)
+        {
+            pos_y = work_top;
+        }
+        if (pos_x + win_w > work_right)
+        {
+            pos_x = work_right - win_w;
+        }
+        if (pos_y + win_h > work_bottom)
+        {
+            pos_y = work_bottom - win_h;
+        }
+    }
+
+    HWND hwnd = CreateWindowExA(exstyle,
+                                IWAD_LAUNCHER_CLASS_NAME,
+                                resolved_title,
+                                style,
+                                pos_x, pos_y, win_w, win_h,
+                                NULL, NULL, GetModuleHandle(NULL), &launcher);
+
+    if (hwnd == NULL)
+    {
+        CleanupLauncherFont(&launcher);
+        CleanupLauncherTheme(&launcher);
+        free(launcher.additional_params);
+        D_FreeIWADSearchResults(launcher.iwads);
+        return true;
+    }
+
+    SetWindowTextA(hwnd, resolved_title);
+    SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM) icon);
+    SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM) icon);
+    TryEnableDarkTitleBar(hwnd);
+
+    ShowWindow(hwnd, SW_SHOW);
+    UpdateWindow(hwnd);
+
+    MSG msg;
+    while (!launcher.done)
+    {
+        int gm = GetMessage(&msg, NULL, 0, 0);
+        if (gm <= 0)
+        {
+            launcher.play_pressed = false;
+            break;
+        }
+
+        if ((msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN)
+         && msg.wParam == VK_ESCAPE
+         && GetAncestor(msg.hwnd, GA_ROOT) == hwnd)
+        {
+            FinishIWADLauncher(&launcher, false);
+            continue;
+        }
+
+        if ((msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN)
+         && msg.wParam == VK_RETURN
+         && GetAncestor(msg.hwnd, GA_ROOT) == hwnd)
+        {
+            HWND focused = GetFocus();
+            if (launcher.view_mode == LAUNCHER_VIEW_IWAD
+             && (focused == launcher.iwad_list || focused == launcher.params_edit))
+            {
+                FinishIWADLauncher(&launcher, true);
+                continue;
+            }
+        }
+
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    if (launcher.iwads[launcher.selected_iwad].iwad != NULL)
+    {
+        SaveDefaultIWADValue(launcher.iwads[launcher.selected_iwad].path);
+    }
+
+    SaveLauncherCommandLineValue(launcher.additional_params);
+
+    if (!launcher.play_pressed)
+    {
+        M_SaveDefaults();
+    }
+
+    if (launcher.play_pressed)
+    {
+        if (launcher.iwads[launcher.selected_iwad].iwad != NULL)
+        {
+            if (launcher.iwads[launcher.selected_iwad].is_pwad)
+            {
+                D_AppendCommandLineArgument("-file");
+            }
+            else
+            {
+                D_AppendCommandLineArgument("-iwad");
+            }
+
+            D_AppendCommandLineArgument(launcher.iwads[launcher.selected_iwad].path);
+        }
+
+        D_AppendAdditionalCommandLine(launcher.additional_params);
+    }
+
+    CleanupLauncherFont(&launcher);
+    CleanupLauncherTheme(&launcher);
+    free(launcher.additional_params);
+    D_FreeIWADSearchResults(launcher.iwads);
+
+    return launcher.play_pressed;
+}
+#endif
+
+boolean D_MaybeShowIWADLauncher(int mask)
+{
+    if (M_ParmExists("-nogui")
+     || M_CheckParmWithArgs("-nogui", 1) != 0       // [JN] Whatever it is, it doesn't belong in this world
+     || M_CheckParmWithArgs("-iwad", 1) != 0
+//   || M_CheckParmWithArgs("-file", 1) != 0        // [JN] May be just a graphical wad...
+     || M_CheckParmWithArgs("-dedicated", 1) != 0   // [JN] Netplay using own textscreen launcher
+     || M_CheckParmWithArgs("-search", 1) != 0
+     || M_CheckParmWithArgs("-query", 1) != 0
+     || M_CheckParmWithArgs("-localsearch", 1) != 0)
+    {
+        return true;
+    }
+
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+    return RunIWADLauncherDialog(mask);
+#else
+    (void) mask;
+    return true;
+#endif
+}

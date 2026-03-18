@@ -18,7 +18,7 @@
 
 
 #include "id_vars.h"
-#include "m_config.h"  // [JN] M_BindIntVariable
+#include "m_config.h"  // [JN] M_Bind*Variable
 
 
 // Game modes
@@ -29,6 +29,18 @@ int crl_freeze = 0;
 // -----------------------------------------------------------------------------
 // [JN] ID-specific config variables.
 // -----------------------------------------------------------------------------
+
+//
+// Startup launcher
+//
+
+int show_startup_launcher = 1;
+int launcher_position_x = 0;
+int launcher_position_y = 0;
+int launcher_width_x = 0;
+int launcher_width_y = 0;
+char *launcher_default_iwad = "";
+char *launcher_command_line = "";
 
 //
 // Video options
@@ -230,6 +242,18 @@ int menu_cap_fps = 0;
 
 void ID_BindVariables (GameMission_t mission)
 {
+    //
+    // Startup launcher
+    //
+
+    M_BindIntVariable("show_startup_launcher",          &show_startup_launcher);
+    M_BindIntVariable("launcher_position_x",            &launcher_position_x);
+    M_BindIntVariable("launcher_position_y",            &launcher_position_y);
+    M_BindIntVariable("launcher_width_x",               &launcher_width_x);
+    M_BindIntVariable("launcher_width_y",               &launcher_width_y);
+    M_BindStringVariable("launcher_default_iwad",       &launcher_default_iwad);
+    M_BindStringVariable("launcher_command_line",       &launcher_command_line);
+
     //
     // Video options
     //

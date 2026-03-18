@@ -35,24 +35,33 @@
 
 static const iwad_t iwads[] =
 {
-    { "doom2.wad",    doom2,     commercial, "Doom II" },
+    { "doom1.wad",    doom,      shareware,  "Doom Shareware" },
+    { "doom.wad",     doom,      retail,     "Doom" },
+    { "doom2.wad",    doom2,     commercial, "Doom 2: Hell on Earth" },
+    { "doom2f.wad",   doom2,     commercial, "Doom 2: L'Enfer sur Terre" },
     { "plutonia.wad", pack_plut, commercial, "Final Doom: Plutonia Experiment" },
     { "tnt.wad",      pack_tnt,  commercial, "Final Doom: TNT: Evilution" },
-    { "doom.wad",     doom,      retail,     "Doom" },
-    { "doom1.wad",    doom,      shareware,  "Doom Shareware" },
-    { "doom2f.wad",   doom2,     commercial, "Doom II: L'Enfer sur Terre" },
+    { "freedoom1.wad", doom,     retail,     "Freedoom: Phase 1" },
+    { "freedoom2.wad", doom2,    commercial, "Freedoom: Phase 2" },
+    { "freedm.wad",   doom2,     commercial, "FreeDM" },
     { "chex.wad",     pack_chex, retail,     "Chex Quest" },
     { "hacx.wad",     pack_hacx, commercial, "Hacx" },
-    { "freedoom2.wad", doom2,    commercial, "Freedoom: Phase 2" },
-    { "freedoom1.wad", doom,     retail,     "Freedoom: Phase 1" },
-    { "freedm.wad",   doom2,     commercial, "FreeDM" },
     { "rekkrsa.wad",  doom,      retail,     "REKKR" }, // [crispy] REKKR
     { "rekkrsl.wad",  doom,      retail,     "REKKR: Sunken Land" }, // [crispy] REKKR: Sunken Land (Steam retail)
-    { "heretic.wad",  heretic,   retail,     "Heretic" },
+
     { "heretic1.wad", heretic,   shareware,  "Heretic Shareware" },
-    { "hexen.wad",    hexen,     commercial, "Hexen" },
-    //{ "strife0.wad",  strife,    commercial, "Strife" }, // haleyjd: STRIFE-FIXME
-    { "strife1.wad",  strife,    commercial, "Strife" },
+    { "heretic.wad",  heretic,   retail,     "Heretic" },
+    { "blasphem.wad", heretic,   retail,     "Blasphemer" },
+
+    { "hexen.wad",    hexen,     commercial, "Hexen: Beyond Heretic" },
+
+//  { "strife0.wad",  strife,    commercial, "Strife" }, // haleyjd: STRIFE-FIXME
+//  { "strife1.wad",  strife,    commercial, "Strife" },
+};
+
+static const iwad_t hexdd_pwad =
+{
+    "hexdd.wad", hexen, commercial, "Hexen: Deathkings of the Dark Citadel"
 };
 
 boolean D_IsIWADName(const char *name)
@@ -1004,6 +1013,323 @@ const iwad_t **D_FindAllIWADs(int mask)
     return result;
 }
 
+// -----------------------------------------------------------------------------
+// PathContainsNoCase
+//  [PN] Case-insensitive substring check used for source-tag detection.
+// -----------------------------------------------------------------------------
+
+static boolean PathContainsNoCase(const char *path, const char *needle)
+{
+    size_t needle_len;
+
+    if (path == NULL || needle == NULL)
+    {
+        return false;
+    }
+
+    needle_len = strlen(needle);
+    if (needle_len == 0)
+    {
+        return true;
+    }
+
+    for (const char *p = path; *p != '\0'; ++p)
+    {
+        size_t i = 0;
+        while (needle[i] != '\0'
+            && p[i] != '\0'
+            && tolower((unsigned char) p[i]) == tolower((unsigned char) needle[i]))
+        {
+            ++i;
+        }
+
+        if (i == needle_len)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+// CanonicalizeIWADPath
+//  [PN] Convert discovered IWAD path to a normalized absolute-like form.
+// -----------------------------------------------------------------------------
+
+static char *CanonicalizeIWADPath(const char *path)
+{
+    char *canonical = NULL;
+
+    if (path == NULL)
+    {
+        return NULL;
+    }
+
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+    DWORD needed = GetFullPathNameA(path, 0, NULL, NULL);
+    if (needed > 0)
+    {
+        canonical = malloc((size_t) needed + 1);
+
+        if (canonical == NULL)
+        {
+            I_Error("Failed to allocate canonical IWAD path.");
+        }
+
+        if (GetFullPathNameA(path, needed + 1, canonical, NULL) == 0)
+        {
+            free(canonical);
+            canonical = NULL;
+        }
+    }
+#endif
+
+    if (canonical == NULL)
+    {
+        canonical = M_StringDuplicate(path);
+    }
+
+    M_NormalizeSlashes(canonical);
+
+    return canonical;
+}
+
+// -----------------------------------------------------------------------------
+// DetectIWADSourceTag
+//  [PN] Classify known distribution sources by path markers.
+// -----------------------------------------------------------------------------
+
+static const char *DetectIWADSourceTag(const char *path)
+{
+    if (PathContainsNoCase(path, "doom 3 bfg edition")
+     || PathContainsNoCase(path, "doom3bfg"))
+    {
+        return "BFG Edition";
+    }
+
+    if (PathContainsNoCase(path, "rerelease")
+     || PathContainsNoCase(path, "doom ii_data\\streamingassets")
+     || PathContainsNoCase(path, "doom_data\\streamingassets"))
+    {
+        return "D1+D2";
+    }
+
+    return NULL;
+}
+
+// -----------------------------------------------------------------------------
+// SourceTagsMatch
+//  [PN] Compare optional source tags where NULL means "no tag".
+// -----------------------------------------------------------------------------
+
+static boolean SourceTagsMatch(const char *a, const char *b)
+{
+    if (a == b)
+    {
+        return true;
+    }
+
+    if (a == NULL || b == NULL)
+    {
+        return false;
+    }
+
+    return !strcasecmp(a, b);
+}
+
+// -----------------------------------------------------------------------------
+// ResultListHasEquivalentIWAD
+//  [PN] Deduplicate by IWAD identity + source bucket (default / D1+D2 / BFG).
+// -----------------------------------------------------------------------------
+
+static boolean ResultListHasEquivalentIWAD(iwad_search_result_t *results, int len,
+                                           const iwad_t *iwad,
+                                           const char *source_tag)
+{
+    for (int i = 0; i < len; ++i)
+    {
+        // Keep one entry per IWAD name per source bucket.
+        if (results[i].iwad == iwad
+         && SourceTagsMatch(results[i].source_tag, source_tag))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+// D_FindAllIWADSearchResults
+//  [PN] Enumerate all matching IWAD entries with path and source metadata.
+// -----------------------------------------------------------------------------
+
+iwad_search_result_t *D_FindAllIWADSearchResults(int mask)
+{
+    int capacity = (int) arrlen(iwads) + 1;
+    int len = 0;
+    iwad_search_result_t *results =
+        malloc(sizeof(iwad_search_result_t) * (size_t) capacity);
+
+    if (results == NULL)
+    {
+        I_Error("Failed to allocate IWAD search results.");
+    }
+
+    BuildIWADDirList();
+
+    for (int i = 0; i < arrlen(iwads); ++i)
+    {
+        if (((1 << iwads[i].mission) & mask) == 0)
+        {
+            continue;
+        }
+
+        for (int dir = 0; dir < num_iwad_dirs; ++dir)
+        {
+            char *path = CheckDirectoryHasIWAD(iwad_dirs[dir],
+                                               DEH_String(iwads[i].name));
+            char *canonical_path;
+            const char *source_tag;
+
+            if (path == NULL)
+            {
+                continue;
+            }
+
+            canonical_path = CanonicalizeIWADPath(path);
+            free(path);
+            path = canonical_path;
+            source_tag = DetectIWADSourceTag(path);
+
+            if (ResultListHasEquivalentIWAD(results, len, &iwads[i], source_tag))
+            {
+                free(path);
+                continue;
+            }
+
+            if (len + 1 >= capacity)
+            {
+                capacity *= 2;
+
+                iwad_search_result_t *new_results =
+                    realloc(results,
+                            sizeof(iwad_search_result_t) * (size_t) capacity);
+
+                if (new_results == NULL)
+                {
+                    free(path);
+                    D_FreeIWADSearchResults(results);
+                    I_Error("Failed to grow IWAD search results.");
+                }
+
+                results = new_results;
+            }
+
+            results[len].iwad = &iwads[i];
+            results[len].path = path;
+            results[len].source_tag = source_tag;
+            results[len].is_pwad = false;
+            ++len;
+        }
+    }
+
+    if ((mask & IWAD_MASK_HEXEN) != 0)
+    {
+        boolean have_hexen_iwad = false;
+
+        for (int i = 0; i < len; ++i)
+        {
+            if (results[i].iwad != NULL
+             && results[i].iwad->mission == hexen
+             && !results[i].is_pwad)
+            {
+                have_hexen_iwad = true;
+                break;
+            }
+        }
+
+        if (have_hexen_iwad)
+        {
+            for (int dir = 0; dir < num_iwad_dirs; ++dir)
+            {
+                char *path = CheckDirectoryHasIWAD(iwad_dirs[dir],
+                                                   DEH_String(hexdd_pwad.name));
+                char *canonical_path;
+                const char *source_tag;
+
+                if (path == NULL)
+                {
+                    continue;
+                }
+
+                canonical_path = CanonicalizeIWADPath(path);
+                free(path);
+                path = canonical_path;
+                source_tag = DetectIWADSourceTag(path);
+
+                if (ResultListHasEquivalentIWAD(results, len, &hexdd_pwad, source_tag))
+                {
+                    free(path);
+                    continue;
+                }
+
+                if (len + 1 >= capacity)
+                {
+                    capacity *= 2;
+
+                    iwad_search_result_t *new_results =
+                        realloc(results,
+                                sizeof(iwad_search_result_t) * (size_t) capacity);
+
+                    if (new_results == NULL)
+                    {
+                        free(path);
+                        D_FreeIWADSearchResults(results);
+                        I_Error("Failed to grow IWAD search results.");
+                    }
+
+                    results = new_results;
+                }
+
+                results[len].iwad = &hexdd_pwad;
+                results[len].path = path;
+                results[len].source_tag = source_tag;
+                results[len].is_pwad = true;
+                ++len;
+            }
+        }
+    }
+
+    results[len].iwad = NULL;
+    results[len].path = NULL;
+    results[len].source_tag = NULL;
+    results[len].is_pwad = false;
+
+    return results;
+}
+
+// -----------------------------------------------------------------------------
+// D_FreeIWADSearchResults
+//  [PN] Free results allocated by D_FindAllIWADSearchResults().
+// -----------------------------------------------------------------------------
+
+void D_FreeIWADSearchResults(iwad_search_result_t *results)
+{
+    if (results == NULL)
+    {
+        return;
+    }
+
+    for (int i = 0; results[i].iwad != NULL; ++i)
+    {
+        free(results[i].path);
+    }
+
+    free(results);
+}
+
 //
 // Get the IWAD name used for savegames.
 //
@@ -1078,4 +1404,3 @@ const char *D_SuggestGameName(GameMission_t mission, GameMode_t mode)
 
     return "Unknown game?";
 }
-
