@@ -1558,15 +1558,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             switch (LOWORD(wparam))
             {
                 case IDC_IWAD_LAUNCHER_PLAY:
-                    if (launcher->view_mode == LAUNCHER_VIEW_SETTINGS)
-                    {
-                        launcher->view_mode = LAUNCHER_VIEW_IWAD;
-                        ApplyLauncherView(launcher);
-                    }
-                    else
-                    {
-                        FinishIWADLauncher(launcher, true);
-                    }
+                    FinishIWADLauncher(launcher, true);
                     return 0;
 
                 case IDC_IWAD_LAUNCHER_EXIT:
