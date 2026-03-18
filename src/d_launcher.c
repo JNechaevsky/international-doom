@@ -34,6 +34,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commctrl.h>
+#include <shellapi.h>
 
 #define IWAD_LAUNCHER_CLASS_NAME "InterIwadLauncherWindow"
 #define IWAD_LAUNCHER_PROMPT     "Select IWAD file to run:"
@@ -327,6 +328,40 @@ static void NormalizePathForCompare(char *path)
 }
 
 // -----------------------------------------------------------------------------
+// GetLauncherExecutableDir
+//  [PN] Resolve executable directory using WinAPI absolute module path.
+// -----------------------------------------------------------------------------
+
+static char *GetLauncherExecutableDir(void)
+{
+    char module_path[MAX_PATH];
+    DWORD path_len = GetModuleFileNameA(NULL, module_path,
+                                        (DWORD) (sizeof(module_path) / sizeof(module_path[0])));
+
+    if (path_len > 0 && path_len < sizeof(module_path))
+    {
+        char *exe_dir = M_DirName(module_path);
+        if (exe_dir != NULL)
+        {
+            NormalizePathForCompare(exe_dir);
+        }
+        return exe_dir;
+    }
+
+    if (myargc > 0 && myargv[0] != NULL)
+    {
+        char *exe_dir = M_DirName(myargv[0]);
+        if (exe_dir != NULL)
+        {
+            NormalizePathForCompare(exe_dir);
+        }
+        return exe_dir;
+    }
+
+    return NULL;
+}
+
+// -----------------------------------------------------------------------------
 // IsPathInDirectory
 //  [PN] Compare parent directory of a file path against a target directory.
 // -----------------------------------------------------------------------------
@@ -399,16 +434,11 @@ static char *BuildLauncherParamsFromLooseFiles(void)
     size_t capacity = 64;
     size_t length = 0;
     char *result = malloc(capacity);
-    char *exe_dir = M_DirName(myargv[0]);
+    char *exe_dir = GetLauncherExecutableDir();
 
     if (result == NULL)
     {
         I_Error("Failed to allocate memory for launcher parameters.");
-    }
-
-    if (exe_dir != NULL)
-    {
-        NormalizePathForCompare(exe_dir);
     }
 
     result[0] = '\0';
@@ -447,6 +477,236 @@ static char *BuildLauncherParamsFromLooseFiles(void)
     free(exe_dir);
 
     return result;
+}
+
+// -----------------------------------------------------------------------------
+// AppendLauncherParamSeparator
+//  [PN] Append one separating space unless parameter buffer already ends in space.
+// -----------------------------------------------------------------------------
+
+static void AppendLauncherParamSeparator(char **buffer, size_t *length, size_t *capacity)
+{
+    if (*length == 0)
+    {
+        return;
+    }
+
+    if (!isspace((unsigned char) (*buffer)[*length - 1]))
+    {
+        AppendText(buffer, length, capacity, " ");
+    }
+}
+
+// -----------------------------------------------------------------------------
+// AppendLauncherDisplayArg
+//  [PN] Append one argument to launcher text, quoting when path contains spaces.
+// -----------------------------------------------------------------------------
+
+static void AppendLauncherDisplayArg(char **buffer, size_t *length, size_t *capacity,
+                                     const char *arg)
+{
+    if (LauncherArgNeedsQuotes(arg))
+    {
+        AppendText(buffer, length, capacity, "\"");
+        AppendText(buffer, length, capacity, arg);
+        AppendText(buffer, length, capacity, "\"");
+    }
+    else
+    {
+        AppendText(buffer, length, capacity, arg);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// LauncherParamsHasSwitch
+//  [PN] Check whether launcher text already contains a standalone switch token.
+// -----------------------------------------------------------------------------
+
+static boolean LauncherParamsHasSwitch(const char *params, const char *name)
+{
+    if (params == NULL || name == NULL || name[0] == '\0')
+    {
+        return false;
+    }
+
+    size_t name_len = strlen(name);
+    const char *p = params;
+
+    while (*p != '\0')
+    {
+        while (*p != '\0' && isspace((unsigned char) *p))
+        {
+            ++p;
+        }
+
+        if (*p == '\0')
+        {
+            break;
+        }
+
+        const char *start;
+        const char *end;
+        if (*p == '"' || *p == '\'')
+        {
+            char quote = *p++;
+            start = p;
+            while (*p != '\0' && *p != quote)
+            {
+                ++p;
+            }
+            end = p;
+            if (*p == quote)
+            {
+                ++p;
+            }
+        }
+        else
+        {
+            start = p;
+            while (*p != '\0' && !isspace((unsigned char) *p))
+            {
+                ++p;
+            }
+            end = p;
+        }
+
+        size_t token_len = (size_t) (end - start);
+        if (token_len == name_len && !strncasecmp(start, name, token_len))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+// IsWadFilePath
+//  [PN] Return true when dropped file has .wad extension (case-insensitive).
+// -----------------------------------------------------------------------------
+
+static boolean IsWadFilePath(const char *path)
+{
+    if (path == NULL)
+    {
+        return false;
+    }
+
+    const char *dot = strrchr(path, '.');
+    return dot != NULL && !strcasecmp(dot, ".wad");
+}
+
+// -----------------------------------------------------------------------------
+// IsDehFilePath
+//  [PN] Return true when dropped file has .deh extension (case-insensitive).
+// -----------------------------------------------------------------------------
+
+static boolean IsDehFilePath(const char *path)
+{
+    if (path == NULL)
+    {
+        return false;
+    }
+
+    const char *dot = strrchr(path, '.');
+    return dot != NULL && !strcasecmp(dot, ".deh");
+}
+
+// -----------------------------------------------------------------------------
+// AddDroppedWadFilesToLauncher
+//  [PN] Append dropped WAD/DEH files and add -file/-deh switches once each.
+// -----------------------------------------------------------------------------
+
+static void AddDroppedWadFilesToLauncher(iwad_launcher_t *launcher, HDROP drop)
+{
+    if (launcher == NULL || launcher->params_edit == NULL)
+    {
+        return;
+    }
+
+    UINT num_files = DragQueryFileA(drop, 0xFFFFFFFF, NULL, 0);
+    if (num_files == 0)
+    {
+        return;
+    }
+
+    int text_len = GetWindowTextLengthA(launcher->params_edit);
+    size_t capacity = (size_t) text_len + 64;
+    size_t length = (size_t) text_len;
+    char *params = malloc(capacity);
+    if (params == NULL)
+    {
+        I_Error("Failed to allocate memory for launcher parameters.");
+    }
+
+    GetWindowTextA(launcher->params_edit, params, text_len + 1);
+
+    boolean has_file_switch = LauncherParamsHasSwitch(params, "-file")
+                           || LauncherParamsHasSwitch(params, "-merge");
+    boolean has_deh_switch = LauncherParamsHasSwitch(params, "-deh");
+    boolean added_files = false;
+    char *exe_dir = GetLauncherExecutableDir();
+
+    for (UINT i = 0; i < num_files; ++i)
+    {
+        UINT file_len = DragQueryFileA(drop, i, NULL, 0);
+        char *path = malloc((size_t) file_len + 1);
+        if (path == NULL)
+        {
+            I_Error("Failed to allocate memory for dropped file path.");
+        }
+
+        DragQueryFileA(drop, i, path, file_len + 1);
+
+        if (IsWadFilePath(path))
+        {
+            const char *display_arg = path;
+            if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
+            {
+                display_arg = M_BaseName(path);
+            }
+
+            if (!has_file_switch)
+            {
+                AppendLauncherParamSeparator(&params, &length, &capacity);
+                AppendText(&params, &length, &capacity, "-file");
+                has_file_switch = true;
+            }
+
+            AppendLauncherParamSeparator(&params, &length, &capacity);
+            AppendLauncherDisplayArg(&params, &length, &capacity, display_arg);
+            added_files = true;
+        }
+        else if (IsDehFilePath(path))
+        {
+            const char *display_arg = path;
+            if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
+            {
+                display_arg = M_BaseName(path);
+            }
+
+            if (!has_deh_switch)
+            {
+                AppendLauncherParamSeparator(&params, &length, &capacity);
+                AppendText(&params, &length, &capacity, "-deh");
+                has_deh_switch = true;
+            }
+
+            AppendLauncherParamSeparator(&params, &length, &capacity);
+            AppendLauncherDisplayArg(&params, &length, &capacity, display_arg);
+            added_files = true;
+        }
+
+        free(path);
+    }
+
+    if (added_files)
+    {
+        SetWindowTextA(launcher->params_edit, params);
+    }
+
+    free(exe_dir);
+    free(params);
 }
 
 // -----------------------------------------------------------------------------
@@ -2098,6 +2358,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             }
 
             launcher->window = hwnd;
+            DragAcceptFiles(hwnd, TRUE);
             launcher->iwad_tooltip_item = -1;
             launcher->iwad_tooltip_active = false;
             launcher->iwad_tooltip_pending_item = -1;
@@ -2567,6 +2828,17 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             }
             break;
 
+        case WM_DROPFILES:
+            {
+                HDROP drop = (HDROP) wparam;
+                if (launcher != NULL)
+                {
+                    AddDroppedWadFilesToLauncher(launcher, drop);
+                }
+                DragFinish(drop);
+                return 0;
+            }
+
         case WM_CLOSE:
             if (launcher != NULL)
             {
@@ -2580,6 +2852,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 DestroyWindow(launcher->clear_tooltip);
                 launcher->clear_tooltip = NULL;
             }
+            DragAcceptFiles(hwnd, FALSE);
             KillTimer(hwnd, IWAD_TOOLTIP_TIMER_ID);
             if (launcher != NULL && launcher->iwad_tooltip != NULL)
             {
