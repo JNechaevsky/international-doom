@@ -140,7 +140,7 @@ if(FluidSynth_FOUND)
     list(APPEND EXTRA_LIBS FluidSynth::libfluidsynth)
 endif()
 if(WIN32)
-	list(APPEND EXTRA_LIBS winmm shlwapi)
+	list(APPEND EXTRA_LIBS winmm shlwapi comctl32)
 endif()
 
 if(WIN32)
