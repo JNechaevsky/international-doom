@@ -1006,7 +1006,6 @@ void D_DoomMain(void)
     int p;
     char file[256];
     char demolumpname[9];
-    const int starttime = SDL_GetTicks();
 
 #ifdef _WIN32
     // [JN] Print colorized title.
@@ -1582,9 +1581,6 @@ void D_DoomMain(void)
     }
 
     finishStartup();
-
-    // [JN] Show startup process time.
-    printf("Startup process took %d ms.\n", SDL_GetTicks() - starttime);
 
     D_DoomLoop();               // Never returns
 }

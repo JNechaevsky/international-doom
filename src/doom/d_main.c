@@ -1540,7 +1540,6 @@ void D_DoomMain (void)
     int p;
     char file[256];
     char demolumpname[9];
-    const int starttime = SDL_GetTicks();
 
     // [crispy] unconditionally initialize DEH tables
     DEH_Init();
@@ -2371,9 +2370,6 @@ void D_DoomMain (void)
 
     // [JN] Predefine some automap variables at program startup.
     AM_Init ();
-
-    // [JN] Show startup process time.
-    printf("Startup process took %d ms.\n", SDL_GetTicks() - starttime);
 
     // If Doom II without a MAP01 lump, this is a store demo.
     // Moved this here so that MAP01 isn't constantly looked up

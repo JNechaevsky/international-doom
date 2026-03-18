@@ -353,7 +353,6 @@ void D_DoomMain(void)
 {
     GameMission_t gamemission;
     int p;
-    const int starttime = SDL_GetTicks();
 
     I_AtExit(D_HexenQuitMessage, false);
     startepisode = 1;
@@ -629,9 +628,6 @@ void D_DoomMain(void)
             H2_StartTitle();
         }
     }
-
-    // [JN] Show startup process time.
-    printf("Startup process took %d ms.\n", SDL_GetTicks() - starttime);
 
     H2_GameLoop();              // Never returns
 }
