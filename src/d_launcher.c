@@ -174,6 +174,9 @@ static int ScaleByDPI(int value, int dpi);
 static int GetIWADItemAtPoint(HWND listbox, POINT pt);
 static const char *BuildIWADListTooltipText(iwad_launcher_t *launcher, int item);
 static void UpdateIWADTooltipFromCursor(iwad_launcher_t *launcher);
+static void AppendLauncherParamSeparator(char **buffer, size_t *length, size_t *capacity);
+static void AppendLauncherDisplayArg(char **buffer, size_t *length, size_t *capacity,
+                                     const char *arg);
 
 // -----------------------------------------------------------------------------
 // D_AppendCommandLineArgument
@@ -457,21 +460,8 @@ static char *BuildLauncherParamsFromLooseFiles(void)
             display_arg = M_BaseName(arg);
         }
 
-        if (length > 0)
-        {
-            AppendText(&result, &length, &capacity, " ");
-        }
-
-        if (LauncherArgNeedsQuotes(display_arg))
-        {
-            AppendText(&result, &length, &capacity, "\"");
-            AppendText(&result, &length, &capacity, display_arg);
-            AppendText(&result, &length, &capacity, "\"");
-        }
-        else
-        {
-            AppendText(&result, &length, &capacity, display_arg);
-        }
+        AppendLauncherParamSeparator(&result, &length, &capacity);
+        AppendLauncherDisplayArg(&result, &length, &capacity, display_arg);
     }
 
     free(exe_dir);
@@ -580,76 +570,160 @@ static boolean LauncherParamsHasSwitch(const char *params, const char *name)
     return false;
 }
 
+typedef enum
+{
+    DROP_SWITCH_NONE = 0,
+    DROP_SWITCH_FILE,
+    DROP_SWITCH_DEH,
+    DROP_SWITCH_PLAYDEMO,
+    DROP_SWITCH_CONFIG
+} drop_switch_t;
+
 // -----------------------------------------------------------------------------
-// IsWadFilePath
-//  [PN] Return true when dropped file has .wad extension (case-insensitive).
+// HasFileExtension
+//  [PN] Case-insensitive extension matcher for dropped files.
 // -----------------------------------------------------------------------------
 
-static boolean IsWadFilePath(const char *path)
+static boolean HasFileExtension(const char *path, const char *extension)
 {
-    if (path == NULL)
+    if (path == NULL || extension == NULL)
     {
         return false;
     }
 
     const char *dot = strrchr(path, '.');
-    return dot != NULL && !strcasecmp(dot, ".wad");
+    return dot != NULL && !strcasecmp(dot, extension);
 }
 
 // -----------------------------------------------------------------------------
-// IsDehFilePath
-//  [PN] Return true when dropped file has .deh extension (case-insensitive).
+// DropSwitchForPath
+//  [PN] Map dropped file extension to command-line switch kind.
 // -----------------------------------------------------------------------------
 
-static boolean IsDehFilePath(const char *path)
+static drop_switch_t DropSwitchForPath(const char *path)
+{
+    if (HasFileExtension(path, ".wad"))
+    {
+        return DROP_SWITCH_FILE;
+    }
+    if (HasFileExtension(path, ".deh"))
+    {
+        return DROP_SWITCH_DEH;
+    }
+    if (HasFileExtension(path, ".lmp"))
+    {
+        return DROP_SWITCH_PLAYDEMO;
+    }
+    if (HasFileExtension(path, ".ini"))
+    {
+        return DROP_SWITCH_CONFIG;
+    }
+
+    return DROP_SWITCH_NONE;
+}
+
+// -----------------------------------------------------------------------------
+// DropSwitchArg
+//  [PN] Convert drop switch kind to actual command-line switch string.
+// -----------------------------------------------------------------------------
+
+static const char *DropSwitchArg(drop_switch_t drop_switch)
+{
+    switch (drop_switch)
+    {
+        case DROP_SWITCH_FILE:
+            return "-file";
+        case DROP_SWITCH_DEH:
+            return "-deh";
+        case DROP_SWITCH_PLAYDEMO:
+            return "-playdemo";
+        case DROP_SWITCH_CONFIG:
+            return "-config";
+        default:
+            return NULL;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// DropSwitchPresenceFlagPtr
+//  [PN] Return pointer to per-switch "already added" flag.
+// -----------------------------------------------------------------------------
+
+static boolean *DropSwitchPresenceFlagPtr(drop_switch_t drop_switch,
+                                          boolean *has_file_switch,
+                                          boolean *has_deh_switch,
+                                          boolean *has_playdemo_switch,
+                                          boolean *has_config_switch)
+{
+    switch (drop_switch)
+    {
+        case DROP_SWITCH_FILE:
+            return has_file_switch;
+        case DROP_SWITCH_DEH:
+            return has_deh_switch;
+        case DROP_SWITCH_PLAYDEMO:
+            return has_playdemo_switch;
+        case DROP_SWITCH_CONFIG:
+            return has_config_switch;
+        default:
+            return NULL;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// DropDisplayArgForPath
+//  [PN] Use basename for files from exe dir; otherwise keep full path.
+// -----------------------------------------------------------------------------
+
+static const char *DropDisplayArgForPath(const char *path, const char *exe_dir)
 {
     if (path == NULL)
+    {
+        return "";
+    }
+
+    if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
+    {
+        return M_BaseName(path);
+    }
+
+    return path;
+}
+
+// -----------------------------------------------------------------------------
+// AppendDroppedArgWithSwitch
+//  [PN] Append dropped file arg and lazily prepend its switch token once.
+// -----------------------------------------------------------------------------
+
+static boolean AppendDroppedArgWithSwitch(char **params, size_t *length, size_t *capacity,
+                                          const char *switch_arg,
+                                          boolean *switch_present,
+                                          const char *display_arg)
+{
+    if (switch_arg == NULL || switch_present == NULL
+     || display_arg == NULL || display_arg[0] == '\0')
     {
         return false;
     }
 
-    const char *dot = strrchr(path, '.');
-    return dot != NULL && !strcasecmp(dot, ".deh");
-}
-
-// -----------------------------------------------------------------------------
-// IsLmpFilePath
-//  [PN] Return true when dropped file has .lmp extension (case-insensitive).
-// -----------------------------------------------------------------------------
-
-static boolean IsLmpFilePath(const char *path)
-{
-    if (path == NULL)
+    if (!(*switch_present))
     {
-        return false;
+        AppendLauncherParamSeparator(params, length, capacity);
+        AppendText(params, length, capacity, switch_arg);
+        *switch_present = true;
     }
 
-    const char *dot = strrchr(path, '.');
-    return dot != NULL && !strcasecmp(dot, ".lmp");
+    AppendLauncherParamSeparator(params, length, capacity);
+    AppendLauncherDisplayArg(params, length, capacity, display_arg);
+    return true;
 }
 
 // -----------------------------------------------------------------------------
-// IsIniFilePath
-//  [PN] Return true when dropped file has .ini extension (case-insensitive).
+// AddDroppedFilesToLauncher
+//  [PN] Append dropped WAD/DEH/LMP/INI files and required switches once each.
 // -----------------------------------------------------------------------------
 
-static boolean IsIniFilePath(const char *path)
-{
-    if (path == NULL)
-    {
-        return false;
-    }
-
-    const char *dot = strrchr(path, '.');
-    return dot != NULL && !strcasecmp(dot, ".ini");
-}
-
-// -----------------------------------------------------------------------------
-// AddDroppedWadFilesToLauncher
-//  [PN] Append dropped WAD/DEH/LMP/INI files and add switches once each.
-// -----------------------------------------------------------------------------
-
-static void AddDroppedWadFilesToLauncher(iwad_launcher_t *launcher, HDROP drop)
+static void AddDroppedFilesToLauncher(iwad_launcher_t *launcher, HDROP drop)
 {
     if (launcher == NULL || launcher->params_edit == NULL)
     {
@@ -692,81 +766,23 @@ static void AddDroppedWadFilesToLauncher(iwad_launcher_t *launcher, HDROP drop)
 
         DragQueryFileA(drop, i, path, file_len + 1);
 
-        if (IsWadFilePath(path))
+        drop_switch_t drop_switch = DropSwitchForPath(path);
+        boolean *switch_present = DropSwitchPresenceFlagPtr(drop_switch,
+                                                            &has_file_switch,
+                                                            &has_deh_switch,
+                                                            &has_playdemo_switch,
+                                                            &has_config_switch);
+
+        if (switch_present != NULL)
         {
-            const char *display_arg = path;
-            if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
-            {
-                display_arg = M_BaseName(path);
-            }
+            const char *switch_arg = DropSwitchArg(drop_switch);
+            const char *display_arg = DropDisplayArgForPath(path, exe_dir);
 
-            if (!has_file_switch)
+            if (AppendDroppedArgWithSwitch(&params, &length, &capacity,
+                                           switch_arg, switch_present, display_arg))
             {
-                AppendLauncherParamSeparator(&params, &length, &capacity);
-                AppendText(&params, &length, &capacity, "-file");
-                has_file_switch = true;
+                added_files = true;
             }
-
-            AppendLauncherParamSeparator(&params, &length, &capacity);
-            AppendLauncherDisplayArg(&params, &length, &capacity, display_arg);
-            added_files = true;
-        }
-        else if (IsDehFilePath(path))
-        {
-            const char *display_arg = path;
-            if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
-            {
-                display_arg = M_BaseName(path);
-            }
-
-            if (!has_deh_switch)
-            {
-                AppendLauncherParamSeparator(&params, &length, &capacity);
-                AppendText(&params, &length, &capacity, "-deh");
-                has_deh_switch = true;
-            }
-
-            AppendLauncherParamSeparator(&params, &length, &capacity);
-            AppendLauncherDisplayArg(&params, &length, &capacity, display_arg);
-            added_files = true;
-        }
-        else if (IsLmpFilePath(path))
-        {
-            const char *display_arg = path;
-            if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
-            {
-                display_arg = M_BaseName(path);
-            }
-
-            if (!has_playdemo_switch)
-            {
-                AppendLauncherParamSeparator(&params, &length, &capacity);
-                AppendText(&params, &length, &capacity, "-playdemo");
-                has_playdemo_switch = true;
-            }
-
-            AppendLauncherParamSeparator(&params, &length, &capacity);
-            AppendLauncherDisplayArg(&params, &length, &capacity, display_arg);
-            added_files = true;
-        }
-        else if (IsIniFilePath(path))
-        {
-            const char *display_arg = path;
-            if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
-            {
-                display_arg = M_BaseName(path);
-            }
-
-            if (!has_config_switch)
-            {
-                AppendLauncherParamSeparator(&params, &length, &capacity);
-                AppendText(&params, &length, &capacity, "-config");
-                has_config_switch = true;
-            }
-
-            AppendLauncherParamSeparator(&params, &length, &capacity);
-            AppendLauncherDisplayArg(&params, &length, &capacity, display_arg);
-            added_files = true;
         }
 
         free(path);
@@ -2905,7 +2921,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 HDROP drop = (HDROP) wparam;
                 if (launcher != NULL)
                 {
-                    AddDroppedWadFilesToLauncher(launcher, drop);
+                    AddDroppedFilesToLauncher(launcher, drop);
                 }
                 DragFinish(drop);
                 return 0;
