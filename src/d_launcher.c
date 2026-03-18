@@ -291,8 +291,8 @@ static void ClearCommandLineExceptExecutable(void)
 #define IWAD_LAUNCHER_OLDPROC    "InterLauncherOldProc"
 #define IWAD_LAUNCHER_BTN_OLDPROC "InterLauncherBtnOldProc"
 #define IWAD_LAUNCHER_BTN_HOVER   "InterLauncherBtnHover"
-#define IWAD_WINDOW_CLIENT_W     280
-#define IWAD_WINDOW_CLIENT_H     360
+#define IWAD_WINDOW_CLIENT_W     340
+#define IWAD_WINDOW_CLIENT_H     480
 #define IWAD_BUTTON_IDEAL_W      120
 #define IWAD_BUTTON_H            30
 #define IWAD_COLOR_WINDOW_BG     RGB(43, 43, 43)
@@ -311,7 +311,7 @@ typedef struct
     HWND iwad_list;
     HWND params_label;
     HWND params_edit;
-    const iwad_t **iwads;
+    iwad_search_result_t *iwads;
     int dpi;
     int selected_iwad;
     char *additional_params;
@@ -331,6 +331,7 @@ typedef struct
 
 typedef HRESULT (WINAPI *dwm_set_window_attribute_t)(HWND, DWORD,
                                                       LPCVOID, DWORD);
+typedef HRESULT (WINAPI *set_window_theme_t)(HWND, LPCWSTR, LPCWSTR);
 
 static int ScaleByDPI(int value, int dpi);
 
@@ -465,6 +466,30 @@ static void TryEnableDarkTitleBar(HWND hwnd)
     }
 
     FreeLibrary(dwmapi);
+}
+
+static void TryApplyDarkControlTheme(HWND hwnd)
+{
+    HMODULE uxtheme = LoadLibraryA("uxtheme.dll");
+    if (uxtheme == NULL)
+    {
+        return;
+    }
+
+    set_window_theme_t set_window_theme =
+        (set_window_theme_t) GetProcAddress(uxtheme, "SetWindowTheme");
+
+    if (set_window_theme != NULL)
+    {
+        HRESULT hr = set_window_theme(hwnd, L"DarkMode_Explorer", NULL);
+
+        if (FAILED(hr))
+        {
+            set_window_theme(hwnd, L"Explorer", NULL);
+        }
+    }
+
+    FreeLibrary(uxtheme);
 }
 
 static void DrawLauncherButton(const DRAWITEMSTRUCT *dis,
@@ -781,20 +806,88 @@ static void LayoutIWADLauncher(iwad_launcher_t *launcher)
                x + width - btn_w, btn_y, btn_w, btn_h, TRUE);
 }
 
-static char *BuildIWADDisplayName(const iwad_t *iwad)
+static char *BuildIWADDisplayName(const iwad_search_result_t *result)
 {
+    const iwad_t *iwad = result->iwad;
     const char *iwad_name = iwad->name;
+    char *label;
 
     if (M_StringEndsWith(iwad_name, ".wad"))
     {
         char *short_name = M_StringDuplicate(iwad_name);
         short_name[strlen(short_name) - 4] = '\0';
-        char *label = M_StringJoin(iwad->description, " (", short_name, ")", NULL);
+        label = M_StringJoin(iwad->description, " (", short_name, ")", NULL);
         free(short_name);
-        return label;
+    }
+    else
+    {
+        label = M_StringJoin(iwad->description, " (", iwad_name, ")", NULL);
     }
 
-    return M_StringJoin(iwad->description, " (", iwad_name, ")", NULL);
+    if (result->source_tag != NULL)
+    {
+        char *with_tag = M_StringJoin(label, " [", result->source_tag, "]", NULL);
+        free(label);
+        return with_tag;
+    }
+
+    return label;
+}
+
+static void SaveDefaultIWADValue(const char *value)
+{
+    if (value == NULL || value[0] == '\0')
+    {
+        return;
+    }
+
+    if (launcher_default_iwad != NULL && !strcasecmp(launcher_default_iwad, value))
+    {
+        return;
+    }
+
+    if (launcher_default_iwad != NULL
+     && (strchr(launcher_default_iwad, '\\') != NULL
+      || strchr(launcher_default_iwad, '/') != NULL))
+    {
+        free(launcher_default_iwad);
+    }
+
+    launcher_default_iwad = M_StringDuplicate(value);
+}
+
+static boolean IsDoubleClickOnIWADItem(HWND listbox)
+{
+    DWORD msg_pos = GetMessagePos();
+    POINT pt;
+    LRESULT item_from_point;
+    int item;
+    RECT item_rect;
+
+    if (listbox == NULL)
+    {
+        return false;
+    }
+
+    pt.x = (short) LOWORD(msg_pos);
+    pt.y = (short) HIWORD(msg_pos);
+
+    if (!ScreenToClient(listbox, &pt))
+    {
+        return false;
+    }
+
+    item_from_point = SendMessageA(listbox, LB_ITEMFROMPOINT, 0,
+                                   MAKELPARAM(pt.x, pt.y));
+    item = (int) LOWORD(item_from_point);
+
+    if (SendMessageA(listbox, LB_GETITEMRECT, (WPARAM) item,
+                     (LPARAM) &item_rect) == LB_ERR)
+    {
+        return false;
+    }
+
+    return PtInRect(&item_rect, pt) ? true : false;
 }
 
 static void FinishIWADLauncher(iwad_launcher_t *launcher, boolean play_pressed)
@@ -868,25 +961,43 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                                                   (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_LIST,
                                                   NULL, NULL);
 
-            if (launcher->iwads[0] != NULL)
+            TryApplyDarkControlTheme(launcher->iwad_list);
+
+            if (launcher->iwads[0].iwad != NULL)
             {
                 int default_iwad = 0;
+                boolean matched = false;
 
                 if (launcher_default_iwad != NULL && launcher_default_iwad[0] != '\0')
                 {
-                    for (int i = 0; launcher->iwads[i] != NULL; ++i)
+                    for (int i = 0; launcher->iwads[i].iwad != NULL; ++i)
                     {
-                        if (!strcasecmp(launcher->iwads[i]->name, launcher_default_iwad))
+                        if (!strcasecmp(launcher->iwads[i].path, launcher_default_iwad))
                         {
                             default_iwad = i;
+                            matched = true;
                             break;
+                        }
+                    }
+
+                    // Backward compatibility with older configs that store only name.
+                    if (!matched)
+                    {
+                        for (int i = 0; launcher->iwads[i].iwad != NULL; ++i)
+                        {
+                            if (!strcasecmp(launcher->iwads[i].iwad->name,
+                                            launcher_default_iwad))
+                            {
+                                default_iwad = i;
+                                break;
+                            }
                         }
                     }
                 }
 
-                for (int i = 0; launcher->iwads[i] != NULL; ++i)
+                for (int i = 0; launcher->iwads[i].iwad != NULL; ++i)
                 {
-                    char *label = BuildIWADDisplayName(launcher->iwads[i]);
+                    char *label = BuildIWADDisplayName(&launcher->iwads[i]);
                     SendMessageA(launcher->iwad_list, LB_ADDSTRING, 0, (LPARAM) label);
                     free(label);
                 }
@@ -1069,7 +1180,10 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 case IDC_IWAD_LAUNCHER_LIST:
                     if (HIWORD(wparam) == LBN_DBLCLK)
                     {
-                        FinishIWADLauncher(launcher, true);
+                        if (IsDoubleClickOnIWADItem(launcher->iwad_list))
+                        {
+                            FinishIWADLauncher(launcher, true);
+                        }
                     }
                     return 0;
             }
@@ -1090,7 +1204,7 @@ static boolean RunIWADLauncherDialog(int mask)
 {
     static boolean class_registered = false;
     iwad_launcher_t launcher = { 0 };
-    launcher.iwads = D_FindAllIWADs(mask);
+    launcher.iwads = D_FindAllIWADSearchResults(mask);
     launcher.dpi = GetSystemDPI();
     launcher.selected_iwad = 0;
     launcher.additional_params = M_StringDuplicate("");
@@ -1144,7 +1258,7 @@ static boolean RunIWADLauncherDialog(int mask)
             CleanupLauncherFont(&launcher);
             CleanupLauncherTheme(&launcher);
             free(launcher.additional_params);
-            free((void *) launcher.iwads);
+            D_FreeIWADSearchResults(launcher.iwads);
             return true;
         }
 
@@ -1231,7 +1345,7 @@ static boolean RunIWADLauncherDialog(int mask)
         CleanupLauncherFont(&launcher);
         CleanupLauncherTheme(&launcher);
         free(launcher.additional_params);
-        free((void *) launcher.iwads);
+        D_FreeIWADSearchResults(launcher.iwads);
         return true;
     }
 
@@ -1277,17 +1391,17 @@ static boolean RunIWADLauncherDialog(int mask)
         DispatchMessage(&msg);
     }
 
-    if (launcher.iwads[launcher.selected_iwad] != NULL)
+    if (launcher.iwads[launcher.selected_iwad].iwad != NULL)
     {
-        launcher_default_iwad = (char *) launcher.iwads[launcher.selected_iwad]->name;
+        SaveDefaultIWADValue(launcher.iwads[launcher.selected_iwad].path);
     }
 
     if (launcher.play_pressed)
     {
-        if (launcher.iwads[launcher.selected_iwad] != NULL)
+        if (launcher.iwads[launcher.selected_iwad].iwad != NULL)
         {
             D_AppendCommandLineArgument("-iwad");
-            D_AppendCommandLineArgument(launcher.iwads[launcher.selected_iwad]->name);
+            D_AppendCommandLineArgument(launcher.iwads[launcher.selected_iwad].path);
         }
 
         D_AppendAdditionalCommandLine(launcher.additional_params);
@@ -1296,7 +1410,7 @@ static boolean RunIWADLauncherDialog(int mask)
     CleanupLauncherFont(&launcher);
     CleanupLauncherTheme(&launcher);
     free(launcher.additional_params);
-    free((void *) launcher.iwads);
+    D_FreeIWADSearchResults(launcher.iwads);
 
     return launcher.play_pressed;
 }
