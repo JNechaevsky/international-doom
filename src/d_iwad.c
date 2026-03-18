@@ -49,12 +49,14 @@ static const iwad_t iwads[] =
     { "rekkrsa.wad",  doom,      retail,     "REKKR" }, // [crispy] REKKR
     { "rekkrsl.wad",  doom,      retail,     "REKKR: Sunken Land" }, // [crispy] REKKR: Sunken Land (Steam retail)
 
-    { "heretic.wad",  heretic,   retail,     "Heretic" },
     { "heretic1.wad", heretic,   shareware,  "Heretic Shareware" },
+    { "heretic.wad",  heretic,   retail,     "Heretic" },
+    { "blasphem.wad", heretic,   retail,     "Blasphemer" },
 
     { "hexen.wad",    hexen,     commercial, "Hexen" },
-    //{ "strife0.wad",  strife,    commercial, "Strife" }, // haleyjd: STRIFE-FIXME
-    //{ "strife1.wad",  strife,    commercial, "Strife" },
+
+//  { "strife0.wad",  strife,    commercial, "Strife" }, // haleyjd: STRIFE-FIXME
+//  { "strife1.wad",  strife,    commercial, "Strife" },
 };
 
 boolean D_IsIWADName(const char *name)
