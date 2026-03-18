@@ -336,6 +336,8 @@ static void ClearCommandLineExceptExecutable(void)
 #define IWAD_LAUNCHER_OLDPROC    "InterLauncherOldProc"
 #define IWAD_LAUNCHER_BTN_OLDPROC "InterLauncherBtnOldProc"
 #define IWAD_LAUNCHER_BTN_HOVER   "InterLauncherBtnHover"
+#define IWAD_TOOLTIP_TIMER_ID    3001
+#define IWAD_TOOLTIP_SHOW_DELAY_MS 350
 #define IWAD_LAUNCHER_TOGGLE_GLYPH_SETTINGS L"\xE713"
 #define IWAD_LAUNCHER_TOGGLE_GLYPH_BACK     L"\xE72B"
 #define IWAD_LAUNCHER_CLEAR_GLYPH           L"\xE711"
@@ -383,6 +385,12 @@ typedef struct
     HWND params_edit;
     HWND clear_button;
     HWND clear_tooltip;
+    HWND iwad_tooltip;
+    char *iwad_tooltip_text;
+    int iwad_tooltip_item;
+    boolean iwad_tooltip_active;
+    int iwad_tooltip_pending_item;
+    DWORD iwad_tooltip_pending_since;
     HWND settings_video_label;
     HWND settings_fullscreen;
     HWND settings_software_renderer;
@@ -443,6 +451,9 @@ typedef HRESULT (WINAPI *dwm_set_window_attribute_t)(HWND, DWORD,
 typedef HRESULT (WINAPI *set_window_theme_t)(HWND, LPCWSTR, LPCWSTR);
 
 static int ScaleByDPI(int value, int dpi);
+static int GetIWADItemAtPoint(HWND listbox, POINT pt);
+static const char *BuildIWADListTooltipText(iwad_launcher_t *launcher, int item);
+static void UpdateIWADTooltipFromCursor(iwad_launcher_t *launcher);
 
 static void CleanupLauncherFont(iwad_launcher_t *launcher)
 {
@@ -670,6 +681,182 @@ static HWND CreateButtonTooltip(HWND parent, HWND button, const char *text)
     SendMessageA(tooltip, TTM_ADDTOOL, 0, (LPARAM) &ti);
 
     return tooltip;
+}
+
+// -----------------------------------------------------------------------------
+// CreateIWADListTooltip
+//  [PN] Attach a dynamic tooltip to IWAD list rows for full file details.
+// -----------------------------------------------------------------------------
+
+static HWND CreateIWADListTooltip(HWND parent, HWND listbox, int dpi)
+{
+    if (parent == NULL || listbox == NULL)
+    {
+        return NULL;
+    }
+
+    HWND tooltip = CreateWindowExA(WS_EX_TOPMOST, TOOLTIPS_CLASSA, NULL,
+                                   WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX,
+                                   CW_USEDEFAULT, CW_USEDEFAULT,
+                                   CW_USEDEFAULT, CW_USEDEFAULT,
+                                   parent, NULL, GetModuleHandle(NULL), NULL);
+
+    if (tooltip == NULL)
+    {
+        return NULL;
+    }
+
+    TOOLINFOA ti;
+    memset(&ti, 0, sizeof(ti));
+    ti.cbSize = sizeof(ti);
+    ti.uFlags = TTF_IDISHWND | TTF_TRACK | TTF_ABSOLUTE;
+    ti.hwnd = parent;
+    ti.uId = (UINT_PTR) listbox;
+    ti.lpszText = "";
+
+    SendMessageA(tooltip, TTM_ADDTOOL, 0, (LPARAM) &ti);
+    SendMessageA(tooltip, TTM_SETMAXTIPWIDTH, 0, (LPARAM) ScaleByDPI(520, dpi));
+
+    return tooltip;
+}
+
+// -----------------------------------------------------------------------------
+// FillIWADTooltipToolInfo
+//  [PN] Fill TOOLINFO for IWAD list tooltip track activation/update calls.
+// -----------------------------------------------------------------------------
+
+static void FillIWADTooltipToolInfo(const iwad_launcher_t *launcher, TOOLINFOA *ti)
+{
+    if (launcher == NULL || ti == NULL)
+    {
+        return;
+    }
+
+    memset(ti, 0, sizeof(*ti));
+    ti->cbSize = sizeof(*ti);
+    ti->uFlags = TTF_IDISHWND | TTF_TRACK | TTF_ABSOLUTE;
+    ti->hwnd = launcher->window;
+    ti->uId = (UINT_PTR) launcher->iwad_list;
+    ti->lpszText =
+        (LPSTR) (launcher->iwad_tooltip_text != NULL ? launcher->iwad_tooltip_text : "");
+}
+
+// -----------------------------------------------------------------------------
+// UpdateIWADTooltipText
+//  [PN] Push new text into IWAD list tooltip after hovered row changed.
+// -----------------------------------------------------------------------------
+
+static void UpdateIWADTooltipText(iwad_launcher_t *launcher, int item)
+{
+    if (launcher == NULL || launcher->iwad_tooltip == NULL)
+    {
+        return;
+    }
+
+    BuildIWADListTooltipText(launcher, item);
+
+    TOOLINFOA ti;
+    FillIWADTooltipToolInfo(launcher, &ti);
+    SendMessageA(launcher->iwad_tooltip, TTM_UPDATETIPTEXTA, 0, (LPARAM) &ti);
+}
+
+// -----------------------------------------------------------------------------
+// UpdateIWADTooltipFromCursor
+//  [PN] Keep IWAD hover tooltip synced with cursor position and hovered row.
+// -----------------------------------------------------------------------------
+
+static void UpdateIWADTooltipFromCursor(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL || launcher->iwad_tooltip == NULL || launcher->iwad_list == NULL)
+    {
+        return;
+    }
+
+    TOOLINFOA ti;
+    FillIWADTooltipToolInfo(launcher, &ti);
+
+    if (launcher->view_mode != LAUNCHER_VIEW_IWAD || !IsWindowVisible(launcher->iwad_list))
+    {
+        if (launcher->iwad_tooltip_active)
+        {
+            SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+            launcher->iwad_tooltip_active = false;
+        }
+        launcher->iwad_tooltip_item = -1;
+        launcher->iwad_tooltip_pending_item = -1;
+        launcher->iwad_tooltip_pending_since = 0;
+        return;
+    }
+
+    POINT pt_screen;
+    RECT list_rect;
+    if (!GetCursorPos(&pt_screen) || !GetWindowRect(launcher->iwad_list, &list_rect)
+     || !PtInRect(&list_rect, pt_screen))
+    {
+        if (launcher->iwad_tooltip_active)
+        {
+            SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+            launcher->iwad_tooltip_active = false;
+        }
+        launcher->iwad_tooltip_item = -1;
+        launcher->iwad_tooltip_pending_item = -1;
+        launcher->iwad_tooltip_pending_since = 0;
+        return;
+    }
+
+    POINT pt_client = pt_screen;
+    ScreenToClient(launcher->iwad_list, &pt_client);
+    int item = GetIWADItemAtPoint(launcher->iwad_list, pt_client);
+
+    if (item < 0)
+    {
+        if (launcher->iwad_tooltip_active)
+        {
+            SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+            launcher->iwad_tooltip_active = false;
+        }
+        launcher->iwad_tooltip_item = -1;
+        launcher->iwad_tooltip_pending_item = -1;
+        launcher->iwad_tooltip_pending_since = 0;
+        return;
+    }
+
+    if (item == launcher->iwad_tooltip_item && launcher->iwad_tooltip_active)
+    {
+        return;
+    }
+
+    DWORD now = GetTickCount();
+
+    if (item != launcher->iwad_tooltip_pending_item)
+    {
+        launcher->iwad_tooltip_pending_item = item;
+        launcher->iwad_tooltip_pending_since = now;
+
+        if (launcher->iwad_tooltip_active)
+        {
+            SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+            launcher->iwad_tooltip_active = false;
+        }
+
+        launcher->iwad_tooltip_item = -1;
+        return;
+    }
+
+    if ((DWORD) (now - launcher->iwad_tooltip_pending_since) < IWAD_TOOLTIP_SHOW_DELAY_MS)
+    {
+        return;
+    }
+
+    launcher->iwad_tooltip_item = item;
+    UpdateIWADTooltipText(launcher, item);
+
+    SendMessageA(launcher->iwad_tooltip, TTM_TRACKPOSITION, 0,
+                 MAKELPARAM(pt_screen.x + ScaleByDPI(12, launcher->dpi),
+                            pt_screen.y + ScaleByDPI(20, launcher->dpi)));
+
+    SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, TRUE, (LPARAM) &ti);
+    launcher->iwad_tooltip_active = true;
 }
 
 static void DestroyLauncherBrush(HBRUSH *brush)
@@ -1106,6 +1293,16 @@ static LRESULT CALLBACK LauncherControlBorderProc(HWND hwnd, UINT msg,
 
     if (msg == WM_NCDESTROY)
     {
+        if (GetDlgCtrlID(hwnd) == IDC_IWAD_LAUNCHER_LIST)
+        {
+            iwad_launcher_t *launcher =
+                (iwad_launcher_t *) GetWindowLongPtr(GetParent(hwnd), GWLP_USERDATA);
+            if (launcher != NULL)
+            {
+                launcher->iwad_tooltip_item = -1;
+            }
+        }
+
         RemovePropA(hwnd, IWAD_LAUNCHER_OLDPROC);
         return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
     }
@@ -1464,6 +1661,17 @@ static void ApplyLauncherView(iwad_launcher_t *launcher)
                               sizeof(settings_controls) / sizeof(settings_controls[0]),
                               settings_view);
 
+    if (settings_view)
+    {
+        TOOLINFOA ti;
+        FillIWADTooltipToolInfo(launcher, &ti);
+        SendMessageA(launcher->iwad_tooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM) &ti);
+        launcher->iwad_tooltip_item = -1;
+        launcher->iwad_tooltip_active = false;
+        launcher->iwad_tooltip_pending_item = -1;
+        launcher->iwad_tooltip_pending_since = 0;
+    }
+
     LayoutIWADLauncher(launcher);
     InvalidateRect(launcher->window, NULL, TRUE);
 }
@@ -1476,29 +1684,12 @@ static void ApplyLauncherView(iwad_launcher_t *launcher)
 static char *BuildIWADDisplayName(const iwad_search_result_t *result)
 {
     const iwad_t *iwad = result->iwad;
-    const char *iwad_name = iwad->name;
-    char *label;
-
-    if (M_StringEndsWith(iwad_name, ".wad"))
+    if (result->source_tag != NULL && result->source_tag[0] != '\0')
     {
-        char *short_name = M_StringDuplicate(iwad_name);
-        short_name[strlen(short_name) - 4] = '\0';
-        label = M_StringJoin(iwad->description, " (", short_name, ")", NULL);
-        free(short_name);
-    }
-    else
-    {
-        label = M_StringJoin(iwad->description, " (", iwad_name, ")", NULL);
+        return M_StringJoin(iwad->description, " (", result->source_tag, ")", NULL);
     }
 
-    if (result->source_tag != NULL)
-    {
-        char *with_tag = M_StringJoin(label, " [", result->source_tag, "]", NULL);
-        free(label);
-        return with_tag;
-    }
-
-    return label;
+    return M_StringDuplicate(iwad->description);
 }
 
 // -----------------------------------------------------------------------------
@@ -1629,13 +1820,40 @@ static void ApplyLauncherSettingsFromUI(iwad_launcher_t *launcher)
 //  [PN] Confirm a double-click hit a real list item, not blank list area.
 // -----------------------------------------------------------------------------
 
+static int GetIWADItemAtPoint(HWND listbox, POINT pt)
+{
+    LRESULT item_from_point;
+    int item;
+    RECT item_rect;
+
+    if (listbox == NULL)
+    {
+        return -1;
+    }
+
+    item_from_point = SendMessageA(listbox, LB_ITEMFROMPOINT, 0,
+                                   MAKELPARAM(pt.x, pt.y));
+    item = (int) LOWORD(item_from_point);
+
+    if (HIWORD(item_from_point) != 0)
+    {
+        return -1;
+    }
+
+    // LB_ITEMFROMPOINT returns nearest item; verify point is inside its rect.
+    if (SendMessageA(listbox, LB_GETITEMRECT, (WPARAM) item,
+                     (LPARAM) &item_rect) == LB_ERR)
+    {
+        return -1;
+    }
+
+    return PtInRect(&item_rect, pt) ? item : -1;
+}
+
 static boolean IsDoubleClickOnIWADItem(HWND listbox)
 {
     DWORD msg_pos = GetMessagePos();
     POINT pt;
-    LRESULT item_from_point;
-    int item;
-    RECT item_rect;
 
     if (listbox == NULL)
     {
@@ -1650,18 +1868,50 @@ static boolean IsDoubleClickOnIWADItem(HWND listbox)
         return false;
     }
 
-    item_from_point = SendMessageA(listbox, LB_ITEMFROMPOINT, 0,
-                                   MAKELPARAM(pt.x, pt.y));
-    item = (int) LOWORD(item_from_point);
+    return GetIWADItemAtPoint(listbox, pt) >= 0;
+}
 
-    // LB_ITEMFROMPOINT returns nearest item; verify point is inside its rect.
-    if (SendMessageA(listbox, LB_GETITEMRECT, (WPARAM) item,
-                     (LPARAM) &item_rect) == LB_ERR)
+// -----------------------------------------------------------------------------
+// BuildIWADListTooltipText
+//  [PN] Build hover popup text with full WAD name and absolute path.
+// -----------------------------------------------------------------------------
+
+static const char *BuildIWADListTooltipText(iwad_launcher_t *launcher, int item)
+{
+    if (launcher == NULL || item < 0 || launcher->iwads[item].iwad == NULL)
     {
-        return false;
+        return "";
     }
 
-    return PtInRect(&item_rect, pt) ? true : false;
+    const char *path = launcher->iwads[item].path;
+    if (path == NULL || path[0] == '\0')
+    {
+        return "";
+    }
+
+    const char *file_name = M_BaseName(path);
+    const char *resolved_name = file_name;
+
+    if (resolved_name == NULL || resolved_name[0] == '\0')
+    {
+        resolved_name = launcher->iwads[item].iwad->name;
+    }
+
+    if (resolved_name == NULL || resolved_name[0] == '\0')
+    {
+        resolved_name = path;
+    }
+
+    free(launcher->iwad_tooltip_text);
+    launcher->iwad_tooltip_text = M_StringJoin("WAD: ", resolved_name,
+                                               "\nPath: ", path, NULL);
+
+    if (launcher->iwad_tooltip_text == NULL)
+    {
+        return "";
+    }
+
+    return launcher->iwad_tooltip_text;
 }
 
 static void FinishIWADLauncher(iwad_launcher_t *launcher, boolean play_pressed)
@@ -1722,6 +1972,10 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             }
 
             launcher->window = hwnd;
+            launcher->iwad_tooltip_item = -1;
+            launcher->iwad_tooltip_active = false;
+            launcher->iwad_tooltip_pending_item = -1;
+            launcher->iwad_tooltip_pending_since = 0;
 
             launcher->prompt_label = CreateWindowExA(0, "STATIC", IWAD_LAUNCHER_PROMPT,
                                                      WS_CHILD | WS_VISIBLE,
@@ -1833,7 +2087,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                                                             NULL, NULL);
 
             launcher->settings_software_renderer = CreateWindowExA(0, "BUTTON",
-                                                                   "Force compatibility mode",
+                                                                   "Force software renderer",
                                                                    WS_CHILD | WS_VISIBLE | WS_TABSTOP
                                                                  | BS_OWNERDRAW,
                                                                    0, 0, 0, 0, hwnd,
@@ -1917,6 +2171,10 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             launcher->clear_tooltip = CreateButtonTooltip(hwnd,
                                                           launcher->clear_button,
                                                           "Clear command line parameters");
+            launcher->iwad_tooltip = CreateIWADListTooltip(hwnd,
+                                                           launcher->iwad_list,
+                                                           launcher->dpi);
+            SetTimer(hwnd, IWAD_TOOLTIP_TIMER_ID, 40, NULL);
 
             if (exit_btn != NULL)
             {
@@ -2171,6 +2429,17 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             }
             break;
 
+        case WM_NOTIFY:
+            break;
+
+        case WM_TIMER:
+            if (launcher != NULL && wparam == IWAD_TOOLTIP_TIMER_ID)
+            {
+                UpdateIWADTooltipFromCursor(launcher);
+                return 0;
+            }
+            break;
+
         case WM_CLOSE:
             if (launcher != NULL)
             {
@@ -2183,6 +2452,24 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             {
                 DestroyWindow(launcher->clear_tooltip);
                 launcher->clear_tooltip = NULL;
+            }
+            KillTimer(hwnd, IWAD_TOOLTIP_TIMER_ID);
+            if (launcher != NULL && launcher->iwad_tooltip != NULL)
+            {
+                DestroyWindow(launcher->iwad_tooltip);
+                launcher->iwad_tooltip = NULL;
+            }
+            if (launcher != NULL && launcher->iwad_tooltip_text != NULL)
+            {
+                free(launcher->iwad_tooltip_text);
+                launcher->iwad_tooltip_text = NULL;
+            }
+            if (launcher != NULL)
+            {
+                launcher->iwad_tooltip_item = -1;
+                launcher->iwad_tooltip_active = false;
+                launcher->iwad_tooltip_pending_item = -1;
+                launcher->iwad_tooltip_pending_since = 0;
             }
             return 0;
     }
@@ -2204,6 +2491,10 @@ static boolean RunIWADLauncherDialog(int mask)
     launcher.iwads = D_FindAllIWADSearchResults(mask);
     launcher.dpi = GetSystemDPI();
     launcher.selected_iwad = 0;
+    launcher.iwad_tooltip_item = -1;
+    launcher.iwad_tooltip_active = false;
+    launcher.iwad_tooltip_pending_item = -1;
+    launcher.iwad_tooltip_pending_since = 0;
     launcher.additional_params =
         M_StringDuplicate(launcher_command_line != NULL ? launcher_command_line : "");
 
