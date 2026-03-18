@@ -35,6 +35,150 @@
 #include <windows.h>
 #include <commctrl.h>
 
+#define IWAD_LAUNCHER_CLASS_NAME "InterIwadLauncherWindow"
+#define IWAD_LAUNCHER_PROMPT     "Select IWAD file to run:"
+#define IWAD_LAUNCHER_SETTINGS_PROMPT "Options"
+#define IDC_IWAD_LAUNCHER_LIST   2001
+#define IDC_IWAD_LAUNCHER_EDIT   2002
+#define IDC_IWAD_LAUNCHER_PLAY   2003
+#define IDC_IWAD_LAUNCHER_EXIT   2004
+#define IDC_IWAD_LAUNCHER_TOGGLE 2005
+#define IDC_IWAD_LAUNCHER_CLEAR  2006
+#define IDC_IWAD_SETTINGS_VIDEO_LABEL      2101
+#define IDC_IWAD_SETTINGS_FULLSCREEN       2102
+#define IDC_IWAD_SETTINGS_SOFTWARE_RENDER  2103
+#define IDC_IWAD_SETTINGS_AUTOLOAD_LABEL   2104
+#define IDC_IWAD_SETTINGS_AUTOLOAD_WAD     2105
+#define IDC_IWAD_SETTINGS_AUTOLOAD_DEH     2106
+#define IDC_IWAD_SETTINGS_LAUNCHER_LABEL   2107
+#define IDC_IWAD_SETTINGS_SHOW_STARTUP     2108
+#define IWAD_LAUNCHER_OLDPROC    "InterLauncherOldProc"
+#define IWAD_LAUNCHER_BTN_OLDPROC "InterLauncherBtnOldProc"
+#define IWAD_LAUNCHER_BTN_HOVER   "InterLauncherBtnHover"
+#define IWAD_TOOLTIP_TIMER_ID    3001
+#define IWAD_TOOLTIP_SHOW_DELAY_MS 350
+#define IWAD_LAUNCHER_TOGGLE_GLYPH_SETTINGS L"\xE713"
+#define IWAD_LAUNCHER_TOGGLE_GLYPH_BACK     L"\xE72B"
+#define IWAD_LAUNCHER_CLEAR_GLYPH           L"\xE711"
+#define IWAD_LAUNCHER_TOGGLE_SETTINGS "S"
+#define IWAD_LAUNCHER_TOGGLE_BACK     "<"
+#define IWAD_LAUNCHER_PLAY_CAPTION    "Play"
+#define IWAD_LAUNCHER_CLEAR_CAPTION   "X"
+#define IWAD_WINDOW_CLIENT_W     340
+#define IWAD_WINDOW_CLIENT_H     480
+#define IWAD_BUTTON_IDEAL_W      120
+#define IWAD_BUTTON_H            30
+#define IWAD_COLOR_WINDOW_BG     RGB(43, 43, 43)
+#define IWAD_COLOR_CONTROL_BG    RGB(30, 30, 30)
+#define IWAD_COLOR_LIST_SEL_BG   RGB(0, 90, 165)
+#define IWAD_COLOR_BUTTON_BG     RGB(58, 58, 58)
+#define IWAD_COLOR_BUTTON_HOVER  RGB(78, 78, 78)
+#define IWAD_COLOR_BUTTON_DOWN   RGB(98, 98, 98)
+#define IWAD_COLOR_BUTTON_BORDER RGB(96, 96, 96)
+#define IWAD_COLOR_TEXT          RGB(235, 235, 235)
+#define IWAD_COLOR_CHECK_BG      RGB(42, 42, 42)
+#define IWAD_COLOR_CHECK_HOVER   RGB(58, 58, 58)
+#define IWAD_COLOR_CHECK_BORDER  RGB(122, 122, 122)
+#define IWAD_COLOR_CHECK_ACCENT  RGB(0, 122, 204)
+#define IWAD_COLOR_CHECK_ACCENT_HOVER RGB(20, 142, 224)
+#define IWAD_HERETIC_LIST_SEL_BG      RGB(28, 122, 56)
+#define IWAD_HERETIC_CHECK_ACCENT     RGB(26, 148, 64)
+#define IWAD_HERETIC_CHECK_ACCENT_HOVER RGB(40, 170, 76)
+#define IWAD_HEXEN_LIST_SEL_BG        RGB(138, 38, 38)
+#define IWAD_HEXEN_CHECK_ACCENT       RGB(192, 52, 52)
+#define IWAD_HEXEN_CHECK_ACCENT_HOVER RGB(216, 72, 72)
+
+typedef enum
+{
+    LAUNCHER_VIEW_IWAD = 0,
+    LAUNCHER_VIEW_SETTINGS = 1
+} launcher_view_mode_t;
+
+typedef struct
+{
+    HWND window;
+    HWND prompt_label;
+    HWND toggle_button;
+    HWND iwad_list;
+    HWND params_label;
+    HWND params_edit;
+    HWND clear_button;
+    HWND clear_tooltip;
+    HWND iwad_tooltip;
+    char *iwad_tooltip_text;
+    int iwad_tooltip_item;
+    boolean iwad_tooltip_active;
+    int iwad_tooltip_pending_item;
+    DWORD iwad_tooltip_pending_since;
+    HWND settings_video_label;
+    HWND settings_fullscreen;
+    HWND settings_software_renderer;
+    HWND settings_autoload_label;
+    HWND settings_autoload_wad;
+    HWND settings_autoload_deh;
+    HWND settings_launcher_label;
+    HWND settings_show_startup;
+    int settings_fullscreen_checked;
+    int settings_software_renderer_checked;
+    int settings_autoload_wad_checked;
+    int settings_autoload_deh_checked;
+    int settings_show_startup_checked;
+    int initial_fullscreen_checkbox;
+    int initial_software_renderer_checkbox;
+    int initial_autoload_wad_checkbox;
+    int initial_autoload_deh_checkbox;
+    int initial_show_startup_checkbox;
+    iwad_search_result_t *iwads;
+    int dpi;
+    int selected_iwad;
+    char *additional_params;
+    HFONT ui_font;
+    boolean owns_ui_font;
+    HFONT toggle_icon_font;
+    boolean owns_toggle_icon_font;
+    boolean toggle_use_icon_font;
+    HFONT clear_icon_font;
+    boolean owns_clear_icon_font;
+    int list_item_height;
+    HBRUSH window_brush;
+    HBRUSH control_brush;
+    HBRUSH list_sel_brush;
+    HBRUSH button_brush;
+    HBRUSH button_hover_brush;
+    HBRUSH button_down_brush;
+    HBRUSH button_border_brush;
+    COLORREF color_window_bg;
+    COLORREF color_control_bg;
+    COLORREF color_list_sel_bg;
+    COLORREF color_button_bg;
+    COLORREF color_button_hover;
+    COLORREF color_button_down;
+    COLORREF color_button_border;
+    COLORREF color_text;
+    COLORREF color_check_bg;
+    COLORREF color_check_hover;
+    COLORREF color_check_border;
+    COLORREF color_check_accent;
+    COLORREF color_check_accent_hover;
+    launcher_view_mode_t view_mode;
+    boolean play_pressed;
+    boolean done;
+} iwad_launcher_t;
+
+typedef HRESULT (WINAPI *dwm_set_window_attribute_t)(HWND, DWORD,
+                                                      LPCVOID, DWORD);
+typedef HRESULT (WINAPI *set_window_theme_t)(HWND, LPCWSTR, LPCWSTR);
+
+static int ScaleByDPI(int value, int dpi);
+static int GetIWADItemAtPoint(HWND listbox, POINT pt);
+static const char *BuildIWADListTooltipText(iwad_launcher_t *launcher, int item);
+static void UpdateIWADTooltipFromCursor(iwad_launcher_t *launcher);
+
+// -----------------------------------------------------------------------------
+// D_AppendCommandLineArgument
+//  [PN] Append one token to process argv when launching from startup dialog.
+// -----------------------------------------------------------------------------
+
 static void D_AppendCommandLineArgument(const char *arg)
 {
     char **newargv = realloc(myargv, (myargc + 1) * sizeof(*newargv));
@@ -47,6 +191,11 @@ static void D_AppendCommandLineArgument(const char *arg)
     myargv[myargc] = M_StringDuplicate(arg);
     ++myargc;
 }
+
+// -----------------------------------------------------------------------------
+// D_AppendAdditionalCommandLine
+//  [PN] Parse text parameters and append resulting args to process argv.
+// -----------------------------------------------------------------------------
 
 static void D_AppendAdditionalCommandLine(const char *params)
 {
@@ -316,144 +465,10 @@ static void ClearCommandLineExceptExecutable(void)
     myargc = 1;
 }
 
-#define IWAD_LAUNCHER_CLASS_NAME "InterIwadLauncherWindow"
-#define IWAD_LAUNCHER_PROMPT     "Select IWAD file to run:"
-#define IWAD_LAUNCHER_SETTINGS_PROMPT "Options"
-#define IDC_IWAD_LAUNCHER_LIST   2001
-#define IDC_IWAD_LAUNCHER_EDIT   2002
-#define IDC_IWAD_LAUNCHER_PLAY   2003
-#define IDC_IWAD_LAUNCHER_EXIT   2004
-#define IDC_IWAD_LAUNCHER_TOGGLE 2005
-#define IDC_IWAD_LAUNCHER_CLEAR  2006
-#define IDC_IWAD_SETTINGS_VIDEO_LABEL      2101
-#define IDC_IWAD_SETTINGS_FULLSCREEN       2102
-#define IDC_IWAD_SETTINGS_SOFTWARE_RENDER  2103
-#define IDC_IWAD_SETTINGS_AUTOLOAD_LABEL   2104
-#define IDC_IWAD_SETTINGS_AUTOLOAD_WAD     2105
-#define IDC_IWAD_SETTINGS_AUTOLOAD_DEH     2106
-#define IDC_IWAD_SETTINGS_LAUNCHER_LABEL   2107
-#define IDC_IWAD_SETTINGS_SHOW_STARTUP     2108
-#define IWAD_LAUNCHER_OLDPROC    "InterLauncherOldProc"
-#define IWAD_LAUNCHER_BTN_OLDPROC "InterLauncherBtnOldProc"
-#define IWAD_LAUNCHER_BTN_HOVER   "InterLauncherBtnHover"
-#define IWAD_TOOLTIP_TIMER_ID    3001
-#define IWAD_TOOLTIP_SHOW_DELAY_MS 350
-#define IWAD_LAUNCHER_TOGGLE_GLYPH_SETTINGS L"\xE713"
-#define IWAD_LAUNCHER_TOGGLE_GLYPH_BACK     L"\xE72B"
-#define IWAD_LAUNCHER_CLEAR_GLYPH           L"\xE711"
-#define IWAD_LAUNCHER_TOGGLE_SETTINGS "S"
-#define IWAD_LAUNCHER_TOGGLE_BACK     "<"
-#define IWAD_LAUNCHER_PLAY_CAPTION    "Play"
-#define IWAD_LAUNCHER_CLEAR_CAPTION   "X"
-#define IWAD_WINDOW_CLIENT_W     340
-#define IWAD_WINDOW_CLIENT_H     480
-#define IWAD_BUTTON_IDEAL_W      120
-#define IWAD_BUTTON_H            30
-#define IWAD_COLOR_WINDOW_BG     RGB(43, 43, 43)
-#define IWAD_COLOR_CONTROL_BG    RGB(30, 30, 30)
-#define IWAD_COLOR_LIST_SEL_BG   RGB(0, 90, 165)
-#define IWAD_COLOR_BUTTON_BG     RGB(58, 58, 58)
-#define IWAD_COLOR_BUTTON_HOVER  RGB(78, 78, 78)
-#define IWAD_COLOR_BUTTON_DOWN   RGB(98, 98, 98)
-#define IWAD_COLOR_BUTTON_BORDER RGB(96, 96, 96)
-#define IWAD_COLOR_TEXT          RGB(235, 235, 235)
-#define IWAD_COLOR_CHECK_BG      RGB(42, 42, 42)
-#define IWAD_COLOR_CHECK_HOVER   RGB(58, 58, 58)
-#define IWAD_COLOR_CHECK_BORDER  RGB(122, 122, 122)
-#define IWAD_COLOR_CHECK_ACCENT  RGB(0, 122, 204)
-#define IWAD_COLOR_CHECK_ACCENT_HOVER RGB(20, 142, 224)
-#define IWAD_HERETIC_LIST_SEL_BG      RGB(28, 122, 56)
-#define IWAD_HERETIC_CHECK_ACCENT     RGB(26, 148, 64)
-#define IWAD_HERETIC_CHECK_ACCENT_HOVER RGB(40, 170, 76)
-#define IWAD_HEXEN_LIST_SEL_BG        RGB(138, 38, 38)
-#define IWAD_HEXEN_CHECK_ACCENT       RGB(192, 52, 52)
-#define IWAD_HEXEN_CHECK_ACCENT_HOVER RGB(216, 72, 72)
-
-typedef enum
-{
-    LAUNCHER_VIEW_IWAD = 0,
-    LAUNCHER_VIEW_SETTINGS = 1
-} launcher_view_mode_t;
-
-typedef struct
-{
-    HWND window;
-    HWND prompt_label;
-    HWND toggle_button;
-    HWND iwad_list;
-    HWND params_label;
-    HWND params_edit;
-    HWND clear_button;
-    HWND clear_tooltip;
-    HWND iwad_tooltip;
-    char *iwad_tooltip_text;
-    int iwad_tooltip_item;
-    boolean iwad_tooltip_active;
-    int iwad_tooltip_pending_item;
-    DWORD iwad_tooltip_pending_since;
-    HWND settings_video_label;
-    HWND settings_fullscreen;
-    HWND settings_software_renderer;
-    HWND settings_autoload_label;
-    HWND settings_autoload_wad;
-    HWND settings_autoload_deh;
-    HWND settings_launcher_label;
-    HWND settings_show_startup;
-    int settings_fullscreen_checked;
-    int settings_software_renderer_checked;
-    int settings_autoload_wad_checked;
-    int settings_autoload_deh_checked;
-    int settings_show_startup_checked;
-    int initial_fullscreen_checkbox;
-    int initial_software_renderer_checkbox;
-    int initial_autoload_wad_checkbox;
-    int initial_autoload_deh_checkbox;
-    int initial_show_startup_checkbox;
-    iwad_search_result_t *iwads;
-    int dpi;
-    int selected_iwad;
-    char *additional_params;
-    HFONT ui_font;
-    boolean owns_ui_font;
-    HFONT toggle_icon_font;
-    boolean owns_toggle_icon_font;
-    boolean toggle_use_icon_font;
-    HFONT clear_icon_font;
-    boolean owns_clear_icon_font;
-    int list_item_height;
-    HBRUSH window_brush;
-    HBRUSH control_brush;
-    HBRUSH list_sel_brush;
-    HBRUSH button_brush;
-    HBRUSH button_hover_brush;
-    HBRUSH button_down_brush;
-    HBRUSH button_border_brush;
-    COLORREF color_window_bg;
-    COLORREF color_control_bg;
-    COLORREF color_list_sel_bg;
-    COLORREF color_button_bg;
-    COLORREF color_button_hover;
-    COLORREF color_button_down;
-    COLORREF color_button_border;
-    COLORREF color_text;
-    COLORREF color_check_bg;
-    COLORREF color_check_hover;
-    COLORREF color_check_border;
-    COLORREF color_check_accent;
-    COLORREF color_check_accent_hover;
-    launcher_view_mode_t view_mode;
-    boolean play_pressed;
-    boolean done;
-} iwad_launcher_t;
-
-typedef HRESULT (WINAPI *dwm_set_window_attribute_t)(HWND, DWORD,
-                                                      LPCVOID, DWORD);
-typedef HRESULT (WINAPI *set_window_theme_t)(HWND, LPCWSTR, LPCWSTR);
-
-static int ScaleByDPI(int value, int dpi);
-static int GetIWADItemAtPoint(HWND listbox, POINT pt);
-static const char *BuildIWADListTooltipText(iwad_launcher_t *launcher, int item);
-static void UpdateIWADTooltipFromCursor(iwad_launcher_t *launcher);
+// -----------------------------------------------------------------------------
+// CleanupLauncherFont
+//  [PN] Destroy launcher fonts owned by the dialog and reset related flags.
+// -----------------------------------------------------------------------------
 
 static void CleanupLauncherFont(iwad_launcher_t *launcher)
 {
@@ -487,6 +502,11 @@ static void CleanupLauncherFont(iwad_launcher_t *launcher)
     launcher->clear_icon_font = NULL;
     launcher->owns_clear_icon_font = false;
 }
+
+// -----------------------------------------------------------------------------
+// CreateLauncherUIFont
+//  [PN] Create default UI font from system metrics with compatibility fallback.
+// -----------------------------------------------------------------------------
 
 static HFONT CreateLauncherUIFont(int dpi, boolean *owns_font)
 {
@@ -524,6 +544,11 @@ static HFONT CreateLauncherUIFont(int dpi, boolean *owns_font)
     *owns_font = false;
     return (HFONT) GetStockObject(DEFAULT_GUI_FONT);
 }
+
+// -----------------------------------------------------------------------------
+// MeasureFontHeight
+//  [PN] Measure text height of current UI font for list item sizing.
+// -----------------------------------------------------------------------------
 
 static int MeasureFontHeight(HFONT font)
 {
@@ -625,6 +650,11 @@ static boolean FontFaceEqualsW(HFONT font, const wchar_t *expected_face)
 
     return matched;
 }
+
+// -----------------------------------------------------------------------------
+// ApplyFontToControl
+//  [PN] Apply selected launcher font to one HWND control.
+// -----------------------------------------------------------------------------
 
 static void ApplyFontToControl(HWND control, HFONT font)
 {
@@ -859,6 +889,11 @@ static void UpdateIWADTooltipFromCursor(iwad_launcher_t *launcher)
     launcher->iwad_tooltip_active = true;
 }
 
+// -----------------------------------------------------------------------------
+// DestroyLauncherBrush
+//  [PN] Delete one launcher brush handle and clear stored pointer.
+// -----------------------------------------------------------------------------
+
 static void DestroyLauncherBrush(HBRUSH *brush)
 {
     if (*brush != NULL)
@@ -867,6 +902,11 @@ static void DestroyLauncherBrush(HBRUSH *brush)
         *brush = NULL;
     }
 }
+
+// -----------------------------------------------------------------------------
+// CleanupLauncherTheme
+//  [PN] Release all theme brushes allocated for launcher dark palette.
+// -----------------------------------------------------------------------------
 
 static void CleanupLauncherTheme(iwad_launcher_t *launcher)
 {
@@ -942,6 +982,11 @@ static void TryApplyDarkControlTheme(HWND hwnd)
 
     FreeLibrary(uxtheme);
 }
+
+// -----------------------------------------------------------------------------
+// DrawLauncherButton
+//  [PN] Draw owner-drawn launcher button with themed hover and press states.
+// -----------------------------------------------------------------------------
 
 static void DrawLauncherButton(const DRAWITEMSTRUCT *dis,
                                const iwad_launcher_t *launcher)
@@ -1019,6 +1064,11 @@ static void DrawLauncherButton(const DRAWITEMSTRUCT *dis,
     }
 
 }
+
+// -----------------------------------------------------------------------------
+// DrawLauncherListItem
+//  [PN] Draw one IWAD row with custom dark background and clipped caption.
+// -----------------------------------------------------------------------------
 
 static void DrawLauncherListItem(const DRAWITEMSTRUCT *dis,
                                  const iwad_launcher_t *launcher)
@@ -1195,6 +1245,11 @@ static void DrawLauncherSettingsCheckbox(const DRAWITEMSTRUCT *dis,
               DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
 }
 
+// -----------------------------------------------------------------------------
+// LauncherButtonHoverProc
+//  [PN] Subclass proc that tracks hover state for owner-drawn buttons.
+// -----------------------------------------------------------------------------
+
 static LRESULT CALLBACK LauncherButtonHoverProc(HWND hwnd, UINT msg,
                                                 WPARAM wparam, LPARAM lparam)
 {
@@ -1232,6 +1287,11 @@ static LRESULT CALLBACK LauncherButtonHoverProc(HWND hwnd, UINT msg,
     return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
 }
 
+// -----------------------------------------------------------------------------
+// InstallButtonHover
+//  [PN] Install button hover subclass and store original proc pointer.
+// -----------------------------------------------------------------------------
+
 static void InstallButtonHover(HWND hwnd)
 {
     WNDPROC old_proc =
@@ -1260,6 +1320,11 @@ static void InstallHoverForControlGroup(const HWND *controls, size_t count)
     }
 }
 
+// -----------------------------------------------------------------------------
+// DrawFixedControlBorder
+//  [PN] Draw fixed border color around non-client area of list/edit controls.
+// -----------------------------------------------------------------------------
+
 static void DrawFixedControlBorder(HWND hwnd)
 {
     HDC dc = GetWindowDC(hwnd);
@@ -1281,6 +1346,11 @@ static void DrawFixedControlBorder(HWND hwnd)
 
     ReleaseDC(hwnd, dc);
 }
+
+// -----------------------------------------------------------------------------
+// LauncherControlBorderProc
+//  [PN] Keep fixed control border visible during paint/focus message flow.
+// -----------------------------------------------------------------------------
 
 static LRESULT CALLBACK LauncherControlBorderProc(HWND hwnd, UINT msg,
                                                   WPARAM wparam, LPARAM lparam)
@@ -1321,6 +1391,11 @@ static LRESULT CALLBACK LauncherControlBorderProc(HWND hwnd, UINT msg,
     return result;
 }
 
+// -----------------------------------------------------------------------------
+// InstallFixedControlBorder
+//  [PN] Subclass edit/list control and paint fixed border immediately.
+// -----------------------------------------------------------------------------
+
 static void InstallFixedControlBorder(HWND hwnd)
 {
     WNDPROC old_proc =
@@ -1334,10 +1409,20 @@ static void InstallFixedControlBorder(HWND hwnd)
     }
 }
 
+// -----------------------------------------------------------------------------
+// ScaleByDPI
+//  [PN] Scale logical pixels from 96-DPI basis to current monitor DPI.
+// -----------------------------------------------------------------------------
+
 static int ScaleByDPI(int value, int dpi)
 {
     return MulDiv(value, dpi, 96);
 }
+
+// -----------------------------------------------------------------------------
+// GetSystemDPI
+//  [PN] Query desktop DPI and fall back to 96 if query is unavailable.
+// -----------------------------------------------------------------------------
 
 static int GetSystemDPI(void)
 {
@@ -1357,6 +1442,11 @@ static int GetSystemDPI(void)
 
     return dpi;
 }
+
+// -----------------------------------------------------------------------------
+// DefaultWindowTitleForMask
+//  [PN] Provide fallback launcher window title based on selected game mask.
+// -----------------------------------------------------------------------------
 
 static const char *DefaultWindowTitleForMask(int mask)
 {
@@ -1481,6 +1571,11 @@ static void GetLauncherMinimumClientSize(int dpi, int *min_w, int *min_h)
            ? min_client_h_iwad
            : min_client_h_settings;
 }
+
+// -----------------------------------------------------------------------------
+// LayoutIWADLauncher
+//  [PN] Layout launcher controls for current mode and client rect size.
+// -----------------------------------------------------------------------------
 
 static void LayoutIWADLauncher(iwad_launcher_t *launcher)
 {
@@ -1816,8 +1911,8 @@ static void ApplyLauncherSettingsFromUI(iwad_launcher_t *launcher)
 }
 
 // -----------------------------------------------------------------------------
-// IsDoubleClickOnIWADItem
-//  [PN] Confirm a double-click hit a real list item, not blank list area.
+// GetIWADItemAtPoint
+//  [PN] Return hovered IWAD row index or -1 when pointer is outside rows.
 // -----------------------------------------------------------------------------
 
 static int GetIWADItemAtPoint(HWND listbox, POINT pt)
@@ -1849,6 +1944,11 @@ static int GetIWADItemAtPoint(HWND listbox, POINT pt)
 
     return PtInRect(&item_rect, pt) ? item : -1;
 }
+
+// -----------------------------------------------------------------------------
+// IsDoubleClickOnIWADItem
+//  [PN] Confirm listbox double-click is on real item, not empty list space.
+// -----------------------------------------------------------------------------
 
 static boolean IsDoubleClickOnIWADItem(HWND listbox)
 {
@@ -1914,6 +2014,11 @@ static const char *BuildIWADListTooltipText(iwad_launcher_t *launcher, int item)
     return launcher->iwad_tooltip_text;
 }
 
+// -----------------------------------------------------------------------------
+// FinishIWADLauncher
+//  [PN] Capture launcher selections and close window with play/exit result.
+// -----------------------------------------------------------------------------
+
 static void FinishIWADLauncher(iwad_launcher_t *launcher, boolean play_pressed)
 {
     launcher->play_pressed = play_pressed;
@@ -1948,6 +2053,11 @@ static void FinishIWADLauncher(iwad_launcher_t *launcher, boolean play_pressed)
         launcher->window = NULL;
     }
 }
+
+// -----------------------------------------------------------------------------
+// IWADLauncherWndProc
+//  [PN] Handle launcher window messages, UI events and control commands.
+// -----------------------------------------------------------------------------
 
 static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                                             WPARAM wparam, LPARAM lparam)
@@ -2476,6 +2586,11 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
 
     return DefWindowProcA(hwnd, msg, wparam, lparam);
 }
+
+// -----------------------------------------------------------------------------
+// RunIWADLauncherDialog
+//  [PN] Run startup launcher loop and append chosen IWAD/pwad args.
+// -----------------------------------------------------------------------------
 
 static boolean RunIWADLauncherDialog(int mask)
 {
