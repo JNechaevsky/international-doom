@@ -360,6 +360,12 @@ static void ClearCommandLineExceptExecutable(void)
 #define IWAD_COLOR_CHECK_BORDER  RGB(122, 122, 122)
 #define IWAD_COLOR_CHECK_ACCENT  RGB(0, 122, 204)
 #define IWAD_COLOR_CHECK_ACCENT_HOVER RGB(20, 142, 224)
+#define IWAD_HERETIC_LIST_SEL_BG      RGB(28, 122, 56)
+#define IWAD_HERETIC_CHECK_ACCENT     RGB(26, 148, 64)
+#define IWAD_HERETIC_CHECK_ACCENT_HOVER RGB(40, 170, 76)
+#define IWAD_HEXEN_LIST_SEL_BG        RGB(138, 38, 38)
+#define IWAD_HEXEN_CHECK_ACCENT       RGB(192, 52, 52)
+#define IWAD_HEXEN_CHECK_ACCENT_HOVER RGB(216, 72, 72)
 
 typedef enum
 {
@@ -414,6 +420,19 @@ typedef struct
     HBRUSH button_hover_brush;
     HBRUSH button_down_brush;
     HBRUSH button_border_brush;
+    COLORREF color_window_bg;
+    COLORREF color_control_bg;
+    COLORREF color_list_sel_bg;
+    COLORREF color_button_bg;
+    COLORREF color_button_hover;
+    COLORREF color_button_down;
+    COLORREF color_button_border;
+    COLORREF color_text;
+    COLORREF color_check_bg;
+    COLORREF color_check_hover;
+    COLORREF color_check_border;
+    COLORREF color_check_accent;
+    COLORREF color_check_accent_hover;
     launcher_view_mode_t view_mode;
     boolean play_pressed;
     boolean done;
@@ -779,7 +798,7 @@ static void DrawLauncherButton(const DRAWITEMSTRUCT *dis,
     FrameRect(dis->hDC, &rc, border_brush);
 
     SetBkMode(dis->hDC, TRANSPARENT);
-    SetTextColor(dis->hDC, IWAD_COLOR_TEXT);
+    SetTextColor(dis->hDC, launcher->color_text);
 
     if (dis->CtlID == IDC_IWAD_LAUNCHER_TOGGLE
      && launcher->toggle_use_icon_font
@@ -847,7 +866,7 @@ static void DrawLauncherListItem(const DRAWITEMSTRUCT *dis,
                 SendMessageA(dis->hwndItem, LB_GETTEXT,
                              (WPARAM) dis->itemID, (LPARAM) text);
                 SetBkMode(dis->hDC, TRANSPARENT);
-                SetTextColor(dis->hDC, IWAD_COLOR_TEXT);
+                SetTextColor(dis->hDC, launcher->color_text);
 
                 RECT text_rc = rc;
                 text_rc.left += ScaleByDPI(4, launcher->dpi);
@@ -934,19 +953,19 @@ static void DrawLauncherSettingsCheckbox(const DRAWITEMSTRUCT *dis,
         checked = *checked_ptr ? true : false;
     }
 
-    COLORREF box_fill = IWAD_COLOR_CHECK_BG;
+    COLORREF box_fill = launcher->color_check_bg;
     if (hovered)
     {
-        box_fill = IWAD_COLOR_CHECK_HOVER;
+        box_fill = launcher->color_check_hover;
     }
     if (checked)
     {
-        box_fill = hovered ? IWAD_COLOR_CHECK_ACCENT_HOVER
-                           : IWAD_COLOR_CHECK_ACCENT;
+        box_fill = hovered ? launcher->color_check_accent_hover
+                           : launcher->color_check_accent;
     }
 
     HBRUSH box_brush = CreateSolidBrush(box_fill);
-    HBRUSH border_brush = CreateSolidBrush(IWAD_COLOR_CHECK_BORDER);
+    HBRUSH border_brush = CreateSolidBrush(launcher->color_check_border);
     if (box_brush != NULL)
     {
         FillRect(dis->hDC, &box_rc, box_brush);
@@ -960,7 +979,7 @@ static void DrawLauncherSettingsCheckbox(const DRAWITEMSTRUCT *dis,
 
     if (checked)
     {
-        HPEN pen = CreatePen(PS_SOLID, ScaleByDPI(2, launcher->dpi), IWAD_COLOR_TEXT);
+        HPEN pen = CreatePen(PS_SOLID, ScaleByDPI(2, launcher->dpi), launcher->color_text);
         if (pen != NULL)
         {
             HPEN old_pen = (HPEN) SelectObject(dis->hDC, pen);
@@ -981,7 +1000,7 @@ static void DrawLauncherSettingsCheckbox(const DRAWITEMSTRUCT *dis,
     }
 
     SetBkMode(dis->hDC, TRANSPARENT);
-    SetTextColor(dis->hDC, IWAD_COLOR_TEXT);
+    SetTextColor(dis->hDC, launcher->color_text);
 
     char caption[128];
     GetWindowTextA(dis->hwndItem, caption, sizeof(caption));
@@ -1158,6 +1177,41 @@ static const char *DefaultWindowTitleForMask(int mask)
     }
 
     return "Game";
+}
+
+// -----------------------------------------------------------------------------
+// ConfigureLauncherThemeForMask
+//  [PN] Set launcher color palette for game family selected by IWAD mask.
+// -----------------------------------------------------------------------------
+
+static void ConfigureLauncherThemeForMask(iwad_launcher_t *launcher, int mask)
+{
+    launcher->color_window_bg = IWAD_COLOR_WINDOW_BG;
+    launcher->color_control_bg = IWAD_COLOR_CONTROL_BG;
+    launcher->color_list_sel_bg = IWAD_COLOR_LIST_SEL_BG;
+    launcher->color_button_bg = IWAD_COLOR_BUTTON_BG;
+    launcher->color_button_hover = IWAD_COLOR_BUTTON_HOVER;
+    launcher->color_button_down = IWAD_COLOR_BUTTON_DOWN;
+    launcher->color_button_border = IWAD_COLOR_BUTTON_BORDER;
+    launcher->color_text = IWAD_COLOR_TEXT;
+    launcher->color_check_bg = IWAD_COLOR_CHECK_BG;
+    launcher->color_check_hover = IWAD_COLOR_CHECK_HOVER;
+    launcher->color_check_border = IWAD_COLOR_CHECK_BORDER;
+    launcher->color_check_accent = IWAD_COLOR_CHECK_ACCENT;
+    launcher->color_check_accent_hover = IWAD_COLOR_CHECK_ACCENT_HOVER;
+
+    if (mask == IWAD_MASK_HERETIC)
+    {
+        launcher->color_list_sel_bg = IWAD_HERETIC_LIST_SEL_BG;
+        launcher->color_check_accent = IWAD_HERETIC_CHECK_ACCENT;
+        launcher->color_check_accent_hover = IWAD_HERETIC_CHECK_ACCENT_HOVER;
+    }
+    else if (mask == IWAD_MASK_HEXEN)
+    {
+        launcher->color_list_sel_bg = IWAD_HEXEN_LIST_SEL_BG;
+        launcher->color_check_accent = IWAD_HEXEN_CHECK_ACCENT;
+        launcher->color_check_accent_hover = IWAD_HEXEN_CHECK_ACCENT_HOVER;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1915,8 +1969,8 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             if (launcher != NULL && launcher->window_brush != NULL)
             {
                 HDC dc = (HDC) wparam;
-                SetTextColor(dc, IWAD_COLOR_TEXT);
-                SetBkColor(dc, IWAD_COLOR_WINDOW_BG);
+                SetTextColor(dc, launcher->color_text);
+                SetBkColor(dc, launcher->color_window_bg);
                 return (LRESULT) launcher->window_brush;
             }
             break;
@@ -1925,8 +1979,8 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             if (launcher != NULL && launcher->window_brush != NULL)
             {
                 HDC dc = (HDC) wparam;
-                SetTextColor(dc, IWAD_COLOR_TEXT);
-                SetBkColor(dc, IWAD_COLOR_WINDOW_BG);
+                SetTextColor(dc, launcher->color_text);
+                SetBkColor(dc, launcher->color_window_bg);
                 SetBkMode(dc, TRANSPARENT);
                 return (LRESULT) launcher->window_brush;
             }
@@ -1956,8 +2010,8 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             if (launcher != NULL && launcher->control_brush != NULL)
             {
                 HDC dc = (HDC) wparam;
-                SetTextColor(dc, IWAD_COLOR_TEXT);
-                SetBkColor(dc, IWAD_COLOR_CONTROL_BG);
+                SetTextColor(dc, launcher->color_text);
+                SetBkColor(dc, launcher->color_control_bg);
                 return (LRESULT) launcher->control_brush;
             }
             break;
@@ -2169,13 +2223,14 @@ static boolean RunIWADLauncherDialog(int mask)
         FontFaceEqualsW(launcher.toggle_icon_font, L"Segoe MDL2 Assets");
     launcher.list_item_height = MeasureFontHeight(launcher.ui_font)
                               + ScaleByDPI(4, launcher.dpi);
-    launcher.window_brush = CreateSolidBrush(IWAD_COLOR_WINDOW_BG);
-    launcher.control_brush = CreateSolidBrush(IWAD_COLOR_CONTROL_BG);
-    launcher.list_sel_brush = CreateSolidBrush(IWAD_COLOR_LIST_SEL_BG);
-    launcher.button_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_BG);
-    launcher.button_hover_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_HOVER);
-    launcher.button_down_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_DOWN);
-    launcher.button_border_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_BORDER);
+    ConfigureLauncherThemeForMask(&launcher, mask);
+    launcher.window_brush = CreateSolidBrush(launcher.color_window_bg);
+    launcher.control_brush = CreateSolidBrush(launcher.color_control_bg);
+    launcher.list_sel_brush = CreateSolidBrush(launcher.color_list_sel_bg);
+    launcher.button_brush = CreateSolidBrush(launcher.color_button_bg);
+    launcher.button_hover_brush = CreateSolidBrush(launcher.color_button_hover);
+    launcher.button_down_brush = CreateSolidBrush(launcher.color_button_down);
+    launcher.button_border_brush = CreateSolidBrush(launcher.color_button_border);
     launcher.play_pressed = false;
     launcher.done = false;
 

@@ -37,6 +37,7 @@
 #include "h2def.h"
 #include "ct_chat.h"
 #include "d_iwad.h"
+#include "d_launcher.h"
 #include "d_mode.h"
 #include "f_wipe.h"
 #include "m_misc.h"
@@ -430,6 +431,12 @@ void D_DoomMain(void)
     CreateSavePath();
 
     // haleyjd: removed WATCOMC
+
+    // [PN] Show startup launcher.
+    if (show_startup_launcher && !D_MaybeShowIWADLauncher(IWAD_MASK_HEXEN))
+    {
+        I_Quit();
+    }
 
     ST_Message("W_Init: Init WADfiles.\n");
 
