@@ -1410,6 +1410,22 @@ static void InstallFixedControlBorder(HWND hwnd)
 }
 
 // -----------------------------------------------------------------------------
+// ForceRedrawIWADList
+//  [PN] Force full list redraw after resize to avoid stale ellipsis artifacts.
+// -----------------------------------------------------------------------------
+
+static void ForceRedrawIWADList(HWND listbox)
+{
+    if (listbox == NULL)
+    {
+        return;
+    }
+
+    RedrawWindow(listbox, NULL, NULL,
+                 RDW_INVALIDATE | RDW_ERASE | RDW_UPDATENOW | RDW_NOCHILDREN);
+}
+
+// -----------------------------------------------------------------------------
 // ScaleByDPI
 //  [PN] Scale logical pixels from 96-DPI basis to current monitor DPI.
 // -----------------------------------------------------------------------------
@@ -2424,6 +2440,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             if (launcher != NULL)
             {
                 LayoutIWADLauncher(launcher);
+                ForceRedrawIWADList(launcher->iwad_list);
 
                 if (!IsIconic(hwnd))
                 {
