@@ -605,6 +605,19 @@ static void ApplyFontToControl(HWND control, HFONT font)
 }
 
 // -----------------------------------------------------------------------------
+// ApplyFontToControlGroup
+//  [PN] Apply one font to each control in a flat HWND array.
+// -----------------------------------------------------------------------------
+
+static void ApplyFontToControlGroup(const HWND *controls, size_t count, HFONT font)
+{
+    for (size_t i = 0; i < count; ++i)
+    {
+        ApplyFontToControl(controls[i], font);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // CreateButtonTooltip
 //  [PN] Attach a standard tooltip with static text to a button control.
 // -----------------------------------------------------------------------------
@@ -848,6 +861,44 @@ static void DrawLauncherListItem(const DRAWITEMSTRUCT *dis,
 }
 
 // -----------------------------------------------------------------------------
+// IsSettingsCheckboxId
+//  [PN] Return true if control id belongs to settings-page checkboxes.
+// -----------------------------------------------------------------------------
+
+static boolean IsSettingsCheckboxId(int id)
+{
+    return id == IDC_IWAD_SETTINGS_FULLSCREEN
+        || id == IDC_IWAD_SETTINGS_SOFTWARE_RENDER
+        || id == IDC_IWAD_SETTINGS_AUTOLOAD_WAD
+        || id == IDC_IWAD_SETTINGS_AUTOLOAD_DEH
+        || id == IDC_IWAD_SETTINGS_SHOW_STARTUP;
+}
+
+// -----------------------------------------------------------------------------
+// SettingsCheckboxValuePtrFromId
+//  [PN] Map settings checkbox id to corresponding checked-state field pointer.
+// -----------------------------------------------------------------------------
+
+static int *SettingsCheckboxValuePtrFromId(iwad_launcher_t *launcher, int id)
+{
+    switch (id)
+    {
+        case IDC_IWAD_SETTINGS_FULLSCREEN:
+            return &launcher->settings_fullscreen_checked;
+        case IDC_IWAD_SETTINGS_SOFTWARE_RENDER:
+            return &launcher->settings_software_renderer_checked;
+        case IDC_IWAD_SETTINGS_AUTOLOAD_WAD:
+            return &launcher->settings_autoload_wad_checked;
+        case IDC_IWAD_SETTINGS_AUTOLOAD_DEH:
+            return &launcher->settings_autoload_deh_checked;
+        case IDC_IWAD_SETTINGS_SHOW_STARTUP:
+            return &launcher->settings_show_startup_checked;
+        default:
+            return NULL;
+    }
+}
+
+// -----------------------------------------------------------------------------
 // DrawLauncherSettingsCheckbox
 //  [PN] Draw owner-drawn settings checkbox with launcher dark theme colors.
 // -----------------------------------------------------------------------------
@@ -876,26 +927,11 @@ static void DrawLauncherSettingsCheckbox(const DRAWITEMSTRUCT *dis,
 
     boolean checked = false;
     boolean hovered = GetPropA(dis->hwndItem, IWAD_LAUNCHER_BTN_HOVER) != NULL;
-
-    if (dis->hwndItem == launcher->settings_fullscreen)
+    int *checked_ptr = SettingsCheckboxValuePtrFromId((iwad_launcher_t *) launcher,
+                                                      GetDlgCtrlID(dis->hwndItem));
+    if (checked_ptr != NULL)
     {
-        checked = launcher->settings_fullscreen_checked ? true : false;
-    }
-    else if (dis->hwndItem == launcher->settings_software_renderer)
-    {
-        checked = launcher->settings_software_renderer_checked ? true : false;
-    }
-    else if (dis->hwndItem == launcher->settings_autoload_wad)
-    {
-        checked = launcher->settings_autoload_wad_checked ? true : false;
-    }
-    else if (dis->hwndItem == launcher->settings_autoload_deh)
-    {
-        checked = launcher->settings_autoload_deh_checked ? true : false;
-    }
-    else if (dis->hwndItem == launcher->settings_show_startup)
-    {
-        checked = launcher->settings_show_startup_checked ? true : false;
+        checked = *checked_ptr ? true : false;
     }
 
     COLORREF box_fill = IWAD_COLOR_CHECK_BG;
@@ -999,6 +1035,22 @@ static void InstallButtonHover(HWND hwnd)
     if (old_proc != NULL)
     {
         SetPropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC, (HANDLE) old_proc);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// InstallHoverForControlGroup
+//  [PN] Install hover-tracking proc for each control in a flat HWND array.
+// -----------------------------------------------------------------------------
+
+static void InstallHoverForControlGroup(const HWND *controls, size_t count)
+{
+    for (size_t i = 0; i < count; ++i)
+    {
+        if (controls[i] != NULL)
+        {
+            InstallButtonHover(controls[i]);
+        }
     }
 }
 
@@ -1118,6 +1170,20 @@ static void SetControlVisibility(HWND control, boolean visible)
     if (control != NULL)
     {
         ShowWindow(control, visible ? SW_SHOW : SW_HIDE);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// SetControlGroupVisibility
+//  [PN] Show or hide each control in a flat HWND array.
+// -----------------------------------------------------------------------------
+
+static void SetControlGroupVisibility(const HWND *controls, size_t count,
+                                      boolean visible)
+{
+    for (size_t i = 0; i < count; ++i)
+    {
+        SetControlVisibility(controls[i], visible);
     }
 }
 
@@ -1317,18 +1383,32 @@ static void ApplyLauncherView(iwad_launcher_t *launcher)
     }
     SetWindowTextA(play_btn, IWAD_LAUNCHER_PLAY_CAPTION);
 
-    SetControlVisibility(launcher->iwad_list, !settings_view);
-    SetControlVisibility(launcher->params_label, !settings_view);
-    SetControlVisibility(launcher->params_edit, !settings_view);
-    SetControlVisibility(launcher->clear_button, !settings_view);
-    SetControlVisibility(launcher->settings_video_label, settings_view);
-    SetControlVisibility(launcher->settings_fullscreen, settings_view);
-    SetControlVisibility(launcher->settings_software_renderer, settings_view);
-    SetControlVisibility(launcher->settings_autoload_label, settings_view);
-    SetControlVisibility(launcher->settings_autoload_wad, settings_view);
-    SetControlVisibility(launcher->settings_autoload_deh, settings_view);
-    SetControlVisibility(launcher->settings_launcher_label, settings_view);
-    SetControlVisibility(launcher->settings_show_startup, settings_view);
+    const HWND iwad_controls[] =
+    {
+        launcher->iwad_list,
+        launcher->params_label,
+        launcher->params_edit,
+        launcher->clear_button,
+    };
+
+    const HWND settings_controls[] =
+    {
+        launcher->settings_video_label,
+        launcher->settings_fullscreen,
+        launcher->settings_software_renderer,
+        launcher->settings_autoload_label,
+        launcher->settings_autoload_wad,
+        launcher->settings_autoload_deh,
+        launcher->settings_launcher_label,
+        launcher->settings_show_startup,
+    };
+
+    SetControlGroupVisibility(iwad_controls,
+                              sizeof(iwad_controls) / sizeof(iwad_controls[0]),
+                              !settings_view);
+    SetControlGroupVisibility(settings_controls,
+                              sizeof(settings_controls) / sizeof(settings_controls[0]),
+                              settings_view);
 
     LayoutIWADLauncher(launcher);
     InvalidateRect(launcher->window, NULL, TRUE);
@@ -1764,39 +1844,20 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 InstallButtonHover(play_btn);
             }
 
-            if (launcher->toggle_button != NULL)
             {
-                InstallButtonHover(launcher->toggle_button);
-            }
+                const HWND hover_controls[] =
+                {
+                    launcher->toggle_button,
+                    launcher->clear_button,
+                    launcher->settings_fullscreen,
+                    launcher->settings_software_renderer,
+                    launcher->settings_autoload_wad,
+                    launcher->settings_autoload_deh,
+                    launcher->settings_show_startup,
+                };
 
-            if (launcher->clear_button != NULL)
-            {
-                InstallButtonHover(launcher->clear_button);
-            }
-
-            if (launcher->settings_fullscreen != NULL)
-            {
-                InstallButtonHover(launcher->settings_fullscreen);
-            }
-
-            if (launcher->settings_software_renderer != NULL)
-            {
-                InstallButtonHover(launcher->settings_software_renderer);
-            }
-
-            if (launcher->settings_autoload_wad != NULL)
-            {
-                InstallButtonHover(launcher->settings_autoload_wad);
-            }
-
-            if (launcher->settings_autoload_deh != NULL)
-            {
-                InstallButtonHover(launcher->settings_autoload_deh);
-            }
-
-            if (launcher->settings_show_startup != NULL)
-            {
-                InstallButtonHover(launcher->settings_show_startup);
+                InstallHoverForControlGroup(hover_controls,
+                    sizeof(hover_controls) / sizeof(hover_controls[0]));
             }
 
             launcher->clear_tooltip = CreateButtonTooltip(hwnd,
@@ -1808,22 +1869,31 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 InstallButtonHover(exit_btn);
             }
 
-            ApplyFontToControl(launcher->prompt_label, launcher->ui_font);
-            ApplyFontToControl(launcher->toggle_button, launcher->ui_font);
-            ApplyFontToControl(launcher->iwad_list, launcher->ui_font);
-            ApplyFontToControl(launcher->params_label, launcher->ui_font);
-            ApplyFontToControl(launcher->params_edit, launcher->ui_font);
-            ApplyFontToControl(launcher->clear_button, launcher->ui_font);
-            ApplyFontToControl(launcher->settings_video_label, launcher->ui_font);
-            ApplyFontToControl(launcher->settings_fullscreen, launcher->ui_font);
-            ApplyFontToControl(launcher->settings_software_renderer, launcher->ui_font);
-            ApplyFontToControl(launcher->settings_autoload_label, launcher->ui_font);
-            ApplyFontToControl(launcher->settings_autoload_wad, launcher->ui_font);
-            ApplyFontToControl(launcher->settings_autoload_deh, launcher->ui_font);
-            ApplyFontToControl(launcher->settings_launcher_label, launcher->ui_font);
-            ApplyFontToControl(launcher->settings_show_startup, launcher->ui_font);
-            ApplyFontToControl(play_btn, launcher->ui_font);
-            ApplyFontToControl(exit_btn, launcher->ui_font);
+            {
+                const HWND all_font_controls[] =
+                {
+                    launcher->prompt_label,
+                    launcher->toggle_button,
+                    launcher->iwad_list,
+                    launcher->params_label,
+                    launcher->params_edit,
+                    launcher->clear_button,
+                    launcher->settings_video_label,
+                    launcher->settings_fullscreen,
+                    launcher->settings_software_renderer,
+                    launcher->settings_autoload_label,
+                    launcher->settings_autoload_wad,
+                    launcher->settings_autoload_deh,
+                    launcher->settings_launcher_label,
+                    launcher->settings_show_startup,
+                    play_btn,
+                    exit_btn,
+                };
+
+                ApplyFontToControlGroup(all_font_controls,
+                    sizeof(all_font_controls) / sizeof(all_font_controls[0]),
+                    launcher->ui_font);
+            }
 
             SyncLauncherSettingsToUI(launcher);
             launcher->view_mode = LAUNCHER_VIEW_IWAD;
@@ -1914,11 +1984,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                     return TRUE;
                 }
 
-                if (dis->CtlID == IDC_IWAD_SETTINGS_FULLSCREEN
-                 || dis->CtlID == IDC_IWAD_SETTINGS_SOFTWARE_RENDER
-                 || dis->CtlID == IDC_IWAD_SETTINGS_AUTOLOAD_WAD
-                 || dis->CtlID == IDC_IWAD_SETTINGS_AUTOLOAD_DEH
-                 || dis->CtlID == IDC_IWAD_SETTINGS_SHOW_STARTUP)
+                if (IsSettingsCheckboxId(dis->CtlID))
                 {
                     DrawLauncherSettingsCheckbox(dis, launcher);
                     return TRUE;
@@ -2026,26 +2092,8 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                     if (HIWORD(wparam) == BN_CLICKED)
                     {
                         HWND checkbox = (HWND) lparam;
-                        int *value = NULL;
-
-                        switch (LOWORD(wparam))
-                        {
-                            case IDC_IWAD_SETTINGS_FULLSCREEN:
-                                value = &launcher->settings_fullscreen_checked;
-                                break;
-                            case IDC_IWAD_SETTINGS_SOFTWARE_RENDER:
-                                value = &launcher->settings_software_renderer_checked;
-                                break;
-                            case IDC_IWAD_SETTINGS_AUTOLOAD_WAD:
-                                value = &launcher->settings_autoload_wad_checked;
-                                break;
-                            case IDC_IWAD_SETTINGS_AUTOLOAD_DEH:
-                                value = &launcher->settings_autoload_deh_checked;
-                                break;
-                            case IDC_IWAD_SETTINGS_SHOW_STARTUP:
-                                value = &launcher->settings_show_startup_checked;
-                                break;
-                        }
+                        int *value = SettingsCheckboxValuePtrFromId(launcher,
+                                                                    LOWORD(wparam));
 
                         if (value != NULL)
                         {
