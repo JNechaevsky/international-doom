@@ -318,7 +318,7 @@ static void ClearCommandLineExceptExecutable(void)
 
 #define IWAD_LAUNCHER_CLASS_NAME "InterIwadLauncherWindow"
 #define IWAD_LAUNCHER_PROMPT     "Select IWAD file to run:"
-#define IWAD_LAUNCHER_SETTINGS_PROMPT "Launcher settings"
+#define IWAD_LAUNCHER_SETTINGS_PROMPT "Options"
 #define IDC_IWAD_LAUNCHER_LIST   2001
 #define IDC_IWAD_LAUNCHER_EDIT   2002
 #define IDC_IWAD_LAUNCHER_PLAY   2003
