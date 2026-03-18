@@ -26,6 +26,7 @@
 #include "id_vars.h"
 #include "i_system.h"
 #include "m_argv.h"
+#include "m_config.h"
 #include "m_misc.h"
 
 #if defined(_WIN32) && !defined(_WIN32_WCE)
@@ -332,7 +333,6 @@ static void ClearCommandLineExceptExecutable(void)
 #define IWAD_LAUNCHER_TOGGLE_SETTINGS "S"
 #define IWAD_LAUNCHER_TOGGLE_BACK     "<"
 #define IWAD_LAUNCHER_PLAY_CAPTION    "Play"
-#define IWAD_LAUNCHER_APPLY_CAPTION   "Apply"
 #define IWAD_LAUNCHER_CLEAR_CAPTION   "X"
 #define IWAD_WINDOW_CLIENT_W     340
 #define IWAD_WINDOW_CLIENT_H     480
@@ -1107,9 +1107,7 @@ static void ApplyLauncherView(iwad_launcher_t *launcher)
                        settings_view ? IWAD_LAUNCHER_TOGGLE_BACK
                                      : IWAD_LAUNCHER_TOGGLE_SETTINGS);
     }
-    SetWindowTextA(play_btn,
-                   settings_view ? IWAD_LAUNCHER_APPLY_CAPTION
-                                 : IWAD_LAUNCHER_PLAY_CAPTION);
+    SetWindowTextA(play_btn, IWAD_LAUNCHER_PLAY_CAPTION);
 
     SetControlVisibility(launcher->iwad_list, !settings_view);
     SetControlVisibility(launcher->params_label, !settings_view);
@@ -1256,7 +1254,7 @@ static void FinishIWADLauncher(iwad_launcher_t *launcher, boolean play_pressed)
         launcher->selected_iwad = (int) sel;
     }
 
-    if (play_pressed)
+    if (launcher->params_edit != NULL)
     {
         int length = GetWindowTextLengthA(launcher->params_edit);
         free(launcher->additional_params);
@@ -1833,10 +1831,15 @@ static boolean RunIWADLauncherDialog(int mask)
         SaveDefaultIWADValue(launcher.iwads[launcher.selected_iwad].path);
     }
 
+    SaveLauncherCommandLineValue(launcher.additional_params);
+
+    if (!launcher.play_pressed)
+    {
+        M_SaveDefaults();
+    }
+
     if (launcher.play_pressed)
     {
-        SaveLauncherCommandLineValue(launcher.additional_params);
-
         if (launcher.iwads[launcher.selected_iwad].iwad != NULL)
         {
             D_AppendCommandLineArgument("-iwad");
