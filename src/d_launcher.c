@@ -25,6 +25,7 @@
 #include "d_iwad.h"
 #include "id_vars.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "m_argv.h"
 #include "m_config.h"
 #include "m_misc.h"
@@ -324,6 +325,14 @@ static void ClearCommandLineExceptExecutable(void)
 #define IDC_IWAD_LAUNCHER_EXIT   2004
 #define IDC_IWAD_LAUNCHER_TOGGLE 2005
 #define IDC_IWAD_LAUNCHER_CLEAR  2006
+#define IDC_IWAD_SETTINGS_VIDEO_LABEL      2101
+#define IDC_IWAD_SETTINGS_FULLSCREEN       2102
+#define IDC_IWAD_SETTINGS_SOFTWARE_RENDER  2103
+#define IDC_IWAD_SETTINGS_AUTOLOAD_LABEL   2104
+#define IDC_IWAD_SETTINGS_AUTOLOAD_WAD     2105
+#define IDC_IWAD_SETTINGS_AUTOLOAD_DEH     2106
+#define IDC_IWAD_SETTINGS_LAUNCHER_LABEL   2107
+#define IDC_IWAD_SETTINGS_SHOW_STARTUP     2108
 #define IWAD_LAUNCHER_OLDPROC    "InterLauncherOldProc"
 #define IWAD_LAUNCHER_BTN_OLDPROC "InterLauncherBtnOldProc"
 #define IWAD_LAUNCHER_BTN_HOVER   "InterLauncherBtnHover"
@@ -346,6 +355,11 @@ static void ClearCommandLineExceptExecutable(void)
 #define IWAD_COLOR_BUTTON_DOWN   RGB(98, 98, 98)
 #define IWAD_COLOR_BUTTON_BORDER RGB(96, 96, 96)
 #define IWAD_COLOR_TEXT          RGB(235, 235, 235)
+#define IWAD_COLOR_CHECK_BG      RGB(42, 42, 42)
+#define IWAD_COLOR_CHECK_HOVER   RGB(58, 58, 58)
+#define IWAD_COLOR_CHECK_BORDER  RGB(122, 122, 122)
+#define IWAD_COLOR_CHECK_ACCENT  RGB(0, 122, 204)
+#define IWAD_COLOR_CHECK_ACCENT_HOVER RGB(20, 142, 224)
 
 typedef enum
 {
@@ -363,6 +377,24 @@ typedef struct
     HWND params_edit;
     HWND clear_button;
     HWND clear_tooltip;
+    HWND settings_video_label;
+    HWND settings_fullscreen;
+    HWND settings_software_renderer;
+    HWND settings_autoload_label;
+    HWND settings_autoload_wad;
+    HWND settings_autoload_deh;
+    HWND settings_launcher_label;
+    HWND settings_show_startup;
+    int settings_fullscreen_checked;
+    int settings_software_renderer_checked;
+    int settings_autoload_wad_checked;
+    int settings_autoload_deh_checked;
+    int settings_show_startup_checked;
+    int initial_fullscreen_checkbox;
+    int initial_software_renderer_checkbox;
+    int initial_autoload_wad_checkbox;
+    int initial_autoload_deh_checkbox;
+    int initial_show_startup_checkbox;
     iwad_search_result_t *iwads;
     int dpi;
     int selected_iwad;
@@ -815,6 +847,112 @@ static void DrawLauncherListItem(const DRAWITEMSTRUCT *dis,
 
 }
 
+// -----------------------------------------------------------------------------
+// DrawLauncherSettingsCheckbox
+//  [PN] Draw owner-drawn settings checkbox with launcher dark theme colors.
+// -----------------------------------------------------------------------------
+
+static void DrawLauncherSettingsCheckbox(const DRAWITEMSTRUCT *dis,
+                                         const iwad_launcher_t *launcher)
+{
+    RECT rc = dis->rcItem;
+    HBRUSH bg_brush = launcher->window_brush;
+
+    if (bg_brush == NULL)
+    {
+        bg_brush = (HBRUSH) GetStockObject(BLACK_BRUSH);
+    }
+
+    FillRect(dis->hDC, &rc, bg_brush);
+
+    int box_size = ScaleByDPI(14, launcher->dpi);
+    int text_gap = ScaleByDPI(8, launcher->dpi);
+    int box_left = rc.left;
+    int box_top = rc.top + ((rc.bottom - rc.top) - box_size) / 2;
+
+    RECT box_rc = { box_left, box_top, box_left + box_size, box_top + box_size };
+    RECT text_rc = rc;
+    text_rc.left = box_rc.right + text_gap;
+
+    boolean checked = false;
+    boolean hovered = GetPropA(dis->hwndItem, IWAD_LAUNCHER_BTN_HOVER) != NULL;
+
+    if (dis->hwndItem == launcher->settings_fullscreen)
+    {
+        checked = launcher->settings_fullscreen_checked ? true : false;
+    }
+    else if (dis->hwndItem == launcher->settings_software_renderer)
+    {
+        checked = launcher->settings_software_renderer_checked ? true : false;
+    }
+    else if (dis->hwndItem == launcher->settings_autoload_wad)
+    {
+        checked = launcher->settings_autoload_wad_checked ? true : false;
+    }
+    else if (dis->hwndItem == launcher->settings_autoload_deh)
+    {
+        checked = launcher->settings_autoload_deh_checked ? true : false;
+    }
+    else if (dis->hwndItem == launcher->settings_show_startup)
+    {
+        checked = launcher->settings_show_startup_checked ? true : false;
+    }
+
+    COLORREF box_fill = IWAD_COLOR_CHECK_BG;
+    if (hovered)
+    {
+        box_fill = IWAD_COLOR_CHECK_HOVER;
+    }
+    if (checked)
+    {
+        box_fill = hovered ? IWAD_COLOR_CHECK_ACCENT_HOVER
+                           : IWAD_COLOR_CHECK_ACCENT;
+    }
+
+    HBRUSH box_brush = CreateSolidBrush(box_fill);
+    HBRUSH border_brush = CreateSolidBrush(IWAD_COLOR_CHECK_BORDER);
+    if (box_brush != NULL)
+    {
+        FillRect(dis->hDC, &box_rc, box_brush);
+        DeleteObject(box_brush);
+    }
+    if (border_brush != NULL)
+    {
+        FrameRect(dis->hDC, &box_rc, border_brush);
+        DeleteObject(border_brush);
+    }
+
+    if (checked)
+    {
+        HPEN pen = CreatePen(PS_SOLID, ScaleByDPI(2, launcher->dpi), IWAD_COLOR_TEXT);
+        if (pen != NULL)
+        {
+            HPEN old_pen = (HPEN) SelectObject(dis->hDC, pen);
+            int x1 = box_rc.left + ScaleByDPI(3, launcher->dpi);
+            int y1 = box_rc.top + ScaleByDPI(7, launcher->dpi);
+            int x2 = box_rc.left + ScaleByDPI(6, launcher->dpi);
+            int y2 = box_rc.top + ScaleByDPI(10, launcher->dpi);
+            int x3 = box_rc.left + ScaleByDPI(11, launcher->dpi);
+            int y3 = box_rc.top + ScaleByDPI(4, launcher->dpi);
+
+            MoveToEx(dis->hDC, x1, y1, NULL);
+            LineTo(dis->hDC, x2, y2);
+            LineTo(dis->hDC, x3, y3);
+
+            SelectObject(dis->hDC, old_pen);
+            DeleteObject(pen);
+        }
+    }
+
+    SetBkMode(dis->hDC, TRANSPARENT);
+    SetTextColor(dis->hDC, IWAD_COLOR_TEXT);
+
+    char caption[128];
+    GetWindowTextA(dis->hwndItem, caption, sizeof(caption));
+    DrawTextA(dis->hDC, caption, -1, &text_rc,
+              DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+}
+
 static LRESULT CALLBACK LauncherButtonHoverProc(HWND hwnd, UINT msg,
                                                 WPARAM wparam, LPARAM lparam)
 {
@@ -995,7 +1133,10 @@ static void LayoutIWADLauncher(iwad_launcher_t *launcher)
 
     int margin = ScaleByDPI(16, launcher->dpi);
     int gap = ScaleByDPI(8, launcher->dpi);
+    int section_gap = ScaleByDPI(10, launcher->dpi);
+    int check_gap = ScaleByDPI(4, launcher->dpi);
     int label_h = ScaleByDPI(20, launcher->dpi);
+    int check_h = ScaleByDPI(20, launcher->dpi);
     int edit_h = ScaleByDPI(20, launcher->dpi);
     int top_btn_w = ScaleByDPI(38, launcher->dpi);
     int top_btn_h = ScaleByDPI(24, launcher->dpi);
@@ -1070,6 +1211,29 @@ static void LayoutIWADLauncher(iwad_launcher_t *launcher)
 
         MoveWindow(launcher->params_edit, x, y, width, edit_h, TRUE);
     }
+    else
+    {
+        MoveWindow(launcher->settings_video_label, x, y, width, label_h, TRUE);
+        y += label_h + check_gap;
+
+        MoveWindow(launcher->settings_fullscreen, x, y, width, check_h, TRUE);
+        y += check_h + check_gap;
+        MoveWindow(launcher->settings_software_renderer, x, y, width, check_h, TRUE);
+        y += check_h + section_gap;
+
+        MoveWindow(launcher->settings_autoload_label, x, y, width, label_h, TRUE);
+        y += label_h + check_gap;
+
+        MoveWindow(launcher->settings_autoload_wad, x, y, width, check_h, TRUE);
+        y += check_h + check_gap;
+        MoveWindow(launcher->settings_autoload_deh, x, y, width, check_h, TRUE);
+        y += check_h + section_gap;
+
+        MoveWindow(launcher->settings_launcher_label, x, y, width, label_h, TRUE);
+        y += label_h + check_gap;
+
+        MoveWindow(launcher->settings_show_startup, x, y, width, check_h, TRUE);
+    }
 
     int btn_y = height - margin - btn_h;
 
@@ -1113,6 +1277,14 @@ static void ApplyLauncherView(iwad_launcher_t *launcher)
     SetControlVisibility(launcher->params_label, !settings_view);
     SetControlVisibility(launcher->params_edit, !settings_view);
     SetControlVisibility(launcher->clear_button, !settings_view);
+    SetControlVisibility(launcher->settings_video_label, settings_view);
+    SetControlVisibility(launcher->settings_fullscreen, settings_view);
+    SetControlVisibility(launcher->settings_software_renderer, settings_view);
+    SetControlVisibility(launcher->settings_autoload_label, settings_view);
+    SetControlVisibility(launcher->settings_autoload_wad, settings_view);
+    SetControlVisibility(launcher->settings_autoload_deh, settings_view);
+    SetControlVisibility(launcher->settings_launcher_label, settings_view);
+    SetControlVisibility(launcher->settings_show_startup, settings_view);
 
     LayoutIWADLauncher(launcher);
     InvalidateRect(launcher->window, NULL, TRUE);
@@ -1204,6 +1376,77 @@ static void SaveLauncherCommandLineValue(const char *value)
 }
 
 // -----------------------------------------------------------------------------
+// SyncLauncherSettingsToUI
+//  [PN] Populate launcher settings checkboxes from config variables.
+// -----------------------------------------------------------------------------
+
+static void SyncLauncherSettingsToUI(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL)
+    {
+        return;
+    }
+
+    launcher->settings_fullscreen_checked = vid_fullscreen == 1 ? 1 : 0;
+    launcher->settings_software_renderer_checked =
+        vid_force_software_renderer == 1 ? 1 : 0;
+    launcher->settings_autoload_wad_checked = autoload_wad == 1 ? 1 : 0;
+    launcher->settings_autoload_deh_checked = autoload_deh == 1 ? 1 : 0;
+    launcher->settings_show_startup_checked = show_startup_launcher == 1 ? 1 : 0;
+
+    launcher->initial_fullscreen_checkbox = launcher->settings_fullscreen_checked;
+    launcher->initial_software_renderer_checkbox =
+        launcher->settings_software_renderer_checked;
+    launcher->initial_autoload_wad_checkbox = launcher->settings_autoload_wad_checked;
+    launcher->initial_autoload_deh_checkbox = launcher->settings_autoload_deh_checked;
+    launcher->initial_show_startup_checkbox = launcher->settings_show_startup_checked;
+}
+
+// -----------------------------------------------------------------------------
+// ApplyLauncherSettingsFromUI
+//  [PN] Apply launcher settings checkbox states back to config variables.
+// -----------------------------------------------------------------------------
+
+static void ApplyLauncherSettingsFromUI(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL)
+    {
+        return;
+    }
+
+    int fullscreen_value = launcher->settings_fullscreen_checked;
+    int software_renderer_value = launcher->settings_software_renderer_checked;
+    int autoload_wad_value = launcher->settings_autoload_wad_checked;
+    int autoload_deh_value = launcher->settings_autoload_deh_checked;
+    int show_startup_value = launcher->settings_show_startup_checked;
+
+    if (fullscreen_value != launcher->initial_fullscreen_checkbox)
+    {
+        vid_fullscreen = fullscreen_value;
+    }
+
+    if (software_renderer_value != launcher->initial_software_renderer_checkbox)
+    {
+        vid_force_software_renderer = software_renderer_value;
+    }
+
+    if (autoload_wad_value != launcher->initial_autoload_wad_checkbox)
+    {
+        autoload_wad = autoload_wad_value;
+    }
+
+    if (autoload_deh_value != launcher->initial_autoload_deh_checkbox)
+    {
+        autoload_deh = autoload_deh_value;
+    }
+
+    if (show_startup_value != launcher->initial_show_startup_checkbox)
+    {
+        show_startup_launcher = show_startup_value;
+    }
+}
+
+// -----------------------------------------------------------------------------
 // IsDoubleClickOnIWADItem
 //  [PN] Confirm a double-click hit a real list item, not blank list area.
 // -----------------------------------------------------------------------------
@@ -1247,6 +1490,8 @@ static void FinishIWADLauncher(iwad_launcher_t *launcher, boolean play_pressed)
 {
     launcher->play_pressed = play_pressed;
     launcher->done = true;
+
+    ApplyLauncherSettingsFromUI(launcher);
 
     LRESULT sel = SendMessageA(launcher->iwad_list, LB_GETCURSEL, 0, 0);
     if (sel != LB_ERR)
@@ -1395,6 +1640,64 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                                                      (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_CLEAR,
                                                      NULL, NULL);
 
+            launcher->settings_video_label = CreateWindowExA(0, "STATIC", "Video",
+                                                             WS_CHILD | WS_VISIBLE,
+                                                             0, 0, 0, 0, hwnd,
+                                                             (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_VIDEO_LABEL,
+                                                             NULL, NULL);
+
+            launcher->settings_fullscreen = CreateWindowExA(0, "BUTTON",
+                                                            "Fullscreen mode",
+                                                            WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                          | BS_OWNERDRAW,
+                                                            0, 0, 0, 0, hwnd,
+                                                            (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_FULLSCREEN,
+                                                            NULL, NULL);
+
+            launcher->settings_software_renderer = CreateWindowExA(0, "BUTTON",
+                                                                   "Force compatibility mode",
+                                                                   WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                                 | BS_OWNERDRAW,
+                                                                   0, 0, 0, 0, hwnd,
+                                                                   (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_SOFTWARE_RENDER,
+                                                                   NULL, NULL);
+
+            launcher->settings_autoload_label = CreateWindowExA(0, "STATIC", "Autoload",
+                                                                WS_CHILD | WS_VISIBLE,
+                                                                0, 0, 0, 0, hwnd,
+                                                                (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_AUTOLOAD_LABEL,
+                                                                NULL, NULL);
+
+            launcher->settings_autoload_wad = CreateWindowExA(0, "BUTTON",
+                                                              "Autoload WAD files",
+                                                              WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                            | BS_OWNERDRAW,
+                                                              0, 0, 0, 0, hwnd,
+                                                              (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_AUTOLOAD_WAD,
+                                                              NULL, NULL);
+
+            launcher->settings_autoload_deh = CreateWindowExA(0, "BUTTON",
+                                                              "Autoload DEH files",
+                                                              WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                            | BS_OWNERDRAW,
+                                                              0, 0, 0, 0, hwnd,
+                                                              (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_AUTOLOAD_DEH,
+                                                              NULL, NULL);
+
+            launcher->settings_launcher_label = CreateWindowExA(0, "STATIC", "Launcher",
+                                                                WS_CHILD | WS_VISIBLE,
+                                                                0, 0, 0, 0, hwnd,
+                                                                (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_LAUNCHER_LABEL,
+                                                                NULL, NULL);
+
+            launcher->settings_show_startup = CreateWindowExA(0, "BUTTON",
+                                                              "Show launcher at startup",
+                                                              WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                            | BS_OWNERDRAW,
+                                                              0, 0, 0, 0, hwnd,
+                                                              (HMENU) (INT_PTR) IDC_IWAD_SETTINGS_SHOW_STARTUP,
+                                                              NULL, NULL);
+
             InstallFixedControlBorder(launcher->iwad_list);
             InstallFixedControlBorder(launcher->params_edit);
 
@@ -1427,6 +1730,31 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 InstallButtonHover(launcher->clear_button);
             }
 
+            if (launcher->settings_fullscreen != NULL)
+            {
+                InstallButtonHover(launcher->settings_fullscreen);
+            }
+
+            if (launcher->settings_software_renderer != NULL)
+            {
+                InstallButtonHover(launcher->settings_software_renderer);
+            }
+
+            if (launcher->settings_autoload_wad != NULL)
+            {
+                InstallButtonHover(launcher->settings_autoload_wad);
+            }
+
+            if (launcher->settings_autoload_deh != NULL)
+            {
+                InstallButtonHover(launcher->settings_autoload_deh);
+            }
+
+            if (launcher->settings_show_startup != NULL)
+            {
+                InstallButtonHover(launcher->settings_show_startup);
+            }
+
             launcher->clear_tooltip = CreateButtonTooltip(hwnd,
                                                           launcher->clear_button,
                                                           "Clear command line parameters");
@@ -1442,9 +1770,18 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             ApplyFontToControl(launcher->params_label, launcher->ui_font);
             ApplyFontToControl(launcher->params_edit, launcher->ui_font);
             ApplyFontToControl(launcher->clear_button, launcher->ui_font);
+            ApplyFontToControl(launcher->settings_video_label, launcher->ui_font);
+            ApplyFontToControl(launcher->settings_fullscreen, launcher->ui_font);
+            ApplyFontToControl(launcher->settings_software_renderer, launcher->ui_font);
+            ApplyFontToControl(launcher->settings_autoload_label, launcher->ui_font);
+            ApplyFontToControl(launcher->settings_autoload_wad, launcher->ui_font);
+            ApplyFontToControl(launcher->settings_autoload_deh, launcher->ui_font);
+            ApplyFontToControl(launcher->settings_launcher_label, launcher->ui_font);
+            ApplyFontToControl(launcher->settings_show_startup, launcher->ui_font);
             ApplyFontToControl(play_btn, launcher->ui_font);
             ApplyFontToControl(exit_btn, launcher->ui_font);
 
+            SyncLauncherSettingsToUI(launcher);
             launcher->view_mode = LAUNCHER_VIEW_IWAD;
             ApplyLauncherView(launcher);
             return 0;
@@ -1466,6 +1803,17 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 HDC dc = (HDC) wparam;
                 SetTextColor(dc, IWAD_COLOR_TEXT);
                 SetBkColor(dc, IWAD_COLOR_WINDOW_BG);
+                return (LRESULT) launcher->window_brush;
+            }
+            break;
+
+        case WM_CTLCOLORBTN:
+            if (launcher != NULL && launcher->window_brush != NULL)
+            {
+                HDC dc = (HDC) wparam;
+                SetTextColor(dc, IWAD_COLOR_TEXT);
+                SetBkColor(dc, IWAD_COLOR_WINDOW_BG);
+                SetBkMode(dc, TRANSPARENT);
                 return (LRESULT) launcher->window_brush;
             }
             break;
@@ -1519,6 +1867,16 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                  || dis->CtlID == IDC_IWAD_LAUNCHER_EXIT)
                 {
                     DrawLauncherButton(dis, launcher);
+                    return TRUE;
+                }
+
+                if (dis->CtlID == IDC_IWAD_SETTINGS_FULLSCREEN
+                 || dis->CtlID == IDC_IWAD_SETTINGS_SOFTWARE_RENDER
+                 || dis->CtlID == IDC_IWAD_SETTINGS_AUTOLOAD_WAD
+                 || dis->CtlID == IDC_IWAD_SETTINGS_AUTOLOAD_DEH
+                 || dis->CtlID == IDC_IWAD_SETTINGS_SHOW_STARTUP)
+                {
+                    DrawLauncherSettingsCheckbox(dis, launcher);
                     return TRUE;
                 }
 
@@ -1577,6 +1935,44 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                     if (launcher->params_edit != NULL)
                     {
                         SetWindowTextA(launcher->params_edit, "");
+                    }
+                    return 0;
+
+                case IDC_IWAD_SETTINGS_FULLSCREEN:
+                case IDC_IWAD_SETTINGS_SOFTWARE_RENDER:
+                case IDC_IWAD_SETTINGS_AUTOLOAD_WAD:
+                case IDC_IWAD_SETTINGS_AUTOLOAD_DEH:
+                case IDC_IWAD_SETTINGS_SHOW_STARTUP:
+                    if (HIWORD(wparam) == BN_CLICKED)
+                    {
+                        HWND checkbox = (HWND) lparam;
+                        int *value = NULL;
+
+                        switch (LOWORD(wparam))
+                        {
+                            case IDC_IWAD_SETTINGS_FULLSCREEN:
+                                value = &launcher->settings_fullscreen_checked;
+                                break;
+                            case IDC_IWAD_SETTINGS_SOFTWARE_RENDER:
+                                value = &launcher->settings_software_renderer_checked;
+                                break;
+                            case IDC_IWAD_SETTINGS_AUTOLOAD_WAD:
+                                value = &launcher->settings_autoload_wad_checked;
+                                break;
+                            case IDC_IWAD_SETTINGS_AUTOLOAD_DEH:
+                                value = &launcher->settings_autoload_deh_checked;
+                                break;
+                            case IDC_IWAD_SETTINGS_SHOW_STARTUP:
+                                value = &launcher->settings_show_startup_checked;
+                                break;
+                        }
+
+                        if (value != NULL)
+                        {
+                            *value = *value ? 0 : 1;
+                        }
+
+                        InvalidateRect(checkbox, NULL, TRUE);
                     }
                     return 0;
 
