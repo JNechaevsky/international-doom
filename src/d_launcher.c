@@ -2446,7 +2446,15 @@ static boolean RunIWADLauncherDialog(int mask)
     {
         if (launcher.iwads[launcher.selected_iwad].iwad != NULL)
         {
-            D_AppendCommandLineArgument("-iwad");
+            if (launcher.iwads[launcher.selected_iwad].is_pwad)
+            {
+                D_AppendCommandLineArgument("-file");
+            }
+            else
+            {
+                D_AppendCommandLineArgument("-iwad");
+            }
+
             D_AppendCommandLineArgument(launcher.iwads[launcher.selected_iwad].path);
         }
 

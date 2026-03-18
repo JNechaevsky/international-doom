@@ -46,6 +46,7 @@ typedef struct
     const iwad_t *iwad;
     char *path;
     const char *source_tag;
+    boolean is_pwad;
 } iwad_search_result_t;
 
 boolean D_IsIWADName(const char *name);

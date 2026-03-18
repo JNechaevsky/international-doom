@@ -53,10 +53,15 @@ static const iwad_t iwads[] =
     { "heretic.wad",  heretic,   retail,     "Heretic" },
     { "blasphem.wad", heretic,   retail,     "Blasphemer" },
 
-    { "hexen.wad",    hexen,     commercial, "Hexen" },
+    { "hexen.wad",    hexen,     commercial, "Hexen: Beyond Heretic" },
 
 //  { "strife0.wad",  strife,    commercial, "Strife" }, // haleyjd: STRIFE-FIXME
 //  { "strife1.wad",  strife,    commercial, "Strife" },
+};
+
+static const iwad_t hexdd_pwad =
+{
+    "hexdd.wad", hexen, commercial, "Hexen: Deathkings of the Dark Citadel"
 };
 
 boolean D_IsIWADName(const char *name)
@@ -1225,13 +1230,82 @@ iwad_search_result_t *D_FindAllIWADSearchResults(int mask)
             results[len].iwad = &iwads[i];
             results[len].path = path;
             results[len].source_tag = source_tag;
+            results[len].is_pwad = false;
             ++len;
+        }
+    }
+
+    if ((mask & IWAD_MASK_HEXEN) != 0)
+    {
+        boolean have_hexen_iwad = false;
+
+        for (int i = 0; i < len; ++i)
+        {
+            if (results[i].iwad != NULL
+             && results[i].iwad->mission == hexen
+             && !results[i].is_pwad)
+            {
+                have_hexen_iwad = true;
+                break;
+            }
+        }
+
+        if (have_hexen_iwad)
+        {
+            for (int dir = 0; dir < num_iwad_dirs; ++dir)
+            {
+                char *path = CheckDirectoryHasIWAD(iwad_dirs[dir],
+                                                   DEH_String(hexdd_pwad.name));
+                char *canonical_path;
+                const char *source_tag;
+
+                if (path == NULL)
+                {
+                    continue;
+                }
+
+                canonical_path = CanonicalizeIWADPath(path);
+                free(path);
+                path = canonical_path;
+                source_tag = DetectIWADSourceTag(path);
+
+                if (ResultListHasEquivalentIWAD(results, len, &hexdd_pwad, source_tag))
+                {
+                    free(path);
+                    continue;
+                }
+
+                if (len + 1 >= capacity)
+                {
+                    capacity *= 2;
+
+                    iwad_search_result_t *new_results =
+                        realloc(results,
+                                sizeof(iwad_search_result_t) * (size_t) capacity);
+
+                    if (new_results == NULL)
+                    {
+                        free(path);
+                        D_FreeIWADSearchResults(results);
+                        I_Error("Failed to grow IWAD search results.");
+                    }
+
+                    results = new_results;
+                }
+
+                results[len].iwad = &hexdd_pwad;
+                results[len].path = path;
+                results[len].source_tag = source_tag;
+                results[len].is_pwad = true;
+                ++len;
+            }
         }
     }
 
     results[len].iwad = NULL;
     results[len].path = NULL;
     results[len].source_tag = NULL;
+    results[len].is_pwad = false;
 
     return results;
 }
