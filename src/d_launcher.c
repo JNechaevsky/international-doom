@@ -613,8 +613,40 @@ static boolean IsDehFilePath(const char *path)
 }
 
 // -----------------------------------------------------------------------------
+// IsLmpFilePath
+//  [PN] Return true when dropped file has .lmp extension (case-insensitive).
+// -----------------------------------------------------------------------------
+
+static boolean IsLmpFilePath(const char *path)
+{
+    if (path == NULL)
+    {
+        return false;
+    }
+
+    const char *dot = strrchr(path, '.');
+    return dot != NULL && !strcasecmp(dot, ".lmp");
+}
+
+// -----------------------------------------------------------------------------
+// IsIniFilePath
+//  [PN] Return true when dropped file has .ini extension (case-insensitive).
+// -----------------------------------------------------------------------------
+
+static boolean IsIniFilePath(const char *path)
+{
+    if (path == NULL)
+    {
+        return false;
+    }
+
+    const char *dot = strrchr(path, '.');
+    return dot != NULL && !strcasecmp(dot, ".ini");
+}
+
+// -----------------------------------------------------------------------------
 // AddDroppedWadFilesToLauncher
-//  [PN] Append dropped WAD/DEH files and add -file/-deh switches once each.
+//  [PN] Append dropped WAD/DEH/LMP/INI files and add switches once each.
 // -----------------------------------------------------------------------------
 
 static void AddDroppedWadFilesToLauncher(iwad_launcher_t *launcher, HDROP drop)
@@ -644,6 +676,8 @@ static void AddDroppedWadFilesToLauncher(iwad_launcher_t *launcher, HDROP drop)
     boolean has_file_switch = LauncherParamsHasSwitch(params, "-file")
                            || LauncherParamsHasSwitch(params, "-merge");
     boolean has_deh_switch = LauncherParamsHasSwitch(params, "-deh");
+    boolean has_playdemo_switch = LauncherParamsHasSwitch(params, "-playdemo");
+    boolean has_config_switch = LauncherParamsHasSwitch(params, "-config");
     boolean added_files = false;
     char *exe_dir = GetLauncherExecutableDir();
 
@@ -690,6 +724,44 @@ static void AddDroppedWadFilesToLauncher(iwad_launcher_t *launcher, HDROP drop)
                 AppendLauncherParamSeparator(&params, &length, &capacity);
                 AppendText(&params, &length, &capacity, "-deh");
                 has_deh_switch = true;
+            }
+
+            AppendLauncherParamSeparator(&params, &length, &capacity);
+            AppendLauncherDisplayArg(&params, &length, &capacity, display_arg);
+            added_files = true;
+        }
+        else if (IsLmpFilePath(path))
+        {
+            const char *display_arg = path;
+            if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
+            {
+                display_arg = M_BaseName(path);
+            }
+
+            if (!has_playdemo_switch)
+            {
+                AppendLauncherParamSeparator(&params, &length, &capacity);
+                AppendText(&params, &length, &capacity, "-playdemo");
+                has_playdemo_switch = true;
+            }
+
+            AppendLauncherParamSeparator(&params, &length, &capacity);
+            AppendLauncherDisplayArg(&params, &length, &capacity, display_arg);
+            added_files = true;
+        }
+        else if (IsIniFilePath(path))
+        {
+            const char *display_arg = path;
+            if (exe_dir != NULL && IsPathInDirectory(path, exe_dir))
+            {
+                display_arg = M_BaseName(path);
+            }
+
+            if (!has_config_switch)
+            {
+                AppendLauncherParamSeparator(&params, &length, &capacity);
+                AppendText(&params, &length, &capacity, "-config");
+                has_config_switch = true;
             }
 
             AppendLauncherParamSeparator(&params, &length, &capacity);
