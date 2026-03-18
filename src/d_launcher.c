@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 #include "d_launcher.h"
 #include "d_iwad.h"
@@ -314,13 +315,21 @@ static void ClearCommandLineExceptExecutable(void)
 
 #define IWAD_LAUNCHER_CLASS_NAME "InterIwadLauncherWindow"
 #define IWAD_LAUNCHER_PROMPT     "Select IWAD file to run:"
+#define IWAD_LAUNCHER_SETTINGS_PROMPT "Launcher settings"
 #define IDC_IWAD_LAUNCHER_LIST   2001
 #define IDC_IWAD_LAUNCHER_EDIT   2002
 #define IDC_IWAD_LAUNCHER_PLAY   2003
 #define IDC_IWAD_LAUNCHER_EXIT   2004
+#define IDC_IWAD_LAUNCHER_TOGGLE 2005
 #define IWAD_LAUNCHER_OLDPROC    "InterLauncherOldProc"
 #define IWAD_LAUNCHER_BTN_OLDPROC "InterLauncherBtnOldProc"
 #define IWAD_LAUNCHER_BTN_HOVER   "InterLauncherBtnHover"
+#define IWAD_LAUNCHER_TOGGLE_GLYPH_SETTINGS L"\xE713"
+#define IWAD_LAUNCHER_TOGGLE_GLYPH_BACK     L"\xE72B"
+#define IWAD_LAUNCHER_TOGGLE_SETTINGS "S"
+#define IWAD_LAUNCHER_TOGGLE_BACK     "<"
+#define IWAD_LAUNCHER_PLAY_CAPTION    "Play"
+#define IWAD_LAUNCHER_APPLY_CAPTION   "Apply"
 #define IWAD_WINDOW_CLIENT_W     340
 #define IWAD_WINDOW_CLIENT_H     480
 #define IWAD_BUTTON_IDEAL_W      120
@@ -334,10 +343,17 @@ static void ClearCommandLineExceptExecutable(void)
 #define IWAD_COLOR_BUTTON_BORDER RGB(96, 96, 96)
 #define IWAD_COLOR_TEXT          RGB(235, 235, 235)
 
+typedef enum
+{
+    LAUNCHER_VIEW_IWAD = 0,
+    LAUNCHER_VIEW_SETTINGS = 1
+} launcher_view_mode_t;
+
 typedef struct
 {
     HWND window;
     HWND prompt_label;
+    HWND toggle_button;
     HWND iwad_list;
     HWND params_label;
     HWND params_edit;
@@ -347,6 +363,9 @@ typedef struct
     char *additional_params;
     HFONT ui_font;
     boolean owns_ui_font;
+    HFONT toggle_icon_font;
+    boolean owns_toggle_icon_font;
+    boolean toggle_use_icon_font;
     int list_item_height;
     HBRUSH window_brush;
     HBRUSH control_brush;
@@ -355,6 +374,7 @@ typedef struct
     HBRUSH button_hover_brush;
     HBRUSH button_down_brush;
     HBRUSH button_border_brush;
+    launcher_view_mode_t view_mode;
     boolean play_pressed;
     boolean done;
 } iwad_launcher_t;
@@ -379,6 +399,15 @@ static void CleanupLauncherFont(iwad_launcher_t *launcher)
 
     launcher->ui_font = NULL;
     launcher->owns_ui_font = false;
+
+    if (launcher->owns_toggle_icon_font && launcher->toggle_icon_font != NULL)
+    {
+        DeleteObject(launcher->toggle_icon_font);
+    }
+
+    launcher->toggle_icon_font = NULL;
+    launcher->owns_toggle_icon_font = false;
+    launcher->toggle_use_icon_font = false;
 }
 
 static HFONT CreateLauncherUIFont(int dpi, boolean *owns_font)
@@ -438,6 +467,63 @@ static int MeasureFontHeight(HFONT font)
     }
 
     return height;
+}
+
+// -----------------------------------------------------------------------------
+// CreateLauncherToggleIconFont
+//  [PN] Create the icon font used for launcher view-toggle glyphs.
+// -----------------------------------------------------------------------------
+
+static HFONT CreateLauncherToggleIconFont(int dpi, boolean *owns_font)
+{
+    HFONT font = CreateFontW(-MulDiv(10, dpi, 72), 0, 0, 0, FW_NORMAL, FALSE,
+                             FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                             CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                             DEFAULT_PITCH | FF_DONTCARE, L"Segoe MDL2 Assets");
+
+    if (font != NULL)
+    {
+        *owns_font = true;
+        return font;
+    }
+
+    *owns_font = false;
+    return NULL;
+}
+
+// -----------------------------------------------------------------------------
+// FontFaceEqualsW
+//  [PN] Verify that created font resolves to the expected face name.
+// -----------------------------------------------------------------------------
+
+static boolean FontFaceEqualsW(HFONT font, const wchar_t *expected_face)
+{
+    boolean matched = false;
+    HDC dc = GetDC(NULL);
+
+    if (dc == NULL || font == NULL || expected_face == NULL)
+    {
+        if (dc != NULL)
+        {
+            ReleaseDC(NULL, dc);
+        }
+        return false;
+    }
+
+    HFONT old_font = (HFONT) SelectObject(dc, font);
+    wchar_t face[LF_FACESIZE];
+
+    face[0] = L'\0';
+
+    if (GetTextFaceW(dc, LF_FACESIZE, face) > 0)
+    {
+        matched = _wcsicmp(face, expected_face) == 0;
+    }
+
+    SelectObject(dc, old_font);
+    ReleaseDC(NULL, dc);
+
+    return matched;
 }
 
 static void ApplyFontToControl(HWND control, HFONT font)
@@ -576,10 +662,27 @@ static void DrawLauncherButton(const DRAWITEMSTRUCT *dis,
     SetBkMode(dis->hDC, TRANSPARENT);
     SetTextColor(dis->hDC, IWAD_COLOR_TEXT);
 
-    char caption[32];
-    GetWindowTextA(dis->hwndItem, caption, sizeof(caption));
-    DrawTextA(dis->hDC, caption, -1, &rc,
-              DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    if (dis->CtlID == IDC_IWAD_LAUNCHER_TOGGLE
+     && launcher->toggle_use_icon_font
+     && launcher->toggle_icon_font != NULL)
+    {
+        const wchar_t *glyph =
+            launcher->view_mode == LAUNCHER_VIEW_SETTINGS
+            ? IWAD_LAUNCHER_TOGGLE_GLYPH_BACK
+            : IWAD_LAUNCHER_TOGGLE_GLYPH_SETTINGS;
+
+        HFONT old_font = (HFONT) SelectObject(dis->hDC, launcher->toggle_icon_font);
+        DrawTextW(dis->hDC, glyph, -1, &rc,
+                  DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        SelectObject(dis->hDC, old_font);
+    }
+    else
+    {
+        char caption[32];
+        GetWindowTextA(dis->hwndItem, caption, sizeof(caption));
+        DrawTextA(dis->hDC, caption, -1, &rc,
+                  DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    }
 
 }
 
@@ -784,6 +887,19 @@ static const char *DefaultWindowTitleForMask(int mask)
     return "Game";
 }
 
+// -----------------------------------------------------------------------------
+// SetControlVisibility
+//  [PN] Show or hide a launcher control by mode.
+// -----------------------------------------------------------------------------
+
+static void SetControlVisibility(HWND control, boolean visible)
+{
+    if (control != NULL)
+    {
+        ShowWindow(control, visible ? SW_SHOW : SW_HIDE);
+    }
+}
+
 static void LayoutIWADLauncher(iwad_launcher_t *launcher)
 {
     if (launcher == NULL || launcher->window == NULL)
@@ -798,6 +914,8 @@ static void LayoutIWADLauncher(iwad_launcher_t *launcher)
     int gap = ScaleByDPI(8, launcher->dpi);
     int label_h = ScaleByDPI(20, launcher->dpi);
     int edit_h = ScaleByDPI(20, launcher->dpi);
+    int top_btn_w = ScaleByDPI(38, launcher->dpi);
+    int top_btn_h = ScaleByDPI(24, launcher->dpi);
     int ideal_btn_w = ScaleByDPI(IWAD_BUTTON_IDEAL_W, launcher->dpi);
     int btn_h = ScaleByDPI(IWAD_BUTTON_H, launcher->dpi);
 
@@ -819,24 +937,44 @@ static void LayoutIWADLauncher(iwad_launcher_t *launcher)
         btn_w = ideal_btn_w;
     }
 
-    MoveWindow(launcher->prompt_label, x, y, width, label_h, TRUE);
-    y += label_h + gap;
-
-    int bottom_reserved = margin + btn_h + gap + edit_h + gap + label_h + gap;
-    int list_available = height - y - bottom_reserved;
-    if (list_available < ScaleByDPI(40, launcher->dpi))
+    if (top_btn_w > width / 2)
     {
-        list_available = ScaleByDPI(40, launcher->dpi);
+        top_btn_w = width / 2;
     }
-    int list_h = list_available;
 
-    MoveWindow(launcher->iwad_list, x, y, width, list_h, TRUE);
-    y += list_h + gap;
+    int prompt_w = width - top_btn_w - gap;
+    if (prompt_w < ScaleByDPI(40, launcher->dpi))
+    {
+        prompt_w = ScaleByDPI(40, launcher->dpi);
+    }
 
-    MoveWindow(launcher->params_label, x, y, width, label_h, TRUE);
-    y += label_h + gap;
+    int top_row_h = (top_btn_h > label_h) ? top_btn_h : label_h;
+    int prompt_y = y + (top_row_h - label_h) / 2;
+    int toggle_y = y + (top_row_h - top_btn_h) / 2;
 
-    MoveWindow(launcher->params_edit, x, y, width, edit_h, TRUE);
+    MoveWindow(launcher->prompt_label, x, prompt_y, prompt_w, label_h, TRUE);
+    MoveWindow(launcher->toggle_button, x + width - top_btn_w, toggle_y,
+               top_btn_w, top_btn_h, TRUE);
+    y += top_row_h + gap;
+
+    if (launcher->view_mode == LAUNCHER_VIEW_IWAD)
+    {
+        int bottom_reserved = margin + btn_h + gap + edit_h + gap + label_h + gap;
+        int list_available = height - y - bottom_reserved;
+        if (list_available < ScaleByDPI(40, launcher->dpi))
+        {
+            list_available = ScaleByDPI(40, launcher->dpi);
+        }
+        int list_h = list_available;
+
+        MoveWindow(launcher->iwad_list, x, y, width, list_h, TRUE);
+        y += list_h + gap;
+
+        MoveWindow(launcher->params_label, x, y, width, label_h, TRUE);
+        y += label_h + gap;
+
+        MoveWindow(launcher->params_edit, x, y, width, edit_h, TRUE);
+    }
 
     int btn_y = height - margin - btn_h;
 
@@ -844,6 +982,46 @@ static void LayoutIWADLauncher(iwad_launcher_t *launcher)
                x, btn_y, btn_w, btn_h, TRUE);
     MoveWindow(GetDlgItem(launcher->window, IDC_IWAD_LAUNCHER_EXIT),
                x + width - btn_w, btn_y, btn_w, btn_h, TRUE);
+}
+
+// -----------------------------------------------------------------------------
+// ApplyLauncherView
+//  [PN] Apply IWAD/settings view state and refresh visible controls.
+// -----------------------------------------------------------------------------
+
+static void ApplyLauncherView(iwad_launcher_t *launcher)
+{
+    if (launcher == NULL || launcher->window == NULL)
+    {
+        return;
+    }
+
+    boolean settings_view = launcher->view_mode == LAUNCHER_VIEW_SETTINGS;
+    HWND play_btn = GetDlgItem(launcher->window, IDC_IWAD_LAUNCHER_PLAY);
+
+    SetWindowTextA(launcher->prompt_label,
+                   settings_view ? IWAD_LAUNCHER_SETTINGS_PROMPT
+                                 : IWAD_LAUNCHER_PROMPT);
+    if (launcher->toggle_use_icon_font)
+    {
+        SetWindowTextA(launcher->toggle_button, "");
+    }
+    else
+    {
+        SetWindowTextA(launcher->toggle_button,
+                       settings_view ? IWAD_LAUNCHER_TOGGLE_BACK
+                                     : IWAD_LAUNCHER_TOGGLE_SETTINGS);
+    }
+    SetWindowTextA(play_btn,
+                   settings_view ? IWAD_LAUNCHER_APPLY_CAPTION
+                                 : IWAD_LAUNCHER_PLAY_CAPTION);
+
+    SetControlVisibility(launcher->iwad_list, !settings_view);
+    SetControlVisibility(launcher->params_label, !settings_view);
+    SetControlVisibility(launcher->params_edit, !settings_view);
+
+    LayoutIWADLauncher(launcher);
+    InvalidateRect(launcher->window, NULL, TRUE);
 }
 
 // -----------------------------------------------------------------------------
@@ -1007,6 +1185,14 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                                                      WS_CHILD | WS_VISIBLE,
                                                      0, 0, 0, 0, hwnd, NULL, NULL, NULL);
 
+            launcher->toggle_button = CreateWindowExA(0, "BUTTON",
+                                                      IWAD_LAUNCHER_TOGGLE_SETTINGS,
+                                                      WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                                    | BS_OWNERDRAW,
+                                                      0, 0, 0, 0, hwnd,
+                                                      (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_TOGGLE,
+                                                      NULL, NULL);
+
             launcher->iwad_list = CreateWindowExA(0, "LISTBOX", "",
                                                   WS_CHILD | WS_VISIBLE | WS_VSCROLL
                                                 | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT
@@ -1085,7 +1271,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             InstallFixedControlBorder(launcher->iwad_list);
             InstallFixedControlBorder(launcher->params_edit);
 
-            HWND play_btn = CreateWindowExA(0, "BUTTON", "Play",
+            HWND play_btn = CreateWindowExA(0, "BUTTON", IWAD_LAUNCHER_PLAY_CAPTION,
                                             WS_CHILD | WS_VISIBLE | WS_TABSTOP
                                           | BS_OWNERDRAW,
                                             0, 0, 0, 0, hwnd,
@@ -1104,19 +1290,26 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 InstallButtonHover(play_btn);
             }
 
+            if (launcher->toggle_button != NULL)
+            {
+                InstallButtonHover(launcher->toggle_button);
+            }
+
             if (exit_btn != NULL)
             {
                 InstallButtonHover(exit_btn);
             }
 
             ApplyFontToControl(launcher->prompt_label, launcher->ui_font);
+            ApplyFontToControl(launcher->toggle_button, launcher->ui_font);
             ApplyFontToControl(launcher->iwad_list, launcher->ui_font);
             ApplyFontToControl(launcher->params_label, launcher->ui_font);
             ApplyFontToControl(launcher->params_edit, launcher->ui_font);
             ApplyFontToControl(play_btn, launcher->ui_font);
             ApplyFontToControl(exit_btn, launcher->ui_font);
 
-            LayoutIWADLauncher(launcher);
+            launcher->view_mode = LAUNCHER_VIEW_IWAD;
+            ApplyLauncherView(launcher);
             return 0;
         }
 
@@ -1184,6 +1377,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                 }
 
                 if (dis->CtlID == IDC_IWAD_LAUNCHER_PLAY
+                 || dis->CtlID == IDC_IWAD_LAUNCHER_TOGGLE
                  || dis->CtlID == IDC_IWAD_LAUNCHER_EXIT)
                 {
                     DrawLauncherButton(dis, launcher);
@@ -1226,15 +1420,32 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             switch (LOWORD(wparam))
             {
                 case IDC_IWAD_LAUNCHER_PLAY:
-                    FinishIWADLauncher(launcher, true);
+                    if (launcher->view_mode == LAUNCHER_VIEW_SETTINGS)
+                    {
+                        launcher->view_mode = LAUNCHER_VIEW_IWAD;
+                        ApplyLauncherView(launcher);
+                    }
+                    else
+                    {
+                        FinishIWADLauncher(launcher, true);
+                    }
                     return 0;
 
                 case IDC_IWAD_LAUNCHER_EXIT:
                     FinishIWADLauncher(launcher, false);
                     return 0;
 
+                case IDC_IWAD_LAUNCHER_TOGGLE:
+                    launcher->view_mode =
+                        (launcher->view_mode == LAUNCHER_VIEW_IWAD)
+                        ? LAUNCHER_VIEW_SETTINGS
+                        : LAUNCHER_VIEW_IWAD;
+                    ApplyLauncherView(launcher);
+                    return 0;
+
                 case IDC_IWAD_LAUNCHER_LIST:
-                    if (HIWORD(wparam) == LBN_DBLCLK)
+                    if (launcher->view_mode == LAUNCHER_VIEW_IWAD
+                     && HIWORD(wparam) == LBN_DBLCLK)
                     {
                         if (IsDoubleClickOnIWADItem(launcher->iwad_list))
                         {
@@ -1273,6 +1484,10 @@ static boolean RunIWADLauncherDialog(int mask)
     }
 
     launcher.ui_font = CreateLauncherUIFont(launcher.dpi, &launcher.owns_ui_font);
+    launcher.toggle_icon_font = CreateLauncherToggleIconFont(launcher.dpi,
+                                            &launcher.owns_toggle_icon_font);
+    launcher.toggle_use_icon_font =
+        FontFaceEqualsW(launcher.toggle_icon_font, L"Segoe MDL2 Assets");
     launcher.list_item_height = MeasureFontHeight(launcher.ui_font)
                               + ScaleByDPI(4, launcher.dpi);
     launcher.window_brush = CreateSolidBrush(IWAD_COLOR_WINDOW_BG);
@@ -1436,7 +1651,8 @@ static boolean RunIWADLauncherDialog(int mask)
          && GetAncestor(msg.hwnd, GA_ROOT) == hwnd)
         {
             HWND focused = GetFocus();
-            if (focused == launcher.iwad_list || focused == launcher.params_edit)
+            if (launcher.view_mode == LAUNCHER_VIEW_IWAD
+             && (focused == launcher.iwad_list || focused == launcher.params_edit))
             {
                 FinishIWADLauncher(&launcher, true);
                 continue;
