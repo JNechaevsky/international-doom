@@ -1108,6 +1108,13 @@ static const char *DetectIWADSourceTag(const char *path)
         return "BFG Edition";
     }
 
+    if (PathContainsNoCase(path, "heretic + hexen")
+     || PathContainsNoCase(path, "heretic and hexen")
+     || PathContainsNoCase(path, "heretic+hexen"))
+    {
+        return "H+H";
+    }
+
     if (PathContainsNoCase(path, "rerelease")
      || PathContainsNoCase(path, "doom ii_data\\streamingassets")
      || PathContainsNoCase(path, "doom_data\\streamingassets"))
@@ -1140,7 +1147,7 @@ static boolean SourceTagsMatch(const char *a, const char *b)
 
 // -----------------------------------------------------------------------------
 // ResultListHasEquivalentIWAD
-//  [PN] Deduplicate by IWAD identity + source bucket (default / D1+D2 / BFG).
+//  [PN] Deduplicate by IWAD identity + source bucket (default / D1+D2 / BFG / H+H).
 // -----------------------------------------------------------------------------
 
 static boolean ResultListHasEquivalentIWAD(iwad_search_result_t *results, int len,
