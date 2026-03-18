@@ -1006,6 +1006,11 @@ const iwad_t **D_FindAllIWADs(int mask)
     return result;
 }
 
+// -----------------------------------------------------------------------------
+// PathContainsNoCase
+//  [PN] Case-insensitive substring check used for source-tag detection.
+// -----------------------------------------------------------------------------
+
 static boolean PathContainsNoCase(const char *path, const char *needle)
 {
     size_t needle_len;
@@ -1039,6 +1044,11 @@ static boolean PathContainsNoCase(const char *path, const char *needle)
 
     return false;
 }
+
+// -----------------------------------------------------------------------------
+// CanonicalizeIWADPath
+//  [PN] Convert discovered IWAD path to a normalized absolute-like form.
+// -----------------------------------------------------------------------------
 
 static char *CanonicalizeIWADPath(const char *path)
 {
@@ -1078,6 +1088,11 @@ static char *CanonicalizeIWADPath(const char *path)
     return canonical;
 }
 
+// -----------------------------------------------------------------------------
+// DetectIWADSourceTag
+//  [PN] Classify known distribution sources by path markers.
+// -----------------------------------------------------------------------------
+
 static const char *DetectIWADSourceTag(const char *path)
 {
     if (PathContainsNoCase(path, "doom 3 bfg edition")
@@ -1096,6 +1111,11 @@ static const char *DetectIWADSourceTag(const char *path)
     return NULL;
 }
 
+// -----------------------------------------------------------------------------
+// SourceTagsMatch
+//  [PN] Compare optional source tags where NULL means "no tag".
+// -----------------------------------------------------------------------------
+
 static boolean SourceTagsMatch(const char *a, const char *b)
 {
     if (a == b)
@@ -1111,12 +1131,18 @@ static boolean SourceTagsMatch(const char *a, const char *b)
     return !strcasecmp(a, b);
 }
 
+// -----------------------------------------------------------------------------
+// ResultListHasEquivalentIWAD
+//  [PN] Deduplicate by IWAD identity + source bucket (default / D1+D2 / BFG).
+// -----------------------------------------------------------------------------
+
 static boolean ResultListHasEquivalentIWAD(iwad_search_result_t *results, int len,
                                            const iwad_t *iwad,
                                            const char *source_tag)
 {
     for (int i = 0; i < len; ++i)
     {
+        // Keep one entry per IWAD name per source bucket.
         if (results[i].iwad == iwad
          && SourceTagsMatch(results[i].source_tag, source_tag))
         {
@@ -1126,6 +1152,11 @@ static boolean ResultListHasEquivalentIWAD(iwad_search_result_t *results, int le
 
     return false;
 }
+
+// -----------------------------------------------------------------------------
+// D_FindAllIWADSearchResults
+//  [PN] Enumerate all matching IWAD entries with path and source metadata.
+// -----------------------------------------------------------------------------
 
 iwad_search_result_t *D_FindAllIWADSearchResults(int mask)
 {
@@ -1202,6 +1233,11 @@ iwad_search_result_t *D_FindAllIWADSearchResults(int mask)
 
     return results;
 }
+
+// -----------------------------------------------------------------------------
+// D_FreeIWADSearchResults
+//  [PN] Free results allocated by D_FindAllIWADSearchResults().
+// -----------------------------------------------------------------------------
 
 void D_FreeIWADSearchResults(iwad_search_result_t *results)
 {

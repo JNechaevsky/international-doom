@@ -122,6 +122,11 @@ static void D_AppendAdditionalCommandLine(const char *params)
     }
 }
 
+// -----------------------------------------------------------------------------
+// LauncherArgNeedsQuotes
+//  [PN] Check whether an argument needs quotes when shown in the launcher.
+// -----------------------------------------------------------------------------
+
 static boolean LauncherArgNeedsQuotes(const char *arg)
 {
     const unsigned char *p = (const unsigned char *) arg;
@@ -138,6 +143,11 @@ static boolean LauncherArgNeedsQuotes(const char *arg)
 
     return false;
 }
+
+// -----------------------------------------------------------------------------
+// NormalizePathForCompare
+//  [PN] Normalize separators and trailing slashes for stable path comparison.
+// -----------------------------------------------------------------------------
 
 static void NormalizePathForCompare(char *path)
 {
@@ -163,6 +173,11 @@ static void NormalizePathForCompare(char *path)
     }
 }
 
+// -----------------------------------------------------------------------------
+// IsPathInDirectory
+//  [PN] Compare parent directory of a file path against a target directory.
+// -----------------------------------------------------------------------------
+
 static boolean IsPathInDirectory(const char *path, const char *dir)
 {
     char *path_dir = M_DirName(path);
@@ -185,6 +200,11 @@ static boolean IsPathInDirectory(const char *path, const char *dir)
 
     return result;
 }
+
+// -----------------------------------------------------------------------------
+// AppendText
+//  [PN] Append text to a growable string buffer.
+// -----------------------------------------------------------------------------
 
 static void AppendText(char **buffer, size_t *length, size_t *capacity,
                        const char *text)
@@ -215,6 +235,11 @@ static void AppendText(char **buffer, size_t *length, size_t *capacity,
     *length += add;
     (*buffer)[*length] = '\0';
 }
+
+// -----------------------------------------------------------------------------
+// BuildLauncherParamsFromLooseFiles
+//  [PN] Build initial launcher parameters from loose-file drag-n-drop args.
+// -----------------------------------------------------------------------------
 
 static char *BuildLauncherParamsFromLooseFiles(void)
 {
@@ -270,6 +295,11 @@ static char *BuildLauncherParamsFromLooseFiles(void)
 
     return result;
 }
+
+// -----------------------------------------------------------------------------
+// ClearCommandLineExceptExecutable
+//  [PN] Remove loose-file args so selected launcher options are authoritative.
+// -----------------------------------------------------------------------------
 
 static void ClearCommandLineExceptExecutable(void)
 {
@@ -443,6 +473,11 @@ static void CleanupLauncherTheme(iwad_launcher_t *launcher)
     DestroyLauncherBrush(&launcher->button_border_brush);
 }
 
+// -----------------------------------------------------------------------------
+// TryEnableDarkTitleBar
+//  [PN] Try enabling dark title bar on supported Windows versions.
+// -----------------------------------------------------------------------------
+
 static void TryEnableDarkTitleBar(HWND hwnd)
 {
     HMODULE dwmapi = LoadLibraryA("dwmapi.dll");
@@ -467,6 +502,11 @@ static void TryEnableDarkTitleBar(HWND hwnd)
 
     FreeLibrary(dwmapi);
 }
+
+// -----------------------------------------------------------------------------
+// TryApplyDarkControlTheme
+//  [PN] Request dark control theme (not guaranteed on every Windows build).
+// -----------------------------------------------------------------------------
 
 static void TryApplyDarkControlTheme(HWND hwnd)
 {
@@ -806,6 +846,11 @@ static void LayoutIWADLauncher(iwad_launcher_t *launcher)
                x + width - btn_w, btn_y, btn_w, btn_h, TRUE);
 }
 
+// -----------------------------------------------------------------------------
+// BuildIWADDisplayName
+//  [PN] Build the visible list label for one IWAD search result.
+// -----------------------------------------------------------------------------
+
 static char *BuildIWADDisplayName(const iwad_search_result_t *result)
 {
     const iwad_t *iwad = result->iwad;
@@ -834,6 +879,11 @@ static char *BuildIWADDisplayName(const iwad_search_result_t *result)
     return label;
 }
 
+// -----------------------------------------------------------------------------
+// SaveDefaultIWADValue
+//  [PN] Persist default IWAD selection as a config string value.
+// -----------------------------------------------------------------------------
+
 static void SaveDefaultIWADValue(const char *value)
 {
     if (value == NULL || value[0] == '\0')
@@ -855,6 +905,11 @@ static void SaveDefaultIWADValue(const char *value)
 
     launcher_default_iwad = M_StringDuplicate(value);
 }
+
+// -----------------------------------------------------------------------------
+// IsDoubleClickOnIWADItem
+//  [PN] Confirm a double-click hit a real list item, not blank list area.
+// -----------------------------------------------------------------------------
 
 static boolean IsDoubleClickOnIWADItem(HWND listbox)
 {
@@ -881,6 +936,7 @@ static boolean IsDoubleClickOnIWADItem(HWND listbox)
                                    MAKELPARAM(pt.x, pt.y));
     item = (int) LOWORD(item_from_point);
 
+    // LB_ITEMFROMPOINT returns nearest item; verify point is inside its rect.
     if (SendMessageA(listbox, LB_GETITEMRECT, (WPARAM) item,
                      (LPARAM) &item_rect) == LB_ERR)
     {
