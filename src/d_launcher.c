@@ -1121,6 +1121,50 @@ static void SetControlVisibility(HWND control, boolean visible)
     }
 }
 
+// -----------------------------------------------------------------------------
+// GetLauncherMinimumClientSize
+//  [PN] Compute minimum client size that keeps controls from overlapping.
+// -----------------------------------------------------------------------------
+
+static void GetLauncherMinimumClientSize(int dpi, int *min_w, int *min_h)
+{
+    int margin = ScaleByDPI(16, dpi);
+    int gap = ScaleByDPI(8, dpi);
+    int section_gap = ScaleByDPI(10, dpi);
+    int check_gap = ScaleByDPI(4, dpi);
+    int label_h = ScaleByDPI(20, dpi);
+    int check_h = ScaleByDPI(20, dpi);
+    int edit_h = ScaleByDPI(20, dpi);
+    int top_btn_w = ScaleByDPI(38, dpi);
+    int top_btn_h = ScaleByDPI(24, dpi);
+    int btn_h = ScaleByDPI(IWAD_BUTTON_H, dpi);
+    int top_row_h = (top_btn_h > label_h) ? top_btn_h : label_h;
+    int params_row_h = top_row_h;
+    int min_list_h = ScaleByDPI(40, dpi);
+
+    int settings_content_h =
+          (label_h + check_gap + check_h + check_gap + check_h + section_gap)
+        + (label_h + check_gap + check_h + check_gap + check_h + section_gap)
+        + (label_h + check_gap + check_h);
+
+    int min_client_h_iwad = margin + top_row_h + gap + min_list_h + gap
+                          + params_row_h + gap + edit_h + gap + btn_h + margin;
+    int min_client_h_settings = margin + top_row_h + gap + settings_content_h + gap
+                              + btn_h + margin;
+
+    int min_content_w_buttons = (ScaleByDPI(80, dpi) * 2) + gap;
+    int min_content_w_header = top_btn_w + gap + ScaleByDPI(144, dpi);
+    int min_content_w = (min_content_w_buttons > min_content_w_header)
+                      ? min_content_w_buttons
+                      : min_content_w_header;
+    int min_client_w = margin * 2 + min_content_w;
+
+    *min_w = min_client_w;
+    *min_h = (min_client_h_iwad > min_client_h_settings)
+           ? min_client_h_iwad
+           : min_client_h_settings;
+}
+
 static void LayoutIWADLauncher(iwad_launcher_t *launcher)
 {
     if (launcher == NULL || launcher->window == NULL)
@@ -1619,7 +1663,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             }
 
             launcher->params_label = CreateWindowExA(0, "STATIC", "Command line parameters:",
-                                                     WS_CHILD | WS_VISIBLE,
+                                                     WS_CHILD | WS_VISIBLE | SS_LEFTNOWORDWRAP,
                                                      0, 0, 0, 0, hwnd, NULL, NULL, NULL);
 
             launcher->params_edit = CreateWindowExA(0, "EDIT",
@@ -1892,8 +1936,44 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
             if (launcher != NULL)
             {
                 LayoutIWADLauncher(launcher);
+
+                if (!IsIconic(hwnd))
+                {
+                    RECT window_rect;
+                    if (GetWindowRect(hwnd, &window_rect))
+                    {
+                        launcher_width_x = window_rect.right - window_rect.left;
+                        launcher_width_y = window_rect.bottom - window_rect.top;
+                    }
+                }
             }
             return 0;
+
+        case WM_GETMINMAXINFO:
+            {
+                MINMAXINFO *mmi = (MINMAXINFO *) lparam;
+                int dpi = launcher != NULL ? launcher->dpi : GetSystemDPI();
+                int min_client_w = 0;
+                int min_client_h = 0;
+                RECT min_rect;
+                DWORD wnd_style;
+                DWORD wnd_exstyle;
+
+                GetLauncherMinimumClientSize(dpi, &min_client_w, &min_client_h);
+
+                min_rect.left = 0;
+                min_rect.top = 0;
+                min_rect.right = min_client_w;
+                min_rect.bottom = min_client_h;
+
+                wnd_style = (DWORD) GetWindowLongPtr(hwnd, GWL_STYLE);
+                wnd_exstyle = (DWORD) GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+                AdjustWindowRectEx(&min_rect, wnd_style, FALSE, wnd_exstyle);
+
+                mmi->ptMinTrackSize.x = min_rect.right - min_rect.left;
+                mmi->ptMinTrackSize.y = min_rect.bottom - min_rect.top;
+                return 0;
+            }
 
         case WM_MOVE:
             if (launcher != NULL && !IsIconic(hwnd))
@@ -2090,7 +2170,7 @@ static boolean RunIWADLauncherDialog(int mask)
     int client_w = ScaleByDPI(IWAD_WINDOW_CLIENT_W, launcher.dpi);
     int client_h = ScaleByDPI(IWAD_WINDOW_CLIENT_H, launcher.dpi);
     DWORD style = WS_OVERLAPPEDWINDOW
-                & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_THICKFRAME);
+                & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
     DWORD exstyle = 0;
 
     RECT win_rect;
@@ -2101,6 +2181,39 @@ static boolean RunIWADLauncherDialog(int mask)
     AdjustWindowRectEx(&win_rect, style, FALSE, exstyle);
     int win_w = win_rect.right - win_rect.left;
     int win_h = win_rect.bottom - win_rect.top;
+
+    {
+        int min_client_w = 0;
+        int min_client_h = 0;
+        RECT min_rect;
+        GetLauncherMinimumClientSize(launcher.dpi, &min_client_w, &min_client_h);
+        min_rect.left = 0;
+        min_rect.top = 0;
+        min_rect.right = min_client_w;
+        min_rect.bottom = min_client_h;
+        AdjustWindowRectEx(&min_rect, style, FALSE, exstyle);
+
+        int min_win_w = min_rect.right - min_rect.left;
+        int min_win_h = min_rect.bottom - min_rect.top;
+
+        if (launcher_width_x > 0)
+        {
+            win_w = launcher_width_x;
+        }
+        if (launcher_width_y > 0)
+        {
+            win_h = launcher_width_y;
+        }
+
+        if (win_w < min_win_w)
+        {
+            win_w = min_win_w;
+        }
+        if (win_h < min_win_h)
+        {
+            win_h = min_win_h;
+        }
+    }
 
     RECT work_rect;
     work_rect.left = 0;

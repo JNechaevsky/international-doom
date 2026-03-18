@@ -177,6 +177,8 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(show_startup_launcher),
     CONFIG_VARIABLE_INT(launcher_position_x),
     CONFIG_VARIABLE_INT(launcher_position_y),
+    CONFIG_VARIABLE_INT(launcher_width_x),
+    CONFIG_VARIABLE_INT(launcher_width_y),
     CONFIG_VARIABLE_STRING(launcher_default_iwad),
     CONFIG_VARIABLE_STRING(launcher_command_line),
     CONFIG_VARIABLE_COMMENT(""),

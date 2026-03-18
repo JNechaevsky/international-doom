@@ -31,6 +31,8 @@
 extern int show_startup_launcher;
 extern int launcher_position_x;
 extern int launcher_position_y;
+extern int launcher_width_x;
+extern int launcher_width_y;
 extern char *launcher_default_iwad;
 extern char *launcher_command_line;
 
