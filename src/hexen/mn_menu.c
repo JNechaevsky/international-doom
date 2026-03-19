@@ -686,6 +686,7 @@ static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
 static void M_ID_Misc_MenuCapFps (int choice);
+static void M_ID_Misc_Launcher (int choice);
 
 static void M_ID_SettingReset (int choice);
 static void M_ID_ApplyReset (void);
@@ -4170,6 +4171,10 @@ static MenuItem_t ID_Menu_Misc[] = {
     { ITT_LRFUNC2, "HIGHLIGHTING EFFECT",       M_ID_Misc_Hightlight,     0, MENU_NONE },
     { ITT_LRFUNC1, "ESC KEY BEHAVIOUR",         M_ID_Misc_MenuEscKey,     0, MENU_NONE },
     { ITT_LRFUNC1, "CAP FRAMERATE IN THE MENU", M_ID_Misc_MenuCapFps,     0, MENU_NONE },
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+    { ITT_EMPTY,   NULL,                        NULL,                     0, MENU_NONE },
+    { ITT_LRFUNC1, "SHOW LAUNCHER AT STARTUP",  M_ID_Misc_Launcher,       0, MENU_NONE },
+#endif
 };
 
 static Menu_t ID_Def_Misc = {
@@ -4280,6 +4285,17 @@ static void M_Draw_ID_Misc (void)
                             menu_cap_fps ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(10));
 
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+    MN_DrTextACentered("LAUNCHER", 130, cr[CR_YELLOW]);
+
+    // Cap framerate in the menu
+    sprintf(str, show_startup_launcher ? "ON" : "OFF" );
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 140,
+                        show_startup_launcher ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
+                            show_startup_launcher ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(12));
+#endif
+
     // [PN] Added explanations for colorblind filters
     if (CurrentItPos == 4)
     {
@@ -4288,7 +4304,7 @@ static void M_Draw_ID_Misc (void)
             "BLUE-BLIND","BLUE-WEAK","MONOCHROMACY","BLUE CONE MONOCHROMACY"
         };
 
-        MN_DrTextACentered(colorblind_hint[a11y_colorblind], 130, cr[CR_LIGHTGRAY_DARK]);
+        MN_DrTextACentered(colorblind_hint[a11y_colorblind], 150, cr[CR_LIGHTGRAY_DARK]);
     }
 
     // [PN] Added explanations for autoload variables
@@ -4302,17 +4318,17 @@ static void M_Draw_ID_Misc (void)
         switch (autoload_wad)
         {
             case 1:
-                MN_DrTextACentered(first_line, 130, cr[CR_LIGHTGRAY_DARK]);
-                MN_DrTextACentered(second_line1, 140, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(first_line, 150, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(second_line1, 160, cr[CR_LIGHTGRAY_DARK]);
                 break;
 
             case 2:
-                MN_DrTextACentered(first_line, 130, cr[CR_LIGHTGRAY_DARK]);
-                MN_DrTextACentered(second_line2, 140, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(first_line, 150, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(second_line2, 160, cr[CR_LIGHTGRAY_DARK]);
                 break;
 
             default:
-                MN_DrTextACentered(off, 130, cr[CR_LIGHTGRAY_DARK]);
+                MN_DrTextACentered(off, 150, cr[CR_LIGHTGRAY_DARK]);
                 break;            
         }
     }
@@ -4372,6 +4388,11 @@ static void M_ID_Misc_MenuEscKey (int choice)
 static void M_ID_Misc_MenuCapFps (int choice)
 {
     menu_cap_fps ^= 1;
+}
+
+static void M_ID_Misc_Launcher (int choice)
+{
+    show_startup_launcher ^= 1;
 }
 
 // -----------------------------------------------------------------------------

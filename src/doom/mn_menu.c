@@ -799,6 +799,7 @@ static void M_ID_Misc_AutoloadDEH (int choice);
 static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
 static void M_ID_Misc_MenuCapFps (int choice);
+static void M_ID_Misc_Launcher (int choice);
 
 static void M_Choose_ID_Level (int choice);
 static void M_Draw_ID_Level_1 (void);
@@ -4457,6 +4458,10 @@ static menuitem_t ID_Menu_Misc[]=
     { M_MUL2, "HIGHLIGHTING EFFECT",        M_ID_Misc_Hightlight,     'h' },
     { M_MUL1, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,     'e' },
     { M_MUL1, "CAP FRAMERATE IN THE MENU",  M_ID_Misc_MenuCapFps,     'c' },
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+    { M_SKIP, "", 0, '\0' },
+    { M_MUL1, "SHOW LAUNCHER AT STARTUP",   M_ID_Misc_Launcher,       's' },
+#endif
 };
 
 static menu_t ID_Def_Misc =
@@ -4570,17 +4575,28 @@ static void M_Draw_ID_Misc (void)
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    M_WriteTextGlow(M_ItemRightAlign(str), 107, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
                         menu_esc_key ? cr[CR_GREEN] : cr[CR_DARKRED],
                             menu_esc_key ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(10));
 
     // Cap framerate in the menu
     sprintf(str, menu_cap_fps ? "ON" : "OFF" );
-    M_WriteTextGlow(M_ItemRightAlign(str), 116, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
                         menu_cap_fps ? cr[CR_GREEN] : cr[CR_DARKRED],
                             menu_cap_fps ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(11));
+
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+    M_WriteTextCentered(126, "LAUNCHER", cr[CR_YELLOW]);
+
+    // Show launcher at startup
+    sprintf(str, show_startup_launcher ? "ON" : "OFF" );
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+                        show_startup_launcher ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            show_startup_launcher ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(13));
+#endif
 
     // [PN] Added explanations for colorblind filters
     if (itemOn == 4)
@@ -4590,7 +4606,7 @@ static void M_Draw_ID_Misc (void)
             "BLUE-BLIND","BLUE-WEAK","MONOCHROMACY","BLUE CONE MONOCHROMACY"
         };
 
-        M_WriteTextCentered(135, colorblind_hint[a11y_colorblind], cr[CR_LIGHTGRAY_DARK]);
+        M_WriteTextCentered(144, colorblind_hint[a11y_colorblind], cr[CR_LIGHTGRAY_DARK]);
     }
     // [PN] Added explanations for autoload variables
     if (itemOn == 6 || itemOn == 7)
@@ -4604,17 +4620,17 @@ static void M_Draw_ID_Misc (void)
         switch (autoload_option)
         {
             case 1:
-                M_WriteTextCentered(135, first_line, cr[CR_LIGHTGRAY_DARK]);
-                M_WriteTextCentered(144, second_line1, cr[CR_LIGHTGRAY_DARK]);
+                M_WriteTextCentered(144, first_line, cr[CR_LIGHTGRAY_DARK]);
+                M_WriteTextCentered(153, second_line1, cr[CR_LIGHTGRAY_DARK]);
                 break;
 
             case 2:
-                M_WriteTextCentered(135, first_line, cr[CR_LIGHTGRAY_DARK]);
-                M_WriteTextCentered(144, second_line2, cr[CR_LIGHTGRAY_DARK]);
+                M_WriteTextCentered(144, first_line, cr[CR_LIGHTGRAY_DARK]);
+                M_WriteTextCentered(153, second_line2, cr[CR_LIGHTGRAY_DARK]);
                 break;
 
             default:
-                M_WriteTextCentered(135, off, cr[CR_LIGHTGRAY_DARK]);
+                M_WriteTextCentered(144, off, cr[CR_LIGHTGRAY_DARK]);
                 break;            
         }
     }
@@ -4682,6 +4698,11 @@ static void M_ID_Misc_MenuEscKey (int choice)
 static void M_ID_Misc_MenuCapFps (int choice)
 {
     menu_cap_fps ^= 1;
+}
+
+static void M_ID_Misc_Launcher (int choice)
+{
+    show_startup_launcher ^= 1;
 }
 
 // -----------------------------------------------------------------------------
