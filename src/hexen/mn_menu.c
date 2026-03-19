@@ -869,9 +869,23 @@ static int M_INT_Slider (int val, int min, int max, int direction, boolean cappe
     if (val > max)
         val = capped ? max : min;
 
-    // [JN] Play sound only if value was really changed
+    // [JN] Play sound only if value was really changed.
+    // [PN] For line items (ITT_LRFUNC1/2), sound is handled in MN_Responder
+    // to keep keyboard/mouse/wheel behavior consistent and avoid doubles.
     if (old_val != val)
-        S_StartSound(NULL, SFX_PICKUP_KEY);
+    {
+        if (MenuActive && CurrentMenu != NULL
+        &&  CurrentItPos >= 0 && CurrentItPos < CurrentMenu->itemCount
+        && (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+        ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2))
+        {
+            // [PN] Do nothing here for LRFUNC items.
+        }
+        else
+        {
+            S_StartSound(NULL, SFX_PICKUP_KEY);
+        }
+    }
 
     return val;
 }
@@ -895,9 +909,23 @@ static float M_FLOAT_Slider (float val, float min, float max, float step,
     // [PN/JN] Do a float correction to get x.xxx000 values
     val = roundf(val * 1000.0f) / 1000.0f;
 
-    // [JN] Play sound only if value was really changed
+    // [JN] Play sound only if value was really changed.
+    // [PN] For line items (ITT_LRFUNC1/2), sound is handled in MN_Responder
+    // to keep keyboard/mouse/wheel behavior consistent and avoid doubles.
     if (old_val != val)
-        S_StartSound(NULL, SFX_PICKUP_KEY);
+    {
+        if (MenuActive && CurrentMenu != NULL
+        &&  CurrentItPos >= 0 && CurrentItPos < CurrentMenu->itemCount
+        && (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+        ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2))
+        {
+            // [PN] Do nothing here for LRFUNC items.
+        }
+        else
+        {
+            S_StartSound(NULL, SFX_PICKUP_KEY);
+        }
+    }
 
     return val;
 }
@@ -6359,7 +6387,11 @@ boolean MN_Responder(event_t * event)
                 {
                     // Scroll menu item backward normally, or forward for ITT_LRFUNC2
                     CurrentMenu->items[CurrentItPos].func(CurrentMenu->items[CurrentItPos].type != ITT_LRFUNC2 ? LEFT_DIR : RIGHT_DIR);
-                    S_StartSound(NULL, SFX_PICKUP_KEY);
+                    if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+                    ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2)
+                    {
+                        S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+                    }
                 }
                 mousewait = I_GetTime();
             }
@@ -6378,7 +6410,11 @@ boolean MN_Responder(event_t * event)
                 {
                     // Scroll menu item forward normally, or backward for ITT_LRFUNC2
                     CurrentMenu->items[CurrentItPos].func(CurrentMenu->items[CurrentItPos].type != ITT_LRFUNC2 ? RIGHT_DIR : LEFT_DIR);
-                    S_StartSound(NULL, SFX_PICKUP_KEY);
+                    if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+                    ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2)
+                    {
+                        S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+                    }
                 }
                 mousewait = I_GetTime();
             }
@@ -6968,6 +7004,10 @@ boolean MN_Responder(event_t * event)
             if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(LEFT_DIR);
+                if (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2)
+                {
+                    S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+                }
             }
             // [JN] Go to previous-left menu by pressing Left Arrow.
             if (CurrentMenu->ScrollAR || CurrentItPos == -1)
@@ -6981,6 +7021,10 @@ boolean MN_Responder(event_t * event)
             if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(RIGHT_DIR);
+                if (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2)
+                {
+                    S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+                }
             }
             // [JN] Go to next-right menu by pressing Right Arrow.
             if (CurrentMenu->ScrollAR || CurrentItPos == -1)

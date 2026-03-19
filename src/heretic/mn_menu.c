@@ -920,9 +920,19 @@ static int M_INT_Slider (int val, int min, int max, int direction, boolean cappe
     if (val > max)
         val = capped ? max : min;
 
-    // [JN] Play sound only if value was really changed
+    // [JN] Play sound only if value was really changed.
+    // [PN] For line items (ITT_LRFUNC1/2), sound is handled in MN_Responder
+    // to keep keyboard/mouse/wheel behavior consistent and avoid doubles.
     if (old_val != val)
-        S_StartSound(NULL, sfx_keyup);
+    {
+        if (!(MenuActive && CurrentMenu != NULL
+        && CurrentItPos >= 0 && CurrentItPos < CurrentMenu->itemCount
+        && (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+        ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2)))
+        {
+            S_StartSound(NULL, sfx_keyup);
+        }
+    }
 
     return val;
 }
@@ -946,9 +956,19 @@ static float M_FLOAT_Slider (float val, float min, float max, float step,
     // [PN/JN] Do a float correction to get x.xxx000 values
     val = roundf(val * 1000.0f) / 1000.0f;
 
-    // [JN] Play sound only if value was really changed
+    // [JN] Play sound only if value was really changed.
+    // [PN] For line items (ITT_LRFUNC1/2), sound is handled in MN_Responder
+    // to keep keyboard/mouse/wheel behavior consistent and avoid doubles.
     if (old_val != val)
-        S_StartSound(NULL, sfx_keyup);
+    {
+        if (!(MenuActive && CurrentMenu != NULL
+        && CurrentItPos >= 0 && CurrentItPos < CurrentMenu->itemCount
+        && (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+        ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2)))
+        {
+            S_StartSound(NULL, sfx_keyup);
+        }
+    }
 
     return val;
 }
@@ -1752,7 +1772,6 @@ static void M_ID_Messages (int choice)
     msg_show ^= 1;
     CT_SetMessage(&players[consoleplayer],
                  DEH_String(msg_show ? "MESSAGES ON" : "MESSAGES OFF"), true, NULL);
-    S_StartSound(NULL, sfx_switch);
 }
 
 static void M_ID_TextShadows (int choice)
@@ -7092,7 +7111,11 @@ boolean MN_Responder(event_t * event)
                 {
                     // Scroll menu item backward normally, or forward for ITT_LRFUNC2
                     CurrentMenu->items[CurrentItPos].func(CurrentMenu->items[CurrentItPos].type != ITT_LRFUNC2 ? LEFT_DIR : RIGHT_DIR);
-                    S_StartSound(NULL, sfx_keyup);
+                    if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+                    ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2)
+                    {
+                        S_StartSound(NULL, sfx_switch);
+                    }
                 }
                 mousewait = I_GetTime();
             }
@@ -7111,7 +7134,11 @@ boolean MN_Responder(event_t * event)
                 {
                     // Scroll menu item forward normally, or backward for ITT_LRFUNC2
                     CurrentMenu->items[CurrentItPos].func(CurrentMenu->items[CurrentItPos].type != ITT_LRFUNC2 ? RIGHT_DIR : LEFT_DIR);
-                    S_StartSound(NULL, sfx_keyup);
+                    if (CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC1
+                    ||  CurrentMenu->items[CurrentItPos].type == ITT_LRFUNC2)
+                    {
+                        S_StartSound(NULL, sfx_switch);
+                    }
                 }
                 mousewait = I_GetTime();
             }
@@ -7381,6 +7408,7 @@ boolean MN_Responder(event_t * event)
         else if (key == key_menu_messages || key == key_menu_messages2)        // F8 (toggle messages)
         {
             M_ID_Messages(0);
+            S_StartSound(NULL, sfx_switch);
             return true;
         }
         else if (key == key_menu_qload || key == key_menu_qload2)           // F9 (quickload)
@@ -7587,6 +7615,10 @@ boolean MN_Responder(event_t * event)
             if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(LEFT_DIR);
+                if (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2)
+                {
+                    S_StartSound(NULL, sfx_switch);
+                }
             }
             // [JN] Go to previous-left menu by pressing Left Arrow.
             if (CurrentMenu->ScrollAR || CurrentItPos == -1)
@@ -7600,6 +7632,10 @@ boolean MN_Responder(event_t * event)
             if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(RIGHT_DIR);
+                if (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2)
+                {
+                    S_StartSound(NULL, sfx_switch);
+                }
             }
             // [JN] Go to next-right menu by pressing Right Arrow.
             if (CurrentMenu->ScrollAR || CurrentItPos == -1)
@@ -7628,6 +7664,8 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_forward && CurrentItPos != -1)    // Activate item (enter)
         {
+            boolean line_action = false;
+
             if (item->type == ITT_SETMENU)
             {
                 if (item->func != NULL)
@@ -7642,13 +7680,14 @@ boolean MN_Responder(event_t * event)
                 if (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2)
                 {
                     item->func(RIGHT_DIR);
+                    line_action = true;
                 }
                 else if (item->type == ITT_EFUNC)
                 {
                     item->func(item->option);
                 }
             }
-            S_StartSound(NULL, sfx_dorcls);
+            S_StartSound(NULL, line_action ? sfx_switch : sfx_dorcls);
             return (true);
         }
         // [crispy] delete a savegame
