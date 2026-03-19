@@ -39,6 +39,7 @@ typedef struct
     GameMission_t mission;
     GameMode_t mode;
     const char *description;
+    int autodetect_priority;
 } iwad_t;
 
 typedef struct

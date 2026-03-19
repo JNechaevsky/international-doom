@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <limits.h>
 
 #include "deh_str.h"
 #include "doomkeys.h"
@@ -35,25 +36,25 @@
 
 static const iwad_t iwads[] =
 {
-    { "doom1.wad",    doom,      shareware,  "Doom Shareware" },
-    { "doom.wad",     doom,      retail,     "Doom" },
-    { "doom2.wad",    doom2,     commercial, "Doom 2: Hell on Earth" },
-    { "doom2f.wad",   doom2,     commercial, "Doom 2: L'Enfer sur Terre" },
-    { "plutonia.wad", pack_plut, commercial, "Final Doom: Plutonia Experiment" },
-    { "tnt.wad",      pack_tnt,  commercial, "Final Doom: TNT: Evilution" },
-    { "freedoom1.wad", doom,     retail,     "Freedoom: Phase 1" },
-    { "freedoom2.wad", doom2,    commercial, "Freedoom: Phase 2" },
-    { "freedm.wad",   doom2,     commercial, "FreeDM" },
-    { "chex.wad",     pack_chex, retail,     "Chex Quest" },
-    { "hacx.wad",     pack_hacx, commercial, "Hacx" },
-    { "rekkrsa.wad",  doom,      retail,     "REKKR" }, // [crispy] REKKR
-    { "rekkrsl.wad",  doom,      retail,     "REKKR: Sunken Land" }, // [crispy] REKKR: Sunken Land (Steam retail)
+    { "doom1.wad",    doom,      shareware,  "Doom Shareware", 7 },
+    { "doom.wad",     doom,      retail,     "Doom", 2 },
+    { "doom2.wad",    doom2,     commercial, "Doom 2: Hell on Earth", 0 },
+    { "doom2f.wad",   doom2,     commercial, "Doom 2: L'Enfer sur Terre", 1 },
+    { "plutonia.wad", pack_plut, commercial, "Final Doom: Plutonia Experiment", 3 },
+    { "tnt.wad",      pack_tnt,  commercial, "Final Doom: TNT: Evilution", 4 },
+    { "freedoom1.wad", doom,     retail,     "Freedoom: Phase 1", 6 },
+    { "freedoom2.wad", doom2,    commercial, "Freedoom: Phase 2", 5 },
+    { "freedm.wad",   doom2,     commercial, "FreeDM", 50 },
+    { "chex.wad",     pack_chex, retail,     "Chex Quest", 60 },
+    { "hacx.wad",     pack_hacx, commercial, "Hacx", 61 },
+    { "rekkrsa.wad",  doom,      retail,     "REKKR", 62 }, // [crispy] REKKR
+    { "rekkrsl.wad",  doom,      retail,     "REKKR: Sunken Land", 63 }, // [crispy] REKKR: Sunken Land (Steam retail)
 
-    { "heretic1.wad", heretic,   shareware,  "Heretic Shareware" },
-    { "heretic.wad",  heretic,   retail,     "Heretic" },
-    { "blasphem.wad", heretic,   retail,     "Blasphemer" },
+    { "heretic1.wad", heretic,   shareware,  "Heretic Shareware", 2 },
+    { "heretic.wad",  heretic,   retail,     "Heretic", 0 },
+    { "blasphem.wad", heretic,   retail,     "Blasphemer", 1 },
 
-    { "hexen.wad",    hexen,     commercial, "Hexen: Beyond Heretic" },
+    { "hexen.wad",    hexen,     commercial, "Hexen: Beyond Heretic", 0 },
 
 //  { "strife0.wad",  strife,    commercial, "Strife" }, // haleyjd: STRIFE-FIXME
 //  { "strife1.wad",  strife,    commercial, "Strife" },
@@ -61,7 +62,7 @@ static const iwad_t iwads[] =
 
 static const iwad_t hexdd_pwad =
 {
-    "hexdd.wad", hexen, commercial, "Hexen: Deathkings of the Dark Citadel"
+    "hexdd.wad", hexen, commercial, "Hexen: Deathkings of the Dark Citadel", 0
 };
 
 boolean D_IsIWADName(const char *name)
@@ -592,29 +593,74 @@ static char *CheckDirectoryHasIWAD(const char *dir, const char *iwadname)
 // Search a directory to try to find an IWAD
 // Returns the location of the IWAD if found, otherwise NULL.
 
-static char *SearchDirectoryForIWAD(const char *dir, int mask, GameMission_t *mission)
+// -----------------------------------------------------------------------------
+// AutoDetectIWADPriority
+//  [PN] Priority for automatic IWAD pick (independent from launcher list order).
+// -----------------------------------------------------------------------------
+
+static int AutoDetectIWADPriority(const iwad_t *iwad)
 {
-    char *filename;
+    if (iwad == NULL)
+    {
+        return INT_MAX;
+    }
+
+    return iwad->autodetect_priority;
+}
+
+static char *SearchDirectoryForIWAD(const char *dir, int mask, GameMission_t *mission,
+                                    int *priority)
+{
+    char *result = NULL;
+    int result_priority = INT_MAX;
+    GameMission_t result_mission = none;
     size_t i;
 
     for (i=0; i<arrlen(iwads); ++i) 
     {
+        char *filename;
+        int detect_priority;
+
         if (((1 << iwads[i].mission) & mask) == 0)
         {
             continue;
         }
 
         filename = CheckDirectoryHasIWAD(dir, DEH_String(iwads[i].name));
-
-        if (filename != NULL)
+        if (filename == NULL)
         {
-            *mission = iwads[i].mission;
+            continue;
+        }
 
-            return filename;
+        detect_priority = AutoDetectIWADPriority(&iwads[i]);
+
+        if (result == NULL || detect_priority < result_priority)
+        {
+            free(result);
+            result = filename;
+            result_priority = detect_priority;
+            result_mission = iwads[i].mission;
+        }
+        else
+        {
+            free(filename);
         }
     }
 
-    return NULL;
+    if (result != NULL)
+    {
+        *mission = result_mission;
+        if (priority != NULL)
+        {
+            *priority = result_priority;
+        }
+    }
+    else if (priority != NULL)
+    {
+        *priority = INT_MAX;
+    }
+
+    return result;
 }
 
 // When given an IWAD with the '-iwad' parameter,
@@ -961,15 +1007,47 @@ char *D_FindIWAD(int mask, GameMission_t *mission)
     }
     else
     {
-        // Search through the list and look for an IWAD
+        // Search all dirs and pick best by auto-detect priority.
 
         result = NULL;
+        *mission = none;
 
         BuildIWADDirList();
     
-        for (i=0; result == NULL && i<num_iwad_dirs; ++i)
         {
-            result = SearchDirectoryForIWAD(iwad_dirs[i], mask, mission);
+            int result_priority = INT_MAX;
+
+            for (i = 0; i < num_iwad_dirs; ++i)
+            {
+                char *dir_result;
+                int dir_priority;
+                GameMission_t dir_mission = none;
+
+                dir_result = SearchDirectoryForIWAD(iwad_dirs[i], mask,
+                                                    &dir_mission, &dir_priority);
+
+                if (dir_result == NULL)
+                {
+                    continue;
+                }
+
+                if (result == NULL || dir_priority < result_priority)
+                {
+                    free(result);
+                    result = dir_result;
+                    result_priority = dir_priority;
+                    *mission = dir_mission;
+                }
+                else
+                {
+                    free(dir_result);
+                }
+
+                if (result_priority == 0)
+                {
+                    break;
+                }
+            }
         }
     }
 

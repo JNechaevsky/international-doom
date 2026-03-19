@@ -52,10 +52,10 @@ typedef enum
 // Fallback IWADs to use if no IWADs are detected.
 
 static const iwad_t fallback_iwads[] = {
-    { "doom.wad",     doom,     registered,  "Doom" },
-    { "heretic.wad",  heretic,  retail,      "Heretic" },
-    { "hexen.wad",    hexen,    commercial,  "Hexen" },
-    { "strife1.wad",  strife,   commercial,  "Strife" },
+    { "doom.wad",     doom,     registered,  "Doom", 0 },
+    { "heretic.wad",  heretic,  retail,      "Heretic", 0 },
+    { "hexen.wad",    hexen,    commercial,  "Hexen", 0 },
+    { "strife1.wad",  strife,   commercial,  "Strife", 0 },
 };
 
 // Array of IWADs found to be installed
