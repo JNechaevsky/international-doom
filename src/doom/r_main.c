@@ -422,35 +422,18 @@ void R_InitLightTables (void)
         free(zlight);
     }
 
-    // [crispy] smooth diminishing lighting
-    if (vis_smooth_light)
+    // [PN] TrueColor modes always use smooth diminishing lighting.
+    if (vid_truecolor)
     {
-        if (vid_truecolor)
-        {
-            // [crispy] if in TrueColor mode, use smoothest diminished lighting
-            LIGHTLEVELS =      16 << 4;
-            LIGHTSEGSHIFT =     4 -  4;
-            LIGHTBRIGHT =       1 << 4;
-            MAXLIGHTSCALE =    48 << 3;
-            LIGHTSCALESHIFT =  12 -  3;
-            MAXLIGHTZ =       128 << 6;
-            LIGHTZSHIFT =      20 -  6;
-            BMAPMAXDIMINDEX =  47 << 3;
-            BMAPANIMSHIFT  =    0 +  3;
-        }
-        else
-        {
-            // [crispy] else, use paletted approach
-            LIGHTLEVELS =      16 << 1;
-            LIGHTSEGSHIFT =     4 -  1;
-            LIGHTBRIGHT =       1 << 1;
-            MAXLIGHTSCALE =    48 << 0;
-            LIGHTSCALESHIFT =  12 -  0;
-            MAXLIGHTZ =       128 << 3;
-            LIGHTZSHIFT =      20 -  3;
-            BMAPMAXDIMINDEX =  47 << 0;
-            BMAPANIMSHIFT =     0 +  0;
-        }
+        LIGHTLEVELS =      256;  // 16 << 4
+        LIGHTSEGSHIFT =      0;  // 4 - 4
+        LIGHTBRIGHT =       16;  // 1 << 4
+        MAXLIGHTSCALE =    384;  // 48 << 3
+        LIGHTSCALESHIFT =    9;  // 12 - 3
+        MAXLIGHTZ =       8192;  // 128 << 6
+        LIGHTZSHIFT =       14;  // 20 - 6
+        BMAPMAXDIMINDEX =  376;  // 47 << 3
+        BMAPANIMSHIFT  =     3;  // 0 + 3
     }
     else
     {

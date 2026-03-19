@@ -1043,40 +1043,25 @@ void R_InitTrueColormaps(char *current_colormap)
 		colormaps_allocated = true;
 	}
 
-	// [crispy] Smoothest diminishing lighting.
-	// Compiled in but not enabled TrueColor mode
-	// can't use more than original 32 colormaps.
-	if (vid_truecolor && vis_smooth_light)
-	{
-		NUMCOLORMAPS = 256;
-	}
-	else
-	{
-		NUMCOLORMAPS = 32;
-	}
+	// [PN] TrueColor modes always use smoothest diminishing lighting.
+	NUMCOLORMAPS = vid_truecolor ? 256 : 32;
 
     if (vid_truecolor)
     {
-        // [crispy] If level is allowed to use full bright mode, fade colormaps to 
+        // [crispy] If level is allowed to use full bright mode, fade colormaps to
         // black (0) color. Otherwise, fade to gray (147) to emulate FOGMAP table.
         const int fade_color = LevelUseFullBright ? 0 : 147;
-    
-        // [PN] Precompute gamma-corrected base RGB for fade target.
-        // Use neutral gray (147,147,147) directly instead of sampling PLAYPAL.
+
+        // [PN] Precompute gamma-corrected RGB for each PLAYPAL index once:
+        // PLAYPAL -> intensity/saturation -> gamma.
         const byte *const restrict gtab = gammatable[vid_gamma];
-        const int fade_r = gtab[fade_color];
-        const int fade_g = gtab[fade_color];
-        const int fade_b = gtab[fade_color];
         const float one_minus_a_hi = 1.0f - a_hi;
-    
-        // base_gamma[i][0..2] are gamma-corrected channels for index "i_base"
-        byte base_gamma[256][3];
-    
-        for (int i = 0; i < 256; ++i)
+
+        // pal_gamma[k][0..2] are gamma-corrected channels for PLAYPAL index k.
+        byte pal_gamma[256][3];
+
+        for (int k = 0; k < 256; ++k)
         {
-            // Keep semantics: use COLORMAP[0] mapping as base index
-            const byte k = colormap[i];
-    
             // Intensity
             float pr = playpal[3 * k + 0] * vid_r_intensity;
             float pg = playpal[3 * k + 1] * vid_g_intensity;
@@ -1086,48 +1071,169 @@ void R_InitTrueColormaps(char *current_colormap)
             float r = one_minus_a_hi * pr + a_lo * (pg + pb);
             float g = one_minus_a_hi * pg + a_lo * (pr + pb);
             float b = one_minus_a_hi * pb + a_lo * (pr + pg);
-    
+
             // Gamma to bytes (reuse later for every light level)
-            base_gamma[i][0] = gtab[(byte)r];
-            base_gamma[i][1] = gtab[(byte)g];
-            base_gamma[i][2] = gtab[(byte)b];
+            pal_gamma[k][0] = gtab[(byte)r];
+            pal_gamma[k][1] = gtab[(byte)g];
+            pal_gamma[k][2] = gtab[(byte)b];
         }
-    
-        // Contrast and colorblind are applied after light interpolation
+
+        // Contrast and colorblind are applied after COLORMAP sampling/interpolation.
         const double cMul = (double)vid_contrast;
         const double cAdj = 128.0 * (1.0 - (double)vid_contrast);
         const double (*cbm)[3] = colorblind_matrix[a11y_colorblind];
-    
-        for (int c = 0; c < NUMCOLORMAPS; ++c)
+
+        // [PN] TrueColor light generation modes:
+        // vid_truecolor == 1: sample current COLORMAP/FOGMAP rows and interpolate to 256 levels.
+        // vid_truecolor == 2: fog-aware TrueColor mode (FOGMAP interpolation + subtle fog bias),
+        //                     fallback to legacy fade for non-fog COLORMAP.
+        if (vid_truecolor == 2)
         {
-            const double scale = (double)c / (double)NUMCOLORMAPS;
-            const double k0    = 1.0 - scale;
-            const double kF    = scale;  // fade factor
-    
-            lighttable_t *const restrict row = &colormaps[c * 256];
-    
-            for (int i = 0; i < 256; ++i)
+            const int fade_r = gtab[fade_color];
+            const int fade_g = gtab[fade_color];
+            const int fade_b = gtab[fade_color];
+            const boolean use_fogmap = (strcasecmp(current_colormap, "FOGMAP") == 0);
+
+            if (use_fogmap)
             {
-                // 1) Light fade in gamma space and fade_color
-                double R = (double)base_gamma[i][0] * k0 + fade_r * kF;
-                double G = (double)base_gamma[i][1] * k0 + fade_g * kF;
-                double B = (double)base_gamma[i][2] * k0 + fade_b * kF;
-    
-                // 2) Contrast (affine)
-                R = cMul * R + cAdj;
-                G = cMul * G + cAdj;
-                B = cMul * B + cAdj;
-    
-                // 3) Colorblind transform (matrix is double)
-                double r2 = cbm[0][0]*R + cbm[0][1]*G + cbm[0][2]*B;
-                double g2 = cbm[1][0]*R + cbm[1][1]*G + cbm[1][2]*B;
-                double b2 = cbm[2][0]*R + cbm[2][1]*G + cbm[2][2]*B;
-    
-                const byte r8 = (byte)BETWEEN(0, 255, (int)r2);
-                const byte g8 = (byte)BETWEEN(0, 255, (int)g2);
-                const byte b8 = (byte)BETWEEN(0, 255, (int)b2);
-    
-                row[i] = 0xff000000 | (r8 << 16) | (g8 << 8) | b8;
+                // [PN] Keep TrueColor mode close to original fog look:
+                // interpolate FOGMAP rows like smooth mode, then apply a small
+                // additional pull toward the fog color to keep mode distinction.
+                const int map_rows = 32;
+                const double fog_bias_strength = 0.18; // subtle extra fogging
+
+                for (int c = 0; c < NUMCOLORMAPS; ++c)
+                {
+                    const double src_pos = (NUMCOLORMAPS > 1)
+                        ? (double)c * (double)(map_rows - 1) / (double)(NUMCOLORMAPS - 1)
+                        : 0.0;
+                    const int c0 = (int)src_pos;
+                    const int c1 = c0 < (map_rows - 1) ? c0 + 1 : c0;
+                    const double t = src_pos - (double)c0;
+                    const double w0 = 1.0 - t;
+                    const double scale = (double)c / (double)NUMCOLORMAPS;
+                    const double fog_mix = fog_bias_strength * scale;
+                    const double fog_keep = 1.0 - fog_mix;
+
+                    const byte *const restrict src0 = &colormap[c0 * 256];
+                    const byte *const restrict src1 = &colormap[c1 * 256];
+                    lighttable_t *const restrict row = &colormaps[c * 256];
+
+                    for (int i = 0; i < 256; ++i)
+                    {
+                        const byte k0i = src0[i];
+                        const byte k1i = src1[i];
+
+                        // 1) Base fog from interpolated map rows.
+                        double R = (double)pal_gamma[k0i][0] * w0 + (double)pal_gamma[k1i][0] * t;
+                        double G = (double)pal_gamma[k0i][1] * w0 + (double)pal_gamma[k1i][1] * t;
+                        double B = (double)pal_gamma[k0i][2] * w0 + (double)pal_gamma[k1i][2] * t;
+
+                        // 1a) Slight extra pull to fog color (147) for TrueColor flavor.
+                        R = R * fog_keep + (double)fade_r * fog_mix;
+                        G = G * fog_keep + (double)fade_g * fog_mix;
+                        B = B * fog_keep + (double)fade_b * fog_mix;
+
+                        // 2) Contrast (affine)
+                        R = cMul * R + cAdj;
+                        G = cMul * G + cAdj;
+                        B = cMul * B + cAdj;
+
+                        // 3) Colorblind transform (matrix is double)
+                        double r2 = cbm[0][0] * R + cbm[0][1] * G + cbm[0][2] * B;
+                        double g2 = cbm[1][0] * R + cbm[1][1] * G + cbm[1][2] * B;
+                        double b2 = cbm[2][0] * R + cbm[2][1] * G + cbm[2][2] * B;
+
+                        const byte r8 = (byte)BETWEEN(0, 255, (int)r2);
+                        const byte g8 = (byte)BETWEEN(0, 255, (int)g2);
+                        const byte b8 = (byte)BETWEEN(0, 255, (int)b2);
+
+                        row[i] = 0xff000000 | (r8 << 16) | (g8 << 8) | b8;
+                    }
+                }
+            }
+            else
+            {
+                for (int c = 0; c < NUMCOLORMAPS; ++c)
+                {
+                    const double scale = (double)c / (double)NUMCOLORMAPS;
+                    const double k0 = 1.0 - scale;
+                    const double kF = scale; // fade factor
+
+                    lighttable_t *const restrict row = &colormaps[c * 256];
+
+                    for (int i = 0; i < 256; ++i)
+                    {
+                        // Legacy behavior: base indices come from map row 0.
+                        const byte k = colormap[i];
+
+                        // 1) Light fade in gamma space and fade_color
+                        double R = (double)pal_gamma[k][0] * k0 + fade_r * kF;
+                        double G = (double)pal_gamma[k][1] * k0 + fade_g * kF;
+                        double B = (double)pal_gamma[k][2] * k0 + fade_b * kF;
+
+                        // 2) Contrast (affine)
+                        R = cMul * R + cAdj;
+                        G = cMul * G + cAdj;
+                        B = cMul * B + cAdj;
+
+                        // 3) Colorblind transform (matrix is double)
+                        double r2 = cbm[0][0] * R + cbm[0][1] * G + cbm[0][2] * B;
+                        double g2 = cbm[1][0] * R + cbm[1][1] * G + cbm[1][2] * B;
+                        double b2 = cbm[2][0] * R + cbm[2][1] * G + cbm[2][2] * B;
+
+                        const byte r8 = (byte)BETWEEN(0, 255, (int)r2);
+                        const byte g8 = (byte)BETWEEN(0, 255, (int)g2);
+                        const byte b8 = (byte)BETWEEN(0, 255, (int)b2);
+
+                        row[i] = 0xff000000 | (r8 << 16) | (g8 << 8) | b8;
+                    }
+                }
+            }
+        }
+        else
+        {
+            const int map_rows = 32; // vanilla COLORMAP/FOGMAP light rows
+
+            for (int c = 0; c < NUMCOLORMAPS; ++c)
+            {
+                lighttable_t *const restrict row = &colormaps[c * 256];
+                const double src_pos = (NUMCOLORMAPS > 1)
+                    ? (double)c * (double)(map_rows - 1) / (double)(NUMCOLORMAPS - 1)
+                    : 0.0;
+                const int c0 = (int)src_pos;
+                const int c1 = c0 < (map_rows - 1) ? c0 + 1 : c0;
+                const double t = src_pos - (double)c0;
+                const double w0 = 1.0 - t;
+
+                const byte *const restrict src0 = &colormap[c0 * 256];
+                const byte *const restrict src1 = &colormap[c1 * 256];
+
+                for (int i = 0; i < 256; ++i)
+                {
+                    // 1) Sample map rows, with interpolation in smooth mode.
+                    const byte k0i = src0[i];
+                    const byte k1i = src1[i];
+                    double R = (double)pal_gamma[k0i][0] * w0 + (double)pal_gamma[k1i][0] * t;
+                    double G = (double)pal_gamma[k0i][1] * w0 + (double)pal_gamma[k1i][1] * t;
+                    double B = (double)pal_gamma[k0i][2] * w0 + (double)pal_gamma[k1i][2] * t;
+
+                    // 2) Contrast (affine)
+                    R = cMul * R + cAdj;
+                    G = cMul * G + cAdj;
+                    B = cMul * B + cAdj;
+
+                    // 3) Colorblind transform (matrix is double)
+                    double r2 = cbm[0][0] * R + cbm[0][1] * G + cbm[0][2] * B;
+                    double g2 = cbm[1][0] * R + cbm[1][1] * G + cbm[1][2] * B;
+                    double b2 = cbm[2][0] * R + cbm[2][1] * G + cbm[2][2] * B;
+
+                    const byte r8 = (byte)BETWEEN(0, 255, (int)r2);
+                    const byte g8 = (byte)BETWEEN(0, 255, (int)g2);
+                    const byte b8 = (byte)BETWEEN(0, 255, (int)b2);
+
+                    row[i] = 0xff000000 | (r8 << 16) | (g8 << 8) | b8;
+                }
             }
         }
     }

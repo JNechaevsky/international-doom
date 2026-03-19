@@ -743,7 +743,6 @@ static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
 static void M_ID_FakeContrast (int choice);
-static void M_ID_SmoothLighting (int choice);
 static void M_ID_SpriteLighting (int choice);
 static void M_ID_SmoothPalette (int choice);
 static void M_ID_ImprovedFuzz (int choice);
@@ -1138,7 +1137,7 @@ static void M_Draw_ID_Main (void)
 
 static menuitem_t ID_Menu_Video_1[]=
 {
-    { M_MUL2, "TRUECOLOR RENDERING",  M_ID_TrueColor,    't' },
+    { M_MUL2, "RENDERING MODE",  M_ID_TrueColor,    't' },
     { M_MUL1, "RENDERING RESOLUTION", M_ID_RenderingRes, 'r' },
     { M_MUL1, "WIDESCREEN MODE",      M_ID_Widescreen,   'w' },
     { M_MUL2, "EXCLUSIVE FULLSCREEN", M_ID_ExclusiveFS,  'e' },
@@ -1179,10 +1178,13 @@ static void M_Draw_ID_Video_1 (void)
     M_WriteTextCentered(9, "VIDEO OPTIONS", cr[CR_YELLOW]);
 
     // TrueColor rendering
-    sprintf(str, vid_truecolor ? "ON" : "OFF");
+    sprintf(str, vid_truecolor == 1 ? "SMOOTH"  :
+                 vid_truecolor == 2 ? "TRUECOLOR" : "ORIGINAL");
     M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
-                        vid_truecolor ? cr[CR_GREEN] : cr[CR_DARKRED], 
-                            vid_truecolor ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], 
+                        vid_truecolor == 1 ? cr[CR_YELLOW] : 
+                        vid_truecolor == 2 ? cr[CR_GREEN] : cr[CR_DARKRED], 
+                            vid_truecolor == 1 ? cr[CR_YELLOW_BRIGHT] : 
+                            vid_truecolor == 2 ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], 
                                 LINE_ALPHA(0));
 
     // Rendering resolution
@@ -1315,8 +1317,6 @@ static void M_Draw_ID_Video_1 (void)
 
 static void M_ID_TrueColorHook (void)
 {
-    vid_truecolor ^= 1;
-
     // [crispy] re-calculate amount of colormaps and light tables
     R_InitColormaps();
     // [crispy] re-calculate the zlight[][] array
@@ -1329,6 +1329,7 @@ static void M_ID_TrueColorHook (void)
 
 static void M_ID_TrueColor (int choice)
 {
+    vid_truecolor = M_INT_Slider(vid_truecolor, 0, 2, choice, false);
     post_rendering_hook = M_ID_TrueColorHook;
 }
 
@@ -3733,7 +3734,6 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { M_MUL1, "BRIGHTMAPS",                  M_ID_Brightmaps,        'b' },
     { M_MUL2, "TRANSLUCENCY",                M_ID_Translucency,      't' },
     { M_MUL1, "FAKE CONTRAST",               M_ID_FakeContrast,      'f' },
-    { M_MUL1, "DIMINISHED LIGHTING",         M_ID_SmoothLighting,    'd' },
     { M_MUL1, "SPRITE LIGHTING",             M_ID_SpriteLighting,    's' },
     { M_MUL1, "PALETTE FADING EFFECT",       M_ID_SmoothPalette,     'p' },
     { M_MUL2, "FUZZ EFFECT",                 M_ID_ImprovedFuzz,      'f' },
@@ -3788,73 +3788,66 @@ static void M_Draw_ID_Gameplay_1 (void)
                             vis_fake_contrast ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(2));
 
-    // Diminished lighting
-    sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
-    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
-                        vis_smooth_light ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            vis_smooth_light ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(3));
-
     // Sprite lighting
     sprintf(str, vis_sprite_light ? "PER-COLUMN" : "ORIGINAL");
-    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
                         vis_sprite_light ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_sprite_light ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(4));
+                                LINE_ALPHA(3));
 
     // Palette fading effect
     sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
-    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
                         vis_smooth_palette ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_smooth_palette ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(4));
 
     // Fuzz effect
     sprintf(str, vis_improved_fuzz == 1 ? "IMPROVED" :
                  vis_improved_fuzz == 2 ? "TRANSLUCENT" :
                  vis_improved_fuzz == 3 ? "GRAYSCALE" : "ORIGINAL");
-    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
                         vis_improved_fuzz ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_improved_fuzz ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(5));
 
     // Colored blood and corpses
     sprintf(str, vis_colored_blood == 1 ? "GREEN/BLUE ONLY" :
                  vis_colored_blood == 2 ? "ALL" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
                         vis_colored_blood ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_colored_blood ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(6));
 
     // Liquids animation
     sprintf(str, vis_swirling_liquids ? "IMPROVED" : "ORIGINAL");
-    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
                         vis_swirling_liquids ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_swirling_liquids ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
+                                LINE_ALPHA(7));
 
     // Invulnerability affects sky
     sprintf(str, vis_invul_sky ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
                         vis_invul_sky ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_invul_sky ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(9));
+                                LINE_ALPHA(8));
 
     // Sky drawing mode
     sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
-    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
                         vis_linear_sky ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_linear_sky ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(10));
+                                LINE_ALPHA(9));
 
     // Randomly mirrored corpses
     sprintf(str, vis_flip_corpses ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
                         vis_flip_corpses ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_flip_corpses ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(11));
+                                LINE_ALPHA(10));
 
-    M_WriteTextCentered(126, "CROSSHAIR", cr[CR_YELLOW]);
+    M_WriteTextCentered(117, "CROSSHAIR", cr[CR_YELLOW]);
 
     // Crosshair shape
     sprintf(str, xhair_draw == 1 ? "CROSS 1" :
@@ -3864,22 +3857,22 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_draw == 5 ? "ANGLE" :
                  xhair_draw == 6 ? "TRIANGLE" :
                  xhair_draw == 7 ? "DOT" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
                         xhair_draw ? cr[CR_GREEN] : cr[CR_DARKRED],
                             xhair_draw ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(13));
+                                LINE_ALPHA(12));
 
     // Crosshair indication
     sprintf(str, xhair_color == 1 ? "HEALTH" :
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
                  xhair_color == 3 ? "TARGET HIGHLIGHT+HEALTH" : "STATIC");
-    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
                         xhair_color ? cr[CR_GREEN] : cr[CR_DARKRED],
                             xhair_color ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(14));
+                                LINE_ALPHA(13));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "1/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 144, 15, "1/3");
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3897,25 +3890,6 @@ static void M_ID_FakeContrast (int choice)
     vis_fake_contrast ^= 1;
     // [crispy] re-calculate fake contrast
     P_SegLengths(true);
-}
-
-static void M_ID_SmoothLightingHook (void)
-{
-    vis_smooth_light ^= 1;
-
-    // [crispy] re-calculate amount of colormaps and light tables
-    R_InitColormaps();
-    // [crispy] re-calculate the zlight[][] array
-    R_InitLightTables();
-    // [crispy] re-calculate the scalelight[][] array
-    R_ExecuteSetViewSize();
-    // [crispy] re-calculate fake contrast
-    P_SegLengths(true);
-}
-
-static void M_ID_SmoothLighting (int choice)
-{
-    post_rendering_hook = M_ID_SmoothLightingHook;
 }
 
 static void M_ID_SpriteLighting (int choice)
@@ -5345,7 +5319,6 @@ static void M_ID_ApplyResetHook (void)
     vis_brightmaps = 0;
     vis_translucency = 0;
     vis_fake_contrast = 1;
-    vis_smooth_light = 0;
     vis_sprite_light = 0;
     vis_smooth_palette = 0;
     vis_improved_fuzz = 0;

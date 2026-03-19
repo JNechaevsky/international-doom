@@ -447,8 +447,8 @@ void P_SegLengths (boolean contrast_only)
     const int rightangle = abs(finesine[ANG30 >> ANGLETOFINESHIFT]);
     // [JN] Make fake contrast optional.
     const int fakecont_val  = vis_fake_contrast ? LIGHTBRIGHT : 0;
-    // [JN] Apply smoother fake contrast for smooth diminishing lighting.
-    const int smoothlit_val = (vis_fake_contrast && vis_smooth_light) ? LIGHTBRIGHT : 0;
+    // [JN] Apply smoother fake contrast in TrueColor modes.
+    const int smoothlit_val = (vis_fake_contrast && vid_truecolor) ? LIGHTBRIGHT : 0;
 
     seg_t *const segArray = segs;
 

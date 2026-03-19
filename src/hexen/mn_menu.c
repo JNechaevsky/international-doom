@@ -643,7 +643,6 @@ static void M_ID_Automap_MiniShading (int choice);
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
 static void M_ID_Translucency (int choice);
-static void M_ID_SmoothLighting (int choice);
 static void M_ID_SpriteLighting (int choice);
 static void M_ID_SmoothPalette (int choice);
 static void M_ID_SwirlingLiquids (int choice);
@@ -983,7 +982,7 @@ static void M_Draw_ID_Main (void)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Video_1[] = {
-    { ITT_LRFUNC2, "TRUECOLOR RENDERING",  M_ID_TrueColor,    0, MENU_NONE },
+    { ITT_LRFUNC2, "RENDERING MODE",       M_ID_TrueColor,    0, MENU_NONE },
     { ITT_LRFUNC1, "RENDERING RESOLUTION", M_ID_RenderingRes, 0, MENU_NONE },
     { ITT_LRFUNC1, "WIDESCREEN MODE",      M_ID_Widescreen,   0, MENU_NONE },
     { ITT_LRFUNC2, "EXCLUSIVE FULLSCREEN", M_ID_ExclusiveFS,  0, MENU_NONE },
@@ -1014,11 +1013,14 @@ static void M_Draw_ID_Video_1 (void)
 
     MN_DrTextACentered("VIDEO OPTIONS", 10, cr[CR_YELLOW]);
 
-    // Truecolor Rendering
-    sprintf(str, vid_truecolor ? "ON" : "OFF");
+    // Rendering mode
+    sprintf(str, vid_truecolor == 1 ? "SMOOTH"  :
+                 vid_truecolor == 2 ? "TRUECOLOR" : "ORIGINAL");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
-                        vid_truecolor ? cr[CR_GREEN_HX] : cr[CR_DARKRED], 
-                            vid_truecolor ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT], 
+                        vid_truecolor == 1 ? cr[CR_YELLOW] :
+                        vid_truecolor == 2 ? cr[CR_GREEN_HX] : cr[CR_DARKRED], 
+                            vid_truecolor == 1 ? cr[CR_YELLOW_BRIGHT] :
+                            vid_truecolor == 2 ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT], 
                                 LINE_ALPHA(0));
 
     // Rendering resolution
@@ -1122,8 +1124,6 @@ static void M_Draw_ID_Video_1 (void)
 
 static void M_ID_TrueColorHook (void)
 {
-    vid_truecolor ^= 1;
-
     // [crispy] re-calculate amount of colormaps and light tables
     R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
     // [crispy] re-calculate the zlight[][] array
@@ -1134,6 +1134,7 @@ static void M_ID_TrueColorHook (void)
 
 static void M_ID_TrueColor (int choice)
 {
+    vid_truecolor = M_INT_Slider(vid_truecolor, 0, 2, choice, false);
     post_rendering_hook = M_ID_TrueColorHook;
 }
 
@@ -3617,7 +3618,6 @@ static void M_ID_Automap_MiniShading (int choice)
 static MenuItem_t ID_Menu_Gameplay_1[] = {
     { ITT_LRFUNC1, "BRIGHTMAPS",                M_ID_Brightmaps,      0, MENU_NONE },
     { ITT_LRFUNC2, "EXTRA TRANSLUCENCY",        M_ID_Translucency,    0, MENU_NONE },
-    { ITT_LRFUNC1, "DIMINISHED LIGHTING",       M_ID_SmoothLighting,  0, MENU_NONE },
     { ITT_LRFUNC1, "SPRITE LIGHTING",           M_ID_SpriteLighting,  0, MENU_NONE },
     { ITT_LRFUNC1, "PALETTE FADING EFFECT",     M_ID_SmoothPalette,   0, MENU_NONE },
     { ITT_LRFUNC1, "LIQUIDS ANIMATION",         M_ID_SwirlingLiquids, 0, MENU_NONE },
@@ -3662,49 +3662,42 @@ static void M_Draw_ID_Gameplay_1 (void)
                             vis_translucency ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(1));
 
-    // Diminished lighting
-    sprintf(str, vis_smooth_light ? "SMOOTH" : "ORIGINAL");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
-                        vis_smooth_light ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
-                            vis_smooth_light ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(2));
-
     // Sprite lighting
     sprintf(str, vis_sprite_light ? "PER-COLUMN" : "ORIGINAL");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
                         vis_sprite_light ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             vis_sprite_light ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(3));
+                                LINE_ALPHA(2));
 
     // Palette fading effect
     sprintf(str, vis_smooth_palette ? "SMOOTH" : "ORIGINAL");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
                         vis_smooth_palette ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             vis_smooth_palette ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(4));
+                                LINE_ALPHA(3));
 
     // Liquids animation
     sprintf(str, vis_swirling_liquids ? "IMPROVED" : "ORIGINAL");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
                         vis_swirling_liquids ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             vis_swirling_liquids ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(4));
 
     // Sky drawing mode
     sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
                         vis_linear_sky ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             vis_linear_sky ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(5));
 
     // Randomly mirrored corpses
     sprintf(str, vis_flip_corpses ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
                         vis_flip_corpses ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             vis_flip_corpses ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(6));
 
-    MN_DrTextACentered("CROSSHAIR", 100, cr[CR_YELLOW]);
+    MN_DrTextACentered("CROSSHAIR", 90, cr[CR_YELLOW]);
 
     // Crosshair shape
     sprintf(str, xhair_draw == 1 ? "CROSS 1" :
@@ -3714,22 +3707,22 @@ static void M_Draw_ID_Gameplay_1 (void)
                  xhair_draw == 5 ? "ANGLE" :
                  xhair_draw == 6 ? "TRIANGLE" :
                  xhair_draw == 7 ? "DOT" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
                         xhair_draw ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             xhair_draw ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(9));
+                                LINE_ALPHA(8));
 
     // Crosshair indication
     sprintf(str, xhair_color == 1 ? "HEALTH" :
                  xhair_color == 2 ? "TARGET HIGHLIGHT" :
                  xhair_color == 3 ? "TGT HIGHLIGHT+HEALTH" : "STATIC");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
                         xhair_color ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             xhair_color ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(10));
+                                LINE_ALPHA(9));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "1/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 13, "1/3");
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3740,25 +3733,6 @@ static void M_ID_Brightmaps (int choice)
 static void M_ID_Translucency (int choice)
 {
     vis_translucency = M_INT_Slider(vis_translucency, 0, 2, choice, false);
-}
-
-static void M_ID_SmoothLightingHook (void)
-{
-    vis_smooth_light ^= 1;
-
-    // [crispy] re-calculate amount of colormaps and light tables
-    R_InitTrueColormaps(LevelUseFullBright ? "COLORMAP" : "FOGMAP");
-    // [crispy] re-calculate the zlight[][] array
-    R_InitLightTables();
-    // [crispy] re-calculate the scalelight[][] array
-    R_ExecuteSetViewSize();
-    // [crispy] re-calculate fake contrast
-    P_SegLengths();
-}
-
-static void M_ID_SmoothLighting (int choice)
-{
-    post_rendering_hook = M_ID_SmoothLightingHook;
 }
 
 static void M_ID_SpriteLighting (int choice)
@@ -4499,7 +4473,6 @@ static void M_ID_ApplyResetHook (void)
     // Visual
     vis_brightmaps = 0;
     vis_translucency = 0;
-    vis_smooth_light = 0;
     vis_sprite_light = 0;
     vis_smooth_palette = 0;
     vis_swirling_liquids = 0;
