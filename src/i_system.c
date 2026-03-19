@@ -53,6 +53,7 @@
 
 #define DEFAULT_RAM 16*2 /* MiB [crispy] */
 #define MIN_RAM     4*4  /* MiB [crispy] */
+#define I_ERROR_MESSAGE_BUFSIZE 4096
 
 
 typedef struct atexit_listentry_s atexit_listentry_t;
@@ -251,6 +252,775 @@ void I_Quit (void)
 
 static boolean already_quitting = false;
 
+#ifdef _WIN32
+#define I_ERROR_DIALOG_CLASS_NAME L"InterErrorDialogWindow"
+#define I_ERROR_DIALOG_BTN_OLDPROC "InterErrorDialogBtnOldProc"
+#define I_ERROR_DIALOG_BTN_HOVER "InterErrorDialogBtnHover"
+#define IDC_I_ERROR_DIALOG_OK 6002
+#define I_ERROR_DIALOG_ICON_SIZE 34
+#define I_ERROR_DIALOG_BUTTON_W 88
+#define I_ERROR_DIALOG_BUTTON_H 28
+#define I_ERROR_DIALOG_MARGIN 14
+#define I_ERROR_DIALOG_GAP 10
+#define I_ERROR_DIALOG_TEXT_MAX_W 360
+#define I_ERROR_DIALOG_MIN_W 340
+#define I_ERROR_DIALOG_MAX_W 520
+#define I_ERROR_DIALOG_MIN_H 150
+
+#define I_ERROR_COLOR_WINDOW_BG     RGB(43, 43, 43)
+#define I_ERROR_COLOR_BUTTON_BG     RGB(58, 58, 58)
+#define I_ERROR_COLOR_BUTTON_HOVER  RGB(78, 78, 78)
+#define I_ERROR_COLOR_BUTTON_BORDER RGB(96, 96, 96)
+#define I_ERROR_COLOR_TEXT          RGB(235, 235, 235)
+#define I_ERROR_ICON_RESOURCE_INFO  MAKEINTRESOURCEW(32516)
+#define I_ERROR_ICON_RESOURCE_ERROR MAKEINTRESOURCEW(32513)
+
+#ifndef SIID_INFO
+#define SIID_INFO 79
+#endif
+
+#ifndef SIID_ERROR
+#define SIID_ERROR 80
+#endif
+
+#ifndef SHGSI_ICON
+#define SHGSI_ICON 0x000000100
+#endif
+
+#ifndef SHGSI_LARGEICON
+#define SHGSI_LARGEICON 0x000000000
+#endif
+
+#ifndef WM_DPICHANGED
+#define WM_DPICHANGED 0x02E0
+#endif
+
+typedef HRESULT (WINAPI *dwm_set_window_attribute_t)(HWND, DWORD, LPCVOID, DWORD);
+typedef HRESULT (WINAPI *sh_get_stock_icon_info_t)(int, UINT, void *);
+
+typedef struct
+{
+    const wchar_t *message;
+    const wchar_t *title;
+    boolean safe;
+    HWND window;
+    HWND icon_control;
+    HWND ok_button;
+    HICON icon;
+    boolean owns_icon;
+    int dpi;
+    HFONT font;
+    RECT message_rect;
+    HBRUSH window_brush;
+    HBRUSH button_brush;
+    HBRUSH button_hover_brush;
+    HBRUSH button_border_brush;
+    BOOL done;
+} i_error_dialog_t;
+
+// -----------------------------------------------------------------------------
+// GetErrorDialogDPI
+//  [PN] Get effective DPI for error dialog (window or system fallback).
+// -----------------------------------------------------------------------------
+
+static int GetErrorDialogDPI(HWND hwnd)
+{
+    UINT dpi = 96;
+    HMODULE user32 = LoadLibraryA("user32.dll");
+
+    if (user32 != NULL)
+    {
+        typedef UINT (WINAPI *get_dpi_for_window_t)(HWND);
+        const get_dpi_for_window_t get_dpi_for_window =
+            (get_dpi_for_window_t) GetProcAddress(user32, "GetDpiForWindow");
+
+        if (get_dpi_for_window != NULL && hwnd != NULL)
+        {
+            const UINT window_dpi = get_dpi_for_window(hwnd);
+            if (window_dpi > 0)
+                dpi = window_dpi;
+        }
+
+        FreeLibrary(user32);
+    }
+
+    if (dpi == 96)
+    {
+        HDC dc = GetDC(hwnd);
+
+        if (dc != NULL)
+        {
+            const int log_dpi = GetDeviceCaps(dc, LOGPIXELSX);
+            if (log_dpi > 0)
+                dpi = (UINT) log_dpi;
+
+            ReleaseDC(hwnd, dc);
+        }
+    }
+
+    return (int) dpi;
+}
+
+// -----------------------------------------------------------------------------
+// ScaleErrorDialogByDPI
+//  [PN] Scale pixel value from 96 DPI baseline for error dialog layout.
+// -----------------------------------------------------------------------------
+
+static int ScaleErrorDialogByDPI(int value, int dpi)
+{
+    if (dpi <= 0)
+        dpi = 96;
+
+    return MulDiv(value, dpi, 96);
+}
+
+// -----------------------------------------------------------------------------
+// MeasureErrorDialogText
+//  [PN] Measure wrapped message text to size error dialog close to MessageBox.
+// -----------------------------------------------------------------------------
+
+static void MeasureErrorDialogText(const wchar_t *message, HFONT font, int max_width,
+                                   int *out_w, int *out_h)
+{
+    HDC dc;
+    int text_w = max_width / 2;
+    int text_h = 24;
+
+    if (message == NULL || *message == L'\0')
+    {
+        if (out_w != NULL)
+            *out_w = text_w;
+        if (out_h != NULL)
+            *out_h = text_h;
+        return;
+    }
+
+    dc = GetDC(NULL);
+
+    if (dc != NULL)
+    {
+        HFONT old_font = NULL;
+        RECT rc;
+
+        if (font != NULL)
+            old_font = (HFONT) SelectObject(dc, font);
+
+        SetRect(&rc, 0, 0, max_width, 0);
+
+        if (DrawTextW(dc, message, -1, &rc, DT_CALCRECT | DT_WORDBREAK | DT_EDITCONTROL | DT_NOPREFIX) > 0)
+        {
+            text_w = rc.right - rc.left;
+            text_h = rc.bottom - rc.top;
+        }
+
+        if (old_font != NULL)
+            SelectObject(dc, old_font);
+
+        ReleaseDC(NULL, dc);
+    }
+
+    if (text_w < 80)
+        text_w = 80;
+    if (text_h < 20)
+        text_h = 20;
+
+    if (out_w != NULL)
+        *out_w = text_w;
+    if (out_h != NULL)
+        *out_h = text_h;
+}
+
+// -----------------------------------------------------------------------------
+// TryEnableErrorDarkTitleBar
+//  [PN] Try enabling dark title bar for error dialog on supported Windows.
+// -----------------------------------------------------------------------------
+
+static void TryEnableErrorDarkTitleBar(HWND hwnd)
+{
+    HMODULE dwmapi = LoadLibraryA("dwmapi.dll");
+    if (dwmapi == NULL)
+        return;
+
+    const dwm_set_window_attribute_t set_window_attribute =
+        (dwm_set_window_attribute_t) GetProcAddress(dwmapi, "DwmSetWindowAttribute");
+
+    if (set_window_attribute != NULL)
+    {
+        BOOL enabled = TRUE;
+
+        // Windows 10 1809
+        set_window_attribute(hwnd, 19, &enabled, sizeof(enabled));
+        // Windows 10 1903+
+        set_window_attribute(hwnd, 20, &enabled, sizeof(enabled));
+    }
+
+    FreeLibrary(dwmapi);
+}
+
+// -----------------------------------------------------------------------------
+// LoadErrorDialogIcon
+//  [PN] Load info/error icon, scaled for dialog DPI.
+// -----------------------------------------------------------------------------
+
+static HICON LoadErrorDialogIcon(boolean safe, boolean *owns_icon, int icon_size)
+{
+    const PCWSTR icon_resource = safe ? I_ERROR_ICON_RESOURCE_INFO : I_ERROR_ICON_RESOURCE_ERROR;
+    HMODULE shell32 = LoadLibraryA("shell32.dll");
+
+    if (owns_icon != NULL)
+        *owns_icon = false;
+
+    if (shell32 != NULL)
+    {
+        typedef struct
+        {
+            DWORD cbSize;
+            HICON hIcon;
+            int iSysImageIndex;
+            int iIcon;
+            WCHAR szPath[MAX_PATH];
+        } i_error_shstockiconinfo_t;
+
+        const sh_get_stock_icon_info_t get_stock_icon_info =
+            (sh_get_stock_icon_info_t) GetProcAddress(shell32, "SHGetStockIconInfo");
+
+        if (get_stock_icon_info != NULL)
+        {
+            i_error_shstockiconinfo_t info;
+            memset(&info, 0, sizeof(info));
+            info.cbSize = sizeof(info);
+
+            if (SUCCEEDED(get_stock_icon_info(safe ? SIID_INFO : SIID_ERROR, SHGSI_ICON | SHGSI_LARGEICON, &info))
+             && info.hIcon != NULL)
+            {
+                HICON scaled_icon = (HICON) CopyImage(info.hIcon, IMAGE_ICON, icon_size, icon_size, 0);
+
+                if (scaled_icon != NULL)
+                {
+                    DestroyIcon(info.hIcon);
+                    info.hIcon = scaled_icon;
+                }
+
+                if (owns_icon != NULL)
+                    *owns_icon = true;
+
+                FreeLibrary(shell32);
+                return info.hIcon;
+            }
+        }
+
+        FreeLibrary(shell32);
+    }
+
+    {
+        HICON scaled_icon = (HICON) LoadImageW(NULL, icon_resource, IMAGE_ICON, icon_size, icon_size, 0);
+        if (scaled_icon != NULL)
+        {
+            if (owns_icon != NULL)
+                *owns_icon = true;
+            return scaled_icon;
+        }
+    }
+
+    return LoadIconW(NULL, icon_resource);
+}
+
+// -----------------------------------------------------------------------------
+// CreateErrorDialogFont
+//  [PN] Create system message font for error dialog controls.
+// -----------------------------------------------------------------------------
+
+static HFONT CreateErrorDialogFont(boolean *owns_font)
+{
+    NONCLIENTMETRICSW metrics;
+
+    if (owns_font != NULL)
+        *owns_font = false;
+
+    memset(&metrics, 0, sizeof(metrics));
+    metrics.cbSize = sizeof(metrics);
+
+    if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0))
+    {
+        HFONT font = CreateFontIndirectW(&metrics.lfMessageFont);
+        if (font != NULL)
+        {
+            if (owns_font != NULL)
+                *owns_font = true;
+            return font;
+        }
+    }
+
+    return (HFONT) GetStockObject(DEFAULT_GUI_FONT);
+}
+
+// -----------------------------------------------------------------------------
+// LayoutErrorDialog
+//  [PN] Reposition controls in dark error dialog for current client size.
+// -----------------------------------------------------------------------------
+
+static void LayoutErrorDialog(i_error_dialog_t *dialog)
+{
+    RECT rc;
+
+    if (dialog == NULL || dialog->window == NULL)
+        return;
+
+    const int margin = ScaleErrorDialogByDPI(I_ERROR_DIALOG_MARGIN, dialog->dpi);
+    const int gap = ScaleErrorDialogByDPI(I_ERROR_DIALOG_GAP, dialog->dpi);
+    const int icon_size = ScaleErrorDialogByDPI(I_ERROR_DIALOG_ICON_SIZE, dialog->dpi);
+    const int button_w = ScaleErrorDialogByDPI(I_ERROR_DIALOG_BUTTON_W, dialog->dpi);
+    const int button_h = ScaleErrorDialogByDPI(I_ERROR_DIALOG_BUTTON_H, dialog->dpi);
+
+    GetClientRect(dialog->window, &rc);
+
+    const int message_left = margin + icon_size + gap;
+    const int message_top = margin;
+    const int button_x = rc.right - margin - button_w;
+    const int button_y = rc.bottom - margin - button_h;
+    int message_w = rc.right - message_left - margin;
+    int message_h = button_y - gap - message_top;
+
+    if (message_w < 80)
+        message_w = 80;
+    if (message_h < 24)
+        message_h = 24;
+
+    if (dialog->icon_control != NULL)
+        MoveWindow(dialog->icon_control, margin, message_top, icon_size, icon_size, TRUE);
+
+    if (dialog->ok_button != NULL)
+        MoveWindow(dialog->ok_button, button_x, button_y, button_w, button_h, TRUE);
+
+    dialog->message_rect.left = message_left;
+    dialog->message_rect.top = message_top;
+    dialog->message_rect.right = message_left + message_w;
+    dialog->message_rect.bottom = message_top + message_h;
+}
+
+// -----------------------------------------------------------------------------
+// DrawErrorDialogButton
+//  [PN] Draw owner-drawn OK button with launcher-like dark palette.
+// -----------------------------------------------------------------------------
+
+static void DrawErrorDialogButton(const DRAWITEMSTRUCT *dis,
+                                  const i_error_dialog_t *dialog)
+{
+    RECT rc = dis->rcItem;
+    static const wchar_t caption[] = L"OK";
+    HBRUSH bg_brush = dialog->button_brush;
+
+    if (GetPropA(dis->hwndItem, I_ERROR_DIALOG_BTN_HOVER) != NULL
+     && dialog->button_hover_brush != NULL)
+        bg_brush = dialog->button_hover_brush;
+
+    FillRect(dis->hDC, &rc, bg_brush);
+    FrameRect(dis->hDC, &rc, dialog->button_border_brush);
+
+    SetBkMode(dis->hDC, TRANSPARENT);
+    SetTextColor(dis->hDC, I_ERROR_COLOR_TEXT);
+    DrawTextW(dis->hDC, caption, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+}
+
+// -----------------------------------------------------------------------------
+// ErrorDialogButtonHoverProc
+//  [PN] Track hover state for owner-drawn OK button.
+// -----------------------------------------------------------------------------
+
+static LRESULT CALLBACK ErrorDialogButtonHoverProc(HWND hwnd, UINT msg,
+                                                   WPARAM wparam, LPARAM lparam)
+{
+    const WNDPROC old_proc = (WNDPROC) GetPropA(hwnd, I_ERROR_DIALOG_BTN_OLDPROC);
+
+    if (old_proc == NULL)
+    {
+        return DefWindowProcW(hwnd, msg, wparam, lparam);
+    }
+
+    if (msg == WM_MOUSEMOVE && GetPropA(hwnd, I_ERROR_DIALOG_BTN_HOVER) == NULL)
+    {
+        TRACKMOUSEEVENT track;
+        memset(&track, 0, sizeof(track));
+        track.cbSize = sizeof(track);
+        track.dwFlags = TME_LEAVE;
+        track.hwndTrack = hwnd;
+        TrackMouseEvent(&track);
+
+        SetPropA(hwnd, I_ERROR_DIALOG_BTN_HOVER, (HANDLE) (INT_PTR) 1);
+        InvalidateRect(hwnd, NULL, FALSE);
+    }
+    else if (msg == WM_MOUSELEAVE && GetPropA(hwnd, I_ERROR_DIALOG_BTN_HOVER) != NULL)
+    {
+        RemovePropA(hwnd, I_ERROR_DIALOG_BTN_HOVER);
+        InvalidateRect(hwnd, NULL, FALSE);
+    }
+    else if (msg == WM_NCDESTROY)
+    {
+        RemovePropA(hwnd, I_ERROR_DIALOG_BTN_HOVER);
+        RemovePropA(hwnd, I_ERROR_DIALOG_BTN_OLDPROC);
+    }
+
+    return CallWindowProcW(old_proc, hwnd, msg, wparam, lparam);
+}
+
+// -----------------------------------------------------------------------------
+// InstallErrorDialogButtonHover
+//  [PN] Install hover tracking subclass for OK button.
+// -----------------------------------------------------------------------------
+
+static void InstallErrorDialogButtonHover(HWND hwnd)
+{
+    if (hwnd == NULL)
+        return;
+
+    const LONG_PTR old_proc = GetWindowLongPtr(hwnd, GWLP_WNDPROC);
+
+    if (old_proc != 0 && old_proc != (LONG_PTR) ErrorDialogButtonHoverProc)
+    {
+        SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR) ErrorDialogButtonHoverProc);
+        SetPropA(hwnd, I_ERROR_DIALOG_BTN_OLDPROC, (HANDLE) old_proc);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// I_ErrorDialogWndProc
+//  [PN] Handle dark Windows error dialog events, drawing and layout.
+// -----------------------------------------------------------------------------
+
+static LRESULT CALLBACK I_ErrorDialogWndProc(HWND hwnd, UINT msg,
+                                             WPARAM wparam, LPARAM lparam)
+{
+    i_error_dialog_t *dialog = (i_error_dialog_t *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
+    switch (msg)
+    {
+        case WM_NCCREATE:
+        {
+            const CREATESTRUCTW *create = (CREATESTRUCTW *) lparam;
+            dialog = (i_error_dialog_t *) create->lpCreateParams;
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) dialog);
+            break;
+        }
+
+        case WM_CREATE:
+            if (dialog == NULL)
+                break;
+
+            dialog->window = hwnd;
+            dialog->dpi = GetErrorDialogDPI(hwnd);
+            dialog->icon_control = CreateWindowExW(0, L"STATIC", NULL,
+                                                   WS_CHILD | WS_VISIBLE | SS_ICON,
+                                                   0, 0, 0, 0,
+                                                   hwnd, NULL, GetModuleHandle(NULL), NULL);
+            dialog->ok_button = CreateWindowExW(0, L"BUTTON", L"OK",
+                                                WS_CHILD | WS_VISIBLE | WS_TABSTOP
+                                              | BS_OWNERDRAW | BS_PUSHBUTTON,
+                                                0, 0, 0, 0,
+                                                hwnd,
+                                                (HMENU) (INT_PTR) IDC_I_ERROR_DIALOG_OK,
+                                                GetModuleHandle(NULL), NULL);
+
+            if (dialog->icon_control != NULL)
+            {
+                dialog->icon = LoadErrorDialogIcon(dialog->safe, &dialog->owns_icon,
+                                                   ScaleErrorDialogByDPI(I_ERROR_DIALOG_ICON_SIZE,
+                                                                         dialog->dpi));
+                SendMessageW(dialog->icon_control, STM_SETICON, (WPARAM) dialog->icon, 0);
+            }
+
+            if (dialog->font != NULL)
+            {
+                if (dialog->ok_button != NULL)
+                    SendMessageW(dialog->ok_button, WM_SETFONT, (WPARAM) dialog->font, TRUE);
+            }
+
+            InstallErrorDialogButtonHover(dialog->ok_button);
+            LayoutErrorDialog(dialog);
+            break;
+
+        case WM_SIZE:
+            if (dialog != NULL)
+                LayoutErrorDialog(dialog);
+            return 0;
+
+        case WM_DPICHANGED:
+            if (dialog != NULL)
+            {
+                const RECT *new_rect = (RECT *) lparam;
+                dialog->dpi = HIWORD(wparam);
+
+                if (new_rect != NULL)
+                {
+                    SetWindowPos(hwnd, NULL, new_rect->left, new_rect->top,
+                                 new_rect->right - new_rect->left,
+                                 new_rect->bottom - new_rect->top,
+                                 SWP_NOZORDER | SWP_NOACTIVATE);
+                }
+
+                if (dialog->icon_control != NULL)
+                {
+                    const boolean old_owns_icon = dialog->owns_icon;
+                    const HICON old_icon = dialog->icon;
+                    boolean new_owns_icon = false;
+                    const HICON new_icon =
+                        LoadErrorDialogIcon(dialog->safe, &new_owns_icon,
+                                            ScaleErrorDialogByDPI(I_ERROR_DIALOG_ICON_SIZE, dialog->dpi));
+
+                    if (new_icon != NULL)
+                    {
+                        if (old_owns_icon && old_icon != NULL)
+                        {
+                            DestroyIcon(old_icon);
+                        }
+
+                        dialog->icon = new_icon;
+                        dialog->owns_icon = new_owns_icon;
+                        SendMessageW(dialog->icon_control, STM_SETICON, (WPARAM) dialog->icon, 0);
+                    }
+                }
+
+                LayoutErrorDialog(dialog);
+            }
+            return 0;
+
+        case WM_ERASEBKGND:
+            if (dialog != NULL && dialog->window_brush != NULL)
+            {
+                RECT rc;
+                GetClientRect(hwnd, &rc);
+                FillRect((HDC) wparam, &rc, dialog->window_brush);
+                return 1;
+            }
+            break;
+
+        case WM_PAINT:
+            if (dialog != NULL)
+            {
+                PAINTSTRUCT ps;
+                HDC dc = BeginPaint(hwnd, &ps);
+
+                if (dc != NULL)
+                {
+                    HFONT old_font = NULL;
+                    RECT text_rc = dialog->message_rect;
+
+                    if (dialog->font != NULL)
+                    {
+                        old_font = (HFONT) SelectObject(dc, dialog->font);
+                    }
+
+                    SetBkMode(dc, TRANSPARENT);
+                    SetTextColor(dc, I_ERROR_COLOR_TEXT);
+                    DrawTextW(dc, dialog->message, -1, &text_rc, DT_WORDBREAK | DT_EDITCONTROL | DT_NOPREFIX);
+
+                    if (old_font != NULL)
+                    {
+                        SelectObject(dc, old_font);
+                    }
+                }
+
+                EndPaint(hwnd, &ps);
+                return 0;
+            }
+            break;
+
+        case WM_CTLCOLORSTATIC:
+        {
+            HDC dc = (HDC) wparam;
+
+            if (dialog != NULL && dialog->window_brush != NULL)
+            {
+                SetTextColor(dc, I_ERROR_COLOR_TEXT);
+                SetBkColor(dc, I_ERROR_COLOR_WINDOW_BG);
+                return (LRESULT) dialog->window_brush;
+            }
+            break;
+        }
+
+        case WM_DRAWITEM:
+            if (dialog != NULL)
+            {
+                const DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *) lparam;
+                if (dis->CtlID == IDC_I_ERROR_DIALOG_OK)
+                {
+                    DrawErrorDialogButton(dis, dialog);
+                    return TRUE;
+                }
+            }
+            break;
+
+        case WM_COMMAND:
+            if (LOWORD(wparam) == IDC_I_ERROR_DIALOG_OK
+             && HIWORD(wparam) == BN_CLICKED)
+            {
+                DestroyWindow(hwnd);
+                return 0;
+            }
+            break;
+
+        case WM_CLOSE:
+            DestroyWindow(hwnd);
+            return 0;
+
+        case WM_DESTROY:
+            if (dialog != NULL)
+                dialog->done = TRUE;
+            return 0;
+    }
+
+    return DefWindowProcW(hwnd, msg, wparam, lparam);
+}
+
+// -----------------------------------------------------------------------------
+// ShowDarkErrorDialogW
+//  [PN] Show dark-themed Windows error dialog matching launcher visuals.
+// -----------------------------------------------------------------------------
+
+static void ShowDarkErrorDialogW(const wchar_t *message, const wchar_t *title,
+                                 boolean safe)
+{
+    WNDCLASSW wc;
+    MSG msg;
+    const HINSTANCE instance = GetModuleHandle(NULL);
+    const DWORD window_style = WS_CAPTION | WS_SYSMENU | WS_CLIPCHILDREN;
+    const DWORD window_exstyle = WS_EX_DLGMODALFRAME;
+    i_error_dialog_t dialog;
+    boolean owns_font;
+    int x, y;
+    int window_w, window_h;
+
+    memset(&dialog, 0, sizeof(dialog));
+    memset(&wc, 0, sizeof(wc));
+
+    dialog.message = message;
+    dialog.title = title;
+    dialog.safe = safe;
+    dialog.dpi = 96;
+    dialog.window_brush = CreateSolidBrush(I_ERROR_COLOR_WINDOW_BG);
+    dialog.button_brush = CreateSolidBrush(I_ERROR_COLOR_BUTTON_BG);
+    dialog.button_hover_brush = CreateSolidBrush(I_ERROR_COLOR_BUTTON_HOVER);
+    dialog.button_border_brush = CreateSolidBrush(I_ERROR_COLOR_BUTTON_BORDER);
+    dialog.font = CreateErrorDialogFont(&owns_font);
+
+    wc.lpfnWndProc = I_ErrorDialogWndProc;
+    wc.hInstance = instance;
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.lpszClassName = I_ERROR_DIALOG_CLASS_NAME;
+    RegisterClassW(&wc);
+
+    {
+        const int dpi = GetErrorDialogDPI(NULL);
+        const int margin = ScaleErrorDialogByDPI(I_ERROR_DIALOG_MARGIN, dpi);
+        const int gap = ScaleErrorDialogByDPI(I_ERROR_DIALOG_GAP, dpi);
+        const int icon_size = ScaleErrorDialogByDPI(I_ERROR_DIALOG_ICON_SIZE, dpi);
+        const int button_w = ScaleErrorDialogByDPI(I_ERROR_DIALOG_BUTTON_W, dpi);
+        const int button_h = ScaleErrorDialogByDPI(I_ERROR_DIALOG_BUTTON_H, dpi);
+        const int max_text_w = ScaleErrorDialogByDPI(I_ERROR_DIALOG_TEXT_MAX_W, dpi);
+        const int min_w = ScaleErrorDialogByDPI(I_ERROR_DIALOG_MIN_W, dpi);
+        const int max_w = ScaleErrorDialogByDPI(I_ERROR_DIALOG_MAX_W, dpi);
+        const int min_h = ScaleErrorDialogByDPI(I_ERROR_DIALOG_MIN_H, dpi);
+        const int max_screen_w = GetSystemMetrics(SM_CXSCREEN) - ScaleErrorDialogByDPI(20, dpi);
+        const int max_screen_h = GetSystemMetrics(SM_CYSCREEN) - ScaleErrorDialogByDPI(40, dpi);
+        int client_w;
+        int client_h;
+        int text_w, text_h;
+        int row_h;
+
+        MeasureErrorDialogText(message, dialog.font, max_text_w, &text_w, &text_h);
+        row_h = text_h > icon_size ? text_h : icon_size;
+
+        client_w = margin + icon_size + gap + text_w + margin;
+        if (client_w < min_w)
+            client_w = min_w;
+        if (client_w < margin + button_w + margin)
+            client_w = margin + button_w + margin;
+        if (client_w > max_w)
+            client_w = max_w;
+
+        client_h = margin + row_h + gap + button_h + margin;
+        if (client_h < min_h)
+            client_h = min_h;
+
+        {
+            RECT wr = { 0, 0, client_w, client_h };
+            if (AdjustWindowRectEx(&wr, window_style, FALSE, window_exstyle))
+            {
+                window_w = wr.right - wr.left;
+                window_h = wr.bottom - wr.top;
+            }
+            else
+            {
+                window_w = client_w;
+                window_h = client_h;
+            }
+        }
+
+        if (window_w > max_screen_w)
+            window_w = max_screen_w;
+        if (window_h > max_screen_h)
+            window_h = max_screen_h;
+    }
+
+    x = (GetSystemMetrics(SM_CXSCREEN) - window_w) / 2;
+    y = (GetSystemMetrics(SM_CYSCREEN) - window_h) / 2;
+
+    if (x < 0)
+        x = 0;
+    if (y < 0)
+        y = 0;
+
+    dialog.window = CreateWindowExW(window_exstyle,
+                                    I_ERROR_DIALOG_CLASS_NAME,
+                                    dialog.title,
+                                    window_style,
+                                    x, y,
+                                    window_w, window_h,
+                                    NULL, NULL, instance, &dialog);
+
+    if (dialog.window == NULL)
+    {
+        MessageBoxW(NULL, message, title, safe ? MB_ICONASTERISK : MB_ICONSTOP);
+        goto cleanup;
+    }
+
+    TryEnableErrorDarkTitleBar(dialog.window);
+    ShowWindow(dialog.window, SW_SHOW);
+    UpdateWindow(dialog.window);
+    SetForegroundWindow(dialog.window);
+
+    if (dialog.ok_button != NULL)
+        SetFocus(dialog.ok_button);
+
+    while (!dialog.done && GetMessageW(&msg, NULL, 0, 0) > 0)
+    {
+        if (!IsDialogMessageW(dialog.window, &msg))
+        {
+            TranslateMessage(&msg);
+            DispatchMessageW(&msg);
+        }
+    }
+
+    if (!dialog.done && dialog.window != NULL && IsWindow(dialog.window))
+    {
+        DestroyWindow(dialog.window);
+    }
+
+cleanup:
+    if (dialog.window_brush != NULL)
+        DeleteObject(dialog.window_brush);
+    if (dialog.button_brush != NULL)
+        DeleteObject(dialog.button_brush);
+    if (dialog.button_border_brush != NULL)
+        DeleteObject(dialog.button_border_brush);
+    if (dialog.button_hover_brush != NULL)
+        DeleteObject(dialog.button_hover_brush);
+    if (owns_font && dialog.font != NULL)
+        DeleteObject(dialog.font);
+    if (dialog.owns_icon && dialog.icon != NULL)
+        DestroyIcon(dialog.icon);
+}
+#endif
+
 // [JN] Indicates if I_Error is not an error, but infomative message instead.
 // If false, a stop-sign icon appears.
 // If true, an icon consisting of a lowercase letter i in a circle appears.
@@ -262,7 +1032,7 @@ char *i_error_title = "Program quit";
 
 void I_Error (const char *error, ...)
 {
-    char msgbuf[512];
+    char msgbuf[I_ERROR_MESSAGE_BUFSIZE];
     va_list argptr;
     atexit_listentry_t *entry;
     boolean exit_gui_popup;
@@ -320,13 +1090,13 @@ void I_Error (const char *error, ...)
     {
 #ifdef _WIN32
         // [JN] UTF-8 retranslations of error message and window title.
-        wchar_t win_error_message[1024];
+        wchar_t win_error_message[I_ERROR_MESSAGE_BUFSIZE];
         wchar_t win_error_title[128];
 
-        // [JN] On Windows OS use system, nicer dialog box.
-        MultiByteToWideChar(CP_UTF8, 0, msgbuf, -1, win_error_message, 1024);
+        // [PN] On Windows use custom dark-themed dialog.
+        MultiByteToWideChar(CP_UTF8, 0, msgbuf, -1, win_error_message, I_ERROR_MESSAGE_BUFSIZE);
         MultiByteToWideChar(CP_UTF8, 0, i_error_title, -1, win_error_title, 128);
-        MessageBoxW(NULL, win_error_message, win_error_title, i_error_safe ? MB_ICONASTERISK : MB_ICONSTOP);
+        ShowDarkErrorDialogW(win_error_message, win_error_title, i_error_safe);
 #else
         SDL_ShowSimpleMessageBox(i_error_safe ? SDL_MESSAGEBOX_INFORMATION : SDL_MESSAGEBOX_ERROR,
                                  i_error_title, msgbuf, NULL);
@@ -463,4 +1233,3 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
 
     return false;
 }
-
