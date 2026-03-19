@@ -2062,7 +2062,9 @@ void D_DoomMain (void)
         remaster_ost = (W_CheckNumForName("H_INTRO") != -1) &&
                        (W_CheckNumForName("H_DM2TTL") != -1) &&
                        (W_CheckNumForName("O_INTRO") != -1) &&
-                       (W_CheckNumForName("O_DM2TTL") != -1);
+                       (W_CheckNumForName("O_DM2TTL") != -1) &&
+                       // Freedoom, Chex Quest and Hacx are not supposed to have remastered music
+                       gamevariant != freedoom && gameversion != exe_chex && gameversion != exe_hacx;
     }
 
     // Generate the WAD hash table.  Speed things up a bit.
