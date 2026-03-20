@@ -166,6 +166,71 @@ typedef struct
     boolean done;
 } iwad_launcher_t;
 
+typedef struct
+{
+    WNDPROC proc;
+} launcher_proc_holder_t;
+
+// -----------------------------------------------------------------------------
+// GetStoredWindowProc
+//  [PN] Read stored original window proc from property holder.
+// -----------------------------------------------------------------------------
+
+static WNDPROC GetStoredWindowProc(HWND hwnd, const char *prop_name)
+{
+    launcher_proc_holder_t *holder =
+        (launcher_proc_holder_t *) GetPropA(hwnd, prop_name);
+
+    return holder != NULL ? holder->proc : NULL;
+}
+
+// -----------------------------------------------------------------------------
+// SetStoredWindowProc
+//  [PN] Store original window proc in heap holder attached as window property.
+// -----------------------------------------------------------------------------
+
+static boolean SetStoredWindowProc(HWND hwnd, const char *prop_name, WNDPROC proc)
+{
+    launcher_proc_holder_t *holder;
+
+    if (hwnd == NULL || prop_name == NULL || proc == NULL)
+    {
+        return false;
+    }
+
+    holder = (launcher_proc_holder_t *) malloc(sizeof(*holder));
+    if (holder == NULL)
+    {
+        return false;
+    }
+
+    holder->proc = proc;
+
+    if (!SetPropA(hwnd, prop_name, (HANDLE) holder))
+    {
+        free(holder);
+        return false;
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// ClearStoredWindowProc
+//  [PN] Remove and free stored window-proc holder for control property.
+// -----------------------------------------------------------------------------
+
+static void ClearStoredWindowProc(HWND hwnd, const char *prop_name)
+{
+    launcher_proc_holder_t *holder =
+        (launcher_proc_holder_t *) RemovePropA(hwnd, prop_name);
+
+    if (holder != NULL)
+    {
+        free(holder);
+    }
+}
+
 typedef HRESULT (WINAPI *dwm_set_window_attribute_t)(HWND, DWORD,
                                                       LPCVOID, DWORD);
 typedef HRESULT (WINAPI *set_window_theme_t)(HWND, LPCWSTR, LPCWSTR);
@@ -1601,7 +1666,7 @@ static void DrawLauncherSettingsCheckbox(const DRAWITEMSTRUCT *dis,
 static LRESULT CALLBACK LauncherButtonHoverProc(HWND hwnd, UINT msg,
                                                 WPARAM wparam, LPARAM lparam)
 {
-    WNDPROC old_proc = (WNDPROC) GetPropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC);
+    WNDPROC old_proc = GetStoredWindowProc(hwnd, IWAD_LAUNCHER_BTN_OLDPROC);
     if (old_proc == NULL)
     {
         return DefWindowProcA(hwnd, msg, wparam, lparam);
@@ -1628,7 +1693,7 @@ static LRESULT CALLBACK LauncherButtonHoverProc(HWND hwnd, UINT msg,
     if (msg == WM_NCDESTROY)
     {
         RemovePropA(hwnd, IWAD_LAUNCHER_BTN_HOVER);
-        RemovePropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC);
+        ClearStoredWindowProc(hwnd, IWAD_LAUNCHER_BTN_OLDPROC);
         return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
     }
 
@@ -1648,7 +1713,10 @@ static void InstallButtonHover(HWND hwnd)
 
     if (old_proc != NULL)
     {
-        SetPropA(hwnd, IWAD_LAUNCHER_BTN_OLDPROC, (HANDLE) old_proc);
+        if (!SetStoredWindowProc(hwnd, IWAD_LAUNCHER_BTN_OLDPROC, old_proc))
+        {
+            SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR) old_proc);
+        }
     }
 }
 
@@ -1703,7 +1771,7 @@ static void DrawFixedControlBorder(HWND hwnd)
 static LRESULT CALLBACK LauncherControlBorderProc(HWND hwnd, UINT msg,
                                                   WPARAM wparam, LPARAM lparam)
 {
-    WNDPROC old_proc = (WNDPROC) GetPropA(hwnd, IWAD_LAUNCHER_OLDPROC);
+    WNDPROC old_proc = GetStoredWindowProc(hwnd, IWAD_LAUNCHER_OLDPROC);
     if (old_proc == NULL)
     {
         return DefWindowProcA(hwnd, msg, wparam, lparam);
@@ -1721,7 +1789,7 @@ static LRESULT CALLBACK LauncherControlBorderProc(HWND hwnd, UINT msg,
             }
         }
 
-        RemovePropA(hwnd, IWAD_LAUNCHER_OLDPROC);
+        ClearStoredWindowProc(hwnd, IWAD_LAUNCHER_OLDPROC);
         return CallWindowProcA(old_proc, hwnd, msg, wparam, lparam);
     }
 
@@ -1752,7 +1820,12 @@ static void InstallFixedControlBorder(HWND hwnd)
 
     if (old_proc != NULL)
     {
-        SetPropA(hwnd, IWAD_LAUNCHER_OLDPROC, (HANDLE) old_proc);
+        if (!SetStoredWindowProc(hwnd, IWAD_LAUNCHER_OLDPROC, old_proc))
+        {
+            SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR) old_proc);
+            return;
+        }
+
         DrawFixedControlBorder(hwnd);
     }
 }

@@ -318,6 +318,71 @@ typedef struct
     BOOL done;
 } i_error_dialog_t;
 
+typedef struct
+{
+    WNDPROC proc;
+} i_error_proc_holder_t;
+
+// -----------------------------------------------------------------------------
+// GetStoredErrorDialogProc
+//  [PN] Read stored original proc for error-dialog button subclass.
+// -----------------------------------------------------------------------------
+
+static WNDPROC GetStoredErrorDialogProc(HWND hwnd)
+{
+    i_error_proc_holder_t *holder =
+        (i_error_proc_holder_t *) GetPropA(hwnd, I_ERROR_DIALOG_BTN_OLDPROC);
+
+    return holder != NULL ? holder->proc : NULL;
+}
+
+// -----------------------------------------------------------------------------
+// SetStoredErrorDialogProc
+//  [PN] Store original button proc in heap holder attached as window property.
+// -----------------------------------------------------------------------------
+
+static boolean SetStoredErrorDialogProc(HWND hwnd, WNDPROC proc)
+{
+    i_error_proc_holder_t *holder;
+
+    if (hwnd == NULL || proc == NULL)
+    {
+        return false;
+    }
+
+    holder = (i_error_proc_holder_t *) malloc(sizeof(*holder));
+    if (holder == NULL)
+    {
+        return false;
+    }
+
+    holder->proc = proc;
+
+    if (!SetPropA(hwnd, I_ERROR_DIALOG_BTN_OLDPROC, (HANDLE) holder))
+    {
+        free(holder);
+        return false;
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// ClearStoredErrorDialogProc
+//  [PN] Remove and free stored proc holder for error-dialog button subclass.
+// -----------------------------------------------------------------------------
+
+static void ClearStoredErrorDialogProc(HWND hwnd)
+{
+    i_error_proc_holder_t *holder =
+        (i_error_proc_holder_t *) RemovePropA(hwnd, I_ERROR_DIALOG_BTN_OLDPROC);
+
+    if (holder != NULL)
+    {
+        free(holder);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // GetErrorDialogDPI
 //  [PN] Get effective DPI for error dialog (window or system fallback).
@@ -630,7 +695,7 @@ static void DrawErrorDialogButton(const DRAWITEMSTRUCT *dis,
 static LRESULT CALLBACK ErrorDialogButtonHoverProc(HWND hwnd, UINT msg,
                                                    WPARAM wparam, LPARAM lparam)
 {
-    const WNDPROC old_proc = (WNDPROC) GetPropA(hwnd, I_ERROR_DIALOG_BTN_OLDPROC);
+    const WNDPROC old_proc = GetStoredErrorDialogProc(hwnd);
 
     if (old_proc == NULL)
     {
@@ -657,7 +722,7 @@ static LRESULT CALLBACK ErrorDialogButtonHoverProc(HWND hwnd, UINT msg,
     else if (msg == WM_NCDESTROY)
     {
         RemovePropA(hwnd, I_ERROR_DIALOG_BTN_HOVER);
-        RemovePropA(hwnd, I_ERROR_DIALOG_BTN_OLDPROC);
+        ClearStoredErrorDialogProc(hwnd);
     }
 
     return CallWindowProcW(old_proc, hwnd, msg, wparam, lparam);
@@ -678,7 +743,11 @@ static void InstallErrorDialogButtonHover(HWND hwnd)
     if (old_proc != 0 && old_proc != (LONG_PTR) ErrorDialogButtonHoverProc)
     {
         SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR) ErrorDialogButtonHoverProc);
-        SetPropA(hwnd, I_ERROR_DIALOG_BTN_OLDPROC, (HANDLE) old_proc);
+
+        if (!SetStoredErrorDialogProc(hwnd, (WNDPROC) old_proc))
+        {
+            SetWindowLongPtr(hwnd, GWLP_WNDPROC, old_proc);
+        }
     }
 }
 
