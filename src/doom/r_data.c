@@ -1007,7 +1007,7 @@ void R_InitColormaps (void)
 		colormaps_allocated = true;
 	}
 
-	// [PN] TrueColor modes always use smoothest diminishing lighting.
+	// [PN] Smooth/TrueColor rendering modes always use 256 light levels.
 	NUMCOLORMAPS = vid_truecolor ? 256 : 32;
 
     if (vid_truecolor)
@@ -1043,30 +1043,33 @@ void R_InitColormaps (void)
         const double cAdj = 128.0 * (1.0 - (double)vid_contrast);
         const double (*cbm)[3] = colorblind_matrix[a11y_colorblind];
 
-        // [PN] TrueColor light generation modes:
+        // [PN] 256-level light generation for non-original rendering modes:
         // vid_truecolor == 1: sample vanilla COLORMAP rows and interpolate to 256 levels.
-        // vid_truecolor == 2: smooth fade to black in gamma space.
+        // vid_truecolor == 2: interpolate only between COLORMAP row 0 and row 31.
         if (vid_truecolor == 2)
         {
-            const int black_gamma = gtab[0];
+            const int map_rows = 32;
+            const byte *const restrict src0 = &colormap[0];
+            const byte *const restrict src1 = &colormap[(map_rows - 1) * 256];
 
             for (int c = 0; c < NUMCOLORMAPS; ++c)
             {
-                const double scale = (double)c / (double)NUMCOLORMAPS;
-                const double k0 = 1.0 - scale;
-                const double kB = (double)black_gamma * scale;
+                const double t = (NUMCOLORMAPS > 1)
+                    ? (double)c / (double)(NUMCOLORMAPS - 1)
+                    : 0.0;
+                const double w0 = 1.0 - t;
 
                 lighttable_t *const restrict row = &colormaps[c * 256];
 
                 for (int i = 0; i < 256; ++i)
                 {
-                    // Legacy behavior: base indices come from COLORMAP row 0.
-                    const byte k = colormap[i];
+                    const byte k0i = src0[i];
+                    const byte k1i = src1[i];
 
-                    // 1) Light fade in gamma space
-                    double R = (double)pal_gamma[k][0] * k0 + kB;
-                    double G = (double)pal_gamma[k][1] * k0 + kB;
-                    double B = (double)pal_gamma[k][2] * k0 + kB;
+                    // 1) Endpoint interpolation: COLORMAP[0] -> COLORMAP[31]
+                    double R = (double)pal_gamma[k0i][0] * w0 + (double)pal_gamma[k1i][0] * t;
+                    double G = (double)pal_gamma[k0i][1] * w0 + (double)pal_gamma[k1i][1] * t;
+                    double B = (double)pal_gamma[k0i][2] * w0 + (double)pal_gamma[k1i][2] * t;
 
                     // 2) Contrast (affine)
                     R = cMul * R + cAdj;
