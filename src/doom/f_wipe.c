@@ -41,6 +41,8 @@ static pixel_t *wipe_scr_start;
 static pixel_t *wipe_scr_end;
 static pixel_t *wipe_scr;
 static int     *y;
+static int     *y_prev;
+static int      wipe_columns;
 
 // [JN] Function pointers to melt and crossfade effects.
 static void (*wipe_init) (void);
@@ -58,7 +60,9 @@ static int fade_counter;
 static void wipe_EnsureBuffers (void)
 {
     static size_t wipe_capacity = 0;
+    static size_t wipe_columns_capacity = 0;
     const size_t need_area = (size_t)SCREENAREA;
+    const size_t need_columns = (size_t)SCREENWIDTH;
 
     if (need_area > wipe_capacity)
     {
@@ -66,6 +70,12 @@ static void wipe_EnsureBuffers (void)
         wipe_scr_end   = (pixel_t *)I_Realloc(wipe_scr_end, need_area * sizeof(*wipe_scr_end));
         y              =     (int *)I_Realloc(y, need_area * sizeof(*y));
         wipe_capacity  = need_area;
+    }
+
+    if (need_columns > wipe_columns_capacity)
+    {
+        y_prev = (int *)I_Realloc(y_prev, need_columns * sizeof(*y_prev));
+        wipe_columns_capacity = need_columns;
     }
 }
 
@@ -75,6 +85,14 @@ static void wipe_EnsureBuffers (void)
 
 static void wipe_initMelt (void)
 {
+    const int scale = (vid_resolution > 0) ? vid_resolution : 1;
+
+    wipe_columns = SCREENWIDTH / (2 * scale);
+    if (wipe_columns < 1)
+    {
+        wipe_columns = 1;
+    }
+
     // copy start screen to main screen
     memcpy(wipe_scr, wipe_scr_start, SCREENAREA*sizeof(*wipe_scr));
 
@@ -82,7 +100,7 @@ static void wipe_initMelt (void)
     // (y<0 => not ready to scroll yet)
     y[0] = -(ID_RealRandom()%16);
 
-    for (int i = 1 ; i < SCREENWIDTH ; i++)
+    for (int i = 1 ; i < wipe_columns ; i++)
     {
         int r = (ID_RealRandom()%3) - 1;
 
@@ -98,6 +116,8 @@ static void wipe_initMelt (void)
             y[i] = -15;
         }
     }
+
+    memcpy(y_prev, y, wipe_columns * sizeof(*y_prev));
 }
 
 // -----------------------------------------------------------------------------
@@ -149,61 +169,162 @@ static void wipe_initFizzle (void)
 }
 
 // -----------------------------------------------------------------------------
+// wipe_renderMelt
+// -----------------------------------------------------------------------------
+
+static void wipe_renderMelt (void)
+{
+    // [PN] Melt state is simulated in 320x200 space and scaled for current resolution.
+    const int vertblocksize = SCREENHEIGHT * 100 / ORIGHEIGHT;
+    const int horizblocksize = SCREENWIDTH * 100 / wipe_columns;
+    int tail_start = 0;
+
+    memcpy(wipe_scr, wipe_scr_end, SCREENAREA * sizeof(*wipe_scr));
+
+    for (int col = 0; col < wipe_columns; ++col)
+    {
+        int currcol = (col * horizblocksize) / 100;
+        const int currcolend = ((col + 1) * horizblocksize) / 100;
+        int current = y[col];
+
+        if (vid_uncapped_fps)
+        {
+            const int delta = y[col] - y_prev[col];
+            current = y_prev[col] + (int)(delta * FIXED2DOUBLE(fractionaltic));
+        }
+
+        if (current < 0)
+        {
+            for (; currcol < currcolend; ++currcol)
+            {
+                const pixel_t *source = wipe_scr_start + currcol;
+                pixel_t       *dest   = wipe_scr + currcol;
+
+                for (int row = 0; row < SCREENHEIGHT; ++row)
+                {
+                    *dest = *source;
+                    dest += SCREENWIDTH;
+                    source += SCREENWIDTH;
+                }
+            }
+        }
+        else if (current < ORIGHEIGHT)
+        {
+            const int currrow = (current * vertblocksize) / 100;
+
+            for (; currcol < currcolend; ++currcol)
+            {
+                const pixel_t *source = wipe_scr_start + currcol;
+                pixel_t       *dest   = wipe_scr + currcol + (currrow * SCREENWIDTH);
+
+                for (int row = 0; row < SCREENHEIGHT - currrow; ++row)
+                {
+                    *dest = *source;
+                    dest += SCREENWIDTH;
+                    source += SCREENWIDTH;
+                }
+            }
+        }
+
+        tail_start = currcolend;
+    }
+
+    if (tail_start < SCREENWIDTH)
+    {
+        int current = y[wipe_columns - 1];
+
+        if (vid_uncapped_fps)
+        {
+            const int delta = y[wipe_columns - 1] - y_prev[wipe_columns - 1];
+            current = y_prev[wipe_columns - 1] + (int)(delta * FIXED2DOUBLE(fractionaltic));
+        }
+
+        if (current < 0)
+        {
+            for (int currcol = tail_start; currcol < SCREENWIDTH; ++currcol)
+            {
+                const pixel_t *source = wipe_scr_start + currcol;
+                pixel_t       *dest   = wipe_scr + currcol;
+
+                for (int row = 0; row < SCREENHEIGHT; ++row)
+                {
+                    *dest = *source;
+                    dest += SCREENWIDTH;
+                    source += SCREENWIDTH;
+                }
+            }
+        }
+        else if (current < ORIGHEIGHT)
+        {
+            const int currrow = (current * vertblocksize) / 100;
+
+            for (int currcol = tail_start; currcol < SCREENWIDTH; ++currcol)
+            {
+                const pixel_t *source = wipe_scr_start + currcol;
+                pixel_t       *dest   = wipe_scr + currcol + (currrow * SCREENWIDTH);
+
+                for (int row = 0; row < SCREENHEIGHT - currrow; ++row)
+                {
+                    *dest = *source;
+                    dest += SCREENWIDTH;
+                    source += SCREENWIDTH;
+                }
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 // wipe_doMelt
 // -----------------------------------------------------------------------------
 
 static const int wipe_doMelt (int ticks)
 {
-    int j;
-    int dy;
-    const int width = SCREENWIDTH/2;
-    boolean	done = true;
+    boolean done = true;
 
-    while (ticks--)
+    if (ticks > 0)
     {
-        for (int i = 0 ; i < width ; i++)
+        while (ticks--)
         {
-            if (y[i]<0)
+            memcpy(y_prev, y, wipe_columns * sizeof(*y_prev));
+
+            for (int col = 0; col < wipe_columns; ++col)
             {
-                y[i]++; done = false;
-            }
-            else
-            if (y[i] < SCREENHEIGHT)
-            {
-                dy = (y[i] < 16) ? y[i]+1 : ((8 * vid_screenwipe) * vid_resolution);
-
-                if (y[i]+dy >= SCREENHEIGHT)
+                if (y_prev[col] < 0)
                 {
-                    dy = SCREENHEIGHT - y[i];
+                    y[col] = y_prev[col] + 1;
+                    done = false;
                 }
-
-                // [PN] Row-major: copy the falling part from end-screen column (i)
-                // source starts at row y[i], destination at the same row
-                const dpixel_t *s1 = &((dpixel_t *)wipe_scr_end)[ y[i] * width + i ];
-                dpixel_t       *d1 = &((dpixel_t *)wipe_scr    )[ y[i] * width + i ];
-                for (j = dy; j; --j)
+                else if (y_prev[col] < ORIGHEIGHT)
                 {
-                    *d1 = *s1;
-                    d1 += width;  // next row
-                    s1 += width;  // next row
-                }
+                    // [PN] Accelerate after warm-up rows; speed still scales via vid_screenwipe.
+                    int dy = (y_prev[col] < 16) ? y_prev[col] + 1 : (8 * vid_screenwipe);
+                    int next = y_prev[col] + dy;
 
-                y[i] += dy;
-                
-                // [PN] Row-major: fill the area above with start-screen column (i)
-                const dpixel_t *s2 = &((dpixel_t *)wipe_scr_start)[i]; // row 0
-                dpixel_t       *d2 = &((dpixel_t *)wipe_scr      )[y[i] * width + i ];
-                for (j = SCREENHEIGHT - y[i]; j; --j)
+                    if (next > ORIGHEIGHT)
+                    {
+                        next = ORIGHEIGHT;
+                    }
+
+                    y[col] = next;
+                    done = false;
+                }
+                else
                 {
-                    *d2 = *s2;
-                    d2 += width;  // next row
-                    s2 += width;  // next row
+                    y[col] = ORIGHEIGHT;
                 }
-
-                done = false;
             }
         }
     }
+    else
+    {
+        for (int col = 0; col < wipe_columns; ++col)
+        {
+            done = done && (y[col] >= ORIGHEIGHT);
+        }
+    }
+
+    wipe_renderMelt();
 
     return done;
 }

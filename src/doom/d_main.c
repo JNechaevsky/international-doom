@@ -470,12 +470,23 @@ static void D_Display (void)
 
     do
     {
-        do
+        if (vid_uncapped_fps && vid_screenwipe > 0 && vid_screenwipe < 3)
         {
             nowtime = I_GetTime ();
             tics = nowtime - wipestart;
-            I_Sleep(1);
-        } while (tics <= 0);
+
+            // [PN] Allow sub-tic melt rendering via fractionaltic interpolation.
+            I_UpdateFracTic();
+        }
+        else
+        {
+            do
+            {
+                nowtime = I_GetTime ();
+                tics = nowtime - wipestart;
+                I_Sleep(1);
+            } while (tics <= 0);
+        }
 
         wipestart = nowtime;
         done = wipe_ScreenWipe(tics);
