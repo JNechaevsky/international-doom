@@ -297,15 +297,7 @@ angle_t mapangle;
 
 void AM_Init (void)
 {
-    char namebuf[9];
     unsigned const char *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-
-    // [JN] Initialize mark patches.
-    for (int i = 0 ; i < 10 ; i++)
-    {
-        DEH_snprintf(namebuf, 9, "AMMNUM%d", i);
-        marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
-    }
 
     // [PN] Initialize automap color lookup table.
     for (int i = 0; i < 256; ++i)
@@ -347,6 +339,15 @@ void AM_Init (void)
     automap_colors[254] = AM_GetAutomapColor(playpal, 254, 111,   1, 107);
 
     W_ReleaseLumpName("PLAYPAL");
+
+    // [JN] Initialize mark patches.
+    char namebuf[9];
+
+    for (int i = 0 ; i < 10 ; i++)
+    {
+        DEH_snprintf(namebuf, 9, "AMMNUM%d", i);
+        marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
+    }
 }
 
 // -----------------------------------------------------------------------------
