@@ -297,7 +297,15 @@ angle_t mapangle;
 
 void AM_Init (void)
 {
+    char namebuf[9];
     unsigned const char *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+
+    // [JN] Initialize mark patches.
+    for (int i = 0 ; i < 10 ; i++)
+    {
+        DEH_snprintf(namebuf, 9, "AMMNUM%d", i);
+        marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
+    }
 
     // [PN] Initialize automap color lookup table.
     for (int i = 0; i < 256; ++i)
@@ -662,37 +670,6 @@ void AM_initVariables (void)
 }
 
 // -----------------------------------------------------------------------------
-// AM_loadPics
-// -----------------------------------------------------------------------------
-
-static void AM_loadPics (void)
-{
-    char namebuf[9];
-  
-    for (int i = 0 ; i < 10 ; i++)
-    {
-        DEH_snprintf(namebuf, 9, "AMMNUM%d", i);
-        marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
-    }
-
-}
-
-// -----------------------------------------------------------------------------
-// AM_unloadPics
-// -----------------------------------------------------------------------------
-
-static void AM_unloadPics (void)
-{
-    char namebuf[9];
-
-    for (int i = 0 ; i < 10 ; i++)
-    {
-        DEH_snprintf(namebuf, 9, "AMMNUM%d", i);
-        W_ReleaseLumpName(namebuf);
-    }
-}
-
-// -----------------------------------------------------------------------------
 // AM_clearMarks
 // -----------------------------------------------------------------------------
 
@@ -764,7 +741,6 @@ void AM_LevelInit (boolean reinit)
 
 void AM_Stop (void)
 {
-    AM_unloadPics();
     automapactive = false;
     stopped = true;
 }
@@ -792,7 +768,6 @@ void AM_Start (void)
     }
 
     AM_initVariables();
-    AM_loadPics();
 }
 
 // -----------------------------------------------------------------------------
