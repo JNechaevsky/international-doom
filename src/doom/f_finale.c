@@ -43,6 +43,7 @@
 #include "m_misc.h" // [crispy] M_StringDuplicate()
 
 #include "id_func.h"
+#include "id_vars.h"
 
 typedef enum
 {
@@ -724,7 +725,8 @@ F_DrawPatchCol
 //
 static void F_BunnyScroll (void)
 {
-    signed int  scrolled;
+    int64_t     framecount;
+    int64_t     scrolledfrac;
     int		x;
     patch_t*	p1;
     patch_t*	p2;
@@ -769,16 +771,28 @@ static void F_BunnyScroll (void)
         p2offset = ORIGWIDTH + p1offset;
     }
 
-    scrolled = (ORIGWIDTH - ((signed int) finalecount-230)/2);
-    if (scrolled > ORIGWIDTH)
-	scrolled = ORIGWIDTH;
-    if (scrolled < 0)
-	scrolled = 0;
+    framecount = (int64_t)finalecount << FRACBITS;
+
+    // [PN] Render sub-tic bunny scrolling in uncapped mode while preserving tic timing.
+    if (vid_uncapped_fps && !paused)
+    {
+        framecount += fractionaltic;
+    }
+
+    scrolledfrac = ((int64_t)ORIGWIDTH << FRACBITS)
+                 - ((framecount - ((int64_t)230 << FRACBITS)) >> 1);
+
+    if (scrolledfrac > ((int64_t)ORIGWIDTH << FRACBITS))
+        scrolledfrac = ((int64_t)ORIGWIDTH << FRACBITS);
+    if (scrolledfrac < 0)
+        scrolledfrac = 0;
 
     for (x = pillar_width; x < SCREENWIDTH - pillar_width; x++)
     {
-        // [JN] Added -1 to support higher rendering resolutions and wide screen modes.
-        const int x2 = ((x * dxi) >> FRACBITS) - WIDESCREENDELTA + scrolled - (scrolled ? 1 : 0);
+        // [PN] Keep source-column sampling in fixed-point so sub-tic scroll stays visible.
+        // Subtract 1 source pixel while scrolling to preserve seam behavior.
+        const int x2 = (int)((((int64_t)x * dxi) - ((int64_t)WIDESCREENDELTA << FRACBITS)
+                             + scrolledfrac - (scrolledfrac ? FRACUNIT : 0)) >> FRACBITS);
 
         if (x2 < p2offset)
             F_DrawPatchCol (x, p1, x2 - p1offset);
