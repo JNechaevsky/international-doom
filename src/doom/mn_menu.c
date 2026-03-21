@@ -1177,7 +1177,7 @@ static void M_Draw_ID_Video_1 (void)
 
     M_WriteTextCentered(9, "VIDEO OPTIONS", cr[CR_YELLOW]);
 
-    // TrueColor rendering
+    // Rendering mode
     sprintf(str, vid_truecolor == 1 ? "SMOOTH"  :
                  vid_truecolor == 2 ? "TRUECOLOR" : "ORIGINAL");
     M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
@@ -1276,8 +1276,10 @@ static void M_Draw_ID_Video_1 (void)
                  vid_screenwipe == 3 ? "CROSSFADE" :
                  vid_screenwipe == 4 ? "FIZZLE" : "OFF");
     M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
-                        vid_screenwipe == 1 ? cr[CR_DARKRED] : cr[CR_GREEN],
-                            vid_screenwipe == 1 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                        vid_screenwipe == 1 ? cr[CR_DARKRED] :
+                        vid_screenwipe == 0 ? cr[CR_YELLOW]  : cr[CR_GREEN],
+                            vid_screenwipe == 1 ? cr[CR_RED_BRIGHT] :
+                            vid_screenwipe == 0 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(10));
 
     // Show disk icon
@@ -3745,6 +3747,7 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { M_SKIP, "", 0, '\0' },
     { M_MUL2, "SHAPE",                       M_ID_Crosshair,         's' },
     { M_MUL2, "INDICATION",                  M_ID_CrosshairColor,    'i' },
+    { M_SKIP, "", 0, '\0' },
     { M_MUL2, "", /* < SCROLL PAGES >*/      M_ScrollGameplay,       's' },
 };
 
@@ -3872,7 +3875,7 @@ static void M_Draw_ID_Gameplay_1 (void)
                                 LINE_ALPHA(13));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 144, 15, "1/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "1/3");
 }
 
 static void M_ID_Brightmaps (int choice)

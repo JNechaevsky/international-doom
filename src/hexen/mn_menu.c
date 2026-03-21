@@ -3722,7 +3722,7 @@ static void M_Draw_ID_Gameplay_1 (void)
                                 LINE_ALPHA(9));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 13, "1/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "1/3");
 }
 
 static void M_ID_Brightmaps (int choice)
@@ -3795,7 +3795,6 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC1, "CORPSES SLIDING FROM LEDGES", M_ID_Torque,       0, MENU_NONE },
     { ITT_LRFUNC2, "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE },
     { ITT_LRFUNC1, "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,    0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_EMPTY,   NULL,                          NULL,              0, MENU_NONE },
     { ITT_LRFUNC2, "", /* SCROLLS PAGES */        M_ScrollGameplay,  0, MENU_NONE },
 };
@@ -3886,7 +3885,7 @@ static void M_Draw_ID_Gameplay_2 (void)
                                 LINE_ALPHA(10));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "2/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "2/3");
 }
 
 static void M_ID_Layout (int choice)
@@ -3952,7 +3951,6 @@ static MenuItem_t ID_Menu_Gameplay_3[] = {
     { ITT_LRFUNC1, "PLAY INTERNAL DEMOS",          M_ID_InternalDemos,  0, MENU_NONE },
     { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
     { ITT_LRFUNC1, "AUTOMATIC STRAFE 50",          M_ID_AutomaticSR50,  0, MENU_NONE },
-    { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
     { ITT_EMPTY,   NULL,                           NULL,                0, MENU_NONE },
     { ITT_LRFUNC2, "", /* SCROLLS PAGES */         M_ScrollGameplay,    0, MENU_NONE },
 };
@@ -4057,7 +4055,7 @@ static void M_Draw_ID_Gameplay_3 (void)
                                 LINE_ALPHA(10));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "3/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 140, 12, "3/3");
 }
 
 static void M_ID_DefaultClass (int choice)

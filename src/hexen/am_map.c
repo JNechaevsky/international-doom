@@ -1445,7 +1445,9 @@ static inline void PUTDOT_THICK(int x, int y, byte *cc)
             }
         }
 
-        const int flipx = flipscreenwidth[fx + nx];
+        const int flipx = drawing_minimap
+                        ? (gp_flip_levels ? (fx + (f_w - 1 - nx)) : (fx + nx))
+                        : flipscreenwidth[fx + nx];
         uint32_t *pix = fbuf + (fy + miny) * stride + flipx;
 
         for (int ny = miny; ny <= maxy; ++ny, pix += stride)
@@ -1554,7 +1556,9 @@ static inline void PUTDOT_THICK_BLEND(int x, int y, byte color, pixel_t fg, unsi
             }
         }
 
-        const int flipx = flipscreenwidth[fx + nx];
+        const int flipx = drawing_minimap
+                        ? (gp_flip_levels ? (fx + (f_w - 1 - nx)) : (fx + nx))
+                        : flipscreenwidth[fx + nx];
         uint32_t *pix = fbuf + (fy + miny) * stride + flipx;
 
         for (int ny = miny; ny <= maxy; ++ny, pix += stride)
@@ -2329,7 +2333,9 @@ static void AM_drawMarks (void)
 
         fx = (mapx / vid_resolution) - 1;
         fy = (CYMTOF(pt.y) / vid_resolution) - 2;
-        fx_flip = (flipscreenwidth[mapx] / vid_resolution) - 1;
+        fx_flip = ((drawing_minimap
+            ? (gp_flip_levels ? (f_x + (f_w - 1 - (mapx - f_x))) : mapx)
+            : flipscreenwidth[mapx]) / vid_resolution) - 1;
         j = i;
 
         do
