@@ -18,6 +18,7 @@
 
 // MN_menu.c
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
@@ -52,6 +53,10 @@
 #define SELECTOR_YOFFSET (-1)
 #define SLOTTEXTLEN     22
 #define ASCII_CURSOR '['
+
+// [PN] Save/Load preview area (original 320x200 coordinate space).
+#define SAVE_PREVIEW_X 236
+#define SAVE_PREVIEW_Y 23
 
 // Types
 
@@ -173,10 +178,13 @@ static void DrawFilesMenu(void);
 static void MN_DrawInfo(void);
 static void DrawLoadMenu(void);
 static void DrawSaveMenu(void);
+static void DrawSavePreview(const Menu_t *menu);
+static void DrawSavePreviewBorder(int x, int y, int w, int h);
 static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, boolean bigspacing, int itemPos);
 static void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
 static void MN_DeactivateMenu(void);
 static void MN_LoadSlotText(void);
+static boolean MN_ReadSavePreview(FILE *fp, byte *preview);
 
 inline static void M_ID_MenuMouseControl (void);
 inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max);
@@ -201,8 +209,10 @@ static int typeofask;
 static boolean FileMenuKeySteal;
 static boolean slottextloaded;
 static char SlotText[SAVES_PER_PAGE][SLOTTEXTLEN + 2];
+static byte SlotPreview[SAVES_PER_PAGE][SAVEGAME_PREVIEW_SIZE];
 static char oldSlotText[SLOTTEXTLEN + 2];
 static int SlotStatus[SAVES_PER_PAGE];
+static boolean SlotPreviewStatus[SAVES_PER_PAGE];
 static int slotptr;
 static int currentSlot;
 static int quicksave;
@@ -318,7 +328,7 @@ static MenuItem_t LoadItems[] = {
 };
 
 static Menu_t LoadMenu = {
-    70, 18,
+    34, 18,
     DrawLoadMenu,
     SAVES_PER_PAGE, LoadItems,
     0,
@@ -338,7 +348,7 @@ static MenuItem_t SaveItems[] = {
 };
 
 static Menu_t SaveMenu = {
-    70, 18,
+    34, 18,
     DrawSaveMenu,
     SAVES_PER_PAGE, SaveItems,
     0,
@@ -6173,27 +6183,37 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
         MN_DrTextA("PGDN", menu->x + width - MN_TextAWidth("PGDN"), y, cr[CR_MENU_DARK4]);
 
     M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, SAVEPAGE_MAX + 1);
-    MN_DrTextA(pagestr, ORIGWIDTH / 2 - MN_TextAWidth(pagestr) / 2, y, cr[CR_MENU_DARK4]);
+    // [PN] Keep PAGE label aligned with Save/Load list shift (base x was 70).
+    MN_DrTextA(pagestr, ORIGWIDTH / 2 + (menu->x - 65) - MN_TextAWidth(pagestr) / 2,
+               y, cr[CR_MENU_DARK4]);
 
     // [JN] Print "modified" (or created initially) time of savegame file.
     if (CurrentItPos != -1 && SlotStatus[CurrentItPos] && !FileMenuKeySteal)
     {
         struct stat filestat;
         char filedate[32];
+        char filetime[32];
+        char *filename = SV_Filename(CurrentItPos);
 
-        if (M_stat(SV_Filename(CurrentItPos), &filestat) == 0)
+        if (M_stat(filename, &filestat) == 0)
         {
+        int date_x, time_x;
 // [FG] suppress the most useless compiler warning ever
 #if defined(__GNUC__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-y2k"
 #endif
-        strftime(filedate, sizeof(filedate), "%x %X", localtime(&filestat.st_mtime));
+        strftime(filedate, sizeof(filedate), "%x", localtime(&filestat.st_mtime));
+        strftime(filetime, sizeof(filetime), "%X", localtime(&filestat.st_mtime));
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop
 #endif
-        MN_DrTextACentered(filedate, y + 10, cr[CR_MENU_DARK4]);
+        date_x = SAVE_PREVIEW_X + (SAVEGAME_PREVIEW_WIDTH - MN_TextAWidth(filedate)) / 2;
+        time_x = SAVE_PREVIEW_X + (SAVEGAME_PREVIEW_WIDTH - MN_TextAWidth(filetime)) / 2;
+        MN_DrTextA(filedate, date_x, SAVE_PREVIEW_Y + SAVEGAME_PREVIEW_HEIGHT + 6, cr[CR_MENU_DARK4]);
+        MN_DrTextA(filetime, time_x, SAVE_PREVIEW_Y + SAVEGAME_PREVIEW_HEIGHT + 16, cr[CR_MENU_DARK4]);
         }
+        free(filename);
     }
 }
 
@@ -6214,6 +6234,7 @@ static void DrawLoadMenu(void)
         MN_LoadSlotText();
     }
     DrawFileSlots(&LoadMenu);
+    DrawSavePreview(&LoadMenu);
     MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 1, NULL);
     DrawSaveLoadBottomLine(&LoadMenu);
 }
@@ -6235,8 +6256,139 @@ static void DrawSaveMenu(void)
         MN_LoadSlotText();
     }
     DrawFileSlots(&SaveMenu);
+    DrawSavePreview(&SaveMenu);
     MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 1, NULL);
     DrawSaveLoadBottomLine(&SaveMenu);
+}
+
+// [PN] Read thumbnail footer/data from end of save file with strict validation.
+static boolean MN_ReadSavePreview(FILE *fp, byte *preview)
+{
+    byte footer[SAVEGAME_PREVIEW_FOOTER_SIZE];
+    long file_size;
+    long data_pos;
+    unsigned int data_len;
+
+    if (fseek(fp, 0, SEEK_END) != 0)
+    {
+        return false;
+    }
+
+    file_size = ftell(fp);
+    if (file_size < SAVEGAME_PREVIEW_FOOTER_SIZE)
+    {
+        return false;
+    }
+
+    if (fseek(fp, file_size - SAVEGAME_PREVIEW_FOOTER_SIZE, SEEK_SET) != 0)
+    {
+        return false;
+    }
+
+    if (fread(footer, 1, SAVEGAME_PREVIEW_FOOTER_SIZE, fp) != SAVEGAME_PREVIEW_FOOTER_SIZE)
+    {
+        return false;
+    }
+
+    // [PN] "ISVP" = "Inter Save View Preview".
+    if (footer[0] != 'I' || footer[1] != 'S' || footer[2] != 'V' || footer[3] != 'P')
+    {
+        return false;
+    }
+    if (footer[4] != SAVEGAME_PREVIEW_VERSION)
+    {
+        return false;
+    }
+    if (footer[5] != SAVEGAME_PREVIEW_WIDTH || footer[6] != SAVEGAME_PREVIEW_HEIGHT)
+    {
+        return false;
+    }
+
+    data_len = (unsigned int)footer[8]
+             | ((unsigned int)footer[9] << 8)
+             | ((unsigned int)footer[10] << 16)
+             | ((unsigned int)footer[11] << 24);
+
+    if (data_len != SAVEGAME_PREVIEW_SIZE)
+    {
+        return false;
+    }
+
+    data_pos = file_size - SAVEGAME_PREVIEW_FOOTER_SIZE - (long)data_len;
+    if (data_pos < 0)
+    {
+        return false;
+    }
+
+    if (fseek(fp, data_pos, SEEK_SET) != 0)
+    {
+        return false;
+    }
+
+    return fread(preview, 1, SAVEGAME_PREVIEW_SIZE, fp) == SAVEGAME_PREVIEW_SIZE;
+}
+
+// [PN] Draw decorative preview frame using Heretic beveled border patches.
+static void DrawSavePreviewBorder(int x, int y, int w, int h)
+{
+    patch_t *patch_top = W_CacheLumpName(DEH_String("bordt"), PU_CACHE);
+    patch_t *patch_bottom = W_CacheLumpName(DEH_String("bordb"), PU_CACHE);
+    patch_t *patch_left = W_CacheLumpName(DEH_String("bordl"), PU_CACHE);
+    patch_t *patch_right = W_CacheLumpName(DEH_String("bordr"), PU_CACHE);
+    patch_t *patch_tl = W_CacheLumpName(DEH_String("bordtl"), PU_CACHE);
+    patch_t *patch_tr = W_CacheLumpName(DEH_String("bordtr"), PU_CACHE);
+    patch_t *patch_bl = W_CacheLumpName(DEH_String("bordbl"), PU_CACHE);
+    patch_t *patch_br = W_CacheLumpName(DEH_String("bordbr"), PU_CACHE);
+
+    // [PN] Tile top/bottom without overshooting when w is not divisible by 16.
+    for (int i = 0; i + 16 < w; i += 16)
+    {
+        V_DrawPatch(x + i, y - 4, patch_top);
+        V_DrawPatch(x + i, y + h, patch_bottom);
+    }
+    V_DrawPatch(x + ((w > 16) ? (w - 16) : 0), y - 4, patch_top);
+    V_DrawPatch(x + ((w > 16) ? (w - 16) : 0), y + h, patch_bottom);
+
+    // [PN] Tile left/right without overshooting when h is not divisible by 16.
+    for (int i = 0; i + 16 < h; i += 16)
+    {
+        V_DrawPatch(x - 4, y + i, patch_left);
+        V_DrawPatch(x + w, y + i, patch_right);
+    }
+    V_DrawPatch(x - 4, y + ((h > 16) ? (h - 16) : 0), patch_left);
+    V_DrawPatch(x + w, y + ((h > 16) ? (h - 16) : 0), patch_right);
+
+    V_DrawPatch(x - 4, y - 4, patch_tl);
+    V_DrawPatch(x + w, y - 4, patch_tr);
+    V_DrawPatch(x - 4, y + h, patch_bl);
+    V_DrawPatch(x + w, y + h, patch_br);
+}
+
+// [PN] Draw selected slot thumbnail or black fallback, then frame it.
+static void DrawSavePreview(const Menu_t *menu)
+{
+    const int slot = (CurrentItPos >= 0 && CurrentItPos < SAVES_PER_PAGE) ? CurrentItPos : 0;
+    const boolean has_slot = (CurrentItPos >= 0 && CurrentItPos < SAVES_PER_PAGE);
+    const int x = SAVE_PREVIEW_X;
+    const int y = SAVE_PREVIEW_Y;
+    (void)menu;
+
+    if (has_slot && SlotPreviewStatus[slot])
+    {
+        V_DrawScaledBlock(x, y, SAVEGAME_PREVIEW_WIDTH, SAVEGAME_PREVIEW_HEIGHT,
+                          SlotPreview[slot]);
+    }
+    else
+    {
+        const int rx = (x + WIDESCREENDELTA) * vid_resolution;
+        const int ry = y * vid_resolution;
+        const int rw = SAVEGAME_PREVIEW_WIDTH * vid_resolution;
+        const int rh = SAVEGAME_PREVIEW_HEIGHT * vid_resolution;
+
+        V_DrawFilledBox(rx, ry, rw, rh, I_MapRGB(0x00, 0x00, 0x00));
+    }
+
+    DrawSavePreviewBorder(x, y, SAVEGAME_PREVIEW_WIDTH, SAVEGAME_PREVIEW_HEIGHT);
 }
 
 //===========================================================================
@@ -6256,18 +6408,20 @@ static void MN_LoadSlotText(void)
     {
         int retval;
         filename = SV_Filename(i);
-        fp = M_fopen(filename, "rb+");
+        fp = M_fopen(filename, "rb");
 	free(filename);
 
         if (!fp)
         {
             SlotText[i][0] = 0; // empty the string
             SlotStatus[i] = 0;
+            SlotPreviewStatus[i] = false;
             continue;
         }
         retval = fread(&SlotText[i], 1, SLOTTEXTLEN, fp);
-        fclose(fp);
         SlotStatus[i] = retval == SLOTTEXTLEN;
+        SlotPreviewStatus[i] = SlotStatus[i] && MN_ReadSavePreview(fp, SlotPreview[i]);
+        fclose(fp);
     }
     slottextloaded = true;
 }

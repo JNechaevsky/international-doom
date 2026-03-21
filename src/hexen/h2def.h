@@ -927,6 +927,13 @@ extern boolean gamekeydown[NUMKEYS];
 #define HXS_VERSION_TEXT_LENGTH 16
 #define HXS_DESCRIPTION_LENGTH 24
 
+// [PN] Savegame preview thumbnail (raw paletted + footer in save tail).
+#define SAVEGAME_PREVIEW_WIDTH        72
+#define SAVEGAME_PREVIEW_HEIGHT       45
+#define SAVEGAME_PREVIEW_SIZE         (SAVEGAME_PREVIEW_WIDTH * SAVEGAME_PREVIEW_HEIGHT)
+#define SAVEGAME_PREVIEW_FOOTER_SIZE  12
+#define SAVEGAME_PREVIEW_VERSION      1
+
 // [crispy] support up to 16 pages of savegames
 #define SAVES_PER_PAGE 6
 #define SAVEPAGE_MAX 15
@@ -939,6 +946,9 @@ extern int OnDeathLoadSlot;
 
 void SV_SaveGame(int slot, const char *description);
 void SV_LoadGame(int slot);
+void SV_RequestSavePreviewCapture(void);
+boolean SV_IsSavePreviewReady(void);
+void SV_UpdateSavePreviewCache(void);
 void SV_MapTeleport(int map, int position);
 void SV_InitBaseSlot(void);
 void SV_UpdateRebornSlot(void);

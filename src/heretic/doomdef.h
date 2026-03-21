@@ -628,6 +628,13 @@ extern ticcmd_t *netcmds;
 #define SAVEGAMESIZE 0x30000
 #define SAVESTRINGSIZE 24
 
+// [PN] Savegame preview thumbnail (raw paletted + footer in save tail).
+#define SAVEGAME_PREVIEW_WIDTH        72
+#define SAVEGAME_PREVIEW_HEIGHT       45
+#define SAVEGAME_PREVIEW_SIZE         (SAVEGAME_PREVIEW_WIDTH * SAVEGAME_PREVIEW_HEIGHT)
+#define SAVEGAME_PREVIEW_FOOTER_SIZE  12
+#define SAVEGAME_PREVIEW_VERSION      1
+
 extern mapthing_t *deathmatch_p;
 extern mapthing_t deathmatchstarts[10];
 extern mapthing_t playerstarts[MAXPLAYERS];
@@ -856,6 +863,10 @@ void P_ArchiveAutomap(void);
 void P_UnArchiveAutomap(void);
 void P_ArchiveOldSpecials(void);
 void P_UnArchiveOldSpecials(void);
+void P_ArchiveSavePreview(void);
+void P_RequestSavePreviewCapture(void);
+boolean P_IsSavePreviewReady(void);
+void P_UpdateSavePreviewCache(void);
 // load / save game routines
 
 

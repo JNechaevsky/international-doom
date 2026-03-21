@@ -604,6 +604,13 @@ extern fixed_t bulletslope;
 // maximum size of a savegame description
 #define SAVESTRINGSIZE  24
 
+// [PN] Savegame preview thumbnail (raw paletted + footer in save tail).
+#define SAVEGAME_PREVIEW_WIDTH        72
+#define SAVEGAME_PREVIEW_HEIGHT       45
+#define SAVEGAME_PREVIEW_SIZE         (SAVEGAME_PREVIEW_WIDTH * SAVEGAME_PREVIEW_HEIGHT)
+#define SAVEGAME_PREVIEW_FOOTER_SIZE  12
+#define SAVEGAME_PREVIEW_VERSION      1
+
 extern boolean  P_ReadSaveGameEOF(void);
 extern boolean  P_ReadSaveGameHeader(void);
 extern char    *P_SaveGameFile(int slot);
@@ -612,6 +619,10 @@ extern void     P_ArchiveAutomap (void);
 extern void     P_ArchivePlayers (void);
 extern void     P_ArchiveOldSpecials (void);
 extern void     P_ArchiveGameplaySettings (void);
+extern void     P_ArchiveSavePreview (void);
+extern void     P_RequestSavePreviewCapture (void);
+extern boolean  P_IsSavePreviewReady (void);
+extern void     P_UpdateSavePreviewCache (void);
 extern void     P_ArchiveSpecials (void);
 extern void     P_ArchiveThinkers (void);
 extern void     P_ArchiveTotalTimes (void);

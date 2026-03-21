@@ -19,12 +19,15 @@
 // P_tick.c
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "doomdef.h"
+#include "i_video.h"
 #include "i_swap.h"
 #include "i_system.h"
 #include "m_misc.h"
 #include "p_local.h"
+#include "r_local.h"
 #include "v_video.h"
 #include "am_map.h"
 
@@ -189,6 +192,106 @@ static int64_t SV_ReadLongLong(void)
     int64_t result;
     SV_Read(&result, sizeof(int64_t));
     return (int64_t)(result);
+}
+
+// -----------------------------------------------------------------------------
+// [PN] Savegame preview helpers.
+// -----------------------------------------------------------------------------
+
+static byte saveg_preview_cache[SAVEGAME_PREVIEW_SIZE];
+static boolean saveg_preview_cache_valid = false;
+static boolean saveg_preview_capture_requested = false;
+
+static byte saveg_pixel_to_palette(pixel_t pixel)
+{
+    if (argbbuffer == NULL || argbbuffer->format == NULL || rgb_to_pal == NULL)
+    {
+        return 0;
+    }
+
+    {
+        uint8_t r, g, b;
+        SDL_GetRGB((uint32_t)pixel, argbbuffer->format, &r, &g, &b);
+        return RGB_TO_PAL(r, g, b);
+    }
+}
+
+static boolean saveg_build_preview(byte *thumb)
+{
+    int src_x = viewwindowx;
+    int src_y = viewwindowy;
+    int src_w = scaledviewwidth;
+    int src_h = viewheight;
+
+    // [PN] Crop to non-widescreen world width (centered) for stable menu preview.
+    if (src_w > NONWIDEWIDTH)
+    {
+        src_x += (src_w - NONWIDEWIDTH) / 2;
+        src_w = NONWIDEWIDTH;
+    }
+
+    // [PN] Clamp source rectangle to current framebuffer.
+    if (src_x < 0)
+    {
+        src_w += src_x;
+        src_x = 0;
+    }
+    if (src_y < 0)
+    {
+        src_h += src_y;
+        src_y = 0;
+    }
+    if (src_x + src_w > SCREENWIDTH)
+    {
+        src_w = SCREENWIDTH - src_x;
+    }
+    if (src_y + src_h > SCREENHEIGHT)
+    {
+        src_h = SCREENHEIGHT - src_y;
+    }
+
+    if (src_w <= 0 || src_h <= 0 || I_VideoBuffer == NULL)
+    {
+        return false;
+    }
+
+    for (int y = 0; y < SAVEGAME_PREVIEW_HEIGHT; ++y)
+    {
+        const int sy = src_y + (y * src_h) / SAVEGAME_PREVIEW_HEIGHT;
+
+        for (int x = 0; x < SAVEGAME_PREVIEW_WIDTH; ++x)
+        {
+            const int sx = src_x + (x * src_w) / SAVEGAME_PREVIEW_WIDTH;
+            const pixel_t px = I_VideoBuffer[sy * SCREENWIDTH + sx];
+
+            thumb[y * SAVEGAME_PREVIEW_WIDTH + x] = saveg_pixel_to_palette(px);
+        }
+    }
+
+    return true;
+}
+
+void P_RequestSavePreviewCapture (void)
+{
+    saveg_preview_cache_valid = false;
+    saveg_preview_capture_requested = true;
+}
+
+boolean P_IsSavePreviewReady (void)
+{
+    return !saveg_preview_capture_requested;
+}
+
+// [PN] Refresh clean world-only save preview cache from the freshly rendered view.
+void P_UpdateSavePreviewCache (void)
+{
+    if (!saveg_preview_capture_requested)
+    {
+        return;
+    }
+
+    saveg_preview_cache_valid = saveg_build_preview(saveg_preview_cache);
+    saveg_preview_capture_requested = false;
 }
 
 //
@@ -2091,6 +2194,49 @@ void P_ArchiveOldSpecials (void)
     {
         SV_WriteWord(sec->oldspecial);
     }
+}
+
+// -----------------------------------------------------------------------------
+// P_ArchiveSavePreview
+// [PN] Archive savegame preview thumbnail at end of save file.
+//       Layout: [raw paletted data][footer].
+//       Footer:
+//         bytes 0..3   "ISVP" magic ("Inter Save View Preview")
+//         byte  4      version
+//         byte  5      width
+//         byte  6      height
+//         byte  7      reserved
+//         bytes 8..11  data size (LE32)
+// -----------------------------------------------------------------------------
+
+void P_ArchiveSavePreview (void)
+{
+    byte thumb[SAVEGAME_PREVIEW_SIZE];
+
+    // [PN] Always write a preview block: use cached world image or black fallback.
+    if (saveg_preview_cache_valid)
+    {
+        memcpy(thumb, saveg_preview_cache, sizeof(thumb));
+    }
+    else
+    {
+        memset(thumb, 0, sizeof(thumb));
+    }
+
+    for (int i = 0; i < SAVEGAME_PREVIEW_SIZE; ++i)
+    {
+        SV_WriteByte(thumb[i]);
+    }
+
+    SV_WriteByte('I');
+    SV_WriteByte('S');
+    SV_WriteByte('V');
+    SV_WriteByte('P');
+    SV_WriteByte(SAVEGAME_PREVIEW_VERSION);
+    SV_WriteByte(SAVEGAME_PREVIEW_WIDTH);
+    SV_WriteByte(SAVEGAME_PREVIEW_HEIGHT);
+    SV_WriteByte(0); // reserved
+    SV_WriteLong(SAVEGAME_PREVIEW_SIZE);
 }
 
 // -----------------------------------------------------------------------------

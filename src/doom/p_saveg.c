@@ -21,9 +21,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "dstrings.h"
 #include "deh_main.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "z_zone.h"
 #include "p_local.h"
 #include "doomstat.h"
@@ -33,6 +35,7 @@
 #include "s_sound.h"
 #include "m_random.h"
 #include "mn_menu.h"
+#include "r_local.h"
 
 #include "id_vars.h"
 
@@ -175,6 +178,123 @@ static void saveg_write64(int64_t value)
     saveg_write8((value >> 40) & 0xff);
     saveg_write8((value >> 48) & 0xff);
     saveg_write8((value >> 56) & 0xff);
+}
+
+// -----------------------------------------------------------------------------
+// [PN] Savegame preview helpers.
+// -----------------------------------------------------------------------------
+
+static byte saveg_preview_cache[SAVEGAME_PREVIEW_SIZE];
+static boolean saveg_preview_cache_valid = false;
+static boolean saveg_preview_capture_requested = false;
+
+static byte saveg_pixel_to_palette(pixel_t pixel)
+{
+    // [PN] Fast path: lookup from the ARGB -> palette hash used by renderer.
+    if (argb2pal_keys != NULL && argb2pal_vals != NULL && argb2pal_mask > 0)
+    {
+        int i = ((uint32_t)pixel * 2654435761u) & argb2pal_mask;
+        uint32_t key;
+
+        while ((key = argb2pal_keys[i]) && key != (uint32_t)pixel)
+        {
+            i = (i + 1) & argb2pal_mask;
+        }
+
+        if (key)
+        {
+            return argb2pal_vals[i];
+        }
+    }
+
+    // [PN] Fallback path: convert RGB to nearest PLAYPAL index via LUT.
+    if (argbbuffer != NULL && argbbuffer->format != NULL && rgb_to_pal != NULL)
+    {
+        uint8_t r, g, b;
+
+        SDL_GetRGB((uint32_t)pixel, argbbuffer->format, &r, &g, &b);
+        return RGB_TO_PAL(r, g, b);
+    }
+
+    return 0;
+}
+
+static boolean saveg_build_preview(byte *thumb)
+{
+    int src_x = viewwindowx;
+    int src_y = viewwindowy;
+    int src_w = scaledviewwidth;
+    int src_h = viewheight;
+
+    // [PN] Crop to non-widescreen world width (centered) to keep 4:3-ish capture.
+    if (src_w > NONWIDEWIDTH)
+    {
+        src_x += (src_w - NONWIDEWIDTH) / 2;
+        src_w = NONWIDEWIDTH;
+    }
+
+    // [PN] Clamp source rect to current framebuffer.
+    if (src_x < 0)
+    {
+        src_w += src_x;
+        src_x = 0;
+    }
+    if (src_y < 0)
+    {
+        src_h += src_y;
+        src_y = 0;
+    }
+    if (src_x + src_w > SCREENWIDTH)
+    {
+        src_w = SCREENWIDTH - src_x;
+    }
+    if (src_y + src_h > SCREENHEIGHT)
+    {
+        src_h = SCREENHEIGHT - src_y;
+    }
+
+    if (src_w <= 0 || src_h <= 0 || I_VideoBuffer == NULL)
+    {
+        return false;
+    }
+
+    for (int y = 0; y < SAVEGAME_PREVIEW_HEIGHT; ++y)
+    {
+        const int sy = src_y + (y * src_h) / SAVEGAME_PREVIEW_HEIGHT;
+
+        for (int x = 0; x < SAVEGAME_PREVIEW_WIDTH; ++x)
+        {
+            const int sx = src_x + (x * src_w) / SAVEGAME_PREVIEW_WIDTH;
+            const pixel_t px = I_VideoBuffer[sy * SCREENWIDTH + sx];
+
+            thumb[y * SAVEGAME_PREVIEW_WIDTH + x] = saveg_pixel_to_palette(px);
+        }
+    }
+
+    return true;
+}
+
+void P_RequestSavePreviewCapture (void)
+{
+    saveg_preview_cache_valid = false;
+    saveg_preview_capture_requested = true;
+}
+
+boolean P_IsSavePreviewReady (void)
+{
+    return !saveg_preview_capture_requested;
+}
+
+// [PN] Refresh clean world-only save preview cache from the freshly rendered view.
+void P_UpdateSavePreviewCache (void)
+{
+    if (!saveg_preview_capture_requested)
+    {
+        return;
+    }
+
+    saveg_preview_cache_valid = saveg_build_preview(saveg_preview_cache);
+    saveg_preview_capture_requested = false;
 }
 
 // Pad to 4-byte boundaries
@@ -2260,6 +2380,49 @@ void P_ArchiveOldSpecials (void)
     {
         saveg_write16(sec->oldspecial);
     }
+}
+
+// -----------------------------------------------------------------------------
+// P_ArchiveSavePreview
+// [PN] Archive savegame preview thumbnail at end of save file.
+//       Layout: [raw paletted data][footer].
+//       Footer:
+//         bytes 0..3   "ISVP" magic ("Inter Save View Preview")
+//         byte  4      version
+//         byte  5      width
+//         byte  6      height
+//         byte  7      reserved
+//         bytes 8..11  data size (LE32)
+// -----------------------------------------------------------------------------
+
+void P_ArchiveSavePreview (void)
+{
+    byte thumb[SAVEGAME_PREVIEW_SIZE];
+
+    // [PN] Always write a preview block: use cached world image or black fallback.
+    if (saveg_preview_cache_valid)
+    {
+        memcpy(thumb, saveg_preview_cache, sizeof(thumb));
+    }
+    else
+    {
+        memset(thumb, 0, sizeof(thumb));
+    }
+
+    for (int i = 0; i < SAVEGAME_PREVIEW_SIZE; ++i)
+    {
+        saveg_write8(thumb[i]);
+    }
+
+    saveg_write8('I');
+    saveg_write8('S');
+    saveg_write8('V');
+    saveg_write8('P');
+    saveg_write8(SAVEGAME_PREVIEW_VERSION);
+    saveg_write8(SAVEGAME_PREVIEW_WIDTH);
+    saveg_write8(SAVEGAME_PREVIEW_HEIGHT);
+    saveg_write8(0); // reserved
+    saveg_write32(SAVEGAME_PREVIEW_SIZE);
 }
 
 // -----------------------------------------------------------------------------
