@@ -324,9 +324,17 @@ static const int wipe_doMelt (int ticks)
         }
     }
 
+    if (done)
+    {
+        // [PN] Final frame must be exact end-screen; avoid sub-tic interpolation residue.
+        memcpy(y_prev, y, wipe_columns * sizeof(*y_prev));
+        memcpy(wipe_scr, wipe_scr_end, SCREENAREA * sizeof(*wipe_scr));
+        return true;
+    }
+
     wipe_renderMelt();
 
-    return done;
+    return false;
 }
 
 // -----------------------------------------------------------------------------
