@@ -34,6 +34,7 @@
 
 #include "doomtype.h"
 #include "doomkeys.h"
+#include "d_iwad.h"
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_config.h"
@@ -1450,6 +1451,12 @@ char *M_GetSaveGameDir(const char *iwadname)
 char *M_GetAutoloadDir(const char *iwadname)
 {
     char *result;
+
+    // Shareware IWADs do not support external content loading.
+    if (D_IsSharewareIWADName(iwadname))
+    {
+        return NULL;
+    }
 
     if (autoload_path == NULL || strlen(autoload_path) == 0)
     {

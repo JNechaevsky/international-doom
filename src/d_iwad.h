@@ -51,6 +51,7 @@ typedef struct
 } iwad_search_result_t;
 
 boolean D_IsIWADName(const char *name);
+boolean D_IsSharewareIWADName(const char *name);
 char *D_FindWADByName(const char *name);
 char *D_TryFindWADByName(const char *filename);
 char *D_FindIWAD(int mask, GameMission_t *mission);

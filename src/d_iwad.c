@@ -80,6 +80,28 @@ boolean D_IsIWADName(const char *name)
     return false;
 }
 
+boolean D_IsSharewareIWADName(const char *name)
+{
+    int i;
+
+    if (name == NULL)
+    {
+        return false;
+    }
+
+    name = M_BaseName(name);
+
+    for (i = 0; i < arrlen(iwads); i++)
+    {
+        if (!strcasecmp(name, iwads[i].name))
+        {
+            return iwads[i].mode == shareware;
+        }
+    }
+
+    return false;
+}
+
 // Array of locations to search for IWAD files
 //
 // "128 IWAD search directories should be enough for anybody".
@@ -1422,6 +1444,7 @@ void D_FreeIWADSearchResults(iwad_search_result_t *results)
 const char *D_SaveGameIWADName(GameMission_t gamemission, GameVariant_t gamevariant)
 {
     size_t i;
+    const iwad_t *best_match = NULL;
 
     // Determine the IWAD name to use for savegames.
     // This determines the directory the savegame files get put into.
@@ -1446,12 +1469,21 @@ const char *D_SaveGameIWADName(GameMission_t gamemission, GameVariant_t gamevari
         return "freedm.wad";
     }
 
-    for (i=0; i<arrlen(iwads); ++i)
+    for (i = 0; i < arrlen(iwads); ++i)
     {
         if (gamemission == iwads[i].mission)
         {
-            return iwads[i].name;
+            if (best_match == NULL
+             || iwads[i].autodetect_priority < best_match->autodetect_priority)
+            {
+                best_match = &iwads[i];
+            }
         }
+    }
+
+    if (best_match != NULL)
+    {
+        return best_match->name;
     }
 
     // Default fallback:
