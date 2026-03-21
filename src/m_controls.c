@@ -307,7 +307,7 @@ void M_BindControls (void)
     M_BindIntVariableKeybind("key_weapon6",    &key_weapon6,    "key_weapon6_2",   &key_weapon6_2);
     M_BindIntVariableKeybind("key_weapon7",    &key_weapon7,    "key_weapon7_2",   &key_weapon7_2);
     M_BindIntVariableKeybind("key_weapon8",    &key_weapon8,    "key_weapon8_2",   &key_weapon8_2);
-    M_BindIntVariableKeybind("key_prevweapon", &key_prevweapon, "key_prevweapon2", &key_prevweapon);
+    M_BindIntVariableKeybind("key_prevweapon", &key_prevweapon, "key_prevweapon2", &key_prevweapon2);
     M_BindIntVariableKeybind("key_nextweapon", &key_nextweapon, "key_nextweapon2", &key_nextweapon2);
 
     // Automap
@@ -466,6 +466,7 @@ void M_BindHexenControls(void)
 void M_BindChatControls (unsigned int num_players)
 {
     char name[32];  // haleyjd: 20 not large enough - Thank you, come again!
+    char name2[32];
     unsigned int i; // haleyjd: signedness conflict
 
     M_BindIntVariableKeybind("key_multi_msg", &key_multi_msg, "key_multi_msg2", &key_multi_msg2);
@@ -473,6 +474,8 @@ void M_BindChatControls (unsigned int num_players)
     for (i = 0 ; i < num_players ; ++i)
     {
         M_snprintf(name, sizeof(name), "key_multi_msgplayer%i", i + 1);
-        M_BindIntVariable(name, &key_multi_msgplayer[i]);
+        M_snprintf(name2, sizeof(name2), "key_multi_msgplayer%i_2", i + 1);
+        M_BindIntVariableKeybind(name, &key_multi_msgplayer[i],
+                                 name2, &key_multi_msgplayer2[i]);
     }
 }
