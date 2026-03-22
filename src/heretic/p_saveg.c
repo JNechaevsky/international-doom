@@ -229,6 +229,11 @@ boolean P_IsSavePreviewReady (void)
 // [PN] Refresh clean world-only save preview cache from the freshly rendered view.
 void P_UpdateSavePreviewCache (void)
 {
+    if (!saveg_preview_cache.capture_requested)
+    {
+        return;
+    }
+
     V_SavePreview_UpdateCache(&saveg_preview_cache,
                                I_VideoBuffer,
                                SCREENWIDTH,
