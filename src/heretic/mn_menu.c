@@ -4530,10 +4530,12 @@ static void M_ID_Misc_MenuCapFps (int choice)
     menu_cap_fps ^= 1;
 }
 
+#if defined(_WIN32) && !defined(_WIN32_WCE)
 static void M_ID_Misc_Launcher (int choice)
 {
     show_startup_launcher ^= 1;
 }
+#endif
 
 // -----------------------------------------------------------------------------
 // Level select 1
