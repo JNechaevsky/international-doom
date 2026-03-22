@@ -269,8 +269,9 @@ static void R_GenerateComposite (int texnum)
         if (x2 > width)    x2 = width;
         if (x1 >= x2)      continue;
 
-        // Column offsets base, indexed by absolute x
-        const int *const cofs_base = realpatch->columnofs - x1;
+        // Column offsets must be indexed relative to the original patch origin.
+        // Using clipped x1 here breaks columns when patch originx is negative.
+        const int *const cofs_base = realpatch->columnofs - patch->originx;
         const byte *const rp_base  = (const byte *)realpatch;
 
         for (int x = x1; x < x2; ++x)
