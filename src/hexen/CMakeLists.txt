@@ -1,4 +1,5 @@
 add_library(hexen STATIC
+            ../v_savepreview.c ../v_savepreview.h
             a_action.c
             am_map.c            am_map.h
             ct_chat.c
