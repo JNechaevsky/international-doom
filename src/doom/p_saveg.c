@@ -36,12 +36,16 @@
 #include "m_random.h"
 #include "mn_menu.h"
 #include "r_local.h"
+#include "w_wad.h"
 
 #include "id_vars.h"
 
 
 FILE *save_stream;
 boolean savegame_error;
+static char savegame_wadname[SAVEGAME_WADNAMESIZE];
+
+static const byte savegame_wad_header[4] = {'P', 'W', 'A', 'D'};
 
 // Get the filename of a temporary file to write the savegame to.  After
 // the file has been successfully saved, it will be renamed to the 
@@ -1518,6 +1522,47 @@ static void saveg_write_button_t(const button_t *const str)
     saveg_write32(str->btimer);
 }
 
+// [PN] Resolve source WAD and map lump name for current episode/map pair.
+const char *P_GetMapWadName(int episode, int map, char *lumpname)
+{
+    char mapname[9];
+    int lumpnum;
+
+    if (gamemode == commercial)
+    {
+        M_snprintf(mapname, sizeof(mapname), "MAP%02d", map);
+    }
+    else
+    {
+        M_snprintf(mapname, sizeof(mapname), "E%dM%d", episode, map);
+    }
+
+    lumpnum = W_CheckNumForName(mapname);
+
+    if (lumpnum < 0)
+    {
+        if (lumpname != NULL)
+        {
+            lumpname[0] = '\0';
+        }
+
+        return NULL;
+    }
+
+    if (lumpname != NULL)
+    {
+        M_StringCopy(lumpname, mapname, 9);
+    }
+
+    return W_WadNameForLump(lumpinfo[lumpnum]);
+}
+
+// [PN] Return stored savegame WAD name from the parsed header, if present.
+const char *P_GetSaveGameWadName(void)
+{
+    return savegame_wadname[0] ? savegame_wadname : NULL;
+}
+
 //
 // Write the header for a savegame
 //
@@ -1525,6 +1570,8 @@ static void saveg_write_button_t(const button_t *const str)
 void P_WriteSaveGameHeader(char *description)
 {
     char name[VERSIONSIZE]; 
+    char wadname_field[SAVEGAME_WADNAMESIZE];
+    const char *wadname;
     int i; 
 	
     for (i=0; description[i] != '\0'; ++i)
@@ -1549,6 +1596,24 @@ void P_WriteSaveGameHeader(char *description)
     saveg_write8((leveltime >> 16) & 0xff);
     saveg_write8((leveltime >> 8) & 0xff);
     saveg_write8(leveltime & 0xff);
+
+    for (i = 0; i < 4; ++i)
+    {
+        saveg_write8(savegame_wad_header[i]);
+    }
+
+    memset(wadname_field, 0, sizeof(wadname_field));
+    wadname = P_GetMapWadName(gameepisode, gamemap, NULL);
+
+    if (wadname != NULL)
+    {
+        M_StringCopy(wadname_field, wadname, sizeof(wadname_field));
+    }
+
+    for (i = 0; i < SAVEGAME_WADNAMESIZE; ++i)
+    {
+        saveg_write8(wadname_field[i]);
+    }
 }
 
 // 
@@ -1559,8 +1624,12 @@ boolean P_ReadSaveGameHeader(void)
 {
     int	 i; 
     byte a, b, c; 
+    byte wad_header[4];
+    boolean terminated = false;
     char vcheck[VERSIONSIZE]; 
     char read_vcheck[VERSIONSIZE];
+
+    savegame_wadname[0] = '\0';
 	 
     // skip the description field 
 
@@ -1594,6 +1663,31 @@ boolean P_ReadSaveGameHeader(void)
     b = saveg_read8();
     c = saveg_read8();
     leveltime = (a<<16) + (b<<8) + c; 
+
+    for (i = 0; i < 4; ++i)
+    {
+        wad_header[i] = saveg_read8();
+    }
+
+    if (memcmp(wad_header, savegame_wad_header, sizeof(wad_header)) != 0)
+    {
+        return false;
+    }
+
+    for (i = 0; i < SAVEGAME_WADNAMESIZE; ++i)
+    {
+        savegame_wadname[i] = saveg_read8();
+
+        if (savegame_wadname[i] == '\0')
+        {
+            terminated = true;
+        }
+    }
+
+    if (!terminated)
+    {
+        savegame_wadname[SAVEGAME_WADNAMESIZE - 1] = '\0';
+    }
 
     return true;
 }

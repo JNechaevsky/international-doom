@@ -57,6 +57,7 @@ extern void G_DoVictory (void);
 extern void G_DoWorldDone (void); 
 extern void G_DrawMouseSpeedBox (void);
 extern void G_ExitLevel (void);
+extern void G_ForceLoadGame (void);
 extern void G_InitNew (skill_t skill, int episode, int map);
 extern void G_LoadGame (char *name);
 extern void G_PlayDemo (char *name);

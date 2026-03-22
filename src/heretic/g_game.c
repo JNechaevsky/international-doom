@@ -136,6 +136,7 @@ boolean precache = true;        // if true, load all graphics at start
 byte consistancy[MAXPLAYERS][BACKUPTICS];
 char *savegamedir;
 char  savename[256];
+static boolean force_loadgame;
 
 boolean testcontrols = false;
 int testcontrols_mousespeed;
@@ -2441,6 +2442,13 @@ void G_LoadGame(char *name)
     gameaction = ga_loadgame;
 }
 
+// [PN] Retry loading after user confirms force-load on savegame WAD mismatch.
+void G_ForceLoadGame(void)
+{
+    force_loadgame = true;
+    gameaction = ga_loadgame;
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC G_DoLoadGame
@@ -2450,19 +2458,44 @@ void G_LoadGame(char *name)
 //---------------------------------------------------------------------------
 
 #define VERSIONSIZE 16
+static const byte savegame_wad_header[4] = {'P', 'W', 'A', 'D'};
+
+// [PN] Resolve source WAD and map lump name for the savegame map.
+static const char *G_GetMapWadName(int episode, int map, char *mapname)
+{
+    int lumpnum;
+
+    M_snprintf(mapname, 9, "E%dM%d", episode, map);
+    lumpnum = W_CheckNumForName(mapname);
+
+    if (lumpnum < 0)
+    {
+        return NULL;
+    }
+
+    return W_WadNameForLump(lumpinfo[lumpnum]);
+}
 
 void G_DoLoadGame(void)
 {
     int i;
     int a, b, c;
     int d, e, f;
+    byte wad_header[4];
+    boolean force_load_requested;
+    boolean terminated = false;
     char savestr[SAVESTRINGSIZE];
+    char save_wad[SAVEGAME_WADNAMESIZE];
+    char mapname[9];
     char vcheck[VERSIONSIZE], readversion[VERSIONSIZE];
+    const char *map_wad;
     const player_t *p; // [crispy]
 
     p = &players[consoleplayer]; // [crispy]
 
     gameaction = ga_nothing;
+    force_load_requested = force_loadgame;
+    force_loadgame = false;
 
     SV_OpenRead(savename);
 
@@ -2482,6 +2515,7 @@ void G_DoLoadGame(void)
 
     if (strncmp(readversion, vcheck, VERSIONSIZE) != 0)
     {                           // Bad version
+        SV_Close();
         return;
     }
     gameskill = SV_ReadByte();
@@ -2498,6 +2532,46 @@ void G_DoLoadGame(void)
     {
         playeringame[i] = SV_ReadByte();
     }
+
+    for (i = 0; i < 4; i++)
+    {
+        wad_header[i] = SV_ReadByte();
+    }
+
+    if (memcmp(wad_header, savegame_wad_header, sizeof(wad_header)) != 0)
+    {
+        SV_Close();
+        return;
+    }
+
+    SV_Read(save_wad, SAVEGAME_WADNAMESIZE);
+
+    for (i = 0; i < SAVEGAME_WADNAMESIZE; i++)
+    {
+        if (save_wad[i] == '\0')
+        {
+            terminated = true;
+            break;
+        }
+    }
+
+    if (!terminated)
+    {
+        save_wad[SAVEGAME_WADNAMESIZE - 1] = '\0';
+    }
+
+    map_wad = G_GetMapWadName(gameepisode, gamemap, mapname);
+
+    // [PN] Check WAD compatibility only on first load attempt.
+    // Force-load retry (after confirmation) must bypass this prompt.
+    if (!force_load_requested && save_wad[0] != '\0'
+    && (map_wad == NULL || strcasecmp(save_wad, map_wad) != 0))
+    {
+        MN_ForceLoadGame(save_wad, map_wad, mapname);
+        SV_Close();
+        return;
+    }
+
     // Load a base level
     G_InitNew(gameskill, gameepisode, gamemap);
 
@@ -3447,6 +3521,9 @@ static void G_DoSaveGame(void)
     int i;
     char *filename;
     char verString[VERSIONSIZE];
+    char mapname[9];
+    char wadname[SAVEGAME_WADNAMESIZE];
+    const char *wad_file;
     char *description;
 
     filename = SV_Filename(savegameslot);
@@ -3467,6 +3544,21 @@ static void G_DoSaveGame(void)
     {
         SV_WriteByte(playeringame[i]);
     }
+
+    memset(wadname, 0, sizeof(wadname));
+    wad_file = G_GetMapWadName(gameepisode, gamemap, mapname);
+
+    if (wad_file != NULL)
+    {
+        M_StringCopy(wadname, wad_file, sizeof(wadname));
+    }
+
+    for (i = 0; i < 4; i++)
+    {
+        SV_WriteByte(savegame_wad_header[i]);
+    }
+    SV_Write(wadname, SAVEGAME_WADNAMESIZE);
+
     SV_WriteByte(leveltime >> 16);
     SV_WriteByte(leveltime >> 8);
     SV_WriteByte(leveltime);

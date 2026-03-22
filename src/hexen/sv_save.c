@@ -171,6 +171,137 @@ static FILE *SavingFP;
 // -----------------------------------------------------------------------------
 
 static v_savepreview_cache_t save_preview_cache;
+static const byte savegame_wad_header[4] = {'P', 'W', 'A', 'D'};
+
+// [PN] Check if a WAD with the given base file name is currently loaded.
+static boolean SV_IsWadLoaded(const char *wad_basename)
+{
+    char **wad_filenames;
+    int i;
+
+    wad_filenames = W_GetWADFileNames();
+
+    if (wad_filenames == NULL)
+    {
+        return false;
+    }
+
+    for (i = 0; wad_filenames[i] != NULL; ++i)
+    {
+        if (strcasecmp(M_BaseName(wad_filenames[i]), wad_basename) == 0)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// [PN] Resolve source WAD context for a map used by save/load compatibility checks.
+static const char *SV_GetMapWadName(int map, char *mapname)
+{
+    int lumpnum;
+    lumpinfo_t *maplump;
+
+    M_snprintf(mapname, 9, "MAP%02d", map);
+    lumpnum = W_CheckNumForName(mapname);
+
+    if (lumpnum < 0)
+    {
+        return NULL;
+    }
+
+    maplump = lumpinfo[lumpnum];
+
+    // [PN] Deathkings changes global map environment even for IWAD maps
+    // (eg. MAP01), so treat loaded HEXDD as required save context.
+    if (W_IsIWADLump(maplump) && SV_IsWadLoaded("hexdd.wad"))
+    {
+        return "hexdd.wad";
+    }
+
+    return W_WadNameForLump(maplump);
+}
+
+// [PN] Read save header and compare stored map WAD context with the currently loaded one.
+sv_wadcheck_result_t SV_CheckSaveGameWAD(int slot, char *required_wad,
+                                         char *current_wad, char *mapname)
+{
+    FILE *fp;
+    char fileName[100];
+    char version_text[HXS_VERSION_TEXT_LENGTH];
+    uint32_t segment;
+    byte map;
+    byte skill;
+    byte wad_header[4];
+    char save_wad[SAVEGAME_WADNAMESIZE];
+    const char *map_wad;
+    boolean terminated = false;
+    int i;
+
+    required_wad[0] = '\0';
+    current_wad[0] = '\0';
+    mapname[0] = '\0';
+
+    M_snprintf(fileName, sizeof(fileName), "%shex%d.sav", SavePath, slot);
+    fp = M_fopen(fileName, "rb");
+
+    if (fp == NULL)
+    {
+        return SV_WADCHECK_BAD_SAVE;
+    }
+
+    if (fseek(fp, HXS_DESCRIPTION_LENGTH, SEEK_SET) != 0
+     || fread(version_text, sizeof(version_text), 1, fp) != 1
+     || strncmp(version_text, HXS_VERSION_TEXT, HXS_VERSION_TEXT_LENGTH) != 0
+     || fread(&segment, sizeof(segment), 1, fp) != 1
+     || LONG(segment) != ASEG_GAME_HEADER
+     || fread(&map, sizeof(map), 1, fp) != 1
+     || fread(&skill, sizeof(skill), 1, fp) != 1
+     || fread(wad_header, sizeof(wad_header), 1, fp) != 1
+     || memcmp(wad_header, savegame_wad_header, sizeof(wad_header)) != 0
+     || fread(save_wad, SAVEGAME_WADNAMESIZE, 1, fp) != 1)
+    {
+        fclose(fp);
+        return SV_WADCHECK_BAD_SAVE;
+    }
+
+    (void)skill;
+
+    for (i = 0; i < SAVEGAME_WADNAMESIZE; i++)
+    {
+        if (save_wad[i] == '\0')
+        {
+            terminated = true;
+            break;
+        }
+    }
+
+    if (!terminated)
+    {
+        save_wad[SAVEGAME_WADNAMESIZE - 1] = '\0';
+    }
+
+    M_StringCopy(required_wad, save_wad, SAVEGAME_WADNAMESIZE);
+
+    map_wad = SV_GetMapWadName((int)map, mapname);
+    if (map_wad == NULL)
+    {
+        fclose(fp);
+        return SV_WADCHECK_MAP_UNAVAILABLE;
+    }
+
+    M_StringCopy(current_wad, map_wad, SAVEGAME_WADNAMESIZE);
+
+    fclose(fp);
+
+    if (required_wad[0] != '\0' && strcasecmp(required_wad, current_wad) != 0)
+    {
+        return SV_WADCHECK_MISMATCH;
+    }
+
+    return SV_WADCHECK_OK;
+}
 
 static byte SavePixelToPalette(pixel_t pixel, void *user_data)
 {
@@ -2057,6 +2188,9 @@ void SV_SaveGame(int slot, const char *description)
 {
     char fileName[100];
     char versionText[HXS_VERSION_TEXT_LENGTH];
+    char mapname[9];
+    char wadname[SAVEGAME_WADNAMESIZE];
+    const char *wad_file;
     unsigned int i;
 
     // Open the output file
@@ -2083,6 +2217,22 @@ void SV_SaveGame(int slot, const char *description)
     // Write current map and difficulty
     SV_WriteByte(gamemap);
     SV_WriteByte(gameskill);
+
+    // [PN] Store source WAD name for savegame compatibility checks on load.
+    memset(wadname, 0, sizeof(wadname));
+    wad_file = SV_GetMapWadName(gamemap, mapname);
+
+    if (wad_file != NULL)
+    {
+        M_StringCopy(wadname, wad_file, sizeof(wadname));
+    }
+
+    for (i = 0; i < sizeof(savegame_wad_header); ++i)
+    {
+        SV_WriteByte(savegame_wad_header[i]);
+    }
+
+    SV_Write(wadname, SAVEGAME_WADNAMESIZE);
 
     // Write global script info
     for (i = 0; i < MAX_ACS_WORLD_VARS; ++i)
@@ -2164,11 +2314,17 @@ static void SV_SaveMap(boolean savePlayers)
 //
 //==========================================================================
 
-void SV_LoadGame(int slot)
+void SV_LoadGame(int slot, boolean skip_wad_check)
 {
     int i;
     char fileName[100];
     char version_text[HXS_VERSION_TEXT_LENGTH];
+    char save_wad[SAVEGAME_WADNAMESIZE];
+    char current_wad[SAVEGAME_WADNAMESIZE];
+    char mapname[9];
+    byte wad_header[4];
+    boolean terminated = false;
+    const char *map_wad;
     player_t playerBackup[MAXPLAYERS];
     mobj_t *mobj;
     player_t *p; // [crispy]
@@ -2199,6 +2355,7 @@ void SV_LoadGame(int slot)
     }
     if (strncmp(version_text, HXS_VERSION_TEXT, HXS_VERSION_TEXT_LENGTH) != 0)
     {                           // Bad version
+        SV_Close();
         return;
     }
 
@@ -2207,6 +2364,52 @@ void SV_LoadGame(int slot)
     gameepisode = 1;
     gamemap = SV_ReadByte();
     gameskill = SV_ReadByte();
+
+    for (i = 0; i < sizeof(wad_header); ++i)
+    {
+        wad_header[i] = SV_ReadByte();
+    }
+
+    if (memcmp(wad_header, savegame_wad_header, sizeof(wad_header)) != 0)
+    {
+        SV_Close();
+        return;
+    }
+
+    SV_Read(save_wad, SAVEGAME_WADNAMESIZE);
+
+    for (i = 0; i < SAVEGAME_WADNAMESIZE; ++i)
+    {
+        if (save_wad[i] == '\0')
+        {
+            terminated = true;
+            break;
+        }
+    }
+
+    if (!terminated)
+    {
+        save_wad[SAVEGAME_WADNAMESIZE - 1] = '\0';
+    }
+
+    if (!skip_wad_check)
+    {
+        map_wad = SV_GetMapWadName(gamemap, mapname);
+
+        if (map_wad == NULL)
+        {
+            SV_Close();
+            return;
+        }
+
+        M_StringCopy(current_wad, map_wad, sizeof(current_wad));
+
+        if (save_wad[0] != '\0' && strcasecmp(save_wad, current_wad) != 0)
+        {
+            SV_Close();
+            return;
+        }
+    }
 
     // Read global script info
 

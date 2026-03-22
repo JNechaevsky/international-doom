@@ -760,11 +760,13 @@ void G_LoadGame(char *name);
 // can be called by the startup code or M_Responder
 // calls P_SetupLevel or W_EnterWorld
 void G_DoLoadGame(void);
+void G_ForceLoadGame(void);
 
 void G_SaveGame(int slot, char *description);
 // called by M_Responder
 
 #define SAVE_GAME_TERMINATOR 0x1d
+#define SAVEGAME_WADNAMESIZE 260
 // Support routines for saving games
 char *SV_Filename(int slot);
 void SV_Open(char *fileName);
@@ -946,6 +948,8 @@ void MN_ActivateMenu(void);
 boolean MN_Responder(event_t * event);
 void MN_Ticker(void);
 void MN_Drawer(void);
+void MN_ForceLoadGame(const char *required_wad, const char *current_wad,
+                      const char *mapname);
 void MN_DrTextA(const char *text, int x, int y, byte *table);
 void MN_DrTextAFade(const char *text, int x, int y, byte *table, int alpha);
 int MN_TextAWidth(const char *text);

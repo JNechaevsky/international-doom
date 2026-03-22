@@ -185,6 +185,8 @@ static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, 
 static void MN_LoadSlotText(void);
 static void MN_DeactivateMenu(void);
 static void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
+static void MN_OpenLoadMenu(void);
+static void MN_ClearForceLoadPromptData(void);
 
 inline static void M_ID_MenuMouseControl (void);
 inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max);
@@ -226,6 +228,10 @@ static int currentSlot;
 static int quicksave;
 static int quickload;
 static boolean MenuWasPaused;
+static boolean force_load_available;
+static char force_load_required_wad[SAVEGAME_WADNAMESIZE];
+static char force_load_current_wad[SAVEGAME_WADNAMESIZE];
+static char force_load_mapname[9];
 
 // [JN] Show custom titles while performing quick save/load.
 static boolean quicksaveTitle = false;
@@ -5227,6 +5233,7 @@ static const char *const QuitEndMsg[] = {
     "RESET KEYBOARD BINDINGS TO DEFAULT VALUES?",  // [JN] typeofask 7 (reset keyboard binds)
     "RESET MOUSE BINDINGS TO DEFAULT VALUES?",     // [JN] typeofask 8 (reset mouse binds)
     "",                                            // [JN] typeofask 9 (setting reset), full text in drawer below
+    "",                                            // [PN] typeofask 10 (savegame WAD mismatch), full text in drawer below
 };
 
 void MN_Drawer(void)
@@ -5295,6 +5302,25 @@ void MN_Drawer(void)
                 MN_DrTextACentered("WILL BE RESET TO DEFAULT VALUES.", 80, NULL);
                 MN_DrTextACentered("ARE YOU SURE WANT TO CONTINUE?", 100, NULL);
                 MN_DrTextACentered("PRESS Y OR N.", 120, NULL);
+            }
+            if (typeofask == 10)
+            {
+                MN_DrTextACentered("THIS SAVEGAME REQUIRES THE FILE", 62, NULL);
+                MN_DrTextACentered(force_load_required_wad, 72, NULL);
+                MN_DrTextACentered("TO RESTORE", 82, NULL);
+                MN_DrTextACentered(force_load_mapname, 92, NULL);
+
+                if (force_load_available)
+                {
+                    MN_DrTextACentered("CONTINUE TO RESTORE FROM", 110, NULL);
+                    MN_DrTextACentered(force_load_current_wad, 120, NULL);
+                    MN_DrTextACentered("PRESS Y OR N.", 138, NULL);
+                }
+                else
+                {
+                    MN_DrTextACentered("MAP IS CURRENTLY NOT AVAILABLE!", 115, NULL);
+                    MN_DrTextACentered("PRESS A KEY.", 138, NULL);
+                }
             }
         }
         return;
@@ -5866,6 +5892,28 @@ static void SCNetCheck2(int choice)
     return;
 }
 
+// [PN] Open Load Game menu directly (used when force-load prompt is dismissed).
+static void MN_OpenLoadMenu(void)
+{
+    MenuWasPaused = paused;
+    MenuActive = true;
+    FileMenuKeySteal = false;
+    MenuTime = 0;
+    CurrentMenu = &LoadMenu;
+    M_Reset_Line_Glow();
+    CurrentItPos = CurrentMenu->oldItPos;
+    M_ID_MenuMouseControl();
+
+    if (!netgame && !demoplayback)
+    {
+        paused = true;
+    }
+
+    slottextloaded = false;
+    quickloadTitle = false;
+    S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC SCLoadGame
@@ -5889,6 +5937,49 @@ static void SCLoadGame(int choice)
     {
         quickload = choice + 1;
         CT_ClearMessage(&players[consoleplayer]);
+    }
+}
+
+// [PN] Clear temporary data used by the savegame WAD mismatch prompt.
+static void MN_ClearForceLoadPromptData(void)
+{
+    force_load_available = false;
+    force_load_required_wad[0] = '\0';
+    force_load_current_wad[0] = '\0';
+    force_load_mapname[0] = '\0';
+}
+
+// [PN] Show mismatch warning and ask whether to continue loading anyway.
+void MN_ForceLoadGame(const char *required_wad, const char *current_wad,
+                      const char *mapname)
+{
+    const char *required_name;
+    const char *map_name;
+
+    MN_ClearForceLoadPromptData();
+
+    required_name = (required_wad != NULL && required_wad[0] != '\0') ? required_wad : "UNKNOWN";
+    map_name = (mapname != NULL && mapname[0] != '\0') ? mapname : "UNKNOWN MAP";
+
+    M_StringCopy(force_load_required_wad, required_name,
+                 sizeof(force_load_required_wad));
+    M_StringCopy(force_load_mapname, map_name, sizeof(force_load_mapname));
+
+    if (current_wad != NULL && current_wad[0] != '\0')
+    {
+        force_load_available = true;
+        M_StringCopy(force_load_current_wad, current_wad,
+                     sizeof(force_load_current_wad));
+    }
+
+    MenuWasPaused = paused;
+    askforquit = true;
+    typeofask = 10;
+    MenuActive = false;
+
+    if (!netgame && !demoplayback)
+    {
+        paused = true;
     }
 }
 
@@ -6287,6 +6378,23 @@ static boolean MN_ID_TypeOfAsk (void)
                 paused = true;
             }
             MN_ReturnToMenu();
+            break;
+
+        case 10: // [PN] Savegame WAD mismatch.
+            if (force_load_available)
+            {
+                if (!netgame && !demoplayback)
+                {
+                    paused = MenuWasPaused;
+                }
+                G_ForceLoadGame();
+            }
+            else
+            {
+                MN_OpenLoadMenu();
+            }
+            MN_ClearForceLoadPromptData();
+            break;
 
         default:
             break;
@@ -6612,9 +6720,22 @@ boolean MN_Responder(event_t * event)
 
     if (askforquit)
     {
+        if (typeofask == 10 && !force_load_available)
+        {
+            if (event->type == ev_keydown
+             || (event->type == ev_mouse && (event->data1 & (1 | 2))))
+            {
+                MN_ID_TypeOfAsk();
+                return true;
+            }
+
+            return false;
+        }
+
         if (key == key_menu_confirm
         // [JN] Allow to confirm quit (1) and end game (2) by pressing Enter.
-        || (key == key_menu_forward && (typeofask == 1 || typeofask == 2))
+        || (key == key_menu_forward
+         && (typeofask == 1 || typeofask == 2 || typeofask == 10))
         // [JN] Confirm by left mouse button.
         || (event->type == ev_mouse && event->data1 & 1)
         // [JN] Allow to exclusevely confirm quit game by pressing F10 again.
@@ -6626,6 +6747,15 @@ boolean MN_Responder(event_t * event)
         if (key == key_menu_abort || key == KEY_ESCAPE
         || (event->type == ev_mouse && event->data1 & 2))  // [JN] Cancel by right mouse button.
         {
+            if (typeofask == 10)
+            {
+                MN_ClearForceLoadPromptData();
+                askforquit = false;
+                typeofask = 0;
+                MN_OpenLoadMenu();
+                return true;
+            }
+
             // [JN] Do not close reset menus after canceling.
             if (typeofask == 7 || typeofask == 8 || typeofask == 9)
             {

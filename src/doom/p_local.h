@@ -601,6 +601,7 @@ extern fixed_t bulletslope;
 
 #define SAVEGAME_EOF    0x1d
 #define VERSIONSIZE     16
+#define SAVEGAME_WADNAMESIZE 260
 
 // maximum size of a savegame description
 #define SAVESTRINGSIZE  24
@@ -633,6 +634,8 @@ extern void     P_UnArchiveTotalTimes (void);
 extern void     P_UnArchiveWorld (void);
 extern void     P_WriteSaveGameEOF(void);
 extern void     P_WriteSaveGameHeader(char *description);
+extern const char *P_GetMapWadName(int episode, int map, char *lumpname);
+extern const char *P_GetSaveGameWadName(void);
 
 extern FILE    *save_stream;
 extern boolean  savegame_error;

@@ -55,6 +55,8 @@ void M_StartControlPanel (void);
 
 
 extern void M_ConfirmDeleteGame (void);
+extern void M_ForceLoadGame(const char *required_wad, const char *current_wad,
+                            const char *mapname);
 
 extern void M_WriteText (int x, int y, const char *string, byte *table);
 extern void M_WriteTextFade (int x, int y, const char *string, byte *table, int alpha);

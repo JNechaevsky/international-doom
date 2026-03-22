@@ -238,6 +238,7 @@ static boolean  joyarray[MAX_JOY_BUTTONS + 1];
 static boolean *joybuttons = &joyarray[1];		// allow [-1] 
  
 char            savename[256]; // [crispy] moved here
+static boolean  force_loadgame;
 static int      savegameslot; 
 static char     savedescription[32]; 
  
@@ -2512,9 +2513,17 @@ void G_LoadGame (char* name)
     gameaction = ga_loadgame; 
 } 
 
+// [PN] Retry loading after user confirms force-load on savegame WAD mismatch.
+void G_ForceLoadGame (void)
+{
+    force_loadgame = true;
+    gameaction = ga_loadgame;
+}
+
 void G_DoLoadGame (void) 
 { 
     int savedleveltime;
+    boolean force_load_requested;
 	 
     // [crispy] loaded game must always be single player.
     // Needed for ability to use a further game loading, as well as
@@ -2535,11 +2544,34 @@ void G_DoLoadGame (void)
     }
 
     savegame_error = false;
+    force_load_requested = force_loadgame;
+    force_loadgame = false;
 
     if (!P_ReadSaveGameHeader())
     {
         fclose(save_stream);
         return;
+    }
+
+    // [PN] Check WAD compatibility only on first load attempt.
+    // Force-load retry (after confirmation) must bypass this prompt.
+    if (!force_load_requested)
+    {
+        const char *save_wad = P_GetSaveGameWadName();
+        char mapname[9];
+        const char *map_wad = P_GetMapWadName(gameepisode, gamemap, mapname);
+
+        if (save_wad != NULL
+        && (map_wad == NULL || strcasecmp(save_wad, map_wad) != 0))
+        {
+            if (startloadgame == -1)
+            {
+                M_ForceLoadGame(save_wad, map_wad, mapname);
+            }
+
+            fclose(save_stream);
+            return;
+        }
     }
 
     // [PN] Restore gameplay settings.

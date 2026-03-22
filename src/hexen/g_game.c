@@ -2457,7 +2457,7 @@ void G_DoWorldDone(void)
 void G_DoSingleReborn(void)
 {
     gameaction = ga_nothing;
-    SV_LoadGame(SV_GetRebornSlot());
+    SV_LoadGame(SV_GetRebornSlot(), false);
     SB_SetClassData();
 }
 
@@ -2470,6 +2470,7 @@ void G_DoSingleReborn(void)
 //==========================================================================
 
 static int GameLoadSlot;
+static boolean force_loadgame;
 // [JN] & [plums] "On Death Action" feature: unlike Doom and Heretic,
 // Hexen mostly handles save slots via their numbers, not file names.
 // "-1" means "no last save slot".
@@ -2478,6 +2479,13 @@ int OnDeathLoadSlot = -1;
 void G_LoadGame(int slot)
 {
     GameLoadSlot = slot;
+    gameaction = ga_loadgame;
+}
+
+// [PN] Retry loading after user confirms force-load on WAD mismatch prompt.
+void G_ForceLoadGame(void)
+{
+    force_loadgame = true;
     gameaction = ga_loadgame;
 }
 
@@ -2491,9 +2499,41 @@ void G_LoadGame(int slot)
 
 void G_DoLoadGame(void)
 {
+    const int slot = GameLoadSlot + savepage * 10;
+    boolean force_load_requested;
+    sv_wadcheck_result_t wadcheck;
+    char required_wad[SAVEGAME_WADNAMESIZE];
+    char current_wad[SAVEGAME_WADNAMESIZE];
+    char mapname[9];
+
     gameaction = ga_nothing;
+    force_load_requested = force_loadgame;
+    force_loadgame = false;
+
+    // [PN] Check WAD compatibility only on first load attempt.
+    // Force-load retry (after confirmation) must bypass this prompt.
+    if (!force_load_requested)
+    {
+        wadcheck = SV_CheckSaveGameWAD(slot, required_wad, current_wad, mapname);
+
+        if (wadcheck == SV_WADCHECK_MISMATCH)
+        {
+            MN_ForceLoadGame(required_wad, current_wad, mapname);
+            return;
+        }
+        if (wadcheck == SV_WADCHECK_MAP_UNAVAILABLE)
+        {
+            MN_ForceLoadGame(required_wad, NULL, mapname);
+            return;
+        }
+        if (wadcheck != SV_WADCHECK_OK)
+        {
+            return;
+        }
+    }
+
     // [crispy] support multiple pages of saves
-    SV_LoadGame(GameLoadSlot + savepage * 10);
+    SV_LoadGame(slot, force_load_requested);
     if (!netgame)
     {                           // Copy the base slot to the reborn slot
         SV_UpdateRebornSlot();

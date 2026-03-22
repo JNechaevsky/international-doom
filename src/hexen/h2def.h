@@ -870,6 +870,7 @@ void G_LoadGame(int slot);
 // can be called by the startup code or M_Responder
 // calls P_SetupLevel or W_EnterWorld
 void G_DoLoadGame(void);
+void G_ForceLoadGame(void);
 
 void G_SaveGame(int slot, char *description);
 // called by M_Responder
@@ -928,6 +929,7 @@ extern boolean gamekeydown[NUMKEYS];
 #define HXS_VERSION_TEXT "HXS Ver 2.37"
 #define HXS_VERSION_TEXT_LENGTH 16
 #define HXS_DESCRIPTION_LENGTH 24
+#define SAVEGAME_WADNAMESIZE 260
 
 
 // [crispy] support up to 16 pages of savegames
@@ -940,8 +942,18 @@ extern char *SavePath;
 
 extern int OnDeathLoadSlot;
 
+typedef enum
+{
+    SV_WADCHECK_OK = 0,
+    SV_WADCHECK_MISMATCH,
+    SV_WADCHECK_MAP_UNAVAILABLE,
+    SV_WADCHECK_BAD_SAVE
+} sv_wadcheck_result_t;
+
 void SV_SaveGame(int slot, const char *description);
-void SV_LoadGame(int slot);
+void SV_LoadGame(int slot, boolean skip_wad_check);
+sv_wadcheck_result_t SV_CheckSaveGameWAD(int slot, char *required_wad,
+                                         char *current_wad, char *mapname);
 void SV_RequestSavePreviewCapture(void);
 boolean SV_IsSavePreviewReady(void);
 void SV_UpdateSavePreviewCache(void);
@@ -1200,6 +1212,8 @@ void MN_ActivateMenu(void);
 boolean MN_Responder(event_t * event);
 void MN_Ticker(void);
 void MN_Drawer(void);
+void MN_ForceLoadGame(const char *required_wad, const char *current_wad,
+                      const char *mapname);
 void MN_DrTextA(const char *text, int x, int y, byte *table);
 void MN_DrTextAFade(const char *text, int x, int y, byte *table, int alpha);
 void MN_DrTextACentered (const char *text, int y, byte *table);

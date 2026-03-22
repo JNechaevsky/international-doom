@@ -8146,9 +8146,80 @@ void M_Init (void)
 
 // [crispy] delete a savegame
 static char *savegwarning;
+static char *save_required_wad;
+static char *save_current_wad;
+static char save_mapname[9];
+
+// [PN] Release temporary strings used by the savegame WAD mismatch prompt.
+static void M_FreeForceLoadData(void)
+{
+    free(save_required_wad);
+    free(save_current_wad);
+    save_required_wad = NULL;
+    save_current_wad = NULL;
+    save_mapname[0] = '\0';
+}
+
+// [PN] Handle user choice for WAD mismatch prompt and continue/cancel loading.
+static void M_ForceLoadGameResponse(int key)
+{
+    free(savegwarning);
+    savegwarning = NULL;
+
+    if (key == key_menu_confirm && save_current_wad != NULL)
+    {
+        G_ForceLoadGame();
+    }
+    else
+    {
+        M_StartControlPanel();
+        M_LoadGame(0);
+    }
+
+    M_FreeForceLoadData();
+}
+
+// [PN] Build and show savegame WAD mismatch warning before loading.
+void M_ForceLoadGame(const char *required_wad, const char *current_wad,
+                     const char *mapname)
+{
+    free(savegwarning);
+    savegwarning = NULL;
+    M_FreeForceLoadData();
+
+    save_required_wad = M_StringDuplicate(required_wad != NULL ? required_wad : "UNKNOWN");
+    save_current_wad = (current_wad != NULL) ? M_StringDuplicate(current_wad) : NULL;
+    M_StringCopy(save_mapname, mapname != NULL ? mapname : "", sizeof(save_mapname));
+
+    if (save_current_wad != NULL)
+    {
+        savegwarning =
+        M_StringJoin("this savegame requires the file\n",
+                     save_required_wad, "\n",
+                     "to restore ", save_mapname, ".\n\n",
+                     "continue to restore from\n",
+                     save_current_wad, "?\n\n",
+                     PRESSYN, NULL);
+    }
+    else
+    {
+        savegwarning =
+        M_StringJoin("this savegame requires the file\n",
+                     save_required_wad, "\n",
+                     "to restore a map that is\n",
+                     "currently not available!\n\n",
+                     PRESSKEY, NULL);
+    }
+
+    M_StartMessage(savegwarning, M_ForceLoadGameResponse, save_current_wad != NULL);
+    messageToPrint = 2;
+    S_StartSound(NULL,sfx_swtchn);
+}
+
 static void M_ConfirmDeleteGameResponse (int key)
 {
 	free(savegwarning);
+	savegwarning = NULL;
 
 	if (key == key_menu_confirm)
 	{
@@ -8166,6 +8237,9 @@ static void M_ConfirmDeleteGameResponse (int key)
 
 void M_ConfirmDeleteGame (void)
 {
+	free(savegwarning);
+	savegwarning = NULL;
+
 	savegwarning =
 	M_StringJoin("delete savegame\n\n", "\"", savegamestrings[itemOn], "\"", " ?\n\n",
 	             PRESSYN, NULL);
