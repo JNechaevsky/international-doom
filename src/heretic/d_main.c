@@ -278,6 +278,8 @@ static void D_Display(void)
                 break;
             // draw the view directly
             R_RenderPlayerView(&players[displayplayer]);
+            // [PN] Capture clean world-only preview before automap/HUD/widgets/menu overlays.
+            P_UpdateSavePreviewCache();
 
             // [JN] Fail-safe: return earlier if post rendering hook is still active.
             if (post_rendering_hook)

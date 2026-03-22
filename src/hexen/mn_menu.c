@@ -55,6 +55,10 @@
 #define SLOTTEXTLEN	22
 #define ASCII_CURSOR '['
 
+// [PN] Save/Load preview area (original 320x200 coordinate space).
+#define SAVE_PREVIEW_X 236
+#define SAVE_PREVIEW_Y 23
+
 // TYPES -------------------------------------------------------------------
 
 typedef enum
@@ -175,6 +179,8 @@ static void DrawFilesMenu(void);
 static void MN_DrawInfo(void);
 static void DrawLoadMenu(void);
 static void DrawSaveMenu(void);
+static void DrawSavePreview(const Menu_t *menu);
+static void DrawSavePreviewBorder(int x, int y, int w, int h);
 static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, boolean bigspacing, int itemPos);
 static void MN_LoadSlotText(void);
 static void MN_DeactivateMenu(void);
@@ -210,9 +216,11 @@ static int typeofask;
 static boolean FileMenuKeySteal;
 static boolean slottextloaded;
 static boolean joypadsave;
-static char SlotText[6][SLOTTEXTLEN + 2];
+static char SlotText[SAVES_PER_PAGE][SLOTTEXTLEN + 2];
+static byte SlotPreview[SAVES_PER_PAGE][V_SAVEPREVIEW_SIZE];
 static char oldSlotText[SLOTTEXTLEN + 2];
-static int SlotStatus[6];
+static int SlotStatus[SAVES_PER_PAGE];
+static boolean SlotPreviewStatus[SAVES_PER_PAGE];
 static int slotptr;
 static int currentSlot;
 static int quicksave;
@@ -327,7 +335,7 @@ static MenuItem_t LoadItems[] = {
 };
 
 static Menu_t LoadMenu = {
-    70, 18,
+    34, 18,
     DrawLoadMenu,
     SAVES_PER_PAGE, LoadItems,
     0,
@@ -347,7 +355,7 @@ static MenuItem_t SaveItems[] = {
 };
 
 static Menu_t SaveMenu = {
-    70, 18,
+    34, 18,
     DrawSaveMenu,
     SAVES_PER_PAGE, SaveItems,
     0,
@@ -4362,10 +4370,12 @@ static void M_ID_Misc_MenuCapFps (int choice)
     menu_cap_fps ^= 1;
 }
 
+#if defined(_WIN32) && !defined(_WIN32_WCE)
 static void M_ID_Misc_Launcher (int choice)
 {
     show_startup_launcher ^= 1;
 }
+#endif
 
 // -----------------------------------------------------------------------------
 // Reset settings
@@ -5430,28 +5440,36 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
         MN_DrTextA("PGDN", menu->x + width - MN_TextAWidth("PGDN"), y, cr[CR_MENU_DARK4]);
 
     M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, SAVEPAGE_MAX + 1);
-    MN_DrTextA(pagestr, ORIGWIDTH / 2 - MN_TextAWidth(pagestr) / 2, y, cr[CR_MENU_DARK4]);
+    // [PN] Keep PAGE label aligned with Save/Load list shift (base x was 70).
+    MN_DrTextA(pagestr, ORIGWIDTH / 2 + (menu->x - 65) - MN_TextAWidth(pagestr) / 2,
+               y, cr[CR_MENU_DARK4]);
 
     // [JN] Print "modified" (or created initially) time of savegame file.
     if (CurrentItPos != -1 && SlotStatus[CurrentItPos] && !FileMenuKeySteal)
     {
         struct stat filestat;
         char filedate[32];
+        char filetime[32];
         char filename[100];
 
         M_snprintf(filename, sizeof(filename), "%shex%d.sav", SavePath, CurrentItPos + (savepage * 10));
         if (M_stat(filename, &filestat) == 0)
         {
+        int date_x, time_x;
 // [FG] suppress the most useless compiler warning ever
 #if defined(__GNUC__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-y2k"
 #endif
-        strftime(filedate, sizeof(filedate), "%x %X", localtime(&filestat.st_mtime));
+        strftime(filedate, sizeof(filedate), "%x", localtime(&filestat.st_mtime));
+        strftime(filetime, sizeof(filetime), "%X", localtime(&filestat.st_mtime));
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop
 #endif
-        MN_DrTextACentered(filedate, y + 10, cr[CR_MENU_DARK4]);
+        date_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(filedate)) / 2;
+        time_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(filetime)) / 2;
+        MN_DrTextA(filedate, date_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 6, cr[CR_MENU_DARK4]);
+        MN_DrTextA(filetime, time_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 16, cr[CR_MENU_DARK4]);
         }
     }
 }
@@ -5473,6 +5491,7 @@ static void DrawLoadMenu(void)
         MN_LoadSlotText();
     }
     DrawFileSlots(&LoadMenu);
+    DrawSavePreview(&LoadMenu);
     MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 1, NULL);
     DrawSaveLoadBottomLine(&LoadMenu);
 }
@@ -5494,11 +5513,75 @@ static void DrawSaveMenu(void)
         MN_LoadSlotText();
     }
     DrawFileSlots(&SaveMenu);
+    DrawSavePreview(&SaveMenu);
     MN_DrTextB(title, 160 - MN_TextBWidth(title) / 2, 1, NULL);
     DrawSaveLoadBottomLine(&SaveMenu);
 }
 
-static boolean ReadDescriptionForSlot(int slot, char *description)
+// [PN] Draw decorative preview frame using Hexen beveled border patches.
+static void DrawSavePreviewBorder(int x, int y, int w, int h)
+{
+    patch_t *const patch_top = W_CacheLumpName("bordt", PU_CACHE);
+    patch_t *const patch_bottom = W_CacheLumpName("bordb", PU_CACHE);
+    patch_t *const patch_left = W_CacheLumpName("bordl", PU_CACHE);
+    patch_t *const patch_right = W_CacheLumpName("bordr", PU_CACHE);
+    patch_t *const patch_tl = W_CacheLumpName("bordtl", PU_CACHE);
+    patch_t *const patch_tr = W_CacheLumpName("bordtr", PU_CACHE);
+    patch_t *const patch_bl = W_CacheLumpName("bordbl", PU_CACHE);
+    patch_t *const patch_br = W_CacheLumpName("bordbr", PU_CACHE);
+
+    // [PN] Tile top/bottom without overshooting when w is not divisible by 16.
+    for (int i = 0; i + 16 < w; i += 16)
+    {
+        V_DrawPatch(x + i, y - 4, patch_top);
+        V_DrawPatch(x + i, y + h, patch_bottom);
+    }
+    V_DrawPatch(x + ((w > 16) ? (w - 16) : 0), y - 4, patch_top);
+    V_DrawPatch(x + ((w > 16) ? (w - 16) : 0), y + h, patch_bottom);
+
+    // [PN] Tile left/right without overshooting when h is not divisible by 16.
+    for (int i = 0; i + 16 < h; i += 16)
+    {
+        V_DrawPatch(x - 4, y + i, patch_left);
+        V_DrawPatch(x + w, y + i, patch_right);
+    }
+    V_DrawPatch(x - 4, y + ((h > 16) ? (h - 16) : 0), patch_left);
+    V_DrawPatch(x + w, y + ((h > 16) ? (h - 16) : 0), patch_right);
+
+    V_DrawPatch(x - 4, y - 4, patch_tl);
+    V_DrawPatch(x + w, y - 4, patch_tr);
+    V_DrawPatch(x - 4, y + h, patch_bl);
+    V_DrawPatch(x + w, y + h, patch_br);
+}
+
+// [PN] Draw selected slot thumbnail or black fallback, then frame it.
+static void DrawSavePreview(const Menu_t *menu)
+{
+    const int slot = (CurrentItPos >= 0 && CurrentItPos < SAVES_PER_PAGE) ? CurrentItPos : 0;
+    const boolean has_slot = (CurrentItPos >= 0 && CurrentItPos < SAVES_PER_PAGE);
+    const int x = SAVE_PREVIEW_X;
+    const int y = SAVE_PREVIEW_Y;
+    (void)menu;
+
+    if (has_slot && SlotPreviewStatus[slot])
+    {
+        V_DrawScaledBlock(x, y, V_SAVEPREVIEW_WIDTH, V_SAVEPREVIEW_HEIGHT,
+                          SlotPreview[slot]);
+    }
+    else
+    {
+        const int rx = (x + WIDESCREENDELTA) * vid_resolution;
+        const int ry = y * vid_resolution;
+        const int rw = V_SAVEPREVIEW_WIDTH * vid_resolution;
+        const int rh = V_SAVEPREVIEW_HEIGHT * vid_resolution;
+
+        V_DrawFilledBox(rx, ry, rw, rh, I_MapRGB(0x00, 0x00, 0x00));
+    }
+
+    DrawSavePreviewBorder(x, y, V_SAVEPREVIEW_WIDTH, V_SAVEPREVIEW_HEIGHT);
+}
+
+static boolean ReadDescriptionForSlot(int slot, char *description, byte *preview, boolean *has_preview)
 {
     FILE *fp;
     boolean found;
@@ -5520,6 +5603,14 @@ static boolean ReadDescriptionForSlot(int slot, char *description)
          && fread(versionText, HXS_VERSION_TEXT_LENGTH, 1, fp) == 1;
 
     found = found && strcmp(versionText, HXS_VERSION_TEXT) == 0;
+    if (found)
+    {
+        *has_preview = V_SavePreview_ReadFromFile(fp, preview);
+    }
+    else
+    {
+        *has_preview = false;
+    }
 
     fclose(fp);
 
@@ -5539,9 +5630,9 @@ static void MN_LoadSlotText(void)
     char description[HXS_DESCRIPTION_LENGTH];
     int slot;
 
-    for (slot = 0; slot < 6; slot++)
+    for (slot = 0; slot < SAVES_PER_PAGE; slot++)
     {
-        if (ReadDescriptionForSlot(slot, description))
+        if (ReadDescriptionForSlot(slot, description, SlotPreview[slot], &SlotPreviewStatus[slot]))
         {
             memcpy(SlotText[slot], description, SLOTTEXTLEN);
             SlotStatus[slot] = 1;
@@ -5550,6 +5641,7 @@ static void MN_LoadSlotText(void)
         {
             memset(SlotText[slot], 0, SLOTTEXTLEN);
             SlotStatus[slot] = 0;
+            SlotPreviewStatus[slot] = false;
         }
     }
     slottextloaded = true;

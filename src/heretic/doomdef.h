@@ -63,6 +63,7 @@
 #include "d_loop.h"
 #include "i_input.h"  // mouse_sensitivity_y
 
+#include "v_savepreview.h"
 #define	SAVEGAMENAME "hticsav"
 
 /*
@@ -628,6 +629,7 @@ extern ticcmd_t *netcmds;
 #define SAVEGAMESIZE 0x30000
 #define SAVESTRINGSIZE 24
 
+
 extern mapthing_t *deathmatch_p;
 extern mapthing_t deathmatchstarts[10];
 extern mapthing_t playerstarts[MAXPLAYERS];
@@ -856,6 +858,10 @@ void P_ArchiveAutomap(void);
 void P_UnArchiveAutomap(void);
 void P_ArchiveOldSpecials(void);
 void P_UnArchiveOldSpecials(void);
+void P_ArchiveSavePreview(void);
+void P_RequestSavePreviewCapture(void);
+boolean P_IsSavePreviewReady(void);
+void P_UpdateSavePreviewCache(void);
 // load / save game routines
 
 

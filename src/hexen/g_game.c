@@ -1833,6 +1833,7 @@ void G_Ticker(void)
                         savegameslot =
                             (players[i].cmd.
                              buttons & BTS_SAVEMASK) >> BTS_SAVESHIFT;
+                        SV_RequestSavePreviewCapture();
                         gameaction = ga_savegame;
                         break;
                 }
@@ -2527,6 +2528,7 @@ void G_SaveGame(int slot, char *description)
 {
     savegameslot = slot;
     M_StringCopy(savedescription, description, sizeof(savedescription));
+    SV_RequestSavePreviewCapture();
     sendsave = true;
     OnDeathLoadSlot = slot;
 }
@@ -2541,6 +2543,14 @@ void G_SaveGame(int slot, char *description)
 
 void G_DoSaveGame(void)
 {
+    if (!SV_IsSavePreviewReady())
+    {
+        // [PN] Delay save until next frame captures a clean world-only preview.
+        gameaction = ga_nothing;
+        sendsave = true;
+        return;
+    }
+
     // [crispy] support multiple pages of saves
     SV_SaveGame(savegameslot + savepage * 10, savedescription);
     gameaction = ga_nothing;

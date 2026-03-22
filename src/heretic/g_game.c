@@ -1847,6 +1847,7 @@ void G_Ticker(void)
                         savegameslot =
                             (players[i].cmd.
                              buttons & BTS_SAVEMASK) >> BTS_SAVESHIFT;
+                        P_RequestSavePreviewCapture();
                         gameaction = ga_savegame;
                         // [crispy] un-pause immediately after saving
                         // (impossible to send save and pause specials within the same tic)
@@ -3421,6 +3422,7 @@ void G_SaveGame(int slot, char *description)
 {
     savegameslot = slot;
     M_StringCopy(savedescription, description, sizeof(savedescription));
+    P_RequestSavePreviewCapture();
     sendsave = true;
 }
 
@@ -3434,6 +3436,14 @@ void G_SaveGame(int slot, char *description)
 
 static void G_DoSaveGame(void)
 {
+    if (!P_IsSavePreviewReady())
+    {
+        // [PN] Delay save until next frame captures a clean world-only preview.
+        gameaction = ga_nothing;
+        sendsave = true;
+        return;
+    }
+
     int i;
     char *filename;
     char verString[VERSIONSIZE];
@@ -3478,6 +3488,8 @@ static void G_DoSaveGame(void)
     SV_WriteByte(respawnparm ? 1 : 0);
     SV_WriteByte(coop_spawns ? 1 : 0);
     SV_WriteSaveGameEOF();
+    // [PN] Write savegame preview thumbnail after terminator.
+    P_ArchiveSavePreview();
     SV_Close();
 
     gameaction = ga_nothing;

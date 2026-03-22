@@ -20,6 +20,7 @@
 //
 
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
@@ -142,7 +143,13 @@ int savepage = 0;
 static const int savepage_max = 15;
 
 static char savegamestrings[10][SAVESTRINGSIZE];
+static byte savegamepreviews[10][V_SAVEPREVIEW_SIZE];
+static boolean savegamepreview_present[10];
 static char endstring[160];
+
+// [PN] Save/Load preview area (original 320x200 coordinate space).
+#define SAVE_PREVIEW_X 242
+#define SAVE_PREVIEW_Y 26
 
 
 //
@@ -253,6 +260,8 @@ static void M_DrawEpisode(void);
 static void M_DrawSound(void);
 static void M_DrawLoad(void);
 static void M_DrawSave(void);
+static void M_DrawSavePreview(void);
+static void M_DrawSavePreviewBorder(int x, int y, int w, int h);
 
 static void M_DrawSaveLoadBorder(int x,int y);
 static void M_SetupNextMenu(menu_t *menudef);
@@ -490,7 +499,7 @@ static menu_t LoadDef =
     &MainDef,
     LoadMenu,
     M_DrawLoad,
-    67,27,
+    39,27,
     0,
     false, true, true,
 };
@@ -517,7 +526,7 @@ static menu_t SaveDef =
     &MainDef,
     SaveMenu,
     M_DrawSave,
-    67,27,
+    39,27,
     0,
     false, true, true,
 };
@@ -4677,10 +4686,12 @@ static void M_ID_Misc_MenuCapFps (int choice)
     menu_cap_fps ^= 1;
 }
 
+#if defined(_WIN32) && !defined(_WIN32_WCE)
 static void M_ID_Misc_Launcher (int choice)
 {
     show_startup_launcher ^= 1;
 }
+#endif
 
 // -----------------------------------------------------------------------------
 // Level select 1
@@ -5442,6 +5453,7 @@ static void M_Choose_ID_Reset (int choice)
 // M_ReadSaveStrings
 //  read the strings from the savegame files
 //
+
 static void M_ReadSaveStrings(void)
 {
     FILE   *handle;
@@ -5458,12 +5470,73 @@ static void M_ReadSaveStrings(void)
         {
             M_StringCopy(savegamestrings[i], EMPTYSTRING, SAVESTRINGSIZE);
             LoadMenu[i].status = 0;
+            savegamepreview_present[i] = false;
             continue;
         }
+
         retval = fread(&savegamestrings[i], 1, SAVESTRINGSIZE, handle);
-	fclose(handle);
         LoadMenu[i].status = retval == SAVESTRINGSIZE;
+
+        savegamepreview_present[i] = LoadMenu[i].status
+                                  && V_SavePreview_ReadFromFile(handle, savegamepreviews[i]);
+        fclose(handle);
     }
+}
+
+// [PN] Draw decorative bezel around save preview area using classic BRDR patches.
+static void M_DrawSavePreviewBorder(int x, int y, int w, int h)
+{
+    patch_t *const patch_top = W_CacheLumpName(DEH_String("brdr_t"), PU_CACHE);
+    patch_t *const patch_bottom = W_CacheLumpName(DEH_String("brdr_b"), PU_CACHE);
+    patch_t *const patch_left = W_CacheLumpName(DEH_String("brdr_l"), PU_CACHE);
+    patch_t *const patch_right = W_CacheLumpName(DEH_String("brdr_r"), PU_CACHE);
+    patch_t *const patch_tl = W_CacheLumpName(DEH_String("brdr_tl"), PU_CACHE);
+    patch_t *const patch_tr = W_CacheLumpName(DEH_String("brdr_tr"), PU_CACHE);
+    patch_t *const patch_bl = W_CacheLumpName(DEH_String("brdr_bl"), PU_CACHE);
+    patch_t *const patch_br = W_CacheLumpName(DEH_String("brdr_br"), PU_CACHE);
+
+    for (int i = 0; i < w; i += 8)
+    {
+        V_DrawPatch(x + i, y - 8, patch_top);
+        V_DrawPatch(x + i, y + h, patch_bottom);
+    }
+
+    for (int i = 0; i < h; i += 8)
+    {
+        V_DrawPatch(x - 8, y + i, patch_left);
+        V_DrawPatch(x + w, y + i, patch_right);
+    }
+
+    V_DrawPatch(x - 8, y - 8, patch_tl);
+    V_DrawPatch(x + w, y - 8, patch_tr);
+    V_DrawPatch(x - 8, y + h, patch_bl);
+    V_DrawPatch(x + w, y + h, patch_br);
+}
+
+// [PN] Draw selected slot thumbnail or black fallback, then frame it with BRDR patches.
+static void M_DrawSavePreview(void)
+{
+    const int slot = (itemOn >= 0 && itemOn < load_end) ? itemOn : 0;
+    const boolean has_slot = (itemOn >= 0 && itemOn < load_end);
+
+    if (has_slot && savegamepreview_present[slot])
+    {
+        V_DrawScaledBlock(SAVE_PREVIEW_X, SAVE_PREVIEW_Y,
+                          V_SAVEPREVIEW_WIDTH, V_SAVEPREVIEW_HEIGHT,
+                          savegamepreviews[slot]);
+    }
+    else
+    {
+        const int x = (SAVE_PREVIEW_X + WIDESCREENDELTA) * vid_resolution;
+        const int y = SAVE_PREVIEW_Y * vid_resolution;
+        const int w = V_SAVEPREVIEW_WIDTH * vid_resolution;
+        const int h = V_SAVEPREVIEW_HEIGHT * vid_resolution;
+
+        V_DrawFilledBox(x, y, w, h, I_MapRGB(0x00, 0x00, 0x00));
+    }
+
+    M_DrawSavePreviewBorder(SAVE_PREVIEW_X, SAVE_PREVIEW_Y,
+                            V_SAVEPREVIEW_WIDTH, V_SAVEPREVIEW_HEIGHT);
 }
 
 
@@ -5482,14 +5555,17 @@ static void M_DrawSaveLoadBottomLine (void)
     }
 
     M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, savepage_max + 1);
-    
-    M_WriteTextCentered(151, pagestr, cr[CR_MENU_DARK1]);
+
+    // [PN] Keep PAGE label aligned with Save/Load list shift (base x was 67).
+    M_WriteText(ORIGWIDTH / 2 + (LoadDef.x - 67) - M_StringWidth(pagestr) / 2,
+                151, pagestr, cr[CR_MENU_DARK1]);
 
     // [JN] Print "modified" (or created initially) time of savegame file.
     if (itemOn != -1 && LoadMenu[itemOn].status)
     {
         struct stat filestat;
         char filedate[32];
+        char filetime[32];
 
         if (M_stat(P_SaveGameFile(itemOn), &filestat) == 0)
         {
@@ -5498,11 +5574,18 @@ static void M_DrawSaveLoadBottomLine (void)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-y2k"
 #endif
-        strftime(filedate, sizeof(filedate), "%x %X", localtime(&filestat.st_mtime));
+        strftime(filedate, sizeof(filedate), "%x", localtime(&filestat.st_mtime));
+        strftime(filetime, sizeof(filetime), "%X", localtime(&filestat.st_mtime));
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop
 #endif
-        M_WriteTextCentered(160, filedate, cr[CR_MENU_DARK1]);
+        // [PN] Date/time under preview block: first line date, second line time.
+        M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(filedate)) / 2,
+                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 5,
+                    filedate, cr[CR_MENU_DARK1]);
+        M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(filetime)) / 2,
+                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 13,
+                    filetime, cr[CR_MENU_DARK1]);
         }
     }
 }
@@ -5513,7 +5596,7 @@ static void M_DrawSaveLoadBottomLine (void)
 //
 static void M_DrawLoad(void)
 {
-    V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_LOADG"), PU_CACHE));
+    V_DrawShadowedPatchOptional(63, 7, 0, W_CacheLumpName(DEH_String("M_LOADG"), PU_CACHE));
 
     for (int i = 0;i < load_end; i++)
     {
@@ -5528,6 +5611,7 @@ static void M_DrawLoad(void)
                                     LINE_ALPHA(i));
     }
 
+    M_DrawSavePreview();
     M_DrawSaveLoadBottomLine();
 }
 
@@ -5594,7 +5678,7 @@ static void M_DrawSave(void)
 {
     int i;
 
-    V_DrawShadowedPatchOptional(72, 7, 0, W_CacheLumpName(DEH_String("M_SAVEG"), PU_CACHE));
+    V_DrawShadowedPatchOptional(63, 7, 0, W_CacheLumpName(DEH_String("M_SAVEG"), PU_CACHE));
 
     for (i = 0; i < load_end; i++)
     {
@@ -5618,6 +5702,7 @@ static void M_DrawSave(void)
 	menu_mouse_allow = false;
     }
 
+    M_DrawSavePreview();
     M_DrawSaveLoadBottomLine();
 }
 

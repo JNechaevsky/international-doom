@@ -19,12 +19,15 @@
 // P_tick.c
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "doomdef.h"
+#include "i_video.h"
 #include "i_swap.h"
 #include "i_system.h"
 #include "m_misc.h"
 #include "p_local.h"
+#include "r_local.h"
 #include "v_video.h"
 #include "am_map.h"
 
@@ -189,6 +192,59 @@ static int64_t SV_ReadLongLong(void)
     int64_t result;
     SV_Read(&result, sizeof(int64_t));
     return (int64_t)(result);
+}
+
+// -----------------------------------------------------------------------------
+// [PN] Savegame preview helpers.
+// -----------------------------------------------------------------------------
+
+static v_savepreview_cache_t saveg_preview_cache;
+
+static byte saveg_pixel_to_palette(pixel_t pixel, void *user_data)
+{
+    (void)user_data;
+
+    if (argbbuffer == NULL || argbbuffer->format == NULL || rgb_to_pal == NULL)
+    {
+        return 0;
+    }
+
+    {
+        uint8_t r, g, b;
+        SDL_GetRGB((uint32_t)pixel, argbbuffer->format, &r, &g, &b);
+        return RGB_TO_PAL(r, g, b);
+    }
+}
+
+void P_RequestSavePreviewCapture (void)
+{
+    V_SavePreview_RequestCapture(&saveg_preview_cache);
+}
+
+boolean P_IsSavePreviewReady (void)
+{
+    return V_SavePreview_IsReady(&saveg_preview_cache);
+}
+
+// [PN] Refresh clean world-only save preview cache from the freshly rendered view.
+void P_UpdateSavePreviewCache (void)
+{
+    if (!saveg_preview_cache.capture_requested)
+    {
+        return;
+    }
+
+    V_SavePreview_UpdateCache(&saveg_preview_cache,
+                               I_VideoBuffer,
+                               SCREENWIDTH,
+                               SCREENHEIGHT,
+                               viewwindowx,
+                               viewwindowy,
+                               scaledviewwidth,
+                               viewheight,
+                               NONWIDEWIDTH,
+                               saveg_pixel_to_palette,
+                               NULL);
 }
 
 //
@@ -2090,6 +2146,31 @@ void P_ArchiveOldSpecials (void)
     for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
     {
         SV_WriteWord(sec->oldspecial);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// P_ArchiveSavePreview
+// [PN] Archive savegame preview thumbnail at end of save file
+// using shared V_SavePreview footer format.
+// -----------------------------------------------------------------------------
+
+void P_ArchiveSavePreview (void)
+{
+    byte thumb[V_SAVEPREVIEW_SIZE];
+    byte footer[V_SAVEPREVIEW_FOOTER_SIZE];
+
+    V_SavePreview_CopyOrBlack(&saveg_preview_cache, thumb);
+    V_SavePreview_WriteFooter(footer);
+
+    for (int i = 0; i < V_SAVEPREVIEW_SIZE; ++i)
+    {
+        SV_WriteByte(thumb[i]);
+    }
+
+    for (int i = 0; i < V_SAVEPREVIEW_FOOTER_SIZE; ++i)
+    {
+        SV_WriteByte(footer[i]);
     }
 }
 

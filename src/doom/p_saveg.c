@@ -21,9 +21,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "dstrings.h"
 #include "deh_main.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "z_zone.h"
 #include "p_local.h"
 #include "doomstat.h"
@@ -33,6 +35,7 @@
 #include "s_sound.h"
 #include "m_random.h"
 #include "mn_menu.h"
+#include "r_local.h"
 
 #include "id_vars.h"
 
@@ -175,6 +178,76 @@ static void saveg_write64(int64_t value)
     saveg_write8((value >> 40) & 0xff);
     saveg_write8((value >> 48) & 0xff);
     saveg_write8((value >> 56) & 0xff);
+}
+
+// -----------------------------------------------------------------------------
+// [PN] Savegame preview helpers.
+// -----------------------------------------------------------------------------
+
+static v_savepreview_cache_t saveg_preview_cache;
+
+static byte saveg_pixel_to_palette(pixel_t pixel, void *user_data)
+{
+    (void)user_data;
+
+    // [PN] Fast path: lookup from the ARGB -> palette hash used by renderer.
+    if (argb2pal_keys != NULL && argb2pal_vals != NULL && argb2pal_mask > 0)
+    {
+        int i = ((uint32_t)pixel * 2654435761u) & argb2pal_mask;
+        uint32_t key;
+
+        while ((key = argb2pal_keys[i]) && key != (uint32_t)pixel)
+        {
+            i = (i + 1) & argb2pal_mask;
+        }
+
+        if (key)
+        {
+            return argb2pal_vals[i];
+        }
+    }
+
+    // [PN] Fallback path: convert RGB to nearest PLAYPAL index via LUT.
+    if (argbbuffer != NULL && argbbuffer->format != NULL && rgb_to_pal != NULL)
+    {
+        uint8_t r, g, b;
+
+        SDL_GetRGB((uint32_t)pixel, argbbuffer->format, &r, &g, &b);
+        return RGB_TO_PAL(r, g, b);
+    }
+
+    return 0;
+}
+
+void P_RequestSavePreviewCapture (void)
+{
+    V_SavePreview_RequestCapture(&saveg_preview_cache);
+}
+
+boolean P_IsSavePreviewReady (void)
+{
+    return V_SavePreview_IsReady(&saveg_preview_cache);
+}
+
+// [PN] Refresh clean world-only save preview cache from the freshly rendered view.
+void P_UpdateSavePreviewCache (void)
+{
+    if (!saveg_preview_cache.capture_requested)
+    {
+        return;
+    }
+
+    V_SavePreview_UpdateCache(&saveg_preview_cache,
+                               I_VideoBuffer,
+                               SCREENWIDTH,
+                               SCREENHEIGHT,
+                               viewwindowx,
+                               viewwindowy,
+                               scaledviewwidth,
+                               viewheight,
+                               NONWIDEWIDTH,
+                               saveg_pixel_to_palette,
+                               NULL);
 }
 
 // Pad to 4-byte boundaries
@@ -2259,6 +2332,31 @@ void P_ArchiveOldSpecials (void)
     for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
     {
         saveg_write16(sec->oldspecial);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// P_ArchiveSavePreview
+// [PN] Archive savegame preview thumbnail at end of save file
+// using shared V_SavePreview footer format.
+// -----------------------------------------------------------------------------
+
+void P_ArchiveSavePreview (void)
+{
+    byte thumb[V_SAVEPREVIEW_SIZE];
+    byte footer[V_SAVEPREVIEW_FOOTER_SIZE];
+
+    V_SavePreview_CopyOrBlack(&saveg_preview_cache, thumb);
+    V_SavePreview_WriteFooter(footer);
+
+    for (int i = 0; i < V_SAVEPREVIEW_SIZE; ++i)
+    {
+        saveg_write8(thumb[i]);
+    }
+
+    for (int i = 0; i < V_SAVEPREVIEW_FOOTER_SIZE; ++i)
+    {
+        saveg_write8(footer[i]);
     }
 }
 
