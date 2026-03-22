@@ -143,7 +143,7 @@ int savepage = 0;
 static const int savepage_max = 15;
 
 static char savegamestrings[10][SAVESTRINGSIZE];
-static byte savegamepreviews[10][SAVEGAME_PREVIEW_SIZE];
+static byte savegamepreviews[10][V_SAVEPREVIEW_SIZE];
 static boolean savegamepreview_present[10];
 static char endstring[160];
 
@@ -5455,69 +5455,7 @@ static void M_Choose_ID_Reset (int choice)
 // [PN] Read thumbnail footer/data from end of save file with strict validation.
 static boolean M_ReadSavePreview(FILE *handle, byte *preview)
 {
-    byte footer[SAVEGAME_PREVIEW_FOOTER_SIZE];
-    long file_size;
-    long data_pos;
-    unsigned int data_len;
-
-    if (fseek(handle, 0, SEEK_END) != 0)
-    {
-        return false;
-    }
-
-    file_size = ftell(handle);
-    if (file_size < SAVEGAME_PREVIEW_FOOTER_SIZE)
-    {
-        return false;
-    }
-
-    if (fseek(handle, file_size - SAVEGAME_PREVIEW_FOOTER_SIZE, SEEK_SET) != 0)
-    {
-        return false;
-    }
-
-    if (fread(footer, 1, SAVEGAME_PREVIEW_FOOTER_SIZE, handle) != SAVEGAME_PREVIEW_FOOTER_SIZE)
-    {
-        return false;
-    }
-
-    // [PN] Validate footer signature and shape.
-    // "ISVP" = "Inter Save View Preview".
-    if (footer[0] != 'I' || footer[1] != 'S' || footer[2] != 'V' || footer[3] != 'P')
-    {
-        return false;
-    }
-    if (footer[4] != SAVEGAME_PREVIEW_VERSION)
-    {
-        return false;
-    }
-    if (footer[5] != SAVEGAME_PREVIEW_WIDTH || footer[6] != SAVEGAME_PREVIEW_HEIGHT)
-    {
-        return false;
-    }
-
-    data_len = (unsigned int)footer[8]
-             | ((unsigned int)footer[9] << 8)
-             | ((unsigned int)footer[10] << 16)
-             | ((unsigned int)footer[11] << 24);
-
-    if (data_len != SAVEGAME_PREVIEW_SIZE)
-    {
-        return false;
-    }
-
-    data_pos = file_size - SAVEGAME_PREVIEW_FOOTER_SIZE - (long)data_len;
-    if (data_pos < 0)
-    {
-        return false;
-    }
-
-    if (fseek(handle, data_pos, SEEK_SET) != 0)
-    {
-        return false;
-    }
-
-    return fread(preview, 1, SAVEGAME_PREVIEW_SIZE, handle) == SAVEGAME_PREVIEW_SIZE;
+    return V_SavePreview_ReadFromFile(handle, preview);
 }
 
 static void M_ReadSaveStrings(void)
@@ -5588,21 +5526,21 @@ static void M_DrawSavePreview(void)
     if (has_slot && savegamepreview_present[slot])
     {
         V_DrawScaledBlock(SAVE_PREVIEW_X, SAVE_PREVIEW_Y,
-                          SAVEGAME_PREVIEW_WIDTH, SAVEGAME_PREVIEW_HEIGHT,
+                          V_SAVEPREVIEW_WIDTH, V_SAVEPREVIEW_HEIGHT,
                           savegamepreviews[slot]);
     }
     else
     {
         const int x = (SAVE_PREVIEW_X + WIDESCREENDELTA) * vid_resolution;
         const int y = SAVE_PREVIEW_Y * vid_resolution;
-        const int w = SAVEGAME_PREVIEW_WIDTH * vid_resolution;
-        const int h = SAVEGAME_PREVIEW_HEIGHT * vid_resolution;
+        const int w = V_SAVEPREVIEW_WIDTH * vid_resolution;
+        const int h = V_SAVEPREVIEW_HEIGHT * vid_resolution;
 
         V_DrawFilledBox(x, y, w, h, I_MapRGB(0x00, 0x00, 0x00));
     }
 
     M_DrawSavePreviewBorder(SAVE_PREVIEW_X, SAVE_PREVIEW_Y,
-                            SAVEGAME_PREVIEW_WIDTH, SAVEGAME_PREVIEW_HEIGHT);
+                            V_SAVEPREVIEW_WIDTH, V_SAVEPREVIEW_HEIGHT);
 }
 
 
@@ -5646,11 +5584,11 @@ static void M_DrawSaveLoadBottomLine (void)
 #  pragma GCC diagnostic pop
 #endif
         // [PN] Date/time under preview block: first line date, second line time.
-        M_WriteText(SAVE_PREVIEW_X + (SAVEGAME_PREVIEW_WIDTH - M_StringWidth(filedate)) / 2,
-                    SAVE_PREVIEW_Y + SAVEGAME_PREVIEW_HEIGHT + 5 /* 12 */,
+        M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(filedate)) / 2,
+                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 5 /* 12 */,
                     filedate, cr[CR_MENU_DARK1]);
-        M_WriteText(SAVE_PREVIEW_X + (SAVEGAME_PREVIEW_WIDTH - M_StringWidth(filetime)) / 2,
-                    SAVE_PREVIEW_Y + SAVEGAME_PREVIEW_HEIGHT + 13 /* 20 */,
+        M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(filetime)) / 2,
+                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 13 /* 20 */,
                     filetime, cr[CR_MENU_DARK1]);
         }
     }

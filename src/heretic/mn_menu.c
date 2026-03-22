@@ -209,7 +209,7 @@ static int typeofask;
 static boolean FileMenuKeySteal;
 static boolean slottextloaded;
 static char SlotText[SAVES_PER_PAGE][SLOTTEXTLEN + 2];
-static byte SlotPreview[SAVES_PER_PAGE][SAVEGAME_PREVIEW_SIZE];
+static byte SlotPreview[SAVES_PER_PAGE][V_SAVEPREVIEW_SIZE];
 static char oldSlotText[SLOTTEXTLEN + 2];
 static int SlotStatus[SAVES_PER_PAGE];
 static boolean SlotPreviewStatus[SAVES_PER_PAGE];
@@ -6208,10 +6208,10 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop
 #endif
-        date_x = SAVE_PREVIEW_X + (SAVEGAME_PREVIEW_WIDTH - MN_TextAWidth(filedate)) / 2;
-        time_x = SAVE_PREVIEW_X + (SAVEGAME_PREVIEW_WIDTH - MN_TextAWidth(filetime)) / 2;
-        MN_DrTextA(filedate, date_x, SAVE_PREVIEW_Y + SAVEGAME_PREVIEW_HEIGHT + 6, cr[CR_MENU_DARK4]);
-        MN_DrTextA(filetime, time_x, SAVE_PREVIEW_Y + SAVEGAME_PREVIEW_HEIGHT + 16, cr[CR_MENU_DARK4]);
+        date_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(filedate)) / 2;
+        time_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(filetime)) / 2;
+        MN_DrTextA(filedate, date_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 6, cr[CR_MENU_DARK4]);
+        MN_DrTextA(filetime, time_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 16, cr[CR_MENU_DARK4]);
         }
         free(filename);
     }
@@ -6264,68 +6264,7 @@ static void DrawSaveMenu(void)
 // [PN] Read thumbnail footer/data from end of save file with strict validation.
 static boolean MN_ReadSavePreview(FILE *fp, byte *preview)
 {
-    byte footer[SAVEGAME_PREVIEW_FOOTER_SIZE];
-    long file_size;
-    long data_pos;
-    unsigned int data_len;
-
-    if (fseek(fp, 0, SEEK_END) != 0)
-    {
-        return false;
-    }
-
-    file_size = ftell(fp);
-    if (file_size < SAVEGAME_PREVIEW_FOOTER_SIZE)
-    {
-        return false;
-    }
-
-    if (fseek(fp, file_size - SAVEGAME_PREVIEW_FOOTER_SIZE, SEEK_SET) != 0)
-    {
-        return false;
-    }
-
-    if (fread(footer, 1, SAVEGAME_PREVIEW_FOOTER_SIZE, fp) != SAVEGAME_PREVIEW_FOOTER_SIZE)
-    {
-        return false;
-    }
-
-    // [PN] "ISVP" = "Inter Save View Preview".
-    if (footer[0] != 'I' || footer[1] != 'S' || footer[2] != 'V' || footer[3] != 'P')
-    {
-        return false;
-    }
-    if (footer[4] != SAVEGAME_PREVIEW_VERSION)
-    {
-        return false;
-    }
-    if (footer[5] != SAVEGAME_PREVIEW_WIDTH || footer[6] != SAVEGAME_PREVIEW_HEIGHT)
-    {
-        return false;
-    }
-
-    data_len = (unsigned int)footer[8]
-             | ((unsigned int)footer[9] << 8)
-             | ((unsigned int)footer[10] << 16)
-             | ((unsigned int)footer[11] << 24);
-
-    if (data_len != SAVEGAME_PREVIEW_SIZE)
-    {
-        return false;
-    }
-
-    data_pos = file_size - SAVEGAME_PREVIEW_FOOTER_SIZE - (long)data_len;
-    if (data_pos < 0)
-    {
-        return false;
-    }
-
-    if (fseek(fp, data_pos, SEEK_SET) != 0)
-    {
-        return false;
-    }
-
-    return fread(preview, 1, SAVEGAME_PREVIEW_SIZE, fp) == SAVEGAME_PREVIEW_SIZE;
+    return V_SavePreview_ReadFromFile(fp, preview);
 }
 
 // [PN] Draw decorative preview frame using Heretic beveled border patches.
@@ -6375,20 +6314,20 @@ static void DrawSavePreview(const Menu_t *menu)
 
     if (has_slot && SlotPreviewStatus[slot])
     {
-        V_DrawScaledBlock(x, y, SAVEGAME_PREVIEW_WIDTH, SAVEGAME_PREVIEW_HEIGHT,
+        V_DrawScaledBlock(x, y, V_SAVEPREVIEW_WIDTH, V_SAVEPREVIEW_HEIGHT,
                           SlotPreview[slot]);
     }
     else
     {
         const int rx = (x + WIDESCREENDELTA) * vid_resolution;
         const int ry = y * vid_resolution;
-        const int rw = SAVEGAME_PREVIEW_WIDTH * vid_resolution;
-        const int rh = SAVEGAME_PREVIEW_HEIGHT * vid_resolution;
+        const int rw = V_SAVEPREVIEW_WIDTH * vid_resolution;
+        const int rh = V_SAVEPREVIEW_HEIGHT * vid_resolution;
 
         V_DrawFilledBox(rx, ry, rw, rh, I_MapRGB(0x00, 0x00, 0x00));
     }
 
-    DrawSavePreviewBorder(x, y, SAVEGAME_PREVIEW_WIDTH, SAVEGAME_PREVIEW_HEIGHT);
+    DrawSavePreviewBorder(x, y, V_SAVEPREVIEW_WIDTH, V_SAVEPREVIEW_HEIGHT);
 }
 
 //===========================================================================

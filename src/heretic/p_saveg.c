@@ -198,12 +198,12 @@ static int64_t SV_ReadLongLong(void)
 // [PN] Savegame preview helpers.
 // -----------------------------------------------------------------------------
 
-static byte saveg_preview_cache[SAVEGAME_PREVIEW_SIZE];
-static boolean saveg_preview_cache_valid = false;
-static boolean saveg_preview_capture_requested = false;
+static v_savepreview_cache_t saveg_preview_cache;
 
-static byte saveg_pixel_to_palette(pixel_t pixel)
+static byte saveg_pixel_to_palette(pixel_t pixel, void *user_data)
 {
+    (void)user_data;
+
     if (argbbuffer == NULL || argbbuffer->format == NULL || rgb_to_pal == NULL)
     {
         return 0;
@@ -216,82 +216,30 @@ static byte saveg_pixel_to_palette(pixel_t pixel)
     }
 }
 
-static boolean saveg_build_preview(byte *thumb)
-{
-    int src_x = viewwindowx;
-    int src_y = viewwindowy;
-    int src_w = scaledviewwidth;
-    int src_h = viewheight;
-
-    // [PN] Crop to non-widescreen world width (centered) for stable menu preview.
-    if (src_w > NONWIDEWIDTH)
-    {
-        src_x += (src_w - NONWIDEWIDTH) / 2;
-        src_w = NONWIDEWIDTH;
-    }
-
-    // [PN] Clamp source rectangle to current framebuffer.
-    if (src_x < 0)
-    {
-        src_w += src_x;
-        src_x = 0;
-    }
-    if (src_y < 0)
-    {
-        src_h += src_y;
-        src_y = 0;
-    }
-    if (src_x + src_w > SCREENWIDTH)
-    {
-        src_w = SCREENWIDTH - src_x;
-    }
-    if (src_y + src_h > SCREENHEIGHT)
-    {
-        src_h = SCREENHEIGHT - src_y;
-    }
-
-    if (src_w <= 0 || src_h <= 0 || I_VideoBuffer == NULL)
-    {
-        return false;
-    }
-
-    for (int y = 0; y < SAVEGAME_PREVIEW_HEIGHT; ++y)
-    {
-        const int sy = src_y + (y * src_h) / SAVEGAME_PREVIEW_HEIGHT;
-
-        for (int x = 0; x < SAVEGAME_PREVIEW_WIDTH; ++x)
-        {
-            const int sx = src_x + (x * src_w) / SAVEGAME_PREVIEW_WIDTH;
-            const pixel_t px = I_VideoBuffer[sy * SCREENWIDTH + sx];
-
-            thumb[y * SAVEGAME_PREVIEW_WIDTH + x] = saveg_pixel_to_palette(px);
-        }
-    }
-
-    return true;
-}
-
 void P_RequestSavePreviewCapture (void)
 {
-    saveg_preview_cache_valid = false;
-    saveg_preview_capture_requested = true;
+    V_SavePreview_RequestCapture(&saveg_preview_cache);
 }
 
 boolean P_IsSavePreviewReady (void)
 {
-    return !saveg_preview_capture_requested;
+    return V_SavePreview_IsReady(&saveg_preview_cache);
 }
 
 // [PN] Refresh clean world-only save preview cache from the freshly rendered view.
 void P_UpdateSavePreviewCache (void)
 {
-    if (!saveg_preview_capture_requested)
-    {
-        return;
-    }
-
-    saveg_preview_cache_valid = saveg_build_preview(saveg_preview_cache);
-    saveg_preview_capture_requested = false;
+    V_SavePreview_UpdateCache(&saveg_preview_cache,
+                               I_VideoBuffer,
+                               SCREENWIDTH,
+                               SCREENHEIGHT,
+                               viewwindowx,
+                               viewwindowy,
+                               scaledviewwidth,
+                               viewheight,
+                               NONWIDEWIDTH,
+                               saveg_pixel_to_palette,
+                               NULL);
 }
 
 //
@@ -2211,32 +2159,21 @@ void P_ArchiveOldSpecials (void)
 
 void P_ArchiveSavePreview (void)
 {
-    byte thumb[SAVEGAME_PREVIEW_SIZE];
+    byte thumb[V_SAVEPREVIEW_SIZE];
+    byte footer[V_SAVEPREVIEW_FOOTER_SIZE];
 
-    // [PN] Always write a preview block: use cached world image or black fallback.
-    if (saveg_preview_cache_valid)
-    {
-        memcpy(thumb, saveg_preview_cache, sizeof(thumb));
-    }
-    else
-    {
-        memset(thumb, 0, sizeof(thumb));
-    }
+    V_SavePreview_CopyOrBlack(&saveg_preview_cache, thumb);
+    V_SavePreview_WriteFooter(footer);
 
-    for (int i = 0; i < SAVEGAME_PREVIEW_SIZE; ++i)
+    for (int i = 0; i < V_SAVEPREVIEW_SIZE; ++i)
     {
         SV_WriteByte(thumb[i]);
     }
 
-    SV_WriteByte('I');
-    SV_WriteByte('S');
-    SV_WriteByte('V');
-    SV_WriteByte('P');
-    SV_WriteByte(SAVEGAME_PREVIEW_VERSION);
-    SV_WriteByte(SAVEGAME_PREVIEW_WIDTH);
-    SV_WriteByte(SAVEGAME_PREVIEW_HEIGHT);
-    SV_WriteByte(0); // reserved
-    SV_WriteLong(SAVEGAME_PREVIEW_SIZE);
+    for (int i = 0; i < V_SAVEPREVIEW_FOOTER_SIZE; ++i)
+    {
+        SV_WriteByte(footer[i]);
+    }
 }
 
 // -----------------------------------------------------------------------------

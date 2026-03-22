@@ -604,12 +604,7 @@ extern fixed_t bulletslope;
 // maximum size of a savegame description
 #define SAVESTRINGSIZE  24
 
-// [PN] Savegame preview thumbnail (raw paletted + footer in save tail).
-#define SAVEGAME_PREVIEW_WIDTH        72
-#define SAVEGAME_PREVIEW_HEIGHT       45
-#define SAVEGAME_PREVIEW_SIZE         (SAVEGAME_PREVIEW_WIDTH * SAVEGAME_PREVIEW_HEIGHT)
-#define SAVEGAME_PREVIEW_FOOTER_SIZE  12
-#define SAVEGAME_PREVIEW_VERSION      1
+#include "v_savepreview.h"
 
 extern boolean  P_ReadSaveGameEOF(void);
 extern boolean  P_ReadSaveGameHeader(void);
