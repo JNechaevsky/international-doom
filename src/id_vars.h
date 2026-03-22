@@ -127,6 +127,7 @@ extern int automap_mini;
 extern int automap_mini_size;
 extern int automap_mini_thick;
 extern int automap_mini_shading;
+extern int automap_mini_zoom;
 
 // Gameplay features
 extern int vis_brightmaps;

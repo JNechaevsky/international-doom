@@ -647,6 +647,7 @@ static void M_ID_Automap_MiniShow (int choice);
 static void M_ID_Automap_MiniSize (int choice);
 static void M_ID_Automap_MiniThick (int choice);
 static void M_ID_Automap_MiniShading (int choice);
+static void M_ID_Automap_MiniZoom (int choice);
 
 static void M_Draw_ID_Gameplay_1 (void);
 static void M_ID_Brightmaps (int choice);
@@ -3421,6 +3422,7 @@ static MenuItem_t ID_Menu_Automap[] = {
     { ITT_LRFUNC1, "MINIMAP SIZE",          M_ID_Automap_MiniSize,    0, MENU_NONE },
     { ITT_LRFUNC1, "LINE THICKNESS",        M_ID_Automap_MiniThick,   0, MENU_NONE },
     { ITT_LRFUNC1, "SHADING LEVEL",         M_ID_Automap_MiniShading, 0, MENU_NONE },
+    { ITT_LRFUNC1, "ZOOM LEVEL",            M_ID_Automap_MiniZoom,    0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Automap = {
@@ -3548,6 +3550,13 @@ static void M_Draw_ID_Automap (void)
                              automap_mini_shading ==  0 ? cr[CR_RED_BRIGHT] :
                              (automap_mini_shading == 1 || automap_mini_shading == 13)  ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_HX_BRIGHT],
                                 LINE_ALPHA(13));
+
+    // Zoom level
+    sprintf(str, automap_mini_zoom ? "FIXED" : "TRACKING");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 160,
+                        !automap_mini ? cr[CR_DARKRED] : cr[CR_GREEN_HX],
+                            !automap_mini ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_HX_BRIGHT],
+                                LINE_ALPHA(14));
 }
 
 static void M_ID_Automap_Smooth (int choice)
@@ -3617,6 +3626,11 @@ static void M_ID_Automap_MiniThick (int choice)
 static void M_ID_Automap_MiniShading (int choice)
 {
     automap_mini_shading = M_INT_Slider(automap_mini_shading, 0, 13, choice, true);
+}
+
+static void M_ID_Automap_MiniZoom (int choice)
+{
+    automap_mini_zoom ^= 1;
 }
 
 // -----------------------------------------------------------------------------
@@ -4473,6 +4487,7 @@ static void M_ID_ApplyResetHook (void)
     automap_mini_size = 4;
     automap_mini_thick = 0;
     automap_mini_shading = 7;
+    automap_mini_zoom = 0;
 
     //
     // Gameplay features

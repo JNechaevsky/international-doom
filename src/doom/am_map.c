@@ -2894,6 +2894,7 @@ void AM_MiniDrawer (void)
     int64_t saved_m_x, saved_m_y, saved_m_x2, saved_m_y2, saved_m_w, saved_m_h;
     mpoint_t saved_mapcenter;
     angle_t saved_mapangle;
+    fixed_t saved_scale_mtof, saved_scale_ftom;
     int saved_automap_overlay;
     boolean saved_drawing_minimap;
     const boolean freeze_mini_angle = (!am_followplayer && automap_rotate);
@@ -2944,6 +2945,8 @@ void AM_MiniDrawer (void)
     saved_m_h = m_h;
     saved_mapcenter = mapcenter;
     saved_mapangle = mapangle;
+    saved_scale_mtof = scale_mtof;
+    saved_scale_ftom = scale_ftom;
     saved_automap_overlay = automap_overlay;
     saved_drawing_minimap = drawing_minimap;
 
@@ -2958,6 +2961,19 @@ void AM_MiniDrawer (void)
     f_w = mini_w;
     f_h = mini_h;
     plr = &players[displayplayer];
+
+    // [PN] Optional independent mini-map zoom mode:
+    // 0 = linked to main automap, 1 = force level-start default zoom.
+    if (automap_mini_zoom == 1)
+    {
+        scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7 * FRACUNIT));
+        if (scale_mtof > max_scale_mtof)
+        {
+            scale_mtof = min_scale_mtof;
+        }
+
+        scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+    }
 
     m_w = FTOM(f_w);
     m_h = FTOM(f_h);
@@ -3020,5 +3036,7 @@ void AM_MiniDrawer (void)
     m_h = saved_m_h;
     mapcenter = saved_mapcenter;
     mapangle = saved_mapangle;
+    scale_mtof = saved_scale_mtof;
+    scale_ftom = saved_scale_ftom;
     automap_overlay = saved_automap_overlay;
 }

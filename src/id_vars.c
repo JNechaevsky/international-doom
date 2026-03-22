@@ -148,6 +148,7 @@ int automap_mini = 0;
 int automap_mini_size = 4;
 int automap_mini_thick = 0;
 int automap_mini_shading = 7;
+int automap_mini_zoom = 0;
 
 //
 // Gameplay features
@@ -397,6 +398,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("automap_mini_size",              &automap_mini_size);
     M_BindIntVariable("automap_mini_thick",             &automap_mini_thick);
     M_BindIntVariable("automap_mini_shading",           &automap_mini_shading);
+    M_BindIntVariable("automap_mini_zoom",              &automap_mini_zoom);
 
     //
     // Gameplay features
