@@ -5670,9 +5670,11 @@ static void DrawFileSlots(Menu_t * menu)
 
         if (SlotStatus[i])
         {
+            // [PN] Use per-line glow state (tics) for save/load text,
+            // so animated/static highlight works beyond only current cursor row.
             MN_DrTextAGlow(SlotText[i], x + 5, y + 5,
                                 cr[CR_MENU_DARK2],
-                                    (CurrentItPos == i) ? cr[CR_MENU_BRIGHT2] : cr[CR_MENU_DARK2],
+                                    CurrentMenu->items[i].tics > 0 ? cr[CR_MENU_BRIGHT2] : cr[CR_MENU_DARK2],
                                         LINE_ALPHA(i));
         }
         y += ITEM_HEIGHT;

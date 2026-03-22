@@ -5605,9 +5605,11 @@ static void M_DrawLoad(void)
         M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
         dp_translation = NULL;
 
+        // [PN] For save/load entries, use per-line glow state (tics),
+        // not only the current cursor line, so animated/static highlight works too.
         M_WriteTextGlow(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i],
                             NULL,
-                                (itemOn == i) ? cr[CR_MENU_BRIGHT5] : NULL, 
+                                currentMenu->menuitems[i].tics > 0 ? cr[CR_MENU_BRIGHT5] : NULL,
                                     LINE_ALPHA(i));
     }
 
@@ -5687,9 +5689,11 @@ static void M_DrawSave(void)
         M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i+7);
         dp_translation = NULL;
 
+        // [PN] For save/load entries, use per-line glow state (tics),
+        // not only the current cursor line, so animated/static highlight works too.
         M_WriteTextGlow(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i],
                             NULL,
-                                (itemOn == i) ? cr[CR_MENU_BRIGHT5] : NULL, 
+                                currentMenu->menuitems[i].tics > 0 ? cr[CR_MENU_BRIGHT5] : NULL,
                                     LINE_ALPHA(i));
     }
 
