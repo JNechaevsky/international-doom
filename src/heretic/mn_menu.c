@@ -184,7 +184,6 @@ static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, 
 static void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
 static void MN_DeactivateMenu(void);
 static void MN_LoadSlotText(void);
-static boolean MN_ReadSavePreview(FILE *fp, byte *preview);
 
 inline static void M_ID_MenuMouseControl (void);
 inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max);
@@ -6263,23 +6262,17 @@ static void DrawSaveMenu(void)
     DrawSaveLoadBottomLine(&SaveMenu);
 }
 
-// [PN] Read thumbnail footer/data from end of save file with strict validation.
-static boolean MN_ReadSavePreview(FILE *fp, byte *preview)
-{
-    return V_SavePreview_ReadFromFile(fp, preview);
-}
-
 // [PN] Draw decorative preview frame using Heretic beveled border patches.
 static void DrawSavePreviewBorder(int x, int y, int w, int h)
 {
-    patch_t *patch_top = W_CacheLumpName(DEH_String("bordt"), PU_CACHE);
-    patch_t *patch_bottom = W_CacheLumpName(DEH_String("bordb"), PU_CACHE);
-    patch_t *patch_left = W_CacheLumpName(DEH_String("bordl"), PU_CACHE);
-    patch_t *patch_right = W_CacheLumpName(DEH_String("bordr"), PU_CACHE);
-    patch_t *patch_tl = W_CacheLumpName(DEH_String("bordtl"), PU_CACHE);
-    patch_t *patch_tr = W_CacheLumpName(DEH_String("bordtr"), PU_CACHE);
-    patch_t *patch_bl = W_CacheLumpName(DEH_String("bordbl"), PU_CACHE);
-    patch_t *patch_br = W_CacheLumpName(DEH_String("bordbr"), PU_CACHE);
+    patch_t *const patch_top = W_CacheLumpName(DEH_String("bordt"), PU_CACHE);
+    patch_t *const patch_bottom = W_CacheLumpName(DEH_String("bordb"), PU_CACHE);
+    patch_t *const patch_left = W_CacheLumpName(DEH_String("bordl"), PU_CACHE);
+    patch_t *const patch_right = W_CacheLumpName(DEH_String("bordr"), PU_CACHE);
+    patch_t *const patch_tl = W_CacheLumpName(DEH_String("bordtl"), PU_CACHE);
+    patch_t *const patch_tr = W_CacheLumpName(DEH_String("bordtr"), PU_CACHE);
+    patch_t *const patch_bl = W_CacheLumpName(DEH_String("bordbl"), PU_CACHE);
+    patch_t *const patch_br = W_CacheLumpName(DEH_String("bordbr"), PU_CACHE);
 
     // [PN] Tile top/bottom without overshooting when w is not divisible by 16.
     for (int i = 0; i + 16 < w; i += 16)
@@ -6361,7 +6354,7 @@ static void MN_LoadSlotText(void)
         }
         retval = fread(&SlotText[i], 1, SLOTTEXTLEN, fp);
         SlotStatus[i] = retval == SLOTTEXTLEN;
-        SlotPreviewStatus[i] = SlotStatus[i] && MN_ReadSavePreview(fp, SlotPreview[i]);
+        SlotPreviewStatus[i] = SlotStatus[i] && V_SavePreview_ReadFromFile(fp, SlotPreview[i]);
         fclose(fp);
     }
     slottextloaded = true;

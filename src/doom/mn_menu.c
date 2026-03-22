@@ -249,7 +249,6 @@ static void M_FinishReadThis(int choice);
 static void M_LoadSelect(int choice);
 static void M_SaveSelect(int choice);
 static void M_ReadSaveStrings(void);
-static boolean M_ReadSavePreview(FILE *handle, byte *preview);
 static void M_QuickSave(void);
 static void M_QuickLoad(void);
 
@@ -5454,11 +5453,6 @@ static void M_Choose_ID_Reset (int choice)
 // M_ReadSaveStrings
 //  read the strings from the savegame files
 //
-// [PN] Read thumbnail footer/data from end of save file with strict validation.
-static boolean M_ReadSavePreview(FILE *handle, byte *preview)
-{
-    return V_SavePreview_ReadFromFile(handle, preview);
-}
 
 static void M_ReadSaveStrings(void)
 {
@@ -5484,7 +5478,7 @@ static void M_ReadSaveStrings(void)
         LoadMenu[i].status = retval == SAVESTRINGSIZE;
 
         savegamepreview_present[i] = LoadMenu[i].status
-                                  && M_ReadSavePreview(handle, savegamepreviews[i]);
+                                  && V_SavePreview_ReadFromFile(handle, savegamepreviews[i]);
         fclose(handle);
     }
 }
@@ -5492,14 +5486,14 @@ static void M_ReadSaveStrings(void)
 // [PN] Draw decorative bezel around save preview area using classic BRDR patches.
 static void M_DrawSavePreviewBorder(int x, int y, int w, int h)
 {
-    patch_t *patch_top = W_CacheLumpName(DEH_String("brdr_t"), PU_CACHE);
-    patch_t *patch_bottom = W_CacheLumpName(DEH_String("brdr_b"), PU_CACHE);
-    patch_t *patch_left = W_CacheLumpName(DEH_String("brdr_l"), PU_CACHE);
-    patch_t *patch_right = W_CacheLumpName(DEH_String("brdr_r"), PU_CACHE);
-    patch_t *patch_tl = W_CacheLumpName(DEH_String("brdr_tl"), PU_CACHE);
-    patch_t *patch_tr = W_CacheLumpName(DEH_String("brdr_tr"), PU_CACHE);
-    patch_t *patch_bl = W_CacheLumpName(DEH_String("brdr_bl"), PU_CACHE);
-    patch_t *patch_br = W_CacheLumpName(DEH_String("brdr_br"), PU_CACHE);
+    patch_t *const patch_top = W_CacheLumpName(DEH_String("brdr_t"), PU_CACHE);
+    patch_t *const patch_bottom = W_CacheLumpName(DEH_String("brdr_b"), PU_CACHE);
+    patch_t *const patch_left = W_CacheLumpName(DEH_String("brdr_l"), PU_CACHE);
+    patch_t *const patch_right = W_CacheLumpName(DEH_String("brdr_r"), PU_CACHE);
+    patch_t *const patch_tl = W_CacheLumpName(DEH_String("brdr_tl"), PU_CACHE);
+    patch_t *const patch_tr = W_CacheLumpName(DEH_String("brdr_tr"), PU_CACHE);
+    patch_t *const patch_bl = W_CacheLumpName(DEH_String("brdr_bl"), PU_CACHE);
+    patch_t *const patch_br = W_CacheLumpName(DEH_String("brdr_br"), PU_CACHE);
 
     for (int i = 0; i < w; i += 8)
     {
@@ -5587,10 +5581,10 @@ static void M_DrawSaveLoadBottomLine (void)
 #endif
         // [PN] Date/time under preview block: first line date, second line time.
         M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(filedate)) / 2,
-                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 5 /* 12 */,
+                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 5,
                     filedate, cr[CR_MENU_DARK1]);
         M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(filetime)) / 2,
-                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 13 /* 20 */,
+                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 13,
                     filetime, cr[CR_MENU_DARK1]);
         }
     }

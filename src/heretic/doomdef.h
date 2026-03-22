@@ -63,6 +63,7 @@
 #include "d_loop.h"
 #include "i_input.h"  // mouse_sensitivity_y
 
+#include "v_savepreview.h"
 #define	SAVEGAMENAME "hticsav"
 
 /*
@@ -628,7 +629,6 @@ extern ticcmd_t *netcmds;
 #define SAVEGAMESIZE 0x30000
 #define SAVESTRINGSIZE 24
 
-#include "v_savepreview.h"
 
 extern mapthing_t *deathmatch_p;
 extern mapthing_t deathmatchstarts[10];

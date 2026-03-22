@@ -2337,15 +2337,8 @@ void P_ArchiveOldSpecials (void)
 
 // -----------------------------------------------------------------------------
 // P_ArchiveSavePreview
-// [PN] Archive savegame preview thumbnail at end of save file.
-//       Layout: [raw paletted data][footer].
-//       Footer:
-//         bytes 0..3   "ISVP" magic ("Inter Save View Preview")
-//         byte  4      version
-//         byte  5      width
-//         byte  6      height
-//         byte  7      reserved
-//         bytes 8..11  data size (LE32)
+// [PN] Archive savegame preview thumbnail at end of save file
+// using shared V_SavePreview footer format.
 // -----------------------------------------------------------------------------
 
 void P_ArchiveSavePreview (void)

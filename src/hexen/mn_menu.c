@@ -53,9 +53,11 @@
 #define SELECTOR_XOFFSET (-28)
 #define SELECTOR_YOFFSET (-1)
 #define SLOTTEXTLEN	22
+#define ASCII_CURSOR '['
+
+// [PN] Save/Load preview area (original 320x200 coordinate space).
 #define SAVE_PREVIEW_X 236
 #define SAVE_PREVIEW_Y 23
-#define ASCII_CURSOR '['
 
 // TYPES -------------------------------------------------------------------
 
@@ -183,7 +185,6 @@ static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, 
 static void MN_LoadSlotText(void);
 static void MN_DeactivateMenu(void);
 static void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
-static boolean MN_ReadSavePreview(FILE *fp, byte *preview);
 
 inline static void M_ID_MenuMouseControl (void);
 inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void *value, boolean is_float, float min, float max);
@@ -5517,23 +5518,17 @@ static void DrawSaveMenu(void)
     DrawSaveLoadBottomLine(&SaveMenu);
 }
 
-// [PN] Read thumbnail footer/data from end of save file with strict validation.
-static boolean MN_ReadSavePreview(FILE *fp, byte *preview)
-{
-    return V_SavePreview_ReadFromFile(fp, preview);
-}
-
 // [PN] Draw decorative preview frame using Hexen beveled border patches.
 static void DrawSavePreviewBorder(int x, int y, int w, int h)
 {
-    patch_t *patch_top = W_CacheLumpName("bordt", PU_CACHE);
-    patch_t *patch_bottom = W_CacheLumpName("bordb", PU_CACHE);
-    patch_t *patch_left = W_CacheLumpName("bordl", PU_CACHE);
-    patch_t *patch_right = W_CacheLumpName("bordr", PU_CACHE);
-    patch_t *patch_tl = W_CacheLumpName("bordtl", PU_CACHE);
-    patch_t *patch_tr = W_CacheLumpName("bordtr", PU_CACHE);
-    patch_t *patch_bl = W_CacheLumpName("bordbl", PU_CACHE);
-    patch_t *patch_br = W_CacheLumpName("bordbr", PU_CACHE);
+    patch_t *const patch_top = W_CacheLumpName("bordt", PU_CACHE);
+    patch_t *const patch_bottom = W_CacheLumpName("bordb", PU_CACHE);
+    patch_t *const patch_left = W_CacheLumpName("bordl", PU_CACHE);
+    patch_t *const patch_right = W_CacheLumpName("bordr", PU_CACHE);
+    patch_t *const patch_tl = W_CacheLumpName("bordtl", PU_CACHE);
+    patch_t *const patch_tr = W_CacheLumpName("bordtr", PU_CACHE);
+    patch_t *const patch_bl = W_CacheLumpName("bordbl", PU_CACHE);
+    patch_t *const patch_br = W_CacheLumpName("bordbr", PU_CACHE);
 
     // [PN] Tile top/bottom without overshooting when w is not divisible by 16.
     for (int i = 0; i + 16 < w; i += 16)
@@ -5610,7 +5605,7 @@ static boolean ReadDescriptionForSlot(int slot, char *description, byte *preview
     found = found && strcmp(versionText, HXS_VERSION_TEXT) == 0;
     if (found)
     {
-        *has_preview = MN_ReadSavePreview(fp, preview);
+        *has_preview = V_SavePreview_ReadFromFile(fp, preview);
     }
     else
     {

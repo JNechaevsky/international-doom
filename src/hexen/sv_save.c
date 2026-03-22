@@ -219,7 +219,7 @@ void SV_UpdateSavePreviewCache(void)
                                NULL);
 }
 
-// [PN] Append fixed-size preview and "ISVP" footer to save tail.
+// [PN] Append fixed-size preview with shared V_SavePreview footer to save tail.
 static void ArchiveSavePreview(void)
 {
     byte thumb[V_SAVEPREVIEW_SIZE];

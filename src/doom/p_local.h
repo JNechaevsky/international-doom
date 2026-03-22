@@ -22,6 +22,7 @@
 #pragma once
 
 
+#include "v_savepreview.h"
 #include "r_local.h"
 
 
@@ -604,7 +605,6 @@ extern fixed_t bulletslope;
 // maximum size of a savegame description
 #define SAVESTRINGSIZE  24
 
-#include "v_savepreview.h"
 
 extern boolean  P_ReadSaveGameEOF(void);
 extern boolean  P_ReadSaveGameHeader(void);

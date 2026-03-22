@@ -177,7 +177,15 @@ void V_SavePreview_CopyOrBlack(const v_savepreview_cache_t *state, byte *out_pre
 
 // -----------------------------------------------------------------------------
 // V_SavePreview_WriteFooter
-//  [PN] Write fixed footer metadata ("ISVP", version, dimensions, data size).
+//  [PN] Write fixed footer metadata for save tail format:
+//       [raw paletted preview data][footer]
+//       Footer bytes:
+//         0..3   "ISVP" magic
+//         4      version
+//         5      width
+//         6      height
+//         7      reserved
+//         8..11  preview data size (LE32)
 //  "ISVP" = "Inter Save View Preview".
 // -----------------------------------------------------------------------------
 
