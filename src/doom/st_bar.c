@@ -1776,7 +1776,7 @@ static void ST_DrawElementsOriginal (int wide_x)
         V_DrawPatch(143, 168, faces[st_faceindex]);
     }
 
-    // [crispy] blinking key or skull in the status bar
+    // [crispy] blinking keys and regular key widgets in one pass
     for (int i = 0, y = 0 ; i < 3 ; i++, y += 10)
     {
         if (st_blinking_keys && plyr->tryopen[i])
@@ -1790,27 +1790,20 @@ static void ST_DrawElementsOriginal (int wide_x)
                 V_DrawPatch(239 + wide_x, 171 + y, keys[i + st_keyorskull[i]]);
             }
         }
+
+        if (plyr->cards[it_blueskull + i])
+        {
+            V_DrawPatch(239 + wide_x, 171 + y, keys[3 + i]);
+        }
+        else if (plyr->cards[it_bluecard + i])
+        {
+            V_DrawPatch(239 + wide_x, 171 + y, keys[i]);
+        }
     }
 
     // Armor
     ST_DrawBigNumber(plyr->armorpoints, 183 + wide_x, 171, armor_color);
     ST_DrawPercent(221 + wide_x, 171, armor_color);
-
-    // Keys
-    if (plyr->cards[it_blueskull])
-    V_DrawPatch(239 + wide_x, 171, keys[3]);
-    else if (plyr->cards[it_bluecard])
-    V_DrawPatch(239 + wide_x, 171, keys[0]);
-
-    if (plyr->cards[it_yellowskull])
-    V_DrawPatch(239 + wide_x, 181, keys[4]);
-    else if (plyr->cards[it_yellowcard])
-    V_DrawPatch(239 + wide_x, 181, keys[1]);
-
-    if (plyr->cards[it_redskull])
-    V_DrawPatch(239 + wide_x, 191, keys[5]);
-    else if (plyr->cards[it_redcard])
-    V_DrawPatch(239 + wide_x, 191, keys[2]);
 
     // Ammo (current)
     ST_DrawSmallNumberY(plyr->ammo[0], 280 + wide_x, 173);
@@ -1925,7 +1918,7 @@ static void ST_DrawElementsRemaster (int wide_x)
         }
     }
 
-    // [crispy] blinking key or skull in the status bar
+    // [crispy] blinking keys and regular key widgets in one pass
     for (int i = 0, y = 0 ; i < 3 ; i++, y += 10)
     {
         if (st_blinking_keys && plyr->tryopen[i])
@@ -1939,24 +1932,15 @@ static void ST_DrawElementsRemaster (int wide_x)
                 V_DrawPatch(308 + wide_x, 171 + y, keys[i + st_keyorskull[i]]);
             }
         }
-    }
 
-    // Keys
-    {
-        if (plyr->cards[it_blueskull])
-        V_DrawPatch(308 + wide_x, 171, keys[3]);
-        else if (plyr->cards[it_bluecard])
-        V_DrawPatch(308 + wide_x, 171, keys[0]);
-
-        if (plyr->cards[it_yellowskull])
-        V_DrawPatch(308 + wide_x, 181, keys[4]);
-        else if (plyr->cards[it_yellowcard])
-        V_DrawPatch(308 + wide_x, 181, keys[1]);
-
-        if (plyr->cards[it_redskull])
-        V_DrawPatch(308 + wide_x, 191, keys[5]);
-        else if (plyr->cards[it_redcard])
-        V_DrawPatch(308 + wide_x, 191, keys[2]);
+        if (plyr->cards[it_blueskull + i])
+        {
+            V_DrawPatch(308 + wide_x, 171 + y, keys[3 + i]);
+        }
+        else if (plyr->cards[it_bluecard + i])
+        {
+            V_DrawPatch(308 + wide_x, 171 + y, keys[i]);
+        }
     }
 }
 
@@ -1980,7 +1964,7 @@ static void ST_DrawElementsDoom64 (int wide_x)
                                  28 - wide_x, 180, ST_WidgetColor(hudcolor_health));
     }
 
-    // [crispy] blinking key or skull in the status bar
+    // [crispy] blinking keys and regular key widgets in one pass
     for (int i = 0, x = 0 ; i < 3 ; i++, x += 10)
     {
         if (st_blinking_keys && plyr->tryopen[i])
@@ -1994,24 +1978,15 @@ static void ST_DrawElementsDoom64 (int wide_x)
                 V_DrawPatch(78 + x + wide_x, 184, keys[i + st_keyorskull[i]]);
             }
         }
-    }
 
-    // Keys
-    {
-        if (plyr->cards[it_blueskull])
-        V_DrawPatch(78 - wide_x, 184, keys[3]);
-        else if (plyr->cards[it_bluecard])
-        V_DrawPatch(78 - wide_x, 184, keys[0]);
-
-        if (plyr->cards[it_yellowskull])
-        V_DrawPatch(88 - wide_x, 184, keys[4]);
-        else if (plyr->cards[it_yellowcard])
-        V_DrawPatch(88 + wide_x, 184, keys[1]);
-
-        if (plyr->cards[it_redskull])
-        V_DrawPatch(98 - wide_x, 184, keys[5]);
-        else if (plyr->cards[it_redcard])
-        V_DrawPatch(98 - wide_x, 184, keys[2]);
+        if (plyr->cards[it_blueskull + i])
+        {
+            V_DrawPatch(78 + x - wide_x, 184, keys[3 + i]);
+        }
+        else if (plyr->cards[it_bluecard + i])
+        {
+            V_DrawPatch(78 + x - wide_x, 184, keys[i]);
+        }
     }
 
     // Ammo amount for current weapon
