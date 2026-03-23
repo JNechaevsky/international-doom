@@ -126,6 +126,13 @@ boolean st_fullupdate = true;
 static int ammo_bg[5], hlth_bg[5], frgs_bg[5], face_bg[5], armr_bg[5];
 static int keys_bg[5], amoc_bg[5], amom_bg[5], disk_bg[5];
 
+// [PN] Reuse one static table of status bar element rectangles for background restore.
+static int *const st_elements_bg[] =
+{
+    ammo_bg, hlth_bg, frgs_bg, face_bg, armr_bg,
+    keys_bg, amoc_bg, amom_bg, disk_bg
+};
+
 cheatseq_t cheat_wait = CHEAT("id", 0);
 cheatseq_t cheat_mus = CHEAT("idmus", 2);
 cheatseq_t cheat_god = CHEAT("iddqd", 0);
@@ -1669,19 +1676,15 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 
 static void ST_UpdateElementsBackground (void)
 {
-    // [PN] Store all background elements in an array for looped processing
-    const int *elements[] = {
-        ammo_bg, hlth_bg, frgs_bg, face_bg, armr_bg,
-        keys_bg, amoc_bg, amom_bg, disk_bg
-    };
-
-    // [PN] Loop through each element and copy its background using V_CopyRect
-    for (int i = 0; i < sizeof(elements)/sizeof(elements[0]); i++)
+    // [PN] Loop through each element and copy its background using V_CopyRect.
+    for (int i = 0; i < sizeof(st_elements_bg)/sizeof(st_elements_bg[0]); i++)
     {
-        V_CopyRect(elements[i][0], elements[i][1],
+        const int *element = st_elements_bg[i];
+
+        V_CopyRect(element[0], element[1],
                    st_backing_screen,
-                   elements[i][2], elements[i][3],
-                   elements[i][0], elements[i][4]);
+                   element[2], element[3],
+                   element[0], element[4]);
     }
 }
 
@@ -1825,6 +1828,10 @@ static void ST_DrawElementsOriginal (int wide_x)
 
 static void ST_DrawElementsRemaster (int wide_x)
 {
+    // [PN] Cache remaster icon lumps to avoid repeated name lookups every draw pass.
+    static int armor_icon_lump[2] = { -2, -2 };
+    static int ammo_icon_lump[4] = { -2, -2, -2, -2 };
+
     // [PN] Cache widget colors once per draw pass to avoid repeated calculations.
     byte *ammo_color = NULL;
     byte *health_color = ST_WidgetColor(hudcolor_health);
@@ -1852,8 +1859,16 @@ static void ST_DrawElementsRemaster (int wide_x)
     // Armor
     {
         const int wide_reduce = (dp_screen_size == 12 || dp_screen_size == 14) ? 14 : 0;
-        const int lump = W_CheckNumForName(DEH_String(plyr->armortype < 2 ? "ARM1A0" : "ARM2A0"));
-        patch_t *patch = W_CacheLumpNum(lump, PU_CACHE);
+        const int armor_icon = (plyr->armortype < 2) ? 0 : 1;
+        int lump = armor_icon_lump[armor_icon];
+        patch_t *patch;
+
+        if (lump == -2)
+        {
+            lump = W_CheckNumForName(DEH_String(armor_icon == 0 ? "ARM1A0" : "ARM2A0"));
+            armor_icon_lump[armor_icon] = lump;
+        }
+        patch = W_CacheLumpNum(lump, PU_CACHE);
 
         V_DrawPatch(115 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) - wide_x - wide_reduce,
                     183 - SHORT(patch->height) / 2 + SHORT(patch->topoffset), patch);
@@ -1874,11 +1889,22 @@ static void ST_DrawElementsRemaster (int wide_x)
     {
         if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
         {
-            const int lump = W_CheckNumForName(DEH_String(weaponinfo[plyr->readyweapon].ammo == am_clip  ? "CLIPA0" :
-                                                          weaponinfo[plyr->readyweapon].ammo == am_shell ? "SHELA0" :
-                                                          weaponinfo[plyr->readyweapon].ammo == am_misl  ? "ROCKA0" :
-                                                                                                           "CELLA0"));
-            patch_t *patch = W_CacheLumpNum(lump, PU_CACHE);
+            const int ammotype = weaponinfo[plyr->readyweapon].ammo;
+            const int ammo_icon = (ammotype == am_clip)  ? 0 :
+                                  (ammotype == am_shell) ? 1 :
+                                  (ammotype == am_misl)  ? 2 : 3;
+            int lump = ammo_icon_lump[ammo_icon];
+            patch_t *patch;
+
+            if (lump == -2)
+            {
+                lump = W_CheckNumForName(DEH_String(ammo_icon == 0 ? "CLIPA0" :
+                                                    ammo_icon == 1 ? "SHELA0" :
+                                                    ammo_icon == 2 ? "ROCKA0" :
+                                                                     "CELLA0"));
+                ammo_icon_lump[ammo_icon] = lump;
+            }
+            patch = W_CacheLumpNum(lump, PU_CACHE);
 
             V_DrawPatch(294 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) + wide_x,
                         184 - SHORT(patch->height) / 2 + SHORT(patch->topoffset), patch);
