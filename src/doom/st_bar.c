@@ -1825,6 +1825,11 @@ static void ST_DrawElementsOriginal (int wide_x)
 
 static void ST_DrawElementsRemaster (int wide_x)
 {
+    // [PN] Cache widget colors once per draw pass to avoid repeated calculations.
+    byte *ammo_color = NULL;
+    byte *health_color = ST_WidgetColor(hudcolor_health);
+    byte *armor_color = ST_WidgetColor(hudcolor_armor);
+
     // Player face and background (netgame only)
     if (dp_screen_size <= 14)
     {
@@ -1841,7 +1846,7 @@ static void ST_DrawElementsRemaster (int wide_x)
         const boolean neghealth = st_negative_health && plyr->health <= 0 && !no_sttminus;
 
         ST_DrawBigNumberWithPercent(neghealth ? plyr->health_negative : plyr->health,
-                                    39 - wide_x, 176, ST_WidgetColor(hudcolor_health));
+                                    39 - wide_x, 176, health_color);
     }
 
     // Armor
@@ -1853,14 +1858,16 @@ static void ST_DrawElementsRemaster (int wide_x)
         V_DrawPatch(115 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) - wide_x - wide_reduce,
                     183 - SHORT(patch->height) / 2 + SHORT(patch->topoffset), patch);
         
-        ST_DrawBigNumberWithPercent(plyr->armorpoints, 142 - wide_x - wide_reduce, 176, ST_WidgetColor(hudcolor_armor));
+        ST_DrawBigNumberWithPercent(plyr->armorpoints, 142 - wide_x - wide_reduce, 176, armor_color);
     }
 
     // Frags (deathmatch only)
     if (deathmatch)
     {
+        byte *frags_color;
         st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
-        ST_DrawBigNumber(st_fragscount, 188 + wide_x, 176, ST_WidgetColor(hudcolor_frags));
+        frags_color = ST_WidgetColor(hudcolor_frags);
+        ST_DrawBigNumber(st_fragscount, 188 + wide_x, 176, frags_color);
     }
 
     // Ammo amount for current weapon
@@ -1876,8 +1883,9 @@ static void ST_DrawElementsRemaster (int wide_x)
             V_DrawPatch(294 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) + wide_x,
                         184 - SHORT(patch->height) / 2 + SHORT(patch->topoffset), patch);
 
+            ammo_color = ST_WidgetColor(hudcolor_ammo);
             ST_DrawBigNumber(plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
-                             245 + wide_x, 176, ST_WidgetColor(hudcolor_ammo));
+                             245 + wide_x, 176, ammo_color);
         }            
         // [crispy] draw berserk pack instead of no ammo if appropriate
         else if (plyr->readyweapon == wp_fist && plyr->powers[pw_strength])
@@ -1951,6 +1959,11 @@ static void ST_DrawElementsRemaster (int wide_x)
 
 static void ST_DrawElementsDoom64 (int wide_x)
 {
+    // [PN] Cache widget colors once per draw pass to avoid repeated calculations.
+    byte *ammo_color = NULL;
+    byte *health_color = ST_WidgetColor(hudcolor_health);
+    byte *armor_color = ST_WidgetColor(hudcolor_armor);
+
     dp_translucent = (dp_screen_size == 12 || dp_screen_size == 14);
 
     // Health, negative health
@@ -1961,7 +1974,7 @@ static void ST_DrawElementsDoom64 (int wide_x)
                             "HEALTH", cr[CR_LIGHTGRAY_DARK]);
 
         ST_DrawBigNumberCentered(neghealth ? plyr->health_negative : plyr->health,
-                                 28 - wide_x, 180, ST_WidgetColor(hudcolor_health));
+                                 28 - wide_x, 180, health_color);
     }
 
     // [crispy] blinking keys and regular key widgets in one pass
@@ -1993,20 +2006,23 @@ static void ST_DrawElementsDoom64 (int wide_x)
     {
         if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
         {
+            ammo_color = ST_WidgetColor(hudcolor_ammo);
             ST_DrawBigNumberCentered(plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
-                             (ORIGWIDTH/2) - 17, 180, ST_WidgetColor(hudcolor_ammo));
+                                     (ORIGWIDTH/2) - 17, 180, ammo_color);
         }            
     }
 
     // Frags of Arms
     if (deathmatch)
     {
+        byte *frags_color;
         M_WriteTextNoShadow(223 - (M_StringWidth("FRAGS") / 2) + wide_x, 171,
                             "FRAGS", cr[CR_LIGHTGRAY_DARK]);
 
         st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
+        frags_color = ST_WidgetColor(hudcolor_frags);
         ST_DrawBigNumberCentered(st_fragscount, 207 + wide_x, 180,
-                                 ST_WidgetColor(hudcolor_frags));
+                                 frags_color);
     }
     else
     {
@@ -2030,7 +2046,7 @@ static void ST_DrawElementsDoom64 (int wide_x)
                             "ARMOR", cr[CR_LIGHTGRAY_DARK]);
         
         ST_DrawBigNumberCentered(plyr->armorpoints, 259 + wide_x, 180,
-                                 ST_WidgetColor(hudcolor_armor));
+                                 armor_color);
     }
 
     dp_translucent = false;
