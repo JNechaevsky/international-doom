@@ -87,6 +87,49 @@ static patch_t *PatchSTATBAR;
 static pixel_t *st_backing_screen; // [crispy] for widescreen status bar background
 static player_t *CPlayer;
 
+// [PN] Cache lump numbers for frequently used HUD graphics.
+static int sb_lump_arti_box = -1;
+static int sb_lump_health_vial = -1;
+static int sb_lump_shield1 = -1;
+static int sb_lump_shield2 = -2;  // optional in shareware IWADs
+static int sb_lump_keyicon[3] = { -1, -1, -1 };
+
+// [PN] Cache named artifact/ammo icon lumps used by status bar/fullscreen HUD.
+static int sb_lump_patcharti[11] = {
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+};
+static int sb_lump_ammopic[6] = { -1, -1, -1, -1, -1, -1 };
+
+// -----------------------------------------------------------------------------
+// SB_CacheRequiredLump
+// [PN] Resolve a mandatory lump only once, then reuse cached lumpnum.
+// -----------------------------------------------------------------------------
+
+static int SB_CacheRequiredLump (int *cache, const char *name)
+{
+    if (*cache == -1)
+    {
+        *cache = W_GetNumForName(name);
+    }
+
+    return *cache;
+}
+
+// -----------------------------------------------------------------------------
+// SB_CacheOptionalLump
+// [PN] Resolve an optional lump once; keeps -1 if not found.
+// -----------------------------------------------------------------------------
+
+static int SB_CacheOptionalLump (int *cache, const char *name)
+{
+    if (*cache == -2)
+    {
+        *cache = W_CheckNumForName(name);
+    }
+
+    return *cache;
+}
+
 
 // -----------------------------------------------------------------------------
 // DrINumber
@@ -734,6 +777,11 @@ static const char ammopic[][10] = {
 static void DrawMainBar(void)
 {
     int temp;
+    // [PN] Cache status bar number colors once per draw pass.
+    byte *health_color = SB_NumberColor(hudcolor_health);
+    byte *frags_color = SB_NumberColor(hudcolor_frags);
+    byte *ammo_color = SB_NumberColor(hudcolor_ammo);
+    byte *armor_color = SB_NumberColor(hudcolor_armor);
 
     // Ready artifact
     if (ArtifactFlash)
@@ -751,7 +799,10 @@ static void DrawMainBar(void)
         V_DrawPatch(180, 161, PatchBLACKSQ);
         if (CPlayer->readyArtifact > 0)
         {
-            V_DrawPatch(179, 160, W_CacheLumpName(DEH_String(patcharti[CPlayer->readyArtifact]), PU_CACHE));
+            const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[CPlayer->readyArtifact],
+                                                  DEH_String(patcharti[CPlayer->readyArtifact]));
+
+            V_DrawPatch(179, 160, W_CacheLumpNum(lump, PU_CACHE));
             DrSmallNumber(CPlayer->inventory[inv_ptr].count, 201, 182);
         }
         oldarti = CPlayer->readyArtifact;
@@ -769,7 +820,7 @@ static void DrawMainBar(void)
         if (temp != oldfrags)
         {
             V_DrawPatch(57, 171, PatchARMCLEAR);
-            dp_translation = SB_NumberColor(hudcolor_frags);
+            dp_translation = frags_color;
             DrINumber(temp, 61, 170);
             dp_translation = NULL;
             oldfrags = temp;
@@ -792,7 +843,7 @@ static void DrawMainBar(void)
         {
             oldlife = temp;
             V_DrawPatch(57, 171, PatchARMCLEAR);
-            dp_translation = SB_NumberColor(hudcolor_health);
+            dp_translation = health_color;
             DrINumber(temp, 61, 170);
             dp_translation = NULL;
         }
@@ -801,17 +852,21 @@ static void DrawMainBar(void)
     // Keys
     if (oldkeys != playerkeys)
     {
+        const int lump_yellow = SB_CacheRequiredLump(&sb_lump_keyicon[0], DEH_String("YKEYICON"));
+        const int lump_green = SB_CacheRequiredLump(&sb_lump_keyicon[1], DEH_String("GKEYICON"));
+        const int lump_blue = SB_CacheRequiredLump(&sb_lump_keyicon[2], DEH_String("BKEYICON"));
+
         if (CPlayer->keys[key_yellow])
         {
-            V_DrawPatch(153, 164, W_CacheLumpName(DEH_String("ykeyicon"), PU_CACHE));
+            V_DrawPatch(153, 164, W_CacheLumpNum(lump_yellow, PU_CACHE));
         }
         if (CPlayer->keys[key_green])
         {
-            V_DrawPatch(153, 172, W_CacheLumpName(DEH_String("gkeyicon"), PU_CACHE));
+            V_DrawPatch(153, 172, W_CacheLumpNum(lump_green, PU_CACHE));
         }
         if (CPlayer->keys[key_blue])
         {
-            V_DrawPatch(153, 180, W_CacheLumpName(DEH_String("bkeyicon"), PU_CACHE));
+            V_DrawPatch(153, 180, W_CacheLumpNum(lump_blue, PU_CACHE));
         }
         oldkeys = playerkeys;
     }
@@ -822,10 +877,14 @@ static void DrawMainBar(void)
         V_DrawPatch(108, 161, PatchBLACKSQ);
         if (temp && CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
         {
-            dp_translation = SB_NumberColor(hudcolor_ammo);
+            const int ammo_idx = CPlayer->readyweapon - 1;
+            const int lump = SB_CacheRequiredLump(&sb_lump_ammopic[ammo_idx],
+                                                  DEH_String(ammopic[ammo_idx]));
+
+            dp_translation = ammo_color;
             DrINumber(temp, 109, 162);
             dp_translation = NULL;
-            V_DrawPatch(111, 172, W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]), PU_CACHE));
+            V_DrawPatch(111, 172, W_CacheLumpNum(lump, PU_CACHE));
         }
         oldammo = temp;
         oldweapon = CPlayer->readyweapon;
@@ -837,7 +896,7 @@ static void DrawMainBar(void)
     if (oldarmor != CPlayer->armorpoints || st_colored_stbar)
     {
         V_DrawPatch(224, 171, PatchARMCLEAR);
-        dp_translation = SB_NumberColor(hudcolor_armor);
+        dp_translation = armor_color;
         DrINumber(CPlayer->armorpoints, 228, 170);
         dp_translation = NULL;
         oldarmor = CPlayer->armorpoints;
@@ -852,7 +911,6 @@ static void DrawMainBar(void)
 
 static void DrawInventoryBar(void)
 {
-    const char *patch;
     int i;
     int x;
 
@@ -863,9 +921,11 @@ static void DrawInventoryBar(void)
         if (CPlayer->inventorySlotNum > x + i
         &&  CPlayer->inventory[x + i].type != arti_none)
         {
-            patch = DEH_String(patcharti[CPlayer->inventory[x + i].type]);
+            const int arti_type = CPlayer->inventory[x + i].type;
+            const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[arti_type],
+                                                  DEH_String(patcharti[arti_type]));
 
-            V_DrawPatch(50 + i * 31, 160, W_CacheLumpName(patch, PU_CACHE));
+            V_DrawPatch(50 + i * 31, 160, W_CacheLumpNum(lump, PU_CACHE));
             DrSmallNumber(CPlayer->inventory[x + i].count, 69 + i * 31, 182);
         }
     }
@@ -887,23 +947,34 @@ static void DrawInventoryBar(void)
 
 static void DrawFullScreenStuff (void)
 {
-    const char *patch;
     const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
+    // [PN] Cache fullscreen number colors once per draw pass.
+    byte *health_color = SB_NumberColor(hudcolor_health);
+    byte *armor_color = SB_NumberColor(hudcolor_armor);
+    byte *frags_color = SB_NumberColor(hudcolor_frags);
+    byte *ammo_color = SB_NumberColor(hudcolor_ammo);
+    const int lump_health_vial = SB_CacheRequiredLump(&sb_lump_health_vial, DEH_String("PTN1A0"));
+    const int lump_artibox = SB_CacheRequiredLump(&sb_lump_arti_box, DEH_String("ARTIBOX"));
+    const int lump_shield1 = SB_CacheRequiredLump(&sb_lump_shield1, DEH_String("SHLDA0"));
+    const int lump_shield2 = SB_CacheOptionalLump(&sb_lump_shield2, DEH_String("SHD2A0"));
+    const int lump_key_yellow = SB_CacheRequiredLump(&sb_lump_keyicon[0], DEH_String("YKEYICON"));
+    const int lump_key_green = SB_CacheRequiredLump(&sb_lump_keyicon[1], DEH_String("GKEYICON"));
+    const int lump_key_blue = SB_CacheRequiredLump(&sb_lump_keyicon[2], DEH_String("BKEYICON"));
     int i;
 
     // Health.
-    dp_translation = SB_NumberColor(hudcolor_health);
+    dp_translation = health_color;
     DrBNumber(CPlayer->health, -1 - wide_x, 175);
     dp_translation = NULL;
     // Draw health vial.
-    V_DrawShadowedPatchNoOffsets(39 - wide_x, 176, W_CacheLumpName(DEH_String("PTN1A0"), PU_CACHE));
+    V_DrawShadowedPatchNoOffsets(39 - wide_x, 176, W_CacheLumpNum(lump_health_vial, PU_CACHE));
 
     if (!inventory)
     {
         // Armor.
         if (CPlayer->armorpoints > 0)
         {
-            dp_translation = SB_NumberColor(hudcolor_armor);
+            dp_translation = armor_color;
             DrBNumber(CPlayer->armorpoints, 51 - wide_x, 175);
             dp_translation = NULL;
 
@@ -913,11 +984,13 @@ static void DrawFullScreenStuff (void)
             // so fall back to SHLDA0 if SHD2A0 is unavailable.
             if (CPlayer->armortype == 1 || gamemode == shareware)
             {
-                V_DrawShadowedPatchNoOffsets(91 - wide_x, 174, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
+                V_DrawShadowedPatchNoOffsets(91 - wide_x, 174, W_CacheLumpNum(lump_shield1, PU_CACHE));
             }
             else
             {
-                V_DrawShadowedPatchNoOffsets(91 - wide_x, 172, W_CacheLumpName(DEH_String("SHD2A0"), PU_CACHE));
+                const int shield_lump = (lump_shield2 != -1) ? lump_shield2 : lump_shield1;
+
+                V_DrawShadowedPatchNoOffsets(91 - wide_x, 172, W_CacheLumpNum(shield_lump, PU_CACHE));
             }
         }
 
@@ -934,7 +1007,7 @@ static void DrawFullScreenStuff (void)
                 }
             }
 
-            dp_translation = SB_NumberColor(hudcolor_frags);
+            dp_translation = frags_color;
             DrINumber(temp, 111 - wide_x, 178);
             dp_translation = NULL;
         }
@@ -948,7 +1021,7 @@ static void DrawFullScreenStuff (void)
                         || CPlayer->keys[key_green]
                         || CPlayer->keys[key_blue] ? 0 : 16;
 
-            V_DrawAltTLPatch(211 + xx + wide_x, 170, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+            V_DrawAltTLPatch(211 + xx + wide_x, 170, W_CacheLumpNum(lump_artibox, PU_CACHE));
 
             if (ArtifactFlash)
             {
@@ -958,8 +1031,9 @@ static void DrawFullScreenStuff (void)
             }
             else
             {
-                patch = DEH_String(patcharti[CPlayer->readyArtifact]);
-                V_DrawShadowedPatch(211 + xx + wide_x, 170, W_CacheLumpName(patch, PU_CACHE));
+                const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[CPlayer->readyArtifact],
+                                                      DEH_String(patcharti[CPlayer->readyArtifact]));
+                V_DrawShadowedPatch(211 + xx + wide_x, 170, W_CacheLumpNum(lump, PU_CACHE));
                 DrSmallNumber(CPlayer->inventory[inv_ptr].count, 232 + xx + wide_x, 192);
             }
         }
@@ -968,15 +1042,15 @@ static void DrawFullScreenStuff (void)
         {
             if (CPlayer->keys[key_yellow])
             {
-                V_DrawShadowedPatch(247 + wide_x, 173, W_CacheLumpName(DEH_String("YKEYICON"), PU_CACHE));
+                V_DrawShadowedPatch(247 + wide_x, 173, W_CacheLumpNum(lump_key_yellow, PU_CACHE));
             }
             if (CPlayer->keys[key_green])
             {
-                V_DrawShadowedPatch(247 + wide_x, 181, W_CacheLumpName(DEH_String("GKEYICON"), PU_CACHE));
+                V_DrawShadowedPatch(247 + wide_x, 181, W_CacheLumpNum(lump_key_green, PU_CACHE));
             }
             if (CPlayer->keys[key_blue])
             {
-                V_DrawShadowedPatch(247 + wide_x, 189, W_CacheLumpName(DEH_String("BKEYICON"), PU_CACHE));
+                V_DrawShadowedPatch(247 + wide_x, 189, W_CacheLumpNum(lump_key_blue, PU_CACHE));
             }
         }
     }
@@ -986,12 +1060,15 @@ static void DrawFullScreenStuff (void)
 
         for (i = 0 ; i < 7 ; i++)
         {
-            V_DrawAltTLPatch(47 + i * 31, 169, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+            V_DrawAltTLPatch(47 + i * 31, 169, W_CacheLumpNum(lump_artibox, PU_CACHE));
 
             if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
-                patch = DEH_String(patcharti[CPlayer->inventory[x + i].type]);
-                V_DrawPatch(47 + i * 31, 169, W_CacheLumpName(patch, PU_CACHE));
+                const int arti_type = CPlayer->inventory[x + i].type;
+                const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[arti_type],
+                                                      DEH_String(patcharti[arti_type]));
+
+                V_DrawPatch(47 + i * 31, 169, W_CacheLumpNum(lump, PU_CACHE));
                 DrSmallNumber(CPlayer->inventory[x + i].count, 66 + i * 31, 191);
             }
         }
@@ -1011,12 +1088,16 @@ static void DrawFullScreenStuff (void)
     // [JN] Draw amount of current weapon ammo. Don't draw for staff and gauntlets.
     if (CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
     {
-        dp_translation = SB_NumberColor(hudcolor_ammo);
+        const int ammo_idx = CPlayer->readyweapon - 1;
+        const int lump = SB_CacheRequiredLump(&sb_lump_ammopic[ammo_idx],
+                                              DEH_String(ammopic[ammo_idx]));
+
+        dp_translation = ammo_color;
         DrBNumber(CPlayer->ammo[wpnlev1info[CPlayer->readyweapon].ammo], 262 + wide_x, 175);
         dp_translation = NULL;
 
         // Draw appropriate ammo picture.
-        V_DrawShadowedPatch(297 + wide_x, 177, W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]), PU_CACHE));
+        V_DrawShadowedPatch(297 + wide_x, 177, W_CacheLumpNum(lump, PU_CACHE));
     }
 }
 
@@ -1027,20 +1108,28 @@ static void DrawFullScreenStuff (void)
 
 static void DrawFullScreenStuffRemaster (void)
 {
-    const char *patch;
     const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
+    // [PN] Cache fullscreen number colors once per draw pass.
+    byte *health_color = SB_NumberColor(hudcolor_health);
+    byte *armor_color = SB_NumberColor(hudcolor_armor);
+    byte *frags_color = SB_NumberColor(hudcolor_frags);
+    byte *ammo_color = SB_NumberColor(hudcolor_ammo);
+    const int lump_health_vial = SB_CacheRequiredLump(&sb_lump_health_vial, DEH_String("PTN1A0"));
+    const int lump_artibox = SB_CacheRequiredLump(&sb_lump_arti_box, DEH_String("ARTIBOX"));
+    const int lump_shield1 = SB_CacheRequiredLump(&sb_lump_shield1, DEH_String("SHLDA0"));
+    const int lump_shield2 = SB_CacheOptionalLump(&sb_lump_shield2, DEH_String("SHD2A0"));
 
     // Health.
-    dp_translation = SB_NumberColor(hudcolor_health);
+    dp_translation = health_color;
     DrBNumber(CPlayer->health, 2 - wide_x, 172);
     dp_translation = NULL;
     // Draw health vial.
-    V_DrawShadowedPatchNoOffsets(43 - wide_x, 173, W_CacheLumpName(DEH_String("PTN1A0"), PU_CACHE));
+    V_DrawShadowedPatchNoOffsets(43 - wide_x, 173, W_CacheLumpNum(lump_health_vial, PU_CACHE));
 
     // Armor.
     if (CPlayer->armorpoints > 0)
     {
-        dp_translation = SB_NumberColor(hudcolor_armor);
+        dp_translation = armor_color;
         DrBNumber(CPlayer->armorpoints, 55 - wide_x, 172);
         dp_translation = NULL;
 
@@ -1050,11 +1139,13 @@ static void DrawFullScreenStuffRemaster (void)
         // so fall back to SHLDA0 if SHD2A0 is unavailable.
         if (CPlayer->armortype == 1 || gamemode == shareware)
         {
-            V_DrawShadowedPatchNoOffsets(93 - wide_x, 171, W_CacheLumpName(DEH_String("SHLDA0"), PU_CACHE));
+            V_DrawShadowedPatchNoOffsets(93 - wide_x, 171, W_CacheLumpNum(lump_shield1, PU_CACHE));
         }
         else
         {
-            V_DrawShadowedPatchNoOffsets(93 - wide_x, 169, W_CacheLumpName(DEH_String("SHD2A0"), PU_CACHE));
+            const int shield_lump = (lump_shield2 != -1) ? lump_shield2 : lump_shield1;
+
+            V_DrawShadowedPatchNoOffsets(93 - wide_x, 169, W_CacheLumpNum(shield_lump, PU_CACHE));
         }
     }
 
@@ -1071,7 +1162,7 @@ static void DrawFullScreenStuffRemaster (void)
             }
         }
 
-        dp_translation = SB_NumberColor(hudcolor_frags);
+        dp_translation = frags_color;
         DrINumber(temp, 180 + wide_x, 176);
         dp_translation = NULL;
     }
@@ -1079,12 +1170,16 @@ static void DrawFullScreenStuffRemaster (void)
     // Draw amount of current weapon ammo. Don't draw for staff and gauntlets.
     if (CPlayer->readyweapon > 0 && CPlayer->readyweapon < 7)
     {
-        dp_translation = SB_NumberColor(hudcolor_ammo);
+        const int ammo_idx = CPlayer->readyweapon - 1;
+        const int lump = SB_CacheRequiredLump(&sb_lump_ammopic[ammo_idx],
+                                              DEH_String(ammopic[ammo_idx]));
+
+        dp_translation = ammo_color;
         DrBNumber(CPlayer->ammo[wpnlev1info[CPlayer->readyweapon].ammo], 224 + wide_x, 172);
         dp_translation = NULL;
 
         // Draw appropriate ammo picture.
-        V_DrawShadowedPatch(261 + wide_x, 173, W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]), PU_CACHE));
+        V_DrawShadowedPatch(261 + wide_x, 173, W_CacheLumpNum(lump, PU_CACHE));
     }
 
     // Keys. The H+H re-release includes new, smaller key icons that
@@ -1136,8 +1231,7 @@ static void DrawFullScreenStuffRemaster (void)
     }
 
     // Ready artifact.
-    V_DrawAltTLPatch(286 + wide_x, 166, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
-    patch = DEH_String(patcharti[CPlayer->readyArtifact]);
+    V_DrawAltTLPatch(286 + wide_x, 166, W_CacheLumpNum(lump_artibox, PU_CACHE));
     if (CPlayer->readyArtifact > 0)
     {
         if (ArtifactFlash)
@@ -1148,7 +1242,10 @@ static void DrawFullScreenStuffRemaster (void)
         }
         else
         {
-            V_DrawShadowedPatch(286 + wide_x, 166, W_CacheLumpName(patch, PU_CACHE));
+            const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[CPlayer->readyArtifact],
+                                                  DEH_String(patcharti[CPlayer->readyArtifact]));
+
+            V_DrawShadowedPatch(286 + wide_x, 166, W_CacheLumpNum(lump, PU_CACHE));
 
             // [PN] Find the slot of the currently readied artifact
             int ready_count = 0;
@@ -1170,12 +1267,15 @@ static void DrawFullScreenStuffRemaster (void)
 
         for (int i = 0 ; i < 7 ; i++)
         {
-            V_DrawAltTLPatch(47 + i * 31, 165, W_CacheLumpName(DEH_String("ARTIBOX"), PU_CACHE));
+            V_DrawAltTLPatch(47 + i * 31, 165, W_CacheLumpNum(lump_artibox, PU_CACHE));
 
             if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
-                patch = DEH_String(patcharti[CPlayer->inventory[x + i].type]);
-                V_DrawPatch(47 + i * 31, 165, W_CacheLumpName(patch, PU_CACHE));
+                const int arti_type = CPlayer->inventory[x + i].type;
+                const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[arti_type],
+                                                      DEH_String(patcharti[arti_type]));
+
+                V_DrawPatch(47 + i * 31, 165, W_CacheLumpNum(lump, PU_CACHE));
                 DrSmallNumber(CPlayer->inventory[x + i].count, 66 + i * 31, 187);
             }
         }
@@ -1406,6 +1506,12 @@ void SB_Drawer(void)
     if (st_ammo_widget)
     {
         char str[8];
+        const weapontype_t ammo_widget_weapons[6] = {
+            wp_goldwand, wp_crossbow, wp_blaster,
+            wp_skullrod, wp_phoenixrod, wp_mace
+        };
+        byte *ammo_widget_weapon_colors[6];
+        byte *ammo_widget_ammo_colors[6];
         // [JN] Shift widgets based on the "Widgets alignment" setting.
         const int xx = (widget_alignment ==  0) ? WIDESCREENDELTA :     // left
                        (widget_alignment ==  1) ? 0 :                   // status bar
@@ -1417,41 +1523,50 @@ void SB_Drawer(void)
         if (st_fullscreen_layout == 1 && dp_screen_size > 10)
             yy -= 14;
 
+        // [PN] Cache ammo-widget colors for all weapon slots once per draw pass.
+        for (int i = 0; i < 6; i++)
+        {
+            ammo_widget_weapon_colors[i] =
+                SB_AmmoWidgetColor(ammowidgetcolor_weapon, ammo_widget_weapons[i]);
+            ammo_widget_ammo_colors[i] =
+                SB_AmmoWidgetColor(ammowidgetcolor_ammo, ammo_widget_weapons[i]);
+        }
+
         // Brief
         if (st_ammo_widget == 1)
         {
             dp_translucent = (st_ammo_widget_translucent);
 
-            MN_DrTextA("W", 282 + xx,  96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_goldwand));
-            MN_DrTextA("E", 282 + xx, 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_crossbow));
-            MN_DrTextA("D", 282 + xx, 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_blaster));
-            MN_DrTextA("H", 282 + xx, 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_skullrod));
-            MN_DrTextA("P", 282 + xx, 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_phoenixrod));
-            MN_DrTextA("M", 282 + xx, 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_mace));
+            MN_DrTextA("W", 282 + xx,  96 + yy, ammo_widget_weapon_colors[0]);
+            MN_DrTextA("E", 282 + xx, 106 + yy, ammo_widget_weapon_colors[1]);
+            MN_DrTextA("D", 282 + xx, 116 + yy, ammo_widget_weapon_colors[2]);
+            MN_DrTextA("H", 282 + xx, 126 + yy, ammo_widget_weapon_colors[3]);
+            MN_DrTextA("P", 282 + xx, 136 + yy, ammo_widget_weapon_colors[4]);
+            MN_DrTextA("M", 282 + xx, 146 + yy, ammo_widget_weapon_colors[5]);
 
             // Elven Wand
             sprintf(str, "%d",  CPlayer->ammo[am_goldwand]);
-            MN_DrTextA(str, 293 + xx, 96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_goldwand));
+            MN_DrTextA(str, 293 + xx, 96 + yy, ammo_widget_ammo_colors[0]);
 
             // Ethereal Crossbow
             sprintf(str, "%d",  CPlayer->ammo[am_crossbow]);
-            MN_DrTextA(str, 293 + xx, 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_crossbow));
+            MN_DrTextA(str, 293 + xx, 106 + yy, ammo_widget_ammo_colors[1]);
 
             // Dragon Claw
             sprintf(str, "%d",  CPlayer->ammo[am_blaster]);
-            MN_DrTextA(str, 293 + xx, 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_blaster));
+            MN_DrTextA(str, 293 + xx, 116 + yy, ammo_widget_ammo_colors[2]);
 
             // Hellstaff
             sprintf(str, "%d",  CPlayer->ammo[am_skullrod]);
-            MN_DrTextA(str, 293 + xx, 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_skullrod));
+            MN_DrTextA(str, 293 + xx, 126 + yy, ammo_widget_ammo_colors[3]);
 
             // Phoenix Rod
             sprintf(str, "%d",  CPlayer->ammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + xx, 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_phoenixrod));
+            MN_DrTextA(str, 293 + xx, 136 + yy, ammo_widget_ammo_colors[4]);
 
             // Firemace
             sprintf(str, "%d",  CPlayer->ammo[am_mace]);
-            MN_DrTextA(str, 293 + xx, 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_mace));
+            MN_DrTextA(str, 293 + xx, 146 + yy, ammo_widget_ammo_colors[5]);
 
             dp_translucent = false;
         }
@@ -1460,48 +1575,48 @@ void SB_Drawer(void)
         {
             dp_translucent = (st_ammo_widget_translucent);
 
-            MN_DrTextA("W", 251 + xx,  96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_goldwand));
-            MN_DrTextA("E", 251 + xx, 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_crossbow));
-            MN_DrTextA("D", 251 + xx, 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_blaster));
-            MN_DrTextA("H", 251 + xx, 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_skullrod));
-            MN_DrTextA("P", 251 + xx, 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_phoenixrod));
-            MN_DrTextA("M", 251 + xx, 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_weapon, wp_mace));
+            MN_DrTextA("W", 251 + xx,  96 + yy, ammo_widget_weapon_colors[0]);
+            MN_DrTextA("E", 251 + xx, 106 + yy, ammo_widget_weapon_colors[1]);
+            MN_DrTextA("D", 251 + xx, 116 + yy, ammo_widget_weapon_colors[2]);
+            MN_DrTextA("H", 251 + xx, 126 + yy, ammo_widget_weapon_colors[3]);
+            MN_DrTextA("P", 251 + xx, 136 + yy, ammo_widget_weapon_colors[4]);
+            MN_DrTextA("M", 251 + xx, 146 + yy, ammo_widget_weapon_colors[5]);
 
             // Elven Wand
             sprintf(str, "%d/",  CPlayer->ammo[am_goldwand]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_goldwand));
+            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 96 + yy, ammo_widget_ammo_colors[0]);
             sprintf(str, "%d",  CPlayer->maxammo[am_goldwand]);
-            MN_DrTextA(str, 293 + xx, 96 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_goldwand));
+            MN_DrTextA(str, 293 + xx, 96 + yy, ammo_widget_ammo_colors[0]);
 
             // Ethereal Crossbow
             sprintf(str, "%d/",  CPlayer->ammo[am_crossbow]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_crossbow));
+            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 106 + yy, ammo_widget_ammo_colors[1]);
             sprintf(str, "%d",  CPlayer->maxammo[am_crossbow]);
-            MN_DrTextA(str, 293 + xx, 106 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_crossbow));
+            MN_DrTextA(str, 293 + xx, 106 + yy, ammo_widget_ammo_colors[1]);
 
             // Dragon Claw
             sprintf(str, "%d/",  CPlayer->ammo[am_blaster]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_blaster));
+            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 116 + yy, ammo_widget_ammo_colors[2]);
             sprintf(str, "%d",  CPlayer->maxammo[am_blaster]);
-            MN_DrTextA(str, 293 + xx, 116 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_blaster));
+            MN_DrTextA(str, 293 + xx, 116 + yy, ammo_widget_ammo_colors[2]);
 
             // Hellstaff
             sprintf(str, "%d/",  CPlayer->ammo[am_skullrod]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_skullrod));
+            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 126 + yy, ammo_widget_ammo_colors[3]);
             sprintf(str, "%d",  CPlayer->maxammo[am_skullrod]);
-            MN_DrTextA(str, 293 + xx, 126 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_skullrod));
+            MN_DrTextA(str, 293 + xx, 126 + yy, ammo_widget_ammo_colors[3]);
 
             // Phoenix Rod
             sprintf(str, "%d/",  CPlayer->ammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_phoenixrod));
+            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 136 + yy, ammo_widget_ammo_colors[4]);
             sprintf(str, "%d",  CPlayer->maxammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + xx, 136 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_phoenixrod));
+            MN_DrTextA(str, 293 + xx, 136 + yy, ammo_widget_ammo_colors[4]);
 
             // Firemace
             sprintf(str, "%d/",  CPlayer->ammo[am_mace]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_mace));
+            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 146 + yy, ammo_widget_ammo_colors[5]);
             sprintf(str, "%d",  CPlayer->maxammo[am_mace]);
-            MN_DrTextA(str, 293 + xx, 146 + yy, SB_AmmoWidgetColor(ammowidgetcolor_ammo, wp_mace));
+            MN_DrTextA(str, 293 + xx, 146 + yy, ammo_widget_ammo_colors[5]);
 
             dp_translucent = false;
         }
