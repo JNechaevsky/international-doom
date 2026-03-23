@@ -1926,6 +1926,187 @@ static void CheatAMapFunc (player_t *const player, Cheat_t *const cheat)
     player->cheatTics = 1;
 }
 
+// -----------------------------------------------------------------------------
+// SB_CheatRevealThing
+//  [PN] Cycles automap camera through matching things.
+// -----------------------------------------------------------------------------
+
+static void SB_CheatRevealThing (const int flags, const boolean alive_only, int *last_index)
+{
+    thinker_t *think;
+    mobj_t *first_match = NULL;
+    mobj_t *selected = NULL;
+    int match_index = 0;
+    int selected_index = -1;
+    const int target_index = *last_index + 1;
+
+    if (!automapactive)
+    {
+        return;
+    }
+
+    for (think = thinkercap.next; think != &thinkercap; think = think->next)
+    {
+        if (think->function != P_MobjThinker)
+        {
+            continue;
+        }
+
+        mobj_t *mo = (mobj_t *) think;
+
+        if (!(mo->flags & flags))
+        {
+            continue;
+        }
+
+        if (alive_only && mo->health <= 0)
+        {
+            continue;
+        }
+
+        if (!first_match)
+        {
+            first_match = mo;
+        }
+
+        if (match_index == target_index)
+        {
+            selected = mo;
+            selected_index = match_index;
+            break;
+        }
+
+        ++match_index;
+    }
+
+    if (!selected && first_match)
+    {
+        selected = first_match;
+        selected_index = 0;
+    }
+
+    if (selected)
+    {
+        am_followplayer = 0;
+        AM_SetMapCenter(selected->x, selected->y);
+        *last_index = selected_index;
+    }
+    else
+    {
+        *last_index = -1;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// CheatRevealKillFunc
+//  [PN] Cycles automap camera through alive monsters.
+// -----------------------------------------------------------------------------
+
+static void CheatRevealKillFunc (player_t *const player, Cheat_t *const cheat)
+{
+    static int last_index = -1;
+    static int last_episode = -1;
+    static int last_map = -1;
+
+    if (deathmatch)
+    {
+        return;
+    }
+
+    if (last_episode != gameepisode || last_map != gamemap)
+    {
+        last_episode = gameepisode;
+        last_map = gamemap;
+        last_index = -1;
+    }
+
+    SB_CheatRevealThing(MF_COUNTKILL, true, &last_index);
+    player->cheatTics = 1;
+}
+
+// -----------------------------------------------------------------------------
+// CheatRevealItemFunc
+//  [PN] Cycles automap camera through countable items.
+// -----------------------------------------------------------------------------
+
+static void CheatRevealItemFunc (player_t *const player, Cheat_t *const cheat)
+{
+    static int last_index = -1;
+    static int last_episode = -1;
+    static int last_map = -1;
+
+    if (deathmatch)
+    {
+        return;
+    }
+
+    if (last_episode != gameepisode || last_map != gamemap)
+    {
+        last_episode = gameepisode;
+        last_map = gamemap;
+        last_index = -1;
+    }
+
+    SB_CheatRevealThing(MF_COUNTITEM, false, &last_index);
+    player->cheatTics = 1;
+}
+
+// -----------------------------------------------------------------------------
+// SB_IsSecretSector
+//  [PN] Treat both live and already-revealed secret sectors as valid targets.
+// -----------------------------------------------------------------------------
+
+static boolean SB_IsSecretSector (const sector_t *sec)
+{
+    return sec->special == 9 || sec->oldspecial == 9;
+}
+
+// -----------------------------------------------------------------------------
+// CheatRevealSecretFunc
+//  [PN] Cycles automap camera through secret sectors.
+// -----------------------------------------------------------------------------
+
+static void CheatRevealSecretFunc (player_t *const player, Cheat_t *const cheat)
+{
+    static int last_secret = -1;
+    static int last_episode = -1;
+    static int last_map = -1;
+
+    if (deathmatch || !automapactive || numsectors <= 0)
+    {
+        return;
+    }
+
+    if (last_episode != gameepisode || last_map != gamemap)
+    {
+        last_episode = gameepisode;
+        last_map = gamemap;
+        last_secret = -1;
+    }
+
+    for (int step = 0; step < numsectors; ++step)
+    {
+        int i = last_secret + 1 + step;
+        i %= numsectors;
+
+        if (SB_IsSecretSector(&sectors[i])
+        && sectors[i].linecount > 0
+        && sectors[i].lines != NULL
+        && sectors[i].lines[0] != NULL
+        && sectors[i].lines[0]->v1 != NULL)
+        {
+            am_followplayer = 0;
+            AM_SetMapCenter(sectors[i].lines[0]->v1->x, sectors[i].lines[0]->v1->y);
+            last_secret = i;
+            break;
+        }
+    }
+
+    player->cheatTics = 1;
+}
+
+
+
 static void CheatIDMYPOSFunc (player_t *const player, Cheat_t *const cheat)
 {
     static char buf[52];
@@ -2030,6 +2211,10 @@ static Cheat_t Cheats[] = {
     { CheatAMapFunc,        &(cheatseq_t){ CHEAT_SEQ("iddt", 0) } },
     { CheatAMapFunc,        &(cheatseq_t){ CHEAT_SEQ("ravmap", 0) } },
     { CheatAMapFunc,        &(cheatseq_t){ CHEAT_SEQ("mapsco", 0) } },
+    // [PN] Woof-style automap reveal helpers
+    { CheatRevealKillFunc,   &(cheatseq_t){ CHEAT_SEQ("iddkt", 0) } },
+    { CheatRevealItemFunc,   &(cheatseq_t){ CHEAT_SEQ("iddit", 0) } },
+    { CheatRevealSecretFunc, &(cheatseq_t){ CHEAT_SEQ("iddst", 0) } },
     // [JN] IDMYPOS coords
     { CheatIDMYPOSFunc,     &(cheatseq_t){ CHEAT_SEQ("idmypos", 0) } },
     { CheatIDMYPOSFunc,     &(cheatseq_t){ CHEAT_SEQ("where", 0) } },

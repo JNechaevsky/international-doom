@@ -654,6 +654,43 @@ static void AM_changeWindowLoc (void)
 }
 
 // -----------------------------------------------------------------------------
+// AM_SetMapCenter
+//  [PN] Centers automap view at world coordinates and clamps to map bounds.
+// -----------------------------------------------------------------------------
+
+void AM_SetMapCenter (fixed_t x, fixed_t y)
+{
+    const int64_t center_x = x >> FRACTOMAPBITS;
+    const int64_t center_y = y >> FRACTOMAPBITS;
+    const int64_t half_w = m_w >> 1;
+    const int64_t half_h = m_h >> 1;
+
+    m_x = center_x - half_w;
+    m_y = center_y - half_h;
+
+    if (center_x > max_x)
+    {
+        m_x = max_x - half_w;
+    }
+    else if (center_x < min_x)
+    {
+        m_x = min_x - half_w;
+    }
+
+    if (center_y > max_y)
+    {
+        m_y = max_y - half_h;
+    }
+    else if (center_y < min_y)
+    {
+        m_y = min_y - half_h;
+    }
+
+    m_x2 = m_x + m_w;
+    m_y2 = m_y + m_h;
+}
+
+// -----------------------------------------------------------------------------
 // AM_MousePanning
 //  [PN] Moves the map window by using the mouse.
 // -----------------------------------------------------------------------------

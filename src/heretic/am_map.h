@@ -51,6 +51,7 @@ extern angle_t mapangle;
 extern void AM_LevelNameDrawer (void);
 extern void AM_Start (void);
 extern void AM_Stop (void);
+extern void AM_SetMapCenter (fixed_t x, fixed_t y);
 extern void AM_MiniDrawer (void);
 
 

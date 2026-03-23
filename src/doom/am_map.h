@@ -72,6 +72,7 @@ extern void AM_LevelNameDrawer (void);
 // if the level is completed while it is up.
 void AM_Start (void);
 void AM_Stop (void);
+void AM_SetMapCenter (fixed_t x, fixed_t y);
 
 // [JN] Make global, since mark preserved in saved games.
 void AM_clearMarks (void);

@@ -139,6 +139,10 @@ cheatseq_t cheat_clev = CHEAT("idclev", 2);
 cheatseq_t cheat_mypos = CHEAT("idmypos", 0);
 // [JN] IDDT cheat, moved from am_map.c
 cheatseq_t cheat_amap = CHEAT("iddt", 0);
+// [PN] Woof-style automap reveal cheats.
+static cheatseq_t cheat_reveal_kill = CHEAT("iddkt", 0);
+static cheatseq_t cheat_reveal_item = CHEAT("iddit", 0);
+static cheatseq_t cheat_reveal_scrt = CHEAT("iddst", 0);
 
 // [crispy] new cheats
 static cheatseq_t cheat_massacre1 = CHEAT("tntem", 0);
@@ -269,6 +273,171 @@ static const int ST_cheat_massacre (boolean explode)
     // numbraintargets = -1;
 
     return killcount;
+}
+
+// -----------------------------------------------------------------------------
+// ST_CheatRevealThing
+//  [PN] Cycle automap camera through matching things.
+// -----------------------------------------------------------------------------
+
+static void ST_CheatRevealThing (const int flags, const boolean alive_only, int *last_index)
+{
+    thinker_t *th;
+    mobj_t *first_match = NULL;
+    mobj_t *selected = NULL;
+    int match_index = 0;
+    int selected_index = -1;
+    const int target_index = *last_index + 1;
+
+    if (!automapactive)
+    {
+        return;
+    }
+
+    for (th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        if (th->function.acp1 != (actionf_p1)P_MobjThinker)
+        {
+            continue;
+        }
+
+        mobj_t *mo = (mobj_t *) th;
+
+        if (!(mo->flags & flags))
+        {
+            continue;
+        }
+
+        if (alive_only && mo->health <= 0)
+        {
+            continue;
+        }
+
+        if (!first_match)
+        {
+            first_match = mo;
+        }
+
+        if (match_index == target_index)
+        {
+            selected = mo;
+            selected_index = match_index;
+            break;
+        }
+
+        ++match_index;
+    }
+
+    if (!selected && first_match)
+    {
+        selected = first_match;
+        selected_index = 0;
+    }
+
+    if (selected)
+    {
+        am_followplayer = 0;
+        AM_SetMapCenter(selected->x, selected->y);
+        *last_index = selected_index;
+    }
+    else
+    {
+        *last_index = -1;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// ST_CheatRevealKill
+//  [PN] Cycle automap camera through alive monsters.
+// -----------------------------------------------------------------------------
+
+static void ST_CheatRevealKill (void)
+{
+    static int last_index = -1;
+    static int last_episode = -1;
+    static int last_map = -1;
+
+    if (last_episode != gameepisode || last_map != gamemap)
+    {
+        last_episode = gameepisode;
+        last_map = gamemap;
+        last_index = -1;
+    }
+
+    ST_CheatRevealThing(MF_COUNTKILL, true, &last_index);
+}
+
+// -----------------------------------------------------------------------------
+// ST_CheatRevealItem
+//  [PN] Cycle automap camera through countable items.
+// -----------------------------------------------------------------------------
+
+static void ST_CheatRevealItem (void)
+{
+    static int last_index = -1;
+    static int last_episode = -1;
+    static int last_map = -1;
+
+    if (last_episode != gameepisode || last_map != gamemap)
+    {
+        last_episode = gameepisode;
+        last_map = gamemap;
+        last_index = -1;
+    }
+
+    ST_CheatRevealThing(MF_COUNTITEM, false, &last_index);
+}
+
+// -----------------------------------------------------------------------------
+// ST_IsSecretSector
+//  [PN] Treat both live and already-revealed secret sectors as valid targets.
+// -----------------------------------------------------------------------------
+
+static boolean ST_IsSecretSector (const sector_t *sec)
+{
+    return sec->special == 9 || sec->oldspecial == 9;
+}
+
+// -----------------------------------------------------------------------------
+// ST_CheatRevealSecret
+//  [PN] Cycle automap camera through secret sectors.
+// -----------------------------------------------------------------------------
+
+static void ST_CheatRevealSecret (void)
+{
+    static int last_secret = -1;
+    static int last_episode = -1;
+    static int last_map = -1;
+
+    if (!automapactive || numsectors <= 0)
+    {
+        return;
+    }
+
+    if (last_episode != gameepisode || last_map != gamemap)
+    {
+        last_episode = gameepisode;
+        last_map = gamemap;
+        last_secret = -1;
+    }
+
+    for (int step = 0; step < numsectors; ++step)
+    {
+        int i = last_secret + 1 + step;
+        i %= numsectors;
+
+        if (ST_IsSecretSector(&sectors[i])
+        && sectors[i].linecount > 0
+        && sectors[i].lines != NULL
+        && sectors[i].lines[0] != NULL
+        && sectors[i].lines[0]->v1 != NULL)
+        {
+            am_followplayer = 0;
+            AM_SetMapCenter(sectors[i].lines[0]->v1->x, sectors[i].lines[0]->v1->y);
+            last_secret = i;
+            break;
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -529,6 +698,22 @@ boolean ST_Responder (event_t *ev)
             && cht_CheckCheat(&cheat_amap, ev->data2))
             {
                 iddt_cheating = (iddt_cheating + 1) % 3;
+                plyr->cheatTics = 1;
+            }
+            // [PN] Woof-style automap reveal cheats.
+            else if (!deathmatch && cht_CheckCheat(&cheat_reveal_kill, ev->data2))
+            {
+                ST_CheatRevealKill();
+                plyr->cheatTics = 1;
+            }
+            else if (!deathmatch && cht_CheckCheat(&cheat_reveal_item, ev->data2))
+            {
+                ST_CheatRevealItem();
+                plyr->cheatTics = 1;
+            }
+            else if (!deathmatch && cht_CheckCheat(&cheat_reveal_scrt, ev->data2))
+            {
+                ST_CheatRevealSecret();
                 plyr->cheatTics = 1;
             }
             // [crispy] implement Boom's "tntem" cheat
