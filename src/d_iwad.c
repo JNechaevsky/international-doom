@@ -1029,46 +1029,22 @@ char *D_FindIWAD(int mask, GameMission_t *mission)
     }
     else
     {
-        // Search all dirs and pick best by auto-detect priority.
+        // Search dirs in priority order; pick best IWAD inside first matching dir.
 
         result = NULL;
         *mission = none;
 
         BuildIWADDirList();
-    
+
+        for (i = 0; result == NULL && i < num_iwad_dirs; ++i)
         {
-            int result_priority = INT_MAX;
+            GameMission_t dir_mission = none;
 
-            for (i = 0; i < num_iwad_dirs; ++i)
+            result = SearchDirectoryForIWAD(iwad_dirs[i], mask, &dir_mission, NULL);
+
+            if (result != NULL)
             {
-                char *dir_result;
-                int dir_priority;
-                GameMission_t dir_mission = none;
-
-                dir_result = SearchDirectoryForIWAD(iwad_dirs[i], mask,
-                                                    &dir_mission, &dir_priority);
-
-                if (dir_result == NULL)
-                {
-                    continue;
-                }
-
-                if (result == NULL || dir_priority < result_priority)
-                {
-                    free(result);
-                    result = dir_result;
-                    result_priority = dir_priority;
-                    *mission = dir_mission;
-                }
-                else
-                {
-                    free(dir_result);
-                }
-
-                if (result_priority == 0)
-                {
-                    break;
-                }
+                *mission = dir_mission;
             }
         }
     }
