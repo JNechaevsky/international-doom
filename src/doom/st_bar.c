@@ -1692,6 +1692,11 @@ static void ST_UpdateElementsBackground (void)
 
 static void ST_DrawElementsOriginal (int wide_x)
 {
+    // [PN] Cache widget colors once per draw pass to avoid repeated calculations.
+    byte *ammo_color = NULL;
+    byte *health_color = ST_WidgetColor(hudcolor_health);
+    byte *armor_color = ST_WidgetColor(hudcolor_armor);
+
     // [crispy] draw berserk pack instead of no ammo if appropriate
     if (dp_screen_size > 10 && (!automapactive || automap_overlay))
     {
@@ -1722,8 +1727,9 @@ static void ST_DrawElementsOriginal (int wide_x)
     // Ammo amount for current weapon
     if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
     {
+        ammo_color = ST_WidgetColor(hudcolor_ammo);
         ST_DrawBigNumber(plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
-                         6 - wide_x, 171, ST_WidgetColor(hudcolor_ammo));
+                         6 - wide_x, 171, ammo_color);
     }
 
     // Health, negative health
@@ -1731,15 +1737,17 @@ static void ST_DrawElementsOriginal (int wide_x)
         const boolean neghealth = st_negative_health && plyr->health <= 0 && !no_sttminus;
 
         ST_DrawBigNumber(neghealth ? plyr->health_negative : plyr->health,
-                         52 - wide_x, 171, ST_WidgetColor(hudcolor_health));
-        ST_DrawPercent(90 - wide_x, 171, ST_WidgetColor(hudcolor_health));
+                         52 - wide_x, 171, health_color);
+        ST_DrawPercent(90 - wide_x, 171, health_color);
     }
 
     // Frags of Arms
     if (deathmatch)
     {
+        byte *frags_color;
         st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
-        ST_DrawBigNumber(st_fragscount, 100 - wide_x, 171, ST_WidgetColor(hudcolor_frags));
+        frags_color = ST_WidgetColor(hudcolor_frags);
+        ST_DrawBigNumber(st_fragscount, 100 - wide_x, 171, frags_color);
     }
     else
     {
@@ -1785,8 +1793,8 @@ static void ST_DrawElementsOriginal (int wide_x)
     }
 
     // Armor
-    ST_DrawBigNumber(plyr->armorpoints, 183 + wide_x, 171, ST_WidgetColor(hudcolor_armor));
-    ST_DrawPercent(221 + wide_x, 171, ST_WidgetColor(hudcolor_armor));
+    ST_DrawBigNumber(plyr->armorpoints, 183 + wide_x, 171, armor_color);
+    ST_DrawPercent(221 + wide_x, 171, armor_color);
 
     // Keys
     if (plyr->cards[it_blueskull])
