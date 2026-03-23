@@ -213,6 +213,19 @@ static byte SlotPreview[SAVES_PER_PAGE][V_SAVEPREVIEW_SIZE];
 static char oldSlotText[SLOTTEXTLEN + 2];
 static int SlotStatus[SAVES_PER_PAGE];
 static boolean SlotPreviewStatus[SAVES_PER_PAGE];
+
+typedef struct
+{
+    byte skill;
+    byte episode;
+    byte map;
+    int leveltime;
+    boolean present;
+} savegame_meta_t;
+
+static savegame_meta_t SlotMeta[SAVES_PER_PAGE];
+static const char *const SaveSkillShortName[5] = { "WN", "YB", "BR", "SM", "BP" };
+
 static int slotptr;
 static int currentSlot;
 static int quicksave;
@@ -6206,6 +6219,79 @@ static void DrawFilesMenu(void)
     quickload = 0;
 }
 
+// [PN] Read basic map/skill/time metadata from Heretic save header.
+static boolean MN_ReadSaveMeta(FILE *fp, byte *skill, byte *episode,
+                               byte *map, int *save_leveltime)
+{
+    const int save_version_size = 16;
+
+    if (fp == NULL || skill == NULL || episode == NULL
+     || map == NULL || save_leveltime == NULL)
+    {
+        return false;
+    }
+
+    if (fseek(fp, SAVESTRINGSIZE + save_version_size, SEEK_SET) != 0)
+    {
+        return false;
+    }
+
+    const int s = fgetc(fp);
+    const int e = fgetc(fp);
+    const int m = fgetc(fp);
+    const int idmus = fgetc(fp);
+
+    if (s == EOF || e == EOF || m == EOF || idmus == EOF)
+    {
+        return false;
+    }
+
+    if (fseek(fp, MAXPLAYERS + 4 + SAVEGAME_WADNAMESIZE, SEEK_CUR) != 0)
+    {
+        return false;
+    }
+
+    const int a = fgetc(fp);
+    const int b = fgetc(fp);
+    const int c = fgetc(fp);
+
+    if (a == EOF || b == EOF || c == EOF)
+    {
+        return false;
+    }
+
+    *skill = (byte)s;
+    *episode = (byte)e;
+    *map = (byte)m;
+    *save_leveltime = (a << 16) | (b << 8) | c;
+
+    return true;
+}
+
+// [PN] Format Heretic map identifier from save metadata.
+static void MN_FormatSaveMap(char *buf, size_t buflen, byte episode, byte map)
+{
+    M_snprintf(buf, buflen, "E%dM%d", episode, map);
+}
+
+// [PN] Format level time from tics as MM:SS or H:MM:SS.
+static void MN_FormatSaveTime(char *buf, size_t buflen, int tics)
+{
+    int total_seconds = (tics >= 0) ? (tics / TICRATE) : 0;
+    const int hours = total_seconds / 3600;
+    const int minutes = (total_seconds % 3600) / 60;
+    const int seconds = total_seconds % 60;
+
+    if (hours > 0)
+    {
+        M_snprintf(buf, buflen, "%d:%02d:%02d", hours, minutes, seconds);
+    }
+    else
+    {
+        M_snprintf(buf, buflen, "%d:%02d", minutes, seconds);
+    }
+}
+
 // [crispy] support additional pages of savegames
 static void DrawSaveLoadBottomLine(const Menu_t *menu)
 {
@@ -6253,6 +6339,40 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
         time_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(filetime)) / 2;
         MN_DrTextA(filedate, date_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 6, cr[CR_MENU_DARK4]);
         MN_DrTextA(filetime, time_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 16, cr[CR_MENU_DARK4]);
+
+        if (SlotMeta[CurrentItPos].present)
+        {
+            char mapid[16];
+            char mapline[32];
+            char skillline[32];
+            char timestr[16];
+            char timeline[32];
+            const byte skill = SlotMeta[CurrentItPos].skill;
+            const char *skillname = "?";
+            int map_x, skill_x, time2_x;
+
+            MN_FormatSaveMap(mapid, sizeof(mapid),
+                             SlotMeta[CurrentItPos].episode,
+                             SlotMeta[CurrentItPos].map);
+            M_snprintf(mapline, sizeof(mapline), "MAP: %s", mapid);
+
+            if (skill < 5)
+            {
+                skillname = SaveSkillShortName[skill];
+            }
+
+            M_snprintf(skillline, sizeof(skillline), "SKILL: %s", skillname);
+            MN_FormatSaveTime(timestr, sizeof(timestr), SlotMeta[CurrentItPos].leveltime);
+            M_snprintf(timeline, sizeof(timeline), "TIME: %s", timestr);
+
+            map_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(mapline)) / 2;
+            skill_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(skillline)) / 2;
+            time2_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(timeline)) / 2;
+
+            MN_DrTextA(mapline, map_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 36, cr[CR_MENU_DARK4]);
+            MN_DrTextA(skillline, skill_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 46, cr[CR_MENU_DARK4]);
+            MN_DrTextA(timeline, time2_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 56, cr[CR_MENU_DARK4]);
+        }
         }
         free(filename);
     }
@@ -6390,10 +6510,30 @@ static void MN_LoadSlotText(void)
             SlotText[i][0] = 0; // empty the string
             SlotStatus[i] = 0;
             SlotPreviewStatus[i] = false;
+            SlotMeta[i].present = false;
             continue;
         }
         retval = fread(&SlotText[i], 1, SLOTTEXTLEN, fp);
         SlotStatus[i] = retval == SLOTTEXTLEN;
+        if (SlotStatus[i])
+        {
+            byte skill, episode, map;
+            int slot_leveltime;
+
+            SlotMeta[i].present = MN_ReadSaveMeta(fp, &skill, &episode, &map,
+                                                  &slot_leveltime);
+            if (SlotMeta[i].present)
+            {
+                SlotMeta[i].skill = skill;
+                SlotMeta[i].episode = episode;
+                SlotMeta[i].map = map;
+                SlotMeta[i].leveltime = slot_leveltime;
+            }
+        }
+        else
+        {
+            SlotMeta[i].present = false;
+        }
         SlotPreviewStatus[i] = SlotStatus[i] && V_SavePreview_ReadFromFile(fp, SlotPreview[i]);
         fclose(fp);
     }

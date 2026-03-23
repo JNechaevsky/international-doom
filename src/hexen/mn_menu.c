@@ -223,6 +223,41 @@ static byte SlotPreview[SAVES_PER_PAGE][V_SAVEPREVIEW_SIZE];
 static char oldSlotText[SLOTTEXTLEN + 2];
 static int SlotStatus[SAVES_PER_PAGE];
 static boolean SlotPreviewStatus[SAVES_PER_PAGE];
+
+typedef struct
+{
+    byte skill;
+    byte map;
+    byte pclass;
+    boolean present;
+} savegame_meta_t;
+
+static savegame_meta_t SlotMeta[SAVES_PER_PAGE];
+static const char *const SaveClassName[NUMCLASSES] =
+{
+    "Fighter",
+    "Cleric",
+    "Mage",
+    "Pig",
+    "Random",
+};
+static const char *const SaveSkillFallbackName[5] = { "TYTD", "HNTR", "HMP", "UV", "NM" };
+static const int SkillMenuXByClass[NUMCLASSES] = { 120, 116, 112, 120, 38 };
+static const char *const SaveSkillNameByClass[NUMCLASSES][5] =
+{
+    { "SQUIRE", "KNIGHT", "WARRIOR", "BERSERKER", "TITAN" },
+    { "ALTAR BOY", "ACOLYTE", "PRIEST", "CARDINAL", "POPE" },
+    { "APPRENTICE", "ENCHANTER", "SORCERER", "WARLOCK", "ARCHIMAGE" },
+    { "PIG", "PIG", "PIG", "PIG", "PIG" },
+    {
+        "THOU NEEDETH A WET-NURSE",
+        "YELLOWBELLIES-R-US",
+        "BRINGEST THEM ONETH",
+        "THOU ART A SMITE-MEISTER",
+        "BLACK PLAGUE POSSESSES THEE"
+    }
+};
+
 static int slotptr;
 static int currentSlot;
 static int quicksave;
@@ -5463,6 +5498,69 @@ static void DrawFilesMenu(void)
     quickload = 0;
 }
 
+// [PN] Format Hexen hub identifier from save metadata.
+static void MN_FormatSaveMap(char *buf, size_t buflen, byte map)
+{
+    M_snprintf(buf, buflen, "HUB %d.%d", P_GetMapCluster(map), map);
+}
+
+// [PN] Try to read first active player's class from main save payload.
+static boolean MN_ReadSaveClass(FILE *fp, byte *pclass)
+{
+    const int acs_store_stride = 12; // int map + int script + byte args[4]
+    byte player_flags[MAXPLAYERS];
+    int i;
+
+    if (fp == NULL || pclass == NULL)
+    {
+        return false;
+    }
+
+    if (fseek(fp,
+              4 + SAVEGAME_WADNAMESIZE
+            + MAX_ACS_WORLD_VARS * 4
+            + (MAX_ACS_STORE + 1) * acs_store_stride,
+              SEEK_CUR) != 0)
+    {
+        return false;
+    }
+
+    // Skip ASEG_PLAYERS marker (LE32).
+    for (i = 0; i < 4; ++i)
+    {
+        if (fgetc(fp) == EOF)
+        {
+            return false;
+        }
+    }
+
+    for (i = 0; i < MAXPLAYERS; ++i)
+    {
+        const int v = fgetc(fp);
+        if (v == EOF)
+        {
+            return false;
+        }
+        player_flags[i] = (byte)v;
+    }
+
+    for (i = 0; i < MAXPLAYERS; ++i)
+    {
+        if (player_flags[i])
+        {
+            const int cls = fgetc(fp);
+            if (cls == EOF)
+            {
+                return false;
+            }
+            *pclass = (byte)cls;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // [crispy] support additional pages of savegames
 static void DrawSaveLoadBottomLine(const Menu_t *menu)
 {
@@ -5486,7 +5584,8 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
                y, cr[CR_MENU_DARK4]);
 
     // [JN] Print "modified" (or created initially) time of savegame file.
-    if (CurrentItPos != -1 && SlotStatus[CurrentItPos] && !FileMenuKeySteal)
+    if (CurrentItPos >= 0 && CurrentItPos < SAVES_PER_PAGE
+    && SlotStatus[CurrentItPos] && !FileMenuKeySteal)
     {
         struct stat filestat;
         char filedate[32];
@@ -5511,6 +5610,50 @@ static void DrawSaveLoadBottomLine(const Menu_t *menu)
         time_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(filetime)) / 2;
         MN_DrTextA(filedate, date_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 6, cr[CR_MENU_DARK4]);
         MN_DrTextA(filetime, time_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 16, cr[CR_MENU_DARK4]);
+
+        if (SlotMeta[CurrentItPos].present)
+        {
+            char mapid[16];
+            char mapline[32];
+            char classline[32];
+            char skillline[64];
+            const byte skill = SlotMeta[CurrentItPos].skill;
+            const byte pclass = SlotMeta[CurrentItPos].pclass;
+            const char *skillname = "?";
+            const char *classname = "?";
+            int map_x, class_x, skill_x;
+
+            MN_FormatSaveMap(mapid, sizeof(mapid), SlotMeta[CurrentItPos].map);
+            M_snprintf(mapline, sizeof(mapline), "%s", mapid);
+
+            if (pclass < NUMCLASSES)
+            {
+                classname = SaveClassName[pclass];
+            }
+
+            if (skill < 5)
+            {
+                if (pclass < NUMCLASSES)
+                {
+                    skillname = SaveSkillNameByClass[pclass][skill];
+                }
+                else
+                {
+                    skillname = SaveSkillFallbackName[skill];
+                }
+            }
+
+            M_snprintf(classline, sizeof(classline), "%s", classname);
+            M_snprintf(skillline, sizeof(skillline), "%s", skillname);
+
+            map_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(mapline)) / 2;
+            class_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(classline)) / 2;
+            skill_x = SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - MN_TextAWidth(skillline)) / 2;
+
+            MN_DrTextA(mapline, map_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 36, cr[CR_MENU_DARK4]);
+            MN_DrTextA(classline, class_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 46, cr[CR_MENU_DARK4]);
+            MN_DrTextA(skillline, skill_x, SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 56, cr[CR_MENU_DARK4]);
+        }
         }
     }
 }
@@ -5622,7 +5765,10 @@ static void DrawSavePreview(const Menu_t *menu)
     DrawSavePreviewBorder(x, y, V_SAVEPREVIEW_WIDTH, V_SAVEPREVIEW_HEIGHT);
 }
 
-static boolean ReadDescriptionForSlot(int slot, char *description, byte *preview, boolean *has_preview)
+static boolean ReadDescriptionForSlot(int slot, char *description,
+                                      byte *preview, boolean *has_preview,
+                                      byte *map, byte *skill, byte *pclass,
+                                      boolean *has_meta)
 {
     FILE *fp;
     boolean found;
@@ -5646,11 +5792,40 @@ static boolean ReadDescriptionForSlot(int slot, char *description, byte *preview
     found = found && strcmp(versionText, HXS_VERSION_TEXT) == 0;
     if (found)
     {
+        if (fseek(fp, 4, SEEK_CUR) != 0) // skip ASEG_GAME_HEADER marker
+        {
+            *has_preview = false;
+            *has_meta = false;
+            fclose(fp);
+            return false;
+        }
+
+        const int map_byte = fgetc(fp);
+        const int skill_byte = fgetc(fp);
+
+        if (map_byte != EOF && skill_byte != EOF)
+        {
+            *map = (byte) map_byte;
+            *skill = (byte) skill_byte;
+            *pclass = 255;
+            *has_meta = true;
+
+            if (MN_ReadSaveClass(fp, pclass) == false)
+            {
+                *pclass = 255;
+            }
+        }
+        else
+        {
+            *has_meta = false;
+        }
+
         *has_preview = V_SavePreview_ReadFromFile(fp, preview);
     }
     else
     {
         *has_preview = false;
+        *has_meta = false;
     }
 
     fclose(fp);
@@ -5673,16 +5848,29 @@ static void MN_LoadSlotText(void)
 
     for (slot = 0; slot < SAVES_PER_PAGE; slot++)
     {
-        if (ReadDescriptionForSlot(slot, description, SlotPreview[slot], &SlotPreviewStatus[slot]))
+        byte map, skill, pclass;
+        boolean has_meta;
+
+        if (ReadDescriptionForSlot(slot, description,
+                                   SlotPreview[slot], &SlotPreviewStatus[slot],
+                                   &map, &skill, &pclass, &has_meta))
         {
             memcpy(SlotText[slot], description, SLOTTEXTLEN);
             SlotStatus[slot] = 1;
+            SlotMeta[slot].present = has_meta;
+            if (has_meta)
+            {
+                SlotMeta[slot].map = map;
+                SlotMeta[slot].skill = skill;
+                SlotMeta[slot].pclass = pclass;
+            }
         }
         else
         {
             memset(SlotText[slot], 0, SLOTTEXTLEN);
             SlotStatus[slot] = 0;
             SlotPreviewStatus[slot] = false;
+            SlotMeta[slot].present = false;
         }
     }
     slottextloaded = true;
@@ -6033,20 +6221,6 @@ static void SetDefaultSaveName(int slot)
     joypadsave = false;
 }
 
-//---------------------------------------------------------------------------
-//
-// PROC SCSaveGame
-//
-//---------------------------------------------------------------------------
-
-static const char *const class_str[NUMCLASSES] =
-{
-    "FIGHTER",
-    "CLERIC",
-    "MAGE",
-    "PIG",
-};
-
 // [JN] Check if Save Game menu should be accessable.
 static void SCSaveCheck(int choice)
 {
@@ -6085,7 +6259,9 @@ static void SCSaveGame(int choice)
             SetDefaultSaveName(choice);
           M_snprintf(ptr, sizeof(oldSlotText), "HUB %d.%d, %s",
                      P_GetMapCluster(gamemap), gamemap,
-                     class_str[PlayerClass[consoleplayer]]);
+                     SaveClassName[(PlayerClass[consoleplayer] < NUMCLASSES)
+                                   ? PlayerClass[consoleplayer]
+                                   : PCLASS_FIGHTER]);
         }
 
         while (*ptr)
@@ -6128,42 +6304,20 @@ static void SCClass(int choice)
                      true, NULL);
         return;
     }
+
     MenuPClass = choice;
-    switch (MenuPClass)
+    if (MenuPClass < 0 || MenuPClass >= NUMCLASSES)
     {
-        case PCLASS_FIGHTER:
-            SkillMenu.x = 120;
-            SkillItems[0].text = "SQUIRE";
-            SkillItems[1].text = "KNIGHT";
-            SkillItems[2].text = "WARRIOR";
-            SkillItems[3].text = "BERSERKER";
-            SkillItems[4].text = "TITAN";
-            break;
-        case PCLASS_CLERIC:
-            SkillMenu.x = 116;
-            SkillItems[0].text = "ALTAR BOY";
-            SkillItems[1].text = "ACOLYTE";
-            SkillItems[2].text = "PRIEST";
-            SkillItems[3].text = "CARDINAL";
-            SkillItems[4].text = "POPE";
-            break;
-        case PCLASS_MAGE:
-            SkillMenu.x = 112;
-            SkillItems[0].text = "APPRENTICE";
-            SkillItems[1].text = "ENCHANTER";
-            SkillItems[2].text = "SORCERER";
-            SkillItems[3].text = "WARLOCK";
-            SkillItems[4].text = "ARCHIMAGE";
-            break;
-        case PCLASS_RANDOM:
-            SkillMenu.x = 38;
-            SkillItems[0].text = "THOU NEEDETH A WET-NURSE";
-            SkillItems[1].text = "YELLOWBELLIES-R-US";
-            SkillItems[2].text = "BRINGEST THEM ONETH";
-            SkillItems[3].text = "THOU ART A SMITE-MEISTER";
-            SkillItems[4].text = "BLACK PLAGUE POSSESSES THEE";
-            break;
+        return;
     }
+
+    SkillMenu.x = SkillMenuXByClass[MenuPClass];
+
+    for (int i = 0; i < 5; ++i)
+    {
+        SkillItems[i].text = SaveSkillNameByClass[MenuPClass][i];
+    }
+
     SetMenu(MENU_SKILL);
 }
 

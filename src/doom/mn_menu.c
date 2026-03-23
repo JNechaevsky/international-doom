@@ -145,6 +145,20 @@ static const int savepage_max = 15;
 static char savegamestrings[10][SAVESTRINGSIZE];
 static byte savegamepreviews[10][V_SAVEPREVIEW_SIZE];
 static boolean savegamepreview_present[10];
+
+typedef struct
+{
+    byte skill;
+    byte episode;
+    byte map;
+    int leveltime;
+    boolean present;
+} savegame_meta_t;
+
+static savegame_meta_t savegame_meta[10];
+
+const char *const DefSkillName[5] = { "TYTD", "HNTR", "HMP", "UV" , "NM" };
+
 static char endstring[160];
 
 // [PN] Save/Load preview area (original 320x200 coordinate space).
@@ -4229,8 +4243,6 @@ static void M_Draw_ID_Gameplay_3 (void)
     char str[32];
     Gameplay_Cur = 2;
 
-    const char *const DefSkillName[5] = { "IMTYTD", "HNTR", "HMP", "UV" , "NM" };
-
     M_WriteTextCentered(9, "GAMEPLAY", cr[CR_YELLOW]);
 
     // Default skill level
@@ -4754,7 +4766,6 @@ static void M_Choose_ID_Level (int choice)
 static void M_Draw_ID_Level_1 (void)
 {
     char str[32];
-    const char *const DefSkillName[5] = { "IMTYTD", "HNTR", "HMP", "UV", "NM" };
 
     st_fullupdate = true;
 
@@ -5463,6 +5474,84 @@ static void M_Choose_ID_Reset (int choice)
 
 // =============================================================================
 
+// [PN] Read basic map/skill/time metadata from Doom save header.
+static boolean M_ReadSaveMeta(FILE *handle, byte *skill, byte *episode,
+                              byte *map, int *save_leveltime)
+{
+    if (handle == NULL || skill == NULL || episode == NULL
+     || map == NULL || save_leveltime == NULL)
+    {
+        return false;
+    }
+
+    if (fseek(handle, SAVESTRINGSIZE + VERSIONSIZE, SEEK_SET) != 0)
+    {
+        return false;
+    }
+
+    const int s = fgetc(handle);
+    const int e = fgetc(handle);
+    const int m = fgetc(handle);
+    const int idmus = fgetc(handle);
+
+    if (s == EOF || e == EOF || m == EOF || idmus == EOF)
+    {
+        return false;
+    }
+
+    if (fseek(handle, MAXPLAYERS, SEEK_CUR) != 0)
+    {
+        return false;
+    }
+
+    const int a = fgetc(handle);
+    const int b = fgetc(handle);
+    const int c = fgetc(handle);
+
+    if (a == EOF || b == EOF || c == EOF)
+    {
+        return false;
+    }
+
+    *skill = (byte)s;
+    *episode = (byte)e;
+    *map = (byte)m;
+    *save_leveltime = (a << 16) | (b << 8) | c;
+
+    return true;
+}
+
+// [PN] Format map identifier from save metadata.
+static void M_FormatSaveMap(char *buf, size_t buflen, byte episode, byte map)
+{
+    if (gamemode == commercial || episode == 0)
+    {
+        M_snprintf(buf, buflen, "MAP%02d", map);
+    }
+    else
+    {
+        M_snprintf(buf, buflen, "E%dM%d", episode, map);
+    }
+}
+
+// [PN] Format level time from tics as MM:SS or H:MM:SS.
+static void M_FormatSaveTime(char *buf, size_t buflen, int tics)
+{
+    int total_seconds = (tics >= 0) ? (tics / TICRATE) : 0;
+    const int hours = total_seconds / 3600;
+    const int minutes = (total_seconds % 3600) / 60;
+    const int seconds = total_seconds % 60;
+
+    if (hours > 0)
+    {
+        M_snprintf(buf, buflen, "%d:%02d:%02d", hours, minutes, seconds);
+    }
+    else
+    {
+        M_snprintf(buf, buflen, "%d:%02d", minutes, seconds);
+    }
+}
+
 
 //
 // M_ReadSaveStrings
@@ -5486,11 +5575,32 @@ static void M_ReadSaveStrings(void)
             M_StringCopy(savegamestrings[i], EMPTYSTRING, SAVESTRINGSIZE);
             LoadMenu[i].status = 0;
             savegamepreview_present[i] = false;
+            savegame_meta[i].present = false;
             continue;
         }
 
         retval = fread(&savegamestrings[i], 1, SAVESTRINGSIZE, handle);
         LoadMenu[i].status = retval == SAVESTRINGSIZE;
+
+        if (LoadMenu[i].status)
+        {
+            byte skill, episode, map;
+            int slot_leveltime;
+
+            savegame_meta[i].present = M_ReadSaveMeta(handle, &skill, &episode,
+                                                      &map, &slot_leveltime);
+            if (savegame_meta[i].present)
+            {
+                savegame_meta[i].skill = skill;
+                savegame_meta[i].episode = episode;
+                savegame_meta[i].map = map;
+                savegame_meta[i].leveltime = slot_leveltime;
+            }
+        }
+        else
+        {
+            savegame_meta[i].present = false;
+        }
 
         savegamepreview_present[i] = LoadMenu[i].status
                                   && V_SavePreview_ReadFromFile(handle, savegamepreviews[i]);
@@ -5576,7 +5686,7 @@ static void M_DrawSaveLoadBottomLine (void)
                 151, pagestr, cr[CR_MENU_DARK1]);
 
     // [JN] Print "modified" (or created initially) time of savegame file.
-    if (itemOn != -1 && LoadMenu[itemOn].status)
+    if (itemOn >= 0 && itemOn < load_end && LoadMenu[itemOn].status)
     {
         struct stat filestat;
         char filedate[32];
@@ -5599,8 +5709,43 @@ static void M_DrawSaveLoadBottomLine (void)
                     SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 5,
                     filedate, cr[CR_MENU_DARK1]);
         M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(filetime)) / 2,
-                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 13,
+                    SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 14,
                     filetime, cr[CR_MENU_DARK1]);
+
+        if (savegame_meta[itemOn].present)
+        {
+            char mapid[16];
+            char mapline[32];
+            char skillline[32];
+            char timestr[16];
+            char timeline[32];
+            const char *skillname = "?";
+            const byte skill = savegame_meta[itemOn].skill;
+
+            M_FormatSaveMap(mapid, sizeof(mapid),
+                            savegame_meta[itemOn].episode,
+                            savegame_meta[itemOn].map);
+            M_snprintf(mapline, sizeof(mapline), "MAP: %s", mapid);
+
+            if (skill < 5)
+            {
+                skillname = DefSkillName[skill];
+            }
+
+            M_snprintf(skillline, sizeof(skillline), "SKILL: %s", skillname);
+            M_FormatSaveTime(timestr, sizeof(timestr), savegame_meta[itemOn].leveltime);
+            M_snprintf(timeline, sizeof(timeline), "TIME: %s", timestr);
+
+            M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(mapline)) / 2,
+                        SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 32,
+                        mapline, cr[CR_MENU_DARK1]);
+            M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(skillline)) / 2,
+                        SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 41,
+                        skillline, cr[CR_MENU_DARK1]);
+            M_WriteText(SAVE_PREVIEW_X + (V_SAVEPREVIEW_WIDTH - M_StringWidth(timeline)) / 2,
+                        SAVE_PREVIEW_Y + V_SAVEPREVIEW_HEIGHT + 50,
+                        timeline, cr[CR_MENU_DARK1]);
+        }
         }
     }
 }
