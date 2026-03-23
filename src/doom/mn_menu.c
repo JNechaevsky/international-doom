@@ -1202,7 +1202,7 @@ static void M_Draw_ID_Video_1 (void)
     M_WriteTextCentered(9, "VIDEO OPTIONS", cr[CR_YELLOW]);
 
     // Rendering mode
-    sprintf(str, vid_truecolor == 1 ? "SMOOTH"  :
+    sprintf(str, vid_truecolor == 1 ? "INTERPOLATED" :
                  vid_truecolor == 2 ? "TRUECOLOR" : "ORIGINAL");
     M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
                         vid_truecolor == 1 ? cr[CR_YELLOW] : 

@@ -1086,7 +1086,7 @@ static void M_Draw_ID_Video_1 (void)
     MN_DrTextACentered("VIDEO OPTIONS", 10, cr[CR_YELLOW]);
 
     // Rendering mode
-    sprintf(str, vid_truecolor == 1 ? "SMOOTH"  :
+    sprintf(str, vid_truecolor == 1 ? "INTERPOLATED" :
                  vid_truecolor == 2 ? "TRUECOLOR" : "ORIGINAL");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
                         vid_truecolor == 1 ? cr[CR_YELLOW] :

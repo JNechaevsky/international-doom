@@ -1008,7 +1008,7 @@ void R_InitColormaps (void)
 		colormaps_allocated = true;
 	}
 
-	// [PN] Smooth/TrueColor rendering modes always use 256 light levels.
+	// [PN] Interpolated/TrueColor rendering modes always use 256 light levels.
 	NUMCOLORMAPS = vid_truecolor ? 256 : 32;
 
     if (vid_truecolor)
