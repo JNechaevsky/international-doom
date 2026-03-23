@@ -1668,6 +1668,41 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 }
 
 // -----------------------------------------------------------------------------
+// ST_CacheRequiredLump
+// [PN] Resolve a mandatory lump once and reuse cached lumpnum.
+// -----------------------------------------------------------------------------
+
+static int ST_CacheRequiredLump (int *cache, const char *name)
+{
+    if (*cache == -1)
+    {
+        *cache = W_GetNumForName(name);
+    }
+
+    return *cache;
+}
+
+// -----------------------------------------------------------------------------
+// ST_CacheFallbackLump
+// [PN] Resolve a primary/fallback lump pair once and cache final result.
+// -----------------------------------------------------------------------------
+
+static int ST_CacheFallbackLump (int *cache, const char *primary, const char *fallback)
+{
+    if (*cache == -2)
+    {
+        *cache = W_CheckNumForName(primary);
+
+        if (*cache == -1)
+        {
+            *cache = W_CheckNumForName(fallback);
+        }
+    }
+
+    return *cache;
+}
+
+// -----------------------------------------------------------------------------
 // ST_UpdateElementsBackground
 // [JN] Use V_CopyRect to draw/update background under elements.
 //      This is notably faster than re-drawing entire background.
@@ -1705,25 +1740,19 @@ static void ST_DrawElementsOriginal (int wide_x)
     {
         if (plyr->readyweapon == wp_fist && plyr->powers[pw_strength])
         {
-            static int lump = -1;
+            static int lump = -2;
             patch_t *patch;
+            lump = ST_CacheFallbackLump(&lump, DEH_String("PSTRA0"), DEH_String("MEDIA0"));
 
-            if (lump == -1)
+            if (lump != -1)
             {
-                lump = W_CheckNumForName(DEH_String("PSTRA0"));
+                patch = W_CacheLumpNum(lump, PU_CACHE);
 
-                if (lump == -1)
-                {
-                    lump = W_CheckNumForName(DEH_String("MEDIA0"));
-                }
+                // [crispy] (23,179) is the center of the Ammo widget
+                V_DrawPatch(44 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) - wide_x,
+                            179 - SHORT(patch->height)/2 + SHORT(patch->topoffset),
+                            patch);
             }
-
-            patch = W_CacheLumpNum(lump, PU_CACHE);
-
-            // [crispy] (23,179) is the center of the Ammo widget
-            V_DrawPatch(44 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) - wide_x,
-                        179 - SHORT(patch->height)/2 + SHORT(patch->topoffset),
-                        patch);
         }
     }
 
@@ -1829,8 +1858,8 @@ static void ST_DrawElementsOriginal (int wide_x)
 static void ST_DrawElementsRemaster (int wide_x)
 {
     // [PN] Cache remaster icon lumps to avoid repeated name lookups every draw pass.
-    static int armor_icon_lump[2] = { -2, -2 };
-    static int ammo_icon_lump[4] = { -2, -2, -2, -2 };
+    static int armor_icon_lump[2] = { -1, -1 };
+    static int ammo_icon_lump[4] = { -1, -1, -1, -1 };
 
     // [PN] Cache widget colors once per draw pass to avoid repeated calculations.
     byte *ammo_color = NULL;
@@ -1858,16 +1887,12 @@ static void ST_DrawElementsRemaster (int wide_x)
 
     // Armor
     {
+        static const char *const armor_icon_names[2] = { "ARM1A0", "ARM2A0" };
         const int wide_reduce = (dp_screen_size == 12 || dp_screen_size == 14) ? 14 : 0;
         const int armor_icon = (plyr->armortype < 2) ? 0 : 1;
-        int lump = armor_icon_lump[armor_icon];
+        const int lump = ST_CacheRequiredLump(&armor_icon_lump[armor_icon],
+                                              DEH_String(armor_icon_names[armor_icon]));
         patch_t *patch;
-
-        if (lump == -2)
-        {
-            lump = W_CheckNumForName(DEH_String(armor_icon == 0 ? "ARM1A0" : "ARM2A0"));
-            armor_icon_lump[armor_icon] = lump;
-        }
         patch = W_CacheLumpNum(lump, PU_CACHE);
 
         V_DrawPatch(115 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) - wide_x - wide_reduce,
@@ -1889,21 +1914,16 @@ static void ST_DrawElementsRemaster (int wide_x)
     {
         if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
         {
+            static const char *const ammo_icon_names[4] = {
+                "CLIPA0", "SHELA0", "ROCKA0", "CELLA0"
+            };
             const int ammotype = weaponinfo[plyr->readyweapon].ammo;
             const int ammo_icon = (ammotype == am_clip)  ? 0 :
                                   (ammotype == am_shell) ? 1 :
                                   (ammotype == am_misl)  ? 2 : 3;
-            int lump = ammo_icon_lump[ammo_icon];
+            const int lump = ST_CacheRequiredLump(&ammo_icon_lump[ammo_icon],
+                                                  DEH_String(ammo_icon_names[ammo_icon]));
             patch_t *patch;
-
-            if (lump == -2)
-            {
-                lump = W_CheckNumForName(DEH_String(ammo_icon == 0 ? "CLIPA0" :
-                                                    ammo_icon == 1 ? "SHELA0" :
-                                                    ammo_icon == 2 ? "ROCKA0" :
-                                                                     "CELLA0"));
-                ammo_icon_lump[ammo_icon] = lump;
-            }
             patch = W_CacheLumpNum(lump, PU_CACHE);
 
             V_DrawPatch(294 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) + wide_x,
@@ -1916,23 +1936,17 @@ static void ST_DrawElementsRemaster (int wide_x)
         // [crispy] draw berserk pack instead of no ammo if appropriate
         else if (plyr->readyweapon == wp_fist && plyr->powers[pw_strength])
         {
-            static int lump = -1;
+            static int lump = -2;
             patch_t *patch;
+            lump = ST_CacheFallbackLump(&lump, DEH_String("PSTRA0"), DEH_String("MEDIA0"));
 
-            if (lump == -1)
+            if (lump != -1)
             {
-                lump = W_CheckNumForName(DEH_String("PSTRA0"));
+                patch = W_CacheLumpNum(lump, PU_CACHE);
 
-                if (lump == -1)
-                {
-                    lump = W_CheckNumForName(DEH_String("MEDIA0"));
-                }
+                V_DrawPatch(282 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) + wide_x,
+                            182 - SHORT(patch->height)/2 + SHORT(patch->topoffset), patch);
             }
-
-            patch = W_CacheLumpNum(lump, PU_CACHE);
-
-            V_DrawPatch(282 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) + wide_x,
-                        182 - SHORT(patch->height)/2 + SHORT(patch->topoffset), patch);
         }
 
         if (dp_screen_size != 12 && dp_screen_size != 14)
