@@ -126,6 +126,13 @@ boolean st_fullupdate = true;
 static int ammo_bg[5], hlth_bg[5], frgs_bg[5], face_bg[5], armr_bg[5];
 static int keys_bg[5], amoc_bg[5], amom_bg[5], disk_bg[5];
 
+// [PN] Reuse one static table of status bar element rectangles for background restore.
+static int *const st_elements_bg[] =
+{
+    ammo_bg, hlth_bg, frgs_bg, face_bg, armr_bg,
+    keys_bg, amoc_bg, amom_bg, disk_bg
+};
+
 cheatseq_t cheat_wait = CHEAT("id", 0);
 cheatseq_t cheat_mus = CHEAT("idmus", 2);
 cheatseq_t cheat_god = CHEAT("iddqd", 0);
@@ -1661,6 +1668,41 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 }
 
 // -----------------------------------------------------------------------------
+// ST_CacheRequiredLump
+// [PN] Resolve a mandatory lump once and reuse cached lumpnum.
+// -----------------------------------------------------------------------------
+
+static int ST_CacheRequiredLump (int *cache, const char *name)
+{
+    if (*cache == -1)
+    {
+        *cache = W_GetNumForName(name);
+    }
+
+    return *cache;
+}
+
+// -----------------------------------------------------------------------------
+// ST_CacheFallbackLump
+// [PN] Resolve a primary/fallback lump pair once and cache final result.
+// -----------------------------------------------------------------------------
+
+static int ST_CacheFallbackLump (int *cache, const char *primary, const char *fallback)
+{
+    if (*cache == -2)
+    {
+        *cache = W_CheckNumForName(primary);
+
+        if (*cache == -1)
+        {
+            *cache = W_CheckNumForName(fallback);
+        }
+    }
+
+    return *cache;
+}
+
+// -----------------------------------------------------------------------------
 // ST_UpdateElementsBackground
 // [JN] Use V_CopyRect to draw/update background under elements.
 //      This is notably faster than re-drawing entire background.
@@ -1669,19 +1711,15 @@ static void ST_DrawWeaponNumberFunc (const int val, const int x, const int y, co
 
 static void ST_UpdateElementsBackground (void)
 {
-    // [PN] Store all background elements in an array for looped processing
-    const int *elements[] = {
-        ammo_bg, hlth_bg, frgs_bg, face_bg, armr_bg,
-        keys_bg, amoc_bg, amom_bg, disk_bg
-    };
-
-    // [PN] Loop through each element and copy its background using V_CopyRect
-    for (int i = 0; i < sizeof(elements)/sizeof(elements[0]); i++)
+    // [PN] Loop through each element and copy its background using V_CopyRect.
+    for (int i = 0; i < sizeof(st_elements_bg)/sizeof(st_elements_bg[0]); i++)
     {
-        V_CopyRect(elements[i][0], elements[i][1],
+        const int *element = st_elements_bg[i];
+
+        V_CopyRect(element[0], element[1],
                    st_backing_screen,
-                   elements[i][2], elements[i][3],
-                   elements[i][0], elements[i][4]);
+                   element[2], element[3],
+                   element[0], element[4]);
     }
 }
 
@@ -1692,38 +1730,38 @@ static void ST_UpdateElementsBackground (void)
 
 static void ST_DrawElementsOriginal (int wide_x)
 {
+    // [PN] Cache widget colors once per draw pass to avoid repeated calculations.
+    byte *ammo_color = NULL;
+    byte *health_color = ST_WidgetColor(hudcolor_health);
+    byte *armor_color = ST_WidgetColor(hudcolor_armor);
+
     // [crispy] draw berserk pack instead of no ammo if appropriate
     if (dp_screen_size > 10 && (!automapactive || automap_overlay))
     {
         if (plyr->readyweapon == wp_fist && plyr->powers[pw_strength])
         {
-            static int lump = -1;
+            static int lump = -2;
             patch_t *patch;
+            lump = ST_CacheFallbackLump(&lump, DEH_String("PSTRA0"), DEH_String("MEDIA0"));
 
-            if (lump == -1)
+            if (lump != -1)
             {
-                lump = W_CheckNumForName(DEH_String("PSTRA0"));
+                patch = W_CacheLumpNum(lump, PU_CACHE);
 
-                if (lump == -1)
-                {
-                    lump = W_CheckNumForName(DEH_String("MEDIA0"));
-                }
+                // [crispy] (23,179) is the center of the Ammo widget
+                V_DrawPatch(44 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) - wide_x,
+                            179 - SHORT(patch->height)/2 + SHORT(patch->topoffset),
+                            patch);
             }
-
-            patch = W_CacheLumpNum(lump, PU_CACHE);
-
-            // [crispy] (23,179) is the center of the Ammo widget
-            V_DrawPatch(44 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) - wide_x,
-                        179 - SHORT(patch->height)/2 + SHORT(patch->topoffset),
-                        patch);
         }
     }
 
     // Ammo amount for current weapon
     if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
     {
+        ammo_color = ST_WidgetColor(hudcolor_ammo);
         ST_DrawBigNumber(plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
-                         6 - wide_x, 171, ST_WidgetColor(hudcolor_ammo));
+                         6 - wide_x, 171, ammo_color);
     }
 
     // Health, negative health
@@ -1731,15 +1769,17 @@ static void ST_DrawElementsOriginal (int wide_x)
         const boolean neghealth = st_negative_health && plyr->health <= 0 && !no_sttminus;
 
         ST_DrawBigNumber(neghealth ? plyr->health_negative : plyr->health,
-                         52 - wide_x, 171, ST_WidgetColor(hudcolor_health));
-        ST_DrawPercent(90 - wide_x, 171, ST_WidgetColor(hudcolor_health));
+                         52 - wide_x, 171, health_color);
+        ST_DrawPercent(90 - wide_x, 171, health_color);
     }
 
     // Frags of Arms
     if (deathmatch)
     {
+        byte *frags_color;
         st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
-        ST_DrawBigNumber(st_fragscount, 100 - wide_x, 171, ST_WidgetColor(hudcolor_frags));
+        frags_color = ST_WidgetColor(hudcolor_frags);
+        ST_DrawBigNumber(st_fragscount, 100 - wide_x, 171, frags_color);
     }
     else
     {
@@ -1768,7 +1808,7 @@ static void ST_DrawElementsOriginal (int wide_x)
         V_DrawPatch(143, 168, faces[st_faceindex]);
     }
 
-    // [crispy] blinking key or skull in the status bar
+    // [crispy] blinking keys and regular key widgets in one pass
     for (int i = 0, y = 0 ; i < 3 ; i++, y += 10)
     {
         if (st_blinking_keys && plyr->tryopen[i])
@@ -1782,27 +1822,20 @@ static void ST_DrawElementsOriginal (int wide_x)
                 V_DrawPatch(239 + wide_x, 171 + y, keys[i + st_keyorskull[i]]);
             }
         }
+
+        if (plyr->cards[it_blueskull + i])
+        {
+            V_DrawPatch(239 + wide_x, 171 + y, keys[3 + i]);
+        }
+        else if (plyr->cards[it_bluecard + i])
+        {
+            V_DrawPatch(239 + wide_x, 171 + y, keys[i]);
+        }
     }
 
     // Armor
-    ST_DrawBigNumber(plyr->armorpoints, 183 + wide_x, 171, ST_WidgetColor(hudcolor_armor));
-    ST_DrawPercent(221 + wide_x, 171, ST_WidgetColor(hudcolor_armor));
-
-    // Keys
-    if (plyr->cards[it_blueskull])
-    V_DrawPatch(239 + wide_x, 171, keys[3]);
-    else if (plyr->cards[it_bluecard])
-    V_DrawPatch(239 + wide_x, 171, keys[0]);
-
-    if (plyr->cards[it_yellowskull])
-    V_DrawPatch(239 + wide_x, 181, keys[4]);
-    else if (plyr->cards[it_yellowcard])
-    V_DrawPatch(239 + wide_x, 181, keys[1]);
-
-    if (plyr->cards[it_redskull])
-    V_DrawPatch(239 + wide_x, 191, keys[5]);
-    else if (plyr->cards[it_redcard])
-    V_DrawPatch(239 + wide_x, 191, keys[2]);
+    ST_DrawBigNumber(plyr->armorpoints, 183 + wide_x, 171, armor_color);
+    ST_DrawPercent(221 + wide_x, 171, armor_color);
 
     // Ammo (current)
     ST_DrawSmallNumberY(plyr->ammo[0], 280 + wide_x, 173);
@@ -1824,6 +1857,15 @@ static void ST_DrawElementsOriginal (int wide_x)
 
 static void ST_DrawElementsRemaster (int wide_x)
 {
+    // [PN] Cache remaster icon lumps to avoid repeated name lookups every draw pass.
+    static int armor_icon_lump[2] = { -1, -1 };
+    static int ammo_icon_lump[4] = { -1, -1, -1, -1 };
+
+    // [PN] Cache widget colors once per draw pass to avoid repeated calculations.
+    byte *ammo_color = NULL;
+    byte *health_color = ST_WidgetColor(hudcolor_health);
+    byte *armor_color = ST_WidgetColor(hudcolor_armor);
+
     // Player face and background (netgame only)
     if (dp_screen_size <= 14)
     {
@@ -1840,64 +1882,71 @@ static void ST_DrawElementsRemaster (int wide_x)
         const boolean neghealth = st_negative_health && plyr->health <= 0 && !no_sttminus;
 
         ST_DrawBigNumberWithPercent(neghealth ? plyr->health_negative : plyr->health,
-                                    39 - wide_x, 176, ST_WidgetColor(hudcolor_health));
+                                    39 - wide_x, 176, health_color);
     }
 
     // Armor
     {
+        static const char *const armor_icon_names[2] = { "ARM1A0", "ARM2A0" };
         const int wide_reduce = (dp_screen_size == 12 || dp_screen_size == 14) ? 14 : 0;
-        const int lump = W_CheckNumForName(DEH_String(plyr->armortype < 2 ? "ARM1A0" : "ARM2A0"));
-        patch_t *patch = W_CacheLumpNum(lump, PU_CACHE);
+        const int armor_icon = (plyr->armortype < 2) ? 0 : 1;
+        const int lump = ST_CacheRequiredLump(&armor_icon_lump[armor_icon],
+                                              DEH_String(armor_icon_names[armor_icon]));
+        patch_t *patch;
+        patch = W_CacheLumpNum(lump, PU_CACHE);
 
         V_DrawPatch(115 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) - wide_x - wide_reduce,
                     183 - SHORT(patch->height) / 2 + SHORT(patch->topoffset), patch);
         
-        ST_DrawBigNumberWithPercent(plyr->armorpoints, 142 - wide_x - wide_reduce, 176, ST_WidgetColor(hudcolor_armor));
+        ST_DrawBigNumberWithPercent(plyr->armorpoints, 142 - wide_x - wide_reduce, 176, armor_color);
     }
 
     // Frags (deathmatch only)
     if (deathmatch)
     {
+        byte *frags_color;
         st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
-        ST_DrawBigNumber(st_fragscount, 188 + wide_x, 176, ST_WidgetColor(hudcolor_frags));
+        frags_color = ST_WidgetColor(hudcolor_frags);
+        ST_DrawBigNumber(st_fragscount, 188 + wide_x, 176, frags_color);
     }
 
     // Ammo amount for current weapon
     {
         if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
         {
-            const int lump = W_CheckNumForName(DEH_String(weaponinfo[plyr->readyweapon].ammo == am_clip  ? "CLIPA0" :
-                                                          weaponinfo[plyr->readyweapon].ammo == am_shell ? "SHELA0" :
-                                                          weaponinfo[plyr->readyweapon].ammo == am_misl  ? "ROCKA0" :
-                                                                                                           "CELLA0"));
-            patch_t *patch = W_CacheLumpNum(lump, PU_CACHE);
+            static const char *const ammo_icon_names[4] = {
+                "CLIPA0", "SHELA0", "ROCKA0", "CELLA0"
+            };
+            const int ammotype = weaponinfo[plyr->readyweapon].ammo;
+            const int ammo_icon = (ammotype == am_clip)  ? 0 :
+                                  (ammotype == am_shell) ? 1 :
+                                  (ammotype == am_misl)  ? 2 : 3;
+            const int lump = ST_CacheRequiredLump(&ammo_icon_lump[ammo_icon],
+                                                  DEH_String(ammo_icon_names[ammo_icon]));
+            patch_t *patch;
+            patch = W_CacheLumpNum(lump, PU_CACHE);
 
             V_DrawPatch(294 - SHORT(patch->width)  / 2 + SHORT(patch->leftoffset) + wide_x,
                         184 - SHORT(patch->height) / 2 + SHORT(patch->topoffset), patch);
 
+            ammo_color = ST_WidgetColor(hudcolor_ammo);
             ST_DrawBigNumber(plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
-                             245 + wide_x, 176, ST_WidgetColor(hudcolor_ammo));
+                             245 + wide_x, 176, ammo_color);
         }            
         // [crispy] draw berserk pack instead of no ammo if appropriate
         else if (plyr->readyweapon == wp_fist && plyr->powers[pw_strength])
         {
-            static int lump = -1;
+            static int lump = -2;
             patch_t *patch;
+            lump = ST_CacheFallbackLump(&lump, DEH_String("PSTRA0"), DEH_String("MEDIA0"));
 
-            if (lump == -1)
+            if (lump != -1)
             {
-                lump = W_CheckNumForName(DEH_String("PSTRA0"));
+                patch = W_CacheLumpNum(lump, PU_CACHE);
 
-                if (lump == -1)
-                {
-                    lump = W_CheckNumForName(DEH_String("MEDIA0"));
-                }
+                V_DrawPatch(282 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) + wide_x,
+                            182 - SHORT(patch->height)/2 + SHORT(patch->topoffset), patch);
             }
-
-            patch = W_CacheLumpNum(lump, PU_CACHE);
-
-            V_DrawPatch(282 - 21 - SHORT(patch->width)/2 + SHORT(patch->leftoffset) + wide_x,
-                        182 - SHORT(patch->height)/2 + SHORT(patch->topoffset), patch);
         }
 
         if (dp_screen_size != 12 && dp_screen_size != 14)
@@ -1917,7 +1966,7 @@ static void ST_DrawElementsRemaster (int wide_x)
         }
     }
 
-    // [crispy] blinking key or skull in the status bar
+    // [crispy] blinking keys and regular key widgets in one pass
     for (int i = 0, y = 0 ; i < 3 ; i++, y += 10)
     {
         if (st_blinking_keys && plyr->tryopen[i])
@@ -1931,24 +1980,15 @@ static void ST_DrawElementsRemaster (int wide_x)
                 V_DrawPatch(308 + wide_x, 171 + y, keys[i + st_keyorskull[i]]);
             }
         }
-    }
 
-    // Keys
-    {
-        if (plyr->cards[it_blueskull])
-        V_DrawPatch(308 + wide_x, 171, keys[3]);
-        else if (plyr->cards[it_bluecard])
-        V_DrawPatch(308 + wide_x, 171, keys[0]);
-
-        if (plyr->cards[it_yellowskull])
-        V_DrawPatch(308 + wide_x, 181, keys[4]);
-        else if (plyr->cards[it_yellowcard])
-        V_DrawPatch(308 + wide_x, 181, keys[1]);
-
-        if (plyr->cards[it_redskull])
-        V_DrawPatch(308 + wide_x, 191, keys[5]);
-        else if (plyr->cards[it_redcard])
-        V_DrawPatch(308 + wide_x, 191, keys[2]);
+        if (plyr->cards[it_blueskull + i])
+        {
+            V_DrawPatch(308 + wide_x, 171 + y, keys[3 + i]);
+        }
+        else if (plyr->cards[it_bluecard + i])
+        {
+            V_DrawPatch(308 + wide_x, 171 + y, keys[i]);
+        }
     }
 }
 
@@ -1959,6 +1999,11 @@ static void ST_DrawElementsRemaster (int wide_x)
 
 static void ST_DrawElementsDoom64 (int wide_x)
 {
+    // [PN] Cache widget colors once per draw pass to avoid repeated calculations.
+    byte *ammo_color = NULL;
+    byte *health_color = ST_WidgetColor(hudcolor_health);
+    byte *armor_color = ST_WidgetColor(hudcolor_armor);
+
     dp_translucent = (dp_screen_size == 12 || dp_screen_size == 14);
 
     // Health, negative health
@@ -1969,10 +2014,10 @@ static void ST_DrawElementsDoom64 (int wide_x)
                             "HEALTH", cr[CR_LIGHTGRAY_DARK]);
 
         ST_DrawBigNumberCentered(neghealth ? plyr->health_negative : plyr->health,
-                                 28 - wide_x, 180, ST_WidgetColor(hudcolor_health));
+                                 28 - wide_x, 180, health_color);
     }
 
-    // [crispy] blinking key or skull in the status bar
+    // [crispy] blinking keys and regular key widgets in one pass
     for (int i = 0, x = 0 ; i < 3 ; i++, x += 10)
     {
         if (st_blinking_keys && plyr->tryopen[i])
@@ -1986,44 +2031,38 @@ static void ST_DrawElementsDoom64 (int wide_x)
                 V_DrawPatch(78 + x + wide_x, 184, keys[i + st_keyorskull[i]]);
             }
         }
-    }
 
-    // Keys
-    {
-        if (plyr->cards[it_blueskull])
-        V_DrawPatch(78 - wide_x, 184, keys[3]);
-        else if (plyr->cards[it_bluecard])
-        V_DrawPatch(78 - wide_x, 184, keys[0]);
-
-        if (plyr->cards[it_yellowskull])
-        V_DrawPatch(88 - wide_x, 184, keys[4]);
-        else if (plyr->cards[it_yellowcard])
-        V_DrawPatch(88 + wide_x, 184, keys[1]);
-
-        if (plyr->cards[it_redskull])
-        V_DrawPatch(98 - wide_x, 184, keys[5]);
-        else if (plyr->cards[it_redcard])
-        V_DrawPatch(98 - wide_x, 184, keys[2]);
+        if (plyr->cards[it_blueskull + i])
+        {
+            V_DrawPatch(78 + x - wide_x, 184, keys[3 + i]);
+        }
+        else if (plyr->cards[it_bluecard + i])
+        {
+            V_DrawPatch(78 + x - wide_x, 184, keys[i]);
+        }
     }
 
     // Ammo amount for current weapon
     {
         if (weaponinfo[plyr->readyweapon].ammo != am_noammo)
         {
+            ammo_color = ST_WidgetColor(hudcolor_ammo);
             ST_DrawBigNumberCentered(plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
-                             (ORIGWIDTH/2) - 17, 180, ST_WidgetColor(hudcolor_ammo));
+                                     (ORIGWIDTH/2) - 17, 180, ammo_color);
         }            
     }
 
     // Frags of Arms
     if (deathmatch)
     {
+        byte *frags_color;
         M_WriteTextNoShadow(223 - (M_StringWidth("FRAGS") / 2) + wide_x, 171,
                             "FRAGS", cr[CR_LIGHTGRAY_DARK]);
 
         st_fragscount = ST_UpdateFragsCounter(displayplayer, false);
+        frags_color = ST_WidgetColor(hudcolor_frags);
         ST_DrawBigNumberCentered(st_fragscount, 207 + wide_x, 180,
-                                 ST_WidgetColor(hudcolor_frags));
+                                 frags_color);
     }
     else
     {
@@ -2047,7 +2086,7 @@ static void ST_DrawElementsDoom64 (int wide_x)
                             "ARMOR", cr[CR_LIGHTGRAY_DARK]);
         
         ST_DrawBigNumberCentered(plyr->armorpoints, 259 + wide_x, 180,
-                                 ST_WidgetColor(hudcolor_armor));
+                                 armor_color);
     }
 
     dp_translucent = false;

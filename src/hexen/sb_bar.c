@@ -134,6 +134,47 @@ static patch_t *PatchINVLFGEM2;
 static patch_t *PatchINVRTGEM1;
 static patch_t *PatchINVRTGEM2;
 
+// [PN] Cache frequently queried HUD lump numbers to avoid repeated name lookups.
+static int sb_lump_useartia = -1;
+static int sb_lump_inred0 = -1;
+static int sb_lump_ptn1a0 = -1;
+static int sb_lump_artibox = -1;
+static int sb_lump_keyslot1 = -1;
+static int sb_lump_armslot1 = -1;
+static int sb_lump_patcharti[NUMARTIFACTS];
+static int sb_lump_class_armor_icon[3];
+static int sb_lump_piecesgfx[3][3];
+
+// -----------------------------------------------------------------------------
+// SB_CacheRequiredLump
+// [PN] Resolve a required lump once and reuse cached lumpnum afterwards.
+// -----------------------------------------------------------------------------
+
+static int SB_CacheRequiredLump (int *cache, const char *name)
+{
+    if (*cache == -1)
+    {
+        *cache = W_GetNumForName(name);
+    }
+
+    return *cache;
+}
+
+// -----------------------------------------------------------------------------
+// SB_CacheCheckedLump
+// [PN] Resolve an optional lump once; cache -1 when lump is unavailable.
+// -----------------------------------------------------------------------------
+
+static int SB_CacheCheckedLump (int *cache, const char *name)
+{
+    if (*cache == -2)
+    {
+        *cache = W_CheckNumForName(name);
+    }
+
+    return *cache;
+}
+
 // -----------------------------------------------------------------------------
 //
 // CHEAT CODES
@@ -368,7 +409,27 @@ static Cheat_t Cheats[] = {
 void SB_Init(void)
 {
     int i;
+    int j;
     int startLump;
+
+    sb_lump_useartia = -1;
+    sb_lump_inred0 = -1;
+    sb_lump_ptn1a0 = -1;
+    sb_lump_artibox = -1;
+    sb_lump_keyslot1 = -1;
+    sb_lump_armslot1 = -1;
+    for (i = 0; i < NUMARTIFACTS; ++i)
+    {
+        sb_lump_patcharti[i] = -1;
+    }
+    for (i = 0; i < 3; ++i)
+    {
+        sb_lump_class_armor_icon[i] = -1;
+        for (j = 0; j < 3; ++j)
+        {
+            sb_lump_piecesgfx[i][j] = -2;
+        }
+    }
 
     PatchH2BAR = W_CacheLumpName("H2BAR", PU_STATIC);
     PatchH2TOP = W_CacheLumpName("H2TOP", PU_STATIC);
@@ -634,6 +695,7 @@ static void DrRedINumber(signed int val, int x, int y)
 {
     patch_t *patch;
     int oldval;
+    const int inred_base = SB_CacheRequiredLump(&sb_lump_inred0, "inred0");
 
     oldval = val;
     if (val < 0)
@@ -642,19 +704,17 @@ static void DrRedINumber(signed int val, int x, int y)
     }
     if (val > 99)
     {
-        patch =
-            W_CacheLumpNum(W_GetNumForName("inred0") + val / 100, PU_CACHE);
+        patch = W_CacheLumpNum(inred_base + val / 100, PU_CACHE);
         V_DrawPatch(x, y, patch);
     }
     val = val % 100;
     if (val > 9 || oldval > 99)
     {
-        patch =
-            W_CacheLumpNum(W_GetNumForName("inred0") + val / 10, PU_CACHE);
+        patch = W_CacheLumpNum(inred_base + val / 10, PU_CACHE);
         V_DrawPatch(x + 8, y, patch);
     }
     val = val % 10;
-    patch = W_CacheLumpNum(W_GetNumForName("inred0") + val, PU_CACHE);
+    patch = W_CacheLumpNum(inred_base + val, PU_CACHE);
     V_DrawPatch(x + 16, y, patch);
 }
 
@@ -1525,6 +1585,13 @@ void DrawMainBar(void)
     int temp;
     patch_t *manaPatch1, *manaPatch2;
     patch_t *manaVialPatch1, *manaVialPatch2;
+    // [PN] Cache status bar widget colors once per draw pass.
+    byte *health_color = SB_NumberColor(hudcolor_health);
+    byte *frags_color = SB_NumberColor(hudcolor_frags);
+    byte *mana_blue_color = SB_NumberColor(hudcolor_mana_blue);
+    byte *mana_green_color = SB_NumberColor(hudcolor_mana_green);
+    byte *armor_color = SB_NumberColor(hudcolor_armor);
+    const int lump_useartia = SB_CacheRequiredLump(&sb_lump_useartia, "USEARTIA");
 
     manaPatch1 = NULL;
     manaPatch2 = NULL;
@@ -1535,8 +1602,7 @@ void DrawMainBar(void)
     if (ArtifactFlash)
     {
         V_DrawPatch(144, 160, PatchARTICLEAR);
-        V_DrawPatch(148, 164, W_CacheLumpNum(W_GetNumForName("useartia")
-                                             + ArtifactFlash - 1, PU_CACHE));
+        V_DrawPatch(148, 164, W_CacheLumpNum(lump_useartia + ArtifactFlash - 1, PU_CACHE));
         // ArtifactFlash--;     // [JN] Moved to SB_Ticker.
         oldarti = -1;           // so that the correct artifact fills in after the flash
     }
@@ -1546,9 +1612,10 @@ void DrawMainBar(void)
         V_DrawPatch(144, 160, PatchARTICLEAR);
         if (CPlayer->readyArtifact > 0)
         {
-            V_DrawPatch(143, 163,
-                        W_CacheLumpName(patcharti[CPlayer->readyArtifact],
-                                        PU_CACHE));
+            const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[CPlayer->readyArtifact],
+                                                  patcharti[CPlayer->readyArtifact]);
+
+            V_DrawPatch(143, 163, W_CacheLumpNum(lump, PU_CACHE));
             if (CPlayer->inventory[inv_ptr].count > 1)
             {
                 DrSmallNumber(CPlayer->inventory[inv_ptr].count, 162, 184);
@@ -1569,7 +1636,9 @@ void DrawMainBar(void)
         if (temp != oldfrags)
         {
             V_DrawPatch(38, 162, PatchKILLS);
+            dp_translation = frags_color;
             DrINumber(temp, 40, 176);
+            dp_translation = NULL;
             oldfrags = temp;
         }
     }
@@ -1592,7 +1661,7 @@ void DrawMainBar(void)
             V_DrawPatch(41, 178, PatchARMCLEAR);
             if (temp >= 25)
             {
-                dp_translation = SB_NumberColor(hudcolor_health);
+                dp_translation = health_color;
                 DrINumber(temp, 40, 176);
                 dp_translation = NULL;
             }
@@ -1607,7 +1676,7 @@ void DrawMainBar(void)
     if (oldmana1 != temp)
     {
         V_DrawPatch(77, 178, PatchMANACLEAR);
-        dp_translation = SB_NumberColor(hudcolor_mana_blue);
+        dp_translation = mana_blue_color;
         DrSmallNumber(temp, 79, 181);
         dp_translation = NULL;
         manaVialPatch1 = (patch_t *) 1; // force a vial update
@@ -1625,7 +1694,7 @@ void DrawMainBar(void)
     if (oldmana2 != temp)
     {
         V_DrawPatch(109, 178, PatchMANACLEAR);
-        dp_translation = SB_NumberColor(hudcolor_mana_green);
+        dp_translation = mana_green_color;
         DrSmallNumber(temp, 111, 181);
         dp_translation = NULL;
         manaVialPatch1 = (patch_t *) 1; // force a vial update
@@ -1741,7 +1810,7 @@ void DrawMainBar(void)
     {
         oldarmor = temp;
         V_DrawPatch(255, 178, PatchARMCLEAR);
-        dp_translation = SB_NumberColor(hudcolor_armor);
+        dp_translation = armor_color;
         if (!st_armor_value)
         {
             DrINumber(ArmorClass, 250, 176);
@@ -1779,10 +1848,11 @@ void DrawInventoryBar(void)
         if (CPlayer->inventorySlotNum > x + i
             && CPlayer->inventory[x + i].type != arti_none)
         {
-            V_DrawPatch(50 + i * 31, 163,
-                        W_CacheLumpName(patcharti
-                                        [CPlayer->inventory[x + i].type],
-                                        PU_CACHE));
+            const int arti_type = CPlayer->inventory[x + i].type;
+            const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[arti_type],
+                                                  patcharti[arti_type]);
+
+            V_DrawPatch(50 + i * 31, 163, W_CacheLumpNum(lump, PU_CACHE));
             if (CPlayer->inventory[x + i].count > 1)
             {
                 DrSmallNumber(CPlayer->inventory[x + i].count, 68 + i * 31,
@@ -1814,6 +1884,8 @@ void DrawKeyBar(void)
     int i;
     int xPosition;
     int temp;
+    const int lump_keyslot = SB_CacheRequiredLump(&sb_lump_keyslot1, "keyslot1");
+    const int lump_armslot = SB_CacheRequiredLump(&sb_lump_armslot1, "armslot1");
 
     if (oldkeys != CPlayer->keys)
     {
@@ -1822,9 +1894,7 @@ void DrawKeyBar(void)
         {
             if (CPlayer->keys & (1 << i))
             {
-                V_DrawPatch(xPosition, 164,
-                            W_CacheLumpNum(W_GetNumForName("keyslot1") + i,
-                                           PU_CACHE));
+                V_DrawPatch(xPosition, 164, W_CacheLumpNum(lump_keyslot + i, PU_CACHE));
                 xPosition += 20;
             }
         }
@@ -1842,22 +1912,16 @@ void DrawKeyBar(void)
             if (CPlayer->armorpoints[i] <=
                 (ArmorIncrement[CPlayer->class][i] >> 2))
             {
-                V_DrawAltTLPatch(150 + 31 * i, 164,
-                              W_CacheLumpNum(W_GetNumForName("armslot1") +
-                                             i, PU_CACHE));
+                V_DrawAltTLPatch(150 + 31 * i, 164, W_CacheLumpNum(lump_armslot + i, PU_CACHE));
             }
             else if (CPlayer->armorpoints[i] <=
                      (ArmorIncrement[CPlayer->class][i] >> 1))
             {
-                V_DrawTLPatch(150 + 31 * i, 164,
-                                 W_CacheLumpNum(W_GetNumForName("armslot1")
-                                                + i, PU_CACHE));
+                V_DrawTLPatch(150 + 31 * i, 164, W_CacheLumpNum(lump_armslot + i, PU_CACHE));
             }
             else
             {
-                V_DrawPatch(150 + 31 * i, 164,
-                            W_CacheLumpNum(W_GetNumForName("armslot1") + i,
-                                           PU_CACHE));
+                V_DrawPatch(150 + 31 * i, 164, W_CacheLumpNum(lump_armslot + i, PU_CACHE));
             }
         }
         oldarmor = temp;
@@ -1975,13 +2039,16 @@ static const char *PiecesGfx[][3] = {
 static void DrawAssembledWeapon (int yy)
 {
     const int class = PlayerClass[displayplayer];
-    patch_t *patch1 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][0]), PU_CACHE);
-    patch_t *patch2 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][1]), PU_CACHE);
-    patch_t *patch3 = W_CacheLumpNum(W_CheckNumForName(PiecesGfx[class][2]), PU_CACHE);
+    const int lump1 = SB_CacheCheckedLump(&sb_lump_piecesgfx[class][0], PiecesGfx[class][0]);
+    const int lump2 = SB_CacheCheckedLump(&sb_lump_piecesgfx[class][1], PiecesGfx[class][1]);
+    const int lump3 = SB_CacheCheckedLump(&sb_lump_piecesgfx[class][2], PiecesGfx[class][2]);
+    patch_t *patch1 = lump1 != -1 ? W_CacheLumpNum(lump1, PU_CACHE) : NULL;
+    patch_t *patch2 = lump2 != -1 ? W_CacheLumpNum(lump2, PU_CACHE) : NULL;
+    patch_t *patch3 = lump3 != -1 ? W_CacheLumpNum(lump3, PU_CACHE) : NULL;
 
     dp_translucent = (st_weapon_widget == 2);
 
-    if (CPlayer->pieces & WPIECE1)
+    if ((CPlayer->pieces & WPIECE1) && patch1 != NULL)
     {
         // God-awful hack to shift BloodScrouge's upper piece
         // one pixel left for better placement.
@@ -1989,11 +2056,11 @@ static void DrawAssembledWeapon (int yy)
 
         V_DrawPatch(PiecesX[class] + WIDESCREENDELTA - xx, PiecesY[class][0] - yy, patch1);
     }
-    if (CPlayer->pieces & WPIECE2)
+    if ((CPlayer->pieces & WPIECE2) && patch2 != NULL)
     {
         V_DrawPatch(PiecesX[class] + WIDESCREENDELTA, PiecesY[class][1] - yy, patch2);
     }
-    if (CPlayer->pieces & WPIECE3)
+    if ((CPlayer->pieces & WPIECE3) && patch3 != NULL)
     {
         V_DrawPatch(PiecesX[class] + WIDESCREENDELTA, PiecesY[class][2] - yy, patch3);
     }
@@ -2010,14 +2077,25 @@ static void DrawFullScreenStuff(void)
 {
     const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
     const int class = PlayerClass[displayplayer];
+    // [PN] Cache fullscreen number colors once per draw pass.
+    byte *health_color = SB_NumberColor(hudcolor_health);
+    byte *armor_color = SB_NumberColor(hudcolor_armor);
+    byte *frags_color = SB_NumberColor(hudcolor_frags);
+    byte *mana_blue_color = SB_NumberColor(hudcolor_mana_blue);
+    byte *mana_green_color = SB_NumberColor(hudcolor_mana_green);
+    const int lump_health_vial = SB_CacheRequiredLump(&sb_lump_ptn1a0, "PTN1A0");
+    const int lump_artibox = SB_CacheRequiredLump(&sb_lump_artibox, "ARTIBOX");
+    const int lump_useartia = SB_CacheRequiredLump(&sb_lump_useartia, "USEARTIA");
+    const int lump_class_armor = SB_CacheRequiredLump(&sb_lump_class_armor_icon[class],
+                                                      ClassArmorIcon[class]);
     int i;
 
     // Health.
-    dp_translation = SB_NumberColor(hudcolor_health);
+    dp_translation = health_color;
     DrBNumber(CPlayer->health, -1 - wide_x, 175);
     dp_translation = NULL;
     // Draw health vial.
-    V_DrawShadowedPatchNoOffsets(39 - wide_x, 176, W_CacheLumpName("PTN1A0", PU_CACHE));
+    V_DrawShadowedPatchNoOffsets(39 - wide_x, 176, W_CacheLumpNum(lump_health_vial, PU_CACHE));
 
     if (!inventory)
     {
@@ -2026,7 +2104,7 @@ static void DrawFullScreenStuff(void)
             // Shift digits and icon right for armor percent values above 99.
             const int xx = (st_armor_value && ArmorPercent > 99) ? 12 : 0;
 
-            dp_translation = SB_NumberColor(hudcolor_armor);
+            dp_translation = armor_color;
             if (!st_armor_value)
             {
                 DrBNumber(ArmorClass, 41 - wide_x, 175);
@@ -2045,7 +2123,7 @@ static void DrawFullScreenStuff(void)
             {
                 // Draw class-based icon.
                 V_DrawShadowedPatchNoOffsets(ClassArmorX[class] - wide_x + xx, ClassArmorY[class],
-                                    W_CacheLumpName(ClassArmorIcon[class], PU_CACHE));
+                                    W_CacheLumpNum(lump_class_armor, PU_CACHE));
             }
         }
 
@@ -2062,7 +2140,7 @@ static void DrawFullScreenStuff(void)
                 }
             }
 
-            dp_translation = SB_NumberColor(hudcolor_frags);
+            dp_translation = frags_color;
             DrINumber(temp, 111 - wide_x, 178);
             dp_translation = NULL;
         }
@@ -2070,17 +2148,19 @@ static void DrawFullScreenStuff(void)
         // Ready artifact.
         if (CPlayer->readyArtifact > 0)
         {
-            V_DrawTLPatch(232 + wide_x, 170, W_CacheLumpName("ARTIBOX", PU_CACHE));
+            V_DrawTLPatch(232 + wide_x, 170, W_CacheLumpNum(lump_artibox, PU_CACHE));
 
             if (ArtifactFlash)
             {
-                const int temp = W_GetNumForName("USEARTIA") + ArtifactFlash - 1;
+                const int temp = lump_useartia + ArtifactFlash - 1;
                 V_DrawPatch(232 + wide_x, 170, W_CacheLumpNum(temp, PU_CACHE));
                 oldarti = -1;  // so that the correct artifact fills in after the flash
             }
             else
             {
-                V_DrawPatch(230 + wide_x, 169, W_CacheLumpName(patcharti[CPlayer->readyArtifact], PU_CACHE));
+                const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[CPlayer->readyArtifact],
+                                                      patcharti[CPlayer->readyArtifact]);
+                V_DrawPatch(230 + wide_x, 169, W_CacheLumpNum(lump, PU_CACHE));
                 if (CPlayer->inventory[inv_ptr].count > 1)
                 {
                     DrSmallNumber(CPlayer->inventory[inv_ptr].count, 248 + wide_x, 192);
@@ -2094,13 +2174,14 @@ static void DrawFullScreenStuff(void)
 
         for (i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(50 + i * 31, 168, W_CacheLumpName("ARTIBOX", PU_CACHE));
+            V_DrawTLPatch(50 + i * 31, 168, W_CacheLumpNum(lump_artibox, PU_CACHE));
             if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
-                V_DrawPatch(49 + i * 31, 167,
-                            W_CacheLumpName(patcharti
-                                            [CPlayer->inventory[x + i].type],
-                                            PU_CACHE));
+                const int arti_type = CPlayer->inventory[x + i].type;
+                const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[arti_type],
+                                                      patcharti[arti_type]);
+
+                V_DrawPatch(49 + i * 31, 167, W_CacheLumpNum(lump, PU_CACHE));
                 if (CPlayer->inventory[x + i].count > 1)
                 {
                     DrSmallNumber(CPlayer->inventory[x + i].count,
@@ -2146,11 +2227,11 @@ static void DrawFullScreenStuff(void)
     }
 
     // [JN] Draw mana points, colorize if necessary. Do not draw negative values.
-    dp_translation = SB_NumberColor(hudcolor_mana_blue);
+    dp_translation = mana_blue_color;
     DrINumber(CPlayer->mana[0] >= 0 ? CPlayer->mana[0] : 0, 274 + wide_x, 170);
     dp_translation = NULL;
 
-    dp_translation = SB_NumberColor(hudcolor_mana_green);
+    dp_translation = mana_green_color;
     DrINumber(CPlayer->mana[1] >= 0 ? CPlayer->mana[1] : 0, 274 + wide_x, 184); 
     dp_translation = NULL;
 
@@ -2168,21 +2249,30 @@ static void DrawFullScreenStuff(void)
 
 static void DrawFullScreenStuffRemaster (void)
 {
-    const char *patch;
     const int wide_x = dp_screen_size == 12 ? WIDESCREENDELTA : 0;
     const int class = PlayerClass[displayplayer];
+    // [PN] Cache fullscreen number colors once per draw pass.
+    byte *health_color = SB_NumberColor(hudcolor_health);
+    byte *armor_color = SB_NumberColor(hudcolor_armor);
+    byte *mana_blue_color = SB_NumberColor(hudcolor_mana_blue);
+    byte *mana_green_color = SB_NumberColor(hudcolor_mana_green);
+    const int lump_health_vial = SB_CacheRequiredLump(&sb_lump_ptn1a0, "PTN1A0");
+    const int lump_artibox = SB_CacheRequiredLump(&sb_lump_artibox, "ARTIBOX");
+    const int lump_useartia = SB_CacheRequiredLump(&sb_lump_useartia, "USEARTIA");
+    const int lump_class_armor = SB_CacheRequiredLump(&sb_lump_class_armor_icon[class],
+                                                      ClassArmorIcon[class]);
 
     // Health
-    dp_translation = SB_NumberColor(hudcolor_health);
+    dp_translation = health_color;
     DrBNumber(CPlayer->health, 5 - wide_x, 172);
     dp_translation = NULL;
     // Health vial
-    V_DrawShadowedPatchNoOffsets(48 - wide_x, 173, W_CacheLumpName("PTN1A0", PU_CACHE));
+    V_DrawShadowedPatchNoOffsets(48 - wide_x, 173, W_CacheLumpNum(lump_health_vial, PU_CACHE));
 
     // Armor
     // Shift digits and icon right for armor percent values above 99.
     const int xx = (st_armor_value && ArmorPercent > 99) ? 12 : 0;
-    dp_translation = SB_NumberColor(hudcolor_armor);
+    dp_translation = armor_color;
     if (!st_armor_value)
     {
         DrBNumber(ArmorClass, 54 - wide_x, 172);
@@ -2201,15 +2291,15 @@ static void DrawFullScreenStuffRemaster (void)
     {
         // Draw class-based icon.
         V_DrawShadowedPatchNoOffsets(ClassArmorX[class] + 16 - wide_x + xx, ClassArmorY[class] - 3,
-                            W_CacheLumpName(ClassArmorIcon[class], PU_CACHE));
+                            W_CacheLumpNum(lump_class_armor, PU_CACHE));
     }
 
     // Amount of current mana.
-    dp_translation = SB_NumberColor(hudcolor_mana_blue);
+    dp_translation = mana_blue_color;
     DrINumber(CPlayer->mana[0] >= 0 ? CPlayer->mana[0] : 0, 240 + wide_x, 167);
     dp_translation = NULL;
 
-    dp_translation = SB_NumberColor(hudcolor_mana_green);
+    dp_translation = mana_green_color;
     DrINumber(CPlayer->mana[1] >= 0 ? CPlayer->mana[1] : 0, 240 + wide_x, 182); 
     dp_translation = NULL;
 
@@ -2235,19 +2325,20 @@ static void DrawFullScreenStuffRemaster (void)
     }
 
     // Ready artifact
-    V_DrawTLPatch(286 + wide_x, 166, W_CacheLumpName("ARTIBOX", PU_CACHE));
-    patch = patcharti[CPlayer->readyArtifact];
+    V_DrawTLPatch(286 + wide_x, 166, W_CacheLumpNum(lump_artibox, PU_CACHE));
     if (CPlayer->readyArtifact > 0)
     {
         if (ArtifactFlash)
         {
-            const int temp = W_GetNumForName("USEARTIA") + ArtifactFlash - 1;
+            const int temp = lump_useartia + ArtifactFlash - 1;
             V_DrawPatch(285 + wide_x, 166, W_CacheLumpNum(temp, PU_CACHE));
             oldarti = -1;  // so that the correct artifact fills in after the flash
         }
         else
         {
-            V_DrawShadowedPatch(283 + wide_x, 166, W_CacheLumpName(patch, PU_CACHE));
+            const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[CPlayer->readyArtifact],
+                                                  patcharti[CPlayer->readyArtifact]);
+            V_DrawShadowedPatch(283 + wide_x, 166, W_CacheLumpNum(lump, PU_CACHE));
 
             // [PN] Find the slot of the currently readied artifact
             int ready_count = 0;
@@ -2269,13 +2360,14 @@ static void DrawFullScreenStuffRemaster (void)
 
         for (int i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(50 + i * 31, 166, W_CacheLumpName("ARTIBOX", PU_CACHE));
+            V_DrawTLPatch(50 + i * 31, 166, W_CacheLumpNum(lump_artibox, PU_CACHE));
             if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
-                V_DrawPatch(49 + i * 31, 165,
-                            W_CacheLumpName(patcharti
-                                            [CPlayer->inventory[x + i].type],
-                                            PU_CACHE));
+                const int arti_type = CPlayer->inventory[x + i].type;
+                const int lump = SB_CacheRequiredLump(&sb_lump_patcharti[arti_type],
+                                                      patcharti[arti_type]);
+
+                V_DrawPatch(49 + i * 31, 165, W_CacheLumpNum(lump, PU_CACHE));
                 if (CPlayer->inventory[x + i].count > 1)
                 {
                     DrSmallNumber(CPlayer->inventory[x + i].count,
