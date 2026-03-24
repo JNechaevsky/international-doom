@@ -452,6 +452,9 @@ inline static lighttable_t *const R_SpriteColumnColormap(const vissprite_t *cons
 static void R_DrawVisSprite (const vissprite_t *const vis)
 {
     const patch_t *const patch = W_CacheLumpNum(vis->patch + firstspritelump, PU_CACHE);
+#ifdef RANGECHECK
+    const int patch_width = SHORT(patch->width);
+#endif
 
     // [crispy] brightmaps for select sprites
     dc_colormap[0] = vis->colormap[0];
@@ -524,6 +527,9 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
             const fixed_t sprite_floor_texel = spritetopoffset[vis->patch];
             fixed_t shadow_frac = vis->startfrac;
             const fixed_t patch_offset = spriteoffset[vis->patch];
+            const fixed_t min_shadow_floor = vis->gz - (8 * FRACUNIT);
+            const fixed_t max_shadow_floor = viewz - (2 * FRACUNIT);
+            const fixed_t floor_texturemid_base = vis->texturemid - vis->gz;
             const int angle = (viewangle - ANG90) >> ANGLETOFINESHIFT;
             const fixed_t col_cos = finecosine[angle];
             const fixed_t col_sin = finesine[angle];
@@ -541,18 +547,18 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
                 const fixed_t colgx = vis->gx + FixedMul(coloffset, col_cos);
                 const fixed_t colgy = vis->gy + FixedMul(coloffset, col_sin);
                 const fixed_t flooratcolumn = R_PointInSubsector(colgx, colgy)->sector->interpfloorheight;
-                const fixed_t floor_texturemid = vis->texturemid + (flooratcolumn - vis->gz);
+                const fixed_t floor_texturemid = flooratcolumn + floor_texturemid_base;
 
                 // [PN] Do not draw shadow columns on floors above the player's eye level.
-                if (flooratcolumn + (2 * FRACUNIT) > viewz)
+                if (flooratcolumn > max_shadow_floor)
                     continue;
 
                 // [PN] Skip shadow columns over steep dropoffs to avoid detached "floating" shadow.
-                if (flooratcolumn < vis->gz - (8 * FRACUNIT))
+                if (flooratcolumn < min_shadow_floor)
                     continue;
 
 #ifdef RANGECHECK
-                if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
+                if (texturecolumn < 0 || texturecolumn >= patch_width)
                 {
                     I_Error("R_DrawSpriteRange: bad texturecolumn");
                 }
@@ -584,7 +590,7 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
         const int texturecolumn = frac >> FRACBITS;
 
 #ifdef RANGECHECK
-        if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
+        if (texturecolumn < 0 || texturecolumn >= patch_width)
         {
             I_Error("R_DrawSpriteRange: bad texturecolumn");
         }
