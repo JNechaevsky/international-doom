@@ -652,6 +652,7 @@ extern pixel_t *ylookup[MAXHEIGHT];
 extern int columnofs[MAXWIDTH];
 extern int dc_texheight; // [crispy]
 extern const byte *dc_brightmap;
+extern int dc_shadow_alpha_override; // [PN] Per-pass override for sprite shadow darkness.
 
 
 void R_DrawColumn(void);
@@ -709,5 +710,7 @@ extern void R_DrawTranslatedTLColumn (void);
 extern void R_DrawTranslatedTLColumnLow (void);
 extern void R_DrawExtraTLColumn (void);
 extern void R_DrawExtraTLColumnLow (void);
+extern void R_DrawShadowColumn (void);
+extern void R_DrawShadowColumnLow (void);
 
 #endif // __R_LOCAL__
