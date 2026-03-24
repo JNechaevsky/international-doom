@@ -162,7 +162,7 @@ const char *const DefSkillName[5] = { "TYTD", "HNTR", "HMP", "UV" , "NM" };
 static char endstring[160];
 
 // [PN] Save/Load preview area (original 320x200 coordinate space).
-#define SAVE_PREVIEW_X 242
+#define SAVE_PREVIEW_X 234
 #define SAVE_PREVIEW_Y 26
 
 
@@ -5685,13 +5685,13 @@ static void M_DrawSaveLoadBottomLine (void)
     }
     if (savepage < savepage_max)
     {
-        M_WriteText(LoadDef.x+(SAVESTRINGSIZE-6)*8, 151, "PGDN >", cr[CR_MENU_DARK2]);
+        M_WriteText(LoadDef.x+(SAVESTRINGSIZE-8)*8, 151, "PGDN >", cr[CR_MENU_DARK2]);
     }
 
     M_snprintf(pagestr, sizeof(pagestr), "PAGE %d/%d", savepage + 1, savepage_max + 1);
 
     // [PN] Keep PAGE label aligned with Save/Load list shift (base x was 67).
-    M_WriteText(ORIGWIDTH / 2 + (LoadDef.x - 67) - M_StringWidth(pagestr) / 2,
+    M_WriteText(ORIGWIDTH / 2 + (LoadDef.x - 76) - M_StringWidth(pagestr) / 2,
                 151, pagestr, cr[CR_MENU_DARK1]);
 
     // [JN] Print "modified" (or created initially) time of savegame file.
@@ -5797,7 +5797,7 @@ static void M_DrawSaveLoadBorder(int x,int y)
 	
     V_DrawShadowedPatchOptional(x - 8, y, 0, W_CacheLumpName(DEH_String("M_LSLEFT"), PU_CACHE));
 	
-    for (i = 0;i < 24;i++)
+    for (i = 0;i < 22;i++)
     {
 	V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(DEH_String("M_LSCNTR"), PU_CACHE));
 	x += 8;
@@ -7410,7 +7410,7 @@ boolean M_Responder (event_t* ev)
 
                 if (ch >= 32 && ch <= 127
                 && saveCharIndex < SAVESTRINGSIZE - 1
-                && M_StringWidth(savegamestrings[saveSlot]) < (SAVESTRINGSIZE - 2) * 8)
+                && M_StringWidth(savegamestrings[saveSlot]) < (SAVESTRINGSIZE - 4) * 8)
                 {
                     savegamestrings[saveSlot][saveCharIndex++] = ch;
                     savegamestrings[saveSlot][saveCharIndex] = 0;
