@@ -547,7 +547,6 @@ static void R_DrawVisSprite (const vissprite_t *const vis, int x1, int x2)
             colfunc = detailshift ? R_DrawShadowColumnLow : R_DrawShadowColumn;
             dc_iscale = FixedDiv(abs_xiscale, SPRITE_SHADOW_Y_SCALE) >> detailshift;
             spryscale = shadow_scale;
-            dc_shadow_alpha_override = sprite_shadow_alpha;
 
             for (dc_x = x1; dc_x <= x2; dc_x++, shadow_frac += xiscale)
             {
@@ -582,8 +581,6 @@ static void R_DrawVisSprite (const vissprite_t *const vis, int x1, int x2)
                 sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
                 R_DrawMaskedColumn(column, baseclip);
             }
-
-            dc_shadow_alpha_override = -1;
         }
     }
 

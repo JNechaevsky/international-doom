@@ -608,7 +608,6 @@ extern const byte *dc_translation;
 
 extern const byte *dc_brightmap;
 extern const byte *ds_brightmap;
-extern int dc_shadow_alpha_override; // [PN] Per-pass override for sprite shadow darkness.
 extern int sprite_shadow_alpha; // [PN] Cached alpha for sprite-only shadow pass.
 
 void R_DrawSpan(void);

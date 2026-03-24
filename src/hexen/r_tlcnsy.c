@@ -20,9 +20,6 @@
 
 #include "id_vars.h"
 
-int dc_shadow_alpha_override = -1;
-
-
 // -----------------------------------------------------------------------------
 // R_DrawTLColumn
 // [PN/JN] Translucent column, overlay blending.
@@ -929,7 +926,7 @@ void R_DrawShadowColumn (void)
 
     const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
-    const int dark_amount = dc_shadow_alpha_override;
+    const int dark_amount = sprite_shadow_alpha;
     int y_start = dc_yl;
     int y_end = dc_yh;
     pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
@@ -977,7 +974,7 @@ void R_DrawShadowColumnLow (void)
     const int x = dc_x << 1;
     const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
-    const int dark_amount = dc_shadow_alpha_override;
+    const int dark_amount = sprite_shadow_alpha;
     int y_start = dc_yl;
     int y_end = dc_yh;
     pixel_t *restrict dest1 = ylookup[y_start] + columnofs[flipviewwidth[x]];

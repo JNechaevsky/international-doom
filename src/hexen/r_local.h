@@ -652,7 +652,6 @@ extern pixel_t *ylookup[MAXHEIGHT];
 extern int columnofs[MAXWIDTH];
 extern int dc_texheight; // [crispy]
 extern const byte *dc_brightmap;
-extern int dc_shadow_alpha_override; // [PN] Per-pass override for sprite shadow darkness.
 extern int sprite_shadow_alpha; // [PN] Cached alpha for sprite-only shadow pass.
 
 
