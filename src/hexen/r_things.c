@@ -528,9 +528,11 @@ static void R_DrawVisSprite (const vissprite_t *const vis, int x1, int x2)
 
     // [PN] Sprite shadows (adapted from DOOM Retro)
     if (vis_sprite_shadows
+    && LevelUseFullBright  // [JN] Not for foggy levels
     && !vis->psprite
     && thing != NULL
     && (thing->flags & (MF_SHOOTABLE | MF_CORPSE))
+    && thing->type != MT_TREEDESTRUCTIBLE  // [JN] Not for rotten dead tree (destructable)
     && vis->scale >= (FRACUNIT / 4)
     && !(thing->flags & (MF_SHADOW | MF_ALTSHADOW))
     && vis->colormap[0] != NULL)
