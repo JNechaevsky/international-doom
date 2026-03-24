@@ -543,6 +543,10 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
                 const fixed_t flooratcolumn = R_PointInSubsector(colgx, colgy)->sector->interpfloorheight;
                 const fixed_t floor_texturemid = vis->texturemid + (flooratcolumn - vis->gz);
 
+                // [PN] Do not draw shadow columns on floors above the player's eye level.
+                if (flooratcolumn > viewz)
+                    continue;
+
                 // [PN] Skip shadow columns over steep dropoffs to avoid detached "floating" shadow.
                 if (flooratcolumn < vis->gz - (8 * FRACUNIT))
                     continue;
