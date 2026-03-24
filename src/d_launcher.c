@@ -3274,13 +3274,8 @@ static boolean RunIWADLauncherDialog(int mask)
          && msg.wParam == VK_RETURN
          && GetAncestor(msg.hwnd, GA_ROOT) == hwnd)
         {
-            HWND focused = GetFocus();
-            if (launcher.view_mode == LAUNCHER_VIEW_IWAD
-             && (focused == launcher.iwad_list || focused == launcher.params_edit))
-            {
-                FinishIWADLauncher(&launcher, true);
-                continue;
-            }
+            FinishIWADLauncher(&launcher, true);
+            continue;
         }
 
         TranslateMessage(&msg);
