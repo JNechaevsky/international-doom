@@ -145,6 +145,7 @@ fixed_t *spriteoffset;
 fixed_t *spritetopoffset;
 
 lighttable_t *colormaps;
+int sprite_shadow_alpha;
 
 
 //
@@ -1227,6 +1228,8 @@ void R_InitTrueColormaps(char *current_colormap)
 	// [JN] Recalculate shadow alpha value for shadowed patches based on contrast.
 	// 0xA0 (160) represents 62.75% darkening. Ensure the result stays within 0-255.
 	shadow_alpha = (uint8_t)BETWEEN(0, 255 - (32 * vid_contrast), 0xA0 / vid_contrast);
+	// [PN] Cache alpha for sprite-only blob shadows (darker than generic patch shadows).
+	sprite_shadow_alpha = BETWEEN(0, 255 - (32 * vid_contrast), 0x80 / vid_contrast);
 }
 
 // -----------------------------------------------------------------------------

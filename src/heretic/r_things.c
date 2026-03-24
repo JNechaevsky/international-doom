@@ -552,8 +552,6 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
             const fixed_t col_cos = finecosine[angle];
             const fixed_t col_sin = finesine[angle];
             const boolean shadow_flipped = (xiscale < 0);
-            const int sprite_shadow_alpha = BETWEEN(0, 255 - (32 * vid_contrast),
-                                                       0x80 / vid_contrast);
 
             colfunc = detailshift ? R_DrawShadowColumnLow : R_DrawShadowColumn;
             dc_iscale = FixedDiv(abs_xiscale, SPRITE_SHADOW_Y_SCALE) >> detailshift;
