@@ -33,6 +33,7 @@
 #define MINZ				(FRACUNIT*4)
 #define MAXZ				(FRACUNIT*8192)
 #define BASEYCENTER			(ORIGHEIGHT/2)
+#define SPRITE_SHADOW_Y_SCALE       (FRACUNIT / 10)
 
 
 fixed_t pspritescale;
@@ -455,7 +456,9 @@ inline static lighttable_t *const R_SpriteColumnColormap(const vissprite_t *cons
 static void R_DrawVisSprite (const vissprite_t *const vis)
 {
     const patch_t *const patch = W_CacheLumpNum(vis->patch + firstspritelump, PU_CACHE);
-    fixed_t frac = vis->startfrac;
+#ifdef RANGECHECK
+    const int patch_width = SHORT(patch->width);
+#endif
     fixed_t baseclip;
 
     // [crispy] brightmaps for select sprites
@@ -499,7 +502,15 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
         }
     }
 
-    dc_iscale = abs(vis->xiscale) >> detailshift;
+    // [PN] Per-column lighting
+    const boolean allow_vis_sprite_light = vis_sprite_light;
+    const fixed_t xiscale = vis->xiscale;
+    const fixed_t abs_xiscale = abs(xiscale);
+    lighttable_t *const base_colormap = vis->colormap[0];
+    const mobj_t *const thing = vis->thing;
+    void (*const sprite_colfunc)(void) = colfunc;
+
+    dc_iscale = abs_xiscale >> detailshift;
     dc_texturemid = vis->texturemid;
     spryscale = vis->scale;
     sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
@@ -524,17 +535,95 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
         baseclip = -1;
     }
 
-    // [PN] Per-column lighting
-    const boolean allow_vis_sprite_light = vis_sprite_light;
-    const fixed_t xiscale = vis->xiscale;
-    lighttable_t *const base_colormap = vis->colormap[0];
+    // [PN] Sprite shadows (adapted from DOOM Retro)
+    if (vis_sprite_shadows
+    && !vis->psprite
+    && thing != NULL
+    && (thing->flags & (MF_SHOOTABLE | MF_CORPSE))
+    && vis->scale >= (FRACUNIT / 4)
+    && !(thing->flags & MF_SHADOW)
+    && vis->colormap[0] != NULL)
+    {
+        const fixed_t shadow_scale = FixedMul(vis->scale, SPRITE_SHADOW_Y_SCALE);
+
+        if (shadow_scale > 0)
+        {
+            const fixed_t sprite_floor_texel = spritetopoffset[vis->patch];
+            fixed_t shadow_frac = vis->startfrac;
+            const fixed_t patch_offset = spriteoffset[vis->patch];
+            const fixed_t min_shadow_floor = vis->gz - (8 * FRACUNIT);
+            const fixed_t max_shadow_floor = viewz - (2 * FRACUNIT);
+            const fixed_t floor_texturemid_base = vis->gzt - viewz - vis->gz;
+            const int angle = (viewangle - ANG90) >> ANGLETOFINESHIFT;
+            const fixed_t col_cos = finecosine[angle];
+            const fixed_t col_sin = finesine[angle];
+            const boolean shadow_flipped = (xiscale < 0);
+
+            colfunc = detailshift ? R_DrawShadowColumnLow : R_DrawShadowColumn;
+            dc_iscale = FixedDiv(abs_xiscale, SPRITE_SHADOW_Y_SCALE) >> detailshift;
+            spryscale = shadow_scale;
+
+            for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, shadow_frac += xiscale)
+            {
+                const int texturecolumn = shadow_frac >> FRACBITS;
+                const fixed_t coloffset = shadow_flipped ? (patch_offset - shadow_frac)
+                                                         : (shadow_frac - patch_offset);
+                const fixed_t colgx = vis->gx + FixedMul(coloffset, col_cos);
+                const fixed_t colgy = vis->gy + FixedMul(coloffset, col_sin);
+                const fixed_t flooratcolumn = R_PointInSubsector(colgx, colgy)->sector->interpfloorheight;
+                const fixed_t floor_texturemid = flooratcolumn + floor_texturemid_base;
+
+                // [PN] Do not draw shadow columns on floors above the player's eye level.
+                if (flooratcolumn > max_shadow_floor)
+                    continue;
+
+                // [PN] Skip shadow columns over steep dropoffs to avoid detached "floating" shadow.
+                if (flooratcolumn < min_shadow_floor)
+                    continue;
+
+#ifdef RANGECHECK
+                if (texturecolumn < 0 || texturecolumn >= patch_width)
+                {
+                    I_Error("R_DrawSpriteRange: bad texturecolumn");
+                }
+#endif
+
+                const column_t *const column = (const column_t *)((const byte *)patch
+                                         + LONG(patch->columnofs[texturecolumn]));
+
+                dc_texturemid = sprite_floor_texel
+                              + FixedDiv(floor_texturemid - sprite_floor_texel, SPRITE_SHADOW_Y_SCALE);
+                sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
+                R_DrawMaskedColumn(column, baseclip);
+            }
+        }
+    }
+
+    fixed_t frac = vis->startfrac;
+    dc_iscale = abs_xiscale >> detailshift;
+    dc_texturemid = vis->texturemid;
+    spryscale = vis->scale;
+    sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
+
+    // check to see if vissprite is a weapon
+    if (vis->psprite)
+    {
+        dc_texturemid += FixedMul(((centery - viewheight / 2) << FRACBITS),
+                                  pspriteiscale >> detailshift);
+        sprtopscreen += (viewheight / 2 - centery) << FRACBITS;
+    }
+
+    dc_colormap[0] = vis->colormap[0];
+    dc_colormap[1] = vis->colormap[1];
+    dc_brightmap = vis->brightmap;
+    colfunc = sprite_colfunc;
 
     for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += xiscale)
     {
         const int texturecolumn = frac >> FRACBITS;
 
 #ifdef RANGECHECK
-        if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
+        if (texturecolumn < 0 || texturecolumn >= patch_width)
         {
             I_Error("R_DrawSpriteRange: bad texturecolumn");
         }

@@ -20,7 +20,6 @@
 
 #include "id_vars.h"
 
-
 // -----------------------------------------------------------------------------
 // R_DrawTLColumn
 // [PN/JN] Translucent column, overlay blending.
@@ -730,6 +729,117 @@ void R_DrawExtraTLColumnLow (void)
             dest1 += screenwidth;
             dest2 += screenwidth;
             frac += fracstep;
+            ++y_start;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// R_DrawShadowColumn
+// [PN/JN] Darken destination pixels using I_BlendDark, preserving sprite mask.
+// -----------------------------------------------------------------------------
+
+void R_DrawShadowColumn (void)
+{
+    const int count = dc_yh - dc_yl;
+    if (count < 0)
+        return; // No pixels to draw
+
+    const int screenwidth = SCREENWIDTH;
+    const int truecolor_blend = vid_truecolor;
+    const int dark_amount = sprite_shadow_alpha;
+    int y_start = dc_yl;
+    int y_end = dc_yh;
+    pixel_t *restrict dest = ylookup[y_start] + columnofs[flipviewwidth[dc_x]];
+
+    if (vid_resolution > 1)
+    {
+        const int step = 2;
+
+        while (y_start < y_end)
+        {
+            const pixel_t blended = truecolor_blend ? I_BlendDark_32(*dest, dark_amount)
+                                                    : I_BlendDark_8(*dest, dark_amount);
+
+            dest[0] = blended;
+            dest[screenwidth] = blended;
+
+            dest += screenwidth * step;
+            y_start += step;
+        }
+
+        if (y_start == y_end)
+        {
+            dest[0] = truecolor_blend ? I_BlendDark_32(*dest, dark_amount)
+                                      : I_BlendDark_8(*dest, dark_amount);
+        }
+    }
+    else
+    {
+        while (y_start <= y_end)
+        {
+            *dest = truecolor_blend ? I_BlendDark_32(*dest, dark_amount)
+                                    : I_BlendDark_8(*dest, dark_amount);
+            dest += screenwidth;
+            ++y_start;
+        }
+    }
+}
+
+void R_DrawShadowColumnLow (void)
+{
+    const int count = dc_yh - dc_yl;
+    if (count < 0)
+        return; // No pixels to draw
+
+    const int x = dc_x << 1;
+    const int screenwidth = SCREENWIDTH;
+    const int truecolor_blend = vid_truecolor;
+    const int dark_amount = sprite_shadow_alpha;
+    int y_start = dc_yl;
+    int y_end = dc_yh;
+    pixel_t *restrict dest1 = ylookup[y_start] + columnofs[flipviewwidth[x]];
+    pixel_t *restrict dest2 = ylookup[y_start] + columnofs[flipviewwidth[x + 1]];
+
+    if (vid_resolution > 1)
+    {
+        const int step = 2;
+
+        while (y_start < y_end)
+        {
+            const pixel_t blended1 = truecolor_blend ? I_BlendDark_32(*dest1, dark_amount)
+                                                     : I_BlendDark_8(*dest1, dark_amount);
+            const pixel_t blended2 = truecolor_blend ? I_BlendDark_32(*dest2, dark_amount)
+                                                     : I_BlendDark_8(*dest2, dark_amount);
+
+            dest1[0] = blended1;
+            dest1[screenwidth] = blended1;
+            dest2[0] = blended2;
+            dest2[screenwidth] = blended2;
+
+            dest1 += screenwidth * step;
+            dest2 += screenwidth * step;
+            y_start += step;
+        }
+
+        if (y_start == y_end)
+        {
+            dest1[0] = truecolor_blend ? I_BlendDark_32(*dest1, dark_amount)
+                                       : I_BlendDark_8(*dest1, dark_amount);
+            dest2[0] = truecolor_blend ? I_BlendDark_32(*dest2, dark_amount)
+                                       : I_BlendDark_8(*dest2, dark_amount);
+        }
+    }
+    else
+    {
+        while (y_start <= y_end)
+        {
+            *dest1 = truecolor_blend ? I_BlendDark_32(*dest1, dark_amount)
+                                     : I_BlendDark_8(*dest1, dark_amount);
+            *dest2 = truecolor_blend ? I_BlendDark_32(*dest2, dark_amount)
+                                     : I_BlendDark_8(*dest2, dark_amount);
+            dest1 += screenwidth;
+            dest2 += screenwidth;
             ++y_start;
         }
     }

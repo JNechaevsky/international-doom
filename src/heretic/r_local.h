@@ -608,6 +608,7 @@ extern const byte *dc_translation;
 
 extern const byte *dc_brightmap;
 extern const byte *ds_brightmap;
+extern int sprite_shadow_alpha; // [PN] Cached alpha for sprite-only shadow pass.
 
 void R_DrawSpan(void);
 void R_DrawSpanLow(void);
@@ -637,5 +638,7 @@ extern void R_DrawTranslatedTLColumn (void);
 extern void R_DrawTranslatedTLColumnLow (void);
 extern void R_DrawExtraTLColumn (void);
 extern void R_DrawExtraTLColumnLow (void);
+extern void R_DrawShadowColumn (void);
+extern void R_DrawShadowColumnLow (void);
 
 #endif // __R_LOCAL__
