@@ -844,6 +844,8 @@ extern fixed_t pspriteiscale;
 
 extern void R_DrawTLColumn (void);
 extern void R_DrawTLColumnLow (void);
+extern void R_DrawDarkColumn (void);
+extern void R_DrawDarkColumnLow (void);
 extern void R_DrawTLAddColumn (void);
 extern void R_DrawTLAddColumnLow (void);
 extern void R_DrawFuzzTLColumn (void);

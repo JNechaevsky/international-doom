@@ -34,6 +34,7 @@
 #define MINZ				(FRACUNIT*4)
 #define MAXZ				(FRACUNIT*8192)
 #define BASEYCENTER			(ORIGHEIGHT/2)
+#define SPRITE_SHADOW_Y_SCALE       (FRACUNIT / 10)
 
 
 fixed_t pspritescale;
@@ -497,19 +498,72 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
         if (vis->brightframe && vis_translucency == 1)
             colfunc = tladdcolfunc;
         else
-            colfunc = tlcolfunc;
+            colfunc = detailshift ? R_DrawDarkColumnLow : R_DrawDarkColumn;
     }
-
-    fixed_t frac = vis->startfrac;
-    dc_iscale = abs(vis->xiscale) >> detailshift;
-    dc_texturemid = vis->texturemid;
-    spryscale = vis->scale;
-    sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
 
     // [PN] Per-column lighting
     const boolean allow_vis_sprite_light = vis_sprite_light;
     const fixed_t xiscale = vis->xiscale;
+    const fixed_t abs_xiscale = abs(xiscale);
     lighttable_t *const base_colormap = vis->colormap[0];
+    const mobj_t *const thing = vis->thing;
+    void (*const sprite_colfunc)(void) = colfunc;
+
+    // [PN] Draw shadow first, then the sprite itself. Adapted from DOOM Retro style.
+    if (vis_sprite_shadows
+    && thing != NULL
+    && (thing->flags & (MF_SHOOTABLE | MF_CORPSE))
+    && !(thing->flags & MF_SHADOW)
+    && vis->colormap[0] != NULL)
+    {
+        const fixed_t shadow_scale = FixedMul(vis->scale, SPRITE_SHADOW_Y_SCALE);
+
+        if (shadow_scale > 0)
+        {
+            const fixed_t floor_texturemid = (vis->gzt - viewz) - (vis->gz - thing->floorz);
+            const fixed_t sprite_floor_texel = spritetopoffset[vis->patch];
+            fixed_t shadow_frac = vis->startfrac;
+            const int darkest_colormap = NUMCOLORMAPS > 0 ? NUMCOLORMAPS - 1 : 0;
+            lighttable_t *const shadow_colormap = &colormaps[darkest_colormap * 256];
+
+            colfunc = tlcolfunc;
+            dc_colormap[0] = shadow_colormap;
+            dc_colormap[1] = shadow_colormap;
+            dc_brightmap = vis->brightmap;
+            dc_iscale = FixedDiv(abs_xiscale, SPRITE_SHADOW_Y_SCALE) >> detailshift;
+            dc_texturemid = sprite_floor_texel
+                          + FixedDiv(floor_texturemid - sprite_floor_texel, SPRITE_SHADOW_Y_SCALE);
+            spryscale = shadow_scale;
+            sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
+
+            for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, shadow_frac += xiscale)
+            {
+                const int texturecolumn = shadow_frac >> FRACBITS;
+
+#ifdef RANGECHECK
+                if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
+                {
+                    I_Error("R_DrawSpriteRange: bad texturecolumn");
+                }
+#endif
+
+                const column_t *const column = (const column_t *)((const byte *)patch
+                                         + LONG(patch->columnofs[texturecolumn]));
+
+                R_DrawMaskedColumn(column);
+            }
+        }
+    }
+
+    fixed_t frac = vis->startfrac;
+    dc_iscale = abs_xiscale >> detailshift;
+    dc_texturemid = vis->texturemid;
+    spryscale = vis->scale;
+    sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
+    dc_colormap[0] = vis->colormap[0];
+    dc_colormap[1] = vis->colormap[1];
+    dc_brightmap = vis->brightmap;
+    colfunc = sprite_colfunc;
 
     for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += xiscale)
     {
@@ -678,17 +732,16 @@ static void R_ProjectSprite (const mobj_t *const thing)
 
     // calculate edges of the shape
     // [crispy] fix sprite offsets for mirrored sprites
-    tx -= flip ? spritewidth[lump] - spriteoffset[lump] : spriteoffset[lump];
-
-    const int x1 = (centerxfrac + FixedMul64(tx, xscale)) >> FRACBITS;
+    const fixed_t tx_left = tx - (flip ? spritewidth[lump] - spriteoffset[lump]
+                                       : spriteoffset[lump]);
+    const int x1 = (centerxfrac + FixedMul64(tx_left, xscale)) >> FRACBITS;
 
     // off the right side?
     if (x1 > viewwidth)
         return;
 
-    tx += spritewidth[lump];
-
-    const int x2 = ((centerxfrac + FixedMul64(tx, xscale)) >> FRACBITS) - 1;
+    const fixed_t tx_right = tx_left + spritewidth[lump];
+    const int x2 = ((centerxfrac + FixedMul64(tx_right, xscale)) >> FRACBITS) - 1;
 
     // off the left side
     if (x2 < 0)
