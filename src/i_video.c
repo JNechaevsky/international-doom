@@ -612,10 +612,20 @@ static void I_WindowToGameCursorPosition(int win_x, int win_y, int *game_x, int 
 void I_ReInitCursorPosition (void)
 {
     int wx, wy;
-    SDL_GetMouseState(&wx, &wy);
-    I_WindowToGameCursorPosition(wx, wy, &menu_mouse_x, &menu_mouse_y);
 
-    SDL_GetMouseState(&menu_mouse_x_sdl, &menu_mouse_y_sdl);
+    // [PN] Drop stale motion events generated during renderer/window reinit.
+    // They may still be in the queue with old coordinate space and can cause
+    // a one-frame menu cursor jump to a different item.
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_MOUSEMOTION);
+
+    SDL_GetMouseState(&wx, &wy);
+
+    menu_mouse_x_sdl = wx;
+    menu_mouse_y_sdl = wy;
+
+    // [PN] Also clear accumulated relative deltas to avoid a stray ev_mouse tick.
+    SDL_GetRelativeMouseState(NULL, NULL);
 }
 
 static void I_GetEvent(void)

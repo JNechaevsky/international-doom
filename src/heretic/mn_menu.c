@@ -1233,7 +1233,16 @@ static void M_ID_RenderingResHook (void)
 
 static void M_ID_RenderingRes (int choice)
 {
+    const int old_resolution = vid_resolution;
     vid_resolution = M_INT_Slider(vid_resolution, 1, MAXHIRES, choice, false);
+
+    // [PN] Keep menu hover position stable across resolution multiplier changes.
+    if (old_resolution != vid_resolution)
+    {
+        menu_mouse_x = menu_mouse_x * vid_resolution / old_resolution;
+        menu_mouse_y = menu_mouse_y * vid_resolution / old_resolution;
+    }
+
     post_rendering_hook = M_ID_RenderingResHook;
 }
 
