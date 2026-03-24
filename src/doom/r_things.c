@@ -509,7 +509,7 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
     const mobj_t *const thing = vis->thing;
     void (*const sprite_colfunc)(void) = colfunc;
 
-    // [PN] Draw shadow first, then the sprite itself. Adapted from DOOM Retro style.
+    // [PN] Sprite shadows (adapted from DOOM Retro)
     if (vis_sprite_shadows
     && thing != NULL
     && (thing->flags & (MF_SHOOTABLE | MF_CORPSE))
@@ -529,7 +529,7 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
             const fixed_t col_sin = finesine[angle];
             const boolean shadow_flipped = (xiscale < 0);
 
-            colfunc = detailshift ? R_DrawDarkColumnLow : R_DrawDarkColumn;
+            colfunc = shadowcolfunc;
             dc_iscale = FixedDiv(abs_xiscale, SPRITE_SHADOW_Y_SCALE) >> detailshift;
             spryscale = shadow_scale;
 

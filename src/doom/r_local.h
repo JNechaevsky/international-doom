@@ -691,6 +691,7 @@ extern void (*transcolfunc) (void);
 extern void (*tlcolfunc) (void);
 extern void (*tladdcolfunc) (void);
 extern void (*transtlfuzzcolfunc) (void);
+extern void (*shadowcolfunc) (void);
 extern void (*spanfunc) (void);
 
 // POV related.
@@ -844,11 +845,11 @@ extern fixed_t pspriteiscale;
 
 extern void R_DrawTLColumn (void);
 extern void R_DrawTLColumnLow (void);
-extern void R_DrawDarkColumn (void);
-extern void R_DrawDarkColumnLow (void);
 extern void R_DrawTLAddColumn (void);
 extern void R_DrawTLAddColumnLow (void);
 extern void R_DrawFuzzTLColumn (void);
 extern void R_DrawFuzzTLColumnLow (void);
 extern void R_DrawFuzzTLTransColumn (void);
 extern void R_DrawFuzzTLTransColumnLow (void);
+extern void R_DrawShadowColumn (void);
+extern void R_DrawShadowColumnLow (void);
