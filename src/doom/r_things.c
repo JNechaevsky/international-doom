@@ -498,7 +498,7 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
         if (vis->brightframe && vis_translucency == 1)
             colfunc = tladdcolfunc;
         else
-            colfunc = detailshift ? R_DrawDarkColumnLow : R_DrawDarkColumn;
+            colfunc = tlcolfunc;
     }
 
     // [PN] Per-column lighting
@@ -513,6 +513,7 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
     if (vis_sprite_shadows
     && thing != NULL
     && (thing->flags & (MF_SHOOTABLE | MF_CORPSE))
+    && vis->scale >= (FRACUNIT / 4)
     && !(thing->flags & MF_SHADOW)
     && vis->colormap[0] != NULL)
     {
@@ -520,25 +521,31 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
 
         if (shadow_scale > 0)
         {
-            const fixed_t floor_texturemid = (vis->gzt - viewz) - (vis->gz - thing->floorz);
             const fixed_t sprite_floor_texel = spritetopoffset[vis->patch];
             fixed_t shadow_frac = vis->startfrac;
-            const int darkest_colormap = NUMCOLORMAPS > 0 ? NUMCOLORMAPS - 1 : 0;
-            lighttable_t *const shadow_colormap = &colormaps[darkest_colormap * 256];
+            const fixed_t patch_offset = spriteoffset[vis->patch];
+            const int angle = (viewangle - ANG90) >> ANGLETOFINESHIFT;
+            const fixed_t col_cos = finecosine[angle];
+            const fixed_t col_sin = finesine[angle];
+            const boolean shadow_flipped = (xiscale < 0);
 
-            colfunc = tlcolfunc;
-            dc_colormap[0] = shadow_colormap;
-            dc_colormap[1] = shadow_colormap;
-            dc_brightmap = vis->brightmap;
+            colfunc = detailshift ? R_DrawDarkColumnLow : R_DrawDarkColumn;
             dc_iscale = FixedDiv(abs_xiscale, SPRITE_SHADOW_Y_SCALE) >> detailshift;
-            dc_texturemid = sprite_floor_texel
-                          + FixedDiv(floor_texturemid - sprite_floor_texel, SPRITE_SHADOW_Y_SCALE);
             spryscale = shadow_scale;
-            sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
 
             for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, shadow_frac += xiscale)
             {
                 const int texturecolumn = shadow_frac >> FRACBITS;
+                const fixed_t coloffset = shadow_flipped ? (patch_offset - shadow_frac)
+                                                         : (shadow_frac - patch_offset);
+                const fixed_t colgx = vis->gx + FixedMul(coloffset, col_cos);
+                const fixed_t colgy = vis->gy + FixedMul(coloffset, col_sin);
+                const fixed_t flooratcolumn = R_PointInSubsector(colgx, colgy)->sector->interpfloorheight;
+                const fixed_t floor_texturemid = vis->texturemid + (flooratcolumn - vis->gz);
+
+                // [PN] Skip shadow columns over steep dropoffs to avoid detached "floating" shadow.
+                if (flooratcolumn < vis->gz - (8 * FRACUNIT))
+                    continue;
 
 #ifdef RANGECHECK
                 if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
@@ -550,6 +557,9 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
                 const column_t *const column = (const column_t *)((const byte *)patch
                                          + LONG(patch->columnofs[texturecolumn]));
 
+                dc_texturemid = sprite_floor_texel
+                              + FixedDiv(floor_texturemid - sprite_floor_texel, SPRITE_SHADOW_Y_SCALE);
+                sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
                 R_DrawMaskedColumn(column);
             }
         }
