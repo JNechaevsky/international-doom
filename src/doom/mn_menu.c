@@ -3795,7 +3795,6 @@ static menuitem_t ID_Menu_Gameplay_1[]=
     { M_SKIP, "", 0, '\0' },
     { M_MUL2, "SHAPE",                       M_ID_Crosshair,         's' },
     { M_MUL2, "INDICATION",                  M_ID_CrosshairColor,    'i' },
-    { M_SKIP, "", 0, '\0' },
     { M_MUL2, "", /* < SCROLL PAGES >*/      M_ScrollGameplay,       's' },
 };
 
@@ -3930,7 +3929,7 @@ static void M_Draw_ID_Gameplay_1 (void)
                                 LINE_ALPHA(14));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 162, 16, "1/3");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "1/3");
 }
 
 static void M_ID_Brightmaps (int choice)
