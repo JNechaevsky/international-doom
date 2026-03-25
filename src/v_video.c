@@ -1185,8 +1185,8 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
                 {
                     const byte s = source[srccol >> FRACBITS];
                     const pixel_t fg = pal[s];
-                    *dest = use_tc ? I_BlendOver128_32(*dest, fg)
-                                   : I_BlendOver128_8 (*dest, fg);
+                    *dest = use_tc ? I_BlendOver64_32(*dest, fg)
+                                   : I_BlendOver64_8(*dest, fg);
                     srccol += ldyi;
                     dest   += sw;
                 }
@@ -1323,8 +1323,8 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
                     const byte s = source[srccol >> FRACBITS];
                     const pixel_t fg = pal[s];
                     // Alternate translucency curve (lighter weight than 50%).
-                    *dest = use_tc ? I_BlendOver64_32(*dest, fg)
-                                   : I_BlendOver64_8 (*dest, fg);
+                    *dest = use_tc ? I_BlendOver128_32(*dest, fg)
+                                   : I_BlendOver128_8(*dest, fg);
                     srccol += ldyi;
                     dest   += sw;
                 }

@@ -1912,12 +1912,12 @@ void DrawKeyBar(void)
             if (CPlayer->armorpoints[i] <=
                 (ArmorIncrement[CPlayer->class][i] >> 2))
             {
-                V_DrawAltTLPatch(150 + 31 * i, 164, W_CacheLumpNum(lump_armslot + i, PU_CACHE));
+                V_DrawTLPatch(150 + 31 * i, 164, W_CacheLumpNum(lump_armslot + i, PU_CACHE));
             }
             else if (CPlayer->armorpoints[i] <=
                      (ArmorIncrement[CPlayer->class][i] >> 1))
             {
-                V_DrawTLPatch(150 + 31 * i, 164, W_CacheLumpNum(lump_armslot + i, PU_CACHE));
+                V_DrawAltTLPatch(150 + 31 * i, 164, W_CacheLumpNum(lump_armslot + i, PU_CACHE));
             }
             else
             {
@@ -2148,7 +2148,7 @@ static void DrawFullScreenStuff(void)
         // Ready artifact.
         if (CPlayer->readyArtifact > 0)
         {
-            V_DrawTLPatch(232 + wide_x, 170, W_CacheLumpNum(lump_artibox, PU_CACHE));
+            V_DrawAltTLPatch(232 + wide_x, 170, W_CacheLumpNum(lump_artibox, PU_CACHE));
 
             if (ArtifactFlash)
             {
@@ -2174,7 +2174,7 @@ static void DrawFullScreenStuff(void)
 
         for (i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(50 + i * 31, 168, W_CacheLumpNum(lump_artibox, PU_CACHE));
+            V_DrawAltTLPatch(50 + i * 31, 168, W_CacheLumpNum(lump_artibox, PU_CACHE));
             if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
                 const int arti_type = CPlayer->inventory[x + i].type;
@@ -2325,7 +2325,7 @@ static void DrawFullScreenStuffRemaster (void)
     }
 
     // Ready artifact
-    V_DrawTLPatch(286 + wide_x, 166, W_CacheLumpNum(lump_artibox, PU_CACHE));
+    V_DrawAltTLPatch(286 + wide_x, 166, W_CacheLumpNum(lump_artibox, PU_CACHE));
     if (CPlayer->readyArtifact > 0)
     {
         if (ArtifactFlash)
@@ -2360,7 +2360,7 @@ static void DrawFullScreenStuffRemaster (void)
 
         for (int i = 0 ; i < 7 ; i++)
         {
-            V_DrawTLPatch(50 + i * 31, 166, W_CacheLumpNum(lump_artibox, PU_CACHE));
+            V_DrawAltTLPatch(50 + i * 31, 166, W_CacheLumpNum(lump_artibox, PU_CACHE));
             if (CPlayer->inventorySlotNum > x + i && CPlayer->inventory[x + i].type != arti_none)
             {
                 const int arti_type = CPlayer->inventory[x + i].type;
