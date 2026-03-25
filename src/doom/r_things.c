@@ -528,6 +528,7 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
             fixed_t shadow_frac = vis->startfrac;
             const fixed_t patch_offset = spriteoffset[vis->patch];
             const fixed_t min_shadow_floor = vis->gz - (8 * FRACUNIT);
+            const fixed_t max_shadow_floor_stepup = vis->gz + (8 * FRACUNIT);
             const fixed_t max_shadow_floor = viewz - (2 * FRACUNIT);
             const fixed_t floor_texturemid_base = vis->texturemid - vis->gz;
             const int angle = (viewangle - ANG90) >> ANGLETOFINESHIFT;
@@ -551,6 +552,10 @@ static void R_DrawVisSprite (const vissprite_t *const vis)
 
                 // [PN] Do not draw shadow columns on floors above the player's eye level.
                 if (flooratcolumn > max_shadow_floor)
+                    continue;
+
+                // [PN] Skip shadow columns on abrupt upward steps near ledges.
+                if (flooratcolumn > max_shadow_floor_stepup)
                     continue;
 
                 // [PN] Skip shadow columns over steep dropoffs to avoid detached "floating" shadow.
