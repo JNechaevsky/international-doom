@@ -1062,6 +1062,17 @@ static void ShowDarkErrorDialogW(const wchar_t *message, const wchar_t *title,
 
     while (!dialog.done && GetMessageW(&msg, NULL, 0, 0) > 0)
     {
+        // [PN] Allow Enter or Esc to close dialog window.
+        if ((msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN)
+         && (msg.hwnd == dialog.window || IsChild(dialog.window, msg.hwnd)))
+        {
+            if (msg.wParam == VK_RETURN || msg.wParam == VK_ESCAPE)
+            {
+                SendMessageW(dialog.window, WM_CLOSE, 0, 0);
+                continue;
+            }
+        }
+
         if (!IsDialogMessageW(dialog.window, &msg))
         {
             TranslateMessage(&msg);
