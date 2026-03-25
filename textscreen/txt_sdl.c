@@ -55,6 +55,12 @@ SDL_Window *TXT_SDLWindow = NULL;
 static SDL_Surface *screenbuffer;
 static unsigned char *screendata;
 static SDL_Renderer *renderer;
+static int owns_window;
+static int owns_renderer;
+static int owns_video_subsystem;
+static int saved_logical_size;
+static int old_logical_w;
+static int old_logical_h;
 
 // Current input mode.
 static txt_input_mode_t input_mode = TXT_INPUT_NORMAL;
@@ -231,22 +237,27 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     if (preset_window != NULL)
     {
         TXT_SDLWindow = preset_window;
+        owns_window = 0;
     }
 
     if (preset_renderer != NULL)
     {
         renderer = preset_renderer;
+        owns_renderer = 0;
     }
 }
 
 int TXT_Init(void)
 {
     int flags = 0;
+    const int video_was_initialized = (SDL_WasInit(SDL_INIT_VIDEO) != 0);
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (!video_was_initialized && SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         return 0;
     }
+    owns_video_subsystem = !video_was_initialized;
+    saved_logical_size = 0;
 
     ChooseFont();
 
@@ -264,6 +275,11 @@ int TXT_Init(void)
         TXT_SDLWindow = SDL_CreateWindow("",
                             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                             screen_image_w, screen_image_h, flags);
+        owns_window = 1;
+    }
+    else
+    {
+        owns_window = 0;
     }
 
     if (TXT_SDLWindow == NULL)
@@ -275,10 +291,23 @@ int TXT_Init(void)
 
         if (renderer == NULL)
             renderer = SDL_CreateRenderer(TXT_SDLWindow, -1, SDL_RENDERER_SOFTWARE);
+
+        if (renderer != NULL)
+            owns_renderer = 1;
+    }
+    else
+    {
+        owns_renderer = 0;
     }
 
     if (renderer == NULL)
         return 0;
+
+    if (!owns_renderer)
+    {
+        SDL_RenderGetLogicalSize(renderer, &old_logical_w, &old_logical_h);
+        saved_logical_size = 1;
+    }
 
     // Special handling for OS X retina display. If we successfully set the
     // highdpi flag, check the output size for the screen renderer. If we get
@@ -333,9 +362,37 @@ void TXT_Shutdown(void)
     screendata = NULL;
     SDL_FreeSurface(screenbuffer);
     screenbuffer = NULL;
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(TXT_SDLWindow);
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+    if (renderer != NULL)
+    {
+        if (owns_renderer)
+        {
+            SDL_DestroyRenderer(renderer);
+        }
+        else if (saved_logical_size)
+        {
+            SDL_RenderSetLogicalSize(renderer, old_logical_w, old_logical_h);
+        }
+    }
+
+    if (TXT_SDLWindow != NULL && owns_window)
+    {
+        SDL_DestroyWindow(TXT_SDLWindow);
+    }
+
+    if (owns_video_subsystem)
+    {
+        SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    }
+
+    renderer = NULL;
+    TXT_SDLWindow = NULL;
+    owns_window = 0;
+    owns_renderer = 0;
+    owns_video_subsystem = 0;
+    saved_logical_size = 0;
+    old_logical_w = 0;
+    old_logical_h = 0;
 }
 
 void TXT_SetColor(txt_color_t color, int r, int g, int b)
@@ -1010,4 +1067,3 @@ int TXT_snprintf(char *buf, size_t buf_len, const char *s, ...)
     va_end(args);
     return result;
 }
-

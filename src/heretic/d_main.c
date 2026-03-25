@@ -498,11 +498,6 @@ static boolean D_GrabMouseCallback(void)
 
 void D_DoomLoop(void)
 {
-    I_GraphicsCheckCommandLine();
-    I_SetGrabMouseCallback(D_GrabMouseCallback);
-    I_RegisterWindowIcon(heretic_data, heretic_w, heretic_h);
-    I_InitGraphics();
-
     main_loop_started = true;
 
     while (1)
@@ -861,7 +856,10 @@ static void initStartup(void)
         return;
     }
 
-    if (!TXT_Init()) 
+    // [PN] Use the main game window/renderer for startup textscreen (ENDOOM-style).
+    TXT_PreInit((SDL_Window *) I_GetSDLWindow(), (SDL_Renderer *) I_GetSDLRenderer());
+
+    if (!TXT_Init())
     {
         using_graphical_startup = false;
         return;
@@ -1430,6 +1428,13 @@ void D_DoomMain(void)
     NET_Init ();
 
     D_ConnectNetGame();
+
+    // [PN] Initialize main game window before startup textscreen so startup
+    // can draw in the same SDL window and avoid focus flicker.
+    I_GraphicsCheckCommandLine();
+    I_SetGrabMouseCallback(D_GrabMouseCallback);
+    I_RegisterWindowIcon(heretic_data, heretic_w, heretic_h);
+    I_InitGraphics();
 
     // haleyjd: removed WATCOMC
     initStartup();
