@@ -146,6 +146,8 @@ cheatseq_t cheat_clev = CHEAT("idclev", 2);
 cheatseq_t cheat_mypos = CHEAT("idmypos", 0);
 // [JN] IDDT cheat, moved from am_map.c
 cheatseq_t cheat_amap = CHEAT("iddt", 0);
+// [PN] Asteroids mini-game on automap.
+static cheatseq_t cheat_oids = CHEAT("idoids", 0);
 // [PN] Woof-style automap reveal cheats.
 static cheatseq_t cheat_reveal_kill = CHEAT("iddkt", 0);
 static cheatseq_t cheat_reveal_item = CHEAT("iddit", 0);
@@ -705,6 +707,12 @@ boolean ST_Responder (event_t *ev)
             && cht_CheckCheat(&cheat_amap, ev->data2))
             {
                 iddt_cheating = (iddt_cheating + 1) % 3;
+                plyr->cheatTics = 1;
+            }
+            else if ((!deathmatch || gameversion <= exe_doom_1_8)
+            && cht_CheckCheat(&cheat_oids, ev->data2))
+            {
+                am_oids ^= 1;
                 plyr->cheatTics = 1;
             }
             // [PN] Woof-style automap reveal cheats.

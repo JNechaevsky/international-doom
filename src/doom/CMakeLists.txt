@@ -1,5 +1,6 @@
 add_library(doom STATIC
             ../v_savepreview.c ../v_savepreview.h
+            am_oids.c       am_oids.h
             am_map.c        am_map.h
             ct_chat.c       ct_chat.h
             deh_ammo.c

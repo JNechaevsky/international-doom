@@ -40,6 +40,7 @@ extern int markpointnum, markpointnum_max;
 extern int am_followplayer;
 extern int iddt_cheating;
 extern int am_grid;
+extern int am_oids;
 
 // Used by ST StatusBar stuff.
 #define AM_MSGHEADER (('a'<<24)+('m'<<16))

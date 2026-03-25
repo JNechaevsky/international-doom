@@ -34,6 +34,7 @@
 #include "dstrings.h"
 #include "mn_menu.h"
 #include "am_map.h"
+#include "am_oids.h"
 #include "ct_chat.h"
 #include "g_game.h"
 #include "v_trans.h"
@@ -271,6 +272,42 @@ static int64_t mouse_pan_frac_x = 0;
 static int64_t mouse_pan_frac_y = 0;
 
 static boolean stopped = true;
+
+// [PN] Asteroids mini game
+int am_oids = 0;
+static boolean am_oids_mode_running = false;
+
+// [PN] Keeps Asteroids mode in sync with IDOIDS cheat state.
+static void AM_UpdateOidsMode(void)
+{
+    if (!am_oids && !am_oids_mode_running)
+    {
+        return;
+    }
+
+    if (am_oids)
+    {
+        AM_OidsSetBounds(f_x, f_y, f_w, f_h);
+
+        if (!am_oids_mode_running)
+        {
+            AM_OidsStart();
+            am_oids_mode_running = true;
+
+            if (plr != NULL)
+            {
+                CT_SetMessage(plr,
+                              "ASTEROIDS: West/East turn, North/South thrust, Fire/Mark shoot, Grid restart.",
+                              false, NULL);
+            }
+        }
+    }
+    else if (am_oids_mode_running)
+    {
+        AM_OidsStop();
+        am_oids_mode_running = false;
+    }
+}
 
 // [crispy] Antialiased lines from Heretic with more colors
 // [PN] Wu weights now alpha-blend the base line color (I_BlendOver_32).
@@ -779,6 +816,8 @@ void AM_LevelInit (boolean reinit)
 
 void AM_Stop (void)
 {
+    AM_OidsStop();
+    am_oids_mode_running = false;
     automapactive = false;
     stopped = true;
 }
@@ -806,6 +845,7 @@ void AM_Start (void)
     }
 
     AM_initVariables();
+    AM_UpdateOidsMode();
 }
 
 // -----------------------------------------------------------------------------
@@ -906,6 +946,10 @@ boolean AM_Responder (const event_t *ev)
             automap_mini ^= 1;
             rc = true;
         }
+    }
+    else if (am_oids && AM_OidsResponder(ev))
+    {
+        rc = true;
     }
     // [crispy] zoom Automap with the mouse wheel
     // [JN] Mouse wheel "buttons" hardcoded.
@@ -1274,6 +1318,13 @@ void AM_Ticker (void)
 
     // [JN] Framerate independendt ticker for blinking lines.
     blinking_line = (automap_blink && (gametic % 20) < 10);
+
+    AM_UpdateOidsMode();
+
+    if (am_oids)
+    {
+        AM_OidsTicker();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -2805,7 +2856,18 @@ void AM_Drawer (void)
     {
         return;
     }
-    
+
+    AM_UpdateOidsMode();
+
+    if (am_oids)
+    {
+        // [PN] Asteroids mode must redraw from a clean frame each tic.
+        // Otherwise ship/rock segments leave long trails.
+        AM_clearFB();
+        AM_OidsDrawer();
+        return;
+    }
+
     // [JN] Moved from AM_Ticker for drawing interpolation.
     if (am_followplayer)
     {
