@@ -32,6 +32,16 @@ typedef struct
     int64_t x,y;
 } mpoint_t;
 
+typedef struct
+{
+    int x, y;
+} fpoint_t;
+
+typedef struct
+{
+    fpoint_t a, b;
+} fline_t;
+
 extern int64_t m_x, m_y;
 
 extern mpoint_t *markpoints;
@@ -56,6 +66,7 @@ extern void AM_ArchiveScaleMtof (fixed_t scale);
 extern angle_t mapangle;
 
 extern void AM_SetdrawFline (void);
+extern void (*AM_drawFline)(fline_t*, int);
 
 // Called by main loop.
 boolean AM_Responder (const event_t *ev);

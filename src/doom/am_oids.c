@@ -222,56 +222,18 @@ static void AMO_Plot(int x, int y, pixel_t color)
 }
 
 // -----------------------------------------------------------------------------
-// AMO_DrawLineInt
-// [PN] Internal helper for Asteroids mode simulation and rendering.
-// -----------------------------------------------------------------------------
-static void AMO_DrawLineInt(int x0, int y0, int x1, int y1, pixel_t color)
-{
-    int dx = abs(x1 - x0);
-    int sx = x0 < x1 ? 1 : -1;
-    int dy = -abs(y1 - y0);
-    int sy = y0 < y1 ? 1 : -1;
-    int err = dx + dy;
-    int guard = (ff_w_i + ff_h_i) * 4 + 64;
-
-    // [PN] Guard against pathological coordinates to prevent long stalls.
-    while (guard-- > 0)
-    {
-        const int e2 = err << 1;
-
-        AMO_Plot(x0, y0, color);
-
-        if (x0 == x1 && y0 == y1)
-        {
-            break;
-        }
-
-        if (e2 >= dy)
-        {
-            err += dy;
-            x0 += sx;
-        }
-
-        if (e2 <= dx)
-        {
-            err += dx;
-            y0 += sy;
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
 // AMO_DrawLineFixedRaw
 // [PN] Internal helper for Asteroids mode simulation and rendering.
 // -----------------------------------------------------------------------------
 static void AMO_DrawLineFixedRaw(fixed_t x0, fixed_t y0,
                                  fixed_t x1, fixed_t y1,
-                                 pixel_t color)
+                                 int color)
 {
     const int ix0 = x0 >> FRACBITS;
     const int iy0 = y0 >> FRACBITS;
     const int ix1 = x1 >> FRACBITS;
     const int iy1 = y1 >> FRACBITS;
+    fline_t fl;
     const int clip_left = ff_x_i - 1;
     const int clip_right = ff_x_i + ff_w_i;
     const int clip_top = ff_y_i - 1;
@@ -294,7 +256,22 @@ static void AMO_DrawLineFixedRaw(fixed_t x0, fixed_t y0,
         return;
     }
 
-    AMO_DrawLineInt(ix0, iy0, ix1, iy1, color);
+    // [PN] AM_drawFline uses local automap coordinates.
+    fl.a.x = ix0 - ff_x_i;
+    fl.a.y = iy0 - ff_y_i;
+    fl.b.x = ix1 - ff_x_i;
+    fl.b.y = iy1 - ff_y_i;
+
+    // [PN] Keep endpoints inside framebuffer bounds expected by AM_drawFline.
+    if ((unsigned int) fl.a.x >= (unsigned int) ff_w_i
+    ||  (unsigned int) fl.a.y >= (unsigned int) ff_h_i
+    ||  (unsigned int) fl.b.x >= (unsigned int) ff_w_i
+    ||  (unsigned int) fl.b.y >= (unsigned int) ff_h_i)
+    {
+        return;
+    }
+
+    AM_drawFline(&fl, color);
 }
 
 // -----------------------------------------------------------------------------
@@ -946,7 +923,7 @@ void AM_OidsTicker(void)
 // AMO_DrawShipInstance
 // [PN] Internal helper for Asteroids mode simulation and rendering.
 // -----------------------------------------------------------------------------
-static void AMO_DrawShipInstance(fixed_t sx, fixed_t sy, pixel_t color)
+static void AMO_DrawShipInstance(fixed_t sx, fixed_t sy, int color)
 {
     const fixed_t wing = (4 * FRACUNIT);
 
@@ -1008,7 +985,7 @@ static void AMO_DrawBullets(pixel_t color)
 // -----------------------------------------------------------------------------
 static void AMO_DrawRockInstance(const amo_rock_t *rock,
                                  fixed_t off_x, fixed_t off_y,
-                                 pixel_t color)
+                                 int color)
 {
     fixed_t first_x = 0;
     fixed_t first_y = 0;
@@ -1043,7 +1020,7 @@ static void AMO_DrawRockInstance(const amo_rock_t *rock,
 // AMO_DrawShip
 // [PN] Draws ship copies across wrapped tiles for seamless edges.
 // -----------------------------------------------------------------------------
-static void AMO_DrawShip(pixel_t color)
+static void AMO_DrawShip(int color)
 {
     for (int oy = -1; oy <= 1; ++oy)
     {
@@ -1060,7 +1037,7 @@ static void AMO_DrawShip(pixel_t color)
 // AMO_DrawRock
 // [PN] Draws rock copies across wrapped tiles for seamless edges.
 // -----------------------------------------------------------------------------
-static void AMO_DrawRock(const amo_rock_t *rock, pixel_t color)
+static void AMO_DrawRock(const amo_rock_t *rock, int color)
 {
     for (int oy = -1; oy <= 1; ++oy)
     {
@@ -1076,8 +1053,8 @@ static void AMO_DrawRock(const amo_rock_t *rock, pixel_t color)
 
 void AM_OidsDrawer(void)
 {
-    const pixel_t rock_color = pal_color[176];
-    const pixel_t ship_color = pal_color[231];
+    const int rock_color = 176;
+    const int ship_color = 231;
     const pixel_t bullet_color = pal_color[252];
 
     if (!amo_active)
@@ -1101,8 +1078,10 @@ void AM_OidsDrawer(void)
         const int cx = ff_x_i + (ff_w_i >> 1);
         const int cy = ff_y_i + (ff_h_i >> 1);
 
-        AMO_DrawLineInt(cx - 10, cy - 10, cx + 10, cy + 10, pal_color[160]);
-        AMO_DrawLineInt(cx - 10, cy + 10, cx + 10, cy - 10, pal_color[160]);
+        AMO_DrawLineFixedRaw((cx - 10) << FRACBITS, (cy - 10) << FRACBITS,
+                             (cx + 10) << FRACBITS, (cy + 10) << FRACBITS, 160);
+        AMO_DrawLineFixedRaw((cx - 10) << FRACBITS, (cy + 10) << FRACBITS,
+                             (cx + 10) << FRACBITS, (cy - 10) << FRACBITS, 160);
     }
 
     (void) score;

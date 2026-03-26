@@ -122,16 +122,6 @@ static  boolean arrow_color_direction = false;
 
 typedef struct
 {
-    int x, y;
-} fpoint_t;
-
-typedef struct
-{
-    fpoint_t a, b;
-} fline_t;
-
-typedef struct
-{
     mpoint_t a, b;
 } mline_t;
 
