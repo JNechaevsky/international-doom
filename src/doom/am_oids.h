@@ -22,6 +22,7 @@
 
 #include "d_event.h"
 #include "doomtype.h"
+#include "doomstat.h"
 
 // [PN] Asteroids mini-game state machine for Doom automap.
 void AM_OidsSetBounds(int x, int y, int w, int h);

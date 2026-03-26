@@ -25,6 +25,7 @@
 #include "m_random.h"
 #include "i_video.h"
 #include "v_video.h"
+#include "d_loop.h"
 #include "am_oids.h"
 
 #define AMO_MAX_BULLETS  24
@@ -48,8 +49,10 @@
 
 typedef struct
 {
+    fixed_t oldx, oldy;
     fixed_t x, y;
     fixed_t vx, vy;
+    angle_t oldangle;
     angle_t angle;
     int invuln_tics;
     boolean alive;
@@ -57,6 +60,7 @@ typedef struct
 
 typedef struct
 {
+    fixed_t oldx, oldy;
     fixed_t x, y;
     fixed_t vx, vy;
     int ttl;
@@ -65,10 +69,12 @@ typedef struct
 
 typedef struct
 {
+    fixed_t oldx, oldy;
     fixed_t x, y;
     fixed_t vx, vy;
     fixed_t radius;
     fixed_t shape[AMO_POINTS];
+    angle_t oldangle;
     angle_t angle;
     int spin;
     int size;
@@ -182,6 +188,57 @@ static void AMO_WrapPoint(fixed_t *x, fixed_t *y)
 {
     *x = AMO_WrapAxis(*x, ff_x, ff_w);
     *y = AMO_WrapAxis(*y, ff_y, ff_h);
+}
+
+// -----------------------------------------------------------------------------
+// AMO_GetDrawFrac
+// [PN] Returns render interpolation fraction for uncapped automap drawing.
+// -----------------------------------------------------------------------------
+static fixed_t AMO_GetDrawFrac(void)
+{
+    if (!vid_uncapped_fps || realleveltime <= oldleveltime)
+    {
+        return FRACUNIT;
+    }
+
+    return fractionaltic;
+}
+
+// -----------------------------------------------------------------------------
+// AMO_LerpWrapAxis
+// [PN] Interpolates axis on a torus, avoiding long cross-screen wrap lerps.
+// -----------------------------------------------------------------------------
+static fixed_t AMO_LerpWrapAxis(fixed_t oldv, fixed_t newv,
+                                fixed_t minv, fixed_t size, fixed_t frac)
+{
+    fixed_t delta = newv - oldv;
+
+    if (size > 0)
+    {
+        const fixed_t half = size >> 1;
+
+        if (delta > half)
+        {
+            delta -= size;
+        }
+        else if (delta < -half)
+        {
+            delta += size;
+        }
+    }
+
+    return AMO_WrapAxis(oldv + FixedMul(delta, frac), minv, size);
+}
+
+// -----------------------------------------------------------------------------
+// AMO_LerpAngle
+// [PN] Interpolates angle with wrap-safe signed delta.
+// -----------------------------------------------------------------------------
+static angle_t AMO_LerpAngle(angle_t olda, angle_t newa, fixed_t frac)
+{
+    const int32_t delta = (int32_t) (newa - olda);
+    const int32_t step = (int32_t) (((int64_t) delta * frac) / FRACUNIT);
+    return olda + (angle_t) step;
 }
 
 // -----------------------------------------------------------------------------
@@ -340,12 +397,15 @@ static void AMO_InitRock(amo_rock_t *rock, int size,
 {
     rock->active = true;
     rock->size = size;
+    rock->oldx = x;
+    rock->oldy = y;
     rock->x = x;
     rock->y = y;
     rock->vx = vx;
     rock->vy = vy;
     rock->radius = AMO_RockRadiusBySize(size);
-    rock->angle = (angle_t) (M_Random() << 24);
+    rock->oldangle = (angle_t) (M_Random() << 24);
+    rock->angle = rock->oldangle;
     rock->spin = AMO_RandSign() * (int) (ANG1 * AMO_RandRange(1, 3));
 
     for (int i = 0; i < AMO_POINTS; ++i)
@@ -444,10 +504,13 @@ static void AMO_SpawnWave(void)
 // -----------------------------------------------------------------------------
 static void AMO_ResetShip(void)
 {
+    ship.oldx = ff_x + (ff_w >> 1);
+    ship.oldy = ff_y + (ff_h >> 1);
     ship.x = ff_x + (ff_w >> 1);
     ship.y = ff_y + (ff_h >> 1);
     ship.vx = 0;
     ship.vy = 0;
+    ship.oldangle = ANG90;
     ship.angle = ANG90;
     ship.invuln_tics = TICRATE * 2;
     ship.alive = true;
@@ -465,11 +528,15 @@ static void AMO_FireBullet(void)
         {
             const fixed_t dirx = AMO_Cos(ship.angle);
             const fixed_t diry = AMO_Sin(ship.angle);
+            const fixed_t spawn_x = ship.x + FixedMul(dirx, AMO_SHIP_RADIUS);
+            const fixed_t spawn_y = ship.y - FixedMul(diry, AMO_SHIP_RADIUS);
 
             bullets[i].active = true;
             bullets[i].ttl = AMO_BULLET_LIFETIME;
-            bullets[i].x = ship.x + FixedMul(dirx, AMO_SHIP_RADIUS);
-            bullets[i].y = ship.y - FixedMul(diry, AMO_SHIP_RADIUS);
+            bullets[i].oldx = spawn_x;
+            bullets[i].oldy = spawn_y;
+            bullets[i].x = spawn_x;
+            bullets[i].y = spawn_y;
             bullets[i].vx = ship.vx + FixedMul(dirx, AMO_BULLET_SPEED);
             bullets[i].vy = ship.vy - FixedMul(diry, AMO_BULLET_SPEED);
             return;
@@ -513,6 +580,10 @@ static void AMO_UpdateShip(void)
     {
         return;
     }
+
+    ship.oldx = ship.x;
+    ship.oldy = ship.y;
+    ship.oldangle = ship.angle;
 
     if (input_turn_left)
     {
@@ -580,6 +651,8 @@ static void AMO_UpdateBullets(void)
             continue;
         }
 
+        bullet->oldx = bullet->x;
+        bullet->oldy = bullet->y;
         bullet->x += bullet->vx;
         bullet->y += bullet->vy;
         AMO_WrapPoint(&bullet->x, &bullet->y);
@@ -606,6 +679,9 @@ static void AMO_UpdateRocks(void)
             continue;
         }
 
+        rock->oldx = rock->x;
+        rock->oldy = rock->y;
+        rock->oldangle = rock->angle;
         rock->x += rock->vx;
         rock->y += rock->vy;
         rock->angle += rock->spin;
@@ -923,7 +999,7 @@ void AM_OidsTicker(void)
 // AMO_DrawShipInstance
 // [PN] Internal helper for Asteroids mode simulation and rendering.
 // -----------------------------------------------------------------------------
-static void AMO_DrawShipInstance(fixed_t sx, fixed_t sy, int color)
+static void AMO_DrawShipInstance(fixed_t sx, fixed_t sy, angle_t angle, int color)
 {
     const fixed_t wing = (4 * FRACUNIT);
 
@@ -932,14 +1008,14 @@ static void AMO_DrawShipInstance(fixed_t sx, fixed_t sy, int color)
         return;
     }
 
-    const fixed_t nose_x = sx + FixedMul(AMO_Cos(ship.angle), AMO_SHIP_RADIUS);
-    const fixed_t nose_y = sy - FixedMul(AMO_Sin(ship.angle), AMO_SHIP_RADIUS);
+    const fixed_t nose_x = sx + FixedMul(AMO_Cos(angle), AMO_SHIP_RADIUS);
+    const fixed_t nose_y = sy - FixedMul(AMO_Sin(angle), AMO_SHIP_RADIUS);
 
-    const fixed_t left_x = sx + FixedMul(AMO_Cos(ship.angle + AMO_AngleFromDegrees(140)), wing);
-    const fixed_t left_y = sy - FixedMul(AMO_Sin(ship.angle + AMO_AngleFromDegrees(140)), wing);
+    const fixed_t left_x = sx + FixedMul(AMO_Cos(angle + AMO_AngleFromDegrees(140)), wing);
+    const fixed_t left_y = sy - FixedMul(AMO_Sin(angle + AMO_AngleFromDegrees(140)), wing);
 
-    const fixed_t right_x = sx + FixedMul(AMO_Cos(ship.angle + AMO_AngleFromDegrees(220)), wing);
-    const fixed_t right_y = sy - FixedMul(AMO_Sin(ship.angle + AMO_AngleFromDegrees(220)), wing);
+    const fixed_t right_x = sx + FixedMul(AMO_Cos(angle + AMO_AngleFromDegrees(220)), wing);
+    const fixed_t right_y = sy - FixedMul(AMO_Sin(angle + AMO_AngleFromDegrees(220)), wing);
 
     AMO_DrawLineFixedRaw(nose_x, nose_y, left_x, left_y, color);
     AMO_DrawLineFixedRaw(left_x, left_y, right_x, right_y, color);
@@ -950,8 +1026,8 @@ static void AMO_DrawShipInstance(fixed_t sx, fixed_t sy, int color)
         fixed_t flame_x;
         fixed_t flame_y;
 
-        flame_x = sx + FixedMul(AMO_Cos(ship.angle + ANG180), (6 * FRACUNIT));
-        flame_y = sy - FixedMul(AMO_Sin(ship.angle + ANG180), (6 * FRACUNIT));
+        flame_x = sx + FixedMul(AMO_Cos(angle + ANG180), (6 * FRACUNIT));
+        flame_y = sy - FixedMul(AMO_Sin(angle + ANG180), (6 * FRACUNIT));
 
         AMO_DrawLineFixedRaw(sx, sy, flame_x, flame_y, color);
     }
@@ -961,14 +1037,16 @@ static void AMO_DrawShipInstance(fixed_t sx, fixed_t sy, int color)
 // AMO_DrawBullets
 // [PN] Internal helper for Asteroids mode simulation and rendering.
 // -----------------------------------------------------------------------------
-static void AMO_DrawBullets(pixel_t color)
+static void AMO_DrawBullets(pixel_t color, fixed_t frac)
 {
     for (int i = 0; i < AMO_MAX_BULLETS; ++i)
     {
         if (bullets[i].active)
         {
-            const int x = bullets[i].x >> FRACBITS;
-            const int y = bullets[i].y >> FRACBITS;
+            const fixed_t fx = AMO_LerpWrapAxis(bullets[i].oldx, bullets[i].x, ff_x, ff_w, frac);
+            const fixed_t fy = AMO_LerpWrapAxis(bullets[i].oldy, bullets[i].y, ff_y, ff_h, frac);
+            const int x = fx >> FRACBITS;
+            const int y = fy >> FRACBITS;
 
             AMO_Plot(x, y, color);
             AMO_Plot(x - 1, y, color);
@@ -984,6 +1062,7 @@ static void AMO_DrawBullets(pixel_t color)
 // [PN] Internal helper for Asteroids mode simulation and rendering.
 // -----------------------------------------------------------------------------
 static void AMO_DrawRockInstance(const amo_rock_t *rock,
+                                 fixed_t rock_x, fixed_t rock_y, angle_t rock_angle,
                                  fixed_t off_x, fixed_t off_y,
                                  int color)
 {
@@ -994,10 +1073,10 @@ static void AMO_DrawRockInstance(const amo_rock_t *rock,
 
     for (int i = 0; i < AMO_POINTS; ++i)
     {
-        const angle_t a = rock->angle + AMO_AngleFromDegrees((unsigned int) i * 45u);
+        const angle_t a = rock_angle + AMO_AngleFromDegrees((unsigned int) i * 45u);
         const fixed_t r = FixedMul(rock->radius, rock->shape[i]);
-        const fixed_t x = rock->x + off_x + FixedMul(AMO_Cos(a), r);
-        const fixed_t y = rock->y + off_y - FixedMul(AMO_Sin(a), r);
+        const fixed_t x = rock_x + off_x + FixedMul(AMO_Cos(a), r);
+        const fixed_t y = rock_y + off_y - FixedMul(AMO_Sin(a), r);
 
         if (i == 0)
         {
@@ -1020,14 +1099,19 @@ static void AMO_DrawRockInstance(const amo_rock_t *rock,
 // AMO_DrawShip
 // [PN] Draws ship copies across wrapped tiles for seamless edges.
 // -----------------------------------------------------------------------------
-static void AMO_DrawShip(int color)
+static void AMO_DrawShip(int color, fixed_t frac)
 {
+    const fixed_t ship_x = AMO_LerpWrapAxis(ship.oldx, ship.x, ff_x, ff_w, frac);
+    const fixed_t ship_y = AMO_LerpWrapAxis(ship.oldy, ship.y, ff_y, ff_h, frac);
+    const angle_t ship_angle = AMO_LerpAngle(ship.oldangle, ship.angle, frac);
+
     for (int oy = -1; oy <= 1; ++oy)
     {
         for (int ox = -1; ox <= 1; ++ox)
         {
-            AMO_DrawShipInstance(ship.x + (fixed_t) (ox * ff_w),
-                                 ship.y + (fixed_t) (oy * ff_h),
+            AMO_DrawShipInstance(ship_x + (fixed_t) (ox * ff_w),
+                                 ship_y + (fixed_t) (oy * ff_h),
+                                 ship_angle,
                                  color);
         }
     }
@@ -1037,13 +1121,18 @@ static void AMO_DrawShip(int color)
 // AMO_DrawRock
 // [PN] Draws rock copies across wrapped tiles for seamless edges.
 // -----------------------------------------------------------------------------
-static void AMO_DrawRock(const amo_rock_t *rock, int color)
+static void AMO_DrawRock(const amo_rock_t *rock, int color, fixed_t frac)
 {
+    const fixed_t rock_x = AMO_LerpWrapAxis(rock->oldx, rock->x, ff_x, ff_w, frac);
+    const fixed_t rock_y = AMO_LerpWrapAxis(rock->oldy, rock->y, ff_y, ff_h, frac);
+    const angle_t rock_angle = AMO_LerpAngle(rock->oldangle, rock->angle, frac);
+
     for (int oy = -1; oy <= 1; ++oy)
     {
         for (int ox = -1; ox <= 1; ++ox)
         {
             AMO_DrawRockInstance(rock,
+                                 rock_x, rock_y, rock_angle,
                                  (fixed_t) (ox * ff_w),
                                  (fixed_t) (oy * ff_h),
                                  color);
@@ -1056,6 +1145,8 @@ void AM_OidsDrawer(void)
     const int rock_color = 176;
     const int ship_color = 231;
     const pixel_t bullet_color = pal_color[252];
+    // [PN] Freeze interpolation on game-over frame to keep the X marker stable.
+    const fixed_t draw_frac = game_over ? FRACUNIT : AMO_GetDrawFrac();
 
     if (!amo_active)
     {
@@ -1066,12 +1157,12 @@ void AM_OidsDrawer(void)
     {
         if (rocks[i].active)
         {
-            AMO_DrawRock(&rocks[i], rock_color);
+            AMO_DrawRock(&rocks[i], rock_color, draw_frac);
         }
     }
 
-    AMO_DrawBullets(bullet_color);
-    AMO_DrawShip(ship_color);
+    AMO_DrawBullets(bullet_color, draw_frac);
+    AMO_DrawShip(ship_color, draw_frac);
 
     if (game_over)
     {
