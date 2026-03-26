@@ -85,13 +85,7 @@ static void wipe_EnsureBuffers (void)
 
 static void wipe_initMelt (void)
 {
-    const int scale = (vid_resolution > 0) ? vid_resolution : 1;
-
-    wipe_columns = SCREENWIDTH / (2 * scale);
-    if (wipe_columns < 1)
-    {
-        wipe_columns = 1;
-    }
+    wipe_columns = SCREENWIDTH;
 
     // copy start screen to main screen
     memcpy(wipe_scr, wipe_scr_start, SCREENAREA*sizeof(*wipe_scr));
