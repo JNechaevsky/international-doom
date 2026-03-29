@@ -62,6 +62,7 @@ struct lumpinfo_s
     int		position;
     int		size;
     void       *cache;
+    int         cache_size;  // [PN] Size of converted cached data (eg. PNG -> patch).
 
     // Used for hash table lookups
     lumpindex_t next;

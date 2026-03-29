@@ -33,6 +33,7 @@
 #include "i_video.h"
 #include "m_misc.h"
 #include "v_diskicon.h"
+#include "v_png.h"
 #include "z_zone.h"
 
 #include "w_wad.h"
@@ -219,6 +220,7 @@ wad_file_t *W_AddFile (const char *filename)
         lump_p->position = LONG(filerover->filepos);
         lump_p->size = LONG(filerover->size);
         lump_p->cache = NULL;
+        lump_p->cache_size = 0;
         strncpy(lump_p->name, filerover->name, 8);
         lumpinfo[i] = lump_p;
 
@@ -484,30 +486,94 @@ void *W_CacheLumpNum(lumpindex_t lumpnum, int tag)
 
     lump = lumpinfo[lumpnum];
 
-    // Get the pointer to return.  If the lump is in a memory-mapped
-    // file, we can just return a pointer to within the memory-mapped
-    // region.  If the lump is in an ordinary file, we may already
-    // have it cached; otherwise, load it into memory.
-
-    if (lump->wad_file->mapped != NULL)
+    // [PN] If this lump has already been converted/cached, just reuse it.
+    if (lump->cache != NULL)
     {
-        // Memory mapped file, return from the mmapped region.
-
-        result = lump->wad_file->mapped + lump->position;
-    }
-    else if (lump->cache != NULL)
-    {
-        // Already cached, so just switch the zone tag.
-
         result = lump->cache;
         Z_ChangeTag(lump->cache, tag);
     }
+    // [PN] Memory mapped file: return mapped data by default, but convert PNG
+    // graphics once to Doom patch format so sprites/textures can consume them.
+    else if (lump->wad_file->mapped != NULL)
+    {
+        const byte *const raw = lump->wad_file->mapped + lump->position;
+        void **owner = (void **) &lump->cache;
+
+        if (V_IsPNGImage(raw, lump->size))
+        {
+            int converted_size = 0;
+            patch_t *const patch = V_PNGToPatch(raw, lump->size, tag, owner, &converted_size);
+
+            if (patch != NULL)
+            {
+                lump->cache = patch;
+                lump->cache_size = converted_size;
+                result = lump->cache;
+            }
+            else
+            {
+                lump->cache_size = 0;
+                result = (byte *) raw;
+            }
+        }
+        else
+        {
+            lump->cache_size = 0;
+            result = (byte *) raw;
+        }
+    }
     else
     {
-        // Not yet loaded, so load it now
+        // Not yet loaded, so load it now.
+        byte png_sig[8];
+        boolean is_png = false;
 
-        lump->cache = Z_Malloc(W_LumpLength(lumpnum), tag, &lump->cache);
-	W_ReadLump (lumpnum, lump->cache);
+        if (lump->size >= (int) sizeof(png_sig)
+        &&  W_Read(lump->wad_file, lump->position, png_sig, sizeof(png_sig))
+            == (int) sizeof(png_sig))
+        {
+            is_png = V_IsPNGImage(png_sig, sizeof(png_sig));
+        }
+
+        if (is_png)
+        {
+            byte *const raw = Z_Malloc(W_LumpLength(lumpnum), PU_STATIC, NULL);
+            int converted_size = 0;
+            void **owner = (void **) &lump->cache;
+            patch_t *patch;
+
+            W_ReadLump(lumpnum, raw);
+            patch = V_PNGToPatch(raw, lump->size, tag, owner, &converted_size);
+
+            if (patch != NULL)
+            {
+                lump->cache = patch;
+                lump->cache_size = converted_size;
+                Z_Free(raw);
+            }
+
+            // [PN] If PNG conversion fails, keep original lump bytes.
+            else if (tag >= PU_PURGELEVEL)
+            {
+                lump->cache = Z_Malloc(W_LumpLength(lumpnum), tag, &lump->cache);
+                memcpy(lump->cache, raw, (size_t) W_LumpLength(lumpnum));
+                lump->cache_size = 0;
+                Z_Free(raw);
+            }
+            else
+            {
+                lump->cache = raw;
+                lump->cache_size = 0;
+                Z_ChangeTag(lump->cache, tag);
+            }
+        }
+        else
+        {
+            lump->cache = Z_Malloc(W_LumpLength(lumpnum), tag, &lump->cache);
+            W_ReadLump(lumpnum, lump->cache);
+            lump->cache_size = 0;
+        }
+
         result = lump->cache;
     }
 	
@@ -547,7 +613,12 @@ void W_ReleaseLumpNum(lumpindex_t lumpnum)
 
     if (lump->wad_file->mapped != NULL)
     {
-        // Memory-mapped file, so nothing needs to be done here.
+        // [PN] For mapped WADs we usually return raw pointers, but PNG lumps may
+        // have a converted patch cache that still needs normal tag handling.
+        if (lump->cache != NULL)
+        {
+            Z_ChangeTag(lump->cache, PU_CACHE);
+        }
     }
     else
     {

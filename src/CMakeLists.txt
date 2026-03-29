@@ -86,6 +86,7 @@ set(GAME_SOURCE_FILES
     memio.c             memio.h
     tables.c            tables.h
     v_diskicon.c        v_diskicon.h
+    v_png.c             v_png.h
     v_postproc.c        v_postproc.h
     v_video.c           v_video.h
                         v_patch.h
@@ -126,7 +127,7 @@ set(DEHACKED_SOURCE_FILES
 set(SOURCE_FILES ${COMMON_SOURCE_FILES} ${GAME_SOURCE_FILES})
 set(SOURCE_FILES_WITH_DEH ${SOURCE_FILES} ${DEHACKED_SOURCE_FILES})
 
-set(EXTRA_LIBS SDL2::SDL2main SDL2::SDL2 miniz::miniz textscreen pcsound opl)
+set(EXTRA_LIBS SDL2::SDL2main SDL2::SDL2 miniz::miniz spng::spng textscreen pcsound opl)
 if(ENABLE_SDL2_MIXER)
     list(APPEND EXTRA_LIBS SDL2_mixer::SDL2_mixer)
 endif()

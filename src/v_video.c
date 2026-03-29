@@ -2063,7 +2063,8 @@ boolean V_IsPatchLump(const int lump)
     if (lump < 0)
         return false;
 
-    size = W_LumpLength(lump);
+    size = lumpinfo[lump]->cache_size > 0 ? lumpinfo[lump]->cache_size
+                                          : W_LumpLength(lump);
 
     // Minimum length of a valid Doom patch
     if (size < 13)
@@ -2073,7 +2074,7 @@ boolean V_IsPatchLump(const int lump)
 
     patch = (const patch_t *) W_CacheLumpNum(lump, PU_CACHE);
 
-    // [FG] detect patches in PNG format early
+    // [PN] Raw PNG data is not a Doom patch (converted PNGs arrive here as patch_t).
     if (!memcmp(patch, "\211PNG\r\n\032\n", 8))
     {
         return false;

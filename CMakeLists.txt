@@ -117,6 +117,9 @@ endif()
 # Check for Miniz (replaces libpng).
 add_subdirectory("miniz")
 
+# Check for libspng (support for PNG graphics).
+add_subdirectory("spng")
+
 # Check for FluidSynth.
 find_package(FluidSynth)
 if(FluidSynth_FOUND)
