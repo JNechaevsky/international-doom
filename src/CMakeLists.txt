@@ -108,9 +108,9 @@ if(WIN32)
     list(APPEND GAME_SOURCE_FILES midifallback.c    midifallback.h)
     list(APPEND GAME_SOURCE_FILES w_file_win32.c)
     list(APPEND GAME_SOURCE_FILES
-        "../win32/win_opendir.c" "../win32/win_opendir.h")
+        "../lib/win32/win_opendir.c" "../lib/win32/win_opendir.h")
     list(APPEND GAME_INCLUDE_DIRS
-         "${PROJECT_SOURCE_DIR}/win32/")
+         "${PROJECT_SOURCE_DIR}/lib/win32/")
 elseif(POSIX)
     list(APPEND GAME_SOURCE_FILES w_file_posix.c)
 endif()
