@@ -6,7 +6,7 @@ add_library(opl STATIC
             opl3.c          opl3.h)
 target_include_directories(opl
                            INTERFACE "."
-                           PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../" "../src/")
+                           PRIVATE "${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/src")
 target_link_libraries(opl SDL2::SDL2)
 if(ENABLE_SDL2_MIXER)
     target_link_libraries(opl SDL2_mixer::SDL2_mixer)

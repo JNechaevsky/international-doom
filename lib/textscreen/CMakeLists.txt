@@ -24,5 +24,5 @@ add_library(textscreen STATIC
             txt_window_action.c txt_window_action.h)
 target_include_directories(textscreen
                            INTERFACE "."
-                           PRIVATE "../src/")
+                           PRIVATE "${PROJECT_SOURCE_DIR}/src")
 target_link_libraries(textscreen m SDL2::SDL2)

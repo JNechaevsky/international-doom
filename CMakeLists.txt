@@ -115,10 +115,10 @@ if(SampleRate_FOUND)
 endif()
 
 # Check for Miniz (replaces libpng).
-add_subdirectory("miniz")
+add_subdirectory("lib/miniz")
 
 # Check for libspng (support for PNG graphics).
-add_subdirectory("spng")
+add_subdirectory("lib/spng")
 
 # Check for FluidSynth.
 find_package(FluidSynth)
@@ -151,6 +151,6 @@ configure_file(src/hexen-res.rc.in src/hexen-res.rc)
 configure_file(src/setup-res.rc.in src/setup-res.rc)
 configure_file(src/setup/setup-manifest.xml.in src/setup/setup-manifest.xml)
 
-foreach(SUBDIR textscreen opl pcsound src)
+foreach(SUBDIR lib/textscreen lib/opl lib/pcsound src)
     add_subdirectory("${SUBDIR}")
 endforeach()
