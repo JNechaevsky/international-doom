@@ -958,6 +958,8 @@ void R_RenderPlayerView (player_t *player)
         R_RenderBSPNode(numnodes - 1);
     }
 
+    R_NearbySprites();
+
     // Check for new console commands.
     NetUpdate();
 

@@ -19,6 +19,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 
 #include "h2def.h"
 #include "i_swap.h"
@@ -73,6 +75,158 @@ static drawsegs_xrange_t drawsegs_xranges[DS_RANGES_COUNT];
 static const drawseg_xrange_item_t *drawsegs_xrange;
 static unsigned int drawsegs_xrange_size = 0;
 static int drawsegs_xrange_count = 0;
+
+// [PN] Nearby sprite queue (Woof-style idea adapted for vanilla sector links).
+static mobj_t **nearby_sprites = NULL;
+static size_t nearby_sprites_count = 0;
+static size_t nearby_sprites_capacity = 0;
+static mobj_t **nearby_sprites_seen = NULL;
+static size_t nearby_sprites_seen_size = 0;
+static unsigned int *nearby_adj_marks = NULL;
+static size_t nearby_adj_marks_size = 0;
+static unsigned int nearby_adj_mark_id = 1;
+
+
+// -----------------------------------------------------------------------------
+// R_NearbyHashPtr
+// [PN] Hash helper for pointer keys in nearby sprite dedup table.
+// -----------------------------------------------------------------------------
+
+static inline size_t R_NearbyHashPtr(const void *ptr)
+{
+    uintptr_t x = (uintptr_t) ptr;
+    x >>= 4;
+    x ^= x >> 16;
+    return (size_t) x;
+}
+
+// -----------------------------------------------------------------------------
+// R_NearbyRebuildSeenTable
+// [PN] Rebuilds open-addressing set used for O(1) nearby sprite dedup.
+// -----------------------------------------------------------------------------
+
+static void R_NearbyRebuildSeenTable(size_t new_size)
+{
+    nearby_sprites_seen = I_Realloc(nearby_sprites_seen,
+                                    new_size * sizeof(*nearby_sprites_seen));
+    memset(nearby_sprites_seen, 0, new_size * sizeof(*nearby_sprites_seen));
+    nearby_sprites_seen_size = new_size;
+
+    for (size_t i = 0; i < nearby_sprites_count; ++i)
+    {
+        mobj_t *thing = nearby_sprites[i];
+        const size_t mask = nearby_sprites_seen_size - 1;
+        size_t pos = R_NearbyHashPtr(thing) & mask;
+
+        while (nearby_sprites_seen[pos] != NULL)
+        {
+            pos = (pos + 1) & mask;
+        }
+
+        nearby_sprites_seen[pos] = thing;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// R_NearbySeenInsert
+// [PN] Inserts sprite pointer into dedup set; returns false if already present.
+// -----------------------------------------------------------------------------
+
+static boolean R_NearbySeenInsert(mobj_t *const thing)
+{
+    if (nearby_sprites_seen_size == 0)
+    {
+        R_NearbyRebuildSeenTable(128);
+    }
+    else if ((nearby_sprites_count + 1) * 4 >= nearby_sprites_seen_size * 3)
+    {
+        R_NearbyRebuildSeenTable(nearby_sprites_seen_size * 2);
+    }
+
+    const size_t mask = nearby_sprites_seen_size - 1;
+    size_t pos = R_NearbyHashPtr(thing) & mask;
+
+    while (nearby_sprites_seen[pos] != NULL)
+    {
+        if (nearby_sprites_seen[pos] == thing)
+        {
+            return false;
+        }
+
+        pos = (pos + 1) & mask;
+    }
+
+    nearby_sprites_seen[pos] = thing;
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// R_NearbyEnsureAdjMarkTable
+// [PN] Ensures temporary per-source-sector adjacent-sector mark table exists.
+// -----------------------------------------------------------------------------
+
+static void R_NearbyEnsureAdjMarkTable(void)
+{
+    if (nearby_adj_marks_size >= (size_t) numsectors)
+    {
+        return;
+    }
+
+    const size_t old_size = nearby_adj_marks_size;
+    nearby_adj_marks = I_Realloc(nearby_adj_marks, (size_t) numsectors * sizeof(*nearby_adj_marks));
+    memset(nearby_adj_marks + old_size, 0,
+           ((size_t) numsectors - old_size) * sizeof(*nearby_adj_marks));
+    nearby_adj_marks_size = (size_t) numsectors;
+}
+
+// -----------------------------------------------------------------------------
+// R_NearbyBeginAdjPass
+// [PN] Starts a new "seen adjacent sectors" pass for current source sector.
+// -----------------------------------------------------------------------------
+
+static void R_NearbyBeginAdjPass(void)
+{
+    nearby_adj_mark_id++;
+
+    if (nearby_adj_mark_id == 0)
+    {
+        memset(nearby_adj_marks, 0, nearby_adj_marks_size * sizeof(*nearby_adj_marks));
+        nearby_adj_mark_id = 1;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// R_SetSpriteLightsForSector
+// [PN] Recomputes sprite light table for a specific sector.
+// -----------------------------------------------------------------------------
+
+static void R_SetSpriteLightsForSector(const sector_t *const sec)
+{
+    const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
+                       + (extralight * LIGHTBRIGHT));
+    spritelights = scalelight[lightnum];
+}
+
+// -----------------------------------------------------------------------------
+// R_NearbyPushSprite
+// [PN] Adds a sprite to nearby queue once (deduplicated by pointer).
+// -----------------------------------------------------------------------------
+
+static void R_NearbyPushSprite(mobj_t *const thing)
+{
+    if (!R_NearbySeenInsert(thing))
+    {
+        return;
+    }
+
+    if (nearby_sprites_count >= nearby_sprites_capacity)
+    {
+        nearby_sprites_capacity = nearby_sprites_capacity ? nearby_sprites_capacity * 2 : 128;
+        nearby_sprites = I_Realloc(nearby_sprites, nearby_sprites_capacity * sizeof(*nearby_sprites));
+    }
+
+    nearby_sprites[nearby_sprites_count++] = thing;
+}
 
 
 // -----------------------------------------------------------------------------
@@ -282,6 +436,13 @@ void R_InitSprites (const char **namelist)
 void R_ClearSprites (void)
 {
     num_vissprite = 0;  // [JN] killough
+    nearby_sprites_count = 0;
+
+    if (nearby_sprites_seen_size > 0)
+    {
+        memset(nearby_sprites_seen, 0,
+               nearby_sprites_seen_size * sizeof(*nearby_sprites_seen));
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -896,14 +1057,110 @@ static void R_ProjectSprite (const mobj_t *const thing)
 
 void R_AddSprites (const sector_t *const sec)
 {
-    // [crispy] smooth diminishing lighting
-    const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
-                       + (extralight * LIGHTBRIGHT));
-    spritelights = scalelight[lightnum];
+    const fixed_t nearby_margin = 32 * FRACUNIT;
+
+    R_SetSpriteLightsForSector(sec);
 
     // Handle all things in sector.
     for (mobj_t *thing = sec->thinglist ; thing ; thing = thing->snext)
+    {
         R_ProjectSprite (thing);
+    }
+
+    R_NearbyEnsureAdjMarkTable();
+    R_NearbyBeginAdjPass();
+
+    // [PN] Collect candidate sprites from adjacent sectors, but only those
+    // close to the shared boundary line (approximation of Woof's touching list).
+    for (int i = 0; i < sec->linecount; ++i)
+    {
+        const line_t *line = sec->lines[i];
+        fixed_t minx, maxx, miny, maxy;
+        int adj_index;
+
+        if (!(line->flags & ML_TWOSIDED)
+        ||  line->frontsector == NULL
+        ||  line->backsector == NULL)
+        {
+            continue;
+        }
+
+        const sector_t *adj = (line->frontsector == sec) ? line->backsector : line->frontsector;
+
+        if (adj == sec || adj->validcount == validcount)
+        {
+            continue;
+        }
+
+        adj_index = (int) (adj - sectors);
+
+        if ((unsigned int) adj_index >= (unsigned int) numsectors)
+        {
+            continue;
+        }
+
+        if (nearby_adj_marks[adj_index] == nearby_adj_mark_id)
+        {
+            continue;
+        }
+
+        nearby_adj_marks[adj_index] = nearby_adj_mark_id;
+
+        minx = line->v1->x < line->v2->x ? line->v1->x : line->v2->x;
+        maxx = line->v1->x > line->v2->x ? line->v1->x : line->v2->x;
+        miny = line->v1->y < line->v2->y ? line->v1->y : line->v2->y;
+        maxy = line->v1->y > line->v2->y ? line->v1->y : line->v2->y;
+
+        minx -= nearby_margin;
+        maxx += nearby_margin;
+        miny -= nearby_margin;
+        maxy += nearby_margin;
+
+        for (mobj_t *thing = adj->thinglist; thing; thing = thing->snext)
+        {
+            const fixed_t x1 = thing->x - thing->radius;
+            const fixed_t x2 = thing->x + thing->radius;
+            const fixed_t y1 = thing->y - thing->radius;
+            const fixed_t y2 = thing->y + thing->radius;
+
+            if (x2 < minx || x1 > maxx || y2 < miny || y1 > maxy)
+            {
+                continue;
+            }
+
+            R_NearbyPushSprite(thing);
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// R_NearbySprites
+// [PN] Projects queued nearby sprites from adjacent sectors after BSP traversal.
+// -----------------------------------------------------------------------------
+void R_NearbySprites (void)
+{
+    for (size_t i = 0; i < nearby_sprites_count; ++i)
+    {
+        mobj_t *thing = nearby_sprites[i];
+
+        if (thing == NULL || thing->subsector == NULL || thing->subsector->sector == NULL)
+        {
+            continue;
+        }
+
+        sector_t *sec = thing->subsector->sector;
+
+        // Sprite was already projected from its own traversed sector.
+        if (sec->validcount == validcount)
+        {
+            continue;
+        }
+
+        R_SetSpriteLightsForSector(sec);
+        R_ProjectSprite(thing);
+    }
+
+    nearby_sprites_count = 0;
 }
 
 // -----------------------------------------------------------------------------
