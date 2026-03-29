@@ -223,6 +223,7 @@ static carry_t carry;
 
 int joyxmove, joyymove;         // joystick values are repeated
 int joystrafemove;
+int joylook;
 boolean joyarray[MAX_JOY_BUTTONS + 1];
 boolean *joybuttons = &joyarray[1];     // allow [-1]
 
@@ -235,6 +236,8 @@ char savedescription[32];
 static ticcmd_t basecmd; // [crispy]
 
 static int inventoryTics;
+static boolean InventoryMoveLeft(void);
+static boolean InventoryMoveRight(void);
 
 // haleyjd: removed WATCOMC
 
@@ -459,7 +462,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     // [crispy] when "always run" is active,
     // pressing the "run" key will result in walking
-    speed = (key_speed >= NUMKEYS || key_speed2 >= NUMKEYS || joybspeed >= MAX_JOY_BUTTONS);
+    speed = always_run;
     speed ^= speedkeydown();
     crl_camzspeed = speed;
 
@@ -490,20 +493,9 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     // [crispy] toggle "always run"
     if (gamekeydown[key_autorun] || gamekeydown[key_autorun2])
     {
-        static int joybspeed_old = 2;
-
-        if (joybspeed >= MAX_JOY_BUTTONS)
-        {
-            joybspeed = joybspeed_old;
-        }
-        else
-        {
-            joybspeed_old = joybspeed;
-            joybspeed = MAX_JOY_BUTTONS;
-        }
-
-        CT_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
-                     ID_AUTORUN_ON : ID_AUTORUN_OFF, false, NULL);
+        always_run ^= 1;
+        CT_SetMessage(&players[consoleplayer], always_run ?
+                      ID_AUTORUN_ON : ID_AUTORUN_OFF, false, NULL);
         S_StartSound(NULL, sfx_switch);
         gamekeydown[key_autorun] = gamekeydown[key_autorun2] = false;
     }
@@ -609,7 +601,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     {
         joyymove = joyymove * joystick_move_sensitivity / 10;
         joyymove = (joyymove > FRACUNIT) ? FRACUNIT : joyymove;
-        joyymove = (joyymove < -FRACUNIT) ? FRACUNIT : joyymove;
+        joyymove = (joyymove < -FRACUNIT) ? -FRACUNIT : joyymove;
         forward -= FixedMul(forwardmove[speed], joyymove);
     }
     else if (joystick_move_sensitivity)
@@ -651,8 +643,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     {
         look = -lspeed;
     }
-    // TODO
-    /*
+    
     if (use_analog && joylook)
     {
         joylook = joylook * joystick_look_sensitivity / 10;
@@ -672,7 +663,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             look = -lspeed;
         }
     }
-    */
+
     // haleyjd: removed externdriver crap
     if (gamekeydown[key_lookcenter] || gamekeydown[key_lookcenter2])
     {
@@ -682,15 +673,18 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     // haleyjd: removed externdriver crap
     
     // Fly up/down/drop keys
-    if (gamekeydown[key_flyup] || gamekeydown[key_flyup2])
+    if (gamekeydown[key_flyup] || gamekeydown[key_flyup2]
+    || joybuttons[joybflyup])
     {
         fly_height = 5;          // note that the actual fly_height will be twice this
     }
-    if (gamekeydown[key_flydown] || gamekeydown[key_flydown2])
+    if (gamekeydown[key_flydown] || gamekeydown[key_flydown2]
+    || joybuttons[joybflydown])
     {
         fly_height = -5;
     }
-    if (gamekeydown[key_flycenter] || gamekeydown[key_flycenter2])
+    if (gamekeydown[key_flycenter] || gamekeydown[key_flycenter2]
+    || joybuttons[joybflycenter])
     {
         fly_height = TOCENTER;
         // haleyjd: removed externdriver crap
@@ -699,7 +693,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     // Use artifact key
     if (gamekeydown[key_useartifact] || gamekeydown[key_useartifact2]
-    || mousebuttons[mousebuseartifact] || mousebuttons[mousebuseartifact2])
+    || mousebuttons[mousebuseartifact] || mousebuttons[mousebuseartifact2]
+    || joybuttons[joybuseartifact])
     {
         if ((gamekeydown[key_speed] || gamekeydown[key_speed2]) && !ctrl_noartiskip)
         {
@@ -707,6 +702,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             {
                 gamekeydown[key_useartifact] = gamekeydown[key_useartifact2] = false;
                 mousebuttons[mousebuseartifact] = mousebuttons[mousebuseartifact2] = false;
+                joybuttons[joybuseartifact] = false;
                 cmd->arti = 0xff;       // skip artifact code
             }
         }
@@ -1146,7 +1142,7 @@ static void G_DoLoadLevel(void)
 //
 
     memset(gamekeydown, 0, sizeof(gamekeydown));
-    joyxmove = joyymove = joystrafemove = 0;
+    joyxmove = joyymove = joystrafemove = joylook = 0;
     mousex = mousey = 0;
     memset(&localview, 0, sizeof(localview)); // [crispy]
     memset(&carry, 0, sizeof(carry)); // [crispy]
@@ -1170,6 +1166,7 @@ static void G_DoLoadLevel(void)
 static void SetJoyButtons(unsigned int buttons_mask)
 {
     int i;
+    player_t *plr = &players[consoleplayer];
 
     for (i=0; i<MAX_JOY_BUTTONS; ++i)
     {
@@ -1188,6 +1185,22 @@ static void SetJoyButtons(unsigned int buttons_mask)
             else if (i == joybnextweapon)
             {
                 next_weapon = 1;
+            }
+            else if (i == joybinvleft)
+            {
+                InventoryMoveLeft();
+            }
+            else if (i == joybinvright)
+            {
+                InventoryMoveRight();
+            }
+            else if (i == joybuseartifact)
+            {
+                if (!inventory)
+                {
+                    plr->readyArtifact = plr->inventory[inv_ptr].type;
+                }
+                usearti = true;
             }
         }
 
@@ -1642,6 +1655,7 @@ boolean G_Responder(event_t * ev)
             joyxmove = ev->data2;
             joyymove = ev->data3;
             joystrafemove = ev->data4;
+            joylook = ev->data5;
             return (true);      // eat events
 
         default:

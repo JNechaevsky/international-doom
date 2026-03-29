@@ -248,6 +248,8 @@ static unsigned int last_resize_time;
 
 // Joystick/gamepad hysteresis
 unsigned int joywait = 0;
+static unsigned int controller_refresh_wait = 0;
+static const unsigned int controller_refresh_interval = 3 * TICRATE;
 
 // Icon RGB data and dimensions
 static const unsigned int *icon_data;
@@ -680,6 +682,15 @@ static void I_GetEvent(void)
                 }
                 break;
 
+            case SDL_CONTROLLERDEVICEADDED:
+            case SDL_CONTROLLERDEVICEREMOVED:
+            case SDL_JOYDEVICEADDED:
+            case SDL_JOYDEVICEREMOVED:
+                // [PN] Keep controller state in sync globally via SDL hotplug events
+                // so all games/menus see up-to-date connection status.
+                I_RefreshControllerState();
+                break;
+
             case SDL_QUIT:
                 if (screensaver_mode)
                 {
@@ -711,6 +722,8 @@ static void I_GetEvent(void)
 //
 void I_StartTic (void)
 {
+    unsigned int now;
+
     if (!initialized)
     {
         return;
@@ -718,12 +731,22 @@ void I_StartTic (void)
 
     I_GetEvent();
 
+    now = I_GetTime();
+
+    if (now >= controller_refresh_wait)
+    {
+        // [PN] Global fallback polling for controller hotplug state.
+        // SDL hotplug events are primary; fallback stays slow and lightweight.
+        I_RefreshControllerState();
+        controller_refresh_wait = now + controller_refresh_interval;
+    }
+
     if (usemouse && !nomouse && window_focused)
     {
         I_ReadMouse();
     }
 
-    if (joywait < I_GetTime())
+    if (joywait < now)
     {
         I_UpdateJoystick();
     }

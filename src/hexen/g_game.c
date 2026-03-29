@@ -194,6 +194,8 @@ char savedescription[32];
 static ticcmd_t basecmd; // [crispy]
 
 static int inventoryTics;
+static boolean InventoryMoveLeft(void);
+static boolean InventoryMoveRight(void);
 
 // haleyjd: removed externdriver crap
 
@@ -362,10 +364,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
           || mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2]
           || joybuttons[joybstrafe];
 
-    // Allow joybspeed hack.
-
-    speed = (key_speed >= NUMKEYS || key_speed2 >= NUMKEYS
-        || joybspeed >= MAX_JOY_BUTTONS);
+    // [PN] When "always run" is active, pressing the "run" key walks.
+    speed = always_run;
     speed ^= speedkeydown();
     crl_camzspeed = speed;
 
@@ -408,19 +408,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     // [crispy] toggle "always run"
     if (gamekeydown[key_autorun] || gamekeydown[key_autorun2])
     {
-        static int joybspeed_old = 2;
-
-        if (joybspeed >= MAX_JOY_BUTTONS)
-        {
-            joybspeed = joybspeed_old;
-        }
-        else
-        {
-            joybspeed_old = joybspeed;
-            joybspeed = MAX_JOY_BUTTONS;
-        }
-
-        CT_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
+        always_run ^= 1;
+        CT_SetMessage(&players[consoleplayer], always_run ?
                       ID_AUTORUN_ON : ID_AUTORUN_OFF, false, NULL);
         S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
         gamekeydown[key_autorun] = gamekeydown[key_autorun2] = false;
@@ -528,7 +517,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     {
         joyymove = joyymove * joystick_move_sensitivity / 10;
         joyymove = (joyymove > FRACUNIT) ? FRACUNIT : joyymove;
-        joyymove = (joyymove < -FRACUNIT) ? FRACUNIT : joyymove;
+        joyymove = (joyymove < -FRACUNIT) ? -FRACUNIT : joyymove;
         forward -= FixedMul(forwardmove[pClass][speed], joyymove);
     }
     else if (joystick_move_sensitivity)
@@ -607,15 +596,18 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     // haleyjd: removed externdriver crap
 
     // Fly up/down/drop keys
-    if (gamekeydown[key_flyup] || gamekeydown[key_flyup2])
+    if (gamekeydown[key_flyup] || gamekeydown[key_flyup2]
+    || joybuttons[joybflyup])
     {
         fly_height = 5;          // note that the actual fly_height will be twice this
     }
-    if (gamekeydown[key_flydown] || gamekeydown[key_flydown2])
+    if (gamekeydown[key_flydown] || gamekeydown[key_flydown2]
+    || joybuttons[joybflydown])
     {
         fly_height = -5;
     }
-    if (gamekeydown[key_flycenter] || gamekeydown[key_flycenter2])
+    if (gamekeydown[key_flycenter] || gamekeydown[key_flycenter2]
+    || joybuttons[joybflycenter])
     {
         fly_height = TOCENTER;
         // haleyjd: removed externdriver crap
@@ -623,7 +615,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
     // Use artifact key
     if (gamekeydown[key_useartifact] || gamekeydown[key_useartifact2]
-    ||  mousebuttons[mousebuseartifact] || mousebuttons[mousebuseartifact2])
+    ||  mousebuttons[mousebuseartifact] || mousebuttons[mousebuseartifact2]
+    ||  joybuttons[joybuseartifact])
     {
         if ((gamekeydown[key_speed] || gamekeydown[key_speed2]) && artiskip)
         {
@@ -631,6 +624,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             {                   // Skip an artifact
                 gamekeydown[key_useartifact] = gamekeydown[key_useartifact2] = false;
                 mousebuttons[mousebuseartifact] = mousebuttons[mousebuseartifact2] = false;
+                joybuttons[joybuseartifact] = false;
                 P_PlayerNextArtifact(&players[consoleplayer]);
             }
         }
@@ -653,7 +647,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             }
         }
     }
-    if (gamekeydown[key_jump] || gamekeydown[key_jump2] || mousebuttons[mousebjump] || mousebuttons[mousebjump2])
+    if (gamekeydown[key_jump] || gamekeydown[key_jump2] || mousebuttons[mousebjump] || mousebuttons[mousebjump2]
+        || joybuttons[joybjump])
     {
         cmd->arti |= AFLAG_JUMP;
     }
@@ -1135,6 +1130,7 @@ void G_DoLoadLevel(void)
 static void SetJoyButtons(unsigned int buttons_mask)
 {
     int i;
+    player_t *plr = &players[consoleplayer];
 
     for (i=0; i<MAX_JOY_BUTTONS; ++i)
     {
@@ -1153,6 +1149,22 @@ static void SetJoyButtons(unsigned int buttons_mask)
             else if (i == joybnextweapon)
             {
                 next_weapon = 1;
+            }
+            else if (i == joybinvleft)
+            {
+                InventoryMoveLeft();
+            }
+            else if (i == joybinvright)
+            {
+                InventoryMoveRight();
+            }
+            else if (i == joybuseartifact)
+            {
+                if (!inventory)
+                {
+                    plr->readyArtifact = plr->inventory[inv_ptr].type;
+                }
+                usearti = true;
             }
         }
 

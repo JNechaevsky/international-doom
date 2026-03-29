@@ -37,15 +37,9 @@
 
 static SDL_GameController *gamepad = NULL;
 static SDL_Joystick *joystick = NULL;
+static char controller_name[128] = "NOT CONNECTED";
 
 // Configuration variables:
-
-// Standard default.cfg Joystick enable/disable
-
-static int usejoystick = 0;
-
-// Use SDL_gamecontroller interface for the selected device
-static int use_gamepad = 0;
 
 // SDL_GameControllerType of gamepad
 static int gamepad_type = 0;
@@ -57,31 +51,31 @@ static int joystick_index = -1;
 // Which joystick axis to use for horizontal movement, and whether to
 // invert the direction:
 
-static int joystick_x_axis = 0;
-static int joystick_x_invert = 0;
+int joystick_x_axis = 0;
+int joystick_x_invert = 0;
 
 // Which joystick axis to use for vertical movement, and whether to
 // invert the direction:
 
-static int joystick_y_axis = 1;
-static int joystick_y_invert = 0;
+int joystick_y_axis = 1;
+int joystick_y_invert = 0;
 
 // Which joystick axis to use for strafing?
 
-static int joystick_strafe_axis = -1;
-static int joystick_strafe_invert = 0;
+int joystick_strafe_axis = -1;
+int joystick_strafe_invert = 0;
 
 // Which joystick axis to use for looking?
 
-static int joystick_look_axis = -1;
-static int joystick_look_invert = 0;
+int joystick_look_axis = -1;
+int joystick_look_invert = 0;
 
 // Configurable dead zone for each axis, specified as a percentage of the axis
 // max value.
-static int joystick_x_dead_zone = 33;
-static int joystick_y_dead_zone = 33;
-static int joystick_strafe_dead_zone = 33;
-static int joystick_look_dead_zone = 33;
+int joystick_x_dead_zone = 33;
+int joystick_y_dead_zone = 33;
+int joystick_strafe_dead_zone = 33;
+int joystick_look_dead_zone = 33;
 
 int use_analog = 0;
 
@@ -95,13 +89,36 @@ static int joystick_physical_buttons[NUM_VIRTUAL_BUTTONS] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 };
 
+static void I_UpdateControllerName(void)
+{
+    const char *name = NULL;
+
+    if (gamepad != NULL)
+    {
+        name = SDL_GameControllerName(gamepad);
+    }
+    else if (joystick != NULL)
+    {
+        name = SDL_JoystickName(joystick);
+    }
+
+    if (name == NULL || name[0] == '\0')
+    {
+        M_StringCopy(controller_name, "NOT CONNECTED", sizeof(controller_name));
+    }
+    else
+    {
+        M_StringCopy(controller_name, name, sizeof(controller_name));
+    }
+}
+
 static void I_ShutdownGamepad(void)
 {
     if (gamepad != NULL)
     {
         SDL_GameControllerClose(gamepad);
         gamepad = NULL;
-        SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
+        I_UpdateControllerName();
     }
 }
 
@@ -120,6 +137,16 @@ static int FindFirstGamepad(void)
     }
 
     return gamepadindex;
+}
+
+static int FindFirstJoystick(void)
+{
+    if (SDL_NumJoysticks() > 0)
+    {
+        return 0;
+    }
+
+    return -1;
 }
 
 static int FindSpecificGamepad(SDL_JoystickGUID guid)
@@ -177,24 +204,22 @@ static int DeviceIndexGamepad(void)
 static void I_InitGamepad(void)
 {
     SDL_JoystickGUID guid;
+    char guid_string[GUID_STRING_BUF_SIZE];
     int index;
-
-    if (!use_gamepad)
-    {
-        return;
-    }
 
     if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0)
     {
         return;
     }
 
+    // [PN] Keep controller events enabled even when no device is currently open.
+    SDL_JoystickEventState(SDL_ENABLE);
+    SDL_GameControllerEventState(SDL_ENABLE);
+
     index = DeviceIndexGamepad();
 
     if (index < 0)
     {
-        printf("I_InitGamepad: No gamepad found.\n");
-        SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
         return;
     }
 
@@ -203,24 +228,20 @@ static void I_InitGamepad(void)
     if (gamepad == NULL)
     {
         printf("I_InitGamepad: Failed to open gamepad: %s\n", SDL_GetError());
-        SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
         return;
     }
 
     joystick_index = index;
     gamepad_type = SDL_GameControllerTypeForIndex(index);
 
-    if (strcmp(joystick_guid, ""))
-    {
-        joystick_guid = malloc(GUID_STRING_BUF_SIZE);
-    }
-
     guid = SDL_JoystickGetDeviceGUID(joystick_index);
-    SDL_JoystickGetGUIDString(guid, joystick_guid, GUID_STRING_BUF_SIZE);
+    SDL_JoystickGetGUIDString(guid, guid_string, sizeof(guid_string));
+    joystick_guid = M_StringDuplicate(guid_string);
 
     // GameController events do not fire if Joystick events are disabled.
     SDL_JoystickEventState(SDL_ENABLE);
     SDL_GameControllerEventState(SDL_ENABLE);
+    I_UpdateControllerName();
 
     printf("I_InitGamepad: %s\n", SDL_GameControllerName(gamepad));
     I_AtExit(I_ShutdownGamepad, true);
@@ -344,7 +365,7 @@ void I_ShutdownJoystick(void)
     {
         SDL_JoystickClose(joystick);
         joystick = NULL;
-        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+        I_UpdateControllerName();
     }
 }
 
@@ -377,6 +398,18 @@ static int DeviceIndex(void)
     SDL_JoystickGUID guid, dev_guid;
     int i;
 
+    // [PN] No stored GUID yet: pick the previous index if still valid,
+    // otherwise auto-detect the first available joystick.
+    if (!strcmp(joystick_guid, ""))
+    {
+        if (joystick_index >= 0 && joystick_index < SDL_NumJoysticks())
+        {
+            return joystick_index;
+        }
+
+        return FindFirstJoystick();
+    }
+
     guid = SDL_JoystickGetGUIDFromString(joystick_guid);
 
     // GUID identifies a class of device rather than a specific device.
@@ -402,22 +435,20 @@ static int DeviceIndex(void)
         }
     }
 
-    // No joystick found with the expected GUID.
-    return -1;
+    // No joystick found with the expected GUID: auto-detect fallback.
+    return FindFirstJoystick();
 }
 
 void I_InitJoystick(void)
 {
+    SDL_JoystickGUID guid;
+    char guid_string[GUID_STRING_BUF_SIZE];
     int index;
 
-    if (!usejoystick || !strcmp(joystick_guid, ""))
+    // [PN] Prefer SDL GameController API when possible.
+    I_InitGamepad();
+    if (gamepad != NULL)
     {
-        return;
-    }
-
-    if (use_gamepad)
-    {
-        I_InitGamepad();
         return;
     }
 
@@ -426,14 +457,13 @@ void I_InitJoystick(void)
         return;
     }
 
+    // [PN] Keep joystick events enabled for hotplug detection.
+    SDL_JoystickEventState(SDL_ENABLE);
+
     index = DeviceIndex();
 
     if (index < 0)
     {
-        printf("I_InitJoystick: Couldn't find joystick with GUID \"%s\": "
-               "device not found or not connected?\n",
-               joystick_guid);
-        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
         return;
     }
 
@@ -445,7 +475,6 @@ void I_InitJoystick(void)
     {
         printf("I_InitJoystick: Failed to open joystick #%i: %s\n", index,
                SDL_GetError());
-        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
         return;
     }
 
@@ -459,12 +488,20 @@ void I_InitJoystick(void)
 
         SDL_JoystickClose(joystick);
         joystick = NULL;
-        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+        I_UpdateControllerName();
+        return;
     }
 
     SDL_JoystickEventState(SDL_ENABLE);
 
     // Initialized okay!
+
+    joystick_index = index;
+    gamepad_type = 0;
+    guid = SDL_JoystickGetDeviceGUID(joystick_index);
+    SDL_JoystickGetGUIDString(guid, guid_string, sizeof(guid_string));
+    joystick_guid = M_StringDuplicate(guid_string);
+    I_UpdateControllerName();
 
     printf("I_InitJoystick: %s\n", SDL_JoystickName(joystick));
 
@@ -634,7 +671,7 @@ static int GetAxisState(int axis, int invert, int dead_zone)
 
 void I_UpdateJoystick(void)
 {
-    if (use_gamepad)
+    if (gamepad != NULL)
     {
         I_UpdateGamepad();
         return;
@@ -659,12 +696,42 @@ void I_UpdateJoystick(void)
     }
 }
 
+void I_RefreshControllerState(void)
+{
+    // [PN] Drop stale handles when device was unplugged.
+    if (gamepad != NULL && !SDL_GameControllerGetAttached(gamepad))
+    {
+        I_ShutdownGamepad();
+    }
+
+    if (joystick != NULL && !SDL_JoystickGetAttached(joystick))
+    {
+        I_ShutdownJoystick();
+    }
+
+    // [PN] If no active input device is present, try to auto-detect again.
+    if (gamepad == NULL && joystick == NULL)
+    {
+        I_InitJoystick();
+    }
+
+    I_UpdateControllerName();
+}
+
+const char *I_GetControllerName(void)
+{
+    return controller_name;
+}
+
+int I_HasController(void)
+{
+    return gamepad != NULL || joystick != NULL;
+}
+
 void I_BindJoystickVariables(void)
 {
     int i;
 
-    M_BindIntVariable("use_joystick",          &usejoystick);
-    M_BindIntVariable("use_gamepad",           &use_gamepad);
     M_BindIntVariable("gamepad_type",          &gamepad_type);
     M_BindStringVariable("joystick_guid",      &joystick_guid);
     M_BindIntVariable("joystick_index",        &joystick_index);
@@ -692,4 +759,3 @@ void I_BindJoystickVariables(void)
         M_BindIntVariable(name, &joystick_physical_buttons[i]);
     }
 }
-

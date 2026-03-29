@@ -74,6 +74,7 @@ int key_useartifact = KEY_ENTER; int key_useartifact2 = 0;
 
 // Advanced movement
 
+int always_run     = 1;
 int key_autorun    = KEY_CAPSLOCK; int key_autorun2    = 0; // [crispy]
 int key_mouse_look = 0;            int key_mouse_look2 = 0; // [crispy]
 int key_novert     = 0;            int key_novert2     = 0;
@@ -231,15 +232,21 @@ int mouse_dclick_use = 1;
 
 int joybfire = 0;
 int joybstrafe = 1;
-int joybuse = 3;
-int joybspeed = 29;
+int joybuse = 2;
+int joybspeed = -1;
+int joybjump = 8;
 int joybstrafeleft = -1;
 int joybstraferight = -1;
-int joybprevweapon = -1;
-int joybnextweapon = -1;
-int joybmenu = -1;
-int joybautomap = -1;
-int joybjump = -1;
+int joybprevweapon = 9;
+int joybnextweapon = 10;
+int joybmenu = 6;
+int joybautomap = 3;
+int joybuseartifact = -1;
+int joybinvleft = -1;
+int joybinvright = -1;
+int joybflyup = -1;
+int joybflydown = -1;
+int joybflycenter = -1;
 
 //
 // Allow artifacts to be used when the run key is held down.
@@ -277,6 +284,7 @@ void M_BindControls (void)
 
     // Advanced movement
 
+    M_BindIntVariable("always_run", &always_run);
     M_BindIntVariableKeybind("key_autorun",    &key_autorun,    "key_autorun2",    &key_autorun2); // [crispy]
     M_BindIntVariableKeybind("key_mouse_look", &key_mouse_look, "key_mouse_look2", &key_mouse_look2);
     M_BindIntVariableKeybind("key_novert",     &key_novert,     "key_novert2",     &key_novert2);
@@ -396,16 +404,16 @@ void M_BindControls (void)
     // Joystick controls
     //
 
-    M_BindIntVariable("joyb_fire",              &joybfire);
-    M_BindIntVariable("joyb_strafe",            &joybstrafe);
-    M_BindIntVariable("joyb_use",               &joybuse);
-    M_BindIntVariable("joyb_speed",             &joybspeed);
-    M_BindIntVariable("joyb_strafeleft",        &joybstrafeleft);
-    M_BindIntVariable("joyb_straferight",       &joybstraferight);
-    M_BindIntVariable("joyb_prevweapon",        &joybprevweapon);
-    M_BindIntVariable("joyb_nextweapon",        &joybnextweapon);
-    M_BindIntVariable("joyb_menu_activate",     &joybmenu);
-    M_BindIntVariable("joyb_toggle_automap",    &joybautomap);
+    M_BindIntVariable("joybtn_fire",             &joybfire);
+    M_BindIntVariable("joybtn_strafe",           &joybstrafe);
+    M_BindIntVariable("joybtn_use",              &joybuse);
+    M_BindIntVariable("joybtn_speed",            &joybspeed);
+    M_BindIntVariable("joybtn_strafeleft",       &joybstrafeleft);
+    M_BindIntVariable("joybtn_straferight",      &joybstraferight);
+    M_BindIntVariable("joybtn_prevweapon",       &joybprevweapon);
+    M_BindIntVariable("joybtn_nextweapon",       &joybnextweapon);
+    M_BindIntVariable("joybtn_menu_activate",    &joybmenu);
+    M_BindIntVariable("joybtn_toggle_automap",   &joybautomap);
 }
 
 void M_BindHereticControls (void)
@@ -437,6 +445,13 @@ void M_BindHereticControls (void)
     M_BindIntVariableKeybind("mouseb_invright",    &mousebinvright,    "mouseb_invright2",    &mousebinvright2);
     M_BindIntVariableKeybind("mouseb_useartifact", &mousebuseartifact, "mouseb_useartifact2", &mousebuseartifact2);
 
+    M_BindIntVariable("joybtn_invleft",     &joybinvleft);
+    M_BindIntVariable("joybtn_invright",    &joybinvright);
+    M_BindIntVariable("joybtn_useartifact", &joybuseartifact);
+    M_BindIntVariable("joybtn_flyup",       &joybflyup);
+    M_BindIntVariable("joybtn_flydown",     &joybflydown);
+    M_BindIntVariable("joybtn_flycenter",   &joybflycenter);
+
     M_BindIntVariable("ctrl_noartiskip",        &ctrl_noartiskip);
 }
 
@@ -444,7 +459,7 @@ void M_BindHexenControls(void)
 {
     M_BindIntVariableKeybind("key_jump",    &key_jump,   "key_jump2",    &key_jump2);
     M_BindIntVariableKeybind("mouseb_jump", &mousebjump, "mouseb_jump2", &mousebjump2);
-    M_BindIntVariable("joyb_jump",          &joybjump);
+    M_BindIntVariable("joybtn_jump",        &joybjump);
 
     M_BindIntVariableKeybind("key_arti_all",             &key_arti_all,             "key_arti_all2",             &key_arti_all2);
     M_BindIntVariableKeybind("key_arti_health",          &key_arti_health,          "key_arti_health2",          &key_arti_health2);

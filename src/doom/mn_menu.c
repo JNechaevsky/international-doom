@@ -32,6 +32,7 @@
 #include "deh_main.h"
 #include "gusconf.h"
 #include "i_input.h"
+#include "i_joystick.h"
 #include "i_swap.h"
 #include "i_system.h"
 #include "i_timer.h"
@@ -729,6 +730,38 @@ static void M_Bind_M_PrevWeapon (int choice);
 static void M_Bind_M_NextWeapon (int choice);
 static void M_Bind_M_Reset (int choice);
 
+static void M_Choose_ID_GamepadBinds (int choice);
+static void M_Draw_ID_GamepadBinds (void);
+static void M_Draw_ID_GamepadSettings_1 (void);
+static void M_Draw_ID_GamepadSettings_2 (void);
+static void M_Bind_G_FireAttack (int choice);
+static void M_Bind_G_StrafeOn (int choice);
+static void M_Bind_G_Use (int choice);
+static void M_Bind_G_SpeedOn (int choice);
+static void M_Bind_G_StrafeLeft (int choice);
+static void M_Bind_G_StrafeRight (int choice);
+static void M_Bind_G_PrevWeapon (int choice);
+static void M_Bind_G_NextWeapon (int choice);
+static void M_Bind_G_Menu (int choice);
+static void M_Bind_G_Automap (int choice);
+static void M_Bind_G_Reset (int choice);
+static void M_ID_Gamepad_UseAnalog (int choice);
+static void M_ID_Gamepad_TurnSensitivity (int choice);
+static void M_ID_Gamepad_MoveSensitivity (int choice);
+static void M_ID_Gamepad_LookSensitivity (int choice);
+static void M_ID_Gamepad_AxisX (int choice);
+static void M_ID_Gamepad_AxisY (int choice);
+static void M_ID_Gamepad_AxisStrafe (int choice);
+static void M_ID_Gamepad_AxisLook (int choice);
+static void M_ID_Gamepad_InvertX (int choice);
+static void M_ID_Gamepad_InvertY (int choice);
+static void M_ID_Gamepad_InvertStrafe (int choice);
+static void M_ID_Gamepad_InvertLook (int choice);
+static void M_ID_Gamepad_DeadZoneX (int choice);
+static void M_ID_Gamepad_DeadZoneY (int choice);
+static void M_ID_Gamepad_DeadZoneStrafe (int choice);
+static void M_ID_Gamepad_DeadZoneLook (int choice);
+
 static void M_Choose_ID_Widgets (int choice);
 static void M_Draw_ID_Widgets (void);
 static void M_ID_Widget_Colors (int choice);
@@ -884,6 +917,18 @@ static void    M_ClearMouseBind (int itemOn);
 static void    M_DrawBindButton (int itemNum, int yPos, int btn1, int btn2);
 static void    M_ResetMouseBinds (void);
 
+// Gamepad binding prototypes
+static boolean GamepadIsBinding;
+static int     joyToBind;
+
+static void    M_StartGamepadBind (int btn);
+static void    M_CheckGamepadBind (int btn);
+static void    M_DoGamepadBind (int btnnum, int btn);
+static void    M_ClearGamepadBind (int itemOn);
+static void    M_DrawBindGamepad (int itemNum, int yPos, int btn);
+static void    M_ResetGamepadBinds (void);
+static void    M_DrawGamepadPagesFooter (const char *pagenum);
+
 // Forward declarations for scrolling and remembering last pages.
 static menu_t ID_Def_Video_1;
 static menu_t ID_Def_Video_2;
@@ -898,6 +943,9 @@ static menu_t ID_Def_Gameplay_2;
 static menu_t ID_Def_Gameplay_3;
 static menu_t ID_Def_Level_1;
 static menu_t ID_Def_Level_2;
+static menu_t ID_Def_GamepadBinds;
+static menu_t ID_Def_GamepadSettings_1;
+static menu_t ID_Def_GamepadSettings_2;
 
 // Remember last keybindings page.
 static int Keybinds_Cur;
@@ -931,6 +979,9 @@ static void M_Choose_ID_Gameplay (int choice)
 {
     M_SetupNextMenu(GameplayMenus[Gameplay_Cur]);
 }
+
+// Remember last gamepad bindings page.
+static int GamepadBinds_Cur;
 
 // [JN/PN] Utility function for scrolling pages by arrows / PG keys.
 static void M_ScrollPages (boolean direction)
@@ -976,6 +1027,11 @@ static void M_ScrollPages (boolean direction)
     else if (currentMenu == &ID_Def_Keybinds_4) nextMenu = (direction ? &ID_Def_Keybinds_5 : &ID_Def_Keybinds_3);
     else if (currentMenu == &ID_Def_Keybinds_5) nextMenu = (direction ? &ID_Def_Keybinds_6 : &ID_Def_Keybinds_4);
     else if (currentMenu == &ID_Def_Keybinds_6) nextMenu = (direction ? &ID_Def_Keybinds_1 : &ID_Def_Keybinds_5);
+
+    // Gamepad bindings:
+    else if (currentMenu == &ID_Def_GamepadBinds) nextMenu = (direction ? &ID_Def_GamepadSettings_1 : &ID_Def_GamepadSettings_2);
+    else if (currentMenu == &ID_Def_GamepadSettings_1) nextMenu = (direction ? &ID_Def_GamepadSettings_2 : &ID_Def_GamepadBinds);
+    else if (currentMenu == &ID_Def_GamepadSettings_2) nextMenu = (direction ? &ID_Def_GamepadBinds : &ID_Def_GamepadSettings_1);
 
     // Gameplay features:
     else if (currentMenu == &ID_Def_Gameplay_1) nextMenu = (direction ? &ID_Def_Gameplay_2 : &ID_Def_Gameplay_3);
@@ -2305,6 +2361,7 @@ static menuitem_t ID_Menu_Controls[]=
 {
     { M_SWTC, "KEYBOARD BINDINGS",            M_Choose_ID_Keybinds,       'k' },
     { M_SWTC, "MOUSE BINDINGS",               M_Choose_ID_MouseBinds,     'm' },
+    { M_SWTC, "GAMEPAD SETTINGS",             M_Choose_ID_GamepadBinds,   'g' },
     { M_SKIP, "", 0, '\0' },
     { M_SLDR, "HORIZONTAL SENSITIVITY",       M_ID_Controls_Sensivity,    'h' },
     { M_SKIP, "", 0, '\0' },
@@ -2340,79 +2397,79 @@ static void M_Draw_ID_Controls (void)
 {
     char str[32];
 
-    M_WriteTextCentered(9, "BINDINGS", cr[CR_YELLOW]);
+    M_WriteTextCentered(9, "CONTROLS CONFIGURATION", cr[CR_YELLOW]);
     
-    M_WriteTextCentered(36, "MOUSE CONFIGURATION", cr[CR_YELLOW]);
+    M_WriteTextCentered(45, "MOUSE CONFIGURATION", cr[CR_YELLOW]);
 
-    M_DrawThermo(46, 54, 15, mouseSensitivity, 3);
-    M_ID_HandleSliderMouseControl(52, 54, 124, &mouseSensitivity, false, 0, 14);
+    M_DrawThermo(46, 63, 15, mouseSensitivity, 4);
+    M_ID_HandleSliderMouseControl(52, 63, 124, &mouseSensitivity, false, 0, 14);
     sprintf(str,"%d", mouseSensitivity);
-    M_WriteTextGlow(184, 57, str,
+    M_WriteTextGlow(184, 66, str,
                         mouseSensitivity == 255 ? cr[CR_YELLOW] :
                         mouseSensitivity  >  14 ? cr[CR_GREEN] : NULL,
                             mouseSensitivity == 255 ? cr[CR_YELLOW_BRIGHT] :
                             mouseSensitivity  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
-                                LINE_ALPHA(3));
+                                LINE_ALPHA(4));
 
-    M_DrawThermo(46, 81, 15, mouse_sensitivity_y, 6);
-    M_ID_HandleSliderMouseControl(52, 81, 124, &mouse_sensitivity_y, false, 0, 14);
+    M_DrawThermo(46, 90, 15, mouse_sensitivity_y, 7);
+    M_ID_HandleSliderMouseControl(52, 90, 124, &mouse_sensitivity_y, false, 0, 14);
     sprintf(str,"%d", mouse_sensitivity_y);
-    M_WriteTextGlow(184, 84, str,
+    M_WriteTextGlow(184, 93, str,
                         mouse_sensitivity_y == 255 ? cr[CR_YELLOW] :
                         mouse_sensitivity_y  >  14 ? cr[CR_GREEN] : NULL,
                             mouse_sensitivity_y == 255 ? cr[CR_YELLOW_BRIGHT] :
                             mouse_sensitivity_y  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(7));
 
     // Acceleration
     sprintf(str,"%.1f", mouse_acceleration);
-    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
                         mouse_acceleration == 2.0f ? NULL :
                         mouse_acceleration == 1.0f ? cr[CR_DARKRED] :
                         mouse_acceleration  < 2.0f ? cr[CR_YELLOW] : cr[CR_GREEN],
                             mouse_acceleration == 2.0f ? cr[CR_MENU_BRIGHT5] :
                             mouse_acceleration == 1.0f ? cr[CR_RED_BRIGHT] :
                             mouse_acceleration  < 2.0f ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],                        
-                                LINE_ALPHA(9));
+                                LINE_ALPHA(10));
 
     // Acceleration threshold
     sprintf(str,"%d", mouse_threshold);
-    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
                         mouse_threshold == 10 ? NULL :
                         mouse_threshold ==  0 ? cr[CR_DARKRED] :
                         mouse_threshold  < 10 ? cr[CR_YELLOW] : cr[CR_GREEN],
                             mouse_threshold == 10 ? cr[CR_MENU_BRIGHT5] :
                             mouse_threshold ==  0 ? cr[CR_RED_BRIGHT] :
                             mouse_threshold  < 10 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(10));
+                                LINE_ALPHA(11));
 
     // Mouse look
     sprintf(str, mouse_look ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
                         mouse_look ? cr[CR_GREEN] : cr[CR_RED],
                             mouse_look ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(11));
+                                LINE_ALPHA(12));
                  
     // Vertical mouse movement
     sprintf(str, mouse_novert ? "OFF" : "ON");
-    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
                         mouse_novert ? cr[CR_RED] : cr[CR_GREEN],
                             mouse_novert ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(12));
+                                LINE_ALPHA(13));
     
     // Invert vertical axis
     sprintf(str, mouse_y_invert ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
                         mouse_y_invert ? cr[CR_GREEN] : cr[CR_RED],
                             mouse_y_invert ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(13));
+                                LINE_ALPHA(14));
 
     // Double click acts as "use"
     sprintf(str, mouse_dclick_use ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 153, str,
                         mouse_dclick_use ? cr[CR_GREEN] : cr[CR_RED],
                             mouse_dclick_use ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(14));
+                                LINE_ALPHA(15));
 }
 
 static void M_ID_Controls_Sensivity (int choice)
@@ -3306,6 +3363,331 @@ static void M_Draw_ID_MouseBinds (void)
 
     M_DrawBindFooter(NULL, false);
 }
+
+// -----------------------------------------------------------------------------
+// Gamepad bindings
+// -----------------------------------------------------------------------------
+
+static menuitem_t ID_Menu_GamepadBinds[]=
+{
+    { M_SWTC, "FIRE/ATTACK",               M_Bind_G_FireAttack,  'f' },
+    { M_SWTC, "STRAFE ON",                 M_Bind_G_StrafeOn,    's' },
+    { M_SWTC, "USE",                       M_Bind_G_Use,         'u' },
+    { M_SWTC, "SPEED ON",                  M_Bind_G_SpeedOn,     's' },
+    { M_SWTC, "STRAFE LEFT",               M_Bind_G_StrafeLeft,  's' },
+    { M_SWTC, "STRAFE RIGHT",              M_Bind_G_StrafeRight, 's' },
+    { M_SWTC, "PREV WEAPON",               M_Bind_G_PrevWeapon,  'p' },
+    { M_SWTC, "NEXT WEAPON",               M_Bind_G_NextWeapon,  'n' },
+    { M_SWTC, "ACTIVATE MENU",             M_Bind_G_Menu,        'a' },
+    { M_SWTC, "TOGGLE AUTOMAP",            M_Bind_G_Automap,     't' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SWTC, "RESET BINDINGS TO DEFAULT", M_Bind_G_Reset,       'r' },
+};
+
+static menu_t ID_Def_GamepadBinds =
+{
+    ITEMCOUNT(ID_Menu_GamepadBinds),
+    &ID_Def_Controls,
+    ID_Menu_GamepadBinds,
+    M_Draw_ID_GamepadBinds,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    0,
+    true, false, true,
+};
+
+static void M_Choose_ID_GamepadBinds (int choice)
+{
+    if (GamepadBinds_Cur == 1)
+    {
+        M_SetupNextMenu(&ID_Def_GamepadSettings_1);
+    }
+    else if (GamepadBinds_Cur == 2)
+    {
+        M_SetupNextMenu(&ID_Def_GamepadSettings_2);
+    }
+    else
+    {
+        M_SetupNextMenu(&ID_Def_GamepadBinds);
+    }
+}
+
+static void M_Bind_G_FireAttack (int choice)
+{
+    M_StartGamepadBind(2000);  // joybfire
+}
+
+static void M_Bind_G_StrafeOn (int choice)
+{
+    M_StartGamepadBind(2001);  // joybstrafe
+}
+
+static void M_Bind_G_Use (int choice)
+{
+    M_StartGamepadBind(2002);  // joybuse
+}
+
+static void M_Bind_G_SpeedOn (int choice)
+{
+    M_StartGamepadBind(2003);  // joybspeed
+}
+
+static void M_Bind_G_StrafeLeft (int choice)
+{
+    M_StartGamepadBind(2004);  // joybstrafeleft
+}
+
+static void M_Bind_G_StrafeRight (int choice)
+{
+    M_StartGamepadBind(2005);  // joybstraferight
+}
+
+static void M_Bind_G_PrevWeapon (int choice)
+{
+    M_StartGamepadBind(2006);  // joybprevweapon
+}
+
+static void M_Bind_G_NextWeapon (int choice)
+{
+    M_StartGamepadBind(2007);  // joybnextweapon
+}
+
+static void M_Bind_G_Menu (int choice)
+{
+    M_StartGamepadBind(2008);  // joybmenu
+}
+
+static void M_Bind_G_Automap (int choice)
+{
+    M_StartGamepadBind(2009);  // joybautomap
+}
+
+static void M_Bind_G_ResetResponse (int key)
+{
+    if (key != key_menu_confirm)
+    {
+        return;
+    }
+
+    M_ResetGamepadBinds();
+}
+
+static void M_Bind_G_Reset (int choice)
+{
+    const char *resetwarning =
+        M_StringJoin("RESET GAMEPAD BINDINGS TO DEFAULT VALUES?",
+                     "\n\n", PRESSYN, NULL);
+
+    messageFillBG = true;
+    M_StartMessage(resetwarning, M_Bind_G_ResetResponse, true);
+}
+
+static void M_DrawControllerName (void)
+{
+    const char *controller_name = I_GetControllerName();
+    byte *controller_color = I_HasController() ? cr[CR_GREEN] : cr[CR_DARKRED];
+
+    M_WriteTextCentered(144, "DETECTED CONTROLLER:", cr[CR_YELLOW]);
+    M_WriteTextCentered(153, controller_name, controller_color);
+}
+
+static void M_Draw_ID_GamepadBinds (void)
+{
+    GamepadBinds_Cur = 0;
+
+    st_fullupdate = true;
+
+    M_FillBackground();
+
+    M_WriteTextCentered(9, "GAMEPAD BINDINGS", cr[CR_YELLOW]);
+
+    M_DrawBindGamepad(0, 18, joybfire);
+    M_DrawBindGamepad(1, 27, joybstrafe);
+    M_DrawBindGamepad(2, 36, joybuse);
+    M_DrawBindGamepad(3, 45, joybspeed);
+    M_DrawBindGamepad(4, 54, joybstrafeleft);
+    M_DrawBindGamepad(5, 63, joybstraferight);
+    M_DrawBindGamepad(6, 72, joybprevweapon);
+    M_DrawBindGamepad(7, 81, joybnextweapon);
+    M_DrawBindGamepad(8, 90, joybmenu);
+    M_DrawBindGamepad(9, 99, joybautomap);
+    M_WriteTextCentered(108, "RESET", cr[CR_YELLOW]);
+
+    M_DrawControllerName();
+    M_WriteTextCentered(171, "PRESS ENTER TO BIND, DEL TO CLEAR", cr[CR_MENU_DARK1]);
+
+    M_DrawGamepadPagesFooter("1");
+}
+
+// -----------------------------------------------------------------------------
+// Gamepad settings
+// -----------------------------------------------------------------------------
+
+static menuitem_t ID_Menu_GamepadSettings_1[]=
+{
+    { M_MUL2, "ANALOG MOVEMENT", M_ID_Gamepad_UseAnalog,       'a' },
+    { M_MUL1, "TURN SENSITIVITY", M_ID_Gamepad_TurnSensitivity, 't' },
+    { M_MUL1, "MOVE SENSITIVITY", M_ID_Gamepad_MoveSensitivity, 'm' },
+    { M_MUL1, "LOOK SENSITIVITY", M_ID_Gamepad_LookSensitivity, 'l' },
+    { M_MUL1, "TURN AXIS", M_ID_Gamepad_AxisX,                 't' },
+    { M_MUL1, "MOVE AXIS", M_ID_Gamepad_AxisY,                 'm' },
+    { M_MUL1, "STRAFE AXIS", M_ID_Gamepad_AxisStrafe,          's' },
+    { M_MUL1, "LOOK AXIS", M_ID_Gamepad_AxisLook,              'l' },
+};
+
+static menu_t ID_Def_GamepadSettings_1 =
+{
+    ITEMCOUNT(ID_Menu_GamepadSettings_1),
+    &ID_Def_Controls,
+    ID_Menu_GamepadSettings_1,
+    M_Draw_ID_GamepadSettings_1,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    0,
+    true, false, true,
+};
+
+static menuitem_t ID_Menu_GamepadSettings_2[]=
+{
+    { M_MUL2, "TURN AXIS INVERT", M_ID_Gamepad_InvertX,           't' },
+    { M_MUL2, "MOVE AXIS INVERT", M_ID_Gamepad_InvertY,           'm' },
+    { M_MUL2, "STRAFE AXIS INVERT", M_ID_Gamepad_InvertStrafe,    's' },
+    { M_MUL2, "LOOK AXIS INVERT", M_ID_Gamepad_InvertLook,        'l' },
+    { M_MUL1, "TURN DEAD ZONE", M_ID_Gamepad_DeadZoneX,           't' },
+    { M_MUL1, "MOVE DEAD ZONE", M_ID_Gamepad_DeadZoneY,           'm' },
+    { M_MUL1, "STRAFE DEAD ZONE", M_ID_Gamepad_DeadZoneStrafe,    's' },
+    { M_MUL1, "LOOK DEAD ZONE", M_ID_Gamepad_DeadZoneLook,        'l' },
+};
+
+static menu_t ID_Def_GamepadSettings_2 =
+{
+    ITEMCOUNT(ID_Menu_GamepadSettings_2),
+    &ID_Def_Controls,
+    ID_Menu_GamepadSettings_2,
+    M_Draw_ID_GamepadSettings_2,
+    ID_MENU_LEFTOFFSET, ID_MENU_TOPOFFSET,
+    0,
+    true, false, true,
+};
+
+static const char *M_GamepadAxisName (int axis, char *buf, size_t buflen)
+{
+    if (axis < 0)
+    {
+        return "OFF";
+    }
+
+    switch (axis)
+    {
+        case 0: return "LEFT X";
+        case 1: return "LEFT Y";
+        case 2: return "RIGHT X";
+        case 3: return "RIGHT Y";
+        case 4: return "L TRIGGER";
+        case 5: return "R TRIGGER";
+        default:
+            break;
+    }
+
+    M_snprintf(buf, buflen, "%d", axis);
+    return buf;
+}
+
+static void M_Draw_ID_GamepadSettings_1 (void)
+{
+    char str[16];
+    const char *axis_name;
+
+    GamepadBinds_Cur = 1;
+    st_fullupdate = true;
+    M_FillBackground();
+
+    M_WriteTextCentered(9, "GAMEPAD SETTINGS", cr[CR_YELLOW]);
+    M_WriteTextCentered(171, "PRESS ENTER/LEFT/RIGHT TO CHANGE", cr[CR_MENU_DARK1]);
+
+    M_WriteTextGlow(M_ItemRightAlign(use_analog ? "ON" : "OFF"), 18, use_analog ? "ON" : "OFF",
+                    use_analog ? cr[CR_GREEN] : cr[CR_RED],
+                    use_analog ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], LINE_ALPHA(0));
+
+    M_snprintf(str, sizeof(str), "%d", joystick_turn_sensitivity);
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str, cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(1));
+    M_snprintf(str, sizeof(str), "%d", joystick_move_sensitivity);
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str, cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(2));
+    M_snprintf(str, sizeof(str), "%d", joystick_look_sensitivity);
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str, cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(3));
+
+    axis_name = M_GamepadAxisName(joystick_x_axis, str, sizeof(str));
+    M_WriteTextGlow(M_ItemRightAlign(axis_name), 54, axis_name,
+                    joystick_x_axis < 0 ? cr[CR_RED] : cr[CR_GREEN],
+                    joystick_x_axis < 0 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT], LINE_ALPHA(4));
+    axis_name = M_GamepadAxisName(joystick_y_axis, str, sizeof(str));
+    M_WriteTextGlow(M_ItemRightAlign(axis_name), 63, axis_name,
+                    joystick_y_axis < 0 ? cr[CR_RED] : cr[CR_GREEN],
+                    joystick_y_axis < 0 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT], LINE_ALPHA(5));
+    axis_name = M_GamepadAxisName(joystick_strafe_axis, str, sizeof(str));
+    M_WriteTextGlow(M_ItemRightAlign(axis_name), 72, axis_name,
+                    joystick_strafe_axis < 0 ? cr[CR_RED] : cr[CR_GREEN],
+                    joystick_strafe_axis < 0 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT], LINE_ALPHA(6));
+    axis_name = M_GamepadAxisName(joystick_look_axis, str, sizeof(str));
+    M_WriteTextGlow(M_ItemRightAlign(axis_name), 81, axis_name,
+                    joystick_look_axis < 0 ? cr[CR_RED] : cr[CR_GREEN],
+                    joystick_look_axis < 0 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT], LINE_ALPHA(7));
+
+    M_DrawControllerName();
+    M_DrawGamepadPagesFooter("2");
+}
+
+static void M_Draw_ID_GamepadSettings_2 (void)
+{
+    char str[16];
+
+    GamepadBinds_Cur = 2;
+    st_fullupdate = true;
+    M_FillBackground();
+
+    M_WriteTextCentered(9, "GAMEPAD SETTINGS", cr[CR_YELLOW]);
+    M_WriteTextCentered(171, "PRESS ENTER/LEFT/RIGHT TO CHANGE", cr[CR_MENU_DARK1]);
+
+    M_WriteTextGlow(M_ItemRightAlign(joystick_x_invert ? "ON" : "OFF"), 18, joystick_x_invert ? "ON" : "OFF",
+                    joystick_x_invert ? cr[CR_GREEN] : cr[CR_RED],
+                    joystick_x_invert ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], LINE_ALPHA(0));
+    M_WriteTextGlow(M_ItemRightAlign(joystick_y_invert ? "ON" : "OFF"), 27, joystick_y_invert ? "ON" : "OFF",
+                    joystick_y_invert ? cr[CR_GREEN] : cr[CR_RED],
+                    joystick_y_invert ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], LINE_ALPHA(1));
+    M_WriteTextGlow(M_ItemRightAlign(joystick_strafe_invert ? "ON" : "OFF"), 36, joystick_strafe_invert ? "ON" : "OFF",
+                    joystick_strafe_invert ? cr[CR_GREEN] : cr[CR_RED],
+                    joystick_strafe_invert ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], LINE_ALPHA(2));
+    M_WriteTextGlow(M_ItemRightAlign(joystick_look_invert ? "ON" : "OFF"), 45, joystick_look_invert ? "ON" : "OFF",
+                    joystick_look_invert ? cr[CR_GREEN] : cr[CR_RED],
+                    joystick_look_invert ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], LINE_ALPHA(3));
+
+    M_snprintf(str, sizeof(str), "%d", joystick_x_dead_zone);
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str, cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(4));
+    M_snprintf(str, sizeof(str), "%d", joystick_y_dead_zone);
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str, cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(5));
+    M_snprintf(str, sizeof(str), "%d", joystick_strafe_dead_zone);
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str, cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(6));
+    M_snprintf(str, sizeof(str), "%d", joystick_look_dead_zone);
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str, cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(7));
+
+    M_DrawControllerName();
+    M_DrawGamepadPagesFooter("3");
+}
+
+static void M_ID_Gamepad_UseAnalog (int choice)       { use_analog ^= 1; }
+static void M_ID_Gamepad_TurnSensitivity (int choice) { joystick_turn_sensitivity = M_INT_Slider(joystick_turn_sensitivity, 0, 20, choice, true); }
+static void M_ID_Gamepad_MoveSensitivity (int choice) { joystick_move_sensitivity = M_INT_Slider(joystick_move_sensitivity, 0, 20, choice, true); }
+static void M_ID_Gamepad_LookSensitivity (int choice) { joystick_look_sensitivity = M_INT_Slider(joystick_look_sensitivity, 0, 20, choice, true); }
+static void M_ID_Gamepad_AxisX (int choice)           { joystick_x_axis = M_INT_Slider(joystick_x_axis, -1, 7, choice, true); }
+static void M_ID_Gamepad_AxisY (int choice)           { joystick_y_axis = M_INT_Slider(joystick_y_axis, -1, 7, choice, true); }
+static void M_ID_Gamepad_AxisStrafe (int choice)      { joystick_strafe_axis = M_INT_Slider(joystick_strafe_axis, -1, 7, choice, true); }
+static void M_ID_Gamepad_AxisLook (int choice)        { joystick_look_axis = M_INT_Slider(joystick_look_axis, -1, 7, choice, true); }
+static void M_ID_Gamepad_InvertX (int choice)         { joystick_x_invert ^= 1; }
+static void M_ID_Gamepad_InvertY (int choice)         { joystick_y_invert ^= 1; }
+static void M_ID_Gamepad_InvertStrafe (int choice)    { joystick_strafe_invert ^= 1; }
+static void M_ID_Gamepad_InvertLook (int choice)      { joystick_look_invert ^= 1; }
+static void M_ID_Gamepad_DeadZoneX (int choice)       { joystick_x_dead_zone = M_INT_Slider(joystick_x_dead_zone, 0, 100, choice, true); }
+static void M_ID_Gamepad_DeadZoneY (int choice)       { joystick_y_dead_zone = M_INT_Slider(joystick_y_dead_zone, 0, 100, choice, true); }
+static void M_ID_Gamepad_DeadZoneStrafe (int choice)  { joystick_strafe_dead_zone = M_INT_Slider(joystick_strafe_dead_zone, 0, 100, choice, true); }
+static void M_ID_Gamepad_DeadZoneLook (int choice)    { joystick_look_dead_zone = M_INT_Slider(joystick_look_dead_zone, 0, 100, choice, true); }
 
 // -----------------------------------------------------------------------------
 // Widget settings
@@ -7071,6 +7453,8 @@ boolean M_Responder (event_t* ev)
     int             ch;
     int             key;
     int             i;
+    static unsigned int joybuttons_prev = 0;
+    static unsigned int joybuttons_blocked = 0;
     static  int     mousewait = 0;
     static  int     mousey = 0;
     static  int     lasty = 0;
@@ -7122,6 +7506,38 @@ boolean M_Responder (event_t* ev)
 
     if (ev->type == ev_joystick)
     {
+        const unsigned int pressed = (unsigned int) ev->data1;
+
+        // [PN] Keep ignoring blocked buttons while they are still held.
+        joybuttons_blocked &= pressed;
+
+        if (GamepadIsBinding)
+        {
+            // [PN] Bind only on fresh button press, ignoring already-held buttons.
+            const unsigned int newly_pressed = pressed & ~joybuttons_prev;
+
+            joybuttons_prev = pressed;
+
+            if (newly_pressed != 0)
+            {
+                for (int btn = 0; btn < MAX_VIRTUAL_BUTTONS; ++btn)
+                {
+                    if ((newly_pressed & (1u << btn)) != 0)
+                    {
+                        M_DoGamepadBind(joyToBind, btn);
+                        joyToBind = 0;
+                        GamepadIsBinding = false;
+                        // [PN] Prevent immediate re-trigger by the same held button.
+                        joybuttons_blocked |= (1u << btn);
+                        joywait = I_GetTime() + 5;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         // Simulate key presses from joystick events to interact with the menu.
 
         if (ev->data3 < 0)
@@ -7147,7 +7563,7 @@ boolean M_Responder (event_t* ev)
         }
 
 #define JOY_BUTTON_MAPPED(x) ((x) >= 0)
-#define JOY_BUTTON_PRESSED(x) (JOY_BUTTON_MAPPED(x) && (ev->data1 & (1 << (x))) != 0)
+#define JOY_BUTTON_PRESSED(x) (JOY_BUTTON_MAPPED(x) && (pressed & ~joybuttons_blocked & (1u << (x))) != 0)
 
         if (JOY_BUTTON_PRESSED(joybfire))
         {
@@ -7195,6 +7611,8 @@ boolean M_Responder (event_t* ev)
             key = key_menu_activate;
             joywait = I_GetTime() + 5;
         }
+
+        joybuttons_prev = pressed;
     }
     else
     {
@@ -7465,8 +7883,10 @@ boolean M_Responder (event_t* ev)
         if (currentMenu != &SaveDef && currentMenu != &LoadDef
         // [JN] Do not close Options menu after pressing "N" in End Game.
         &&  currentMenu != &ID_Def_Main
-        // [JN] Do not close bindings menu after keyboard/mouse binds reset.
-        &&  currentMenu != &ID_Def_Keybinds_6 && currentMenu != &ID_Def_MouseBinds)
+        // [JN] Do not close bindings menu after keyboard/mouse/gamepad binds reset.
+        &&  currentMenu != &ID_Def_Keybinds_6
+        &&  currentMenu != &ID_Def_MouseBinds
+        &&  currentMenu != &ID_Def_GamepadBinds)
             menuactive = false;
         S_StartSound(NULL, sfx_swtchx);
         return true;
@@ -7507,6 +7927,19 @@ boolean M_Responder (event_t* ev)
             MouseIsBinding = false;
             return false;
         }
+    }
+
+    // [PN] Disallow non-joystick input while gamepad binding is active.
+    if (GamepadIsBinding)
+    {
+        if (key == KEY_ESCAPE)
+        {
+            joyToBind = 0;
+            GamepadIsBinding = false;
+            return false;
+        }
+
+        return false;
     }
 
     if ((devparm && (key == key_menu_help || key == key_menu_help2))
@@ -7845,6 +8278,13 @@ boolean M_Responder (event_t* ev)
             M_ClearMouseBind(itemOn);
             return true;
         }
+        // [PN] ...or clear gamepad bind.
+        else
+        if (currentMenu == &ID_Def_GamepadBinds)
+        {
+            M_ClearGamepadBind(itemOn);
+            return true;
+        }
     }
     else if (key == KEY_PGUP)
     {
@@ -7911,7 +8351,7 @@ void M_StartControlPanel (void)
 static void M_ID_MenuMouseControl (void)
 {
     // Skip if mouse control disabled or any binding is active
-    if (!menu_mouse_allow || KbdIsBinding || MouseIsBinding)
+    if (!menu_mouse_allow || KbdIsBinding || MouseIsBinding || GamepadIsBinding)
         return;
 
     // Precompute scaled horizontal boundaries for the entire menu
@@ -8248,6 +8688,21 @@ void M_Init (void)
     // [JN] Set cursor position in skill menu to default skill level.
     NewDef.lastOn = level_select[0] = gp_default_skill;
 
+    // [PN] Migrate legacy one-stick defaults to Crispy-like twin-stick layout:
+    // Left Y = move, Right X = turn, Left X = strafe, Right Y = look.
+    if (use_analog == 0
+     && joystick_x_axis == 0
+     && joystick_y_axis == 1
+     && joystick_strafe_axis == -1
+     && joystick_look_axis == -1)
+    {
+        use_analog = 1;
+        joystick_x_axis = 2;
+        joystick_y_axis = 1;
+        joystick_strafe_axis = 0;
+        joystick_look_axis = 3;
+    }
+
     // Here we could catch other version dependencies,
     //  like HELP1/2, and four episodes.
 
@@ -8420,7 +8875,7 @@ void M_ConfirmDeleteGame (void)
 
 // =============================================================================
 //
-//                 [JN/PN] Keyboard and mouse binding routines.
+//            [JN/PN] Keyboard, mouse and gamepad binding routines.
 //                   Drawing, coloring, checking and binding.
 //
 // =============================================================================
@@ -8428,6 +8883,7 @@ void M_ConfirmDeleteGame (void)
 enum {
     keyboard,
     mouse,
+    gamepad,
 };
 
 static struct {
@@ -8437,7 +8893,7 @@ static struct {
 
 static char *M_MakeBindName (int itemSetOn, int key, int type)
 {
-    if (itemOn == itemSetOn && (KbdIsBinding || MouseIsBinding))
+    if (itemOn == itemSetOn && (KbdIsBinding || MouseIsBinding || GamepadIsBinding))
     {
         return "?";  // Means binding now
     }
@@ -8452,7 +8908,7 @@ static char *M_MakeBindName (int itemSetOn, int key, int type)
             }
             return "---";  // Means empty
         }
-        else
+        else if (type == mouse)
         {
             char  num[8]; 
 
@@ -8470,6 +8926,36 @@ static char *M_MakeBindName (int itemSetOn, int key, int type)
                 default:  return  other_button;  break;
             }
         }
+        else
+        {
+            char num[8];
+
+            M_snprintf(num, 8, "%d", key + 1);
+            char *other_button = M_StringJoin("PAD", num, NULL);
+
+            switch (key)
+            {
+                case -1:                              return "---";
+                case SDL_CONTROLLER_BUTTON_A:         return "A";
+                case SDL_CONTROLLER_BUTTON_B:         return "B";
+                case SDL_CONTROLLER_BUTTON_X:         return "X";
+                case SDL_CONTROLLER_BUTTON_Y:         return "Y";
+                case SDL_CONTROLLER_BUTTON_BACK:      return "BACK";
+                case SDL_CONTROLLER_BUTTON_GUIDE:     return "GUIDE";
+                case SDL_CONTROLLER_BUTTON_START:     return "START";
+                case SDL_CONTROLLER_BUTTON_LEFTSTICK: return "LSTICK";
+                case SDL_CONTROLLER_BUTTON_RIGHTSTICK:return "RSTICK";
+                case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:  return "LSHOULDR";
+                case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return "RSHOULDR";
+                case SDL_CONTROLLER_BUTTON_DPAD_UP:   return "DPAD_UP";
+                case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return "DPAD_DN";
+                case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return "DPAD_LT";
+                case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:return "DPAD_RT";
+                case GAMEPAD_BUTTON_TRIGGERLEFT:      return "LTRIGGER";
+                case GAMEPAD_BUTTON_TRIGGERRIGHT:     return "RTRIGGER";
+                default:                              return other_button;
+            }
+        }
     }
 }
 
@@ -8479,7 +8965,7 @@ static char *M_NameBind (int itemSetOn, int key1, int key2, int type)
     const int empty_val = (type == keyboard ? 0 : -1);
 
     // Binding right now
-    if (itemOn == itemSetOn && (KbdIsBinding || MouseIsBinding))
+    if (itemOn == itemSetOn && (KbdIsBinding || MouseIsBinding || GamepadIsBinding))
         return "?";
 
     // Both empty
@@ -8527,8 +9013,18 @@ static void M_DoBindAction (int *slot1, int *slot2, int key, int type)
     }
 
     // [PN] 2) Global de-dup: remove this key from all other actions (both slots)
-    if (type == keyboard) M_CheckBind(key);
-    else                  M_CheckMouseBind(key);
+    if (type == keyboard)
+    {
+        M_CheckBind(key);
+    }
+    else if (type == mouse)
+    {
+        M_CheckMouseBind(key);
+    }
+    else
+    {
+        M_CheckGamepadBind(key);
+    }
 
     // [PN] 3) Assign: to first empty; if both occupied, overwrite alt
     if (*slot1 == empty_val)      *slot1 = key;
@@ -8556,6 +9052,18 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
     {
         M_WriteTextCentered(180, string, cr[CR_MENU_DARK1]);
     }
+}
+
+// -----------------------------------------------------------------------------
+// M_DrawGamepadPagesFooter
+//  Draw footer for gamepad bindings pages with 3-page numeration.
+// -----------------------------------------------------------------------------
+
+static void M_DrawGamepadPagesFooter (const char *pagenum)
+{
+    M_WriteText(ID_MENU_LEFTOFFSET, 180, "< PGUP", cr[CR_MENU_DARK3]);
+    M_WriteTextCentered(180, M_StringJoin("PAGE ", pagenum, "/3", NULL), cr[CR_MENU_DARK2]);
+    M_WriteText(ORIGWIDTH - ID_MENU_LEFTOFFSET - M_StringWidth("PGDN >"), 180, "PGDN >", cr[CR_MENU_DARK3]);
 }
 
 
@@ -8927,4 +9435,159 @@ static void M_ResetMouseBinds (void)
         *mousebinds[i].slot1 = mousebinds[i].default1;
         *mousebinds[i].slot2 = mousebinds[i].default2;
     }
+}
+
+
+// =============================================================================
+//
+//                            Gamepad binding routines
+//
+// =============================================================================
+
+typedef struct
+{
+    int bindnum;
+    int item;
+    int *slot;
+    int default_value;
+} GamepadBindEntry_t;
+
+#define GAMEPADBIND_ENTRY(bindnum, item_idx, slot_ref, def) \
+    { bindnum, item_idx, &(slot_ref), def }
+
+static const GamepadBindEntry_t gamepadbinds[] =
+{
+    GAMEPADBIND_ENTRY(2000, 0, joybfire,        0),
+    GAMEPADBIND_ENTRY(2001, 1, joybstrafe,      1),
+    GAMEPADBIND_ENTRY(2002, 2, joybuse,         2),
+    GAMEPADBIND_ENTRY(2003, 3, joybspeed,      -1),
+    GAMEPADBIND_ENTRY(2004, 4, joybstrafeleft, -1),
+    GAMEPADBIND_ENTRY(2005, 5, joybstraferight,-1),
+    GAMEPADBIND_ENTRY(2006, 6, joybprevweapon,  9),
+    GAMEPADBIND_ENTRY(2007, 7, joybnextweapon, 10),
+    GAMEPADBIND_ENTRY(2008, 8, joybmenu,        6),
+    GAMEPADBIND_ENTRY(2009, 9, joybautomap,     3),
+};
+
+#undef GAMEPADBIND_ENTRY
+
+// -----------------------------------------------------------------------------
+// M_StartGamepadBind
+//  Indicate that gamepad button binding is started (GamepadIsBinding),
+//  and pass internal number (joyToBind) for binding a new gamepad button.
+// -----------------------------------------------------------------------------
+
+static void M_StartGamepadBind (int btn)
+{
+    GamepadIsBinding = true;
+    joyToBind = btn;
+}
+
+// -----------------------------------------------------------------------------
+// M_CheckGamepadBind
+//  Check if pressed button is already binded, clear previous bind if found.
+// -----------------------------------------------------------------------------
+
+static void M_CheckGamepadBind (int btn)
+{
+    for (size_t i = 0; i < sizeof(gamepadbinds) / sizeof(gamepadbinds[0]); i++)
+    {
+        if (*gamepadbinds[i].slot == btn)
+        {
+            *gamepadbinds[i].slot = -1;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_DoGamepadBind
+//  By catching internal bind number (btnnum), do actual binding
+//  of pressed gamepad button (btn) to real gamepad bind.
+// -----------------------------------------------------------------------------
+
+static void M_DoGamepadBind (int btnnum, int btn)
+{
+    for (size_t i = 0; i < sizeof(gamepadbinds) / sizeof(gamepadbinds[0]); i++)
+    {
+        if (gamepadbinds[i].bindnum == btnnum)
+        {
+            if (*gamepadbinds[i].slot == btn)
+            {
+                *gamepadbinds[i].slot = -1;
+            }
+            else
+            {
+                M_CheckGamepadBind(btn);
+                *gamepadbinds[i].slot = btn;
+            }
+            return;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_ClearGamepadBind
+//  Clear gamepad bind on the line where cursor is placed (itemOn).
+// -----------------------------------------------------------------------------
+
+static void M_ClearGamepadBind (int item_On)
+{
+    for (size_t i = 0; i < sizeof(gamepadbinds) / sizeof(gamepadbinds[0]); i++)
+    {
+        if (gamepadbinds[i].item == item_On)
+        {
+            *gamepadbinds[i].slot = -1;
+            return;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// M_DrawBindGamepad
+//  Draw single gamepad button bind.
+// -----------------------------------------------------------------------------
+
+static void M_DrawBindGamepad (int itemNum, int yPos, int btn)
+{
+    const boolean empty = (btn == -1);
+    char *text = M_NameBind(itemNum, btn, -1, gamepad);
+
+    M_WriteTextGlow(M_ItemRightAlign(text), yPos, text,
+        itemOn == itemNum && GamepadIsBinding ? cr[CR_YELLOW] : (empty ? cr[CR_RED] : cr[CR_GREEN]),
+        itemOn == itemNum && GamepadIsBinding ? cr[CR_YELLOW_BRIGHT] : (empty ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT]),
+        LINE_ALPHA(itemNum));
+}
+
+// -----------------------------------------------------------------------------
+// M_ResetGamepadBinds
+//  Reset all gamepad bindings to defaults.
+// -----------------------------------------------------------------------------
+
+static void M_ResetGamepadBinds (void)
+{
+    for (size_t i = 0; i < sizeof(gamepadbinds) / sizeof(gamepadbinds[0]); i++)
+    {
+        *gamepadbinds[i].slot = gamepadbinds[i].default_value;
+    }
+
+    // [PN] Reset advanced gamepad settings shown on pages 2/3 and 3/3.
+    use_analog = 1;
+    joystick_turn_sensitivity = 10;
+    joystick_move_sensitivity = 10;
+    joystick_look_sensitivity = 10;
+
+    joystick_x_axis = 2;
+    joystick_y_axis = 1;
+    joystick_strafe_axis = 0;
+    joystick_look_axis = 3;
+
+    joystick_x_invert = 0;
+    joystick_y_invert = 0;
+    joystick_strafe_invert = 0;
+    joystick_look_invert = 0;
+
+    joystick_x_dead_zone = 33;
+    joystick_y_dead_zone = 33;
+    joystick_strafe_dead_zone = 33;
+    joystick_look_dead_zone = 33;
 }

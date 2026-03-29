@@ -28,8 +28,7 @@
 // bindings supported by the higher-level game code (joyb* variables).
 #define NUM_VIRTUAL_BUTTONS 11
 
-// Max allowed number of virtual mappings. Chosen to be less than joybspeed
-// autorun value.
+// Max allowed number of virtual mappings.
 #define MAX_VIRTUAL_BUTTONS 20
 
 // If this bit is set in a configuration file axis value, the axis is
@@ -85,6 +84,18 @@ enum
 };
 
 extern int use_analog;
+extern int joystick_x_axis;
+extern int joystick_x_invert;
+extern int joystick_y_axis;
+extern int joystick_y_invert;
+extern int joystick_strafe_axis;
+extern int joystick_strafe_invert;
+extern int joystick_look_axis;
+extern int joystick_look_invert;
+extern int joystick_x_dead_zone;
+extern int joystick_y_dead_zone;
+extern int joystick_strafe_dead_zone;
+extern int joystick_look_dead_zone;
 extern int joystick_turn_sensitivity;
 extern int joystick_move_sensitivity;
 extern int joystick_look_sensitivity;
@@ -92,8 +103,10 @@ extern int joystick_look_sensitivity;
 void I_InitJoystick(void);
 void I_ShutdownJoystick(void);
 void I_UpdateJoystick(void);
+void I_RefreshControllerState(void);
+const char *I_GetControllerName(void);
+int I_HasController(void);
 
 void I_BindJoystickVariables(void);
 
 #endif /* #ifndef __I_JOYSTICK__ */
-

@@ -468,13 +468,9 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 	|| mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2]
 	|| joybuttons[joybstrafe]; 
 
-    // fraggle: support the old "joyb_speed = 31" hack which
-    // allowed an autorun effect
-
     // [crispy] when "always run" is active,
     // pressing the "run" key will result in walking
-    speed = (key_speed >= NUMKEYS || key_speed2 >= NUMKEYS
-         || joybspeed >= MAX_JOY_BUTTONS);
+    speed = always_run;
     speed ^= speedkeydown();
     crl_camzspeed = speed;
  
@@ -505,20 +501,9 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     // [crispy] toggle "always run"
     if (gamekeydown[key_autorun] || gamekeydown[key_autorun2])
     {
-        static int joybspeed_old = 2;
-
-        if (joybspeed >= MAX_JOY_BUTTONS)
-        {
-            joybspeed = joybspeed_old;
-        }
-        else
-        {
-            joybspeed_old = joybspeed;
-            joybspeed = MAX_JOY_BUTTONS;
-        }
-
-        CT_SetMessage(&players[consoleplayer], joybspeed >= MAX_JOY_BUTTONS ?
-                       ID_AUTORUN_ON : ID_AUTORUN_OFF, false, NULL);
+        always_run ^= 1;
+        CT_SetMessage(&players[consoleplayer], always_run ?
+                      ID_AUTORUN_ON : ID_AUTORUN_OFF, false, NULL);
 
         S_StartSound(NULL, sfx_swtchn);
 

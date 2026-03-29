@@ -62,6 +62,7 @@ extern int key_useartifact, key_useartifact2;
 
 // Advanced movement
 
+extern int always_run;
 extern int key_autorun, key_autorun2;
 extern int key_mouse_look, key_mouse_look2; // [crispy]
 extern int key_novert, key_novert2;
@@ -224,6 +225,12 @@ extern int joybnextweapon;
 extern int joybmenu;
 extern int joybautomap;
 extern int joybjump;
+extern int joybuseartifact;
+extern int joybinvleft;
+extern int joybinvright;
+extern int joybflyup;
+extern int joybflydown;
+extern int joybflycenter;
 
 //
 // Allow artifacts to be used when the run key is held down.
