@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "doomstat.h"
 #include "i_system.h"
 #include "p_local.h"
 #include "r_seclight.h"
@@ -140,6 +141,15 @@ static int SL_FindOrAddBank(const uint32_t rgb)
 
 static char *SL_TrimLeft(char *text)
 {
+    // [PN] Some editors store UTF-8 BOM in plain text lumps.
+    // Strip it once so first token matching (MISSION/MAP) is stable.
+    if ((unsigned char)text[0] == 0xEF
+     && (unsigned char)text[1] == 0xBB
+     && (unsigned char)text[2] == 0xBF)
+    {
+        text += 3;
+    }
+
     while (*text != '\0' && isspace((unsigned char)*text))
     {
         ++text;
@@ -221,15 +231,91 @@ static boolean SL_MapMatches(const char *token, const char *map_name)
 }
 
 // -----------------------------------------------------------------------------
+// SL_MissionMatches
+// [PN] Matches mission token against current IWAD mission.
+//      Supported tokens: DOOM, DOOM2, TNT, PLUTONIA (also PLUT).
+// -----------------------------------------------------------------------------
+
+static boolean SL_MissionMatches(const char *token)
+{
+    const GameMission_t mission = logical_gamemission;
+
+    if (token == NULL)
+    {
+        return false;
+    }
+
+    if (token[0] == '*' && token[1] == '\0')
+    {
+        return true;
+    }
+
+    if (!strncasecmp(token, "DOOM2", 5) && token[5] == '\0')
+    {
+        return mission == doom2 || mission == doom2f;
+    }
+
+    if (!strncasecmp(token, "DOOM", 4) && token[4] == '\0')
+    {
+        return mission == doom;
+    }
+
+    if (!strncasecmp(token, "TNT", 3) && token[3] == '\0')
+    {
+        return mission == pack_tnt;
+    }
+
+    if ((!strncasecmp(token, "PLUTONIA", 8) && token[8] == '\0')
+     || (!strncasecmp(token, "PLUT", 4) && token[4] == '\0'))
+    {
+        return mission == pack_plut;
+    }
+
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+// SL_IsMissionToken
+// [PN] Recognizes supported mission tags in token[0], independent from
+//      currently running IWAD.
+// -----------------------------------------------------------------------------
+
+static boolean SL_IsMissionToken(const char *token)
+{
+    if (token == NULL)
+    {
+        return false;
+    }
+
+    if (token[0] == '*' && token[1] == '\0')
+    {
+        return true;
+    }
+
+    if ((!strncasecmp(token, "DOOM2", 5) && token[5] == '\0')
+     || (!strncasecmp(token, "DOOM", 4) && token[4] == '\0')
+     || (!strncasecmp(token, "TNT", 3) && token[3] == '\0')
+     || (!strncasecmp(token, "PLUTONIA", 8) && token[8] == '\0')
+     || (!strncasecmp(token, "PLUT", 4) && token[4] == '\0'))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+// -----------------------------------------------------------------------------
 // SL_ParseLine
 // [PN] Reads one LUT line:
-//      "MAP01 12 FF0000" / "E1M1 12 FF0000" / "12 FF0000".
+//      "12 FF0000"
+//      "MAP01 12 FF0000"
+//      "DOOM2 MAP01 12 FF0000"
 // -----------------------------------------------------------------------------
 
 static void SL_ParseLine(char *line, const char *map_name)
 {
     char *token;
-    char *tokens[4];
+    char *tokens[5];
     int token_count = 0;
     char *sector_token;
     char *color_token;
@@ -267,7 +353,7 @@ static void SL_ParseLine(char *line, const char *map_name)
 
     ptr = line;
 
-    while (*ptr != '\0' && token_count < 4)
+    while (*ptr != '\0' && token_count < 5)
     {
         while (*ptr != '\0' && (isspace((unsigned char)*ptr) || *ptr == ','))
         {
@@ -303,8 +389,31 @@ static void SL_ParseLine(char *line, const char *map_name)
         sector_token = tokens[0];
         color_token = tokens[1];
     }
+    else if (token_count == 3)
+    {
+        if (!SL_MapMatches(tokens[0], map_name))
+        {
+            return;
+        }
+
+        sector_token = tokens[1];
+        color_token = tokens[2];
+    }
+    else if (SL_IsMissionToken(tokens[0]))
+    {
+        if (!SL_MissionMatches(tokens[0]) || !SL_MapMatches(tokens[1], map_name))
+        {
+            return;
+        }
+
+        sector_token = tokens[2];
+        color_token = tokens[3];
+    }
     else
     {
+        // [PN] Backward-compatible tolerant path:
+        // if token[0] is not a known MISSION tag, treat line as
+        // "MAP SECTOR COLOR" and ignore any extra tokens.
         if (!SL_MapMatches(tokens[0], map_name))
         {
             return;
