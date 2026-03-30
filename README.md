@@ -10,7 +10,7 @@ International Doom supports high rendering resolutions, visual improvements, and
 All enhancements are disabled by default — the port allows the player to decide which features to enable.
 Special attention is given to visual design, cross-platform compatibility, and low system requirements.
 
-The project is created by [Julia Nechaevskaya](mailto:julia.nechaevskaya@live.com).
+The project is created by [Julia Nechaevskaya](mailto:julia.nechaevskaya@live.com) and Polina "Aura" N.
 
 ### Download
 

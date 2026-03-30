@@ -758,7 +758,9 @@ static void M_ID_Misc_AutoloadHHE (int choice);
 static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
 static void M_ID_Misc_MenuCapFps (int choice);
+#if defined(_WIN32) && !defined(_WIN32_WCE)
 static void M_ID_Misc_Launcher (int choice);
+#endif
 
 static void M_Draw_ID_Level_1 (void);
 static void M_ID_LevelSkill (int choice);
