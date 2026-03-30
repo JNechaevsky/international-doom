@@ -20,6 +20,7 @@
 #include "i_system.h"
 #include "h2def.h"
 #include "r_local.h"
+#include "r_collight.h"
 
 #include "id_func.h"
 
@@ -243,7 +244,11 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
 
                 // [crispy] brightmaps for mid-textures
                 dc_brightmap = texturebrightmap[texnum];
-                dc_colormap[0] = walllights[MIN(index, MAXLIGHTSCALE-1)];
+                // [PN] Fast path keeps vanilla pointer when sector uses neutral bank 0.
+                const lighttable_t *const base = walllights[MIN(index, MAXLIGHTSCALE-1)];
+                dc_colormap[0] = frontsector->lightbank
+                               ? R_ColLight_Apply(frontsector->lightbank, base)
+                               : (lighttable_t *)base;
                 dc_colormap[1] = vis_brightmaps ? colormaps : dc_colormap[0];
             }
 
@@ -367,7 +372,11 @@ static void R_RenderSegLoop (void)
                 }
 
                 // [crispy] optional brightmaps
-                dc_colormap[0] = walllights[index];
+                // [PN] Fast path keeps vanilla pointer when sector uses neutral bank 0.
+                const lighttable_t *const base = walllights[index];
+                dc_colormap[0] = frontsector->lightbank
+                               ? R_ColLight_Apply(frontsector->lightbank, base)
+                               : (lighttable_t *)base;
                 dc_colormap[1] = (!fixedcolormap && vis_brightmaps
                                && LevelUseFullBright) ? colormaps : dc_colormap[0];
             }
@@ -757,6 +766,7 @@ void R_StoreWallRange (int start, int stop)
         if (worldlow != worldbottom 
         ||  backsector->floorpic != frontsector->floorpic
         ||  backsector->lightlevel != frontsector->lightlevel
+        ||  backsector->lightbank != frontsector->lightbank
         ||  backsector->special != frontsector->special)
         {
             markfloor = true;
@@ -769,7 +779,8 @@ void R_StoreWallRange (int start, int stop)
 
         if (worldhigh != worldtop
         ||  backsector->ceilingpic != frontsector->ceilingpic
-        ||  backsector->lightlevel != frontsector->lightlevel)
+        ||  backsector->lightlevel != frontsector->lightlevel
+        ||  backsector->lightbank != frontsector->lightbank)
         {
             markceiling = true;
         }

@@ -30,6 +30,7 @@
 #include "m_argv.h"
 #include "m_bbox.h"
 #include "p_local.h"
+#include "r_collight.h"
 #include "s_sound.h"
 
 // [crispy] support maps with compressed ZDBSP nodes
@@ -1766,6 +1767,7 @@ void P_SetupLevel (int episode, int map, int playermask, skill_t skill)
     // Prepare memory and thinkers
     S_Start();
     Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
+    R_ColLight_ResetLevel(); // [PN] Reset per-level colored-lighting LUT state.
     P_InitThinkers();
     W_Reload();
 
@@ -1786,6 +1788,7 @@ void P_SetupLevel (int episode, int map, int playermask, skill_t skill)
     boolean validBMap  = P_LoadBlockMap(lumpnum + ML_BLOCKMAP);
     P_LoadVertexes(lumpnum + ML_VERTEXES);
     P_LoadSectors(lumpnum + ML_SECTORS);
+    R_ColLight_LoadMapLUT(lumpname); // [PN] Assign sector color-light banks for this map.
     P_LoadSideDefs(lumpnum + ML_SIDEDEFS);
 
     if (fmt & MFMT_HEXEN)

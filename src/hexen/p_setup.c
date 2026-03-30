@@ -28,6 +28,7 @@
 #include "m_bbox.h"
 #include "m_misc.h"
 #include "i_swap.h"
+#include "r_collight.h"
 #include "s_sound.h"
 #include "p_local.h"
 
@@ -1633,6 +1634,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     */
 
     Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
+    R_ColLight_ResetLevel(); // [PN] Reset per-level colored-lighting LUT state.
 
     P_InitThinkers();
     leveltime = 0;
@@ -1657,6 +1659,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     crispy_validblockmap = P_LoadBlockMap (lumpnum+ML_BLOCKMAP); // [crispy] (re-)create BLOCKMAP if necessary
     P_LoadVertexes(lumpnum + ML_VERTEXES);
     P_LoadSectors(lumpnum + ML_SECTORS);
+    R_ColLight_LoadMapLUT(lumpname); // [PN] Assign sector color-light banks for this map.
     P_LoadSideDefs(lumpnum + ML_SIDEDEFS);
     P_LoadLineDefs(lumpnum + ML_LINEDEFS);
 

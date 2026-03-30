@@ -25,6 +25,7 @@
 #include "i_system.h"
 #include "m_misc.h"
 #include "p_local.h"
+#include "r_collight.h"
 #include "v_trans.h"
 #include "v_video.h"
 #include "z_zone.h"
@@ -1230,6 +1231,9 @@ void R_InitTrueColormaps(char *current_colormap)
 	shadow_alpha = (uint8_t)BETWEEN(0, 255 - (32 * vid_contrast), 0xA0 / vid_contrast);
 	// [PN] Cache alpha for sprite-only blob shadows (darker than generic patch shadows).
 	sprite_shadow_alpha = BETWEEN(0, 255 - (32 * vid_contrast), 0x80 / vid_contrast);
+
+    // [PN] Base colormaps[] changed: rebuild colored sector-light LUT banks.
+    R_ColLight_RebuildBanks();
 }
 
 // -----------------------------------------------------------------------------

@@ -59,6 +59,7 @@ add_library(doom STATIC
                             r_local.h
             r_main.c
             r_plane.c
+            r_collight.c    r_collight.h
             r_segs.c
             r_swirl.c
             r_things.c

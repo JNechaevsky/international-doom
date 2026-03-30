@@ -476,6 +476,7 @@ static void R_Subsector (int num)
                               frontsector->sky & PL_SKYFLAT ? frontsector->sky :
                               frontsector->floorpic,
                               frontsector->lightlevel,
+                              frontsector->lightbank,
                               frontsector->special) : NULL;
 
     ceilingplane = frontsector->interpceilingheight > viewz ||
@@ -485,7 +486,9 @@ static void R_Subsector (int num)
                                 frontsector->ceilingpic == skyflatnum &&
                                 frontsector->sky & PL_SKYFLAT ? frontsector->sky :
                                 frontsector->ceilingpic,
-                                frontsector->lightlevel, 0) : NULL;
+                                frontsector->lightlevel,
+                                frontsector->lightbank,
+                                0) : NULL;
 
     // BSP is traversed by subsector.
     // A sector might have been split into several 
