@@ -766,6 +766,7 @@ void R_StoreWallRange (int start, int stop)
         if (worldlow != worldbottom 
         ||  backsector->floorpic != frontsector->floorpic
         ||  backsector->lightlevel != frontsector->lightlevel
+        ||  backsector->lightbank != frontsector->lightbank
         ||  backsector->special != frontsector->special)
         {
             markfloor = true;
@@ -778,7 +779,8 @@ void R_StoreWallRange (int start, int stop)
 
         if (worldhigh != worldtop
         ||  backsector->ceilingpic != frontsector->ceilingpic
-        ||  backsector->lightlevel != frontsector->lightlevel)
+        ||  backsector->lightlevel != frontsector->lightlevel
+        ||  backsector->lightbank != frontsector->lightbank)
         {
             markceiling = true;
         }
