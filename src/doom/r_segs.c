@@ -19,6 +19,7 @@
 #include "i_system.h"
 #include "doomstat.h"
 #include "p_local.h"
+#include "r_seclight.h"
 
 #include "id_func.h"
 
@@ -243,7 +244,11 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
 
                 // [crispy] brightmaps for mid-textures
                 dc_brightmap = texturebrightmap[texnum];
-                dc_colormap[0] = walllights[MIN(index, MAXLIGHTSCALE-1)];
+                // [PN] Fast path keeps vanilla pointer when sector uses neutral bank 0.
+                const lighttable_t *const base = walllights[MIN(index, MAXLIGHTSCALE-1)];
+                dc_colormap[0] = frontsector->lightbank
+                               ? R_SecLight_Apply(frontsector->lightbank, base)
+                               : (lighttable_t *)base;
                 dc_colormap[1] = vis_brightmaps ? colormaps : dc_colormap[0];
             }
 
@@ -368,7 +373,11 @@ static void R_RenderSegLoop (void)
                 }
 
                 // [crispy] optional brightmaps
-                dc_colormap[0] = walllights[index];
+                // [PN] Fast path keeps vanilla pointer when sector uses neutral bank 0.
+                const lighttable_t *const base = walllights[index];
+                dc_colormap[0] = frontsector->lightbank
+                               ? R_SecLight_Apply(frontsector->lightbank, base)
+                               : (lighttable_t *)base;
                 dc_colormap[1] = vis_brightmaps ? colormaps : dc_colormap[0];
             }
             else

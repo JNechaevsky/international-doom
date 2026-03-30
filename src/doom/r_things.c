@@ -26,6 +26,7 @@
 #include "i_swap.h"
 #include "i_system.h"
 #include "r_local.h"
+#include "r_seclight.h"
 #include "v_trans.h" // [crispy] colored blood sprites
 #include "z_zone.h"
 #include "v_video.h" // [JN] translucency tables
@@ -43,6 +44,7 @@ fixed_t pspritescale;
 fixed_t pspriteiscale;
 
 static lighttable_t **spritelights;
+static int spritecolorbank;
 
 // constant arrays used for psprite clipping and initializing clipping
 int negonearray[MAXWIDTH];       // [crispy] 32-bit integer math
@@ -200,11 +202,23 @@ static void R_NearbyBeginAdjPass(void)
 // [PN] Recomputes sprite light table for a specific sector.
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// R_SpriteSectorColormap
+// [PN] Fast path for sectors without colored lighting (bank 0).
+// -----------------------------------------------------------------------------
+
+static inline lighttable_t *R_SpriteSectorColormap(const lighttable_t *base)
+{
+    return spritecolorbank ? R_SecLight_Apply(spritecolorbank, base)
+                           : (lighttable_t *)base;
+}
+
 static void R_SetSpriteLightsForSector(const sector_t *const sec)
 {
     const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
                        + (extralight * LIGHTBRIGHT));
     spritelights = scalelight[lightnum];
+    spritecolorbank = sec->lightbank;
 }
 
 // -----------------------------------------------------------------------------
@@ -602,7 +616,9 @@ inline static lighttable_t *const R_SpriteColumnColormap(const vissprite_t *cons
     if (index >= MAXLIGHTSCALE)
         index  = MAXLIGHTSCALE - 1;
 
-    return scalelight[lightnum][index];
+    const lighttable_t *const base = scalelight[lightnum][index];
+    return sec->lightbank ? R_SecLight_Apply(sec->lightbank, base)
+                          : (lighttable_t *)base;
 }
 
 // -----------------------------------------------------------------------------
@@ -1004,7 +1020,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
             index  = MAXLIGHTSCALE - 1;
 
         // [crispy] brightmaps for select sprites
-        vis->colormap[0] = spritelights[index];
+        vis->colormap[0] = R_SpriteSectorColormap(spritelights[index]);
 
         // [JN] Apply different types half-brights for certain objects.
         //  Not to be confused:
@@ -1019,7 +1035,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
         if (thing->sprite == SPR_BON2   // Armor Bonus
         ||  thing->sprite == SPR_BAR1)  // Explosive Barrel
         {
-            vis->colormap[1] = spritelights[BMAPMAXDIMINDEX];
+            vis->colormap[1] = R_SpriteSectorColormap(spritelights[BMAPMAXDIMINDEX]);
         }
         // Demi-brigths:
         else if (thing->sprite == SPR_CAND   // Candestick
@@ -1031,7 +1047,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
         {
             const int demi_bright = MIN(index * 2, BMAPMAXDIMINDEX);
 
-            vis->colormap[0] = spritelights[demi_bright];
+            vis->colormap[0] = R_SpriteSectorColormap(spritelights[demi_bright]);
 
             // Animated brightmaps:
             if (thing->sprite == SPR_CAND   // Candestick
@@ -1055,7 +1071,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
         {
             const int hemi_bright = MIN(index * 4, BMAPMAXDIMINDEX);
 
-            vis->colormap[0] = spritelights[hemi_bright];
+            vis->colormap[0] = R_SpriteSectorColormap(spritelights[hemi_bright]);
             vis->colormap[1] = &colormaps[(thing->bmap_flick << BMAPANIMSHIFT) / 3 * 256];
         }
         // Just animated:
@@ -1350,7 +1366,8 @@ static void R_DrawPSprite (const pspdef_t *const psp)
         {
             // [JN] Account invulnerability effect for translucent fuzz.
             vis->colormap[0] = vis->colormap[1] = 
-                fixedcolormap ? fixedcolormap : spritelights[MAXLIGHTSCALE - 1];
+                fixedcolormap ? fixedcolormap
+                              : R_SpriteSectorColormap(spritelights[MAXLIGHTSCALE - 1]);
             vis->mobjflags |= MF_SHADOW;
         }
     }
@@ -1369,7 +1386,7 @@ static void R_DrawPSprite (const pspdef_t *const psp)
     else
     {
         // local light
-        vis->colormap[0] = spritelights[MAXLIGHTSCALE - 1];
+        vis->colormap[0] = R_SpriteSectorColormap(spritelights[MAXLIGHTSCALE - 1]);
         vis->colormap[1] = colormaps;
     }
 
@@ -1397,6 +1414,7 @@ static void R_DrawPlayerSprites (void)
     const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT)
                        + (extralight * LIGHTBRIGHT));
     spritelights = scalelight[lightnum];
+    spritecolorbank = viewplayer->mo->subsector->sector->lightbank;
 
     // clip to screen bounds
     mfloorclip = screenheightarray;
