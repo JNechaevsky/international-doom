@@ -12,37 +12,38 @@
 // GNU General Public License for more details.
 //
 
-#ifndef DOOM_R_SECLIGHT_H
-#define DOOM_R_SECLIGHT_H
+#ifndef DOOM_R_COLLIGHT_H
+#define DOOM_R_COLLIGHT_H
 
 #include "r_local.h"
 
 // -----------------------------------------------------------------------------
-// R_SecLight_ResetLevel
+// R_ColLight_ResetLevel
 // [PN] Clears per-level sector color-lighting state and frees cached LUT banks.
 // -----------------------------------------------------------------------------
 
-void R_SecLight_ResetLevel(void);
+void R_ColLight_ResetLevel(void);
 
 // -----------------------------------------------------------------------------
-// R_SecLight_LoadMapLUT
+// R_ColLight_LoadMapLUT
 // [PN] Parses SECLIGHT lumps and assigns color-lighting banks to map sectors.
 // -----------------------------------------------------------------------------
 
-void R_SecLight_LoadMapLUT(const char *map_name);
+void R_ColLight_LoadMapLUT(const char *map_name);
 
 // -----------------------------------------------------------------------------
-// R_SecLight_RebuildBanks
+// R_ColLight_RebuildBanks
 // [PN] Rebuilds cached colored colormap LUT banks from current base colormaps[].
 // -----------------------------------------------------------------------------
 
-void R_SecLight_RebuildBanks(void);
+void R_ColLight_RebuildBanks(void);
 
 // -----------------------------------------------------------------------------
-// R_SecLight_Apply
+// R_ColLight_Apply
 // [PN] Maps a base colormap row pointer to a sector color-light bank row.
 // -----------------------------------------------------------------------------
 
-lighttable_t *R_SecLight_Apply(int bank_index, const lighttable_t *base_colormap);
+lighttable_t *R_ColLight_Apply(int bank_index, const lighttable_t *base_colormap);
 
 #endif
+

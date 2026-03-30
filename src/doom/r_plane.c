@@ -22,7 +22,7 @@
 #include "doomstat.h"
 #include "m_misc.h"
 #include "r_local.h"
-#include "r_seclight.h"
+#include "r_collight.h"
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -228,7 +228,7 @@ static void R_MapPlane (int y, int x1, int x2)
         // [PN] Fast path keeps vanilla pointer when visplane uses neutral bank 0.
         const lighttable_t *const base = planezlight[index];
         ds_colormap[0] = planecolorbank
-                       ? R_SecLight_Apply(planecolorbank, base)
+                       ? R_ColLight_Apply(planecolorbank, base)
                        : (lighttable_t *)base;
         ds_colormap[1] = colormaps;
     }

@@ -26,7 +26,7 @@
 #include "i_swap.h"
 #include "i_system.h"
 #include "r_local.h"
-#include "r_seclight.h"
+#include "r_collight.h"
 #include "v_trans.h" // [crispy] colored blood sprites
 #include "z_zone.h"
 #include "v_video.h" // [JN] translucency tables
@@ -209,7 +209,7 @@ static void R_NearbyBeginAdjPass(void)
 
 static inline lighttable_t *R_SpriteSectorColormap(const lighttable_t *base)
 {
-    return spritecolorbank ? R_SecLight_Apply(spritecolorbank, base)
+    return spritecolorbank ? R_ColLight_Apply(spritecolorbank, base)
                            : (lighttable_t *)base;
 }
 
@@ -617,7 +617,7 @@ inline static lighttable_t *const R_SpriteColumnColormap(const vissprite_t *cons
         index  = MAXLIGHTSCALE - 1;
 
     const lighttable_t *const base = scalelight[lightnum][index];
-    return sec->lightbank ? R_SecLight_Apply(sec->lightbank, base)
+    return sec->lightbank ? R_ColLight_Apply(sec->lightbank, base)
                           : (lighttable_t *)base;
 }
 

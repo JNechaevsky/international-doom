@@ -25,7 +25,7 @@
 #include "i_system.h"
 #include "m_misc.h"
 #include "p_local.h"
-#include "r_seclight.h"
+#include "r_collight.h"
 #include "v_trans.h"
 #include "v_video.h"
 #include "z_zone.h"
@@ -1317,8 +1317,8 @@ void R_InitColormaps (void)
 
 	W_ReleaseLumpName("PLAYPAL");
 
-    // [PN] Base colormaps[] changed: rebuild colored sector-light LUT banks.
-    R_SecLight_RebuildBanks();
+	// [PN] Base colormaps[] changed: rebuild colored sector-light LUT banks.
+	R_ColLight_RebuildBanks();
 
 	// [JN] Recalculate shadow alpha value for shadowed patches,
 	// and fuzz alpha value for fuzz effect drawing based on contrast.

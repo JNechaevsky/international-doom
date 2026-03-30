@@ -20,7 +20,7 @@
 #include "doomstat.h"
 #include "i_system.h"
 #include "p_local.h"
-#include "r_seclight.h"
+#include "r_collight.h"
 #include "w_wad.h"
 
 typedef struct
@@ -29,41 +29,41 @@ typedef struct
     lighttable_t *lut;
     lighttable_t **rows;
     int row_count;
-} seclight_bank_t;
+} collight_bank_t;
 
-static seclight_bank_t *seclight_banks;
-static int seclight_num_banks;
-static int seclight_cap_banks;
+static collight_bank_t *collight_banks;
+static int collight_num_banks;
+static int collight_cap_banks;
 
 // -----------------------------------------------------------------------------
-// SL_EnsureDefaultBank
+// CL_EnsureDefaultBank
 // [PN] Bank 0 is the neutral (white) bank and always maps to base colormaps[].
 // -----------------------------------------------------------------------------
 
-static void SL_EnsureDefaultBank(void)
+static void CL_EnsureDefaultBank(void)
 {
-    if (seclight_num_banks > 0)
+    if (collight_num_banks > 0)
     {
         return;
     }
 
-    if (seclight_cap_banks < 1)
+    if (collight_cap_banks < 1)
     {
-        seclight_cap_banks = 1;
-        seclight_banks = I_Realloc(seclight_banks, (size_t)seclight_cap_banks * sizeof(*seclight_banks));
+        collight_cap_banks = 1;
+        collight_banks = I_Realloc(collight_banks, (size_t)collight_cap_banks * sizeof(*collight_banks));
     }
 
-    memset(&seclight_banks[0], 0, sizeof(seclight_banks[0]));
-    seclight_banks[0].rgb = 0xFFFFFFu;
-    seclight_num_banks = 1;
+    memset(&collight_banks[0], 0, sizeof(collight_banks[0]));
+    collight_banks[0].rgb = 0xFFFFFFu;
+    collight_num_banks = 1;
 }
 
 // -----------------------------------------------------------------------------
-// SL_FreeBankData
+// CL_FreeBankData
 // [PN] Frees one colored LUT bank (not the bank slot itself).
 // -----------------------------------------------------------------------------
 
-static void SL_FreeBankData(seclight_bank_t *bank)
+static void CL_FreeBankData(collight_bank_t *bank)
 {
     if (bank == NULL)
     {
@@ -78,11 +78,11 @@ static void SL_FreeBankData(seclight_bank_t *bank)
 }
 
 // -----------------------------------------------------------------------------
-// SL_ResetSectorAssignments
+// CL_ResetSectorAssignments
 // [PN] Clears per-sector bank indices for the currently loaded level.
 // -----------------------------------------------------------------------------
 
-static void SL_ResetSectorAssignments(void)
+static void CL_ResetSectorAssignments(void)
 {
     if (sectors == NULL || numsectors <= 0)
     {
@@ -96,11 +96,11 @@ static void SL_ResetSectorAssignments(void)
 }
 
 // -----------------------------------------------------------------------------
-// SL_FindOrAddBank
+// CL_FindOrAddBank
 // [PN] Deduplicates RGB colors and returns a compact bank index.
 // -----------------------------------------------------------------------------
 
-static int SL_FindOrAddBank(const uint32_t rgb)
+static int CL_FindOrAddBank(const uint32_t rgb)
 {
     const uint32_t norm = rgb & 0x00FFFFFFu;
 
@@ -109,37 +109,37 @@ static int SL_FindOrAddBank(const uint32_t rgb)
         return 0;
     }
 
-    for (int i = 1; i < seclight_num_banks; ++i)
+    for (int i = 1; i < collight_num_banks; ++i)
     {
-        if (seclight_banks[i].rgb == norm)
+        if (collight_banks[i].rgb == norm)
         {
             return i;
         }
     }
 
-    if (seclight_num_banks >= seclight_cap_banks)
+    if (collight_num_banks >= collight_cap_banks)
     {
-        const int new_cap = seclight_cap_banks > 0 ? seclight_cap_banks * 2 : 8;
-        seclight_banks = I_Realloc(seclight_banks, (size_t)new_cap * sizeof(*seclight_banks));
-        memset(seclight_banks + seclight_cap_banks, 0, (size_t)(new_cap - seclight_cap_banks) * sizeof(*seclight_banks));
-        seclight_cap_banks = new_cap;
+        const int new_cap = collight_cap_banks > 0 ? collight_cap_banks * 2 : 8;
+        collight_banks = I_Realloc(collight_banks, (size_t)new_cap * sizeof(*collight_banks));
+        memset(collight_banks + collight_cap_banks, 0, (size_t)(new_cap - collight_cap_banks) * sizeof(*collight_banks));
+        collight_cap_banks = new_cap;
     }
 
-    const int bank_index = seclight_num_banks++;
-    seclight_banks[bank_index].rgb = norm;
-    seclight_banks[bank_index].lut = NULL;
-    seclight_banks[bank_index].rows = NULL;
-    seclight_banks[bank_index].row_count = 0;
+    const int bank_index = collight_num_banks++;
+    collight_banks[bank_index].rgb = norm;
+    collight_banks[bank_index].lut = NULL;
+    collight_banks[bank_index].rows = NULL;
+    collight_banks[bank_index].row_count = 0;
 
     return bank_index;
 }
 
 // -----------------------------------------------------------------------------
-// SL_TrimLeft / SL_TrimRight
+// CL_TrimLeft / CL_TrimRight
 // [PN] In-place trimming helpers for simple text-based LUT parsing.
 // -----------------------------------------------------------------------------
 
-static char *SL_TrimLeft(char *text)
+static char *CL_TrimLeft(char *text)
 {
     // [PN] Some editors store UTF-8 BOM in plain text lumps.
     // Strip it once so first token matching (MISSION/MAP) is stable.
@@ -158,7 +158,7 @@ static char *SL_TrimLeft(char *text)
     return text;
 }
 
-static void SL_TrimRight(char *text)
+static void CL_TrimRight(char *text)
 {
     size_t len = strlen(text);
 
@@ -169,11 +169,11 @@ static void SL_TrimRight(char *text)
 }
 
 // -----------------------------------------------------------------------------
-// SL_ParseHexRGB
+// CL_ParseHexRGB
 // [PN] Parses "RRGGBB", "#RRGGBB", or "0xRRGGBB" into a 24-bit RGB value.
 // -----------------------------------------------------------------------------
 
-static boolean SL_ParseHexRGB(const char *text, uint32_t *rgb)
+static boolean CL_ParseHexRGB(const char *text, uint32_t *rgb)
 {
     const char *ptr = text;
     char *endptr;
@@ -205,11 +205,11 @@ static boolean SL_ParseHexRGB(const char *text, uint32_t *rgb)
 }
 
 // -----------------------------------------------------------------------------
-// SL_MapMatches
+// CL_MapMatches
 // [PN] Matches a map token against current map name; "*" acts as wildcard.
 // -----------------------------------------------------------------------------
 
-static boolean SL_MapMatches(const char *token, const char *map_name)
+static boolean CL_MapMatches(const char *token, const char *map_name)
 {
     size_t map_len;
     size_t token_len;
@@ -231,12 +231,12 @@ static boolean SL_MapMatches(const char *token, const char *map_name)
 }
 
 // -----------------------------------------------------------------------------
-// SL_MissionMatches
+// CL_MissionMatches
 // [PN] Matches mission token against current IWAD mission.
 //      Supported tokens: DOOM, DOOM2, TNT, PLUTONIA (also PLUT).
 // -----------------------------------------------------------------------------
 
-static boolean SL_MissionMatches(const char *token)
+static boolean CL_MissionMatches(const char *token)
 {
     const GameMission_t mission = logical_gamemission;
 
@@ -275,12 +275,12 @@ static boolean SL_MissionMatches(const char *token)
 }
 
 // -----------------------------------------------------------------------------
-// SL_IsMissionToken
+// CL_IsMissionToken
 // [PN] Recognizes supported mission tags in token[0], independent from
 //      currently running IWAD.
 // -----------------------------------------------------------------------------
 
-static boolean SL_IsMissionToken(const char *token)
+static boolean CL_IsMissionToken(const char *token)
 {
     if (token == NULL)
     {
@@ -305,14 +305,14 @@ static boolean SL_IsMissionToken(const char *token)
 }
 
 // -----------------------------------------------------------------------------
-// SL_ParseLine
+// CL_ParseLine
 // [PN] Reads one LUT line:
 //      "12 FF0000"
 //      "MAP01 12 FF0000"
 //      "DOOM2 MAP01 12 FF0000"
 // -----------------------------------------------------------------------------
 
-static void SL_ParseLine(char *line, const char *map_name)
+static void CL_ParseLine(char *line, const char *map_name)
 {
     char *token;
     char *tokens[5];
@@ -343,8 +343,8 @@ static void SL_ParseLine(char *line, const char *map_name)
         }
     }
 
-    line = SL_TrimLeft(line);
-    SL_TrimRight(line);
+    line = CL_TrimLeft(line);
+    CL_TrimRight(line);
 
     if (*line == '\0')
     {
@@ -391,7 +391,7 @@ static void SL_ParseLine(char *line, const char *map_name)
     }
     else if (token_count == 3)
     {
-        if (!SL_MapMatches(tokens[0], map_name))
+        if (!CL_MapMatches(tokens[0], map_name))
         {
             return;
         }
@@ -399,9 +399,9 @@ static void SL_ParseLine(char *line, const char *map_name)
         sector_token = tokens[1];
         color_token = tokens[2];
     }
-    else if (SL_IsMissionToken(tokens[0]))
+    else if (CL_IsMissionToken(tokens[0]))
     {
-        if (!SL_MissionMatches(tokens[0]) || !SL_MapMatches(tokens[1], map_name))
+        if (!CL_MissionMatches(tokens[0]) || !CL_MapMatches(tokens[1], map_name))
         {
             return;
         }
@@ -414,7 +414,7 @@ static void SL_ParseLine(char *line, const char *map_name)
         // [PN] Backward-compatible tolerant path:
         // if token[0] is not a known MISSION tag, treat line as
         // "MAP SECTOR COLOR" and ignore any extra tokens.
-        if (!SL_MapMatches(tokens[0], map_name))
+        if (!CL_MapMatches(tokens[0], map_name))
         {
             return;
         }
@@ -430,20 +430,20 @@ static void SL_ParseLine(char *line, const char *map_name)
         return;
     }
 
-    if (!SL_ParseHexRGB(color_token, &rgb))
+    if (!CL_ParseHexRGB(color_token, &rgb))
     {
         return;
     }
 
-    sectors[sector_number].lightbank = (unsigned short)SL_FindOrAddBank(rgb);
+    sectors[sector_number].lightbank = (unsigned short)CL_FindOrAddBank(rgb);
 }
 
 // -----------------------------------------------------------------------------
-// SL_ParseLump
-// [PN] Parses all lines from one SECLIGHT text lump.
+// CL_ParseLump
+// [PN] Parses all lines from one COLLIGHT text lump.
 // -----------------------------------------------------------------------------
 
-static void SL_ParseLump(const int lumpnum, const char *map_name)
+static void CL_ParseLump(const int lumpnum, const char *map_name)
 {
     const int len = W_LumpLength((lumpindex_t)lumpnum);
     char *text;
@@ -480,7 +480,7 @@ static void SL_ParseLump(const int lumpnum, const char *map_name)
             next = line + strlen(line);
         }
 
-        SL_ParseLine(line, map_name);
+        CL_ParseLine(line, map_name);
         line = next;
     }
 
@@ -488,11 +488,11 @@ static void SL_ParseLump(const int lumpnum, const char *map_name)
 }
 
 // -----------------------------------------------------------------------------
-// SL_BuildBank
+// CL_BuildBank
 // [PN] Builds one colored LUT bank by channel-multiplying base colormaps[].
 // -----------------------------------------------------------------------------
 
-static void SL_BuildBank(seclight_bank_t *bank)
+static void CL_BuildBank(collight_bank_t *bank)
 {
     const int row_count = NUMCOLORMAPS;
     const size_t lut_entries = (size_t)row_count << 8;
@@ -534,34 +534,34 @@ static void SL_BuildBank(seclight_bank_t *bank)
 }
 
 // -----------------------------------------------------------------------------
-// R_SecLight_ResetLevel
+// R_ColLight_ResetLevel
 // [PN] Public reset entry for level transitions.
 // -----------------------------------------------------------------------------
 
-void R_SecLight_ResetLevel(void)
+void R_ColLight_ResetLevel(void)
 {
-    for (int i = 0; i < seclight_num_banks; ++i)
+    for (int i = 0; i < collight_num_banks; ++i)
     {
-        SL_FreeBankData(&seclight_banks[i]);
+        CL_FreeBankData(&collight_banks[i]);
     }
 
-    free(seclight_banks);
-    seclight_banks = NULL;
-    seclight_num_banks = 0;
-    seclight_cap_banks = 0;
+    free(collight_banks);
+    collight_banks = NULL;
+    collight_num_banks = 0;
+    collight_cap_banks = 0;
 
-    SL_EnsureDefaultBank();
+    CL_EnsureDefaultBank();
 }
 
 // -----------------------------------------------------------------------------
-// R_SecLight_LoadMapLUT
-// [PN] Applies SECLIGHT entries for the current map and prepares bank list.
+// R_ColLight_LoadMapLUT
+// [PN] Applies COLLIGHT entries for the current map and prepares bank list.
 // -----------------------------------------------------------------------------
 
-void R_SecLight_LoadMapLUT(const char *map_name)
+void R_ColLight_LoadMapLUT(const char *map_name)
 {
-    SL_EnsureDefaultBank();
-    SL_ResetSectorAssignments();
+    CL_EnsureDefaultBank();
+    CL_ResetSectorAssignments();
 
     if (map_name == NULL || *map_name == '\0')
     {
@@ -570,23 +570,23 @@ void R_SecLight_LoadMapLUT(const char *map_name)
 
     for (unsigned int i = 0; i < numlumps; ++i)
     {
-        if (!strncasecmp(lumpinfo[i]->name, "SECLIGHT", 8))
+        if (!strncasecmp(lumpinfo[i]->name, "COLLIGHT", 8))
         {
-            SL_ParseLump((int)i, map_name);
+            CL_ParseLump((int)i, map_name);
         }
     }
 
-    R_SecLight_RebuildBanks();
+    R_ColLight_RebuildBanks();
 }
 
 // -----------------------------------------------------------------------------
-// R_SecLight_RebuildBanks
+// R_ColLight_RebuildBanks
 // [PN] Rebuilds all colored banks whenever base colormaps[] are regenerated.
 // -----------------------------------------------------------------------------
 
-void R_SecLight_RebuildBanks(void)
+void R_ColLight_RebuildBanks(void)
 {
-    if (seclight_num_banks <= 1)
+    if (collight_num_banks <= 1)
     {
         return;
     }
@@ -596,28 +596,28 @@ void R_SecLight_RebuildBanks(void)
     // pointer remaps during rendering.
     if (colormaps == NULL || NUMCOLORMAPS <= 0)
     {
-        for (int i = 1; i < seclight_num_banks; ++i)
+        for (int i = 1; i < collight_num_banks; ++i)
         {
-            SL_FreeBankData(&seclight_banks[i]);
+            CL_FreeBankData(&collight_banks[i]);
         }
 
         return;
     }
 
-    for (int i = 1; i < seclight_num_banks; ++i)
+    for (int i = 1; i < collight_num_banks; ++i)
     {
-        SL_BuildBank(&seclight_banks[i]);
+        CL_BuildBank(&collight_banks[i]);
     }
 }
 
 // -----------------------------------------------------------------------------
-// R_SecLight_Apply
+// R_ColLight_Apply
 // [PN] Fast row remap: base colormap pointer -> colored bank pointer.
 // -----------------------------------------------------------------------------
 
-lighttable_t *R_SecLight_Apply(const int bank_index, const lighttable_t *base_colormap)
+lighttable_t *R_ColLight_Apply(const int bank_index, const lighttable_t *base_colormap)
 {
-    const seclight_bank_t *bank;
+    const collight_bank_t *bank;
     ptrdiff_t delta;
     int row_index;
 
@@ -626,12 +626,12 @@ lighttable_t *R_SecLight_Apply(const int bank_index, const lighttable_t *base_co
         return NULL;
     }
 
-    if (bank_index <= 0 || bank_index >= seclight_num_banks)
+    if (bank_index <= 0 || bank_index >= collight_num_banks)
     {
         return (lighttable_t *)base_colormap;
     }
 
-    bank = &seclight_banks[bank_index];
+    bank = &collight_banks[bank_index];
 
     if (bank->rows == NULL || bank->row_count <= 0)
     {
@@ -654,3 +654,4 @@ lighttable_t *R_SecLight_Apply(const int bank_index, const lighttable_t *base_co
 
     return bank->rows[row_index];
 }
+
