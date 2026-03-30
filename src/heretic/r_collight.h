@@ -12,38 +12,12 @@
 // GNU General Public License for more details.
 //
 
-#ifndef HERETIC_R_COLLIGHT_H
-#define HERETIC_R_COLLIGHT_H
+
+#pragma once
 
 #include "r_local.h"
 
-// -----------------------------------------------------------------------------
-// R_ColLight_ResetLevel
-// [PN] Clears per-level sector color-lighting state and frees cached LUT banks.
-// -----------------------------------------------------------------------------
-
-void R_ColLight_ResetLevel(void);
-
-// -----------------------------------------------------------------------------
-// R_ColLight_LoadMapLUT
-// [PN] Parses COLLIGHT lumps and assigns color-lighting banks to map sectors.
-// -----------------------------------------------------------------------------
-
-void R_ColLight_LoadMapLUT(const char *map_name);
-
-// -----------------------------------------------------------------------------
-// R_ColLight_RebuildBanks
-// [PN] Rebuilds cached colored colormap LUT banks from current base colormaps[].
-// -----------------------------------------------------------------------------
-
-void R_ColLight_RebuildBanks(void);
-
-// -----------------------------------------------------------------------------
-// R_ColLight_Apply
-// [PN] Maps a base colormap row pointer to a sector color-light bank row.
-// -----------------------------------------------------------------------------
-
-lighttable_t *R_ColLight_Apply(int bank_index, const lighttable_t *base_colormap);
-
-#endif
-
+extern void R_ColLight_ResetLevel(void);
+extern void R_ColLight_LoadMapLUT(const char *map_name);
+extern void R_ColLight_RebuildBanks(void);
+extern lighttable_t *R_ColLight_Apply(int bank_index, const lighttable_t *base_colormap);

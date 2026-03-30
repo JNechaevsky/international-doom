@@ -22,6 +22,7 @@
 #include "r_collight.h"
 #include "w_wad.h"
 
+
 typedef struct
 {
     uint32_t rgb;
@@ -34,9 +35,10 @@ static collight_bank_t *collight_banks;
 static int collight_num_banks;
 static int collight_cap_banks;
 
+
 // -----------------------------------------------------------------------------
 // CL_EnsureDefaultBank
-// [PN] Bank 0 is the neutral (white) bank and always maps to base colormaps[].
+//  [PN] Bank 0 is the neutral (white) bank and always maps to base colormaps[].
 // -----------------------------------------------------------------------------
 
 static void CL_EnsureDefaultBank(void)
@@ -59,7 +61,7 @@ static void CL_EnsureDefaultBank(void)
 
 // -----------------------------------------------------------------------------
 // CL_FreeBankData
-// [PN] Frees one colored LUT bank (not the bank slot itself).
+//  [PN] Frees one colored LUT bank (not the bank slot itself).
 // -----------------------------------------------------------------------------
 
 static void CL_FreeBankData(collight_bank_t *bank)
@@ -78,7 +80,7 @@ static void CL_FreeBankData(collight_bank_t *bank)
 
 // -----------------------------------------------------------------------------
 // CL_ResetSectorAssignments
-// [PN] Clears per-sector bank indices for the currently loaded level.
+//  [PN] Clears per-sector bank indices for the currently loaded level.
 // -----------------------------------------------------------------------------
 
 static void CL_ResetSectorAssignments(void)
@@ -96,7 +98,7 @@ static void CL_ResetSectorAssignments(void)
 
 // -----------------------------------------------------------------------------
 // CL_FindOrAddBank
-// [PN] Deduplicates RGB colors and returns a compact bank index.
+//  [PN] Deduplicates RGB colors and returns a compact bank index.
 // -----------------------------------------------------------------------------
 
 static int CL_FindOrAddBank(const uint32_t rgb)
@@ -135,7 +137,7 @@ static int CL_FindOrAddBank(const uint32_t rgb)
 
 // -----------------------------------------------------------------------------
 // CL_TrimLeft / CL_TrimRight
-// [PN] In-place trimming helpers for simple text-based LUT parsing.
+//  [PN] In-place trimming helpers for simple text-based LUT parsing.
 // -----------------------------------------------------------------------------
 
 static char *CL_TrimLeft(char *text)
@@ -169,14 +171,13 @@ static void CL_TrimRight(char *text)
 
 // -----------------------------------------------------------------------------
 // CL_ParseHexRGB
-// [PN] Parses "RRGGBB", "#RRGGBB", or "0xRRGGBB" into a 24-bit RGB value.
+//  [PN] Parses "RRGGBB", "#RRGGBB", or "0xRRGGBB" into a 24-bit RGB value.
 // -----------------------------------------------------------------------------
 
 static boolean CL_ParseHexRGB(const char *text, uint32_t *rgb)
 {
     const char *ptr = text;
     char *endptr;
-    unsigned long value;
 
     if (ptr[0] == '#')
     {
@@ -192,7 +193,7 @@ static boolean CL_ParseHexRGB(const char *text, uint32_t *rgb)
         return false;
     }
 
-    value = strtoul(ptr, &endptr, 16);
+    const unsigned long value = strtoul(ptr, &endptr, 16);
 
     if (*endptr != '\0' || value > 0xFFFFFFul)
     {
@@ -204,22 +205,44 @@ static boolean CL_ParseHexRGB(const char *text, uint32_t *rgb)
 }
 
 // -----------------------------------------------------------------------------
+// CL_IsInlineHexColor
+//  [PN] Detects inline "#RRGGBB" color token so '#' is not mistaken for comment.
+// -----------------------------------------------------------------------------
+
+static boolean CL_IsInlineHexColor(const char *text)
+{
+    if (text == NULL || text[0] != '#')
+    {
+        return false;
+    }
+
+    for (int i = 1; i <= 6; ++i)
+    {
+        if (!isxdigit((unsigned char)text[i]))
+        {
+            return false;
+        }
+    }
+
+    return text[7] == '\0'
+        || isspace((unsigned char)text[7])
+        || text[7] == ',';
+}
+
+// -----------------------------------------------------------------------------
 // CL_MapMatches
-// [PN] Matches a map token against current map name; "*" acts as wildcard.
+//  [PN] Matches a map token against current map name; "*" acts as wildcard.
 // -----------------------------------------------------------------------------
 
 static boolean CL_MapMatches(const char *token, const char *map_name)
 {
-    size_t map_len;
-    size_t token_len;
-
     if (token == NULL || map_name == NULL)
     {
         return false;
     }
 
-    map_len = strlen(map_name);
-    token_len = strlen(token);
+    const size_t map_len = strlen(map_name);
+    const size_t token_len = strlen(token);
 
     if (token[0] == '*' && token[1] == '\0')
     {
@@ -231,8 +254,8 @@ static boolean CL_MapMatches(const char *token, const char *map_name)
 
 // -----------------------------------------------------------------------------
 // CL_MissionMatches
-// [PN] Matches mission token for Hexen parsing context.
-//      Supported tokens: HEXEN, H2 (or wildcard "*").
+//  [PN] Matches mission token for Hexen parsing context.
+//       Supported tokens: HEXEN, HXN (or wildcard "*").
 // -----------------------------------------------------------------------------
 
 static boolean CL_MissionMatches(const char *token)
@@ -248,7 +271,7 @@ static boolean CL_MissionMatches(const char *token)
     }
 
     if ((!strncasecmp(token, "HEXEN", 5) && token[5] == '\0')
-     || (!strncasecmp(token, "H2", 2) && token[2] == '\0'))
+     || (!strncasecmp(token, "HXN", 3) && token[3] == '\0'))
     {
         return true;
     }
@@ -258,8 +281,8 @@ static boolean CL_MissionMatches(const char *token)
 
 // -----------------------------------------------------------------------------
 // CL_IsMissionToken
-// [PN] Recognizes supported mission tags in token[0], independent from
-//      currently running IWAD.
+//  [PN] Recognizes supported mission tags in token[0], independent from
+//       currently running IWAD.
 // -----------------------------------------------------------------------------
 
 static boolean CL_IsMissionToken(const char *token)
@@ -275,7 +298,7 @@ static boolean CL_IsMissionToken(const char *token)
     }
 
     if ((!strncasecmp(token, "HEXEN", 5) && token[5] == '\0')
-     || (!strncasecmp(token, "H2", 2) && token[2] == '\0'))
+     || (!strncasecmp(token, "HXN", 3) && token[3] == '\0'))
     {
         return true;
     }
@@ -285,31 +308,26 @@ static boolean CL_IsMissionToken(const char *token)
 
 // -----------------------------------------------------------------------------
 // CL_ParseLine
-// [PN] Reads one LUT line:
-//      "12 FF0000"
-//      "MAP01 12 FF0000"
-//      "HEXEN MAP01 12 FF0000"
+//  [PN] Reads one LUT line:
+//       "12 FF0000"
+//       "MAP01 12 FF0000"
+//       "HEXEN MAP01 12 FF0000"
 // -----------------------------------------------------------------------------
 
 static void CL_ParseLine(char *line, const char *map_name)
 {
-    char *token;
     char *tokens[5];
     int token_count = 0;
-    char *sector_token;
-    char *color_token;
-    char *ptr;
-    long sector_number;
-    uint32_t rgb;
 
     if (line == NULL)
     {
         return;
     }
 
-    for (ptr = line; *ptr != '\0'; ++ptr)
+    for (char *ptr = line; *ptr != '\0'; ++ptr)
     {
-        if (*ptr == '#' || *ptr == ';')
+        if ((*ptr == '#' && !CL_IsInlineHexColor(ptr))
+         || *ptr == ';')
         {
             *ptr = '\0';
             break;
@@ -330,7 +348,7 @@ static void CL_ParseLine(char *line, const char *map_name)
         return;
     }
 
-    ptr = line;
+    char *ptr = line;
 
     while (*ptr != '\0' && token_count < 5)
     {
@@ -344,8 +362,7 @@ static void CL_ParseLine(char *line, const char *map_name)
             break;
         }
 
-        token = ptr;
-        tokens[token_count++] = token;
+        tokens[token_count++] = ptr;
 
         while (*ptr != '\0' && !isspace((unsigned char)*ptr) && *ptr != ',')
         {
@@ -362,6 +379,9 @@ static void CL_ParseLine(char *line, const char *map_name)
     {
         return;
     }
+
+    char *sector_token = NULL;
+    char *color_token = NULL;
 
     if (token_count == 2)
     {
@@ -402,12 +422,14 @@ static void CL_ParseLine(char *line, const char *map_name)
         color_token = tokens[2];
     }
 
-    sector_number = strtol(sector_token, &ptr, 10);
+    long sector_number = strtol(sector_token, &ptr, 10);
 
     if (*ptr != '\0' || sector_number < 0 || sector_number >= numsectors)
     {
         return;
     }
+
+    uint32_t rgb;
 
     if (!CL_ParseHexRGB(color_token, &rgb))
     {
@@ -419,7 +441,7 @@ static void CL_ParseLine(char *line, const char *map_name)
 
 // -----------------------------------------------------------------------------
 // CL_ParseLump
-// [PN] Parses all lines from one COLLIGHT text lump.
+//  [PN] Parses all lines from one COLLIGHT text lump.
 // -----------------------------------------------------------------------------
 
 static void CL_ParseLump(const int lumpnum, const char *map_name)
@@ -468,7 +490,7 @@ static void CL_ParseLump(const int lumpnum, const char *map_name)
 
 // -----------------------------------------------------------------------------
 // CL_BuildBank
-// [PN] Builds one colored LUT bank by channel-multiplying base colormaps[].
+//  [PN] Builds one colored LUT bank by channel-multiplying base colormaps[].
 // -----------------------------------------------------------------------------
 
 static void CL_BuildBank(collight_bank_t *bank)
@@ -514,7 +536,7 @@ static void CL_BuildBank(collight_bank_t *bank)
 
 // -----------------------------------------------------------------------------
 // R_ColLight_ResetLevel
-// [PN] Public reset entry for level transitions.
+//  [PN] Public reset entry for level transitions.
 // -----------------------------------------------------------------------------
 
 void R_ColLight_ResetLevel(void)
@@ -534,7 +556,7 @@ void R_ColLight_ResetLevel(void)
 
 // -----------------------------------------------------------------------------
 // R_ColLight_LoadMapLUT
-// [PN] Applies COLLIGHT entries for the current map and prepares bank list.
+//  [PN] Applies COLLIGHT entries for the current map and prepares bank list.
 // -----------------------------------------------------------------------------
 
 void R_ColLight_LoadMapLUT(const char *map_name)
@@ -560,7 +582,7 @@ void R_ColLight_LoadMapLUT(const char *map_name)
 
 // -----------------------------------------------------------------------------
 // R_ColLight_RebuildBanks
-// [PN] Rebuilds all colored banks whenever base colormaps[] are regenerated.
+//  [PN] Rebuilds all colored banks whenever base colormaps[] are regenerated.
 // -----------------------------------------------------------------------------
 
 void R_ColLight_RebuildBanks(void)
@@ -591,15 +613,11 @@ void R_ColLight_RebuildBanks(void)
 
 // -----------------------------------------------------------------------------
 // R_ColLight_Apply
-// [PN] Fast row remap: base colormap pointer -> colored bank pointer.
+//  [PN] Fast row remap: base colormap pointer -> colored bank pointer.
 // -----------------------------------------------------------------------------
 
 lighttable_t *R_ColLight_Apply(const int bank_index, const lighttable_t *base_colormap)
 {
-    const collight_bank_t *bank;
-    ptrdiff_t delta;
-    int row_index;
-
     if (base_colormap == NULL)
     {
         return NULL;
@@ -610,21 +628,21 @@ lighttable_t *R_ColLight_Apply(const int bank_index, const lighttable_t *base_co
         return (lighttable_t *)base_colormap;
     }
 
-    bank = &collight_banks[bank_index];
+    const collight_bank_t *bank = &collight_banks[bank_index];
 
     if (bank->rows == NULL || bank->row_count <= 0)
     {
         return (lighttable_t *)base_colormap;
     }
 
-    delta = base_colormap - colormaps;
+    const ptrdiff_t delta = base_colormap - colormaps;
 
     if (delta < 0 || (delta & 0xFF) != 0)
     {
         return (lighttable_t *)base_colormap;
     }
 
-    row_index = (int)(delta >> 8);
+    const int row_index = (int)(delta >> 8);
 
     if ((unsigned int)row_index >= (unsigned int)bank->row_count)
     {
@@ -633,4 +651,3 @@ lighttable_t *R_ColLight_Apply(const int bank_index, const lighttable_t *base_co
 
     return bank->rows[row_index];
 }
-
