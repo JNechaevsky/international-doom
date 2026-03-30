@@ -23,6 +23,7 @@
 #include "i_system.h"
 #include "v_video.h"
 #include "r_local.h"
+#include "r_collight.h"
 #include "p_spec.h"
 
 #include "id_vars.h"
@@ -72,8 +73,8 @@ visplane_t *floorplane, *ceilingplane;
 // [JN] killough -- hash function for visplanes
 // Empirically verified to be fairly uniform:
 
-#define visplane_hash(picnum, lightlevel, height) \
-    ((unsigned)((picnum) * 3 + (lightlevel) + (height) * 7) & (MAXVISPLANES - 1))
+#define visplane_hash(picnum, lightlevel, height, colorbank) \
+    ((unsigned)((picnum) * 3 + (lightlevel) + (height) * 7 + (colorbank) * 11) & (MAXVISPLANES - 1))
 
 // [JN] killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
@@ -97,6 +98,7 @@ int ceilingclip[MAXWIDTH];  // [JN] 32-bit integer math
 
 static lighttable_t **planezlight;
 static fixed_t        planeheight;
+static int            planecolorbank;
 
 fixed_t *yslope;
 fixed_t  yslopes[LOOKDIRS][MAXHEIGHT];
@@ -216,7 +218,10 @@ static void R_MapPlane (int y, int x1, int x2)
         if (index >= MAXLIGHTZ)
             index = MAXLIGHTZ - 1;
 
-        ds_colormap = planezlight[index];
+        const lighttable_t *const base = planezlight[index];
+        ds_colormap = planecolorbank
+                    ? R_ColLight_Apply(planecolorbank, base)
+                    : (lighttable_t *)base;
     }
 
     ds_y = y;
@@ -262,6 +267,7 @@ void R_ClearPlanes (void)
 
     // texture calculation
     memset(cachedheight, 0, sizeof(cachedheight));
+    planecolorbank = 0; // [PN] Default to neutral bank until a plane selects one.
 }
 
 // -----------------------------------------------------------------------------
@@ -292,7 +298,7 @@ static visplane_t *const new_visplane (unsigned const int hash)
 // R_FindPlane
 // -----------------------------------------------------------------------------
 
-visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel, int special)
+visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel, int colorbank, int special)
 {
     visplane_t *check;
     unsigned int hash;
@@ -304,6 +310,7 @@ visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel, int s
     if (picnum == skyflatnum)
     {
         lightlevel = 0;   // killough 7/19/98: most skies map together
+        colorbank = 0;    // [PN] Sky is always fullbright and not sector-tinted.
 
         // haleyjd 05/06/08: but not all. If height > viewpoint.z, set height to 1
         // instead of 0, to keep ceilings mapping with ceilings, and floors mapping
@@ -319,11 +326,12 @@ visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel, int s
     }
 
     // New visplane algorithm uses hash table -- killough
-    hash = visplane_hash(picnum, lightlevel, height);
+    hash = visplane_hash(picnum, lightlevel, height, colorbank);
 
     for (check = visplanes[hash]; check; check = check->next)
         if (height == check->height && picnum == check->picnum 
         && lightlevel == check->lightlevel
+        && colorbank == check->colorbank
         && special == check->special)
             return check;
 
@@ -332,6 +340,7 @@ visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel, int s
     check->height = height;
     check->picnum = picnum;
     check->lightlevel = lightlevel;
+    check->colorbank = (unsigned short)colorbank;
     check->special = special;
     check->minx = SCREENWIDTH;
     check->maxx = -1;
@@ -347,11 +356,12 @@ visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel, int s
 
 visplane_t *const R_DupPlane(const visplane_t *const pl, int start, int stop)
 {
-    visplane_t *new_pl = new_visplane(visplane_hash(pl->picnum, pl->lightlevel, pl->height));
+    visplane_t *new_pl = new_visplane(visplane_hash(pl->picnum, pl->lightlevel, pl->height, pl->colorbank));
 
     new_pl->height = pl->height;
     new_pl->picnum = pl->picnum;
     new_pl->lightlevel = pl->lightlevel;
+    new_pl->colorbank = pl->colorbank;
     new_pl->special = pl->special;
     new_pl->minx = start;
     new_pl->maxx = stop;
@@ -792,6 +802,7 @@ void R_DrawPlanes (void)
             planeheight = abs(pl->height-viewz);
             // [PN] Ensure 'light' is within the range [0, LIGHTLEVELS - 1] inclusively.
             const int light = BETWEEN(0, LIGHTLEVELS-1, (pl->lightlevel >> LIGHTSEGSHIFT) + (extralight * LIGHTBRIGHT));
+            planecolorbank = pl->colorbank;
             planezlight = zlight[light];
             pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
 

@@ -114,8 +114,11 @@ typedef struct
     // [AM] Interpolated floor and ceiling height.
     //      Calculated once per tic and used inside
     //      the renderer.
-    fixed_t	interpfloorheight;
-    fixed_t	interpceilingheight;
+	fixed_t	interpfloorheight;
+	fixed_t	interpceilingheight;
+
+    // [PN] Per-sector colored-lighting bank index (0 = neutral/base lighting).
+    unsigned short lightbank;
 } sector_t;
 
 typedef struct
@@ -263,6 +266,7 @@ typedef struct visplane_s
     fixed_t height;
     int picnum;
     int lightlevel;
+    unsigned short colorbank; // [PN] Colored-lighting bank id for this visplane.
     int special;
     int minx, maxx;
     unsigned short pad1;
@@ -562,7 +566,7 @@ void R_ClearPlanes(void);
 
 void R_DrawPlanes(void);
 
-extern visplane_t *const R_FindPlane(fixed_t height, int picnum, int lightlevel, int special);
+extern visplane_t *const R_FindPlane(fixed_t height, int picnum, int lightlevel, int colorbank, int special);
 extern visplane_t *const R_CheckPlane(visplane_t *const pl, int start, int stop);
 extern visplane_t *const R_DupPlane (const visplane_t *const pl, int start, int stop);
 

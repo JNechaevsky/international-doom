@@ -26,6 +26,7 @@
 #include "i_swap.h"
 #include "i_system.h"
 #include "r_local.h"
+#include "r_collight.h"
 #include "v_video.h" // [JN] translucency tables
 
 #include "id_func.h"
@@ -41,6 +42,7 @@ fixed_t pspritescale;
 fixed_t pspriteiscale;
 
 static lighttable_t **spritelights;
+static int spritecolorbank;
 
 // constant arrays used for psprite clipping and initializing clipping
 int negonearray[MAXWIDTH];       // [crispy] 32-bit integer math
@@ -196,6 +198,17 @@ static void R_NearbyBeginAdjPass(void)
 }
 
 // -----------------------------------------------------------------------------
+// R_SpriteSectorColormap
+// [PN] Fast path for sectors without colored lighting (bank 0).
+// -----------------------------------------------------------------------------
+
+static inline lighttable_t *R_SpriteSectorColormap(const lighttable_t *base)
+{
+    return spritecolorbank ? R_ColLight_Apply(spritecolorbank, base)
+                           : (lighttable_t *)base;
+}
+
+// -----------------------------------------------------------------------------
 // R_SetSpriteLightsForSector
 // [PN] Recomputes sprite light table for a specific sector.
 // -----------------------------------------------------------------------------
@@ -205,6 +218,7 @@ static void R_SetSpriteLightsForSector(const sector_t *const sec)
     const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (sec->lightlevel >> LIGHTSEGSHIFT)
                        + (extralight * LIGHTBRIGHT));
     spritelights = scalelight[lightnum];
+    spritecolorbank = sec->lightbank;
 }
 
 // -----------------------------------------------------------------------------
@@ -591,7 +605,9 @@ inline static lighttable_t *const R_SpriteColumnColormap(const vissprite_t *cons
     if (index >= MAXLIGHTSCALE)
         index  = MAXLIGHTSCALE - 1;
 
-    return scalelight[lightnum][index];
+    const lighttable_t *const base = scalelight[lightnum][index];
+    return sec->lightbank ? R_ColLight_Apply(sec->lightbank, base)
+                          : (lighttable_t *)base;
 }
 
 // -----------------------------------------------------------------------------
@@ -1028,14 +1044,14 @@ static void R_ProjectSprite (const mobj_t *const thing)
                 bright_index = MAXLIGHTSCALE - 1;
             }
 
-            vis->colormap[0] = spritelights[bright_index];
+            vis->colormap[0] = R_SpriteSectorColormap(spritelights[bright_index]);
         }
         else
         {
-            vis->colormap[0] = spritelights[index];
+            vis->colormap[0] = R_SpriteSectorColormap(spritelights[index]);
         }
 
-        vis->colormap[1] = LevelUseFullBright ? colormaps : spritelights[index];
+        vis->colormap[1] = LevelUseFullBright ? colormaps : vis->colormap[0];
     }
 
     vis->brightmap = R_BrightmapForSprite(thing->state - states);
@@ -1293,8 +1309,8 @@ static void R_DrawPSprite (const pspdef_t *const psp)
     if (viewplayer->powers[pw_invulnerability]
     &&  viewplayer->class == PCLASS_CLERIC)
     {
-        vis->colormap[0] = spritelights[MAXLIGHTSCALE - 1];
-        vis->colormap[1] = spritelights[MAXLIGHTSCALE - 1];
+        vis->colormap[0] = R_SpriteSectorColormap(spritelights[MAXLIGHTSCALE - 1]);
+        vis->colormap[1] = vis->colormap[0];
 
         if (viewplayer->powers[pw_invulnerability] > 4 * 32)
         {
@@ -1328,10 +1344,10 @@ static void R_DrawPSprite (const pspdef_t *const psp)
     else
     {
         // local light
-        vis->colormap[0] = spritelights[MAXLIGHTSCALE - 1];
+        vis->colormap[0] = R_SpriteSectorColormap(spritelights[MAXLIGHTSCALE - 1]);
         vis->colormap[1] = LevelUseFullBright
                          ? colormaps
-                         : spritelights[MAXLIGHTSCALE - 1];
+                         : vis->colormap[0];
     }
 
     vis->brightmap = R_BrightmapForState(state - states);
@@ -1354,6 +1370,7 @@ static void R_DrawPlayerSprites (void)
     const int lightnum = BETWEEN(0, LIGHTLEVELS - 1, (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT)
                        + (extralight * LIGHTBRIGHT));
     spritelights = scalelight[lightnum];
+    spritecolorbank = viewplayer->mo->subsector->sector->lightbank;
 
     // clip to screen bounds
     mfloorclip = screenheightarray;
