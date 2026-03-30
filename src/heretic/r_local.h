@@ -22,6 +22,7 @@
 
 #include "i_video.h"
 #include "v_patch.h"
+#include "doomdef.h"
 
 #define PL_SKYFLAT (0x80000000)
 #define	ANGLETOSKYSHIFT		22      // sky map is 256*128*4 maps
