@@ -454,8 +454,6 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
  	if (crl_spectating && !sendsave && !sendpause)
  		cmd = &spect;
 
-//printf ("cons: %i\n",cmd->consistancy);
-
     strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2]
         || mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2]
         || joybuttons[joybstrafe];

@@ -190,6 +190,8 @@ void I_PrintDivider(void)
 
 void I_PrintStartupBanner(const char *gamedescription)
 {
+    // [JN] Keep console log clear, please.
+    /*
     I_PrintDivider();
     I_PrintBanner(gamedescription);
     I_PrintDivider();
@@ -201,6 +203,7 @@ void I_PrintStartupBanner(const char *gamedescription)
     " copies under certain conditions. See the source for more information.\n");
 
     I_PrintDivider();
+    */
 }
 
 //

@@ -5639,8 +5639,6 @@ static void M_ID_LevelRespMonsters (int choice)
 static void M_ID_LevelCoopSpawn (int choice)
 {
     level_select[26] ^= 1;
-    
-    printf ("\n level_select[26] = %d", level_select[26]);
 }
 
 static void M_ScrollLevel (int choice)

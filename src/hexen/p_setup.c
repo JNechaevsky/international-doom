@@ -1777,8 +1777,6 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     // [JN] Print amount of level loading time.
     printf("loaded in %d ms.\n", I_GetTimeMS() - starttime);
 
-//printf ("free memory: 0x%x\n", Z_FreeMemory());
-
 }
 
 //==========================================================================
@@ -2213,17 +2211,3 @@ void InitMapMusicInfo(void)
     }
     MapCount = 98;
 }
-
-/*
-void My_Debug(void)
-{
-	int i;
-
-	printf("My debug stuff ----------------------\n");
-	printf("gamemap=%d\n",gamemap);
-	for (i=0; i<10; i++)
-	{
-		printf("i=%d  songlump=%s\n",i,MapInfo[i].songLump);
-	}
-}
-*/

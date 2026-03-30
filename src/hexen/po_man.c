@@ -1336,38 +1336,6 @@ static void InitBlockMap(void)
     for (i = 0; i < po_NumPolyobjs; i++)
     {
         LinkPolyobj(&polyobjs[i]);
-
-        // calculate a rough area
-        // right now, working like shit...gotta fix this...
-        segList = polyobjs[i].segs;
-        leftX = rightX = (*segList)->v1->x;
-        topY = bottomY = (*segList)->v1->y;
-        for (j = 0; j < polyobjs[i].numsegs; j++, segList++)
-        {
-            if ((*segList)->v1->x < leftX)
-            {
-                leftX = (*segList)->v1->x;
-            }
-            if ((*segList)->v1->x > rightX)
-            {
-                rightX = (*segList)->v1->x;
-            }
-            if ((*segList)->v1->y < bottomY)
-            {
-                bottomY = (*segList)->v1->y;
-            }
-            if ((*segList)->v1->y > topY)
-            {
-                topY = (*segList)->v1->y;
-            }
-        }
-//    area = ((rightX >> FRACBITS) - (leftX >> FRACBITS)) *
-//        ((topY >> FRACBITS) - (bottomY >> FRACBITS));
-
-//    fprintf(stdaux, "Area of Polyobj[%d]: %d\n", polyobjs[i].tag, area);
-//    fprintf(stdaux, "\t[%d]\n[%d]\t\t[%d]\n\t[%d]\n", topY>>FRACBITS, 
-//              leftX>>FRACBITS,
-//      rightX>>FRACBITS, bottomY>>FRACBITS);
     }
 }
 
