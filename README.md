@@ -14,20 +14,10 @@ The project is created by [Julia Nechaevskaya](mailto:julia.nechaevskaya@live.co
 
 ### Download
 
-**International Doom, version 8.3 (released: September 21, 2025):**
-* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_win64.png" width="16" height="16" />&nbsp;&nbsp;[Windows (64-bit)](https://github.com/JNechaevsky/international-doom/releases/download/8.3/inter-doom-8.3-win64.zip)
-* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_win32.png" width="16" height="16" />&nbsp;&nbsp;[Windows (32-bit)](https://github.com/JNechaevsky/international-doom/releases/download/8.3/inter-doom-8.3-win32.zip)
-* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_linux64.png" width="16" height="16" />&nbsp;&nbsp;[Linux AppImage (64-bit)](https://github.com/JNechaevsky/international-doom/releases/download/8.3/inter-doom-8.3-linux.appimage)
-
-**International Heretic, version 8.3 (released: September 21, 2025):**
-* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_win64.png" width="16" height="16" />&nbsp;&nbsp;[Windows (64-bit)](https://github.com/JNechaevsky/international-doom/releases/download/8.3/inter-heretic-8.3-win64.zip)
-* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_win32.png" width="16" height="16" />&nbsp;&nbsp;[Windows (32-bit)](https://github.com/JNechaevsky/international-doom/releases/download/8.3/inter-heretic-8.3-win32.zip)
-* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_linux64.png" width="16" height="16" />&nbsp;&nbsp;[Linux AppImage (64-bit)](https://github.com/JNechaevsky/international-doom/releases/download/8.3/inter-heretic-8.3-linux.appimage)
-
-**International Hexen, version 8.3 (released: September 21, 2025):**
-* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_win64.png" width="16" height="16" />&nbsp;&nbsp;[Windows (64-bit)](https://github.com/JNechaevsky/international-doom/releases/download/8.3/inter-hexen-8.3-win64.zip)
-* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_win32.png" width="16" height="16" />&nbsp;&nbsp;[Windows (32-bit)](https://github.com/JNechaevsky/international-doom/releases/download/8.3/inter-hexen-8.3-win32.zip)
-* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_linux64.png" width="16" height="16" />&nbsp;&nbsp;[Linux AppImage (64-bit)](https://github.com/JNechaevsky/international-doom/releases/download/8.3/inter-hexen-8.3-linux.appimage)
+**International Doom / Heretic / Hexen, version 9.0 (released: March 31, 2026):**
+* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_win64.png" width="16" height="16" />&nbsp;&nbsp;[Windows (64-bit)](https://github.com/JNechaevsky/international-doom/releases/download/9.0/inter-doom-9.0-win64.zip)
+* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_win32.png" width="16" height="16" />&nbsp;&nbsp;[Windows (32-bit)](https://github.com/JNechaevsky/international-doom/releases/download/9.0/inter-doom-9.0-win32.zip)
+* &nbsp;<img src="https://jnechaevsky.github.io/assets/img/icon_linux64.png" width="16" height="16" />&nbsp;&nbsp;[Linux AppImage (64-bit)](https://github.com/JNechaevsky/international-doom/releases/download/9.0/inter-doom-linux64.zip)
 
 <img src="https://jnechaevsky.github.io/assets/img/icon_nightly.png" width="16" height="16" />&nbsp;&nbsp;You can also download regular [Nightly Builds](https://github.com/JNechaevsky/international-doom/releases/tag/nightly/).
 
