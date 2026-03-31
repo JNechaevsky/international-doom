@@ -637,7 +637,7 @@ void R_ColLight_RebuildBanks(void)
 //  [PN] Fast row remap: base colormap pointer -> colored bank pointer.
 // -----------------------------------------------------------------------------
 
-lighttable_t *R_ColLight_Apply(const int bank_index, const lighttable_t *base_colormap)
+lighttable_t *R_ColLight_Apply(int bank_index, const lighttable_t *base_colormap)
 {
     if (base_colormap == NULL)
     {
