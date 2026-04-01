@@ -307,21 +307,49 @@ static boolean CL_IsMissionToken(const char *token)
 }
 
 // -----------------------------------------------------------------------------
-// CL_ParseLine
-//  [PN] Reads one LUT line:
-//       "12 FF0000"
-//       "MAP01 12 FF0000"
-//       "HEXEN MAP01 12 FF0000"
+// CL_IsCurrentMapIWAD
+//  [PN] True when currently loaded map lump comes from IWAD.
 // -----------------------------------------------------------------------------
 
-static void CL_ParseLine(char *line, const char *map_name)
+static boolean CL_IsCurrentMapIWAD(const char *map_name)
 {
-    char *tokens[5];
-    int token_count = 0;
+    if (map_name == NULL || *map_name == '\0')
+    {
+        return false;
+    }
 
+    const lumpindex_t lumpnum = W_CheckNumForName(map_name);
+
+    return lumpnum >= 0 && W_IsIWADLump(lumpinfo[lumpnum]);
+}
+
+// -----------------------------------------------------------------------------
+// CL_IsCurrentMapPWAD
+//  [PN] True when currently loaded map lump comes from PWAD.
+// -----------------------------------------------------------------------------
+
+static boolean CL_IsCurrentMapPWAD(const char *map_name)
+{
+    if (map_name == NULL || *map_name == '\0')
+    {
+        return false;
+    }
+
+    const lumpindex_t lumpnum = W_CheckNumForName(map_name);
+
+    return lumpnum >= 0 && !W_IsIWADLump(lumpinfo[lumpnum]);
+}
+
+// -----------------------------------------------------------------------------
+// CL_StripLine
+//  [PN] Removes comments and trims line in-place.
+// -----------------------------------------------------------------------------
+
+static char *CL_StripLine(char *line)
+{
     if (line == NULL)
     {
-        return;
+        return NULL;
     }
 
     for (char *ptr = line; *ptr != '\0'; ++ptr)
@@ -342,13 +370,329 @@ static void CL_ParseLine(char *line, const char *map_name)
 
     line = CL_TrimLeft(line);
     CL_TrimRight(line);
+    return line;
+}
+
+// -----------------------------------------------------------------------------
+// CL_ParseSectorSpan
+//  [PN] Parses one sector token: "N" or "N-M".
+// -----------------------------------------------------------------------------
+
+static boolean CL_ParseSectorSpan(const char *text, long *first, long *last)
+{
+    const char *ptr = text;
+    char *endptr;
+
+    while (*ptr != '\0' && isspace((unsigned char)*ptr))
+    {
+        ++ptr;
+    }
+
+    if (*ptr == '\0')
+    {
+        return false;
+    }
+
+    const long range_first = strtol(ptr, &endptr, 10);
+
+    if (endptr == ptr)
+    {
+        return false;
+    }
+
+    ptr = endptr;
+    while (*ptr != '\0' && isspace((unsigned char)*ptr))
+    {
+        ++ptr;
+    }
+
+    long range_last = range_first;
+
+    if (*ptr == '-')
+    {
+        ++ptr;
+
+        while (*ptr != '\0' && isspace((unsigned char)*ptr))
+        {
+            ++ptr;
+        }
+
+        range_last = strtol(ptr, &endptr, 10);
+
+        if (endptr == ptr)
+        {
+            return false;
+        }
+
+        ptr = endptr;
+
+        while (*ptr != '\0' && isspace((unsigned char)*ptr))
+        {
+            ++ptr;
+        }
+    }
+
+    if (*ptr != '\0')
+    {
+        return false;
+    }
+
+    *first = range_first;
+    *last = range_last;
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// CL_ParseSectorListLine
+//  [PN] Parses one block entry: "0,1,4-9 FF00FF".
+// -----------------------------------------------------------------------------
+
+static void CL_ParseSectorListLine(char *line)
+{
+    char *line_end = line + strlen(line);
+
+    while (line_end > line && isspace((unsigned char)line_end[-1]))
+    {
+        --line_end;
+    }
+
+    *line_end = '\0';
 
     if (*line == '\0')
     {
         return;
     }
 
-    char *ptr = line;
+    char *color_token = line_end;
+
+    while (color_token > line && !isspace((unsigned char)color_token[-1]))
+    {
+        --color_token;
+    }
+
+    if (color_token <= line)
+    {
+        return;
+    }
+
+    char *split = color_token;
+
+    while (split > line && isspace((unsigned char)split[-1]))
+    {
+        --split;
+    }
+
+    *split = '\0';
+    line = CL_TrimLeft(line);
+    CL_TrimRight(line);
+
+    if (*line == '\0')
+    {
+        return;
+    }
+
+    uint32_t rgb;
+
+    if (!CL_ParseHexRGB(color_token, &rgb))
+    {
+        return;
+    }
+
+    const unsigned short bank = (unsigned short)CL_FindOrAddBank(rgb);
+    char *item = line;
+
+    while (*item != '\0')
+    {
+        while (*item != '\0' && (isspace((unsigned char)*item) || *item == ','))
+        {
+            ++item;
+        }
+
+        if (*item == '\0')
+        {
+            break;
+        }
+
+        char *next = item;
+
+        while (*next != '\0' && *next != ',')
+        {
+            ++next;
+        }
+
+        if (*next == ',')
+        {
+            *next++ = '\0';
+        }
+
+        CL_TrimRight(item);
+
+        long first, last;
+
+        if (CL_ParseSectorSpan(item, &first, &last))
+        {
+            if (first > last)
+            {
+                const long temp = first;
+                first = last;
+                last = temp;
+            }
+
+            if (last >= 0 && first < numsectors)
+            {
+                int lo = (int)(first < 0 ? 0 : first);
+                int hi = (int)(last >= numsectors ? numsectors - 1 : last);
+
+                for (int sector = lo; sector <= hi; ++sector)
+                {
+                    sectors[sector].lightbank = bank;
+                }
+            }
+        }
+
+        item = next;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// CL_ParseBlockHeaderLine
+//  [PN] Parses optional mission/IWAD/map header line for block syntax.
+// -----------------------------------------------------------------------------
+
+static boolean CL_ParseBlockHeaderLine(char *line, const char *map_name,
+                                       boolean *active, boolean *has_open_brace)
+{
+    char *tokens[4];
+    int token_count = 0;
+
+    *active = false;
+    *has_open_brace = false;
+
+    CL_TrimRight(line);
+
+    const size_t len = strlen(line);
+
+    if (len > 0 && line[len - 1] == '{')
+    {
+        line[len - 1] = '\0';
+        CL_TrimRight(line);
+        *has_open_brace = true;
+    }
+
+    char *ptr = CL_TrimLeft(line);
+
+    if (*ptr == '\0')
+    {
+        return false;
+    }
+
+    while (*ptr != '\0' && token_count < 4)
+    {
+        while (*ptr != '\0' && isspace((unsigned char)*ptr))
+        {
+            ++ptr;
+        }
+
+        if (*ptr == '\0')
+        {
+            break;
+        }
+
+        tokens[token_count++] = ptr;
+
+        while (*ptr != '\0' && !isspace((unsigned char)*ptr))
+        {
+            ++ptr;
+        }
+
+        if (*ptr != '\0')
+        {
+            *ptr++ = '\0';
+        }
+    }
+
+    if (token_count <= 0 || token_count > 3)
+    {
+        return false;
+    }
+
+    int index = 0;
+    char *mission_token = NULL;
+    enum
+    {
+        CL_MAPSRC_ANY,
+        CL_MAPSRC_IWAD,
+        CL_MAPSRC_PWAD
+    } map_source = CL_MAPSRC_ANY;
+
+    if (CL_IsMissionToken(tokens[index]))
+    {
+        mission_token = tokens[index++];
+
+        if (index >= token_count)
+        {
+            return false;
+        }
+    }
+
+    if (!strncasecmp(tokens[index], "IWAD", 4) && tokens[index][4] == '\0')
+    {
+        map_source = CL_MAPSRC_IWAD;
+        ++index;
+
+        if (index >= token_count)
+        {
+            return false;
+        }
+    }
+    else if (!strncasecmp(tokens[index], "PWAD", 4) && tokens[index][4] == '\0')
+    {
+        map_source = CL_MAPSRC_PWAD;
+        ++index;
+
+        if (index >= token_count)
+        {
+            return false;
+        }
+    }
+
+    if (index != token_count - 1)
+    {
+        return false;
+    }
+
+    const boolean mission_match = mission_token == NULL || CL_MissionMatches(mission_token);
+    const boolean map_match = CL_MapMatches(tokens[index], map_name);
+    const boolean source_match = map_source == CL_MAPSRC_ANY ? true
+                               : map_source == CL_MAPSRC_IWAD ? CL_IsCurrentMapIWAD(map_name)
+                               : CL_IsCurrentMapPWAD(map_name);
+
+    *active = mission_match && map_match && source_match;
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// CL_ParseLine
+//  [PN] Reads one legacy LUT line:
+//       "12 FF0000"
+//       "MAP01 12 FF0000"
+//       "HEXEN MAP01 12 FF0000"
+// -----------------------------------------------------------------------------
+
+static void CL_ParseLine(char *line, const char *map_name)
+{
+    char *tokens[5];
+    int token_count = 0;
+    char *ptr;
+
+    line = CL_StripLine(line);
+
+    if (line == NULL || *line == '\0')
+    {
+        return;
+    }
+
+    ptr = line;
 
     while (*ptr != '\0' && token_count < 5)
     {
@@ -422,7 +766,7 @@ static void CL_ParseLine(char *line, const char *map_name)
         color_token = tokens[2];
     }
 
-    long sector_number = strtol(sector_token, &ptr, 10);
+    const long sector_number = strtol(sector_token, &ptr, 10);
 
     if (*ptr != '\0' || sector_number < 0 || sector_number >= numsectors)
     {
@@ -449,6 +793,11 @@ static void CL_ParseLump(const int lumpnum, const char *map_name)
     const int len = W_LumpLength((lumpindex_t)lumpnum);
     char *text;
     char *line;
+    boolean in_block = false;
+    boolean block_active = false;
+    boolean pending_header = false;
+    boolean pending_active = false;
+    char *pending_legacy_line = NULL;
 
     if (len <= 0)
     {
@@ -481,8 +830,107 @@ static void CL_ParseLump(const int lumpnum, const char *map_name)
             next = line + strlen(line);
         }
 
-        CL_ParseLine(line, map_name);
+        char *clean = CL_StripLine(line);
+
+        if (clean == NULL || *clean == '\0')
+        {
+            line = next;
+            continue;
+        }
+
+        if (pending_header)
+        {
+            if (!strcmp(clean, "{"))
+            {
+                in_block = true;
+                block_active = pending_active;
+                pending_header = false;
+                free(pending_legacy_line);
+                pending_legacy_line = NULL;
+                line = next;
+                continue;
+            }
+
+            if (pending_legacy_line != NULL)
+            {
+                CL_ParseLine(pending_legacy_line, map_name);
+                free(pending_legacy_line);
+                pending_legacy_line = NULL;
+            }
+
+            pending_header = false;
+        }
+
+        if (in_block)
+        {
+            if (!strcmp(clean, "}"))
+            {
+                in_block = false;
+                block_active = false;
+            }
+            else if (block_active)
+            {
+                CL_ParseSectorListLine(clean);
+            }
+
+            line = next;
+            continue;
+        }
+
+        const size_t clean_len = strlen(clean);
+        char *header_line = malloc(clean_len + 1u);
+
+        if (header_line != NULL)
+        {
+            memcpy(header_line, clean, clean_len + 1u);
+        }
+
+        boolean header_active;
+        boolean has_open_brace;
+        const boolean is_header = header_line != NULL
+                               && CL_ParseBlockHeaderLine(header_line, map_name,
+                                                          &header_active, &has_open_brace);
+
+        free(header_line);
+
+        if (is_header)
+        {
+            if (has_open_brace)
+            {
+                in_block = true;
+                block_active = header_active;
+            }
+            else
+            {
+                pending_header = true;
+                pending_active = header_active;
+
+                pending_legacy_line = malloc(clean_len + 1u);
+
+                if (pending_legacy_line != NULL)
+                {
+                    memcpy(pending_legacy_line, clean, clean_len + 1u);
+                }
+                else
+                {
+                    pending_header = false;
+                    CL_ParseLine(clean, map_name);
+                }
+            }
+
+            line = next;
+            continue;
+        }
+
+        CL_ParseLine(clean, map_name);
         line = next;
+    }
+
+    if (pending_header && pending_legacy_line != NULL)
+    {
+        CL_ParseLine(pending_legacy_line, map_name);
+        free(pending_legacy_line);
+        pending_legacy_line = NULL;
     }
 
     free(text);
