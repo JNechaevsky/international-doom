@@ -135,6 +135,7 @@ static void R_RecalcLineFlags (line_t *line_def)
         || backsector->ceilingpic != frontsector->ceilingpic
         || backsector->floorpic != frontsector->floorpic
         || backsector->lightlevel != frontsector->lightlevel
+        || backsector->lightbank != frontsector->lightbank
         || backsector->special != frontsector->special)
         {
             line_def->r_flags = 0;

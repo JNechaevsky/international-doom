@@ -135,7 +135,8 @@ static void R_RecalcLineFlags (line_t *line_def)
         || curline->sidedef->midtexture
         || backsector->ceilingpic != frontsector->ceilingpic
         || backsector->floorpic != frontsector->floorpic
-        || backsector->lightlevel != frontsector->lightlevel)
+        || backsector->lightlevel != frontsector->lightlevel
+        || backsector->lightbank != frontsector->lightbank)
         {
             line_def->r_flags = 0;
             return;
