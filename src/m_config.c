@@ -370,6 +370,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_freeze, key_freeze2),
     CONFIG_VARIABLE_KEYBIND(key_notarget, key_notarget2),
     CONFIG_VARIABLE_KEYBIND(key_buddha, key_buddha2),
+    CONFIG_VARIABLE_KEYBIND(key_shorttics, key_shorttics2),
 
     // Weapons
     CONFIG_VARIABLE_KEYBIND(key_weapon1, key_weapon1_2),

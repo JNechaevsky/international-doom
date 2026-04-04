@@ -1333,6 +1333,30 @@ boolean G_Responder (event_t* ev)
                       ID_BUDDHA_ON : ID_BUDDHA_OFF, false, NULL);
     }
 
+    // [JN] Toggle short tics mode.
+    if (ev->data1 == key_shorttics || ev->data1 == key_shorttics2)
+    {
+        if (demorecording)
+        {
+            CT_SetMessage(&players[consoleplayer], ID_SHORTTICS_NA_R, false, NULL);
+            return true;
+        }
+        if (demoplayback)
+        {
+            CT_SetMessage(&players[consoleplayer], ID_SHORTTICS_NA_P, false, NULL);
+            return true;
+        }
+        if (netgame)
+        {
+            CT_SetMessage(&players[consoleplayer], ID_SHORTTICS_NA_N, false, NULL);
+            return true;
+        }
+
+        lowres_turn ^= 1;
+        CT_SetMessage(&players[consoleplayer], lowres_turn ?
+                      ID_SHORTTICS_ON : ID_SHORTTICS_OFF, false, NULL);
+    }
+
     // [JN] Switch preferred soundtrack.
     if (ev->data1 == key_switch_ost || ev->data1 == key_switch_ost2)
     {

@@ -661,6 +661,7 @@ static void M_Bind_SpectatorMode (int choice);
 static void M_Bind_FreezeMode (int choice);
 static void M_Bind_NotargetMode (int choice);
 static void M_Bind_BuddhaMode (int choice);
+static void M_Bind_ShortTics (int choice);
 
 static void M_Draw_ID_Keybinds_3 (void);
 static void M_Bind_Weapon1 (int choice);
@@ -2655,6 +2656,7 @@ static menuitem_t ID_Menu_Keybinds_2[]=
     { M_SWTC, "FREEZE MODE",              M_Bind_FreezeMode,    'f' },
     { M_SWTC, "NOTARGET MODE",            M_Bind_NotargetMode,  'n' },
     { M_SWTC, "BUDDHA MODE",              M_Bind_BuddhaMode,    'b' },
+    { M_SWTC, "SHORT TICS MODE",          M_Bind_ShortTics,     's' },
 };
 
 static menu_t ID_Def_Keybinds_2 =
@@ -2733,6 +2735,11 @@ static void M_Bind_BuddhaMode (int choice)
     M_StartBind(212);  // key_buddha
 }
 
+static void M_Bind_ShortTics (int choice)
+{
+    M_StartBind(213);  // key_shorttics
+}
+
 static void M_Draw_ID_Keybinds_2 (void)
 {
     st_fullupdate = true;
@@ -2762,6 +2769,7 @@ static void M_Draw_ID_Keybinds_2 (void)
     M_DrawBindKey(12, 126, key_freeze, key_freeze2);
     M_DrawBindKey(13, 135, key_notarget, key_notarget2);
     M_DrawBindKey(14, 144, key_buddha, key_buddha2);
+    M_DrawBindKey(15, 153, key_shorttics, key_shorttics2);
 
     M_DrawBindFooter("2", true);
 }
@@ -5816,6 +5824,10 @@ static void M_ID_ApplyResetHook (void)
     compat_auto_sr50 = 0;
     G_SetSideMove();
     compat_intercepts = 0;
+    if (singleplayer)
+    {
+        lowres_turn = false;
+    }
 
     // Restart graphical systems
     I_ReInitGraphics(REINIT_FRAMEBUFFERS | REINIT_TEXTURES | REINIT_ASPECTRATIO);
@@ -9124,6 +9136,7 @@ static const KeyBindEntry_t keybinds[] =
     KEYBIND_ENTRY(210, &ID_Def_Keybinds_2, 12, key_freeze,        key_freeze2,        0,            0, KBS_GLOBAL),
     KEYBIND_ENTRY(211, &ID_Def_Keybinds_2, 13, key_notarget,      key_notarget2,      0,            0, KBS_GLOBAL),
     KEYBIND_ENTRY(212, &ID_Def_Keybinds_2, 14, key_buddha,        key_buddha2,        0,            0, KBS_GLOBAL),
+    KEYBIND_ENTRY(213, &ID_Def_Keybinds_2, 15, key_shorttics,     key_shorttics2,     0,            0, KBS_GLOBAL),
 
     // Page 3
     KEYBIND_ENTRY(300, &ID_Def_Keybinds_3, 0, key_weapon1,    key_weapon1_2,   '1', 0, KBS_GLOBAL),

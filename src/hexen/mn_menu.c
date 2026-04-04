@@ -577,6 +577,7 @@ static void M_Bind_SpectatorMode (int choice);
 static void M_Bind_FreezeMode (int choice);
 static void M_Bind_NotargetMode (int choice);
 static void M_Bind_BuddhaMode (int choice);
+static void M_Bind_ShortTics (int choice);
 
 static void M_Draw_ID_Keybinds_4 (void);
 static void M_Bind_Weapon1 (int choice);
@@ -2669,6 +2670,8 @@ static void M_Bind_BuddhaMode (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Keybinds_4[] = {
+    { ITT_EFUNC, "SHORTTICS TURNING",    M_Bind_ShortTics,  0, MENU_NONE },
+    { ITT_EMPTY, NULL,                   NULL,              0, MENU_NONE },
     { ITT_EFUNC, "WEAPON 1",             M_Bind_Weapon1,    0, MENU_NONE },
     { ITT_EFUNC, "WEAPON 2",             M_Bind_Weapon2,    0, MENU_NONE },
     { ITT_EFUNC, "WEAPON 3",             M_Bind_Weapon3,    0, MENU_NONE },
@@ -2698,22 +2701,26 @@ static void M_Draw_ID_Keybinds_4 (void)
 
     M_FillBackground();
 
-    MN_DrTextACentered("WEAPONS", 10, cr[CR_YELLOW]);
+    MN_DrTextACentered("SPECIAL MODES", 10, cr[CR_YELLOW]);
 
-    M_DrawBindKey(0, 20, key_weapon1, key_weapon1_2);
-    M_DrawBindKey(1, 30, key_weapon2, key_weapon2_2);
-    M_DrawBindKey(2, 40, key_weapon3, key_weapon3_2);
-    M_DrawBindKey(3, 50, key_weapon4, key_weapon4_2);
-    M_DrawBindKey(4, 60, key_prevweapon, key_prevweapon2);
-    M_DrawBindKey(5, 70, key_nextweapon, key_nextweapon2);
+    M_DrawBindKey(0, 20, key_shorttics, key_shorttics2);
 
-    MN_DrTextACentered("ARTIFACTS", 80, cr[CR_YELLOW]);
+    MN_DrTextACentered("WEAPONS", 30, cr[CR_YELLOW]);
 
-    M_DrawBindKey(7, 90, key_arti_health, key_arti_health2);
-    M_DrawBindKey(8, 100, key_arti_urn, key_arti_urn2);
-    M_DrawBindKey(9, 110, key_arti_poisonbag, key_arti_poisonbag2);
-    M_DrawBindKey(10, 120, key_arti_blastradius, key_arti_blastradius2);
-    M_DrawBindKey(11, 130, key_arti_invulnerability, key_arti_invulnerability2);
+    M_DrawBindKey(2, 40, key_weapon1, key_weapon1_2);
+    M_DrawBindKey(3, 50, key_weapon2, key_weapon2_2);
+    M_DrawBindKey(4, 60, key_weapon3, key_weapon3_2);
+    M_DrawBindKey(5, 70, key_weapon4, key_weapon4_2);
+    M_DrawBindKey(6, 80, key_prevweapon, key_prevweapon2);
+    M_DrawBindKey(7, 90, key_nextweapon, key_nextweapon2);
+
+    MN_DrTextACentered("ARTIFACTS", 100, cr[CR_YELLOW]);
+
+    M_DrawBindKey(9, 110, key_arti_health, key_arti_health2);
+    M_DrawBindKey(10, 120, key_arti_urn, key_arti_urn2);
+    M_DrawBindKey(11, 130, key_arti_poisonbag, key_arti_poisonbag2);
+    M_DrawBindKey(12, 140, key_arti_blastradius, key_arti_blastradius2);
+    M_DrawBindKey(13, 150, key_arti_invulnerability, key_arti_invulnerability2);
 
     M_DrawBindFooter("4", true);
 }
@@ -2771,6 +2778,11 @@ static void M_Bind_Disk (int choice)
 static void M_Bind_Icon (int choice)
 {
     M_StartBind(410);  // key_arti_invulnerability
+}
+
+static void M_Bind_ShortTics (int choice)
+{
+    M_StartBind(313);  // key_shorttics
 }
 
 // -----------------------------------------------------------------------------
@@ -8530,17 +8542,18 @@ static const KeyBindEntry_t keybinds[] =
     KEYBIND_ENTRY(312, &ID_Def_Keybinds_3, 14, key_buddha,        key_buddha2,        0,            0, KBS_GLOBAL),
 
     // Page 4
-    KEYBIND_ENTRY(400, &ID_Def_Keybinds_4, 0,  key_weapon1,              key_weapon1_2,             '1',  0, KBS_GLOBAL),
-    KEYBIND_ENTRY(401, &ID_Def_Keybinds_4, 1,  key_weapon2,              key_weapon2_2,             '2',  0, KBS_GLOBAL),
-    KEYBIND_ENTRY(402, &ID_Def_Keybinds_4, 2,  key_weapon3,              key_weapon3_2,             '3',  0, KBS_GLOBAL),
-    KEYBIND_ENTRY(403, &ID_Def_Keybinds_4, 3,  key_weapon4,              key_weapon4_2,             '4',  0, KBS_GLOBAL),
-    KEYBIND_ENTRY(404, &ID_Def_Keybinds_4, 4,  key_prevweapon,           key_prevweapon2,           0,    0, KBS_GLOBAL),
-    KEYBIND_ENTRY(405, &ID_Def_Keybinds_4, 5,  key_nextweapon,           key_nextweapon2,           0,    0, KBS_GLOBAL),
-    KEYBIND_ENTRY(406, &ID_Def_Keybinds_4, 7,  key_arti_health,          key_arti_health2,          '\\', 0, KBS_GLOBAL),
-    KEYBIND_ENTRY(407, &ID_Def_Keybinds_4, 8,  key_arti_urn,             key_arti_urn2,             0,    0, KBS_GLOBAL),
-    KEYBIND_ENTRY(408, &ID_Def_Keybinds_4, 9,  key_arti_poisonbag,       key_arti_poisonbag2,       '0',  0, KBS_GLOBAL),
-    KEYBIND_ENTRY(409, &ID_Def_Keybinds_4, 10, key_arti_blastradius,     key_arti_blastradius2,     '9',  0, KBS_GLOBAL),
-    KEYBIND_ENTRY(410, &ID_Def_Keybinds_4, 11, key_arti_invulnerability, key_arti_invulnerability2, '5',  0, KBS_GLOBAL),
+    KEYBIND_ENTRY(313, &ID_Def_Keybinds_4, 0,  key_shorttics,             key_shorttics2,            0,    0, KBS_GLOBAL),
+    KEYBIND_ENTRY(400, &ID_Def_Keybinds_4, 2,  key_weapon1,               key_weapon1_2,             '1',  0, KBS_GLOBAL),
+    KEYBIND_ENTRY(401, &ID_Def_Keybinds_4, 3,  key_weapon2,               key_weapon2_2,             '2',  0, KBS_GLOBAL),
+    KEYBIND_ENTRY(402, &ID_Def_Keybinds_4, 4,  key_weapon3,               key_weapon3_2,             '3',  0, KBS_GLOBAL),
+    KEYBIND_ENTRY(403, &ID_Def_Keybinds_4, 5,  key_weapon4,               key_weapon4_2,             '4',  0, KBS_GLOBAL),
+    KEYBIND_ENTRY(404, &ID_Def_Keybinds_4, 6,  key_prevweapon,            key_prevweapon2,           0,    0, KBS_GLOBAL),
+    KEYBIND_ENTRY(405, &ID_Def_Keybinds_4, 8,  key_nextweapon,            key_nextweapon2,           0,    0, KBS_GLOBAL),
+    KEYBIND_ENTRY(406, &ID_Def_Keybinds_4, 9,  key_arti_health,           key_arti_health2,          '\\', 0, KBS_GLOBAL),
+    KEYBIND_ENTRY(407, &ID_Def_Keybinds_4, 10, key_arti_urn,              key_arti_urn2,             0,    0, KBS_GLOBAL),
+    KEYBIND_ENTRY(408, &ID_Def_Keybinds_4, 11, key_arti_poisonbag,        key_arti_poisonbag2,       '0',  0, KBS_GLOBAL),
+    KEYBIND_ENTRY(409, &ID_Def_Keybinds_4, 12, key_arti_blastradius,      key_arti_blastradius2,     '9',  0, KBS_GLOBAL),
+    KEYBIND_ENTRY(410, &ID_Def_Keybinds_4, 13, key_arti_invulnerability,  key_arti_invulnerability2, '5',  0, KBS_GLOBAL),
 
     // Page 5
     KEYBIND_ENTRY(500, &ID_Def_Keybinds_5, 0,  key_arti_egg,           key_arti_egg2,           '6',           0, KBS_GLOBAL),

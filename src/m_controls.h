@@ -82,6 +82,7 @@ extern int key_spectator, key_spectator2; // RestlessRodent -- CRL
 extern int key_freeze, key_freeze2;
 extern int key_notarget, key_notarget2;
 extern int key_buddha, key_buddha2;
+extern int key_shorttics, key_shorttics2;
 
 // Weapons
 
