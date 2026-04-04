@@ -15,8 +15,8 @@ on:
   pull_request:
     branches:
       - main
-# schedule:
-#   - cron: "0 3 * * *"  # Nightly build at 03:00 UTC
+  schedule:
+    - cron: "0 3 * * *"  # Nightly build at 03:00 UTC
 
 permissions:
   contents: write
