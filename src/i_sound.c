@@ -432,6 +432,13 @@ static int I_EffectiveMusicVolume(int base_volume)
         const int q12 = SDL_AtomicGet(&music_auto_gain_q12);
         scaled = (scaled * q12 + (AUTO_GAIN_Q12_ONE / 2)) / AUTO_GAIN_Q12_ONE;
 
+        // [PN] User volume is a hard ceiling: auto gain may attenuate, but
+        // never boost above the explicitly selected music volume.
+        if (scaled > base_volume)
+        {
+            scaled = base_volume;
+        }
+
         if (scaled < 0)
         {
             scaled = 0;
