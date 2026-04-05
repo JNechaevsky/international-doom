@@ -173,6 +173,20 @@ static void I_MusicAutoGainPostmix(void *udata, Uint8 *stream, int len)
         return;
     }
 
+    // [PN] Ignore SFX activity while estimating music loudness.
+    // Auto-gain should react to music content, not gameplay sound effects.
+    if (Mix_Playing(-1) > 0)
+    {
+        return;
+    }
+
+    // [PN] Pseudo PC-speaker is mixed through a post effect, not regular
+    // channels; guard it separately so it doesn't modulate music gain.
+    if (snd_sfxdevice == SNDDEVICE_PCSPEAKER && I_PCS_HasPendingTone())
+    {
+        return;
+    }
+
     samples = (int16_t *) stream;
     sample_count = len / (int) sizeof(int16_t);
 

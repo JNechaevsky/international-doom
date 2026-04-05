@@ -263,6 +263,8 @@ void I_OPL_DevMessages(char *, size_t);
 void I_InitTimidityConfig(void);
 extern const sound_module_t sound_sdl_module;
 extern const sound_module_t sound_pcsound_module;
+
+boolean I_PCS_HasPendingTone(void);
 extern const music_module_t music_sdl_module;
 extern const music_module_t music_opl_module;
 extern const music_module_t music_pack_module;

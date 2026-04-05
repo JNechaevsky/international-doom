@@ -294,6 +294,17 @@ static boolean I_PCS_SoundIsPlaying(int handle)
     return current_sound_lump != NULL && current_sound_remaining > 0;
 }
 
+// -----------------------------------------------------------------------------
+// I_PCS_HasPendingTone
+// [PN] True while PC speaker path still has pending tone data.
+// -----------------------------------------------------------------------------
+boolean I_PCS_HasPendingTone(void)
+{
+    return pcs_initialized
+        && current_sound_lump != NULL
+        && current_sound_remaining > 0;
+}
+
 static boolean I_PCS_InitSound(GameMission_t mission)
 {
     gamemission = mission;
