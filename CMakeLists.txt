@@ -120,6 +120,9 @@ add_subdirectory("lib/miniz")
 # Check for libspng (support for PNG graphics).
 add_subdirectory("lib/spng")
 
+# Check for libebur128 (music loudness analysis).
+add_subdirectory("lib/ebur128")
+
 # Check for FluidSynth.
 find_package(FluidSynth)
 if(FluidSynth_FOUND)
