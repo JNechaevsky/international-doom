@@ -779,12 +779,24 @@ static void P_LoadLineDefs (int lump)
             || ld->special == 197
             || ld->special == 155
             || ld->special == 158
+            || ((unsigned) (ld->special - 159) <= (194 - 159))
+            || ld->special == 196
             || ld->special == 242
+            || ((unsigned) (ld->special - 203) <= (206 - 203))
+            || ld->special == 211
+            || ld->special == 221
+            || ld->special == 222
             || ld->special == 213
+            || ld->special == 229
             || ld->special == 230
+            || ld->special == 233
             || ld->special == 234
+            || ld->special == 237
             || ld->special == 238
+            || ld->special == 241
             || ld->special == 244
+            || ld->special == 258
+            || ld->special == 259
             || ld->special == 207
             || ld->special == 208
             || ld->special == 209
@@ -809,6 +821,7 @@ static void P_LoadLineDefs (int lump)
             || ld->special == 217
             || ld->special == 218
             || ld->special == 255
+            || ld->special == 260
             || ld->special == 250
             || ld->special == 251
             || ld->special == 252
@@ -830,7 +843,7 @@ static void P_LoadLineDefs (int lump)
                 case 31: case 32: case 33: case 34:
                 case 48: case 85: case 11: case 51:
                 case 52: case 117: case 118: case 124: case 271:
-                case 272:
+                case 272: case 260:
                     break;
                 default:
                     fprintf(stderr, "P_LoadLineDefs: Special linedef %d without tag.\n", i);
@@ -878,6 +891,34 @@ static void P_LoadLineDefs (int lump)
         ld->soundorg.y = (ld->bbox[BOXBOTTOM] + ld->bbox[BOXTOP]) >> 1;
         ld->soundorg.z = ld->frontsector ? ((ld->frontsector->floorheight
                        + ld->frontsector->ceilingheight) >> 1) : 0;
+
+        // [PN] BOOM/MBF: linedef 260 translucency transfer is resolved after load.
+        ld->translucent_mid = false;
+    }
+
+    // [PN] BOOM/MBF parity: special 260 can target only itself (tag 0)
+    // or all linedefs sharing the same non-zero tag.
+    if (gamecomplevel >= COMPLEVEL_BOOM)
+    {
+        for (int i = 0; i < count; ++i)
+        {
+            line_t *const ld = &dst[i];
+
+            if (ld->special != 260)
+                continue;
+
+            if (!ld->tag)
+            {
+                ld->translucent_mid = true;
+                continue;
+            }
+
+            for (int j = 0; j < count; ++j)
+            {
+                if (dst[j].tag == ld->tag)
+                    dst[j].translucent_mid = true;
+            }
+        }
     }
 
     // Post-warnings

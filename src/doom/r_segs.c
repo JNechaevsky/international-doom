@@ -282,6 +282,10 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
     if (fixedcolormap)
         dc_colormap[0] = dc_colormap[1] = fixedcolormap;
 
+    // [PN] Boom/MBF: translucent middle texture transfer (special 260).
+    if (curline->linedef->translucent_mid)
+        colfunc = tlcolfunc;
+
     // draw the columns
     for (dc_x = x1 ; dc_x <= x2 ; dc_x++)
     {
@@ -345,6 +349,8 @@ next_column:
                                        masked_scalespan64);
         }
     }
+
+    colfunc = basecolfunc;  // [PN] Restore default wall column drawer.
 }
 
 // -----------------------------------------------------------------------------

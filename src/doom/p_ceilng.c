@@ -131,6 +131,8 @@ void T_MoveCeiling (ceiling_t* ceiling)
 
 	      case lowerAndCrush:
 	      case lowerToFloor:
+	      case lowerToLowest:
+	      case lowerToMaxFloor:
 		P_ApplyCeilingChange(ceiling);
 		P_RemoveActiveCeiling(ceiling);
 		break;
@@ -222,8 +224,14 @@ EV_DoCeiling
 	    ceiling->topheight = sec->ceilingheight;
 	  case lowerAndCrush:
 	  case lowerToFloor:
+	  case lowerToLowest:
+	  case lowerToMaxFloor:
 	    ceiling->bottomheight = sec->floorheight;
-	    if (type != lowerToFloor)
+	    if (type == lowerToLowest)
+		ceiling->bottomheight = P_FindLowestCeilingSurrounding(sec);
+	    else if (type == lowerToMaxFloor)
+		ceiling->bottomheight = P_FindHighestFloorSurrounding(sec);
+	    else if (type != lowerToFloor)
 		ceiling->bottomheight += 8*FRACUNIT;
 	    ceiling->direction = -1;
 	    ceiling->speed = CEILSPEED;

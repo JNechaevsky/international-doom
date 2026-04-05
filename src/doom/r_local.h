@@ -229,6 +229,9 @@ typedef struct line_s
     // thinker_t for reversable actions
     void *specialdata;		
 
+    // [PN] BOOM/MBF: translucent middle texture marker (linedef special 260).
+    boolean translucent_mid;
+
     // [JN] Improved column clipping.
     int r_validcount;   // cph: if == gametic, r_flags already done
     enum {              // cph:

@@ -69,9 +69,17 @@ void T_PlatRaise(plat_t* plat)
 	{
 	    if (res == pastdest)
 	    {
-		plat->count = plat->wait;
-		plat->status = waiting;
-		S_StartSound(&plat->sector->soundorg, sfx_pstop);
+		if (plat->type != toggleUpDn)
+		{
+		    plat->count = plat->wait;
+		    plat->status = waiting;
+		    S_StartSound(&plat->sector->soundorg, sfx_pstop);
+		}
+		else
+		{
+		    plat->oldstatus = plat->status;
+		    plat->status = in_stasis;
+		}
 
 		switch(plat->type)
 		{
@@ -100,9 +108,17 @@ void T_PlatRaise(plat_t* plat)
 
 	if (res == pastdest)
 	{
-	    plat->count = plat->wait;
-	    plat->status = waiting;
-	    S_StartSound(&plat->sector->soundorg,sfx_pstop);
+	    if (plat->type != toggleUpDn)
+	    {
+		plat->count = plat->wait;
+		plat->status = waiting;
+		S_StartSound(&plat->sector->soundorg,sfx_pstop);
+	    }
+	    else
+	    {
+		plat->oldstatus = plat->status;
+		plat->status = in_stasis;
+	    }
 	}
 	break;
 	
@@ -145,6 +161,11 @@ EV_DoPlat
     {
       case perpetualRaise:
 	P_ActivateInStasis(line->tag);
+	break;
+
+      case toggleUpDn:
+	P_ActivateInStasis(line->tag);
+	rtn = 1;
 	break;
 	
       default:
@@ -237,6 +258,15 @@ EV_DoPlat
 
 	    S_StartSound(&sec->soundorg,sfx_pstart);
 	    break;
+
+	  case toggleUpDn:
+	    plat->speed = PLATSPEED;
+	    plat->wait = TICRATE * PLATWAIT;
+	    plat->crush = true;
+	    plat->low = sec->ceilingheight;
+	    plat->high = sec->floorheight;
+	    plat->status = down;
+	    break;
 	}
 	P_AddActivePlat(plat);
     }
@@ -254,7 +284,15 @@ void P_ActivateInStasis(int tag)
 	    && (activeplats[i])->tag == tag
 	    && (activeplats[i])->status == in_stasis)
 	{
-	    (activeplats[i])->status = (activeplats[i])->oldstatus;
+	    if ((activeplats[i])->type == toggleUpDn)
+	    {
+		(activeplats[i])->status =
+		    ((activeplats[i])->oldstatus == up) ? down : up;
+	    }
+	    else
+	    {
+		(activeplats[i])->status = (activeplats[i])->oldstatus;
+	    }
 	    (activeplats[i])->thinker.function.acp1
 	      = (actionf_p1) T_PlatRaise;
 	}

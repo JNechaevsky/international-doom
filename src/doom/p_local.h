@@ -97,7 +97,11 @@ typedef enum
     lowerAndCrush,
     crushAndRaise,
     fastCrushAndRaise,
-    silentCrushAndRaise
+    silentCrushAndRaise,
+    // [PN] BOOM: lower to lowest surrounding ceiling.
+    lowerToLowest,
+    // [PN] BOOM: lower to highest surrounding floor.
+    lowerToMaxFloor
 } ceiling_e;
 
 typedef struct
@@ -250,6 +254,9 @@ typedef enum
     // lower floor to highest surrounding floor VERY FAST
     turboLower,
 
+    // [PN] BOOM: lower floor to next lowest surrounding floor.
+    lowerFloorToNearest,
+
     // raise floor to lowest surrounding CEILING
     raiseFloor,
 
@@ -272,6 +279,14 @@ typedef enum
     donutRaise,
     raiseFloor512
 } floor_e;
+
+typedef enum
+{
+    // [PN] BOOM: change floor texture/type using triggering sector as model.
+    trigChangeOnly,
+    // [PN] BOOM: change floor texture/type using numeric (height) model.
+    numChangeOnly
+} change_e;
 
 typedef enum
 {
@@ -320,6 +335,7 @@ typedef enum
 extern int  EV_BuildStairs (const line_t *const line, stair_e type);
 extern int  EV_DoFloor (line_t *line, floor_e floortype);
 extern int  EV_DoElevator (line_t *line, elevator_e elevtype);
+extern int  EV_DoChange (line_t *line, change_e changetype);
 extern void T_MoveFloor (floormove_t *floor);
 extern void T_MoveElevator (elevator_t *elevator);
 
@@ -558,7 +574,9 @@ typedef enum
     downWaitUpStay,
     raiseAndChange,
     raiseToNearestAndChange,
-    blazeDWUS
+    blazeDWUS,
+    // [PN] BOOM: instant floor/ceiling toggle.
+    toggleUpDn
 } plattype_e;
 
 typedef struct

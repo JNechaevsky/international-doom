@@ -389,6 +389,7 @@ P_UseSpecialLine
 	  case 32:	// MANUAL BLUE
 	  case 33:	// MANUAL RED
 	  case 34:	// MANUAL YELLOW
+	  case 174:	// [PN] BOOM S1 TELEPORT
 	  case 195:	// [PN] BOOM SR TELEPORT
 	  case 209:	// [PN] BOOM S1 SILENT TELEPORT
 	  case 210:	// [PN] BOOM SR SILENT TELEPORT
@@ -791,6 +792,274 @@ P_UseSpecialLine
 	// Light Turn Off
 	EV_LightTurnOn(line,35);
 	P_ChangeSwitchTexture(line,1);
+	break;
+
+      default:
+	if (gamecomplevel >= COMPLEVEL_BOOM)
+	{
+	    // [PN] MBF switch actions missing from vanilla set.
+	    switch (line->special)
+	    {
+	      // S1 actions:
+	      case 159:
+		if (EV_DoFloor(line, lowerAndChange))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 160:
+		if (EV_DoFloor(line, raiseFloor24AndChange))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 161:
+		if (EV_DoFloor(line, raiseFloor24))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 162:
+		if (EV_DoPlat(line, perpetualRaise, 0))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 163:
+		EV_StopPlat(line);
+		P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 164:
+		if (EV_DoCeiling(line, fastCrushAndRaise))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 165:
+		if (EV_DoCeiling(line, silentCrushAndRaise))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 166:
+		if (EV_DoCeiling(line, raiseToHighest)
+		 || EV_DoFloor(line, lowerFloorToLowest))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 167:
+		if (EV_DoCeiling(line, lowerAndCrush))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 168:
+		if (EV_CeilingCrushStop(line))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 169:
+		EV_LightTurnOn(line,0);
+		P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 170:
+		EV_LightTurnOn(line,35);
+		P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 171:
+		EV_LightTurnOn(line,255);
+		P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 172:
+		EV_StartLightStrobing(line);
+		P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 173:
+		EV_TurnTagLightsOff(line);
+		P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 174:
+		if (EV_Teleport(line, side, thing))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 175:
+		if (EV_DoDoor(line, vld_close30ThenOpen))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 189:
+		if (EV_DoChange(line, trigChangeOnly))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 203:
+		if (EV_DoCeiling(line, lowerToLowest))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 204:
+		if (EV_DoCeiling(line, lowerToMaxFloor))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 221:
+		if (EV_DoFloor(line, lowerFloorToNearest))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 229:
+		if (EV_DoElevator(line, elevateUp))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 233:
+		if (EV_DoElevator(line, elevateDown))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 237:
+		if (EV_DoElevator(line, elevateCurrent))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      case 241:
+		if (EV_DoChange(line, numChangeOnly))
+		    P_ChangeSwitchTexture(line,0);
+		break;
+
+	      // SR actions:
+	      case 78:
+		if (EV_DoChange(line, numChangeOnly))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 176:
+		if (EV_DoFloor(line, raiseToTexture))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 177:
+		if (EV_DoFloor(line, lowerAndChange))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 178:
+		if (EV_DoFloor(line, raiseFloor512))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 179:
+		if (EV_DoFloor(line, raiseFloor24AndChange))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 180:
+		if (EV_DoFloor(line, raiseFloor24))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 181:
+		if (EV_DoPlat(line, perpetualRaise, 0))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 182:
+		EV_StopPlat(line);
+		P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 183:
+		if (EV_DoCeiling(line, fastCrushAndRaise))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 184:
+		if (EV_DoCeiling(line, crushAndRaise))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 185:
+		if (EV_DoCeiling(line, silentCrushAndRaise))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 186:
+		if (EV_DoCeiling(line, raiseToHighest)
+		 || EV_DoFloor(line, lowerFloorToLowest))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 187:
+		if (EV_DoCeiling(line, lowerAndCrush))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 188:
+		if (EV_CeilingCrushStop(line))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 190:
+		if (EV_DoChange(line, trigChangeOnly))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 191:
+		if (EV_DoDonut(line))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 192:
+		EV_LightTurnOn(line,0);
+		P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 193:
+		EV_StartLightStrobing(line);
+		P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 194:
+		EV_TurnTagLightsOff(line);
+		P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 196:
+		if (EV_DoDoor(line, vld_close30ThenOpen))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 205:
+		if (EV_DoCeiling(line, lowerToLowest))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 206:
+		if (EV_DoCeiling(line, lowerToMaxFloor))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 211:
+		if (EV_DoPlat(line, toggleUpDn, 0))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 222:
+		if (EV_DoFloor(line, lowerFloorToNearest))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 258:
+		if (EV_BuildStairs(line, build8))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+
+	      case 259:
+		if (EV_BuildStairs(line, turbo16))
+		    P_ChangeSwitchTexture(line,1);
+		break;
+	    }
+	}
 	break;
 			
     }

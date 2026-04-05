@@ -24,6 +24,34 @@
 #include "s_sound.h"
 #include "doomstat.h"
 
+// -----------------------------------------------------------------------------
+// P_FindModelFloorSector
+// [PN] BOOM helper: find adjacent model sector with matching floor height.
+// -----------------------------------------------------------------------------
+static sector_t *P_FindModelFloorSector(const fixed_t floordestheight, const int secnum)
+{
+    const sector_t *const origin = &sectors[secnum];
+    const int linecount = origin->linecount;
+
+    for (int i = 0; i < linecount; ++i)
+    {
+        if (!twoSided(secnum, i))
+        {
+            continue;
+        }
+
+        const int opposite = (getSide(secnum, i, 0)->sector - sectors) == secnum;
+        sector_t *const sec = getSector(secnum, i, opposite);
+
+        if (sec->floorheight == floordestheight)
+        {
+            return sec;
+        }
+    }
+
+    return NULL;
+}
+
 // Andrey Budko
 #define STAIRS_UNINITIALIZED_CRUSH_FIELD_VALUE 10
 
@@ -434,6 +462,14 @@ EV_DoFloor
 		floor->floordestheight += 8*FRACUNIT;
 	    break;
 
+	  case lowerFloorToNearest:
+	    floor->direction = -1;
+	    floor->sector = sec;
+	    floor->speed = FLOORSPEED;
+	    floor->floordestheight =
+		P_FindNextLowestFloor(sec,sec->floorheight);
+	    break;
+
 	  case raiseFloorCrush:
 	    floor->crush = true;
 	  case raiseFloor:
@@ -560,6 +596,46 @@ EV_DoFloor
 	    break;
 	}
     }
+    return rtn;
+}
+
+// -----------------------------------------------------------------------------
+// EV_DoChange
+// [PN] BOOM: apply floor texture/type transfers without moving geometry.
+// -----------------------------------------------------------------------------
+int EV_DoChange(line_t *line, change_e changetype)
+{
+    int secnum = -1;
+    int rtn = 0;
+
+    while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
+    {
+        sector_t *const sec = &sectors[secnum];
+        rtn = 1;
+
+        switch (changetype)
+        {
+            case trigChangeOnly:
+                sec->floorpic = line->frontsector->floorpic;
+                sec->special = line->frontsector->special;
+                sec->oldspecial = line->frontsector->oldspecial;
+                break;
+
+            case numChangeOnly:
+            {
+                sector_t *const model = P_FindModelFloorSector(sec->floorheight, secnum);
+
+                if (model)
+                {
+                    sec->floorpic = model->floorpic;
+                    sec->special = model->special;
+                    sec->oldspecial = model->oldspecial;
+                }
+                break;
+            }
+        }
+    }
+
     return rtn;
 }
 
