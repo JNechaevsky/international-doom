@@ -85,6 +85,27 @@ static int64_t  rw_worldbottomcorr;
 static int64_t  rw_worldhighcorr;
 static int64_t  rw_worldlowcorr;
 
+// [PN] Shared sub-pixel DDA step for solid and masked wall passes.
+// Returns +1 / -1 when error compensation must be applied this column.
+static inline int R_DDACompStep (int64_t *const err, const int64_t rem,
+                                 const int64_t span)
+{
+    *err += rem;
+
+    if (*err >= span)
+    {
+        *err -= span;
+        return 1;
+    }
+    else if (*err <= -span)
+    {
+        *err += span;
+        return -1;
+    }
+
+    return 0;
+}
+
 lighttable_t **walllights;
 
 int *maskedtexturecol;      // [JN] 32-bit integer math
@@ -210,6 +231,35 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
     maskedtexturecol = ds->maskedtexturecol;
     rw_scalestep = ds->scalestep;
     spryscale = ds->scale1 + (x1 - ds->x1)*rw_scalestep;
+    // [PN] Sub-pixel stable DDA for masked pass (transparent upper/mid).
+    // Keeps masked columns aligned with solid-pass scale stepping.
+    int64_t masked_scalerem = 0;
+    int64_t masked_scaleerr = 0;
+    int64_t masked_scalespan64 = 0;
+    const int masked_scalespan = ds->x2 - ds->x1;
+
+    if (masked_scalespan > 0)
+    {
+        const int64_t delta = (int64_t)ds->scale2 - (int64_t)ds->scale1;
+        const int64_t step64 = delta / (int64_t)masked_scalespan;
+        const int advance = x1 - ds->x1;
+
+        masked_scalerem = delta - step64 * (int64_t)masked_scalespan;
+        masked_scalespan64 = (int64_t)masked_scalespan;
+
+        if (advance > 0 && masked_scalerem)
+        {
+            int i;
+
+            for (i = 0; i < advance; ++i)
+            {
+                spryscale += R_DDACompStep(&masked_scaleerr,
+                                           masked_scalerem,
+                                           masked_scalespan64);
+            }
+        }
+    }
+
     mfloorclip = ds->sprbottomclip;
     mceilingclip = ds->sprtopclip;
 
@@ -270,8 +320,7 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
                 if (t + (int64_t) textureheight[texnum] * spryscale < 0
                 ||  t > (int64_t) SCREENHEIGHT << FRACBITS * 2)
                 {
-                    spryscale += rw_scalestep; // [crispy] MBF had this in the for-loop iterator
-                    continue; // skip if the texture is out of screen's range
+                    goto next_column; // [PN] Keep DDA progression even if this column is skipped.
                 }
 
                 sprtopscreen = (int64_t)(t >> FRACBITS); // [crispy] WiggleFix
@@ -286,7 +335,15 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
             maskedtexturecol[dc_x] = INT_MAX;  // [JN] 32-bit integer math
         }
 
+next_column:
         spryscale += rw_scalestep;
+
+        if (masked_scalerem)
+        {
+            spryscale += R_DDACompStep(&masked_scaleerr,
+                                       masked_scalerem,
+                                       masked_scalespan64);
+        }
     }
 }
 
@@ -491,26 +548,15 @@ static void R_RenderSegLoop (void)
         // This removes the tiny right-edge drift/jitter on long walls.
         if (rw_scalerem)
         {
-            rw_scaleerr += rw_scalerem;
+            const int dda = R_DDACompStep(&rw_scaleerr, rw_scalerem, rw_scalespan64);
 
-            if (rw_scaleerr >= rw_scalespan64)
+            if (dda)
             {
-                rw_scaleerr -= rw_scalespan64;
-                rw_scale += 1;
-                topfrac -= rw_worldtopcorr;
-                bottomfrac -= rw_worldbottomcorr;
-                if (have_pixhigh) pixhigh -= rw_worldhighcorr;
-                if (have_pixlow)  pixlow  -= rw_worldlowcorr;
-            }
-
-            else if (rw_scaleerr <= -rw_scalespan64)
-            {
-                rw_scaleerr += rw_scalespan64;
-                rw_scale -= 1;
-                topfrac += rw_worldtopcorr;
-                bottomfrac += rw_worldbottomcorr;
-                if (have_pixhigh) pixhigh += rw_worldhighcorr;
-                if (have_pixlow)  pixlow  += rw_worldlowcorr;
+                rw_scale += dda;
+                topfrac    -= dda * rw_worldtopcorr;
+                bottomfrac -= dda * rw_worldbottomcorr;
+                if (have_pixhigh) pixhigh -= dda * rw_worldhighcorr;
+                if (have_pixlow)  pixlow  -= dda * rw_worldlowcorr;
             }
         }
     }
