@@ -370,6 +370,11 @@ P_UseSpecialLine
 	}
     }
 
+    if (P_UseGeneralizedLine(thing, line, side))
+    {
+        return true;
+    }
+
     
     // Switches that other things can activate.
     if (!thing->player)
@@ -384,6 +389,14 @@ P_UseSpecialLine
 	  case 32:	// MANUAL BLUE
 	  case 33:	// MANUAL RED
 	  case 34:	// MANUAL YELLOW
+	  case 195:	// [PN] BOOM SR TELEPORT
+	  case 209:	// [PN] BOOM S1 SILENT TELEPORT
+	  case 210:	// [PN] BOOM SR SILENT TELEPORT
+	    if (gamecomplevel >= COMPLEVEL_BOOM)
+	    {
+		break;
+	    }
+	    return false;
 	    break;
 	    
 	  default:
@@ -593,7 +606,14 @@ P_UseSpecialLine
 	if (EV_DoFloor(line,raiseFloor512))
 	    P_ChangeSwitchTexture(line,0);
 	break;
-	
+
+      case 158:
+	// [PN] Boom: S1 raise floor to shortest lower texture.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_DoFloor(line, raiseToTexture))
+	    P_ChangeSwitchTexture(line,0);
+	break;
+
 	// BUTTONS
       case 42:
 	// Close Door
@@ -678,6 +698,48 @@ P_UseSpecialLine
 	if (EV_DoFloor(line,turboLower))
 	    P_ChangeSwitchTexture(line,1);
 	break;
+
+      case 195:
+	// [PN] Boom: SR teleport.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_Teleport(line, side, thing))
+	    P_ChangeSwitchTexture(line,1);
+	break;
+
+      case 209:
+	// [PN] Boom: S1 silent teleport.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_SilentTeleport(line, side, thing))
+	    P_ChangeSwitchTexture(line,0);
+	break;
+
+      case 210:
+	// [PN] Boom: SR silent teleport.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_SilentTeleport(line, side, thing))
+	    P_ChangeSwitchTexture(line,1);
+	break;
+
+      case 230:
+	// [PN] Boom: SR raise elevator to next floor.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_DoElevator(line, elevateUp))
+	    P_ChangeSwitchTexture(line,1);
+	break;
+
+      case 234:
+	// [PN] Boom: SR lower elevator to next floor.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_DoElevator(line, elevateDown))
+	    P_ChangeSwitchTexture(line,1);
+	break;
+
+      case 238:
+	// [PN] Boom: SR move elevator to activator floor.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_DoElevator(line, elevateCurrent))
+	    P_ChangeSwitchTexture(line,1);
+	break;
 	
       case 114:
 	// Blazing Door Raise (faster than TURBO!)
@@ -735,4 +797,3 @@ P_UseSpecialLine
 	
     return true;
 }
-

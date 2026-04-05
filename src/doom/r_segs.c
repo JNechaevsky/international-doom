@@ -759,9 +759,20 @@ void R_StoreWallRange (int start, int stop)
         // two sided line
         ds_p->sprtopclip = ds_p->sprbottomclip = NULL;
         ds_p->silhouette = 0;
+        const boolean line_closed =
+            (backsector->interpceilingheight <= frontsector->interpfloorheight
+          || backsector->interpfloorheight >= frontsector->interpceilingheight
+          || (backsector->interpceilingheight <= backsector->interpfloorheight
+           && (backsector->interpceilingheight >= frontsector->interpceilingheight
+            || curline->sidedef->toptexture)
+           && (backsector->interpfloorheight <= frontsector->interpfloorheight
+            || curline->sidedef->bottomtexture)
+           && (backsector->ceilingpic != skyflatnum
+            || frontsector->ceilingpic != skyflatnum)));
 
         // [JN] cph - closed 2S line e.g. door
-        if (linedef->r_flags & RF_CLOSED)
+        // [PN] Boom 242: don't rely on cached r_flags here.
+        if (line_closed)
         {
             // cph - killough's (outdated) comment follows - this deals with both 
             // "automap fixes", his and mine
@@ -816,7 +827,11 @@ void R_StoreWallRange (int start, int stop)
         if (worldlow != worldbottom 
         ||  backsector->floorpic != frontsector->floorpic
         ||  backsector->lightlevel != frontsector->lightlevel
-        ||  backsector->lightbank != frontsector->lightbank)
+        ||  backsector->lightbank != frontsector->lightbank
+        // [PN] Boom 242: prevent 2S normals from bleeding through deep water.
+        ||  frontsector->heightsec != -1
+        // [PN] Boom 213: draw floor if transferred light source differs.
+        ||  backsector->floorlightsec != frontsector->floorlightsec)
         {
             markfloor = true;
         }
@@ -829,7 +844,11 @@ void R_StoreWallRange (int start, int stop)
         if (worldhigh != worldtop
         ||  backsector->ceilingpic != frontsector->ceilingpic
         ||  backsector->lightlevel != frontsector->lightlevel
-        ||  backsector->lightbank != frontsector->lightbank)
+        ||  backsector->lightbank != frontsector->lightbank
+        // [PN] Boom 242: prevent 2S normals from bleeding through fake ceilings.
+        || (frontsector->heightsec != -1 && frontsector->ceilingpic != skyflatnum)
+        // [PN] Boom 261: draw ceiling if transferred light source differs.
+        ||  backsector->ceilinglightsec != frontsector->ceilinglightsec)
         {
             markceiling = true;
         }
@@ -920,17 +939,20 @@ void R_StoreWallRange (int start, int stop)
     //  of the view plane, it is definitely invisible
     //  and doesn't need to be marked.
 
-    if (frontsector->interpfloorheight >= viewz)
+    if (frontsector->heightsec == -1)
     {
-        // above view plane
-        markfloor = false;
-    }
+        if (frontsector->interpfloorheight >= viewz)
+        {
+            // above view plane
+            markfloor = false;
+        }
 
-    if (frontsector->interpceilingheight <= viewz 
-    &&  frontsector->ceilingpic != skyflatnum)
-    {
-        // below view plane
-        markceiling = false;
+        if (frontsector->interpceilingheight <= viewz
+        &&  frontsector->ceilingpic != skyflatnum)
+        {
+            // below view plane
+            markceiling = false;
+        }
     }
 
     // calculate incremental stepping values for texture edges

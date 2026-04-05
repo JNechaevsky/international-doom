@@ -1166,8 +1166,15 @@ static const struct
 
 // [FG] support named complevels on the command line, e.g. "-complevel boom"
 
+static int G_DefaultComplevelFromVersion(void);
+
 static const int G_GetNamedComplevel (const char *arg)
 {
+    if (!strcasecmp(arg, "vanilla"))
+    {
+        return G_DefaultComplevelFromVersion();
+    }
+
     const struct 
     {
         int level;
@@ -1175,20 +1182,23 @@ static const int G_GetNamedComplevel (const char *arg)
         int exe;
     }
     named_complevel[] = {
-    {-1,  "vanilla",              -1},
-    { 0,        "0",   exe_doom_1_2 },
-    { 0,      "1.2",   exe_doom_1_2 },
-    { 1,        "1", exe_doom_1_666 },
-    { 1,    "1.666", exe_doom_1_666 },
-    { 2,        "2",   exe_doom_1_9 },
-    { 2,      "1.9",   exe_doom_1_9 },
-    { 2,    "doom2",   exe_doom_1_9 },
-    { 3,        "3",   exe_ultimate },
-    { 3, "ultimate",   exe_ultimate },
-    { 4,        "4",      exe_final },
-    { 4,    "final",      exe_final },
-    { 4, "plutonia",      exe_final },
-    { 4,      "tnt",      exe_final },
+    { COMPLEVEL_DOOM_12,    "0",        exe_doom_1_2 },
+    { COMPLEVEL_DOOM_12,    "1.2",      exe_doom_1_2 },
+    { COMPLEVEL_DOOM_1666,  "1",      exe_doom_1_666 },
+    { COMPLEVEL_DOOM_1666,  "1.666",  exe_doom_1_666 },
+    { COMPLEVEL_DOOM_19,    "2",        exe_doom_1_9 },
+    { COMPLEVEL_DOOM_19,    "1.9",      exe_doom_1_9 },
+    { COMPLEVEL_DOOM_19,    "doom2",    exe_doom_1_9 },
+    { COMPLEVEL_ULTIMATE,   "3",        exe_ultimate },
+    { COMPLEVEL_ULTIMATE,   "ultimate", exe_ultimate },
+    { COMPLEVEL_FINAL,      "4",           exe_final },
+    { COMPLEVEL_FINAL,      "final",       exe_final },
+    { COMPLEVEL_FINAL,      "plutonia",    exe_final },
+    { COMPLEVEL_FINAL,      "tnt",         exe_final },
+    { COMPLEVEL_BOOM,       "9",           exe_final },
+    { COMPLEVEL_BOOM,       "boom",        exe_final },
+    { COMPLEVEL_MBF,        "11",          exe_final },
+    { COMPLEVEL_MBF,        "mbf",         exe_final },
     };
 
     for (int i = 0 ; i < sizeof(named_complevel)/sizeof(*named_complevel) ; i++)
@@ -1205,6 +1215,32 @@ static const int G_GetNamedComplevel (const char *arg)
     }
 
     return -1;
+}
+
+// [PN] Derive default compat level from the selected executable behavior.
+static int G_DefaultComplevelFromVersion(void)
+{
+    if (gameversion <= exe_doom_1_2)
+    {
+        return COMPLEVEL_DOOM_12;
+    }
+
+    if (gameversion == exe_doom_1_666)
+    {
+        return COMPLEVEL_DOOM_1666;
+    }
+
+    if (gameversion <= exe_doom_1_9)
+    {
+        return COMPLEVEL_DOOM_19;
+    }
+
+    if (gameversion <= exe_ultimate)
+    {
+        return COMPLEVEL_ULTIMATE;
+    }
+
+    return COMPLEVEL_FINAL;
 }
 
 
@@ -1341,6 +1377,8 @@ static void InitGameVersion(void)
     // [JN] Emulate a specific version of Doom via '-complevel N' parameter.
     //
 
+    gamecomplevel = G_DefaultComplevelFromVersion();
+
     p = M_CheckParmWithArgs("-complevel", 1);
 
     if (p)
@@ -1349,6 +1387,7 @@ static void InitGameVersion(void)
 
         if (l > -1)
         {
+            gamecomplevel = l;
             demoversion = l;
         }
         else
@@ -1357,7 +1396,9 @@ static void InitGameVersion(void)
                                          "1 - Doom v1.666\n"
                                          "2 - Doom v1.9\n"
                                          "3 - Ultimate Doom\n"
-                                         "4 - Final Doom\n";
+                                         "4 - Final Doom\n"
+                                         "9 - Boom\n"
+                                         "11 - MBF\n";
 
             I_Error("Invalid parameter '%s' for -complevel.\n"
                     "Valid parameters are:\n%s", myargv[p + 1], valid_complvls);

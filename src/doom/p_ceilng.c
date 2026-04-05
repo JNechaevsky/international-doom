@@ -31,6 +31,15 @@
 
 ceiling_t*	activeceilings[MAXCEILINGS];
 
+// -----------------------------------------------------------------------------
+// [PN] Apply deferred ceiling texture/type change on movement completion.
+// -----------------------------------------------------------------------------
+static void P_ApplyCeilingChange(ceiling_t *ceiling)
+{
+    ceiling->sector->special = ceiling->newspecial;
+    ceiling->sector->ceilingpic = ceiling->texture;
+}
+
 
 //
 // T_MoveCeiling
@@ -73,6 +82,7 @@ void T_MoveCeiling (ceiling_t* ceiling)
 	    switch(ceiling->type)
 	    {
 	      case raiseToHighest:
+		P_ApplyCeilingChange(ceiling);
 		P_RemoveActiveCeiling(ceiling);
 		break;
 		
@@ -121,6 +131,7 @@ void T_MoveCeiling (ceiling_t* ceiling)
 
 	      case lowerAndCrush:
 	      case lowerToFloor:
+		P_ApplyCeilingChange(ceiling);
 		P_RemoveActiveCeiling(ceiling);
 		break;
 
@@ -192,6 +203,8 @@ EV_DoCeiling
 	ceiling->thinker.function.acp1 = (actionf_p1)T_MoveCeiling;
 	ceiling->sector = sec;
 	ceiling->crush = false;
+        ceiling->newspecial = sec->special;
+        ceiling->texture = sec->ceilingpic;
 	
 	switch(type)
 	{

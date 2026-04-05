@@ -295,6 +295,59 @@ EV_LightTurnOn
     }
 }
 
+//
+// Turn line's tagged lights to an interpolated level between min/max neighbors.
+// Used by manual doors with gradual light effects.
+//
+void EV_LightTurnOnPartway(const line_t *line, fixed_t level)
+{
+    int i;
+
+    if (!line || !line->tag)
+    {
+        return;
+    }
+
+    if (level < 0)
+    {
+        level = 0;
+    }
+    else if (level > FRACUNIT)
+    {
+        level = FRACUNIT;
+    }
+
+    for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0; )
+    {
+        sector_t *sector = &sectors[i];
+        int j;
+        int bright = 0;
+        int min = sector->lightlevel;
+
+        for (j = 0; j < sector->linecount; ++j)
+        {
+            const sector_t *temp = getNextSector(sector->lines[j], sector);
+
+            if (!temp)
+            {
+                continue;
+            }
+
+            if (temp->lightlevel > bright)
+            {
+                bright = temp->lightlevel;
+            }
+
+            if (temp->lightlevel < min)
+            {
+                min = temp->lightlevel;
+            }
+        }
+
+        sector->lightlevel = (level * bright + (FRACUNIT - level) * min) >> FRACBITS;
+    }
+}
+
     
 //
 // Spawn glowing light
@@ -343,4 +396,3 @@ void P_SpawnGlowingLight(sector_t*	sector)
 
     sector->special = 0;
 }
-

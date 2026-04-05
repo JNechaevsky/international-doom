@@ -235,6 +235,187 @@ static void R_CheckInterpolateSector (sector_t *sector)
 }
 
 // -----------------------------------------------------------------------------
+// R_FloorLightLevel
+// [PN] Boom: floor light transfer (special 213).
+// -----------------------------------------------------------------------------
+
+static int R_FloorLightLevel (const sector_t *sec)
+{
+    const int floorlightsec = sec->floorlightsec;
+    return (floorlightsec >= 0 && floorlightsec < numsectors)
+         ? sectors[floorlightsec].lightlevel
+         : sec->lightlevel;
+}
+
+// -----------------------------------------------------------------------------
+// R_CeilingLightLevel
+// [PN] Boom: ceiling light transfer (special 261).
+// -----------------------------------------------------------------------------
+
+static int R_CeilingLightLevel (const sector_t *sec)
+{
+    const int ceilinglightsec = sec->ceilinglightsec;
+    return (ceilinglightsec >= 0 && ceilinglightsec < numsectors)
+         ? sectors[ceilinglightsec].lightlevel
+         : sec->lightlevel;
+}
+
+// -----------------------------------------------------------------------------
+// R_FakeFlat
+// [PN] Boom 242 (glass floor) rendering hack, aligned with WinMBF/Woof logic.
+// -----------------------------------------------------------------------------
+
+static sector_t *R_FakeFlat (sector_t *sec, sector_t *tempsec,
+                             int *floorlightlevel, int *ceilinglightlevel,
+                             const boolean back)
+{
+    if (floorlightlevel)
+    {
+        *floorlightlevel = R_FloorLightLevel(sec);
+    }
+
+    if (ceilinglightlevel)
+    {
+        *ceilinglightlevel = R_CeilingLightLevel(sec);
+    }
+
+    if (sec->heightsec != -1)
+    {
+        const sector_t *const s = &sectors[sec->heightsec];
+        const int view_heightsec = viewplayer->mo->subsector->sector->heightsec;
+        const boolean underwater = view_heightsec != -1
+                                && viewz <= sectors[view_heightsec].floorheight;
+
+        *tempsec = *sec;
+
+        tempsec->floorheight = s->floorheight;
+        tempsec->ceilingheight = s->ceilingheight;
+        tempsec->interpfloorheight = s->interpfloorheight;
+        tempsec->interpceilingheight = s->interpceilingheight;
+
+        if (underwater)
+        {
+            tempsec->floorheight = sec->floorheight;
+            tempsec->interpfloorheight = sec->interpfloorheight;
+            tempsec->ceilingheight = s->floorheight - 1;
+            tempsec->interpceilingheight = s->interpfloorheight - 1;
+
+            if (!back)
+            {
+                tempsec->floorpic = s->floorpic;
+                tempsec->floor_xoffs = s->floor_xoffs;
+                tempsec->floor_yoffs = s->floor_yoffs;
+
+                if (s->ceilingpic == skyflatnum)
+                {
+                    tempsec->floorheight = tempsec->ceilingheight + 1;
+                    tempsec->interpfloorheight = tempsec->interpceilingheight + 1;
+                    tempsec->ceilingpic = tempsec->floorpic;
+                    tempsec->ceiling_xoffs = tempsec->floor_xoffs;
+                    tempsec->ceiling_yoffs = tempsec->floor_yoffs;
+                }
+                else
+                {
+                    tempsec->ceilingpic = s->ceilingpic;
+                    tempsec->ceiling_xoffs = s->ceiling_xoffs;
+                    tempsec->ceiling_yoffs = s->ceiling_yoffs;
+                }
+
+                tempsec->lightlevel = s->lightlevel;
+
+                if (floorlightlevel)
+                {
+                    *floorlightlevel = R_FloorLightLevel(s);
+                }
+
+                if (ceilinglightlevel)
+                {
+                    *ceilinglightlevel = R_CeilingLightLevel(s);
+                }
+            }
+            else if (view_heightsec != -1
+                  && viewz >= sectors[view_heightsec].ceilingheight
+                  && sec->ceilingheight > s->ceilingheight)
+            {
+                tempsec->ceilingheight = s->ceilingheight;
+                tempsec->floorheight = s->ceilingheight + 1;
+                tempsec->interpceilingheight = s->interpceilingheight;
+                tempsec->interpfloorheight = s->interpceilingheight + 1;
+
+                tempsec->ceilingpic = s->ceilingpic;
+                tempsec->floorpic = s->ceilingpic;
+                tempsec->ceiling_xoffs = s->ceiling_xoffs;
+                tempsec->ceiling_yoffs = s->ceiling_yoffs;
+                tempsec->floor_xoffs = s->ceiling_xoffs;
+                tempsec->floor_yoffs = s->ceiling_yoffs;
+
+                if (s->floorpic != skyflatnum)
+                {
+                    tempsec->ceilingheight = sec->ceilingheight;
+                    tempsec->interpceilingheight = sec->interpceilingheight;
+                    tempsec->floorpic = s->floorpic;
+                    tempsec->floor_xoffs = s->floor_xoffs;
+                    tempsec->floor_yoffs = s->floor_yoffs;
+                }
+
+                tempsec->lightlevel = s->lightlevel;
+
+                if (floorlightlevel)
+                {
+                    *floorlightlevel = R_FloorLightLevel(s);
+                }
+
+                if (ceilinglightlevel)
+                {
+                    *ceilinglightlevel = R_CeilingLightLevel(s);
+                }
+            }
+        }
+        else if (view_heightsec != -1
+              && viewz >= sectors[view_heightsec].ceilingheight
+              && sec->ceilingheight > s->ceilingheight)
+        {
+            tempsec->ceilingheight = s->ceilingheight;
+            tempsec->floorheight = s->ceilingheight + 1;
+            tempsec->interpceilingheight = s->interpceilingheight;
+            tempsec->interpfloorheight = s->interpceilingheight + 1;
+
+            tempsec->ceilingpic = s->ceilingpic;
+            tempsec->floorpic = s->ceilingpic;
+            tempsec->ceiling_xoffs = s->ceiling_xoffs;
+            tempsec->ceiling_yoffs = s->ceiling_yoffs;
+            tempsec->floor_xoffs = s->ceiling_xoffs;
+            tempsec->floor_yoffs = s->ceiling_yoffs;
+
+            if (s->floorpic != skyflatnum)
+            {
+                tempsec->ceilingheight = sec->ceilingheight;
+                tempsec->interpceilingheight = sec->interpceilingheight;
+                tempsec->floorpic = s->floorpic;
+                tempsec->floor_xoffs = s->floor_xoffs;
+                tempsec->floor_yoffs = s->floor_yoffs;
+            }
+
+            tempsec->lightlevel = s->lightlevel;
+
+            if (floorlightlevel)
+            {
+                *floorlightlevel = R_FloorLightLevel(s);
+            }
+
+            if (ceilinglightlevel)
+            {
+                *ceilinglightlevel = R_CeilingLightLevel(s);
+            }
+        }
+
+        sec = tempsec;
+    }
+
+    return sec;
+}
+
+// -----------------------------------------------------------------------------
 // R_AddLine
 // Clips the given segment
 // and adds any visible pieces to the line list.
@@ -248,6 +429,7 @@ static void R_AddLine (seg_t *line)
     angle_t		angle2;
     angle_t		span;
     angle_t		tspan;
+    static sector_t tempsec;
     
     curline = line;
 
@@ -309,6 +491,7 @@ static void R_AddLine (seg_t *line)
     }
 
     backsector = line->backsector;
+    const sector_t *const realback = backsector;
 
     // Single sided line?
     if (backsector)
@@ -317,6 +500,14 @@ static void R_AddLine (seg_t *line)
         //      running clipping tests.  Frontsector
         //      should already be interpolated.
         R_CheckInterpolateSector(backsector);
+
+        if (backsector->heightsec != -1)
+        {
+            R_CheckInterpolateSector(&sectors[backsector->heightsec]);
+        }
+
+        // [PN] Boom 242: use fake back sector for clipping decisions.
+        backsector = R_FakeFlat(backsector, &tempsec, NULL, NULL, true);
     }
     else
     {
@@ -326,17 +517,59 @@ static void R_AddLine (seg_t *line)
         return;
     }
 
+    linedef = curline->linedef;
+
+    // [PN] Boom 242 path: use WinMBF/Woof-style direct clipping checks.
+    // Cached line flags are view/context dependent with fake sectors.
+    if (frontsector->heightsec != -1 || (realback && realback->heightsec != -1))
+    {
+        if (backsector->interpceilingheight <= frontsector->interpfloorheight
+         || backsector->interpfloorheight >= frontsector->interpceilingheight
+         || (backsector->interpceilingheight <= backsector->interpfloorheight
+          && (backsector->interpceilingheight >= frontsector->interpceilingheight
+           || curline->sidedef->toptexture)
+          && (backsector->interpfloorheight <= frontsector->interpfloorheight
+           || curline->sidedef->bottomtexture)
+          && (backsector->ceilingpic != skyflatnum
+           || frontsector->ceilingpic != skyflatnum)))
+        {
+            R_ClipWallSegment(x1, x2, true);
+            return;
+        }
+
+        if (backsector->interpceilingheight != frontsector->interpceilingheight
+         || backsector->interpfloorheight != frontsector->interpfloorheight)
+        {
+            R_ClipWallSegment(x1, x2, false);
+            return;
+        }
+
+        if (backsector->ceilingpic == frontsector->ceilingpic
+         && backsector->floorpic == frontsector->floorpic
+         && backsector->lightlevel == frontsector->lightlevel
+         && backsector->lightbank == frontsector->lightbank
+         && backsector->floor_xoffs == frontsector->floor_xoffs
+         && backsector->floor_yoffs == frontsector->floor_yoffs
+         && backsector->ceiling_xoffs == frontsector->ceiling_xoffs
+         && backsector->ceiling_yoffs == frontsector->ceiling_yoffs
+         && backsector->floorlightsec == frontsector->floorlightsec
+         && backsector->ceilinglightsec == frontsector->ceilinglightsec
+         && curline->sidedef->midtexture == 0)
+        {
+            return;
+        }
+
+        R_ClipWallSegment(x1, x2, false);
+        return;
+    }
+
     // [JN] cph - roll up linedef properties in flags
-    if ((linedef = curline->linedef)->r_validcount != gametic) 
+    if (linedef->r_validcount != gametic)
     {
         R_RecalcLineFlags(linedef);
     }
 
-    if (linedef->r_flags & RF_IGNORE)
-    {
-        return;
-    }
-    else
+    if (!(linedef->r_flags & RF_IGNORE))
     {
         R_ClipWallSegment (x1, x2, linedef->r_flags & RF_CLOSED);
     }
@@ -456,6 +689,9 @@ static void R_Subsector (int num)
     subsector_t *sub = &subsectors[num];
     seg_t       *line = &segs[sub->firstline];
     int   count = sub->numlines;
+    sector_t tempsec;
+    int floorlightlevel;
+    int ceilinglightlevel;
 
 #ifdef RANGECHECK
     if (num >= numsubsectors)
@@ -468,24 +704,40 @@ static void R_Subsector (int num)
     //      when you're standing inside the sector.
     R_CheckInterpolateSector(frontsector);
 
-    floorplane = frontsector->interpfloorheight < viewz ?
+    if (frontsector->heightsec != -1)
+    {
+        R_CheckInterpolateSector(&sectors[frontsector->heightsec]);
+    }
+
+    // [PN] Boom 242: fake floor/ceiling rendering in tagged sectors.
+    frontsector = R_FakeFlat(frontsector, &tempsec, &floorlightlevel, &ceilinglightlevel, false);
+
+    floorplane = (frontsector->interpfloorheight < viewz
+               || (frontsector->heightsec != -1
+                && sectors[frontsector->heightsec].ceilingpic == skyflatnum)) ?
                  R_FindPlane (frontsector->interpfloorheight,
                               // [crispy] add support for MBF sky transfers
                               frontsector->floorpic == skyflatnum &&
                               frontsector->sky & PL_SKYFLAT ? frontsector->sky :
                               frontsector->floorpic,
-                              frontsector->lightlevel,
-                              frontsector->lightbank) : NULL;
+                              floorlightlevel,
+                              frontsector->lightbank,
+                              frontsector->floor_xoffs,
+                              frontsector->floor_yoffs) : NULL;
 
-    ceilingplane = frontsector->interpceilingheight > viewz ||
-                   frontsector->ceilingpic == skyflatnum ?
+    ceilingplane = (frontsector->interpceilingheight > viewz
+                 || frontsector->ceilingpic == skyflatnum
+                 || (frontsector->heightsec != -1
+                  && sectors[frontsector->heightsec].floorpic == skyflatnum)) ?
                    R_FindPlane (frontsector->interpceilingheight,
                                 // [crispy] add support for MBF sky transfers
                                 frontsector->ceilingpic == skyflatnum &&
                                 frontsector->sky & PL_SKYFLAT ? frontsector->sky :
                                 frontsector->ceilingpic,
-                                frontsector->lightlevel,
-                                frontsector->lightbank) : NULL;
+                                ceilinglightlevel,
+                                frontsector->lightbank,
+                                frontsector->ceiling_xoffs,
+                                frontsector->ceiling_yoffs) : NULL;
 
     // BSP is traversed by subsector.
     // A sector might have been split into several 
@@ -494,7 +746,8 @@ static void R_Subsector (int num)
     if (sub->sector->validcount != validcount && (!automapactive || automap_overlay))
     {
         sub->sector->validcount = validcount;
-        R_AddSprites (frontsector);
+        // [PN] Boom 242: pass real sector; fake one would break visited tracking.
+        R_AddSprites (sub->sector);
     }
 
     while (count--)

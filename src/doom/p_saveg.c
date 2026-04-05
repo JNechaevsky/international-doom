@@ -1050,6 +1050,12 @@ static void saveg_read_ceiling_t(ceiling_t *str)
 
     // int olddirection;
     str->olddirection = saveg_read32();
+
+    // int newspecial;
+    str->newspecial = saveg_read32();
+
+    // short texture;
+    str->texture = saveg_read16();
 }
 
 static void saveg_write_ceiling_t(ceiling_t *str)
@@ -1083,6 +1089,12 @@ static void saveg_write_ceiling_t(ceiling_t *str)
 
     // int olddirection;
     saveg_write32(str->olddirection);
+
+    // int newspecial;
+    saveg_write32(str->newspecial);
+
+    // short texture;
+    saveg_write16(str->texture);
 }
 
 //
@@ -1117,6 +1129,8 @@ static void saveg_read_vldoor_t(vldoor_t *const str)
 
     // int topcountdown;
     str->topcountdown = saveg_read32();
+    str->line = NULL;
+    str->lighttag = 0;
 }
 
 static void saveg_write_vldoor_t(vldoor_t *const str)

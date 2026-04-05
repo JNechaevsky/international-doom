@@ -205,6 +205,9 @@ typedef PACKED_STRUCT (
 // Set if already seen, thus drawn in automap.
 #define ML_MAPPED		256
 
+// [PN] Boom: allow "use" action to pass through this special linedef.
+#define ML_PASSUSE		512
+
 
 
 

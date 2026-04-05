@@ -114,6 +114,9 @@ typedef struct
     // ID
     int        tag;                   
     int        olddirection;
+    // [PN] Optional texture/type change for generalized ceilings.
+    int        newspecial;
+    short      texture;
 } ceiling_t;
 
 extern int  EV_CeilingCrushStop(const line_t *const line);
@@ -158,6 +161,10 @@ typedef struct
     // (keep in case a door going down is reset)
     // when it reaches 0, start going down
     int        topcountdown;
+    // [PN] Activating line used by gradual door light effects.
+    const line_t *line;
+    // [PN] Non-zero tag enables gradual light interpolation for this door.
+    int        lighttag;
 } vldoor_t;
 
 extern int  EV_DoDoor (const line_t *line, vldoor_e type);
@@ -229,7 +236,8 @@ extern boolean P_CheckMeleeRange (mobj_t *actor);
 // P_FLOOR
 // -----------------------------------------------------------------------------
 
-#define FLOORSPEED (FRACUNIT)
+#define FLOORSPEED    (FRACUNIT)
+#define ELEVATORSPEED (FRACUNIT * 4)
 
 typedef enum
 {
@@ -271,6 +279,13 @@ typedef enum
     turbo16  // quickly build by 16
 } stair_e;
 
+typedef enum
+{
+    elevateUp,
+    elevateDown,
+    elevateCurrent
+} elevator_e;
+
 typedef struct
 {
     thinker_t thinker;
@@ -284,6 +299,17 @@ typedef struct
     fixed_t   speed;
 } floormove_t;
 
+typedef struct
+{
+    thinker_t   thinker;
+    elevator_e  type;
+    sector_t   *sector;
+    int         direction;
+    fixed_t     floordestheight;
+    fixed_t     ceilingdestheight;
+    fixed_t     speed;
+} elevator_t;
+
 typedef enum
 {
     ok,
@@ -293,7 +319,9 @@ typedef enum
 
 extern int  EV_BuildStairs (const line_t *const line, stair_e type);
 extern int  EV_DoFloor (line_t *line, floor_e floortype);
+extern int  EV_DoElevator (line_t *line, elevator_e elevtype);
 extern void T_MoveFloor (floormove_t *floor);
+extern void T_MoveElevator (elevator_t *elevator);
 
 extern result_e T_MovePlane (sector_t *sector, fixed_t speed, fixed_t dest,
                              boolean crush, int floorOrCeiling, int direction);
@@ -362,6 +390,7 @@ typedef struct
 } glow_t;
 
 extern void EV_LightTurnOn (const line_t *line, int bright);
+extern void EV_LightTurnOnPartway (const line_t *line, fixed_t level);
 extern void EV_StartLightStrobing (const line_t *const line);
 extern void EV_TurnTagLightsOff (const line_t *const line);
 extern void P_SpawnFireFlicker (sector_t *sector);
@@ -684,12 +713,117 @@ extern fixed_t bottomslope;
 // Define values for map objects
 #define MO_TELEPORTMAN (14)
 
+// [PN] Boom generalized linedef ranges and bitfields.
+#define GenFloorBase          0x6000
+#define GenCeilingBase        0x4000
+#define GenDoorBase           0x3c00
+#define GenLockedBase         0x3800
+#define GenLiftBase           0x3400
+#define GenStairsBase         0x3000
+#define GenCrusherBase        0x2F80
+
+#define TriggerType           0x0007
+#define TriggerTypeShift      0
+
+#define FloorCrush            0x1000
+#define FloorChange           0x0c00
+#define FloorTarget           0x0380
+#define FloorDirection        0x0040
+#define FloorModel            0x0020
+#define FloorSpeed            0x0018
+
+#define FloorCrushShift       12
+#define FloorChangeShift      10
+#define FloorTargetShift       7
+#define FloorDirectionShift    6
+#define FloorModelShift        5
+#define FloorSpeedShift        3
+
+#define CeilingCrush          0x1000
+#define CeilingChange         0x0c00
+#define CeilingTarget         0x0380
+#define CeilingDirection      0x0040
+#define CeilingModel          0x0020
+#define CeilingSpeed          0x0018
+
+#define CeilingCrushShift     12
+#define CeilingChangeShift    10
+#define CeilingTargetShift     7
+#define CeilingDirectionShift  6
+#define CeilingModelShift      5
+#define CeilingSpeedShift      3
+
+#define LiftTarget            0x0300
+#define LiftDelay             0x00c0
+#define LiftMonster           0x0020
+#define LiftSpeed             0x0018
+
+#define LiftTargetShift        8
+#define LiftDelayShift         6
+#define LiftMonsterShift       5
+#define LiftSpeedShift         3
+
+#define StairIgnore           0x0200
+#define StairDirection        0x0100
+#define StairStep             0x00c0
+#define StairMonster          0x0020
+#define StairSpeed            0x0018
+
+#define StairIgnoreShift       9
+#define StairDirectionShift    8
+#define StairStepShift         6
+#define StairMonsterShift      5
+#define StairSpeedShift        3
+
+#define CrusherSilent         0x0040
+#define CrusherMonster        0x0020
+#define CrusherSpeed          0x0018
+
+#define CrusherSilentShift     6
+#define CrusherMonsterShift    5
+#define CrusherSpeedShift      3
+
+#define DoorDelay             0x0300
+#define DoorMonster           0x0080
+#define DoorKind              0x0060
+#define DoorSpeed             0x0018
+
+#define DoorDelayShift         8
+#define DoorMonsterShift       7
+#define DoorKindShift          5
+#define DoorSpeedShift         3
+
+#define LockedNKeys           0x0200
+#define LockedKey             0x01c0
+#define LockedKind            0x0020
+#define LockedSpeed           0x0018
+
+#define LockedNKeysShift       9
+#define LockedKeyShift         6
+#define LockedKindShift        5
+#define LockedSpeedShift       3
+
+typedef enum
+{
+    WalkOnce,
+    WalkMany,
+    SwitchOnce,
+    SwitchMany,
+    GunOnce,
+    GunMany,
+    PushOnce,
+    PushMany
+} triggertype_e;
+
 extern boolean P_UseSpecialLine (mobj_t *thing, line_t *line, int side);
 extern fixed_t P_FindHighestCeilingSurrounding (sector_t *sec);
 extern fixed_t P_FindHighestFloorSurrounding (sector_t* sec);
 extern fixed_t P_FindLowestCeilingSurrounding (sector_t *sec);
 extern fixed_t P_FindLowestFloorSurrounding (sector_t* sec);
 extern fixed_t P_FindNextHighestFloor (sector_t *sec, int currentheight);
+extern fixed_t P_FindNextLowestFloor (sector_t *sec, int currentheight);
+extern fixed_t P_FindNextHighestCeiling (sector_t *sec, int currentheight);
+extern fixed_t P_FindNextLowestCeiling (sector_t *sec, int currentheight);
 extern int     P_FindMinSurroundingLight (sector_t *sector, int max);
 extern int     P_FindSectorFromLineTag (const line_t *line, int start);
 extern void    P_CrossSpecialLine (int linenum, int side, mobj_t *thing);
@@ -701,6 +835,9 @@ extern void    P_UpdateSpecials (void);
 extern void    R_InterpolateTextureOffsets (void);
 // [crispy] more MBF code pointers
 extern void    P_CrossSpecialLinePtr (line_t *line, int side, mobj_t *thing);
+extern boolean P_CrossGeneralizedLine (line_t *line, mobj_t *thing);
+extern boolean P_UseGeneralizedLine (mobj_t *thing, line_t *line, int side);
+extern boolean P_ShootGeneralizedLine (const mobj_t *thing, line_t *line);
 
 extern int       twoSided (int sector, int line);
 extern sector_t *getSector (int currentSector, int line, int side);
@@ -760,6 +897,8 @@ extern int       maxbuttons;
 // -----------------------------------------------------------------------------
 
 extern int EV_Teleport (const line_t *line, int side, mobj_t *thing);
+extern int EV_SilentTeleport (const line_t *line, int side, mobj_t *thing);
+extern int EV_SilentLineTeleport (line_t *line, int side, mobj_t *thing, boolean reverse);
 
 // -----------------------------------------------------------------------------
 // P_TICK

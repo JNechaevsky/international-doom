@@ -118,6 +118,13 @@ typedef	struct
     // [crispy] add support for MBF sky tranfers
     int		sky;
 
+    // [PN] Boom 242: control sector for fake floor/ceiling heights (-1 = disabled).
+    short	heightsec;
+
+    // [PN] Boom: optional independent light source sectors for floor/ceiling planes.
+    short	floorlightsec;
+    short	ceilinglightsec;
+
     // [AM] Previous position of floor and ceiling before
     //      think.  Used to interpolate between positions.
     fixed_t	oldfloorheight;
@@ -135,6 +142,12 @@ typedef	struct
     //      the renderer.
     fixed_t	interpfloorheight;
     fixed_t	interpceilingheight;
+
+    // [PN] BOOM scrollers: per-sector texture offsets for floor/ceiling flats.
+    fixed_t floor_xoffs;
+    fixed_t floor_yoffs;
+    fixed_t ceiling_xoffs;
+    fixed_t ceiling_yoffs;
 
     // [crispy] revealed secrets
     short	oldspecial;
@@ -344,6 +357,7 @@ typedef struct vissprite_s
     // global bottom / top for silhouette clipping
     fixed_t     gz;
     fixed_t     gzt;
+    int         heightsec; // [PN] Boom 242: special clipping sector index, or -1.
 
     // horizontal position of x1
     fixed_t     startfrac;
@@ -427,6 +441,8 @@ typedef struct visplane_s
     int     picnum;
     int     lightlevel;
     unsigned short colorbank; // [PN] Colored-lighting bank id for this visplane.
+    fixed_t xoffs;            // [PN] Flat texture X offset for this visplane.
+    fixed_t yoffs;            // [PN] Flat texture Y offset for this visplane.
     int     minx;
     int     maxx;
 
@@ -778,7 +794,7 @@ extern fixed_t distscale[MAXWIDTH];
 extern fixed_t swirlCoord_x;
 extern fixed_t swirlCoord_y;
 
-extern visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel, int colorbank);
+extern visplane_t *const R_FindPlane (fixed_t height, int picnum, int lightlevel, int colorbank, fixed_t xoffs, fixed_t yoffs);
 extern visplane_t *const R_CheckPlane (visplane_t *const pl, int start, int stop);
 extern visplane_t *const R_DupPlane (const visplane_t *const pl, int start, int stop);
 

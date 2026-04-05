@@ -251,6 +251,127 @@ void T_MoveFloor(floormove_t* floor)
 
 }
 
+// -----------------------------------------------------------------------------
+// T_MoveElevator
+//  [PN] Move floor and ceiling together for Boom elevator specials.
+// -----------------------------------------------------------------------------
+void T_MoveElevator(elevator_t* elevator)
+{
+    result_e res;
+
+    if (elevator->direction < 0)
+    {
+        // Move ceiling first when lowering to avoid floor/ceiling conflicts.
+        res = T_MovePlane(elevator->sector,
+                          elevator->speed,
+                          elevator->ceilingdestheight,
+                          false,
+                          1,
+                          elevator->direction);
+
+        if (res == ok || res == pastdest)
+        {
+            T_MovePlane(elevator->sector,
+                        elevator->speed,
+                        elevator->floordestheight,
+                        false,
+                        0,
+                        elevator->direction);
+        }
+    }
+    else
+    {
+        // Move floor first when raising; only move ceiling if floor step succeeded.
+        res = T_MovePlane(elevator->sector,
+                          elevator->speed,
+                          elevator->floordestheight,
+                          false,
+                          0,
+                          elevator->direction);
+
+        if (res == ok || res == pastdest)
+        {
+            T_MovePlane(elevator->sector,
+                        elevator->speed,
+                        elevator->ceilingdestheight,
+                        false,
+                        1,
+                        elevator->direction);
+        }
+    }
+
+    elevator->sector->soundorg.z = (elevator->sector->floorheight
+                                  + elevator->sector->ceilingheight) >> 1;
+
+    if (!(leveltime & 7))
+    {
+        S_StartSound(&elevator->sector->soundorg, sfx_stnmov);
+    }
+
+    if (res == pastdest)
+    {
+        elevator->sector->specialdata = NULL;
+        P_RemoveThinker(&elevator->thinker);
+        S_StartSound(&elevator->sector->soundorg, sfx_pstop);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// EV_DoElevator
+//  [PN] Spawn Boom elevator thinkers for tagged sectors.
+// -----------------------------------------------------------------------------
+int EV_DoElevator(line_t* line, elevator_e elevtype)
+{
+    int secnum = -1;
+    int rtn = 0;
+
+    while ((secnum = P_FindSectorFromLineTag(line, secnum)) >= 0)
+    {
+        sector_t* sec = &sectors[secnum];
+        elevator_t* elevator;
+
+        if (sec->specialdata)
+        {
+            continue;
+        }
+
+        rtn = 1;
+        elevator = Z_Malloc(sizeof(*elevator), PU_LEVSPEC, 0);
+        P_AddThinker(&elevator->thinker);
+        sec->specialdata = elevator;
+        elevator->thinker.function.acp1 = (actionf_p1) T_MoveElevator;
+        elevator->type = elevtype;
+        elevator->sector = sec;
+        elevator->speed = ELEVATORSPEED;
+
+        switch (elevtype)
+        {
+            case elevateDown:
+                elevator->direction = -1;
+                elevator->floordestheight =
+                    P_FindNextLowestFloor(sec, sec->floorheight);
+                break;
+
+            case elevateUp:
+                elevator->direction = 1;
+                elevator->floordestheight =
+                    P_FindNextHighestFloor(sec, sec->floorheight);
+                break;
+
+            case elevateCurrent:
+            default:
+                elevator->floordestheight = line->frontsector->floorheight;
+                elevator->direction = elevator->floordestheight > sec->floorheight ? 1 : -1;
+                break;
+        }
+
+        elevator->ceilingdestheight = elevator->floordestheight
+                                    + (sec->ceilingheight - sec->floorheight);
+    }
+
+    return rtn;
+}
+
 //
 // HANDLE FLOOR TYPES
 //
@@ -563,4 +684,3 @@ EV_BuildStairs
     }
     return rtn;
 }
-

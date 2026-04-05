@@ -58,7 +58,8 @@ void T_VerticalDoor (vldoor_t* door)
 		
 	      case vld_close30ThenOpen:
 		door->direction = 1;
-		S_StartSound(&door->sector->soundorg, sfx_doropn);
+		S_StartSound(&door->sector->soundorg,
+		             door->speed >= VDOORSPEED * 4 ? sfx_bdopn : sfx_doropn);
 		break;
 		
 	      default:
@@ -91,6 +92,17 @@ void T_VerticalDoor (vldoor_t* door)
 			  door->speed,
 			  door->sector->floorheight,
 			  false,1,door->direction);
+
+	if (door->lighttag && door->line
+	 && door->topheight - door->sector->floorheight)
+	{
+	    EV_LightTurnOnPartway(door->line,
+	                          FixedDiv(door->sector->ceilingheight
+	                                 - door->sector->floorheight,
+	                                   door->topheight
+	                                 - door->sector->floorheight));
+	}
+
 	if (res == pastdest)
 	{
 	    switch(door->type)
@@ -110,7 +122,7 @@ void T_VerticalDoor (vldoor_t* door)
 		
 	      case vld_close30ThenOpen:
 		door->direction = 0;
-		door->topcountdown = TICRATE*30;
+		door->topcountdown = door->topwait ? door->topwait : TICRATE * 30;
 		break;
 		
 	      default:
@@ -145,6 +157,16 @@ void T_VerticalDoor (vldoor_t* door)
 			  door->speed,
 			  door->topheight,
 			  false,1,door->direction);
+
+	if (door->lighttag && door->line
+	 && door->topheight - door->sector->floorheight)
+	{
+	    EV_LightTurnOnPartway(door->line,
+	                          FixedDiv(door->sector->ceilingheight
+	                                 - door->sector->floorheight,
+	                                   door->topheight
+	                                 - door->sector->floorheight));
+	}
 	
 	if (res == pastdest)
 	{
@@ -267,6 +289,8 @@ EV_DoDoor
 	door->type = type;
 	door->topwait = VDOORWAIT;
 	door->speed = VDOORSPEED;
+	door->line = line;
+	door->lighttag = 0;
 		
 	switch(type)
 	{
@@ -288,6 +312,7 @@ EV_DoDoor
 	  case vld_close30ThenOpen:
 	    door->topheight = sec->ceilingheight;
 	    door->direction = -1;
+	    door->topwait = TICRATE * 30;
 	    S_StartSound(&door->sector->soundorg, sfx_dorcls);
 	    break;
 	    
@@ -491,6 +516,8 @@ EV_VerticalDoor
     door->direction = 1;
     door->speed = VDOORSPEED;
     door->topwait = VDOORWAIT;
+    door->line = line;
+    door->lighttag = line->tag;
 
     switch(line->special)
     {
@@ -517,6 +544,10 @@ EV_VerticalDoor
 	door->type = vld_blazeOpen;
 	line->special = 0;
 	door->speed = VDOORSPEED*4;
+	break;
+
+      default:
+	door->lighttag = 0;
 	break;
     }
     
@@ -546,6 +577,8 @@ void P_SpawnDoorCloseIn30 (sector_t* sec)
     door->type = vld_normal;
     door->speed = VDOORSPEED;
     door->topcountdown = 30 * TICRATE;
+    door->line = NULL;
+    door->lighttag = 0;
 }
 
 //
@@ -573,6 +606,8 @@ P_SpawnDoorRaiseIn5Mins
     door->topheight -= 4*FRACUNIT;
     door->topwait = VDOORWAIT;
     door->topcountdown = 5 * 60 * TICRATE;
+    door->line = NULL;
+    door->lighttag = 0;
 }
 
 

@@ -3585,22 +3585,28 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
         }
     }
 
-    switch (gameversion)
+    switch (gamecomplevel)
     {
-        case exe_doom_1_2:
+        case COMPLEVEL_DOOM_12:
             mem_fputs(" -complevel 0", stream);
             break;
-        case exe_doom_1_666:
+        case COMPLEVEL_DOOM_1666:
             mem_fputs(" -complevel 1", stream);
             break;
-        case exe_doom_1_9:
+        case COMPLEVEL_DOOM_19:
             mem_fputs(" -complevel 2", stream);
             break;
-        case exe_ultimate:
+        case COMPLEVEL_ULTIMATE:
             mem_fputs(" -complevel 3", stream);
             break;
-        case exe_final:
+        case COMPLEVEL_FINAL:
             mem_fputs(" -complevel 4", stream);
+            break;
+        case COMPLEVEL_BOOM:
+            mem_fputs(" -complevel 9", stream);
+            break;
+        case COMPLEVEL_MBF:
+            mem_fputs(" -complevel 11", stream);
             break;
         default:
             break;

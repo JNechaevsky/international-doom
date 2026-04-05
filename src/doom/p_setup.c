@@ -580,6 +580,9 @@ static void P_LoadSectors (int lump)
         dst[i].tag                 = SHORT(src[i].tag);
         dst[i].thinglist           = NULL;
         dst[i].cachedheight        = 0; // [crispy] WiggleFix: [kb] for R_FixWiggle()
+        dst[i].heightsec           = -1;
+        dst[i].floorlightsec       = -1;
+        dst[i].ceilinglightsec     = -1;
 
         // [AM] Sector interpolation. Even if we're
         // not running uncapped, the renderer still uses this data.
@@ -766,8 +769,52 @@ static void P_LoadLineDefs (int lump)
         ld->flags = (unsigned short)SHORT(ml->flags);
         ld->special = SHORT(ml->special);
 
-        // Warn on unknown specials
-        if ((unsigned)ld->special > 141 && ld->special != 271 && ld->special != 272)
+        // Warn on specials unsupported by the current compatibility level.
+        if ((unsigned) ld->special > 141
+         && ld->special != 271
+         && ld->special != 272
+         && !((gamecomplevel >= COMPLEVEL_BOOM)
+           && ((unsigned short) ld->special >= GenCrusherBase
+            || ld->special == 195
+            || ld->special == 197
+            || ld->special == 155
+            || ld->special == 158
+            || ld->special == 242
+            || ld->special == 213
+            || ld->special == 230
+            || ld->special == 234
+            || ld->special == 238
+            || ld->special == 244
+            || ld->special == 207
+            || ld->special == 208
+            || ld->special == 209
+            || ld->special == 210
+            || ld->special == 243
+            || ld->special == 245
+            || ld->special == 246
+            || ld->special == 247
+            || ld->special == 248
+            || ld->special == 249
+            || ld->special == 262
+            || ld->special == 263
+            || ld->special == 264
+            || ld->special == 265
+            || ld->special == 266
+            || ld->special == 268
+            || ld->special == 269
+            || ld->special == 261
+            || ld->special == 214
+            || ld->special == 215
+            || ld->special == 216
+            || ld->special == 217
+            || ld->special == 218
+            || ld->special == 255
+            || ld->special == 250
+            || ld->special == 251
+            || ld->special == 252
+            || ld->special == 253
+            || ld->special == 254
+            || ld->special == 267)))
         {
             fprintf(stderr, "P_LoadLineDefs: Unknown special %d at line %d.\n", ld->special, i);
             ++warn;

@@ -36,6 +36,7 @@ add_library(doom STATIC
             p_enemy.c
             p_extnodes.c    p_extnodes.h
             p_floor.c
+            p_genlin.c
             p_inter.c
             p_lights.c
                             p_local.h

@@ -1401,8 +1401,8 @@ static boolean	PTR_UseTraverse (intercept_t *const in)
 	
     P_UseSpecialLine (usething, in->d.line, side);
 
-    // can't use for than one special line in a row
-    return false;
+    // [PN] Boom: allow multiple use-lines in a row when ML_PASSUSE is set.
+    return gamecomplevel >= COMPLEVEL_BOOM && (in->d.line->flags & ML_PASSUSE);
 }
 
 // -----------------------------------------------------------------------------
@@ -1760,4 +1760,3 @@ static void SpechitOverrun(const line_t *const ld)
             break;
     }
 }
-

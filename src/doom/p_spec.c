@@ -171,6 +171,106 @@ static size_t	maxanims;
 short numlinespecials;
 line_t *linespeciallist[MAXLINEANIMS];
 
+typedef enum
+{
+    sc_side,
+    sc_floor,
+    sc_ceiling,
+    sc_carry
+} scroller_type_t;
+
+typedef struct
+{
+    fixed_t dx;
+    fixed_t dy;
+    fixed_t vdx;
+    fixed_t vdy;
+    int affectee;
+    int control;
+    fixed_t last_height;
+    boolean accel;
+    scroller_type_t type;
+} scroller_t;
+
+// [PN] BOOM scrolling specials (250-254) precompiled at level load.
+static scroller_t *scrollers;
+static size_t numscrollers;
+static size_t maxscrollers;
+
+#define SCROLL_SHIFT 5
+#define CARRYFACTOR ((fixed_t) (FRACUNIT * 3 / 32))
+
+static void P_ResetScrollers(void)
+{
+    numscrollers = 0;
+}
+
+static void P_AddScroller(scroller_type_t type, fixed_t dx, fixed_t dy,
+                          int affectee, int control, boolean accel)
+{
+    if (numscrollers >= maxscrollers)
+    {
+        const size_t newmax = maxscrollers ? maxscrollers * 2 : 64;
+        scrollers = I_Realloc(scrollers, newmax * sizeof(*scrollers));
+        maxscrollers = newmax;
+    }
+
+    scrollers[numscrollers].type = type;
+    scrollers[numscrollers].dx = dx;
+    scrollers[numscrollers].dy = dy;
+    scrollers[numscrollers].vdx = 0;
+    scrollers[numscrollers].vdy = 0;
+    scrollers[numscrollers].affectee = affectee;
+    scrollers[numscrollers].control = control;
+    scrollers[numscrollers].last_height =
+        (control >= 0 && control < numsectors)
+      ? sectors[control].floorheight + sectors[control].ceilingheight
+      : 0;
+    scrollers[numscrollers].accel = accel;
+    numscrollers++;
+}
+
+static void P_AddWallScroller(fixed_t dx, fixed_t dy, const line_t *line,
+                              int side, int control, boolean accel)
+{
+    fixed_t x;
+    fixed_t y;
+    fixed_t d;
+
+    if (side == NO_INDEX)
+    {
+        return;
+    }
+
+    x = abs(line->dx);
+    y = abs(line->dy);
+
+    if (y > x)
+    {
+        const fixed_t temp = x;
+        x = y;
+        y = temp;
+    }
+
+    if (!x)
+    {
+        return;
+    }
+
+    d = FixedDiv(x, finesine[(tantoangle[FixedDiv(y, x) >> DBITS] + ANG90)
+                             >> ANGLETOFINESHIFT]);
+
+    if (!d)
+    {
+        return;
+    }
+
+    x = (fixed_t) (((int64_t) dy * -line->dy - (int64_t) dx * line->dx) / d);
+    y = (fixed_t) (((int64_t) dy * line->dx - (int64_t) dx * line->dy) / d);
+
+    P_AddScroller(sc_side, x, y, side, control, accel);
+}
+
 
 
 void P_InitPicAnims (void)
@@ -472,6 +572,123 @@ P_FindNextHighestFloor
 }
 
 //
+// P_FindNextLowestFloor()
+// FIND NEXT LOWEST FLOOR IN SURROUNDING SECTORS
+//
+fixed_t
+P_FindNextLowestFloor
+( sector_t* sec,
+  int       currentheight )
+{
+    const sector_t *other;
+    int i;
+
+    for (i = 0; i < sec->linecount; ++i)
+    {
+        other = getNextSector(sec->lines[i], sec);
+
+        if (other && other->floorheight < currentheight)
+        {
+            fixed_t height = other->floorheight;
+
+            while (++i < sec->linecount)
+            {
+                other = getNextSector(sec->lines[i], sec);
+
+                if (other
+                 && other->floorheight > height
+                 && other->floorheight < currentheight)
+                {
+                    height = other->floorheight;
+                }
+            }
+
+            return height;
+        }
+    }
+
+    return currentheight;
+}
+
+//
+// P_FindNextLowestCeiling()
+// FIND NEXT LOWEST CEILING IN SURROUNDING SECTORS
+//
+fixed_t
+P_FindNextLowestCeiling
+( sector_t *sec,
+  int       currentheight )
+{
+    const sector_t *other;
+    int i;
+
+    for (i = 0; i < sec->linecount; ++i)
+    {
+        other = getNextSector(sec->lines[i], sec);
+
+        if (other && other->ceilingheight < currentheight)
+        {
+            fixed_t height = other->ceilingheight;
+
+            while (++i < sec->linecount)
+            {
+                other = getNextSector(sec->lines[i], sec);
+
+                if (other
+                 && other->ceilingheight > height
+                 && other->ceilingheight < currentheight)
+                {
+                    height = other->ceilingheight;
+                }
+            }
+
+            return height;
+        }
+    }
+
+    return currentheight;
+}
+
+//
+// P_FindNextHighestCeiling()
+// FIND NEXT HIGHEST CEILING IN SURROUNDING SECTORS
+//
+fixed_t
+P_FindNextHighestCeiling
+( sector_t *sec,
+  int       currentheight )
+{
+    const sector_t *other;
+    int i;
+
+    for (i = 0; i < sec->linecount; ++i)
+    {
+        other = getNextSector(sec->lines[i], sec);
+
+        if (other && other->ceilingheight > currentheight)
+        {
+            fixed_t height = other->ceilingheight;
+
+            while (++i < sec->linecount)
+            {
+                other = getNextSector(sec->lines[i], sec);
+
+                if (other
+                 && other->ceilingheight < height
+                 && other->ceilingheight > currentheight)
+                {
+                    height = other->ceilingheight;
+                }
+            }
+
+            return height;
+        }
+    }
+
+    return currentheight;
+}
+
+//
 // FIND LOWEST CEILING IN THE SURROUNDING SECTORS
 //
 fixed_t
@@ -544,6 +761,22 @@ P_FindSectorFromLineTag
 	if (sectors[i].tag == line->tag)
 	    return i;
     
+    return -1;
+}
+
+// [PN] BOOM helper: return next linedef index with the same tag.
+static int P_FindLineFromLineTag(const line_t *line, int start)
+{
+    int i;
+
+    for (i = start + 1; i < numlines; i++)
+    {
+        if (lines[i].tag == line->tag)
+        {
+            return i;
+        }
+    }
+
     return -1;
 }
 
@@ -640,6 +873,11 @@ P_CrossSpecialLinePtr
         }
     }
 
+    if (P_CrossGeneralizedLine(line, thing))
+    {
+        return;
+    }
+
     if (!thing->player)
     {
 	cross_ok = 0;
@@ -649,6 +887,18 @@ P_CrossSpecialLinePtr
 	  case 97:	// TELEPORT RETRIGGER
 	  case 125:	// TELEPORT MONSTERONLY TRIGGER
 	  case 126:	// TELEPORT MONSTERONLY RETRIGGER
+	  case 207:	// [PN] BOOM SILENT TELEPORT (W1)
+	  case 208:	// [PN] BOOM SILENT TELEPORT (WR)
+	  case 243:	// [PN] BOOM SILENT LINE TELEPORT (W1)
+	  case 244:	// [PN] BOOM SILENT LINE TELEPORT (WR)
+	  case 262:	// [PN] BOOM SILENT LINE TELEPORT REVERSED (W1)
+	  case 263:	// [PN] BOOM SILENT LINE TELEPORT REVERSED (WR)
+	  case 264:	// [PN] BOOM MONSTER-ONLY SILENT LINE TELEPORT REVERSED (W1)
+	  case 265:	// [PN] BOOM MONSTER-ONLY SILENT LINE TELEPORT REVERSED (WR)
+	  case 266:	// [PN] BOOM MONSTER-ONLY SILENT LINE TELEPORT (W1)
+	  case 267:	// [PN] BOOM MONSTER-ONLY SILENT LINE TELEPORT (WR)
+	  case 268:	// [PN] BOOM MONSTER-ONLY SILENT TELEPORT (W1)
+	  case 269:	// [PN] BOOM MONSTER-ONLY SILENT TELEPORT (WR)
 	  case 4:	// RAISE DOOR
 	  case 10:	// PLAT DOWN-WAIT-UP-STAY TRIGGER
 	  case 88:	// PLAT DOWN-WAIT-UP-STAY RETRIGGER
@@ -907,6 +1157,63 @@ P_CrossSpecialLinePtr
 	EV_DoCeiling(line,silentCrushAndRaise);
 	line->special = 0;
 	break;
+
+      case 207:
+	// [PN] Boom: W1 silent teleporter (thing -> teleport destination).
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_SilentTeleport(line, side, thing))
+	{
+	    line->special = 0;
+	}
+	break;
+
+      case 243:
+	// [PN] Boom: W1 silent line-line teleporter.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_SilentLineTeleport(line, side, thing, false))
+	{
+	    line->special = 0;
+	}
+	break;
+
+      case 262:
+	// [PN] Boom: W1 silent line-line teleporter (reversed).
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && EV_SilentLineTeleport(line, side, thing, true))
+	{
+	    line->special = 0;
+	}
+	break;
+
+      case 264:
+	// [PN] Boom: W1 monster-only silent line-line teleporter (reversed).
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && !thing->player
+	 && EV_SilentLineTeleport(line, side, thing, true))
+	{
+	    line->special = 0;
+	}
+	break;
+
+      case 266:
+	// [PN] Boom: W1 monster-only silent line-line teleporter.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && !thing->player
+	 && EV_SilentLineTeleport(line, side, thing, false))
+	{
+	    line->special = 0;
+	}
+	break;
+
+      case 268:
+	// [PN] Boom: W1 monster-only silent teleporter.
+	if (gamecomplevel >= COMPLEVEL_BOOM
+	 && !thing->player
+	 && EV_SilentTeleport(line, side, thing))
+	{
+	    line->special = 0;
+	}
+	break;
 	
 	// RETRIGGERS.  All from here till end.
       case 72:
@@ -1071,6 +1378,62 @@ P_CrossSpecialLinePtr
 	// Raise Floor Turbo
 	EV_DoFloor(line,raiseFloorTurbo);
 	break;
+
+      case 155:
+	// [PN] Boom: WR lower pillar / raise donut.
+	if (gamecomplevel >= COMPLEVEL_BOOM)
+	{
+	    EV_DoDonut(line);
+	}
+	break;
+
+      case 208:
+	// [PN] Boom: WR silent teleporter (thing -> teleport destination).
+	if (gamecomplevel >= COMPLEVEL_BOOM)
+	{
+	    EV_SilentTeleport(line, side, thing);
+	}
+	break;
+
+      case 244:
+	// [PN] Boom: WR silent line-line teleporter.
+	if (gamecomplevel >= COMPLEVEL_BOOM)
+	{
+	    EV_SilentLineTeleport(line, side, thing, false);
+	}
+	break;
+
+      case 263:
+	// [PN] Boom: WR silent line-line teleporter (reversed).
+	if (gamecomplevel >= COMPLEVEL_BOOM)
+	{
+	    EV_SilentLineTeleport(line, side, thing, true);
+	}
+	break;
+
+      case 265:
+	// [PN] Boom: WR monster-only silent line-line teleporter (reversed).
+	if (gamecomplevel >= COMPLEVEL_BOOM && !thing->player)
+	{
+	    EV_SilentLineTeleport(line, side, thing, true);
+	}
+	break;
+
+      case 267:
+	// [PN] Boom: WR monster-only silent line-line teleporter.
+	if (gamecomplevel >= COMPLEVEL_BOOM && !thing->player)
+	{
+	    EV_SilentLineTeleport(line, side, thing, false);
+	}
+	break;
+
+      case 269:
+	// [PN] Boom: WR monster-only silent teleporter.
+	if (gamecomplevel >= COMPLEVEL_BOOM && !thing->player)
+	{
+	    EV_SilentTeleport(line, side, thing);
+	}
+	break;
     }
 }
 
@@ -1086,6 +1449,11 @@ P_ShootSpecialLine
   line_t*	line )
 {
     int		shoot_ok;
+
+    if (P_ShootGeneralizedLine(thing, line))
+    {
+        return;
+    }
     
     //	Impacts that other things can activate.
     if (!thing->player)
@@ -1120,6 +1488,15 @@ P_ShootSpecialLine
 	// RAISE FLOOR NEAR AND CHANGE
 	EV_DoPlat(line,raiseToNearestAndChange,0);
 	P_ChangeSwitchTexture(line,0);
+	break;
+
+      case 197:
+	// [PN] Boom: G1 exit level.
+	if (gamecomplevel >= COMPLEVEL_BOOM)
+	{
+	    P_ChangeSwitchTexture(line, 0);
+	    G_ExitLevel();
+	}
 	break;
     }
 }
@@ -1299,6 +1676,82 @@ void P_UpdateSpecials (void)
 	    sides[line->sidenum[0]].basetextureoffset;
 	    break;
 	}
+    }
+
+    if (gamecomplevel >= COMPLEVEL_BOOM)
+    {
+        for (i = 0; i < (int) numscrollers; i++)
+        {
+            scroller_t *const sc = &scrollers[i];
+            fixed_t dx = sc->dx;
+            fixed_t dy = sc->dy;
+
+            if (sc->control >= 0 && sc->control < numsectors)
+            {
+                const fixed_t height = sectors[sc->control].floorheight
+                                     + sectors[sc->control].ceilingheight;
+                const fixed_t delta = height - sc->last_height;
+                sc->last_height = height;
+
+                dx = FixedMul(dx, delta);
+                dy = FixedMul(dy, delta);
+            }
+
+            if (sc->accel)
+            {
+                sc->vdx += dx;
+                sc->vdy += dy;
+                dx = sc->vdx;
+                dy = sc->vdy;
+            }
+
+            if (!(dx | dy))
+            {
+                continue;
+            }
+
+            switch (sc->type)
+            {
+                case sc_side:
+                    sides[sc->affectee].textureoffset += dx;
+                    sides[sc->affectee].rowoffset += dy;
+                    break;
+
+                case sc_floor:
+                    sectors[sc->affectee].floor_xoffs += dx;
+                    sectors[sc->affectee].floor_yoffs += dy;
+                    break;
+
+                case sc_ceiling:
+                    sectors[sc->affectee].ceiling_xoffs += dx;
+                    sectors[sc->affectee].ceiling_yoffs += dy;
+                    break;
+
+                case sc_carry:
+                {
+                    sector_t *const sec = &sectors[sc->affectee];
+                    const fixed_t floorheight = sec->floorheight;
+                    mobj_t *thing;
+
+                    for (thing = sec->thinglist; thing; thing = thing->snext)
+                    {
+                        if (thing->flags & MF_NOCLIP)
+                        {
+                            continue;
+                        }
+
+                        if (thing->flags & MF_NOGRAVITY && thing->z > floorheight)
+                        {
+                            continue;
+                        }
+
+                        thing->momx += dx;
+                        thing->momy += dy;
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     
@@ -1575,16 +2028,16 @@ int EV_DoDonut(line_t*	line)
 
 static unsigned int NumScrollers(void)
 {
-    unsigned int i, scrollers = 0;
+    unsigned int i, count = 0;
 
     for (i = 0; i < numlines; i++)
     {
-        if (48 == lines[i].special)
+        if (48 == lines[i].special || 85 == lines[i].special)
         {
-            scrollers++;
+            count++;
         }
     }
-    return scrollers;
+    return count;
 }
 
 // Parses command line parameters.
@@ -1677,6 +2130,7 @@ void P_SpawnSpecials (void)
     
     //	Init line EFFECTs
     numlinespecials = 0;
+    P_ResetScrollers();
     for (i = 0;i < numlines; i++)
     {
 	switch(lines[i].special)
@@ -1691,6 +2145,161 @@ void P_SpawnSpecials (void)
 	    // EFFECT FIRSTCOL SCROLL+
 	    linespeciallist[numlinespecials] = &lines[i];
 	    numlinespecials++;
+	    break;
+
+          case 250:
+          case 251:
+          case 252:
+          case 253:
+          case 254:
+          case 245:
+          case 246:
+          case 247:
+          case 248:
+          case 249:
+          case 214:
+          case 215:
+          case 216:
+          case 217:
+          case 218:
+          case 255:
+            if (gamecomplevel >= COMPLEVEL_BOOM)
+            {
+                int special = lines[i].special;
+                int control = -1;
+                boolean accel = false;
+
+                if (special == 255)
+                {
+                    const int side = lines[i].sidenum[0];
+                    if (side != NO_INDEX)
+                    {
+                        P_AddScroller(sc_side,
+                                      -sides[side].textureoffset,
+                                       sides[side].rowoffset,
+                                       side,
+                                       -1,
+                                       false);
+                    }
+                    break;
+                }
+
+                if (!lines[i].tag)
+                {
+                    break;
+                }
+
+                // [PN] Boom displacement scrollers:
+                // 245-249 mirror 250-254 but are driven by control sector height deltas.
+                if (special >= 245 && special <= 249)
+                {
+                    if (lines[i].sidenum[0] == NO_INDEX)
+                    {
+                        break;
+                    }
+
+                    control = sides[lines[i].sidenum[0]].sector - sectors;
+                    special += 5;
+                }
+                else if (special >= 214 && special <= 218)
+                {
+                    if (lines[i].sidenum[0] == NO_INDEX)
+                    {
+                        break;
+                    }
+
+                    control = sides[lines[i].sidenum[0]].sector - sectors;
+                    special += (250 - 214);
+                    accel = true;
+                }
+
+                const fixed_t dx = lines[i].dx >> SCROLL_SHIFT;
+                const fixed_t dy = lines[i].dy >> SCROLL_SHIFT;
+                int s;
+
+                switch (special)
+                {
+                    case 250:
+                        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+                        {
+                            P_AddScroller(sc_ceiling, -dx, dy, s, control, accel);
+                        }
+                        break;
+
+                    case 251:
+                    case 253:
+                        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+                        {
+                            P_AddScroller(sc_floor, -dx, dy, s, control, accel);
+                        }
+                        if (special != 253)
+                        {
+                            break;
+                        }
+                        // Fall through: type 253 also carries things.
+
+                    case 252:
+                    {
+                        const fixed_t carry_dx = FixedMul(dx, CARRYFACTOR);
+                        const fixed_t carry_dy = FixedMul(dy, CARRYFACTOR);
+
+                        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+                        {
+                            P_AddScroller(sc_carry, carry_dx, carry_dy, s, control, accel);
+                        }
+                        break;
+                    }
+
+                    case 254:
+                        for (s = -1; (s = P_FindLineFromLineTag(&lines[i], s)) >= 0;)
+                        {
+                            if (s != i)
+                            {
+                                P_AddWallScroller(dx, dy, &lines[s], lines[s].sidenum[0], control, accel);
+                            }
+                        }
+                        break;
+                }
+            }
+            break;
+
+	  case 213:
+	    // [PN] Boom: floor lighting transfer from controlling sector.
+	    if (gamecomplevel >= COMPLEVEL_BOOM && lines[i].sidenum[0] != NO_INDEX)
+	    {
+		const int sec = sides[lines[i].sidenum[0]].sector - sectors;
+		int s = -1;
+		while ((s = P_FindSectorFromLineTag(&lines[i], s)) >= 0)
+		{
+		    sectors[s].floorlightsec = sec;
+		}
+	    }
+	    break;
+
+	  case 242:
+	    // [PN] Boom: transfer rendered floor/ceiling heights from control sector (glass floor).
+	    if (gamecomplevel >= COMPLEVEL_BOOM && lines[i].sidenum[0] != NO_INDEX)
+	    {
+		const int sec = sides[lines[i].sidenum[0]].sector - sectors;
+		int s = -1;
+		while ((s = P_FindSectorFromLineTag(&lines[i], s)) >= 0)
+		{
+		    sectors[s].heightsec = sec;
+		}
+	    }
+	    break;
+
+	  case 261:
+	    // [PN] Boom: ceiling lighting transfer from controlling sector.
+	    if (gamecomplevel >= COMPLEVEL_BOOM && lines[i].sidenum[0] != NO_INDEX)
+	    {
+		const int sec = sides[lines[i].sidenum[0]].sector - sectors;
+		int s = -1;
+		while ((s = P_FindSectorFromLineTag(&lines[i], s)) >= 0)
+		{
+		    sectors[s].ceilinglightsec = sec;
+		}
+	    }
 	    break;
 
 	  // [crispy] add support for MBF sky tranfers

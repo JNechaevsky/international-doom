@@ -800,6 +800,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
 	// interpolate position
     fixed_t interpx, interpy, interpz;
     angle_t interpangle;
+    int heightsec;
 
     // [AM] Interpolate between current and last position,
     //      if prudent.
@@ -958,6 +959,28 @@ static void R_ProjectSprite (const mobj_t *const thing)
         return;
     }
 
+    // [PN] Boom 242: clip sprites completely separated by fake floor/ceiling.
+    heightsec = thing->subsector->sector->heightsec;
+    if (heightsec != -1)
+    {
+        const int phs = viewplayer->mo->subsector->sector->heightsec;
+
+        if ((phs != -1 && viewz < sectors[phs].floorheight)
+          ? interpz >= sectors[heightsec].floorheight
+          : gzt < sectors[heightsec].floorheight)
+        {
+            return;
+        }
+
+        if ((phs != -1 && viewz > sectors[phs].ceilingheight)
+          ? (gzt < sectors[heightsec].ceilingheight
+          &&  viewz >= sectors[heightsec].ceilingheight)
+          : interpz >= sectors[heightsec].ceilingheight)
+        {
+            return;
+        }
+    }
+
     // store information in a vissprite
     vissprite_t *const restrict vis = R_NewVisSprite();
 
@@ -969,6 +992,7 @@ static void R_ProjectSprite (const mobj_t *const thing)
     vis->gy = interpy;
     vis->gz = interpz;
     vis->gzt = gzt; // [JN] killough 3/27/98
+    vis->heightsec = heightsec; // [PN] Boom 242: keep for draw-time clipping.
     vis->texturemid = gzt - viewz;
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth - 1 : x2;
@@ -1603,6 +1627,64 @@ static void R_DrawSprite (const vissprite_t *const spr)
 
                 if (cliptop[x] == -2)
                     cliptop[x] = ds->sprtopclip[x];
+            }
+        }
+    }
+
+    // [PN] Boom 242: clip sprite against fake floor/ceiling planes.
+    if (spr->heightsec != -1)
+    {
+        const int phs = viewplayer->mo->subsector->sector->heightsec;
+        fixed_t mh = sectors[spr->heightsec].floorheight;
+
+        if (mh > spr->gz)
+        {
+            fixed_t h = centeryfrac - FixedMul(mh - viewz, spr->scale);
+
+            if (h >= 0 && (h >>= FRACBITS) < viewheight)
+            {
+                if (mh <= viewz || (phs != -1 && viewz > sectors[phs].floorheight))
+                {
+                    for (int x = spr->x1; x <= spr->x2; x++)
+                    {
+                        if (clipbot[x] == -2 || h < clipbot[x])
+                            clipbot[x] = h;
+                    }
+                }
+                else if (phs != -1 && viewz <= sectors[phs].floorheight)
+                {
+                    for (int x = spr->x1; x <= spr->x2; x++)
+                    {
+                        if (cliptop[x] == -2 || h > cliptop[x])
+                            cliptop[x] = h;
+                    }
+                }
+            }
+        }
+
+        mh = sectors[spr->heightsec].ceilingheight;
+        if (mh < spr->gzt)
+        {
+            fixed_t h = centeryfrac - FixedMul(mh - viewz, spr->scale);
+
+            if (h >= 0 && (h >>= FRACBITS) < viewheight)
+            {
+                if (phs != -1 && viewz >= sectors[phs].ceilingheight)
+                {
+                    for (int x = spr->x1; x <= spr->x2; x++)
+                    {
+                        if (clipbot[x] == -2 || h < clipbot[x])
+                            clipbot[x] = h;
+                    }
+                }
+                else
+                {
+                    for (int x = spr->x1; x <= spr->x2; x++)
+                    {
+                        if (cliptop[x] == -2 || h > cliptop[x])
+                            cliptop[x] = h;
+                    }
+                }
             }
         }
     }

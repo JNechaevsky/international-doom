@@ -60,6 +60,20 @@ extern GameMission_t	gamemission;
 extern GameVersion_t    gameversion;
 extern GameVariant_t    gamevariant;
 
+// [PN] Runtime compatibility level selected via -complevel.
+enum
+{
+    COMPLEVEL_DOOM_12 = 0,
+    COMPLEVEL_DOOM_1666,
+    COMPLEVEL_DOOM_19,
+    COMPLEVEL_ULTIMATE,
+    COMPLEVEL_FINAL,
+    COMPLEVEL_BOOM,
+    COMPLEVEL_MBF
+};
+
+extern int gamecomplevel;
+
 // Convenience macro.
 // 'gamemission' can be equal to pack_chex or pack_hacx, but these are
 // just modified versions of doom and doom2, and should be interpreted

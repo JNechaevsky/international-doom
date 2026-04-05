@@ -22,6 +22,7 @@
 #include "doomstat.h"
 #include "s_sound.h"
 #include "p_local.h"
+#include <stdlib.h>
 
 
 //
@@ -125,3 +126,167 @@ EV_Teleport
     return 0;
 }
 
+// -----------------------------------------------------------------------------
+// EV_SilentTeleport
+//  [PN] Boom silent teleporter with teleport destination thing.
+// -----------------------------------------------------------------------------
+int EV_SilentTeleport(const line_t* line, int side, mobj_t* thing)
+{
+    int i;
+    thinker_t* thinker;
+
+    if (side || (thing->flags & MF_MISSILE))
+    {
+        return 0;
+    }
+
+    for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
+    {
+        for (thinker = thinkercap.next; thinker != &thinkercap; thinker = thinker->next)
+        {
+            mobj_t* m;
+            fixed_t z;
+            angle_t angle;
+            fixed_t s;
+            fixed_t c;
+            fixed_t momx;
+            fixed_t momy;
+            player_t* player;
+
+            if (thinker->function.acp1 != (actionf_p1) P_MobjThinker)
+            {
+                continue;
+            }
+
+            m = (mobj_t*) thinker;
+
+            if (m->type != MT_TELEPORTMAN || m->subsector->sector - sectors != i)
+            {
+                continue;
+            }
+
+            z = thing->z - thing->floorz;
+            angle = R_PointToAngle2(0, 0, line->dx, line->dy) - m->angle + ANG90;
+            s = finesine[angle >> ANGLETOFINESHIFT];
+            c = finecosine[angle >> ANGLETOFINESHIFT];
+            momx = thing->momx;
+            momy = thing->momy;
+            player = (thing->player && thing->player->mo == thing) ? thing->player : NULL;
+
+            if (!P_TeleportMove(thing, m->x, m->y))
+            {
+                return 0;
+            }
+
+            thing->angle += angle;
+            thing->z = z + thing->floorz;
+            thing->momx = FixedMul(momx, c) - FixedMul(momy, s);
+            thing->momy = FixedMul(momy, c) + FixedMul(momx, s);
+
+            if (player)
+            {
+                player->viewz = thing->z + player->viewheight;
+            }
+
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+// EV_SilentLineTeleport
+//  [PN] Boom silent line-to-line teleporter (normal and reversed variants).
+// -----------------------------------------------------------------------------
+int EV_SilentLineTeleport(line_t* line, int side, mobj_t* thing, boolean reverse)
+{
+    int i;
+
+    if (side || (thing->flags & MF_MISSILE))
+    {
+        return 0;
+    }
+
+    for (i = 0; i < numlines; ++i)
+    {
+        line_t* dstline = &lines[i];
+        fixed_t pos;
+        angle_t angle;
+        fixed_t x;
+        fixed_t y;
+        fixed_t s;
+        fixed_t c;
+        int fudge;
+        player_t* player;
+        int stepdown;
+        fixed_t z;
+        int exitside;
+
+        if (dstline == line || dstline->tag != line->tag || !dstline->backsector)
+        {
+            continue;
+        }
+
+        pos = abs(line->dx) > abs(line->dy)
+            ? FixedDiv(thing->x - line->v1->x, line->dx)
+            : FixedDiv(thing->y - line->v1->y, line->dy);
+
+        if (reverse)
+        {
+            pos = FRACUNIT - pos;
+            angle = R_PointToAngle2(0, 0, dstline->dx, dstline->dy)
+                  - R_PointToAngle2(0, 0, line->dx, line->dy);
+        }
+        else
+        {
+            angle = ANG180
+                  + R_PointToAngle2(0, 0, dstline->dx, dstline->dy)
+                  - R_PointToAngle2(0, 0, line->dx, line->dy);
+        }
+
+        x = dstline->v2->x - FixedMul(pos, dstline->dx);
+        y = dstline->v2->y - FixedMul(pos, dstline->dy);
+        s = finesine[angle >> ANGLETOFINESHIFT];
+        c = finecosine[angle >> ANGLETOFINESHIFT];
+        fudge = 10;
+        player = (thing->player && thing->player->mo == thing) ? thing->player : NULL;
+        stepdown = dstline->frontsector->floorheight < dstline->backsector->floorheight;
+        z = thing->z - thing->floorz;
+        exitside = reverse || (player && stepdown);
+
+        while (P_PointOnLineSide(x, y, dstline) != exitside && --fudge >= 0)
+        {
+            if (abs(dstline->dx) > abs(dstline->dy))
+            {
+                y -= ((dstline->dx < 0) != exitside) ? -1 : 1;
+            }
+            else
+            {
+                x += ((dstline->dy < 0) != exitside) ? -1 : 1;
+            }
+        }
+
+        if (!P_TeleportMove(thing, x, y))
+        {
+            return 0;
+        }
+
+        thing->z = z + sides[dstline->sidenum[stepdown]].sector->floorheight;
+        thing->angle += angle;
+
+        x = thing->momx;
+        y = thing->momy;
+        thing->momx = FixedMul(x, c) - FixedMul(y, s);
+        thing->momy = FixedMul(y, c) + FixedMul(x, s);
+
+        if (player)
+        {
+            player->viewz = thing->z + player->viewheight;
+        }
+
+        return 1;
+    }
+
+    return 0;
+}
