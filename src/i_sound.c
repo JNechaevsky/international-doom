@@ -19,6 +19,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
 
 #include "SDL_mixer.h"
 
@@ -57,6 +59,10 @@ int snd_pitchshift = -1;
 int snd_musicdevice = SNDDEVICE_SB;
 int snd_sfxdevice = SNDDEVICE_SB;
 
+// [PN] Music volume auto gain.
+
+int snd_auto_gain = 1;
+
 // Low-level sound and music modules we are using
 static const sound_module_t *sound_module;
 static const music_module_t *music_module;
@@ -67,6 +73,382 @@ static boolean music_packs_active = false;
 // This is either equal to music_module or &music_pack_module,
 // depending on whether the current track is substituted.
 static const music_module_t *active_music_module;
+
+#ifndef DISABLE_SDL2MIXER
+// -----------------------------------------------------------------------------
+// [PN] Music auto gain (runtime normalization via SDL_mixer postmix analysis)
+// -----------------------------------------------------------------------------
+
+#define AUTO_GAIN_Q12_ONE           4096
+#define AUTO_GAIN_TARGET_DB         -23.0f
+#define AUTO_GAIN_FLOOR_DB          -70.0f
+#define AUTO_GAIN_MIN_FACTOR        0.25f
+#define AUTO_GAIN_MAX_FACTOR        3.00f
+#define AUTO_GAIN_CLIP_LIMIT        0.98f
+#define AUTO_GAIN_SILENCE_LEVEL     0.0025f
+#define AUTO_GAIN_ATTACK            0.18f
+#define AUTO_GAIN_RELEASE           0.06f
+#define AUTO_GAIN_MOMENTARY_BLEND   0.45f
+#define AUTO_GAIN_SHORTTERM_BLEND   0.10f
+#define AUTO_GAIN_GLOBAL_BLEND      0.02f
+#define AUTO_GAIN_WEIGHT_M          0.30f
+#define AUTO_GAIN_WEIGHT_S          1.00f
+#define AUTO_GAIN_WEIGHT_G          0.60f
+#define AUTO_GAIN_FASTSTART_SECONDS 0.35f
+#define AUTO_GAIN_FAST_ATTACK       0.70f
+#define AUTO_GAIN_FAST_RELEASE      0.45f
+
+#define DB_TO_GAIN(db)              powf(10.0f, (db) / 20.0f)
+
+static SDL_atomic_t music_auto_gain_q12;
+static SDL_atomic_t music_auto_gain_reset_pending;
+static SDL_atomic_t music_auto_gain_fast_samples_left;
+static boolean music_auto_gain_hook_registered = false;
+static boolean music_auto_gain_s16_output = false;
+static int music_auto_gain_channels = 2;
+static int music_auto_gain_sample_rate = 44100;
+static boolean music_stream_active = false;
+static int music_base_volume = 127;
+static int music_last_effective_volume = -1;
+
+static boolean I_MusicAutoGainQuerySpec(int *freq, Uint16 *format, int *channels)
+{
+    int q_freq;
+    Uint16 q_format;
+    int q_channels;
+
+    if (Mix_QuerySpec(&q_freq, &q_format, &q_channels) == 0)
+    {
+        return false;
+    }
+
+    if (freq != NULL)
+    {
+        *freq = q_freq;
+    }
+    if (format != NULL)
+    {
+        *format = q_format;
+    }
+    if (channels != NULL)
+    {
+        *channels = q_channels;
+    }
+
+    return true;
+}
+
+static float I_MusicAutoGainLinToDb(float level)
+{
+    if (level <= 0.0f)
+    {
+        return AUTO_GAIN_FLOOR_DB;
+    }
+
+    return 20.0f * log10f(level);
+}
+
+static void I_MusicAutoGainPostmix(void *udata, Uint8 *stream, int len)
+{
+    static float momentary_level = 0.0f;
+    static float shortterm_level = 0.0f;
+    static float global_level = 0.0f;
+    static uint64_t total_frames = 0;
+    static int level_initialized = 0;
+    int16_t *samples;
+    int sample_count;
+    double sum_sq = 0.0;
+    int peak_abs = 0;
+    int fast_samples_left;
+    float current;
+    float desired;
+    float peak;
+    float rms_level;
+
+    (void) udata;
+
+    if (!snd_auto_gain || !music_stream_active || !music_auto_gain_s16_output
+     || stream == NULL || len <= 0)
+    {
+        return;
+    }
+
+    samples = (int16_t *) stream;
+    sample_count = len / (int) sizeof(int16_t);
+
+    if (sample_count <= 0)
+    {
+        return;
+    }
+
+    if (SDL_AtomicGet(&music_auto_gain_reset_pending))
+    {
+        momentary_level = 0.0f;
+        shortterm_level = 0.0f;
+        global_level = 0.0f;
+        total_frames = 0;
+        level_initialized = 0;
+        SDL_AtomicSet(&music_auto_gain_reset_pending, 0);
+    }
+
+    for (int i = 0; i < sample_count; ++i)
+    {
+        const int s = samples[i];
+        const int a = s < 0 ? -s : s;
+        const double fs = (double) s / 32768.0;
+
+        if (a > peak_abs)
+        {
+            peak_abs = a;
+        }
+
+        sum_sq += fs * fs;
+    }
+
+    rms_level = (float) sqrt(sum_sq / (double) sample_count);
+    peak = (float) peak_abs / 32768.0f;
+    current = (float) SDL_AtomicGet(&music_auto_gain_q12) / AUTO_GAIN_Q12_ONE;
+    total_frames += (uint64_t) sample_count / (uint64_t) music_auto_gain_channels;
+
+    if (!level_initialized)
+    {
+        momentary_level = rms_level;
+        shortterm_level = rms_level;
+        global_level = rms_level;
+        level_initialized = 1;
+    }
+    else
+    {
+        momentary_level += (rms_level - momentary_level) * AUTO_GAIN_MOMENTARY_BLEND;
+        shortterm_level += (rms_level - shortterm_level) * AUTO_GAIN_SHORTTERM_BLEND;
+        global_level += (rms_level - global_level) * AUTO_GAIN_GLOBAL_BLEND;
+    }
+
+    desired = current;
+
+    if (shortterm_level < AUTO_GAIN_SILENCE_LEVEL
+     && global_level < AUTO_GAIN_SILENCE_LEVEL)
+    {
+        desired = 1.0f;
+    }
+    else
+    {
+        const float momentary_db = I_MusicAutoGainLinToDb(momentary_level);
+        const float shortterm_db = I_MusicAutoGainLinToDb(shortterm_level);
+        const float global_db = I_MusicAutoGainLinToDb(global_level);
+        const float relative_db = global_db - 10.0f;
+        const float loudness_db =
+            (AUTO_GAIN_WEIGHT_M * momentary_db
+          +  AUTO_GAIN_WEIGHT_S * shortterm_db
+          +  AUTO_GAIN_WEIGHT_G * global_db)
+          / (AUTO_GAIN_WEIGHT_M + AUTO_GAIN_WEIGHT_S + AUTO_GAIN_WEIGHT_G);
+
+        if (total_frames
+            < (uint64_t) (music_auto_gain_sample_rate * AUTO_GAIN_FASTSTART_SECONDS)
+         && momentary_db > AUTO_GAIN_FLOOR_DB)
+        {
+            desired = DB_TO_GAIN(AUTO_GAIN_TARGET_DB - momentary_db);
+        }
+
+        if (momentary_db > relative_db && momentary_db > AUTO_GAIN_FLOOR_DB)
+        {
+            const float gain = DB_TO_GAIN(AUTO_GAIN_TARGET_DB - loudness_db);
+            if (peak >= 0.00001f && gain * peak < 1.0f)
+            {
+                desired = gain;
+            }
+        }
+    }
+
+    if (desired < AUTO_GAIN_MIN_FACTOR)
+    {
+        desired = AUTO_GAIN_MIN_FACTOR;
+    }
+    if (desired > AUTO_GAIN_MAX_FACTOR)
+    {
+        desired = AUTO_GAIN_MAX_FACTOR;
+    }
+
+    if (peak > 0.0001f && desired * peak > AUTO_GAIN_CLIP_LIMIT)
+    {
+        desired = AUTO_GAIN_CLIP_LIMIT / peak;
+    }
+
+    fast_samples_left = SDL_AtomicGet(&music_auto_gain_fast_samples_left);
+
+    if (fast_samples_left > 0)
+    {
+        if (desired < current)
+        {
+            current += (desired - current) * AUTO_GAIN_FAST_ATTACK;
+        }
+        else
+        {
+            current += (desired - current) * AUTO_GAIN_FAST_RELEASE;
+        }
+
+        fast_samples_left -= sample_count;
+        if (fast_samples_left < 0)
+        {
+            fast_samples_left = 0;
+        }
+        SDL_AtomicSet(&music_auto_gain_fast_samples_left, fast_samples_left);
+    }
+    else
+    {
+        if (desired < current)
+        {
+            current += (desired - current) * AUTO_GAIN_ATTACK;
+        }
+        else
+        {
+            current += (desired - current) * AUTO_GAIN_RELEASE;
+        }
+    }
+
+    // Hard limiter guard to avoid clipping spikes.
+    if (peak > 0.0001f && current * peak > AUTO_GAIN_CLIP_LIMIT)
+    {
+        current = AUTO_GAIN_CLIP_LIMIT / peak;
+    }
+
+    if (current < AUTO_GAIN_MIN_FACTOR)
+    {
+        current = AUTO_GAIN_MIN_FACTOR;
+    }
+    if (current > AUTO_GAIN_MAX_FACTOR)
+    {
+        current = AUTO_GAIN_MAX_FACTOR;
+    }
+
+    SDL_AtomicSet(&music_auto_gain_q12, (int) (current * AUTO_GAIN_Q12_ONE + 0.5f));
+}
+
+static void I_MusicAutoGainResetState(void)
+{
+    int freq = snd_samplerate;
+    int channels = 2;
+    Uint16 format = 0;
+    int fast_samples = 0;
+    boolean have_spec;
+
+    have_spec = I_MusicAutoGainQuerySpec(&freq, &format, &channels);
+
+    if (channels < 1)
+    {
+        channels = 2;
+    }
+
+    if (freq < 1)
+    {
+        freq = snd_samplerate;
+    }
+
+    music_auto_gain_channels = channels;
+    music_auto_gain_sample_rate = freq;
+
+    music_auto_gain_s16_output = have_spec
+                              && (format == AUDIO_S16SYS
+                               || format == AUDIO_S16LSB
+                               || format == AUDIO_S16MSB);
+
+    if (music_auto_gain_s16_output)
+    {
+        fast_samples = (int) (freq * channels * AUTO_GAIN_FASTSTART_SECONDS);
+        if (fast_samples < 0)
+        {
+            fast_samples = 0;
+        }
+    }
+
+    SDL_AtomicSet(&music_auto_gain_q12, AUTO_GAIN_Q12_ONE);
+    SDL_AtomicSet(&music_auto_gain_reset_pending, 1);
+    SDL_AtomicSet(&music_auto_gain_fast_samples_left, fast_samples);
+}
+
+static void I_MusicAutoGainEnsureHook(void)
+{
+    Uint16 format = 0;
+
+    if (music_auto_gain_hook_registered
+     || !I_MusicAutoGainQuerySpec(NULL, &format, NULL))
+    {
+        return;
+    }
+
+    music_auto_gain_s16_output = (format == AUDIO_S16SYS
+                               || format == AUDIO_S16LSB
+                               || format == AUDIO_S16MSB);
+
+    if (!music_auto_gain_s16_output)
+    {
+        return;
+    }
+
+    Mix_SetPostMix(I_MusicAutoGainPostmix, NULL);
+    music_auto_gain_hook_registered = true;
+}
+
+static void I_MusicAutoGainRemoveHook(void)
+{
+    if (music_auto_gain_hook_registered)
+    {
+        Mix_SetPostMix(NULL, NULL);
+        music_auto_gain_hook_registered = false;
+    }
+
+    music_auto_gain_s16_output = false;
+}
+
+static int I_EffectiveMusicVolume(int base_volume)
+{
+    int scaled = base_volume;
+
+    if (scaled < 0)
+    {
+        scaled = 0;
+    }
+    else if (scaled > 127)
+    {
+        scaled = 127;
+    }
+
+    if (snd_auto_gain && music_stream_active)
+    {
+        const int q12 = SDL_AtomicGet(&music_auto_gain_q12);
+        scaled = (scaled * q12 + (AUTO_GAIN_Q12_ONE / 2)) / AUTO_GAIN_Q12_ONE;
+
+        if (scaled < 0)
+        {
+            scaled = 0;
+        }
+        else if (scaled > 127)
+        {
+            scaled = 127;
+        }
+    }
+
+    return scaled;
+}
+#else
+static int music_base_volume = 127;
+static int music_last_effective_volume = -1;
+static boolean music_stream_active = false;
+
+static int I_EffectiveMusicVolume(int base_volume)
+{
+    if (base_volume < 0)
+    {
+        return 0;
+    }
+    if (base_volume > 127)
+    {
+        return 127;
+    }
+
+    return base_volume;
+}
+#endif // DISABLE_SDL2MIXER
 
 // Compiled-in sound modules:
 
@@ -271,10 +653,25 @@ void I_InitSound(GameMission_t mission)
 
 	fprintf(stderr, "I_InitSound: SDL audio driver is %s\n", driver_name ? driver_name : "none");
     }
+
+    music_stream_active = false;
+    music_last_effective_volume = -1;
+
+#ifndef DISABLE_SDL2MIXER
+    I_MusicAutoGainEnsureHook();
+    I_MusicAutoGainResetState();
+#endif
 }
 
 void I_ShutdownSound(void)
 {
+#ifndef DISABLE_SDL2MIXER
+    I_MusicAutoGainRemoveHook();
+    I_MusicAutoGainResetState();
+#endif
+    music_stream_active = false;
+    music_last_effective_volume = -1;
+
     if (sound_module != NULL)
     {
         sound_module->Shutdown();
@@ -322,6 +719,27 @@ void I_UpdateSound(void)
     if (active_music_module != NULL && active_music_module->Poll != NULL)
     {
         active_music_module->Poll();
+    }
+
+    // [PN] Keep effective music volume in sync with runtime auto-gain factor.
+    if (music_module != NULL)
+    {
+        int effective = I_EffectiveMusicVolume(music_base_volume);
+
+        if (effective != music_last_effective_volume)
+        {
+            music_module->SetMusicVolume(effective);
+
+#ifndef DISABLE_SDL2MIXER
+            // [crispy] Always mirror volume to SDL mixer path.
+            if (music_module != &music_sdl_module)
+            {
+                music_sdl_module.SetMusicVolume(effective);
+            }
+#endif
+
+            music_last_effective_volume = effective;
+        }
     }
 }
 
@@ -405,21 +823,49 @@ void I_ShutdownMusic(void)
 
 }
 
-void I_SetMusicVolume(int volume)
+static void I_ApplyMusicVolume(void)
 {
-    if (music_module != NULL)
+    int effective;
+
+    if (music_module == NULL)
     {
-        music_module->SetMusicVolume(volume);
+        return;
+    }
+
+    effective = I_EffectiveMusicVolume(music_base_volume);
+
+    if (effective == music_last_effective_volume)
+    {
+        return;
+    }
+
+    music_module->SetMusicVolume(effective);
 
 #ifndef DISABLE_SDL2MIXER
-        // [crispy] always broadcast volume changes to SDL. This also covers
-        // the musicpack module.
-        if (music_module != &music_sdl_module)
-        {
-            music_sdl_module.SetMusicVolume(volume);
-        }
-#endif
+    // [crispy] Always mirror volume to SDL mixer path.
+    if (music_module != &music_sdl_module)
+    {
+        music_sdl_module.SetMusicVolume(effective);
     }
+#endif
+
+    music_last_effective_volume = effective;
+}
+
+void I_SetMusicVolume(int volume)
+{
+    music_base_volume = volume;
+
+    if (music_base_volume < 0)
+    {
+        music_base_volume = 0;
+    }
+    else if (music_base_volume > 127)
+    {
+        music_base_volume = 127;
+    }
+
+    I_ApplyMusicVolume();
 }
 
 void I_PauseSong(void)
@@ -499,12 +945,26 @@ void I_UnRegisterSong(void *handle)
     {
         active_music_module->UnRegisterSong(handle);
     }
+
+    music_stream_active = false;
+#ifndef DISABLE_SDL2MIXER
+    I_MusicAutoGainResetState();
+#endif
+    music_last_effective_volume = -1;
+    I_ApplyMusicVolume();
 }
 
 void I_PlaySong(void *handle, boolean looping)
 {
     if (active_music_module != NULL)
     {
+        music_stream_active = (handle != NULL);
+#ifndef DISABLE_SDL2MIXER
+        I_MusicAutoGainEnsureHook();
+        I_MusicAutoGainResetState();
+#endif
+        music_last_effective_volume = -1;
+        I_ApplyMusicVolume();
         active_music_module->PlaySong(handle, looping);
     }
 }
@@ -515,6 +975,13 @@ void I_StopSong(void)
     {
         active_music_module->StopSong();
     }
+
+    music_stream_active = false;
+#ifndef DISABLE_SDL2MIXER
+    I_MusicAutoGainResetState();
+#endif
+    music_last_effective_volume = -1;
+    I_ApplyMusicVolume();
 }
 
 boolean I_MusicIsPlaying(void)
@@ -531,8 +998,9 @@ boolean I_MusicIsPlaying(void)
 
 void I_BindSoundVariables(void)
 {
-    M_BindIntVariable("snd_musicdevice",         &snd_musicdevice);
     M_BindIntVariable("snd_sfxdevice",           &snd_sfxdevice);
+    M_BindIntVariable("snd_musicdevice",         &snd_musicdevice);
+    M_BindIntVariable("snd_auto_gain",           &snd_auto_gain);
     M_BindIntVariable("snd_maxslicetime_ms",     &snd_maxslicetime_ms);
     M_BindStringVariable("snd_musiccmd",         &snd_musiccmd);
     M_BindStringVariable("snd_dmxoption",        &snd_dmxoption);

@@ -275,6 +275,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(music_volume),
     CONFIG_VARIABLE_INT(snd_sfxdevice),
     CONFIG_VARIABLE_INT(snd_musicdevice),
+    CONFIG_VARIABLE_INT(snd_auto_gain),
     CONFIG_VARIABLE_STRING(snd_musiccmd),
     CONFIG_VARIABLE_STRING(snd_dmxoption),
     CONFIG_VARIABLE_INT_HEX(opl_io_port),

@@ -236,6 +236,7 @@ boolean IsMus(const byte *mem, int len);
 
 extern int snd_sfxdevice;
 extern int snd_musicdevice;
+extern int snd_auto_gain;
 extern int snd_samplerate;
 extern int snd_cachesize;
 extern int snd_maxslicetime_ms;
