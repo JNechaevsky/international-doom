@@ -19,11 +19,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
 
 #include "SDL_mixer.h"
-#include "ebur128.h"
 
 #include "config.h"
 #include "doomtype.h"
@@ -60,10 +57,6 @@ int snd_pitchshift = -1;
 int snd_musicdevice = SNDDEVICE_SB;
 int snd_sfxdevice = SNDDEVICE_SB;
 
-// [PN] Music volume auto gain.
-
-int snd_auto_gain = 1;
-
 // Low-level sound and music modules we are using
 static const sound_module_t *sound_module;
 static const music_module_t *music_module;
@@ -74,446 +67,6 @@ static boolean music_packs_active = false;
 // This is either equal to music_module or &music_pack_module,
 // depending on whether the current track is substituted.
 static const music_module_t *active_music_module;
-
-#ifndef DISABLE_SDL2MIXER
-// -----------------------------------------------------------------------------
-// [PN] Music auto gain (runtime normalization via SDL_mixer postmix analysis)
-// -----------------------------------------------------------------------------
-
-#define AUTO_GAIN_Q12_ONE           4096
-#define AUTO_GAIN_TARGET_DB         -23.0f
-#define AUTO_GAIN_FLOOR_DB          -70.0f
-#define AUTO_GAIN_STARTUP_FRAMES    (3 * 4096)
-#define AUTO_GAIN_UPDATE_FRAMES     4096
-#define AUTO_GAIN_WEIGHT_M          0.10f
-#define AUTO_GAIN_WEIGHT_S          1.00f
-#define AUTO_GAIN_WEIGHT_G          1.00f
-
-#define DB_TO_GAIN(db)              powf(10.0f, (db) / 20.0f)
-
-// [PN] Apply per-buffer attenuation immediately in postmix startup fallback.
-static void I_MusicAutoGainApplyBuffer(int16_t *samples, int sample_count, float gain)
-{
-    int i;
-    int q12;
-
-    if (samples == NULL || sample_count <= 0 || gain >= 0.9999f)
-    {
-        return;
-    }
-
-    if (gain < 0.0f)
-    {
-        gain = 0.0f;
-    }
-
-    q12 = (int) (gain * AUTO_GAIN_Q12_ONE + 0.5f);
-
-    for (i = 0; i < sample_count; ++i)
-    {
-        int s = (samples[i] * q12 + (AUTO_GAIN_Q12_ONE / 2)) / AUTO_GAIN_Q12_ONE;
-
-        if (s > 32767)
-        {
-            s = 32767;
-        }
-        else if (s < -32768)
-        {
-            s = -32768;
-        }
-
-        samples[i] = (int16_t) s;
-    }
-}
-
-// [PN] Fast startup fallback while ebur128 still accumulates enough history.
-static float I_MusicAutoGainEstimateStartup(const int16_t *samples, int sample_count)
-{
-    double sumsq = 0.0;
-    float peak = 0.0f;
-    int i;
-
-    if (samples == NULL || sample_count <= 0)
-    {
-        return 1.0f;
-    }
-
-    for (i = 0; i < sample_count; ++i)
-    {
-        const float s = (float) samples[i] / 32768.0f;
-        const float a = fabsf(s);
-        sumsq += (double) s * (double) s;
-
-        if (a > peak)
-        {
-            peak = a;
-        }
-    }
-
-    if (sumsq <= 0.0 || peak < 0.00001f)
-    {
-        return 1.0f;
-    }
-
-    {
-        const float rms = (float) sqrt(sumsq / (double) sample_count);
-        const float rms_db = 20.0f * (float) log10((double) rms);
-
-        // [PN] Startup fallback is attenuation-only to suppress initial pops.
-        if (rms_db > AUTO_GAIN_TARGET_DB)
-        {
-            float gain = DB_TO_GAIN(AUTO_GAIN_TARGET_DB - rms_db);
-            const float peak_limit = 1.0f / peak;
-
-            if (gain > peak_limit)
-            {
-                gain = peak_limit;
-            }
-
-            return gain < 1.0f ? gain : 1.0f;
-        }
-    }
-
-    return 1.0f;
-}
-
-static SDL_atomic_t music_auto_gain_q12;
-static SDL_atomic_t music_auto_gain_reset_pending;
-static boolean music_auto_gain_hook_registered = false;
-static boolean music_auto_gain_s16_output = false;
-static int music_auto_gain_channels = 2;
-static uint64_t music_auto_gain_total_frames = 0;
-static uint64_t music_auto_gain_frames_since_update = 0;
-static ebur128_state *music_auto_gain_state = NULL;
-static boolean music_stream_active = false;
-static int music_base_volume = 127;
-static int music_last_effective_volume = -1;
-
-static boolean I_MusicAutoGainQuerySpec(int *freq, Uint16 *format, int *channels)
-{
-    int q_freq;
-    Uint16 q_format;
-    int q_channels;
-
-    if (Mix_QuerySpec(&q_freq, &q_format, &q_channels) == 0)
-    {
-        return false;
-    }
-
-    if (freq != NULL)
-    {
-        *freq = q_freq;
-    }
-    if (format != NULL)
-    {
-        *format = q_format;
-    }
-    if (channels != NULL)
-    {
-        *channels = q_channels;
-    }
-
-    return true;
-}
-
-static void I_MusicAutoGainDestroyState(void)
-{
-    if (music_auto_gain_state != NULL)
-    {
-        ebur128_destroy(&music_auto_gain_state);
-        music_auto_gain_state = NULL;
-    }
-}
-
-static void I_MusicAutoGainCreateState(int channels, int freq)
-{
-    music_auto_gain_state = ebur128_init((unsigned int) channels,
-                                         (unsigned long) freq,
-                                         EBUR128_MODE_S
-                                       | EBUR128_MODE_I
-                                       | EBUR128_MODE_SAMPLE_PEAK
-                                       | EBUR128_MODE_HISTOGRAM);
-}
-
-static void I_MusicAutoGainPostmix(void *udata, Uint8 *stream, int len)
-{
-    int16_t *samples;
-    int sample_count;
-    size_t frames;
-    float desired;
-    double momentary = 0.0;
-    double shortterm = 0.0;
-    double global = 0.0;
-    double relative = 0.0;
-    double peak_l = 0.0;
-    double peak_r = 0.0;
-    boolean have_momentary = false;
-    boolean have_shortterm = false;
-    boolean have_global = false;
-    boolean have_relative = false;
-
-    (void) udata;
-
-    if (!snd_auto_gain || !music_stream_active || !music_auto_gain_s16_output
-     || music_auto_gain_state == NULL || stream == NULL || len <= 0)
-    {
-        return;
-    }
-
-    if (music_auto_gain_channels < 1)
-    {
-        return;
-    }
-
-    samples = (int16_t *) stream;
-    sample_count = len / (int) sizeof(int16_t);
-    frames = (size_t) sample_count / (size_t) music_auto_gain_channels;
-
-    if (sample_count <= 0 || frames == 0)
-    {
-        return;
-    }
-
-    if (SDL_AtomicGet(&music_auto_gain_reset_pending))
-    {
-        music_auto_gain_total_frames = 0;
-        music_auto_gain_frames_since_update = 0;
-        SDL_AtomicSet(&music_auto_gain_reset_pending, 0);
-    }
-
-    if (EBUR128_SUCCESS
-        != ebur128_add_frames_short(music_auto_gain_state, samples, frames))
-    {
-        return;
-    }
-
-    music_auto_gain_total_frames += frames;
-    music_auto_gain_frames_since_update += frames;
-
-    // [PN] Keep postmix updates Woof-like: recalc gain in 4096-frame chunks
-    // once startup bootstrap is finished.
-    if (music_auto_gain_total_frames >= AUTO_GAIN_STARTUP_FRAMES
-     && music_auto_gain_frames_since_update < AUTO_GAIN_UPDATE_FRAMES)
-    {
-        return;
-    }
-
-    if (music_auto_gain_frames_since_update >= AUTO_GAIN_UPDATE_FRAMES)
-    {
-        music_auto_gain_frames_since_update %= AUTO_GAIN_UPDATE_FRAMES;
-    }
-
-    have_momentary = (EBUR128_SUCCESS
-                   == ebur128_loudness_momentary(music_auto_gain_state, &momentary));
-    have_shortterm = (EBUR128_SUCCESS
-                   == ebur128_loudness_shortterm(music_auto_gain_state, &shortterm));
-    have_global = (EBUR128_SUCCESS
-                == ebur128_loudness_global(music_auto_gain_state, &global));
-    have_relative = (EBUR128_SUCCESS
-                  == ebur128_relative_threshold(music_auto_gain_state, &relative));
-
-    desired = (float) SDL_AtomicGet(&music_auto_gain_q12) / AUTO_GAIN_Q12_ONE;
-
-    if (music_auto_gain_total_frames < AUTO_GAIN_STARTUP_FRAMES && have_momentary)
-    {
-        if (momentary > AUTO_GAIN_FLOOR_DB)
-        {
-            desired = DB_TO_GAIN(AUTO_GAIN_TARGET_DB - (float) momentary);
-        }
-    }
-    else if (music_auto_gain_total_frames < AUTO_GAIN_STARTUP_FRAMES && !have_momentary)
-    {
-        const float startup_gain = I_MusicAutoGainEstimateStartup(samples, sample_count);
-        const float current_gain =
-            (float) SDL_AtomicGet(&music_auto_gain_q12) / AUTO_GAIN_Q12_ONE;
-
-        if (startup_gain < desired)
-        {
-            desired = startup_gain;
-        }
-
-        if (current_gain > 0.00001f && startup_gain < current_gain)
-        {
-            I_MusicAutoGainApplyBuffer(samples, sample_count, startup_gain / current_gain);
-        }
-    }
-
-    if (have_relative && have_momentary
-     && relative > AUTO_GAIN_FLOOR_DB && momentary > relative)
-    {
-        boolean peak_ok = true;
-        float loudness = 0.0f;
-        float loudness_weight = 0.0f;
-
-        if (EBUR128_SUCCESS
-         != ebur128_prev_sample_peak(music_auto_gain_state, 0, &peak_l))
-        {
-            peak_ok = false;
-        }
-
-        if (music_auto_gain_channels >= 2
-         && EBUR128_SUCCESS != ebur128_prev_sample_peak(music_auto_gain_state, 1, &peak_r))
-        {
-            peak_ok = false;
-        }
-
-        if (peak_ok)
-        {
-            if (have_momentary)
-            {
-                loudness += AUTO_GAIN_WEIGHT_M * (float) momentary;
-                loudness_weight += AUTO_GAIN_WEIGHT_M;
-            }
-            if (have_shortterm)
-            {
-                loudness += AUTO_GAIN_WEIGHT_S * (float) shortterm;
-                loudness_weight += AUTO_GAIN_WEIGHT_S;
-            }
-            if (have_global)
-            {
-                loudness += AUTO_GAIN_WEIGHT_G * (float) global;
-                loudness_weight += AUTO_GAIN_WEIGHT_G;
-            }
-
-            if (loudness_weight > 0.0f)
-            {
-                loudness /= loudness_weight;
-            }
-
-            const float gain = DB_TO_GAIN(AUTO_GAIN_TARGET_DB - loudness);
-            const double peak = peak_l > peak_r ? peak_l : peak_r;
-
-            if (peak >= 0.00001 && gain * peak < 1.0f)
-            {
-                desired = gain;
-            }
-        }
-    }
-    SDL_AtomicSet(&music_auto_gain_q12, (int) (desired * AUTO_GAIN_Q12_ONE + 0.5f));
-}
-
-static void I_MusicAutoGainResetState(void)
-{
-    int freq = snd_samplerate;
-    int channels = 2;
-    Uint16 format = 0;
-    boolean have_spec;
-
-    have_spec = I_MusicAutoGainQuerySpec(&freq, &format, &channels);
-
-    if (channels < 1)
-    {
-        channels = 2;
-    }
-
-    if (freq < 1)
-    {
-        freq = snd_samplerate;
-    }
-
-    music_auto_gain_channels = channels;
-    music_auto_gain_s16_output = have_spec
-                              && (format == AUDIO_S16SYS
-                               || format == AUDIO_S16LSB
-                               || format == AUDIO_S16MSB);
-
-    I_MusicAutoGainDestroyState();
-
-    if (music_auto_gain_s16_output)
-    {
-        I_MusicAutoGainCreateState(channels, freq);
-    }
-
-    SDL_AtomicSet(&music_auto_gain_q12, AUTO_GAIN_Q12_ONE);
-    SDL_AtomicSet(&music_auto_gain_reset_pending, 1);
-    music_auto_gain_total_frames = 0;
-    music_auto_gain_frames_since_update = 0;
-}
-
-static void I_MusicAutoGainEnsureHook(void)
-{
-    Uint16 format = 0;
-
-    if (music_auto_gain_hook_registered
-     || !I_MusicAutoGainQuerySpec(NULL, &format, NULL))
-    {
-        return;
-    }
-
-    music_auto_gain_s16_output = (format == AUDIO_S16SYS
-                               || format == AUDIO_S16LSB
-                               || format == AUDIO_S16MSB);
-
-    if (!music_auto_gain_s16_output)
-    {
-        return;
-    }
-
-    Mix_SetPostMix(I_MusicAutoGainPostmix, NULL);
-    music_auto_gain_hook_registered = true;
-}
-
-static void I_MusicAutoGainRemoveHook(void)
-{
-    if (music_auto_gain_hook_registered)
-    {
-        Mix_SetPostMix(NULL, NULL);
-        music_auto_gain_hook_registered = false;
-    }
-
-    I_MusicAutoGainDestroyState();
-    music_auto_gain_s16_output = false;
-}
-
-static int I_EffectiveMusicVolume(int base_volume)
-{
-    int scaled = base_volume;
-
-    if (scaled < 0)
-    {
-        scaled = 0;
-    }
-    else if (scaled > 127)
-    {
-        scaled = 127;
-    }
-
-    if (snd_auto_gain && music_stream_active)
-    {
-        const int q12 = SDL_AtomicGet(&music_auto_gain_q12);
-        scaled = (scaled * q12 + (AUTO_GAIN_Q12_ONE / 2)) / AUTO_GAIN_Q12_ONE;
-
-        if (scaled < 0)
-        {
-            scaled = 0;
-        }
-        else if (scaled > 127)
-        {
-            scaled = 127;
-        }
-    }
-
-    return scaled;
-}
-#else
-static int music_base_volume = 127;
-static int music_last_effective_volume = -1;
-static boolean music_stream_active = false;
-
-static int I_EffectiveMusicVolume(int base_volume)
-{
-    if (base_volume < 0)
-    {
-        return 0;
-    }
-    if (base_volume > 127)
-    {
-        return 127;
-    }
-
-    return base_volume;
-}
-#endif // DISABLE_SDL2MIXER
 
 // Compiled-in sound modules:
 
@@ -718,25 +271,10 @@ void I_InitSound(GameMission_t mission)
 
 	fprintf(stderr, "I_InitSound: SDL audio driver is %s\n", driver_name ? driver_name : "none");
     }
-
-    music_stream_active = false;
-    music_last_effective_volume = -1;
-
-#ifndef DISABLE_SDL2MIXER
-    I_MusicAutoGainEnsureHook();
-    I_MusicAutoGainResetState();
-#endif
 }
 
 void I_ShutdownSound(void)
 {
-#ifndef DISABLE_SDL2MIXER
-    I_MusicAutoGainRemoveHook();
-    I_MusicAutoGainResetState();
-#endif
-    music_stream_active = false;
-    music_last_effective_volume = -1;
-
     if (sound_module != NULL)
     {
         sound_module->Shutdown();
@@ -784,27 +322,6 @@ void I_UpdateSound(void)
     if (active_music_module != NULL && active_music_module->Poll != NULL)
     {
         active_music_module->Poll();
-    }
-
-    // [PN] Keep effective music volume in sync with runtime auto-gain factor.
-    if (music_module != NULL)
-    {
-        int effective = I_EffectiveMusicVolume(music_base_volume);
-
-        if (effective != music_last_effective_volume)
-        {
-            music_module->SetMusicVolume(effective);
-
-#ifndef DISABLE_SDL2MIXER
-            // [crispy] Always mirror volume to SDL mixer path.
-            if (music_module != &music_sdl_module)
-            {
-                music_sdl_module.SetMusicVolume(effective);
-            }
-#endif
-
-            music_last_effective_volume = effective;
-        }
     }
 }
 
@@ -888,49 +405,21 @@ void I_ShutdownMusic(void)
 
 }
 
-static void I_ApplyMusicVolume(void)
-{
-    int effective;
-
-    if (music_module == NULL)
-    {
-        return;
-    }
-
-    effective = I_EffectiveMusicVolume(music_base_volume);
-
-    if (effective == music_last_effective_volume)
-    {
-        return;
-    }
-
-    music_module->SetMusicVolume(effective);
-
-#ifndef DISABLE_SDL2MIXER
-    // [crispy] Always mirror volume to SDL mixer path.
-    if (music_module != &music_sdl_module)
-    {
-        music_sdl_module.SetMusicVolume(effective);
-    }
-#endif
-
-    music_last_effective_volume = effective;
-}
-
 void I_SetMusicVolume(int volume)
 {
-    music_base_volume = volume;
-
-    if (music_base_volume < 0)
+    if (music_module != NULL)
     {
-        music_base_volume = 0;
-    }
-    else if (music_base_volume > 127)
-    {
-        music_base_volume = 127;
-    }
+        music_module->SetMusicVolume(volume);
 
-    I_ApplyMusicVolume();
+#ifndef DISABLE_SDL2MIXER
+        // [crispy] always broadcast volume changes to SDL. This also covers
+        // the musicpack module.
+        if (music_module != &music_sdl_module)
+        {
+            music_sdl_module.SetMusicVolume(volume);
+        }
+#endif
+    }
 }
 
 void I_PauseSong(void)
@@ -1010,26 +499,12 @@ void I_UnRegisterSong(void *handle)
     {
         active_music_module->UnRegisterSong(handle);
     }
-
-    music_stream_active = false;
-#ifndef DISABLE_SDL2MIXER
-    I_MusicAutoGainResetState();
-#endif
-    music_last_effective_volume = -1;
-    I_ApplyMusicVolume();
 }
 
 void I_PlaySong(void *handle, boolean looping)
 {
     if (active_music_module != NULL)
     {
-        music_stream_active = (handle != NULL);
-#ifndef DISABLE_SDL2MIXER
-        I_MusicAutoGainEnsureHook();
-        I_MusicAutoGainResetState();
-#endif
-        music_last_effective_volume = -1;
-        I_ApplyMusicVolume();
         active_music_module->PlaySong(handle, looping);
     }
 }
@@ -1040,13 +515,6 @@ void I_StopSong(void)
     {
         active_music_module->StopSong();
     }
-
-    music_stream_active = false;
-#ifndef DISABLE_SDL2MIXER
-    I_MusicAutoGainResetState();
-#endif
-    music_last_effective_volume = -1;
-    I_ApplyMusicVolume();
 }
 
 boolean I_MusicIsPlaying(void)
@@ -1063,9 +531,8 @@ boolean I_MusicIsPlaying(void)
 
 void I_BindSoundVariables(void)
 {
-    M_BindIntVariable("snd_sfxdevice",           &snd_sfxdevice);
     M_BindIntVariable("snd_musicdevice",         &snd_musicdevice);
-    M_BindIntVariable("snd_auto_gain",           &snd_auto_gain);
+    M_BindIntVariable("snd_sfxdevice",           &snd_sfxdevice);
     M_BindIntVariable("snd_maxslicetime_ms",     &snd_maxslicetime_ms);
     M_BindStringVariable("snd_musiccmd",         &snd_musiccmd);
     M_BindStringVariable("snd_dmxoption",        &snd_dmxoption);
@@ -1105,3 +572,4 @@ void I_BindSoundVariables(void)
     M_BindIntVariable("use_libsamplerate",       &use_libsamplerate);
     M_BindFloatVariable("libsamplerate_scale",   &libsamplerate_scale);
 }
+

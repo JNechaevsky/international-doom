@@ -275,7 +275,6 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(music_volume),
     CONFIG_VARIABLE_INT(snd_sfxdevice),
     CONFIG_VARIABLE_INT(snd_musicdevice),
-    CONFIG_VARIABLE_INT(snd_auto_gain),
     CONFIG_VARIABLE_STRING(snd_musiccmd),
     CONFIG_VARIABLE_STRING(snd_dmxoption),
     CONFIG_VARIABLE_INT_HEX(opl_io_port),
@@ -371,7 +370,6 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_freeze, key_freeze2),
     CONFIG_VARIABLE_KEYBIND(key_notarget, key_notarget2),
     CONFIG_VARIABLE_KEYBIND(key_buddha, key_buddha2),
-    CONFIG_VARIABLE_KEYBIND(key_shorttics, key_shorttics2),
 
     // Weapons
     CONFIG_VARIABLE_KEYBIND(key_weapon1, key_weapon1_2),

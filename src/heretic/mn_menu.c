@@ -499,7 +499,6 @@ static void M_ID_LocalTime (int choice);
 
 static void M_Draw_ID_Sound (void);
 static void M_ID_MusicSystem (int choice);
-static void M_ID_AutoGain (int choice);
 static void M_ID_SFXMode (int choice);
 static void M_ID_PitchShift (int choice);
 static void M_ID_SFXChannels (int choice);
@@ -1923,7 +1922,6 @@ static MenuItem_t ID_Menu_Sound[] = {
     { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
     { ITT_EMPTY,  NULL,                   NULL,             0, MENU_NONE },
     { ITT_LRFUNC2, "MUSIC PLAYBACK",       M_ID_MusicSystem, 0, MENU_NONE },
-    { ITT_LRFUNC2, "MUSIC AUTO GAIN",      M_ID_AutoGain,    0, MENU_NONE },
     { ITT_LRFUNC2, "SOUND EFFECTS MODE",   M_ID_SFXMode,     0, MENU_NONE },
     { ITT_LRFUNC2, "PITCH-SHIFTED SOUNDS", M_ID_PitchShift,  0, MENU_NONE },
     { ITT_LRFUNC1, "NUMBER OF SFX TO MIX", M_ID_SFXChannels, 0, MENU_NONE },
@@ -1972,55 +1970,48 @@ static void M_Draw_ID_Sound (void)
                             snd_musicdevice ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(7));
 
-    // Music auto gain
-    sprintf(str, snd_auto_gain ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
-                        snd_auto_gain ? cr[CR_GREEN] : cr[CR_RED],
-                            snd_auto_gain ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
-
     // Sound effects mode
     sprintf(str, snd_monosfx ? "MONO" : "STEREO");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
                         snd_monosfx ? cr[CR_RED] : cr[CR_GREEN],
                             snd_monosfx ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(9));
+                                LINE_ALPHA(8));
 
     // Pitch-shifted sounds
     sprintf(str, snd_pitchshift ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
                         snd_pitchshift ? cr[CR_GREEN] : cr[CR_RED],
                             snd_pitchshift ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(10));
+                                LINE_ALPHA(9));
 
     // Number of SFX to mix
     sprintf(str, "%i", snd_channels);
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
                         snd_channels == 8 ? cr[CR_DARKRED] :
                         snd_channels  < 3 || snd_channels == 16 ? cr[CR_YELLOW] : cr[CR_GREEN],
                             snd_channels == 8 ? cr[CR_RED_BRIGHT] :
-                            snd_channels  < 3 || snd_channels == 16 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(11));
+                            snd_channels  < 3 || snd_channels == 16 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],                        
+                                LINE_ALPHA(10));
 
     // Mute inactive window
     sprintf(str, snd_mute_inactive ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 140,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
                         snd_mute_inactive ? cr[CR_GREEN] : cr[CR_RED],
                             snd_mute_inactive ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(12));
+                                LINE_ALPHA(11));
 
-    MN_DrTextACentered("REMASTERED MUSIC", 150, cr[CR_YELLOW]);
+    MN_DrTextACentered("REMASTERED MUSIC", 140, cr[CR_YELLOW]);
 
     // Remastered music
     sprintf(str, (!remaster_ost_r && !remaster_ost_o) ? "N/A" :
                  snd_remaster_ost == 1 ? "REMIX" :
                  snd_remaster_ost == 2 ? "ORIGINAL" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 160,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 150,
                         remaster_ost_r && snd_remaster_ost == 1 ? cr[CR_GREEN] :
                         remaster_ost_o && snd_remaster_ost == 2 ? cr[CR_YELLOW] : cr[CR_RED],
                             remaster_ost_r && snd_remaster_ost == 1 ? cr[CR_GREEN_BRIGHT] :
                             remaster_ost_o && snd_remaster_ost == 2 ? cr[CR_YELLOW_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(14));
+                                LINE_ALPHA(13));
 
     // Inform that something is missing.
     if (CurrentItPos == 7)
@@ -2032,7 +2023,7 @@ static void M_Draw_ID_Sound (void)
             MN_DrTextACentered("\"FSYNTH[SF[PATH\" VARIABLE IS NOT SET", 170, cr[CR_RED_BRIGHT]);
 #endif // HAVE_FLUIDSYNTH
     }
-    if (CurrentItPos == 14)
+    if (CurrentItPos == 13)
     {
         if (!remaster_ost_r && !remaster_ost_o)
         {
@@ -2135,12 +2126,6 @@ static void M_ID_MusicSystem (int choice)
     }
 
     mus_force_replay = false;
-}
-
-static void M_ID_AutoGain (int choice)
-{
-    snd_auto_gain ^= 1;
-    S_SetMusicVolume();
 }
 
 static void M_ID_SFXMode (int choice)
@@ -5716,7 +5701,6 @@ static void M_ID_ApplyResetHook (void)
 
     snd_MaxVolume = 10;
     snd_MusicVolume = 10;
-    snd_auto_gain = 1;
     snd_monosfx = 0;
     snd_pitchshift = 1;
     snd_channels = 8;
