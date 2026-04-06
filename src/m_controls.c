@@ -94,6 +94,7 @@ int key_spectator = 0; int key_spectator2 = 0;
 int key_freeze    = 0; int key_freeze2    = 0;
 int key_notarget  = 0; int key_notarget2  = 0;
 int key_buddha    = 0; int key_buddha2    = 0;
+int key_shorttics = 0; int key_shorttics2 = 0;
 
 // Weapons
 
@@ -304,6 +305,7 @@ void M_BindControls (void)
     M_BindIntVariableKeybind("key_freeze",    &key_freeze,    "key_freeze2",    &key_freeze2);
     M_BindIntVariableKeybind("key_notarget",  &key_notarget,  "key_notarget2",  &key_notarget2);
     M_BindIntVariableKeybind("key_buddha",    &key_buddha,    "key_buddha2",     &key_buddha2);
+    M_BindIntVariableKeybind("key_shorttics", &key_shorttics, "key_shorttics2", &key_shorttics2);
 
     // Weapons
 
