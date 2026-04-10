@@ -297,7 +297,14 @@ static boolean CL_IsMissionToken(const char *token)
         return true;
     }
 
-    if ((!strncasecmp(token, "HEXEN", 5) && token[5] == '\0')
+    if ((!strncasecmp(token, "DOOM2", 5) && token[5] == '\0')
+     || (!strncasecmp(token, "DOOM", 4) && token[4] == '\0')
+     || (!strncasecmp(token, "TNT", 3) && token[3] == '\0')
+     || (!strncasecmp(token, "PLUTONIA", 8) && token[8] == '\0')
+     || (!strncasecmp(token, "PLUT", 4) && token[4] == '\0')
+     || (!strncasecmp(token, "HERETIC", 7) && token[7] == '\0')
+     || (!strncasecmp(token, "HTIC", 4) && token[4] == '\0')
+     || (!strncasecmp(token, "HEXEN", 5) && token[5] == '\0')
      || (!strncasecmp(token, "HXN", 3) && token[3] == '\0'))
     {
         return true;
@@ -338,6 +345,28 @@ static boolean CL_IsCurrentMapPWAD(const char *map_name)
     const lumpindex_t lumpnum = W_CheckNumForName(map_name);
 
     return lumpnum >= 0 && !W_IsIWADLump(lumpinfo[lumpnum]);
+}
+
+// -----------------------------------------------------------------------------
+// CL_CurrentMapPWADMatches
+//  [PN] True when current map comes from PWAD and its wad basename matches.
+// -----------------------------------------------------------------------------
+
+static boolean CL_CurrentMapPWADMatches(const char *map_name, const char *wad_name)
+{
+    if (map_name == NULL || *map_name == '\0' || wad_name == NULL || *wad_name == '\0')
+    {
+        return false;
+    }
+
+    const lumpindex_t lumpnum = W_CheckNumForName(map_name);
+
+    if (lumpnum < 0 || W_IsIWADLump(lumpinfo[lumpnum]))
+    {
+        return false;
+    }
+
+    return !strcasecmp(W_WadNameForLump(lumpinfo[lumpnum]), wad_name);
 }
 
 // -----------------------------------------------------------------------------
@@ -630,13 +659,14 @@ static boolean CL_ParseBlockHeaderLine(char *line, const char *map_name,
         }
     }
 
-    if (token_count <= 0 || token_count > 3)
+    if (token_count <= 0 || token_count > 4)
     {
         return false;
     }
 
     int index = 0;
     char *mission_token = NULL;
+    char *wad_token = NULL;
     enum
     {
         CL_MAPSRC_ANY,
@@ -673,6 +703,16 @@ static boolean CL_ParseBlockHeaderLine(char *line, const char *map_name,
         {
             return false;
         }
+
+        if (index < token_count - 1)
+        {
+            wad_token = tokens[index++];
+
+            if (index >= token_count)
+            {
+                return false;
+            }
+        }
     }
 
     if (index != token_count - 1)
@@ -684,7 +724,8 @@ static boolean CL_ParseBlockHeaderLine(char *line, const char *map_name,
     const boolean map_match = CL_MapMatches(tokens[index], map_name);
     const boolean source_match = map_source == CL_MAPSRC_ANY ? true
                                : map_source == CL_MAPSRC_IWAD ? CL_IsCurrentMapIWAD(map_name)
-                               : CL_IsCurrentMapPWAD(map_name);
+                               : wad_token == NULL ? CL_IsCurrentMapPWAD(map_name)
+                               : CL_CurrentMapPWADMatches(map_name, wad_token);
 
     *active = mission_match && map_match && source_match;
     return true;
