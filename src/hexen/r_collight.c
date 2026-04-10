@@ -443,8 +443,21 @@ static boolean CL_ParseSectorSpan(const char *text, long *first, long *last)
 }
 
 // -----------------------------------------------------------------------------
+// CL_AssignAllSectors
+//  [PN] Applies one color bank to every sector on the current map.
+// -----------------------------------------------------------------------------
+
+static void CL_AssignAllSectors(const unsigned short bank)
+{
+    for (int sector = 0; sector < numsectors; ++sector)
+    {
+        sectors[sector].lightbank = bank;
+    }
+}
+
+// -----------------------------------------------------------------------------
 // CL_ParseSectorListLine
-//  [PN] Parses one block entry: "0,1,4-9 FF00FF".
+//  [PN] Parses one block entry: "0,1,4-9 FF00FF" or "ALL FF00FF".
 // -----------------------------------------------------------------------------
 
 static void CL_ParseSectorListLine(char *line)
@@ -526,6 +539,12 @@ static void CL_ParseSectorListLine(char *line)
         }
 
         CL_TrimRight(item);
+
+        if (!strncasecmp(item, "ALL", 3) && item[3] == '\0')
+        {
+            CL_AssignAllSectors(bank);
+            break;
+        }
 
         long first, last;
 
