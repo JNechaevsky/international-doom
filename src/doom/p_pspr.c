@@ -286,17 +286,19 @@ static inline void P_ApplyRealisticBobbing (int *sx, int *sy,
 
     bob = FixedMul(bob, bob_scale);
 
+    const int cos_value = finecosine[angle];
     const fixed_t side_swing = bob - (bob >> 2);
     const fixed_t step_lift = (FRACUNIT - finecosine[step_angle]) >> 1;
     const fixed_t bob_sway = bob >> 3;
+    const fixed_t sway_lift = (cos_value + FRACUNIT) >> 1;
 
-    *sx = FRACUNIT + FixedMul(side_swing, finecosine[angle])
+    *sx = FRACUNIT + FixedMul(side_swing, cos_value)
                    + FixedMul(bob_sway, finesine[step_angle]);
 
     if (bob_y)
     {
         *sy = WEAPONTOP + FixedMul(bob, step_lift)
-                        + FixedMul(bob_sway, finecosine[angle]);
+                        + FixedMul(bob_sway, sway_lift);
     }
 }
 
