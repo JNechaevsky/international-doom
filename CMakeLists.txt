@@ -86,7 +86,6 @@ endif()
 option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
        "Lookup package config files before using find modules" On)
 
-option(ENABLE_SDL2_NET "Enable SDL2_net" On)
 option(ENABLE_SDL2_MIXER "Enable SDL2_mixer" On)
 
 find_package(SDL2 2.0.18)
@@ -97,15 +96,6 @@ if(ENABLE_SDL2_MIXER)
     endif()
 else()
     add_compile_definitions(DISABLE_SDL2MIXER=1)
-endif()
-
-if(ENABLE_SDL2_NET)
-    find_package(SDL2_net 2.0.0)
-    if(NOT TARGET SDL2_net::SDL2_net)
-        add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
-    endif()
-else()
-    add_compile_definitions(DISABLE_SDL2NET=1)
 endif()
 
 # Check for libsamplerate.

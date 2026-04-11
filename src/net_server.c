@@ -38,7 +38,6 @@
 #include "net_packet.h"
 #include "net_query.h"
 #include "net_server.h"
-#include "net_sdl.h"
 #include "net_structrw.h"
 
 // How often to refresh our registration with the master server.

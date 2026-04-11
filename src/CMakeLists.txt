@@ -24,7 +24,7 @@ set(DEDSERV_FILES
     net_dedicated.c     net_dedicated.h
     net_io.c            net_io.h
     net_packet.c        net_packet.h
-    net_sdl.c           net_sdl.h
+    net_netlib.c        net_netlib.h
     net_query.c         net_query.h
     net_server.c        net_server.h
     net_structrw.c      net_structrw.h
@@ -79,7 +79,7 @@ set(GAME_SOURCE_FILES
     net_packet.c        net_packet.h
     net_petname.c       net_petname.h
     net_query.c         net_query.h
-    net_sdl.c           net_sdl.h
+    net_netlib.c        net_netlib.h
     net_server.c        net_server.h
     net_structrw.c      net_structrw.h
     sha1.c              sha1.h
@@ -131,9 +131,6 @@ set(EXTRA_LIBS SDL2::SDL2main SDL2::SDL2 miniz::miniz spng::spng textscreen pcso
 if(ENABLE_SDL2_MIXER)
     list(APPEND EXTRA_LIBS SDL2_mixer::SDL2_mixer)
 endif()
-if(ENABLE_SDL2_NET)
-    list(APPEND EXTRA_LIBS SDL2_net::SDL2_net)
-endif()
 if(SampleRate_FOUND)
     list(APPEND EXTRA_LIBS SampleRate::samplerate)
 endif()
@@ -141,7 +138,7 @@ if(FluidSynth_FOUND)
     list(APPEND EXTRA_LIBS FluidSynth::libfluidsynth)
 endif()
 if(WIN32)
-	list(APPEND EXTRA_LIBS winmm shlwapi comctl32)
+	list(APPEND EXTRA_LIBS winmm shlwapi comctl32 ws2_32 iphlpapi)
 endif()
 
 if(WIN32)
@@ -205,7 +202,7 @@ set(SETUP_FILES
     net_io.c            net_io.h
     net_packet.c        net_packet.h
     net_petname.c       net_petname.h
-    net_sdl.c           net_sdl.h
+    net_netlib.c        net_netlib.h
     net_query.c         net_query.h
     net_structrw.c      net_structrw.h
     z_native.c          z_zone.h)
@@ -222,11 +219,8 @@ target_link_libraries("${PROGRAM_PREFIX}setup" SDL2::SDL2main SDL2::SDL2 setup t
 if(ENABLE_SDL2_MIXER)
     target_link_libraries("${PROGRAM_PREFIX}setup" SDL2_mixer::SDL2_mixer)
 endif()
-if(ENABLE_SDL2_NET)
-    target_link_libraries("${PROGRAM_PREFIX}setup" SDL2_net::SDL2_net)
-endif()
 if(WIN32)
-    target_link_libraries("${PROGRAM_PREFIX}setup" winmm)
+    target_link_libraries("${PROGRAM_PREFIX}setup" winmm ws2_32 iphlpapi)
 endif()
 
 if(MSVC)
