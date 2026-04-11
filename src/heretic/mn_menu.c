@@ -4317,7 +4317,7 @@ static MenuItem_t ID_Menu_Gameplay_2[] = {
     { ITT_LRFUNC1, "SFX ATTENUATION AXISES",      M_ID_ZAxisSfx,        0, MENU_NONE       },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE       },
     { ITT_LRFUNC1, "CORPSES SLIDING FROM LEDGES", M_ID_Torque,          0, MENU_NONE       },
-    { ITT_LRFUNC2, "WEAPON ATTACK ALIGNMENT",     M_ID_WeaponAlignment, 0, MENU_NONE       },
+    { ITT_LRFUNC2, "WEAPON BOBBING",              M_ID_WeaponAlignment, 0, MENU_NONE       },
     { ITT_LRFUNC1, "IMITATE PLAYER'S BREATHING",  M_ID_Breathing,       0, MENU_NONE       },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE       },
     { ITT_EMPTY,   NULL,                          NULL,                 0, MENU_NONE       },
@@ -4400,9 +4400,12 @@ static void M_Draw_ID_Gameplay_2 (void)
                             phys_torque ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(8));
 
-    // Weapon attack alignment
+    // Weapon bobbing
     sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
-                 phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
+                 phys_weapon_alignment == 2 ? "CENTERED" :
+                 phys_weapon_alignment == 3 ? "IMPROVED" :
+                 phys_weapon_alignment == 4 ? "IMPROVED BOBBING" :
+                 phys_weapon_alignment == 5 ? "IMPROVED CENTERED" : "ORIGINAL");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
                         phys_weapon_alignment ? cr[CR_GREEN] : cr[CR_DARKRED],
                             phys_weapon_alignment ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
@@ -4456,7 +4459,7 @@ static void M_ID_Torque (int choice)
 
 static void M_ID_WeaponAlignment (int choice)
 {
-    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice, false);
+    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 5, choice, false);
 }
 
 static void M_ID_Breathing (int choice)

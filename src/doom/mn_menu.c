@@ -4417,7 +4417,7 @@ static menuitem_t ID_Menu_Gameplay_2[]=
     { M_MUL1, "POINT-BLANK SSG TEAR MONSTERS", M_ID_SSGTearMonsters,   'p' },
     { M_MUL1, "ITEMS ARE TOSSED WHEN DROPPED", M_ID_TossDrop,          'i' },
     { M_MUL2, "FLOATING POWERUPS AMPLITUDE",   M_ID_FloatingPowerups,  'f' },
-    { M_MUL2, "WEAPON ATTACK ALIGNMENT",       M_ID_WeaponAlignment,   'w' },
+    { M_MUL2, "WEAPON BOBBING",                M_ID_WeaponAlignment,   'w' },
     { M_MUL1, "IMITATE PLAYER'S BREATHING",    M_ID_Breathing,         'i' },
     { M_MUL2, "", /* < SCROLL PAGES >*/        M_ScrollGameplay,       's' },
 };
@@ -4524,9 +4524,12 @@ static void M_Draw_ID_Gameplay_2 (void)
                             phys_floating_powerups ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(12));
 
-    // Weapon attack alignment
+    // Weapon bobbing
     sprintf(str, phys_weapon_alignment == 1 ? "BOBBING" :
-                 phys_weapon_alignment == 2 ? "CENTERED" : "ORIGINAL");
+                 phys_weapon_alignment == 2 ? "CENTERED" :
+                 phys_weapon_alignment == 3 ? "IMPROVED" :
+                 phys_weapon_alignment == 4 ? "IMPROVED BOBBING" :
+                 phys_weapon_alignment == 5 ? "IMPROVED CENTERED" : "ORIGINAL");
     M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
                         phys_weapon_alignment ? cr[CR_GREEN] : cr[CR_DARKRED],
                             phys_weapon_alignment ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
@@ -4609,7 +4612,7 @@ static void M_ID_FloatingPowerups(int choice)
 
 static void M_ID_WeaponAlignment (int choice)
 {
-    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 2, choice, false);
+    phys_weapon_alignment = M_INT_Slider(phys_weapon_alignment, 0, 5, choice, false);
 }
 
 static void M_ID_Breathing (int choice)
