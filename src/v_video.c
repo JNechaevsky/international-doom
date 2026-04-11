@@ -1907,18 +1907,14 @@ void V_ScreenShot(const char *format)
 
         if (!M_FileExists(file))
         {
-            break;      // file doesn't exist
+            WritePNGfile(file);
+            free(file);
+            return;
         }
         free(file);
     }
 
-    if (i == 10000)
-    {
-        I_Error ("V_ScreenShot: Couldn't create a PNG");
-    }
-
-    WritePNGfile(file);
-	free(file);
+    I_Error ("V_ScreenShot: Couldn't create a PNG");
 }
 
 #define MOUSE_SPEED_BOX_WIDTH  120
