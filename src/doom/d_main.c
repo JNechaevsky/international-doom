@@ -2175,7 +2175,7 @@ void D_DoomMain (void)
 	if (gamemode == registered)
 	    for (i = 0;i < 23; i++)
 		if (W_CheckNumForName(name[i])<0)
-		    I_Error(DEH_String("This is not the registered version."));
+		    I_Error("This is not the registered version.");
     }
 
     // [crispy] disable meaningless warning, we always use "-merge" anyway
