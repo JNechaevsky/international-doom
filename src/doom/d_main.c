@@ -2167,8 +2167,7 @@ void D_DoomMain (void)
 	if ( gamemode == shareware)
 	{
 	    i_error_safe = true;
-	    I_Error(DEH_String("\nYou cannot -file with the shareware "
-			       "version. Register!"));
+	    I_Error("You cannot -file with the shareware version. Register!");
 	}
 
 	// Check for fake IWAD with right name,
@@ -2176,7 +2175,7 @@ void D_DoomMain (void)
 	if (gamemode == registered)
 	    for (i = 0;i < 23; i++)
 		if (W_CheckNumForName(name[i])<0)
-		    I_Error(DEH_String("\nThis is not the registered version."));
+		    I_Error(DEH_String("This is not the registered version."));
     }
 
     // [crispy] disable meaningless warning, we always use "-merge" anyway
