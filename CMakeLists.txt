@@ -141,6 +141,6 @@ configure_file(src/hexen-res.rc.in src/hexen-res.rc)
 configure_file(src/setup-res.rc.in src/setup-res.rc)
 configure_file(src/setup/setup-manifest.xml.in src/setup/setup-manifest.xml)
 
-foreach(SUBDIR lib/textscreen lib/opl lib/pcsound src)
+foreach(SUBDIR lib/textscreen lib/opl lib/pcsound lib/netlib src)
     add_subdirectory("${SUBDIR}")
 endforeach()
