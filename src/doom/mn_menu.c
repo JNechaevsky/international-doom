@@ -44,6 +44,7 @@
 #include "z_zone.h"
 #include "r_local.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "m_argv.h"
 #include "m_controls.h"
 #include "s_sound.h"
@@ -849,8 +850,7 @@ static void M_ID_InterceptsOverflow (int choice);
 
 static void M_ScrollGameplay (int choice);
 
-static void M_Choose_ID_Misc (int choice);
-static void M_Draw_ID_Misc (void);
+static void M_Draw_ID_Misc_1 (void);
 static void M_ID_Misc_A11yInvul (int choice);
 static void M_ID_Misc_A11yPalFlash (int choice);
 static void M_ID_Misc_A11yMoveBob (int choice);
@@ -864,6 +864,14 @@ static void M_ID_Misc_MenuCapFps (int choice);
 #if defined(_WIN32) && !defined(_WIN32_WCE)
 static void M_ID_Misc_Launcher (int choice);
 #endif
+
+static void M_Draw_ID_Misc_2 (void);
+static void M_ID_Misc_RewindEnable (int choice);
+static void M_ID_Misc_RewindInterwal (int choice);
+static void M_ID_Misc_RewindDepth (int choice);
+static void M_ID_Misc_RewindTimeout (int choice);
+
+static void M_ScrollMisc (int choice);
 
 static void M_Choose_ID_Level (int choice);
 static void M_Draw_ID_Level_1 (void);
@@ -948,6 +956,8 @@ static menu_t ID_Def_Keybinds_6;
 static menu_t ID_Def_Gameplay_1;
 static menu_t ID_Def_Gameplay_2;
 static menu_t ID_Def_Gameplay_3;
+static menu_t ID_Def_Misc_1;
+static menu_t ID_Def_Misc_2;
 static menu_t ID_Def_Level_1;
 static menu_t ID_Def_Level_2;
 static menu_t ID_Def_GamepadBinds;
@@ -985,6 +995,20 @@ static menu_t *GameplayMenus[] =
 static void M_Choose_ID_Gameplay (int choice)
 {
     M_SetupNextMenu(GameplayMenus[Gameplay_Cur]);
+}
+
+// Remember last misc settings page.
+static int Misc_Cur;
+
+static menu_t *MiscMenus[] =
+{
+    &ID_Def_Misc_1,
+    &ID_Def_Misc_2,
+};
+
+static void M_Choose_ID_Misc (int choice)
+{
+    M_SetupNextMenu(MiscMenus[Misc_Cur]);
 }
 
 // Remember last gamepad bindings page.
@@ -1044,6 +1068,10 @@ static void M_ScrollPages (boolean direction)
     else if (currentMenu == &ID_Def_Gameplay_1) nextMenu = (direction ? &ID_Def_Gameplay_2 : &ID_Def_Gameplay_3);
     else if (currentMenu == &ID_Def_Gameplay_2) nextMenu = (direction ? &ID_Def_Gameplay_3 : &ID_Def_Gameplay_1);
     else if (currentMenu == &ID_Def_Gameplay_3) nextMenu = (direction ? &ID_Def_Gameplay_1 : &ID_Def_Gameplay_2);
+
+    // Misc features:
+    else if (currentMenu == &ID_Def_Misc_1) nextMenu = &ID_Def_Misc_2;
+    else if (currentMenu == &ID_Def_Misc_2) nextMenu = &ID_Def_Misc_1;
 
     // Level select:
     else if (currentMenu == &ID_Def_Level_1) nextMenu = &ID_Def_Level_2;
@@ -4909,7 +4937,7 @@ static void M_ScrollGameplay (int choice)
 // Miscellaneous features
 // -----------------------------------------------------------------------------
 
-static menuitem_t ID_Menu_Misc[]=
+static menuitem_t ID_Menu_Misc_1[]=
 {
     { M_MUL1, "INVULNERABILITY EFFECT",     M_ID_Misc_A11yInvul,      'i' },
     { M_MUL2, "PALETTE FLASH EFFECTS",      M_ID_Misc_A11yPalFlash,   'p' },
@@ -4923,29 +4951,28 @@ static menuitem_t ID_Menu_Misc[]=
     { M_MUL2, "HIGHLIGHTING EFFECT",        M_ID_Misc_Hightlight,     'h' },
     { M_MUL1, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,     'e' },
     { M_MUL1, "CAP FRAMERATE IN THE MENU",  M_ID_Misc_MenuCapFps,     'c' },
-#if defined(_WIN32) && !defined(_WIN32_WCE)
     { M_SKIP, "", 0, '\0' },
+#if defined(_WIN32) && !defined(_WIN32_WCE)
     { M_MUL1, "SHOW LAUNCHER AT STARTUP",   M_ID_Misc_Launcher,       's' },
+#else
+    { M_SKIP, "", 0, '\0' },
 #endif
+    { M_SKIP, "", 0, '\0' },
+    { M_MUL2, "", /* < SCROLL PAGES >*/     M_ScrollMisc,             's' },
 };
 
-static menu_t ID_Def_Misc =
+static menu_t ID_Def_Misc_1 =
 {
-    ITEMCOUNT(ID_Menu_Misc),
+    ITEMCOUNT(ID_Menu_Misc_1),
     &ID_Def_Main,
-    ID_Menu_Misc,
-    M_Draw_ID_Misc,
+    ID_Menu_Misc_1,
+    M_Draw_ID_Misc_1,
     ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     0,
-    true, false, false,
+    true, false, true,
 };
 
-static void M_Choose_ID_Misc (int choice)
-{
-    M_SetupNextMenu (&ID_Def_Misc);
-}
-
-static void M_Draw_ID_Misc (void)
+static void M_Draw_ID_Misc_1 (void)
 {
     char str[32];
     const char *bobpercent[] = {
@@ -4956,6 +4983,8 @@ static void M_Draw_ID_Misc (void)
         "NONE","PROTANOPIA","PROTANOMALY","DEUTERANOPIA","DEUTERANOMALY",
         "TRITANOPIA","TRITANOMALY","ACHROMATOPSIA","ACHROMATOMALY"
     };
+
+    Misc_Cur = 0;
 
     M_WriteTextCentered(9, "ACCESSIBILITY", cr[CR_YELLOW]);
 
@@ -5099,6 +5128,11 @@ static void M_Draw_ID_Misc (void)
                 break;            
         }
     }
+    else
+    {
+        // < Scroll pages >
+        M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "1/2");
+    }
 }
 
 static void M_ID_Misc_A11yInvul (int choice)
@@ -5171,6 +5205,118 @@ static void M_ID_Misc_Launcher (int choice)
     show_startup_launcher ^= 1;
 }
 #endif
+
+static menuitem_t ID_Menu_Misc_2[]=
+{
+    { M_MUL1, "ENABLE REWIND",   M_ID_Misc_RewindEnable,   'e' },
+    { M_MUL1, "REWIND INTERWAL", M_ID_Misc_RewindInterwal, 'r' },
+    { M_MUL1, "REWIND DEPTH",    M_ID_Misc_RewindDepth,    'r' },
+    { M_MUL1, "REWIND TIMEOUT",  M_ID_Misc_RewindTimeout,  'r' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_SKIP, "", 0, '\0' },
+    { M_MUL2, "", /* < SCROLL PAGES >*/     M_ScrollMisc,             's' },
+};
+
+static menu_t ID_Def_Misc_2 =
+{
+    ITEMCOUNT(ID_Menu_Misc_2),
+    &ID_Def_Main,
+    ID_Menu_Misc_2,
+    M_Draw_ID_Misc_2,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
+    0,
+    true, false, true,
+};
+
+static void M_Draw_ID_Misc_2 (void)
+{
+    char str[32];
+
+    Misc_Cur = 1;
+
+    M_WriteTextCentered(9, "REWIND", cr[CR_YELLOW]);
+
+    // Enable rewind
+    sprintf(str, crl_rewind_auto ? "ON" : "OFF");
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        crl_rewind_auto ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            crl_rewind_auto ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(0));
+
+    // Rewind interwal
+    sprintf(str, crl_rewind_interval == 1 ? "1 SECOND" : "%d SECONDS", crl_rewind_interval);
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+                       !crl_rewind_auto ? cr[CR_DARKRED] :
+                        crl_rewind_interval == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                           !crl_rewind_auto ? cr[CR_RED_BRIGHT] : 
+                            crl_rewind_interval == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(1));
+
+    // Rewind depth
+    sprintf(str, crl_rewind_depth == 1 ? "%d KEY FRAME" : "%d KEY FRAMES", crl_rewind_depth);
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+                       !crl_rewind_auto ? cr[CR_DARKRED] :
+                        crl_rewind_depth == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                           !crl_rewind_auto ? cr[CR_RED_BRIGHT] :
+                            crl_rewind_depth == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(2));
+
+    // Rewind timeout
+    sprintf(str, crl_rewind_timeout == 0 ? "NO LIMIT" :
+                 crl_rewind_timeout == 1 ? "1 MILLISECOND" : "%d MILLISECONDS", crl_rewind_timeout);
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
+                       !crl_rewind_auto ? cr[CR_DARKRED] :
+                        crl_rewind_timeout == 25 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                           !crl_rewind_auto ? cr[CR_RED_BRIGHT] :
+                            crl_rewind_timeout == 25 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(3));
+
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "2/2");
+}
+
+static void M_ID_Misc_RewindEnable (int choice)
+{
+    crl_rewind_auto ^= 1;
+
+    // Clear key frames after disabling.
+    if (!crl_rewind_auto)
+    {
+        G_ResetRewind(true);
+    }
+}
+
+static void M_ID_Misc_RewindInterwal (int choice)
+{
+    crl_rewind_interval = M_INT_Slider(crl_rewind_interval, 1, 600, choice, false);
+}
+
+static void M_ID_Misc_RewindDepth (int choice)
+{
+    crl_rewind_depth = M_INT_Slider(crl_rewind_depth, 10, 600, choice, false);
+}
+
+static void M_ID_Misc_RewindTimeout (int choice)
+{
+    crl_rewind_timeout = M_INT_Slider(crl_rewind_timeout, 0, 25, choice, false);
+}
+
+static void M_ScrollMisc (int choice)
+{
+         if (currentMenu == &ID_Def_Misc_1) { M_SetupNextMenu(&ID_Def_Misc_2); }
+    else if (currentMenu == &ID_Def_Misc_2) { M_SetupNextMenu(&ID_Def_Misc_1); }
+
+    itemOn = 15;
+}
 
 // -----------------------------------------------------------------------------
 // Level select 1

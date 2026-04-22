@@ -6,6 +6,11 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 //
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
 
 #include <stdlib.h>
 
@@ -46,17 +51,17 @@ static boolean RewindAllowedGamestate(void)
 
 static int RewindIntervalTics(void)
 {
-    return TICRATE * BETWEEN(1, 10, crl_rewind_interval);
+    return TICRATE * BETWEEN(1, 600, crl_rewind_interval);
 }
 
 static int RewindDepth(void)
 {
-    return BETWEEN(10, 1000, crl_rewind_depth);
+    return BETWEEN(10, 600, crl_rewind_depth);
 }
 
 static int RewindTimeout(void)
 {
-    return BETWEEN(0, 1000, crl_rewind_timeout);
+    return BETWEEN(0, 25, crl_rewind_timeout);
 }
 
 static void FreeKeyframe(keyframe_t *keyframe)
@@ -178,7 +183,7 @@ static void FreeKeyframeQueue(void)
 
 void G_Rewind(void)
 {
-    if (netgame || demoplayback || demorecording || !RewindAllowedGamestate())
+    if (!crl_rewind_auto || netgame || demoplayback || demorecording || !RewindAllowedGamestate())
     {
         CT_SetMessage(&players[consoleplayer], "REWIND NOT AVAILABLE", false, NULL);
         return;
@@ -221,7 +226,7 @@ void G_SaveAutoKeyframe(void)
     {
         disable_rewind = true;
         CT_SetMessage(&players[consoleplayer],
-                      "SLOW KEYFRAMING: REWIND DISABLED", false, NULL);
+                      "SLOW KEY FRAMING: REWIND DISABLED", false, NULL);
     }
 }
 
@@ -235,7 +240,7 @@ void G_LoadAutoKeyframe(void)
 
     if (RewindQueueIsEmpty())
     {
-        CT_SetMessage(&players[consoleplayer], "NO REWIND KEYFRAMES", false, NULL);
+        CT_SetMessage(&players[consoleplayer], "NO REWIND KEY FRAMES", false, NULL);
         return;
     }
 
@@ -248,7 +253,7 @@ void G_LoadAutoKeyframe(void)
 
     if (elem == NULL)
     {
-        CT_SetMessage(&players[consoleplayer], "NO EARLIER KEYFRAME", false, NULL);
+        CT_SetMessage(&players[consoleplayer], "NO EARLIER KEY FRAME", false, NULL);
         return;
     }
 
@@ -265,7 +270,7 @@ void G_LoadAutoKeyframe(void)
 
     if (LoadKeyframe(keyframe))
     {
-        CT_SetMessage(&players[consoleplayer], "Restored key frame", false, NULL);
+        CT_SetMessage(&players[consoleplayer], "RESTORED KEY FRAME", false, NULL);
     }
 
     rewind_restoring = false;

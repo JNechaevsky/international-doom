@@ -27,6 +27,7 @@
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "gusconf.h"
+#include "g_rewind.h"
 #include "i_input.h"
 #include "i_joystick.h"
 #include "i_system.h"
@@ -108,7 +109,8 @@ typedef enum
     MENU_ID_GAMEPLAY2,
     MENU_ID_GAMEPLAY3,
     MENU_ID_GAMEPLAY4,
-    MENU_ID_MISC,
+    MENU_ID_MISC1,
+    MENU_ID_MISC2,
     MENU_ID_LEVEL1,
     MENU_ID_LEVEL2,
     MENU_ID_LEVEL3,
@@ -752,7 +754,7 @@ static void M_ID_AutomaticSR50 (int choice);
 
 static void M_ScrollGameplay (int choice);
 
-static void M_Draw_ID_Misc (void);
+static void M_Draw_ID_Misc_1 (void);
 static void M_ID_Misc_A11yInvul (int choice);
 static void M_ID_Misc_A11yPalFlash (int choice);
 static void M_ID_Misc_A11yMoveBob (int choice);
@@ -766,6 +768,14 @@ static void M_ID_Misc_MenuCapFps (int choice);
 #if defined(_WIN32) && !defined(_WIN32_WCE)
 static void M_ID_Misc_Launcher (int choice);
 #endif
+
+static void M_Draw_ID_Misc_2 (void);
+static void M_ID_Misc_RewindEnable (int choice);
+static void M_ID_Misc_RewindInterwal (int choice);
+static void M_ID_Misc_RewindDepth (int choice);
+static void M_ID_Misc_RewindTimeout (int choice);
+
+static void M_ScrollMisc (int choice);
 
 static void M_Draw_ID_Level_1 (void);
 static void M_ID_LevelSkill (int choice);
@@ -868,6 +878,8 @@ static Menu_t ID_Def_Gameplay_1;
 static Menu_t ID_Def_Gameplay_2;
 static Menu_t ID_Def_Gameplay_3;
 static Menu_t ID_Def_Gameplay_4;
+static Menu_t ID_Def_Misc_1;
+static Menu_t ID_Def_Misc_2;
 static Menu_t ID_Def_Level_1;
 static Menu_t ID_Def_Level_2;
 static Menu_t ID_Def_Level_3;
@@ -886,6 +898,14 @@ static int Gameplay_Cur;
 static void M_Choose_ID_Gameplay (int choice)
 {
     SetMenu(Gameplay_Cur);
+}
+
+// Remember last misc settings page.
+static int Misc_Cur;
+
+static void M_Choose_ID_Misc (int choice)
+{
+    SetMenu(Misc_Cur);
 }
 
 // Remember last gamepad bindings page.
@@ -946,6 +966,10 @@ static void M_ScrollPages (boolean direction)
     else if (CurrentMenu == &ID_Def_Gameplay_2) nextMenu = (direction ? MENU_ID_GAMEPLAY3 : MENU_ID_GAMEPLAY1);
     else if (CurrentMenu == &ID_Def_Gameplay_3) nextMenu = (direction ? MENU_ID_GAMEPLAY4 : MENU_ID_GAMEPLAY2);
     else if (CurrentMenu == &ID_Def_Gameplay_4) nextMenu = (direction ? MENU_ID_GAMEPLAY1 : MENU_ID_GAMEPLAY3);
+
+    // Misc features:
+    else if (CurrentMenu == &ID_Def_Misc_1) nextMenu = MENU_ID_MISC2;
+    else if (CurrentMenu == &ID_Def_Misc_2) nextMenu = MENU_ID_MISC1;
 
     // Level select:
     else if (CurrentMenu == &ID_Def_Level_1) nextMenu = (direction ? MENU_ID_LEVEL2 : MENU_ID_LEVEL3);
@@ -1113,7 +1137,7 @@ static MenuItem_t ID_Menu_Main[] = {
     { ITT_SETMENU, "WIDGETS SETTINGS",  NULL,                 0, MENU_ID_WIDGETS   },
     { ITT_SETMENU, "AUTOMAP SETTINGS",  NULL,                 0, MENU_ID_AUTOMAP   },
     { ITT_EFUNC,   "GAMEPLAY FEATURES", M_Choose_ID_Gameplay, 0, MENU_NONE         },
-    { ITT_SETMENU, "MISC FEATURES",     NULL,                 0, MENU_ID_MISC      },
+    { ITT_EFUNC,   "MISC FEATURES",     M_Choose_ID_Misc,     0, MENU_ID_MISC1     },
     { ITT_SETMENU, "LEVEL SELECT",      NULL,                 0, MENU_ID_LEVEL1    },
     { ITT_EFUNC,   "END GAME",          SCEndGame,            0, MENU_NONE         },
     { ITT_EFUNC,   "RESET SETTINGS",    M_ID_SettingReset,    0, MENU_NONE         },
@@ -4759,7 +4783,7 @@ static void M_ScrollGameplay (int choice)
 // Miscellaneous settings
 // -----------------------------------------------------------------------------
 
-static MenuItem_t ID_Menu_Misc[] = {
+static MenuItem_t ID_Menu_Misc_1[] = {
     { ITT_LRFUNC1, "INVULNERABILITY EFFECT",    M_ID_Misc_A11yInvul,      0, MENU_NONE },
     { ITT_LRFUNC2, "PALETTE FLASH EFFECTS",     M_ID_Misc_A11yPalFlash,   0, MENU_NONE },
     { ITT_LRFUNC1, "MOVEMENT BOBBING",          M_ID_Misc_A11yMoveBob,    0, MENU_NONE },
@@ -4772,22 +4796,25 @@ static MenuItem_t ID_Menu_Misc[] = {
     { ITT_LRFUNC2, "HIGHLIGHTING EFFECT",       M_ID_Misc_Hightlight,     0, MENU_NONE },
     { ITT_LRFUNC1, "ESC KEY BEHAVIOUR",         M_ID_Misc_MenuEscKey,     0, MENU_NONE },
     { ITT_LRFUNC1, "CAP FRAMERATE IN THE MENU", M_ID_Misc_MenuCapFps,     0, MENU_NONE },
-#if defined(_WIN32) && !defined(_WIN32_WCE)
     { ITT_EMPTY,   NULL,                        NULL,                     0, MENU_NONE },
+#if defined(_WIN32) && !defined(_WIN32_WCE)
     { ITT_LRFUNC1, "SHOW LAUNCHER AT STARTUP",  M_ID_Misc_Launcher,       0, MENU_NONE },
+#else
+    { ITT_EMPTY,   NULL,                        NULL,                     0, MENU_NONE },
 #endif
+    { ITT_LRFUNC2, "", /* SCROLLS PAGES */      M_ScrollMisc,             0, MENU_NONE },
 };
 
-static Menu_t ID_Def_Misc = {
+static Menu_t ID_Def_Misc_1 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
-    M_Draw_ID_Misc,
-    ITEMCOUNT(ID_Menu_Misc), ID_Menu_Misc,
+    M_Draw_ID_Misc_1,
+    ITEMCOUNT(ID_Menu_Misc_1), ID_Menu_Misc_1,
     0,
     SmallFont, false, true,
     MENU_ID_MAIN
 };
 
-static void M_Draw_ID_Misc (void)
+static void M_Draw_ID_Misc_1 (void)
 {
     char str[32];
     const char *bobpercent[] = {
@@ -4798,6 +4825,7 @@ static void M_Draw_ID_Misc (void)
         "NONE","PROTANOPIA","PROTANOMALY","DEUTERANOPIA","DEUTERANOMALY",
         "TRITANOPIA","TRITANOMALY","ACHROMATOPSIA","ACHROMATOMALY"
     };
+    Misc_Cur = (MenuType_t)MENU_ID_MISC1;
 
     MN_DrTextACentered("ACCESSIBILITY", 10, cr[CR_YELLOW]);
 
@@ -4942,6 +4970,11 @@ static void M_Draw_ID_Misc (void)
                 break;            
         }
     }
+    else
+    {
+        // < Scroll pages >
+        M_DrawScrollPages(ID_MENU_CTRLSOFFSET, 160, 14, "1/2");
+    }
 }
 
 static void M_ID_Misc_A11yInvul (int choice)
@@ -5013,6 +5046,114 @@ static void M_ID_Misc_Launcher (int choice)
     show_startup_launcher ^= 1;
 }
 #endif
+
+static MenuItem_t ID_Menu_Misc_2[] = {
+    { ITT_LRFUNC1, "ENABLE REWIND",   M_ID_Misc_RewindEnable,   0, MENU_NONE },
+    { ITT_LRFUNC1, "REWIND INTERWAL", M_ID_Misc_RewindInterwal, 0, MENU_NONE },
+    { ITT_LRFUNC1, "REWIND DEPTH",    M_ID_Misc_RewindDepth,    0, MENU_NONE },
+    { ITT_LRFUNC1, "REWIND TIMEOUT",  M_ID_Misc_RewindTimeout,  0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
+    { ITT_LRFUNC2, "", /* SCROLLS PAGES */ M_ScrollMisc,        0, MENU_NONE },
+};
+
+static Menu_t ID_Def_Misc_2 = {
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_Misc_2,
+    ITEMCOUNT(ID_Menu_Misc_2), ID_Menu_Misc_2,
+    0,
+    SmallFont, false, true,
+    MENU_ID_MAIN
+};
+
+static void M_Draw_ID_Misc_2 (void)
+{
+    char str[32];
+
+    Misc_Cur = (MenuType_t)MENU_ID_MISC2;
+
+    MN_DrTextACentered("REWIND", 10, cr[CR_YELLOW]);
+
+    // Enable rewind
+    sprintf(str, crl_rewind_auto ? "ON" : "OFF");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
+                        crl_rewind_auto ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            crl_rewind_auto ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(0));
+
+    // Rewind interwal
+    sprintf(str, crl_rewind_interval == 1 ? "1 SECOND" : "%d SECONDS", crl_rewind_interval);
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 30,
+                       !crl_rewind_auto ? cr[CR_DARKRED] :
+                        crl_rewind_interval == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                           !crl_rewind_auto ? cr[CR_RED_BRIGHT] : 
+                            crl_rewind_interval == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(1));
+
+    // Rewind depth
+    sprintf(str, crl_rewind_depth == 1 ? "%d KEY FRAME" : "%d KEY FRAMES", crl_rewind_depth);
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
+                       !crl_rewind_auto ? cr[CR_DARKRED] :
+                        crl_rewind_depth == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                           !crl_rewind_auto ? cr[CR_RED_BRIGHT] :
+                            crl_rewind_depth == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(2));
+
+    // Rewind timeout
+    sprintf(str, crl_rewind_timeout == 0 ? "NO LIMIT" :
+                 crl_rewind_timeout == 1 ? "1 MILLISECOND" : "%d MILLISECONDS", crl_rewind_timeout);
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+                       !crl_rewind_auto ? cr[CR_DARKRED] :
+                        crl_rewind_timeout == 25 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                           !crl_rewind_auto ? cr[CR_RED_BRIGHT] :
+                            crl_rewind_timeout == 25 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(3));
+
+    // < Scroll pages >
+    M_DrawScrollPages(ID_MENU_CTRLSOFFSET, 160, 14, "2/2");
+}
+
+static void M_ID_Misc_RewindEnable (int choice)
+{
+    crl_rewind_auto ^= 1;
+
+    // Clear key frames after disabling.
+    if (!crl_rewind_auto)
+    {
+        G_ResetRewind(true);
+    }
+}
+
+static void M_ID_Misc_RewindInterwal (int choice)
+{
+    crl_rewind_interval = M_INT_Slider(crl_rewind_interval, 1, 600, choice, false);
+}
+
+static void M_ID_Misc_RewindDepth (int choice)
+{
+    crl_rewind_depth = M_INT_Slider(crl_rewind_depth, 10, 600, choice, false);
+}
+
+static void M_ID_Misc_RewindTimeout (int choice)
+{
+    crl_rewind_timeout = M_INT_Slider(crl_rewind_timeout, 0, 25, choice, false);
+}
+
+static void M_ScrollMisc (int choice)
+{
+         if (CurrentMenu == &ID_Def_Misc_1) { SetMenu(MENU_ID_MISC2); }
+    else if (CurrentMenu == &ID_Def_Misc_2) { SetMenu(MENU_ID_MISC1); }
+
+    CurrentItPos = 14;
+}
 
 // -----------------------------------------------------------------------------
 // Level select 1
@@ -5909,7 +6050,8 @@ static Menu_t *Menus[] = {
     &ID_Def_Gameplay_2,
     &ID_Def_Gameplay_3,
     &ID_Def_Gameplay_4,
-    &ID_Def_Misc,
+    &ID_Def_Misc_1,
+    &ID_Def_Misc_2,
     &ID_Def_Level_1,
     &ID_Def_Level_2,
     &ID_Def_Level_3,
@@ -5944,6 +6086,7 @@ void MN_Init(void)
     // [JN] Apply default first page of Keybinds, Gameplay and Gamepad menus.
     Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS1;
     Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY1;
+    Misc_Cur = (MenuType_t)MENU_ID_MISC1;
     GamepadBinds_Cur = (MenuType_t)MENU_ID_GAMEPADBINDS;
 
     // [PN] Migrate legacy one-stick defaults to Crispy-like twin-stick layout:
