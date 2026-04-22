@@ -5083,38 +5083,38 @@ static void M_Draw_ID_Misc_2 (void)
     MN_DrTextACentered("REWIND", 10, cr[CR_YELLOW]);
 
     // Enable rewind
-    sprintf(str, crl_rewind_auto ? "ON" : "OFF");
+    sprintf(str, rewind_enable ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
-                        crl_rewind_auto ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            crl_rewind_auto ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                        rewind_enable ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            rewind_enable ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(0));
 
     // Rewind interwal
-    sprintf(str, crl_rewind_interval == 1 ? "1 SECOND" : "%d SECONDS", crl_rewind_interval);
+    sprintf(str, rewind_interval == 1 ? "1 SECOND" : "%d SECONDS", rewind_interval);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 30,
-                       !crl_rewind_auto ? cr[CR_DARKRED] :
-                        crl_rewind_interval == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
-                           !crl_rewind_auto ? cr[CR_RED_BRIGHT] : 
-                            crl_rewind_interval == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                       !rewind_enable ? cr[CR_DARKRED] :
+                        rewind_interval == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                           !rewind_enable ? cr[CR_RED_BRIGHT] : 
+                            rewind_interval == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(1));
 
     // Rewind depth
-    sprintf(str, crl_rewind_depth == 1 ? "%d KEY FRAME" : "%d KEY FRAMES", crl_rewind_depth);
+    sprintf(str, rewind_depth == 1 ? "%d KEY FRAME" : "%d KEY FRAMES", rewind_depth);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
-                       !crl_rewind_auto ? cr[CR_DARKRED] :
-                        crl_rewind_depth == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
-                           !crl_rewind_auto ? cr[CR_RED_BRIGHT] :
-                            crl_rewind_depth == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                       !rewind_enable ? cr[CR_DARKRED] :
+                        rewind_depth == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                           !rewind_enable ? cr[CR_RED_BRIGHT] :
+                            rewind_depth == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(2));
 
     // Rewind timeout
-    sprintf(str, crl_rewind_timeout == 0 ? "NO LIMIT" :
-                 crl_rewind_timeout == 1 ? "1 MILLISECOND" : "%d MILLISECONDS", crl_rewind_timeout);
+    sprintf(str, rewind_timeout == 0 ? "NO LIMIT" :
+                 rewind_timeout == 1 ? "1 MILLISECOND" : "%d MILLISECONDS", rewind_timeout);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
-                       !crl_rewind_auto ? cr[CR_DARKRED] :
-                        crl_rewind_timeout == 25 ? cr[CR_YELLOW] : cr[CR_GREEN],
-                           !crl_rewind_auto ? cr[CR_RED_BRIGHT] :
-                            crl_rewind_timeout == 25 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                       !rewind_enable ? cr[CR_DARKRED] :
+                        rewind_timeout == 25 ? cr[CR_YELLOW] : cr[CR_GREEN],
+                           !rewind_enable ? cr[CR_RED_BRIGHT] :
+                            rewind_timeout == 25 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(3));
 
     // < Scroll pages >
@@ -5123,10 +5123,10 @@ static void M_Draw_ID_Misc_2 (void)
 
 static void M_ID_Misc_RewindEnable (int choice)
 {
-    crl_rewind_auto ^= 1;
+    rewind_enable ^= 1;
 
     // Clear key frames after disabling.
-    if (!crl_rewind_auto)
+    if (!rewind_enable)
     {
         G_ResetRewind(true);
     }
@@ -5134,17 +5134,17 @@ static void M_ID_Misc_RewindEnable (int choice)
 
 static void M_ID_Misc_RewindInterwal (int choice)
 {
-    crl_rewind_interval = M_INT_Slider(crl_rewind_interval, 1, 600, choice, false);
+    rewind_interval = M_INT_Slider(rewind_interval, 1, 600, choice, false);
 }
 
 static void M_ID_Misc_RewindDepth (int choice)
 {
-    crl_rewind_depth = M_INT_Slider(crl_rewind_depth, 10, 600, choice, false);
+    rewind_depth = M_INT_Slider(rewind_depth, 10, 600, choice, false);
 }
 
 static void M_ID_Misc_RewindTimeout (int choice)
 {
-    crl_rewind_timeout = M_INT_Slider(crl_rewind_timeout, 0, 25, choice, false);
+    rewind_timeout = M_INT_Slider(rewind_timeout, 0, 25, choice, false);
 }
 
 static void M_ScrollMisc (int choice)

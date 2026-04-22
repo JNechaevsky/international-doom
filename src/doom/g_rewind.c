@@ -55,17 +55,17 @@ static boolean RewindAllowedGamestate(void)
 
 static int RewindIntervalTics(void)
 {
-    return TICRATE * BETWEEN(1, 600, crl_rewind_interval);
+    return TICRATE * BETWEEN(1, 600, rewind_interval);
 }
 
 static int RewindDepth(void)
 {
-    return BETWEEN(10, 600, crl_rewind_depth);
+    return BETWEEN(10, 600, rewind_depth);
 }
 
 static int RewindTimeout(void)
 {
-    return BETWEEN(0, 25, crl_rewind_timeout);
+    return BETWEEN(0, 25, rewind_timeout);
 }
 
 static void FreeKeyframe(keyframe_t *keyframe)
@@ -244,7 +244,7 @@ static void FreeKeyframeQueue(void)
 
 void G_Rewind(void)
 {
-    if (!crl_rewind_auto || netgame || demoplayback || demorecording || !RewindAllowedGamestate())
+    if (!rewind_enable || netgame || demoplayback || demorecording || !RewindAllowedGamestate())
     {
         CT_SetMessage(&players[consoleplayer], "REWIND NOT AVAILABLE", false, NULL);
         return;
@@ -259,7 +259,7 @@ void G_SaveAutoKeyframe(void)
     const int time = I_GetTime();
     keyframe_t *keyframe;
 
-    if (!crl_rewind_auto || disable_rewind || gamestate != GS_LEVEL
+    if (!rewind_enable || disable_rewind || gamestate != GS_LEVEL
      || netgame || demoplayback || demorecording || menuactive || paused)
     {
         return;

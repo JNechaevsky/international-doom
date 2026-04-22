@@ -238,11 +238,11 @@ int menu_cap_fps = 0;
 
 int crl_spectating = 0;  // RestlessRodent -- CRL
 int crl_freeze = 0;
-int crl_game_speed = 100;
-int crl_rewind_auto = 1;
-int crl_rewind_interval = 1;
-int crl_rewind_depth = 60;
-int crl_rewind_timeout = 10;
+int game_speed = 100;
+int rewind_enable = 1;
+int rewind_interval = 1;
+int rewind_depth = 60;
+int rewind_timeout = 10;
 
 
 // -----------------------------------------------------------------------------
@@ -548,9 +548,9 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("menu_cap_fps",                   &menu_cap_fps);
 
     // Game modes
-    M_BindIntVariable("crl_game_speed",                 &crl_game_speed);
-    M_BindIntVariable("crl_rewind_auto",                &crl_rewind_auto);
-    M_BindIntVariable("crl_rewind_interval",            &crl_rewind_interval);
-    M_BindIntVariable("crl_rewind_depth",               &crl_rewind_depth);
-    M_BindIntVariable("crl_rewind_timeout",             &crl_rewind_timeout);
+    M_BindIntVariable("game_speed",                     &game_speed);
+    M_BindIntVariable("rewind_enable",                  &rewind_enable);
+    M_BindIntVariable("rewind_interval",                &rewind_interval);
+    M_BindIntVariable("rewind_depth",                   &rewind_depth);
+    M_BindIntVariable("rewind_timeout",                 &rewind_timeout);
 }

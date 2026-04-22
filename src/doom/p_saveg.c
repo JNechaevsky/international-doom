@@ -79,36 +79,6 @@ static long saveg_ftell(void)
     return ftell(save_stream);
 }
 
-static int saveg_fseek(long position, int whence)
-{
-    if (save_memstream != NULL)
-    {
-        mem_rel_t mem_whence;
-
-        switch (whence)
-        {
-            case SEEK_SET:
-                mem_whence = MEM_SEEK_SET;
-                break;
-
-            case SEEK_CUR:
-                mem_whence = MEM_SEEK_CUR;
-                break;
-
-            case SEEK_END:
-                mem_whence = MEM_SEEK_END;
-                break;
-
-            default:
-                return -1;
-        }
-
-        return mem_fseek(save_memstream, position, mem_whence);
-    }
-
-    return fseek(save_stream, position, whence);
-}
-
 void P_OpenMemorySaveGame(void)
 {
     save_stream = NULL;

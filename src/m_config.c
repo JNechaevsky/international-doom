@@ -707,11 +707,11 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(menu_cap_fps),
 
     // Game modes
-    CONFIG_VARIABLE_INT(crl_game_speed),
-    CONFIG_VARIABLE_INT(crl_rewind_auto),
-    CONFIG_VARIABLE_INT(crl_rewind_interval),
-    CONFIG_VARIABLE_INT(crl_rewind_depth),
-    CONFIG_VARIABLE_INT(crl_rewind_timeout),
+    CONFIG_VARIABLE_INT(game_speed),
+    CONFIG_VARIABLE_INT(rewind_enable),
+    CONFIG_VARIABLE_INT(rewind_interval),
+    CONFIG_VARIABLE_INT(rewind_depth),
+    CONFIG_VARIABLE_INT(rewind_timeout),
 };
 
 static default_collection_t doom_defaults =

@@ -156,7 +156,7 @@ fixed_t sidemove_original[2] = { 0x18, 0x28 };
 fixed_t *sidemove = sidemove_original;
 fixed_t angleturn[3] = { 640, 1280, 320 };      // + slow turn
 
-static const int crl_game_speed_steps[] =
+static const int game_speed_steps[] =
 {
     3, 4, 5, 6, 7, 8, 9, 10,
     15, 20, 25, 30, 35, 40, 45, 50,
@@ -178,33 +178,33 @@ static int G_CRL_NextGameSpeed (int direction)
 
     if (direction > 0)
     {
-        for (i = 0 ; i < arrlen(crl_game_speed_steps) ; i++)
+        for (i = 0 ; i < arrlen(game_speed_steps) ; i++)
         {
-            if (crl_game_speed < crl_game_speed_steps[i])
+            if (game_speed < game_speed_steps[i])
             {
-                return crl_game_speed_steps[i];
+                return game_speed_steps[i];
             }
         }
 
-        return crl_game_speed_steps[arrlen(crl_game_speed_steps) - 1];
+        return game_speed_steps[arrlen(game_speed_steps) - 1];
     }
 
-    for (i = arrlen(crl_game_speed_steps) - 1 ; i >= 0 ; i--)
+    for (i = arrlen(game_speed_steps) - 1 ; i >= 0 ; i--)
     {
-        if (crl_game_speed > crl_game_speed_steps[i])
+        if (game_speed > game_speed_steps[i])
         {
-            return crl_game_speed_steps[i];
+            return game_speed_steps[i];
         }
     }
 
-    return crl_game_speed_steps[0];
+    return game_speed_steps[0];
 }
 
 // [PN] Clamp and apply the current game speed to the local game clock.
 void G_CRL_SetGameSpeed (int speed)
 {
-    crl_game_speed = BETWEEN(3, 10000, speed);
-    I_SetTimeScale(netgame ? 100 : crl_game_speed);
+    game_speed = BETWEEN(3, 10000, speed);
+    I_SetTimeScale(netgame ? 100 : game_speed);
 }
 
 // [PN] Step game speed up/down or reset it and report the new value to the player.
@@ -220,7 +220,7 @@ void G_CRL_ChangeGameSpeed (int direction, boolean show_message)
 
     G_CRL_SetGameSpeed(G_CRL_NextGameSpeed(direction));
 
-    M_snprintf(msg, sizeof(msg), "GAME SPEED: %d%%", crl_game_speed);
+    M_snprintf(msg, sizeof(msg), "GAME SPEED: %d%%", game_speed);
     CT_SetMessage(&players[consoleplayer], msg, false, NULL);
 }
 
