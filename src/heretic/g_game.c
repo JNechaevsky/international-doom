@@ -35,6 +35,7 @@
 #include "m_misc.h"
 #include "m_random.h"
 #include "p_local.h"
+#include "g_rewind.h"
 #include "s_sound.h"
 #include "v_video.h"
 
@@ -1502,6 +1503,13 @@ boolean G_Responder(event_t * ev)
         return (false); 
     } 
 
+    if (ev->type == ev_keydown
+     && (ev->data1 == key_rewind || ev->data1 == key_rewind2))
+    {
+        G_Rewind();
+        return true;
+    }
+
     if (gamestate == GS_LEVEL)
     {
         if (CT_Responder(ev))
@@ -1856,6 +1864,9 @@ void G_Ticker(void)
             case ga_playdemo:
                 G_DoPlayDemo();
                 break;
+            case ga_rewind:
+                G_LoadAutoKeyframe();
+                break;
             case ga_screenshot:
                 V_ScreenShot("HTIC%02i.%s");
                 gameaction = ga_nothing;
@@ -2006,6 +2017,7 @@ void G_Ticker(void)
             P_Ticker();
             SB_Ticker();
             AM_Ticker();
+            G_SaveAutoKeyframe();
             // [JN] Not really needed in single player game.
             if (netgame)
             {
@@ -2539,6 +2551,7 @@ static void G_DoWorldDone(void)
     // [JN] jff 3/17/98 allow new level's music to be loaded
     idmusnum = -1;
     gamestate = GS_LEVEL;
+    G_ResetRewind(false);
     G_DoLoadLevel();
     gameaction = ga_nothing;
     // [JN] jff 4/12/98 clear any marks on the automap
@@ -2866,6 +2879,7 @@ void G_InitNew(skill_t skill, int episode, int map)
 
     // [crispy] CPhipps - total time for all completed levels
     totalleveltimes = 0;
+    G_ResetRewind(true);
 
     // [crispy] track intermission at end of episode
     finalintermission = false;

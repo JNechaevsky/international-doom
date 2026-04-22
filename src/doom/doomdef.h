@@ -74,7 +74,8 @@ typedef enum
     ga_completed,
     ga_victory,
     ga_worlddone,
-    ga_screenshot
+    ga_screenshot,
+    ga_rewind
 } gameaction_t;
 
 

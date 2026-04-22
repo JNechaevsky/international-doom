@@ -32,6 +32,7 @@
 #include "m_controls.h"
 #include "m_misc.h"
 #include "p_local.h"
+#include "g_rewind.h"
 #include "v_video.h"
 #include "am_map.h"
 #include "ct_chat.h"
@@ -1468,6 +1469,13 @@ boolean G_Responder(event_t * ev)
         return (false); 
     } 
 
+    if (ev->type == ev_keydown
+     && (ev->data1 == key_rewind || ev->data1 == key_rewind2))
+    {
+        G_Rewind();
+        return true;
+    }
+
     if (CT_Responder(ev))
     {                           // Chat ate the event
         return (true);
@@ -1859,6 +1867,9 @@ void G_Ticker(void)
             case ga_playdemo:
                 G_DoPlayDemo();
                 break;
+            case ga_rewind:
+                G_LoadAutoKeyframe();
+                break;
             case ga_screenshot:
                 V_ScreenShot("HEXEN%02i.%s");
                 gameaction = ga_nothing;
@@ -2008,6 +2019,7 @@ void G_Ticker(void)
             P_Ticker();
             SB_Ticker();
             AM_Ticker();
+            G_SaveAutoKeyframe();
             // [JN] Not really needed in single player game.
             if (netgame)
             {
@@ -2396,6 +2408,7 @@ void G_ScreenShot(void)
 
 void G_StartNewInit(void)
 {
+    G_ResetRewind(true);
     SV_InitBaseSlot();
     SV_ClearRebornSlot();
     P_ACSInitNewGame();
@@ -2447,6 +2460,7 @@ void G_TeleportNewMap(int map, int position)
 void G_DoTeleportNewMap(void)
 {
     SV_MapTeleport(LeaveMap, LeavePosition);
+    G_ResetRewind(false);
     gamestate = GS_LEVEL;
     gameaction = ga_nothing;
     RebornPosition = LeavePosition;
@@ -2576,6 +2590,7 @@ void G_WorldDone(void)
 void G_DoWorldDone(void)
 {
     gamestate = GS_LEVEL;
+    G_ResetRewind(false);
     G_DoLoadLevel();
     gameaction = ga_nothing;
     viewactive = true;
@@ -2671,6 +2686,7 @@ void G_DoLoadGame(void)
     }
 
     // [crispy] support multiple pages of saves
+    G_ResetRewind(true);
     SV_LoadGame(slot, force_load_requested);
     if (!netgame)
     {                           // Copy the base slot to the reborn slot

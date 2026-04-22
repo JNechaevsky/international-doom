@@ -86,6 +86,7 @@ extern int key_shorttics, key_shorttics2;
 extern int key_speed_up, key_speed_up2;       // [PN]
 extern int key_speed_down, key_speed_down2;   // [PN]
 extern int key_speed_reset, key_speed_reset2; // [PN]
+extern int key_rewind, key_rewind2;           // [PN]
 
 // Weapons
 

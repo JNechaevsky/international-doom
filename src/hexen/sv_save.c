@@ -22,6 +22,7 @@
 #include "h2def.h"
 #include "i_video.h"
 #include "i_system.h"
+#include "memio.h"
 #include "m_misc.h"
 #include "i_swap.h"
 #include "p_local.h"
@@ -127,8 +128,12 @@ static void CopyFile(char *source_name, char *dest_name);
 static boolean ExistingFile(char *name);
 static void SV_OpenRead(char *fileName);
 static void SV_OpenWrite(char *fileName);
+static void SV_OpenMemoryRead(byte *data, size_t len);
+static void SV_OpenMemoryWrite(void);
 static void SV_Close(void);
+static boolean SV_CloseMemoryWrite(byte **data, size_t *len);
 static void SV_Read(void *buffer, int size);
+static int SV_Seek(long position, int whence);
 static byte SV_ReadByte(void);
 static uint16_t SV_ReadWord(void);
 static uint32_t SV_ReadLong(void);
@@ -163,6 +168,7 @@ static mobj_t ***TargetPlayerAddrs;
 static int TargetPlayerCount;
 static boolean SavingPlayers;
 static FILE *SavingFP;
+static MEMFILE *SavingMemFP;
 
 // CODE --------------------------------------------------------------------
 
@@ -2345,7 +2351,7 @@ void SV_LoadGame(int slot, boolean skip_wad_check)
     SV_OpenRead(fileName);
 
     // Set the save pointer and skip the description field
-    fseek(SavingFP, HXS_DESCRIPTION_LENGTH, SEEK_CUR);
+    SV_Seek(HXS_DESCRIPTION_LENGTH, SEEK_CUR);
 
     // Check the version text
 
@@ -2469,6 +2475,198 @@ void SV_LoadGame(int slot, boolean skip_wad_check)
     P_InitSlideLine();
 }
 
+boolean SV_SaveRewind(byte **data, size_t *len)
+{
+    char descriptionText[HXS_DESCRIPTION_LENGTH];
+    char versionText[HXS_VERSION_TEXT_LENGTH];
+    char mapname[9];
+    char wadname[SAVEGAME_WADNAMESIZE];
+    const char *wad_file;
+    unsigned int i;
+
+    memset(descriptionText, 0, sizeof(descriptionText));
+    M_StringCopy(descriptionText, "REWIND", sizeof(descriptionText));
+
+    memset(versionText, 0, sizeof(versionText));
+    M_StringCopy(versionText, HXS_VERSION_TEXT, sizeof(versionText));
+
+    memset(wadname, 0, sizeof(wadname));
+    wad_file = SV_GetMapWadName(gamemap, mapname);
+
+    if (wad_file != NULL)
+    {
+        M_StringCopy(wadname, wad_file, sizeof(wadname));
+    }
+
+    SV_OpenMemoryWrite();
+    SV_Write(descriptionText, HXS_DESCRIPTION_LENGTH);
+    SV_Write(versionText, HXS_VERSION_TEXT_LENGTH);
+    SV_WriteLong(ASEG_GAME_HEADER);
+    SV_WriteByte(gamemap);
+    SV_WriteByte(gameskill);
+
+    for (i = 0; i < sizeof(savegame_wad_header); ++i)
+    {
+        SV_WriteByte(savegame_wad_header[i]);
+    }
+
+    SV_Write(wadname, SAVEGAME_WADNAMESIZE);
+
+    for (i = 0; i < MAX_ACS_WORLD_VARS; ++i)
+    {
+        SV_WriteLong(WorldVars[i]);
+    }
+
+    for (i = 0; i < MAX_ACS_STORE + 1; ++i)
+    {
+        StreamOut_acsstore_t(&ACSStore[i]);
+    }
+
+    // Rewind snapshots must include player mobjs, otherwise player->mo
+    // becomes NULL after restore.
+    SavingPlayers = true;
+    ArchivePlayers();
+    SV_WriteLong(ASEG_MAP_HEADER);
+    SV_WriteLong(leveltime);
+    SetMobjArchiveNums();
+    ArchiveWorld();
+    ArchivePolyobjs();
+    ArchiveMobjs();
+    ArchiveThinkers();
+    ArchiveScripts();
+    ArchiveSounds();
+    ArchiveMisc();
+    ArchiveAutomap();
+    SV_WriteLong(ASEG_END);
+
+    return SV_CloseMemoryWrite(data, len);
+}
+
+boolean SV_LoadRewind(byte *data, size_t len)
+{
+    int i;
+    char version_text[HXS_VERSION_TEXT_LENGTH];
+    byte wad_header[4];
+    player_t playerBackup[MAXPLAYERS];
+    mobj_t *mobj;
+    player_t *p = &players[consoleplayer];
+
+    SV_OpenMemoryRead(data, len);
+    SV_Seek(HXS_DESCRIPTION_LENGTH, SEEK_SET);
+    SV_Read(version_text, HXS_VERSION_TEXT_LENGTH);
+
+    if (strncmp(version_text, HXS_VERSION_TEXT, HXS_VERSION_TEXT_LENGTH) != 0)
+    {
+        SV_Close();
+        return false;
+    }
+
+    AssertSegment(ASEG_GAME_HEADER);
+
+    gameepisode = 1;
+    gamemap = SV_ReadByte();
+    gameskill = SV_ReadByte();
+
+    for (i = 0; i < sizeof(wad_header); ++i)
+    {
+        wad_header[i] = SV_ReadByte();
+    }
+
+    if (memcmp(wad_header, savegame_wad_header, sizeof(wad_header)) != 0)
+    {
+        SV_Close();
+        return false;
+    }
+
+    {
+        char save_wad[SAVEGAME_WADNAMESIZE];
+        SV_Read(save_wad, SAVEGAME_WADNAMESIZE);
+    }
+
+    for (i = 0; i < MAX_ACS_WORLD_VARS; ++i)
+    {
+        WorldVars[i] = SV_ReadLong();
+    }
+
+    for (i = 0; i < MAX_ACS_STORE + 1; ++i)
+    {
+        StreamIn_acsstore_t(&ACSStore[i]);
+    }
+
+    UnarchivePlayers();
+    AssertSegment(ASEG_MAP_HEADER);
+
+    for (i = 0; i < maxplayers; ++i)
+    {
+        playerBackup[i] = players[i];
+    }
+
+    G_InitNew(gameskill, gameepisode, gamemap);
+    wipegamestate = gamestate;
+
+    RemoveAllThinkers();
+    leveltime = SV_ReadLong();
+    UnarchiveWorld();
+    UnarchivePolyobjs();
+    P_RestoreSectorBrightness();
+    UnarchiveMobjs();
+    UnarchiveThinkers();
+    UnarchiveScripts();
+    UnarchiveSounds();
+    UnarchiveMisc();
+    UnarchiveAutomap();
+    AssertSegment(ASEG_END);
+
+    if (MobjList != NULL)
+    {
+        Z_Free(MobjList);
+        MobjList = NULL;
+    }
+
+    SV_Close();
+
+    if (TargetPlayerAddrs != NULL)
+    {
+        Z_Free(TargetPlayerAddrs);
+        TargetPlayerAddrs = NULL;
+    }
+
+    inv_ptr = 0;
+    curpos = 0;
+
+    for (i = 0; i < maxplayers; ++i)
+    {
+        mobj = players[i].mo;
+        players[i] = playerBackup[i];
+        players[i].mo = mobj;
+    }
+
+    for (i = 0; i < p->inventorySlotNum; ++i)
+    {
+        if (p->inventory[i].type == p->readyArtifact)
+        {
+            curpos = inv_ptr = i;
+            curpos = (curpos > CURPOS_MAX) ? CURPOS_MAX : curpos;
+            p->readyArtifact = p->inventory[inv_ptr].type;
+            break;
+        }
+    }
+
+    P_InitSlideLine();
+    SB_SetClassData();
+
+    if (setsizeneeded)
+    {
+        R_ExecuteSetViewSize();
+    }
+
+    R_FillBackScreen();
+    gamestate = GS_LEVEL;
+    viewactive = true;
+
+    return true;
+}
+
 //==========================================================================
 //
 // SV_UpdateRebornSlot
@@ -2554,7 +2752,26 @@ void SV_MapTeleport(int map, int position)
                 "%shex%d%02d.sav", SavePath, BASE_SLOT, gamemap);
     if (!deathmatch && ExistingFile(fileName))
     {                           // Unarchive map
+        thinker_t *thinker;
+        thinker_t *nextThinker;
+
         SV_LoadMap();
+
+        // Saved hub maps may contain player mobjs (eg from reborn saves).
+        // Remove them before P_SpawnPlayer() to avoid self-telefrag duplicates.
+        thinker = thinkercap.next;
+        while (thinker != &thinkercap)
+        {
+            nextThinker = thinker->next;
+
+            if (thinker->function == P_MobjThinker
+             && ((mobj_t *) thinker)->player != NULL)
+            {
+                P_RemoveMobj((mobj_t *) thinker);
+            }
+
+            thinker = nextThinker;
+        }
     }
     else
     {                           // New map
@@ -2833,8 +3050,16 @@ static void ArchiveWorld(void)
     SV_WriteLong(ASEG_WORLD);
     for (i = 0, sec = sectors; i < numsectors; i++, sec++)
     {
-        SV_WriteWord(sec->floorheight >> FRACBITS);
-        SV_WriteWord(sec->ceilingheight >> FRACBITS);
+        if (SavingMemFP != NULL)
+        {
+            SV_WriteLong(sec->floorheight);
+            SV_WriteLong(sec->ceilingheight);
+        }
+        else
+        {
+            SV_WriteWord(sec->floorheight >> FRACBITS);
+            SV_WriteWord(sec->ceilingheight >> FRACBITS);
+        }
         SV_WriteWord(sec->floorpic);
         SV_WriteWord(sec->ceilingpic);
         SV_WriteWord(sec->lightlevel);
@@ -2858,8 +3083,16 @@ static void ArchiveWorld(void)
                 continue;
             }
             si = &sides[li->sidenum[j]];
-            SV_WriteWord(si->textureoffset >> FRACBITS);
-            SV_WriteWord(si->rowoffset >> FRACBITS);
+            if (SavingMemFP != NULL)
+            {
+                SV_WriteLong(si->textureoffset);
+                SV_WriteLong(si->rowoffset);
+            }
+            else
+            {
+                SV_WriteWord(si->textureoffset >> FRACBITS);
+                SV_WriteWord(si->rowoffset >> FRACBITS);
+            }
             SV_WriteWord(si->toptexture);
             SV_WriteWord(si->bottomtexture);
             SV_WriteWord(si->midtexture);
@@ -2884,8 +3117,16 @@ static void UnarchiveWorld(void)
     AssertSegment(ASEG_WORLD);
     for (i = 0, sec = sectors; i < numsectors; i++, sec++)
     {
-        sec->floorheight = SV_ReadWord() << FRACBITS;
-        sec->ceilingheight = SV_ReadWord() << FRACBITS;
+        if (SavingMemFP != NULL)
+        {
+            sec->floorheight = SV_ReadLong();
+            sec->ceilingheight = SV_ReadLong();
+        }
+        else
+        {
+            sec->floorheight = SV_ReadWord() << FRACBITS;
+            sec->ceilingheight = SV_ReadWord() << FRACBITS;
+        }
         sec->floorpic = SV_ReadWord();
         sec->ceilingpic = SV_ReadWord();
         sec->lightlevel = SV_ReadWord();
@@ -2911,8 +3152,16 @@ static void UnarchiveWorld(void)
                 continue;
             }
             si = &sides[li->sidenum[j]];
-            si->textureoffset = SV_ReadWord() << FRACBITS;
-            si->rowoffset = SV_ReadWord() << FRACBITS;
+            if (SavingMemFP != NULL)
+            {
+                si->textureoffset = SV_ReadLong();
+                si->rowoffset = SV_ReadLong();
+            }
+            else
+            {
+                si->textureoffset = SV_ReadWord() << FRACBITS;
+                si->rowoffset = SV_ReadWord() << FRACBITS;
+            }
             si->toptexture = SV_ReadWord();
             si->bottomtexture = SV_ReadWord();
             si->midtexture = SV_ReadWord();
@@ -3796,6 +4045,7 @@ static boolean ExistingFile(char *name)
 static void SV_OpenRead(char *fileName)
 {
     SavingFP = M_fopen(fileName, "rb");
+    SavingMemFP = NULL;
 
     // Should never happen, only if hex6.sav cannot ever be created.
     if (SavingFP == NULL)
@@ -3807,6 +4057,55 @@ static void SV_OpenRead(char *fileName)
 static void SV_OpenWrite(char *fileName)
 {
     SavingFP = M_fopen(fileName, "wb");
+    SavingMemFP = NULL;
+}
+
+static void SV_OpenMemoryRead(byte *data, size_t len)
+{
+    SavingFP = NULL;
+    SavingMemFP = mem_fopen_read(data, len);
+}
+
+static void SV_OpenMemoryWrite(void)
+{
+    SavingFP = NULL;
+    SavingMemFP = mem_fopen_write();
+}
+
+static boolean SV_CloseMemoryWrite(byte **data, size_t *len)
+{
+    void *buf;
+    size_t buflen;
+
+    *data = NULL;
+    *len = 0;
+
+    if (SavingMemFP == NULL)
+    {
+        return false;
+    }
+
+    mem_get_buf(SavingMemFP, &buf, &buflen);
+
+    if (buflen > 0)
+    {
+        *data = malloc(buflen);
+
+        if (*data == NULL)
+        {
+            mem_fclose(SavingMemFP);
+            SavingMemFP = NULL;
+            return false;
+        }
+
+        memcpy(*data, buf, buflen);
+        *len = buflen;
+    }
+
+    mem_fclose(SavingMemFP);
+    SavingMemFP = NULL;
+
+    return *data != NULL;
 }
 
 //==========================================================================
@@ -3817,6 +4116,12 @@ static void SV_OpenWrite(char *fileName)
 
 static void SV_Close(void)
 {
+    if (SavingMemFP)
+    {
+        mem_fclose(SavingMemFP);
+        SavingMemFP = NULL;
+    }
+
     if (SavingFP)
     {
         fclose(SavingFP);
@@ -3832,12 +4137,52 @@ static void SV_Close(void)
 
 static void SV_Read(void *buffer, int size)
 {
-    int retval = fread(buffer, 1, size, SavingFP);
+    int retval;
+
+    if (SavingMemFP != NULL)
+    {
+        retval = mem_fread(buffer, 1, size, SavingMemFP);
+    }
+    else
+    {
+        retval = fread(buffer, 1, size, SavingFP);
+    }
+
     if (retval != size)
     {
         I_Error("Incomplete read in SV_Read: Expected %d, got %d bytes",
             size, retval);
     }
+}
+
+static int SV_Seek(long position, int whence)
+{
+    if (SavingMemFP != NULL)
+    {
+        mem_rel_t mem_whence;
+
+        switch (whence)
+        {
+            case SEEK_SET:
+                mem_whence = MEM_SEEK_SET;
+                break;
+
+            case SEEK_CUR:
+                mem_whence = MEM_SEEK_CUR;
+                break;
+
+            case SEEK_END:
+                mem_whence = MEM_SEEK_END;
+                break;
+
+            default:
+                return -1;
+        }
+
+        return mem_fseek(SavingMemFP, position, mem_whence);
+    }
+
+    return fseek(SavingFP, position, whence);
 }
 
 static byte SV_ReadByte(void)
@@ -3881,24 +4226,31 @@ static void *SV_ReadPtr(void)
 
 static void SV_Write(const void *buffer, int size)
 {
-    fwrite(buffer, size, 1, SavingFP);
+    if (SavingMemFP != NULL)
+    {
+        mem_fwrite(buffer, size, 1, SavingMemFP);
+    }
+    else
+    {
+        fwrite(buffer, size, 1, SavingFP);
+    }
 }
 
 static void SV_WriteByte(byte val)
 {
-    fwrite(&val, sizeof(byte), 1, SavingFP);
+    SV_Write(&val, sizeof(byte));
 }
 
 static void SV_WriteWord(unsigned short val)
 {
     val = SHORT(val);
-    fwrite(&val, sizeof(unsigned short), 1, SavingFP);
+    SV_Write(&val, sizeof(unsigned short));
 }
 
 static void SV_WriteLong(unsigned int val)
 {
     val = LONG(val);
-    fwrite(&val, sizeof(int), 1, SavingFP);
+    SV_Write(&val, sizeof(int));
 }
 
 static void SV_WriteLongLong(int64_t val)

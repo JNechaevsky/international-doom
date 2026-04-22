@@ -110,7 +110,8 @@ typedef enum
     ga_completed,
     ga_victory,
     ga_worlddone,
-    ga_screenshot
+    ga_screenshot,
+    ga_rewind
 } gameaction_t;
 
 typedef enum
@@ -771,12 +772,16 @@ void G_SaveGame(int slot, char *description);
 char *SV_Filename(int slot);
 void SV_Open(char *fileName);
 void SV_OpenRead(char *filename);
+void SV_OpenMemoryRead(byte *data, size_t len);
+void SV_OpenMemoryWrite(void);
 void SV_WriteSaveGameEOF(void);
 void SV_Close(void);
+boolean SV_CloseMemoryWrite(byte **data, size_t *len);
 void SV_Write(const void *buffer, int size);
 void SV_WriteByte(byte val);
 void SV_Read(void *buffer, int size);
 byte SV_ReadByte(void);
+int SV_Seek(long position, int whence);
 
 extern char *savegamedir;
 extern char  savename[256];

@@ -204,6 +204,10 @@ extern int menu_cap_fps;
 extern int crl_spectating;
 extern int crl_freeze;
 extern int crl_game_speed;
+extern int crl_rewind_auto;
+extern int crl_rewind_interval;
+extern int crl_rewind_depth;
+extern int crl_rewind_timeout;
 
 
 // Mouse look

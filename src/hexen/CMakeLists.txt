@@ -8,6 +8,7 @@ add_library(hexen STATIC
             f_finale.c
             f_wipe.c            f_wipe.h
             g_game.c
+            g_rewind.c          g_rewind.h
                                 h2def.h
             h2_main.c
             id_func.c           id_func.h

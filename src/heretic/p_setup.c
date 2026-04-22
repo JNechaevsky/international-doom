@@ -30,6 +30,7 @@
 #include "m_argv.h"
 #include "m_bbox.h"
 #include "p_local.h"
+#include "g_rewind.h"
 #include "r_collight.h"
 #include "s_sound.h"
 
@@ -119,6 +120,7 @@ typedef enum
     MFMT_DEEPBSP = 0x001,
     MFMT_ZDBSPX  = 0x002,
     MFMT_ZDBSPZ  = 0x004,
+    MFMT_NONODES = 0x008,
     MFMT_HEXEN   = 0x100,
 } mapformat_t;
 
@@ -172,38 +174,28 @@ static mapformat_t P_CheckMapFormat(int lumpnum)
     if ((b = lumpnum+ML_BLOCKMAP+1) < numlumps &&
         !strncasecmp(lumpinfo[b]->name, "BEHAVIOR", 8))
     {
-	fprintf(stderr, "Hexen format (");
 	format |= MFMT_HEXEN;
     }
-    else
-	fprintf(stderr, "Heretic format (");
 
     if (!((b = lumpnum+ML_NODES) < numlumps &&
         (chk_nodes = W_CacheLumpNum(b, PU_CACHE)) &&
         W_LumpLength(b) > 0))
-	fprintf(stderr, "no nodes");
+	format |= MFMT_NONODES;
     else
     if (!memcmp(chk_nodes, "xNd4\0\0\0\0", 8))
     {
-	fprintf(stderr, "DeePBSP");
 	format |= MFMT_DEEPBSP;
     }
     else
     if (!memcmp(chk_nodes, "XNOD", 4))
     {
-	fprintf(stderr, "ZDBSP");
 	format |= MFMT_ZDBSPX;
     }
     else
     if (!memcmp(chk_nodes, "ZNOD", 4))
     {
-	fprintf(stderr, "compressed ZDBSP");
 	format |= MFMT_ZDBSPZ;
     }
-    else
-	fprintf(stderr, "BSP");
-
-    fprintf(stderr, "), ");
 
     if (chk_nodes)
     {
@@ -211,6 +203,20 @@ static mapformat_t P_CheckMapFormat(int lumpnum)
     }
 
     return format;
+}
+
+static const char *P_NodeFormatName(mapformat_t fmt)
+{
+    if (fmt & MFMT_NONODES)
+        return "no nodes";
+    if (fmt & MFMT_ZDBSPZ)
+        return "compressed ZDBSP";
+    if (fmt & MFMT_ZDBSPX)
+        return "ZDBSP";
+    if (fmt & MFMT_DEEPBSP)
+        return "DeePBSP";
+
+    return "BSP";
 }
 
 // [crispy] support maps with DeePBSP nodes
@@ -1780,9 +1786,6 @@ void P_SetupLevel (int episode, int map, int playermask, skill_t skill)
     // Reset timers
     leveltime = realleveltime = oldleveltime = 0;
 
-    // Log loading
-    printf("P_SetupLevel: E%dM%d, ", gameepisode, gamemap);
-
     // Load map format and data
     mapformat_t fmt    = P_CheckMapFormat(lumpnum);
     boolean validBMap  = P_LoadBlockMap(lumpnum + ML_BLOCKMAP);
@@ -1879,8 +1882,16 @@ void P_SetupLevel (int episode, int map, int playermask, skill_t skill)
 
     crl_spectating = 0;
 
-    // Log load time
-    printf("loaded in %d ms.\n", I_GetTimeMS() - starttime);
+    // Log load summary
+    if (!G_RewindIsRestoring())
+    {
+        const char *basefmt = (fmt & MFMT_HEXEN) ? "Hexen" : "Heretic";
+        const char *nodefmt = P_NodeFormatName(fmt);
+        const int load_ms = I_GetTimeMS() - starttime;
+
+        printf("P_SetupLevel: E%dM%d, %s format (%s), loaded in %d ms.\n",
+               gameepisode, gamemap, basefmt, nodefmt, load_ms);
+    }
 }
 
 // -----------------------------------------------------------------------------

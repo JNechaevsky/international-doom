@@ -29,6 +29,7 @@
 #include "m_bbox.h"
 #include "d_main.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "i_system.h"
 #include "i_timer.h"
 #include "w_wad.h"
@@ -1299,6 +1300,20 @@ static void P_LoadReject (int lumpnum)
     }
 }
 
+static const char *P_NodeFormatName(mapformat_t fmt)
+{
+    if (fmt & MFMT_NONODES)
+        return "no nodes";
+    if (fmt & MFMT_ZDBSPZ)
+        return "compressed ZDBSP";
+    if (fmt & MFMT_ZDBSPX)
+        return "ZDBSP";
+    if (fmt & MFMT_DEEPBSP)
+        return "DeePBSP";
+
+    return "BSP";
+}
+
 // -----------------------------------------------------------------------------
 // P_SetupLevel
 // -----------------------------------------------------------------------------
@@ -1347,12 +1362,6 @@ void P_SetupLevel (int episode, int map)
 
     // Reset timers
     leveltime = realleveltime = oldleveltime = 0;
-
-    // Log loading
-    if (gamemode == commercial)
-        printf("P_SetupLevel: MAP%02d, ", gamemap);
-    else
-        printf("P_SetupLevel: E%dM%d, ", gameepisode, gamemap);
 
     // Load map format and data
     mapformat_t fmt    = P_CheckMapFormat(lumpnum);
@@ -1418,8 +1427,20 @@ void P_SetupLevel (int episode, int map)
     P_LevelNameInit();
     crl_spectating = 0;
 
-    // Log load time
-    printf("loaded in %d ms.\n", I_GetTimeMS() - starttime);
+    // Log load summary
+    if (!G_RewindIsRestoring())
+    {
+        const char *basefmt = (fmt & MFMT_HEXEN) ? "Hexen" : "Doom";
+        const char *nodefmt = P_NodeFormatName(fmt);
+        const int load_ms = I_GetTimeMS() - starttime;
+
+        if (gamemode == commercial)
+            printf("P_SetupLevel: MAP%02d, %s format (%s), loaded in %d ms.\n",
+                   gamemap, basefmt, nodefmt, load_ms);
+        else
+            printf("P_SetupLevel: E%dM%d, %s format (%s), loaded in %d ms.\n",
+                   gameepisode, gamemap, basefmt, nodefmt, load_ms);
+    }
 }
 
 // -----------------------------------------------------------------------------

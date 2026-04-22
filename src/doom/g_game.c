@@ -59,6 +59,7 @@
 #include "w_wad.h"
 
 #include "p_local.h" 
+#include "g_rewind.h"
 
 #include "s_sound.h"
 
@@ -1217,6 +1218,13 @@ boolean G_Responder (event_t* ev)
 	return false; 
     } 
 
+    if (ev->type == ev_keydown
+     && (ev->data1 == key_rewind || ev->data1 == key_rewind2))
+    {
+        G_Rewind();
+        return true;
+    }
+
     if (gamestate == GS_LEVEL) 
     { 
 #if 0 
@@ -1621,6 +1629,9 @@ void G_Ticker (void)
 	  case ga_playdemo: 
 	    G_DoPlayDemo (); 
 	    break; 
+	  case ga_rewind:
+	    G_LoadAutoKeyframe();
+	    break;
 	  case ga_completed: 
 	    G_DoCompleted (); 
 	    break; 
@@ -1783,6 +1794,7 @@ void G_Ticker (void)
 	P_Ticker (); 
 	ST_Ticker (); 
 	AM_Ticker (); 
+	G_SaveAutoKeyframe ();
 	// [JN] Not really needed in single player game.
 	if (netgame)
 	{
@@ -2585,6 +2597,7 @@ void G_DoWorldDone (void)
     idmusnum = -1;  // [JN] jff 3/17/98 allow new level's music to be loaded
     gamestate = GS_LEVEL; 
     gamemap = wminfo.next+1; 
+    G_ResetRewind(false);
     G_DoLoadLevel (); 
     gameaction = ga_nothing; 
     AM_clearMarks();  // [JN] jff 4/12/98 clear any marks on the automap
@@ -3069,6 +3082,7 @@ G_InitNew
     totalleveltimes = 0;
     defdemotics = 0;
     demostarttic = gametic; // [crispy] fix revenant internal demo bug
+    G_ResetRewind(true);
 
     // [JN] jff 4/16/98 force marks on automap cleared every new level start
     AM_clearMarks();

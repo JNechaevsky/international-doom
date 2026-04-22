@@ -144,7 +144,8 @@ typedef enum
     ga_singlereborn,
     ga_victory,
     ga_worlddone,
-    ga_screenshot
+    ga_screenshot,
+    ga_rewind
 } gameaction_t;
 
 typedef enum
@@ -955,6 +956,8 @@ typedef enum
 
 void SV_SaveGame(int slot, const char *description);
 void SV_LoadGame(int slot, boolean skip_wad_check);
+boolean SV_SaveRewind(byte **data, size_t *len);
+boolean SV_LoadRewind(byte *data, size_t len);
 sv_wadcheck_result_t SV_CheckSaveGameWAD(int slot, char *required_wad,
                                          char *current_wad, char *mapname);
 void SV_RequestSavePreviewCapture(void);

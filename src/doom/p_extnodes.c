@@ -43,38 +43,28 @@ mapformat_t P_CheckMapFormat (int lumpnum)
     if ((b = lumpnum+ML_BLOCKMAP+1) < numlumps &&
         !strncasecmp(lumpinfo[b]->name, "BEHAVIOR", 8))
     {
-	fprintf(stderr, "Hexen format (");
 	format |= MFMT_HEXEN;
     }
-    else
-	fprintf(stderr, "Doom format (");
 
     if (!((b = lumpnum+ML_NODES) < numlumps &&
         (chk_nodes = W_CacheLumpNum(b, PU_CACHE)) &&
         W_LumpLength(b) > 0))
-	fprintf(stderr, "no nodes");
+	format |= MFMT_NONODES;
     else
     if (!memcmp(chk_nodes, "xNd4\0\0\0\0", 8))
     {
-	fprintf(stderr, "DeePBSP");
 	format |= MFMT_DEEPBSP;
     }
     else
     if (!memcmp(chk_nodes, "XNOD", 4))
     {
-	fprintf(stderr, "ZDBSP");
 	format |= MFMT_ZDBSPX;
     }
     else
     if (!memcmp(chk_nodes, "ZNOD", 4))
     {
-	fprintf(stderr, "compressed ZDBSP");
 	format |= MFMT_ZDBSPZ;
     }
-    else
-	fprintf(stderr, "BSP");
-
-    fprintf(stderr, "), ");
 
     if (chk_nodes)
 	W_ReleaseLumpNum(b);
@@ -629,4 +619,3 @@ void P_LoadLineDefs_Hexen (int lump)
 
     W_ReleaseLumpNum(lump);
 }
-

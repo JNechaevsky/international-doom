@@ -28,6 +28,7 @@ typedef enum
     MFMT_DEEPBSP = 0x001,
     MFMT_ZDBSPX  = 0x002,
     MFMT_ZDBSPZ  = 0x004,
+    MFMT_NONODES = 0x008,
     MFMT_HEXEN   = 0x100,
 } mapformat_t;
 

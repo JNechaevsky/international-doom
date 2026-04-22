@@ -374,6 +374,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_speed_up, key_speed_up2),
     CONFIG_VARIABLE_KEYBIND(key_speed_down, key_speed_down2),
     CONFIG_VARIABLE_KEYBIND(key_speed_reset, key_speed_reset2),
+    CONFIG_VARIABLE_KEYBIND(key_rewind, key_rewind2),
 
     // Weapons
     CONFIG_VARIABLE_KEYBIND(key_weapon1, key_weapon1_2),
@@ -707,6 +708,10 @@ static default_t	doom_defaults_list[] =
 
     // Game modes
     CONFIG_VARIABLE_INT(crl_game_speed),
+    CONFIG_VARIABLE_INT(crl_rewind_auto),
+    CONFIG_VARIABLE_INT(crl_rewind_interval),
+    CONFIG_VARIABLE_INT(crl_rewind_depth),
+    CONFIG_VARIABLE_INT(crl_rewind_timeout),
 };
 
 static default_collection_t doom_defaults =

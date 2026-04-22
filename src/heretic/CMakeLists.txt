@@ -17,6 +17,7 @@ add_library(heretic STATIC
             f_finale.c
             f_wipe.c            f_wipe.h
             g_game.c
+            g_rewind.c          g_rewind.h
             id_func.c           id_func.h
             info.c              info.h
             in_lude.c
