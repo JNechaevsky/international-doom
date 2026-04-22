@@ -54,9 +54,7 @@ static boolean RewindAllowedGamestate(void)
 
 static int RewindIntervalTics(void)
 {
-    const int interval_ms = BETWEEN(100, 10000, crl_rewind_interval);
-
-    return (TICRATE * interval_ms + 999) / 1000;
+    return TICRATE * BETWEEN(1, 10, crl_rewind_interval);
 }
 
 static int RewindDepth(void)

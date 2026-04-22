@@ -240,9 +240,9 @@ int crl_spectating = 0;  // RestlessRodent -- CRL
 int crl_freeze = 0;
 int crl_game_speed = 100;
 int crl_rewind_auto = 1;
-int crl_rewind_interval = 1000;
+int crl_rewind_interval = 1;
 int crl_rewind_depth = 60;
-int crl_rewind_timeout = 0;
+int crl_rewind_timeout = 10;
 
 
 // -----------------------------------------------------------------------------
