@@ -83,10 +83,6 @@ extern int msg_show;
 extern int msg_alignment;
 extern int msg_local_time;
 
-// Game modes
-extern int crl_spectating;
-extern int crl_freeze;
-
 // Widgets
 extern int widget_enable;
 extern int widget_scheme;
@@ -203,6 +199,12 @@ extern int autoload_seh;
 extern int menu_highlight;
 extern int menu_esc_key;
 extern int menu_cap_fps;
+
+// Game modes
+extern int crl_spectating;
+extern int crl_freeze;
+extern int crl_game_speed;
+
 
 // Mouse look
 extern int mouse_look;

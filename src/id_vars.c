@@ -21,11 +21,6 @@
 #include "m_config.h"  // [JN] M_Bind*Variable
 
 
-// Game modes
-int crl_spectating = 0;  // RestlessRodent -- CRL
-int crl_freeze = 0;
-
-
 // -----------------------------------------------------------------------------
 // [JN] ID-specific config variables.
 // -----------------------------------------------------------------------------
@@ -236,6 +231,15 @@ int autoload_seh = 1;
 int menu_highlight = 1;
 int menu_esc_key = 0;
 int menu_cap_fps = 0;
+
+//
+// Game modes
+//
+
+int crl_spectating = 0;  // RestlessRodent -- CRL
+int crl_freeze = 0;
+int crl_game_speed = 100;
+
 
 // -----------------------------------------------------------------------------
 // [JN] ID-specific config variables binding functions.
@@ -538,4 +542,7 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("menu_highlight",                 &menu_highlight);
     M_BindIntVariable("menu_esc_key",                   &menu_esc_key);
     M_BindIntVariable("menu_cap_fps",                   &menu_cap_fps);
+
+    // Game modes
+    M_BindIntVariable("crl_game_speed",                 &crl_game_speed);
 }

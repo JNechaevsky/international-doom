@@ -550,9 +550,12 @@ static void M_Bind_SpectatorMode (int choice);
 static void M_Bind_FreezeMode (int choice);
 static void M_Bind_NotargetMode (int choice);
 static void M_Bind_BuddhaMode (int choice);
-static void M_Bind_ShortTics (int choice);
 
 static void M_Draw_ID_Keybinds_4 (void);
+static void M_Bind_ShortTics (int choice);
+static void M_Bind_IncreaseGameSpeed (int choice);
+static void M_Bind_DecreaseGameSpeed (int choice);
+static void M_Bind_ResetGameSpeed (int choice);
 static void M_Bind_Weapon1 (int choice);
 static void M_Bind_Weapon2 (int choice);
 static void M_Bind_Weapon3 (int choice);
@@ -2687,17 +2690,20 @@ static void M_Bind_BuddhaMode (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Keybinds_4[] = {
-    { ITT_EFUNC, "SHORT TICS MODE",   M_Bind_ShortTics,  0, MENU_NONE },
-    { ITT_EMPTY, NULL,                NULL,              0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 1",          M_Bind_Weapon1,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 2",          M_Bind_Weapon2,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 3",          M_Bind_Weapon3,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 4",          M_Bind_Weapon4,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 5",          M_Bind_Weapon5,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 6",          M_Bind_Weapon6,    0, MENU_NONE },
-    { ITT_EFUNC, "WEAPON 7",          M_Bind_Weapon7,    0, MENU_NONE },
-    { ITT_EFUNC, "PREVIOUS WEAPON",   M_Bind_PrevWeapon, 0, MENU_NONE },
-    { ITT_EFUNC, "NEXT WEAPON",       M_Bind_NextWeapon, 0, MENU_NONE },
+    { ITT_EFUNC, "SHORT TICS MODE",     M_Bind_ShortTics,         0, MENU_NONE },
+    { ITT_EFUNC, "INCREASE GAME SPEED", M_Bind_IncreaseGameSpeed, 0, MENU_NONE },
+    { ITT_EFUNC, "DECREASE GAME SPEED", M_Bind_DecreaseGameSpeed, 0, MENU_NONE },
+    { ITT_EFUNC, "RESET GAME SPEED",    M_Bind_ResetGameSpeed,    0, MENU_NONE },
+    { ITT_EMPTY, NULL,                  NULL,                     0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 1",            M_Bind_Weapon1,           0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 2",            M_Bind_Weapon2,           0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 3",            M_Bind_Weapon3,           0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 4",            M_Bind_Weapon4,           0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 5",            M_Bind_Weapon5,           0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 6",            M_Bind_Weapon6,           0, MENU_NONE },
+    { ITT_EFUNC, "WEAPON 7",            M_Bind_Weapon7,           0, MENU_NONE },
+    { ITT_EFUNC, "PREVIOUS WEAPON",     M_Bind_PrevWeapon,        0, MENU_NONE },
+    { ITT_EFUNC, "NEXT WEAPON",         M_Bind_NextWeapon,        0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Keybinds_4 = {
@@ -2718,70 +2724,88 @@ static void M_Draw_ID_Keybinds_4 (void)
     MN_DrTextACentered("SPECIAL MODES", 10, cr[CR_YELLOW]);
 
     M_DrawBindKey(0, 20, key_shorttics, key_shorttics2);
+    M_DrawBindKey(1, 30, key_speed_up, key_speed_up2);
+    M_DrawBindKey(2, 40, key_speed_down, key_speed_down2);
+    M_DrawBindKey(3, 50, key_speed_reset, key_speed_reset2);
 
-    MN_DrTextACentered("WEAPONS", 30, cr[CR_YELLOW]);
+    MN_DrTextACentered("WEAPONS", 60, cr[CR_YELLOW]);
 
-    M_DrawBindKey(2, 40, key_weapon1, key_weapon1_2);
-    M_DrawBindKey(3, 50, key_weapon2, key_weapon2_2);
-    M_DrawBindKey(4, 60, key_weapon3, key_weapon3_2);
-    M_DrawBindKey(5, 70, key_weapon4, key_weapon4_2);
-    M_DrawBindKey(6, 80, key_weapon5, key_weapon5_2);
-    M_DrawBindKey(7, 90, key_weapon6, key_weapon6_2);
-    M_DrawBindKey(8, 100, key_weapon7, key_weapon7_2);
-    M_DrawBindKey(9, 110, key_prevweapon, key_prevweapon2);
-    M_DrawBindKey(10, 120, key_nextweapon, key_nextweapon2);
+    M_DrawBindKey(5, 70, key_weapon1, key_weapon1_2);
+    M_DrawBindKey(6, 80, key_weapon2, key_weapon2_2);
+    M_DrawBindKey(7, 90, key_weapon3, key_weapon3_2);
+    M_DrawBindKey(8, 100, key_weapon4, key_weapon4_2);
+    M_DrawBindKey(9, 110, key_weapon5, key_weapon5_2);
+    M_DrawBindKey(10, 120, key_weapon6, key_weapon6_2);
+    M_DrawBindKey(11, 130, key_weapon7, key_weapon7_2);
+    M_DrawBindKey(12, 140, key_prevweapon, key_prevweapon2);
+    M_DrawBindKey(13, 150, key_nextweapon, key_nextweapon2);
 
     M_DrawBindFooter("4", true);
 }
 
+static void M_Bind_ShortTics (int choice)
+{
+    M_StartBind(400);  // key_shorttics
+}
+
+static void M_Bind_IncreaseGameSpeed (int choice)
+{
+    M_StartBind(401);  // key_speed_up
+}
+
+static void M_Bind_DecreaseGameSpeed (int choice)
+{
+    M_StartBind(402);  // key_speed_down
+}
+
+static void M_Bind_ResetGameSpeed (int choice)
+{
+    M_StartBind(403);  // key_speed_reset
+}
+
 static void M_Bind_Weapon1 (int choice)
 {
-    M_StartBind(400);  // key_weapon1
+    M_StartBind(404);  // key_speed_reset
 }
 
 static void M_Bind_Weapon2 (int choice)
 {
-    M_StartBind(401);  // key_weapon2
+    M_StartBind(405);  // key_weapon2
 }
 
 static void M_Bind_Weapon3 (int choice)
 {
-    M_StartBind(402);  // key_weapon3
+    M_StartBind(406);  // key_weapon3
 }
 
 static void M_Bind_Weapon4 (int choice)
 {
-    M_StartBind(403);  // key_weapon4
+    M_StartBind(407);  // key_weapon4
 }
 
 static void M_Bind_Weapon5 (int choice)
 {
-    M_StartBind(404);  // key_weapon5
+    M_StartBind(408);  // key_weapon5
 }
 
 static void M_Bind_Weapon6 (int choice)
 {
-    M_StartBind(405);  // key_weapon6
+    M_StartBind(409);  // key_weapon6
 }
 
 static void M_Bind_Weapon7 (int choice)
 {
-    M_StartBind(406);  // key_weapon7
+    M_StartBind(410);  // key_weapon7
 }
 
 static void M_Bind_PrevWeapon (int choice)
 {
-    M_StartBind(407);  // key_prevweapon
+    M_StartBind(411);  // key_prevweapon
 }
 
 static void M_Bind_NextWeapon (int choice)
 {
-    M_StartBind(408);  // key_nextweapon
-}
-
-static void M_Bind_ShortTics (int choice)
-{
-    M_StartBind(313);  // key_shorttics
+    M_StartBind(412);  // key_nextweapon
 }
 
 // -----------------------------------------------------------------------------
@@ -9124,16 +9148,19 @@ static const KeyBindEntry_t keybinds[] =
     KEYBIND_ENTRY(312, &ID_Def_Keybinds_3, 14, key_buddha,        key_buddha2,        0,            0, KBS_GLOBAL),
 
     // Page 4
-    KEYBIND_ENTRY(313, &ID_Def_Keybinds_4, 0,  key_shorttics,  key_shorttics2,  0,   0, KBS_GLOBAL),
-    KEYBIND_ENTRY(400, &ID_Def_Keybinds_4, 2,  key_weapon1,    key_weapon1_2,   '1', 0, KBS_GLOBAL),
-    KEYBIND_ENTRY(401, &ID_Def_Keybinds_4, 3,  key_weapon2,    key_weapon2_2,   '2', 0, KBS_GLOBAL),
-    KEYBIND_ENTRY(402, &ID_Def_Keybinds_4, 4,  key_weapon3,    key_weapon3_2,   '3', 0, KBS_GLOBAL),
-    KEYBIND_ENTRY(403, &ID_Def_Keybinds_4, 5,  key_weapon4,    key_weapon4_2,   '4', 0, KBS_GLOBAL),
-    KEYBIND_ENTRY(404, &ID_Def_Keybinds_4, 6,  key_weapon5,    key_weapon5_2,   '5', 0, KBS_GLOBAL),
-    KEYBIND_ENTRY(405, &ID_Def_Keybinds_4, 7,  key_weapon6,    key_weapon6_2,   '6', 0, KBS_GLOBAL),
-    KEYBIND_ENTRY(406, &ID_Def_Keybinds_4, 8,  key_weapon7,    key_weapon7_2,   '7', 0, KBS_GLOBAL),
-    KEYBIND_ENTRY(407, &ID_Def_Keybinds_4, 9,  key_prevweapon, key_prevweapon2, 0,   0, KBS_GLOBAL),
-    KEYBIND_ENTRY(408, &ID_Def_Keybinds_4, 10, key_nextweapon, key_nextweapon2, 0,   0, KBS_GLOBAL),
+    KEYBIND_ENTRY(400, &ID_Def_Keybinds_4, 0,  key_shorttics,   key_shorttics2,   0,   0, KBS_GLOBAL),
+    KEYBIND_ENTRY(401, &ID_Def_Keybinds_4, 0,  key_speed_up,    key_speed_up2,    0,   0, KBS_GLOBAL),
+    KEYBIND_ENTRY(402, &ID_Def_Keybinds_4, 1,  key_speed_down,  key_speed_down2,  0,   0, KBS_GLOBAL),
+    KEYBIND_ENTRY(403, &ID_Def_Keybinds_4, 2,  key_speed_reset, key_speed_reset2, 0,   0, KBS_GLOBAL),
+    KEYBIND_ENTRY(404, &ID_Def_Keybinds_4, 2,  key_weapon1,     key_weapon1_2,    '1', 0, KBS_GLOBAL),
+    KEYBIND_ENTRY(405, &ID_Def_Keybinds_4, 3,  key_weapon2,     key_weapon2_2,    '2', 0, KBS_GLOBAL),
+    KEYBIND_ENTRY(406, &ID_Def_Keybinds_4, 4,  key_weapon3,     key_weapon3_2,    '3', 0, KBS_GLOBAL),
+    KEYBIND_ENTRY(407, &ID_Def_Keybinds_4, 5,  key_weapon4,     key_weapon4_2,    '4', 0, KBS_GLOBAL),
+    KEYBIND_ENTRY(408, &ID_Def_Keybinds_4, 6,  key_weapon5,     key_weapon5_2,    '5', 0, KBS_GLOBAL),
+    KEYBIND_ENTRY(409, &ID_Def_Keybinds_4, 7,  key_weapon6,     key_weapon6_2,    '6', 0, KBS_GLOBAL),
+    KEYBIND_ENTRY(410, &ID_Def_Keybinds_4, 8,  key_weapon7,     key_weapon7_2,    '7', 0, KBS_GLOBAL),
+    KEYBIND_ENTRY(411, &ID_Def_Keybinds_4, 9,  key_prevweapon,  key_prevweapon2,  0,   0, KBS_GLOBAL),
+    KEYBIND_ENTRY(412, &ID_Def_Keybinds_4, 10, key_nextweapon,  key_nextweapon2,  0,   0, KBS_GLOBAL),
 
     // Page 5
     KEYBIND_ENTRY(500, &ID_Def_Keybinds_5, 0, key_arti_quartz,       key_arti_quartz2,       0,   0, KBS_GLOBAL),

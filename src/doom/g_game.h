@@ -71,6 +71,8 @@ extern void G_Ticker (void);
 extern void G_TimeDemo (char *name);
 extern void G_WorldDone (void);
 extern void G_WriteDemoTiccmd (ticcmd_t *cmd); 
+extern void G_CRL_SetGameSpeed (int speed);
+extern void G_CRL_ChangeGameSpeed (int direction, boolean show_message);
 
 // [crispy] holding down the "Run" key may trigger special behavior
 extern boolean speedkeydown (void);

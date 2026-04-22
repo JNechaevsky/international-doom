@@ -812,6 +812,9 @@ void G_FastResponder(void); // [crispy]
 void G_PrepTiccmd(void); // [crispy]
 void G_SetSideMove(void);
 
+extern void G_CRL_SetGameSpeed (int speed);
+extern void G_CRL_ChangeGameSpeed (int direction, boolean show_message);
+
 void G_ScreenShot(void);
 
 void G_PlayerReborn(int player);

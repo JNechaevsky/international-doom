@@ -45,6 +45,9 @@ void I_InitTimer(void);
 // Wait for vertical retrace or pause a bit.
 void I_WaitVBL(int count);
 
+// [PN] Set game-time speed percentage.
+void I_SetTimeScale(int scale);
+
 // [crispy]
 fixed_t I_GetFracRealTime(void);
 #endif
