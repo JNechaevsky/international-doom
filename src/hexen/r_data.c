@@ -238,8 +238,19 @@ static void R_GenerateComposite (int texnum)
     const int width  = texture->width;
     const int height = texture->height;
 
-    byte *const block = Z_Malloc(texturecompositesize[texnum], PU_STATIC, &texturecomposite[texnum]);
-    byte *const block2 = Z_Malloc((size_t)width * (size_t)height, PU_STATIC, &texturecomposite2[texnum]);
+    // [crispy] Allocate composite buffers as needed and keep them level-scoped.
+    byte *block = texturecomposite[texnum];
+    byte *block2 = texturecomposite2[texnum];
+
+    if (!block)
+    {
+        block = Z_Malloc(texturecompositesize[texnum], PU_LEVEL, &texturecomposite[texnum]);
+    }
+
+    if (!block2)
+    {
+        block2 = Z_Malloc((size_t)width * (size_t)height, PU_LEVEL, &texturecomposite2[texnum]);
+    }
 
     short    *restrict collump = texturecolumnlump[texnum];
     unsigned *restrict colofs  = texturecolumnofs [texnum];
@@ -351,10 +362,6 @@ static void R_GenerateComposite (int texnum)
 
     free(source);
     free(marks);
-
-    // Purgable from zone memory now that caches are built
-    Z_ChangeTag(block,  PU_CACHE);
-    Z_ChangeTag(block2, PU_CACHE);
 }
 
 // -----------------------------------------------------------------------------
@@ -1417,10 +1424,21 @@ void R_PrecacheLevel (void)
     hitlist[Sky1Texture] = 1;
     hitlist[Sky2Texture] = 1;
 
+    // [PN] If a level uses any frame of an ANIMDEFS texture animation,
+    // precache composites for all frames in that animation cycle.
+    P_MarkAnimatedTextureFrames(hitlist, numtextures);
+
     for (int i = 0; i < numtextures; ++i)
     {
         if (hitlist[i])
         {
+            // [crispy] Precache composite texture columns up-front.
+            // Guard to avoid regenerating already built composites.
+            if (!texturecomposite[i] || !texturecomposite2[i])
+            {
+                R_GenerateComposite(i);
+            }
+
             texture_t * const texture = textures[i];
             for (int j = 0; j < texture->patchcount; ++j)
             {

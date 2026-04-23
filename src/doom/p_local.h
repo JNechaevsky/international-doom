@@ -698,6 +698,7 @@ extern int     P_FindMinSurroundingLight (sector_t *sector, int max);
 extern int     P_FindSectorFromLineTag (const line_t *line, int start);
 extern void    P_CrossSpecialLine (int linenum, int side, mobj_t *thing);
 extern void    P_InitPicAnims (void);
+extern void    P_MarkAnimatedTextureFrames (byte *hitlist, int hitlist_size);
 extern void    P_PlayerInSpecialSector (player_t *player);
 extern void    P_ShootSpecialLine (const mobj_t *thing, line_t *line);
 extern void    P_SpawnSpecials (void);

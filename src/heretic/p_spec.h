@@ -65,6 +65,7 @@ extern line_t *linespeciallist[MAXLINEANIMS];
 
 // at game start
 void P_InitPicAnims(void);
+void P_MarkAnimatedTextureFrames(byte *hitlist, int hitlist_size);
 void P_InitTerrainTypes(void);
 void P_InitLava(void);
 

@@ -88,6 +88,7 @@ extern fixed_t Sky2ScrollDelta;
 
 
 void P_AnimateSurfaces(void);
+void P_MarkAnimatedTextureFrames(byte *hitlist, int hitlist_size);
 void P_InitFTAnims(void);
 void P_InitLightning(void);
 void P_ForceLightning(void);

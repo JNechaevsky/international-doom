@@ -259,6 +259,55 @@ void P_InitPicAnims (void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// P_MarkAnimatedTextureFrames
+// [PN] If any frame of a wall-texture animation is present in hitlist,
+// mark the whole animation range so composites can be precached up-front.
+// -----------------------------------------------------------------------------
+
+void P_MarkAnimatedTextureFrames (byte *hitlist, int hitlist_size)
+{
+    if (hitlist == NULL || hitlist_size <= 0 || anims == NULL || lastanim == NULL)
+    {
+        return;
+    }
+
+    for (anim_t *anim = anims; anim < lastanim; ++anim)
+    {
+        if (!anim->istexture || anim->numpics <= 1)
+        {
+            continue;
+        }
+
+        const int base = anim->basepic;
+        const int end = base + anim->numpics;
+
+        if (base < 0 || base >= hitlist_size)
+        {
+            continue;
+        }
+
+        boolean any_present = false;
+
+        for (int i = base; i < end && i < hitlist_size; ++i)
+        {
+            if (hitlist[i])
+            {
+                any_present = true;
+                break;
+            }
+        }
+
+        if (any_present)
+        {
+            for (int i = base; i < end && i < hitlist_size; ++i)
+            {
+                hitlist[i] = 1;
+            }
+        }
+    }
+}
+
 
 
 //

@@ -568,3 +568,58 @@ void P_InitFTAnims(void)
     x_005 = R_FlatNumForName("x_005");
     x_009 = R_FlatNumForName("x_009");
 }
+
+//==========================================================================
+//
+// P_MarkAnimatedTextureFrames
+// [PN] If any frame of an ANIMDEFS texture animation is present in hitlist,
+// mark the full sequence so composites can be precached up-front.
+//
+//==========================================================================
+
+void P_MarkAnimatedTextureFrames(byte *hitlist, int hitlist_size)
+{
+    if (hitlist == NULL || hitlist_size <= 0 || AnimDefCount <= 0 || FrameDefs == NULL)
+    {
+        return;
+    }
+
+    for (int i = 0; i < AnimDefCount; ++i)
+    {
+        const animDef_t *ad = &AnimDefs[i];
+
+        if (ad->type != ANIM_TEXTURE || ad->startFrameDef < 0
+         || ad->endFrameDef < ad->startFrameDef)
+        {
+            continue;
+        }
+
+        boolean any_present = false;
+
+        for (int fd = ad->startFrameDef; fd <= ad->endFrameDef; ++fd)
+        {
+            const int tex = FrameDefs[fd].index;
+
+            if (tex >= 0 && tex < hitlist_size && hitlist[tex])
+            {
+                any_present = true;
+                break;
+            }
+        }
+
+        if (!any_present)
+        {
+            continue;
+        }
+
+        for (int fd = ad->startFrameDef; fd <= ad->endFrameDef; ++fd)
+        {
+            const int tex = FrameDefs[fd].index;
+
+            if (tex >= 0 && tex < hitlist_size)
+            {
+                hitlist[tex] = 1;
+            }
+        }
+    }
+}
