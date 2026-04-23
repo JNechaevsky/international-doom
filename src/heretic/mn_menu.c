@@ -1263,10 +1263,11 @@ static void M_Draw_ID_Video_1 (void)
                                 LINE_ALPHA(5));
 
     // Enable vsync
-    sprintf(str, vid_vsync ? "ON" : "OFF");
+    const boolean vsync_na = (vid_force_software_renderer != 0);
+    sprintf(str, vsync_na ? "N/A" : (vid_vsync ? "ON" : "OFF"));
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
-                    vid_vsync ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            vid_vsync ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                    vsync_na ? cr[CR_DARKRED] : (vid_vsync ? cr[CR_GREEN] : cr[CR_DARKRED]),
+                            vsync_na ? cr[CR_RED] : (vid_vsync ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT]),
                                 LINE_ALPHA(6));
 
     // Show FPS counter
@@ -1427,6 +1428,11 @@ static void M_ID_LimitFPS (int choice)
 
 static void M_ID_VSync (int choice)
 {
+    if (vid_force_software_renderer)
+    {
+        return;
+    }
+
     vid_vsync ^= 1;
     I_ToggleVsync();
 }
