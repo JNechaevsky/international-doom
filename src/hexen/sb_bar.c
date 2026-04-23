@@ -32,6 +32,7 @@
 #include "i_timer.h"
 #include "am_map.h"
 #include "ct_chat.h"
+#include "d_loop.h"
 
 #include "id_func.h"
 
@@ -84,6 +85,7 @@ int SB_palette = 0;
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static int HealthMarker;
+static int PrevHealthMarker;
 //static int ChainWiggle;
 static player_t *CPlayer;
 static int SpinFlylump;
@@ -555,6 +557,9 @@ void SB_Ticker(void)
 {
     int delta;
     int curHealth;
+
+    // [PN] Store previous marker for uncapped status-bar interpolation.
+    PrevHealthMarker = HealthMarker;
 
     curHealth = players[displayplayer].mo->health;
     if (curHealth < 0)
@@ -1028,6 +1033,7 @@ void SB_Drawer(void)
                 V_DrawPatch(0, 134, PatchH2BAR);
             }
 
+            PrevHealthMarker = HealthMarker;
             oldhealth = -1;
         }
         DrawCommonBar();
@@ -1538,10 +1544,21 @@ void DrawCommonBar(void)
 
     V_DrawPatch(0, 134, PatchH2TOP);
 
-    if (oldhealth != HealthMarker)
+    const boolean interp_chain = vid_uncapped_fps
+                              && realleveltime > oldleveltime
+                              && HealthMarker != PrevHealthMarker;
+
+    if (oldhealth != HealthMarker || interp_chain)
     {
+        int drawMarker = HealthMarker;
+
+        if (interp_chain)
+        {
+            drawMarker = PrevHealthMarker + (int)(((int64_t)(HealthMarker - PrevHealthMarker) * fractionaltic) >> FRACBITS);
+        }
+
         oldhealth = HealthMarker;
-        healthPos = HealthMarker;
+        healthPos = drawMarker;
         if (healthPos < 0)
         {
             healthPos = 0;

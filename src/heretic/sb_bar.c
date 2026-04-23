@@ -31,6 +31,7 @@
 #include "v_video.h"
 #include "am_map.h"
 #include "ct_chat.h"
+#include "d_loop.h"
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -51,6 +52,8 @@ int SB_state = -1;
 static int ChainWiggle;
 static int FontBNumBase;
 static int HealthMarker;
+static int PrevChainWiggle;
+static int PrevHealthMarker;
 static int oldammo = -1;
 static int oldarmor = -1;
 static int oldarti = 0;
@@ -481,6 +484,9 @@ static void SB_SmoothPaletteFlash (void)
 void SB_Ticker(void)
 {
     int delta;
+    // [PN] Store previous chain state for uncapped status-bar interpolation.
+    PrevChainWiggle = ChainWiggle;
+    PrevHealthMarker = HealthMarker;
 
     if (leveltime & 1)
     {
@@ -718,9 +724,26 @@ static void DrawCommonBar(void)
     V_DrawPatch(0, 148, PatchLTFCTOP);
     V_DrawPatch(290, 148, PatchRTFCTOP);
 
-    if (oldhealth != HealthMarker)
+    const boolean interp_chain = vid_uncapped_fps
+                              && realleveltime > oldleveltime
+                              && HealthMarker != PrevHealthMarker;
+
+    if (oldhealth != HealthMarker || interp_chain)
     {
-        int healthPos = HealthMarker;
+        int drawMarker = HealthMarker;
+        int chainWiggle = ChainWiggle;
+
+        if (interp_chain)
+        {
+            drawMarker = PrevHealthMarker + (int)(((int64_t)(HealthMarker - PrevHealthMarker) * fractionaltic) >> FRACBITS);
+        }
+
+        if (vid_uncapped_fps && realleveltime > oldleveltime && ChainWiggle != PrevChainWiggle)
+        {
+            chainWiggle = PrevChainWiggle + (int)(((int64_t)(ChainWiggle - PrevChainWiggle) * fractionaltic + FRACUNIT / 2) >> FRACBITS);
+        }
+
+        int healthPos = drawMarker;
         oldhealth = HealthMarker;
         if (healthPos < 0)
         {
@@ -733,7 +756,7 @@ static void DrawCommonBar(void)
         healthPos = (healthPos * 256) / 100;
         // [JN] Do not refer to CPlayer as map object (mo->) here,
         // otherwise chain will keep wiggling while SB_state = -1.
-        int chainY = (HealthMarker == CPlayer->/*mo->*/health) ? 191 : 191 + ChainWiggle;
+        int chainY = (drawMarker == CPlayer->/*mo->*/health) ? 191 : 191 + chainWiggle;
         V_DrawPatch(0, 190, PatchCHAINBACK);
         V_DrawPatch(2 + (healthPos % 17), chainY, PatchCHAIN);
         // [JN] Make health gem change with displayplayer.
@@ -1391,6 +1414,8 @@ void SB_Drawer(void)
                 V_DrawPatch(16, 167, W_CacheLumpName(DEH_String("GOD1"), PU_CACHE));
                 V_DrawPatch(287, 167, W_CacheLumpName(DEH_String("GOD2"), PU_CACHE));
             }
+            PrevHealthMarker = HealthMarker;
+            PrevChainWiggle = ChainWiggle;
             oldhealth = -1;
         }
         DrawCommonBar();
