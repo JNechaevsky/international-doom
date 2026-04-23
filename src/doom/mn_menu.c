@@ -5214,10 +5214,10 @@ static void M_ID_Misc_Launcher (int choice)
 
 static menuitem_t ID_Menu_Misc_2[]=
 {
-    { M_MUL1, "ENABLE REWIND",   M_ID_Misc_RewindEnable,   'e' },
-    { M_MUL1, "REWIND INTERWAL", M_ID_Misc_RewindInterwal, 'r' },
-    { M_MUL1, "REWIND DEPTH",    M_ID_Misc_RewindDepth,    'r' },
-    { M_MUL1, "REWIND TIMEOUT",  M_ID_Misc_RewindTimeout,  'r' },
+    { M_MUL1, "ENABLE REWIND",               M_ID_Misc_RewindEnable,   'e' },
+    { M_MUL1, "REWIND INTERWAL (S)",         M_ID_Misc_RewindInterwal, 'r' },
+    { M_MUL1, "REWIND DEPTH (KEY FRAMES)",   M_ID_Misc_RewindDepth,    'r' },
+    { M_MUL1, "FULL KEY FRAME TIMEOUT (MS)", M_ID_Misc_RewindTimeout,  'f' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
@@ -5229,7 +5229,7 @@ static menuitem_t ID_Menu_Misc_2[]=
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
-    { M_MUL2, "", /* < SCROLL PAGES >*/     M_ScrollMisc,             's' },
+    { M_MUL2, "", /* < SCROLL PAGES >*/      M_ScrollMisc,             's' },
 };
 
 static menu_t ID_Def_Misc_2 =
@@ -5258,8 +5258,8 @@ static void M_Draw_ID_Misc_2 (void)
                             rewind_enable ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(0));
 
-    // Rewind interwal
-    sprintf(str, rewind_interval == 1 ? "1 SECOND" : "%d SECONDS", rewind_interval);
+    // Rewind interwal (s)
+    sprintf(str, "%d", rewind_interval);
     M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
                        !rewind_enable ? cr[CR_DARKRED] :
                         rewind_interval == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
@@ -5267,8 +5267,8 @@ static void M_Draw_ID_Misc_2 (void)
                             rewind_interval == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(1));
 
-    // Rewind depth
-    sprintf(str, rewind_depth == 1 ? "%d KEY FRAME" : "%d KEY FRAMES", rewind_depth);
+    // Rewind depth (key frames)
+    sprintf(str, "%d", rewind_depth);
     M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
                        !rewind_enable ? cr[CR_DARKRED] :
                         rewind_depth == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
@@ -5276,9 +5276,8 @@ static void M_Draw_ID_Misc_2 (void)
                             rewind_depth == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(2));
 
-    // Rewind timeout
-    sprintf(str, rewind_timeout == 0 ? "NO LIMIT" :
-                 rewind_timeout == 1 ? "1 MILLISECOND" : "%d MILLISECONDS", rewind_timeout);
+    // Full keyframe timeout (ms)
+    sprintf(str, rewind_timeout == 0 ? "NO LIMIT" : "%d", rewind_timeout);
     M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
                        !rewind_enable ? cr[CR_DARKRED] :
                         rewind_timeout == 25 ? cr[CR_YELLOW] : cr[CR_GREEN],

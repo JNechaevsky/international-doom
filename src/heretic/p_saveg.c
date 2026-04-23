@@ -37,8 +37,76 @@
 
 static FILE *SaveGameFP;
 static MEMFILE *SaveGameMemFP;
+static size_t SaveGameMemHint;
+static byte *SaveGameMemBuf;
+static size_t SaveGameMemBufSize;
+static size_t SaveGameMemBufPos;
+static boolean SaveGameMemWriteActive;
+static const size_t SaveGameMemMinSize = 0x20000;
 
 int savepage; // [crispy]
+
+static boolean SV_MemoryMode(void)
+{
+    return SaveGameMemWriteActive || SaveGameMemFP != NULL;
+}
+
+static void SV_StopMemoryWrite(void)
+{
+    SaveGameMemBufPos = 0;
+    SaveGameMemWriteActive = false;
+}
+
+static boolean SV_EnsureMemoryWriteCapacity(size_t bytes)
+{
+    size_t needed;
+    size_t new_size;
+    byte *new_buf;
+
+    if (bytes == 0)
+    {
+        return true;
+    }
+
+    needed = SaveGameMemBufPos + bytes;
+
+    if (needed < SaveGameMemBufPos)
+    {
+        return false;
+    }
+
+    if (needed <= SaveGameMemBufSize)
+    {
+        return true;
+    }
+
+    new_size = SaveGameMemBufSize > 0 ? SaveGameMemBufSize : SaveGameMemMinSize;
+
+    while (new_size < needed)
+    {
+        size_t grown = new_size * 2;
+
+        if (grown <= new_size)
+        {
+            new_size = needed;
+            break;
+        }
+
+        new_size = grown;
+    }
+
+    new_buf = realloc(SaveGameMemBuf, new_size);
+
+    if (new_buf == NULL)
+    {
+        return false;
+    }
+
+    SaveGameMemBuf = new_buf;
+    SaveGameMemBufSize = new_size;
+
+    return true;
+}
 
 
 //==========================================================================
@@ -72,12 +140,14 @@ char *SV_Filename(int slot)
 
 void SV_Open(char *fileName)
 {
+    SV_StopMemoryWrite();
     SaveGameFP = M_fopen(fileName, "wb");
     SaveGameMemFP = NULL;
 }
 
 void SV_OpenRead(char *filename)
 {
+    SV_StopMemoryWrite();
     SaveGameFP = M_fopen(filename, "rb");
     SaveGameMemFP = NULL;
 
@@ -89,48 +159,66 @@ void SV_OpenRead(char *filename)
 
 void SV_OpenMemoryWrite(void)
 {
+    size_t initial_size = SaveGameMemHint;
+    byte *new_buf = NULL;
+
+    SV_StopMemoryWrite();
     SaveGameFP = NULL;
-    SaveGameMemFP = mem_fopen_write();
+    SaveGameMemFP = NULL;
+
+    if (initial_size < SaveGameMemMinSize)
+    {
+        initial_size = SaveGameMemMinSize;
+    }
+
+    if (SaveGameMemBufSize < initial_size)
+    {
+        new_buf = realloc(SaveGameMemBuf, initial_size);
+
+        if (new_buf != NULL)
+        {
+            SaveGameMemBuf = new_buf;
+            SaveGameMemBufSize = initial_size;
+        }
+    }
+
+    SaveGameMemBufPos = 0;
+    SaveGameMemWriteActive = true;
 }
 
 boolean SV_CloseMemoryWrite(byte **data, size_t *len)
 {
-    void *buf;
-    size_t buflen;
-
     *data = NULL;
     *len = 0;
 
-    if (SaveGameMemFP == NULL)
+    if (!SaveGameMemWriteActive)
     {
         return false;
     }
 
-    mem_get_buf(SaveGameMemFP, &buf, &buflen);
-
-    if (buflen > 0)
+    if (SaveGameMemBufPos > 0)
     {
-        *data = malloc(buflen);
+        *data = malloc(SaveGameMemBufPos);
 
         if (*data == NULL)
         {
-            mem_fclose(SaveGameMemFP);
-            SaveGameMemFP = NULL;
+            SV_StopMemoryWrite();
             return false;
         }
 
-        memcpy(*data, buf, buflen);
-        *len = buflen;
+        memcpy(*data, SaveGameMemBuf, SaveGameMemBufPos);
+        *len = SaveGameMemBufPos;
+        SaveGameMemHint = SaveGameMemBufPos + (SaveGameMemBufPos >> 2);
     }
 
-    mem_fclose(SaveGameMemFP);
-    SaveGameMemFP = NULL;
+    SV_StopMemoryWrite();
 
     return *data != NULL;
 }
 
 void SV_OpenMemoryRead(byte *data, size_t len)
 {
+    SV_StopMemoryWrite();
     SaveGameFP = NULL;
     SaveGameMemFP = mem_fopen_read(data, len);
 }
@@ -154,6 +242,8 @@ void SV_WriteSaveGameEOF(void)
 
 void SV_Close(void)
 {
+    SV_StopMemoryWrite();
+
     if (SaveGameMemFP)
     {
         mem_fclose(SaveGameMemFP);
@@ -175,7 +265,17 @@ void SV_Close(void)
 
 void SV_Write(const void *buffer, int size)
 {
-    if (SaveGameMemFP != NULL)
+    if (SaveGameMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(size))
+        {
+            I_Error("SV_Write: failed to grow memory stream");
+        }
+
+        memcpy(SaveGameMemBuf + SaveGameMemBufPos, buffer, size);
+        SaveGameMemBufPos += size;
+    }
+    else if (SaveGameMemFP != NULL)
     {
         mem_fwrite(buffer, size, 1, SaveGameMemFP);
     }
@@ -187,24 +287,76 @@ void SV_Write(const void *buffer, int size)
 
 void SV_WriteByte(byte val)
 {
+    if (SaveGameMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(1))
+        {
+            I_Error("SV_WriteByte: failed to grow memory stream");
+        }
+
+        SaveGameMemBuf[SaveGameMemBufPos++] = val;
+        return;
+    }
+
     SV_Write(&val, sizeof(byte));
 }
 
 static void SV_WriteWord(unsigned short val)
 {
     val = SHORT(val);
+
+    if (SaveGameMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(2))
+        {
+            I_Error("SV_WriteWord: failed to grow memory stream");
+        }
+
+        SaveGameMemBuf[SaveGameMemBufPos++] = val & 0xff;
+        SaveGameMemBuf[SaveGameMemBufPos++] = (val >> 8) & 0xff;
+        return;
+    }
+
     SV_Write(&val, sizeof(unsigned short));
 }
 
 static void SV_WriteLong(unsigned int val)
 {
     val = LONG(val);
+
+    if (SaveGameMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(4))
+        {
+            I_Error("SV_WriteLong: failed to grow memory stream");
+        }
+
+        SaveGameMemBuf[SaveGameMemBufPos++] = val & 0xff;
+        SaveGameMemBuf[SaveGameMemBufPos++] = (val >> 8) & 0xff;
+        SaveGameMemBuf[SaveGameMemBufPos++] = (val >> 16) & 0xff;
+        SaveGameMemBuf[SaveGameMemBufPos++] = (val >> 24) & 0xff;
+        return;
+    }
+
     SV_Write(&val, sizeof(int));
 }
 
 static void SV_WriteLongLong(int64_t val)
 {
-    val = (int64_t)(val);
+    val = (int64_t) (val);
+
+    if (SaveGameMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(sizeof(val)))
+        {
+            I_Error("SV_WriteLongLong: failed to grow memory stream");
+        }
+
+        memcpy(SaveGameMemBuf + SaveGameMemBufPos, &val, sizeof(val));
+        SaveGameMemBufPos += sizeof(val);
+        return;
+    }
+
     SV_Write(&val, sizeof(int64_t));
 }
 
@@ -1802,7 +1954,7 @@ void P_ArchiveWorld(void)
     // Sectors
     for (i = 0, sec = sectors; i < numsectors; i++, sec++)
     {
-        if (SaveGameMemFP != NULL)
+        if (SV_MemoryMode())
         {
             SV_WriteLong(sec->floorheight);
             SV_WriteLong(sec->ceilingheight);
@@ -1832,7 +1984,7 @@ void P_ArchiveWorld(void)
                 continue;
             }
             si = &sides[li->sidenum[j]];
-            if (SaveGameMemFP != NULL)
+            if (SV_MemoryMode())
             {
                 SV_WriteLong(si->textureoffset);
                 SV_WriteLong(si->rowoffset);
@@ -1869,7 +2021,7 @@ void P_UnArchiveWorld(void)
 //
     for (i = 0, sec = sectors; i < numsectors; i++, sec++)
     {
-        if (SaveGameMemFP != NULL)
+        if (SV_MemoryMode())
         {
             sec->floorheight = SV_ReadLong();
             sec->ceilingheight = SV_ReadLong();
@@ -1901,7 +2053,7 @@ void P_UnArchiveWorld(void)
             if (li->sidenum[j] == NO_INDEX) // [crispy] extended nodes
                 continue;
             si = &sides[li->sidenum[j]];
-            if (SaveGameMemFP != NULL)
+            if (SV_MemoryMode())
             {
                 si->textureoffset = SV_ReadLong();
                 si->rowoffset = SV_ReadLong();

@@ -169,6 +169,74 @@ static int TargetPlayerCount;
 static boolean SavingPlayers;
 static FILE *SavingFP;
 static MEMFILE *SavingMemFP;
+static size_t SavingMemHint;
+static byte *SavingMemBuf;
+static size_t SavingMemBufSize;
+static size_t SavingMemBufPos;
+static boolean SavingMemWriteActive;
+static const size_t SavingMemMinSize = 0x20000;
+
+static boolean SV_MemoryMode(void)
+{
+    return SavingMemWriteActive || SavingMemFP != NULL;
+}
+
+static void SV_StopMemoryWrite(void)
+{
+    SavingMemBufPos = 0;
+    SavingMemWriteActive = false;
+}
+
+static boolean SV_EnsureMemoryWriteCapacity(size_t bytes)
+{
+    size_t needed;
+    size_t new_size;
+    byte *new_buf;
+
+    if (bytes == 0)
+    {
+        return true;
+    }
+
+    needed = SavingMemBufPos + bytes;
+
+    if (needed < SavingMemBufPos)
+    {
+        return false;
+    }
+
+    if (needed <= SavingMemBufSize)
+    {
+        return true;
+    }
+
+    new_size = SavingMemBufSize > 0 ? SavingMemBufSize : SavingMemMinSize;
+
+    while (new_size < needed)
+    {
+        size_t grown = new_size * 2;
+
+        if (grown <= new_size)
+        {
+            new_size = needed;
+            break;
+        }
+
+        new_size = grown;
+    }
+
+    new_buf = realloc(SavingMemBuf, new_size);
+
+    if (new_buf == NULL)
+    {
+        return false;
+    }
+
+    SavingMemBuf = new_buf;
+    SavingMemBufSize = new_size;
+
+    return true;
+}
 
 // CODE --------------------------------------------------------------------
 
@@ -3050,7 +3118,7 @@ static void ArchiveWorld(void)
     SV_WriteLong(ASEG_WORLD);
     for (i = 0, sec = sectors; i < numsectors; i++, sec++)
     {
-        if (SavingMemFP != NULL)
+        if (SV_MemoryMode())
         {
             SV_WriteLong(sec->floorheight);
             SV_WriteLong(sec->ceilingheight);
@@ -3083,7 +3151,7 @@ static void ArchiveWorld(void)
                 continue;
             }
             si = &sides[li->sidenum[j]];
-            if (SavingMemFP != NULL)
+            if (SV_MemoryMode())
             {
                 SV_WriteLong(si->textureoffset);
                 SV_WriteLong(si->rowoffset);
@@ -3117,7 +3185,7 @@ static void UnarchiveWorld(void)
     AssertSegment(ASEG_WORLD);
     for (i = 0, sec = sectors; i < numsectors; i++, sec++)
     {
-        if (SavingMemFP != NULL)
+        if (SV_MemoryMode())
         {
             sec->floorheight = SV_ReadLong();
             sec->ceilingheight = SV_ReadLong();
@@ -3152,7 +3220,7 @@ static void UnarchiveWorld(void)
                 continue;
             }
             si = &sides[li->sidenum[j]];
-            if (SavingMemFP != NULL)
+            if (SV_MemoryMode())
             {
                 si->textureoffset = SV_ReadLong();
                 si->rowoffset = SV_ReadLong();
@@ -4044,6 +4112,7 @@ static boolean ExistingFile(char *name)
 
 static void SV_OpenRead(char *fileName)
 {
+    SV_StopMemoryWrite();
     SavingFP = M_fopen(fileName, "rb");
     SavingMemFP = NULL;
 
@@ -4056,54 +4125,73 @@ static void SV_OpenRead(char *fileName)
 
 static void SV_OpenWrite(char *fileName)
 {
+    SV_StopMemoryWrite();
     SavingFP = M_fopen(fileName, "wb");
     SavingMemFP = NULL;
 }
 
 static void SV_OpenMemoryRead(byte *data, size_t len)
 {
+    SV_StopMemoryWrite();
     SavingFP = NULL;
     SavingMemFP = mem_fopen_read(data, len);
 }
 
 static void SV_OpenMemoryWrite(void)
 {
+    size_t initial_size = SavingMemHint;
+    byte *new_buf = NULL;
+
+    SV_StopMemoryWrite();
     SavingFP = NULL;
-    SavingMemFP = mem_fopen_write();
+    SavingMemFP = NULL;
+
+    if (initial_size < SavingMemMinSize)
+    {
+        initial_size = SavingMemMinSize;
+    }
+
+    if (SavingMemBufSize < initial_size)
+    {
+        new_buf = realloc(SavingMemBuf, initial_size);
+
+        if (new_buf != NULL)
+        {
+            SavingMemBuf = new_buf;
+            SavingMemBufSize = initial_size;
+        }
+    }
+
+    SavingMemBufPos = 0;
+    SavingMemWriteActive = true;
 }
 
 static boolean SV_CloseMemoryWrite(byte **data, size_t *len)
 {
-    void *buf;
-    size_t buflen;
-
     *data = NULL;
     *len = 0;
 
-    if (SavingMemFP == NULL)
+    if (!SavingMemWriteActive)
     {
         return false;
     }
 
-    mem_get_buf(SavingMemFP, &buf, &buflen);
-
-    if (buflen > 0)
+    if (SavingMemBufPos > 0)
     {
-        *data = malloc(buflen);
+        *data = malloc(SavingMemBufPos);
 
         if (*data == NULL)
         {
-            mem_fclose(SavingMemFP);
-            SavingMemFP = NULL;
+            SV_StopMemoryWrite();
             return false;
         }
 
-        memcpy(*data, buf, buflen);
-        *len = buflen;
+        memcpy(*data, SavingMemBuf, SavingMemBufPos);
+        *len = SavingMemBufPos;
+        SavingMemHint = SavingMemBufPos + (SavingMemBufPos >> 2);
     }
 
-    mem_fclose(SavingMemFP);
-    SavingMemFP = NULL;
+    SV_StopMemoryWrite();
 
     return *data != NULL;
 }
@@ -4116,6 +4204,8 @@ static boolean SV_CloseMemoryWrite(byte **data, size_t *len)
 
 static void SV_Close(void)
 {
+    SV_StopMemoryWrite();
+
     if (SavingMemFP)
     {
         mem_fclose(SavingMemFP);
@@ -4226,7 +4316,17 @@ static void *SV_ReadPtr(void)
 
 static void SV_Write(const void *buffer, int size)
 {
-    if (SavingMemFP != NULL)
+    if (SavingMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(size))
+        {
+            I_Error("SV_Write: failed to grow memory stream");
+        }
+
+        memcpy(SavingMemBuf + SavingMemBufPos, buffer, size);
+        SavingMemBufPos += size;
+    }
+    else if (SavingMemFP != NULL)
     {
         mem_fwrite(buffer, size, 1, SavingMemFP);
     }
@@ -4238,24 +4338,76 @@ static void SV_Write(const void *buffer, int size)
 
 static void SV_WriteByte(byte val)
 {
+    if (SavingMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(1))
+        {
+            I_Error("SV_WriteByte: failed to grow memory stream");
+        }
+
+        SavingMemBuf[SavingMemBufPos++] = val;
+        return;
+    }
+
     SV_Write(&val, sizeof(byte));
 }
 
 static void SV_WriteWord(unsigned short val)
 {
     val = SHORT(val);
+
+    if (SavingMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(2))
+        {
+            I_Error("SV_WriteWord: failed to grow memory stream");
+        }
+
+        SavingMemBuf[SavingMemBufPos++] = val & 0xff;
+        SavingMemBuf[SavingMemBufPos++] = (val >> 8) & 0xff;
+        return;
+    }
+
     SV_Write(&val, sizeof(unsigned short));
 }
 
 static void SV_WriteLong(unsigned int val)
 {
     val = LONG(val);
+
+    if (SavingMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(4))
+        {
+            I_Error("SV_WriteLong: failed to grow memory stream");
+        }
+
+        SavingMemBuf[SavingMemBufPos++] = val & 0xff;
+        SavingMemBuf[SavingMemBufPos++] = (val >> 8) & 0xff;
+        SavingMemBuf[SavingMemBufPos++] = (val >> 16) & 0xff;
+        SavingMemBuf[SavingMemBufPos++] = (val >> 24) & 0xff;
+        return;
+    }
+
     SV_Write(&val, sizeof(int));
 }
 
 static void SV_WriteLongLong(int64_t val)
 {
-    val = (int64_t)(val);
+    val = (int64_t) (val);
+
+    if (SavingMemWriteActive)
+    {
+        if (!SV_EnsureMemoryWriteCapacity(sizeof(val)))
+        {
+            I_Error("SV_WriteLongLong: failed to grow memory stream");
+        }
+
+        memcpy(SavingMemBuf + SavingMemBufPos, &val, sizeof(val));
+        SavingMemBufPos += sizeof(val);
+        return;
+    }
+
     SV_Write(&val, sizeof(int64_t));
 }
 

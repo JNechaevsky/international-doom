@@ -66,10 +66,24 @@ int snd_MusicVolume = 10;
 
 int AmbChan;
 
-void S_Start(void)
+void S_StopAllSound(void)
 {
     int i;
 
+    for (i = 0; i < snd_channels; i++)
+    {
+        if (channel[i].handle)
+        {
+            S_StopSound(channel[i].mo);
+        }
+    }
+
+    memset(channel, 0, snd_channels * sizeof(channel_t));
+    AmbChan = -1;
+}
+
+void S_Start(void)
+{
     // [JN] If music was chosen by cheat code, play it.
     if (idmusnum != -1)
     {
@@ -80,15 +94,7 @@ void S_Start(void)
         S_StartSong((gameepisode - 1) * 9 + gamemap - 1, true);
     }
 
-    //stop all sounds
-    for (i = 0; i < snd_channels; i++)
-    {
-        if (channel[i].handle)
-        {
-            S_StopSound(channel[i].mo);
-        }
-    }
-    memset(channel, 0, snd_channels * sizeof(channel_t));
+    S_StopAllSound();
 }
 
 void S_StartSong(int song, boolean loop)
@@ -850,14 +856,7 @@ void S_MuteUnmuteSound (boolean mute)
     if (mute)
     {
         // Stop all sounds and clear sfx channels.
-        for (int i = 0 ; i < snd_channels ; i++)
-        {
-            if (channel[i].handle)
-            {
-                S_StopSound(channel[i].mo);
-            }
-        }
-        memset(channel, 0, snd_channels * sizeof(channel_t));
+        S_StopAllSound();
 
         // Set volume to zero.
         I_SetMusicVolume(0);

@@ -4812,7 +4812,7 @@ static MenuItem_t ID_Menu_Misc_1[] = {
 };
 
 static Menu_t ID_Def_Misc_1 = {
-    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Misc_1,
     ITEMCOUNT(ID_Menu_Misc_1), ID_Menu_Misc_1,
     0,
@@ -4979,7 +4979,7 @@ static void M_Draw_ID_Misc_1 (void)
     else
     {
         // < Scroll pages >
-        M_DrawScrollPages(ID_MENU_CTRLSOFFSET, 160, 14, "1/2");
+        M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 160, 14, "1/2");
     }
 }
 
@@ -5054,25 +5054,25 @@ static void M_ID_Misc_Launcher (int choice)
 #endif
 
 static MenuItem_t ID_Menu_Misc_2[] = {
-    { ITT_LRFUNC1, "ENABLE REWIND",   M_ID_Misc_RewindEnable,   0, MENU_NONE },
-    { ITT_LRFUNC1, "REWIND INTERWAL", M_ID_Misc_RewindInterwal, 0, MENU_NONE },
-    { ITT_LRFUNC1, "REWIND DEPTH",    M_ID_Misc_RewindDepth,    0, MENU_NONE },
-    { ITT_LRFUNC1, "REWIND TIMEOUT",  M_ID_Misc_RewindTimeout,  0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_EMPTY,   NULL,              NULL,                     0, MENU_NONE },
-    { ITT_LRFUNC2, "", /* SCROLLS PAGES */ M_ScrollMisc,        0, MENU_NONE },
+    { ITT_LRFUNC1, "ENABLE REWIND",               M_ID_Misc_RewindEnable,   0, MENU_NONE },
+    { ITT_LRFUNC1, "REWIND INTERWAL (S)",         M_ID_Misc_RewindInterwal, 0, MENU_NONE },
+    { ITT_LRFUNC1, "REWIND DEPTH (KEY FRAMES)",   M_ID_Misc_RewindDepth,    0, MENU_NONE },
+    { ITT_LRFUNC1, "FULL KEY FRAME TIMEOUT (MS)", M_ID_Misc_RewindTimeout,  0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                          NULL,                     0, MENU_NONE },
+    { ITT_LRFUNC2, "", /* SCROLLS PAGES */        M_ScrollMisc,             0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Misc_2 = {
-    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
+    ID_MENU_LEFTOFFSET_BIG, ID_MENU_TOPOFFSET,
     M_Draw_ID_Misc_2,
     ITEMCOUNT(ID_Menu_Misc_2), ID_Menu_Misc_2,
     0,
@@ -5095,8 +5095,8 @@ static void M_Draw_ID_Misc_2 (void)
                             rewind_enable ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(0));
 
-    // Rewind interwal
-    sprintf(str, rewind_interval == 1 ? "1 SECOND" : "%d SECONDS", rewind_interval);
+    // Rewind interwal (s)
+    sprintf(str, "%d", rewind_interval);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 30,
                        !rewind_enable ? cr[CR_DARKRED] :
                         rewind_interval == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
@@ -5104,8 +5104,8 @@ static void M_Draw_ID_Misc_2 (void)
                             rewind_interval == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(1));
 
-    // Rewind depth
-    sprintf(str, rewind_depth == 1 ? "%d KEY FRAME" : "%d KEY FRAMES", rewind_depth);
+    // Rewind depth (key frames)
+    sprintf(str, "%d", rewind_depth);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
                        !rewind_enable ? cr[CR_DARKRED] :
                         rewind_depth == 600 ? cr[CR_YELLOW] : cr[CR_GREEN],
@@ -5113,9 +5113,8 @@ static void M_Draw_ID_Misc_2 (void)
                             rewind_depth == 600 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(2));
 
-    // Rewind timeout
-    sprintf(str, rewind_timeout == 0 ? "NO LIMIT" :
-                 rewind_timeout == 1 ? "1 MILLISECOND" : "%d MILLISECONDS", rewind_timeout);
+    // Full keyframe timeout (ms)
+    sprintf(str, rewind_timeout == 0 ? "NO LIMIT" : "%d", rewind_timeout);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
                        !rewind_enable ? cr[CR_DARKRED] :
                         rewind_timeout == 25 ? cr[CR_YELLOW] : cr[CR_GREEN],
@@ -5124,7 +5123,7 @@ static void M_Draw_ID_Misc_2 (void)
                                 LINE_ALPHA(3));
 
     // < Scroll pages >
-    M_DrawScrollPages(ID_MENU_CTRLSOFFSET, 160, 14, "2/2");
+    M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 160, 14, "2/2");
 }
 
 static void M_ID_Misc_RewindEnable (int choice)

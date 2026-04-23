@@ -33,6 +33,7 @@ void S_StartSound(void *_origin, int sound_id);
 void S_StartSoundAmbient (void *_origin, int sound_id);
 void S_StartSoundAtVolume(void *_origin, int sound_id, int volume);
 void S_StopSound(void *_origin);
+void S_StopAllSound(void);
 void S_PauseSound(void);
 void S_ResumeSound(void);
 void S_UpdateSounds(mobj_t * listener);

@@ -46,8 +46,76 @@ FILE *save_stream;
 boolean savegame_error;
 static char savegame_wadname[SAVEGAME_WADNAMESIZE];
 static MEMFILE *save_memstream;
+static size_t save_memstream_hint;
+static byte *save_membuf;
+static size_t save_membuf_size;
+static size_t save_membuf_pos;
+static boolean save_memwrite_active;
 
 static const byte savegame_wad_header[4] = {'P', 'W', 'A', 'D'};
+static const size_t save_memstream_min_size = 0x20000;
+
+static boolean saveg_memory_mode(void)
+{
+    return save_memwrite_active || save_memstream != NULL;
+}
+
+static void saveg_stop_memwrite(void)
+{
+    save_membuf_pos = 0;
+    save_memwrite_active = false;
+}
+
+static boolean saveg_ensure_memwrite_capacity(size_t bytes)
+{
+    size_t needed;
+    size_t new_size;
+    byte *new_buf;
+
+    if (bytes == 0)
+    {
+        return true;
+    }
+
+    needed = save_membuf_pos + bytes;
+
+    if (needed < save_membuf_pos)
+    {
+        return false;
+    }
+
+    if (needed <= save_membuf_size)
+    {
+        return true;
+    }
+
+    new_size = save_membuf_size > 0 ? save_membuf_size : save_memstream_min_size;
+
+    while (new_size < needed)
+    {
+        size_t grown = new_size * 2;
+
+        if (grown <= new_size)
+        {
+            new_size = needed;
+            break;
+        }
+
+        new_size = grown;
+    }
+
+    new_buf = realloc(save_membuf, new_size);
+
+    if (new_buf == NULL)
+    {
+        return false;
+    }
+
+    save_membuf = new_buf;
+    save_membuf_size = new_size;
+
+    return true;
+}
 
 static size_t saveg_fread(void *ptr, size_t size, size_t nmemb)
 {
@@ -61,6 +129,21 @@ static size_t saveg_fread(void *ptr, size_t size, size_t nmemb)
 
 static size_t saveg_fwrite(const void *ptr, size_t size, size_t nmemb)
 {
+    if (save_memwrite_active)
+    {
+        const size_t bytes = size * nmemb;
+
+        if (!saveg_ensure_memwrite_capacity(bytes))
+        {
+            return 0;
+        }
+
+        memcpy(save_membuf + save_membuf_pos, ptr, bytes);
+        save_membuf_pos += bytes;
+
+        return nmemb;
+    }
+
     if (save_memstream != NULL)
     {
         return mem_fwrite(ptr, size, nmemb, save_memstream);
@@ -71,6 +154,11 @@ static size_t saveg_fwrite(const void *ptr, size_t size, size_t nmemb)
 
 static long saveg_ftell(void)
 {
+    if (save_memwrite_active)
+    {
+        return (long) save_membuf_pos;
+    }
+
     if (save_memstream != NULL)
     {
         return mem_ftell(save_memstream);
@@ -81,34 +169,54 @@ static long saveg_ftell(void)
 
 void P_OpenMemorySaveGame(void)
 {
+    size_t initial_size = save_memstream_hint;
+    byte *new_buf = NULL;
+
+    saveg_stop_memwrite();
     save_stream = NULL;
-    save_memstream = mem_fopen_write();
+    save_memstream = NULL;
+
+    if (initial_size < save_memstream_min_size)
+    {
+        initial_size = save_memstream_min_size;
+    }
+
+    if (save_membuf_size < initial_size)
+    {
+        new_buf = realloc(save_membuf, initial_size);
+
+        if (new_buf != NULL)
+        {
+            save_membuf = new_buf;
+            save_membuf_size = initial_size;
+        }
+    }
+
+    save_membuf_pos = 0;
+    save_memwrite_active = true;
     savegame_error = false;
 }
 
 boolean P_CloseMemorySaveGame(byte **data, size_t *len)
 {
-    void *buf;
-    size_t buflen;
-
     *data = NULL;
     *len = 0;
 
-    if (save_memstream == NULL)
+    if (!save_memwrite_active)
     {
         return false;
     }
 
-    mem_get_buf(save_memstream, &buf, &buflen);
-
-    if (!savegame_error && buflen > 0)
+    if (!savegame_error && save_membuf_pos > 0)
     {
-        *data = malloc(buflen);
+        *data = malloc(save_membuf_pos);
 
         if (*data != NULL)
         {
-            memcpy(*data, buf, buflen);
-            *len = buflen;
+            memcpy(*data, save_membuf, save_membuf_pos);
+            *len = save_membuf_pos;
+            // [PN] Keep next memory save pre-sized close to previous keyframe.
+            save_memstream_hint = save_membuf_pos + (save_membuf_pos >> 2);
         }
         else
         {
@@ -116,14 +224,14 @@ boolean P_CloseMemorySaveGame(byte **data, size_t *len)
         }
     }
 
-    mem_fclose(save_memstream);
-    save_memstream = NULL;
+    saveg_stop_memwrite();
 
     return !savegame_error && *data != NULL;
 }
 
 void P_OpenMemoryLoadGame(byte *data, size_t len)
 {
+    saveg_stop_memwrite();
     save_stream = NULL;
     save_memstream = mem_fopen_read(data, len);
     savegame_error = false;
@@ -136,6 +244,8 @@ void P_CloseMemoryLoadGame(void)
         mem_fclose(save_memstream);
         save_memstream = NULL;
     }
+
+    saveg_stop_memwrite();
 }
 
 // Get the filename of a temporary file to write the savegame to.  After
@@ -200,11 +310,59 @@ static byte saveg_read8(void)
 
 static void saveg_write8(byte value)
 {
+    if (save_memwrite_active)
+    {
+        if (!saveg_ensure_memwrite_capacity(1))
+        {
+            if (!savegame_error)
+            {
+                fprintf(stderr, "saveg_write8: Error while writing save game\n");
+                savegame_error = true;
+            }
+
+            return;
+        }
+
+        save_membuf[save_membuf_pos++] = value;
+        return;
+    }
+
     if (saveg_fwrite(&value, 1, 1) < 1)
     {
         if (!savegame_error)
         {
             fprintf(stderr, "saveg_write8: Error while writing save game\n");
+
+            savegame_error = true;
+        }
+    }
+}
+
+static void saveg_write_data(const byte *data, size_t len)
+{
+    if (save_memwrite_active)
+    {
+        if (!saveg_ensure_memwrite_capacity(len))
+        {
+            if (!savegame_error)
+            {
+                fprintf(stderr, "saveg_write_data: Error while writing save game\n");
+                savegame_error = true;
+            }
+
+            return;
+        }
+
+        memcpy(save_membuf + save_membuf_pos, data, len);
+        save_membuf_pos += len;
+        return;
+    }
+
+    if (saveg_fwrite(data, 1, len) < len)
+    {
+        if (!savegame_error)
+        {
+            fprintf(stderr, "saveg_write_data: Error while writing save game\n");
 
             savegame_error = true;
         }
@@ -223,8 +381,33 @@ static short saveg_read16(void)
 
 static void saveg_write16(short value)
 {
-    saveg_write8(value & 0xff);
-    saveg_write8((value >> 8) & 0xff);
+    if (save_memwrite_active)
+    {
+        if (!saveg_ensure_memwrite_capacity(2))
+        {
+            if (!savegame_error)
+            {
+                fprintf(stderr, "saveg_write16: Error while writing save game\n");
+                savegame_error = true;
+            }
+
+            return;
+        }
+
+        save_membuf[save_membuf_pos++] = value & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 8) & 0xff;
+        return;
+    }
+
+    {
+        const byte data[2] =
+        {
+            value & 0xff,
+            (value >> 8) & 0xff
+        };
+
+        saveg_write_data(data, sizeof(data));
+    }
 }
 
 static int saveg_read32(void)
@@ -241,10 +424,37 @@ static int saveg_read32(void)
 
 static void saveg_write32(int value)
 {
-    saveg_write8(value & 0xff);
-    saveg_write8((value >> 8) & 0xff);
-    saveg_write8((value >> 16) & 0xff);
-    saveg_write8((value >> 24) & 0xff);
+    if (save_memwrite_active)
+    {
+        if (!saveg_ensure_memwrite_capacity(4))
+        {
+            if (!savegame_error)
+            {
+                fprintf(stderr, "saveg_write32: Error while writing save game\n");
+                savegame_error = true;
+            }
+
+            return;
+        }
+
+        save_membuf[save_membuf_pos++] = value & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 8) & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 16) & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 24) & 0xff;
+        return;
+    }
+
+    {
+        const byte data[4] =
+        {
+            value & 0xff,
+            (value >> 8) & 0xff,
+            (value >> 16) & 0xff,
+            (value >> 24) & 0xff
+        };
+
+        saveg_write_data(data, sizeof(data));
+    }
 }
 
 static int64_t saveg_read64(void)
@@ -265,14 +475,45 @@ static int64_t saveg_read64(void)
 
 static void saveg_write64(int64_t value)
 {
-    saveg_write8(value & 0xff);
-    saveg_write8((value >> 8) & 0xff);
-    saveg_write8((value >> 16) & 0xff);
-    saveg_write8((value >> 24) & 0xff);
-    saveg_write8((value >> 32) & 0xff);
-    saveg_write8((value >> 40) & 0xff);
-    saveg_write8((value >> 48) & 0xff);
-    saveg_write8((value >> 56) & 0xff);
+    if (save_memwrite_active)
+    {
+        if (!saveg_ensure_memwrite_capacity(8))
+        {
+            if (!savegame_error)
+            {
+                fprintf(stderr, "saveg_write64: Error while writing save game\n");
+                savegame_error = true;
+            }
+
+            return;
+        }
+
+        save_membuf[save_membuf_pos++] = value & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 8) & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 16) & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 24) & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 32) & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 40) & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 48) & 0xff;
+        save_membuf[save_membuf_pos++] = (value >> 56) & 0xff;
+        return;
+    }
+
+    {
+        const byte data[8] =
+        {
+            value & 0xff,
+            (value >> 8) & 0xff,
+            (value >> 16) & 0xff,
+            (value >> 24) & 0xff,
+            (value >> 32) & 0xff,
+            (value >> 40) & 0xff,
+            (value >> 48) & 0xff,
+            (value >> 56) & 0xff
+        };
+
+        saveg_write_data(data, sizeof(data));
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1863,7 +2104,7 @@ void P_ArchiveWorld (void)
     // do sectors
     for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
     {
-        if (save_memstream != NULL)
+        if (saveg_memory_mode())
         {
             saveg_write32(sec->floorheight);
             saveg_write32(sec->ceilingheight);
@@ -1894,7 +2135,7 @@ void P_ArchiveWorld (void)
 	    
 	    si = &sides[li->sidenum[j]];
 
-            if (save_memstream != NULL)
+            if (saveg_memory_mode())
             {
                 saveg_write32(si->textureoffset);
                 saveg_write32(si->rowoffset);
@@ -1929,7 +2170,7 @@ void P_UnArchiveWorld (void)
     {
 	// [crispy] add overflow guard for the flattranslation[] array
 	short floorpic, ceilingpic;
-        if (save_memstream != NULL)
+        if (saveg_memory_mode())
         {
             sec->floorheight = saveg_read32();
             sec->ceilingheight = saveg_read32();
@@ -1968,7 +2209,7 @@ void P_UnArchiveWorld (void)
 	    if (li->sidenum[j] == NO_INDEX)
 		continue;
 	    si = &sides[li->sidenum[j]];
-            if (save_memstream != NULL)
+            if (saveg_memory_mode())
             {
                 si->textureoffset = saveg_read32();
                 si->rowoffset = saveg_read32();
