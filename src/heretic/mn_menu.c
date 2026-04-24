@@ -1852,7 +1852,7 @@ static void M_ID_SaturationHook (void)
 static void M_ID_Saturation (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
-    vid_saturation = M_INT_Slider(vid_saturation, 0, 100, choice, true);
+    vid_saturation = M_INT_Slider(vid_saturation, 0, 200, choice, true);
     post_rendering_hook = M_ID_SaturationHook;
 }
 

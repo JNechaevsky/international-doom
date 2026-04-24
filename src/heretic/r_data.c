@@ -1002,9 +1002,9 @@ static void R_InitSpriteLumps (void)
 
 #define CALC_SATURATION(channels, pal, a_hi, a_lo) \
     { const float one_minus_a_hi = 1.0f - a_hi; \
-      channels[0] = (byte)(one_minus_a_hi * pal[0] + a_lo * (pal[1] + pal[2])); \
-      channels[1] = (byte)(one_minus_a_hi * pal[1] + a_lo * (pal[0] + pal[2])); \
-      channels[2] = (byte)(one_minus_a_hi * pal[2] + a_lo * (pal[0] + pal[1])); }
+      channels[0] = (byte)BETWEEN(0, 255, (int)(one_minus_a_hi * pal[0] + a_lo * (pal[1] + pal[2]))); \
+      channels[1] = (byte)BETWEEN(0, 255, (int)(one_minus_a_hi * pal[1] + a_lo * (pal[0] + pal[2]))); \
+      channels[2] = (byte)BETWEEN(0, 255, (int)(one_minus_a_hi * pal[2] + a_lo * (pal[0] + pal[1]))); }
 
 #define CALC_CONTRAST(channels, contrast) \
     { const float contrast_adjustment = 128 * (1.0f - contrast); \
@@ -1026,12 +1026,12 @@ void R_InitColormaps (void)
 	const byte *const playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 	const byte *const colormap = W_CacheLumpName("COLORMAP", PU_STATIC);
 
-	// [JN] Saturation floats, high and low.
-	// If saturation has been modified (< 100), set high and low
-	// values according to saturation level. Sum of r,g,b channels
-	// and floats must be 1.0 to get proper colors.
-	const float a_hi = vid_saturation < 100 ? I_SaturationPercent[vid_saturation] : 0;
-	const float a_lo = vid_saturation < 100 ? (a_hi / 2) : 0;
+	// [JN] Saturation coefficients:
+	// 0..100  = desaturate -> neutral, 101..200 = oversaturate.
+	const int saturation = BETWEEN(0, 200, vid_saturation);
+	const float a_hi = (saturation < 100) ? I_SaturationPercent[saturation]
+	                                       : -(float)(saturation - 100) * 0.0066f;
+	const float a_lo = a_hi * 0.5f;
 
 	// [JN] Allocate colormaps[] array once with max size (256 + 1) to avoid
 	// repeated reallocation during subsequent function calls.
@@ -1067,10 +1067,11 @@ void R_InitColormaps (void)
             float g = one_minus_a_hi * pg + a_lo * (pr + pb);
             float b = one_minus_a_hi * pb + a_lo * (pr + pg);
 
-            // Gamma to bytes (reuse later for every light level)
-            pal_gamma[k][0] = gtab[(byte)r];
-            pal_gamma[k][1] = gtab[(byte)g];
-            pal_gamma[k][2] = gtab[(byte)b];
+            // Gamma to bytes (reuse later for every light level).
+            // Clamp first to avoid float->byte wraparound when saturation > 100.
+            pal_gamma[k][0] = gtab[(byte)BETWEEN(0, 255, (int)r)];
+            pal_gamma[k][1] = gtab[(byte)BETWEEN(0, 255, (int)g)];
+            pal_gamma[k][2] = gtab[(byte)BETWEEN(0, 255, (int)b)];
         }
 
         // Contrast and colorblind are applied after COLORMAP sampling/interpolation.
@@ -1324,12 +1325,12 @@ void R_SetUnderwaterPalette (const byte *const palette)
     int i, j = 0;
     byte r, g, b;
 
-    // [JN] Saturation floats, high and low.
-    // If saturation has been modified (< 100), set high and low
-    // values according to saturation level. Sum of r,g,b channels
-    // and floats must be 1.0 to get proper colors.
-    const float a_hi = vid_saturation < 100 ? I_SaturationPercent[vid_saturation] : 0;
-    const float a_lo = vid_saturation < 100 ? (a_hi / 2) : 0;
+    // [JN] Saturation coefficients:
+    // 0..100  = desaturate -> neutral, 101..200 = oversaturate.
+    const int saturation = BETWEEN(0, 200, vid_saturation);
+    const float a_hi = (saturation < 100) ? I_SaturationPercent[saturation]
+                                           : -(float)(saturation - 100) * 0.0066f;
+    const float a_lo = a_hi * 0.5f;
 
     for (i = 0; i < 256; i++)
     {

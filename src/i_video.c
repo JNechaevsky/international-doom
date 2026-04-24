@@ -1505,9 +1505,9 @@ void CenterWindow(int *x, int *y, int w, int h)
 // [PN] Apply saturation correction to RGB channels
 #define ADJUST_SATURATION(r, g, b, a_hi, a_lo) \
     { const float one_minus_a_hi = 1.0f - (a_hi); \
-      const byte new_r = (byte)(one_minus_a_hi * (r) + (a_lo) * ((g) + (b))); \
-      const byte new_g = (byte)(one_minus_a_hi * (g) + (a_lo) * ((r) + (b))); \
-      const byte new_b = (byte)(one_minus_a_hi * (b) + (a_lo) * ((r) + (g))); \
+      const byte new_r = (byte)BETWEEN(0, 255, (int)(one_minus_a_hi * (r) + (a_lo) * ((g) + (b)))); \
+      const byte new_g = (byte)BETWEEN(0, 255, (int)(one_minus_a_hi * (g) + (a_lo) * ((r) + (b)))); \
+      const byte new_b = (byte)BETWEEN(0, 255, (int)(one_minus_a_hi * (b) + (a_lo) * ((r) + (g)))); \
       (r) = new_r; \
       (g) = new_g; \
       (b) = new_b; }
@@ -1548,9 +1548,11 @@ void I_SetColorPanes (boolean recreate_argbbuffer)
         { &orngpane, 0x96, 0x6e, 0x0  }   // orange (Hexen: Arc of Death)
     };
 
-    // [PN] Precompute saturation values
-    const float a_hi = vid_saturation < 100 ? I_SaturationPercent[vid_saturation] : 0;
-    const float a_lo = vid_saturation < 100 ? (a_hi / 2) : 0;
+    // [PN] Precompute saturation values (0..100 desaturate, 101..200 oversaturate).
+    const int saturation = BETWEEN(0, 200, vid_saturation);
+    const float a_hi = (saturation < 100) ? I_SaturationPercent[saturation]
+                                           : -(float)(saturation - 100) * 0.0066f;
+    const float a_lo = a_hi * 0.5f;
 
     // [PN] Safely free and allocate the surface to avoid memory leaks.
     // [JN] This is have to be done just once, at startup. No need to 
