@@ -49,8 +49,6 @@ static keyframe_t *queue_tail;
 static int queue_count;
 static boolean disable_rewind;
 static boolean rewind_restoring;
-static int rewind_timeout_count;
-static int rewind_timeout_boost;
 static int rewind_frames_since_full;
 static int rewind_save_cooldown_tics;
 
@@ -58,10 +56,6 @@ static ticcmd_t *rewind_cmd_history;
 static int rewind_cmd_history_size;
 static int rewind_cmd_history_count;
 static int rewind_cmd_history_head;
-
-#define REWIND_TIMEOUT_LIMIT 1
-#define REWIND_TIMEOUT_BOOST_STEP 2
-#define REWIND_TIMEOUT_BOOST_MAX 200
 
 // [PN] Store one full keyframe each N autosaves, intermediate keyframes are deltas.
 #define REWIND_FULL_STRIDE 4
@@ -507,7 +501,7 @@ void G_SaveAutoKeyframe(void)
     const int timeout_ms = RewindTimeout();
     keyframe_t *keyframe = NULL;
     boolean save_full;
-    const int start_time = I_GetTime();
+    const uint64_t start_time = I_GetTimeUS();
 
     if (!rewind_enable || disable_rewind || gamestate != GS_LEVEL
      || netgame || demoplayback || demorecording || menuactive || paused
@@ -576,40 +570,12 @@ void G_SaveAutoKeyframe(void)
     // [PN] Timeout control for expensive FULL keyframes only.
     if (timeout_ms > 0 && keyframe->kind == KEYFRAME_FULL)
     {
-        const int elapsed_ms = (I_GetTime() - start_time) * 1000 / TICRATE;
-        const int effective_timeout = timeout_ms + rewind_timeout_boost;
+        const uint64_t elapsed_us = I_GetTimeUS() - start_time;
 
-        if (elapsed_ms > effective_timeout)
+        if (elapsed_us > (uint64_t)timeout_ms * 1000)
         {
-            if (rewind_timeout_boost < REWIND_TIMEOUT_BOOST_MAX)
-            {
-                rewind_timeout_boost += REWIND_TIMEOUT_BOOST_STEP;
-
-                if (rewind_timeout_boost > REWIND_TIMEOUT_BOOST_MAX)
-                {
-                    rewind_timeout_boost = REWIND_TIMEOUT_BOOST_MAX;
-                }
-
-                rewind_timeout_count = 0;
-                return;
-            }
-
-            ++rewind_timeout_count;
-
-            if (rewind_timeout_count > REWIND_TIMEOUT_LIMIT)
-            {
-                disable_rewind = true;
-                CT_SetMessage(&players[consoleplayer], "SLOW KEY FRAMING: REWIND DISABLED", false, NULL);
-            }
-        }
-        else
-        {
-            if (rewind_timeout_boost > 0)
-            {
-                --rewind_timeout_boost;
-            }
-
-            rewind_timeout_count = 0;
+            disable_rewind = true;
+            CT_SetMessage(&players[consoleplayer], "SLOW KEY FRAMING: REWIND DISABLED", false, NULL);
         }
     }
 }
@@ -654,8 +620,6 @@ void G_LoadAutoKeyframe(void)
 void G_ResetRewind(boolean force)
 {
     disable_rewind = false;
-    rewind_timeout_count = 0;
-    rewind_timeout_boost = 0;
     rewind_save_cooldown_tics = 0;
 
     if (force && !rewind_restoring)
