@@ -970,9 +970,9 @@ static void R_InitSpriteLumps (void)
 // -----------------------------------------------------------------------------
 
 #define CALC_INTENSITY(pal, playpal, index) \
-    { pal[0] = playpal[3 * (index) + 0] * vid_r_intensity; \
-      pal[1] = playpal[3 * (index) + 1] * vid_g_intensity; \
-      pal[2] = playpal[3 * (index) + 2] * vid_b_intensity; }
+    { pal[0] = (byte)BETWEEN(0, 255, (int)(playpal[3 * (index) + 0] * vid_r_intensity)); \
+      pal[1] = (byte)BETWEEN(0, 255, (int)(playpal[3 * (index) + 1] * vid_g_intensity)); \
+      pal[2] = (byte)BETWEEN(0, 255, (int)(playpal[3 * (index) + 2] * vid_b_intensity)); }
 
 #define CALC_SATURATION(channels, pal, a_hi, a_lo) \
     { const float one_minus_a_hi = 1.0f - a_hi; \
@@ -1210,9 +1210,9 @@ void R_InitColormaps (void)
             // (manually feed "pal" with our src_* values)
             byte pal[3], channels[3];
 
-            pal[0] = (byte)(src_r * vid_r_intensity);
-            pal[1] = (byte)(src_g * vid_g_intensity);
-            pal[2] = (byte)(src_b * vid_b_intensity);
+            pal[0] = (byte)BETWEEN(0, 255, (int)(src_r * vid_r_intensity));
+            pal[1] = (byte)BETWEEN(0, 255, (int)(src_g * vid_g_intensity));
+            pal[2] = (byte)BETWEEN(0, 255, (int)(src_b * vid_b_intensity));
     
             CALC_SATURATION(channels, pal, a_hi, a_lo);
             CALC_CONTRAST(channels, vid_contrast);

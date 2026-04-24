@@ -1498,9 +1498,9 @@ void CenterWindow(int *x, int *y, int w, int h)
 
 // [PN] Apply intensity correction to RGB channels
 #define ADJUST_INTENSITY(r, g, b, r_intensity, g_intensity, b_intensity) \
-    { (r) = (byte)((r) * (r_intensity)); \
-      (g) = (byte)((g) * (g_intensity)); \
-      (b) = (byte)((b) * (b_intensity)); }
+    { (r) = (byte)BETWEEN(0, 255, (int)((r) * (r_intensity))); \
+      (g) = (byte)BETWEEN(0, 255, (int)((g) * (g_intensity))); \
+      (b) = (byte)BETWEEN(0, 255, (int)((b) * (b_intensity))); }
 
 // [PN] Apply saturation correction to RGB channels
 #define ADJUST_SATURATION(r, g, b, a_hi, a_lo) \

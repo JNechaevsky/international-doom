@@ -2024,7 +2024,7 @@ static void M_ID_R_IntensityHook (void)
 static void M_ID_R_Intensity (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
-    vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 1.000000f, 0.025000f, choice, true);
+    vid_r_intensity = M_FLOAT_Slider(vid_r_intensity, 0, 2.000000f, 0.025000f, choice, true);
     post_rendering_hook = M_ID_R_IntensityHook;
 }
 
@@ -2041,7 +2041,7 @@ static void M_ID_G_IntensityHook (void)
 static void M_ID_G_Intensity (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
-    vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 1.000000f, 0.025000f, choice, true);
+    vid_g_intensity = M_FLOAT_Slider(vid_g_intensity, 0, 2.000000f, 0.025000f, choice, true);
     post_rendering_hook = M_ID_G_IntensityHook;
 }
 
@@ -2058,7 +2058,7 @@ static void M_ID_B_IntensityHook (void)
 static void M_ID_B_Intensity (int choice)
 {
     shade_wait = I_GetTime() + TICRATE;
-    vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 1.000000f, 0.025000f, choice, true);
+    vid_b_intensity = M_FLOAT_Slider(vid_b_intensity, 0, 2.000000f, 0.025000f, choice, true);
     post_rendering_hook = M_ID_B_IntensityHook;
 }
 
