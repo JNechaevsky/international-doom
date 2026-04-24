@@ -1572,6 +1572,14 @@ void I_SetColorPanes (boolean recreate_argbbuffer)
     // [PN] Adjust and create textures from the defined colors
     for (int i = 0; i < sizeof(panes) / sizeof(panes[0]); i++)
     {
+        // Destroy previous pane texture before replacing it to avoid leaks
+        // during interactive slider changes in menu.
+        if (*(panes[i].texture) != NULL)
+        {
+            SDL_DestroyTexture(*(panes[i].texture));
+            *(panes[i].texture) = NULL;
+        }
+
         // [PN] Extract original RGB values
         byte r = panes[i].r;
         byte g = panes[i].g;
@@ -1588,6 +1596,10 @@ void I_SetColorPanes (boolean recreate_argbbuffer)
 
         // [PN] Create texture from surface
         *(panes[i].texture) = SDL_CreateTextureFromSurface(renderer, argbbuffer);
+        if (*(panes[i].texture) == NULL)
+        {
+            I_Error("I_SetColorPanes: Failed to create pane texture: %s", SDL_GetError());
+        }
 
         // [PN] Set blend mode
         SDL_SetTextureBlendMode(*(panes[i].texture), SDL_BLENDMODE_BLEND);
@@ -1707,6 +1719,14 @@ static void SetVideoMode(void)
         // all associated textures get destroyed
         texture = NULL;
         texture_upscaled = NULL;
+        curpane = NULL;
+        redpane = NULL;
+        yelpane = NULL;
+        grnpane = NULL;
+        grnspane = NULL;
+        bluepane = NULL;
+        graypane = NULL;
+        orngpane = NULL;
     }
 
     renderer = SDL_CreateRenderer(screen, -1, renderer_flags);
@@ -2032,6 +2052,14 @@ void I_ReInitGraphics (int reinit)
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
 		// [crispy] the texture gets destroyed in SDL_DestroyRenderer(), force its re-creation
+		curpane = NULL;
+		redpane = NULL;
+		yelpane = NULL;
+		grnpane = NULL;
+		grnspane = NULL;
+		bluepane = NULL;
+		graypane = NULL;
+		orngpane = NULL;
 		texture_upscaled = NULL;
 	}
 
