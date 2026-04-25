@@ -1243,8 +1243,8 @@ static void M_Draw_ID_Video_1 (void)
     const boolean vsync_na = (vid_force_software_renderer != 0);
     sprintf(str, vsync_na ? "N/A" : (vid_vsync ? "ON" : "OFF"));
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
-                    vsync_na ? cr[CR_DARKRED] : (vid_vsync ? cr[CR_GREEN_HX] : cr[CR_DARKRED]),
-                            vsync_na ? cr[CR_RED] : (vid_vsync ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT]),
+                    vsync_na ? cr[CR_DARKRED] : (vid_vsync ? cr[CR_DARKRED] : cr[CR_YELLOW]),
+                            vsync_na ? cr[CR_RED] : (vid_vsync ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT]),
                                 LINE_ALPHA(6));
 
     // Show FPS counter
@@ -1753,8 +1753,8 @@ static void M_Draw_ID_Display (void)
     // Messages enabled
     sprintf(str, msg_show ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
-                        msg_show ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
-                            msg_show ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT], 
+                        msg_show ? cr[CR_DARKRED] : cr[CR_YELLOW],
+                            msg_show ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(11));
 
     // Text casts shadows
@@ -3940,8 +3940,8 @@ static void M_Draw_ID_Automap (void)
     // Line smoothing
     sprintf(str, automap_smooth_hr ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
-                        automap_smooth_hr ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
-                            automap_smooth_hr ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                        automap_smooth_hr ? cr[CR_DARKRED] : cr[CR_YELLOW],
+                            automap_smooth_hr ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(0));
 
     // Line thickness
@@ -3968,8 +3968,8 @@ static void M_Draw_ID_Automap (void)
     // Scroll background
     sprintf(str, automap_scroll_bg ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
-                        automap_scroll_bg ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
-                            automap_scroll_bg ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                        automap_scroll_bg ? cr[CR_DARKRED] : cr[CR_YELLOW],
+                            automap_scroll_bg ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(4));
 
     // Rotate mode
@@ -4569,8 +4569,8 @@ static void M_Draw_ID_Gameplay_3 (void)
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
-                        demo_internal ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
-                            demo_internal ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
+                        demo_internal ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            demo_internal ?  cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(8));
 
     MN_DrTextACentered("COMPATIBILITY-BREAKING", 110, cr[CR_YELLOW]);

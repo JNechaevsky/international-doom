@@ -1366,8 +1366,8 @@ static void M_Draw_ID_Video_1 (void)
     const boolean vsync_na = (vid_force_software_renderer != 0);
     sprintf(str, vsync_na ? "N/A" : (vid_vsync ? "ON" : "OFF"));
     M_WriteTextGlow(M_ItemRightAlign(str), 72, str, 
-                    vsync_na ? cr[CR_DARKRED] : (vid_vsync ? cr[CR_GREEN] : cr[CR_DARKRED]),
-                            vsync_na ? cr[CR_RED] : (vid_vsync ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT]),
+                    vsync_na ? cr[CR_DARKRED] : (vid_vsync ? cr[CR_DARKRED] : cr[CR_YELLOW]),
+                            vsync_na ? cr[CR_RED] : (vid_vsync ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT]),
                                 LINE_ALPHA(6));
 
     // Show FPS counter
@@ -1411,8 +1411,10 @@ static void M_Draw_ID_Video_1 (void)
     sprintf(str, vid_endoom == 1 ? "ALWAYS" :
                  vid_endoom == 2 ? "PWAD ONLY" : "NEVER");
     M_WriteTextGlow(M_ItemRightAlign(str), 126, str, 
-                        vid_endoom == 1 ? cr[CR_DARKRED] : cr[CR_GREEN],
-                            vid_endoom == 1 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                        vid_endoom == 1 ? cr[CR_DARKRED] :
+                        vid_endoom == 2 ? cr[CR_GREEN] : cr[CR_YELLOW],
+                            vid_endoom == 1 ? cr[CR_RED_BRIGHT] :
+                            vid_endoom == 2 ? cr[CR_GREEN_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(12));
 
     // [JN] Print current resolution. Shamelessly taken from Nugget Doom!
@@ -1906,8 +1908,8 @@ static void M_Draw_ID_Display (void)
     // Messages enabled
     sprintf(str, msg_show ? "ON" : "OFF");
     M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
-                        msg_show ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            msg_show ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], 
+                        msg_show ? cr[CR_DARKRED] : cr[CR_YELLOW],
+                            msg_show ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(11));
 
     // Messages alignment
@@ -4798,8 +4800,8 @@ static void M_Draw_ID_Gameplay_3 (void)
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
     M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
-                        demo_internal ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            demo_internal ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                        demo_internal ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            demo_internal ?  cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(8));
 
     M_WriteTextCentered(99, "COMPATIBILITY-BREAKING", cr[CR_YELLOW]);

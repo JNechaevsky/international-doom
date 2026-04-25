@@ -1266,8 +1266,8 @@ static void M_Draw_ID_Video_1 (void)
     const boolean vsync_na = (vid_force_software_renderer != 0);
     sprintf(str, vsync_na ? "N/A" : (vid_vsync ? "ON" : "OFF"));
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
-                    vsync_na ? cr[CR_DARKRED] : (vid_vsync ? cr[CR_GREEN] : cr[CR_DARKRED]),
-                            vsync_na ? cr[CR_RED] : (vid_vsync ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT]),
+                    vsync_na ? cr[CR_DARKRED] : (vid_vsync ? cr[CR_DARKRED] : cr[CR_YELLOW]),
+                            vsync_na ? cr[CR_RED] : (vid_vsync ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT]),
                                 LINE_ALPHA(6));
 
     // Show FPS counter
@@ -1525,10 +1525,10 @@ static void M_Draw_ID_Video_2 (void)
     sprintf(str, vid_endoom == 1 ? "ALWAYS" :
                  vid_endoom == 2 ? "PWAD ONLY" : "NEVER");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
-                        vid_endoom == 1 ? cr[CR_GREEN] :
-                        vid_endoom == 2 ? cr[CR_YELLOW] : cr[CR_DARKRED],
-                            vid_endoom == 1 ? cr[CR_GREEN_BRIGHT] : 
-                            vid_endoom == 2 ? cr[CR_YELLOW_BRIGHT] : cr[CR_RED_BRIGHT],
+                        vid_endoom == 1 ? cr[CR_DARKRED] :
+                        vid_endoom == 2 ? cr[CR_GREEN] : cr[CR_YELLOW],
+                            vid_endoom == 1 ? cr[CR_RED_BRIGHT] :
+                            vid_endoom == 2 ? cr[CR_GREEN_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(2));
 
     MN_DrTextACentered("POST-PROCESSING EFFECTS", 50, cr[CR_YELLOW]);
@@ -1777,8 +1777,8 @@ static void M_Draw_ID_Display (void)
     // Messages enabled
     sprintf(str, msg_show ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 130,
-                        msg_show ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            msg_show ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT], 
+                        msg_show ? cr[CR_DARKRED] : cr[CR_YELLOW],
+                            msg_show ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(11));
 
     // Text casts shadows
@@ -3966,8 +3966,8 @@ static void M_Draw_ID_Automap (void)
     // Line smoothing
     sprintf(str, automap_smooth_hr ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
-                        automap_smooth_hr ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            automap_smooth_hr ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                        automap_smooth_hr ? cr[CR_DARKRED] : cr[CR_YELLOW],
+                            automap_smooth_hr ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(0));
 
     // Line thickness
@@ -3994,8 +3994,8 @@ static void M_Draw_ID_Automap (void)
     // Scroll background
     sprintf(str, automap_scroll_bg ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
-                        automap_scroll_bg && automap_textured_bg ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            automap_scroll_bg && automap_textured_bg ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                        automap_scroll_bg ? cr[CR_DARKRED] : cr[CR_YELLOW],
+                            automap_scroll_bg ? cr[CR_RED_BRIGHT] : cr[CR_YELLOW_BRIGHT],
                                 LINE_ALPHA(4));
 
     // Mark secret sectors
@@ -4634,8 +4634,8 @@ static void M_Draw_ID_Gameplay_3 (void)
     // Play internal demos
     sprintf(str, demo_internal ? "ON" : "OFF");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
-                        demo_internal ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            demo_internal ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                        demo_internal ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            demo_internal ?  cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(8));
 
     // < Scroll pages >
