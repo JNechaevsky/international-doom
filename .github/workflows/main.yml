@@ -118,8 +118,7 @@ jobs:
             -DCMAKE_PREFIX_PATH="lib/win32/fluidsynth-2.4.2-winXP-x86"
 
       - name: Build
-        run: cmake --build build_vs_32 --config Release --parallel
-             cmake --build build_vs_32 --config Release -- /p:XPDeprecationWarning=false
+        run: cmake --build build_vs_32 --config Release --parallel -- /p:XPDeprecationWarning=false
 
       - name: Prepare binaries for packaging
         run: |
