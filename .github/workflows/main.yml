@@ -119,6 +119,7 @@ jobs:
 
       - name: Build
         run: cmake --build build_vs_32 --config Release --parallel
+             cmake --build build_vs_32 --config Release -- /p:XPDeprecationWarning=false
 
       - name: Prepare binaries for packaging
         run: |
