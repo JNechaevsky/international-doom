@@ -6,3 +6,4 @@ Icon=inter-doom
 TryExec=inter-doom
 Categories=Game;
 MimeType=application/x-doom-wad;
+StartupWMClass=inter-doom

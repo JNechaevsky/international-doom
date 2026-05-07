@@ -6,3 +6,4 @@ Icon=inter-heretic
 TryExec=inter-heretic
 Categories=Game;
 MimeType=application/x-doom-wad;
+StartupWMClass=inter-heretic
