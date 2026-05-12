@@ -112,7 +112,7 @@ jobs:
             -A Win32 ^
             -DCMAKE_BUILD_TYPE="Release" ^
             -DSDL2_DIR="lib/win32/SDL2-2.32.10" ^
-            -DSDL2_MIXER_DIR="lib/win32/SDL2_mixer-2.8.1" ^
+            -DSDL2_MIXER_DIR="lib/win32/SDL2_mixer-2.8.2" ^
             -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=Off ^
             -DSAMPLERATE_DIR="lib/win32/libsamplerate-0.2.2-win32" ^
             -DCMAKE_PREFIX_PATH="lib/win32/fluidsynth-2.4.2-winXP-x86"
