@@ -281,7 +281,10 @@ typedef enum
     sfx_dgpain,
     // [crispy] play DSSECRET if available
     sfx_secret,
-    NUMSFX
+    NUMSFX_ORIG,
+    // [crispy] DEHEXTRA
+    sfx_fre000 = 500,
+    NUMSFX = 700
 } sfxenum_t;
 
 #endif
