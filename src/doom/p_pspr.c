@@ -1020,7 +1020,10 @@ void P_MovePsprites (player_t* player)
     {
         const int state = player->psprites[ps_weapon].state - states;       // [crispy]
         const weaponinfo_t *const winfo = &weaponinfo[player->readyweapon]; // [crispy]
-        const boolean movingState = (state != winfo->downstate && state != winfo->upstate);
+        // Don't apply bobbing during lowering and raising states
+        const boolean movingState = (psp->state->misc1 ||
+                                     psp->state->action.acp3 == (actionf_p3)A_Lower ||
+                                     psp->state->action.acp3 == (actionf_p3)A_Raise);
         const boolean improved_bobbing = phys_weapon_alignment >= 3;
         const int weapon_alignment = improved_bobbing ?
                                      phys_weapon_alignment - 3 :
@@ -1028,7 +1031,7 @@ void P_MovePsprites (player_t* player)
 
         if (weapon_alignment)
         {
-            if (weapon_alignment == 2 && player->attackdown && movingState)
+            if (weapon_alignment == 2 && player->attackdown && !movingState)
             {
                 // Center weapon while firing.
                 psp->sx2 = FRACUNIT;
@@ -1036,23 +1039,23 @@ void P_MovePsprites (player_t* player)
             }
             else
             {
-                // Apply render-only bobbing based on movingState.
+                // Apply render-only bobbing based on !movingState.
                 if (improved_bobbing)
                 {
                     P_ApplyRealisticBobbing(&psp->sx2, &psp->sy2,
-                                            movingState, player->r_bob);
+                                            !movingState, player->r_bob);
                 }
                 else
                 {
                     P_ApplyBobbing(&psp->sx2, &psp->sy2,
-                                   movingState, player->r_bob);
+                                   !movingState, player->r_bob);
                 }
             }
 
             // [crispy] squat down weapon sprite a bit after hitting the ground
             psp->sy2 += abs(player->psp_dy);
         }
-        else if (movingState && !player->attackdown)
+        else if (!movingState && !player->attackdown)
         {
             // Apply full bobbing only if not raising/lowering and not attacking.
             if (improved_bobbing)
