@@ -1984,9 +1984,6 @@ void P_MovePsprites(player_t * player)
 
     if (psp->state)
     {
-        const int state = player->psprites[ps_weapon].state - states;         // [crispy]
-        const weaponinfo_t *const winfo1 = &wpnlev1info[player->readyweapon]; // [crispy]
-        const weaponinfo_t *const winfo2 = &wpnlev2info[player->readyweapon]; // [crispy]
         // Don't apply bobbing during lowering and raising states
         const boolean movingState = (psp->state->misc1 ||
                                      psp->state->action == A_Lower ||
