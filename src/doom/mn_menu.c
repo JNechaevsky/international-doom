@@ -3857,7 +3857,8 @@ static void M_Draw_ID_Widgets (void)
                                 LINE_ALPHA(4));
 
     // Show items
-    sprintf(str, widget_kis_items ? "ON" : "OFF");
+    sprintf(str, widget_kis_items == 1 ? "ON" :
+                 widget_kis_items == 2 ? "AUTOMAP" : "OFF");
     M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
                         widget_kis_items ? cr[CR_GREEN] : cr[CR_DARKRED],
                             widget_kis_items ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
@@ -3948,7 +3949,7 @@ static void M_ID_Widget_KIS_Format (int choice)
 
 static void M_ID_Widget_KIS_Items (int choice)
 {
-    widget_kis_items ^= 1;
+    widget_kis_items = M_INT_Slider(widget_kis_items, 0, 2, choice, false);
 }
 
 static void M_ID_Widget_Time (int choice)

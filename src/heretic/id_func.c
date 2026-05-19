@@ -368,7 +368,9 @@ void ID_LeftWidgets (void)
         {
             if (!deathmatch)
             {
-                const int yy = widget_kis_items ? 0 : 10;  // shift secret up if items hidden
+                const boolean items_on = (widget_kis_items == 1
+                                      || (widget_kis_items == 2 && automapactive));
+                const int yy = items_on ? 0 : 10; // shift secret up if items hidden
 
                 // Kills:
                 MN_DrTextA("K:", left_align, 10, ID_WidgetColor(widget_kis_str));
@@ -377,7 +379,7 @@ void ID_LeftWidgets (void)
                 MN_DrTextA(buf1, left_align + 16, 10, ID_WidgetColor(widget_kills));
 
                 // Items:
-                if (widget_kis_items)
+                if (items_on)
                 {
                     MN_DrTextA("I:", left_align, 20, ID_WidgetColor(widget_kis_str));
                     char buf2[16];
@@ -526,7 +528,8 @@ void ID_LeftWidgets (void)
             if (!deathmatch)
             {
                 const char *const labels[] = {"K ", " I ", " S "};
-                const int active[] = {1, widget_kis_items, 1};
+                const int items_on = (widget_kis_items == 1 || (widget_kis_items == 2 && automapactive));
+                const int active[] = {1, items_on, 1};  // kills, items (optional), secrets
                 const int params[] = {widgets_kis_kills, widgets_kis_items, widgets_kis_secrets};
                 const int colors[] = {widget_kills, widget_items, widget_secret};
                 int x = left_align;
