@@ -28,7 +28,7 @@ env:
 jobs:
   windows_64bit:
     name: Windows (64-bit)
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -88,7 +88,7 @@ jobs:
 
   windows_32bit:
     name: Windows (32-bit)
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
