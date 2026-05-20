@@ -701,22 +701,15 @@ void G_LoadAutoKeyframe(void)
 
     if (LoadKeyframe(keyframe))
     {
-        keyframe = PopKeyframe();
+        // [JN] Remove the restored frame from the queue; it is no longer needed.
+        PopKeyframe();
+        FreeKeyframe(keyframe);
 
         // [PN] After restore/replay, force next autosave to be FULL.
         rewind_frames_since_full = REWIND_FULL_STRIDE - 1;
         rewind_save_cooldown_tics = interval_tics;
         ClearCommandHistory();
         CT_SetMessage(&players[consoleplayer], "RESTORED KEY FRAME", false, NULL);
-
-        if (RewindQueueIsEmpty())
-        {
-            PushKeyframe(keyframe);
-        }
-        else
-        {
-            FreeKeyframe(keyframe);
-        }
     }
 }
 
