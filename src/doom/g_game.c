@@ -2894,6 +2894,7 @@ void G_DoNewGame (void)
     */
     coop_spawns = false;
     consoleplayer = 0;
+    G_ResetRewind(true);
     G_InitNew (d_skill, d_episode, d_map); 
     gameaction = ga_nothing; 
 } 
@@ -2928,6 +2929,7 @@ void G_DoSelectiveGame (int choice)
     respawnparm = level_select[25];
     coop_spawns = level_select[26];
 
+    G_ResetRewind(true);
     G_InitNew (level_select[0],
                gamemode == shareware || gamemode == commercial ? 1 : level_select[1],
                level_select[2]); 
@@ -3086,7 +3088,10 @@ G_InitNew
     totalleveltimes = 0;
     defdemotics = 0;
     demostarttic = gametic; // [crispy] fix revenant internal demo bug
-    G_ResetRewind(true);
+
+    // [PN] Savegame and rewind restores also pass through G_InitNew().
+    // Keep their keyframes unless the caller explicitly starts a new timeline.
+    G_ResetRewind(false);
 
     // [JN] jff 4/16/98 force marks on automap cleared every new level start
     AM_clearMarks();
@@ -3581,6 +3586,10 @@ void G_DoPlayDemo (void)
 
     // don't spend a lot of time in loadlevel 
     precache = false;
+
+    // [PN] Force to reset rewind key frames in demos.
+    G_ResetRewind(true);
+
     // [crispy] support playing demos from savegames
     if (startloadgame >= 0)
     {

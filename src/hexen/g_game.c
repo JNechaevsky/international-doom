@@ -2685,8 +2685,9 @@ void G_DoLoadGame(void)
         }
     }
 
-    // [crispy] support multiple pages of saves
-    G_ResetRewind(true);
+    // [PN] Keep rewind key frames when loading a savegame, allowing the
+    // player to rewind back to the previous timeline if one exists.
+    G_ResetRewind(false);
     SV_LoadGame(slot, force_load_requested);
     if (!netgame)
     {                           // Copy the base slot to the reborn slot
@@ -2807,6 +2808,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
 
 void G_DoInitNew(void)
 {
+    G_ResetRewind(true);
     SV_InitBaseSlot();
     G_InitNew(TempSkill, TempEpisode, TempMap);
     gameaction = ga_nothing;
@@ -3065,6 +3067,7 @@ void G_RecordDemo(skill_t skill, int numplayers, int episode, int map,
     shortticfix = (!M_ParmExists("-noshortticfix"));
     //[crispy] make shortticfix the default
 
+    G_ResetRewind(true);
     G_InitNew(skill, episode, map);
     usergame = false;
     demoname_size = strlen(name) + 5 + 6; // [crispy] + 6 for "-00000"

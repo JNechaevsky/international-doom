@@ -2803,6 +2803,7 @@ static void G_DoNewGame(void)
     // [JN] Andrey Budko: allow new level's music to be loaded
     idmusnum = -1;
     coop_spawns = false;
+    G_ResetRewind(true);
     G_InitNew(d_skill, d_episode, d_map);
     gameaction = ga_nothing;
 }
@@ -2879,7 +2880,10 @@ void G_InitNew(skill_t skill, int episode, int map)
 
     // [crispy] CPhipps - total time for all completed levels
     totalleveltimes = 0;
-    G_ResetRewind(true);
+
+    // [PN] Savegame and rewind restores also pass through G_InitNew().
+    // Keep their keyframes unless the caller explicitly starts a new timeline.
+    G_ResetRewind(false);
 
     // [crispy] track intermission at end of episode
     finalintermission = false;
@@ -2942,6 +2946,7 @@ void G_DoSelectiveGame (int choice)
     respawnparm = level_select[23];
     coop_spawns = level_select[34];
 
+    G_ResetRewind(true);
     G_InitNew (level_select[0],
                gamemode == shareware ? 1 : level_select[1],
                level_select[2]); 
@@ -3178,6 +3183,7 @@ void G_RecordDemo(skill_t skill, int numplayers, int episode, int map,
     shortticfix = (!M_ParmExists("-noshortticfix"));
     //[crispy] make shortticfix the default
 
+    G_ResetRewind(true);
     G_InitNew(skill, episode, map);
     usergame = false;
     demoname_size = strlen(name) + 5 + 6; // [crispy] + 6 for "-00000"
@@ -3349,6 +3355,8 @@ void G_DoPlayDemo(void)
     }
 
     precache = false;           // don't spend a lot of time in loadlevel
+    // [PN] Force to reset rewind key frames in demos.
+    G_ResetRewind(true);
     G_InitNew(skill, episode, map);
     precache = true;
     usergame = false;
@@ -3413,6 +3421,7 @@ void G_TimeDemo(char *name)
       solonet = true;
     }
 
+    G_ResetRewind(true);
     G_InitNew(skill, episode, map);
     starttime = I_GetTime();
 
