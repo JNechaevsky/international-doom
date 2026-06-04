@@ -130,7 +130,11 @@ static void I_FL_SetDefaultSoundfontPath(void)
 
     const char *sf_filenames[] = {
 	"default.sf2",
-	"FluidR3_GM.sf2" // installed by default on many distros
+	// packaged on RedHat, openSUSE, Debian, Ubuntu...
+	"FluidR3_GM.sf2",
+	// packaged on Debian, Ubuntu...
+	"MuseScore_General_Full.sf2"
+	"TimGM6mb.sf2"
     };
 
     // first look for predefined soundfonts in sf_dirs
