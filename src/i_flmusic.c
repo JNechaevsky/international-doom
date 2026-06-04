@@ -17,6 +17,10 @@
 
 #include "config.h"
 
+#if !defined(_WIN32) && !defined(__MACOSX__)
+#include "i_glob.h"
+#endif
+
 #ifdef HAVE_FLUIDSYNTH
 
 #include "fluidsynth.h"
@@ -42,6 +46,11 @@ typedef fluid_long_long_t fluid_int_t;
 #include "memio.h"
 #include "mus2mid.h"
 
+static const char *sf_filenames[] = {
+    "FluidR3_GM.sf2", // installed as default on many distros
+    "default.sf2"
+};
+
 char *fsynth_sf_path = "";
 int fsynth_chorus_active = 1;
 float fsynth_chorus_depth = 5.0f;
@@ -61,6 +70,7 @@ static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
 static fluid_player_t *player = NULL;
 
+static boolean is_fsynth_sf_path_inferred = false;
 
 // -----------------------------------------------------------------------------
 // I_FL_SetDefaultSoundfontPath
@@ -72,19 +82,20 @@ static fluid_player_t *player = NULL;
 
 static void I_FL_SetDefaultSoundfontPath(void)
 {
-#if defined(_WIN64) &&                                                    \
+    if(strlen(fsynth_sf_path) > 0)
+    {
+	return ;
+    }
+
+#if defined(_WIN64) &&													\
     (FLUIDSYNTH_VERSION_MAJOR > 2 ||                                      \
      (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR >= 5))
-    if (fsynth_sf_path != NULL && strlen(fsynth_sf_path) > 0)
-    {
-        return;
-    }
 
     const char *windir = M_getenv("WINDIR");
 
     if (windir == NULL || windir[0] == '\0')
     {
-        return;
+        return ;
     }
 
     if (M_StringEndsWith(windir, "\\") || M_StringEndsWith(windir, "/"))
@@ -95,6 +106,65 @@ static void I_FL_SetDefaultSoundfontPath(void)
     {
         fsynth_sf_path = M_StringJoin(windir, "\\System32\\Drivers\\gm.dls", NULL);
     }
+
+#elif !defined(_WIN32) && !defined(__MACOSX__)
+
+    size_t i, j;
+    glob_t *glob;
+    char *sf_home_dir = NULL;
+    const char *data_home_dir = getenv("XDG_DATA_HOME");
+
+    if (data_home_dir)
+    {
+	 sf_home_dir = M_StringJoin(data_home_dir, "/soundfonts", NULL);
+    }
+
+    const char *sf_dirs[] = {
+	sf_home_dir, // NULL or usually $HOME/.local/share
+	"/usr/share/sounds/sf2", // at least Debian, Ubuntu and openSUSE
+	"/usr/share/soundfonts", // at least RedHat and Arch
+    };
+
+    // first look for predefined soundfonts in sf_dirs
+    for (i=0; i<arrlen(sf_dirs); ++i)
+    {
+	if (sf_dirs[i] != NULL)
+	{
+	    for (j=0; j<arrlen(sf_filenames); ++j)
+	    {
+		fsynth_sf_path = M_StringJoin(sf_dirs[i], DIR_SEPARATOR_S, sf_filenames[j], NULL);
+		if (M_FileExists(fsynth_sf_path))
+		{
+		    goto cleanup;
+		}
+		free(fsynth_sf_path);
+	    }
+	}
+    }
+
+    // pick the first sf2 or dls file in sf_dirs
+    for (i=0; i<arrlen(sf_dirs); ++i)
+    {
+	if (sf_dirs[i] != NULL)
+	{
+	    glob = I_StartMultiGlob(sf_dirs[i], GLOB_FLAG_NOCASE, "*.sf2", "*.dls", NULL);
+	    fsynth_sf_path = I_NextGlob(glob);
+	    if(fsynth_sf_path != NULL)
+	    {
+		fsynth_sf_path = M_StringDuplicate(fsynth_sf_path);
+		I_EndGlob(glob);
+		goto cleanup;
+	    }
+	    I_EndGlob(glob);
+	}
+    }
+
+    // no soundfont found
+    fsynth_sf_path = "";
+
+cleanup:
+    free(sf_home_dir);
+    is_fsynth_sf_path_inferred = strlen(fsynth_sf_path) > 0;
 #endif
 }
 
@@ -109,90 +179,6 @@ static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
         fprintf(stderr,
                 "FL_Mix_Callback: Error generating FluidSynth audio.\n");
     }
-}
-
-static boolean I_FL_InitMusic(void)
-{
-    int sf_id;
-
-    I_FL_SetDefaultSoundfontPath();
-
-    if (strlen(fsynth_sf_path) == 0)
-    {
-        fprintf(stderr,
-                "I_FL_InitMusic: No FluidSynth soundfont file specified.\n");
-        return false;
-    }
-
-    settings = new_fluid_settings();
-
-    fluid_settings_setnum(settings, "synth.sample-rate", snd_samplerate);
-    fluid_settings_setstr(settings, "synth.midi-bank-select",
-                          fsynth_midibankselect);
-    fluid_settings_setint(settings, "synth.polyphony", fsynth_polyphony);
-
-    fluid_settings_setint(settings, "synth.chorus.active",
-                          fsynth_chorus_active);
-    fluid_settings_setint(settings, "synth.reverb.active",
-                          fsynth_reverb_active);
-
-    if (fsynth_reverb_active)
-    {
-        fluid_settings_setnum(settings, "synth.reverb.room-size",
-                              fsynth_reverb_roomsize);
-        fluid_settings_setnum(settings, "synth.reverb.damp",
-                              fsynth_reverb_damp);
-        fluid_settings_setnum(settings, "synth.reverb.width",
-                              fsynth_reverb_width);
-        fluid_settings_setnum(settings, "synth.reverb.level",
-                              fsynth_reverb_level);
-    }
-
-    if (fsynth_chorus_active)
-    {
-        fluid_settings_setnum(settings, "synth.chorus.level",
-                              fsynth_chorus_level);
-        fluid_settings_setnum(settings, "synth.chorus.depth",
-                              fsynth_chorus_depth);
-        fluid_settings_setint(settings, "synth.chorus.nr", fsynth_chorus_nr);
-        fluid_settings_setnum(settings, "synth.chorus.speed",
-                              fsynth_chorus_speed);
-    }
-
-    if (fsynth_gain < 0.0f)
-    {
-        fsynth_gain = 0.0f;
-    }
-    if (fsynth_gain > 10.0f)
-    {
-        fsynth_gain = 10.0f;
-    }
-
-    synth = new_fluid_synth(settings);
-
-    if (synth == NULL)
-    {
-        fprintf(stderr,
-                "I_FL_InitMusic: FluidSynth failed to initialize synth.\n");
-        return false;
-    }
-
-    sf_id = fluid_synth_sfload(synth, fsynth_sf_path, true);
-    if (sf_id == FLUID_FAILED)
-    {
-        delete_fluid_synth(synth);
-        synth = NULL;
-        delete_fluid_settings(settings);
-        settings = NULL;
-        fprintf(stderr,
-                "I_FL_InitMusic: Error loading FluidSynth soundfont: '%s'.\n",
-                fsynth_sf_path);
-        return false;
-    }
-
-    printf("I_FL_InitMusic: Using '%s'.\n", fsynth_sf_path);
-
-    return true;
 }
 
 static void I_FL_SetMusicVolume(int volume)
@@ -325,7 +311,97 @@ static void I_FL_ShutdownMusic(void)
         delete_fluid_settings(settings);
         settings = NULL;
     }
+
+    if(is_fsynth_sf_path_inferred) {
+	// do not save inferred soundfont value to config
+	free(fsynth_sf_path);
+	fsynth_sf_path = "";
+	is_fsynth_sf_path_inferred = false;
+    }
 }
+
+static boolean I_FL_InitMusic(void)
+{
+    int sf_id;
+
+    I_FL_SetDefaultSoundfontPath();
+
+    if (strlen(fsynth_sf_path) == 0)
+    {
+        fprintf(stderr,
+                "I_FL_InitMusic: No FluidSynth soundfont file specified.\n");
+        return false;
+    }
+
+    settings = new_fluid_settings();
+
+    fluid_settings_setnum(settings, "synth.sample-rate", snd_samplerate);
+    fluid_settings_setstr(settings, "synth.midi-bank-select",
+                          fsynth_midibankselect);
+    fluid_settings_setint(settings, "synth.polyphony", fsynth_polyphony);
+
+    fluid_settings_setint(settings, "synth.chorus.active",
+                          fsynth_chorus_active);
+    fluid_settings_setint(settings, "synth.reverb.active",
+                          fsynth_reverb_active);
+
+    if (fsynth_reverb_active)
+    {
+        fluid_settings_setnum(settings, "synth.reverb.room-size",
+                              fsynth_reverb_roomsize);
+        fluid_settings_setnum(settings, "synth.reverb.damp",
+                              fsynth_reverb_damp);
+        fluid_settings_setnum(settings, "synth.reverb.width",
+                              fsynth_reverb_width);
+        fluid_settings_setnum(settings, "synth.reverb.level",
+                              fsynth_reverb_level);
+    }
+
+    if (fsynth_chorus_active)
+    {
+        fluid_settings_setnum(settings, "synth.chorus.level",
+                              fsynth_chorus_level);
+        fluid_settings_setnum(settings, "synth.chorus.depth",
+                              fsynth_chorus_depth);
+        fluid_settings_setint(settings, "synth.chorus.nr", fsynth_chorus_nr);
+        fluid_settings_setnum(settings, "synth.chorus.speed",
+                              fsynth_chorus_speed);
+    }
+
+    if (fsynth_gain < 0.0f)
+    {
+        fsynth_gain = 0.0f;
+    }
+    if (fsynth_gain > 10.0f)
+    {
+        fsynth_gain = 10.0f;
+    }
+
+    synth = new_fluid_synth(settings);
+
+    if (synth == NULL)
+    {
+	I_FL_ShutdownMusic();
+        fprintf(stderr,
+                "I_FL_InitMusic: FluidSynth failed to initialize synth.\n");
+        return false;
+    }
+
+    sf_id = fluid_synth_sfload(synth, fsynth_sf_path, true);
+    if (sf_id == FLUID_FAILED)
+    {
+	I_FL_ShutdownMusic();
+        fprintf(stderr,
+                "I_FL_InitMusic: Error loading FluidSynth soundfont: '%s'.\n",
+                fsynth_sf_path);
+        return false;
+    }
+
+    printf("I_FL_InitMusic: Using '%s'.\n", fsynth_sf_path);
+
+    return true;
+}
+
 
 static boolean I_FL_MusicIsPlaying(void)
 {
