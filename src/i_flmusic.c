@@ -46,11 +46,6 @@ typedef fluid_long_long_t fluid_int_t;
 #include "memio.h"
 #include "mus2mid.h"
 
-static const char *sf_filenames[] = {
-    "default.sf2",
-    "FluidR3_GM.sf2" // installed by default on many distros
-};
-
 char *fsynth_sf_path = "";
 int fsynth_chorus_active = 1;
 float fsynth_chorus_depth = 5.0f;
@@ -131,6 +126,11 @@ static void I_FL_SetDefaultSoundfontPath(void)
 	sf_home_dir, // NULL or usually $HOME/.local/share/soundfonts
 	"/usr/share/sounds/sf2", // at least Debian, Ubuntu and openSUSE
 	"/usr/share/soundfonts", // at least RedHat and Arch
+    };
+
+    const char *sf_filenames[] = {
+	"default.sf2",
+	"FluidR3_GM.sf2" // installed by default on many distros
     };
 
     // first look for predefined soundfonts in sf_dirs
