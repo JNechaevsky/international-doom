@@ -47,8 +47,8 @@ typedef fluid_long_long_t fluid_int_t;
 #include "mus2mid.h"
 
 static const char *sf_filenames[] = {
-    "FluidR3_GM.sf2", // installed as default on many distros
-    "default.sf2"
+    "default.sf2",
+    "FluidR3_GM.sf2" // installed by default on many distros
 };
 
 char *fsynth_sf_path = "";
