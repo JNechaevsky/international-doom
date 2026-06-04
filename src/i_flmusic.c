@@ -114,13 +114,21 @@ static void I_FL_SetDefaultSoundfontPath(void)
     char *sf_home_dir = NULL;
     const char *data_home_dir = getenv("XDG_DATA_HOME");
 
-    if (data_home_dir)
+    if (data_home_dir == NULL)
     {
-	 sf_home_dir = M_StringJoin(data_home_dir, "/soundfonts", NULL);
+	const char *home_dir = getenv("HOME");
+        if (home_dir != NULL)
+        {
+	    sf_home_dir = M_StringJoin(home_dir, "/.local/share/soundfonts", NULL);
+	}
+    }
+    else
+    {
+	sf_home_dir = M_StringJoin(data_home_dir, "/soundfonts", NULL);
     }
 
     const char *sf_dirs[] = {
-	sf_home_dir, // NULL or usually $HOME/.local/share
+	sf_home_dir, // NULL or usually $HOME/.local/share/soundfonts
 	"/usr/share/sounds/sf2", // at least Debian, Ubuntu and openSUSE
 	"/usr/share/soundfonts", // at least RedHat and Arch
     };
@@ -148,10 +156,10 @@ static void I_FL_SetDefaultSoundfontPath(void)
 	if (sf_dirs[i] != NULL)
 	{
 	    glob = I_StartMultiGlob(sf_dirs[i], GLOB_FLAG_NOCASE, "*.sf2", "*.dls", NULL);
-	    fsynth_sf_path = I_NextGlob(glob);
-	    if(fsynth_sf_path != NULL)
+	    const char *path = I_NextGlob(glob);
+	    if(path != NULL)
 	    {
-		fsynth_sf_path = M_StringDuplicate(fsynth_sf_path);
+		fsynth_sf_path = M_StringDuplicate(path);
 		I_EndGlob(glob);
 		goto cleanup;
 	    }
@@ -397,7 +405,9 @@ static boolean I_FL_InitMusic(void)
         return false;
     }
 
-    printf("I_FL_InitMusic: Using '%s'.\n", fsynth_sf_path);
+    printf("I_FL_InitMusic: Using '%s' (%s).\n",
+	   fsynth_sf_path,
+	   is_fsynth_sf_path_inferred ? "auto-detected" : "config file");
 
     return true;
 }
