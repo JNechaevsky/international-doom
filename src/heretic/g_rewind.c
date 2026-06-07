@@ -467,7 +467,6 @@ static boolean LoadFullKeyframe(const keyframe_t *keyframe)
 static boolean ReplayDeltaCommands(const ticcmd_t *cmds, const int count)
 {
     int i;
-    int j;
     const boolean old_menuactive = MenuActive;
     const int old_paused = paused;
     const boolean old_rewind_restoring = rewind_restoring;
@@ -482,27 +481,17 @@ static boolean ReplayDeltaCommands(const ticcmd_t *cmds, const int count)
     MenuActive = false;
     paused = 0;
 
+    // [JN] Save only consoleplayer's original command
+    const ticcmd_t old_console_cmd = players[consoleplayer].cmd;
+
     for (i = 0; i < count; ++i)
     {
-        for (j = 0; j < MAXPLAYERS; ++j)
-        {
-            if (!playeringame[j])
-            {
-                continue;
-            }
-
-            if (j == consoleplayer)
-            {
-                players[j].cmd = cmds[i];
-            }
-            else
-            {
-                memset(&players[j].cmd, 0, sizeof(players[j].cmd));
-            }
-        }
-
+        players[consoleplayer].cmd = cmds[i];
         P_Ticker();
     }
+
+    // [JN] Restore original command
+    players[consoleplayer].cmd = old_console_cmd;
 
     // [PN] Delta replay can start many one-shot SFX in one frame; clear stacked channels.
     StopActiveSounds();

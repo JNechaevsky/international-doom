@@ -285,6 +285,22 @@ static void S_StopChannel(int cnum)
     }
 }
 
+// -----------------------------------------------------------------------------
+// S_StopAllSound
+//  [JN] Stop/clear all sounds in all the available SFX channels.
+// -----------------------------------------------------------------------------
+
+void S_StopAllSound(void)
+{
+    for (int i = 0 ; i < snd_channels ; i++)
+    {
+        if (channels[i].sfxinfo)
+        {
+            S_StopChannel(i);
+        }
+    }
+}
+
 //
 // Per level startup code.
 // Kills playing sounds at start of level,

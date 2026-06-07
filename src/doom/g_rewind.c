@@ -24,6 +24,7 @@
 #include "i_timer.h"
 #include "mn_menu.h"
 #include "p_local.h"
+#include "s_sound.h"
 
 #include "id_vars.h"
 
@@ -63,6 +64,11 @@ static int rewind_cmd_history_head;
 static boolean RewindQueueIsEmpty(void)
 {
     return queue_top == NULL;
+}
+
+static void StopActiveSounds(void)
+{
+    S_StopAllSound();
 }
 
 static boolean RewindAllowedGamestate(void)
@@ -332,6 +338,8 @@ static boolean LoadFullKeyframe(const keyframe_t *keyframe)
     P_UnArchiveGameplaySettings();
     savedleveltime = leveltime;
 
+    StopActiveSounds();
+
     rewind_restoring = true;
     G_InitNew(gameskill, gameepisode, gamemap);
     rewind_restoring = false;
@@ -361,6 +369,9 @@ static boolean LoadFullKeyframe(const keyframe_t *keyframe)
         R_ExecuteSetViewSize();
     }
 
+    // [PN] Ensure no stale one-shot SFX channels survive restore.
+    StopActiveSounds();
+
     R_FillBackScreen();
     gamestate = GS_LEVEL;
 
@@ -370,7 +381,6 @@ static boolean LoadFullKeyframe(const keyframe_t *keyframe)
 static boolean ReplayDeltaCommands(const ticcmd_t *cmds, const int count)
 {
     int i;
-    int j;
     const boolean old_menuactive = menuactive;
     const int old_paused = paused;
     const boolean old_rewind_restoring = rewind_restoring;
@@ -385,27 +395,20 @@ static boolean ReplayDeltaCommands(const ticcmd_t *cmds, const int count)
     menuactive = false;
     paused = 0;
 
+    // [JN] Save only consoleplayer's original command
+    const ticcmd_t old_console_cmd = players[consoleplayer].cmd;
+
     for (i = 0; i < count; ++i)
     {
-        for (j = 0; j < MAXPLAYERS; ++j)
-        {
-            if (!playeringame[j])
-            {
-                continue;
-            }
-
-            if (j == consoleplayer)
-            {
-                players[j].cmd = cmds[i];
-            }
-            else
-            {
-                memset(&players[j].cmd, 0, sizeof(players[j].cmd));
-            }
-        }
-
+        players[consoleplayer].cmd = cmds[i];
         P_Ticker();
     }
+
+    // [JN] Restore original command
+    players[consoleplayer].cmd = old_console_cmd;
+
+    // [PN] Delta replay can start many one-shot SFX in one frame; clear stacked channels.
+    StopActiveSounds();
 
     rewind_restoring = old_rewind_restoring;
     menuactive = old_menuactive;
@@ -436,6 +439,9 @@ static boolean LoadDeltaKeyframe(const keyframe_t *keyframe)
     {
         return false;
     }
+
+    // [PN] Replay should rebuild sound state from ticks, not stack on restored base.
+    StopActiveSounds();
 
     // [PN] Replay forward in time: FULL base -> newer deltas up to target keyframe.
     for (it = base->prev; it != NULL; it = it->prev)
