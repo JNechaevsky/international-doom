@@ -144,20 +144,25 @@ static void RecordCommand(const ticcmd_t *cmd)
 
 static void CopyRecentCommands(ticcmd_t *dest, const int count)
 {
-    int i;
-    int idx;
+    const int tail = rewind_cmd_history_head - count;
 
-    idx = rewind_cmd_history_head - count;
-
-    if (idx < 0)
+    if (tail >= 0)
     {
-        idx += rewind_cmd_history_size;
+        // [PN] Data is contiguous in memory.
+        memcpy(dest, &rewind_cmd_history[tail], count * sizeof(ticcmd_t));
     }
-
-    for (i = 0; i < count; ++i)
+    else
     {
-        dest[i] = rewind_cmd_history[idx];
-        idx = (idx + 1) % rewind_cmd_history_size;
+        // [PN] Buffer wrap-around.
+        const int first_chunk_size = -tail;
+        const int second_chunk_size = rewind_cmd_history_head;
+
+        memcpy(dest,
+               &rewind_cmd_history[rewind_cmd_history_size + tail],
+               first_chunk_size * sizeof(ticcmd_t));
+        memcpy(dest + first_chunk_size,
+               rewind_cmd_history,
+               second_chunk_size * sizeof(ticcmd_t));
     }
 }
 
@@ -168,7 +173,11 @@ static void FreeKeyframe(keyframe_t *keyframe)
         return;
     }
 
-    free(keyframe->data);
+    if (keyframe->kind == KEYFRAME_FULL)
+    {
+        free(keyframe->data);
+    }
+
     free(keyframe);
 }
 
@@ -256,7 +265,7 @@ static keyframe_t *PopKeyframe(void)
 
 static keyframe_t *SaveFullKeyframe(void)
 {
-    keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
+    keyframe_t *const keyframe = calloc(1, sizeof(*keyframe));
 
     if (keyframe == NULL)
     {
@@ -284,20 +293,22 @@ static keyframe_t *SaveFullKeyframe(void)
     }
 
     keyframe->tic = gametic;
+
     return keyframe;
 }
 
 static keyframe_t *SaveDeltaKeyframe(const int interval_tics)
 {
-    keyframe_t *keyframe;
-    ticcmd_t *delta_cmds;
-
     if (rewind_cmd_history_count < interval_tics)
     {
         return NULL;
     }
 
-    keyframe = calloc(1, sizeof(*keyframe));
+    const size_t data_size = (size_t)interval_tics * sizeof(ticcmd_t);
+    const size_t total_size = sizeof(keyframe_t) + data_size;
+
+    // [PN] Single allocation: header + data in one contiguous block.
+    keyframe_t *const keyframe = calloc(1, total_size);
 
     if (keyframe == NULL)
     {
@@ -306,20 +317,16 @@ static keyframe_t *SaveDeltaKeyframe(const int interval_tics)
 
     keyframe->kind = KEYFRAME_DELTA;
     keyframe->delta_tics = interval_tics;
-    keyframe->size = (size_t)interval_tics * sizeof(ticcmd_t);
+    keyframe->size = data_size;
+    // [PN] Data buffer lives directly after the struct.
+    keyframe->data = (byte *)(keyframe + 1);
 
-    keyframe->data = malloc(keyframe->size);
-
-    if (keyframe->data == NULL)
-    {
-        FreeKeyframe(keyframe);
-        return NULL;
-    }
-
-    delta_cmds = (ticcmd_t *)keyframe->data;
+    // [PN] Copy delta commands directly into the tail-allocated buffer.
+    ticcmd_t *const delta_cmds = (ticcmd_t *)keyframe->data;
     CopyRecentCommands(delta_cmds, interval_tics);
 
     keyframe->tic = gametic;
+
     return keyframe;
 }
 
