@@ -733,22 +733,25 @@ void I_StartTic (void)
 
     now = I_GetTime();
 
-    if (now >= controller_refresh_wait)
-    {
-        // [PN] Global fallback polling for controller hotplug state.
-        // SDL hotplug events are primary; fallback stays slow and lightweight.
-        I_RefreshControllerState();
-        controller_refresh_wait = now + controller_refresh_interval;
-    }
-
     if (usemouse && !nomouse && window_focused)
     {
         I_ReadMouse();
     }
 
-    if (joywait < now)
+    if (gamepad_enable)
     {
-        I_UpdateJoystick();
+        if (now >= controller_refresh_wait)
+        {
+            // [PN] Global fallback polling for controller hotplug state.
+            // SDL hotplug events are primary; fallback stays slow and lightweight.
+            I_RefreshControllerState();
+            controller_refresh_wait = now + controller_refresh_interval;
+        }
+
+        if (joywait < now)
+        {
+            I_UpdateJoystick();
+        }
     }
 }
 

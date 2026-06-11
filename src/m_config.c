@@ -538,6 +538,7 @@ static default_t	doom_defaults_list[] =
     //
 
     CONFIG_VARIABLE_COMMENT("Joystick controls"),
+	CONFIG_VARIABLE_INT(gamepad_enable),
     CONFIG_VARIABLE_INT(gamepad_type),
     CONFIG_VARIABLE_STRING(joystick_guid),
     CONFIG_VARIABLE_INT(joystick_index),

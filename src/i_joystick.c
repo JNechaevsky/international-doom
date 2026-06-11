@@ -35,6 +35,11 @@
 #include "m_fixed.h"
 #include "m_misc.h"
 
+// [JN] Disable gamepad detection/usage by default.
+// Should be allowed in Gamepad Settings menu.
+
+int gamepad_enable = 0;
+
 static SDL_GameController *gamepad = NULL;
 static SDL_Joystick *joystick = NULL;
 static char controller_name[128] = "NOT CONNECTED";
@@ -671,6 +676,11 @@ static int GetAxisState(int axis, int invert, int dead_zone)
 
 void I_UpdateJoystick(void)
 {
+    if (!gamepad_enable)
+    {
+        return;
+    }
+
     if (gamepad != NULL)
     {
         I_UpdateGamepad();
@@ -732,6 +742,7 @@ void I_BindJoystickVariables(void)
 {
     int i;
 
+    M_BindIntVariable("gamepad_enable",        &gamepad_enable);
     M_BindIntVariable("gamepad_type",          &gamepad_type);
     M_BindStringVariable("joystick_guid",      &joystick_guid);
     M_BindIntVariable("joystick_index",        &joystick_index);

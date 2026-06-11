@@ -740,6 +740,7 @@ static void M_Choose_ID_GamepadBinds (int choice);
 static void M_Draw_ID_GamepadBinds (void);
 static void M_Draw_ID_GamepadSettings_1 (void);
 static void M_Draw_ID_GamepadSettings_2 (void);
+static void M_ID_Gamepad_Enable (int choice);
 static void M_Bind_G_FireAttack (int choice);
 static void M_Bind_G_StrafeOn (int choice);
 static void M_Bind_G_Use (int choice);
@@ -3452,6 +3453,8 @@ static void M_Draw_ID_MouseBinds (void)
 
 static menuitem_t ID_Menu_GamepadBinds[]=
 {
+    { M_SWTC, "GAMEPAD ENABLED",           M_ID_Gamepad_Enable,  'g' },
+    { M_SKIP, "", 0, '\0' },
     { M_SWTC, "FIRE/ATTACK",               M_Bind_G_FireAttack,  'f' },
     { M_SWTC, "STRAFE ON",                 M_Bind_G_StrafeOn,    's' },
     { M_SWTC, "USE",                       M_Bind_G_Use,         'u' },
@@ -3491,6 +3494,11 @@ static void M_Choose_ID_GamepadBinds (int choice)
     {
         M_SetupNextMenu(&ID_Def_GamepadBinds);
     }
+}
+
+static void M_ID_Gamepad_Enable (int choice)
+{
+	gamepad_enable ^= 1;
 }
 
 static void M_Bind_G_FireAttack (int choice)
@@ -3565,34 +3573,44 @@ static void M_Bind_G_Reset (int choice)
 
 static void M_DrawControllerName (void)
 {
-    const char *controller_name = I_GetControllerName();
-    byte *controller_color = I_HasController() ? cr[CR_GREEN] : cr[CR_DARKRED];
+    const char *controller_name = gamepad_enable ? I_GetControllerName() : "GAMEPAD DISABLED";
+    byte *controller_color = (gamepad_enable && I_HasController()) ? cr[CR_GREEN] : cr[CR_DARKRED];
 
-    M_WriteTextCentered(144, "DETECTED CONTROLLER:", cr[CR_YELLOW]);
-    M_WriteTextCentered(153, controller_name, controller_color);
+    M_WriteTextCentered(148, "DETECTED CONTROLLER:", cr[CR_YELLOW]);
+    M_WriteTextCentered(157, controller_name, controller_color);
 }
 
 static void M_Draw_ID_GamepadBinds (void)
 {
+    char str[16];
+
     GamepadBinds_Cur = 0;
 
     st_fullupdate = true;
 
     M_FillBackground();
 
-    M_WriteTextCentered(9, "GAMEPAD BINDINGS", cr[CR_YELLOW]);
+    M_WriteTextCentered(9, "ENABLE GAMEPAD", cr[CR_YELLOW]);
 
-    M_DrawBindGamepad(0, 18, joybfire);
-    M_DrawBindGamepad(1, 27, joybstrafe);
-    M_DrawBindGamepad(2, 36, joybuse);
-    M_DrawBindGamepad(3, 45, joybspeed);
-    M_DrawBindGamepad(4, 54, joybstrafeleft);
-    M_DrawBindGamepad(5, 63, joybstraferight);
-    M_DrawBindGamepad(6, 72, joybprevweapon);
-    M_DrawBindGamepad(7, 81, joybnextweapon);
-    M_DrawBindGamepad(8, 90, joybmenu);
-    M_DrawBindGamepad(9, 99, joybautomap);
-    M_WriteTextCentered(108, "RESET", cr[CR_YELLOW]);
+    sprintf(str, gamepad_enable ? "ON" : "OFF");
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        gamepad_enable ? cr[CR_GREEN] : cr[CR_RED],
+                            gamepad_enable ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(0));
+
+    M_WriteTextCentered(27, "GAMEPAD BINDINGS", cr[CR_YELLOW]);
+
+    M_DrawBindGamepad(2, 36, joybfire);
+    M_DrawBindGamepad(3, 45, joybstrafe);
+    M_DrawBindGamepad(4, 54, joybuse);
+    M_DrawBindGamepad(5, 63, joybspeed);
+    M_DrawBindGamepad(6, 72, joybstrafeleft);
+    M_DrawBindGamepad(7, 81, joybstraferight);
+    M_DrawBindGamepad(8, 90, joybprevweapon);
+    M_DrawBindGamepad(9, 99, joybnextweapon);
+    M_DrawBindGamepad(10, 108, joybmenu);
+    M_DrawBindGamepad(11, 117, joybautomap);
+    M_WriteTextCentered(126, "RESET", cr[CR_YELLOW]);
 
     M_DrawControllerName();
     M_WriteTextCentered(171, "PRESS ENTER TO BIND, DEL TO CLEAR", cr[CR_MENU_DARK1]);
@@ -9667,16 +9685,16 @@ typedef struct
 
 static const GamepadBindEntry_t gamepadbinds[] =
 {
-    GAMEPADBIND_ENTRY(2000, 0, joybfire,        0),
-    GAMEPADBIND_ENTRY(2001, 1, joybstrafe,      1),
-    GAMEPADBIND_ENTRY(2002, 2, joybuse,         2),
-    GAMEPADBIND_ENTRY(2003, 3, joybspeed,      -1),
-    GAMEPADBIND_ENTRY(2004, 4, joybstrafeleft, -1),
-    GAMEPADBIND_ENTRY(2005, 5, joybstraferight,-1),
-    GAMEPADBIND_ENTRY(2006, 6, joybprevweapon,  9),
-    GAMEPADBIND_ENTRY(2007, 7, joybnextweapon, 10),
-    GAMEPADBIND_ENTRY(2008, 8, joybmenu,        6),
-    GAMEPADBIND_ENTRY(2009, 9, joybautomap,     3),
+    GAMEPADBIND_ENTRY(2000, 2,  joybfire,        0),
+    GAMEPADBIND_ENTRY(2001, 3,  joybstrafe,      1),
+    GAMEPADBIND_ENTRY(2002, 4,  joybuse,         2),
+    GAMEPADBIND_ENTRY(2003, 5,  joybspeed,      -1),
+    GAMEPADBIND_ENTRY(2004, 6,  joybstrafeleft, -1),
+    GAMEPADBIND_ENTRY(2005, 7,  joybstraferight,-1),
+    GAMEPADBIND_ENTRY(2006, 8,  joybprevweapon,  9),
+    GAMEPADBIND_ENTRY(2007, 9,  joybnextweapon, 10),
+    GAMEPADBIND_ENTRY(2008, 10, joybmenu,        6),
+    GAMEPADBIND_ENTRY(2009, 11, joybautomap,     3),
 };
 
 #undef GAMEPADBIND_ENTRY
@@ -9689,8 +9707,11 @@ static const GamepadBindEntry_t gamepadbinds[] =
 
 static void M_StartGamepadBind (int btn)
 {
-    GamepadIsBinding = true;
-    joyToBind = btn;
+    if (gamepad_enable && I_HasController())
+    {
+        GamepadIsBinding = true;
+        joyToBind = btn;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -9742,12 +9763,15 @@ static void M_DoGamepadBind (int btnnum, int btn)
 
 static void M_ClearGamepadBind (int item_On)
 {
-    for (size_t i = 0; i < sizeof(gamepadbinds) / sizeof(gamepadbinds[0]); i++)
+    if (gamepad_enable && I_HasController())
     {
-        if (gamepadbinds[i].item == item_On)
+        for (size_t i = 0; i < sizeof(gamepadbinds) / sizeof(gamepadbinds[0]); i++)
         {
-            *gamepadbinds[i].slot = -1;
-            return;
+            if (gamepadbinds[i].item == item_On)
+            {
+                *gamepadbinds[i].slot = -1;
+                return;
+            }
         }
     }
 }

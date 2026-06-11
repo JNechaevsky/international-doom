@@ -83,6 +83,7 @@ enum
     GAMEPAD_BUTTON_MAX
 };
 
+extern int gamepad_enable;
 extern int use_analog;
 extern int joystick_x_axis;
 extern int joystick_x_invert;
