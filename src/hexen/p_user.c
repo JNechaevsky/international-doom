@@ -261,7 +261,7 @@ static void P_MovePlayer(player_t * player)
 {
     int look;
     int fly;
-    const ticcmd_t *cmd;
+    ticcmd_t *cmd;
 
     cmd = &player->cmd;
     player->mo->angle += (cmd->angleturn << 16);
@@ -320,6 +320,7 @@ static void P_MovePlayer(player_t * player)
         else
         {
             player->lookdir += 5 * look;
+            cmd->r_lookdir = MLOOKUNIT * 5 * look;
             if (player->lookdir > 90 ||
                     player->lookdir < -110)
             {
@@ -332,20 +333,27 @@ static void P_MovePlayer(player_t * player)
     {
         player->lookdir = BETWEEN(-110, 90,
                                     player->lookdir + cmd->lookdir);
+        player->r_lookdir = BETWEEN(-LOOKDIRMIN * MLOOKUNIT,
+                                     LOOKDIRMAX * MLOOKUNIT,
+                                     player->r_lookdir + cmd->r_lookdir);
     }
     if (player->centering)
     {
         if (player->lookdir > 0)
         {
             player->lookdir -= 8;
+            player->r_lookdir -= 8 * MLOOKUNIT;
         }
         else if (player->lookdir < 0)
         {
             player->lookdir += 8;
+            player->r_lookdir += 8 * MLOOKUNIT;
         }
-        if (abs(player->lookdir) < 8)
+        if ((abs(player->lookdir) < 8)
+        ||  (abs(player->r_lookdir) < 8 * MLOOKUNIT))
         {
             player->lookdir = 0;
+            player->r_lookdir = 0;
             player->centering = false;
         }
     }
@@ -724,6 +732,7 @@ void P_PlayerThink(player_t * player)
     player->mo->oldangle = player->mo->angle;
     player->oldviewz = player->viewz;
     player->oldlookdir = player->lookdir;
+    player->r_oldlookdir = player->r_lookdir;
 
     // [crispy] fast polling
     if (player == &players[consoleplayer])

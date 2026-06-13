@@ -1804,7 +1804,10 @@ void G_PrepTiccmd (void)
         const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
         // [PN] Spectator mouse look
         if (!crl_spectating)
+        {
             basecmd.lookdir += delta;
+            basecmd.r_lookdir += delta;
+        }
         CRL_LimitLookdir(delta);
         mousey = 0;
     }
@@ -2151,6 +2154,7 @@ static void G_PlayerExitMap(int playerNumber)
     player->messageTics = 0;
     player->targetsheathTics = 0;
     player->lookdir = 0;
+    player->r_lookdir = 0;
     player->mo->flags &= ~MF_SHADOW;    // Remove invisibility
     player->extralight = 0;     // Remove weapon flashes
     player->fixedcolormap = 0;  // Remove torch
@@ -2208,6 +2212,7 @@ void G_PlayerReborn(int player)
     p->messageTics = 0;
     p->targetsheathTics = 0;
     p->lookdir = 0;
+    p->r_lookdir = 0;
     localQuakeHappening[player] = false;
     if (p == &players[consoleplayer])
     {

@@ -575,6 +575,8 @@ typedef struct player_s
 
     int flyheight;
     int lookdir, oldlookdir;
+    // [JN] Precise vertical mouse look, used only for rendering.
+    int r_lookdir, r_oldlookdir;
     boolean centering;
     int health;                 // only used between levels, mo->health
     // is used during levels

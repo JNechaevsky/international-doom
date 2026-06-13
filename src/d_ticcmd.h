@@ -53,6 +53,8 @@ typedef struct
     byte arti;                  // artitype_t to use
 
     int lookdir;
+    // [JN] Precise vertical mouse look, used only for rendering.
+    int r_lookdir;
 } ticcmd_t;
 
 

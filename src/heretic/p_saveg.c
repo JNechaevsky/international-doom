@@ -720,6 +720,7 @@ static void saveg_read_player_t(player_t *str)
 
     // int lookdir;
     str->lookdir = SV_ReadLong();
+    str->r_lookdir = str->r_oldlookdir = str->lookdir * MLOOKUNIT;
 
     // boolean centering;
     str->centering = SV_ReadLong();

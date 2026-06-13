@@ -774,6 +774,8 @@ static void R_SetupFrame (player_t *const player)
     }
     else
     {
+        const boolean use_localview = CheckLocalView(player);
+
         // [AM] Interpolate the player camera if the feature is enabled.
         if (vid_uncapped_fps &&
             // Don't interpolate on the first tic of a level,
@@ -787,8 +789,6 @@ static void R_SetupFrame (player_t *const player)
             // [JN] Don't interpolate while screen wiping
             !do_wipe)
         {
-            const boolean use_localview = CheckLocalView(player);
-
             viewx = LerpFixed(player->mo->oldx, player->mo->x);
             viewy = LerpFixed(player->mo->oldy, player->mo->y);
             viewz = LerpFixed(player->oldviewz, player->viewz);
@@ -798,13 +798,13 @@ static void R_SetupFrame (player_t *const player)
                 viewangle = (player->mo->angle + localview.angle -
                             localview.ticangle + LerpAngle(localview.oldticangle,
                                                            localview.ticangle)) + viewangleoffset;
+                pitch = LerpInt(player->r_oldlookdir, player->r_lookdir) / MLOOKUNIT;
             }
             else
             {
                 viewangle = LerpAngle(player->mo->oldangle, player->mo->angle) + viewangleoffset;
+                pitch = LerpInt(player->oldlookdir, player->lookdir);
             }
-
-            pitch = LerpInt(player->oldlookdir, player->lookdir);
         }
         else
         {
@@ -812,7 +812,8 @@ static void R_SetupFrame (player_t *const player)
             viewy = player->mo->y;
             viewz = player->viewz;
             viewangle = player->mo->angle + viewangleoffset;
-            pitch = player->lookdir; // [crispy]
+            pitch = use_localview ? player->r_lookdir / MLOOKUNIT : // [JN] Precise vertical mouse look.
+                                    player->lookdir; // [crispy]
         }
     }
 
