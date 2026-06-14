@@ -237,7 +237,7 @@ jobs:
         env:
           ANALYZE: true
         run: |
-          cppcheck --error-exitcode=0 -j2 -UTESTING -D__GNUC__ -Iopl -Isrc -Isrc/setup opl pcsound src textscreen
+          cppcheck --error-exitcode=1 -j2 -UTESTING -D__GNUC__ -Iopl -Isrc -Isrc/setup opl pcsound src textscreen
 
   release_nightly:
     name: Create Nightly Release
