@@ -979,6 +979,12 @@ static void P_CreateBlockMap(void)
         if (y > maxY) maxY = y;
     }
 
+    // Cppcheck - handle case when there are no vertices in the map
+    if (numvertexes == 0)
+    {
+        minX = maxX = minY = maxY = 0;
+    }
+
     // Save blockmap origin and dimensions
     bmaporgx   = minX << FRACBITS;
     bmaporgy   = minY << FRACBITS;

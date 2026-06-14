@@ -309,11 +309,9 @@ static void D_IdentifyVersion(void)
     if (!M_ParmExists("-v10override")
      && gamemode != shareware && W_CheckNumForName("CLUS1MSG") < 0)
     {
-        I_Error(
-            "You are trying to use the Hexen v1.0 IWAD. This isn't\n"
-            "supported by " PACKAGE_FULLNAME_HEXEN ". Please upgrade to the v1.1\n"
-            "IWAD file. See here for more information:\n"
-            "  https://www.doomworld.com/classicdoom/info/patches.php");
+        I_Error("You are trying to use the unsupported Hexen v1.0 IWAD.\n"
+                "Please upgrade to the v1.1 IWAD file. See here for more information:\n"
+                "https://www.doomworld.com/classicdoom/info/patches.php");
     }
 }
 

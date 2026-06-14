@@ -361,6 +361,13 @@ static int G_NextWeapon(int direction)
         }
     }
 
+    // [PN] Cppcheck - if weapon not found in table,
+    // return current weapon without changing.
+    if ((size_t)i >= arrlen(weapon_order_table))
+    {
+        return weapon;
+    }
+
     // Switch weapon. Don't loop forever.
     start_i = i;
     do

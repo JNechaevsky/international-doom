@@ -1162,6 +1162,12 @@ static void P_CreateBlockMap (void)
         }
     }
 
+    // [PN] Cppcheck - handle case when there are no vertices in the map
+    if (numvertexes == 0)
+    {
+        minx = maxx = miny = maxy = 0;
+    }
+
     // Save blockmap parameters
 
     bmaporgx = minx << FRACBITS;

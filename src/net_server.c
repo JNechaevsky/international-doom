@@ -659,9 +659,12 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
 
         case NET_OLD_MAGIC_NUMBER:
             NET_Log("server: error: client using old magic number: %d", magic);
-            NET_SV_SendReject(addr,
-                "You are using an old client version that is not supported by "
-                "this server. This server is running " PACKAGE_STRING ".");
+            {
+                char *const reject_msg = M_StringJoin("You are using an old client version that is not supported by "
+                                                      "this server. This server is running ", PACKAGE_STRING, ".", NULL);
+                NET_SV_SendReject(addr, reject_msg);
+                free(reject_msg);
+            }
             return;
 
         default:
@@ -685,13 +688,11 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
     protocol = NET_ReadProtocolList(packet);
     if (protocol == NET_PROTOCOL_UNKNOWN)
     {
-        char reject_msg[256];
-
-        M_snprintf(reject_msg, sizeof(reject_msg),
-            "Version mismatch: server version is: " PACKAGE_STRING "; "
-            "client is: %s. No common compatible protocol could be "
-            "negotiated.", client_version);
+        char *const reject_msg = M_StringJoin("Version mismatch: server version is: ", 
+                                              PACKAGE_STRING, "; client is: ", client_version,
+                                              ". No common compatible protocol could be negotiated.", NULL);
         NET_SV_SendReject(addr, reject_msg);
+        free(reject_msg);
         NET_Log("server: error: no common protocol");
         return;
     }
