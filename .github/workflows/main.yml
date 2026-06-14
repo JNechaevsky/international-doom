@@ -239,6 +239,57 @@ jobs:
         run: |
           cppcheck --error-exitcode=1 -j2 -UTESTING -D__GNUC__ -Iopl -Isrc -Isrc/setup opl pcsound src textscreen
 
+  cpp-linter:
+    name: Cpp-linter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install fluidsynth libfluidsynth-dev libsamplerate0-dev libsdl2-dev libsdl2-mixer-dev ninja-build
+      - name: Run cmake to generate compilation database
+        run: cmake -S . -B . -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+      - uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: file
+          lines-changed-only: true
+          files-changed-only: true
+          version: 16
+          tidy-checks: >-
+            boost-*
+            ,bugprone-*
+            ,performance-*
+            ,readability-*
+            ,portability-*
+            ,modernize-*
+            ,clang-analyzer-*
+            ,cppcoreguidelines-*
+            ,-cppcoreguidelines-avoid-magic-numbers
+            ,-cppcoreguidelines-init-variables
+            ,-readability-identifier-length
+            ,-readability-isolate-declaration
+            ,-readability-magic-numbers
+
+      - name: Fail if linting issues found
+        if: steps.linter.outputs.checks-failed > 0
+        run: |
+          echo "Some files failed the linting checks! Fail fast disabled until false positive issue is fixed"
+          # exit 1
+
+      - name: Verify that 'extern' is not used in .c files
+        run: |
+          # Find all .c files and grep for 'extern' (not followed by alphanumeric/underscore)
+          EXTERN=$(find . -name "*.c" -exec grep -H -e 'extern[^A-Za-z0-9_]' {} \;)
+          if [ -n "$EXTERN" ]; then
+            echo "❌ 'extern' found in .c files (should only be in .h files):"
+            echo "$EXTERN"
+            # exit 1
+          else
+            echo "✅ No 'extern' declarations found in .c files"
+          fi
+
   release_nightly:
     name: Create Nightly Release
     runs-on: ubuntu-latest
