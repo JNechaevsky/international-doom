@@ -50,5 +50,7 @@ extern boolean deh_allow_long_strings;
 extern boolean deh_allow_long_cheats;
 extern boolean deh_apply_cheats;
 
+extern boolean bex_notext;
+
 #endif /* #ifndef DEH_MAIN_H */
 

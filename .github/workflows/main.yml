@@ -280,8 +280,8 @@ jobs:
 
       - name: Verify that 'extern' is not used in .c files
         run: |
-          # Find all .c files and grep for 'extern' (not followed by alphanumeric/underscore)
-          EXTERN=$(find . -name "*.c" -exec grep -H -e 'extern[^A-Za-z0-9_]' {} \;)
+          # Find all .c files (excluding lib/miniz) and grep for 'extern'
+          EXTERN=$(find . -name "*.c" -not -path "./lib/miniz/*" -exec grep -H -e 'extern[^A-Za-z0-9_]' {} \;)
           if [ -n "$EXTERN" ]; then
             echo "❌ 'extern' found in .c files (should only be in .h files):"
             echo "$EXTERN"
