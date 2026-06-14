@@ -223,6 +223,22 @@ jobs:
           path: bundled_appimages/*
           retention-days: 3
 
+  cppcheck:
+    name: Cppcheck 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install cppcheck
+
+      - uses: actions/checkout@v6
+
+      - name: Run cppcheck
+        env:
+          ANALYZE: true
+        run: |
+          cppcheck --error-exitcode=0 -j2 -UTESTING -D__GNUC__ -Iopl -Isrc -Isrc/setup opl pcsound src textscreen
+
   release_nightly:
     name: Create Nightly Release
     runs-on: ubuntu-latest
