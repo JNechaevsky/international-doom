@@ -1323,9 +1323,10 @@ static boolean CheckMobjBlocking(seg_t * seg, const polyobj_t *po)
 
 static void InitBlockMap(void)
 {
-    PolyBlockMap = Z_Malloc(bmapwidth * bmapheight * sizeof(polyblock_t *),
-                            PU_LEVEL, 0);
-    memset(PolyBlockMap, 0, bmapwidth * bmapheight * sizeof(polyblock_t *));
+    const size_t size = (size_t)bmapwidth * bmapheight * sizeof(polyblock_t *);
+    
+    PolyBlockMap = Z_Malloc(size, PU_LEVEL, 0);
+    memset(PolyBlockMap, 0, size);
 
     for (int i = 0; i < po_NumPolyobjs; i++)
     {

@@ -851,7 +851,7 @@ static void NET_SV_ParseLaunch(net_packet_t *packet, net_client_t *client)
     if (client != NET_SV_Controller())
     {
         NET_Log("server: error: this client isn't the controller, %d != %d",
-                client, NET_SV_Controller());
+                client->player_number, NET_SV_Controller()->player_number);
         return;
     }
 
@@ -1132,11 +1132,11 @@ static void NET_SV_CheckResends(net_client_t *client)
         else if (resend_start >= 0)
         {
             // End of a run of resend tics
-            NET_Log("server: resend request to %s timed out for %d-%d (%d)",
+            NET_Log("server: resend request to %s timed out for %u-%u (%u)",
                     NET_AddrToString(client->addr),
                     recvwindow_start + resend_start,
                     recvwindow_start + resend_end,
-                    &recvwindow[resend_start][player].resend_time);
+                    recvwindow[resend_start][player].resend_time);
             NET_SV_SendResendRequest(client, 
                                      recvwindow_start + resend_start,
                                      recvwindow_start + resend_end);
@@ -1147,11 +1147,11 @@ static void NET_SV_CheckResends(net_client_t *client)
 
     if (resend_start >= 0)
     {
-        NET_Log("server: resend request to %s timed out for %d-%d (%d)",
+        NET_Log("server: resend request to %s timed out for %u-%u (%u)",
                 NET_AddrToString(client->addr),
                 recvwindow_start + resend_start,
                 recvwindow_start + resend_end,
-                &recvwindow[resend_start][player].resend_time);
+                recvwindow[resend_start][player].resend_time);
         NET_SV_SendResendRequest(client,
                                  recvwindow_start + resend_start,
                                  recvwindow_start + resend_end);
@@ -1167,7 +1167,7 @@ static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
     unsigned int ackseq;
     unsigned int num_tics;
     unsigned int nowtime;
-    size_t i;
+    unsigned int i;
     int player;
     int resend_start, resend_end;
     int index;
@@ -1235,7 +1235,7 @@ static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
         recvobj->latency = latency;
 
         client->last_gamedata_time = nowtime;
-        NET_Log("server: stored tic %d for player %d", seq + i, player);
+        NET_Log("server: stored tic %u for player %d", seq + i, player);
     }
 
     // Higher acknowledgement point?

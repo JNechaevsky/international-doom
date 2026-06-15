@@ -2166,7 +2166,7 @@ void I_RenderReadPixels (byte **data, int *w, int *h)
     }
 
     // [crispy] allocate memory for screenshot image
-    pixels = malloc(rect.h * temp);
+    pixels = malloc((size_t)rect.h * temp);
     SDL_RenderReadPixels(renderer, &rect, format->format, pixels, temp);
 
     *data = pixels;

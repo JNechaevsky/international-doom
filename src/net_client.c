@@ -738,7 +738,7 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
     unsigned int seq, num_tics;
     unsigned int nowtime;
     int resend_start, resend_end;
-    size_t i;
+    unsigned int i;
     int index;
 
     NET_Log("client: processing game data packet");
@@ -774,7 +774,7 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
 
         if (!NET_ReadFullTiccmd(packet, &cmd, settings.lowres_turn))
         {
-            NET_Log("client: error: failed to read ticcmd %d", i);
+            NET_Log("client: error: failed to read ticcmd %u", i);
             return;
         }
 
@@ -791,7 +791,7 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
 
         recvobj->active = true;
         recvobj->cmd = cmd;
-        NET_Log("client: stored tic %d in receive window", seq + i);
+        NET_Log("client: stored tic %u in receive window", seq + i);
 
         // If a packet is lost or arrives out of order, we might get
         // the tic in the next packet instead (because of extratic).

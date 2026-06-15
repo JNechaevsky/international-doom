@@ -1264,7 +1264,7 @@ static void AM_drawBackground (void)
     }
     else
     {
-    memset(I_VideoBuffer, 0, f_w*f_h*sizeof(*I_VideoBuffer));
+    memset(I_VideoBuffer, 0, (size_t)f_w*f_h*sizeof(*I_VideoBuffer));
     }
 }
 

@@ -1283,7 +1283,7 @@ void AM_Ticker (void)
 
 static void AM_clearFB (void)
 {
-    memset(I_VideoBuffer, automap_colors[0], f_w*f_h*sizeof(*I_VideoBuffer));
+    memset(I_VideoBuffer, automap_colors[0], (size_t)f_w*f_h*sizeof(*I_VideoBuffer));
 }
 
 // -----------------------------------------------------------------------------
