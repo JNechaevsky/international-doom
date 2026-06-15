@@ -1325,7 +1325,7 @@ static void InitBlockMap(void)
 {
     const size_t size = (size_t)bmapwidth * bmapheight * sizeof(polyblock_t *);
     
-    PolyBlockMap = Z_Malloc((int)size, PU_LEVEL, 0);
+    PolyBlockMap = (polyblock_t **)Z_Malloc((int)size, PU_LEVEL, 0);
     memset((void*)PolyBlockMap, 0, size);
 
     for (int i = 0; i < po_NumPolyobjs; i++)
