@@ -342,7 +342,7 @@ static void *DEH_BEXStrStart(deh_context_t *context, char *line)
 {
     char s[10];
 
-    if (sscanf(line, "%9s", s) == 0 || strcmp("[STRINGS]", s))
+    if (sscanf(line, "%9s", s) != 1 || strcmp("[STRINGS]", s) != 0)
     {
 	DEH_Warning(context, "Parse error on section start");
     }
