@@ -236,13 +236,21 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install fluidsynth libfluidsynth-dev libsamplerate0-dev libsdl2-dev libsdl2-mixer-dev ninja-build
       
+      - name: Configure CMake
+        run: cmake -S . -B debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+      
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: c-cpp
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
+          build-mode: manual
+      
+      - name: Build the project (CodeQL will trace it)
+        run: |
+          cmake --build debug --parallel
+        env:
+          CC: clang
+          CXX: clang++
       
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
