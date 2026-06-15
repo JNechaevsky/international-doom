@@ -254,7 +254,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: ''      # Disable clang-format
-          verbosity: 20  # Shorten output
           lines-changed-only: true
           files-changed-only: true
           tidy-checks: >-
