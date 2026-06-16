@@ -109,6 +109,10 @@ static patch_t *faces[ST_NUMFACES];  // face status patches
 static patch_t *faceback[MAXPLAYERS];// [JN] killough 3/7/98: make array
 static patch_t *armsbg;              // ARMS background
 
+// [JN] Versions prior 1.4 does not have STTMINUS patch.
+// If case of using such versions, drawing negative health is not possible.
+static boolean no_sttminus = false;
+
 // [crispy] blinking key or skull in the status bar
 int st_keyorskull[3];
 
@@ -173,6 +177,7 @@ cheatseq_t cheat_powerup[7] =
 // cht_CheckCheatSP
 // [crispy] restrict cheat usage
 // -----------------------------------------------------------------------------
+
 static const inline int cht_CheckCheatSP (cheatseq_t *cht, char key)
 {
     if (!cht_CheckCheat(cht, key))
@@ -188,14 +193,11 @@ static const inline int cht_CheckCheatSP (cheatseq_t *cht, char key)
     return true;
 }
 
-// [JN] Versions prior 1.4 does not have STTMINUS patch.
-// If case of using such versions, drawing negative health is not possible.
-static boolean no_sttminus = false;
-
 // -----------------------------------------------------------------------------
 // WeaponAvailable
 // [crispy] only give available weapons
 // -----------------------------------------------------------------------------
+
 static boolean WeaponAvailable (int w)
 {
     if (w < 0 || w >= NUMWEAPONS)
@@ -2196,128 +2198,9 @@ void ST_Drawer (boolean force)
     }
 }
 
-typedef void (*load_callback_t)(const char *lumpname, patch_t **variable); 
-
-// Iterates through all graphics to be loaded or unloaded, along with
-// the variable they use, invoking the specified callback function.
-
-static void ST_loadUnloadGraphics(load_callback_t callback)
-{
-
-    int		i;
-    int		j;
-    int		facenum;
-    
-    char	namebuf[9];
-
-    // Load the numbers, tall and short
-    for (i=0;i<10;i++)
-    {
-	DEH_snprintf(namebuf, 9, "STTNUM%d", i);
-        callback(namebuf, &tallnum[i]);
-
-	DEH_snprintf(namebuf, 9, "STYSNUM%d", i);
-        callback(namebuf, &shortnum_y[i]);
-
-	DEH_snprintf(namebuf, 9, "STGNUM%d", i);
-        callback(namebuf, &shortnum_g[i]);
-    }
-
-    // Load percent key.
-    callback(DEH_String("STTPRCNT"), &tallpercent);
-
-    // [JN] Load minus symbol.
-    // Versions prior 1.4 does not have STTMINUS patch.
-    // If case of using such versions, drawing negative health is not possible.
-    if (W_CheckNumForName("STTMINUS") >= 0)
-    {
-        callback(DEH_String("STTMINUS"), &tallminus);
-    }
-    else
-    {
-        tallminus = NULL;
-        no_sttminus = true;
-    }
-
-    // key cards
-    for (i=0;i<NUMCARDS;i++)
-    {
-	DEH_snprintf(namebuf, 9, "STKEYS%d", i);
-        callback(namebuf, &keys[i]);
-    }
-
-    // arms background
-    callback(DEH_String("STARMS"), &armsbg);
-
-    // face backgrounds for different color players
-    // [JN] killough 3/7/98: add better support for spy mode by loading
-    // all player face backgrounds and using displayplayer to choose them:
-    for (i=0; i<MAXPLAYERS; i++)
-    {
-    DEH_snprintf(namebuf, 9, "STFB%d", i);
-    callback(namebuf, &faceback[i]);
-    }
-
-    // status bar background bits
-    //callback(DEH_String("STBAR"), &sbar);
-    if (W_CheckNumForName("STBAR") >= 0)
-    {
-        callback(DEH_String("STBAR"), &sbar);
-        sbarr = NULL;
-    }
-    else
-    {
-        callback(DEH_String("STMBARL"), &sbar);
-        callback(DEH_String("STMBARR"), &sbarr);
-    }
-
-    // face states
-    facenum = 0;
-    for (i=0; i<ST_NUMPAINFACES; i++)
-    {
-	for (j=0; j<ST_NUMSTRAIGHTFACES; j++)
-	{
-	    DEH_snprintf(namebuf, 9, "STFST%d%d", i, j);
-            callback(namebuf, &faces[facenum]);
-            ++facenum;
-	}
-	DEH_snprintf(namebuf, 9, "STFTR%d0", i);	// turn right
-        callback(namebuf, &faces[facenum]);
-        ++facenum;
-	DEH_snprintf(namebuf, 9, "STFTL%d0", i);	// turn left
-        callback(namebuf, &faces[facenum]);
-        ++facenum;
-	DEH_snprintf(namebuf, 9, "STFOUCH%d", i);	// ouch!
-        callback(namebuf, &faces[facenum]);
-        ++facenum;
-	DEH_snprintf(namebuf, 9, "STFEVL%d", i);	// evil grin ;)
-        callback(namebuf, &faces[facenum]);
-        ++facenum;
-	DEH_snprintf(namebuf, 9, "STFKILL%d", i);	// pissed off
-        callback(namebuf, &faces[facenum]);
-        ++facenum;
-    }
-
-    callback(DEH_String("STFGOD0"), &faces[facenum]);
-    ++facenum;
-    callback(DEH_String("STFDEAD0"), &faces[facenum]);
-    ++facenum;
-}
-
-static void ST_loadCallback(const char *lumpname, patch_t **variable)
-{
-    *variable = W_CacheLumpName(lumpname, PU_STATIC);
-}
-
-static void ST_loadGraphics(void)
-{
-    ST_loadUnloadGraphics(ST_loadCallback);
-}
-
-static void ST_loadData(void)
-{
-    ST_loadGraphics();
-}
+// -----------------------------------------------------------------------------
+// ST_Start
+// -----------------------------------------------------------------------------
 
 void ST_Start (void)
 {
@@ -2335,11 +2218,109 @@ void ST_Start (void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// ST_Init
+// -----------------------------------------------------------------------------
+
 void ST_Init (void)
 {
-    ST_loadData();
+    int i, j, facenum;
+    char namebuf[9];
+
+    // Backing screen for buffered drawing
     st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ST_HEIGHT * MAXHIRES)
                       * sizeof(*st_backing_screen), PU_STATIC, 0);
+
+    // Main status bar (or left/right parts for Doom 1.0)
+    if (W_CheckNumForName("STBAR") >= 0)
+    {
+        sbar = W_CacheLumpName(DEH_String("STBAR"), PU_STATIC);
+        sbarr = NULL;
+    }
+    else
+    {
+        sbar = W_CacheLumpName(DEH_String("STMBARL"), PU_STATIC);
+        sbarr = W_CacheLumpName(DEH_String("STMBARR"), PU_STATIC);
+    }
+
+    // Arms background
+    armsbg = W_CacheLumpName(DEH_String("STARMS"), PU_STATIC);
+
+    // Face backgrounds for each player colour
+    // [JN] killough 3/7/98: add better support for spy mode by loading
+    // all player face backgrounds and using displayplayer to choose them:
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        DEH_snprintf(namebuf, 9, "STFB%d", i);
+        faceback[i] = W_CacheLumpName(namebuf, PU_STATIC);
+    }
+
+    // Face states
+    facenum = 0;
+    for (i = 0; i < ST_NUMPAINFACES; i++)
+    {
+        for (j = 0; j < ST_NUMSTRAIGHTFACES; j++)
+        {
+            DEH_snprintf(namebuf, 9, "STFST%d%d", i, j);
+            faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+        }
+
+        DEH_snprintf(namebuf, 9, "STFTR%d0", i);   // turn right
+        faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+
+        DEH_snprintf(namebuf, 9, "STFTL%d0", i);   // turn left
+        faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+
+        DEH_snprintf(namebuf, 9, "STFOUCH%d", i);  // ouch!
+        faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+
+        DEH_snprintf(namebuf, 9, "STFEVL%d", i);   // evil grin ;)
+        faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+
+        DEH_snprintf(namebuf, 9, "STFKILL%d", i);  // rampage
+        faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+    }
+
+    // God and dead faces
+    faces[facenum++] = W_CacheLumpName(DEH_String("STFGOD0"), PU_STATIC);
+    faces[facenum++] = W_CacheLumpName(DEH_String("STFDEAD0"), PU_STATIC);
+
+    // Key cards and skulls
+    for (i = 0; i < NUMCARDS; i++)
+    {
+        DEH_snprintf(namebuf, 9, "STKEYS%d", i);
+        keys[i] = W_CacheLumpName(namebuf, PU_STATIC);
+    }
+
+    // Load the numbers, tall and short (0-9)
+    for (i = 0; i < 10; i++)
+    {
+        DEH_snprintf(namebuf, 9, "STTNUM%d", i);
+        tallnum[i] = W_CacheLumpName(namebuf, PU_STATIC);
+
+        DEH_snprintf(namebuf, 9, "STYSNUM%d", i);
+        shortnum_y[i] = W_CacheLumpName(namebuf, PU_STATIC);
+
+        DEH_snprintf(namebuf, 9, "STGNUM%d", i);
+        shortnum_g[i] = W_CacheLumpName(namebuf, PU_STATIC);
+    }
+
+    // Percent sign
+    tallpercent = W_CacheLumpName(DEH_String("STTPRCNT"), PU_STATIC);
+
+    // [JN] Minus sign (may be absent in old IWADs)
+    // Versions prior 1.4 does not have STTMINUS patch.
+    // If case of using such versions, drawing negative health is not possible.
+    if (W_CheckNumForName("STTMINUS") >= 0)
+    {
+        tallminus = W_CacheLumpName(DEH_String("STTMINUS"), PU_STATIC);
+        no_sttminus = false;
+    }
+    else
+    {
+        tallminus = NULL;
+        no_sttminus = true;
+    }
 }
 
 // -----------------------------------------------------------------------------
