@@ -244,6 +244,7 @@ jobs:
         with:
           languages: c-cpp
           build-mode: manual
+          dependency-caching: false
       
       - name: Build the project (CodeQL will trace it)
         run: |
