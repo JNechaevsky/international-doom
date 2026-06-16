@@ -1530,20 +1530,24 @@ void SB_Drawer(void)
     // [JN] Ammo widget.
     if (st_ammo_widget)
     {
-        char str[8];
-        const weapontype_t ammo_widget_weapons[6] = {
-            wp_goldwand, wp_crossbow, wp_blaster,
-            wp_skullrod, wp_phoenixrod, wp_mace
-        };
+        char str[16];
+
+        // [PN] Parallel arrays for slot data (0-5).
+        const weapontype_t weapons[6] = { wp_goldwand, wp_crossbow, wp_blaster, wp_skullrod, wp_phoenixrod, wp_mace };
+        const int ammo_types[6]       = { am_goldwand, am_crossbow, am_blaster, am_skullrod, am_phoenixrod, am_mace };
+        const char *const labels[6]   = { "W", "E", "D", "H", "P", "M" };
+
         byte *ammo_widget_weapon_colors[6];
         byte *ammo_widget_ammo_colors[6];
+
         // [JN] Shift widgets based on the "Widgets alignment" setting.
         const int xx = (widget_alignment ==  0) ? WIDESCREENDELTA :     // left
                        (widget_alignment ==  1) ? 0 :                   // status bar
                        (dp_screen_size   >= 12) ? WIDESCREENDELTA : 0;  // auto
+
         // [JN] Move widgets slightly down when using a fullscreen status bar.
-        int yy = dp_screen_size > 10
-                  && (!automapactive || automap_overlay) ? 13 : 0;
+        int yy = (dp_screen_size > 10 && (!automapactive || automap_overlay)) ? 13 : 0;
+
         // [JN] Even slightly higher, if the H+H status bar is used.
         if (st_fullscreen_layout == 1 && dp_screen_size > 10)
             yy -= 14;
@@ -1551,100 +1555,37 @@ void SB_Drawer(void)
         // [PN] Cache ammo-widget colors for all weapon slots once per draw pass.
         for (int i = 0; i < 6; i++)
         {
-            ammo_widget_weapon_colors[i] =
-                SB_AmmoWidgetColor(ammowidgetcolor_weapon, ammo_widget_weapons[i]);
-            ammo_widget_ammo_colors[i] =
-                SB_AmmoWidgetColor(ammowidgetcolor_ammo, ammo_widget_weapons[i]);
+            ammo_widget_weapon_colors[i] = SB_AmmoWidgetColor(ammowidgetcolor_weapon, weapons[i]);
+            ammo_widget_ammo_colors[i]   = SB_AmmoWidgetColor(ammowidgetcolor_ammo, weapons[i]);
         }
 
-        // Brief
-        if (st_ammo_widget == 1)
+        // [PN] Enable translucency once for both modes.
+        dp_translucent = st_ammo_widget_translucent;
+
+        for (int i = 0; i < 6; i++)
         {
-            dp_translucent = (st_ammo_widget_translucent);
+            const int current_yy = 96 + (i * 10) + yy;
 
-            MN_DrTextA("W", 282 + xx,  96 + yy, ammo_widget_weapon_colors[0]);
-            MN_DrTextA("E", 282 + xx, 106 + yy, ammo_widget_weapon_colors[1]);
-            MN_DrTextA("D", 282 + xx, 116 + yy, ammo_widget_weapon_colors[2]);
-            MN_DrTextA("H", 282 + xx, 126 + yy, ammo_widget_weapon_colors[3]);
-            MN_DrTextA("P", 282 + xx, 136 + yy, ammo_widget_weapon_colors[4]);
-            MN_DrTextA("M", 282 + xx, 146 + yy, ammo_widget_weapon_colors[5]);
+            // [PN] Calculate weapon icon X: 282 for Brief (1), 251 for Full.
+            const int label_xx = ((st_ammo_widget == 1) ? 282 : 251) + xx;
+            MN_DrTextA(labels[i], label_xx, current_yy, ammo_widget_weapon_colors[i]);
 
-            // Elven Wand
-            sprintf(str, "%d",  CPlayer->ammo[am_goldwand]);
-            MN_DrTextA(str, 293 + xx, 96 + yy, ammo_widget_ammo_colors[0]);
+            if (st_ammo_widget == 1) // Brief
+            {
+                sprintf(str, "%d", CPlayer->ammo[ammo_types[i]]);
+                MN_DrTextA(str, 293 + xx, current_yy, ammo_widget_ammo_colors[i]);
+            }
+            else // Full
+            {
+                sprintf(str, "%d/", CPlayer->ammo[ammo_types[i]]);
+                MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), current_yy, ammo_widget_ammo_colors[i]);
 
-            // Ethereal Crossbow
-            sprintf(str, "%d",  CPlayer->ammo[am_crossbow]);
-            MN_DrTextA(str, 293 + xx, 106 + yy, ammo_widget_ammo_colors[1]);
-
-            // Dragon Claw
-            sprintf(str, "%d",  CPlayer->ammo[am_blaster]);
-            MN_DrTextA(str, 293 + xx, 116 + yy, ammo_widget_ammo_colors[2]);
-
-            // Hellstaff
-            sprintf(str, "%d",  CPlayer->ammo[am_skullrod]);
-            MN_DrTextA(str, 293 + xx, 126 + yy, ammo_widget_ammo_colors[3]);
-
-            // Phoenix Rod
-            sprintf(str, "%d",  CPlayer->ammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + xx, 136 + yy, ammo_widget_ammo_colors[4]);
-
-            // Firemace
-            sprintf(str, "%d",  CPlayer->ammo[am_mace]);
-            MN_DrTextA(str, 293 + xx, 146 + yy, ammo_widget_ammo_colors[5]);
-
-            dp_translucent = false;
+                sprintf(str, "%d", CPlayer->maxammo[ammo_types[i]]);
+                MN_DrTextA(str, 293 + xx, current_yy, ammo_widget_ammo_colors[i]);
+            }
         }
-        // Full
-        else
-        {
-            dp_translucent = (st_ammo_widget_translucent);
 
-            MN_DrTextA("W", 251 + xx,  96 + yy, ammo_widget_weapon_colors[0]);
-            MN_DrTextA("E", 251 + xx, 106 + yy, ammo_widget_weapon_colors[1]);
-            MN_DrTextA("D", 251 + xx, 116 + yy, ammo_widget_weapon_colors[2]);
-            MN_DrTextA("H", 251 + xx, 126 + yy, ammo_widget_weapon_colors[3]);
-            MN_DrTextA("P", 251 + xx, 136 + yy, ammo_widget_weapon_colors[4]);
-            MN_DrTextA("M", 251 + xx, 146 + yy, ammo_widget_weapon_colors[5]);
-
-            // Elven Wand
-            sprintf(str, "%d/",  CPlayer->ammo[am_goldwand]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 96 + yy, ammo_widget_ammo_colors[0]);
-            sprintf(str, "%d",  CPlayer->maxammo[am_goldwand]);
-            MN_DrTextA(str, 293 + xx, 96 + yy, ammo_widget_ammo_colors[0]);
-
-            // Ethereal Crossbow
-            sprintf(str, "%d/",  CPlayer->ammo[am_crossbow]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 106 + yy, ammo_widget_ammo_colors[1]);
-            sprintf(str, "%d",  CPlayer->maxammo[am_crossbow]);
-            MN_DrTextA(str, 293 + xx, 106 + yy, ammo_widget_ammo_colors[1]);
-
-            // Dragon Claw
-            sprintf(str, "%d/",  CPlayer->ammo[am_blaster]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 116 + yy, ammo_widget_ammo_colors[2]);
-            sprintf(str, "%d",  CPlayer->maxammo[am_blaster]);
-            MN_DrTextA(str, 293 + xx, 116 + yy, ammo_widget_ammo_colors[2]);
-
-            // Hellstaff
-            sprintf(str, "%d/",  CPlayer->ammo[am_skullrod]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 126 + yy, ammo_widget_ammo_colors[3]);
-            sprintf(str, "%d",  CPlayer->maxammo[am_skullrod]);
-            MN_DrTextA(str, 293 + xx, 126 + yy, ammo_widget_ammo_colors[3]);
-
-            // Phoenix Rod
-            sprintf(str, "%d/",  CPlayer->ammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 136 + yy, ammo_widget_ammo_colors[4]);
-            sprintf(str, "%d",  CPlayer->maxammo[am_phoenixrod]);
-            MN_DrTextA(str, 293 + xx, 136 + yy, ammo_widget_ammo_colors[4]);
-
-            // Firemace
-            sprintf(str, "%d/",  CPlayer->ammo[am_mace]);
-            MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), 146 + yy, ammo_widget_ammo_colors[5]);
-            sprintf(str, "%d",  CPlayer->maxammo[am_mace]);
-            MN_DrTextA(str, 293 + xx, 146 + yy, ammo_widget_ammo_colors[5]);
-
-            dp_translucent = false;
-        }
+        dp_translucent = false;
     }
 }
 
