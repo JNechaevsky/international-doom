@@ -142,7 +142,7 @@ boolean EV_RotatePoly(line_t * line, const byte *args, int direction, boolean
     {
         if (args[2] == 255)
         {
-            pe->dist = -1;
+            pe->dist = 0xFFFFFFFFU;
         }
         else
         {
@@ -174,7 +174,7 @@ boolean EV_RotatePoly(line_t * line, const byte *args, int direction, boolean
         {
             if (args[2] == 255)
             {
-                pe->dist = -1;
+                pe->dist = 0xFFFFFFFFU;
             }
             else
             {

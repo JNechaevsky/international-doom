@@ -34,6 +34,7 @@
 
 #define MAX_TARGET_PLAYERS 512
 #define MOBJ_NULL -1
+#define MOBJ_NULL_U 0xFFFFFFFFU
 #define MOBJ_XX_PLAYER -2
 #define MAX_MAPS 99
 #define BASE_SLOT 6
@@ -1210,7 +1211,7 @@ static void StreamOutMobjSpecials(mobj_t *mobj)
         case MT_MSTAFF_FX2:
             if (corpse)
             {
-                special1 = MOBJ_NULL;
+                special1 = MOBJ_NULL_U;
             }
             else
             {
@@ -1223,7 +1224,7 @@ static void StreamOutMobjSpecials(mobj_t *mobj)
         case MT_LIGHTNING_ZAP:
             if (corpse)
             {
-                special2 = MOBJ_NULL;
+                special2 = MOBJ_NULL_U;
             }
             else
             {
@@ -1236,8 +1237,8 @@ static void StreamOutMobjSpecials(mobj_t *mobj)
         case MT_LIGHTNING_CEILING:
             if (corpse)
             {
-                special1 = MOBJ_NULL;
-                special2 = MOBJ_NULL;
+                special1 = MOBJ_NULL_U;
+                special2 = MOBJ_NULL_U;
             }
             else
             {
@@ -1351,7 +1352,7 @@ static void StreamOut_mobj_t(mobj_t *str)
     // struct mobj_s *target;
     if ((str->flags & MF_CORPSE) != 0)
     {
-        SV_WriteLong(MOBJ_NULL);
+        SV_WriteLong(MOBJ_NULL_U);
     }
     else
     {
@@ -1934,7 +1935,7 @@ static void StreamOut_acs_t(thinker_t *thinker)
     }
     else
     {
-        SV_WriteLong(-1);
+        SV_WriteLong(MOBJ_NULL_U);
     }
 
     // int side;
@@ -3915,13 +3916,13 @@ static void UnarchivePolyobjs(void)
     fixed_t deltaY;
 
     AssertSegment(ASEG_POLYOBJS);
-    if (SV_ReadLong() != po_NumPolyobjs)
+    if (SV_ReadLong() != (uint32_t)po_NumPolyobjs)
     {
         I_Error("UnarchivePolyobjs: Bad polyobj count");
     }
     for (i = 0; i < po_NumPolyobjs; i++)
     {
-        if (SV_ReadLong() != polyobjs[i].tag)
+        if (SV_ReadLong() != (uint32_t)polyobjs[i].tag)
         {
             I_Error("UnarchivePolyobjs: Invalid polyobj tag");
         }
@@ -3940,7 +3941,7 @@ static void UnarchivePolyobjs(void)
 
 static void AssertSegment(gameArchiveSegment_t segType)
 {
-    if (SV_ReadLong() != segType)
+    if (SV_ReadLong() != (uint32_t)segType)
     {
         I_Error("Corrupt save game: Segment [%d] failed alignment check",
                 segType);

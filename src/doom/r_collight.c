@@ -963,8 +963,8 @@ static void CL_ParseLump(const int lumpnum, const char *map_name)
             memcpy(header_line, clean, clean_len + 1u);
         }
 
-        boolean header_active;
-        boolean has_open_brace;
+        boolean header_active = false;
+        boolean has_open_brace = false;
         const boolean is_header = header_line != NULL
                                && CL_ParseBlockHeaderLine(header_line, map_name,
                                                           &header_active, &has_open_brace);

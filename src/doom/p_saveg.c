@@ -289,7 +289,7 @@ char *P_SaveGameFile(int slot)
 
 static byte saveg_read8(void)
 {
-    byte result = -1;
+    byte result = 0xFFU;
 
     if (saveg_fread(&result, 1, 1) < 1)
     {

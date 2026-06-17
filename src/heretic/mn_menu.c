@@ -7903,7 +7903,6 @@ boolean MN_Responder(event_t * event)
            || event->data1 == key_menu_quit)))
         {
             I_Quit();
-            return true;
         }
 
         return false;
@@ -8880,7 +8879,6 @@ boolean MN_Responder(event_t * event)
         }
         return (true);
     }
-    return (false);
 }
 
 //---------------------------------------------------------------------------

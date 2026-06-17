@@ -411,11 +411,11 @@ static boolean R_CheckBBox (const fixed_t *bspcoord)
         // change it to the corect sign
         if ((angle1 >= ANG180) && (angle1 < ANG270))
         {
-            angle1 = INT_MAX; // which is ANG180-1
+            angle1 = ANG180-1; // [PN] ANG180-1, max unsigned value before ANG180.
         }
         else
         {
-            angle2 = INT_MIN;
+            angle2 = ANG180;   // [PN] ANG180, equivalent to INT_MIN in signed interpretation.
         }
     }
 

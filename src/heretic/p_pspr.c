@@ -1339,7 +1339,7 @@ void A_DeathBallImpact(mobj_t * ball, player_t *player, pspdef_t *psp)
 {
     int i;
     mobj_t *target;
-    angle_t angle;
+    angle_t angle = 0;
     boolean newAngle;
 
     if ((ball->z <= ball->floorz) && (P_HitFloor(ball) != FLOOR_SOLID))

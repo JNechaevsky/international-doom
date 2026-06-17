@@ -978,7 +978,7 @@ static const int P_FindDoomedNum (unsigned type)
     }
 
     i = hash[type % NUMMOBJTYPES].first;
-    while (i < NUMMOBJTYPES && mobjinfo[i].doomednum != type)
+    while (i < NUMMOBJTYPES && (unsigned) mobjinfo[i].doomednum != type)
     i = hash[i].next;
 
     return i;

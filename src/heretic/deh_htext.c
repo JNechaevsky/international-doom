@@ -758,7 +758,7 @@ static void SuggestOtherVersions(unsigned int offset)
 
         for (i=0; string_list[i] >= 0; ++i)
         {
-            if (string_list[i] == offset)
+            if ((unsigned int)string_list[i] == offset)
             {
                 DEH_SuggestHereticVersion(v);
             }

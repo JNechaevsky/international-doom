@@ -156,7 +156,7 @@ boolean OpenFolder(const char *path)
 }
 
 // Wait for the specified process to exit.  Returns the exit code.
-static unsigned int WaitForProcessExit(HANDLE subprocess)
+static int WaitForProcessExit(HANDLE subprocess)
 {
     DWORD exit_code;
 
@@ -171,7 +171,7 @@ static unsigned int WaitForProcessExit(HANDLE subprocess)
 
         if (exit_code != STILL_ACTIVE)
         {
-            return exit_code;
+            return (int)exit_code;
         }
     }
 }

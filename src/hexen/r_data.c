@@ -328,7 +328,7 @@ static void R_GenerateComposite (int texnum)
 
             if (j >= height)
             {
-                col->topdelta = -1; // end-of-column marker (0xFF)
+                col->topdelta = 0xFFU; // end-of-column marker (0xFFU)
                 break;
             }
 

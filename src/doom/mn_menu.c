@@ -7697,7 +7697,6 @@ boolean M_Responder (event_t* ev)
         && (ev->data1 == key_menu_activate || ev->data1 == key_menu_quit)))
         {
             I_Quit();
-            return true;
         }
 
         return false;
@@ -8084,7 +8083,6 @@ boolean M_Responder (event_t* ev)
             if (key == key_menu_quit && messageRoutine == M_QuitResponse)
             {
                 I_Quit ();
-                return true;
             }
 
             if (key != ' ' && key != KEY_ESCAPE

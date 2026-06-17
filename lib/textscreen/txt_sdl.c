@@ -794,7 +794,7 @@ int TXT_UnicodeCharacter(unsigned int c)
 
     for (i = 0; i < arrlen(code_page_to_unicode); ++i)
     {
-        if (code_page_to_unicode[i] == c)
+        if ((unsigned int)code_page_to_unicode[i] == c)
         {
             return i;
         }

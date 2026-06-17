@@ -3921,7 +3921,7 @@ int spng_decode_image(spng_ctx *ctx, void *out, size_t len, int fmt, int flags)
 
     if(f.apply_trns)
     {
-        uint16_t mask = ~0;
+        uint16_t mask = UINT16_MAX;
         if(ctx->ihdr.bit_depth < 16) mask = (1 << ctx->ihdr.bit_depth) - 1;
 
         if(fmt & (SPNG_FMT_RGBA8 | SPNG_FMT_RGBA16))
@@ -4940,7 +4940,7 @@ spng_ctx *spng_ctx_new2(struct spng_alloc *alloc, int flags)
     ctx->image_options = image_defaults;
     ctx->text_options = text_defaults;
 
-    ctx->optimize_option = ~0;
+    ctx->optimize_option = UINT16_MAX;
     ctx->encode_flags.filter_choice = SPNG_FILTER_CHOICE_ALL;
 
     ctx->flags = flags;

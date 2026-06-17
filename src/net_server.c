@@ -762,7 +762,7 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
 
     // Check the connecting client is playing the same game as all
     // the other clients
-    if (data.gamemode != sv_gamemode || data.gamemission != sv_gamemission)
+    if (data.gamemode != (int)sv_gamemode || data.gamemission != (int)sv_gamemission)
     {
         char msg[128];
         NET_Log("server: wrong mode/mission, %d != %d || %d != %d",

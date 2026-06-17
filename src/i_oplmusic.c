@@ -1156,7 +1156,7 @@ static void SetChannelPan(opl_channel_data_t *channel, unsigned int pan)
         {
             reg_pan = 0x30;
         }
-        if (channel->pan != reg_pan)
+        if ((unsigned int)channel->pan != reg_pan)
         {
             channel->pan = reg_pan;
             for (i = 0; i < num_opl_voices; i++)
@@ -1884,6 +1884,6 @@ void I_OPL_DevMessages(char *result, size_t result_len)
         ++lines;
 
         i = (i + PERCUSSION_LOG_LEN - 1) % PERCUSSION_LOG_LEN;
-    } while (lines < 25 && i != last_perc_count);
+    } while (lines < 25 && i != (int)last_perc_count);
 }
 

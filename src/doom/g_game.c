@@ -3762,7 +3762,7 @@ static void G_AddDemoFooter(void)
 
     MEMFILE *stream = mem_fopen_write();
 
-    wadinfo_t header = { "PWAD" };
+    wadinfo_t header = { { 'P', 'W', 'A', 'D' } };
     header.numlumps = LONG(NUM_DEMO_FOOTER_LUMPS);
     mem_fwrite(&header, 1, sizeof(header), stream);
 
