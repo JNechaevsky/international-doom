@@ -40,7 +40,7 @@ if(MSVC)
                     "/D_CRT_NONSTDC_NO_DEPRECATE")
 # Disable several warnings for cl.exe.
 add_compile_options(
-                    "/W4"     # Reasonable warning level
+                    "/W3"     # Reasonable warning level
                     "/wd4018" # Signed/unsigned mismatch
                     "/wd4100" # Identifier: unreferenced formal parameter
                     "/wd4244" # Conversion from 'type1' to 'type2', possible loss of data
