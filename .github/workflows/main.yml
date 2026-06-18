@@ -21,6 +21,11 @@ on:
 permissions:
   contents: write
   actions: write
+  security-events: write
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+    cancel-in-progress: ${{ github.head_ref != '' }}
 
 env:
   VCPKG_BINARY_SOURCES: "clear;files,${{ github.workspace }}/vcpkg_cache,readwrite"
@@ -223,6 +228,35 @@ jobs:
           path: bundled_appimages/*
           retention-days: 3
 
+  zizmor:
+    name: Analyze (Actions Security)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Install zizmor
+        run: pip install zizmor
+
+      - name: Run zizmor
+        run: |
+          zizmor \
+          --format sarif \
+          --persona auditor \
+          ./ > zizmor_results.sarif
+
+      - name: Upload zizmor results
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          category: zizmor
+          sarif_file: zizmor_results.sarif
 
   codeql:
     name: Analyze (CodeQL)
