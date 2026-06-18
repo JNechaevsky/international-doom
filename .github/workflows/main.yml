@@ -36,7 +36,7 @@ jobs:
     runs-on: windows-2025-vs2026
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Cache vcpkg installed packages and archive
         uses: actions/cache/restore@v5
@@ -96,7 +96,7 @@ jobs:
     runs-on: windows-2025-vs2026
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install Visual Studio 2019 Build Tools with v141_xp
         run: |
@@ -143,7 +143,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -235,7 +235,7 @@ jobs:
       security-events: write
       
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install fluidsynth libfluidsynth-dev libsamplerate0-dev libsdl2-dev libsdl2-mixer-dev ninja-build
@@ -270,7 +270,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install cppcheck
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Run cppcheck
         env:
@@ -282,7 +282,7 @@ jobs:
     name: Analyze (Cpp-linter)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install fluidsynth libfluidsynth-dev libsamplerate0-dev libsdl2-dev libsdl2-mixer-dev ninja-build
       - name: Run cmake to generate compilation database
