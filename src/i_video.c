@@ -344,17 +344,6 @@ void I_ShutdownGraphics(void)
     }
 }
 
-
-
-//
-// I_StartFrame
-//
-void I_StartFrame (void)
-{
-    // er?
-
-}
-
 // Adjust vid_window_width / vid_window_height variables to be an an aspect
 // ratio consistent with the vid_aspect_ratio_correct variable.
 static void AdjustWindowSize(void)
