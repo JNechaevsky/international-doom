@@ -511,7 +511,7 @@ static int64_t S_ApproxDistanceZ (int64_t dx, int64_t dy, int64_t dz)
 // Otherwise, modifies parameters and returns 1.
 //
 
-static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
+static int S_AdjustSoundParams(mobj_t *const listener, mobj_t *const source,
                                int *vol, int *sep)
 {
     int64_t        approx_dist;
@@ -612,38 +612,13 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
     return (*vol > 0);
 }
 
-// clamp supplied integer to the range 0 <= x <= 255.
-
-static int Clamp(int x)
-{
-    if (x < 0)
-    {
-        return 0;
-    }
-    else if (x > 255)
-    {
-        return 255;
-    }
-    return x;
-}
-
 void S_StartSound(void *origin_p, int sfx_id)
 {
-    sfxinfo_t *sfx;
-    mobj_t *origin;
-    int sep;
-    int pitch;
-    int cnum;
-    int volume;
-
     // [JN] Do not play sound while demo-warp.
     if (nodrawers || demowarp || !snd_SfxVolume)
     {
         return;
     }
-
-    origin = (mobj_t *) origin_p;
-    volume = snd_SfxVolume;
 
     // check for bogus sound #
     if (sfx_id < 1 || sfx_id > NUMSFX)
@@ -651,10 +626,13 @@ void S_StartSound(void *origin_p, int sfx_id)
         I_Error("Bad sfx #: %d", sfx_id);
     }
 
-    sfx = &S_sfx[sfx_id];
-
     // Initialize sound parameters
-    pitch = NORM_PITCH;
+    mobj_t *const origin = (mobj_t *) origin_p;
+    sfxinfo_t *const sfx = &S_sfx[sfx_id];
+    int volume = snd_SfxVolume;
+    int pitch = NORM_PITCH;
+    int sep = NORM_SEP;
+
     if (sfx->link)
     {
         volume += sfx->volume;
@@ -671,6 +649,9 @@ void S_StartSound(void *origin_p, int sfx_id)
         }
     }
 
+    // [PN] Cache player pointers to avoid multiple global array lookups.
+    mobj_t *const listener = players[displayplayer].mo;
+    mobj_t *const listener_so = players[displayplayer].so;
 
     // Check to see if it is audible,
     //  and if not, modify the params
@@ -679,31 +660,17 @@ void S_StartSound(void *origin_p, int sfx_id)
     if (origin)
     {
         const boolean force_local = (!crl_spectating)
-            && (origin == players[displayplayer].mo || origin == players[displayplayer].so); // [crispy] weapon sound source
+            && (origin == listener || origin == listener_so); // [crispy] weapon sound source
 
         if (!force_local)
         {
-            const int rc = S_AdjustSoundParams(players[displayplayer].mo, origin, &volume, &sep);
-            // Only center-separate when NOT spectating.
-            if (!crl_spectating
-            &&  origin->x == players[displayplayer].mo->x
-            &&  origin->y == players[displayplayer].mo->y)
-            {
-                sep = NORM_SEP;
-            }
+            const int rc = S_AdjustSoundParams(listener, origin, &volume, &sep);
+
             if (!rc)
             {
                 return;
             }
         }
-        else
-        {
-            sep = NORM_SEP;
-        }
-    }
-    else
-    {
-        sep = NORM_SEP;
     }
 
     // hacks to vary the sfx pitches
@@ -715,13 +682,21 @@ void S_StartSound(void *origin_p, int sfx_id)
     {
         pitch += 16 - (M_Random()&31);
     }
-    pitch = Clamp(pitch);
+
+    if (pitch < 0)
+    {
+        pitch = 0;
+    }
+    else if (pitch > 255)
+    {
+        pitch = 255;
+    }
 
     // kill old sound
     S_StopSound(origin);
 
     // try to find a channel
-    cnum = S_GetChannel(origin, sfx);
+    const int cnum = S_GetChannel(origin, sfx);
 
     if (cnum < 0)
     {
@@ -740,7 +715,7 @@ void S_StartSound(void *origin_p, int sfx_id)
     }
 
     channels[cnum].pitch = pitch;
-    channels[cnum].handle = I_StartSound(sfx, cnum, volume, sep, channels[cnum].pitch);
+    channels[cnum].handle = I_StartSound(sfx, cnum, volume, sep, pitch);
 }
 
 void S_StartSoundOnce (void *origin_p, int sfx_id)
