@@ -449,6 +449,7 @@ static default_t	doom_defaults_list[] =
     // Shortcut keys
     CONFIG_VARIABLE_KEYBIND(key_pause, key_pause2),
     CONFIG_VARIABLE_KEYBIND(key_menu_screenshot, key_menu_screenshot2),
+    CONFIG_VARIABLE_KEYBIND(key_menu_cleanshot, key_menu_cleanshot2),
     CONFIG_VARIABLE_KEYBIND(key_message_refresh, key_message_refresh2),
     CONFIG_VARIABLE_KEYBIND(key_message_refresh_hr, key_message_refresh_hr2),
     CONFIG_VARIABLE_KEYBIND(key_demo_quit, key_demo_quit2),

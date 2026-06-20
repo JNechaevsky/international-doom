@@ -166,6 +166,7 @@ extern int key_spy, key_spy2;
 
 extern int key_pause, key_pause2;
 extern int key_menu_screenshot, key_menu_screenshot2;
+extern int key_menu_cleanshot, key_menu_cleanshot2;
 extern int key_message_refresh, key_message_refresh2;
 extern int key_message_refresh_hr, key_message_refresh_hr2;
 extern int key_demo_quit, key_demo_quit2;
