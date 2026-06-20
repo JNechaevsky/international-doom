@@ -202,6 +202,19 @@ static void ID_DrawMessageCentered (void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// R_CleanShotHook
+//  [PN] Clean screenshot hook: called at the start of the next D_Display
+//  via post_rendering_hook. By that time, the GPU back buffer holds the
+//  previous frame which we capture here.
+// -----------------------------------------------------------------------------
+
+static void R_CleanShotHook (void)
+{
+    V_ScreenShot("HTIC%02i.%s");
+    cleanshot_pending = false;
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC D_Display
@@ -268,6 +281,11 @@ static void D_Display(void)
         wipe = false;
     }
 
+    // [JN/PN] Schedule the actual screenshot for the next frame via post_rendering_hook,
+    // so it captures this clean frame from the GPU back buffer.
+    if (cleanshot_pending)
+    post_rendering_hook = R_CleanShotHook;
+
 //
 // do buffered drawing
 //
@@ -282,7 +300,7 @@ static void D_Display(void)
             P_UpdateSavePreviewCache();
 
             // [JN] Fail-safe: return earlier if post rendering hook is still active.
-            if (post_rendering_hook)
+            if (post_rendering_hook && !cleanshot_pending)
             {
                 return;
             }
@@ -299,6 +317,9 @@ static void D_Display(void)
                 R_DrawViewBorder();
             }
 
+            // [PN] Skip all HUD overlays for clean screenshot.
+            if (!cleanshot_pending)
+            {
             if (automapactive)
             {
                 AM_Drawer();
@@ -317,12 +338,6 @@ static void D_Display(void)
             }
 
             CT_Drawer();
-
-            // [JN] Main status bar drawing function.
-            if (dp_screen_size < 13 || (automapactive && !automap_overlay))
-            {
-                SB_Drawer();
-            }
 
             if (widget_enable)
             {
@@ -368,6 +383,13 @@ static void D_Display(void)
                 ID_DrawCrosshair();
             }
 
+            // [JN] Main status bar drawing function.
+            if (dp_screen_size < 13 || (automapactive && !automap_overlay))
+            {
+                SB_Drawer();
+            }
+            }
+
             break;
         case GS_INTERMISSION:
             IN_Drawer();
@@ -396,6 +418,9 @@ static void D_Display(void)
 
     oldgamestate = wipegamestate = gamestate;
 
+    // [PN] Skip pause pic, messages and menu for clean screenshot.
+    if (!cleanshot_pending)
+    {
     if (paused && !MenuActive && !askforquit)
     {
         if (!netgame)
@@ -416,6 +441,7 @@ static void D_Display(void)
 
     // [JN] Handle player messages on top of game menu.
     DrawMessage();
+    }
 
     // Send out any new accumulation
     NetUpdate();
