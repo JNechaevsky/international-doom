@@ -1406,7 +1406,8 @@ static void R_DrawPSprite (const pspdef_t *const psp)
 static void R_DrawPlayerSprites (void)
 {
     // RestlessRodent -- Do not draw player gun sprite if spectating
-    if (crl_spectating)
+    // [PN] Skip weapon sprites for clean screenshot capture.
+    if (crl_spectating || cleanshot_pending)
         return;
 
     // get light level

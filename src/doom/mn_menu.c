@@ -8181,6 +8181,14 @@ boolean M_Responder (event_t* ev)
         return true;
     }
 
+    // [PN] Clean screenshot.
+    if (key != 0 && (key == key_menu_cleanshot || key == key_menu_cleanshot2))
+    {
+        S_StartSound(NULL, sfx_tink);
+        cleanshot_pending = true;
+        return true;
+    }
+
     // F-Keys
     if (!menuactive && !chatmodeon)
     {

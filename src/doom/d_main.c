@@ -239,6 +239,19 @@ static void ID_DrawMessageCentered (void)
 }
 
 // -----------------------------------------------------------------------------
+// R_CleanShotHook
+//  [PN] Clean screenshot hook: called at the start of the next D_Display
+//  via post_rendering_hook. By that time, the GPU back buffer holds the
+//  previous frame which we capture here.
+// -----------------------------------------------------------------------------
+
+static void R_CleanShotHook (void)
+{
+    V_ScreenShot("DOOM%02i.%s");
+    cleanshot_pending = false;
+}
+
+// -----------------------------------------------------------------------------
 // D_Display
 //  draw current display, possibly wiping it from the previous
 // -----------------------------------------------------------------------------
@@ -299,6 +312,11 @@ static void D_Display (void)
         wipe = false;
     }
 
+    // [JN/PN] Schedule the actual screenshot for the next frame via post_rendering_hook,
+    // so it captures this clean frame from the GPU back buffer.
+    if (cleanshot_pending)
+    post_rendering_hook = R_CleanShotHook;
+
     // do buffered drawing
     switch (gamestate)
     {
@@ -312,7 +330,7 @@ static void D_Display (void)
             P_UpdateSavePreviewCache();
 
             // [JN] Fail-safe: return earlier if post rendering hook is still active.
-            if (post_rendering_hook)
+            if (post_rendering_hook && !cleanshot_pending)
             return;
 
             // see if the border needs to be initially drawn
@@ -323,6 +341,9 @@ static void D_Display (void)
             if (scaledviewwidth != SCREENWIDTH)
             R_DrawViewBorder();  // erase old menu stuff
 
+            // [PN] Skip all HUD overlays for clean screenshot.
+            if (!cleanshot_pending)
+            {
             // [JN] Draw automap on top of player view and view border,
             // and update while playing. This also needed for widgets update.
             if (automapactive)
@@ -383,6 +404,7 @@ static void D_Display (void)
             // [JN] Chat drawer
             if (netgame && chatmodeon)
             CT_Drawer();
+            }
         break;
 
         case GS_INTERMISSION:
@@ -411,6 +433,9 @@ static void D_Display (void)
 
     oldgamestate = wipegamestate = gamestate;
 
+    // [PN] Skip pause pic, messages and menu for clean screenshot.
+    if (!cleanshot_pending)
+    {
     // draw pause pic
     if (paused)
     {
@@ -445,6 +470,8 @@ static void D_Display (void)
 
     // menus go directly to the screen
     M_Drawer ();   // menu is drawn even on top of everything
+    }
+
     NetUpdate ();  // send out any new accumulation
 
     // [JN] Apply post-processing effects and forcefully
