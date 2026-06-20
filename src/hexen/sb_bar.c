@@ -1532,6 +1532,16 @@ void SB_SmoothPaletteFlash (boolean forceChange)
     }
 }
 
+// -----------------------------------------------------------------------------
+// SB_DrawHorns
+//  [JN] Draw H2TOP horn patch.
+// -----------------------------------------------------------------------------
+
+void SB_DrawHorns (void)
+{
+    V_DrawPatch(0, 134, PatchH2TOP);
+}
+
 //==========================================================================
 //
 // DrawCommonBar
@@ -1542,7 +1552,7 @@ void DrawCommonBar(void)
 {
     int healthPos;
 
-    V_DrawPatch(0, 134, PatchH2TOP);
+    SB_DrawHorns();
 
     const boolean interp_chain = vid_uncapped_fps
                               && realleveltime > oldleveltime

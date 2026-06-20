@@ -32,6 +32,7 @@ extern boolean dp_translucent;
 extern boolean V_IsPatchLump(const int lump);
 extern byte *dp_translation;
 extern pixel_t *pal_color;
+extern boolean cleanshot_pending;
 
 extern void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height, int destx, int desty);
 extern void V_DrawPatch(int x, int y, patch_t *patch);

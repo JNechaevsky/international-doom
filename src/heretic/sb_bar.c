@@ -713,6 +713,17 @@ static byte *const SB_NumberColor (int i)
     return NULL;
 }
 
+// -----------------------------------------------------------------------------
+// SB_DrawHorns
+//  [JN] Draw LTFCTOP and RTFCTOP horn patches.
+// -----------------------------------------------------------------------------
+
+void SB_DrawHorns (void)
+{
+    V_DrawPatch(0, 148, PatchLTFCTOP);
+    V_DrawPatch(290, 148, PatchRTFCTOP);
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC DrawCommonBar
@@ -721,8 +732,7 @@ static byte *const SB_NumberColor (int i)
 
 static void DrawCommonBar(void)
 {
-    V_DrawPatch(0, 148, PatchLTFCTOP);
-    V_DrawPatch(290, 148, PatchRTFCTOP);
+    SB_DrawHorns();
 
     const boolean interp_chain = vid_uncapped_fps
                               && realleveltime > oldleveltime

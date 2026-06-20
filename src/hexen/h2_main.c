@@ -973,6 +973,19 @@ void H2_ProcessEvents(void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// R_CleanShotHook
+//  [PN] Clean screenshot hook: called at the start of the next D_Display
+//  via post_rendering_hook. By that time, the GPU back buffer holds the
+//  previous frame which we capture here.
+// -----------------------------------------------------------------------------
+
+static void R_CleanShotHook (void)
+{
+    V_ScreenShot("HEXEN%02i.%s");
+    cleanshot_pending = false;
+}
+
 //==========================================================================
 //
 // DrawAndBlit
@@ -1036,6 +1049,11 @@ static void DrawAndBlit(void)
         do_wipe = false;
     }
 
+    // [JN/PN] Schedule the actual screenshot for the next frame via post_rendering_hook,
+    // so it captures this clean frame from the GPU back buffer.
+    if (cleanshot_pending)
+    post_rendering_hook = R_CleanShotHook;
+
     // Do buffered drawing
     switch (gamestate)
     {
@@ -1050,7 +1068,7 @@ static void DrawAndBlit(void)
             SV_UpdateSavePreviewCache();
 
             // [JN] Fail-safe: return earlier if post rendering hook is still active.
-            if (post_rendering_hook)
+            if (post_rendering_hook && !cleanshot_pending)
             {
                 return;
             }
@@ -1067,6 +1085,9 @@ static void DrawAndBlit(void)
                 R_DrawViewBorder();
             }
 
+            // [PN] Skip all HUD overlays for clean screenshot.
+            if (!cleanshot_pending)
+            {
             if (automapactive)
             {
                 AM_Drawer();
@@ -1085,12 +1106,6 @@ static void DrawAndBlit(void)
             }
 
             CT_Drawer();
-
-            // [JN] Main status bar drawing function.
-            if (dp_screen_size < 13 || (automapactive && !automap_overlay))
-            {
-                SB_Drawer();
-            }
 
             if (widget_enable)
             {
@@ -1136,6 +1151,18 @@ static void DrawAndBlit(void)
                 ID_DrawCrosshair();
             }
 
+            // [JN] Main status bar drawing function.
+            if (dp_screen_size < 13 || (automapactive && !automap_overlay))
+            {
+                SB_Drawer();
+            }
+            }
+
+            // [JN] Blit status bar horns directly while taking a clean screenshot.
+            // Otherwise they won't appear on captured frame.
+            if (cleanshot_pending && dp_screen_size <= 10)
+            SB_DrawHorns();
+
             break;
         case GS_INTERMISSION:
             IN_Drawer();
@@ -1164,6 +1191,9 @@ static void DrawAndBlit(void)
 
     oldgamestate = wipegamestate = gamestate;
 
+    // [PN] Skip pause pic, messages and menu for clean screenshot.
+    if (!cleanshot_pending)
+    {
     if (paused && !MenuActive && !askforquit)
     {
         if (!netgame)
@@ -1182,6 +1212,7 @@ static void DrawAndBlit(void)
 
     // [JN] Draw current message on top of game menu.
     DrawMessage();
+    }
 
     // Send out any new accumulation
     NetUpdate();

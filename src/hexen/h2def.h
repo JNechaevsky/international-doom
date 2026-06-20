@@ -1207,6 +1207,7 @@ void SB_SetClassData(void);
 boolean SB_Responder (const event_t *event);
 void SB_Ticker(void);
 void SB_Drawer(void);
+void SB_DrawHorns(void);
 void Draw_TeleportIcon(void);
 void Draw_SaveIcon(void);
 void Draw_LoadIcon(void);

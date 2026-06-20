@@ -178,6 +178,7 @@ int key_spy           = KEY_F12; int key_spy2           = 0;
 
 int key_pause              = KEY_PAUSE;  int key_pause2              = 0;
 int key_menu_screenshot    = KEY_PRTSCR; int key_menu_screenshot2    = 0;
+int key_menu_cleanshot     = 0;          int key_menu_cleanshot2     = 0;
 int key_message_refresh    = KEY_ENTER;  int key_message_refresh2    = 0;
 int key_message_refresh_hr = 0;          int key_message_refresh_hr2 = 0; // [JN] Heretic using ENTER for afrtifacts activation.
 int key_demo_quit          = 'q';        int key_demo_quit2          = 0;
@@ -367,6 +368,7 @@ void M_BindControls (void)
 
     M_BindIntVariableKeybind("key_pause",           &key_pause,           "key_pause2",           &key_pause2);
     M_BindIntVariableKeybind("key_menu_screenshot", &key_menu_screenshot, "key_menu_screenshot2", &key_menu_screenshot2);
+    M_BindIntVariableKeybind("key_menu_cleanshot",  &key_menu_cleanshot,  "key_menu_cleanshot2",  &key_menu_cleanshot2);
 #ifdef _WIN32
     // [JN] Pressing PrintScreen on Windows 11 opens the Snipping Tool.
     // Re-register PrintScreen key pressing for port needs to avoid this.

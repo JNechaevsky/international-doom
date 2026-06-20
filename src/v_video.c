@@ -56,6 +56,8 @@ static pixel_t *dest_screen = NULL;
 // [crispy] resolution-agnostic patch drawing
 static fixed_t dx, dxi, dy, dyi;
 
+// [PN] Clean screenshot schedule flag.
+boolean cleanshot_pending  = false;
 
 // -----------------------------------------------------------------------------
 // V_CopyRect
