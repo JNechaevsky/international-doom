@@ -390,6 +390,11 @@ static void D_Display(void)
             }
             }
 
+            // [JN] Blit status bar horns directly while taking a clean screenshot.
+            // Otherwise they won't appear on captured frame.
+            if (cleanshot_pending && dp_screen_size <= 10)
+            SB_DrawHorns();
+
             break;
         case GS_INTERMISSION:
             IN_Drawer();

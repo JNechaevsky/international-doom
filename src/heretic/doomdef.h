@@ -944,6 +944,7 @@ extern int playerkeys;
 extern void SB_Init(void);
 extern void SB_Ticker(void);
 extern void SB_Drawer(void);
+extern void SB_DrawHorns(void);
 extern boolean SB_Responder(const event_t *const event);
 
 //-----------------
