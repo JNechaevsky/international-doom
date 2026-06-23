@@ -208,7 +208,7 @@ static void ID_DrawMessage (void)
 }
 
 // -----------------------------------------------------------------------------
-// ID_DrawMessage
+// ID_DrawMessageCentered
 // [PN/JN] Draws message on the screen.
 // -----------------------------------------------------------------------------
 
@@ -259,18 +259,17 @@ static void R_CleanShotHook (void)
 
 static void D_Display (void)
 {
-    int      nowtime;
-    int      tics;
-    int      wipestart;
-    int      y;
-    boolean  done;
-    boolean  wipe;
-    static   gamestate_t oldgamestate = -1;
-
     if (nodrawers)
     {
         return;  // for comparative timing / profiling
     }
+
+    int      nowtime;
+    int      tics;
+    int      wipestart;
+    boolean  done;
+    boolean  wipe;
+    static   gamestate_t oldgamestate = -1;
 
     // [crispy] post-rendering function pointer to apply config changes
     // that affect rendering and that are better applied after the current
@@ -345,135 +344,130 @@ static void D_Display (void)
             // [PN] Skip all HUD overlays for clean screenshot.
             if (!cleanshot_pending)
             {
-            // [JN] Draw automap on top of player view and view border,
-            // and update while playing. This also needed for widgets update.
-            if (automapactive)
-            AM_Drawer();
+                // [JN] Draw automap on top of player view and view border,
+                // and update while playing. This also needed for widgets update.
+                if (automapactive)
+                AM_Drawer();
 
-            // [PN] Optionally draw minimap.
-            if (!automapactive && automap_mini)
-            AM_MiniDrawer();
+                // [PN] Optionally draw minimap.
+                if (!automapactive && automap_mini)
+                AM_MiniDrawer();
 
-            // [JN] Allow to draw level name separately from automap.
-            if (automapactive || (widget_levelname && widget_enable && dp_screen_size < 15))
-            AM_LevelNameDrawer();
+                // [JN] Allow to draw level name separately from automap.
+                if (automapactive || (widget_levelname && widget_enable && dp_screen_size < 15))
+                AM_LevelNameDrawer();
 
-            // [JN] Do not draw any widgets if not in game level.
-            if (widget_enable)
-            {
-                // [JN] Left widgets are available while active game level.
-                if (dp_screen_size < 15)
-                ID_LeftWidgets();
-
-                // [crispy] demo timer widget
-                if (demoplayback && (demo_timer == 1 || demo_timer == 3))
+                // [JN] Do not draw any widgets if not in game level.
+                if (widget_enable)
                 {
-                    ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
+                    // [JN] Left widgets are available while active game level.
+                    if (dp_screen_size < 15)
+                    ID_LeftWidgets();
+
+                    // [crispy] demo progress bar
+                    if (demoplayback && demo_bar)
+                    ID_DemoBar();
+
+                    // [crispy] demo timer widget
+                    if (demoplayback && (demo_timer == 1 || demo_timer == 3))
+                    {
+                        ID_DemoTimer(demo_timerdir ? (deftotaldemotics - defdemotics) : defdemotics);
+                    }
+                    else if (demorecording && (demo_timer == 2 || demo_timer == 3))
+                    {
+                        ID_DemoTimer(leveltime);
+                    }
+
+                    // [JN] Target's health widget.
+                    // Actual health values are gathered in G_Ticker.
+                    if (widget_health)
+                    ID_DrawTargetsHealth();
+
+                    // [PN] Player speed widget.
+                    if (widget_speed)
+                    ID_DrawPlayerSpeed();
                 }
-                else if (demorecording && (demo_timer == 2 || demo_timer == 3))
+
+                // [JN] Draw crosshair.
+                if (xhair_draw && !automapactive)
+                ID_DrawCrosshair();
+
+                // [JN] Main status bar drawing function.
+                if (dp_screen_size < 15 || (automapactive && !automap_overlay))
                 {
-                    ID_DemoTimer(leveltime);
+                    // [JN] Only forcefully update/redraw on...
+                    const boolean st_forceredraw = 
+                                     (oldgametic < gametic  // Every game tic
+                                  ||  dp_screen_size > 10   // Crispy HUD (no solid status bar background)
+                                  ||  setsizeneeded         // Screen size changing
+                                  || (menuactive && dp_menu_shading)); // Menu shading while non-capped game mode
+
+                    ST_Drawer(st_forceredraw);
                 }
 
-                // [JN] Target's health widget.
-                // Actual health values are gathered in G_Ticker.
-                if (widget_health)
-                ID_DrawTargetsHealth();
-            
-                // [PN] Player speed widget.
-                if (widget_speed)
-                ID_DrawPlayerSpeed();
+                // [JN] Chat drawer
+                if (netgame && chatmodeon)
+                CT_Drawer();
             }
-
-            // [JN] Draw crosshair.
-            if (xhair_draw && !automapactive)
-            ID_DrawCrosshair();
-
-            // [JN] Main status bar drawing function.
-            if (dp_screen_size < 15 || (automapactive && !automap_overlay))
-            {
-                // [JN] Only forcefully update/redraw on...
-                const boolean st_forceredraw = 
-                                 (oldgametic < gametic  // Every game tic
-                              ||  dp_screen_size > 10   // Crispy HUD (no solid status bar background)
-                              ||  setsizeneeded         // Screen size changing
-                              || (menuactive && dp_menu_shading)); // Menu shading while non-capped game mode
-            
-                ST_Drawer(st_forceredraw);
-            }
-
-            // [JN] Chat drawer
-            if (netgame && chatmodeon)
-            CT_Drawer();
-            }
-        break;
+            break;
 
         case GS_INTERMISSION:
-        WI_Drawer();
-        break;
+            WI_Drawer();
+            break;
 
         case GS_FINALE:
         case GS_THEEND:
-        F_Drawer();
-        break;
+            F_Drawer();
+            break;
 
         case GS_DEMOSCREEN:
-        D_PageDrawer();
-        break;
+            D_PageDrawer();
+            break;
     }
 
     // clean up border stuff
     if (gamestate != oldgamestate && gamestate != GS_LEVEL)
-	I_SetPalette (0);
+    I_SetPalette (0);
 
+    // Box showing current mouse speed
     if (testcontrols)
-    {
-        // Box showing current mouse speed
-        V_DrawMouseSpeedBox(testcontrols_mousespeed);
-    }
+    V_DrawMouseSpeedBox(testcontrols_mousespeed);
 
     oldgamestate = wipegamestate = gamestate;
 
     // [PN] Skip pause pic, messages and menu for clean screenshot.
     if (!cleanshot_pending)
     {
-    // draw pause pic
-    if (paused)
-    {
-	if (automapactive && !automap_overlay)
-	    y = 4;
-	else
-	    y = (viewwindowy / vid_resolution)+4;
-	V_DrawShadowedPatchOptional((viewwindowx / vid_resolution) + ((scaledviewwidth / vid_resolution) - 68) / 2 - WIDESCREENDELTA, y, 0,
-                          W_CacheLumpName (DEH_String("M_PAUSE"), PU_CACHE));
-    }
-
-    // [JN] Draw right widgets in any states except finale text screens.
-    if (widget_enable)
-    {
-        if (gamestate != GS_FINALE)
+        // draw pause pic
+        if (paused)
         {
+            const int x = (viewwindowx / vid_resolution) +
+                          ((scaledviewwidth / vid_resolution) - 68) / 2 - WIDESCREENDELTA;
+            const int y = (automapactive && !automap_overlay) ? 4 :
+                               (viewwindowy / vid_resolution) + 4;
+
+            V_DrawShadowedPatchOptional(x, y, 0, W_CacheLumpName(DEH_String("M_PAUSE"), PU_CACHE));
+        }
+
+        // [JN] Draw right widgets in any states except finale text screens.
+        if (widget_enable)
+        {
+            if (gamestate != GS_FINALE)
             ID_RightWidgets();
         }
 
-        // [crispy] Demo Timer widget
-        if (demoplayback && demo_bar)
-        {
-            ID_DemoBar();
-        }
+        // Handle player messages
+        ID_DrawMessage();
+
+        // [JN] Handle centered player messages.
+        ID_DrawMessageCentered();
+
+        // menu is drawn even on top of everything
+        M_Drawer();
     }
 
-    // Handle player messages
-    ID_DrawMessage();
-
-    // [JN] Handle centered player messages.
-    ID_DrawMessageCentered();
-
-    // menus go directly to the screen
-    M_Drawer ();   // menu is drawn even on top of everything
-    }
-
-    NetUpdate ();  // send out any new accumulation
+    // send out any new accumulation
+    NetUpdate();
 
     // [JN] Apply post-processing effects and forcefully
     // update status bar if any effect is active.
@@ -483,7 +477,7 @@ static void D_Display (void)
                     // While active automap
                     (automapactive && !automap_overlay) ||
                     // While invlulenability effect
-                     players[displayplayer].fixedcolormap); 
+                     players[displayplayer].fixedcolormap);
     if (V_PProc_EffectsActive())
         st_fullupdate = true;
 
@@ -522,7 +516,7 @@ static void D_Display (void)
         done = wipe_ScreenWipe(tics);
         M_Drawer();        // menu is drawn even on top of wipes
         I_FinishUpdate();  // page flip or blit buffer
-        } while (!done);
+    } while (!done);
 }
 
 //
