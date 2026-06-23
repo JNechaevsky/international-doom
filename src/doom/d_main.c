@@ -248,6 +248,7 @@ static void ID_DrawMessageCentered (void)
 static void R_CleanShotHook (void)
 {
     V_ScreenShot("DOOM%02i.%s");
+    R_SetViewSize(dp_screen_size, dp_detail_level);
     cleanshot_pending = false;
 }
 

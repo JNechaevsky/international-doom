@@ -8184,6 +8184,7 @@ boolean M_Responder (event_t* ev)
     // [PN] Clean screenshot.
     if (key != 0 && (key == key_menu_cleanshot || key == key_menu_cleanshot2))
     {
+        R_SetViewSize(15, dp_detail_level);
         S_StartSound(NULL, sfx_tink);
         cleanshot_pending = true;
         return true;

@@ -983,6 +983,7 @@ void H2_ProcessEvents(void)
 static void R_CleanShotHook (void)
 {
     V_ScreenShot("HEXEN%02i.%s");
+    R_SetViewSize(dp_screen_size, dp_detail_level);
     cleanshot_pending = false;
 }
 
@@ -1157,11 +1158,6 @@ static void DrawAndBlit(void)
                 SB_Drawer();
             }
             }
-
-            // [JN] Blit status bar horns directly while taking a clean screenshot.
-            // Otherwise they won't appear on captured frame.
-            if (cleanshot_pending && dp_screen_size <= 10)
-            SB_DrawHorns();
 
             break;
         case GS_INTERMISSION:
