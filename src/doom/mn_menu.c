@@ -4353,7 +4353,8 @@ static void M_Draw_ID_Gameplay_1 (void)
     // Fuzz effect
     sprintf(str, vis_improved_fuzz == 1 ? "IMPROVED" :
                  vis_improved_fuzz == 2 ? "TRANSLUCENT" :
-                 vis_improved_fuzz == 3 ? "GRAYSCALE" : "ORIGINAL");
+                 vis_improved_fuzz == 3 ? "GRAYSCALED" :
+                 vis_improved_fuzz == 4 ? "UNSCALED" : "ORIGINAL");
     M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
                         vis_improved_fuzz ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_improved_fuzz ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
@@ -4457,7 +4458,7 @@ static void M_ID_SmoothPalette (int choice)
 
 static void M_ID_ImprovedFuzz (int choice)
 {
-    vis_improved_fuzz = M_INT_Slider(vis_improved_fuzz, 0, 3, choice, false);
+    vis_improved_fuzz = M_INT_Slider(vis_improved_fuzz, 0, 4, choice, false);
 }
 
 static void M_ID_ColoredBlood (int choice)

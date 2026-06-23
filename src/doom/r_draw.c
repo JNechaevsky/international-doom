@@ -335,7 +335,8 @@ void R_DrawFuzzColumn(void)
         (vis_improved_fuzz == 1) && (realleveltime > oldleveltime);
 
     // --- Blocky mode for hi-res ---
-    if (block > 1)
+    // [JN] vis_improved_fuzz == 4 is "unscaled", skip this block
+    if (block > 1 && vis_improved_fuzz < 4)
     {
         // Draw only from leading column of each block
         if (dc_x % block)
@@ -488,7 +489,8 @@ void R_DrawFuzzColumnLow(void)
         (vis_improved_fuzz == 1) && (realleveltime > oldleveltime);
 
     // --- Blocky mode for hi-res: draw rectangles aligned to the grid ---
-    if (block > 1)
+    // [JN] vis_improved_fuzz == 4 is "unscaled", skip this block
+    if (block > 1 && vis_improved_fuzz < 4)
     {
         // Choose block anchor among the two physical columns (x or x+1)
         int anchorShift = -1;
