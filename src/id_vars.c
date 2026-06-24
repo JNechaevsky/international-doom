@@ -38,6 +38,13 @@ char *launcher_default_iwad = "";
 char *launcher_command_line = "";
 
 //
+// Screenshots
+//
+
+char *screenshots_format = "png";  // "png" or "jpg"
+int screenshots_jpg_quality = 90;
+
+//
 // Video options
 //
 
@@ -262,6 +269,13 @@ void ID_BindVariables (GameMission_t mission)
     M_BindIntVariable("launcher_width_y",               &launcher_width_y);
     M_BindStringVariable("launcher_default_iwad",       &launcher_default_iwad);
     M_BindStringVariable("launcher_command_line",       &launcher_command_line);
+
+    //
+    // Screenshots
+    //
+
+    M_BindStringVariable("screenshots_format",    &screenshots_format);
+    M_BindIntVariable("screenshots_jpg_quality",  &screenshots_jpg_quality);
 
     //
     // Video options

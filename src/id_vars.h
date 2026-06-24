@@ -36,6 +36,13 @@ extern int launcher_width_y;
 extern char *launcher_default_iwad;
 extern char *launcher_command_line;
 
+//
+// Screenshots
+//
+
+extern char *screenshots_format;
+extern int screenshots_jpg_quality;
+
 // System and video
 extern int vid_truecolor;
 extern int vid_resolution;

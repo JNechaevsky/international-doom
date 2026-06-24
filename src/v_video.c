@@ -1932,7 +1932,7 @@ static void WriteJPEGfile(const char *filename)
 
     if (handle != NULL)
     {
-        // comp = 4 (RGBA), quality = 90.
+        // comp = 4 (RGBA), quality = screenshots_jpeg_quality (1 ... 100).
         // Alpha is silently discarded by the JPEG encoder.
         stbi_write_jpg_to_func(stbi_write_fwrite_callback,
                                handle,
@@ -1940,7 +1940,7 @@ static void WriteJPEGfile(const char *filename)
                                height,
                                4,
                                data,
-                               90);
+                               screenshots_jpg_quality);
         fclose(handle);
     }
 
