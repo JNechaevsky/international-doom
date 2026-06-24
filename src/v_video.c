@@ -1870,13 +1870,17 @@ static void WritePNGfile (const char *filename)
                 rgb_data[dst + 2] = data[src + 2];
             }
 
-            pPNG_data = tdefl_write_image_to_png_file_in_memory(rgb_data, width, height, 3, &png_data_size);
+            // [PN] Using the _ex version to explicitly set compression level 
+            // and vertical flip (MZ_FALSE = do not flip).
+            pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(
+                rgb_data, width, height, 3, &png_data_size, screenshots_png_compression, MZ_FALSE);
         }
 
         // [PN] Fallback to RGBA if RGB conversion buffer cannot be allocated.
         if (!pPNG_data)
         {
-            pPNG_data = tdefl_write_image_to_png_file_in_memory(data, width, height, 4, &png_data_size);
+            pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(
+                data, width, height, 4, &png_data_size, screenshots_png_compression, MZ_FALSE);
         }
 
         if (pPNG_data)

@@ -190,6 +190,7 @@ static default_t	doom_defaults_list[] =
 
     CONFIG_VARIABLE_COMMENT("Screenshots (\"png\" or \"jpg\")"),
     CONFIG_VARIABLE_STRING(screenshots_format),
+    CONFIG_VARIABLE_INT(screenshots_png_compression),
     CONFIG_VARIABLE_INT(screenshots_jpg_quality),
     CONFIG_VARIABLE_COMMENT(""),
 

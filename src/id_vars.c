@@ -41,8 +41,9 @@ char *launcher_command_line = "";
 // Screenshots
 //
 
-char *screenshots_format = "png";  // "png" or "jpg"
-int screenshots_jpg_quality = 90;
+char *screenshots_format = "png";     // "png" or "jpg"
+int screenshots_png_compression = 6;  // 0 ... 10
+int screenshots_jpg_quality = 90;     // 1 ... 100
 
 //
 // Video options
@@ -274,8 +275,9 @@ void ID_BindVariables (GameMission_t mission)
     // Screenshots
     //
 
-    M_BindStringVariable("screenshots_format",    &screenshots_format);
-    M_BindIntVariable("screenshots_jpg_quality",  &screenshots_jpg_quality);
+    M_BindStringVariable("screenshots_format",        &screenshots_format);
+    M_BindIntVariable("screenshots_png_compression",  &screenshots_png_compression);
+    M_BindIntVariable("screenshots_jpg_quality",      &screenshots_jpg_quality);
 
     //
     // Video options

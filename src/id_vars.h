@@ -41,6 +41,7 @@ extern char *launcher_command_line;
 //
 
 extern char *screenshots_format;
+extern int screenshots_png_compression;
 extern int screenshots_jpg_quality;
 
 // System and video
