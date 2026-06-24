@@ -69,6 +69,10 @@ char *screenshotdir;
 
 char *ShotPathConfig = "";
 
+// [PN] Screenshots formap (PNG or JPG)
+
+char *screenshots_format = "png";
+
 typedef enum 
 {
     DEFAULT_INT,
@@ -182,6 +186,14 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_INT(launcher_width_y),
     CONFIG_VARIABLE_STRING(launcher_default_iwad),
     CONFIG_VARIABLE_STRING(launcher_command_line),
+    CONFIG_VARIABLE_COMMENT(""),
+
+    //
+    // Screenshots
+    //
+
+    CONFIG_VARIABLE_COMMENT("Screenshots (\"png\" or \"jpg\")"),
+    CONFIG_VARIABLE_STRING(screenshots_format),
     CONFIG_VARIABLE_COMMENT(""),
 
     //

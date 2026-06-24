@@ -549,6 +549,7 @@ static void D_BindVariables(void)
     
     M_BindStringVariable("savegames_path",      &SavePathConfig);
     M_BindStringVariable("screenshots_path",    &ShotPathConfig);
+    M_BindStringVariable("screenshots_format",  &screenshots_format);
 
     // Multiplayer chat macros
 

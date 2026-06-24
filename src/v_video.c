@@ -25,6 +25,9 @@
 #define MINIZ_NO_ZLIB_APIS
 #include "miniz.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #include "doomtype.h"
 #include "i_input.h"
 #include "i_swap.h"
@@ -1889,6 +1892,58 @@ static void WritePNGfile (const char *filename)
     free(data);
 }
 
+// -----------------------------------------------------------------------------
+// stbi_write_fwrite_callback
+//  [PN] Callback for stb_image_write: writes into an already opened FILE*.
+//  This lets us keep using our own M_fopen / screenshotdir file layer
+//  instead of stb's internal stdio.
+// -----------------------------------------------------------------------------
+
+static void stbi_write_fwrite_callback(void *context, void *data, int size)
+{
+    FILE *f = (FILE *)context;
+
+    if (f != NULL && data != NULL && size > 0)
+    {
+        fwrite(data, 1, (size_t)size, f);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// WriteJPEGfile
+//  [PN] Saves a JPEG screenshot using stb_image_write.
+//  JPEG ignores the alpha channel, so we can pass RGBA (comp=4) directly
+//  from I_RenderReadPixels without converting to RGB — saves a malloc
+//  and a loop over all pixels.
+// -----------------------------------------------------------------------------
+
+static void WriteJPEGfile(const char *filename)
+{
+    byte *data;
+    int   width, height;
+    FILE *handle;
+
+    I_RenderReadPixels(&data, &width, &height);
+
+    handle = M_fopen(filename, "wb");
+
+    if (handle != NULL)
+    {
+        // comp = 4 (RGBA), quality = 90.
+        // Alpha is silently discarded by the JPEG encoder.
+        stbi_write_jpg_to_func(stbi_write_fwrite_callback,
+                               handle,
+                               width,
+                               height,
+                               4,
+                               data,
+                               90);
+        fclose(handle);
+    }
+
+    free(data);
+}
+
 //
 // V_ScreenShot
 //
@@ -1898,17 +1953,34 @@ void V_ScreenShot(const char *format)
     int i;
     char lbmname[16]; // haleyjd 20110213: BUG FIX - 12 is too small!
     char *file;
+    const char *ext;
+    boolean     use_jpeg;
     
+    // [PN] Pick the extension from the cvar, fall back to PNG on garbage.
+    if (screenshots_format != NULL && (!strcasecmp(screenshots_format, "jpg")))
+    {
+        ext      = "jpg";
+        use_jpeg = true;
+    }
+    else
+    {
+        ext      = "png";
+        use_jpeg = false;
+    }
+
     // find a file name to save it to
 
     for (i=0; i<=9999; i++)
     {
-        M_snprintf(lbmname, sizeof(lbmname), format, i, "png");
+        M_snprintf(lbmname, sizeof(lbmname), format, i, ext);
         // [JN] Construct full path to screenshot file.
         file = M_StringJoin(screenshotdir, lbmname, NULL);
 
         if (!M_FileExists(file))
         {
+            if (use_jpeg)
+            WriteJPEGfile(file);
+            else
             WritePNGfile(file);
             free(file);
             return;

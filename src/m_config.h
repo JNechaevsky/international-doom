@@ -46,5 +46,6 @@ extern const char *configdir;
 extern char *SavePathConfig;
 extern char *screenshotdir;
 extern char *ShotPathConfig;
+extern char *screenshots_format;
 
 #endif
