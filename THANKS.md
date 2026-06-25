@@ -63,6 +63,9 @@ Project's author would like to thank everyone for code, technical, informative, 
 **[DOSBox](http://www.dosbox.com/) emulator**
 * The DOSBox Team, SDL2 patch by NY00123
 
+**[stb_image_write](https://github.com/nothings/stb/blob/master/stb_image_write.h) library**
+* Sean Barrett
+
 **And also:**
 
 [LeD] Jake Crusher, Alex, Artyom Andreyev (Allard), autreart, CacoKnight, CthulhuInACan, cubebert, Danfun64, Daniil Petrov, David Carlier, Dmitry D. Chernov aka Black Doomer, Dwars, Gibbon, hfc2x, Invisible Warrior, Kenon, MAJOR93MOREAU, Manuel Alfayate Corchete, Manul12, Maxim Pyanov (MaxLeon), Meerschweinmann, Michael Day, Michael Francis, Michael Pujos, mtvile666, mykola-ambar, Nemrtvi, NightFright, NormanSeven, Noseey, Oleg Sudarikov (Kai), Oleg Zik, Orfeus94, Paul Haeberli, Pavel Zegelman (Corak), Peter Porai-Koshits, plums, PVS, RICALHO MILOS, Rick Commandeur (Redneckerz), Roman Fomin, Sabhotep, Sarah Mancuso (esselfortium), SiFi270, Sergey Ivanov (Districh), Shadowman, Scypek2, Tamás Mélykuti (BlooD2oo1), taufan99, Terry Hearst, theleo_ua, Uni, VL2M STUDIO, VlaDMiR, Wells Lu, Y-Dr. Now, Zodomaniac
