@@ -5003,29 +5003,18 @@ static void M_Draw_ID_Misc_2 (void)
     // Screenshot format
     sprintf(str, !strcmp(screenshots_format, "png") ? "PNG" : "JPG");
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
-                        cr[CR_GREEN_HX],
-                            cr[CR_GREEN_HX_BRIGHT],
-                                LINE_ALPHA(5));
+                        cr[CR_GREEN_HX], cr[CR_GREEN_HX_BRIGHT], LINE_ALPHA(5));
 
     // Dynamic string: compression level for PNG, quality for JPG
-    if (!strcmp(screenshots_format, "png"))
-    {
-        MN_DrTextAGlow("COMPRESSION LEVEL", ID_MENU_LEFTOFFSET_BIG, 80,
-                            cr[CR_MENU_DARK2], cr[CR_MENU_BRIGHT2], LINE_ALPHA(6));
+    const char *const label = !strcmp(screenshots_format, "png") ? "COMPRESSION LEVEL" : "QUALITY LEVEL";
+    int value = !strcmp(screenshots_format, "png") ? screenshots_png_compression : screenshots_jpg_quality;
 
-        M_snprintf(str, 4, "%d", screenshots_png_compression);
-        MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
-                            cr[CR_GREEN_HX], cr[CR_GREEN_HX_BRIGHT], LINE_ALPHA(6));
-    }
-    else
-    {
-        MN_DrTextAGlow("QUALITY LEVEL", ID_MENU_LEFTOFFSET_BIG, 80,
-                            cr[CR_MENU_DARK2], cr[CR_MENU_BRIGHT2], LINE_ALPHA(6));
+    MN_DrTextAGlow(label, ID_MENU_LEFTOFFSET_BIG, 80,
+                        cr[CR_MENU_DARK2], cr[CR_MENU_BRIGHT2], LINE_ALPHA(6));
 
-        M_snprintf(str, 4, "%d", screenshots_jpg_quality);
-        MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
-                            cr[CR_GREEN_HX], cr[CR_GREEN_HX_BRIGHT], LINE_ALPHA(6));
-    }
+    M_snprintf(str, 4, "%d", value);
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
+                        cr[CR_GREEN_HX], cr[CR_GREEN_HX_BRIGHT], LINE_ALPHA(6));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 150, 13, "2/2");
@@ -5059,14 +5048,7 @@ static void M_ID_Misc_RewindTimeout (int choice)
 
 static void M_ID_Misc_ShotFormat (int choice)
 {
-    if (!strcmp(screenshots_format, "png"))
-    {
-        screenshots_format = "jpg";
-    }
-    else
-    {
-        screenshots_format = "png";
-    }
+    screenshots_format = strcmp(screenshots_format, "png") ? "png" : "jpg";
 }
 
 static void M_ID_Misc_ShotSetup (int choice)

@@ -5327,24 +5327,15 @@ static void M_Draw_ID_Misc_2 (void)
                                 LINE_ALPHA(5));
 
     // Dynamic string: compression level for PNG, quality for JPG
-    if (!strcmp(screenshots_format, "png"))
-    {
-        M_WriteTextGlow(ID_MENU_LEFTOFFSET_BIG, 72, "COMPRESSION LEVEL",
-                            NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(6));
+    const char *const label = !strcmp(screenshots_format, "png") ? "COMPRESSION LEVEL" : "QUALITY LEVEL";
+    int value = !strcmp(screenshots_format, "png") ? screenshots_png_compression : screenshots_jpg_quality;
 
-        M_snprintf(str, 4, "%d", screenshots_png_compression);
-        M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
-                            cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(6));
-    }
-    else
-    {
-        M_WriteTextGlow(ID_MENU_LEFTOFFSET_BIG, 72, "QUALITY LEVEL",
-                            NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(6));
+    M_WriteTextGlow(ID_MENU_LEFTOFFSET_BIG, 72, label,
+                        NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(6));
 
-        M_snprintf(str, 4, "%d", screenshots_jpg_quality);
-        M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
-                            cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(6));
-    }
+    M_snprintf(str, 4, "%d", value);
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                        cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(6));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "2/2");
@@ -5378,14 +5369,7 @@ static void M_ID_Misc_RewindTimeout (int choice)
 
 static void M_ID_Misc_ShotFormat (int choice)
 {
-    if (!strcmp(screenshots_format, "png"))
-    {
-        screenshots_format = "jpg";
-    }
-    else
-    {
-        screenshots_format = "png";
-    }
+    screenshots_format = strcmp(screenshots_format, "png") ? "png" : "jpg";
 }
 
 static void M_ID_Misc_ShotSetup (int choice)
