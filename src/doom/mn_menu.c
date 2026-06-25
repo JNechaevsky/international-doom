@@ -5320,7 +5320,7 @@ static void M_Draw_ID_Misc_2 (void)
     M_WriteTextCentered(54, "SCREENSHOTS", cr[CR_YELLOW]);
 
     // Screenshot format
-    sprintf(str, !strcmp(screenshots_format, "png") ? "PNG" : "JPG");
+    sprintf(str, !strcmp(screenshots_format, "png") ? "PNG" : "JPEG");
     M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
                         cr[CR_GREEN],
                             cr[CR_GREEN_BRIGHT],
@@ -5336,6 +5336,28 @@ static void M_Draw_ID_Misc_2 (void)
     M_snprintf(str, 4, "%d", value);
     M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
                         cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(6));
+
+    // Dynamic hints for screenshot settings.
+    if (itemOn == 5)
+    {
+        M_WriteTextCentered(90, "\"PNG\" PROVIDES LOSSLESS QUALITY,", cr[CR_LIGHTGRAY_DARK]);
+        M_WriteTextCentered(99, "\"JPEG\" OFFERS FASTER SAVING",      cr[CR_LIGHTGRAY_DARK]);
+    }
+    if (itemOn == 6)
+    {
+        if (!strcmp(screenshots_format, "png"))
+        {
+            M_WriteTextCentered(90,  "HIGHER = SLOWER SAVE, SMALLER FILE", cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(99,  "LOWER = FASTER SAVE, LARGER FILE",   cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(108, "DEFAULT LEVEL IS 6",                 cr[CR_LIGHTGRAY_DARK]);
+        }
+        else
+        {
+            M_WriteTextCentered(90,  "HIGHER = BETTER QUALITY, LARGER FILE", cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(99,  "LOWER = WORSE QUALITY, SMALLER FILE",  cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(108, "DEFAULT LEVEL IS 90",                  cr[CR_LIGHTGRAY_DARK]);
+        }
+    }
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "2/2");
