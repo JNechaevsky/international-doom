@@ -1870,8 +1870,8 @@ static void WritePNGfile (const char *filename)
                 rgb_data[dst + 2] = data[src + 2];
             }
 
-            // [PN] Using the _ex version to explicitly set compression level 
-            // and vertical flip (MZ_FALSE = do not flip).
+            // [PN] Using the _ex version to explicitly set compression level
+            // (screenshots_png_compression) and vertical flip (MZ_FALSE = do not flip).
             pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(
                 rgb_data, width, height, 3, &png_data_size, screenshots_png_compression, MZ_FALSE);
         }
@@ -1995,7 +1995,7 @@ void V_ScreenShot(const char *format)
         free(file);
     }
 
-    I_Error ("V_ScreenShot: Couldn't create a PNG");
+    I_Error ("V_ScreenShot: Couldn't create a screenshot.");
 }
 
 #define MOUSE_SPEED_BOX_WIDTH  120

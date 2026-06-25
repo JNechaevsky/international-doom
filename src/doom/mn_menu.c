@@ -872,6 +872,8 @@ static void M_ID_Misc_RewindEnable (int choice);
 static void M_ID_Misc_RewindInterwal (int choice);
 static void M_ID_Misc_RewindDepth (int choice);
 static void M_ID_Misc_RewindTimeout (int choice);
+static void M_ID_Misc_ShotFormat (int choice);
+static void M_ID_Misc_ShotSetup (int choice);
 
 static void M_ScrollMisc (int choice);
 
@@ -5249,8 +5251,8 @@ static menuitem_t ID_Menu_Misc_2[]=
     { M_MUL1, "REWIND DEPTH (KEY FRAMES)",   M_ID_Misc_RewindDepth,    'r' },
     { M_MUL1, "FULL KEY FRAME TIMEOUT (MS)", M_ID_Misc_RewindTimeout,  'f' },
     { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
-    { M_SKIP, "", 0, '\0' },
+    { M_MUL1, "SCREENSHOT FORMAT",           M_ID_Misc_ShotFormat,     's' },
+    { M_MUL1, "", /* Dynamic string */       M_ID_Misc_ShotSetup,      's' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
@@ -5315,6 +5317,35 @@ static void M_Draw_ID_Misc_2 (void)
                             rewind_timeout == 25 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(3));
 
+    M_WriteTextCentered(54, "SCREENSHOTS", cr[CR_YELLOW]);
+
+    // Screenshot format
+    sprintf(str, !strcmp(screenshots_format, "png") ? "PNG" : "JPG");
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
+                        cr[CR_GREEN],
+                            cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(5));
+
+    // Dynamic string: compression level for PNG, quality for JPG
+    if (!strcmp(screenshots_format, "png"))
+    {
+        M_WriteTextGlow(ID_MENU_LEFTOFFSET_BIG, 72, "COMPRESSION LEVEL",
+                            NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(6));
+
+        M_snprintf(str, 4, "%d", screenshots_png_compression);
+        M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                            cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(6));
+    }
+    else
+    {
+        M_WriteTextGlow(ID_MENU_LEFTOFFSET_BIG, 72, "QUALITY LEVEL",
+                            NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(6));
+
+        M_snprintf(str, 4, "%d", screenshots_jpg_quality);
+        M_WriteTextGlow(M_ItemRightAlign(str), 72, str,
+                            cr[CR_GREEN], cr[CR_GREEN_BRIGHT], LINE_ALPHA(6));
+    }
+
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "2/2");
 }
@@ -5343,6 +5374,30 @@ static void M_ID_Misc_RewindDepth (int choice)
 static void M_ID_Misc_RewindTimeout (int choice)
 {
     rewind_timeout = M_INT_Slider(rewind_timeout, 0, 25, choice, false);
+}
+
+static void M_ID_Misc_ShotFormat (int choice)
+{
+    if (!strcmp(screenshots_format, "png"))
+    {
+        screenshots_format = "jpg";
+    }
+    else
+    {
+        screenshots_format = "png";
+    }
+}
+
+static void M_ID_Misc_ShotSetup (int choice)
+{
+    if (!strcmp(screenshots_format, "png"))
+    {
+        screenshots_png_compression = M_INT_Slider(screenshots_png_compression, 0, 10, choice, false);
+    }
+    else
+    {
+        screenshots_jpg_quality = M_INT_Slider(screenshots_jpg_quality, 1, 100, choice, false);
+    }
 }
 
 static void M_ScrollMisc (int choice)
