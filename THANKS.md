@@ -24,9 +24,13 @@ Project's author would like to thank everyone for code, technical, informative, 
 **[Woof!](https://github.com/fabiangreffrath/woof)**
 * Fabian Greffrath
 * Roman Fomin
+* elf-alchemist
 
 **[Nugget Doom](https://github.com/MrAlaux/Nugget-Doom)**
 * Alaux
+
+**[Nyan Doom](https://github.com/andrikpowell/nyan-doom)**
+* Andrik Powell (Arsinikk)
 
 **[Russian Doom](https://github.com/Russian-Doom/)**
 * Leonid Murin (Dasperal)
@@ -62,6 +66,20 @@ Project's author would like to thank everyone for code, technical, informative, 
 
 **[DOSBox](http://www.dosbox.com/) emulator**
 * The DOSBox Team, SDL2 patch by NY00123
+
+**[libspng](https://github.com/randy408/libspng) library**
+* Randy
+
+**[miniz](https://github.com/richgel999/miniz) library**
+* RAD Game Tools and Valve Software
+* Rich Geldreich and Tenacious Software LLC
+
+**netlib library**
+* Sam Lantinga
+* Simeon Maxein
+
+**[Nuked-OPL3-fast](https://github.com/tgies/Nuked-OPL3-fast)**
+* Tony Gies
 
 **[stb_image_write](https://github.com/nothings/stb/blob/master/stb_image_write.h) library**
 * Sean Barrett
