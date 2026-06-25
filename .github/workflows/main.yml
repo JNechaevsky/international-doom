@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Cache vcpkg installed packages and archive
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
@@ -77,7 +77,7 @@ jobs:
           CACHE_KEY: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
 
       - name: Save new cache
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         env:
           CACHE_KEY: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
         with:
