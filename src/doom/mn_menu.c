@@ -6558,8 +6558,9 @@ static void M_DrawSave(void)
     if (saveStringEnter)
     {
 	i = M_StringWidth(savegamestrings[saveSlot]);
-	// [JN] Highlight "_" cursor, line is always active while typing.
-	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_", cr[CR_MENU_BRIGHT5]);
+	// [PN] Highlight "_" cursor only if menu highlighting is enabled.
+	M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_",
+	            menu_highlight ? cr[CR_MENU_BRIGHT5] : NULL);
 	// [JN] Forcefully hide the mouse cursor while typing.
 	menu_mouse_allow = false;
     }
