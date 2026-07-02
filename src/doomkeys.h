@@ -83,11 +83,25 @@
 #define KEYP_8          KEY_UPARROW
 #define KEYP_9          KEY_PGUP
 
-#define KEYP_DIVIDE     '/'
-#define KEYP_PLUS       '+'
-#define KEYP_MINUS      '-'
-#define KEYP_MULTIPLY   '*'
-#define KEYP_PERIOD     0
+// [JN] Separate keycodes for NumPad digits (distinct from navigation keys)
+#define KEYN_0          (0x80+0x70)
+#define KEYN_1          (0x80+0x71)
+#define KEYN_2          (0x80+0x72)
+#define KEYN_3          (0x80+0x73)
+#define KEYN_4          (0x80+0x74)
+#define KEYN_5          (0x80+0x75)
+#define KEYN_6          (0x80+0x76)
+#define KEYN_7          (0x80+0x77)
+#define KEYN_8          (0x80+0x78)
+#define KEYN_9          (0x80+0x79)
+
+// [PN] Distinct NumPad keys from the main (/ + - * .) keys
+#define KEYP_DIVIDE     (0x80+0x7a)
+#define KEYP_PLUS       (0x80+0x7b)
+#define KEYP_MINUS      (0x80+0x7c)
+#define KEYP_MULTIPLY   (0x80+0x7d)
+#define KEYP_PERIOD     (0x80+0x7e)
+
 #define KEYP_EQUALS     KEY_EQUALS
 #define KEYP_ENTER      KEY_ENTER
 
@@ -112,9 +126,9 @@
     KEY_PGUP, KEY_DEL, KEY_END, KEY_PGDN, KEY_RIGHTARROW,                   \
     KEY_LEFTARROW, KEY_DOWNARROW, KEY_UPARROW,                /* 80-89 */   \
     KEY_NUMLOCK, KEYP_DIVIDE,                                               \
-    KEYP_MULTIPLY, KEYP_MINUS, KEYP_PLUS, KEYP_ENTER, KEYP_1,               \
-    KEYP_2, KEYP_3, KEYP_4, KEYP_5, KEYP_6,                   /* 90-99 */   \
-    KEYP_7, KEYP_8, KEYP_9, KEYP_0, KEYP_PERIOD,                            \
+    KEYP_MULTIPLY, KEYP_MINUS, KEYP_PLUS, KEYP_ENTER, KEYN_1,               \
+    KEYN_2, KEYN_3, KEYN_4, KEYN_5, KEYN_6,                   /* 90-99 */   \
+    KEYN_7, KEYN_8, KEYN_9, KEYN_0, KEYP_PERIOD,                            \
     KEY_NONUSBACKSLASH, 0, 0, KEYP_EQUALS,                    /* 100-103 */ \
 }
 
@@ -138,8 +152,15 @@
     { KEY_LEFTARROW,  "LEFT" },     { KEY_RIGHTARROW, "RIGHT" },     \
     { KEY_RALT,       "ALT" },      { KEY_LALT,       "ALT" },       \
     { KEY_RSHIFT,     "SHIFT" },    { KEY_CAPSLOCK,   "CAPS" },      \
-    { KEY_RCTRL,      "CTRL" },     { KEYP_5,         "NUM5" },      \
-    { ' ',            "SPACE" },                                     \
+    { KEY_RCTRL,      "CTRL" },     { ' ',            "SPACE" },     \
+    { KEYN_0,         "NUM0" },     { KEYN_1,         "NUM1" },      \
+    { KEYN_2,         "NUM2" },     { KEYN_3,         "NUM3" },      \
+    { KEYN_4,         "NUM4" },     { KEYN_5,         "NUM5" },      \
+    { KEYN_6,         "NUM6" },     { KEYN_7,         "NUM7" },      \
+    { KEYN_8,         "NUM8" },     { KEYN_9,         "NUM9" },      \
+    { KEYP_DIVIDE,    "NUM/" },     { KEYP_MULTIPLY,  "NUM*" },      \
+    { KEYP_MINUS,     "NUM-" },     { KEYP_PLUS,      "NUM+" },      \
+    { KEYP_PERIOD,    "NUM." },                                      \
     { 'a', "A" },   { 'b', "B" },   { 'c', "C" },   { 'd', "D" },    \
     { 'e', "E" },   { 'f', "F" },   { 'g', "G" },   { 'h', "H" },    \
     { 'i', "I" },   { 'j', "J" },   { 'k', "K" },   { 'l', "L" },    \
@@ -177,6 +198,14 @@
     { KEY_RALT,       "ALT" },      { KEY_LALT,       "ALT" },       \
     { KEY_RSHIFT,     "SHIFT" },    { KEY_CAPSLOCK,   "CAPS" },      \
     { KEY_RCTRL,      "CTRL" },     { ' ',            "SPACE" },     \
+    { KEYN_0,         "NUM0" },     { KEYN_1,         "NUM1" },      \
+    { KEYN_2,         "NUM2" },     { KEYN_3,         "NUM3" },      \
+    { KEYN_4,         "NUM4" },     { KEYN_5,         "NUM5" },      \
+    { KEYN_6,         "NUM6" },     { KEYN_7,         "NUM7" },      \
+    { KEYN_8,         "NUM8" },     { KEYN_9,         "NUM9" },      \
+    { KEYP_DIVIDE,    "NUM/" },     { KEYP_MULTIPLY,  "NUM*" },      \
+    { KEYP_MINUS,     "NUM-" },     { KEYP_PLUS,      "NUM+" },      \
+    { KEYP_PERIOD,    "NUM." },                                      \
     { 'a', "A" },   { 'b', "B" },   { 'c', "C" },   { 'd', "D" },    \
     { 'e', "E" },   { 'f', "F" },   { 'g', "G" },   { 'h', "H" },    \
     { 'i', "I" },   { 'j', "J" },   { 'k', "K" },   { 'l', "L" },    \

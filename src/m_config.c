@@ -947,6 +947,11 @@ static void SetVariable(default_t *def, const char *value)
             {
                 intparm = scantokey[intparm];
             }
+            else if (intparm >= 128 && intparm <= 255)
+            {
+                // [PN] Newer CRL keycodes that do not have a DOS scancode
+                // are saved directly, so keep them intact on load.
+            }
             else
             {
                 intparm = 0;
