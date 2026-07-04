@@ -96,9 +96,9 @@ extern const angle_t tantoangle[SLOPERANGE+1];
 int SlopeDiv(unsigned int num, unsigned int den);
 int SlopeDivCrispy(unsigned int num, unsigned int den);
 
-// [JN] Flowing effect for swirling liquids.
-extern const fixed_t SwirlFlowSine[196];
-extern const fixed_t SwirlFlowCosine[196];
+// [PN/JN] Flowing effect for swirling liquids.
+extern const fixed_t SwirlFlowSine[256];
+extern const fixed_t SwirlFlowCosine[256];
 
 #endif
 
