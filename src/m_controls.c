@@ -143,8 +143,8 @@ int key_arti_all             = KEY_BACKSPACE; int key_arti_all2    = 0;
 
 int key_map_toggle    = KEY_TAB; int key_map_toggle2    = 0;
 int key_map_mini      = 0;       int key_map_mini2      = 0;
-int key_map_zoomin    = '=';     int key_map_zoomin2    = '+';
-int key_map_zoomout   = '-';     int key_map_zoomout2   = 0;
+int key_map_zoomin    = '=';     int key_map_zoomin2    = KEYP_PLUS;
+int key_map_zoomout   = '-';     int key_map_zoomout2   = KEYP_MINUS;
 int key_map_maxzoom   = '0';     int key_map_maxzoom2   = 0;
 int key_map_follow    = 'f';     int key_map_follow2    = 0;
 int key_map_rotate    = 'r';     int key_map_rotate2    = 0;
