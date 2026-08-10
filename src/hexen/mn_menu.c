@@ -8177,7 +8177,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_left)           // Slider left
         {
-            if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
+            if (CurrentItPos != -1 && (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(LEFT_DIR);
                 if (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2)
@@ -8194,7 +8194,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_right)          // Slider right
         {
-            if ((item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
+            if (CurrentItPos != -1 && (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2 || item->type == ITT_SLDR) && item->func != NULL)
             {
                 item->func(RIGHT_DIR);
                 if (item->type == ITT_LRFUNC1 || item->type == ITT_LRFUNC2)
