@@ -275,6 +275,17 @@ static int      turnheld;		// for accelerative turning
  
 static boolean  mousearray[MAX_MOUSE_BUTTONS + 1];
 static boolean *mousebuttons = &mousearray[1];  // allow [-1]
+// [PN] Latch array for impulse mouse buttons (e.g. mouse wheel).
+// When a button press/release arrives within a single tic, the state
+// would otherwise be lost before G_BuildTiccmd reads it. This latch
+// guarantees the press is visible for at least one ticcmd.
+static boolean mousebutton_latch_array[MAX_MOUSE_BUTTONS + 1];
+static boolean *mousebutton_latch = &mousebutton_latch_array[1]; // allow [-1]
+static inline boolean mouse_buttons(int btn1, int btn2)
+{
+    return (mousebuttons[btn1] || mousebutton_latch[btn1] ||
+            mousebuttons[btn2] || mousebutton_latch[btn2]);
+}
 
 // mouse values are used once 
 int             mousex;
@@ -409,6 +420,7 @@ boolean speedkeydown (void)
 {
     return (key_speed < NUMKEYS && gamekeydown[key_speed]) || (key_speed2 < NUMKEYS && gamekeydown[key_speed2]) ||
            (mousebspeed < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed]) || (mousebspeed2 < MAX_MOUSE_BUTTONS && mousebuttons[mousebspeed2]) ||
+           (mousebspeed < MAX_MOUSE_BUTTONS && mousebutton_latch[mousebspeed]) || (mousebspeed2 < MAX_MOUSE_BUTTONS && mousebutton_latch[mousebspeed2]) ||
            (joybspeed < MAX_JOY_BUTTONS && joybuttons[joybspeed]);
 }
 
@@ -541,7 +553,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
  		cmd = &spect;
  	
     strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2]
-	|| mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2]
+	|| mouse_buttons(mousebstrafe, mousebstrafe2)
 	|| joybuttons[joybstrafe]; 
 
     // [crispy] when "always run" is active,
@@ -694,14 +706,14 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     }
 
     if (gamekeydown[key_strafeleft] || gamekeydown[key_strafeleft2]
-     || mousebuttons[mousebstrafeleft] || mousebuttons[mousebstrafeleft2]
+     || mouse_buttons(mousebstrafeleft, mousebstrafeleft2)
      || joybuttons[joybstrafeleft])
     {
         side -= sidemove[speed];
     }
 
     if (gamekeydown[key_straferight] || gamekeydown[key_straferight2]
-     || mousebuttons[mousebstraferight] || mousebuttons[mousebstraferight2]
+     || mouse_buttons(mousebstraferight, mousebstraferight2)
      || joybuttons[joybstraferight])
     {
         side += sidemove[speed]; 
@@ -726,13 +738,13 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     cmd->chatchar = CT_dequeueChatChar();
 
     if (gamekeydown[key_fire] || gamekeydown[key_fire2]
-	|| mousebuttons[mousebfire] || mousebuttons[mousebfire2]
+	|| mouse_buttons(mousebfire, mousebfire2)
 	|| joybuttons[joybfire]) 
 	cmd->buttons |= BT_ATTACK; 
  
     if (gamekeydown[key_use] || gamekeydown[key_use2]
      || joybuttons[joybuse]
-     || mousebuttons[mousebuse] || mousebuttons[mousebuse2])
+     || mouse_buttons(mousebuse, mousebuse2))
     { 
 	cmd->buttons |= BT_USE;
 	// clear double clicks if hit use button 
@@ -775,11 +787,11 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     }
 
     // mouse
-    if (mousebuttons[mousebforward] || mousebuttons[mousebforward2]) 
+    if (mouse_buttons(mousebforward, mousebforward2))
     {
 	forward += forwardmove[speed];
     }
-    if (mousebuttons[mousebbackward] || mousebuttons[mousebbackward2])
+    if (mouse_buttons(mousebbackward, mousebbackward2))
     {
         forward -= forwardmove[speed];
     }
@@ -817,7 +829,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         
         // strafe double click
         bstrafe =
-            mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2]
+            mouse_buttons(mousebstrafe, mousebstrafe2)
             || joybuttons[joybstrafe]; 
         if (bstrafe != dclickstate2 && dclicktime2 > 1 ) 
         { 
@@ -909,6 +921,11 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     localview.rawangle = 0.0;
     prevcarry = carry;
     
+    // [PN] Clear the mouse button latch array after the ticcmd has been built.
+    // This ensures that impulse buttons (e.g. mouse wheel) that were pressed
+    // and released within a single tic are not carried over to the next tic.
+    memset(mousebutton_latch_array, 0, sizeof(mousebutton_latch_array));
+
     // special buttons
     if (sendpause) 
     { 
@@ -1074,6 +1091,7 @@ void G_DoLoadLevel (void)
     memset(&basecmd, 0, sizeof(basecmd)); // [crispy]
     sendpause = sendsave = paused = false;
     memset(mousearray, 0, sizeof(mousearray));
+    memset(mousebutton_latch_array, 0, sizeof(mousebutton_latch_array));
     memset(joyarray, 0, sizeof(joyarray));
 
     if (testcontrols)
@@ -1122,6 +1140,12 @@ static void SetMouseButtons(unsigned int buttons_mask)
 
         if (!mousebuttons[i] && button_on)
         {
+            // [PN] Latch the button press so it is visible for at least
+            // one ticcmd, even if the button is released before G_BuildTiccmd
+            // is called. This fixes mouse wheel actions assigned to fire,
+            // strafe, use, etc.
+            mousebutton_latch[i] = true;
+
             // [JN] CRL - move spectator camera up/down.
             if (crl_spectating && !menuactive)
             {
@@ -1145,13 +1169,6 @@ static void SetMouseButtons(unsigned int buttons_mask)
                 if (i == mousebnextweapon || i == mousebnextweapon2)
                 {
                     next_weapon = 1;
-                }
-                else
-                if (i == mousebuse || i == mousebuse2)
-                {
-                    // [PN] Mouse wheel "use" workaround: some mouse buttons (e.g. wheel click)
-                    // generate only a single tick event. We simulate a short BT_USE press here.
-                    basecmd.buttons |= BT_USE;
                 }
             }
         }
@@ -1517,7 +1534,7 @@ void G_FastResponder (void)
 void G_PrepTiccmd (void)
 {
     const boolean strafe = gamekeydown[key_strafe] || gamekeydown[key_strafe2] ||
-        mousebuttons[mousebstrafe] || mousebuttons[mousebstrafe2] || joybuttons[joybstrafe];
+        mouse_buttons(mousebstrafe, mousebstrafe2) || joybuttons[joybstrafe];
 
     // [JN] Deny camera rotation/looking while active menu in multiplayer.
     if (netgame && menuactive)
