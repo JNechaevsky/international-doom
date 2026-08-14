@@ -373,16 +373,6 @@ static boolean R_CheckBBox (const fixed_t *bspcoord)
     int        boxpos;
     const int *check;
 
-    // [PN] Expand bounding boxes by MAXRADIUS to keep wide sprites from
-    // disappearing when their centers are just behind a solid wall.
-    fixed_t expanded[4];
-    expanded[BOXLEFT]   = bspcoord[BOXLEFT]   - MAXRADIUS;
-    expanded[BOXRIGHT]  = bspcoord[BOXRIGHT]  + MAXRADIUS;
-    expanded[BOXTOP]    = bspcoord[BOXTOP]    + MAXRADIUS;
-    expanded[BOXBOTTOM] = bspcoord[BOXBOTTOM] - MAXRADIUS;
-    // [PN] Use expanded bbox without touching the original code below.
-    #define bspcoord expanded
-
     // Find the corners of the box that define the edges from current viewpoint.
     boxpos = (viewx <= bspcoord[BOXLEFT] ? 0 : viewx < bspcoord[BOXRIGHT ] ? 1 : 2) +
              (viewy >= bspcoord[BOXTOP ] ? 0 : viewy > bspcoord[BOXBOTTOM] ? 4 : 8);
@@ -396,9 +386,6 @@ static boolean R_CheckBBox (const fixed_t *bspcoord)
 
     angle1 = R_PointToAngleCrispy (bspcoord[check[0]], bspcoord[check[1]]) - viewangle;
     angle2 = R_PointToAngleCrispy (bspcoord[check[2]], bspcoord[check[3]]) - viewangle;
-
-    // [PN] Restore original bspcoord symbol outside this block.
-    #undef bspcoord
 
     // [JN] cph - replaced old code, which was unclear and badly commented
     // Much more efficient code now
@@ -451,7 +438,7 @@ static boolean R_CheckBBox (const fixed_t *bspcoord)
 // [JN] killough 1/31/98 -- made static, polished
 // -----------------------------------------------------------------------------
 
-static void R_Subsector (int num)
+static void R_Subsector (int num, boolean walls)
 {
     subsector_t *sub = &subsectors[num];
     seg_t       *line = &segs[sub->firstline];
@@ -470,6 +457,8 @@ static void R_Subsector (int num)
     //      when you're standing inside the sector.
     R_CheckInterpolateSector(frontsector);
 
+  if (walls)
+  {
     floorplane = frontsector->interpfloorheight < viewz ?
                  R_FindPlane (frontsector->interpfloorheight,
                               frontsector->floorpic,
@@ -484,6 +473,12 @@ static void R_Subsector (int num)
                                 frontsector->lightlevel,
                                 frontsector->lightbank,
                                 0) : NULL;
+  }
+  else
+  {
+    floorplane = NULL;
+    ceilingplane = NULL;
+   }
 
     // BSP is traversed by subsector.
     // A sector might have been split into several 
@@ -495,6 +490,8 @@ static void R_Subsector (int num)
         R_AddSprites (frontsector);
     }
 
+  if (walls)
+  {
     if (sub->poly)
     {                           // Render the polyobj in the subsector first
         polyCount = sub->poly->numsegs;
@@ -508,17 +505,26 @@ static void R_Subsector (int num)
     {
         R_AddLine (line++);
     }
+  }
 }
 
 // -----------------------------------------------------------------------------
 // RenderBSPNode
 // Renders all subsectors below a given node, traversing subtree recursively.
 // Just call with BSP root.
-//
-// [JN] killough 5/2/98: reformatted, removed tail recursion
 // -----------------------------------------------------------------------------
+static void R_RenderBSPNodeRecursive (int bspnum, boolean walls);
 
 void R_RenderBSPNode (int bspnum)
+{
+    R_RenderBSPNodeRecursive(bspnum, true);
+}
+
+// -----------------------------------------------------------------------------
+// R_RenderBSPNodeRecursive
+// -----------------------------------------------------------------------------
+
+static void R_RenderBSPNodeRecursive (int bspnum, boolean walls)
 {
     while (!(bspnum & NF_SUBSECTOR))  // Found a subsector?
     {
@@ -527,17 +533,33 @@ void R_RenderBSPNode (int bspnum)
         // Decide which side the view point is on.
         int side = R_PointOnSide(viewx, viewy, bsp);
 
-        // Recursively divide front space.
-        R_RenderBSPNode(bsp->children[side]);
+        // [PN] Recursively render the near side first (where the viewer is located).
+        // This establishes front-to-back rendering order for proper occlusion.
+        R_RenderBSPNodeRecursive(bsp->children[side], walls);
 
         // Possibly divide back space.
+        // [PN] First try the original bbox (full rendering with walls).
         if (!R_CheckBBox(bsp->bbox[side^1]))
         {
+            // [PN] Expand bounding boxes by MAXRADIUS to keep wide sprites from
+            // disappearing when their centers are just behind a solid wall.
+            fixed_t expanded[4];
+            expanded[BOXLEFT]   = bsp->bbox[side^1][BOXLEFT]   - MAXRADIUS;
+            expanded[BOXRIGHT]  = bsp->bbox[side^1][BOXRIGHT]  + MAXRADIUS;
+            expanded[BOXTOP]    = bsp->bbox[side^1][BOXTOP]    + MAXRADIUS;
+            expanded[BOXBOTTOM] = bsp->bbox[side^1][BOXBOTTOM] - MAXRADIUS;
+
+            if (R_CheckBBox(expanded))
+            {
+                // [PN] Expanded check passes: visit in sprites-only mode to avoid
+                // rendering artifacts on polyobjects and moved geometry.
+                R_RenderBSPNodeRecursive(bsp->children[side^1], false);
+            }
             return;
         }
 
         bspnum = bsp->children[side^1];
     }
 
-    R_Subsector(bspnum == -1 ? 0 : bspnum & ~NF_SUBSECTOR);
+    R_Subsector(bspnum == -1 ? 0 : bspnum & ~NF_SUBSECTOR, walls);
 }
