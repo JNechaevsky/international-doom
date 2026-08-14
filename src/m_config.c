@@ -547,6 +547,20 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_torch, mouseb_arti_torch2),
     CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_morph, mouseb_arti_morph2),
 
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_health, mouseb_arti_health2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_poisonbag, mouseb_arti_poisonbag2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_blastradius, mouseb_arti_blastradius2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_teleport, mouseb_arti_teleport2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_teleportother, mouseb_arti_teleportother2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_egg, mouseb_arti_egg2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_invulnerability, mouseb_arti_invulnerability2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_servant, mouseb_arti_servant2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_bracers, mouseb_arti_bracers2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_boots, mouseb_arti_boots2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_krater, mouseb_arti_krater2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_incant, mouseb_arti_incant2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_all, mouseb_arti_all2),
+
     // Hexen: Jump
     CONFIG_VARIABLE_MOUSEBIND(mouseb_jump, mouseb_jump2),    
 

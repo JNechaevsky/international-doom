@@ -235,6 +235,20 @@ int mouseb_arti_wings = -1;        int mouseb_arti_wings2 = -1;
 int mouseb_arti_torch = -1;        int mouseb_arti_torch2 = -1;
 int mouseb_arti_morph = -1;        int mouseb_arti_morph2 = -1;
 
+int mouseb_arti_health          = -1; int mouseb_arti_health2          = -1;
+int mouseb_arti_poisonbag       = -1; int mouseb_arti_poisonbag2       = -1;
+int mouseb_arti_blastradius     = -1; int mouseb_arti_blastradius2     = -1;
+int mouseb_arti_teleport        = -1; int mouseb_arti_teleport2        = -1;
+int mouseb_arti_teleportother   = -1; int mouseb_arti_teleportother2   = -1;
+int mouseb_arti_egg             = -1; int mouseb_arti_egg2             = -1;
+int mouseb_arti_invulnerability = -1; int mouseb_arti_invulnerability2 = -1;
+int mouseb_arti_servant         = -1; int mouseb_arti_servant2         = -1;
+int mouseb_arti_bracers         = -1; int mouseb_arti_bracers2         = -1;
+int mouseb_arti_boots           = -1; int mouseb_arti_boots2           = -1;
+int mouseb_arti_krater          = -1; int mouseb_arti_krater2          = -1;
+int mouseb_arti_incant          = -1; int mouseb_arti_incant2          = -1;
+int mouseb_arti_all             = -1; int mouseb_arti_all2             = -1;
+
 // Hexen: Jump
 int mousebjump        = -1; int mousebjump2        = -1;
 
@@ -510,6 +524,20 @@ void M_BindHexenControls(void)
     M_BindIntVariableKeybind("key_arti_boots",   &key_arti_boots,   "key_arti_boots2",   &key_arti_boots2);
     M_BindIntVariableKeybind("key_arti_krater",  &key_arti_krater,  "key_arti_krater2",  &key_arti_krater2);
     M_BindIntVariableKeybind("key_arti_incant",  &key_arti_incant,  "key_arti_incant2",  &key_arti_incant2);
+
+    M_BindIntVariableKeybind("mouseb_arti_all",             &mouseb_arti_all,             "mouseb_arti_all2",             &mouseb_arti_all2);
+    M_BindIntVariableKeybind("mouseb_arti_health",          &mouseb_arti_health,          "mouseb_arti_health2",          &mouseb_arti_health2);
+    M_BindIntVariableKeybind("mouseb_arti_poisonbag",       &mouseb_arti_poisonbag,       "mouseb_arti_poisonbag2",       &mouseb_arti_poisonbag2);
+    M_BindIntVariableKeybind("mouseb_arti_blastradius",     &mouseb_arti_blastradius,     "mouseb_arti_blastradius2",     &mouseb_arti_blastradius2);
+    M_BindIntVariableKeybind("mouseb_arti_teleport",        &mouseb_arti_teleport,        "mouseb_arti_teleport2",        &mouseb_arti_teleport2);
+    M_BindIntVariableKeybind("mouseb_arti_teleportother",   &mouseb_arti_teleportother,   "mouseb_arti_teleportother2",   &mouseb_arti_teleportother2);
+    M_BindIntVariableKeybind("mouseb_arti_egg",             &mouseb_arti_egg,             "mouseb_arti_egg2",             &mouseb_arti_egg2);
+    M_BindIntVariableKeybind("mouseb_arti_invulnerability", &mouseb_arti_invulnerability, "mouseb_arti_invulnerability2", &mouseb_arti_invulnerability2);
+    M_BindIntVariableKeybind("mouseb_arti_servant",         &mouseb_arti_servant,         "mouseb_arti_servant2",         &mouseb_arti_servant2);
+    M_BindIntVariableKeybind("mouseb_arti_bracers",         &mouseb_arti_bracers,         "mouseb_arti_bracers2",         &mouseb_arti_bracers2);
+    M_BindIntVariableKeybind("mouseb_arti_boots",           &mouseb_arti_boots,           "mouseb_arti_boots2",           &mouseb_arti_boots2);
+    M_BindIntVariableKeybind("mouseb_arti_krater",          &mouseb_arti_krater,          "mouseb_arti_krater2",          &mouseb_arti_krater2);
+    M_BindIntVariableKeybind("mouseb_arti_incant",          &mouseb_arti_incant,          "mouseb_arti_incant2",          &mouseb_arti_incant2);
 }
 
 void M_BindChatControls (unsigned int num_players)

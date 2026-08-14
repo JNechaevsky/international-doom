@@ -3444,16 +3444,16 @@ static void M_Draw_ID_MouseBinds2 (void)
     M_DrawBindFooter("PAGE 2/2", true);
 }
 
-static void M_Bind_M_Quartz (int option)       { M_StartMouseBind(2000); } // mouseb_arti_quartz
-static void M_Bind_M_Urn (int option)          { M_StartMouseBind(2001); } // mouseb_arti_urn
-static void M_Bind_M_Bomb (int option)         { M_StartMouseBind(2002); } // mouseb_arti_bomb
-static void M_Bind_M_Tome (int option)         { M_StartMouseBind(2003); } // mouseb_arti_tome
-static void M_Bind_M_Ring (int option)         { M_StartMouseBind(2004); } // mouseb_arti_ring
-static void M_Bind_M_Chaosdevice (int option)  { M_StartMouseBind(2005); } // mouseb_arti_chaosdevice
-static void M_Bind_M_Shadowsphere (int option) { M_StartMouseBind(2006); } // mouseb_arti_shadowsphere
-static void M_Bind_M_Wings (int option)        { M_StartMouseBind(2007); } // mouseb_arti_wings
-static void M_Bind_M_Torch (int option)        { M_StartMouseBind(2008); } // mouseb_arti_torch
-static void M_Bind_M_Morph (int option)        { M_StartMouseBind(2009); } // mouseb_arti_morph
+static void M_Bind_M_Quartz (int option)       { M_StartMouseBind(1100); } // mouseb_arti_quartz
+static void M_Bind_M_Urn (int option)          { M_StartMouseBind(1101); } // mouseb_arti_urn
+static void M_Bind_M_Bomb (int option)         { M_StartMouseBind(1102); } // mouseb_arti_bomb
+static void M_Bind_M_Tome (int option)         { M_StartMouseBind(1103); } // mouseb_arti_tome
+static void M_Bind_M_Ring (int option)         { M_StartMouseBind(1104); } // mouseb_arti_ring
+static void M_Bind_M_Chaosdevice (int option)  { M_StartMouseBind(1105); } // mouseb_arti_chaosdevice
+static void M_Bind_M_Shadowsphere (int option) { M_StartMouseBind(1106); } // mouseb_arti_shadowsphere
+static void M_Bind_M_Wings (int option)        { M_StartMouseBind(1107); } // mouseb_arti_wings
+static void M_Bind_M_Torch (int option)        { M_StartMouseBind(1108); } // mouseb_arti_torch
+static void M_Bind_M_Morph (int option)        { M_StartMouseBind(1109); } // mouseb_arti_morph
 
 static void M_Bind_M_Reset (int choice)
 {
@@ -9662,16 +9662,16 @@ static const MouseBindEntry_t mousebinds[] =
     MOUSEBIND_ENTRY(1011, &ID_Def_MouseBinds1, 11, mousebinvright,    mousebinvright2,    -1, -1),
     MOUSEBIND_ENTRY(1012, &ID_Def_MouseBinds1, 12, mousebuseartifact, mousebuseartifact2, -1, -1),
 
-    MOUSEBIND_ENTRY(2000, &ID_Def_MouseBinds2, 0, mouseb_arti_quartz,       mouseb_arti_quartz2,       -1, -1),
-    MOUSEBIND_ENTRY(2001, &ID_Def_MouseBinds2, 1, mouseb_arti_urn,          mouseb_arti_urn2,          -1, -1),
-    MOUSEBIND_ENTRY(2002, &ID_Def_MouseBinds2, 2, mouseb_arti_bomb,         mouseb_arti_bomb2,         -1, -1),
-    MOUSEBIND_ENTRY(2003, &ID_Def_MouseBinds2, 3, mouseb_arti_tome,         mouseb_arti_tome2,         -1, -1),
-    MOUSEBIND_ENTRY(2004, &ID_Def_MouseBinds2, 4, mouseb_arti_ring,         mouseb_arti_ring2,         -1, -1),
-    MOUSEBIND_ENTRY(2005, &ID_Def_MouseBinds2, 5, mouseb_arti_chaosdevice,  mouseb_arti_chaosdevice2,  -1, -1),
-    MOUSEBIND_ENTRY(2006, &ID_Def_MouseBinds2, 6, mouseb_arti_shadowsphere, mouseb_arti_shadowsphere2, -1, -1),
-    MOUSEBIND_ENTRY(2007, &ID_Def_MouseBinds2, 7, mouseb_arti_wings,        mouseb_arti_wings2,        -1, -1),
-    MOUSEBIND_ENTRY(2008, &ID_Def_MouseBinds2, 8, mouseb_arti_torch,        mouseb_arti_torch2,        -1, -1),
-    MOUSEBIND_ENTRY(2009, &ID_Def_MouseBinds2, 9, mouseb_arti_morph,        mouseb_arti_morph2,        -1, -1),
+    MOUSEBIND_ENTRY(1100, &ID_Def_MouseBinds2, 0, mouseb_arti_quartz,       mouseb_arti_quartz2,       -1, -1),
+    MOUSEBIND_ENTRY(1101, &ID_Def_MouseBinds2, 1, mouseb_arti_urn,          mouseb_arti_urn2,          -1, -1),
+    MOUSEBIND_ENTRY(1102, &ID_Def_MouseBinds2, 2, mouseb_arti_bomb,         mouseb_arti_bomb2,         -1, -1),
+    MOUSEBIND_ENTRY(1103, &ID_Def_MouseBinds2, 3, mouseb_arti_tome,         mouseb_arti_tome2,         -1, -1),
+    MOUSEBIND_ENTRY(1104, &ID_Def_MouseBinds2, 4, mouseb_arti_ring,         mouseb_arti_ring2,         -1, -1),
+    MOUSEBIND_ENTRY(1105, &ID_Def_MouseBinds2, 5, mouseb_arti_chaosdevice,  mouseb_arti_chaosdevice2,  -1, -1),
+    MOUSEBIND_ENTRY(1106, &ID_Def_MouseBinds2, 6, mouseb_arti_shadowsphere, mouseb_arti_shadowsphere2, -1, -1),
+    MOUSEBIND_ENTRY(1107, &ID_Def_MouseBinds2, 7, mouseb_arti_wings,        mouseb_arti_wings2,        -1, -1),
+    MOUSEBIND_ENTRY(1108, &ID_Def_MouseBinds2, 8, mouseb_arti_torch,        mouseb_arti_torch2,        -1, -1),
+    MOUSEBIND_ENTRY(1109, &ID_Def_MouseBinds2, 9, mouseb_arti_morph,        mouseb_arti_morph2,        -1, -1),
 };
 
 #undef MOUSEBIND_ENTRY
