@@ -224,6 +224,17 @@ int mousebinvleft     = -1; int mousebinvleft2     = -1;
 int mousebinvright    = -1; int mousebinvright2    = -1;
 int mousebuseartifact = -1; int mousebuseartifact2 = -1;
 
+int mouseb_arti_quartz = -1;       int mouseb_arti_quartz2 = -1;
+int mouseb_arti_urn = -1;          int mouseb_arti_urn2 = -1;
+int mouseb_arti_bomb = -1;         int mouseb_arti_bomb2 = -1;
+int mouseb_arti_tome = -1;         int mouseb_arti_tome2 = -1;
+int mouseb_arti_ring = -1;         int mouseb_arti_ring2 = -1;
+int mouseb_arti_chaosdevice = -1;  int mouseb_arti_chaosdevice2 = -1;
+int mouseb_arti_shadowsphere = -1; int mouseb_arti_shadowsphere2 = -1;
+int mouseb_arti_wings = -1;        int mouseb_arti_wings2 = -1;
+int mouseb_arti_torch = -1;        int mouseb_arti_torch2 = -1;
+int mouseb_arti_morph = -1;        int mouseb_arti_morph2 = -1;
+
 // Hexen: Jump
 int mousebjump        = -1; int mousebjump2        = -1;
 
@@ -456,6 +467,17 @@ void M_BindHereticControls (void)
     M_BindIntVariableKeybind("mouseb_invleft",     &mousebinvleft,     "mouseb_invleft2",     &mousebinvleft2);
     M_BindIntVariableKeybind("mouseb_invright",    &mousebinvright,    "mouseb_invright2",    &mousebinvright2);
     M_BindIntVariableKeybind("mouseb_useartifact", &mousebuseartifact, "mouseb_useartifact2", &mousebuseartifact2);
+
+    M_BindIntVariableKeybind("mouseb_arti_quartz",       &mouseb_arti_quartz,       "mouseb_arti_quartz2",       &mouseb_arti_quartz2);
+    M_BindIntVariableKeybind("mouseb_arti_urn",          &mouseb_arti_urn,          "mouseb_arti_urn2",          &mouseb_arti_urn2);
+    M_BindIntVariableKeybind("mouseb_arti_bomb",         &mouseb_arti_bomb,         "mouseb_arti_bomb2",         &mouseb_arti_bomb2);
+    M_BindIntVariableKeybind("mouseb_arti_tome",         &mouseb_arti_tome,         "mouseb_arti_tome2",         &mouseb_arti_tome2);
+    M_BindIntVariableKeybind("mouseb_arti_ring",         &mouseb_arti_ring,         "mouseb_arti_ring2",         &mouseb_arti_ring2);
+    M_BindIntVariableKeybind("mouseb_arti_chaosdevice",  &mouseb_arti_chaosdevice,  "mouseb_arti_chaosdevice2",  &mouseb_arti_chaosdevice2);
+    M_BindIntVariableKeybind("mouseb_arti_shadowsphere", &mouseb_arti_shadowsphere, "mouseb_arti_shadowsphere2", &mouseb_arti_shadowsphere2);
+    M_BindIntVariableKeybind("mouseb_arti_wings",        &mouseb_arti_wings,        "mouseb_arti_wings2",        &mouseb_arti_wings2);
+    M_BindIntVariableKeybind("mouseb_arti_torch",        &mouseb_arti_torch,        "mouseb_arti_torch2",        &mouseb_arti_torch2);
+    M_BindIntVariableKeybind("mouseb_arti_morph",        &mouseb_arti_morph,        "mouseb_arti_morph2",        &mouseb_arti_morph2);
 
     M_BindIntVariable("joybtn_invleft",     &joybinvleft);
     M_BindIntVariable("joybtn_invright",    &joybinvright);

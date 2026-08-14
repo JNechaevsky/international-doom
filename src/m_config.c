@@ -536,6 +536,16 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_MOUSEBIND(mouseb_invleft, mouseb_invleft2),
     CONFIG_VARIABLE_MOUSEBIND(mouseb_invright, mouseb_invright2),
     CONFIG_VARIABLE_MOUSEBIND(mouseb_useartifact, mouseb_useartifact2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_quartz, mouseb_arti_quartz2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_urn, mouseb_arti_urn2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_bomb, mouseb_arti_bomb2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_tome, mouseb_arti_tome2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_ring, mouseb_arti_ring2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_chaosdevice, mouseb_arti_chaosdevice2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_shadowsphere, mouseb_arti_shadowsphere2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_wings, mouseb_arti_wings2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_torch, mouseb_arti_torch2),
+    CONFIG_VARIABLE_MOUSEBIND(mouseb_arti_morph, mouseb_arti_morph2),
 
     // Hexen: Jump
     CONFIG_VARIABLE_MOUSEBIND(mouseb_jump, mouseb_jump2),    

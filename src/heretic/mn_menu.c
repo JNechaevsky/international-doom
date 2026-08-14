@@ -98,7 +98,8 @@ typedef enum
     MENU_ID_KBDBINDS6,
     MENU_ID_KBDBINDS7,
     MENU_ID_KBDBINDS8,
-    MENU_ID_MOUSEBINDS,
+    MENU_ID_MOUSEBINDS1,
+    MENU_ID_MOUSEBINDS2,
     MENU_ID_GAMEPADBINDS,
     MENU_ID_GAMEPADBINDS2,
     MENU_ID_GAMEPADSETTINGS1,
@@ -624,7 +625,7 @@ static void M_Bind_ToPlayer3 (int choice);
 static void M_Bind_ToPlayer4 (int choice);
 static void M_Bind_Reset (int choice);
 
-static void M_Draw_ID_MouseBinds (void);
+static void M_Draw_ID_MouseBinds1 (void);
 static void M_Bind_M_FireAttack (int choice);
 static void M_Bind_M_MoveForward (int choice);
 static void M_Bind_M_MoveBackward (int choice);
@@ -638,6 +639,18 @@ static void M_Bind_M_NextWeapon (int choice);
 static void M_Bind_M_InventoryLeft (int choice);
 static void M_Bind_M_InventoryRight (int choice);
 static void M_Bind_M_UseArtifact (int choice);
+
+static void M_Draw_ID_MouseBinds2 (void);
+static void M_Bind_M_Quartz (int choice);
+static void M_Bind_M_Urn (int choice);
+static void M_Bind_M_Bomb (int choice);
+static void M_Bind_M_Tome (int choice);
+static void M_Bind_M_Ring (int choice);
+static void M_Bind_M_Chaosdevice (int choice);
+static void M_Bind_M_Shadowsphere (int choice);
+static void M_Bind_M_Wings (int choice);
+static void M_Bind_M_Torch (int choice);
+static void M_Bind_M_Morph (int choice);
 
 static void M_Bind_M_Reset (int choice);
 
@@ -874,6 +887,8 @@ static Menu_t ID_Def_Keybinds_5;
 static Menu_t ID_Def_Keybinds_6;
 static Menu_t ID_Def_Keybinds_7;
 static Menu_t ID_Def_Keybinds_8;
+static Menu_t ID_Def_MouseBinds1;
+static Menu_t ID_Def_MouseBinds2;
 static Menu_t ID_Def_GamepadBinds;
 static Menu_t ID_Def_GamepadBinds_2;
 static Menu_t ID_Def_GamepadSettings_1;
@@ -890,10 +905,16 @@ static Menu_t ID_Def_Level_3;
 
 // Remember last keybindings page.
 static int Keybinds_Cur;
+static int Mousebinds_Cur;
 
 static void M_Choose_ID_Keybinds (int choice)
 {
     SetMenu(Keybinds_Cur);
+}
+
+static void M_Choose_ID_Mousebinds (int choice)
+{
+    SetMenu(Mousebinds_Cur);
 }
 
 // Remember last gameplay page.
@@ -958,6 +979,10 @@ static void M_ScrollPages (boolean direction)
     else if (CurrentMenu == &ID_Def_Keybinds_6) nextMenu = (direction ? MENU_ID_KBDBINDS7 : MENU_ID_KBDBINDS5);
     else if (CurrentMenu == &ID_Def_Keybinds_7) nextMenu = (direction ? MENU_ID_KBDBINDS8 : MENU_ID_KBDBINDS6);
     else if (CurrentMenu == &ID_Def_Keybinds_8) nextMenu = (direction ? MENU_ID_KBDBINDS1 : MENU_ID_KBDBINDS7);
+
+    // Mouse bindings
+    else if (CurrentMenu == &ID_Def_MouseBinds1) nextMenu = MENU_ID_MOUSEBINDS2;
+    else if (CurrentMenu == &ID_Def_MouseBinds2) nextMenu = MENU_ID_MOUSEBINDS1;
 
     // Gamepad bindings:
     else if (CurrentMenu == &ID_Def_GamepadBinds) nextMenu = (direction ? MENU_ID_GAMEPADBINDS2 : MENU_ID_GAMEPADSETTINGS2);
@@ -2240,23 +2265,23 @@ void M_ID_RemasterOST (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Controls[] = {
-    { ITT_EFUNC,   "KEYBOARD BINDINGS",       M_Choose_ID_Keybinds,       0, MENU_NONE          },
-    { ITT_SETMENU, "MOUSE BINDINGS",          NULL,                       0, MENU_ID_MOUSEBINDS },
-    { ITT_EFUNC,   "GAMEPAD SETTINGS",        M_Choose_ID_GamepadBinds,   0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_SLDR,    "HORIZONTAL SENSITIVITY",  SCMouseSensi,               0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_SLDR,    "VERTICAL SENSITIVITY",    SCMouseSensi_y,             0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_LRFUNC1, "ACCELERATION",            M_ID_Controls_Acceleration, 0, MENU_NONE          },
-    { ITT_LRFUNC1, "ACCELERATION THRESHOLD",  M_ID_Controls_Threshold,    0, MENU_NONE          },
-    { ITT_LRFUNC2,  "MOUSE LOOK",              M_ID_Controls_MLook,        0, MENU_NONE          },
-    { ITT_LRFUNC2,  "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,       0, MENU_NONE          },
-    { ITT_LRFUNC2,  "INVERT VERTICAL AXIS",    M_ID_Controls_InvertY,      0, MENU_NONE          },
-    { ITT_EMPTY,   NULL,                      NULL,                       0, MENU_NONE          },
-    { ITT_LRFUNC2,  "PERMANENT \"NOARTISKIP\" MODE", M_ID_Controls_NoArtiSkip, 0, MENU_NONE      },
+    { ITT_EFUNC,   "KEYBOARD BINDINGS",       M_Choose_ID_Keybinds,            0, MENU_NONE },
+    { ITT_EFUNC,   "MOUSE BINDINGS",          M_Choose_ID_Mousebinds,          0, MENU_NONE },
+    { ITT_EFUNC,   "GAMEPAD SETTINGS",        M_Choose_ID_GamepadBinds,        0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                      NULL,                            0, MENU_NONE },
+    { ITT_SLDR,    "HORIZONTAL SENSITIVITY",  SCMouseSensi,                    0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                      NULL,                            0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                      NULL,                            0, MENU_NONE },
+    { ITT_SLDR,    "VERTICAL SENSITIVITY",    SCMouseSensi_y,                  0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                      NULL,                            0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                      NULL,                            0, MENU_NONE },
+    { ITT_LRFUNC1, "ACCELERATION",            M_ID_Controls_Acceleration,      0, MENU_NONE },
+    { ITT_LRFUNC1, "ACCELERATION THRESHOLD",  M_ID_Controls_Threshold,         0, MENU_NONE },
+    { ITT_LRFUNC2, "MOUSE LOOK",              M_ID_Controls_MLook,             0, MENU_NONE },
+    { ITT_LRFUNC2, "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,            0, MENU_NONE },
+    { ITT_LRFUNC2, "INVERT VERTICAL AXIS",    M_ID_Controls_InvertY,           0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                      NULL,                            0, MENU_NONE },
+    { ITT_LRFUNC2, "PERMANENT \"NOARTISKIP\" MODE", M_ID_Controls_NoArtiSkip,  0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Controls = {
@@ -2436,7 +2461,7 @@ static void M_Draw_ID_Keybinds_1 (void)
     M_DrawBindKey(10, 120, key_fire, key_fire2);
     M_DrawBindKey(11, 130, key_use, key_use2);
 
-    M_DrawBindFooter("1", true);
+    M_DrawBindFooter("PAGE 1/8", true);
 }
 
 static void M_Bind_MoveForward (int choice)
@@ -2545,7 +2570,7 @@ static void M_Draw_ID_Keybinds_2 (void)
     M_DrawBindKey(9, 110, key_invright, key_invright2);
     M_DrawBindKey(10, 120, key_useartifact, key_useartifact2);
 
-    M_DrawBindFooter("2", true);
+    M_DrawBindFooter("PAGE 2/8", true);
 }
 
 static void M_Bind_LookUp (int choice)
@@ -2652,7 +2677,7 @@ static void M_Draw_ID_Keybinds_3 (void)
     M_DrawBindKey(13, 150, key_notarget, key_notarget2);
     M_DrawBindKey(14, 160, key_buddha, key_buddha2);
 
-    M_DrawBindFooter("3", true);
+    M_DrawBindFooter("PAGE 3/8", true);
 }
 
 static void M_Bind_AlwaysRun (int choice)
@@ -2777,7 +2802,7 @@ static void M_Draw_ID_Keybinds_4 (void)
     M_DrawBindKey(13, 150, key_prevweapon, key_prevweapon2);
     M_DrawBindKey(14, 160, key_nextweapon, key_nextweapon2);
 
-    M_DrawBindFooter("4", true);
+    M_DrawBindFooter("PAGE 4/8", true);
 }
 
 static void M_Bind_ShortTics (int choice)
@@ -2895,7 +2920,7 @@ static void M_Draw_ID_Keybinds_5 (void)
     M_DrawBindKey(8, 100, key_arti_torch, key_arti_torch2);
     M_DrawBindKey(9, 110, key_arti_morph, key_arti_morph2);
 
-    M_DrawBindFooter("5", true);
+    M_DrawBindFooter("PAGE 5/8", true);
 }
 
 static void M_Bind_Quartz (int choice)
@@ -2997,7 +3022,7 @@ static void M_Draw_ID_Keybinds_6 (void)
     M_DrawBindKey(10, 120, key_map_mark, key_map_mark2);
     M_DrawBindKey(11, 130, key_map_clearmark, key_map_clearmark2);
 
-    M_DrawBindFooter("6", true);
+    M_DrawBindFooter("PAGE 6/8", true);
 }
 
 static void M_Bind_ToggleMap (int choice)
@@ -3111,7 +3136,7 @@ static void M_Draw_ID_Keybinds_7 (void)
     M_DrawBindKey(11, 130, key_menu_gamma, key_menu_gamma2);
     M_DrawBindKey(12, 140, key_spy, key_spy2);
 
-    M_DrawBindFooter("7", true);
+    M_DrawBindFooter("PAGE 7/8", true);
 }
 
 static void M_Bind_HelpScreen (int choice)
@@ -3234,7 +3259,7 @@ static void M_Draw_ID_Keybinds_8 (void)
 
     MN_DrTextACentered("RESET", 140, cr[CR_YELLOW]);
 
-    M_DrawBindFooter("8", true);
+    M_DrawBindFooter("PAGE 8/8", true);
 }
 
 static void M_Bind_Pause (int choice)
@@ -3300,10 +3325,10 @@ static void M_Bind_Reset (int choice)
 }
 
 // -----------------------------------------------------------------------------
-// Mouse bindings
+// Mouse bindings 1
 // -----------------------------------------------------------------------------
 
-static MenuItem_t ID_Menu_MouseBinds[] = {
+static MenuItem_t ID_Menu_MouseBinds1[] = {
     { ITT_EFUNC, "FIRE/ATTACK",               M_Bind_M_FireAttack,     0, MENU_NONE },
     { ITT_EFUNC, "MOVE FORWARD",              M_Bind_M_MoveForward,    0, MENU_NONE },
     { ITT_EFUNC, "MOVE BACKWARD",             M_Bind_M_MoveBackward,   0, MENU_NONE },
@@ -3317,21 +3342,21 @@ static MenuItem_t ID_Menu_MouseBinds[] = {
     { ITT_EFUNC, "INVENTORY LEFT",            M_Bind_M_InventoryLeft,  0, MENU_NONE },
     { ITT_EFUNC, "INVENTORY RIGHT",           M_Bind_M_InventoryRight, 0, MENU_NONE },
     { ITT_EFUNC, "USE ARTIFACT",              M_Bind_M_UseArtifact,    0, MENU_NONE },
-    { ITT_EMPTY, NULL,                        NULL,                    0, MENU_NONE },
-    { ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset,          0, MENU_NONE },
 };
 
-static Menu_t ID_Def_MouseBinds = {
+static Menu_t ID_Def_MouseBinds1 = {
     ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
-    M_Draw_ID_MouseBinds,
-    ITEMCOUNT(ID_Menu_MouseBinds), ID_Menu_MouseBinds,
+    M_Draw_ID_MouseBinds1,
+    ITEMCOUNT(ID_Menu_MouseBinds1), ID_Menu_MouseBinds1,
     0,
-    SmallFont, false, false,
+    SmallFont, true, true,
     MENU_ID_CONTROLS
 };
 
-static void M_Draw_ID_MouseBinds (void)
+static void M_Draw_ID_MouseBinds1 (void)
 {
+    Mousebinds_Cur = (MenuType_t)MENU_ID_MOUSEBINDS1;
+
     M_FillBackground();
 
     MN_DrTextACentered("MOUSE BINDINGS", 10, cr[CR_YELLOW]);
@@ -3350,75 +3375,85 @@ static void M_Draw_ID_MouseBinds (void)
     M_DrawBindButton(11, 130, mousebinvright, mousebinvright2);
     M_DrawBindButton(12, 140, mousebuseartifact, mousebuseartifact2);
 
-    MN_DrTextACentered("RESET", 150, cr[CR_YELLOW]);
-
-    M_DrawBindFooter(NULL, false);
+    M_DrawBindFooter("PAGE 1/2", true);
 }
 
-static void M_Bind_M_FireAttack (int choice)
+static void M_Bind_M_FireAttack (int choice)     { M_StartMouseBind(1000); } // mousebfire
+static void M_Bind_M_MoveForward (int choice)    { M_StartMouseBind(1001); } // mousebforward
+static void M_Bind_M_MoveBackward (int choice)   { M_StartMouseBind(1002); } // mousebbackward
+static void M_Bind_M_Use (int choice)            { M_StartMouseBind(1003); } // mousebuse
+static void M_Bind_M_SpeedOn (int choice)        { M_StartMouseBind(1004); } // mousebspeed
+static void M_Bind_M_StrafeOn (int choice)       { M_StartMouseBind(1005); } // mousebstrafe
+static void M_Bind_M_StrafeLeft (int choice)     { M_StartMouseBind(1006); } // mousebstrafeleft
+static void M_Bind_M_StrafeRight (int choice)    { M_StartMouseBind(1007); } // mousebstraferight
+static void M_Bind_M_PrevWeapon (int choice)     { M_StartMouseBind(1008); } // mousebprevweapon
+static void M_Bind_M_NextWeapon (int choice)     { M_StartMouseBind(1009); } // mousebnextweapon
+static void M_Bind_M_InventoryLeft (int choice)  { M_StartMouseBind(1010); } // mousebinvleft
+static void M_Bind_M_InventoryRight (int choice) { M_StartMouseBind(1011); } // mousebinvright
+static void M_Bind_M_UseArtifact (int choice)    { M_StartMouseBind(1012); } // mousebuseartifact
+
+// -----------------------------------------------------------------------------
+// Mouse bindings 2
+// -----------------------------------------------------------------------------
+
+static MenuItem_t ID_Menu_MouseBinds2[] = {
+    { ITT_EFUNC, "QUARTZ FLASK",              M_Bind_M_Quartz,       0, MENU_NONE },
+    { ITT_EFUNC, "MYSTIC URN",                M_Bind_M_Urn,          0, MENU_NONE },
+    { ITT_EFUNC, "TIMEBOMB",                  M_Bind_M_Bomb,         0, MENU_NONE },
+    { ITT_EFUNC, "TOME OF POWER",             M_Bind_M_Tome,         0, MENU_NONE },
+    { ITT_EFUNC, "RING OF INVINCIBILITY",     M_Bind_M_Ring,         0, MENU_NONE },
+    { ITT_EFUNC, "CHAOS DEVICE",              M_Bind_M_Chaosdevice,  0, MENU_NONE },
+    { ITT_EFUNC, "SHADOWSPHERE",              M_Bind_M_Shadowsphere, 0, MENU_NONE },
+    { ITT_EFUNC, "WINGS OF WRATH",            M_Bind_M_Wings,        0, MENU_NONE },
+    { ITT_EFUNC, "TORCH",                     M_Bind_M_Torch,        0, MENU_NONE },
+    { ITT_EFUNC, "MORPH OVUM",                M_Bind_M_Morph,        0, MENU_NONE },
+    { ITT_EMPTY, NULL,                        NULL,                  0, MENU_NONE },
+    { ITT_EFUNC, "RESET BINDINGS TO DEFAULT", M_Bind_M_Reset,        0, MENU_NONE },
+};
+
+static Menu_t ID_Def_MouseBinds2 = {
+    ID_MENU_CTRLSOFFSET, ID_MENU_TOPOFFSET,
+    M_Draw_ID_MouseBinds2,
+    ITEMCOUNT(ID_Menu_MouseBinds2), ID_Menu_MouseBinds2,
+    0,
+    SmallFont, true, true,
+    MENU_ID_CONTROLS
+};
+
+static void M_Draw_ID_MouseBinds2 (void)
 {
-    M_StartMouseBind(1000);  // mousebfire
+    Mousebinds_Cur = (MenuType_t)MENU_ID_MOUSEBINDS2;
+
+    M_FillBackground();
+
+    MN_DrTextACentered("ARTIFACTS", 10, cr[CR_YELLOW]);
+
+    M_DrawBindButton(0, 20, mouseb_arti_quartz, mouseb_arti_quartz2);
+    M_DrawBindButton(1, 30, mouseb_arti_urn, mouseb_arti_urn2);
+    M_DrawBindButton(2, 40, mouseb_arti_bomb, mouseb_arti_bomb2);
+    M_DrawBindButton(3, 50, mouseb_arti_tome, mouseb_arti_tome2);
+    M_DrawBindButton(4, 60, mouseb_arti_ring, mouseb_arti_ring2);
+    M_DrawBindButton(5, 70, mouseb_arti_chaosdevice, mouseb_arti_chaosdevice2);
+    M_DrawBindButton(6, 80, mouseb_arti_shadowsphere, mouseb_arti_shadowsphere2);
+    M_DrawBindButton(7, 90, mouseb_arti_wings, mouseb_arti_wings2);
+    M_DrawBindButton(8, 100, mouseb_arti_torch, mouseb_arti_torch2);
+    M_DrawBindButton(9, 110, mouseb_arti_morph, mouseb_arti_morph2);
+
+    MN_DrTextACentered("RESET", 120, cr[CR_YELLOW]);
+
+    M_DrawBindFooter("PAGE 2/2", true);
 }
 
-static void M_Bind_M_MoveForward (int choice)
-{
-    M_StartMouseBind(1001);  // mousebforward
-}
-
-static void M_Bind_M_MoveBackward (int choice)
-{
-    M_StartMouseBind(1002);  // mousebbackward
-}
-
-static void M_Bind_M_Use (int choice)
-{
-    M_StartMouseBind(1003);  // mousebuse
-}
-
-static void M_Bind_M_SpeedOn (int choice)
-{
-    M_StartMouseBind(1004);  // mousebspeed
-}
-
-static void M_Bind_M_StrafeOn (int choice)
-{
-    M_StartMouseBind(1005);  // mousebstrafe
-}
-
-static void M_Bind_M_StrafeLeft (int choice)
-{
-    M_StartMouseBind(1006);  // mousebstrafeleft
-}
-
-static void M_Bind_M_StrafeRight (int choice)
-{
-    M_StartMouseBind(1007);  // mousebstraferight
-}
-
-static void M_Bind_M_PrevWeapon (int choice)
-{
-    M_StartMouseBind(1008);  // mousebprevweapon
-}
-
-static void M_Bind_M_NextWeapon (int choice)
-{
-    M_StartMouseBind(1009);  // mousebnextweapon
-}
-
-static void M_Bind_M_InventoryLeft (int choice)
-{
-    M_StartMouseBind(1010);  // mousebinvleft
-}
-
-static void M_Bind_M_InventoryRight (int choice)
-{
-    M_StartMouseBind(1011);  // mousebinvright
-}
-
-static void M_Bind_M_UseArtifact (int choice)
-{
-    M_StartMouseBind(1012);  // mousebuseartifact
-}
+static void M_Bind_M_Quartz (int option)       { M_StartMouseBind(2000); } // mouseb_arti_quartz
+static void M_Bind_M_Urn (int option)          { M_StartMouseBind(2001); } // mouseb_arti_urn
+static void M_Bind_M_Bomb (int option)         { M_StartMouseBind(2002); } // mouseb_arti_bomb
+static void M_Bind_M_Tome (int option)         { M_StartMouseBind(2003); } // mouseb_arti_tome
+static void M_Bind_M_Ring (int option)         { M_StartMouseBind(2004); } // mouseb_arti_ring
+static void M_Bind_M_Chaosdevice (int option)  { M_StartMouseBind(2005); } // mouseb_arti_chaosdevice
+static void M_Bind_M_Shadowsphere (int option) { M_StartMouseBind(2006); } // mouseb_arti_shadowsphere
+static void M_Bind_M_Wings (int option)        { M_StartMouseBind(2007); } // mouseb_arti_wings
+static void M_Bind_M_Torch (int option)        { M_StartMouseBind(2008); } // mouseb_arti_torch
+static void M_Bind_M_Morph (int option)        { M_StartMouseBind(2009); } // mouseb_arti_morph
 
 static void M_Bind_M_Reset (int choice)
 {
@@ -6126,7 +6161,8 @@ static Menu_t *Menus[] = {
     &ID_Def_Keybinds_6,
     &ID_Def_Keybinds_7,
     &ID_Def_Keybinds_8,
-    &ID_Def_MouseBinds,
+    &ID_Def_MouseBinds1,
+    &ID_Def_MouseBinds2,
     &ID_Def_GamepadBinds,
     &ID_Def_GamepadBinds_2,
     &ID_Def_GamepadSettings_1,
@@ -6172,6 +6208,7 @@ void MN_Init(void)
     
     // [JN] Apply default first page of Keybinds, Gameplay and Gamepad menus.
     Keybinds_Cur = (MenuType_t)MENU_ID_KBDBINDS1;
+    Mousebinds_Cur = (MenuType_t)MENU_ID_MOUSEBINDS1;
     Gameplay_Cur = (MenuType_t)MENU_ID_GAMEPLAY1;
     Misc_Cur = (MenuType_t)MENU_ID_MISC1;
     GamepadBinds_Cur = (MenuType_t)MENU_ID_GAMEPADBINDS;
@@ -8857,7 +8894,7 @@ boolean MN_Responder(event_t * event)
                 M_ClearBind(CurrentItPos);
             }
             // [JN] ...or clear mouse bind.
-            else if (CurrentMenu == &ID_Def_MouseBinds)
+            else if (CurrentMenu == &ID_Def_MouseBinds1 || CurrentMenu == &ID_Def_MouseBinds2)
             {
                 M_ClearMouseBind(CurrentItPos);
             }
@@ -9302,7 +9339,7 @@ static void M_DrawBindFooter (char *pagenum, boolean drawPages)
     {
         MN_DrTextACentered(string, 170, cr[CR_GRAY]);
         MN_DrTextA("PGUP", ID_MENU_LEFTOFFSET, 180, cr[CR_GRAY]);
-        MN_DrTextACentered(M_StringJoin("PAGE ", pagenum, "/8", NULL), 180, cr[CR_GRAY]);
+        MN_DrTextACentered(M_StringJoin(pagenum, NULL), 180, cr[CR_GRAY]);
         MN_DrTextA("PGDN", M_ItemRightAlign("PGDN"), 180, cr[CR_GRAY]);
     }
     else
@@ -9598,6 +9635,7 @@ static void M_DrawBindKey (int itemNum, int yPos, int key1, int key2)
 typedef struct
 {
     int bindnum;
+    const Menu_t *menu;
     int item;
     int *slot1;
     int *slot2;
@@ -9605,24 +9643,35 @@ typedef struct
     int default2;
 } MouseBindEntry_t;
 
-#define MOUSEBIND_ENTRY(bindnum, item_idx, btn1, btn2, def1, def2) \
-    { bindnum, item_idx, &(btn1), &(btn2), def1, def2 }
+#define MOUSEBIND_ENTRY(bindnum, menu_ptr, item_idx, btn1, btn2, def1, def2) \
+    { bindnum, menu_ptr, item_idx, &(btn1), &(btn2), def1, def2 }
 
 static const MouseBindEntry_t mousebinds[] =
 {
-    MOUSEBIND_ENTRY(1000, 0,  mousebfire,        mousebfire2,         0, -1),
-    MOUSEBIND_ENTRY(1001, 1,  mousebforward,     mousebforward2,      2, -1),
-    MOUSEBIND_ENTRY(1002, 2,  mousebbackward,    mousebbackward2,    -1, -1),
-    MOUSEBIND_ENTRY(1003, 3,  mousebuse,         mousebuse2,         -1, -1),
-    MOUSEBIND_ENTRY(1004, 4,  mousebspeed,       mousebspeed2,       -1, -1),
-    MOUSEBIND_ENTRY(1005, 5,  mousebstrafe,      mousebstrafe2,       1, -1),
-    MOUSEBIND_ENTRY(1006, 6,  mousebstrafeleft,  mousebstrafeleft2,  -1, -1),
-    MOUSEBIND_ENTRY(1007, 7,  mousebstraferight, mousebstraferight2, -1, -1),
-    MOUSEBIND_ENTRY(1008, 8,  mousebprevweapon,  mousebprevweapon2,   4, -1),
-    MOUSEBIND_ENTRY(1009, 9,  mousebnextweapon,  mousebnextweapon2,   3, -1),
-    MOUSEBIND_ENTRY(1010, 10, mousebinvleft,     mousebinvleft2,     -1, -1),
-    MOUSEBIND_ENTRY(1011, 11, mousebinvright,    mousebinvright2,    -1, -1),
-    MOUSEBIND_ENTRY(1012, 12, mousebuseartifact, mousebuseartifact2, -1, -1),
+    MOUSEBIND_ENTRY(1000, &ID_Def_MouseBinds1, 0,  mousebfire,        mousebfire2,         0, -1),
+    MOUSEBIND_ENTRY(1001, &ID_Def_MouseBinds1, 1,  mousebforward,     mousebforward2,      2, -1),
+    MOUSEBIND_ENTRY(1002, &ID_Def_MouseBinds1, 2,  mousebbackward,    mousebbackward2,    -1, -1),
+    MOUSEBIND_ENTRY(1003, &ID_Def_MouseBinds1, 3,  mousebuse,         mousebuse2,         -1, -1),
+    MOUSEBIND_ENTRY(1004, &ID_Def_MouseBinds1, 4,  mousebspeed,       mousebspeed2,       -1, -1),
+    MOUSEBIND_ENTRY(1005, &ID_Def_MouseBinds1, 5,  mousebstrafe,      mousebstrafe2,       1, -1),
+    MOUSEBIND_ENTRY(1006, &ID_Def_MouseBinds1, 6,  mousebstrafeleft,  mousebstrafeleft2,  -1, -1),
+    MOUSEBIND_ENTRY(1007, &ID_Def_MouseBinds1, 7,  mousebstraferight, mousebstraferight2, -1, -1),
+    MOUSEBIND_ENTRY(1008, &ID_Def_MouseBinds1, 8,  mousebprevweapon,  mousebprevweapon2,   4, -1),
+    MOUSEBIND_ENTRY(1009, &ID_Def_MouseBinds1, 9,  mousebnextweapon,  mousebnextweapon2,   3, -1),
+    MOUSEBIND_ENTRY(1010, &ID_Def_MouseBinds1, 10, mousebinvleft,     mousebinvleft2,     -1, -1),
+    MOUSEBIND_ENTRY(1011, &ID_Def_MouseBinds1, 11, mousebinvright,    mousebinvright2,    -1, -1),
+    MOUSEBIND_ENTRY(1012, &ID_Def_MouseBinds1, 12, mousebuseartifact, mousebuseartifact2, -1, -1),
+
+    MOUSEBIND_ENTRY(2000, &ID_Def_MouseBinds2, 0, mouseb_arti_quartz,       mouseb_arti_quartz2,       -1, -1),
+    MOUSEBIND_ENTRY(2001, &ID_Def_MouseBinds2, 1, mouseb_arti_urn,          mouseb_arti_urn2,          -1, -1),
+    MOUSEBIND_ENTRY(2002, &ID_Def_MouseBinds2, 2, mouseb_arti_bomb,         mouseb_arti_bomb2,         -1, -1),
+    MOUSEBIND_ENTRY(2003, &ID_Def_MouseBinds2, 3, mouseb_arti_tome,         mouseb_arti_tome2,         -1, -1),
+    MOUSEBIND_ENTRY(2004, &ID_Def_MouseBinds2, 4, mouseb_arti_ring,         mouseb_arti_ring2,         -1, -1),
+    MOUSEBIND_ENTRY(2005, &ID_Def_MouseBinds2, 5, mouseb_arti_chaosdevice,  mouseb_arti_chaosdevice2,  -1, -1),
+    MOUSEBIND_ENTRY(2006, &ID_Def_MouseBinds2, 6, mouseb_arti_shadowsphere, mouseb_arti_shadowsphere2, -1, -1),
+    MOUSEBIND_ENTRY(2007, &ID_Def_MouseBinds2, 7, mouseb_arti_wings,        mouseb_arti_wings2,        -1, -1),
+    MOUSEBIND_ENTRY(2008, &ID_Def_MouseBinds2, 8, mouseb_arti_torch,        mouseb_arti_torch2,        -1, -1),
+    MOUSEBIND_ENTRY(2009, &ID_Def_MouseBinds2, 9, mouseb_arti_morph,        mouseb_arti_morph2,        -1, -1),
 };
 
 #undef MOUSEBIND_ENTRY
@@ -9687,7 +9736,7 @@ static void M_ClearMouseBind (int Current_ItPos)
 {
     for (size_t i = 0; i < sizeof(mousebinds) / sizeof(mousebinds[0]); i++)
     {
-        if (mousebinds[i].item == Current_ItPos)
+        if (mousebinds[i].menu == CurrentMenu && mousebinds[i].item == Current_ItPos)
         {
             *mousebinds[i].slot1 = -1;
             *mousebinds[i].slot2 = -1;

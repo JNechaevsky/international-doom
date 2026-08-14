@@ -810,56 +810,76 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
             }
         }
     }
-    if ((gamekeydown[key_arti_tome] || gamekeydown[key_arti_tome2]) && !cmd->arti
+    if ((gamekeydown[key_arti_tome] || gamekeydown[key_arti_tome2]
+    || mouse_buttons(mouseb_arti_tome, mouseb_arti_tome2)) && !cmd->arti
         && !players[consoleplayer].powers[pw_weaponlevel2])
     {
         gamekeydown[key_arti_tome] = gamekeydown[key_arti_tome2] = false;
+        mousebuttons[mouseb_arti_tome] = mousebuttons[mouseb_arti_tome2] = false;
         cmd->arti = arti_tomeofpower;
     }
-    else if ((gamekeydown[key_arti_quartz] || gamekeydown[key_arti_quartz2]) && !cmd->arti
+    else if ((gamekeydown[key_arti_quartz] || gamekeydown[key_arti_quartz2]
+    || mouse_buttons(mouseb_arti_quartz, mouseb_arti_quartz2)) && !cmd->arti
         && (players[consoleplayer].mo->health < MAXHEALTH))
     {
         gamekeydown[key_arti_quartz] = gamekeydown[key_arti_quartz2] = false;
+        mousebuttons[mouseb_arti_quartz] = mousebuttons[mouseb_arti_quartz2] = false;
         cmd->arti = arti_health;
     }
-    else if ((gamekeydown[key_arti_urn] || gamekeydown[key_arti_urn2]) && !cmd->arti)
+    else if ((gamekeydown[key_arti_urn] || gamekeydown[key_arti_urn2]
+    || mouse_buttons(mouseb_arti_urn, mouseb_arti_urn2)) && !cmd->arti)
     {
         gamekeydown[key_arti_urn] = gamekeydown[key_arti_urn2] = false;
+        mousebuttons[mouseb_arti_urn] = mousebuttons[mouseb_arti_urn2] = false;
         cmd->arti = arti_superhealth;
     }
-    else if ((gamekeydown[key_arti_bomb] || gamekeydown[key_arti_bomb2]) && !cmd->arti)
+    else if ((gamekeydown[key_arti_bomb] || gamekeydown[key_arti_bomb2]
+    || mouse_buttons(mouseb_arti_bomb, mouseb_arti_bomb2)) && !cmd->arti)
     {
         gamekeydown[key_arti_bomb] = gamekeydown[key_arti_bomb2] = false;
+        mousebuttons[mouseb_arti_bomb] = mousebuttons[mouseb_arti_bomb2] = false;
         cmd->arti = arti_firebomb;
     }
-    else if ((gamekeydown[key_arti_ring] || gamekeydown[key_arti_ring2]) && !cmd->arti)
+    else if ((gamekeydown[key_arti_ring] || gamekeydown[key_arti_ring2]
+    || mouse_buttons(mouseb_arti_ring, mouseb_arti_ring2)) && !cmd->arti)
     {
         gamekeydown[key_arti_ring] = gamekeydown[key_arti_ring2] = false;
+        mousebuttons[mouseb_arti_ring] = mousebuttons[mouseb_arti_ring2] = false;
         cmd->arti = arti_invulnerability;
     }
-    else if ((gamekeydown[key_arti_chaosdevice] || gamekeydown[key_arti_chaosdevice2]) && !cmd->arti)
+    else if ((gamekeydown[key_arti_chaosdevice] || gamekeydown[key_arti_chaosdevice2]
+    || mouse_buttons(mouseb_arti_chaosdevice, mouseb_arti_chaosdevice2)) && !cmd->arti)
     {
         gamekeydown[key_arti_chaosdevice] = gamekeydown[key_arti_chaosdevice2] = false;
+        mousebuttons[mouseb_arti_chaosdevice] = mousebuttons[mouseb_arti_chaosdevice2] = false;
         cmd->arti = arti_teleport;
     }
-    else if ((gamekeydown[key_arti_shadowsphere] || gamekeydown[key_arti_shadowsphere2]) && !cmd->arti)
+    else if ((gamekeydown[key_arti_shadowsphere] || gamekeydown[key_arti_shadowsphere2]
+    || mouse_buttons(mouseb_arti_shadowsphere, mouseb_arti_shadowsphere2)) && !cmd->arti)
     {
         gamekeydown[key_arti_shadowsphere] = gamekeydown[key_arti_shadowsphere2] = false;
+        mousebuttons[mouseb_arti_shadowsphere] = mousebuttons[mouseb_arti_shadowsphere2] = false;
         cmd->arti = arti_invisibility;
     }
-    else if ((gamekeydown[key_arti_wings] || gamekeydown[key_arti_wings2]) && !cmd->arti)
+    else if ((gamekeydown[key_arti_wings] || gamekeydown[key_arti_wings2]
+    || mouse_buttons(mouseb_arti_wings, mouseb_arti_wings2)) && !cmd->arti)
     {
         gamekeydown[key_arti_wings] = gamekeydown[key_arti_wings2] = false;
+        mousebuttons[mouseb_arti_wings] = mousebuttons[mouseb_arti_wings2] = false;
         cmd->arti = arti_fly;
     }
-    else if ((gamekeydown[key_arti_torch] || gamekeydown[key_arti_torch2]) && !cmd->arti)
+    else if ((gamekeydown[key_arti_torch] || gamekeydown[key_arti_torch2]
+    || mouse_buttons(mouseb_arti_torch, mouseb_arti_torch2)) && !cmd->arti)
     {
         gamekeydown[key_arti_torch] = gamekeydown[key_arti_torch2] = false;
+        mousebuttons[mouseb_arti_torch] = mousebuttons[mouseb_arti_torch2] = false;
         cmd->arti = arti_torch;
     }
-    else if ((gamekeydown[key_arti_morph] || gamekeydown[key_arti_morph2]) && !cmd->arti)
+    else if ((gamekeydown[key_arti_morph] || gamekeydown[key_arti_morph2]
+    || mouse_buttons(mouseb_arti_morph, mouseb_arti_morph2)) && !cmd->arti)
     {
         gamekeydown[key_arti_morph] = gamekeydown[key_arti_morph2] = false;
+        mousebuttons[mouseb_arti_morph] = mousebuttons[mouseb_arti_morph2] = false;
         cmd->arti = arti_egg;
     }
 

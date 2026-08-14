@@ -211,6 +211,17 @@ extern int mousebinvleft, mousebinvleft2;
 extern int mousebinvright, mousebinvright2;
 extern int mousebuseartifact, mousebuseartifact2;
 
+extern int mouseb_arti_quartz, mouseb_arti_quartz2;
+extern int mouseb_arti_urn, mouseb_arti_urn2;
+extern int mouseb_arti_bomb, mouseb_arti_bomb2;
+extern int mouseb_arti_tome, mouseb_arti_tome2;
+extern int mouseb_arti_ring, mouseb_arti_ring2;
+extern int mouseb_arti_chaosdevice, mouseb_arti_chaosdevice2;
+extern int mouseb_arti_shadowsphere, mouseb_arti_shadowsphere2;
+extern int mouseb_arti_wings, mouseb_arti_wings2;
+extern int mouseb_arti_torch, mouseb_arti_torch2;
+extern int mouseb_arti_morph, mouseb_arti_morph2;
+
 // Control whether if a mouse button is double clicked,
 // it acts like "use" has been pressed.
 
