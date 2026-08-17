@@ -759,6 +759,7 @@ extern boolean netdemo;
 extern boolean demo_gotonextlvl;
 void G_DemoGoToNextLevel (boolean start);
 
+void G_RestoreArtifactPointer(void);
 void G_LoadGame(char *name);
 // can be called by the startup code or M_Responder
 // calls P_SetupLevel or W_EnterWorld

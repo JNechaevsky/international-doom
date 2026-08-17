@@ -448,6 +448,7 @@ static boolean LoadFullKeyframe(const keyframe_t *keyframe)
     fastparm = (SV_ReadByte() != 0);
     respawnparm = (SV_ReadByte() != 0);
     coop_spawns = (SV_ReadByte() != 0);
+    G_RestoreArtifactPointer();
 
     if (SV_ReadByte() != SAVE_GAME_TERMINATOR)
     {
