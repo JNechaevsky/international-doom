@@ -1,4 +1,4 @@
-foreach(SUBDIR doom heretic hexen setup)
+foreach(SUBDIR doom heretic hexen netgame)
     add_subdirectory("${SUBDIR}")
 endforeach()
 
@@ -190,9 +190,9 @@ set_target_properties("${PROGRAM_PREFIX}heretic" PROPERTIES
 set_target_properties("${PROGRAM_PREFIX}hexen" PROPERTIES
                       INTERPROCEDURAL_OPTIMIZATION ${ENABLE_LTO})
 
-# Source files needed for chocolate-setup:
+# Source files needed for chocolate-netgame:
 
-set(SETUP_FILES
+set(NETGAME_FILES
     deh_str.c           deh_str.h
     d_mode.c            d_mode.h
     d_iwad.c            d_iwad.h
@@ -208,31 +208,31 @@ set(SETUP_FILES
     z_native.c          z_zone.h)
 
 if(WIN32)
-    add_executable("${PROGRAM_PREFIX}setup" WIN32 ${SETUP_FILES} ${COMMON_SOURCE_FILES} "${CMAKE_CURRENT_BINARY_DIR}/setup-res.rc")
+    add_executable("${PROGRAM_PREFIX}netgame" WIN32 ${NETGAME_FILES} ${COMMON_SOURCE_FILES} "${CMAKE_CURRENT_BINARY_DIR}/netgame-res.rc")
 else()
-    add_executable("${PROGRAM_PREFIX}setup" ${SETUP_FILES} ${COMMON_SOURCE_FILES})
+    add_executable("${PROGRAM_PREFIX}netgame" ${NETGAME_FILES} ${COMMON_SOURCE_FILES})
 endif()
 
-target_include_directories("${PROGRAM_PREFIX}setup"
+target_include_directories("${PROGRAM_PREFIX}netgame"
                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
-target_link_libraries("${PROGRAM_PREFIX}setup" SDL2::SDL2main SDL2::SDL2 setup textscreen netlib)
+target_link_libraries("${PROGRAM_PREFIX}netgame" SDL2::SDL2main SDL2::SDL2 netgame textscreen netlib)
 if(ENABLE_SDL2_MIXER)
-    target_link_libraries("${PROGRAM_PREFIX}setup" SDL2_mixer::SDL2_mixer)
+    target_link_libraries("${PROGRAM_PREFIX}netgame" SDL2_mixer::SDL2_mixer)
 endif()
 if(WIN32)
-    target_link_libraries("${PROGRAM_PREFIX}setup" winmm)
+    target_link_libraries("${PROGRAM_PREFIX}netgame" winmm)
 endif()
 
 if(MSVC)
-    set_target_properties("${PROGRAM_PREFIX}setup" PROPERTIES
+    set_target_properties("${PROGRAM_PREFIX}netgame" PROPERTIES
                           LINK_FLAGS "/MANIFEST:NO")
 endif()
 
-set_target_properties("${PROGRAM_PREFIX}setup" PROPERTIES
+set_target_properties("${PROGRAM_PREFIX}netgame" PROPERTIES
                       INTERPROCEDURAL_OPTIMIZATION ${ENABLE_LTO})
 
 include(GNUInstallDirs)
 
-install(TARGETS "${PROGRAM_PREFIX}doom" "${PROGRAM_PREFIX}heretic" "${PROGRAM_PREFIX}hexen" "${PROGRAM_PREFIX}setup" RUNTIME
+install(TARGETS "${PROGRAM_PREFIX}doom" "${PROGRAM_PREFIX}heretic" "${PROGRAM_PREFIX}hexen" "${PROGRAM_PREFIX}netgame" RUNTIME
     DESTINATION $<IF:$<BOOL:${WIN32}>,.,${CMAKE_INSTALL_BINDIR}>
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)

@@ -1,6 +1,6 @@
-1 ICON "@top_srcdir@/data/setup.ico"
+1 ICON "@top_srcdir@/data/netgame.ico"
 
-1 24 MOVEABLE PURE "@top_builddir@/src/setup/setup-manifest.xml"
+1 24 MOVEABLE PURE "@top_builddir@/src/netgame/netgame-manifest.xml"
 
 1 VERSIONINFO
 PRODUCTVERSION @WINDOWS_RC_VERSION@
@@ -12,11 +12,11 @@ FILETYPE 1
   BLOCK "040904E4"
   {
    VALUE "FileVersion", "@PACKAGE_VERSION@"
-   VALUE "FileDescription", "@PACKAGE_FULLNAME@ Setup"
+   VALUE "FileDescription", "@PACKAGE_FULLNAME@ Netgame"
    VALUE "InternalName", "@PACKAGE_TARNAME@"
    VALUE "CompanyName", "@PACKAGE_BUGREPORT@"
    VALUE "LegalCopyright", "GNU General Public License"
-   VALUE "ProductName", "@PACKAGE_NAME@ Setup"
+   VALUE "ProductName", "@PACKAGE_NAME@ Netgame"
    VALUE "ProductVersion", "@PACKAGE_VERSION@"
   }
  }

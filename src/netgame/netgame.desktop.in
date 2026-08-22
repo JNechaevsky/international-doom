@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=@PACKAGE_SHORTNAME@ Netgame
+Exec=@PROGRAM_PREFIX@netgame
+Icon=@PROGRAM_PREFIX@netgame
+Type=Application
+Comment=Netgame tool for @PACKAGE_SHORTNAME@
+Categories=Settings;
+Keywords=first;person;shooter;doom;heretic;hexen;strife;vanilla;
