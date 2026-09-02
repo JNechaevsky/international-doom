@@ -53,6 +53,9 @@ void M_Init (void);
 // does nothing if menu is already up.
 void M_StartControlPanel (void);
 
+// [PN] The level the "next level" item warps to, without warping.
+int G_NextLevel (int *epsd, int *map);
+
 
 extern void M_ConfirmDeleteGame (void);
 extern void M_ForceLoadGame(const char *required_wad, const char *current_wad,

@@ -869,6 +869,40 @@ boolean ST_Responder (event_t *ev)
                 G_DeferedInitNew(gameskill, epsd, map);
             }
         }
+        // [PN] The word is typed and the digits are still coming in: show what
+        // this game mode numbers the current and the next level, so it is clear
+        // what to type.
+        else if (!netgame && cheat_clev.chars_read >= cheat_clev.sequence_len)
+        {
+            static char msg[40];
+            int         epsd, map;
+
+            if (G_NextLevel(&epsd, &map))
+            {
+                if (gamemode == commercial)
+                {
+                    M_snprintf(msg, sizeof(msg), "CURRENT: MAP%02d, NEXT: MAP%02d",
+                               gamemap, map);
+                }
+                else
+                {
+                    M_snprintf(msg, sizeof(msg), "CURRENT: E%dM%d, NEXT: E%dM%d",
+                               gameepisode, gamemap, epsd, map);
+                }
+
+                CT_SetMessage(plyr, msg, false, NULL);
+            }
+        }
+
+        // [PN] The shield raised by "id" lasts two seconds, and a slow typist
+        // may still be entering the digits when it runs out. Keep the shield up
+        // until they arrive, so they are not taken for weapon switching.
+        if (!netgame
+        && (cheat_clev.chars_read >= cheat_clev.sequence_len
+         || cheat_mus.chars_read  >= cheat_mus.sequence_len))
+        {
+            plyr->cheatTics = TICRATE * 2;
+        }
     }
 
     return false;

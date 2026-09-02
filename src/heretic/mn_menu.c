@@ -7847,28 +7847,40 @@ static int G_GotoPrevLevel (void)
 }
 
 
-static int G_GotoNextLevel(void)
+// [PN] The level G_GotoNextLevel would warp to, without leaving the current
+// one: the status bar asks for it while "idclev" is being typed. False when
+// there is no "next" at all, i.e. when not on a level.
+int G_NextLevel(int *epsd, int *map)
 {
-    int changed = false;
-
     if (gamemode == shareware)
         heretic_next[0][7] = 11;
 
     if (gamemode == registered)
         heretic_next[2][7] = 11;
 
-    if (gamestate == GS_LEVEL)
+    if (gamestate != GS_LEVEL)
     {
-        int epsd, map;
-
-        epsd = heretic_next[gameepisode-1][gamemap-1] / 10;
-        map = heretic_next[gameepisode-1][gamemap-1] % 10;
-
-        G_DeferedInitNew(gameskill, epsd, map);
-        changed = true;
+        return false;
     }
 
-    return changed;
+    *epsd = heretic_next[gameepisode-1][gamemap-1] / 10;
+    *map = heretic_next[gameepisode-1][gamemap-1] % 10;
+
+    return true;
+}
+
+// [PN] Same as G_NextLevel, but actually goes there.
+static int G_GotoNextLevel(void)
+{
+    int epsd, map;
+
+    if (!G_NextLevel(&epsd, &map))
+    {
+        return false;
+    }
+
+    G_DeferedInitNew(gameskill, epsd, map);
+    return true;
 }
 
 static void MN_ReturnToMenu (void)

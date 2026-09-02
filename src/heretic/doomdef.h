@@ -968,6 +968,9 @@ int MN_TextAWidth(const char *text);
 void MN_DrTextACentered (const char *text, int y, byte *table);
 void MN_DrTextACenteredFade(const char *text, int y, byte *table, int alpha);
 int MN_TextBWidth(const char *text);
+
+// [PN] The level the "next level" item warps to, without warping.
+int G_NextLevel(int *epsd, int *map);
 extern void M_ID_RemasterOST (int choice);
 
 #include "sounds.h"

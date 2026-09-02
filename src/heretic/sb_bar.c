@@ -2336,6 +2336,43 @@ static boolean HandleCheats(const byte key)
                 S_StartSound(NULL, sfx_dorcls);
             }
         }
+        // [PN] The word is typed and the digits are still coming in: show how
+        // this game calls the current and the next level, so it is clear what
+        // to type.
+        else if (!netgame && !demorecording
+        &&      Cheats[i].func == CheatWarpFunc
+        &&      Cheats[i].seq->chars_read >= Cheats[i].seq->sequence_len)
+        {
+            static char buf[52];
+            int         epsd, map;
+
+            if (G_NextLevel(&epsd, &map))
+            {
+                M_snprintf(buf, sizeof(buf), "CURRENT: E%dM%d, NEXT: E%dM%d",
+                           gameepisode, gamemap, epsd, map);
+            }
+            else
+            {
+                M_snprintf(buf, sizeof(buf), "CURRENT: E%dM%d", gameepisode, gamemap);
+            }
+
+            CT_SetMessage(&players[consoleplayer], buf, false, NULL);
+        }
+    }
+
+    // [PN] The shield raised by "id" lasts two seconds, and a slow typist may
+    // still be entering the digits when it runs out ("engage" and "visit" do
+    // not raise it at all). Keep the shield up until they arrive.
+    if (!netgame && !demorecording)
+    {
+        for (int i = 0; Cheats[i].func != NULL; i++)
+        {
+            if (Cheats[i].seq->chars_read >= Cheats[i].seq->sequence_len)
+            {
+                players[consoleplayer].cheatTics = TICRATE * 2;
+                break;
+            }
+        }
     }
     return (eat);
 }

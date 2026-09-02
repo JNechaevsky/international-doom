@@ -7659,10 +7659,11 @@ static int G_GotoPrevLevel (void)
     return changed;
 }
 
-static int G_GotoNextLevel (void)
+// [PN] The level G_GotoNextLevel would warp to, without leaving the current
+// one: the status bar asks for it while "idclev" is being typed. False when
+// there is no "next" at all, i.e. neither a level nor an intermission is up.
+int G_NextLevel (int *epsd, int *map)
 {
-    int changed = false;
-
     if (gamemode == commercial)
     {
         if (W_CheckNumForName("map31") < 0)
@@ -7709,28 +7710,39 @@ static int G_GotoNextLevel (void)
         }
     }
 
-    if (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
+    if (gamestate != GS_LEVEL && gamestate != GS_INTERMISSION)
     {
-        int epsd, map;
-
-        if (gamemode == commercial)
-        {
-            epsd = gameepisode;
-            map = doom2_next[gamemap-1];
-        }
-        else
-        {
-            const int level = doom_next[gameepisode - 1][gamemap - 1];
-
-            epsd = level / 10;
-            map = level % 10;
-        }
-
-        G_DeferedInitNew(gameskill, epsd, map);
-        changed = true;
+        return false;
     }
 
-    return changed;
+    if (gamemode == commercial)
+    {
+        *epsd = gameepisode;
+        *map = doom2_next[gamemap-1];
+    }
+    else
+    {
+        const int level = doom_next[gameepisode - 1][gamemap - 1];
+
+        *epsd = level / 10;
+        *map = level % 10;
+    }
+
+    return true;
+}
+
+// [PN] Same as G_NextLevel, but actually goes there.
+static int G_GotoNextLevel (void)
+{
+    int epsd, map;
+
+    if (!G_NextLevel(&epsd, &map))
+    {
+        return false;
+    }
+
+    G_DeferedInitNew(gameskill, epsd, map);
+    return true;
 }
 
 

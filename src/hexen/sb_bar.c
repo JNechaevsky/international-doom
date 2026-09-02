@@ -2515,6 +2515,45 @@ static boolean HandleCheats(byte key)
                 S_StartSound(NULL, SFX_PLATFORM_STOP);
             }
         }
+        // [PN] The word is typed and the digits are still coming in: show the
+        // numbers that warp into this map and into the next one. Hexen numbers
+        // its maps plainly, no episode part in them.
+        else if (!netgame && !demorecording
+        &&      Cheats[i].func == CheatWarpFunc
+        &&      Cheats[i].seq->chars_read >= Cheats[i].seq->sequence_len)
+        {
+            static char buf[52];
+            const int   curWarp = P_GetMapWarpTrans(gamemap);
+            const int   nxtWarp = P_GetMapNextMap(gamemap);
+
+            // [PN] "Next is 1" is the engine's own sign to restart the game.
+            if (nxtWarp > 1)
+            {
+                M_snprintf(buf, sizeof(buf), "CURRENT: MAP%02d, NEXT: MAP%02d",
+                           curWarp, nxtWarp);
+            }
+            else
+            {
+                M_snprintf(buf, sizeof(buf), "CURRENT: MAP%02d", curWarp);
+            }
+
+            CT_SetMessage(&players[consoleplayer], buf, false, NULL);
+        }
+    }
+
+    // [PN] The shield raised by "id" lasts two seconds, and a slow typist may
+    // still be entering the digits when it runs out ("engage" and "visit" do
+    // not raise it at all). Keep the shield up until they arrive.
+    if (!netgame && !demorecording)
+    {
+        for (i = 0; i < arrlen(Cheats); ++i)
+        {
+            if (Cheats[i].seq->chars_read >= Cheats[i].seq->sequence_len)
+            {
+                players[consoleplayer].cheatTics = TICRATE * 2;
+                break;
+            }
+        }
     }
     return (eat);
 }
