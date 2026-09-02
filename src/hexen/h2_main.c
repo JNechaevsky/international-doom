@@ -250,6 +250,12 @@ static boolean D_GrabMouseCallback(void)
     if (crl_spectating)
         return MenuActive ? false : true;
 
+    // [JN] CRL - ensure that cursor won't appear while
+    // active automap paining by mouse. But still show in menu, though,
+    // since it will overtako mouse contols.
+    if (!MenuActive && automapactive && !am_followplayer && automap_mouse_pan)
+        return true;
+
     // when menu is active or game is paused, release the mouse
 
     if (MenuActive || paused)
