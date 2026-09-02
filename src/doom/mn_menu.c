@@ -9490,22 +9490,27 @@ static const KeyBindEntry_t keybinds[] =
 
 #undef KEYBIND_ENTRY
 
-static boolean M_KeybindScopeAllowsCheck (const KeyBindEntry_t *entry)
-{
-    if (entry->scope == KBS_GLOBAL)
-    {
-        return true;
-    }
-    else if (entry->scope == KBS_AUTOMAP_ONLY)
-    {
-        return currentMenu == &ID_Def_Keybinds_4;
-    }
-    else
-    {
-        return currentMenu == &ID_Def_Keybinds_6;
-    }
-}
+// -----------------------------------------------------------------------------
+// M_KeybindScopeAllowsCheck
+//  Automap binds clash only with each other, the rest share one space.
+//  The action being bound is looked up in the table, not in currentMenu.
+// -----------------------------------------------------------------------------
 
+static boolean M_KeybindScopeAllowsCheck (const KeyBindEntry_t *const entry)
+{
+    keybind_scope_t binding = KBS_GLOBAL;
+
+    for (size_t i = 0; i < sizeof(keybinds) / sizeof(keybinds[0]); i++)
+    {
+        if (keybinds[i].bindnum == keyToBind)
+        {
+            binding = keybinds[i].scope;
+            break;
+        }
+    }
+
+    return (binding == KBS_AUTOMAP_ONLY) == (entry->scope == KBS_AUTOMAP_ONLY);
+}
 
 // -----------------------------------------------------------------------------
 // M_StartBind
