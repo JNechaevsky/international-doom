@@ -43,6 +43,8 @@
 #define MAXBOB	0x100000	
 
 boolean		onground;
+int offgroundtics; // how many tics player has been in air
+#define AIRBOBFADETICS 4 // num tics to scale bobbing to 0 in midair
 
 // [JN] Player's breathing imitation.
 #define BREATHING_STEP 32
@@ -106,9 +108,11 @@ static void P_CalcHeight (player_t *const player)
         player->r_bob = player->bob;
     }
 
+    offgroundtics = onground ? 0 : offgroundtics + 1;
+
     // [JN] CRL - keep update viewz while no momentum mode
     // to prevent camera dive into the floor after stepping down any heights.
-    if (/*(player->cheats & CF_NOMOMENTUM) || */!onground)
+    if (/*(player->cheats & CF_NOMOMENTUM) || */!onground && (offgroundtics > AIRBOBFADETICS))
     {
 	player->viewz = player->mo->z + VIEWHEIGHT;
 
@@ -134,7 +138,7 @@ static void P_CalcHeight (player_t *const player)
     }
     
     // move viewheight
-    if (player->playerstate == PST_LIVE)
+    if (player->playerstate == PST_LIVE && onground)
     {
 	player->viewheight += player->deltaviewheight;
 
@@ -201,6 +205,10 @@ static void P_CalcHeight (player_t *const player)
 	    }
 	}
     }
+
+    if (!onground)
+        bob = bob * (AIRBOBFADETICS + 1 - offgroundtics) / AIRBOBFADETICS;
+
     player->viewz = player->mo->z + player->viewheight + bob;
 
     if (player->viewz > player->mo->ceilingz-4*FRACUNIT)
