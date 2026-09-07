@@ -163,18 +163,18 @@ static byte *ID_WidgetColor (const int i)
 
                 case widget_kills:
                     return
-                        IDWidget.totalkills == 0 ? cr[CR_BLUE2] :
-                        IDWidget.kills < IDWidget.totalkills ? cr[CR_WHITE] : cr[CR_BLUE2];
+                        IDWidget.totalkills == 0 ? cr[CR_BLUE] :
+                        IDWidget.kills < IDWidget.totalkills ? cr[CR_WHITE] : cr[CR_BLUE];
                 
                 case widget_items:
                     return
-                        IDWidget.totalitems == 0 ? cr[CR_BLUE2] :
-                        IDWidget.items < IDWidget.totalitems ? cr[CR_WHITE] : cr[CR_BLUE2];
+                        IDWidget.totalitems == 0 ? cr[CR_BLUE] :
+                        IDWidget.items < IDWidget.totalitems ? cr[CR_WHITE] : cr[CR_BLUE];
                 
                 case widget_secret:
                     return
-                        IDWidget.totalsecrets == 0 ? cr[CR_BLUE2] :
-                        IDWidget.secrets < IDWidget.totalsecrets ? cr[CR_WHITE] : cr[CR_BLUE2];
+                        IDWidget.totalsecrets == 0 ? cr[CR_BLUE] :
+                        IDWidget.secrets < IDWidget.totalsecrets ? cr[CR_WHITE] : cr[CR_BLUE];
 
                 case widget_render_str:
                 case widget_render_val:
@@ -202,18 +202,18 @@ static byte *ID_WidgetColor (const int i)
 
                 case widget_kills:
                     return
-                        IDWidget.totalkills == 0 ? cr[CR_BLUE2] :
-                        IDWidget.kills < IDWidget.totalkills ? cr[CR_YELLOW] : cr[CR_BLUE2];
+                        IDWidget.totalkills == 0 ? cr[CR_BLUE] :
+                        IDWidget.kills < IDWidget.totalkills ? cr[CR_YELLOW] : cr[CR_BLUE];
                 
                 case widget_items:
                     return
-                        IDWidget.totalitems == 0 ? cr[CR_BLUE2] :
-                        IDWidget.items < IDWidget.totalitems ? cr[CR_YELLOW] : cr[CR_BLUE2];
+                        IDWidget.totalitems == 0 ? cr[CR_BLUE] :
+                        IDWidget.items < IDWidget.totalitems ? cr[CR_YELLOW] : cr[CR_BLUE];
                 
                 case widget_secret:
                     return
-                        IDWidget.totalsecrets == 0 ? cr[CR_BLUE2] :
-                        IDWidget.secrets < IDWidget.totalsecrets ? cr[CR_YELLOW] : cr[CR_BLUE2];
+                        IDWidget.totalsecrets == 0 ? cr[CR_BLUE] :
+                        IDWidget.secrets < IDWidget.totalsecrets ? cr[CR_YELLOW] : cr[CR_BLUE];
 
                 case widget_time_str:
                 case widget_render_str:

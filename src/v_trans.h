@@ -65,6 +65,8 @@ enum
     CR_OLIVE,
     CR_OLIVE_BRIGHT,
 
+    CR_BLUE,
+
     CR_BLUE2,
     CR_BLUE2_BRIGHT,
 
