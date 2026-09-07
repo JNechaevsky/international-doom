@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <ctype.h>
+#include "dsda_font.h"
 #include "h2def.h"
 #include "i_input.h"
 #include "s_sound.h"
@@ -82,6 +83,12 @@ boolean altdown;
 boolean shiftdown;
 boolean chatmodeon;
 
+// [JN] Depending on user preference, draw widgets via standard or DSDA font.
+void (*fontfunc) (const char *text, int x, int y, byte *table);
+void (*fontcenteredfunc) (const char *text, int y, byte *table);
+int  (*widthfunc) (const char *string);
+
+
 // -----------------------------------------------------------------------------
 // CT_Init
 // Initialize chat mode data.
@@ -102,7 +109,38 @@ void CT_Init (void)
         memset(chat_msg[i], 0, MESSAGESIZE);
     }
 
+    // Initialize small DSDA font.
+    DSDA_FontInit();
+
+    // Initialize pointers to widget drawing functions.
+    CT_InitWidgetDrawingFuncs();
+
     FontABaseLump = W_GetNumForName("FONTA_S") + 1;
+}
+
+// -----------------------------------------------------------------------------
+// CT_InitWidgetDrawingFuncs
+//  [JN] Set pointers to the font drawing functions.
+// -----------------------------------------------------------------------------
+
+inline static void M_WriteText (const char *text, int x, int y, byte *table) { DSDA_DrawText(x, y, text, table); }
+inline static void M_WriteTextCentered (const char *text, int y, byte *table) { DSDA_DrawTextCentered(y, text, table); }
+inline static int  M_StringWidth (const char *text) { return DSDA_StringWidth(text); }
+
+void CT_InitWidgetDrawingFuncs (void)
+{
+    if (widget_font)
+    {
+        fontfunc = M_WriteText;
+        fontcenteredfunc = M_WriteTextCentered;
+        widthfunc = M_StringWidth;
+    }
+    else
+    {
+        fontfunc = MN_DrTextA;
+        fontcenteredfunc = MN_DrTextACentered;
+        widthfunc = MN_TextAWidth;
+    }
 }
 
 // -----------------------------------------------------------------------------

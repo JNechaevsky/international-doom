@@ -42,6 +42,7 @@ set(GAME_SOURCE_FILES
     d_loop.c            d_loop.h
     d_mode.c            d_mode.h
                         d_ticcmd.h
+    dsda_font.c         dsda_font.h
     deh_str.c           deh_str.h
     gusconf.c           gusconf.h
     i_endoom.c          i_endoom.h

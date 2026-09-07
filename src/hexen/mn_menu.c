@@ -739,6 +739,7 @@ static void M_ID_Gamepad_DeadZoneStrafe (int choice);
 static void M_ID_Gamepad_DeadZoneLook (int choice);
 
 static void M_Draw_ID_Widgets (void);
+static void M_ID_Widget_Font (int choice);
 static void M_ID_Widget_Colors (int choice);
 static void M_ID_Widget_Placement (int choice);
 static void M_ID_Widget_Alignment (int choice);
@@ -3850,6 +3851,7 @@ static void M_ID_Gamepad_DeadZoneLook (int choice)    { joystick_look_dead_zone 
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Widgets[] = {
+    { ITT_LRFUNC2, "WIDGETS FONT",     M_ID_Widget_Font,      0, MENU_NONE },
     { ITT_LRFUNC2, "COLOR SCHEME",     M_ID_Widget_Colors,    0, MENU_NONE },
     { ITT_LRFUNC2, "PLACEMENT",        M_ID_Widget_Placement, 0, MENU_NONE },
     { ITT_LRFUNC2, "ALIGNMENT",        M_ID_Widget_Alignment, 0, MENU_NONE },
@@ -3877,85 +3879,98 @@ static void M_Draw_ID_Widgets (void)
 
     MN_DrTextACentered("WIDGETS", 10, cr[CR_YELLOW]);
 
+    // Widgets font
+    sprintf(str, widget_font ? "DSDA" : "DEFAULT");
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
+                        widget_font ? cr[CR_GREEN_HX] : cr[CR_DARKRED], 
+                            widget_font ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT], 
+                                LINE_ALPHA(0));
+
     // Color scheme
     sprintf(str, widget_scheme == 1 ? "INTER"  :
                  widget_scheme == 2 ? "CRISPY" :
                  widget_scheme == 3 ? "WOOF"   :
                  widget_scheme == 4 ? "DSDA"   : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 30,
                         widget_scheme ? cr[CR_GREEN_HX] : cr[CR_DARKRED], 
                             widget_scheme ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT], 
-                                LINE_ALPHA(0));
+                                LINE_ALPHA(1));
 
     // Placement
     sprintf(str, widget_location ? "TOP" : "BOTTOM");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 30,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
                         cr[CR_GREEN_HX],
                             cr[CR_GREEN_HX_BRIGHT],
-                                LINE_ALPHA(1));
+                                LINE_ALPHA(2));
 
     // Alignment
     sprintf(str, widget_alignment == 1 ? "STATUS BAR" :
                  widget_alignment == 2 ? "AUTO" : "LEFT");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 40,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
                         widget_alignment ? cr[CR_GREEN_HX] : cr[CR_DARKRED], 
                             widget_alignment ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT], 
-                                LINE_ALPHA(2));
+                                LINE_ALPHA(3));
 
     // Total kills
     sprintf(str, widget_kis == 1 ? "ALWAYS"  :
                  widget_kis == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 50,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
                         widget_kis ? cr[CR_GREEN_HX] : cr[CR_DARKRED], 
                             widget_kis ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT], 
-                                LINE_ALPHA(3));
+                                LINE_ALPHA(4));
 
     // Total time
     sprintf(str, widget_totaltime == 1 ? "ALWAYS / NO CS" :
                  widget_totaltime == 2 ? "ALWAYS / CS"    : "AUTOMAP");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 60,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
                         widget_totaltime ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             widget_totaltime ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(4));
+                                LINE_ALPHA(5));
 
     // Level name
     sprintf(str, widget_levelname ? "ALWAYS" : "AUTOMAP");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 70,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
                         widget_levelname ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             widget_levelname ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(6));
 
     // Player coords
     sprintf(str, widget_coords == 1 ? "ALWAYS"  :
                  widget_coords == 2 ? "AUTOMAP" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 80,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
                         widget_coords ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             widget_coords ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(7));
 
     // Player speed
     sprintf(str, widget_speed ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 90,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
                         widget_speed ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             widget_speed ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(8));
 
     // Render counters
     sprintf(str, widget_render ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 100,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
                         widget_render ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             widget_render ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
+                                LINE_ALPHA(9));
 
     // Target's health
     sprintf(str, widget_health == 1 ? "TOP" :
                  widget_health == 2 ? "TOP+NAME" :
                  widget_health == 3 ? "BOTTOM" :
                  widget_health == 4 ? "BOTTOM+NAME" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 110,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 120,
                         widget_health ? cr[CR_GREEN_HX] : cr[CR_DARKRED],
                             widget_health ? cr[CR_GREEN_HX_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(9));
+                                LINE_ALPHA(10));
+}
+
+static void M_ID_Widget_Font (int choice)
+{
+    widget_font ^= 1;
+    CT_InitWidgetDrawingFuncs();
 }
 
 static void M_ID_Widget_Colors (int choice)
@@ -5255,6 +5270,7 @@ static void M_ID_ApplyResetHook (void)
     // Widgets and automap
     //
 
+    widget_font = 1; CT_InitWidgetDrawingFuncs();
     widget_scheme = 1;
     widget_location = 0;
     widget_alignment = 0;

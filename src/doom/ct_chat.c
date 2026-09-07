@@ -24,8 +24,10 @@
 #include "ct_chat.h"
 #include "d_englsh.h"
 #include "deh_str.h"
+#include "dsda_font.h"
 #include "i_input.h"
 #include "m_controls.h"
+#include "mn_menu.h"
 #include "m_misc.h"
 #include "p_local.h"
 #include "s_sound.h"
@@ -95,6 +97,11 @@ static int ChatFontBaseLump;
 boolean     ultimatemsg;
 const char *lastmessage;
 
+// [JN] Depending on user preference, draw widgets via standard or DSDA font.
+void (*fontfunc) (int x, int y, const char *text, byte *table);
+void (*fontcenteredfunc) (int y, const char *text, byte *table);
+int  (*widthfunc) (const char *string);
+
 
 // -----------------------------------------------------------------------------
 // CT_Init
@@ -118,7 +125,34 @@ void CT_Init (void)
         hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
 
+    // Initialize small DSDA font.
+    DSDA_FontInit();
+
+    // Initialize pointers to widget drawing functions.
+    CT_InitWidgetDrawingFuncs();
+
     ChatFontBaseLump = W_GetNumForName(DEH_String("STCFN033"));
+}
+
+// -----------------------------------------------------------------------------
+// CT_InitWidgetDrawingFuncs
+//  [JN] Set pointers to the font drawing functions.
+// -----------------------------------------------------------------------------
+
+void CT_InitWidgetDrawingFuncs (void)
+{
+    if (widget_font)
+    {
+        fontfunc = DSDA_DrawText;
+        fontcenteredfunc = DSDA_DrawTextCentered;
+        widthfunc = DSDA_StringWidth;
+    }
+    else
+    {
+        fontfunc = M_WriteText;
+        fontcenteredfunc = M_WriteTextCentered;
+        widthfunc = M_StringWidth;
+    }
 }
 
 // -----------------------------------------------------------------------------

@@ -119,6 +119,7 @@ int mouse_look = 0;
 //
 
 int widget_enable = 1;
+int widget_font = 1;
 int widget_scheme = 1;
 int widget_location = 0;
 int widget_alignment = 0;
@@ -374,6 +375,7 @@ void ID_BindVariables (GameMission_t mission)
     //
 
     M_BindIntVariable("widget_enable",                  &widget_enable);
+    M_BindIntVariable("widget_font",                    &widget_font);
     M_BindIntVariable("widget_scheme",                  &widget_scheme);
     M_BindIntVariable("widget_location",                &widget_location);
     M_BindIntVariable("widget_alignment",               &widget_alignment);

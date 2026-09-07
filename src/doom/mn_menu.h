@@ -68,7 +68,7 @@ extern void M_WriteTextCentered (const int y, const char *string, byte *table);
 extern void M_WriteTextCenteredFade (const int y, const char *string, byte *table, int alpha);
 extern void M_WriteTextGlow (int x, int y, const char *string, byte *table1, byte *table2, int alpha);
 extern void M_WriteTextCritical (const int y, const char *string1, const char *string2, byte *table);
-extern const int M_StringWidth (const char *string);
+extern int  M_StringWidth (const char *const string);
 
 // [FG] support up to 8 pages of savegames
 extern int savepage;

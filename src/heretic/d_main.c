@@ -321,6 +321,10 @@ static void D_Display (void)
                 if (automapactive || (widget_levelname && widget_enable && dp_screen_size < 13))
                 AM_LevelNameDrawer();
 
+                // [JN] Main status bar drawing function.
+                if (dp_screen_size < 13 || (automapactive && !automap_overlay))
+                SB_Drawer();
+
                 // [JN] Do not draw any widgets if not in game level.
                 if (widget_enable)
                 {
@@ -355,10 +359,6 @@ static void D_Display (void)
                 // [JN] Draw crosshair.
                 if (xhair_draw && !automapactive)
                 ID_DrawCrosshair();
-
-                // [JN] Main status bar drawing function.
-                if (dp_screen_size < 13 || (automapactive && !automap_overlay))
-                SB_Drawer();
 
                 // [JN] Chat drawer
                 if (netgame && chatmodeon)

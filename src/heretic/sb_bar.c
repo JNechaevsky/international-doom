@@ -1565,23 +1565,28 @@ void SB_Drawer(void)
         for (int i = 0; i < 6; i++)
         {
             const int current_yy = 96 + (i * 10) + yy;
+            const int is_brief = (st_ammo_widget == 1);
 
-            // [PN] Calculate weapon icon X: 282 for Brief (1), 251 for Full.
-            const int label_xx = ((st_ammo_widget == 1) ? 282 : 251) + xx;
-            MN_DrTextA(labels[i], label_xx, current_yy, ammo_widget_weapon_colors[i]);
+            // [PN] Brief: 284/282, Full: 269/251
+            const int label_xx = (widget_font ? (is_brief ? 284 : 269) : (is_brief ? 282 : 251)) + xx;
+            
+            // [PN] In Full mode without widget_font, numbers are drawn at 293+xx, otherwise at 298+xx
+            const int num_xx = (widget_font && !is_brief) ? (298 + xx) : (293 + xx);
 
-            if (st_ammo_widget == 1) // Brief
+            fontfunc(labels[i], label_xx, current_yy, ammo_widget_weapon_colors[i]);
+
+            if (is_brief)
             {
                 sprintf(str, "%d", CPlayer->ammo[ammo_types[i]]);
-                MN_DrTextA(str, 293 + xx, current_yy, ammo_widget_ammo_colors[i]);
+                fontfunc(str, 293 + xx, current_yy, ammo_widget_ammo_colors[i]);
             }
-            else // Full
+            else
             {
                 sprintf(str, "%d/", CPlayer->ammo[ammo_types[i]]);
-                MN_DrTextA(str, 293 + xx - MN_TextAWidth(str), current_yy, ammo_widget_ammo_colors[i]);
+                fontfunc(str, num_xx - widthfunc(str), current_yy, ammo_widget_ammo_colors[i]);
 
                 sprintf(str, "%d", CPlayer->maxammo[ammo_types[i]]);
-                MN_DrTextA(str, 293 + xx, current_yy, ammo_widget_ammo_colors[i]);
+                fontfunc(str, num_xx, current_yy, ammo_widget_ammo_colors[i]);
             }
         }
 

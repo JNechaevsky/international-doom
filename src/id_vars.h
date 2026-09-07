@@ -93,6 +93,7 @@ extern int msg_local_time;
 
 // Widgets
 extern int widget_enable;
+extern int widget_font;
 extern int widget_scheme;
 extern int widget_location;
 extern int widget_alignment;

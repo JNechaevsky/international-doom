@@ -26,6 +26,7 @@
 #include "mn_menu.h"
 #include "m_misc.h"
 #include "p_local.h"
+#include "ct_chat.h"
 
 #include "id_vars.h"
 #include "id_func.h"
@@ -363,30 +364,30 @@ void ID_LeftWidgets (void)
                 const int yy = items_on ? 0 : 9; // shift secret up if items hidden
 
                 // Kills:
-                M_WriteText(left_align, 9, "K:", ID_WidgetColor(widget_kis_str));
+                fontfunc(left_align, 9, "K: ", ID_WidgetColor(widget_kis_str));
                 char buf1[16];
                 ID_WidgetKISCount(buf1, sizeof(buf1), widgets_kis_kills);
-                M_WriteText(left_align + 16, 9, buf1, ID_WidgetColor(widget_kills));
+                fontfunc(left_align + widthfunc("K: "), 9, buf1, ID_WidgetColor(widget_kills));
 
                 // Items:
                 if (items_on)
                 {
-                    M_WriteText(left_align, 18, "I:", ID_WidgetColor(widget_kis_str));
+                    fontfunc(left_align, 18, "I: ", ID_WidgetColor(widget_kis_str));
                     char buf2[16];
                     ID_WidgetKISCount(buf2, sizeof(buf2), widgets_kis_items);
-                    M_WriteText(left_align + 16, 18, buf2, ID_WidgetColor(widget_items));
+                    fontfunc(left_align + widthfunc("I: "), 18, buf2, ID_WidgetColor(widget_items));
                 }
 
                 // Secret:
-                M_WriteText(left_align, 27 - yy, "S:", ID_WidgetColor(widget_kis_str));
+                fontfunc(left_align, 27 - yy, "S: ", ID_WidgetColor(widget_kis_str));
                 char buf3[16];
                 ID_WidgetKISCount(buf3, sizeof(buf3), widgets_kis_secrets);
-                M_WriteText(left_align + 16, 27 - yy, buf3, ID_WidgetColor(widget_secret));
+                fontfunc(left_align + widthfunc("S: "), 27 - yy, buf3, ID_WidgetColor(widget_secret));
             }
             else
             {
                 // Deathmatch frags for up to 4 players
-                const char *const labels[] = {"G:", "I:", "B:", "R:"};
+                const char *const labels[] = {"G: ", "I: ", "B: ", "R: "};
                 const int y_pos[] = {9, 18, 27, 36};
                 const int *const frags[] = {&IDWidget.frags_g, &IDWidget.frags_i,
                                             &IDWidget.frags_b, &IDWidget.frags_r};
@@ -395,11 +396,11 @@ void ID_LeftWidgets (void)
                 for (int i = 0; i < 4; i++)
                 {
                     if (!playeringame[i]) continue;
-                    M_WriteText(left_align, y_pos[i], labels[i],
+                    fontfunc(left_align, y_pos[i], labels[i],
                                 ID_WidgetColor(colors[i]));
                     char buf[16];
                     sprintf(buf, "%d", *frags[i]);
-                    M_WriteText(left_align + 16, y_pos[i], buf, ID_WidgetColor(colors[i]));
+                    fontfunc(left_align + widthfunc(labels[i]), y_pos[i], buf, ID_WidgetColor(colors[i]));
                 }
             }
         }
@@ -414,8 +415,8 @@ void ID_LeftWidgets (void)
             const int c = times[i].cond;
             if (c == 1 || c == 3 || ((c == 2 || c == 4) && automapactive))
             {
-                M_WriteText(left_align, times[i].y_label, times[i].label, ID_WidgetColor(widget_time_str));
-                M_WriteText(left_align, times[i].y_val, times[i].value, ID_WidgetColor(widget_time_val));
+                fontfunc(left_align, times[i].y_label, times[i].label, ID_WidgetColor(widget_time_str));
+                fontfunc(left_align, times[i].y_val, times[i].value, ID_WidgetColor(widget_time_val));
             }
         }
 
@@ -423,18 +424,18 @@ void ID_LeftWidgets (void)
         if (widget_coords == 1
         || (widget_coords == 2 && automapactive))
         {
-            struct { const char *label; int y; int offset; int *value; } coords[] = {
-                {"X:", 90, 16, &IDWidget.x},
-                {"Y:", 99, 16, &IDWidget.y},
-                {"ANG:", 108, 32, &IDWidget.ang}
+            struct { const char *label; int y; int *value; } coords[] = {
+                {"X: ", 90, &IDWidget.x},
+                {"Y: ", 99, &IDWidget.y},
+                {"ANG: ", 108, &IDWidget.ang}
             };
             for (int i = 0; i < 3; i++)
             {
-                M_WriteText(left_align, coords[i].y, coords[i].label,
+                fontfunc(left_align, coords[i].y, coords[i].label,
                             ID_WidgetColor(widget_coords_str));
                 char buf[32];
                 sprintf(buf, "%d", *coords[i].value);
-                M_WriteText(left_align + coords[i].offset, coords[i].y, buf, ID_WidgetColor(widget_coords_val));
+                fontfunc(left_align + widthfunc(coords[i].label), coords[i].y, buf, ID_WidgetColor(widget_coords_val));
             }
         }
 
@@ -442,18 +443,18 @@ void ID_LeftWidgets (void)
         if (widget_render)
         {
             struct { const char *label; int y; int value; } counters[] = {
-                {"SPR:", 124, IDRender.numsprites},
-                {"SEG:", 133, IDRender.numsegs},
-                {"OPN:", 142, IDRender.numopenings},
-                {"PLN:", 151, IDRender.numplanes}
+                {"SPR: ", 124, IDRender.numsprites},
+                {"SEG: ", 133, IDRender.numsegs},
+                {"OPN: ", 142, IDRender.numopenings},
+                {"PLN: ", 151, IDRender.numplanes}
             };
             for (int i = 0; i < 4; i++)
             {
-                M_WriteText(left_align, counters[i].y, counters[i].label,
+                fontfunc(left_align, counters[i].y, counters[i].label,
                             ID_WidgetColor(widget_render_str));
                 char buf[32];
                 M_snprintf(buf, sizeof(buf), "%d", counters[i].value);
-                M_WriteText(left_align + 32, counters[i].y, buf, ID_WidgetColor(widget_render_val));
+                fontfunc(left_align + widthfunc(counters[i].label), counters[i].y, buf, ID_WidgetColor(widget_render_val));
             }
         }
     }
@@ -475,19 +476,19 @@ void ID_LeftWidgets (void)
         {
             const int base_y = 54 + (widget_coords ? 0 : 34);
             struct { const char *label; int value; } counters[] = {
-                {"SPR:", IDRender.numsprites},
-                {"SEG:", IDRender.numsegs},
-                {"OPN:", IDRender.numopenings},
-                {"PLN:", IDRender.numplanes}
+                {"SPR: ", IDRender.numsprites},
+                {"SEG: ", IDRender.numsegs},
+                {"OPN: ", IDRender.numopenings},
+                {"PLN: ", IDRender.numplanes}
             };
 
             for (int i = 0; i < 4; i++)
             {
                 const int y = base_y + 9 * i;
-                M_WriteText(left_align, y, counters[i].label, ID_WidgetColor(widget_render_str));
+                fontfunc(left_align, y, counters[i].label, ID_WidgetColor(widget_render_str));
                 char buf[32];
                 M_snprintf(buf, sizeof(buf), "%d", counters[i].value);
-                M_WriteText(left_align + 32, y, buf, ID_WidgetColor(widget_render_val));
+                fontfunc(left_align + widthfunc(counters[i].label) /*32*/, y, buf, ID_WidgetColor(widget_render_val));
             }
         }
 
@@ -495,17 +496,17 @@ void ID_LeftWidgets (void)
         if (widget_coords == 1
         || (widget_coords == 2 && automapactive))
         {
-            struct { const char *label; int y; int val_x_offset; int *value; } coords[] = {
-                {"X:", 97, 16, &IDWidget.x},
-                {"Y:", 106, 16, &IDWidget.y},
-                {"ANG:", 115, 32, &IDWidget.ang}
+            struct { const char *label; int y; int *value; } coords[] = {
+                {"X: ", 97, &IDWidget.x},
+                {"Y: ", 106, &IDWidget.y},
+                {"ANG: ", 115, &IDWidget.ang}
             };
             for (int i = 0; i < 3; i++)
             {
-                M_WriteText(left_align, coords[i].y, coords[i].label, ID_WidgetColor(widget_coords_str));
+                fontfunc(left_align, coords[i].y, coords[i].label, ID_WidgetColor(widget_coords_str));
                 char buf[32];
                 sprintf(buf, "%d", *coords[i].value);
-                M_WriteText(left_align + coords[i].val_x_offset, coords[i].y, buf, ID_WidgetColor(widget_coords_val));
+                fontfunc(left_align + widthfunc(coords[i].label), coords[i].y, buf, ID_WidgetColor(widget_coords_val));
             }
         }
 
@@ -530,13 +531,13 @@ void ID_LeftWidgets (void)
                 for (int i = 0; i < 3; i++)
                 {
                     if (!active[i]) continue;
-                    M_WriteText(x, 160 + yy, labels[i], ID_WidgetColor(widget_kis_str));
-                    x += M_StringWidth(labels[i]);
+                    fontfunc(x, 160 + yy, labels[i], ID_WidgetColor(widget_kis_str));
+                    x += widthfunc(labels[i]);
             
                     char buf[16];
                     ID_WidgetKISCount(buf, sizeof(buf), params[i]);
-                    M_WriteText(x, 160 + yy, buf, ID_WidgetColor(colors[i]));
-                    x += M_StringWidth(buf);
+                    fontfunc(x, 160 + yy, buf, ID_WidgetColor(colors[i]));
+                    x += widthfunc(buf);
                 }
             }
             else
@@ -549,13 +550,13 @@ void ID_LeftWidgets (void)
                 for (int i = 0; i < 4; i++)
                 {
                     if (!playeringame[i]) continue;
-                    M_WriteText(x, 160 + yy, labels[i], ID_WidgetColor(colors[i]));
-                    x += M_StringWidth(labels[i]);
+                    fontfunc(x, 160 + yy, labels[i], ID_WidgetColor(colors[i]));
+                    x += widthfunc(labels[i]);
             
                     char buf[16];
                     sprintf(buf, "%d ", *frags[i]);
-                    M_WriteText(x, 160 + yy, buf, ID_WidgetColor(colors[i]));
-                    x += M_StringWidth(buf);
+                    fontfunc(x, 160 + yy, buf, ID_WidgetColor(colors[i]));
+                    x += widthfunc(buf);
                 }
             }
         }
@@ -575,8 +576,8 @@ void ID_LeftWidgets (void)
             const int c = times[i].cond;
             if (c == 1 || c == 3 || ((c == 2 || c == 4) && automapactive))
             {
-                M_WriteText(left_align, 160 + yy, times[i].label, ID_WidgetColor(widget_time_str));
-                M_WriteText(left_align + M_StringWidth(times[i].label), 160 + yy, 
+                fontfunc(left_align, 160 + yy, times[i].label, ID_WidgetColor(widget_time_str));
+                fontfunc(left_align + widthfunc(times[i].label), 160 + yy, 
                             times[i].value, ID_WidgetColor(widget_time_val));
             }
             if (c) yy -= 9;
@@ -611,10 +612,10 @@ void ID_RightWidgets (void)
 
         sprintf(fps, "%d", id_fps_value);
         fps_x_pos = ORIGWIDTH + WIDESCREENDELTA - 11 
-                  - M_StringWidth(fps) - M_StringWidth("FPS");
+                  - widthfunc(fps) - widthfunc("FPS");
 
-        M_WriteText(fps_x_pos, yy, fps, cr[CR_LIGHTGRAY_DARK]);
-        M_WriteText(fps_x_pos + M_StringWidth(fps) + 4, yy, "FPS", cr[CR_LIGHTGRAY_DARK]); // [PN] 4 for spacing
+        fontfunc(fps_x_pos, yy, fps, cr[CR_LIGHTGRAY_DARK]);
+        fontfunc(fps_x_pos + widthfunc(fps) + 4, yy, "FPS", cr[CR_LIGHTGRAY_DARK]); // [PN] 4 for spacing
 
         yy += 9;
     }
@@ -622,8 +623,8 @@ void ID_RightWidgets (void)
     // [JN] Local time. Time gathered in G_Ticker.
     if (msg_local_time)
     {
-        M_WriteText(ORIGWIDTH + WIDESCREENDELTA - 7
-                              - M_StringWidth(ID_Local_Time), yy, ID_Local_Time, cr[CR_GRAY]);
+        fontfunc(ORIGWIDTH + WIDESCREENDELTA - 7
+                              - widthfunc(ID_Local_Time), yy, ID_Local_Time, cr[CR_GRAY]);
     }
 }
 
@@ -658,18 +659,18 @@ void ID_DrawTargetsHealth (void)
     switch (widget_health)
     {
         case 1:  // Top
-            M_WriteTextCentered(18, str, color);
+            fontcenteredfunc(18, str, color);
             break;
         case 2:  // Top + name
-            M_WriteTextCentered(9, player->targetsname, color);
-            M_WriteTextCentered(18, str, color);
+            fontcenteredfunc(9, player->targetsname, color);
+            fontcenteredfunc(18, str, color);
             break;
         case 3:  // Bottom
-            M_WriteTextCentered(152 - yy, str, color);
+            fontcenteredfunc(152 - yy, str, color);
             break;
         case 4:  // Bottom + name
-            M_WriteTextCentered(144 - yy, player->targetsname, color);
-            M_WriteTextCentered(152 - yy, str, color);
+            fontcenteredfunc(144 - yy, player->targetsname, color);
+            fontcenteredfunc(152 - yy, str, color);
             break;
     }
 }
@@ -700,10 +701,10 @@ void ID_DrawPlayerSpeed (void)
     M_snprintf(val, sizeof(val), " %.0f", speed);
 
     const int x_val = (ORIGWIDTH / 2);
-    const int x_str = x_val - M_StringWidth(str);
+    const int x_str = x_val - widthfunc(str);
 
-    M_WriteText(x_str, 151, str, ID_WidgetColor(widget_speed_str));
-    M_WriteText(x_val, 151, val, ID_WidgetColor(widget_speed_val));
+    fontfunc(x_str, 151, str, ID_WidgetColor(widget_speed_str));
+    fontfunc(x_val, 151, val, ID_WidgetColor(widget_speed_val));
 }
 
 // =============================================================================
@@ -900,8 +901,9 @@ void ID_DemoTimer (const int time)
         last_update_gametic = gametic;
     }
 
-    const int x = 237 + (hours > 0 ? 0 : 20);
-    M_WriteText(x + WIDESCREENDELTA, 9, n, cr[CR_LIGHTGRAY]);
+    const int x = widget_font ? 15 : 0;
+    const int xx = 237 + x + (hours > 0 ? 0 : 20);
+    fontfunc(xx + WIDESCREENDELTA, 9, n, cr[CR_LIGHTGRAY]);
 }
 
 // -----------------------------------------------------------------------------

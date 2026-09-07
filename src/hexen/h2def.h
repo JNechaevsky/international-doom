@@ -1157,18 +1157,6 @@ void IN_Ticker(void);
 void IN_Drawer(void);
 extern void IN_SuppressNextHubText(void);
 
-//----------------------
-// Chat mode (CT_chat.c)
-//----------------------
-
-void CT_Init(void);
-void CT_Drawer(void);
-boolean CT_Responder(event_t * ev);
-void CT_Ticker(void);
-char CT_dequeueChatChar(void);
-
-extern boolean chatmodeon;
-
 // -----------------------------------------------------------------------------
 // D_MAIN
 // -----------------------------------------------------------------------------
