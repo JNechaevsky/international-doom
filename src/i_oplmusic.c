@@ -1398,10 +1398,13 @@ static void TrackTimerCallback(void *arg)
     opl_track_data_t *track = arg;
     midi_event_t *event;
 
+    OPL_Lock();
+
     // Get the next event and process it.
 
     if (!MIDI_GetNextEvent(track->iter, &event))
     {
+        OPL_Unlock();
         return;
     }
 
@@ -1426,12 +1429,15 @@ static void TrackTimerCallback(void *arg)
             OPL_SetCallback(5000, RestartSong, NULL);
         }
 
+        OPL_Unlock();
         return;
     }
 
     // Reschedule the callback for the next event in the track.
 
     ScheduleTrack(track);
+
+    OPL_Unlock();
 }
 
 static void ScheduleTrack(opl_track_data_t *track)
@@ -1609,10 +1615,14 @@ static void I_OPL_UnRegisterSong(void *handle)
         return;
     }
 
+    OPL_Lock();
+
     if (handle != NULL)
     {
         MIDI_FreeFile(handle);
     }
+
+    OPL_Unlock();
 }
 
 static midi_file_t *LoadMus(byte *musdata, int len)
@@ -1650,6 +1660,8 @@ static void *I_OPL_RegisterSong(void *data, int len)
         return NULL;
     }
 
+    OPL_Lock();
+
     // [crispy] remove MID file size limit
     if (IsMid(data, len) /* && len < MAXMIDLENGTH */)
     {
@@ -1666,6 +1678,8 @@ static void *I_OPL_RegisterSong(void *data, int len)
     {
         fprintf(stderr, "I_OPL_RegisterSong: Failed to load MID.\n");
     }
+
+    OPL_Unlock();
 
     return result;
 }
