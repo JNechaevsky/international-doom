@@ -981,9 +981,8 @@ void H2_ProcessEvents(void)
 
 // -----------------------------------------------------------------------------
 // R_CleanShotHook
-//  [PN] Clean screenshot hook: called at the start of the next D_Display
-//  via post_rendering_hook. By that time, the GPU back buffer holds the
-//  previous frame which we capture here.
+//  [PN] Clean screenshot hook: V_ScreenShot reads the just-uploaded frame
+//  off-screen (i_video.c) while the screen stays frozen on the previous one.
 // -----------------------------------------------------------------------------
 
 static void R_CleanShotHook (void)
@@ -1052,8 +1051,8 @@ static void D_Display(void)
         do_wipe = false;
     }
 
-    // [JN/PN] Schedule the actual screenshot for the next frame via post_rendering_hook,
-    // so it captures this clean frame from the GPU back buffer.
+    // [JN/PN] Arm the clean-shot hook; it runs at the end of this frame,
+    // after I_FinishUpdate has uploaded the clean frame.
     if (cleanshot_pending)
     post_rendering_hook = R_CleanShotHook;
 
@@ -1207,6 +1206,13 @@ static void D_Display(void)
     if (!do_wipe)
     {
         I_FinishUpdate();  // page flip or blit buffer
+
+        // [PN] Finish the clean shot in this same non-presented frame.
+        if (post_rendering_hook && cleanshot_pending)
+        {
+            post_rendering_hook();
+            post_rendering_hook = NULL;
+        }
         return;
     }
 

@@ -1021,6 +1021,14 @@ void I_FinishUpdate (void)
 
     SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
 
+    // [PN] Clean screenshot: upload only, present nothing. The screen freezes
+    // on the last normal frame while I_RenderReadPixels grabs the uploaded
+    // texture off-screen below.
+    if (cleanshot_pending)
+    {
+        return;
+    }
+
     // Make sure the pillarboxes are kept clear each frame.
 
     SDL_RenderClear(renderer);
@@ -2140,23 +2148,58 @@ void I_RenderReadPixels (byte **data, int *w, int *h)
     format = SDL_AllocFormat(png_format);
     temp = rect.w * format->BytesPerPixel; // [crispy] pitch
 
-    // [crispy] As far as I understand the issue, SDL_RenderPresent()
-    // may return early, i.e. before it has actually finished rendering the
-    // current texture to screen -- from where we want to capture it.
-    // However, it does never return before it has finished rendering the
-    // *previous* texture.
-    // Thus, we add a second call to SDL_RenderPresent() here to make sure
-    // that it has at least finished rendering the previous texture, which
-    // already contains the scene that we actually want to capture.
-    if (post_rendering_hook)
-    {
-        SDL_RenderCopy(renderer, vid_smooth_scaling ? texture_upscaled : texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
-    }
-
     // [crispy] allocate memory for screenshot image
     pixels = malloc((size_t)rect.h * temp);
-    SDL_RenderReadPixels(renderer, &rect, format->format, pixels, temp);
+
+    // [PN] Clean screenshot: the screen is frozen on the last normal frame and the
+    // clean frame only lives in the streaming texture, so render it into a private
+    // off-screen target and read back from there, never touching the back buffer.
+    if (cleanshot_pending)
+    {
+        static SDL_Texture *shot;
+        static int shot_w, shot_h;
+
+        if (shot == NULL || shot_w != rect.w || shot_h != rect.h)
+        {
+            if (shot != NULL)
+            {
+                SDL_DestroyTexture(shot);
+            }
+            shot = SDL_CreateTexture(renderer,
+                                     SDL_PIXELFORMAT_ARGB8888,
+                                     SDL_TEXTUREACCESS_TARGET,
+                                     rect.w, rect.h);
+            shot_w = rect.w;
+            shot_h = rect.h;
+        }
+
+        SDL_SetRenderTarget(renderer, shot);
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderFlush(renderer);
+
+        rect.x = rect.y = 0;
+        SDL_RenderReadPixels(renderer, &rect, format->format, pixels, temp);
+        SDL_SetRenderTarget(renderer, NULL);
+    }
+    else
+    {
+        // [crispy] As far as I understand the issue, SDL_RenderPresent()
+        // may return early, i.e. before it has actually finished rendering the
+        // current texture to screen -- from where we want to capture it.
+        // However, it does never return before it has finished rendering the
+        // *previous* texture.
+        // Thus, we add a second call to SDL_RenderPresent() here to make sure
+        // that it has at least finished rendering the previous texture, which
+        // already contains the scene that we actually want to capture.
+        if (post_rendering_hook)
+        {
+            SDL_RenderCopy(renderer, vid_smooth_scaling ? texture_upscaled : texture, NULL, NULL);
+            SDL_RenderPresent(renderer);
+        }
+
+        SDL_RenderReadPixels(renderer, &rect, format->format, pixels, temp);
+    }
 
     *data = pixels;
     *w = rect.w;

@@ -998,6 +998,9 @@ void V_PProc_Display (boolean supress)
     pproc_display_effects =
         post_overglow || post_rgbdrift || post_vhsdist;
     
+    if (cleanshot_pending)
+        return;
+
     // Overbright Glow
     if (post_overglow && !supress)
         V_PProc_OverbrightGlow();
@@ -1015,6 +1018,9 @@ void V_PProc_PlayerView (void)
 {
     pproc_plyrview_effects =
         post_bloom || post_filmgrain || post_motionblur || post_dofblur || post_vignette;
+
+    if (cleanshot_pending)
+        return;
 
     // Soft bloom
     if (post_bloom)
