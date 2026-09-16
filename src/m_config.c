@@ -241,6 +241,7 @@ static default_t	doom_defaults_list[] =
     
     // Post-processing
     CONFIG_VARIABLE_COMMENT("Post-processing"),
+    CONFIG_VARIABLE_INT(post_homshimmer),
     CONFIG_VARIABLE_INT(post_supersample),
     CONFIG_VARIABLE_INT(post_overglow),
     CONFIG_VARIABLE_INT(post_bloom),

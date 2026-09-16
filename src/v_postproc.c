@@ -1,5 +1,5 @@
 //
-// Copyright(C) 2025 Polina "Aura" N.
+// Copyright(C) 2025-2026 Polina "Aura" N.
 // Copyright(C) 2025 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
@@ -17,10 +17,84 @@
 //
 
 #include <stdlib.h>
+#include <string.h>
 #include "d_loop.h"
 #include "m_random.h"
 #include "v_postproc.h"
 
+
+// -----------------------------------------------------------------------------
+// V_PProc_HomShimmer
+//  [PN] CRL - "Shimmering HOM" à la DOS. Instead of a clear, the view window
+//  of three game tics ago is laid under the frame, so whatever the renderer skips
+//  shows a leftover of an older generation. Latched to gametic, so repeat frames
+//  of uncapped mode re-apply the window but never re-save their own swap.
+// -----------------------------------------------------------------------------
+
+#define HOM_SHIMMER_HISTORY 4
+
+static pixel_t *hom_shimmer_snap;
+static int      hom_shimmer_area;     // SCREENAREA the ring was allocated for
+static int      hom_shimmer_last_tic;
+
+void V_PProc_HomShimmer (int x, int y, int w, int h)
+{
+    const int slot   = gametic % HOM_SHIMMER_HISTORY;
+    const int prior  = (gametic + 1) % HOM_SHIMMER_HISTORY;
+    const boolean fresh = (gametic != hom_shimmer_last_tic);
+
+    // The window is the renderer's business, keep the copy inside ours.
+    x = BETWEEN(0, SCREENWIDTH  - 1, x);
+    y = BETWEEN(0, SCREENHEIGHT - 1, y);
+    w = BETWEEN(0, SCREENWIDTH  - x, w);
+    h = BETWEEN(0, SCREENHEIGHT - y, h);
+
+    if (w == 0 || h == 0)
+    {
+        return;
+    }
+
+    // The ring is sized for the current resolution; a change drops the leftovers.
+    if (hom_shimmer_area != SCREENAREA)
+    {
+        free(hom_shimmer_snap);
+        hom_shimmer_snap = malloc((size_t) HOM_SHIMMER_HISTORY * SCREENAREA *
+                                  sizeof(*hom_shimmer_snap));
+        hom_shimmer_area = SCREENAREA;
+    }
+
+    if (hom_shimmer_snap == NULL)
+    {
+        return;
+    }
+
+    // gametic backwards (new game or level) means old leftovers have nothing to show.
+    if (fresh && gametic < hom_shimmer_last_tic)
+    {
+        memset(hom_shimmer_snap, 0, (size_t) HOM_SHIMMER_HISTORY * hom_shimmer_area *
+               sizeof(*hom_shimmer_snap));
+    }
+
+    for (int i = 0; i < h; i++)
+    {
+        const size_t off = (size_t) (y + i) * SCREENWIDTH + x;
+        const size_t row = (size_t) w * sizeof(*hom_shimmer_snap);
+
+        if (fresh)
+        {
+            memcpy(hom_shimmer_snap + (size_t) slot * hom_shimmer_area + off,
+                   I_VideoBuffer + off, row);
+        }
+
+        memcpy(I_VideoBuffer + off,
+               hom_shimmer_snap + (size_t) prior * hom_shimmer_area + off, row);
+    }
+
+    if (fresh)
+    {
+        hom_shimmer_last_tic = gametic;
+    }
+}
 
 // -----------------------------------------------------------------------------
 // V_PProc_SupersampledSmoothing

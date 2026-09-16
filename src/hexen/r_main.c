@@ -923,6 +923,11 @@ void R_RenderPlayerView (player_t *player)
         V_DrawFilledBox(viewwindowx, viewwindowy, scaledviewwidth, viewheight, 0);
         SB_state = -1;
     }
+    else if (post_homshimmer)
+    {
+        // [PN] CRL - Shimmering HOM effect.
+        V_PProc_HomShimmer(viewwindowx, viewwindowy, scaledviewwidth, viewheight);
+    }
 
     // Clear buffers.
     R_ClearClipSegs();

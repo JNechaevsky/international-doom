@@ -66,6 +66,7 @@ int vid_endoom = 0;
 int vid_graphical_startup = 0;
 int vid_banners = 1;
 // Post-processing
+int post_homshimmer = 0;
 int post_supersample = 0;
 int post_overglow = 0;
 int post_bloom = 0;
@@ -319,6 +320,7 @@ void ID_BindVariables (GameMission_t mission)
         M_BindIntVariable("vid_banners",                &vid_banners);
     }  
     // Post-processing
+    M_BindIntVariable("post_homshimmer",                &post_homshimmer);
     M_BindIntVariable("post_supersample",               &post_supersample);
     M_BindIntVariable("post_overglow",                  &post_overglow);
     M_BindIntVariable("post_bloom",                     &post_bloom);

@@ -587,6 +587,7 @@ static void M_ID_DiskIcon (int choice);
 static void M_ID_ShowENDOOM (int choice);
 
 static void M_Draw_ID_Video_2 (void);
+static void M_ID_ShimmeringHOM (int choice);
 static void M_ID_SuperSmoothing (int choice);
 static void M_ID_OverbrightGlow (int choice);
 static void M_ID_SoftBloom (int choice);
@@ -1622,6 +1623,7 @@ static void M_ID_ShowENDOOM (int choice)
 
 static menuitem_t ID_Menu_Video_2[]=
 {
+    { M_MUL1, "SHIMMERING HOM EFFECT",  M_ID_ShimmeringHOM,     's' },
     { M_MUL1, "SUPERSAMPLED SMOOTHING", M_ID_SuperSmoothing,    's' },
     { M_MUL2, "OVERBRIGHT GLOW",        M_ID_OverbrightGlow,    't' },
     { M_MUL2, "SOFT BLOOM",             M_ID_SoftBloom,         's' },
@@ -1631,7 +1633,6 @@ static menuitem_t ID_Menu_Video_2[]=
     { M_MUL1, "FILM GRAIN",             M_ID_FilmGrain,         'f' },
     { M_MUL1, "MOTION BLUR",            M_ID_MotionBlur,        'm' },
     { M_MUL2, "DEPTH OF FIELD BLUR",    M_ID_DepthOfFieldBlur,  'd' },
-    { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
@@ -1658,51 +1659,61 @@ static void M_Draw_ID_Video_2 (void)
 
     M_WriteTextCentered(9, "POST-PROCESSING EFFECTS", cr[CR_YELLOW]);
 
+    // Shimmering HOM Effect
+    sprintf(str, V_PProc_EffectsActive() ? "N/A" :
+                 post_homshimmer ? "ON" : "OFF");
+    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+                        V_PProc_EffectsActive() ? cr[CR_DARKRED] :
+                        post_homshimmer ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            V_PProc_EffectsActive() ? cr[CR_RED_BRIGHT] :
+                            post_homshimmer ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(0));
+
     // Supersampled smoothing
     sprintf(str, "%s", sample_factors[post_supersample]);
-    M_WriteTextGlow(M_ItemRightAlign(str), 18, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
                         post_supersample ? cr[CR_GREEN] : cr[CR_DARKRED],
                             post_supersample ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(0));
+                                LINE_ALPHA(1));
 
     // Overbright glow
     sprintf(str, post_overglow ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 27, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
                         post_overglow ? cr[CR_GREEN] : cr[CR_DARKRED],
                             post_overglow ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(1));
+                                LINE_ALPHA(2));
 
     // Soft bloom
     sprintf(str, post_bloom ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 36, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 45, str,
                         post_bloom ? cr[CR_GREEN] : cr[CR_DARKRED],
                             post_bloom ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(2));
+                                LINE_ALPHA(3));
 
     // Analog RGB drift
     sprintf(str, post_rgbdrift == 1 ? "SUBTLE" :
                  post_rgbdrift == 2 ? "STRONG" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 45, str, 
+    M_WriteTextGlow(M_ItemRightAlign(str), 54, str, 
                         post_rgbdrift ? cr[CR_GREEN] : cr[CR_DARKRED],
                             post_rgbdrift ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(3));
+                                LINE_ALPHA(4));
 
     // VHS line distortion
     sprintf(str, post_vhsdist ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 54, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 63, str,
                         post_vhsdist ? cr[CR_GREEN] : cr[CR_DARKRED],
                             post_vhsdist ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(4));
+                                LINE_ALPHA(5));
 
     // Screen vignette
     sprintf(str, post_vignette == 1 ? "SUBTLE" :
                  post_vignette == 2 ? "SOFT"   : 
                  post_vignette == 3 ? "STRONG" : 
                  post_vignette == 4 ? "DARK"   : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 63, str, 
+    M_WriteTextGlow(M_ItemRightAlign(str), 72, str, 
                         post_vignette ? cr[CR_GREEN] : cr[CR_DARKRED],
                             post_vignette ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(5));
+                                LINE_ALPHA(6));
 
     // Film grain
     sprintf(str, post_filmgrain == 1 ? "SOFT"      :
@@ -1710,10 +1721,10 @@ static void M_Draw_ID_Video_2 (void)
                  post_filmgrain == 3 ? "MEDIUM"    : 
                  post_filmgrain == 4 ? "HEAVY"     : 
                  post_filmgrain == 5 ? "NIGHTMARE" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 72, str, 
+    M_WriteTextGlow(M_ItemRightAlign(str), 81, str, 
                         post_filmgrain ? cr[CR_GREEN] : cr[CR_DARKRED],
                             post_filmgrain ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(6));
+                                LINE_ALPHA(7));
 
     // Motion blur
     sprintf(str, post_motionblur == 1 ? "SOFT"      :
@@ -1721,20 +1732,28 @@ static void M_Draw_ID_Video_2 (void)
                  post_motionblur == 3 ? "MEDIUM"    : 
                  post_motionblur == 4 ? "HEAVY"     : 
                  post_motionblur == 5 ? "NIGHTMARE" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 81, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
                         post_motionblur ? cr[CR_GREEN] : cr[CR_DARKRED],
                             post_motionblur ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(7));
+                                LINE_ALPHA(8));
 
     // Depth if field blur
     sprintf(str, post_dofblur ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 90, str, 
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str, 
                         post_dofblur ? cr[CR_GREEN] : cr[CR_DARKRED],
                             post_dofblur ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(8));
+                                LINE_ALPHA(9));
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET, 153, 15, "2/2");
+}
+
+static void M_ID_ShimmeringHOM (int choice)
+{
+    if (V_PProc_EffectsActive())
+        return;
+
+    post_homshimmer ^= 1;
 }
 
 static void M_ID_SuperSmoothing (int choice)
@@ -5977,6 +5996,7 @@ static void M_ID_ApplyResetHook (void)
     vid_diskicon = 1;
     vid_endoom = 0;
     // Post-processing effects
+    post_homshimmer = 0;
     post_supersample = 0;
     post_overglow = 0;
     post_bloom = 0;

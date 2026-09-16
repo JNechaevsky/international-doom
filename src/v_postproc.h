@@ -1,5 +1,5 @@
 //
-// Copyright(C) 2025 Polina "Aura" N.
+// Copyright(C) 2025-2026 Polina "Aura" N.
 // Copyright(C) 2025 Julia Nechaevskaya
 //
 // This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
 #include "i_video.h"
 #include "id_vars.h"
 
+extern void V_PProc_HomShimmer (int x, int y, int w, int h);
 extern void V_PProc_SupersampledSmoothing (boolean st_background_on, int st_height);
 
 extern boolean pproc_display_effects;
