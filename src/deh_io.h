@@ -24,6 +24,9 @@
 
 deh_context_t *DEH_OpenFile(const char *filename);
 deh_context_t *DEH_OpenLump(int lumpnum);
+// [PN] read-only buffer owned by the caller (embedded patch)
+deh_context_t *DEH_OpenMemory(const unsigned char *data, size_t len,
+                              const char *name);
 void DEH_CloseFile(deh_context_t *context);
 int DEH_GetChar(deh_context_t *context);
 void DEH_SaveLineStart (deh_context_t *context);

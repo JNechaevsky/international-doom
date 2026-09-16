@@ -463,6 +463,41 @@ int DEH_LoadFile(const char *filename)
     return 1;
 }
 
+// [PN] Load a Dehacked patch held in a caller-owned memory buffer, e.g. one
+// embedded in the executable. Same semantics as DEH_LoadFile.
+
+int DEH_LoadMemory(const unsigned char *data, size_t len, const char *name)
+{
+    deh_context_t *context;
+    boolean had_error;
+
+    if (!deh_initialized)
+    {
+        DEH_Init();
+    }
+
+    deh_allow_long_strings = false;
+    deh_allow_long_cheats = false;
+    deh_allow_extended_strings = false;
+
+    printf("  loading %s (embedded)\n", name);
+
+    context = DEH_OpenMemory(data, len, name);
+
+    DEH_ParseContext(context);
+
+    had_error = DEH_HadError(context);
+
+    DEH_CloseFile(context);
+
+    if (had_error)
+    {
+        I_Error("Error parsing embedded dehacked patch %s", name);
+    }
+
+    return 1;
+}
+
 // Load all dehacked patches from the given directory.
 void DEH_AutoLoadPatches(const char *path)
 {

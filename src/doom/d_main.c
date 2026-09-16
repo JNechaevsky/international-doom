@@ -36,6 +36,9 @@
 #endif
 
 #include "deh_main.h"
+#include "dehfile_chex.c"
+#include "dehfile_french.c"
+#include "dehfile_doom12.c"
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "dstrings.h"
@@ -1492,80 +1495,31 @@ static void LoadIwadDeh(void)
     }
 
     else // [crispy]
-    // Chex Quest needs a separate Dehacked patch which must be downloaded
-    // and installed next to the IWAD.
+    // [PN/JN] CRL - DeHackEd patches are now embedded in the executable, so no
+    // external files are ever searched for: the buffers from deh_chex.c,
+    // deh_french.c and deh_doom12.c are fed straight to DEH_LoadMemory().
     if (gameversion == exe_chex)
     {
-        char *chex_deh = NULL;
-        char *dirname;
-
-        // Look for chex.deh in the same directory as the IWAD file.
-        dirname = M_DirName(iwadfile);
-        chex_deh = M_StringJoin(dirname, DIR_SEPARATOR_S, "chex.deh", NULL);
-        free(dirname);
-
-        // If the dehacked patch isn't found, try searching the WAD
-        // search path instead.  We might find it...
-        if (!M_FileExists(chex_deh))
+        if (!DEH_LoadMemory(chex_embedded, sizeof(chex_embedded), "chex.deh"))
         {
-            free(chex_deh);
-            chex_deh = D_FindWADByName("chex.deh");
+            I_Error("Failed to load embedded chex.deh needed for emulating chex.exe.");
         }
-
-        // Still not found?
-        if (chex_deh == NULL)
-        {
-            I_Error("Unable to find Chex Quest dehacked file (chex.deh).\n"
-                    "The dehacked file is required in order to emulate\n"
-                    "chex.exe correctly.  It can be found in your nearest\n"
-                    "/idgames repository mirror at:\n\n"
-                    "   themes/chex/chexdeh.zip");
-        } else if (!DEH_LoadFile(chex_deh))
-        {
-            I_Error("Failed to load chex.deh needed for emulating chex.exe.");
-        }
-        free(chex_deh);
-    }
-    // [crispy] try anyway...
-    else if (W_CheckNumForName("DEHACKED") != -1)
-    {
-        DEH_LoadLumpByName("DEHACKED", true, true);
     }
 
     if (IsFrenchIWAD())
     {
-        char *french_deh = NULL;
-        char *dirname;
-
-        // Look for french.deh in the same directory as the IWAD file.
-        dirname = M_DirName(iwadfile);
-        french_deh = M_StringJoin(dirname, DIR_SEPARATOR_S, "french.deh", NULL);
-        printf("French version\n");
-        free(dirname);
-
-        // If the dehacked patch isn't found, try searching the WAD
-        // search path instead.  We might find it...
-        if (!M_FileExists(french_deh))
+        if (!DEH_LoadMemory(french_embedded, sizeof(french_embedded), "french.deh"))
         {
-            free(french_deh);
-            french_deh = D_FindWADByName("french.deh");
+            I_Error("Failed to load embedded french.deh needed for emulating French doom2.exe.");
         }
+    }
 
-        // Still not found?
-        if (french_deh == NULL)
+    if (gameversion == exe_doom_1_2)
+    {
+        if (!DEH_LoadMemory(doom12_embedded, sizeof(doom12_embedded), "doom12.deh"))
         {
-            I_Error("Unable to find French Doom II dehacked file\n"
-                    "(french.deh).  The dehacked file is required in order to\n"
-                    "emulate French doom2.exe correctly.  It can be found in\n"
-                    "your nearest /idgames repository mirror at:\n\n"
-                    "   utils/exe_edit/patches/french.zip");
-		   
-        } else if (!DEH_LoadFile(french_deh))
-        {
-            I_Error("Failed to load french.deh needed for emulating French\n"
-                    "doom2.exe.");
+            I_Error("Failed to load embedded doom12.deh needed for emulating v1.2.");
         }
-		free(french_deh);
     }
 }
 

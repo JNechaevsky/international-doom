@@ -35,6 +35,7 @@ void DEH_Init(void); // [crispy] un-static
 
 void DEH_ParseCommandLine(void);
 int DEH_LoadFile(const char *filename);
+int DEH_LoadMemory(const unsigned char *data, size_t len, const char *name);
 void DEH_AutoLoadPatches(const char *path);
 int DEH_LoadLump(int lumpnum, boolean allow_long, boolean allow_error);
 int DEH_LoadLumpByName(const char *name, boolean allow_long, boolean allow_error);

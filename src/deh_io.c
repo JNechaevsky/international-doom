@@ -33,7 +33,8 @@
 typedef enum
 {
     DEH_INPUT_FILE,
-    DEH_INPUT_LUMP
+    DEH_INPUT_LUMP,
+    DEH_INPUT_MEMORY    // [PN] patch embedded in the executable (read-only)
 } deh_input_type_t;
 
 struct deh_context_s
@@ -131,6 +132,24 @@ deh_context_t *DEH_OpenLump(int lumpnum)
     return context;
 }
 
+// [PN] Open a caller-owned memory buffer (e.g. a patch embedded in the
+// executable) for reading. Nothing is freed on close; the data must
+// outlive the context.
+
+deh_context_t *DEH_OpenMemory(const unsigned char *data, size_t len,
+                              const char *name)
+{
+    deh_context_t *context = DEH_NewContext();
+
+    context->type = DEH_INPUT_MEMORY;
+    context->input_buffer = (unsigned char *) data;
+    context->input_buffer_len = len;
+    context->input_buffer_pos = 0;
+    context->filename = M_StringDuplicate(name);
+
+    return context;
+}
+
 // Close dehacked file
 
 void DEH_CloseFile(deh_context_t *context)
@@ -201,6 +220,7 @@ int DEH_GetChar(deh_context_t *context)
                 break;
 
             case DEH_INPUT_LUMP:
+            case DEH_INPUT_MEMORY:   // [PN] same buffer reader
                 result = DEH_GetCharLump(context);
                 break;
         }
@@ -215,6 +235,7 @@ int DEH_GetChar(deh_context_t *context)
                     break;
 
                 case DEH_INPUT_LUMP:
+                case DEH_INPUT_MEMORY:   // [PN] same buffer reader
                     --context->input_buffer_pos;
                     break;
             }
