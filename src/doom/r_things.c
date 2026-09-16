@@ -374,7 +374,7 @@ static void R_InitSpriteDefs (const char **namelist)
             // Parse first frame/rotation pair
             frame    = lname[4] - 'A';
             rotation = lname[5];
-            patched = modifiedgame ? W_GetNumForName(lname) : l;
+            patched = (gameversion > exe_doom_1_2 && modifiedgame) ? W_GetNumForName(lname) : l;
             R_InstallSpriteLump(patched, frame, rotation, false);
 
             // If there's a second frame/rotation pair, install it as flipped

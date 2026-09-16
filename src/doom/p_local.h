@@ -427,9 +427,10 @@ extern fixed_t attackrange;
 // [JN] CRL - a number of triggered intercepts which is causing All-Ghosts effect.
 #define MAXINTERCEPTS_ALLGHOSTS 147
 
-#define PT_ADDLINES     1
-#define PT_ADDTHINGS    2
-#define PT_EARLYOUT     4
+#define PT_ADDLINES        1
+#define PT_ADDTHINGS       2
+#define PT_EARLYOUT        4
+#define PT_COMPATADDLINES  8
 
 typedef struct
 {
