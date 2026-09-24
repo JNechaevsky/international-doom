@@ -520,7 +520,7 @@ void R_DrawPlanes (void)
                             const byte source = dc_source[frac >> FRACBITS];
 
                             *dest = dc_colormap[dc_brightmap[source]][source];
-                            dest += SCREENWIDTH;
+                            dest++;
 
                             if ((frac += fracstep) >= heightmask)
                             {
@@ -540,7 +540,7 @@ void R_DrawPlanes (void)
                             const byte source = dc_source[(frac >> FRACBITS) & heightmask];
 
                             *dest = dc_colormap[dc_brightmap[source]][source];
-                            dest += SCREENWIDTH;
+                            dest++;
                             frac += fracstep;
                         } while (count--);
                     }
@@ -572,10 +572,10 @@ void R_DrawPlanes (void)
                                 const byte source = dc_source[frac>>FRACBITS];
 
                                 *dest4 = *dest3 = *dest2 = *dest1 = dc_colormap[dc_brightmap[source]][source];
-                                dest1 += SCREENWIDTH;
-                                dest2 += SCREENWIDTH;
-                                dest3 += SCREENWIDTH;
-                                dest4 += SCREENWIDTH;
+                                dest1++;
+                                dest2++;
+                                dest3++;
+                                dest4++;
 
                                 if ((frac += fracstep) >= heightmask)
                                 {
@@ -594,10 +594,10 @@ void R_DrawPlanes (void)
                                 const byte source = dc_source[(frac >> FRACBITS) & heightmask];
 
                                 *dest4 = *dest3 = *dest2 = *dest1 = dc_colormap[dc_brightmap[source]][source];
-                                dest1 += SCREENWIDTH;
-                                dest2 += SCREENWIDTH;
-                                dest3 += SCREENWIDTH;
-                                dest4 += SCREENWIDTH;
+                                dest1++;
+                                dest2++;
+                                dest3++;
+                                dest4++;
 
                                 frac += fracstep; 
 

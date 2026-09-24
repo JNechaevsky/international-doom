@@ -2262,7 +2262,7 @@ void ST_Init (void)
     char namebuf[9];
 
     // Backing screen for buffered drawing
-    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ST_HEIGHT * MAXHIRES)
+    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * MAXHEIGHT
                       * sizeof(*st_backing_screen), PU_STATIC, 0);
 
     // Main status bar (or left/right parts for Doom 1.0)

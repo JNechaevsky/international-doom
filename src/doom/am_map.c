@@ -1300,7 +1300,12 @@ void AM_Ticker (void)
 
 static void AM_clearFB (void)
 {
-    memset(I_VideoBuffer, automap_colors[0], (size_t)f_w*f_h*sizeof(*I_VideoBuffer));
+    pixel_t *dest = I_VideoBuffer;
+
+    for (int x = 0; x < f_w; x++, dest += SCREENHEIGHT)
+    {
+        memset(dest, automap_colors[0], (size_t)f_h * sizeof(*I_VideoBuffer));
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1310,21 +1315,30 @@ static void AM_clearFB (void)
 
 static void AM_shadeBackground (void)
 {
-    pixel_t *dest = I_VideoBuffer;
     const int shade = automap_shading;
-    const int scr = (dp_screen_size > 10)
-                  ? SCREENAREA
-                  : SCREENWIDTH * (SCREENHEIGHT - ST_HEIGHT * vid_resolution);
+    const int hgt = (dp_screen_size > 10)
+                  ? SCREENHEIGHT
+                  : SCREENHEIGHT - ST_HEIGHT * vid_resolution;
 
     if (vid_truecolor)
     {
-        for (int i = 0; i < scr; i++, dest++)
-            *dest = I_BlendDark_32(*dest, I_ShadeFactor[shade]);
+        for (int cx = 0; cx < SCREENWIDTH; cx++)
+        {
+            pixel_t *dest = I_VideoBuffer + (size_t)cx * SCREENHEIGHT;
+
+            for (int i = 0; i < hgt; i++, dest++)
+                *dest = I_BlendDark_32(*dest, I_ShadeFactor[shade]);
+        }
     }
     else
     {
-        for (int i = 0; i < scr; i++, dest++)
-            *dest = I_BlendDark_8(*dest, I_ShadeFactor[shade]);
+        for (int cx = 0; cx < SCREENWIDTH; cx++)
+        {
+            pixel_t *dest = I_VideoBuffer + (size_t)cx * SCREENHEIGHT;
+
+            for (int i = 0; i < hgt; i++, dest++)
+                *dest = I_BlendDark_8(*dest, I_ShadeFactor[shade]);
+        }
     }
 }
 
@@ -1423,7 +1437,7 @@ static boolean AM_clipMline (mline_t *ml, fline_t *fl)
 #define AM_SCREENX(xx) (drawing_minimap \
     ? (gp_flip_levels ? (f_x + (f_w - 1 - (xx))) : ((xx) + f_x)) \
     : flipscreenwidth[(xx) + f_x])
-#define PUTDOT_RAW(xx,yy,cc) fb[((yy) + f_y) * SCREENWIDTH + AM_SCREENX(xx)] = (cc)
+#define PUTDOT_RAW(xx,yy,cc) fb[AM_SCREENX(xx) * SCREENHEIGHT + ((yy) + f_y)] = (cc)
 #define PUTDOT(xx,yy,cc) PUTDOT_RAW(xx,yy,pal_color[(cc)])
 
 // -----------------------------------------------------------------------------
@@ -1466,7 +1480,7 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
 
     // Cache fb pointer and real screen stride
     pixel_t *restrict fbuf = fb;
-    const int stride = SCREENWIDTH;
+    const int stride = SCREENHEIGHT;
     const int fx = f_x;
     const int fy = f_y;
 
@@ -1481,9 +1495,9 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
             const int flipx = drawing_minimap
                             ? (gp_flip_levels ? (fx + (f_w - 1 - nx)) : (fx + nx))
                             : flipscreenwidth[fx + nx];
-            pixel_t *pix = fbuf + (fy + miny) * stride + flipx;
+            pixel_t *pix = fbuf + flipx * stride + (fy + miny);
 
-            for (int ny = miny; ny <= maxy; ++ny, pix += stride)
+            for (int ny = miny; ny <= maxy; ++ny, pix++)
             {
                 const int dy = ny - y;
                 if (dx2 + dy * dy > thick_sq) continue;
@@ -1504,9 +1518,9 @@ static inline void PUTDOT_THICK (int x, int y, pixel_t color)
             const int flipx = drawing_minimap
                             ? (gp_flip_levels ? (fx + (f_w - 1 - nx)) : (fx + nx))
                             : flipscreenwidth[fx + nx];
-            pixel_t *pix = fbuf + (fy + miny) * stride + flipx;
+            pixel_t *pix = fbuf + flipx * stride + (fy + miny);
 
-            for (int ny = miny; ny <= maxy; ++ny, pix += stride)
+            for (int ny = miny; ny <= maxy; ++ny, pix++)
             {
                 const int dy = ny - y;
                 if (dx2 + dy * dy > thick_sq) continue;
@@ -1540,9 +1554,9 @@ static inline void PUTDOT_THICK_BLEND (int x, int y, pixel_t fg, unsigned char a
             return;
         }
 
-        pixel_t *const pix = &fb[(y + f_y) * SCREENWIDTH + (drawing_minimap
+        pixel_t *const pix = &fb[(drawing_minimap
             ? (gp_flip_levels ? (f_x + (f_w - 1 - x)) : (x + f_x))
-            : flipscreenwidth[x + f_x])];
+            : flipscreenwidth[x + f_x]) * SCREENHEIGHT + (y + f_y)];
         if (alpha == 255)
         {
             *pix = fg;
@@ -1567,7 +1581,7 @@ static inline void PUTDOT_THICK_BLEND (int x, int y, pixel_t fg, unsigned char a
     const int thick_sq = thickness * thickness;
 
     pixel_t *restrict fbuf = fb;
-    const int stride = SCREENWIDTH;
+    const int stride = SCREENHEIGHT;
     const int fx = f_x;
     const int fy = f_y;
 
@@ -1581,9 +1595,9 @@ static inline void PUTDOT_THICK_BLEND (int x, int y, pixel_t fg, unsigned char a
             const int flipx = drawing_minimap
                             ? (gp_flip_levels ? (fx + (f_w - 1 - nx)) : (fx + nx))
                             : flipscreenwidth[fx + nx];
-            pixel_t *pix = fbuf + (fy + miny) * stride + flipx;
+            pixel_t *pix = fbuf + flipx * stride + (fy + miny);
 
-            for (int ny = miny; ny <= maxy; ++ny, pix += stride)
+            for (int ny = miny; ny <= maxy; ++ny, pix++)
             {
                 const int dy = ny - y;
                 if (dx2 + dy * dy > thick_sq) continue;
@@ -1601,9 +1615,9 @@ static inline void PUTDOT_THICK_BLEND (int x, int y, pixel_t fg, unsigned char a
             const int flipx = drawing_minimap
                             ? (gp_flip_levels ? (fx + (f_w - 1 - nx)) : (fx + nx))
                             : flipscreenwidth[fx + nx];
-            pixel_t *pix = fbuf + (fy + miny) * stride + flipx;
+            pixel_t *pix = fbuf + flipx * stride + (fy + miny);
 
-            for (int ny = miny; ny <= maxy; ++ny, pix += stride)
+            for (int ny = miny; ny <= maxy; ++ny, pix++)
             {
                 const int dy = ny - y;
                 if (dx2 + dy * dy > thick_sq) continue;
@@ -2966,13 +2980,13 @@ void AM_MiniDrawer (void)
     {
         for (int y = 0; y < mini_h; ++y)
         {
-            pixel_t *const dest = I_VideoBuffer + (mini_y + y) * SCREENWIDTH + mini_x;
+            pixel_t *const dest = I_VideoBuffer + (mini_x * SCREENHEIGHT) + mini_y + y;
 
             for (int x = 0; x < mini_w; ++x)
             {
-                dest[x] = shade == 13 ? 0 :
-                    truecolor_blend ? I_BlendDark_32(dest[x], I_ShadeFactor[shade]) :
-                                      I_BlendDark_8(dest[x], I_ShadeFactor[shade]);
+                dest[x * SCREENHEIGHT] = shade == 13 ? 0 :
+                    truecolor_blend ? I_BlendDark_32(dest[x * SCREENHEIGHT], I_ShadeFactor[shade]) :
+                                      I_BlendDark_8(dest[x * SCREENHEIGHT], I_ShadeFactor[shade]);
             }
         }
     }

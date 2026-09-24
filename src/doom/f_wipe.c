@@ -158,7 +158,7 @@ static void wipe_initFizzle (void)
 
                     if (sx < SCREENWIDTH && sy < SCREENHEIGHT)
                     {
-                        y[sy * SCREENWIDTH + sx] = burn_value;
+                        y[sx * SCREENHEIGHT + sy] = burn_value;
                     }
                 }
             }
@@ -197,15 +197,10 @@ static void wipe_renderMelt (void)
         {
             for (; currcol < currcolend; ++currcol)
             {
-                const pixel_t *source = wipe_scr_start + currcol;
-                pixel_t       *dest   = wipe_scr + currcol;
+                const pixel_t *source = wipe_scr_start + currcol * SCREENHEIGHT;
+                pixel_t       *dest   = wipe_scr + currcol * SCREENHEIGHT;
 
-                for (int row = 0; row < SCREENHEIGHT; ++row)
-                {
-                    *dest = *source;
-                    dest += SCREENWIDTH;
-                    source += SCREENWIDTH;
-                }
+                memcpy(dest, source, SCREENHEIGHT * sizeof(*dest));
             }
         }
         else if (current < ORIGHEIGHT)
@@ -214,15 +209,10 @@ static void wipe_renderMelt (void)
 
             for (; currcol < currcolend; ++currcol)
             {
-                const pixel_t *source = wipe_scr_start + currcol;
-                pixel_t       *dest   = wipe_scr + currcol + (currrow * SCREENWIDTH);
+                const pixel_t *source = wipe_scr_start + currcol * SCREENHEIGHT;
+                pixel_t       *dest   = wipe_scr + currcol * SCREENHEIGHT + currrow;
 
-                for (int row = 0; row < SCREENHEIGHT - currrow; ++row)
-                {
-                    *dest = *source;
-                    dest += SCREENWIDTH;
-                    source += SCREENWIDTH;
-                }
+                memcpy(dest, source, (SCREENHEIGHT - currrow) * sizeof(*dest));
             }
         }
 
@@ -243,15 +233,10 @@ static void wipe_renderMelt (void)
         {
             for (int currcol = tail_start; currcol < SCREENWIDTH; ++currcol)
             {
-                const pixel_t *source = wipe_scr_start + currcol;
-                pixel_t       *dest   = wipe_scr + currcol;
+                const pixel_t *source = wipe_scr_start + currcol * SCREENHEIGHT;
+                pixel_t       *dest   = wipe_scr + currcol * SCREENHEIGHT;
 
-                for (int row = 0; row < SCREENHEIGHT; ++row)
-                {
-                    *dest = *source;
-                    dest += SCREENWIDTH;
-                    source += SCREENWIDTH;
-                }
+                memcpy(dest, source, SCREENHEIGHT * sizeof(*dest));
             }
         }
         else if (current < ORIGHEIGHT)
@@ -260,15 +245,10 @@ static void wipe_renderMelt (void)
 
             for (int currcol = tail_start; currcol < SCREENWIDTH; ++currcol)
             {
-                const pixel_t *source = wipe_scr_start + currcol;
-                pixel_t       *dest   = wipe_scr + currcol + (currrow * SCREENWIDTH);
+                const pixel_t *source = wipe_scr_start + currcol * SCREENHEIGHT;
+                pixel_t       *dest   = wipe_scr + currcol * SCREENHEIGHT + currrow;
 
-                for (int row = 0; row < SCREENHEIGHT - currrow; ++row)
-                {
-                    *dest = *source;
-                    dest += SCREENWIDTH;
-                    source += SCREENWIDTH;
-                }
+                memcpy(dest, source, (SCREENHEIGHT - currrow) * sizeof(*dest));
             }
         }
     }

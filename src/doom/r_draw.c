@@ -104,7 +104,6 @@ void R_DrawColumn(void)
     const byte *restrict const brightmap = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
 
     // Texture wrapping specifics
     const int heightmask = dc_texheight - 1;
@@ -117,8 +116,7 @@ void R_DrawColumn(void)
         for (int i = 0; i <= count; ++i)
         {
             const unsigned s = sourcebase[frac >> FRACBITS]; // Texture sample
-            *dest = brightmap[s] ? colormap1[s] : colormap0[s];
-            dest += screenwidth;
+            *dest++ = brightmap[s] ? colormap1[s] : colormap0[s];
             frac += fracstep;
             if (frac >= heightshifted)
                 frac -= heightshifted; // Normalize frac inline
@@ -129,8 +127,7 @@ void R_DrawColumn(void)
         for (int i = 0; i <= count; ++i)
         {
             const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask]; // Texture sample with mask
-            *dest = brightmap[s] ? colormap1[s] : colormap0[s];
-            dest += screenwidth;
+            *dest++ = brightmap[s] ? colormap1[s] : colormap0[s];
             frac += fracstep;
         }
     }
@@ -164,7 +161,6 @@ void R_DrawColumnLow(void)
     const byte *restrict const brightmap = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
 
     const int heightmask = dc_texheight - 1;
     const fixed_t heightshifted = dc_texheight << FRACBITS; // Pre-shifted height for modulo
@@ -178,10 +174,8 @@ void R_DrawColumnLow(void)
             const unsigned s = sourcebase[frac >> FRACBITS]; // Texture sample
             const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
 
-            *dest = index;
-            *dest2 = index;
-            dest += screenwidth;
-            dest2 += screenwidth;
+            *dest++ = index;
+            *dest2++ = index;
             frac += fracstep;
             if (frac >= heightshifted) frac -= heightshifted; // Avoid modulo
         }
@@ -193,10 +187,8 @@ void R_DrawColumnLow(void)
             const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask]; // Texture sample with bitmask
             const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
 
-            *dest = index;
-            *dest2 = index;
-            dest += screenwidth;
-            dest2 += screenwidth;
+            *dest++ = index;
+            *dest2++ = index;
             frac += fracstep; // Increment frac directly
         }
     }
@@ -320,8 +312,7 @@ void R_DrawFuzzColumn(void)
     // Local pointers to improve memory access
     const int *restrict const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
-    const int pitch = SCREENWIDTH;
-    const int top_delta = pitch - 1;
+    const int sh = SCREENHEIGHT;
     const pixel_t *restrict const vbuf_start = I_VideoBuffer;
     const pixel_t *restrict const vbuf_end = I_VideoBuffer + SCREENAREA;
     const int fuzzwrap = FUZZTABLE;
@@ -358,28 +349,27 @@ void R_DrawFuzzColumn(void)
             if (write_lines > remaining) write_lines = remaining;
 
             // Sample source (one row up/down per fuzzoffset)
-            const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+            const int off = fuzzoffsetbase[local_fuzzpos];
             const pixel_t *restrict src = dest + off;
 
             // Clamp against top, then in-bounds guard
-            if (src < vbuf_start) src = dest + top_delta;
+            if (src < vbuf_start) src = dest + sh - 1;
             if (src < vbuf_end)
             {
                 const pixel_t blended = I_BlendFuzz(*src, fuzzalpha, truecolor_blend, invul_colormap);
 
-                // Fill rectangle: write_lines × fuzzblockwidth
-                pixel_t *row = dest;
-                for (int ly = 0; ly < write_lines; ++ly)
+                // Fill rectangle: fuzzblockwidth columns × write_lines rows.
+                for (int j = 0; j < fuzzblockwidth; ++j)
                 {
-                    for (int j = 0; j < fuzzblockwidth; ++j)
-                        row[j] = blended;
-                    row += pitch;
+                    pixel_t *col = dest + (size_t)j * sh;
+                    for (int ly = 0; ly < write_lines; ++ly)
+                        col[ly] = blended;
                 }
             }
 
             // Advance vertically
             remaining -= write_lines;
-            dest += pitch * write_lines;
+            dest += write_lines;
 
             // Update fuzz position (compact wrap & optional jitter)
             if (++local_fuzzpos == fuzzwrap)
@@ -395,10 +385,10 @@ void R_DrawFuzzColumn(void)
         // Bottom cutoff: one extra strip
         if (cutoff)
         {
-            const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+            const int fuzz_off = (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
             const pixel_t blended = I_BlendFuzz(dest[fuzz_off], fuzzalpha, truecolor_blend, invul_colormap);
             for (int j = 0; j < fuzzblockwidth; ++j)
-                dest[j] = blended;
+                dest[j * sh] = blended;
         }
 
         fuzzpos = local_fuzzpos;
@@ -409,11 +399,11 @@ void R_DrawFuzzColumn(void)
     int iterations = count + 1;
     while (iterations--)
     {
-        const int offset = pitch * fuzzoffsetbase[local_fuzzpos];
+        const int offset = fuzzoffsetbase[local_fuzzpos];
         const pixel_t *restrict src = dest + offset;
 
         // Top clamp + in-bounds guard
-        if (src < vbuf_start) src = dest + top_delta;
+        if (src < vbuf_start) src = dest + sh - 1;
         if (src < vbuf_end)
             *dest = I_BlendFuzz(*src, fuzzalpha, truecolor_blend, invul_colormap);
 
@@ -425,13 +415,13 @@ void R_DrawFuzzColumn(void)
                 local_fuzzpos = ID_Random() % 49;
         }
 
-        dest += pitch;
+        dest++;
     }
 
     // Bottom cutoff
     if (cutoff)
     {
-        const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
         *dest = I_BlendFuzz(dest[fuzz_offset], fuzzalpha, truecolor_blend, invul_colormap);
     }
 
@@ -474,8 +464,7 @@ void R_DrawFuzzColumnLow(void)
     const int *restrict const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
 
-    const int pitch = SCREENWIDTH;
-    const int top_delta = pitch - 1;
+    const int sh = SCREENHEIGHT;
     const pixel_t *restrict const vbuf_start = I_VideoBuffer;
     const pixel_t *restrict const vbuf_end   = I_VideoBuffer + SCREENAREA;
     const int fuzzwrap = FUZZTABLE;
@@ -524,30 +513,29 @@ void R_DrawFuzzColumnLow(void)
             if (write_lines > remaining) write_lines = remaining;
 
             // Sample source (one row up/down per fuzzoffset)
-            const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+            const int off = fuzzoffsetbase[local_fuzzpos];
             const pixel_t *restrict src = draw + off;
 
             // Top clamp + in-bounds guard
-            if (src < vbuf_start) src = draw + top_delta;
+            if (src < vbuf_start) src = draw + sh - 1;
             if (src < vbuf_end)
             {
                 const pixel_t blended = I_BlendFuzz(*src, fuzzalpha, truecolor_blend, invul_colormap);
 
-                // Fill rectangle: write_lines × fuzzblockwidth (anchored)
-                pixel_t *row = draw;
-                for (int ly = 0; ly < write_lines; ++ly)
+                // Fill rectangle: fuzzblockwidth columns × write_lines rows.
+                for (int j = 0; j < fuzzblockwidth; ++j)
                 {
-                    for (int j = 0; j < fuzzblockwidth; ++j)
-                        row[j] = blended;
-                    row += pitch;
+                    pixel_t *col = draw + (size_t)j * sh;
+                    for (int ly = 0; ly < write_lines; ++ly)
+                        col[ly] = blended;
                 }
             }
 
             // Advance vertically; keep dest/dest2 in step for classic cutoff data
             remaining -= write_lines;
-            draw  += pitch * write_lines;
-            dest  += pitch * write_lines;
-            dest2 += pitch * write_lines;
+            draw  += write_lines;
+            dest  += write_lines;
+            dest2 += write_lines;
 
             // Update fuzzpos (compact wrap & optional jitter)
             if (++local_fuzzpos == fuzzwrap)
@@ -563,10 +551,10 @@ void R_DrawFuzzColumnLow(void)
         // Bottom cutoff: one extra strip at the anchor
         if (cutoff)
         {
-            const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+            const int fuzz_off = (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
             const pixel_t blended = I_BlendFuzz(draw[fuzz_off], fuzzalpha, truecolor_blend, invul_colormap);
             for (int j = 0; j < fuzzblockwidth; ++j)
-                draw[j] = blended;
+                draw[j * sh] = blended;
         }
 
         fuzzpos = local_fuzzpos;
@@ -577,14 +565,14 @@ void R_DrawFuzzColumnLow(void)
     int iterations = count + 1;
     while (iterations--)
     {
-        const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+        const int off = fuzzoffsetbase[local_fuzzpos];
 
         const pixel_t *restrict src1 = dest  + off;
         const pixel_t *restrict src2 = dest2 + off;
 
         // Top clamp + in-bounds guard
-        if (src1 < vbuf_start) src1 = dest  + top_delta;
-        if (src2 < vbuf_start) src2 = dest2 + top_delta;
+        if (src1 < vbuf_start) src1 = dest  + sh - 1;
+        if (src2 < vbuf_start) src2 = dest2 + sh - 1;
 
         if (src1 < vbuf_end)
             *dest = I_BlendFuzz(*src1, fuzzalpha, truecolor_blend, invul_colormap);
@@ -599,14 +587,14 @@ void R_DrawFuzzColumnLow(void)
                 local_fuzzpos = ID_Random() % 49;
         }
 
-        dest  += pitch;
-        dest2 += pitch;
+        dest++;
+        dest2++;
     }
 
     // Bottom cutoff (classic)
     if (cutoff)
     {
-        const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
         *dest  = I_BlendFuzz(dest [fuzz_offset], fuzzalpha, truecolor_blend, invul_colormap);
         *dest2 = I_BlendFuzz(dest2[fuzz_offset], fuzzalpha, truecolor_blend, invul_colormap);
     }
@@ -645,8 +633,7 @@ void R_DrawFuzzBWColumn(void)
     const int *restrict const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
 
-    const int pitch = SCREENWIDTH;
-    const int top_delta = pitch - 1;
+    const int sh = SCREENHEIGHT;
     const pixel_t *restrict const vbuf_start = I_VideoBuffer;
     const pixel_t *restrict const vbuf_end   = I_VideoBuffer + SCREENAREA;
     const int fuzzwrap = FUZZTABLE;
@@ -677,29 +664,28 @@ void R_DrawFuzzBWColumn(void)
             if (write_lines > remaining) write_lines = remaining;
 
             // Source sample (one row up/down per fuzzoffset)
-            const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+            const int off = fuzzoffsetbase[local_fuzzpos];
             const pixel_t *restrict src = dest + off;
 
             // Top clamp + in-bounds guard
-            if (src < vbuf_start) src = dest + top_delta;
+            if (src < vbuf_start) src = dest + sh - 1;
             if (src < vbuf_end)
             {
                 const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale_32(*src, fuzzalpha) :
                                                           I_BlendDarkGrayscale_8(*src, fuzzalpha);
 
-                // Fill rectangle: write_lines × fuzzblockwidth
-                pixel_t *row = dest;
-                for (int ly = 0; ly < write_lines; ++ly)
+                // Fill rectangle: fuzzblockwidth columns × write_lines rows.
+                for (int j = 0; j < fuzzblockwidth; ++j)
                 {
-                    for (int j = 0; j < fuzzblockwidth; ++j)
-                        row[j] = blended;
-                    row += pitch;
+                    pixel_t *col = dest + (size_t)j * sh;
+                    for (int ly = 0; ly < write_lines; ++ly)
+                        col[ly] = blended;
                 }
             }
 
             // Advance vertically
             remaining -= write_lines;
-            dest += pitch * write_lines;
+            dest += write_lines;
 
             // Update fuzz position (compact wrap)
             if (++local_fuzzpos == fuzzwrap)
@@ -711,11 +697,11 @@ void R_DrawFuzzBWColumn(void)
         // Bottom cutoff: one extra horizontal strip
         if (cutoff)
         {
-            const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+            const int fuzz_off = (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
             const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale_32(dest[fuzz_off], fuzzalpha) :
                                                       I_BlendDarkGrayscale_8(dest[fuzz_off], fuzzalpha);
             for (int j = 0; j < fuzzblockwidth; ++j)
-                dest[j] = blended;
+                dest[j * sh] = blended;
         }
 
         fuzzpos = local_fuzzpos;
@@ -726,11 +712,11 @@ void R_DrawFuzzBWColumn(void)
     int iterations = count + 1;
     while (iterations--)
     {
-        const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+        const int off = fuzzoffsetbase[local_fuzzpos];
         const pixel_t *restrict src = dest + off;
 
         // Top clamp + in-bounds guard
-        if (src < vbuf_start) src = dest + top_delta;
+        if (src < vbuf_start) src = dest + sh - 1;
         if (src < vbuf_end)
             *dest = truecolor_blend ? I_BlendDarkGrayscale_32(*src, fuzzalpha) :
                                       I_BlendDarkGrayscale_8(*src, fuzzalpha);
@@ -739,13 +725,13 @@ void R_DrawFuzzBWColumn(void)
         if (++local_fuzzpos == fuzzwrap)
             local_fuzzpos = 0;
 
-        dest += pitch;
+        dest++;
     }
 
     // Bottom cutoff
     if (cutoff)
     {
-        const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
         *dest = truecolor_blend ? I_BlendDarkGrayscale_32(dest[fuzz_offset], fuzzalpha) :
                                   I_BlendDarkGrayscale_8(dest[fuzz_offset], fuzzalpha);
     }
@@ -789,8 +775,7 @@ void R_DrawFuzzBWColumnLow(void)
     const int *restrict const fuzzoffsetbase = fuzzoffset;
     int local_fuzzpos = fuzzpos;
 
-    const int pitch = SCREENWIDTH;
-    const int top_delta = pitch - 1;
+    const int sh = SCREENHEIGHT;
     const pixel_t *restrict const vbuf_start = I_VideoBuffer;
     const pixel_t *restrict const vbuf_end   = I_VideoBuffer + SCREENAREA;
     const int fuzzwrap = FUZZTABLE;
@@ -833,31 +818,30 @@ void R_DrawFuzzBWColumnLow(void)
             if (write_lines > remaining) write_lines = remaining;
 
             // Source sample (one row up/down per fuzzoffset)
-            const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+            const int off = fuzzoffsetbase[local_fuzzpos];
             const pixel_t *restrict src = draw + off;
 
             // Top clamp + in-bounds guard
-            if (src < vbuf_start) src = draw + top_delta;
+            if (src < vbuf_start) src = draw + sh - 1;
             if (src < vbuf_end)
             {
                 const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale_32(*src, fuzzalpha) :
                                                           I_BlendDarkGrayscale_8(*src, fuzzalpha);
 
-                // Fill rectangle: write_lines × fuzzblockwidth (anchored)
-                pixel_t *row = draw;
-                for (int ly = 0; ly < write_lines; ++ly)
+                // Fill rectangle: fuzzblockwidth columns × write_lines rows.
+                for (int j = 0; j < fuzzblockwidth; ++j)
                 {
-                    for (int j = 0; j < fuzzblockwidth; ++j)
-                        row[j] = blended;
-                    row += pitch;
+                    pixel_t *col = draw + (size_t)j * sh;
+                    for (int ly = 0; ly < write_lines; ++ly)
+                        col[ly] = blended;
                 }
             }
 
             // Advance vertically; keep dest/dest2 in step for cutoff bookkeeping
             remaining -= write_lines;
-            draw  += pitch * write_lines;
-            dest  += pitch * write_lines;
-            dest2 += pitch * write_lines;
+            draw  += write_lines;
+            dest  += write_lines;
+            dest2 += write_lines;
 
             // Update fuzz position (compact wrap)
             if (++local_fuzzpos == fuzzwrap)
@@ -869,11 +853,11 @@ void R_DrawFuzzBWColumnLow(void)
         // Bottom cutoff: one extra strip at the anchor
         if (cutoff)
         {
-            const int fuzz_off = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+            const int fuzz_off = (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
             const pixel_t blended = truecolor_blend ? I_BlendDarkGrayscale_32(draw[fuzz_off], fuzzalpha) :
                                                       I_BlendDarkGrayscale_8(draw[fuzz_off], fuzzalpha);
             for (int j = 0; j < fuzzblockwidth; ++j)
-                draw[j] = blended;
+                draw[j * sh] = blended;
         }
 
         // Persist fuzz position and exit
@@ -885,14 +869,14 @@ void R_DrawFuzzBWColumnLow(void)
     int iterations = count + 1;
     while (iterations--)
     {
-        const int off = pitch * fuzzoffsetbase[local_fuzzpos];
+        const int off = fuzzoffsetbase[local_fuzzpos];
 
         const pixel_t *restrict src1 = dest  + off;
         const pixel_t *restrict src2 = dest2 + off;
 
         // Top clamp + in-bounds guard
-        if (src1 < vbuf_start) src1 = dest  + top_delta;
-        if (src2 < vbuf_start) src2 = dest2 + top_delta;
+        if (src1 < vbuf_start) src1 = dest  + sh - 1;
+        if (src2 < vbuf_start) src2 = dest2 + sh - 1;
 
         if (src1 < vbuf_end)
             *dest = truecolor_blend ? I_BlendDarkGrayscale_32(*src1, fuzzalpha) :
@@ -905,14 +889,14 @@ void R_DrawFuzzBWColumnLow(void)
         if (++local_fuzzpos == fuzzwrap)
             local_fuzzpos = 0;
 
-        dest  += pitch;
-        dest2 += pitch;
+        dest++;
+        dest2++;
     }
 
     // Bottom cutoff
     if (cutoff)
     {
-        const int fuzz_offset = pitch * (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
+        const int fuzz_offset = (fuzzoffsetbase[local_fuzzpos] - FUZZOFF) / 2;
         *dest  = truecolor_blend ? I_BlendDarkGrayscale_32(dest [fuzz_offset], fuzzalpha) :
                                    I_BlendDarkGrayscale_8(dest [fuzz_offset], fuzzalpha);
         *dest2 = truecolor_blend ? I_BlendDarkGrayscale_32(dest2[fuzz_offset], fuzzalpha) :
@@ -954,7 +938,6 @@ void R_DrawTranslatedColumn(void)
     const byte *restrict const translation = dc_translation;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
 
     // Aggressive optimization: minimize overhead inside the loop
     const int iterations = count + 1;
@@ -962,9 +945,8 @@ void R_DrawTranslatedColumn(void)
     {
         const unsigned s = sourcebase[frac >> FRACBITS];  // Texture sample
         const unsigned t = translation[s];               // Translation lookup
-        *dest = brightmap[s] ? colormap1[t] : colormap0[t]; // Conditionally blend using colormap
+        *dest++ = brightmap[s] ? colormap1[t] : colormap0[t];
 
-        dest += screenwidth; // Advance destination pointer
         frac += fracstep;    // Increment texture coordinate
     }
 }
@@ -992,7 +974,6 @@ void R_DrawTranslatedColumnLow(void)
     const byte *restrict const translation = dc_translation;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
 
     // Aggressively optimized loop for blending pixels
     const int iterations = count + 1;
@@ -1002,12 +983,9 @@ void R_DrawTranslatedColumnLow(void)
         const unsigned t = translation[s];               // Translation lookup
         const pixel_t index = brightmap[s] ? colormap1[t] : colormap0[t]; // Conditional colormap lookup
 
-        *dest = index;
-        *dest2 = index;
+        *dest++  = index;
+        *dest2++ = index;
 
-        // Advance destination pointers and texture coordinate
-        dest += screenwidth;
-        dest2 += screenwidth;
         frac += fracstep;
     }
 }
@@ -1098,6 +1076,7 @@ void R_DrawSpan(void)
     const pixel_t *restrict const colormap1 = ds_colormap[1];
     const fixed_t xstep = ds_xstep;
     const fixed_t ystep = ds_ystep;
+    const int sh = SCREENHEIGHT;
 
     // Local copies of fractional coordinates
     fixed_t xfrac = ds_xfrac;
@@ -1118,13 +1097,13 @@ void R_DrawSpan(void)
                 const int spot = xtemp | ytemp;
 
                 const byte source = sourcebase[spot];
-                dest[j] = brightmap[source] ? colormap1[source] : colormap0[source];
+                dest[j * sh] = brightmap[source] ? colormap1[source] : colormap0[source];
 
                 xfrac += xstep;
                 yfrac += ystep;
             }
 
-            dest += 4;
+            dest += 4 * sh;
             count -= 4;
         }
 
@@ -1138,7 +1117,7 @@ void R_DrawSpan(void)
             const byte source = sourcebase[spot];
             *dest = brightmap[source] ? colormap1[source] : colormap0[source];
 
-            ++dest;
+            dest += sh;
             xfrac += xstep;
             yfrac += ystep;
             --count;
@@ -1195,6 +1174,7 @@ void R_DrawSpanLow(void)
     const pixel_t *restrict const colormap1 = ds_colormap[1];
     const fixed_t xstep = ds_xstep;
     const fixed_t ystep = ds_ystep;
+    const int sh = SCREENHEIGHT;
 
     // Local copies of fractional coordinates
     fixed_t xfrac = ds_xfrac;
@@ -1214,9 +1194,10 @@ void R_DrawSpanLow(void)
                 const unsigned xtemp = (xfrac >> 16) & 0x3F;
                 const int spot = xtemp | ytemp;
                 const byte source = sourcebase[spot];
-                dest[0] = brightmap[source] ? colormap1[source] : colormap0[source];
-                dest[1] = brightmap[source] ? colormap1[source] : colormap0[source];
-                dest += 2;
+                const pixel_t pix = brightmap[source] ? colormap1[source] : colormap0[source];
+                dest[0] = pix;
+                dest[sh] = pix;
+                dest += 2 * sh;
                 xfrac += xstep;
                 yfrac += ystep;
             }
@@ -1232,9 +1213,10 @@ void R_DrawSpanLow(void)
             const int spot = xtemp | ytemp;
 
             const byte source = sourcebase[spot];
-            dest[0] = brightmap[source] ? colormap1[source] : colormap0[source];
-            dest[1] = brightmap[source] ? colormap1[source] : colormap0[source];
-            dest += 2;
+            const pixel_t pix = brightmap[source] ? colormap1[source] : colormap0[source];
+            dest[0] = pix;
+            dest[sh] = pix;
+            dest += 2 * sh;
 
             xfrac += xstep;
             yfrac += ystep;
@@ -1271,7 +1253,9 @@ void R_DrawSpanLow(void)
 // R_InitBuffer 
 // Initializes the buffer for a given view width and height.
 // Handles border offsets and row/column calculations.
-// [PN] Simplified logic and improved readability for better understanding.
+// [PN] Transposed backbuffer: columnofs[x] is now the column base offset
+// (x * SCREENHEIGHT), ylookup[y] the in-column row offset, so
+// ylookup[yl] + columnofs[x] still addresses pixel (x, y).
 // -----------------------------------------------------------------------------
 
 void R_InitBuffer(int width, int height)
@@ -1281,20 +1265,20 @@ void R_InitBuffer(int width, int height)
     // [PN] Handle resize: calculate horizontal offset (viewwindowx).
     viewwindowx = (SCREENWIDTH - width) >> 1;
 
-    // [PN] Calculate column offsets (columnofs).
+    // [PN] Column base offsets in transposed memory.
     for (i = 0; i < width; i++) 
     {
-        columnofs[i] = viewwindowx + i;
+        columnofs[i] = (viewwindowx + i) * SCREENHEIGHT;
     }
 
     // [PN] Calculate vertical offset (viewwindowy).
     // Simplified using ternary operator.
     viewwindowy = (width == SCREENWIDTH) ? 0 : (SCREENHEIGHT - SBARHEIGHT - height) >> 1;
 
-    // [PN] Precalculate row offsets (ylookup) for each row.
+    // [PN] Precalculate row pointers (offset within the transposed column).
     for (i = 0; i < height; i++) 
     {
-        ylookup[i] = I_VideoBuffer + (i + viewwindowy) * SCREENWIDTH;
+        ylookup[i] = I_VideoBuffer + (i + viewwindowy);
     }
 
     // [PN] Free the background buffer if it exists.
@@ -1325,7 +1309,7 @@ void R_FillBackScreen (void)
     // Allocate the background buffer if necessary
     if (background_buffer == NULL)
     {
-        const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
+        const int size = SCREENAREA;
         background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, 0);
     }
 
@@ -1381,25 +1365,31 @@ void R_FillBackScreen (void)
 
 
 // -----------------------------------------------------------------------------
-// Copy a screen buffer.
-// [PN] Changed ofs to size_t for clarity and to represent offset more appropriately.
+// Copy a screen buffer rectangle.
+// [PN] Transposed layout: erase runs along y (contiguous) per column.
 // -----------------------------------------------------------------------------
 
-static void R_VideoErase (size_t ofs, int count)
+static void R_VideoErase (int x, int y, int w, int h)
 {
-    // [PN] Ensure the background buffer is valid before copying
-    if (background_buffer != NULL)
+    const int sh = SCREENHEIGHT;
+
+    if (background_buffer == NULL)
     {
-        // [PN] Copy from background buffer to video buffer
-        memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count * sizeof(*I_VideoBuffer));
+        return;
+    }
+
+    for (int i = 0; i < w; i++)
+    {
+        memcpy(I_VideoBuffer + (x + i) * sh + y,
+               background_buffer + (x + i) * sh + y,
+               (size_t)h * sizeof(*I_VideoBuffer));
     }
 }
 
 // -----------------------------------------------------------------------------
 // R_DrawViewBorder
 // Draws the border around the view for different size windows.
-// [PN] Optimized by precomputing common offsets and reducing repeated calculations.
-//      Simplified logic for top, bottom, and side erasing.
+// [PN] Transposed: erase the bezel as rectangles instead of linear runs.
 // -----------------------------------------------------------------------------
 
 void R_DrawViewBorder (void)
@@ -1409,24 +1399,20 @@ void R_DrawViewBorder (void)
         return;
     }
 
-    // [PN] Precompute common values
     const int top = ((SCREENHEIGHT - SBARHEIGHT) - viewheight) / 2;
     const int side = (SCREENWIDTH - scaledviewwidth) / 2;
-    const int top_offset = top * SCREENWIDTH + side;
-    const int bottom_offset = (viewheight + top) * SCREENWIDTH - side;
 
-    // [PN] Copy top and bottom sections
-    R_VideoErase(0, top_offset);
-    R_VideoErase(bottom_offset, top_offset);
+    // Top and bottom full-width bands.
+    if (top > 0)
+    {
+        R_VideoErase(0, 0, SCREENWIDTH, top);
+        R_VideoErase(0, top + viewheight, SCREENWIDTH, top + 1);
+    }
 
-    // [PN] Precompute for sides
-    int ofs = top * SCREENWIDTH + SCREENWIDTH - side;
-    const int doubled_side = side << 1;
-
-    // [PN] Copy sides
-    for (int i = 1; i < viewheight; i++) 
-    { 
-        R_VideoErase(ofs, doubled_side);
-        ofs += SCREENWIDTH;
+    // Left and right borders along the view height.
+    if (side > 0)
+    {
+        R_VideoErase(0, top, side, viewheight + 1);
+        R_VideoErase(SCREENWIDTH - side, top, side, viewheight + 1);
     }
 }

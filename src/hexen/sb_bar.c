@@ -476,7 +476,7 @@ void SB_Init(void)
     SpinSpeedLump = W_GetNumForName("SPBOOT0");
     SpinDefenseLump = W_GetNumForName("SPSHLD0");
 
-    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (ORIGSBARHEIGHT * MAXHIRES) * sizeof(*st_backing_screen), PU_STATIC, 0);
+    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * MAXHEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
     if (deathmatch)
     {
         PatchKILLS = W_CacheLumpName("KILLS", PU_STATIC);
@@ -1788,13 +1788,13 @@ void DrawMainBar(void)
             {
                 for (j = 0; j < vid_resolution; j++)
                 {
-                    const int base_index = SCREENWIDTH * ((i * vid_resolution) + j)
-                                         + ((95 + WIDESCREENDELTA) * vid_resolution);
+                    const int y0 = (i * vid_resolution) + j;
+                    const int x0 = (95 + WIDESCREENDELTA) * vid_resolution;
 
                     // [PN] Since three consecutive columns are being filled
                     for (k = 0; k < 3 * vid_resolution; k++)
                     {
-                        I_VideoBuffer[base_index + k] = adjusted_black;
+                        I_VideoBuffer[(x0 + k) * SCREENHEIGHT + y0] = adjusted_black;
                     }
                 }
             }
@@ -1806,13 +1806,13 @@ void DrawMainBar(void)
             {
                 for (j = 0; j < vid_resolution; j++)
                 {
-                    const int base_index = SCREENWIDTH * ((i * vid_resolution) + j)
-                                         + ((103 + WIDESCREENDELTA) * vid_resolution);
+                    const int y0 = (i * vid_resolution) + j;
+                    const int x0 = (103 + WIDESCREENDELTA) * vid_resolution;
 
                     // [PN] Since three consecutive columns are being filled
                     for (k = 0; k < 3 * vid_resolution; k++)
                     {
-                        I_VideoBuffer[base_index + k] = adjusted_black;
+                        I_VideoBuffer[(x0 + k) * SCREENHEIGHT + y0] = adjusted_black;
                     }
                 }
             }

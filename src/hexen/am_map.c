@@ -1253,35 +1253,41 @@ static void AM_drawBackground (void)
 {
     if (automap_textured_bg)
     {
-    pixel_t *restrict dest = I_VideoBuffer;
-    const byte *restrict src = maplump;
-    static int bg_xoffs = 0;
-    static int bg_yoffs = 0;
+        pixel_t *restrict dest = I_VideoBuffer;
+        const byte *restrict src = maplump;
+        static int bg_xoffs = 0;
+        static int bg_yoffs = 0;
 
-    // [PN] Update background offsets only when automap_rotate is disabled
-    if (!automap_rotate && automap_scroll_bg)
-    {
-        bg_xoffs = (MTOF(m_x) / 4) % MAPBGROUNDWIDTH;
-        bg_yoffs = (MTOF(m_y) / 8) % MAPBGROUNDHEIGHT;
-        if (bg_xoffs < 0) bg_xoffs += MAPBGROUNDWIDTH;
-        if (bg_yoffs < 0) bg_yoffs += MAPBGROUNDHEIGHT;
-    }
-
-    for (int y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++)
-    {
-        const int ysrc = (y + bg_yoffs) % MAPBGROUNDHEIGHT;
-        const byte *restrict row = src + ysrc * MAPBGROUNDWIDTH;
-
-        for (int x = 0; x < SCREENWIDTH; x++)
+        // [PN] Update background offsets only when automap_rotate is disabled
+        if (!automap_rotate && automap_scroll_bg)
         {
-            const int xsrc = (x + bg_xoffs) % MAPBGROUNDWIDTH;
-            dest[y * SCREENWIDTH + x] = pal_color[row[xsrc]];
+            bg_xoffs = (MTOF(m_x) / 4) % MAPBGROUNDWIDTH;
+            bg_yoffs = (MTOF(m_y) / 8) % MAPBGROUNDHEIGHT;
+            if (bg_xoffs < 0) bg_xoffs += MAPBGROUNDWIDTH;
+            if (bg_yoffs < 0) bg_yoffs += MAPBGROUNDHEIGHT;
         }
-    }
+
+        for (int y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++)
+        {
+            const int ysrc = (y + bg_yoffs) % MAPBGROUNDHEIGHT;
+            const byte *restrict row = src + ysrc * MAPBGROUNDWIDTH;
+            pixel_t *dst = dest + y;
+
+            for (int x = 0; x < SCREENWIDTH; x++, dst += SCREENHEIGHT)
+            {
+                const int xsrc = (x + bg_xoffs) % MAPBGROUNDWIDTH;
+                *dst = pal_color[row[xsrc]];
+            }
+        }
     }
     else
     {
-    memset(I_VideoBuffer, 0, (size_t)f_w*f_h*sizeof(*I_VideoBuffer));
+        pixel_t *clear = I_VideoBuffer;
+
+        for (int x = 0; x < f_w; x++, clear += SCREENHEIGHT)
+        {
+            memset(clear, 0, (size_t)f_h * sizeof(*I_VideoBuffer));
+        }
     }
 }
 
@@ -1292,21 +1298,30 @@ static void AM_drawBackground (void)
 
 static void AM_shadeBackground (void)
 {
-    pixel_t *dest = I_VideoBuffer;
     const int shade = automap_shading;
-    const int scr = (dp_screen_size > 10)
-                  ? SCREENAREA
-                  : SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
+    const int hgt = (dp_screen_size > 10)
+                  ? SCREENHEIGHT
+                  : SCREENHEIGHT - SBARHEIGHT;
 
     if (vid_truecolor)
     {
-        for (int i = 0; i < scr; i++, dest++)
-            *dest = I_BlendDark_32(*dest, I_ShadeFactor[shade]);
+        for (int cx = 0; cx < SCREENWIDTH; cx++)
+        {
+            pixel_t *dest = I_VideoBuffer + (size_t)cx * SCREENHEIGHT;
+
+            for (int i = 0; i < hgt; i++, dest++)
+                *dest = I_BlendDark_32(*dest, I_ShadeFactor[shade]);
+        }
     }
     else
     {
-        for (int i = 0; i < scr; i++, dest++)
-            *dest = I_BlendDark_8(*dest, I_ShadeFactor[shade]);
+        for (int cx = 0; cx < SCREENWIDTH; cx++)
+        {
+            pixel_t *dest = I_VideoBuffer + (size_t)cx * SCREENHEIGHT;
+
+            for (int i = 0; i < hgt; i++, dest++)
+                *dest = I_BlendDark_8(*dest, I_ShadeFactor[shade]);
+        }
     }
 }
 
@@ -1437,7 +1452,7 @@ static inline void PUTDOT_THICK(int x, int y, byte *cc)
 
     // Cache frequently used
     uint32_t *restrict fbuf = (uint32_t *)fb;
-    const int stride = SCREENWIDTH;
+    const int stride = SCREENHEIGHT;
     const int fx = f_x;
     const int fy = f_y;
     const uint32_t fg = (uint32_t)pal_color[(int)*cc];
@@ -1465,9 +1480,9 @@ static inline void PUTDOT_THICK(int x, int y, byte *cc)
         const int flipx = drawing_minimap
                         ? (gp_flip_levels ? (fx + (f_w - 1 - nx)) : (fx + nx))
                         : flipscreenwidth[fx + nx];
-        uint32_t *pix = fbuf + (fy + miny) * stride + flipx;
+        uint32_t *pix = fbuf + flipx * stride + (fy + miny);
 
-        for (int ny = miny; ny <= maxy; ++ny, pix += stride)
+        for (int ny = miny; ny <= maxy; ++ny, pix++)
         {
             const int dy  = ny - y;
             const int d2  = dx2 + dy * dy;
@@ -1550,7 +1565,7 @@ static inline void PUTDOT_THICK_BLEND(int x, int y, byte color, pixel_t fg, unsi
     const int thick_sq = thickness * thickness;
 
     uint32_t *restrict fbuf = (uint32_t *)fb;
-    const int stride = SCREENWIDTH;
+    const int stride = SCREENHEIGHT;
     const int fx = f_x;
     const int fy = f_y;
 
@@ -1576,9 +1591,9 @@ static inline void PUTDOT_THICK_BLEND(int x, int y, byte color, pixel_t fg, unsi
         const int flipx = drawing_minimap
                         ? (gp_flip_levels ? (fx + (f_w - 1 - nx)) : (fx + nx))
                         : flipscreenwidth[fx + nx];
-        uint32_t *pix = fbuf + (fy + miny) * stride + flipx;
+        uint32_t *pix = fbuf + flipx * stride + (fy + miny);
 
-        for (int ny = miny; ny <= maxy; ++ny, pix += stride)
+        for (int ny = miny; ny <= maxy; ++ny, pix++)
         {
             const int dy = ny - y;
             if (dx2 + dy * dy > thick_sq) continue;
@@ -2649,13 +2664,13 @@ void AM_MiniDrawer (void)
     {
         for (int y = 0; y < mini_h; ++y)
         {
-            pixel_t *const dest = I_VideoBuffer + (mini_y + y) * SCREENWIDTH + mini_x;
+            pixel_t *const dest = I_VideoBuffer + (mini_x * SCREENHEIGHT) + mini_y + y;
 
             for (int x = 0; x < mini_w; ++x)
             {
-                dest[x] = shade == 13 ? 0 :
-                    truecolor_blend ? I_BlendDark_32(dest[x], I_ShadeFactor[shade]) :
-                                      I_BlendDark_8(dest[x], I_ShadeFactor[shade]);
+                dest[x * SCREENHEIGHT] = shade == 13 ? 0 :
+                    truecolor_blend ? I_BlendDark_32(dest[x * SCREENHEIGHT], I_ShadeFactor[shade]) :
+                                      I_BlendDark_8(dest[x * SCREENHEIGHT], I_ShadeFactor[shade]);
             }
         }
     }

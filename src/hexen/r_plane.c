@@ -565,7 +565,7 @@ void R_DrawPlanes (void)
                                 {
                                     *dest = pal_color[source2[frac >> FRACBITS]];
                                 }
-                                dest += SCREENWIDTH;
+                                dest++;
                                 if ((frac += fracstep) >= heightmask)
                                 {
                                     frac -= heightmask;
@@ -588,7 +588,7 @@ void R_DrawPlanes (void)
                                     *dest = pal_color[source2[(frac >> FRACBITS) & heightmask]];
                                 }
 
-                                dest += SCREENWIDTH;
+                                dest++;
                                 frac += fracstep;
                             } while (count--);
                         }
@@ -664,7 +664,7 @@ void R_DrawPlanes (void)
                             do
                             {
                                 *dest = pal_color[source[frac >> FRACBITS]];
-                                dest += SCREENWIDTH;
+                                dest++;
 
                                 if ((frac += fracstep) >= heightmask)
                                 {
@@ -680,7 +680,7 @@ void R_DrawPlanes (void)
                             do
                             {
                                 *dest = pal_color[source[(frac >> FRACBITS) & heightmask]];
-                                dest += SCREENWIDTH;
+                                dest++;
                                 frac += fracstep;
                             } while (count--);
                         }

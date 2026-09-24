@@ -86,13 +86,13 @@ static void I_PresentHRToMainWindow(void)
         const byte *src_row =
             ((const byte *) hr_surface->pixels) + src_y * hr_surface->pitch;
         pixel_t *dst_row =
-            I_VideoBuffer + (y + offset_y) * SCREENWIDTH + offset_x;
+            I_VideoBuffer + offset_x * SCREENHEIGHT + (y + offset_y);
 
         for (x = 0; x < target_w; ++x)
         {
             const int src_x = x * HR_SCREENWIDTH / target_w;
             const SDL_Color *c = &colors[src_row[src_x]];
-            dst_row[x] = I_MapRGB(c->r, c->g, c->b);
+            dst_row[x * SCREENHEIGHT] = I_MapRGB(c->r, c->g, c->b);
         }
     }
 

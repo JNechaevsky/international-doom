@@ -32,6 +32,9 @@ Project's author would like to thank everyone for code, technical, informative, 
 **[Nyan Doom](https://github.com/andrikpowell/nyan-doom)**
 * Andrik Powell (Arsinikk)
 
+**[Rum and Raisin Doom](https://github.com/GooberMan/rum-and-raisin-doom)**
+* Ethan Watson (GooberMan)
+
 **[Russian Doom](https://github.com/Russian-Doom/)**
 * Leonid Murin (Dasperal)
 

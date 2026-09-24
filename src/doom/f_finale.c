@@ -699,21 +699,20 @@ F_DrawPatchCol
     int		count;
 	
     column = (column_t *)((byte *)patch + LONG(patch->columnofs[col]));
-    desttop = I_VideoBuffer + x;
+    desttop = I_VideoBuffer + x * SCREENHEIGHT;
 
     // step through the posts in a column
     while (column->topdelta != 0xff )
     {
 	int srccol = 0;
 	source = (byte *)column + 3;
-	dest = desttop + ((column->topdelta * dy) >> FRACBITS)*SCREENWIDTH;
+	dest = desttop + ((column->topdelta * dy) >> FRACBITS);
 	count = (column->length * dy) >> FRACBITS;
 		
 	while (count--)
 	{
-	    *dest = pal_color[source[srccol >> FRACBITS]];
+	    *dest++ = pal_color[source[srccol >> FRACBITS]];
 	    srccol += dyi;
-	    dest += SCREENWIDTH;
 	}
 	column = (column_t *)(  (byte *)column + column->length + 4 );
     }

@@ -67,6 +67,9 @@ boolean cleanshot_pending  = false;
 
 // -----------------------------------------------------------------------------
 // V_CopyRect
+// [PN] Transposed layout: a rectangle is a run of y-contiguous pixels
+// (stride 1) per column, columns spaced SCREENHEIGHT apart. All buffers
+// passed here are full-screen-sized and share the transposed layout.
 // -----------------------------------------------------------------------------
 
 void V_CopyRect(int srcx, int srcy, pixel_t *source,
@@ -96,66 +99,29 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
     if (width <= 0 || height <= 0)
         return;
 
-    pixel_t *src_row  = source + srcy * sw + srcx;
-    pixel_t *dest_row = dst0   + desty * sw + destx;
+    const size_t col_bytes = (size_t)height * sizeof(pixel_t);
 
-    const size_t row_bytes = (size_t)width * sizeof(*dest_row);
+    // Same-buffer copy: columns never alias each other in the transposed
+    // layout, but overlapping x ranges need a safe traversal direction;
+    // y overlap within one column is handled with memmove.
+    const boolean same_buffer = (source == dst0);
+    const boolean y_overlap   = same_buffer
+                             && desty < srcy + height && srcy < desty + height;
+    const boolean back_cols   = same_buffer && destx > srcx
+                             && destx < srcx + width;
 
-    // Fast path: full-width blit starting at x==0 → one big transfer
-    if (srcx == 0 && destx == 0 && width == sw)
+    for (int n = 0; n < width; ++n)
     {
-        pixel_t *srcp = source + srcy * sw;
-        pixel_t *dstp = dst0   + desty * sw;
+        const int i = back_cols ? width - 1 - n : n;
+        pixel_t *const src  = source + (srcx  + i) * sh + srcy;
+        pixel_t *const dest = dst0   + (destx + i) * sh + desty;
 
-        if (dstp == srcp)
-            return; // exact same region
-
-        if (source == dst0)
-        {
-            // Same buffer: memmove handles overlap (top/bottom)
-            memmove(dstp, srcp, (size_t)height * (size_t)sw * sizeof(*dstp));
-        }
+        if (y_overlap)
+            memmove(dest, src, col_bytes);
         else
-        {
-            memcpy(dstp, srcp, (size_t)height * (size_t)sw * sizeof(*dstp));
-        }
-        return;
+            memcpy (dest, src, col_bytes);
     }
-
-    // General path: copy row-by-row.
-    // If copying within the same screen buffer and dest is below src, go bottom-up
-    // to avoid clobbering yet-to-be-copied rows. Use memmove per row to be safe
-    // for horizontal overlap in the same buffer.
-    const int same_buffer = (source == dst0);
-
-    if (same_buffer && desty > srcy)
-    {
-        // Bottom-up
-        src_row  += (height - 1) * sw;
-        dest_row += (height - 1) * sw;
-
-        for (int r = 0; r < height; ++r)
-        {
-            memmove(dest_row, src_row, row_bytes);
-            src_row  -= sw;
-            dest_row -= sw;
-        }
-    }
-    else
-    {
-        // Top-down
-        for (int r = 0; r < height; ++r)
-        {
-            if (same_buffer)
-                memmove(dest_row, src_row, row_bytes);
-            else
-                memcpy (dest_row, src_row, row_bytes);
-
-            src_row  += sw;
-            dest_row += sw;
-        }
-    }
-} 
+}
 
 // -----------------------------------------------------------------------------
 // V_DrawPatch
@@ -204,8 +170,8 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 
     // Compute top pointer of the first column on the destination buffer.
     desttop = dst_screen
-            + ((y * ldy) >> FRACBITS) * sw
-            + ((x * ldx) >> FRACBITS);
+            + ((x * ldx) >> FRACBITS) * sh
+            + ((y * ldy) >> FRACBITS);
 
     w = SHORT(patch->width);
 
@@ -213,7 +179,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
     x = (x * ldx) >> FRACBITS;
 
     // Iterate columns in fixed-point (scaled drawing).
-    for (; col < (w << FRACBITS); x++, col += ldxi, desttop++)
+    for (; col < (w << FRACBITS); x++, col += ldxi, desttop += sh)
     {
         int topdelta = -1;
 
@@ -239,7 +205,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
             // Compute starting y and pointers for this post.
             top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
-            dest   = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            dest   = desttop + ((topdelta * ldy) >> FRACBITS);
             count  = (column->length * ldy) >> FRACBITS;
 
             // Bottom clip against screen height.
@@ -260,7 +226,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
                     column = (column_t *)((byte *)column + column->length + 4);
                     continue;
                 }
-                dest   += skip * sw;
+                dest   += skip;
                 srccol += ldyi * skip;
                 count  -= skip;
                 // top is effectively 0 now
@@ -273,18 +239,16 @@ void V_DrawPatch(int x, int y, patch_t *patch)
                 {
                     while (count--)
                     {
-                        *dest = pal[source[srccol >> FRACBITS]];
+                        *dest++ = pal[source[srccol >> FRACBITS]];
                         srccol += ldyi;
-                        dest   += sw;
                     }
                 }
                 else                    // Opaque, translated
                 {
                     while (count--)
                     {
-                        *dest = pal[xlat[source[srccol >> FRACBITS]]];
+                        *dest++ = pal[xlat[source[srccol >> FRACBITS]]];
                         srccol += ldyi;
-                        dest   += sw;
                     }
                 }
             }
@@ -299,7 +263,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
                         *dest = use_tc ? I_BlendOver128_32(*dest, fg)
                                        : I_BlendOver128_8 (*dest, fg);
                         srccol += ldyi;
-                        dest   += sw;
+                        dest++;
                     }
                 }
                 else                    // Translucent, translated
@@ -311,7 +275,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
                         *dest = use_tc ? I_BlendOver128_32(*dest, fg)
                                        : I_BlendOver128_8 (*dest, fg);
                         srccol += ldyi;
-                        dest   += sw;
+                        dest++;
                     }
                 }
             }
@@ -368,10 +332,10 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
         x = 0;
     }
 
-    // Compute top pointers of the first column on the destination buffer.
-    desttop  = dst_screen + ((y * ldy) >> FRACBITS) * sw + ((x * ldx) >> FRACBITS);
-    // Shadow is offset by (+2, +2)
-    desttop2 = dst_screen + (((y + 2) * ldy) >> FRACBITS) * sw + (((x + 2) * ldx) >> FRACBITS);
+    // [PN] Transposed: main column pointer plus shadow pointer offset by
+    // (+2, +2) in screen space -> x and y contributions separately.
+    desttop  = dst_screen + ((x * ldx) >> FRACBITS) * sh + ((y * ldy) >> FRACBITS);
+    desttop2 = dst_screen + (((x + 2) * ldx) >> FRACBITS) * sh + (((y + 2) * ldy) >> FRACBITS);
 
     w = SHORT(patch->width);
 
@@ -382,7 +346,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     const int sh_limit_shadow = sh - (2 * vres);
 
     // Iterate columns in fixed-point (scaled drawing).
-    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop++, desttop2++)
+    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop += sh, desttop2 += sh)
     {
         int topdelta = -1;
 
@@ -409,8 +373,8 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
             top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
 
-            dest   = desttop  + ((topdelta * ldy) >> FRACBITS) * sw;
-            dest2  = desttop2 + ((topdelta * ldy) >> FRACBITS) * sw;
+            dest   = desttop  + ((topdelta * ldy) >> FRACBITS);
+            dest2  = desttop2 + ((topdelta * ldy) >> FRACBITS);
 
             count  = (column->length * ldy) >> FRACBITS;
             count2 = count;
@@ -440,8 +404,8 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
                     continue;
                 }
 
-                dest   += skip * sw;
-                dest2  += skip * sw;
+                dest   += skip;
+                dest2  += skip;
                 srccol += ldyi * skip;
 
                 count  -= skip;
@@ -456,11 +420,11 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
                 int n = count2;
                 if (use_tc)
                 {
-                    while (n--) { *dest2 = I_BlendDark_32(*dest2, shadow_alpha); dest2 += sw; }
+                    while (n--) { *dest2 = I_BlendDark_32(*dest2, shadow_alpha); dest2++; }
                 }
                 else
                 {
-                    while (n--) { *dest2 = I_BlendDark_8 (*dest2, shadow_alpha); dest2 += sw; }
+                    while (n--) { *dest2 = I_BlendDark_8 (*dest2, shadow_alpha); dest2++; }
                 }
             }
 
@@ -472,9 +436,8 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
                     int n = count;
                     while (n--)
                     {
-                        *dest = pal[source[srccol >> FRACBITS]];
+                        *dest++ = pal[source[srccol >> FRACBITS]];
                         srccol += ldyi;
-                        dest   += sw;
                     }
                 }
                 else                    // Opaque, translated
@@ -482,9 +445,8 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
                     int n = count;
                     while (n--)
                     {
-                        *dest = pal[xlat[source[srccol >> FRACBITS]]];
+                        *dest++ = pal[xlat[source[srccol >> FRACBITS]]];
                         srccol += ldyi;
-                        dest   += sw;
                     }
                 }
             }
@@ -500,7 +462,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
                         *dest = use_tc ? I_BlendOver128_32(*dest, fg)
                                        : I_BlendOver128_8 (*dest, fg);
                         srccol += ldyi;
-                        dest   += sw;
+                        dest++;
                     }
                 }
                 else                    // Translucent, translated
@@ -513,7 +475,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
                         *dest = use_tc ? I_BlendOver128_32(*dest, fg)
                                        : I_BlendOver128_8 (*dest, fg);
                         srccol += ldyi;
-                        dest   += sw;
+                        dest++;
                     }
                 }
             }
@@ -574,8 +536,8 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
     // Shadow blend function (picked once, inlined).
     const int sa = shadow_alpha; (void)shadow_type; // keep param; alpha is the same
 
-    // Shadow placement helper (keep original semantics).
-    const int shadow_shift = (sw + 1) * vres;
+    // Shadow placement helper: (+1 vres, +1 vres) screen offset in transposed address space.
+    const int shadow_shift = (sh + 1) * vres;
 
     // Position patch (Crispy-style offsets + widescreen).
     y -= SHORT(patch->topoffset);
@@ -591,7 +553,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
     }
 
     // Compute top pointer of the first column on the destination buffer.
-    desttop = dst_screen + ((y * ldy) >> FRACBITS) * sw + ((x * ldx) >> FRACBITS);
+    desttop = dst_screen + ((x * ldx) >> FRACBITS) * sh + ((y * ldy) >> FRACBITS);
 
     w = SHORT(patch->width);
 
@@ -602,7 +564,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
     const int sh_limit_shadow = sh - (1 * vres);
 
     // Iterate columns in fixed-point (scaled drawing).
-    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop++)
+    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop += sh)
     {
         int topdelta = -1;
 
@@ -629,7 +591,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
             top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
 
-            dest  = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            dest  = desttop + ((topdelta * ldy) >> FRACBITS);
             dest2 = dest + shadow_shift;
 
             count  = (column->length * ldy) >> FRACBITS;
@@ -660,8 +622,8 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
                     continue;
                 }
 
-                dest   += skip * sw;
-                dest2  += skip * sw;
+                dest   += skip;
+                dest2  += skip;
                 srccol += ldyi * skip;
                 count  -= skip;
                 count2 -= skip;
@@ -676,11 +638,11 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
                 int n = count2;
                 if (use_tc)
                 {
-                    while (n--) { *dest2 = I_BlendDark_32(*dest2, sa); dest2 += sw; }
+                    while (n--) { *dest2 = I_BlendDark_32(*dest2, sa); dest2++; }
                 }
                 else
                 {
-                    while (n--) { *dest2 = I_BlendDark_8 (*dest2, sa); dest2 += sw; }
+                    while (n--) { *dest2 = I_BlendDark_8 (*dest2, sa); dest2++; }
                 }
             }
 
@@ -692,9 +654,8 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
                     int n = count;
                     while (n--)
                     {
-                        *dest = pal[source[srccol >> FRACBITS]];
+                        *dest++ = pal[source[srccol >> FRACBITS]];
                         srccol += ldyi;
-                        dest   += sw;
                     }
                 }
                 else                    // Opaque, translated
@@ -702,9 +663,8 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
                     int n = count;
                     while (n--)
                     {
-                        *dest = pal[xlat[source[srccol >> FRACBITS]]];
+                        *dest++ = pal[xlat[source[srccol >> FRACBITS]]];
                         srccol += ldyi;
-                        dest   += sw;
                     }
                 }
             }
@@ -720,7 +680,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
                         *dest = use_tc ? I_BlendOver128_32(*dest, fg)
                                        : I_BlendOver128_8 (*dest, fg);
                         srccol += ldyi;
-                        dest   += sw;
+                        dest++;
                     }
                 }
                 else                    // Translucent, translated
@@ -733,7 +693,7 @@ void V_DrawShadowedPatchOptional(int x, int y, int shadow_type, patch_t *patch)
                         *dest = use_tc ? I_BlendOver128_32(*dest, fg)
                                        : I_BlendOver128_8 (*dest, fg);
                         srccol += ldyi;
-                        dest   += sw;
+                        dest++;
                     }
                 }
             }
@@ -790,7 +750,7 @@ void V_DrawShadowedPatchOptionalFade(int x, int y, int shadow_type, patch_t *pat
     // as alpha goes to 0 (instead of towards 0).
     const int sa = 255 - (((255 - shadow_alpha) * alpha) / 255); (void)shadow_type; 
  
-    const int shadow_shift = (sw + 1) * vres; 
+    const int shadow_shift = (sh + 1) * vres;
  
     y -= SHORT(patch->topoffset); 
     x -= SHORT(patch->leftoffset); 
@@ -803,14 +763,14 @@ void V_DrawShadowedPatchOptionalFade(int x, int y, int shadow_type, patch_t *pat
         x = 0; 
     } 
  
-    desttop = dst_screen + ((y * ldy) >> FRACBITS) * sw + ((x * ldx) >> FRACBITS); 
+    desttop = dst_screen + ((x * ldx) >> FRACBITS) * sh + ((y * ldy) >> FRACBITS); 
  
     w = SHORT(patch->width); 
     x = (x * ldx) >> FRACBITS; 
  
     const int sh_limit_shadow = sh - (1 * vres); 
  
-    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop++) 
+    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop += sh) 
     { 
         int topdelta = -1; 
  
@@ -832,7 +792,7 @@ void V_DrawShadowedPatchOptionalFade(int x, int y, int shadow_type, patch_t *pat
             top    = ((y + topdelta) * ldy) >> FRACBITS; 
             source = (byte *)column + 3; 
  
-            dest  = desttop + ((topdelta * ldy) >> FRACBITS) * sw; 
+            dest  = desttop + ((topdelta * ldy) >> FRACBITS); 
             dest2 = dest + shadow_shift; 
  
             count  = (column->length * ldy) >> FRACBITS; 
@@ -859,8 +819,8 @@ void V_DrawShadowedPatchOptionalFade(int x, int y, int shadow_type, patch_t *pat
                     continue; 
                 } 
  
-                dest   += skip * sw; 
-                dest2  += skip * sw; 
+                dest   += skip; 
+                dest2  += skip; 
                 srccol += ldyi * skip; 
                 count  -= skip; 
                 count2 -= skip; 
@@ -871,11 +831,11 @@ void V_DrawShadowedPatchOptionalFade(int x, int y, int shadow_type, patch_t *pat
                 int n = count2; 
                 if (use_tc) 
                 { 
-                    while (n--) { *dest2 = I_BlendDark_32(*dest2, sa); dest2 += sw; } 
+                    while (n--) { *dest2 = I_BlendDark_32(*dest2, sa); dest2++; } 
                 } 
                 else 
                 { 
-                    while (n--) { *dest2 = I_BlendDark_8(*dest2, sa); dest2 += sw; } 
+                    while (n--) { *dest2 = I_BlendDark_8(*dest2, sa); dest2++; } 
                 } 
             } 
  
@@ -889,7 +849,7 @@ void V_DrawShadowedPatchOptionalFade(int x, int y, int shadow_type, patch_t *pat
                     *dest = use_tc ? I_BlendOver_32(*dest, fg, alpha) 
                                    : I_BlendOver_8(*dest, fg, alpha); 
                     srccol += ldyi; 
-                    dest   += sw; 
+                    dest++; 
                 } 
             } 
             else 
@@ -902,7 +862,7 @@ void V_DrawShadowedPatchOptionalFade(int x, int y, int shadow_type, patch_t *pat
                     *dest = use_tc ? I_BlendOver_32(*dest, fg, alpha) 
                                    : I_BlendOver_8(*dest, fg, alpha); 
                     srccol += ldyi; 
-                    dest   += sw; 
+                    dest++; 
                 } 
             } 
  
@@ -987,8 +947,8 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
 
     // Compute top pointer of the first column on the destination buffer.
     desttop = dst_screen
-            + ((y * ldy) >> FRACBITS) * sw
-            + ((x * ldx) >> FRACBITS);
+            + ((x * ldx) >> FRACBITS) * sh
+            + ((y * ldy) >> FRACBITS);
 
     w = SHORT(patch->width);
 
@@ -996,7 +956,7 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     x = (x * ldx) >> FRACBITS;
 
     // Iterate columns in fixed-point (scaled drawing), mirrored horizontally.
-    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop++)
+    for ( ; col < (w << FRACBITS) ; x++, col += ldxi, desttop += sh)
     {
         int topdelta = -1;
 
@@ -1022,7 +982,7 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
             // Compute starting y and pointers for this post.
             top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
-            dest   = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            dest   = desttop + ((topdelta * ldy) >> FRACBITS);
             count  = (column->length * ldy) >> FRACBITS;
 
             // Bottom clip against screen height.
@@ -1043,7 +1003,7 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
                     column = (column_t *)((byte *)column + column->length + 4);
                     continue;
                 }
-                dest   += skip * sw;
+                dest   += skip;
                 srccol += ldyi * skip;
                 count  -= skip;
                 // top is effectively 0 now
@@ -1054,9 +1014,8 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
                 int n = count;
                 while (n--)
                 {
-                    *dest = pal[source[srccol >> FRACBITS]];
+                    *dest++ = pal[source[srccol >> FRACBITS]];
                     srccol += ldyi;
-                    dest   += sw;
                 }
             }
 
@@ -1121,8 +1080,8 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
 
     // Compute top pointer of the first column on the destination buffer.
     desttop = dst_screen
-            + ((y * ldy) >> FRACBITS) * sw
-            + ((x * ldx) >> FRACBITS);
+            + ((x * ldx) >> FRACBITS) * sh
+            + ((y * ldy) >> FRACBITS);
 
     w = SHORT(patch->width);
 
@@ -1130,7 +1089,7 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
     x = (x * ldx) >> FRACBITS;
 
     // Iterate columns in fixed-point (scaled drawing).
-    for (; col < (w << FRACBITS); x++, col += ldxi, desttop++)
+    for (; col < (w << FRACBITS); x++, col += ldxi, desttop += sh)
     {
         int topdelta = -1;
 
@@ -1156,7 +1115,7 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
             // Starting y and pointers for this post.
             top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
-            dest   = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            dest   = desttop + ((topdelta * ldy) >> FRACBITS);
             count  = (column->length * ldy) >> FRACBITS;
 
             // Bottom clip against screen height.
@@ -1180,7 +1139,7 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
                     column = (column_t *)((byte *)column + column->length + 4);
                     continue;
                 }
-                dest   += skip * sw;
+                dest   += skip;
                 srccol += ldyi * skip;
                 count  -= skip;
                 // top is effectively 0 now
@@ -1196,7 +1155,7 @@ void V_DrawTLPatch(int x, int y, patch_t * patch)
                     *dest = use_tc ? I_BlendOver64_32(*dest, fg)
                                    : I_BlendOver64_8(*dest, fg);
                     srccol += ldyi;
-                    dest   += sw;
+                    dest++;
                 }
             }
 
@@ -1258,8 +1217,8 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
 
     // Compute top pointer of the first column on the destination buffer.
     desttop = dst_screen
-            + ((y * ldy) >> FRACBITS) * sw
-            + ((x * ldx) >> FRACBITS);
+            + ((x * ldx) >> FRACBITS) * sh
+            + ((y * ldy) >> FRACBITS);
 
     w = SHORT(patch->width);
 
@@ -1267,7 +1226,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
     x = (x * ldx) >> FRACBITS;
 
     // Iterate columns in fixed-point (scaled drawing).
-    for (; col < (w << FRACBITS); x++, col += ldxi, desttop++)
+    for (; col < (w << FRACBITS); x++, col += ldxi, desttop += sh)
     {
         int topdelta = -1;
 
@@ -1293,7 +1252,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
             // Starting y and pointers for this post.
             top    = ((y + topdelta) * ldy) >> FRACBITS;
             source = (byte *)column + 3;
-            dest   = desttop + ((topdelta * ldy) >> FRACBITS) * sw;
+            dest   = desttop + ((topdelta * ldy) >> FRACBITS);
             count  = (column->length * ldy) >> FRACBITS;
 
             // Bottom clip against screen height.
@@ -1317,7 +1276,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
                     column = (column_t *)((byte *)column + column->length + 4);
                     continue;
                 }
-                dest   += skip * sw;
+                dest   += skip;
                 srccol += ldyi * skip;
                 count  -= skip;
                 // top is effectively 0 now
@@ -1334,7 +1293,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t * patch)
                     *dest = use_tc ? I_BlendOver128_32(*dest, fg)
                                    : I_BlendOver128_8(*dest, fg);
                     srccol += ldyi;
-                    dest   += sw;
+                    dest++;
                 }
             }
 
@@ -1384,7 +1343,7 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
 
     // Precompute column start on destination
     pixel_t *restrict desttop =
-        dst + ((y * ldy) >> FRACBITS) * sw + ((x * ldx) >> FRACBITS);
+        dst + ((x * ldx) >> FRACBITS) * sh + ((y * ldy) >> FRACBITS);
 
     // Build a 256-entry LUT of truecolor pixels once per call, accounting for translation.
     // This removes per-pixel translation branches and extra indirections.
@@ -1404,7 +1363,7 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
     // Fast path if alpha == 255: plain opaque copy of translated pal color.
     if (alpha == 255)
     {
-        for (int col = 0; col < (pw << FRACBITS); col += ldxi, desttop++)
+        for (int col = 0; col < (pw << FRACBITS); col += ldxi, desttop += sh)
         {
             const column_t *restrict column =
                 (const column_t *)((const byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
@@ -1413,7 +1372,7 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
             {
                 const int count = (column->length * ldy) >> FRACBITS;
                 pixel_t *restrict dest =
-                    desttop + ((column->topdelta * ldy) >> FRACBITS) * sw;
+                    desttop + ((column->topdelta * ldy) >> FRACBITS);
                 const byte *restrict source = (const byte *)column + 3;
 
                 // No need for top/bottom clipping here because of strict in-bounds guard above.
@@ -1421,9 +1380,8 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
                 while (n--)
                 {
                     const byte s = source[srccol >> FRACBITS];
-                    *dest = src_lut[s];
+                    *dest++ = src_lut[s];
                     srccol += ldyi;
-                    dest   += sw;
                 }
 
                 column = (const column_t *)((const byte *)column + column->length + 4);
@@ -1433,7 +1391,7 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
     }
 
     // General path: alpha-blend over destination (TrueColor).
-    for (int col = 0; col < (pw << FRACBITS); col += ldxi, desttop++)
+    for (int col = 0; col < (pw << FRACBITS); col += ldxi, desttop += sh)
     {
         const column_t *restrict column =
             (const column_t *)((const byte *)patch + LONG(patch->columnofs[col >> FRACBITS]));
@@ -1442,7 +1400,7 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
         {
             const int count = (column->length * ldy) >> FRACBITS;
             pixel_t *restrict dest =
-                desttop + ((column->topdelta * ldy) >> FRACBITS) * sw;
+                desttop + ((column->topdelta * ldy) >> FRACBITS);
             const byte *restrict source = (const byte *)column + 3;
 
             int n = count, srccol = 0;
@@ -1451,7 +1409,7 @@ void V_DrawFadePatch (int x, int y, const patch_t *restrict patch, int alpha)
                 const byte s = source[srccol >> FRACBITS];
                 *dest = I_BlendOver_32(*dest, src_lut[s], alpha);
                 srccol += ldyi;
-                dest   += sw;
+                dest++;
             }
 
             column = (const column_t *)((const byte *)column + column->length + 4);
@@ -1483,32 +1441,32 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     if (width <= 0 || height <= 0 || src == NULL)
         return;
 
-    // Compute destination start once. Note: y is scaled by vid_resolution.
-    pixel_t *restrict dest = dst_screen_local + (y * vres) * sw + x;
+    // [PN] Transposed: src and dst share the screen layout (column pitch
+    // SCREENHEIGHT). dest[0] corresponds to block origin (x, y*vres).
+    const int y0 = y * vres;
 
-    // Fast path: full-width blit starting at x==0 → one big memcpy
-    if (x == 0 && width == sw)
+    // Fast path: whole-screen blit → one big memcpy
+    if (x == 0 && y == 0 && width == sw && height == sh)
     {
-        const size_t bytes = (size_t)height * (size_t)sw * sizeof(*dest);
-        memcpy(dest, src, bytes);
+        const size_t bytes = (size_t)SCREENAREA * sizeof(pixel_t);
+        memcpy(dst_screen_local, src, bytes);
         return;
     }
 
-    // General path: row-by-row memcpy with screen stride
-    pixel_t *restrict s = src;
-    const size_t row_bytes = (size_t)width * sizeof(*dest);
-
-    for (int h = 0; h < height; ++h)
+    // General path: column-by-column memcpy (contiguous y runs).
+    for (int i = 0; i < width; ++i)
     {
-        memcpy(dest, s, row_bytes);
-        s    += width;   // advance source by the block width
-        dest += sw;      // advance dest by full screen stride
+        memcpy(dst_screen_local + (x + i) * sh + y0,
+               src + (size_t)i * sh,
+               (size_t)height * sizeof(pixel_t));
     }
 } 
 
 // -----------------------------------------------------------------------------
 // V_DrawScaledBlock
 //  [crispy] scaled version of V_DrawBlock()
+//  [PN] src is a row-major byte-indexed buffer; the destination screen is
+//  transposed, so output is written column-by-column.
 // -----------------------------------------------------------------------------
 
 void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
@@ -1545,50 +1503,41 @@ void V_DrawScaledBlock(int x, int y, int width, int height, byte *src)
     const int xoff = dx0 - rx;  // 0..vres-1
     const int yoff = dy0 - ry;  // 0..vres-1
 
-    // Starting destination pointer
-    pixel_t *restrict dest_row = dst + dy0 * sw + dx0;
+    // Vertical accumulator start (same for every column)
+    const int src_y0 = (vres > 1) ? (yoff / vres) : yoff;
+    const int hy0    = (vres > 1) ? (yoff % vres) : 0;
 
-    // Vertical mapping without per-row division:
-    // src_y starts at floor(yoff / vres), hy = yoff % vres; each row increments hy,
-    // and when hy == vres we reset to 0 and increment src_y.
-    int src_y = (vres > 1) ? (yoff / vres) : yoff;     // safe for vres==1
-    int hy    = (vres > 1) ? (yoff % vres) : 0;
+    // Horizontal mapping accumulators start at the clipped origin
+    int src_x = (vres > 1) ? (xoff / vres) : xoff;
+    int hx    = (vres > 1) ? (xoff % vres) : 0;
 
-    for (int i = 0; i < dh; ++i)
+    pixel_t *restrict dest_col = dst + dx0 * sh + dy0;
+
+    for (int j = 0; j < dw; ++j)
     {
-        const byte *restrict src_row = src + src_y * width;
+        const byte *restrict src_pix = src + src_x; // stride 'width' per row
+        pixel_t *restrict d = dest_col;
+        int src_y = src_y0;
+        int hy    = hy0;
 
-        // Horizontal mapping without per-pixel division:
-        // src_x starts at floor(xoff / vres), hx = xoff % vres; each pixel increments hx,
-        // and when hx == vres we reset to 0 and increment src_x.
-        int src_x = (vres > 1) ? (xoff / vres) : xoff;
-        int hx    = (vres > 1) ? (xoff % vres) : 0;
-
-        pixel_t *restrict d = dest_row;
-
-        // Inner loop: nearest-neighbor scale using accumulators (no divisions)
-        for (int j = 0; j < dw; ++j)
+        // Inner loop: contiguous down the column, nearest-neighbor in y
+        for (int i = 0; i < dh; ++i)
         {
-            d[j] = pal[src_row[src_x]];
+            *d++ = pal[src_pix[src_y * width]];
 
-            // advance horizontal accumulator
-            if (++hx == vres)
+            if (++hy == vres)
             {
-                hx = 0;
-                ++src_x;
-                // (src_x will never exceed width-1 due to outer clipping)
+                hy = 0;
+                ++src_y;
             }
         }
 
-        // advance destination one screen row
-        dest_row += sw;
+        dest_col += sh;
 
-        // advance vertical accumulator
-        if (++hy == vres)
+        if (++hx == vres)
         {
-            hy = 0;
-            ++src_y;
-            // (src_y will never exceed height-1 due to outer clipping)
+            hx = 0;
+            ++src_x;
         }
     }
 }
@@ -1614,13 +1563,13 @@ void V_DrawFilledBox(int x, int y, int w, int h, int c)
     if (w <= 0 || h <= 0)
         return;
 
-    pixel_t *restrict row0 = screen + y * sw + x;
+    pixel_t *restrict col0 = screen + x * sh + y;
     const pixel_t color = (pixel_t)c;
 
-    // Fill the first row (unrolled)
+    // Fill the first column (unrolled)
     {
-        pixel_t *d = row0;
-        int n = w;
+        pixel_t *d = col0;
+        int n = h;
 
         while (n >= 8)
         {
@@ -1632,18 +1581,18 @@ void V_DrawFilledBox(int x, int y, int w, int h, int c)
             *d++ = color;
     }
 
-    if (h == 1)
+    if (w == 1)
         return;
 
-    // Copy the filled row to the remaining rows using memcpy
+    // Copy the filled column to the remaining columns using memcpy
     {
-        const size_t row_bytes = (size_t)w * sizeof(*row0);
-        pixel_t *restrict dst = row0 + sw;
+        const size_t col_bytes = (size_t)h * sizeof(*col0);
+        pixel_t *restrict dst = col0 + sh;
 
-        for (int y1 = 1; y1 < h; ++y1)
+        for (int x1 = 1; x1 < w; ++x1)
         {
-            memcpy(dst, row0, row_bytes);
-            dst += sw;
+            memcpy(dst, col0, col_bytes);
+            dst += sh;
         }
     }
 }
@@ -1657,11 +1606,12 @@ void V_DrawHorizLine(int x, int y, int w, int c)
     if (x + w > (unsigned)SCREENWIDTH)
 	w = SCREENWIDTH - x;
 
-    buf = I_VideoBuffer + SCREENWIDTH * y + x;
+    buf = I_VideoBuffer + x * SCREENHEIGHT + y;
 
     for (x1 = 0; x1 < w; ++x1)
     {
-        *buf++ = c;
+        *buf = c;
+        buf += SCREENHEIGHT;
     }
 }
 
@@ -1670,12 +1620,11 @@ void V_DrawVertLine(int x, int y, int h, int c)
     pixel_t *buf;
     int y1;
 
-    buf = I_VideoBuffer + SCREENWIDTH * y + x;
+    buf = I_VideoBuffer + x * SCREENHEIGHT + y;
 
     for (y1 = 0; y1 < h; ++y1)
     {
-        *buf = c;
-        buf += SCREENWIDTH;
+        *buf++ = c;
     }
 }
 
@@ -1756,6 +1705,8 @@ void V_DrawRawTiled(int width, int height, int v_max, byte *src, pixel_t *dest)
 //  [crispy] Unified function of flat filling. Used for intermission
 //  and finale screens, view border and status bar's wide screen mode.
 //  [PN] Avoid per-pixel divisions by using accumulators; cache hot globals.
+//  [PN] Transposed: destination columns are pitched by SCREENHEIGHT and each
+//  column's y-run is written contiguously.
 // -----------------------------------------------------------------------------
 
 void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
@@ -1763,6 +1714,7 @@ void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
 {
     // ---- Hot globals cached locally ----
     const int      vres = vid_resolution;
+    const int      sh   = SCREENHEIGHT;
     const pixel_t *restrict pal = pal_color;
 
     const int dw = x_stop - x_start;
@@ -1770,37 +1722,37 @@ void V_FillFlat(int y_start, int y_stop, int x_start, int x_stop,
     if (dw <= 0 || dh <= 0)
         return;
 
-    pixel_t *restrict d = dest;
+    // Initial source X index and accumulator (constant per column)
+    int src_x = (vres > 1) ? ((x_start / vres) & 63) : (x_start & 63);
+    int hx    = (vres > 1) ?  (x_start % vres)       : 0;
 
-    // Initial source Y index and accumulator (no per-row division)
-    int src_y = (vres > 1) ? ((y_start / vres) & 63) : (y_start & 63);
-    int hy    = (vres > 1) ?  (y_start % vres)       : 0;
+    pixel_t *restrict dcol = dest;
 
-    for (int i = 0; i < dh; ++i)
+    for (int i = 0; i < dw; ++i)
     {
-        const int row_base = (src_y << 6);            // src_y * 64
-        const byte *restrict row = src + row_base;
+        pixel_t *restrict d = dcol;
 
-        // Initial source X index and accumulator for this row
-        int src_x = (vres > 1) ? ((x_start / vres) & 63) : (x_start & 63);
-        int hx    = (vres > 1) ?  (x_start % vres)       : 0;
+        // Initial source Y index and accumulator for this column
+        int src_y = (vres > 1) ? ((y_start / vres) & 63) : (y_start & 63);
+        int hy    = (vres > 1) ?  (y_start % vres)       : 0;
 
-        // Inner loop: no divisions; wrap indices with &63
-        for (int j = 0; j < dw; ++j)
+        for (int j = 0; j < dh; ++j)
         {
-            *d++ = pal[row[src_x]];
+            *d++ = pal[src[(src_y << 6) + src_x]];
 
-            if (++hx == vres)
+            if (++hy == vres)
             {
-                hx = 0;
-                src_x = (src_x + 1) & 63;
+                hy = 0;
+                src_y = (src_y + 1) & 63;
             }
         }
 
-        if (++hy == vres)
+        dcol += sh;
+
+        if (++hx == vres)
         {
-            hy = 0;
-            src_y = (src_y + 1) & 63;
+            hx = 0;
+            src_x = (src_x + 1) & 63;
         }
     }
 }

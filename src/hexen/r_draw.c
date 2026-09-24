@@ -97,7 +97,6 @@ void R_DrawColumn(void)
     const byte *restrict const brightmap = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
 
     // Texture wrapping specifics
     const int heightmask = dc_texheight - 1;
@@ -111,7 +110,7 @@ void R_DrawColumn(void)
         {
             const unsigned s = sourcebase[frac >> FRACBITS]; // Texture sample
             *dest = brightmap[s] ? colormap1[s] : colormap0[s];
-            dest += screenwidth;
+            dest++;
             frac += fracstep;
             if (frac >= heightshifted)
                 frac -= heightshifted; // Normalize frac inline
@@ -123,7 +122,7 @@ void R_DrawColumn(void)
         {
             const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask]; // Texture sample with mask
             *dest = brightmap[s] ? colormap1[s] : colormap0[s];
-            dest += screenwidth;
+            dest++;
             frac += fracstep;
         }
     }
@@ -157,7 +156,6 @@ void R_DrawColumnLow(void)
     const byte *restrict const brightmap = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
 
     const int heightmask = dc_texheight - 1;
     const fixed_t heightshifted = dc_texheight << FRACBITS; // Pre-shifted height for modulo
@@ -173,8 +171,8 @@ void R_DrawColumnLow(void)
 
             *dest = index;
             *dest2 = index;
-            dest += screenwidth;
-            dest2 += screenwidth;
+            dest++;
+            dest2++;
             frac += fracstep;
             if (frac >= heightshifted) frac -= heightshifted; // Avoid modulo
         }
@@ -188,8 +186,8 @@ void R_DrawColumnLow(void)
 
             *dest = index;
             *dest2 = index;
-            dest += screenwidth;
-            dest2 += screenwidth;
+            dest++;
+            dest2++;
             frac += fracstep; // Increment frac directly
         }
     }
@@ -225,7 +223,6 @@ void R_DrawTranslatedColumn(void)
     const byte *restrict const translation = dc_translation;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
 
     // Aggressive optimization: minimize overhead inside the loop
     const int iterations = count + 1;
@@ -235,7 +232,7 @@ void R_DrawTranslatedColumn(void)
         const unsigned t = translation[s];               // Translation lookup
         *dest = brightmap[s] ? colormap1[t] : colormap0[t]; // Conditionally blend using colormap
 
-        dest += screenwidth; // Advance destination pointer
+        dest++;
         frac += fracstep;    // Increment texture coordinate
     }
 }
@@ -263,7 +260,6 @@ void R_DrawTranslatedColumnLow(void)
     const byte *restrict const translation = dc_translation;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
 
     // Aggressively optimized loop for blending pixels
     const int iterations = count + 1;
@@ -277,8 +273,8 @@ void R_DrawTranslatedColumnLow(void)
         *dest2 = index;
 
         // Advance destination pointers and texture coordinate
-        dest += screenwidth;
-        dest2 += screenwidth;
+        dest++;
+        dest2++;
         frac += fracstep;
     }
 }
@@ -391,6 +387,7 @@ void R_DrawSpan(void)
     const pixel_t *restrict const colormap = (const pixel_t *)ds_colormap;
     const fixed_t xstep = ds_xstep;
     const fixed_t ystep = ds_ystep;
+    const int sh = SCREENHEIGHT;
 
     // Local copies of fractional coordinates
     fixed_t xfrac = ds_xfrac;
@@ -411,13 +408,13 @@ void R_DrawSpan(void)
                 const int spot = xtemp | ytemp;
 
                 const byte source = sourcebase[spot];
-                dest[j] = colormap[source];
+                dest[j * sh] = colormap[source];
 
                 xfrac += xstep;
                 yfrac += ystep;
             }
 
-            dest += 4;
+            dest += 4 * sh;
             count -= 4;
         }
 
@@ -429,7 +426,8 @@ void R_DrawSpan(void)
             const int spot = xtemp | ytemp;
 
             const byte source = sourcebase[spot];
-            *dest++ = colormap[source];
+            *dest = colormap[source];
+            dest += sh;
 
             xfrac += xstep;
             yfrac += ystep;
@@ -476,6 +474,7 @@ void R_DrawSpanLow(void)
     const pixel_t *restrict const colormap = (const pixel_t *)ds_colormap;
     const fixed_t xstep = ds_xstep;
     const fixed_t ystep = ds_ystep;
+    const int sh = SCREENHEIGHT;
 
     // Local copies of fractional coordinates
     fixed_t xfrac = ds_xfrac;
@@ -495,9 +494,10 @@ void R_DrawSpanLow(void)
                 const unsigned xtemp = (xfrac >> 16) & 0x3F;
                 const int spot = xtemp | ytemp;
                 const byte source = sourcebase[spot];
-                dest[0] = colormap[source];
-                dest[1] = colormap[source];
-                dest += 2;
+                const pixel_t pix = colormap[source];
+                dest[0] = pix;   // [PN] two physical columns
+                dest[sh] = pix;
+                dest += 2 * sh;
                 xfrac += xstep;
                 yfrac += ystep;
             }
@@ -513,8 +513,10 @@ void R_DrawSpanLow(void)
             const int spot = xtemp | ytemp;
 
             const byte source = sourcebase[spot];
-            *dest++ = colormap[source]; // First pixel
-            *dest++ = colormap[source]; // Second pixel
+            const pixel_t pix = colormap[source];
+            *dest = pix;    // [PN] two physical columns
+            dest[sh] = pix;
+            dest += 2 * sh;
 
             xfrac += xstep;
             yfrac += ystep;
@@ -568,7 +570,7 @@ void R_InitBuffer(int width, int height)
     // [PN] Calculate column offsets (columnofs).
     for (i = 0; i < width; i++) 
     {
-        columnofs[i] = viewwindowx + i;
+        columnofs[i] = (viewwindowx + i) * SCREENHEIGHT;
     }
 
     // [PN] Calculate vertical offset (viewwindowy).
@@ -581,7 +583,7 @@ void R_InitBuffer(int width, int height)
     // [PN] Precalculate row offsets (ylookup) for each row.
     for (i = 0; i < height; i++) 
     {
-        ylookup[i] = I_VideoBuffer + (i + viewwindowy) * SCREENWIDTH;
+        ylookup[i] = I_VideoBuffer + (i + viewwindowy);
     }
 
     // [PN] Free the background buffer if it exists.
@@ -608,7 +610,7 @@ void R_FillBackScreen (void)
 
     if (background_buffer == NULL)
     {
-        const int size = SCREENWIDTH * (SCREENHEIGHT - SBARHEIGHT);
+        const int size = SCREENAREA;
         background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, 0);
     }
 
@@ -656,25 +658,29 @@ void R_FillBackScreen (void)
 }
 
 // -----------------------------------------------------------------------------
-// Copy a screen buffer.
-// [PN] Changed ofs to size_t for clarity and to represent offset more appropriately.
+// Copy a screen buffer rectangle.
+// [PN] Transposed layout: erase runs along y (contiguous) per column.
 // -----------------------------------------------------------------------------
 
-static void R_VideoErase (unsigned ofs, int count)
-{ 
-    // [PN] Ensure the background buffer is valid before copying
+static void R_VideoErase (int x, int y, int w, int h)
+{
+    const int sh = SCREENHEIGHT;
+
     if (background_buffer != NULL)
     {
-        // [PN] Copy from background buffer to video buffer
-        memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count * sizeof(*I_VideoBuffer));
+        for (int i = 0; i < w; i++)
+        {
+            memcpy(I_VideoBuffer + (x + i) * sh + y,
+                   background_buffer + (x + i) * sh + y,
+                   (size_t)h * sizeof(*I_VideoBuffer));
+        }
     }
 }
 
 // -----------------------------------------------------------------------------
 // R_DrawViewBorder
 // Draws the border around the view for different size windows.
-// [PN] Optimized by precomputing common offsets and reducing repeated calculations.
-//      Simplified logic for top, bottom, and side erasing.
+// [PN] Transposed: erase the bezel as rectangles instead of linear runs.
 // -----------------------------------------------------------------------------
 
 void R_DrawViewBorder(void)
@@ -682,30 +688,20 @@ void R_DrawViewBorder(void)
     if (scaledviewwidth == SCREENWIDTH || background_buffer == NULL)
         return;
 
-    // [PN] Adjust for precision issues on lower screen sizes
-    const int yy2 = (dp_screen_size < 6) ? 3 : 0;
-    const int yy3 = (dp_screen_size < 6) ? 2 : 0;
-
-    // [PN] Calculate top, side, and offsets
     const int top = ((SCREENHEIGHT - SBARHEIGHT) - viewheight) / 2;
-    const int top2 = ((SCREENHEIGHT - SBARHEIGHT) - viewheight + yy2) / 2;
-    const int top3 = (((SCREENHEIGHT - SBARHEIGHT) - viewheight) - yy3) / 2;
-    int side = (SCREENWIDTH - scaledviewwidth) / 2;
+    const int side = (SCREENWIDTH - scaledviewwidth) / 2;
 
-    // [PN] Copy top and one line of left side
-    R_VideoErase(0, top * SCREENWIDTH + side);
-
-    // [PN] Copy one line of right side and bottom
-    int ofs = (viewheight + top3) * SCREENWIDTH - side;
-    R_VideoErase(ofs, top2 * SCREENWIDTH + side);
-
-    // [PN] Copy sides using wraparound
-    ofs = top * SCREENWIDTH + SCREENWIDTH - side;
-    side <<= 1;
-
-    for (int i = 1; i < viewheight; i++)
+    // Top and bottom full-width bands.
+    if (top > 0)
     {
-       R_VideoErase(ofs, side);
-       ofs += SCREENWIDTH;
+        R_VideoErase(0, 0, SCREENWIDTH, top);
+        R_VideoErase(0, top + viewheight, SCREENWIDTH, top + 1);
+    }
+
+    // Left and right borders along the view height.
+    if (side > 0)
+    {
+        R_VideoErase(0, top, side, viewheight + 1);
+        R_VideoErase(SCREENWIDTH - side, top, side, viewheight + 1);
     }
 }

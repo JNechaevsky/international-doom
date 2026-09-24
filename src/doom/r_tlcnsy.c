@@ -37,7 +37,6 @@ void R_DrawTLColumn (void)
     const byte *restrict const brightmap    = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
     int y_end = dc_yh;
@@ -64,10 +63,10 @@ void R_DrawTLColumn (void)
 
             // Write two pixels (current and next line)
             dest[0] = blended;
-            dest[screenwidth] = blended;
+            dest[1] = blended;
 
             // Move to next pair
-            dest    += screenwidth * step;
+            dest    += step;
             frac    += fracstep;
             y_start += step;
         }
@@ -97,7 +96,7 @@ void R_DrawTLColumn (void)
                                                     : I_BlendOver168_8(bg, fg);
 
             *dest = blended;
-            dest += screenwidth;
+            dest++;
             frac += fracstep;
             ++y_start;
         }
@@ -118,7 +117,6 @@ void R_DrawTLColumnLow (void)
     const byte *restrict const brightmap    = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
     int y_end = dc_yh;
@@ -148,13 +146,13 @@ void R_DrawTLColumnLow (void)
                                                        I_BlendOver168_8(bg2, fg);
             // Process two lines for both columns
             dest1[0] = blended1;
-            dest1[screenwidth] = blended1;
+            dest1[1] = blended1;
             dest2[0] = blended2;
-            dest2[screenwidth] = blended2;
+            dest2[1] = blended2;
 
             // Move to next pair of lines
-            dest1 += screenwidth * step;
-            dest2 += screenwidth * step;
+            dest1 += step;
+            dest2 += step;
             frac += fracstep;
             y_start += step;
         }
@@ -192,8 +190,8 @@ void R_DrawTLColumnLow (void)
 
             *dest1 = blended1;
             *dest2 = blended2;
-            dest1 += screenwidth;
-            dest2 += screenwidth;
+            dest1++;
+            dest2++;
             frac += fracstep;
             ++y_start;
         }
@@ -216,7 +214,6 @@ void R_DrawTLAddColumn (void)
     const byte *restrict const brightmap    = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
     int y_end = dc_yh;
@@ -243,10 +240,10 @@ void R_DrawTLAddColumn (void)
 
             // Write two pixels (current and next line)
             dest[0] = blended;
-            dest[screenwidth] = blended;
+            dest[1] = blended;
 
             // Move to next pair
-            dest    += screenwidth * step;
+            dest    += step;
             frac    += fracstep;
             y_start += step;
         }
@@ -276,7 +273,7 @@ void R_DrawTLAddColumn (void)
                                                     : I_BlendAdd_8(bg, fg);
 
             *dest = blended;
-            dest += screenwidth;
+            dest++;
             frac += fracstep;
             ++y_start;
         }
@@ -297,7 +294,6 @@ void R_DrawTLAddColumnLow (void)
     const byte *restrict const brightmap    = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
     int y_end = dc_yh;
@@ -327,13 +323,13 @@ void R_DrawTLAddColumnLow (void)
                                                        I_BlendAdd_8(bg2, fg);
             // Process two lines for both columns
             dest1[0] = blended1;
-            dest1[screenwidth] = blended1;
+            dest1[1] = blended1;
             dest2[0] = blended2;
-            dest2[screenwidth] = blended2;
+            dest2[1] = blended2;
 
             // Move to next pair of lines
-            dest1 += screenwidth * step;
-            dest2 += screenwidth * step;
+            dest1 += step;
+            dest2 += step;
             frac += fracstep;
             y_start += step;
         }
@@ -371,8 +367,8 @@ void R_DrawTLAddColumnLow (void)
 
             *dest1 = blended1;
             *dest2 = blended2;
-            dest1 += screenwidth;
-            dest2 += screenwidth;
+            dest1++;
+            dest2++;
             frac += fracstep;
             ++y_start;
         }
@@ -395,7 +391,6 @@ void R_DrawFuzzTLColumn (void)
     const byte *restrict const brightmap    = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
     int y_end = dc_yh;
@@ -422,10 +417,10 @@ void R_DrawFuzzTLColumn (void)
 
             // Write two pixels (current and next line)
             dest[0] = blended;
-            dest[screenwidth] = blended;
+            dest[1] = blended;
 
             // Move to next pair
-            dest    += screenwidth * step;
+            dest    += step;
             frac    += fracstep;
             y_start += step;
         }
@@ -455,7 +450,7 @@ void R_DrawFuzzTLColumn (void)
                                                     : I_BlendOver64_8(bg, fg);
 
             *dest = blended;
-            dest += screenwidth;
+            dest++;
             frac += fracstep;
             ++y_start;
         }
@@ -476,7 +471,6 @@ void R_DrawFuzzTLColumnLow (void)
     const byte *restrict const brightmap    = dc_brightmap;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
     const pixel_t *restrict const colormap1 = dc_colormap[1];
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
     int y_end = dc_yh;
@@ -506,13 +500,13 @@ void R_DrawFuzzTLColumnLow (void)
                                                        I_BlendOver64_8(bg2, fg);
             // Process two lines for both columns
             dest1[0] = blended1;
-            dest1[screenwidth] = blended1;
+            dest1[1] = blended1;
             dest2[0] = blended2;
-            dest2[screenwidth] = blended2;
+            dest2[1] = blended2;
 
             // Move to next pair of lines
-            dest1 += screenwidth * step;
-            dest2 += screenwidth * step;
+            dest1 += step;
+            dest2 += step;
             frac += fracstep;
             y_start += step;
         }
@@ -550,8 +544,8 @@ void R_DrawFuzzTLColumnLow (void)
 
             *dest1 = blended1;
             *dest2 = blended2;
-            dest1 += screenwidth;
-            dest2 += screenwidth;
+            dest1++;
+            dest2++;
             frac += fracstep;
             ++y_start;
         }
@@ -573,7 +567,6 @@ void R_DrawFuzzTLTransColumn (void)
     const byte *restrict const sourcebase   = dc_source;
     const byte *restrict const translation  = dc_translation;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
     int y_end = dc_yh;
@@ -600,10 +593,10 @@ void R_DrawFuzzTLTransColumn (void)
 
             // Write two pixels (current and next line)
             dest[0] = blended;
-            dest[screenwidth] = blended;
+            dest[1] = blended;
 
             // Move to next pair
-            dest    += screenwidth * step;
+            dest    += step;
             frac    += fracstep;
             y_start += step;
         }
@@ -633,7 +626,7 @@ void R_DrawFuzzTLTransColumn (void)
                                                     : I_BlendOver64_8(bg, fg);
 
             *dest = blended;
-            dest += screenwidth;
+            dest++;
             frac += fracstep;
             ++y_start;
         }
@@ -653,7 +646,6 @@ void R_DrawFuzzTLTransColumnLow (void)
     const byte *restrict const sourcebase   = dc_source;
     const byte *restrict const translation  = dc_translation;
     const pixel_t *restrict const colormap0 = dc_colormap[0];
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     int y_start = dc_yl;
     int y_end = dc_yh;
@@ -683,13 +675,13 @@ void R_DrawFuzzTLTransColumnLow (void)
                                                        I_BlendOver64_8(bg2, fg);
             // Process two lines for both columns
             dest1[0] = blended1;
-            dest1[screenwidth] = blended1;
+            dest1[1] = blended1;
             dest2[0] = blended2;
-            dest2[screenwidth] = blended2;
+            dest2[1] = blended2;
 
             // Move to next pair of lines
-            dest1 += screenwidth * step;
-            dest2 += screenwidth * step;
+            dest1 += step;
+            dest2 += step;
             frac += fracstep;
             y_start += step;
         }
@@ -727,8 +719,8 @@ void R_DrawFuzzTLTransColumnLow (void)
 
             *dest1 = blended1;
             *dest2 = blended2;
-            dest1 += screenwidth;
-            dest2 += screenwidth;
+            dest1++;
+            dest2++;
             frac += fracstep;
             ++y_start;
         }
@@ -746,7 +738,6 @@ void R_DrawShadowColumn (void)
     if (count < 0)
         return; // No pixels to draw
 
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     const int dark_amount = shadow_alpha;
     int y_start = dc_yl;
@@ -763,9 +754,9 @@ void R_DrawShadowColumn (void)
                                                     : I_BlendDark_8(*dest, dark_amount);
 
             dest[0] = blended;
-            dest[screenwidth] = blended;
+            dest[1] = blended;
 
-            dest += screenwidth * step;
+            dest += step;
             y_start += step;
         }
 
@@ -781,7 +772,7 @@ void R_DrawShadowColumn (void)
         {
             *dest = truecolor_blend ? I_BlendDark_32(*dest, dark_amount)
                                     : I_BlendDark_8(*dest, dark_amount);
-            dest += screenwidth;
+            dest++;
             ++y_start;
         }
     }
@@ -794,7 +785,6 @@ void R_DrawShadowColumnLow (void)
         return; // No pixels to draw
 
     const int x = dc_x << 1;
-    const int screenwidth = SCREENWIDTH;
     const int truecolor_blend = vid_truecolor;
     const int dark_amount = shadow_alpha;
     int y_start = dc_yl;
@@ -814,12 +804,12 @@ void R_DrawShadowColumnLow (void)
                                                      : I_BlendDark_8(*dest2, dark_amount);
 
             dest1[0] = blended1;
-            dest1[screenwidth] = blended1;
+            dest1[1] = blended1;
             dest2[0] = blended2;
-            dest2[screenwidth] = blended2;
+            dest2[1] = blended2;
 
-            dest1 += screenwidth * step;
-            dest2 += screenwidth * step;
+            dest1 += step;
+            dest2 += step;
             y_start += step;
         }
 
@@ -839,8 +829,8 @@ void R_DrawShadowColumnLow (void)
                                      : I_BlendDark_8(*dest1, dark_amount);
             *dest2 = truecolor_blend ? I_BlendDark_32(*dest2, dark_amount)
                                      : I_BlendDark_8(*dest2, dark_amount);
-            dest1 += screenwidth;
-            dest2 += screenwidth;
+            dest1++;
+            dest2++;
             ++y_start;
         }
     }

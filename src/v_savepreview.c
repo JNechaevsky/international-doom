@@ -108,7 +108,7 @@ static boolean V_SavePreview_Build(byte *thumb,
         for (int x = 0; x < V_SAVEPREVIEW_WIDTH; ++x)
         {
             const int sx = src_x + (x * src_w) / V_SAVEPREVIEW_WIDTH;
-            const pixel_t px = video_buffer[sy * screen_width + sx];
+            const pixel_t px = video_buffer[(size_t)sx * screen_height + sy];
 
             thumb[y * V_SAVEPREVIEW_WIDTH + x] = to_pal(px, user_data);
         }

@@ -264,7 +264,7 @@ static void ShadeLine(int x, int y, int height, int shade)
     // Local variables for improved memory access
     const int video_resolution = vid_resolution;
     const int truecolor_blend = vid_truecolor;
-    const int screenwidth = SCREENWIDTH;
+    const int sh = SCREENHEIGHT;
 
     // Scale coordinates to current resolution
     x *= video_resolution;
@@ -274,8 +274,9 @@ static void ShadeLine(int x, int y, int height, int shade)
     // [crispy] shade to darkest 32nd COLORMAP row
     shade = (int)BETWEEN(0, 255, 0xFF - (((9 + shade * 2) << 8) / 32) * vid_contrast);
 
-    // Calculate starting position in video buffer (with widescreen offset)
-    pixel_t *dest = I_VideoBuffer + y * screenwidth + x + (WIDESCREENDELTA * video_resolution);
+    // [PN] Transposed: pixel (x, y) lives at x*SCREENHEIGHT + y
+    // (with widescreen offset applied to x).
+    pixel_t *dest = I_VideoBuffer + (x + WIDESCREENDELTA * video_resolution) * sh + y;
 
     // Draw vertical lines
     for (int i = 0; i < height; i++)
@@ -291,10 +292,10 @@ static void ShadeLine(int x, int y, int height, int shade)
 
         // Fill horizontal strip (vid_resolution pixels wide)
         for (int j = 0; j < video_resolution; j++)
-            dest[j] = darkened;
+            dest[j * sh] = darkened;
 
         // Move to next screen line
-        dest += screenwidth;
+        dest++;
     }
 }
 
@@ -366,7 +367,7 @@ void SB_Init(void)
     spinbooklump = W_GetNumForName(DEH_String("SPINBK0"));
     spinflylump = W_GetNumForName(DEH_String("SPFLY0"));
 
-    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * (42 * MAXHIRES) * sizeof(*st_backing_screen), PU_STATIC, 0);
+    st_backing_screen = (pixel_t *) Z_Malloc(MAXWIDTH * MAXHEIGHT * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 
 // -----------------------------------------------------------------------------

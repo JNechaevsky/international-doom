@@ -75,19 +75,19 @@ void V_PProc_HomShimmer (int x, int y, int w, int h)
                sizeof(*hom_shimmer_snap));
     }
 
-    for (int i = 0; i < h; i++)
+    for (int i = 0; i < w; i++)
     {
-        const size_t off = (size_t) (y + i) * SCREENWIDTH + x;
-        const size_t row = (size_t) w * sizeof(*hom_shimmer_snap);
+        const size_t off = (size_t) (x + i) * SCREENHEIGHT + y;
+        const size_t col = (size_t) h * sizeof(*hom_shimmer_snap);
 
         if (fresh)
         {
             memcpy(hom_shimmer_snap + (size_t) slot * hom_shimmer_area + off,
-                   I_VideoBuffer + off, row);
+                   I_VideoBuffer + off, col);
         }
 
         memcpy(I_VideoBuffer + off,
-               hom_shimmer_snap + (size_t) prior * hom_shimmer_area + off, row);
+               hom_shimmer_snap + (size_t) prior * hom_shimmer_area + off, col);
     }
 
     if (fresh)
@@ -115,9 +115,12 @@ void V_PProc_SupersampledSmoothing (boolean st_background_on, int st_height)
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
         return;
 
-    const int w = argbbuffer->w;
-    // [JN] Exclude status bar area from smoothing if active.
-    const int h = argbbuffer->h - (st_background_on ? st_height : 0);
+    // [PN] Transposed surface: w = SCREENHEIGHT (pitch), h = SCREENWIDTH.
+    // [JN] Exclude status bar area from smoothing if active: the bar spans
+    // screen rows, which are surface columns here.
+    const int stride = argbbuffer->w;
+    const int w = stride - (st_background_on ? st_height : 0);
+    const int h = argbbuffer->h;
     Uint32 *restrict pixels = (Uint32*)argbbuffer->pixels;
     const int block = post_supersample + 1;
 
@@ -133,7 +136,7 @@ void V_PProc_SupersampledSmoothing (boolean st_background_on, int st_height)
             {
                 for (int x = bx; x < bx + block && x < w; ++x)
                 {
-                    const Uint32 c = pixels[y * w + x];
+                    const Uint32 c = pixels[y * stride + x];
                     r += (c >> 16) & 0xFF;
                     g += (c >> 8) & 0xFF;
                     b += c & 0xFF;
@@ -151,7 +154,7 @@ void V_PProc_SupersampledSmoothing (boolean st_background_on, int st_height)
             // [PN] Apply the averaged color back to all pixels in the block
             for (int y = by; y < by + block && y < h; ++y)
                 for (int x = bx; x < bx + block && x < w; ++x)
-                    pixels[y * w + x] = avg;
+                    pixels[y * stride + x] = avg;
         }
     }
 }
@@ -510,16 +513,14 @@ static void V_PProc_AnalogRGBDrift (void)
     // [PN] Loop through each row of pixels
     for (int y = 0; y < height; ++y)
     {
-        pixel_t *restrict const dst = src + y * width;
-        const pixel_t *restrict const row = chromabuf + y * width;
-
         // [PN] Process each pixel in the row
         for (int x = 0; x < width; ++x)
         {
+            const size_t idx = (size_t)x * height + y;
             // [PN] Fetch original pixel and shifted red/blue samples
-            const pixel_t orig = row[x];
-            const pixel_t rsrc = row[x_src_r[x]]; // Shifted red
-            const pixel_t bsrc = row[x_src_b[x]]; // Shifted blue
+            const pixel_t orig = chromabuf[idx];
+            const pixel_t rsrc = chromabuf[(size_t)x_src_r[x] * height + y]; // Shifted red
+            const pixel_t bsrc = chromabuf[(size_t)x_src_b[x] * height + y]; // Shifted blue
 
             // [PN] Extract RGB components and apply the shift
             const int r = (rsrc >> 16) & 0xFF;
@@ -527,7 +528,7 @@ static void V_PProc_AnalogRGBDrift (void)
             const int b = bsrc & 0xFF;
 
             // [PN] Compose the final pixel with altered red/blue and original green
-            dst[x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+            src[idx] = 0xFF000000 | (r << 16) | (g << 8) | b;
         }
     }
 }
@@ -548,10 +549,11 @@ static void V_PProc_VHSLineDistortion (void)
     if (!argbbuffer || argbbuffer->format->BytesPerPixel != 4)
         return;
 
-    // [PN] Dimensions and row stride
-    const int width  = argbbuffer->w;
-    const int height = argbbuffer->h;
-    const int stride = width;
+    // [PN] Transposed layout: a screen row is a strided run along x
+    // (pitch SCREENHEIGHT); block ranges over screen y (contiguous).
+    const int width  = SCREENWIDTH;  // screen x range
+    const int height = SCREENHEIGHT; // screen y range
+    const int pitch  = SCREENHEIGHT; // stride between screen columns
 
     // [PN] Framebuffer pointer; restrict allows better compiler optimization
     Uint32 *restrict pixels = (Uint32 *restrict)argbbuffer->pixels;
@@ -573,27 +575,25 @@ static void V_PProc_VHSLineDistortion (void)
     // [PN] Apply line distortion per row within the selected block
     for (int y = y_start; y < y_start + block_height; ++y)
     {
-        Uint32 *restrict row = pixels + y * stride;
-
         if (shift_val > 0)
         {
             // [PN] Right shift — copy pixels rightward
             for (int x = width - 1; x >= abs_shift; --x)
-                row[x] = row[x - abs_shift];
+                pixels[x * pitch + y] = pixels[(x - abs_shift) * pitch + y];
 
             // [PN] Fill left edge with black
             for (int x = 0; x < abs_shift; ++x)
-                row[x] = black_pixel;
+                pixels[x * pitch + y] = black_pixel;
         }
         else
         {
             // [PN] Left shift — copy pixels leftward
             for (int x = abs_shift; x < width; ++x)
-                row[x - abs_shift] = row[x];
+                pixels[(x - abs_shift) * pitch + y] = pixels[x * pitch + y];
 
             // [PN] Fill right edge with black
             for (int x = width - abs_shift; x < width; ++x)
-                row[x] = black_pixel;
+                pixels[x * pitch + y] = black_pixel;
         }
     }
 }
