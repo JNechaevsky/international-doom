@@ -1034,8 +1034,8 @@ void S_ID_Change_D2_ReadMusic (void)
 void S_ID_Change_D2_CastMusic (void)
 {
     const int id_mus_evil =
-        (remaster_ost && snd_remaster_ost && logical_gamemission == pack_tnt) ? mus_tnt31 :
-        (remaster_ost && logical_gamemission == pack_plut) ? mus_e1m8 : mus_evil;
+        (remaster_ost && snd_remaster_ost && logical_gamemission == pack_tnt)  ? mus_tnt31 :
+        (remaster_ost && snd_remaster_ost && logical_gamemission == pack_plut) ? mus_e1m8 : mus_evil;
 
     S_ChangeMusic(id_mus_evil, true);
 }
