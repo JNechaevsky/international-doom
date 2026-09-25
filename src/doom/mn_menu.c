@@ -4419,7 +4419,8 @@ static void M_Draw_ID_Gameplay_1 (void)
                                 LINE_ALPHA(9));
 
     // Sky drawing mode
-    sprintf(str, vis_linear_sky ? "LINEAR" : "ORIGINAL");
+    sprintf(str, vis_linear_sky == 1 ? "LINEAR" :
+                 vis_linear_sky == 2 ? "CYLINDRICAL" : "ORIGINAL");
     M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
                         vis_linear_sky ? cr[CR_GREEN] : cr[CR_DARKRED],
                             vis_linear_sky ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
@@ -4516,7 +4517,7 @@ static void M_ID_InvulSky (int choice)
 
 static void M_ID_LinearSky (int choice)
 {
-    vis_linear_sky ^= 1;
+    vis_linear_sky = M_INT_Slider(vis_linear_sky, 0, 2, choice, false);
 }
 
 static void M_ID_FlipCorpses (int choice)

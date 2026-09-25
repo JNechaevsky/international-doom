@@ -514,12 +514,20 @@ void R_DrawPlanes (void)
                 dc_iscale = (dc_iscale * dc_texheight) / SKYSTRETCH_HEIGHT;  // [PN] Adjust scale
                 dc_texturemid = (dc_texturemid * dc_texheight) / SKYSTRETCH_HEIGHT;  // [PN] Adjust mid
             }
+
+            // [PN] Cylindrical sky projection.
+            const fixed_t base_iscale = dc_iscale;
+
             for (int x = pl->minx ; x <= pl->maxx ; x++)
             {
+                dc_iscale = (vis_linear_sky == 2)
+                          ? FixedMul(base_iscale, abs(finecosine[xtoviewangle[x] >> ANGLETOFINESHIFT]))
+                          : base_iscale;
+
                 if ((dc_yl = pl->top[x]) != USHRT_MAX && dc_yl <= (dc_yh = pl->bottom[x]))
                 {
                     // [crispy] Optionally draw skies horizontally linear.
-                    const int angle = ((an + (vis_linear_sky ?
+                    const int angle = ((an + (vis_linear_sky == 1 ?
                                         linearskyangle[x] : xtoviewangle[x]))^flip)>>ANGLETOSKYSHIFT;
                     dc_x = x;
                     dc_source = R_GetColumn(texture, angle);

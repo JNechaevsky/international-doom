@@ -472,14 +472,22 @@ void R_DrawPlanes (void)
                 dc_colormap[0] = dc_colormap[1] = colormaps;
             }
             dc_texheight = textureheight[texture]>>FRACBITS;
+
+            // [PN] Cylindrical sky projection.
+            const fixed_t base_iscale = skyiscale;
+
             for (int x = pl->minx; x <= pl->maxx; x++)
             {
                 dc_yl = pl->top[x];
                 dc_yh = pl->bottom[x];
                 if ((unsigned) dc_yl <= dc_yh)  // [JN] 32-bit integer math
                 {
+                    dc_iscale = (vis_linear_sky == 2)
+                              ? FixedMul(base_iscale, abs(finecosine[xtoviewangle[x] >> ANGLETOFINESHIFT]))
+                              : base_iscale;
+
                     // [crispy] Optionally draw skies horizontally linear.
-                    const int angle = ((an + (vis_linear_sky ? 
+                    const int angle = ((an + (vis_linear_sky == 1 ? 
                                     linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels ^ flip) >> ANGLETOSKYSHIFT;
                     dc_x = x;
                     dc_source = R_GetColumn(texture, angle);

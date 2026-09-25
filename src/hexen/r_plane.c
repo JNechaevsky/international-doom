@@ -468,7 +468,9 @@ void R_DrawPlanes (void)
     int offset2;
     int skyTexture2;
     int frac;
-    int fracstep = FRACUNIT / vid_resolution;
+    // [PN] Cylindrical sky projection scales fracstep per column from this base.
+    const int base_fracstep = FRACUNIT / vid_resolution;
+    int fracstep = base_fracstep;
     static int interpfactor; // [crispy]
     int heightmask; // [crispy]
     static int prev_skyTexture, prev_skyTexture2, skyheight; // [crispy]
@@ -528,10 +530,15 @@ void R_DrawPlanes (void)
                     dc_yh = pl->bottom[x];
                     if ((unsigned) dc_yl <= dc_yh) // [crispy] 32-bit integer math
                     {
+                        // [PN] Cylindrical sky projection.
+                        fracstep = (vis_linear_sky == 2)
+                                 ? FixedMul(base_fracstep, abs(finecosine[xtoviewangle[x] >> ANGLETOFINESHIFT]))
+                                 : base_fracstep;
+
                         // [crispy] Optionally draw skies horizontally linear.
-                        const int angle = ((viewangle + smoothDelta1 + (vis_linear_sky ? 
+                        const int angle = ((viewangle + smoothDelta1 + (vis_linear_sky == 1 ? 
                                         linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
-                        const int angle2 = ((viewangle + smoothDelta2 + (vis_linear_sky ? 
+                        const int angle2 = ((viewangle + smoothDelta2 + (vis_linear_sky == 1 ? 
                                          linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
 
                         count = dc_yh - dc_yl;
@@ -638,8 +645,13 @@ void R_DrawPlanes (void)
                     dc_yh = pl->bottom[x];
                     if ((unsigned) dc_yl <= dc_yh) // [crispy] 32-bit integer math
                     {
+                        // [PN] Cylindrical sky projection.
+                        fracstep = (vis_linear_sky == 2)
+                                 ? FixedMul(base_fracstep, abs(finecosine[xtoviewangle[x] >> ANGLETOFINESHIFT]))
+                                 : base_fracstep;
+
                         // [crispy] Optionally draw skies horizontally linear.
-                        const int angle = ((viewangle + smoothDelta1 + (vis_linear_sky ? 
+                        const int angle = ((viewangle + smoothDelta1 + (vis_linear_sky == 1 ? 
                                         linearskyangle[x] : xtoviewangle[x])) ^ gp_flip_levels) >> ANGLETOSKYSHIFT;
 
                         count = dc_yh - dc_yl;
