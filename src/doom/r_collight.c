@@ -11,6 +11,25 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
+// DESCRIPTION:
+//  [PN] COLLIGHT: optional text lump assigning per-sector colored light banks.
+//
+//  Legacy one-liners (cumulative):
+//      12 FF0000
+//      MAP01 12 FF0000
+//      DOOM2 MAP01 12 FF0000
+//
+//  Map blocks:
+//      [DOOM2] [IWAD|PWAD [wadname]] MAP01
+//      {
+//          0,1,4-9 FF00FF
+//          ALL 808080
+//      }
+//
+// Blocks replace, lines add: opening a block that matches the current
+// map clears every sector assignment made by previously parsed COLLIGHT
+// lumps first, so a PWAD block fully redefines a level's colored sectors.
+// Lumps are parsed in WAD order; the last active block for a map wins.
 
 #include <ctype.h>
 #include <stddef.h>
@@ -922,6 +941,15 @@ static void CL_ParseLump(const int lumpnum, const char *map_name)
             {
                 in_block = true;
                 block_active = pending_active;
+
+                // [PN] An active block fully replaces the level's sector
+                // set: whatever an earlier (e.g. IWAD) lump assigned is
+                // cleared, so a PWAD block needs no per-sector overrides.
+                if (block_active)
+                {
+                    CL_ResetSectorAssignments();
+                }
+
                 pending_header = false;
                 free(pending_legacy_line);
                 pending_legacy_line = NULL;
@@ -977,6 +1005,12 @@ static void CL_ParseLump(const int lumpnum, const char *map_name)
             {
                 in_block = true;
                 block_active = header_active;
+
+                // [PN] Full replacement on block open (see above).
+                if (block_active)
+                {
+                    CL_ResetSectorAssignments();
+                }
             }
             else
             {
