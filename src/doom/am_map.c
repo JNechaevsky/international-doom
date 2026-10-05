@@ -2950,7 +2950,7 @@ void AM_MiniDrawer (void)
     const boolean show_demo_timer =
         (demoplayback && (demo_timer == 1 || demo_timer == 3)) ||
         (demorecording && (demo_timer == 2 || demo_timer == 3));
-    const int mini_margin = (9 + (vid_showfps ? 9 : 0) + (show_demo_timer ? 9 : 0)) * vid_resolution;
+    const int mini_margin = (9 + (vid_showfps ? 9 : 0) + (msg_local_time ? 9 : 0) + (show_demo_timer ? 9 : 0)) * vid_resolution;
     
     const int mini_x = MAX(0, SCREENWIDTH - mini_size_h);
     const int mini_y = mini_margin;
