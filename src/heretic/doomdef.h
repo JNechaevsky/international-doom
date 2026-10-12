@@ -212,6 +212,8 @@ typedef struct mobj_s
     fixed_t oldy;
     fixed_t oldz;
     angle_t oldangle;
+    // [PN] last leveltime old* were captured (once/tic)
+    int oldtic;
 } mobj_t;
 
 // each sector has a degenmobj_t in it's center for sound origin purposes

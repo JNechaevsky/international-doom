@@ -148,6 +148,7 @@ boolean P_SetMobjStateNF(mobj_t * mobj, statenum_t state);
 void P_ThrustMobj(mobj_t * mo, angle_t angle, fixed_t move);
 boolean P_SeekerMissile(mobj_t * actor, angle_t thresh, angle_t turnMax);
 void P_MobjThinker(thinker_t * thinker);
+void P_MobjInterpolation(mobj_t *const mobj);
 void P_BlasterMobjThinker(thinker_t * thinker);
 void P_SpawnMapThing(const mapthing_t * mthing);
 void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);

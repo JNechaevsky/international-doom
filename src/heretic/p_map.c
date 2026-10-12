@@ -1072,6 +1072,9 @@ static boolean P_ThingHeightClip(mobj_t * thing)
 {
     boolean onfloor;
 
+    // [PN] Capture interp baseline before the clip (fixes lift-item z jitter).
+    P_MobjInterpolation(thing);
+
     onfloor = (thing->z == thing->floorz);
 
     P_CheckPosition(thing, thing->x, thing->y);
