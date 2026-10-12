@@ -78,13 +78,8 @@ static int intertime = -1;
 static gametype_t gametype;
 static int cnt;
 static int slaughterboy;        // in DM, the player with the most kills
-static patch_t *patchINTERPIC;
 static patch_t *FontBNumbers[10];
-static patch_t *FontBNegative;
-static patch_t *FontBSlash;
-static patch_t *FontBPercent;
 static int FontABaseLump;
-static int FontBLump;
 static int FontBLumpBase;
 
 static signed int totalFrags[MAXPLAYERS];
@@ -281,18 +276,12 @@ static void LoadPics(void)
 {
     if (HubCount || gametype == DEATHMATCH)
     {
-        patchINTERPIC = W_CacheLumpName("INTERPIC", PU_STATIC);
         FontBLumpBase = W_GetNumForName("FONTB16");
         for (int i = 0; i < 10; i++)
         {
             FontBNumbers[i] = W_CacheLumpNum(FontBLumpBase + i, PU_STATIC);
         }
-        FontBLump = W_GetNumForName("FONTB_S") + 1;
-        FontBNegative = W_CacheLumpName("FONTB13", PU_STATIC);
         FontABaseLump = W_GetNumForName("FONTA_S") + 1;
-
-        FontBSlash = W_CacheLumpName("FONTB15", PU_STATIC);
-        FontBPercent = W_CacheLumpName("FONTB05", PU_STATIC);
     }
 }
 
@@ -308,7 +297,6 @@ static void UnloadPics(void)
     {
         W_ReleaseLumpName("INTERPIC");
 
-        patchINTERPIC = W_CacheLumpName("INTERPIC", PU_STATIC);
         FontBLumpBase = W_GetNumForName("FONTB16");
         for (int i = 0; i < 10; i++)
         {

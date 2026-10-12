@@ -460,9 +460,7 @@ static int StepDelta;
 static int Direction;
 static int Speed;
 static int Texture;
-static int StartDelay;
 static int StartDelayDelta;
-static int TextureChange;
 static int StartHeight;
 
 //==========================================================================
@@ -616,7 +614,6 @@ int EV_BuildStairs(line_t * line, const byte * args, int direction,
     int type;
 
     // Set global stairs variables
-    TextureChange = 0;
     Direction = direction;
     StepDelta = Direction * (args[2] * FRACUNIT);
     Speed = args[1] * (FRACUNIT / 8);
@@ -625,10 +622,8 @@ int EV_BuildStairs(line_t * line, const byte * args, int direction,
     if (stairsType == STAIRS_PHASED)
     {
         StartDelayDelta = args[3];
-        StartDelay = StartDelayDelta;
         resetDelay = StartDelayDelta;
         delay = 0;
-        TextureChange = args[4];
     }
 
     secnum = -1;

@@ -454,8 +454,6 @@ static int M_ItemRightAlign (const char *text)
     return ORIGWIDTH - CurrentMenu->x - MN_TextAWidth(text);
 }
 
-static player_t *player;
-
 static void M_Draw_ID_Main (void);
 
 static void M_Draw_ID_Video_1 (void);
@@ -6232,9 +6230,6 @@ void MN_Init(void)
     CurrentMenu = &MainMenu;
     MenuActive = false;
     SkullBaseLump = W_GetNumForName(DEH_String("M_SKL00"));
-
-    // [JN] CRL - player is always local, "console" player.
-    player = &players[consoleplayer];
 
     if (gamemode == retail)
     {                           // Add episodes 4 and 5 to the menu

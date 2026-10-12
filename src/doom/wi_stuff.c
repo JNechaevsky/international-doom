@@ -325,9 +325,6 @@ static int 		cnt;
 // used for timing of background animation
 static int 		bcnt;
 
-// signals to refresh everything for one frame
-static int 		firstrefresh; 
-
 static int		cnt_kills[MAXPLAYERS];
 static int		cnt_items[MAXPLAYERS];
 static int		cnt_secret[MAXPLAYERS];
@@ -1884,7 +1881,6 @@ static void WI_initVariables(wbstartstruct_t *wbstartstruct)
 
     acceleratestage = 0;
     cnt = bcnt = 0;
-    firstrefresh = 1;
     me = wbs->pnum;
     plrs = wbs->plyr;
 

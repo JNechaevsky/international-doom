@@ -1453,79 +1453,89 @@ static void R_DrawSprite (const vissprite_t *const spr)
         cliptop[x] = -2;
     }
 
-    // Scan drawsegs from end to start for obscuring segs.
-    // The first drawseg that has a greater scale is the clip seg.
-    for (const drawseg_t *ds = ds_p - 1; ds >= drawsegs; ds--)
+    // [PN] Consume the subrange that R_DrawMasked pre-filtered by screen side,
+    // instead of scanning all drawsegs (Andrey Budko's xrange optimization).
+    if (drawsegs_xrange_size)
     {
-        // determine if the drawseg obscures the sprite
-        if (ds->x1 > spr->x2 || ds->x2 < spr->x1
-        || (!ds->silhouette && !ds->maskedtexturecol))
+        const drawseg_xrange_item_t *last = &drawsegs_xrange[drawsegs_xrange_count - 1];
+        const drawseg_xrange_item_t *curr = &drawsegs_xrange[-1];
+
+        // Scan obscuring segs, nearest first (order R_DrawMasked filled them).
+        // The first drawseg that has a greater scale is the clip seg.
+        while (++curr <= last)
         {
-            // does not cover sprite
-            continue;
-        }
+            const drawseg_t *const ds = curr->user;
 
-        const int r1 = ds->x1 < spr->x1 ? spr->x1 : ds->x1;
-        const int r2 = ds->x2 > spr->x2 ? spr->x2 : ds->x2;
-
-        fixed_t lowscale;
-        fixed_t scale;
-
-        if (ds->scale1 > ds->scale2)
-        {
-            lowscale = ds->scale2;
-            scale = ds->scale1;
-        }
-        else
-        {
-            lowscale = ds->scale1;
-            scale = ds->scale2;
-        }
-
-        if (scale < spr->scale || (lowscale < spr->scale
-        && !R_PointOnSegSide(spr->gx, spr->gy, ds->curline)))
-        {
-            // masked mid texture?
-            if (ds->maskedtexturecol)
-                R_RenderMaskedSegRange(ds, r1, r2);
-
-            // seg is behind sprite
-            continue;
-        }
-
-        // clip this piece of the sprite
-        int silhouette = ds->silhouette;
-
-        if (spr->gz >= ds->bsilheight)
-            silhouette &= ~SIL_BOTTOM;
-
-        if (spr->gzt <= ds->tsilheight)
-            silhouette &= ~SIL_TOP;
-
-        if (silhouette == 1)
-        {
-            // bottom sil
-            for (int x = r1; x <= r2; x++)
-                if (clipbot[x] == -2)
-                    clipbot[x] = ds->sprbottomclip[x];
-        }
-        else if (silhouette == 2)
-        {
-            // top sil
-            for (int x = r1; x <= r2; x++)
-                if (cliptop[x] == -2)
-                    cliptop[x] = ds->sprtopclip[x];
-        }
-        else if (silhouette == 3)
-        {
-            // both
-            for (int x = r1; x <= r2; x++)
+            // determine if the drawseg obscures the sprite
+            // (no silhouette/masked check needed: the range holds only those)
+            if (ds->x1 > spr->x2 || ds->x2 < spr->x1)
             {
-                if (clipbot[x] == -2)
-                    clipbot[x] = ds->sprbottomclip[x];
+                // does not cover sprite
+                continue;
+            }
 
-                if (cliptop[x] == -2)
-                    cliptop[x] = ds->sprtopclip[x];
+            const int r1 = ds->x1 < spr->x1 ? spr->x1 : ds->x1;
+            const int r2 = ds->x2 > spr->x2 ? spr->x2 : ds->x2;
+
+            fixed_t lowscale;
+            fixed_t scale;
+
+            if (ds->scale1 > ds->scale2)
+            {
+                lowscale = ds->scale2;
+                scale = ds->scale1;
+            }
+            else
+            {
+                lowscale = ds->scale1;
+                scale = ds->scale2;
+            }
+
+            if (scale < spr->scale || (lowscale < spr->scale
+            && !R_PointOnSegSide(spr->gx, spr->gy, ds->curline)))
+            {
+                // masked mid texture?
+                if (ds->maskedtexturecol)
+                    R_RenderMaskedSegRange(ds, r1, r2);
+
+                // seg is behind sprite
+                continue;
+            }
+
+            // clip this piece of the sprite
+            int silhouette = ds->silhouette;
+
+            if (spr->gz >= ds->bsilheight)
+                silhouette &= ~SIL_BOTTOM;
+
+            if (spr->gzt <= ds->tsilheight)
+                silhouette &= ~SIL_TOP;
+
+            if (silhouette == 1)
+            {
+                // bottom sil
+                for (int x = r1; x <= r2; x++)
+                    if (clipbot[x] == -2)
+                        clipbot[x] = ds->sprbottomclip[x];
+            }
+            else if (silhouette == 2)
+            {
+                // top sil
+                for (int x = r1; x <= r2; x++)
+                    if (cliptop[x] == -2)
+                        cliptop[x] = ds->sprtopclip[x];
+            }
+            else if (silhouette == 3)
+            {
+                // both
+                for (int x = r1; x <= r2; x++)
+                {
+                    if (clipbot[x] == -2)
+                        clipbot[x] = ds->sprbottomclip[x];
+
+                    if (cliptop[x] == -2)
+                        cliptop[x] = ds->sprtopclip[x];
+                }
             }
         }
     }

@@ -225,7 +225,6 @@ boolean askforquit;
 static int typeofask;
 static boolean FileMenuKeySteal;
 static boolean slottextloaded;
-static boolean joypadsave;
 static char SlotText[SAVES_PER_PAGE][SLOTTEXTLEN + 2];
 static byte SlotPreview[SAVES_PER_PAGE][V_SAVEPREVIEW_SIZE];
 static char oldSlotText[SLOTTEXTLEN + 2];
@@ -7035,7 +7034,6 @@ static void SetDefaultSaveName(int slot)
         free(wadname);
     }
     M_ForceUppercase(SlotText[slot]);
-    joypadsave = false;
 }
 
 // [JN] Check if Save Game menu should be accessable.
@@ -7071,7 +7069,7 @@ static void SCSaveGame(int choice)
         ptr = SlotText[choice];
 
         // [crispy] generate a default save slot name when saving to an empty slot
-        if (!strcmp(ptr, "") /* && joypadsave */ || (strlen(oldSlotText) >= 3 && !strncmp(oldSlotText, "HUB", 3)))
+        if (!strcmp(ptr, "") || (strlen(oldSlotText) >= 3 && !strncmp(oldSlotText, "HUB", 3)))
         {
             SetDefaultSaveName(choice);
           M_snprintf(ptr, sizeof(oldSlotText), "HUB %d.%d, %s",

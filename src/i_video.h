@@ -134,7 +134,6 @@ void I_CheckIsScreensaver(void);
 void I_SetGrabMouseCallback(grabmouse_callback_t func);
 void CenterWindow(int *x, int *y, int w, int h);
 
-void I_DisplayFPSDots(boolean dots_on);
 void I_BindVideoVariables(void);
 
 void I_InitWindowTitle(void);

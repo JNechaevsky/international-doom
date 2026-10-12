@@ -1159,7 +1159,6 @@ void A_SkelFist (mobj_t*	actor)
 // Detect a corpse that could be raised.
 //
 static mobj_t*		corpsehit;
-static mobj_t*		vileobj;
 static fixed_t		viletryx;
 static fixed_t		viletryy;
 
@@ -1227,7 +1226,6 @@ void A_VileChase (mobj_t* actor)
 	yl = (viletryy - bmaporgy - MAXRADIUS*2)>>MAPBLOCKSHIFT;
 	yh = (viletryy - bmaporgy + MAXRADIUS*2)>>MAPBLOCKSHIFT;
 	
-	vileobj = actor;
 	for (bx=xl ; bx<=xh ; bx++)
 	{
 	    for (by=yl ; by<=yh ; by++)

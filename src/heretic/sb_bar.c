@@ -63,7 +63,6 @@ static int oldhealth = -1;
 static int oldkeys = -1;
 static int oldlife = -1;
 static int oldweapon = -1;
-static int playpalette;
 static int spinbooklump;
 static int spinflylump;
 
@@ -363,7 +362,6 @@ void SB_Init(void)
     {
         PatchSmNumbers[i] = W_CacheLumpNum(startLump + i, PU_STATIC);
     }
-    playpalette = W_GetNumForName(DEH_String("PLAYPAL"));
     spinbooklump = W_GetNumForName(DEH_String("SPINBK0"));
     spinflylump = W_GetNumForName(DEH_String("SPFLY0"));
 

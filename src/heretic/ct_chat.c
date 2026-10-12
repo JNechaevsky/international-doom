@@ -88,7 +88,6 @@ char *chat_macros[10] =
 };
 
 static boolean altdown;
-static boolean shiftdown;
 boolean chatmodeon;
 boolean cheated;
 
@@ -198,7 +197,6 @@ boolean CT_Responder (event_t *ev)
     }
     if (ev->data1 == KEY_RSHIFT)
     {
-        shiftdown = (ev->type == ev_keydown);
         return false;
     }
     if (ev->type != ev_keydown)

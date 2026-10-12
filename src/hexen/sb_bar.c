@@ -94,7 +94,6 @@ static int SpinSpeedLump;
 static int SpinDefenseLump;
 
 static int FontBNumBase;
-static int PlayPalette;
 
 // [JN] Armor values, calculated every tic in SB_Ticker.
 static int ArmorValue;
@@ -470,7 +469,6 @@ void SB_Init(void)
     {
         PatchSmNumbers[i] = W_CacheLumpNum(startLump + i, PU_STATIC);
     }
-    PlayPalette = W_GetNumForName("PLAYPAL");
     SpinFlylump = W_GetNumForName("SPFLY0");
     SpinMinotaurLump = W_GetNumForName("SPMINO0");
     SpinSpeedLump = W_GetNumForName("SPBOOT0");
