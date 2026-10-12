@@ -137,8 +137,10 @@ static unsigned int current_track_pos;
 // Currently playing music track.
 static Mix_Music *current_track_music = NULL;
 
+#if !USE_SDL_MIXER_LOOPING
 // If true, the currently playing track is being played on loop.
 static boolean current_track_loop;
+#endif
 
 // Table of known hashes and filenames to look up for them. This allows
 // users to drop in a set of files without having to also provide a
@@ -1224,7 +1226,9 @@ static void I_MP_PlaySong(void *handle, boolean looping)
     }
 
     current_track_music = (Mix_Music *) handle;
+#if !USE_SDL_MIXER_LOOPING
     current_track_loop = looping;
+#endif
 
     if (looping)
     {
