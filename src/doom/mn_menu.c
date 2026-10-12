@@ -2412,10 +2412,8 @@ void M_ID_RemasterOST (int choice)
 
     snd_remaster_ost = M_INT_Slider(snd_remaster_ost, 0, 2, choice, false);
 
-    // [JN] Forcefully stop current music.
-    S_StopMusic();
-    // [JN] Reinitialize music lump numbers and restart current music.
-    S_Start();
+    // [PN] Replay the current musical context.
+    S_ID_RestartMusic();
 }
 
 // -----------------------------------------------------------------------------
