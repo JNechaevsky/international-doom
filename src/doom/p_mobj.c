@@ -597,8 +597,6 @@ void P_MobjInterpolation (mobj_t *const mobj)
     mobj->oldx = mobj->x;
     mobj->oldy = mobj->y;
     mobj->oldz = mobj->z;
-    mobj->oldangle = mobj->angle;
-    mobj->old_float_z = mobj->float_z;
 }
 
 //
@@ -619,9 +617,10 @@ void P_MobjThinker (mobj_t* mobj)
         // of the tic.
         mobj->interp = true;
 
-        // [PN] Capture the full interpolation baseline once per tic
-        // (shared with the height clip, so lift order doesn't matter).
+        // [PN] Capture the full interpolation baseline once per tic.
         P_MobjInterpolation(mobj);
+        mobj->oldangle = mobj->angle;
+        mobj->old_float_z = mobj->float_z;
     }
 
     // momentum movement

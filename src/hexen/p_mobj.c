@@ -1079,7 +1079,6 @@ void P_MobjInterpolation (mobj_t *const mobj)
     mobj->oldx = mobj->x;
     mobj->oldy = mobj->y;
     mobj->oldz = mobj->z;
-    mobj->oldangle = mobj->angle;
 }
 
 //----------------------------------------------------------------------------
@@ -1108,6 +1107,7 @@ void P_MobjThinker(thinker_t *thinker)
 
         // [PN] Capture the full interpolation baseline once per tic.
         P_MobjInterpolation(mobj);
+        mobj->oldangle = mobj->angle;
     }
 
 /*
