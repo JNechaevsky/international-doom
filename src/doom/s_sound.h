@@ -96,14 +96,22 @@ extern int current_mus_num;
 extern int idmusnum;
 
 // [JN] Remastered soundtrack (extras.wad).
-extern void S_ID_Change_D1_IntermissionMusic (void);
-extern void S_ID_Start_D2_TitleMusic (void);
-extern void S_ID_Change_D2_IntermissionMusic (void);
-extern void S_ID_Change_D2_ReadMusic (void);
-extern void S_ID_Change_D2_CastMusic (void);
-extern int  S_ID_Set_D1_RemasteredMusic (void);
-extern int  S_ID_Set_D2_RemasteredMusic (void);
-extern void S_ID_Generate_MusicName (char *namebuf, size_t bufsize, musicinfo_t *music);
+// [PN] Consolidated API: one selection entry point (S_ID_Get_Music) that
+// handles idmusnum, per-map selection (vanilla or remaster), and every
+// non-map musical context (title, intermission, read-this, cast); plus
+// the lump resolver (S_ID_Find_RemasterMusic) that picks the best
+// existing "H_"/"O_"/"d_" track for a given musicinfo_t.
+typedef enum
+{
+    rm_music_map,          // in-level map music (idmusnum honoured)
+    rm_music_title,        // title / demo-loop screen
+    rm_music_intermission, // level or world intermission
+    rm_music_readthis,     // finale "read this" text screen
+    rm_music_cast          // finale roll-call credits
+} rm_music_t;
+
+extern int  S_ID_Get_Music (const rm_music_t kind);
+extern int  S_ID_Find_RemasterMusic (const musicinfo_t *const music);
 
 #endif
 

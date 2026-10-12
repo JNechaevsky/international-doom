@@ -58,9 +58,6 @@ typedef enum
     GS_INTERMISSION,
     GS_FINALE,
     GS_DEMOSCREEN,
-    // [JN] Remastered soundtrack (extras.wad),
-    // used exclusively for music hot-swapping.
-    GS_THEEND,
 } gamestate_t;
 
 typedef enum

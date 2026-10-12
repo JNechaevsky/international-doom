@@ -1577,17 +1577,15 @@ void WI_Ticker(void)
 
     if (bcnt == 1)
     {
-	// intermission music
-  	if ( gamemode == commercial )
-	  S_ID_Change_D2_IntermissionMusic();
 	// [crispy] Sigil
-	else if (sigil && wbs->epsd == 4 && W_CheckNumForName(DEH_String("D_SIGINT")) != -1)
+	if (sigil && wbs->epsd == 4 && W_CheckNumForName(DEH_String("D_SIGINT")) != -1)
 	  S_ChangeMusic(mus_sigint, true);
 	// [crispy] Sigil II
 	else if (sigil2 && wbs->epsd == 5 && W_CheckNumForName(DEH_String("D_SG2INT")) != -1)
 	  S_ChangeMusic(mus_sg2int, true);
+	// intermission music
 	else
-	  S_ID_Change_D1_IntermissionMusic();
+	  S_ChangeMusic(S_ID_Get_Music(rm_music_intermission), true);
     }
 
     WI_checkForAccelerate();

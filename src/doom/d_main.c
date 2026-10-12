@@ -418,7 +418,6 @@ static void D_Display (void)
             break;
 
         case GS_FINALE:
-        case GS_THEEND:
             F_Drawer();
             break;
 
@@ -605,7 +604,7 @@ static boolean D_GrabMouseCallback(void)
         return false;
 
     // [JN] Always grab the mouse on non-level game states.
-    if ((gamestate == GS_INTERMISSION || gamestate == GS_FINALE || gamestate == GS_THEEND)
+    if ((gamestate == GS_INTERMISSION || gamestate == GS_FINALE)
     && (!demoplayback && !advancedemo))
         return true;
 
@@ -746,16 +745,8 @@ void D_DoAdvanceDemo (void)
     switch (demosequence)
     {
         case 0:
-        if (gamemode == commercial)
-        {
-            pagetic = TICRATE * 11;
-            S_ID_Start_D2_TitleMusic();
-        }
-        else
-        {
-            pagetic = 170;
-            S_StartMusic (mus_intro);
-        }
+        pagetic = (gamemode == commercial) ? TICRATE * 11 : 170;
+        S_StartMusic (S_ID_Get_Music(rm_music_title));
         gamestate = GS_DEMOSCREEN;
         pagename = DEH_String("TITLEPIC");
         break;
@@ -786,7 +777,7 @@ void D_DoAdvanceDemo (void)
         {
             pagetic = TICRATE * 11;
             pagename = DEH_String("TITLEPIC");
-            S_ID_Start_D2_TitleMusic();
+            S_StartMusic (S_ID_Get_Music(rm_music_title));
         }
         else
         {

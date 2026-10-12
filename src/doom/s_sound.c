@@ -309,12 +309,9 @@ void S_StopAllSound(void)
 
 void S_Start(void)
 {
-    int cnum;
-    int mnum;
-
     // kill all playing sounds at start of level
     //  (trust me - a good idea)
-    for (cnum=0 ; cnum<snd_channels ; cnum++)
+    for (int cnum = 0; cnum < snd_channels; cnum++)
     {
         if (channels[cnum].sfxinfo)
         {
@@ -326,87 +323,10 @@ void S_Start(void)
     if (musicVolume) // [crispy] do not reset pause state at zero music volume
     mus_paused = 0;
 
-    if (idmusnum != -1)
-    {
-        mnum = idmusnum; //jff 3/17/98 reload IDMUS music if not -1
-    }
-    else
-    if (gamemode == commercial)
-    {
-      if (remaster_ost)
-      {
-          mnum = S_ID_Set_D2_RemasteredMusic();
-      }
-      else
-      {
-        if (nerve && gamemap <= 9)
-        {
-            const int nmus[] =
-            {
-                mus_messag,
-                mus_ddtblu,
-                mus_doom,
-                mus_shawn,
-                mus_in_cit,
-                mus_the_da,
-                mus_in_cit,
-                mus_shawn2,
-                mus_ddtbl2,
-            };
-
-            mnum = nmus[gamemap - 1];
-        }
-        else
-        {
-            mnum = mus_runnin + gamemap - 1;
-        }
-      }
-    }
-    else
-    {
-        if (remaster_ost)
-        {
-            mnum = S_ID_Set_D1_RemasteredMusic();
-        }
-        else
-        {
-        const int spmus[]=
-        {
-            // Song - Who? - Where?
-
-            mus_e3m4,        // American     e4m1
-            mus_e3m2,        // Romero       e4m2
-            mus_e3m3,        // Shawn        e4m3
-            mus_e1m5,        // American     e4m4
-            mus_e2m7,        // Tim          e4m5
-            mus_e2m4,        // Romero       e4m6
-            mus_e2m6,        // J.Anderson   e4m7 CHIRON.WAD
-            mus_e2m5,        // Shawn        e4m8
-            mus_e1m9,        // Tim          e4m9
-        };
-
-        if (gameepisode < 4 || gameepisode == 5 || gameepisode == 6) // [crispy] 
-        {
-            mnum = mus_e1m1 + (gameepisode-1)*9 + gamemap-1;
-        }
-        else
-        {
-            mnum = spmus[gamemap-1];
-
-            // [crispy] support dedicated music tracks for the 4th episode
-            {
-                const int sp_mnum = mus_e1m1 + 3 * 9 + gamemap - 1;
-
-                if (S_music[sp_mnum].lumpnum > 0)
-                {
-                    mnum = sp_mnum;
-                }
-            }
-        }
-        }
-    }
-
-    S_ChangeMusic(mnum, true);
+    // [PN] In-map music number is resolved by S_ID_Get_Music, which handles
+    // idmusnum, per-mission selection (Doom 1/2, TNT, Plutonia, Nerve, Sigil /
+    // Crispy episode-4 dedicated tracks), and remaster redirection.
+    S_ChangeMusic(S_ID_Get_Music(rm_music_map), true);
 }
 
 void S_StopSound(const mobj_t *origin)
@@ -917,20 +837,18 @@ void S_ChangeMusic(int musicnum, int looping)
     // shutdown old music
     S_StopMusic();
 
-    if (remaster_ost && gameepisode < 5)
+    // [PN] Resolve the music lump. When extras.wad is present,
+    // prefer the best // remastered version that actually exists (H_ -> O_ -> D_).
+    if (!music->lumpnum || (remaster_ost && gameepisode < 5))
     {
-        // [PN/JN] Generate the music lump name.
-        S_ID_Generate_MusicName(namebuf, sizeof(namebuf), music);
-        music->lumpnum = W_GetNumForName(namebuf);
+        music->lumpnum = S_ID_Find_RemasterMusic(music);
     }
-    else
-    {
-    // get lumpnum if neccessary
-    if (!music->lumpnum)
+
+    // [PN] Vanilla fallback (remastering not applicable, or nothing matched).
+    if (music->lumpnum <= 0)
     {
         M_snprintf(namebuf, sizeof(namebuf), "d_%s", DEH_String(music->name));
         music->lumpnum = W_GetNumForName(namebuf);
-    }
     }
 
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
@@ -992,203 +910,192 @@ void S_MuteUnmuteSound (boolean mute)
 
 // -----------------------------------------------------------------------------
 // [JN] Remastered soundtrack (extras.wad) functions.
+// [PN] Single entry point for remaster-aware music selection. Given a
+// context (map / title / intermission / read-this / cast), returns the
+// vanilla mus_* number whose base name best identifies the intended track.
+// S_ID_Find_RemasterMusic then resolves that number to the best existing
+// "H_"/"O_"/"d_" lump at playback time.
 // -----------------------------------------------------------------------------
 
-// [JN] Handles Doom 1 title music.
-void S_ID_Change_D1_IntermissionMusic (void)
+int S_ID_Get_Music (const rm_music_t kind)
 {
-    const int id_mus_inter =
-        remaster_ost ? mus_e2m3 : mus_inter;
-
-    S_ChangeMusic(id_mus_inter, true); 
-}
-
-// [JN] Handles Doom 2 title music.
-void S_ID_Start_D2_TitleMusic (void)
-{
-    const int id_mus_dm2ttl =
-        (remaster_ost && snd_remaster_ost && logical_gamemission == pack_tnt) ? mus_tntttl : mus_dm2ttl;
-
-    S_StartMusic(id_mus_dm2ttl);
-}
-
-// [JN] Handles Doom 2 tally screen music.
-void S_ID_Change_D2_IntermissionMusic (void)
-{
-    const int id_mus_dm2int =
-        (remaster_ost && snd_remaster_ost && logical_gamemission == pack_tnt) ? mus_tnt31 : mus_dm2int;
-
-    S_ChangeMusic(id_mus_dm2int, true);
-}
-
-// [JN] Handles Doom 2 intermission text music.
-void S_ID_Change_D2_ReadMusic (void)
-{
-    const int id_mus_read_m =
-        (remaster_ost && snd_remaster_ost && logical_gamemission == pack_tnt) ? mus_tntred : mus_read_m;
-    
-    S_ChangeMusic(id_mus_read_m, true);
-}
-
-// [JN] Handles Doom 2 casting screen music.
-void S_ID_Change_D2_CastMusic (void)
-{
-    const int id_mus_evil =
-        (remaster_ost && snd_remaster_ost && logical_gamemission == pack_tnt)  ? mus_tnt31 :
-        (remaster_ost && snd_remaster_ost && logical_gamemission == pack_plut) ? mus_e1m8 : mus_evil;
-
-    S_ChangeMusic(id_mus_evil, true);
-}
-
-// [JN/PN] Handles Doom 1 music selection, ensuring correct remastered
-// or default track assignment.
-int S_ID_Set_D1_RemasteredMusic (void)
-{
-    int mnum = 0;
-
-    static const int remaster_d1[][11] =
+    // [JN] jff 3/17/98 reload IDMUS music if not -1 (map-only override).
+    if (kind == rm_music_map && idmusnum != -1)
     {
-        { mus_intro, 0, mus_e1m1, mus_e1m2, mus_e1m3, mus_e1m4, mus_e1m5, mus_e1m6, mus_e1m7, mus_e1m8, mus_e1m9 },
-        { mus_intro, 0, mus_e2m1, mus_e2m2, mus_e2m3, mus_e2m4, mus_e1m7, mus_e2m6, mus_e2m7, mus_e2m8, mus_e2m9 },
-        { mus_intro, 0, mus_e2m9, mus_e3m2, mus_e3m3, mus_e1m8, mus_e1m7, mus_e1m6, mus_e2m7, mus_e3m8, mus_e1m9 },
-        { mus_intro, 0, mus_e1m8, mus_e3m2, mus_e3m3, mus_e1m5, mus_e2m7, mus_e2m4, mus_e2m6, mus_e1m7, mus_e1m9 },
-        { mus_intro, 0, mus_e5m1, mus_e5m2, mus_e5m3, mus_e5m5, mus_e5m5, mus_e5m6, mus_e5m7, mus_e5m8, mus_e5m9 },
-        { mus_intro, 0, mus_e6m1, mus_e6m2, mus_e6m3, mus_e6m5, mus_e6m5, mus_e6m6, mus_e6m7, mus_e6m8, mus_e6m9 },
+        return idmusnum;
+    }
+
+    // [PN] Convenience flags for the selection rules below.
+    const boolean remap = remaster_ost && snd_remaster_ost;
+    const boolean tnt   = (logical_gamemission == pack_tnt);
+    const boolean plut  = (logical_gamemission == pack_plut);
+
+    // ----------------------- Doom 1 -----------------------
+    if (gamemode != commercial)
+    {
+        if (kind != rm_music_map)
+        {
+            // [PN] Intermission must be redirected to e2m3 because the remix of
+            // D_INTER is authored as H_E2M3 in extras.wad (no H_INTER exists).
+            // Title / victor / bunny resolve directly via the lump probe.
+            switch (kind)
+            {
+                case rm_music_title:        return mus_intro;
+                case rm_music_intermission: return remap ? mus_e2m3 : mus_inter;
+                case rm_music_readthis:     return mus_victor;
+                case rm_music_cast:         return mus_bunny;
+                default:                    return mus_intro;
+            }
+        }
+
+        static const int remap_d1[6][11] =
+        {
+            { mus_intro, 0, mus_e1m1, mus_e1m2, mus_e1m3, mus_e1m4, mus_e1m5, mus_e1m6, mus_e1m7, mus_e1m8, mus_e1m9 },
+            { mus_intro, 0, mus_e2m1, mus_e2m2, mus_e2m3, mus_e2m4, mus_e1m7, mus_e2m6, mus_e2m7, mus_e2m8, mus_e2m9 },
+            { mus_intro, 0, mus_e2m9, mus_e3m2, mus_e3m3, mus_e1m8, mus_e1m7, mus_e1m6, mus_e2m7, mus_e3m8, mus_e1m9 },
+            { mus_intro, 0, mus_e1m8, mus_e3m2, mus_e3m3, mus_e1m5, mus_e2m7, mus_e2m4, mus_e2m6, mus_e1m7, mus_e1m9 },
+            { mus_intro, 0, mus_e5m1, mus_e5m2, mus_e5m3, mus_e5m5, mus_e5m5, mus_e5m6, mus_e5m7, mus_e5m8, mus_e5m9 },
+            { mus_intro, 0, mus_e6m1, mus_e6m2, mus_e6m3, mus_e6m5, mus_e6m5, mus_e6m6, mus_e6m7, mus_e6m8, mus_e6m9 },
+        };
+        static const int spmus[9] =
+        {
+            // Song - Who? - Where?
+            mus_e3m4,  // American     e4m1
+            mus_e3m2,  // Romero       e4m2
+            mus_e3m3,  // Shawn        e4m3
+            mus_e1m5,  // American     e4m4
+            mus_e2m7,  // Tim          e4m5
+            mus_e2m4,  // Romero       e4m6
+            mus_e2m6,  // J.Anderson   e4m7 CHIRON.WAD
+            mus_e2m5,  // Shawn        e4m8
+            mus_e1m9,  // Tim          e4m9
+        };
+
+        if (remaster_ost)
+        {
+            return remap_d1[gameepisode - 1][gamemap + 1];
+        }
+
+        if (gameepisode < 4 || gameepisode == 5 || gameepisode == 6)
+        {
+            // [crispy] Sigil / Sigil II use dedicated e5m*/e6m* tracks.
+            return mus_e1m1 + (gameepisode - 1) * 9 + gamemap - 1;
+        }
+
+        // [crispy] support dedicated music tracks for the 4th episode
+        {
+            const int sp_mnum = mus_e1m1 + 3 * 9 + gamemap - 1;
+
+            if (S_music[sp_mnum].lumpnum > 0)
+            {
+                return sp_mnum;
+            }
+        }
+
+        return spmus[gamemap - 1];
+    }
+
+    // ----------------------- Doom 2 (incl. TNT / Plutonia / Nerve) -----------------------
+    if (kind != rm_music_map)
+    {
+        // [PN] TNT has mission-specific remix lumps (O_TNTTTL, O_TNT31, ...),
+        // so redirect the non-map states only when a remix mode is active.
+        // Cast additionally redirects for Plutonia (uses H_E1M8 as its end cue).
+        switch (kind)
+        {
+            case rm_music_title:        return (remap && tnt) ? mus_tntttl : mus_dm2ttl;
+            case rm_music_intermission: return (remap && tnt) ? mus_tnt31  : mus_dm2int;
+            case rm_music_readthis:     return (remap && tnt) ? mus_tntred : mus_read_m;
+            case rm_music_cast:
+                if (remap && tnt)  return mus_tnt31;
+                if (remap && plut) return mus_e1m8;
+                return mus_evil;
+            default: break;
+        }
+    }
+
+    static const int remap_d2[32] =
+    {
+        mus_runnin, mus_stalks, mus_countd, mus_betwee, mus_doom, mus_the_da, mus_shawn, mus_ddtblu, mus_in_cit, mus_dead,
+        mus_stalks, mus_the_da, mus_doom, mus_ddtblu, mus_runnin, mus_dead, mus_stalks, mus_romero, mus_shawn, mus_messag,
+        mus_countd, mus_ddtblu, mus_ampie, mus_the_da, mus_adrian, mus_messag, mus_romero, mus_tense, mus_shawn, mus_openin,
+        mus_evil, mus_ultima
+    };
+    static const int remap_tnt[32] =
+    {
+        mus_tnt01, mus_tnt02, mus_messag, mus_tnt04, mus_tnt05, mus_tnt06, mus_tnt07, mus_tnt08, mus_tnt01, mus_tnt10,
+        mus_tnt11, mus_ddtblu, mus_tnt04, mus_tnt14, mus_tnt02, mus_tnt16, mus_tnt05, mus_tnt10, mus_countd, mus_tnt20,
+        mus_in_cit, mus_tnt22, mus_ampie, mus_betwee, mus_doom, mus_tnt16, mus_tnt08, mus_tnt22, mus_tnt04, mus_tnt08,
+        mus_tnt31, mus_in_cit
+    };
+    static const int remap_plut[32] =
+    {
+        mus_e1m2, mus_e1m3, mus_e1m6, mus_e1m4, mus_e1m9, mus_e1m8, mus_e2m1, mus_e2m2, mus_e3m3, mus_e1m7,
+        mus_bunny, mus_e3m8, mus_e3m2, mus_e2m8, mus_e2m7, mus_e2m9, mus_e1m1, mus_e1m7, mus_e1m5, mus_messag,
+        mus_read_m, mus_ddtblu, mus_ampie, mus_the_da, mus_adrian, mus_messag, mus_e2m1, mus_e2m2, mus_e1m1, mus_victor,
+        mus_e1m8, mus_e2m8
+    };
+    static const int remap_nerve[9] =
+    {
+        // Nerve.wad - same track/lump names as remastered music.
+        mus_messag, mus_ddtblu, mus_doom, mus_shawn, mus_in_cit,
+        mus_the_da, mus_in_cit, mus_shawn, mus_ddtblu,
+    };
+    static const int orig_nerve[9] =
+    {
+        // Nerve.wad - unique track/lump names for original music,
+        // in case of possible usage of music pack.
+        mus_messag, mus_ddtblu, mus_doom, mus_shawn, mus_in_cit,
+        mus_the_da, mus_in_cit, mus_shawn2, mus_ddtbl2,
     };
 
-    switch (gamestate)
+    if (nerve && gamemap <= 9)
     {
-        case GS_DEMOSCREEN:    mnum = mus_intro;  break;
-        case GS_INTERMISSION:  mnum = snd_remaster_ost ? mus_e2m3 : mus_inter; break;
-        case GS_FINALE:        mnum = mus_victor; break;
-        case GS_THEEND:        mnum = mus_bunny;  break;
-        default:
-            mnum = remaster_d1[gameepisode - 1][gamemap + 1];
-            break;
+        return remap ? remap_nerve[gamemap - 1] : orig_nerve[gamemap - 1];
     }
+    if (remap && tnt)  return remap_tnt[gamemap - 1];
+    if (remap && plut) return remap_plut[gamemap - 1];
+    if (remap)         return remap_d2[gamemap - 1];
 
-    return mnum;
+    return mus_runnin + gamemap - 1;
 }
 
-// [JN/PN] Handles Doom 2 music selection for different game missions and states,
-// ensuring correct remastered or default track assignment.
-int S_ID_Set_D2_RemasteredMusic (void)
+// -----------------------------------------------------------------------------
+// S_ID_Find_RemasterMusic
+//  [PN] Resolves the best available remastered music lump for a track.
+//  Probes candidate lump names in priority order (H_ -> O_ -> D_) and returns the
+//  first that exists, so a track without an "H_" remix silently falls back to the
+//  SC-55 ("O_") or original ("D_") version instead of crashing on a missing lump.
+// -----------------------------------------------------------------------------
+
+int S_ID_Find_RemasterMusic (const musicinfo_t *const music)
 {
-    int mnum = 0;
+    static const char *const prefixes[] = { "h_", "o_", "d_" };
+    char namebuf[16];
+    int start;
+    int lumpnum;
 
-    if (gamemission == doom2)
+    if (!remaster_ost || gameepisode >= 5)
     {
-        static const int remaster_d2[32] =
-        {
-            mus_runnin, mus_stalks, mus_countd, mus_betwee, mus_doom, mus_the_da, mus_shawn, mus_ddtblu, mus_in_cit, mus_dead,
-            mus_stalks, mus_the_da, mus_doom, mus_ddtblu, mus_runnin, mus_dead, mus_stalks, mus_romero, mus_shawn, mus_messag,
-            mus_countd, mus_ddtblu, mus_ampie, mus_the_da, mus_adrian, mus_messag, mus_romero, mus_tense, mus_shawn, mus_openin,
-            mus_evil, mus_ultima
-        };
-        static const int remaster_nerve[9] =
-        {
-            // Nerve.wad - use same track/lump names for remastered music.
-            mus_messag, mus_ddtblu, mus_doom, mus_shawn, mus_in_cit,
-            mus_the_da, mus_in_cit, mus_shawn, mus_ddtblu,
-        };
-        static const int original_nerve[9] =
-        {
-            // Nerve.wad - use unique track/lump names for original music,
-            // in case of possible usage of music pack.
-            mus_messag, mus_ddtblu, mus_doom, mus_shawn, mus_in_cit,
-            mus_the_da, mus_in_cit, mus_shawn2, mus_ddtbl2,
-        };
+        return -1;
+    }
 
-        switch (gamestate)
+    // snd_remaster_ost: 1 = remixed (H_), 2 = SC-55 (O_), otherwise vanilla (D_).
+    start = (snd_remaster_ost == 1) ? 0 :
+            (snd_remaster_ost == 2) ? 1 : 2;
+
+    for (int i = start; i < 3; i++)
+    {
+        M_snprintf(namebuf, sizeof(namebuf), "%s%s", prefixes[i],
+                   DEH_String(music->name));
+
+        lumpnum = W_CheckNumForName(namebuf);
+
+        if (lumpnum > 0)
         {
-            case GS_DEMOSCREEN:    mnum = mus_dm2ttl; break;
-            case GS_INTERMISSION:  mnum = mus_dm2int; break;
-            case GS_FINALE:        mnum = mus_read_m; break;
-            case GS_THEEND:        mnum = mus_evil;   break;
-            default:
-                if (nerve && gamemap <= 9)
-                {
-                    mnum = snd_remaster_ost ? remaster_nerve[gamemap - 1] : original_nerve[gamemap - 1];
-                }
-                else
-                {
-                    mnum = snd_remaster_ost ? remaster_d2[gamemap - 1] : mus_runnin + gamemap - 1;
-                }
-                break;
+            return lumpnum;
         }
     }
-    else if (gamemission == pack_tnt)
-    {
-        static const int remaster_tnt[32] =
-        {
-            mus_tnt01, mus_tnt02, mus_messag, mus_tnt04, mus_tnt05, mus_tnt06, mus_tnt07, mus_tnt08, mus_tnt01, mus_tnt10,
-            mus_tnt11, mus_ddtblu, mus_tnt04, mus_tnt14, mus_tnt02, mus_tnt16, mus_tnt05, mus_tnt10, mus_countd, mus_tnt20,
-            mus_in_cit, mus_tnt22, mus_ampie, mus_betwee, mus_doom, mus_tnt16, mus_tnt08, mus_tnt22, mus_tnt04, mus_tnt08,
-            mus_tnt31, mus_in_cit
-        };
 
-        switch (gamestate)
-        {
-            case GS_DEMOSCREEN:    mnum = snd_remaster_ost ? mus_tntttl : mus_dm2ttl; break;
-            case GS_INTERMISSION:  mnum = snd_remaster_ost ? mus_tnt31  : mus_evil;   break;
-            case GS_FINALE:        mnum = snd_remaster_ost ? mus_tntred : mus_read_m; break;
-            case GS_THEEND:        mnum = snd_remaster_ost ? mus_tnt31  : mus_evil;   break;
-            default:
-                mnum = snd_remaster_ost ? remaster_tnt[gamemap - 1] : mus_runnin + (gamemap - 1);
-                break;
-        }
-    }
-    else if (gamemission == pack_plut)
-    {
-        static const int remaster_plut[32] =
-        {
-            mus_e1m2, mus_e1m3, mus_e1m6, mus_e1m4, mus_e1m9, mus_e1m8, mus_e2m1, mus_e2m2, mus_e3m3, mus_e1m7,
-            mus_bunny, mus_e3m8, mus_e3m2, mus_e2m8, mus_e2m7, mus_e2m9, mus_e1m1, mus_e1m7, mus_e1m5, mus_messag,
-            mus_read_m, mus_ddtblu, mus_ampie, mus_the_da, mus_adrian, mus_messag, mus_e2m1, mus_e2m2, mus_e1m1, mus_victor,
-            mus_e1m8, mus_e2m8
-        };
-
-        switch (gamestate)
-        {
-            case GS_DEMOSCREEN:    mnum = mus_dm2ttl; break;
-            case GS_INTERMISSION:  mnum = mus_dm2int; break;
-            case GS_FINALE:        mnum = mus_read_m; break;
-            case GS_THEEND:        mnum = snd_remaster_ost ? mus_e1m8 : mus_evil; break;
-            default:
-                mnum = snd_remaster_ost ? remaster_plut[gamemap - 1] : mus_runnin + (gamemap - 1);
-                break;
-        }
-    }
-    
-    return mnum;
-}
-
-// [PN/JN] Determines the correct music prefix based on game mission and map.
-void S_ID_Generate_MusicName (char *namebuf, size_t bufsize, musicinfo_t *music)
-{
-    const char *prefix;
-
-    if (gamemission == pack_tnt)
-    {
-        boolean special = (gamemap == 3 || gamemap == 12 || gamemap == 19 ||
-                          gamemap == 21 || gamemap == 23 || gamemap == 24 ||
-                          gamemap == 25 || gamemap == 32);
-
-        if (special)
-        {
-            prefix = (snd_remaster_ost == 1) ? "h_%s" :
-                     (snd_remaster_ost == 2) ? "o_%s" : "d_%s";
-        }
-        else
-        {
-            prefix = snd_remaster_ost ? "o_%s" : "d_%s";
-        }
-    }
-    else
-    {
-        prefix = (snd_remaster_ost == 1) ? "h_%s" :
-                 (snd_remaster_ost == 2) ? "o_%s" : "d_%s";
-    }
-    
-    M_snprintf(namebuf, bufsize, prefix, DEH_String(music->name));
+    return -1;
 }

@@ -1277,7 +1277,7 @@ boolean G_Responder (event_t* ev)
     }
     } 
 	 
-    if (gamestate == GS_FINALE || gamestate == GS_THEEND) 
+    if (gamestate == GS_FINALE) 
     { 
 	if (F_Responder (ev)) 
 	    return true;	// finale ate the event 
@@ -1839,7 +1839,6 @@ void G_Ticker (void)
 	break; 
 			 
       case GS_FINALE: 
-      case GS_THEEND:
 	F_Ticker (); 
 	break; 
  

@@ -136,14 +136,7 @@ void F_StartFinale (void)
     players[consoleplayer].messageCenteredTics = 1;
     players[consoleplayer].messageCentered = NULL;
 
-    if (logical_gamemission == doom)
-    {
-        S_ChangeMusic(mus_victor, true);
-    }
-    else
-    {
-        S_ID_Change_D2_ReadMusic();
-    }
+    S_ChangeMusic(S_ID_Get_Music(rm_music_readthis), true);
 
     // Find the right screen and set the text and background
 
@@ -505,7 +498,6 @@ boolean		castattacking;
 static void F_StartCast (void)
 {
     wipegamestate = -1;		// force a screen wipe
-    gamestate = GS_THEEND;
     castnum = 0;
     caststate = &states[mobjinfo[castorder[castnum].type].seestate];
     casttics = caststate->tics;
@@ -514,7 +506,7 @@ static void F_StartCast (void)
     castframes = 0;
     castonmelee = 0;
     castattacking = false;
-    S_ID_Change_D2_CastMusic();
+    S_ChangeMusic(S_ID_Get_Music(rm_music_cast), true);
 }
 
 
@@ -831,7 +823,6 @@ static void F_ArtScreenDrawer(void)
     
     if (gameepisode == 3)
     {
-        gamestate = GS_THEEND;
         F_BunnyScroll();
     }
     else
