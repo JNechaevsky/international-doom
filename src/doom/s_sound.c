@@ -917,8 +917,14 @@ void S_MuteUnmuteSound (boolean mute)
 // "H_"/"O_"/"d_" lump at playback time.
 // -----------------------------------------------------------------------------
 
+// [PN] Tracks which musical context was last resolved by S_ID_Get_Music,
+// so S_ID_RestartMusic can replay the same one after a setting change.
+static rm_music_t s_last_kind = rm_music_title;
+
 int S_ID_Get_Music (const rm_music_t kind)
 {
+    s_last_kind = kind;
+
     // [JN] jff 3/17/98 reload IDMUS music if not -1 (map-only override).
     if (kind == rm_music_map && idmusnum != -1)
     {
@@ -1098,4 +1104,29 @@ int S_ID_Find_RemasterMusic (const musicinfo_t *const music)
     }
 
     return -1;
+}
+
+// -----------------------------------------------------------------------------
+// S_ID_RestartMusic
+// [PN] Safe re-play entry point for setting hot-swaps that affect music
+// selection (e.g. the snd_remaster_ost menu toggle). Replays the last
+// musical context resolved by S_ID_Get_Music, so it works correctly from
+// title, intermission, finale and level.
+// -----------------------------------------------------------------------------
+
+void S_ID_RestartMusic (void)
+{
+    // [JN] Forcefully stop current music.
+    S_StopMusic();
+
+    // [PN] Title music is played non-looping from d_main, everything else
+    // loops; use the same convention here.
+    if (s_last_kind == rm_music_title)
+    {
+        S_StartMusic(S_ID_Get_Music(rm_music_title));
+    }
+    else
+    {
+        S_ChangeMusic(S_ID_Get_Music(s_last_kind), true);
+    }
 }

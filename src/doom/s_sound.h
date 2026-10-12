@@ -112,6 +112,7 @@ typedef enum
 
 extern int  S_ID_Get_Music (const rm_music_t kind);
 extern int  S_ID_Find_RemasterMusic (const musicinfo_t *const music);
+extern void S_ID_RestartMusic (void);
 
 #endif
 
