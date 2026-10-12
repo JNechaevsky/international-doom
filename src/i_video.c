@@ -112,7 +112,6 @@ static SDL_Texture *bluepane = NULL;
 static SDL_Texture *graypane = NULL;
 static SDL_Texture *orngpane = NULL;
 static int pane_alpha;
-static boolean palette_to_set;
 // [JN] Smooth palette.
 int    red_pane_alpha, yel_pane_alpha, grn_pane_alpha;
 int    gray_pane_alpha, orng_pane_alpha;
@@ -215,11 +214,6 @@ boolean screensaver_mode = false;
 
 boolean screenvisible = true;
 
-// If true, we display dots at the bottom of the screen to 
-// indicate FPS.
-
-static boolean display_fps_dots;
-
 // [JN] Externalized FPS value used for FPS counter.
 
 int id_fps_value;
@@ -317,13 +311,6 @@ void I_SetGrabMouseCallback(grabmouse_callback_t func)
     mouse_grab_callback = func;
 }
 
-// Set the variable controlling FPS dots.
-
-void I_DisplayFPSDots(boolean dots_on)
-{
-    display_fps_dots = dots_on;
-}
-
 static void SetShowCursor(boolean show)
 {
     if (!screensaver_mode)
@@ -404,7 +391,6 @@ static void HandleWindowEvent(const SDL_WindowEvent *event)
             break;
 #endif
         case SDL_WINDOWEVENT_EXPOSED:
-            palette_to_set = true;
             break;
 
         case SDL_WINDOWEVENT_RESIZED:
@@ -999,7 +985,6 @@ void I_FinishUpdate (void)
             }
             CreateUpscaledTexture(false);
             need_resize = false;
-            palette_to_set = true;
         }
         else
         {

@@ -53,7 +53,6 @@ patch_t *hu_font[HU_FONTSIZE];
 
 boolean chatmodeon;
 boolean altdown;
-boolean shiftdown;
 
 char *chat_macros[10] =
 {
@@ -195,7 +194,7 @@ boolean CT_Responder (event_t *ev)
         return false;
     }
 
-    // [PN] Handle ALT and SHIFT key states.
+    // [PN] Handle ALT key states.
     if (ev->data1 == KEY_LALT || ev->data1 == KEY_RALT)
     {
         altdown = (ev->type == ev_keydown);
@@ -203,7 +202,6 @@ boolean CT_Responder (event_t *ev)
     }
     if (ev->data1 == KEY_RSHIFT)
     {
-        shiftdown = (ev->type == ev_keydown);
         return false;
     }
 

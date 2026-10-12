@@ -1390,8 +1390,8 @@ Allows the player to slide along any angled walls
 ==============================================================================
 */
 
-static fixed_t bestslidefrac, secondslidefrac;
-static line_t *bestslideline, *secondslideline;
+static fixed_t bestslidefrac;
+static line_t *bestslideline;
 static mobj_t *slidemo;
 
 static fixed_t tmxmove, tmymove;
@@ -1482,8 +1482,6 @@ static boolean PTR_SlideTraverse(intercept_t * in)
   isblocking:
     if (in->frac < bestslidefrac)
     {
-        secondslidefrac = bestslidefrac;
-        secondslideline = bestslideline;
         bestslidefrac = in->frac;
         bestslideline = li;
     }
@@ -1649,8 +1647,6 @@ static boolean PTR_BounceTraverse(intercept_t * in)
   bounceblocking:
     if (in->frac < bestslidefrac)
     {
-        secondslidefrac = bestslidefrac;
-        secondslideline = bestslideline;
         bestslidefrac = in->frac;
         bestslideline = li;
     }
