@@ -948,8 +948,11 @@ static void R_ProjectSprite (const mobj_t *const thing)
     // [JN] killough 4/9/98: clip things which are out of view due to height
     const fixed_t gzt = interpz + spritetopoffset[lump];
 
-    if (interpz > (int64_t)viewz + FixedDiv(viewheight << FRACBITS, xscale)
-    ||      gzt < (int64_t)viewz - FixedDiv((viewheight << (FRACBITS + 1)) - viewheight, xscale))
+    // [PN] Pitch-aware: distances from centery to top/bottom screen rows.
+    const int64_t top_world    = viewz + FixedDiv(centery << FRACBITS, xscale);
+    const int64_t bottom_world = viewz - FixedDiv((viewheight - centery) << FRACBITS, xscale);
+
+    if (interpz > top_world || gzt < bottom_world)
     {
         return;
     }
