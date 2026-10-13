@@ -434,6 +434,7 @@ static default_t	doom_defaults_list[] =
     CONFIG_VARIABLE_KEYBIND(key_map_rotate, key_map_rotate2),
     CONFIG_VARIABLE_KEYBIND(key_map_overlay, key_map_overlay2),
     CONFIG_VARIABLE_KEYBIND(key_map_mousepan, key_map_mousepan2),
+    CONFIG_VARIABLE_KEYBIND(key_map_highlight, key_map_highlight2),
     CONFIG_VARIABLE_KEYBIND(key_map_grid, key_map_grid2),
     CONFIG_VARIABLE_KEYBIND(key_map_mark, key_map_mark2),
     CONFIG_VARIABLE_KEYBIND(key_map_clearmark, key_map_clearmark2),

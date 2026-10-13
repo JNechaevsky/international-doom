@@ -150,6 +150,7 @@ int key_map_follow    = 'f';     int key_map_follow2    = 0;
 int key_map_rotate    = 'r';     int key_map_rotate2    = 0;
 int key_map_overlay   = 'o';     int key_map_overlay2   = 0;
 int key_map_mousepan  = 0;       int key_map_mousepan2  = 0;
+int key_map_highlight = 'h';     int key_map_highlight2 = 0;
 int key_map_grid      = 'g';     int key_map_grid2      = 0;
 int key_map_mark      = 'm';     int key_map_mark2      = 0;
 int key_map_clearmark = 'c';     int key_map_clearmark2 = 0;
@@ -365,6 +366,7 @@ void M_BindControls (void)
     M_BindIntVariableKeybind("key_map_rotate",    &key_map_rotate,    "key_map_rotate2",    &key_map_rotate2);
     M_BindIntVariableKeybind("key_map_overlay",   &key_map_overlay,   "key_map_overlay2",   &key_map_overlay2);
     M_BindIntVariableKeybind("key_map_mousepan",  &key_map_mousepan,  "key_map_mousepan2",  &key_map_mousepan2);
+    M_BindIntVariableKeybind("key_map_highlight", &key_map_highlight, "key_map_highlight2", &key_map_highlight2);
     M_BindIntVariableKeybind("key_map_grid",      &key_map_grid,      "key_map_grid2",      &key_map_grid2);
     M_BindIntVariableKeybind("key_map_mark",      &key_map_mark,      "key_map_mark2",      &key_map_mark2);
     M_BindIntVariableKeybind("key_map_clearmark", &key_map_clearmark, "key_map_clearmark2", &key_map_clearmark2);

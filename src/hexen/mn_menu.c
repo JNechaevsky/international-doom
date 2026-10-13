@@ -623,6 +623,7 @@ static void M_Bind_FollowMode (int choice);
 static void M_Bind_RotateMode (int choice);
 static void M_Bind_OverlayMode (int choice);
 static void M_Bind_PanMode (int choice);
+static void M_Bind_AM_Highlight (int choice);
 static void M_Bind_ToggleGrid (int choice);
 static void M_Bind_AddMark (int choice);
 static void M_Bind_ClearMark (int choice);
@@ -3018,18 +3019,19 @@ static void M_Bind_AllArti (int choice)
 // -----------------------------------------------------------------------------
 
 static MenuItem_t ID_Menu_Keybinds_6[] = {
-    { ITT_EFUNC, "TOGGLE MAP",         M_Bind_ToggleMap,   0, MENU_NONE },
-    { ITT_EFUNC, "TOGGLE MINIMAP",     M_Bind_ToggleMini,  0, MENU_NONE },
-    { ITT_EFUNC, "ZOOM IN",            M_Bind_ZoomIn,      0, MENU_NONE },
-    { ITT_EFUNC, "ZOOM OUT",           M_Bind_ZoomOut,     0, MENU_NONE },
-    { ITT_EFUNC, "MAXIMUM ZOOM OUT",   M_Bind_MaxZoom,     0, MENU_NONE },
-    { ITT_EFUNC, "FOLLOW MODE",        M_Bind_FollowMode,  0, MENU_NONE },
-    { ITT_EFUNC, "ROTATE MODE",        M_Bind_RotateMode,  0, MENU_NONE },
-    { ITT_EFUNC, "OVERLAY MODE",       M_Bind_OverlayMode, 0, MENU_NONE },
-    { ITT_EFUNC, "MOUSE PANNING MODE", M_Bind_PanMode,     0, MENU_NONE },
-    { ITT_EFUNC, "TOGGLE GRID",        M_Bind_ToggleGrid,  0, MENU_NONE },
-    { ITT_EFUNC, "MARK LOCATION",      M_Bind_AddMark,     0, MENU_NONE },
-    { ITT_EFUNC, "CLEAR LAST MARK",    M_Bind_ClearMark,   0, MENU_NONE },
+    { ITT_EFUNC, "TOGGLE MAP",         M_Bind_ToggleMap,    0, MENU_NONE },
+    { ITT_EFUNC, "TOGGLE MINIMAP",     M_Bind_ToggleMini,   0, MENU_NONE },
+    { ITT_EFUNC, "ZOOM IN",            M_Bind_ZoomIn,       0, MENU_NONE },
+    { ITT_EFUNC, "ZOOM OUT",           M_Bind_ZoomOut,      0, MENU_NONE },
+    { ITT_EFUNC, "MAXIMUM ZOOM OUT",   M_Bind_MaxZoom,      0, MENU_NONE },
+    { ITT_EFUNC, "FOLLOW MODE",        M_Bind_FollowMode,   0, MENU_NONE },
+    { ITT_EFUNC, "ROTATE MODE",        M_Bind_RotateMode,   0, MENU_NONE },
+    { ITT_EFUNC, "OVERLAY MODE",       M_Bind_OverlayMode,  0, MENU_NONE },
+    { ITT_EFUNC, "MOUSE PANNING MODE", M_Bind_PanMode,      0, MENU_NONE },
+    { ITT_EFUNC, "HIGHLIGHT BY TAG",   M_Bind_AM_Highlight, 0, MENU_NONE },
+    { ITT_EFUNC, "TOGGLE GRID",        M_Bind_ToggleGrid,   0, MENU_NONE },
+    { ITT_EFUNC, "MARK LOCATION",      M_Bind_AddMark,      0, MENU_NONE },
+    { ITT_EFUNC, "CLEAR LAST MARK",    M_Bind_ClearMark,    0, MENU_NONE },
 };
 
 static Menu_t ID_Def_Keybinds_6 = {
@@ -3058,9 +3060,10 @@ static void M_Draw_ID_Keybinds_6 (void)
     M_DrawBindKey(6, 80, key_map_rotate, key_map_rotate2);
     M_DrawBindKey(7, 90, key_map_overlay, key_map_overlay2);
     M_DrawBindKey(8, 100, key_map_mousepan, key_map_mousepan2);
-    M_DrawBindKey(9, 110, key_map_grid, key_map_grid2);
-    M_DrawBindKey(10, 120, key_map_mark, key_map_mark2);
-    M_DrawBindKey(11, 130, key_map_clearmark, key_map_clearmark2);
+    M_DrawBindKey(9, 110, key_map_highlight, key_map_highlight2);
+    M_DrawBindKey(10, 120, key_map_grid, key_map_grid2);
+    M_DrawBindKey(11, 130, key_map_mark, key_map_mark2);
+    M_DrawBindKey(12, 140, key_map_clearmark, key_map_clearmark2);
 
     M_DrawBindFooter("PAGE 6/8", true);
 }
@@ -3110,19 +3113,24 @@ static void M_Bind_PanMode (int choice)
     M_StartBind(608);  // key_map_mousepan
 }
 
+static void M_Bind_AM_Highlight (int choice)
+{
+    M_StartBind(609);  // key_map_highlight
+}
+
 static void M_Bind_ToggleGrid (int choice)
 {
-    M_StartBind(609);  // key_map_grid
+    M_StartBind(610);  // key_map_grid
 }
 
 static void M_Bind_AddMark (int choice)
 {
-    M_StartBind(610);  // key_map_mark
+    M_StartBind(611);  // key_map_mark
 }
 
 static void M_Bind_ClearMark (int choice)
 {
-    M_StartBind(611);  // key_map_clearmark
+    M_StartBind(612);  // key_map_clearmark
 }
 
 // -----------------------------------------------------------------------------
@@ -8986,9 +8994,10 @@ static const KeyBindEntry_t keybinds[] =
     KEYBIND_ENTRY(606, &ID_Def_Keybinds_6, 6,  key_map_rotate,    key_map_rotate2,    'r',          0, KBS_AUTOMAP_ONLY),
     KEYBIND_ENTRY(607, &ID_Def_Keybinds_6, 7,  key_map_overlay,   key_map_overlay2,   'o',          0, KBS_AUTOMAP_ONLY),
     KEYBIND_ENTRY(608, &ID_Def_Keybinds_6, 8,  key_map_mousepan,  key_map_mousepan2,  0,            0, KBS_AUTOMAP_ONLY),
-    KEYBIND_ENTRY(609, &ID_Def_Keybinds_6, 9,  key_map_grid,      key_map_grid2,      'g',          0, KBS_AUTOMAP_ONLY),
-    KEYBIND_ENTRY(610, &ID_Def_Keybinds_6, 10, key_map_mark,      key_map_mark2,      'm',          0, KBS_AUTOMAP_ONLY),
-    KEYBIND_ENTRY(611, &ID_Def_Keybinds_6, 11, key_map_clearmark, key_map_clearmark2, 'c',          0, KBS_AUTOMAP_ONLY),
+    KEYBIND_ENTRY(609, &ID_Def_Keybinds_6, 9,  key_map_highlight, key_map_highlight2, 'h',          0, KBS_AUTOMAP_ONLY),
+    KEYBIND_ENTRY(610, &ID_Def_Keybinds_6, 10, key_map_grid,      key_map_grid2,      'g',          0, KBS_AUTOMAP_ONLY),
+    KEYBIND_ENTRY(611, &ID_Def_Keybinds_6, 11, key_map_mark,      key_map_mark2,      'm',          0, KBS_AUTOMAP_ONLY),
+    KEYBIND_ENTRY(612, &ID_Def_Keybinds_6, 12, key_map_clearmark, key_map_clearmark2, 'c',          0, KBS_AUTOMAP_ONLY),
 
     // Page 7
     KEYBIND_ENTRY(700, &ID_Def_Keybinds_7, 0,  key_menu_help,     key_menu_help2,     KEY_F1,  0, KBS_GLOBAL),

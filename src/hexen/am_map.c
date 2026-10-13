@@ -17,6 +17,7 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>     // free, memset, realloc
 
 #include "h2def.h"
 #include "doomkeys.h"
@@ -126,6 +127,34 @@ typedef struct
 static am_line_t *lines_1S = NULL;
 
 // -----------------------------------------------------------------------------
+// [PN] Tag highlight ("tag finder"), adapted from dsda-doom. Sector mode
+// keys off sec->tag, line mode off line->tag (CRL line_t has no action args).
+// -----------------------------------------------------------------------------
+
+// One connector segment, stored in world (fixed_t) coordinates.
+typedef struct
+{
+    int ax, ay;
+    int bx, by;
+} hlconn_t;
+
+typedef struct
+{
+    int       tag;    // active tag (0 = nothing highlighted)
+    int64_t   cx, cy; // last centered point, in map coords (for repeat detect)
+    sector_t *sec;    // highlighted sector (NULL in line mode)
+    line_t   *line;   // highlighted line (NULL in sector mode)
+
+    hlconn_t *connections;      // dynamic array of segments to draw
+    int       connection_count;
+    int       connection_max;
+} highlight_t;
+
+static highlight_t highlight;   // zero-initialized: tag==0, ptrs==NULL
+
+static void AM_ResetTagHighlight (void);
+
+// -----------------------------------------------------------------------------
 // The vector graphics for the automap.
 // A line drawing of the player pointing right, starting from the middle.
 // -----------------------------------------------------------------------------
@@ -223,7 +252,7 @@ mpoint_t *markpoints = NULL;     // where the points are
 int       markpointnum = 0;      // next point to be assigned (also number of points now)
 int       markpointnum_max = 0;  // killough 2/22/98
 
-#define NUMALIAS      16
+#define NUMALIAS      17
 #define NUMLEVELS     8
 #define INTENSITYBITS 3
 
@@ -236,6 +265,7 @@ static byte antialias_normal[NUMALIAS][NUMLEVELS] = {
     {159, 159, 159, 158, 158, 158, 157, 157},   // BLUEKEY (intra-level teleports)
     {177, 177, 176, 176, 175, 175, 174, 173},   // BLOODRED (inter-level teleports)
     { 40,  40,  41,  41,  42,  42,  43,  43},   // TSWALLCOLORS (only visible while IDDT)
+    {236, 236, 237, 237, 238, 238, 239, 239},   // SECRETCOLORS (tag highlighter)
     // IDDT extended colors
     {213, 213, 213, 213, 212, 212, 212, 212},   // IDDT_GREEN
     {175, 175, 174, 174, 173, 173, 172, 172},   // IDDT_RED
@@ -257,6 +287,7 @@ static byte antialias_overlay[NUMALIAS][NUMLEVELS] = {
     {159, 159, 158, 158, 157, 156, 155, 154},   // BLUEKEY (intra-level teleports)
     {177, 177, 176, 176, 175, 175, 174, 173},   // BLOODRED (inter-level teleports)
     { 40,  39,  39,  38,  38,  37,  37,  36},   // TSWALLCOLORS (only visible while IDDT)
+    {236, 236, 235, 235, 234, 234, 233, 232},   // SECRETCOLORS (tag highlighter)
     // IDDT extended colors
     {214, 214, 213, 213, 212, 212, 211, 211},   // IDDT_GREEN
     {175, 175, 174, 174, 173, 173, 172, 172},   // IDDT_RED
@@ -693,6 +724,9 @@ void AM_initVariables (void)
     old_m_w = m_w;
     old_m_h = m_h;
 
+    // [PN] Clear stale highlight state.
+    AM_ResetTagHighlight();
+
     AM_initOverlayMode();
 }
 
@@ -814,6 +848,233 @@ static void AM_maxOutWindowScale (void)
     scale_mtof = max_scale_mtof;
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
     AM_activateNewScale();
+}
+
+// -----------------------------------------------------------------------------
+// Tag highlight connection functions.
+//  [PN] Press: highlight sector under center; again: its closest linedef;
+//  again: clear. Connectors link everything sharing the tag.
+// -----------------------------------------------------------------------------
+
+static void AM_ResetTagHighlight (void)
+{
+    free(highlight.connections);
+    memset(&highlight, 0, sizeof (highlight));
+}
+
+static void AM_AddHighlightConnection (int ax, int ay, int bx, int by)
+{
+    if (highlight.connection_count >= highlight.connection_max)
+    {
+        hlconn_t *grown;
+        const int new_max = highlight.connection_max ?
+                            highlight.connection_max * 2 : 16;
+
+        grown = realloc(highlight.connections, new_max * sizeof (*grown));
+
+        if (grown == NULL)
+        {
+            return;   // out of memory: simply skip this connector
+        }
+
+        highlight.connections = grown;
+        highlight.connection_max = new_max;
+    }
+
+    highlight.connections[highlight.connection_count].ax = ax;
+    highlight.connections[highlight.connection_count].ay = ay;
+    highlight.connections[highlight.connection_count].bx = bx;
+    highlight.connections[highlight.connection_count].by = by;
+    ++highlight.connection_count;
+}
+
+// [PN] Squared distance from point (px,py) to segment (x1,y1)-(x2,y2), map coords.
+static double AM_DistPointToSeg2 (int64_t x1, int64_t y1,
+                                  int64_t x2, int64_t y2,
+                                  int64_t px, int64_t py)
+{
+    const double dx = (double)(x2 - x1);
+    const double dy = (double)(y2 - y1);
+    const double l2 = dx * dx + dy * dy;
+    double cx, cy, ex, ey;
+
+    if (l2 == 0.0)
+    {
+        ex = (double)(px - x1);
+        ey = (double)(py - y1);
+        return ex * ex + ey * ey;
+    }
+
+    double t = ((double)(px - x1) * dx + (double)(py - y1) * dy) / l2;
+
+    if (t < 0.0)
+    {
+        t = 0.0;
+    }
+    else if (t > 1.0)
+    {
+        t = 1.0;
+    }
+
+    cx = (double)x1 + t * dx;
+    cy = (double)y1 + t * dy;
+    ex = (double)px - cx;
+    ey = (double)py - cy;
+    return ex * ex + ey * ey;
+}
+
+// [PN] Closest linedef of the sector to a map-coordinate point.
+static line_t *const AM_ClosestLine (int64_t x, int64_t y, const sector_t *const sec)
+{
+    line_t *closest_line = NULL;
+    double  closest_distance = 0.0;
+
+    for (int i = 0; i < sec->linecount; ++i)
+    {
+        const line_t *line = sec->lines[i];
+        const double dist = AM_DistPointToSeg2(line->v1->x >> FRACTOMAPBITS,
+                                               line->v1->y >> FRACTOMAPBITS,
+                                               line->v2->x >> FRACTOMAPBITS,
+                                               line->v2->y >> FRACTOMAPBITS,
+                                               x, y);
+
+        if (!closest_line || dist < closest_distance)
+        {
+            closest_line = sec->lines[i];
+            closest_distance = dist;
+        }
+    }
+
+    return closest_line;
+}
+
+// [PN] Average of sector vertices (int64 accum), vertex fallback for concave.
+static void AM_SectorCenter (fixed_t *x, fixed_t *y, sector_t *sec)
+{
+    int64_t sx = 0, sy = 0;
+
+    *x = *y = 0;
+
+    if (!sec->linecount)
+    {
+        return;
+    }
+
+    for (int i = 0; i < sec->linecount; ++i)
+    {
+        sx += sec->lines[i]->v1->x;
+        sy += sec->lines[i]->v1->y;
+    }
+
+    sx /= sec->linecount;
+    sy /= sec->linecount;
+
+    if (R_PointInSubsector((fixed_t)sx, (fixed_t)sy)->sector != sec)
+    {
+        sx = sec->lines[0]->v1->x;
+        sy = sec->lines[0]->v1->y;
+    }
+
+    *x = (fixed_t) sx;
+    *y = (fixed_t) sy;
+}
+
+static void AM_LineCenter (fixed_t *x, fixed_t *y, line_t *line)
+{
+    // [PN] int64 intermediate so (v1 + v2) can't overflow fixed_t.
+    *x = (fixed_t)(((int64_t)line->v1->x + line->v2->x) / 2);
+    *y = (fixed_t)(((int64_t)line->v1->y + line->v2->y) / 2);
+}
+
+static void AM_HighlightByTag (void)
+{
+    static char hlmsg[80];
+    const int64_t cx = m_x + (m_w >> 1);
+    const int64_t cy = m_y + (m_h >> 1);
+    const boolean repeat = (cx == highlight.cx && cy == highlight.cy);
+    const fixed_t wx = (fixed_t)(cx << FRACTOMAPBITS);
+    const fixed_t wy = (fixed_t)(cy << FRACTOMAPBITS);
+    sector_t *sec;
+    line_t *line;
+    fixed_t ox = 0, oy = 0;
+    int i;
+
+    highlight.cx = cx;
+    highlight.cy = cy;
+
+    sec = R_PointInSubsector (wx, wy)->sector;
+
+    if (!repeat || (!highlight.sec && !highlight.line))
+    {
+        highlight.sec = sec;
+        highlight.line = NULL;
+        highlight.tag = sec->tag;
+
+        M_snprintf(hlmsg, sizeof (hlmsg), "HIGHLIGHT SECTOR %d, TAG %d",
+                   (int)(sec - sectors), (int)sec->tag);
+    }
+    else if (highlight.sec && (line = AM_ClosestLine (cx, cy, highlight.sec)) != NULL)
+    {
+        highlight.sec = NULL;
+        highlight.line = line;
+        // [PN] CRL line_t has no action args: use the linedef's own tag.
+        highlight.tag = line->arg1;
+
+        M_snprintf(hlmsg, sizeof (hlmsg), "HIGHLIGHT LINE %d, TAG %d",
+                   (int)(line - lines), (int)line->arg1);
+    }
+    else
+    {
+        highlight.sec = NULL;
+        highlight.line = NULL;
+        highlight.tag = 0;
+
+        M_snprintf(hlmsg, sizeof (hlmsg), "HIGHLIGHT CLEARED");
+    }
+
+    CT_SetMessage (plr, hlmsg, false, NULL);
+
+    // Rebuild the connector list for the new selection.
+    free (highlight.connections);
+    highlight.connections = NULL;
+    highlight.connection_count = 0;
+    highlight.connection_max = 0;
+
+    if (highlight.tag)
+    {
+        if (highlight.line)
+        {
+            // line mode: link the line to every sector carrying the tag
+            AM_LineCenter(&ox, &oy, highlight.line);
+
+            for (i = 0; i < numsectors; i++)
+            {
+                fixed_t dx, dy;
+
+                if (sectors[i].tag == highlight.tag)
+                {
+                    AM_SectorCenter(&dx, &dy, &sectors[i]);
+                    AM_AddHighlightConnection(ox, oy, dx, dy);
+                }
+            }
+        }
+        else if (highlight.sec)
+        {
+            // sector mode: link the sector to every linedef carrying the tag
+            AM_SectorCenter(&ox, &oy, highlight.sec);
+
+            for (i = 0; i < numlines; i++)
+            {
+                fixed_t dx, dy;
+
+                if (lines[i].arg1 == highlight.tag)
+                {
+                    AM_LineCenter(&dx, &dy, &lines[i]);
+                    AM_AddHighlightConnection(ox, oy, dx, dy);
+                }
+            }
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1067,6 +1328,11 @@ boolean AM_Responder (const event_t *ev)
             CT_SetMessage(plr, automap_mouse_pan ?
                           ID_AUTOMAPMOUSEPAN_ON : ID_AUTOMAPMOUSEPAN_OFF, false, NULL);
 
+        }
+        else if (key == key_map_highlight || key == key_map_highlight2)
+        {
+            // [PN] CRL - Sector/line tag highlight ("tag finder").
+            AM_HighlightByTag();
         }
         else
         {
@@ -1644,16 +1910,17 @@ static void AM_drawFline(fline_t * fl, int color)
             case BLUEKEY:       DrawWuLine(fl, (*antialias)[4][0]);  return;
             case BLOODRED:      DrawWuLine(fl, (*antialias)[5][0]);  return;
             case TSWALLCOLORS:  DrawWuLine(fl, (*antialias)[6][0]);  return;
+            case SECRETCOLORS:  DrawWuLine(fl, (*antialias)[7][0]);  return;
             // [JN] IDDT extended colors
-            case IDDT_GREEN:    DrawWuLine(fl, (*antialias)[7][0]);  return;
-            case 175:           DrawWuLine(fl, (*antialias)[8][0]);  return;
-            case 176:           DrawWuLine(fl, (*antialias)[9][0]);  return;
-            case 178:           DrawWuLine(fl, (*antialias)[10][0]); return;
-            case 179:           DrawWuLine(fl, (*antialias)[11][0]); return;
-            case 180:           DrawWuLine(fl, (*antialias)[12][0]); return;
-            case 181:           DrawWuLine(fl, (*antialias)[13][0]); return;
-            case 182:           DrawWuLine(fl, (*antialias)[14][0]); return;
-            case IDDT_GRAY:     DrawWuLine(fl, (*antialias)[15][0]); return;
+            case IDDT_GREEN:    DrawWuLine(fl, (*antialias)[8][0]);  return;
+            case 175:           DrawWuLine(fl, (*antialias)[9][0]);  return;
+            case 176:           DrawWuLine(fl, (*antialias)[10][0]); return;
+            case 178:           DrawWuLine(fl, (*antialias)[11][0]); return;
+            case 179:           DrawWuLine(fl, (*antialias)[12][0]); return;
+            case 180:           DrawWuLine(fl, (*antialias)[13][0]); return;
+            case 181:           DrawWuLine(fl, (*antialias)[14][0]); return;
+            case 182:           DrawWuLine(fl, (*antialias)[15][0]); return;
+            case IDDT_GRAY:     DrawWuLine(fl, (*antialias)[16][0]); return;
             default: break;
         }
     }
@@ -2424,6 +2691,30 @@ static void AM_drawCrosshair (void)
 }
 
 // -----------------------------------------------------------------------------
+// AM_DrawHighlights
+// [PN] Draw the tag-highlight connectors (self-contained: AM_CRLMLine above
+// is commented out in heretic).
+// -----------------------------------------------------------------------------
+
+static void AM_DrawHighlights (void)
+{
+    for (int i = 0; i < highlight.connection_count; ++i)
+    {
+        const hlconn_t *const c = &highlight.connections[i];
+        mline_t ml = { { c->ax >> FRACTOMAPBITS, c->ay >> FRACTOMAPBITS },
+                       { c->bx >> FRACTOMAPBITS, c->by >> FRACTOMAPBITS } };
+
+        if (automap_rotate)
+        {
+            AM_transformPoint(&ml.a);
+            AM_transformPoint(&ml.b);
+        }
+
+        AM_drawMline(&ml, SECRETCOLORS);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // AM_LevelNameDrawer
 // -----------------------------------------------------------------------------
 
@@ -2516,6 +2807,9 @@ void AM_Drawer (void)
     }
 
     AM_drawWalls();
+
+    // [PN] Tag highlight connectors, below the player arrow.
+    AM_DrawHighlights();
 
     AM_drawPlayers();
 

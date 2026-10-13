@@ -138,6 +138,7 @@ extern int key_map_follow, key_map_follow2;
 extern int key_map_rotate, key_map_rotate2;
 extern int key_map_overlay, key_map_overlay2;
 extern int key_map_mousepan, key_map_mousepan2;
+extern int key_map_highlight, key_map_highlight2;
 extern int key_map_grid, key_map_grid2;
 extern int key_map_mark, key_map_mark2;
 extern int key_map_clearmark, key_map_clearmark2;
