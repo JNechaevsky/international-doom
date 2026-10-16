@@ -507,6 +507,85 @@ int *mceilingclip;  // [crispy] 32-bit integer math
 fixed_t spryscale;
 int64_t sprtopscreen; // [crispy] WiggleFix
 
+// [PN] Cache projected post runs for repeated columns of magnified sprites.
+typedef struct
+{
+    int yl, yh;
+    const byte *src;
+    fixed_t texmid;
+} sprun_t;
+
+#define SPRUN_MAX 256
+static sprun_t sprun[SPRUN_MAX];
+static int sprun_count = -1;         // -1: cold, -2: do not cache
+static const byte *sprun_col;
+static fixed_t sprun_scale;
+static fixed_t sprun_iscale;
+static fixed_t sprun_texmid;
+static int64_t sprun_top;
+
+// [PN] Previous column state for exact opaque-column replication.
+static int sprun_prev_x = -2;
+static int sprun_prev_floor, sprun_prev_ceil;
+static lighttable_t *sprun_prev_cm0, *sprun_prev_cm1;
+static const byte *sprun_prev_bm;
+
+static inline void R_RememberSprunColumn(int floor_clip, int ceiling_clip)
+{
+    sprun_prev_x = dc_x;
+    sprun_prev_floor = floor_clip;
+    sprun_prev_ceil = ceiling_clip;
+    sprun_prev_cm0 = dc_colormap[0];
+    sprun_prev_cm1 = dc_colormap[1];
+    sprun_prev_bm = dc_brightmap;
+}
+
+static inline boolean R_CanCopySprunColumn(int floor_clip, int ceiling_clip)
+{
+    return colfunc == basecolfunc
+        && dc_x == sprun_prev_x + 1
+        && floor_clip == sprun_prev_floor
+        && ceiling_clip == sprun_prev_ceil
+        && dc_colormap[0] == sprun_prev_cm0
+        && dc_colormap[1] == sprun_prev_cm1
+        && dc_brightmap == sprun_prev_bm;
+}
+
+static void R_CopySprunColumn(int floor_clip, int ceiling_clip)
+{
+    const int prevofs = columnofs[flipviewwidth[sprun_prev_x]];
+    const int curofs = columnofs[flipviewwidth[dc_x]];
+    int run_yl = 0, run_yh = -1;
+
+    // [PN] Merge touching projected posts to minimize memcpy calls.
+    for (int i = 0; i < sprun_count; i++)
+    {
+        int yl = MAX(sprun[i].yl, ceiling_clip + 1);
+        int yh = MIN(sprun[i].yh, floor_clip - 1);
+
+        if (yl > yh)
+            continue;
+
+        if (run_yh >= 0 && yl <= run_yh + 1)
+        {
+            if (yh > run_yh)
+                run_yh = yh;
+            continue;
+        }
+
+        if (run_yh >= run_yl)
+            memcpy(ylookup[run_yl] + curofs, ylookup[run_yl] + prevofs,
+                   (size_t)(run_yh - run_yl + 1) * sizeof(pixel_t));
+
+        run_yl = yl;
+        run_yh = yh;
+    }
+
+    if (run_yh >= run_yl)
+        memcpy(ylookup[run_yl] + curofs, ylookup[run_yl] + prevofs,
+               (size_t)(run_yh - run_yl + 1) * sizeof(pixel_t));
+}
+
 void R_DrawMaskedColumn (const column_t *const column)
 {
     int64_t topscreen;    // [crispy] WiggleFix
@@ -523,6 +602,70 @@ void R_DrawMaskedColumn (const column_t *const column)
 
     basetexturemid = dc_texturemid;
     dc_texheight = 0;  // [crispy] Tutti-Frutti fix
+
+    const boolean same_key = (cur_column == sprun_col
+                           &&  l_scale == sprun_scale
+                           &&  dc_iscale == sprun_iscale
+                           &&  basetexturemid == sprun_texmid
+                           &&  l_sprtopscreen == sprun_top);
+
+    if (same_key && sprun_count >= 0)
+    {
+        // [PN] Exact opaque repeat: copy the adjacent framebuffer column.
+        if (R_CanCopySprunColumn(floor_clip, ceiling_clip))
+        {
+            R_CopySprunColumn(floor_clip, ceiling_clip);
+            sprun_prev_x = dc_x;
+            return;
+        }
+
+        // [PN] Replay cached runs with fresh clipping for this column.
+        for (int i = 0; i < sprun_count; i++)
+        {
+            int yl = sprun[i].yl;
+            int yh = sprun[i].yh;
+
+            if (yh >= floor_clip)
+                yh = floor_clip - 1;
+            if (yl <= ceiling_clip)
+                yl = ceiling_clip + 1;
+
+            if (yl <= yh)
+            {
+                dc_yl = yl;
+                dc_yh = yh;
+                dc_source = sprun[i].src;
+                dc_texturemid = sprun[i].texmid;
+                colfunc();
+            }
+        }
+
+        dc_texturemid = basetexturemid;
+
+        R_RememberSprunColumn(floor_clip, ceiling_clip);
+        return;
+    }
+
+    // [PN] Second visit of the same key starts caching; a new key resets it.
+    boolean caching = false;
+
+    if (same_key)
+    {
+        if (sprun_count == -1)
+        {
+            caching = true;
+            sprun_count = 0;
+        }
+    }
+    else
+    {
+        sprun_col = cur_column;
+        sprun_scale = l_scale;
+        sprun_iscale = dc_iscale;
+        sprun_texmid = basetexturemid;
+        sprun_top = l_sprtopscreen;
+        sprun_count = -1;
+    }
 
     for (;;)
     {
@@ -551,6 +694,25 @@ void R_DrawMaskedColumn (const column_t *const column)
         int yl = (int)((topscreen + FRACUNIT - 1) >> FRACBITS); // [crispy] WiggleFix
         int yh = (int)((bottomscreen - 1) >> FRACBITS); // [crispy] WiggleFix
 
+        // [PN] Record unclipped run geometry for repeat columns.
+        if (caching)
+        {
+            if (sprun_count < SPRUN_MAX)
+            {
+                sprun[sprun_count].yl = yl;
+                sprun[sprun_count].yh = yh;
+                sprun[sprun_count].src = cur_column + 3;
+                sprun[sprun_count].texmid = basetexturemid - (top << FRACBITS);
+                sprun_count++;
+            }
+            else
+            {
+                // [PN] Too many posts (pathological tall patch): never cache.
+                caching = false;
+                sprun_count = -2;
+            }
+        }
+
         // [PN] Use cached clip values for faster comparison
         if (yh >= floor_clip)
         {
@@ -577,6 +739,7 @@ void R_DrawMaskedColumn (const column_t *const column)
     }
 
     dc_texturemid = basetexturemid;
+    R_RememberSprunColumn(floor_clip, ceiling_clip);
 }
 
 // -----------------------------------------------------------------------------
