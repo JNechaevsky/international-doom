@@ -44,6 +44,8 @@ extern void D_PageDrawer (void);
 extern void D_AdvanceDemo (void);
 extern void D_DoAdvanceDemo (void);
 extern void D_StartTitle (void);
+extern void D_SetSavegameDirectory (void);
+extern void D_SetScreenshotDirectory (void);
  
 //
 // GLOBAL VARIABLES

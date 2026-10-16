@@ -185,6 +185,8 @@ static void D_BindVariables(void)
 
     M_BindStringVariable("savegames_path",      &SavePathConfig);
     M_BindStringVariable("screenshots_path",    &ShotPathConfig);
+    M_BindIntVariable("organize_screenshots",   &organize_screenshots);
+    M_BindIntVariable("organize_savefiles",     &organize_savefiles);
 
     // Multiplayer chat macros
 
@@ -347,6 +349,51 @@ static void D_SetGameDescription(void)
 
 static const char *const loadparms[] = {"-file", "-merge", NULL}; // [crispy]
 
+// -----------------------------------------------------------------------------
+// D_SetSavegameDirectory
+//  [PN] Organize save files: with "organize_savefiles" on, savegames are
+//  stored in a savegames subfolder named after the WAD the maps load from.
+//  Re-callable so a menu toggle can reapply the setting at runtime.
+// -----------------------------------------------------------------------------
+
+void D_SetSavegameDirectory (void)
+{
+    // [PN] SavePath starts as a static literal ("hexndata/"), so only free a
+    // previously heap-allocated directory, never the initial default.
+    static boolean heap_dir = false;
+    char *newdir = M_GetSaveGameDir("hexen.wad");
+
+    if (organize_savefiles)
+    {
+        char *subdir = M_AppendSubdir(newdir, W_MapsSourceWADName());
+
+        if (subdir != NULL)
+        {
+            free(newdir);
+            newdir = subdir;
+        }
+    }
+
+    if (heap_dir)
+    {
+        free(SavePath);
+    }
+
+    SavePath = newdir;
+    heap_dir = true;
+}
+
+// -----------------------------------------------------------------------------
+// D_SetScreenshotDirectory
+//  [PN] Organize screenshots: reapplies the screenshots
+//  directory with the current "organize_screenshots" state.
+// -----------------------------------------------------------------------------
+
+void D_SetScreenshotDirectory (void)
+{
+    M_SetScreenshotDir(W_MapsSourceWADName());
+}
+
 //==========================================================================
 //
 // H2_Main
@@ -419,11 +466,11 @@ void D_DoomMain(void)
     // [JN] Initialize random LUTs.
     M_InitRandom(hexen);
 
-    // [JN] Set the default directory where savegames are saved.
-    SavePath = M_GetSaveGameDir("hexen.wad");
+    // [PN] Set the default directory where savegames are saved.
+    D_SetSavegameDirectory();
 
-    // [JN] Set the default directory where screenshots are saved.
-    M_SetScreenshotDir();
+    // [PN] Set the default directory where screenshots are saved.
+    D_SetScreenshotDirectory();
 
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 

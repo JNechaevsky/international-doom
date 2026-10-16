@@ -37,6 +37,7 @@
 #include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
+#include "m_config.h"
 #include "m_controls.h"
 #include "m_misc.h"
 #include "v_video.h"
@@ -861,12 +862,11 @@ static void M_ID_Misc_A11yWeaponBob (int choice);
 static void M_ID_Misc_A11yColorblind (int choice);
 static void M_ID_Misc_AutoloadWAD (int choice);
 static void M_ID_Misc_AutoloadDEH (int choice);
+static void M_ID_OrganizeSaves (int choice);
+static void M_ID_OrganizeShots (int choice);
 static void M_ID_Misc_Hightlight (int choice);
 static void M_ID_Misc_MenuEscKey (int choice);
 static void M_ID_Misc_MenuCapFps (int choice);
-#if defined(_WIN32) && !defined(_WIN32_WCE)
-static void M_ID_Misc_Launcher (int choice);
-#endif
 
 static void M_Draw_ID_Misc_2 (void);
 static void M_ID_Misc_RewindEnable (int choice);
@@ -875,6 +875,9 @@ static void M_ID_Misc_RewindDepth (int choice);
 static void M_ID_Misc_RewindTimeout (int choice);
 static void M_ID_Misc_ShotFormat (int choice);
 static void M_ID_Misc_ShotSetup (int choice);
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+static void M_ID_Misc_Launcher (int choice);
+#endif
 
 static void M_ScrollMisc (int choice);
 
@@ -5024,16 +5027,12 @@ static menuitem_t ID_Menu_Misc_1[]=
     { M_SKIP, "", 0, '\0' },
     { M_MUL2, "AUTOLOAD WAD FILES",         M_ID_Misc_AutoloadWAD,    'a' },
     { M_MUL2, "AUTOLOAD DEH FILES",         M_ID_Misc_AutoloadDEH,    'a' },
+    { M_MUL2, "ORGANIZE SAVE FILES",        M_ID_OrganizeSaves,       'o' },
+    { M_MUL2, "ORGANIZE SCREENSHOTS",       M_ID_OrganizeShots,       'o' },
     { M_SKIP, "", 0, '\0' },
     { M_MUL2, "HIGHLIGHTING EFFECT",        M_ID_Misc_Hightlight,     'h' },
     { M_MUL1, "ESC KEY BEHAVIOUR",          M_ID_Misc_MenuEscKey,     'e' },
     { M_MUL1, "CAP FRAMERATE IN THE MENU",  M_ID_Misc_MenuCapFps,     'c' },
-    { M_SKIP, "", 0, '\0' },
-#if defined(_WIN32) && !defined(_WIN32_WCE)
-    { M_MUL1, "SHOW LAUNCHER AT STARTUP",   M_ID_Misc_Launcher,       's' },
-#else
-    { M_SKIP, "", 0, '\0' },
-#endif
     { M_SKIP, "", 0, '\0' },
     { M_MUL2, "", /* < SCROLL PAGES >*/     M_ScrollMisc,             's' },
 };
@@ -5110,7 +5109,7 @@ static void M_Draw_ID_Misc_1 (void)
                             a11y_colorblind ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(4));
 
-    M_WriteTextCentered(63, "AUTOLOAD", cr[CR_YELLOW]);
+    M_WriteTextCentered(63, "FILES AND FOLDERS", cr[CR_YELLOW]);
 
     // Autoload WAD files
     sprintf(str, autoload_wad == 1 ? "IWAD ONLY" :
@@ -5132,42 +5131,45 @@ static void M_Draw_ID_Misc_1 (void)
                             autoload_deh == 2 ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(7));
 
-    M_WriteTextCentered(90, "MENU SETTINGS", cr[CR_YELLOW]);
+    // Organize save files
+    sprintf(str, organize_savefiles ? "ON" : "OFF");
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
+                        organize_savefiles ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            organize_savefiles ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(8));
+
+    // Organize save files
+    sprintf(str, organize_screenshots ? "ON" : "OFF");
+    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+                        organize_screenshots ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            organize_screenshots ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(9));
+
+    M_WriteTextCentered(108, "MENU SETTINGS", cr[CR_YELLOW]);
 
     // Highlighting effect
     sprintf(str, menu_highlight == 1 ? "ANIMATED" :
                  menu_highlight == 2 ? "STATIC" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 99, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
                         menu_highlight == 1 ? cr[CR_GREEN] :
                         menu_highlight == 2 ? cr[CR_YELLOW] : cr[CR_DARKRED],
                             menu_highlight == 1 ? cr[CR_GREEN_BRIGHT] :
                             menu_highlight == 2 ? cr[CR_YELLOW_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(9));
+                                LINE_ALPHA(11));
 
     // ESC key behaviour
     sprintf(str, menu_esc_key ? "GO BACK" : "CLOSE MENU" );
-    M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
                         menu_esc_key ? cr[CR_GREEN] : cr[CR_DARKRED],
                             menu_esc_key ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(10));
+                                LINE_ALPHA(12));
 
     // Cap framerate in the menu
     sprintf(str, menu_cap_fps ? "ON" : "OFF" );
-    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
                         menu_cap_fps ? cr[CR_GREEN] : cr[CR_DARKRED],
                             menu_cap_fps ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(11));
-
-#if defined(_WIN32) && !defined(_WIN32_WCE)
-    M_WriteTextCentered(126, "LAUNCHER", cr[CR_YELLOW]);
-
-    // Show launcher at startup
-    sprintf(str, show_startup_launcher ? "ON" : "OFF" );
-    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
-                        show_startup_launcher ? cr[CR_GREEN] : cr[CR_DARKRED],
-                            show_startup_launcher ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(13));
-#endif
 
     // [PN] Added explanations for colorblind filters
     if (itemOn == 4)
@@ -5204,6 +5206,28 @@ static void M_Draw_ID_Misc_1 (void)
                 M_WriteTextCentered(144, off, cr[CR_LIGHTGRAY_DARK]);
                 break;            
         }
+    }
+    else
+    if (itemOn == 8 || itemOn == 9)
+    {
+        const boolean shots = (itemOn == 9);
+        const char *const what = shots ? "SCREENSHOTS" : "SAVE FILES";
+        char first_line[48];
+        char second_line[48];
+
+        if (shots ? organize_screenshots : organize_savefiles)
+        {
+            M_snprintf(first_line, sizeof(first_line), "%s GO TO A FOLDER NAMED AFTER", what);
+            M_StringCopy(second_line, "THE WAD THE MAPS LOAD FROM", sizeof(second_line));
+        }
+        else
+        {
+            M_snprintf(first_line, sizeof(first_line), "%s SHARE ONE FOLDER", what);
+            M_snprintf(second_line, sizeof(second_line), "TURN ON TO SORT %s BY WAD", what);
+        }
+
+        M_WriteTextCentered(144, first_line, cr[CR_GRAY]);
+        M_WriteTextCentered(153, second_line, cr[CR_GRAY]);
     }
     else
     {
@@ -5261,6 +5285,18 @@ static void M_ID_Misc_AutoloadDEH (int choice)
     autoload_deh = M_INT_Slider(autoload_deh, 0, 2, choice, false);
 }
 
+static void M_ID_OrganizeSaves (int choice)
+{
+    organize_savefiles ^= 1;
+    D_SetSavegameDirectory();
+}
+
+static void M_ID_OrganizeShots (int choice)
+{
+    organize_screenshots ^= 1;
+    D_SetScreenshotDirectory();
+}
+
 static void M_ID_Misc_Hightlight (int choice)
 {
     menu_highlight = M_INT_Slider(menu_highlight, 0, 2, choice, false);
@@ -5276,13 +5312,6 @@ static void M_ID_Misc_MenuCapFps (int choice)
     menu_cap_fps ^= 1;
 }
 
-#if defined(_WIN32) && !defined(_WIN32_WCE)
-static void M_ID_Misc_Launcher (int choice)
-{
-    show_startup_launcher ^= 1;
-}
-#endif
-
 static menuitem_t ID_Menu_Misc_2[]=
 {
     { M_MUL1, "ENABLE REWIND",               M_ID_Misc_RewindEnable,   'e' },
@@ -5293,7 +5322,11 @@ static menuitem_t ID_Menu_Misc_2[]=
     { M_MUL1, "SCREENSHOT FORMAT",           M_ID_Misc_ShotFormat,     's' },
     { M_MUL1, "", /* Dynamic string */       M_ID_Misc_ShotSetup,      's' },
     { M_SKIP, "", 0, '\0' },
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+    { M_MUL1, "SHOW LAUNCHER AT STARTUP",    M_ID_Misc_Launcher,       's' },
+#else
     { M_SKIP, "", 0, '\0' },
+#endif
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
@@ -5379,24 +5412,35 @@ static void M_Draw_ID_Misc_2 (void)
     // Dynamic hints for screenshot settings.
     if (itemOn == 5)
     {
-        M_WriteTextCentered(90, "\"PNG\" PROVIDES LOSSLESS QUALITY,", cr[CR_LIGHTGRAY_DARK]);
-        M_WriteTextCentered(99, "\"JPEG\" OFFERS FASTER SAVING",      cr[CR_LIGHTGRAY_DARK]);
+        M_WriteTextCentered(99,  "\"PNG\" PROVIDES LOSSLESS QUALITY,", cr[CR_LIGHTGRAY_DARK]);
+        M_WriteTextCentered(108, "\"JPEG\" OFFERS FASTER SAVING",      cr[CR_LIGHTGRAY_DARK]);
     }
     if (itemOn == 6)
     {
         if (!strcmp(screenshots_format, "png"))
         {
-            M_WriteTextCentered(90,  "HIGHER = SLOWER SAVE, SMALLER FILE", cr[CR_LIGHTGRAY_DARK]);
-            M_WriteTextCentered(99,  "LOWER = FASTER SAVE, LARGER FILE",   cr[CR_LIGHTGRAY_DARK]);
-            M_WriteTextCentered(108, "DEFAULT LEVEL IS 6",                 cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(99,  "HIGHER = SLOWER SAVE, SMALLER FILE", cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(108, "LOWER = FASTER SAVE, LARGER FILE",   cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(117, "DEFAULT LEVEL IS 6",                 cr[CR_LIGHTGRAY_DARK]);
         }
         else
         {
-            M_WriteTextCentered(90,  "HIGHER = BETTER QUALITY, LARGER FILE", cr[CR_LIGHTGRAY_DARK]);
-            M_WriteTextCentered(99,  "LOWER = WORSE QUALITY, SMALLER FILE",  cr[CR_LIGHTGRAY_DARK]);
-            M_WriteTextCentered(108, "DEFAULT LEVEL IS 90",                  cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(99,  "HIGHER = BETTER QUALITY, LARGER FILE", cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(108, "LOWER = WORSE QUALITY, SMALLER FILE",  cr[CR_LIGHTGRAY_DARK]);
+            M_WriteTextCentered(117, "DEFAULT LEVEL IS 90",                  cr[CR_LIGHTGRAY_DARK]);
         }
     }
+
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+    M_WriteTextCentered(81, "LAUNCHER", cr[CR_YELLOW]);
+
+    // Show launcher at startup
+    sprintf(str, show_startup_launcher ? "ON" : "OFF" );
+    M_WriteTextGlow(M_ItemRightAlign(str), 90, str,
+                        show_startup_launcher ? cr[CR_GREEN] : cr[CR_DARKRED],
+                            show_startup_launcher ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
+                                LINE_ALPHA(8));
+#endif
 
     // < Scroll pages >
     M_DrawScrollPages(ID_MENU_LEFTOFFSET_BIG, 153, 15, "2/2");
@@ -5444,6 +5488,13 @@ static void M_ID_Misc_ShotSetup (int choice)
         screenshots_jpg_quality = M_INT_Slider(screenshots_jpg_quality, 1, 100, choice, false);
     }
 }
+
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+static void M_ID_Misc_Launcher (int choice)
+{
+    show_startup_launcher ^= 1;
+}
+#endif
 
 static void M_ScrollMisc (int choice)
 {

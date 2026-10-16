@@ -948,6 +948,9 @@ extern int savepage; // [crispy]
 
 extern char *SavePath;
 
+void D_SetSavegameDirectory(void);
+void D_SetScreenshotDirectory(void);
+
 extern int OnDeathLoadSlot;
 
 typedef enum

@@ -674,6 +674,43 @@ void D_StartTitle(void)
     D_AdvanceDemo();
 }
 
+// -----------------------------------------------------------------------------
+// D_SetSavegameDirectory
+//  [PN] Organize save files: with "organize_savefiles" on, savegames are
+//  stored in a savegames subfolder named after the WAD the maps load from.
+//  Re-callable so a menu toggle can reapply the setting at runtime.
+// -----------------------------------------------------------------------------
+
+void D_SetSavegameDirectory (void)
+{
+    char *newdir = M_GetSaveGameDir("heretic.wad");
+
+    if (organize_savefiles)
+    {
+        char *subdir = M_AppendSubdir(newdir, W_MapsSourceWADName());
+
+        if (subdir != NULL)
+        {
+            free(newdir);
+            newdir = subdir;
+        }
+    }
+
+    free(savegamedir);
+    savegamedir = newdir;
+}
+
+// -----------------------------------------------------------------------------
+// D_SetScreenshotDirectory
+//  [PN] Organize screenshots: reapplies the screenshots
+//  directory with the current "organize_screenshots" state.
+// -----------------------------------------------------------------------------
+
+void D_SetScreenshotDirectory (void)
+{
+    M_SetScreenshotDir(W_MapsSourceWADName());
+}
+
 
 /*
 ==============
@@ -957,6 +994,8 @@ static void D_BindVariables(void)
 
     M_BindStringVariable("savegames_path",      &SavePathConfig);
     M_BindStringVariable("screenshots_path",    &ShotPathConfig);
+    M_BindIntVariable("organize_screenshots",   &organize_screenshots);
+    M_BindIntVariable("organize_savefiles",     &organize_savefiles);
 
     // Multiplayer chat macros
 
@@ -1411,11 +1450,11 @@ void D_DoomMain(void)
 
     I_SetWindowTitle(gamedescription);
 
-    // [JN] Set the default directory where savegames are saved.
-    savegamedir = M_GetSaveGameDir("heretic.wad");
+    // [PN] Set the default directory where savegames are saved.
+    D_SetSavegameDirectory();
 
-    // [JN] Set the default directory where screenshots are saved.
-    M_SetScreenshotDir();
+    // [PN] Set the default directory where screenshots are saved.
+    D_SetScreenshotDirectory();
 
     I_PrintStartupBanner(gamedescription);
 

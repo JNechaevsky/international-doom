@@ -255,10 +255,13 @@ void P_CloseMemoryLoadGame(void)
 char *P_TempSaveGameFile(void)
 {
     static char *filename = NULL;
+    static const char *cached_dir = NULL; // [PN] detect directory changes
 
-    if (filename == NULL)
+    if (filename == NULL || cached_dir != savegamedir)
     {
+        free(filename);
         filename = M_StringJoin(savegamedir, "temp.sav", NULL);
+        cached_dir = savegamedir;
     }
 
     return filename;
@@ -271,12 +274,15 @@ char *P_SaveGameFile(int slot)
 {
     static char *filename = NULL;
     static size_t filename_size = 0;
+    static const char *cached_dir = NULL; // [PN] detect directory changes
     char basename[32];
 
-    if (filename == NULL)
+    if (filename == NULL || cached_dir != savegamedir)
     {
+        free(filename);
         filename_size = strlen(savegamedir) + 32;
         filename = malloc(filename_size);
+        cached_dir = savegamedir;
     }
 
     DEH_snprintf(basename, 32, SAVEGAMENAME "%d.sav", 10*savepage+slot);
