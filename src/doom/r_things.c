@@ -553,8 +553,10 @@ static inline boolean R_CanCopySprunColumn(int floor_clip, int ceiling_clip)
 
 static void R_CopySprunColumn(int floor_clip, int ceiling_clip)
 {
-    const int prevofs = columnofs[flipviewwidth[sprun_prev_x]];
-    const int curofs = columnofs[flipviewwidth[dc_x]];
+    const int x = detailshift ? (dc_x << 1) : dc_x;
+    const int prevofs = columnofs[flipviewwidth[detailshift ? (sprun_prev_x << 1) : sprun_prev_x]];
+    const int ofs1 = columnofs[flipviewwidth[x]];
+    const int ofs2 = columnofs[flipviewwidth[x + 1]];
     int run_yl = 0, run_yh = -1;
 
     // [PN] Merge touching projected posts to minimize memcpy calls.
@@ -574,16 +576,28 @@ static void R_CopySprunColumn(int floor_clip, int ceiling_clip)
         }
 
         if (run_yh >= run_yl)
-            memcpy(ylookup[run_yl] + curofs, ylookup[run_yl] + prevofs,
-                   (size_t)(run_yh - run_yl + 1) * sizeof(pixel_t));
+        {
+            const size_t bytes = (size_t)(run_yh - run_yl + 1) * sizeof(pixel_t);
+
+            memcpy(ylookup[run_yl] + ofs1, ylookup[run_yl] + prevofs, bytes);
+
+            if (detailshift)
+                memcpy(ylookup[run_yl] + ofs2, ylookup[run_yl] + prevofs, bytes);
+        }
 
         run_yl = yl;
         run_yh = yh;
     }
 
     if (run_yh >= run_yl)
-        memcpy(ylookup[run_yl] + curofs, ylookup[run_yl] + prevofs,
-               (size_t)(run_yh - run_yl + 1) * sizeof(pixel_t));
+    {
+        const size_t bytes = (size_t)(run_yh - run_yl + 1) * sizeof(pixel_t);
+
+        memcpy(ylookup[run_yl] + ofs1, ylookup[run_yl] + prevofs, bytes);
+
+        if (detailshift)
+            memcpy(ylookup[run_yl] + ofs2, ylookup[run_yl] + prevofs, bytes);
+    }
 }
 
 void R_DrawMaskedColumn (const column_t *const column)
