@@ -1432,9 +1432,6 @@ const byte *R_BrightmapForSprite (const int type)
             }
             // Evil Eye
             case SPR_CEYE:
-            {
-                return greenonly1;
-            }
             // Floating Skull Rock
             case SPR_FSKU:
             // Pile of Skulls and Candles
