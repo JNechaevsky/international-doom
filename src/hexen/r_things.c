@@ -1133,8 +1133,9 @@ static void R_ProjectSprite (const mobj_t *const thing)
     const fixed_t gzt = interpz + spritetopoffset[lump];
 
     // [PN] Pitch-aware: distances from centery to top/bottom screen rows.
-    const int64_t top_world    = viewz + FixedDiv(centery << FRACBITS, xscale);
-    const int64_t bottom_world = viewz - FixedDiv((viewheight - centery) << FRACBITS, xscale);
+    const fixed_t vscale = xscale << detailshift;
+    const int64_t top_world    = viewz + FixedDiv(centery << FRACBITS, vscale);
+    const int64_t bottom_world = viewz - FixedDiv((viewheight - centery) << FRACBITS, vscale);
 
     if (interpz > top_world || gzt < bottom_world)
     {
