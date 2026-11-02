@@ -2092,11 +2092,8 @@ boolean V_IsPatchLump(const int lump)
     if (lump < 0)
         return false;
 
-    size = lumpinfo[lump]->cache_size > 0 ? lumpinfo[lump]->cache_size
-                                          : W_LumpLength(lump);
-
-    // Minimum length of a valid Doom patch
-    if (size < 13)
+    // Nothing smaller than a minimal patch can be a patch (or a PNG).
+    if (W_LumpLength(lump) < 13)
     {
         return false;
     }
@@ -2108,6 +2105,12 @@ boolean V_IsPatchLump(const int lump)
     {
         return false;
     }
+
+    // [PN] Measure AFTER caching: a converted PNG patch is larger than the
+    // compressed PNG lump, so using the pre-conversion length here would
+    // wrongly reject valid PNG texture patches (FONTB05 fallback).
+    size = lumpinfo[lump]->cache_size > 0 ? lumpinfo[lump]->cache_size
+                                          : W_LumpLength(lump);
 
     width = SHORT(patch->width);
     height = SHORT(patch->height);

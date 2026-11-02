@@ -20,3 +20,5 @@
 boolean V_IsPNGImage(const void *data, int size);
 patch_t *V_PNGToPatch(const void *data, int size, int tag,
                       void **user, int *out_size);
+byte *V_PNGToFlatIndexed(const void *data, int size, int tag,
+                         void **user, int *out_size);

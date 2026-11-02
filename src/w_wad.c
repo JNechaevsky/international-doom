@@ -581,6 +581,110 @@ void *W_CacheLumpNum(lumpindex_t lumpnum, int tag)
 }
 
 
+// -----------------------------------------------------------------------------
+// [PN] W_CacheLumpNumAsRaw
+// Cache a lump for consumers that expect a raw linear image buffer (flats are
+// read as a 64*64 indexed array by R_DrawSpan and by the swirl/warp builders).
+// Unlike W_CacheLumpNum, which turns any PNG lump into a Doom post/column patch,
+// this decodes a PNG into raw PLAYPAL-indexed bytes so PNG-encoded flats work.
+// Non-PNG lumps behave exactly like W_CacheLumpNum. A PNG that is not a valid
+// 64x64 flat falls back to caching its raw bytes.
+// -----------------------------------------------------------------------------
+
+void *W_CacheLumpNumAsRaw(lumpindex_t lumpnum, int tag)
+{
+    byte *result;
+    lumpinfo_t *lump;
+
+    if ((unsigned)lumpnum >= numlumps)
+    {
+        I_Error("W_CacheLumpNumAsRaw: %i >= numlumps", lumpnum);
+    }
+
+    lump = lumpinfo[lumpnum];
+
+    if (lump->cache != NULL)
+    {
+        result = lump->cache;
+        Z_ChangeTag(lump->cache, tag);
+    }
+    else if (lump->wad_file->mapped != NULL)
+    {
+        const byte *const raw = lump->wad_file->mapped + lump->position;
+        void **owner = (void **) &lump->cache;
+
+        if (V_IsPNGImage(raw, lump->size))
+        {
+            int converted_size = 0;
+            byte *const flat = V_PNGToFlatIndexed(raw, lump->size, tag, owner, &converted_size);
+
+            if (flat != NULL)
+            {
+                lump->cache = flat;
+                lump->cache_size = converted_size;
+                result = lump->cache;
+            }
+            else
+            {
+                lump->cache_size = 0;
+                result = (byte *) raw;
+            }
+        }
+        else
+        {
+            lump->cache_size = 0;
+            result = (byte *) raw;
+        }
+    }
+    else
+    {
+        byte png_sig[8];
+        boolean is_png = false;
+
+        if (lump->size >= (int) sizeof(png_sig)
+         && W_Read(lump->wad_file, lump->position, png_sig, sizeof(png_sig))
+             == (int) sizeof(png_sig))
+        {
+            is_png = V_IsPNGImage(png_sig, sizeof(png_sig));
+        }
+
+        if (is_png)
+        {
+            byte *const raw = Z_Malloc(W_LumpLength(lumpnum), PU_STATIC, NULL);
+            int converted_size = 0;
+            void **owner = (void **) &lump->cache;
+            byte *flat;
+
+            W_ReadLump(lumpnum, raw);
+            flat = V_PNGToFlatIndexed(raw, lump->size, tag, owner, &converted_size);
+            Z_Free(raw);
+
+            if (flat != NULL)
+            {
+                lump->cache = flat;
+                lump->cache_size = converted_size;
+            }
+            else
+            {
+                lump->cache = Z_Malloc(W_LumpLength(lumpnum), tag, &lump->cache);
+                W_ReadLump(lumpnum, lump->cache);
+                lump->cache_size = 0;
+            }
+        }
+        else
+        {
+            lump->cache = Z_Malloc(W_LumpLength(lumpnum), tag, &lump->cache);
+            W_ReadLump(lumpnum, lump->cache);
+            lump->cache_size = 0;
+        }
+
+        result = lump->cache;
+    }
+
+    return result;
+}
+
+
 
 //
 // W_CacheLumpName
