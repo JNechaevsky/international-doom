@@ -1499,7 +1499,10 @@ void R_PrecacheLevel (void)
     {
         if (hitlist[i])
         {
-            W_CacheLumpNum(firstflat + i, PU_CACHE);
+            // [PN] Must use the raw-flat path here; the plain W_CacheLumpNum
+            // blanket-converts PNG lumps to a Doom patch, poisoning lump->cache
+            // before render-time W_CacheLumpNumAsRaw reads it.
+            W_CacheLumpNumAsRaw(firstflat + i, PU_CACHE);
         }
     }
 
