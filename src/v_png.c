@@ -723,3 +723,65 @@ patch_t *V_PNGToPatch(const void *data, int size, int tag,
     FreePNGDecoder(&png);
     return patch;
 }
+
+// -----------------------------------------------------------------------------
+// [PN] Decode a PNG lump into raw 64x64 PLAYPAL-indexed bytes for use as a flat.
+// Same decode path as V_PNGToPatch, but returns the indexed buffer directly
+// instead of packing it into a Doom post/column patch (flats are addressed as a
+// linear 64x64 array by R_DrawSpan). Returns NULL if it is not a PNG, decoding
+// fails, or the image is not exactly 64x64. Buffer is Z_Malloc'd (tag/*user).
+// -----------------------------------------------------------------------------
+
+byte *V_PNGToFlatIndexed(const void *data, int size, int tag,
+                         void **user, int *out_size)
+{
+    png_decode_t png = {0};
+    byte *flat;
+
+    if (out_size != NULL)
+    {
+        *out_size = 0;
+    }
+
+    if (!V_IsPNGImage(data, size))
+    {
+        return NULL;
+    }
+
+    png.color_key = NO_COLOR_KEY;
+
+    if (!InitPNGDecoder(&png, data, size))
+    {
+        FreePNGDecoder(&png);
+        return NULL;
+    }
+
+    if (!DecodePNGImage(&png))
+    {
+        FreePNGDecoder(&png);
+        return NULL;
+    }
+
+    // Flats must be exactly 64x64 for the software span renderer.
+    if (png.width != 64 || png.height != 64)
+    {
+        FreePNGDecoder(&png);
+        return NULL;
+    }
+
+    flat = Z_Malloc(64 * 64, tag, user);
+
+    for (int i = 0; i < 64 * 64; i++)
+    {
+        flat[i] = (png.translate != NULL) ? png.translate[png.image[i]]
+                                          : png.image[i];
+    }
+
+    if (out_size != NULL)
+    {
+        *out_size = 64 * 64;
+    }
+
+    FreePNGDecoder(&png);
+    return flat;
+}

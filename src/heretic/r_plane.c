@@ -629,7 +629,7 @@ void R_DrawPlanes (void)
                         swirling == 2 ? R_WarpingFlat1(lumpnum) :
                         swirling == 3 ? R_WarpingFlat2(lumpnum) :
                         swirling == 4 ? R_WarpingFlat3(lumpnum) :
-                                        W_CacheLumpNum(lumpnum, PU_STATIC);
+                                        W_CacheLumpNumAsRaw(lumpnum, PU_STATIC);
             ds_brightmap = R_BrightmapForFlatNum(lumpnum-firstflat);
 
             // [JN] Apply flowing effect to swirling liquids.

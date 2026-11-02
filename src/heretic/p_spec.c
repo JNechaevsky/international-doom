@@ -310,6 +310,229 @@ void P_InitTerrainTypes(void)
     }
 }
 
+// -----------------------------------------------------------------------------
+// [PN] ANIMDEFS (Hexen/ZDoom) text lump support.
+// Only the "flat/texture NAME / range END / tics N" form is parsed, which maps
+// one-to-one onto Heretic's existing contiguous-range model (the animdef_t[]
+// table the Boom ANIMATED path already feeds). "switch" records and unknown
+// option tokens are skipped. Result is a host-byte-order animdef_t[] terminated
+// by { .istexture = -1 }, or NULL when there is nothing usable.
+// -----------------------------------------------------------------------------
+
+static int AD_TokIs(const char *tok, const char *kw)
+{
+    int i;
+
+    for (i = 0; kw[i]; i++)
+    {
+        char a = tok[i], b = kw[i];
+
+        if (a >= 'A' && a <= 'Z') a += 32;
+        if (b >= 'A' && b <= 'Z') b += 32;
+        if (a != b)
+            return 0;
+    }
+
+    return tok[i] == '\0';
+}
+
+// [PN] Copy an (up to 8-char) token into a fixed 9-byte lump-name buffer.
+static void AD_CopyName(char dst[9], const char *src)
+{
+    int k;
+
+    for (k = 0; k < 8 && src[k]; k++)
+        dst[k] = src[k];
+    dst[k] = '\0';
+}
+
+// [PN] Fetch the next whitespace-delimited token (skips // line comments and
+// optional surrounding quotes). Returns NULL at end of data.
+static const char *AD_NextToken(const char *data, int len, int *pos, char *out, int outsz)
+{
+    int i = *pos;
+
+    while (i < len)
+    {
+        const char c = data[i];
+
+        if (c == '/' && i + 1 < len && data[i + 1] == '/')   // line comment
+        {
+            while (i < len && data[i] != '\n')
+                i++;
+            continue;
+        }
+
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+        {
+            i++;
+        }
+        else if (c == '"')                                  // quoted token
+        {
+            int n = 0;
+            i++;
+            while (i < len && data[i] != '"')
+            {
+                if (n < outsz - 1)
+                    out[n++] = data[i];
+                i++;
+            }
+            if (i < len)                                    // skip closing quote
+                i++;
+            out[n] = '\0';
+            *pos = i;
+            return out;
+        }
+        else                                                // bare token
+        {
+            int n = 0;
+            while (i < len)
+            {
+                const char d = data[i];
+
+                if (d == ' ' || d == '\t' || d == '\r' || d == '\n' || d == '"')
+                    break;
+                if (d == '/' && i + 1 < len && data[i + 1] == '/')
+                    break;
+                if (n < outsz - 1)
+                    out[n++] = d;
+                i++;
+            }
+            out[n] = '\0';
+            *pos = i;
+            return out;
+        }
+    }
+
+    *pos = i;
+    return NULL;
+}
+
+// [PN] Build the final animdef_t list = prefix (built-in vanilla/SMMU, kept so
+// original Heretic animations still run) followed by ANIMDEFS records. The
+// builder loop appends in this order, and P_UpdateSpecials lets the later
+// ANIMDEFS entries override the built-in on overlapping pic ranges. Returns NULL
+// when there is no ANIMDEFS lump or it yields no usable records.
+static animdef_t *ParseANIMDEFS(const animdef_t *prefix)
+{
+    static animdef_t *result = NULL;
+    const int lump = W_CheckNumForName("ANIMDEFS");
+    const char *data;
+    char tok[16];
+    char name[9], endname[9];
+    int pos = 0, len, cnt = 0, maxrec, pcount = 0;
+    int inrec = 0, isw = 0, istex = 0, have_end = 0, speed = 8;
+
+    if (result != NULL)
+    {
+        Z_Free(result);
+        result = NULL;
+    }
+
+    if (lump == -1)
+        return NULL;
+
+    data = W_CacheLumpName("ANIMDEFS", PU_STATIC);
+    len = W_LumpLength(lump);
+
+    if (len <= 0)
+    {
+        W_ReleaseLumpName("ANIMDEFS");
+        return NULL;
+    }
+
+    for (pcount = 0; prefix != NULL && prefix[pcount].istexture != -1; ++pcount)
+        ;
+
+    maxrec = pcount + len / 8 + 8;
+    result = Z_Malloc((size_t) (maxrec + 1) * sizeof(*result), PU_STATIC, NULL);
+
+    // [PN] Built-in animations first (kept so vanilla still animates); ANIMDEFS
+    // records are appended after, so they override the built-in on overlaps.
+    for (int i = 0; i < pcount; i++)
+        result[i] = prefix[i];
+    cnt = pcount;
+
+    name[0] = '\0';
+    endname[0] = '\0';
+
+    while (cnt < maxrec && AD_NextToken(data, len, &pos, tok, sizeof(tok)) != NULL)
+    {
+        const int kflat = AD_TokIs(tok, "flat");
+        const int ktex  = AD_TokIs(tok, "texture");
+        const int ksw   = AD_TokIs(tok, "switch");
+
+        if (kflat || ktex || ksw)
+        {
+            // Flush the previous record (only flat/texture with a range apply).
+            if (inrec && !isw && have_end)
+            {
+                result[cnt].istexture = (signed char) istex;
+                AD_CopyName(result[cnt].startname, name);
+                AD_CopyName(result[cnt].endname, endname);
+                result[cnt].speed = speed;
+                cnt++;
+            }
+
+            isw = ksw;
+            istex = ktex;
+            speed = 8;
+            have_end = 0;
+            inrec = 1;
+            name[0] = '\0';
+            endname[0] = '\0';
+
+            if (!isw && AD_NextToken(data, len, &pos, tok, sizeof(tok)) != NULL)
+                AD_CopyName(name, tok);
+        }
+        else if (inrec && !isw)
+        {
+            if (AD_TokIs(tok, "range"))
+            {
+                if (AD_NextToken(data, len, &pos, tok, sizeof(tok)) != NULL)
+                {
+                    AD_CopyName(endname, tok);
+                    have_end = 1;
+                }
+            }
+            else if (AD_TokIs(tok, "tics"))
+            {
+                if (AD_NextToken(data, len, &pos, tok, sizeof(tok)) != NULL)
+                {
+                    int s = 0, k;
+                    for (k = 0; tok[k]; k++)
+                        if (tok[k] >= '0' && tok[k] <= '9')
+                            s = s * 10 + (tok[k] - '0');
+                    speed = s > 0 ? s : 1;
+                }
+            }
+            // any other token is an unsupported option -> ignore
+        }
+    }
+
+    // Flush the final record.
+    if (inrec && !isw && have_end && cnt < maxrec)
+    {
+        result[cnt].istexture = (signed char) istex;
+        AD_CopyName(result[cnt].startname, name);
+        AD_CopyName(result[cnt].endname, endname);
+        result[cnt].speed = speed;
+        cnt++;
+    }
+
+    W_ReleaseLumpName("ANIMDEFS");
+
+    result[cnt].istexture = -1;   // sentinel (builder loop stops on istexture == -1)
+
+    if (cnt == pcount)   // no ANIMDEFS records added
+    {
+        Z_Free(result);
+        result = NULL;
+    }
+
+    return result;
+}
+
 //----------------------------------------------------------------------------
 //
 // PROC P_InitPicAnims
@@ -323,16 +546,27 @@ void P_InitPicAnims(void)
     int i;
     boolean init_swirl = false;
     // [crispy] add support for ANIMATED lumps
+    // [PN] Animation source priority: ANIMDEFS (Hexen/ZDoom text) > ANIMATED
+    // (Boom binary) > built-in (vanilla / SMMU swirling). All share the same
+    // contiguous "range" animdef_t model, so the builder below is unchanged.
     animdef_t *animdefs;
-    const boolean from_lump = (W_CheckNumForName("ANIMATED") != -1);
+    animdef_t *builtin = vis_swirling_liquids ? animdefs_swirling : animdefs_vanilla;
+    animdef_t *from_animdefs = ParseANIMDEFS(builtin);
+    const boolean from_lump = (from_animdefs == NULL) &&
+                              (W_CheckNumForName("ANIMATED") != -1);
 
-    if (from_lump)
+    if (from_animdefs != NULL)
+    {
+        // [PN] built-in animations (kept) + ANIMDEFS appended (override on overlap).
+        animdefs = from_animdefs;
+    }
+    else if (from_lump)
     {
         animdefs = W_CacheLumpName("ANIMATED", PU_STATIC);
     }
     else
     {
-        animdefs = vis_swirling_liquids ? animdefs_swirling : animdefs_vanilla;
+        animdefs = builtin;
     }
 
     lastanim = anims;

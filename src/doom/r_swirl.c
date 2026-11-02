@@ -192,7 +192,7 @@ byte *R_SwirlingFlat (int flatnum)
 
 	if (swirlflat != flatnum)
 	{
-		const char *normalflat = W_CacheLumpNum(flatnum, PU_STATIC);
+		const char *normalflat = W_CacheLumpNumAsRaw(flatnum, PU_STATIC);
 
         // [PN] Loop through each pixel and apply the distortion.
 		for (int i = 0; i < FLATSIZE; i++)
@@ -220,7 +220,7 @@ byte *R_WarpingFlat1 (int flatnum)
 
     if (swirlflat != flatnum)
     {
-        const char *normalflat = W_CacheLumpNum(flatnum, PU_STATIC);
+        const char *normalflat = W_CacheLumpNumAsRaw(flatnum, PU_STATIC);
 
         // [PN] Loop through each pixel and apply the distortion.
         for (int i = 0; i < FLATSIZE; i++)
@@ -248,7 +248,7 @@ byte *R_WarpingFlat2 (int flatnum)
 
     if (swirlflat != flatnum)
     {
-        const char *normalflat = W_CacheLumpNum(flatnum, PU_STATIC);
+        const char *normalflat = W_CacheLumpNumAsRaw(flatnum, PU_STATIC);
 
         // [PN] Loop through each pixel and apply the distortion.
         for (int i = 0; i < FLATSIZE; i++)
@@ -276,7 +276,7 @@ byte *R_WarpingFlat3 (int flatnum)
 
     if (swirlflat != flatnum)
     {
-        const char *normalflat = W_CacheLumpNum(flatnum, PU_STATIC);
+        const char *normalflat = W_CacheLumpNumAsRaw(flatnum, PU_STATIC);
 
         // [PN] Loop through each pixel and apply the distortion.
         for (int i = 0; i < FLATSIZE; i++)
