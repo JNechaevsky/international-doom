@@ -142,6 +142,7 @@ int *texturetranslation;
 
 // needed for pre rendering
 fixed_t *spritewidth;
+fixed_t *spriteheight;
 fixed_t *spriteoffset;
 fixed_t *spritetopoffset;
 
@@ -928,6 +929,7 @@ static void R_InitSpriteLumps (void)
 
     numspritelumps = lastspritelump - firstspritelump + 1;
     spritewidth = Z_Malloc(numspritelumps * sizeof(*spritewidth), PU_STATIC, 0);
+    spriteheight = Z_Malloc(numspritelumps * sizeof(*spriteheight), PU_STATIC, 0);
     spriteoffset = Z_Malloc(numspritelumps * sizeof(*spriteoffset), PU_STATIC, 0);
     spritetopoffset = Z_Malloc(numspritelumps * sizeof(*spritetopoffset), PU_STATIC, 0);
 
@@ -938,6 +940,7 @@ static void R_InitSpriteLumps (void)
 
         patch_t *patch = W_CacheLumpNum(firstspritelump + i, PU_CACHE);
         spritewidth[i] = SHORT(patch->width) << FRACBITS;
+        spriteheight[i] = SHORT(patch->height) << FRACBITS;
         spriteoffset[i] = SHORT(patch->leftoffset) << FRACBITS;
         spritetopoffset[i] = SHORT(patch->topoffset) << FRACBITS;
     }

@@ -1128,13 +1128,18 @@ static void R_ProjectSprite (const mobj_t *const thing)
 
     // [JN] killough 4/9/98: clip things which are out of view due to height
     const fixed_t gzt = interpz + spritetopoffset[lump];
+    // [PN] Sprite bottom world Z.
+    const fixed_t gzb = gzt - spriteheight[lump];
 
     // [PN] Pitch-aware: distances from centery to top/bottom screen rows.
+    // The top clip must use the sprite's actual bottom (gzb), not the thing's
+    // feet Z (interpz). Sprites with topoffsets extend below the anchor,
+    // so interpz culled them too early. Also, thanks Alaux!
     const fixed_t vscale = xscale << detailshift;
     const int64_t top_world    = viewz + FixedDiv(centery << FRACBITS, vscale);
     const int64_t bottom_world = viewz - FixedDiv((viewheight - centery) << FRACBITS, vscale);
 
-    if (interpz > top_world || gzt < bottom_world)
+    if (gzb > top_world || gzt < bottom_world)
     {
         return;
     }

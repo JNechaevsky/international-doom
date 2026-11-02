@@ -530,6 +530,7 @@ extern int drawbsp;
 //
 extern fixed_t *textureheight;  // needed for texture pegging
 extern fixed_t *spritewidth;    // needed for pre rendering (fracs)
+extern fixed_t *spriteheight;
 extern fixed_t *spriteoffset;
 extern fixed_t *spritetopoffset;
 extern lighttable_t *colormaps;
