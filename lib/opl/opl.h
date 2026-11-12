@@ -149,5 +149,9 @@ void OPL_Delay(uint64_t us);
 
 void OPL_SetPaused(int paused);
 
+// [PN] Mute the final mix. The OPL register attenuation tops out just above
+// digital silence, so muting the mixer output is the only way to stay silent.
+void OPL_SetMuted(int muted);
+
 #endif
 

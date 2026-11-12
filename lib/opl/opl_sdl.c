@@ -69,6 +69,7 @@ static uint64_t current_time;
 // If non-zero, playback is currently paused.
 
 static int opl_sdl_paused;
+static int opl_muted;
 
 // Time offset (in us) due to the fact that callbacks
 // were previously paused.
@@ -168,11 +169,24 @@ static void FillBuffer(uint8_t *buffer, unsigned int nsamples)
     // SDL mix buffer.
     assert(nsamples < mixing_freq);
 
+    // [PN] When muted, skip the emulation and leave the buffer alone: this is
+    // a post-mix effect, so it already holds the sound effects. Overwriting it
+    // would silence them as well.
+    if (opl_muted)
+    {
+        return;
+    }
+
     // OPL output is generated into temporary buffer and then mixed
     // (to avoid overflows etc.)
     OPL3_GenerateStream(&opl_chip, (int16_t *) mix_buffer, nsamples);
     SDL_MixAudioFormat(buffer, mix_buffer, AUDIO_S16SYS, nsamples * 4,
                        SDL_MIX_MAXVOLUME);
+}
+
+void OPL_SetMuted(int muted)
+{
+    opl_muted = muted;
 }
 
 // Callback function to fill a new sound buffer:

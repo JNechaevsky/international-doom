@@ -640,6 +640,11 @@ static void I_OPL_SetMusicVolume(int volume)
 {
     unsigned int i;
 
+    // [PN] The OPL registers cannot reach digital silence: their maximum
+    // attenuation still lets a faint signal through, which becomes audible
+    // once the system volume is turned up. Mute the mixer output instead.
+    OPL_SetMuted(volume == 0);
+
     // [JN] OPL volume is notably lower than MIDI/GUS.
     // Double the value, but don't let it go out of bounds.
     volume *= 2;
