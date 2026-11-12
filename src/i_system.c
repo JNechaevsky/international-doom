@@ -249,6 +249,35 @@ void I_Quit (void)
 
 
 
+// -----------------------------------------------------------------------------
+// I_SystemUsesDarkTheme
+//  [PN] True when Windows is set to the dark app theme. Read from the same
+//  registry value the shell uses; a missing key means light, which also keeps
+//  pre-Windows 10 systems on the light palette.
+// -----------------------------------------------------------------------------
+
+boolean I_SystemUsesDarkTheme (void)
+{
+#ifdef _WIN32
+    HKEY key;
+    DWORD light = 1, size = sizeof(light);
+
+    {
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\"
+                      L"CurrentVersion\\Themes\\Personalize", 0,
+                      KEY_QUERY_VALUE, &key) == ERROR_SUCCESS)
+    {
+        RegQueryValueExW(key, L"AppsUseLightTheme", NULL, NULL,
+                         (LPBYTE) &light, &size);
+        RegCloseKey(key);
+    }
+    }
+
+    return (light == 0);
+#else
+    return false;
+#endif
+}
 //
 // I_Error
 //
@@ -270,11 +299,35 @@ static boolean already_quitting = false;
 #define I_ERROR_DIALOG_MAX_W 520
 #define I_ERROR_DIALOG_MIN_H 150
 
-#define I_ERROR_COLOR_WINDOW_BG     RGB(43, 43, 43)
-#define I_ERROR_COLOR_BUTTON_BG     RGB(58, 58, 58)
-#define I_ERROR_COLOR_BUTTON_HOVER  RGB(78, 78, 78)
-#define I_ERROR_COLOR_BUTTON_BORDER RGB(96, 96, 96)
-#define I_ERROR_COLOR_TEXT          RGB(235, 235, 235)
+// [PN] The dialog follows the system theme: neutral greys from the Windows
+// light and dark palettes, with enough contrast between the window, the
+// button surface and the text for both to stay readable.
+typedef struct
+{
+    COLORREF window_bg;
+    COLORREF button_bg;
+    COLORREF button_hover;
+    COLORREF button_border;
+    COLORREF text;
+} i_error_theme_t;
+
+static const i_error_theme_t i_error_theme_dark =
+{
+    RGB( 43,  43,  43),
+    RGB( 58,  58,  58),
+    RGB( 78,  78,  78),
+    RGB( 96,  96,  96),
+    RGB(235, 235, 235),
+};
+
+static const i_error_theme_t i_error_theme_light =
+{
+    RGB(243, 243, 243),
+    RGB(251, 251, 251),
+    RGB(234, 234, 234),
+    RGB(173, 173, 173),
+    RGB( 27,  27,  27),
+};
 #define I_ERROR_ICON_RESOURCE_INFO  MAKEINTRESOURCEW(32516)
 #define I_ERROR_ICON_RESOURCE_ERROR MAKEINTRESOURCEW(32513)
 
@@ -314,6 +367,7 @@ typedef struct
     int dpi;
     HFONT font;
     RECT message_rect;
+    const i_error_theme_t *theme;
     HBRUSH window_brush;
     HBRUSH button_brush;
     HBRUSH button_hover_brush;
@@ -503,7 +557,7 @@ static void MeasureErrorDialogText(const wchar_t *message, HFONT font, int max_w
 //  [PN] Try enabling dark title bar for error dialog on supported Windows.
 // -----------------------------------------------------------------------------
 
-static void TryEnableErrorDarkTitleBar(HWND hwnd)
+static void TryEnableErrorDarkTitleBar(HWND hwnd, boolean dark)
 {
     HMODULE dwmapi = LoadLibraryA("dwmapi.dll");
     if (dwmapi == NULL)
@@ -514,11 +568,11 @@ static void TryEnableErrorDarkTitleBar(HWND hwnd)
 
     if (set_window_attribute != NULL)
     {
-        BOOL enabled = TRUE;
+        // 19 on Windows 10 1809, 20 on 1903 and later. Both take a BOOL, so the
+        // light theme simply asks for the ordinary frame.
+        BOOL enabled = dark;
 
-        // Windows 10 1809
         set_window_attribute(hwnd, 19, &enabled, sizeof(enabled));
-        // Windows 10 1903+
         set_window_attribute(hwnd, 20, &enabled, sizeof(enabled));
     }
 
@@ -686,7 +740,7 @@ static void DrawErrorDialogButton(const DRAWITEMSTRUCT *dis,
     FrameRect(dis->hDC, &rc, dialog->button_border_brush);
 
     SetBkMode(dis->hDC, TRANSPARENT);
-    SetTextColor(dis->hDC, I_ERROR_COLOR_TEXT);
+    SetTextColor(dis->hDC, dialog->theme->text);
     DrawTextW(dis->hDC, caption, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 }
 
@@ -882,7 +936,7 @@ static LRESULT CALLBACK I_ErrorDialogWndProc(HWND hwnd, UINT msg,
                     }
 
                     SetBkMode(dc, TRANSPARENT);
-                    SetTextColor(dc, I_ERROR_COLOR_TEXT);
+                    SetTextColor(dc, dialog->theme->text);
                     DrawTextW(dc, dialog->message, -1, &text_rc, DT_WORDBREAK | DT_EDITCONTROL | DT_NOPREFIX);
 
                     if (old_font != NULL)
@@ -902,8 +956,8 @@ static LRESULT CALLBACK I_ErrorDialogWndProc(HWND hwnd, UINT msg,
 
             if (dialog != NULL && dialog->window_brush != NULL)
             {
-                SetTextColor(dc, I_ERROR_COLOR_TEXT);
-                SetBkColor(dc, I_ERROR_COLOR_WINDOW_BG);
+                SetTextColor(dc, dialog->theme->text);
+                SetBkColor(dc, dialog->theme->window_bg);
                 return (LRESULT) dialog->window_brush;
             }
             break;
@@ -968,10 +1022,13 @@ static void ShowDarkErrorDialogW(const wchar_t *message, const wchar_t *title,
     dialog.title = title;
     dialog.safe = safe;
     dialog.dpi = 96;
-    dialog.window_brush = CreateSolidBrush(I_ERROR_COLOR_WINDOW_BG);
-    dialog.button_brush = CreateSolidBrush(I_ERROR_COLOR_BUTTON_BG);
-    dialog.button_hover_brush = CreateSolidBrush(I_ERROR_COLOR_BUTTON_HOVER);
-    dialog.button_border_brush = CreateSolidBrush(I_ERROR_COLOR_BUTTON_BORDER);
+    const boolean dark_theme = I_SystemUsesDarkTheme();
+
+    dialog.theme = dark_theme ? &i_error_theme_dark : &i_error_theme_light;
+    dialog.window_brush = CreateSolidBrush(dialog.theme->window_bg);
+    dialog.button_brush = CreateSolidBrush(dialog.theme->button_bg);
+    dialog.button_hover_brush = CreateSolidBrush(dialog.theme->button_hover);
+    dialog.button_border_brush = CreateSolidBrush(dialog.theme->button_border);
     dialog.font = CreateErrorDialogFont(&owns_font);
 
     wc.lpfnWndProc = I_ErrorDialogWndProc;
@@ -1055,7 +1112,7 @@ static void ShowDarkErrorDialogW(const wchar_t *message, const wchar_t *title,
         goto cleanup;
     }
 
-    TryEnableErrorDarkTitleBar(dialog.window);
+    TryEnableErrorDarkTitleBar(dialog.window, dark_theme);
     ShowWindow(dialog.window, SW_SHOW);
     UpdateWindow(dialog.window);
     SetForegroundWindow(dialog.window);

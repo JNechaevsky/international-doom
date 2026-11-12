@@ -69,17 +69,54 @@
 #define IWAD_WINDOW_CLIENT_H     480
 #define IWAD_BUTTON_IDEAL_W      120
 #define IWAD_BUTTON_H            30
-#define IWAD_COLOR_WINDOW_BG     RGB(43, 43, 43)
-#define IWAD_COLOR_CONTROL_BG    RGB(30, 30, 30)
+// [PN] Neutral launcher colors come in a light and a dark set, picked by the
+// system theme; per-game accents below stay the same in both.
+typedef struct
+{
+    COLORREF window_bg;
+    COLORREF control_bg;
+    COLORREF button_bg;
+    COLORREF button_hover;
+    COLORREF button_down;
+    COLORREF button_border;
+    COLORREF text;
+    COLORREF sel_text;
+    COLORREF check_bg;
+    COLORREF check_hover;
+    COLORREF check_border;
+} launcher_palette_t;
+
+static const launcher_palette_t launcher_palette_dark =
+{
+    RGB( 43,  43,  43),   // window background
+    RGB( 30,  30,  30),   // list and input background
+    RGB( 58,  58,  58),   // button
+    RGB( 78,  78,  78),   // button, hovered
+    RGB( 98,  98,  98),   // button, pressed
+    RGB( 96,  96,  96),   // button border
+    RGB(235, 235, 235),   // text
+    RGB(255, 255, 255),   // text on a selected list row
+    RGB( 42,  42,  42),   // unchecked box
+    RGB( 58,  58,  58),   // unchecked box, hovered
+    RGB(122, 122, 122),   // checkbox border
+};
+
+static const launcher_palette_t launcher_palette_light =
+{
+    RGB(243, 243, 243),
+    RGB(255, 255, 255),
+    RGB(251, 251, 251),
+    RGB(240, 240, 240),
+    RGB(226, 226, 226),
+    RGB(205, 205, 205),
+    RGB( 27,  27,  27),
+    RGB(255, 255, 255),
+    RGB(240, 240, 240),
+    RGB(226, 226, 226),
+    RGB(150, 150, 150),
+};
+
 #define IWAD_COLOR_LIST_SEL_BG   RGB(0, 90, 165)
-#define IWAD_COLOR_BUTTON_BG     RGB(58, 58, 58)
-#define IWAD_COLOR_BUTTON_HOVER  RGB(78, 78, 78)
-#define IWAD_COLOR_BUTTON_DOWN   RGB(98, 98, 98)
-#define IWAD_COLOR_BUTTON_BORDER RGB(96, 96, 96)
-#define IWAD_COLOR_TEXT          RGB(235, 235, 235)
-#define IWAD_COLOR_CHECK_BG      RGB(42, 42, 42)
-#define IWAD_COLOR_CHECK_HOVER   RGB(58, 58, 58)
-#define IWAD_COLOR_CHECK_BORDER  RGB(122, 122, 122)
 #define IWAD_COLOR_CHECK_ACCENT  RGB(0, 122, 204)
 #define IWAD_COLOR_CHECK_ACCENT_HOVER RGB(20, 142, 224)
 #define IWAD_HERETIC_LIST_SEL_BG      RGB(28, 122, 56)
@@ -156,11 +193,13 @@ typedef struct
     COLORREF color_button_down;
     COLORREF color_button_border;
     COLORREF color_text;
+    COLORREF color_sel_text;
     COLORREF color_check_bg;
     COLORREF color_check_hover;
     COLORREF color_check_border;
     COLORREF color_check_accent;
     COLORREF color_check_accent_hover;
+    boolean dark_theme;
     launcher_view_mode_t view_mode;
     boolean play_pressed;
     boolean done;
@@ -1342,7 +1381,7 @@ static void CleanupLauncherTheme(iwad_launcher_t *launcher)
 //  [PN] Try enabling dark title bar on supported Windows versions.
 // -----------------------------------------------------------------------------
 
-static void TryEnableDarkTitleBar(HWND hwnd)
+static void TryEnableDarkTitleBar(HWND hwnd, boolean dark)
 {
     HMODULE dwmapi = LoadLibraryA("dwmapi.dll");
     if (dwmapi == NULL)
@@ -1356,11 +1395,10 @@ static void TryEnableDarkTitleBar(HWND hwnd)
 
     if (set_window_attribute != NULL)
     {
-        BOOL enabled = TRUE;
+        // 19 on Windows 10 1809, 20 on 1903 and later.
+        BOOL enabled = dark;
 
-        // Windows 10 1809
         set_window_attribute(hwnd, 19, &enabled, sizeof(enabled));
-        // Windows 10 1903+
         set_window_attribute(hwnd, 20, &enabled, sizeof(enabled));
     }
 
@@ -1372,7 +1410,7 @@ static void TryEnableDarkTitleBar(HWND hwnd)
 //  [PN] Request dark control theme (not guaranteed on every Windows build).
 // -----------------------------------------------------------------------------
 
-static void TryApplyDarkControlTheme(HWND hwnd)
+static void TryApplyDarkControlTheme(HWND hwnd, boolean dark)
 {
     HMODULE uxtheme = LoadLibraryA("uxtheme.dll");
     if (uxtheme == NULL)
@@ -1385,7 +1423,10 @@ static void TryApplyDarkControlTheme(HWND hwnd)
 
     if (set_window_theme != NULL)
     {
-        HRESULT hr = set_window_theme(hwnd, L"DarkMode_Explorer", NULL);
+        HRESULT hr = S_OK;
+
+        if (dark)
+            hr = set_window_theme(hwnd, L"DarkMode_Explorer", NULL);
 
         if (FAILED(hr))
         {
@@ -1489,8 +1530,12 @@ static void DrawLauncherListItem(const DRAWITEMSTRUCT *dis,
     RECT rc = dis->rcItem;
     HBRUSH bg_brush = launcher->control_brush;
 
+    boolean selected = false;
+
     if (dis->itemState & ODS_SELECTED)
     {
+        selected = true;
+
         if (launcher->list_sel_brush != NULL)
         {
             bg_brush = launcher->list_sel_brush;
@@ -1516,7 +1561,8 @@ static void DrawLauncherListItem(const DRAWITEMSTRUCT *dis,
                 SendMessageA(dis->hwndItem, LB_GETTEXT,
                              (WPARAM) dis->itemID, (LPARAM) text);
                 SetBkMode(dis->hDC, TRANSPARENT);
-                SetTextColor(dis->hDC, launcher->color_text);
+                SetTextColor(dis->hDC, selected ? launcher->color_sel_text
+                                               : launcher->color_text);
 
                 RECT text_rc = rc;
                 text_rc.left += ScaleByDPI(4, launcher->dpi);
@@ -1737,6 +1783,10 @@ static void InstallHoverForControlGroup(const HWND *controls, size_t count)
 }
 
 // -----------------------------------------------------------------------------
+// [PN] Border color for the subclassed list and edit controls. The launcher
+// window is a singleton, so a file-scope value is enough here.
+static COLORREF launcher_control_border = RGB(96, 96, 96);
+
 // DrawFixedControlBorder
 //  [PN] Draw fixed border color around non-client area of list/edit controls.
 // -----------------------------------------------------------------------------
@@ -1753,7 +1803,7 @@ static void DrawFixedControlBorder(HWND hwnd)
     GetWindowRect(hwnd, &rc);
     OffsetRect(&rc, -rc.left, -rc.top);
 
-    HBRUSH border_brush = CreateSolidBrush(IWAD_COLOR_BUTTON_BORDER);
+    HBRUSH border_brush = CreateSolidBrush(launcher_control_border);
     if (border_brush != NULL)
     {
         FrameRect(dc, &rc, border_brush);
@@ -1910,17 +1960,25 @@ static const char *DefaultWindowTitleForMask(int mask)
 
 static void ConfigureLauncherThemeForMask(iwad_launcher_t *launcher, int mask)
 {
-    launcher->color_window_bg = IWAD_COLOR_WINDOW_BG;
-    launcher->color_control_bg = IWAD_COLOR_CONTROL_BG;
+    launcher->dark_theme = I_SystemUsesDarkTheme();
+
+    const launcher_palette_t *palette = launcher->dark_theme
+                                     ? &launcher_palette_dark
+                                     : &launcher_palette_light;
+
+    launcher->color_window_bg = palette->window_bg;
+    launcher->color_control_bg = palette->control_bg;
     launcher->color_list_sel_bg = IWAD_COLOR_LIST_SEL_BG;
-    launcher->color_button_bg = IWAD_COLOR_BUTTON_BG;
-    launcher->color_button_hover = IWAD_COLOR_BUTTON_HOVER;
-    launcher->color_button_down = IWAD_COLOR_BUTTON_DOWN;
-    launcher->color_button_border = IWAD_COLOR_BUTTON_BORDER;
-    launcher->color_text = IWAD_COLOR_TEXT;
-    launcher->color_check_bg = IWAD_COLOR_CHECK_BG;
-    launcher->color_check_hover = IWAD_COLOR_CHECK_HOVER;
-    launcher->color_check_border = IWAD_COLOR_CHECK_BORDER;
+    launcher->color_button_bg = palette->button_bg;
+    launcher->color_button_hover = palette->button_hover;
+    launcher->color_button_down = palette->button_down;
+    launcher->color_button_border = palette->button_border;
+    launcher_control_border = palette->button_border;
+    launcher->color_text = palette->text;
+    launcher->color_sel_text = palette->sel_text;
+    launcher->color_check_bg = palette->check_bg;
+    launcher->color_check_hover = palette->check_hover;
+    launcher->color_check_border = palette->check_border;
     launcher->color_check_accent = IWAD_COLOR_CHECK_ACCENT;
     launcher->color_check_accent_hover = IWAD_COLOR_CHECK_ACCENT_HOVER;
 
@@ -2547,7 +2605,7 @@ static LRESULT CALLBACK IWADLauncherWndProc(HWND hwnd, UINT msg,
                                                   (HMENU) (INT_PTR) IDC_IWAD_LAUNCHER_LIST,
                                                   NULL, NULL);
 
-            TryApplyDarkControlTheme(launcher->iwad_list);
+            TryApplyDarkControlTheme(launcher->iwad_list, launcher->dark_theme);
 
             if (launcher->iwads[0].iwad != NULL)
             {
@@ -3247,7 +3305,7 @@ static boolean RunIWADLauncherDialog(int mask)
     SetWindowTextA(hwnd, resolved_title);
     SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM) icon);
     SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM) icon);
-    TryEnableDarkTitleBar(hwnd);
+    TryEnableDarkTitleBar(hwnd, launcher.dark_theme);
 
     ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);

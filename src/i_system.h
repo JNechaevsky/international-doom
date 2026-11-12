@@ -82,5 +82,8 @@ void I_PrintBanner(const char *text);
 
 void I_PrintDivider(void);
 
+// [PN] True when the system is set to the dark app theme.
+boolean I_SystemUsesDarkTheme(void);
+
 #endif
 

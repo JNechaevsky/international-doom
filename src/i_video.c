@@ -30,6 +30,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include <SDL_syswm.h>
 #endif
 
 #include "config.h"
@@ -69,6 +70,49 @@ void (*post_rendering_hook) (void); // [crispy]
 
 static SDL_Window *screen;
 static SDL_Renderer *renderer;
+
+#ifdef _WIN32
+// [PN] Windows paints the title bar light unless the app opts in.
+// SDL2 has no API for it, so DWM is asked directly; on Windows 10 the caption
+// does not repaint on its own, hence the WM_NCACTIVATE pair at the end.
+static void I_ApplyTitleBarColor (void)
+{
+    typedef HRESULT (WINAPI *dwm_set_t)(HWND, DWORD, LPCVOID, DWORD);
+    static dwm_set_t set_attr;
+    SDL_SysWMinfo info;
+    HWND hwnd;
+
+    SDL_VERSION(&info.version);
+
+    if (screen == NULL || !SDL_GetWindowWMInfo(screen, &info))
+        return;
+
+    if (set_attr == NULL)
+    {
+        const HMODULE dwmapi = LoadLibraryA("dwmapi.dll");
+
+        if (dwmapi == NULL)
+            return;
+
+        set_attr = (dwm_set_t) GetProcAddress(dwmapi, "DwmSetWindowAttribute");
+
+        if (set_attr == NULL)
+            return;
+    }
+
+    hwnd = info.info.win.window;
+
+    const BOOL dark = I_SystemUsesDarkTheme();
+
+    // 20 on Windows 10 2004 and later, 19 on older builds.
+    if (FAILED(set_attr(hwnd, 20, &dark, sizeof(dark))))
+        set_attr(hwnd, 19, &dark, sizeof(dark));
+
+    // The caption does not repaint on its own, so flip activation once.
+    SendMessageW(hwnd, WM_NCACTIVATE, FALSE, 0);
+    SendMessageW(hwnd, WM_NCACTIVATE, TRUE, 0);
+}
+#endif
 
 // Window title
 
@@ -1706,6 +1750,9 @@ static void SetVideoMode(void)
 
         I_InitWindowTitle();
         I_InitWindowIcon();
+#ifdef _WIN32
+        I_ApplyTitleBarColor();
+#endif
     }
 
     // The SDL_RENDERER_TARGETTEXTURE flag is required to render the

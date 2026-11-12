@@ -115,8 +115,62 @@ static const SDL_Color ega_colors[] =
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <SDL_syswm.h>
 
 // Examine system DPI settings to determine whether to use the large font.
+
+// [PN] Windows paints the title bar light unless the app opts in.
+// SDL2 has no API for it, so DWM is asked directly; on Windows 10 the caption
+// does not repaint on its own, hence the WM_NCACTIVATE pair at the end.
+static void I_ApplyTitleBarColor (void)
+{
+    typedef HRESULT (WINAPI *dwm_set_t)(HWND, DWORD, LPCVOID, DWORD);
+    static dwm_set_t set_attr;
+    SDL_SysWMinfo info;
+    HKEY key;
+    DWORD light = 1, size = sizeof(light);
+    HWND hwnd;
+
+    SDL_VERSION(&info.version);
+
+    if (TXT_SDLWindow == NULL || !SDL_GetWindowWMInfo(TXT_SDLWindow, &info))
+        return;
+
+    if (set_attr == NULL)
+    {
+        const HMODULE dwmapi = LoadLibraryA("dwmapi.dll");
+
+        if (dwmapi == NULL)
+            return;
+
+        set_attr = (dwm_set_t) GetProcAddress(dwmapi, "DwmSetWindowAttribute");
+
+        if (set_attr == NULL)
+            return;
+    }
+
+    hwnd = info.info.win.window;
+
+    // AppsUseLightTheme: 1 = light, 0 = dark. Missing key (XP) keeps it light.
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\"
+                      L"CurrentVersion\\Themes\\Personalize", 0,
+                      KEY_QUERY_VALUE, &key) == ERROR_SUCCESS)
+    {
+        RegQueryValueExW(key, L"AppsUseLightTheme", NULL, NULL,
+                         (LPBYTE) &light, &size);
+        RegCloseKey(key);
+    }
+
+    const BOOL dark = (light == 0);
+
+    // 20 on Windows 10 2004 and later, 19 on older builds.
+    if (FAILED(set_attr(hwnd, 20, &dark, sizeof(dark))))
+        set_attr(hwnd, 19, &dark, sizeof(dark));
+
+    // The caption does not repaint on its own, so flip activation once.
+    SendMessageW(hwnd, WM_NCACTIVATE, FALSE, 0);
+    SendMessageW(hwnd, WM_NCACTIVATE, TRUE, 0);
+}
 
 static int Win32_UseLargeFont(void)
 {
@@ -284,6 +338,10 @@ int TXT_Init(void)
 
     if (TXT_SDLWindow == NULL)
         return 0;
+
+#ifdef _WIN32
+    I_ApplyTitleBarColor();
+#endif
 
     if (renderer == NULL)
     {
