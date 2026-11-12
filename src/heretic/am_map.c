@@ -1615,19 +1615,12 @@ static void AM_changeWindowScale (void)
 
 static void AM_doFollowPlayer (void)
 {
-    // [JN] Use interpolated player coords for smooth
-    // scrolling and static player arrow position.
-    // [crispy] FTOM(MTOF()) is needed to fix map line jitter in follow mode.
-    if (vid_resolution > 1)
-    {
-        m_x = (viewx >> FRACTOMAPBITS) - m_w/2;
-        m_y = (viewy >> FRACTOMAPBITS) - m_h/2;
-    }
-    else
-    {
-        m_x = FTOM(MTOF(viewx >> FRACTOMAPBITS)) - m_w/2;
-        m_y = FTOM(MTOF(viewy >> FRACTOMAPBITS)) - m_h/2;
-    }
+    // [PN] Follow the interpolated view directly. The old MTOF/FTOM round
+    // trip re-quantised the centre to whole screen pixels on every frame,
+    // and since that rounding shifts as the scale changes, the whole map
+    // trembled by a pixel while zooming.
+    m_x = (viewx >> FRACTOMAPBITS) - m_w/2;
+    m_y = (viewy >> FRACTOMAPBITS) - m_h/2;
 
     m_x2 = m_x + m_w;
     m_y2 = m_y + m_h;
@@ -2662,14 +2655,21 @@ static void AM_drawPlayers (void)
                        automap_rotate ? plr->mo->angle : viewangle;
 
         // [JN] Interpolate player arrow.
-        pt.x = viewx >> FRACTOMAPBITS;
-        pt.y = viewy >> FRACTOMAPBITS;
-
-        // [JN] Prevent arrow jitter in non-hires mode.
-        if (vid_resolution == 1)
+        if (am_followplayer)
         {
-            pt.x = FTOM(MTOF(pt.x));
-            pt.y = FTOM(MTOF(pt.y));
+            // [PN] Use the centre the map lines are drawn from. Taken from
+            // viewx/viewy, the arrow is re-quantised through a newer scale
+            // than am_AM_doFollowPlayer used, and twitches while zooming.
+            pt.x = m_x + m_w/2;
+            pt.y = m_y + m_h/2;
+        }
+        else
+        {
+            // [PN] Free-pan mode: the arrow is a plain map-space point. The
+            // old MTOF/FTOM round-trip re-quantised it to the current scale
+            // grid, and while zooming that rounding error swings by a pixel.
+            pt.x = viewx >> FRACTOMAPBITS;
+            pt.y = viewy >> FRACTOMAPBITS;
         }
 
         AM_transformPoint(&pt);
