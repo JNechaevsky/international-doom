@@ -91,6 +91,7 @@ static unsigned int mouse_button_state = 0;
 // [JN] Default mouse sensivity.
 int mouseSensitivity = 5;
 int mouse_sensitivity_y = 5; // [crispy]
+int mouse_strafe_divisor = 1;
 
 // Disallow mouse and joystick movement to cause forward/backward
 // motion.  Specified with the '-mouse_novert' command line parameter.
@@ -555,6 +556,12 @@ double I_AccelerateMouseY(int val)
     }
 }
 
+// [JN] Never zero, so strafing cannot divide by it!
+int I_MouseStrafeDivisor(void)
+{
+    return mouse_strafe_divisor > 0 ? mouse_strafe_divisor : 1;
+}
+
 //
 // Read the change in mouse state to generate mouse motion events
 //
@@ -620,6 +627,7 @@ void I_BindInputVariables(void)
     M_BindIntVariable("mouse_sensitivity_y",       &mouse_sensitivity_y);
     M_BindFloatVariable("mouse_acceleration",      &mouse_acceleration);
     M_BindIntVariable("mouse_threshold",           &mouse_threshold);
+    M_BindIntVariable("mouse_strafe_divisor",      &mouse_strafe_divisor);
     M_BindIntVariable("vanilla_keyboard_mapping",  &vanilla_keyboard_mapping);
     M_BindIntVariable("mouse_novert",              &mouse_novert);
     M_BindIntVariable("mouse_y_invert",            &mouse_y_invert); // [crispy]

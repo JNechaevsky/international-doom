@@ -1014,7 +1014,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     if (strafe)
     {
-        side += mousex * 2;
+        side += CarryMouseSide(mousex * 2.0 / I_MouseStrafeDivisor());
     }
     else
     {
