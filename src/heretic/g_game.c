@@ -1078,7 +1078,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
     else if (!mouse_novert)
     {
-        forward += CarryMouseVert(mousey);
+        forward += CarryMouseVert(CalcMouseVert(mousey));
     }
 
     mousex = mousey = 0;
