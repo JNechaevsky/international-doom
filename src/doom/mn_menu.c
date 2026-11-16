@@ -629,7 +629,6 @@ static void M_Draw_ID_Controls (void);
 static void M_ID_Controls_Sensivity (int choice);
 static void M_ID_Controls_Sensivity_y (int choice);
 static void M_ID_Controls_Acceleration (int choice);
-static void M_ID_Controls_Threshold (int choice);
 static void M_ID_Controls_StrafeDivisor (int choice);
 static void M_ID_Controls_MLook (int choice);
 static void M_ID_Controls_NoVert (int choice);
@@ -2438,7 +2437,6 @@ static menuitem_t ID_Menu_Controls[]=
     { M_SKIP, "", 0, '\0' },
     { M_SKIP, "", 0, '\0' },
     { M_MUL1, "ACCELERATION",                 M_ID_Controls_Acceleration, 'a' },
-    { M_MUL1, "ACCELERATION THRESHOLD",       M_ID_Controls_Threshold,    'a' },
     { M_MUL1, "MOUSE STRAFE DIVISOR",         M_ID_Controls_StrafeDivisor, 'm'},
     { M_MUL2, "MOUSE LOOK",                   M_ID_Controls_MLook,        'm' },
     { M_MUL2, "VERTICAL MOUSE MOVEMENT",      M_ID_Controls_NoVert,       'v' },
@@ -2470,102 +2468,84 @@ static void M_Draw_ID_Controls (void)
     
     M_WriteTextCentered(45, "MOUSE CONFIGURATION", cr[CR_YELLOW]);
 
-    M_DrawThermo(46, 63, 15, mouseSensitivity, 4);
-    M_ID_HandleSliderMouseControl(52, 63, 124, &mouseSensitivity, false, 0, 14);
-    sprintf(str,"%d", mouseSensitivity);
+    M_DrawThermo(46, 63, 15, mouse_x_sensitivity, 4);
+    M_ID_HandleSliderMouseControl(52, 63, 124, &mouse_x_sensitivity, false, 0, 14);
+    sprintf(str,"%d", mouse_x_sensitivity);
     M_WriteTextGlow(184, 66, str,
-                        mouseSensitivity == 255 ? cr[CR_YELLOW] :
-                        mouseSensitivity  >  14 ? cr[CR_GREEN] : NULL,
-                            mouseSensitivity == 255 ? cr[CR_YELLOW_BRIGHT] :
-                            mouseSensitivity  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
+                        mouse_x_sensitivity == 255 ? cr[CR_YELLOW] :
+                        mouse_x_sensitivity  >  14 ? cr[CR_GREEN] : NULL,
+                            mouse_x_sensitivity == 255 ? cr[CR_YELLOW_BRIGHT] :
+                            mouse_x_sensitivity  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
                                 LINE_ALPHA(4));
 
-    M_DrawThermo(46, 90, 15, mouse_sensitivity_y, 7);
-    M_ID_HandleSliderMouseControl(52, 90, 124, &mouse_sensitivity_y, false, 0, 14);
-    sprintf(str,"%d", mouse_sensitivity_y);
+    M_DrawThermo(46, 90, 15, mouse_y_sensitivity, 7);
+    M_ID_HandleSliderMouseControl(52, 90, 124, &mouse_y_sensitivity, false, 0, 14);
+    sprintf(str,"%d", mouse_y_sensitivity);
     M_WriteTextGlow(184, 93, str,
-                        mouse_sensitivity_y == 255 ? cr[CR_YELLOW] :
-                        mouse_sensitivity_y  >  14 ? cr[CR_GREEN] : NULL,
-                            mouse_sensitivity_y == 255 ? cr[CR_YELLOW_BRIGHT] :
-                            mouse_sensitivity_y  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
+                        mouse_y_sensitivity == 255 ? cr[CR_YELLOW] :
+                        mouse_y_sensitivity  >  14 ? cr[CR_GREEN] : NULL,
+                            mouse_y_sensitivity == 255 ? cr[CR_YELLOW_BRIGHT] :
+                            mouse_y_sensitivity  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
                                 LINE_ALPHA(7));
 
     // Acceleration
-    sprintf(str,"%.1f", mouse_acceleration);
+    sprintf(str,"%d", mouse_xy_acceleration);
     M_WriteTextGlow(M_ItemRightAlign(str), 108, str,
-                        mouse_acceleration == 2.0f ? cr[CR_DARKRED] :
-                        mouse_acceleration  < 2.0f ? cr[CR_YELLOW] : cr[CR_GREEN],
-                            mouse_acceleration == 2.0f ? cr[CR_RED_BRIGHT] :
-                            mouse_acceleration  < 2.0f ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],                        
+                        mouse_xy_acceleration == 0 ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            mouse_xy_acceleration == 0 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(10));
-
-    // Acceleration threshold
-    sprintf(str,"%d", mouse_threshold);
-    M_WriteTextGlow(M_ItemRightAlign(str), 117, str,
-                        mouse_threshold == 10 ? cr[CR_DARKRED] :
-                        mouse_threshold  < 10 ? cr[CR_YELLOW] : cr[CR_GREEN],
-                            mouse_threshold == 10 ? cr[CR_RED_BRIGHT] :
-                            mouse_threshold  < 10 ? cr[CR_YELLOW_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(11));
 
     // Mouse strafe divisor
     sprintf(str,"%d", mouse_strafe_divisor);
-    M_WriteTextGlow (M_ItemRightAlign(str), 126, str,
-                        mouse_strafe_divisor == 255 ? cr[CR_YELLOW] :
-                        mouse_strafe_divisor ==   1 ? cr[CR_DARKRED] : cr[CR_GREEN],
-                            mouse_strafe_divisor == 255 ? cr[CR_YELLOW_BRIGHT] :
-                            mouse_strafe_divisor == 1 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(12));
+    M_WriteTextGlow (M_ItemRightAlign(str), 117, str,
+                        mouse_strafe_divisor == 4 ? cr[CR_DARKRED] : cr[CR_GREEN],
+                            mouse_strafe_divisor == 4 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
+                                LINE_ALPHA(11));
 
     // Mouse look
     sprintf(str, mouse_look ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 126, str,
                         mouse_look ? cr[CR_GREEN] : cr[CR_DARKRED],
                             mouse_look ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(13));
+                                LINE_ALPHA(12));
 
     // Vertical mouse movement
     sprintf(str, mouse_novert ? "OFF" : "ON");
-    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 135, str,
                         mouse_novert ? cr[CR_DARKRED] : cr[CR_GREEN],
                             mouse_novert ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(14));
+                                LINE_ALPHA(13));
     
     // Invert vertical axis
     sprintf(str, mouse_y_invert ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 153, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 144, str,
                         mouse_y_invert ? cr[CR_GREEN] : cr[CR_DARKRED],
                             mouse_y_invert ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(15));
+                                LINE_ALPHA(14));
 
     // Double click acts as "use"
     sprintf(str, mouse_dclick_use ? "ON" : "OFF");
-    M_WriteTextGlow(M_ItemRightAlign(str), 162, str,
+    M_WriteTextGlow(M_ItemRightAlign(str), 153, str,
                         mouse_dclick_use ? cr[CR_DARKRED] : cr[CR_GREEN],
                             mouse_dclick_use ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
-                                LINE_ALPHA(16));
+                                LINE_ALPHA(15));
 }
 
 static void M_ID_Controls_Sensivity (int choice)
 {
     // [crispy] extended range
-    mouseSensitivity = M_INT_Slider(mouseSensitivity, 0, 255, choice, true);
+    mouse_x_sensitivity = M_INT_Slider(mouse_x_sensitivity, 0, 255, choice, true);
 }
 
 static void M_ID_Controls_Sensivity_y (int choice)
 {
     // [crispy] extended range
-    mouse_sensitivity_y = M_INT_Slider(mouse_sensitivity_y, 0, 255, choice, true);
+    mouse_y_sensitivity = M_INT_Slider(mouse_y_sensitivity, 0, 255, choice, true);
 }
 
 static void M_ID_Controls_Acceleration (int choice)
 {
-    mouse_acceleration = M_FLOAT_Slider(mouse_acceleration, 1.000000f, 5.000000f, 0.100000f, choice, true);
-}
-
-static void M_ID_Controls_Threshold (int choice)
-{
-    mouse_threshold = M_INT_Slider(mouse_threshold, 0, 32, choice, true);
+    mouse_xy_acceleration = M_INT_Slider(mouse_xy_acceleration, 0, 100, choice, true);
 }
 
 static void M_ID_Controls_StrafeDivisor (int choice)

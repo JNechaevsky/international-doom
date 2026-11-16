@@ -61,7 +61,7 @@
 #include "d_ticcmd.h"
 
 #include "d_loop.h"
-#include "i_input.h"  // mouse_sensitivity_y
+#include "i_input.h"  // mouse_x_sensitivity
 
 #include "v_savepreview.h"
 #define	SAVEGAMENAME "hticsav"
@@ -644,7 +644,6 @@ extern boolean playerstartsingame[MAXPLAYERS];
 //  to force a wipe on the next draw
 extern gamestate_t wipegamestate;
 
-extern int mouseSensitivity;
 
 extern boolean precache;        // if true, load all graphics at level load
 

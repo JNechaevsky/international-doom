@@ -1175,8 +1175,8 @@ boolean AM_Responder (const event_t *ev)
             // carry: slow, smooth motion used to floor to 0 through the
             // per-event >> 5. Flip inversion and rotate-mode conversion
             // happen at consumption, in AM_MousePanning().
-            mouse_pan_sub_x += (int64_t) ev->data2 * vid_resolution * mouseSensitivity;
-            mouse_pan_sub_y += (int64_t) ev->data3 * vid_resolution * mouse_sensitivity_y;
+            mouse_pan_sub_x += (int64_t) ev->data2 * vid_resolution * mouse_x_sensitivity;
+            mouse_pan_sub_y += (int64_t) ev->data3 * vid_resolution * mouse_y_sensitivity;
 
             const int pan_x = (int) (mouse_pan_sub_x >> 5);
             const int pan_y = (int) (mouse_pan_sub_y >> 5);

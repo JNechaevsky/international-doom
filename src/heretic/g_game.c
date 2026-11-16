@@ -451,18 +451,18 @@ static int CarryMouseSide(double side)
 
 static double CalcMouseAngle(int mouse_x)
 {
-    if (!mouseSensitivity)
+    if (!mouse_x_sensitivity)
         return 0.0;
 
-    return (I_AccelerateMouse(mouse_x) * (mouseSensitivity + 5) * 8 / 10);
+    return (I_AccelerateMouse(mouse_x) * mouse_x_sensitivity);
 }
 
 static double CalcMouseVert(int mouse_y)
 {
-    if (!mouse_sensitivity_y)
+    if (!mouse_y_sensitivity)
         return 0.0;
 
-    return (I_AccelerateMouseY(mouse_y) * (mouse_sensitivity_y + 5) * 2 / 10);
+    return (I_AccelerateMouse(mouse_y) * mouse_y_sensitivity);
 }
 
 // -----------------------------------------------------------------------------
@@ -1014,7 +1014,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
 
     if (strafe)
     {
-        side += CarryMouseSide(mousex * 2.0 / I_MouseStrafeDivisor());
+        side += CarryMouseSide(I_AccelerateMouse(mousex) * mouse_x_sensitivity / I_MouseStrafeDivisor());
     }
     else
     {
@@ -1078,7 +1078,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, int maketic)
     }
     else if (!mouse_novert)
     {
-        forward += CarryMouseVert(CalcMouseVert(mousey));
+        forward += CarryMouseVert(CalcMouseVert(mousey) / MLOOKUNIT);
     }
 
     mousex = mousey = 0;
@@ -1857,7 +1857,7 @@ void G_PrepTiccmd (void)
 
     if (!MenuActive && !askforquit && mousey && mouse_look)
     {
-        const double vert = CalcMouseVert(mousey);
+        const double vert = CalcMouseVert(mousey) / MLOOKUNIT;
         const int delta = mouse_y_invert ? CarryPitch(-vert) : CarryPitch(vert);
         // [PN] Spectator mouse look
         if (!crl_spectating)

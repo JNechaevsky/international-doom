@@ -51,7 +51,7 @@
 
 #include "d_loop.h"
 #include "net_defs.h"
-#include "i_input.h"  // mouse_sensitivity_y
+#include "i_input.h"  // mouse_x_sensitivity
 
 #define HEXEN_VERSION 110
 #define HEXEN_VERSION_TEXT "v1.1"
@@ -752,7 +752,6 @@ extern int maxplayers;
 //  to force a wipe on the next draw
 extern gamestate_t wipegamestate;
 
-extern int mouseSensitivity;
 
 extern boolean precache;        // if true, load all graphics at level load
 

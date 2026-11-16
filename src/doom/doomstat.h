@@ -38,7 +38,7 @@
 #include "d_mode.h"
 
 #include "net_defs.h"
-#include "i_input.h"  // mouse_sensitivity_y
+#include "i_input.h"  // mouse_x_sensitivity
 
 
 
@@ -267,7 +267,6 @@ extern boolean canmodify;
 //  to force a wipe on the next draw
 extern  gamestate_t     wipegamestate;
 
-extern  int             mouseSensitivity;
 
 extern  int             bodyqueslot;
 

@@ -88,10 +88,14 @@ static boolean text_input_enabled = true;
 // Bit mask of mouse button state.
 static unsigned int mouse_button_state = 0;
 
-// [JN] Default mouse sensivity.
+// [JN] Kept for config compatibility with the original games, no longer used.
 int mouseSensitivity = 5;
-int mouse_sensitivity_y = 5; // [crispy]
-int mouse_strafe_divisor = 1;
+
+// [PN] Actual mouse axes sensitivity, DSDA-Doom style units.
+int mouse_x_sensitivity = 10;
+int mouse_y_sensitivity = 10;
+int mouse_xy_acceleration = 0;
+int mouse_strafe_divisor = 4;
 
 // Disallow mouse and joystick movement to cause forward/backward
 // motion.  Specified with the '-mouse_novert' command line parameter.
@@ -104,19 +108,7 @@ int mouse_novert = 1;
 
 int vanilla_keyboard_mapping = true;
 
-// Mouse acceleration
-//
-// This emulates some of the behavior of DOS mouse drivers by increasing
-// the speed when the mouse is moved fast.
-//
-// The mouse input values are input directly to the game, but when
-// the values exceed the value of mouse_threshold, they are multiplied
-// by mouse_acceleration to increase the speed.
-float mouse_acceleration = 2.0;
-int mouse_threshold = 10;
 // [crispy]
-float mouse_acceleration_y = 1.0;
-int mouse_threshold_y = 0;
 int mouse_y_invert = 0;
 
 int runcentering = 1; // [crispy]
@@ -439,121 +431,17 @@ void I_HandleMouseEvent(SDL_Event *sdlevent)
     }
 }
 
-// [crispy] Adjustable mouse accel threshold when running uncapped.
-static float x_threshold;
-static float y_threshold;
-
-// [crispy] Track the last gametic's worth of mouse movement in ring buffers.
-// Each element is a bin for the mouse movement recorded in that millisecond.
-// The running total is used to determine if mouse acceleration should be
-// applied.
-
-#define MOUSE_BUFFER_SIZE 32
-#define MOUSE_BUFFER_DEPTH_MS 28
-
-typedef struct
-{
-    int values[MOUSE_BUFFER_SIZE];
-    int head;
-    int tail;
-    int size;
-    int total;
-} mousebuffer_t;
-
-static mousebuffer_t mousex;
-static mousebuffer_t mousey;
-
-static void ResetMouseBuffer(mousebuffer_t *buf)
-{
-    buf->head = buf->tail = buf->size = buf->total = 0;
-}
-
-static void UpdateMouseBuffer(mousebuffer_t *buf, int value, int delta_ms)
-{
-    for (int i = 0; i < delta_ms; i++)
-    {
-        if (buf->size == MOUSE_BUFFER_DEPTH_MS)
-        {
-            buf->tail = (buf->tail + 1) & (MOUSE_BUFFER_SIZE - 1);
-            buf->total -= buf->values[buf->tail];
-        }
-        else
-        {
-            buf->size++;
-        }
-        buf->head = (buf->head + 1) & (MOUSE_BUFFER_SIZE - 1);
-        buf->values[buf->head] = 0;
-    }
-
-    buf->total += value;
-    buf->values[buf->head] += value;
-}
-
-static void UpdateMouseAccel(int x, int y)
-{
-    static uint64_t last_read;
-    const uint64_t current_read = I_GetTimeMS();
-    uint64_t delta_t;
-
-    delta_t = current_read - last_read;
-    last_read = current_read;
-
-    if (!vid_uncapped_fps)
-    {
-        x_threshold = mouse_threshold;
-        y_threshold = mouse_threshold_y;
-        mousex.total = x;
-        mousey.total = y;
-    }
-    else if (delta_t > MOUSE_BUFFER_DEPTH_MS)
-    {
-        ResetMouseBuffer(&mousex);
-        ResetMouseBuffer(&mousey);
-        UpdateMouseBuffer(&mousex, x, 1);
-        UpdateMouseBuffer(&mousey, y, 1);
-        x_threshold = mouse_threshold;
-        y_threshold = mouse_threshold_y;
-    }
-    else
-    {
-        UpdateMouseBuffer(&mousex, x, delta_t);
-        UpdateMouseBuffer(&mousey, y, delta_t);
-        x_threshold = mouse_threshold * delta_t * TICRATE / 1000.0;
-        y_threshold = mouse_threshold_y * delta_t * TICRATE / 1000.0;
-    }
-
-}
-
-// [crispy] Change to double
+// [PN] DSDA-Doom style acceleration: the movement is raised to 1 + percent/100,
+// so zero leaves it untouched and positive values amplify fast flicks only.
 double I_AccelerateMouse(int val)
 {
     if (val < 0)
         return -I_AccelerateMouse(-val);
 
-    if (abs(mousex.total) > mouse_threshold)
-    {
-        return (val - x_threshold) * mouse_acceleration + x_threshold;
-    }
-    else
-    {
+    if (!mouse_xy_acceleration)
         return val;
-    }
-}
 
-// [crispy] Change to double
-double I_AccelerateMouseY(int val)
-{
-    if (val < 0)
-        return -I_AccelerateMouseY(-val);
-
-    if (abs(mousey.total) > mouse_threshold_y)
-    {
-        return (val - y_threshold) * mouse_acceleration_y + y_threshold;
-    }
-    else
-    {
-        return val;
-    }
+    return pow((double) val, 1.0 + mouse_xy_acceleration / 100.0);
 }
 
 // [JN] Never zero, so strafing cannot divide by it!
@@ -573,7 +461,6 @@ void I_ReadMouse(void)
     event_t ev;
 
     SDL_GetRelativeMouseState(&x, &y);
-    UpdateMouseAccel(x, y); // [crispy]
 
     if (x != 0 || y != 0) 
     {
@@ -601,7 +488,6 @@ void I_ReadMouseUncapped(void)
     int x, y;
 
     SDL_GetRelativeMouseState(&x, &y);
-    UpdateMouseAccel(x, y);
 
     if (x != 0 || y != 0)
     {
@@ -623,10 +509,9 @@ void I_ReadMouseUncapped(void)
 // Bind all variables controlling input options.
 void I_BindInputVariables(void)
 {
-    M_BindIntVariable("mouse_sensitivity",         &mouseSensitivity);
-    M_BindIntVariable("mouse_sensitivity_y",       &mouse_sensitivity_y);
-    M_BindFloatVariable("mouse_acceleration",      &mouse_acceleration);
-    M_BindIntVariable("mouse_threshold",           &mouse_threshold);
+    M_BindIntVariable("mouse_x_sensitivity",       &mouse_x_sensitivity);
+    M_BindIntVariable("mouse_y_sensitivity",       &mouse_y_sensitivity);
+    M_BindIntVariable("mouse_xy_acceleration",     &mouse_xy_acceleration);
     M_BindIntVariable("mouse_strafe_divisor",      &mouse_strafe_divisor);
     M_BindIntVariable("vanilla_keyboard_mapping",  &vanilla_keyboard_mapping);
     M_BindIntVariable("mouse_novert",              &mouse_novert);

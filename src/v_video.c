@@ -1959,62 +1959,6 @@ void V_ScreenShot(const char *format)
 // V_DrawMouseSpeedBox
 //
 
-static void DrawAcceleratingBox(int speed)
-{
-    int red, white, yellow;
-    int original_speed;
-    int redline_x;
-    int linelen;
-
-    red = I_MapRGB(0xff, 0x00, 0x00);
-    white = I_MapRGB(0xff, 0xff, 0xff);
-    yellow = I_MapRGB(0xff, 0xff, 0x00);
-
-    // Calculate the position of the red threshold line when calibrating
-    // acceleration.  This is 1/3 of the way along the box.
-
-    redline_x = MOUSE_SPEED_BOX_WIDTH / 3;
-
-    if (speed >= mouse_threshold)
-    {
-        // Undo acceleration and get back the original mouse speed
-        original_speed = speed - mouse_threshold;
-        original_speed = (int) (original_speed / mouse_acceleration);
-        original_speed += mouse_threshold;
-
-        linelen = (original_speed * redline_x) / mouse_threshold;
-    }
-    else
-    {
-        linelen = (speed * redline_x) / mouse_threshold;
-    }
-
-    // Horizontal "thermometer"
-    if (linelen > MOUSE_SPEED_BOX_WIDTH - 1)
-    {
-        linelen = MOUSE_SPEED_BOX_WIDTH - 1;
-    }
-
-    if (linelen < redline_x)
-    {
-        V_DrawHorizLine(MOUSE_SPEED_BOX_X + 1,
-                        MOUSE_SPEED_BOX_Y + MOUSE_SPEED_BOX_HEIGHT / 2,
-                        linelen, white);
-    }
-    else
-    {
-        V_DrawHorizLine(MOUSE_SPEED_BOX_X + 1,
-                        MOUSE_SPEED_BOX_Y + MOUSE_SPEED_BOX_HEIGHT / 2,
-                        redline_x, white);
-        V_DrawHorizLine(MOUSE_SPEED_BOX_X + redline_x,
-                        MOUSE_SPEED_BOX_Y + MOUSE_SPEED_BOX_HEIGHT / 2,
-                        linelen - redline_x, yellow);
-    }
-
-    // Draw acceleration threshold line
-    V_DrawVertLine(MOUSE_SPEED_BOX_X + redline_x, MOUSE_SPEED_BOX_Y + 1,
-                   MOUSE_SPEED_BOX_HEIGHT - 2, red);
-}
 
 // Highest seen mouse turn speed. We scale the range of the thermometer
 // according to this value, so that it never exceeds the range. Initially
@@ -2067,16 +2011,7 @@ void V_DrawMouseSpeedBox(int speed)
     V_DrawHorizLine(MOUSE_SPEED_BOX_X + 1, MOUSE_SPEED_BOX_Y + 4,
                     MOUSE_SPEED_BOX_WIDTH - 2, black);
 
-    // If acceleration is used, draw a box that helps to calibrate the
-    // threshold point.
-    if (mouse_threshold > 0 && fabs(mouse_acceleration - 1) > 0.01)
-    {
-        DrawAcceleratingBox(speed);
-    }
-    else
-    {
-        DrawNonAcceleratingBox(speed);
-    }
+    DrawNonAcceleratingBox(speed);
 }
 
 // [FG] check if the lump can be a Doom patch
