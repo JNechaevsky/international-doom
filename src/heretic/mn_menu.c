@@ -191,6 +191,7 @@ static void DrawSaveMenu(void);
 static void DrawSavePreview(const Menu_t *menu);
 static void DrawSavePreviewBorder(int x, int y, int w, int h);
 static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, boolean bigspacing, int itemPos);
+static void DrawSliderFine(const Menu_t *const menu, int item, int width, int slot, int step, boolean bigspacing, int itemPos);
 static void MN_DrTextAGlow (const char *text, int x, int y, byte *table1, byte *table2, int alpha);
 static void MN_DeactivateMenu(void);
 static void MN_LoadSlotText(void);
@@ -2033,12 +2034,12 @@ static void M_Draw_ID_Sound (void)
     MN_DrTextACentered("SOUND OPTIONS", 10, cr[CR_YELLOW]);
 
     DrawSlider(&ID_Def_Sound, 1, 16, snd_MaxVolume, false, 0);
-    M_ID_HandleSliderMouseControl(70, 30, 134, &snd_MaxVolume, false, 0, 15);
+    M_ID_HandleSliderMouseControl(76, 30, 120, &snd_MaxVolume, false, 0, 15);
     sprintf(str,"%d", snd_MaxVolume);
     MN_DrTextAGlow(str, 228, 35, cr[CR_MENU_DARK2], cr[CR_MENU_BRIGHT2], LINE_ALPHA(0));
 
     DrawSlider(&ID_Def_Sound, 4, 16, snd_MusicVolume, false, 3);
-    M_ID_HandleSliderMouseControl(70, 60, 134, &snd_MusicVolume, false, 0, 15);
+    M_ID_HandleSliderMouseControl(76, 60, 120, &snd_MusicVolume, false, 0, 15);
     sprintf(str,"%d", snd_MusicVolume);
     MN_DrTextAGlow(str, 228, 65, cr[CR_MENU_DARK2], cr[CR_MENU_BRIGHT2], LINE_ALPHA(3));
 
@@ -2304,6 +2305,7 @@ static MenuItem_t ID_Menu_Controls[] = {
     { ITT_LRFUNC2, "MOUSE LOOK",              M_ID_Controls_MLook,             0, MENU_NONE },
     { ITT_LRFUNC2, "VERTICAL MOUSE MOVEMENT", M_ID_Controls_NoVert,            0, MENU_NONE },
     { ITT_LRFUNC2, "INVERT VERTICAL AXIS",    M_ID_Controls_InvertY,           0, MENU_NONE },
+    { ITT_EMPTY,   NULL,                      NULL,                            0, MENU_NONE },
     { ITT_LRFUNC2, "PERMANENT \"NOARTISKIP\" MODE", M_ID_Controls_NoArtiSkip,  0, MENU_NONE },
 };
 
@@ -2326,24 +2328,20 @@ static void M_Draw_ID_Controls (void)
 
     MN_DrTextACentered("MOUSE CONFIGURATION", 50, cr[CR_YELLOW]);
 
-    DrawSlider(&ID_Def_Controls, 5, 16, mouse_x_sensitivity, false, 4);
-    M_ID_HandleSliderMouseControl(66, 70, 132, &mouse_x_sensitivity, false, 0, 15);
+    DrawSliderFine(&ID_Def_Controls, 5, 16, mouse_x_sensitivity, 4, false, 4);
+    M_ID_HandleSliderMouseControl(72, 70, 112, &mouse_x_sensitivity, false, 0, 30);
     sprintf(str,"%d", mouse_x_sensitivity);
     MN_DrTextAGlow(str, 227, 75,
-                        mouse_x_sensitivity == 255 ? cr[CR_YELLOW] :
-                        mouse_x_sensitivity  >  14 ? cr[CR_GREEN] : cr[CR_MENU_DARK2],
-                            mouse_x_sensitivity == 255 ? cr[CR_YELLOW_BRIGHT] :
-                            mouse_x_sensitivity  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT2],
+                        mouse_x_sensitivity > 30 ? cr[CR_GREEN] : cr[CR_MENU_DARK2],
+                            mouse_x_sensitivity > 30 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT2],
                                 LINE_ALPHA(4));
 
-    DrawSlider(&ID_Def_Controls, 8, 16, mouse_y_sensitivity, false, 7);
-    M_ID_HandleSliderMouseControl(66, 100, 132, &mouse_y_sensitivity, false, 0, 15);
+    DrawSliderFine(&ID_Def_Controls, 8, 16, mouse_y_sensitivity, 4, false, 7);
+    M_ID_HandleSliderMouseControl(72, 100, 112, &mouse_y_sensitivity, false, 0, 30);
     sprintf(str,"%d", mouse_y_sensitivity);
     MN_DrTextAGlow(str, 227, 105,
-                        mouse_y_sensitivity == 255 ? cr[CR_YELLOW] :
-                        mouse_y_sensitivity  >  14 ? cr[CR_GREEN] : cr[CR_MENU_DARK2],
-                            mouse_y_sensitivity == 255 ? cr[CR_YELLOW_BRIGHT] :
-                            mouse_y_sensitivity  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT2],
+                        mouse_y_sensitivity > 30 ? cr[CR_GREEN] : cr[CR_MENU_DARK2],
+                            mouse_y_sensitivity > 30 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT2],
                                 LINE_ALPHA(7));
 
     // Acceleration
@@ -2381,12 +2379,14 @@ static void M_Draw_ID_Controls (void)
                             mouse_y_invert ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
                                 LINE_ALPHA(14));
 
+    MN_DrTextACentered("MISCELLANEOUS", 170, cr[CR_YELLOW]);
+
     // Permanent "noartiskip" mode
     sprintf(str, ctrl_noartiskip ? "ON" : "OFF");
-    MN_DrTextAGlow(str, M_ItemRightAlign(str), 170,
+    MN_DrTextAGlow(str, M_ItemRightAlign(str), 180,
                         ctrl_noartiskip ? cr[CR_GREEN] : cr[CR_DARKRED],
                             ctrl_noartiskip ? cr[CR_GREEN_BRIGHT] : cr[CR_RED_BRIGHT],
-                                LINE_ALPHA(15));
+                                LINE_ALPHA(16));
 }
 
 static void M_ID_Controls_Acceleration (int choice)
@@ -6787,14 +6787,14 @@ inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void 
 
     // Verify mouse is within slider boundaries and current item is actually a slider
     const MenuItem_t *const item = &CurrentMenu->items[CurrentItPos];
-    if (menu_mouse_x < adj_x || menu_mouse_x > adj_x + adj_width
+    if (menu_mouse_x < adj_x - 8 || menu_mouse_x > adj_x + adj_width + 8
     ||  menu_mouse_y < adj_y || menu_mouse_y > adj_y + adj_height
     ||  item->type != ITT_SLDR)
         return;
 
-    // Calculate normalized cursor position (0.0 to 1.0) within slider
-    // Adding +5 provides a small deadzone for better precision at edges
-    const float normalized = (float)(menu_mouse_x - adj_x + 5) / (float)adj_width;
+    // [PN] Map the cursor onto the span of the slider gem, not onto the whole
+    // widget: the gem for value v sits at x + 8 * v, cells are 8 pixels each.
+    const float normalized = (float)(menu_mouse_x - adj_x) / (float)adj_width;
     const float range = max - min;
     boolean value_changed = false;
 
@@ -6804,6 +6804,8 @@ inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void 
         float *v = (float *)value;
         const float old_value = *v;
         *v = min + normalized * range;
+        if (*v < min) *v = min;
+        if (*v > max) *v = max;
         value_changed = (old_value != *v);
     }
     else
@@ -6811,6 +6813,8 @@ inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void 
         int *v = (int *)value;
         const int old_value = *v;
         *v = (int)(min + normalized * range);
+        if (*v < (int) min) *v = (int) min;
+        if (*v > (int) max) *v = (int) max;
         value_changed = (old_value != *v);
     }
 
@@ -7408,6 +7412,7 @@ static void DrawFileSlots(Menu_t * menu)
 
 static void DrawOptionsMenu(void)
 {
+    char str[32];
     if (msg_show)
     {
         MN_DrTextB(DEH_String("ON"), 196, 50, NULL);
@@ -7416,7 +7421,9 @@ static void DrawOptionsMenu(void)
     {
         MN_DrTextB(DEH_String("OFF"), 196, 50, NULL);
     }
-    DrawSlider(&OptionsMenu, 3, 10, mouse_x_sensitivity, true, 0);
+    // [PN] Sensitivity no longer uses a slider: the range does not fit in 10 cells.
+    sprintf(str, "%d", mouse_x_sensitivity);
+    MN_DrTextB(str, 196, 70, NULL);
 }
 
 //---------------------------------------------------------------------------
@@ -7432,7 +7439,7 @@ static void DrawOptions2Menu(void)
     // SFX Volume
     sprintf(str, "%d", snd_MaxVolume);
     DrawSlider(&Options2Menu, 1, 16, snd_MaxVolume, true, 0);
-    M_ID_HandleSliderMouseControl(94, 40, 132, &snd_MaxVolume, false, 0, 15);
+    M_ID_HandleSliderMouseControl(100, 40, 120, &snd_MaxVolume, false, 0, 15);
     MN_DrTextAGlow(str, 252, 45,
                         snd_MaxVolume ? cr[CR_LIGHTGRAY] : cr[CR_MENU_DARK4],
                         snd_MaxVolume ? cr[CR_LIGHTGRAY_BRIGHT] : cr[CR_MENU_DARK1],
@@ -7441,7 +7448,7 @@ static void DrawOptions2Menu(void)
     // Music Volume
     sprintf(str, "%d", snd_MusicVolume);
     DrawSlider(&Options2Menu, 3, 16, snd_MusicVolume, true, 2);
-    M_ID_HandleSliderMouseControl(94, 80, 132, &snd_MusicVolume, false, 0, 15);
+    M_ID_HandleSliderMouseControl(100, 80, 120, &snd_MusicVolume, false, 0, 15);
     MN_DrTextAGlow(str, 252, 85,
                         snd_MusicVolume ? cr[CR_LIGHTGRAY] : cr[CR_MENU_DARK4],
                         snd_MaxVolume ? cr[CR_LIGHTGRAY_BRIGHT] : cr[CR_MENU_DARK1],
@@ -7450,7 +7457,7 @@ static void DrawOptions2Menu(void)
     // Screen Size
     sprintf(str, "%d", dp_screen_size);
     DrawSlider(&Options2Menu, 5,  11, dp_screen_size - 3, true, 4);
-    M_ID_HandleSliderMouseControl(94, 120, 92, &dp_screen_size, false, 3, 13);
+    M_ID_HandleSliderMouseControl(100, 120, 80, &dp_screen_size, false, 3, 13);
     MN_DrTextAGlow(str, 212, 125,
                         cr[CR_LIGHTGRAY],
                             cr[CR_LIGHTGRAY_BRIGHT],
@@ -9258,6 +9265,46 @@ static void DrawSlider(const Menu_t *const menu, int item, int width, int slot, 
     }
 
     V_DrawPatch(x + 4 + slot * 8, y + 7,
+                W_CacheLumpName(DEH_String("M_SLDKB"), PU_CACHE));
+
+    dp_translation = NULL;
+}
+
+// [PN] Same slider, but the gem advances in smaller steps, so the widget can
+// offer more positions than it has cells.
+static void DrawSliderFine(const Menu_t *const menu, int item, int width, int slot, int step, boolean bigspacing, int itemPos)
+{
+    int x;
+    int y;
+    int x2;
+    int count;
+
+    x = menu->x + 24;
+    y = menu->y + 2 + (item * (bigspacing ? ITEM_HEIGHT : ID_MENU_LINEHEIGHT_SMALL));
+
+    // [JN] Highlight active slider and gem.
+    dp_translation = (itemPos == CurrentItPos && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
+
+    V_DrawShadowedPatchOptional(x - 32, y, 1, W_CacheLumpName(DEH_String("M_SLDLT"), PU_CACHE));
+    for (x2 = x, count = width; count--; x2 += 8)
+    {
+        V_DrawShadowedPatchOptional(x2, y, 1, W_CacheLumpName(DEH_String(count & 1 ? "M_SLDMD1" : "M_SLDMD2"), PU_CACHE));
+    }
+    V_DrawShadowedPatchOptional(x2, y, 1, W_CacheLumpName(DEH_String("M_SLDRT"), PU_CACHE));
+
+    // [PN] Prevent gem go out of slider bounds.
+    const int maxslot = (width * 8) / step - 1;
+
+    if (slot < 0)
+    {
+        slot = 0;
+    }
+    if (slot > maxslot)
+    {
+        slot = maxslot;
+    }
+
+    V_DrawPatch(x + 4 + slot * step, y + 7,
                 W_CacheLumpName(DEH_String("M_SLDKB"), PU_CACHE));
 
     dp_translation = NULL;

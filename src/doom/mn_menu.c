@@ -283,6 +283,7 @@ static void M_DrawSavePreviewBorder(int x, int y, int w, int h);
 static void M_DrawSaveLoadBorder(int x,int y);
 static void M_SetupNextMenu(menu_t *menudef);
 static void M_DrawThermo(int x,int y,int thermWidth,int thermDot,int itemPos);
+static void M_DrawThermoFine(int x,int y,int thermWidth,int thermDot,int step,int itemPos);
 static int  M_StringHeight(const char *string);
 static void M_StartMessage(const char *string, void (*routine)(int), boolean input);
 static void M_ClearMenus (void);
@@ -2156,12 +2157,12 @@ static void M_Draw_ID_Sound (void)
     M_WriteTextCentered(9, "VOLUME", cr[CR_YELLOW]);
 
     M_DrawThermo(46, 27, 16, sfxVolume, 0);
-    M_ID_HandleSliderMouseControl(52, 27, 132, &sfxVolume, false, 0, 15);
+    M_ID_HandleSliderMouseControl(54, 27, 120, &sfxVolume, false, 0, 15);
     sprintf(str,"%d", sfxVolume);
     M_WriteTextGlow(192, 30, str, NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(0));
 
     M_DrawThermo(46, 54, 16, musicVolume, 3);
-    M_ID_HandleSliderMouseControl(52, 54, 132, &musicVolume, false, 0, 15);
+    M_ID_HandleSliderMouseControl(54, 54, 120, &musicVolume, false, 0, 15);
     sprintf(str,"%d", musicVolume);
     M_WriteTextGlow(192, 57, str, NULL, cr[CR_MENU_BRIGHT5], LINE_ALPHA(3));
 
@@ -2468,24 +2469,20 @@ static void M_Draw_ID_Controls (void)
     
     M_WriteTextCentered(45, "MOUSE CONFIGURATION", cr[CR_YELLOW]);
 
-    M_DrawThermo(46, 63, 15, mouse_x_sensitivity, 4);
-    M_ID_HandleSliderMouseControl(52, 63, 124, &mouse_x_sensitivity, false, 0, 14);
+    M_DrawThermoFine(46, 63, 15, mouse_x_sensitivity, 4, 4);
+    M_ID_HandleSliderMouseControl(54, 63, 112, &mouse_x_sensitivity, false, 0, 28);
     sprintf(str,"%d", mouse_x_sensitivity);
     M_WriteTextGlow(184, 66, str,
-                        mouse_x_sensitivity == 255 ? cr[CR_YELLOW] :
-                        mouse_x_sensitivity  >  14 ? cr[CR_GREEN] : NULL,
-                            mouse_x_sensitivity == 255 ? cr[CR_YELLOW_BRIGHT] :
-                            mouse_x_sensitivity  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
+                        mouse_x_sensitivity > 28 ? cr[CR_GREEN] : NULL,
+                            mouse_x_sensitivity > 28 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
                                 LINE_ALPHA(4));
 
-    M_DrawThermo(46, 90, 15, mouse_y_sensitivity, 7);
-    M_ID_HandleSliderMouseControl(52, 90, 124, &mouse_y_sensitivity, false, 0, 14);
+    M_DrawThermoFine(46, 90, 15, mouse_y_sensitivity, 4, 7);
+    M_ID_HandleSliderMouseControl(54, 90, 112, &mouse_y_sensitivity, false, 0, 28);
     sprintf(str,"%d", mouse_y_sensitivity);
     M_WriteTextGlow(184, 93, str,
-                        mouse_y_sensitivity == 255 ? cr[CR_YELLOW] :
-                        mouse_y_sensitivity  >  14 ? cr[CR_GREEN] : NULL,
-                            mouse_y_sensitivity == 255 ? cr[CR_YELLOW_BRIGHT] :
-                            mouse_y_sensitivity  >  14 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
+                        mouse_y_sensitivity > 28 ? cr[CR_GREEN] : NULL,
+                            mouse_y_sensitivity > 28 ? cr[CR_GREEN_BRIGHT] : cr[CR_MENU_BRIGHT5],
                                 LINE_ALPHA(7));
 
     // Acceleration
@@ -6867,7 +6864,7 @@ static void M_DrawSound(void)
     V_DrawShadowedPatchOptional(60, 38, 0, W_CacheLumpName(DEH_String("M_SVOL"), PU_CACHE));
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (sfx_vol + 1), 16, sfxVolume, 0);
-    M_ID_HandleSliderMouseControl(86, 80, 132, &sfxVolume, false, 0, 15);
+    M_ID_HandleSliderMouseControl(88, 80, 120, &sfxVolume, false, 0, 15);
     sprintf(str,"%d", sfxVolume);
     M_WriteTextGlow(226, 83, str,
                         sfxVolume ? NULL : cr[CR_DARKRED],
@@ -6875,7 +6872,7 @@ static void M_DrawSound(void)
                                 LINE_ALPHA(0));
 
     M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * (music_vol + 1), 16, musicVolume, 2);
-    M_ID_HandleSliderMouseControl(86, 112, 132, &musicVolume, false, 0, 15);
+    M_ID_HandleSliderMouseControl(88, 112, 120, &musicVolume, false, 0, 15);
     sprintf(str,"%d", musicVolume);
     M_WriteTextGlow(226, 115, str,
                         musicVolume ? NULL : cr[CR_DARKRED],
@@ -7201,6 +7198,45 @@ M_DrawThermo
     }
 
     V_DrawPatch((x + 8) + thermDot * 8, y, W_CacheLumpName(DEH_String("M_THERMO"), PU_CACHE));
+    dp_translation = NULL;
+}
+
+// [PN] Same thermometer, but the dot advances in smaller steps, so a 15 cell
+// widget can offer more positions than it has cells.
+static void
+M_DrawThermoFine
+( int	x,
+  int	y,
+  int	thermWidth,
+  int	thermDot,
+  int	step,
+  int	itemPos )
+{
+    int		xx;
+    int		i;
+
+    // [JN] Highlight active slider and gem.
+    dp_translation = (itemPos == itemOn && menu_highlight) ? cr[CR_MENU_BRIGHT2] : NULL;
+
+    xx = x;
+    V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERML"), PU_CACHE));
+    xx += 8;
+    for (i=0;i<thermWidth;i++)
+    {
+	V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERMM"), PU_CACHE));
+	xx += 8;
+    }
+    V_DrawShadowedPatchOptional(xx, y, 0, W_CacheLumpName(DEH_String("M_THERMR"), PU_CACHE));
+
+    // [PN] Clamp to the range the widget can show.
+    const int maxdot = (thermWidth * 8) / step - 2;
+
+    if (thermDot > maxdot)
+    {
+        thermDot = maxdot;
+    }
+
+    V_DrawPatch((x + 8) + thermDot * step, y, W_CacheLumpName(DEH_String("M_THERMO"), PU_CACHE));
     dp_translation = NULL;
 }
 
@@ -8825,14 +8861,14 @@ inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void 
 
     // Verify mouse is within slider boundaries and current item is actually a slider
     const menuitem_t *const item = &currentMenu->menuitems[itemOn];
-    if (menu_mouse_x < adj_x || menu_mouse_x > adj_x + adj_width
+    if (menu_mouse_x < adj_x - 8 || menu_mouse_x > adj_x + adj_width + 8
     ||  menu_mouse_y < adj_y || menu_mouse_y > adj_y + adj_height
     ||  item->status != STS_SLDR)
         return;
 
-    // Calculate normalized cursor position (0.0 to 1.0) within slider
-    // Adding +5 provides a small deadzone for better precision at edges
-    const float normalized = (float)(menu_mouse_x - adj_x + 5) / (float)adj_width;
+    // [PN] Map the cursor onto the span of the slider gem, not onto the whole
+    // widget: the gem for value v sits at x + 8 * v, cells are 8 pixels each.
+    const float normalized = (float)(menu_mouse_x - adj_x) / (float)adj_width;
     const float range = max - min;
     boolean value_changed = false;
 
@@ -8842,6 +8878,8 @@ inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void 
         float *v = (float *)value;
         const float old_value = *v;
         *v = min + normalized * range;
+        if (*v < min) *v = min;
+        if (*v > max) *v = max;
         value_changed = (old_value != *v);
     }
     else
@@ -8849,6 +8887,8 @@ inline static void M_ID_HandleSliderMouseControl (int x, int y, int width, void 
         int *v = (int *)value;
         const int old_value = *v;
         *v = (int)(min + normalized * range);
+        if (*v < (int) min) *v = (int) min;
+        if (*v > (int) max) *v = (int) max;
         value_changed = (old_value != *v);
     }
 
