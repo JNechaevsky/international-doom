@@ -270,17 +270,19 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install fluidsynth libfluidsynth-dev libsamplerate0-dev libsdl2-dev libsdl2-mixer-dev ninja-build
       - name: Run cmake to generate compilation database
-        run: cmake -S . -B . -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+        run: cmake -S . -B build_lint -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1
       - uses: cpp-linter/cpp-linter-action@v2
         id: linter
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: ''      # Disable clang-format
+          database: build_lint
+          step-summary: true
+          ignore: 'lib/'
           lines-changed-only: true
           files-changed-only: true
           tidy-checks: >-
-            boost-*
             ,bugprone-*
             ,performance-*
             ,readability-*
