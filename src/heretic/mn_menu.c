@@ -1758,9 +1758,9 @@ static void M_Draw_ID_Display (void)
     // Field of View
     sprintf(str, "%d", vid_fov);
     MN_DrTextAGlow(str, M_ItemRightAlign(str), 20,
-                        vid_fov == 135 || vid_fov == 70 ? cr[CR_YELLOW] :
+                        vid_fov == 150 || vid_fov == 70 ? cr[CR_YELLOW] :
                         vid_fov == 90 ? cr[CR_DARKRED] : cr[CR_GREEN],
-                            vid_fov == 135 || vid_fov == 70 ? cr[CR_YELLOW_BRIGHT] :
+                            vid_fov == 150 || vid_fov == 70 ? cr[CR_YELLOW_BRIGHT] :
                             vid_fov == 90 ? cr[CR_RED_BRIGHT] : cr[CR_GREEN_BRIGHT],
                                 LINE_ALPHA(0));
 
@@ -1864,7 +1864,7 @@ static void M_Draw_ID_Display (void)
 
 static void M_ID_FOV (int choice)
 {
-    vid_fov = M_INT_Slider(vid_fov, 70, 135, choice, true);
+    vid_fov = M_INT_Slider(vid_fov, 70, 150, choice, true);
 
     // [crispy] re-calculate the zlight[][] array
     R_InitLightTables();

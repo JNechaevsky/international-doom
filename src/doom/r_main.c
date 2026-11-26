@@ -504,6 +504,32 @@ void R_SetViewSize (int blocks, int detail)
 }
 
 // -----------------------------------------------------------------------------
+// FovScaleAt90
+//  [PN] The light tables are built for the vanilla 90 degree projection, so the
+//  wall scale has to be normalized by the ratio of the current FOV scale to
+//  this one. Widescreen widens the horizontal FOV to keep the vertical one, so
+//  the reference has to include the same delta as the current FOV does.
+// -----------------------------------------------------------------------------
+
+static fixed_t FovScaleAt90 (void)
+{
+    double deltaviewfov;
+
+    if (vid_widescreen)
+    {
+        // fov * 0.82 is vertical FOV for 4:3 aspect ratio
+        deltaviewfov = (atan(SCREENWIDTH / ((SCREENHEIGHT * 1.2)
+                     / tan(90 * 0.82 * M_PI / 360.0))) * 360.0 / M_PI) - 90;
+    }
+    else
+    {
+        deltaviewfov = 0;
+    }
+
+    return finetangent[(int)(FINEANGLES / 4 + (90 + deltaviewfov) * FINEANGLES / 360 / 2)];
+}
+
+// -----------------------------------------------------------------------------
 // R_ExecuteSetViewSize
 // -----------------------------------------------------------------------------
 
@@ -643,12 +669,15 @@ void R_ExecuteSetViewSize (void)
         distscale[i] = FixedDiv(FRACUNIT, cosadj);
     }
 
-    // [PN] Precalculate lighting scale table before generating scalelight[][]
+    // [PN] Precalculate lighting scale table before generating scalelight[][].
+    // Wall lighting follows the screen scale, which shrinks with the FOV,
+    // while planes use the true distance: normalize to the 90 degree reference.
+    const fixed_t light_fov_scale = FixedDiv(fovscale, FovScaleAt90());
     int *scale_table = malloc(MAXLIGHTSCALE * sizeof(*scale_table));
     {
         const int divisor = viewwidth_nonwide << detailshift;
         for (j = 0; j < MAXLIGHTSCALE; ++j)
-            scale_table[j] = (j * NONWIDEWIDTH / divisor) >> 1;
+            scale_table[j] = FixedMul(j * NONWIDEWIDTH / divisor, light_fov_scale) >> 1;
     }
 
     // Calculate the light levels to use
