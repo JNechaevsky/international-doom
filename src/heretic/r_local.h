@@ -504,7 +504,6 @@ extern int floorclip[MAXWIDTH];   // [crispy] 32-bit integer math
 extern int ceilingclip[MAXWIDTH]; // [crispy] 32-bit integer math
 
 extern fixed_t *yslope;
-extern fixed_t yslopes[LOOKDIRS][MAXHEIGHT]; // [crispy]
 extern fixed_t distscale[MAXWIDTH];
 
 extern fixed_t swirlCoord_x;

@@ -92,6 +92,11 @@ int extralight;
 // [JN] FOV from DOOM Retro, Woof! and Nugget Doom
 static fixed_t fovscale;	
 float  fovdiff;   // [Nugget] Used for some corrections
+
+// [PN] Plane projection row, rebuilt only when the horizon position changes.
+static fixed_t yslopenum;
+static fixed_t ysloperow[MAXHEIGHT];
+static int     ysloperowcentery = -1;
 int    max_project_slope = 4;  // [Woof!]
 
 // [crispy] parameterized for smooth diminishing lighting
@@ -627,22 +632,12 @@ void R_ExecuteSetViewSize (void)
         // [crispy] re-generate lookup-table for yslope[] (free look)
         // whenever "dp_detail_level" or "dp_screen_size" change
         // [JN] FOV from DOOM Retro and Nugget Doom
-        // [PN] Optimized: moved invariant calculations out of loops for better performance
-        const fixed_t half_fracunit = FRACUNIT >> 1;
-        const fixed_t half_viewheight = viewheight >> 1;
-        const fixed_t num = FixedMul(FixedDiv(FRACUNIT, fovscale), (viewwidth << detailshift) * half_fracunit);
-        const fixed_t step = (dp_screen_size < 11 ? dp_screen_size : 11);
-
-        for (i = 0; i < viewheight; i++)
-        {
-            for (j = 0; j < LOOKDIRS; j++)
-            {
-                const fixed_t dy = abs((i - (half_viewheight + ((j - LOOKDIRMIN) * vid_resolution) * step / 10)) << FRACBITS) + half_fracunit;
-                yslopes[j][i] = FixedDiv(num, dy);
-            }
-        }
+        // [PN] The projection row is built on demand for the exact horizon
+        // position, see R_SetupYslope().
+        yslopenum = FixedMul(FixedDiv(FRACUNIT, fovscale), (viewwidth << detailshift) * (FRACUNIT >> 1));
     }
-    yslope = yslopes[LOOKDIRMIN];
+    yslope = ysloperow;
+    ysloperowcentery = -1;
 
     for (i = 0 ; i < viewwidth ; i++)
     {
@@ -762,6 +757,29 @@ static inline boolean CheckLocalView(const player_t *player)
 }
 
 // -----------------------------------------------------------------------------
+// R_SetupYslope
+//  [PN] Plane projection row for the exact horizon position, rebuilt only when
+//  the horizon moves, so free look keeps its full precision.
+// -----------------------------------------------------------------------------
+
+static void R_SetupYslope (const int horizon)
+{
+    if (ysloperowcentery == horizon)
+    {
+        return;
+    }
+
+    ysloperowcentery = horizon;
+
+    for (int i = 0; i < viewheight; ++i)
+    {
+        const fixed_t dy = (abs(i - horizon) << FRACBITS) + (FRACUNIT >> 1);
+
+        ysloperow[i] = FixedDiv(yslopenum, dy);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // R_SetupFrame
 // -----------------------------------------------------------------------------
 
@@ -787,7 +805,7 @@ static void R_SetupFrame (player_t *const player)
             viewy = LerpFixed(CRL_camera_oldy, by);
             viewz = LerpFixed(CRL_camera_oldz, bz);
             viewangle = LerpAngle(CRL_camera_oldang, ba);
-            pitch = LerpFixed(CRL_camera_oldlookdir, CRL_camera_lookdir) / MLOOKUNIT;
+            pitch = LerpFixed(CRL_camera_oldlookdir, CRL_camera_lookdir);
         }
         else
         {
@@ -795,7 +813,7 @@ static void R_SetupFrame (player_t *const player)
             viewy = by;
             viewz = bz;
             viewangle = ba;
-            pitch = CRL_camera_lookdir / MLOOKUNIT;
+            pitch = CRL_camera_lookdir;
         }
     }
     else
@@ -822,12 +840,12 @@ static void R_SetupFrame (player_t *const player)
                 viewangle = (player->mo->angle + localview.angle -
                             localview.ticangle + LerpAngle(localview.oldticangle,
                                                            localview.ticangle)) + viewangleoffset;
-                pitch = LerpInt(player->r_oldlookdir, player->r_lookdir) / MLOOKUNIT;
+                pitch = LerpInt(player->r_oldlookdir, player->r_lookdir);
             }
             else
             {
                 viewangle = LerpAngle(player->mo->oldangle, player->mo->angle) + viewangleoffset;
-                pitch = LerpInt(player->oldlookdir, player->lookdir);
+                pitch = LerpInt(player->oldlookdir, player->lookdir) * MLOOKUNIT;
             }
         }
         else
@@ -836,8 +854,8 @@ static void R_SetupFrame (player_t *const player)
             viewy = player->mo->y;
             viewz = player->viewz;
             viewangle = player->mo->angle + viewangleoffset;
-            pitch = use_localview ? player->r_lookdir / MLOOKUNIT : // [JN] Precise vertical mouse look.
-                                    player->lookdir; // [crispy]
+            pitch = use_localview ? player->r_lookdir : // [JN] Precise vertical mouse look.
+                                    player->lookdir * MLOOKUNIT; // [crispy]
         }
     }
 
@@ -864,16 +882,26 @@ static void R_SetupFrame (player_t *const player)
     // [PN] Keep spectator pitch history in sync with position history.
     CRL_ReportLookdir(CRL_camera_lookdir);
 
+    // [PN] pitch is kept in MLOOKUNIT units: the horizon then moves in one
+    // pixel steps instead of vid_resolution * dp_screen_size / 10.
+    pitch = BETWEEN(-LOOKDIRMIN * MLOOKUNIT, LOOKDIRMAX * MLOOKUNIT, pitch);
+
     // [crispy] apply new yslope[] whenever "lookdir", "detailshift" or
     // "dp_screen_size" change
-    tempCentery = viewheight / 2 + (pitch * (1 * vid_resolution))
-                * (dp_screen_size < 11 ? dp_screen_size : 11) / 10;
+    {
+        const int step = (dp_screen_size < 11 ? dp_screen_size : 11);
+
+        tempCentery = viewheight / 2 + (int)(((int64_t)pitch
+                    * (vid_resolution * step)) / (10 * MLOOKUNIT));
+    }
+
     if (centery != tempCentery)
     {
         centery = tempCentery;
         centeryfrac = centery << FRACBITS;
-        yslope = yslopes[LOOKDIRMIN + pitch];
     }
+
+    R_SetupYslope(centery);
 
     viewsin = finesine[tableAngle];
     viewcos = finecosine[tableAngle];

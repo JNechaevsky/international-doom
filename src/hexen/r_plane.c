@@ -101,7 +101,6 @@ static fixed_t        planeheight;
 static int            planecolorbank;
 
 fixed_t *yslope;
-fixed_t  yslopes[LOOKDIRS][MAXHEIGHT];
 fixed_t  distscale[MAXWIDTH];
 
 static fixed_t cachedheight[MAXHEIGHT];

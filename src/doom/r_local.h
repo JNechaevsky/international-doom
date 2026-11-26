@@ -770,7 +770,6 @@ extern int    *lastopening;
 extern int    *openings;
 
 extern fixed_t *yslope;
-extern fixed_t  yslopes[LOOKDIRS][MAXHEIGHT];
 extern fixed_t distscale[MAXWIDTH];
 
 extern fixed_t swirlCoord_x;
