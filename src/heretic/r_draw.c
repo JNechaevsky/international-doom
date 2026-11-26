@@ -104,26 +104,55 @@ void R_DrawColumn(void)
     const int heightmask = dc_texheight - 1;
     const fixed_t heightshifted = dc_texheight << FRACBITS;
 
+    // [PN] Nothing to brighten on this column: skip the brightmap lookup and
+    // the per-pixel colormap selection, which cuts one dependent load and a
+    // branch out of the innermost loop of the renderer.
+    const boolean plain = (colormap0 == colormap1 || brightmap == nobrightmap);
+
     if (dc_texheight & heightmask) // Non-power-of-two texture
     {
         frac = (frac % heightshifted + heightshifted) % heightshifted; // Normalize frac
 
-        for (int i = 0; i <= count; ++i)
+        if (plain)
         {
-            const unsigned s = sourcebase[frac >> FRACBITS]; // Texture sample
-            *dest++ = brightmap[s] ? colormap1[s] : colormap0[s];
-            frac += fracstep;
-            if (frac >= heightshifted)
-                frac -= heightshifted; // Normalize frac inline
+            for (int i = 0; i <= count; ++i)
+            {
+                *dest++ = colormap0[sourcebase[frac >> FRACBITS]]; // Texture sample
+                frac += fracstep;
+                if (frac >= heightshifted)
+                    frac -= heightshifted; // Normalize frac inline
+            }
+        }
+        else
+        {
+            for (int i = 0; i <= count; ++i)
+            {
+                const unsigned s = sourcebase[frac >> FRACBITS]; // Texture sample
+                *dest++ = brightmap[s] ? colormap1[s] : colormap0[s];
+                frac += fracstep;
+                if (frac >= heightshifted)
+                    frac -= heightshifted; // Normalize frac inline
+            }
         }
     }
     else // Power-of-two texture
     {
-        for (int i = 0; i <= count; ++i)
+        if (plain)
         {
-            const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask]; // Texture sample with mask
-            *dest++ = brightmap[s] ? colormap1[s] : colormap0[s];
-            frac += fracstep;
+            for (int i = 0; i <= count; ++i)
+            {
+                *dest++ = colormap0[sourcebase[(frac >> FRACBITS) & heightmask]]; // Texture sample with mask
+                frac += fracstep;
+            }
+        }
+        else
+        {
+            for (int i = 0; i <= count; ++i)
+            {
+                const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask]; // Texture sample with mask
+                *dest++ = brightmap[s] ? colormap1[s] : colormap0[s];
+                frac += fracstep;
+            }
         }
     }
 }
@@ -160,35 +189,72 @@ void R_DrawColumnLow(void)
     const int heightmask = dc_texheight - 1;
     const fixed_t heightshifted = dc_texheight << FRACBITS; // Pre-shifted height for modulo
 
+    // [PN] Nothing to brighten on this column, see R_DrawColumn.
+    const boolean plain = (colormap0 == colormap1 || brightmap == nobrightmap);
+
     if (dc_texheight & heightmask) // Non-power-of-two texture
     {
         frac = ((frac % heightshifted) + heightshifted) % heightshifted; // Normalize frac within bounds
 
-        for (int i = count; i >= 0; --i)
+        if (plain)
         {
-            const unsigned s = sourcebase[frac >> FRACBITS]; // Texture sample
-            const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
+            for (int i = count; i >= 0; --i)
+            {
+                const pixel_t index = colormap0[sourcebase[frac >> FRACBITS]]; // Texture sample
 
-            *dest = index;
-            *dest2 = index;
-            dest++;
-            dest2++;
-            frac += fracstep;
-            if (frac >= heightshifted) frac -= heightshifted; // Avoid modulo
+                *dest = index;
+                *dest2 = index;
+                dest++;
+                dest2++;
+                frac += fracstep;
+                if (frac >= heightshifted) frac -= heightshifted; // Avoid modulo
+            }
+        }
+        else
+        {
+            for (int i = count; i >= 0; --i)
+            {
+                const unsigned s = sourcebase[frac >> FRACBITS]; // Texture sample
+                const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
+
+                *dest = index;
+                *dest2 = index;
+                dest++;
+                dest2++;
+                frac += fracstep;
+                if (frac >= heightshifted) frac -= heightshifted; // Avoid modulo
+            }
         }
     }
     else // Power-of-two texture
     {
-        for (int i = count; i >= 0; --i)
+        if (plain)
         {
-            const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask]; // Texture sample with bitmask
-            const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
+            for (int i = count; i >= 0; --i)
+            {
+                const pixel_t index =
+                    colormap0[sourcebase[(frac >> FRACBITS) & heightmask]]; // Texture sample with bitmask
 
-            *dest = index;
-            *dest2 = index;
-            dest++;
-            dest2++;
-            frac += fracstep; // Increment frac directly
+                *dest = index;
+                *dest2 = index;
+                dest++;
+                dest2++;
+                frac += fracstep; // Increment frac directly
+            }
+        }
+        else
+        {
+            for (int i = count; i >= 0; --i)
+            {
+                const unsigned s = sourcebase[(frac >> FRACBITS) & heightmask]; // Texture sample with bitmask
+                const unsigned index = brightmap[s] ? colormap1[s] : colormap0[s];
+
+                *dest = index;
+                *dest2 = index;
+                dest++;
+                dest2++;
+                frac += fracstep; // Increment frac directly
+            }
         }
     }
 }

@@ -26,7 +26,7 @@
 
 // [crispy] brightmap data
 
-static const byte nobrightmap[256] = {0};
+const byte nobrightmap[256] = {0};
 
 static const byte fullbright[256] =
 {

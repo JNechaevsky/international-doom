@@ -535,6 +535,7 @@ extern const byte  *R_BrightmapForSprite (const int type);
 extern const byte  *R_BrightmapForFlatNum (const int num);
 extern const byte  *R_BrightmapForState (const int state);
 extern const byte **texturebrightmap;
+extern const byte   nobrightmap[256];
 
 
 // -----------------------------------------------------------------------------
