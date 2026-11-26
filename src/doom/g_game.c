@@ -799,12 +799,15 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
     if (mouse_dclick_use)
     {
         // forward double click (combined)
-        if ((mousebuttons[mousebforward] != dclickstate || mousebuttons[mousebforward2] != dclickstate) && dclicktime > 1)
+        // [PN] Collapse both bindings into one state. With a single dclickstate
+        // for two buttons, an unbound second button never matches it, so the
+        // state machine kept toggling and holding forward fired use.
+        const boolean bforward = mousebuttons[mousebforward]
+                              || mousebuttons[mousebforward2];
+
+        if (bforward != dclickstate && dclicktime > 1)
         {
-            if (mousebuttons[mousebforward] != dclickstate)
-                dclickstate = mousebuttons[mousebforward];
-            else
-                dclickstate = mousebuttons[mousebforward2];
+            dclickstate = bforward;
 
             if (dclickstate)
                 dclicks++;
