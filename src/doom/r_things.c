@@ -1135,9 +1135,12 @@ static void R_ProjectSprite (const mobj_t *const thing)
     // The top clip must use the sprite's actual bottom (gzb), not the thing's
     // feet Z (interpz). Sprites with topoffsets extend below the anchor,
     // so interpz culled them too early. Also, thanks Alaux!
-    const fixed_t vscale = xscale << detailshift;
-    const int64_t top_world    = viewz + FixedDiv(centery << FRACBITS, vscale);
-    const int64_t bottom_world = viewz - FixedDiv((viewheight - centery) << FRACBITS, vscale);
+    // [Alaux] Calculate this early so we can perform height clipping
+    // using multiplications instead of divisions
+    const fixed_t iscale = FixedDiv(FRACUNIT, xscale);
+    const fixed_t yiscale = iscale >> detailshift;
+    const int64_t top_world    = viewz + FixedMul64(centeryfrac, yiscale);
+    const int64_t bottom_world = viewz - FixedMul64((viewheight - centery) << FRACBITS, yiscale);
 
     if (gzb > top_world || gzt < bottom_world)
     {
@@ -1158,8 +1161,6 @@ static void R_ProjectSprite (const mobj_t *const thing)
     vis->texturemid = gzt - viewz;
     vis->x1 = x1 < 0 ? 0 : x1;
     vis->x2 = x2 >= viewwidth ? viewwidth - 1 : x2;
-
-    const fixed_t iscale = FixedDiv(FRACUNIT, xscale);
 
     if (flip)
     {
