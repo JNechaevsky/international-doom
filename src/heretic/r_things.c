@@ -487,7 +487,7 @@ int *mfloorclip;    // [crispy] 32-bit integer math
 int *mceilingclip;  // [crispy] 32-bit integer math
 
 fixed_t spryscale;
-int64_t sprtopscreen; // [crispy] WiggleFix
+int64_t sprtopscreen; // [crispy] 64-bit integer math
 static fixed_t sprbotscreen;
 
 // [PN] Cache projected post runs for repeated columns of magnified sprites.
@@ -589,8 +589,8 @@ static void R_CopySprunColumn(int floor_clip, int ceiling_clip, int baseclip)
 
 void R_DrawMaskedColumn (const column_t *const column, signed int baseclip)
 {
-    int64_t topscreen;    // [crispy] WiggleFix
-    int64_t bottomscreen; // [crispy] WiggleFix
+    int64_t topscreen;    // [crispy] 64-bit integer math
+    int64_t bottomscreen; // [crispy] 64-bit integer math
     fixed_t basetexturemid;
     int     top = -1;
 
@@ -695,8 +695,8 @@ void R_DrawMaskedColumn (const column_t *const column, signed int baseclip)
         topscreen = l_sprtopscreen + scale_top;
         bottomscreen = topscreen + (int64_t)l_scale * col->length;
 
-        int yl = (int)((topscreen + FRACUNIT - 1) >> FRACBITS); // [crispy] WiggleFix
-        int yh = (int)((bottomscreen - 1) >> FRACBITS); // [crispy] WiggleFix
+        int yl = (int)((topscreen + FRACUNIT - 1) >> FRACBITS); // [crispy] 64-bit integer math
+        int yh = (int)((bottomscreen - 1) >> FRACBITS); // [crispy] 64-bit integer math
 
         // [PN] Record unclipped run geometry for repeat columns.
         if (caching)

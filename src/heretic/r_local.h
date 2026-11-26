@@ -99,10 +99,6 @@ typedef struct
     // [crispy] add support for MBF sky transfers
     int sky;
 
-    // [crispy] WiggleFix: [kb] for R_FixWiggle()
-    int cachedheight;
-    int scaleindex;
-
     // [AM] Previous position of floor and ceiling before
     //      think.  Used to interpolate between positions.
     fixed_t	oldfloorheight;
@@ -238,7 +234,8 @@ typedef struct drawseg_s
 {
     seg_t *curline;
     int x1, x2;
-    fixed_t scale1, scale2, scalestep;
+    fixed_t scale1, scale2;
+    int64_t scalestep;
     int silhouette;             // 0=none, 1=bottom, 2=top, 3=both
     fixed_t bsilheight;         // don't clip sprites above this
     fixed_t tsilheight;         // don't clip sprites below this
@@ -563,7 +560,7 @@ extern int screenheightarray[MAXWIDTH]; // [crispy] 32-bit integer math
 extern int *mfloorclip;   // [crispy] 32-bit integer math
 extern int *mceilingclip; // [crispy] 32-bit integer math
 extern fixed_t spryscale;
-extern int64_t sprtopscreen; // [crispy] WiggleFix
+extern int64_t sprtopscreen;
 
 extern fixed_t pspritescale, pspriteiscale;
 

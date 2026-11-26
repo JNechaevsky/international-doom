@@ -111,10 +111,6 @@ typedef	struct
     int     linecount;
     struct line_s **lines;  // linecount size
 
-    // [crispy] WiggleFix: [kb] for R_FixWiggle()
-    int		cachedheight;
-    int		scaleindex;
-
     // [crispy] add support for MBF sky tranfers
     int		sky;
 
@@ -307,7 +303,7 @@ typedef struct drawseg_s
 
     fixed_t scale1;
     fixed_t scale2;
-    fixed_t scalestep;
+    int64_t scalestep;
 
     // 0=none, 1=bottom, 2=top, 3=both
     int silhouette;

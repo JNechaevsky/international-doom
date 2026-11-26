@@ -44,8 +44,8 @@ static angle_t  rw_centerangle;
 static fixed_t  rw_x;
 static fixed_t  rw_stopx;
 static fixed_t  rw_offset;
-static fixed_t  rw_scale;
-static fixed_t  rw_scalestep;
+static int64_t  rw_scale;
+static int64_t  rw_scalestep;
 static fixed_t  rw_midtexturemid;
 static fixed_t  rw_toptexturemid;
 static fixed_t  rw_bottomtexturemid;
@@ -55,157 +55,68 @@ static fixed_t  worldbottom;
 static fixed_t  worldhigh;
 static fixed_t  worldlow;
 
-static int64_t  pixhigh;    // [crispy] WiggleFix
-static int64_t  pixlow;     // [crispy] WiggleFix
-static int64_t  pixhighstep;// [PN] WiggleFix
-static int64_t  pixlowstep; // [PN] WiggleFix
+static int64_t  pixhigh;
+static int64_t  pixlow;
+static int64_t  pixhighstep;
+static int64_t  pixlowstep;
 
-static int64_t  topfrac;    // [crispy] WiggleFix
-static int64_t  topstep;    // [PN] WiggleFix
+static int64_t  topfrac;
+static int64_t  topstep;
 
-static int64_t  bottomfrac; // [crispy] WiggleFix
-static int64_t  bottomstep; // [PN] WiggleFix
+static int64_t  bottomfrac;
+static int64_t  bottomstep;
 
-// [PN] Sub-pixel stable DDA for rw_scale/topfrac/bottomfrac
-//
-// Integer division used for rw_scalestep leaves a remainder. Accumulating the
-// truncated step causes a tiny drift that is most noticeable toward the right
-// edge of long walls. We fix this by distributing the remainder Bresenham-style
-// and applying the same +1/-1 correction to dependent 64-bit fractions.
+// [PN] Precise wall scaling.
+#define WALLSCALEBITS   (20 - FRACBITS)
+#define WALLEDGEBITS    (2 * FRACBITS)
+#define WALLEDGEUNIT    (INT64_C(1) << WALLEDGEBITS)
 
-static fixed_t  rw_scalespan;
-static int64_t  rw_scalerem;
-static int64_t  rw_scaleerr;
-static boolean  have_pixhigh;
-static boolean  have_pixlow;
-
-// [PN] Cached constants for DDA correction (per wall range).
-static int64_t  rw_scalespan64;
-static int64_t  rw_worldtopcorr;
-static int64_t  rw_worldbottomcorr;
-static int64_t  rw_worldhighcorr;
-static int64_t  rw_worldlowcorr;
-
-// [PN] Shared sub-pixel DDA step for solid and masked wall passes.
-// Returns +1 / -1 when error compensation must be applied this column.
-static inline int R_DDACompStep (int64_t *const err, const int64_t rem,
-                                 const int64_t span)
+static inline int64_t R_ToWallScale (const fixed_t scale)
 {
-    *err += rem;
+    return (int64_t)scale * (1 << WALLSCALEBITS);
+}
 
-    if (*err >= span)
+static inline fixed_t R_WallScaleToFixed (const int64_t scale)
+{
+    return (fixed_t)(scale >> WALLSCALEBITS);
+}
+
+static inline int R_WallTopToScreen (const int64_t edge)
+{
+    const int64_t y = (edge + WALLEDGEUNIT - 1) >> WALLEDGEBITS;
+
+    if (y < -1)
     {
-        *err -= span;
-        return 1;
-    }
-    else if (*err <= -span)
-    {
-        *err += span;
         return -1;
     }
+    if (y > viewheight)
+    {
+        return viewheight;
+    }
 
-    return 0;
+    return (int)y;
+}
+
+static inline int R_WallBottomToScreen (const int64_t edge)
+{
+    const int64_t y = edge >> WALLEDGEBITS;
+
+    if (y < -1)
+    {
+        return -1;
+    }
+    if (y > viewheight)
+    {
+        return viewheight;
+    }
+
+    return (int)y;
 }
 
 lighttable_t **walllights;
 
 int *maskedtexturecol;      // [JN] 32-bit integer math
 
-
-// [crispy] WiggleFix: add this code block near the top of r_segs.c
-//
-// R_FixWiggle()
-// Dynamic wall/texture rescaler, AKA "WiggleHack II"
-//  by Kurt "kb1" Baumgardner ("kb") and Andrey "Entryway" Budko ("e6y")
-//
-//  [kb] When the rendered view is positioned, such that the viewer is
-//   looking almost parallel down a wall, the result of the scale
-//   calculation in R_ScaleFromGlobalAngle becomes very large. And, the
-//   taller the wall, the larger that value becomes. If these large
-//   values were used as-is, subsequent calculations would overflow,
-//   causing full-screen HOM, and possible program crashes.
-//
-//  Therefore, vanilla Doom clamps this scale calculation, preventing it
-//   from becoming larger than 0x400000 (64*FRACUNIT). This number was
-//   chosen carefully, to allow reasonably-tight angles, with reasonably
-//   tall sectors to be rendered, within the limits of the fixed-point
-//   math system being used. When the scale gets clamped, Doom cannot
-//   properly render the wall, causing an undesirable wall-bending
-//   effect that I call "floor wiggle". Not a crash, but still ugly.
-//
-//  Modern source ports offer higher video resolutions, which worsens
-//   the issue. And, Doom is simply not adjusted for the taller walls
-//   found in many PWADs.
-//
-//  This code attempts to correct these issues, by dynamically
-//   adjusting the fixed-point math, and the maximum scale clamp,
-//   on a wall-by-wall basis. This has 2 effects:
-//
-//  1. Floor wiggle is greatly reduced and/or eliminated.
-//  2. Overflow is no longer possible, even in levels with maximum
-//     height sectors (65535 is the theoretical height, though Doom
-//     cannot handle sectors > 32767 units in height.
-//
-//  The code is not perfect across all situations. Some floor wiggle can
-//   still be seen, and some texture strips may be slightly misaligned in
-//   extreme cases. These effects cannot be corrected further, without
-//   increasing the precision of various renderer variables, and,
-//   possibly, creating a noticable performance penalty.
-//
-
-static int  max_rwscale = 64 * FRACUNIT;
-static int  heightbits  = 12;
-static int  heightunit  = (1 << 12);
-static int  invhgtbits  = 4;
-
-static const struct
-{
-    int clamp;
-    int heightbits;
-} scale_values[8] = {
-    {2048 * FRACUNIT, 12},
-    {1024 * FRACUNIT, 12},
-    {1024 * FRACUNIT, 11},
-    { 512 * FRACUNIT, 11},
-    { 512 * FRACUNIT, 10},
-    { 256 * FRACUNIT, 10},
-    { 256 * FRACUNIT,  9},
-    { 128 * FRACUNIT,  9}
-};
-
-static void R_FixWiggle (sector_t *const sector)
-{
-    static int lastheight = 0;
-    int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
-
-    // disallow negative heights. using 1 forces cache initialization
-    if (height < 1)
-        height = 1;
-
-    // early out?
-    if (height != lastheight)
-    {
-        lastheight = height;
-
-        // initialize, or handle moving sector
-        if (height != sector->cachedheight)
-        {
-            sector->cachedheight = height;
-            sector->scaleindex = 0;
-            height >>= 7;
-
-            // calculate adjustment
-            while (height >>= 1)
-                sector->scaleindex++;
-        }
-
-        // fine-tune renderer for this wall
-        max_rwscale = scale_values[sector->scaleindex].clamp;
-        heightbits = scale_values[sector->scaleindex].heightbits;
-        heightunit = (1 << heightbits);
-        invhgtbits = FRACBITS - heightbits;
-    }
-}
 
 // -----------------------------------------------------------------------------
 // R_RenderMaskedSegRange
@@ -230,36 +141,7 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
     walllights = scalelight[BETWEEN(0, LIGHTLEVELS-1, lightnum)];
 
     maskedtexturecol = ds->maskedtexturecol;
-    rw_scalestep = ds->scalestep;
-    spryscale = ds->scale1 + (x1 - ds->x1)*rw_scalestep;
-    // [PN] Sub-pixel stable DDA for masked pass (transparent upper/mid).
-    // Keeps masked columns aligned with solid-pass scale stepping.
-    int64_t masked_scalerem = 0;
-    int64_t masked_scaleerr = 0;
-    int64_t masked_scalespan64 = 0;
-    const int masked_scalespan = ds->x2 - ds->x1;
-
-    if (masked_scalespan > 0)
-    {
-        const int64_t delta = (int64_t)ds->scale2 - (int64_t)ds->scale1;
-        const int64_t step64 = delta / (int64_t)masked_scalespan;
-        const int advance = x1 - ds->x1;
-
-        masked_scalerem = delta - step64 * (int64_t)masked_scalespan;
-        masked_scalespan64 = (int64_t)masked_scalespan;
-
-        if (advance > 0 && masked_scalerem)
-        {
-            int i;
-
-            for (i = 0; i < advance; ++i)
-            {
-                spryscale += R_DDACompStep(&masked_scaleerr,
-                                           masked_scalerem,
-                                           masked_scalespan64);
-            }
-        }
-    }
+    int64_t scale = R_ToWallScale(ds->scale1) + (x1 - ds->x1) * ds->scalestep;
 
     mfloorclip = ds->sprbottomclip;
     mceilingclip = ds->sprtopclip;
@@ -288,11 +170,13 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
         colfunc = tlcolfunc;
 
     // draw the columns
-    for (dc_x = x1 ; dc_x <= x2 ; dc_x++)
+    for (dc_x = x1 ; dc_x <= x2 ; dc_x++, scale += ds->scalestep)
     {
         // calculate lighting
         if (maskedtexturecol[dc_x] != INT_MAX)  // [JN] 32-bit integer math
         {
+            spryscale = R_WallScaleToFixed(scale);
+
             if (!fixedcolormap)
             {
                 unsigned const int index = (spryscale / vid_resolution) >> LIGHTSCALESHIFT;
@@ -325,10 +209,10 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
                 if (t + (int64_t) textureheight[texnum] * spryscale < 0
                 ||  t > (int64_t) SCREENHEIGHT << FRACBITS * 2)
                 {
-                    goto next_column; // [PN] Keep DDA progression even if this column is skipped.
+                    continue;
                 }
 
-                sprtopscreen = (int64_t)(t >> FRACBITS); // [crispy] WiggleFix
+                sprtopscreen = (int64_t)(t >> FRACBITS); // [crispy] 64-bit integer math
             }
 
             dc_iscale = UINT_MAX / (unsigned)spryscale;
@@ -338,16 +222,6 @@ void R_RenderMaskedSegRange (const drawseg_t *const ds, int x1, int x2)
 
             R_DrawMaskedColumn (col, -1);
             maskedtexturecol[dc_x] = INT_MAX;  // [JN] 32-bit integer math
-        }
-
-next_column:
-        spryscale += rw_scalestep;
-
-        if (masked_scalerem)
-        {
-            spryscale += R_DDACompStep(&masked_scaleerr,
-                                       masked_scalerem,
-                                       masked_scalespan64);
         }
     }
     
@@ -369,8 +243,8 @@ static void R_RenderSegLoop (void)
     for ( ; rw_x < rw_stopx ; rw_x++)
     {
         // mark floor / ceiling areas
-        int yl = (int)((topfrac + heightunit - 1) >> heightbits);  // [crispy] WiggleFix
-        int yh = (int)(bottomfrac >> heightbits);  // [crispy] WiggleFix
+        int yl = R_WallTopToScreen(topfrac);
+        int yh = R_WallBottomToScreen(bottomfrac);
 
         // no space above wall?
         int bottom, top = ceilingclip[rw_x]+1;
@@ -420,6 +294,8 @@ static void R_RenderSegLoop (void)
         // texturecolumn and lighting are independent of wall tiers
         if (segtextured)
         {
+            const fixed_t fracscale = R_WallScaleToFixed(rw_scale);
+
             // calculate texture offset
             // [PN] ASAN: Keep angle in finetangent array
             const angle_t angle = ((rw_centerangle + xtoviewangle[rw_x]) >> ANGLETOFINESHIFT) & 0xFFF;
@@ -428,7 +304,7 @@ static void R_RenderSegLoop (void)
 
             // calculate lighting
             {
-                int index = (rw_scale / vid_resolution) >> LIGHTSCALESHIFT;
+                int index = (fracscale / vid_resolution) >> LIGHTSCALESHIFT;
 
                 if (index >= MAXLIGHTSCALE)
                 {
@@ -445,7 +321,7 @@ static void R_RenderSegLoop (void)
             }
 
             dc_x = rw_x;
-            dc_iscale = UINT_MAX / (unsigned)rw_scale;
+            dc_iscale = UINT_MAX / (unsigned)fracscale;
         }
 
         // draw the wall tiers
@@ -467,8 +343,8 @@ static void R_RenderSegLoop (void)
             // two sided line
             if (toptexture)
             {
-                // top wall ([crispy] WiggleFix)
-                const int mid = MIN((int)(pixhigh >> heightbits), floorclip[rw_x] - 1);
+                // top wall
+                const int mid = MIN(R_WallBottomToScreen(pixhigh), floorclip[rw_x] - 1);
                 pixhigh += pixhighstep;
 
                 if (mid >= yl)
@@ -498,8 +374,8 @@ static void R_RenderSegLoop (void)
 
             if (bottomtexture)
             {
-                // bottom wall ([crispy] WiggleFix)
-                const int mid = MAX((int)((pixlow + heightunit - 1) >> heightbits), ceilingclip[rw_x] + 1);
+                // bottom wall
+                const int mid = MAX(R_WallTopToScreen(pixlow), ceilingclip[rw_x] + 1);
                 pixlow += pixlowstep;
 
                 if (mid <= yh)
@@ -545,29 +421,11 @@ static void R_RenderSegLoop (void)
         rw_scale += rw_scalestep;
         topfrac += topstep;
         bottomfrac += bottomstep;
-
-        // [PN] Distribute the truncated remainder of rw_scalestep Bresenham-style.
-        // This removes the tiny right-edge drift/jitter on long walls.
-        if (rw_scalerem)
-        {
-            const int dda = R_DDACompStep(&rw_scaleerr, rw_scalerem, rw_scalespan64);
-
-            if (dda)
-            {
-                rw_scale += dda;
-                topfrac    -= dda * rw_worldtopcorr;
-                bottomfrac -= dda * rw_worldbottomcorr;
-                if (have_pixhigh) pixhigh -= dda * rw_worldhighcorr;
-                if (have_pixlow)  pixlow  -= dda * rw_worldlowcorr;
-            }
-        }
     }
 }
 
 // -----------------------------------------------------------------------------
 // R_ScaleFromGlobalAngle
-// [crispy] WiggleFix: move R_ScaleFromGlobalAngle function to r_segs.c,
-// above R_StoreWallRange
 // -----------------------------------------------------------------------------
 
 static fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
@@ -576,25 +434,8 @@ static fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
     const angle_t angleb = ANG90 + (visangle - rw_normalangle);
     const fixed_t den = FixedMul(rw_distance, finesine[anglea >> ANGLETOFINESHIFT]);
     const fixed_t num = FixedMul(projection, finesine[angleb >> ANGLETOFINESHIFT]) << detailshift;
-    fixed_t scale;
 
-    if (den > (num >> 16))
-    {
-        scale = FixedDiv(num, den);
-
-        // [kb] When this evaluates True, the scale is clamped,
-        //  and there will be some wiggling.
-        if (scale > max_rwscale)
-            scale = max_rwscale;
-        else if (scale < 256)
-            scale = 256;
-    }
-    else
-    {
-        scale = max_rwscale;
-    }
-
-    return scale;
+    return MAX(256, FixedDiv(num, den));
 }
 
 // -----------------------------------------------------------------------------
@@ -687,39 +528,14 @@ void R_StoreWallRange (int start, int stop)
         }
     }
 
-    // [crispy] WiggleFix: add this line, in r_segs.c:R_StoreWallRange,
-    // right before calls to R_ScaleFromGlobalAngle:
-    R_FixWiggle(frontsector);
-
     // calculate scale at both ends and step
-    ds_p->scale1 = rw_scale = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
+    const int steps = MAX(1, stop - start);
 
-    rw_scalespan = stop - start;
-    rw_scalerem  = 0;
-    rw_scaleerr  = 0;
-    rw_scalespan64 = (int64_t)rw_scalespan;
-
-    // [PN] Sub-pixel stable wall stepping:
-    // Instead of computing rw_scalestep via fixed_t division (which drops remainder),
-    // we preserve both the integer step and the residual error. The step is applied
-    // per-column, and the error is distributed Bresenham-style across the span,
-    // ensuring sub-pixel precision is evenly compensated. This eliminates visible jitter
-    // toward the right edge of long walls, especially when the camera pans horizontally.
-    if (rw_scalespan > 0)
-    {
-        const int64_t scale2 = (int64_t)R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
-        const int64_t delta = scale2 - (int64_t)rw_scale;
-        const int64_t step64 = delta / (int64_t)rw_scalespan;
-
-        ds_p->scale2 = (fixed_t)scale2;
-        ds_p->scalestep = rw_scalestep = (fixed_t)step64;
-        rw_scalerem = delta - step64 * (int64_t)rw_scalespan;
-    }
-    else
-    {
-        ds_p->scale2 = ds_p->scale1;
-        ds_p->scalestep = rw_scalespan = rw_scalestep = 0;
-    }
+    ds_p->scale1 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
+    ds_p->scale2 = (stop > start) ? R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop])
+                                  : ds_p->scale1;
+    rw_scale = R_ToWallScale(ds_p->scale1);
+    ds_p->scalestep = rw_scalestep = R_ToWallScale(ds_p->scale2 - ds_p->scale1) / steps;
 
     // calculate texture boundaries
     //  and decide if floor / ceiling marks are needed
@@ -937,48 +753,27 @@ void R_StoreWallRange (int start, int stop)
     }
 
     // calculate incremental stepping values for texture edges
-    worldtop >>= invhgtbits;
-    worldbottom >>= invhgtbits;
+    const int64_t screenmid = (int64_t)centery * WALLEDGEUNIT;
+    const int64_t scaledelta = (int64_t)ds_p->scale1 - ds_p->scale2;
 
-    // [PN] Cache DDA correction constants once per wall range.
-    rw_worldtopcorr = ((int64_t)worldtop >> FRACBITS);
-    rw_worldbottomcorr = ((int64_t)worldbottom >> FRACBITS);
-    rw_worldhighcorr = rw_worldlowcorr = 0;
+    topfrac = screenmid - (int64_t)worldtop * ds_p->scale1;
+    topstep = (int64_t)worldtop * scaledelta / steps;
 
-    topstep = -FixedMul64((int64_t)rw_scalestep, (int64_t)worldtop); // [PN] WiggleFix
-    topfrac = ((int64_t)centeryfrac >> invhgtbits)
-            - (((int64_t)worldtop * rw_scale) >> FRACBITS); // [crispy] WiggleFix
-
-    bottomstep = -FixedMul64((int64_t)rw_scalestep, (int64_t)worldbottom); // [PN] WiggleFix
-    bottomfrac = ((int64_t)centeryfrac >> invhgtbits)
-               - (((int64_t)worldbottom * rw_scale) >> FRACBITS); // [crispy] WiggleFix
+    bottomfrac = screenmid - (int64_t)worldbottom * ds_p->scale1;
+    bottomstep = (int64_t)worldbottom * scaledelta / steps;
 
     if (backsector)
     {
-        worldhigh >>= invhgtbits;
-        worldlow >>= invhgtbits;
-        // [PN] WiggleFix:
-        have_pixhigh = false;
-        have_pixlow  = false;
-
         if (worldhigh < worldtop)
         {
-            pixhigh = ((int64_t)centeryfrac >> invhgtbits)
-                    - (((int64_t)worldhigh * rw_scale) >> FRACBITS); // [crispy] WiggleFix
-            // [PN] WiggleFix:
-            pixhighstep  = -FixedMul64((int64_t)rw_scalestep, (int64_t)worldhigh);
-            rw_worldhighcorr = ((int64_t)worldhigh >> FRACBITS);
-            have_pixhigh = true;
+            pixhigh = screenmid - (int64_t)worldhigh * ds_p->scale1;
+            pixhighstep = (int64_t)worldhigh * scaledelta / steps;
         }
 
         if (worldlow > worldbottom)
         {
-            pixlow = ((int64_t)centeryfrac>>invhgtbits)
-                   - (((int64_t)worldlow * rw_scale) >> FRACBITS); // [crispy] WiggleFix
-            // [PN] WiggleFix:
-            pixlowstep  = -FixedMul64((int64_t)rw_scalestep, (int64_t)worldlow);
-            rw_worldlowcorr = ((int64_t)worldlow >> FRACBITS);
-            have_pixlow = true;
+            pixlow = screenmid - (int64_t)worldlow * ds_p->scale1;
+            pixlowstep = (int64_t)worldlow * scaledelta / steps;
         }
     }
 

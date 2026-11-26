@@ -580,7 +580,6 @@ static void P_LoadSectors (int lump)
         dst[i].special             = SHORT(src[i].special);
         dst[i].tag                 = SHORT(src[i].tag);
         dst[i].thinglist           = NULL;
-        dst[i].cachedheight        = 0; // [crispy] WiggleFix: [kb] for R_FixWiggle()
 
         // [AM] Sector interpolation. Even if we're
         // not running uncapped, the renderer still uses this data.
