@@ -176,7 +176,7 @@ static void R_MapPlane (int y, int x1, int x2)
         return;
     }
 
-    const int dy = abs((centery - y) << FRACBITS) + (FRACUNIT >> 1);
+    const int dy = abs((centery - y) << FRACBITS);
 
     if (planeheight != cachedheight[y])
     {

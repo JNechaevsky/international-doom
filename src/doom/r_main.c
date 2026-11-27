@@ -805,7 +805,7 @@ static void R_SetupYslope (const int horizon)
 
     for (int i = 0; i < viewheight; ++i)
     {
-        const fixed_t dy = (abs(i - horizon) << FRACBITS) + (FRACUNIT >> 1);
+        const fixed_t dy = abs(i - horizon) << FRACBITS;
 
         ysloperow[i] = FixedDiv(yslopenum, dy);
     }
