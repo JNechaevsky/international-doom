@@ -412,7 +412,10 @@ boolean speedkeydown (void)
 static int CarryError(double value, const double *prev_carry, double *cur_carry)
 {
     const double desired = value + *prev_carry;
-    const int actual = lround(desired);
+    // [PN] Round half up rather than lround()'s half away from zero: a carry of
+    // exactly +-0.5 would otherwise flip its own sign and keep adding one
+    // unit to the view every tic, even with the mouse perfectly still.
+    const int actual = (int)floor(desired + 0.5);
     *cur_carry = desired - actual;
 
     return actual;
