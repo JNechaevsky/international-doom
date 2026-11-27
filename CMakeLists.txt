@@ -88,6 +88,19 @@ option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
 
 option(ENABLE_SDL2_MIXER "Enable SDL2_mixer" On)
 
+# Check for FluidSynth.
+# Do it before SDL2_mixer: its CMake package pulls FluidSynth in as a
+# dependency and fails when that dependency is not found (see
+# cmake/FindFluidSynth.cmake for the reason), while a ready target lets it skip
+# the lookup entirely.
+find_package(FluidSynth CONFIG QUIET)
+if(NOT FluidSynth_FOUND)
+    find_package(FluidSynth MODULE QUIET)
+endif()
+if(FluidSynth_FOUND)
+    set(HAVE_FLUIDSYNTH TRUE)
+endif()
+
 find_package(SDL2 2.0.18)
 if(ENABLE_SDL2_MIXER)
     find_package(SDL2_mixer 2.0.2)
@@ -112,12 +125,6 @@ add_subdirectory("lib/spng")
 
 # Check for stb_image_write (JPEG screenshots).
 add_subdirectory("lib/stb_image_write")
-
-# Check for FluidSynth.
-find_package(FluidSynth)
-if(FluidSynth_FOUND)
-    set(HAVE_FLUIDSYNTH TRUE)
-endif()
 
 find_package(m)
 

@@ -77,8 +77,9 @@ find_package_handle_standard_args(SDL2_mixer
     VERSION_VAR SDL2_MIXER_VERSION
 )
 
-if(SDL2_MIXER_FOUND)
-    # Imported target.
+if(SDL2_MIXER_FOUND AND NOT TARGET SDL2_mixer::SDL2_mixer)
+    # Imported target. The config package may have created it already, even
+    # when one of its dependencies failed, so never add the target twice.
     add_library(SDL2_mixer::SDL2_mixer UNKNOWN IMPORTED)
     set_target_properties(SDL2_mixer::SDL2_mixer PROPERTIES
                           INTERFACE_COMPILE_OPTIONS "${PC_SDL2_MIXER_CFLAGS_OTHER}"
